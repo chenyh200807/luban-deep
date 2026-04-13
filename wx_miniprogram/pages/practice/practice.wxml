@@ -1,0 +1,114 @@
+<!-- pages/practice/practice.wxml — 练习中心（复刻 Web practice 页） -->
+<view class="practice-page {{isDark?'':'light'}}">
+
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <image class="nav-logo" src="/images/logo-white.png" mode="heightFix" bindtap="goHome" />
+      <text class="nav-title">练习中心</text>
+    </view>
+  </view>
+
+  <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px; bottom: 0">
+    <view class="page-inner">
+
+      <!-- ── 今日目标卡片 ──────────────────────────── -->
+      <view class="today-card glass-card">
+        <view class="today-header">
+          <text class="today-label">今日目标</text>
+          <view class="streak-badge">
+            <text class="streak-fire">🔥</text>
+            <text class="streak-val">{{streakDays}} 天</text>
+          </view>
+        </view>
+
+        <!-- 进度条 -->
+        <view class="progress-wrap">
+          <view class="progress-bar-bg">
+            <view
+              class="progress-bar-fill"
+              style="width: {{progressPct}}%"
+            ></view>
+          </view>
+          <text class="progress-label">{{todayDone}} / {{dailyTarget}} 题</text>
+        </view>
+      </view>
+
+      <!-- ── 练习模式 2×2 ────────────────────────── -->
+      <view class="section-header">
+        <text class="section-title">练习模式</text>
+      </view>
+
+      <view class="mode-grid">
+        <view
+          class="mode-card glass-card"
+          wx:for="{{practiceModes}}"
+          wx:key="id"
+          bindtap="startMode"
+          data-id="{{item.id}}"
+          style="--accent: {{item.color}}"
+        >
+          <view class="mode-icon-wrap" style="background: {{item.bgColor}}">
+            <text class="mode-icon">{{item.icon}}</text>
+          </view>
+          <text class="mode-title">{{item.title}}</text>
+          <text class="mode-desc">{{item.desc}}</text>
+        </view>
+      </view>
+
+      <!-- ── 30天学习报告入口 ──────────────────────── -->
+      <view class="report-card glass-card" bindtap="viewReport">
+        <view class="report-left">
+          <text class="report-icon">📄</text>
+          <view>
+            <text class="report-title">30 天学习报告</text>
+            <text class="report-sub">查看学习进度分析</text>
+          </view>
+        </view>
+        <text class="link-arrow">›</text>
+      </view>
+
+      <!-- ── 各章进度 ───────────────────────────────── -->
+      <view class="section-header">
+        <text class="section-title">各章进度</text>
+      </view>
+
+      <!-- 骨架屏 -->
+      <view wx:if="{{chaptersLoading}}">
+        <view class="skel-row" wx:for="{{[1,2,3,4]}}" wx:key="index">
+          <view class="skel-block skel-title"></view>
+          <view class="skel-block skel-bar"></view>
+        </view>
+      </view>
+
+      <!-- 章节列表 -->
+      <view class="chapters-list" wx:else>
+        <view
+          class="chapter-item glass-card"
+          wx:for="{{chapters}}"
+          wx:key="id"
+          bindtap="startChapter"
+          data-id="{{item.id}}"
+        >
+          <view class="chapter-info">
+            <text class="chapter-name">{{item.name}}</text>
+            <text class="chapter-stat">{{item.done}}/{{item.total}} 题</text>
+          </view>
+          <view class="chapter-bar-wrap">
+            <view class="chapter-bar-bg">
+              <view
+                class="chapter-bar-fill"
+                style="width: {{item.pct}}%; background: {{item.color}}"
+              ></view>
+            </view>
+            <text class="chapter-pct">{{item.pct}}%</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 底部安全距离 -->
+      <view style="height: 120rpx"></view>
+    </view>
+  </scroll-view>
+
+</view>

@@ -20,7 +20,13 @@ from deeptutor.core.trace import (
     merge_trace_metadata,
     new_call_id,
 )
+from deeptutor.agents.chat.style_profile import (
+    build_luban_thinking_prompt,
+    build_luban_responding_prompt,
+    is_luban_chat_style_enabled,
+)
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
+from deeptutor.services.branding import get_brand_name
 from deeptutor.services.llm import (
     clean_thinking_tags,
     complete as llm_complete,
@@ -31,10 +37,13 @@ from deeptutor.services.llm import (
     supports_response_format,
     supports_tools,
 )
+from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.tools.builtin import BUILTIN_TOOL_NAMES
 from deeptutor.utils.json_parser import parse_json_response
 
 logger = logging.getLogger(__name__)
+BRAND_NAME = get_brand_name()
+observability = get_langfuse_observability()
 
 CHAT_EXCLUDED_TOOLS = {"geogebra_analysis"}
 CHAT_OPTIONAL_TOOLS = [
@@ -167,54 +176,66 @@ class AgenticChatPipeline:
             trace_role="thought",
             trace_group="stage",
         )
-        async with stream.stage("thinking", source="chat", metadata=trace_meta):
-            await stream.progress(
-                trace_meta["label"],
-                source="chat",
-                stage="thinking",
-                metadata=merge_trace_metadata(
-                    trace_meta,
-                    {"trace_kind": "call_status", "call_state": "running"},
-                ),
-            )
-            messages = self._build_messages(
-                context=context,
-                system_prompt=self._thinking_system_prompt(enabled_tools, context),
-                user_content=context.user_message,
-            )
-            messages, images_stripped = self._prepare_messages_with_attachments(
-                messages,
-                context,
-            )
-            if images_stripped:
-                await stream.thinking(
-                    self._images_stripped_notice(),
+        with observability.start_observation(
+            name="chat.stage.thinking",
+            as_type="span",
+            input_payload={"user_message": context.user_message},
+            metadata=trace_meta,
+        ) as stage_observation:
+            async with stream.stage("thinking", source="chat", metadata=trace_meta):
+                await stream.progress(
+                    trace_meta["label"],
                     source="chat",
                     stage="thinking",
-                    metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "running"},
+                    ),
                 )
+                messages = self._build_messages(
+                    context=context,
+                    system_prompt=self._thinking_system_prompt(enabled_tools, context),
+                    user_content=context.user_message,
+                )
+                messages, images_stripped = self._prepare_messages_with_attachments(
+                    messages,
+                    context,
+                )
+                if images_stripped:
+                    await stream.thinking(
+                        self._images_stripped_notice(),
+                        source="chat",
+                        stage="thinking",
+                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                    )
 
-            chunks: list[str] = []
-            async for chunk in self._stream_messages(messages, max_tokens=1200):
-                if not chunk:
-                    continue
-                chunks.append(chunk)
-                await stream.thinking(
-                    chunk,
+                chunks: list[str] = []
+                async for chunk in self._stream_messages(messages, max_tokens=1200):
+                    if not chunk:
+                        continue
+                    chunks.append(chunk)
+                    await stream.thinking(
+                        chunk,
+                        source="chat",
+                        stage="thinking",
+                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                    )
+                await stream.progress(
+                    "",
                     source="chat",
                     stage="thinking",
-                    metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "complete"},
+                    ),
                 )
-            await stream.progress(
-                "",
-                source="chat",
-                stage="thinking",
-                metadata=merge_trace_metadata(
-                    trace_meta,
-                    {"trace_kind": "call_status", "call_state": "complete"},
-                ),
-            )
-            return clean_thinking_tags("".join(chunks), self.binding, self.model)
+                content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                observability.update_observation(
+                    stage_observation,
+                    output_payload=content,
+                    metadata=trace_meta,
+                )
+                return content
 
     async def _stage_acting(
         self,
@@ -223,40 +244,63 @@ class AgenticChatPipeline:
         thinking_text: str,
         stream: StreamBus,
     ) -> list[ToolTrace]:
-        async with stream.stage("acting", source="chat"):
-            if not enabled_tools:
+        with observability.start_observation(
+            name="chat.stage.acting",
+            as_type="span",
+            input_payload={"enabled_tools": enabled_tools},
+            metadata={"tool_count": len(enabled_tools)},
+        ) as stage_observation:
+            async with stream.stage("acting", source="chat"):
+                if not enabled_tools:
+                    await stream.progress(
+                        self._text(
+                            zh="当前没有启用任何工具，本轮跳过工具调用。",
+                            en="No tools are enabled for this turn, so tool execution was skipped.",
+                        ),
+                        source="chat",
+                        stage="acting",
+                    )
+                    observability.update_observation(
+                        stage_observation,
+                        output_payload={"tool_trace_count": 0},
+                        metadata={"tool_count": 0},
+                    )
+                    return []
+
+                if self._can_use_native_tool_calling():
+                    result = await self._run_native_tool_loop(
+                        context=context,
+                        enabled_tools=enabled_tools,
+                        thinking_text=thinking_text,
+                        stream=stream,
+                    )
+                    observability.update_observation(
+                        stage_observation,
+                        output_payload={"tool_trace_count": len(result)},
+                        metadata={"tool_count": len(enabled_tools)},
+                    )
+                    return result
+
                 await stream.progress(
                     self._text(
-                        zh="当前没有启用任何工具，本轮跳过工具调用。",
-                        en="No tools are enabled for this turn, so tool execution was skipped.",
+                        zh="当前模型不支持原生工具调用，已切换到 ReAct 文本编排。",
+                        en="The current model does not support native tool calling, so ReAct text orchestration is used.",
                     ),
                     source="chat",
                     stage="acting",
                 )
-                return []
-
-            if self._can_use_native_tool_calling():
-                return await self._run_native_tool_loop(
+                result = await self._run_react_fallback(
                     context=context,
                     enabled_tools=enabled_tools,
                     thinking_text=thinking_text,
                     stream=stream,
                 )
-
-            await stream.progress(
-                self._text(
-                    zh="当前模型不支持原生工具调用，已切换到 ReAct 文本编排。",
-                    en="The current model does not support native tool calling, so ReAct text orchestration is used.",
-                ),
-                source="chat",
-                stage="acting",
-            )
-            return await self._run_react_fallback(
-                context=context,
-                enabled_tools=enabled_tools,
-                thinking_text=thinking_text,
-                stream=stream,
-            )
+                observability.update_observation(
+                    stage_observation,
+                    output_payload={"tool_trace_count": len(result)},
+                    metadata={"tool_count": len(enabled_tools), "mode": "react_fallback"},
+                )
+                return result
 
     async def _stage_observing(
         self,
@@ -275,58 +319,70 @@ class AgenticChatPipeline:
             trace_role="observe",
             trace_group="stage",
         )
-        async with stream.stage("observing", source="chat", metadata=trace_meta):
-            await stream.progress(
-                trace_meta["label"],
-                source="chat",
-                stage="observing",
-                metadata=merge_trace_metadata(
-                    trace_meta,
-                    {"trace_kind": "call_status", "call_state": "running"},
-                ),
-            )
-            observation_prompt = self._text(
-                zh=(
-                    "请整理本轮推理与工具执行得到的关键信息，输出给 tutor 自己看的观察总结。"
-                    "聚焦：已确认事实、仍不确定的点、最终回答应强调什么。不要直接写给学生。"
-                ),
-                en=(
-                    "Summarize what was learned from the reasoning and tool execution for the tutor's internal observation note. "
-                    "Focus on confirmed facts, remaining uncertainty, and what the final answer should emphasize. "
-                    "Do not address the student directly."
-                ),
-            )
-            messages = self._build_messages(
-                context=context,
-                system_prompt=self._observing_system_prompt(enabled_tools),
-                user_content=(
-                    f"{observation_prompt}\n\n"
-                    f"{self._labeled_block('Thinking', thinking_text)}\n\n"
-                    f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}"
-                ),
-            )
-
-            chunks: list[str] = []
-            async for chunk in self._stream_messages(messages, max_tokens=1200):
-                if not chunk:
-                    continue
-                chunks.append(chunk)
-                await stream.observation(
-                    chunk,
+        with observability.start_observation(
+            name="chat.stage.observing",
+            as_type="span",
+            input_payload={"tool_trace_count": len(tool_traces)},
+            metadata=trace_meta,
+        ) as stage_observation:
+            async with stream.stage("observing", source="chat", metadata=trace_meta):
+                await stream.progress(
+                    trace_meta["label"],
                     source="chat",
                     stage="observing",
-                    metadata=merge_trace_metadata(trace_meta, {"trace_kind": "observation"}),
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "running"},
+                    ),
                 )
-            await stream.progress(
-                "",
-                source="chat",
-                stage="observing",
-                metadata=merge_trace_metadata(
-                    trace_meta,
-                    {"trace_kind": "call_status", "call_state": "complete"},
-                ),
-            )
-            return clean_thinking_tags("".join(chunks), self.binding, self.model)
+                observation_prompt = self._text(
+                    zh=(
+                        "请整理本轮推理与工具执行得到的关键信息，输出给 tutor 自己看的观察总结。"
+                        "聚焦：已确认事实、仍不确定的点、最终回答应强调什么。不要直接写给学生。"
+                    ),
+                    en=(
+                        "Summarize what was learned from the reasoning and tool execution for the tutor's internal observation note. "
+                        "Focus on confirmed facts, remaining uncertainty, and what the final answer should emphasize. "
+                        "Do not address the student directly."
+                    ),
+                )
+                messages = self._build_messages(
+                    context=context,
+                    system_prompt=self._observing_system_prompt(enabled_tools),
+                    user_content=(
+                        f"{observation_prompt}\n\n"
+                        f"{self._labeled_block('Thinking', thinking_text)}\n\n"
+                        f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}"
+                    ),
+                )
+
+                chunks: list[str] = []
+                async for chunk in self._stream_messages(messages, max_tokens=1200):
+                    if not chunk:
+                        continue
+                    chunks.append(chunk)
+                    await stream.observation(
+                        chunk,
+                        source="chat",
+                        stage="observing",
+                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "observation"}),
+                    )
+                await stream.progress(
+                    "",
+                    source="chat",
+                    stage="observing",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "complete"},
+                    ),
+                )
+                content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                observability.update_observation(
+                    stage_observation,
+                    output_payload=content,
+                    metadata=trace_meta,
+                )
+                return content
 
     async def _stage_responding(
         self,
@@ -346,58 +402,70 @@ class AgenticChatPipeline:
             trace_role="response",
             trace_group="stage",
         )
-        async with stream.stage("responding", source="chat", metadata=trace_meta):
-            await stream.progress(
-                trace_meta["label"],
-                source="chat",
-                stage="responding",
-                metadata=merge_trace_metadata(
-                    trace_meta,
-                    {"trace_kind": "call_status", "call_state": "running"},
-                ),
-            )
-            user_prompt = self._text(
-                zh=(
-                    f"用户问题：\n{context.user_message}\n\n"
-                    f"{self._labeled_block('Observation', observation)}\n\n"
-                    f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
-                    "请基于以上内容，直接给出正式回答。不要暴露内部 pipeline、thinking、observing 等字样。"
-                ),
-                en=(
-                    f"User request:\n{context.user_message}\n\n"
-                    f"{self._labeled_block('Observation', observation)}\n\n"
-                    f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
-                    "Use this material to produce the final answer for the user. "
-                    "Do not mention the internal pipeline, thinking, or observing stages."
-                ),
-            )
-            messages = self._build_messages(
-                context=context,
-                system_prompt=self._responding_system_prompt(enabled_tools),
-                user_content=user_prompt,
-            )
-
-            chunks: list[str] = []
-            async for chunk in self._stream_messages(messages, max_tokens=1800):
-                if not chunk:
-                    continue
-                chunks.append(chunk)
-                await stream.content(
-                    chunk,
+        with observability.start_observation(
+            name="chat.stage.responding",
+            as_type="span",
+            input_payload={"tool_trace_count": len(tool_traces)},
+            metadata=trace_meta,
+        ) as stage_observation:
+            async with stream.stage("responding", source="chat", metadata=trace_meta):
+                await stream.progress(
+                    trace_meta["label"],
                     source="chat",
                     stage="responding",
-                    metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "running"},
+                    ),
                 )
-            await stream.progress(
-                "",
-                source="chat",
-                stage="responding",
-                metadata=merge_trace_metadata(
-                    trace_meta,
-                    {"trace_kind": "call_status", "call_state": "complete"},
-                ),
-            )
-            return clean_thinking_tags("".join(chunks), self.binding, self.model), trace_meta
+                user_prompt = self._text(
+                    zh=(
+                        f"用户问题：\n{context.user_message}\n\n"
+                        f"{self._labeled_block('Observation', observation)}\n\n"
+                        f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
+                        "请基于以上内容，直接给出正式回答。不要暴露内部 pipeline、thinking、observing 等字样。"
+                    ),
+                    en=(
+                        f"User request:\n{context.user_message}\n\n"
+                        f"{self._labeled_block('Observation', observation)}\n\n"
+                        f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
+                        "Use this material to produce the final answer for the user. "
+                        "Do not mention the internal pipeline, thinking, or observing stages."
+                    ),
+                )
+                messages = self._build_messages(
+                    context=context,
+                    system_prompt=self._responding_system_prompt(enabled_tools),
+                    user_content=user_prompt,
+                )
+
+                chunks: list[str] = []
+                async for chunk in self._stream_messages(messages, max_tokens=1800):
+                    if not chunk:
+                        continue
+                    chunks.append(chunk)
+                    await stream.content(
+                        chunk,
+                        source="chat",
+                        stage="responding",
+                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                    )
+                await stream.progress(
+                    "",
+                    source="chat",
+                    stage="responding",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "complete"},
+                    ),
+                )
+                content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                observability.update_observation(
+                    stage_observation,
+                    output_payload=content,
+                    metadata=trace_meta,
+                )
+                return content, trace_meta
 
     async def _stage_answer_now(
         self,
@@ -414,67 +482,79 @@ class AgenticChatPipeline:
             trace_role="response",
             trace_group="stage",
         )
-        async with stream.stage("responding", source="chat", metadata=trace_meta):
-            await stream.progress(
-                trace_meta["label"],
-                source="chat",
-                stage="responding",
-                metadata=merge_trace_metadata(
-                    trace_meta,
-                    {"trace_kind": "call_status", "call_state": "running"},
-                ),
-            )
-
-            original_user_message = str(
-                answer_now_context.get("original_user_message") or context.user_message
-            ).strip()
-            partial_response = str(answer_now_context.get("partial_response") or "").strip()
-            trace_summary = self._format_answer_now_events(answer_now_context.get("events"))
-            user_prompt = self._text(
-                zh=(
-                    f"用户原始问题：\n{original_user_message}\n\n"
-                    f"{self._labeled_block('Current Draft', partial_response)}\n\n"
-                    f"{self._labeled_block('Execution Trace', trace_summary)}\n\n"
-                    "请基于当前已经完成的内容，立刻直接生成给用户的最终答复。"
-                    "不要继续规划或调用工具，不要提到内部阶段。"
-                    "如果信息仍有缺口，请诚实说明不确定之处，但仍尽可能先给出当前最有用的回答。"
-                ),
-                en=(
-                    f"Original user request:\n{original_user_message}\n\n"
-                    f"{self._labeled_block('Current Draft', partial_response)}\n\n"
-                    f"{self._labeled_block('Execution Trace', trace_summary)}\n\n"
-                    "Using only the material already gathered so far, produce the final user-facing answer now. "
-                    "Do not continue planning or call tools, and do not mention internal stages. "
-                    "If something is still uncertain, be explicit about the uncertainty while still giving the most useful answer you can."
-                ),
-            )
-            messages = self._build_messages(
-                context=context,
-                system_prompt=self._responding_system_prompt([]),
-                user_content=user_prompt,
-            )
-
-            chunks: list[str] = []
-            async for chunk in self._stream_messages(messages, max_tokens=1800):
-                if not chunk:
-                    continue
-                chunks.append(chunk)
-                await stream.content(
-                    chunk,
+        with observability.start_observation(
+            name="chat.stage.answer_now",
+            as_type="span",
+            input_payload=answer_now_context,
+            metadata=trace_meta,
+        ) as stage_observation:
+            async with stream.stage("responding", source="chat", metadata=trace_meta):
+                await stream.progress(
+                    trace_meta["label"],
                     source="chat",
                     stage="responding",
-                    metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "running"},
+                    ),
                 )
-            await stream.progress(
-                "",
-                source="chat",
-                stage="responding",
-                metadata=merge_trace_metadata(
-                    trace_meta,
-                    {"trace_kind": "call_status", "call_state": "complete"},
-                ),
-            )
-            return clean_thinking_tags("".join(chunks), self.binding, self.model), trace_meta
+
+                original_user_message = str(
+                    answer_now_context.get("original_user_message") or context.user_message
+                ).strip()
+                partial_response = str(answer_now_context.get("partial_response") or "").strip()
+                trace_summary = self._format_answer_now_events(answer_now_context.get("events"))
+                user_prompt = self._text(
+                    zh=(
+                        f"用户原始问题：\n{original_user_message}\n\n"
+                        f"{self._labeled_block('Current Draft', partial_response)}\n\n"
+                        f"{self._labeled_block('Execution Trace', trace_summary)}\n\n"
+                        "请基于当前已经完成的内容，立刻直接生成给用户的最终答复。"
+                        "不要继续规划或调用工具，不要提到内部阶段。"
+                        "如果信息仍有缺口，请诚实说明不确定之处，但仍尽可能先给出当前最有用的回答。"
+                    ),
+                    en=(
+                        f"Original user request:\n{original_user_message}\n\n"
+                        f"{self._labeled_block('Current Draft', partial_response)}\n\n"
+                        f"{self._labeled_block('Execution Trace', trace_summary)}\n\n"
+                        "Using only the material already gathered so far, produce the final user-facing answer now. "
+                        "Do not continue planning or call tools, and do not mention internal stages. "
+                        "If something is still uncertain, be explicit about the uncertainty while still giving the most useful answer you can."
+                    ),
+                )
+                messages = self._build_messages(
+                    context=context,
+                    system_prompt=self._responding_system_prompt([]),
+                    user_content=user_prompt,
+                )
+
+                chunks: list[str] = []
+                async for chunk in self._stream_messages(messages, max_tokens=1800):
+                    if not chunk:
+                        continue
+                    chunks.append(chunk)
+                    await stream.content(
+                        chunk,
+                        source="chat",
+                        stage="responding",
+                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                    )
+                await stream.progress(
+                    "",
+                    source="chat",
+                    stage="responding",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "complete"},
+                    ),
+                )
+                content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                observability.update_observation(
+                    stage_observation,
+                    output_payload=content,
+                    metadata=trace_meta,
+                )
+                return content, trace_meta
 
     async def _run_native_tool_loop(
         self,
@@ -1138,7 +1218,7 @@ class AgenticChatPipeline:
         )
         return self._text(
             zh=(
-                "你是 DeepTutor 的工具调用代理。你的任务是根据用户问题和前序 thinking，"
+                f"你是 {BRAND_NAME} 的工具调用代理。你的任务是根据用户问题和前序 thinking，"
                 "从当前已启用的工具中自主选择必要工具并调用。"
                 "\n\n规则：\n"
                 "1. 先完整审视所有已启用工具，再决定最有帮助的工具组合；不要只盯住单个工具。\n"
@@ -1152,7 +1232,7 @@ class AgenticChatPipeline:
                 f"工具使用提示：\n{tool_aliases or '- 无'}"
             ),
             en=(
-                "You are DeepTutor's tool-using agent. Based on the user request and prior thinking, "
+                f"You are {BRAND_NAME}'s tool-using agent. Based on the user request and prior thinking, "
                 "autonomously choose and call only the enabled tools that are truly helpful."
                 "\n\nRules:\n"
                 "1. Review the full enabled tool list before deciding; do not fixate on a single tool too early.\n"
@@ -1170,7 +1250,7 @@ class AgenticChatPipeline:
     def _react_fallback_system_prompt(self, tool_table: str) -> str:
         return self._text(
             zh=(
-                "你是 DeepTutor 的 ReAct 工具代理。你必须只输出一个 JSON 对象，不要输出其他文本。\n\n"
+                f"你是 {BRAND_NAME} 的 ReAct 工具代理。你必须只输出一个 JSON 对象，不要输出其他文本。\n\n"
                 "JSON 格式：\n"
                 '{\n  "action": "<tool_name_or_done>",\n  "action_input": { ... }\n}\n\n'
                 "可选动作如下：\n"
@@ -1179,7 +1259,7 @@ class AgenticChatPipeline:
                 "如果不需要工具，请输出 action=done。"
             ),
             en=(
-                "You are DeepTutor's ReAct tool agent. Output exactly one JSON object and nothing else.\n\n"
+                f"You are {BRAND_NAME}'s ReAct tool agent. Output exactly one JSON object and nothing else.\n\n"
                 "JSON format:\n"
                 '{\n  "action": "<tool_name_or_done>",\n  "action_input": { ... }\n}\n\n'
                 "Available actions:\n"
@@ -1197,9 +1277,15 @@ class AgenticChatPipeline:
             language=self.language,
             kb_name=kb_name,
         )
+        if is_luban_chat_style_enabled():
+            return build_luban_thinking_prompt(
+                language=self.language,
+                brand_name=BRAND_NAME,
+                tool_list=tool_list or "",
+            )
         return self._text(
             zh=(
-                "你是 DeepTutor 的 thinking 阶段。请先分析用户问题，判断目标、已知条件、缺失信息，"
+                f"你是 {BRAND_NAME} 的 thinking 阶段。请先分析用户问题，判断目标、已知条件、缺失信息，"
                 "并思考是否需要后续工具调用。这里输出的是 tutor 的内部思路，不是最终回复。"
                 "\n\n要求：\n"
                 "1. 流式、简洁、自然地输出思考过程。\n"
@@ -1208,7 +1294,7 @@ class AgenticChatPipeline:
                 f"当前启用工具：\n{tool_list or '- 无'}"
             ),
             en=(
-                "You are DeepTutor's thinking stage. Analyze the user's request, identify goals, constraints, "
+                f"You are {BRAND_NAME}'s thinking stage. Analyze the user's request, identify goals, constraints, "
                 "missing information, and whether later tool use is needed. This is the tutor's internal reasoning, "
                 "not the final answer.\n\n"
                 "Requirements:\n"
@@ -1227,7 +1313,7 @@ class AgenticChatPipeline:
         )
         return self._text(
             zh=(
-                "你是 DeepTutor 的 observing 阶段。请基于 thinking 和 acting 阶段的输出，"
+                f"你是 {BRAND_NAME} 的 observing 阶段。请基于 thinking 和 acting 阶段的输出，"
                 "整理一份内部观察总结，供最终回答阶段使用。不要直接回答学生。"
                 "\n\n优先总结：\n"
                 "1. 已确认的事实与结论\n"
@@ -1236,7 +1322,7 @@ class AgenticChatPipeline:
                 f"本轮可用工具背景：\n{tool_list or '- 无'}"
             ),
             en=(
-                "You are DeepTutor's observing stage. Based on the outputs from the thinking and acting stages, "
+                f"You are {BRAND_NAME}'s observing stage. Based on the outputs from the thinking and acting stages, "
                 "prepare an internal synthesis for the final answer stage. Do not answer the student directly.\n\n"
                 "Prioritize:\n"
                 "1. confirmed facts and conclusions\n"
@@ -1252,9 +1338,15 @@ class AgenticChatPipeline:
             format="list",
             language=self.language,
         )
+        if is_luban_chat_style_enabled():
+            return build_luban_responding_prompt(
+                language=self.language,
+                brand_name=BRAND_NAME,
+                tool_list=tool_list or "",
+            )
         return self._text(
             zh=(
-                "你是 DeepTutor 的最终回答阶段。请根据 observation 和工具结果，"
+                f"你是 {BRAND_NAME} 的最终回答阶段。请根据 observation 和工具结果，"
                 "给用户一个清晰、直接、结构良好的正式答复。"
                 "\n\n要求：\n"
                 "1. 只输出面向用户的正式回答。\n"
@@ -1263,7 +1355,7 @@ class AgenticChatPipeline:
                 f"本轮工具背景：\n{tool_list or '- 无'}"
             ),
             en=(
-                "You are DeepTutor's final response stage. Use the observation and tool evidence to provide a clear, "
+                f"You are {BRAND_NAME}'s final response stage. Use the observation and tool evidence to provide a clear, "
                 "direct, well-structured answer to the user.\n\n"
                 "Requirements:\n"
                 "1. Output only the final user-facing answer.\n"

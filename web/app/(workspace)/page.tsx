@@ -207,6 +207,7 @@ export default function HomePage() {
     state,
     setTools,
     setCapability,
+    setChatMode,
     setKBs,
     sendMessage,
     cancelStreamingTurn,
@@ -251,15 +252,20 @@ export default function HomePage() {
   const isMathAnimatorMode = activeCap.value === "math_animator";
   const isVisualizeMode = activeCap.value === "visualize";
   const isResearchMode = activeCap.value === "deep_research";
+  const isPlainChatMode = activeCap.value === "";
   const selectedTools = useMemo(() => new Set(state.enabledTools), [state.enabledTools]);
   const ragActive = isResearchMode ? researchConfig.sources.includes("kb") : selectedTools.has("rag");
   const hasMessages = state.messages.length > 0;
   const activeCapabilityKey = activeCap.value || "chat";
   const { ref: composerRef, height: composerHeight } = useMeasuredHeight<HTMLDivElement>();
   const visibleTools = useMemo(
-    () =>
-      ALL_TOOLS.filter((t) => activeCap.allowedTools.includes(t.name)),
-    [activeCap.allowedTools],
+    () => {
+      const allowedTools = isPlainChatMode && state.chatMode === "fast"
+        ? ["rag", "web_search"]
+        : activeCap.allowedTools;
+      return ALL_TOOLS.filter((t) => allowedTools.includes(t.name));
+    },
+    [activeCap.allowedTools, isPlainChatMode, state.chatMode],
   );
   const researchValidation = useMemo(
     () => validateResearchConfig(researchConfig),
@@ -797,6 +803,8 @@ export default function HomePage() {
           activeCap={activeCap}
           visibleTools={visibleTools}
           selectedTools={selectedTools}
+          chatMode={state.chatMode}
+          showChatModeToggle={isPlainChatMode}
           ragActive={ragActive}
           knowledgeBases={knowledgeBases}
           selectedNotebookRecords={selectedNotebookRecords}
@@ -829,6 +837,7 @@ export default function HomePage() {
           onSelectNotebookPicker={() => setShowNotebookPicker(true)}
           onSelectHistoryPicker={() => setShowHistoryPicker(true)}
           onToggleTool={toggleTool}
+          onSetChatMode={setChatMode}
           onToggleResearchSource={toggleResearchSource}
           onSend={handleSend}
           onRemoveAttachment={removeAttachment}

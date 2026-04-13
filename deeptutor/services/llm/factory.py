@@ -44,6 +44,7 @@ import tenacity
 
 from deeptutor.config.settings import settings
 from deeptutor.logging.logger import Logger, get_logger
+from deeptutor.services.observability import get_langfuse_observability
 
 from . import local_provider
 from .config import LLMConfig, get_llm_config
@@ -65,6 +66,7 @@ if TYPE_CHECKING:
 
 # Initialize logger
 logger: Logger = get_logger("LLMFactory")
+observability = get_langfuse_observability()
 
 # Default retry configuration (bound to settings)
 DEFAULT_MAX_RETRIES = settings.retry.max_retries
@@ -321,17 +323,69 @@ async def complete(
     extra_kwargs: CallKwargs = dict(kwargs)
     extra_kwargs.pop("messages", None)
 
-    return await _do_complete(
-        prompt_value=prompt,
-        system_prompt_value=system_prompt,
-        model_value=model,
-        api_key_value=api_key,
-        base_url_value=base_url,
-        api_version_value=api_version,
-        binding_value=binding or "openai",
-        extra_kwargs=extra_kwargs,
-        messages_value=messages,
-    )
+    input_payload = messages or [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt},
+    ]
+    model_parameters = {
+        key: value
+        for key, value in {
+            "binding": binding or provider_name,
+            "reasoning_effort": reasoning_effort,
+            "max_retries": max_retries,
+            "retry_delay": retry_delay,
+            "provider_mode": provider_mode,
+        }.items()
+        if value is not None
+    }
+    with observability.start_observation(
+        name="llm.complete",
+        as_type="generation",
+        input_payload=input_payload,
+        metadata={
+            "provider_name": provider_name,
+            "provider_mode": provider_mode,
+            "base_url": base_url,
+        },
+        model=model,
+        model_parameters=model_parameters,
+    ) as observation:
+        try:
+            result = await _do_complete(
+                prompt_value=prompt,
+                system_prompt_value=system_prompt,
+                model_value=model,
+                api_key_value=api_key,
+                base_url_value=base_url,
+                api_version_value=api_version,
+                binding_value=binding or "openai",
+                extra_kwargs=extra_kwargs,
+                messages_value=messages,
+            )
+        except Exception as exc:
+            observability.update_observation(
+                observation,
+                metadata={"provider_name": provider_name, "provider_mode": provider_mode},
+                level="ERROR",
+                status_message=str(exc),
+            )
+            raise
+
+        usage_details = observability.estimate_usage_details(
+            input_payload=input_payload,
+            output_payload=result,
+        )
+        observability.update_observation(
+            observation,
+            output_payload=result,
+            metadata={"provider_name": provider_name, "provider_mode": provider_mode},
+            usage_details=usage_details,
+            cost_details=observability.estimate_cost_details(
+                model=model,
+                usage_details=usage_details,
+            ),
+        )
+        return result
 
 
 async def stream(
@@ -384,86 +438,146 @@ async def stream(
     has_yielded = False
     max_delay = 120
 
-    for attempt in range(total_attempts):
-        try:
-            if provider_mode == "oauth" and provider_name == "openai_codex":
-                raise LLMConfigError(
-                    "openai_codex requires OAuth login in CLI. "
-                    "Run `deeptutor provider login openai-codex` first."
+    input_payload = messages or [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt},
+    ]
+    model_parameters = {
+        key: value
+        for key, value in {
+            "binding": binding or provider_name,
+            "reasoning_effort": reasoning_effort,
+            "max_retries": max_retries,
+            "retry_delay": retry_delay,
+            "provider_mode": provider_mode,
+        }.items()
+        if value is not None
+    }
+    streamed_chunks: list[str] = []
+    with observability.start_observation(
+        name="llm.stream",
+        as_type="generation",
+        input_payload=input_payload,
+        metadata={
+            "provider_name": provider_name,
+            "provider_mode": provider_mode,
+            "base_url": base_url,
+            "streaming": True,
+        },
+        model=model,
+        model_parameters=model_parameters,
+    ) as observation:
+        for attempt in range(total_attempts):
+            try:
+                if provider_mode == "oauth" and provider_name == "openai_codex":
+                    raise LLMConfigError(
+                        "openai_codex requires OAuth login in CLI. "
+                        "Run `deeptutor provider login openai-codex` first."
+                    )
+                if provider_mode == "oauth":
+                    raise LLMConfigError(
+                        f"{provider_name} requires OAuth session. "
+                        "Run `deeptutor provider login ...` first."
+                    )
+
+                if provider_mode != "direct":
+                    async for chunk in sdk_stream(
+                        prompt=prompt,
+                        system_prompt=system_prompt,
+                        provider_name=provider_name,
+                        model=model,
+                        api_key=api_key,
+                        base_url=base_url,
+                        api_version=api_version,
+                        messages=messages,
+                        extra_headers=extra_headers or None,
+                        reasoning_effort=reasoning_effort,
+                        **extra_kwargs,
+                    ):
+                        has_yielded = True
+                        streamed_chunks.append(chunk)
+                        yield chunk
+                elif use_local_fallback:
+                    async for chunk in local_provider.stream(
+                        prompt=prompt,
+                        system_prompt=system_prompt,
+                        model=model,
+                        api_key=api_key,
+                        base_url=base_url,
+                        messages=messages,
+                        **extra_kwargs,
+                    ):
+                        has_yielded = True
+                        streamed_chunks.append(chunk)
+                        yield chunk
+                else:
+                    from . import cloud_provider
+
+                    direct_binding = "azure_openai" if provider_name == "azure_openai" else "openai"
+                    async for chunk in cloud_provider.stream(
+                        prompt=prompt,
+                        system_prompt=system_prompt,
+                        model=model,
+                        api_key=api_key,
+                        base_url=base_url,
+                        api_version=api_version,
+                        binding=direct_binding if provider_mode == "direct" else (binding or "openai"),
+                        messages=messages,
+                        extra_headers=extra_headers or None,
+                        **extra_kwargs,
+                    ):
+                        has_yielded = True
+                        streamed_chunks.append(chunk)
+                        yield chunk
+
+                usage_details = observability.estimate_usage_details(
+                    input_payload=input_payload,
+                    output_payload="".join(streamed_chunks),
                 )
-            if provider_mode == "oauth":
-                raise LLMConfigError(
-                    f"{provider_name} requires OAuth session. "
-                    "Run `deeptutor provider login ...` first."
+                observability.update_observation(
+                    observation,
+                    output_payload="".join(streamed_chunks),
+                    metadata={"provider_name": provider_name, "provider_mode": provider_mode},
+                    usage_details=usage_details,
+                    cost_details=observability.estimate_cost_details(
+                        model=model,
+                        usage_details=usage_details,
+                    ),
                 )
+                return
+            except Exception as exc:
+                last_exception = exc
+                if has_yielded:
+                    observability.update_observation(
+                        observation,
+                        output_payload="".join(streamed_chunks),
+                        metadata={"provider_name": provider_name, "provider_mode": provider_mode},
+                        level="ERROR",
+                        status_message=str(exc),
+                    )
+                    raise
+                if attempt >= max_retries or not _is_retriable_error(exc):
+                    observability.update_observation(
+                        observation,
+                        metadata={"provider_name": provider_name, "provider_mode": provider_mode},
+                        level="ERROR",
+                        status_message=str(exc),
+                    )
+                    raise
 
-            if provider_mode != "direct":
-                async for chunk in sdk_stream(
-                    prompt=prompt,
-                    system_prompt=system_prompt,
-                    provider_name=provider_name,
-                    model=model,
-                    api_key=api_key,
-                    base_url=base_url,
-                    api_version=api_version,
-                    messages=messages,
-                    extra_headers=extra_headers or None,
-                    reasoning_effort=reasoning_effort,
-                    **extra_kwargs,
-                ):
-                    has_yielded = True
-                    yield chunk
-            elif use_local_fallback:
-                async for chunk in local_provider.stream(
-                    prompt=prompt,
-                    system_prompt=system_prompt,
-                    model=model,
-                    api_key=api_key,
-                    base_url=base_url,
-                    messages=messages,
-                    **extra_kwargs,
-                ):
-                    has_yielded = True
-                    yield chunk
-            else:
-                from . import cloud_provider
+                if exponential_backoff:
+                    current_delay = min(delay * (2**attempt), max_delay)
+                else:
+                    current_delay = delay
 
-                direct_binding = "azure_openai" if provider_name == "azure_openai" else "openai"
-                async for chunk in cloud_provider.stream(
-                    prompt=prompt,
-                    system_prompt=system_prompt,
-                    model=model,
-                    api_key=api_key,
-                    base_url=base_url,
-                    api_version=api_version,
-                    binding=direct_binding if provider_mode == "direct" else (binding or "openai"),
-                    messages=messages,
-                    extra_headers=extra_headers or None,
-                    **extra_kwargs,
-                ):
-                    has_yielded = True
-                    yield chunk
-            return
-        except Exception as exc:
-            last_exception = exc
-            if has_yielded:
-                raise
-            if attempt >= max_retries or not _is_retriable_error(exc):
-                raise
+                if isinstance(exc, LLMRateLimitError) and exc.retry_after:
+                    current_delay = max(current_delay, exc.retry_after)
 
-            if exponential_backoff:
-                current_delay = min(delay * (2**attempt), max_delay)
-            else:
-                current_delay = delay
-
-            if isinstance(exc, LLMRateLimitError) and exc.retry_after:
-                current_delay = max(current_delay, exc.retry_after)
-
-            logger.warning(
-                "LLM streaming failed (attempt %s/%s), retrying in %.1fs... Error: %s"
-                % (attempt + 1, total_attempts, current_delay, exc)
-            )
-            await asyncio.sleep(current_delay)
+                logger.warning(
+                    "LLM streaming failed (attempt %s/%s), retrying in %.1fs... Error: %s"
+                    % (attempt + 1, total_attempts, current_delay, exc)
+                )
+                await asyncio.sleep(current_delay)
 
     if last_exception:
         raise last_exception

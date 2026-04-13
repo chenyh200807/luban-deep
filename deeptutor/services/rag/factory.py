@@ -1,7 +1,7 @@
 """RAG pipeline factory.
 
-This module keeps a lightweight provider registry with a single built-in
-provider (`llamaindex`) while preserving the extension mechanism for future
+This module keeps a lightweight provider registry with built-in providers
+(`llamaindex`, `supabase`) while preserving the extension mechanism for future
 providers via `register_pipeline`.
 """
 
@@ -43,9 +43,15 @@ def _init_pipelines() -> None:
 
         return LlamaIndexPipeline(**kwargs)
 
+    def _build_supabase(**kwargs):
+        from .pipelines.supabase import SupabasePipeline
+
+        return SupabasePipeline(**kwargs)
+
     _PIPELINES.update(
         {
             DEFAULT_PROVIDER: _build_llamaindex,
+            "supabase": _build_supabase,
         }
     )
     _PIPELINES_INITIALIZED = True
@@ -93,7 +99,12 @@ def list_pipelines() -> List[Dict[str, str]]:
             "id": DEFAULT_PROVIDER,
             "name": "LlamaIndex",
             "description": "Pure vector retrieval, fastest processing speed.",
-        }
+        },
+        {
+            "id": "supabase",
+            "name": "Supabase",
+            "description": "Read-only remote retrieval powered by your Supabase knowledge base.",
+        },
     ]
 
 

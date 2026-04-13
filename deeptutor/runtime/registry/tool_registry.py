@@ -12,10 +12,12 @@ import logging
 from typing import Any
 
 from deeptutor.core.tool_protocol import BaseTool, ToolDefinition, ToolPromptHints
+from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.tools.builtin import BUILTIN_TOOL_TYPES, TOOL_ALIASES
 from deeptutor.tools.prompting import ToolPromptComposer
 
 logger = logging.getLogger(__name__)
+observability = get_langfuse_observability()
 
 
 class ToolRegistry:
@@ -134,7 +136,33 @@ class ToolRegistry:
         tool = self._tools.get(resolved_name)
         if tool is None:
             raise KeyError(f"Unknown tool: {name}")
-        return await tool.execute(**resolved_kwargs)
+        with observability.start_observation(
+            name=f"tool.{resolved_name}",
+            as_type="tool",
+            input_payload=resolved_kwargs,
+            metadata={"requested_name": name, "resolved_name": resolved_name},
+        ) as observation:
+            try:
+                result = await tool.execute(**resolved_kwargs)
+            except Exception as exc:
+                observability.update_observation(
+                    observation,
+                    metadata={"requested_name": name, "resolved_name": resolved_name},
+                    level="ERROR",
+                    status_message=str(exc),
+                )
+                raise
+            observability.update_observation(
+                observation,
+                output_payload={
+                    "success": getattr(result, "success", True),
+                    "content": getattr(result, "content", ""),
+                    "source_count": len(getattr(result, "sources", []) or []),
+                    "metadata": getattr(result, "metadata", {}) or {},
+                },
+                metadata={"requested_name": name, "resolved_name": resolved_name},
+            )
+            return result
 
 
 _default_registry: ToolRegistry | None = None

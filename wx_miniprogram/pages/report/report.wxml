@@ -1,0 +1,200 @@
+<!-- pages/report/report.wxml — 学习报告（雷达图 + 摸底报告） -->
+<view class="report-page {{isDark?'':'light'}}">
+
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <view class="nav-back" bindtap="goHome">
+        <text class="nav-back-arrow">‹</text>
+        <text class="nav-back-txt">对话</text>
+      </view>
+      <view style="flex:1"></view>
+    </view>
+  </view>
+
+  <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px; bottom: 0">
+    <view class="page-inner">
+
+      <!-- ═══════════ 能力雷达 ═══════════════════════ -->
+      <view class="section-header">
+        <text class="section-title">能力雷达</text>
+      </view>
+
+      <!-- 加载中 -->
+      <view wx:if="{{radarLoading}}" class="glass-card loading-card">
+        <view class="skel-block" style="width: 280rpx; height: 280rpx; border-radius: 50%; margin: 0 auto"></view>
+        <view class="skel-block" style="width: 60%; height: 32rpx; margin: 24rpx auto 0"></view>
+      </view>
+
+      <!-- 错误 -->
+      <view wx:elif="{{radarError}}" class="glass-card empty-card">
+        <text class="empty-icon">{{warnIcon}}</text>
+        <text class="empty-title">加载失败</text>
+        <text class="empty-desc">无法获取能力数据，请检查网络后重试</text>
+        <view class="empty-btn" bindtap="retryRadar">
+          <text class="empty-btn-txt">重试</text>
+        </view>
+      </view>
+
+      <!-- 空数据 -->
+      <view wx:elif="{{radarDimensions.length === 0 && !radarLoading}}" class="glass-card empty-card">
+        <text class="empty-icon">{{radarIcon}}</text>
+        <text class="empty-title">能力数据生成中</text>
+        <text class="empty-desc">完成一定量的练习后，系统会自动分析你的各维度能力</text>
+        <view class="empty-btn" bindtap="goPractice">
+          <text class="empty-btn-txt">去练习</text>
+        </view>
+      </view>
+
+      <!-- 雷达图 + 统计 -->
+      <view wx:else>
+        <!-- Canvas 雷达图（绘制后转为图片跟随滚动） -->
+        <view class="radar-canvas-wrap">
+          <canvas type="2d" id="radarCanvas" class="radar-canvas"
+            style="{{radarImage ? 'position:fixed;left:-9999px;top:-9999px' : ''}}"></canvas>
+          <image wx:if="{{radarImage}}" class="radar-image" src="{{radarImage}}" mode="aspectFit"></image>
+        </view>
+
+        <!-- 强项/一般/薄弱 统计 -->
+        <view class="radar-summary">
+          <view class="radar-stat">
+            <view class="stat-dot dot-strong"></view>
+            <text class="stat-num">{{strongCount}}</text>
+            <text class="stat-label">强项</text>
+          </view>
+          <view class="radar-stat">
+            <view class="stat-dot dot-normal"></view>
+            <text class="stat-num">{{normalCount}}</text>
+            <text class="stat-label">一般</text>
+          </view>
+          <view class="radar-stat">
+            <view class="stat-dot dot-weak"></view>
+            <text class="stat-num">{{weakCount}}</text>
+            <text class="stat-label">薄弱</text>
+          </view>
+        </view>
+
+        <!-- 各维度详情 -->
+        <view class="section-header sub-header">
+          <text class="section-title-sm">各维度详情</text>
+        </view>
+
+        <view class="dim-list">
+          <view
+            class="dim-item glass-card"
+            wx:for="{{dimList}}"
+            wx:key="rank"
+          >
+            <view class="dim-rank rank-{{item.cls}}">
+              <text class="dim-rank-txt">{{item.rank}}</text>
+            </view>
+            <text class="dim-name">{{item.name}}</text>
+            <view class="dim-bar">
+              <view
+                class="dim-bar-fill"
+                style="width: {{item.pct}}%; background: {{item.color}}"
+              ></view>
+            </view>
+            <text class="dim-pct" style="color: {{item.color}}">{{item.pct}}%</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- ═══════════ 摸底报告（点击展开） ═══════════ -->
+      <view class="report-entry glass-card" bindtap="toggleMastery">
+        <view class="report-entry-left">
+          <view class="report-entry-icon">
+            <text class="report-entry-icon-txt">AI</text>
+          </view>
+          <view class="report-entry-info">
+            <text class="report-entry-title">摸底报告</text>
+            <text class="report-entry-sub" wx:if="{{!masteryExpanded}}">总体掌握度 {{overallMastery}}% · 点击查看详情</text>
+            <text class="report-entry-sub" wx:else>点击收起</text>
+          </view>
+        </view>
+        <text class="report-entry-arrow">{{masteryExpanded ? '∧' : '›'}}</text>
+      </view>
+
+      <!-- 摸底报告详情（展开后显示） -->
+      <view wx:if="{{masteryExpanded}}">
+
+        <!-- 加载中 -->
+        <view wx:if="{{masteryLoading}}" class="glass-card loading-card">
+          <view class="skel-block" style="width: 50%; height: 64rpx; margin: 0 auto"></view>
+          <view class="skel-block" style="width: 80%; height: 24rpx; margin: 16rpx auto 0"></view>
+        </view>
+
+        <!-- 错误 -->
+        <view wx:elif="{{masteryError}}" class="glass-card empty-card">
+          <text class="empty-title">加载失败</text>
+          <view class="empty-btn" bindtap="retryMastery">
+            <text class="empty-btn-txt">重试</text>
+          </view>
+        </view>
+
+        <!-- 掌握度数据 -->
+        <view wx:else>
+          <!-- 总体掌握度 -->
+          <view class="mastery-hero glass-card">
+            <view class="mastery-score-wrap">
+              <text class="mastery-score {{overallMastery >= 70 ? 'score-good' : overallMastery >= 40 ? 'score-mid' : 'score-low'}}">
+                {{overallMastery}}
+              </text>
+              <text class="mastery-unit">%</text>
+            </view>
+            <text class="mastery-label">总体掌握度</text>
+          </view>
+
+          <!-- 分组掌握度 -->
+          <view
+            class="mastery-group glass-card"
+            wx:for="{{masteryGroups}}"
+            wx:key="name"
+          >
+            <view class="group-header">
+              <text class="group-name">{{item.name}}</text>
+              <text class="group-avg {{item.avgMastery >= 70 ? 'avg-good' : item.avgMastery >= 40 ? 'avg-mid' : 'avg-low'}}">
+                {{item.avgMastery}}%
+              </text>
+            </view>
+            <view class="group-chapters">
+              <view
+                class="chapter-row"
+                wx:for="{{item.chapters}}"
+                wx:for-item="ch"
+                wx:key="name"
+              >
+                <text class="ch-name">{{ch.name}}</text>
+                <view class="ch-bar">
+                  <view
+                    class="ch-bar-fill"
+                    style="width: {{ch.mastery}}%; background: {{ch.color}}"
+                  ></view>
+                </view>
+                <text class="ch-pct" style="color: {{ch.color}}">{{ch.mastery}}%</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 摸底测试入口 -->
+      <view class="assess-entry glass-card" bindtap="goAssessment">
+        <view class="assess-entry-left">
+          <view class="assess-entry-icon">
+            <text class="assess-entry-icon-txt">AI</text>
+          </view>
+          <view class="assess-entry-info">
+            <text class="assess-entry-title">摸底测试</text>
+            <text class="assess-entry-sub">重新评估知识掌握程度</text>
+          </view>
+        </view>
+        <text class="assess-entry-arrow">›</text>
+      </view>
+
+      <!-- 底部安全距离 -->
+      <view style="height: 180rpx"></view>
+    </view>
+  </scroll-view>
+
+</view>

@@ -199,6 +199,14 @@ def _load_kb_entry_or_404(manager: KnowledgeBaseManager, kb_name: str) -> dict:
 
 
 def _assert_kb_writable_or_409(kb_name: str, kb_entry: dict) -> None:
+    if bool(kb_entry.get("remote_read_only", False)):
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"Knowledge base '{kb_name}' is a read-only remote knowledge base. "
+                "Document upload and sync are disabled for this provider."
+            ),
+        )
     if bool(kb_entry.get("needs_reindex", False)):
         raise HTTPException(
             status_code=409,
@@ -604,6 +612,15 @@ async def delete_knowledge_base(kb_name: str):
     """Delete a knowledge base."""
     try:
         manager = get_kb_manager()
+        kb_entry = _load_kb_entry_or_404(manager, kb_name)
+        if bool(kb_entry.get("remote_read_only", False)):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"Knowledge base '{kb_name}' is a read-only remote knowledge base and "
+                    "cannot be deleted from DeepTutor."
+                ),
+            )
         success = manager.delete_knowledge_base(kb_name, confirm=True)
         if not success:
             raise HTTPException(status_code=400, detail="Failed to delete knowledge base")
@@ -703,6 +720,14 @@ async def create_knowledge_base(
             raise HTTPException(status_code=400, detail=f"Knowledge base '{name}' already exists")
 
         rag_provider = _validate_registered_provider(rag_provider)
+        if rag_provider == "supabase":
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Supabase provider is read-only in DeepTutor. "
+                    "Use the configured remote KB instead of uploading local files."
+                ),
+            )
 
         logger.info(f"Creating KB: {name}")
         task_id = _build_unique_task_id("kb_init", name)

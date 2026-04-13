@@ -1,7 +1,6 @@
 """Public request contracts and config validators for built-in capabilities."""
 
 from __future__ import annotations
-
 from typing import Any, Callable, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -14,12 +13,16 @@ from deeptutor.agents.research.request_config import (
     DeepResearchRequestConfig,
     validate_research_request_config,
 )
+from deeptutor.capabilities.chat_mode import get_default_chat_mode
 
 _RUNTIME_ONLY_KEYS = {"_persist_user_message", "followup_question_context"}
 
 
 class ChatRequestConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+    chat_mode: Literal["fast", "deep"] = Field(default_factory=get_default_chat_mode)
+    answer_now_context: dict[str, Any] | None = None
 
 
 class DeepSolveRequestConfig(BaseModel):
@@ -37,6 +40,8 @@ class DeepQuestionRequestConfig(BaseModel):
     difficulty: str = ""
     question_type: str = ""
     preference: str = ""
+    reveal_answers: bool = False
+    reveal_explanations: bool = False
     paper_path: str = ""
     max_questions: int = Field(default=10, ge=1, le=100)
 
@@ -142,6 +147,7 @@ __all__ = [
     "DeepSolveRequestConfig",
     "VisualizeRequestConfig",
     "build_request_schema",
+    "get_default_chat_mode",
     "get_capability_request_schema",
     "validate_capability_config",
     "validate_chat_request_config",

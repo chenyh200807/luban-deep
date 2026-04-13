@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import List, Optional
 
 from deeptutor.logging import get_logger
+from deeptutor.services.observability import get_langfuse_observability
 
 from .adapters.base import BaseEmbeddingAdapter, EmbeddingRequest
 from .adapters.cohere import CohereEmbeddingAdapter
@@ -13,10 +14,11 @@ from .adapters.ollama import OllamaEmbeddingAdapter
 from .adapters.openai_compatible import OpenAICompatibleEmbeddingAdapter
 from .config import EmbeddingConfig, get_embedding_config
 
-_OPENAI_COMPAT_PROVIDERS = {"custom", "openai", "azure_openai", "vllm"}
+_OPENAI_COMPAT_PROVIDERS = {"custom", "openai", "azure_openai", "vllm", "dashscope"}
 _COHERE_PROVIDERS = {"cohere"}
 _JINA_PROVIDERS = {"jina"}
 _OLLAMA_PROVIDERS = {"ollama"}
+observability = get_langfuse_observability()
 
 
 def _resolve_adapter_class(binding: str) -> type[BaseEmbeddingAdapter]:
@@ -72,37 +74,69 @@ class EmbeddingClient:
         all_embeddings: List[List[float]] = []
         batch_delay = self.config.batch_delay
 
-        try:
-            total_batches = (len(texts) + batch_size - 1) // batch_size
-            for i, start in enumerate(range(0, len(texts), batch_size)):
-                batch = texts[start : start + batch_size]
-                request = EmbeddingRequest(
-                    texts=batch,
-                    model=self.config.model,
-                    dimensions=self.config.dim,
+        usage_details = observability.estimate_usage_details(input_payload=texts, output_payload=None)
+        with observability.start_observation(
+            name="embedding.embed",
+            as_type="embedding",
+            input_payload=texts,
+            metadata={
+                "binding": self.config.binding,
+                "batch_size": batch_size,
+                "dimensions": self.config.dim,
+                "text_count": len(texts),
+            },
+            model=self.config.model,
+            model_parameters={"batch_size": batch_size, "dimensions": self.config.dim},
+            usage_details=usage_details,
+            cost_details=observability.estimate_cost_details(
+                model=self.config.model,
+                usage_details=usage_details,
+            ),
+        ) as observation:
+            try:
+                total_batches = (len(texts) + batch_size - 1) // batch_size
+                for i, start in enumerate(range(0, len(texts), batch_size)):
+                    batch = texts[start : start + batch_size]
+                    request = EmbeddingRequest(
+                        texts=batch,
+                        model=self.config.model,
+                        dimensions=self.config.dim,
+                    )
+                    response = await self.adapter.embed(request)
+                    all_embeddings.extend(response.embeddings)
+
+                    if progress_callback:
+                        try:
+                            progress_callback(i + 1, total_batches)
+                        except Exception:
+                            pass
+
+                    if i < total_batches - 1 and batch_delay > 0:
+                        await asyncio.sleep(batch_delay)
+            except Exception as exc:
+                observability.update_observation(
+                    observation,
+                    metadata={"binding": self.config.binding, "text_count": len(texts)},
+                    level="ERROR",
+                    status_message=str(exc),
                 )
-                response = await self.adapter.embed(request)
-                all_embeddings.extend(response.embeddings)
+                self.logger.error(f"Embedding request failed: {exc}")
+                raise
 
-                # Report progress after each batch
-                if progress_callback:
-                    try:
-                        progress_callback(i + 1, total_batches)
-                    except Exception:
-                        pass
-
-                # Delay between batches to avoid rate limiting
-                if i < total_batches - 1 and batch_delay > 0:
-                    await asyncio.sleep(batch_delay)
-
+            observability.update_observation(
+                observation,
+                output_payload={"embeddings": len(all_embeddings)},
+                metadata={
+                    "binding": self.config.binding,
+                    "dimensions": self.config.dim,
+                    "embedding_count": len(all_embeddings),
+                },
+            )
             self.logger.debug(
                 f"Generated {len(all_embeddings)} embeddings using "
                 f"{self.config.binding} (batch_size={batch_size})"
             )
             return all_embeddings
-        except Exception as exc:
-            self.logger.error(f"Embedding request failed: {exc}")
-            raise
 
     def embed_sync(self, texts: List[str]) -> List[List[float]]:
         import asyncio
@@ -139,4 +173,3 @@ def get_embedding_client(config: Optional[EmbeddingConfig] = None) -> EmbeddingC
 def reset_embedding_client() -> None:
     global _client
     _client = None
-

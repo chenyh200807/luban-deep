@@ -13,10 +13,13 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from deeptutor.core.stream import StreamEvent, StreamEventType
+from deeptutor.capabilities.chat_mode import get_default_chat_mode
+from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, get_sqlite_session_store
 
 logger = logging.getLogger(__name__)
+observability = get_langfuse_observability()
 
 
 def _should_capture_assistant_content(event: StreamEvent) -> bool:
@@ -228,6 +231,11 @@ class TurnRuntimeManager:
             session["id"],
             {
                 "capability": capability,
+                "chat_mode": (
+                    validated_public_config.get("chat_mode", get_default_chat_mode())
+                    if capability == "chat"
+                    else raw_config.get("chat_mode", get_default_chat_mode())
+                ),
                 "tools": list(payload.get("tools") or []),
                 "knowledge_bases": list(payload.get("knowledge_bases") or []),
                 "language": str(payload.get("language") or "en"),
@@ -335,6 +343,12 @@ class TurnRuntimeManager:
         attachment_records = []
         assistant_events: list[dict[str, Any]] = []
         assistant_content = ""
+        turn_observation: Any | None = None
+        trace_metadata = {
+            "session_id": session_id,
+            "turn_id": turn_id,
+            "capability": capability_name or "chat",
+        }
 
         try:
             from deeptutor.core.context import Attachment, UnifiedContext
@@ -353,189 +367,217 @@ class TurnRuntimeManager:
             history_references = payload.get("history_references", []) or []
             notebook_context = ""
             history_context = ""
+            trace_metadata["language"] = payload.get("language", "en")
+            with observability.start_observation(
+                name=f"turn.{capability_name or 'chat'}",
+                as_type="chain",
+                input_payload={"content": raw_user_content},
+                metadata=trace_metadata,
+            ) as turn_observation:
 
-            for item in payload.get("attachments", []):
-                record = {
-                    "type": item.get("type", "file"),
-                    "url": item.get("url", ""),
-                    "base64": item.get("base64", ""),
-                    "filename": item.get("filename", ""),
-                    "mime_type": item.get("mime_type", ""),
-                }
-                attachment_records.append(record)
-                attachments.append(Attachment(**record))
+                for item in payload.get("attachments", []):
+                    record = {
+                        "type": item.get("type", "file"),
+                        "url": item.get("url", ""),
+                        "base64": item.get("base64", ""),
+                        "filename": item.get("filename", ""),
+                        "mime_type": item.get("mime_type", ""),
+                    }
+                    attachment_records.append(record)
+                    attachments.append(Attachment(**record))
 
-            if followup_question_context:
-                existing_messages = await self.store.get_messages_for_context(session_id)
-                if not existing_messages:
+                if followup_question_context:
+                    existing_messages = await self.store.get_messages_for_context(session_id)
+                    if not existing_messages:
+                        await self.store.add_message(
+                            session_id=session_id,
+                            role="system",
+                            content=_format_followup_question_context(
+                                followup_question_context,
+                                language=str(payload.get("language", "en") or "en"),
+                            ),
+                            capability=capability_name or "chat",
+                        )
+
+                llm_config = get_llm_config()
+                builder = ContextBuilder(self.store)
+                history_result = await builder.build(
+                    session_id=session_id,
+                    llm_config=llm_config,
+                    language=payload.get("language", "en"),
+                    on_event=lambda event: self._persist_and_publish(execution, event),
+                )
+                memory_service = get_memory_service()
+                memory_context = memory_service.build_memory_context()
+
+                if notebook_references:
+                    referenced_records = notebook_manager.get_records_by_references(
+                        notebook_references
+                    )
+                    if referenced_records:
+                        analysis_agent = NotebookAnalysisAgent(
+                            language=str(payload.get("language", "en") or "en")
+                        )
+                        notebook_context = await analysis_agent.analyze(
+                            user_question=raw_user_content,
+                            records=referenced_records,
+                            emit=lambda event: self._persist_and_publish(execution, event),
+                        )
+
+                if history_references:
+                    history_records: list[dict[str, Any]] = []
+                    for session_ref in history_references:
+                        history_session_id = str(session_ref or "").strip()
+                        if not history_session_id:
+                            continue
+
+                        history_session = await self.store.get_session(history_session_id)
+                        if not history_session:
+                            continue
+
+                        history_messages = await self.store.get_messages_for_context(history_session_id)
+                        transcript_lines = [
+                            f"## {str(message.get('role', '')).title()}\n{message.get('content', '')}"
+                            for message in history_messages
+                            if str(message.get("content", "") or "").strip()
+                        ]
+                        if not transcript_lines:
+                            continue
+
+                        history_summary = str(
+                            history_session.get("compressed_summary", "") or ""
+                        ).strip()
+                        if not history_summary:
+                            history_summary = _clip_text(
+                                " ".join(
+                                    str(message.get("content", "") or "").strip()
+                                    for message in history_messages[-4:]
+                                    if str(message.get("content", "") or "").strip()
+                                ),
+                                limit=400,
+                            )
+                        if not history_summary:
+                            history_summary = f"{len(history_messages)} messages"
+
+                        history_records.append(
+                            {
+                                "id": history_session_id,
+                                "notebook_id": "__history__",
+                                "notebook_name": "History",
+                                "title": str(
+                                    history_session.get("title", "") or "Untitled session"
+                                ),
+                                "summary": history_summary,
+                                "output": "\n\n".join(transcript_lines),
+                                "metadata": {
+                                    "session_id": history_session_id,
+                                    "source": "history",
+                                },
+                            }
+                        )
+
+                    if history_records:
+                        analysis_agent = NotebookAnalysisAgent(
+                            language=str(payload.get("language", "en") or "en")
+                        )
+                        history_context = await analysis_agent.analyze(
+                            user_question=raw_user_content,
+                            records=history_records,
+                            emit=lambda event: self._persist_and_publish(execution, event),
+                        )
+
+                effective_user_message = raw_user_content
+                context_parts: list[str] = []
+                if notebook_context:
+                    context_parts.append(f"[Notebook Context]\n{notebook_context}")
+                if history_context:
+                    context_parts.append(f"[History Context]\n{history_context}")
+                if context_parts:
+                    context_parts.append(f"[User Question]\n{raw_user_content}")
+                    effective_user_message = "\n\n".join(context_parts)
+
+                conversation_history = list(history_result.conversation_history)
+                conversation_context_text = history_result.context_text
+
+                if persist_user_message:
                     await self.store.add_message(
                         session_id=session_id,
-                        role="system",
-                        content=_format_followup_question_context(
-                            followup_question_context,
-                            language=str(payload.get("language", "en") or "en"),
-                        ),
-                        capability=capability_name or "chat",
+                        role="user",
+                        content=raw_user_content,
+                        capability=capability_name,
+                        attachments=attachment_records,
                     )
 
-            llm_config = get_llm_config()
-            builder = ContextBuilder(self.store)
-            history_result = await builder.build(
-                session_id=session_id,
-                llm_config=llm_config,
-                language=payload.get("language", "en"),
-                on_event=lambda event: self._persist_and_publish(execution, event),
-            )
-            memory_service = get_memory_service()
-            memory_context = memory_service.build_memory_context()
+                context = UnifiedContext(
+                    session_id=session_id,
+                    user_message=effective_user_message,
+                    conversation_history=conversation_history,
+                    enabled_tools=payload.get("tools"),
+                    active_capability=payload.get("capability"),
+                    knowledge_bases=payload.get("knowledge_bases", []),
+                    attachments=attachments,
+                    config_overrides=request_config,
+                    language=payload.get("language", "en"),
+                    notebook_context=notebook_context,
+                    history_context=history_context,
+                    memory_context=memory_context,
+                    metadata={
+                        "conversation_summary": history_result.conversation_summary,
+                        "conversation_context_text": conversation_context_text,
+                        "history_token_count": history_result.token_count,
+                        "history_budget": history_result.budget,
+                        "turn_id": turn_id,
+                        "question_followup_context": followup_question_context or {},
+                        "notebook_references": notebook_references,
+                        "history_references": history_references,
+                        "memory_context": memory_context,
+                    },
+                )
 
-            if notebook_references:
-                referenced_records = notebook_manager.get_records_by_references(notebook_references)
-                if referenced_records:
-                    analysis_agent = NotebookAnalysisAgent(
-                        language=str(payload.get("language", "en") or "en")
-                    )
-                    notebook_context = await analysis_agent.analyze(
-                        user_question=raw_user_content,
-                        records=referenced_records,
-                        emit=lambda event: self._persist_and_publish(execution, event),
-                    )
-
-            if history_references:
-                history_records: list[dict[str, Any]] = []
-                for session_ref in history_references:
-                    history_session_id = str(session_ref or "").strip()
-                    if not history_session_id:
+                orch = ChatOrchestrator()
+                async for event in orch.handle(context):
+                    if event.type == StreamEventType.SESSION:
                         continue
+                    payload_event = await self._persist_and_publish(execution, event)
+                    if payload_event.get("type") not in {"done", "session"}:
+                        assistant_events.append(payload_event)
+                    if _should_capture_assistant_content(event):
+                        assistant_content += event.content
 
-                    history_session = await self.store.get_session(history_session_id)
-                    if not history_session:
-                        continue
-
-                    history_messages = await self.store.get_messages_for_context(history_session_id)
-                    transcript_lines = [
-                        f"## {str(message.get('role', '')).title()}\n{message.get('content', '')}"
-                        for message in history_messages
-                        if str(message.get("content", "") or "").strip()
-                    ]
-                    if not transcript_lines:
-                        continue
-
-                    history_summary = str(history_session.get("compressed_summary", "") or "").strip()
-                    if not history_summary:
-                        history_summary = _clip_text(
-                            " ".join(
-                                str(message.get("content", "") or "").strip()
-                                for message in history_messages[-4:]
-                                if str(message.get("content", "") or "").strip()
-                            ),
-                            limit=400,
-                        )
-                    if not history_summary:
-                        history_summary = f"{len(history_messages)} messages"
-
-                    history_records.append(
-                        {
-                            "id": history_session_id,
-                            "notebook_id": "__history__",
-                            "notebook_name": "History",
-                            "title": str(history_session.get("title", "") or "Untitled session"),
-                            "summary": history_summary,
-                            "output": "\n\n".join(transcript_lines),
-                            "metadata": {
-                                "session_id": history_session_id,
-                                "source": "history",
-                            },
-                        }
-                    )
-
-                if history_records:
-                    analysis_agent = NotebookAnalysisAgent(
-                        language=str(payload.get("language", "en") or "en")
-                    )
-                    history_context = await analysis_agent.analyze(
-                        user_question=raw_user_content,
-                        records=history_records,
-                        emit=lambda event: self._persist_and_publish(execution, event),
-                    )
-
-            effective_user_message = raw_user_content
-            context_parts: list[str] = []
-            if notebook_context:
-                context_parts.append(f"[Notebook Context]\n{notebook_context}")
-            if history_context:
-                context_parts.append(f"[History Context]\n{history_context}")
-            if context_parts:
-                context_parts.append(f"[User Question]\n{raw_user_content}")
-                effective_user_message = "\n\n".join(context_parts)
-
-            conversation_history = list(history_result.conversation_history)
-            conversation_context_text = history_result.context_text
-
-            if persist_user_message:
                 await self.store.add_message(
                     session_id=session_id,
-                    role="user",
-                    content=raw_user_content,
+                    role="assistant",
+                    content=assistant_content,
                     capability=capability_name,
-                    attachments=attachment_records,
+                    events=assistant_events,
                 )
-
-            context = UnifiedContext(
-                session_id=session_id,
-                user_message=effective_user_message,
-                conversation_history=conversation_history,
-                enabled_tools=payload.get("tools"),
-                active_capability=payload.get("capability"),
-                knowledge_bases=payload.get("knowledge_bases", []),
-                attachments=attachments,
-                config_overrides=request_config,
-                language=payload.get("language", "en"),
-                notebook_context=notebook_context,
-                history_context=history_context,
-                memory_context=memory_context,
-                metadata={
-                    "conversation_summary": history_result.conversation_summary,
-                    "conversation_context_text": conversation_context_text,
-                    "history_token_count": history_result.token_count,
-                    "history_budget": history_result.budget,
-                    "turn_id": turn_id,
-                    "question_followup_context": followup_question_context or {},
-                    "notebook_references": notebook_references,
-                    "history_references": history_references,
-                    "memory_context": memory_context,
-                },
-            )
-
-            orch = ChatOrchestrator()
-            async for event in orch.handle(context):
-                if event.type == StreamEventType.SESSION:
-                    continue
-                payload_event = await self._persist_and_publish(execution, event)
-                if payload_event.get("type") not in {"done", "session"}:
-                    assistant_events.append(payload_event)
-                if _should_capture_assistant_content(event):
-                    assistant_content += event.content
-
-            await self.store.add_message(
-                session_id=session_id,
-                role="assistant",
-                content=assistant_content,
-                capability=capability_name,
-                events=assistant_events,
-            )
-            await self.store.update_turn_status(turn_id, "completed")
-            try:
-                await memory_service.refresh_from_turn(
-                    user_message=raw_user_content,
-                    assistant_message=assistant_content,
-                    session_id=session_id,
-                    capability=capability_name or "chat",
-                    language=str(payload.get("language", "en") or "en"),
+                await self.store.update_turn_status(turn_id, "completed")
+                observability.update_observation(
+                    turn_observation,
+                    output_payload={"assistant_content": assistant_content},
+                    metadata={
+                        **trace_metadata,
+                        "assistant_event_count": len(assistant_events),
+                    },
                 )
-            except Exception:
-                logger.debug("Failed to refresh lightweight memory", exc_info=True)
+                try:
+                    await memory_service.refresh_from_turn(
+                        user_message=raw_user_content,
+                        assistant_message=assistant_content,
+                        session_id=session_id,
+                        capability=capability_name or "chat",
+                        language=str(payload.get("language", "en") or "en"),
+                    )
+                except Exception:
+                    logger.debug("Failed to refresh lightweight memory", exc_info=True)
         except asyncio.CancelledError:
+            observability.update_observation(
+                turn_observation,
+                output_payload={"assistant_content": assistant_content},
+                metadata=trace_metadata,
+                level="ERROR",
+                status_message="Turn cancelled",
+            )
             await self.store.update_turn_status(turn_id, "cancelled", "Turn cancelled")
             await self._persist_and_publish(
                 execution,
@@ -554,8 +596,16 @@ class TurnRuntimeManager:
                     metadata={"status": "cancelled"},
                 ),
             )
+            observability.flush()
             raise
         except Exception as exc:
+            observability.update_observation(
+                turn_observation,
+                output_payload={"assistant_content": assistant_content},
+                metadata=trace_metadata,
+                level="ERROR",
+                status_message=str(exc),
+            )
             logger.error("Turn %s failed: %s", turn_id, exc, exc_info=True)
             await self.store.update_turn_status(turn_id, "failed", str(exc))
             await self._persist_and_publish(
@@ -575,7 +625,9 @@ class TurnRuntimeManager:
                     metadata={"status": "failed"},
                 ),
             )
+            observability.flush()
         finally:
+            observability.flush()
             async with self._lock:
                 current = self._executions.get(turn_id)
                 if current is not None:

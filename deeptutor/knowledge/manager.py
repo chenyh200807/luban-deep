@@ -90,6 +90,18 @@ class KnowledgeBaseManager:
                             return {"knowledge_bases": {}}
                         config = json.loads(content)
 
+                try:
+                    from deeptutor.services.config.knowledge_base_config import get_env_defined_kbs
+
+                    env_kbs, _ = get_env_defined_kbs()
+                    knowledge_bases = config.setdefault("knowledge_bases", {})
+                    for kb_name, entry in env_kbs.items():
+                        current = knowledge_bases.setdefault(kb_name, {})
+                        for key, value in entry.items():
+                            current.setdefault(key, value)
+                except Exception as env_err:
+                    logger.debug(f"Skipping env-backed KB merge: {env_err}")
+
                 # Ensure knowledge_bases key exists
                 if "knowledge_bases" not in config:
                     config["knowledge_bases"] = {}
@@ -146,7 +158,13 @@ class KnowledgeBaseManager:
             except (json.JSONDecodeError, Exception) as e:
                 logger.warning(f"Error loading config: {e}")
                 return {"knowledge_bases": {}}
-        return {"knowledge_bases": {}}
+        try:
+            from deeptutor.services.config.knowledge_base_config import get_env_defined_kbs
+
+            env_kbs, _ = get_env_defined_kbs()
+        except Exception:
+            env_kbs = {}
+        return {"knowledge_bases": dict(env_kbs)}
 
     def _save_config(self):
         """Save knowledge base configuration (thread-safe with file locking)"""
@@ -473,6 +491,8 @@ class KnowledgeBaseManager:
         description = kb_config.get("description", f"Knowledge base: {kb_name}")
         rag_provider = normalize_provider_name(kb_config.get("rag_provider"))
         needs_reindex = bool(kb_config.get("needs_reindex", False))
+        remote_backend = str(kb_config.get("remote_backend", "") or "").strip()
+        remote_read_only = bool(kb_config.get("remote_read_only", False))
         created_at = kb_config.get("created_at")
         updated_at = kb_config.get("updated_at")
 
@@ -501,6 +521,8 @@ class KnowledgeBaseManager:
             "description": description,
             "rag_provider": rag_provider,
             "needs_reindex": needs_reindex,
+            "remote_backend": remote_backend,
+            "remote_read_only": remote_read_only,
         }
         if created_at:
             metadata["created_at"] = created_at
@@ -558,6 +580,8 @@ class KnowledgeBaseManager:
         rag_initialized = (
             (dir_exists and llamaindex_storage_dir and llamaindex_storage_dir.exists() and llamaindex_storage_dir.is_dir())
         )
+        if remote_backend == "supabase":
+            rag_initialized = True
 
         info["statistics"] = {
             "raw_documents": raw_count,
@@ -566,6 +590,8 @@ class KnowledgeBaseManager:
             "rag_initialized": rag_initialized,
             "rag_provider": rag_provider,
             "needs_reindex": needs_reindex,
+            "remote_backend": remote_backend,
+            "remote_read_only": remote_read_only,
             # Include status and progress in statistics for backward compatibility
             "status": status,
             "progress": progress,

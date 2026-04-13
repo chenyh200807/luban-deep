@@ -8,6 +8,7 @@ import {
   BookOpen,
   Bot,
   Brain,
+  Crown,
   GraduationCap,
   MessageSquare,
   PanelLeftClose,
@@ -33,11 +34,13 @@ const PRIMARY_NAV: NavEntry[] = [
   { href: "/agents", label: "TutorBot", icon: Bot },
   { href: "/co-writer", label: "Co-Writer", icon: PenLine },
   { href: "/guide", label: "Guided Learning", icon: GraduationCap },
+  { href: "/member", label: "Membership", icon: Crown },
   { href: "/knowledge", label: "Knowledge", icon: BookOpen },
   { href: "/memory", label: "Memory", icon: Brain },
 ];
 
 const SECONDARY_NAV: NavEntry[] = [{ href: "/settings", label: "Settings", icon: Settings }];
+const brandName = process.env.NEXT_PUBLIC_APP_BRAND_NAME || "鲁班智考";
 const DEFAULT_SESSION_VIEWPORT_CLASS_NAME = "max-h-[112px]";
 
 interface SidebarShellProps {
@@ -150,9 +153,9 @@ export function SidebarShell({
       {/* Header: logo + collapse toggle */}
       <div className="flex h-12 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo-ver2.png" alt="DeepTutor" width={20} height={20} />
+          <Image src="/logo-ver2.png" alt={brandName} width={20} height={20} />
           <span className="text-[15px] font-semibold tracking-tight text-[var(--foreground)]">
-            DeepTutor
+            {brandName}
           </span>
         </Link>
         <button

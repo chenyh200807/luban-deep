@@ -5,6 +5,7 @@ Build bounded conversation history for unified chat sessions.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any, Awaitable, Callable
 
 from deeptutor.agents.base_agent import BaseAgent
@@ -13,6 +14,37 @@ from deeptutor.core.trace import build_trace_metadata, merge_trace_metadata, new
 from deeptutor.services.llm.config import LLMConfig
 
 from .sqlite_store import SQLiteSessionStore
+
+
+_SUMMARY_DROP_LINE_PATTERNS = (
+    re.compile(r"压缩后的上下文摘要", re.IGNORECASE),
+    re.compile(r"compressed context summary", re.IGNORECASE),
+    re.compile(r"^好的[，,].*?(上下文|摘要).*$", re.IGNORECASE),
+)
+_SUMMARY_LINE_REPLACEMENTS = (
+    (re.compile(r"^(?:[*-]\s*)?用户核心目标[:：]\s*"), "目标："),
+    (re.compile(r"^(?:[*-]\s*)?用户目标[:：]\s*"), "目标："),
+    (re.compile(r"^(?:[*-]\s*)?当前状态[:：]\s*"), "进展："),
+    (re.compile(r"^(?:[*-]\s*)?最新进展[:：]\s*"), "最新进展："),
+    (re.compile(r"^(?:[*-]\s*)?已提供解决方案[:：]\s*"), "已提供方案："),
+    (re.compile(r"^(?:[*-]\s*)?助理当前任务[:：]\s*"), "下一步："),
+    (re.compile(r"^(?:[*-]\s*)?核心错误[:：]\s*"), "核心错误："),
+    (re.compile(r"^(?:[*-]\s*)?进步点[:：]\s*"), "进步点："),
+    (re.compile(r"^(?:[*-]\s*)?User (?:core )?goal[:：]\s*", re.IGNORECASE), "Goal: "),
+    (re.compile(r"^(?:[*-]\s*)?Current state[:：]\s*", re.IGNORECASE), "Progress: "),
+    (re.compile(r"^(?:[*-]\s*)?Latest progress[:：]\s*", re.IGNORECASE), "Latest progress: "),
+    (re.compile(r"^(?:[*-]\s*)?Assistant(?:'s)? current task[:：]\s*", re.IGNORECASE), "Next step: "),
+)
+_SUMMARY_PREFIX = {
+    "zh": (
+        "以下是内部连续性备忘，仅供你保持上下文使用。"
+        "不要逐字复述，不要向用户展示“目标/进展/摘要/下一步”等内部标签。\n"
+    ),
+    "en": (
+        "Internal continuity memory for context only. "
+        "Do not quote it verbatim and do not expose summary labels such as goal, progress, summary, or next step.\n"
+    ),
+}
 
 
 def count_tokens(text: str) -> int:
@@ -58,6 +90,34 @@ def build_history_text(history: list[dict[str, Any]]) -> str:
         else:
             lines.append(f"User: {content}")
     return "\n\n".join(lines)
+
+
+def sanitize_conversation_summary(summary: str) -> str:
+    """Normalize internal summaries so they stay compact and less likely to leak into replies."""
+    text = str(summary or "").replace("\r\n", "\n").strip()
+    if not text:
+        return ""
+
+    cleaned_lines: list[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            if cleaned_lines and cleaned_lines[-1] != "":
+                cleaned_lines.append("")
+            continue
+        if any(pattern.search(line) for pattern in _SUMMARY_DROP_LINE_PATTERNS):
+            continue
+        line = line.replace("**", "").replace("`", "")
+        line = re.sub(r"^\*\s+", "", line)
+        for pattern, replacement in _SUMMARY_LINE_REPLACEMENTS:
+            line = pattern.sub(replacement, line)
+        cleaned_lines.append(line)
+
+    while cleaned_lines and cleaned_lines[0] == "":
+        cleaned_lines.pop(0)
+    while cleaned_lines and cleaned_lines[-1] == "":
+        cleaned_lines.pop()
+    return "\n".join(cleaned_lines).strip()
 
 
 @dataclass
@@ -107,9 +167,22 @@ class ContextBuilder:
     def _recent_budget(self, budget: int) -> int:
         return max(128, budget - self._summary_budget(budget))
 
-    def _build_history(self, summary: str, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _summary_system_content(self, summary: str, language: str) -> str:
+        cleaned_summary = sanitize_conversation_summary(summary)
+        if not cleaned_summary:
+            return ""
+        prefix = _SUMMARY_PREFIX["zh" if language.startswith("zh") else "en"]
+        return f"{prefix}{cleaned_summary}"
+
+    def _build_history(
+        self,
+        summary: str,
+        messages: list[dict[str, Any]],
+        *,
+        language: str = "en",
+    ) -> list[dict[str, Any]]:
         history: list[dict[str, Any]] = []
-        cleaned_summary = summary.strip()
+        cleaned_summary = self._summary_system_content(summary, language)
         if cleaned_summary:
             history.append({"role": "system", "content": cleaned_summary})
         history.extend(
@@ -197,29 +270,13 @@ class ContextBuilder:
                     on_event,
                 )
             elif state == "complete":
-                response = str(update.get("response", "") or "")
-                if response:
-                    await self._append_event(
-                        events,
-                        StreamEvent(
-                            type=StreamEventType.CONTENT,
-                            source="context_builder",
-                            stage="summarize_context",
-                            content=response,
-                            metadata=merge_trace_metadata(
-                                metadata,
-                                {"trace_kind": "llm_output"},
-                            ),
-                        ),
-                        on_event,
-                    )
                 await self._append_event(
                     events,
                     StreamEvent(
                         type=StreamEventType.PROGRESS,
                         source="context_builder",
                         stage="summarize_context",
-                        content="",
+                        content="Conversation history compressed.",
                         metadata=merge_trace_metadata(
                             metadata,
                             {"trace_kind": "call_status", "call_state": "complete"},
@@ -260,6 +317,7 @@ class ContextBuilder:
             system_prompt = (
                 "你负责把对话历史压缩成后续轮次可直接使用的上下文。保留用户目标、约束、已做决定、"
                 "未解决问题，以及能力切换带来的关键信息。总结要忠实、紧凑，不要虚构。"
+                "只输出内部记忆正文，不要写“压缩后的上下文摘要”“用户目标”“当前状态”“助理当前任务”等标题。"
             )
         user_prompt = (
             f"Compress the following conversation history into <= {summary_budget} tokens.\n\n"
@@ -268,7 +326,7 @@ class ContextBuilder:
         if language.startswith("zh"):
             user_prompt = (
                 f"请把下面的对话历史压缩到不超过 {summary_budget} tokens 的长度，"
-                "供后续对话直接继承上下文。\n\n"
+                "供后续对话直接继承上下文。输出纯正文，不要写标题、前言、客套话，也不要使用 markdown 强调样式。\n\n"
                 f"{source_text}"
             )
         try:
@@ -316,7 +374,7 @@ class ContextBuilder:
         summary_up_to_msg_id = int(session.get("summary_up_to_msg_id", 0) or 0)
         unsummarized = [item for item in messages if int(item.get("id", 0) or 0) > summary_up_to_msg_id]
 
-        current_history = self._build_history(stored_summary, unsummarized)
+        current_history = self._build_history(stored_summary, unsummarized, language=language)
         current_tokens = count_tokens(build_history_text(current_history))
         if current_tokens <= budget:
             return ContextBuildResult(
@@ -360,7 +418,7 @@ class ContextBuilder:
             await self.store.update_summary(session_id, new_summary, up_to_msg_id)
             stored_summary = new_summary
 
-        final_history = self._build_history(stored_summary, recent_messages)
+        final_history = self._build_history(stored_summary, recent_messages, language=language)
         while len(final_history) > 1 and count_tokens(build_history_text(final_history)) > budget:
             summary_prefix = 1 if final_history and final_history[0].get("role") == "system" else 0
             if len(final_history) <= summary_prefix + 1:
@@ -384,4 +442,5 @@ __all__ = [
     "build_history_text",
     "count_tokens",
     "format_messages_as_transcript",
+    "sanitize_conversation_summary",
 ]

@@ -1,0 +1,226 @@
+<!-- pages/assessment/assessment.wxml — 摸底测试 -->
+<view class="assess-page {{isDark?'':'light'}}">
+
+  <!-- 呼吸极光背景（低端设备跳过） -->
+  <view class="aurora-layer" wx:if="{{enableOrbs}}">
+    <view class="orb orb1"></view>
+    <view class="orb orb2"></view>
+    <view class="orb orb3"></view>
+  </view>
+  <image class="bg-horizon" src="/images/bg_horizon.jpg" mode="aspectFill" />
+
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <view class="nav-back" bindtap="goBack">
+        <text class="nav-back-arrow">‹</text>
+      </view>
+      <text class="nav-title">{{stage === 'result' ? '诊断报告' : '摸底测试'}}</text>
+      <view style="flex:1"></view>
+      <text class="nav-progress" wx:if="{{stage === 'quiz'}}">{{currentIndex + 1}} / {{questions.length}}</text>
+    </view>
+  </view>
+
+  <scroll-view class="page-body" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top:{{navHeight}}px">
+
+    <!-- ═══ 欢迎页 ═══ -->
+    <view class="welcome" wx:if="{{stage === 'welcome'}}">
+
+      <!-- 顶部撑开空间 -->
+      <view style="height:12vh"></view>
+
+      <!-- Hero -->
+      <view class="welcome-hero">
+        <view class="hero-icon-ring">
+          <text class="hero-icon-txt">AI</text>
+        </view>
+        <text class="welcome-title">智能学习诊断</text>
+        <text class="welcome-sub">精准定位知识薄弱点，量身定制学习路径</text>
+      </view>
+
+      <!-- 数据卡片 -->
+      <view class="stats-row">
+        <view class="stat-card">
+          <text class="stat-num">20</text>
+          <text class="stat-label">精选题目</text>
+        </view>
+        <view class="stat-card">
+          <text class="stat-num">~8</text>
+          <text class="stat-label">分钟</text>
+        </view>
+        <view class="stat-card">
+          <text class="stat-num">14</text>
+          <text class="stat-label">章节覆盖</text>
+        </view>
+      </view>
+
+      <!-- 特性列表 -->
+      <view class="welcome-features">
+        <view class="feature-item">
+          <view class="feature-dot"></view>
+          <text class="feature-txt">AI 智能分析知识掌握程度</text>
+        </view>
+        <view class="feature-item">
+          <view class="feature-dot"></view>
+          <text class="feature-txt">定位薄弱章节，精准补强</text>
+        </view>
+        <view class="feature-item">
+          <view class="feature-dot"></view>
+          <text class="feature-txt">生成个性化学习路径</text>
+        </view>
+      </view>
+
+      <!-- 开始按钮 -->
+      <view class="start-btn" bindtap="onStart">
+        <text class="start-btn-txt">开始诊断</text>
+      </view>
+
+      <view style="height:120rpx"></view>
+    </view>
+
+    <!-- ═══ 答题页 ═══ -->
+    <view class="quiz" wx:elif="{{stage === 'quiz' && questions.length}}">
+      <!-- 进度条 -->
+      <view class="progress-bar">
+        <view class="progress-fill" style="width:{{(currentIndex + 1) / questions.length * 100}}%"></view>
+      </view>
+
+      <!-- 题目卡片 -->
+      <view class="question-card">
+        <view class="q-header">
+          <text class="q-type">{{currentQ.question_type === 'multi_choice' ? '多选题' : '单选题'}}</text>
+          <text class="q-diff" wx:if="{{currentQ.difficulty}}">{{currentQ.difficulty === 'hard' ? '难' : currentQ.difficulty === 'medium' ? '中' : '易'}}</text>
+        </view>
+        <text class="q-stem">{{currentQ.question_stem}}</text>
+
+        <!-- 选项 -->
+        <view class="options">
+          <view
+            class="option {{selMap[currentQ.id + '_' + opt.key] ? 'selected' : ''}}"
+            wx:for="{{currentQ.options}}"
+            wx:key="key"
+            wx:for-item="opt"
+            bindtap="onSelectOption"
+            data-key="{{opt.key}}"
+          >
+            <view class="opt-key">
+              <text class="opt-key-txt">{{opt.key}}</text>
+            </view>
+            <text class="opt-text">{{opt.text}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 导航按钮 -->
+      <view class="quiz-nav">
+        <view class="quiz-nav-btn {{currentIndex === 0 ? 'disabled' : ''}}" bindtap="onPrev">
+          <text class="quiz-nav-txt">上一题</text>
+        </view>
+        <view wx:if="{{currentIndex < questions.length - 1}}" class="quiz-nav-btn primary" bindtap="onNext">
+          <text class="quiz-nav-txt">下一题</text>
+        </view>
+        <view wx:else class="quiz-nav-btn submit" bindtap="onSubmit">
+          <text class="quiz-nav-txt">提交答卷</text>
+        </view>
+      </view>
+
+      <view style="height:120rpx"></view>
+    </view>
+
+    <!-- ═══ 加载中 ═══ -->
+    <view class="loading-view" wx:elif="{{stage === 'loading'}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-txt">正在分析答题数据...</text>
+      <text class="loading-sub">AI 正在评估 14 个章节的掌握程度</text>
+    </view>
+
+    <!-- ═══ 结果页 ═══ -->
+    <view class="result" wx:elif="{{stage === 'result'}}">
+
+      <!-- 1. 分数 + 等级 -->
+      <view class="score-ring-wrap">
+        <view class="score-ring">
+          <text class="score-num">{{resultScore}}</text>
+          <text class="score-label">综合得分</text>
+        </view>
+      </view>
+      <view class="level-badge level-{{resultLevel}}">
+        <text class="level-txt">{{resultLevelName}}</text>
+      </view>
+
+      <!-- 2. 学员画像（核心卡片） -->
+      <view class="archetype-card" wx:if="{{archetype}}" style="border-left-color:{{archetypeColor}}">
+        <view class="archetype-header">
+          <view class="archetype-icon" style="background:{{archetypeColor}}">
+            <text class="archetype-icon-txt">{{archetypeIcon}}</text>
+          </view>
+          <view class="archetype-title-col">
+            <text class="archetype-label">你的学习类型</text>
+            <text class="archetype-name">{{archetypeName}}</text>
+          </view>
+        </view>
+        <text class="archetype-desc" wx:if="{{archetypeDesc}}">{{archetypeDesc}}</text>
+        <view class="archetype-traits" wx:if="{{archetypeTraits.length}}">
+          <text class="trait-tag" wx:for="{{archetypeTraits}}" wx:key="index">{{item}}</text>
+        </view>
+        <view class="archetype-tip" wx:if="{{archetypeTip}}">
+          <text class="tip-label">学习建议</text>
+          <text class="tip-text">{{archetypeTip}}</text>
+        </view>
+      </view>
+
+      <!-- 3. 认知风格 -->
+      <view class="insight-row" wx:if="{{responseLabel || calibrationLabel}}">
+        <view class="insight-card" wx:if="{{responseLabel}}">
+          <text class="insight-label">答题风格</text>
+          <text class="insight-value">{{responseLabel}}</text>
+          <text class="insight-desc">{{responseDesc}}</text>
+        </view>
+        <view class="insight-card" wx:if="{{calibrationLabel}}">
+          <text class="insight-label">自我评估</text>
+          <text class="insight-value">{{calibrationLabel}}</text>
+        </view>
+        <view class="insight-card" wx:if="{{errorPatternName}}">
+          <text class="insight-label">错误模式</text>
+          <text class="insight-value">{{errorPatternName}}</text>
+        </view>
+      </view>
+
+      <!-- 4. 章节掌握度 -->
+      <text class="section-title" wx:if="{{chapterList.length}}">章节掌握度</text>
+      <view class="chapter-grid" wx:if="{{chapterList.length}}">
+        <view class="chapter-item" wx:for="{{chapterList}}" wx:key="name">
+          <text class="chapter-name">{{item.name}}</text>
+          <view class="chapter-bar-wrap">
+            <view class="chapter-bar {{item.pct >= 70 ? 'green' : item.pct >= 40 ? 'gold' : 'red'}}" style="width:{{item.pct}}%"></view>
+          </view>
+          <text class="chapter-pct">{{item.pct}}%</text>
+        </view>
+      </view>
+
+      <!-- 5. 优先攻克 -->
+      <view class="priority-card" wx:if="{{priorityChapters.length}}">
+        <text class="section-title">优先攻克</text>
+        <view class="priority-list">
+          <view class="priority-item" wx:for="{{priorityChapters}}" wx:key="index">
+            <text class="priority-idx">{{index + 1}}</text>
+            <text class="priority-name">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 6. 操作 -->
+      <view class="result-actions">
+        <view class="result-btn primary" bindtap="goChat">
+          <text class="result-btn-txt">开始学习</text>
+        </view>
+        <view class="result-btn" bindtap="onRetake">
+          <text class="result-btn-txt secondary-txt">重新测试</text>
+        </view>
+      </view>
+
+      <view style="height:120rpx"></view>
+    </view>
+
+  </scroll-view>
+</view>

@@ -49,6 +49,13 @@ EMBEDDING_PROVIDER_DEFAULTS: dict[str, dict[str, Any]] = {
         "is_local": False,
         "api_key_envs": ("OPENAI_API_KEY",),
     },
+    "dashscope": {
+        "mode": "standard",
+        "default_api_base": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "keywords": ("dashscope", "qwen", "text-embedding-v3"),
+        "is_local": False,
+        "api_key_envs": ("DASHSCOPE_API_KEY", "EMBEDDING_API_KEY"),
+    },
     "openai": {
         "mode": "standard",
         "default_api_base": "https://api.openai.com/v1",
@@ -187,6 +194,17 @@ def _to_headers(value: Any) -> dict[str, str]:
     return {}
 
 
+def _prefer_env_value(
+    env_values: dict[str, str],
+    env_key: str,
+    env_value: str,
+    fallback_value: Any,
+) -> str:
+    if env_key in env_values:
+        return _as_str(env_value)
+    return _as_str(fallback_value)
+
+
 def _is_local_base_url(base_url: str | None) -> bool:
     if not base_url:
         return False
@@ -296,19 +314,40 @@ def resolve_llm_runtime_config(
     summary = env.as_summary()
     env_values = env.load()
 
-    resolved_model = _as_str((model or {}).get("model")) or summary.llm.get("model", "").strip()
+    resolved_model = _prefer_env_value(
+        env_values,
+        "LLM_MODEL",
+        summary.llm.get("model", ""),
+        (model or {}).get("model"),
+    )
     if not resolved_model:
         resolved_model = "gpt-4o-mini"
 
-    binding_hint_raw = _as_str((profile or {}).get("binding"))
-    if not binding_hint_raw and "LLM_BINDING" in env_values:
-        binding_hint_raw = _as_str(summary.llm.get("binding", ""))
+    binding_hint_raw = _prefer_env_value(
+        env_values,
+        "LLM_BINDING",
+        summary.llm.get("binding", ""),
+        (profile or {}).get("binding"),
+    )
     binding_hint = canonical_provider_name(binding_hint_raw)
 
-    active_api_key = _as_str((profile or {}).get("api_key")) or summary.llm.get("api_key", "")
-    active_api_base = _as_str((profile or {}).get("base_url")) or summary.llm.get("host", "")
-    active_api_version = (
-        _as_str((profile or {}).get("api_version")) or summary.llm.get("api_version", "")
+    active_api_key = _prefer_env_value(
+        env_values,
+        "LLM_API_KEY",
+        summary.llm.get("api_key", ""),
+        (profile or {}).get("api_key"),
+    )
+    active_api_base = _prefer_env_value(
+        env_values,
+        "LLM_HOST",
+        summary.llm.get("host", ""),
+        (profile or {}).get("base_url"),
+    )
+    active_api_version = _prefer_env_value(
+        env_values,
+        "LLM_API_VERSION",
+        summary.llm.get("api_version", ""),
+        (profile or {}).get("api_version"),
     )
     active_extra_headers = _to_headers((profile or {}).get("extra_headers"))
     reasoning_effort = _as_str((model or {}).get("reasoning_effort")) or None
@@ -446,23 +485,50 @@ def resolve_embedding_runtime_config(
     summary = env.as_summary()
     env_values = env.load()
 
-    resolved_model = _as_str((model or {}).get("model")) or summary.embedding.get("model", "").strip()
+    resolved_model = _prefer_env_value(
+        env_values,
+        "EMBEDDING_MODEL",
+        summary.embedding.get("model", ""),
+        (model or {}).get("model"),
+    )
     if not resolved_model:
         raise ValueError("No active embedding model is configured. Please set it in Settings > Catalog.")
 
-    binding_hint_raw = _as_str((profile or {}).get("binding"))
-    if not binding_hint_raw and "EMBEDDING_BINDING" in env_values:
-        binding_hint_raw = _as_str(summary.embedding.get("binding", ""))
+    binding_hint_raw = _prefer_env_value(
+        env_values,
+        "EMBEDDING_BINDING",
+        summary.embedding.get("binding", ""),
+        (profile or {}).get("binding"),
+    )
     binding_hint = _canonical_embedding_provider_name(binding_hint_raw)
 
-    active_api_key = _as_str((profile or {}).get("api_key")) or summary.embedding.get("api_key", "")
-    active_api_base = _as_str((profile or {}).get("base_url")) or summary.embedding.get("host", "")
-    active_api_version = (
-        _as_str((profile or {}).get("api_version")) or summary.embedding.get("api_version", "")
+    active_api_key = _prefer_env_value(
+        env_values,
+        "EMBEDDING_API_KEY",
+        summary.embedding.get("api_key", ""),
+        (profile or {}).get("api_key"),
+    )
+    active_api_base = _prefer_env_value(
+        env_values,
+        "EMBEDDING_HOST",
+        summary.embedding.get("host", ""),
+        (profile or {}).get("base_url"),
+    )
+    active_api_version = _prefer_env_value(
+        env_values,
+        "EMBEDDING_API_VERSION",
+        summary.embedding.get("api_version", ""),
+        (profile or {}).get("api_version"),
     )
     active_extra_headers = _to_headers((profile or {}).get("extra_headers"))
     dimension = _resolve_embedding_dimension(
-        (model or {}).get("dimension") or summary.embedding.get("dimension") or 3072
+        _prefer_env_value(
+            env_values,
+            "EMBEDDING_DIMENSION",
+            summary.embedding.get("dimension", ""),
+            (model or {}).get("dimension"),
+        )
+        or 3072
     )
 
     provider_pool = _collect_embedding_provider_pool(loaded)

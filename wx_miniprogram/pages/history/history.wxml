@@ -1,0 +1,150 @@
+<!-- pages/history/history.wxml — 历史对话列表（支持管理/归档） -->
+<view class="history-page {{isDark?'':'light'}}">
+
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content" style="height: {{navContentHeight}}px; padding-top: {{navContentPaddingTop}}px">
+      <view class="nav-back" bindtap="goHome">
+        <text class="nav-back-arrow">‹</text>
+        <text class="nav-back-txt">对话</text>
+      </view>
+      <view style="flex:1"></view>
+      <text class="nav-count" wx:if="{{totalCount > 0 && !editMode}}">{{totalCount}} 条对话</text>
+      <text class="nav-count" wx:if="{{editMode && selectedCount > 0}}">已选 {{selectedCount}} 条</text>
+      <!-- 管理 / 完成 按钮 -->
+      <view wx:if="{{!editMode && totalCount > 0}}" class="nav-btn" bindtap="enterEditMode">
+        <text class="nav-btn-txt">管理</text>
+      </view>
+      <view wx:if="{{editMode}}" class="nav-btn" bindtap="exitEditMode">
+        <text class="nav-btn-txt done">完成</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Tab 切换栏 -->
+  <view class="tab-bar" style="top: {{navHeight}}px" wx:if="{{!editMode}}">
+    <view class="tab-item {{tab==='active'?'tab-active':''}}" bindtap="switchTab" data-tab="active">
+      <text class="tab-text">全部</text>
+    </view>
+    <view class="tab-item {{tab==='archived'?'tab-active':''}}" bindtap="switchTab" data-tab="archived">
+      <text class="tab-text">已归档</text>
+    </view>
+  </view>
+
+  <scroll-view
+    class="page-scroll"
+    scroll-y
+    enhanced="{{true}}"
+    bounces="{{true}}"
+    show-scrollbar="{{false}}"
+    refresher-enabled="{{!editMode}}"
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onRefresh"
+    style="top: {{editMode ? navHeight : navHeight + 40}}px; bottom: {{editMode ? 110 : 0}}rpx"
+  >
+    <view class="page-inner">
+
+      <!-- 加载中 -->
+      <view wx:if="{{loading}}" class="loading-wrap">
+        <view class="skel-item" wx:for="{{[1,2,3,4]}}" wx:key="index">
+          <view class="skel-line skel-title"></view>
+          <view class="skel-line skel-sub"></view>
+        </view>
+      </view>
+
+      <!-- 错误 -->
+      <view wx:elif="{{error}}" class="empty-card">
+        <text class="empty-title">加载失败</text>
+        <view class="empty-btn" bindtap="retry">
+          <text class="empty-btn-txt">重试</text>
+        </view>
+      </view>
+
+      <!-- 空列表 -->
+      <view wx:elif="{{groups.length === 0}}" class="empty-card">
+        <text class="empty-emoji">{{tab === 'archived' ? '📦' : '💬'}}</text>
+        <text class="empty-title">{{tab === 'archived' ? '暂无归档对话' : '暂无历史对话'}}</text>
+        <text class="empty-desc">{{tab === 'archived' ? '归档的对话会保存在这里' : '开始一次对话后，记录会自动保存在这里'}}</text>
+        <view class="empty-btn" wx:if="{{tab === 'active'}}" bindtap="goHome">
+          <text class="empty-btn-txt">开始对话</text>
+        </view>
+      </view>
+
+      <!-- 分组对话列表 -->
+      <block wx:else>
+        <!-- 编辑模式全选 -->
+        <view wx:if="{{editMode}}" class="select-all-bar" bindtap="toggleSelectAll">
+          <view class="checkbox {{allSelected ? 'checked' : ''}}">
+            <text wx:if="{{allSelected}}" class="check-icon">✓</text>
+          </view>
+          <text class="select-all-txt">全选</text>
+        </view>
+
+        <view class="date-group" wx:for="{{groups}}" wx:key="label">
+          <text class="date-label">{{item.label}}</text>
+          <view class="conv-list">
+            <view
+              class="conv-item {{editMode && selectedIds[conv.id] ? 'conv-selected' : ''}}"
+              wx:for="{{item.items}}"
+              wx:for-item="conv"
+              wx:key="id"
+              bindtap="openConversation"
+              data-id="{{conv.id}}"
+            >
+              <!-- 编辑模式下的复选框 -->
+              <view wx:if="{{editMode}}" class="checkbox {{selectedIds[conv.id] ? 'checked' : ''}}">
+                <text wx:if="{{selectedIds[conv.id]}}" class="check-icon">✓</text>
+              </view>
+
+              <view class="conv-body">
+                <text class="conv-title">{{conv.title}}</text>
+                <text class="conv-preview" wx:if="{{conv.preview}}">{{conv.preview}}</text>
+              </view>
+              <view class="conv-right">
+                <text class="conv-time">{{conv.time}}</text>
+                <view wx:if="{{!editMode}}" class="conv-actions">
+                  <view wx:if="{{tab === 'active'}}" class="conv-action-btn conv-archive" catchtap="archiveConversation" data-id="{{conv.id}}">
+                    <view class="archive-icon">
+                      <view class="archive-lid"></view>
+                      <view class="archive-body"></view>
+                    </view>
+                  </view>
+                  <view class="conv-action-btn conv-del" catchtap="deleteConversation" data-id="{{conv.id}}">
+                    <text class="conv-del-icon">×</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <view style="height: 180rpx"></view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部操作栏（编辑模式） -->
+  <view wx:if="{{editMode}}" class="bottom-bar">
+    <view
+      class="bottom-btn btn-delete {{selectedCount === 0 ? 'btn-disabled' : ''}}"
+      bindtap="batchDelete"
+    >
+      <text class="bottom-btn-txt">删除</text>
+    </view>
+    <view
+      wx:if="{{tab === 'active'}}"
+      class="bottom-btn btn-archive {{selectedCount === 0 ? 'btn-disabled' : ''}}"
+      bindtap="batchArchive"
+    >
+      <text class="bottom-btn-txt">归档</text>
+    </view>
+    <view
+      wx:if="{{tab === 'archived'}}"
+      class="bottom-btn btn-unarchive {{selectedCount === 0 ? 'btn-disabled' : ''}}"
+      bindtap="batchUnarchive"
+    >
+      <text class="bottom-btn-txt">恢复</text>
+    </view>
+  </view>
+
+</view>

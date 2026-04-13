@@ -69,6 +69,10 @@ class EnvStore:
             values = _parse_env_lines(self.path.read_text(encoding="utf-8").splitlines())
         else:
             values = OrderedDict()
+        for key in ENV_KEY_ORDER:
+            env_value = os.getenv(key)
+            if key not in values and env_value is not None:
+                values[key] = env_value
         for key, value in values.items():
             os.environ.setdefault(key, value)
         return values

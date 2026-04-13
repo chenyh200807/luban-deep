@@ -17,8 +17,10 @@ const fontSerif = Lora({
   variable: "--font-serif",
 });
 
+const brandName = process.env.NEXT_PUBLIC_APP_BRAND_NAME || "鲁班智考";
+
 export const metadata: Metadata = {
-  title: "DeepTutor",
+  title: brandName,
   description: "Agent-native intelligent learning companion",
 };
 

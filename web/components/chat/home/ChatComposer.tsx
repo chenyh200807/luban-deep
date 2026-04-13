@@ -6,6 +6,7 @@ import Image from "next/image";
 import {
   ArrowUp,
   AtSign,
+  BrainCircuit,
   BookOpen,
   ChevronDown,
   FilePlus2,
@@ -20,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import type { SelectedHistorySession } from "@/components/chat/HistorySessionPicker";
 import AtMentionPopup from "@/components/chat/AtMentionPopup";
 import type { SelectedRecord } from "@/app/(workspace)/guide/types";
+import type { ChatMode } from "@/context/UnifiedChatContext";
 import type { DeepQuestionFormConfig } from "@/lib/quiz-types";
 import type { MathAnimatorFormConfig } from "@/lib/math-animator-types";
 import type { VisualizeFormConfig } from "@/lib/visualize-types";
@@ -94,6 +96,8 @@ export default function ChatComposer({
   activeCap,
   visibleTools,
   selectedTools,
+  chatMode,
+  showChatModeToggle,
   ragActive,
   knowledgeBases,
   selectedNotebookRecords,
@@ -123,6 +127,7 @@ export default function ChatComposer({
   onSelectNotebookPicker,
   onSelectHistoryPicker,
   onToggleTool,
+  onSetChatMode,
   onToggleResearchSource,
   onSend,
   onRemoveAttachment,
@@ -163,6 +168,8 @@ export default function ChatComposer({
   activeCap: CapabilityDef;
   visibleTools: ToolDef[];
   selectedTools: Set<string>;
+  chatMode: ChatMode;
+  showChatModeToggle: boolean;
   ragActive: boolean;
   knowledgeBases: KnowledgeBase[];
   selectedNotebookRecords: SelectedRecord[];
@@ -192,6 +199,7 @@ export default function ChatComposer({
   onSelectNotebookPicker: () => void;
   onSelectHistoryPicker: () => void;
   onToggleTool: (tool: ToolDef["name"]) => void;
+  onSetChatMode: (mode: ChatMode) => void;
   onToggleResearchSource: (source: ResearchSource) => void;
   onSend: () => void;
   onRemoveAttachment: (index: number) => void;
@@ -357,7 +365,7 @@ export default function ChatComposer({
 
           <div className="border-t border-[var(--border)]/35 px-3 py-2">
             <div className="flex items-center gap-2">
-                <button
+              <button
                 ref={capBtnRef}
                 onClick={() => onSetCapMenuOpen((v) => !v)}
                 className={`inline-flex shrink-0 items-center gap-1.5 py-1.5 px-1 text-[12px] transition-colors ${
@@ -370,6 +378,35 @@ export default function ChatComposer({
                 <span className="font-medium">{t(activeCap.label)}</span>
                 <ChevronDown size={11} className={`transition-transform ${capMenuOpen ? "rotate-180" : ""}`} />
               </button>
+
+              {showChatModeToggle && (
+                <div className="inline-flex items-center rounded-full border border-[var(--border)]/40 bg-[var(--muted)]/20 p-0.5">
+                  <button
+                    onClick={() => onSetChatMode("fast")}
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                      chatMode === "fast"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    }`}
+                    title={t("Fast mode")}
+                  >
+                    <MessageSquare size={12} strokeWidth={1.7} />
+                    <span>快速</span>
+                  </button>
+                  <button
+                    onClick={() => onSetChatMode("deep")}
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                      chatMode === "deep"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    }`}
+                    title={t("Deep mode")}
+                  >
+                    <BrainCircuit size={12} strokeWidth={1.7} />
+                    <span>深度</span>
+                  </button>
+                </div>
+              )}
 
               <div className="h-3.5 w-px bg-[var(--border)]/30" />
 

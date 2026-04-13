@@ -1,0 +1,90 @@
+{
+  "pages": [
+    "pages/chat/chat",
+    "pages/history/history",
+    "pages/report/report",
+    "pages/profile/profile",
+    "pages/login/login"
+  ],
+  "subpackages": [
+    {
+      "root": "pages/register",
+      "name": "auth",
+      "pages": ["register"]
+    },
+    {
+      "root": "pages/billing",
+      "name": "billing",
+      "pages": ["billing"]
+    },
+    {
+      "root": "pages/practice",
+      "name": "practice",
+      "pages": ["practice"]
+    },
+    {
+      "root": "pages/assessment",
+      "name": "assessment",
+      "pages": ["assessment"]
+    }
+  ],
+  "preloadRule": {
+    "pages/chat/chat": {
+      "network": "all",
+      "packages": ["assessment", "practice"]
+    },
+    "pages/profile/profile": {
+      "network": "all",
+      "packages": ["billing"]
+    },
+    "pages/login/login": {
+      "network": "all",
+      "packages": ["auth"]
+    }
+  },
+  "tabBar": {
+    "custom": true,
+    "backgroundColor": "#0a0e17",
+    "borderStyle": "black",
+    "color": "#8b8fa3",
+    "selectedColor": "#60a5fa",
+    "list": [
+      {
+        "pagePath": "pages/chat/chat",
+        "text": "对话",
+        "iconPath": "images/tab-chat.png",
+        "selectedIconPath": "images/tab-chat-active.png"
+      },
+      {
+        "pagePath": "pages/history/history",
+        "text": "历史",
+        "iconPath": "images/tab-history.png",
+        "selectedIconPath": "images/tab-history-active.png"
+      },
+      {
+        "pagePath": "pages/report/report",
+        "text": "学情",
+        "iconPath": "images/tab-report.png",
+        "selectedIconPath": "images/tab-report-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/tab-profile.png",
+        "selectedIconPath": "images/tab-profile-active.png"
+      }
+    ]
+  },
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#101622",
+    "navigationBarTitleText": "DeepTutor",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#101622",
+    "navigationStyle": "custom"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "darkmode": true,
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -1,0 +1,459 @@
+/* pages/assessment/assessment.wxss — 摸底测试 */
+
+.assess-page { height: 100vh; background: #080c18; overflow: hidden; position: relative; }
+
+/* ── 极光背景（复用主页风格）────────────── */
+.aurora-layer { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; will-change: transform, opacity; }
+.orb1 {
+  width: 500rpx; height: 500rpx; top: -8%; right: -15%;
+  background: radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%);
+  animation: ab1 8s ease-in-out infinite;
+}
+.orb2 {
+  width: 400rpx; height: 400rpx; top: 35%; left: -15%;
+  background: radial-gradient(circle, rgba(59,130,246,0.22) 0%, transparent 70%);
+  animation: ab2 10s ease-in-out infinite;
+}
+.orb3 {
+  width: 360rpx; height: 360rpx; bottom: 10%; right: -10%;
+  background: radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%);
+  animation: ab3 12s ease-in-out infinite;
+}
+@keyframes ab1 { 0%,100%{transform:translate(0,0) scale(1);opacity:.6} 50%{transform:translate(-30rpx,40rpx) scale(1.15);opacity:1} }
+@keyframes ab2 { 0%,100%{transform:translate(0,0) scale(1);opacity:.5} 50%{transform:translate(50rpx,-30rpx) scale(1.2);opacity:.9} }
+@keyframes ab3 { 0%,100%{transform:translate(0,0) scale(1);opacity:.5} 50%{transform:translate(-40rpx,-50rpx) scale(1.25);opacity:.85} }
+.bg-horizon {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100vh; z-index: 0; pointer-events: none; opacity: 0.5;
+}
+
+/* ── 导航栏 ────────────────────────────── */
+.nav-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  background: transparent;
+}
+.nav-content {
+  height: 88rpx; display: flex; align-items: center; padding: 0 24rpx; gap: 12rpx;
+}
+.nav-back {
+  width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: rgba(255,255,255,0.06);
+}
+.nav-back-arrow { font-size: 42rpx; color: #fff; font-weight: 300; }
+.nav-back:active { background: rgba(255,255,255,0.12); }
+.nav-title { font-size: 34rpx; font-weight: 700; color: #fff; }
+.nav-progress { font-size: 26rpx; color: rgba(255,255,255,0.5); font-variant-numeric: tabular-nums; }
+
+.page-body { position: fixed; left: 0; right: 0; bottom: 0; overflow-y: auto; z-index: 1; }
+
+/* ═══════════════════════════════════════
+   ★ 欢迎页
+   ═══════════════════════════════════════ */
+.welcome { padding: 0 32rpx; }
+
+.welcome-hero {
+  display: flex; flex-direction: column; align-items: center; gap: 16rpx;
+  padding-bottom: 48rpx;
+}
+
+/* AI 图标环 — 替代 emoji */
+.hero-icon-ring {
+  width: 120rpx; height: 120rpx; border-radius: 50%;
+  background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2));
+  border: 2rpx solid rgba(99,102,241,0.3);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 8rpx;
+  animation: iconPulse 3s ease-in-out infinite;
+}
+.hero-icon-txt { font-size: 40rpx; font-weight: 800; color: #60a5fa; }
+@keyframes iconPulse {
+  0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99,102,241,0.2); }
+  50% { transform: scale(1.05); box-shadow: 0 0 40rpx 10rpx rgba(99,102,241,0.15); }
+}
+
+.welcome-title { font-size: 44rpx; font-weight: 800; color: #fff; }
+.welcome-sub { font-size: 26rpx; color: rgba(255,255,255,0.45); text-align: center; line-height: 1.6; }
+
+/* 数据卡片 */
+.stats-row { display: flex; gap: 16rpx; margin-bottom: 40rpx; }
+.stat-card {
+  flex: 1; padding: 28rpx 16rpx; border-radius: 16rpx;
+  background: rgba(255,255,255,0.04); border: 1rpx solid rgba(255,255,255,0.08);
+  display: flex; flex-direction: column; align-items: center; gap: 6rpx;
+}
+.stat-num { font-size: 44rpx; font-weight: 800; color: #60a5fa; }
+.stat-label { font-size: 22rpx; color: rgba(255,255,255,0.4); }
+
+/* 特性列表 */
+.welcome-features { margin-bottom: 48rpx; padding: 0 8rpx; }
+.feature-item { display: flex; align-items: center; gap: 16rpx; padding: 14rpx 0; }
+.feature-dot {
+  width: 12rpx; height: 12rpx; border-radius: 50%; flex-shrink: 0;
+  background: #3b82f6;
+}
+.feature-txt { font-size: 28rpx; color: rgba(255,255,255,0.65); }
+
+/* 开始按钮 */
+.start-btn {
+  padding: 28rpx; border-radius: 16rpx;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(37,99,235,0.3);
+}
+.start-btn:active { opacity: 0.85; transform: scale(0.98); }
+.start-btn-txt { font-size: 32rpx; font-weight: 700; color: #fff; }
+
+/* ═══════════════════════════════════════
+   ★ 答题页
+   ═══════════════════════════════════════ */
+.quiz { padding: 16rpx 24rpx; }
+
+.progress-bar {
+  height: 6rpx; border-radius: 3rpx; background: rgba(255,255,255,0.08);
+  margin-bottom: 28rpx; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 3rpx;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  transition: width 0.3s ease;
+}
+
+.question-card {
+  padding: 28rpx; border-radius: 20rpx;
+  background: rgba(18,24,42,0.8); border: 1rpx solid rgba(255,255,255,0.07);
+}
+.q-header { display: flex; gap: 12rpx; margin-bottom: 20rpx; }
+.q-type {
+  padding: 6rpx 18rpx; border-radius: 999rpx; font-size: 22rpx; font-weight: 600;
+  background: rgba(59,130,246,0.15); color: #60a5fa;
+}
+.q-diff {
+  padding: 6rpx 18rpx; border-radius: 999rpx; font-size: 22rpx;
+  background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.45);
+}
+.q-stem { font-size: 30rpx; color: #fff; line-height: 1.7; font-weight: 500; display: block; }
+
+.options { margin-top: 28rpx; display: flex; flex-direction: column; gap: 12rpx; }
+.option {
+  display: flex; align-items: center; gap: 16rpx;
+  padding: 22rpx 20rpx; border-radius: 14rpx;
+  background: rgba(255,255,255,0.03); border: 2rpx solid rgba(255,255,255,0.08);
+  transition: border-color 0.15s, background 0.15s;
+}
+.option:active { border-color: rgba(59,130,246,0.4); }
+.option.selected { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+.opt-key {
+  width: 48rpx; height: 48rpx; border-radius: 12rpx; flex-shrink: 0;
+  background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+}
+.opt-key-txt { font-size: 26rpx; font-weight: 700; color: rgba(255,255,255,0.5); }
+.option.selected .opt-key { background: #3b82f6; }
+.option.selected .opt-key-txt { color: #fff; }
+.opt-text { font-size: 28rpx; color: rgba(255,255,255,0.85); line-height: 1.5; }
+
+.quiz-nav { display: flex; gap: 16rpx; margin-top: 32rpx; }
+.quiz-nav-btn {
+  flex: 1; padding: 22rpx; border-radius: 14rpx;
+  background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+}
+.quiz-nav-btn.disabled { opacity: 0.3; }
+.quiz-nav-btn.primary { background: #2563eb; }
+.quiz-nav-btn.submit { background: #16a34a; }
+.quiz-nav-btn:active { opacity: 0.85; }
+.quiz-nav-txt { font-size: 28rpx; font-weight: 600; color: #fff; }
+
+/* ═══════════════════════════════════════
+   ★ 加载
+   ═══════════════════════════════════════ */
+.loading-view {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding-top: 30vh;
+}
+.loading-spinner {
+  width: 64rpx; height: 64rpx; border-radius: 50%;
+  border: 4rpx solid rgba(255,255,255,0.1);
+  border-top-color: #3b82f6;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-txt { margin-top: 32rpx; font-size: 28rpx; color: #fff; font-weight: 600; }
+.loading-sub { margin-top: 8rpx; font-size: 24rpx; color: rgba(255,255,255,0.4); }
+
+/* ═══════════════════════════════════════
+   ★ 结果页
+   ═══════════════════════════════════════ */
+.result { padding: 32rpx; display: flex; flex-direction: column; align-items: center; }
+
+.score-ring-wrap { margin: 24rpx 0; }
+.score-ring {
+  width: 240rpx; height: 240rpx; border-radius: 50%;
+  background: rgba(18,24,42,0.8);
+  border: 4rpx solid rgba(59,130,246,0.3);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  box-shadow: 0 0 60rpx rgba(59,130,246,0.15);
+}
+.score-num { font-size: 72rpx; font-weight: 800; color: #fff; }
+.score-label { font-size: 22rpx; color: rgba(255,255,255,0.4); margin-top: -4rpx; }
+
+.level-badge {
+  padding: 8rpx 32rpx; border-radius: 999rpx; margin-bottom: 40rpx;
+}
+.level-beginner { background: rgba(239,68,68,0.15); border: 1rpx solid rgba(239,68,68,0.3); }
+.level-intermediate { background: rgba(245,158,11,0.15); border: 1rpx solid rgba(245,158,11,0.3); }
+.level-advanced { background: rgba(59,130,246,0.15); border: 1rpx solid rgba(59,130,246,0.3); }
+.level-expert { background: rgba(16,185,129,0.15); border: 1rpx solid rgba(16,185,129,0.3); }
+.level-txt { font-size: 26rpx; font-weight: 700; color: #fff; }
+
+.section-title {
+  align-self: flex-start; font-size: 28rpx; font-weight: 600;
+  color: rgba(255,255,255,0.7); margin-bottom: 16rpx;
+}
+
+.chapter-grid { width: 100%; display: flex; flex-direction: column; gap: 12rpx; margin-bottom: 32rpx; }
+.chapter-item { display: flex; align-items: center; gap: 12rpx; }
+.chapter-name { font-size: 24rpx; color: rgba(255,255,255,0.6); min-width: 140rpx; }
+.chapter-bar-wrap {
+  flex: 1; height: 16rpx; border-radius: 8rpx; background: rgba(255,255,255,0.06); overflow: hidden;
+}
+.chapter-bar { height: 100%; border-radius: 8rpx; transition: width 0.6s ease; min-width: 4rpx; }
+.chapter-bar.green { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.chapter-bar.gold { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.chapter-bar.red { background: linear-gradient(90deg, #ef4444, #dc2626); }
+.chapter-pct { font-size: 24rpx; color: rgba(255,255,255,0.5); min-width: 60rpx; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ── 学员画像卡片（核心） ─────────────── */
+.archetype-card {
+  width: 100%; padding: 28rpx; border-radius: 20rpx; margin-bottom: 28rpx;
+  background: rgba(18,24,42,0.85); border: 1rpx solid rgba(255,255,255,0.07);
+  border-left: 6rpx solid #3b82f6;
+  display: flex; flex-direction: column; gap: 16rpx;
+}
+.archetype-header { display: flex; align-items: center; gap: 16rpx; }
+.archetype-icon {
+  width: 64rpx; height: 64rpx; border-radius: 16rpx;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.archetype-icon-txt { font-size: 30rpx; font-weight: 800; color: #fff; }
+.archetype-title-col { display: flex; flex-direction: column; gap: 2rpx; }
+.archetype-label { font-size: 22rpx; color: rgba(255,255,255,0.4); }
+.archetype-name { font-size: 36rpx; font-weight: 800; color: #fff; }
+.archetype-desc { font-size: 26rpx; color: rgba(255,255,255,0.65); line-height: 1.7; }
+.archetype-traits { display: flex; flex-wrap: wrap; gap: 10rpx; }
+.trait-tag {
+  padding: 6rpx 18rpx; border-radius: 999rpx; font-size: 22rpx; font-weight: 600;
+  color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.06); border: 1rpx solid rgba(255,255,255,0.1);
+}
+.archetype-tip {
+  padding: 16rpx 20rpx; border-radius: 12rpx;
+  background: rgba(255,255,255,0.04);
+  display: flex; flex-direction: column; gap: 6rpx;
+}
+.tip-label { font-size: 22rpx; font-weight: 700; color: rgba(255,255,255,0.5); }
+.tip-text { font-size: 26rpx; color: rgba(255,255,255,0.75); line-height: 1.7; }
+
+/* ── 认知风格行 ──────────────────────── */
+.insight-row {
+  width: 100%; display: flex; gap: 12rpx; margin-bottom: 28rpx; flex-wrap: wrap;
+}
+.insight-card {
+  flex: 1; min-width: 180rpx; padding: 20rpx; border-radius: 14rpx;
+  background: rgba(255,255,255,0.04); border: 1rpx solid rgba(255,255,255,0.07);
+  display: flex; flex-direction: column; gap: 6rpx;
+}
+.insight-label { font-size: 20rpx; color: rgba(255,255,255,0.4); }
+.insight-value { font-size: 28rpx; font-weight: 700; color: #60a5fa; }
+.insight-desc { font-size: 22rpx; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+/* ── 优先攻克 ────────────────────────── */
+.priority-card { width: 100%; margin-bottom: 28rpx; }
+.priority-list { display: flex; flex-direction: column; gap: 8rpx; }
+.priority-item {
+  display: flex; align-items: center; gap: 14rpx;
+  padding: 16rpx 20rpx; border-radius: 12rpx;
+  background: rgba(239,68,68,0.06); border: 1rpx solid rgba(239,68,68,0.12);
+}
+.priority-idx {
+  width: 36rpx; height: 36rpx; border-radius: 50%;
+  background: rgba(239,68,68,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22rpx; font-weight: 700; color: #f87171; flex-shrink: 0;
+}
+.priority-name { font-size: 26rpx; color: rgba(255,255,255,0.7); }
+
+.result-actions { width: 100%; display: flex; flex-direction: column; gap: 12rpx; }
+.result-btn {
+  padding: 24rpx; border-radius: 14rpx; background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+}
+.result-btn.primary {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  box-shadow: 0 8rpx 32rpx rgba(37,99,235,0.25);
+}
+.result-btn:active { opacity: 0.85; }
+.result-btn-txt { font-size: 30rpx; font-weight: 700; color: #fff; }
+.secondary-txt { color: rgba(255,255,255,0.4); font-weight: 500; }
+
+/* ══ Light Mode ══════════════════════════════ */
+.assess-page.light {
+  background: linear-gradient(180deg, #f7faff 0%, #eef4ff 52%, #f8fbff 100%);
+}
+
+/* ── 极光背景 ────────────────────────────── */
+.assess-page.light .aurora-layer { opacity: 0.22; }
+.assess-page.light .orb1 { background: radial-gradient(circle, rgba(110,142,255,0.16) 0%, transparent 72%); }
+.assess-page.light .orb2 { background: radial-gradient(circle, rgba(88,166,255,0.12) 0%, transparent 72%); }
+.assess-page.light .orb3 { background: radial-gradient(circle, rgba(139,92,246,0.10) 0%, transparent 72%); }
+.assess-page.light .bg-horizon { opacity: 0.12; }
+
+/* ── 导航栏 ──────────────────────────────── */
+.assess-page.light .nav-back {
+  background: rgba(255,255,255,0.88);
+  border: 1rpx solid rgba(176,193,224,0.5);
+}
+.assess-page.light .nav-back-arrow { color: #333; }
+.assess-page.light .nav-title { color: #0f172a; }
+.assess-page.light .nav-progress { color: #666; }
+
+/* ═══ 欢迎页 ═════════════════════════════ */
+.assess-page.light .hero-icon-ring {
+  background: linear-gradient(135deg, #eef2ff, #e8f0ff);
+  border-color: rgba(99,102,241,0.2);
+}
+.assess-page.light .hero-icon-txt { color: #3b82f6; }
+.assess-page.light .welcome-title { color: #0f172a; }
+.assess-page.light .welcome-sub { color: #666; }
+
+/* 数据卡片 */
+.assess-page.light .stat-card {
+  background: rgba(255,255,255,0.9);
+  border-color: #e5e5e5;
+}
+.assess-page.light .stat-num { color: #2563eb; }
+.assess-page.light .stat-label { color: #666; }
+
+/* 特性列表 */
+.assess-page.light .feature-txt { color: #333; }
+
+/* 开始按钮 — 保持渐变，调浅阴影 */
+.assess-page.light .start-btn {
+  box-shadow: 0 8rpx 32rpx rgba(37,99,235,0.2);
+}
+
+/* ═══ 答题页 ═════════════════════════════ */
+.assess-page.light .progress-bar { background: rgba(0,0,0,0.06); }
+
+.assess-page.light .question-card {
+  background: rgba(255,255,255,0.92);
+  border-color: #e5e5e5;
+}
+.assess-page.light .q-type {
+  background: #eef2ff;
+  color: #2563eb;
+}
+.assess-page.light .q-diff {
+  background: #f5f5f5;
+  color: #666;
+}
+.assess-page.light .q-stem { color: #0f172a; }
+
+/* 选项 */
+.assess-page.light .option {
+  background: #ffffff;
+  border-color: #e5e5e5;
+}
+.assess-page.light .option:active { border-color: rgba(59,130,246,0.3); }
+.assess-page.light .option.selected {
+  border-color: #3b82f6;
+  background: #eef4ff;
+}
+.assess-page.light .opt-key {
+  background: #f5f5f5;
+}
+.assess-page.light .opt-key-txt { color: #666; }
+.assess-page.light .option.selected .opt-key { background: #3b82f6; }
+.assess-page.light .option.selected .opt-key-txt { color: #fff; }
+.assess-page.light .opt-text { color: #333; }
+
+/* 导航按钮 */
+.assess-page.light .quiz-nav-btn {
+  background: #f5f5f5;
+}
+.assess-page.light .quiz-nav-btn.disabled { opacity: 0.3; }
+.assess-page.light .quiz-nav-txt { color: #333; }
+.assess-page.light .quiz-nav-btn.primary { background: #2563eb; }
+.assess-page.light .quiz-nav-btn.primary .quiz-nav-txt { color: #fff; }
+.assess-page.light .quiz-nav-btn.submit { background: #16a34a; }
+.assess-page.light .quiz-nav-btn.submit .quiz-nav-txt { color: #fff; }
+
+/* ═══ 加载 ═══════════════════════════════ */
+.assess-page.light .loading-spinner {
+  border-color: rgba(0,0,0,0.08);
+  border-top-color: #3b82f6;
+}
+.assess-page.light .loading-txt { color: #0f172a; }
+.assess-page.light .loading-sub { color: #666; }
+
+/* ═══ 结果页 ═════════════════════════════ */
+.assess-page.light .score-ring {
+  background: rgba(255,255,255,0.92);
+  border-color: rgba(59,130,246,0.2);
+  box-shadow: 0 0 40rpx rgba(59,130,246,0.1);
+}
+.assess-page.light .score-num { color: #0f172a; }
+.assess-page.light .score-label { color: #666; }
+.assess-page.light .level-txt { color: #0f172a; }
+
+/* 章节掌握度 */
+.assess-page.light .section-title { color: #333; }
+.assess-page.light .chapter-name { color: #333; }
+.assess-page.light .chapter-bar-wrap { background: rgba(0,0,0,0.06); }
+.assess-page.light .chapter-pct { color: #666; }
+
+/* 学员画像 */
+.assess-page.light .archetype-card {
+  background: rgba(255,255,255,0.92);
+  border-color: #e5e5e5;
+}
+.assess-page.light .archetype-label { color: #666; }
+.assess-page.light .archetype-name { color: #0f172a; }
+.assess-page.light .archetype-desc { color: #333; }
+.assess-page.light .trait-tag {
+  color: #333;
+  background: #f5f5f5;
+  border-color: #e5e5e5;
+}
+.assess-page.light .archetype-tip {
+  background: #f8fafc;
+}
+.assess-page.light .tip-label { color: #666; }
+.assess-page.light .tip-text { color: #333; }
+
+/* 认知风格 */
+.assess-page.light .insight-card {
+  background: rgba(255,255,255,0.92);
+  border-color: #e5e5e5;
+}
+.assess-page.light .insight-label { color: #666; }
+.assess-page.light .insight-value { color: #2563eb; }
+.assess-page.light .insight-desc { color: #666; }
+
+/* 优先攻克 */
+.assess-page.light .priority-item {
+  background: rgba(239,68,68,0.05);
+  border-color: rgba(239,68,68,0.1);
+}
+.assess-page.light .priority-name { color: #333; }
+
+/* 操作按钮 */
+.assess-page.light .result-btn {
+  background: #f5f5f5;
+}
+.assess-page.light .result-btn.primary {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  box-shadow: 0 8rpx 32rpx rgba(37,99,235,0.2);
+}
+.assess-page.light .result-btn-txt { color: #fff; }
+.assess-page.light .secondary-txt { color: #666; }

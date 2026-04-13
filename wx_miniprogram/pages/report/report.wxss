@@ -1,0 +1,550 @@
+/* pages/report/report.wxss — 学习报告页样式 */
+
+.report-page {
+  height: 100vh;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+/* ── 导航栏 ──────────────────────────────────────── */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(10, 10, 10, 0.9);
+  border-bottom: 1rpx solid var(--border);
+}
+
+.nav-content {
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 24rpx 0 0;
+  gap: 16rpx;
+}
+
+/* 返回按钮 */
+.nav-back {
+  display: flex; align-items: center; gap: 4rpx;
+  margin-left: 20rpx; padding: 8rpx 12rpx 8rpx 4rpx;
+  border-radius: 8rpx;
+}
+.nav-back:active { background: rgba(255,255,255,0.08); }
+.nav-back-arrow {
+  font-size: 40rpx; color: #818cf8; font-weight: 300;
+  line-height: 1; margin-top: -4rpx;
+}
+.nav-back-txt { font-size: 28rpx; color: #818cf8; font-weight: 500; }
+
+.nav-points-pill {
+  display: flex; align-items: center; gap: 6rpx;
+  padding: 8rpx 20rpx; border-radius: 999rpx;
+  background: rgba(245,158,11,0.15); border: 1rpx solid rgba(245,158,11,0.3);
+}
+.nav-points-star { font-size: 24rpx; color: #f59e0b; }
+.nav-points-num { font-size: 24rpx; font-weight: 700; color: #f59e0b; }
+
+.nav-title {
+  flex: 1;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.nav-badge {
+  padding: 6rpx 16rpx;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-badge.badge-good {
+  background: rgba(52, 211, 153, 0.15);
+}
+
+.nav-badge-txt {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.badge-good .nav-badge-txt {
+  color: #34d399;
+}
+
+/* ── 页面滚动区 ──────────────────────────────────── */
+.page-scroll {
+  position: fixed;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+}
+
+.page-inner {
+  padding: 24rpx 24rpx 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+/* ── Section Headers ─────────────────────────────── */
+.section-header {
+  padding: 8rpx 4rpx 0;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sub-header {
+  margin-top: 24rpx;
+  margin-bottom: 8rpx;
+}
+
+.section-title-sm {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ── 空状态 / 加载 ───────────────────────────────── */
+.loading-card {
+  padding: 48rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.empty-card {
+  padding: 48rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.empty-icon {
+  font-size: 64rpx;
+}
+
+.empty-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.empty-desc {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.empty-btn {
+  margin-top: 16rpx;
+  padding: 14rpx 40rpx;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1rpx solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-full);
+}
+
+.empty-btn:active {
+  opacity: 0.7;
+}
+
+.empty-btn-txt {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #818cf8;
+}
+
+/* ── 雷达图 Canvas ───────────────────────────────── */
+.radar-canvas-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 32rpx 0 16rpx;
+}
+
+.radar-canvas {
+  width: 280px;
+  height: 280px;
+}
+
+.radar-image {
+  width: 280px;
+  height: 280px;
+}
+
+/* ── 雷达统计 ────────────────────────────────────── */
+.radar-summary {
+  display: flex;
+  justify-content: center;
+  gap: 48rpx;
+  margin-bottom: 16rpx;
+}
+
+.radar-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.stat-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  margin-bottom: 4rpx;
+}
+
+.dot-strong { background: #34d399; }
+.dot-normal { background: #fbbf24; }
+.dot-weak   { background: #f87171; }
+
+.stat-num {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+/* ── 维度列表 ────────────────────────────────────── */
+.dim-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.dim-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+}
+
+.dim-rank {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rank-strong { background: rgba(52, 211, 153, 0.15); }
+.rank-normal { background: rgba(251, 191, 36, 0.15); }
+.rank-weak   { background: rgba(248, 113, 113, 0.15); }
+
+.dim-rank-txt {
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.rank-strong .dim-rank-txt { color: #34d399; }
+.rank-normal .dim-rank-txt { color: #fbbf24; }
+.rank-weak   .dim-rank-txt { color: #f87171; }
+
+.dim-name {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--text-primary);
+}
+
+.dim-bar {
+  width: 120rpx;
+  height: 10rpx;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 5rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.dim-bar-fill {
+  height: 100%;
+  border-radius: 5rpx;
+  transition: width 0.6s ease;
+}
+
+.dim-pct {
+  font-size: 26rpx;
+  font-weight: 600;
+  min-width: 64rpx;
+  text-align: right;
+}
+
+/* ── 掌握度大数字 ────────────────────────────────── */
+.mastery-hero {
+  padding: 40rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.mastery-score-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
+}
+
+.mastery-score {
+  font-size: 96rpx;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-good { color: #34d399; }
+.score-mid  { color: #fbbf24; }
+.score-low  { color: #f87171; }
+
+.mastery-unit {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.mastery-label {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.mastery-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+  margin-top: 16rpx;
+}
+
+.mastery-sub-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.mastery-sub-num {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mastery-sub-warn {
+  color: #f87171;
+}
+
+.mastery-sub-label {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.mastery-sub-divider {
+  width: 1rpx;
+  height: 40rpx;
+  background: var(--border);
+}
+
+/* ── 科目掌握度分组 ──────────────────────────────── */
+.mastery-group {
+  padding: 24rpx;
+}
+
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.group-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.group-avg {
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.avg-good { color: #34d399; }
+.avg-mid  { color: #fbbf24; }
+.avg-low  { color: #f87171; }
+
+.group-chapters {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.chapter-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.ch-name {
+  flex: 1;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ch-bar {
+  width: 120rpx;
+  height: 8rpx;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ch-bar-fill {
+  height: 100%;
+  border-radius: 4rpx;
+}
+
+.ch-pct {
+  font-size: 22rpx;
+  font-weight: 600;
+  min-width: 56rpx;
+  text-align: right;
+}
+
+/* ── 易错热点 ────────────────────────────────────── */
+.hotspot-list {
+  padding: 8rpx 0;
+}
+
+.hotspot-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid var(--border-subtle);
+}
+
+.hotspot-item:last-child {
+  border-bottom: none;
+}
+
+.hotspot-topic {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--text-primary);
+}
+
+.hotspot-rate {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #f87171;
+  flex-shrink: 0;
+}
+
+
+/* ── 摸底测试入口 ────────────────────────────────── */
+.assess-entry {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 28rpx 24rpx; margin-top: 16rpx;
+}
+.assess-entry:active { opacity: 0.8; }
+.assess-entry-left { display: flex; align-items: center; gap: 20rpx; }
+.assess-entry-icon {
+  width: 72rpx; height: 72rpx; border-radius: 16rpx;
+  background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2));
+  border: 1rpx solid rgba(99,102,241,0.25);
+  display: flex; align-items: center; justify-content: center;
+}
+.assess-entry-icon-txt { font-size: 26rpx; font-weight: 800; color: #60a5fa; }
+.assess-entry-info { display: flex; flex-direction: column; gap: 4rpx; }
+.assess-entry-title { font-size: 30rpx; font-weight: 600; color: #fff; }
+.assess-entry-sub { font-size: 22rpx; color: rgba(255,255,255,0.4); }
+.assess-entry-arrow { font-size: 32rpx; color: rgba(255,255,255,0.3); }
+
+/* ── 摸底报告入口卡片 ────────────────────────────── */
+.report-entry {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 28rpx 24rpx; margin-top: 48rpx;
+}
+.report-entry:active { opacity: 0.8; }
+.report-entry-left { display: flex; align-items: center; gap: 20rpx; }
+.report-entry-icon {
+  width: 72rpx; height: 72rpx; border-radius: 16rpx;
+  background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2));
+  border: 1rpx solid rgba(99,102,241,0.25);
+  display: flex; align-items: center; justify-content: center;
+}
+.report-entry-icon-txt { font-size: 26rpx; font-weight: 800; color: #60a5fa; }
+.report-entry-info { display: flex; flex-direction: column; gap: 4rpx; }
+.report-entry-title { font-size: 30rpx; font-weight: 600; color: #fff; }
+.report-entry-sub { font-size: 22rpx; color: rgba(255,255,255,0.4); }
+.report-entry-arrow { font-size: 32rpx; color: rgba(255,255,255,0.3); }
+
+/* ═══════════════════════════════════════════════
+   ★ 亮色模式
+   ═══════════════════════════════════════════════ */
+
+/* ── CSS 变量覆盖 ──────────────────────────── */
+.report-page.light {
+  --primary-400: #5e8cff;
+  --primary-500: #2f6bff;
+  --primary-600: #2557d8;
+  --bg-primary: linear-gradient(180deg, #f7faff 0%, #eef4ff 52%, #f8fbff 100%);
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eef4ff;
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-elevated: rgba(255, 255, 255, 0.98);
+  --text-primary: #111827;
+  --text-secondary: #334155;
+  --text-tertiary: #516174;
+  --text-muted: #7b8799;
+  --border-subtle: rgba(219, 230, 245, 0.65);
+  --border-light: #dbe6f5;
+  --border-medium: #d1def4;
+  --border: #dbe6f5;
+  --shadow-sm: 0 6rpx 18rpx rgba(126, 147, 185, 0.08);
+  --shadow-md: 0 14rpx 34rpx rgba(126, 147, 185, 0.12);
+}
+
+/* ── 导航栏 ────────────────────────────────── */
+.report-page.light .nav-bar {
+  background: rgba(248, 250, 255, 0.96);
+  border-color: #dbe6f5;
+  box-shadow: 0 10rpx 28rpx rgba(126, 147, 185, 0.10);
+}
+.report-page.light .nav-back:active { background: rgba(0,0,0,0.04); }
+.report-page.light .nav-back-arrow { color: #4f46e5; }
+.report-page.light .nav-back-txt { color: #4f46e5; }
+
+/* ── 进度条背景 ────────────────────────────── */
+.report-page.light .dim-bar { background: #edf2fb; }
+.report-page.light .ch-bar { background: #edf2fb; }
+.report-page.light .empty-btn {
+  background: #eef4ff;
+  border-color: #c6d8ff;
+}
+.report-page.light .empty-btn-txt { color: #2f6bff; }
+
+/* ── 入口卡片文字 ──────────────────────────── */
+.report-page.light .report-entry-title { color: #0f172a; }
+.report-page.light .report-entry-sub { color: #7b8799; }
+.report-page.light .report-entry-arrow { color: #97a5b8; }
+.report-page.light .assess-entry-title { color: #0f172a; }
+.report-page.light .assess-entry-sub { color: #7b8799; }
+.report-page.light .assess-entry-arrow { color: #97a5b8; }
+.report-page.light .report-entry-icon,
+.report-page.light .assess-entry-icon {
+  background: linear-gradient(135deg, #eef4ff, #f8fbff);
+  border-color: #cfe0ff;
+}
+.report-page.light .report-entry-icon-txt,
+.report-page.light .assess-entry-icon-txt { color: #2f6bff; }

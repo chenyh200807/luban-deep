@@ -1,0 +1,54 @@
+.tab-bar {
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 140rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #09111f;
+  border-top: 1rpx solid rgba(148, 163, 184, 0.10);
+  z-index: 999;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  padding-top: 8rpx;
+}
+
+.tab-icon {
+  width: 96rpx;
+  height: 96rpx;
+  opacity: 0.82;
+}
+
+.tab-text {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #b7c0d2;
+}
+
+.tab-item.active .tab-icon {
+  opacity: 1;
+}
+.tab-item.active .tab-text {
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+/* ── 亮色模式 ──────────────────────────────── */
+.tab-bar.light {
+  background: rgba(248, 250, 255, 0.98);
+  border-top-color: #dbe6f5;
+}
+.tab-bar.light .tab-text {
+  color: #5a6475;
+}
+.tab-bar.light .tab-item.active .tab-text {
+  color: #2f6bff;
+}

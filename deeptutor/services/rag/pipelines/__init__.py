@@ -8,6 +8,7 @@ from typing import Any
 
 __all__ = [
     "LlamaIndexPipeline",
+    "SupabasePipeline",
 ]
 
 
@@ -16,4 +17,8 @@ def __getattr__(name: str) -> Any:
         from .llamaindex import LlamaIndexPipeline
 
         return LlamaIndexPipeline
+    if name == "SupabasePipeline":
+        from .supabase import SupabasePipeline
+
+        return SupabasePipeline
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

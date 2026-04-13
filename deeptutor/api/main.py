@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from deeptutor.logging import get_logger
+from deeptutor.services.branding import get_api_title, get_api_welcome_message
 from deeptutor.services.path_service import get_path_service
 
 # Note: Don't set service_prefix here - start_web.py already adds [Backend] prefix
@@ -136,7 +137,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="DeepTutor API",
+    title=get_api_title(),
     version="1.0.0",
     lifespan=lifespan,
     # Disable automatic trailing slash redirects to prevent protocol downgrade issues
@@ -203,7 +204,9 @@ from deeptutor.api.routers import (
     dashboard,
     guide,
     knowledge,
+    member,
     memory,
+    mobile,
     notebook,
     plugins_api,
     question,
@@ -225,6 +228,7 @@ app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboar
 app.include_router(co_writer.router, prefix="/api/v1/co_writer", tags=["co_writer"])
 app.include_router(notebook.router, prefix="/api/v1/notebook", tags=["notebook"])
 app.include_router(guide.router, prefix="/api/v1/guide", tags=["guide"])
+app.include_router(member.router, prefix="/api/v1/member", tags=["member"])
 app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])
 app.include_router(sessions.router, prefix="/api/v1/sessions", tags=["sessions"])
 app.include_router(settings.router, prefix="/api/v1/settings", tags=["settings"])
@@ -233,6 +237,7 @@ app.include_router(plugins_api.router, prefix="/api/v1/plugins", tags=["plugins"
 app.include_router(agent_config.router, prefix="/api/v1/agent-config", tags=["agent-config"])
 app.include_router(vision_solver.router, prefix="/api/v1", tags=["vision-solver"])
 app.include_router(tutorbot.router, prefix="/api/v1/tutorbot", tags=["tutorbot"])
+app.include_router(mobile.router, prefix="/api/v1", tags=["mobile"])
 
 # Unified WebSocket endpoint
 app.include_router(unified_ws.router, prefix="/api/v1", tags=["unified-ws"])
@@ -240,7 +245,7 @@ app.include_router(unified_ws.router, prefix="/api/v1", tags=["unified-ws"])
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to DeepTutor API"}
+    return {"message": get_api_welcome_message()}
 
 
 if __name__ == "__main__":

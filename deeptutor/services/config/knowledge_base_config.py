@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,58 @@ def _default_payload() -> dict[str, Any]:
     }
 
 
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw = str(os.getenv(name, "")).strip().lower()
+    if not raw:
+        return default
+    return raw in {"1", "true", "yes", "on"}
+
+
+def _env_csv(name: str, default: str = "") -> list[str]:
+    raw = str(os.getenv(name, default) or "").strip()
+    if not raw:
+        return []
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def get_env_defined_kbs() -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    """Return env-backed KB entries plus default overrides.
+
+    This keeps a read-only remote KB available even when no local KB directory exists.
+    """
+    if not _env_flag("SUPABASE_RAG_ENABLED", default=False):
+        return {}, {}
+
+    supabase_url = str(os.getenv("SUPABASE_URL", "") or "").strip()
+    service_key = (
+        str(os.getenv("SUPABASE_SERVICE_ROLE_KEY", "") or "").strip()
+        or str(os.getenv("SUPABASE_KEY", "") or "").strip()
+    )
+    if not supabase_url or not service_key:
+        return {}, {}
+
+    kb_name = str(os.getenv("SUPABASE_RAG_DEFAULT_KB_NAME", "") or "").strip() or "supabase-main"
+    description = (
+        str(os.getenv("SUPABASE_RAG_DEFAULT_DESCRIPTION", "") or "").strip()
+        or "Primary read-only knowledge base hosted in Supabase"
+    )
+    sources = _env_csv("SUPABASE_RAG_SOURCES", "standard,textbook,exam")
+    include_questions = _env_flag("SUPABASE_RAG_INCLUDE_QUESTIONS", default=True)
+
+    entry = {
+        "path": kb_name,
+        "description": description,
+        "rag_provider": "supabase",
+        "status": "ready",
+        "remote_backend": "supabase",
+        "remote_read_only": True,
+        "supabase_sources": sources,
+        "supabase_include_questions": include_questions,
+    }
+    defaults = {"default_kb": kb_name}
+    return {kb_name: entry}, defaults
+
+
 class KnowledgeBaseConfigService:
     _instance: "KnowledgeBaseConfigService | None" = None
 
@@ -51,6 +104,18 @@ class KnowledgeBaseConfigService:
                 payload["defaults"].update(loaded.get("defaults", {}))
             except Exception as exc:
                 logger.warning("Failed to load KB config: %s", exc)
+
+        env_kbs, env_defaults = get_env_defined_kbs()
+        knowledge_bases = payload.setdefault("knowledge_bases", {})
+        for kb_name, entry in env_kbs.items():
+            current = knowledge_bases.setdefault(kb_name, {})
+            for key, value in entry.items():
+                current.setdefault(key, value)
+        payload.setdefault("defaults", _default_payload()["defaults"])
+        for key, value in env_defaults.items():
+            if not payload["defaults"].get(key):
+                payload["defaults"][key] = value
+
         payload.setdefault("knowledge_bases", {})
         payload.setdefault("defaults", _default_payload()["defaults"])
         payload = self._normalize_payload(payload)
@@ -186,4 +251,8 @@ def get_kb_config_service() -> KnowledgeBaseConfigService:
     return KnowledgeBaseConfigService.get_instance()
 
 
-__all__ = ["KnowledgeBaseConfigService", "get_kb_config_service"]
+__all__ = [
+    "KnowledgeBaseConfigService",
+    "get_env_defined_kbs",
+    "get_kb_config_service",
+]

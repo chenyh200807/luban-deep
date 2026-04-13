@@ -28,6 +28,8 @@ type SessionRuntimeStatus =
   | "cancelled"
   | "rejected";
 
+export type ChatMode = "fast" | "deep";
+
 interface OutgoingAttachment {
   type: string;
   url?: string;
@@ -53,6 +55,7 @@ export interface ChatState {
   sessionId: string | null;
   enabledTools: string[];
   activeCapability: string | null;
+  chatMode: ChatMode;
   knowledgeBases: string[];
   messages: MessageItem[];
   isStreaming: boolean;
@@ -110,9 +113,14 @@ interface ProviderState {
   sidebarRefreshToken: number;
 }
 
+function getDefaultChatMode(): ChatMode {
+  return process.env.NEXT_PUBLIC_CHAT_DEFAULT_MODE === "deep" ? "deep" : "fast";
+}
+
 type Action =
   | { type: "SET_TOOLS"; tools: string[] }
   | { type: "SET_CAPABILITY"; cap: string | null }
+  | { type: "SET_CHAT_MODE"; mode: ChatMode }
   | { type: "SET_KB"; kbs: string[] }
   | { type: "SET_LANGUAGE"; lang: string }
   | {
@@ -136,17 +144,23 @@ type Action =
       status?: SessionRuntimeStatus;
       tools?: string[];
       capability?: string | null;
+      chatMode?: ChatMode;
       knowledgeBases?: string[];
       language?: string;
     }
   | { type: "NEW_SESSION"; key: string };
 
-function createSessionEntry(key: string, sessionId: string | null = null): SessionEntry {
+function createSessionEntry(
+  key: string,
+  sessionId: string | null = null,
+  chatMode: ChatMode = getDefaultChatMode(),
+): SessionEntry {
   return {
     key,
     sessionId,
     enabledTools: [],
     activeCapability: null,
+    chatMode,
     knowledgeBases: [],
     messages: [],
     isStreaming: false,
@@ -194,6 +208,11 @@ function reducer(state: ProviderState, action: Action): ProviderState {
       return updateSelectedSession(state, (session) => ({
         ...session,
         activeCapability: action.cap,
+      }));
+    case "SET_CHAT_MODE":
+      return updateSelectedSession(state, (session) => ({
+        ...session,
+        chatMode: action.mode,
       }));
     case "SET_KB":
       return updateSelectedSession(state, (session) => ({
@@ -339,6 +358,7 @@ function reducer(state: ProviderState, action: Action): ProviderState {
             enabledTools: action.tools ?? existing.enabledTools,
             activeCapability:
               action.capability !== undefined ? action.capability : existing.activeCapability,
+            chatMode: action.chatMode ?? existing.chatMode,
             knowledgeBases: action.knowledgeBases ?? existing.knowledgeBases,
             messages: action.messages,
             isStreaming: (action.status || "idle") === "running",
@@ -353,7 +373,13 @@ function reducer(state: ProviderState, action: Action): ProviderState {
     }
     case "NEW_SESSION": {
       const MAX_CACHED_SESSIONS = 20;
-      let nextSessions = { ...state.sessions, [action.key]: createSessionEntry(action.key) };
+      const seedChatMode = state.selectedKey
+        ? state.sessions[state.selectedKey]?.chatMode ?? getDefaultChatMode()
+        : getDefaultChatMode();
+      let nextSessions = {
+        ...state.sessions,
+        [action.key]: createSessionEntry(action.key, null, seedChatMode),
+      };
       const keys = Object.keys(nextSessions);
       if (keys.length > MAX_CACHED_SESSIONS) {
         const evictable = keys
@@ -379,6 +405,7 @@ interface ChatContextValue {
   state: ChatState;
   setTools: (tools: string[]) => void;
   setCapability: (cap: string | null) => void;
+  setChatMode: (mode: ChatMode) => void;
   setKBs: (kbs: string[]) => void;
   setLanguage: (lang: string) => void;
   sendMessage: (
@@ -576,6 +603,7 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
         status: (session.status as SessionRuntimeStatus | undefined) || (activeTurn ? "running" : "idle"),
         tools: Array.isArray(session.preferences?.tools) ? session.preferences.tools : [],
         capability: session.preferences?.capability || null,
+        chatMode: session.preferences?.chat_mode === "deep" ? "deep" : "fast",
         knowledgeBases: Array.isArray(session.preferences?.knowledge_bases)
           ? session.preferences.knowledge_bases
           : [],
@@ -638,9 +666,23 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
       const session = currentState.sessions[key] ?? createSessionEntry(key);
       const replaySnapshot = options?.requestSnapshotOverride;
       const effectiveCapability = replaySnapshot?.capability ?? session.activeCapability;
+      const effectiveChatMode =
+        effectiveCapability === null
+          ? (
+              replaySnapshot?.config?.chat_mode === "deep"
+                ? "deep"
+                : replaySnapshot?.config?.chat_mode === "fast"
+                  ? "fast"
+                  : session.chatMode
+            )
+          : session.chatMode;
       const effectiveTools = replaySnapshot?.enabledTools ?? session.enabledTools;
       const effectiveKnowledgeBases = replaySnapshot?.knowledgeBases ?? session.knowledgeBases;
       const effectiveLanguage = replaySnapshot?.language ?? session.language;
+      const requestConfig: Record<string, unknown> = {
+        ...(config || {}),
+        ...(effectiveCapability === null ? { chat_mode: effectiveChatMode } : {}),
+      };
       const researchSources = Array.isArray(config?.sources)
         ? config.sources.filter((value): value is string => typeof value === "string")
         : [];
@@ -654,7 +696,7 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
         knowledgeBases: shouldSendKnowledgeBases ? [...effectiveKnowledgeBases] : [],
         language: effectiveLanguage,
         ...(msgAttachments?.length ? { attachments: msgAttachments } : {}),
-        ...(config && Object.keys(config).length > 0 ? { config } : {}),
+        ...(Object.keys(requestConfig).length > 0 ? { config: requestConfig } : {}),
         ...(notebookReferences?.length ? { notebookReferences } : {}),
         ...(historyReferences?.length ? { historyReferences: [...historyReferences] } : {}),
       };
@@ -671,8 +713,8 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
       dispatch({ type: "STREAM_START", key });
       const effectiveConfig =
         options?.persistUserMessage === false
-          ? { ...(config || {}), _persist_user_message: false }
-          : config;
+          ? { ...requestConfig, _persist_user_message: false }
+          : requestConfig;
       sendThroughRunner(key, {
         type: "start_turn",
         content,
@@ -718,6 +760,7 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
       sessionId: current.sessionId,
       enabledTools: current.enabledTools,
       activeCapability: current.activeCapability,
+      chatMode: current.chatMode,
       knowledgeBases: current.knowledgeBases,
       messages: current.messages,
       isStreaming: current.isStreaming,
@@ -748,6 +791,10 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
     dispatch({ type: "SET_CAPABILITY", cap });
   }, []);
 
+  const setChatMode = useCallback((mode: ChatMode) => {
+    dispatch({ type: "SET_CHAT_MODE", mode });
+  }, []);
+
   const setKBs = useCallback((kbs: string[]) => {
     dispatch({ type: "SET_KB", kbs });
   }, []);
@@ -764,6 +811,7 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
     state: derivedState,
     setTools,
     setCapability,
+    setChatMode,
     setKBs,
     setLanguage,
     sendMessage,

@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from deeptutor.services.branding import get_brand_name
 from deeptutor.tutorbot.agent.memory import MemoryStore
 from deeptutor.tutorbot.agent.skills import SkillsLoader
 from deeptutor.tutorbot.utils.helpers import build_assistant_message, detect_image_mime
@@ -80,7 +81,9 @@ Skills with available="false" need dependencies installed first - you can try in
 
         if self.shared_memory_dir:
             name = "TutorBot"
-            tagline = "You are TutorBot, an intelligent learning companion powered by DeepTutor."
+            tagline = (
+                f"You are TutorBot, an intelligent learning companion powered by {get_brand_name()}."
+            )
         else:
             name = "TutorBot"
             tagline = "You are TutorBot, a helpful AI assistant."

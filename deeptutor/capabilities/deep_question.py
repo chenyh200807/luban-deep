@@ -83,6 +83,8 @@ class DeepQuestionCapability(BaseCapability):
         difficulty = str(overrides.get("difficulty", "") or "")
         question_type = str(overrides.get("question_type", "") or "")
         preference = str(overrides.get("preference", "") or "")
+        reveal_answers = bool(overrides.get("reveal_answers", False))
+        reveal_explanations = bool(overrides.get("reveal_explanations", reveal_answers))
         history_context = str(
             context.metadata.get("conversation_context_text", "") or ""
         ).strip()
@@ -174,7 +176,11 @@ class DeepQuestionCapability(BaseCapability):
                 history_context=history_context,
             )
 
-        content = self._render_summary_markdown(result)
+        content = self._render_summary_markdown(
+            result,
+            reveal_answers=reveal_answers,
+            reveal_explanations=reveal_explanations,
+        )
         if content:
             await stream.content(content, source=self.name, stage="generation")
 
@@ -327,7 +333,13 @@ class DeepQuestionCapability(BaseCapability):
             return f"Question {match.group(1)}"
         return raw or "Question"
 
-    def _render_summary_markdown(self, summary: dict[str, Any]) -> str:
+    def _render_summary_markdown(
+        self,
+        summary: dict[str, Any],
+        *,
+        reveal_answers: bool = False,
+        reveal_explanations: bool = False,
+    ) -> str:
         results = summary.get("results", []) if isinstance(summary, dict) else []
         if not results:
             return ""
@@ -348,11 +360,11 @@ class DeepQuestionCapability(BaseCapability):
                     lines.append(f"- {key}. {value}")
 
             answer = qa_pair.get("correct_answer", "")
-            if answer:
+            if reveal_answers and answer:
                 lines.append(f"\n**Answer:** {answer}")
 
             explanation = qa_pair.get("explanation", "")
-            if explanation:
+            if reveal_explanations and explanation:
                 lines.append(f"\n**Explanation:** {explanation}")
 
             lines.append("")

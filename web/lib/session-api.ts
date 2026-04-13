@@ -31,6 +31,7 @@ export interface SessionSummary {
   active_turn_id?: string;
   preferences?: {
     capability?: string;
+    chat_mode?: "fast" | "deep";
     tools?: string[];
     knowledge_bases?: string[];
     language?: string;
@@ -62,6 +63,7 @@ export interface SessionDetail {
   summary_up_to_msg_id?: number;
   preferences?: {
     capability?: string;
+    chat_mode?: "fast" | "deep";
     tools?: string[];
     knowledge_bases?: string[];
     language?: string;

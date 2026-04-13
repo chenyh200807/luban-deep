@@ -1,0 +1,292 @@
+/* pages/history/history.wxss — 历史对话（含管理模式+归档） */
+
+.history-page { height: 100vh; background: #080c18; overflow: hidden; }
+
+/* ── 导航栏 ────────────────────────────── */
+.nav-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  background: rgba(8,12,24,0.9);
+  border-bottom: 1rpx solid rgba(255,255,255,0.06);
+}
+.nav-content {
+  display: flex; align-items: center;
+  padding-right: 24rpx; gap: 16rpx;
+  box-sizing: border-box;
+}
+/* 返回按钮 */
+.nav-back {
+  display: flex; align-items: center; gap: 4rpx;
+  margin-left: 20rpx; padding: 8rpx 12rpx 8rpx 4rpx;
+  border-radius: 8rpx;
+}
+.nav-back:active { background: rgba(255,255,255,0.08); }
+.nav-back-arrow {
+  font-size: 40rpx; color: #818cf8; font-weight: 300;
+  line-height: 1; margin-top: -4rpx;
+}
+.nav-back-txt { font-size: 28rpx; color: #818cf8; font-weight: 500; }
+
+.nav-count { font-size: 22rpx; color: rgba(255,255,255,0.35); }
+
+/* 管理/完成按钮 */
+.nav-btn {
+  padding: 8rpx 20rpx; border-radius: 8rpx;
+  background: rgba(255,255,255,0.06);
+}
+.nav-btn:active { background: rgba(255,255,255,0.12); }
+.nav-btn-txt { font-size: 24rpx; color: rgba(255,255,255,0.6); }
+.nav-btn-txt.done { color: #818cf8; font-weight: 600; }
+
+/* ── Tab 切换栏 ──────────────────────────── */
+.tab-bar {
+  position: fixed; left: 0; right: 0; z-index: 49;
+  height: 80rpx; display: flex; align-items: center;
+  padding: 0 24rpx; gap: 24rpx;
+  background: rgba(8,12,24,0.85);
+}
+.tab-item {
+  padding: 8rpx 0; position: relative;
+}
+.tab-text {
+  font-size: 26rpx; color: rgba(255,255,255,0.4); font-weight: 500;
+}
+.tab-active .tab-text { color: #fff; font-weight: 600; }
+.tab-active::after {
+  content: ""; position: absolute; bottom: 0; left: 10%; right: 10%;
+  height: 4rpx; border-radius: 2rpx; background: #818cf8;
+}
+
+/* ── 滚动区 ────────────────────────────── */
+.page-scroll { position: fixed; left: 0; right: 0; overflow-y: auto; }
+.page-inner { padding: 16rpx 24rpx 0; }
+
+/* ── 骨架屏 ────────────────────────────── */
+.loading-wrap { display: flex; flex-direction: column; gap: 12rpx; }
+.skel-item {
+  padding: 24rpx; border-radius: 14rpx;
+  background: rgba(255,255,255,0.03);
+}
+.skel-line {
+  border-radius: 6rpx;
+  background: rgba(255,255,255,0.06);
+  animation: shimmer 1.5s infinite;
+}
+.skel-title { width: 55%; height: 28rpx; }
+.skel-sub { width: 80%; height: 22rpx; margin-top: 12rpx; }
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* ── 空状态 ────────────────────────────── */
+.empty-card {
+  padding: 80rpx 32rpx; border-radius: 16rpx;
+  background: rgba(255,255,255,0.03);
+  display: flex; flex-direction: column; align-items: center; gap: 12rpx;
+}
+.empty-emoji { font-size: 56rpx; }
+.empty-title { font-size: 28rpx; font-weight: 600; color: #fff; }
+.empty-desc { font-size: 24rpx; color: rgba(255,255,255,0.4); text-align: center; }
+.empty-btn {
+  margin-top: 12rpx; padding: 14rpx 40rpx; border-radius: 999rpx;
+  background: rgba(99,102,241,0.15); border: 1rpx solid rgba(99,102,241,0.3);
+}
+.empty-btn:active { opacity: 0.7; }
+.empty-btn-txt { font-size: 26rpx; font-weight: 600; color: #818cf8; }
+
+/* ── 全选栏 ──────────────────────────── */
+.select-all-bar {
+  display: flex; align-items: center; gap: 16rpx;
+  padding: 16rpx 8rpx 8rpx;
+}
+.select-all-txt { font-size: 26rpx; color: rgba(255,255,255,0.5); }
+
+/* ── 复选框 ──────────────────────────── */
+.checkbox {
+  width: 40rpx; height: 40rpx; border-radius: 50%;
+  border: 2rpx solid rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.checkbox.checked {
+  background: #818cf8; border-color: #818cf8;
+}
+.check-icon { font-size: 24rpx; color: #fff; font-weight: 700; }
+
+/* ── 日期分组 ──────────────────────────── */
+.date-group { margin-bottom: 24rpx; }
+.date-label {
+  display: block; font-size: 24rpx; font-weight: 600;
+  color: rgba(255,255,255,0.35); padding: 12rpx 8rpx 8rpx;
+}
+
+/* ── 对话列表 ──────────────────────────── */
+.conv-list { display: flex; flex-direction: column; gap: 2rpx; }
+.conv-item {
+  display: flex; align-items: center; gap: 16rpx;
+  padding: 22rpx 20rpx; border-radius: 14rpx;
+  background: rgba(255,255,255,0.03);
+  border: 1rpx solid rgba(255,255,255,0.04);
+  transition: background 0.15s, border-color 0.15s;
+}
+.conv-item:active { background: rgba(255,255,255,0.07); }
+.conv-selected {
+  background: rgba(99,102,241,0.08) !important;
+  border-color: rgba(99,102,241,0.2) !important;
+}
+
+.conv-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.conv-title {
+  font-size: 28rpx; font-weight: 500; color: #fff;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.conv-preview {
+  font-size: 24rpx; color: rgba(255,255,255,0.35);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.conv-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8rpx; flex-shrink: 0;
+}
+.conv-time { font-size: 20rpx; color: rgba(255,255,255,0.25); }
+
+/* ── 操作按钮组 ──────────────────────────── */
+.conv-actions { display: flex; align-items: center; gap: 8rpx; }
+.conv-action-btn {
+  width: 44rpx; height: 44rpx; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0.35;
+}
+.conv-action-btn:active { opacity: 1; }
+.conv-archive:active { background: rgba(99,102,241,0.15); }
+
+/* 归档 icon（纯 CSS 极简盒子） */
+.archive-icon {
+  width: 22rpx; height: 20rpx;
+  display: flex; flex-direction: column; gap: 2rpx;
+}
+.archive-lid {
+  height: 6rpx; border-radius: 2rpx;
+  background: rgba(255,255,255,0.5);
+}
+.archive-body {
+  flex: 1; border-radius: 0 0 3rpx 3rpx;
+  border: 2rpx solid rgba(255,255,255,0.5);
+  border-top: none;
+}
+.conv-del:active { background: rgba(239,68,68,0.15); }
+.conv-del-icon { font-size: 28rpx; color: rgba(255,255,255,0.5); }
+
+/* ── 底部操作栏 ──────────────────────────── */
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+  display: flex; gap: 16rpx;
+  padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
+  background: rgba(8,12,24,0.96);
+  border-top: 1rpx solid rgba(255,255,255,0.06);
+}
+.bottom-btn {
+  flex: 1; height: 80rpx; border-radius: 12rpx;
+  display: flex; align-items: center; justify-content: center;
+}
+.bottom-btn:active { opacity: 0.8; }
+.bottom-btn-txt { font-size: 28rpx; font-weight: 600; }
+
+.btn-delete { background: rgba(239,68,68,0.15); border: 1rpx solid rgba(239,68,68,0.3); }
+.btn-delete .bottom-btn-txt { color: #f87171; }
+
+.btn-archive { background: rgba(99,102,241,0.15); border: 1rpx solid rgba(99,102,241,0.3); }
+.btn-archive .bottom-btn-txt { color: #818cf8; }
+
+.btn-unarchive { background: rgba(52,211,153,0.15); border: 1rpx solid rgba(52,211,153,0.3); }
+.btn-unarchive .bottom-btn-txt { color: #34d399; }
+
+.btn-disabled { opacity: 0.3; }
+.btn-disabled:active { opacity: 0.3; }
+
+/* ═══════════════════════════════════════════════
+   ★ 亮色模式
+   ═══════════════════════════════════════════════ */
+.history-page.light {
+  background: linear-gradient(180deg, #f7faff 0%, #eef4ff 52%, #f8fbff 100%);
+}
+.history-page.light .nav-bar {
+  background: rgba(248,250,255,0.96);
+  border-color: #dbe6f5;
+  box-shadow: 0 10rpx 28rpx rgba(126,147,185,0.10);
+}
+.history-page.light .nav-back:active { background: rgba(0,0,0,0.04); }
+.history-page.light .nav-back-arrow { color: #4f46e5; }
+.history-page.light .nav-back-txt { color: #4f46e5; }
+.history-page.light .nav-count { color: #8b98ad; }
+.history-page.light .nav-btn { background: rgba(0,0,0,0.04); }
+.history-page.light .nav-btn-txt { color: #64748b; }
+.history-page.light .nav-btn-txt.done { color: #4f46e5; }
+
+/* Tab 亮色 */
+.history-page.light .tab-bar {
+  background: rgba(248,250,255,0.92);
+  border-bottom: 1rpx solid #dbe6f5;
+}
+.history-page.light .tab-text { color: #8b98ad; }
+.history-page.light .tab-active .tab-text { color: #0f172a; }
+.history-page.light .tab-active::after { background: #4f46e5; }
+
+.history-page.light .skel-item {
+  background: rgba(255,255,255,0.86);
+  border: 1rpx solid #dbe6f5;
+  box-shadow: 0 10rpx 24rpx rgba(153,168,197,0.08);
+}
+.history-page.light .skel-line { background: #e6edf8; }
+
+.history-page.light .empty-card {
+  background: rgba(255,255,255,0.88);
+  border: 1rpx solid #dbe6f5;
+  box-shadow: 0 14rpx 34rpx rgba(126,147,185,0.10);
+}
+.history-page.light .empty-title { color: #0f172a; }
+.history-page.light .empty-desc { color: #7b8799; }
+.history-page.light .empty-btn {
+  background: #eef4ff;
+  border-color: #c6d8ff;
+}
+.history-page.light .empty-btn-txt { color: #2f6bff; }
+
+.history-page.light .select-all-txt { color: #64748b; }
+.history-page.light .checkbox { border-color: #c6d8ff; }
+.history-page.light .checkbox.checked { background: #4f46e5; border-color: #4f46e5; }
+
+.history-page.light .date-label { color: #8b98ad; }
+.history-page.light .conv-item {
+  background: rgba(255,255,255,0.9);
+  border-color: #d9e5f5;
+  box-shadow: 0 10rpx 28rpx rgba(126,147,185,0.08);
+}
+.history-page.light .conv-item:active {
+  background: #f7faff;
+  border-color: #c6d8ff;
+}
+.history-page.light .conv-selected {
+  background: rgba(79,70,229,0.06) !important;
+  border-color: rgba(79,70,229,0.2) !important;
+}
+.history-page.light .conv-title { color: #0f172a; }
+.history-page.light .conv-preview { color: #7b8799; }
+.history-page.light .conv-time { color: #a1adbf; }
+.history-page.light .conv-action-btn { opacity: 0.4; }
+.history-page.light .archive-lid { background: rgba(71,85,105,0.45); }
+.history-page.light .archive-body { border-color: rgba(71,85,105,0.45); }
+.history-page.light .conv-archive:active { background: rgba(79,70,229,0.10); }
+.history-page.light .conv-del:active { background: rgba(239,68,68,0.10); }
+.history-page.light .conv-del-icon { color: rgba(71,85,105,0.45); }
+
+/* 底部栏亮色 */
+.history-page.light .bottom-bar {
+  background: rgba(248,250,255,0.98);
+  border-color: #dbe6f5;
+}
+.history-page.light .btn-delete { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); }
+.history-page.light .btn-archive { background: rgba(79,70,229,0.08); border-color: rgba(79,70,229,0.2); }
+.history-page.light .btn-archive .bottom-btn-txt { color: #4f46e5; }
+.history-page.light .btn-unarchive { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.2); }
+.history-page.light .btn-unarchive .bottom-btn-txt { color: #10b981; }
