@@ -207,8 +207,10 @@ class TurnRuntimeManager:
         self._executions: dict[str, _TurnExecution] = {}
 
     async def start_turn(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
-        capability = str(payload.get("capability") or "chat")
+        requested_capability = str(payload.get("capability") or "").strip() or None
+        capability = requested_capability or "chat"
         raw_config = dict(payload.get("config", {}) or {})
+        explicit_chat_mode = "chat_mode" in raw_config
         runtime_only_keys = ("_persist_user_message", "followup_question_context")
         runtime_only_config = {
             key: raw_config.pop(key)
@@ -223,7 +225,8 @@ class TurnRuntimeManager:
             raise RuntimeError(str(exc)) from exc
         payload = {
             **payload,
-            "capability": capability,
+            "capability": requested_capability,
+            "_chat_mode_explicit": explicit_chat_mode,
             "config": {**validated_public_config, **runtime_only_config},
         }
         session = await self.store.ensure_session(payload.get("session_id"))
@@ -526,6 +529,7 @@ class TurnRuntimeManager:
                         "conversation_context_text": conversation_context_text,
                         "history_token_count": history_result.token_count,
                         "history_budget": history_result.budget,
+                        "chat_mode_explicit": bool(payload.get("_chat_mode_explicit", False)),
                         "turn_id": turn_id,
                         "question_followup_context": followup_question_context or {},
                         "notebook_references": notebook_references,

@@ -1,10 +1,13 @@
 // app.js — 全局应用逻辑
 const auth = require("./utils/auth");
+const endpoints = require("./utils/endpoints");
 
 // [PRR-E2] Environment-aware URL switching
 const _envVersion =
   (typeof __wxConfig !== "undefined" && __wxConfig.envVersion) || "release";
 const _IS_DEV = _envVersion === "develop" || _envVersion === "trial";
+const _IS_DEVTOOLS =
+  typeof __wxConfig !== "undefined" && __wxConfig.platform === "devtools";
 // ⚠️ DEPLOY: Replace these with your real HTTPS production domains before release build
 const _PROD_GATEWAY =
   (typeof __PROD_GATEWAY__ !== "undefined" && __PROD_GATEWAY__) ||
@@ -31,9 +34,28 @@ const _NGROK_URL =
 const _LOCAL_BASE_URL =
   (typeof __LOCAL_BASE_URL__ !== "undefined" && __LOCAL_BASE_URL__) ||
   "http://127.0.0.1:8001";
+const _LOCAL_CANDIDATES = endpoints
+  .getBaseUrlCandidates(false, _LOCAL_BASE_URL)
+  .filter(function (item) {
+    return /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(item);
+  });
+const _HAS_REAL_NGROK =
+  !!_NGROK_URL && !_NGROK_URL.includes("example.com") && /^https?:\/\//.test(_NGROK_URL);
 const _USE_LOCAL_DIRECT =
-  typeof __USE_LOCAL_DIRECT__ !== "undefined" && !!__USE_LOCAL_DIRECT__;
-const _USE_NGROK = _IS_DEV && !_USE_LOCAL_DIRECT; // 开发/体验版默认走公网 HTTPS，模拟器可切本地直连
+  typeof __USE_LOCAL_DIRECT__ !== "undefined"
+    ? !!__USE_LOCAL_DIRECT__
+    : _IS_DEVTOOLS;
+const _USE_NGROK = _IS_DEV && !_USE_LOCAL_DIRECT && _HAS_REAL_NGROK;
+const _RESOLVED_GATEWAY = _USE_NGROK
+  ? _NGROK_URL
+  : _IS_DEV
+    ? _LOCAL_CANDIDATES[0] || _LOCAL_BASE_URL
+    : _PROD_GATEWAY;
+const _RESOLVED_API = _USE_NGROK
+  ? _NGROK_URL
+  : _IS_DEV
+    ? _LOCAL_CANDIDATES[0] || _LOCAL_BASE_URL
+    : _PROD_API;
 
 App({
   globalData: {
@@ -41,16 +63,10 @@ App({
     userId: null,
     userInfo: null,
     goHomeFlag: false,
-    gatewayUrl: _USE_NGROK
-      ? _NGROK_URL
-      : _IS_DEV
-        ? _LOCAL_BASE_URL
-        : _PROD_GATEWAY,
-    apiUrl: _USE_NGROK
-      ? _NGROK_URL
-      : _IS_DEV
-        ? _LOCAL_BASE_URL
-        : _PROD_API,
+    gatewayUrl: _RESOLVED_GATEWAY,
+    apiUrl: _RESOLVED_API,
+    gatewayCandidates: _USE_NGROK ? [_NGROK_URL].concat(_LOCAL_CANDIDATES) : _LOCAL_CANDIDATES,
+    apiCandidates: _USE_NGROK ? [_NGROK_URL].concat(_LOCAL_CANDIDATES) : _LOCAL_CANDIDATES,
     // 小程序继续走原有 SSE 入口，由后端统一分流到 Deeptutor。
     chatEngine: "deeptutor",
     // 主题：'dark'(默认) | 'light'
@@ -61,6 +77,12 @@ App({
 
   onLaunch() {
     // App 启动
+    console.info("[DeepTutor MP] env=%s devtools=%s api=%s candidates=%j",
+      _envVersion,
+      _IS_DEVTOOLS,
+      this.globalData.apiUrl,
+      this.globalData.apiCandidates,
+    );
     // 初始化主题
     const savedTheme = wx.getStorageSync("theme") || "dark";
     this.globalData.theme = savedTheme;

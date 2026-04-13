@@ -45,6 +45,10 @@ class VerifyCodeRequest(BaseModel):
     code: str
 
 
+class WechatLoginRequest(BaseModel):
+    code: str = ""
+
+
 class ChatFeedbackRequest(BaseModel):
     message_id: str = ""
     conversation_id: str = ""
@@ -98,8 +102,8 @@ async def auth_profile_settings(
 
 
 @router.post("/wechat/mp/login")
-async def wechat_login() -> dict[str, Any]:
-    return member_service.verify_phone_code("13800000001")
+async def wechat_login(body: WechatLoginRequest) -> dict[str, Any]:
+    return member_service.login_with_wechat_code(body.code)
 
 
 @router.post("/wechat/mp/bind-phone")
@@ -115,6 +119,11 @@ async def practice_today_progress(authorization: str | None = Header(default=Non
 @router.get("/practice/chapter-progress")
 async def practice_chapter_progress(authorization: str | None = Header(default=None)) -> list[dict[str, Any]]:
     return member_service.get_chapter_progress(_resolve_user_id(authorization))
+
+
+@router.get("/practice/daily-question")
+async def practice_daily_question(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    return member_service.get_daily_question(_resolve_user_id(authorization))
 
 
 @router.get("/billing/points")
@@ -140,6 +149,22 @@ async def billing_ledger(
 @router.get("/homepage/dashboard")
 async def homepage_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     return member_service.get_home_dashboard(_resolve_user_id(authorization))
+
+
+@router.get("/profile/badges")
+async def profile_badges(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    return member_service.get_badges(_resolve_user_id(authorization))
+
+
+@router.get("/bi/radar/{user_id}")
+async def bi_radar(user_id: str, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    resolved = _resolve_user_id(authorization, user_id=user_id)
+    return member_service.get_radar_data(resolved)
+
+
+@router.get("/plan/mastery-dashboard")
+async def mastery_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    return member_service.get_mastery_dashboard(_resolve_user_id(authorization))
 
 
 @router.get("/assessment/profile")

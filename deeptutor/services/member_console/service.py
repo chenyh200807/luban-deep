@@ -801,6 +801,104 @@ class MemberConsoleService:
             "today": {"hint": f"继续推进 {member['focus_topic']} 的专项训练"},
         }
 
+    def get_badges(self, user_id: str) -> dict[str, Any]:
+        data = self._load()
+        member = self._ensure_member(data, user_id)
+        catalog = [
+            {"id": 1, "icon": "🏆", "name": "首战告捷"},
+            {"id": 2, "icon": "🎯", "name": "连胜达人"},
+            {"id": 3, "icon": "📚", "name": "博览群书"},
+            {"id": 4, "icon": "🔥", "name": "坚持之星"},
+            {"id": 5, "icon": "💡", "name": "解题高手"},
+            {"id": 6, "icon": "🌟", "name": "满分王者"},
+            {"id": 7, "icon": "⚡", "name": "速战速决"},
+            {"id": 8, "icon": "🎖️", "name": "精英学员"},
+        ]
+        earned = set(member.get("earned_badge_ids", []))
+        return {
+            "badges": [
+                {
+                    "id": item["id"],
+                    "icon": item["icon"],
+                    "name": item["name"],
+                    "earned": item["id"] in earned,
+                }
+                for item in catalog
+            ]
+        }
+
+    def get_daily_question(self, user_id: str) -> dict[str, Any]:
+        data = self._load()
+        member = self._ensure_member(data, user_id)
+        chapter_mastery = member["chapter_mastery"]
+        weakest = min(
+            chapter_mastery.items(),
+            key=lambda item: int(item[1].get("mastery") or 0),
+        )[0]
+        question = next(
+            (item for item in _ASSESSMENT_BANK if item.chapter == weakest),
+            _ASSESSMENT_BANK[0],
+        )
+        return {
+            "question_id": question.id,
+            "chapter": question.chapter,
+            "stem": question.question,
+            "options": [{"key": key, "text": value} for key, value in question.options.items()],
+            "recommended_reason": f"今日优先补强 {question.chapter}。",
+        }
+
+    def get_radar_data(self, user_id: str) -> dict[str, Any]:
+        data = self._load()
+        member = self._ensure_member(data, user_id)
+        dimensions = [
+            {
+                "key": key,
+                "label": value.get("name") or key,
+                "value": round(int(value.get("mastery") or 0) / 100, 2),
+                "score": int(value.get("mastery") or 0),
+            }
+            for key, value in member["chapter_mastery"].items()
+        ]
+        return {"dimensions": dimensions}
+
+    def get_mastery_dashboard(self, user_id: str) -> dict[str, Any]:
+        data = self._load()
+        member = self._ensure_member(data, user_id)
+        chapters = [
+            {
+                "name": value.get("name") or key,
+                "mastery": int(value.get("mastery") or 0),
+            }
+            for key, value in member["chapter_mastery"].items()
+        ]
+        weak = [item for item in chapters if item["mastery"] < 40]
+        normal = [item for item in chapters if 40 <= item["mastery"] < 70]
+        strong = [item for item in chapters if item["mastery"] >= 70]
+
+        def _group(label: str, items: list[dict[str, Any]]) -> dict[str, Any]:
+            avg = round(sum(item["mastery"] for item in items) / max(len(items), 1))
+            return {"name": label, "avg_mastery": avg, "chapters": items}
+
+        groups = []
+        if weak:
+            groups.append(_group("需要加强", weak))
+        if normal:
+            groups.append(_group("基本掌握", normal))
+        if strong:
+            groups.append(_group("掌握较好", strong))
+
+        overall = round(sum(item["mastery"] for item in chapters) / max(len(chapters), 1))
+        hotspots = sorted(chapters, key=lambda item: item["mastery"])[:3]
+        return {
+            "overall_mastery": overall,
+            "groups": groups,
+            "hotspots": hotspots,
+            "review_summary": {
+                "total_due": member["review_due"],
+                "overdue_count": max(0, member["review_due"] - 1),
+            },
+        }
+
     def get_assessment_profile(self, user_id: str) -> dict[str, Any]:
         data = self._load()
         member = self._ensure_member(data, user_id)
@@ -948,6 +1046,24 @@ class MemberConsoleService:
             self._save(data)
         token = f"demo-token-{target['user_id']}"
         return {"token": token, "user": self.get_profile(target["user_id"])}
+
+    def login_with_wechat_code(self, code: str) -> dict[str, Any]:
+        normalized = str(code or "").strip()
+        if not normalized:
+            return self.verify_phone_code("13800000001")
+        data = self._load()
+        user_id = f"wx_{normalized[-12:]}".replace("-", "_")
+        target = self._ensure_member(data, user_id)
+        target["display_name"] = target.get("display_name") or f"微信用户{user_id[-4:]}"
+        target["last_active_at"] = _iso()
+        self._save(data)
+        token = f"demo-token-{target['user_id']}"
+        return {
+            "token": token,
+            "openid": user_id,
+            "session_key": f"mock-session-{normalized[-8:]}",
+            "user": self.get_profile(target["user_id"]),
+        }
 
     def send_phone_code(self, phone: str) -> dict[str, Any]:
         return {"sent": True, "retry_after": 60, "phone": _slugify_phone(phone)}

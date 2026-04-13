@@ -1,6 +1,7 @@
 // utils/sse-stream.js — wx.request + enableChunked SSE 流式引擎
 // 直调主服务 POST /api/v1/stream/chat/sse，由后端统一分流到 Deeptutor
 const auth = require("./auth");
+const endpoints = require("./endpoints");
 
 /**
  * 流式 UTF-8 解码器
@@ -85,8 +86,9 @@ function streamChat(opts, callbacks) {
   const cb = callbacks || {};
 
   const app = getApp();
-  const baseUrl = app.globalData.apiUrl || "http://127.0.0.1:8001";
   const token = auth.getToken();
+  var baseCandidates = endpoints.getBaseUrlCandidates(false);
+  var baseIndex = 0;
 
   if (!sessionId) {
     console.error("[SSE] Missing sessionId before streamChat", {
@@ -156,6 +158,7 @@ function streamChat(opts, callbacks) {
   function _doRequest() {
     _resetIdleTimer(); // 启动无数据超时
     _startSlowTimer(); // 启动弱网软超时
+    var baseUrl = baseCandidates[baseIndex] || endpoints.getPrimaryBaseUrl(false);
     var preferredEngine =
       app && app.globalData ? String(app.globalData.chatEngine || "").trim() : "";
     var requestHeaders = Object.assign(
@@ -195,6 +198,7 @@ function streamChat(opts, callbacks) {
       success: function (res) {
         _clearIdleTimer();
         if (aborted) return;
+        endpoints.rememberWorkingBaseUrl(baseUrl, false);
         // HTTP 错误码处理
         if (res.statusCode === 401) {
           auth.clearToken();
@@ -246,6 +250,13 @@ function streamChat(opts, callbacks) {
           auth.clearToken();
           if (cb.onError) cb.onError("登录已过期，请重新登录");
           wx.redirectTo({ url: "/pages/login/login" });
+          return;
+        }
+        if (baseIndex + 1 < baseCandidates.length) {
+          baseIndex++;
+          sseBuffer = "";
+          console.warn("[SSE] Fallback to alternate base: " + baseCandidates[baseIndex]);
+          _currentTask = _doRequest();
           return;
         }
         // [PRR-5.3.2] Retry on transient network failure with exponential backoff

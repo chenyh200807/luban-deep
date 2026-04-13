@@ -333,3 +333,67 @@ async def test_native_tool_loop_caps_parallel_tool_calls_at_eight(
     assert registry.calls[-1] == "web_search:q7"
     progress_events = [event.content for event in events if event.type == StreamEventType.PROGRESS]
     assert any("8 can run in parallel" in content for content in progress_events)
+
+
+def test_infer_answer_type_detects_knowledge_explainer(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    assert pipeline._infer_answer_type("什么是流水施工，怎么区分流水步距和流水节拍？") == "knowledge_explainer"
+
+
+def test_missing_teaching_elements_accepts_memory_hook_and_exam_strategy(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    content = """
+## 核心结论
+先看组织节奏。
+
+## 踩分点
+- 写清相邻专业队投入间隔。
+
+## 易错点
+- 不要把流水步距当成流水节拍。
+
+## 记忆抓手
+步距看“队与队之间的间隔”。
+
+## 考试策略
+看到“相邻专业队”就优先判断步距。
+"""
+    assert pipeline._missing_teaching_elements(content) == []
+
+
+def test_missing_teaching_elements_requires_explicit_section_headings(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    content = """
+结论先行：流水步距是相邻专业队开始时间差。
+
+拿分关键：
+- 先看相邻专业队是否错开投入。
+
+常见误区：
+- 不要把流水步距当成流水节拍。
+
+口诀：
+- 步距看邻居，节拍看自己。
+
+考试技巧：
+- 题干一出现“相邻专业队”，先判步距。
+"""
+    assert pipeline._missing_teaching_elements(content) == [
+        "核心结论",
+        "踩分点",
+        "易错点",
+        "记忆口诀/记忆抓手",
+        "心得/考试策略",
+    ]

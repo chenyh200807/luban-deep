@@ -1,5 +1,6 @@
 // utils/api.js — Gateway / 主服务 HTTP 请求封装
 const auth = require("./auth");
+const endpoints = require("./endpoints");
 
 // ── 常量 ──────────────────────────────────────────────────
 var MAX_RETRIES = 2; // 最大重试次数
@@ -16,12 +17,7 @@ function getApp_() {
 }
 
 function getBaseUrl(useGateway) {
-  if (useGateway === undefined) useGateway = true;
-  var app = getApp_();
-  if (app && app.globalData) {
-    return useGateway ? app.globalData.gatewayUrl : app.globalData.apiUrl;
-  }
-  return useGateway ? "http://127.0.0.1:8001" : "http://127.0.0.1:8001";
+  return endpoints.getPrimaryBaseUrl(useGateway !== false);
 }
 
 /**
@@ -45,8 +41,11 @@ function request(opts) {
   var useGateway = opts.useGateway || false;
   var noAuth = opts.noAuth || false;
   var retryCount = opts._retryCount || 0;
+  var baseIndex = opts._baseIndex || 0;
+  var baseCandidates = opts._baseCandidates ||
+    endpoints.getBaseUrlCandidates(useGateway, opts.baseUrl);
 
-  var baseUrl = opts.baseUrl || getBaseUrl(useGateway);
+  var baseUrl = baseCandidates[baseIndex] || getBaseUrl(useGateway);
   var fullUrl = opts.url.startsWith("http") ? opts.url : baseUrl + opts.url;
   var token = auth.getToken();
 
@@ -67,7 +66,30 @@ function request(opts) {
       timeout: REQUEST_TIMEOUT,
       success: function (res) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
+          if (!opts.url.startsWith("http")) {
+            endpoints.rememberWorkingBaseUrl(baseUrl, useGateway);
+          }
           resolve(res.data);
+          return;
+        }
+
+        if (
+          !opts.url.startsWith("http") &&
+          res.statusCode === 404 &&
+          baseIndex + 1 < baseCandidates.length
+        ) {
+          var nextBaseOn404 = baseCandidates[baseIndex + 1];
+          console.warn(
+            "[API] HTTP 404 on " + fullUrl + ", fallback to " + nextBaseOn404,
+          );
+          request(
+            Object.assign({}, opts, {
+              _baseCandidates: baseCandidates,
+              _baseIndex: baseIndex + 1,
+            }),
+          )
+            .then(resolve)
+            .catch(reject);
           return;
         }
 
@@ -126,6 +148,23 @@ function request(opts) {
       fail: function (err) {
         if (err.errMsg && err.errMsg.includes("abort")) {
           reject(new Error("REQUEST_ABORTED"));
+          return;
+        }
+
+        if (
+          !opts.url.startsWith("http") &&
+          baseIndex + 1 < baseCandidates.length
+        ) {
+          var nextBase = baseCandidates[baseIndex + 1];
+          console.warn("[API] Fallback to alternate base: " + nextBase);
+          request(
+            Object.assign({}, opts, {
+              _baseCandidates: baseCandidates,
+              _baseIndex: baseIndex + 1,
+            }),
+          )
+            .then(resolve)
+            .catch(reject);
           return;
         }
 

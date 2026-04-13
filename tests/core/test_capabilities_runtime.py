@@ -398,6 +398,71 @@ async def test_deep_question_capability_uses_single_call_followup_agent(
     assert result_event.metadata["question_id"] == "q_3"
 
 
+@pytest.mark.asyncio
+async def test_deep_question_capability_uses_submission_grader_for_choice_submission(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+            self._trace_callback = None
+
+        def set_trace_callback(self, callback) -> None:
+            self._trace_callback = callback
+
+        async def process(self, **kwargs: Any) -> str:
+            captured["process"] = kwargs
+            assert kwargs["question_context"]["user_answer"] == "B"
+            assert kwargs["question_context"]["is_correct"] is True
+            return "## 🧐 解析\n你这题选对了。\n\n## ⚠️ 易错点\n不要把步距和节拍混淆。\n\n## 🎯 记忆锦囊\n队与队之间看步距。\n\n## 🚀 下一步建议\n再做 1 道同类题巩固。"
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="我选B",
+        language="zh",
+        metadata={
+            "conversation_context_text": "用户刚做完一道选择题。",
+            "question_followup_context": {
+                "question_id": "q_5",
+                "question": "流水步距反映的是什么？",
+                "question_type": "choice",
+                "options": {"A": "工期", "B": "相邻专业队投入间隔"},
+                "correct_answer": "B",
+                "explanation": "步距看相邻专业队之间的时间间隔。",
+            },
+        },
+    )
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["process"]["question_context"]["diagnosis"] == "CORRECT"
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["user_answer"] == "B"
+    assert result_event.metadata["is_correct"] is True
+
+
 def test_deep_question_capability_humanizes_question_progress_labels() -> None:
     assert DeepQuestionCapability._humanize_question_id("q_3") == "Question 3"
     assert (

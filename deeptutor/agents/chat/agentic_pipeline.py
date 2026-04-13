@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass
 import json
 import logging
 import os
+import re
 from typing import Any
 
 import httpx
@@ -51,6 +52,9 @@ CHAT_OPTIONAL_TOOLS = [
 ]
 MAX_PARALLEL_TOOL_CALLS = 8
 MAX_TOOL_RESULT_CHARS = 4000
+ANSWER_TYPE_GENERAL = "general_chat"
+ANSWER_TYPE_KNOWLEDGE = "knowledge_explainer"
+ANSWER_TYPE_PROBLEM = "problem_solving"
 
 
 @dataclass
@@ -97,9 +101,13 @@ class AgenticChatPipeline:
     async def run(self, context: UnifiedContext, stream: StreamBus) -> None:
         answer_now_context = self._extract_answer_now_context(context)
         if answer_now_context is not None:
+            answer_type = self._infer_answer_type(
+                str(answer_now_context.get("original_user_message") or context.user_message),
+            )
             final_response, trace_meta = await self._stage_answer_now(
                 context=context,
                 answer_now_context=answer_now_context,
+                answer_type=answer_type,
                 stream=stream,
             )
             result_payload: dict[str, Any] = {
@@ -114,6 +122,7 @@ class AgenticChatPipeline:
             return
 
         enabled_tools = self._normalize_enabled_tools(context.enabled_tools)
+        answer_type = self._infer_answer_type(context.user_message)
         thinking_text = await self._stage_thinking(context, enabled_tools, stream)
         tool_traces = await self._stage_acting(
             context=context,
@@ -124,6 +133,7 @@ class AgenticChatPipeline:
         observation = await self._stage_observing(
             context=context,
             enabled_tools=enabled_tools,
+            answer_type=answer_type,
             thinking_text=thinking_text,
             tool_traces=tool_traces,
             stream=stream,
@@ -131,6 +141,7 @@ class AgenticChatPipeline:
         final_response, responding_trace = await self._stage_responding(
             context=context,
             enabled_tools=enabled_tools,
+            answer_type=answer_type,
             thinking_text=thinking_text,
             observation=observation,
             tool_traces=tool_traces,
@@ -306,6 +317,7 @@ class AgenticChatPipeline:
         self,
         context: UnifiedContext,
         enabled_tools: list[str],
+        answer_type: str,
         thinking_text: str,
         tool_traces: list[ToolTrace],
         stream: StreamBus,
@@ -335,17 +347,7 @@ class AgenticChatPipeline:
                         {"trace_kind": "call_status", "call_state": "running"},
                     ),
                 )
-                observation_prompt = self._text(
-                    zh=(
-                        "请整理本轮推理与工具执行得到的关键信息，输出给 tutor 自己看的观察总结。"
-                        "聚焦：已确认事实、仍不确定的点、最终回答应强调什么。不要直接写给学生。"
-                    ),
-                    en=(
-                        "Summarize what was learned from the reasoning and tool execution for the tutor's internal observation note. "
-                        "Focus on confirmed facts, remaining uncertainty, and what the final answer should emphasize. "
-                        "Do not address the student directly."
-                    ),
-                )
+                observation_prompt = self._build_observation_prompt(answer_type)
                 messages = self._build_messages(
                     context=context,
                     system_prompt=self._observing_system_prompt(enabled_tools),
@@ -388,6 +390,7 @@ class AgenticChatPipeline:
         self,
         context: UnifiedContext,
         enabled_tools: list[str],
+        answer_type: str,
         thinking_text: str,
         observation: str,
         tool_traces: list[ToolTrace],
@@ -433,23 +436,43 @@ class AgenticChatPipeline:
                         "Do not mention the internal pipeline, thinking, or observing stages."
                     ),
                 )
+                if self._should_enforce_teaching_contract(answer_type):
+                    user_prompt += "\n\n" + self._knowledge_response_contract()
                 messages = self._build_messages(
                     context=context,
                     system_prompt=self._responding_system_prompt(enabled_tools),
                     user_content=user_prompt,
                 )
 
-                chunks: list[str] = []
-                async for chunk in self._stream_messages(messages, max_tokens=1800):
-                    if not chunk:
-                        continue
-                    chunks.append(chunk)
-                    await stream.content(
-                        chunk,
-                        source="chat",
-                        stage="responding",
-                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                if self._should_enforce_teaching_contract(answer_type):
+                    content = await self._complete_validated_response(
+                        context=context,
+                        messages=messages,
+                        answer_type=answer_type,
+                        observation=observation,
+                        tool_traces=tool_traces,
+                        max_tokens=1800,
                     )
+                    if content:
+                        await stream.content(
+                            content,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                else:
+                    chunks: list[str] = []
+                    async for chunk in self._stream_messages(messages, max_tokens=1800):
+                        if not chunk:
+                            continue
+                        chunks.append(chunk)
+                        await stream.content(
+                            chunk,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                    content = clean_thinking_tags("".join(chunks), self.binding, self.model)
                 await stream.progress(
                     "",
                     source="chat",
@@ -459,7 +482,6 @@ class AgenticChatPipeline:
                         {"trace_kind": "call_status", "call_state": "complete"},
                     ),
                 )
-                content = clean_thinking_tags("".join(chunks), self.binding, self.model)
                 observability.update_observation(
                     stage_observation,
                     output_payload=content,
@@ -471,6 +493,7 @@ class AgenticChatPipeline:
         self,
         context: UnifiedContext,
         answer_now_context: dict[str, Any],
+        answer_type: str,
         stream: StreamBus,
     ) -> tuple[str, dict[str, Any]]:
         trace_meta = build_trace_metadata(
@@ -522,23 +545,47 @@ class AgenticChatPipeline:
                         "If something is still uncertain, be explicit about the uncertainty while still giving the most useful answer you can."
                     ),
                 )
+                if self._should_enforce_teaching_contract(answer_type):
+                    user_prompt += "\n\n" + self._knowledge_response_contract()
                 messages = self._build_messages(
                     context=context,
                     system_prompt=self._responding_system_prompt([]),
                     user_content=user_prompt,
                 )
 
-                chunks: list[str] = []
-                async for chunk in self._stream_messages(messages, max_tokens=1800):
-                    if not chunk:
-                        continue
-                    chunks.append(chunk)
-                    await stream.content(
-                        chunk,
-                        source="chat",
-                        stage="responding",
-                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                if self._should_enforce_teaching_contract(answer_type):
+                    observation = self._text(
+                        zh=f"现有草稿：\n{partial_response or '(empty)'}",
+                        en=f"Current draft:\n{partial_response or '(empty)'}",
                     )
+                    content = await self._complete_validated_response(
+                        context=context,
+                        messages=messages,
+                        answer_type=answer_type,
+                        observation=observation,
+                        tool_traces=[],
+                        max_tokens=1800,
+                    )
+                    if content:
+                        await stream.content(
+                            content,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                else:
+                    chunks: list[str] = []
+                    async for chunk in self._stream_messages(messages, max_tokens=1800):
+                        if not chunk:
+                            continue
+                        chunks.append(chunk)
+                        await stream.content(
+                            chunk,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                    content = clean_thinking_tags("".join(chunks), self.binding, self.model)
                 await stream.progress(
                     "",
                     source="chat",
@@ -548,7 +595,6 @@ class AgenticChatPipeline:
                         {"trace_kind": "call_status", "call_state": "complete"},
                     ),
                 )
-                content = clean_thinking_tags("".join(chunks), self.binding, self.model)
                 observability.update_observation(
                     stage_observation,
                     output_payload=content,
@@ -982,6 +1028,59 @@ class AgenticChatPipeline:
         self._usage["total_tokens"] += est_input + est_output
         self._usage["calls"] += 1
 
+    async def _complete_messages(
+        self,
+        messages: list[dict[str, Any]],
+        max_tokens: int,
+    ) -> str:
+        content = await llm_complete(
+            prompt="",
+            system_prompt="",
+            model=self.model,
+            api_key=self.api_key,
+            base_url=self.base_url,
+            api_version=self.api_version,
+            binding=self.binding,
+            messages=messages,
+            **self._completion_kwargs(max_tokens=max_tokens),
+        )
+        input_chars = sum(len(str(m.get("content", ""))) for m in messages)
+        est_input = int(input_chars / 3.5)
+        est_output = int(len(content) / 3.5)
+        self._usage["prompt_tokens"] += est_input
+        self._usage["completion_tokens"] += est_output
+        self._usage["total_tokens"] += est_input + est_output
+        self._usage["calls"] += 1
+        return clean_thinking_tags(content, self.binding, self.model)
+
+    async def _complete_validated_response(
+        self,
+        *,
+        context: UnifiedContext,
+        messages: list[dict[str, Any]],
+        answer_type: str,
+        observation: str,
+        tool_traces: list[ToolTrace],
+        max_tokens: int,
+    ) -> str:
+        draft = await self._complete_messages(messages, max_tokens=max_tokens)
+        if not self._should_enforce_teaching_contract(answer_type):
+            return draft
+
+        missing = self._missing_teaching_elements(draft)
+        if not missing:
+            return draft
+
+        repaired = await self._repair_teaching_response(
+            context=context,
+            observation=observation,
+            tool_traces=tool_traces,
+            draft=draft,
+            missing=missing,
+            max_tokens=max_tokens,
+        )
+        return repaired or draft
+
     def _build_openai_client(self):
         http_client = None
         if os.getenv("DISABLE_SSL_VERIFY", "").lower() in ("true", "1", "yes"):
@@ -1364,6 +1463,281 @@ class AgenticChatPipeline:
                 f"Tool context for this turn:\n{tool_list or '- none'}"
             ),
         )
+
+    def _build_observation_prompt(self, answer_type: str) -> str:
+        if self._should_enforce_teaching_contract(answer_type):
+            return self._text(
+                zh=(
+                    "请整理本轮推理与工具执行得到的关键信息，输出给 tutor 自己看的结构化观察总结。"
+                    "不要直接写给学生。请至少覆盖：问题类型判定、开场定位、核心结论、判断依据、"
+                    "踩分点、易错点、记忆口诀或记忆抓手、心得或考试策略、证据、仍不确定的点。"
+                ),
+                en=(
+                    "Prepare a structured internal observation note for a teaching-style answer. "
+                    "Do not address the student directly. Cover: answer type, opening position, core conclusion, "
+                    "reasoning basis, scoring points, pitfalls, memory hook, exam takeaway, evidence, and uncertainty."
+                ),
+            )
+        return self._text(
+            zh=(
+                "请整理本轮推理与工具执行得到的关键信息，输出给 tutor 自己看的观察总结。"
+                "聚焦：已确认事实、仍不确定的点、最终回答应强调什么。不要直接写给学生。"
+            ),
+            en=(
+                "Summarize what was learned from the reasoning and tool execution for the tutor's internal observation note. "
+                "Focus on confirmed facts, remaining uncertainty, and what the final answer should emphasize. "
+                "Do not address the student directly."
+            ),
+        )
+
+    def _knowledge_response_contract(self) -> str:
+        return self._text(
+            zh=(
+                "知识讲解型输出契约：\n"
+                "1. 除了开头可先用 1 句做“开场定位”，后文必须严格使用以下 Markdown 二级标题，顺序也要保持一致：\n"
+                "## 核心结论\n"
+                "## 踩分点\n"
+                "## 易错点\n"
+                "## 记忆口诀\n"
+                "## 心得\n"
+                "2. 如果“记忆口诀”不自然，请把标题改成 `## 记忆抓手`；如果“心得”更适合写成考试策略，请把标题改成 `## 考试策略`。\n"
+                "3. “踩分点”必须写成学员可直接拿去判断、作答、拿分的表达，不要只列空泛名词。\n"
+                "4. “易错点”必须写出最容易混淆、误判、丢分的地方，优先使用对比式表达。\n"
+                "5. “心得/考试策略”必须落到考试策略、判题抓手或答题顺序，禁止鸡汤式空话。\n"
+                "6. 若证据不足，要明确标注不确定点，但仍先给当前最有用的教学结论。"
+            ),
+            en=(
+                "Teaching answer contract:\n"
+                "1. After an optional one-line opener, you must use these exact Markdown level-2 headings in this order:\n"
+                "## Core Conclusion\n"
+                "## Scoring Points\n"
+                "## Pitfalls\n"
+                "## Memory Hook\n"
+                "## Exam Takeaway\n"
+                "2. Use `## Mnemonic` only when it is natural and accurate; otherwise keep `## Memory Hook`.\n"
+                "3. Scoring Points must be actionable answer-worthy or judgment-worthy takeaways.\n"
+                "4. Pitfalls must explain the most likely confusion or misjudgment.\n"
+                "5. The takeaway must be an exam strategy or decision rule, not generic encouragement.\n"
+                "6. If evidence is incomplete, state the uncertainty while still giving the most useful teaching answer possible."
+            ),
+        )
+
+    def _should_enforce_teaching_contract(self, answer_type: str) -> bool:
+        return answer_type == ANSWER_TYPE_KNOWLEDGE
+
+    def _infer_answer_type(self, user_message: str) -> str:
+        text = (user_message or "").strip().lower()
+        if not text:
+            return ANSWER_TYPE_GENERAL
+
+        general_markers = (
+            "你好", "在吗", "谢谢", "再见", "价格", "多少钱", "收费", "功能", "流程", "推荐",
+            "bug", "报错", "登录", "注册", "充值", "会员",
+            "hello", "hi ", "price", "pricing", "feature", "workflow", "login", "register",
+        )
+        knowledge_markers = (
+            "什么是", "怎么理解", "如何理解", "怎么区分", "区别", "不同", "规范要求", "规定", "要求",
+            "考点", "易错", "口诀", "记忆", "归纳", "总结", "讲解", "解释", "原理", "本质", "适用",
+            "不适用", "为什么", "如何判断", "怎么判断", "chapter", "concept", "explain", "difference",
+            "requirement", "regulation", "principle", "why", "how to understand",
+        )
+        problem_markers = (
+            "计算", "求", "解", "选择题", "判断题", "案例题", "选项", "a.", "b.", "c.", "d.",
+            "正确答案", "题目", "算", "solve", "calculate", "mcq", "option", "answer",
+        )
+
+        if any(marker in text for marker in general_markers) and not any(
+            marker in text for marker in knowledge_markers
+        ):
+            return ANSWER_TYPE_GENERAL
+
+        if any(marker in text for marker in knowledge_markers):
+            return ANSWER_TYPE_KNOWLEDGE
+
+        if any(marker in text for marker in problem_markers):
+            return ANSWER_TYPE_PROBLEM
+
+        if re.search(r"[A-DＡ-Ｄ][\.、\s]", user_message):
+            return ANSWER_TYPE_PROBLEM
+
+        if re.search(r"\d+\s*[%+\-*/=]\s*\d+", user_message):
+            return ANSWER_TYPE_PROBLEM
+
+        return ANSWER_TYPE_GENERAL
+
+    def _missing_teaching_elements(self, content: str) -> list[str]:
+        if not content.strip():
+            return ["核心结论", "踩分点", "易错点", "记忆口诀/记忆抓手", "心得/考试策略"]
+
+        checks = [
+            ("核心结论", (r"(?m)^##+\s*核心结论\s*$", r"(?m)^##+\s*core conclusion\s*$")),
+            ("踩分点", (r"(?m)^##+\s*踩分点\s*$", r"(?m)^##+\s*scoring points\s*$")),
+            ("易错点", (r"(?m)^##+\s*易错点\s*$", r"(?m)^##+\s*pitfalls\s*$")),
+            (
+                "记忆口诀/记忆抓手",
+                (
+                    r"(?m)^##+\s*记忆口诀\s*$",
+                    r"(?m)^##+\s*记忆抓手\s*$",
+                    r"(?m)^##+\s*memory hook\s*$",
+                    r"(?m)^##+\s*mnemonic\s*$",
+                ),
+            ),
+            (
+                "心得/考试策略",
+                (
+                    r"(?m)^##+\s*心得\s*$",
+                    r"(?m)^##+\s*考试策略\s*$",
+                    r"(?m)^##+\s*exam takeaway\s*$",
+                    r"(?m)^##+\s*strategy\s*$",
+                ),
+            ),
+        ]
+        missing: list[str] = []
+        normalized = content.replace("：", ":")
+        for label, patterns in checks:
+            if not any(re.search(pattern, normalized, flags=re.IGNORECASE) for pattern in patterns):
+                missing.append(label)
+        return missing
+
+    async def _repair_teaching_response(
+        self,
+        *,
+        context: UnifiedContext,
+        observation: str,
+        tool_traces: list[ToolTrace],
+        draft: str,
+        missing: list[str],
+        max_tokens: int,
+    ) -> str:
+        repair_system = self._text(
+            zh=(
+                f"你是 {BRAND_NAME} 的教学输出修订器。你的任务是在不推翻正确内容的前提下，"
+                "把知识讲解型回答补全到合格版本。只输出最终修订稿，不要解释修改过程。"
+            ),
+            en=(
+                f"You are {BRAND_NAME}'s teaching-answer reviser. Repair the draft into a complete teaching-style answer "
+                "without discarding correct content. Output only the revised final answer."
+            ),
+        )
+        repair_user = self._text(
+            zh=(
+                f"原始用户问题：\n{context.user_message}\n\n"
+                f"{self._labeled_block('Observation', observation)}\n\n"
+                f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
+                f"{self._labeled_block('Current Draft', draft)}\n\n"
+                f"当前缺失项：{', '.join(missing)}\n\n"
+                f"{self._knowledge_response_contract()}\n\n"
+                "请保留原稿里已经正确、有依据的内容，只补齐缺失项并优化结构。"
+                "如果“记忆口诀”不自然，请改成“记忆抓手”；如果“心得”更适合写成“考试策略”，可直接使用该标题。"
+            ),
+            en=(
+                f"Original user request:\n{context.user_message}\n\n"
+                f"{self._labeled_block('Observation', observation)}\n\n"
+                f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
+                f"{self._labeled_block('Current Draft', draft)}\n\n"
+                f"Missing elements: {', '.join(missing)}\n\n"
+                f"{self._knowledge_response_contract()}\n\n"
+                "Preserve the correct grounded content in the draft, but fill the missing elements and tighten the structure."
+            ),
+        )
+        repaired = await self._complete_messages(
+            [
+                {"role": "system", "content": repair_system},
+                {"role": "user", "content": repair_user},
+            ],
+            max_tokens=max_tokens,
+        )
+        repaired_missing = self._missing_teaching_elements(repaired)
+        if not repaired_missing:
+            return repaired
+
+        strict_rewrite_user = self._text(
+            zh=(
+                f"原始用户问题：\n{context.user_message}\n\n"
+                f"{self._labeled_block('Observation', observation)}\n\n"
+                f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
+                f"{self._labeled_block('Current Draft', repaired or draft)}\n\n"
+                f"仍然缺失：{', '.join(repaired_missing)}\n\n"
+                "请你重写整篇回答，并且必须逐字包含以下标题：\n"
+                "## 核心结论\n"
+                "## 踩分点\n"
+                "## 易错点\n"
+                "## 记忆口诀\n"
+                "## 心得\n\n"
+                "如果“记忆口诀”不自然，可把对应标题改成 `## 记忆抓手`；如果“心得”更适合写成考试策略，可把对应标题改成 `## 考试策略`。"
+                "除这两种替代外，其他标题不要改名。只输出最终修订稿。"
+            ),
+            en=(
+                f"Original user request:\n{context.user_message}\n\n"
+                f"{self._labeled_block('Observation', observation)}\n\n"
+                f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
+                f"{self._labeled_block('Current Draft', repaired or draft)}\n\n"
+                f"Still missing: {', '.join(repaired_missing)}\n\n"
+                "Rewrite the entire answer and include these exact headings:\n"
+                "## Core Conclusion\n"
+                "## Scoring Points\n"
+                "## Pitfalls\n"
+                "## Memory Hook\n"
+                "## Exam Takeaway\n\n"
+                "Output only the revised final answer."
+            ),
+        )
+        strict_rewrite = await self._complete_messages(
+            [
+                {"role": "system", "content": repair_system},
+                {"role": "user", "content": strict_rewrite_user},
+            ],
+            max_tokens=max_tokens,
+        )
+        if not self._missing_teaching_elements(strict_rewrite):
+            return strict_rewrite
+
+        reformat_system = self._text(
+            zh=(
+                f"你是 {BRAND_NAME} 的 Markdown 格式整理器。"
+                "不要新增没有依据的新事实，只把现有教学内容重排成合规结构。"
+                "只输出整理后的最终稿。"
+            ),
+            en=(
+                f"You are {BRAND_NAME}'s Markdown formatter. "
+                "Do not add unsupported facts. Only reorganize the existing teaching content into the required structure."
+            ),
+        )
+        reformat_user = self._text(
+            zh=(
+                f"{self._knowledge_response_contract()}\n\n"
+                f"{self._labeled_block('Source Draft', strict_rewrite or repaired or draft)}\n\n"
+                "请保留原有核心内容，但必须改写成以下确切标题：\n"
+                "## 核心结论\n"
+                "## 踩分点\n"
+                "## 易错点\n"
+                "## 记忆口诀\n"
+                "## 心得\n\n"
+                "如果口诀不自然，可改成 `## 记忆抓手`；如果心得更适合写成考试策略，可改成 `## 考试策略`。"
+                "不要省略任何标题。"
+            ),
+            en=(
+                f"{self._knowledge_response_contract()}\n\n"
+                f"{self._labeled_block('Source Draft', strict_rewrite or repaired or draft)}\n\n"
+                "Reformat this into the exact headings:\n"
+                "## Core Conclusion\n"
+                "## Scoring Points\n"
+                "## Pitfalls\n"
+                "## Memory Hook\n"
+                "## Exam Takeaway\n\n"
+                "Do not omit any heading."
+            ),
+        )
+        reformatted = await self._complete_messages(
+            [
+                {"role": "system", "content": reformat_system},
+                {"role": "user", "content": reformat_user},
+            ],
+            max_tokens=max_tokens,
+        )
+        if not self._missing_teaching_elements(reformatted):
+            return reformatted
+        return strict_rewrite or repaired or draft
 
     def _acting_user_prompt(self, context: UnifiedContext, thinking_text: str) -> str:
         return self._text(
