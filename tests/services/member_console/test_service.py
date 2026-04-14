@@ -136,7 +136,8 @@ def test_verify_phone_code_bootstraps_clean_new_member_state(tmp_path: Path) -> 
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
-    result = service.verify_phone_code("13955556666")
+    send_result = service.send_phone_code("13955556666")
+    result = service.verify_phone_code("13955556666", send_result["debug_code"])
     profile = result["user"]
     today = service.get_today_progress(profile["user_id"])
 
@@ -145,6 +146,16 @@ def test_verify_phone_code_bootstraps_clean_new_member_state(tmp_path: Path) -> 
     assert profile["level"] == 1
     assert today["today_done"] == 0
     assert today["streak_days"] == 0
+
+
+def test_verify_phone_code_rejects_invalid_code(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    service.send_phone_code("13955556666")
+
+    with pytest.raises(ValueError, match="验证码错误"):
+        service.verify_phone_code("13955556666", "000000")
 
 
 @pytest.mark.asyncio

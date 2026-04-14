@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import time
 import types
 from types import SimpleNamespace
 from typing import Any
@@ -110,7 +111,24 @@ async def test_web_search_tool_wraps_sync_function(monkeypatch: pytest.MonkeyPat
     assert result.content == "web summary"
     assert captured["query"] == "latest benchmark"
     assert captured["output_dir"] == "/tmp/out"
+    assert captured["timeout"] == 12
     assert result.sources[0]["url"] == "https://example.com"
+
+
+@pytest.mark.asyncio
+async def test_web_search_tool_times_out_cleanly(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_web_search(**kwargs: Any) -> dict[str, Any]:
+        time.sleep(1.2)
+        return {"answer": "too late", "citations": []}
+
+    _install_module(monkeypatch, "deeptutor.tools.web_search", web_search=fake_web_search)
+
+    result = await WebSearchTool().execute(query="latest benchmark", timeout=1)
+
+    assert result.success is False
+    assert "timed out" in result.content
+    assert result.metadata["error"] == "timeout"
+    assert result.metadata["timeout_seconds"] == 1
 
 
 @pytest.mark.asyncio

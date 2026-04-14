@@ -69,6 +69,9 @@ async def test_chat_capability_streams_content_and_geogebra_context(
         def __init__(self, language: str = "en") -> None:
             captured["pipeline_init"] = {"language": language}
 
+        def _infer_answer_type(self, _message: str) -> str:
+            return "knowledge_explainer"
+
         async def run(self, context: UnifiedContext, stream: StreamBus) -> None:
             captured["process"] = {
                 "message": f"{context.user_message}\nGGB commands",
@@ -579,7 +582,7 @@ async def test_deep_research_capability_requires_explicit_config_and_streams_tra
             captured["pipeline_init"] = kwargs
 
         async def run(self, topic: str) -> dict[str, Any]:
-            await captured["pipeline_init"]["progress_callback"](
+            captured["pipeline_init"]["progress_callback"](
                 {"status": "gathering evidence", "stage": "researching", "block_id": "block_1"}
             )
             await captured["pipeline_init"]["trace_callback"](
@@ -640,6 +643,9 @@ async def test_deep_research_capability_requires_explicit_config_and_streams_tra
             "mode": "report",
             "depth": "standard",
             "sources": ["kb", "web", "papers"],
+            "confirmed_outline": [
+                {"title": "核心概念", "overview": "聚焦 agent-native tutoring 的关键机制"},
+            ],
         },
         language="en",
     )

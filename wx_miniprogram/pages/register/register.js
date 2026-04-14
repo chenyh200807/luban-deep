@@ -25,7 +25,14 @@ Page({
       });
     } catch (_) {}
     if (auth.isLoggedIn()) {
-      wx.switchTab({ url: "/pages/chat/chat" });
+      api
+        .getUserInfo()
+        .then(function () {
+          wx.switchTab({ url: "/pages/chat/chat" });
+        })
+        .catch(function () {
+          auth.clearToken();
+        });
     }
   },
   onUnload: function () {
@@ -68,8 +75,18 @@ Page({
 
         if (outerCode === 0 || sent) {
           // Success: start countdown
-          self.setData({ codeCountdown: retryAfter, loading: false });
+          var debugCode = (dataObj && dataObj.debug_code) || inner.debug_code || "";
+          var nextData = { codeCountdown: retryAfter, loading: false };
+          if (debugCode) nextData.phoneCode = debugCode;
+          self.setData(nextData);
           self._startCountdown(retryAfter);
+          if (debugCode) {
+            wx.showModal({
+              title: "测试验证码",
+              content: "当前环境未接短信服务，验证码：" + debugCode,
+              showCancel: false,
+            });
+          }
         } else {
           // Error: show message, do NOT start countdown
           self.setData({ errorMsg: outerMsg, loading: false });

@@ -364,6 +364,7 @@ class MemberConsoleService:
                 }
             ],
             "assessment_sessions": {},
+            "phone_codes": {},
         }
 
     def _load(self) -> dict[str, Any]:
@@ -372,7 +373,10 @@ class MemberConsoleService:
                 data = self._seed_data()
                 self._save(data)
                 return data
-            return json.loads(self._data_path.read_text(encoding="utf-8"))
+            data = json.loads(self._data_path.read_text(encoding="utf-8"))
+            data.setdefault("assessment_sessions", {})
+            data.setdefault("phone_codes", {})
+            return data
 
     def _save(self, data: dict[str, Any]) -> None:
         with self._lock:
@@ -796,7 +800,7 @@ class MemberConsoleService:
         verified = self._verify_access_token(token)
         if verified and str(verified.get("uid") or "").strip():
             return str(verified["uid"]).strip()
-        return "student_demo"
+        return ""
 
     def _append_audit(
         self,
@@ -1651,11 +1655,41 @@ class MemberConsoleService:
         }
 
     def send_phone_code(self, phone: str) -> dict[str, Any]:
-        return {"sent": True, "retry_after": 60, "phone": _slugify_phone(phone)}
-
-    def verify_phone_code(self, phone: str) -> dict[str, Any]:
         data = self._load()
         normalized = _slugify_phone(phone)
+        now = _now()
+        retry_after = 60
+        expires_at = now + timedelta(minutes=10)
+        debug_code = "".join(secrets.choice("0123456789") for _ in range(6))
+        data["phone_codes"][normalized] = {
+            "code": debug_code,
+            "created_at": _iso(now),
+            "expires_at": _iso(expires_at),
+            "retry_after": retry_after,
+        }
+        self._save(data)
+        return {
+            "sent": True,
+            "retry_after": retry_after,
+            "phone": normalized,
+            "debug_code": debug_code,
+            "delivery": "debug",
+            "message": "当前环境未接入短信服务，已生成测试验证码。",
+        }
+
+    def verify_phone_code(self, phone: str, code: str) -> dict[str, Any]:
+        data = self._load()
+        normalized = _slugify_phone(phone)
+        provided_code = str(code or "").strip()
+        record = (data.get("phone_codes") or {}).get(normalized) or {}
+        expected_code = str(record.get("code") or "").strip()
+        expires_at = _parse_time(record.get("expires_at"))
+        if not expected_code:
+            raise ValueError("验证码不存在，请先获取验证码")
+        if expires_at < _now():
+            raise ValueError("验证码已过期，请重新获取")
+        if provided_code != expected_code:
+            raise ValueError("验证码错误")
         target = None
         for member in data["members"]:
             if _slugify_phone(member["phone"]) == normalized:
@@ -1665,7 +1699,8 @@ class MemberConsoleService:
             target = self._ensure_member(data, f"user_{normalized}")
             target["phone"] = normalized
             target["display_name"] = f"学员{normalized[-4:]}"
-            self._save(data)
+        data.get("phone_codes", {}).pop(normalized, None)
+        self._save(data)
         token = self._issue_access_token(user_id=target["user_id"])
         return {
             "token": token,

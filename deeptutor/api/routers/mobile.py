@@ -23,7 +23,10 @@ def _ts_to_iso(timestamp: float | int | None) -> str:
 
 
 def _resolve_user_id(authorization: str | None, user_id: str | None = None) -> str:
-    return member_service.resolve_user_id(authorization, user_id=user_id)
+    resolved = member_service.resolve_user_id(authorization, user_id=user_id)
+    if not str(resolved or "").strip():
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return resolved
 
 
 def _session_visible_to_user(session: dict[str, Any] | None, resolved_user_id: str) -> bool:
@@ -274,7 +277,10 @@ async def auth_send_code(body: PhoneRequest) -> dict[str, Any]:
 
 @router.post("/auth/verify-code")
 async def auth_verify_code(body: VerifyCodeRequest) -> dict[str, Any]:
-    return member_service.verify_phone_code(body.phone)
+    try:
+        return member_service.verify_phone_code(body.phone, body.code)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/auth/profile")

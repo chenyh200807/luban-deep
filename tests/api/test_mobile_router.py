@@ -87,6 +87,7 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
             )
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
 
     with TestClient(_build_app()) as client:
         response = client.post(
@@ -132,6 +133,7 @@ def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
             )
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
 
     with TestClient(_build_app()) as client:
         response = client.post(
@@ -151,6 +153,19 @@ def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
     assert config["interaction_hints"]["profile"] == "mini_tutor"
     assert config["interaction_hints"]["preferred_question_type"] == "written"
     assert config["interaction_hints"]["allow_general_chat_fallback"] is False
+
+
+def test_mobile_chat_start_turn_requires_authentication() -> None:
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "考我一道题",
+            },
+        )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Authentication required"
 
 
 def test_get_conversation_messages_includes_interactive_payload(
