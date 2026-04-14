@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 import inspect
@@ -318,6 +318,7 @@ class LangfuseObservability:
             self._client = None
             return None
 
+        httpx_client: httpx.Client | None = None
         try:
             from langfuse import Langfuse
 
@@ -326,13 +327,14 @@ class LangfuseObservability:
             ).strip() or None
             timeout = int(os.getenv("LANGFUSE_TIMEOUT_S", "5"))
             trust_env = _env_flag("LANGFUSE_HTTPX_TRUST_ENV", False)
+            httpx_client = httpx.Client(trust_env=trust_env, timeout=timeout)
             candidate_kwargs = {
                 "public_key": str(os.getenv("LANGFUSE_PUBLIC_KEY", "") or "").strip(),
                 "secret_key": str(os.getenv("LANGFUSE_SECRET_KEY", "") or "").strip(),
                 "host": host,
                 "base_url": host,
                 "timeout": timeout,
-                "httpx_client": httpx.Client(trust_env=trust_env, timeout=timeout),
+                "httpx_client": httpx_client,
                 "debug": _env_flag("LANGFUSE_DEBUG", False),
                 "tracing_enabled": True,
                 "flush_at": int(os.getenv("LANGFUSE_FLUSH_AT", "64")),
@@ -355,9 +357,21 @@ class LangfuseObservability:
                     "Installed langfuse SDK does not support start_as_current_observation; "
                     "expected langfuse>=3."
                 )
+            auth_check = getattr(self._client, "auth_check", None)
+            if callable(auth_check):
+                try:
+                    if not bool(auth_check()):
+                        raise RuntimeError("Langfuse auth check returned false")
+                except Exception as exc:
+                    raise RuntimeError(f"Langfuse auth check failed: {exc}") from exc
             logger.info("Langfuse observability enabled")
         except Exception as exc:
             self._client = None
+            if httpx_client is not None:
+                try:
+                    httpx_client.close()
+                except Exception:
+                    logger.debug("Failed to close Langfuse httpx client", exc_info=True)
             if not self._init_error_logged:
                 logger.warning(f"Langfuse initialization skipped: {exc}")
                 self._init_error_logged = True
@@ -476,6 +490,13 @@ class LangfuseObservability:
 
         propagate = getattr(client, "propagate_attributes", None)
         if not callable(propagate):
+            try:
+                import langfuse as langfuse_module
+
+                propagate = getattr(langfuse_module, "propagate_attributes", None)
+            except Exception:
+                propagate = None
+        if not callable(propagate):
             yield
             return
 
@@ -485,10 +506,19 @@ class LangfuseObservability:
             return
 
         try:
-            with propagate(**propagate_kwargs):
-                yield
+            manager = propagate(**propagate_kwargs)
         except Exception as exc:
             logger.debug(f"Langfuse attribute propagation skipped: {exc}", exc_info=True)
+            yield
+            return
+
+        with ExitStack() as stack:
+            try:
+                stack.enter_context(manager)
+            except Exception as exc:
+                logger.debug(f"Langfuse attribute propagation skipped: {exc}", exc_info=True)
+                yield
+                return
             yield
 
     def estimate_usage_details(
@@ -675,12 +705,21 @@ class LangfuseObservability:
                     "tags": trace_attributes.get("tags"),
                 },
             )
-            with start_method(**start_kwargs) as observation:
-                with self._propagate_trace_attributes(client, trace_attributes):
-                    yield observation
+            observation_manager = start_method(**start_kwargs)
         except Exception as exc:
             logger.debug(f"Langfuse observation skipped for {name}: {exc}", exc_info=True)
             yield _NoopObservation()
+            return
+
+        with ExitStack() as stack:
+            try:
+                stack.enter_context(self._propagate_trace_attributes(client, trace_attributes))
+                observation = stack.enter_context(observation_manager)
+            except Exception as exc:
+                logger.debug(f"Langfuse observation skipped for {name}: {exc}", exc_info=True)
+                yield _NoopObservation()
+                return
+            yield observation
 
     def update_observation(
         self,

@@ -1,6 +1,9 @@
 // utils/endpoints.js — 小程序 API 地址解析与回退
 
 var DEFAULT_LOCAL_BASES = ["http://127.0.0.1:8001", "http://127.0.0.1:8012"];
+var ENV_VERSION =
+  (typeof __wxConfig !== "undefined" && __wxConfig.envVersion) || "release";
+var IS_DEVELOP = ENV_VERSION === "develop";
 
 function getAppSafe() {
   try {
@@ -44,8 +47,11 @@ function getConfiguredBases(useGateway) {
 function getBaseUrlCandidates(useGateway, preferredBase) {
   var list = [];
   if (preferredBase) list.push(preferredBase);
-  list = list.concat(getConfiguredBases(!!useGateway));
-  list = list.concat(DEFAULT_LOCAL_BASES);
+  var configured = getConfiguredBases(!!useGateway);
+  list = list.concat(configured);
+  if (IS_DEVELOP || isLocalBase(preferredBase)) {
+    list = list.concat(DEFAULT_LOCAL_BASES);
+  }
   return uniq(list);
 }
 

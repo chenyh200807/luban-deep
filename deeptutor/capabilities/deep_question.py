@@ -48,11 +48,16 @@ class DeepQuestionCapability(BaseCapability):
         output_dir = get_path_service().get_task_workspace("deep_question", turn_id)
 
         overrides = context.config_overrides
+        force_generate_questions = bool(overrides.get("force_generate_questions", False))
         followup_question_context = (
             context.metadata.get("question_followup_context", {}) or {}
         )
-        if isinstance(followup_question_context, dict) and followup_question_context.get(
+        if (
+            not force_generate_questions
+            and isinstance(followup_question_context, dict)
+            and followup_question_context.get(
             "question"
+            )
         ):
             narrowed_context, submission_answer = resolve_submission(
                 context.user_message,

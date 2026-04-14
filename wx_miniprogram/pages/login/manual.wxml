@@ -16,21 +16,23 @@
           <text class="title-main">Luban AI Tutor</text>
         </view>
         <text class="hero-title">其他登录方式</text>
-        <text class="hero-sub">手机号验证码或账号密码，作为备用入口保留。</text>
+        <text class="hero-sub">手机号验证码或账号密码登录，用于备用登录与账号找回。</text>
       </view>
 
       <view class="sheet">
         <view class="mode-switch">
-          <view class="mode-pill {{loginMode === 'phone_code' ? 'mode-pill-active' : ''}}" bindtap="switchLoginMode" wx:if="{{loginMode === 'password'}}">
+          <view
+            class="mode-pill {{loginMode === 'phone_code' ? 'mode-pill-active' : ''}}"
+            data-mode="phone_code"
+            bindtap="switchLoginMode"
+          >
             <text class="mode-pill-txt">手机号验证码</text>
           </view>
-          <view class="mode-pill {{loginMode === 'phone_code' ? 'mode-pill-active' : ''}}" wx:if="{{loginMode === 'phone_code'}}">
-            <text class="mode-pill-txt">手机号验证码</text>
-          </view>
-          <view class="mode-pill {{loginMode === 'password' ? 'mode-pill-active' : ''}}" bindtap="switchLoginMode" wx:if="{{loginMode === 'phone_code'}}">
-            <text class="mode-pill-txt">账号密码</text>
-          </view>
-          <view class="mode-pill {{loginMode === 'password' ? 'mode-pill-active' : ''}}" wx:if="{{loginMode === 'password'}}">
+          <view
+            class="mode-pill {{loginMode === 'password' ? 'mode-pill-active' : ''}}"
+            data-mode="password"
+            bindtap="switchLoginMode"
+          >
             <text class="mode-pill-txt">账号密码</text>
           </view>
         </view>
@@ -85,8 +87,9 @@
         </view>
 
         <view class="foot">
-          <text class="foot-link" bindtap="goRegister">没有账号？手机号验证码可自动创建</text>
+          <text class="foot-link" bindtap="goRegister">去注册</text>
         </view>
+
       </view>
 
       <view style="height: {{safeBottom + 32}}px"></view>

@@ -74,12 +74,6 @@
 .content { z-index: 1; }
 .navbar-inner { height: 96rpx; display: flex; align-items: center; padding: 0 20rpx 0 0; gap: 12rpx; }
 .nav-logo { height: 100rpx; margin-left: 28rpx; }
-.nav-brand {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 1rpx;
-}
 .nav-icon-btn {
   width: 60rpx; height: 60rpx; border-radius: 50%;
   background: rgba(255,255,255,0.08);
@@ -887,6 +881,9 @@
 }
 .mcq-opt:active { border-color: rgba(96,165,250,0.5); }
 .mcq-opt.sel { border-color: #3b82f6; background: rgba(59,130,246,0.12); }
+.mcq-opt.ro {
+  opacity: 0.62;
+}
 .mcq-key {
   width: 42rpx; height: 42rpx; border-radius: 10rpx;
   background: rgba(255,255,255,0.06); display: flex;
@@ -900,6 +897,10 @@
   background: linear-gradient(135deg, rgba(37,99,235,0.92), rgba(59,130,246,0.92));
   box-shadow: 0 12rpx 28rpx rgba(37,99,235,0.22);
   display: flex; align-items: center; justify-content: center;
+}
+.mcq-submit.disabled {
+  background: rgba(255,255,255,0.06);
+  box-shadow: none;
 }
 .mcq-submit-txt {
   font-size: 26rpx; font-weight: 700; color: #fff; letter-spacing: 2rpx;
@@ -1416,7 +1417,6 @@
 
 /* ── Logo ──────────────────────────────────── */
 .page.light .nav-logo { filter: brightness(0); }
-.page.light .nav-brand { color: #132036; }
 
 /* ── 积分明细弹窗 ──────────────────────────── */
 .page.light .billing-drawer {

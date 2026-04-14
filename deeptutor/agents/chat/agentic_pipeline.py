@@ -172,6 +172,25 @@ class AgenticChatPipeline:
             answer_type=answer_type,
             mode=str(context.config_overrides.get("chat_mode") or "deep"),
         )
+        if self._should_use_compact_response(context, enabled_tools):
+            final_response, trace_meta = await self._stage_smart_responding(
+                context=context,
+                answer_type=answer_type,
+                stream=stream,
+            )
+            result_payload: dict[str, Any] = {
+                "response": final_response,
+                "observation": "",
+                "tool_traces": [],
+                "chat_mode": "smart",
+                "source_trace": trace_meta.get("label", "Smart response"),
+            }
+            cs = self._get_cost_summary()
+            if cs:
+                result_payload["metadata"] = {"cost_summary": cs}
+            await stream.result(result_payload, source="chat")
+            return
+
         thinking_text = await self._stage_thinking(context, enabled_tools, stream)
         tool_traces = await self._stage_acting(
             context=context,
@@ -501,6 +520,102 @@ class AgenticChatPipeline:
                         answer_type=answer_type,
                         observation=observation,
                         tool_traces=tool_traces,
+                        max_tokens=1800,
+                    )
+                    if content:
+                        await stream.content(
+                            content,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                else:
+                    chunks: list[str] = []
+                    async for chunk in self._stream_messages(messages, max_tokens=1800):
+                        if not chunk:
+                            continue
+                        chunks.append(chunk)
+                        await stream.content(
+                            chunk,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                    content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                await stream.progress(
+                    "",
+                    source="chat",
+                    stage="responding",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "complete"},
+                    ),
+                )
+                observability.update_observation(
+                    stage_observation,
+                    output_payload=content,
+                    metadata=trace_meta,
+                )
+                return content, trace_meta
+
+    async def _stage_smart_responding(
+        self,
+        context: UnifiedContext,
+        answer_type: str,
+        stream: StreamBus,
+    ) -> tuple[str, dict[str, Any]]:
+        trace_meta = build_trace_metadata(
+            call_id=new_call_id("chat-smart-responding"),
+            phase="responding",
+            label=self._text(zh="Smart response", en="Smart response"),
+            call_kind="llm_final_response",
+            trace_id="chat-smart-responding",
+            trace_role="response",
+            trace_group="stage",
+        )
+        with observability.start_observation(
+            name="chat.stage.smart_responding",
+            as_type="span",
+            input_payload={"user_message": context.user_message},
+            metadata=trace_meta,
+        ) as stage_observation:
+            async with stream.stage("responding", source="chat", metadata=trace_meta):
+                await stream.progress(
+                    trace_meta["label"],
+                    source="chat",
+                    stage="responding",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "running"},
+                    ),
+                )
+                user_prompt = self._text(
+                    zh=(
+                        f"用户问题：\n{context.user_message}\n\n"
+                        "请直接给出正式回答。保持教学连续性，但不要展示内部推理、阶段或工具信息。"
+                    ),
+                    en=(
+                        f"User request:\n{context.user_message}\n\n"
+                        "Provide the final answer directly. Maintain tutoring continuity, "
+                        "but do not reveal internal reasoning, stages, or tool details."
+                    ),
+                )
+                required_elements = self._required_teaching_elements(context, answer_type, [])
+                if required_elements:
+                    user_prompt += "\n\n" + self._knowledge_response_contract(required_elements)
+                messages = self._build_messages(
+                    context=context,
+                    system_prompt=self._responding_system_prompt([]),
+                    user_content=user_prompt,
+                )
+
+                if required_elements:
+                    content = await self._complete_validated_response(
+                        context=context,
+                        messages=messages,
+                        answer_type=answer_type,
+                        observation="",
+                        tool_traces=[],
                         max_tokens=1800,
                     )
                     if content:
@@ -1882,9 +1997,19 @@ class AgenticChatPipeline:
         return {}
 
     def _interaction_teaching_mode(self, context: UnifiedContext) -> str:
-        hints = self._interaction_hints(context)
-        mode = str(hints.get("teaching_mode") or "").strip().lower()
+        mode = self._configured_teaching_mode(context)
         return mode if mode in {"fast", "deep"} else ""
+
+    def _configured_teaching_mode(self, context: UnifiedContext) -> str:
+        hints = self._interaction_hints(context)
+        hinted_mode = str(hints.get("teaching_mode") or "").strip().lower()
+        if hinted_mode in {"fast", "deep", "smart"}:
+            return hinted_mode
+        runtime_mode = str(context.config_overrides.get("chat_mode") or "").strip().lower()
+        return runtime_mode if runtime_mode in {"fast", "deep", "smart"} else ""
+
+    def _is_smart_tutor_mode(self, context: UnifiedContext) -> bool:
+        return self._configured_teaching_mode(context) == "smart"
 
     def _followup_question_context(self, context: UnifiedContext) -> dict[str, Any]:
         for container in (context.metadata, context.config_overrides):
@@ -1904,6 +2029,19 @@ class AgenticChatPipeline:
             or ""
         ).strip().lower()
         return profile in {"mini_tutor", "mini_tutorbot", "construction_exam_tutor"}
+
+    def _should_use_compact_response(
+        self,
+        context: UnifiedContext,
+        enabled_tools: list[str],
+    ) -> bool:
+        if enabled_tools:
+            return False
+        if context.knowledge_bases:
+            return False
+        if not self._is_exam_tutor_profile(context):
+            return False
+        return self._is_smart_tutor_mode(context)
 
     def _teaching_mode_overlay(self, context: UnifiedContext) -> str:
         if not self._is_exam_tutor_profile(context):

@@ -10,36 +10,41 @@
     bindtouchend="onPageTouchEnd" bindtouchcancel="onPageTouchEnd">
 
     <scroll-view class="body" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="padding-top:{{statusBarHeight}}px">
-      <view class="hero-top-space"></view>
+      <view class="hero-stage">
+        <view class="hero-block">
+          <text class="hero-kicker">Luban AI Tutor</text>
 
-      <view class="brand-row">
-        <image class="brand-mark" src="/images/logo-mark-white.png" mode="heightFix" />
-        <text class="brand-name">Luban AI Tutor</text>
-      </view>
+          <view class="brand-row">
+            <image class="brand-mark" src="/images/logo-mark-white.png" mode="heightFix" />
+            <text class="brand-name">鲁班智考</text>
+          </view>
 
-      <view class="hero-copy">
-        <text class="hero-kicker">Construction Exam AI</text>
-        <text class="hero-line hero-line-main">懂你节奏的</text>
-        <view class="hero-line-combo">
-          <text class="hero-line hero-line-accent">智能备考</text>
-          <text class="hero-line hero-line-tail">导师</text>
-        </view>
-        <text class="hero-desc">{{heroMessages[activeHeroIndex].line1}}</text>
-        <text class="hero-desc hero-desc-sub">{{heroMessages[activeHeroIndex].line2}}</text>
-      </view>
+          <view class="hero-copy">
+            <view class="hero-line-single">
+              <text class="hero-line hero-line-main-inline">懂你的</text>
+              <text class="hero-line hero-line-accent-inline">智能备考导师</text>
+            </view>
+            <text class="hero-desc">{{heroMessages[activeHeroIndex].line1}}</text>
+            <text class="hero-desc hero-desc-sub">{{heroMessages[activeHeroIndex].line2}}</text>
+          </view>
 
-      <view class="pager-row"
-        bindtouchstart="onSubtitleTouchStart" bindtouchmove="onSubtitleTouchMove"
-        bindtouchend="onSubtitleTouchEnd" bindtouchcancel="onSubtitleTouchEnd">
-        <view wx:for="{{heroMessages}}" wx:key="index"
-          class="{{activeHeroIndex === index ? 'pager-dot pager-dot-active' : 'pager-dot pager-dot-idle'}}"></view>
-      </view>
-
-      <view class="action-panel" style="padding-bottom: {{safeBottom + 24}}px">
-        <view class="err" wx:if="{{errorMsg}}">
-          <text class="err-txt">{{errorMsg}}</text>
+          <view class="pager-row"
+            bindtouchstart="onSubtitleTouchStart" bindtouchmove="onSubtitleTouchMove"
+            bindtouchend="onSubtitleTouchEnd" bindtouchcancel="onSubtitleTouchEnd">
+            <view wx:for="{{heroMessages}}" wx:key="index"
+              class="{{activeHeroIndex === index ? 'pager-dot pager-dot-active' : 'pager-dot pager-dot-idle'}}"></view>
+          </view>
         </view>
 
+      </view>
+    </scroll-view>
+
+    <view class="action-panel" style="padding-bottom: {{safeBottom + 24}}px">
+      <view class="err" wx:if="{{errorMsg}}">
+        <text class="err-txt">{{errorMsg}}</text>
+      </view>
+
+      <view class="btn-wechat-stack">
         <button
           class="btn-wechat-primary {{wechatLoading?'off':''}}"
           open-type="getPhoneNumber"
@@ -48,18 +53,11 @@
         >
           <text class="btn-wechat-primary-txt">{{wechatLoading ? '微信授权中...' : '微信一键登录'}}</text>
         </button>
-
-        <view class="helper-row">
-          <text class="helper-text">授权手机号后可直接进入，无需再输入验证码</text>
-        </view>
-
-        <view class="link-stack">
-          <text class="secondary-link" bindtap="handleWechatLogin">仅微信身份进入</text>
-          <text class="manual-link" bindtap="goManualLogin">手机号验证码 / 账号密码</text>
-        </view>
       </view>
 
-      <view class="scroll-safe-space"></view>
-    </scroll-view>
+      <view class="link-row">
+        <text class="manual-link" bindtap="goManualLogin">手机号验证码 / 账号密码</text>
+      </view>
+    </view>
   </view>
 </view>

@@ -39,13 +39,6 @@
 .btn-main::after { border:none; }
 .btn-main.off { opacity:0.45; }
 .btn-txt { font-size:31rpx; font-weight:600; color:#fff; letter-spacing:1rpx; }
-.btn-wechat { width:100%; margin:14rpx 0 0; height:84rpx; border-radius:22rpx; border:none; background:rgba(13,19,35,0.72); box-shadow:inset 0 0 0 1rpx rgba(74,222,128,0.28); display:flex; align-items:center; justify-content:center; gap:14rpx; }
-.btn-wechat::after { border:none; }
-.btn-wechat.off { opacity:0.45; }
-.btn-wechat-ghost { background:rgba(255,255,255,0.04); box-shadow:inset 0 0 0 1rpx rgba(148,163,184,0.16); }
-.btn-wechat-icon { width:40rpx; height:40rpx; border-radius:20rpx; background:#22c55e; color:#ffffff; font-size:24rpx; font-weight:700; line-height:40rpx; text-align:center; }
-.btn-wechat-txt { font-size:28rpx; font-weight:600; color:#d1fae5; letter-spacing:0.5rpx; }
-.wechat-tip { margin-top:12rpx; font-size:22rpx; line-height:1.5; text-align:center; color:rgba(255,255,255,0.34); }
 .foot { display:flex; flex-direction:row; justify-content:center; align-items:center; margin-top:14rpx; }
 .foot-link { font-size:24rpx; color:rgba(77,158,255,0.78); font-weight:500; }
 .scroll-safe-space { height:24rpx; }
@@ -66,8 +59,4 @@
 .scene.light .err { background:rgba(239,68,68,0.06); border-color:rgba(239,68,68,0.12); }
 .scene.light .btn-ghost { background:rgba(255,255,255,0.82); color:#334155; box-shadow:inset 0 0 0 1rpx #dbe6f5, 0 6rpx 16rpx rgba(126,147,185,0.06); }
 .scene.light .btn-main { background:linear-gradient(90deg,#2557d8 0%,#2f6bff 22%,#7db4ff 50%,#2f6bff 78%,#2557d8 100%); box-shadow:0 10rpx 34rpx rgba(47,107,255,0.22),0 0 40rpx rgba(96,165,250,0.12); }
-.scene.light .btn-wechat { background:rgba(255,255,255,0.84); box-shadow:inset 0 0 0 1rpx rgba(34,197,94,0.24), 0 8rpx 22rpx rgba(34,197,94,0.08); }
-.scene.light .btn-wechat-ghost { box-shadow:inset 0 0 0 1rpx rgba(148,163,184,0.22), 0 6rpx 14rpx rgba(126,147,185,0.05); }
-.scene.light .btn-wechat-txt { color:#166534; }
-.scene.light .wechat-tip { color:#64748b; }
 .scene.light .foot-link { color:#2f6bff; }

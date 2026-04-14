@@ -14,7 +14,6 @@
   <view class="navbar" style="padding-top:{{statusBarHeight}}px">
     <view class="navbar-inner">
       <image class="nav-logo" src="/images/logo-white.png" mode="heightFix" bindtap="goHome" aria-role="button" aria-label="回到首页" />
-      <text class="nav-brand">鲁班智考</text>
       <view style="flex:1"></view>
       <view class="nav-icon-btn nav-new-chat" wx:if="{{hasMessages}}" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
         <text class="nav-new-icon">+</text>
@@ -354,7 +353,7 @@
           <!-- MCQ -->
           <view class="mcq" wx:if="{{item.mcqCards && item.mcqCards.length && !item.streaming}}">
             <view class="mcq-head">
-              <text class="mcq-head-title">交互式作答</text>
+              <text class="mcq-head-title">{{item.mcqInteractiveReady ? '交互式作答' : '题目回看'}}</text>
               <text class="mcq-head-hint">{{item.mcqHint ? item.mcqHint : '点击选项后提交答案'}}</text>
             </view>
             <view class="mcq-card" wx:for="{{item.mcqCards}}" wx:key="index" wx:for-item="card">
@@ -365,7 +364,7 @@
               <text class="mcq-stem">{{card.stem}}</text>
               <text class="mcq-hint" wx:if="{{card.hint}}">提示：{{card.hint}}</text>
               <view
-                class="mcq-opt {{o.selected?'sel':''}}"
+                class="mcq-opt {{o.selected?'sel':''}} {{!item.mcqInteractiveReady?'ro':''}}"
                 wx:for="{{card.options}}" wx:key="key" wx:for-item="o"
                 bindtap="onMcqTap" data-msgid="{{item.id}}" data-qindex="{{card.index}}" data-key="{{o.key}}"
                 aria-role="button" aria-label="选项 {{o.key}}: {{o.text}}" aria-checked="{{o.selected}}"
@@ -374,8 +373,11 @@
                 <text class="mcq-val">{{o.text}}</text>
               </view>
             </view>
-            <view class="mcq-submit" bindtap="onMcqSubmit" data-msgid="{{item.id}}" aria-role="button" aria-label="提交答案">
+            <view wx:if="{{item.mcqInteractiveReady}}" class="mcq-submit" bindtap="onMcqSubmit" data-msgid="{{item.id}}" aria-role="button" aria-label="提交答案">
               <text class="mcq-submit-txt">提交答案</text>
+            </view>
+            <view wx:else class="mcq-submit disabled" aria-role="note" aria-label="当前题卡仅供查看">
+              <text class="mcq-submit-txt">仅供查看</text>
             </view>
           </view>
 

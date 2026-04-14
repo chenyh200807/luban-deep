@@ -399,6 +399,86 @@ async def test_deep_question_capability_uses_single_call_followup_agent(
 
 
 @pytest.mark.asyncio
+async def test_deep_question_capability_skips_followup_agent_for_forced_generation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+            self._callback = None
+
+        def set_ws_callback(self, callback) -> None:
+            self._callback = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["topic_call"] = kwargs
+            assert self._callback is not None
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question_id": "q_1",
+                            "question": "新的防水工程单选题",
+                            "question_type": "choice",
+                            "options": {"A": "方案A", "B": "方案B"},
+                            "correct_answer": "B",
+                            "explanation": "B 更符合规范要求。",
+                        }
+                    }
+                ]
+            }
+
+    class FakeFollowupAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("FollowupAgent should not be constructed for forced generation")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.followup_agent",
+        FollowupAgent=FakeFollowupAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="继续出",
+        config_overrides={
+            "mode": "custom",
+            "topic": "继续出",
+            "question_type": "choice",
+            "force_generate_questions": True,
+        },
+        language="zh",
+        metadata={
+            "question_followup_context": {
+                "question_id": "q_1",
+                "question": "旧题",
+                "question_type": "choice",
+                "correct_answer": "A",
+            },
+        },
+    )
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["topic_call"]["user_topic"] == "继续出"
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "custom"
+    assert result_event.metadata["question_followup_context"]["question"] == "新的防水工程单选题"
+    assert result_event.metadata["question_followup_context"]["correct_answer"] == "B"
+
+
+@pytest.mark.asyncio
 async def test_deep_question_capability_uses_submission_grader_for_choice_submission(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

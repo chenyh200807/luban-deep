@@ -5,6 +5,7 @@ Build bounded conversation history for unified chat sessions.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 import re
 from typing import Any, Awaitable, Callable
 
@@ -45,6 +46,11 @@ _SUMMARY_PREFIX = {
         "Do not quote it verbatim and do not expose summary labels such as goal, progress, summary, or next step.\n"
     ),
 }
+_CONTEXT_WINDOW_ENV_KEYS = (
+    "LLM_CONTEXT_WINDOW_TOKENS",
+    "OPENAI_CONTEXT_WINDOW_TOKENS",
+)
+_MIN_CONTEXT_WINDOW_TOKENS = 8192
 
 
 def count_tokens(text: str) -> int:
@@ -157,8 +163,30 @@ class ContextBuilder:
         self.history_budget_ratio = history_budget_ratio
         self.summary_target_ratio = summary_target_ratio
 
+    @staticmethod
+    def _positive_int(value: Any) -> int | None:
+        try:
+            parsed = int(value or 0)
+        except (TypeError, ValueError):
+            return None
+        return parsed if parsed > 0 else None
+
+    def _context_window_tokens(self, llm_config: LLMConfig) -> int:
+        for attr in ("context_window_tokens", "context_window", "max_context_tokens", "max_input_tokens"):
+            parsed = self._positive_int(getattr(llm_config, attr, None))
+            if parsed is not None:
+                return parsed
+
+        for env_name in _CONTEXT_WINDOW_ENV_KEYS:
+            parsed = self._positive_int(os.getenv(env_name))
+            if parsed is not None:
+                return parsed
+
+        configured_output_budget = self._positive_int(getattr(llm_config, "max_tokens", None)) or 4096
+        return max(_MIN_CONTEXT_WINDOW_TOKENS, configured_output_budget)
+
     def _history_budget(self, llm_config: LLMConfig) -> int:
-        configured = int(getattr(llm_config, "max_tokens", 4096) or 4096)
+        configured = self._context_window_tokens(llm_config)
         return max(256, int(configured * self.history_budget_ratio))
 
     def _summary_budget(self, budget: int) -> int:

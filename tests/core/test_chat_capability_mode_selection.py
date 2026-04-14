@@ -7,6 +7,7 @@ import pytest
 from deeptutor.capabilities.chat import ChatCapability
 from deeptutor.core.context import UnifiedContext
 from deeptutor.agents.chat.agentic_pipeline import AgenticChatPipeline
+from deeptutor.core.stream_bus import StreamBus
 
 
 def test_chat_capability_promotes_fast_mode_for_knowledge_explainer(
@@ -166,3 +167,63 @@ def test_agentic_chat_pipeline_keeps_user_selected_reason_tool(
 
     assert "rag" in resolved
     assert "reason" in resolved
+
+
+@pytest.mark.asyncio
+async def test_agentic_chat_pipeline_uses_compact_response_for_smart_mode(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    class FakeRegistry:
+        def get_enabled(self, selected):
+            return [SimpleNamespace(name=name) for name in selected]
+
+        def get(self, name: str):
+            return SimpleNamespace(name=name)
+
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_tool_registry",
+        lambda: FakeRegistry(),
+    )
+
+    pipeline = AgenticChatPipeline(language="zh")
+
+    async def _fail_stage(*_args, **_kwargs):
+        raise AssertionError("smart compact path should skip multi-stage reasoning")
+
+    compact_calls: list[str] = []
+
+    async def _fake_smart_stage(*_args, **_kwargs):
+        compact_calls.append("smart")
+        return "这是 smart 单轮回答。", {"label": "Smart response"}
+
+    monkeypatch.setattr(pipeline, "_stage_thinking", _fail_stage)
+    monkeypatch.setattr(pipeline, "_stage_acting", _fail_stage)
+    monkeypatch.setattr(pipeline, "_stage_observing", _fail_stage)
+    monkeypatch.setattr(pipeline, "_stage_responding", _fail_stage)
+    monkeypatch.setattr(pipeline, "_stage_smart_responding", _fake_smart_stage)
+
+    bus = StreamBus()
+    context = UnifiedContext(
+        user_message="什么是流水步距？",
+        enabled_tools=[],
+        config_overrides={
+            "chat_mode": "smart",
+            "interaction_hints": {
+                "profile": "mini_tutor",
+                "teaching_mode": "smart",
+            },
+        },
+        language="zh",
+    )
+
+    await pipeline.run(context, bus)
+
+    result_event = next(event for event in bus._history if event.type.value == "result")
+    assert compact_calls == ["smart"]
+    assert result_event.metadata["chat_mode"] == "smart"
+    assert result_event.metadata["response"] == "这是 smart 单轮回答。"

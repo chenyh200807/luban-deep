@@ -153,6 +153,65 @@ def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
     assert config["interaction_hints"]["allow_general_chat_fallback"] is False
 
 
+def test_get_conversation_messages_includes_interactive_payload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_payload = {
+        "id": "session_mcq",
+        "title": "防水工程练习",
+        "preferences": {},
+        "messages": [
+            {
+                "id": 1,
+                "role": "assistant",
+                "content": "### Question 1\n某防水工程题目",
+                "created_at": 1_700_000_030.0,
+                "events": [
+                    {
+                        "type": "result",
+                        "metadata": {
+                            "summary": {
+                                "results": [
+                                    {
+                                        "qa_pair": {
+                                            "question_id": "q_1",
+                                            "question": "某防水工程题目",
+                                            "question_type": "choice",
+                                            "options": {
+                                                "A": "方案A",
+                                                "B": "方案B",
+                                            },
+                                            "correct_answer": "B",
+                                            "explanation": "B 更符合规范。",
+                                            "difficulty": "medium",
+                                            "concentration": "地下防水",
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+
+    async def _fake_get_session_with_messages(_conversation_id: str):
+        return session_payload
+
+    monkeypatch.setattr(mobile_module.session_store, "get_session_with_messages", _fake_get_session_with_messages)
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/session_mcq/messages")
+
+    assert response.status_code == 200
+    messages = response.json()["messages"]
+    assert messages[0]["interactive"]["type"] == "mcq_interactive"
+    assert messages[0]["interactive"]["questions"][0]["question_id"] == "q_1"
+    assert messages[0]["interactive"]["hidden_contexts"][0]["correct_answer"] == "B"
+
+
 def test_wechat_login_route_maps_service_errors(monkeypatch: pytest.MonkeyPatch) -> None:
     async def _failing_login(_code: str):
         raise RuntimeError("WeChat code2Session failed")

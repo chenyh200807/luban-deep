@@ -220,3 +220,33 @@ async def test_orchestrator_autoroutes_question_followup_without_revealing_answe
     _ = [event async for event in orchestrator.handle(context)]
 
     assert registry.captured[0] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_treats_continue_issue_as_new_practice_request() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-continue-practice",
+        user_message="继续出",
+        config_overrides={},
+        metadata={
+            "question_followup_context": {
+                "question_id": "q_1",
+                "question": "变形缝止水带施工中，哪项做法正确？",
+                "question_type": "choice",
+                "correct_answer": "C",
+            }
+        },
+        language="zh",
+    )
+
+    events = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["question_type"] == "choice"
+    result = next(event for event in events if event.type.value == "result")
+    assert result.metadata["question_type"] == "choice"

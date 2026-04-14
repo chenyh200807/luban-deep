@@ -419,11 +419,12 @@ Page({
         u["messages[" + idx + "].thinkingTone"] = "";
       }
       if ((!existingCards || !existingCards.length) && detectedMcq) {
-        var detectedCards = this._buildDetectedMcqCards(detectedMcq);
-        if (detectedCards.length) {
-          u["messages[" + idx + "].mcqCards"] = detectedCards;
-          u["messages[" + idx + "].mcqHint"] = detectedMcq.submitHint || "";
-          u["messages[" + idx + "].mcqReceipt"] = detectedMcq.receipt || "";
+        var fallbackState = this._buildFallbackMcqState(detectedMcq);
+        if (fallbackState) {
+          u["messages[" + idx + "].mcqCards"] = fallbackState.cards;
+          u["messages[" + idx + "].mcqHint"] = fallbackState.hint;
+          u["messages[" + idx + "].mcqReceipt"] = fallbackState.receipt;
+          u["messages[" + idx + "].mcqInteractiveReady"] = fallbackState.interactiveReady;
         }
       } else if (detectedMcq && detectedMcq.receipt) {
         u["messages[" + idx + "].mcqReceipt"] = detectedMcq.receipt;
@@ -531,25 +532,13 @@ Page({
     if (!d || !d.questions || !d.questions.length) return;
     var idx = this._find(this._streamId);
     if (idx === -1) return;
-    var rawQuestions = [];
-    var hiddenContexts = Array.isArray(d.hidden_contexts) ? d.hidden_contexts : [];
-    for (var i = 0; i < d.questions.length; i++) {
-      var question = d.questions[i] || {};
-      rawQuestions.push(
-        Object.assign({}, question, {
-          followup_context:
-            hiddenContexts[i] && typeof hiddenContexts[i] === "object"
-              ? hiddenContexts[i]
-              : null,
-        }),
-      );
-    }
-    var cards = this._buildEventMcqCards(rawQuestions);
-    if (!cards.length) return;
+    var state = this._buildInteractiveMcqState(d);
+    if (!state) return;
     this.setData({
-      ["messages[" + idx + "].mcqCards"]: cards,
-      ["messages[" + idx + "].mcqHint"]: d.submit_hint || "请选择后提交答案",
-      ["messages[" + idx + "].mcqReceipt"]: d.receipt || "",
+      ["messages[" + idx + "].mcqCards"]: state.cards,
+      ["messages[" + idx + "].mcqHint"]: state.hint,
+      ["messages[" + idx + "].mcqReceipt"]: state.receipt,
+      ["messages[" + idx + "].mcqInteractiveReady"]: state.interactiveReady,
     });
   },
 
@@ -637,6 +626,8 @@ Page({
         questionType: detected.questionType || "single_choice",
         options: this._normalizeMcqOptions(detected.options),
         followupContext: null,
+        questionId: "",
+        hasContext: false,
       },
     ];
   },
@@ -659,9 +650,59 @@ Page({
           q.followup_context && typeof q.followup_context === "object"
             ? q.followup_context
             : null,
+        questionId: String(
+          q.question_id ||
+            (q.followup_context && q.followup_context.question_id) ||
+            "",
+        ).trim(),
+        hasContext: !!(
+          q.followup_context &&
+          typeof q.followup_context === "object" &&
+          q.followup_context.question_id
+        ),
       });
     }
     return cards;
+  },
+
+  _buildInteractiveMcqState: function (interactive) {
+    if (!interactive || !Array.isArray(interactive.questions) || !interactive.questions.length) {
+      return null;
+    }
+    var rawQuestions = [];
+    var hiddenContexts = Array.isArray(interactive.hidden_contexts)
+      ? interactive.hidden_contexts
+      : [];
+    for (var i = 0; i < interactive.questions.length; i++) {
+      var question = interactive.questions[i] || {};
+      rawQuestions.push(
+        Object.assign({}, question, {
+          followup_context:
+            hiddenContexts[i] && typeof hiddenContexts[i] === "object"
+              ? hiddenContexts[i]
+              : null,
+        }),
+      );
+    }
+    var cards = this._buildEventMcqCards(rawQuestions);
+    if (!cards.length) return null;
+    return {
+      cards: cards,
+      hint: interactive.submit_hint || "请选择后提交答案",
+      receipt: interactive.receipt || "",
+      interactiveReady: true,
+    };
+  },
+
+  _buildFallbackMcqState: function (detected) {
+    var cards = this._buildDetectedMcqCards(detected);
+    if (!cards.length) return null;
+    return {
+      cards: cards,
+      hint: "当前题卡缺少原始上下文，仅供查看；如需作答，请让 AI 重新出题。",
+      receipt: detected && detected.receipt ? detected.receipt : "",
+      interactiveReady: false,
+    };
   },
 
   _selectedMcqKeys: function (card) {
@@ -678,6 +719,7 @@ Page({
     var selections = [];
     var structuredQuestions = [];
     var structuredAnswers = [];
+    var missingContext = false;
     var items = Array.isArray(cards) ? cards : [];
     for (var i = 0; i < items.length; i++) {
       var card = items[i];
@@ -690,6 +732,11 @@ Page({
       }
       structuredQuestions.push({
         question_number: card.index || i + 1,
+        question_id: String(
+          card.questionId ||
+            (card.followupContext && card.followupContext.question_id) ||
+            "",
+        ).trim(),
         stem: card.stem || "",
         hint: card.hint || "",
         options: optionMap,
@@ -704,12 +751,21 @@ Page({
         });
         structuredAnswers.push({
           question_number: card.index || i + 1,
+          question_id: String(
+            card.questionId ||
+              (card.followupContext && card.followupContext.question_id) ||
+              "",
+          ).trim(),
           selected_answer: keys.join(""),
           question_type: card.questionType || "single_choice",
         });
+        if (!card.followupContext || typeof card.followupContext !== "object") {
+          missingContext = true;
+        }
       }
     }
     if (!selections.length) return null;
+    if (missingContext) return { error: "missing_context" };
     var rows = [];
     for (var k = 0; k < selections.length; k++) {
       rows.push("第" + selections[k].index + "题：" + selections[k].keys.join("、"));
@@ -725,8 +781,37 @@ Page({
         });
         break;
       }
+    } else {
+      var compositeItems = [];
+      var questionLines = [];
+      for (var n = 0; n < items.length; n++) {
+        var compositeCard = items[n];
+        if (!compositeCard || !compositeCard.followupContext) continue;
+        compositeItems.push(
+          Object.assign({}, compositeCard.followupContext, {
+            user_answer: this._selectedMcqKeys(compositeCard).join(""),
+          }),
+        );
+        questionLines.push(
+          "第" +
+            (compositeCard.index || n + 1) +
+            "题：\n" +
+            (compositeCard.stem || "请选择正确选项"),
+        );
+      }
+      if (compositeItems.length) {
+        followupQuestionContext = {
+          question_id: "question_set",
+          question: questionLines.join("\n\n"),
+          question_type: "choice",
+          items: compositeItems,
+        };
+      }
     }
-    var text = rows.join("；");
+    var text =
+      selections.length === 1 && followupQuestionContext
+        ? "我选" + selections[0].keys.join("、")
+        : rows.join("；");
     return {
       text: text,
       structuredSubmitContext: {
@@ -1063,6 +1148,7 @@ Page({
       mcqSelected: null,
       mcqHint: "",
       mcqReceipt: "",
+      mcqInteractiveReady: false,
       thinkingStatus: "AI 正在准备...",
       thinkingBadge: "",
       thinkingSub: "",
@@ -1214,6 +1300,7 @@ Page({
             mcqSelected: null,
             mcqHint: "",
             mcqReceipt: "",
+            mcqInteractiveReady: false,
             thinkingStatus: "",
             thinkingBadge: "",
             thinkingSub: "",
@@ -1239,6 +1326,10 @@ Page({
           // 仅解析最后几条可见消息，其余由 IntersectionObserver 按需解析
           if (role === "ai" && m.content) {
             var detected = mcqDetect.detect(m.content);
+            var restoredInteractive =
+              m.interactive && typeof m.interactive === "object"
+                ? self._buildInteractiveMcqState(m.interactive)
+                : null;
             var renderText =
               detected && detected.displayText !== undefined
                 ? detected.displayText
@@ -1246,10 +1337,19 @@ Page({
             if (counter >= rawMsgs.length - 4) {
               msg.blocks = md.parseWithIds(renderText || "");
             }
-            if (detected) {
-              msg.mcqCards = self._buildDetectedMcqCards(detected);
-              msg.mcqHint = detected.submitHint || "";
-              msg.mcqReceipt = detected.receipt || "";
+            if (restoredInteractive) {
+              msg.mcqCards = restoredInteractive.cards;
+              msg.mcqHint = restoredInteractive.hint;
+              msg.mcqReceipt = restoredInteractive.receipt;
+              msg.mcqInteractiveReady = restoredInteractive.interactiveReady;
+            } else if (detected) {
+              var fallbackState = self._buildFallbackMcqState(detected);
+              if (fallbackState) {
+                msg.mcqCards = fallbackState.cards;
+                msg.mcqHint = fallbackState.hint;
+                msg.mcqReceipt = fallbackState.receipt;
+                msg.mcqInteractiveReady = fallbackState.interactiveReady;
+              }
             }
           }
           return msg;
@@ -1322,9 +1422,10 @@ Page({
 
   onMcqTap: function (e) {
     if (this.data.isStreaming) return;
-    helpers.vibrate("medium");
     var idx = this._find(e.currentTarget.dataset.msgid);
     if (idx === -1) return;
+    if (!this.data.messages[idx].mcqInteractiveReady) return;
+    helpers.vibrate("medium");
     var key = String(e.currentTarget.dataset.key || "").toUpperCase();
     var qindex = Number(e.currentTarget.dataset.qindex || 0);
     var cards = this.data.messages[idx].mcqCards || [];
@@ -1356,6 +1457,8 @@ Page({
         questionType: card.questionType,
         options: nextOptions,
         followupContext: card.followupContext || null,
+        questionId: card.questionId || "",
+        hasContext: !!card.hasContext,
       });
     }
     this.setData({ ["messages[" + idx + "].mcqCards"]: nextCards });
@@ -1366,9 +1469,23 @@ Page({
     var idx = this._find(e.currentTarget.dataset.msgid);
     if (idx === -1) return;
     var msg = this.data.messages[idx];
+    if (!msg.mcqInteractiveReady) {
+      wx.showToast({
+        title: "当前题卡仅供查看，请让 AI 重新出题后再作答",
+        icon: "none",
+      });
+      return;
+    }
     var payload = this._buildMcqSubmitPayload(msg.mcqCards || []);
     if (!payload) {
       wx.showToast({ title: "请先选择答案", icon: "none" });
+      return;
+    }
+    if (payload.error === "missing_context") {
+      wx.showToast({
+        title: "题目上下文缺失，请让 AI 重新出题后再作答",
+        icon: "none",
+      });
       return;
     }
     helpers.vibrate("medium");

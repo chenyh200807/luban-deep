@@ -126,6 +126,54 @@ class FollowupAgent(BaseAgent):
                     str(question_context.get("explanation", "") or "(none)"),
                 ]
             )
+        items = question_context.get("items") or []
+        if isinstance(items, list) and items:
+            lines.extend(["", "Question set items:"])
+            for index, item in enumerate(items, 1):
+                if not isinstance(item, dict):
+                    continue
+                item_options = item.get("options") or {}
+                item_option_lines: list[str] = []
+                if isinstance(item_options, dict):
+                    for key, value in item_options.items():
+                        if str(value or "").strip():
+                            item_option_lines.append(f"{key}. {value}")
+
+                item_correctness = item.get("is_correct")
+                item_correctness_text = (
+                    "correct"
+                    if item_correctness is True
+                    else "incorrect"
+                    if item_correctness is False
+                    else "unknown"
+                )
+                lines.extend(
+                    [
+                        "",
+                        f"Item {index} ID: {item.get('question_id') or '(none)'}",
+                        f"Item {index} type: {item.get('question_type') or '(none)'}",
+                        f"Item {index} difficulty: {item.get('difficulty') or '(none)'}",
+                        f"Item {index} concentration: {item.get('concentration') or '(none)'}",
+                        f"Item {index} prompt:",
+                        str(item.get("question", "") or "(none)"),
+                    ]
+                )
+                if item_option_lines:
+                    lines.extend(["Options:", *item_option_lines])
+                lines.extend(
+                    [
+                        f"Learner answer: {item.get('user_answer') or '(not provided)'}",
+                        f"Learner result: {item_correctness_text}",
+                    ]
+                )
+                if reveal_reference_material:
+                    lines.extend(
+                        [
+                            f"Reference answer: {item.get('correct_answer') or '(none)'}",
+                            "Explanation:",
+                            str(item.get("explanation", "") or "(none)"),
+                        ]
+                    )
         knowledge_context = str(question_context.get("knowledge_context", "") or "").strip()
         if knowledge_context:
             lines.extend(["", "Knowledge context:", knowledge_context])

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import sqlite3
 from types import SimpleNamespace
 
 import pytest
@@ -7,7 +9,11 @@ import pytest
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore
-from deeptutor.services.session.turn_runtime import TurnRuntimeManager
+from deeptutor.services.session.turn_runtime import (
+    TurnRuntimeManager,
+    _LiveSubscriber,
+    _TurnExecution,
+)
 
 
 async def _noop_refresh(**_kwargs):
@@ -299,6 +305,51 @@ async def test_turn_runtime_bootstraps_question_followup_context_once(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_publishes_live_events_when_persistence_degrades(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    session = await store.create_session(session_id="session-live")
+    turn = await store.create_turn(session["id"], capability="chat")
+    execution = _TurnExecution(
+        turn_id=turn["id"],
+        session_id=session["id"],
+        capability="chat",
+        payload={},
+    )
+    queue: asyncio.Queue[dict[str, object] | None] = asyncio.Queue()
+    execution.subscribers.append(_LiveSubscriber(queue=queue))
+    runtime._executions[turn["id"]] = execution
+
+    async def _broken_append(*_args, **_kwargs):
+        raise sqlite3.OperationalError("database is locked")
+
+    monkeypatch.setattr(store, "append_turn_event", _broken_append)
+    monkeypatch.setattr(
+        TurnRuntimeManager,
+        "_mirror_event_to_workspace",
+        staticmethod(lambda *_args, **_kwargs: None),
+    )
+
+    payload = await runtime._persist_and_publish(
+        execution,
+        StreamEvent(
+            type=StreamEventType.CONTENT,
+            source="chat",
+            stage="responding",
+            content="partial answer",
+        ),
+    )
+    delivered = await queue.get()
+
+    assert execution.persistence_degraded is True
+    assert payload["content"] == "partial answer"
+    assert delivered["content"] == "partial answer"
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_recovers_active_question_context_from_previous_result(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -412,6 +463,73 @@ async def test_turn_runtime_recovers_active_question_context_from_previous_resul
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_recovers_orphaned_running_turn_before_new_turn(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="after recovery",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session = await store.create_session(session_id="orphan-session")
+    orphan_turn = await store.create_turn(session["id"], capability="chat")
+
+    _session, new_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "继续下一轮",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+    async for _event in runtime.subscribe_turn(new_turn["id"], after_seq=0):
+        pass
+
+    recovered = await store.get_turn(orphan_turn["id"])
+    assert recovered is not None
+    assert recovered["status"] == "failed"
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_bootstraps_interaction_hints_as_soft_system_guidance(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -489,12 +607,12 @@ async def test_turn_runtime_bootstraps_interaction_hints_as_soft_system_guidance
     assert [event["type"] for event in events] == ["session", "content", "done"]
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
-    assert [message["role"] for message in detail["messages"]] == ["system", "user", "assistant"]
-    assert "交互策略提示" in detail["messages"][0]["content"]
-    assert "优先出 `choice`" in detail["messages"][0]["content"]
+    assert [message["role"] for message in detail["messages"]] == ["user", "assistant"]
+    assert detail["preferences"]["interaction_hints"]["profile"] == "mini_tutor"
+    assert detail["preferences"]["interaction_hints"]["preferred_question_type"] == "choice"
     assert "interaction_hints" not in captured["config_overrides"]
     assert captured["metadata"]["interaction_hints"]["profile"] == "mini_tutor"
-    assert captured["conversation_history"][0]["role"] == "system"
+    assert captured["conversation_history"] == []
 
 
 @pytest.mark.asyncio

@@ -18,6 +18,12 @@ from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
 
 _STALE_TURN_TIMEOUT_SECONDS = 180.0
+_SQLITE_TIMEOUT_SECONDS = 5.0
+_SQLITE_BUSY_TIMEOUT_MS = 5000
+_INTERACTION_HINT_SYSTEM_PREFIXES = (
+    "你正在一个学习型产品场景中工作。",
+    "You are operating in a learning-product scenario.",
+)
 
 
 def _json_dumps(value: Any) -> str:
@@ -31,6 +37,11 @@ def _json_loads(value: str | None, default: Any) -> Any:
         return json.loads(value)
     except json.JSONDecodeError:
         return default
+
+
+def _is_interaction_hint_system_message(content: str | None) -> bool:
+    text = str(content or "")
+    return any(text.startswith(prefix) for prefix in _INTERACTION_HINT_SYSTEM_PREFIXES)
 
 
 def _empty_cost_summary(*, session_id: str = "", scope_id: str = "") -> dict[str, Any]:
@@ -220,8 +231,11 @@ class SQLiteSessionStore:
             pass
 
     def _initialize(self) -> None:
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.db_path, timeout=_SQLITE_TIMEOUT_SECONDS) as conn:
             conn.execute("PRAGMA foreign_keys = ON")
+            conn.execute(f"PRAGMA busy_timeout = {_SQLITE_BUSY_TIMEOUT_MS}")
+            conn.execute("PRAGMA journal_mode = WAL")
+            conn.execute("PRAGMA synchronous = NORMAL")
             conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS sessions (
@@ -298,9 +312,11 @@ class SQLiteSessionStore:
             return await asyncio.to_thread(fn, *args)
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(self.db_path, timeout=_SQLITE_TIMEOUT_SECONDS)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
+        conn.execute(f"PRAGMA busy_timeout = {_SQLITE_BUSY_TIMEOUT_MS}")
         return conn
 
     @staticmethod
@@ -823,10 +839,14 @@ class SQLiteSessionStore:
                 """,
                 (session_id,),
             ).fetchall()
-        return [
-            {"id": row["id"], "role": row["role"], "content": row["content"] or ""}
-            for row in rows
-        ]
+        messages: list[dict[str, Any]] = []
+        for row in rows:
+            role = row["role"]
+            content = row["content"] or ""
+            if role == "system" and _is_interaction_hint_system_message(content):
+                continue
+            messages.append({"id": row["id"], "role": role, "content": content})
+        return messages
 
     async def get_messages_for_context(self, session_id: str) -> list[dict[str, Any]]:
         return await self._run(self._get_messages_for_context_sync, session_id)

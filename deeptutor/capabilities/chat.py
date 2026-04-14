@@ -37,7 +37,7 @@ def _flatten_sources(raw_sources: dict[str, Any] | None) -> list[dict[str, Any]]
 class ChatCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="chat",
-        description="Chat with selectable fast or deep execution modes.",
+        description="Chat with selectable fast, smart, or deep execution modes.",
         stages=["responding", "thinking", "acting", "observing"],
         tools_used=CHAT_OPTIONAL_TOOLS,
         cli_aliases=["chat"],

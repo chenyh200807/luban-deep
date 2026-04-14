@@ -55,9 +55,20 @@ Page({
     this.setData({ showPassword: !this.data.showPassword });
   },
 
-  switchLoginMode: function () {
+  switchLoginMode: function (e) {
+    var nextMode =
+      e &&
+      e.currentTarget &&
+      e.currentTarget.dataset &&
+      e.currentTarget.dataset.mode;
+    if (!nextMode) {
+      nextMode = this.data.loginMode === "password" ? "phone_code" : "password";
+    }
+    if (nextMode === this.data.loginMode) {
+      return;
+    }
     this.setData({
-      loginMode: this.data.loginMode === "password" ? "phone_code" : "password",
+      loginMode: nextMode,
       errorMsg: "",
     });
   },

@@ -34,6 +34,142 @@ def _session_visible_to_user(session: dict[str, Any] | None, resolved_user_id: s
     return not owner_id or owner_id == resolved_user_id
 
 
+def _build_turn_start_response(session: dict[str, Any], turn: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "conversation": {
+            "id": session["id"],
+            "title": session["title"],
+            "created_at": _ts_to_iso(session.get("created_at")),
+        },
+        "turn": {
+            "id": turn["id"],
+            "capability": turn.get("capability") or "",
+            "status": turn.get("status") or "running",
+        },
+        "stream": {
+            "transport": "websocket",
+            "url": "/api/v1/ws",
+            "subscribe": {
+                "type": "subscribe_turn",
+                "turn_id": turn["id"],
+                "after_seq": 0,
+            },
+            "resume": {
+                "type": "resume_from",
+                "turn_id": turn["id"],
+                "seq": 0,
+            },
+        },
+    }
+
+
+def _build_message_interactive_payload(message: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(message, dict):
+        return None
+    events = message.get("events")
+    if not isinstance(events, list):
+        return None
+
+    for event in reversed(events):
+        if not isinstance(event, dict) or str(event.get("type") or "").strip() != "result":
+            continue
+        metadata = event.get("metadata")
+        if not isinstance(metadata, dict):
+            continue
+        summary = metadata.get("summary")
+        if not isinstance(summary, dict):
+            continue
+
+        raw_results = summary.get("results")
+        if not isinstance(raw_results, list):
+            continue
+
+        questions: list[dict[str, Any]] = []
+        hidden_contexts: list[dict[str, Any]] = []
+        has_multi_choice = False
+
+        for result in raw_results:
+            if not isinstance(result, dict):
+                continue
+            qa_pair = result.get("qa_pair")
+            if not isinstance(qa_pair, dict):
+                continue
+
+            question_type = str(qa_pair.get("question_type") or "").strip().lower()
+            raw_options = qa_pair.get("options")
+            if question_type != "choice" or not isinstance(raw_options, dict):
+                continue
+
+            option_keys = sorted(str(key or "").strip().upper() for key in raw_options.keys())
+            option_map: dict[str, str] = {}
+            options: list[dict[str, str]] = []
+            for key in option_keys:
+                if not key:
+                    continue
+                value = str(raw_options.get(key) or "").strip()
+                if not value:
+                    continue
+                options.append({"key": key, "text": value})
+                option_map[key] = value
+            if not options:
+                continue
+
+            correct_answer = str(qa_pair.get("correct_answer") or "").strip()
+            card_question_type = "multi_choice" if len(correct_answer) > 1 else "single_choice"
+            if card_question_type == "multi_choice":
+                has_multi_choice = True
+
+            question_index = len(questions) + 1
+            questions.append(
+                {
+                    "index": question_index,
+                    "stem": str(qa_pair.get("question") or "").strip(),
+                    "question_type": card_question_type,
+                    "options": options,
+                    "question_id": str(qa_pair.get("question_id") or f"q_{question_index}").strip(),
+                }
+            )
+            hidden_contexts.append(
+                {
+                    "question_id": str(qa_pair.get("question_id") or f"q_{question_index}").strip(),
+                    "question": str(qa_pair.get("question") or "").strip(),
+                    "question_type": "choice",
+                    "options": option_map,
+                    "correct_answer": correct_answer,
+                    "explanation": str(qa_pair.get("explanation") or "").strip(),
+                    "difficulty": str(qa_pair.get("difficulty") or "").strip(),
+                    "concentration": str(
+                        qa_pair.get("concentration")
+                        or qa_pair.get("knowledge_point")
+                        or qa_pair.get("topic")
+                        or ""
+                    ).strip(),
+                    "knowledge_context": str(
+                        qa_pair.get("knowledge_context") or qa_pair.get("explanation") or ""
+                    ).strip(),
+                }
+            )
+
+        if not questions:
+            continue
+
+        return {
+            "type": "mcq_interactive",
+            "questions": questions,
+            "hidden_contexts": hidden_contexts,
+            "submit_hint": (
+                "多题作答，先分别点选，再提交答案。"
+                if len(questions) > 1
+                else "多选题，先点选，再提交答案。"
+                if has_multi_choice
+                else "请选择后提交答案"
+            ),
+            "receipt": "",
+        }
+
+    return None
+
+
 def _build_mini_tutor_interaction_hints(
     *,
     mode: str,
@@ -328,6 +464,7 @@ async def get_conversation_messages(
             "role": item["role"],
             "content": item["content"],
             "created_at": _ts_to_iso(item.get("created_at")),
+            "interactive": _build_message_interactive_payload(item),
         }
         for item in session.get("messages", [])
     ]
@@ -433,6 +570,15 @@ async def mobile_chat_start_turn(
             }
         )
     except RuntimeError as exc:
+        if "active turn" in str(exc).lower() and session_id:
+            session = await session_store.get_session(session_id)
+            active_turn = await session_store.get_active_turn(session_id)
+            if (
+                session is not None
+                and active_turn is not None
+                and _session_visible_to_user(session, resolved_user_id)
+            ):
+                return _build_turn_start_response(session, active_turn)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     await session_store.update_session_preferences(
@@ -443,29 +589,4 @@ async def mobile_chat_start_turn(
         },
     )
 
-    return {
-        "conversation": {
-            "id": session["id"],
-            "title": session["title"],
-            "created_at": _ts_to_iso(session.get("created_at")),
-        },
-        "turn": {
-            "id": turn["id"],
-            "capability": turn.get("capability") or "",
-            "status": turn.get("status") or "running",
-        },
-        "stream": {
-            "transport": "websocket",
-            "url": "/api/v1/ws",
-            "subscribe": {
-                "type": "subscribe_turn",
-                "turn_id": turn["id"],
-                "after_seq": 0,
-            },
-            "resume": {
-                "type": "resume_from",
-                "turn_id": turn["id"],
-                "seq": 0,
-            },
-        },
-    }
+    return _build_turn_start_response(session, turn)

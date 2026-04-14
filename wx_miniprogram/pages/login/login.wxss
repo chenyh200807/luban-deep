@@ -9,8 +9,10 @@
   position: relative;
   z-index: 1;
   height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .sky-wash {
@@ -56,90 +58,99 @@
   position: relative;
   z-index: 1;
   flex: 1;
+  width: 100%;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
-.hero-top-space {
-  height: 40vh;
-  min-height: 500rpx;
+.hero-stage {
+  width: 100%;
+  min-height: calc(100vh - 40rpx);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  padding: 0 0 392rpx;
+  box-sizing: border-box;
+}
+
+.hero-block {
+  width: 590rpx;
+  max-width: calc(100vw - 120rpx);
+  padding: 0 36rpx;
+}
+
+.hero-kicker {
+  display: block;
+  margin-bottom: 14rpx;
+  font-size: 20rpx;
+  line-height: 1;
+  font-weight: 580;
+  letter-spacing: 3.2rpx;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.44);
+  white-space: nowrap;
 }
 
 .brand-row {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  padding: 0 48rpx;
+  gap: 14rpx;
   opacity: 0.96;
 }
 
 .brand-mark {
-  height: 42rpx;
+  height: 44rpx;
   display: block;
 }
 
 .brand-name {
-  font-size: 28rpx;
+  font-size: 54rpx;
   line-height: 1;
-  font-weight: 680;
-  color: rgba(255, 255, 255, 0.92);
-  letter-spacing: 0.2rpx;
+  font-weight: 760;
+  color: rgba(255, 255, 255, 0.98);
+  letter-spacing: 0.4rpx;
   white-space: nowrap;
 }
 
 .hero-copy {
-  margin-top: 28rpx;
-  padding: 0 48rpx;
-}
-
-.hero-kicker {
-  display: block;
-  margin-bottom: 22rpx;
-  font-size: 20rpx;
-  font-weight: 600;
-  letter-spacing: 2.2rpx;
-  text-transform: uppercase;
-  color: rgba(191, 219, 254, 0.56);
+  margin-top: 22rpx;
+  max-width: 100%;
 }
 
 .hero-line {
   display: block;
   font-weight: 780;
-  letter-spacing: 0.2rpx;
+  letter-spacing: -1.4rpx;
 }
 
-.hero-line-main {
-  font-size: 66rpx;
-  line-height: 1.08;
+.hero-line-single {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  white-space: nowrap;
+}
+
+.hero-line-main-inline {
+  font-size: 68rpx;
+  line-height: 1;
   color: #ffffff;
 }
 
-.hero-line-combo {
-  display: flex;
-  align-items: baseline;
-  gap: 12rpx;
-  margin-top: 8rpx;
-}
-
-.hero-line-accent {
-  font-size: 66rpx;
-  line-height: 1.08;
+.hero-line-accent-inline {
+  font-size: 68rpx;
+  line-height: 1;
   color: #4d97ff;
   font-style: italic;
 }
 
-.hero-line-tail {
-  font-size: 66rpx;
-  line-height: 1.08;
-  color: #eef4ff;
-}
-
 .hero-desc {
   display: block;
-  margin-top: 24rpx;
-  max-width: 86%;
-  font-size: 24rpx;
-  line-height: 1.56;
-  color: rgba(226, 232, 240, 0.64);
+  margin-top: 20rpx;
+  max-width: 100%;
+  font-size: 22rpx;
+  line-height: 1.44;
+  color: rgba(226, 232, 240, 0.56);
 }
 
 .hero-desc-sub {
@@ -150,8 +161,7 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
-  padding: 0 48rpx;
-  margin-top: 22rpx;
+  margin-top: 16rpx;
 }
 
 .pager-dot {
@@ -171,14 +181,28 @@
 }
 
 .action-panel {
-  padding: 64rpx 40rpx 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  padding: 32rpx 18rpx 0;
+  background: linear-gradient(
+    180deg,
+    rgba(4, 7, 14, 0) 0%,
+    rgba(4, 7, 14, 0.54) 18%,
+    rgba(4, 7, 14, 0.88) 46%,
+    rgba(4, 7, 14, 0.98) 100%
+  );
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  z-index: 2;
 }
 
 .err {
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   padding: 14rpx 22rpx;
   background: rgba(127, 29, 29, 0.28);
   border: 1rpx solid rgba(239, 68, 68, 0.18);
@@ -192,17 +216,33 @@
   color: #fda4af;
 }
 
-.btn-wechat-primary {
+.btn-wechat-stack {
+  position: relative;
   width: 100%;
-  height: 96rpx;
-  border-radius: 24rpx;
-  margin: 0;
-  border: none;
-  background: linear-gradient(90deg, #2872ff 0%, #5c98ff 52%, #9dc1ff 100%);
-  box-shadow: 0 14rpx 30rpx rgba(37, 99, 235, 0.18);
+  padding: 0;
+  border-radius: 34rpx;
+  background: linear-gradient(90deg, rgba(40, 114, 255, 0.96) 0%, rgba(92, 152, 255, 0.96) 52%, rgba(157, 193, 255, 0.92) 100%);
+  box-shadow:
+    0 20rpx 42rpx rgba(37, 99, 235, 0.24),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.btn-wechat-primary {
   display: flex;
+  width: 100%;
+  max-width: none;
+  height: 104rpx;
+  border-radius: 34rpx;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .btn-wechat-primary::after {
@@ -219,45 +259,34 @@
 }
 
 .btn-wechat-primary-txt {
-  font-size: 30rpx;
+  font-size: 31rpx;
   font-weight: 700;
   color: #ffffff;
-  letter-spacing: 0.6rpx;
+  letter-spacing: 0.4rpx;
 }
 
-.helper-row {
-  margin-top: 18rpx;
+.link-row {
+  width: 100%;
+  margin-top: 22rpx;
   display: flex;
   justify-content: center;
-}
-
-.helper-text {
-  font-size: 22rpx;
-  color: rgba(226, 232, 240, 0.36);
-  text-align: center;
-}
-
-.link-stack {
-  margin-top: 28rpx;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 14rpx;
-}
-
-.secondary-link {
-  font-size: 23rpx;
-  color: rgba(226, 232, 240, 0.62);
+  background: transparent;
 }
 
 .manual-link {
-  font-size: 24rpx;
-  color: #5ea3ff;
-  font-weight: 600;
-}
-
-.scroll-safe-space {
-  height: 48rpx;
+  display: inline-block;
+  font-size: 23rpx;
+  line-height: 1.2;
+  color: rgba(226, 232, 240, 0.72);
+  font-weight: 560;
+  text-align: center;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0 auto;
+  transform: none;
 }
 
 .scene.light {
@@ -278,16 +307,15 @@
 }
 
 .scene.light .brand-name,
-.scene.light .hero-line-main,
-.scene.light .hero-line-tail {
+.scene.light .hero-line-main-inline {
   color: #0f172a;
 }
 
 .scene.light .hero-kicker {
-  color: rgba(37, 99, 235, 0.52);
+  color: rgba(37, 99, 235, 0.5);
 }
 
-.scene.light .hero-line-accent {
+.scene.light .hero-line-accent-inline {
   color: #2563eb;
 }
 
@@ -304,14 +332,6 @@
   box-shadow: 0 14rpx 30rpx rgba(37, 99, 235, 0.16);
 }
 
-.scene.light .helper-text {
-  color: #64748b;
-}
-
-.scene.light .secondary-link {
-  color: #475569;
-}
-
 .scene.light .manual-link {
-  color: #2563eb;
+  color: #475569;
 }

@@ -10,6 +10,12 @@ SHARED_LANGFUSE_NETWORK="${SHARED_LANGFUSE_NETWORK:-luban_jgzk-network}"
 
 cd "${REPO_ROOT}"
 
+export APT_MIRROR="${APT_MIRROR:-https://mirrors.aliyun.com/debian}"
+export SECURITY_MIRROR="${SECURITY_MIRROR:-https://mirrors.aliyun.com/debian-security}"
+export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-https://rsproxy.cn}"
+export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-https://rsproxy.cn/rustup}"
+export PIP_INDEX_URL="${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}"
+
 if ! command -v docker >/dev/null 2>&1; then
     echo "Docker 未安装，无法部署。" >&2
     exit 1

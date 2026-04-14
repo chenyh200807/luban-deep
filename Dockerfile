@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 # ============================================
 # DeepTutor Multi-Stage Dockerfile
 # ============================================
@@ -24,12 +25,14 @@ WORKDIR /app/web
 
 # Accept build argument for backend port
 ARG BACKEND_PORT=8001
+ARG NPM_CONFIG_CACHE=/root/.npm
 
 # Copy package files first for better caching
 COPY web/package.json web/package-lock.json* ./
 
 # Install dependencies with generous timeout for CI environments
-RUN npm config set fetch-timeout 600000 && \
+RUN --mount=type=cache,target=/root/.npm \
+    npm config set fetch-timeout 600000 && \
     npm config set fetch-retries 5 && \
     npm ci --legacy-peer-deps
 
@@ -57,6 +60,13 @@ FROM node:22-slim AS node-runtime
 # ============================================
 FROM python:3.11-slim AS python-base
 
+ARG APT_MIRROR=http://deb.debian.org/debian
+ARG SECURITY_MIRROR=http://deb.debian.org/debian-security
+ARG RUSTUP_DIST_SERVER=https://static.rust-lang.org
+ARG RUSTUP_UPDATE_ROOT=https://static.rust-lang.org/rustup
+ARG PIP_INDEX_URL=
+ARG PIP_EXTRA_INDEX_URL=
+
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -69,19 +79,39 @@ WORKDIR /app
 # Install system dependencies
 # Note: libgl1 and libglib2.0-0 are required for OpenCV (used by mineru)
 # Rust is required for building tiktoken and other packages without pre-built wheels
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    git \
-    build-essential \
-    libgl1 \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender1 \
-    pkg-config \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    set -eux; \
+    if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|http://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            /etc/apt/sources.list.d/debian.sources; \
+    fi; \
+    if [ -f /etc/apt/sources.list ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|http://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            /etc/apt/sources.list; \
+    fi; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        curl \
+        git \
+        build-essential \
+        libgl1 \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender1 \
+        pkg-config \
+        libssl-dev; \
+    export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER}" RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT}"; \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 # Add Rust to PATH
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -89,13 +119,20 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Copy requirements and install Python dependencies
 COPY requirements/ ./requirements/
 COPY requirements.txt ./
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    set -eux; \
+    if [ -n "${PIP_INDEX_URL}" ]; then export PIP_INDEX_URL="${PIP_INDEX_URL}"; fi; \
+    if [ -n "${PIP_EXTRA_INDEX_URL}" ]; then export PIP_EXTRA_INDEX_URL="${PIP_EXTRA_INDEX_URL}"; fi; \
+    PIP_NO_CACHE_DIR=0 pip install --upgrade pip; \
+    PIP_NO_CACHE_DIR=0 pip install -r requirements.txt
 
 # ============================================
 # Stage 3: Production Image
 # ============================================
 FROM python:3.11-slim AS production
+
+ARG APT_MIRROR=http://deb.debian.org/debian
+ARG SECURITY_MIRROR=http://deb.debian.org/debian-security
 
 # Labels
 LABEL maintainer="DeepTutor Team" \
@@ -115,17 +152,36 @@ WORKDIR /app
 
 # Install system dependencies
 # Note: libgl1 and libglib2.0-0 are required for OpenCV (used by mineru)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    ca-certificates \
-    bash \
-    supervisor \
-    libgl1 \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender1 \
-    && rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    set -eux; \
+    if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|http://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            /etc/apt/sources.list.d/debian.sources; \
+    fi; \
+    if [ -f /etc/apt/sources.list ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|http://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            /etc/apt/sources.list; \
+    fi; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        bash \
+        supervisor \
+        libgl1 \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender1
 
 # Copy Node.js from node-runtime stage (platform-matched binary)
 COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
@@ -334,6 +390,9 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 # ============================================
 FROM production AS development
 
+ARG APT_MIRROR=http://deb.debian.org/debian
+ARG SECURITY_MIRROR=http://deb.debian.org/debian-security
+
 # Re-add full node_modules for development hot-reload
 # (Production uses standalone output which doesn't include full node_modules)
 COPY --from=frontend-builder /app/web/node_modules ./web/node_modules
@@ -341,10 +400,29 @@ COPY --from=frontend-builder /app/web/package.json ./web/package.json
 COPY --from=frontend-builder /app/web/next.config.js ./web/next.config.js
 
 # Install development tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    vim \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    set -eux; \
+    if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|http://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            /etc/apt/sources.list.d/debian.sources; \
+    fi; \
+    if [ -f /etc/apt/sources.list ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+            -e "s|http://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            -e "s|https://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
+            /etc/apt/sources.list; \
+    fi; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        vim \
+        git
 
 # Install development Python packages
 RUN pip install --no-cache-dir \

@@ -25,6 +25,12 @@ services:
       args:
         # Pass backend port at build time for Next.js static optimization
         - BACKEND_PORT=${BACKEND_PORT:-8001}
+        - APT_MIRROR=${APT_MIRROR:-http://deb.debian.org/debian}
+        - SECURITY_MIRROR=${SECURITY_MIRROR:-http://deb.debian.org/debian-security}
+        - RUSTUP_DIST_SERVER=${RUSTUP_DIST_SERVER:-https://static.rust-lang.org}
+        - RUSTUP_UPDATE_ROOT=${RUSTUP_UPDATE_ROOT:-https://static.rust-lang.org/rustup}
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
+        - PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL:-}
     container_name: deeptutor
     restart: unless-stopped
     ports:

@@ -120,6 +120,7 @@ class ChatOrchestrator:
             return False
         positive_markers = (
             "出题", "出一道", "来一道", "来一题", "考我", "练习", "刷题", "测我",
+            "继续出", "继续来一道", "再来一道", "再出一道", "下一题", "下一道",
             "quiz me", "test me", "give me a question", "give me one question",
         )
         negative_markers = ("不要出题", "别出题", "不想做题")
@@ -216,6 +217,7 @@ class ChatOrchestrator:
             if is_explicit_type
             else preferred_question_type or explicit_question_type,
         )
+        context.config_overrides["force_generate_questions"] = True
         suppress_answer_reveal = True
         if isinstance(interaction_hints, dict):
             suppress_answer_reveal = bool(

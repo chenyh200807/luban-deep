@@ -8,8 +8,10 @@ import asyncio
 import contextlib
 import json
 import logging
+import sqlite3
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from typing import Any
 
 from deeptutor.core.stream import StreamEvent, StreamEventType
@@ -118,6 +120,15 @@ def _extract_interaction_hints(
         ]
     )
     return hints if meaningful else None
+
+
+def _infer_chat_mode_from_interaction_hints(
+    hints: dict[str, Any] | None,
+) -> str | None:
+    if not isinstance(hints, dict):
+        return None
+    mode = str(hints.get("teaching_mode", "") or "").strip().lower()
+    return mode if mode in {"fast", "deep", "smart"} else None
 
 
 def _extract_persist_user_message(config: dict[str, Any] | None) -> bool:
@@ -301,6 +312,7 @@ class _TurnExecution:
     payload: dict[str, Any]
     task: asyncio.Task[None] | None = None
     subscribers: list[_LiveSubscriber] = field(default_factory=list)
+    persistence_degraded: bool = False
 
 
 class TurnRuntimeManager:
@@ -310,6 +322,54 @@ class TurnRuntimeManager:
         self.store = store or get_sqlite_session_store()
         self._lock = asyncio.Lock()
         self._executions: dict[str, _TurnExecution] = {}
+        self._volatile_question_contexts: dict[str, dict[str, Any]] = {}
+
+    @staticmethod
+    def _is_persistence_error(exc: Exception) -> bool:
+        return isinstance(exc, (sqlite3.Error, OSError))
+
+    def _mark_persistence_degraded(
+        self,
+        execution: _TurnExecution | None,
+        operation: str,
+        exc: Exception,
+    ) -> None:
+        if execution is not None:
+            already_degraded = execution.persistence_degraded
+            execution.persistence_degraded = True
+            log_method = logger.debug if already_degraded else logger.warning
+            log_method(
+                "Persistence degraded for turn %s during %s: %s",
+                execution.turn_id,
+                operation,
+                exc,
+                exc_info=not already_degraded,
+            )
+            return
+        logger.warning("Persistence degraded during %s: %s", operation, exc, exc_info=True)
+
+    async def _safe_store_call(
+        self,
+        execution: _TurnExecution | None,
+        operation: str,
+        fn,
+        *args,
+        default: Any = None,
+        swallow_value_error: bool = False,
+        **kwargs,
+    ) -> Any:
+        try:
+            return await fn(*args, **kwargs)
+        except ValueError as exc:
+            if not swallow_value_error:
+                raise
+            logger.warning("Store call skipped during %s: %s", operation, exc)
+            return default
+        except Exception as exc:
+            if not self._is_persistence_error(exc):
+                raise
+            self._mark_persistence_degraded(execution, operation, exc)
+            return default
 
     async def _resolve_billing_context(
         self,
@@ -319,7 +379,13 @@ class TurnRuntimeManager:
         billing_context = _extract_billing_context(request_config)
         if billing_context is not None:
             return billing_context
-        session = await self.store.get_session(session_id)
+        session = await self._safe_store_call(
+            None,
+            "get_session_for_billing_context",
+            self.store.get_session,
+            session_id,
+            default=None,
+        )
         if session is None:
             return None
         preferences = session.get("preferences") or {}
@@ -328,6 +394,59 @@ class TurnRuntimeManager:
         if not source or not user_id:
             return None
         return {"source": source, "user_id": user_id}
+
+    async def _resolve_interaction_hints(
+        self,
+        session_id: str,
+        request_config: dict[str, Any] | None,
+        *,
+        execution: _TurnExecution | None = None,
+    ) -> dict[str, Any] | None:
+        interaction_hints = _extract_interaction_hints(request_config)
+        if interaction_hints is not None:
+            return interaction_hints
+        session = await self._safe_store_call(
+            execution,
+            "get_session_for_interaction_hints",
+            self.store.get_session,
+            session_id,
+            default=None,
+        )
+        if not isinstance(session, dict):
+            return None
+        preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
+        return _extract_interaction_hints({"interaction_hints": preferences.get("interaction_hints")})
+
+    async def _recover_orphaned_running_turns(
+        self,
+        session_id: str,
+        *,
+        reason: str,
+    ) -> None:
+        active_turns = await self._safe_store_call(
+            None,
+            "list_active_turns",
+            self.store.list_active_turns,
+            session_id,
+            default=[],
+        )
+        for turn in active_turns or []:
+            turn_id = str(turn.get("id") or turn.get("turn_id") or "").strip()
+            if not turn_id:
+                continue
+            async with self._lock:
+                execution = self._executions.get(turn_id)
+            if execution is not None and execution.task is not None and not execution.task.done():
+                continue
+            await self._safe_store_call(
+                None,
+                "recover_orphaned_turn",
+                self.store.update_turn_status,
+                turn_id,
+                "failed",
+                reason,
+                default=False,
+            )
 
     def _capture_mobile_points(
         self,
@@ -396,12 +515,22 @@ class TurnRuntimeManager:
             for key in runtime_only_keys
             if key in raw_config
         }
+        runtime_interaction_hints = _extract_interaction_hints(
+            {"interaction_hints": runtime_only_config.get("interaction_hints")}
+        )
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
 
             validated_public_config = validate_capability_config(capability, raw_config)
         except ValueError as exc:
             raise RuntimeError(str(exc)) from exc
+        if capability == "chat" and not explicit_chat_mode:
+            hinted_chat_mode = _infer_chat_mode_from_interaction_hints(runtime_interaction_hints)
+            if hinted_chat_mode == "smart":
+                validated_public_config = {
+                    **validated_public_config,
+                    "chat_mode": "smart",
+                }
         payload = {
             **payload,
             "capability": requested_capability,
@@ -421,16 +550,32 @@ class TurnRuntimeManager:
                 "tools": list(payload.get("tools") or []),
                 "knowledge_bases": list(payload.get("knowledge_bases") or []),
                 "language": str(payload.get("language") or "en"),
+                **({"interaction_hints": runtime_interaction_hints} if runtime_interaction_hints else {}),
                 **(_extract_billing_context(dict(runtime_only_config)) or {}),
             },
         )
-        turn = await self.store.create_turn(session["id"], capability=capability)
+        await self._recover_orphaned_running_turns(
+            session["id"],
+            reason="Recovered orphaned running turn before starting a new turn",
+        )
+        try:
+            turn = await self.store.create_turn(session["id"], capability=capability)
+        except RuntimeError as exc:
+            if "active turn" not in str(exc).lower():
+                raise
+            await self._recover_orphaned_running_turns(
+                session["id"],
+                reason="Recovered orphaned running turn after create_turn conflict",
+            )
+            turn = await self.store.create_turn(session["id"], capability=capability)
         execution = _TurnExecution(
             turn_id=turn["id"],
             session_id=session["id"],
             capability=capability,
             payload=dict(payload),
         )
+        async with self._lock:
+            self._executions[turn["id"]] = execution
         await self._persist_and_publish(
             execution,
             StreamEvent(
@@ -440,7 +585,6 @@ class TurnRuntimeManager:
             ),
         )
         async with self._lock:
-            self._executions[turn["id"]] = execution
             execution.task = asyncio.create_task(self._run_turn(execution))
         return session, turn
 
@@ -448,11 +592,25 @@ class TurnRuntimeManager:
         async with self._lock:
             execution = self._executions.get(turn_id)
         if execution is None or execution.task is None or execution.task.done():
-            turn = await self.store.get_turn(turn_id)
+            turn = await self._safe_store_call(
+                None,
+                "get_turn_for_cancel",
+                self.store.get_turn,
+                turn_id,
+                default=None,
+            )
             if turn is None or turn.get("status") != "running":
                 return False
-            await self.store.update_turn_status(turn_id, "cancelled", "Turn cancelled")
-            return True
+            updated = await self._safe_store_call(
+                None,
+                "cancel_turn_without_execution",
+                self.store.update_turn_status,
+                turn_id,
+                "cancelled",
+                "Turn cancelled",
+                default=False,
+            )
+            return bool(updated)
         execution.task.cancel()
         return True
 
@@ -461,7 +619,14 @@ class TurnRuntimeManager:
         turn_id: str,
         after_seq: int = 0,
     ) -> AsyncIterator[dict[str, Any]]:
-        backlog = await self.store.get_turn_events(turn_id, after_seq=after_seq)
+        backlog = await self._safe_store_call(
+            None,
+            "get_turn_backlog",
+            self.store.get_turn_events,
+            turn_id,
+            after_seq,
+            default=[],
+        )
         last_seq = after_seq
         for item in backlog:
             last_seq = max(last_seq, int(item.get("seq") or 0))
@@ -475,7 +640,14 @@ class TurnRuntimeManager:
             if execution is not None:
                 execution.subscribers.append(subscriber)
 
-        catchup = await self.store.get_turn_events(turn_id, after_seq=last_seq)
+        catchup = await self._safe_store_call(
+            None,
+            "get_turn_catchup",
+            self.store.get_turn_events,
+            turn_id,
+            last_seq,
+            default=[],
+        )
         for item in catchup:
             seq = int(item.get("seq") or 0)
             if seq <= last_seq:
@@ -486,10 +658,21 @@ class TurnRuntimeManager:
             else:
                 queue.put_nowait(item)
 
-        turn = await self.store.get_turn(turn_id)
+        turn = await self._safe_store_call(
+            None,
+            "get_turn_for_subscribe",
+            self.store.get_turn,
+            turn_id,
+            default=None,
+        )
         if execution is None:
             if turn is None or turn.get("status") != "running":
                 return
+            await self._recover_orphaned_running_turns(
+                str(turn.get("session_id") or ""),
+                reason=f"Recovered orphaned running turn during subscribe: {turn_id}",
+            )
+            return
         try:
             while True:
                 item = await queue.get()
@@ -511,7 +694,13 @@ class TurnRuntimeManager:
         session_id: str,
         after_seq: int = 0,
     ) -> AsyncIterator[dict[str, Any]]:
-        active_turn = await self.store.get_active_turn(session_id)
+        active_turn = await self._safe_store_call(
+            None,
+            "get_active_turn_for_session_subscribe",
+            self.store.get_active_turn,
+            session_id,
+            default=None,
+        )
         if active_turn is None:
             return
         async for item in self.subscribe_turn(active_turn["id"], after_seq=after_seq):
@@ -545,17 +734,34 @@ class TurnRuntimeManager:
 
             request_config = dict(payload.get("config", {}) or {})
             followup_question_context = _extract_followup_question_context(request_config)
-            interaction_hints = _extract_interaction_hints(request_config)
+            interaction_hints = await self._resolve_interaction_hints(
+                session_id,
+                request_config,
+                execution=execution,
+            )
             persist_user_message = _extract_persist_user_message(request_config)
             billing_context = await self._resolve_billing_context(session_id, request_config)
             if not followup_question_context:
-                followup_question_context = await self.store.get_active_question_context(session_id)
+                followup_question_context = await self._safe_store_call(
+                    execution,
+                    "get_active_question_context",
+                    self.store.get_active_question_context,
+                    session_id,
+                    default=None,
+                )
+            if not followup_question_context:
+                followup_question_context = self._volatile_question_contexts.get(session_id)
+            if followup_question_context:
+                self._volatile_question_contexts[session_id] = dict(followup_question_context)
             raw_user_content = str(payload.get("content", "") or "")
             notebook_references = payload.get("notebook_references", []) or []
             history_references = payload.get("history_references", []) or []
             notebook_context = ""
             history_context = ""
             trace_metadata["language"] = payload.get("language", "en")
+            user_id = str((billing_context or {}).get("user_id", "") or "").strip()
+            if user_id:
+                trace_metadata["user_id"] = user_id
             with observability.usage_scope(
                 scope_id=turn_id,
                 session_id=session_id,
@@ -580,9 +786,18 @@ class TurnRuntimeManager:
                     attachments.append(Attachment(**record))
 
                 if followup_question_context:
-                    existing_messages = await self.store.get_messages_for_context(session_id)
+                    existing_messages = await self._safe_store_call(
+                        execution,
+                        "get_messages_for_followup_bootstrap",
+                        self.store.get_messages_for_context,
+                        session_id,
+                        default=[],
+                    )
                     if not existing_messages:
-                        await self.store.add_message(
+                        await self._safe_store_call(
+                            execution,
+                            "add_followup_bootstrap_message",
+                            self.store.add_message,
                             session_id=session_id,
                             role="system",
                             content=_format_followup_question_context(
@@ -590,32 +805,29 @@ class TurnRuntimeManager:
                                 language=str(payload.get("language", "en") or "en"),
                             ),
                             capability=capability_name or "chat",
-                        )
-                if interaction_hints:
-                    existing_messages = await self.store.get_messages_for_context(session_id)
-                    if not any(
-                        str(message.get("content", "") or "").startswith("你正在一个学习型产品场景中工作。")
-                        or str(message.get("content", "") or "").startswith("You are operating in a learning-product scenario.")
-                        for message in existing_messages
-                    ):
-                        await self.store.add_message(
-                            session_id=session_id,
-                            role="system",
-                            content=_format_interaction_hints(
-                                interaction_hints,
-                                language=str(payload.get("language", "en") or "en"),
-                            ),
-                            capability=capability_name or "chat",
+                            default=None,
                         )
 
                 llm_config = get_llm_config()
                 builder = ContextBuilder(self.store)
-                history_result = await builder.build(
-                    session_id=session_id,
-                    llm_config=llm_config,
-                    language=payload.get("language", "en"),
-                    on_event=lambda event: self._persist_and_publish(execution, event),
-                )
+                try:
+                    history_result = await builder.build(
+                        session_id=session_id,
+                        llm_config=llm_config,
+                        language=payload.get("language", "en"),
+                        on_event=lambda event: self._persist_and_publish(execution, event),
+                    )
+                except Exception as exc:
+                    if not self._is_persistence_error(exc):
+                        raise
+                    self._mark_persistence_degraded(execution, "build_context_history", exc)
+                    history_result = SimpleNamespace(
+                        conversation_history=[],
+                        conversation_summary="",
+                        context_text="",
+                        token_count=0,
+                        budget=0,
+                    )
                 memory_service = get_memory_service()
                 tutor_state_service = get_user_tutor_state_service()
                 user_id = str((billing_context or {}).get("user_id", "") or "").strip()
@@ -656,11 +868,23 @@ class TurnRuntimeManager:
                         if not history_session_id:
                             continue
 
-                        history_session = await self.store.get_session(history_session_id)
+                        history_session = await self._safe_store_call(
+                            execution,
+                            "get_history_reference_session",
+                            self.store.get_session,
+                            history_session_id,
+                            default=None,
+                        )
                         if not history_session:
                             continue
 
-                        history_messages = await self.store.get_messages_for_context(history_session_id)
+                        history_messages = await self._safe_store_call(
+                            execution,
+                            "get_history_reference_messages",
+                            self.store.get_messages_for_context,
+                            history_session_id,
+                            default=[],
+                        )
                         transcript_lines = [
                             f"## {str(message.get('role', '')).title()}\n{message.get('content', '')}"
                             for message in history_messages
@@ -725,12 +949,16 @@ class TurnRuntimeManager:
                 conversation_context_text = history_result.context_text
 
                 if persist_user_message:
-                    await self.store.add_message(
+                    await self._safe_store_call(
+                        execution,
+                        "add_user_message",
+                        self.store.add_message,
                         session_id=session_id,
                         role="user",
                         content=raw_user_content,
                         capability=capability_name,
                         attachments=attachment_records,
+                        default=None,
                     )
 
                 context = UnifiedContext(
@@ -771,12 +999,16 @@ class TurnRuntimeManager:
                     if _should_capture_assistant_content(event):
                         assistant_content += event.content
 
-                await self.store.add_message(
+                await self._safe_store_call(
+                    execution,
+                    "add_assistant_message",
+                    self.store.add_message,
                     session_id=session_id,
                     role="assistant",
                     content=assistant_content,
                     capability=capability_name,
                     events=assistant_events,
+                    default=None,
                 )
                 self._capture_mobile_points(billing_context, assistant_content)
                 self._record_mobile_learning(
@@ -784,7 +1016,14 @@ class TurnRuntimeManager:
                     raw_user_content,
                     assistant_content,
                 )
-                await self.store.update_turn_status(turn_id, "completed")
+                await self._safe_store_call(
+                    execution,
+                    "mark_turn_completed",
+                    self.store.update_turn_status,
+                    turn_id,
+                    "completed",
+                    default=False,
+                )
                 observability.update_observation(
                     turn_observation,
                     output_payload={"assistant_content": assistant_content},
@@ -821,7 +1060,15 @@ class TurnRuntimeManager:
                 level="ERROR",
                 status_message="Turn cancelled",
             )
-            await self.store.update_turn_status(turn_id, "cancelled", "Turn cancelled")
+            await self._safe_store_call(
+                execution,
+                "mark_turn_cancelled",
+                self.store.update_turn_status,
+                turn_id,
+                "cancelled",
+                "Turn cancelled",
+                default=False,
+            )
             await self._persist_and_publish(
                 execution,
                 StreamEvent(
@@ -839,7 +1086,6 @@ class TurnRuntimeManager:
                     metadata={"status": "cancelled"},
                 ),
             )
-            observability.flush()
             raise
         except Exception as exc:
             observability.update_observation(
@@ -850,7 +1096,15 @@ class TurnRuntimeManager:
                 status_message=str(exc),
             )
             logger.error("Turn %s failed: %s", turn_id, exc, exc_info=True)
-            await self.store.update_turn_status(turn_id, "failed", str(exc))
+            await self._safe_store_call(
+                execution,
+                "mark_turn_failed",
+                self.store.update_turn_status,
+                turn_id,
+                "failed",
+                str(exc),
+                default=False,
+            )
             await self._persist_and_publish(
                 execution,
                 StreamEvent(
@@ -868,9 +1122,7 @@ class TurnRuntimeManager:
                     metadata={"status": "failed"},
                 ),
             )
-            observability.flush()
         finally:
-            observability.flush()
             async with self._lock:
                 current = self._executions.get(turn_id)
                 if current is not None:
@@ -884,29 +1136,36 @@ class TurnRuntimeManager:
         execution: _TurnExecution,
         event: StreamEvent,
     ) -> dict[str, Any]:
-        if event.type == StreamEventType.DONE and not event.metadata.get("status"):
-            event.metadata = {**event.metadata, "status": "completed"}
+        metadata = dict(event.metadata or {})
+        if event.type == StreamEventType.DONE and not metadata.get("status"):
+            metadata["status"] = "completed"
         if event.type == StreamEventType.RESULT:
             usage_summary = observability.get_current_usage_summary()
             if usage_summary:
                 nested_metadata = (
-                    dict(event.metadata.get("metadata", {}))
-                    if isinstance(event.metadata.get("metadata"), dict)
+                    dict(metadata.get("metadata", {}))
+                    if isinstance(metadata.get("metadata"), dict)
                     else {}
                 )
                 existing_cost_summary = nested_metadata.get("cost_summary")
                 if existing_cost_summary and existing_cost_summary != usage_summary:
                     nested_metadata["capability_cost_summary"] = existing_cost_summary
                 nested_metadata["cost_summary"] = usage_summary
-                event.metadata = {**event.metadata, "metadata": nested_metadata}
+                metadata["metadata"] = nested_metadata
             question_followup_context = normalize_question_followup_context(
-                event.metadata.get("question_followup_context")
+                metadata.get("question_followup_context")
             )
             if question_followup_context is not None:
-                await self.store.set_active_question_context(
+                self._volatile_question_contexts[execution.session_id] = dict(question_followup_context)
+                await self._safe_store_call(
+                    execution,
+                    "set_active_question_context",
+                    self.store.set_active_question_context,
                     execution.session_id,
                     question_followup_context,
+                    default=False,
                 )
+        event.metadata = metadata
         event.session_id = execution.session_id
         event.turn_id = execution.turn_id
         payload = event.to_dict()
@@ -923,12 +1182,17 @@ class TurnRuntimeManager:
                 event.type.value,
             )
             persisted = payload
-        self._mirror_event_to_workspace(execution, persisted)
+        except Exception as exc:
+            if not self._is_persistence_error(exc):
+                raise
+            self._mark_persistence_degraded(execution, "append_turn_event", exc)
+            persisted = payload
         async with self._lock:
             subscribers = list(self._executions.get(execution.turn_id, execution).subscribers)
         for subscriber in subscribers:
             with contextlib.suppress(asyncio.QueueFull):
                 subscriber.queue.put_nowait(persisted)
+        self._mirror_event_to_workspace(execution, persisted)
         return persisted
 
     @staticmethod

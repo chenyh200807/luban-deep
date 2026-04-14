@@ -15,6 +15,8 @@
 ## 仓库内新增的部署入口
 
 - 上传脚本：[scripts/sync_to_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/sync_to_aliyun.sh)
+- 快速重启脚本：[scripts/restart_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/restart_aliyun.sh)
+- 后端快速发布脚本：[scripts/redeploy_aliyun_fast.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/redeploy_aliyun_fast.sh)
 - 一键部署脚本：[scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh)
 - 服务器启动脚本：[scripts/server_bootstrap_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/server_bootstrap_aliyun.sh)
 - 环境变量模板：[deployment/aliyun/aliyun.env.example](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/deployment/aliyun/aliyun.env.example)
@@ -41,6 +43,14 @@
 - `EMBEDDING_API_KEY`
 
 如果你继续使用 DashScope，这两个 key 可以相同。
+
+模板里还默认给了阿里云构建加速参数：
+
+- `APT_MIRROR=https://mirrors.aliyun.com/debian`
+- `SECURITY_MIRROR=https://mirrors.aliyun.com/debian-security`
+- `RUSTUP_DIST_SERVER=https://rsproxy.cn`
+- `RUSTUP_UPDATE_ROOT=https://rsproxy.cn/rustup`
+- `PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/`
 
 ### 2. 上传代码
 
@@ -75,6 +85,14 @@ bash scripts/deploy_aliyun.sh
 3. 若 `.env` 缺失则自动生成模板
 4. 若 `.env` 已存在则执行 `docker compose up -d --build`
 
+这条是“完整部署”路径，适用于：
+
+- 第一次上线
+- 修改了 `Dockerfile`
+- 修改了 `requirements*.txt`
+- 修改了前端构建产物或 Node 依赖
+- 需要重新安装系统依赖
+
 ### 4. 访问地址
 
 - 前端：<http://8.135.42.145:3782>
@@ -93,6 +111,35 @@ docker compose restart
 docker compose up -d --build
 docker compose down
 ```
+
+本地常用快捷入口：
+
+```bash
+# 仅重启现有容器，不发布代码
+bash scripts/restart_aliyun.sh
+
+# Python 后端 / Prompt / YAML 快速发布
+bash scripts/redeploy_aliyun_fast.sh
+
+# 完整重建发布
+bash scripts/deploy_aliyun.sh
+```
+
+三条路径的区别：
+
+- `restart_aliyun.sh`
+  - 只做 `docker compose restart deeptutor`
+  - 不同步代码，不重建镜像
+  - 适合临时恢复服务
+- `redeploy_aliyun_fast.sh`
+  - 先 `rsync` 到服务器
+  - 再把 `deeptutor/` 等后端代码 `docker cp` 到正在运行的容器
+  - 最后重启容器
+  - 适合 Python 后端、Prompt、YAML、路由等无需重装依赖的改动
+- `deploy_aliyun.sh`
+  - 先同步，再执行 `docker compose up -d --build`
+  - 最慢，但最完整
+  - 适合依赖、Dockerfile、前端构建相关改动
 
 ## 当前部署建议
 
@@ -171,3 +218,13 @@ LANGFUSE_TRACING_ENVIRONMENT=production
 - 运行时日志
 
 如果以后你要做数据迁移，不要直接改同步脚本，单独迁移更稳。
+
+### 4. 为什么完整部署会慢
+
+当前 `deploy_aliyun.sh` 走的是镜像重建，不是单纯重启。慢的主要原因通常是：
+
+- Dockerfile 需要重新执行 `apt-get update/install`
+- 需要重新安装 Python 依赖
+- 阿里云服务器访问 Debian 官方源较慢
+
+现在仓库已经补了阿里云默认镜像源和缓存挂载，但完整部署仍然会比“快速发布”慢很多。
