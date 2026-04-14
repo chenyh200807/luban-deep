@@ -88,6 +88,7 @@ class EmbeddingClient:
             model=self.config.model,
             model_parameters={"batch_size": batch_size, "dimensions": self.config.dim},
             usage_details=usage_details,
+            usage_source="tiktoken",
             cost_details=observability.estimate_cost_details(
                 model=self.config.model,
                 usage_details=usage_details,

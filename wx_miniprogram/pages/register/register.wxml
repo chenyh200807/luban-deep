@@ -6,7 +6,7 @@
 
       <view class="title-row">
         <image class="title-logo" src="/images/logo-mark-white.png" mode="heightFix" />
-        <text class="h-white title-main">DeepTutor</text>
+        <text class="h-white title-main">鲁班智考</text>
       </view>
       <view class="headline">
         <text class="h-white">创建你的</text>
@@ -51,6 +51,23 @@
             <text class="btn-txt">{{loading ? '注册中...' : '注册'}}</text>
           </button>
         </view>
+
+        <button class="btn-wechat {{wechatLoading?'off':''}}" bindtap="handleWechatRegister" disabled="{{wechatLoading || loading}}">
+          <text class="btn-wechat-icon">微</text>
+          <text class="btn-wechat-txt">{{wechatLoading ? '微信处理中...' : '微信快捷注册'}}</text>
+        </button>
+
+        <button
+          class="btn-wechat btn-wechat-ghost {{wechatLoading?'off':''}}"
+          open-type="getPhoneNumber"
+          bindgetphonenumber="handleWechatPhoneNumber"
+          disabled="{{wechatLoading || loading}}"
+        >
+          <text class="btn-wechat-icon">号</text>
+          <text class="btn-wechat-txt">{{wechatLoading ? '处理中...' : '微信手机号一键注册'}}</text>
+        </button>
+
+        <text class="wechat-tip">已填写手机号时，会在微信登录后自动完成绑定。</text>
 
         <view class="foot">
           <text class="foot-link" bindtap="goLogin">已有账号，去登录</text>

@@ -16,6 +16,25 @@ function getApp_() {
   }
 }
 
+function relaunchLogin() {
+  var app = getApp_();
+  if (app && app.globalData && app.globalData._authRedirecting) {
+    return;
+  }
+  if (app && app.globalData) {
+    app.globalData._authRedirecting = true;
+  }
+  wx.reLaunch({
+    url: "/pages/login/login",
+    complete: function () {
+      var nextApp = getApp_();
+      if (nextApp && nextApp.globalData) {
+        nextApp.globalData._authRedirecting = false;
+      }
+    },
+  });
+}
+
 function getBaseUrl(useGateway) {
   return endpoints.getPrimaryBaseUrl(useGateway !== false);
 }
@@ -101,7 +120,7 @@ function request(opts) {
             app.globalData.token = null;
             app.globalData.userId = null;
           }
-          wx.redirectTo({ url: "/pages/login/login" });
+          relaunchLogin();
           reject(new Error("AUTH_EXPIRED"));
           return;
         }
@@ -201,7 +220,7 @@ function request(opts) {
 /** 微信小程序登录 */
 function wxLogin(code) {
   return request({
-    url: "/wechat/mp/login",
+    url: "/api/v1/wechat/mp/login",
     method: "POST",
     data: { code: code },
     useGateway: true,
@@ -212,7 +231,7 @@ function wxLogin(code) {
 /** 绑定手机号 */
 function bindPhone(phoneCode) {
   return request({
-    url: "/wechat/mp/bind-phone",
+    url: "/api/v1/wechat/mp/bind-phone",
     method: "POST",
     data: { phone_code: phoneCode },
     useGateway: true,
@@ -286,6 +305,15 @@ function getConversations(archived) {
 /** 创建新对话 */
 function createConversation() {
   return request({ url: "/api/v1/conversations", method: "POST", data: {} });
+}
+
+/** 启动一个聊天 turn，返回 conversation / turn / ws 订阅信息 */
+function startChatTurn(payload) {
+  return request({
+    url: "/api/v1/chat/start-turn",
+    method: "POST",
+    data: payload || {},
+  });
 }
 
 /** 获取对话消息 */
@@ -378,6 +406,7 @@ module.exports = {
   getMasteryDashboard: getMasteryDashboard,
   getConversations: getConversations,
   createConversation: createConversation,
+  startChatTurn: startChatTurn,
   getConversationMessages: getConversationMessages,
   deleteConversation: deleteConversation,
   batchConversations: batchConversations,

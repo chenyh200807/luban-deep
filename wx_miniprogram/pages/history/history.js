@@ -7,6 +7,161 @@ var CACHE_KEY = "history_cache";
 var CACHE_KEY_ARCHIVED = "history_cache_archived";
 var CACHE_TTL = 60 * 1000; // 60s 内直接用缓存
 
+function _clipText(value, limit) {
+  var text = String(value || "").trim();
+  if (!text) return "";
+  return text.length > limit ? text.slice(0, limit) + "..." : text;
+}
+
+function _normalizePreview(raw) {
+  return String(raw || "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .replace(/\|/g, " ")
+    .replace(/\n+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function _deriveConversationTitle(rawTitle, preview) {
+  var title = String(rawTitle || "").trim();
+  var snippet = _normalizePreview(preview);
+  if (title && title !== "New conversation" && title !== "新对话") {
+    return title;
+  }
+  if (!snippet) return "新对话";
+  return snippet.length > 26 ? snippet.slice(0, 26) + "..." : snippet;
+}
+
+function _capabilityLabel(capability) {
+  var key = String(capability || "").trim().toLowerCase();
+  if (!key || key === "chat") return "智能对话";
+  if (key === "solve" || key === "deep_solve") return "深度解题";
+  if (key === "question" || key === "deep_question") return "组题训练";
+  if (key === "research" || key === "deep_research") return "深度研究";
+  if (key === "guide") return "导学陪练";
+  return "专题对话";
+}
+
+function _statusMeta(status) {
+  var key = String(status || "").trim().toLowerCase();
+  if (key === "running") {
+    return { label: "进行中", tone: "blue" };
+  }
+  if (key === "failed") {
+    return { label: "异常", tone: "rose" };
+  }
+  if (key === "cancelled" || key === "rejected") {
+    return { label: "已中断", tone: "amber" };
+  }
+  return { label: "", tone: "" };
+}
+
+function _sourceMeta(source) {
+  var key = String(source || "").trim().toLowerCase();
+  if (key === "wx_miniprogram") {
+    return { label: "小程序", tone: "sky" };
+  }
+  if (!key) {
+    return { label: "主端", tone: "slate" };
+  }
+  return { label: "跨端", tone: "violet" };
+}
+
+function _joinMeta(parts) {
+  return parts.filter(Boolean).join(" · ");
+}
+
+function _buildConversationItem(c) {
+  var updatedAt = c.updated_at || c.created_at || "";
+  var preview = _normalizePreview(c.last_message || c.preview || "");
+  var status = _statusMeta(c.status);
+  var source = _sourceMeta(c.source);
+  var capabilityLabel = _capabilityLabel(c.capability);
+  var messageCount = Number(c.message_count || 0);
+
+  return {
+    id: c.id,
+    title: _deriveConversationTitle(c.title, preview),
+    preview: _clipText(preview, 72),
+    time: helpers.formatTime(updatedAt),
+    rawTime: updatedAt,
+    ts: updatedAt ? new Date(updatedAt).getTime() : 0,
+    archived: !!c.archived,
+    statusLabel: status.label,
+    statusTone: status.tone,
+    sourceLabel: source.label,
+    sourceTone: source.tone,
+    capabilityLabel: capabilityLabel,
+    messageCount: messageCount,
+    metaLine: _joinMeta([messageCount > 0 ? messageCount + " 条消息" : ""]),
+  };
+}
+
+function _flattenGroups(groups) {
+  var items = [];
+  (groups || []).forEach(function (group) {
+    (group.items || []).forEach(function (item) {
+      items.push(item);
+    });
+  });
+  return items;
+}
+
+function _monthLabel(ts) {
+  var d = new Date(ts);
+  return d.getFullYear() + "年" + (d.getMonth() + 1) + "月";
+}
+
+function _buildStats(convs) {
+  var now = Date.now();
+  var weekAgo = now - 7 * 86400000;
+  var runningCount = 0;
+  var weekCount = 0;
+
+  (convs || []).forEach(function (item) {
+    if (item.ts >= weekAgo) weekCount += 1;
+    if (item.statusLabel === "进行中") runningCount += 1;
+  });
+
+  return {
+    total: (convs || []).length,
+    weekCount: weekCount,
+    runningCount: runningCount,
+  };
+}
+
+function _emptyState(tab, query) {
+  if (query) {
+    return {
+      emoji: "搜索",
+      title: "没有找到匹配对话",
+      desc: "试试换个关键词，或清空搜索后查看全部会话",
+      showClear: true,
+      showStart: false,
+    };
+  }
+  if (tab === "archived") {
+    return {
+      emoji: "归档",
+      title: "暂无归档对话",
+      desc: "归档的对话会保存在这里",
+      showClear: false,
+      showStart: false,
+    };
+  }
+  return {
+    emoji: "对话",
+    title: "暂无历史对话",
+    desc: "开始一次对话后，记录会自动保存在这里",
+    showClear: false,
+    showStart: true,
+  };
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -14,8 +169,12 @@ Page({
     loading: true,
     refreshing: false,
     error: false,
+    query: "",
+    conversations: [],
     groups: [], // [{label, items}]
     totalCount: 0,
+    stats: { total: 0, weekCount: 0, runningCount: 0 },
+    emptyState: _emptyState("active", ""),
     userPoints: 0,
     isDark: true,
 
@@ -67,20 +226,12 @@ Page({
     var now = Date.now();
 
     if (cached && cached.groups && cached.ts && now - cached.ts < CACHE_TTL) {
-      this.setData({
-        groups: cached.groups,
-        totalCount: cached.totalCount || 0,
-        loading: false,
-      });
+      this._applyConversationState(cached.conversations || _flattenGroups(cached.groups), false);
       return;
     }
 
     if (cached && cached.groups) {
-      this.setData({
-        groups: cached.groups,
-        totalCount: cached.totalCount || 0,
-        loading: false,
-      });
+      this._applyConversationState(cached.conversations || _flattenGroups(cached.groups), false);
       this._fetchFromServer(true);
     } else {
       this.setData({ loading: true });
@@ -101,33 +252,16 @@ Page({
         var unwrapped = api.unwrapResponse(raw);
         var list = unwrapped.conversations || [];
         if (!Array.isArray(list)) list = [];
-        var convs = list.map(function (c) {
-          var updatedAt = c.updated_at || c.created_at || "";
-          return {
-            id: c.id,
-            title: c.title || "新对话",
-            preview: c.last_message || c.preview || "",
-            time: helpers.formatTime(updatedAt),
-            rawTime: updatedAt,
-            ts: updatedAt ? new Date(updatedAt).getTime() : 0,
-            archived: !!c.archived,
-          };
-        });
+        var convs = list.map(_buildConversationItem);
         convs.sort(function (a, b) {
           return b.ts - a.ts;
         });
-
-        var groups = _groupByDate(convs);
-        self.setData({
-          groups: groups,
-          totalCount: convs.length,
-          loading: false,
-          refreshing: false,
-        });
+        self._applyConversationState(convs, true);
 
         var cacheKey = isArchived ? CACHE_KEY_ARCHIVED : CACHE_KEY;
         wx.setStorageSync(cacheKey, {
-          groups: groups,
+          conversations: convs,
+          groups: _groupByDate(convs),
           totalCount: convs.length,
           ts: Date.now(),
         });
@@ -138,6 +272,23 @@ Page({
           self.setData({ loading: false, error: true, refreshing: false });
         else self.setData({ refreshing: false });
       });
+  },
+
+  _applyConversationState: function (convs, fromFetch) {
+    var list = Array.isArray(convs) ? convs : [];
+    var groups = _groupByDate(_filterConversations(list, this.data.query));
+    this.setData({
+      conversations: list,
+      groups: groups,
+      totalCount: list.length,
+      stats: _buildStats(list),
+      emptyState: _emptyState(this.data.tab, this.data.query),
+      loading: false,
+      refreshing: false,
+    });
+    if (fromFetch) {
+      this._lastFetch = Date.now();
+    }
   },
 
   // ── 下拉刷新 ─────────────────────────────────
@@ -152,13 +303,36 @@ Page({
     this._fetchFromServer(false);
   },
 
+  onSearchInput: function (e) {
+    var query = String((e.detail && e.detail.value) || "");
+    this.setData({
+      query: query,
+      groups: _groupByDate(_filterConversations(this.data.conversations, query)),
+      emptyState: _emptyState(this.data.tab, query),
+    });
+  },
+
+  clearSearch: function () {
+    this.setData({
+      query: "",
+      groups: _groupByDate(this.data.conversations),
+      emptyState: _emptyState(this.data.tab, ""),
+    });
+  },
+
   // ── Tab 切换（全部 / 已归档） ─────────────────
   switchTab: function (e) {
     var tab = e.currentTarget.dataset.tab;
     if (tab === this.data.tab) return;
     helpers.vibrate("light");
     this._exitEditMode();
-    this.setData({ tab: tab, loading: true, groups: [], totalCount: 0 });
+    this.setData({
+      tab: tab,
+      loading: true,
+      groups: [],
+      totalCount: 0,
+      emptyState: _emptyState(tab, this.data.query),
+    });
     this._fetchFromServer(false);
   },
 
@@ -372,31 +546,25 @@ Page({
     ids.forEach(function (id) {
       idSet[id] = true;
     });
-    var removed = 0;
-    var newGroups = this.data.groups
-      .map(function (g) {
-        var filtered = g.items.filter(function (c) {
-          if (idSet[c.id]) {
-            removed++;
-            return false;
-          }
-          return true;
-        });
-        return { label: g.label, items: filtered };
-      })
-      .filter(function (g) {
-        return g.items.length > 0;
-      });
+    var newConversations = this.data.conversations.filter(function (item) {
+      return !idSet[item.id];
+    });
+    var newGroups = _groupByDate(
+      _filterConversations(newConversations, this.data.query),
+    );
     this.setData({
+      conversations: newConversations,
       groups: newGroups,
-      totalCount: Math.max(0, this.data.totalCount - removed),
+      totalCount: newConversations.length,
+      stats: _buildStats(newConversations),
     });
     // 同步缓存
     var cacheKey =
       this.data.tab === "archived" ? CACHE_KEY_ARCHIVED : CACHE_KEY;
     wx.setStorageSync(cacheKey, {
+      conversations: newConversations,
       groups: newGroups,
-      totalCount: this.data.totalCount,
+      totalCount: newConversations.length,
       ts: Date.now(),
     });
   },
@@ -409,6 +577,7 @@ Page({
 
 // ── 日期分组 ──────────────────────────────────
 function _groupByDate(convs) {
+  convs = Array.isArray(convs) ? convs : [];
   var now = new Date();
   var today = new Date(
     now.getFullYear(),
@@ -417,17 +586,24 @@ function _groupByDate(convs) {
   ).getTime();
   var yesterday = today - 86400000;
   var weekAgo = today - 7 * 86400000;
+  var monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
   var todayItems = [];
   var yesterdayItems = [];
   var weekItems = [];
-  var olderItems = [];
+  var monthItems = [];
+  var olderBuckets = {};
 
   convs.forEach(function (c) {
     if (c.ts >= today) todayItems.push(c);
     else if (c.ts >= yesterday) yesterdayItems.push(c);
     else if (c.ts >= weekAgo) weekItems.push(c);
-    else olderItems.push(c);
+    else if (c.ts >= monthStart) monthItems.push(c);
+    else {
+      var key = _monthLabel(c.ts || 0);
+      if (!olderBuckets[key]) olderBuckets[key] = [];
+      olderBuckets[key].push(c);
+    }
   });
 
   var groups = [];
@@ -435,7 +611,31 @@ function _groupByDate(convs) {
   if (yesterdayItems.length)
     groups.push({ label: "昨天", items: yesterdayItems });
   if (weekItems.length) groups.push({ label: "近 7 天", items: weekItems });
-  if (olderItems.length) groups.push({ label: "更早", items: olderItems });
+  if (monthItems.length) groups.push({ label: "本月更早", items: monthItems });
+  Object.keys(olderBuckets)
+    .sort(function (a, b) {
+      return olderBuckets[b][0].ts - olderBuckets[a][0].ts;
+    })
+    .forEach(function (label) {
+      groups.push({ label: label, items: olderBuckets[label] });
+    });
 
   return groups;
+}
+
+function _filterConversations(convs, query) {
+  convs = Array.isArray(convs) ? convs : [];
+  var keyword = String(query || "").trim().toLowerCase();
+  if (!keyword) return convs;
+  return convs.filter(function (item) {
+    return [
+      item.title,
+      item.preview,
+      item.sourceLabel,
+      item.capabilityLabel,
+      item.metaLine,
+    ].some(function (part) {
+      return String(part || "").toLowerCase().indexOf(keyword) !== -1;
+    });
+  });
 }

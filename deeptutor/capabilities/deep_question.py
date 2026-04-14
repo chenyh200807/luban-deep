@@ -18,6 +18,13 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.core.trace import merge_trace_metadata
+from deeptutor.services.question_followup import (
+    answers_match,
+    build_question_followup_context_from_summary,
+    extract_submission_answer,
+    normalize_question_followup_context,
+    resolve_submission,
+)
 
 
 class DeepQuestionCapability(BaseCapability):
@@ -47,17 +54,17 @@ class DeepQuestionCapability(BaseCapability):
         if isinstance(followup_question_context, dict) and followup_question_context.get(
             "question"
         ):
-            submission_answer = self._extract_submission_answer(
+            narrowed_context, submission_answer = resolve_submission(
                 context.user_message,
                 followup_question_context,
             )
-            if submission_answer is not None:
+            if narrowed_context and submission_answer is not None:
                 from deeptutor.agents.question.agents.submission_grader_agent import (
                     SubmissionGraderAgent,
                 )
 
                 graded_context = self._build_submission_context(
-                    followup_question_context,
+                    narrowed_context,
                     submission_answer,
                     raw_submission=context.user_message,
                 )
@@ -84,6 +91,10 @@ class DeepQuestionCapability(BaseCapability):
                         "question_id": graded_context.get("question_id", ""),
                         "user_answer": graded_context.get("user_answer", ""),
                         "is_correct": graded_context.get("is_correct"),
+                        "question_followup_context": normalize_question_followup_context(
+                            graded_context
+                        )
+                        or {},
                     }
                     cost_meta = self._collect_cost_summary("question")
                     if cost_meta:
@@ -114,6 +125,10 @@ class DeepQuestionCapability(BaseCapability):
                     "response": answer or "",
                     "mode": "followup",
                     "question_id": followup_question_context.get("question_id", ""),
+                    "question_followup_context": normalize_question_followup_context(
+                        followup_question_context
+                    )
+                    or {},
                 }
                 cost_meta = self._collect_cost_summary("question")
                 if cost_meta:
@@ -232,33 +247,18 @@ class DeepQuestionCapability(BaseCapability):
             "response": content or "No questions generated.",
             "summary": result,
             "mode": mode,
+            "question_followup_context": build_question_followup_context_from_summary(
+                result,
+                content or "",
+                reveal_answers=reveal_answers,
+                reveal_explanations=reveal_explanations,
+            )
+            or {},
         }
         cost_meta = self._collect_cost_summary("question")
         if cost_meta:
             result_payload["metadata"] = {"cost_summary": cost_meta}
         await stream.result(result_payload, source=self.name)
-
-    @staticmethod
-    def _extract_submission_answer(
-        user_message: str,
-        question_context: dict[str, Any],
-    ) -> str | None:
-        if str(question_context.get("question_type", "") or "").strip().lower() != "choice":
-            return None
-        text = re.sub(r"\s+", "", str(user_message or "").strip().upper())
-        if not text:
-            return None
-        patterns = [
-            r"^(?:我选|我觉得选|选|答案是|答案|就是)?([ABCD])$",
-            r"^(?:我手滑选了|我看错选了|我粗心选了)([ABCD])$",
-            r"^(?:OPTION|ANSWER)[:：]?([ABCD])$",
-            r"^([ABCD])$",
-        ]
-        for pattern in patterns:
-            match = re.fullmatch(pattern, text)
-            if match:
-                return match.group(1)
-        return None
 
     @staticmethod
     def _build_submission_context(
@@ -268,9 +268,9 @@ class DeepQuestionCapability(BaseCapability):
         raw_submission: str = "",
     ) -> dict[str, Any]:
         graded_context = dict(question_context)
-        correct_answer = str(question_context.get("correct_answer", "") or "").strip().upper()
-        is_correct = bool(correct_answer) and user_answer.upper() == correct_answer
-        graded_context["user_answer"] = user_answer.upper()
+        correct_answer = str(question_context.get("correct_answer", "") or "").strip()
+        is_correct = answers_match(user_answer, correct_answer, graded_context)
+        graded_context["user_answer"] = str(user_answer or "").strip()
         graded_context["is_correct"] = is_correct
         graded_context["score"] = 100 if is_correct else 0
         graded_context["diagnosis"] = DeepQuestionCapability._diagnose_choice_submission(
@@ -289,12 +289,14 @@ class DeepQuestionCapability(BaseCapability):
     ) -> str:
         correct_answer = str(question_context.get("correct_answer", "") or "").strip().upper()
         normalized_answer = str(user_answer or "").strip().upper()
-        if not normalized_answer or normalized_answer not in {"A", "B", "C", "D"}:
+        if not normalized_answer:
             return "INVALID"
         if not correct_answer:
             return "INVALID"
-        if normalized_answer == correct_answer:
+        if answers_match(normalized_answer, correct_answer, question_context):
             return "CORRECT"
+        if normalized_answer not in {"A", "B", "C", "D"} and correct_answer not in {"A", "B", "C", "D"}:
+            return "CONFUSION"
 
         raw_text = str(raw_submission or "").strip().lower()
         if any(marker in raw_text for marker in ("手滑", "看错", "粗心", "点错", "写错")):

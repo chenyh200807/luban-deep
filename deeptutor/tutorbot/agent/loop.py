@@ -27,6 +27,7 @@ from deeptutor.tutorbot.bus.events import InboundMessage, OutboundMessage
 from deeptutor.tutorbot.bus.queue import MessageBus
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
+from deeptutor.tutorbot.teaching_modes import get_teaching_mode_instruction
 
 if TYPE_CHECKING:
     from deeptutor.tutorbot.config.schema import ChannelsConfig, ExecToolConfig, WebSearchConfig
@@ -622,6 +623,9 @@ class AgentLoop:
             current_message=current_message,
             media=msg.media if msg.media else None,
             channel=msg.channel, chat_id=msg.chat_id,
+            runtime_instruction=get_teaching_mode_instruction(
+                (msg.metadata or {}).get("teaching_mode"),
+            ),
         )
 
         async def _bus_progress(content: str, *, tool_hint: bool = False) -> None:
@@ -663,18 +667,20 @@ class AgentLoop:
             if role == "tool" and isinstance(content, str) and len(content) > self._TOOL_RESULT_MAX_CHARS:
                 entry["content"] = content[:self._TOOL_RESULT_MAX_CHARS] + "\n... (truncated)"
             elif role == "user":
-                if isinstance(content, str) and content.startswith(ContextBuilder._RUNTIME_CONTEXT_TAG):
-                    # Strip the runtime-context prefix, keep only the user text.
-                    parts = content.split("\n\n", 1)
-                    if len(parts) > 1 and parts[1].strip():
-                        entry["content"] = parts[1]
-                    else:
+                if isinstance(content, str):
+                    stripped = ContextBuilder.strip_runtime_prefixes(content)
+                    if stripped is None:
                         continue
+                    entry["content"] = stripped
                 if isinstance(content, list):
                     filtered = []
                     for c in content:
-                        if c.get("type") == "text" and isinstance(c.get("text"), str) and c["text"].startswith(ContextBuilder._RUNTIME_CONTEXT_TAG):
-                            continue  # Strip runtime context from multimodal messages
+                        if c.get("type") == "text" and isinstance(c.get("text"), str):
+                            text = c["text"]
+                            if text.startswith(ContextBuilder._RUNTIME_CONTEXT_TAG) or text.startswith(
+                                ContextBuilder._RUNTIME_MODE_TAG,
+                            ):
+                                continue  # Strip runtime metadata/control from multimodal messages
                         if (c.get("type") == "image_url"
                                 and c.get("image_url", {}).get("url", "").startswith("data:image/")):
                             filtered.append({"type": "text", "text": "[image]"})
@@ -694,9 +700,16 @@ class AgentLoop:
         channel: str = "cli",
         chat_id: str = "direct",
         on_progress: Callable[[str], Awaitable[None]] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Process a message directly (for CLI or cron usage)."""
         await self._connect_mcp()
-        msg = InboundMessage(channel=channel, sender_id="user", chat_id=chat_id, content=content)
+        msg = InboundMessage(
+            channel=channel,
+            sender_id="user",
+            chat_id=chat_id,
+            content=content,
+            metadata=metadata or {},
+        )
         response = await self._process_message(msg, session_key=session_key, on_progress=on_progress)
         return response.content if response else ""

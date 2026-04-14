@@ -34,7 +34,7 @@ class DeepResearchCapability(BaseCapability):
             build_research_runtime_config,
             validate_research_request_config,
         )
-        from deeptutor.services.config import load_config_with_main
+        from deeptutor.services.config.loader import load_config_with_main
         from deeptutor.services.llm.config import get_llm_config
 
         llm_config = get_llm_config()

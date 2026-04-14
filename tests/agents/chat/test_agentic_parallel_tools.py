@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from deeptutor.agents.chat.agentic_pipeline import AgenticChatPipeline
+from deeptutor.agents.chat.agentic_pipeline import AgenticChatPipeline, ToolTrace
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.trace import build_trace_metadata
@@ -344,7 +344,7 @@ def test_infer_answer_type_detects_knowledge_explainer(monkeypatch: pytest.Monke
     assert pipeline._infer_answer_type("什么是流水施工，怎么区分流水步距和流水节拍？") == "knowledge_explainer"
 
 
-def test_missing_teaching_elements_accepts_memory_hook_and_exam_strategy(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_missing_teaching_elements_requires_exact_zh_section_titles(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
         lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
@@ -360,10 +360,10 @@ def test_missing_teaching_elements_accepts_memory_hook_and_exam_strategy(monkeyp
 ## 易错点
 - 不要把流水步距当成流水节拍。
 
-## 记忆抓手
+## 记忆口诀
 步距看“队与队之间的间隔”。
 
-## 考试策略
+## 心得
 看到“相邻专业队”就优先判断步距。
 """
     assert pipeline._missing_teaching_elements(content) == []
@@ -394,6 +394,24 @@ def test_missing_teaching_elements_requires_explicit_section_headings(monkeypatc
         "核心结论",
         "踩分点",
         "易错点",
-        "记忆口诀/记忆抓手",
-        "心得/考试策略",
+        "记忆口诀",
+        "心得",
     ]
+
+
+def test_teaching_contract_only_enforced_when_rag_used(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    assert pipeline._should_enforce_teaching_contract("knowledge_explainer", []) is False
+    trace = ToolTrace(
+        name="rag",
+        arguments={"query": "流水施工"},
+        result="kb result",
+        success=True,
+        sources=[],
+        metadata={"call_kind": "rag_retrieval"},
+    )
+    assert pipeline._should_enforce_teaching_contract("knowledge_explainer", [trace]) is True

@@ -22,6 +22,7 @@ class ChatRequestConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     chat_mode: Literal["fast", "deep"] = Field(default_factory=get_default_chat_mode)
+    auto_tools: bool = True
     answer_now_context: dict[str, Any] | None = None
 
 

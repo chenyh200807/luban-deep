@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from deeptutor.services.config import get_agent_params
+from deeptutor.services.config.loader import get_agent_params
 from deeptutor.services.llm import complete as llm_complete
 from deeptutor.services.llm.capabilities import supports_response_format
 from deeptutor.services.llm.config import get_llm_config

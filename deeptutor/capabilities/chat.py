@@ -60,11 +60,20 @@ class ChatCapability(BaseCapability):
             return False
         if bool((context.metadata or {}).get("chat_mode_explicit")):
             return False
+        if bool((context.config_overrides or {}).get("chat_mode_explicit")):
+            return False
         pipeline = AgenticChatPipeline(language=context.language)
         return pipeline._infer_answer_type(context.user_message) == ANSWER_TYPE_KNOWLEDGE
 
     async def _run_fast(self, context: UnifiedContext, stream: StreamBus) -> None:
-        enabled_tools = {tool for tool in context.enabled_tools or [] if tool in CHAT_FAST_TOOLS}
+        pipeline = AgenticChatPipeline(language=context.language)
+        answer_type = pipeline._infer_answer_type(context.user_message)
+        resolved_tools = pipeline.resolve_enabled_tools(
+            context,
+            answer_type=answer_type,
+            mode="fast",
+        )
+        enabled_tools = {tool for tool in resolved_tools if tool in CHAT_FAST_TOOLS}
         kb_name = context.knowledge_bases[0] if context.knowledge_bases else None
         history = [
             {"role": msg.get("role", ""), "content": str(msg.get("content", "") or "")}

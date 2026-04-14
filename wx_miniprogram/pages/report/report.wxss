@@ -88,6 +88,119 @@
   gap: 16rpx;
 }
 
+.overview-hero {
+  padding: 28rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  background:
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 34%),
+    linear-gradient(145deg, rgba(99, 102, 241, 0.18), rgba(15, 23, 42, 0.12));
+}
+
+.overview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.overview-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.overview-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+  color: var(--text-muted);
+}
+
+.overview-score-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
+}
+
+.overview-score {
+  font-size: 72rpx;
+  font-weight: 800;
+  line-height: 1;
+  color: #7dd3fc;
+}
+
+.overview-score-unit {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: rgba(125, 211, 252, 0.8);
+}
+
+.overview-tip {
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.overview-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.metric-chip {
+  width: calc(50% - 6rpx);
+  box-sizing: border-box;
+  padding: 20rpx 18rpx;
+  border-radius: 18rpx;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1rpx solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.metric-chip-warn {
+  background: rgba(248, 113, 113, 0.08);
+  border-color: rgba(248, 113, 113, 0.12);
+}
+
+.metric-num {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.metric-label {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.insight-strip {
+  padding: 22rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  border-left: 6rpx solid #60a5fa;
+}
+
+.insight-kicker {
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: #60a5fa;
+  text-transform: uppercase;
+}
+
+.insight-text {
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
 /* ── Section Headers ─────────────────────────────── */
 .section-header {
   padding: 8rpx 4rpx 0;
@@ -520,6 +633,22 @@
   background: rgba(248, 250, 255, 0.96);
   border-color: #dbe6f5;
   box-shadow: 0 10rpx 28rpx rgba(126, 147, 185, 0.10);
+}
+
+.report-page.light .overview-hero {
+  background:
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 34%),
+    linear-gradient(145deg, rgba(47, 107, 255, 0.12), rgba(255, 255, 255, 0.86));
+}
+
+.report-page.light .metric-chip {
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(209, 222, 244, 0.85);
+}
+
+.report-page.light .metric-chip-warn {
+  background: rgba(248, 113, 113, 0.08);
+  border-color: rgba(248, 113, 113, 0.14);
 }
 .report-page.light .nav-back:active { background: rgba(0,0,0,0.04); }
 .report-page.light .nav-back-arrow { color: #4f46e5; }

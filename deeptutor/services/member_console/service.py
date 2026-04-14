@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
 import json
+import os
+import re
 import secrets
 import threading
 import uuid
@@ -9,6 +14,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+
+import httpx
 
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.session import get_sqlite_session_store
@@ -36,6 +43,22 @@ def _parse_time(value: str | None) -> datetime:
 def _slugify_phone(value: str) -> str:
     digits = "".join(ch for ch in value if ch.isdigit())
     return digits[-11:] if digits else "13800000000"
+
+
+def _date_key(value: datetime | None = None) -> str:
+    return (value or _now()).strftime("%Y-%m-%d")
+
+
+def _default_chapter_mastery() -> dict[str, dict[str, Any]]:
+    chapters = []
+    seen = set()
+    for item in _ASSESSMENT_BANK:
+        chapter = str(item.chapter or "").strip()
+        if not chapter or chapter in seen:
+            continue
+        seen.add(chapter)
+        chapters.append(chapter)
+    return {chapter: {"name": chapter, "mastery": 0} for chapter in chapters}
 
 
 @dataclass(slots=True)
@@ -118,6 +141,8 @@ class MemberConsoleService:
         self._store = get_sqlite_session_store()
         self._data_path = self._path_service.get_settings_file("member_console")
         self._data_path.parent.mkdir(parents=True, exist_ok=True)
+        self._wechat_access_token: str = ""
+        self._wechat_access_token_expires_at: float = 0.0
 
     def _seed_data(self) -> dict[str, Any]:
         now = _now()
@@ -364,7 +389,9 @@ class MemberConsoleService:
 
     def _ensure_member(self, data: dict[str, Any], user_id: str) -> dict[str, Any]:
         try:
-            return self._find_member(data, user_id)
+            member = self._find_member(data, user_id)
+            self._ensure_learning_profile(member)
+            return member
         except KeyError:
             seed = deepcopy(data["members"][0])
             seed.update(
@@ -372,25 +399,403 @@ class MemberConsoleService:
                     "user_id": user_id,
                     "display_name": user_id,
                     "phone": _slugify_phone(user_id),
+                    "tier": "trial",
                     "status": "active",
                     "segment": "general",
                     "risk_level": "low",
+                    "auto_renew": False,
                     "created_at": _iso(),
                     "last_active_at": _iso(),
                     "expire_at": _iso(_now() + timedelta(days=30)),
+                    "avatar_url": "",
+                    "points_balance": 120,
+                    "level": 1,
+                    "xp": 0,
+                    "study_days": 0,
+                    "review_due": 0,
+                    "focus_topic": "入门摸底",
+                    "focus_query": "帮我做一次入门摸底测试",
+                    "exam_date": "",
+                    "daily_target": 30,
+                    "difficulty_preference": "medium",
+                    "explanation_style": "detailed",
+                    "review_reminder": True,
+                    "earned_badge_ids": [],
+                    "chapter_mastery": _default_chapter_mastery(),
                     "notes": [],
                     "ledger": [],
+                    "daily_practice_counts": {},
+                    "chapter_practice_stats": {},
+                    "last_study_date": "",
+                    "last_practice_at": "",
                 }
             )
+            self._ensure_learning_profile(seed)
             data["members"].append(seed)
             return seed
+
+    def _ensure_learning_profile(self, member: dict[str, Any]) -> dict[str, Any]:
+        daily_counts = member.setdefault("daily_practice_counts", {})
+        chapter_stats = member.setdefault("chapter_practice_stats", {})
+        chapter_mastery = member.get("chapter_mastery") or {}
+        for key, meta in chapter_mastery.items():
+            name = meta.get("name") or key
+            chapter_stats.setdefault(
+                name,
+                {
+                    "done": 0,
+                    "correct": 0,
+                    "last_activity_at": "",
+                },
+            )
+        member.setdefault("last_study_date", "")
+        member.setdefault("last_practice_at", "")
+        return {
+            "daily_counts": daily_counts,
+            "chapter_stats": chapter_stats,
+        }
+
+    @staticmethod
+    def _b64url_encode(raw: bytes) -> str:
+        return base64.urlsafe_b64encode(raw).decode("utf-8").rstrip("=")
+
+    @staticmethod
+    def _b64url_decode(raw: str) -> bytes:
+        padding = "=" * (-len(raw) % 4)
+        return base64.urlsafe_b64decode(raw + padding)
+
+    def _auth_secret(self) -> str:
+        secret = str(
+            os.getenv("DEEPTUTOR_AUTH_SECRET")
+            or os.getenv("MEMBER_CONSOLE_AUTH_SECRET")
+            or os.getenv("WECHAT_MP_TOKEN_SECRET")
+            or os.getenv("WECHAT_MP_APP_SECRET")
+            or os.getenv("WECHAT_MP_APPSECRET")
+            or "deeptutor-dev-member-secret"
+        ).strip()
+        return secret
+
+    def _issue_access_token(
+        self,
+        *,
+        user_id: str,
+        openid: str = "",
+        unionid: str = "",
+        ttl_seconds: int = 60 * 60 * 24 * 30,
+    ) -> str:
+        now = int(_now().timestamp())
+        payload = {
+            "v": 1,
+            "sub": user_id,
+            "uid": user_id,
+            "openid": openid,
+            "unionid": unionid,
+            "provider": "wechat_mp" if openid else "local",
+            "iat": now,
+            "exp": now + max(300, int(ttl_seconds)),
+        }
+        payload_bytes = json.dumps(
+            payload,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+        payload_part = self._b64url_encode(payload_bytes)
+        signature = hmac.new(
+            self._auth_secret().encode("utf-8"),
+            payload_part.encode("utf-8"),
+            hashlib.sha256,
+        ).digest()
+        return f"dtm.{payload_part}.{self._b64url_encode(signature)}"
+
+    def _verify_access_token(self, token: str) -> dict[str, Any] | None:
+        raw = str(token or "").strip()
+        if not raw:
+            return None
+        if raw.startswith("demo-token-"):
+            value = raw[len("demo-token-") :]
+            return {"uid": value.split("-", 1)[0], "provider": "demo"}
+        parts = raw.split(".")
+        if len(parts) != 3 or parts[0] != "dtm":
+            return None
+        _, payload_part, signature_part = parts
+        expected = hmac.new(
+            self._auth_secret().encode("utf-8"),
+            payload_part.encode("utf-8"),
+            hashlib.sha256,
+        ).digest()
+        try:
+            actual = self._b64url_decode(signature_part)
+            if not hmac.compare_digest(expected, actual):
+                return None
+            payload = json.loads(self._b64url_decode(payload_part).decode("utf-8"))
+        except Exception:
+            return None
+        exp = int(payload.get("exp") or 0)
+        now = int(_now().timestamp())
+        if exp and exp < now:
+            return None
+        return payload
+
+    def _get_wechat_mp_credentials(self) -> tuple[str, str]:
+        app_id = str(
+            os.getenv("WECHAT_MP_APP_ID")
+            or os.getenv("WECHAT_MP_APPID")
+            or ""
+        ).strip()
+        app_secret = str(
+            os.getenv("WECHAT_MP_APP_SECRET")
+            or os.getenv("WECHAT_MP_APPSECRET")
+            or ""
+        ).strip()
+        if not app_id or not app_secret:
+            raise RuntimeError(
+                "Missing WeChat Mini Program credentials. Set WECHAT_MP_APP_ID and WECHAT_MP_APP_SECRET."
+            )
+        return app_id, app_secret
+
+    async def _exchange_wechat_code(self, code: str) -> dict[str, Any]:
+        app_id, app_secret = self._get_wechat_mp_credentials()
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                "https://api.weixin.qq.com/sns/jscode2session",
+                params={
+                    "appid": app_id,
+                    "secret": app_secret,
+                    "js_code": code,
+                    "grant_type": "authorization_code",
+                },
+            )
+            response.raise_for_status()
+            payload = response.json()
+        if int(payload.get("errcode") or 0):
+            raise RuntimeError(
+                f"WeChat code2Session failed: {payload.get('errcode')} {payload.get('errmsg')}"
+            )
+        if not str(payload.get("openid") or "").strip():
+            raise RuntimeError("WeChat code2Session succeeded but openid is missing.")
+        return payload
+
+    async def _get_wechat_access_token(self) -> str:
+        now_ts = _now().timestamp()
+        if self._wechat_access_token and now_ts < self._wechat_access_token_expires_at:
+            return self._wechat_access_token
+
+        app_id, app_secret = self._get_wechat_mp_credentials()
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                "https://api.weixin.qq.com/cgi-bin/stable_token",
+                json={
+                    "grant_type": "client_credential",
+                    "appid": app_id,
+                    "secret": app_secret,
+                    "force_refresh": False,
+                },
+            )
+            response.raise_for_status()
+            payload = response.json()
+        if int(payload.get("errcode") or 0):
+            raise RuntimeError(
+                f"WeChat stable_token failed: {payload.get('errcode')} {payload.get('errmsg')}"
+            )
+        token = str(payload.get("access_token") or "").strip()
+        if not token:
+            raise RuntimeError("WeChat stable_token succeeded but access_token is missing.")
+        expires_in = max(300, int(payload.get("expires_in") or 7200))
+        self._wechat_access_token = token
+        self._wechat_access_token_expires_at = now_ts + expires_in - 120
+        return token
+
+    async def _exchange_wechat_phone_code(self, phone_code: str) -> str:
+        access_token = await self._get_wechat_access_token()
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                "https://api.weixin.qq.com/wxa/business/getuserphonenumber",
+                params={"access_token": access_token},
+                json={"code": phone_code},
+            )
+            response.raise_for_status()
+            payload = response.json()
+        if int(payload.get("errcode") or 0):
+            raise RuntimeError(
+                f"WeChat getuserphonenumber failed: {payload.get('errcode')} {payload.get('errmsg')}"
+            )
+        phone_info = payload.get("phone_info") or {}
+        phone = str(
+            phone_info.get("purePhoneNumber")
+            or phone_info.get("phoneNumber")
+            or ""
+        ).strip()
+        normalized = _slugify_phone(phone)
+        if len(normalized) != 11:
+            raise RuntimeError("WeChat phone binding succeeded but phone number is invalid.")
+        return normalized
+
+    def _find_member_by_wechat_identity(
+        self,
+        data: dict[str, Any],
+        *,
+        openid: str,
+        unionid: str = "",
+    ) -> dict[str, Any] | None:
+        normalized_openid = str(openid or "").strip()
+        normalized_unionid = str(unionid or "").strip()
+        for member in data["members"]:
+            if normalized_unionid and str(member.get("wx_unionid") or "").strip() == normalized_unionid:
+                return member
+            if normalized_openid and str(member.get("wx_openid") or "").strip() == normalized_openid:
+                return member
+        return None
+
+    def _find_member_by_phone(self, data: dict[str, Any], phone: str) -> dict[str, Any] | None:
+        normalized = _slugify_phone(phone)
+        for member in data["members"]:
+            if _slugify_phone(member.get("phone", "")) == normalized:
+                return member
+        return None
+
+    def _supports_dev_wechat_login(self, code: str) -> bool:
+        enabled = str(os.getenv("DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN") or "").strip().lower()
+        if enabled in {"1", "true", "yes", "on"}:
+            return True
+        lowered = str(code or "").strip().lower()
+        return lowered.startswith("dev-") or lowered.startswith("dev_") or lowered.startswith("mock-")
+
+    def _mock_wechat_session(self, code: str) -> dict[str, str]:
+        normalized = str(code or "dev-user").strip() or "dev-user"
+        digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+        return {
+            "openid": f"dev_openid_{digest[:18]}",
+            "unionid": f"dev_unionid_{digest[18:34]}",
+            "session_key": f"dev_session_{digest[34:50]}",
+        }
+
+    def _detect_question_count(self, text: str) -> int:
+        raw = str(text or "")
+        if not raw.strip():
+            return 0
+        patterns = [
+            r"第\s*\d+\s*题",
+            r"例题\s*\d+",
+            r"题目\s*\d+",
+        ]
+        counts = [len(re.findall(pattern, raw, flags=re.IGNORECASE)) for pattern in patterns]
+        count = max(counts) if counts else 0
+        return max(1, count)
+
+    def _guess_activity_chapter(
+        self,
+        member: dict[str, Any],
+        *texts: str,
+    ) -> str:
+        chapter_mastery = member.get("chapter_mastery") or {}
+        haystack = " ".join(str(item or "") for item in texts)
+        for key, value in chapter_mastery.items():
+            chapter_name = value.get("name") or key
+            if chapter_name and chapter_name in haystack:
+                return chapter_name
+        focus_topic = str(member.get("focus_topic") or "").strip()
+        for key, value in chapter_mastery.items():
+            chapter_name = value.get("name") or key
+            if chapter_name and chapter_name in focus_topic:
+                return chapter_name
+        if chapter_mastery:
+            weakest = min(
+                chapter_mastery.items(),
+                key=lambda item: int(item[1].get("mastery") or 0),
+            )
+            return weakest[1].get("name") or weakest[0]
+        return ""
+
+    def record_learning_activity(
+        self,
+        user_id: str,
+        *,
+        count: int = 1,
+        chapter: str = "",
+        correct: int = 0,
+        source: str = "practice",
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        data = self._load()
+        member = self._ensure_member(data, user_id)
+        learning = self._ensure_learning_profile(member)
+        today = _date_key()
+        amount = max(0, int(count or 0))
+        correct_count = max(0, int(correct or 0))
+        if amount <= 0:
+            return {
+                "today_done": int(learning["daily_counts"].get(today) or 0),
+                "chapter": chapter,
+            }
+
+        learning["daily_counts"][today] = int(learning["daily_counts"].get(today) or 0) + amount
+        if member.get("last_study_date") != today:
+            member["study_days"] = int(member.get("study_days") or 0) + 1
+            member["last_study_date"] = today
+        member["last_active_at"] = _iso()
+        member["last_practice_at"] = _iso()
+
+        normalized_chapter = str(chapter or "").strip()
+        if normalized_chapter:
+            chapter_stats = learning["chapter_stats"].setdefault(
+                normalized_chapter,
+                {"done": 0, "correct": 0, "last_activity_at": ""},
+            )
+            chapter_stats["done"] = int(chapter_stats.get("done") or 0) + amount
+            chapter_stats["correct"] = int(chapter_stats.get("correct") or 0) + min(correct_count, amount)
+            chapter_stats["last_activity_at"] = _iso()
+            member["focus_topic"] = normalized_chapter
+            member["focus_query"] = f"我想练习{normalized_chapter}相关的题目"
+
+        self._append_audit(
+            data,
+            action="learning_activity",
+            target_user=user_id,
+            operator=source,
+            reason="activity_tracked",
+            after={
+                "count": amount,
+                "correct": min(correct_count, amount),
+                "chapter": normalized_chapter,
+                "metadata": metadata or {},
+            },
+        )
+        self._save(data)
+        return {
+            "today_done": int(learning["daily_counts"].get(today) or 0),
+            "chapter": normalized_chapter,
+        }
+
+    def record_chat_learning(
+        self,
+        user_id: str,
+        *,
+        query: str,
+        assistant_content: str,
+    ) -> dict[str, Any]:
+        data = self._load()
+        member = self._ensure_member(data, user_id)
+        chapter = self._guess_activity_chapter(member, query, assistant_content)
+        count = self._detect_question_count(assistant_content if assistant_content else query)
+        if count <= 0:
+            count = 1
+        return self.record_learning_activity(
+            user_id,
+            count=count,
+            chapter=chapter,
+            correct=0,
+            source="chat",
+            metadata={"query": str(query or "")[:120]},
+        )
 
     def resolve_user_id(self, auth_header: str | None = None, user_id: str | None = None) -> str:
         if user_id:
             return user_id
         token = str(auth_header or "").replace("Bearer", "").strip()
-        if token.startswith("demo-token-"):
-            return token[len("demo-token-") :]
+        verified = self._verify_access_token(token)
+        if verified and str(verified.get("uid") or "").strip():
+            return str(verified["uid"]).strip()
         return "student_demo"
 
     def _append_audit(
@@ -707,9 +1112,44 @@ class MemberConsoleService:
     def get_ledger(self, user_id: str, limit: int = 20, offset: int = 0) -> dict[str, Any]:
         data = self._load()
         member = self._ensure_member(data, user_id)
-        entries = member.get("ledger", [])
+        entries = sorted(
+            member.get("ledger", []),
+            key=lambda item: _parse_time(item.get("created_at")),
+            reverse=True,
+        )
         page = entries[offset : offset + limit]
         return {"entries": page, "has_more": offset + limit < len(entries), "total": len(entries)}
+
+    def capture_points(self, user_id: str, amount: int = 20, reason: str = "capture") -> dict[str, Any]:
+        data = self._load()
+        member = self._ensure_member(data, user_id)
+        current_balance = max(0, int(member.get("points_balance") or 0))
+        requested_amount = max(0, int(amount or 0))
+        debit = min(current_balance, requested_amount)
+        if debit <= 0:
+            return {
+                "captured": 0,
+                "requested": requested_amount,
+                "balance": current_balance,
+                "entry": None,
+            }
+
+        entry = {
+            "id": f"ledger_{uuid.uuid4().hex[:12]}",
+            "delta": -debit,
+            "reason": reason or "capture",
+            "created_at": _iso(),
+        }
+        member.setdefault("ledger", []).insert(0, entry)
+        member["points_balance"] = current_balance - debit
+        member["last_active_at"] = _iso()
+        self._save(data)
+        return {
+            "captured": debit,
+            "requested": requested_amount,
+            "balance": member["points_balance"],
+            "entry": entry,
+        }
 
     def get_profile(self, user_id: str) -> dict[str, Any]:
         data = self._load()
@@ -720,7 +1160,7 @@ class MemberConsoleService:
             "username": member["display_name"],
             "display_name": member["display_name"],
             "phone": member["phone"],
-            "avatar_url": "",
+            "avatar_url": member.get("avatar_url", ""),
             "level": member["level"],
             "xp": member["xp"],
             "points": member["points_balance"],
@@ -728,6 +1168,8 @@ class MemberConsoleService:
             "daily_target": member["daily_target"],
             "difficulty_preference": member["difficulty_preference"],
             "explanation_style": member["explanation_style"],
+            "focus_topic": member.get("focus_topic", ""),
+            "focus_query": member.get("focus_query", ""),
             "review_reminder": member["review_reminder"],
             "earned_badge_ids": member["earned_badge_ids"],
             "tier": member["tier"],
@@ -747,6 +1189,7 @@ class MemberConsoleService:
             "difficulty_preference": "difficulty_preference",
             "explanation_style": "explanation_style",
             "review_reminder": "review_reminder",
+            "avatar_url": "avatar_url",
         }
         for src, dst in mapping.items():
             if src in patch:
@@ -758,7 +1201,8 @@ class MemberConsoleService:
     def get_today_progress(self, user_id: str) -> dict[str, Any]:
         data = self._load()
         member = self._ensure_member(data, user_id)
-        done = min(member["daily_target"], max(0, member["points_balance"] // 18))
+        learning = self._ensure_learning_profile(member)
+        done = int(learning["daily_counts"].get(_date_key()) or 0)
         return {
             "today_done": done,
             "daily_target": member["daily_target"],
@@ -768,15 +1212,20 @@ class MemberConsoleService:
     def get_chapter_progress(self, user_id: str) -> list[dict[str, Any]]:
         data = self._load()
         member = self._ensure_member(data, user_id)
+        learning = self._ensure_learning_profile(member)
         items = []
         for index, (key, value) in enumerate(member["chapter_mastery"].items(), start=1):
             mastery = int(value.get("mastery") or 0)
-            total = 30
-            done = round((mastery / 100) * total)
+            chapter_name = value.get("name") or key
+            stats = learning["chapter_stats"].get(chapter_name) or {}
+            total = max(30, int(stats.get("done") or 0), 1)
+            done = int(stats.get("done") or 0)
+            if done <= 0:
+                done = round((mastery / 100) * total)
             items.append(
                 {
                     "chapter_id": f"ch_{index}",
-                    "chapter_name": value.get("name") or key,
+                    "chapter_name": chapter_name,
                     "done": done,
                     "total": total,
                 }
@@ -949,10 +1398,12 @@ class MemberConsoleService:
         data = self._load()
         questions = []
         bank = _ASSESSMENT_BANK * max(1, (count + len(_ASSESSMENT_BANK) - 1) // len(_ASSESSMENT_BANK))
-        for item in bank[:count]:
+        session_questions = []
+        for index, item in enumerate(bank[:count], start=1):
+            question_id = f"{item.id}__{index:02d}_{uuid.uuid4().hex[:6]}"
             questions.append(
                 {
-                    "question_id": item.id,
+                    "question_id": question_id,
                     "question_stem": item.question,
                     "question_type": "single_choice",
                     "difficulty": "medium",
@@ -960,13 +1411,18 @@ class MemberConsoleService:
                     "options": [{"key": key, "text": value} for key, value in item.options.items()],
                 }
             )
+            session_questions.append(
+                {
+                    "question_id": question_id,
+                    "source_question_id": item.id,
+                    "answer": item.answer,
+                    "chapter": item.chapter,
+                }
+            )
         quiz_id = f"quiz_{uuid.uuid4().hex[:10]}"
         data.setdefault("assessment_sessions", {})[quiz_id] = {
             "user_id": user_id,
-            "questions": [
-                {"question_id": item.id, "answer": item.answer, "chapter": item.chapter}
-                for item in bank[:count]
-            ],
+            "questions": session_questions,
             "created_at": _iso(),
         }
         self._save(data)
@@ -1020,6 +1476,23 @@ class MemberConsoleService:
         }
         member = self._ensure_member(data, user_id)
         member["chapter_mastery"].update(chapter_mastery)
+        learning = self._ensure_learning_profile(member)
+        today = _date_key()
+        learning["daily_counts"][today] = int(learning["daily_counts"].get(today) or 0) + len(questions)
+        if member.get("last_study_date") != today:
+            member["study_days"] = int(member.get("study_days") or 0) + 1
+            member["last_study_date"] = today
+        member["last_active_at"] = _iso()
+        member["last_practice_at"] = _iso()
+        for chapter, values in chapter_hits.items():
+            chapter_name = chapter_mastery[chapter]["name"]
+            stats = learning["chapter_stats"].setdefault(
+                chapter_name,
+                {"done": 0, "correct": 0, "last_activity_at": ""},
+            )
+            stats["done"] = int(stats.get("done") or 0) + len(values)
+            stats["correct"] = int(stats.get("correct") or 0) + sum(values)
+            stats["last_activity_at"] = _iso()
         self._save(data)
         return {
             "score": score_pct,
@@ -1044,25 +1517,137 @@ class MemberConsoleService:
             target = self._ensure_member(data, f"user_{_slugify_phone(username)}")
             target["display_name"] = username
             self._save(data)
-        token = f"demo-token-{target['user_id']}"
-        return {"token": token, "user": self.get_profile(target["user_id"])}
-
-    def login_with_wechat_code(self, code: str) -> dict[str, Any]:
-        normalized = str(code or "").strip()
-        if not normalized:
-            return self.verify_phone_code("13800000001")
-        data = self._load()
-        user_id = f"wx_{normalized[-12:]}".replace("-", "_")
-        target = self._ensure_member(data, user_id)
-        target["display_name"] = target.get("display_name") or f"微信用户{user_id[-4:]}"
-        target["last_active_at"] = _iso()
-        self._save(data)
-        token = f"demo-token-{target['user_id']}"
+        token = self._issue_access_token(user_id=target["user_id"])
         return {
             "token": token,
-            "openid": user_id,
-            "session_key": f"mock-session-{normalized[-8:]}",
+            "token_type": "Bearer",
             "user": self.get_profile(target["user_id"]),
+        }
+
+    async def login_with_wechat_code(self, code: str) -> dict[str, Any]:
+        normalized = str(code or "").strip()
+        if not normalized:
+            raise ValueError("code is required")
+        try:
+            session_payload = await self._exchange_wechat_code(normalized)
+        except RuntimeError:
+            if not self._supports_dev_wechat_login(normalized):
+                raise
+            session_payload = self._mock_wechat_session(normalized)
+        openid = str(session_payload.get("openid") or "").strip()
+        unionid = str(session_payload.get("unionid") or "").strip()
+        session_key = str(session_payload.get("session_key") or "").strip()
+
+        data = self._load()
+        target = self._find_member_by_wechat_identity(
+            data,
+            openid=openid,
+            unionid=unionid,
+        )
+        if target is None:
+            user_id = f"wx_{openid[-12:]}".replace("-", "_")
+            target = self._ensure_member(data, user_id)
+        target["display_name"] = target.get("display_name") or f"微信用户{target['user_id'][-4:]}"
+        target["last_active_at"] = _iso()
+        target["wx_openid"] = openid
+        target["wx_unionid"] = unionid
+        target["wx_session_key"] = session_key
+        target["wx_last_login_at"] = _iso()
+        self._save(data)
+        token = self._issue_access_token(
+            user_id=target["user_id"],
+            openid=openid,
+            unionid=unionid,
+        )
+        return {
+            "token": token,
+            "token_type": "Bearer",
+            "openid": openid,
+            "unionid": unionid,
+            "session_key": session_key,
+            "user": self.get_profile(target["user_id"]),
+        }
+
+    async def bind_phone_for_wechat(self, user_id: str, phone_code: str) -> dict[str, Any]:
+        raw_code = str(phone_code or "").strip()
+        if not raw_code:
+            raise ValueError("valid phone_code or phone is required")
+
+        normalized = _slugify_phone(raw_code)
+        if len(normalized) != 11:
+            try:
+                normalized = await self._exchange_wechat_phone_code(raw_code)
+            except RuntimeError:
+                if not self._supports_dev_wechat_login(raw_code):
+                    raise
+                normalized = _slugify_phone("13800000000" + raw_code[-4:])
+            if len(normalized) != 11:
+                raise ValueError("valid phone_code or phone is required")
+
+        data = self._load()
+        current = self._ensure_member(data, user_id)
+        target = self._find_member_by_phone(data, normalized)
+
+        if target and target["user_id"] != current["user_id"]:
+            before = deepcopy(target)
+            for key in ("wx_openid", "wx_unionid", "wx_session_key", "wx_last_login_at"):
+                if current.get(key):
+                    target[key] = current[key]
+            target["phone"] = normalized
+            target["last_active_at"] = _iso()
+            current["merged_into"] = target["user_id"]
+            current["last_active_at"] = _iso()
+            self._append_audit(
+                data,
+                action="wechat_bind_phone",
+                target_user=target["user_id"],
+                operator="wechat_mp",
+                reason="bind_phone_merge",
+                before=before,
+                after=target,
+            )
+            self._save(data)
+            token = self._issue_access_token(
+                user_id=target["user_id"],
+                openid=str(target.get("wx_openid") or ""),
+                unionid=str(target.get("wx_unionid") or ""),
+            )
+            return {
+                "bound": True,
+                "merged": True,
+                "phone": normalized,
+                "token": token,
+                "token_type": "Bearer",
+                "user": self.get_profile(target["user_id"]),
+            }
+
+        before = deepcopy(current)
+        current["phone"] = normalized
+        current["last_active_at"] = _iso()
+        if not str(current.get("display_name") or "").strip():
+            current["display_name"] = f"学员{normalized[-4:]}"
+        self._append_audit(
+            data,
+            action="wechat_bind_phone",
+            target_user=current["user_id"],
+            operator="wechat_mp",
+            reason="bind_phone_direct",
+            before=before,
+            after=current,
+        )
+        self._save(data)
+        token = self._issue_access_token(
+            user_id=current["user_id"],
+            openid=str(current.get("wx_openid") or ""),
+            unionid=str(current.get("wx_unionid") or ""),
+        )
+        return {
+            "bound": True,
+            "merged": False,
+            "phone": normalized,
+            "token": token,
+            "token_type": "Bearer",
+            "user": self.get_profile(current["user_id"]),
         }
 
     def send_phone_code(self, phone: str) -> dict[str, Any]:
@@ -1081,8 +1666,12 @@ class MemberConsoleService:
             target["phone"] = normalized
             target["display_name"] = f"学员{normalized[-4:]}"
             self._save(data)
-        token = f"demo-token-{target['user_id']}"
-        return {"token": token, "user": self.get_profile(target["user_id"])}
+        token = self._issue_access_token(user_id=target["user_id"])
+        return {
+            "token": token,
+            "token_type": "Bearer",
+            "user": self.get_profile(target["user_id"]),
+        }
 
     def create_demo_token(self, user_id: str) -> str:
         return f"demo-token-{user_id}-{secrets.token_hex(4)}"

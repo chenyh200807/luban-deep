@@ -41,6 +41,14 @@ Page({
     hotspots: [],
     reviewSummary: { total_due: 0, overdue_count: 0 },
     userPoints: 0,
+    todayDone: 0,
+    dailyTarget: 0,
+    streakDays: 0,
+    dueTodayCount: 0,
+    weakNodeCount: 0,
+    focusHint: "",
+    learnerLevel: "",
+    studyTip: "",
   },
 
   onLoad() {
@@ -57,6 +65,7 @@ Page({
     helpers.syncTabBar(this, 2);
     const app = getApp();
     app.checkAuth(() => {
+      this._loadOverview();
       this._loadRadar();
       this._loadMastery();
       this._loadPoints();
@@ -92,6 +101,36 @@ Page({
     wx.navigateTo({ url: "/pages/assessment/assessment" });
   },
 
+  async _loadOverview() {
+    try {
+      const tasks = [
+        api.getTodayProgress().catch(() => null),
+        api.getHomeDashboard().catch(() => null),
+        api.getAssessmentProfile().catch(() => null),
+      ];
+
+      const result = await Promise.all(tasks);
+      const progress = api.unwrapResponse(result[0]) || {};
+      const home = api.unwrapResponse(result[1]) || {};
+      const assessment = api.unwrapResponse(result[2]) || {};
+
+      const weakNodes = ((home.mastery || {}).weak_nodes || []).filter(Boolean);
+      const diagnosticFeedback = assessment.diagnostic_feedback || {};
+      const learnerProfile = diagnosticFeedback.learner_profile || {};
+
+      this.setData({
+        todayDone: progress.today_done || 0,
+        dailyTarget: progress.daily_target || 0,
+        streakDays: progress.streak_days || 0,
+        dueTodayCount: ((home.review || {}).due_today || 0),
+        weakNodeCount: weakNodes.length,
+        focusHint: ((home.today || {}).hint || ""),
+        learnerLevel: assessment.level || "",
+        studyTip: learnerProfile.study_tip || "",
+      });
+    } catch (_) {}
+  },
+
   toggleMastery() {
     helpers.vibrate("light");
     this.setData({ masteryExpanded: !this.data.masteryExpanded });
@@ -100,18 +139,38 @@ Page({
   // ── 加载学情数据（统一使用 assessment profile API）────
   async _loadRadar() {
     try {
-      var result = await api.getAssessmentProfile();
-      var data = api.unwrapResponse(result);
-      var cm = data.chapter_mastery || {};
+      var userId = auth.getUserId();
+      var dims = [];
+      if (userId) {
+        var radarResult = await api.getRadarData(userId);
+        var radarData = api.unwrapResponse(radarResult) || {};
+        dims = (radarData.dimensions || []).map(function (item) {
+          var score = Number(item.score);
+          var value =
+            typeof item.value === "number"
+              ? item.value
+              : Number.isFinite(score)
+              ? score / 100
+              : 0;
+          return {
+            name: item.label || item.name || item.key || "",
+            value: value || 0,
+          };
+        });
+      }
 
-      // 将 chapter_mastery 转为雷达维度
-      var dims = Object.keys(cm).map(function (k) {
-        var v = cm[k];
-        return {
-          name: (typeof v === "object" ? v.name : k) || k,
-          value: ((typeof v === "object" ? v.mastery : v) || 0) / 100,
-        };
-      });
+      if (dims.length === 0) {
+        var result = await api.getAssessmentProfile();
+        var data = api.unwrapResponse(result) || {};
+        var cm = data.chapter_mastery || {};
+        dims = Object.keys(cm).map(function (k) {
+          var v = cm[k];
+          return {
+            name: (typeof v === "object" ? v.name : k) || k,
+            value: ((typeof v === "object" ? v.mastery : v) || 0) / 100,
+          };
+        });
+      }
 
       if (dims.length === 0) {
         this.setData({ radarLoading: false });
@@ -172,76 +231,91 @@ Page({
   // ── 加载掌握度数据（也从 assessment profile 获取）────
   async _loadMastery() {
     try {
-      var result = await api.getAssessmentProfile();
-      var data = api.unwrapResponse(result);
-      var cm = data.chapter_mastery || {};
-
-      // 按掌握度分组：薄弱/一般/优秀
-      var weakChapters = [],
-        normalChapters = [],
-        strongChapters = [];
-      Object.keys(cm).forEach(function (k) {
-        var v = cm[k];
-        var name = (typeof v === "object" ? v.name : k) || k;
-        var mastery = (typeof v === "object" ? v.mastery : v) || 0;
-        var item = {
-          name: name,
-          mastery: mastery,
-          color:
-            mastery >= 70 ? "#34d399" : mastery >= 40 ? "#fbbf24" : "#f87171",
+      var result = await api.getMasteryDashboard();
+      var data = api.unwrapResponse(result) || {};
+      var groups = (data.groups || []).map(function (group) {
+        return {
+          name: group.name || "",
+          avgMastery: Math.round(group.avg_mastery || 0),
+          chapters: (group.chapters || []).map(function (chapter) {
+            var mastery = Math.round(chapter.mastery || 0);
+            return {
+              name: chapter.name || "",
+              mastery: mastery,
+              color:
+                mastery >= 70 ? "#34d399" : mastery >= 40 ? "#fbbf24" : "#f87171",
+            };
+          }),
         };
-        if (mastery >= 70) strongChapters.push(item);
-        else if (mastery >= 40) normalChapters.push(item);
-        else weakChapters.push(item);
       });
 
-      var groups = [];
-      if (weakChapters.length)
-        groups.push({
-          name: "需要加强",
-          avgMastery: 0,
-          chapters: weakChapters,
-        });
-      if (normalChapters.length)
-        groups.push({
-          name: "基本掌握",
-          avgMastery: 0,
-          chapters: normalChapters,
-        });
-      if (strongChapters.length)
-        groups.push({
-          name: "掌握较好",
-          avgMastery: 0,
-          chapters: strongChapters,
-        });
-
-      // 计算每组平均
-      groups.forEach(function (g) {
-        if (g.chapters.length === 0) return;
-        g.avgMastery = Math.round(
-          g.chapters.reduce(function (s, c) {
-            return s + c.mastery;
-          }, 0) / g.chapters.length,
-        );
+      var hotspots = (data.hotspots || []).map(function (item) {
+        var mastery = Math.round(item.mastery || 0);
+        return {
+          name: item.name || "",
+          mastery: mastery,
+          rateText: mastery + "%",
+        };
       });
 
-      var allMastery = Object.keys(cm).map(function (k) {
-        var v = cm[k];
-        return (typeof v === "object" ? v.mastery : v) || 0;
-      });
-      var overall = allMastery.length
-        ? Math.round(
-            allMastery.reduce(function (a, b) {
-              return a + b;
-            }, 0) / allMastery.length,
-          )
-        : 0;
+      var overall = Math.round(data.overall_mastery || 0);
+      var reviewSummary = data.review_summary || { total_due: 0, overdue_count: 0 };
+
+      if (!groups.length && !overall) {
+        var fallback = await api.getAssessmentProfile();
+        var fallbackData = api.unwrapResponse(fallback) || {};
+        var cm = fallbackData.chapter_mastery || {};
+        var weakChapters = [];
+        var normalChapters = [];
+        var strongChapters = [];
+        Object.keys(cm).forEach(function (k) {
+          var v = cm[k];
+          var name = (typeof v === "object" ? v.name : k) || k;
+          var mastery = (typeof v === "object" ? v.mastery : v) || 0;
+          var item = {
+            name: name,
+            mastery: mastery,
+            color:
+              mastery >= 70 ? "#34d399" : mastery >= 40 ? "#fbbf24" : "#f87171",
+          };
+          if (mastery >= 70) strongChapters.push(item);
+          else if (mastery >= 40) normalChapters.push(item);
+          else weakChapters.push(item);
+        });
+
+        groups = [];
+        if (weakChapters.length) groups.push({ name: "需要加强", avgMastery: 0, chapters: weakChapters });
+        if (normalChapters.length) groups.push({ name: "基本掌握", avgMastery: 0, chapters: normalChapters });
+        if (strongChapters.length) groups.push({ name: "掌握较好", avgMastery: 0, chapters: strongChapters });
+        groups.forEach(function (g) {
+          if (!g.chapters.length) return;
+          g.avgMastery = Math.round(
+            g.chapters.reduce(function (s, c) {
+              return s + c.mastery;
+            }, 0) / g.chapters.length,
+          );
+        });
+
+        var allMastery = Object.keys(cm).map(function (k) {
+          var v = cm[k];
+          return (typeof v === "object" ? v.mastery : v) || 0;
+        });
+        overall = allMastery.length
+          ? Math.round(
+              allMastery.reduce(function (a, b) {
+                return a + b;
+              }, 0) / allMastery.length,
+            )
+          : 0;
+        hotspots = [];
+        reviewSummary = { total_due: 0, overdue_count: 0 };
+      }
 
       this.setData({
         overallMastery: overall,
         masteryGroups: groups,
-        hotspots: [],
-        reviewSummary: { total_due: 0, overdue_count: 0 },
+        hotspots: hotspots,
+        reviewSummary: reviewSummary,
         masteryLoading: false,
       });
     } catch (e) {

@@ -117,6 +117,7 @@ async def test_deep_question_routes_choice_submission_to_grading_agent(
     assert result_event.metadata["mode"] == "grading"
     assert result_event.metadata["user_answer"] == "B"
     assert result_event.metadata["is_correct"] is True
+    assert result_event.metadata["question_followup_context"]["user_answer"] == "B"
 
 
 def test_build_submission_context_marks_oversight_for_negative_stem() -> None:
@@ -155,11 +156,30 @@ def test_build_submission_context_marks_memory_decay_for_numeric_fact() -> None:
 def test_extract_submission_answer_accepts_slip_style_submission() -> None:
     capability = DeepQuestionCapability()
 
-    answer = capability._extract_submission_answer(
-        "我手滑选了B",
+    answer = capability._build_submission_context(
         {
+            "question": "流水施工题",
             "question_type": "choice",
+            "correct_answer": "B",
         },
-    )
+        "B",
+    )["user_answer"]
 
     assert answer == "B"
+
+
+def test_build_submission_context_accepts_judgment_style_submission() -> None:
+    capability = DeepQuestionCapability()
+
+    context = capability._build_submission_context(
+        {
+            "question": "判断：流水步距反映相邻专业队投入的时间间隔。",
+            "question_type": "choice",
+            "options": {"A": "对", "B": "错"},
+            "correct_answer": "B",
+        },
+        "B",
+    )
+
+    assert context["is_correct"] is True
+    assert context["diagnosis"] == "CORRECT"

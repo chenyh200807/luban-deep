@@ -4,7 +4,8 @@
     "pages/history/history",
     "pages/report/report",
     "pages/profile/profile",
-    "pages/login/login"
+    "pages/login/login",
+    "pages/login/manual"
   ],
   "subpackages": [
     {
@@ -26,6 +27,11 @@
       "root": "pages/assessment",
       "name": "assessment",
       "pages": ["assessment"]
+    },
+    {
+      "root": "pages/legal",
+      "name": "legal",
+      "pages": ["terms"]
     }
   ],
   "preloadRule": {
@@ -78,7 +84,7 @@
   "window": {
     "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#101622",
-    "navigationBarTitleText": "DeepTutor",
+    "navigationBarTitleText": "鲁班智考",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#101622",
     "navigationStyle": "custom"

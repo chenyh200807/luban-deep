@@ -13,6 +13,7 @@ from deeptutor.logging import get_logger
 from deeptutor.services.llm.provider_registry import find_by_name, strip_provider_prefix
 
 from .config import get_token_limit_kwargs
+from .types import TutorResponse, TutorStreamChunk
 from .utils import extract_response_content
 
 logger = get_logger("LLMExecutors")
@@ -73,8 +74,9 @@ async def sdk_complete(
     api_version: str | None = None,
     extra_headers: dict[str, str] | None = None,
     reasoning_effort: str | None = None,
+    return_response_object: bool = False,
     **kwargs: object,
-) -> str:
+) -> str | TutorResponse:
     """Non-streaming completion using the openai SDK."""
     _setup_provider_env(provider_name, api_key, base_url)
     resolved_model, effective_base, effective_key = _resolve_model_and_base(
@@ -115,11 +117,29 @@ async def sdk_complete(
     response = await client.chat.completions.create(**payload)
     choices = getattr(response, "choices", None) or []
     if not choices:
-        return ""
+        return (
+            TutorResponse(content="", usage={}, provider=provider_name, model=resolved_model)
+            if return_response_object
+            else ""
+        )
     message = getattr(choices[0], "message", None)
     if message is None and isinstance(choices[0], dict):
         message = choices[0].get("message")
-    return extract_response_content(message)
+    content = extract_response_content(message)
+    usage_raw = getattr(response, "usage", None)
+    usage = usage_raw.model_dump() if hasattr(usage_raw, "model_dump") else dict(usage_raw or {})
+    if return_response_object:
+        return TutorResponse(
+            content=content,
+            raw_response=response.model_dump() if hasattr(response, "model_dump") else {},
+            usage=usage,
+            provider=provider_name,
+            model=resolved_model,
+            finish_reason=getattr(choices[0], "finish_reason", None)
+            if not isinstance(choices[0], dict)
+            else choices[0].get("finish_reason"),
+        )
+    return content
 
 
 async def sdk_stream(
@@ -134,8 +154,9 @@ async def sdk_stream(
     api_version: str | None = None,
     extra_headers: dict[str, str] | None = None,
     reasoning_effort: str | None = None,
+    return_stream_chunks: bool = False,
     **kwargs: object,
-) -> AsyncGenerator[str, None]:
+) -> AsyncGenerator[str | TutorStreamChunk, None]:
     """Streaming completion using the openai SDK."""
     _setup_provider_env(provider_name, api_key, base_url)
     resolved_model, effective_base, effective_key = _resolve_model_and_base(
@@ -175,7 +196,16 @@ async def sdk_stream(
     payload.update(kwargs)
 
     stream_response = await client.chat.completions.create(**payload)
+    accumulated_content = ""
+    usage: dict[str, int] | None = None
     async for chunk in stream_response:
+        chunk_usage = getattr(chunk, "usage", None)
+        if chunk_usage is not None:
+            usage = (
+                chunk_usage.model_dump()
+                if hasattr(chunk_usage, "model_dump")
+                else dict(chunk_usage or {})
+            )
         choices = getattr(chunk, "choices", None) or []
         if not choices:
             continue
@@ -190,4 +220,23 @@ async def sdk_stream(
             continue
         content = extract_response_content(delta)
         if content:
-            yield content
+            accumulated_content += content
+            if return_stream_chunks:
+                yield TutorStreamChunk(
+                    content=accumulated_content,
+                    delta=content,
+                    provider=provider_name,
+                    model=resolved_model,
+                    is_complete=False,
+                )
+            else:
+                yield content
+    if return_stream_chunks:
+        yield TutorStreamChunk(
+            content=accumulated_content,
+            delta="",
+            provider=provider_name,
+            model=resolved_model,
+            is_complete=True,
+            usage=usage,
+        )

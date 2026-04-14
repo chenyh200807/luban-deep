@@ -1,0 +1,10 @@
+services:
+  deeptutor:
+    networks:
+      - deeptutor-network
+      - langfuse-shared
+
+networks:
+  langfuse-shared:
+    external: true
+    name: luban_jgzk-network

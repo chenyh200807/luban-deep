@@ -14,6 +14,7 @@
   <view class="navbar" style="padding-top:{{statusBarHeight}}px">
     <view class="navbar-inner">
       <image class="nav-logo" src="/images/logo-white.png" mode="heightFix" bindtap="goHome" aria-role="button" aria-label="回到首页" />
+      <text class="nav-brand">鲁班智考</text>
       <view style="flex:1"></view>
       <view class="nav-icon-btn nav-new-chat" wx:if="{{hasMessages}}" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
         <text class="nav-new-icon">+</text>
@@ -22,7 +23,7 @@
   </view>
 
   <!-- ★ Hero 状态 -->
-  <scroll-view class="content hero-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" wx:if="{{!hasMessages}}" style="top:{{navHeight}}px"
+  <scroll-view class="content hero-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" wx:if="{{!hasMessages}}" style="top:{{navHeight}}px;height:{{contentHeight}}px;"
     bindtouchstart="_onHeroDragStart" bindtouchmove="_onHeroDragMove" bindtouchend="_onHeroDragEnd" bindtouchcancel="_onHeroDragEnd">
     <view class="hero-inner" style="transform:translateY({{_heroDragY}}px);transition:{{_heroDragTransition}}">
 
@@ -51,7 +52,7 @@
       <text class="greeting-name" wx:if="{{userName && userName !== '用户'}}">{{userName}}, </text>
       <text class="greeting-time">{{timeGreeting}}</text>
     </view>
-    <text class="greeting-sub">{{reviewCount > 0 ? '今天有 ' + reviewCount + ' 个逾期复习等你' : '准备好开始今天的学习了吗？'}}</text>
+    <text class="greeting-sub">{{reviewCount > 0 ? '今天有 ' + reviewCount + ' 个逾期复习，TutorBot 已准备好带你过一遍' : '你的 TutorBot 已上线，随时开始今天的备考'}}</text>
 
     <!-- 今日焦点 -->
     <view class="focus-bar {{enableFocusPulse?'':'no-pulse'}}" wx:if="{{focusText}}" bindtap="onFocusTap">
@@ -69,7 +70,7 @@
         value="{{inputText}}"
         bindinput="onInput"
         bindconfirm="sendMessage"
-        placeholder="输入考点、知识点或备考疑问..."
+        placeholder="问你的 TutorBot：考点、真题、规范、错题都可以"
         placeholder-class="input-ph"
         auto-height
         maxlength="2000"
@@ -77,18 +78,29 @@
         show-confirm-bar="{{false}}"
         adjust-position="{{true}}"
       />
-      <view class="input-bottom">
-        <view class="mode-row">
-          <view class="mode-pill {{answerMode==='AUTO'?'on':''}}" bindtap="onMode" data-m="AUTO"><text class="mode-pill-txt">智能</text></view>
-          <view class="mode-pill {{answerMode==='DEEP'?'on':''}}" bindtap="onMode" data-m="DEEP"><text class="mode-pill-txt">深度</text></view>
-          <view class="mode-pill {{answerMode==='FAST'?'on':''}}" bindtap="onMode" data-m="FAST"><text class="mode-pill-txt">快速</text></view>
-          <text class="mode-hint">自动切换 · 1-10点</text>
-        </view>
-        <view class="send-btn {{inputText ? 'on' : ''}}" bindtap="sendMessage" aria-role="button" aria-label="发送消息">
-          <text class="send-icon">▶</text>
-        </view>
-      </view>
-    </view>
+	      <view class="input-bottom">
+	        <view class="mode-row">
+	          <view class="mode-pill {{answerMode==='AUTO'?'on':''}}" bindtap="onMode" data-m="AUTO"><text class="mode-pill-txt">智能</text></view>
+	          <view class="mode-pill {{answerMode==='DEEP'?'on':''}}" bindtap="onMode" data-m="DEEP"><text class="mode-pill-txt">深度</text></view>
+	          <view class="mode-pill {{answerMode==='FAST'?'on':''}}" bindtap="onMode" data-m="FAST"><text class="mode-pill-txt">快速</text></view>
+	          <text class="mode-hint">{{modeHintText}}</text>
+	        </view>
+	        <view class="send-btn {{inputText ? 'on' : ''}}" bindtap="sendMessage" aria-role="button" aria-label="发送消息">
+	          <text class="send-icon">▶</text>
+	        </view>
+	      </view>
+	      <view class="tool-row">
+	        <view class="tool-chip {{enableReason ? 'on' : ''}}" bindtap="onToggleReason" aria-role="button" aria-label="{{enableReason ? '关闭推理' : '开启推理'}}">
+	          <text class="tool-chip-icon">◎</text>
+	          <text class="tool-chip-txt">推理</text>
+	        </view>
+	        <view class="tool-chip {{enableWebSearch ? 'on' : ''}}" bindtap="onToggleWebSearch" aria-role="button" aria-label="{{enableWebSearch ? '关闭联网' : '开启联网'}}">
+	          <text class="tool-chip-icon">⌁</text>
+	          <text class="tool-chip-txt">联网</text>
+	        </view>
+	        <text class="tool-hint">知识库检索默认自动开启</text>
+	      </view>
+	    </view>
 
     <!-- 示例 -->
     <text class="example-label">试试这样问</text>
@@ -144,7 +156,7 @@
     scroll-with-animation="{{chatScrollWithAnimation}}"
     lower-threshold="120"
     wx:else
-    style="top:{{navHeight}}px"
+    style="top:{{navHeight}}px;height:{{contentHeight}}px;"
     bindscroll="_onChatScroll"
     bindscrolltolower="_onChatScrollToLower"
   >
@@ -177,16 +189,65 @@
                   <text class="thinking-badge-text">{{item.thinkingBadge ? item.thinkingBadge : 'AI 正在处理'}}</text>
                 </view>
                 <view class="thinking-scan thinking-scan-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}"></view>
-              </view>
-              <text class="thinking-label">{{item.thinkingStatus}}</text>
-              <text class="thinking-sub">{{item.thinkingSub}}</text>
-            </view>
-          </view>
+	              </view>
+	              <text class="thinking-label">{{item.thinkingStatus}}</text>
+	              <text class="thinking-sub">{{item.thinkingSub}}</text>
+	              <view class="workflow-bar" wx:if="{{item.workflowMeta || item.workflowEntries.length}}">
+	                <text class="workflow-meta-text" wx:if="{{item.workflowMeta}}">{{item.workflowMeta}}</text>
+	                <view class="workflow-toggle" bindtap="onToggleWorkflowTrace" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.workflowExpanded ? '收起后台过程' : '展开后台过程'}}">
+	                  <text class="workflow-toggle-text">{{item.workflowExpanded ? '收起过程' : (item.workflowToggleText || '展开后台过程')}}</text>
+	                  <text class="workflow-toggle-arrow">{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
+	                </view>
+	              </view>
+	              <view class="workflow-trace" wx:if="{{item.workflowExpanded && item.workflowEntries.length}}">
+	                <view class="workflow-step" wx:for="{{item.workflowEntries}}" wx:key="id" wx:for-item="wf">
+	                  <view class="workflow-step-head">
+	                    <text class="workflow-step-badge workflow-step-badge-{{wf.tone}}">{{wf.badge}}</text>
+	                    <text class="workflow-step-title">{{wf.title}}</text>
+	                  </view>
+	                  <text class="workflow-step-detail" wx:if="{{wf.detail}}">{{wf.detail}}</text>
+	                  <view class="workflow-step-raw" wx:if="{{wf.rawText}}">
+	                    <text class="workflow-step-raw-label">{{wf.rawLabel}}</text>
+	                    <text class="workflow-step-raw-text" selectable>{{wf.rawText}}</text>
+	                  </view>
+	                </view>
+	              </view>
+	            </view>
+	          </view>
 
           <!-- 思考中：生成阶段维持轻量提示 -->
           <view class="thinking thinking-inline" wx:elif="{{item.thinkingStatus}}">
             <view class="dots-bounce"><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
             <text class="thinking-label">{{item.thinkingStatus}}</text>
+          </view>
+
+          <view class="workflow-card workflow-card-{{item.workflowTone ? item.workflowTone : 'compose'}}" wx:if="{{item.workflowEntries.length && (item.content || item.blocks.length)}}">
+            <view class="workflow-card-head">
+              <view class="workflow-card-title">
+                <text class="workflow-card-badge">{{item.workflowBadge || '本轮推演'}}</text>
+                <text class="workflow-card-label">{{item.workflowTitle || '后台过程已完成'}}</text>
+              </view>
+              <view class="workflow-toggle workflow-toggle-inline" bindtap="onToggleWorkflowTrace" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.workflowExpanded ? '收起后台过程' : '展开后台过程'}}">
+                <text class="workflow-toggle-text">{{item.workflowExpanded ? '收起过程' : (item.workflowToggleText || '查看完整后台过程')}}</text>
+                <text class="workflow-toggle-arrow">{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
+              </view>
+            </view>
+            <text class="workflow-card-sub" wx:if="{{item.workflowSub}}">{{item.workflowSub}}</text>
+            <text class="workflow-meta-text" wx:if="{{item.workflowMeta}}">{{item.workflowMeta}}</text>
+            <text class="workflow-card-count" wx:if="{{item.workflowCountText}}">{{item.workflowCountText}}</text>
+            <view class="workflow-trace workflow-trace-inline" wx:if="{{item.workflowExpanded && item.workflowEntries.length}}">
+              <view class="workflow-step" wx:for="{{item.workflowEntries}}" wx:key="id" wx:for-item="wf">
+                <view class="workflow-step-head">
+                  <text class="workflow-step-badge workflow-step-badge-{{wf.tone}}">{{wf.badge}}</text>
+                  <text class="workflow-step-title">{{wf.title}}</text>
+                </view>
+                <text class="workflow-step-detail" wx:if="{{wf.detail}}">{{wf.detail}}</text>
+                <view class="workflow-step-raw" wx:if="{{wf.rawText}}">
+                  <text class="workflow-step-raw-label">{{wf.rawLabel}}</text>
+                  <text class="workflow-step-raw-text" selectable>{{wf.rawText}}</text>
+                </view>
+              </view>
+            </view>
           </view>
 
           <!-- 纯文本回退：流式初期 blocks 尚未解析 -->
@@ -286,10 +347,9 @@
               </view>
 
             </block>
-          </block>
-
-          <!-- 流式光标 -->
-          <view class="cursor" wx:if="{{item.streaming}}"></view>
+	          </block>
+	          <!-- 流式光标 -->
+	          <view class="cursor" wx:if="{{item.streaming}}"></view>
 
           <!-- MCQ -->
           <view class="mcq" wx:if="{{item.mcqCards && item.mcqCards.length && !item.streaming}}">
@@ -394,19 +454,30 @@
         show-confirm-bar="{{false}}"
         adjust-position="{{true}}"
       />
-      <view class="input-bottom">
-        <view class="mode-row">
-          <view class="mode-pill {{answerMode==='AUTO'?'on':''}}" bindtap="onMode" data-m="AUTO"><text class="mode-pill-txt">智能</text></view>
-          <view class="mode-pill {{answerMode==='DEEP'?'on':''}}" bindtap="onMode" data-m="DEEP"><text class="mode-pill-txt">深度</text></view>
-          <view class="mode-pill {{answerMode==='FAST'?'on':''}}" bindtap="onMode" data-m="FAST"><text class="mode-pill-txt">快速</text></view>
-          <text class="mode-hint">自动切换 · 1-10点</text>
-        </view>
-        <view class="send-btn {{isStreaming ? 'stop' : (inputText ? 'on' : '')}}" bindtap="{{isStreaming ? 'stopStream' : 'sendMessage'}}" aria-role="button" aria-label="{{isStreaming ? '停止生成' : '发送消息'}}">
-          <text class="send-icon">{{isStreaming ? '■' : '▶'}}</text>
-        </view>
-      </view>
-    </view>
-  </view>
+	      <view class="input-bottom">
+	        <view class="mode-row">
+	          <view class="mode-pill {{answerMode==='AUTO'?'on':''}}" bindtap="onMode" data-m="AUTO"><text class="mode-pill-txt">智能</text></view>
+	          <view class="mode-pill {{answerMode==='DEEP'?'on':''}}" bindtap="onMode" data-m="DEEP"><text class="mode-pill-txt">深度</text></view>
+	          <view class="mode-pill {{answerMode==='FAST'?'on':''}}" bindtap="onMode" data-m="FAST"><text class="mode-pill-txt">快速</text></view>
+	          <text class="mode-hint">自动切换 · 1-10点</text>
+	        </view>
+	        <view class="send-btn {{isStreaming ? 'stop' : (inputText ? 'on' : '')}}" bindtap="{{isStreaming ? 'stopStream' : 'sendMessage'}}" aria-role="button" aria-label="{{isStreaming ? '停止生成' : '发送消息'}}">
+	          <text class="send-icon">{{isStreaming ? '■' : '▶'}}</text>
+	        </view>
+	      </view>
+	      <view class="tool-row">
+	        <view class="tool-chip {{enableReason ? 'on' : ''}}" bindtap="onToggleReason" aria-role="button" aria-label="{{enableReason ? '关闭推理' : '开启推理'}}">
+	          <text class="tool-chip-icon">◎</text>
+	          <text class="tool-chip-txt">推理</text>
+	        </view>
+	        <view class="tool-chip {{enableWebSearch ? 'on' : ''}}" bindtap="onToggleWebSearch" aria-role="button" aria-label="{{enableWebSearch ? '关闭联网' : '开启联网'}}">
+	          <text class="tool-chip-icon">⌁</text>
+	          <text class="tool-chip-txt">联网</text>
+	        </view>
+	        <text class="tool-hint">知识库检索默认自动开启</text>
+	      </view>
+	    </view>
+	  </view>
 
   <!-- ★ 积分明细半屏弹窗 -->
   <view class="billing-mask {{billingShow ? 'show' : ''}}" bindtap="closeBilling"></view>

@@ -17,6 +17,7 @@ import aiohttp
 from .capabilities import get_effective_temperature, supports_response_format
 from .config import get_token_limit_kwargs
 from .exceptions import LLMAPIError, LLMAuthenticationError, LLMConfigError
+from .types import TutorResponse, TutorStreamChunk
 from .utils import (
     build_auth_headers,
     build_chat_url,
@@ -111,8 +112,9 @@ async def complete(
     base_url: str | None = None,
     api_version: str | None = None,
     binding: str = "openai",
+    return_response_object: bool = False,
     **kwargs: object,
-) -> str:
+) -> str | TutorResponse:
     """
     Complete a prompt using cloud API providers.
 
@@ -146,6 +148,7 @@ async def complete(
             base_url=base_url,
             max_tokens=max_tokens_value,
             temperature=temperature_value,
+            return_response_object=return_response_object,
         )
 
     if binding_lower == "cohere":
@@ -170,6 +173,7 @@ async def complete(
         base_url=base_url,
         api_version=api_version,
         binding=binding_lower,
+        return_response_object=return_response_object,
         **kwargs,
     )
 
@@ -183,8 +187,9 @@ async def stream(
     api_version: str | None = None,
     binding: str = "openai",
     messages: list[dict[str, object]] | None = None,
+    return_stream_chunks: bool = False,
     **kwargs: object,
-) -> AsyncGenerator[str, None]:
+) -> AsyncGenerator[str | TutorStreamChunk, None]:
     """
     Stream a response from cloud API providers.
 
@@ -218,6 +223,7 @@ async def stream(
             messages=messages,
             max_tokens=max_tokens_value,
             temperature=temperature_value,
+            return_stream_chunks=return_stream_chunks,
         ):
             yield chunk
     else:
@@ -230,6 +236,7 @@ async def stream(
             api_version=api_version,
             binding=binding_lower,
             messages=messages,
+            return_stream_chunks=return_stream_chunks,
             **kwargs,
         ):
             yield chunk
@@ -243,8 +250,9 @@ async def _openai_complete(
     base_url: str | None,
     api_version: str | None = None,
     binding: str = "openai",
+    return_response_object: bool = False,
     **kwargs: object,
-) -> str:
+) -> str | TutorResponse:
     """OpenAI-compatible completion."""
     # Sanitize URL
     if base_url:
@@ -257,6 +265,8 @@ async def _openai_complete(
 
     messages = kwargs.pop("messages", None)
     content = None
+    result: dict[str, object] = {}
+    usage: dict[str, object] = {}
 
     effective_base = base_url or "https://api.openai.com/v1"
     url = build_chat_url(effective_base, api_version, binding)
@@ -313,6 +323,11 @@ async def _openai_complete(
             async with session.post(url, headers=headers, json=data) as resp:
                 if resp.status == 200:
                     result = cast(dict[str, object], await resp.json())
+                    usage = (
+                        dict(cast(Mapping[str, object], result.get("usage")))
+                        if isinstance(result.get("usage"), Mapping)
+                        else {}
+                    )
                     choices = result.get("choices")
                     if isinstance(choices, list) and choices:
                         choices_list = cast(list[object], choices)
@@ -350,7 +365,16 @@ async def _openai_complete(
 
     if content is not None:
         # Clean thinking tags from response using unified utility
-        return clean_thinking_tags(content, binding, model)
+        cleaned = clean_thinking_tags(content, binding, model)
+        if return_response_object:
+            return TutorResponse(
+                content=cleaned,
+                raw_response=result,
+                usage={str(key): int(value) for key, value in usage.items() if isinstance(value, (int, float))},
+                provider=binding or "openai",
+                model=model,
+            )
+        return cleaned
 
     raise LLMConfigError("Cloud completion failed: no valid configuration")
 
@@ -364,8 +388,9 @@ async def _openai_stream(
     api_version: str | None = None,
     binding: str = "openai",
     messages: list[dict[str, object]] | None = None,
+    return_stream_chunks: bool = False,
     **kwargs: object,
-) -> AsyncGenerator[str, None]:
+) -> AsyncGenerator[str | TutorStreamChunk, None]:
     """OpenAI-compatible streaming."""
     import json
 
@@ -440,6 +465,8 @@ async def _openai_stream(
             # Track thinking block state for streaming
             in_thinking_block = False
             thinking_buffer = ""
+            accumulated_content = ""
+            usage: dict[str, int] | None = None
 
             async for line in resp.content:
                 line_str = line.decode("utf-8").strip()
@@ -452,6 +479,12 @@ async def _openai_stream(
 
                 try:
                     chunk_data = cast(dict[str, object], json.loads(data_str))
+                    if isinstance(chunk_data.get("usage"), Mapping):
+                        usage = {
+                            str(key): int(value)
+                            for key, value in cast(Mapping[str, object], chunk_data.get("usage")).items()
+                            if isinstance(value, (int, float))
+                        }
                     choices = chunk_data.get("choices")
                     if isinstance(choices, list) and choices:
                         choices_list = cast(list[object], choices)
@@ -477,7 +510,17 @@ async def _openai_stream(
                                     if open_m in content:
                                         parts = content.split(open_m, 1)
                                         if parts[0]:
-                                            yield parts[0]
+                                            accumulated_content += parts[0]
+                                            if return_stream_chunks:
+                                                yield TutorStreamChunk(
+                                                    content=accumulated_content,
+                                                    delta=parts[0],
+                                                    provider=binding or "openai",
+                                                    model=model,
+                                                    is_complete=False,
+                                                )
+                                            else:
+                                                yield parts[0]
                                         thinking_buffer = open_m + parts[1]
 
                                         # Check if closed immediately in same chunk
@@ -488,7 +531,17 @@ async def _openai_stream(
                                                 thinking_buffer, binding, model
                                             )
                                             if cleaned:
-                                                yield cleaned
+                                                accumulated_content += cleaned
+                                                if return_stream_chunks:
+                                                    yield TutorStreamChunk(
+                                                        content=accumulated_content,
+                                                        delta=cleaned,
+                                                        provider=binding or "openai",
+                                                        model=model,
+                                                        is_complete=False,
+                                                    )
+                                                else:
+                                                    yield cleaned
                                             thinking_buffer = ""
                                             in_thinking_block = False
                                         break
@@ -499,14 +552,43 @@ async def _openai_stream(
                                     # Block finished
                                     cleaned = clean_thinking_tags(thinking_buffer, binding, model)
                                     if cleaned:
-                                        yield cleaned
+                                        accumulated_content += cleaned
+                                        if return_stream_chunks:
+                                            yield TutorStreamChunk(
+                                                content=accumulated_content,
+                                                delta=cleaned,
+                                                provider=binding or "openai",
+                                                model=model,
+                                                is_complete=False,
+                                            )
+                                        else:
+                                            yield cleaned
                                     in_thinking_block = False
                                     thinking_buffer = ""
                                 continue
                             else:
-                                yield content
+                                accumulated_content += content
+                                if return_stream_chunks:
+                                    yield TutorStreamChunk(
+                                        content=accumulated_content,
+                                        delta=content,
+                                        provider=binding or "openai",
+                                        model=model,
+                                        is_complete=False,
+                                    )
+                                else:
+                                    yield content
                 except json.JSONDecodeError:
                     continue
+            if return_stream_chunks:
+                yield TutorStreamChunk(
+                    content=accumulated_content,
+                    delta="",
+                    provider=binding or "openai",
+                    model=model,
+                    is_complete=True,
+                    usage=usage,
+                )
 
 
 async def _anthropic_complete(
@@ -518,7 +600,8 @@ async def _anthropic_complete(
     messages: list[dict[str, object]] | None = None,
     max_tokens: int | None = None,
     temperature: float | None = None,
-) -> str:
+    return_response_object: bool = False,
+) -> str | TutorResponse:
     """Anthropic (Claude) API completion."""
     api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
@@ -566,6 +649,15 @@ async def _anthropic_complete(
                 )
 
             result = cast(dict[str, object], await response.json())
+            usage = (
+                {
+                    str(key): int(value)
+                    for key, value in cast(Mapping[str, object], result.get("usage")).items()
+                    if isinstance(value, (int, float))
+                }
+                if isinstance(result.get("usage"), Mapping)
+                else {}
+            )
             content_items = result.get("content")
             if isinstance(content_items, list) and content_items:
                 content_list = cast(list[object], content_items)
@@ -573,6 +665,14 @@ async def _anthropic_complete(
                 if isinstance(first_item, Mapping):
                     text = cast(Mapping[str, object], first_item).get("text")
                     if isinstance(text, str):
+                        if return_response_object:
+                            return TutorResponse(
+                                content=text,
+                                raw_response=result,
+                                usage=usage,
+                                provider="anthropic",
+                                model=model,
+                            )
                         return text
             raise LLMAPIError(
                 "Anthropic API error: unexpected response payload",
@@ -590,7 +690,8 @@ async def _anthropic_stream(
     messages: list[dict[str, object]] | None = None,
     max_tokens: int | None = None,
     temperature: float | None = None,
-) -> AsyncGenerator[str, None]:
+    return_stream_chunks: bool = False,
+) -> AsyncGenerator[str | TutorStreamChunk, None]:
     """Anthropic (Claude) API streaming."""
     import json
 
@@ -640,6 +741,8 @@ async def _anthropic_stream(
                     provider="anthropic",
                 )
 
+            accumulated_content = ""
+            usage: dict[str, int] | None = None
             async for line in response.content:
                 line_str = line.decode("utf-8").strip()
                 if not line_str or not line_str.startswith("data:"):
@@ -659,9 +762,34 @@ async def _anthropic_stream(
                         else:
                             text = None
                         if isinstance(text, str) and text:
-                            yield text
+                            accumulated_content += text
+                            if return_stream_chunks:
+                                yield TutorStreamChunk(
+                                    content=accumulated_content,
+                                    delta=text,
+                                    provider="anthropic",
+                                    model=model,
+                                    is_complete=False,
+                                )
+                            else:
+                                yield text
+                    elif event_type == "message_delta" and isinstance(chunk_data.get("usage"), Mapping):
+                        usage = {
+                            str(key): int(value)
+                            for key, value in cast(Mapping[str, object], chunk_data.get("usage")).items()
+                            if isinstance(value, (int, float))
+                        }
                 except json.JSONDecodeError:
                     continue
+            if return_stream_chunks:
+                yield TutorStreamChunk(
+                    content=accumulated_content,
+                    delta="",
+                    provider="anthropic",
+                    model=model,
+                    is_complete=True,
+                    usage=usage,
+                )
 
 
 async def _cohere_complete(

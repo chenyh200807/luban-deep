@@ -109,3 +109,43 @@ def test_start_observation_propagates_session_id_to_langfuse_trace() -> None:
             "tags": ["chat", "session"],
         }
     ]
+
+
+def test_usage_scope_accumulates_usage_with_sources() -> None:
+    adapter = LangfuseObservability()
+
+    with adapter.usage_scope(
+        scope_id="turn_123",
+        session_id="unified_123",
+        turn_id="turn_123",
+        capability="chat",
+    ):
+        adapter.record_usage(
+            usage_details={"input": 120.0, "output": 30.0, "total": 150.0},
+            source="provider",
+            model="gpt-4o",
+        )
+        adapter.record_usage(
+            usage_details={"input": 50.0, "output": 25.0, "total": 75.0},
+            source="tiktoken",
+            model="gpt-4o",
+        )
+        summary = adapter.get_current_usage_summary()
+
+    assert summary == {
+        "scope_id": "turn_123",
+        "session_id": "unified_123",
+        "turn_id": "turn_123",
+        "capability": "chat",
+        "total_input_tokens": 170,
+        "total_output_tokens": 55,
+        "total_tokens": 225,
+        "total_calls": 2,
+        "measured_calls": 1,
+        "estimated_calls": 1,
+        "usage_accuracy": "mixed",
+        "usage_sources": {"provider": 1, "tiktoken": 1},
+        "models": {"gpt-4o": 2},
+        "total_cost_usd": 0.0,
+    }
+    assert adapter.get_current_usage_summary() is None

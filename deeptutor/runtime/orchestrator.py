@@ -20,6 +20,13 @@ from deeptutor.core.stream_bus import StreamBus
 from deeptutor.events.event_bus import Event, EventType, get_event_bus
 from deeptutor.runtime.registry.capability_registry import get_capability_registry
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
+from deeptutor.services.question_followup import (
+    answers_match,
+    detect_answer_reveal_preference,
+    detect_requested_question_type,
+    looks_like_question_followup,
+    resolve_submission,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +108,9 @@ class ChatOrchestrator:
             self._prepare_practice_request_context(context)
             return "deep_question"
 
+        if self._looks_like_question_followup(context):
+            return "deep_question"
+
         return "chat"
 
     @staticmethod
@@ -115,67 +125,106 @@ class ChatOrchestrator:
         negative_markers = ("不要出题", "别出题", "不想做题")
         if any(marker in text for marker in negative_markers):
             return False
+        if re.search(r"(给我|帮我|来|出|做)\s*\d{0,2}\s*(?:道|题)", text):
+            return True
+        if re.search(r"(给我|帮我|来|出|做)\s*[一二两三四五六七八九十]?\s*(?:道|题)", text):
+            return True
         return any(marker in text for marker in positive_markers)
-
-    @staticmethod
-    def _extract_choice_submission(user_message: str) -> str | None:
-        raw = str(user_message or "").strip().upper()
-        if not raw:
-            return None
-        compact = re.sub(r"\s+", "", raw)
-        patterns = [
-            r"^(?:我选|我觉得选|选|答案是|答案|就是|选项)?([ABCD])$",
-            r"^(?:我手滑选了|我看错选了|我粗心选了)([ABCD])$",
-            r"^(?:OPTION|ANSWER)[:：]?([ABCD])$",
-        ]
-        for pattern in patterns:
-            match = re.fullmatch(pattern, compact)
-            if match:
-                return match.group(1)
-        if re.fullmatch(r"[ABCD]", compact):
-            return compact
-        return None
 
     def _looks_like_question_submission(self, context: UnifiedContext) -> bool:
         qctx = context.metadata.get("question_followup_context", {}) or {}
         if not isinstance(qctx, dict) or not qctx.get("question"):
             return False
-        question_type = str(qctx.get("question_type", "") or "").strip().lower()
-        if question_type != "choice":
-            return False
-        return self._extract_choice_submission(context.user_message) is not None
+        _target_context, answer = resolve_submission(context.user_message, qctx)
+        return answer is not None
 
     def _prepare_question_submission_context(self, context: UnifiedContext) -> None:
         qctx = dict(context.metadata.get("question_followup_context", {}) or {})
-        answer = self._extract_choice_submission(context.user_message)
-        if not answer:
+        target_context, answer = resolve_submission(context.user_message, qctx)
+        if not target_context or not answer:
             return
-        correct_answer = str(qctx.get("correct_answer", "") or "").strip().upper()
-        qctx["user_answer"] = answer
-        qctx["is_correct"] = bool(correct_answer) and answer == correct_answer
-        context.metadata["question_followup_context"] = qctx
+        correct_answer = str(target_context.get("correct_answer", "") or "").strip()
+        graded_context = dict(target_context)
+        graded_context["user_answer"] = answer
+        graded_context["is_correct"] = answers_match(answer, correct_answer, graded_context)
+        context.metadata["question_followup_context"] = graded_context
+
+    def _looks_like_question_followup(self, context: UnifiedContext) -> bool:
+        qctx = context.metadata.get("question_followup_context", {}) or {}
+        if not isinstance(qctx, dict) or not qctx.get("question"):
+            return False
+        return looks_like_question_followup(context.user_message, qctx)
 
     @staticmethod
     def _preferred_question_type(message: str) -> str:
+        return detect_requested_question_type(message)[0]
+
+    @staticmethod
+    def _infer_question_count(message: str) -> int:
         text = str(message or "").strip().lower()
-        if any(marker in text for marker in ("编程", "代码", "伪代码", "algorithm", "coding", "code")):
-            return "coding"
-        if any(marker in text for marker in ("简答", "论述", "案例", "问答", "written", "essay")):
-            return "written"
-        return "choice"
+        if not text:
+            return 1
+        digit_match = re.search(r"(\d{1,2})\s*(?:道|题|个题目|个小题)", text)
+        if digit_match:
+            return max(1, min(50, int(digit_match.group(1))))
+        zh_num_map = {
+            "一": 1,
+            "二": 2,
+            "两": 2,
+            "三": 3,
+            "四": 4,
+            "五": 5,
+            "六": 6,
+            "七": 7,
+            "八": 8,
+            "九": 9,
+            "十": 10,
+        }
+        zh_match = re.search(r"([一二两三四五六七八九十])\s*(?:道|题|个题目|个小题)", text)
+        if zh_match:
+            return zh_num_map.get(zh_match.group(1), 1)
+        if "几道" in text or "几题" in text:
+            return 3
+        return 1
 
     def _prepare_practice_request_context(self, context: UnifiedContext) -> None:
         if not isinstance(context.config_overrides, dict):
             context.config_overrides = {}
+        interaction_hints = (
+            context.metadata.get("interaction_hints", {})
+            if isinstance(context.metadata, dict)
+            else {}
+        )
+        preferred_question_type = ""
+        if isinstance(interaction_hints, dict):
+            preferred_question_type = str(
+                interaction_hints.get("preferred_question_type", "") or ""
+            ).strip().lower()
+        explicit_question_type, is_explicit_type = detect_requested_question_type(
+            context.user_message
+        )
+        reveal_preference = detect_answer_reveal_preference(context.user_message)
         context.config_overrides.setdefault("mode", "custom")
         context.config_overrides.setdefault("topic", context.user_message)
-        context.config_overrides.setdefault("num_questions", 1)
+        context.config_overrides.setdefault(
+            "num_questions",
+            self._infer_question_count(context.user_message),
+        )
         context.config_overrides.setdefault(
             "question_type",
-            self._preferred_question_type(context.user_message),
+            explicit_question_type
+            if is_explicit_type
+            else preferred_question_type or explicit_question_type,
         )
-        context.config_overrides.setdefault("reveal_answers", False)
-        context.config_overrides.setdefault("reveal_explanations", False)
+        suppress_answer_reveal = True
+        if isinstance(interaction_hints, dict):
+            suppress_answer_reveal = bool(
+                interaction_hints.get("suppress_answer_reveal_on_generate", True)
+            )
+        if reveal_preference is not None:
+            suppress_answer_reveal = not reveal_preference
+        context.config_overrides.setdefault("reveal_answers", not suppress_answer_reveal)
+        context.config_overrides.setdefault("reveal_explanations", not suppress_answer_reveal)
 
     async def _publish_completion(self, context: UnifiedContext, cap_name: str) -> None:
         """Publish CAPABILITY_COMPLETE to the global EventBus."""

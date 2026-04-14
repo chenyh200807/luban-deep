@@ -16,10 +16,12 @@ from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.path_service import get_path_service
+from deeptutor.services.question_followup import normalize_question_followup_context
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, get_sqlite_session_store
 
 logger = logging.getLogger(__name__)
 observability = get_langfuse_observability()
+_MINI_PROGRAM_CAPTURE_COST = 20
 
 
 def _should_capture_assistant_content(event: StreamEvent) -> bool:
@@ -45,37 +47,77 @@ def _extract_followup_question_context(
     if not isinstance(config, dict):
         return None
     raw = config.pop("followup_question_context", None)
+    normalized = normalize_question_followup_context(raw)
+    if not normalized:
+        return None
+    normalized["knowledge_context"] = _clip_text(
+        str(normalized.get("knowledge_context", "") or "").strip()
+    )
+    return normalized
+
+
+def _extract_interaction_hints(
+    config: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if not isinstance(config, dict):
+        return None
+    raw = config.pop("interaction_hints", None)
     if not isinstance(raw, dict):
         return None
 
-    question = str(raw.get("question", "") or "").strip()
-    question_id = str(raw.get("question_id", "") or "").strip()
-    if not question:
-        return None
+    profile = str(raw.get("profile", "") or "").strip().lower()
+    priorities = raw.get("priorities")
+    if not isinstance(priorities, list):
+        priorities = []
+    normalized_priorities = [
+        str(item or "").strip().lower()
+        for item in priorities
+        if str(item or "").strip()
+    ]
 
-    options = raw.get("options")
-    normalized_options: dict[str, str] | None = None
-    if isinstance(options, dict):
-        normalized_options = {
-            str(key).strip().upper()[:1]: str(value or "").strip()
-            for key, value in options.items()
-            if str(value or "").strip()
-        }
+    preferred_question_type = str(raw.get("preferred_question_type", "") or "").strip().lower()
+    if preferred_question_type not in {"choice", "written", "coding"}:
+        preferred_question_type = ""
 
-    return {
-        "parent_quiz_session_id": str(raw.get("parent_quiz_session_id", "") or "").strip(),
-        "question_id": question_id,
-        "question": question,
-        "question_type": str(raw.get("question_type", "") or "").strip(),
-        "options": normalized_options,
-        "correct_answer": str(raw.get("correct_answer", "") or "").strip(),
-        "explanation": str(raw.get("explanation", "") or "").strip(),
-        "difficulty": str(raw.get("difficulty", "") or "").strip(),
-        "concentration": str(raw.get("concentration", "") or "").strip(),
-        "knowledge_context": _clip_text(str(raw.get("knowledge_context", "") or "").strip()),
-        "user_answer": str(raw.get("user_answer", "") or "").strip(),
-        "is_correct": raw.get("is_correct"),
+    hints = {
+        "profile": profile,
+        "scene": str(raw.get("scene", "") or "").strip().lower(),
+        "preferred_question_type": preferred_question_type,
+        "suppress_answer_reveal_on_generate": bool(
+            raw.get("suppress_answer_reveal_on_generate", False)
+        ),
+        "prefer_question_context_grading": bool(
+            raw.get("prefer_question_context_grading", False)
+        ),
+        "prefer_concept_teaching_slots": bool(
+            raw.get("prefer_concept_teaching_slots", False)
+        ),
+        "allow_general_chat_fallback": raw.get("allow_general_chat_fallback", True) is not False,
+        "priorities": normalized_priorities,
     }
+
+    if profile == "mini_tutor":
+        hints["scene"] = hints["scene"] or "wechat_mini_program_learning"
+        hints["preferred_question_type"] = hints["preferred_question_type"] or "choice"
+        hints["suppress_answer_reveal_on_generate"] = True
+        hints["prefer_question_context_grading"] = True
+        hints["prefer_concept_teaching_slots"] = True
+        if not hints["priorities"]:
+            hints["priorities"] = ["practice", "grading", "explain", "review", "plan"]
+
+    meaningful = any(
+        [
+            hints["profile"],
+            hints["scene"],
+            hints["preferred_question_type"],
+            hints["priorities"],
+            hints["suppress_answer_reveal_on_generate"],
+            hints["prefer_question_context_grading"],
+            hints["prefer_concept_teaching_slots"],
+            hints["allow_general_chat_fallback"] is False,
+        ]
+    )
+    return hints if meaningful else None
 
 
 def _extract_persist_user_message(config: dict[str, Any] | None) -> bool:
@@ -87,6 +129,19 @@ def _extract_persist_user_message(config: dict[str, Any] | None) -> bool:
     if isinstance(raw, str):
         return raw.strip().lower() not in {"false", "0", "no"}
     return bool(raw)
+
+
+def _extract_billing_context(config: dict[str, Any] | None) -> dict[str, str] | None:
+    if not isinstance(config, dict):
+        return None
+    raw = config.pop("billing_context", None)
+    if not isinstance(raw, dict):
+        return None
+    source = str(raw.get("source", "") or "").strip().lower()
+    user_id = str(raw.get("user_id", "") or "").strip()
+    if not source or not user_id:
+        return None
+    return {"source": source, "user_id": user_id}
 
 
 def _format_followup_question_context(context: dict[str, Any], language: str = "en") -> str:
@@ -183,6 +238,56 @@ def _format_followup_question_context(context: dict[str, Any], language: str = "
     return "\n".join(lines).strip()
 
 
+def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> str:
+    profile = str(hints.get("profile", "") or "").strip()
+    preferred_question_type = str(hints.get("preferred_question_type", "") or "").strip()
+
+    if str(language or "en").lower().startswith("zh"):
+        lines = [
+            "你正在一个学习型产品场景中工作。下面是交互策略提示，把它当作类似技能说明的软约束，不要机械套模板：",
+        ]
+        if profile == "mini_tutor":
+            lines.append("- 当前场景偏向微信小程序的学练闭环。")
+        if hints.get("priorities"):
+            lines.append(
+                f"- 优先关注这些交互目标：{', '.join(str(item) for item in hints['priorities'])}。"
+            )
+        if preferred_question_type:
+            lines.append(f"- 用户要求出题但未指定题型时，优先出 `{preferred_question_type}`。")
+        if hints.get("suppress_answer_reveal_on_generate"):
+            lines.append("- 出题时本回合优先只出题，不主动泄露答案或解析。")
+        if hints.get("prefer_question_context_grading"):
+            lines.append("- 若已有题目上下文，短答案如 A/B/C/D、我选B，应优先结合题目上下文理解为作答提交。")
+        if hints.get("prefer_concept_teaching_slots"):
+            lines.append("- 遇到知识讲解且本轮用了知识召回时，优先覆盖核心结论、踩分点、易错点、记忆口诀和心得。")
+        if hints.get("allow_general_chat_fallback"):
+            lines.append("- 如果用户明显转入闲聊、产品问答或开放问题，正常切回通用智能助理模式。")
+        else:
+            lines.append("- 优先保持学习辅导语境，除非用户明确要求切换话题。")
+        return "\n".join(lines).strip()
+
+    lines = [
+        "You are operating in a learning-product scenario. Treat the notes below like skill guidance rather than a rigid workflow:",
+    ]
+    if profile == "mini_tutor":
+        lines.append("- The current scene is closer to a WeChat mini-program learning loop.")
+    if hints.get("priorities"):
+        lines.append(f"- Prioritize these interaction goals: {', '.join(str(item) for item in hints['priorities'])}.")
+    if preferred_question_type:
+        lines.append(f"- If the learner asks for practice without specifying type, prefer `{preferred_question_type}` questions.")
+    if hints.get("suppress_answer_reveal_on_generate"):
+        lines.append("- When generating practice, prefer giving only the question first without revealing the answer or explanation.")
+    if hints.get("prefer_question_context_grading"):
+        lines.append("- If quiz context exists, short replies like A/B/C/D or 'I choose B' should be interpreted as answer submissions when plausible.")
+    if hints.get("prefer_concept_teaching_slots"):
+        lines.append("- For concept teaching, try to cover conclusion, scoring points, pitfalls, memory hooks, and exam strategy.")
+    if hints.get("allow_general_chat_fallback"):
+        lines.append("- If the user clearly switches to open-ended chat, product questions, or general conversation, fall back naturally to general assistant behavior.")
+    else:
+        lines.append("- Stay in tutoring mode unless the user explicitly asks to switch topics.")
+    return "\n".join(lines).strip()
+
+
 @dataclass
 class _LiveSubscriber:
     queue: asyncio.Queue[dict[str, Any]]
@@ -206,12 +311,86 @@ class TurnRuntimeManager:
         self._lock = asyncio.Lock()
         self._executions: dict[str, _TurnExecution] = {}
 
+    async def _resolve_billing_context(
+        self,
+        session_id: str,
+        request_config: dict[str, Any] | None,
+    ) -> dict[str, str] | None:
+        billing_context = _extract_billing_context(request_config)
+        if billing_context is not None:
+            return billing_context
+        session = await self.store.get_session(session_id)
+        if session is None:
+            return None
+        preferences = session.get("preferences") or {}
+        source = str(preferences.get("source", "") or "").strip().lower()
+        user_id = str(preferences.get("user_id", "") or "").strip()
+        if not source or not user_id:
+            return None
+        return {"source": source, "user_id": user_id}
+
+    def _capture_mobile_points(
+        self,
+        billing_context: dict[str, str] | None,
+        assistant_content: str,
+    ) -> None:
+        if not billing_context:
+            return
+        if billing_context.get("source") != "wx_miniprogram":
+            return
+        user_id = str(billing_context.get("user_id", "") or "").strip()
+        if not user_id or not str(assistant_content or "").strip():
+            return
+        try:
+            from deeptutor.services.member_console import get_member_console_service
+
+            member_service = get_member_console_service()
+            member_service.capture_points(
+                user_id=user_id,
+                amount=_MINI_PROGRAM_CAPTURE_COST,
+                reason="capture",
+            )
+        except Exception:
+            logger.warning("Failed to capture points for user %s", user_id, exc_info=True)
+
+    def _record_mobile_learning(
+        self,
+        billing_context: dict[str, str] | None,
+        raw_user_content: str,
+        assistant_content: str,
+    ) -> None:
+        if not billing_context:
+            return
+        if billing_context.get("source") != "wx_miniprogram":
+            return
+        user_id = str(billing_context.get("user_id", "") or "").strip()
+        if not user_id or not str(assistant_content or "").strip():
+            return
+        try:
+            from deeptutor.services.member_console import get_member_console_service
+
+            member_service = get_member_console_service()
+            member_service.record_chat_learning(
+                user_id=user_id,
+                query=raw_user_content,
+                assistant_content=assistant_content,
+            )
+        except Exception:
+            logger.warning("Failed to record learning activity for user %s", user_id, exc_info=True)
+
     async def start_turn(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
         requested_capability = str(payload.get("capability") or "").strip() or None
         capability = requested_capability or "chat"
         raw_config = dict(payload.get("config", {}) or {})
         explicit_chat_mode = "chat_mode" in raw_config
-        runtime_only_keys = ("_persist_user_message", "followup_question_context")
+        runtime_only_keys = (
+            "_persist_user_message",
+            "followup_question_context",
+            "interaction_hints",
+            "billing_context",
+            "interaction_profile",
+            "chat_mode_explicit",
+        )
         runtime_only_config = {
             key: raw_config.pop(key)
             for key in runtime_only_keys
@@ -242,6 +421,7 @@ class TurnRuntimeManager:
                 "tools": list(payload.get("tools") or []),
                 "knowledge_bases": list(payload.get("knowledge_bases") or []),
                 "language": str(payload.get("language") or "en"),
+                **(_extract_billing_context(dict(runtime_only_config)) or {}),
             },
         )
         turn = await self.store.create_turn(session["id"], capability=capability)
@@ -359,19 +539,29 @@ class TurnRuntimeManager:
             from deeptutor.agents.notebook import NotebookAnalysisAgent
             from deeptutor.services.memory import get_memory_service
             from deeptutor.services.notebook import notebook_manager
+            from deeptutor.services.tutor_state import get_user_tutor_state_service
             from deeptutor.services.llm.config import get_llm_config
             from deeptutor.services.session.context_builder import ContextBuilder
 
             request_config = dict(payload.get("config", {}) or {})
             followup_question_context = _extract_followup_question_context(request_config)
+            interaction_hints = _extract_interaction_hints(request_config)
             persist_user_message = _extract_persist_user_message(request_config)
+            billing_context = await self._resolve_billing_context(session_id, request_config)
+            if not followup_question_context:
+                followup_question_context = await self.store.get_active_question_context(session_id)
             raw_user_content = str(payload.get("content", "") or "")
             notebook_references = payload.get("notebook_references", []) or []
             history_references = payload.get("history_references", []) or []
             notebook_context = ""
             history_context = ""
             trace_metadata["language"] = payload.get("language", "en")
-            with observability.start_observation(
+            with observability.usage_scope(
+                scope_id=turn_id,
+                session_id=session_id,
+                turn_id=turn_id,
+                capability=capability_name or "chat",
+            ), observability.start_observation(
                 name=f"turn.{capability_name or 'chat'}",
                 as_type="chain",
                 input_payload={"content": raw_user_content},
@@ -401,6 +591,22 @@ class TurnRuntimeManager:
                             ),
                             capability=capability_name or "chat",
                         )
+                if interaction_hints:
+                    existing_messages = await self.store.get_messages_for_context(session_id)
+                    if not any(
+                        str(message.get("content", "") or "").startswith("你正在一个学习型产品场景中工作。")
+                        or str(message.get("content", "") or "").startswith("You are operating in a learning-product scenario.")
+                        for message in existing_messages
+                    ):
+                        await self.store.add_message(
+                            session_id=session_id,
+                            role="system",
+                            content=_format_interaction_hints(
+                                interaction_hints,
+                                language=str(payload.get("language", "en") or "en"),
+                            ),
+                            capability=capability_name or "chat",
+                        )
 
                 llm_config = get_llm_config()
                 builder = ContextBuilder(self.store)
@@ -411,7 +617,23 @@ class TurnRuntimeManager:
                     on_event=lambda event: self._persist_and_publish(execution, event),
                 )
                 memory_service = get_memory_service()
-                memory_context = memory_service.build_memory_context()
+                tutor_state_service = get_user_tutor_state_service()
+                user_id = str((billing_context or {}).get("user_id", "") or "").strip()
+                if user_id:
+                    try:
+                        memory_context = tutor_state_service.build_context(
+                            user_id=user_id,
+                            language=str(payload.get("language", "en") or "en"),
+                        )
+                    except Exception:
+                        logger.warning(
+                            "Failed to build tutor state context for user %s",
+                            user_id,
+                            exc_info=True,
+                        )
+                        memory_context = memory_service.build_memory_context()
+                else:
+                    memory_context = memory_service.build_memory_context()
 
                 if notebook_references:
                     referenced_records = notebook_manager.get_records_by_references(
@@ -532,6 +754,7 @@ class TurnRuntimeManager:
                         "chat_mode_explicit": bool(payload.get("_chat_mode_explicit", False)),
                         "turn_id": turn_id,
                         "question_followup_context": followup_question_context or {},
+                        "interaction_hints": interaction_hints or {},
                         "notebook_references": notebook_references,
                         "history_references": history_references,
                         "memory_context": memory_context,
@@ -555,6 +778,12 @@ class TurnRuntimeManager:
                     capability=capability_name,
                     events=assistant_events,
                 )
+                self._capture_mobile_points(billing_context, assistant_content)
+                self._record_mobile_learning(
+                    billing_context,
+                    raw_user_content,
+                    assistant_content,
+                )
                 await self.store.update_turn_status(turn_id, "completed")
                 observability.update_observation(
                     turn_observation,
@@ -565,15 +794,25 @@ class TurnRuntimeManager:
                     },
                 )
                 try:
-                    await memory_service.refresh_from_turn(
-                        user_message=raw_user_content,
-                        assistant_message=assistant_content,
-                        session_id=session_id,
-                        capability=capability_name or "chat",
-                        language=str(payload.get("language", "en") or "en"),
-                    )
+                    if user_id:
+                        await tutor_state_service.refresh_from_turn(
+                            user_id=user_id,
+                            user_message=raw_user_content,
+                            assistant_message=assistant_content,
+                            session_id=session_id,
+                            capability=capability_name or "chat",
+                            language=str(payload.get("language", "en") or "en"),
+                        )
+                    else:
+                        await memory_service.refresh_from_turn(
+                            user_message=raw_user_content,
+                            assistant_message=assistant_content,
+                            session_id=session_id,
+                            capability=capability_name or "chat",
+                            language=str(payload.get("language", "en") or "en"),
+                        )
                 except Exception:
-                    logger.debug("Failed to refresh lightweight memory", exc_info=True)
+                    logger.debug("Failed to refresh lightweight tutor memory", exc_info=True)
         except asyncio.CancelledError:
             observability.update_observation(
                 turn_observation,
@@ -647,6 +886,27 @@ class TurnRuntimeManager:
     ) -> dict[str, Any]:
         if event.type == StreamEventType.DONE and not event.metadata.get("status"):
             event.metadata = {**event.metadata, "status": "completed"}
+        if event.type == StreamEventType.RESULT:
+            usage_summary = observability.get_current_usage_summary()
+            if usage_summary:
+                nested_metadata = (
+                    dict(event.metadata.get("metadata", {}))
+                    if isinstance(event.metadata.get("metadata"), dict)
+                    else {}
+                )
+                existing_cost_summary = nested_metadata.get("cost_summary")
+                if existing_cost_summary and existing_cost_summary != usage_summary:
+                    nested_metadata["capability_cost_summary"] = existing_cost_summary
+                nested_metadata["cost_summary"] = usage_summary
+                event.metadata = {**event.metadata, "metadata": nested_metadata}
+            question_followup_context = normalize_question_followup_context(
+                event.metadata.get("question_followup_context")
+            )
+            if question_followup_context is not None:
+                await self.store.set_active_question_context(
+                    execution.session_id,
+                    question_followup_context,
+                )
         event.session_id = execution.session_id
         event.turn_id = execution.turn_id
         payload = event.to_dict()

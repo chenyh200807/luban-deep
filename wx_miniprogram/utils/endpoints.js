@@ -64,9 +64,38 @@ function rememberWorkingBaseUrl(baseUrl, useGateway) {
   }
 }
 
+function toSocketBaseUrl(baseUrl) {
+  var normalized = String(baseUrl || "").trim();
+  if (!normalized) return "";
+  if (normalized.indexOf("https://") === 0) {
+    return "wss://" + normalized.slice("https://".length);
+  }
+  if (normalized.indexOf("http://") === 0) {
+    return "ws://" + normalized.slice("http://".length);
+  }
+  if (normalized.indexOf("wss://") === 0 || normalized.indexOf("ws://") === 0) {
+    return normalized;
+  }
+  return normalized;
+}
+
+function getSocketUrlCandidates(path, preferredBase) {
+  var normalizedPath = String(path || "/api/v1/ws").trim() || "/api/v1/ws";
+  var bases = getBaseUrlCandidates(false, preferredBase);
+  var urls = [];
+  for (var i = 0; i < bases.length; i++) {
+    var socketBase = toSocketBaseUrl(bases[i]);
+    if (!socketBase) continue;
+    urls.push(socketBase + normalizedPath);
+  }
+  return uniq(urls);
+}
+
 module.exports = {
   DEFAULT_LOCAL_BASES: DEFAULT_LOCAL_BASES,
   getBaseUrlCandidates: getBaseUrlCandidates,
   getPrimaryBaseUrl: getPrimaryBaseUrl,
   rememberWorkingBaseUrl: rememberWorkingBaseUrl,
+  toSocketBaseUrl: toSocketBaseUrl,
+  getSocketUrlCandidates: getSocketUrlCandidates,
 };

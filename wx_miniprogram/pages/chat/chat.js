@@ -4,7 +4,7 @@ var api = require("../../utils/api");
 var unwrap = api.unwrapResponse;
 var md = require("../../utils/markdown");
 var mcqDetect = require("../../utils/mcq-detect");
-var sseStream = require("../../utils/sse-stream");
+var wsStream = require("../../utils/ws-stream");
 var helpers = require("../../utils/helpers");
 var log = require("../../utils/logger");
 var workflowStatus = require("../../utils/workflow-status");
@@ -21,12 +21,15 @@ var HERO_DRAG_DAMPING = 0.32; // Hero 拖拽阻尼
 var HERO_VIBRATE_THRESHOLD_PX = 40; // Hero 拖拽震动阈值
 var SCROLL_TOGGLE_COOLDOWN_MS = 300; // 滚动切换 tab bar 冷却
 var VIEWPORT_MARGIN_PX = 600; // IntersectionObserver 上下扩展边距
+var CHAT_TOOL_PREFS_KEY = "chat_tool_prefs";
 
 Page({
   data: {
     statusBarHeight: 0,
     navHeight: 0,
     safeBottom: 0,
+    viewportHeight: 0,
+    contentHeight: 0,
     hasMessages: false,
     messages: [],
     inputText: "",
@@ -34,6 +37,9 @@ Page({
     scrollToId: "",
     chatScrollWithAnimation: false,
     answerMode: "AUTO",
+    modeHintText: "TutorBot 陪学 · 智能调度",
+    enableReason: false,
+    enableWebSearch: false,
     feedbackMsgId: "",
     feedbackTags: [],
     feedbackComment: "",
@@ -125,17 +131,24 @@ Page({
 
   onLoad: function () {
     var info = helpers.getWindowInfo();
+    var savedToolPrefs = wx.getStorageSync(CHAT_TOOL_PREFS_KEY) || {};
     var statusBarHeight = info.statusBarHeight || 44;
     var navHeight = statusBarHeight + 44;
+    var viewportHeight = info.windowHeight || info.screenHeight || 812;
     var safeBottom = info.safeArea
       ? info.screenHeight - info.safeArea.bottom
       : 0;
+    var contentHeight = Math.max(viewportHeight - navHeight, 320);
 
     this.setData({
       statusBarHeight: statusBarHeight,
       navHeight: navHeight,
       safeBottom: safeBottom,
+      viewportHeight: viewportHeight,
+      contentHeight: contentHeight,
       isDark: helpers.isDark(),
+      enableReason: !!savedToolPrefs.enableReason,
+      enableWebSearch: !!savedToolPrefs.enableWebSearch,
     });
 
     // [FIX-SESSION-1] 仅在 5 分钟内恢复 session（处理页面刷新），
@@ -180,7 +193,7 @@ Page({
         .then(function (raw) {
           var info = api.unwrapResponse(raw);
           var name = info.username || info.display_name || "用户";
-          // 保存 userId 供 SSE 使用
+          // 保存 userId 供统一聊天运行时使用
           var uid = info.id || info.user_id;
           if (uid) auth.setToken(auth.getToken(), uid);
           self.setData({
@@ -197,6 +210,14 @@ Page({
       self._loadDashboard();
       // 新用户弹窗：建议做摸底测试
       self._checkDiagnostic();
+      var pendingQuery = app.globalData.pendingChatQuery;
+      var pendingMode = app.globalData.pendingChatMode || "AUTO";
+      if (pendingQuery && !self.data.isStreaming) {
+        app.globalData.pendingChatQuery = "";
+        app.globalData.pendingChatMode = "AUTO";
+        self.setData({ answerMode: pendingMode });
+        self._send(pendingQuery);
+      }
     });
     // [FIX] 从后台切回时重建 observer（onHide 中已 teardown）
     if (this.data.hasMessages) {
@@ -205,9 +226,9 @@ Page({
   },
 
   onHide: function () {
-    // [FIX] 切后台时不中断 SSE 流，只暂停 observer 降低内存开销。
+    // [FIX] 切后台时不中断流式会话，只暂停 observer 降低内存开销。
     // 切回 onShow 时流式输出继续，避免用户切 app 后内容断掉。
-    // 只有 onUnload（页面销毁）才调 _stop() 中断 SSE。
+    // 只有 onUnload（页面销毁）才调 _stop() 中断连接。
     this._teardownObserver();
   },
   onUnload: function () {
@@ -379,9 +400,10 @@ Page({
 
     var idx = this._find(this._streamId);
     if (idx !== -1) {
-      var text = this.data.messages[idx].content;
+      var currentMsg = this.data.messages[idx];
+      var text = currentMsg.content;
       var detectedMcq = mcqDetect.detect(text);
-      var existingCards = this.data.messages[idx].mcqCards;
+      var existingCards = currentMsg.mcqCards;
       var renderText =
         detectedMcq && detectedMcq.displayText !== undefined
           ? detectedMcq.displayText
@@ -390,10 +412,12 @@ Page({
       u["messages[" + idx + "].streaming"] = false;
       u["messages[" + idx + "].renderableContent"] = renderText || "";
       u["messages[" + idx + "].blocks"] = md.parseWithIds(renderText || "");
-      u["messages[" + idx + "].thinkingStatus"] = "";
-      u["messages[" + idx + "].thinkingBadge"] = "";
-      u["messages[" + idx + "].thinkingSub"] = "";
-      u["messages[" + idx + "].thinkingTone"] = "";
+      if (renderText || (currentMsg.blocks && currentMsg.blocks.length)) {
+        u["messages[" + idx + "].thinkingStatus"] = "";
+        u["messages[" + idx + "].thinkingBadge"] = "";
+        u["messages[" + idx + "].thinkingSub"] = "";
+        u["messages[" + idx + "].thinkingTone"] = "";
+      }
       if ((!existingCards || !existingCards.length) && detectedMcq) {
         var detectedCards = this._buildDetectedMcqCards(detectedMcq);
         if (detectedCards.length) {
@@ -426,6 +450,16 @@ Page({
   },
 
   _onError: function (m) {
+    var idx = this._find(this._streamId);
+    if (idx !== -1) {
+      var msg = this.data.messages[idx];
+      var state = this._buildWorkflowState(msg, {
+        eventType: "progress",
+        stage: "retry",
+        data: m || "服务异常",
+      }, false);
+      this._setWorkflowState(idx, state, false);
+    }
     this._onDone();
     wx.showToast({ title: m || "回复失败", icon: "none" });
   },
@@ -433,36 +467,34 @@ Page({
   _onStatus: function (m) {
     var idx = this._find(this._streamId);
     if (idx === -1) return;
-    // C5-5: 弱网软超时 — SSE 15s 无 token 时触发
     var payload = m || {};
-    if (payload.data === "slow_response") {
-      this.setData({
-        ["messages[" + idx + "].thinkingStatus"]: "内容较多，正在深度处理",
-        ["messages[" + idx + "].thinkingBadge"]: "稍等片刻",
-        ["messages[" + idx + "].thinkingSub"]:
-          "复杂问题需要更多推理时间，马上就好。",
-        ["messages[" + idx + "].thinkingTone"]: "retry",
-      });
-      return;
-    }
-    var normalized = workflowStatus.normalizeWorkflowStatus(m);
-    this.setData({
-      ["messages[" + idx + "].thinkingStatus"]: normalized.headline,
-      ["messages[" + idx + "].thinkingBadge"]: normalized.badge,
-      ["messages[" + idx + "].thinkingSub"]: normalized.subline,
-      ["messages[" + idx + "].thinkingTone"]: normalized.tone,
-    });
+    var msg = this.data.messages[idx];
+    var state = this._buildWorkflowState(msg, payload, true);
+    this._setWorkflowState(idx, state, false);
   },
 
   _onStatusEnd: function () {
     var idx = this._find(this._streamId);
-    if (idx !== -1)
+    if (idx === -1) return;
+    var msg = this.data.messages[idx] || {};
+    var summary = workflowStatus.summarizeWorkflow(msg.workflowEntries || [], false);
+    var preserveThinking = !!(msg.content || (msg.blocks && msg.blocks.length));
+    this._setWorkflowState(
+      idx,
+      {
+        entries: msg.workflowEntries || [],
+        summary: summary,
+      },
+      preserveThinking,
+    );
+    if (preserveThinking) {
       this.setData({
         ["messages[" + idx + "].thinkingStatus"]: "",
         ["messages[" + idx + "].thinkingBadge"]: "",
         ["messages[" + idx + "].thinkingSub"]: "",
         ["messages[" + idx + "].thinkingTone"]: "",
       });
+    }
   },
 
   _onFinal: function (d) {
@@ -499,7 +531,20 @@ Page({
     if (!d || !d.questions || !d.questions.length) return;
     var idx = this._find(this._streamId);
     if (idx === -1) return;
-    var cards = this._buildEventMcqCards(d.questions);
+    var rawQuestions = [];
+    var hiddenContexts = Array.isArray(d.hidden_contexts) ? d.hidden_contexts : [];
+    for (var i = 0; i < d.questions.length; i++) {
+      var question = d.questions[i] || {};
+      rawQuestions.push(
+        Object.assign({}, question, {
+          followup_context:
+            hiddenContexts[i] && typeof hiddenContexts[i] === "object"
+              ? hiddenContexts[i]
+              : null,
+        }),
+      );
+    }
+    var cards = this._buildEventMcqCards(rawQuestions);
     if (!cards.length) return;
     this.setData({
       ["messages[" + idx + "].mcqCards"]: cards,
@@ -515,6 +560,40 @@ Page({
       if (msgs[i].id === id) return i;
     }
     return -1;
+  },
+
+  _buildWorkflowState: function (msg, payload, active) {
+    var entries = workflowStatus.appendWorkflowEntry(
+      (msg && msg.workflowEntries) || [],
+      payload,
+    );
+    var summary = workflowStatus.summarizeWorkflow(entries, active !== false);
+    return {
+      entries: entries,
+      summary: summary,
+    };
+  },
+
+  _setWorkflowState: function (idx, state, preserveThinking) {
+    var summary = (state && state.summary) || workflowStatus.summarizeWorkflow([], false);
+    var updates = {};
+    updates["messages[" + idx + "].workflowEntries"] = state.entries || [];
+    updates["messages[" + idx + "].workflowBadge"] = summary.badge || "";
+    updates["messages[" + idx + "].workflowTitle"] = summary.headline || "";
+    updates["messages[" + idx + "].workflowSub"] = summary.subline || "";
+    updates["messages[" + idx + "].workflowMeta"] = summary.meta || "";
+    updates["messages[" + idx + "].workflowCountText"] = summary.countText || "";
+    updates["messages[" + idx + "].workflowToggleText"] = summary.toggleText || "展开后台过程";
+    updates["messages[" + idx + "].workflowTone"] = summary.tone || "analyze";
+    updates["messages[" + idx + "].workflowActive"] = !!summary.active;
+
+    if (!preserveThinking) {
+      updates["messages[" + idx + "].thinkingStatus"] = summary.headline || "";
+      updates["messages[" + idx + "].thinkingBadge"] = summary.badge || "";
+      updates["messages[" + idx + "].thinkingSub"] = summary.subline || "";
+      updates["messages[" + idx + "].thinkingTone"] = summary.tone || "analyze";
+    }
+    this.setData(updates);
   },
 
   _normalizeMcqOptions: function (rawOptions) {
@@ -557,6 +636,7 @@ Page({
         hint: "",
         questionType: detected.questionType || "single_choice",
         options: this._normalizeMcqOptions(detected.options),
+        followupContext: null,
       },
     ];
   },
@@ -575,6 +655,10 @@ Page({
         hint: q.hint || "",
         questionType: q.question_type || "single_choice",
         options: options,
+        followupContext:
+          q.followup_context && typeof q.followup_context === "object"
+            ? q.followup_context
+            : null,
       });
     }
     return cards;
@@ -630,6 +714,18 @@ Page({
     for (var k = 0; k < selections.length; k++) {
       rows.push("第" + selections[k].index + "题：" + selections[k].keys.join("、"));
     }
+    var followupQuestionContext = null;
+    if (selections.length === 1) {
+      for (var m = 0; m < items.length; m++) {
+        var singleCard = items[m];
+        if (!singleCard || !singleCard.followupContext) continue;
+        if (Number(singleCard.index) !== Number(selections[0].index)) continue;
+        followupQuestionContext = Object.assign({}, singleCard.followupContext, {
+          user_answer: selections[0].keys.join(""),
+        });
+        break;
+      }
+    }
     var text = rows.join("；");
     return {
       text: text,
@@ -637,6 +733,7 @@ Page({
         questions: structuredQuestions,
         answers: structuredAnswers,
       },
+      followupQuestionContext: followupQuestionContext,
     };
   },
 
@@ -754,7 +851,75 @@ Page({
 
   onMode: function (e) {
     helpers.vibrate("light");
-    this.setData({ answerMode: e.currentTarget.dataset.m });
+    var nextMode = e.currentTarget.dataset.m;
+    var nextState = {
+      answerMode: nextMode,
+      modeHintText: this._getModeHintText(nextMode),
+    };
+    if (nextMode !== "DEEP" && this.data.enableReason) {
+      nextState.enableReason = false;
+      this._saveToolPrefs(false, this.data.enableWebSearch);
+      wx.showToast({ title: "非深度模式已关闭推理", icon: "none", duration: 1800 });
+    }
+    this.setData(nextState);
+  },
+
+  onToggleReason: function () {
+    helpers.vibrate("light");
+    var nextReason = !this.data.enableReason;
+    var nextMode = this.data.answerMode;
+    if (nextReason && nextMode !== "DEEP") {
+      nextMode = "DEEP";
+      wx.showToast({ title: "已切换到深度模式", icon: "none", duration: 1800 });
+    }
+    this._saveToolPrefs(nextReason, this.data.enableWebSearch);
+    this.setData({
+      enableReason: nextReason,
+      answerMode: nextMode,
+      modeHintText: this._getModeHintText(nextMode),
+    });
+  },
+
+  onToggleWebSearch: function () {
+    helpers.vibrate("light");
+    var nextWebSearch = !this.data.enableWebSearch;
+    this._saveToolPrefs(this.data.enableReason, nextWebSearch);
+    this.setData({ enableWebSearch: nextWebSearch });
+  },
+
+  _saveToolPrefs: function (enableReason, enableWebSearch) {
+    wx.setStorageSync(CHAT_TOOL_PREFS_KEY, {
+      enableReason: !!enableReason,
+      enableWebSearch: !!enableWebSearch,
+    });
+  },
+
+  _getSelectedTools: function () {
+    var tools = [];
+    if (this.data.enableReason) tools.push("reason");
+    if (this.data.enableWebSearch) tools.push("web_search");
+    return tools;
+  },
+
+  _getModeHintText: function (mode) {
+    if (mode === "FAST") return "TutorBot 快答 · 踩分点优先";
+    if (mode === "DEEP") return "TutorBot 精讲 · 讲透拿分逻辑";
+    return "TutorBot 陪学 · 智能调度";
+  },
+
+  _buildTutorInteraction: function () {
+    var mode = String(this.data.answerMode || "AUTO").toUpperCase();
+    return {
+      profile: "mini_tutor",
+      hints: {
+        product_surface: "wechat_miniprogram",
+        entry_role: "tutorbot",
+        subject_domain: "construction_exam",
+        teaching_mode:
+          mode === "FAST" ? "fast" : mode === "DEEP" ? "deep" : "smart",
+        pedagogy_contract: "construction_exam_tutor_v1",
+      },
+    };
   },
 
   // ── 对话滚动：上滑显示 tab bar，下滑隐藏 ─────
@@ -902,6 +1067,16 @@ Page({
       thinkingBadge: "",
       thinkingSub: "",
       thinkingTone: "",
+      workflowEntries: [],
+      workflowExpanded: false,
+      workflowBadge: "",
+      workflowTitle: "",
+      workflowSub: "",
+      workflowMeta: "",
+      workflowCountText: "",
+      workflowToggleText: "展开后台过程",
+      workflowTone: "analyze",
+      workflowActive: true,
       citations: null,
       engine: "deeptutor",
       engineSessionId: "",
@@ -915,6 +1090,7 @@ Page({
     self._autoScrollEnabled = true;
 
     var existing = self.data.messages;
+    var inferTitleOnStart = existing.length === 0;
     if (existing.length > MAX_MESSAGES - 2) {
       existing = existing.slice(existing.length - (MAX_MESSAGES - 2));
     }
@@ -938,7 +1114,7 @@ Page({
     }
 
     // [Client Turn Idempotency] Generate stable turn ID for this message.
-    // Same ID is reused on network retry (via sse-stream _doRequest retry).
+    // 同一轮消息在网络重连时复用同一个客户端侧标识。
     var _turnId =
       self._sid +
       "_" +
@@ -946,14 +1122,20 @@ Page({
       "_" +
       Math.random().toString(36).substr(2, 4);
 
-    self._abort = sseStream.streamChat(
+    var tutorInteraction = self._buildTutorInteraction();
+    self._abort = wsStream.streamChat(
       {
         query: query,
         sessionId: self._sid,
         userId: auth.getUserId(),
         mode: self.data.answerMode,
+        tools: self._getSelectedTools(),
+        interactionProfile: tutorInteraction.profile,
+        interactionHints: tutorInteraction.hints,
         clientTurnId: _turnId,
         structuredSubmitContext: extraOpts && extraOpts.structuredSubmitContext,
+        followupQuestionContext: extraOpts && extraOpts.followupQuestionContext,
+        inferTitleOnStart: inferTitleOnStart,
       },
       {
         onToken: function (t) {
@@ -1036,6 +1218,16 @@ Page({
             thinkingBadge: "",
             thinkingSub: "",
             thinkingTone: "",
+            workflowEntries: [],
+            workflowExpanded: false,
+            workflowBadge: "",
+            workflowTitle: "",
+            workflowSub: "",
+            workflowMeta: "",
+            workflowCountText: "",
+            workflowToggleText: "查看完整后台过程",
+            workflowTone: "compose",
+            workflowActive: false,
             citations: null,
             engine: "",
             engineSessionId: "",
@@ -1163,6 +1355,7 @@ Page({
         hint: card.hint,
         questionType: card.questionType,
         options: nextOptions,
+        followupContext: card.followupContext || null,
       });
     }
     this.setData({ ["messages[" + idx + "].mcqCards"]: nextCards });
@@ -1280,6 +1473,16 @@ Page({
       return m.id === e.currentTarget.dataset.msgid;
     });
     if (msg) wx.setClipboardData({ data: msg.content });
+  },
+
+  onToggleWorkflowTrace: function (e) {
+    helpers.vibrate("light");
+    var idx = this._find(e.currentTarget.dataset.msgid);
+    if (idx === -1) return;
+    var current = !!this.data.messages[idx].workflowExpanded;
+    this.setData({
+      ["messages[" + idx + "].workflowExpanded"]: !current,
+    });
   },
 
   onEdit: function (e) {

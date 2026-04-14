@@ -9,6 +9,7 @@ from typing import Any
 
 from deeptutor.agents.base_agent import BaseAgent
 from deeptutor.core.trace import build_trace_metadata, new_call_id
+from deeptutor.services.question_followup import should_reveal_reference_material
 
 
 class FollowupAgent(BaseAgent):
@@ -39,7 +40,13 @@ class FollowupAgent(BaseAgent):
             )
 
         user_prompt = user_prompt_template.format(
-            question_context=self._render_question_context(question_context),
+            question_context=self._render_question_context(
+                question_context,
+                reveal_reference_material=should_reveal_reference_material(
+                    user_message,
+                    question_context,
+                ),
+            ),
             history_context=history_context or "(none)",
             user_message=user_message.strip() or "(empty)",
         )
@@ -71,7 +78,11 @@ class FollowupAgent(BaseAgent):
         return raw or "question"
 
     @staticmethod
-    def _render_question_context(question_context: dict[str, Any]) -> str:
+    def _render_question_context(
+        question_context: dict[str, Any],
+        *,
+        reveal_reference_material: bool,
+    ) -> str:
         options = question_context.get("options") or {}
         option_lines: list[str] = []
         if isinstance(options, dict):
@@ -104,12 +115,17 @@ class FollowupAgent(BaseAgent):
                 "",
                 f"Learner answer: {question_context.get('user_answer') or '(not provided)'}",
                 f"Learner result: {correctness_text}",
-                f"Reference answer: {question_context.get('correct_answer') or '(none)'}",
-                "",
-                "Explanation:",
-                str(question_context.get("explanation", "") or "(none)"),
             ]
         )
+        if reveal_reference_material:
+            lines.extend(
+                [
+                    f"Reference answer: {question_context.get('correct_answer') or '(none)'}",
+                    "",
+                    "Explanation:",
+                    str(question_context.get("explanation", "") or "(none)"),
+                ]
+            )
         knowledge_context = str(question_context.get("knowledge_context", "") or "").strip()
         if knowledge_context:
             lines.extend(["", "Knowledge context:", knowledge_context])

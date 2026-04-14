@@ -63,16 +63,19 @@ App({
     userId: null,
     userInfo: null,
     goHomeFlag: false,
+    pendingChatQuery: "",
+    pendingChatMode: "AUTO",
     gatewayUrl: _RESOLVED_GATEWAY,
     apiUrl: _RESOLVED_API,
     gatewayCandidates: _USE_NGROK ? [_NGROK_URL].concat(_LOCAL_CANDIDATES) : _LOCAL_CANDIDATES,
     apiCandidates: _USE_NGROK ? [_NGROK_URL].concat(_LOCAL_CANDIDATES) : _LOCAL_CANDIDATES,
-    // 小程序继续走原有 SSE 入口，由后端统一分流到 Deeptutor。
+    // 小程序聊天走 start-turn + /api/v1/ws 统一执行流。
     chatEngine: "deeptutor",
     // 主题：'dark'(默认) | 'light'
     theme: "dark",
     // [PRR-C9] Network status — pages read this to show offline hints
     networkAvailable: true,
+    _authRedirecting: false,
   },
 
   onLaunch() {
@@ -145,7 +148,22 @@ App({
   checkAuth(callback) {
     const token = auth.getToken();
     if (!token) {
-      wx.redirectTo({ url: "/pages/login/login" });
+      var pages = getCurrentPages();
+      var currentRoute =
+        pages && pages.length ? pages[pages.length - 1].route || "" : "";
+      if (currentRoute === "pages/login/login") {
+        return;
+      }
+      if (this.globalData._authRedirecting) {
+        return;
+      }
+      this.globalData._authRedirecting = true;
+      wx.reLaunch({
+        url: "/pages/login/login",
+        complete: () => {
+          this.globalData._authRedirecting = false;
+        },
+      });
       return;
     }
     this.globalData.token = token;
@@ -160,6 +178,13 @@ App({
     this.globalData.token = null;
     this.globalData.userId = null;
     this.globalData.userInfo = null;
-    wx.redirectTo({ url: "/pages/login/login" });
+    if (this.globalData._authRedirecting) return;
+    this.globalData._authRedirecting = true;
+    wx.reLaunch({
+      url: "/pages/login/login",
+      complete: () => {
+        this.globalData._authRedirecting = false;
+      },
+    });
   },
 });
