@@ -250,12 +250,23 @@ async def bot_chat_ws(ws: WebSocket, bot_id: str):
                 await ws.send_json({"type": "thinking", "content": text})
 
             try:
+                delta_sent = False
+
+                async def on_content_delta(text: str) -> None:
+                    nonlocal delta_sent
+                    if not text:
+                        return
+                    delta_sent = True
+                    await ws.send_json({"type": "content", "content": text})
+
                 response = await mgr.send_message(
                     bot_id, content, chat_id=data.get("chat_id", "web"),
                     on_progress=on_progress,
+                    on_content_delta=on_content_delta,
                     mode=mode,
                 )
-                await ws.send_json({"type": "content", "content": response})
+                if response and not delta_sent:
+                    await ws.send_json({"type": "content", "content": response})
                 await ws.send_json({"type": "done"})
             except RuntimeError as exc:
                 await ws.send_json({"type": "error", "content": str(exc)})

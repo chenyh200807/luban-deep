@@ -81,14 +81,6 @@ function streamChat(opts, callbacks) {
   var query = String((opts && opts.query) || "").trim();
   var sessionId = String((opts && opts.sessionId) || "").trim();
   var mode = String((opts && opts.mode) || "AUTO").trim().toUpperCase();
-  var tools = Array.isArray(opts && opts.tools) ? opts.tools : [];
-  var interactionProfile = String(
-    (opts && opts.interactionProfile) || "mini_tutor",
-  ).trim();
-  var interactionHints =
-    opts && opts.interactionHints && typeof opts.interactionHints === "object"
-      ? opts.interactionHints
-      : null;
 
   if (!query) {
     if (cb.onError) cb.onError("query is required");
@@ -109,16 +101,11 @@ function streamChat(opts, callbacks) {
   var idleTimer = null;
   var slowTimer = null;
   var socketTask = null;
-  var reconnectCount = 0;
-  var maxReconnects = 3;
-  var retryBaseDelay = 2000;
-  var reconnectScheduled = false;
   var idleTimeoutMs = 60000;
   var slowResponseMs = 15000;
-  var lastSeq = 0;
-  var turnId = "";
+  var botId = "";
+  var chatId = sessionId;
   var socketUrls = [];
-  var socketUrlIndex = 0;
 
   function clearIdleTimer() {
     if (idleTimer) {
@@ -163,13 +150,22 @@ function streamChat(opts, callbacks) {
     return err.errMsg || err.message || "连接失败，请重试";
   }
 
+  function failStream(err) {
+    if (aborted || doneReceived) return;
+    aborted = true;
+    clearIdleTimer();
+    clearSlowTimer();
+    if (cb.onError) cb.onError(normalizeErrorMessage(err));
+    if (cb.onDone) cb.onDone();
+    try {
+      if (socketTask) socketTask.close({ code: 1000, reason: "abort" });
+    } catch (_) {}
+  }
+
   function handleEvent(event) {
     if (!event || typeof event !== "object") return;
-    lastSeq = Math.max(lastSeq, Number(event.seq || 0));
     var eventType = String(event.type || "").trim();
     var eventMetadata = event.metadata || {};
-
-    if (eventType === "session") return;
 
     if (eventType === "content") {
       if (!firstTokenReceived) {
@@ -180,54 +176,19 @@ function streamChat(opts, callbacks) {
       return;
     }
 
-    if (
-      eventType === "stage_start" ||
-      eventType === "thinking" ||
-      eventType === "progress" ||
-      eventType === "observation" ||
-      eventType === "tool_call" ||
-      eventType === "tool_result"
-    ) {
+    if (eventType === "thinking" || eventType === "progress") {
       if (cb.onStatus) {
         cb.onStatus({
           type: "status",
-          data: event.content || event.stage || eventType,
+          data: event.content || eventType,
           content: event.content || "",
           source: event.source || "",
-          stage: event.stage || "",
+          stage: "",
           eventType: eventType,
           metadata: eventMetadata,
-          seq: Number(event.seq || 0),
+          seq: 0,
         });
       }
-      return;
-    }
-
-    if (eventType === "sources") {
-      if (cb.onFinal) {
-        cb.onFinal({
-          type: "final",
-          engine: "deeptutor",
-          engine_session_id: event.session_id || sessionId,
-          engine_turn_id: event.turn_id || turnId,
-          citations: eventMetadata.sources || eventMetadata || {},
-        });
-      }
-      return;
-    }
-
-    if (eventType === "result") {
-      var mcqEvent = buildMcqInteractiveEvent(eventMetadata);
-      if (mcqEvent && cb.onMcqInteractive) cb.onMcqInteractive(mcqEvent);
-      if (cb.onFinal) {
-        cb.onFinal({
-          type: "final",
-          engine: "deeptutor",
-          engine_session_id: event.session_id || sessionId,
-          engine_turn_id: event.turn_id || turnId,
-        });
-      }
-      if (cb.onResult) cb.onResult(eventMetadata);
       return;
     }
 
@@ -240,42 +201,29 @@ function streamChat(opts, callbacks) {
       doneReceived = true;
       clearIdleTimer();
       clearSlowTimer();
+      if (cb.onFinal) {
+        cb.onFinal({
+          type: "final",
+          engine: "tutorbot",
+          engine_session_id: chatId || sessionId,
+          engine_turn_id: "",
+          bot_id: botId,
+        });
+      }
       if (cb.onStatusEnd) cb.onStatusEnd();
       if (cb.onDone) cb.onDone();
+      try {
+        if (socketTask) socketTask.close({ code: 1000, reason: "done" });
+      } catch (_) {}
     }
   }
 
-  function scheduleReconnect(reason) {
-    if (aborted || doneReceived) return;
-    if (reconnectScheduled) return;
-    if (reconnectCount >= maxReconnects) {
-      if (cb.onError) cb.onError(reason || "连接中断，请重试");
-      if (cb.onDone) cb.onDone();
-      return;
-    }
-    reconnectScheduled = true;
-    reconnectCount += 1;
-    socketUrlIndex = (socketUrlIndex + 1) % Math.max(socketUrls.length, 1);
-    var delay = retryBaseDelay * Math.pow(2, reconnectCount - 1);
-    wx.showToast({
-      title: "网络中断，第" + reconnectCount + "次重连中…",
-      icon: "none",
-      duration: delay,
-    });
-    setTimeout(function () {
-      reconnectScheduled = false;
-      if (!aborted && !doneReceived) {
-        connectSocketAndSubscribe(true);
-      }
-    }, delay);
-  }
-
-  function connectSocketAndSubscribe(isResume) {
-    if (aborted || doneReceived || !turnId) return;
+  function connectTutorBotSocket() {
+    if (aborted || doneReceived || !socketUrls.length) return;
     clearIdleTimer();
     resetIdleTimer();
 
-    var socketUrl = socketUrls[socketUrlIndex];
+    var socketUrl = socketUrls[0];
     var headers = {
       "ngrok-skip-browser-warning": "true",
     };
@@ -292,12 +240,14 @@ function streamChat(opts, callbacks) {
 
     socketTask.onOpen(function () {
       if (aborted || doneReceived) return;
-      reconnectScheduled = false;
       resetIdleTimer();
-      var subscribePayload = isResume
-        ? { type: "resume_from", turn_id: turnId, seq: lastSeq }
-        : { type: "subscribe_turn", turn_id: turnId, after_seq: 0 };
-      socketTask.send({ data: JSON.stringify(subscribePayload) });
+      socketTask.send({
+        data: JSON.stringify({
+          content: query,
+          chat_id: chatId || sessionId,
+          mode: mode,
+        }),
+      });
     });
 
     socketTask.onMessage(function (res) {
@@ -311,14 +261,11 @@ function streamChat(opts, callbacks) {
     });
 
     socketTask.onError(function (err) {
-      if (aborted || doneReceived) return;
-      scheduleReconnect(normalizeErrorMessage(err));
+      failStream(err);
     });
 
     socketTask.onClose(function (res) {
-      if (aborted || doneReceived) return;
-      if (res && (res.code === 1000 || res.code === 1005) && doneReceived) return;
-      scheduleReconnect(normalizeErrorMessage(res));
+      failStream(res);
     });
   }
 
@@ -330,35 +277,34 @@ function streamChat(opts, callbacks) {
       query: query,
       conversation_id: sessionId,
       mode: mode,
-      language: "zh",
-      tools: tools,
-      interaction_profile: interactionProfile,
-      interaction_hints: interactionHints,
-      followup_question_context:
-        opts && opts.followupQuestionContext ? opts.followupQuestionContext : null,
     })
     .then(function (raw) {
       if (aborted) return;
       var payload = api.unwrapResponse(raw) || {};
       var stream = payload.stream || {};
+      var bot = payload.bot || {};
       var conversation = payload.conversation || {};
       var preferredBase = endpoints.getPrimaryBaseUrl(false);
-      turnId = String((payload.turn && payload.turn.id) || "").trim();
+      botId = String(bot.id || "").trim();
+      chatId = String(stream.chat_id || conversation.id || sessionId).trim();
       socketUrls = endpoints.getSocketUrlCandidates(
-        stream.url || "/api/v1/ws",
+        stream.url || "/api/v1/mobile/tutorbot/ws/construction-exam-coach",
         preferredBase,
       );
-      socketUrlIndex = 0;
-      if (!turnId || !socketUrls.length) {
+      if (!chatId || !socketUrls.length) {
         throw new Error("启动流式会话失败");
       }
-      if (cb.onUpdatedTitle && conversation.title && conversation.title !== "New conversation") {
+      if (
+        cb.onUpdatedTitle &&
+        conversation.title &&
+        conversation.title !== "New conversation"
+      ) {
         cb.onUpdatedTitle(conversation.title);
       } else if (cb.onUpdatedTitle && opts && opts.inferTitleOnStart) {
         var inferredTitle = inferConversationTitle(query);
         if (inferredTitle) cb.onUpdatedTitle(inferredTitle);
       }
-      connectSocketAndSubscribe(false);
+      connectTutorBotSocket();
     })
     .catch(function (err) {
       clearIdleTimer();

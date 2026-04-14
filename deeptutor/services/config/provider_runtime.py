@@ -633,7 +633,7 @@ def resolve_search_runtime_config(
         _as_str(profile.get("provider"))
         or _as_str(summary.get("provider"))
         or env.get("SEARCH_PROVIDER", "").strip()
-        or "brave"
+        or "tavily"
     ).lower()
     provider = requested_provider
     api_key = _as_str(profile.get("api_key")) or _as_str(summary.get("api_key"))

@@ -39,6 +39,7 @@ function _deriveConversationTitle(rawTitle, preview) {
 function _capabilityLabel(capability) {
   var key = String(capability || "").trim().toLowerCase();
   if (!key || key === "chat") return "智能对话";
+  if (key === "tutorbot") return "TutorBot";
   if (key === "solve" || key === "deep_solve") return "深度解题";
   if (key === "question" || key === "deep_question") return "组题训练";
   if (key === "research" || key === "deep_research") return "深度研究";

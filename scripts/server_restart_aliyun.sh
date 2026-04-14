@@ -31,6 +31,7 @@ if [ -f "${LANGFUSE_OVERRIDE_FILE}" ] && docker network inspect "${SHARED_LANGFU
     compose_args+=(-f "${LANGFUSE_OVERRIDE_FILE}")
 fi
 
+docker compose "${compose_args[@]}" build deeptutor
 docker compose "${compose_args[@]}" up -d --no-deps --force-recreate deeptutor
 docker compose "${compose_args[@]}" ps deeptutor
 

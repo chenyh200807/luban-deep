@@ -140,7 +140,7 @@ def get_default_provider(**kwargs) -> BaseSearchProvider:
     Returns:
         BaseSearchProvider: Default provider instance.
     """
-    provider_name = get_env_store().get("SEARCH_PROVIDER", "brave").lower()
+    provider_name = get_env_store().get("SEARCH_PROVIDER", "tavily").lower()
     if provider_name in _DEPRECATED_UNSUPPORTED:
         provider_name = "duckduckgo"
     return get_provider(provider_name, **kwargs)

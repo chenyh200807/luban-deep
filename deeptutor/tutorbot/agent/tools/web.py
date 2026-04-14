@@ -85,7 +85,7 @@ class WebSearchTool(Tool):
         self.proxy = proxy
 
     async def execute(self, query: str, count: int | None = None, **kwargs: Any) -> str:
-        provider = self.config.provider.strip().lower() or "brave"
+        provider = self.config.provider.strip().lower() or "tavily"
         n = min(max(count or self.config.max_results, 1), 10)
 
         if provider == "duckduckgo":

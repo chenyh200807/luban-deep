@@ -488,7 +488,19 @@ class OpenAICompatProvider(LLMProvider):
         temperature: float = 0.7,
         reasoning_effort: str | None = None,
         tool_choice: str | dict[str, Any] | None = None,
+        on_content_delta: Callable[[str], Awaitable[None]] | None = None,
     ) -> LLMResponse:
+        if on_content_delta:
+            return await self.chat_stream(
+                messages,
+                tools,
+                model,
+                max_tokens,
+                temperature,
+                reasoning_effort,
+                tool_choice,
+                on_content_delta=on_content_delta,
+            )
         kwargs = self._build_kwargs(
             messages, tools, model, max_tokens, temperature,
             reasoning_effort, tool_choice,

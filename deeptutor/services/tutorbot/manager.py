@@ -22,6 +22,7 @@ from typing import Any
 import yaml
 
 from deeptutor.services.path_service import get_path_service
+from deeptutor.tutorbot.utils.helpers import safe_filename
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +98,206 @@ class TutorBotManager:
 
     def _bot_workspace(self, bot_id: str) -> Path:
         return self._bot_dir(bot_id) / "workspace"
+
+    @staticmethod
+    def build_chat_session_key(bot_id: str, chat_id: str, user_id: str | None = None) -> str:
+        normalized_chat_id = str(chat_id or "web").strip() or "web"
+        if user_id:
+            normalized_user_id = str(user_id).strip()
+            if normalized_user_id:
+                return f"bot:{bot_id}:user:{normalized_user_id}:chat:{normalized_chat_id}"
+        return f"bot:{bot_id}:chat:{normalized_chat_id}"
+
+    @staticmethod
+    def _infer_conversation_title(text: str) -> str:
+        title = " ".join(str(text or "").strip().split())
+        if not title:
+            return "新对话"
+        return title[:32] + ("..." if len(title) > 32 else "")
+
+    def _session_path_for_key(self, bot_id: str, session_key: str) -> Path:
+        safe_key = safe_filename(str(session_key or "").replace(":", "_"))
+        return self._bot_workspace(bot_id) / "sessions" / f"{safe_key}.jsonl"
+
+    def _load_session_file(self, path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]] | None:
+        import json as _json
+
+        if not path.exists():
+            return None
+        try:
+            metadata_line: dict[str, Any] = {}
+            messages: list[dict[str, Any]] = []
+            with open(path, encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    data = _json.loads(line)
+                    if data.get("_type") == "metadata":
+                        metadata_line = data
+                    else:
+                        messages.append(data)
+            return metadata_line, messages
+        except Exception:
+            logger.exception("Failed to load TutorBot session file: %s", path)
+            return None
+
+    def _rewrite_session_file(
+        self,
+        path: Path,
+        metadata_line: dict[str, Any],
+        messages: list[dict[str, Any]],
+    ) -> None:
+        import json as _json
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(_json.dumps(metadata_line, ensure_ascii=False) + "\n")
+            for msg in messages:
+                f.write(_json.dumps(msg, ensure_ascii=False) + "\n")
+
+    def list_bot_conversations(
+        self,
+        bot_id: str,
+        *,
+        user_id: str,
+        archived: bool | None = None,
+        limit: int = 200,
+    ) -> list[dict[str, Any]]:
+        sessions_dir = self._bot_workspace(bot_id) / "sessions"
+        if not sessions_dir.exists():
+            return []
+
+        items: list[dict[str, Any]] = []
+        for path in sessions_dir.glob("*.jsonl"):
+            loaded = self._load_session_file(path)
+            if not loaded:
+                continue
+            metadata_line, messages = loaded
+            metadata = metadata_line.get("metadata") or {}
+            if str(metadata.get("user_id") or "").strip() != str(user_id).strip():
+                continue
+
+            is_archived = bool(metadata.get("archived", False))
+            if archived is not None and is_archived != archived:
+                continue
+
+            conversation_id = str(metadata.get("conversation_id") or "").strip()
+            if not conversation_id:
+                continue
+
+            last_message = ""
+            message_count = 0
+            first_user_message = ""
+            for msg in messages:
+                if msg.get("role") not in {"user", "assistant"}:
+                    continue
+                content = str(msg.get("content") or "").strip()
+                if not content:
+                    continue
+                message_count += 1
+                last_message = content
+                if not first_user_message and msg.get("role") == "user":
+                    first_user_message = content
+
+            title = str(metadata.get("title") or "").strip()
+            if not title:
+                title = self._infer_conversation_title(first_user_message or last_message)
+
+            items.append(
+                {
+                    "id": conversation_id,
+                    "title": title,
+                    "last_message": last_message[:200],
+                    "message_count": message_count,
+                    "status": "idle",
+                    "capability": "tutorbot",
+                    "source": str(metadata.get("source") or "wx_miniprogram"),
+                    "created_at": metadata_line.get("created_at"),
+                    "updated_at": metadata_line.get("updated_at"),
+                    "archived": is_archived,
+                }
+            )
+
+        items.sort(key=lambda item: str(item.get("updated_at") or ""), reverse=True)
+        return items[:limit]
+
+    def get_bot_conversation_messages(
+        self,
+        bot_id: str,
+        *,
+        user_id: str,
+        conversation_id: str,
+    ) -> list[dict[str, Any]] | None:
+        session_key = self.build_chat_session_key(bot_id, conversation_id, user_id=user_id)
+        path = self._session_path_for_key(bot_id, session_key)
+        loaded = self._load_session_file(path)
+        if not loaded:
+            return None
+
+        metadata_line, messages = loaded
+        metadata = metadata_line.get("metadata") or {}
+        if str(metadata.get("user_id") or "").strip() != str(user_id).strip():
+            return None
+
+        result: list[dict[str, Any]] = []
+        for msg in messages:
+            role = str(msg.get("role") or "").strip()
+            if role not in {"user", "assistant"}:
+                continue
+            result.append(
+                {
+                    "role": role,
+                    "content": msg.get("content", ""),
+                    "created_at": msg.get("timestamp"),
+                }
+            )
+        return result
+
+    def update_bot_conversation_archive(
+        self,
+        bot_id: str,
+        *,
+        user_id: str,
+        conversation_id: str,
+        archived: bool,
+    ) -> bool:
+        session_key = self.build_chat_session_key(bot_id, conversation_id, user_id=user_id)
+        path = self._session_path_for_key(bot_id, session_key)
+        loaded = self._load_session_file(path)
+        if not loaded:
+            return False
+
+        metadata_line, messages = loaded
+        metadata = dict(metadata_line.get("metadata") or {})
+        if str(metadata.get("user_id") or "").strip() != str(user_id).strip():
+            return False
+
+        metadata["archived"] = bool(archived)
+        metadata_line["metadata"] = metadata
+        self._rewrite_session_file(path, metadata_line, messages)
+        return True
+
+    def delete_bot_conversation(
+        self,
+        bot_id: str,
+        *,
+        user_id: str,
+        conversation_id: str,
+    ) -> bool:
+        session_key = self.build_chat_session_key(bot_id, conversation_id, user_id=user_id)
+        path = self._session_path_for_key(bot_id, session_key)
+        loaded = self._load_session_file(path)
+        if not loaded:
+            return False
+
+        metadata_line, _messages = loaded
+        metadata = metadata_line.get("metadata") or {}
+        if str(metadata.get("user_id") or "").strip() != str(user_id).strip():
+            return False
+
+        path.unlink(missing_ok=True)
+        return True
 
     # ── Per-bot directory setup ───────────────────────────────────
 
@@ -547,14 +748,28 @@ class TutorBotManager:
         content: str,
         chat_id: str = "web",
         on_progress: Callable[[str], Awaitable[None]] | None = None,
+        on_content_delta: Callable[[str], Awaitable[None]] | None = None,
         mode: str = "smart",
+        session_key: str | None = None,
+        session_metadata: dict[str, Any] | None = None,
     ) -> str:
         """Send a message to a running bot and return the response."""
         instance = self._bots.get(bot_id)
         if not instance or not instance.running:
             raise RuntimeError(f"Bot '{bot_id}' is not running")
 
-        canonical_key = f"bot:{bot_id}"
+        effective_chat_id = str(chat_id or "web").strip() or "web"
+        effective_session_key = session_key or self.build_chat_session_key(bot_id, effective_chat_id)
+
+        session = instance.agent_loop.sessions.get_or_create(effective_session_key)
+        merged_metadata = dict(session.metadata or {})
+        if session_metadata:
+            merged_metadata.update(session_metadata)
+        merged_metadata.setdefault("conversation_id", effective_chat_id)
+        if not merged_metadata.get("title"):
+            merged_metadata["title"] = self._infer_conversation_title(content)
+        session.metadata = merged_metadata
+        instance.agent_loop.sessions.save(session)
 
         async def _progress(text: str, *, tool_hint: bool = False) -> None:
             if on_progress:
@@ -562,10 +777,11 @@ class TutorBotManager:
 
         response = await instance.agent_loop.process_direct(
             content,
-            session_key=canonical_key,
+            session_key=effective_session_key,
             channel="web",
-            chat_id=chat_id,
+            chat_id=effective_chat_id,
             on_progress=_progress,
+            on_content_delta=on_content_delta,
             metadata={"teaching_mode": mode},
         )
 
@@ -720,21 +936,26 @@ class TutorBotManager:
             )},
             {"id": "construction-exam-coach", "name": "Construction Exam Coach", "content": (
                 "# Soul\n\n"
-                "你是一名面向建筑实务/建造师考试的长期陪学导师。\n\n"
+                "你是陈老师，一名面向建筑实务/建造师/工程类考试的专业导师。\n\n"
                 "## 角色定位\n\n"
-                "- 目标不是泛泛答疑，而是帮助学员稳定提分、顺利通过考试\n"
-                "- 你要同时兼顾：知识讲解、题目讲解、错题复盘、复习策略和学习推进\n"
-                "- 你默认服务的是工程类考试备考场景，优先从应试与拿分角度组织回答\n\n"
-                "## 教学价值观\n\n"
-                "- 结论要准，解释要清，训练要贴近考试\n"
+                "- 你的首要目标是帮助学员把题做对、把分拿稳、把同类题学会\n"
+                "- 你不是泛泛答疑助手，而是长期陪学型建筑实务导师\n"
+                "- 你默认服务考试备考场景，回答优先从应试、拿分、避坑、迁移角度组织\n\n"
+                "## 核心原则\n\n"
+                "- 结论先行：先给答案、判断或结论，再解释原因\n"
+                "- 面向拿分：讲知识时落到考点、判定依据、踩分点、易错点\n"
+                "- 说人话：用通俗语言解释规范逻辑，不堆空泛定义\n"
                 "- 先帮学员拿到这题，再帮学员学会这类题\n"
+                "- 案例题、实务题优先给作答骨架，再补教学说明\n\n"
+                "## 专业约束\n\n"
                 "- 遇到规范数值、程序门槛、时间节点等具体事实，优先依赖知识库和检索证据\n"
-                "- 不编造规范编号，不伪造精确条文\n\n"
+                "- 证据不足时，不编造规范编号，不伪造精确条文，不捏造参数\n"
+                "- 可以给通用判断逻辑，但不要把经验说成已核实事实\n\n"
                 "## 默认表达风格\n\n"
-                "- 先给结论，再讲原因\n"
+                "- 专业、直接、稳，像经验丰富的建筑实务老师\n"
                 "- 结构化、简洁、口语化，但保持专业度\n"
-                "- 做知识讲解或题目讲解时，优先覆盖踩分点、易错点、记忆抓手和考试策略\n"
-                "- 收尾默认用陈述句，不强行追问"
+                "- 默认用陈述句收尾，不强行追问\n"
+                "- 学员焦虑或挫败时，先稳定情绪，再缩小问题、降低复杂度"
             )},
         ]
 

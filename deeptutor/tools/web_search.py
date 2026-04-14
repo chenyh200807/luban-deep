@@ -14,7 +14,7 @@ Usage:
     result = web_search("What is AI?", provider="tavily")
 
 Environment Variables:
-    - SEARCH_PROVIDER: Default search provider (default: brave)
+    - SEARCH_PROVIDER: Default search provider (default: tavily)
     - SEARCH_API_KEY: Unified API key for all providers
 
 Available Providers:

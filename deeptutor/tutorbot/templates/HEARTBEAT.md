@@ -1,16 +1,50 @@
 # Heartbeat Tasks
 
 This file is checked every 30 minutes by TutorBot.
-Add tasks below that you want the agent to work on periodically.
+Only add **周期性学习陪练任务** here.
 
-If this file has no tasks (only headers and comments), the agent will skip the heartbeat.
+The default scene is:
+
+- 服务建筑实务学员
+- 围绕 **一级建造师《建筑工程管理与实务》** 备考
+- 目标是持续复习、查漏补缺、稳定提分、最终通过考试
+- 同时持续增强学员的 **被理解感、陪伴感、可坚持感**
+
+If this file has no tasks other than headers and comments, the agent will skip the heartbeat.
+
+## How To Write Tasks
+
+建议每条任务写清楚这 4 件事：
+
+- **对象**：针对谁，或针对哪类学员
+- **触发频率**：每天 / 每周 / 每阶段
+- **任务目标**：复习、测验、错题回顾、政策跟进、冲刺提醒
+- **输出形式**：知识清单、错题回顾、3 题小测、周计划、风险提醒
+
+建议聚焦以下高价值周期任务：
+
+- 薄弱专题回顾
+- 高频错题复盘
+- 案例题判分点训练
+- 考前阶段性冲刺提醒
+- 建筑实务相关最新政策 / 规范更新跟进
+- 情绪波动时的学习降载与重启建议
+- 帮学员维持节奏感和掌控感，而不是只追加任务
 
 ## Active Tasks
 
-<!-- Add your periodic tasks below this line -->
+<!--
+示例：
 
+- 每周一早上整理一份“建筑实务高频易错点回顾”，按施工技术、项目管理、法规接口三个板块输出，每板块给出 3 个易错点和 1 个判断口诀。
+- 每周三为学员生成一组 3 题建筑实务案例小测，难度中等，附标准答案、踩分点、失分风险。
+- 每周日晚检查最近一周错题，输出“本周最该补的 2 个专题”和下周训练建议。
+- 每月一次检索住建部及地方住建主管部门官网，汇总可能影响建筑实务备考口径的最新通知、公告或规范变化。
+- 若检测到学员最近连续答错或表达焦虑，每周补一条“本周不是全面落后，而是卡在哪一个判定点”的定制复盘，并给一个最小改进动作。
+-->
 
 ## Completed
 
-<!-- Move completed tasks here or delete them -->
-
+<!--
+已完成或已废弃的周期任务移到这里，或直接删除。
+-->

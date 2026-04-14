@@ -31,7 +31,7 @@ def _build_catalog(
     search_profile = search_profile or {
         "id": "search-p",
         "name": "Search",
-        "provider": "brave",
+        "provider": "tavily",
         "base_url": "",
         "api_key": "",
         "proxy": "",

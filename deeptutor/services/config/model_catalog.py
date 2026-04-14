@@ -162,7 +162,7 @@ class ModelCatalogService:
                     {
                         "id": profile_id,
                         "name": "Default Search Provider",
-                        "provider": summary.search["provider"] or "brave",
+                        "provider": summary.search["provider"] or "tavily",
                         "base_url": summary.search["base_url"],
                         "api_key": summary.search["api_key"],
                         "api_version": "",
@@ -251,7 +251,7 @@ class ModelCatalogService:
                 profile = {
                     "id": profile_id,
                     "name": "Default Search Provider",
-                    "provider": "brave",
+                    "provider": "tavily",
                     "base_url": "",
                     "api_key": "",
                     "api_version": "",
@@ -386,7 +386,7 @@ class ModelCatalogService:
                 profile.setdefault("base_url", "")
                 profile.setdefault("api_key", "")
                 if service_name == "search":
-                    profile.setdefault("provider", "brave")
+                    profile.setdefault("provider", "tavily")
                     profile.setdefault("proxy", "")
                     profile["models"] = []
                 else:
