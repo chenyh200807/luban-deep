@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional
 
+import yaml
+
 
 @dataclass
 class LoggingConfig:
@@ -36,9 +38,21 @@ class LoggingConfig:
 def get_default_log_dir() -> Path:
     """Get the default log directory."""
     from deeptutor.services.path_service import get_path_service
-    
+
     path_service = get_path_service()
     return path_service.get_logs_dir()
+
+
+def _load_main_settings() -> dict:
+    """Read runtime main.yaml directly to avoid importing services.config during logger bootstrap."""
+    config_path = Path(__file__).resolve().parents[2] / "data" / "user" / "settings" / "main.yaml"
+    if not config_path.exists():
+        return {}
+    try:
+        with open(config_path, encoding="utf-8") as handle:
+            return yaml.safe_load(handle) or {}
+    except Exception:
+        return {}
 
 
 def get_global_log_level() -> str:
@@ -47,9 +61,7 @@ def get_global_log_level() -> str:
     Default: DEBUG
     """
     try:
-        from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
-
-        config = load_config_with_main("main.yaml", PROJECT_ROOT)
+        config = _load_main_settings()
         logging_config = config.get("logging", {})
         return logging_config.get("level", "DEBUG").upper()
     except Exception:
@@ -64,10 +76,7 @@ def load_logging_config() -> LoggingConfig:
         LoggingConfig instance with loaded or default values.
     """
     try:
-        from deeptutor.services.config import PROJECT_ROOT, get_path_from_config, load_config_with_main
-
-        config = load_config_with_main("main.yaml", PROJECT_ROOT)
-
+        config = _load_main_settings()
         logging_config = config.get("logging", {})
         level = get_global_log_level()
 
@@ -75,7 +84,7 @@ def load_logging_config() -> LoggingConfig:
             level=level,
             console_output=logging_config.get("console_output", True),
             file_output=logging_config.get("save_to_file", True),
-            log_dir=get_path_from_config(config, "user_log_dir"),
+            log_dir=str(get_default_log_dir()),
             rag_logger_names=logging_config.get("rag_logger_names"),
         )
     except Exception:

@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Header, HTTPException, Query, Request
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.session import get_sqlite_session_store, get_turn_runtime_manager
+from deeptutor.tutorbot.teaching_modes import normalize_teaching_mode
 
 router = APIRouter()
 member_service = get_member_console_service()
@@ -23,12 +22,187 @@ def _ts_to_iso(timestamp: float | int | None) -> str:
     return datetime.fromtimestamp(float(timestamp)).isoformat()
 
 
-def _sse_payload(data: str) -> bytes:
-    return f"data: {data}\n\n".encode("utf-8")
-
-
 def _resolve_user_id(authorization: str | None, user_id: str | None = None) -> str:
-    return member_service.resolve_user_id(authorization, user_id=user_id)
+    resolved = member_service.resolve_user_id(authorization, user_id=user_id)
+    if not str(resolved or "").strip():
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return resolved
+
+
+def _session_visible_to_user(session: dict[str, Any] | None, resolved_user_id: str) -> bool:
+    if not session:
+        return False
+    prefs = session.get("preferences") or {}
+    owner_id = str(prefs.get("user_id") or "").strip()
+    return not owner_id or owner_id == resolved_user_id
+
+
+def _build_turn_start_response(session: dict[str, Any], turn: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "conversation": {
+            "id": session["id"],
+            "title": session["title"],
+            "created_at": _ts_to_iso(session.get("created_at")),
+        },
+        "turn": {
+            "id": turn["id"],
+            "capability": turn.get("capability") or "",
+            "status": turn.get("status") or "running",
+        },
+        "stream": {
+            "transport": "websocket",
+            "url": "/api/v1/ws",
+            "subscribe": {
+                "type": "subscribe_turn",
+                "turn_id": turn["id"],
+                "after_seq": 0,
+            },
+            "resume": {
+                "type": "resume_from",
+                "turn_id": turn["id"],
+                "seq": 0,
+            },
+        },
+    }
+
+
+def _build_message_interactive_payload(message: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(message, dict):
+        return None
+    events = message.get("events")
+    if not isinstance(events, list):
+        return None
+
+    for event in reversed(events):
+        if not isinstance(event, dict) or str(event.get("type") or "").strip() != "result":
+            continue
+        metadata = event.get("metadata")
+        if not isinstance(metadata, dict):
+            continue
+        summary = metadata.get("summary")
+        if not isinstance(summary, dict):
+            continue
+
+        raw_results = summary.get("results")
+        if not isinstance(raw_results, list):
+            continue
+
+        questions: list[dict[str, Any]] = []
+        hidden_contexts: list[dict[str, Any]] = []
+        has_multi_choice = False
+
+        for result in raw_results:
+            if not isinstance(result, dict):
+                continue
+            qa_pair = result.get("qa_pair")
+            if not isinstance(qa_pair, dict):
+                continue
+
+            question_type = str(qa_pair.get("question_type") or "").strip().lower()
+            raw_options = qa_pair.get("options")
+            if question_type != "choice" or not isinstance(raw_options, dict):
+                continue
+
+            option_keys = sorted(str(key or "").strip().upper() for key in raw_options.keys())
+            option_map: dict[str, str] = {}
+            options: list[dict[str, str]] = []
+            for key in option_keys:
+                if not key:
+                    continue
+                value = str(raw_options.get(key) or "").strip()
+                if not value:
+                    continue
+                options.append({"key": key, "text": value})
+                option_map[key] = value
+            if not options:
+                continue
+
+            correct_answer = str(qa_pair.get("correct_answer") or "").strip()
+            card_question_type = "multi_choice" if len(correct_answer) > 1 else "single_choice"
+            if card_question_type == "multi_choice":
+                has_multi_choice = True
+
+            question_index = len(questions) + 1
+            questions.append(
+                {
+                    "index": question_index,
+                    "stem": str(qa_pair.get("question") or "").strip(),
+                    "question_type": card_question_type,
+                    "options": options,
+                    "question_id": str(qa_pair.get("question_id") or f"q_{question_index}").strip(),
+                }
+            )
+            hidden_contexts.append(
+                {
+                    "question_id": str(qa_pair.get("question_id") or f"q_{question_index}").strip(),
+                    "question": str(qa_pair.get("question") or "").strip(),
+                    "question_type": "choice",
+                    "options": option_map,
+                    "correct_answer": correct_answer,
+                    "explanation": str(qa_pair.get("explanation") or "").strip(),
+                    "difficulty": str(qa_pair.get("difficulty") or "").strip(),
+                    "concentration": str(
+                        qa_pair.get("concentration")
+                        or qa_pair.get("knowledge_point")
+                        or qa_pair.get("topic")
+                        or ""
+                    ).strip(),
+                    "knowledge_context": str(
+                        qa_pair.get("knowledge_context") or qa_pair.get("explanation") or ""
+                    ).strip(),
+                }
+            )
+
+        if not questions:
+            continue
+
+        return {
+            "type": "mcq_interactive",
+            "questions": questions,
+            "hidden_contexts": hidden_contexts,
+            "submit_hint": (
+                "多题作答，先分别点选，再提交答案。"
+                if len(questions) > 1
+                else "多选题，先点选，再提交答案。"
+                if has_multi_choice
+                else "请选择后提交答案"
+            ),
+            "receipt": "",
+        }
+
+    return None
+
+
+def _build_mini_tutor_interaction_hints(
+    *,
+    mode: str,
+    profile: str,
+    hints: dict[str, Any] | None,
+) -> dict[str, Any]:
+    merged = dict(hints or {})
+    normalized_mode = normalize_teaching_mode(mode)
+    normalized_profile = str(profile or "mini_tutor").strip() or "mini_tutor"
+
+    merged["profile"] = normalized_profile
+    merged["product_surface"] = "wechat_miniprogram"
+    merged["entry_role"] = "tutorbot"
+    merged["subject_domain"] = "construction_exam"
+    merged["teaching_mode"] = normalized_mode
+    merged["pedagogy_contract"] = "construction_exam_tutor_v1"
+    merged["response_contract"] = (
+        "fast_scoring_points"
+        if normalized_mode == "fast"
+        else "deep_four_elements"
+        if normalized_mode == "deep"
+        else "default_agentic_chat"
+    )
+    merged["teaching_focus"] = [
+        "踩分点",
+        "易错点",
+        "记忆口诀",
+        "心得",
+    ]
+    return merged
 
 
 class LoginRequest(BaseModel):
@@ -43,6 +217,28 @@ class PhoneRequest(BaseModel):
 class VerifyCodeRequest(BaseModel):
     phone: str
     code: str
+
+
+class WechatLoginRequest(BaseModel):
+    code: str = ""
+
+
+class WechatBindPhoneRequest(BaseModel):
+    phone_code: str = ""
+
+
+class MobileStartTurnRequest(BaseModel):
+    query: str
+    conversation_id: str = ""
+    capability: str = ""
+    mode: str = "AUTO"
+    language: str = "zh"
+    interaction_profile: str = "mini_tutor"
+    interaction_hints: dict[str, Any] | None = None
+    tools: list[str] = Field(default_factory=list)
+    knowledge_bases: list[str] = Field(default_factory=list)
+    attachments: list[dict[str, Any]] = Field(default_factory=list)
+    followup_question_context: dict[str, Any] | None = None
 
 
 class ChatFeedbackRequest(BaseModel):
@@ -81,7 +277,10 @@ async def auth_send_code(body: PhoneRequest) -> dict[str, Any]:
 
 @router.post("/auth/verify-code")
 async def auth_verify_code(body: VerifyCodeRequest) -> dict[str, Any]:
-    return member_service.verify_phone_code(body.phone)
+    try:
+        return member_service.verify_phone_code(body.phone, body.code)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/auth/profile")
@@ -98,13 +297,29 @@ async def auth_profile_settings(
 
 
 @router.post("/wechat/mp/login")
-async def wechat_login() -> dict[str, Any]:
-    return member_service.verify_phone_code("13800000001")
+async def wechat_login(body: WechatLoginRequest) -> dict[str, Any]:
+    try:
+        return await member_service.login_with_wechat_code(body.code)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 @router.post("/wechat/mp/bind-phone")
-async def wechat_bind_phone(body: dict[str, Any]) -> dict[str, Any]:
-    return {"bound": True, "phone_code": body.get("phone_code", "")}
+async def wechat_bind_phone(
+    body: WechatBindPhoneRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    try:
+        return await member_service.bind_phone_for_wechat(
+            _resolve_user_id(authorization),
+            body.phone_code,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 @router.get("/practice/today-progress")
@@ -115,6 +330,11 @@ async def practice_today_progress(authorization: str | None = Header(default=Non
 @router.get("/practice/chapter-progress")
 async def practice_chapter_progress(authorization: str | None = Header(default=None)) -> list[dict[str, Any]]:
     return member_service.get_chapter_progress(_resolve_user_id(authorization))
+
+
+@router.get("/practice/daily-question")
+async def practice_daily_question(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    return member_service.get_daily_question(_resolve_user_id(authorization))
 
 
 @router.get("/billing/points")
@@ -140,6 +360,22 @@ async def billing_ledger(
 @router.get("/homepage/dashboard")
 async def homepage_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     return member_service.get_home_dashboard(_resolve_user_id(authorization))
+
+
+@router.get("/profile/badges")
+async def profile_badges(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    return member_service.get_badges(_resolve_user_id(authorization))
+
+
+@router.get("/bi/radar/{user_id}")
+async def bi_radar(user_id: str, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    resolved = _resolve_user_id(authorization, user_id=user_id)
+    return member_service.get_radar_data(resolved)
+
+
+@router.get("/plan/mastery-dashboard")
+async def mastery_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    return member_service.get_mastery_dashboard(_resolve_user_id(authorization))
 
 
 @router.get("/assessment/profile")
@@ -173,17 +409,31 @@ async def assessment_submit(
 
 
 @router.post("/conversations")
-async def create_conversation() -> dict[str, Any]:
+async def create_conversation(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    resolved_user_id = _resolve_user_id(authorization)
     session = await session_store.create_session()
-    await session_store.update_session_preferences(session["id"], {"archived": False, "source": "wx_miniprogram"})
+    await session_store.update_session_preferences(
+        session["id"],
+        {
+            "archived": False,
+            "source": "wx_miniprogram",
+            "user_id": resolved_user_id,
+        },
+    )
     return {"conversation": {"id": session["id"], "title": session["title"], "created_at": _ts_to_iso(session["created_at"])}}
 
 
 @router.get("/conversations")
-async def list_conversations(archived: bool = False) -> dict[str, Any]:
+async def list_conversations(
+    archived: bool = False,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    resolved_user_id = _resolve_user_id(authorization)
     sessions = await session_store.list_sessions(limit=200, offset=0)
     items = []
     for session in sessions:
+        if not _session_visible_to_user(session, resolved_user_id):
+            continue
         prefs = session.get("preferences") or {}
         if bool(prefs.get("archived", False)) != archived:
             continue
@@ -192,6 +442,11 @@ async def list_conversations(archived: bool = False) -> dict[str, Any]:
                 "id": session["id"],
                 "title": session["title"],
                 "last_message": session.get("last_message", ""),
+                "message_count": int(session.get("message_count") or 0),
+                "status": str(session.get("status") or "idle"),
+                "capability": str(session.get("capability") or ""),
+                "cost_summary": session.get("cost_summary"),
+                "source": str(prefs.get("source") or ""),
                 "created_at": _ts_to_iso(session.get("created_at")),
                 "updated_at": _ts_to_iso(session.get("updated_at")),
                 "archived": bool(prefs.get("archived", False)),
@@ -201,9 +456,13 @@ async def list_conversations(archived: bool = False) -> dict[str, Any]:
 
 
 @router.get("/conversations/{conversation_id}/messages")
-async def get_conversation_messages(conversation_id: str) -> dict[str, Any]:
+async def get_conversation_messages(
+    conversation_id: str,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    resolved_user_id = _resolve_user_id(authorization)
     session = await session_store.get_session_with_messages(conversation_id)
-    if session is None:
+    if session is None or not _session_visible_to_user(session, resolved_user_id):
         raise HTTPException(status_code=404, detail="Conversation not found")
     messages = [
         {
@@ -211,6 +470,7 @@ async def get_conversation_messages(conversation_id: str) -> dict[str, Any]:
             "role": item["role"],
             "content": item["content"],
             "created_at": _ts_to_iso(item.get("created_at")),
+            "interactive": _build_message_interactive_payload(item),
         }
         for item in session.get("messages", [])
     ]
@@ -218,7 +478,14 @@ async def get_conversation_messages(conversation_id: str) -> dict[str, Any]:
 
 
 @router.delete("/conversations/{conversation_id}")
-async def delete_conversation(conversation_id: str) -> dict[str, Any]:
+async def delete_conversation(
+    conversation_id: str,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    resolved_user_id = _resolve_user_id(authorization)
+    session = await session_store.get_session_with_messages(conversation_id)
+    if session is None or not _session_visible_to_user(session, resolved_user_id):
+        raise HTTPException(status_code=404, detail="Conversation not found")
     deleted = await session_store.delete_session(conversation_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -226,9 +493,16 @@ async def delete_conversation(conversation_id: str) -> dict[str, Any]:
 
 
 @router.post("/conversations/batch")
-async def batch_conversations(body: BatchConversationRequest) -> dict[str, Any]:
+async def batch_conversations(
+    body: BatchConversationRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    resolved_user_id = _resolve_user_id(authorization)
     updated = 0
     for conversation_id in body.conversation_ids:
+        session = await session_store.get_session_with_messages(conversation_id)
+        if session is None or not _session_visible_to_user(session, resolved_user_id):
+            continue
         if body.action == "delete":
             updated += 1 if await session_store.delete_session(conversation_id) else 0
             continue
@@ -249,88 +523,76 @@ async def chat_feedback(body: ChatFeedbackRequest, authorization: str | None = H
     return {"ok": True}
 
 
-@router.post("/stream/chat/sse")
-async def stream_chat_sse(request: Request) -> StreamingResponse:
-    payload = await request.json()
-    session_id = str(payload.get("session_id") or payload.get("conversation_id") or "").strip()
-    query = str(payload.get("query") or "").strip()
-    user_id = str(payload.get("user_id") or "student_demo")
-    mode = str(payload.get("mode") or "AUTO").upper()
+@router.post("/chat/start-turn")
+async def mobile_chat_start_turn(
+    body: MobileStartTurnRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    query = str(body.query or "").strip()
     if not query:
         raise HTTPException(status_code=400, detail="query is required")
-    if not session_id:
-        session = await session_store.create_session()
-        session_id = session["id"]
-    chat_mode = "deep" if mode == "DEEP" else "fast"
 
-    async def event_stream():
-        try:
-            _, turn = await turn_runtime.start_turn(
-                {
-                    "content": query,
-                    "session_id": session_id,
-                    "capability": "chat",
-                    "language": "zh",
-                    "config": {"chat_mode": chat_mode},
-                    "metadata": {"mobile_user_id": user_id},
-                }
-            )
-        except RuntimeError as exc:
-            yield _sse_payload(json.dumps({"type": "error", "data": str(exc)}, ensure_ascii=False))
-            yield _sse_payload("[DONE]")
-            return
+    resolved_user_id = _resolve_user_id(authorization)
+    session_id = str(body.conversation_id or "").strip()
+    capability = str(body.capability or "").strip() or None
+    mode = str(body.mode or "AUTO").strip().upper()
+    normalized_mode = normalize_teaching_mode(mode)
+    config: dict[str, Any] = {}
+    if mode == "DEEP":
+        config["chat_mode"] = "deep"
+        config["chat_mode_explicit"] = True
+    elif mode == "FAST":
+        config["chat_mode"] = "fast"
+        config["chat_mode_explicit"] = True
+    interaction_profile = str(body.interaction_profile or "").strip() or "mini_tutor"
+    interaction_hints = _build_mini_tutor_interaction_hints(
+        mode=normalized_mode,
+        profile=interaction_profile,
+        hints=body.interaction_hints,
+    )
+    config["billing_context"] = {
+        "source": "wx_miniprogram",
+        "user_id": resolved_user_id,
+    }
+    if interaction_profile:
+        config["interaction_profile"] = interaction_profile
+    if interaction_hints:
+        config["interaction_hints"] = interaction_hints
+    if body.followup_question_context:
+        config["followup_question_context"] = body.followup_question_context
 
-        title_sent = False
-        yield _sse_payload(json.dumps({"type": "status", "data": "thinking"}, ensure_ascii=False))
-        async for event in turn_runtime.subscribe_turn(turn["id"]):
-            event_type = event.get("type")
-            if not title_sent and event_type not in {"session", "done"}:
-                session = await session_store.get_session(session_id)
-                if session and session.get("title"):
-                    yield _sse_payload(
-                        json.dumps({"updated_title": session["title"]}, ensure_ascii=False)
-                    )
-                    title_sent = True
-            if event_type == "content":
-                yield _sse_payload(
-                    json.dumps({"type": "token", "data": event.get("content", "")}, ensure_ascii=False)
-                )
-            elif event_type in {"stage_start", "thinking", "progress", "observation", "tool_call", "tool_result"}:
-                content = event.get("content") or event.get("stage") or event_type
-                yield _sse_payload(json.dumps({"type": "status", "data": content}, ensure_ascii=False))
-            elif event_type == "sources":
-                citations = event.get("metadata", {}).get("sources") or event.get("metadata") or {}
-                yield _sse_payload(
-                    json.dumps(
-                        {
-                            "type": "final",
-                            "engine": "deeptutor",
-                            "engine_session_id": session_id,
-                            "engine_turn_id": turn["id"],
-                            "citations": citations,
-                        },
-                        ensure_ascii=False,
-                    )
-                )
-            elif event_type == "result":
-                yield _sse_payload(
-                    json.dumps(
-                        {
-                            "type": "final",
-                            "engine": "deeptutor",
-                            "engine_session_id": session_id,
-                            "engine_turn_id": turn["id"],
-                        },
-                        ensure_ascii=False,
-                    )
-                )
-            elif event_type == "error":
-                yield _sse_payload(
-                    json.dumps({"type": "error", "data": event.get("content", "服务异常")}, ensure_ascii=False)
-                )
-            elif event_type == "done":
-                yield _sse_payload(json.dumps({"type": "status_end", "data": "done"}, ensure_ascii=False))
-                yield _sse_payload("[DONE]")
-                break
+    try:
+        session, turn = await turn_runtime.start_turn(
+            {
+                "type": "start_turn",
+                "content": query,
+                "session_id": session_id or None,
+                "capability": capability,
+                "tools": list(body.tools or []),
+                "knowledge_bases": list(body.knowledge_bases or []),
+                "attachments": list(body.attachments or []),
+                "language": str(body.language or "zh"),
+                "config": config,
+            }
+        )
+    except RuntimeError as exc:
+        if "active turn" in str(exc).lower() and session_id:
+            session = await session_store.get_session(session_id)
+            active_turn = await session_store.get_active_turn(session_id)
+            if (
+                session is not None
+                and active_turn is not None
+                and _session_visible_to_user(session, resolved_user_id)
+            ):
+                return _build_turn_start_response(session, active_turn)
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+    await session_store.update_session_preferences(
+        session["id"],
+        {
+            "source": "wx_miniprogram",
+            "user_id": resolved_user_id,
+        },
+    )
+
+    return _build_turn_start_response(session, turn)

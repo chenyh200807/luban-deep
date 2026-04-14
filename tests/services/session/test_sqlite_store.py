@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import sqlite3
+import time
 from pathlib import Path
 
 import pytest
@@ -57,24 +58,23 @@ def store(tmp_path: Path) -> SQLiteSessionStore:
 
 
 def _make_items(*specs):
-    """Build notebook entry dicts from (qid, question, is_correct) tuples."""
     items = []
     for qid, question, is_correct in specs:
-        items.append({
-            "question_id": qid,
-            "question": question,
-            "question_type": "choice",
-            "options": {"A": "opt_a", "B": "opt_b"},
-            "user_answer": "A",
-            "correct_answer": "B",
-            "explanation": "expl",
-            "difficulty": "medium",
-            "is_correct": is_correct,
-        })
+        items.append(
+            {
+                "question_id": qid,
+                "question": question,
+                "question_type": "choice",
+                "options": {"A": "opt_a", "B": "opt_b"},
+                "user_answer": "A",
+                "correct_answer": "B",
+                "explanation": "expl",
+                "difficulty": "medium",
+                "is_correct": is_correct,
+            }
+        )
     return items
 
-
-# ── Notebook entries ──────────────────────────────────────────────
 
 def test_upsert_notebook_entries_persists_all(store: SQLiteSessionStore) -> None:
     session = asyncio.run(store.create_session(title="Test"))
@@ -83,7 +83,7 @@ def test_upsert_notebook_entries_persists_all(store: SQLiteSessionStore) -> None
     assert upserted == 3
     result = asyncio.run(store.list_notebook_entries())
     assert result["total"] == 3
-    assert all(e["session_title"] == "Test" for e in result["items"])
+    assert all(entry["session_title"] == "Test" for entry in result["items"])
 
 
 def test_upsert_notebook_entries_updates_on_conflict(store: SQLiteSessionStore) -> None:
@@ -93,10 +93,20 @@ def test_upsert_notebook_entries_updates_on_conflict(store: SQLiteSessionStore) 
     result = asyncio.run(store.list_notebook_entries())
     assert result["items"][0]["is_correct"] is False
 
-    asyncio.run(store.upsert_notebook_entries(sid, [{
-        "question_id": "q1", "question": "Q?", "user_answer": "B",
-        "correct_answer": "B", "is_correct": True,
-    }]))
+    asyncio.run(
+        store.upsert_notebook_entries(
+            sid,
+            [
+                {
+                    "question_id": "q1",
+                    "question": "Q?",
+                    "user_answer": "B",
+                    "correct_answer": "B",
+                    "is_correct": True,
+                }
+            ],
+        )
+    )
     result = asyncio.run(store.list_notebook_entries())
     assert result["total"] == 1
     assert result["items"][0]["is_correct"] is True
@@ -121,21 +131,17 @@ def test_upsert_unknown_session_raises(store: SQLiteSessionStore) -> None:
 
 def test_list_entries_filters_bookmarked(store: SQLiteSessionStore) -> None:
     session = asyncio.run(store.create_session())
-    asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(
-        ("q1", "Q1?", False), ("q2", "Q2?", True),
-    )))
+    asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(("q1", "Q1?", False), ("q2", "Q2?", True))))
     entries = asyncio.run(store.list_notebook_entries())["items"]
     asyncio.run(store.update_notebook_entry(entries[0]["id"], {"bookmarked": True}))
-    bm = asyncio.run(store.list_notebook_entries(bookmarked=True))
-    assert bm["total"] == 1
-    assert bm["items"][0]["bookmarked"] is True
+    bookmarked = asyncio.run(store.list_notebook_entries(bookmarked=True))
+    assert bookmarked["total"] == 1
+    assert bookmarked["items"][0]["bookmarked"] is True
 
 
 def test_list_entries_filters_is_correct(store: SQLiteSessionStore) -> None:
     session = asyncio.run(store.create_session())
-    asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(
-        ("q1", "Q1?", False), ("q2", "Q2?", True),
-    )))
+    asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(("q1", "Q1?", False), ("q2", "Q2?", True))))
     wrong = asyncio.run(store.list_notebook_entries(is_correct=False))
     assert wrong["total"] == 1
     assert wrong["items"][0]["question_id"] == "q1"
@@ -144,20 +150,20 @@ def test_list_entries_filters_is_correct(store: SQLiteSessionStore) -> None:
 def test_update_notebook_entry_bookmark_roundtrip(store: SQLiteSessionStore) -> None:
     session = asyncio.run(store.create_session())
     asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(("q1", "Q?", False))))
-    eid = asyncio.run(store.list_notebook_entries())["items"][0]["id"]
-    assert asyncio.run(store.update_notebook_entry(eid, {"bookmarked": True})) is True
-    assert asyncio.run(store.get_notebook_entry(eid))["bookmarked"] is True
-    assert asyncio.run(store.update_notebook_entry(eid, {"bookmarked": False})) is True
-    assert asyncio.run(store.get_notebook_entry(eid))["bookmarked"] is False
+    entry_id = asyncio.run(store.list_notebook_entries())["items"][0]["id"]
+    assert asyncio.run(store.update_notebook_entry(entry_id, {"bookmarked": True})) is True
+    assert asyncio.run(store.get_notebook_entry(entry_id))["bookmarked"] is True
+    assert asyncio.run(store.update_notebook_entry(entry_id, {"bookmarked": False})) is True
+    assert asyncio.run(store.get_notebook_entry(entry_id))["bookmarked"] is False
     assert asyncio.run(store.update_notebook_entry(99999, {"bookmarked": True})) is False
 
 
 def test_update_followup_session_id(store: SQLiteSessionStore) -> None:
     session = asyncio.run(store.create_session())
     asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(("q1", "Q?", False))))
-    eid = asyncio.run(store.list_notebook_entries())["items"][0]["id"]
-    asyncio.run(store.update_notebook_entry(eid, {"followup_session_id": "sess_fu"}))
-    entry = asyncio.run(store.get_notebook_entry(eid))
+    entry_id = asyncio.run(store.list_notebook_entries())["items"][0]["id"]
+    asyncio.run(store.update_notebook_entry(entry_id, {"followup_session_id": "sess_fu"}))
+    entry = asyncio.run(store.get_notebook_entry(entry_id))
     assert entry["followup_session_id"] == "sess_fu"
 
 
@@ -172,11 +178,9 @@ def test_find_notebook_entry(store: SQLiteSessionStore) -> None:
 
 def test_delete_notebook_entry(store: SQLiteSessionStore) -> None:
     session = asyncio.run(store.create_session())
-    asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(
-        ("q1", "Q1?", False), ("q2", "Q2?", False),
-    )))
-    eid = asyncio.run(store.list_notebook_entries())["items"][0]["id"]
-    assert asyncio.run(store.delete_notebook_entry(eid)) is True
+    asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(("q1", "Q1?", False), ("q2", "Q2?", False))))
+    entry_id = asyncio.run(store.list_notebook_entries())["items"][0]["id"]
+    assert asyncio.run(store.delete_notebook_entry(entry_id)) is True
     assert asyncio.run(store.list_notebook_entries())["total"] == 1
     assert asyncio.run(store.delete_notebook_entry(99999)) is False
 
@@ -189,47 +193,180 @@ def test_entries_cascade_on_session_delete(store: SQLiteSessionStore) -> None:
     assert asyncio.run(store.list_notebook_entries())["total"] == 0
 
 
-# ── Categories ────────────────────────────────────────────────────
-
 def test_category_crud(store: SQLiteSessionStore) -> None:
-    cat = asyncio.run(store.create_category("Math"))
-    assert cat["name"] == "Math"
-    cats = asyncio.run(store.list_categories())
-    assert len(cats) == 1
-    assert cats[0]["entry_count"] == 0
+    category = asyncio.run(store.create_category("Math"))
+    assert category["name"] == "Math"
+    categories = asyncio.run(store.list_categories())
+    assert len(categories) == 1
+    assert categories[0]["entry_count"] == 0
 
-    asyncio.run(store.rename_category(cat["id"], "Algebra"))
-    cats = asyncio.run(store.list_categories())
-    assert cats[0]["name"] == "Algebra"
+    asyncio.run(store.rename_category(category["id"], "Algebra"))
+    categories = asyncio.run(store.list_categories())
+    assert categories[0]["name"] == "Algebra"
 
-    asyncio.run(store.delete_category(cat["id"]))
+    asyncio.run(store.delete_category(category["id"]))
     assert asyncio.run(store.list_categories()) == []
 
 
 def test_entry_category_association(store: SQLiteSessionStore) -> None:
     session = asyncio.run(store.create_session())
     asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(("q1", "Q?", False))))
-    eid = asyncio.run(store.list_notebook_entries())["items"][0]["id"]
-    cat = asyncio.run(store.create_category("Physics"))
+    entry_id = asyncio.run(store.list_notebook_entries())["items"][0]["id"]
+    category = asyncio.run(store.create_category("Physics"))
 
-    assert asyncio.run(store.add_entry_to_category(eid, cat["id"])) is True
-    entry = asyncio.run(store.get_notebook_entry(eid))
+    assert asyncio.run(store.add_entry_to_category(entry_id, category["id"])) is True
+    entry = asyncio.run(store.get_notebook_entry(entry_id))
     assert len(entry["categories"]) == 1
     assert entry["categories"][0]["name"] == "Physics"
 
-    by_cat = asyncio.run(store.list_notebook_entries(category_id=cat["id"]))
-    assert by_cat["total"] == 1
+    by_category = asyncio.run(store.list_notebook_entries(category_id=category["id"]))
+    assert by_category["total"] == 1
 
-    asyncio.run(store.remove_entry_from_category(eid, cat["id"]))
-    assert asyncio.run(store.get_entry_categories(eid)) == []
+    asyncio.run(store.remove_entry_from_category(entry_id, category["id"]))
+    assert asyncio.run(store.get_entry_categories(entry_id)) == []
 
 
 def test_category_cascade_on_entry_delete(store: SQLiteSessionStore) -> None:
     session = asyncio.run(store.create_session())
     asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(("q1", "Q?", False))))
-    eid = asyncio.run(store.list_notebook_entries())["items"][0]["id"]
-    cat = asyncio.run(store.create_category("History"))
-    asyncio.run(store.add_entry_to_category(eid, cat["id"]))
-    asyncio.run(store.delete_notebook_entry(eid))
-    cats = asyncio.run(store.list_categories())
-    assert cats[0]["entry_count"] == 0
+    entry_id = asyncio.run(store.list_notebook_entries())["items"][0]["id"]
+    category = asyncio.run(store.create_category("History"))
+    asyncio.run(store.add_entry_to_category(entry_id, category["id"]))
+    asyncio.run(store.delete_notebook_entry(entry_id))
+    categories = asyncio.run(store.list_categories())
+    assert categories[0]["entry_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_sqlite_store_aggregates_session_cost_summary(tmp_path: Path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+
+    session = await store.create_session(title="Token Demo", session_id="session-token-demo")
+
+    turn_one = await store.create_turn(session["id"], capability="chat")
+    await store.append_turn_event(
+        turn_one["id"],
+        {
+            "type": "result",
+            "source": "chat",
+            "stage": "responding",
+            "content": "",
+            "metadata": {
+                "metadata": {
+                    "cost_summary": {
+                        "scope_id": "turn:1",
+                        "session_id": session["id"],
+                        "total_input_tokens": 120,
+                        "total_output_tokens": 30,
+                        "total_tokens": 150,
+                        "total_calls": 2,
+                        "measured_calls": 1,
+                        "estimated_calls": 1,
+                        "usage_sources": {"provider": 1, "tiktoken": 1},
+                        "models": {"deepseek-v3.2": 2},
+                        "total_cost_usd": 0.0125,
+                    }
+                }
+            },
+            "timestamp": 1.0,
+        },
+    )
+    await store.update_turn_status(turn_one["id"], "completed")
+
+    turn_two = await store.create_turn(session["id"], capability="chat")
+    await store.append_turn_event(
+        turn_two["id"],
+        {
+            "type": "result",
+            "source": "chat",
+            "stage": "responding",
+            "content": "",
+            "metadata": {
+                "metadata": {
+                    "cost_summary": {
+                        "scope_id": "turn:2",
+                        "session_id": session["id"],
+                        "total_input_tokens": 80,
+                        "total_output_tokens": 20,
+                        "total_tokens": 100,
+                        "total_calls": 1,
+                        "measured_calls": 1,
+                        "estimated_calls": 0,
+                        "usage_sources": {"provider": 1},
+                        "models": {"deepseek-v3.2": 1},
+                        "total_cost_usd": 0.004,
+                    }
+                }
+            },
+            "timestamp": 2.0,
+        },
+    )
+    await store.update_turn_status(turn_two["id"], "completed")
+
+    sessions = await store.list_sessions()
+    assert sessions[0]["cost_summary"] == {
+        "scope_id": f"session:{session['id']}",
+        "session_id": session["id"],
+        "total_input_tokens": 200,
+        "total_output_tokens": 50,
+        "total_tokens": 250,
+        "total_calls": 3,
+        "measured_calls": 2,
+        "estimated_calls": 1,
+        "usage_accuracy": "mixed",
+        "usage_sources": {"provider": 2, "tiktoken": 1},
+        "models": {"deepseek-v3.2": 3},
+        "total_cost_usd": 0.0165,
+    }
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert detail["cost_summary"] == sessions[0]["cost_summary"]
+
+
+@pytest.mark.asyncio
+async def test_sqlite_store_persists_active_question_context_in_runtime_state(
+    tmp_path: Path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = await store.create_session(title="Quiz", session_id="session-quiz")
+
+    await store.set_active_question_context(
+        session["id"],
+        {
+            "question_id": "q_1",
+            "question": "判断：流水步距反映相邻专业队投入间隔。",
+            "question_type": "choice",
+            "options": {"A": "对", "B": "错"},
+            "correct_answer": "A",
+        },
+    )
+
+    context = await store.get_active_question_context(session["id"])
+
+    assert context is not None
+    assert context["question_id"] == "q_1"
+    assert context["correct_answer"] == "A"
+
+
+@pytest.mark.asyncio
+async def test_sqlite_store_recovers_stale_running_turn_before_creating_new_turn(
+    tmp_path: Path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = await store.create_session(title="Turns", session_id="session-turns")
+    stale_turn = await store.create_turn(session["id"], capability="chat")
+
+    with sqlite3.connect(store.db_path) as conn:
+        conn.execute(
+            "UPDATE turns SET updated_at = ? WHERE id = ?",
+            (time.time() - 400, stale_turn["id"]),
+        )
+        conn.commit()
+
+    next_turn = await store.create_turn(session["id"], capability="chat")
+    stale_detail = await store.get_turn(stale_turn["id"])
+
+    assert stale_detail is not None
+    assert stale_detail["status"] == "failed"
+    assert next_turn["id"] != stale_turn["id"]

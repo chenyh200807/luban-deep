@@ -59,6 +59,7 @@ from .executors import (
     sdk_complete,
     sdk_stream,
 )
+from .types import TutorResponse, TutorStreamChunk
 from .utils import is_local_llm_server
 
 if TYPE_CHECKING:
@@ -74,6 +75,44 @@ DEFAULT_RETRY_DELAY = settings.retry.base_delay
 DEFAULT_EXPONENTIAL_BACKOFF = settings.retry.exponential_backoff
 
 CallKwargs = dict[str, object]
+
+
+def _normalize_provider_usage(usage: object) -> dict[str, float] | None:
+    if not usage:
+        return None
+    if isinstance(usage, Mapping):
+        prompt_tokens = usage.get("prompt_tokens")
+        completion_tokens = usage.get("completion_tokens")
+        total_tokens = usage.get("total_tokens")
+        if prompt_tokens is None:
+            prompt_tokens = usage.get("input_tokens")
+        if completion_tokens is None:
+            completion_tokens = usage.get("output_tokens")
+        if total_tokens is None and isinstance(prompt_tokens, (int, float)) and isinstance(
+            completion_tokens, (int, float)
+        ):
+            total_tokens = float(prompt_tokens) + float(completion_tokens)
+        values = {
+            "input": float(prompt_tokens or 0),
+            "output": float(completion_tokens or 0),
+            "total": float(total_tokens or 0),
+        }
+        return values if values["total"] > 0 or values["input"] > 0 or values["output"] > 0 else None
+    return None
+
+
+def _extract_result_text(result: object) -> str:
+    if isinstance(result, TutorResponse):
+        return result.content
+    if isinstance(result, str):
+        return result
+    return str(result or "")
+
+
+def _extract_result_usage(result: object) -> dict[str, float] | None:
+    if isinstance(result, TutorResponse):
+        return _normalize_provider_usage(result.usage)
+    return _normalize_provider_usage(getattr(result, "usage", None))
 
 
 def _is_retriable_error(error: BaseException) -> bool:
@@ -257,7 +296,7 @@ async def complete(
         binding_value: str | None,
         extra_kwargs: CallKwargs,
         messages_value: list[dict[str, object]] | None,
-    ) -> str:
+    ) -> str | TutorResponse:
         try:
             if provider_mode == "oauth" and provider_name == "openai_codex":
                 raise LLMConfigError(
@@ -281,6 +320,7 @@ async def complete(
                     messages=messages_value,
                     extra_headers=extra_headers or None,
                     reasoning_effort=reasoning_effort,
+                    return_response_object=True,
                     **extra_kwargs,
                 )
 
@@ -292,6 +332,7 @@ async def complete(
                     api_key=api_key_value,
                     base_url=base_url_value,
                     messages=messages_value,
+                    return_response_object=True,
                     **extra_kwargs,
                 )
             from . import cloud_provider
@@ -307,6 +348,7 @@ async def complete(
                 binding=direct_binding if provider_mode == "direct" else (binding_value or "openai"),
                 messages=messages_value,
                 extra_headers=extra_headers or None,
+                return_response_object=True,
                 **extra_kwargs,
             )
         except Exception as exc:
@@ -371,21 +413,28 @@ async def complete(
             )
             raise
 
-        usage_details = observability.estimate_usage_details(
-            input_payload=input_payload,
-            output_payload=result,
-        )
+        result_text = _extract_result_text(result)
+        usage_details = _extract_result_usage(result)
+        usage_source = "provider"
+        if usage_details is None:
+            usage_details = observability.estimate_usage_details(
+                input_payload=input_payload,
+                output_payload=result_text,
+            )
+            usage_source = "tiktoken"
         observability.update_observation(
             observation,
-            output_payload=result,
+            output_payload=result_text,
             metadata={"provider_name": provider_name, "provider_mode": provider_mode},
             usage_details=usage_details,
+            usage_source=usage_source,
+            model=model,
             cost_details=observability.estimate_cost_details(
                 model=model,
                 usage_details=usage_details,
             ),
         )
-        return result
+        return result_text
 
 
 async def stream(
@@ -467,6 +516,7 @@ async def stream(
         model=model,
         model_parameters=model_parameters,
     ) as observation:
+        provider_usage_details: dict[str, float] | None = None
         for attempt in range(total_attempts):
             try:
                 if provider_mode == "oauth" and provider_name == "openai_codex":
@@ -492,8 +542,17 @@ async def stream(
                         messages=messages,
                         extra_headers=extra_headers or None,
                         reasoning_effort=reasoning_effort,
+                        return_stream_chunks=True,
                         **extra_kwargs,
                     ):
+                        if isinstance(chunk, TutorStreamChunk):
+                            if chunk.usage:
+                                provider_usage_details = _normalize_provider_usage(chunk.usage)
+                            if chunk.delta:
+                                has_yielded = True
+                                streamed_chunks.append(chunk.delta)
+                                yield chunk.delta
+                            continue
                         has_yielded = True
                         streamed_chunks.append(chunk)
                         yield chunk
@@ -505,8 +564,17 @@ async def stream(
                         api_key=api_key,
                         base_url=base_url,
                         messages=messages,
+                        return_stream_chunks=True,
                         **extra_kwargs,
                     ):
+                        if isinstance(chunk, TutorStreamChunk):
+                            if chunk.usage:
+                                provider_usage_details = _normalize_provider_usage(chunk.usage)
+                            if chunk.delta:
+                                has_yielded = True
+                                streamed_chunks.append(chunk.delta)
+                                yield chunk.delta
+                            continue
                         has_yielded = True
                         streamed_chunks.append(chunk)
                         yield chunk
@@ -524,21 +592,35 @@ async def stream(
                         binding=direct_binding if provider_mode == "direct" else (binding or "openai"),
                         messages=messages,
                         extra_headers=extra_headers or None,
+                        return_stream_chunks=True,
                         **extra_kwargs,
                     ):
+                        if isinstance(chunk, TutorStreamChunk):
+                            if chunk.usage:
+                                provider_usage_details = _normalize_provider_usage(chunk.usage)
+                            if chunk.delta:
+                                has_yielded = True
+                                streamed_chunks.append(chunk.delta)
+                                yield chunk.delta
+                            continue
                         has_yielded = True
                         streamed_chunks.append(chunk)
                         yield chunk
-
-                usage_details = observability.estimate_usage_details(
-                    input_payload=input_payload,
-                    output_payload="".join(streamed_chunks),
-                )
+                usage_details = provider_usage_details
+                usage_source = "provider"
+                if usage_details is None:
+                    usage_details = observability.estimate_usage_details(
+                        input_payload=input_payload,
+                        output_payload="".join(streamed_chunks),
+                    )
+                    usage_source = "tiktoken"
                 observability.update_observation(
                     observation,
                     output_payload="".join(streamed_chunks),
                     metadata={"provider_name": provider_name, "provider_mode": provider_mode},
                     usage_details=usage_details,
+                    usage_source=usage_source,
+                    model=model,
                     cost_details=observability.estimate_cost_details(
                         model=model,
                         usage_details=usage_details,

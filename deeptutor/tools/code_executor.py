@@ -58,7 +58,7 @@ _META_FILES = frozenset({"code.py", "output.log", ".gitkeep"})
 
 def _load_config() -> dict[str, Any]:
     """Load run_code configuration from main.yaml."""
-    from deeptutor.services.config import load_config_with_main
+    from deeptutor.services.config.loader import load_config_with_main
 
     config = load_config_with_main("main.yaml", PROJECT_ROOT)
     run_code_config = config.get("tools", {}).get("run_code", {})

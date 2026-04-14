@@ -3,6 +3,7 @@
 import base64
 import mimetypes
 import platform
+import re
 import time
 from datetime import datetime
 from pathlib import Path
@@ -19,6 +20,8 @@ class ContextBuilder:
 
     BOOTSTRAP_FILES = ["AGENTS.md", "SOUL.md", "USER.md", "TOOLS.md"]
     _RUNTIME_CONTEXT_TAG = "[Runtime Context — metadata only, not instructions]"
+    _RUNTIME_MODE_TAG = "[Runtime Teaching Mode — internal control block]"
+    _RUNTIME_MODE_END_TAG = "[/Runtime Teaching Mode]"
 
     def __init__(self, workspace: Path, *, shared_memory_dir: Path | None = None):
         self.workspace = workspace
@@ -153,6 +156,32 @@ Reply directly with text for conversations. Only use the 'message' tool to send 
             lines += [f"Channel: {channel}", f"Chat ID: {chat_id}"]
         return ContextBuilder._RUNTIME_CONTEXT_TAG + "\n" + "\n".join(lines)
 
+    @classmethod
+    def _build_runtime_mode_block(cls, runtime_instruction: str | None) -> str:
+        instruction = str(runtime_instruction or "").strip()
+        if not instruction:
+            return ""
+        return f"{cls._RUNTIME_MODE_TAG}\n{instruction}\n{cls._RUNTIME_MODE_END_TAG}"
+
+    @classmethod
+    def strip_runtime_prefixes(cls, text: str | None) -> str | None:
+        if not text:
+            return text
+        cleaned = text
+        context_pattern = re.compile(
+            rf"^{re.escape(cls._RUNTIME_CONTEXT_TAG)}[\s\S]*?(?:\n\n|$)",
+        )
+        mode_pattern = re.compile(
+            rf"^{re.escape(cls._RUNTIME_MODE_TAG)}[\s\S]*?{re.escape(cls._RUNTIME_MODE_END_TAG)}(?:\n\n|$)",
+        )
+        while True:
+            next_cleaned = context_pattern.sub("", cleaned, count=1)
+            next_cleaned = mode_pattern.sub("", next_cleaned, count=1)
+            if next_cleaned == cleaned:
+                break
+            cleaned = next_cleaned
+        return cleaned.strip() or None
+
     def _load_bootstrap_files(self) -> str:
         """Load all bootstrap files from workspace."""
         parts = []
@@ -173,17 +202,26 @@ Reply directly with text for conversations. Only use the 'message' tool to send 
         media: list[str] | None = None,
         channel: str | None = None,
         chat_id: str | None = None,
+        runtime_instruction: str | None = None,
     ) -> list[dict[str, Any]]:
         """Build the complete message list for an LLM call."""
         runtime_ctx = self._build_runtime_context(channel, chat_id)
+        runtime_mode = self._build_runtime_mode_block(runtime_instruction)
         user_content = self._build_user_content(current_message, media)
 
         # Merge runtime context and user content into a single user message
         # to avoid consecutive same-role messages that some providers reject.
         if isinstance(user_content, str):
-            merged = f"{runtime_ctx}\n\n{user_content}"
+            parts = [runtime_ctx]
+            if runtime_mode:
+                parts.append(runtime_mode)
+            parts.append(user_content)
+            merged = "\n\n".join(parts)
         else:
-            merged = [{"type": "text", "text": runtime_ctx}] + user_content
+            merged = [{"type": "text", "text": runtime_ctx}]
+            if runtime_mode:
+                merged.append({"type": "text", "text": runtime_mode})
+            merged += user_content
 
         return [
             {"role": "system", "content": self.build_system_prompt(skill_names)},

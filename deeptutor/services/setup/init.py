@@ -10,7 +10,7 @@ from pathlib import Path
 import yaml
 
 from deeptutor.logging import get_logger
-from deeptutor.services.config import get_env_store
+from deeptutor.services.config.env_store import get_env_store
 from deeptutor.services.path_service import get_path_service
 
 # Initialize logger for setup operations

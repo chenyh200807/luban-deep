@@ -152,6 +152,9 @@ class PathService:
     def get_workspace_dir(self) -> Path:
         return self._user_data_dir / "workspace"
 
+    def get_tutor_state_root(self) -> Path:
+        return self._user_data_dir / "tutor_state"
+
     def get_settings_dir(self) -> Path:
         return self._user_data_dir / "settings"
 

@@ -66,7 +66,7 @@ async def reason(
     from deeptutor.services.llm import complete as llm_complete, stream as llm_stream
     from deeptutor.services.llm.config import get_llm_config
     from deeptutor.services.llm import get_token_limit_kwargs
-    from deeptutor.services.config import get_agent_params
+    from deeptutor.services.config.loader import get_agent_params
 
     # ---- resolve LLM config ------------------------------------------------
     try:

@@ -15,6 +15,15 @@ from pathlib import Path
 from typing import Any
 
 from deeptutor.services.path_service import get_path_service
+from deeptutor.services.question_followup import normalize_question_followup_context
+
+_STALE_TURN_TIMEOUT_SECONDS = 180.0
+_SQLITE_TIMEOUT_SECONDS = 5.0
+_SQLITE_BUSY_TIMEOUT_MS = 5000
+_INTERACTION_HINT_SYSTEM_PREFIXES = (
+    "你正在一个学习型产品场景中工作。",
+    "You are operating in a learning-product scenario.",
+)
 
 
 def _json_dumps(value: Any) -> str:
@@ -28,6 +37,147 @@ def _json_loads(value: str | None, default: Any) -> Any:
         return json.loads(value)
     except json.JSONDecodeError:
         return default
+
+
+def _is_interaction_hint_system_message(content: str | None) -> bool:
+    text = str(content or "")
+    return any(text.startswith(prefix) for prefix in _INTERACTION_HINT_SYSTEM_PREFIXES)
+
+
+def _empty_cost_summary(*, session_id: str = "", scope_id: str = "") -> dict[str, Any]:
+    resolved_session_id = str(session_id or "").strip()
+    return {
+        "scope_id": str(scope_id or f"session:{resolved_session_id}" if resolved_session_id else "session").strip(),
+        "session_id": resolved_session_id,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_tokens": 0,
+        "total_calls": 0,
+        "measured_calls": 0,
+        "estimated_calls": 0,
+        "usage_accuracy": "unknown",
+        "usage_sources": {},
+        "models": {},
+        "total_cost_usd": 0.0,
+    }
+
+
+def _normalize_cost_summary(summary: dict[str, Any] | None, *, session_id: str = "") -> dict[str, Any] | None:
+    if not isinstance(summary, dict):
+        return None
+
+    normalized = _empty_cost_summary(
+        session_id=session_id or str(summary.get("session_id") or "").strip(),
+        scope_id=str(summary.get("scope_id") or "").strip(),
+    )
+    normalized["total_input_tokens"] = int(round(float(summary.get("total_input_tokens") or 0)))
+    normalized["total_output_tokens"] = int(round(float(summary.get("total_output_tokens") or 0)))
+    normalized["total_tokens"] = int(
+        round(
+            float(
+                summary.get("total_tokens")
+                or (normalized["total_input_tokens"] + normalized["total_output_tokens"])
+            )
+        )
+    )
+    normalized["total_calls"] = int(round(float(summary.get("total_calls") or 0)))
+    normalized["measured_calls"] = int(round(float(summary.get("measured_calls") or 0)))
+    normalized["estimated_calls"] = int(round(float(summary.get("estimated_calls") or 0)))
+    normalized["total_cost_usd"] = round(float(summary.get("total_cost_usd") or 0.0), 8)
+
+    raw_sources = summary.get("usage_sources") if isinstance(summary.get("usage_sources"), dict) else {}
+    normalized["usage_sources"] = {
+        str(key): int(round(float(value or 0)))
+        for key, value in raw_sources.items()
+        if int(round(float(value or 0))) > 0
+    }
+    raw_models = summary.get("models") if isinstance(summary.get("models"), dict) else {}
+    normalized["models"] = {
+        str(key): int(round(float(value or 0)))
+        for key, value in raw_models.items()
+        if int(round(float(value or 0))) > 0
+    }
+    return normalized
+
+
+def _merge_cost_summary(target: dict[str, Any], incoming: dict[str, Any] | None) -> dict[str, Any]:
+    normalized = _normalize_cost_summary(incoming, session_id=str(target.get("session_id") or "").strip())
+    if normalized is None:
+        return target
+
+    target["total_input_tokens"] = int(target.get("total_input_tokens") or 0) + int(
+        normalized["total_input_tokens"]
+    )
+    target["total_output_tokens"] = int(target.get("total_output_tokens") or 0) + int(
+        normalized["total_output_tokens"]
+    )
+    target["total_tokens"] = int(target.get("total_tokens") or 0) + int(normalized["total_tokens"])
+    target["total_calls"] = int(target.get("total_calls") or 0) + int(normalized["total_calls"])
+    target["measured_calls"] = int(target.get("measured_calls") or 0) + int(
+        normalized["measured_calls"]
+    )
+    target["estimated_calls"] = int(target.get("estimated_calls") or 0) + int(
+        normalized["estimated_calls"]
+    )
+    target["total_cost_usd"] = round(
+        float(target.get("total_cost_usd") or 0.0) + float(normalized["total_cost_usd"] or 0.0),
+        8,
+    )
+
+    sources = target.setdefault("usage_sources", {})
+    for key, value in normalized.get("usage_sources", {}).items():
+        sources[key] = int(sources.get(key) or 0) + int(value or 0)
+
+    models = target.setdefault("models", {})
+    for key, value in normalized.get("models", {}).items():
+        models[key] = int(models.get(key) or 0) + int(value or 0)
+
+    return target
+
+
+def _finalize_cost_summary(summary: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not summary:
+        return None
+
+    total_tokens = int(summary.get("total_tokens") or 0)
+    total_calls = int(summary.get("total_calls") or 0)
+    if total_tokens <= 0 and total_calls <= 0:
+        return None
+
+    measured_calls = int(summary.get("measured_calls") or 0)
+    estimated_calls = int(summary.get("estimated_calls") or 0)
+    accuracy = (
+        "measured"
+        if estimated_calls == 0 and measured_calls > 0
+        else "estimated"
+        if measured_calls == 0 and estimated_calls > 0
+        else "mixed"
+        if measured_calls > 0 and estimated_calls > 0
+        else "unknown"
+    )
+
+    return {
+        "scope_id": str(summary.get("scope_id") or "").strip(),
+        "session_id": str(summary.get("session_id") or "").strip(),
+        "total_input_tokens": int(summary.get("total_input_tokens") or 0),
+        "total_output_tokens": int(summary.get("total_output_tokens") or 0),
+        "total_tokens": total_tokens,
+        "total_calls": total_calls,
+        "measured_calls": measured_calls,
+        "estimated_calls": estimated_calls,
+        "usage_accuracy": accuracy,
+        "usage_sources": {
+            key: value
+            for key, value in sorted((summary.get("usage_sources") or {}).items(), key=lambda item: item[0])
+            if int(value or 0) > 0
+        },
+        "models": {
+            key: value
+            for key, value in sorted((summary.get("models") or {}).items(), key=lambda item: item[0])
+            if int(value or 0) > 0
+        },
+        "total_cost_usd": round(float(summary.get("total_cost_usd") or 0.0), 8),
+    }
 
 
 @dataclass
@@ -81,8 +231,11 @@ class SQLiteSessionStore:
             pass
 
     def _initialize(self) -> None:
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.db_path, timeout=_SQLITE_TIMEOUT_SECONDS) as conn:
             conn.execute("PRAGMA foreign_keys = ON")
+            conn.execute(f"PRAGMA busy_timeout = {_SQLITE_BUSY_TIMEOUT_MS}")
+            conn.execute("PRAGMA journal_mode = WAL")
+            conn.execute("PRAGMA synchronous = NORMAL")
             conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS sessions (
@@ -196,10 +349,78 @@ class SQLiteSessionStore:
             return await asyncio.to_thread(fn, *args)
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(self.db_path, timeout=_SQLITE_TIMEOUT_SECONDS)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
+        conn.execute(f"PRAGMA busy_timeout = {_SQLITE_BUSY_TIMEOUT_MS}")
         return conn
+
+    @staticmethod
+    def _extract_cost_summary_from_event_metadata(metadata_json: str | None) -> dict[str, Any] | None:
+        metadata = _json_loads(metadata_json, {})
+        if not isinstance(metadata, dict):
+            return None
+
+        nested_metadata = metadata.get("metadata")
+        if isinstance(nested_metadata, dict) and isinstance(nested_metadata.get("cost_summary"), dict):
+            return nested_metadata.get("cost_summary")
+        if isinstance(metadata.get("cost_summary"), dict):
+            return metadata.get("cost_summary")
+        return None
+
+    def _get_usage_summaries_for_sessions_sync(
+        self,
+        session_ids: list[str],
+    ) -> dict[str, dict[str, Any]]:
+        resolved_session_ids = [str(session_id or "").strip() for session_id in session_ids if str(session_id or "").strip()]
+        if not resolved_session_ids:
+            return {}
+
+        placeholders = ",".join("?" for _ in resolved_session_ids)
+        with self._connect() as conn:
+            rows = conn.execute(
+                f"""
+                SELECT
+                    t.session_id,
+                    te.turn_id,
+                    te.seq,
+                    te.metadata_json
+                FROM turn_events te
+                INNER JOIN turns t ON t.id = te.turn_id
+                WHERE t.session_id IN ({placeholders})
+                  AND te.type = 'result'
+                ORDER BY t.session_id ASC, te.turn_id ASC, te.seq DESC
+                """,
+                tuple(resolved_session_ids),
+            ).fetchall()
+
+        summaries: dict[str, dict[str, Any]] = {
+            session_id: _empty_cost_summary(session_id=session_id)
+            for session_id in resolved_session_ids
+        }
+        seen_turn_ids: set[tuple[str, str]] = set()
+        for row in rows:
+            session_id = str(row["session_id"] or "").strip()
+            turn_id = str(row["turn_id"] or "").strip()
+            if not session_id or not turn_id:
+                continue
+            key = (session_id, turn_id)
+            if key in seen_turn_ids:
+                continue
+            seen_turn_ids.add(key)
+            cost_summary = self._extract_cost_summary_from_event_metadata(row["metadata_json"])
+            if cost_summary:
+                _merge_cost_summary(summaries[session_id], cost_summary)
+
+        return {
+            session_id: finalized
+            for session_id, summary in summaries.items()
+            if (finalized := _finalize_cost_summary(summary)) is not None
+        }
+
+    def _get_usage_summary_for_session_sync(self, session_id: str) -> dict[str, Any] | None:
+        return self._get_usage_summaries_for_sessions_sync([session_id]).get(session_id)
 
     def _create_session_sync(self, title: str | None = None, session_id: str | None = None) -> dict[str, Any]:
         now = time.time()
@@ -280,6 +501,7 @@ class SQLiteSessionStore:
         payload = dict(row)
         payload["session_id"] = payload["id"]
         payload["preferences"] = _json_loads(payload.pop("preferences_json", ""), {})
+        payload["cost_summary"] = self._get_usage_summary_for_session_sync(payload["id"])
         return payload
 
     async def get_session(self, session_id: str) -> dict[str, Any] | None:
@@ -290,7 +512,7 @@ class SQLiteSessionStore:
             session = await self.get_session(session_id)
             if session is not None:
                 return session
-        return await self.create_session()
+        return await self.create_session(session_id=session_id)
 
     @staticmethod
     def _serialize_turn(row: sqlite3.Row) -> dict[str, Any]:
@@ -313,6 +535,23 @@ class SQLiteSessionStore:
             session = conn.execute("SELECT id FROM sessions WHERE id = ?", (session_id,)).fetchone()
             if session is None:
                 raise ValueError(f"Session not found: {session_id}")
+            stale_cutoff = now - _STALE_TURN_TIMEOUT_SECONDS
+            conn.execute(
+                """
+                UPDATE turns
+                SET status = 'failed',
+                    error = CASE
+                        WHEN error = '' THEN 'Recovered stale running turn'
+                        ELSE error
+                    END,
+                    updated_at = ?,
+                    finished_at = ?
+                WHERE session_id = ?
+                  AND status = 'running'
+                  AND updated_at < ?
+                """,
+                (now, now, session_id, stale_cutoff),
+            )
             active = conn.execute(
                 """
                 SELECT id
@@ -637,10 +876,14 @@ class SQLiteSessionStore:
                 """,
                 (session_id,),
             ).fetchall()
-        return [
-            {"id": row["id"], "role": row["role"], "content": row["content"] or ""}
-            for row in rows
-        ]
+        messages: list[dict[str, Any]] = []
+        for row in rows:
+            role = row["role"]
+            content = row["content"] or ""
+            if role == "system" and _is_interaction_hint_system_message(content):
+                continue
+            messages.append({"id": row["id"], "role": role, "content": content})
+        return messages
 
     async def get_messages_for_context(self, session_id: str) -> list[dict[str, Any]]:
         return await self._run(self._get_messages_for_context_sync, session_id)
@@ -708,10 +951,12 @@ class SQLiteSessionStore:
                 (limit, offset),
             ).fetchall()
         sessions = []
+        usage_summaries = self._get_usage_summaries_for_sessions_sync([str(row["id"]) for row in rows])
         for row in rows:
             payload = dict(row)
             payload["session_id"] = payload["id"]
             payload["preferences"] = _json_loads(payload.pop("preferences_json", ""), {})
+            payload["cost_summary"] = usage_summaries.get(payload["id"])
             sessions.append(payload)
         return sessions
 
@@ -759,6 +1004,71 @@ class SQLiteSessionStore:
 
     async def update_session_preferences(self, session_id: str, preferences: dict[str, Any]) -> bool:
         return await self._run(self._update_session_preferences_sync, session_id, preferences)
+
+    def _get_active_question_context_sync(self, session_id: str) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT preferences_json FROM sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        preferences = _json_loads(row["preferences_json"], {})
+        runtime_state = (
+            preferences.get("runtime_state")
+            if isinstance(preferences.get("runtime_state"), dict)
+            else {}
+        )
+        return normalize_question_followup_context(runtime_state.get("active_question_context"))
+
+    async def get_active_question_context(self, session_id: str) -> dict[str, Any] | None:
+        return await self._run(self._get_active_question_context_sync, session_id)
+
+    def _set_active_question_context_sync(
+        self,
+        session_id: str,
+        question_context: dict[str, Any] | None,
+    ) -> bool:
+        normalized = normalize_question_followup_context(question_context)
+        with self._connect() as conn:
+            current = conn.execute(
+                "SELECT preferences_json FROM sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+            if current is None:
+                return False
+            preferences = _json_loads(current["preferences_json"], {})
+            runtime_state = (
+                dict(preferences.get("runtime_state"))
+                if isinstance(preferences.get("runtime_state"), dict)
+                else {}
+            )
+            if normalized is None:
+                runtime_state.pop("active_question_context", None)
+            else:
+                runtime_state["active_question_context"] = normalized
+            merged = {**preferences, "runtime_state": runtime_state}
+            cur = conn.execute(
+                """
+                UPDATE sessions
+                SET preferences_json = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (_json_dumps(merged), time.time(), session_id),
+            )
+            conn.commit()
+        return cur.rowcount > 0
+
+    async def set_active_question_context(
+        self,
+        session_id: str,
+        question_context: dict[str, Any] | None,
+    ) -> bool:
+        return await self._run(
+            self._set_active_question_context_sync,
+            session_id,
+            question_context,
+        )
 
     async def get_session_with_messages(self, session_id: str) -> dict[str, Any] | None:
         session = await self.get_session(session_id)

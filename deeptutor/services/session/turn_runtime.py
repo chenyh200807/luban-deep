@@ -8,18 +8,22 @@ import asyncio
 import contextlib
 import json
 import logging
+import sqlite3
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from typing import Any
 
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.path_service import get_path_service
+from deeptutor.services.question_followup import normalize_question_followup_context
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, get_sqlite_session_store
 
 logger = logging.getLogger(__name__)
 observability = get_langfuse_observability()
+_MINI_PROGRAM_CAPTURE_COST = 20
 
 
 def _should_capture_assistant_content(event: StreamEvent) -> bool:
@@ -45,37 +49,86 @@ def _extract_followup_question_context(
     if not isinstance(config, dict):
         return None
     raw = config.pop("followup_question_context", None)
+    normalized = normalize_question_followup_context(raw)
+    if not normalized:
+        return None
+    normalized["knowledge_context"] = _clip_text(
+        str(normalized.get("knowledge_context", "") or "").strip()
+    )
+    return normalized
+
+
+def _extract_interaction_hints(
+    config: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if not isinstance(config, dict):
+        return None
+    raw = config.pop("interaction_hints", None)
     if not isinstance(raw, dict):
         return None
 
-    question = str(raw.get("question", "") or "").strip()
-    question_id = str(raw.get("question_id", "") or "").strip()
-    if not question:
-        return None
+    profile = str(raw.get("profile", "") or "").strip().lower()
+    priorities = raw.get("priorities")
+    if not isinstance(priorities, list):
+        priorities = []
+    normalized_priorities = [
+        str(item or "").strip().lower()
+        for item in priorities
+        if str(item or "").strip()
+    ]
 
-    options = raw.get("options")
-    normalized_options: dict[str, str] | None = None
-    if isinstance(options, dict):
-        normalized_options = {
-            str(key).strip().upper()[:1]: str(value or "").strip()
-            for key, value in options.items()
-            if str(value or "").strip()
-        }
+    preferred_question_type = str(raw.get("preferred_question_type", "") or "").strip().lower()
+    if preferred_question_type not in {"choice", "written", "coding"}:
+        preferred_question_type = ""
 
-    return {
-        "parent_quiz_session_id": str(raw.get("parent_quiz_session_id", "") or "").strip(),
-        "question_id": question_id,
-        "question": question,
-        "question_type": str(raw.get("question_type", "") or "").strip(),
-        "options": normalized_options,
-        "correct_answer": str(raw.get("correct_answer", "") or "").strip(),
-        "explanation": str(raw.get("explanation", "") or "").strip(),
-        "difficulty": str(raw.get("difficulty", "") or "").strip(),
-        "concentration": str(raw.get("concentration", "") or "").strip(),
-        "knowledge_context": _clip_text(str(raw.get("knowledge_context", "") or "").strip()),
-        "user_answer": str(raw.get("user_answer", "") or "").strip(),
-        "is_correct": raw.get("is_correct"),
+    hints = {
+        "profile": profile,
+        "scene": str(raw.get("scene", "") or "").strip().lower(),
+        "preferred_question_type": preferred_question_type,
+        "suppress_answer_reveal_on_generate": bool(
+            raw.get("suppress_answer_reveal_on_generate", False)
+        ),
+        "prefer_question_context_grading": bool(
+            raw.get("prefer_question_context_grading", False)
+        ),
+        "prefer_concept_teaching_slots": bool(
+            raw.get("prefer_concept_teaching_slots", False)
+        ),
+        "allow_general_chat_fallback": raw.get("allow_general_chat_fallback", True) is not False,
+        "priorities": normalized_priorities,
     }
+
+    if profile == "mini_tutor":
+        hints["scene"] = hints["scene"] or "wechat_mini_program_learning"
+        hints["preferred_question_type"] = hints["preferred_question_type"] or "choice"
+        hints["suppress_answer_reveal_on_generate"] = True
+        hints["prefer_question_context_grading"] = True
+        hints["prefer_concept_teaching_slots"] = True
+        if not hints["priorities"]:
+            hints["priorities"] = ["practice", "grading", "explain", "review", "plan"]
+
+    meaningful = any(
+        [
+            hints["profile"],
+            hints["scene"],
+            hints["preferred_question_type"],
+            hints["priorities"],
+            hints["suppress_answer_reveal_on_generate"],
+            hints["prefer_question_context_grading"],
+            hints["prefer_concept_teaching_slots"],
+            hints["allow_general_chat_fallback"] is False,
+        ]
+    )
+    return hints if meaningful else None
+
+
+def _infer_chat_mode_from_interaction_hints(
+    hints: dict[str, Any] | None,
+) -> str | None:
+    if not isinstance(hints, dict):
+        return None
+    mode = str(hints.get("teaching_mode", "") or "").strip().lower()
+    return mode if mode in {"fast", "deep", "smart"} else None
 
 
 def _extract_persist_user_message(config: dict[str, Any] | None) -> bool:
@@ -87,6 +140,19 @@ def _extract_persist_user_message(config: dict[str, Any] | None) -> bool:
     if isinstance(raw, str):
         return raw.strip().lower() not in {"false", "0", "no"}
     return bool(raw)
+
+
+def _extract_billing_context(config: dict[str, Any] | None) -> dict[str, str] | None:
+    if not isinstance(config, dict):
+        return None
+    raw = config.pop("billing_context", None)
+    if not isinstance(raw, dict):
+        return None
+    source = str(raw.get("source", "") or "").strip().lower()
+    user_id = str(raw.get("user_id", "") or "").strip()
+    if not source or not user_id:
+        return None
+    return {"source": source, "user_id": user_id}
 
 
 def _format_followup_question_context(context: dict[str, Any], language: str = "en") -> str:
@@ -183,6 +249,56 @@ def _format_followup_question_context(context: dict[str, Any], language: str = "
     return "\n".join(lines).strip()
 
 
+def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> str:
+    profile = str(hints.get("profile", "") or "").strip()
+    preferred_question_type = str(hints.get("preferred_question_type", "") or "").strip()
+
+    if str(language or "en").lower().startswith("zh"):
+        lines = [
+            "你正在一个学习型产品场景中工作。下面是交互策略提示，把它当作类似技能说明的软约束，不要机械套模板：",
+        ]
+        if profile == "mini_tutor":
+            lines.append("- 当前场景偏向微信小程序的学练闭环。")
+        if hints.get("priorities"):
+            lines.append(
+                f"- 优先关注这些交互目标：{', '.join(str(item) for item in hints['priorities'])}。"
+            )
+        if preferred_question_type:
+            lines.append(f"- 用户要求出题但未指定题型时，优先出 `{preferred_question_type}`。")
+        if hints.get("suppress_answer_reveal_on_generate"):
+            lines.append("- 出题时本回合优先只出题，不主动泄露答案或解析。")
+        if hints.get("prefer_question_context_grading"):
+            lines.append("- 若已有题目上下文，短答案如 A/B/C/D、我选B，应优先结合题目上下文理解为作答提交。")
+        if hints.get("prefer_concept_teaching_slots"):
+            lines.append("- 遇到知识讲解且本轮用了知识召回时，优先覆盖核心结论、踩分点、易错点、记忆口诀和心得。")
+        if hints.get("allow_general_chat_fallback"):
+            lines.append("- 如果用户明显转入闲聊、产品问答或开放问题，正常切回通用智能助理模式。")
+        else:
+            lines.append("- 优先保持学习辅导语境，除非用户明确要求切换话题。")
+        return "\n".join(lines).strip()
+
+    lines = [
+        "You are operating in a learning-product scenario. Treat the notes below like skill guidance rather than a rigid workflow:",
+    ]
+    if profile == "mini_tutor":
+        lines.append("- The current scene is closer to a WeChat mini-program learning loop.")
+    if hints.get("priorities"):
+        lines.append(f"- Prioritize these interaction goals: {', '.join(str(item) for item in hints['priorities'])}.")
+    if preferred_question_type:
+        lines.append(f"- If the learner asks for practice without specifying type, prefer `{preferred_question_type}` questions.")
+    if hints.get("suppress_answer_reveal_on_generate"):
+        lines.append("- When generating practice, prefer giving only the question first without revealing the answer or explanation.")
+    if hints.get("prefer_question_context_grading"):
+        lines.append("- If quiz context exists, short replies like A/B/C/D or 'I choose B' should be interpreted as answer submissions when plausible.")
+    if hints.get("prefer_concept_teaching_slots"):
+        lines.append("- For concept teaching, try to cover conclusion, scoring points, pitfalls, memory hooks, and exam strategy.")
+    if hints.get("allow_general_chat_fallback"):
+        lines.append("- If the user clearly switches to open-ended chat, product questions, or general conversation, fall back naturally to general assistant behavior.")
+    else:
+        lines.append("- Stay in tutoring mode unless the user explicitly asks to switch topics.")
+    return "\n".join(lines).strip()
+
+
 @dataclass
 class _LiveSubscriber:
     queue: asyncio.Queue[dict[str, Any]]
@@ -196,6 +312,7 @@ class _TurnExecution:
     payload: dict[str, Any]
     task: asyncio.Task[None] | None = None
     subscribers: list[_LiveSubscriber] = field(default_factory=list)
+    persistence_degraded: bool = False
 
 
 class TurnRuntimeManager:
@@ -205,25 +322,219 @@ class TurnRuntimeManager:
         self.store = store or get_sqlite_session_store()
         self._lock = asyncio.Lock()
         self._executions: dict[str, _TurnExecution] = {}
+        self._volatile_question_contexts: dict[str, dict[str, Any]] = {}
+
+    @staticmethod
+    def _is_persistence_error(exc: Exception) -> bool:
+        return isinstance(exc, (sqlite3.Error, OSError))
+
+    def _mark_persistence_degraded(
+        self,
+        execution: _TurnExecution | None,
+        operation: str,
+        exc: Exception,
+    ) -> None:
+        if execution is not None:
+            already_degraded = execution.persistence_degraded
+            execution.persistence_degraded = True
+            log_method = logger.debug if already_degraded else logger.warning
+            log_method(
+                "Persistence degraded for turn %s during %s: %s",
+                execution.turn_id,
+                operation,
+                exc,
+                exc_info=not already_degraded,
+            )
+            return
+        logger.warning("Persistence degraded during %s: %s", operation, exc, exc_info=True)
+
+    async def _safe_store_call(
+        self,
+        execution: _TurnExecution | None,
+        operation: str,
+        fn,
+        *args,
+        default: Any = None,
+        swallow_value_error: bool = False,
+        **kwargs,
+    ) -> Any:
+        try:
+            return await fn(*args, **kwargs)
+        except ValueError as exc:
+            if not swallow_value_error:
+                raise
+            logger.warning("Store call skipped during %s: %s", operation, exc)
+            return default
+        except Exception as exc:
+            if not self._is_persistence_error(exc):
+                raise
+            self._mark_persistence_degraded(execution, operation, exc)
+            return default
+
+    async def _resolve_billing_context(
+        self,
+        session_id: str,
+        request_config: dict[str, Any] | None,
+    ) -> dict[str, str] | None:
+        billing_context = _extract_billing_context(request_config)
+        if billing_context is not None:
+            return billing_context
+        session = await self._safe_store_call(
+            None,
+            "get_session_for_billing_context",
+            self.store.get_session,
+            session_id,
+            default=None,
+        )
+        if session is None:
+            return None
+        preferences = session.get("preferences") or {}
+        source = str(preferences.get("source", "") or "").strip().lower()
+        user_id = str(preferences.get("user_id", "") or "").strip()
+        if not source or not user_id:
+            return None
+        return {"source": source, "user_id": user_id}
+
+    async def _resolve_interaction_hints(
+        self,
+        session_id: str,
+        request_config: dict[str, Any] | None,
+        *,
+        execution: _TurnExecution | None = None,
+    ) -> dict[str, Any] | None:
+        interaction_hints = _extract_interaction_hints(request_config)
+        if interaction_hints is not None:
+            return interaction_hints
+        session = await self._safe_store_call(
+            execution,
+            "get_session_for_interaction_hints",
+            self.store.get_session,
+            session_id,
+            default=None,
+        )
+        if not isinstance(session, dict):
+            return None
+        preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
+        return _extract_interaction_hints({"interaction_hints": preferences.get("interaction_hints")})
+
+    async def _recover_orphaned_running_turns(
+        self,
+        session_id: str,
+        *,
+        reason: str,
+    ) -> None:
+        active_turns = await self._safe_store_call(
+            None,
+            "list_active_turns",
+            self.store.list_active_turns,
+            session_id,
+            default=[],
+        )
+        for turn in active_turns or []:
+            turn_id = str(turn.get("id") or turn.get("turn_id") or "").strip()
+            if not turn_id:
+                continue
+            async with self._lock:
+                execution = self._executions.get(turn_id)
+            if execution is not None and execution.task is not None and not execution.task.done():
+                continue
+            await self._safe_store_call(
+                None,
+                "recover_orphaned_turn",
+                self.store.update_turn_status,
+                turn_id,
+                "failed",
+                reason,
+                default=False,
+            )
+
+    def _capture_mobile_points(
+        self,
+        billing_context: dict[str, str] | None,
+        assistant_content: str,
+    ) -> None:
+        if not billing_context:
+            return
+        if billing_context.get("source") != "wx_miniprogram":
+            return
+        user_id = str(billing_context.get("user_id", "") or "").strip()
+        if not user_id or not str(assistant_content or "").strip():
+            return
+        try:
+            from deeptutor.services.member_console import get_member_console_service
+
+            member_service = get_member_console_service()
+            member_service.capture_points(
+                user_id=user_id,
+                amount=_MINI_PROGRAM_CAPTURE_COST,
+                reason="capture",
+            )
+        except Exception:
+            logger.warning("Failed to capture points for user %s", user_id, exc_info=True)
+
+    def _record_mobile_learning(
+        self,
+        billing_context: dict[str, str] | None,
+        raw_user_content: str,
+        assistant_content: str,
+    ) -> None:
+        if not billing_context:
+            return
+        if billing_context.get("source") != "wx_miniprogram":
+            return
+        user_id = str(billing_context.get("user_id", "") or "").strip()
+        if not user_id or not str(assistant_content or "").strip():
+            return
+        try:
+            from deeptutor.services.member_console import get_member_console_service
+
+            member_service = get_member_console_service()
+            member_service.record_chat_learning(
+                user_id=user_id,
+                query=raw_user_content,
+                assistant_content=assistant_content,
+            )
+        except Exception:
+            logger.warning("Failed to record learning activity for user %s", user_id, exc_info=True)
 
     async def start_turn(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
-        capability = str(payload.get("capability") or "chat")
+        requested_capability = str(payload.get("capability") or "").strip() or None
+        capability = requested_capability or "chat"
         raw_config = dict(payload.get("config", {}) or {})
-        runtime_only_keys = ("_persist_user_message", "followup_question_context")
+        explicit_chat_mode = "chat_mode" in raw_config
+        runtime_only_keys = (
+            "_persist_user_message",
+            "followup_question_context",
+            "interaction_hints",
+            "billing_context",
+            "interaction_profile",
+            "chat_mode_explicit",
+        )
         runtime_only_config = {
             key: raw_config.pop(key)
             for key in runtime_only_keys
             if key in raw_config
         }
+        runtime_interaction_hints = _extract_interaction_hints(
+            {"interaction_hints": runtime_only_config.get("interaction_hints")}
+        )
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
 
             validated_public_config = validate_capability_config(capability, raw_config)
         except ValueError as exc:
             raise RuntimeError(str(exc)) from exc
+        if capability == "chat" and not explicit_chat_mode:
+            hinted_chat_mode = _infer_chat_mode_from_interaction_hints(runtime_interaction_hints)
+            if hinted_chat_mode == "smart":
+                validated_public_config = {
+                    **validated_public_config,
+                    "chat_mode": "smart",
+                }
         payload = {
             **payload,
-            "capability": capability,
+            "capability": requested_capability,
+            "_chat_mode_explicit": explicit_chat_mode,
             "config": {**validated_public_config, **runtime_only_config},
         }
         session = await self.store.ensure_session(payload.get("session_id"))
@@ -239,15 +550,32 @@ class TurnRuntimeManager:
                 "tools": list(payload.get("tools") or []),
                 "knowledge_bases": list(payload.get("knowledge_bases") or []),
                 "language": str(payload.get("language") or "en"),
+                **({"interaction_hints": runtime_interaction_hints} if runtime_interaction_hints else {}),
+                **(_extract_billing_context(dict(runtime_only_config)) or {}),
             },
         )
-        turn = await self.store.create_turn(session["id"], capability=capability)
+        await self._recover_orphaned_running_turns(
+            session["id"],
+            reason="Recovered orphaned running turn before starting a new turn",
+        )
+        try:
+            turn = await self.store.create_turn(session["id"], capability=capability)
+        except RuntimeError as exc:
+            if "active turn" not in str(exc).lower():
+                raise
+            await self._recover_orphaned_running_turns(
+                session["id"],
+                reason="Recovered orphaned running turn after create_turn conflict",
+            )
+            turn = await self.store.create_turn(session["id"], capability=capability)
         execution = _TurnExecution(
             turn_id=turn["id"],
             session_id=session["id"],
             capability=capability,
             payload=dict(payload),
         )
+        async with self._lock:
+            self._executions[turn["id"]] = execution
         await self._persist_and_publish(
             execution,
             StreamEvent(
@@ -257,7 +585,6 @@ class TurnRuntimeManager:
             ),
         )
         async with self._lock:
-            self._executions[turn["id"]] = execution
             execution.task = asyncio.create_task(self._run_turn(execution))
         return session, turn
 
@@ -265,11 +592,25 @@ class TurnRuntimeManager:
         async with self._lock:
             execution = self._executions.get(turn_id)
         if execution is None or execution.task is None or execution.task.done():
-            turn = await self.store.get_turn(turn_id)
+            turn = await self._safe_store_call(
+                None,
+                "get_turn_for_cancel",
+                self.store.get_turn,
+                turn_id,
+                default=None,
+            )
             if turn is None or turn.get("status") != "running":
                 return False
-            await self.store.update_turn_status(turn_id, "cancelled", "Turn cancelled")
-            return True
+            updated = await self._safe_store_call(
+                None,
+                "cancel_turn_without_execution",
+                self.store.update_turn_status,
+                turn_id,
+                "cancelled",
+                "Turn cancelled",
+                default=False,
+            )
+            return bool(updated)
         execution.task.cancel()
         return True
 
@@ -278,7 +619,14 @@ class TurnRuntimeManager:
         turn_id: str,
         after_seq: int = 0,
     ) -> AsyncIterator[dict[str, Any]]:
-        backlog = await self.store.get_turn_events(turn_id, after_seq=after_seq)
+        backlog = await self._safe_store_call(
+            None,
+            "get_turn_backlog",
+            self.store.get_turn_events,
+            turn_id,
+            after_seq,
+            default=[],
+        )
         last_seq = after_seq
         for item in backlog:
             last_seq = max(last_seq, int(item.get("seq") or 0))
@@ -292,7 +640,14 @@ class TurnRuntimeManager:
             if execution is not None:
                 execution.subscribers.append(subscriber)
 
-        catchup = await self.store.get_turn_events(turn_id, after_seq=last_seq)
+        catchup = await self._safe_store_call(
+            None,
+            "get_turn_catchup",
+            self.store.get_turn_events,
+            turn_id,
+            last_seq,
+            default=[],
+        )
         for item in catchup:
             seq = int(item.get("seq") or 0)
             if seq <= last_seq:
@@ -303,10 +658,21 @@ class TurnRuntimeManager:
             else:
                 queue.put_nowait(item)
 
-        turn = await self.store.get_turn(turn_id)
+        turn = await self._safe_store_call(
+            None,
+            "get_turn_for_subscribe",
+            self.store.get_turn,
+            turn_id,
+            default=None,
+        )
         if execution is None:
             if turn is None or turn.get("status") != "running":
                 return
+            await self._recover_orphaned_running_turns(
+                str(turn.get("session_id") or ""),
+                reason=f"Recovered orphaned running turn during subscribe: {turn_id}",
+            )
+            return
         try:
             while True:
                 item = await queue.get()
@@ -328,7 +694,13 @@ class TurnRuntimeManager:
         session_id: str,
         after_seq: int = 0,
     ) -> AsyncIterator[dict[str, Any]]:
-        active_turn = await self.store.get_active_turn(session_id)
+        active_turn = await self._safe_store_call(
+            None,
+            "get_active_turn_for_session_subscribe",
+            self.store.get_active_turn,
+            session_id,
+            default=None,
+        )
         if active_turn is None:
             return
         async for item in self.subscribe_turn(active_turn["id"], after_seq=after_seq):
@@ -356,19 +728,46 @@ class TurnRuntimeManager:
             from deeptutor.agents.notebook import NotebookAnalysisAgent
             from deeptutor.services.memory import get_memory_service
             from deeptutor.services.notebook import notebook_manager
+            from deeptutor.services.tutor_state import get_user_tutor_state_service
             from deeptutor.services.llm.config import get_llm_config
             from deeptutor.services.session.context_builder import ContextBuilder
 
             request_config = dict(payload.get("config", {}) or {})
             followup_question_context = _extract_followup_question_context(request_config)
+            interaction_hints = await self._resolve_interaction_hints(
+                session_id,
+                request_config,
+                execution=execution,
+            )
             persist_user_message = _extract_persist_user_message(request_config)
+            billing_context = await self._resolve_billing_context(session_id, request_config)
+            if not followup_question_context:
+                followup_question_context = await self._safe_store_call(
+                    execution,
+                    "get_active_question_context",
+                    self.store.get_active_question_context,
+                    session_id,
+                    default=None,
+                )
+            if not followup_question_context:
+                followup_question_context = self._volatile_question_contexts.get(session_id)
+            if followup_question_context:
+                self._volatile_question_contexts[session_id] = dict(followup_question_context)
             raw_user_content = str(payload.get("content", "") or "")
             notebook_references = payload.get("notebook_references", []) or []
             history_references = payload.get("history_references", []) or []
             notebook_context = ""
             history_context = ""
             trace_metadata["language"] = payload.get("language", "en")
-            with observability.start_observation(
+            user_id = str((billing_context or {}).get("user_id", "") or "").strip()
+            if user_id:
+                trace_metadata["user_id"] = user_id
+            with observability.usage_scope(
+                scope_id=turn_id,
+                session_id=session_id,
+                turn_id=turn_id,
+                capability=capability_name or "chat",
+            ), observability.start_observation(
                 name=f"turn.{capability_name or 'chat'}",
                 as_type="chain",
                 input_payload={"content": raw_user_content},
@@ -387,9 +786,18 @@ class TurnRuntimeManager:
                     attachments.append(Attachment(**record))
 
                 if followup_question_context:
-                    existing_messages = await self.store.get_messages_for_context(session_id)
+                    existing_messages = await self._safe_store_call(
+                        execution,
+                        "get_messages_for_followup_bootstrap",
+                        self.store.get_messages_for_context,
+                        session_id,
+                        default=[],
+                    )
                     if not existing_messages:
-                        await self.store.add_message(
+                        await self._safe_store_call(
+                            execution,
+                            "add_followup_bootstrap_message",
+                            self.store.add_message,
                             session_id=session_id,
                             role="system",
                             content=_format_followup_question_context(
@@ -397,18 +805,47 @@ class TurnRuntimeManager:
                                 language=str(payload.get("language", "en") or "en"),
                             ),
                             capability=capability_name or "chat",
+                            default=None,
                         )
 
                 llm_config = get_llm_config()
                 builder = ContextBuilder(self.store)
-                history_result = await builder.build(
-                    session_id=session_id,
-                    llm_config=llm_config,
-                    language=payload.get("language", "en"),
-                    on_event=lambda event: self._persist_and_publish(execution, event),
-                )
+                try:
+                    history_result = await builder.build(
+                        session_id=session_id,
+                        llm_config=llm_config,
+                        language=payload.get("language", "en"),
+                        on_event=lambda event: self._persist_and_publish(execution, event),
+                    )
+                except Exception as exc:
+                    if not self._is_persistence_error(exc):
+                        raise
+                    self._mark_persistence_degraded(execution, "build_context_history", exc)
+                    history_result = SimpleNamespace(
+                        conversation_history=[],
+                        conversation_summary="",
+                        context_text="",
+                        token_count=0,
+                        budget=0,
+                    )
                 memory_service = get_memory_service()
-                memory_context = memory_service.build_memory_context()
+                tutor_state_service = get_user_tutor_state_service()
+                user_id = str((billing_context or {}).get("user_id", "") or "").strip()
+                if user_id:
+                    try:
+                        memory_context = tutor_state_service.build_context(
+                            user_id=user_id,
+                            language=str(payload.get("language", "en") or "en"),
+                        )
+                    except Exception:
+                        logger.warning(
+                            "Failed to build tutor state context for user %s",
+                            user_id,
+                            exc_info=True,
+                        )
+                        memory_context = memory_service.build_memory_context()
+                else:
+                    memory_context = memory_service.build_memory_context()
 
                 if notebook_references:
                     referenced_records = notebook_manager.get_records_by_references(
@@ -431,11 +868,23 @@ class TurnRuntimeManager:
                         if not history_session_id:
                             continue
 
-                        history_session = await self.store.get_session(history_session_id)
+                        history_session = await self._safe_store_call(
+                            execution,
+                            "get_history_reference_session",
+                            self.store.get_session,
+                            history_session_id,
+                            default=None,
+                        )
                         if not history_session:
                             continue
 
-                        history_messages = await self.store.get_messages_for_context(history_session_id)
+                        history_messages = await self._safe_store_call(
+                            execution,
+                            "get_history_reference_messages",
+                            self.store.get_messages_for_context,
+                            history_session_id,
+                            default=[],
+                        )
                         transcript_lines = [
                             f"## {str(message.get('role', '')).title()}\n{message.get('content', '')}"
                             for message in history_messages
@@ -517,12 +966,16 @@ class TurnRuntimeManager:
                 conversation_context_text = history_result.context_text
 
                 if persist_user_message:
-                    await self.store.add_message(
+                    await self._safe_store_call(
+                        execution,
+                        "add_user_message",
+                        self.store.add_message,
                         session_id=session_id,
                         role="user",
                         content=raw_user_content,
                         capability=capability_name,
                         attachments=attachment_records,
+                        default=None,
                     )
 
                 context = UnifiedContext(
@@ -543,8 +996,10 @@ class TurnRuntimeManager:
                         "conversation_context_text": conversation_context_text,
                         "history_token_count": history_result.token_count,
                         "history_budget": history_result.budget,
+                        "chat_mode_explicit": bool(payload.get("_chat_mode_explicit", False)),
                         "turn_id": turn_id,
                         "question_followup_context": followup_question_context or {},
+                        "interaction_hints": interaction_hints or {},
                         "notebook_references": notebook_references,
                         "history_references": history_references,
                         "memory_context": memory_context,
@@ -560,14 +1015,31 @@ class TurnRuntimeManager:
                         assistant_events.append(payload_event)
                     if _should_capture_assistant_content(event):
                         assistant_content += event.content
-                await self.store.add_message(
+                await self._safe_store_call(
+                    execution,
+                    "add_assistant_message",
+                    self.store.add_message,
                     session_id=session_id,
                     role="assistant",
                     content=assistant_content,
                     capability=capability_name,
                     events=assistant_events,
+                    default=None,
                 )
-                await self.store.update_turn_status(turn_id, "completed")
+                self._capture_mobile_points(billing_context, assistant_content)
+                self._record_mobile_learning(
+                    billing_context,
+                    raw_user_content,
+                    assistant_content,
+                )
+                await self._safe_store_call(
+                    execution,
+                    "mark_turn_completed",
+                    self.store.update_turn_status,
+                    turn_id,
+                    "completed",
+                    default=False,
+                )
                 observability.update_observation(
                     turn_observation,
                     output_payload={"assistant_content": assistant_content},
@@ -577,15 +1049,25 @@ class TurnRuntimeManager:
                     },
                 )
                 try:
-                    await memory_service.refresh_from_turn(
-                        user_message=raw_user_content,
-                        assistant_message=assistant_content,
-                        session_id=session_id,
-                        capability=capability_name or "chat",
-                        language=str(payload.get("language", "en") or "en"),
-                    )
+                    if user_id:
+                        await tutor_state_service.refresh_from_turn(
+                            user_id=user_id,
+                            user_message=raw_user_content,
+                            assistant_message=assistant_content,
+                            session_id=session_id,
+                            capability=capability_name or "chat",
+                            language=str(payload.get("language", "en") or "en"),
+                        )
+                    else:
+                        await memory_service.refresh_from_turn(
+                            user_message=raw_user_content,
+                            assistant_message=assistant_content,
+                            session_id=session_id,
+                            capability=capability_name or "chat",
+                            language=str(payload.get("language", "en") or "en"),
+                        )
                 except Exception:
-                    logger.debug("Failed to refresh lightweight memory", exc_info=True)
+                    logger.debug("Failed to refresh lightweight tutor memory", exc_info=True)
         except asyncio.CancelledError:
             observability.update_observation(
                 turn_observation,
@@ -594,7 +1076,15 @@ class TurnRuntimeManager:
                 level="ERROR",
                 status_message="Turn cancelled",
             )
-            await self.store.update_turn_status(turn_id, "cancelled", "Turn cancelled")
+            await self._safe_store_call(
+                execution,
+                "mark_turn_cancelled",
+                self.store.update_turn_status,
+                turn_id,
+                "cancelled",
+                "Turn cancelled",
+                default=False,
+            )
             await self._persist_and_publish(
                 execution,
                 StreamEvent(
@@ -612,7 +1102,6 @@ class TurnRuntimeManager:
                     metadata={"status": "cancelled"},
                 ),
             )
-            observability.flush()
             raise
         except Exception as exc:
             observability.update_observation(
@@ -623,7 +1112,15 @@ class TurnRuntimeManager:
                 status_message=str(exc),
             )
             logger.error("Turn %s failed: %s", turn_id, exc, exc_info=True)
-            await self.store.update_turn_status(turn_id, "failed", str(exc))
+            await self._safe_store_call(
+                execution,
+                "mark_turn_failed",
+                self.store.update_turn_status,
+                turn_id,
+                "failed",
+                str(exc),
+                default=False,
+            )
             await self._persist_and_publish(
                 execution,
                 StreamEvent(
@@ -641,9 +1138,7 @@ class TurnRuntimeManager:
                     metadata={"status": "failed"},
                 ),
             )
-            observability.flush()
         finally:
-            observability.flush()
             async with self._lock:
                 current = self._executions.get(turn_id)
                 if current is not None:
@@ -657,8 +1152,36 @@ class TurnRuntimeManager:
         execution: _TurnExecution,
         event: StreamEvent,
     ) -> dict[str, Any]:
-        if event.type == StreamEventType.DONE and not event.metadata.get("status"):
-            event.metadata = {**event.metadata, "status": "completed"}
+        metadata = dict(event.metadata or {})
+        if event.type == StreamEventType.DONE and not metadata.get("status"):
+            metadata["status"] = "completed"
+        if event.type == StreamEventType.RESULT:
+            usage_summary = observability.get_current_usage_summary()
+            if usage_summary:
+                nested_metadata = (
+                    dict(metadata.get("metadata", {}))
+                    if isinstance(metadata.get("metadata"), dict)
+                    else {}
+                )
+                existing_cost_summary = nested_metadata.get("cost_summary")
+                if existing_cost_summary and existing_cost_summary != usage_summary:
+                    nested_metadata["capability_cost_summary"] = existing_cost_summary
+                nested_metadata["cost_summary"] = usage_summary
+                metadata["metadata"] = nested_metadata
+            question_followup_context = normalize_question_followup_context(
+                metadata.get("question_followup_context")
+            )
+            if question_followup_context is not None:
+                self._volatile_question_contexts[execution.session_id] = dict(question_followup_context)
+                await self._safe_store_call(
+                    execution,
+                    "set_active_question_context",
+                    self.store.set_active_question_context,
+                    execution.session_id,
+                    question_followup_context,
+                    default=False,
+                )
+        event.metadata = metadata
         event.session_id = execution.session_id
         event.turn_id = execution.turn_id
         payload = event.to_dict()
@@ -675,12 +1198,17 @@ class TurnRuntimeManager:
                 event.type.value,
             )
             persisted = payload
-        self._mirror_event_to_workspace(execution, persisted)
+        except Exception as exc:
+            if not self._is_persistence_error(exc):
+                raise
+            self._mark_persistence_degraded(execution, "append_turn_event", exc)
+            persisted = payload
         async with self._lock:
             subscribers = list(self._executions.get(execution.turn_id, execution).subscribers)
         for subscriber in subscribers:
             with contextlib.suppress(asyncio.QueueFull):
                 subscriber.queue.put_nowait(persisted)
+        self._mirror_event_to_workspace(execution, persisted)
         return persisted
 
     @staticmethod

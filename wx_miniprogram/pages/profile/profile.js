@@ -178,12 +178,14 @@ Page({
             var savedPath = saveRes.savedFilePath;
             wx.setStorageSync("local_avatar_path", savedPath);
             self.setData({ avatarUrl: savedPath });
+            self._saveSettings({ avatar_url: savedPath });
             wx.showToast({ title: "头像已更新", icon: "success" });
           },
           fail: function () {
             // saveFile 失败时直接用临时路径
             wx.setStorageSync("local_avatar_path", tempPath);
             self.setData({ avatarUrl: tempPath });
+            self._saveSettings({ avatar_url: tempPath });
             wx.showToast({ title: "头像已更新", icon: "success" });
           },
         });
@@ -263,7 +265,7 @@ Page({
     } else if (id === "membership") {
       wx.navigateTo({ url: "/pages/billing/billing" });
     } else if (id === "terms") {
-      wx.showToast({ title: "功能即将上线", icon: "none" });
+      wx.navigateTo({ url: "/pages/legal/terms" });
     }
   },
 

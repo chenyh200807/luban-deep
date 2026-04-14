@@ -53,6 +53,7 @@ Page({
 
     // 章节进度
     chaptersLoading: true,
+    chaptersError: false,
     chapters: [],
   },
 
@@ -114,48 +115,22 @@ Page({
         pct: c.total > 0 ? Math.round((c.done / c.total) * 100) : 0,
         color: chapterColors[i % chapterColors.length],
       }));
-      this.setData({ chapters, chaptersLoading: false });
+      this.setData({ chapters, chaptersLoading: false, chaptersError: false });
     } catch (e) {
-      // 显示默认章节
       wx.showToast({ title: "数据加载失败", icon: "none", duration: 2000 });
       this.setData({
         chaptersLoading: false,
-        chapters: [
-          {
-            id: 1,
-            name: "建筑构造",
-            done: 23,
-            total: 30,
-            pct: 77,
-            color: "#3b82f6",
-          },
-          {
-            id: 2,
-            name: "装饰装修",
-            done: 14,
-            total: 30,
-            pct: 47,
-            color: "#7c3aed",
-          },
-          {
-            id: 3,
-            name: "建筑地基",
-            done: 8,
-            total: 30,
-            pct: 27,
-            color: "#0891b2",
-          },
-          {
-            id: 4,
-            name: "施工组织",
-            done: 0,
-            total: 30,
-            pct: 0,
-            color: "#059669",
-          },
-        ],
+        chaptersError: true,
+        chapters: [],
       });
     }
+  },
+
+  _openPracticeChat(query, mode) {
+    const app = getApp();
+    app.globalData.pendingChatQuery = query;
+    app.globalData.pendingChatMode = mode || "AUTO";
+    wx.switchTab({ url: "/pages/chat/chat" });
   },
 
   goHome() {
@@ -165,11 +140,23 @@ Page({
 
   startMode(e) {
     const modeId = e.currentTarget.dataset.id;
-    wx.showToast({ title: `${modeId} 模式即将上线`, icon: "none" });
+    const modeQueries = {
+      smart: "根据我当前薄弱点，给我出5道高价值选择题。每次只出一题，等我作答后再讲解下一题。",
+      chapter: "请按我当前最薄弱的章节，给我安排一组5题的章节专项练习。不要提前给答案。",
+      mock: "请按一建建筑实务模考风格，给我来一组5题递进式选择题，控制节奏，先出题后批改。",
+      weak: "针对我最近最薄弱的知识点，给我做一组5题攻克训练。每题讲清踩分点和易错点。",
+    };
+    this._openPracticeChat(modeQueries[modeId] || "给我安排一组练习题。", "AUTO");
   },
 
   startChapter(e) {
-    wx.showToast({ title: "章节练习即将上线", icon: "none" });
+    const chapterId = e.currentTarget.dataset.id;
+    const current = (this.data.chapters || []).find((item) => item.id === chapterId);
+    const chapterName = current && current.name ? current.name : "当前章节";
+    this._openPracticeChat(
+      `我想练习${chapterName}，请给我出5道选择题，每次只出一题，等我回答后再继续。`,
+      "AUTO",
+    );
   },
 
   viewReport() {

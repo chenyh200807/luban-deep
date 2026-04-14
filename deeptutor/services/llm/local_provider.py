@@ -18,6 +18,7 @@ import logging
 import aiohttp
 
 from .exceptions import LLMAPIError, LLMConfigError
+from .types import TutorResponse, TutorStreamChunk
 from .utils import (
     build_auth_headers,
     build_chat_url,
@@ -72,8 +73,9 @@ async def complete(
     api_key: str | None = None,
     base_url: str | None = None,
     messages: list[dict[str, str]] | None = None,
+    return_response_object: bool = False,
     **kwargs: object,
-) -> str:
+) -> str | TutorResponse:
     """
     Complete a prompt using local LLM server.
 
@@ -142,10 +144,29 @@ async def complete(
             content = _extract_message_from_payload(result)
             content = clean_thinking_tags(content)
             if content:
+                if return_response_object:
+                    usage = result.get("usage") if isinstance(result.get("usage"), dict) else {}
+                    return TutorResponse(
+                        content=content,
+                        raw_response=result,
+                        usage=usage,
+                        provider="local",
+                        model=model or "default",
+                    )
                 return content
 
             logger.warning("Local LLM returned no choices: %s", result)
-            return ""
+            return (
+                TutorResponse(
+                    content="",
+                    raw_response=result if isinstance(result, dict) else {},
+                    usage=result.get("usage") if isinstance(result, dict) and isinstance(result.get("usage"), dict) else {},
+                    provider="local",
+                    model=model or "default",
+                )
+                if return_response_object
+                else ""
+            )
 
 
 async def stream(
@@ -155,8 +176,9 @@ async def stream(
     api_key: str | None = None,
     base_url: str | None = None,
     messages: list[dict[str, str]] | None = None,
+    return_stream_chunks: bool = False,
     **kwargs: object,
-) -> AsyncGenerator[str, None]:
+) -> AsyncGenerator[str | TutorStreamChunk, None]:
     """
     Stream a response from local LLM server.
 
@@ -212,6 +234,8 @@ async def stream(
     timeout = aiohttp.ClientTimeout(total=timeout_seconds)
 
     try:
+        accumulated_content = ""
+        usage: dict[str, int] | None = None
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(url, json=data, headers=headers) as response:
                 if response.status != 200:
@@ -242,6 +266,8 @@ async def stream(
 
                         try:
                             chunk_data = json.loads(data_str)
+                            if isinstance(chunk_data.get("usage"), dict):
+                                usage = chunk_data.get("usage")
                             content = _extract_message_from_payload(chunk_data)
                             if content:
                                 # Handle thinking tags in streaming
@@ -250,14 +276,34 @@ async def stream(
                                     # Handle case where content has text BEFORE <think>
                                     parts = content.split("<think>", 1)
                                     if parts[0]:
-                                        yield parts[0]
+                                        accumulated_content += parts[0]
+                                        if return_stream_chunks:
+                                            yield TutorStreamChunk(
+                                                content=accumulated_content,
+                                                delta=parts[0],
+                                                provider="local",
+                                                model=model or "default",
+                                                is_complete=False,
+                                            )
+                                        else:
+                                            yield parts[0]
                                     thinking_buffer = "<think>" + parts[1]
 
                                     # Check if closed immediately in same chunk
                                     if "</think>" in thinking_buffer:
                                         cleaned = clean_thinking_tags(thinking_buffer)
                                         if cleaned:
-                                            yield cleaned
+                                            accumulated_content += cleaned
+                                            if return_stream_chunks:
+                                                yield TutorStreamChunk(
+                                                    content=accumulated_content,
+                                                    delta=cleaned,
+                                                    provider="local",
+                                                    model=model or "default",
+                                                    is_complete=False,
+                                                )
+                                            else:
+                                                yield cleaned
                                         thinking_buffer = ""
                                         in_thinking_block = False
                                     continue
@@ -267,12 +313,32 @@ async def stream(
                                         # Block finished
                                         cleaned = clean_thinking_tags(thinking_buffer)
                                         if cleaned:
-                                            yield cleaned
+                                            accumulated_content += cleaned
+                                            if return_stream_chunks:
+                                                yield TutorStreamChunk(
+                                                    content=accumulated_content,
+                                                    delta=cleaned,
+                                                    provider="local",
+                                                    model=model or "default",
+                                                    is_complete=False,
+                                                )
+                                            else:
+                                                yield cleaned
                                         in_thinking_block = False
                                         thinking_buffer = ""
                                     continue
                                 else:
-                                    yield content
+                                    accumulated_content += content
+                                    if return_stream_chunks:
+                                        yield TutorStreamChunk(
+                                            content=accumulated_content,
+                                            delta=content,
+                                            provider="local",
+                                            model=model or "default",
+                                            is_complete=False,
+                                        )
+                                    else:
+                                        yield content
 
                         except json.JSONDecodeError:
                             # Log and skip malformed JSON chunks
@@ -286,12 +352,33 @@ async def stream(
                     elif line_str.startswith("{"):
                         try:
                             chunk_data = json.loads(line_str)
+                            if isinstance(chunk_data.get("usage"), dict):
+                                usage = chunk_data.get("usage")
                             content = _extract_message_from_payload(chunk_data)
                             if content:
                                 # TODO: Implement <think> tag parsing for non-SSE JSON streams if supported
-                                yield content
+                                accumulated_content += content
+                                if return_stream_chunks:
+                                    yield TutorStreamChunk(
+                                        content=accumulated_content,
+                                        delta=content,
+                                        provider="local",
+                                        model=model or "default",
+                                        is_complete=False,
+                                    )
+                                else:
+                                    yield content
                         except json.JSONDecodeError:
                             pass
+        if return_stream_chunks:
+            yield TutorStreamChunk(
+                content=accumulated_content,
+                delta="",
+                provider="local",
+                model=model or "default",
+                is_complete=True,
+                usage=usage,
+            )
 
     except LLMAPIError:
         raise  # Re-raise LLM errors as-is
@@ -310,7 +397,23 @@ async def stream(
                 **kwargs,
             )
             if content:
-                yield content
+                if return_stream_chunks:
+                    yield TutorStreamChunk(
+                        content=str(content),
+                        delta=str(content),
+                        provider="local",
+                        model=model or "default",
+                        is_complete=False,
+                    )
+                    yield TutorStreamChunk(
+                        content=str(content),
+                        delta="",
+                        provider="local",
+                        model=model or "default",
+                        is_complete=True,
+                    )
+                else:
+                    yield content
         except Exception as e2:
             raise LLMAPIError(
                 f"Local LLM failed: streaming={e}, non-streaming={e2}",

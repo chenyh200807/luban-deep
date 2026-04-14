@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from deeptutor.agents.chat.agentic_pipeline import AgenticChatPipeline
+from deeptutor.agents.chat.agentic_pipeline import AgenticChatPipeline, ToolTrace
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.trace import build_trace_metadata
@@ -333,3 +333,85 @@ async def test_native_tool_loop_caps_parallel_tool_calls_at_eight(
     assert registry.calls[-1] == "web_search:q7"
     progress_events = [event.content for event in events if event.type == StreamEventType.PROGRESS]
     assert any("8 can run in parallel" in content for content in progress_events)
+
+
+def test_infer_answer_type_detects_knowledge_explainer(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    assert pipeline._infer_answer_type("什么是流水施工，怎么区分流水步距和流水节拍？") == "knowledge_explainer"
+
+
+def test_missing_teaching_elements_requires_exact_zh_section_titles(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    content = """
+## 核心结论
+先看组织节奏。
+
+## 踩分点
+- 写清相邻专业队投入间隔。
+
+## 易错点
+- 不要把流水步距当成流水节拍。
+
+## 记忆口诀
+步距看“队与队之间的间隔”。
+
+## 心得
+看到“相邻专业队”就优先判断步距。
+"""
+    assert pipeline._missing_teaching_elements(content) == []
+
+
+def test_missing_teaching_elements_requires_explicit_section_headings(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    content = """
+结论先行：流水步距是相邻专业队开始时间差。
+
+拿分关键：
+- 先看相邻专业队是否错开投入。
+
+常见误区：
+- 不要把流水步距当成流水节拍。
+
+口诀：
+- 步距看邻居，节拍看自己。
+
+考试技巧：
+- 题干一出现“相邻专业队”，先判步距。
+"""
+    assert pipeline._missing_teaching_elements(content) == [
+        "核心结论",
+        "踩分点",
+        "易错点",
+        "记忆口诀",
+        "心得",
+    ]
+
+
+def test_teaching_contract_only_enforced_when_rag_used(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    assert pipeline._should_enforce_teaching_contract("knowledge_explainer", []) is False
+    trace = ToolTrace(
+        name="rag",
+        arguments={"query": "流水施工"},
+        result="kb result",
+        success=True,
+        sources=[],
+        metadata={"call_kind": "rag_retrieval"},
+    )
+    assert pipeline._should_enforce_teaching_contract("knowledge_explainer", [trace]) is True

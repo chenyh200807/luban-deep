@@ -99,3 +99,28 @@ async def test_summarize_does_not_stream_internal_summary_to_users(
     assert events
     assert all(event.type != StreamEventType.CONTENT for event in events)
     assert all(event.type != StreamEventType.CONTENT for event in published)
+
+
+def test_context_builder_uses_context_window_budget_when_available(tmp_path: Path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    builder = ContextBuilder(store)
+
+    llm_config = type(
+        "FakeConfig",
+        (),
+        {
+            "max_tokens": 4096,
+            "context_window_tokens": 16384,
+        },
+    )()
+
+    assert builder._history_budget(llm_config) == int(16384 * builder.history_budget_ratio)
+
+
+def test_context_builder_uses_safe_minimum_context_window(tmp_path: Path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    builder = ContextBuilder(store)
+
+    llm_config = type("FakeConfig", (), {"max_tokens": 4096})()
+
+    assert builder._history_budget(llm_config) == int(8192 * builder.history_budget_ratio)

@@ -83,7 +83,7 @@ class RAGTool(_PromptHintsMixin, BaseTool):
         extra_kwargs = {
             key: value
             for key, value in kwargs.items()
-            if key not in {"query", "kb_name", "mode", "event_sink"}
+            if key not in {"query", "kb_name", "event_sink"}
         }
 
         result = await rag_search(
@@ -116,12 +116,32 @@ class WebSearchTool(_PromptHintsMixin, BaseTool):
         query = kwargs.get("query", "")
         output_dir = kwargs.get("output_dir")
         verbose = kwargs.get("verbose", False)
-        result = await asyncio.to_thread(
-            web_search,
-            query=query,
-            output_dir=output_dir,
-            verbose=verbose,
-        )
+        timeout = max(1, int(kwargs.get("timeout", 12) or 12))
+
+        try:
+            result = await asyncio.wait_for(
+                asyncio.to_thread(
+                    web_search,
+                    query=query,
+                    output_dir=output_dir,
+                    verbose=verbose,
+                    timeout=timeout,
+                ),
+                timeout=timeout,
+            )
+        except asyncio.TimeoutError:
+            return ToolResult(
+                content=(
+                    f"Web search timed out after {timeout}s. "
+                    "Please retry or configure a faster search provider."
+                ),
+                success=False,
+                metadata={
+                    "error": "timeout",
+                    "timeout_seconds": timeout,
+                    "query": query,
+                },
+            )
 
         if isinstance(result, dict):
             answer = result.get("answer", "")
@@ -511,8 +531,8 @@ BUILTIN_TOOL_TYPES: tuple[type[BaseTool], ...] = (
 BUILTIN_TOOL_NAMES: tuple[str, ...] = tuple(tool_type().name for tool_type in BUILTIN_TOOL_TYPES)
 
 TOOL_ALIASES: dict[str, tuple[str, dict[str, Any]]] = {
-    "rag_hybrid": ("rag", {}),
-    "rag_naive": ("rag", {}),
+    "rag_hybrid": ("rag", {"mode": "hybrid"}),
+    "rag_naive": ("rag", {"mode": "naive"}),
     "rag_search": ("rag", {}),
     "code_execute": ("code_execution", {}),
     "run_code": ("code_execution", {}),

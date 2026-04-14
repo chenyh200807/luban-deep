@@ -49,6 +49,13 @@ class SoulUpdateRequest(BaseModel):
     content: str | None = None
 
 
+def _normalize_bot_mode(value: str | None) -> str:
+    normalized = str(value or "").strip().lower()
+    if normalized in {"fast", "deep"}:
+        return normalized
+    return "smart"
+
+
 # ── Soul template library (must be before /{bot_id} routes) ───
 
 @router.get("/souls")
@@ -103,13 +110,23 @@ async def recent_bots(limit: int = 3):
 @router.post("")
 async def create_and_start_bot(payload: CreateBotRequest):
     mgr = get_tutorbot_manager()
-    config = BotConfig(
-        name=payload.name or payload.bot_id,
-        description=payload.description,
-        persona=payload.persona,
-        channels=payload.channels,
-        model=payload.model,
-    )
+    config = None
+    if any(
+        [
+            payload.name,
+            payload.description,
+            payload.persona,
+            payload.channels,
+            payload.model,
+        ]
+    ):
+        config = BotConfig(
+            name=payload.name or payload.bot_id,
+            description=payload.description,
+            persona=payload.persona,
+            channels=payload.channels,
+            model=payload.model,
+        )
     try:
         instance = await mgr.start_bot(payload.bot_id, config)
     except RuntimeError as e:
@@ -225,6 +242,7 @@ async def bot_chat_ws(ws: WebSocket, bot_id: str):
                 continue
 
             content = data.get("content", "").strip()
+            mode = _normalize_bot_mode(data.get("mode"))
             if not content:
                 continue
 
@@ -235,6 +253,7 @@ async def bot_chat_ws(ws: WebSocket, bot_id: str):
                 response = await mgr.send_message(
                     bot_id, content, chat_id=data.get("chat_id", "web"),
                     on_progress=on_progress,
+                    mode=mode,
                 )
                 await ws.send_json({"type": "content", "content": response})
                 await ws.send_json({"type": "done"})

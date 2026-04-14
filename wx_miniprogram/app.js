@@ -1,17 +1,22 @@
 // app.js — 全局应用逻辑
 const auth = require("./utils/auth");
+const endpoints = require("./utils/endpoints");
 
 // [PRR-E2] Environment-aware URL switching
 const _envVersion =
   (typeof __wxConfig !== "undefined" && __wxConfig.envVersion) || "release";
-const _IS_DEV = _envVersion === "develop" || _envVersion === "trial";
+const _IS_DEVELOP = _envVersion === "develop";
+const _IS_TRIAL = _envVersion === "trial";
+const _IS_DEV = _IS_DEVELOP || _IS_TRIAL;
+const _IS_DEVTOOLS =
+  typeof __wxConfig !== "undefined" && __wxConfig.platform === "devtools";
 // ⚠️ DEPLOY: Replace these with your real HTTPS production domains before release build
 const _PROD_GATEWAY =
   (typeof __PROD_GATEWAY__ !== "undefined" && __PROD_GATEWAY__) ||
-  "https://your-deeptutor-domain.example.com";
+  "https://test2.yousenjiaoyu.com";
 const _PROD_API =
   (typeof __PROD_API__ !== "undefined" && __PROD_API__) ||
-  "https://your-deeptutor-domain.example.com";
+  "https://test2.yousenjiaoyu.com";
 // [PRR-CR4] Runtime guard: block startup if placeholder URLs ship to production
 if (!_IS_DEV && _PROD_API.includes("example.com")) {
   console.error("[FATAL] Production URLs are still placeholder!");
@@ -27,13 +32,34 @@ if (!_IS_DEV && _PROD_API.includes("example.com")) {
 // 当前 DeepTutor 本地后端默认端口: http://127.0.0.1:8001
 const _NGROK_URL =
   (typeof __NGROK_URL__ !== "undefined" && __NGROK_URL__) ||
-  "https://your-deeptutor-domain.example.com";
+  "https://test2.yousenjiaoyu.com";
 const _LOCAL_BASE_URL =
   (typeof __LOCAL_BASE_URL__ !== "undefined" && __LOCAL_BASE_URL__) ||
   "http://127.0.0.1:8001";
+const _LOCAL_CANDIDATES = endpoints
+  .getBaseUrlCandidates(false, _LOCAL_BASE_URL)
+  .filter(function (item) {
+    return /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(item);
+  });
+const _HAS_REAL_NGROK =
+  !!_NGROK_URL && !_NGROK_URL.includes("example.com") && /^https?:\/\//.test(_NGROK_URL);
 const _USE_LOCAL_DIRECT =
-  typeof __USE_LOCAL_DIRECT__ !== "undefined" && !!__USE_LOCAL_DIRECT__;
-const _USE_NGROK = _IS_DEV && !_USE_LOCAL_DIRECT; // 开发/体验版默认走公网 HTTPS，模拟器可切本地直连
+  typeof __USE_LOCAL_DIRECT__ !== "undefined"
+    ? !!__USE_LOCAL_DIRECT__
+    : _IS_DEVTOOLS && _IS_DEVELOP;
+const _USE_NGROK = _IS_DEVELOP && !_USE_LOCAL_DIRECT && _HAS_REAL_NGROK;
+const _RESOLVED_GATEWAY = _USE_NGROK
+  ? _NGROK_URL
+  : _IS_DEVELOP
+    ? _LOCAL_CANDIDATES[0] || _LOCAL_BASE_URL
+    : _PROD_GATEWAY;
+const _RESOLVED_API = _USE_NGROK
+  ? _NGROK_URL
+  : _IS_DEVELOP
+    ? _LOCAL_CANDIDATES[0] || _LOCAL_BASE_URL
+    : _PROD_API;
+const _RUNTIME_CANDIDATES =
+  _USE_NGROK || _IS_DEVELOP ? _LOCAL_CANDIDATES.slice() : [];
 
 App({
   globalData: {
@@ -41,26 +67,30 @@ App({
     userId: null,
     userInfo: null,
     goHomeFlag: false,
-    gatewayUrl: _USE_NGROK
-      ? _NGROK_URL
-      : _IS_DEV
-        ? _LOCAL_BASE_URL
-        : _PROD_GATEWAY,
-    apiUrl: _USE_NGROK
-      ? _NGROK_URL
-      : _IS_DEV
-        ? _LOCAL_BASE_URL
-        : _PROD_API,
-    // 小程序继续走原有 SSE 入口，由后端统一分流到 Deeptutor。
+    pendingChatQuery: "",
+    pendingChatMode: "AUTO",
+    gatewayUrl: _RESOLVED_GATEWAY,
+    apiUrl: _RESOLVED_API,
+    gatewayCandidates: _RUNTIME_CANDIDATES,
+    apiCandidates: _RUNTIME_CANDIDATES,
+    // 小程序聊天走 start-turn + /api/v1/ws 统一执行流。
     chatEngine: "deeptutor",
     // 主题：'dark'(默认) | 'light'
     theme: "dark",
     // [PRR-C9] Network status — pages read this to show offline hints
     networkAvailable: true,
+    _authRedirecting: false,
   },
 
   onLaunch() {
     // App 启动
+    console.info("[DeepTutor MP] env=%s trial=%s devtools=%s api=%s candidates=%j",
+      _envVersion,
+      _IS_TRIAL,
+      _IS_DEVTOOLS,
+      this.globalData.apiUrl,
+      this.globalData.apiCandidates,
+    );
     // 初始化主题
     const savedTheme = wx.getStorageSync("theme") || "dark";
     this.globalData.theme = savedTheme;
@@ -123,7 +153,22 @@ App({
   checkAuth(callback) {
     const token = auth.getToken();
     if (!token) {
-      wx.redirectTo({ url: "/pages/login/login" });
+      var pages = getCurrentPages();
+      var currentRoute =
+        pages && pages.length ? pages[pages.length - 1].route || "" : "";
+      if (currentRoute === "pages/login/login") {
+        return;
+      }
+      if (this.globalData._authRedirecting) {
+        return;
+      }
+      this.globalData._authRedirecting = true;
+      wx.reLaunch({
+        url: "/pages/login/login",
+        complete: () => {
+          this.globalData._authRedirecting = false;
+        },
+      });
       return;
     }
     this.globalData.token = token;
@@ -138,6 +183,13 @@ App({
     this.globalData.token = null;
     this.globalData.userId = null;
     this.globalData.userInfo = null;
-    wx.redirectTo({ url: "/pages/login/login" });
+    if (this.globalData._authRedirecting) return;
+    this.globalData._authRedirecting = true;
+    wx.reLaunch({
+      url: "/pages/login/login",
+      complete: () => {
+        this.globalData._authRedirecting = false;
+      },
+    });
   },
 });

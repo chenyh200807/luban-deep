@@ -155,11 +155,14 @@ _access_logger = logging.getLogger("uvicorn.access")
 async def selective_access_log(request, call_next):
     response = await call_next(request)
     if response.status_code != 200:
+        query_string = request.url.query
+        request_path = request.url.path if not query_string else f"{request.url.path}?{query_string}"
         _access_logger.info(
-            '%s - "%s %s" %d',
+            '%s - "%s %s HTTP/%s" %d',
             request.client.host if request.client else "-",
             request.method,
-            request.url.path,
+            request_path,
+            request.scope.get("http_version", "1.1"),
             response.status_code,
         )
     return response
@@ -214,6 +217,7 @@ from deeptutor.api.routers import (
     settings,
     solve,
     system,
+    tutor_state,
     tutorbot,
     unified_ws,
     vision_solver,
@@ -237,6 +241,7 @@ app.include_router(settings.router, prefix="/api/v1/settings", tags=["settings"]
 app.include_router(system.router, prefix="/api/v1/system", tags=["system"])
 app.include_router(plugins_api.router, prefix="/api/v1/plugins", tags=["plugins"])
 app.include_router(agent_config.router, prefix="/api/v1/agent-config", tags=["agent-config"])
+app.include_router(tutor_state.router, prefix="/api/v1/tutor-state", tags=["tutor-state"])
 app.include_router(vision_solver.router, prefix="/api/v1", tags=["vision-solver"])
 app.include_router(tutorbot.router, prefix="/api/v1/tutorbot", tags=["tutorbot"])
 app.include_router(mobile.router, prefix="/api/v1", tags=["mobile"])

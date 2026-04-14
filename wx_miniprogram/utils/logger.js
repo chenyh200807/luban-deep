@@ -3,7 +3,7 @@
 
 var _envVersion =
   (typeof __wxConfig !== "undefined" && __wxConfig.envVersion) || "release";
-var _IS_DEV = _envVersion === "develop" || _envVersion === "trial";
+var _IS_DEV = _envVersion === "develop";
 
 var logger = {
   debug: function (tag, msg) {

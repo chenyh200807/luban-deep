@@ -14,7 +14,7 @@ class TutorResponse(BaseModel):
 
     content: str
     raw_response: dict[str, object] = Field(default_factory=dict)
-    usage: dict[str, int] = Field(
+    usage: dict[str, object] = Field(
         default_factory=lambda: {
             "prompt_tokens": 0,
             "completion_tokens": 0,
@@ -35,7 +35,7 @@ class TutorStreamChunk(BaseModel):
     provider: str = ""
     model: str = ""
     is_complete: bool = False
-    usage: dict[str, int] | None = None
+    usage: dict[str, object] | None = None
 
 
 AsyncStreamGenerator = AsyncGenerator[TutorStreamChunk, None]

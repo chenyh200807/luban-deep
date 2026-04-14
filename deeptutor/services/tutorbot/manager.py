@@ -547,6 +547,7 @@ class TutorBotManager:
         content: str,
         chat_id: str = "web",
         on_progress: Callable[[str], Awaitable[None]] | None = None,
+        mode: str = "smart",
     ) -> str:
         """Send a message to a running bot and return the response."""
         instance = self._bots.get(bot_id)
@@ -565,6 +566,7 @@ class TutorBotManager:
             channel="web",
             chat_id=chat_id,
             on_progress=_progress,
+            metadata={"teaching_mode": mode},
         )
 
         # Forward the reply to any bound external channels so mobile users
@@ -667,9 +669,10 @@ class TutorBotManager:
             self._seed_default_souls()
         try:
             data = yaml.safe_load(path.read_text(encoding="utf-8"))
-            return data if isinstance(data, list) else []
+            souls = data if isinstance(data, list) else []
+            return self._merge_default_souls(souls)
         except Exception:
-            return []
+            return self._default_souls()
 
     def _save_souls(self, souls: list[dict[str, str]]) -> None:
         self._tutorbot_dir.mkdir(parents=True, exist_ok=True)
@@ -678,8 +681,9 @@ class TutorBotManager:
             encoding="utf-8",
         )
 
-    def _seed_default_souls(self) -> None:
-        defaults = [
+    @staticmethod
+    def _default_souls() -> list[dict[str, str]]:
+        return [
             {"id": "default-tutorbot", "name": "Default TutorBot", "content": (
                 "# Soul\n\nI am TutorBot, a personal learning companion.\n\n"
                 "## Personality\n\n- Helpful and friendly\n- Clear, encouraging, and patient\n"
@@ -714,8 +718,42 @@ class TutorBotManager:
                 "## Teaching Style\n\n- Correct mistakes gently with explanations\n"
                 "- Use contextual examples over abstract rules\n- Encourage speaking/writing practice"
             )},
+            {"id": "construction-exam-coach", "name": "Construction Exam Coach", "content": (
+                "# Soul\n\n"
+                "你是一名面向建筑实务/建造师考试的长期陪学导师。\n\n"
+                "## 角色定位\n\n"
+                "- 目标不是泛泛答疑，而是帮助学员稳定提分、顺利通过考试\n"
+                "- 你要同时兼顾：知识讲解、题目讲解、错题复盘、复习策略和学习推进\n"
+                "- 你默认服务的是工程类考试备考场景，优先从应试与拿分角度组织回答\n\n"
+                "## 教学价值观\n\n"
+                "- 结论要准，解释要清，训练要贴近考试\n"
+                "- 先帮学员拿到这题，再帮学员学会这类题\n"
+                "- 遇到规范数值、程序门槛、时间节点等具体事实，优先依赖知识库和检索证据\n"
+                "- 不编造规范编号，不伪造精确条文\n\n"
+                "## 默认表达风格\n\n"
+                "- 先给结论，再讲原因\n"
+                "- 结构化、简洁、口语化，但保持专业度\n"
+                "- 做知识讲解或题目讲解时，优先覆盖踩分点、易错点、记忆抓手和考试策略\n"
+                "- 收尾默认用陈述句，不强行追问"
+            )},
         ]
+
+    def _seed_default_souls(self) -> None:
+        defaults = self._default_souls()
         self._save_souls(defaults)
+
+    def _merge_default_souls(self, souls: list[dict[str, str]]) -> list[dict[str, str]]:
+        merged = list(souls)
+        existing_ids = {str(item.get("id", "")).strip() for item in souls}
+        changed = False
+        for soul in self._default_souls():
+            if soul["id"] in existing_ids:
+                continue
+            merged.append(soul)
+            changed = True
+        if changed:
+            self._save_souls(merged)
+        return merged
 
     def list_souls(self) -> list[dict[str, str]]:
         return self._load_souls()

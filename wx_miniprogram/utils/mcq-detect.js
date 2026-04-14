@@ -1,26 +1,43 @@
 // utils/mcq-detect.js — 从 AI 回复中提取交互式选择题
 
-var OPTION_RE = /^\s*[(（]?([A-E])[)）.、:：]\s*(.+)\s*$/;
-var STEM_MARKER_RE = /^\s*(?:题目|第\s*[一二三四五六七八九十\d]+\s*[题道]|[\(（]\s*\d+\s*[\)）]|问题)\s*[:：]?\s*$/;
+var OPTION_RE = /^\s*(?:[-*+]\s*)?[(（]?([A-E])[)）.、:：]\s*(.+)\s*$/;
+var STEM_MARKER_RE = /^\s*(?:题目|例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|[\(（]\s*\d+\s*[\)）]|问题)\s*[:：]?\s*$/;
 var MULTI_RE = /多选|不定项|可多选|正确的有|错误的有|哪些说法|下列说法正确的有/;
 var LEAD_IN_RE =
   /^\s*(?:你先选选看.*|选完我.*|先别急着看答案.*|请选择.*|提交后我再告诉你.*)\s*$/;
 var RECEIPT_RE = /<!--QCTX:([A-Za-z0-9_\-+=/]+)-->/;
 var QUESTION_MARKER_PATTERNS = [
-  /^\s*(?:\*\*)?\s*(?:第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+|[\(（]\s*\d+\s*[\)）])\s*[:：]?\s*(?:\*\*)?\s*$/i,
+  /^\s*(?:\*\*)?\s*(?:例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+|[\(（]\s*\d+\s*[\)）])\s*[:：]?\s*(?:\*\*)?\s*$/i,
   /^\s*(?:\*\*)?\s*\d+\s*[.、．]\s+.*$/i,
-  /^\s*(?:\*\*)?\s*(?:第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+)\s*[:：].+$/i,
+  /^\s*(?:\*\*)?\s*(?:例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+)\s*[:：].+$/i,
 ];
+var GENERIC_NUMBERED_QUESTION_RE = /^\s*(?:\*\*)?\d+\s*[.、．]\s+.*$/i;
+var QUESTION_LINE_RE =
+  /^\s*(?:例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])(?:\s*[（(][^()（）]{0,40}[)）])?\s*(?:[:：]\s*.*)?$/i;
 var INLINE_QUESTION_MARKER_RE =
-  /(?:\*\*)?\s*(?:第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])\s*[:：]?\s*(?:\*\*)?/i;
+  /(?:\*\*)?\s*(?:例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])\s*[:：]?\s*(?:\*\*)?/i;
 var PRACTICE_NOTICE_MARKERS = [
   "当前题库里暂无与",
   "你要 ",
   "我先给你出一组同专题相关题训练。",
 ];
+var ANSWER_SECTION_MARKERS = [
+  "答案与核心解析",
+  "答案与解析",
+  "参考答案",
+  "正确答案",
+  "答案解析",
+];
 
 function _trim(text) {
   return String(text || "").replace(/\r\n?/g, "\n").trim();
+}
+
+function _normalizeQuestionLine(line) {
+  return _trim(line)
+    .replace(/^#{1,6}\s*/, "")
+    .replace(/\*\*/g, "")
+    .trim();
 }
 
 function _sanitizeOption(text) {
@@ -48,7 +65,7 @@ function _collapseRepeatedRaw(text) {
     if (unit.repeat(repeat) === raw) return unit.trim();
   }
 
-  var markers = ["当前题库里暂无与", "**第 1 题**", "第 1 题", "第1题", "题目1："];
+  var markers = ["当前题库里暂无与", "**第 1 题**", "第 1 题", "第1题", "题目1：", "例题1："];
   for (var i = 0; i < markers.length; i++) {
     var marker = markers[i];
     var firstIndex = raw.indexOf(marker);
@@ -81,6 +98,20 @@ function _collapseRepeatedBlocks(blocks) {
     if (ok) return items.slice(0, size);
   }
   return items;
+}
+
+function _stripAnswerSection(text) {
+  var cleaned = String(text || "");
+  var cutIndex = -1;
+  for (var i = 0; i < ANSWER_SECTION_MARKERS.length; i++) {
+    var marker = ANSWER_SECTION_MARKERS[i];
+    var idx = cleaned.indexOf(marker);
+    if (idx > 0 && (cutIndex < 0 || idx < cutIndex)) cutIndex = idx;
+  }
+  if (cutIndex > 0) cleaned = cleaned.slice(0, cutIndex);
+  return cleaned
+    .replace(/\n[\s#>*-]*\*{0,2}\s*$/, "")
+    .trim();
 }
 
 function _stripPollutionTail(text) {
@@ -119,6 +150,12 @@ function _collectStemFragments(stem) {
     push(
       cleaned.replace(
         /^\s*(?:题目|第\s*[一二三四五六七八九十\d]+\s*[题道]|[\(（]\s*\d+\s*[\)）]|问题)\s*[:：]?\s*/,
+        "",
+      ),
+    );
+    push(
+      cleaned.replace(
+        /^\s*(?:例题\s*\d+)\s*[:：]?\s*/,
         "",
       ),
     );
@@ -194,7 +231,9 @@ function _extractOptions(lines) {
 }
 
 function _isQuestionMarkerLine(line) {
-  var text = String(line || "");
+  var text = _normalizeQuestionLine(line);
+  if (!text || /答案|解析/.test(text)) return false;
+  if (QUESTION_LINE_RE.test(text)) return true;
   for (var i = 0; i < QUESTION_MARKER_PATTERNS.length; i++) {
     if (QUESTION_MARKER_PATTERNS[i].test(text)) return true;
   }
@@ -204,7 +243,15 @@ function _isQuestionMarkerLine(line) {
 function _findQuestionStartIndexes(lines) {
   var indexes = [];
   for (var i = 0; i < lines.length; i++) {
-    if (_isQuestionMarkerLine(lines[i])) indexes.push(i);
+    if (!_isQuestionMarkerLine(lines[i])) continue;
+    if (GENERIC_NUMBERED_QUESTION_RE.test(_normalizeQuestionLine(lines[i]))) {
+      var optionHits = 0;
+      for (var j = i + 1; j < lines.length && j <= i + 6; j++) {
+        if (OPTION_RE.test(lines[j])) optionHits++;
+      }
+      if (optionHits < 2) continue;
+    }
+    indexes.push(i);
   }
   return indexes;
 }
@@ -246,17 +293,15 @@ function _stripStemMarker(stem) {
   var lines = String(stem || "").split("\n");
   if (!lines.length) return _trim(stem);
 
-  var first = _trim(lines[0]).replace(/^\*+|\*+$/g, "").trim();
+  var markerRe =
+    /^\s*(?:例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+|[\(（]\s*\d+\s*[\)）])(?:\s*[（(][^()（）]+[)）])?\s*[:：]?\s*/;
+  var first = _normalizeQuestionLine(lines[0]).replace(/^\*+|\*+$/g, "").trim();
+  var strippedFirst = first.replace(markerRe, "").trim();
   if (_isQuestionMarkerLine(first)) {
-    return _trim(lines.slice(1).join("\n"));
+    return _trim([strippedFirst].concat(lines.slice(1)).join("\n"));
   }
 
-  return _trim(
-    String(stem || "").replace(
-      /^\s*(?:\*\*)?\s*(?:第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+|[\(（]\s*\d+\s*[\)）])\s*[:：]?\s*(?:\*\*)?\s*/,
-      "",
-    ),
-  );
+  return _trim(_normalizeQuestionLine(String(stem || "")).replace(markerRe, ""));
 }
 
 function _detectOne(raw, index) {
@@ -313,9 +358,12 @@ function detect(text) {
   var questions = [];
 
   if (blocks.length >= 2) {
+    var remainderBlocks = [];
     for (var i = 0; i < blocks.length; i++) {
-      var q = _detectOne(blocks[i], i + 1);
+      var cleanedBlock = _stripAnswerSection(blocks[i]);
+      var q = _detectOne(cleanedBlock, i + 1);
       if (q) questions.push(q);
+      else if (cleanedBlock) remainderBlocks.push(cleanedBlock);
     }
     if (!questions.length) return null;
     var first = questions[0];
@@ -326,9 +374,13 @@ function detect(text) {
         break;
       }
     }
+    var displayParts = [];
+    var prefix = _extractDisplayPrefix(lines);
+    if (prefix) displayParts.push(prefix);
+    if (remainderBlocks.length) displayParts.push(remainderBlocks.join("\n\n"));
     return {
       stem: first.stem,
-      displayText: _extractDisplayPrefix(lines),
+      displayText: displayParts.join("\n\n"),
       options: first.options,
       questionType: first.questionType,
       receipt: extracted.receipt,
@@ -343,7 +395,7 @@ function detect(text) {
     };
   }
 
-  var single = _detectOne(raw, 1);
+  var single = _detectOne(_stripAnswerSection(raw), 1);
   if (!single) return null;
   return {
     stem: single.stem,

@@ -8,7 +8,11 @@ from deeptutor.agents.chat import ChatAgent
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
-from deeptutor.agents.chat.agentic_pipeline import CHAT_OPTIONAL_TOOLS, AgenticChatPipeline
+from deeptutor.agents.chat.agentic_pipeline import (
+    ANSWER_TYPE_KNOWLEDGE,
+    CHAT_OPTIONAL_TOOLS,
+    AgenticChatPipeline,
+)
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.capabilities.request_contracts import get_capability_request_schema
 
@@ -33,7 +37,7 @@ def _flatten_sources(raw_sources: dict[str, Any] | None) -> list[dict[str, Any]]
 class ChatCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="chat",
-        description="Chat with selectable fast or deep execution modes.",
+        description="Chat with selectable fast, smart, or deep execution modes.",
         stages=["responding", "thinking", "acting", "observing"],
         tools_used=CHAT_OPTIONAL_TOOLS,
         cli_aliases=["chat"],
@@ -42,14 +46,34 @@ class ChatCapability(BaseCapability):
 
     async def run(self, context: UnifiedContext, stream: StreamBus) -> None:
         mode = str(context.config_overrides.get("chat_mode") or get_default_chat_mode()).strip().lower()
+        if self._should_promote_fast_mode(context, mode):
+            mode = "deep"
         if mode == "fast":
             await self._run_fast(context, stream)
             return
         pipeline = AgenticChatPipeline(language=context.language)
         await pipeline.run(context, stream)
 
+    @staticmethod
+    def _should_promote_fast_mode(context: UnifiedContext, mode: str) -> bool:
+        if mode != "fast":
+            return False
+        if bool((context.metadata or {}).get("chat_mode_explicit")):
+            return False
+        if bool((context.config_overrides or {}).get("chat_mode_explicit")):
+            return False
+        pipeline = AgenticChatPipeline(language=context.language)
+        return pipeline._infer_answer_type(context.user_message) == ANSWER_TYPE_KNOWLEDGE
+
     async def _run_fast(self, context: UnifiedContext, stream: StreamBus) -> None:
-        enabled_tools = {tool for tool in context.enabled_tools or [] if tool in CHAT_FAST_TOOLS}
+        pipeline = AgenticChatPipeline(language=context.language)
+        answer_type = pipeline._infer_answer_type(context.user_message)
+        resolved_tools = pipeline.resolve_enabled_tools(
+            context,
+            answer_type=answer_type,
+            mode="fast",
+        )
+        enabled_tools = {tool for tool in resolved_tools if tool in CHAT_FAST_TOOLS}
         kb_name = context.knowledge_bases[0] if context.knowledge_bases else None
         history = [
             {"role": msg.get("role", ""), "content": str(msg.get("content", "") or "")}

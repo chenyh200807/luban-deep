@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass
 import json
 import logging
 import os
+import re
 from typing import Any
 
 import httpx
@@ -38,6 +39,12 @@ from deeptutor.services.llm import (
     supports_tools,
 )
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.tutorbot.teaching_modes import (
+    detect_construction_exam_scene,
+    get_construction_exam_skill_instruction,
+    get_lecture_skill_instruction,
+    get_teaching_mode_instruction,
+)
 from deeptutor.tools.builtin import BUILTIN_TOOL_NAMES
 from deeptutor.utils.json_parser import parse_json_response
 
@@ -51,6 +58,26 @@ CHAT_OPTIONAL_TOOLS = [
 ]
 MAX_PARALLEL_TOOL_CALLS = 8
 MAX_TOOL_RESULT_CHARS = 4000
+ANSWER_TYPE_GENERAL = "general_chat"
+ANSWER_TYPE_KNOWLEDGE = "knowledge_explainer"
+ANSWER_TYPE_PROBLEM = "problem_solving"
+TEACHING_ELEMENT_CORE = "核心结论"
+TEACHING_ELEMENT_SCORING = "踩分点"
+TEACHING_ELEMENT_PITFALL = "易错点"
+TEACHING_ELEMENT_MNEMONIC = "记忆口诀"
+TEACHING_ELEMENT_TAKEAWAY = "心得"
+TEACHING_FAST_ELEMENTS = [
+    TEACHING_ELEMENT_CORE,
+    TEACHING_ELEMENT_SCORING,
+    TEACHING_ELEMENT_PITFALL,
+]
+TEACHING_DEEP_ELEMENTS = [
+    TEACHING_ELEMENT_CORE,
+    TEACHING_ELEMENT_SCORING,
+    TEACHING_ELEMENT_PITFALL,
+    TEACHING_ELEMENT_MNEMONIC,
+    TEACHING_ELEMENT_TAKEAWAY,
+]
 
 
 @dataclass
@@ -80,12 +107,34 @@ class AgenticChatPipeline:
     def _accumulate_usage(self, response: Any) -> None:
         usage = getattr(response, "usage", None)
         if usage:
-            self._usage["prompt_tokens"] += getattr(usage, "prompt_tokens", 0) or 0
-            self._usage["completion_tokens"] += getattr(usage, "completion_tokens", 0) or 0
-            self._usage["total_tokens"] += getattr(usage, "total_tokens", 0) or 0
+            prompt_tokens = getattr(usage, "prompt_tokens", None)
+            completion_tokens = getattr(usage, "completion_tokens", None)
+            total_tokens = getattr(usage, "total_tokens", None)
+            if prompt_tokens is None and hasattr(usage, "input_tokens"):
+                prompt_tokens = getattr(usage, "input_tokens", 0) or 0
+            if completion_tokens is None and hasattr(usage, "output_tokens"):
+                completion_tokens = getattr(usage, "output_tokens", 0) or 0
+            prompt_tokens = int(prompt_tokens or 0)
+            completion_tokens = int(completion_tokens or 0)
+            total_tokens = int(total_tokens or (prompt_tokens + completion_tokens))
+            self._usage["prompt_tokens"] += prompt_tokens
+            self._usage["completion_tokens"] += completion_tokens
+            self._usage["total_tokens"] += total_tokens
             self._usage["calls"] += 1
+            observability.record_usage(
+                usage_details={
+                    "input": float(prompt_tokens),
+                    "output": float(completion_tokens),
+                    "total": float(total_tokens),
+                },
+                source="provider",
+                model=self.model,
+            )
 
     def _get_cost_summary(self) -> dict[str, Any] | None:
+        usage_summary = observability.get_current_usage_summary()
+        if usage_summary:
+            return usage_summary
         if self._usage["calls"] == 0:
             return None
         return {
@@ -97,9 +146,13 @@ class AgenticChatPipeline:
     async def run(self, context: UnifiedContext, stream: StreamBus) -> None:
         answer_now_context = self._extract_answer_now_context(context)
         if answer_now_context is not None:
+            answer_type = self._infer_answer_type(
+                str(answer_now_context.get("original_user_message") or context.user_message),
+            )
             final_response, trace_meta = await self._stage_answer_now(
                 context=context,
                 answer_now_context=answer_now_context,
+                answer_type=answer_type,
                 stream=stream,
             )
             result_payload: dict[str, Any] = {
@@ -113,7 +166,31 @@ class AgenticChatPipeline:
             await stream.result(result_payload, source="chat")
             return
 
-        enabled_tools = self._normalize_enabled_tools(context.enabled_tools)
+        answer_type = self._infer_answer_type(context.user_message)
+        enabled_tools = self.resolve_enabled_tools(
+            context,
+            answer_type=answer_type,
+            mode=str(context.config_overrides.get("chat_mode") or "deep"),
+        )
+        if self._should_use_compact_response(context, enabled_tools):
+            final_response, trace_meta = await self._stage_smart_responding(
+                context=context,
+                answer_type=answer_type,
+                stream=stream,
+            )
+            result_payload: dict[str, Any] = {
+                "response": final_response,
+                "observation": "",
+                "tool_traces": [],
+                "chat_mode": "smart",
+                "source_trace": trace_meta.get("label", "Smart response"),
+            }
+            cs = self._get_cost_summary()
+            if cs:
+                result_payload["metadata"] = {"cost_summary": cs}
+            await stream.result(result_payload, source="chat")
+            return
+
         thinking_text = await self._stage_thinking(context, enabled_tools, stream)
         tool_traces = await self._stage_acting(
             context=context,
@@ -124,6 +201,7 @@ class AgenticChatPipeline:
         observation = await self._stage_observing(
             context=context,
             enabled_tools=enabled_tools,
+            answer_type=answer_type,
             thinking_text=thinking_text,
             tool_traces=tool_traces,
             stream=stream,
@@ -131,6 +209,7 @@ class AgenticChatPipeline:
         final_response, responding_trace = await self._stage_responding(
             context=context,
             enabled_tools=enabled_tools,
+            answer_type=answer_type,
             thinking_text=thinking_text,
             observation=observation,
             tool_traces=tool_traces,
@@ -306,6 +385,7 @@ class AgenticChatPipeline:
         self,
         context: UnifiedContext,
         enabled_tools: list[str],
+        answer_type: str,
         thinking_text: str,
         tool_traces: list[ToolTrace],
         stream: StreamBus,
@@ -335,17 +415,7 @@ class AgenticChatPipeline:
                         {"trace_kind": "call_status", "call_state": "running"},
                     ),
                 )
-                observation_prompt = self._text(
-                    zh=(
-                        "请整理本轮推理与工具执行得到的关键信息，输出给 tutor 自己看的观察总结。"
-                        "聚焦：已确认事实、仍不确定的点、最终回答应强调什么。不要直接写给学生。"
-                    ),
-                    en=(
-                        "Summarize what was learned from the reasoning and tool execution for the tutor's internal observation note. "
-                        "Focus on confirmed facts, remaining uncertainty, and what the final answer should emphasize. "
-                        "Do not address the student directly."
-                    ),
-                )
+                observation_prompt = self._build_observation_prompt(context, answer_type, tool_traces)
                 messages = self._build_messages(
                     context=context,
                     system_prompt=self._observing_system_prompt(enabled_tools),
@@ -388,6 +458,7 @@ class AgenticChatPipeline:
         self,
         context: UnifiedContext,
         enabled_tools: list[str],
+        answer_type: str,
         thinking_text: str,
         observation: str,
         tool_traces: list[ToolTrace],
@@ -433,23 +504,44 @@ class AgenticChatPipeline:
                         "Do not mention the internal pipeline, thinking, or observing stages."
                     ),
                 )
+                required_elements = self._required_teaching_elements(context, answer_type, tool_traces)
+                if required_elements:
+                    user_prompt += "\n\n" + self._knowledge_response_contract(required_elements)
                 messages = self._build_messages(
                     context=context,
                     system_prompt=self._responding_system_prompt(enabled_tools),
                     user_content=user_prompt,
                 )
 
-                chunks: list[str] = []
-                async for chunk in self._stream_messages(messages, max_tokens=1800):
-                    if not chunk:
-                        continue
-                    chunks.append(chunk)
-                    await stream.content(
-                        chunk,
-                        source="chat",
-                        stage="responding",
-                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                if required_elements:
+                    content = await self._complete_validated_response(
+                        context=context,
+                        messages=messages,
+                        answer_type=answer_type,
+                        observation=observation,
+                        tool_traces=tool_traces,
+                        max_tokens=1800,
                     )
+                    if content:
+                        await stream.content(
+                            content,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                else:
+                    chunks: list[str] = []
+                    async for chunk in self._stream_messages(messages, max_tokens=1800):
+                        if not chunk:
+                            continue
+                        chunks.append(chunk)
+                        await stream.content(
+                            chunk,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                    content = clean_thinking_tags("".join(chunks), self.binding, self.model)
                 await stream.progress(
                     "",
                     source="chat",
@@ -459,7 +551,102 @@ class AgenticChatPipeline:
                         {"trace_kind": "call_status", "call_state": "complete"},
                     ),
                 )
-                content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                observability.update_observation(
+                    stage_observation,
+                    output_payload=content,
+                    metadata=trace_meta,
+                )
+                return content, trace_meta
+
+    async def _stage_smart_responding(
+        self,
+        context: UnifiedContext,
+        answer_type: str,
+        stream: StreamBus,
+    ) -> tuple[str, dict[str, Any]]:
+        trace_meta = build_trace_metadata(
+            call_id=new_call_id("chat-smart-responding"),
+            phase="responding",
+            label=self._text(zh="Smart response", en="Smart response"),
+            call_kind="llm_final_response",
+            trace_id="chat-smart-responding",
+            trace_role="response",
+            trace_group="stage",
+        )
+        with observability.start_observation(
+            name="chat.stage.smart_responding",
+            as_type="span",
+            input_payload={"user_message": context.user_message},
+            metadata=trace_meta,
+        ) as stage_observation:
+            async with stream.stage("responding", source="chat", metadata=trace_meta):
+                await stream.progress(
+                    trace_meta["label"],
+                    source="chat",
+                    stage="responding",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "running"},
+                    ),
+                )
+                user_prompt = self._text(
+                    zh=(
+                        f"用户问题：\n{context.user_message}\n\n"
+                        "请直接给出正式回答。保持教学连续性，但不要展示内部推理、阶段或工具信息。"
+                    ),
+                    en=(
+                        f"User request:\n{context.user_message}\n\n"
+                        "Provide the final answer directly. Maintain tutoring continuity, "
+                        "but do not reveal internal reasoning, stages, or tool details."
+                    ),
+                )
+                required_elements = self._required_teaching_elements(context, answer_type, [])
+                if required_elements:
+                    user_prompt += "\n\n" + self._knowledge_response_contract(required_elements)
+                messages = self._build_messages(
+                    context=context,
+                    system_prompt=self._responding_system_prompt([]),
+                    user_content=user_prompt,
+                )
+
+                if required_elements:
+                    content = await self._complete_validated_response(
+                        context=context,
+                        messages=messages,
+                        answer_type=answer_type,
+                        observation="",
+                        tool_traces=[],
+                        max_tokens=1800,
+                    )
+                    if content:
+                        await stream.content(
+                            content,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                else:
+                    chunks: list[str] = []
+                    async for chunk in self._stream_messages(messages, max_tokens=1800):
+                        if not chunk:
+                            continue
+                        chunks.append(chunk)
+                        await stream.content(
+                            chunk,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                    content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                await stream.progress(
+                    "",
+                    source="chat",
+                    stage="responding",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "complete"},
+                    ),
+                )
                 observability.update_observation(
                     stage_observation,
                     output_payload=content,
@@ -471,6 +658,7 @@ class AgenticChatPipeline:
         self,
         context: UnifiedContext,
         answer_now_context: dict[str, Any],
+        answer_type: str,
         stream: StreamBus,
     ) -> tuple[str, dict[str, Any]]:
         trace_meta = build_trace_metadata(
@@ -522,23 +710,48 @@ class AgenticChatPipeline:
                         "If something is still uncertain, be explicit about the uncertainty while still giving the most useful answer you can."
                     ),
                 )
+                required_elements = self._required_teaching_elements(context, answer_type, [])
+                if required_elements:
+                    user_prompt += "\n\n" + self._knowledge_response_contract(required_elements)
                 messages = self._build_messages(
                     context=context,
                     system_prompt=self._responding_system_prompt([]),
                     user_content=user_prompt,
                 )
 
-                chunks: list[str] = []
-                async for chunk in self._stream_messages(messages, max_tokens=1800):
-                    if not chunk:
-                        continue
-                    chunks.append(chunk)
-                    await stream.content(
-                        chunk,
-                        source="chat",
-                        stage="responding",
-                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                if required_elements:
+                    observation = self._text(
+                        zh=f"现有草稿：\n{partial_response or '(empty)'}",
+                        en=f"Current draft:\n{partial_response or '(empty)'}",
                     )
+                    content = await self._complete_validated_response(
+                        context=context,
+                        messages=messages,
+                        answer_type=answer_type,
+                        observation=observation,
+                        tool_traces=[],
+                        max_tokens=1800,
+                    )
+                    if content:
+                        await stream.content(
+                            content,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                else:
+                    chunks: list[str] = []
+                    async for chunk in self._stream_messages(messages, max_tokens=1800):
+                        if not chunk:
+                            continue
+                        chunks.append(chunk)
+                        await stream.content(
+                            chunk,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
+                    content = clean_thinking_tags("".join(chunks), self.binding, self.model)
                 await stream.progress(
                     "",
                     source="chat",
@@ -548,7 +761,6 @@ class AgenticChatPipeline:
                         {"trace_kind": "call_status", "call_state": "complete"},
                     ),
                 )
-                content = clean_thinking_tags("".join(chunks), self.binding, self.model)
                 observability.update_observation(
                     stage_observation,
                     output_payload=content,
@@ -802,8 +1014,12 @@ class AgenticChatPipeline:
         ):
             _chunks.append(_c)
         response = "".join(_chunks)
-        _fb_in = int((len(_fb_prompt) + len(_fb_system)) / 3.5)
-        _fb_out = int(len(response) / 3.5)
+        _fb_usage = observability.estimate_usage_details(
+            input_payload={"system_prompt": _fb_system, "prompt": _fb_prompt},
+            output_payload=response,
+        ) or {"input": 0.0, "output": 0.0, "total": 0.0}
+        _fb_in = int(_fb_usage.get("input") or 0)
+        _fb_out = int(_fb_usage.get("output") or 0)
         self._usage["prompt_tokens"] += _fb_in
         self._usage["completion_tokens"] += _fb_out
         self._usage["total_tokens"] += _fb_in + _fb_out
@@ -938,10 +1154,13 @@ class AgenticChatPipeline:
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": "\n\n".join(system_parts)}
         ]
+        teaching_overlay = self._teaching_mode_overlay(context)
+        if teaching_overlay:
+            messages.append({"role": "system", "content": teaching_overlay})
         for item in context.conversation_history:
             role = item.get("role")
             content = item.get("content")
-            if role in {"user", "assistant"} and isinstance(content, (str, list)):
+            if role in {"user", "assistant", "system"} and isinstance(content, (str, list)):
                 messages.append({"role": role, "content": content})
         messages.append({"role": "user", "content": user_content})
         return messages
@@ -964,7 +1183,7 @@ class AgenticChatPipeline:
         messages: list[dict[str, Any]],
         max_tokens: int,
     ):
-        output_chars = 0
+        output_chunks: list[str] = []
         async for chunk in llm_stream(
             prompt="",
             system_prompt="",
@@ -976,15 +1195,76 @@ class AgenticChatPipeline:
             messages=messages,
             **self._completion_kwargs(max_tokens=max_tokens),
         ):
-            output_chars += len(chunk)
+            output_chunks.append(chunk)
             yield chunk
-        input_chars = sum(len(str(m.get("content", ""))) for m in messages)
-        est_input = int(input_chars / 3.5)
-        est_output = int(output_chars / 3.5)
+        usage_details = observability.estimate_usage_details(
+            input_payload=messages,
+            output_payload="".join(output_chunks),
+        ) or {"input": 0.0, "output": 0.0, "total": 0.0}
+        est_input = int(usage_details.get("input") or 0)
+        est_output = int(usage_details.get("output") or 0)
         self._usage["prompt_tokens"] += est_input
         self._usage["completion_tokens"] += est_output
         self._usage["total_tokens"] += est_input + est_output
         self._usage["calls"] += 1
+
+    async def _complete_messages(
+        self,
+        messages: list[dict[str, Any]],
+        max_tokens: int,
+    ) -> str:
+        content = await llm_complete(
+            prompt="",
+            system_prompt="",
+            model=self.model,
+            api_key=self.api_key,
+            base_url=self.base_url,
+            api_version=self.api_version,
+            binding=self.binding,
+            messages=messages,
+            **self._completion_kwargs(max_tokens=max_tokens),
+        )
+        usage_details = observability.estimate_usage_details(
+            input_payload=messages,
+            output_payload=content,
+        ) or {"input": 0.0, "output": 0.0, "total": 0.0}
+        est_input = int(usage_details.get("input") or 0)
+        est_output = int(usage_details.get("output") or 0)
+        self._usage["prompt_tokens"] += est_input
+        self._usage["completion_tokens"] += est_output
+        self._usage["total_tokens"] += est_input + est_output
+        self._usage["calls"] += 1
+        return clean_thinking_tags(content, self.binding, self.model)
+
+    async def _complete_validated_response(
+        self,
+        *,
+        context: UnifiedContext,
+        messages: list[dict[str, Any]],
+        answer_type: str,
+        observation: str,
+        tool_traces: list[ToolTrace],
+        max_tokens: int,
+    ) -> str:
+        draft = await self._complete_messages(messages, max_tokens=max_tokens)
+        required_elements = self._required_teaching_elements(context, answer_type, tool_traces)
+        if not required_elements:
+            return draft
+
+        missing = self._missing_teaching_elements(draft, required_elements)
+        if not missing:
+            return draft
+
+        repaired = await self._repair_teaching_response(
+            context=context,
+            observation=observation,
+            tool_traces=tool_traces,
+            draft=draft,
+            missing=missing,
+            required_elements=required_elements,
+            max_tokens=max_tokens,
+        )
+        return repaired or draft
 
     def _build_openai_client(self):
         http_client = None
@@ -1015,6 +1295,27 @@ class AgenticChatPipeline:
             return False
         return self.binding not in {"anthropic", "claude", "ollama", "lm_studio", "vllm", "llama_cpp"}
 
+    def resolve_enabled_tools(
+        self,
+        context: UnifiedContext,
+        *,
+        answer_type: str | None = None,
+        mode: str = "deep",
+    ) -> list[str]:
+        inferred_answer_type = answer_type or self._infer_answer_type(context.user_message)
+        normalized = self._normalize_enabled_tools(context.enabled_tools)
+        auto_tools_enabled = bool(context.config_overrides.get("auto_tools", True))
+
+        selected = list(normalized)
+        if auto_tools_enabled:
+            selected = self._augment_auto_tools(
+                selected,
+                context=context,
+                answer_type=inferred_answer_type,
+                mode=mode,
+            )
+        return selected
+
     def _normalize_enabled_tools(self, enabled_tools: list[str] | None) -> list[str]:
         selected = enabled_tools or []
         return [
@@ -1022,6 +1323,28 @@ class AgenticChatPipeline:
             for tool in self.registry.get_enabled(selected)
             if tool.name not in CHAT_EXCLUDED_TOOLS
         ]
+
+    def _augment_auto_tools(
+        self,
+        selected: list[str],
+        *,
+        context: UnifiedContext,
+        answer_type: str,
+        mode: str,
+    ) -> list[str]:
+        resolved = list(selected)
+
+        def _append(tool_name: str) -> None:
+            tool = self.registry.get(tool_name)
+            if tool is None or tool.name in CHAT_EXCLUDED_TOOLS:
+                return
+            if tool.name not in resolved:
+                resolved.append(tool.name)
+
+        if context.knowledge_bases:
+            _append("rag")
+
+        return resolved
 
     @staticmethod
     def _extract_answer_now_context(context: UnifiedContext) -> dict[str, Any] | None:
@@ -1233,7 +1556,9 @@ class AgenticChatPipeline:
                 "6. 不要输出最终回答给学生；这里只负责工具选择与调用。\n"
                 f"7. 单轮最多并行调用 {MAX_PARALLEL_TOOL_CALLS} 个工具；如果有多个互补工具都相关，优先在同一轮一起调用。\n\n"
                 f"当前可用工具：\n{tool_list or '- 无'}\n\n"
-                f"工具使用提示：\n{tool_aliases or '- 无'}"
+                f"工具使用提示：\n{tool_aliases or '- 无'}\n\n"
+                "补充要求：只要当前对话挂了知识库，且问题明显属于课程知识、概念解释、规范判断、题目讲解或基于资料作答，"
+                "优先先调用 RAG 做知识召回；只有知识库证据不足时，再补外部搜索或其他工具。"
             ),
             en=(
                 f"You are {BRAND_NAME}'s tool-using agent. Based on the user request and prior thinking, "
@@ -1247,7 +1572,10 @@ class AgenticChatPipeline:
                 "6. Do not produce the final student-facing answer here; this stage is only for tool use.\n"
                 f"7. At most {MAX_PARALLEL_TOOL_CALLS} tools may run in parallel in one turn; if several complementary tools are relevant, prefer issuing them together in the same turn.\n\n"
                 f"Enabled tools:\n{tool_list or '- none'}\n\n"
-                f"Tool usage notes:\n{tool_aliases or '- none'}"
+                f"Tool usage notes:\n{tool_aliases or '- none'}\n\n"
+                "Extra requirement: whenever a knowledge base is attached and the request is course-grounded "
+                "such as concept explanation, regulation judgment, question analysis, or answering from provided materials, "
+                "prefer calling RAG first for grounding. Use web search or other tools only when the knowledge-base evidence is insufficient."
             ),
         )
 
@@ -1368,6 +1696,388 @@ class AgenticChatPipeline:
                 f"Tool context for this turn:\n{tool_list or '- none'}"
             ),
         )
+
+    def _build_observation_prompt(
+        self,
+        context: UnifiedContext,
+        answer_type: str,
+        tool_traces: list[ToolTrace] | None = None,
+    ) -> str:
+        required_elements = self._required_teaching_elements(context, answer_type, tool_traces)
+        if required_elements:
+            required_labels = "、".join(required_elements)
+            return self._text(
+                zh=(
+                    "请整理本轮推理与工具执行得到的关键信息，输出给 tutor 自己看的结构化观察总结。"
+                    "不要直接写给学生。请至少覆盖：问题类型判定、开场定位、核心结论、判断依据、"
+                    f"{required_labels}、证据、仍不确定的点。"
+                ),
+                en=(
+                    "Prepare a structured internal observation note for a teaching-style answer. "
+                    "Do not address the student directly. Cover: answer type, opening position, core conclusion, "
+                    "reasoning basis, scoring points, pitfalls, memory hook, exam takeaway, evidence, and uncertainty."
+                ),
+            )
+        return self._text(
+            zh=(
+                "请整理本轮推理与工具执行得到的关键信息，输出给 tutor 自己看的观察总结。"
+                "聚焦：已确认事实、仍不确定的点、最终回答应强调什么。不要直接写给学生。"
+            ),
+            en=(
+                "Summarize what was learned from the reasoning and tool execution for the tutor's internal observation note. "
+                "Focus on confirmed facts, remaining uncertainty, and what the final answer should emphasize. "
+                "Do not address the student directly."
+            ),
+        )
+
+    def _knowledge_response_contract(self, required_elements: list[str] | None = None) -> str:
+        required = list(required_elements or TEACHING_DEEP_ELEMENTS)
+        heading_lines_zh = self._required_heading_block(required)
+        heading_lines_en = self._required_heading_block(required, english=True)
+        fast_mode = required == TEACHING_FAST_ELEMENTS
+        zh_tail = (
+            "5. 当前为 FAST 模式，至少保留以上三个标题；“记忆口诀”“心得”只有确实能帮助记忆或提分时才额外补充，不要硬凑。\n"
+            "6. 若证据不足，要明确标注不确定点，但仍先给当前最有用的教学结论。"
+            if fast_mode
+            else "5. “记忆口诀”必须保留该标题；如果不适合编口诀，也要在该标题下给出最短的记忆规则。\n"
+            "6. “心得”必须保留该标题，并落到答题顺序、判断抓手或复习动作，禁止鸡汤式空话。\n"
+            "7. 若证据不足，要明确标注不确定点，但仍先给当前最有用的教学结论。"
+        )
+        en_headline_rule = (
+            "2. In fast mode, the headings above are mandatory; mnemonic or takeaway sections are optional only when they add real exam value.\n"
+            if fast_mode
+            else "2. Use `## Mnemonic` only when it is natural and accurate; otherwise keep `## Memory Hook`.\n"
+        )
+        en_tail = (
+            "5. If evidence is incomplete, state the uncertainty while still giving the most useful teaching answer possible."
+            if fast_mode
+            else "5. The takeaway must be an exam strategy or decision rule, not generic encouragement.\n"
+            "6. If evidence is incomplete, state the uncertainty while still giving the most useful teaching answer possible."
+        )
+        return self._text(
+            zh=(
+                "知识讲解型输出契约：\n"
+                "1. 除了开头可先用 1 句做“开场定位”，后文必须严格使用以下 Markdown 二级标题，顺序也要保持一致：\n"
+                f"{heading_lines_zh}\n"
+                "2. 标题必须原样出现，禁止替换成“记忆抓手”“考试策略”等其他词。\n"
+                "3. “踩分点”必须写成学员可直接拿去判断、作答、拿分的表达，不要只列空泛名词。\n"
+                "4. “易错点”必须写出最容易混淆、误判、丢分的地方，优先使用对比式表达。\n"
+                f"{zh_tail}"
+            ),
+            en=(
+                "Teaching answer contract:\n"
+                "1. After an optional one-line opener, you must use these exact Markdown level-2 headings in this order:\n"
+                f"{heading_lines_en}\n"
+                f"{en_headline_rule}"
+                "3. Scoring Points must be actionable answer-worthy or judgment-worthy takeaways.\n"
+                "4. Pitfalls must explain the most likely confusion or misjudgment.\n"
+                f"{en_tail}"
+            ),
+        )
+
+    def _used_knowledge_recall(self, tool_traces: list[ToolTrace] | None = None) -> bool:
+        items = tool_traces or []
+        for trace in items:
+            if str(trace.name or "").strip().lower() == "rag":
+                return True
+            metadata = trace.metadata if isinstance(trace.metadata, dict) else {}
+            if str(metadata.get("call_kind", "") or "").strip().lower() == "rag_retrieval":
+                return True
+        return False
+
+    def _required_teaching_elements(
+        self,
+        context: UnifiedContext,
+        answer_type: str,
+        tool_traces: list[ToolTrace] | None = None,
+    ) -> list[str]:
+        mode = self._interaction_teaching_mode(context)
+        if self._is_exam_tutor_profile(context) and answer_type in {
+            ANSWER_TYPE_KNOWLEDGE,
+            ANSWER_TYPE_PROBLEM,
+        }:
+            if mode == "fast":
+                return list(TEACHING_FAST_ELEMENTS)
+            if mode == "deep":
+                return list(TEACHING_DEEP_ELEMENTS)
+        if answer_type == ANSWER_TYPE_KNOWLEDGE and self._used_knowledge_recall(tool_traces):
+            return list(TEACHING_DEEP_ELEMENTS)
+        return []
+
+    def _infer_answer_type(self, user_message: str) -> str:
+        text = (user_message or "").strip().lower()
+        if not text:
+            return ANSWER_TYPE_GENERAL
+
+        general_markers = (
+            "你好", "在吗", "谢谢", "再见", "价格", "多少钱", "收费", "功能", "流程", "推荐",
+            "bug", "报错", "登录", "注册", "充值", "会员",
+            "hello", "hi ", "price", "pricing", "feature", "workflow", "login", "register",
+        )
+        knowledge_markers = (
+            "什么是", "怎么理解", "如何理解", "怎么区分", "区别", "不同", "规范要求", "规定", "要求",
+            "考点", "易错", "口诀", "记忆", "归纳", "总结", "讲解", "解释", "原理", "本质", "适用",
+            "不适用", "为什么", "如何判断", "怎么判断", "chapter", "concept", "explain", "difference",
+            "requirement", "regulation", "principle", "why", "how to understand",
+        )
+        problem_markers = (
+            "计算", "求", "解", "选择题", "判断题", "案例题", "选项", "a.", "b.", "c.", "d.",
+            "正确答案", "题目", "算", "solve", "calculate", "mcq", "option", "answer",
+        )
+
+        if any(marker in text for marker in general_markers) and not any(
+            marker in text for marker in knowledge_markers
+        ):
+            return ANSWER_TYPE_GENERAL
+
+        if any(marker in text for marker in knowledge_markers):
+            return ANSWER_TYPE_KNOWLEDGE
+
+        if any(marker in text for marker in problem_markers):
+            return ANSWER_TYPE_PROBLEM
+
+        if re.search(r"[A-DＡ-Ｄ][\.、\s]", user_message):
+            return ANSWER_TYPE_PROBLEM
+
+        if re.search(r"\d+\s*[%+\-*/=]\s*\d+", user_message):
+            return ANSWER_TYPE_PROBLEM
+
+        return ANSWER_TYPE_GENERAL
+
+    def _missing_teaching_elements(
+        self,
+        content: str,
+        required_elements: list[str] | None = None,
+    ) -> list[str]:
+        required = list(required_elements or TEACHING_DEEP_ELEMENTS)
+        if not content.strip():
+            return required
+
+        checks = {
+            TEACHING_ELEMENT_CORE: (r"(?m)^##+\s*核心结论\s*$", r"(?m)^##+\s*core conclusion\s*$"),
+            TEACHING_ELEMENT_SCORING: (r"(?m)^##+\s*踩分点\s*$", r"(?m)^##+\s*scoring points\s*$"),
+            TEACHING_ELEMENT_PITFALL: (r"(?m)^##+\s*易错点\s*$", r"(?m)^##+\s*pitfalls\s*$"),
+            TEACHING_ELEMENT_MNEMONIC: (r"(?m)^##+\s*记忆口诀\s*$", r"(?m)^##+\s*mnemonic\s*$"),
+            TEACHING_ELEMENT_TAKEAWAY: (r"(?m)^##+\s*心得\s*$", r"(?m)^##+\s*exam takeaway\s*$"),
+        }
+        missing: list[str] = []
+        normalized = content.replace("：", ":")
+        for label in required:
+            patterns = checks[label]
+            if not any(re.search(pattern, normalized, flags=re.IGNORECASE) for pattern in patterns):
+                missing.append(label)
+        return missing
+
+    async def _repair_teaching_response(
+        self,
+        *,
+        context: UnifiedContext,
+        observation: str,
+        tool_traces: list[ToolTrace],
+        draft: str,
+        missing: list[str],
+        required_elements: list[str],
+        max_tokens: int,
+    ) -> str:
+        repair_system = self._text(
+            zh=(
+                f"你是 {BRAND_NAME} 的教学输出修订器。你的任务是在不推翻正确内容的前提下，"
+                "把知识讲解型回答补全到合格版本。只输出最终修订稿，不要解释修改过程。"
+            ),
+            en=(
+                f"You are {BRAND_NAME}'s teaching-answer reviser. Repair the draft into a complete teaching-style answer "
+                "without discarding correct content. Output only the revised final answer."
+            ),
+        )
+        repair_user = self._text(
+            zh=(
+                f"原始用户问题：\n{context.user_message}\n\n"
+                f"{self._labeled_block('Observation', observation)}\n\n"
+                f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
+                f"{self._labeled_block('Current Draft', draft)}\n\n"
+                f"当前缺失项：{', '.join(missing)}\n\n"
+                f"{self._knowledge_response_contract(required_elements)}\n\n"
+                "请保留原稿里已经正确、有依据的内容，只补齐缺失项并优化结构。"
+                "标题必须保留原词，不要改成“记忆抓手”“考试策略”等替代说法。"
+            ),
+            en=(
+                f"Original user request:\n{context.user_message}\n\n"
+                f"{self._labeled_block('Observation', observation)}\n\n"
+                f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
+                f"{self._labeled_block('Current Draft', draft)}\n\n"
+                f"Missing elements: {', '.join(missing)}\n\n"
+                f"{self._knowledge_response_contract(required_elements)}\n\n"
+                "Preserve the correct grounded content in the draft, but fill the missing elements and tighten the structure."
+            ),
+        )
+        repaired = await self._complete_messages(
+            [
+                {"role": "system", "content": repair_system},
+                {"role": "user", "content": repair_user},
+            ],
+            max_tokens=max_tokens,
+        )
+        repaired_missing = self._missing_teaching_elements(repaired, required_elements)
+        if not repaired_missing:
+            return repaired
+
+        strict_rewrite_user = self._text(
+            zh=(
+                f"原始用户问题：\n{context.user_message}\n\n"
+                f"{self._labeled_block('Observation', observation)}\n\n"
+                f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
+                f"{self._labeled_block('Current Draft', repaired or draft)}\n\n"
+                f"仍然缺失：{', '.join(repaired_missing)}\n\n"
+                "请你重写整篇回答，并且必须逐字包含以下标题：\n"
+                f"{self._required_heading_block(required_elements)}\n\n"
+                "以上标题必须原样保留，不要改名。只输出最终修订稿。"
+            ),
+            en=(
+                f"Original user request:\n{context.user_message}\n\n"
+                f"{self._labeled_block('Observation', observation)}\n\n"
+                f"{self._labeled_block('Tool Trace', self._format_tool_traces(tool_traces))}\n\n"
+                f"{self._labeled_block('Current Draft', repaired or draft)}\n\n"
+                f"Still missing: {', '.join(repaired_missing)}\n\n"
+                "Rewrite the entire answer and include these exact headings:\n"
+                f"{self._required_heading_block(required_elements, english=True)}\n\n"
+                "Output only the revised final answer."
+            ),
+        )
+        strict_rewrite = await self._complete_messages(
+            [
+                {"role": "system", "content": repair_system},
+                {"role": "user", "content": strict_rewrite_user},
+            ],
+            max_tokens=max_tokens,
+        )
+        if not self._missing_teaching_elements(strict_rewrite, required_elements):
+            return strict_rewrite
+
+        reformat_system = self._text(
+            zh=(
+                f"你是 {BRAND_NAME} 的 Markdown 格式整理器。"
+                "不要新增没有依据的新事实，只把现有教学内容重排成合规结构。"
+                "只输出整理后的最终稿。"
+            ),
+            en=(
+                f"You are {BRAND_NAME}'s Markdown formatter. "
+                "Do not add unsupported facts. Only reorganize the existing teaching content into the required structure."
+            ),
+        )
+        reformat_user = self._text(
+            zh=(
+                f"{self._knowledge_response_contract(required_elements)}\n\n"
+                f"{self._labeled_block('Source Draft', strict_rewrite or repaired or draft)}\n\n"
+                "请保留原有核心内容，但必须改写成以下确切标题：\n"
+                f"{self._required_heading_block(required_elements)}\n\n"
+                "不要省略任何标题，也不要改标题名称。"
+            ),
+            en=(
+                f"{self._knowledge_response_contract(required_elements)}\n\n"
+                f"{self._labeled_block('Source Draft', strict_rewrite or repaired or draft)}\n\n"
+                "Reformat this into the exact headings:\n"
+                f"{self._required_heading_block(required_elements, english=True)}\n\n"
+                "Do not omit any heading."
+            ),
+        )
+        reformatted = await self._complete_messages(
+            [
+                {"role": "system", "content": reformat_system},
+                {"role": "user", "content": reformat_user},
+            ],
+            max_tokens=max_tokens,
+        )
+        if not self._missing_teaching_elements(reformatted, required_elements):
+            return reformatted
+        return strict_rewrite or repaired or draft
+
+    def _interaction_hints(self, context: UnifiedContext) -> dict[str, Any]:
+        for container in (context.metadata, context.config_overrides):
+            if not isinstance(container, dict):
+                continue
+            hints = container.get("interaction_hints")
+            if isinstance(hints, dict):
+                return hints
+        return {}
+
+    def _interaction_teaching_mode(self, context: UnifiedContext) -> str:
+        mode = self._configured_teaching_mode(context)
+        return mode if mode in {"fast", "deep"} else ""
+
+    def _configured_teaching_mode(self, context: UnifiedContext) -> str:
+        hints = self._interaction_hints(context)
+        hinted_mode = str(hints.get("teaching_mode") or "").strip().lower()
+        if hinted_mode in {"fast", "deep", "smart"}:
+            return hinted_mode
+        runtime_mode = str(context.config_overrides.get("chat_mode") or "").strip().lower()
+        return runtime_mode if runtime_mode in {"fast", "deep", "smart"} else ""
+
+    def _is_smart_tutor_mode(self, context: UnifiedContext) -> bool:
+        return self._configured_teaching_mode(context) == "smart"
+
+    def _followup_question_context(self, context: UnifiedContext) -> dict[str, Any]:
+        for container in (context.metadata, context.config_overrides):
+            if not isinstance(container, dict):
+                continue
+            for key in ("question_followup_context", "followup_question_context"):
+                value = container.get(key)
+                if isinstance(value, dict):
+                    return value
+        return {}
+
+    def _is_exam_tutor_profile(self, context: UnifiedContext) -> bool:
+        hints = self._interaction_hints(context)
+        profile = str(
+            hints.get("profile")
+            or context.config_overrides.get("interaction_profile")
+            or ""
+        ).strip().lower()
+        return profile in {"mini_tutor", "mini_tutorbot", "construction_exam_tutor"}
+
+    def _should_use_compact_response(
+        self,
+        context: UnifiedContext,
+        enabled_tools: list[str],
+    ) -> bool:
+        if enabled_tools:
+            return False
+        if context.knowledge_bases:
+            return False
+        if not self._is_exam_tutor_profile(context):
+            return False
+        return self._is_smart_tutor_mode(context)
+
+    def _teaching_mode_overlay(self, context: UnifiedContext) -> str:
+        if not self._is_exam_tutor_profile(context):
+            return ""
+        mode = self._interaction_teaching_mode(context)
+        answer_type = self._infer_answer_type(context.user_message)
+        scene = detect_construction_exam_scene(
+            context.user_message,
+            answer_type=answer_type,
+            followup_context=self._followup_question_context(context),
+        )
+        parts: list[str] = []
+        mode_instruction = get_teaching_mode_instruction(mode) if mode in {"fast", "deep"} else ""
+        if mode_instruction:
+            parts.append(mode_instruction)
+        skill_instruction = get_construction_exam_skill_instruction(scene)
+        if skill_instruction:
+            parts.append(skill_instruction)
+        lecture_instruction = get_lecture_skill_instruction(context.user_message)
+        if lecture_instruction:
+            parts.append(lecture_instruction)
+        return "\n\n".join(part for part in parts if part).strip()
+
+    def _required_heading_block(self, required_elements: list[str], english: bool = False) -> str:
+        mapping = {
+            TEACHING_ELEMENT_CORE: "## Core Conclusion" if english else "## 核心结论",
+            TEACHING_ELEMENT_SCORING: "## Scoring Points" if english else "## 踩分点",
+            TEACHING_ELEMENT_PITFALL: "## Pitfalls" if english else "## 易错点",
+            TEACHING_ELEMENT_MNEMONIC: "## Mnemonic" if english else "## 记忆口诀",
+            TEACHING_ELEMENT_TAKEAWAY: "## Exam Takeaway" if english else "## 心得",
+        }
+        return "\n".join(mapping[label] for label in required_elements)
 
     def _acting_user_prompt(self, context: UnifiedContext, thinking_text: str) -> str:
         return self._text(

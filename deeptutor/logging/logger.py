@@ -663,27 +663,14 @@ def get_logger(
     effective_level = level
     if log_dir is None or effective_level is None:
         try:
-            from deeptutor.services.config import get_path_from_config, load_config_with_main
+            from deeptutor.services.path_service import get_path_service
+            from .config import get_global_log_level
 
-            config = load_config_with_main("main.yaml", PROJECT_ROOT)
-
-            # Get log_dir from config
             if log_dir is None:
-                log_dir = get_path_from_config(config, "user_log_dir") or config.get(
-                    "paths", {}
-                ).get("user_log_dir")
-                if log_dir:
-                    log_dir_path = Path(log_dir)
-                    if not log_dir_path.is_absolute():
-                        log_dir_str = str(log_dir_path).lstrip("./")
-                        log_dir = str(PROJECT_ROOT / log_dir_str)
-                    else:
-                        log_dir = str(log_dir_path)
+                log_dir = str(get_path_service().get_logs_dir())
 
             # Get level from config (unified global level)
             if effective_level is None:
-                from .config import get_global_log_level
-
                 effective_level = get_global_log_level()
         except Exception:
             pass

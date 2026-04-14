@@ -8,12 +8,53 @@
         <text class="nav-back-arrow">‹</text>
         <text class="nav-back-txt">对话</text>
       </view>
-      <view style="flex:1"></view>
+      <text class="nav-title">学情</text>
+      <view class="nav-points-pill" bindtap="goBilling">
+        <text class="nav-points-star">✦</text>
+        <text class="nav-points-num">{{userPoints}}</text>
+      </view>
     </view>
   </view>
 
   <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px; bottom: 0">
     <view class="page-inner">
+      <view class="overview-hero glass-card">
+        <view class="overview-head">
+          <view>
+            <text class="overview-title">学习画像</text>
+            <text class="overview-sub">{{learnerLevel ? learnerLevel : 'learning'}}</text>
+          </view>
+          <view class="overview-score-wrap">
+            <text class="overview-score">{{avgScore || overallMastery}}</text>
+            <text class="overview-score-unit">%</text>
+          </view>
+        </view>
+        <text class="overview-tip" wx:if="{{studyTip}}">{{studyTip}}</text>
+        <text class="overview-tip" wx:elif="{{focusHint}}">{{focusHint}}</text>
+        <view class="overview-metrics">
+          <view class="metric-chip">
+            <text class="metric-num">{{todayDone}} / {{dailyTarget || 0}}</text>
+            <text class="metric-label">今日进度</text>
+          </view>
+          <view class="metric-chip">
+            <text class="metric-num">{{streakDays}}</text>
+            <text class="metric-label">连续学习</text>
+          </view>
+          <view class="metric-chip">
+            <text class="metric-num">{{dueTodayCount}}</text>
+            <text class="metric-label">今日待复习</text>
+          </view>
+          <view class="metric-chip metric-chip-warn">
+            <text class="metric-num">{{weakNodeCount}}</text>
+            <text class="metric-label">薄弱章节</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="insight-strip glass-card" wx:if="{{focusHint}}">
+        <text class="insight-kicker">今日建议</text>
+        <text class="insight-text">{{focusHint}}</text>
+      </view>
 
       <!-- ═══════════ 能力雷达 ═══════════════════════ -->
       <view class="section-header">
@@ -143,6 +184,22 @@
               <text class="mastery-unit">%</text>
             </view>
             <text class="mastery-label">总体掌握度</text>
+            <view class="mastery-sub-row">
+              <view class="mastery-sub-item">
+                <text class="mastery-sub-num">{{reviewSummary.total_due || 0}}</text>
+                <text class="mastery-sub-label">待复习</text>
+              </view>
+              <view class="mastery-sub-divider"></view>
+              <view class="mastery-sub-item">
+                <text class="mastery-sub-num mastery-sub-warn">{{reviewSummary.overdue_count || 0}}</text>
+                <text class="mastery-sub-label">已逾期</text>
+              </view>
+              <view class="mastery-sub-divider"></view>
+              <view class="mastery-sub-item">
+                <text class="mastery-sub-num">{{hotspots.length}}</text>
+                <text class="mastery-sub-label">热点</text>
+              </view>
+            </view>
           </view>
 
           <!-- 分组掌握度 -->
@@ -173,6 +230,21 @@
                 </view>
                 <text class="ch-pct" style="color: {{ch.color}}">{{ch.mastery}}%</text>
               </view>
+            </view>
+          </view>
+
+          <view class="glass-card hotspot-list" wx:if="{{hotspots.length}}">
+            <view class="group-header">
+              <text class="group-name">优先关注</text>
+              <text class="group-avg avg-low">薄弱优先</text>
+            </view>
+            <view
+              class="hotspot-item"
+              wx:for="{{hotspots}}"
+              wx:key="name"
+            >
+              <text class="hotspot-topic">{{item.name}}</text>
+              <text class="hotspot-rate">{{item.rateText}}</text>
             </view>
           </view>
         </view>

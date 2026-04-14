@@ -1,0 +1,41 @@
+<view class="terms-page {{isDark?'':'light'}}">
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <view class="nav-back" bindtap="goBack">
+        <text class="nav-back-arrow">‹</text>
+        <text class="nav-back-txt">返回</text>
+      </view>
+      <text class="nav-title">服务条款</text>
+      <view style="width: 96rpx"></view>
+    </view>
+  </view>
+
+  <scroll-view
+    class="page-scroll"
+    scroll-y
+    enhanced="{{true}}"
+    bounces="{{true}}"
+    show-scrollbar="{{false}}"
+    style="top: {{navHeight}}px; bottom: 0"
+  >
+    <view class="page-inner">
+      <view class="hero-card glass-card">
+        <text class="hero-title">鲁班智考服务条款</text>
+        <text class="hero-sub">最近更新时间：{{updatedAt}}</text>
+        <text class="hero-desc">使用本产品前，请先阅读以下内容。继续使用即视为你已理解并接受相关约定。</text>
+      </view>
+
+      <view class="glass-card section-card" wx:for="{{sections}}" wx:key="title">
+        <text class="section-title">{{item.title}}</text>
+        <text class="section-paragraph" wx:for="{{item.paragraphs}}" wx:key="index">{{item}}</text>
+      </view>
+
+      <view class="glass-card footer-card">
+        <text class="footer-title">提示</text>
+        <text class="footer-text">如果你对条款内容、数据使用或会员权益有疑问，请先暂停敏感操作，并联系产品负责人确认。</text>
+      </view>
+
+      <view style="height: 160rpx"></view>
+    </view>
+  </scroll-view>
+</view>

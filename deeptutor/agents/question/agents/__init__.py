@@ -3,7 +3,7 @@
 from importlib import import_module
 from typing import Any
 
-__all__ = ["IdeaAgent", "Generator", "FollowupAgent"]
+__all__ = ["IdeaAgent", "Generator", "FollowupAgent", "SubmissionGraderAgent"]
 
 
 def __getattr__(name: str) -> Any:
@@ -15,5 +15,8 @@ def __getattr__(name: str) -> Any:
         return getattr(module, name)
     if name == "FollowupAgent":
         module = import_module("deeptutor.agents.question.agents.followup_agent")
+        return getattr(module, name)
+    if name == "SubmissionGraderAgent":
+        module = import_module("deeptutor.agents.question.agents.submission_grader_agent")
         return getattr(module, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

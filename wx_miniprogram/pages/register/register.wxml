@@ -6,7 +6,7 @@
 
       <view class="title-row">
         <image class="title-logo" src="/images/logo-mark-white.png" mode="heightFix" />
-        <text class="h-white title-main">DeepTutor</text>
+        <text class="h-white title-main">鲁班智考</text>
       </view>
       <view class="headline">
         <text class="h-white">创建你的</text>

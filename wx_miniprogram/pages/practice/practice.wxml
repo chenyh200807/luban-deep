@@ -83,7 +83,11 @@
 
       <!-- 章节列表 -->
       <view class="chapters-list" wx:else>
+        <view wx:if="{{chaptersError && !chapters.length}}" class="glass-card" style="padding: 28rpx; color: rgba(226,232,240,0.78);">
+          章节进度暂时拉取失败，请稍后重试。
+        </view>
         <view
+          wx:if="{{!chaptersError || chapters.length}}"
           class="chapter-item glass-card"
           wx:for="{{chapters}}"
           wx:key="id"

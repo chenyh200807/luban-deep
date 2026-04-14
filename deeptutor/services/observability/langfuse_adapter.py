@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
+from contextvars import ContextVar, Token
+from dataclasses import dataclass, field
 import inspect
 import json
 import os
@@ -80,6 +82,108 @@ _MODEL_PRICE_ALIASES = {
     "deepseek-chat": "deepseek-v3.2",
     "deepseek-v3.2-exp": "deepseek-v3.2",
 }
+
+
+@dataclass
+class _UsageScopeState:
+    scope_id: str
+    session_id: str = ""
+    turn_id: str = ""
+    capability: str = ""
+    input_tokens: float = 0.0
+    output_tokens: float = 0.0
+    total_tokens: float = 0.0
+    total_cost_usd: float = 0.0
+    total_calls: int = 0
+    measured_calls: int = 0
+    estimated_calls: int = 0
+    sources: dict[str, int] = field(default_factory=dict)
+    models: dict[str, int] = field(default_factory=dict)
+
+    def add(
+        self,
+        *,
+        usage_details: dict[str, float] | None,
+        cost_details: dict[str, float] | None = None,
+        source: str = "estimated",
+        model: str | None = None,
+    ) -> None:
+        if not usage_details:
+            return
+
+        input_tokens = float(usage_details.get("input") or 0.0)
+        output_tokens = float(usage_details.get("output") or 0.0)
+        total_tokens = float(usage_details.get("total") or (input_tokens + output_tokens))
+        if total_tokens <= 0:
+            return
+
+        self.input_tokens += input_tokens
+        self.output_tokens += output_tokens
+        self.total_tokens += total_tokens
+        self.total_calls += 1
+
+        source_key = str(source or "estimated").strip().lower() or "estimated"
+        self.sources[source_key] = int(self.sources.get(source_key) or 0) + 1
+        if source_key in {"provider", "measured", "actual"}:
+            self.measured_calls += 1
+        else:
+            self.estimated_calls += 1
+
+        if model:
+            model_key = str(model).strip()
+            if model_key:
+                self.models[model_key] = int(self.models.get(model_key) or 0) + 1
+
+        if cost_details:
+            self.total_cost_usd += float(cost_details.get("total") or 0.0)
+
+    def to_summary(self) -> dict[str, Any] | None:
+        total_tokens = int(round(self.total_tokens))
+        if total_tokens <= 0 and self.total_calls <= 0:
+            return None
+
+        sources = {
+            key: value
+            for key, value in sorted(self.sources.items(), key=lambda item: item[0])
+            if value
+        }
+        models = {
+            key: value
+            for key, value in sorted(self.models.items(), key=lambda item: item[0])
+            if value
+        }
+        accuracy = (
+            "measured"
+            if self.estimated_calls == 0 and self.measured_calls > 0
+            else "estimated"
+            if self.measured_calls == 0 and self.estimated_calls > 0
+            else "mixed"
+            if self.measured_calls > 0 and self.estimated_calls > 0
+            else "unknown"
+        )
+
+        return {
+            "scope_id": self.scope_id,
+            "session_id": self.session_id,
+            "turn_id": self.turn_id,
+            "capability": self.capability,
+            "total_input_tokens": int(round(self.input_tokens)),
+            "total_output_tokens": int(round(self.output_tokens)),
+            "total_tokens": total_tokens,
+            "total_calls": int(self.total_calls),
+            "measured_calls": int(self.measured_calls),
+            "estimated_calls": int(self.estimated_calls),
+            "usage_accuracy": accuracy,
+            "usage_sources": sources,
+            "models": models,
+            "total_cost_usd": round(self.total_cost_usd, 8),
+        }
+
+
+_current_usage_scope: ContextVar[_UsageScopeState | None] = ContextVar(
+    "langfuse_usage_scope",
+    default=None,
+)
 
 
 def _env_flag(name: str, default: bool = False) -> bool:
@@ -214,6 +318,7 @@ class LangfuseObservability:
             self._client = None
             return None
 
+        httpx_client: httpx.Client | None = None
         try:
             from langfuse import Langfuse
 
@@ -222,13 +327,14 @@ class LangfuseObservability:
             ).strip() or None
             timeout = int(os.getenv("LANGFUSE_TIMEOUT_S", "5"))
             trust_env = _env_flag("LANGFUSE_HTTPX_TRUST_ENV", False)
+            httpx_client = httpx.Client(trust_env=trust_env, timeout=timeout)
             candidate_kwargs = {
                 "public_key": str(os.getenv("LANGFUSE_PUBLIC_KEY", "") or "").strip(),
                 "secret_key": str(os.getenv("LANGFUSE_SECRET_KEY", "") or "").strip(),
                 "host": host,
                 "base_url": host,
                 "timeout": timeout,
-                "httpx_client": httpx.Client(trust_env=trust_env, timeout=timeout),
+                "httpx_client": httpx_client,
                 "debug": _env_flag("LANGFUSE_DEBUG", False),
                 "tracing_enabled": True,
                 "flush_at": int(os.getenv("LANGFUSE_FLUSH_AT", "64")),
@@ -251,9 +357,21 @@ class LangfuseObservability:
                     "Installed langfuse SDK does not support start_as_current_observation; "
                     "expected langfuse>=3."
                 )
+            auth_check = getattr(self._client, "auth_check", None)
+            if callable(auth_check):
+                try:
+                    if not bool(auth_check()):
+                        raise RuntimeError("Langfuse auth check returned false")
+                except Exception as exc:
+                    raise RuntimeError(f"Langfuse auth check failed: {exc}") from exc
             logger.info("Langfuse observability enabled")
         except Exception as exc:
             self._client = None
+            if httpx_client is not None:
+                try:
+                    httpx_client.close()
+                except Exception:
+                    logger.debug("Failed to close Langfuse httpx client", exc_info=True)
             if not self._init_error_logged:
                 logger.warning(f"Langfuse initialization skipped: {exc}")
                 self._init_error_logged = True
@@ -274,6 +392,51 @@ class LangfuseObservability:
         if not metadata:
             return None
         return _sanitize_value(metadata, mask_pii=_env_flag("LANGFUSE_MASK_PII", True))
+
+    @contextmanager
+    def usage_scope(
+        self,
+        *,
+        scope_id: str,
+        session_id: str = "",
+        turn_id: str = "",
+        capability: str = "",
+    ) -> Iterator[_UsageScopeState]:
+        scope = _UsageScopeState(
+            scope_id=str(scope_id or "").strip() or "usage-scope",
+            session_id=str(session_id or "").strip(),
+            turn_id=str(turn_id or "").strip(),
+            capability=str(capability or "").strip(),
+        )
+        token: Token[_UsageScopeState | None] = _current_usage_scope.set(scope)
+        try:
+            yield scope
+        finally:
+            _current_usage_scope.reset(token)
+
+    def record_usage(
+        self,
+        *,
+        usage_details: dict[str, float] | None,
+        cost_details: dict[str, float] | None = None,
+        source: str = "estimated",
+        model: str | None = None,
+    ) -> None:
+        scope = _current_usage_scope.get()
+        if scope is None:
+            return
+        scope.add(
+            usage_details=usage_details,
+            cost_details=cost_details,
+            source=source,
+            model=model,
+        )
+
+    def get_current_usage_summary(self) -> dict[str, Any] | None:
+        scope = _current_usage_scope.get()
+        if scope is None:
+            return None
+        return scope.to_summary()
 
     def _extract_trace_attributes(self, metadata: dict[str, Any] | None) -> dict[str, Any]:
         if not metadata:
@@ -327,6 +490,13 @@ class LangfuseObservability:
 
         propagate = getattr(client, "propagate_attributes", None)
         if not callable(propagate):
+            try:
+                import langfuse as langfuse_module
+
+                propagate = getattr(langfuse_module, "propagate_attributes", None)
+            except Exception:
+                propagate = None
+        if not callable(propagate):
             yield
             return
 
@@ -336,10 +506,19 @@ class LangfuseObservability:
             return
 
         try:
-            with propagate(**propagate_kwargs):
-                yield
+            manager = propagate(**propagate_kwargs)
         except Exception as exc:
             logger.debug(f"Langfuse attribute propagation skipped: {exc}", exc_info=True)
+            yield
+            return
+
+        with ExitStack() as stack:
+            try:
+                stack.enter_context(manager)
+            except Exception as exc:
+                logger.debug(f"Langfuse attribute propagation skipped: {exc}", exc_info=True)
+                yield
+                return
             yield
 
     def estimate_usage_details(
@@ -484,8 +663,15 @@ class LangfuseObservability:
         model_parameters: dict[str, Any] | None = None,
         usage_details: dict[str, float] | None = None,
         cost_details: dict[str, float] | None = None,
+        usage_source: str | None = None,
     ) -> Iterator[Any]:
         client = self._get_client()
+        self.record_usage(
+            usage_details=usage_details,
+            cost_details=cost_details,
+            source=usage_source or "estimated",
+            model=model,
+        )
         if client is None:
             yield _NoopObservation()
             return
@@ -519,12 +705,21 @@ class LangfuseObservability:
                     "tags": trace_attributes.get("tags"),
                 },
             )
-            with start_method(**start_kwargs) as observation:
-                with self._propagate_trace_attributes(client, trace_attributes):
-                    yield observation
+            observation_manager = start_method(**start_kwargs)
         except Exception as exc:
             logger.debug(f"Langfuse observation skipped for {name}: {exc}", exc_info=True)
             yield _NoopObservation()
+            return
+
+        with ExitStack() as stack:
+            try:
+                stack.enter_context(self._propagate_trace_attributes(client, trace_attributes))
+                observation = stack.enter_context(observation_manager)
+            except Exception as exc:
+                logger.debug(f"Langfuse observation skipped for {name}: {exc}", exc_info=True)
+                yield _NoopObservation()
+                return
+            yield observation
 
     def update_observation(
         self,
@@ -534,9 +729,17 @@ class LangfuseObservability:
         metadata: dict[str, Any] | None = None,
         usage_details: dict[str, float] | None = None,
         cost_details: dict[str, float] | None = None,
+        usage_source: str | None = None,
+        model: str | None = None,
         level: str | None = None,
         status_message: str | None = None,
     ) -> None:
+        self.record_usage(
+            usage_details=usage_details,
+            cost_details=cost_details,
+            source=usage_source or "estimated",
+            model=model,
+        )
         if observation is None or isinstance(observation, _NoopObservation):
             return
         try:

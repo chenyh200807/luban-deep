@@ -4,7 +4,7 @@ var api = require("../../utils/api");
 var unwrap = api.unwrapResponse;
 var md = require("../../utils/markdown");
 var mcqDetect = require("../../utils/mcq-detect");
-var sseStream = require("../../utils/sse-stream");
+var wsStream = require("../../utils/ws-stream");
 var helpers = require("../../utils/helpers");
 var log = require("../../utils/logger");
 var workflowStatus = require("../../utils/workflow-status");
@@ -21,12 +21,15 @@ var HERO_DRAG_DAMPING = 0.32; // Hero 拖拽阻尼
 var HERO_VIBRATE_THRESHOLD_PX = 40; // Hero 拖拽震动阈值
 var SCROLL_TOGGLE_COOLDOWN_MS = 300; // 滚动切换 tab bar 冷却
 var VIEWPORT_MARGIN_PX = 600; // IntersectionObserver 上下扩展边距
+var CHAT_TOOL_PREFS_KEY = "chat_tool_prefs";
 
 Page({
   data: {
     statusBarHeight: 0,
     navHeight: 0,
     safeBottom: 0,
+    viewportHeight: 0,
+    contentHeight: 0,
     hasMessages: false,
     messages: [],
     inputText: "",
@@ -34,6 +37,9 @@ Page({
     scrollToId: "",
     chatScrollWithAnimation: false,
     answerMode: "AUTO",
+    modeHintText: "TutorBot 陪学 · 智能调度",
+    enableReason: false,
+    enableWebSearch: false,
     feedbackMsgId: "",
     feedbackTags: [],
     feedbackComment: "",
@@ -125,17 +131,24 @@ Page({
 
   onLoad: function () {
     var info = helpers.getWindowInfo();
+    var savedToolPrefs = wx.getStorageSync(CHAT_TOOL_PREFS_KEY) || {};
     var statusBarHeight = info.statusBarHeight || 44;
     var navHeight = statusBarHeight + 44;
+    var viewportHeight = info.windowHeight || info.screenHeight || 812;
     var safeBottom = info.safeArea
       ? info.screenHeight - info.safeArea.bottom
       : 0;
+    var contentHeight = Math.max(viewportHeight - navHeight, 320);
 
     this.setData({
       statusBarHeight: statusBarHeight,
       navHeight: navHeight,
       safeBottom: safeBottom,
+      viewportHeight: viewportHeight,
+      contentHeight: contentHeight,
       isDark: helpers.isDark(),
+      enableReason: !!savedToolPrefs.enableReason,
+      enableWebSearch: !!savedToolPrefs.enableWebSearch,
     });
 
     // [FIX-SESSION-1] 仅在 5 分钟内恢复 session（处理页面刷新），
@@ -180,7 +193,7 @@ Page({
         .then(function (raw) {
           var info = api.unwrapResponse(raw);
           var name = info.username || info.display_name || "用户";
-          // 保存 userId 供 SSE 使用
+          // 保存 userId 供统一聊天运行时使用
           var uid = info.id || info.user_id;
           if (uid) auth.setToken(auth.getToken(), uid);
           self.setData({
@@ -197,6 +210,14 @@ Page({
       self._loadDashboard();
       // 新用户弹窗：建议做摸底测试
       self._checkDiagnostic();
+      var pendingQuery = app.globalData.pendingChatQuery;
+      var pendingMode = app.globalData.pendingChatMode || "AUTO";
+      if (pendingQuery && !self.data.isStreaming) {
+        app.globalData.pendingChatQuery = "";
+        app.globalData.pendingChatMode = "AUTO";
+        self.setData({ answerMode: pendingMode });
+        self._send(pendingQuery);
+      }
     });
     // [FIX] 从后台切回时重建 observer（onHide 中已 teardown）
     if (this.data.hasMessages) {
@@ -205,9 +226,9 @@ Page({
   },
 
   onHide: function () {
-    // [FIX] 切后台时不中断 SSE 流，只暂停 observer 降低内存开销。
+    // [FIX] 切后台时不中断流式会话，只暂停 observer 降低内存开销。
     // 切回 onShow 时流式输出继续，避免用户切 app 后内容断掉。
-    // 只有 onUnload（页面销毁）才调 _stop() 中断 SSE。
+    // 只有 onUnload（页面销毁）才调 _stop() 中断连接。
     this._teardownObserver();
   },
   onUnload: function () {
@@ -379,9 +400,10 @@ Page({
 
     var idx = this._find(this._streamId);
     if (idx !== -1) {
-      var text = this.data.messages[idx].content;
+      var currentMsg = this.data.messages[idx];
+      var text = currentMsg.content;
       var detectedMcq = mcqDetect.detect(text);
-      var existingCards = this.data.messages[idx].mcqCards;
+      var existingCards = currentMsg.mcqCards;
       var renderText =
         detectedMcq && detectedMcq.displayText !== undefined
           ? detectedMcq.displayText
@@ -390,16 +412,19 @@ Page({
       u["messages[" + idx + "].streaming"] = false;
       u["messages[" + idx + "].renderableContent"] = renderText || "";
       u["messages[" + idx + "].blocks"] = md.parseWithIds(renderText || "");
-      u["messages[" + idx + "].thinkingStatus"] = "";
-      u["messages[" + idx + "].thinkingBadge"] = "";
-      u["messages[" + idx + "].thinkingSub"] = "";
-      u["messages[" + idx + "].thinkingTone"] = "";
+      if (renderText || (currentMsg.blocks && currentMsg.blocks.length)) {
+        u["messages[" + idx + "].thinkingStatus"] = "";
+        u["messages[" + idx + "].thinkingBadge"] = "";
+        u["messages[" + idx + "].thinkingSub"] = "";
+        u["messages[" + idx + "].thinkingTone"] = "";
+      }
       if ((!existingCards || !existingCards.length) && detectedMcq) {
-        var detectedCards = this._buildDetectedMcqCards(detectedMcq);
-        if (detectedCards.length) {
-          u["messages[" + idx + "].mcqCards"] = detectedCards;
-          u["messages[" + idx + "].mcqHint"] = detectedMcq.submitHint || "";
-          u["messages[" + idx + "].mcqReceipt"] = detectedMcq.receipt || "";
+        var fallbackState = this._buildFallbackMcqState(detectedMcq);
+        if (fallbackState) {
+          u["messages[" + idx + "].mcqCards"] = fallbackState.cards;
+          u["messages[" + idx + "].mcqHint"] = fallbackState.hint;
+          u["messages[" + idx + "].mcqReceipt"] = fallbackState.receipt;
+          u["messages[" + idx + "].mcqInteractiveReady"] = fallbackState.interactiveReady;
         }
       } else if (detectedMcq && detectedMcq.receipt) {
         u["messages[" + idx + "].mcqReceipt"] = detectedMcq.receipt;
@@ -426,6 +451,16 @@ Page({
   },
 
   _onError: function (m) {
+    var idx = this._find(this._streamId);
+    if (idx !== -1) {
+      var msg = this.data.messages[idx];
+      var state = this._buildWorkflowState(msg, {
+        eventType: "progress",
+        stage: "retry",
+        data: m || "服务异常",
+      }, false);
+      this._setWorkflowState(idx, state, false);
+    }
     this._onDone();
     wx.showToast({ title: m || "回复失败", icon: "none" });
   },
@@ -433,36 +468,34 @@ Page({
   _onStatus: function (m) {
     var idx = this._find(this._streamId);
     if (idx === -1) return;
-    // C5-5: 弱网软超时 — SSE 15s 无 token 时触发
     var payload = m || {};
-    if (payload.data === "slow_response") {
-      this.setData({
-        ["messages[" + idx + "].thinkingStatus"]: "内容较多，正在深度处理",
-        ["messages[" + idx + "].thinkingBadge"]: "稍等片刻",
-        ["messages[" + idx + "].thinkingSub"]:
-          "复杂问题需要更多推理时间，马上就好。",
-        ["messages[" + idx + "].thinkingTone"]: "retry",
-      });
-      return;
-    }
-    var normalized = workflowStatus.normalizeWorkflowStatus(m);
-    this.setData({
-      ["messages[" + idx + "].thinkingStatus"]: normalized.headline,
-      ["messages[" + idx + "].thinkingBadge"]: normalized.badge,
-      ["messages[" + idx + "].thinkingSub"]: normalized.subline,
-      ["messages[" + idx + "].thinkingTone"]: normalized.tone,
-    });
+    var msg = this.data.messages[idx];
+    var state = this._buildWorkflowState(msg, payload, true);
+    this._setWorkflowState(idx, state, false);
   },
 
   _onStatusEnd: function () {
     var idx = this._find(this._streamId);
-    if (idx !== -1)
+    if (idx === -1) return;
+    var msg = this.data.messages[idx] || {};
+    var summary = workflowStatus.summarizeWorkflow(msg.workflowEntries || [], false);
+    var preserveThinking = !!(msg.content || (msg.blocks && msg.blocks.length));
+    this._setWorkflowState(
+      idx,
+      {
+        entries: msg.workflowEntries || [],
+        summary: summary,
+      },
+      preserveThinking,
+    );
+    if (preserveThinking) {
       this.setData({
         ["messages[" + idx + "].thinkingStatus"]: "",
         ["messages[" + idx + "].thinkingBadge"]: "",
         ["messages[" + idx + "].thinkingSub"]: "",
         ["messages[" + idx + "].thinkingTone"]: "",
       });
+    }
   },
 
   _onFinal: function (d) {
@@ -499,12 +532,13 @@ Page({
     if (!d || !d.questions || !d.questions.length) return;
     var idx = this._find(this._streamId);
     if (idx === -1) return;
-    var cards = this._buildEventMcqCards(d.questions);
-    if (!cards.length) return;
+    var state = this._buildInteractiveMcqState(d);
+    if (!state) return;
     this.setData({
-      ["messages[" + idx + "].mcqCards"]: cards,
-      ["messages[" + idx + "].mcqHint"]: d.submit_hint || "请选择后提交答案",
-      ["messages[" + idx + "].mcqReceipt"]: d.receipt || "",
+      ["messages[" + idx + "].mcqCards"]: state.cards,
+      ["messages[" + idx + "].mcqHint"]: state.hint,
+      ["messages[" + idx + "].mcqReceipt"]: state.receipt,
+      ["messages[" + idx + "].mcqInteractiveReady"]: state.interactiveReady,
     });
   },
 
@@ -515,6 +549,40 @@ Page({
       if (msgs[i].id === id) return i;
     }
     return -1;
+  },
+
+  _buildWorkflowState: function (msg, payload, active) {
+    var entries = workflowStatus.appendWorkflowEntry(
+      (msg && msg.workflowEntries) || [],
+      payload,
+    );
+    var summary = workflowStatus.summarizeWorkflow(entries, active !== false);
+    return {
+      entries: entries,
+      summary: summary,
+    };
+  },
+
+  _setWorkflowState: function (idx, state, preserveThinking) {
+    var summary = (state && state.summary) || workflowStatus.summarizeWorkflow([], false);
+    var updates = {};
+    updates["messages[" + idx + "].workflowEntries"] = state.entries || [];
+    updates["messages[" + idx + "].workflowBadge"] = summary.badge || "";
+    updates["messages[" + idx + "].workflowTitle"] = summary.headline || "";
+    updates["messages[" + idx + "].workflowSub"] = summary.subline || "";
+    updates["messages[" + idx + "].workflowMeta"] = summary.meta || "";
+    updates["messages[" + idx + "].workflowCountText"] = summary.countText || "";
+    updates["messages[" + idx + "].workflowToggleText"] = summary.toggleText || "展开后台过程";
+    updates["messages[" + idx + "].workflowTone"] = summary.tone || "analyze";
+    updates["messages[" + idx + "].workflowActive"] = !!summary.active;
+
+    if (!preserveThinking) {
+      updates["messages[" + idx + "].thinkingStatus"] = summary.headline || "";
+      updates["messages[" + idx + "].thinkingBadge"] = summary.badge || "";
+      updates["messages[" + idx + "].thinkingSub"] = summary.subline || "";
+      updates["messages[" + idx + "].thinkingTone"] = summary.tone || "analyze";
+    }
+    this.setData(updates);
   },
 
   _normalizeMcqOptions: function (rawOptions) {
@@ -557,6 +625,9 @@ Page({
         hint: "",
         questionType: detected.questionType || "single_choice",
         options: this._normalizeMcqOptions(detected.options),
+        followupContext: null,
+        questionId: "",
+        hasContext: false,
       },
     ];
   },
@@ -575,9 +646,63 @@ Page({
         hint: q.hint || "",
         questionType: q.question_type || "single_choice",
         options: options,
+        followupContext:
+          q.followup_context && typeof q.followup_context === "object"
+            ? q.followup_context
+            : null,
+        questionId: String(
+          q.question_id ||
+            (q.followup_context && q.followup_context.question_id) ||
+            "",
+        ).trim(),
+        hasContext: !!(
+          q.followup_context &&
+          typeof q.followup_context === "object" &&
+          q.followup_context.question_id
+        ),
       });
     }
     return cards;
+  },
+
+  _buildInteractiveMcqState: function (interactive) {
+    if (!interactive || !Array.isArray(interactive.questions) || !interactive.questions.length) {
+      return null;
+    }
+    var rawQuestions = [];
+    var hiddenContexts = Array.isArray(interactive.hidden_contexts)
+      ? interactive.hidden_contexts
+      : [];
+    for (var i = 0; i < interactive.questions.length; i++) {
+      var question = interactive.questions[i] || {};
+      rawQuestions.push(
+        Object.assign({}, question, {
+          followup_context:
+            hiddenContexts[i] && typeof hiddenContexts[i] === "object"
+              ? hiddenContexts[i]
+              : null,
+        }),
+      );
+    }
+    var cards = this._buildEventMcqCards(rawQuestions);
+    if (!cards.length) return null;
+    return {
+      cards: cards,
+      hint: interactive.submit_hint || "请选择后提交答案",
+      receipt: interactive.receipt || "",
+      interactiveReady: true,
+    };
+  },
+
+  _buildFallbackMcqState: function (detected) {
+    var cards = this._buildDetectedMcqCards(detected);
+    if (!cards.length) return null;
+    return {
+      cards: cards,
+      hint: "当前题卡缺少原始上下文，仅供查看；如需作答，请让 AI 重新出题。",
+      receipt: detected && detected.receipt ? detected.receipt : "",
+      interactiveReady: false,
+    };
   },
 
   _selectedMcqKeys: function (card) {
@@ -594,6 +719,7 @@ Page({
     var selections = [];
     var structuredQuestions = [];
     var structuredAnswers = [];
+    var missingContext = false;
     var items = Array.isArray(cards) ? cards : [];
     for (var i = 0; i < items.length; i++) {
       var card = items[i];
@@ -606,6 +732,11 @@ Page({
       }
       structuredQuestions.push({
         question_number: card.index || i + 1,
+        question_id: String(
+          card.questionId ||
+            (card.followupContext && card.followupContext.question_id) ||
+            "",
+        ).trim(),
         stem: card.stem || "",
         hint: card.hint || "",
         options: optionMap,
@@ -620,23 +751,74 @@ Page({
         });
         structuredAnswers.push({
           question_number: card.index || i + 1,
+          question_id: String(
+            card.questionId ||
+              (card.followupContext && card.followupContext.question_id) ||
+              "",
+          ).trim(),
           selected_answer: keys.join(""),
           question_type: card.questionType || "single_choice",
         });
+        if (!card.followupContext || typeof card.followupContext !== "object") {
+          missingContext = true;
+        }
       }
     }
     if (!selections.length) return null;
+    if (missingContext) return { error: "missing_context" };
     var rows = [];
     for (var k = 0; k < selections.length; k++) {
       rows.push("第" + selections[k].index + "题：" + selections[k].keys.join("、"));
     }
-    var text = rows.join("；");
+    var followupQuestionContext = null;
+    if (selections.length === 1) {
+      for (var m = 0; m < items.length; m++) {
+        var singleCard = items[m];
+        if (!singleCard || !singleCard.followupContext) continue;
+        if (Number(singleCard.index) !== Number(selections[0].index)) continue;
+        followupQuestionContext = Object.assign({}, singleCard.followupContext, {
+          user_answer: selections[0].keys.join(""),
+        });
+        break;
+      }
+    } else {
+      var compositeItems = [];
+      var questionLines = [];
+      for (var n = 0; n < items.length; n++) {
+        var compositeCard = items[n];
+        if (!compositeCard || !compositeCard.followupContext) continue;
+        compositeItems.push(
+          Object.assign({}, compositeCard.followupContext, {
+            user_answer: this._selectedMcqKeys(compositeCard).join(""),
+          }),
+        );
+        questionLines.push(
+          "第" +
+            (compositeCard.index || n + 1) +
+            "题：\n" +
+            (compositeCard.stem || "请选择正确选项"),
+        );
+      }
+      if (compositeItems.length) {
+        followupQuestionContext = {
+          question_id: "question_set",
+          question: questionLines.join("\n\n"),
+          question_type: "choice",
+          items: compositeItems,
+        };
+      }
+    }
+    var text =
+      selections.length === 1 && followupQuestionContext
+        ? "我选" + selections[0].keys.join("、")
+        : rows.join("；");
     return {
       text: text,
       structuredSubmitContext: {
         questions: structuredQuestions,
         answers: structuredAnswers,
       },
+      followupQuestionContext: followupQuestionContext,
     };
   },
 
@@ -754,7 +936,75 @@ Page({
 
   onMode: function (e) {
     helpers.vibrate("light");
-    this.setData({ answerMode: e.currentTarget.dataset.m });
+    var nextMode = e.currentTarget.dataset.m;
+    var nextState = {
+      answerMode: nextMode,
+      modeHintText: this._getModeHintText(nextMode),
+    };
+    if (nextMode !== "DEEP" && this.data.enableReason) {
+      nextState.enableReason = false;
+      this._saveToolPrefs(false, this.data.enableWebSearch);
+      wx.showToast({ title: "非深度模式已关闭推理", icon: "none", duration: 1800 });
+    }
+    this.setData(nextState);
+  },
+
+  onToggleReason: function () {
+    helpers.vibrate("light");
+    var nextReason = !this.data.enableReason;
+    var nextMode = this.data.answerMode;
+    if (nextReason && nextMode !== "DEEP") {
+      nextMode = "DEEP";
+      wx.showToast({ title: "已切换到深度模式", icon: "none", duration: 1800 });
+    }
+    this._saveToolPrefs(nextReason, this.data.enableWebSearch);
+    this.setData({
+      enableReason: nextReason,
+      answerMode: nextMode,
+      modeHintText: this._getModeHintText(nextMode),
+    });
+  },
+
+  onToggleWebSearch: function () {
+    helpers.vibrate("light");
+    var nextWebSearch = !this.data.enableWebSearch;
+    this._saveToolPrefs(this.data.enableReason, nextWebSearch);
+    this.setData({ enableWebSearch: nextWebSearch });
+  },
+
+  _saveToolPrefs: function (enableReason, enableWebSearch) {
+    wx.setStorageSync(CHAT_TOOL_PREFS_KEY, {
+      enableReason: !!enableReason,
+      enableWebSearch: !!enableWebSearch,
+    });
+  },
+
+  _getSelectedTools: function () {
+    var tools = [];
+    if (this.data.enableReason) tools.push("reason");
+    if (this.data.enableWebSearch) tools.push("web_search");
+    return tools;
+  },
+
+  _getModeHintText: function (mode) {
+    if (mode === "FAST") return "TutorBot 快答 · 踩分点优先";
+    if (mode === "DEEP") return "TutorBot 精讲 · 讲透拿分逻辑";
+    return "TutorBot 陪学 · 智能调度";
+  },
+
+  _buildTutorInteraction: function () {
+    var mode = String(this.data.answerMode || "AUTO").toUpperCase();
+    return {
+      profile: "mini_tutor",
+      hints: {
+        product_surface: "wechat_miniprogram",
+        entry_role: "tutorbot",
+        subject_domain: "construction_exam",
+        teaching_mode:
+          mode === "FAST" ? "fast" : mode === "DEEP" ? "deep" : "smart",
+        pedagogy_contract: "construction_exam_tutor_v1",
+      },
+    };
   },
 
   // ── 对话滚动：上滑显示 tab bar，下滑隐藏 ─────
@@ -898,10 +1148,21 @@ Page({
       mcqSelected: null,
       mcqHint: "",
       mcqReceipt: "",
+      mcqInteractiveReady: false,
       thinkingStatus: "AI 正在准备...",
       thinkingBadge: "",
       thinkingSub: "",
       thinkingTone: "",
+      workflowEntries: [],
+      workflowExpanded: false,
+      workflowBadge: "",
+      workflowTitle: "",
+      workflowSub: "",
+      workflowMeta: "",
+      workflowCountText: "",
+      workflowToggleText: "展开后台过程",
+      workflowTone: "analyze",
+      workflowActive: true,
       citations: null,
       engine: "deeptutor",
       engineSessionId: "",
@@ -915,6 +1176,7 @@ Page({
     self._autoScrollEnabled = true;
 
     var existing = self.data.messages;
+    var inferTitleOnStart = existing.length === 0;
     if (existing.length > MAX_MESSAGES - 2) {
       existing = existing.slice(existing.length - (MAX_MESSAGES - 2));
     }
@@ -938,7 +1200,7 @@ Page({
     }
 
     // [Client Turn Idempotency] Generate stable turn ID for this message.
-    // Same ID is reused on network retry (via sse-stream _doRequest retry).
+    // 同一轮消息在网络重连时复用同一个客户端侧标识。
     var _turnId =
       self._sid +
       "_" +
@@ -946,14 +1208,20 @@ Page({
       "_" +
       Math.random().toString(36).substr(2, 4);
 
-    self._abort = sseStream.streamChat(
+    var tutorInteraction = self._buildTutorInteraction();
+    self._abort = wsStream.streamChat(
       {
         query: query,
         sessionId: self._sid,
         userId: auth.getUserId(),
         mode: self.data.answerMode,
+        tools: self._getSelectedTools(),
+        interactionProfile: tutorInteraction.profile,
+        interactionHints: tutorInteraction.hints,
         clientTurnId: _turnId,
         structuredSubmitContext: extraOpts && extraOpts.structuredSubmitContext,
+        followupQuestionContext: extraOpts && extraOpts.followupQuestionContext,
+        inferTitleOnStart: inferTitleOnStart,
       },
       {
         onToken: function (t) {
@@ -1032,10 +1300,21 @@ Page({
             mcqSelected: null,
             mcqHint: "",
             mcqReceipt: "",
+            mcqInteractiveReady: false,
             thinkingStatus: "",
             thinkingBadge: "",
             thinkingSub: "",
             thinkingTone: "",
+            workflowEntries: [],
+            workflowExpanded: false,
+            workflowBadge: "",
+            workflowTitle: "",
+            workflowSub: "",
+            workflowMeta: "",
+            workflowCountText: "",
+            workflowToggleText: "查看完整后台过程",
+            workflowTone: "compose",
+            workflowActive: false,
             citations: null,
             engine: "",
             engineSessionId: "",
@@ -1047,6 +1326,10 @@ Page({
           // 仅解析最后几条可见消息，其余由 IntersectionObserver 按需解析
           if (role === "ai" && m.content) {
             var detected = mcqDetect.detect(m.content);
+            var restoredInteractive =
+              m.interactive && typeof m.interactive === "object"
+                ? self._buildInteractiveMcqState(m.interactive)
+                : null;
             var renderText =
               detected && detected.displayText !== undefined
                 ? detected.displayText
@@ -1054,10 +1337,19 @@ Page({
             if (counter >= rawMsgs.length - 4) {
               msg.blocks = md.parseWithIds(renderText || "");
             }
-            if (detected) {
-              msg.mcqCards = self._buildDetectedMcqCards(detected);
-              msg.mcqHint = detected.submitHint || "";
-              msg.mcqReceipt = detected.receipt || "";
+            if (restoredInteractive) {
+              msg.mcqCards = restoredInteractive.cards;
+              msg.mcqHint = restoredInteractive.hint;
+              msg.mcqReceipt = restoredInteractive.receipt;
+              msg.mcqInteractiveReady = restoredInteractive.interactiveReady;
+            } else if (detected) {
+              var fallbackState = self._buildFallbackMcqState(detected);
+              if (fallbackState) {
+                msg.mcqCards = fallbackState.cards;
+                msg.mcqHint = fallbackState.hint;
+                msg.mcqReceipt = fallbackState.receipt;
+                msg.mcqInteractiveReady = fallbackState.interactiveReady;
+              }
             }
           }
           return msg;
@@ -1130,9 +1422,10 @@ Page({
 
   onMcqTap: function (e) {
     if (this.data.isStreaming) return;
-    helpers.vibrate("medium");
     var idx = this._find(e.currentTarget.dataset.msgid);
     if (idx === -1) return;
+    if (!this.data.messages[idx].mcqInteractiveReady) return;
+    helpers.vibrate("medium");
     var key = String(e.currentTarget.dataset.key || "").toUpperCase();
     var qindex = Number(e.currentTarget.dataset.qindex || 0);
     var cards = this.data.messages[idx].mcqCards || [];
@@ -1163,6 +1456,9 @@ Page({
         hint: card.hint,
         questionType: card.questionType,
         options: nextOptions,
+        followupContext: card.followupContext || null,
+        questionId: card.questionId || "",
+        hasContext: !!card.hasContext,
       });
     }
     this.setData({ ["messages[" + idx + "].mcqCards"]: nextCards });
@@ -1173,9 +1469,23 @@ Page({
     var idx = this._find(e.currentTarget.dataset.msgid);
     if (idx === -1) return;
     var msg = this.data.messages[idx];
+    if (!msg.mcqInteractiveReady) {
+      wx.showToast({
+        title: "当前题卡仅供查看，请让 AI 重新出题后再作答",
+        icon: "none",
+      });
+      return;
+    }
     var payload = this._buildMcqSubmitPayload(msg.mcqCards || []);
     if (!payload) {
       wx.showToast({ title: "请先选择答案", icon: "none" });
+      return;
+    }
+    if (payload.error === "missing_context") {
+      wx.showToast({
+        title: "题目上下文缺失，请让 AI 重新出题后再作答",
+        icon: "none",
+      });
       return;
     }
     helpers.vibrate("medium");
@@ -1280,6 +1590,16 @@ Page({
       return m.id === e.currentTarget.dataset.msgid;
     });
     if (msg) wx.setClipboardData({ data: msg.content });
+  },
+
+  onToggleWorkflowTrace: function (e) {
+    helpers.vibrate("light");
+    var idx = this._find(e.currentTarget.dataset.msgid);
+    if (idx === -1) return;
+    var current = !!this.data.messages[idx].workflowExpanded;
+    this.setData({
+      ["messages[" + idx + "].workflowExpanded"]: !current,
+    });
   },
 
   onEdit: function (e) {

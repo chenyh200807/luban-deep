@@ -18,6 +18,13 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.core.trace import merge_trace_metadata
+from deeptutor.services.question_followup import (
+    answers_match,
+    build_question_followup_context_from_summary,
+    extract_submission_answer,
+    normalize_question_followup_context,
+    resolve_submission,
+)
 
 
 class DeepQuestionCapability(BaseCapability):
@@ -41,12 +48,65 @@ class DeepQuestionCapability(BaseCapability):
         output_dir = get_path_service().get_task_workspace("deep_question", turn_id)
 
         overrides = context.config_overrides
+        force_generate_questions = bool(overrides.get("force_generate_questions", False))
         followup_question_context = (
             context.metadata.get("question_followup_context", {}) or {}
         )
-        if isinstance(followup_question_context, dict) and followup_question_context.get(
+        if (
+            not force_generate_questions
+            and isinstance(followup_question_context, dict)
+            and followup_question_context.get(
             "question"
+            )
         ):
+            narrowed_context, submission_answer = resolve_submission(
+                context.user_message,
+                followup_question_context,
+            )
+            if narrowed_context and submission_answer is not None:
+                from deeptutor.agents.question.agents.submission_grader_agent import (
+                    SubmissionGraderAgent,
+                )
+
+                graded_context = self._build_submission_context(
+                    narrowed_context,
+                    submission_answer,
+                    raw_submission=context.user_message,
+                )
+                agent = SubmissionGraderAgent(
+                    language=context.language,
+                    api_key=llm_config.api_key,
+                    base_url=llm_config.base_url,
+                    api_version=llm_config.api_version,
+                )
+                agent.set_trace_callback(self._build_trace_bridge(stream))
+                async with stream.stage("generation", source=self.name):
+                    answer = await agent.process(
+                        user_message=context.user_message,
+                        question_context=graded_context,
+                        history_context=str(
+                            context.metadata.get("conversation_context_text", "") or ""
+                        ).strip(),
+                    )
+                    if answer:
+                        await stream.content(answer, source=self.name, stage="generation")
+                    result_payload: dict[str, Any] = {
+                        "response": answer or "",
+                        "mode": "grading",
+                        "question_id": graded_context.get("question_id", ""),
+                        "user_answer": graded_context.get("user_answer", ""),
+                        "is_correct": graded_context.get("is_correct"),
+                        "question_followup_context": normalize_question_followup_context(
+                            graded_context
+                        )
+                        or {},
+                    }
+                    cost_meta = self._collect_cost_summary("question")
+                    if cost_meta:
+                        result_payload["metadata"] = {"cost_summary": cost_meta}
+                    await stream.result(result_payload, source=self.name)
+                return
+
             from deeptutor.agents.question.agents.followup_agent import FollowupAgent
 
             agent = FollowupAgent(
@@ -70,6 +130,10 @@ class DeepQuestionCapability(BaseCapability):
                     "response": answer or "",
                     "mode": "followup",
                     "question_id": followup_question_context.get("question_id", ""),
+                    "question_followup_context": normalize_question_followup_context(
+                        followup_question_context
+                    )
+                    or {},
                 }
                 cost_meta = self._collect_cost_summary("question")
                 if cost_meta:
@@ -188,11 +252,104 @@ class DeepQuestionCapability(BaseCapability):
             "response": content or "No questions generated.",
             "summary": result,
             "mode": mode,
+            "question_followup_context": build_question_followup_context_from_summary(
+                result,
+                content or "",
+                reveal_answers=reveal_answers,
+                reveal_explanations=reveal_explanations,
+            )
+            or {},
         }
         cost_meta = self._collect_cost_summary("question")
         if cost_meta:
             result_payload["metadata"] = {"cost_summary": cost_meta}
         await stream.result(result_payload, source=self.name)
+
+    @staticmethod
+    def _build_submission_context(
+        question_context: dict[str, Any],
+        user_answer: str,
+        *,
+        raw_submission: str = "",
+    ) -> dict[str, Any]:
+        graded_context = dict(question_context)
+        correct_answer = str(question_context.get("correct_answer", "") or "").strip()
+        is_correct = answers_match(user_answer, correct_answer, graded_context)
+        graded_context["user_answer"] = str(user_answer or "").strip()
+        graded_context["is_correct"] = is_correct
+        graded_context["score"] = 100 if is_correct else 0
+        graded_context["diagnosis"] = DeepQuestionCapability._diagnose_choice_submission(
+            question_context=question_context,
+            user_answer=user_answer,
+            raw_submission=raw_submission,
+        )
+        return graded_context
+
+    @staticmethod
+    def _diagnose_choice_submission(
+        *,
+        question_context: dict[str, Any],
+        user_answer: str,
+        raw_submission: str = "",
+    ) -> str:
+        correct_answer = str(question_context.get("correct_answer", "") or "").strip().upper()
+        normalized_answer = str(user_answer or "").strip().upper()
+        if not normalized_answer:
+            return "INVALID"
+        if not correct_answer:
+            return "INVALID"
+        if answers_match(normalized_answer, correct_answer, question_context):
+            return "CORRECT"
+        if normalized_answer not in {"A", "B", "C", "D"} and correct_answer not in {"A", "B", "C", "D"}:
+            return "CONFUSION"
+
+        raw_text = str(raw_submission or "").strip().lower()
+        if any(marker in raw_text for marker in ("手滑", "看错", "粗心", "点错", "写错")):
+            return "SLIP"
+
+        combined = " ".join(
+            str(question_context.get(key, "") or "")
+            for key in ("question", "explanation", "knowledge_context", "concentration")
+        ).lower()
+
+        negative_stem_markers = (
+            "不应",
+            "不宜",
+            "不得",
+            "不能",
+            "错误",
+            "不正确",
+            "除外",
+            "不属于",
+            "不是",
+            "严禁",
+        )
+        has_numeric_signal = bool(
+            re.search(r"\d+(?:\.\d+)?\s*(?:%|‰|℃|mm|cm|m|km|kg|kN|MPa|d|h|min|天|小时|分钟|万元|元)", combined)
+            or re.search(r"第[一二三四五六七八九十0-9]+", combined)
+        )
+        calc_markers = (
+            "计算",
+            "合计",
+            "总工期",
+            "持续时间",
+            "流水节拍",
+            "流水步距",
+            "费用",
+            "金额",
+            "面积",
+            "体积",
+            "概率",
+            "比率",
+            "产值",
+        )
+        if has_numeric_signal and any(marker in combined for marker in calc_markers):
+            return "CALC_ERROR"
+        if has_numeric_signal:
+            return "MEMORY_DECAY"
+        if any(marker in combined for marker in negative_stem_markers):
+            return "OVERSIGHT"
+        return "CONFUSION"
 
     @staticmethod
     def _collect_cost_summary(module_name: str) -> dict[str, Any] | None:

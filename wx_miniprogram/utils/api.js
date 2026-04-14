@@ -1,5 +1,6 @@
 // utils/api.js — Gateway / 主服务 HTTP 请求封装
 const auth = require("./auth");
+const endpoints = require("./endpoints");
 
 // ── 常量 ──────────────────────────────────────────────────
 var MAX_RETRIES = 2; // 最大重试次数
@@ -15,13 +16,27 @@ function getApp_() {
   }
 }
 
-function getBaseUrl(useGateway) {
-  if (useGateway === undefined) useGateway = true;
+function relaunchLogin() {
   var app = getApp_();
-  if (app && app.globalData) {
-    return useGateway ? app.globalData.gatewayUrl : app.globalData.apiUrl;
+  if (app && app.globalData && app.globalData._authRedirecting) {
+    return;
   }
-  return useGateway ? "http://127.0.0.1:8001" : "http://127.0.0.1:8001";
+  if (app && app.globalData) {
+    app.globalData._authRedirecting = true;
+  }
+  wx.reLaunch({
+    url: "/pages/login/login",
+    complete: function () {
+      var nextApp = getApp_();
+      if (nextApp && nextApp.globalData) {
+        nextApp.globalData._authRedirecting = false;
+      }
+    },
+  });
+}
+
+function getBaseUrl(useGateway) {
+  return endpoints.getPrimaryBaseUrl(useGateway !== false);
 }
 
 /**
@@ -45,8 +60,11 @@ function request(opts) {
   var useGateway = opts.useGateway || false;
   var noAuth = opts.noAuth || false;
   var retryCount = opts._retryCount || 0;
+  var baseIndex = opts._baseIndex || 0;
+  var baseCandidates = opts._baseCandidates ||
+    endpoints.getBaseUrlCandidates(useGateway, opts.baseUrl);
 
-  var baseUrl = opts.baseUrl || getBaseUrl(useGateway);
+  var baseUrl = baseCandidates[baseIndex] || getBaseUrl(useGateway);
   var fullUrl = opts.url.startsWith("http") ? opts.url : baseUrl + opts.url;
   var token = auth.getToken();
 
@@ -67,7 +85,30 @@ function request(opts) {
       timeout: REQUEST_TIMEOUT,
       success: function (res) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
+          if (!opts.url.startsWith("http")) {
+            endpoints.rememberWorkingBaseUrl(baseUrl, useGateway);
+          }
           resolve(res.data);
+          return;
+        }
+
+        if (
+          !opts.url.startsWith("http") &&
+          res.statusCode === 404 &&
+          baseIndex + 1 < baseCandidates.length
+        ) {
+          var nextBaseOn404 = baseCandidates[baseIndex + 1];
+          console.warn(
+            "[API] HTTP 404 on " + fullUrl + ", fallback to " + nextBaseOn404,
+          );
+          request(
+            Object.assign({}, opts, {
+              _baseCandidates: baseCandidates,
+              _baseIndex: baseIndex + 1,
+            }),
+          )
+            .then(resolve)
+            .catch(reject);
           return;
         }
 
@@ -79,7 +120,7 @@ function request(opts) {
             app.globalData.token = null;
             app.globalData.userId = null;
           }
-          wx.redirectTo({ url: "/pages/login/login" });
+          relaunchLogin();
           reject(new Error("AUTH_EXPIRED"));
           return;
         }
@@ -129,6 +170,23 @@ function request(opts) {
           return;
         }
 
+        if (
+          !opts.url.startsWith("http") &&
+          baseIndex + 1 < baseCandidates.length
+        ) {
+          var nextBase = baseCandidates[baseIndex + 1];
+          console.warn("[API] Fallback to alternate base: " + nextBase);
+          request(
+            Object.assign({}, opts, {
+              _baseCandidates: baseCandidates,
+              _baseIndex: baseIndex + 1,
+            }),
+          )
+            .then(resolve)
+            .catch(reject);
+          return;
+        }
+
         // 网络错误 — 幂等请求可重试
         if (RETRYABLE_METHODS[method] && retryCount < MAX_RETRIES) {
           var delay = RETRY_BASE_DELAY * Math.pow(2, retryCount);
@@ -162,7 +220,7 @@ function request(opts) {
 /** 微信小程序登录 */
 function wxLogin(code) {
   return request({
-    url: "/wechat/mp/login",
+    url: "/api/v1/wechat/mp/login",
     method: "POST",
     data: { code: code },
     useGateway: true,
@@ -173,7 +231,7 @@ function wxLogin(code) {
 /** 绑定手机号 */
 function bindPhone(phoneCode) {
   return request({
-    url: "/wechat/mp/bind-phone",
+    url: "/api/v1/wechat/mp/bind-phone",
     method: "POST",
     data: { phone_code: phoneCode },
     useGateway: true,
@@ -247,6 +305,15 @@ function getConversations(archived) {
 /** 创建新对话 */
 function createConversation() {
   return request({ url: "/api/v1/conversations", method: "POST", data: {} });
+}
+
+/** 启动一个聊天 turn，返回 conversation / turn / ws 订阅信息 */
+function startChatTurn(payload) {
+  return request({
+    url: "/api/v1/chat/start-turn",
+    method: "POST",
+    data: payload || {},
+  });
 }
 
 /** 获取对话消息 */
@@ -339,6 +406,7 @@ module.exports = {
   getMasteryDashboard: getMasteryDashboard,
   getConversations: getConversations,
   createConversation: createConversation,
+  startChatTurn: startChatTurn,
   getConversationMessages: getConversationMessages,
   deleteConversation: deleteConversation,
   batchConversations: batchConversations,
