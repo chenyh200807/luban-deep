@@ -485,6 +485,23 @@ class TurnRuntimeManager:
                             records=history_records,
                             emit=lambda event: self._persist_and_publish(execution, event),
                         )
+                        if not history_context.strip():
+                            max_fallback_chars = 8000
+                            parts: list[str] = []
+                            total = 0
+                            for record in history_records:
+                                output = record.get("output")
+                                if not output:
+                                    continue
+                                part = f"## Session: {record.get('title', 'Untitled')}\n{output}"
+                                if total + len(part) > max_fallback_chars:
+                                    remaining = max_fallback_chars - total
+                                    if remaining > 100:
+                                        parts.append(part[:remaining] + "\n...(truncated)")
+                                    break
+                                parts.append(part)
+                                total += len(part)
+                            history_context = "\n\n".join(parts)
 
                 effective_user_message = raw_user_content
                 context_parts: list[str] = []
@@ -543,7 +560,6 @@ class TurnRuntimeManager:
                         assistant_events.append(payload_event)
                     if _should_capture_assistant_content(event):
                         assistant_content += event.content
-
                 await self.store.add_message(
                     session_id=session_id,
                     role="assistant",
