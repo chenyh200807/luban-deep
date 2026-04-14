@@ -13,6 +13,16 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from pydantic import ValidationError
+
+from deeptutor.contracts.unified_turn import (
+    UnifiedTurnCancelMessage,
+    UnifiedTurnResumeMessage,
+    UnifiedTurnStartMessage,
+    UnifiedTurnSubscribeMessage,
+    UnifiedTurnSubscribeSessionMessage,
+    UnifiedTurnUnsubscribeMessage,
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -82,7 +92,8 @@ async def unified_websocket(ws: WebSocket) -> None:
 
                 runtime = get_turn_runtime_manager()
                 try:
-                    _, turn = await runtime.start_turn(msg)
+                    start_message = UnifiedTurnStartMessage.model_validate(msg)
+                    _, turn = await runtime.start_turn(start_message.model_dump(exclude_none=True))
                 except RuntimeError as exc:
                     await safe_send(
                         {
@@ -97,53 +108,66 @@ async def unified_websocket(ws: WebSocket) -> None:
                         }
                     )
                     continue
+                except ValidationError as exc:
+                    await safe_send({"type": "error", "content": f"Invalid start_turn payload: {exc.errors()}"})
+                    continue
                 await subscribe_turn(turn["id"], after_seq=0)
                 continue
 
             if msg_type == "subscribe_turn":
-                turn_id = str(msg.get("turn_id") or "").strip()
-                if not turn_id:
-                    await safe_send({"type": "error", "content": "Missing turn_id."})
+                try:
+                    sub_message = UnifiedTurnSubscribeMessage.model_validate(msg)
+                except ValidationError as exc:
+                    await safe_send({"type": "error", "content": f"Invalid subscribe_turn payload: {exc.errors()}"})
                     continue
-                await subscribe_turn(turn_id, after_seq=int(msg.get("after_seq") or 0))
+                await subscribe_turn(sub_message.turn_id, after_seq=sub_message.after_seq)
                 continue
 
             if msg_type == "subscribe_session":
-                session_id = str(msg.get("session_id") or "").strip()
-                if not session_id:
-                    await safe_send({"type": "error", "content": "Missing session_id."})
+                try:
+                    sub_session_message = UnifiedTurnSubscribeSessionMessage.model_validate(msg)
+                except ValidationError as exc:
+                    await safe_send({"type": "error", "content": f"Invalid subscribe_session payload: {exc.errors()}"})
                     continue
-                await subscribe_session(session_id, after_seq=int(msg.get("after_seq") or 0))
+                await subscribe_session(
+                    sub_session_message.session_id,
+                    after_seq=sub_session_message.after_seq,
+                )
                 continue
 
             if msg_type == "resume_from":
-                turn_id = str(msg.get("turn_id") or "").strip()
-                if not turn_id:
-                    await safe_send({"type": "error", "content": "Missing turn_id."})
+                try:
+                    resume_message = UnifiedTurnResumeMessage.model_validate(msg)
+                except ValidationError as exc:
+                    await safe_send({"type": "error", "content": f"Invalid resume_from payload: {exc.errors()}"})
                     continue
-                await subscribe_turn(turn_id, after_seq=int(msg.get("seq") or 0))
+                await subscribe_turn(resume_message.turn_id, after_seq=resume_message.seq)
                 continue
 
             if msg_type == "unsubscribe":
-                turn_id = str(msg.get("turn_id") or "").strip()
-                if turn_id:
-                    await stop_subscription(turn_id)
-                session_id = str(msg.get("session_id") or "").strip()
-                if session_id:
-                    await stop_subscription(f"session:{session_id}")
+                try:
+                    unsubscribe_message = UnifiedTurnUnsubscribeMessage.model_validate(msg)
+                except ValidationError as exc:
+                    await safe_send({"type": "error", "content": f"Invalid unsubscribe payload: {exc.errors()}"})
+                    continue
+                if unsubscribe_message.turn_id:
+                    await stop_subscription(unsubscribe_message.turn_id)
+                if unsubscribe_message.session_id:
+                    await stop_subscription(f"session:{unsubscribe_message.session_id}")
                 continue
 
             if msg_type == "cancel_turn":
-                turn_id = str(msg.get("turn_id") or "").strip()
-                if not turn_id:
-                    await safe_send({"type": "error", "content": "Missing turn_id."})
+                try:
+                    cancel_message = UnifiedTurnCancelMessage.model_validate(msg)
+                except ValidationError as exc:
+                    await safe_send({"type": "error", "content": f"Invalid cancel_turn payload: {exc.errors()}"})
                     continue
                 from deeptutor.services.session import get_turn_runtime_manager
 
                 runtime = get_turn_runtime_manager()
-                cancelled = await runtime.cancel_turn(turn_id)
+                cancelled = await runtime.cancel_turn(cancel_message.turn_id)
                 if not cancelled:
-                    await safe_send({"type": "error", "content": f"Turn not found: {turn_id}"})
+                    await safe_send({"type": "error", "content": f"Turn not found: {cancel_message.turn_id}"})
                 continue
 
             await safe_send({"type": "error", "content": f"Unknown type: {msg_type}"})

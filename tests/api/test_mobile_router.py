@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib
-from types import SimpleNamespace
 
 import pytest
 
@@ -56,9 +55,12 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
     assert body["conversation"]["id"] == "session_1"
     assert body["turn"]["id"] == "turn_1"
     assert body["stream"]["transport"] == "websocket"
+    assert body["stream"]["url"] == "/api/v1/ws"
     assert body["stream"]["subscribe"]["turn_id"] == "turn_1"
     assert captured["payload"]["capability"] is None
+    assert captured["payload"]["content"] == "考我一道流水施工的题"
     assert captured["payload"]["config"]["interaction_hints"]["profile"] == "mini_tutor"
+    assert captured["payload"]["config"]["bot_id"] == "construction-exam-coach"
     assert captured["payload"]["config"]["billing_context"] == {
         "source": "wx_miniprogram",
         "user_id": "student_demo",

@@ -78,6 +78,9 @@ TEACHING_DEEP_ELEMENTS = [
     TEACHING_ELEMENT_MNEMONIC,
     TEACHING_ELEMENT_TAKEAWAY,
 ]
+_FINAL_ANSWER_SPAN_RE = re.compile(
+    r"(?:【最终答案】|【正确答案】|最终答案[：: ]*|正确答案[：: ]*|答案[：: ]*)([A-Ea-e](?:[ \t、,，/]*[A-Ea-e])*)"
+)
 
 
 @dataclass
@@ -88,6 +91,35 @@ class ToolTrace:
     success: bool
     sources: list[dict[str, Any]]
     metadata: dict[str, Any]
+
+
+def _normalize_mcq_answer_letters(answer: Any) -> str:
+    if isinstance(answer, list):
+        raw = "".join(str(item or "") for item in answer)
+    elif isinstance(answer, dict):
+        raw = "".join(str(value or "") for value in answer.values())
+    else:
+        raw = str(answer or "")
+    letters = re.sub(r"[^A-Ea-e]", "", raw).upper()
+    return "".join(sorted(set(letters)))
+
+
+def _extract_final_answer_letters(content: str) -> tuple[str, str]:
+    match = _FINAL_ANSWER_SPAN_RE.search(str(content or ""))
+    if not match:
+        return "", ""
+    letters = _normalize_mcq_answer_letters(match.group(1))
+    return letters, match.group(0)
+
+
+def _replace_final_answer_letters(content: str, new_answer: str) -> str:
+    replacement = f"【最终答案】{new_answer}"
+    updated = _FINAL_ANSWER_SPAN_RE.sub(replacement, str(content or ""), count=1)
+    if updated != content:
+        return updated
+    if str(content or "").strip():
+        return f"{replacement}\n\n{content}".strip()
+    return replacement
 
 
 class AgenticChatPipeline:
@@ -504,7 +536,16 @@ class AgenticChatPipeline:
                         "Do not mention the internal pipeline, thinking, or observing stages."
                     ),
                 )
+                exact_question_authority = self._extract_exact_question_authority(tool_traces)
+                if exact_question_authority:
+                    user_prompt += "\n\n" + self._exact_question_response_contract(
+                        exact_question_authority
+                    )
                 required_elements = self._required_teaching_elements(context, answer_type, tool_traces)
+                force_buffer = self._should_buffer_authoritative_response(
+                    answer_type=answer_type,
+                    tool_traces=tool_traces,
+                )
                 if required_elements:
                     user_prompt += "\n\n" + self._knowledge_response_contract(required_elements)
                 messages = self._build_messages(
@@ -513,14 +554,24 @@ class AgenticChatPipeline:
                     user_content=user_prompt,
                 )
 
-                if required_elements:
-                    content = await self._complete_validated_response(
+                if required_elements or force_buffer:
+                    if required_elements:
+                        content = await self._complete_validated_response(
+                            context=context,
+                            messages=messages,
+                            answer_type=answer_type,
+                            observation=observation,
+                            tool_traces=tool_traces,
+                            max_tokens=1800,
+                        )
+                    else:
+                        content = await self._complete_messages(messages, max_tokens=1800)
+                    content = await self._apply_exact_question_authority(
                         context=context,
-                        messages=messages,
                         answer_type=answer_type,
-                        observation=observation,
+                        content=content,
                         tool_traces=tool_traces,
-                        max_tokens=1800,
+                        max_tokens=1200,
                     )
                     if content:
                         await stream.content(
@@ -542,6 +593,13 @@ class AgenticChatPipeline:
                             metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
                         )
                     content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                    content = await self._apply_exact_question_authority(
+                        context=context,
+                        answer_type=answer_type,
+                        content=content,
+                        tool_traces=tool_traces,
+                        max_tokens=1200,
+                    )
                 await stream.progress(
                     "",
                     source="chat",
@@ -593,11 +651,17 @@ class AgenticChatPipeline:
                     zh=(
                         f"用户问题：\n{context.user_message}\n\n"
                         "请直接给出正式回答。保持教学连续性，但不要展示内部推理、阶段或工具信息。"
+                        "当前优先按微信小程序对话来答：除非用户明确要求详细展开，否则尽量短答，控制在 2 到 3 个信息块内，不要写成讲义。"
+                        "如果题目存在会影响安全、责任或索赔结论的歧义，优先做条件化判断，不要硬猜。"
+                        "如果本轮没有已确认依据，不要主动补具体程序时限或合同天数。"
                     ),
                     en=(
                         f"User request:\n{context.user_message}\n\n"
                         "Provide the final answer directly. Maintain tutoring continuity, "
-                        "but do not reveal internal reasoning, stages, or tool details."
+                        "but do not reveal internal reasoning, stages, or tool details. "
+                        "Prefer a concise WeChat mini-program style answer unless the user explicitly asks for detail. "
+                        "If ambiguity would change the safety, liability, or claim conclusion, answer conditionally instead of guessing. "
+                        "Do not invent exact procedural or contractual time limits without confirmed evidence."
                     ),
                 )
                 required_elements = self._required_teaching_elements(context, answer_type, [])
@@ -1785,6 +1849,142 @@ class AgenticChatPipeline:
                 return True
         return False
 
+    def _extract_exact_question_authority(
+        self,
+        tool_traces: list[ToolTrace] | None = None,
+    ) -> dict[str, Any] | None:
+        for trace in tool_traces or []:
+            if str(trace.name or "").strip().lower() != "rag":
+                continue
+            metadata = trace.metadata if isinstance(trace.metadata, dict) else {}
+            exact = metadata.get("exact_question")
+            if not isinstance(exact, dict):
+                continue
+            authoritative_answer = _normalize_mcq_answer_letters(exact.get("correct_answer"))
+            if not authoritative_answer:
+                continue
+            normalized = dict(exact)
+            normalized["authoritative_answer"] = authoritative_answer
+            normalized["confidence"] = float(exact.get("confidence") or 0.0)
+            return normalized
+        return None
+
+    def _should_buffer_authoritative_response(
+        self,
+        *,
+        answer_type: str,
+        tool_traces: list[ToolTrace] | None = None,
+    ) -> bool:
+        if answer_type != ANSWER_TYPE_PROBLEM:
+            return False
+        return self._extract_exact_question_authority(tool_traces) is not None
+
+    def _exact_question_response_contract(self, authority: dict[str, Any]) -> str:
+        answer = str(authority.get("authoritative_answer") or "").strip()
+        stem = str(authority.get("stem") or "").strip()
+        analysis = str(authority.get("analysis") or "").strip()
+        options = authority.get("options")
+        options_text = json.dumps(options, ensure_ascii=False) if options not in (None, "") else ""
+        return self._text(
+            zh=(
+                "已命中题库原题，以下信息具有最高优先级，必须严格服从：\n"
+                f"- 题目：{stem or '(unknown)'}\n"
+                f"- 正确答案：{answer}\n"
+                f"- 选项：{options_text or '(none)'}\n"
+                f"- 题库解析：{analysis or '(none)'}\n"
+                "要求：\n"
+                "1. 最终答案必须与上述正确答案一致。\n"
+                "2. 如果需要解释，解释必须围绕这个正确答案展开，不能继续为错误选项辩护。\n"
+                "3. 不要提到内部纠偏、修正、题库命中等过程。"
+            ),
+            en=(
+                "An exact question match was found. The following evidence is authoritative and must override the draft:\n"
+                f"- Question: {stem or '(unknown)'}\n"
+                f"- Correct answer: {answer}\n"
+                f"- Options: {options_text or '(none)'}\n"
+                f"- Analysis: {analysis or '(none)'}\n"
+                "Rules:\n"
+                "1. The final answer must match the authoritative correct answer.\n"
+                "2. Any explanation must support that answer rather than the wrong option.\n"
+                "3. Do not mention internal correction or exact-match mechanics."
+            ),
+        )
+
+    async def _apply_exact_question_authority(
+        self,
+        *,
+        context: UnifiedContext,
+        answer_type: str,
+        content: str,
+        tool_traces: list[ToolTrace] | None = None,
+        max_tokens: int = 1200,
+    ) -> str:
+        authority = self._extract_exact_question_authority(tool_traces)
+        if not authority or answer_type != ANSWER_TYPE_PROBLEM:
+            return content
+
+        authoritative_answer = str(authority.get("authoritative_answer") or "").strip()
+        current_answer, _ = _extract_final_answer_letters(content)
+        if current_answer == authoritative_answer:
+            return content
+
+        rewritten = await self._rewrite_exact_question_response(
+            context=context,
+            content=content,
+            authority=authority,
+            max_tokens=max_tokens,
+        )
+        if rewritten:
+            rewritten_answer, _ = _extract_final_answer_letters(rewritten)
+            if rewritten_answer == authoritative_answer:
+                return rewritten
+
+        return _replace_final_answer_letters(content, authoritative_answer)
+
+    async def _rewrite_exact_question_response(
+        self,
+        *,
+        context: UnifiedContext,
+        content: str,
+        authority: dict[str, Any],
+        max_tokens: int,
+    ) -> str:
+        system = self._text(
+            zh=(
+                f"你是 {BRAND_NAME} 的选择题权威纠偏器。"
+                "你的任务是把草稿修正成与题库原题完全一致的最终答复。"
+                "只输出修正后的最终用户答复，不解释修正过程。"
+            ),
+            en=(
+                f"You are {BRAND_NAME}'s authoritative MCQ correction layer. "
+                "Rewrite the draft so it is fully consistent with the exact matched question. "
+                "Output only the corrected final user-facing answer."
+            ),
+        )
+        authority_block = self._exact_question_response_contract(authority)
+        user = self._text(
+            zh=(
+                f"用户原题：\n{context.user_message}\n\n"
+                f"{self._labeled_block('当前草稿', content)}\n\n"
+                f"{authority_block}\n\n"
+                "请重写整段最终答复，使答案、解析、判断依据全部与题库原题一致。"
+                "如果草稿里存在错误选项、错误判断或与正确答案冲突的表述，必须全部改正。"
+            ),
+            en=(
+                f"Original user question:\n{context.user_message}\n\n"
+                f"{self._labeled_block('Current Draft', content)}\n\n"
+                f"{authority_block}\n\n"
+                "Rewrite the whole answer so the answer choice and explanation are fully aligned with the exact matched question."
+            ),
+        )
+        return await self._complete_messages(
+            [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            max_tokens=max_tokens,
+        )
+
     def _required_teaching_elements(
         self,
         context: UnifiedContext,
@@ -1796,13 +1996,18 @@ class AgenticChatPipeline:
             ANSWER_TYPE_KNOWLEDGE,
             ANSWER_TYPE_PROBLEM,
         }:
-            if mode == "fast":
+            if mode in {"fast", "deep"}:
                 return list(TEACHING_FAST_ELEMENTS)
-            if mode == "deep":
-                return list(TEACHING_DEEP_ELEMENTS)
         if answer_type == ANSWER_TYPE_KNOWLEDGE and self._used_knowledge_recall(tool_traces):
-            return list(TEACHING_DEEP_ELEMENTS)
+            return list(TEACHING_FAST_ELEMENTS)
         return []
+
+    def _should_enforce_teaching_contract(
+        self,
+        answer_type: str,
+        tool_traces: list[ToolTrace] | None = None,
+    ) -> bool:
+        return answer_type == ANSWER_TYPE_KNOWLEDGE and self._used_knowledge_recall(tool_traces)
 
     def _infer_answer_type(self, user_message: str) -> str:
         text = (user_message or "").strip().lower()

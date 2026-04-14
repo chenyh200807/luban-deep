@@ -1,4 +1,4 @@
-"""RAG provider registry and tool integration tests (llamaindex-only)."""
+"""RAG provider registry and tool integration tests."""
 
 from __future__ import annotations
 
@@ -7,19 +7,20 @@ import os
 import pytest
 
 
-def test_list_available_providers_only_llamaindex() -> None:
-    """Provider list should expose only llamaindex."""
+def test_list_available_providers() -> None:
+    """Provider list should expose local and Supabase retrieval backends."""
     from deeptutor.tools.rag_tool import get_available_providers
 
     providers = get_available_providers()
-    assert [p["id"] for p in providers] == ["llamaindex"]
+    assert [p["id"] for p in providers] == ["llamaindex", "supabase"]
 
 
-def test_factory_has_pipeline_only_llamaindex() -> None:
-    """Factory should only report llamaindex as selectable provider."""
+def test_factory_has_pipeline() -> None:
+    """Factory should report supported providers only."""
     from deeptutor.services.rag.factory import has_pipeline
 
     assert has_pipeline("llamaindex") is True
+    assert has_pipeline("supabase") is True
     assert has_pipeline("lightrag") is False
     assert has_pipeline("raganything") is False
     assert has_pipeline("nonexistent") is False
@@ -92,3 +93,83 @@ async def test_rag_search_invalid_provider_falls_back_to_kb_provider(
         kb_base_dir=os.getcwd(),
     )
     assert result["provider"] == "llamaindex"
+
+
+@pytest.mark.asyncio
+async def test_supabase_search_prioritizes_parallel_exact_question_match(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-key")
+    monkeypatch.setenv("SUPABASE_RAG_ENABLE_RERANK", "false")
+    monkeypatch.setenv("SUPABASE_RAG_SECOND_PASS", "false")
+
+    class _FakeKbConfigService:
+        def get_kb_config(self, kb_name: str) -> dict[str, object]:
+            _ = kb_name
+            return {}
+
+    monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
+
+    pipeline = supabase_module.SupabasePipeline()
+
+    async def _fake_search_exact_question_text(**kwargs):
+        assert kwargs["probe_query"] == "确定屋面防水工程的防水等级应根据什么"
+        return [
+            {
+                "id": "q-exact",
+                "chunk_id": "question-q-exact",
+                "card_title": "题目: 确定屋面防水工程的防水等级应根据什么",
+                "rag_content": "【题目】确定屋面防水工程的防水等级应根据什么\n【答案】建筑物类别",
+                "source_type": "textbook_assessment",
+                "score": 1.0,
+                "_source_group": "question_exact_text",
+                "_source_table": "questions_bank",
+            }
+        ]
+
+    async def _fake_run_query_plan(**kwargs):
+        assert kwargs["exact_probe"] is not None
+        return [
+            {
+                "phase": "primary",
+                "group_name": "questions_bank",
+                "query": kwargs["queries"][0],
+                "query_index": 0,
+                "query_weight": 1.0,
+                "results": [
+                    {
+                        "id": "q-fuzzy",
+                        "chunk_id": "question-q-fuzzy",
+                        "card_title": "题目: 地下工程防水等级",
+                        "rag_content": "【题目】地下工程防水等级应根据什么\n【答案】埋置深度",
+                        "source_type": "real_exam",
+                        "score": 0.83,
+                        "_source_group": "questions_bank",
+                        "_source_table": "questions_bank",
+                    }
+                ],
+            }
+        ]
+
+    async def _identity(results, **kwargs):
+        _ = kwargs
+        return results
+
+    monkeypatch.setattr(pipeline, "_search_exact_question_text", _fake_search_exact_question_text)
+    monkeypatch.setattr(pipeline, "_run_query_plan", _fake_run_query_plan)
+    monkeypatch.setattr(pipeline, "_hydrate_sources", _identity)
+    monkeypatch.setattr(pipeline, "_rerank_results", _identity)
+
+    result = await pipeline.search(
+        query="单选题：确定屋面防水工程的防水等级应根据什么\nA. 建筑物类别\nB. 建筑物面积",
+        kb_name="construction-exam",
+    )
+
+    assert result["provider"] == "supabase"
+    assert result["sources"][0]["chunk_id"] == "question-q-exact"
+    assert result["sources"][0]["source_type"] == "textbook_assessment"
+    assert result["exact_question"]["chunk_id"] == "question-q-exact"
+    assert result["exact_question"]["source_group"] == "question_exact_text"

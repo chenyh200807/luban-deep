@@ -16,6 +16,7 @@ from typing import Any
 
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
+from deeptutor.contracts.tutorbot_profiles import resolve_tutorbot_knowledge_chain_profile
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
@@ -155,6 +156,63 @@ def _extract_billing_context(config: dict[str, Any] | None) -> dict[str, str] | 
     return {"source": source, "user_id": user_id}
 
 
+def _normalize_name_list(values: list[str] | None) -> list[str]:
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in values or []:
+        value = str(item or "").strip()
+        if not value:
+            continue
+        lowered = value.lower()
+        if lowered in seen:
+            continue
+        seen.add(lowered)
+        normalized.append(value)
+    return normalized
+
+
+def _resolve_tutorbot_runtime_defaults(
+    *,
+    bot_id: str,
+    interaction_profile: str,
+    tools: list[str] | None,
+    knowledge_bases: list[str] | None,
+) -> dict[str, Any]:
+    resolved_tools = _normalize_name_list(tools)
+    resolved_knowledge_bases = _normalize_name_list(knowledge_bases)
+    profile = resolve_tutorbot_knowledge_chain_profile(
+        bot_id=bot_id,
+        interaction_profile=interaction_profile,
+    )
+    if profile is None:
+        return {
+            "tools": resolved_tools,
+            "knowledge_bases": resolved_knowledge_bases,
+            "knowledge_chain_profile": "",
+            "knowledge_chain_source": "",
+        }
+
+    injected = False
+    if not resolved_knowledge_bases:
+        resolved_knowledge_bases = _normalize_name_list(profile.default_knowledge_bases)
+        injected = bool(resolved_knowledge_bases)
+    if resolved_knowledge_bases:
+        existing_tools = {item.lower() for item in resolved_tools}
+        for tool_name in _normalize_name_list(profile.default_tools):
+            lowered = tool_name.lower()
+            if lowered in existing_tools:
+                continue
+            resolved_tools.append(tool_name)
+            existing_tools.add(lowered)
+            injected = True
+    return {
+        "tools": resolved_tools,
+        "knowledge_bases": resolved_knowledge_bases,
+        "knowledge_chain_profile": profile.id,
+        "knowledge_chain_source": "tutorbot_runtime_defaults" if injected else "explicit",
+    }
+
+
 def _format_followup_question_context(context: dict[str, Any], language: str = "en") -> str:
     options = context.get("options") or {}
     option_lines = []
@@ -270,7 +328,7 @@ def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> st
         if hints.get("prefer_question_context_grading"):
             lines.append("- 若已有题目上下文，短答案如 A/B/C/D、我选B，应优先结合题目上下文理解为作答提交。")
         if hints.get("prefer_concept_teaching_slots"):
-            lines.append("- 遇到知识讲解且本轮用了知识召回时，优先覆盖核心结论、踩分点、易错点、记忆口诀和心得。")
+            lines.append("- 遇到知识讲解且本轮用了知识召回时，优先覆盖核心结论、踩分点、易错点；记忆口诀和心得仅在确有帮助时补充。")
         if hints.get("allow_general_chat_fallback"):
             lines.append("- 如果用户明显转入闲聊、产品问答或开放问题，正常切回通用智能助理模式。")
         else:
@@ -531,11 +589,38 @@ class TurnRuntimeManager:
                     **validated_public_config,
                     "chat_mode": "smart",
                 }
+        bot_id = str(validated_public_config.get("bot_id") or "").strip()
+        interaction_profile = str(
+            runtime_only_config.get("interaction_profile")
+            or (runtime_interaction_hints or {}).get("profile")
+            or ""
+        ).strip()
+        knowledge_chain_defaults = _resolve_tutorbot_runtime_defaults(
+            bot_id=bot_id,
+            interaction_profile=interaction_profile,
+            tools=payload.get("tools"),
+            knowledge_bases=payload.get("knowledge_bases"),
+        )
         payload = {
             **payload,
             "capability": requested_capability,
             "_chat_mode_explicit": explicit_chat_mode,
-            "config": {**validated_public_config, **runtime_only_config},
+            "tools": knowledge_chain_defaults["tools"],
+            "knowledge_bases": knowledge_chain_defaults["knowledge_bases"],
+            "config": {
+                **validated_public_config,
+                **runtime_only_config,
+                **(
+                    {"knowledge_chain_profile": knowledge_chain_defaults["knowledge_chain_profile"]}
+                    if knowledge_chain_defaults["knowledge_chain_profile"]
+                    else {}
+                ),
+                **(
+                    {"knowledge_chain_source": knowledge_chain_defaults["knowledge_chain_source"]}
+                    if knowledge_chain_defaults["knowledge_chain_source"]
+                    else {}
+                ),
+            },
         }
         session = await self.store.ensure_session(payload.get("session_id"))
         await self.store.update_session_preferences(
@@ -550,8 +635,23 @@ class TurnRuntimeManager:
                 "tools": list(payload.get("tools") or []),
                 "knowledge_bases": list(payload.get("knowledge_bases") or []),
                 "language": str(payload.get("language") or "en"),
+                **(
+                    {"bot_id": str(validated_public_config.get("bot_id") or "").strip()}
+                    if str(validated_public_config.get("bot_id") or "").strip()
+                    else {}
+                ),
                 **({"interaction_hints": runtime_interaction_hints} if runtime_interaction_hints else {}),
                 **(_extract_billing_context(dict(runtime_only_config)) or {}),
+                **(
+                    {"knowledge_chain_profile": knowledge_chain_defaults["knowledge_chain_profile"]}
+                    if knowledge_chain_defaults["knowledge_chain_profile"]
+                    else {}
+                ),
+                **(
+                    {"knowledge_chain_source": knowledge_chain_defaults["knowledge_chain_source"]}
+                    if knowledge_chain_defaults["knowledge_chain_source"]
+                    else {}
+                ),
             },
         )
         await self._recover_orphaned_running_turns(
@@ -720,6 +820,10 @@ class TurnRuntimeManager:
             "session_id": session_id,
             "turn_id": turn_id,
             "capability": capability_name or "chat",
+            "bot_id": str((payload.get("config", {}) or {}).get("bot_id", "") or "").strip(),
+            "interaction_profile": str(
+                (payload.get("config", {}) or {}).get("interaction_profile", "") or ""
+            ).strip(),
         }
 
         try:
@@ -759,6 +863,14 @@ class TurnRuntimeManager:
             notebook_context = ""
             history_context = ""
             trace_metadata["language"] = payload.get("language", "en")
+            trace_metadata["chat_mode"] = str(
+                request_config.get("chat_mode")
+                or (interaction_hints or {}).get("teaching_mode")
+                or ""
+            ).strip()
+            trace_metadata["source"] = str((billing_context or {}).get("source", "") or "").strip()
+            if followup_question_context:
+                trace_metadata["question_followup_context"] = dict(followup_question_context)
             user_id = str((billing_context or {}).get("user_id", "") or "").strip()
             if user_id:
                 trace_metadata["user_id"] = user_id
@@ -998,6 +1110,15 @@ class TurnRuntimeManager:
                         "history_budget": history_result.budget,
                         "chat_mode_explicit": bool(payload.get("_chat_mode_explicit", False)),
                         "turn_id": turn_id,
+                        "bot_id": str(request_config.get("bot_id", "") or "").strip(),
+                        "knowledge_chain_profile": str(
+                            execution.payload.get("config", {}).get("knowledge_chain_profile", "")
+                            or ""
+                        ).strip(),
+                        "knowledge_chain_source": str(
+                            execution.payload.get("config", {}).get("knowledge_chain_source", "")
+                            or ""
+                        ).strip(),
                         "question_followup_context": followup_question_context or {},
                         "interaction_hints": interaction_hints or {},
                         "notebook_references": notebook_references,

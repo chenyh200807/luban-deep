@@ -202,7 +202,9 @@ def _prefer_env_value(
     fallback_value: Any,
 ) -> str:
     if env_key in env_values:
-        return _as_str(env_value)
+        explicit = _as_str(env_value)
+        if explicit:
+            return explicit
     return _as_str(fallback_value)
 
 

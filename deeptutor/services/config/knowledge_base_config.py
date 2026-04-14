@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 from typing import Any
 
+from deeptutor.contracts.tutorbot_profiles import iter_tutorbot_knowledge_chain_profiles
 from deeptutor.logging import get_logger
 from deeptutor.services.rag.factory import (
     DEFAULT_PROVIDER,
@@ -43,6 +44,28 @@ def _env_csv(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in raw.split(",") if item.strip()]
 
 
+def _collect_supabase_aliases() -> list[str]:
+    aliases: list[str] = []
+    seen: set[str] = set()
+    for profile in iter_tutorbot_knowledge_chain_profiles():
+        for alias in profile.supabase_kb_aliases:
+            normalized = str(alias or "").strip()
+            if not normalized:
+                continue
+            lowered = normalized.lower()
+            if lowered in seen:
+                continue
+            seen.add(lowered)
+            aliases.append(normalized)
+    for alias in _env_csv("SUPABASE_RAG_KB_ALIASES", ""):
+        lowered = alias.lower()
+        if lowered in seen:
+            continue
+        seen.add(lowered)
+        aliases.append(alias)
+    return aliases
+
+
 def get_env_defined_kbs() -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
     """Return env-backed KB entries plus default overrides.
 
@@ -66,19 +89,29 @@ def get_env_defined_kbs() -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
     )
     sources = _env_csv("SUPABASE_RAG_SOURCES", "standard,textbook,exam")
     include_questions = _env_flag("SUPABASE_RAG_INCLUDE_QUESTIONS", default=True)
+    aliases = _collect_supabase_aliases()
 
-    entry = {
-        "path": kb_name,
-        "description": description,
-        "rag_provider": "supabase",
-        "status": "ready",
-        "remote_backend": "supabase",
-        "remote_read_only": True,
-        "supabase_sources": sources,
-        "supabase_include_questions": include_questions,
-    }
+    def _build_entry(name: str, *, force_provider: bool) -> dict[str, Any]:
+        return {
+            "path": name,
+            "description": description if name == kb_name else f"{description} (alias: {name})",
+            "rag_provider": "supabase",
+            "status": "ready",
+            "remote_backend": "supabase",
+            "remote_read_only": True,
+            "supabase_sources": sources,
+            "supabase_include_questions": include_questions,
+            "supabase_force_provider": force_provider,
+            "supabase_remote_kb": kb_name,
+        }
+
+    entries = {kb_name: _build_entry(kb_name, force_provider=False)}
+    for alias in aliases:
+        if alias and alias not in entries:
+            entries[alias] = _build_entry(alias, force_provider=True)
+
     defaults = {"default_kb": kb_name}
-    return {kb_name: entry}, defaults
+    return entries, defaults
 
 
 class KnowledgeBaseConfigService:
@@ -109,8 +142,21 @@ class KnowledgeBaseConfigService:
         knowledge_bases = payload.setdefault("knowledge_bases", {})
         for kb_name, entry in env_kbs.items():
             current = knowledge_bases.setdefault(kb_name, {})
+            force_provider = bool(entry.get("supabase_force_provider"))
             for key, value in entry.items():
-                current.setdefault(key, value)
+                if force_provider and key in {
+                    "rag_provider",
+                    "remote_backend",
+                    "remote_read_only",
+                    "supabase_sources",
+                    "supabase_include_questions",
+                    "supabase_force_provider",
+                    "supabase_remote_kb",
+                    "status",
+                }:
+                    current[key] = value
+                else:
+                    current.setdefault(key, value)
         payload.setdefault("defaults", _default_payload()["defaults"])
         for key, value in env_defaults.items():
             if not payload["defaults"].get(key):

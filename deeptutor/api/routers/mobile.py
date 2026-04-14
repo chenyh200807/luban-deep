@@ -1,25 +1,24 @@
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime
-import json
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, Header, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.member_console import get_member_console_service
-from deeptutor.services.tutorbot import get_tutorbot_manager
-from deeptutor.services.tutorbot.manager import BotConfig
+from deeptutor.services.session import get_sqlite_session_store, get_turn_runtime_manager
 
 router = APIRouter()
 member_service = get_member_console_service()
+turn_runtime = get_turn_runtime_manager()
+session_store = get_sqlite_session_store()
 
 _MOBILE_TUTORBOT_ID = "construction-exam-coach"
 _MOBILE_TUTORBOT_NAME = "Construction Exam Coach"
 _MOBILE_TUTORBOT_DESCRIPTION = "微信小程序主聊天默认建筑实务 TutorBot"
-_PENDING_MOBILE_TURNS: dict[str, dict[str, Any]] = {}
 
 
 def _ts_to_iso(timestamp: float | int | None) -> str:
@@ -39,10 +38,6 @@ def _new_mobile_conversation_id() -> str:
     return f"tb_{uuid4().hex[:24]}"
 
 
-def _new_mobile_turn_id() -> str:
-    return f"turn_{uuid4().hex[:24]}"
-
-
 def _infer_mobile_conversation_title(text: str) -> str:
     normalized = " ".join(str(text or "").strip().split())
     if not normalized:
@@ -59,21 +54,130 @@ def _normalize_tutorbot_mode(value: str | None) -> str:
     return "smart"
 
 
-async def _ensure_mobile_tutorbot():
-    mgr = get_tutorbot_manager()
-    instance = mgr.get_bot(_MOBILE_TUTORBOT_ID)
-    if instance and instance.running:
-        return instance
+def _query_requires_current_info(query: str) -> bool:
+    text = str(query or "").strip().lower()
+    keywords = (
+        "最新",
+        "现行",
+        "当前",
+        "今年",
+        "最近",
+        "政策",
+        "通知",
+        "公告",
+        "新规",
+        "发文",
+        "变化",
+    )
+    return any(keyword in text for keyword in keywords)
 
-    config = mgr._load_bot_config(_MOBILE_TUTORBOT_ID)
-    if config is None:
-        soul = mgr.get_soul("construction-exam-coach") or {}
-        config = BotConfig(
-            name=_MOBILE_TUTORBOT_NAME,
-            description=_MOBILE_TUTORBOT_DESCRIPTION,
-            persona=str(soul.get("content") or ""),
-        )
-    return await mgr.start_bot(_MOBILE_TUTORBOT_ID, config)
+
+def _merge_interaction_hints(
+    profile: str,
+    hints: dict[str, Any] | None,
+    *,
+    current_info_required: bool,
+) -> dict[str, Any]:
+    merged = dict(hints or {})
+    merged["profile"] = profile or "mini_tutor"
+    if current_info_required:
+        merged["current_info_required"] = True
+    return merged
+
+
+def _build_mobile_turn_payload(
+    *,
+    body: MobileStartTurnRequest,
+    user_id: str,
+    query: str,
+) -> dict[str, Any]:
+    requested_tools = [str(item).strip() for item in (body.tools or []) if str(item).strip()]
+    current_info_required = _query_requires_current_info(query)
+    if current_info_required and "web_search" not in requested_tools:
+        requested_tools.append("web_search")
+
+    interaction_profile = str(body.interaction_profile or "mini_tutor").strip() or "mini_tutor"
+    interaction_hints = _merge_interaction_hints(
+        interaction_profile,
+        body.interaction_hints,
+        current_info_required=current_info_required,
+    )
+    config: dict[str, Any] = {
+        "chat_mode": _normalize_tutorbot_mode(body.mode),
+        "interaction_hints": interaction_hints,
+        "billing_context": {
+            "source": "wx_miniprogram",
+            "user_id": user_id,
+        },
+        "interaction_profile": interaction_profile,
+    }
+    if body.followup_question_context:
+        config["followup_question_context"] = dict(body.followup_question_context)
+
+    capability = str(body.capability or "").strip() or None
+    if capability == "tutorbot":
+        capability = None
+    config["bot_id"] = _MOBILE_TUTORBOT_ID
+    return {
+        "session_id": str(body.conversation_id or "").strip() or None,
+        "content": query,
+        "capability": capability,
+        "language": str(body.language or "zh").strip() or "zh",
+        "tools": requested_tools,
+        "knowledge_bases": list(body.knowledge_bases or []),
+        "attachments": list(body.attachments or []),
+        "config": config,
+    }
+
+
+def _build_interactive_payload(message: dict[str, Any]) -> dict[str, Any] | None:
+    events = message.get("events") if isinstance(message.get("events"), list) else []
+    questions: list[dict[str, Any]] = []
+    hidden_contexts: list[dict[str, Any]] = []
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+        summary = metadata.get("summary") if isinstance(metadata.get("summary"), dict) else {}
+        results = summary.get("results") if isinstance(summary.get("results"), list) else []
+        for result in results:
+            qa_pair = result.get("qa_pair") if isinstance(result, dict) else None
+            if not isinstance(qa_pair, dict):
+                continue
+            question = {
+                "question_id": str(qa_pair.get("question_id") or "").strip(),
+                "question": str(qa_pair.get("question") or "").strip(),
+                "question_type": str(qa_pair.get("question_type") or "").strip(),
+                "options": qa_pair.get("options") or {},
+                "difficulty": qa_pair.get("difficulty"),
+                "concentration": qa_pair.get("concentration"),
+            }
+            if question["question_id"] and question["question"]:
+                questions.append(question)
+                hidden_contexts.append(
+                    {
+                        "question_id": question["question_id"],
+                        "correct_answer": qa_pair.get("correct_answer"),
+                        "explanation": qa_pair.get("explanation"),
+                    }
+                )
+    if not questions:
+        return None
+    return {
+        "type": "mcq_interactive",
+        "questions": questions,
+        "hidden_contexts": hidden_contexts,
+    }
+
+
+def _serialize_mobile_message(message: dict[str, Any]) -> dict[str, Any]:
+    interactive = _build_interactive_payload(message)
+    return {
+        "role": str(message.get("role") or ""),
+        "content": str(message.get("content") or ""),
+        "created_at": _ts_to_iso(message.get("created_at")),
+        "interactive": interactive,
+    }
 
 
 def _build_tutorbot_start_response(
@@ -81,38 +185,26 @@ def _build_tutorbot_start_response(
     conversation_id: str,
     query: str,
     turn_id: str,
+    capability: str,
 ) -> dict[str, Any]:
-    return {
-        "conversation": {
+    response = UnifiedTurnStartResponse(
+        conversation={
             "id": conversation_id,
             "title": _infer_mobile_conversation_title(query),
             "created_at": datetime.now().isoformat(),
         },
-        "turn": {
+        turn={
             "id": turn_id,
-            "capability": "tutorbot",
+            "capability": capability,
             "status": "running",
         },
-        "bot": {
+        bot={
             "id": _MOBILE_TUTORBOT_ID,
             "name": _MOBILE_TUTORBOT_NAME,
         },
-        "stream": {
-            "transport": "websocket",
-            "url": f"/api/v1/mobile/tutorbot/ws/{_MOBILE_TUTORBOT_ID}",
-            "chat_id": conversation_id,
-            "subscribe": {
-                "type": "subscribe_turn",
-                "turn_id": turn_id,
-                "after_seq": 0,
-            },
-            "resume": {
-                "type": "resume_from",
-                "turn_id": turn_id,
-                "seq": 0,
-            },
-        },
-    }
+        stream=build_turn_stream_bootstrap(session_id=conversation_id, turn_id=turn_id),
+    )
+    return response.model_dump(exclude_none=True)
 
 
 class LoginRequest(BaseModel):
@@ -320,13 +412,23 @@ async def assessment_submit(
 
 @router.post("/conversations")
 async def create_conversation(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    _resolve_user_id(authorization)
-    conversation_id = _new_mobile_conversation_id()
+    resolved_user_id = _resolve_user_id(authorization)
+    session = await session_store.ensure_session(_new_mobile_conversation_id())
+    await session_store.update_session_title(session["id"], "新对话")
+    await session_store.update_session_preferences(
+        session["id"],
+        {
+            "source": "wx_miniprogram",
+            "user_id": resolved_user_id,
+            "archived": False,
+            "bot_id": _MOBILE_TUTORBOT_ID,
+        },
+    )
     return {
         "conversation": {
-            "id": conversation_id,
+            "id": session["id"],
             "title": "新对话",
-            "created_at": datetime.now().isoformat(),
+            "created_at": _ts_to_iso(session.get("created_at")),
         }
     }
 
@@ -337,13 +439,17 @@ async def list_conversations(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     resolved_user_id = _resolve_user_id(authorization)
-    mgr = get_tutorbot_manager()
-    items = mgr.list_bot_conversations(
-        _MOBILE_TUTORBOT_ID,
-        user_id=resolved_user_id,
-        archived=archived,
-        limit=200,
-    )
+    sessions = await session_store.list_sessions(limit=200, offset=0)
+    items = []
+    for session in sessions:
+        preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
+        if preferences.get("source") != "wx_miniprogram":
+            continue
+        if str(preferences.get("user_id") or "").strip() != resolved_user_id:
+            continue
+        if bool(preferences.get("archived")) != bool(archived):
+            continue
+        items.append(session)
     return {"conversations": items}
 
 
@@ -353,23 +459,18 @@ async def get_conversation_messages(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     resolved_user_id = _resolve_user_id(authorization)
-    messages = get_tutorbot_manager().get_bot_conversation_messages(
-        _MOBILE_TUTORBOT_ID,
-        user_id=resolved_user_id,
-        conversation_id=conversation_id,
-    )
-    if messages is None:
+    session = await session_store.get_session_with_messages(conversation_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
+    if (
+        preferences.get("source") == "wx_miniprogram"
+        and str(preferences.get("user_id") or "").strip()
+        and str(preferences.get("user_id") or "").strip() != resolved_user_id
+    ):
         raise HTTPException(status_code=404, detail="Conversation not found")
     return {
-        "messages": [
-            {
-                "role": item["role"],
-                "content": item["content"],
-                "created_at": item.get("created_at") or "",
-                "interactive": None,
-            }
-            for item in messages
-        ]
+        "messages": [_serialize_mobile_message(item) for item in list(session.get("messages") or [])]
     }
 
 
@@ -379,11 +480,16 @@ async def delete_conversation(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     resolved_user_id = _resolve_user_id(authorization)
-    deleted = get_tutorbot_manager().delete_bot_conversation(
-        _MOBILE_TUTORBOT_ID,
-        user_id=resolved_user_id,
-        conversation_id=conversation_id,
-    )
+    session = await session_store.get_session(conversation_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
+    if (
+        preferences.get("source") != "wx_miniprogram"
+        or str(preferences.get("user_id") or "").strip() != resolved_user_id
+    ):
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    deleted = await session_store.delete_session(conversation_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return {"deleted": True}
@@ -395,21 +501,23 @@ async def batch_conversations(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     resolved_user_id = _resolve_user_id(authorization)
-    mgr = get_tutorbot_manager()
     updated = 0
     for conversation_id in body.conversation_ids:
-        if body.action == "delete":
-            updated += 1 if mgr.delete_bot_conversation(
-                _MOBILE_TUTORBOT_ID,
-                user_id=resolved_user_id,
-                conversation_id=conversation_id,
-            ) else 0
+        session = await session_store.get_session(conversation_id)
+        if session is None:
             continue
-        updated += 1 if mgr.update_bot_conversation_archive(
-            _MOBILE_TUTORBOT_ID,
-            user_id=resolved_user_id,
-            conversation_id=conversation_id,
-            archived=body.action == "archive",
+        preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
+        if (
+            preferences.get("source") != "wx_miniprogram"
+            or str(preferences.get("user_id") or "").strip() != resolved_user_id
+        ):
+            continue
+        if body.action == "delete":
+            updated += 1 if await session_store.delete_session(conversation_id) else 0
+            continue
+        updated += 1 if await session_store.update_session_preferences(
+            conversation_id,
+            {"archived": body.action == "archive"},
         ) else 0
     return {"updated": updated, "action": body.action}
 
@@ -435,119 +543,16 @@ async def mobile_chat_start_turn(
     if not query:
         raise HTTPException(status_code=400, detail="query is required")
 
-    _resolve_user_id(authorization)
-    await _ensure_mobile_tutorbot()
-    conversation_id = str(body.conversation_id or "").strip() or _new_mobile_conversation_id()
-    turn_id = _new_mobile_turn_id()
-    _PENDING_MOBILE_TURNS[turn_id] = {
-        "user_id": _resolve_user_id(authorization),
-        "conversation_id": conversation_id,
-        "query": query,
-        "mode": _normalize_tutorbot_mode(body.mode),
-        "created_at": datetime.now().timestamp(),
-    }
-    return _build_tutorbot_start_response(
-        conversation_id=conversation_id,
+    resolved_user_id = _resolve_user_id(authorization)
+    payload = _build_mobile_turn_payload(
+        body=body,
+        user_id=resolved_user_id,
         query=query,
-        turn_id=turn_id,
     )
-
-
-@router.websocket("/mobile/tutorbot/ws/{bot_id}")
-async def mobile_tutorbot_ws(ws: WebSocket, bot_id: str):
-    authorization = ws.headers.get("authorization")
-    try:
-        resolved_user_id = _resolve_user_id(authorization)
-    except HTTPException:
-        await ws.close(code=4401, reason="Authentication required")
-        return
-
-    mgr = get_tutorbot_manager()
-    if bot_id == _MOBILE_TUTORBOT_ID:
-        await _ensure_mobile_tutorbot()
-
-    instance = mgr.get_bot(bot_id)
-    if not instance or not instance.running:
-        await ws.close(code=4004, reason="Bot not found or not running")
-        return
-
-    await ws.accept()
-    try:
-        async def _stream_response(*, content: str, conversation_id: str, mode: str) -> None:
-            delta_sent = False
-
-            async def on_progress(text: str) -> None:
-                await ws.send_json({"type": "thinking", "content": text})
-
-            async def on_content_delta(text: str) -> None:
-                nonlocal delta_sent
-                if not text:
-                    return
-                delta_sent = True
-                await ws.send_json({"type": "content", "content": text})
-
-            response = await mgr.send_message(
-                bot_id,
-                content,
-                chat_id=conversation_id,
-                on_progress=on_progress,
-                on_content_delta=on_content_delta,
-                mode=mode,
-                session_key=mgr.build_chat_session_key(
-                    bot_id,
-                    conversation_id,
-                    user_id=resolved_user_id,
-                ),
-                session_metadata={
-                    "user_id": resolved_user_id,
-                    "conversation_id": conversation_id,
-                    "source": "wx_miniprogram",
-                    "archived": False,
-                },
-            )
-            if response and not delta_sent:
-                await ws.send_json({"type": "content", "content": response})
-            await ws.send_json({"type": "done"})
-
-        while True:
-            raw = await ws.receive_text()
-            try:
-                data = json.loads(raw)
-            except json.JSONDecodeError:
-                await ws.send_json({"type": "error", "content": "Invalid JSON"})
-                continue
-
-            message_type = str(data.get("type") or "").strip()
-
-            try:
-                if message_type in {"subscribe_turn", "resume_from"}:
-                    turn_id = str(data.get("turn_id") or "").strip()
-                    pending = _PENDING_MOBILE_TURNS.pop(turn_id, None)
-                    if not pending:
-                        await ws.send_json({"type": "error", "content": "Turn not found or expired"})
-                        continue
-                    if str(pending.get("user_id") or "").strip() != resolved_user_id:
-                        await ws.send_json({"type": "error", "content": "Turn user mismatch"})
-                        continue
-                    await _stream_response(
-                        content=str(pending.get("query") or ""),
-                        conversation_id=str(pending.get("conversation_id") or ""),
-                        mode=str(pending.get("mode") or "smart"),
-                    )
-                    continue
-
-                content = str(data.get("content") or "").strip()
-                conversation_id = str(data.get("chat_id") or "").strip()
-                if not content or not conversation_id:
-                    await ws.send_json({"type": "error", "content": "content and chat_id are required"})
-                    continue
-
-                await _stream_response(
-                    content=content,
-                    conversation_id=conversation_id,
-                    mode=_normalize_tutorbot_mode(data.get("mode")),
-                )
-            except RuntimeError as exc:
-                await ws.send_json({"type": "error", "content": str(exc)})
-    except WebSocketDisconnect:
-        return
+    session, turn = await turn_runtime.start_turn(payload)
+    return _build_tutorbot_start_response(
+        conversation_id=str(session.get("id") or ""),
+        query=query,
+        turn_id=str(turn.get("id") or ""),
+        capability=str(turn.get("capability") or "chat") or "chat",
+    )

@@ -6,13 +6,18 @@ from dataclasses import dataclass, field
 from hashlib import sha256
 import importlib.util
 import json
+import logging
+import os
 from pathlib import Path
 import time
 from typing import Any, AsyncIterator
 
+from deeptutor.contracts import export_unified_turn_contract, load_contract_index
 from deeptutor.runtime.registry.capability_registry import get_capability_registry
 from deeptutor.services.notebook import RecordType, get_notebook_manager
 from deeptutor.services.session import get_sqlite_session_store, get_turn_runtime_manager
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -54,6 +59,15 @@ class CapabilityAvailability:
     install_hint: str = ""
 
 
+@dataclass(slots=True)
+class ContractSelfCheck:
+    ok: bool
+    entrypoint: str = ""
+    domains: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    transport: str = ""
+
+
 class DeepTutorApp:
     """Facade around runtime, session, notebook, and capability contracts."""
 
@@ -62,6 +76,17 @@ class DeepTutorApp:
         self.store = get_sqlite_session_store()
         self.notebooks = get_notebook_manager()
         self.capabilities = get_capability_registry()
+        self.contract_self_check = self.verify_contract_alignment()
+        strict_contract_check = os.getenv("DEEPTUTOR_STRICT_CONTRACT_CHECK", "").strip().lower()
+        strict_enabled = strict_contract_check in {"1", "true", "yes", "on"}
+        if not self.contract_self_check.ok:
+            message = (
+                "DeepTutor contract self-check failed: "
+                + "; ".join(self.contract_self_check.errors)
+            )
+            if strict_enabled:
+                raise RuntimeError(message)
+            logger.warning(message)
 
     def resolve_capability(self, value: str | None) -> str:
         requested = str(value or "chat").strip() or "chat"
@@ -111,6 +136,52 @@ class DeepTutorApp:
                 ),
             )
         return CapabilityAvailability(name=resolved, available=True)
+
+    def verify_contract_alignment(self) -> ContractSelfCheck:
+        errors: list[str] = []
+        entrypoint = ""
+        domains: list[str] = []
+        try:
+            contract_index = load_contract_index()
+        except Exception as exc:
+            return ContractSelfCheck(ok=False, errors=[f"failed to load contracts/index.yaml: {exc}"])
+
+        entrypoint = str(contract_index.get("entrypoint", "") or "").strip()
+        domain_payload = contract_index.get("domains")
+        if not isinstance(domain_payload, dict):
+            errors.append("contracts/index.yaml missing `domains` object")
+            domain_payload = {}
+        domains = sorted(str(name) for name in domain_payload)
+        required_domains = {"turn", "capability", "rag", "config_runtime"}
+        missing_domains = sorted(required_domains.difference(domain_payload))
+        if missing_domains:
+            errors.append(f"contracts/index.yaml missing domains: {', '.join(missing_domains)}")
+        if entrypoint != "CONTRACT.md":
+            errors.append(f"unexpected contract entrypoint: {entrypoint or '(empty)'}")
+
+        turn_contract = export_unified_turn_contract()
+        transport = str(
+            (turn_contract.get("transport") or {}).get("primary_websocket", "") or ""
+        ).strip()
+        if transport != "/api/v1/ws":
+            errors.append(f"unexpected unified websocket endpoint: {transport or '(empty)'}")
+        schemas = turn_contract.get("schemas") or {}
+        if "start_turn_message" not in schemas:
+            errors.append("turn contract missing `start_turn_message` schema")
+        if "turn_start_response" not in schemas:
+            errors.append("turn contract missing `turn_start_response` schema")
+        trace_fields = set(turn_contract.get("trace_fields") or [])
+        for field_name in ("session_id", "turn_id", "capability", "bot_id"):
+            if field_name not in trace_fields:
+                errors.append(f"turn contract missing trace field `{field_name}`")
+
+        return ContractSelfCheck(
+            ok=not errors,
+            entrypoint=entrypoint,
+            domains=domains,
+            errors=errors,
+            transport=transport,
+        )
 
     async def start_turn(self, request: TurnRequest | dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
         if isinstance(request, dict):

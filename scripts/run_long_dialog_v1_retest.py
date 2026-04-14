@@ -25,16 +25,19 @@ from difflib import SequenceMatcher
 import json
 import re
 from statistics import mean
+import sys
 import tempfile
 import time
 from pathlib import Path
 from typing import Any
 
-from deeptutor.api.routers.mobile import _build_mini_tutor_interaction_hints
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore
 from deeptutor.services.session.turn_runtime import TurnRuntimeManager
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "tmp"
 DEFAULT_SOURCE_CANDIDATES = [
     PROJECT_ROOT.parent
@@ -92,6 +95,20 @@ ZH_NUMBER_MAP = {
     "十": 10,
 }
 
+CURRENT_INFO_KEYWORDS = (
+    "最新",
+    "现行",
+    "当前",
+    "今年",
+    "最近",
+    "政策",
+    "通知",
+    "公告",
+    "新规",
+    "发文",
+    "变化",
+)
+
 
 def _resolve_source_path(cli_value: str | None) -> Path:
     if cli_value:
@@ -126,6 +143,28 @@ def _zh_num_to_int(value: str) -> int | None:
     if len(text) == 3 and text[1] == "十" and text[0] in ZH_NUMBER_MAP and text[2] in ZH_NUMBER_MAP:
         return ZH_NUMBER_MAP[text[0]] * 10 + ZH_NUMBER_MAP[text[2]]
     return ZH_NUMBER_MAP.get(text)
+
+
+def _query_requires_current_info(query: str) -> bool:
+    text = str(query or "").strip().lower()
+    return any(keyword in text for keyword in CURRENT_INFO_KEYWORDS)
+
+
+def _build_retest_interaction_hints(
+    *,
+    mode: str,
+    profile: str,
+    query: str,
+    hints: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    merged = dict(hints or {})
+    merged["profile"] = profile or "mini_tutor"
+    normalized_mode = str(mode or "").strip().lower()
+    if normalized_mode in {"smart", "fast", "deep"}:
+        merged["teaching_mode"] = normalized_mode
+    if _query_requires_current_info(query):
+        merged["current_info_required"] = True
+    return merged
 
 
 def _map_case(first_query: str) -> tuple[str, str]:
@@ -308,9 +347,10 @@ async def _run_single_turn(
 ) -> tuple[str, str, float, list[str]]:
     config = {
         "interaction_profile": "mini_tutor",
-        "interaction_hints": _build_mini_tutor_interaction_hints(
+        "interaction_hints": _build_retest_interaction_hints(
             mode=teaching_mode,
             profile="mini_tutor",
+            query=query,
             hints={},
         ),
         "billing_context": {

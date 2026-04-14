@@ -77,6 +77,22 @@ DEFAULT_EXPONENTIAL_BACKOFF = settings.retry.exponential_backoff
 CallKwargs = dict[str, object]
 
 
+def litellm_available() -> bool:
+    """Legacy compatibility hook kept for tests and older call sites."""
+    return True
+
+
+async def litellm_complete(**kwargs: object) -> object:
+    """Compatibility wrapper around the provider SDK executor."""
+    return await sdk_complete(**kwargs)
+
+
+async def litellm_stream(**kwargs: object) -> AsyncGenerator[object, None]:
+    """Compatibility wrapper around the provider SDK streaming executor."""
+    async for chunk in sdk_stream(**kwargs):
+        yield chunk
+
+
 def _normalize_provider_usage(usage: object) -> dict[str, float] | None:
     if not usage:
         return None
@@ -309,7 +325,11 @@ async def complete(
                     "Run `deeptutor provider login ...` first."
                 )
             if provider_mode != "direct":
-                return await sdk_complete(
+                if not litellm_available():
+                    raise LLMConfigError(
+                        f"{provider_name} requires the provider SDK execution path, but it is unavailable."
+                    )
+                return await litellm_complete(
                     prompt=prompt_value,
                     system_prompt=system_prompt_value,
                     provider_name=provider_name,
@@ -531,7 +551,11 @@ async def stream(
                     )
 
                 if provider_mode != "direct":
-                    async for chunk in sdk_stream(
+                    if not litellm_available():
+                        raise LLMConfigError(
+                            f"{provider_name} requires the provider SDK execution path, but it is unavailable."
+                        )
+                    async for chunk in litellm_stream(
                         prompt=prompt,
                         system_prompt=system_prompt,
                         provider_name=provider_name,

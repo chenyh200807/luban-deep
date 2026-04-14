@@ -43,6 +43,22 @@ def _load_start_tour_module():
         "deeptutor.services": sys.modules.get("deeptutor.services"),
         "deeptutor.services.config": sys.modules.get("deeptutor.services.config"),
     }
+    original_attrs = {
+        "deeptutor.services": getattr(original_modules["deeptutor"], "services", None)
+        if original_modules["deeptutor"] is not None
+        else None,
+        "deeptutor.services.config": getattr(original_modules["deeptutor.services"], "config", None)
+        if original_modules["deeptutor.services"] is not None
+        else None,
+    }
+    had_attrs = {
+        "deeptutor.services": hasattr(original_modules["deeptutor"], "services")
+        if original_modules["deeptutor"] is not None
+        else False,
+        "deeptutor.services.config": hasattr(original_modules["deeptutor.services"], "config")
+        if original_modules["deeptutor.services"] is not None
+        else False,
+    }
 
     services_pkg.config = config_module
     deeptutor_pkg.services = services_pkg
@@ -63,6 +79,27 @@ def _load_start_tour_module():
                 sys.modules.pop(module_name, None)
             else:
                 sys.modules[module_name] = original_module
+
+        restored_root = sys.modules.get("deeptutor")
+        restored_services = sys.modules.get("deeptutor.services")
+        restored_config = sys.modules.get("deeptutor.services.config")
+
+        if restored_root is not None:
+            if had_attrs["deeptutor.services"]:
+                restored_root.services = original_attrs["deeptutor.services"]
+            elif hasattr(restored_root, "services"):
+                delattr(restored_root, "services")
+
+        if restored_services is not None:
+            if had_attrs["deeptutor.services.config"]:
+                restored_services.config = original_attrs["deeptutor.services.config"]
+            elif hasattr(restored_services, "config"):
+                delattr(restored_services, "config")
+
+        if restored_root is not None and restored_services is not None and had_attrs["deeptutor.services"]:
+            restored_root.services = restored_services
+        if restored_services is not None and restored_config is not None and had_attrs["deeptutor.services.config"]:
+            restored_services.config = restored_config
 
 
 def test_stream_text_kwargs_use_best_effort_decoding() -> None:

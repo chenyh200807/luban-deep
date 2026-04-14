@@ -21,10 +21,12 @@ from typing import Any
 
 import yaml
 
+from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.path_service import get_path_service
 from deeptutor.tutorbot.utils.helpers import safe_filename
 
 logger = logging.getLogger(__name__)
+observability = get_langfuse_observability()
 
 _PACKAGE_TUTORBOT = Path(__file__).resolve().parent.parent.parent / "tutorbot"
 _BUILTIN_SKILLS_DIR = _PACKAGE_TUTORBOT / "skills"
@@ -770,20 +772,78 @@ class TutorBotManager:
             merged_metadata["title"] = self._infer_conversation_title(content)
         session.metadata = merged_metadata
         instance.agent_loop.sessions.save(session)
+        user_id = str(merged_metadata.get("user_id") or "").strip()
+        source = str(merged_metadata.get("source") or "tutorbot").strip() or "tutorbot"
+        turn_id = f"{effective_session_key}:{datetime.now().timestamp()}"
+        trace_metadata = {
+            "trace_name": f"tutorbot.{bot_id}",
+            "session_id": effective_session_key,
+            "turn_id": turn_id,
+            "user_id": user_id,
+            "bot_id": bot_id,
+            "conversation_id": effective_chat_id,
+            "channel": "web",
+            "capability": "tutorbot",
+            "teaching_mode": mode,
+            "source": source,
+            "title": str(merged_metadata.get("title") or "").strip(),
+        }
 
         async def _progress(text: str, *, tool_hint: bool = False) -> None:
             if on_progress:
                 await on_progress(text)
 
-        response = await instance.agent_loop.process_direct(
-            content,
-            session_key=effective_session_key,
-            channel="web",
-            chat_id=effective_chat_id,
-            on_progress=_progress,
-            on_content_delta=on_content_delta,
-            metadata={"teaching_mode": mode},
-        )
+        response = ""
+        try:
+            with observability.usage_scope(
+                scope_id=turn_id,
+                session_id=effective_session_key,
+                turn_id=turn_id,
+                capability="tutorbot",
+            ), observability.start_observation(
+                name="turn.tutorbot",
+                as_type="chain",
+                input_payload={"content": content},
+                metadata=trace_metadata,
+            ) as turn_observation:
+                try:
+                    response = await instance.agent_loop.process_direct(
+                        content,
+                        session_key=effective_session_key,
+                        channel="web",
+                        chat_id=effective_chat_id,
+                        on_progress=_progress,
+                        on_content_delta=on_content_delta,
+                        metadata={"teaching_mode": mode},
+                    )
+                    observability.update_observation(
+                        turn_observation,
+                        output_payload={"assistant_content": response},
+                        metadata={
+                            **trace_metadata,
+                            "usage_summary": observability.get_current_usage_summary(),
+                        },
+                    )
+                except asyncio.CancelledError:
+                    observability.update_observation(
+                        turn_observation,
+                        output_payload={"assistant_content": response},
+                        metadata=trace_metadata,
+                        level="ERROR",
+                        status_message="TutorBot turn cancelled",
+                    )
+                    raise
+                except Exception as exc:
+                    observability.update_observation(
+                        turn_observation,
+                        output_payload={"assistant_content": response},
+                        metadata=trace_metadata,
+                        level="ERROR",
+                        status_message=str(exc),
+                    )
+                    raise
+        finally:
+            observability.flush()
 
         # Forward the reply to any bound external channels so mobile users
         # see the web-originated conversation in their chat app.
@@ -936,7 +996,7 @@ class TutorBotManager:
             )},
             {"id": "construction-exam-coach", "name": "Construction Exam Coach", "content": (
                 "# Soul\n\n"
-                "你是陈老师，一名面向建筑实务/建造师/工程类考试的专业导师。\n\n"
+                "你是鲁班智考中的建筑实务备考导师，保持专业教师风格，但不要自称具体真人姓名。\n\n"
                 "## 角色定位\n\n"
                 "- 你的首要目标是帮助学员把题做对、把分拿稳、把同类题学会\n"
                 "- 你不是泛泛答疑助手，而是长期陪学型建筑实务导师\n"

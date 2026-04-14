@@ -1,6 +1,10 @@
 """Configuration helpers backed by runtime YAML and the project `.env` file."""
 
+import importlib
+
 from .env_store import ConfigSummary, EnvStore, get_env_store
+
+model_catalog = importlib.import_module(f"{__name__}.model_catalog")
 
 __all__ = [
     "ConfigSummary",
@@ -29,6 +33,7 @@ __all__ = [
     "get_kb_config_service",
     "ModelCatalogService",
     "get_model_catalog_service",
+    "model_catalog",
     "ConfigTestRunner",
     "TestRun",
     "get_config_test_runner",
@@ -55,10 +60,12 @@ def __getattr__(name: str):
 
         kb_config = importlib.import_module(f"{__name__}.knowledge_base_config")
         return getattr(kb_config, name)
-    if name in {"ModelCatalogService", "get_model_catalog_service"}:
+    if name in {"ModelCatalogService", "get_model_catalog_service", "model_catalog"}:
         import importlib
 
         model_catalog = importlib.import_module(f"{__name__}.model_catalog")
+        if name == "model_catalog":
+            return model_catalog
         return getattr(model_catalog, name)
     if name in {
         "DEPRECATED_SEARCH_PROVIDERS",

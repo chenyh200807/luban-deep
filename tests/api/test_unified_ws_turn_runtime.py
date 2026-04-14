@@ -1115,3 +1115,86 @@ async def test_turn_runtime_uses_user_scoped_tutor_state_when_user_id_is_availab
     assert captured["global_refresh_called"] is False
     assert refresh_calls[0]["user_id"] == "student_demo"
     assert refresh_calls[0]["assistant_message"] == "User scoped reply"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_injects_tutorbot_default_knowledge_chain(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["enabled_tools"] = context.enabled_tools
+            captured["knowledge_bases"] = context.knowledge_bases
+            captured["metadata"] = context.metadata
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="知识链已启用",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "请分析这道建筑案例题",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "interaction_profile": "mini_tutor",
+            },
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert captured["enabled_tools"] == ["rag"]
+    assert captured["knowledge_bases"] == ["construction-exam"]
+    metadata = captured["metadata"]
+    assert metadata["knowledge_chain_profile"] == "construction_exam_grounded"
+    assert metadata["knowledge_chain_source"] == "tutorbot_runtime_defaults"
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert detail["preferences"]["tools"] == ["rag"]
+    assert detail["preferences"]["knowledge_bases"] == ["construction-exam"]
+    assert detail["preferences"]["knowledge_chain_profile"] == "construction_exam_grounded"
+    assert detail["preferences"]["knowledge_chain_source"] == "tutorbot_runtime_defaults"

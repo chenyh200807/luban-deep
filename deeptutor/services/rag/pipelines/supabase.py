@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -16,11 +15,34 @@ from deeptutor.logging import get_logger
 from deeptutor.services.config import get_kb_config_service
 from deeptutor.services.embedding import get_embedding_client
 from deeptutor.services.observability import get_langfuse_observability
+from .supabase_strategy import (
+    build_exact_question_keyword_terms,
+    build_exact_question_text_candidates,
+    build_second_pass_queries,
+    rewrite_query,
+    dedupe_ranked_results,
+    expand_query_variants,
+    classify_query_shape,
+    extract_node_code_prefix,
+    is_question_like_query,
+    matches_allowed_question_type,
+    prepare_exact_question_probe,
+    resolve_group_weights,
+    select_sources,
+    rerank_documents,
+    should_run_second_pass,
+    validate_exact_question_options,
+)
 
 DEFAULT_KB_BASE_DIR = str(
     Path(__file__).resolve().parent.parent.parent.parent.parent / "data" / "knowledge_bases"
 )
 observability = get_langfuse_observability()
+_QUESTION_SELECT = (
+    "id,original_id,question_type,stem,question_stem,options,"
+    "correct_answer,analysis,grading_keywords,grading_rubric,"
+    "option_reasoning,node_code,source_type,exam_year"
+)
 
 
 def _env_flag(name: str, default: bool = False) -> bool:
@@ -39,37 +61,6 @@ def _env_csv(name: str, default: str = "") -> list[str]:
 
 def _vector_literal(values: list[float]) -> str:
     return "[" + ",".join(f"{float(value):.8f}" for value in values) + "]"
-
-
-def _question_like_query(query: str) -> bool:
-    lowered = str(query or "").strip().lower()
-    patterns = (
-        "真题",
-        "做题",
-        "刷题",
-        "案例题",
-        "选择题",
-        "多选",
-        "单选",
-        "题目",
-        "题干",
-        "答案",
-        "解析",
-        "下列",
-        "哪项",
-        "哪个",
-        "不属于",
-        "正确的是",
-    )
-    return any(token in lowered for token in patterns)
-
-
-def _extract_node_code_prefix(query: str) -> str | None:
-    text = str(query or "").strip()
-    match = re.search(r"\b\d+(?:\.\d+){1,3}\b", text)
-    if match:
-        return match.group(0)
-    return None
 
 
 def _safe_json_dumps(value: Any) -> str:
@@ -150,6 +141,20 @@ class SupabaseSearchConfig:
     source_weights: dict[str, float]
     question_weights: dict[str, float]
     max_per_document: int
+    query_expansion_enabled: bool
+    max_query_variants: int
+    second_pass_enabled: bool
+    second_pass_max_queries: int
+    second_pass_min_hits: int
+    second_pass_max_dup_ratio: float
+    rerank_enabled: bool
+    rerank_window: int
+    rerank_timeout_s: float
+    exact_question_enabled: bool
+    exact_question_text_first: bool
+    exact_question_min_similarity: float
+    exact_question_max_text_len: int
+    exact_question_text_rpc_enabled: bool
 
 
 class SupabasePipeline:
@@ -193,42 +198,68 @@ class SupabasePipeline:
                 "include_questions": config.include_questions,
             },
         ) as observation:
-            query_embedding = await self._embed_query(query)
-            vector_literal = _vector_literal(query_embedding)
-            precision_node_code = _extract_node_code_prefix(query)
-            question_like = _question_like_query(query)
+            precision_node_code = extract_node_code_prefix(query)
+            rewritten = rewrite_query(query, max_variants=config.max_query_variants)
+            question_like = is_question_like_query(query) or rewritten.query_shape == "mcq_like"
+            source_plan = select_sources(query, include_questions_default=config.include_questions)
+            query_shape = rewritten.query_shape or classify_query_shape(query)
+            exact_probe = (
+                prepare_exact_question_probe(query)
+                if config.exact_question_enabled and source_plan.search_questions_bank
+                else None
+            )
+            primary_queries = (
+                expand_query_variants(query, max_variants=config.max_query_variants)
+                if config.query_expansion_enabled
+                else [rewritten.primary_query or query]
+            ) or [rewritten.primary_query or query]
+            exact_text_plans: list[dict[str, Any]] = []
 
             try:
                 async with httpx.AsyncClient(timeout=config.timeout_s) as client:
-                    tasks = [
-                        self._search_source(
+                    exact_text_task: asyncio.Task[list[dict[str, Any]]] | None = None
+                    if (
+                        exact_probe
+                        and config.exact_question_text_first
+                        and len(exact_probe.query) <= config.exact_question_max_text_len
+                    ):
+                        exact_text_task = asyncio.create_task(
+                            self._search_exact_question_text(
+                                client=client,
+                                probe_query=exact_probe.query,
+                                allowed_question_types=exact_probe.allowed_question_types,
+                                original_query=query,
+                                option_validation_required=exact_probe.option_validation_required,
+                                config=config,
+                            )
+                        )
+                    primary_plan_task = asyncio.create_task(
+                        self._run_query_plan(
                             client=client,
-                            query=query,
-                            vector_literal=vector_literal,
-                            source_type=source,
+                            queries=primary_queries,
+                            question_like=question_like,
+                            source_plan=source_plan,
+                            standard_codes=rewritten.standard_codes,
+                            precision_node_code=precision_node_code,
+                            exact_probe=exact_probe,
+                            original_query=query,
                             config=config,
                         )
-                        for source in config.sources
-                    ]
-                    if config.include_questions or question_like:
-                        tasks.append(
-                            self._search_questions(
-                                client=client,
-                                vector_literal=vector_literal,
-                                config=config,
+                    )
+                    primary_plan = await primary_plan_task
+                    if exact_text_task is not None:
+                        exact_text_rows = await exact_text_task
+                        if exact_text_rows:
+                            exact_text_plans.append(
+                                {
+                                    "phase": "primary",
+                                    "group_name": "question_exact_text",
+                                    "query": exact_probe.query if exact_probe else query,
+                                    "query_index": 0,
+                                    "query_weight": 1.0,
+                                    "results": exact_text_rows,
+                                }
                             )
-                        )
-                    if precision_node_code:
-                        tasks.append(
-                            self._search_precision_standard(
-                                client=client,
-                                vector_literal=vector_literal,
-                                node_code=precision_node_code,
-                                config=config,
-                            )
-                        )
-
-                    raw_results = await asyncio.gather(*tasks, return_exceptions=True)
             except Exception as exc:
                 observability.update_observation(
                     observation,
@@ -236,7 +267,7 @@ class SupabasePipeline:
                     level="ERROR",
                     status_message=str(exc),
                 )
-                self.logger.error("Supabase retrieval failed: %s", exc, exc_info=True)
+                self.logger.error(f"Supabase retrieval failed: {exc}")
                 return {
                     "query": query,
                     "answer": f"Search failed: {exc}",
@@ -245,31 +276,69 @@ class SupabasePipeline:
                     "provider": "supabase",
                 }
 
-        results_map: dict[str, list[dict[str, Any]]] = {}
-        task_groups = list(config.sources)
-        if config.include_questions or question_like:
-            task_groups.append("questions_bank")
-        if precision_node_code:
-            task_groups.append("standard_precision")
-
-        for group_name, result in zip(task_groups, raw_results):
-            if isinstance(result, Exception):
-                self.logger.warning("Supabase group '%s' failed: %s", group_name, result)
-                continue
-            results_map[group_name] = result
-
-        fused = _weighted_rrf_fusion(
-            results_map,
-            {
-                **config.source_weights,
-                **(config.question_weights if question_like else {}),
-            },
+        fused = self._fuse_plan_results(
+            [*exact_text_plans, *primary_plan],
+            query=query,
+            question_like=question_like,
+            config=config,
         )
-        fused = _enrich_question_weights(fused, question_like=question_like, config=config)
 
+        second_pass_queries: list[str] = []
+        has_exact_question_hit = any(
+            plan.get("group_name") in {"question_exact_text", "question_exact_vector"}
+            and bool(plan.get("results"))
+            for plan in [*exact_text_plans, *primary_plan]
+        )
+        if (
+            config.second_pass_enabled
+            and not has_exact_question_hit
+            and should_run_second_pass(
+            query=query,
+            results=fused,
+            top_k=config.top_k,
+            min_hits=config.second_pass_min_hits,
+            max_dup_ratio=config.second_pass_max_dup_ratio,
+            )
+        ):
+            second_pass_queries = build_second_pass_queries(
+                query,
+                max_queries=config.second_pass_max_queries,
+            )
+            second_pass_queries = [item for item in second_pass_queries if item not in primary_queries]
+            if second_pass_queries:
+                try:
+                    async with httpx.AsyncClient(timeout=config.timeout_s) as client:
+                        second_pass_plan = await self._run_query_plan(
+                            client=client,
+                            queries=second_pass_queries,
+                            question_like=question_like,
+                            source_plan=source_plan,
+                            standard_codes=rewritten.standard_codes,
+                            precision_node_code=precision_node_code,
+                            exact_probe=exact_probe,
+                            original_query=query,
+                            config=config,
+                            query_weight=0.72,
+                            phase="second_pass",
+                        )
+                    fused = self._fuse_plan_results(
+                        [*exact_text_plans, *primary_plan, *second_pass_plan],
+                        query=query,
+                        question_like=question_like,
+                        config=config,
+                    )
+                except Exception as exc:
+                    self.logger.warning(f"Supabase second-pass retrieval failed: {exc}")
+
+        fused = dedupe_ranked_results(fused, max_items=config.fetch_count * 2)
         enriched = await self._hydrate_sources(fused[: config.fetch_count], config=config)
         enriched = _enforce_doc_diversity(enriched, max_per_document=config.max_per_document)
-        final_results = enriched[: config.top_k]
+        reranked = await self._rerank_results(
+            query=query,
+            results=enriched,
+            config=config,
+        )
+        final_results = dedupe_ranked_results(reranked, max_items=config.top_k)
 
         content_blocks = [str(item.get("rag_content") or "").strip() for item in final_results]
         content = "\n\n".join(block for block in content_blocks if block)
@@ -294,6 +363,9 @@ class SupabasePipeline:
             "sources": sources,
             "provider": "supabase",
         }
+        exact_question = self._extract_exact_question_payload([*exact_text_plans, *primary_plan])
+        if exact_question:
+            payload["exact_question"] = exact_question
         observability.update_observation(
             observation,
             output_payload={
@@ -303,10 +375,235 @@ class SupabasePipeline:
             metadata={
                 "kb_name": kb_name,
                 "question_like": question_like,
+                "query_shape": query_shape,
+                "query_rewrite": {
+                    "primary_query": rewritten.primary_query,
+                    "keywords": rewritten.keywords,
+                    "standard_codes": rewritten.standard_codes,
+                    "reasons": rewritten.reasons,
+                },
+                "source_plan": {
+                    "search_questions_bank": source_plan.search_questions_bank,
+                    "search_textbook_chunks": source_plan.search_textbook_chunks,
+                    "search_standard_chunks": source_plan.search_standard_chunks,
+                    "search_exam_chunks": source_plan.search_exam_chunks,
+                    "pruning_applied": source_plan.pruning_applied,
+                    "pruning_reason": source_plan.pruning_reason,
+                    "selection_reasons": source_plan.selection_reasons,
+                },
                 "precision_node_code": precision_node_code,
+                "primary_queries": primary_queries,
+                "second_pass_queries": second_pass_queries,
+                "exact_question_probe": {
+                    "enabled": bool(exact_probe),
+                    "probe_query": exact_probe.query if exact_probe else "",
+                    "allowed_question_types": (
+                        exact_probe.allowed_question_types if exact_probe else []
+                    ),
+                    "option_validation_required": (
+                        exact_probe.option_validation_required if exact_probe else False
+                    ),
+                    "hit_groups": [
+                        str(plan.get("group_name") or "")
+                        for plan in [*exact_text_plans, *primary_plan]
+                        if plan.get("group_name") in {"question_exact_text", "question_exact_vector"}
+                        and bool(plan.get("results"))
+                    ],
+                },
+                "exact_question": exact_question or {},
             },
         )
         return payload
+
+    async def _run_query_plan(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        queries: list[str],
+        question_like: bool,
+        source_plan,
+        standard_codes: list[str],
+        precision_node_code: str | None,
+        exact_probe,
+        original_query: str,
+        config: SupabaseSearchConfig,
+        query_weight: float = 1.0,
+        phase: str = "primary",
+    ) -> list[dict[str, Any]]:
+        plans: list[dict[str, Any]] = []
+        selected_sources = [
+            source
+            for source in config.sources
+            if (
+                (source == "textbook" and source_plan.search_textbook_chunks)
+                or (source == "standard" and source_plan.search_standard_chunks)
+                or (source == "exam" and source_plan.search_exam_chunks)
+            )
+        ]
+        for query_index, item in enumerate(queries):
+            current_query = str(item or "").strip()
+            if not current_query:
+                continue
+            embedding = await self._embed_query(current_query)
+            vector_literal = _vector_literal(embedding)
+            tasks = [
+                self._search_source(
+                    client=client,
+                    query=current_query,
+                    vector_literal=vector_literal,
+                    source_type=source,
+                    config=config,
+                )
+                for source in selected_sources
+            ]
+            task_groups = list(selected_sources)
+            if source_plan.search_questions_bank and (config.include_questions or question_like):
+                tasks.append(
+                    self._search_questions(
+                        client=client,
+                        vector_literal=vector_literal,
+                        config=config,
+                    )
+                )
+                task_groups.append("questions_bank")
+            if (
+                exact_probe
+                and query_index == 0
+                and source_plan.search_questions_bank
+                and (config.include_questions or question_like)
+            ):
+                tasks.append(
+                    self._search_exact_question_vector(
+                        client=client,
+                        vector_literal=vector_literal,
+                        allowed_question_types=exact_probe.allowed_question_types,
+                        original_query=original_query,
+                        option_validation_required=exact_probe.option_validation_required,
+                        config=config,
+                    )
+                )
+                task_groups.append("question_exact_vector")
+            if standard_codes and source_plan.search_standard_chunks:
+                tasks.append(
+                    self._search_exact_standard(
+                        client=client,
+                        standard_code=standard_codes[0],
+                        node_code=precision_node_code,
+                        config=config,
+                    )
+                )
+                task_groups.append("standard_code_exact")
+            if precision_node_code and source_plan.search_standard_chunks:
+                tasks.append(
+                    self._search_precision_standard(
+                        client=client,
+                        vector_literal=vector_literal,
+                        node_code=precision_node_code,
+                        config=config,
+                    )
+                )
+                task_groups.append("standard_precision")
+
+            raw_results = await asyncio.gather(*tasks, return_exceptions=True)
+            for group_name, result in zip(task_groups, raw_results):
+                if isinstance(result, Exception):
+                    self.logger.warning(
+                        f"Supabase group '{group_name}' failed for query '{current_query}': {result}"
+                    )
+                    continue
+                plans.append(
+                    {
+                        "phase": phase,
+                        "group_name": group_name,
+                        "query": current_query,
+                        "query_index": query_index,
+                        "query_weight": query_weight * max(0.45, 1.0 - (query_index * 0.12)),
+                        "results": result,
+                    }
+                )
+        return plans
+
+    def _fuse_plan_results(
+        self,
+        plans: list[dict[str, Any]],
+        *,
+        query: str,
+        question_like: bool,
+        config: SupabaseSearchConfig,
+    ) -> list[dict[str, Any]]:
+        results_map: dict[str, list[dict[str, Any]]] = {}
+        weights: dict[str, float] = {}
+        base_weights = resolve_group_weights(
+            query,
+            base_source_weights=config.source_weights,
+            base_question_weights=config.question_weights,
+        )
+
+        for plan in plans:
+            group_name = str(plan.get("group_name") or "").strip()
+            phase = str(plan.get("phase") or "primary").strip()
+            query_index = int(plan.get("query_index") or 0)
+            query_key = f"{phase}:{group_name}:q{query_index}"
+            results_map[query_key] = list(plan.get("results") or [])
+            weights[query_key] = float(base_weights.get(group_name, 1.0)) * float(
+                plan.get("query_weight") or 1.0
+            )
+            for item in results_map[query_key]:
+                item["_query_variant"] = str(plan.get("query") or "")
+                item["_query_phase"] = phase
+
+        fused = _weighted_rrf_fusion(results_map, weights)
+        fused = _enrich_question_weights(fused, question_like=question_like, config=config)
+        return dedupe_ranked_results(fused)
+
+    async def _rerank_results(
+        self,
+        *,
+        query: str,
+        results: list[dict[str, Any]],
+        config: SupabaseSearchConfig,
+    ) -> list[dict[str, Any]]:
+        if not config.rerank_enabled or not results:
+            return results
+
+        rerank_candidates = [
+            item for item in results[: config.rerank_window] if str(item.get("rag_content") or "").strip()
+        ]
+        if len(rerank_candidates) < 2:
+            return results
+
+        rerank_docs = [str(item.get("rag_content") or "").strip() for item in rerank_candidates]
+        rerank_results = await rerank_documents(
+            query,
+            rerank_docs,
+            top_n=min(config.top_k, len(rerank_docs)),
+            timeout_s=config.rerank_timeout_s,
+        )
+        if not rerank_results:
+            return results
+
+        reranked: list[dict[str, Any]] = []
+        seen_ids: set[str] = set()
+        for item in rerank_results:
+            idx = item.get("index")
+            if not isinstance(idx, int) or idx < 0 or idx >= len(rerank_candidates):
+                continue
+            doc = dict(rerank_candidates[idx])
+            score = float(item.get("relevance_score") or 0.0)
+            doc["rerank_score"] = score
+            doc["score"] = score
+            doc["_reranked"] = True
+            doc_id = str(doc.get("chunk_id") or doc.get("id") or "").strip()
+            if doc_id:
+                seen_ids.add(doc_id)
+            reranked.append(doc)
+
+        for item in results:
+            doc_id = str(item.get("chunk_id") or item.get("id") or "").strip()
+            if doc_id and doc_id in seen_ids:
+                continue
+            reranked.append(item)
+        return reranked
 
     async def _embed_query(self, query: str) -> list[float]:
         embeddings = await get_embedding_client().embed([query])
@@ -343,6 +640,9 @@ class SupabasePipeline:
             "exam": float(os.getenv("SUPABASE_RAG_WEIGHT_EXAM", "0.7")),
             "questions_bank": float(os.getenv("SUPABASE_RAG_WEIGHT_QUESTIONS", "0.4")),
             "standard_precision": float(os.getenv("SUPABASE_RAG_WEIGHT_STANDARD_PRECISION", "2.2")),
+            "standard_code_exact": float(os.getenv("SUPABASE_RAG_WEIGHT_STANDARD_CODE_EXACT", "3.0")),
+            "question_exact_text": float(os.getenv("SUPABASE_RAG_WEIGHT_QUESTION_EXACT_TEXT", "4.2")),
+            "question_exact_vector": float(os.getenv("SUPABASE_RAG_WEIGHT_QUESTION_EXACT_VECTOR", "3.4")),
         }
         question_weights = {
             **source_weights,
@@ -364,6 +664,28 @@ class SupabasePipeline:
             source_weights=source_weights,
             question_weights=question_weights,
             max_per_document=max(1, int(os.getenv("SUPABASE_RAG_MAX_PER_DOCUMENT", "2"))),
+            query_expansion_enabled=_env_flag("SUPABASE_RAG_QUERY_EXPANSION", True),
+            max_query_variants=max(1, int(os.getenv("SUPABASE_RAG_MAX_QUERY_VARIANTS", "4"))),
+            second_pass_enabled=_env_flag("SUPABASE_RAG_SECOND_PASS", True),
+            second_pass_max_queries=max(1, int(os.getenv("SUPABASE_RAG_SECOND_PASS_QUERIES", "2"))),
+            second_pass_min_hits=max(1, int(os.getenv("SUPABASE_RAG_SECOND_PASS_MIN_HITS", "2"))),
+            second_pass_max_dup_ratio=float(
+                os.getenv("SUPABASE_RAG_SECOND_PASS_MAX_DUP_RATIO", "0.5")
+            ),
+            rerank_enabled=_env_flag("SUPABASE_RAG_ENABLE_RERANK", True),
+            rerank_window=max(top_k, int(os.getenv("SUPABASE_RAG_RERANK_WINDOW", str(fetch_count)))),
+            rerank_timeout_s=float(os.getenv("SUPABASE_RAG_RERANK_TIMEOUT_S", "6.0")),
+            exact_question_enabled=_env_flag("SUPABASE_RAG_ENABLE_EXACT_QUESTION", True),
+            exact_question_text_first=_env_flag("SUPABASE_RAG_EXACT_QUESTION_TEXT_FIRST", True),
+            exact_question_min_similarity=float(
+                os.getenv("SUPABASE_RAG_EXACT_QUESTION_MIN_SIMILARITY", "0.9")
+            ),
+            exact_question_max_text_len=max(
+                32, int(os.getenv("SUPABASE_RAG_EXACT_QUESTION_MAX_TEXT_LEN", "100"))
+            ),
+            exact_question_text_rpc_enabled=_env_flag(
+                "SUPABASE_RAG_EXACT_QUESTION_TEXT_RPC", True
+            ),
         )
 
     async def _search_source(
@@ -444,8 +766,237 @@ class SupabasePipeline:
                     "_source_group": "standard_precision",
                     "_source_table": "kb_chunks",
                 }
+        )
+        return normalized
+
+    async def _search_exact_standard(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        standard_code: str,
+        node_code: str | None,
+        config: SupabaseSearchConfig,
+    ) -> list[dict[str, Any]]:
+        code = str(standard_code or "").strip()
+        if not code:
+            return []
+        code_suffix = code.split("/", 1)[-1]
+        code_suffix = code_suffix.replace("GB", "").replace("JGJ", "").replace("CJJ", "").replace("DBJ", "").replace("DB", "").strip()
+        query = {
+            "source_type": "eq.standard",
+            "standard_code": f"ilike.*{code_suffix}*",
+        }
+        if node_code:
+            query["node_code"] = f"eq.{node_code}"
+        rows = await self._select(
+            client,
+            table="kb_chunks",
+            select="chunk_id,card_title,rag_content,node_code,source_type,content_type,standard_code,taxonomy_path,page_num,source_doc,metadata",
+            query=query,
+            config=config,
+        )
+        normalized: list[dict[str, Any]] = []
+        for row in rows[: config.fetch_count]:
+            normalized.append(
+                {
+                    "chunk_id": row.get("chunk_id"),
+                    "card_title": row.get("card_title") or row.get("standard_code") or code,
+                    "rag_content": row.get("rag_content") or "",
+                    "node_code": row.get("node_code") or "",
+                    "source_type": row.get("source_type") or "standard",
+                    "content_type": row.get("content_type") or "",
+                    "standard_code": row.get("standard_code") or code,
+                    "taxonomy_path": row.get("taxonomy_path") or "",
+                    "page_num": row.get("page_num"),
+                    "source_doc": row.get("source_doc") or "",
+                    "metadata": row.get("metadata") if isinstance(row.get("metadata"), dict) else None,
+                    "source": row.get("source_doc") or row.get("standard_code") or code,
+                    "score": 1.0,
+                    "_source_group": "standard_code_exact",
+                    "_source_table": "kb_chunks",
+                }
             )
         return normalized
+
+    async def _search_exact_question_text(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        probe_query: str,
+        allowed_question_types: list[str],
+        original_query: str,
+        option_validation_required: bool,
+        config: SupabaseSearchConfig,
+    ) -> list[dict[str, Any]]:
+        clean = str(probe_query or "").strip()
+        if not clean:
+            return []
+        direct_rows = await self._search_exact_question_text_direct(
+            client=client,
+            probe_query=clean,
+            config=config,
+        )
+        for row in direct_rows:
+            if not matches_allowed_question_type(row.get("question_type"), allowed_question_types):
+                continue
+            if not validate_exact_question_options(
+                original_query=original_query,
+                options=row.get("options"),
+                option_validation_required=option_validation_required,
+            ):
+                continue
+            return [self._normalize_question_result(row, source_group="question_exact_text", score=1.0)]
+
+        if config.exact_question_text_rpc_enabled:
+            keyword_terms = build_exact_question_keyword_terms(clean, max_terms=3)
+            rpc_queries = [
+                candidate
+                for candidate in [clean, *build_exact_question_text_candidates(clean), *keyword_terms]
+                if candidate
+            ]
+            seen_queries: set[str] = set()
+            for candidate in rpc_queries:
+                normalized_candidate = str(candidate).strip()
+                if not normalized_candidate or normalized_candidate in seen_queries:
+                    continue
+                seen_queries.add(normalized_candidate)
+                rpc_rows = await self._search_questions_text_rpc(
+                    client=client,
+                    search_text=normalized_candidate,
+                    config=config,
+                    limit_count=5,
+                )
+                for row in rpc_rows:
+                    if not matches_allowed_question_type(
+                        row.get("question_type"), allowed_question_types
+                    ):
+                        continue
+                    if not validate_exact_question_options(
+                        original_query=original_query,
+                        options=row.get("options"),
+                        option_validation_required=option_validation_required,
+                    ):
+                        continue
+                    return [
+                        self._normalize_question_result(
+                            row,
+                            source_group="question_exact_text",
+                            score=max(float(row.get("text_score") or 0.0), 0.98),
+                        )
+                    ]
+        return []
+
+    async def _search_exact_question_text_direct(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        probe_query: str,
+        config: SupabaseSearchConfig,
+    ) -> list[dict[str, Any]]:
+        candidates = build_exact_question_text_candidates(probe_query, max_candidates=6)
+        merged_rows: list[dict[str, Any]] = []
+        seen_ids: set[str] = set()
+
+        for candidate in candidates:
+            escaped = str(candidate or "").replace("*", " ").replace("%", " ").strip()
+            if not escaped:
+                continue
+            question_stem_task = self._select(
+                client,
+                table="questions_bank",
+                select=_QUESTION_SELECT,
+                query={"question_stem": f"ilike.*{escaped}*", "limit": "3"},
+                config=config,
+            )
+            stem_task = self._select(
+                client,
+                table="questions_bank",
+                select=_QUESTION_SELECT,
+                query={"stem": f"ilike.*{escaped}*", "limit": "3"},
+                config=config,
+            )
+            question_rows, stem_rows = await asyncio.gather(
+                question_stem_task, stem_task, return_exceptions=True
+            )
+            for batch in (question_rows, stem_rows):
+                if isinstance(batch, Exception):
+                    continue
+                for row in batch:
+                    row_id = str(row.get("id") or "").strip()
+                    if row_id and row_id in seen_ids:
+                        continue
+                    if row_id:
+                        seen_ids.add(row_id)
+                    merged_rows.append(row)
+            if merged_rows:
+                break
+        return merged_rows
+
+    async def _search_questions_text_rpc(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        search_text: str,
+        config: SupabaseSearchConfig,
+        limit_count: int = 5,
+    ) -> list[dict[str, Any]]:
+        try:
+            return await self._rpc(
+                client,
+                "search_questions_bank_text",
+                {
+                    "search_text": str(search_text or "").strip(),
+                    "limit_count": max(1, min(limit_count, 20)),
+                    "filter_source_type": None,
+                    "filter_question_type": None,
+                },
+            )
+        except Exception as exc:
+            self.logger.debug(f"Supabase questions text RPC unavailable: {exc}")
+            return []
+
+    async def _search_exact_question_vector(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        vector_literal: str,
+        allowed_question_types: list[str],
+        original_query: str,
+        option_validation_required: bool,
+        config: SupabaseSearchConfig,
+    ) -> list[dict[str, Any]]:
+        search_threshold = min(0.70, config.exact_question_min_similarity - 0.1)
+        rows = await self._rpc(
+            client,
+            "search_questions_bank_vector",
+            {
+                "query_embedding": vector_literal,
+                "match_threshold": search_threshold,
+                "match_count": min(config.fetch_count, 5),
+                "filter_question_type": None,
+                "filter_source_type": None,
+            },
+        )
+        for row in rows:
+            similarity = float(row.get("similarity") or 0.0)
+            if similarity < config.exact_question_min_similarity:
+                continue
+            if not matches_allowed_question_type(row.get("question_type"), allowed_question_types):
+                continue
+            if not validate_exact_question_options(
+                original_query=original_query,
+                options=row.get("options"),
+                option_validation_required=option_validation_required,
+            ):
+                continue
+            return [
+                self._normalize_question_result(
+                    row,
+                    source_group="question_exact_vector",
+                    score=similarity,
+                )
+            ]
+        return []
 
     async def _search_questions(
         self,
@@ -467,29 +1018,80 @@ class SupabasePipeline:
         )
         normalized: list[dict[str, Any]] = []
         for row in rows:
-            stem = str(row.get("stem") or row.get("question_stem") or "").strip()
-            options = _safe_json_dumps(row.get("options") or "")
-            answer = _safe_json_dumps(row.get("correct_answer") or "")
-            analysis = str(row.get("analysis") or "").strip()
-            rag_content = (
-                f"【题目】{stem}\n【选项】{options}\n【答案】{answer}\n【解析】{analysis}".strip()
-            )
             normalized.append(
-                {
-                    "id": row.get("id"),
-                    "chunk_id": f"question-{row.get('id')}",
-                    "card_title": f"题目: {stem[:40]}" if stem else "题目",
-                    "rag_content": rag_content,
-                    "node_code": row.get("node_code") or "",
-                    "source_type": row.get("source_type") or "exam",
-                    "content_type": "question",
-                    "page_num": row.get("exam_year"),
-                    "score": row.get("similarity") or 0,
-                    "_source_group": "questions_bank",
-                    "_source_table": "questions_bank",
-                }
+                self._normalize_question_result(
+                    row,
+                    source_group="questions_bank",
+                    score=float(row.get("similarity") or 0.0),
+                )
             )
         return normalized
+
+    def _normalize_question_result(
+        self,
+        row: dict[str, Any],
+        *,
+        source_group: str,
+        score: float,
+    ) -> dict[str, Any]:
+        stem = str(row.get("stem") or row.get("question_stem") or "").strip()
+        options = _safe_json_dumps(row.get("options") or "")
+        answer = _safe_json_dumps(row.get("correct_answer") or "")
+        analysis = str(row.get("analysis") or "").strip()
+        rag_content = f"【题目】{stem}\n【选项】{options}\n【答案】{answer}\n【解析】{analysis}".strip()
+        return {
+            "id": row.get("id"),
+            "chunk_id": f"question-{row.get('id')}",
+            "card_title": f"题目: {stem[:40]}" if stem else "题目",
+            "rag_content": rag_content,
+            "node_code": row.get("node_code") or "",
+            "source_type": row.get("source_type") or "exam",
+            "content_type": "question",
+            "page_num": row.get("exam_year"),
+            "score": score,
+            "similarity": float(row.get("similarity") or score or 0.0),
+            "options": row.get("options"),
+            "correct_answer": row.get("correct_answer"),
+            "analysis": row.get("analysis"),
+            "question_type": row.get("question_type") or "",
+            "_source_group": source_group,
+            "_source_table": "questions_bank",
+        }
+
+    def _extract_exact_question_payload(
+        self,
+        plans: list[dict[str, Any]],
+    ) -> dict[str, Any] | None:
+        priority = {"question_exact_text": 0, "question_exact_vector": 1}
+        candidates = sorted(
+            [
+                plan
+                for plan in plans
+                if str(plan.get("group_name") or "") in priority
+                and isinstance(plan.get("results"), list)
+                and plan.get("results")
+            ],
+            key=lambda item: priority[str(item.get("group_name") or "")],
+        )
+        if not candidates:
+            return None
+
+        selected_plan = candidates[0]
+        row = dict((selected_plan.get("results") or [None])[0] or {})
+        if not row:
+            return None
+        return {
+            "id": row.get("id") or row.get("chunk_id") or "",
+            "chunk_id": row.get("chunk_id") or "",
+            "stem": str(row.get("card_title") or "").replace("题目: ", "", 1).strip(),
+            "question_type": row.get("question_type") or "",
+            "correct_answer": row.get("correct_answer") or "",
+            "analysis": row.get("analysis") or "",
+            "options": row.get("options") or "",
+            "source_type": row.get("source_type") or "",
+            "source_group": str(selected_plan.get("group_name") or row.get("_source_group") or ""),
+            "confidence": float(row.get("similarity") or row.get("score") or 0.0),
+        }
 
     async def _hydrate_sources(
         self,

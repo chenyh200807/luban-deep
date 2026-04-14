@@ -693,6 +693,15 @@ class MemberConsoleService:
     def _sms_configured(self) -> bool:
         return bool(self._sms_access_key_id() and self._sms_access_key_secret())
 
+    def _should_use_real_sms(self) -> bool:
+        env = str(os.getenv("SERVICE_ENV") or os.getenv("APP_ENV") or "local").strip().lower()
+        explicit = str(os.getenv("MEMBER_CONSOLE_USE_REAL_SMS") or "").strip().lower()
+        if explicit in {"1", "true", "yes", "on"}:
+            return self._sms_configured()
+        if explicit in {"0", "false", "no", "off"}:
+            return False
+        return self._sms_configured() and env in {"prod", "production"}
+
     @staticmethod
     def _generate_sms_code() -> str:
         return "".join(secrets.choice(string.digits) for _ in range(6))
@@ -1738,7 +1747,7 @@ class MemberConsoleService:
         debug_code = self._generate_sms_code()
         delivery = "debug"
         message = "当前环境未接入短信服务，已生成测试验证码。"
-        if self._sms_configured():
+        if self._should_use_real_sms():
             sms_result = self._send_sms(normalized, debug_code)
             sms_code = str(sms_result.get("Code") or "").strip()
             sms_msg = str(sms_result.get("Message") or "").strip()

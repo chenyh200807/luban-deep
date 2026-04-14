@@ -9,6 +9,7 @@ import time
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from deeptutor.contracts import export_contract_index, export_unified_turn_contract
 from deeptutor.services.config import resolve_search_runtime_config
 from deeptutor.services.embedding import get_embedding_client, get_embedding_config
 from deeptutor.services.llm import complete as llm_complete
@@ -32,8 +33,8 @@ async def get_runtime_topology():
     Describe the current execution topology.
 
     This makes the unified runtime explicit for operators and frontend code:
-    interactive chat turns should prefer `/api/v1/ws`, while a few routers still
-    exist as compatibility or isolated subsystem endpoints.
+    interactive chat turns must stream through `/api/v1/ws`; REST adapters may
+    bootstrap turns, but they do not define a second streaming protocol.
     """
     return {
         "primary_runtime": {
@@ -45,7 +46,8 @@ async def get_runtime_topology():
             "tool_entry": "ToolRegistry",
         },
         "compatibility_routes": [
-            {"router": "chat", "mode": "legacy_adapter_target"},
+            {"router": "chat", "mode": "http_bootstrap_adapter"},
+            {"router": "mobile", "mode": "http_bootstrap_adapter"},
             {"router": "solve", "mode": "legacy_adapter_target"},
             {"router": "question", "mode": "legacy_specialized"},
             {"router": "research", "mode": "legacy_specialized"},
@@ -56,6 +58,28 @@ async def get_runtime_topology():
             {"router": "plugins_api", "mode": "playground_transport"},
         ],
     }
+
+
+@router.get("/turn-contract")
+async def get_turn_contract():
+    """
+    Return the machine-readable unified turn contract.
+
+    This is the canonical programmatic contract for transports, message schemas,
+    bootstrap shape, and required trace fields.
+    """
+    return export_unified_turn_contract()
+
+
+@router.get("/contracts-index")
+async def get_contracts_index():
+    """
+    Return the machine-readable contract domain index.
+
+    This is the canonical map from protected domains to their contract files,
+    protected paths, and expected tests.
+    """
+    return export_contract_index()
 
 
 @router.get("/status")

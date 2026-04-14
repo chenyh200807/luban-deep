@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import {
+  BarChart3,
   BookOpen,
   Bot,
   Brain,
@@ -35,6 +36,7 @@ const PRIMARY_NAV: NavEntry[] = [
   { href: "/co-writer", label: "Co-Writer", icon: PenLine },
   { href: "/guide", label: "Guided Learning", icon: GraduationCap },
   { href: "/member", label: "Membership", icon: Crown },
+  { href: "/bi", label: "BI", icon: BarChart3 },
   { href: "/knowledge", label: "Knowledge", icon: BookOpen },
   { href: "/memory", label: "Memory", icon: Brain },
 ];

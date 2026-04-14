@@ -1,0 +1,108 @@
+version: 1
+entrypoint: CONTRACT.md
+domains:
+  turn:
+    summary: Unified turn, stream, replay, session, trace boundary.
+    contract_files:
+      - CONTRACT.md
+      - contracts/turn.md
+      - docs/zh/guide/unified-turn-contract.md
+      - deeptutor/contracts/unified_turn.py
+      - deeptutor/contracts/tutorbot_profiles.py
+      - contracts/index.yaml
+    protected_patterns:
+      - deeptutor/api/routers/unified_ws.py
+      - deeptutor/api/routers/mobile.py
+      - deeptutor/api/routers/system.py
+      - deeptutor/services/session/*.py
+      - deeptutor/contracts/unified_turn.py
+      - web/lib/unified-ws.ts
+      - web/context/UnifiedChatContext.tsx
+    sensitive_patterns:
+      - deeptutor/api/routers/unified_ws.py
+      - deeptutor/api/routers/mobile.py
+      - deeptutor/api/routers/system.py
+      - deeptutor/services/session/turn_runtime.py
+      - deeptutor/contracts/unified_turn.py
+      - web/lib/unified-ws.ts
+      - web/context/UnifiedChatContext.tsx
+    test_files:
+      - tests/api/test_system_router.py
+      - tests/api/test_unified_ws_turn_runtime.py
+      - tests/api/test_mobile_router.py
+    schema_files:
+      - deeptutor/contracts/unified_turn.py
+      - deeptutor/contracts/tutorbot_profiles.py
+
+  capability:
+    summary: Capability routing, request config schema, orchestrator ownership.
+    contract_files:
+      - CONTRACT.md
+      - contracts/capability.md
+      - contracts/index.yaml
+      - deeptutor/capabilities/request_contracts.py
+    protected_patterns:
+      - deeptutor/runtime/orchestrator.py
+      - deeptutor/runtime/registry/capability_registry.py
+      - deeptutor/capabilities/request_contracts.py
+      - deeptutor/api/routers/chat.py
+      - deeptutor/api/routers/mobile.py
+      - deeptutor/api/routers/unified_ws.py
+    sensitive_patterns:
+      - deeptutor/runtime/orchestrator.py
+      - deeptutor/capabilities/request_contracts.py
+      - deeptutor/api/routers/unified_ws.py
+      - deeptutor/api/routers/mobile.py
+    test_files:
+      - tests/runtime/test_orchestrator_autoroute.py
+      - tests/api/test_unified_ws_turn_runtime.py
+      - tests/api/test_mobile_router.py
+    schema_files:
+      - deeptutor/capabilities/request_contracts.py
+
+  rag:
+    summary: Grounding entry point, retrieval contract, exact-question and authority semantics.
+    contract_files:
+      - CONTRACT.md
+      - contracts/rag.md
+      - contracts/index.yaml
+      - deeptutor/contracts/tutorbot_profiles.py
+    protected_patterns:
+      - deeptutor/services/rag/*.py
+      - deeptutor/services/rag/**/*.py
+      - deeptutor/tools/rag_tool.py
+      - deeptutor/agents/chat/agentic_pipeline.py
+    sensitive_patterns:
+      - deeptutor/services/rag/service.py
+      - deeptutor/services/rag/pipelines/*.py
+      - deeptutor/services/rag/pipelines/**/*.py
+      - deeptutor/agents/chat/agentic_pipeline.py
+    test_files:
+      - tests/services/rag/test_rag_pipelines.py
+      - tests/services/rag/test_supabase_strategy.py
+      - tests/agents/chat/test_agentic_parallel_tools.py
+    schema_files:
+      - deeptutor/contracts/tutorbot_profiles.py
+
+  config_runtime:
+    summary: Runtime config loading, env/catalog precedence, provider resolution.
+    contract_files:
+      - CONTRACT.md
+      - contracts/config-runtime.md
+      - contracts/index.yaml
+    protected_patterns:
+      - deeptutor/services/config/*.py
+      - deeptutor/services/config/**/*.py
+      - deeptutor/services/llm/factory.py
+      - deeptutor/services/embedding/*.py
+      - deeptutor/services/search/*.py
+    sensitive_patterns:
+      - deeptutor/services/config/loader.py
+      - deeptutor/services/config/provider_runtime.py
+      - deeptutor/services/config/env_store.py
+      - deeptutor/services/config/knowledge_base_config.py
+    test_files:
+      - tests/services/config/test_provider_runtime.py
+      - tests/services/config/test_embedding_runtime.py
+      - tests/services/config/test_knowledge_base_config.py
+    schema_files: []

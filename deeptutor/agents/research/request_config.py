@@ -116,6 +116,8 @@ def build_research_execution_policy(
         "max_parallel_topics": depth_policy["max_parallel_topics"],
         "new_topic_min_score": depth_policy["new_topic_min_score"],
         "enable_rag": "rag" in source_tools,
+        "enable_rag_hybrid": "rag" in source_tools,
+        "enable_rag_naive": False,
         "enable_web_search": "web_search" in source_tools,
         "enable_paper_search": "paper_search" in source_tools,
         "enable_run_code": allow_code_execution,
@@ -138,7 +140,7 @@ def build_research_execution_policy(
         "researching": researching,
         "reporting": reporting,
         "queue": queue,
-        "intent": request_config.model_dump(),
+        "intent": request_config.model_dump(exclude_none=True),
     }
 
 

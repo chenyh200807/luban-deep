@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from loguru import logger
 
+from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.tutorbot.agent.context import ContextBuilder
 from deeptutor.tutorbot.agent.memory import MemoryConsolidator
 from deeptutor.tutorbot.agent.team import TeamManager
@@ -32,6 +33,8 @@ from deeptutor.tutorbot.teaching_modes import get_teaching_mode_instruction
 if TYPE_CHECKING:
     from deeptutor.tutorbot.config.schema import ChannelsConfig, ExecToolConfig, WebSearchConfig
     from deeptutor.tutorbot.cron.service import CronService
+
+observability = get_langfuse_observability()
 
 
 class AgentLoop:
@@ -255,6 +258,20 @@ class AgentLoop:
                 model=self.model,
                 on_content_delta=_stream_delta if on_content_delta else None,
             )
+            usage = response.usage or {}
+            if usage:
+                observability.record_usage(
+                    usage_details={
+                        "input": float(usage.get("prompt_tokens") or 0),
+                        "output": float(usage.get("completion_tokens") or 0),
+                        "total": float(
+                            usage.get("total_tokens")
+                            or (float(usage.get("prompt_tokens") or 0) + float(usage.get("completion_tokens") or 0))
+                        ),
+                    },
+                    source="provider",
+                    model=self.model,
+                )
 
             if response.has_tool_calls:
                 if on_progress:

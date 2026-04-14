@@ -15,7 +15,7 @@ import {
   writeStoredActiveSessionId,
 } from "@/context/AppShellContext";
 import type { StreamEvent, ChatMessage } from "@/lib/unified-ws";
-import { UnifiedWSClient } from "@/lib/unified-ws";
+import { primeUnifiedTurnContractCheck, UnifiedWSClient } from "@/lib/unified-ws";
 import { getSession, type SessionMessage } from "@/lib/session-api";
 import { normalizeMarkdownForDisplay } from "@/lib/markdown-display";
 import { shouldAppendEventContent } from "@/lib/stream";
@@ -455,6 +455,10 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
     },
     [],
   );
+
+  useEffect(() => {
+    void primeUnifiedTurnContractCheck();
+  }, []);
 
   const makeDraftKey = useCallback(() => {
     draftCounterRef.current += 1;

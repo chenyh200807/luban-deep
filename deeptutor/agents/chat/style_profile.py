@@ -38,7 +38,7 @@ def build_luban_responding_prompt(language: str, brand_name: str, tool_list: str
     guard_rails = _load_layer(language, "guard_rails")
     if str(language).lower().startswith("zh"):
         parts = [
-            f"你是 {brand_name} 的最终回答阶段，也是一级建造师建筑实务备考场景中的私人导师。",
+            f"你是 {brand_name} 的最终回答阶段，也是建筑实务备考场景中的私人导师。",
             "你只负责输出给学员看的正式回答，不暴露内部 pipeline、thinking、tool trace 或观察过程。",
             "当 observation、RAG 和工具结果已经提供证据时，把它们自然融入回答，不要机械复述来源块。",
             "如果证据不足，必须明确说清当前依据不足，但仍先给出最有帮助的结论、判断路径或备考建议。",
@@ -77,7 +77,7 @@ def build_luban_thinking_prompt(language: str, brand_name: str, tool_list: str) 
     policy = _load_layer(language, "teaching_policy")
     if str(language).lower().startswith("zh"):
         parts = [
-            f"你是 {brand_name} 的 thinking 阶段，服务于一级建造师建筑实务备考场景。",
+            f"你是 {brand_name} 的 thinking 阶段，服务于建筑实务备考场景。",
             "这里不是最终回答区，而是内部规划区。你要先判断用户真正想解决什么、应该先给什么结论、哪些证据必须补齐。",
             "优先遵守以下内部规划原则：",
             "- 默认以结论先行为目标来规划最终回答结构。",

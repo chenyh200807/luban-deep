@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+import yaml
+
 from deeptutor.app import DeepTutorApp
+from deeptutor.contracts import get_contract_index_candidates, get_contract_index_path, load_contract_index
 
 
 class _FakeNotebookManager:
@@ -71,3 +75,38 @@ def test_replace_markdown_record_updates_existing_co_writer_record(tmp_path: Pat
     assert update_call["user_query"] == "Matrices"
     assert update_call["output"] == "# Matrices\n\nUpdated body."
     assert update_call["metadata"]["saved_via"] == "cli"
+
+
+def test_app_facade_contract_self_check_reports_ok() -> None:
+    app = DeepTutorApp()
+
+    assert app.contract_self_check.ok is True
+    assert app.contract_self_check.entrypoint == "CONTRACT.md"
+    assert app.contract_self_check.transport == "/api/v1/ws"
+    assert "turn" in app.contract_self_check.domains
+    assert "capability" in app.contract_self_check.domains
+
+
+def test_app_facade_strict_contract_check_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.app.facade.load_contract_index",
+        lambda: {"entrypoint": "CONTRACT.md", "domains": {"turn": {}}},
+    )
+    monkeypatch.setenv("DEEPTUTOR_STRICT_CONTRACT_CHECK", "true")
+
+    with pytest.raises(RuntimeError, match="contract self-check failed"):
+        DeepTutorApp()
+
+
+def test_packaged_contract_index_matches_repo_contract_index() -> None:
+    payload = load_contract_index()
+    resolved_path = get_contract_index_path()
+    candidates = get_contract_index_candidates()
+
+    assert payload["entrypoint"] == "CONTRACT.md"
+    assert "turn" in payload["domains"]
+    assert resolved_path.name == "index.yaml"
+    assert len(candidates) >= 2
+    repo_payload = yaml.safe_load(candidates[0].read_text(encoding="utf-8"))
+    package_payload = yaml.safe_load(candidates[1].read_text(encoding="utf-8"))
+    assert repo_payload == package_payload

@@ -23,6 +23,7 @@ class ChatRequestConfig(BaseModel):
 
     chat_mode: Literal["fast", "deep", "smart"] = Field(default_factory=get_default_chat_mode)
     auto_tools: bool = True
+    bot_id: str = ""
     answer_now_context: dict[str, Any] | None = None
 
 

@@ -202,6 +202,7 @@ app.mount(
 # Some router modules load YAML settings at import time.
 from deeptutor.api.routers import (
     agent_config,
+    bi,
     chat,
     co_writer,
     dashboard,
@@ -234,6 +235,7 @@ app.include_router(co_writer.router, prefix="/api/v1/co_writer", tags=["co_write
 app.include_router(notebook.router, prefix="/api/v1/notebook", tags=["notebook"])
 app.include_router(guide.router, prefix="/api/v1/guide", tags=["guide"])
 app.include_router(member.router, prefix="/api/v1/member", tags=["member"])
+app.include_router(bi.router, prefix="/api/v1/bi", tags=["bi"])
 app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])
 app.include_router(sessions.router, prefix="/api/v1/sessions", tags=["sessions"])
 app.include_router(question_notebook.router, prefix="/api/v1/question-notebook", tags=["question-notebook"])

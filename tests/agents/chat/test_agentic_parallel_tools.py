@@ -415,3 +415,83 @@ def test_teaching_contract_only_enforced_when_rag_used(monkeypatch: pytest.Monke
         metadata={"call_kind": "rag_retrieval"},
     )
     assert pipeline._should_enforce_teaching_contract("knowledge_explainer", [trace]) is True
+
+
+def test_extract_exact_question_authority_from_rag_trace(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    trace = ToolTrace(
+        name="rag",
+        arguments={"query": "单选题"},
+        result="kb result",
+        success=True,
+        sources=[],
+        metadata={
+            "exact_question": {
+                "id": "15156",
+                "stem": "确定屋面防水工程的防水等级应根据（ ）。",
+                "correct_answer": "ACE",
+                "analysis": "正确答案: ACE",
+                "confidence": 1.0,
+            }
+        },
+    )
+
+    authority = pipeline._extract_exact_question_authority([trace])
+
+    assert authority is not None
+    assert authority["authoritative_answer"] == "ACE"
+    assert authority["stem"] == "确定屋面防水工程的防水等级应根据（ ）。"
+
+
+@pytest.mark.asyncio
+async def test_apply_exact_question_authority_rewrites_mismatched_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    context = UnifiedContext(
+        session_id="session-1",
+        user_message="单选题：确定屋面防水工程的防水等级应根据什么\nA. 建筑物类别\nB. 建筑物面积",
+        language="zh",
+    )
+    trace = ToolTrace(
+        name="rag",
+        arguments={"query": "单选题"},
+        result="kb result",
+        success=True,
+        sources=[],
+        metadata={
+            "exact_question": {
+                "id": "15156",
+                "stem": "确定屋面防水工程的防水等级应根据（ ）。",
+                "correct_answer": "ACE",
+                "analysis": "正确答案: ACE",
+                "options": ["A. 建筑物的类别", "B. 建筑物的面积", "C. 建筑物的重要程度"],
+                "confidence": 1.0,
+            }
+        },
+    )
+
+    async def _fake_rewrite(**kwargs):
+        _ = kwargs
+        return "【最终答案】ACE\n依据题库原题，应该选建筑物的类别、重要程度和使用功能。"
+
+    monkeypatch.setattr(pipeline, "_rewrite_exact_question_response", _fake_rewrite)
+
+    corrected = await pipeline._apply_exact_question_authority(
+        context=context,
+        answer_type="problem_solving",
+        content="【最终答案】B\n因为建筑物面积决定防水等级。",
+        tool_traces=[trace],
+        max_tokens=800,
+    )
+
+    assert corrected.startswith("【最终答案】ACE")
+    assert "建筑物面积决定防水等级" not in corrected

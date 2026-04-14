@@ -87,14 +87,14 @@ class EnvStore:
             backend_port=_safe_int(values.get("BACKEND_PORT") or os.getenv("BACKEND_PORT"), 8001),
             frontend_port=_safe_int(values.get("FRONTEND_PORT") or os.getenv("FRONTEND_PORT"), 3782),
             llm={
-                "binding": values.get("LLM_BINDING", os.getenv("LLM_BINDING", "openai")),
+                "binding": values.get("LLM_BINDING", os.getenv("LLM_BINDING", "")),
                 "model": values.get("LLM_MODEL", os.getenv("LLM_MODEL", "")),
                 "api_key": values.get("LLM_API_KEY", os.getenv("LLM_API_KEY", "")),
                 "host": values.get("LLM_HOST", os.getenv("LLM_HOST", "")),
                 "api_version": values.get("LLM_API_VERSION", os.getenv("LLM_API_VERSION", "")),
             },
             embedding={
-                "binding": values.get("EMBEDDING_BINDING", os.getenv("EMBEDDING_BINDING", "openai")),
+                "binding": values.get("EMBEDDING_BINDING", os.getenv("EMBEDDING_BINDING", "")),
                 "model": values.get("EMBEDDING_MODEL", os.getenv("EMBEDDING_MODEL", "")),
                 "api_key": values.get("EMBEDDING_API_KEY", os.getenv("EMBEDDING_API_KEY", "")),
                 "host": values.get("EMBEDDING_HOST", os.getenv("EMBEDDING_HOST", "")),

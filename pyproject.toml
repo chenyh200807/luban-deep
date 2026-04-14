@@ -228,7 +228,8 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--disable-warnings",
-    "--tb=short"
+    "--tb=short",
+    "--import-mode=importlib"
 ]
 
 # ============================================
