@@ -238,6 +238,180 @@ async def test_execute_tool_call_streams_retrieve_progress_for_rag(monkeypatch: 
     ]
 
 
+def test_augment_tool_kwargs_fills_rag_query_from_user_message(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    context = UnifiedContext(
+        session_id="session-rag-query",
+        user_message="请分析这道建筑案例题",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        language="zh",
+        metadata={"turn_id": "turn-rag-query"},
+    )
+
+    kwargs = pipeline._augment_tool_kwargs("rag", {}, context, "需要知识召回")
+
+    assert kwargs["kb_name"] == "construction-exam"
+    assert kwargs["mode"] == "hybrid"
+    assert kwargs["query"] == "请分析这道建筑案例题"
+
+
+@pytest.mark.asyncio
+async def test_native_tool_loop_forces_rag_for_grounded_tutorbot_profile(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    class FakeRegistry:
+        def build_openai_schemas(self, _enabled_tools):
+            return [{"type": "function", "function": {"name": "rag"}}]
+
+        def build_prompt_text(self, enabled_tools, **_kwargs):
+            return "\n".join(enabled_tools)
+
+        def get_enabled(self, selected):
+            return [SimpleNamespace(name=name) for name in selected]
+
+        async def execute(self, name: str, **kwargs):
+            return ToolResult(
+                content=f"{name} => grounded",
+                sources=[{"tool": name, "kb_name": kwargs.get("kb_name")}],
+                metadata={"tool": name, "kb_name": kwargs.get("kb_name")},
+                success=True,
+            )
+
+    registry = FakeRegistry()
+    monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: registry)
+
+    pipeline = AgenticChatPipeline(language="zh")
+    pipeline.registry = registry
+
+    async def _no_tool_call(**_kwargs):
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(
+                        content="不需要额外工具。",
+                        tool_calls=[],
+                    )
+                )
+            ]
+        )
+
+    monkeypatch.setattr(
+        pipeline,
+        "_build_openai_client",
+        lambda: SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=_no_tool_call))),
+    )
+
+    bus = StreamBus()
+    events, consumer = await _collect_bus_events(bus)
+    context = UnifiedContext(
+        session_id="session-grounded",
+        user_message="请分析这道建筑案例题并回答全部问题",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        language="zh",
+        metadata={
+            "turn_id": "turn-grounded",
+            "knowledge_chain_profile": "construction_exam_grounded",
+        },
+        config_overrides={"interaction_profile": "mini_tutor"},
+    )
+
+    traces = await pipeline._run_native_tool_loop(
+        context=context,
+        enabled_tools=["rag"],
+        thinking_text="这是一道案例题，需要先找真题。",
+        stream=bus,
+    )
+    await asyncio.sleep(0)
+    await bus.close()
+    await consumer
+
+    assert [trace.name for trace in traces] == ["rag"]
+    assert traces[0].arguments["kb_name"] == "construction-exam"
+    assert any(event.type == StreamEventType.TOOL_CALL for event in events)
+    assert any(event.type == StreamEventType.TOOL_RESULT for event in events)
+
+
+@pytest.mark.asyncio
+async def test_react_fallback_forces_rag_for_grounded_tutorbot_profile(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="anthropic", model="claude-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    class FakeRegistry:
+        def build_prompt_text(self, enabled_tools, **_kwargs):
+            return "\n".join(enabled_tools)
+
+        def get_enabled(self, selected):
+            return [SimpleNamespace(name=name) for name in selected]
+
+        async def execute(self, name: str, **kwargs):
+            return ToolResult(
+                content=f"{name} => grounded",
+                sources=[{"tool": name, "kb_name": kwargs.get("kb_name")}],
+                metadata={"tool": name, "kb_name": kwargs.get("kb_name")},
+                success=True,
+            )
+
+    registry = FakeRegistry()
+    monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: registry)
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.llm_stream",
+        lambda **_kwargs: iter(['{"action":"done","action_input":{}}']),
+    )
+
+    pipeline = AgenticChatPipeline(language="zh")
+    pipeline.registry = registry
+
+    async def _stream_wrapper():
+        yield '{"action":"done","action_input":{}}'
+
+    monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.llm_stream", lambda **_kwargs: _stream_wrapper())
+
+    bus = StreamBus()
+    events, consumer = await _collect_bus_events(bus)
+    context = UnifiedContext(
+        session_id="session-react-grounded",
+        user_message="请按考点解释这道案例题",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        language="zh",
+        metadata={
+            "turn_id": "turn-react-grounded",
+            "knowledge_chain_profile": "construction_exam_grounded",
+        },
+        config_overrides={"interaction_profile": "mini_tutor"},
+    )
+
+    traces = await pipeline._run_react_fallback(
+        context=context,
+        enabled_tools=["rag"],
+        thinking_text="需要知识召回。",
+        stream=bus,
+    )
+    await asyncio.sleep(0)
+    await bus.close()
+    await consumer
+
+    assert [trace.name for trace in traces] == ["rag"]
+    assert traces[0].arguments["kb_name"] == "construction-exam"
+    assert any(event.type == StreamEventType.TOOL_CALL for event in events)
+    assert any(event.type == StreamEventType.TOOL_RESULT for event in events)
+
+
 @pytest.mark.asyncio
 async def test_native_tool_loop_caps_parallel_tool_calls_at_eight(
     monkeypatch: pytest.MonkeyPatch,
@@ -447,6 +621,52 @@ def test_extract_exact_question_authority_from_rag_trace(monkeypatch: pytest.Mon
     assert authority["stem"] == "确定屋面防水工程的防水等级应根据（ ）。"
 
 
+def test_extract_case_exact_question_authority_from_rag_trace(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    trace = ToolTrace(
+        name="rag",
+        arguments={"query": "案例题"},
+        result="kb result",
+        success=True,
+        sources=[],
+        metadata={
+            "exact_question": {
+                "id": "9717",
+                "stem": "某旧城改造工程案例题",
+                "question_type": "case_study",
+                "answer_kind": "case_study",
+                "covered_subquestions": [
+                    {
+                        "display_index": "1",
+                        "prompt": "通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？",
+                        "authoritative_answer": "①潜在投标人数量较多；②大型、技术复杂项目；合格制、有限数量制。",
+                        "analysis": "第1问标准答案。",
+                    }
+                ],
+                "missing_subquestions": [
+                    {"display_index": "2", "prompt": "管理策划内容还有哪些？"},
+                ],
+                "coverage_state": "single_subquestion_only",
+                "coverage_ratio": 0.2,
+                "confidence": 0.98,
+            }
+        },
+    )
+
+    authority = pipeline._extract_exact_question_authority([trace])
+
+    assert authority is not None
+    assert authority["authority_kind"] == "case_study"
+    assert authority["covered_subquestions"][0]["display_index"] == "1"
+    assert authority["missing_subquestions"][0]["display_index"] == "2"
+
+
 @pytest.mark.asyncio
 async def test_apply_exact_question_authority_rewrites_mismatched_answer(
     monkeypatch: pytest.MonkeyPatch,
@@ -495,3 +715,69 @@ async def test_apply_exact_question_authority_rewrites_mismatched_answer(
 
     assert corrected.startswith("【最终答案】ACE")
     assert "建筑物面积决定防水等级" not in corrected
+
+
+@pytest.mark.asyncio
+async def test_apply_case_exact_question_authority_rewrites_whole_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    context = UnifiedContext(
+        session_id="session-case",
+        user_message="背景资料：某旧城改造工程。问题：1. 资格预审特点和方法？2. 计算施工项目成本。",
+        language="zh",
+    )
+    trace = ToolTrace(
+        name="rag",
+        arguments={"query": "案例题"},
+        result="kb result",
+        success=True,
+        sources=[],
+        metadata={
+            "exact_question": {
+                "id": "9717",
+                "stem": "某旧城改造工程案例题",
+                "question_type": "case_study",
+                "answer_kind": "case_study",
+                "case_bundle": {
+                    "coverage_state": "single_subquestion_only",
+                    "covered_subquestions": [
+                        {
+                            "display_index": "1",
+                            "prompt": "通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？",
+                            "authoritative_answer": "①潜在投标人数量较多；②大型、技术复杂项目；合格制、有限数量制。",
+                            "analysis": "第1问标准答案。",
+                        }
+                    ],
+                    "missing_subquestions": [
+                        {"display_index": "2", "prompt": "按照完全成本法计算的工程施工项目成本是多少亿元？"}
+                    ],
+                    "coverage_ratio": 0.5,
+                },
+            }
+        },
+    )
+
+    async def _fake_rewrite(**kwargs):
+        _ = kwargs
+        return (
+            "1. 通常进行资格预审的工程特点：潜在投标人数量较多、大型且技术复杂；方法包括合格制和有限数量制。\n"
+            "2. 工程施工项目成本应按已召回证据和计算结果作答。"
+        )
+
+    monkeypatch.setattr(pipeline, "_rewrite_exact_question_response", _fake_rewrite)
+
+    corrected = await pipeline._apply_exact_question_authority(
+        context=context,
+        answer_type="problem_solving",
+        content="1. 资格预审方法只有合格制。\n2. 成本约10.07亿元。",
+        tool_traces=[trace],
+        max_tokens=800,
+    )
+
+    assert "有限数量制" in corrected
+    assert "10.07亿元" not in corrected

@@ -53,6 +53,10 @@ def _date_key(value: datetime | None = None) -> str:
     return (value or _now()).strftime("%Y-%m-%d")
 
 
+_PASSWORD_HASH_PREFIX = "pbkdf2_sha256"
+_PASSWORD_HASH_ITERATIONS = 240_000
+
+
 def _default_chapter_mastery() -> dict[str, dict[str, Any]]:
     chapters = []
     seen = set()
@@ -483,6 +487,55 @@ class MemberConsoleService:
         ).strip()
         return secret
 
+    def _admin_user_ids(self) -> set[str]:
+        raw = str(
+            os.getenv("DEEPTUTOR_ADMIN_USER_IDS")
+            or os.getenv("MEMBER_CONSOLE_ADMIN_USER_IDS")
+            or ""
+        ).strip()
+        if not raw:
+            return set()
+        return {item.strip() for item in raw.split(",") if item.strip()}
+
+    @staticmethod
+    def _hash_password(password: str, *, salt: str | None = None) -> str:
+        normalized = str(password or "")
+        if len(normalized) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        salt_bytes = bytes.fromhex(salt) if salt else secrets.token_bytes(16)
+        derived = hashlib.pbkdf2_hmac(
+            "sha256",
+            normalized.encode("utf-8"),
+            salt_bytes,
+            _PASSWORD_HASH_ITERATIONS,
+        )
+        return (
+            f"{_PASSWORD_HASH_PREFIX}${_PASSWORD_HASH_ITERATIONS}"
+            f"${salt_bytes.hex()}${derived.hex()}"
+        )
+
+    @staticmethod
+    def _verify_password_hash(password: str, encoded: str | None) -> bool:
+        raw = str(encoded or "").strip()
+        if not raw:
+            return False
+        try:
+            scheme, iterations, salt, digest = raw.split("$", 3)
+        except ValueError:
+            return False
+        if scheme != _PASSWORD_HASH_PREFIX:
+            return False
+        try:
+            expected = hashlib.pbkdf2_hmac(
+                "sha256",
+                str(password or "").encode("utf-8"),
+                bytes.fromhex(salt),
+                int(iterations),
+            ).hex()
+        except (TypeError, ValueError):
+            return False
+        return hmac.compare_digest(expected, digest)
+
     def _issue_access_token(
         self,
         *,
@@ -521,6 +574,14 @@ class MemberConsoleService:
         if not raw:
             return None
         if raw.startswith("demo-token-"):
+            env = str(
+                os.getenv("DEEPTUTOR_ENV")
+                or os.getenv("APP_ENV")
+                or os.getenv("ENV")
+                or ""
+            ).strip().lower()
+            if env in {"prod", "production"}:
+                return None
             value = raw[len("demo-token-") :]
             return {"uid": value.split("-", 1)[0], "provider": "demo"}
         parts = raw.split(".")
@@ -544,6 +605,13 @@ class MemberConsoleService:
         if exp and exp < now:
             return None
         return payload
+
+    def verify_access_token(self, token: str) -> dict[str, Any] | None:
+        return self._verify_access_token(token)
+
+    def is_admin_user(self, user_id: str | None) -> bool:
+        resolved = str(user_id or "").strip()
+        return bool(resolved) and resolved in self._admin_user_ids()
 
     def _get_wechat_mp_credentials(self) -> tuple[str, str]:
         app_id = str(
@@ -868,10 +936,8 @@ class MemberConsoleService:
         )
 
     def resolve_user_id(self, auth_header: str | None = None, user_id: str | None = None) -> str:
-        if user_id:
-            return user_id
         token = str(auth_header or "").replace("Bearer", "").strip()
-        verified = self._verify_access_token(token)
+        verified = self.verify_access_token(token)
         if verified and str(verified.get("uid") or "").strip():
             return str(verified["uid"]).strip()
         return ""
@@ -1054,7 +1120,15 @@ class MemberConsoleService:
         end = start + page_size
         return {"items": notes[start:end], "total": len(notes), "page": page, "page_size": page_size}
 
-    def add_note(self, user_id: str, content: str, channel: str = "manual", pinned: bool = False) -> dict[str, Any]:
+    def add_note(
+        self,
+        user_id: str,
+        content: str,
+        channel: str = "manual",
+        pinned: bool = False,
+        *,
+        operator: str = "admin",
+    ) -> dict[str, Any]:
         data = self._load()
         member = self._find_member(data, user_id)
         note = {
@@ -1065,11 +1139,25 @@ class MemberConsoleService:
             "created_at": _iso(),
         }
         member.setdefault("notes", []).insert(0, note)
-        self._append_audit(data, action="note", target_user=user_id, reason="note_created", after=note)
+        self._append_audit(
+            data,
+            action="note",
+            target_user=user_id,
+            reason="note_created",
+            after=note,
+            operator=operator,
+        )
         self._save(data)
         return note
 
-    def update_note(self, note_id: str, content: str | None = None, pinned: bool | None = None) -> dict[str, Any]:
+    def update_note(
+        self,
+        note_id: str,
+        content: str | None = None,
+        pinned: bool | None = None,
+        *,
+        operator: str = "admin",
+    ) -> dict[str, Any]:
         data = self._load()
         for member in data["members"]:
             for note in member.get("notes", []):
@@ -1087,12 +1175,13 @@ class MemberConsoleService:
                     reason="note_updated",
                     before=before,
                     after=note,
+                    operator=operator,
                 )
                 self._save(data)
                 return note
         raise KeyError(f"Unknown note: {note_id}")
 
-    def delete_note(self, note_id: str) -> bool:
+    def delete_note(self, note_id: str, *, operator: str = "admin") -> bool:
         data = self._load()
         for member in data["members"]:
             notes = member.get("notes", [])
@@ -1100,7 +1189,14 @@ class MemberConsoleService:
                 if note["id"] != note_id:
                     continue
                 removed = notes.pop(index)
-                self._append_audit(data, action="note_delete", target_user=member["user_id"], reason="note_deleted", before=removed)
+                self._append_audit(
+                    data,
+                    action="note_delete",
+                    target_user=member["user_id"],
+                    reason="note_deleted",
+                    before=removed,
+                    operator=operator,
+                )
                 self._save(data)
                 return True
         return False
@@ -1128,7 +1224,15 @@ class MemberConsoleService:
         end = start + page_size
         return {"items": items[start:end], "total": len(items), "page": page, "page_size": page_size}
 
-    def grant_subscription(self, user_id: str, days: int, tier: str = "vip", reason: str = "") -> dict[str, Any]:
+    def grant_subscription(
+        self,
+        user_id: str,
+        days: int,
+        tier: str = "vip",
+        reason: str = "",
+        *,
+        operator: str = "admin",
+    ) -> dict[str, Any]:
         data = self._load()
         member = self._ensure_member(data, user_id)
         before = deepcopy(member)
@@ -1136,7 +1240,15 @@ class MemberConsoleService:
         member["tier"] = tier
         member["status"] = "active"
         member["expire_at"] = _iso(base + timedelta(days=days))
-        self._append_audit(data, action="grant", target_user=user_id, reason=reason or "manual_grant", before=before, after=member)
+        self._append_audit(
+            data,
+            action="grant",
+            target_user=user_id,
+            reason=reason or "manual_grant",
+            before=before,
+            after=member,
+            operator=operator,
+        )
         self._save(data)
         return member
 
@@ -1149,6 +1261,7 @@ class MemberConsoleService:
         expire_at: str | None = None,
         auto_renew: bool | None = None,
         reason: str = "",
+        operator: str = "admin",
     ) -> dict[str, Any]:
         data = self._load()
         member = self._find_member(data, user_id)
@@ -1162,18 +1275,40 @@ class MemberConsoleService:
         if auto_renew is not None:
             member["auto_renew"] = auto_renew
         member["status"] = "active" if _parse_time(member["expire_at"]) > _now() else "expired"
-        self._append_audit(data, action="update", target_user=user_id, reason=reason or "manual_update", before=before, after=member)
+        self._append_audit(
+            data,
+            action="update",
+            target_user=user_id,
+            reason=reason or "manual_update",
+            before=before,
+            after=member,
+            operator=operator,
+        )
         self._save(data)
         return member
 
-    def revoke_subscription(self, user_id: str, reason: str = "") -> dict[str, Any]:
+    def revoke_subscription(
+        self,
+        user_id: str,
+        reason: str = "",
+        *,
+        operator: str = "admin",
+    ) -> dict[str, Any]:
         data = self._load()
         member = self._find_member(data, user_id)
         before = deepcopy(member)
         member["status"] = "revoked"
         member["auto_renew"] = False
         member["expire_at"] = _iso(_now())
-        self._append_audit(data, action="revoke", target_user=user_id, reason=reason or "manual_revoke", before=before, after=member)
+        self._append_audit(
+            data,
+            action="revoke",
+            target_user=user_id,
+            reason=reason or "manual_revoke",
+            before=before,
+            after=member,
+            operator=operator,
+        )
         self._save(data)
         return member
 
@@ -1584,17 +1719,21 @@ class MemberConsoleService:
             },
         }
 
-    def login_with_password(self, username: str) -> dict[str, Any]:
+    def set_password(self, user_id: str, password: str) -> None:
+        data = self._load()
+        member = self._find_member(data, user_id)
+        member["password_hash"] = self._hash_password(password)
+        self._save(data)
+
+    def login_with_password(self, username: str, password: str) -> dict[str, Any]:
         data = self._load()
         target = None
         for member in data["members"]:
             if username in {member["phone"], member["display_name"], member["user_id"]}:
                 target = member
                 break
-        if target is None:
-            target = self._ensure_member(data, f"user_{_slugify_phone(username)}")
-            target["display_name"] = username
-            self._save(data)
+        if target is None or not self._verify_password_hash(password, target.get("password_hash")):
+            raise ValueError("用户名或密码错误")
         token = self._issue_access_token(user_id=target["user_id"])
         return {
             "token": token,
@@ -1642,7 +1781,6 @@ class MemberConsoleService:
             "token_type": "Bearer",
             "openid": openid,
             "unionid": unionid,
-            "session_key": session_key,
             "user": self.get_profile(target["user_id"]),
         }
 

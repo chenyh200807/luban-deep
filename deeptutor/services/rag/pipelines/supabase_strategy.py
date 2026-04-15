@@ -349,6 +349,37 @@ def _extract_case_subquestions(text: str, *, max_items: int = 3) -> list[str]:
     return items
 
 
+def extract_case_subquestion_items(text: str, *, max_items: int = 8) -> list[dict[str, str]]:
+    question_part = _extract_case_question_part(text)
+    if not question_part:
+        return []
+
+    matches = list(_CASE_SUBQUESTION_RE.finditer(question_part))
+    if not matches:
+        cleaned = normalize_query(question_part)
+        return [{"display_index": "1", "prompt": cleaned, "surface": cleaned}] if cleaned else []
+
+    items: list[dict[str, str]] = []
+    for index, match in enumerate(matches):
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(question_part)
+        raw_chunk = question_part[start:end].strip()
+        prompt = normalize_query(raw_chunk)
+        if not prompt:
+            continue
+        display_index = str(match.group(1) or index + 1).strip() or str(index + 1)
+        item = {
+            "display_index": display_index,
+            "prompt": prompt[:240].strip(),
+            "surface": f"{display_index}. {raw_chunk}".strip(),
+        }
+        if item not in items:
+            items.append(item)
+        if len(items) >= max_items:
+            break
+    return items
+
+
 def _build_case_focus_query(text: str) -> str:
     items = _extract_case_subquestions(text, max_items=2)
     if items:

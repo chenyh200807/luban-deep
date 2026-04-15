@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -19,6 +20,7 @@ from .supabase_strategy import (
     build_exact_question_keyword_terms,
     build_exact_question_text_candidates,
     build_second_pass_queries,
+    extract_case_subquestion_items,
     rewrite_query,
     dedupe_ranked_results,
     expand_query_variants,
@@ -41,7 +43,8 @@ observability = get_langfuse_observability()
 _QUESTION_SELECT = (
     "id,original_id,question_type,stem,question_stem,options,"
     "correct_answer,analysis,grading_keywords,grading_rubric,"
-    "option_reasoning,node_code,source_type,exam_year"
+    "option_reasoning,node_code,source_type,exam_year,"
+    "background_context,parent_id,source_chunk_id,structured_rules,logic_rule"
 )
 
 
@@ -70,6 +73,26 @@ def _safe_json_dumps(value: Any) -> str:
         return json.dumps(value, ensure_ascii=False)
     except Exception:
         return str(value)
+
+
+_CASE_SUPPORT_TOKEN_RE = re.compile(r"[A-Za-z0-9.%/_-]+|[\u4e00-\u9fff]{2,12}")
+_CASE_SUPPORT_STOPWORDS = {
+    "问题",
+    "背景资料",
+    "案例题",
+    "案例",
+    "工程",
+    "施工",
+    "项目",
+    "计算",
+    "列式",
+    "步骤",
+    "多少",
+    "万元",
+    "亿元",
+    "答出",
+    "说明理由",
+}
 
 
 def _weighted_rrf_fusion(
@@ -208,6 +231,16 @@ class SupabasePipeline:
                 if config.exact_question_enabled and source_plan.search_questions_bank
                 else None
             )
+            case_query_items = (
+                extract_case_subquestion_items(query, max_items=8)
+                if query_shape == "case_like" and exact_probe
+                else []
+            )
+            case_exact_queries = [
+                str(item.get("prompt") or "").strip()
+                for item in case_query_items
+                if isinstance(item, dict) and str(item.get("prompt") or "").strip()
+            ]
             primary_queries = (
                 expand_query_variants(query, max_variants=config.max_query_variants)
                 if config.query_expansion_enabled
@@ -223,10 +256,14 @@ class SupabasePipeline:
                         and config.exact_question_text_first
                         and len(exact_probe.query) <= config.exact_question_max_text_len
                     ):
+                        exact_text_candidates = [exact_probe.query]
+                        for candidate in case_exact_queries:
+                            if candidate not in exact_text_candidates:
+                                exact_text_candidates.append(candidate)
                         exact_text_task = asyncio.create_task(
-                            self._search_exact_question_text(
+                            self._search_exact_question_text_batch(
                                 client=client,
-                                probe_query=exact_probe.query,
+                                probe_queries=exact_text_candidates,
                                 allowed_question_types=exact_probe.allowed_question_types,
                                 original_query=query,
                                 option_validation_required=exact_probe.option_validation_required,
@@ -248,18 +285,20 @@ class SupabasePipeline:
                     )
                     primary_plan = await primary_plan_task
                     if exact_text_task is not None:
-                        exact_text_rows = await exact_text_task
-                        if exact_text_rows:
-                            exact_text_plans.append(
-                                {
-                                    "phase": "primary",
-                                    "group_name": "question_exact_text",
-                                    "query": exact_probe.query if exact_probe else query,
-                                    "query_index": 0,
-                                    "query_weight": 1.0,
-                                    "results": exact_text_rows,
-                                }
-                            )
+                        exact_text_batches = await exact_text_task
+                        for batch_index, batch in enumerate(exact_text_batches):
+                            exact_text_rows = batch.get("results") if isinstance(batch, dict) else None
+                            if exact_text_rows:
+                                exact_text_plans.append(
+                                    {
+                                        "phase": "primary",
+                                        "group_name": "question_exact_text",
+                                        "query": str(batch.get("query") or exact_probe.query if exact_probe else query),
+                                        "query_index": batch_index,
+                                        "query_weight": 1.0,
+                                        "results": exact_text_rows,
+                                    }
+                                )
             except Exception as exc:
                 observability.update_observation(
                     observation,
@@ -282,6 +321,7 @@ class SupabasePipeline:
             question_like=question_like,
             config=config,
         )
+        second_pass_plan: list[dict[str, Any]] = []
 
         second_pass_queries: list[str] = []
         has_exact_question_hit = any(
@@ -289,20 +329,32 @@ class SupabasePipeline:
             and bool(plan.get("results"))
             for plan in [*exact_text_plans, *primary_plan]
         )
+        should_force_case_supplement = query_shape == "case_like"
         if (
             config.second_pass_enabled
-            and not has_exact_question_hit
-            and should_run_second_pass(
-            query=query,
-            results=fused,
-            top_k=config.top_k,
-            min_hits=config.second_pass_min_hits,
-            max_dup_ratio=config.second_pass_max_dup_ratio,
+            and (
+                should_force_case_supplement
+                or (
+                    not has_exact_question_hit
+                    and should_run_second_pass(
+                        query=query,
+                        results=fused,
+                        top_k=config.top_k,
+                        min_hits=config.second_pass_min_hits,
+                        max_dup_ratio=config.second_pass_max_dup_ratio,
+                    )
+                )
             )
         ):
+            second_pass_budget = config.second_pass_max_queries
+            if should_force_case_supplement:
+                second_pass_budget = max(
+                    config.second_pass_max_queries,
+                    min(5, len(extract_case_subquestion_items(query, max_items=6)) or 3),
+                )
             second_pass_queries = build_second_pass_queries(
                 query,
-                max_queries=config.second_pass_max_queries,
+                max_queries=second_pass_budget,
             )
             second_pass_queries = [item for item in second_pass_queries if item not in primary_queries]
             if second_pass_queries:
@@ -330,14 +382,22 @@ class SupabasePipeline:
                 except Exception as exc:
                     self.logger.warning(f"Supabase second-pass retrieval failed: {exc}")
 
+        all_plans = [*exact_text_plans, *primary_plan, *second_pass_plan]
+        exact_question = self._augment_case_exact_question_with_query(
+            self._extract_exact_question_payload(all_plans),
+            query=query,
+            query_shape=query_shape,
+        )
         fused = dedupe_ranked_results(fused, max_items=config.fetch_count * 2)
         enriched = await self._hydrate_sources(fused[: config.fetch_count], config=config)
+        enriched = self._filter_partial_case_results(enriched, exact_question=exact_question)
         enriched = _enforce_doc_diversity(enriched, max_per_document=config.max_per_document)
         reranked = await self._rerank_results(
             query=query,
             results=enriched,
             config=config,
         )
+        reranked = self._filter_partial_case_results(reranked, exact_question=exact_question)
         final_results = dedupe_ranked_results(reranked, max_items=config.top_k)
 
         content_blocks = [str(item.get("rag_content") or "").strip() for item in final_results]
@@ -363,7 +423,6 @@ class SupabasePipeline:
             "sources": sources,
             "provider": "supabase",
         }
-        exact_question = self._extract_exact_question_payload([*exact_text_plans, *primary_plan])
         if exact_question:
             payload["exact_question"] = exact_question
         observability.update_observation(
@@ -405,7 +464,7 @@ class SupabasePipeline:
                     ),
                     "hit_groups": [
                         str(plan.get("group_name") or "")
-                        for plan in [*exact_text_plans, *primary_plan]
+                        for plan in all_plans
                         if plan.get("group_name") in {"question_exact_text", "question_exact_vector"}
                         and bool(plan.get("results"))
                     ],
@@ -886,6 +945,34 @@ class SupabasePipeline:
                     ]
         return []
 
+    async def _search_exact_question_text_batch(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        probe_queries: list[str],
+        allowed_question_types: list[str],
+        original_query: str,
+        option_validation_required: bool,
+        config: SupabaseSearchConfig,
+    ) -> list[dict[str, Any]]:
+        batches: list[dict[str, Any]] = []
+        seen_queries: set[str] = set()
+        for candidate in probe_queries:
+            clean = str(candidate or "").strip()
+            if not clean or clean in seen_queries:
+                continue
+            seen_queries.add(clean)
+            rows = await self._search_exact_question_text(
+                client=client,
+                probe_query=clean,
+                allowed_question_types=allowed_question_types,
+                original_query=original_query,
+                option_validation_required=option_validation_required,
+                config=config,
+            )
+            batches.append({"query": clean, "results": rows})
+        return batches
+
     async def _search_exact_question_text_direct(
         self,
         *,
@@ -1041,9 +1128,12 @@ class SupabasePipeline:
         rag_content = f"【题目】{stem}\n【选项】{options}\n【答案】{answer}\n【解析】{analysis}".strip()
         return {
             "id": row.get("id"),
+            "original_id": row.get("original_id") or "",
             "chunk_id": f"question-{row.get('id')}",
             "card_title": f"题目: {stem[:40]}" if stem else "题目",
             "rag_content": rag_content,
+            "stem": row.get("stem") or "",
+            "question_stem": row.get("question_stem") or "",
             "node_code": row.get("node_code") or "",
             "source_type": row.get("source_type") or "exam",
             "content_type": "question",
@@ -1054,9 +1144,135 @@ class SupabasePipeline:
             "correct_answer": row.get("correct_answer"),
             "analysis": row.get("analysis"),
             "question_type": row.get("question_type") or "",
+            "background_context": row.get("background_context"),
+            "parent_id": row.get("parent_id"),
+            "source_chunk_id": row.get("source_chunk_id") or "",
+            "grading_rubric": row.get("grading_rubric"),
+            "structured_rules": row.get("structured_rules"),
+            "logic_rule": row.get("logic_rule"),
             "_source_group": source_group,
             "_source_table": "questions_bank",
         }
+
+    @staticmethod
+    def _detect_answer_kind(question_type: Any, correct_answer: Any, options: Any) -> str:
+        normalized_type = str(question_type or "").strip().lower()
+        answer_text = str(correct_answer or "").strip()
+        if "case" in normalized_type:
+            return "case_study"
+        if options not in (None, "", [], {}):
+            return "mcq"
+        if any(marker in answer_text for marker in ("1.", "1、", "1．", "\n2.", "\n2、")):
+            return "case_bundle"
+        if answer_text:
+            return "free_text"
+        return "unknown"
+
+    @staticmethod
+    def _build_case_authority_bundle(
+        *,
+        row: dict[str, Any],
+        exact_stem: str,
+        correct_answer: Any,
+        analysis: Any,
+    ) -> dict[str, Any] | None:
+        answer_text = str(correct_answer or "").strip()
+        analysis_text = str(analysis or "").strip()
+        source_surface = str(row.get("stem") or row.get("question_stem") or exact_stem or "").strip()
+        row_subquestions = extract_case_subquestion_items(source_surface, max_items=8)
+        if not row_subquestions:
+            return None
+
+        covered: list[dict[str, Any]] = []
+        first = row_subquestions[0]
+        covered.append(
+            {
+                "display_index": first.get("display_index") or "1",
+                "prompt": first.get("prompt") or "",
+                "surface": first.get("surface") or "",
+                "authoritative_answer": answer_text,
+                "analysis": analysis_text,
+                "coverage": "exact_question",
+            }
+        )
+        return {
+            "coverage_state": "single_subquestion_only",
+            "covered_subquestions": covered,
+            "covered_indexes": [item["display_index"] for item in covered if item.get("display_index")],
+            "raw_subquestion_count": len(row_subquestions),
+        }
+
+    @staticmethod
+    def _case_support_tokens(text: str) -> list[str]:
+        tokens: list[str] = []
+        for token in _CASE_SUPPORT_TOKEN_RE.findall(str(text or "")):
+            clean = str(token or "").strip()
+            if not clean or clean in _CASE_SUPPORT_STOPWORDS:
+                continue
+            if clean not in tokens:
+                tokens.append(clean)
+        return tokens
+
+    def _matches_missing_case_prompt(
+        self,
+        item: dict[str, Any],
+        missing_subquestions: list[dict[str, Any]],
+    ) -> bool:
+        haystack = " ".join(
+            [
+                str(item.get("card_title") or ""),
+                str(item.get("rag_content") or ""),
+                str(item.get("source") or ""),
+            ]
+        )
+        lowered = haystack.lower()
+        for prompt in missing_subquestions:
+            if not isinstance(prompt, dict):
+                continue
+            tokens = self._case_support_tokens(str(prompt.get("prompt") or ""))
+            if not tokens:
+                continue
+            overlap = 0
+            for token in tokens[:8]:
+                if token.lower() in lowered:
+                    overlap += 1
+            if overlap >= min(2, len(tokens)):
+                return True
+        return False
+
+    def _filter_partial_case_results(
+        self,
+        results: list[dict[str, Any]],
+        *,
+        exact_question: dict[str, Any] | None,
+    ) -> list[dict[str, Any]]:
+        if not results or not isinstance(exact_question, dict):
+            return results
+        if str(exact_question.get("answer_kind") or "").strip().lower() != "case_study":
+            return results
+        missing_subquestions = exact_question.get("missing_subquestions")
+        if not isinstance(missing_subquestions, list) or not missing_subquestions:
+            return results
+
+        exact_chunk_id = str(exact_question.get("chunk_id") or "").strip()
+        filtered: list[dict[str, Any]] = []
+        for item in results:
+            chunk_id = str(item.get("chunk_id") or item.get("id") or "").strip()
+            source_type = str(item.get("source_type") or "").strip().lower()
+            source_table = str(item.get("_source_table") or "").strip().lower()
+            if chunk_id and chunk_id == exact_chunk_id:
+                filtered.append(item)
+                continue
+            if source_type in {"standard", "textbook"}:
+                filtered.append(item)
+                continue
+            if source_table == "kb_chunks" and source_type not in {"exam"}:
+                filtered.append(item)
+                continue
+            if source_table == "questions_bank" and self._matches_missing_case_prompt(item, missing_subquestions):
+                filtered.append(item)
+                continue
+        return filtered or results
 
     def _extract_exact_question_payload(
         self,
@@ -1076,22 +1292,147 @@ class SupabasePipeline:
         if not candidates:
             return None
 
+        case_rows: list[dict[str, Any]] = []
+        for plan in candidates:
+            for item in plan.get("results") or []:
+                row = dict(item or {})
+                if "case" in str(row.get("question_type") or "").strip().lower():
+                    row["_plan_query"] = str(plan.get("query") or "")
+                    case_rows.append(row)
+
+        if case_rows:
+            seen_by_index: dict[str, dict[str, Any]] = {}
+            ordered_rows: list[dict[str, Any]] = []
+            for row in case_rows:
+                prompt_surface = str(row.get("stem") or row.get("question_stem") or row.get("card_title") or "")
+                sub_items = extract_case_subquestion_items(prompt_surface, max_items=2)
+                item = sub_items[0] if sub_items else {}
+                display_index = str(item.get("display_index") or "").strip()
+                prompt = str(item.get("prompt") or row.get("_plan_query") or "").strip()
+                key = display_index or prompt
+                if not key:
+                    continue
+                current_score = float(row.get("similarity") or row.get("score") or 0.0)
+                existing = seen_by_index.get(key)
+                existing_score = float(existing.get("similarity") or existing.get("score") or 0.0) if existing else -1.0
+                if existing is None or current_score >= existing_score:
+                    row["_display_index"] = display_index
+                    row["_prompt"] = prompt
+                    seen_by_index[key] = row
+            ordered_rows = sorted(
+                seen_by_index.values(),
+                key=lambda item: (
+                    int(str(item.get("_display_index") or "9999")) if str(item.get("_display_index") or "").isdigit() else 9999,
+                    -float(item.get("similarity") or item.get("score") or 0.0),
+                ),
+            )
+            selected_row = ordered_rows[0] if ordered_rows else {}
+            covered_subquestions = [
+                {
+                    "display_index": str(row.get("_display_index") or "").strip() or str(index + 1),
+                    "prompt": str(row.get("_prompt") or "").strip(),
+                    "surface": str(row.get("stem") or row.get("question_stem") or "").strip(),
+                    "authoritative_answer": row.get("correct_answer") or "",
+                    "analysis": row.get("analysis") or "",
+                    "coverage": "exact_question",
+                    "question_id": row.get("id") or "",
+                }
+                for index, row in enumerate(ordered_rows)
+            ]
+            return {
+                "id": selected_row.get("id") or "",
+                "chunk_id": selected_row.get("chunk_id") or "",
+                "stem": str(selected_row.get("card_title") or "").replace("题目: ", "", 1).strip(),
+                "question_type": selected_row.get("question_type") or "case_study",
+                "correct_answer": selected_row.get("correct_answer") or "",
+                "analysis": selected_row.get("analysis") or "",
+                "options": selected_row.get("options") or "",
+                "source_type": selected_row.get("source_type") or "",
+                "source_group": "question_exact_text",
+                "confidence": max(float(row.get("similarity") or row.get("score") or 0.0) for row in ordered_rows),
+                "answer_kind": "case_study",
+                "matched_question_ids": [row.get("id") for row in ordered_rows if row.get("id") is not None],
+                "covered_subquestions": covered_subquestions,
+                "covered_indexes": [item["display_index"] for item in covered_subquestions if item.get("display_index")],
+                "coverage_state": "multi_subquestion_exact" if len(covered_subquestions) > 1 else "single_subquestion_only",
+                "case_bundle": {
+                    "coverage_state": "multi_subquestion_exact" if len(covered_subquestions) > 1 else "single_subquestion_only",
+                    "covered_subquestions": covered_subquestions,
+                    "covered_indexes": [item["display_index"] for item in covered_subquestions if item.get("display_index")],
+                    "raw_subquestion_count": len(covered_subquestions),
+                },
+            }
+
         selected_plan = candidates[0]
         row = dict((selected_plan.get("results") or [None])[0] or {})
         if not row:
             return None
-        return {
+        stem = str(row.get("card_title") or "").replace("题目: ", "", 1).strip()
+        question_type = row.get("question_type") or ""
+        correct_answer = row.get("correct_answer") or ""
+        analysis = row.get("analysis") or ""
+        options = row.get("options") or ""
+        payload: dict[str, Any] = {
             "id": row.get("id") or row.get("chunk_id") or "",
             "chunk_id": row.get("chunk_id") or "",
-            "stem": str(row.get("card_title") or "").replace("题目: ", "", 1).strip(),
-            "question_type": row.get("question_type") or "",
-            "correct_answer": row.get("correct_answer") or "",
-            "analysis": row.get("analysis") or "",
-            "options": row.get("options") or "",
+            "stem": stem,
+            "question_type": question_type,
+            "correct_answer": correct_answer,
+            "analysis": analysis,
+            "options": options,
             "source_type": row.get("source_type") or "",
             "source_group": str(selected_plan.get("group_name") or row.get("_source_group") or ""),
             "confidence": float(row.get("similarity") or row.get("score") or 0.0),
+            "answer_kind": self._detect_answer_kind(question_type, correct_answer, options),
         }
+        case_bundle = None
+        if payload["answer_kind"] == "case_study":
+            case_bundle = self._build_case_authority_bundle(
+                row=row,
+                exact_stem=stem,
+                correct_answer=correct_answer,
+                analysis=analysis,
+            )
+        if case_bundle:
+            payload["case_bundle"] = case_bundle
+            payload["covered_subquestions"] = case_bundle.get("covered_subquestions") or []
+            payload["coverage_state"] = case_bundle.get("coverage_state") or ""
+            payload["covered_indexes"] = case_bundle.get("covered_indexes") or []
+        return payload
+
+    @staticmethod
+    def _augment_case_exact_question_with_query(
+        exact_question: dict[str, Any] | None,
+        *,
+        query: str,
+        query_shape: str,
+    ) -> dict[str, Any] | None:
+        if not isinstance(exact_question, dict) or query_shape != "case_like":
+            return exact_question
+        query_items = extract_case_subquestion_items(query, max_items=8)
+        if not query_items:
+            return exact_question
+        covered_indexes = {
+            str(item.get("display_index") or "").strip()
+            for item in exact_question.get("covered_subquestions") or []
+            if str(item.get("display_index") or "").strip()
+        }
+        exact_question["query_subquestions"] = query_items
+        exact_question["query_subquestion_count"] = len(query_items)
+        exact_question["missing_subquestions"] = [
+            item for item in query_items
+            if str(item.get("display_index") or "").strip() not in covered_indexes
+        ]
+        exact_question["coverage_ratio"] = round(
+            len(covered_indexes) / max(len(query_items), 1),
+            4,
+        )
+        if isinstance(exact_question.get("case_bundle"), dict):
+            exact_question["case_bundle"]["query_subquestions"] = query_items
+            exact_question["case_bundle"]["missing_subquestions"] = exact_question["missing_subquestions"]
+            exact_question["case_bundle"]["query_subquestion_count"] = len(query_items)
+            exact_question["case_bundle"]["coverage_ratio"] = exact_question["coverage_ratio"]
+        return exact_question
 
     async def _hydrate_sources(
         self,

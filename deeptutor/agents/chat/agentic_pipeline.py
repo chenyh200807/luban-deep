@@ -890,6 +890,23 @@ class AgenticChatPipeline:
             )
 
         if not raw_tool_calls:
+            if self._should_force_rag_grounding(context, enabled_tools):
+                tool_traces = await self._run_forced_rag_fallback(
+                    context=context,
+                    thinking_text=thinking_text,
+                    stream=stream,
+                    trace_meta=trace_meta,
+                )
+                await stream.progress(
+                    "",
+                    source="chat",
+                    stage="acting",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "complete"},
+                    ),
+                )
+                return tool_traces
             await stream.progress(
                 self._text(
                     zh="本轮不需要调用工具。",
@@ -1106,6 +1123,23 @@ class AgenticChatPipeline:
                     stage="acting",
                     metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_output"}),
                 )
+            if self._should_force_rag_grounding(context, enabled_tools):
+                tool_traces = await self._run_forced_rag_fallback(
+                    context=context,
+                    thinking_text=thinking_text,
+                    stream=stream,
+                    trace_meta=trace_meta,
+                )
+                await stream.progress(
+                    "",
+                    source="chat",
+                    stage="acting",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "complete"},
+                    ),
+                )
+                return tool_traces
             await stream.progress(
                 self._text(
                     zh="本轮不需要调用工具。",
@@ -1574,6 +1608,8 @@ class AgenticChatPipeline:
         if tool_name == "rag" and context.knowledge_bases:
             kwargs.setdefault("kb_name", context.knowledge_bases[0])
             kwargs.setdefault("mode", "hybrid")
+            if not str(kwargs.get("query", "") or "").strip():
+                kwargs["query"] = context.user_message
         elif tool_name == "code_execution":
             kwargs.setdefault("intent", context.user_message)
             kwargs.setdefault("timeout", 30)
@@ -1860,13 +1896,51 @@ class AgenticChatPipeline:
             exact = metadata.get("exact_question")
             if not isinstance(exact, dict):
                 continue
-            authoritative_answer = _normalize_mcq_answer_letters(exact.get("correct_answer"))
-            if not authoritative_answer:
-                continue
             normalized = dict(exact)
-            normalized["authoritative_answer"] = authoritative_answer
             normalized["confidence"] = float(exact.get("confidence") or 0.0)
-            return normalized
+            case_bundle = normalized.get("case_bundle")
+            covered_subquestions = normalized.get("covered_subquestions") or []
+            answer_kind = str(normalized.get("answer_kind") or "").strip().lower()
+            if case_bundle or covered_subquestions or answer_kind in {"case_study", "case_bundle"}:
+                if isinstance(case_bundle, dict):
+                    normalized["covered_subquestions"] = (
+                        case_bundle.get("covered_subquestions") or covered_subquestions or []
+                    )
+                    normalized["missing_subquestions"] = (
+                        case_bundle.get("missing_subquestions")
+                        or normalized.get("missing_subquestions")
+                        or []
+                    )
+                    normalized["query_subquestions"] = (
+                        case_bundle.get("query_subquestions")
+                        or normalized.get("query_subquestions")
+                        or []
+                    )
+                    normalized["coverage_ratio"] = float(
+                        case_bundle.get("coverage_ratio")
+                        or normalized.get("coverage_ratio")
+                        or 0.0
+                    )
+                    normalized["coverage_state"] = str(
+                        case_bundle.get("coverage_state")
+                        or normalized.get("coverage_state")
+                        or "partial"
+                    )
+                if normalized.get("covered_subquestions"):
+                    normalized["authority_kind"] = "case_study"
+                    return normalized
+
+            authoritative_answer = _normalize_mcq_answer_letters(exact.get("correct_answer"))
+            if authoritative_answer:
+                normalized["authority_kind"] = "mcq"
+                normalized["authoritative_answer"] = authoritative_answer
+                return normalized
+
+            free_text_answer = str(exact.get("correct_answer") or "").strip()
+            if free_text_answer:
+                normalized["authority_kind"] = "free_text"
+                normalized["authoritative_answer"] = free_text_answer
+                return normalized
         return None
 
     def _should_buffer_authoritative_response(
@@ -1880,6 +1954,53 @@ class AgenticChatPipeline:
         return self._extract_exact_question_authority(tool_traces) is not None
 
     def _exact_question_response_contract(self, authority: dict[str, Any]) -> str:
+        authority_kind = str(authority.get("authority_kind") or "").strip().lower()
+        if authority_kind == "case_study":
+            covered = authority.get("covered_subquestions") or []
+            missing = authority.get("missing_subquestions") or []
+            coverage_state = str(authority.get("coverage_state") or "partial").strip()
+            covered_lines = [
+                (
+                    f"- 第{item.get('display_index') or '?'}问："
+                    f"{str(item.get('prompt') or '').strip() or '(unknown)'}\n"
+                    f"  标准答案：{str(item.get('authoritative_answer') or '').strip() or '(none)'}\n"
+                    f"  解析：{str(item.get('analysis') or '').strip() or '(none)'}"
+                )
+                for item in covered
+                if isinstance(item, dict)
+            ]
+            missing_lines = [
+                f"- 第{item.get('display_index') or '?'}问：{str(item.get('prompt') or '').strip() or '(unknown)'}"
+                for item in missing
+                if isinstance(item, dict)
+            ]
+            return self._text(
+                zh=(
+                    "已命中题库案例原题，但当前权威答案只覆盖部分小问。以下信息具有最高优先级，必须严格服从：\n"
+                    f"- 命中题目：{str(authority.get('stem') or '').strip() or '(unknown)'}\n"
+                    f"- 覆盖状态：{coverage_state}\n"
+                    f"- 已覆盖小问：\n{chr(10).join(covered_lines) if covered_lines else '- (none)'}\n"
+                    f"- 未覆盖小问：\n{chr(10).join(missing_lines) if missing_lines else '- (none)'}\n"
+                    "要求：\n"
+                    "1. 已覆盖小问必须严格按题库标准答案作答，不得改写事实结论。\n"
+                    "2. 未覆盖小问只能根据已召回资料和明确计算推导作答；如果证据不足，必须谨慎表达，不能假装题库已覆盖。\n"
+                    "3. 最终输出仍需完整按第1问、第2问……组织，不能只回答已覆盖部分。\n"
+                    "4. 不要提到内部纠偏、命中原题或覆盖率。"
+                ),
+                en=(
+                    "An exact case-study match was found, but the authoritative answer only covers part of the subquestions.\n"
+                    f"- Matched stem: {str(authority.get('stem') or '').strip() or '(unknown)'}\n"
+                    f"- Coverage: {coverage_state}\n"
+                    f"- Covered subquestions:\n{chr(10).join(covered_lines) if covered_lines else '- (none)'}\n"
+                    f"- Missing subquestions:\n{chr(10).join(missing_lines) if missing_lines else '- (none)'}\n"
+                    "Rules:\n"
+                    "1. Covered subquestions must follow the authoritative answers exactly.\n"
+                    "2. Missing subquestions may only be answered from grounded evidence or explicit calculation.\n"
+                    "3. Keep the final answer structured by subquestion.\n"
+                    "4. Do not mention internal correction or exact-match coverage."
+                ),
+            )
+
         answer = str(authority.get("authoritative_answer") or "").strip()
         stem = str(authority.get("stem") or "").strip()
         analysis = str(authority.get("analysis") or "").strip()
@@ -1923,6 +2044,16 @@ class AgenticChatPipeline:
         if not authority or answer_type != ANSWER_TYPE_PROBLEM:
             return content
 
+        authority_kind = str(authority.get("authority_kind") or "").strip().lower()
+        if authority_kind != "mcq":
+            rewritten = await self._rewrite_exact_question_response(
+                context=context,
+                content=content,
+                authority=authority,
+                max_tokens=max_tokens,
+            )
+            return rewritten or content
+
         authoritative_answer = str(authority.get("authoritative_answer") or "").strip()
         current_answer, _ = _extract_final_answer_letters(content)
         if current_answer == authoritative_answer:
@@ -1949,32 +2080,54 @@ class AgenticChatPipeline:
         authority: dict[str, Any],
         max_tokens: int,
     ) -> str:
+        authority_kind = str(authority.get("authority_kind") or "").strip().lower()
         system = self._text(
             zh=(
-                f"你是 {BRAND_NAME} 的选择题权威纠偏器。"
-                "你的任务是把草稿修正成与题库原题完全一致的最终答复。"
+                f"你是 {BRAND_NAME} 的题库权威纠偏器。"
+                "你的任务是把草稿修正成与题库原题和已召回证据一致的最终答复。"
                 "只输出修正后的最终用户答复，不解释修正过程。"
             ),
             en=(
-                f"You are {BRAND_NAME}'s authoritative MCQ correction layer. "
-                "Rewrite the draft so it is fully consistent with the exact matched question. "
+                f"You are {BRAND_NAME}'s authoritative correction layer. "
+                "Rewrite the draft so it is fully consistent with the exact matched question and grounded evidence. "
                 "Output only the corrected final user-facing answer."
             ),
         )
         authority_block = self._exact_question_response_contract(authority)
+        rewrite_requirement = self._text(
+            zh=(
+                "请重写整段最终答复，使答案、解析、判断依据全部与题库原题和已召回证据一致。"
+                "如果草稿里存在错误选项、错误判断、错误计算或与权威答案冲突的表述，必须全部改正。"
+            ),
+            en=(
+                "Rewrite the full answer so it is fully aligned with the exact match and grounded evidence. "
+                "Correct any wrong option, conclusion, or calculation."
+            ),
+        )
+        if authority_kind == "case_study":
+            rewrite_requirement = self._text(
+                zh=(
+                    "请重写整段最终答复，并严格按第1问、第2问……逐条作答。"
+                    "已覆盖的小问必须与题库标准答案完全一致；未覆盖的小问只能根据已召回证据和明确计算推导作答，不能编造。"
+                    "对计算类小问必须列出关键算式和结果。"
+                ),
+                en=(
+                    "Rewrite the answer by subquestion. Covered subquestions must match the authoritative answer exactly. "
+                    "Missing subquestions may only be answered from grounded evidence or explicit calculation."
+                ),
+            )
         user = self._text(
             zh=(
                 f"用户原题：\n{context.user_message}\n\n"
                 f"{self._labeled_block('当前草稿', content)}\n\n"
                 f"{authority_block}\n\n"
-                "请重写整段最终答复，使答案、解析、判断依据全部与题库原题一致。"
-                "如果草稿里存在错误选项、错误判断或与正确答案冲突的表述，必须全部改正。"
+                f"{rewrite_requirement}"
             ),
             en=(
                 f"Original user question:\n{context.user_message}\n\n"
                 f"{self._labeled_block('Current Draft', content)}\n\n"
                 f"{authority_block}\n\n"
-                "Rewrite the whole answer so the answer choice and explanation are fully aligned with the exact matched question."
+                f"{rewrite_requirement}"
             ),
         )
         return await self._complete_messages(
@@ -2230,6 +2383,15 @@ class AgenticChatPipeline:
                     return value
         return {}
 
+    def _knowledge_chain_profile(self, context: UnifiedContext) -> str:
+        for container in (context.metadata, context.config_overrides):
+            if not isinstance(container, dict):
+                continue
+            value = str(container.get("knowledge_chain_profile") or "").strip().lower()
+            if value:
+                return value
+        return ""
+
     def _is_exam_tutor_profile(self, context: UnifiedContext) -> bool:
         hints = self._interaction_hints(context)
         profile = str(
@@ -2244,6 +2406,8 @@ class AgenticChatPipeline:
         context: UnifiedContext,
         enabled_tools: list[str],
     ) -> bool:
+        if self._knowledge_chain_profile(context) == "construction_exam_grounded":
+            return False
         if enabled_tools:
             return False
         if context.knowledge_bases:
@@ -2251,6 +2415,95 @@ class AgenticChatPipeline:
         if not self._is_exam_tutor_profile(context):
             return False
         return self._is_smart_tutor_mode(context)
+
+    def _should_force_rag_grounding(
+        self,
+        context: UnifiedContext,
+        enabled_tools: list[str],
+    ) -> bool:
+        if self._knowledge_chain_profile(context) != "construction_exam_grounded":
+            return False
+        if not context.knowledge_bases:
+            return False
+        if "rag" not in {str(name or "").strip().lower() for name in enabled_tools}:
+            return False
+        if self._followup_question_context(context):
+            return True
+        answer_type = self._infer_answer_type(context.user_message)
+        if answer_type in {ANSWER_TYPE_KNOWLEDGE, ANSWER_TYPE_PROBLEM}:
+            return True
+        return self._is_exam_tutor_profile(context) and len(str(context.user_message or "").strip()) >= 40
+
+    async def _run_forced_rag_fallback(
+        self,
+        *,
+        context: UnifiedContext,
+        thinking_text: str,
+        stream: StreamBus,
+        trace_meta: dict[str, Any],
+    ) -> list[ToolTrace]:
+        await stream.progress(
+            self._text(
+                zh="TutorBot 默认知识链要求本轮先做知识召回，已自动补做 RAG。",
+                en="The TutorBot knowledge-chain policy requires grounding first, so RAG was triggered automatically.",
+            ),
+            source="chat",
+            stage="acting",
+            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "progress"}),
+        )
+        tool_name = "rag"
+        tool_call_id = "chat-forced-rag"
+        tool_args = self._augment_tool_kwargs(tool_name, {}, context, thinking_text)
+        await stream.tool_call(
+            tool_name=tool_name,
+            args=tool_args,
+            source="chat",
+            stage="acting",
+            metadata=self._tool_trace_metadata(
+                trace_meta,
+                context=context,
+                tool_call_id=tool_call_id,
+                tool_name=tool_name,
+                tool_index=0,
+            ),
+        )
+        result = await self._execute_tool_call(
+            tool_name,
+            tool_args,
+            stream=stream,
+            retrieve_meta=self._retrieve_trace_metadata(
+                trace_meta,
+                context=context,
+                tool_call_id=tool_call_id,
+                tool_name=tool_name,
+                tool_index=0,
+                tool_args=tool_args,
+            ),
+        )
+        await stream.tool_result(
+            tool_name=tool_name,
+            result=result["result_text"],
+            source="chat",
+            stage="acting",
+            metadata=self._tool_trace_metadata(
+                trace_meta,
+                context=context,
+                tool_call_id=tool_call_id,
+                tool_name=tool_name,
+                tool_index=0,
+                trace_kind="tool_result",
+            ),
+        )
+        return [
+            ToolTrace(
+                name=tool_name,
+                arguments=tool_args,
+                result=result["result_text"],
+                success=bool(result["success"]),
+                sources=result["sources"],
+                metadata=result["metadata"],
+            )
+        ]
 
     def _teaching_mode_overlay(self, context: UnifiedContext) -> str:
         if not self._is_exam_tutor_profile(context):
@@ -2309,12 +2562,28 @@ class AgenticChatPipeline:
 
         blocks: list[str] = []
         for idx, trace in enumerate(tool_traces, start=1):
+            metadata = trace.metadata if isinstance(trace.metadata, dict) else {}
+            exact = metadata.get("exact_question") if isinstance(metadata, dict) else None
+            exact_lines: list[str] = []
+            if isinstance(exact, dict):
+                exact_summary = {
+                    "id": exact.get("id"),
+                    "question_type": exact.get("question_type"),
+                    "answer_kind": exact.get("answer_kind"),
+                    "source_group": exact.get("source_group"),
+                    "confidence": exact.get("confidence"),
+                    "coverage_state": exact.get("coverage_state"),
+                    "covered_indexes": exact.get("covered_indexes"),
+                    "query_subquestion_count": exact.get("query_subquestion_count"),
+                }
+                exact_lines.append(f"exact_question: {json.dumps(exact_summary, ensure_ascii=False)}")
             blocks.append(
                 "\n".join(
                     [
                         f"{idx}. {trace.name}",
                         f"arguments: {json.dumps(trace.arguments, ensure_ascii=False)}",
                         f"success: {trace.success}",
+                        *exact_lines,
                         f"result: {self._truncate_tool_result(trace.result)}",
                     ]
                 )

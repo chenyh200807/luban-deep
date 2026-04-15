@@ -7,6 +7,7 @@ from deeptutor.services.rag.pipelines.supabase_strategy import (
     classify_query_shape,
     dedupe_ranked_results,
     expand_query_variants,
+    extract_case_subquestion_items,
     extract_standard_codes,
     prepare_exact_question_probe,
     resolve_group_weights,
@@ -225,6 +226,23 @@ def test_expand_query_variants_extracts_case_subquestions() -> None:
 
     assert any("资格预审" in item for item in variants)
     assert any("完全成本法" in item for item in variants)
+
+
+def test_extract_case_subquestion_items_preserves_indices() -> None:
+    query = """
+背景资料：
+某旧城改造工程，建筑面积 20.50 万平方米，总投资 12.80 亿元。
+问题：
+1. 通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？
+2. 按照完全成本法计算的工程施工项目成本是多少亿元？
+3. 分步骤列式计算钢结构装饰架的造价是多少万元？
+"""
+
+    items = extract_case_subquestion_items(query, max_items=5)
+
+    assert [item["display_index"] for item in items] == ["1", "2", "3"]
+    assert "资格预审" in items[0]["prompt"]
+    assert "完全成本法" in items[1]["prompt"]
 
 
 def test_validate_exact_question_options_requires_overlap() -> None:

@@ -71,6 +71,12 @@ class ModelCatalogService:
 
     def save(self, catalog: dict[str, Any]) -> dict[str, Any]:
         normalized = deepcopy(catalog)
+        existing = None
+        if self.path.exists():
+            with open(self.path, "r", encoding="utf-8") as handle:
+                existing = json.load(handle) or {}
+        if existing:
+            self._preserve_existing_secrets(normalized, existing)
         self._normalize(normalized)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.path, "w", encoding="utf-8") as handle:
@@ -82,6 +88,22 @@ class ModelCatalogService:
         rendered = get_env_store().render_from_catalog(current)
         get_env_store().write(rendered)
         return rendered
+
+    def sanitize(self, catalog: dict[str, Any] | None = None) -> dict[str, Any]:
+        sanitized = deepcopy(catalog or self.load())
+        services = sanitized.get("services", {})
+        for service in services.values():
+            profiles = service.get("profiles")
+            if not isinstance(profiles, list):
+                continue
+            for profile in profiles:
+                if not isinstance(profile, dict):
+                    continue
+                api_key = str(profile.get("api_key") or "").strip()
+                profile["api_key_configured"] = bool(api_key)
+                profile["api_key_last4"] = api_key[-4:] if len(api_key) >= 4 else ""
+                profile["api_key"] = ""
+        return sanitized
 
     def _build_from_env(self) -> dict[str, Any]:
         summary = get_env_store().as_summary()
@@ -406,6 +428,37 @@ class ModelCatalogService:
                     active_profile = self.get_active_profile(catalog, service_name)
                     if active_profile and active_profile.get("models"):
                         service["active_model_id"] = active_profile["models"][0]["id"]
+
+    def _preserve_existing_secrets(
+        self,
+        incoming: dict[str, Any],
+        existing: dict[str, Any],
+    ) -> None:
+        incoming_services = incoming.setdefault("services", {})
+        existing_services = existing.get("services", {})
+        for service_name in ("llm", "embedding", "search"):
+            default_service = _search_shell() if service_name == "search" else _service_shell()
+            incoming_service = incoming_services.setdefault(service_name, deepcopy(default_service))
+            existing_service = existing_services.get(service_name, {})
+            existing_profiles = {
+                str(profile.get("id") or ""): profile
+                for profile in existing_service.get("profiles", [])
+                if isinstance(profile, dict) and str(profile.get("id") or "").strip()
+            }
+            for profile in incoming_service.get("profiles", []):
+                if not isinstance(profile, dict):
+                    continue
+                profile_id = str(profile.get("id") or "").strip()
+                if not profile_id:
+                    continue
+                existing_profile = existing_profiles.get(profile_id)
+                if not existing_profile:
+                    continue
+                if str(profile.get("api_key") or "").strip():
+                    continue
+                existing_key = str(existing_profile.get("api_key") or "").strip()
+                if existing_key:
+                    profile["api_key"] = existing_key
 
     def get_active_profile(self, catalog: dict[str, Any], service_name: str) -> dict[str, Any] | None:
         service = catalog.get("services", {}).get(service_name, {})

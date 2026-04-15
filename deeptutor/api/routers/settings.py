@@ -12,17 +12,18 @@ import json
 import time
 from typing import Any, List, Literal, Optional
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from deeptutor.api.dependencies import require_admin
 from deeptutor.services.config import get_config_test_runner, get_model_catalog_service
 from deeptutor.services.embedding.client import reset_embedding_client
 from deeptutor.services.llm.client import reset_llm_client
 from deeptutor.services.llm.config import clear_llm_config_cache
 from deeptutor.services.path_service import get_path_service
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 _path_service = get_path_service()
 SETTINGS_FILE = _path_service.get_settings_file("interface")
@@ -117,34 +118,35 @@ def _provider_choices() -> dict[str, list[dict[str, str]]]:
 
 @router.get("")
 async def get_settings():
+    catalog = get_model_catalog_service().load()
     return {
         "ui": load_ui_settings(),
-        "catalog": get_model_catalog_service().load(),
+        "catalog": get_model_catalog_service().sanitize(catalog),
         "providers": _provider_choices(),
     }
 
 
 @router.get("/catalog")
 async def get_catalog():
-    return {"catalog": get_model_catalog_service().load()}
+    catalog = get_model_catalog_service().load()
+    return {"catalog": get_model_catalog_service().sanitize(catalog)}
 
 
 @router.put("/catalog")
 async def update_catalog(payload: CatalogPayload):
     catalog = get_model_catalog_service().save(payload.catalog)
     _invalidate_runtime_caches()
-    return {"catalog": catalog}
+    return {"catalog": get_model_catalog_service().sanitize(catalog)}
 
 
 @router.post("/apply")
 async def apply_catalog(payload: CatalogPayload | None = None):
     catalog = payload.catalog if payload is not None else get_model_catalog_service().load()
-    rendered = get_model_catalog_service().apply(catalog)
+    get_model_catalog_service().apply(catalog)
     _invalidate_runtime_caches()
     return {
         "message": "Catalog applied to the active .env configuration.",
-        "catalog": get_model_catalog_service().load(),
-        "env": rendered,
+        "catalog": get_model_catalog_service().sanitize(),
     }
 
 
@@ -278,7 +280,7 @@ class TourCompletePayload(BaseModel):
 @router.post("/tour/complete")
 async def complete_tour(payload: TourCompletePayload | None = None):
     catalog = payload.catalog if payload and payload.catalog else get_model_catalog_service().load()
-    rendered = get_model_catalog_service().apply(catalog)
+    get_model_catalog_service().apply(catalog)
     _invalidate_runtime_caches()
     now = int(time.time())
     launch_at = now + 3
@@ -301,7 +303,7 @@ async def complete_tour(payload: TourCompletePayload | None = None):
         "message": "Configuration saved. DeepTutor will restart shortly.",
         "launch_at": launch_at,
         "redirect_at": redirect_at,
-        "env": rendered,
+        "catalog": get_model_catalog_service().sanitize(),
     }
 
 

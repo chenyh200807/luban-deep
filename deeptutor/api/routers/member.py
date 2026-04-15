@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from deeptutor.api.dependencies import AuthContext, require_admin
 from deeptutor.services.member_console import get_member_console_service
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_admin)])
 service = get_member_console_service()
 
 
@@ -97,24 +98,46 @@ async def member_notes(user_id: str, page: int = 1, page_size: int = 20) -> dict
 
 
 @router.post("/{user_id}/notes")
-async def create_member_note(user_id: str, body: NoteCreateRequest) -> dict[str, Any]:
+async def create_member_note(
+    user_id: str,
+    body: NoteCreateRequest,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
     try:
-        return service.add_note(user_id, body.content, channel=body.channel, pinned=body.pinned)
+        return service.add_note(
+            user_id,
+            body.content,
+            channel=body.channel,
+            pinned=body.pinned,
+            operator=current_user.user_id,
+        )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.patch("/notes/{note_id}")
-async def update_member_note(note_id: str, body: NoteUpdateRequest) -> dict[str, Any]:
+async def update_member_note(
+    note_id: str,
+    body: NoteUpdateRequest,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
     try:
-        return service.update_note(note_id, content=body.content, pinned=body.pinned)
+        return service.update_note(
+            note_id,
+            content=body.content,
+            pinned=body.pinned,
+            operator=current_user.user_id,
+        )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.delete("/notes/{note_id}")
-async def delete_member_note(note_id: str) -> dict[str, Any]:
-    deleted = service.delete_note(note_id)
+async def delete_member_note(
+    note_id: str,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    deleted = service.delete_note(note_id, operator=current_user.user_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Unknown note")
     return {"deleted": True}
@@ -138,12 +161,24 @@ async def member_audit_log(
 
 
 @router.post("/grant")
-async def grant_membership(body: GrantRequest) -> dict[str, Any]:
-    return service.grant_subscription(body.user_id, body.days, tier=body.tier, reason=body.reason)
+async def grant_membership(
+    body: GrantRequest,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    return service.grant_subscription(
+        body.user_id,
+        body.days,
+        tier=body.tier,
+        reason=body.reason,
+        operator=current_user.user_id,
+    )
 
 
 @router.post("/update")
-async def update_membership(body: UpdateRequest) -> dict[str, Any]:
+async def update_membership(
+    body: UpdateRequest,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
     return service.update_subscription(
         body.user_id,
         tier=body.tier,
@@ -151,10 +186,17 @@ async def update_membership(body: UpdateRequest) -> dict[str, Any]:
         expire_at=body.expire_at,
         auto_renew=body.auto_renew,
         reason=body.reason,
+        operator=current_user.user_id,
     )
 
 
 @router.post("/revoke")
-async def revoke_membership(body: RevokeRequest) -> dict[str, Any]:
-    return service.revoke_subscription(body.user_id, reason=body.reason)
-
+async def revoke_membership(
+    body: RevokeRequest,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    return service.revoke_subscription(
+        body.user_id,
+        reason=body.reason,
+        operator=current_user.user_id,
+    )

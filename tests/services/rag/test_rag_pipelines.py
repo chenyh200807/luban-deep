@@ -173,3 +173,144 @@ async def test_supabase_search_prioritizes_parallel_exact_question_match(
     assert result["sources"][0]["source_type"] == "textbook_assessment"
     assert result["exact_question"]["chunk_id"] == "question-q-exact"
     assert result["exact_question"]["source_group"] == "question_exact_text"
+
+
+@pytest.mark.asyncio
+async def test_supabase_search_builds_partial_case_authority_bundle(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-key")
+    monkeypatch.setenv("SUPABASE_RAG_ENABLE_RERANK", "false")
+    monkeypatch.setenv("SUPABASE_RAG_SECOND_PASS", "true")
+    monkeypatch.setenv("SUPABASE_RAG_SECOND_PASS_QUERIES", "2")
+
+    class _FakeKbConfigService:
+        def get_kb_config(self, kb_name: str) -> dict[str, object]:
+            _ = kb_name
+            return {}
+
+    monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
+
+    pipeline = supabase_module.SupabasePipeline()
+    captured_queries: list[str] = []
+
+    async def _fake_search_exact_question_text(**kwargs):
+        return [
+            {
+                "id": 9717,
+                "chunk_id": "question-9717",
+                "card_title": "题目: 某旧城改造工程案例题",
+                "stem": "【问题】\n1. 通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？",
+                "rag_content": "【题目】1. 通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？\n【答案】（1）潜在投标人数量较多；（2）合格制、有限数量制。",
+                "source_type": "REAL_EXAM",
+                "score": 0.98,
+                "similarity": 0.98,
+                "question_type": "case_study",
+                "correct_answer": "（1）潜在投标人数量较多；（2）合格制、有限数量制。",
+                "analysis": "第1问标准答案。",
+                "options": "",
+                "_source_group": "question_exact_text",
+                "_source_table": "questions_bank",
+            }
+        ]
+
+    async def _fake_run_query_plan(**kwargs):
+        captured_queries.extend(kwargs["queries"])
+        return [
+            {
+                "phase": kwargs.get("phase", "primary"),
+                "group_name": "questions_bank",
+                "query": kwargs["queries"][0],
+                "query_index": 0,
+                "query_weight": kwargs.get("query_weight", 1.0),
+                "results": [
+                    {
+                        "id": 9717,
+                        "chunk_id": "question-9717",
+                        "card_title": "题目: 1. 通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？",
+                        "stem": "【问题】\n1. 通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？",
+                        "rag_content": "【题目】1. 通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？\n【答案】（1）潜在投标人数量较多；（2）合格制、有限数量制。",
+                        "source_type": "REAL_EXAM",
+                        "score": 0.98,
+                        "similarity": 0.98,
+                        "question_type": "case_study",
+                        "correct_answer": "（1）潜在投标人数量较多；（2）合格制、有限数量制。",
+                        "analysis": "第1问标准答案。",
+                        "options": "",
+                        "_source_group": "questions_bank",
+                        "_source_table": "questions_bank",
+                    }
+                ],
+            }
+        ]
+
+    async def _identity(results, **kwargs):
+        _ = kwargs
+        return results
+
+    monkeypatch.setattr(pipeline, "_search_exact_question_text", _fake_search_exact_question_text)
+    monkeypatch.setattr(pipeline, "_run_query_plan", _fake_run_query_plan)
+    monkeypatch.setattr(pipeline, "_hydrate_sources", _identity)
+    monkeypatch.setattr(pipeline, "_rerank_results", _identity)
+
+    result = await pipeline.search(
+        query=(
+            "背景资料：某旧城改造工程。\n问题：\n"
+            "1. 通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？\n"
+            "2. 按照完全成本法计算的工程施工项目成本是多少亿元？\n"
+            "3. 分步骤列式计算钢结构装饰架的造价是多少万元？"
+        ),
+        kb_name="construction-exam",
+    )
+
+    assert result["exact_question"]["answer_kind"] == "case_study"
+    assert result["exact_question"]["coverage_state"] == "single_subquestion_only"
+    assert result["exact_question"]["query_subquestion_count"] == 3
+    assert result["exact_question"]["coverage_ratio"] == pytest.approx(1 / 3, rel=1e-4)
+    assert len(result["exact_question"]["missing_subquestions"]) == 2
+    assert any("完全成本法" in item["prompt"] for item in result["exact_question"]["missing_subquestions"])
+    assert any("钢结构装饰架" in query for query in captured_queries)
+
+
+def test_filter_partial_case_results_prunes_unrelated_exam_noise() -> None:
+    from deeptutor.services.rag.pipelines.supabase import SupabasePipeline
+
+    pipeline = SupabasePipeline()
+    exact_question = {
+        "chunk_id": "question-9717",
+        "answer_kind": "case_study",
+        "missing_subquestions": [
+            {"display_index": "4", "prompt": "按照完全成本法计算的工程施工项目成本是多少亿元"},
+            {"display_index": "5", "prompt": "分步骤列式计算钢结构装饰架的造价是多少万元"},
+        ],
+    }
+    results = [
+        {
+            "chunk_id": "question-9717",
+            "card_title": "题目: 某旧城改造工程案例题",
+            "rag_content": "【题目】1. 资格预审特点与方法",
+            "source_type": "REAL_EXAM",
+            "_source_table": "questions_bank",
+        },
+        {
+            "chunk_id": "EXAM-noise",
+            "card_title": "真题 2017",
+            "rag_content": "### 案例四：工程总承包合同与预付款",
+            "source_type": "exam",
+            "_source_table": "kb_chunks",
+        },
+        {
+            "chunk_id": "STD-1",
+            "card_title": "工程总承包管理",
+            "rag_content": "工程总承包不得将设计和施工一并分包给其他单位。",
+            "source_type": "standard",
+            "_source_table": "kb_chunks",
+        },
+    ]
+
+    filtered = pipeline._filter_partial_case_results(results, exact_question=exact_question)
+
+    assert [item["chunk_id"] for item in filtered] == ["question-9717", "STD-1"]
