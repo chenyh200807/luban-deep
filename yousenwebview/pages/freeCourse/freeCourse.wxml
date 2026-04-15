@@ -1,0 +1,150 @@
+<view class="yousen-page">
+  <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+    <view class="page-shell">
+      <view class="hero-card">
+        <view class="hero-topline">
+          <view class="hero-brand-group">
+            <view class="hero-brand-mark">佑森</view>
+            <view class="hero-brand-copy">
+              <text class="hero-brand-name">佑森好课</text>
+              <text class="hero-brand-sub">高品质职业教育课程入口</text>
+            </view>
+          </view>
+          <text class="hero-label">精选公开课</text>
+        </view>
+
+        <text class="hero-eyebrow">{{selectedMajorLabel}}</text>
+        <text class="hero-title">{{selectedSubjectLabel}} · 免费课程</text>
+        <text class="hero-subtitle">先听懂重点、建立框架，再进入系统练题与智能答疑。首页只保留最必要的信息，让你快速进入学习。</text>
+
+        <picker
+          mode="multiSelector"
+          class="direction-picker"
+          bindchange="bindMultiPickerChange"
+          bindcolumnchange="bindMultiPickerColumnChange"
+          value="{{multiIndex}}"
+          range="{{multiArray}}"
+          bindtap="rotateImage"
+          bindcancel="stopRotateImage"
+        >
+          <view class="direction-picker-inner">
+            <view class="direction-picker-copy">
+              <text class="direction-picker-label">当前方向</text>
+              <text class="direction-picker-value">{{selectedMajorLabel}} · {{selectedSubjectLabel}}</text>
+            </view>
+            <image src="{{imageUrl}}" class="direction-picker-icon rotate-image" animation="{{rotationAnim}}"></image>
+          </view>
+        </picker>
+
+        <view class="hero-stats">
+          <view class="hero-stat">
+            <text class="hero-stat-value">{{currentCourseCount}}</text>
+            <text class="hero-stat-label">当前课单</text>
+          </view>
+          <view class="hero-stat">
+            <text class="hero-stat-value">名师</text>
+            <text class="hero-stat-label">带学梳理</text>
+          </view>
+          <view class="hero-stat">
+            <text class="hero-stat-value">回看</text>
+            <text class="hero-stat-label">随时学习</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="assistant-panel" wx:if="{{deeptutorEntryVisible}}" bindtap="navigateToShop">
+        <view class="assistant-mark">AI</view>
+        <view class="assistant-copy">
+          <text class="assistant-title">{{deeptutorEntryConfig.title}}</text>
+          <text class="assistant-subtitle">当你需要追问知识点、例题推导或考点辨析时，再进入智能答疑，不打断当前选课节奏。</text>
+        </view>
+        <text class="assistant-arrow">›</text>
+      </view>
+
+      <view class="section-head">
+        <view>
+          <text class="section-kicker">COURSE SELECTION</text>
+          <text class="section-title">{{selectedMajorLabel}} · {{selectedSubjectLabel}}</text>
+        </view>
+        <view class="section-meta">
+          <text class="section-meta-value">{{currentCourseCount}}</text>
+          <text class="section-meta-label">节课程</text>
+        </view>
+      </view>
+
+      <text class="section-description" wx:if="{{featuredCourseTitle}}">建议从「{{featuredCourseTitle}}」开始，用一节课先搭出知识框架，再进入后续专项学习。</text>
+      <text class="section-description" wx:else>围绕当前方向整理免费课程，帮助你先建立判断，再决定后续学习路径。</text>
+
+      <block wx:for="{{getGratisCourseList}}" wx:key="id">
+        <view class="course-card" data-url="/pages/freeCourseDetails/freeCourseDetails?pk_id={{item.id}}" catchtap="linkTo">
+          <image class="course-media" src="{{item.cart_image}}" mode="aspectFill" lazy-load="{{true}}"></image>
+
+          <view class="course-content">
+            <view class="course-heading">
+              <text class="course-tag">公开课</text>
+              <text class="course-title ell-2">{{item.title}}</text>
+            </view>
+
+            <text class="course-summary">以清晰讲解为主，适合 {{selectedMajorLabel}} 当前阶段先完成知识梳理，再衔接练题和强化。</text>
+
+            <view class="teacher-row" wx:if="{{item.teacher && item.teacher.length}}">
+              <view class="teacher-avatars">
+                <block wx:for="{{item.teacher}}" wx:for-item="kk" wx:key="__teacherKey">
+                  <image wx:if="{{index < 3}}" class="teacher-avatar" src="{{kk.head_image}}" mode="aspectFill" lazy-load="{{true}}"></image>
+                </block>
+              </view>
+              <view class="teacher-copy">
+                <block wx:for="{{item.teacher}}" wx:for-item="kk" wx:key="__teacherKey">
+                  <text class="teacher-name" wx:if="{{index < 2}}">{{kk.name}}{{index == 0 && item.teacher.length > 1 ? ' / ' : ''}}</text>
+                </block>
+                <text class="teacher-count" wx:if="{{item.teacher.length > 2}}">等 {{item.teacher.length}} 位老师</text>
+              </view>
+            </view>
+
+            <view class="course-footer">
+              <text class="course-meta-pill">随时回看</text>
+              <view class="course-action">
+                <text class="course-action-text">进入课程</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <view wx:if="{{noData}}" class="course-empty">
+        <text class="course-empty-title">当前方向暂时没有公开课</text>
+        <text class="course-empty-subtitle">可以切换专业或科目，查看其他方向的精选内容。</text>
+      </view>
+
+      <view class="service-banner" wx:if="{{ggimage}}" bindtap="goToggimageurl">
+        <image class="service-banner-image" src="{{ggimage}}" mode="aspectFill" lazy-load="{{true}}"></image>
+        <view class="service-banner-overlay"></view>
+        <view class="service-banner-copy">
+          <text class="service-banner-label">活动与服务</text>
+          <text class="service-banner-title">查看更多课程配套与服务入口</text>
+        </view>
+      </view>
+
+      <view class="bottom-space"></view>
+    </view>
+  </scroll-view>
+
+  <view class="promo-modal" wx:if="{{showModal}}">
+    <view class="promo-modal-mask" bindtap="closeModal"></view>
+    <view class="promo-modal-card">
+      <view class="promo-modal-figure">
+        <image bindtap="gotoModalurl" bindload="handleModalImageLoad" binderror="handleModalImageError" class="promo-modal-image" src="{{showimg}}" mode="widthFix" />
+        <view id="left-right-top" class="promo-modal-hitbox">
+          <view class="promo-hit-left" bindtap="goToLeftTopPage"></view>
+          <view class="promo-hit-right" bindtap="goToRightBottomPage"></view>
+        </view>
+        <view class="promo-modal-loading" wx:if="{{modalImageLoading}}">
+          <text class="promo-modal-loading-text">广告加载中...</text>
+        </view>
+      </view>
+      <view class="promo-modal-close" bindtap="closeModal">
+        <image src="https://cnd.yousenjiaoyu.com/60/39d9cdf52998c29e6560e5b0a32ac3.png?attname=close.png" mode="aspectFit" />
+      </view>
+    </view>
+  </view>
+</view>

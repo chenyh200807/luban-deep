@@ -868,6 +868,7 @@ class TurnRuntimeManager:
             from deeptutor.core.context import Attachment, UnifiedContext
             from deeptutor.runtime.orchestrator import ChatOrchestrator
             from deeptutor.agents.notebook import NotebookAnalysisAgent
+            from deeptutor.services.learner_state import get_learner_state_service
             from deeptutor.services.memory import get_memory_service
             from deeptutor.services.notebook import notebook_manager
             from deeptutor.services.tutor_state import get_user_tutor_state_service
@@ -984,17 +985,19 @@ class TurnRuntimeManager:
                         budget=0,
                     )
                 memory_service = get_memory_service()
+                learner_state_service = get_learner_state_service()
                 tutor_state_service = get_user_tutor_state_service()
                 user_id = str((billing_context or {}).get("user_id", "") or "").strip()
+                source_bot_id = str(request_config.get("bot_id", "") or "").strip()
                 if user_id:
                     try:
-                        memory_context = tutor_state_service.build_context(
+                        memory_context = learner_state_service.build_context(
                             user_id=user_id,
                             language=str(payload.get("language", "en") or "en"),
                         )
                     except Exception:
                         logger.warning(
-                            "Failed to build tutor state context for user %s",
+                            "Failed to build learner state context for user %s",
                             user_id,
                             exc_info=True,
                         )
@@ -1219,6 +1222,7 @@ class TurnRuntimeManager:
                             session_id=session_id,
                             capability=capability_name or "chat",
                             language=str(payload.get("language", "en") or "en"),
+                            source_bot_id=source_bot_id or None,
                         )
                     else:
                         await memory_service.refresh_from_turn(

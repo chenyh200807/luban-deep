@@ -10,7 +10,11 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from deeptutor.api.dependencies import require_admin, route_rate_limit
-from deeptutor.contracts import export_contract_index, export_unified_turn_contract
+from deeptutor.contracts import (
+    export_contract_index,
+    export_learner_state_contract,
+    export_unified_turn_contract,
+)
 from deeptutor.services.config import resolve_search_runtime_config
 from deeptutor.services.embedding import get_embedding_client, get_embedding_config
 from deeptutor.services.llm import complete as llm_complete
@@ -83,6 +87,17 @@ async def get_contracts_index():
     protected paths, and expected tests.
     """
     return export_contract_index()
+
+
+@router.get("/learner-state-contract")
+async def get_learner_state_contract():
+    """
+    Return the machine-readable learner state contract.
+
+    This is the canonical programmatic contract for learner long-term state,
+    reusable Supabase tables, writeback boundaries, and heartbeat ownership.
+    """
+    return export_learner_state_contract()
 
 
 @router.get("/status", dependencies=[Depends(require_admin)])

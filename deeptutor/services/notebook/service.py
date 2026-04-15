@@ -7,8 +7,10 @@ can operate on the same files under ``data/user``.
 
 from __future__ import annotations
 
+import asyncio
 from enum import Enum
 import json
+from datetime import datetime
 from pathlib import Path
 import time
 from typing import Any
@@ -17,6 +19,7 @@ import uuid
 from pydantic import BaseModel
 
 from deeptutor.services.path_service import get_path_service
+from deeptutor.services.tutor_state.service import UserTutorStateService
 
 
 class RecordType(str, Enum):
@@ -122,6 +125,108 @@ class NotebookManager:
             nb_info["icon"] = notebook.get("icon", nb_info.get("icon", "book"))
             break
         self._save_index(index)
+
+    def _resolve_learner_context(
+        self,
+        metadata: dict | None,
+        *,
+        user_id: str | None = None,
+        source_bot_id: str | None = None,
+    ) -> tuple[str, str]:
+        meta = metadata or {}
+        resolved_user_id = ""
+        for candidate in (
+            user_id,
+            meta.get("user_id"),
+            meta.get("learner_user_id"),
+            meta.get("source_user_id"),
+            meta.get("owner_user_id"),
+        ):
+            value = str(candidate or "").strip()
+            if value:
+                resolved_user_id = value
+                break
+
+        resolved_source_bot_id = ""
+        for candidate in (source_bot_id, meta.get("source_bot_id"), meta.get("bot_id")):
+            value = str(candidate or "").strip()
+            if value:
+                resolved_source_bot_id = value
+                break
+
+        return resolved_user_id, resolved_source_bot_id
+
+    def _dispatch_writeback(self, coro: Any) -> None:
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(coro)
+            return
+
+        task = loop.create_task(coro)
+
+        def _consume_exception(completed: asyncio.Task[Any]) -> None:
+            try:
+                completed.result()
+            except Exception:
+                pass
+
+        task.add_done_callback(_consume_exception)
+
+    async def _writeback_learner_state(
+        self,
+        *,
+        user_id: str,
+        source_bot_id: str,
+        notebook_id: str,
+        title: str,
+        user_query: str,
+        summary: str,
+        output: str,
+        metadata: dict | None,
+    ) -> bool:
+        normalized_user_id = str(user_id or "").strip()
+        normalized_summary = str(summary or "").strip()
+        normalized_output = str(output or "").strip()
+        normalized_title = str(title or "").strip()
+        normalized_user_query = str(user_query or "").strip()
+        if not normalized_user_id:
+            return False
+
+        assistant_message = (
+            normalized_summary
+            or normalized_output
+            or normalized_user_query
+            or normalized_title
+        )
+        if not assistant_message:
+            return False
+
+        learner_state_service = UserTutorStateService()
+        await learner_state_service.record_notebook_writeback(
+            user_id=normalized_user_id,
+            notebook_id=notebook_id,
+            record_id=str((metadata or {}).get("record_id", "") or ""),
+            operation=str((metadata or {}).get("operation", "upsert") or "upsert"),
+            title=normalized_title,
+            summary=normalized_summary,
+            user_query=normalized_user_query,
+            record_type=str((metadata or {}).get("record_type", "") or ""),
+            kb_name=str((metadata or {}).get("kb_name", "") or "") or None,
+            metadata=dict(metadata or {}),
+            source_bot_id=source_bot_id or None,
+        )
+        await learner_state_service.refresh_from_turn(
+            user_id=normalized_user_id,
+            user_message=normalized_title or normalized_user_query or f"Notebook {notebook_id}",
+            assistant_message=assistant_message,
+            session_id=str(notebook_id),
+            capability="notebook" if not source_bot_id else f"notebook:{source_bot_id}",
+            language=str((metadata or {}).get("ui_language", "en") or "en"),
+            timestamp=datetime.now().isoformat(),
+            source_bot_id=source_bot_id or None,
+        )
+        return True
 
     # === Notebook Operations ===
 
@@ -235,11 +340,23 @@ class NotebookManager:
         summary: str = "",
         metadata: dict | None = None,
         kb_name: str | None = None,
+        user_id: str | None = None,
+        source_bot_id: str | None = None,
     ) -> dict:
         record_id = str(uuid.uuid4())[:8]
         now = time.time()
         # Accept both enum instances and plain string values from callers.
         resolved_type = record_type if isinstance(record_type, RecordType) else RecordType(str(record_type))
+        resolved_user_id, resolved_source_bot_id = self._resolve_learner_context(
+            metadata,
+            user_id=user_id,
+            source_bot_id=source_bot_id,
+        )
+        record_metadata = dict(metadata or {})
+        if resolved_user_id:
+            record_metadata.setdefault("user_id", resolved_user_id)
+        if resolved_source_bot_id:
+            record_metadata.setdefault("source_bot_id", resolved_source_bot_id)
 
         record = {
             "id": record_id,
@@ -248,7 +365,7 @@ class NotebookManager:
             "summary": summary,
             "user_query": user_query,
             "output": output,
-            "metadata": metadata or {},
+            "metadata": record_metadata,
             "created_at": now,
             "kb_name": kb_name,
         }
@@ -263,6 +380,26 @@ class NotebookManager:
             self._save_notebook(notebook)
             self._touch_index_entry(notebook_id, notebook)
             added_to.append(notebook_id)
+
+        if resolved_user_id and added_to:
+            self._dispatch_writeback(
+                self._writeback_learner_state(
+                    user_id=resolved_user_id,
+                    source_bot_id=resolved_source_bot_id,
+                    notebook_id=added_to[0],
+                    title=title,
+                    user_query=user_query,
+                    summary=summary,
+                    output=output,
+                    metadata={
+                        **record_metadata,
+                        "record_id": record_id,
+                        "operation": "add",
+                        "record_type": str(resolved_type),
+                        "kb_name": kb_name,
+                    },
+                )
+            )
 
         return {"record": record, "added_to_notebooks": added_to}
 
@@ -293,15 +430,30 @@ class NotebookManager:
         output: str | None = None,
         metadata: dict | None = None,
         kb_name: str | None | object = _UNSET,
+        user_id: str | None = None,
+        source_bot_id: str | None = None,
     ) -> dict | None:
         notebook = self._load_notebook(notebook_id)
         if not notebook:
             return None
 
+        resolved_user_id, resolved_source_bot_id = self._resolve_learner_context(
+            metadata,
+            user_id=user_id,
+            source_bot_id=source_bot_id,
+        )
         updated_record: dict | None = None
         for record in notebook.get("records", []):
             if str(record.get("id", "")) != str(record_id):
                 continue
+            current_metadata = dict(record.get("metadata", {}) or {})
+            current_user_id, current_source_bot_id = self._resolve_learner_context(
+                current_metadata,
+                user_id=resolved_user_id or None,
+                source_bot_id=resolved_source_bot_id or None,
+            )
+            resolved_user_id = current_user_id or resolved_user_id
+            resolved_source_bot_id = current_source_bot_id or resolved_source_bot_id
             if title is not None:
                 record["title"] = title
             if summary is not None:
@@ -311,10 +463,17 @@ class NotebookManager:
             if output is not None:
                 record["output"] = output
             if metadata is not None:
-                current_metadata = record.get("metadata", {}) or {}
                 record["metadata"] = {**current_metadata, **metadata}
+            else:
+                record["metadata"] = current_metadata
             if kb_name is not _UNSET:
                 record["kb_name"] = kb_name
+            if resolved_user_id:
+                record.setdefault("metadata", {})
+                record["metadata"]["user_id"] = resolved_user_id
+            if resolved_source_bot_id:
+                record.setdefault("metadata", {})
+                record["metadata"]["source_bot_id"] = resolved_source_bot_id
             updated_record = record
             break
 
@@ -324,6 +483,26 @@ class NotebookManager:
         notebook["updated_at"] = time.time()
         self._save_notebook(notebook)
         self._touch_index_entry(notebook_id, notebook)
+
+        if resolved_user_id:
+            self._dispatch_writeback(
+                self._writeback_learner_state(
+                    user_id=resolved_user_id,
+                    source_bot_id=resolved_source_bot_id,
+                    notebook_id=notebook_id,
+                    title=str(updated_record.get("title", "") or title or ""),
+                    user_query=str(updated_record.get("user_query", "") or user_query or ""),
+                    summary=str(updated_record.get("summary", "") or summary or ""),
+                    output=str(updated_record.get("output", "") or output or ""),
+                    metadata={
+                        **(updated_record.get("metadata", {}) or metadata or {}),
+                        "record_id": record_id,
+                        "operation": "update",
+                        "record_type": str(updated_record.get("type", "") or ""),
+                        "kb_name": None if kb_name is _UNSET else kb_name,
+                    },
+                )
+            )
         return updated_record
 
     def get_records_by_references(self, notebook_references: list[dict]) -> list[dict]:

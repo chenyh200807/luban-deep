@@ -7,12 +7,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from deeptutor.services.llm import stream as llm_stream
-from deeptutor.services.member_console import get_member_console_service
+from deeptutor.services.learner_state import LearnerStateService
 from deeptutor.services.path_service import PathService, get_path_service
 
 TutorStateFile = Literal["profile", "persona", "memory"]
-_NO_CHANGE = "NO_CHANGE"
 _FILENAMES: dict[TutorStateFile, str] = {
     "profile": "PROFILE.md",
     "persona": "PERSONA.md",
@@ -39,15 +37,20 @@ class TutorStateUpdateResult:
 
 
 class UserTutorStateService:
-    """Persist per-user tutor state and lazily inject it into shared turns."""
+    """Projection/cache over learner state with a stable tutor-facing view."""
 
     def __init__(
         self,
         path_service: PathService | None = None,
         member_service: Any | None = None,
+        learner_state_service: LearnerStateService | None = None,
     ) -> None:
         self._path_service = path_service or get_path_service()
-        self._member_service = member_service or get_member_console_service()
+        self._member_service = member_service
+        self._learner_state_service = learner_state_service or LearnerStateService(
+            path_service=self._path_service,
+            member_service=self._member_service,
+        )
         self._locks: dict[str, asyncio.Lock] = {}
 
     def _user_dir(self, user_id: str) -> Path:
@@ -66,8 +69,7 @@ class UserTutorStateService:
         except Exception:
             return None
 
-    def read_file(self, user_id: str, which: TutorStateFile) -> str:
-        self._sync_static_state(user_id)
+    def _read_file_raw(self, user_id: str, which: TutorStateFile) -> str:
         path = self._path(user_id, which)
         if not path.exists():
             return ""
@@ -76,14 +78,40 @@ class UserTutorStateService:
         except Exception:
             return ""
 
+    def _write_file_if_changed(self, user_id: str, which: TutorStateFile, content: str) -> None:
+        normalized = str(content or "").strip()
+        if self._read_file_raw(user_id, which) == normalized:
+            return
+        path = self._path(user_id, which)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if normalized:
+            path.write_text(normalized, encoding="utf-8")
+        elif path.exists():
+            path.unlink()
+
+    def _sync_projection_state(self, user_id: str) -> None:
+        snapshot = self._learner_state_service.read_snapshot(user_id)
+        self._write_file_if_changed(
+            user_id,
+            "profile",
+            LearnerStateService.render_profile_markdown(snapshot.profile, language="zh"),
+        )
+        self._write_file_if_changed(user_id, "persona", self._render_persona(snapshot.profile))
+        self._write_file_if_changed(user_id, "memory", self._render_memory(snapshot))
+
+    def read_file(self, user_id: str, which: TutorStateFile) -> str:
+        normalized = _normalize_user_id(user_id)
+        self._sync_projection_state(normalized)
+        return self._read_file_raw(normalized, which)
+
     def read_snapshot(self, user_id: str) -> TutorStateSnapshot:
         normalized = _normalize_user_id(user_id)
-        self._sync_static_state(normalized)
+        self._sync_projection_state(normalized)
         return TutorStateSnapshot(
             user_id=normalized,
-            profile=self.read_file(normalized, "profile"),
-            persona=self.read_file(normalized, "persona"),
-            memory=self.read_file(normalized, "memory"),
+            profile=self._read_file_raw(normalized, "profile"),
+            persona=self._read_file_raw(normalized, "persona"),
+            memory=self._read_file_raw(normalized, "memory"),
             profile_updated_at=self._file_updated_at(normalized, "profile"),
             persona_updated_at=self._file_updated_at(normalized, "persona"),
             memory_updated_at=self._file_updated_at(normalized, "memory"),
@@ -131,140 +159,87 @@ class UserTutorStateService:
         capability: str = "",
         language: str = "zh",
         timestamp: str = "",
+        source_bot_id: str | None = None,
     ) -> TutorStateUpdateResult:
         normalized = _normalize_user_id(user_id)
-        self._sync_static_state(normalized)
-        snapshot = self.read_snapshot(normalized)
+        before = self.read_snapshot(normalized)
         if not user_message.strip() or not assistant_message.strip():
             return TutorStateUpdateResult(
-                content=snapshot.memory,
+                content=before.memory,
                 changed=False,
-                updated_at=snapshot.memory_updated_at,
+                updated_at=before.memory_updated_at,
             )
 
         async with self._locks.setdefault(normalized, asyncio.Lock()):
-            source = (
-                f"[User Profile]\n{snapshot.profile or '(empty)'}\n\n"
-                f"[Tutor Persona]\n{snapshot.persona or '(empty)'}\n\n"
-                f"[Session] {session_id or '(unknown)'}\n"
-                f"[Capability] {capability or 'chat'}\n"
-                f"[Timestamp] {timestamp or datetime.now().isoformat()}\n\n"
-                f"[User]\n{user_message.strip()}\n\n"
-                f"[Assistant]\n{assistant_message.strip()}"
+            learner_result = await self._learner_state_service.refresh_from_turn(
+                user_id=normalized,
+                user_message=user_message,
+                assistant_message=assistant_message,
+                session_id=session_id,
+                capability=capability,
+                language=language,
+                timestamp=timestamp,
+                source_bot_id=source_bot_id,
             )
-            changed = await self._rewrite_memory(normalized, source, language)
+            self._sync_projection_state(normalized)
             updated = self.read_snapshot(normalized)
             return TutorStateUpdateResult(
                 content=updated.memory,
-                changed=changed,
+                changed=learner_result.changed or before.memory != updated.memory,
                 updated_at=updated.memory_updated_at,
             )
 
-    async def _rewrite_memory(self, user_id: str, source: str, language: str) -> bool:
-        current = self.read_file(user_id, "memory")
-        zh = str(language).lower().startswith("zh")
-        sys_prompt, user_prompt = self._memory_prompts(current, source, zh)
+    async def record_guide_completion(
+        self,
+        *,
+        user_id: str,
+        guide_id: str,
+        notebook_name: str,
+        summary: str,
+        knowledge_points: list[dict[str, Any]] | None = None,
+        source_bot_id: str | None = None,
+    ) -> None:
+        normalized = _normalize_user_id(user_id)
+        await self._learner_state_service.record_guide_completion(
+            user_id=normalized,
+            guide_id=guide_id,
+            notebook_name=notebook_name,
+            summary=summary,
+            knowledge_points=knowledge_points,
+            source_bot_id=source_bot_id,
+        )
+        self._sync_projection_state(normalized)
 
-        chunks: list[str] = []
-        async for chunk in llm_stream(
-            prompt=user_prompt,
-            system_prompt=sys_prompt,
-            temperature=0.2,
-            max_tokens=900,
-        ):
-            chunks.append(chunk)
-
-        rewritten = _strip_code_fence("".join(chunks)).strip()
-        if not rewritten or rewritten == _NO_CHANGE or rewritten == current:
-            return False
-
-        self._write_file(user_id, "memory", rewritten)
-        return True
-
-    def _sync_static_state(self, user_id: str) -> None:
-        profile = self._safe_member_profile(user_id)
-        self._write_if_changed(user_id, "profile", self._render_profile(profile))
-        self._write_if_changed(user_id, "persona", self._render_persona(profile))
-
-        memory_path = self._path(user_id, "memory")
-        if not memory_path.exists():
-            seed = self._seed_memory(profile)
-            if seed:
-                self._write_file(user_id, "memory", seed)
-
-    def _safe_member_profile(self, user_id: str) -> dict[str, Any]:
-        try:
-            profile = dict(self._member_service.get_profile(user_id) or {})
-        except Exception:
-            profile = {"user_id": user_id, "display_name": user_id}
-        profile.setdefault("user_id", user_id)
-        profile.setdefault("display_name", user_id)
-        return profile
-
-    def _write_if_changed(self, user_id: str, which: TutorStateFile, content: str) -> None:
-        if self.read_file_raw(user_id, which) == content.strip():
-            return
-        self._write_file(user_id, which, content)
-
-    def _write_file(self, user_id: str, which: TutorStateFile, content: str) -> None:
-        path = self._path(user_id, which)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(str(content or "").strip(), encoding="utf-8")
-
-    def read_file_raw(self, user_id: str, which: TutorStateFile) -> str:
-        path = self._path(user_id, which)
-        if not path.exists():
-            return ""
-        try:
-            return path.read_text(encoding="utf-8").strip()
-        except Exception:
-            return ""
-
-    @staticmethod
-    def _render_profile(profile: dict[str, Any]) -> str:
-        display_name = _preferred_display_name(profile)
-        nickname_status = "已确认专属称呼" if _has_stable_display_name(profile) else "称呼待进一步确认"
-        urgency = _exam_urgency_hint(profile.get("exam_date"))
-        level_hint = _level_hint(profile.get("level"))
-        return "\n".join(
-            [
-                "## 学员识别",
-                f"- 学员ID：{_display(profile.get('user_id'))}",
-                f"- 当前称呼：{display_name}",
-                f"- 称呼状态：{nickname_status}",
-                (
-                    f"- 称呼使用建议：回答开头可自然称呼“{display_name}”，"
-                    "但不要在每段重复称呼。"
-                    if _has_stable_display_name(profile)
-                    else "- 称呼使用建议：当前先用自然中性称呼；若合适，后续可确认用户更希望被怎么称呼。"
-                ),
-                "",
-                "## 备考主线",
-                "- 默认场景：建筑工程类考试与《建筑工程管理与实务》学习",
-                f"- 会员等级：{_display(profile.get('tier'))}",
-                f"- 账号状态：{_display(profile.get('status'))}",
-                f"- 考试日期：{_display(profile.get('exam_date'))}",
-                f"- 备考紧迫度：{urgency}",
-                f"- 当前聚焦：{_display(profile.get('focus_topic'))}",
-                f"- 当前目标提问：{_display(profile.get('focus_query'))}",
-                "",
-                "## 学习偏好",
-                f"- 难度偏好：{_difficulty_label(profile.get('difficulty_preference'))}",
-                f"- 讲解风格：{_explanation_style_label(profile.get('explanation_style'))}",
-                f"- 每日目标：{_display(profile.get('daily_target'), suffix='题/次')}",
-                f"- 复习提醒：{_display_bool(profile.get('review_reminder'))}",
-                "",
-                "## 当前学习判断",
-                f"- 当前等级：{_display(profile.get('level'))}",
-                f"- 基础判断：{level_hint}",
-                f"- 积分余额：{_display(profile.get('points'))}",
-                (
-                    "- 当前支持重点：先稳住节奏，再围绕当前聚焦专题持续推进。"
-                    if str(profile.get("focus_topic") or "").strip()
-                    else "- 当前支持重点：先帮助学员确认最近最值得投入的一个专题。"
-                ),
-            ]
-        ).strip()
+    async def record_notebook_writeback(
+        self,
+        *,
+        user_id: str,
+        notebook_id: str,
+        record_id: str,
+        operation: str,
+        title: str,
+        summary: str,
+        user_query: str,
+        record_type: str,
+        kb_name: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        source_bot_id: str | None = None,
+    ) -> None:
+        normalized = _normalize_user_id(user_id)
+        await self._learner_state_service.record_notebook_writeback(
+            user_id=normalized,
+            notebook_id=notebook_id,
+            record_id=record_id,
+            operation=operation,
+            title=title,
+            summary=summary,
+            user_query=user_query,
+            record_type=record_type,
+            kb_name=kb_name,
+            metadata=metadata,
+            source_bot_id=source_bot_id,
+        )
+        self._sync_projection_state(normalized)
 
     @staticmethod
     def _render_persona(profile: dict[str, Any]) -> str:
@@ -286,7 +261,7 @@ class UserTutorStateService:
                 "",
                 "## 核心原则",
                 "- 结论先行：先给答案、判断或结论，再解释原因。",
-                "- 面向拿分：讲知识时要落到考点、判定依据、踩分点、易错点。",
+                "- 面向拿分：讲知识时要落到考点、判定依据、踩分点、易错边界。",
                 "- 说人话：用通俗语言解释规范逻辑，不堆空泛定义。",
                 "- 先帮做对，再帮学会：先解决当前问题，再补同类题抓手。",
                 "- 先理解人，再处理题：若学员明显焦虑、挫败、拖延、自责，先接住状态，再推进学习动作。",
@@ -339,47 +314,23 @@ class UserTutorStateService:
         ).strip()
 
     @staticmethod
-    def _seed_memory(profile: dict[str, Any]) -> str:
+    def _render_memory(snapshot: Any) -> str:
+        profile = dict(snapshot.profile or {})
+        summary = str(snapshot.summary or "").strip()
+        progress_text = LearnerStateService.render_progress_markdown(snapshot.progress, language="zh")
+        events_text = LearnerStateService.render_events_markdown(snapshot.memory_events, language="zh")
         focus_topic = _display(profile.get("focus_topic"), fallback="待确认")
-        return "\n".join(
-            [
-                "## 当前主线",
-                f"- 当前聚焦：{focus_topic}",
-                f"- 考试日期：{_display(profile.get('exam_date'))}",
-                f"- 每日目标：{_display(profile.get('daily_target'), suffix='题/次')}",
-                "",
-                "## 已知偏好",
-                f"- 难度：{_display(profile.get('difficulty_preference'))}",
-                f"- 讲解方式：{_display(profile.get('explanation_style'))}",
-                "",
-                "## 待持续观察",
-                "- 常错点、易混点、已经掌握的题型、下次建议跟进的练习。",
-            ]
-        ).strip()
-
-    @staticmethod
-    def _memory_prompts(current: str, source: str, zh: bool) -> tuple[str, str]:
-        if zh:
-            return (
-                "你负责维护当前学员专属 Tutor 的长期记忆。"
-                "只保留跨回合仍有价值的学习状态、稳定偏好、典型误区、进展和下次跟进建议。"
-                f"如果无需修改，请只返回 {_NO_CHANGE}。",
-                "如果需要更新，请重写长期记忆，可使用以下标题：\n"
-                "## Current Focus\n## Progress Signals\n## Misconceptions To Watch\n## Next Follow-Up\n\n"
-                "规则：保持简短；删除寒暄、一次性回答和过时信息；不要泄露其他学员信息。\n\n"
-                f"[当前长期记忆]\n{current or '(empty)'}\n\n"
-                f"[新增材料]\n{source}"
-            )
-        return (
-            "You maintain the dedicated tutor memory for one learner. "
-            "Keep only durable learning state, stable preferences, misconceptions, progress, "
-            f"and the next useful follow-up. If nothing should change, return exactly {_NO_CHANGE}.",
-            "Rewrite the long-term tutor memory if needed. Suggested sections:\n"
-            "## Current Focus\n## Progress Signals\n## Misconceptions To Watch\n## Next Follow-Up\n\n"
-            "Rules: keep it short, remove stale or transient chatter, never mix other learners.\n\n"
-            f"[Current memory]\n{current or '(empty)'}\n\n"
-            f"[New material]\n{source}"
-        )
+        parts = [
+            "## 当前主线",
+            f"- 当前聚焦：{focus_topic}",
+        ]
+        if summary:
+            parts.extend(["", "## 学习摘要", summary])
+        if progress_text:
+            parts.extend(["", "## 学习进度", progress_text])
+        if events_text:
+            parts.extend(["", "## 最近事件", events_text])
+        return "\n".join(parts).strip()
 
 
 def _normalize_user_id(user_id: str) -> str:
@@ -389,30 +340,11 @@ def _normalize_user_id(user_id: str) -> str:
     return cleaned[:120]
 
 
-def _strip_code_fence(content: str) -> str:
-    cleaned = str(content or "").strip()
-    if cleaned.startswith("```"):
-        cleaned = re.sub(r"^```[a-zA-Z0-9_-]*\n?", "", cleaned)
-        cleaned = re.sub(r"\n?```$", "", cleaned)
-    return cleaned.strip()
-
-
 def _display(value: Any, *, fallback: str = "未设置", suffix: str = "") -> str:
     text = str(value or "").strip()
     if not text:
         return fallback
     return f"{text}{suffix}" if suffix else text
-
-
-def _display_bool(value: Any) -> str:
-    return "开启" if bool(value) else "关闭"
-
-
-def _preferred_display_name(profile: dict[str, Any]) -> str:
-    display_name = str(profile.get("display_name") or profile.get("username") or "").strip()
-    if display_name:
-        return display_name
-    return "这位学员"
 
 
 def _has_stable_display_name(profile: dict[str, Any]) -> bool:
@@ -426,6 +358,13 @@ def _has_stable_display_name(profile: dict[str, Any]) -> bool:
     if display_name in {"用户", "同学", "学员"}:
         return False
     return not any(display_name.startswith(prefix) and len(display_name) <= 8 for prefix in generic_prefixes)
+
+
+def _preferred_display_name(profile: dict[str, Any]) -> str:
+    display_name = str(profile.get("display_name") or profile.get("username") or "").strip()
+    if display_name:
+        return display_name
+    return "这位学员"
 
 
 def _difficulty_label(value: Any) -> str:

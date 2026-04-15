@@ -7,6 +7,11 @@
 - 创建日期：2026-04-15
 - 适用范围：TutorBot、Persistent Memory、Summary/Profile、Guided Learning、Notebook、Heartbeat、微信小程序主产品链路
 - 状态：Draft v3
+- 关联附录：
+  - [2026-04-15-learner-state-supabase-schema-appendix.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/doc/plan/2026-04-15-learner-state-supabase-schema-appendix.md)
+  - [2026-04-15-bot-learner-overlay-prd.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/doc/plan/2026-04-15-bot-learner-overlay-prd.md)
+  - [2026-04-15-bot-learner-overlay-service-design.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/doc/plan/2026-04-15-bot-learner-overlay-service-design.md)
+  - [2026-04-15-learner-state-service-design.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/doc/plan/2026-04-15-learner-state-service-design.md)
 
 ## 2. 背景
 

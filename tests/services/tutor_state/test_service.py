@@ -9,8 +9,26 @@ class _PathServiceStub:
     def __init__(self, root):
         self._root = root
 
+    @property
+    def project_root(self):
+        return self._root
+
     def get_tutor_state_root(self):
         return self._root / "tutor_state"
+
+    def get_user_root(self):
+        return self._root
+
+    def get_learner_state_root(self):
+        return self._root / "learner_state"
+
+    def get_learner_state_outbox_db(self):
+        return self._root / "runtime" / "outbox.db"
+
+    def get_guide_dir(self):
+        path = self._root / "workspace" / "guide"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
 
 class _FakeMemberService:
@@ -29,6 +47,15 @@ class _FakeMemberService:
             "exam_date": "2026-09-19",
             "focus_topic": "地基基础承载力",
         }
+
+    def get_today_progress(self, user_id: str):
+        return {"today_done": 6, "daily_target": 30, "streak_days": 4}
+
+    def get_chapter_progress(self, user_id: str):
+        return [
+            {"chapter_id": "ch_1", "chapter_name": "地基基础", "done": 12, "total": 30},
+            {"chapter_id": "ch_2", "chapter_name": "结构构造", "done": 8, "total": 30},
+        ]
 
 
 def _make_service(tmp_path):
@@ -73,7 +100,7 @@ async def _rewrite_stream(**_kwargs):
 
 def test_user_tutor_state_refresh_from_turn_updates_long_term_memory(monkeypatch, tmp_path) -> None:
     service = _make_service(tmp_path)
-    monkeypatch.setattr("deeptutor.services.tutor_state.service.llm_stream", _rewrite_stream)
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", _rewrite_stream)
 
     result = asyncio.run(
         service.refresh_from_turn(

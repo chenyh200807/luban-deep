@@ -1197,12 +1197,13 @@ async def test_turn_runtime_uses_user_scoped_tutor_state_when_user_id_is_availab
             )
             yield StreamEvent(type=StreamEventType.DONE, source="chat")
 
-    class FakeTutorStateService:
+    class FakeLearnerStateService:
         def build_context(self, *, user_id: str, language: str = "en", max_chars: int = 5000):
-            captured["tutor_user_id"] = user_id
-            captured["tutor_language"] = language
-            return "## 专属 Tutor 上下文\n### Student Profile\n- user: student_demo"
+            captured["learner_user_id"] = user_id
+            captured["learner_language"] = language
+            return "## 学员级长期状态\n### Student Profile\n- user: student_demo"
 
+    class FakeTutorStateService:
         async def refresh_from_turn(self, **kwargs):
             refresh_calls.append(kwargs)
             return None
@@ -1222,6 +1223,10 @@ async def test_turn_runtime_uses_user_scoped_tutor_state_when_user_id_is_availab
         ),
     )
     monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: FakeLearnerStateService(),
+    )
+    monkeypatch.setattr(
         "deeptutor.services.tutor_state.get_user_tutor_state_service",
         lambda: FakeTutorStateService(),
     )
@@ -1237,6 +1242,7 @@ async def test_turn_runtime_uses_user_scoped_tutor_state_when_user_id_is_availab
             "attachments": [],
             "language": "zh",
             "config": {
+                "bot_id": "construction-exam-coach",
                 "billing_context": {
                     "source": "app",
                     "user_id": "student_demo",
@@ -1250,12 +1256,13 @@ async def test_turn_runtime_uses_user_scoped_tutor_state_when_user_id_is_availab
         events.append(event)
 
     assert [event["type"] for event in events] == ["session", "content", "done"]
-    assert captured["memory_context"] == "## 专属 Tutor 上下文\n### Student Profile\n- user: student_demo"
-    assert captured["tutor_user_id"] == "student_demo"
+    assert captured["memory_context"] == "## 学员级长期状态\n### Student Profile\n- user: student_demo"
+    assert captured["learner_user_id"] == "student_demo"
     assert captured["global_memory_called"] is False
     assert captured["global_refresh_called"] is False
     assert refresh_calls[0]["user_id"] == "student_demo"
     assert refresh_calls[0]["assistant_message"] == "User scoped reply"
+    assert refresh_calls[0]["source_bot_id"] == "construction-exam-coach"
 
 
 @pytest.mark.asyncio

@@ -39,6 +39,8 @@ class CreateSessionRequest(BaseModel):
     notebook_id: str | None = None  # Optional, single notebook mode
     records: list[dict] | None = None  # Optional, cross-notebook mode with direct records
     notebook_references: list[dict] | None = None
+    user_id: str | None = None
+    source_bot_id: str | None = None
 
 
 class ChatRequest(BaseModel):
@@ -60,6 +62,8 @@ class SessionActionRequest(BaseModel):
     """Session action request"""
 
     session_id: str
+    user_id: str | None = None
+    source_bot_id: str | None = None
 
 
 class NavigateRequest(BaseModel):
@@ -172,6 +176,8 @@ async def create_session(request: CreateSessionRequest):
             user_input=user_input,
             display_title=raw_user_input,
             notebook_context=notebook_context,
+            user_id=request.user_id,
+            source_bot_id=request.source_bot_id,
         )
 
         if result and "session_id" in result:
@@ -223,7 +229,11 @@ async def complete_learning(request: SessionActionRequest):
     """
     try:
         manager = get_guide_manager()
-        result = await manager.complete_learning(request.session_id)
+        result = await manager.complete_learning(
+            request.session_id,
+            user_id=request.user_id,
+            source_bot_id=request.source_bot_id,
+        )
         BaseAgent.print_stats("guide")
         return result
     except Exception as e:
@@ -432,7 +442,11 @@ async def websocket_guide(websocket: WebSocket, session_id: str):
 
                 elif msg_type == "complete":
                     logger.debug(f"[{task_id}] Complete learning")
-                    result = await manager.complete_learning(session_id)
+                    result = await manager.complete_learning(
+                        session_id,
+                        user_id=str(session.get("user_id", "") or "") if session else None,
+                        source_bot_id=str(session.get("source_bot_id", "") or "") if session else None,
+                    )
                     await websocket.send_json({"type": "complete_result", "data": result})
 
                 elif msg_type == "chat":

@@ -1,13 +1,11 @@
 page {
   height: 100%;
-  background: linear-gradient(180deg, #f8f4ee 0%, #f4efe7 100%);
+  background: #ffffff;
 }
 
 .yousen-page {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(12, 31, 58, 0.04) 0%, transparent 30%),
-    radial-gradient(circle at right 20%, rgba(180, 141, 73, 0.08) 0%, transparent 26%);
+  background: #ffffff;
 }
 
 .page-scroll {
@@ -21,7 +19,7 @@ page {
 .hero-card {
   padding: 34rpx 30rpx 28rpx;
   border-radius: 32rpx;
-  background: rgba(255, 252, 247, 0.96);
+  background: #ffffff;
   border: 1rpx solid rgba(12, 31, 58, 0.08);
   box-shadow: 0 20rpx 56rpx rgba(37, 29, 18, 0.06);
 }
@@ -115,7 +113,7 @@ page {
   min-height: 112rpx;
   padding: 24rpx 24rpx;
   border-radius: 24rpx;
-  background: #f7f2eb;
+  background: #ffffff;
   border: 1rpx solid rgba(16, 35, 60, 0.08);
   display: flex;
   align-items: center;
@@ -184,7 +182,7 @@ page {
   margin-top: 18rpx;
   padding: 22rpx 24rpx;
   border-radius: 28rpx;
-  background: rgba(255, 249, 240, 0.96);
+  background: #ffffff;
   border: 1rpx solid rgba(181, 141, 73, 0.16);
   box-shadow: 0 14rpx 36rpx rgba(37, 29, 18, 0.04);
   display: flex;

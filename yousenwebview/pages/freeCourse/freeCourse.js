@@ -94,7 +94,6 @@ Component({
     selectedSubjectLabel: '建筑实务',
     currentCourseCount: 0,
     featuredCourseTitle: '',
-    featuredCourseImage: '',
     deeptutorEntryEnabled: true,
     deeptutorEntryVisible: true,
     deeptutorEntryConfig: {
@@ -253,14 +252,12 @@ Component({
         this.gratisCourseLoaded = true;
         this.gratisCourseHasMore = hasPageData;
         return new Promise(resolve => {
-          const featuredCourse = nextList.length > 0 ? nextList[0] : null;
           this.setData({
             page: hasPageData ? targetPage : (reset ? 1 : this.data.page),
             getGratisCourseList: nextList,
             noData: nextList.length === 0,
             currentCourseCount: nextList.length,
-            featuredCourseTitle: featuredCourse ? featuredCourse.title : '',
-            featuredCourseImage: featuredCourse && featuredCourse.cart_image ? featuredCourse.cart_image : (res.ggimage || '')
+            featuredCourseTitle: nextList.length > 0 ? nextList[0].title : ''
           }, () => {
             this.syncGratisCourseModal(res);
             resolve(hasPageData);

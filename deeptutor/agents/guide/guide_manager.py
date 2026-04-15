@@ -7,6 +7,7 @@ Manages the complete lifecycle of learning sessions
 import asyncio
 from dataclasses import asdict, dataclass, field
 import json
+from datetime import datetime
 from pathlib import Path
 import time
 from typing import Any
@@ -15,8 +16,10 @@ import uuid
 import yaml
 
 from deeptutor.logging import get_logger
+from deeptutor.services.learning_plan import LearningPlanService
 from deeptutor.services.config import load_config_with_main, parse_language
 from deeptutor.services.path_service import get_path_service
+from deeptutor.services.tutor_state.service import UserTutorStateService
 
 from .agents import ChatAgent, DesignAgent, InteractiveAgent, SummaryAgent
 
@@ -29,6 +32,8 @@ class GuidedSession:
     notebook_id: str
     notebook_name: str
     created_at: float
+    user_id: str = ""
+    source_bot_id: str = ""
     knowledge_points: list[dict[str, Any]] = field(default_factory=list)
     current_index: int = -1
     chat_history: list[dict[str, Any]] = field(default_factory=list)
@@ -38,6 +43,7 @@ class GuidedSession:
     page_errors: dict[str, str] = field(default_factory=dict)
     summary: str = ""
     notebook_context: str = ""
+    source_material_refs_json: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -47,6 +53,12 @@ class GuidedSession:
         session_data = dict(data)
 
         current_html = str(session_data.pop("current_html", "") or "")
+        session_data.pop("current_knowledge", None)
+        session_data.pop("pages", None)
+        session_data.pop("page_count", None)
+        session_data.pop("ready_count", None)
+        session_data.pop("progress", None)
+        session_data.pop("updated_at", None)
         current_index = int(session_data.get("current_index", -1))
         html_pages = dict(session_data.get("html_pages") or {})
         page_statuses = dict(session_data.get("page_statuses") or {})
@@ -64,6 +76,15 @@ class GuidedSession:
         session_data["page_statuses"] = page_statuses
         session_data["page_errors"] = page_errors
         return cls(**session_data)
+
+
+class _GuideOutputPathService:
+    def __init__(self, guide_dir: Path) -> None:
+        self._guide_dir = guide_dir
+
+    def get_guide_dir(self) -> Path:
+        self._guide_dir.mkdir(parents=True, exist_ok=True)
+        return self._guide_dir
 
 
 class GuideManager:
@@ -171,6 +192,9 @@ class GuideManager:
 
         self._sessions: dict[str, GuidedSession] = {}
         self._generation_tasks: dict[str, asyncio.Task[None]] = {}
+        self._learning_plan_service = LearningPlanService(
+            path_service=_GuideOutputPathService(self.output_dir),
+        )
         self.max_parallel_generations = 2
 
     def _get_session_file(self, session_id: str) -> Path:
@@ -183,10 +207,12 @@ class GuideManager:
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(session.to_dict(), f, indent=2, ensure_ascii=False)
         self._sessions[session.session_id] = session
+        self._persist_learning_plan(session)
 
     def _delete_session(self, session_id: str):
         """Delete a session from memory and disk."""
         self._sessions.pop(session_id, None)
+        self._learning_plan_service.delete_plan(session_id)
         filepath = self._get_session_file(session_id)
         if filepath.exists():
             filepath.unlink()
@@ -196,12 +222,19 @@ class GuideManager:
         if session_id in self._sessions:
             return self._sessions[session_id]
 
+        plan_view = self._learning_plan_service.read_guided_session_view(session_id)
+        if plan_view:
+            session = GuidedSession.from_dict(plan_view)
+            self._sessions[session_id] = session
+            return session
+
         filepath = self._get_session_file(session_id)
         if filepath.exists():
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
             session = GuidedSession.from_dict(data)
             self._sessions[session_id] = session
+            self._persist_learning_plan(session)
             return session
         return None
 
@@ -230,6 +263,144 @@ class GuideManager:
         if task and not task.done():
             task.cancel()
 
+    def _resolve_learner_identity(
+        self,
+        session: GuidedSession,
+        user_id: str | None = None,
+        source_bot_id: str | None = None,
+    ) -> tuple[str, str]:
+        resolved_user_id = str(user_id or session.user_id or "").strip()
+        resolved_source_bot_id = str(source_bot_id or session.source_bot_id or "").strip()
+        return resolved_user_id, resolved_source_bot_id
+
+    async def _writeback_learner_state(
+        self,
+        session: GuidedSession,
+        summary: str,
+        *,
+        user_id: str | None = None,
+        source_bot_id: str | None = None,
+    ) -> bool:
+        resolved_user_id, resolved_source_bot_id = self._resolve_learner_identity(
+            session,
+            user_id=user_id,
+            source_bot_id=source_bot_id,
+        )
+        summary_text = str(summary or "").strip()
+        if not resolved_user_id or not summary_text:
+            return False
+
+        learner_state_service = UserTutorStateService()
+        await learner_state_service.record_guide_completion(
+            user_id=resolved_user_id,
+            guide_id=session.session_id,
+            notebook_name=session.notebook_name,
+            summary=summary_text,
+            knowledge_points=session.knowledge_points,
+            source_bot_id=resolved_source_bot_id or None,
+        )
+        await learner_state_service.refresh_from_turn(
+            user_id=resolved_user_id,
+            user_message=str(session.notebook_context or session.notebook_name or "Guided learning completion"),
+            assistant_message=summary_text,
+            session_id=session.session_id,
+            capability="guide" if not resolved_source_bot_id else f"guide:{resolved_source_bot_id}",
+            language=self.language,
+            timestamp=datetime.now().isoformat(),
+            source_bot_id=resolved_source_bot_id or None,
+        )
+        return True
+
+    @staticmethod
+    def _build_learning_plan_source_refs(
+        user_input: str,
+        notebook_context: str,
+    ) -> list[dict[str, Any]]:
+        refs: list[dict[str, Any]] = []
+        if user_input.strip():
+            refs.append({"kind": "user_input", "content": user_input.strip()})
+        if notebook_context.strip():
+            refs.append({"kind": "notebook_context", "content": notebook_context.strip()})
+        return refs
+
+    def _persist_learning_plan(self, session: GuidedSession) -> None:
+        pages: list[dict[str, Any]] = []
+        for index, knowledge in enumerate(session.knowledge_points):
+            key = str(index)
+            pages.append(
+                {
+                    "page_index": index,
+                    "knowledge_title": str(knowledge.get("knowledge_title", "") or "").strip(),
+                    "knowledge_summary": str(knowledge.get("knowledge_summary", "") or "").strip(),
+                    "user_difficulty": str(knowledge.get("user_difficulty", "") or "").strip(),
+                    "html": str(session.html_pages.get(key, "") or "").strip(),
+                    "page_status": str(session.page_statuses.get(key, "pending") or "pending"),
+                    "page_error": str(session.page_errors.get(key, "") or "").strip(),
+                }
+            )
+
+        existing = self._learning_plan_service.read_plan(session.session_id)
+        fields = {
+            "user_id": str(session.user_id or "").strip(),
+            "source_bot_id": str(session.source_bot_id or "").strip(),
+            "notebook_id": str(session.notebook_id or "").strip(),
+            "notebook_name": str(session.notebook_name or "").strip(),
+            "notebook_context": str(session.notebook_context or "").strip(),
+            "source_material_refs_json": list(session.source_material_refs_json or []),
+            "status": str(session.status or "initialized"),
+            "current_index": int(session.current_index),
+            "chat_history": list(session.chat_history or []),
+            "summary": str(session.summary or "").strip(),
+            "created_at": float(session.created_at),
+        }
+        if existing is None:
+            self._learning_plan_service.create_plan(
+                session_id=session.session_id,
+                pages=pages,
+                **fields,
+            )
+            return
+
+        self._learning_plan_service.update_plan(session.session_id, **fields)
+        for page in pages:
+            page_index = int(page.get("page_index", 0) or 0)
+            page_fields = {
+                key: value
+                for key, value in page.items()
+                if key not in {"page_index", "session_id"}
+            }
+            self._learning_plan_service.upsert_page(
+                session.session_id,
+                page_index,
+                **page_fields,
+            )
+
+    async def _sync_learning_plan(
+        self,
+        session: GuidedSession,
+        *,
+        source_material_refs_json: list[dict[str, Any]] | None = None,
+        page_index: int | None = None,
+        page_status: str | None = None,
+        html_content: str = "",
+        error_message: str = "",
+    ) -> bool:
+        resolved_user_id, resolved_source_bot_id = self._resolve_learner_identity(session)
+        if not resolved_user_id:
+            return False
+        if source_material_refs_json is not None:
+            session.source_material_refs_json = list(source_material_refs_json)
+        if page_index is not None:
+            key = str(page_index)
+            session.page_statuses[key] = page_status or session.page_statuses.get(key, "pending")
+            session.page_errors[key] = error_message
+            if html_content:
+                session.html_pages[key] = html_content
+        session.user_id = resolved_user_id
+        session.source_bot_id = resolved_source_bot_id
+        self._persist_learning_plan(session)
+        return True
+
     async def _generate_single_page(self, session_id: str, knowledge_index: int) -> dict[str, Any]:
         session = self._load_session(session_id)
         if not session:
@@ -256,12 +427,38 @@ class GuideManager:
             session.page_statuses[key] = "ready"
             session.page_errors[key] = result.get("error", "")
             self._save_session(session)
+            try:
+                await self._sync_learning_plan(
+                    session,
+                    page_index=knowledge_index,
+                    page_status=session.page_statuses.get(key, "ready"),
+                    html_content=session.html_pages.get(key, ""),
+                    error_message=session.page_errors.get(key, ""),
+                )
+            except Exception:
+                self.logger.debug(
+                    f"Learning plan page sync failed for guided session {session.session_id} page {knowledge_index}",
+                    exc_info=True,
+                )
             return result
 
         retryable = bool(result.get("retryable"))
         session.page_statuses[key] = "pending" if retryable else "failed"
         session.page_errors[key] = result.get("error", "Failed to generate page")
         self._save_session(session)
+        try:
+            await self._sync_learning_plan(
+                session,
+                page_index=knowledge_index,
+                page_status=session.page_statuses.get(key, "failed"),
+                html_content=session.html_pages.get(key, ""),
+                error_message=session.page_errors.get(key, ""),
+            )
+        except Exception:
+            self.logger.debug(
+                f"Learning plan page sync failed for guided session {session.session_id} page {knowledge_index}",
+                exc_info=True,
+            )
         return result
 
     async def _generate_all_pages_background(
@@ -309,6 +506,19 @@ class GuideManager:
                                 "error", "Failed after retries"
                             )
                             self._save_session(failed_session)
+                            try:
+                                await self._sync_learning_plan(
+                                    failed_session,
+                                    page_index=index,
+                                    page_status=failed_session.page_statuses.get(key, "failed"),
+                                    html_content=failed_session.html_pages.get(key, ""),
+                                    error_message=failed_session.page_errors.get(key, ""),
+                                )
+                            except Exception:
+                                self.logger.debug(
+                                    f"Learning plan sync failed for guided session {failed_session.session_id} page {index}",
+                                    exc_info=True,
+                                )
                 finally:
                     queue.task_done()
 
@@ -340,6 +550,8 @@ class GuideManager:
         user_input: str,
         display_title: str | None = None,
         notebook_context: str = "",
+        user_id: str | None = None,
+        source_bot_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Create new learning session
@@ -384,14 +596,30 @@ class GuideManager:
             notebook_id="user_input",
             notebook_name=session_title or "Guided Learning",
             created_at=time.time(),
+            user_id=str(user_id or "").strip(),
+            source_bot_id=str(source_bot_id or "").strip(),
             knowledge_points=knowledge_points,
             current_index=-1,
             status="initialized",
             notebook_context=notebook_context,
+            source_material_refs_json=self._build_learning_plan_source_refs(
+                user_input,
+                notebook_context,
+            ),
         )
         self._initialize_page_statuses(session)
 
         self._save_session(session)
+        try:
+            await self._sync_learning_plan(
+                session,
+                source_material_refs_json=session.source_material_refs_json,
+            )
+        except Exception:
+            self.logger.debug(
+                f"Learning plan sync failed for created guided session {session.session_id}",
+                exc_info=True,
+            )
 
         return {
             "success": True,
@@ -474,6 +702,13 @@ class GuideManager:
         )
 
         self._save_session(session)
+        try:
+            await self._sync_learning_plan(session)
+        except Exception:
+            self.logger.debug(
+                f"Learning plan sync failed for guided session {session.session_id}",
+                exc_info=True,
+            )
         self._schedule_generation_task(session_id)
 
         return {
@@ -499,6 +734,13 @@ class GuideManager:
         self._initialize_page_statuses(session)
         session.current_index = knowledge_index
         self._save_session(session)
+        try:
+            await self._sync_learning_plan(session)
+        except Exception:
+            self.logger.debug(
+                f"Learning plan sync failed for guided session {session.session_id}",
+                exc_info=True,
+            )
 
         if not self._has_active_generation_task(session_id):
             pending_indices = [
@@ -522,7 +764,12 @@ class GuideManager:
             "message": f"Viewing knowledge point {knowledge_index + 1}.",
         }
 
-    async def complete_learning(self, session_id: str) -> dict[str, Any]:
+    async def complete_learning(
+        self,
+        session_id: str,
+        user_id: str | None = None,
+        source_bot_id: str | None = None,
+    ) -> dict[str, Any]:
         """Generate the final learning summary."""
         session = self._load_session(session_id)
         if not session:
@@ -536,6 +783,15 @@ class GuideManager:
 
         session.status = "completed"
         session.summary = summary_result.get("summary", "")
+        resolved_user_id, resolved_source_bot_id = self._resolve_learner_identity(
+            session,
+            user_id=user_id,
+            source_bot_id=source_bot_id,
+        )
+        if resolved_user_id:
+            session.user_id = resolved_user_id
+        if resolved_source_bot_id:
+            session.source_bot_id = resolved_source_bot_id
         session.chat_history.append(
             {
                 "role": "system",
@@ -544,6 +800,25 @@ class GuideManager:
             }
         )
         self._save_session(session)
+        try:
+            await self._sync_learning_plan(session)
+        except Exception:
+            self.logger.debug(
+                f"Learning plan sync failed for completed guided session {session.session_id}",
+                exc_info=True,
+            )
+        try:
+            await self._writeback_learner_state(
+                session,
+                session.summary,
+                user_id=resolved_user_id,
+                source_bot_id=resolved_source_bot_id,
+            )
+        except Exception:
+            self.logger.debug(
+                f"Learner state writeback failed for guided session {session.session_id}",
+                exc_info=True,
+            )
 
         return {
             "success": True,
@@ -645,6 +920,19 @@ class GuideManager:
             session.html_pages[str(session.current_index)] = result.get("html", "")
             session.page_statuses[str(session.current_index)] = "ready"
             self._save_session(session)
+            try:
+                await self._sync_learning_plan(
+                    session,
+                    page_index=session.current_index,
+                    page_status=session.page_statuses.get(str(session.current_index), "ready"),
+                    html_content=session.html_pages.get(str(session.current_index), ""),
+                    error_message=session.page_errors.get(str(session.current_index), ""),
+                )
+            except Exception:
+                self.logger.debug(
+                    f"Learning plan sync failed for fixed guided session {session.session_id} page {session.current_index}",
+                    exc_info=True,
+                )
 
         return result
 
@@ -715,30 +1003,18 @@ class GuideManager:
 
     def list_sessions(self) -> list[dict[str, Any]]:
         """List all sessions with summary metadata (no html_pages / chat_history)."""
-        summaries: list[dict[str, Any]] = []
-        for filepath in self.output_dir.glob("session_*.json"):
-            try:
-                with open(filepath, encoding="utf-8") as f:
-                    data = json.load(f)
-                page_statuses = data.get("page_statuses") or {}
-                ready_count = sum(1 for v in page_statuses.values() if v == "ready")
-                total_points = len(data.get("knowledge_points") or [])
-                progress = int((ready_count / total_points) * 100) if total_points else 0
-                summaries.append(
-                    {
-                        "session_id": data.get("session_id", ""),
-                        "topic": data.get("notebook_name", ""),
-                        "status": data.get("status", "initialized"),
-                        "created_at": data.get("created_at", 0),
-                        "total_points": total_points,
-                        "ready_count": ready_count,
-                        "progress": progress,
-                    }
-                )
-            except Exception:
-                continue
-        summaries.sort(key=lambda s: s["created_at"], reverse=True)
-        return summaries
+        return [
+            {
+                "session_id": item.get("session_id", ""),
+                "topic": item.get("notebook_name", ""),
+                "status": item.get("status", "initialized"),
+                "created_at": item.get("created_at", 0),
+                "total_points": item.get("page_count", 0),
+                "ready_count": item.get("ready_count", 0),
+                "progress": item.get("progress", 0),
+            }
+            for item in self._learning_plan_service.list_plans()
+        ]
 
     async def reset_session(self, session_id: str) -> dict[str, Any]:
         """Detach from a session (cancel tasks, clear cache, but keep the file for history)."""

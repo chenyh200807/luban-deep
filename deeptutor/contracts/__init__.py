@@ -4,6 +4,7 @@ from .index_loader import (
     get_contract_index_path,
     load_contract_index,
 )
+from .learner_state import export_learner_state_contract
 from .unified_turn import (
     TurnStatus,
     UNIFIED_TURN_TRACE_FIELDS,
@@ -20,6 +21,7 @@ __all__ = [
     "UnifiedTurnStartResponse",
     "build_turn_stream_bootstrap",
     "export_unified_turn_contract",
+    "export_learner_state_contract",
     "export_contract_index",
     "get_contract_index_candidates",
     "get_contract_index_path",

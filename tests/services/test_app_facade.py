@@ -85,6 +85,7 @@ def test_app_facade_contract_self_check_reports_ok() -> None:
     assert app.contract_self_check.transport == "/api/v1/ws"
     assert "turn" in app.contract_self_check.domains
     assert "capability" in app.contract_self_check.domains
+    assert "learner_state" in app.contract_self_check.domains
 
 
 def test_app_facade_strict_contract_check_raises(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import annotations
+
 """
 PathService - centralized runtime storage layout for ``data/user``.
 
@@ -155,6 +157,15 @@ class PathService:
     def get_tutor_state_root(self) -> Path:
         return self._user_data_dir / "tutor_state"
 
+    def get_learner_state_root(self) -> Path:
+        return self._user_data_dir / "learner_state"
+
+    def get_runtime_dir(self) -> Path:
+        return self.project_root / "data" / "runtime"
+
+    def get_learner_state_outbox_db(self) -> Path:
+        return self.get_runtime_dir() / "outbox.db"
+
     def get_settings_dir(self) -> Path:
         return self._user_data_dir / "settings"
 
@@ -306,6 +317,16 @@ class PathService:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
+    def ensure_learner_state_dir(self) -> Path:
+        path = self.get_learner_state_root()
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def ensure_runtime_dir(self) -> Path:
+        path = self.get_runtime_dir()
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
     def ensure_settings_dir(self) -> Path:
         path = self.get_settings_dir()
         path.mkdir(parents=True, exist_ok=True)
@@ -315,6 +336,8 @@ class PathService:
         self.ensure_settings_dir()
         self.ensure_workspace_dir()
         self.ensure_memory_dir()
+        self.ensure_learner_state_dir()
+        self.ensure_runtime_dir()
         self.ensure_notebook_dir()
         self.get_logs_dir().mkdir(parents=True, exist_ok=True)
         for feature in ("co-writer", "guide"):

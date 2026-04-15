@@ -15,6 +15,7 @@ from deeptutor.logging.context import bind_log_context, bind_request_id, reset_l
 from deeptutor.api.runtime_metrics import APIRuntimeMetrics, render_prometheus_metrics
 from deeptutor.services.config import get_env_store
 from deeptutor.services.branding import get_api_title, get_api_welcome_message
+from deeptutor.services.learner_state.runtime import create_default_learner_state_runtime
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.utils.error_rate_tracker import get_tracker_snapshot
@@ -166,6 +167,19 @@ def validate_tool_consistency():
         raise
 
 
+async def _start_learner_state_runtime(app: FastAPI) -> None:
+    runtime = create_default_learner_state_runtime(get_path_service())
+    app.state.learner_state_runtime = runtime
+    await runtime.start()
+
+
+async def _stop_learner_state_runtime(app: FastAPI) -> None:
+    runtime = getattr(app.state, "learner_state_runtime", None)
+    if runtime is None:
+        return
+    await runtime.stop()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -220,6 +234,17 @@ async def lifespan(app: FastAPI):
         raise RuntimeError(
             "Critical startup dependencies failed: " + "; ".join(startup_failures)
         )
+
+    try:
+        await _start_learner_state_runtime(app)
+        logger.info("LearnerState runtime started")
+    except Exception as e:
+        logger.warning(f"Failed to start LearnerState runtime: {e}")
+        startup_failures.append(f"learner_state_runtime: {e}")
+        if _startup_fail_fast_enabled():
+            raise RuntimeError(
+                "Critical startup dependencies failed: " + "; ".join(startup_failures)
+            )
     yield
 
     # Execute on shutdown
@@ -242,6 +267,12 @@ async def lifespan(app: FastAPI):
         logger.info("EventBus stopped")
     except Exception as e:
         logger.warning(f"Failed to stop EventBus: {e}")
+
+    try:
+        await _stop_learner_state_runtime(app)
+        logger.info("LearnerState runtime stopped")
+    except Exception as e:
+        logger.warning(f"Failed to stop LearnerState runtime: {e}")
 
 
 app = FastAPI(

@@ -66,6 +66,15 @@ class _FakePathService:
     def get_tutor_state_root(self) -> Path:
         return self._dir("tutor_state")
 
+    def get_learner_state_root(self) -> Path:
+        return self._dir("learner_state")
+
+    def get_runtime_dir(self) -> Path:
+        return self._dir("data", "runtime")
+
+    def get_learner_state_outbox_db(self) -> Path:
+        return self.get_runtime_dir() / "outbox.db"
+
     def get_notebook_dir(self) -> Path:
         return self._dir("workspace", "notebook")
 
@@ -201,9 +210,19 @@ def _install_fake_startup_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
     llm_module = importlib.import_module("deeptutor.services.llm")
     event_bus_module = importlib.import_module("deeptutor.events.event_bus")
     tutorbot_module = importlib.import_module("deeptutor.services.tutorbot")
+    main_module = importlib.import_module("deeptutor.api.main")
+
+    class _FakeLearnerStateRuntime:
+        async def start(self) -> None:
+            return None
+
+        async def stop(self) -> None:
+            return None
+
     monkeypatch.setattr(llm_module, "get_llm_client", lambda: _FakeLLMClient())
     monkeypatch.setattr(event_bus_module, "get_event_bus", lambda: _FakeEventBus())
     monkeypatch.setattr(tutorbot_module, "get_tutorbot_manager", lambda: _FakeTutorbotManager())
+    monkeypatch.setattr(main_module, "create_default_learner_state_runtime", lambda _path_service=None: _FakeLearnerStateRuntime())
 
 
 def _install_failing_startup_dependencies(
@@ -228,6 +247,15 @@ def _install_failing_startup_dependencies(
     llm_module = importlib.import_module("deeptutor.services.llm")
     event_bus_module = importlib.import_module("deeptutor.events.event_bus")
     tutorbot_module = importlib.import_module("deeptutor.services.tutorbot")
+    main_module = importlib.import_module("deeptutor.api.main")
+
+    class _FakeLearnerStateRuntime:
+        async def start(self) -> None:
+            return None
+
+        async def stop(self) -> None:
+            return None
+
     if llm_error is not None:
         monkeypatch.setattr(
             llm_module,
@@ -236,6 +264,7 @@ def _install_failing_startup_dependencies(
         )
     monkeypatch.setattr(event_bus_module, "get_event_bus", lambda: _FakeEventBus())
     monkeypatch.setattr(tutorbot_module, "get_tutorbot_manager", lambda: _FakeTutorbotManager())
+    monkeypatch.setattr(main_module, "create_default_learner_state_runtime", lambda _path_service=None: _FakeLearnerStateRuntime())
 
 
 def _cors_middleware_options(app: FastAPI) -> dict[str, object]:
@@ -423,6 +452,41 @@ def test_local_startup_keeps_process_alive_when_fail_fast_disabled(
     assert response.status_code == 503
     payload = response.json()
     assert payload["checks"]["llm_client_ready"] is False
+
+
+def test_startup_and_shutdown_manage_learner_state_runtime(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "APP_ENV": None,
+            "ENV": None,
+            "ENVIRONMENT": None,
+            "DEEPTUTOR_CORS_ALLOW_ORIGINS": None,
+        },
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_fake_startup_dependencies(monkeypatch)
+
+    runtime_calls = {"start": 0, "stop": 0}
+
+    class _TrackingRuntime:
+        async def start(self) -> None:
+            runtime_calls["start"] += 1
+
+        async def stop(self) -> None:
+            runtime_calls["stop"] += 1
+
+    monkeypatch.setattr(module, "create_default_learner_state_runtime", lambda _path_service=None: _TrackingRuntime())
+
+    with TestClient(module.app):
+        pass
+
+    assert runtime_calls == {"start": 1, "stop": 1}
 
 
 def test_http_request_id_is_echoed_and_bound_to_request_state(

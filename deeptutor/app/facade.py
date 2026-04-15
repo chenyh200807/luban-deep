@@ -152,7 +152,7 @@ class DeepTutorApp:
             errors.append("contracts/index.yaml missing `domains` object")
             domain_payload = {}
         domains = sorted(str(name) for name in domain_payload)
-        required_domains = {"turn", "capability", "rag", "config_runtime"}
+        required_domains = {"turn", "capability", "rag", "config_runtime", "learner_state"}
         missing_domains = sorted(required_domains.difference(domain_payload))
         if missing_domains:
             errors.append(f"contracts/index.yaml missing domains: {', '.join(missing_domains)}")

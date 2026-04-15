@@ -86,6 +86,19 @@ DeepTutor 必须优先保证：
 
 - [contracts/config-runtime.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/config-runtime.md)
 
+### 5. Learner State Contract
+
+负责：
+
+- 学员级长期状态
+- Summary / Profile / Progress / Goals / Memory Events
+- Guided Learning / Notebook / TutorBot / Heartbeat 对长期状态的写回边界
+- 复用 Supabase 学员表与新增表的职责收口
+
+专项文档：
+
+- [contracts/learner-state.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/learner-state.md)
+
 ## AI / 工程师工作规则
 
 任何涉及以下边界的改动，不能直接动代码，必须先读 contract：
@@ -94,6 +107,7 @@ DeepTutor 必须优先保证：
 - `capability route / capability config`
 - `rag / retrieval / exact-question / authority`
 - `tutorbot business identity / default knowledge chain`
+- `learner state / summary / profile / guided learning writeback / heartbeat`
 - `config runtime / provider resolution / env semantics`
 
 工作顺序固定：

@@ -69,7 +69,32 @@ def test_contracts_index_endpoint_exposes_domain_map() -> None:
     assert "capability" in body["domains"]
     assert "rag" in body["domains"]
     assert "config_runtime" in body["domains"]
+    assert "learner_state" in body["domains"]
     assert "deeptutor/api/routers/unified_ws.py" in body["domains"]["turn"]["protected_patterns"]
+    assert "deeptutor/contracts/learner_state.py" in body["domains"]["learner_state"]["schema_files"]
+
+
+def test_learner_state_contract_endpoint_exposes_user_id_scoped_state() -> None:
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/learner-state-contract")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["version"] == 1
+    assert body["subject"] == "learner_state"
+    assert body["control_surface"]["primary_key"] == "user_id"
+    assert body["control_surface"]["summary_truth"] == "learner_summaries"
+    assert "user_profiles" in {table["name"] for table in body["tables"]["reused"]}
+    assert "learner_summaries" in {table["name"] for table in body["tables"]["new"]}
+    assert "bot_learner_overlays" in {table["name"] for table in body["tables"]["phase_2_reserved"]}
+    assert "TutorBot workspace memory must not override learner state truth" in body["invariants"]
+    assert (
+        "phase 2 overlay, if introduced, must remain local and subordinate to learner state truth"
+        in body["invariants"]
+    )
+    assert body["docs"]["contract"] == "/contracts/learner-state.md"
+    assert body["docs"]["service_design"] == "/doc/plan/2026-04-15-learner-state-service-design.md"
+    assert body["docs"]["overlay_prd"] == "/doc/plan/2026-04-15-bot-learner-overlay-prd.md"
 
 
 def test_runtime_topology_declares_ws_as_single_stream_entry() -> None:

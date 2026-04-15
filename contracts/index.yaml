@@ -106,3 +106,37 @@ domains:
       - tests/services/config/test_embedding_runtime.py
       - tests/services/config/test_knowledge_base_config.py
     schema_files: []
+
+  learner_state:
+    summary: Learner long-term state, summary/profile/progress ownership, guide and heartbeat writeback boundaries.
+    contract_files:
+      - CONTRACT.md
+      - contracts/learner-state.md
+      - doc/plan/2026-04-15-learner-state-memory-guided-learning-prd.md
+      - deeptutor/contracts/learner_state.py
+      - contracts/index.yaml
+    protected_patterns:
+      - deeptutor/services/memory/*.py
+      - deeptutor/services/tutor_state/*.py
+      - deeptutor/services/tutor_state/**/*.py
+      - deeptutor/tutorbot/agent/memory.py
+      - deeptutor/agents/guide/*.py
+      - deeptutor/agents/guide/**/*.py
+      - deeptutor/services/notebook/*.py
+      - deeptutor/services/notebook/**/*.py
+      - deeptutor/api/routers/guide.py
+      - deeptutor/api/routers/notebook.py
+      - deeptutor/api/routers/tutor_state.py
+      - deeptutor/api/routers/memory.py
+      - deeptutor/contracts/learner_state.py
+    sensitive_patterns:
+      - deeptutor/services/memory/service.py
+      - deeptutor/services/tutor_state/service.py
+      - deeptutor/tutorbot/agent/memory.py
+      - deeptutor/agents/guide/guide_manager.py
+      - deeptutor/services/notebook/service.py
+      - deeptutor/contracts/learner_state.py
+    test_files:
+      - tests/api/test_system_router.py
+    schema_files:
+      - deeptutor/contracts/learner_state.py
