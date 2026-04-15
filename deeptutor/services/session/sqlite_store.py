@@ -327,6 +327,9 @@ class SQLiteSessionStore:
                 CREATE INDEX IF NOT EXISTS idx_sessions_updated_at
                     ON sessions(updated_at DESC);
 
+                CREATE INDEX IF NOT EXISTS idx_sessions_updated_at_id
+                    ON sessions(updated_at DESC, id DESC);
+
                 CREATE TABLE IF NOT EXISTS turns (
                     id TEXT PRIMARY KEY,
                     session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
@@ -340,6 +343,9 @@ class SQLiteSessionStore:
 
                 CREATE INDEX IF NOT EXISTS idx_turns_session_updated
                     ON turns(session_id, updated_at DESC);
+
+                CREATE INDEX IF NOT EXISTS idx_turns_session_updated_id
+                    ON turns(session_id, updated_at DESC, id DESC);
 
                 CREATE INDEX IF NOT EXISTS idx_turns_session_status
                     ON turns(session_id, status, updated_at DESC);
@@ -384,6 +390,9 @@ class SQLiteSessionStore:
                 CREATE INDEX IF NOT EXISTS idx_notebook_entries_session
                     ON notebook_entries(session_id, created_at DESC);
 
+                CREATE INDEX IF NOT EXISTS idx_notebook_entries_created_id
+                    ON notebook_entries(created_at DESC, id DESC);
+
                 CREATE INDEX IF NOT EXISTS idx_notebook_entries_bookmarked
                     ON notebook_entries(bookmarked, created_at DESC);
 
@@ -420,8 +429,20 @@ class SQLiteSessionStore:
             )
             conn.execute(
                 """
+                CREATE INDEX IF NOT EXISTS idx_sessions_owner_updated_at_id
+                    ON sessions(owner_key, updated_at DESC, id DESC)
+                """
+            )
+            conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_sessions_owner_source_archived_updated
                     ON sessions(owner_key, source, archived, updated_at DESC)
+                """
+            )
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_sessions_owner_source_archived_updated_id
+                    ON sessions(owner_key, source, archived, updated_at DESC, id DESC)
                 """
             )
             rows = conn.execute(
@@ -460,6 +481,12 @@ class SQLiteSessionStore:
                 """
                 CREATE INDEX IF NOT EXISTS idx_notebook_entries_owner
                     ON notebook_entries(owner_key, created_at DESC)
+                """
+            )
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_notebook_entries_owner_created_id
+                    ON notebook_entries(owner_key, created_at DESC, id DESC)
                 """
             )
             notebook_rows = conn.execute(
@@ -1128,71 +1155,7 @@ class SQLiteSessionStore:
     async def get_messages_for_context(self, session_id: str) -> list[dict[str, Any]]:
         return await self._run(self._get_messages_for_context_sync, session_id)
 
-    def _list_sessions_sync(self, limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
-        with self._connect() as conn:
-            rows = conn.execute(
-                """
-                SELECT
-                    s.id,
-                    s.title,
-                    s.created_at,
-                    s.updated_at,
-                    s.compressed_summary,
-                    s.summary_up_to_msg_id,
-                    s.preferences_json,
-                    s.source,
-                    s.archived,
-                    s.owner_key,
-                    COUNT(m.id) AS message_count,
-                    COALESCE(
-                        (
-                            SELECT t.status
-                            FROM turns t
-                            WHERE t.session_id = s.id
-                            ORDER BY t.updated_at DESC
-                            LIMIT 1
-                        ),
-                        'idle'
-                    ) AS status,
-                    COALESCE(
-                        (
-                            SELECT t.id
-                            FROM turns t
-                            WHERE t.session_id = s.id AND t.status = 'running'
-                            ORDER BY t.updated_at DESC
-                            LIMIT 1
-                        ),
-                        ''
-                    ) AS active_turn_id,
-                    COALESCE(
-                        (
-                            SELECT t.capability
-                            FROM turns t
-                            WHERE t.session_id = s.id
-                            ORDER BY t.updated_at DESC
-                            LIMIT 1
-                        ),
-                        ''
-                    ) AS capability,
-                    COALESCE(
-                        (
-                            SELECT m2.content
-                            FROM messages m2
-                            WHERE m2.session_id = s.id
-                              AND TRIM(COALESCE(m2.content, '')) != ''
-                            ORDER BY m2.id DESC
-                            LIMIT 1
-                        ),
-                        ''
-                    ) AS last_message
-                FROM sessions s
-                LEFT JOIN messages m ON m.session_id = s.id
-                GROUP BY s.id
-                ORDER BY s.updated_at DESC
-                LIMIT ? OFFSET ?
-                """,
-                (limit, offset),
-            ).fetchall()
+    def _serialize_session_rows(self, rows: list[sqlite3.Row]) -> list[dict[str, Any]]:
         sessions = []
         usage_summaries = self._get_usage_summaries_for_sessions_sync([str(row["id"]) for row in rows])
         for row in rows:
@@ -1208,8 +1171,157 @@ class SQLiteSessionStore:
             sessions.append(payload)
         return sessions
 
-    async def list_sessions(self, limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
-        return await self._run(self._list_sessions_sync, limit, offset)
+    def _query_session_page_sync(
+        self,
+        *,
+        conditions: list[str] | None = None,
+        params: list[Any] | None = None,
+        limit: int = 50,
+        offset: int = 0,
+        before_updated_at: float | None = None,
+        before_session_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        query_conditions = list(conditions or [])
+        query_params = list(params or [])
+        effective_limit = max(int(limit), 1)
+        effective_offset = max(int(offset), 0)
+        if before_updated_at is not None:
+            cursor_session_id = str(before_session_id or "").strip() or "\uffff"
+            query_conditions.append("(s.updated_at < ? OR (s.updated_at = ? AND s.id < ?))")
+            query_params.extend([float(before_updated_at), float(before_updated_at), cursor_session_id])
+            effective_offset = 0
+        where_clause = f"WHERE {' AND '.join(query_conditions)}" if query_conditions else ""
+        with self._connect() as conn:
+            rows = conn.execute(
+                f"""
+                WITH filtered_sessions AS (
+                    SELECT
+                        s.id,
+                        s.title,
+                        s.created_at,
+                        s.updated_at,
+                        s.compressed_summary,
+                        s.summary_up_to_msg_id,
+                        s.preferences_json,
+                        s.source,
+                        s.archived,
+                        s.owner_key
+                    FROM sessions s
+                    {where_clause}
+                    ORDER BY s.updated_at DESC, s.id DESC
+                    LIMIT ? OFFSET ?
+                ),
+                message_counts AS (
+                    SELECT
+                        m.session_id,
+                        COUNT(*) AS message_count
+                    FROM messages m
+                    WHERE m.session_id IN (SELECT id FROM filtered_sessions)
+                    GROUP BY m.session_id
+                ),
+                latest_turn AS (
+                    SELECT session_id, status, capability
+                    FROM (
+                        SELECT
+                            t.session_id,
+                            t.status,
+                            t.capability,
+                            ROW_NUMBER() OVER (
+                                PARTITION BY t.session_id
+                                ORDER BY t.updated_at DESC, t.id DESC
+                            ) AS rn
+                        FROM turns t
+                        WHERE t.session_id IN (SELECT id FROM filtered_sessions)
+                    )
+                    WHERE rn = 1
+                ),
+                running_turn AS (
+                    SELECT session_id, id
+                    FROM (
+                        SELECT
+                            t.session_id,
+                            t.id,
+                            ROW_NUMBER() OVER (
+                                PARTITION BY t.session_id
+                                ORDER BY t.updated_at DESC, t.id DESC
+                            ) AS rn
+                        FROM turns t
+                        WHERE t.session_id IN (SELECT id FROM filtered_sessions)
+                          AND t.status = 'running'
+                    )
+                    WHERE rn = 1
+                ),
+                last_message AS (
+                    SELECT session_id, content
+                    FROM (
+                        SELECT
+                            m2.session_id,
+                            m2.content,
+                            ROW_NUMBER() OVER (
+                                PARTITION BY m2.session_id
+                                ORDER BY m2.id DESC
+                            ) AS rn
+                        FROM messages m2
+                        WHERE m2.session_id IN (SELECT id FROM filtered_sessions)
+                          AND TRIM(COALESCE(m2.content, '')) != ''
+                    )
+                    WHERE rn = 1
+                )
+                SELECT
+                    fs.id,
+                    fs.title,
+                    fs.created_at,
+                    fs.updated_at,
+                    fs.compressed_summary,
+                    fs.summary_up_to_msg_id,
+                    fs.preferences_json,
+                    fs.source,
+                    fs.archived,
+                    fs.owner_key,
+                    COALESCE(mc.message_count, 0) AS message_count,
+                    COALESCE(lt.status, 'idle') AS status,
+                    COALESCE(rt.id, '') AS active_turn_id,
+                    COALESCE(lt.capability, '') AS capability,
+                    COALESCE(lm.content, '') AS last_message
+                FROM filtered_sessions fs
+                LEFT JOIN message_counts mc ON mc.session_id = fs.id
+                LEFT JOIN latest_turn lt ON lt.session_id = fs.id
+                LEFT JOIN running_turn rt ON rt.session_id = fs.id
+                LEFT JOIN last_message lm ON lm.session_id = fs.id
+                ORDER BY fs.updated_at DESC, fs.id DESC
+                """,
+                tuple(query_params) + (effective_limit, effective_offset),
+            ).fetchall()
+        return self._serialize_session_rows(rows)
+
+    def _list_sessions_sync(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        before_updated_at: float | None = None,
+        before_session_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        return self._query_session_page_sync(
+            limit=limit,
+            offset=offset,
+            before_updated_at=before_updated_at,
+            before_session_id=before_session_id,
+        )
+
+    async def list_sessions(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        before_updated_at: float | None = None,
+        before_session_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        return await self._run(
+            self._list_sessions_sync,
+            limit,
+            offset,
+            before_updated_at,
+            before_session_id,
+        )
 
     def _list_sessions_by_owner_sync(
         self,
@@ -1218,95 +1330,25 @@ class SQLiteSessionStore:
         archived: bool | None = None,
         limit: int = 50,
         offset: int = 0,
+        before_updated_at: float | None = None,
+        before_session_id: str | None = None,
     ) -> list[dict[str, Any]]:
-        with self._connect() as conn:
-            conditions = ["s.owner_key = ?"]
-            params: list[Any] = [owner_key]
-            if source is not None:
-                conditions.append("s.source = ?")
-                params.append(_normalize_session_source(source))
-            if archived is not None:
-                conditions.append("s.archived = ?")
-                params.append(1 if bool(archived) else 0)
-            where_clause = " AND ".join(conditions)
-            rows = conn.execute(
-                f"""
-                SELECT
-                    s.id,
-                    s.title,
-                    s.created_at,
-                    s.updated_at,
-                    s.compressed_summary,
-                    s.summary_up_to_msg_id,
-                    s.preferences_json,
-                    s.source,
-                    s.archived,
-                    s.owner_key,
-                    COUNT(m.id) AS message_count,
-                    COALESCE(
-                        (
-                            SELECT t.status
-                            FROM turns t
-                            WHERE t.session_id = s.id
-                            ORDER BY t.updated_at DESC
-                            LIMIT 1
-                        ),
-                        'idle'
-                    ) AS status,
-                    COALESCE(
-                        (
-                            SELECT t.id
-                            FROM turns t
-                            WHERE t.session_id = s.id AND t.status = 'running'
-                            ORDER BY t.updated_at DESC
-                            LIMIT 1
-                        ),
-                        ''
-                    ) AS active_turn_id,
-                    COALESCE(
-                        (
-                            SELECT t.capability
-                            FROM turns t
-                            WHERE t.session_id = s.id
-                            ORDER BY t.updated_at DESC
-                            LIMIT 1
-                        ),
-                        ''
-                    ) AS capability,
-                    COALESCE(
-                        (
-                            SELECT m2.content
-                            FROM messages m2
-                            WHERE m2.session_id = s.id
-                              AND TRIM(COALESCE(m2.content, '')) != ''
-                            ORDER BY m2.id DESC
-                            LIMIT 1
-                        ),
-                        ''
-                    ) AS last_message
-                FROM sessions s
-                LEFT JOIN messages m ON m.session_id = s.id
-                WHERE {where_clause}
-                GROUP BY s.id
-                ORDER BY s.updated_at DESC
-                LIMIT ? OFFSET ?
-                """,
-                tuple(params) + (limit, offset),
-            ).fetchall()
-        sessions = []
-        usage_summaries = self._get_usage_summaries_for_sessions_sync([str(row["id"]) for row in rows])
-        for row in rows:
-            payload = dict(row)
-            payload["session_id"] = payload["id"]
-            payload["preferences"] = _materialize_session_preferences(
-                payload.pop("preferences_json", ""),
-                payload.pop("source", ""),
-                payload.pop("archived", 0),
-            )
-            payload.pop("owner_key", None)
-            payload["cost_summary"] = usage_summaries.get(payload["id"])
-            sessions.append(payload)
-        return sessions
+        conditions = ["s.owner_key = ?"]
+        params: list[Any] = [owner_key]
+        if source is not None:
+            conditions.append("s.source = ?")
+            params.append(_normalize_session_source(source))
+        if archived is not None:
+            conditions.append("s.archived = ?")
+            params.append(1 if bool(archived) else 0)
+        return self._query_session_page_sync(
+            conditions=conditions,
+            params=params,
+            limit=limit,
+            offset=offset,
+            before_updated_at=before_updated_at,
+            before_session_id=before_session_id,
+        )
 
     async def list_sessions_by_owner(
         self,
@@ -1315,6 +1357,8 @@ class SQLiteSessionStore:
         archived: bool | None = None,
         limit: int = 50,
         offset: int = 0,
+        before_updated_at: float | None = None,
+        before_session_id: str | None = None,
     ) -> list[dict[str, Any]]:
         return await self._run(
             self._list_sessions_by_owner_sync,
@@ -1323,6 +1367,8 @@ class SQLiteSessionStore:
             archived,
             limit,
             offset,
+            before_updated_at,
+            before_session_id,
         )
 
     def _get_session_owner_key_sync(self, session_id: str) -> str:
@@ -1552,6 +1598,8 @@ class SQLiteSessionStore:
         limit: int,
         offset: int,
         owner_key: str | None = None,
+        before_created_at: float | None = None,
+        before_entry_id: int | None = None,
     ) -> dict[str, Any]:
         base = """
             SELECT
@@ -1591,13 +1639,20 @@ class SQLiteSessionStore:
         if is_correct is not None:
             conditions.append("n.is_correct = ?")
             params.append(1 if is_correct else 0)
+        effective_offset = max(int(offset), 0)
+        effective_limit = max(int(limit), 1)
+        if before_created_at is not None:
+            cursor_entry_id = int(before_entry_id or 2**63 - 1)
+            conditions.append("(n.created_at < ? OR (n.created_at = ? AND n.id < ?))")
+            params.extend([float(before_created_at), float(before_created_at), cursor_entry_id])
+            effective_offset = 0
         where = (" WHERE " + " AND ".join(conditions)) if conditions else ""
         with self._connect() as conn:
             total_row = conn.execute(count_base + where, tuple(params)).fetchone()
             total = int(total_row["cnt"]) if total_row else 0
             rows = conn.execute(
-                base + where + " ORDER BY n.created_at DESC LIMIT ? OFFSET ?",
-                tuple(params) + (limit, offset),
+                base + where + " ORDER BY n.created_at DESC, n.id DESC LIMIT ? OFFSET ?",
+                tuple(params) + (effective_limit, effective_offset),
             ).fetchall()
         items = [self._serialize_notebook_entry(r) for r in rows]
         return {"items": items, "total": total}
@@ -1610,10 +1665,19 @@ class SQLiteSessionStore:
         limit: int = 50,
         offset: int = 0,
         owner_key: str | None = None,
+        before_created_at: float | None = None,
+        before_entry_id: int | None = None,
     ) -> dict[str, Any]:
         return await self._run(
             self._list_notebook_entries_sync,
-            category_id, bookmarked, is_correct, limit, offset, owner_key,
+            category_id,
+            bookmarked,
+            is_correct,
+            limit,
+            offset,
+            owner_key,
+            before_created_at,
+            before_entry_id,
         )
 
     def _get_notebook_entry_sync(

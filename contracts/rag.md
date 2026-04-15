@@ -24,11 +24,11 @@
 3. authority correction 只能建立在统一 retrieval metadata 之上，不能靠 prompt 猜测。
 4. provider 可以替换，但上层消费到的语义契约必须稳定。
 5. retrieval trace 命名必须统一，不得为同一语义创造平行字段。
-6. 需要默认 grounding 的 TutorBot 业务身份，必须注册进统一 profile contract，而不是散落在 router 中。
-7. 对于注册过的 grounded TutorBot profile，当模型本轮放弃工具时，agent 必须执行统一的 server-side RAG fallback，不能把 grounding 是否发生完全交给模型偶然发挥。
+6. 需要默认 grounding 的 TutorBot 业务身份，必须注册进统一 runtime defaults contract，而不是散落在 router 中。
+7. 对于注册过默认 grounding 的 TutorBot，当模型本轮放弃工具时，agent 必须执行统一的 server-side RAG fallback，不能把 grounding 是否发生完全交给模型偶然发挥。
 8. `exact_question` 不能再默认等同于选择题；案例题必须带 `answer_kind/case_bundle/coverage_state` 这类题型感知字段。
 9. 当案例题 exact hit 只覆盖部分小问时，系统必须显式标记 partial coverage，并继续做补充检索；不能因为命中 exact 就直接跳过第二轮检索。
-10. 对注册过的 grounded TutorBot profile，允许执行 `retrieval-first / exact-first` fast path；但 fast path 仍必须复用统一 `rag` 语义、统一 trace 和统一 `RAGService`。
+10. 对注册过默认 grounding 的 TutorBot，允许执行 `retrieval-first / exact-first` fast path；但 fast path 仍必须复用统一 `rag` 语义、统一 trace 和统一 `RAGService`。
 11. 当案例题 full exact 命中且已完整覆盖全部小问时，`exact_question` 必须拥有高于 `answer_type`、teaching contract 和通用 LLM responding 的优先级，可直接短路为 authoritative answer。
 
 ## 当前统一语义
@@ -39,8 +39,8 @@
 - `exact_question.coverage_state`
 - `authoritative_answer`
 - `corrected_from`
-- `knowledge_chain_profile`
-- `knowledge_chain_source`
+- `bot_id`
+- `knowledge_bases`
 - `exact_authority_response`
 
 ## 必测项

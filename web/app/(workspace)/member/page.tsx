@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Crown, RefreshCw, Search, ShieldAlert, Sparkles, Wallet } from "lucide-react";
+import RestrictedSurface from "@/components/common/RestrictedSurface";
 import {
   createMemberNote,
   getMemberDashboard,
@@ -15,6 +16,7 @@ import {
   type MemberDetail,
   type MemberListItem,
 } from "@/lib/member-api";
+import { requiresWebAuth } from "@/lib/web-access";
 
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
   month: "2-digit",
@@ -39,6 +41,14 @@ function statusTone(status: string) {
 }
 
 export default function MemberPage() {
+  if (!requiresWebAuth()) {
+    return (
+      <RestrictedSurface
+        title="Membership console unavailable"
+        message="当前 Web 端未接入登录态，会员后台已默认关闭。请使用已鉴权入口访问。"
+      />
+    );
+  }
   const [dashboard, setDashboard] = useState<MemberDashboard | null>(null);
   const [members, setMembers] = useState<MemberListItem[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>("");

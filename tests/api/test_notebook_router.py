@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -100,7 +101,47 @@ def test_list_entries_empty(store: SQLiteSessionStore) -> None:
     with TestClient(_build_app(store)) as client:
         resp = client.get("/api/v1/question-notebook/entries")
         assert resp.status_code == 200
-        assert resp.json() == {"items": [], "total": 0}
+        assert resp.json() == {"items": [], "total": 0, "next_cursor": None}
+
+
+def test_list_entries_support_keyset_cursor(store: SQLiteSessionStore) -> None:
+    session = _owned_session(store, session_id="cursor-session")
+    asyncio.run(store.upsert_notebook_entries(session["id"], [
+        {"question_id": "q1", "question": "Q1", "is_correct": False},
+        {"question_id": "q2", "question": "Q2", "is_correct": False},
+        {"question_id": "q3", "question": "Q3", "is_correct": False},
+    ]))
+    with sqlite3.connect(store.db_path) as conn:
+        conn.execute("UPDATE notebook_entries SET created_at = ?, updated_at = ? WHERE question_id = ?", (300.0, 300.0, "q1"))
+        conn.execute("UPDATE notebook_entries SET created_at = ?, updated_at = ? WHERE question_id = ?", (200.0, 200.0, "q2"))
+        conn.execute("UPDATE notebook_entries SET created_at = ?, updated_at = ? WHERE question_id = ?", (100.0, 100.0, "q3"))
+        conn.commit()
+
+    with TestClient(_build_app(store)) as client:
+        first = client.get("/api/v1/question-notebook/entries?limit=2")
+        assert first.status_code == 200
+        first_body = first.json()
+        assert [item["question_id"] for item in first_body["items"]] == ["q1", "q2"]
+        assert first_body["next_cursor"] == {
+            "before_created_at": 200.0,
+            "before_entry_id": first_body["items"][-1]["id"],
+        }
+
+        second = client.get(
+            f"/api/v1/question-notebook/entries?limit=2&before_created_at=200.0&before_entry_id={first_body['items'][-1]['id']}"
+        )
+        assert second.status_code == 200
+        second_body = second.json()
+        assert [item["question_id"] for item in second_body["items"]] == ["q3"]
+        assert second_body["next_cursor"] is None
+
+
+def test_list_entries_reject_mixed_offset_and_cursor(store: SQLiteSessionStore) -> None:
+    with TestClient(_build_app(store)) as client:
+        response = client.get("/api/v1/question-notebook/entries?offset=1&before_created_at=100.0")
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "offset cannot be combined with keyset cursor"
 
 
 def test_quiz_results_populates_notebook(store: SQLiteSessionStore) -> None:

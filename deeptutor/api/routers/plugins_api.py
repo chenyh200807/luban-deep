@@ -21,6 +21,7 @@ from pydantic import BaseModel
 from deeptutor.runtime.registry.capability_registry import get_capability_registry
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
 from deeptutor.logging import ConsoleFormatter
+from deeptutor.utils.error_utils import public_error_detail
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +115,7 @@ async def execute_tool(tool_name: str, body: ToolExecuteRequest):
         }
     except Exception as exc:
         logger.exception("Tool execution failed: %s", tool_name)
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=public_error_detail("Tool execution"))
 
 
 class _QueueLogHandler(logging.Handler):
@@ -231,7 +232,7 @@ async def _execute_stream(tool_name: str, params: dict[str, Any]) -> AsyncGenera
                 "metadata": result.metadata,
             }
         except Exception as exc:
-            error_holder["detail"] = str(exc)
+            error_holder["detail"] = public_error_detail("Tool execution")
         finally:
             done.set()
 
@@ -344,7 +345,7 @@ async def _execute_capability_stream(
                         "__STREAM_EVENT__" + json.dumps(event.to_dict(), default=str)
                     )
         except Exception as exc:
-            error_holder["detail"] = str(exc)
+            error_holder["detail"] = public_error_detail("Capability execution")
         finally:
             done.set()
 

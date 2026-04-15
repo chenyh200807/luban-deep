@@ -24,8 +24,10 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { writeStoredLanguage } from "@/context/AppShellContext";
+import RestrictedSurface from "@/components/common/RestrictedSurface";
 import { apiUrl } from "@/lib/api";
 import { setTheme as applyThemePreference } from "@/lib/theme";
+import { requiresWebAuth } from "@/lib/web-access";
 
 type ServiceName = "llm" | "embedding" | "search";
 
@@ -1270,6 +1272,14 @@ function SettingsPageContent() {
 }
 
 export default function SettingsPage() {
+  if (!requiresWebAuth()) {
+    return (
+      <RestrictedSurface
+        title="Settings unavailable"
+        message="当前 Web 端未接入登录态，配置控制台已默认关闭。请使用已鉴权入口访问。"
+      />
+    );
+  }
   const { t } = useTranslation();
   return (
     <Suspense

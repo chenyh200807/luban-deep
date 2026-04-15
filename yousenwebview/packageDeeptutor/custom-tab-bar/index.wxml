@@ -1,0 +1,18 @@
+<view class="tab-bar {{isDark?'':'light'}}" wx:if="{{!hidden}}" aria-role="tablist">
+  <view
+    class="tab-item {{selected === index ? 'active' : ''}}"
+    wx:for="{{list}}"
+    wx:key="pagePath"
+    wx:if="{{!item.hidden}}"
+    data-index="{{index}}"
+    bindtap="switchTab"
+    aria-role="tab"
+    aria-label="{{item.text}}"
+    aria-selected="{{selected === index}}"
+  >
+    <view
+      class="tab-icon icon-{{selected === index ? item.activeIcon : item.icon}}"
+    ></view>
+    <text class="tab-text">{{item.text}}</text>
+  </view>
+</view>

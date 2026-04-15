@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib
 import sys
 import types
 from types import SimpleNamespace
@@ -14,6 +15,7 @@ from deeptutor.capabilities.chat import ChatCapability
 from deeptutor.capabilities.deep_question import DeepQuestionCapability
 from deeptutor.capabilities.deep_research import DeepResearchCapability
 from deeptutor.capabilities.deep_solve import DeepSolveCapability
+from deeptutor.capabilities.tutorbot import TutorBotCapability
 from deeptutor.core.context import Attachment, UnifiedContext
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.stream_bus import StreamBus
@@ -399,6 +401,628 @@ async def test_deep_question_capability_uses_single_call_followup_agent(
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "followup"
     assert result_event.metadata["question_id"] == "q_3"
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_capability_bridges_tutorbot_manager(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None):
+            captured["ensure"] = {"bot_id": bot_id, "config": config}
+            return SimpleNamespace(running=True)
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            captured["session_key_args"] = (bot_id, conversation_id, user_id)
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            captured["send"] = {
+                "bot_id": bot_id,
+                "content": content,
+                "chat_id": chat_id,
+                "mode": mode,
+                "session_key": session_key,
+                "session_metadata": session_metadata,
+            }
+            if on_progress is not None:
+                await on_progress("thinking...")
+            if on_tool_call is not None:
+                await on_tool_call("rag", {"query": "你好", "kb_name": "construction-exam"})
+            if on_tool_result is not None:
+                await on_tool_result(
+                    "rag",
+                    "知识库命中",
+                    {
+                        "sources": [{"chunk_id": "q-1", "source_type": "real_exam"}],
+                        "authority_applied": True,
+                    },
+                )
+            if on_content_delta is not None:
+                await on_content_delta("Tutor")
+                await on_content_delta("Bot")
+            return "TutorBot"
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-1",
+        user_message="你好",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
+        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["ensure"]["bot_id"] == "construction-exam-coach"
+    assert captured["send"]["bot_id"] == "construction-exam-coach"
+    assert captured["send"]["chat_id"] == "session-1"
+    assert captured["send"]["mode"] == "smart"
+    assert captured["send"]["session_metadata"]["user_id"] == "u1"
+    assert captured["send"]["session_metadata"]["default_tools"] == ["rag"]
+    assert captured["send"]["session_metadata"]["knowledge_bases"] == ["construction-exam"]
+    assert captured["send"]["session_metadata"]["default_kb"] == "construction-exam"
+    assert "construction-knowledge" in captured["send"]["session_metadata"]["kb_aliases"]
+    assert "construction-exam-tutor" in captured["send"]["session_metadata"]["kb_aliases"]
+    assert any(event.type == StreamEventType.PROGRESS for event in events)
+    assert any(event.type == StreamEventType.TOOL_CALL and event.content == "rag" for event in events)
+    assert any(event.type == StreamEventType.TOOL_RESULT and "知识库命中" in event.content for event in events)
+    assert any(event.type == StreamEventType.SOURCES and event.metadata["sources"][0]["chunk_id"] == "q-1" for event in events)
+    assert any(event.type == StreamEventType.CONTENT and event.content == "Tutor" for event in events)
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["response"] == "TutorBot"
+    assert result_event.metadata["execution_engine"] == "tutorbot_runtime"
+
+
+@pytest.mark.asyncio
+async def test_rag_adapter_tool_uses_runtime_default_kb(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+
+    async def _fake_rag_search(*, query: str, kb_name: str | None = None, **_kwargs: Any) -> dict[str, Any]:
+        captured["query"] = query
+        captured["kb_name"] = kb_name
+        return {"answer": "ok"}
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(
+        metadata={
+            "default_kb": "construction-exam",
+            "knowledge_bases": ["construction-exam"],
+        }
+    )
+
+    result = await tool.execute(query="防水等级")
+
+    assert result == "ok"
+    assert captured["query"] == "防水等级"
+    assert captured["kb_name"] == "construction-exam"
+
+
+@pytest.mark.asyncio
+async def test_rag_adapter_tool_normalizes_legacy_kb_alias_to_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+
+    async def _fake_rag_search(*, query: str, kb_name: str | None = None, **_kwargs: Any) -> dict[str, Any]:
+        captured["query"] = query
+        captured["kb_name"] = kb_name
+        return {"answer": "ok"}
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(
+        metadata={
+            "default_kb": "construction-exam",
+            "kb_aliases": ["construction-knowledge", "construction-exam-coach", "construction-exam-tutor"],
+        }
+    )
+
+    result = await tool.execute(query="防水等级", kb_name="construction-knowledge")
+
+    assert result == "ok"
+    assert captured["query"] == "防水等级"
+    assert captured["kb_name"] == "construction-exam"
+
+
+@pytest.mark.asyncio
+async def test_rag_adapter_tool_normalizes_legacy_tutor_alias_to_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+
+    async def _fake_rag_search(*, query: str, kb_name: str | None = None, **_kwargs: Any) -> dict[str, Any]:
+        captured["query"] = query
+        captured["kb_name"] = kb_name
+        return {"answer": "ok"}
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(
+        metadata={
+            "default_kb": "construction-exam",
+            "kb_aliases": ["construction-exam-tutor", "construction_exam_tutor"],
+        }
+    )
+
+    result = await tool.execute(query="防水等级", kb_name="construction-exam-tutor")
+
+    assert result == "ok"
+    assert captured["query"] == "防水等级"
+    assert captured["kb_name"] == "construction-exam"
+
+
+def test_rag_adapter_tool_preview_args_normalizes_alias() -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    sys.modules.setdefault("loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(
+        metadata={
+            "default_kb": "construction-exam",
+            "kb_aliases": ["construction-exam-tutor", "construction_exam_tutor"],
+        }
+    )
+
+    preview = tool.preview_args(
+        {
+            "query": "防水等级和设防层数有什么区别",
+            "kb_name": "construction-exam-tutor",
+            "mode": "hybrid",
+        }
+    )
+
+    assert preview["kb_name"] == "construction-exam"
+
+
+async def _capture_async(bucket: list[Any], value: Any) -> None:
+    bucket.append(value)
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_agent_loop_executes_tool_calls_with_registry_get(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    captured: dict[str, Any] = {"tool_calls": [], "tool_results": []}
+
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class FakeProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            if self.calls == 1:
+                return LLMResponse(
+                    content="先查一下工具",
+                    tool_calls=[
+                        ToolCallRequest(
+                            id="call_1",
+                            name="dummy_tool",
+                            arguments={"topic": "alias-value"},
+                        )
+                    ],
+                )
+            return LLMResponse(content="工具已经执行完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class DummyTool(Tool):
+        def __init__(self) -> None:
+            self._trace_metadata = {
+                "sources": [{"chunk_id": "chunk-1", "source_type": "standard"}],
+                "authority_applied": False,
+            }
+
+        @property
+        def name(self) -> str:
+            return "dummy_tool"
+
+        @property
+        def description(self) -> str:
+            return "dummy tool"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"topic": {"type": "string"}},
+                "required": ["topic"],
+            }
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return {"topic": "normalized-topic"}
+
+        async def execute(self, **kwargs: Any) -> str:
+            return f"executed:{kwargs['topic']}"
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            metadata = dict(self._trace_metadata)
+            self._trace_metadata = {}
+            return metadata
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=FakeProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(DummyTool())
+
+    final_content, tools_used, _messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "帮我查一下"}],
+        on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert final_content == "工具已经执行完成"
+    assert tools_used == ["dummy_tool"]
+    assert captured["tool_calls"] == [("dummy_tool", {"topic": "normalized-topic"})]
+    assert captured["tool_results"] == [
+        (
+            "dummy_tool",
+            "executed:alias-value",
+            {
+                "sources": [{"chunk_id": "chunk-1", "source_type": "standard"}],
+                "authority_applied": False,
+            },
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_agent_loop_forces_exact_authority_response(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class FakeProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            if self.calls == 1:
+                return LLMResponse(
+                    content="先查知识库",
+                    tool_calls=[ToolCallRequest(id="call_1", name="rag", arguments={"query": "案例题"})],
+                )
+            return LLMResponse(content="模型自己生成了一个不完整答案")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class ExactAuthorityTool(Tool):
+        def __init__(self) -> None:
+            self._trace_metadata = {
+                "authority_applied": True,
+                "exact_question": {
+                    "answer_kind": "mcq",
+                    "correct_answer": "D",
+                    "analysis": "这是历史真题的标准答案。",
+                },
+            }
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "exact authority rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            return "知识库返回了标准答案"
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            metadata = dict(self._trace_metadata)
+            self._trace_metadata = {}
+            return metadata
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=FakeProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(ExactAuthorityTool())
+
+    final_content, _tools_used, messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "给我讲这道题"}],
+    )
+
+    assert final_content == "标准答案：D\n解析：这是历史真题的标准答案。"
+    assert messages[-1]["content"] == final_content
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FailIfCalledProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            raise AssertionError("LLM should not be called after full exact fast path.")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class ExactCaseTool(Tool):
+        def __init__(self) -> None:
+            self._trace_metadata = {
+                "kb_name": "construction-exam",
+                "sources": [{"chunk_id": "question-9717", "source_type": "real_exam"}],
+                "authority_applied": False,
+                "exact_question": {
+                    "answer_kind": "case_study",
+                    "coverage_state": "multi_subquestion_exact",
+                    "coverage_ratio": 1.0,
+                    "missing_subquestions": [],
+                    "covered_subquestions": [
+                        {
+                            "display_index": "1",
+                            "authoritative_answer": "（1）计划、组织、协调方案。",
+                            "analysis": "",
+                        },
+                        {
+                            "display_index": "4",
+                            "authoritative_answer": "（1）12.10-0.72-1.10=10.28 亿元。",
+                            "analysis": "",
+                        },
+                        {
+                            "display_index": "5",
+                            "authoritative_answer": "造价：3335.40 万元。",
+                            "analysis": "",
+                        },
+                    ],
+                },
+            }
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "exact case rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "kb_name": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            assert kwargs["kb_name"] == "construction-exam"
+            return "知识库命中整题标准答案"
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            metadata = dict(self._trace_metadata)
+            self._trace_metadata = {}
+            return metadata
+
+    captured: dict[str, Any] = {"tool_calls": [], "tool_results": []}
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=FailIfCalledProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(ExactCaseTool())
+
+    content = await loop.process_direct(
+        "背景资料：某旧城改造工程。问题：1. 通常进行资格预审的工程有哪些特点？2. 管理策划内容还有哪些？4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？",
+        metadata={"default_kb": "construction-exam"},
+        on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert "10.28 亿元" in content
+    assert "3335.40 万元" in content
+    assert captured["tool_calls"] == [("rag", {"query": "背景资料：某旧城改造工程。问题：1. 通常进行资格预审的工程有哪些特点？2. 管理策划内容还有哪些？4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？", "kb_name": "construction-exam"})]
+    assert captured["tool_results"][0][2]["authority_applied"] is True
 
 
 @pytest.mark.asyncio

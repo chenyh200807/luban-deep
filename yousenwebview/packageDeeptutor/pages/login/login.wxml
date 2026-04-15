@@ -1,0 +1,63 @@
+<!-- login.wxml — Zentra 风格登录 -->
+<view class="scene {{isDark?'':'light'}}">
+  <view class="sky-wash" style="{{skyWashStyle}}"></view>
+  <view class="orb o1" style="{{orbStyle1}}"></view>
+  <view class="orb o2" style="{{orbStyle2}}"></view>
+  <view class="orb o3" style="{{orbStyle3}}"></view>
+
+  <view class="page-shell" style="{{pageShellStyle}}"
+    bindtouchstart="onPageTouchStart" bindtouchmove="onPageTouchMove"
+    bindtouchend="onPageTouchEnd" bindtouchcancel="onPageTouchEnd">
+
+    <scroll-view class="body" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="padding-top:{{statusBarHeight}}px">
+      <view class="hero-stage">
+        <view class="hero-block">
+          <text class="hero-kicker">Luban AI Tutor</text>
+
+          <view class="brand-row">
+            <image class="brand-mark" src="../../images/logo-mark-white.png" mode="heightFix" />
+            <text class="brand-name">鲁班智考</text>
+          </view>
+
+          <view class="hero-copy">
+            <view class="hero-line-single">
+              <text class="hero-line hero-line-main-inline">懂你的</text>
+              <text class="hero-line hero-line-accent-inline">智能备考导师</text>
+            </view>
+            <text class="hero-desc">{{heroMessages[activeHeroIndex].line1}}</text>
+            <text class="hero-desc hero-desc-sub">{{heroMessages[activeHeroIndex].line2}}</text>
+          </view>
+
+          <view class="pager-row"
+            bindtouchstart="onSubtitleTouchStart" bindtouchmove="onSubtitleTouchMove"
+            bindtouchend="onSubtitleTouchEnd" bindtouchcancel="onSubtitleTouchEnd">
+            <view wx:for="{{heroMessages}}" wx:key="index"
+              class="{{activeHeroIndex === index ? 'pager-dot pager-dot-active' : 'pager-dot pager-dot-idle'}}"></view>
+          </view>
+        </view>
+
+      </view>
+    </scroll-view>
+
+    <view class="action-panel" style="padding-bottom: {{safeBottom + 24}}px">
+      <view class="err" wx:if="{{errorMsg}}">
+        <text class="err-txt">{{errorMsg}}</text>
+      </view>
+
+      <view class="btn-wechat-stack">
+        <button
+          class="btn-wechat-primary {{wechatLoading?'off':''}}"
+          open-type="getPhoneNumber"
+          bindgetphonenumber="handleWechatPhoneNumber"
+          disabled="{{wechatLoading || loading}}"
+        >
+          <text class="btn-wechat-primary-txt">{{wechatLoading ? '微信授权中...' : '微信一键登录'}}</text>
+        </button>
+      </view>
+
+      <view class="link-row">
+        <text class="manual-link" bindtap="goManualLogin">手机号验证码 / 账号密码</text>
+      </view>
+    </view>
+  </view>
+</view>

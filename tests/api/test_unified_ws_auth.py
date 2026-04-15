@@ -185,3 +185,34 @@ def test_ws_invalid_payload_is_sanitized(
 
     assert message["type"] == "error"
     assert message["content"] == "Invalid cancel_turn payload."
+
+
+def test_ws_legacy_mobile_bootstrap_payload_subscribes_active_turn(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = SQLiteSessionStore(db_path=tmp_path / "ws-auth.db")
+    fake_runtime = _FakeRuntime()
+
+    monkeypatch.setattr(ws_module, "resolve_auth_context", lambda _authorization: _ctx("student_demo"))
+    monkeypatch.setattr("deeptutor.services.session.get_sqlite_session_store", lambda: store)
+    monkeypatch.setattr("deeptutor.services.session.get_turn_runtime_manager", lambda: fake_runtime)
+
+    import asyncio
+
+    asyncio.run(store.create_session(session_id="owned_session", owner_key=build_user_owner_key("student_demo")))
+    asyncio.run(store.create_turn("owned_session", capability="chat"))
+
+    with TestClient(_build_app()) as client:
+        with client.websocket_connect("/api/v1/ws") as websocket:
+            websocket.send_json(
+                {
+                    "content": "旧版小程序 bootstrap",
+                    "chat_id": "owned_session",
+                    "mode": "AUTO",
+                }
+            )
+            message = websocket.receive_json()
+
+    assert message["type"] == "done"
+    assert message["session_id"] == "session_new"

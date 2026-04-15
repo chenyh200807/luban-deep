@@ -87,6 +87,16 @@ async def _authorize_turn_access(
     return session_id
 
 
+async def _get_active_turn_id_for_session(session_id: str) -> str:
+    from deeptutor.services.session import get_sqlite_session_store
+
+    store = get_sqlite_session_store()
+    active_turn = await store.get_active_turn(session_id)
+    if active_turn is None:
+        raise LookupError("Turn not found")
+    return str(active_turn.get("id") or "").strip()
+
+
 def _bind_authenticated_user(
     payload: dict[str, Any],
     current_user: AuthContext | None,
@@ -205,6 +215,32 @@ async def unified_websocket(ws: WebSocket) -> None:
                     continue
                 await subscribe_turn(turn["id"], after_seq=0)
                 continue
+
+            if not msg_type:
+                legacy_session_id = str(msg.get("chat_id") or "").strip()
+                legacy_content = str(msg.get("content") or "").strip()
+                if legacy_session_id and legacy_content:
+                    try:
+                        await _authorize_session_access(legacy_session_id, current_user)
+                        active_turn_id = await _get_active_turn_id_for_session(legacy_session_id)
+                    except LookupError:
+                        await safe_send(
+                            _build_error_event(
+                                content="Turn not found",
+                                session_id=legacy_session_id,
+                            )
+                        )
+                        continue
+                    except PermissionError:
+                        await safe_send(
+                            _build_error_event(
+                                content="Session not found",
+                                session_id=legacy_session_id,
+                            )
+                        )
+                        continue
+                    await subscribe_turn(active_turn_id, after_seq=0)
+                    continue
 
             if msg_type == "subscribe_turn":
                 try:

@@ -5,6 +5,7 @@ from typing import Any
 
 from fastapi import Depends, Header, HTTPException, status
 
+from deeptutor.logging.context import bind_log_context
 from deeptutor.services.member_console import get_member_console_service
 
 
@@ -53,6 +54,7 @@ def get_current_user(authorization: str | None = Header(default=None)) -> AuthCo
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required",
         )
+    bind_log_context(user_id=current_user.user_id)
     return current_user
 
 

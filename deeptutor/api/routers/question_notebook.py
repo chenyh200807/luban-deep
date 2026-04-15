@@ -46,9 +46,15 @@ class NotebookEntryItem(BaseModel):
     categories: list[CategoryItem] | None = None
 
 
+class NotebookEntryListCursor(BaseModel):
+    before_created_at: float
+    before_entry_id: int
+
+
 class NotebookEntryListResponse(BaseModel):
     items: list[NotebookEntryItem]
     total: int
+    next_cursor: NotebookEntryListCursor | None = None
 
 
 class EntryUpdateRequest(BaseModel):
@@ -134,8 +140,14 @@ async def list_entries(
     is_correct: bool | None = Query(default=None),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    before_created_at: float | None = Query(default=None),
+    before_entry_id: int | None = Query(default=None),
     current_user: AuthContext = Depends(get_current_user),
 ) -> NotebookEntryListResponse:
+    if before_entry_id is not None and before_created_at is None:
+        raise HTTPException(status_code=400, detail="before_created_at is required with before_entry_id")
+    if before_created_at is not None and offset > 0:
+        raise HTTPException(status_code=400, detail="offset cannot be combined with keyset cursor")
     store = get_sqlite_session_store()
     owner_key = None if current_user.is_admin else _owner_key(current_user)
     result = await store.list_notebook_entries(
@@ -145,10 +157,20 @@ async def list_entries(
         limit=limit,
         offset=offset,
         owner_key=owner_key,
+        before_created_at=before_created_at,
+        before_entry_id=before_entry_id,
     )
+    next_cursor = None
+    if len(result["items"]) >= limit and result["items"]:
+        last = result["items"][-1]
+        next_cursor = NotebookEntryListCursor(
+            before_created_at=float(last["created_at"]),
+            before_entry_id=int(last["id"]),
+        )
     return NotebookEntryListResponse(
         items=[NotebookEntryItem(**item) for item in result["items"]],
         total=result["total"],
+        next_cursor=next_cursor,
     )
 
 

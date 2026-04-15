@@ -105,6 +105,7 @@ export default function ChatComposer({
   notebookReferenceGroups,
   stateKnowledgeBase,
   isStreaming,
+  isSubmitting,
   isResearchMode,
   isQuizMode,
   isMathAnimatorMode,
@@ -177,6 +178,7 @@ export default function ChatComposer({
   notebookReferenceGroups: Array<{ notebookId: string; notebookName: string; count: number }>;
   stateKnowledgeBase: string;
   isStreaming: boolean;
+  isSubmitting?: boolean;
   isResearchMode: boolean;
   isQuizMode: boolean;
   isMathAnimatorMode: boolean;
@@ -391,7 +393,7 @@ export default function ChatComposer({
                     title={t("Fast mode")}
                   >
                     <MessageSquare size={12} strokeWidth={1.7} />
-                    <span>快速</span>
+                    <span>{t("Fast")}</span>
                   </button>
                   <button
                     onClick={() => onSetChatMode("deep")}
@@ -403,7 +405,7 @@ export default function ChatComposer({
                     title={t("Deep mode")}
                   >
                     <BrainCircuit size={12} strokeWidth={1.7} />
-                    <span>深度</span>
+                    <span>{t("Deep")}</span>
                   </button>
                 </div>
               )}
@@ -558,12 +560,13 @@ export default function ChatComposer({
                       !selectedNotebookRecords.length &&
                       !selectedHistorySessions.length) ||
                     isStreaming ||
+                    isSubmitting ||
                     (isResearchMode && Object.keys(researchValidationErrors).length > 0)
                   }
                   className="rounded-full bg-[var(--primary)] p-[7px] text-white shadow-[0_4px_12px_rgba(195,90,44,0.15)] transition-[transform,opacity,box-shadow] hover:shadow-[0_6px_16px_rgba(195,90,44,0.22)] disabled:opacity-25 disabled:shadow-none"
                   aria-label={t("Send")}
                 >
-                  {isStreaming ? (
+                  {isStreaming || isSubmitting ? (
                     <Loader2 size={15} className="animate-spin" />
                   ) : (
                     <ArrowUp size={15} strokeWidth={2.5} />

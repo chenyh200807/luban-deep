@@ -1,5 +1,6 @@
 import type { StreamEvent } from "@/lib/unified-ws";
 import { apiUrl } from "@/lib/api";
+import { ApiError } from "@/lib/api-errors";
 import { invalidateClientCache, withClientCache } from "@/lib/client-cache";
 
 export interface SessionMessage {
@@ -86,7 +87,7 @@ export interface QuizResultItem {
 
 async function expectJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    throw new ApiError(response.status);
   }
   return response.json() as Promise<T>;
 }

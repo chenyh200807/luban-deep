@@ -16,7 +16,10 @@ from typing import Any
 
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
-from deeptutor.contracts.tutorbot_profiles import resolve_tutorbot_knowledge_chain_profile
+from deeptutor.contracts.bot_runtime_defaults import (
+    resolve_bot_runtime_defaults as resolve_bot_binding_defaults,
+)
+from deeptutor.logging.context import bind_log_context, reset_log_context
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
@@ -49,6 +52,41 @@ def _clip_text(value: str, limit: int = 4000) -> str:
     return text[:limit].rstrip() + "\n...[truncated]"
 
 
+def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
+    tool_calls: list[dict[str, Any]] = []
+    sources: list[dict[str, Any]] = []
+    authority_applied = False
+
+    for item in events:
+        if not isinstance(item, dict):
+            continue
+        event_type = str(item.get("type") or "").strip()
+        metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
+        if event_type == "tool_call":
+            tool_calls.append(
+                {
+                    "name": str(item.get("content") or "").strip() or str(metadata.get("tool_name") or "").strip(),
+                    "args": dict(metadata.get("args") or {}) if isinstance(metadata.get("args"), dict) else {},
+                }
+            )
+        elif event_type == "sources":
+            raw_sources = metadata.get("sources")
+            if isinstance(raw_sources, list):
+                for source in raw_sources:
+                    if isinstance(source, dict):
+                        sources.append(source)
+        if metadata.get("authority_applied") is True:
+            authority_applied = True
+        if metadata.get("authoritative_answer") or metadata.get("corrected_from"):
+            authority_applied = True
+
+    return {
+        "tool_calls": tool_calls[:8],
+        "sources": sources[:8],
+        "authority_applied": authority_applied,
+    }
+
+
 def _extract_followup_question_context(
     config: dict[str, Any] | None,
 ) -> dict[str, Any] | None:
@@ -73,7 +111,7 @@ def _extract_interaction_hints(
     if not isinstance(raw, dict):
         return None
 
-    profile = str(raw.get("profile", "") or "").strip().lower()
+    profile = _normalize_interaction_profile_name(raw.get("profile"))
     priorities = raw.get("priorities")
     if not isinstance(priorities, list):
         priorities = []
@@ -90,38 +128,38 @@ def _extract_interaction_hints(
     hints = {
         "profile": profile,
         "scene": str(raw.get("scene", "") or "").strip().lower(),
+        "product_surface": str(raw.get("product_surface", "") or "").strip().lower(),
+        "entry_role": str(raw.get("entry_role", "") or "").strip().lower(),
+        "subject_domain": str(raw.get("subject_domain", "") or "").strip().lower(),
         "preferred_question_type": preferred_question_type,
-        "suppress_answer_reveal_on_generate": bool(
-            raw.get("suppress_answer_reveal_on_generate", False)
-        ),
-        "prefer_question_context_grading": bool(
-            raw.get("prefer_question_context_grading", False)
-        ),
-        "prefer_concept_teaching_slots": bool(
-            raw.get("prefer_concept_teaching_slots", False)
-        ),
         "allow_general_chat_fallback": raw.get("allow_general_chat_fallback", True) is not False,
         "priorities": normalized_priorities,
     }
-
-    if profile == "mini_tutor":
-        hints["scene"] = hints["scene"] or "wechat_mini_program_learning"
-        hints["preferred_question_type"] = hints["preferred_question_type"] or "choice"
-        hints["suppress_answer_reveal_on_generate"] = True
-        hints["prefer_question_context_grading"] = True
-        hints["prefer_concept_teaching_slots"] = True
-        if not hints["priorities"]:
-            hints["priorities"] = ["practice", "grading", "explain", "review", "plan"]
+    if "suppress_answer_reveal_on_generate" in raw:
+        hints["suppress_answer_reveal_on_generate"] = bool(
+            raw.get("suppress_answer_reveal_on_generate")
+        )
+    if "prefer_question_context_grading" in raw:
+        hints["prefer_question_context_grading"] = bool(
+            raw.get("prefer_question_context_grading")
+        )
+    if "prefer_concept_teaching_slots" in raw:
+        hints["prefer_concept_teaching_slots"] = bool(
+            raw.get("prefer_concept_teaching_slots")
+        )
 
     meaningful = any(
         [
             hints["profile"],
             hints["scene"],
+            hints["product_surface"],
+            hints["entry_role"],
+            hints["subject_domain"],
             hints["preferred_question_type"],
             hints["priorities"],
-            hints["suppress_answer_reveal_on_generate"],
-            hints["prefer_question_context_grading"],
-            hints["prefer_concept_teaching_slots"],
+            hints.get("suppress_answer_reveal_on_generate"),
+            hints.get("prefer_question_context_grading"),
+            hints.get("prefer_concept_teaching_slots"),
             hints["allow_general_chat_fallback"] is False,
         ]
     )
@@ -176,34 +214,34 @@ def _normalize_name_list(values: list[str] | None) -> list[str]:
     return normalized
 
 
-def _resolve_tutorbot_runtime_defaults(
+def _normalize_interaction_profile_name(value: Any) -> str:
+    return str(value or "").strip().lower()
+
+
+def _resolve_bot_runtime_defaults(
     *,
     bot_id: str,
-    interaction_profile: str,
     tools: list[str] | None,
     knowledge_bases: list[str] | None,
 ) -> dict[str, Any]:
     resolved_tools = _normalize_name_list(tools)
     resolved_knowledge_bases = _normalize_name_list(knowledge_bases)
-    profile = resolve_tutorbot_knowledge_chain_profile(
-        bot_id=bot_id,
-        interaction_profile=interaction_profile,
-    )
-    if profile is None:
+    defaults = resolve_bot_binding_defaults(bot_id=bot_id)
+    if defaults is None:
         return {
+            "execution_engine": "capability",
             "tools": resolved_tools,
             "knowledge_bases": resolved_knowledge_bases,
-            "knowledge_chain_profile": "",
-            "knowledge_chain_source": "",
+            "defaults_source": "",
         }
 
     injected = False
     if not resolved_knowledge_bases:
-        resolved_knowledge_bases = _normalize_name_list(profile.default_knowledge_bases)
+        resolved_knowledge_bases = _normalize_name_list(defaults.default_knowledge_bases)
         injected = bool(resolved_knowledge_bases)
     if resolved_knowledge_bases:
         existing_tools = {item.lower() for item in resolved_tools}
-        for tool_name in _normalize_name_list(profile.default_tools):
+        for tool_name in _normalize_name_list(defaults.default_tools):
             lowered = tool_name.lower()
             if lowered in existing_tools:
                 continue
@@ -211,10 +249,10 @@ def _resolve_tutorbot_runtime_defaults(
             existing_tools.add(lowered)
             injected = True
     return {
+        "execution_engine": str(defaults.execution_engine or "capability"),
         "tools": resolved_tools,
         "knowledge_bases": resolved_knowledge_bases,
-        "knowledge_chain_profile": profile.id,
-        "knowledge_chain_source": "tutorbot_runtime_defaults" if injected else "explicit",
+        "defaults_source": "bot_runtime_defaults" if injected else "explicit",
     }
 
 
@@ -320,8 +358,10 @@ def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> st
         lines = [
             "你正在一个学习型产品场景中工作。下面是交互策略提示，把它当作类似技能说明的软约束，不要机械套模板：",
         ]
-        if profile == "mini_tutor":
-            lines.append("- 当前场景偏向微信小程序的学练闭环。")
+        if hints.get("product_surface"):
+            lines.append(f"- 当前产品表面：`{hints['product_surface']}`。")
+        if profile == "tutorbot" or hints.get("entry_role") == "tutorbot":
+            lines.append("- 当前入口身份是 TutorBot。")
         if hints.get("priorities"):
             lines.append(
                 f"- 优先关注这些交互目标：{', '.join(str(item) for item in hints['priorities'])}。"
@@ -343,8 +383,10 @@ def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> st
     lines = [
         "You are operating in a learning-product scenario. Treat the notes below like skill guidance rather than a rigid workflow:",
     ]
-    if profile == "mini_tutor":
-        lines.append("- The current scene is closer to a WeChat mini-program learning loop.")
+    if hints.get("product_surface"):
+        lines.append(f"- Current product surface: `{hints['product_surface']}`.")
+    if profile == "tutorbot" or hints.get("entry_role") == "tutorbot":
+        lines.append("- The current entry identity is TutorBot.")
     if hints.get("priorities"):
         lines.append(f"- Prioritize these interaction goals: {', '.join(str(item) for item in hints['priorities'])}.")
     if preferred_question_type:
@@ -595,36 +637,31 @@ class TurnRuntimeManager:
                     "chat_mode": "smart",
                 }
         bot_id = str(validated_public_config.get("bot_id") or "").strip()
-        interaction_profile = str(
+        interaction_profile = _normalize_interaction_profile_name(
             runtime_only_config.get("interaction_profile")
             or (runtime_interaction_hints or {}).get("profile")
             or ""
-        ).strip()
-        knowledge_chain_defaults = _resolve_tutorbot_runtime_defaults(
+        )
+        if interaction_profile:
+            runtime_only_config["interaction_profile"] = interaction_profile
+        knowledge_chain_defaults = _resolve_bot_runtime_defaults(
             bot_id=bot_id,
-            interaction_profile=interaction_profile,
             tools=payload.get("tools"),
             knowledge_bases=payload.get("knowledge_bases"),
         )
+        selected_capability = requested_capability
+        if selected_capability is None and knowledge_chain_defaults.get("execution_engine") == "tutorbot_runtime":
+            selected_capability = "tutorbot"
+            capability = "tutorbot"
         payload = {
             **payload,
-            "capability": requested_capability,
+            "capability": selected_capability,
             "_chat_mode_explicit": explicit_chat_mode,
             "tools": knowledge_chain_defaults["tools"],
             "knowledge_bases": knowledge_chain_defaults["knowledge_bases"],
             "config": {
                 **validated_public_config,
                 **runtime_only_config,
-                **(
-                    {"knowledge_chain_profile": knowledge_chain_defaults["knowledge_chain_profile"]}
-                    if knowledge_chain_defaults["knowledge_chain_profile"]
-                    else {}
-                ),
-                **(
-                    {"knowledge_chain_source": knowledge_chain_defaults["knowledge_chain_source"]}
-                    if knowledge_chain_defaults["knowledge_chain_source"]
-                    else {}
-                ),
             },
         }
         billing_context = _extract_billing_context(dict(runtime_only_config)) or {}
@@ -651,16 +688,6 @@ class TurnRuntimeManager:
                 ),
                 **({"interaction_hints": runtime_interaction_hints} if runtime_interaction_hints else {}),
                 **(billing_context or {}),
-                **(
-                    {"knowledge_chain_profile": knowledge_chain_defaults["knowledge_chain_profile"]}
-                    if knowledge_chain_defaults["knowledge_chain_profile"]
-                    else {}
-                ),
-                **(
-                    {"knowledge_chain_source": knowledge_chain_defaults["knowledge_chain_source"]}
-                    if knowledge_chain_defaults["knowledge_chain_source"]
-                    else {}
-                ),
             },
         )
         await self._recover_orphaned_running_turns(
@@ -829,11 +856,13 @@ class TurnRuntimeManager:
             "session_id": session_id,
             "turn_id": turn_id,
             "capability": capability_name or "chat",
+            "execution_engine": "tutorbot_runtime" if capability_name == "tutorbot" else "capability",
             "bot_id": str((payload.get("config", {}) or {}).get("bot_id", "") or "").strip(),
             "interaction_profile": str(
                 (payload.get("config", {}) or {}).get("interaction_profile", "") or ""
             ).strip(),
         }
+        log_context_tokens: dict[str, Any] | None = None
 
         try:
             from deeptutor.core.context import Attachment, UnifiedContext
@@ -883,6 +912,11 @@ class TurnRuntimeManager:
             user_id = str((billing_context or {}).get("user_id", "") or "").strip()
             if user_id:
                 trace_metadata["user_id"] = user_id
+            log_context_tokens = bind_log_context(
+                user_id=user_id,
+                session_id=session_id,
+                turn_id=turn_id,
+            )
             with observability.usage_scope(
                 scope_id=turn_id,
                 session_id=session_id,
@@ -1120,13 +1154,10 @@ class TurnRuntimeManager:
                         "chat_mode_explicit": bool(payload.get("_chat_mode_explicit", False)),
                         "turn_id": turn_id,
                         "bot_id": str(request_config.get("bot_id", "") or "").strip(),
-                        "knowledge_chain_profile": str(
-                            execution.payload.get("config", {}).get("knowledge_chain_profile", "")
-                            or ""
-                        ).strip(),
-                        "knowledge_chain_source": str(
-                            execution.payload.get("config", {}).get("knowledge_chain_source", "")
-                            or ""
+                        "billing_context": billing_context or {},
+                        "source": str((billing_context or {}).get("source", "") or "").strip(),
+                        "interaction_profile": str(
+                            payload.get("config", {}).get("interaction_profile", "") or ""
                         ).strip(),
                         "question_followup_context": followup_question_context or {},
                         "interaction_hints": interaction_hints or {},
@@ -1175,6 +1206,7 @@ class TurnRuntimeManager:
                     output_payload={"assistant_content": assistant_content},
                     metadata={
                         **trace_metadata,
+                        **_summarize_assistant_events(assistant_events),
                         "assistant_event_count": len(assistant_events),
                     },
                 )
@@ -1269,6 +1301,8 @@ class TurnRuntimeManager:
                 ),
             )
         finally:
+            if log_context_tokens:
+                reset_log_context(log_context_tokens)
             async with self._lock:
                 current = self._executions.get(turn_id)
                 if current is not None:

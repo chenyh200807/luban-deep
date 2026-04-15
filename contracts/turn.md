@@ -43,7 +43,7 @@
 ## Schema
 
 - 机器可读 schema：`deeptutor/contracts/unified_turn.py`
-- TutorBot profile contract：`deeptutor/contracts/tutorbot_profiles.py`
+- Bot runtime defaults contract：`deeptutor/contracts/bot_runtime_defaults.py`
 - 系统导出：`/api/v1/system/turn-contract`
 - contract 域索引导出：`/api/v1/system/contracts-index`
 - 前端启动自检：读取 `/api/v1/system/turn-contract`

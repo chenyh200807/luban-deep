@@ -65,6 +65,16 @@ def _format_quiz_results_message(answers: list[QuizResultItem]) -> str:
     return "\n".join(lines)
 
 
+def _session_page_cursor(sessions: list[dict[str, object]], limit: int) -> dict[str, object] | None:
+    if len(sessions) < limit or not sessions:
+        return None
+    last = sessions[-1]
+    return {
+        "before_updated_at": float(last.get("updated_at") or 0.0),
+        "before_session_id": str(last.get("session_id") or last.get("id") or ""),
+    }
+
+
 async def _authorize_session_access(
     session_id: str,
     current_user: AuthContext,
@@ -85,18 +95,31 @@ async def _authorize_session_access(
 async def list_sessions(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    before_updated_at: float | None = Query(default=None),
+    before_session_id: str | None = Query(default=None),
     current_user: AuthContext = Depends(get_current_user),
 ):
+    if before_session_id and before_updated_at is None:
+        raise HTTPException(status_code=400, detail="before_updated_at is required with before_session_id")
+    if before_updated_at is not None and offset > 0:
+        raise HTTPException(status_code=400, detail="offset cannot be combined with keyset cursor")
     store = get_sqlite_session_store()
     if current_user.is_admin:
-        sessions = await store.list_sessions(limit=limit, offset=offset)
+        sessions = await store.list_sessions(
+            limit=limit,
+            offset=offset,
+            before_updated_at=before_updated_at,
+            before_session_id=before_session_id,
+        )
     else:
         sessions = await store.list_sessions_by_owner(
             build_user_owner_key(current_user.user_id),
             limit=limit,
             offset=offset,
+            before_updated_at=before_updated_at,
+            before_session_id=before_session_id,
         )
-    return {"sessions": sessions}
+    return {"sessions": sessions, "next_cursor": _session_page_cursor(sessions, limit)}
 
 
 @router.get("/{session_id}")

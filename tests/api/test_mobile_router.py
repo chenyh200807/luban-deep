@@ -87,7 +87,7 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
     assert body["stream"]["subscribe"]["turn_id"] == "turn_1"
     assert captured["payload"]["capability"] is None
     assert captured["payload"]["content"] == "考我一道流水施工的题"
-    assert captured["payload"]["config"]["interaction_hints"]["profile"] == "mini_tutor"
+    assert captured["payload"]["config"]["interaction_hints"]["profile"] == "tutorbot"
     assert captured["payload"]["config"]["bot_id"] == "construction-exam-coach"
     assert captured["payload"]["config"]["billing_context"] == {
         "source": "wx_miniprogram",
@@ -145,7 +145,7 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
     config = captured["payload"]["config"]
     assert config["chat_mode"] == "deep"
     assert config["followup_question_context"]["question_id"] == "q_1"
-    assert config["interaction_hints"]["profile"] == "mini_tutor"
+    assert config["interaction_hints"]["profile"] == "tutorbot"
 
 
 def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
@@ -177,7 +177,7 @@ def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
             "/api/v1/chat/start-turn",
             json={
                 "query": "考我一道题",
-                "interaction_profile": "mini_tutor",
+                "interaction_profile": "tutorbot",
                 "interaction_hints": {
                     "preferred_question_type": "written",
                     "allow_general_chat_fallback": False,
@@ -187,7 +187,7 @@ def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
 
     assert response.status_code == 200
     config = captured["payload"]["config"]
-    assert config["interaction_hints"]["profile"] == "mini_tutor"
+    assert config["interaction_hints"]["profile"] == "tutorbot"
     assert config["interaction_hints"]["preferred_question_type"] == "written"
     assert config["interaction_hints"]["allow_general_chat_fallback"] is False
 
@@ -390,6 +390,79 @@ def test_auth_login_rate_limits_by_route_and_client_ip(monkeypatch: pytest.Monke
     assert first.status_code == 200
     assert second.status_code == 429
     assert second.json()["detail"] == "Too many requests"
+
+
+def test_auth_send_code_rate_limits_by_route_and_client_ip(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        rate_limit_module,
+        "_RATE_LIMIT_POLICY_OVERRIDES",
+        {
+            "mobile_auth_send_code": rate_limit_module.RateLimitPolicy(
+                max_requests=1,
+                window_seconds=60.0,
+            )
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "send_phone_code",
+        lambda _phone: {"sent": True, "retry_after": 60, "phone": "13800000000"},
+    )
+
+    with TestClient(_build_app()) as client:
+        first = client.post("/api/v1/auth/send-code", json={"phone": "13800000000"})
+        second = client.post("/api/v1/auth/send-code", json={"phone": "13800000000"})
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.json()["detail"] == "Too many requests"
+
+
+def test_auth_verify_code_rate_limits_by_route_and_client_ip(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        rate_limit_module,
+        "_RATE_LIMIT_POLICY_OVERRIDES",
+        {
+            "mobile_auth_verify_code": rate_limit_module.RateLimitPolicy(
+                max_requests=1,
+                window_seconds=60.0,
+            )
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "verify_phone_code",
+        lambda _phone, _code, password=None: {"token": "ok", "password": password},
+    )
+
+    with TestClient(_build_app()) as client:
+        first = client.post(
+            "/api/v1/auth/verify-code",
+            json={"phone": "13800000000", "code": "123456"},
+        )
+        second = client.post(
+            "/api/v1/auth/verify-code",
+            json={"phone": "13800000000", "code": "123456"},
+        )
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.json()["detail"] == "Too many requests"
+
+
+def test_auth_send_code_returns_503_when_sms_debug_fallback_is_forbidden(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise_runtime(_phone: str) -> dict[str, object]:
+        raise RuntimeError("短信服务未配置，生产环境已禁止调试验证码")
+
+    monkeypatch.setattr(mobile_module.member_service, "send_phone_code", _raise_runtime)
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/auth/send-code", json={"phone": "13800000000"})
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "短信服务未配置，生产环境已禁止调试验证码"
 
 
 def test_wechat_login_rate_limits_by_route_and_client_ip(monkeypatch: pytest.MonkeyPatch) -> None:

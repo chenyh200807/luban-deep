@@ -210,10 +210,13 @@ Page({
             userName: name,
             avatarChar: name.charAt(0).toUpperCase(),
             userPoints: info.points || 0,
+            billingBalance: info.points || 0,
           });
+          self._refreshPoints();
         })
         .catch(function (e) {
           log.warn("Chat", "getUserInfo failed: " + ((e && e.message) || e));
+          self._refreshPoints();
           // 401 已被 api.js 拦截跳转登录
         });
       // 获取首页仪表盘数据（复习/薄弱点）
@@ -530,6 +533,7 @@ Page({
         updates["messages[" + idx + "].billing"] = d.billing;
         if (typeof d.billing.balance_after === "number") {
           updates.billingBalance = d.billing.balance_after;
+          updates.userPoints = d.billing.balance_after;
         }
       }
       if (Object.keys(updates).length) {
@@ -1016,14 +1020,13 @@ Page({
   _buildTutorInteraction: function () {
     var mode = String(this.data.answerMode || "AUTO").toUpperCase();
     return {
-      profile: "mini_tutor",
+      profile: "tutorbot",
       hints: {
         product_surface: "wechat_miniprogram",
         entry_role: "tutorbot",
         subject_domain: "construction_exam",
         teaching_mode:
           mode === "FAST" ? "fast" : mode === "DEEP" ? "deep" : "smart",
-        pedagogy_contract: "construction_exam_tutor_v1",
       },
     };
   },
@@ -1535,6 +1538,25 @@ Page({
 
   goProfile: function () {
     wx.navigateTo({ url: "/pages/profile/profile" });
+  },
+
+  _refreshPoints: function () {
+    var self = this;
+    api
+      .getPoints()
+      .then(function (raw) {
+        var data = unwrap(raw) || {};
+        var points = Number(data.points);
+        if (!isNaN(points)) {
+          self.setData({
+            userPoints: points,
+            billingBalance: points,
+          });
+        }
+      })
+      .catch(function (err) {
+        log.warn("Chat", "getPoints failed: " + ((err && err.message) || err));
+      });
   },
 
   goRecharge: function () {

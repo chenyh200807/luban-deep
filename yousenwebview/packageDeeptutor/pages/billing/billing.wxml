@@ -1,0 +1,106 @@
+<!-- pages/billing/billing.wxml — 积分充值 -->
+<view class="billing-page {{isDark?'':'light'}}">
+
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <image class="nav-logo" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" />
+      <view style="flex:1"></view>
+    </view>
+  </view>
+
+  <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px; bottom: 0">
+    <view class="page-inner">
+
+      <!-- Demo 提示 -->
+      <view class="demo-banner">
+        <text class="demo-txt">演示模式 · 充值功能即将上线</text>
+      </view>
+
+      <!-- 余额卡片 -->
+      <view class="balance-card">
+        <text class="balance-label">当前余额</text>
+        <view class="balance-row">
+          <text class="balance-star">✦</text>
+          <text class="balance-num">{{balance}}</text>
+        </view>
+        <text class="balance-hint">智力点用于 AI 问答、深度推理等高级功能</text>
+      </view>
+
+      <!-- 套餐选择 -->
+      <text class="section-title">选择套餐</text>
+      <view class="pkg-grid">
+        <view
+          class="pkg-card {{selectedPkg === item.id ? 'sel' : ''}}"
+          wx:for="{{packages}}"
+          wx:key="id"
+          bindtap="onSelectPkg"
+          data-id="{{item.id}}"
+        >
+          <text class="pkg-badge" wx:if="{{item.badge}}">{{item.badge}}</text>
+          <text class="pkg-points">{{item.points}}</text>
+          <text class="pkg-unit">智力点</text>
+          <view class="pkg-price-row">
+            <text class="pkg-yen">¥</text>
+            <text class="pkg-price">{{item.price}}</text>
+          </view>
+          <text class="pkg-per" wx:if="{{item.per}}">{{item.per}}</text>
+        </view>
+      </view>
+
+      <!-- 充值按钮 -->
+      <view class="recharge-btn {{selectedPkg ? 'on' : ''}}" bindtap="onRecharge">
+        <text class="recharge-btn-txt">立即充值</text>
+      </view>
+
+      <!-- 充值记录 -->
+      <text class="section-title" style="margin-top:40rpx">充值记录</text>
+
+      <view wx:if="{{loading}}" class="loading-wrap">
+        <view class="skel-item" wx:for="{{[1,2,3]}}" wx:key="index">
+          <view class="skel-block" style="width: 40%; height: 24rpx"></view>
+          <view class="skel-block" style="width: 25%; height: 22rpx; margin-top: 8rpx"></view>
+        </view>
+      </view>
+
+      <view wx:elif="{{error}}" class="empty-card">
+        <text class="empty-title">加载失败</text>
+        <view class="retry-btn" bindtap="retry"><text class="retry-btn-txt">重试</text></view>
+      </view>
+
+      <view wx:elif="{{entries.length === 0}}" class="empty-card">
+        <text class="empty-title">暂无记录</text>
+      </view>
+
+      <view wx:else class="ledger-list">
+        <view class="ledger-item" wx:for="{{entries}}" wx:key="id">
+          <view class="ledger-left">
+            <text class="ledger-reason">{{item.reason}}</text>
+            <text class="ledger-time">{{item.time}}</text>
+          </view>
+          <text class="ledger-delta {{item.isDebit ? 'debit' : 'credit'}}">
+            {{item.isDebit ? '' : '+'}}{{item.delta}}
+          </text>
+        </view>
+      </view>
+
+      <!-- 分页控件（独立于列表，始终可见） -->
+      <view class="pager-bar" wx:if="{{!loading && !error && entries.length > 0}}">
+        <view class="pager-btn-wrap {{page <= 1 ? 'disabled' : ''}}" bindtap="onPrevPage">
+          <text class="pager-chevron">‹</text>
+          <text class="pager-label">上一页</text>
+        </view>
+        <view class="pager-indicator">
+          <text class="pager-page-num">{{page}}</text>
+        </view>
+        <view class="pager-btn-wrap {{!hasMore ? 'disabled' : ''}}" bindtap="onNextPage">
+          <text class="pager-label">下一页</text>
+          <text class="pager-chevron">›</text>
+        </view>
+      </view>
+
+      <view style="height: 60rpx"></view>
+    </view>
+  </scroll-view>
+
+</view>

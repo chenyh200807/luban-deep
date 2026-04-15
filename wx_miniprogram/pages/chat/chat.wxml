@@ -28,7 +28,7 @@
 
     <!-- 用户信息行（积分 + 主题 + 充值 + 头像） -->
     <view class="user-row">
-      <view class="points-pill" wx:if="{{userPoints > 0}}" bindtap="goBilling" aria-role="button" aria-label="积分明细: {{userPoints}} 点">
+      <view class="points-pill" bindtap="goBilling" aria-role="button" aria-label="积分明细: {{userPoints}} 点">
         <text class="points-star">★</text>
         <text class="points-num">{{userPoints}}</text>
       </view>

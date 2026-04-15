@@ -13,9 +13,14 @@ Page({
    */
   onLoad(options) {
       if(options.url){
-       
+        let targetUrl = options.url;
+        try {
+          targetUrl = decodeURIComponent(options.url);
+        } catch (err) {
+          console.log('url decode skip', err);
+        }
         this.setData({
-          url:options.url
+          url:targetUrl
         });
       }else{
         this.setData({

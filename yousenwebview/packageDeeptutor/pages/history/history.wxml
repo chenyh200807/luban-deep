@@ -1,0 +1,200 @@
+<!-- pages/history/history.wxml — 历史对话列表（支持管理/归档） -->
+<view class="history-page {{isDark?'':'light'}}">
+
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content" style="height: {{navContentHeight}}px; padding-top: {{navContentPaddingTop}}px">
+      <view class="nav-back" bindtap="goHome">
+        <text class="nav-back-arrow">‹</text>
+        <text class="nav-back-txt">对话</text>
+      </view>
+      <view style="flex:1"></view>
+      <text class="nav-count" wx:if="{{totalCount > 0 && !editMode}}">{{totalCount}} 条对话</text>
+      <text class="nav-count" wx:if="{{editMode && selectedCount > 0}}">已选 {{selectedCount}} 条</text>
+      <!-- 管理 / 完成 按钮 -->
+      <view wx:if="{{!editMode && totalCount > 0}}" class="nav-btn" bindtap="enterEditMode">
+        <text class="nav-btn-txt">管理</text>
+      </view>
+      <view wx:if="{{editMode}}" class="nav-btn" bindtap="exitEditMode">
+        <text class="nav-btn-txt done">完成</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Tab 切换栏 -->
+  <view class="tab-bar" style="top: {{navHeight}}px" wx:if="{{!editMode}}">
+    <view class="tab-item {{tab==='active'?'tab-active':''}}" bindtap="switchTab" data-tab="active">
+      <text class="tab-text">全部</text>
+    </view>
+    <view class="tab-item {{tab==='archived'?'tab-active':''}}" bindtap="switchTab" data-tab="archived">
+      <text class="tab-text">已归档</text>
+    </view>
+  </view>
+
+  <scroll-view
+    class="page-scroll"
+    scroll-y
+    enhanced="{{true}}"
+    bounces="{{true}}"
+    show-scrollbar="{{false}}"
+    refresher-enabled="{{!editMode}}"
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onRefresh"
+    style="top: {{editMode ? navHeight : navHeight + 40}}px; bottom: {{editMode ? 180 : 0}}rpx"
+  >
+    <view class="page-inner">
+
+      <!-- 加载中 -->
+      <view wx:if="{{loading}}" class="loading-wrap">
+        <view class="skel-item" wx:for="{{[1,2,3,4]}}" wx:key="index">
+          <view class="skel-line skel-title"></view>
+          <view class="skel-line skel-sub"></view>
+        </view>
+      </view>
+
+      <!-- 错误 -->
+      <view wx:elif="{{error}}" class="empty-card">
+        <text class="empty-title">加载失败</text>
+        <view class="empty-btn" bindtap="retry">
+          <text class="empty-btn-txt">重试</text>
+        </view>
+      </view>
+
+      <!-- 空列表 -->
+      <view wx:elif="{{groups.length === 0}}" class="empty-card">
+        <text class="empty-emoji">{{emptyState.emoji}}</text>
+        <text class="empty-title">{{emptyState.title}}</text>
+        <text class="empty-desc">{{emptyState.desc}}</text>
+        <view class="empty-btn" wx:if="{{emptyState.showClear}}" bindtap="clearSearch">
+          <text class="empty-btn-txt">清空搜索</text>
+        </view>
+        <view class="empty-btn" wx:if="{{emptyState.showStart}}" bindtap="goHome">
+          <text class="empty-btn-txt">开始对话</text>
+        </view>
+      </view>
+
+      <!-- 分组对话列表 -->
+      <block wx:else>
+        <view wx:if="{{!editMode}}" class="history-overview">
+          <view class="history-search">
+            <text class="search-icon">⌕</text>
+            <input
+              class="search-input"
+              placeholder="搜索标题、摘要或会话类型"
+              placeholder-class="search-placeholder"
+              value="{{query}}"
+              bindinput="onSearchInput"
+            />
+            <view wx:if="{{query}}" class="search-clear" bindtap="clearSearch">
+              <text class="search-clear-txt">清空</text>
+            </view>
+          </view>
+
+          <view class="history-stats">
+            <view class="stat-chip">
+              <text class="stat-value">{{stats.total}}</text>
+              <text class="stat-label">全部</text>
+            </view>
+            <view class="stat-chip">
+              <text class="stat-value">{{stats.weekCount}}</text>
+              <text class="stat-label">近 7 天</text>
+            </view>
+            <view class="stat-chip" wx:if="{{stats.runningCount > 0}}">
+              <text class="stat-value">{{stats.runningCount}}</text>
+              <text class="stat-label">进行中</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 编辑模式全选 -->
+        <view wx:if="{{editMode}}" class="select-all-bar" bindtap="toggleSelectAll">
+          <view class="checkbox {{allSelected ? 'checked' : ''}}">
+            <text wx:if="{{allSelected}}" class="check-icon">✓</text>
+          </view>
+          <text class="select-all-txt">全选</text>
+        </view>
+
+        <view class="date-group" wx:for="{{groups}}" wx:key="label">
+          <view class="date-head">
+            <text class="date-label">{{item.label}}</text>
+            <text class="date-count">{{item.items.length}} 条</text>
+          </view>
+          <view class="conv-list">
+            <view
+              class="conv-item {{editMode && selectedIds[conv.id] ? 'conv-selected' : ''}}"
+              wx:for="{{item.items}}"
+              wx:for-item="conv"
+              wx:key="id"
+              bindtap="openConversation"
+              data-id="{{conv.id}}"
+            >
+              <!-- 编辑模式下的复选框 -->
+              <view wx:if="{{editMode}}" class="checkbox {{selectedIds[conv.id] ? 'checked' : ''}}">
+                <text wx:if="{{selectedIds[conv.id]}}" class="check-icon">✓</text>
+              </view>
+
+              <view class="conv-body">
+                <view class="conv-topline">
+                  <text class="conv-title">{{conv.title}}</text>
+                  <view class="conv-tags">
+                    <text wx:if="{{conv.statusLabel}}" class="conv-tag tag-{{conv.statusTone}}">{{conv.statusLabel}}</text>
+                    <text wx:if="{{!conv.statusLabel && conv.capabilityLabel}}" class="conv-tag tag-indigo">{{conv.capabilityLabel}}</text>
+                  </view>
+                </view>
+                <text class="conv-preview" wx:if="{{conv.preview}}">{{conv.preview}}</text>
+                <view class="conv-meta-row">
+                  <text wx:if="{{conv.sourceLabel}}" class="conv-tag tag-{{conv.sourceTone}}">{{conv.sourceLabel}}</text>
+                  <text wx:if="{{conv.statusLabel && conv.capabilityLabel}}" class="conv-meta">{{conv.capabilityLabel}}</text>
+                  <text wx:if="{{conv.metaLine}}" class="conv-meta">{{conv.metaLine}}</text>
+                </view>
+              </view>
+              <view class="conv-right">
+                <text class="conv-time">{{conv.time}}</text>
+                <view wx:if="{{!editMode}}" class="conv-actions">
+                  <view wx:if="{{tab === 'active'}}" class="conv-action-btn conv-archive" catchtap="archiveConversation" data-id="{{conv.id}}">
+                    <view class="archive-icon">
+                      <view class="archive-lid"></view>
+                      <view class="archive-body"></view>
+                    </view>
+                  </view>
+                  <view class="conv-action-btn conv-del" catchtap="deleteConversation" data-id="{{conv.id}}">
+                    <text class="conv-del-icon">×</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <view style="height: 240rpx"></view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部操作栏（编辑模式） -->
+  <view wx:if="{{editMode}}" class="bottom-bar">
+    <view
+      class="bottom-btn btn-delete {{selectedCount === 0 ? 'btn-disabled' : ''}}"
+      bindtap="batchDelete"
+    >
+      <text class="bottom-btn-txt">删除</text>
+    </view>
+    <view
+      wx:if="{{tab === 'active'}}"
+      class="bottom-btn btn-archive {{selectedCount === 0 ? 'btn-disabled' : ''}}"
+      bindtap="batchArchive"
+    >
+      <text class="bottom-btn-txt">归档</text>
+    </view>
+    <view
+      wx:if="{{tab === 'archived'}}"
+      class="bottom-btn btn-unarchive {{selectedCount === 0 ? 'btn-disabled' : ''}}"
+      bindtap="batchUnarchive"
+    >
+      <text class="bottom-btn-txt">恢复</text>
+    </view>
+  </view>
+
+  <workspace-shell id="workspaceShell"></workspace-shell>
+
+</view>

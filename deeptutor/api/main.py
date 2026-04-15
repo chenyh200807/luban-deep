@@ -1,5 +1,5 @@
 import logging
-import os
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -7,13 +7,18 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from deeptutor.logging import get_logger
-from deeptutor.logging.context import bind_request_id, reset_request_id
+from deeptutor.logging.context import bind_log_context, bind_request_id, reset_log_context, reset_request_id
+from deeptutor.api.runtime_metrics import APIRuntimeMetrics, render_prometheus_metrics
 from deeptutor.services.config import get_env_store
 from deeptutor.services.branding import get_api_title, get_api_welcome_message
 from deeptutor.services.path_service import get_path_service
+from deeptutor.services.runtime_env import env_flag, is_production_environment
+from deeptutor.utils.error_rate_tracker import get_tracker_snapshot
+from deeptutor.utils.network.circuit_breaker import get_circuit_breaker_snapshot
 
 # Note: Don't set service_prefix here - start_web.py already adds [Backend] prefix
 logger = get_logger("API")
@@ -64,25 +69,24 @@ class SafeOutputStaticFiles(StaticFiles):
         return await super().get_response(path, scope)
 
 
-def _runtime_environment() -> str:
-    env = (
-        os.getenv("DEEPTUTOR_ENV")
-        or os.getenv("APP_ENV")
-        or os.getenv("ENV")
-        or os.getenv("ENVIRONMENT")
-        or "local"
-    )
-    return str(env).strip().lower()
-
-
-def _is_production_environment() -> bool:
-    return _runtime_environment() in {"prod", "production"}
-
-
 def _default_cors_allow_origins() -> list[str]:
-    if _is_production_environment():
+    if is_production_environment():
         return []
     return list(_DEFAULT_DEV_CORS_ORIGINS)
+
+
+def _legacy_routers_enabled() -> bool:
+    return env_flag(
+        "DEEPTUTOR_ENABLE_LEGACY_ROUTERS",
+        default=not is_production_environment(),
+    )
+
+
+def _startup_fail_fast_enabled() -> bool:
+    return env_flag(
+        "DEEPTUTOR_STARTUP_FAIL_FAST",
+        default=is_production_environment(),
+    )
 
 
 def get_cors_allow_origins() -> list[str]:
@@ -172,6 +176,7 @@ async def lifespan(app: FastAPI):
     logger.info("Application startup")
     app.state.readiness_checks = _initial_readiness_checks()
     app.state.readiness_ready = False
+    startup_failures: list[str] = []
 
     # Validate configuration consistency
     validate_tool_consistency()
@@ -187,6 +192,7 @@ async def lifespan(app: FastAPI):
         _set_readiness_check(app, "llm_client_ready", True)
     except Exception as e:
         logger.warning(f"Failed to initialize LLM client at startup: {e}")
+        startup_failures.append(f"llm_client_ready: {e}")
 
     try:
         from deeptutor.events.event_bus import get_event_bus
@@ -197,6 +203,7 @@ async def lifespan(app: FastAPI):
         _set_readiness_check(app, "event_bus_ready", True)
     except Exception as e:
         logger.warning(f"Failed to start EventBus: {e}")
+        startup_failures.append(f"event_bus_ready: {e}")
 
     try:
         from deeptutor.services.tutorbot import get_tutorbot_manager
@@ -204,10 +211,15 @@ async def lifespan(app: FastAPI):
         _set_readiness_check(app, "tutorbots_ready", True)
     except Exception as e:
         logger.warning(f"Failed to auto-start TutorBots: {e}")
+        startup_failures.append(f"tutorbots_ready: {e}")
 
     app.state.readiness_ready = bool(app.state.readiness_checks) and all(
         app.state.readiness_checks.values()
     )
+    if startup_failures and _startup_fail_fast_enabled():
+        raise RuntimeError(
+            "Critical startup dependencies failed: " + "; ".join(startup_failures)
+        )
     yield
 
     # Execute on shutdown
@@ -245,9 +257,11 @@ app = FastAPI(
 
 app.state.readiness_checks = _initial_readiness_checks()
 app.state.readiness_ready = False
+app.state.runtime_metrics = APIRuntimeMetrics()
 
 @app.middleware("http")
 async def selective_access_log(request, call_next):
+    started_at = time.perf_counter()
     request_id, token = bind_request_id(request.headers.get("X-Request-ID"))
     request.state.request_id = request_id
     try:
@@ -260,7 +274,23 @@ async def selective_access_log(request, call_next):
                 f'{request.client.host if request.client else "-"} - "{request.method} {request_path} HTTP/{request.scope.get("http_version", "1.1")}" {response.status_code}',
                 extra={"request_id": request_id},
             )
+        route = getattr(request.scope.get("route"), "path", request.url.path)
+        app.state.runtime_metrics.record_request(
+            method=request.method,
+            route=route,
+            status_code=response.status_code,
+            duration_ms=(time.perf_counter() - started_at) * 1000.0,
+        )
         return response
+    except Exception:
+        route = getattr(request.scope.get("route"), "path", request.url.path)
+        app.state.runtime_metrics.record_request(
+            method=request.method,
+            route=route,
+            status_code=500,
+            duration_ms=(time.perf_counter() - started_at) * 1000.0,
+        )
+        raise
     finally:
         reset_request_id(token)
 
@@ -322,14 +352,21 @@ from deeptutor.api.routers import (
 )
 
 # Include routers
-app.include_router(solve.router, prefix="/api/v1", tags=["solve"])
-app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
-app.include_router(question.router, prefix="/api/v1/question", tags=["question"])
+if _legacy_routers_enabled():
+    app.include_router(solve.router, prefix="/api/v1", tags=["solve"])
+    app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
+    app.include_router(question.router, prefix="/api/v1/question", tags=["question"])
+    app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboard"])
+    app.include_router(co_writer.router, prefix="/api/v1/co_writer", tags=["co_writer"])
+    app.include_router(notebook.router, prefix="/api/v1/notebook", tags=["notebook"])
+    app.include_router(guide.router, prefix="/api/v1/guide", tags=["guide"])
+    app.include_router(plugins_api.router, prefix="/api/v1/plugins", tags=["plugins"])
+    app.include_router(tutorbot.router, prefix="/api/v1/tutorbot", tags=["tutorbot"])
+else:
+    logger.info(
+        "Legacy routers disabled; production contract remains on /api/v1/ws and authenticated REST APIs"
+    )
 app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledge"])
-app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboard"])
-app.include_router(co_writer.router, prefix="/api/v1/co_writer", tags=["co_writer"])
-app.include_router(notebook.router, prefix="/api/v1/notebook", tags=["notebook"])
-app.include_router(guide.router, prefix="/api/v1/guide", tags=["guide"])
 app.include_router(member.router, prefix="/api/v1/member", tags=["member"])
 app.include_router(bi.router, prefix="/api/v1/bi", tags=["bi"])
 app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])
@@ -337,11 +374,9 @@ app.include_router(sessions.router, prefix="/api/v1/sessions", tags=["sessions"]
 app.include_router(question_notebook.router, prefix="/api/v1/question-notebook", tags=["question-notebook"])
 app.include_router(settings.router, prefix="/api/v1/settings", tags=["settings"])
 app.include_router(system.router, prefix="/api/v1/system", tags=["system"])
-app.include_router(plugins_api.router, prefix="/api/v1/plugins", tags=["plugins"])
 app.include_router(agent_config.router, prefix="/api/v1/agent-config", tags=["agent-config"])
 app.include_router(tutor_state.router, prefix="/api/v1/tutor-state", tags=["tutor-state"])
 app.include_router(vision_solver.router, prefix="/api/v1", tags=["vision-solver"])
-app.include_router(tutorbot.router, prefix="/api/v1/tutorbot", tags=["tutorbot"])
 app.include_router(mobile.router, prefix="/api/v1", tags=["mobile"])
 
 # Unified WebSocket endpoint
@@ -353,10 +388,48 @@ async def root():
     return {"message": get_api_welcome_message()}
 
 
+@app.get("/healthz", include_in_schema=False)
+async def healthz():
+    return {
+        "status": "ok",
+        "alive": True,
+        "uptime_seconds": app.state.runtime_metrics.snapshot()["uptime_seconds"],
+    }
+
+
 @app.get("/readyz", include_in_schema=False)
 async def readyz():
     status_code, payload = get_readyz_payload(app)
     return JSONResponse(status_code=status_code, content=payload)
+
+
+@app.get("/metrics", include_in_schema=False)
+async def metrics():
+    return {
+        "http": app.state.runtime_metrics.snapshot(),
+        "readiness": get_readyz_payload(app)[1],
+        "providers": {
+            "error_rates": get_tracker_snapshot(),
+            "circuit_breakers": get_circuit_breaker_snapshot(),
+        },
+    }
+
+
+@app.get("/metrics/prometheus", include_in_schema=False)
+async def metrics_prometheus():
+    http_snapshot = app.state.runtime_metrics.snapshot()
+    readiness_snapshot = get_readyz_payload(app)[1]
+    provider_error_rates = get_tracker_snapshot()
+    circuit_breakers = get_circuit_breaker_snapshot()
+    return PlainTextResponse(
+        render_prometheus_metrics(
+            http_snapshot=http_snapshot,
+            readiness_snapshot=readiness_snapshot,
+            provider_error_rates=provider_error_rates,
+            circuit_breakers=circuit_breakers,
+        ),
+        media_type="text/plain; version=0.0.4; charset=utf-8",
+    )
 
 
 if __name__ == "__main__":

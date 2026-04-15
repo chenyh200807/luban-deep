@@ -6,7 +6,6 @@ import asyncio
 from dataclasses import asdict, dataclass
 import json
 import logging
-import os
 import re
 from typing import Any
 
@@ -39,6 +38,7 @@ from deeptutor.services.llm import (
     supports_tools,
 )
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.tutorbot.teaching_modes import (
     detect_construction_exam_scene,
     get_construction_exam_skill_instruction,
@@ -199,6 +199,23 @@ class AgenticChatPipeline:
             return
 
         answer_type = self._infer_answer_type(context.user_message)
+        if self._should_use_social_greeting_shortcut(context, answer_type):
+            final_response, trace_meta = await self._stage_social_greeting_response(
+                context=context,
+                stream=stream,
+            )
+            result_payload: dict[str, Any] = {
+                "response": final_response,
+                "observation": "",
+                "tool_traces": [],
+                "chat_mode": self._configured_teaching_mode(context) or "smart",
+                "source_trace": trace_meta.get("label", "Greeting response"),
+            }
+            cs = self._get_cost_summary()
+            if cs:
+                result_payload["metadata"] = {"cost_summary": cs}
+            await stream.result(result_payload, source="chat")
+            return
         enabled_tools = self.resolve_enabled_tools(
             context,
             answer_type=answer_type,
@@ -764,6 +781,48 @@ class AgenticChatPipeline:
                     metadata=trace_meta,
                 )
                 return content, trace_meta
+
+    async def _stage_social_greeting_response(
+        self,
+        context: UnifiedContext,
+        stream: StreamBus,
+    ) -> tuple[str, dict[str, Any]]:
+        trace_meta = build_trace_metadata(
+            call_id=new_call_id("chat-greeting"),
+            phase="responding",
+            label=self._text(zh="Greeting response", en="Greeting response"),
+            call_kind="shortcut_response",
+            trace_id="chat-greeting",
+            trace_role="response",
+            trace_group="stage",
+        )
+        content = self._social_greeting_response(context)
+        async with stream.stage("responding", source="chat", metadata=trace_meta):
+            await stream.progress(
+                trace_meta["label"],
+                source="chat",
+                stage="responding",
+                metadata=merge_trace_metadata(
+                    trace_meta,
+                    {"trace_kind": "call_status", "call_state": "running"},
+                ),
+            )
+            await stream.content(
+                content,
+                source="chat",
+                stage="responding",
+                metadata=merge_trace_metadata(trace_meta, {"trace_kind": "shortcut_output"}),
+            )
+            await stream.progress(
+                "",
+                source="chat",
+                stage="responding",
+                metadata=merge_trace_metadata(
+                    trace_meta,
+                    {"trace_kind": "call_status", "call_state": "complete"},
+                ),
+            )
+        return content, trace_meta
 
     async def _stage_answer_now(
         self,
@@ -1413,7 +1472,9 @@ class AgenticChatPipeline:
 
     def _build_openai_client(self):
         http_client = None
-        if os.getenv("DISABLE_SSL_VERIFY", "").lower() in ("true", "1", "yes"):
+        if env_flag("DISABLE_SSL_VERIFY", default=False):
+            if is_production_environment():
+                raise RuntimeError("DISABLE_SSL_VERIFY is not allowed in production")
             http_client = httpx.AsyncClient(verify=False)  # nosec B501
 
         if self.binding == "azure_openai" or (self.binding == "openai" and self.api_version):
@@ -2304,7 +2365,10 @@ class AgenticChatPipeline:
         with observability.start_observation(
             name="chat.stage.retrieval_first",
             as_type="span",
-            input_payload={"knowledge_chain_profile": self._knowledge_chain_profile(context)},
+            input_payload={
+                "bot_id": self._bot_id(context),
+                "knowledge_bases": list(context.knowledge_bases or []),
+            },
             metadata=trace_meta,
         ) as stage_observation:
             async with stream.stage("acting", source="chat", metadata=trace_meta):
@@ -2412,7 +2476,7 @@ class AgenticChatPipeline:
         tool_traces: list[ToolTrace] | None = None,
     ) -> list[str]:
         mode = self._interaction_teaching_mode(context)
-        if self._is_exam_tutor_profile(context) and answer_type in {
+        if self._is_tutorbot_context(context) and answer_type in {
             ANSWER_TYPE_KNOWLEDGE,
             ANSWER_TYPE_PROBLEM,
         }:
@@ -2650,36 +2714,108 @@ class AgenticChatPipeline:
                     return value
         return {}
 
-    def _knowledge_chain_profile(self, context: UnifiedContext) -> str:
+    def _bot_id(self, context: UnifiedContext) -> str:
         for container in (context.metadata, context.config_overrides):
             if not isinstance(container, dict):
                 continue
-            value = str(container.get("knowledge_chain_profile") or "").strip().lower()
+            value = str(container.get("bot_id") or "").strip().lower()
             if value:
                 return value
         return ""
 
-    def _is_exam_tutor_profile(self, context: UnifiedContext) -> bool:
+    def _is_tutorbot_context(self, context: UnifiedContext) -> bool:
         hints = self._interaction_hints(context)
         profile = str(
             hints.get("profile")
             or context.config_overrides.get("interaction_profile")
             or ""
         ).strip().lower()
-        return profile in {"mini_tutor", "mini_tutorbot", "construction_exam_tutor"}
+        if profile in {"tutorbot", "construction_exam_tutor"}:
+            return True
+        return hints.get("entry_role") == "tutorbot" or bool(self._bot_id(context))
+
+    def _has_construction_exam_kb(self, context: UnifiedContext) -> bool:
+        aliases = {"construction-exam", "construction-exam-coach"}
+        return any(str(item or "").strip().lower() in aliases for item in (context.knowledge_bases or []))
+
+    def _is_construction_exam_tutorbot(self, context: UnifiedContext) -> bool:
+        if self._bot_id(context) == "construction-exam-coach":
+            return True
+        hints = self._interaction_hints(context)
+        return (
+            self._is_tutorbot_context(context)
+            and str(hints.get("subject_domain") or "").strip().lower() == "construction_exam"
+            and self._has_construction_exam_kb(context)
+        )
+
+    def _is_social_greeting_turn(self, user_message: str) -> bool:
+        text = str(user_message or "").strip().lower()
+        if not text:
+            return False
+        normalized = re.sub(r"\s+", "", text)
+        normalized = re.sub(r"[!！?？,.，。~～]+", "", normalized)
+        direct_matches = {
+            "你好",
+            "您好",
+            "哈喽",
+            "嗨",
+            "hi",
+            "hello",
+            "在吗",
+            "早上好",
+            "上午好",
+            "中午好",
+            "下午好",
+            "晚上好",
+            "晚安",
+            "谢谢",
+            "谢了",
+        }
+        if normalized in direct_matches:
+            return True
+        if len(normalized) <= 6 and normalized.endswith("吗") and normalized in {"在吗", "忙吗"}:
+            return True
+        return False
+
+    def _should_use_social_greeting_shortcut(
+        self,
+        context: UnifiedContext,
+        answer_type: str,
+    ) -> bool:
+        if answer_type != ANSWER_TYPE_GENERAL:
+            return False
+        if not self._is_tutorbot_context(context):
+            return False
+        if not self._is_smart_tutor_mode(context):
+            return False
+        return self._is_social_greeting_turn(context.user_message)
+
+    def _social_greeting_response(self, context: UnifiedContext) -> str:
+        brand = BRAND_NAME or "鲁班智考"
+        if self.language == "zh":
+            if self._is_construction_exam_tutorbot(context):
+                return (
+                    f"你好，我是{brand}。"
+                    "你可以直接问我考点、规范、真题，也可以直接说“考我一道题”或“讲解某个知识点”。"
+                )
+            return f"你好，我是{brand}。你可以直接告诉我你想学什么，我会尽量简洁地帮你。"
+        if self._is_construction_exam_tutorbot(context):
+            return (
+                f"Hello, I'm {brand}. "
+                "You can ask about concepts, standards, or past exam questions, or simply say “quiz me”."
+            )
+        return f"Hello, I'm {brand}. Tell me what you want to work on and I'll help."
 
     def _should_use_compact_response(
         self,
         context: UnifiedContext,
         enabled_tools: list[str],
     ) -> bool:
-        if self._knowledge_chain_profile(context) == "construction_exam_grounded":
-            return False
         if enabled_tools:
             return False
         if context.knowledge_bases:
             return False
-        if not self._is_exam_tutor_profile(context):
+        if not self._is_tutorbot_context(context):
             return False
         return self._is_smart_tutor_mode(context)
 
@@ -2688,9 +2824,9 @@ class AgenticChatPipeline:
         context: UnifiedContext,
         enabled_tools: list[str],
     ) -> bool:
-        if self._knowledge_chain_profile(context) != "construction_exam_grounded":
+        if not self._is_construction_exam_tutorbot(context):
             return False
-        if not context.knowledge_bases:
+        if not self._has_construction_exam_kb(context):
             return False
         if "rag" not in {str(name or "").strip().lower() for name in enabled_tools}:
             return False
@@ -2699,7 +2835,7 @@ class AgenticChatPipeline:
         answer_type = self._infer_answer_type(context.user_message)
         if answer_type in {ANSWER_TYPE_KNOWLEDGE, ANSWER_TYPE_PROBLEM}:
             return True
-        return self._is_exam_tutor_profile(context) and len(str(context.user_message or "").strip()) >= 40
+        return self._is_tutorbot_context(context) and len(str(context.user_message or "").strip()) >= 40
 
     async def _run_forced_rag_fallback(
         self,
@@ -2773,7 +2909,7 @@ class AgenticChatPipeline:
         ]
 
     def _teaching_mode_overlay(self, context: UnifiedContext) -> str:
-        if not self._is_exam_tutor_profile(context):
+        if not self._is_tutorbot_context(context):
             return ""
         mode = self._interaction_teaching_mode(context)
         answer_type = self._infer_answer_type(context.user_message)

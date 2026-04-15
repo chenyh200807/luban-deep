@@ -1,0 +1,519 @@
+<!-- chat.wxml — 1:1 复刻 Web 手机端 -->
+<view class="page {{isDark?'':'light'}}">
+
+  <!-- 呼吸极光背景（低端设备跳过以节省 GPU） -->
+  <view class="aurora-layer" wx:if="{{enableOrbs}}">
+    <view class="orb orb1"></view>
+    <view class="orb orb2"></view>
+    <view class="orb orb3"></view>
+    <view class="orb orb4"></view>
+  </view>
+  <image class="bg-horizon" src="../../images/bg_horizon.jpg" mode="aspectFill" />
+
+  <!-- 顶栏 — 仅 logo + 新对话 -->
+  <view class="navbar" style="padding-top:{{statusBarHeight}}px">
+    <view class="navbar-inner">
+      <view class="nav-back-pill" wx:if="{{workspaceBackVisible}}" bindtap="goWorkspaceBack" aria-role="button" aria-label="返回{{workspaceBackLabel}}">
+        <text class="nav-back-arrow">‹</text>
+        <text class="nav-back-label">{{workspaceBackLabel}}</text>
+      </view>
+      <image class="nav-logo" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" aria-role="button" aria-label="回到首页" />
+      <view style="flex:1"></view>
+      <view class="nav-icon-btn nav-new-chat" wx:if="{{hasMessages}}" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
+        <text class="nav-new-icon">+</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ★ Hero 状态 -->
+  <scroll-view class="content hero-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" wx:if="{{!hasMessages}}" style="top:{{navHeight}}px;height:{{contentHeight}}px;"
+    bindtouchstart="_onHeroDragStart" bindtouchmove="_onHeroDragMove" bindtouchend="_onHeroDragEnd" bindtouchcancel="_onHeroDragEnd">
+    <view class="hero-inner" style="transform:translateY({{_heroDragY}}px);transition:{{_heroDragTransition}}">
+
+    <!-- 用户信息行（积分 + 主题 + 充值 + 头像） -->
+    <view class="user-row">
+      <view class="points-pill" bindtap="goBilling" aria-role="button" aria-label="积分明细: {{userPoints}} 点">
+        <text class="points-star">★</text>
+        <text class="points-num">{{userPoints}}</text>
+      </view>
+      <view class="row-icon-btn" bindtap="onToggleTheme" aria-role="button" aria-label="{{isDark ? '切换浅色模式' : '切换深色模式'}}">
+        <view class="ico ico-theme-{{isDark?'sun':'moon'}}"></view>
+      </view>
+      <view class="row-icon-btn" bindtap="goRecharge" aria-role="button" aria-label="充值">
+        <view class="ico ico-dollar"></view>
+      </view>
+      <view class="avatar" wx:if="{{profileEnabled}}" bindtap="goProfile" aria-role="button" aria-label="个人中心">
+        <text class="avatar-char">{{avatarChar}}</text>
+      </view>
+    </view>
+
+    <!-- 撑开空间，把内容推到中下部 -->
+    <view class="hero-spacer"></view>
+
+    <!-- 问候 -->
+    <view class="greeting">
+      <text class="greeting-name" wx:if="{{userName && userName !== '用户'}}">{{userName}}, </text>
+      <text class="greeting-time">{{timeGreeting}}</text>
+    </view>
+    <text class="greeting-sub">{{reviewCount > 0 ? '今天有 ' + reviewCount + ' 个逾期复习，TutorBot 已准备好带你过一遍' : '你的 TutorBot 已上线，随时开始今天的备考'}}</text>
+
+    <!-- 今日焦点 -->
+    <view class="focus-bar {{enableFocusPulse?'':'no-pulse'}}" wx:if="{{focusText}}" bindtap="onFocusTap">
+      <text class="focus-icon">⚡</text>
+      <text class="focus-text">{{focusText}}</text>
+      <view class="focus-next" catchtap="onFocusTap">
+        <text class="focus-arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 输入卡片 -->
+    <view class="input-card">
+      <textarea
+        class="input-field"
+        value="{{inputText}}"
+        bindinput="onInput"
+        bindconfirm="sendMessage"
+        placeholder="问你的 TutorBot：考点、真题、规范、错题都可以"
+        placeholder-class="input-ph"
+        auto-height
+        maxlength="2000"
+        confirm-type="send"
+        show-confirm-bar="{{false}}"
+        adjust-position="{{true}}"
+      />
+	      <view class="input-bottom">
+	        <view class="mode-row">
+	          <view class="mode-pill {{answerMode==='AUTO'?'on':''}}" bindtap="onMode" data-m="AUTO"><text class="mode-pill-txt">智能</text></view>
+	          <view class="mode-pill {{answerMode==='DEEP'?'on':''}}" bindtap="onMode" data-m="DEEP"><text class="mode-pill-txt">深度</text></view>
+	          <view class="mode-pill {{answerMode==='FAST'?'on':''}}" bindtap="onMode" data-m="FAST"><text class="mode-pill-txt">快速</text></view>
+	          <text class="mode-hint">{{modeHintText}}</text>
+	        </view>
+	        <view class="send-btn {{inputText ? 'on' : ''}}" bindtap="sendMessage" aria-role="button" aria-label="发送消息">
+	          <text class="send-icon">▶</text>
+	        </view>
+	      </view>
+	      <view class="tool-row">
+	        <view class="tool-chip {{enableReason ? 'on' : ''}}" bindtap="onToggleReason" aria-role="button" aria-label="{{enableReason ? '关闭推理' : '开启推理'}}">
+	          <text class="tool-chip-icon">◎</text>
+	          <text class="tool-chip-txt">推理</text>
+	        </view>
+	        <text class="tool-hint">知识库检索默认自动开启，时效性问题会自动联网</text>
+	      </view>
+	    </view>
+
+    <!-- 示例 -->
+    <text class="example-label">试试这样问</text>
+    <!-- 高/中端：跑马灯动画 -->
+    <view class="marquee-wrap" wx:if="{{enableMarquee}}">
+      <view class="marquee-track">
+        <view class="example-card" wx:for="{{examples}}" wx:key="title" bindtap="sendExample" data-text="{{item.query}}">
+          <view class="example-icon" style="background:{{isDark ? item.bgDark : item.bgLight}};color:{{isDark ? item.fgDark : item.fgLight}}">
+            <text class="example-icon-txt">{{item.icon}}</text>
+          </view>
+          <view class="example-body">
+            <text class="example-title">{{item.title}}</text>
+            <text class="example-desc">{{item.desc}}</text>
+          </view>
+        </view>
+        <!-- 重复一份实现无缝循环 -->
+        <view class="example-card" wx:for="{{examples}}" wx:key="title" bindtap="sendExample" data-text="{{item.query}}">
+          <view class="example-icon" style="background:{{isDark ? item.bgDark : item.bgLight}};color:{{isDark ? item.fgDark : item.fgLight}}">
+            <text class="example-icon-txt">{{item.icon}}</text>
+          </view>
+          <view class="example-body">
+            <text class="example-title">{{item.title}}</text>
+            <text class="example-desc">{{item.desc}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!-- 低端：静态网格（无跑马灯动画） -->
+    <view class="example-grid" wx:else>
+      <view class="example-card" wx:for="{{examples}}" wx:key="title" bindtap="sendExample" data-text="{{item.query}}">
+        <view class="example-icon" style="background:{{isDark ? item.bgDark : item.bgLight}};color:{{isDark ? item.fgDark : item.fgLight}}">
+          <text class="example-icon-txt">{{item.icon}}</text>
+        </view>
+        <view class="example-body">
+          <text class="example-title">{{item.title}}</text>
+          <text class="example-desc">{{item.desc}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view style="height:{{heroBottomSpacer}}px"></view>
+    </view>
+  </scroll-view>
+
+  <!-- ★ Chat 状态 -->
+  <scroll-view
+    class="content"
+    scroll-y
+    enhanced="{{true}}"
+    bounces="{{true}}"
+    show-scrollbar="{{false}}"
+    scroll-into-view="{{scrollToId}}"
+    scroll-with-animation="{{chatScrollWithAnimation}}"
+    lower-threshold="120"
+    wx:else
+    style="top:{{navHeight}}px;height:{{contentHeight}}px;"
+    bindscroll="_onChatScroll"
+    bindscrolltolower="_onChatScrollToLower"
+  >
+    <view class="msg-list">
+      <view class="msg {{item.role}} {{enableMsgAnim?'':'no-anim'}}" wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
+
+        <!-- 用户消息 -->
+        <view class="bubble-user" wx:if="{{item.role === 'user'}}">
+          <text class="user-text" selectable>{{item.content}}</text>
+          <view class="user-bar">
+            <view style="flex:1"></view>
+            <view class="ub-btn" bindtap="onCopy" data-msgid="{{item.id}}" aria-role="button" aria-label="复制消息">
+              <view class="ico ico-copy"></view>
+            </view>
+            <view class="ub-btn" bindtap="onEdit" data-msgid="{{item.id}}" aria-role="button" aria-label="编辑消息">
+              <view class="ico ico-edit"></view>
+            </view>
+          </view>
+        </view>
+
+        <!-- AI 消息 -->
+        <view class="bubble-ai {{item.thinkingStatus && !item.content && !item.blocks.length ? 'bubble-ai-thinking' : ''}}" wx:else>
+          <!-- 思考中：独立状态面板 -->
+          <view class="thinking-panel thinking-panel-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}" wx:if="{{item.thinkingStatus && !item.content && !item.blocks.length}}">
+            <view class="thinking-rail"></view>
+            <view class="thinking-main">
+              <view class="thinking-head">
+                <view class="thinking-badge thinking-badge-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}">
+                  <view class="dots-bounce"><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
+                  <text class="thinking-badge-text">{{item.thinkingBadge ? item.thinkingBadge : 'AI 正在处理'}}</text>
+                </view>
+                <view class="thinking-scan thinking-scan-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}"></view>
+	              </view>
+	              <text class="thinking-label">{{item.thinkingStatus}}</text>
+	              <text class="thinking-sub">{{item.thinkingSub}}</text>
+	              <view class="workflow-bar" wx:if="{{item.workflowMeta || item.workflowEntries.length}}">
+	                <text class="workflow-meta-text" wx:if="{{item.workflowMeta}}">{{item.workflowMeta}}</text>
+	                <view class="workflow-toggle" bindtap="onToggleWorkflowTrace" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.workflowExpanded ? '收起后台过程' : '展开后台过程'}}">
+	                  <text class="workflow-toggle-text">{{item.workflowExpanded ? '收起过程' : (item.workflowToggleText || '展开后台过程')}}</text>
+	                  <text class="workflow-toggle-arrow">{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
+	                </view>
+	              </view>
+	              <view class="workflow-trace" wx:if="{{item.workflowExpanded && item.workflowEntries.length}}">
+	                <view class="workflow-step" wx:for="{{item.workflowEntries}}" wx:key="id" wx:for-item="wf">
+	                  <view class="workflow-step-head">
+	                    <text class="workflow-step-badge workflow-step-badge-{{wf.tone}}">{{wf.badge}}</text>
+	                    <text class="workflow-step-title">{{wf.title}}</text>
+	                  </view>
+	                  <text class="workflow-step-detail" wx:if="{{wf.detail}}">{{wf.detail}}</text>
+	                  <view class="workflow-step-raw" wx:if="{{wf.rawText}}">
+	                    <text class="workflow-step-raw-label">{{wf.rawLabel}}</text>
+	                    <text class="workflow-step-raw-text" selectable>{{wf.rawText}}</text>
+	                  </view>
+	                </view>
+	              </view>
+	            </view>
+	          </view>
+
+          <!-- 思考中：生成阶段维持轻量提示 -->
+          <view class="thinking thinking-inline" wx:elif="{{item.thinkingStatus}}">
+            <view class="dots-bounce"><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
+            <text class="thinking-label">{{item.thinkingStatus}}</text>
+          </view>
+
+          <view class="workflow-card workflow-card-{{item.workflowTone ? item.workflowTone : 'compose'}}" wx:if="{{item.workflowEntries.length && (item.content || item.blocks.length)}}">
+            <view class="workflow-card-head">
+              <view class="workflow-card-title">
+                <text class="workflow-card-badge">{{item.workflowBadge || '本轮推演'}}</text>
+                <text class="workflow-card-label">{{item.workflowTitle || '后台过程已完成'}}</text>
+              </view>
+              <view class="workflow-toggle workflow-toggle-inline" bindtap="onToggleWorkflowTrace" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.workflowExpanded ? '收起后台过程' : '展开后台过程'}}">
+                <text class="workflow-toggle-text">{{item.workflowExpanded ? '收起过程' : (item.workflowToggleText || '查看完整后台过程')}}</text>
+                <text class="workflow-toggle-arrow">{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
+              </view>
+            </view>
+            <text class="workflow-card-sub" wx:if="{{item.workflowSub}}">{{item.workflowSub}}</text>
+            <text class="workflow-meta-text" wx:if="{{item.workflowMeta}}">{{item.workflowMeta}}</text>
+            <text class="workflow-card-count" wx:if="{{item.workflowCountText}}">{{item.workflowCountText}}</text>
+            <view class="workflow-trace workflow-trace-inline" wx:if="{{item.workflowExpanded && item.workflowEntries.length}}">
+              <view class="workflow-step" wx:for="{{item.workflowEntries}}" wx:key="id" wx:for-item="wf">
+                <view class="workflow-step-head">
+                  <text class="workflow-step-badge workflow-step-badge-{{wf.tone}}">{{wf.badge}}</text>
+                  <text class="workflow-step-title">{{wf.title}}</text>
+                </view>
+                <text class="workflow-step-detail" wx:if="{{wf.detail}}">{{wf.detail}}</text>
+                <view class="workflow-step-raw" wx:if="{{wf.rawText}}">
+                  <text class="workflow-step-raw-label">{{wf.rawLabel}}</text>
+                  <text class="workflow-step-raw-text" selectable>{{wf.rawText}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 纯文本回退：流式初期 blocks 尚未解析 -->
+          <text class="ai-text" user-select wx:if="{{item.streaming && !item.blocks.length && (item.renderableContent || item.content)}}">{{item.renderableContent || item.content}}</text>
+
+          <!-- Markdown 实时渲染（流式 + 完成态共用） -->
+          <block wx:if="{{item.blocks.length}}">
+            <block wx:for="{{item.blocks}}" wx:key="id" wx:for-item="b">
+
+              <!-- 标题 -->
+              <view class="md-h{{b.level}}" wx:if="{{b.type==='heading'}}">
+                <block wx:for="{{b.content}}" wx:key="index" wx:for-item="s">
+                  <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
+                </block>
+              </view>
+
+              <!-- 代码块 -->
+              <view class="md-code" wx:elif="{{b.type==='code_block'}}">
+                <text class="md-code-lang">{{b.language}}</text>
+                <text class="md-code-body" user-select>{{b.content}}</text>
+              </view>
+
+              <!-- 水平线 -->
+              <view class="md-hr" wx:elif="{{b.type==='hr'}}"></view>
+
+              <!-- 表格 -->
+              <scroll-view scroll-x wx:elif="{{b.type==='table'}}" class="md-table-scroll">
+                <view class="md-table">
+                  <view class="md-thead">
+                    <view class="md-th" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h">
+                      <block wx:for="{{h.content}}" wx:key="index" wx:for-item="s">
+                        <text user-select class="{{s.type==='bold'?'b':s.type==='code'?'c':''}}">{{s.text}}</text>
+                      </block>
+                    </view>
+                  </view>
+                  <view class="md-tr" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row">
+                    <view class="md-td" wx:for="{{row}}" wx:key="index" wx:for-item="cell">
+                      <block wx:for="{{cell.content}}" wx:key="index" wx:for-item="s">
+                        <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='code'?'c':''}}">{{s.text}}</text>
+                      </block>
+                    </view>
+                  </view>
+                </view>
+              </scroll-view>
+
+              <!-- 引用块 -->
+              <view class="md-blockquote" wx:elif="{{b.type==='blockquote'}}">
+                <view class="bq-line" wx:for="{{b.lines}}" wx:key="index" wx:for-item="bqline">
+                  <block wx:for="{{bqline}}" wx:key="index" wx:for-item="s">
+                    <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
+                  </block>
+                </view>
+              </view>
+
+              <!-- 核心结论/注意/要点高亮 -->
+              <view class="md-callout md-callout-{{b.variant}}" wx:elif="{{b.type==='callout'}}">
+                <text class="callout-tag callout-tag-{{b.variant}}">{{b.label}}</text>
+                <view class="callout-body" wx:if="{{b.content.length}}">
+                  <block wx:for="{{b.content}}" wx:key="index" wx:for-item="s">
+                    <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='code'?'c':''}}">{{s.text}}</text>
+                  </block>
+                </view>
+              </view>
+
+              <!-- 无序列表 -->
+              <view class="md-ul" wx:elif="{{b.type==='ul'}}">
+                <view class="md-li" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
+                  <text class="bullet">·</text>
+                  <view class="li-body">
+                    <block wx:for="{{li.content}}" wx:key="index" wx:for-item="s">
+                      <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
+                    </block>
+                  </view>
+                </view>
+              </view>
+
+              <!-- 有序列表 -->
+              <view class="md-ol" wx:elif="{{b.type==='ol'}}">
+                <view class="md-li" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
+                  <text class="ol-idx">{{li.index}}.</text>
+                  <view class="li-body">
+                    <block wx:for="{{li.content}}" wx:key="index" wx:for-item="s">
+                      <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
+                    </block>
+                  </view>
+                </view>
+              </view>
+
+              <!-- 空行 -->
+              <view wx:elif="{{b.type==='blank'}}" style="height:12rpx"></view>
+
+              <!-- 段落 -->
+              <view class="md-p" wx:else>
+                <block wx:for="{{b.content}}" wx:key="index" wx:for-item="s">
+                  <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
+                </block>
+              </view>
+
+            </block>
+	          </block>
+	          <!-- 流式光标 -->
+	          <view class="cursor" wx:if="{{item.streaming}}"></view>
+
+          <!-- MCQ -->
+          <view class="mcq" wx:if="{{item.mcqCards && item.mcqCards.length && !item.streaming}}">
+            <view class="mcq-head">
+              <text class="mcq-head-title">{{item.mcqInteractiveReady ? '交互式作答' : '题目回看'}}</text>
+              <text class="mcq-head-hint">{{item.mcqHint ? item.mcqHint : '点击选项后提交答案'}}</text>
+            </view>
+            <view class="mcq-card" wx:for="{{item.mcqCards}}" wx:key="index" wx:for-item="card">
+              <view class="mcq-card-bar">
+                <text class="mcq-card-index">第{{card.index}}题</text>
+                <text class="mcq-card-type">{{card.questionType==='multi_choice' ? '多选题' : '单选题'}}</text>
+              </view>
+              <text class="mcq-stem">{{card.stem}}</text>
+              <text class="mcq-hint" wx:if="{{card.hint}}">提示：{{card.hint}}</text>
+              <view
+                class="mcq-opt {{o.selected?'sel':''}} {{!item.mcqInteractiveReady?'ro':''}}"
+                wx:for="{{card.options}}" wx:key="key" wx:for-item="o"
+                bindtap="onMcqTap" data-msgid="{{item.id}}" data-qindex="{{card.index}}" data-key="{{o.key}}"
+                aria-role="button" aria-label="选项 {{o.key}}: {{o.text}}" aria-checked="{{o.selected}}"
+              >
+                <text class="mcq-key">{{o.key}}</text>
+                <text class="mcq-val">{{o.text}}</text>
+              </view>
+            </view>
+            <view wx:if="{{item.mcqInteractiveReady}}" class="mcq-submit" bindtap="onMcqSubmit" data-msgid="{{item.id}}" aria-role="button" aria-label="提交答案">
+              <text class="mcq-submit-txt">提交答案</text>
+            </view>
+            <view wx:else class="mcq-submit disabled" aria-role="note" aria-label="当前题卡仅供查看">
+              <text class="mcq-submit-txt">仅供查看</text>
+            </view>
+          </view>
+
+          <!-- 引用 -->
+          <view class="cite-list" wx:if="{{item.citations && item.citations.length}}">
+            <text class="cite-head">参考来源</text>
+            <view class="cite" wx:for="{{item.citations}}" wx:key="key" wx:for-item="ct">
+              <text class="cite-key">[{{ct.key}}]</text>
+              <view class="cite-body">
+                <text class="cite-title">{{ct.title}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        <!-- AI 操作栏 — 气泡外部，左对齐 -->
+        <view class="msg-actions msg-actions-left" wx:if="{{item.role !== 'user' && !item.streaming && item.content}}">
+          <view class="act-btn {{item.feedback==='up'?'act-on act-like':''}}" bindtap="onThumbUp" data-msgid="{{item.id}}" aria-role="button" aria-label="点赞">
+            <view class="ico ico-thumbup"></view>
+          </view>
+          <view class="act-btn {{item.feedback==='down'?'act-on act-dislike':''}}" bindtap="onThumbDown" data-msgid="{{item.id}}" aria-role="button" aria-label="点踩">
+            <view class="ico ico-thumbdown"></view>
+          </view>
+          <view class="act-sep"></view>
+          <view class="act-btn" bindtap="onCopy" data-msgid="{{item.id}}" aria-role="button" aria-label="复制回答">
+            <view class="ico ico-copy"></view>
+          </view>
+          <view class="act-btn" bindtap="onRetry" data-msgid="{{item.id}}" aria-role="button" aria-label="重新生成">
+            <view class="ico ico-retry"></view>
+          </view>
+        </view>
+        <!-- 反馈弹窗（点踩后展开） -->
+        <view class="fb-popover" wx:if="{{feedbackMsgId === item.id}}">
+          <view class="fb-header">
+            <text class="fb-title">请告诉我们需要改进的地方：</text>
+            <view class="fb-close" bindtap="onFeedbackClose" aria-role="button" aria-label="关闭反馈">
+              <text class="fb-close-icon">×</text>
+            </view>
+          </view>
+          <view class="fb-tags">
+            <view class="fb-tag {{feedbackTags.indexOf('事实错误')>=0?'on':''}}" bindtap="onFeedbackTag" data-tag="事实错误">
+              <text class="fb-tag-txt">❌ 事实错误</text>
+            </view>
+            <view class="fb-tag {{feedbackTags.indexOf('产生幻觉')>=0?'on':''}}" bindtap="onFeedbackTag" data-tag="产生幻觉">
+              <text class="fb-tag-txt">🤥 产生幻觉</text>
+            </view>
+            <view class="fb-tag {{feedbackTags.indexOf('逻辑不通')>=0?'on':''}}" bindtap="onFeedbackTag" data-tag="逻辑不通">
+              <text class="fb-tag-txt">📉 逻辑不通</text>
+            </view>
+            <view class="fb-tag {{feedbackTags.indexOf('格式混乱')>=0?'on':''}}" bindtap="onFeedbackTag" data-tag="格式混乱">
+              <text class="fb-tag-txt">📝 格式混乱</text>
+            </view>
+          </view>
+          <input class="fb-input" placeholder="更多细节（可选）..." value="{{feedbackComment}}" bindinput="onFeedbackInput" maxlength="500" />
+          <view class="fb-submit" bindtap="onFeedbackSubmit" aria-role="button" aria-label="提交反馈">
+            <text class="fb-submit-txt">提交反馈</text>
+          </view>
+        </view>
+      </view>
+      <view id="msg-bottom" style="height:{{chatBottomSpacer}}px"></view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部输入（仅 Chat 状态） -->
+  <view class="bottom-bar" wx:if="{{hasMessages}}" style="{{bottomBarStyle}}">
+    <view class="bottom-input-card">
+      <textarea
+        class="input-field"
+        value="{{inputText}}"
+        bindinput="onInput"
+        bindconfirm="sendMessage"
+        placeholder="继续追问..."
+        placeholder-class="input-ph"
+        auto-height
+        maxlength="2000"
+        confirm-type="send"
+        show-confirm-bar="{{false}}"
+        adjust-position="{{true}}"
+      />
+	      <view class="input-bottom">
+	        <view class="mode-row">
+	          <view class="mode-pill {{answerMode==='AUTO'?'on':''}}" bindtap="onMode" data-m="AUTO"><text class="mode-pill-txt">智能</text></view>
+	          <view class="mode-pill {{answerMode==='DEEP'?'on':''}}" bindtap="onMode" data-m="DEEP"><text class="mode-pill-txt">深度</text></view>
+	          <view class="mode-pill {{answerMode==='FAST'?'on':''}}" bindtap="onMode" data-m="FAST"><text class="mode-pill-txt">快速</text></view>
+	          <text class="mode-hint">自动切换 · 1-10点</text>
+	        </view>
+	        <view class="send-btn {{isStreaming ? 'stop' : (inputText ? 'on' : '')}}" bindtap="{{isStreaming ? 'stopStream' : 'sendMessage'}}" aria-role="button" aria-label="{{isStreaming ? '停止生成' : '发送消息'}}">
+	          <text class="send-icon">{{isStreaming ? '■' : '▶'}}</text>
+	        </view>
+	      </view>
+	      <view class="tool-row">
+	        <view class="tool-chip {{enableReason ? 'on' : ''}}" bindtap="onToggleReason" aria-role="button" aria-label="{{enableReason ? '关闭推理' : '开启推理'}}">
+	          <text class="tool-chip-icon">◎</text>
+	          <text class="tool-chip-txt">推理</text>
+	        </view>
+	        <text class="tool-hint">知识库检索默认自动开启，时效性问题会自动联网</text>
+	      </view>
+	    </view>
+		  </view>
+
+  <workspace-shell id="workspaceShell"></workspace-shell>
+
+  <!-- ★ 积分明细半屏弹窗 -->
+  <view class="billing-mask {{billingShow ? 'show' : ''}}" bindtap="closeBilling"></view>
+  <view class="billing-drawer {{billingShow ? 'show' : ''}}">
+    <view class="billing-header">
+      <text class="billing-title">积分明细</text>
+      <view class="billing-close" bindtap="closeBilling" aria-role="button" aria-label="关闭">
+        <text class="billing-close-icon">×</text>
+      </view>
+    </view>
+    <!-- 余额 -->
+    <view class="billing-balance">
+      <text class="billing-bal-star">✦</text>
+      <text class="billing-bal-num">{{billingBalance}}</text>
+      <text class="billing-bal-label">当前余额</text>
+    </view>
+    <!-- 流水 -->
+    <scroll-view class="billing-list" scroll-y>
+      <view wx:if="{{billingLoading}}" class="billing-empty">
+        <text class="billing-empty-txt">加载中...</text>
+      </view>
+      <view wx:elif="{{billingEntries.length === 0}}" class="billing-empty">
+        <text class="billing-empty-txt">暂无消费记录</text>
+      </view>
+      <view wx:else>
+        <view class="billing-item" wx:for="{{billingEntries}}" wx:key="id">
+          <view class="billing-item-left">
+            <text class="billing-item-reason">{{item.reason}}</text>
+            <text class="billing-item-time">{{item.time}}</text>
+          </view>
+          <view class="billing-item-right">
+            <text class="billing-item-delta {{item.isDebit ? 'debit' : 'credit'}}">{{item.isDebit ? '' : '+'}}{{item.delta}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+</view>

@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-import os
 from typing import Callable, Protocol, TypeVar, cast
 
 import httpx
 import openai
 
 from deeptutor.logging import get_logger
+from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 from ..config import LLMConfig, get_token_limit_kwargs
 from ..exceptions import LLMConfigError
@@ -57,8 +57,8 @@ class OpenAIProvider(BaseLLMProvider):
     def __init__(self, config: LLMConfig) -> None:
         super().__init__(config)
         http_client = None
-        if os.getenv("DISABLE_SSL_VERIFY", "").lower() in ("true", "1", "yes"):
-            if os.getenv("ENVIRONMENT", "").lower() in ("prod", "production"):
+        if env_flag("DISABLE_SSL_VERIFY", default=False):
+            if is_production_environment():
                 raise LLMConfigError("DISABLE_SSL_VERIFY is not allowed in production")
             logger.warning("SSL verification disabled for OpenAI HTTP client")
             http_client = httpx.AsyncClient(verify=False)  # nosec B501

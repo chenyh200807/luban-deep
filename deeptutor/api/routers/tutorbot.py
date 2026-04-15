@@ -4,16 +4,13 @@ TutorBot management API.
 
 from __future__ import annotations
 
-import json
-import logging
-
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, WebSocket
 from pydantic import BaseModel
 
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
+from deeptutor.utils.error_utils import public_error_detail
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -47,13 +44,6 @@ class SoulCreateRequest(BaseModel):
 class SoulUpdateRequest(BaseModel):
     name: str | None = None
     content: str | None = None
-
-
-def _normalize_bot_mode(value: str | None) -> str:
-    normalized = str(value or "").strip().lower()
-    if normalized in {"fast", "deep"}:
-        return normalized
-    return "smart"
 
 
 # ── Soul template library (must be before /{bot_id} routes) ───
@@ -130,7 +120,7 @@ async def create_and_start_bot(payload: CreateBotRequest):
     try:
         instance = await mgr.start_bot(payload.bot_id, config)
     except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("TutorBot operation"))
     return instance.to_dict()
 
 
@@ -215,85 +205,5 @@ async def write_bot_file(bot_id: str, filename: str, payload: FileUpdateRequest)
 
 @router.get("/{bot_id}/history")
 async def get_bot_history(bot_id: str, limit: int = 100):
-    """Read chat history from the bot's per-bot JSONL session files."""
+    """Read chat history from the bot's unified SQLite-backed sessions."""
     return get_tutorbot_manager().get_bot_history(bot_id, limit=limit)
-
-
-@router.websocket("/{bot_id}/ws")
-async def bot_chat_ws(ws: WebSocket, bot_id: str):
-    import asyncio
-
-    mgr = get_tutorbot_manager()
-    instance = mgr.get_bot(bot_id)
-    if not instance or not instance.running:
-        await ws.close(code=4004, reason="Bot not found or not running")
-        return
-
-    await ws.accept()
-    logger.info("WebSocket connected for bot '%s'", bot_id)
-
-    async def _handle_user_messages():
-        while True:
-            raw = await ws.receive_text()
-            try:
-                data = json.loads(raw)
-            except json.JSONDecodeError:
-                await ws.send_json({"type": "error", "content": "Invalid JSON"})
-                continue
-
-            content = data.get("content", "").strip()
-            mode = _normalize_bot_mode(data.get("mode"))
-            if not content:
-                continue
-
-            async def on_progress(text: str) -> None:
-                await ws.send_json({"type": "thinking", "content": text})
-
-            try:
-                delta_sent = False
-
-                async def on_content_delta(text: str) -> None:
-                    nonlocal delta_sent
-                    if not text:
-                        return
-                    delta_sent = True
-                    await ws.send_json({"type": "content", "content": text})
-
-                response = await mgr.send_message(
-                    bot_id, content, chat_id=data.get("chat_id", "web"),
-                    on_progress=on_progress,
-                    on_content_delta=on_content_delta,
-                    mode=mode,
-                )
-                if response and not delta_sent:
-                    await ws.send_json({"type": "content", "content": response})
-                await ws.send_json({"type": "done"})
-            except RuntimeError as exc:
-                await ws.send_json({"type": "error", "content": str(exc)})
-            except Exception:
-                logger.exception("Error processing message for bot '%s'", bot_id)
-                await ws.send_json({"type": "error", "content": "Internal error"})
-
-    async def _handle_notifications():
-        while True:
-            content = await instance.notify_queue.get()
-            try:
-                await ws.send_json({"type": "proactive", "content": content})
-            except Exception:
-                break
-
-    user_task = asyncio.create_task(_handle_user_messages())
-    notify_task = asyncio.create_task(_handle_notifications())
-    try:
-        done, pending = await asyncio.wait(
-            [user_task, notify_task], return_when=asyncio.FIRST_COMPLETED,
-        )
-        for t in pending:
-            t.cancel()
-        for t in done:
-            if t.exception() and not isinstance(t.exception(), WebSocketDisconnect):
-                logger.exception("WebSocket task error for bot '%s'", bot_id, exc_info=t.exception())
-    except Exception:
-        user_task.cancel()
-        notify_task.cancel()
-    logger.info("WebSocket closed for bot '%s'", bot_id)

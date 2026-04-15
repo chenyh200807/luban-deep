@@ -1,0 +1,9 @@
+{
+  "navigationStyle": "custom",
+  "disableScroll": true,
+  "usingComponents": {
+    "msg-actions": "../../components/msg-actions/msg-actions",
+    "empty-state": "../../components/empty-state/empty-state",
+    "workspace-shell": "../../custom-tab-bar/index"
+  }
+}

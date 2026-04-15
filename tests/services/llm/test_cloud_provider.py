@@ -166,6 +166,7 @@ def test_cloud_helpers(monkeypatch: MonkeyPatch) -> None:
     assert cloud_provider._coerce_int(True, None) is None
     assert cloud_provider._coerce_int(3, None) == 3
 
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
     monkeypatch.delenv("DISABLE_SSL_VERIFY", raising=False)
     assert cloud_provider._get_aiohttp_connector() is None
 

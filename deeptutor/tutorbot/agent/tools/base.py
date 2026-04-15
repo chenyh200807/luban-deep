@@ -52,6 +52,18 @@ class Tool(ABC):
         """
         pass
 
+    def set_runtime_context(self, **_kwargs: Any) -> None:
+        """Inject per-turn runtime metadata for tools that need it."""
+        return None
+
+    def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+        """Return normalized args for logging/trace before actual execution."""
+        return dict(params or {})
+
+    def consume_trace_metadata(self) -> dict[str, Any] | None:
+        """Return per-execution trace metadata captured by the tool."""
+        return None
+
     def cast_params(self, params: dict[str, Any]) -> dict[str, Any]:
         """Apply safe schema-driven casts before validation."""
         schema = self.parameters or {}

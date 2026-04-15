@@ -7,7 +7,7 @@ always: false
 
 # Construction Exam Tutor
 
-用于 `mini_tutor` / `construction_exam_tutor_v1` 教学场景。
+用于 `tutorbot` 建筑实务教学场景。
 
 ## 核心职责
 

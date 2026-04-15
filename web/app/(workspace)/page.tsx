@@ -238,7 +238,9 @@ export default function HomePage() {
   const [refMenuOpen, setRefMenuOpen] = useState(false);
   const [selectedNotebookRecords, setSelectedNotebookRecords] = useState<SelectedRecord[]>([]);
   const [selectedHistorySessions, setSelectedHistorySessions] = useState<SelectedHistorySession[]>([]);
+  const [outgoingActionPending, setOutgoingActionPending] = useState(false);
   const dragCounter = useRef(0);
+  const outgoingActionPhaseRef = useRef<"idle" | "preparing" | "streaming">("idle");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const capMenuRef = useRef<HTMLDivElement>(null);
   const capBtnRef = useRef<HTMLButtonElement>(null);
@@ -347,6 +349,28 @@ export default function HomePage() {
     return -1;
   }, [state.isStreaming, state.messages]);
   const lastMessage = state.messages[state.messages.length - 1];
+  const startOutgoingAction = useCallback(() => {
+    if (outgoingActionPhaseRef.current !== "idle") return false;
+    outgoingActionPhaseRef.current = "preparing";
+    setOutgoingActionPending(true);
+    return true;
+  }, []);
+  const markOutgoingActionStreaming = useCallback(() => {
+    if (outgoingActionPhaseRef.current === "preparing") {
+      outgoingActionPhaseRef.current = "streaming";
+    }
+  }, []);
+  const finishOutgoingAction = useCallback(() => {
+    outgoingActionPhaseRef.current = "idle";
+    setOutgoingActionPending(false);
+  }, []);
+
+  useEffect(() => {
+    if (!state.isStreaming && outgoingActionPhaseRef.current === "streaming") {
+      finishOutgoingAction();
+    }
+  }, [finishOutgoingAction, state.isStreaming]);
+
   const {
     containerRef: messagesContainerRef,
     endRef: messagesEndRef,
@@ -373,29 +397,41 @@ export default function HomePage() {
       snapshot?: MessageRequestSnapshot,
       configOverride?: Record<string, unknown>,
     ) => {
-      if (!snapshot || state.isStreaming) return;
-      sendMessage(
-        snapshot.content,
-        snapshot.attachments,
-        configOverride ?? snapshot.config,
-        snapshot.notebookReferences,
-        snapshot.historyReferences,
-        {
-          displayUserMessage: false,
-          persistUserMessage: false,
-          requestSnapshotOverride: snapshot,
-        },
-      );
-      shouldAutoScrollRef.current = true;
+      if (!snapshot || state.isStreaming || !startOutgoingAction()) return;
+      try {
+        sendMessage(
+          snapshot.content,
+          snapshot.attachments,
+          configOverride ?? snapshot.config,
+          snapshot.notebookReferences,
+          snapshot.historyReferences,
+          {
+            displayUserMessage: false,
+            persistUserMessage: false,
+            requestSnapshotOverride: snapshot,
+          },
+        );
+        markOutgoingActionStreaming();
+        shouldAutoScrollRef.current = true;
+      } catch {
+        finishOutgoingAction();
+      }
     },
-    [sendMessage, shouldAutoScrollRef, state.isStreaming],
+    [
+      finishOutgoingAction,
+      markOutgoingActionStreaming,
+      sendMessage,
+      shouldAutoScrollRef,
+      startOutgoingAction,
+      state.isStreaming,
+    ],
   );
   const handleAnswerNow = useCallback(
     (
       snapshot?: MessageRequestSnapshot,
       assistantMsg?: { content: string; events?: StreamEvent[] },
     ) => {
-      if (!snapshot || !state.isStreaming) return;
+      if (!snapshot || !state.isStreaming || !startOutgoingAction()) return;
       const answerNowEvents = (assistantMsg?.events ?? []).map((event) => ({
         type: event.type,
         stage: event.stage,
@@ -403,7 +439,7 @@ export default function HomePage() {
         metadata: event.metadata ?? {},
       }));
       cancelStreamingTurn();
-      window.setTimeout(() => {
+      try {
         sendMessage(
           snapshot.content,
           snapshot.attachments,
@@ -423,10 +459,21 @@ export default function HomePage() {
             requestSnapshotOverride: snapshot,
           },
         );
+        markOutgoingActionStreaming();
         shouldAutoScrollRef.current = true;
-      }, 0);
+      } catch {
+        finishOutgoingAction();
+      }
     },
-    [cancelStreamingTurn, sendMessage, shouldAutoScrollRef, state.isStreaming],
+    [
+      cancelStreamingTurn,
+      finishOutgoingAction,
+      markOutgoingActionStreaming,
+      sendMessage,
+      shouldAutoScrollRef,
+      startOutgoingAction,
+      state.isStreaming,
+    ],
   );
 
   /* Load KBs */
@@ -638,65 +685,72 @@ export default function HomePage() {
         !attachments.length &&
         !selectedNotebookRecords.length &&
         !selectedHistorySessions.length) ||
-      state.isStreaming
+      state.isStreaming ||
+      !startOutgoingAction()
     ) {
       return;
     }
 
-    let extraAttachments = attachments.map((a) => ({
-      type: a.type,
-      filename: a.filename,
-      base64: a.base64,
-    }));
-    let config: Record<string, unknown> | undefined;
+    try {
+      let extraAttachments = attachments.map((a) => ({
+        type: a.type,
+        filename: a.filename,
+        base64: a.base64,
+      }));
+      let config: Record<string, unknown> | undefined;
 
-    if (isQuizMode) {
-      config = buildQuizWSConfig(quizConfig);
+      if (isQuizMode) {
+        config = buildQuizWSConfig(quizConfig);
 
-      if (quizConfig.mode === "mimic" && quizPdf) {
-        const b64 = extractBase64FromDataUrl(await readFileAsDataUrl(quizPdf));
-        extraAttachments = [
-          ...extraAttachments,
-          { type: "pdf", filename: quizPdf.name, base64: b64 },
-        ];
+        if (quizConfig.mode === "mimic" && quizPdf) {
+          const b64 = extractBase64FromDataUrl(await readFileAsDataUrl(quizPdf));
+          extraAttachments = [
+            ...extraAttachments,
+            { type: "pdf", filename: quizPdf.name, base64: b64 },
+          ];
+        }
       }
-    }
-    if (isMathAnimatorMode) {
-      config = buildMathAnimatorWSConfig(mathAnimatorConfig);
-    }
-    if (isVisualizeMode) {
-      config = buildVisualizeWSConfig(visualizeConfig);
-    }
-    if (isResearchMode) {
-      config = buildResearchWSConfig(researchConfig);
-    }
+      if (isMathAnimatorMode) {
+        config = buildMathAnimatorWSConfig(mathAnimatorConfig);
+      }
+      if (isVisualizeMode) {
+        config = buildVisualizeWSConfig(visualizeConfig);
+      }
+      if (isResearchMode) {
+        config = buildResearchWSConfig(researchConfig);
+      }
 
-    sendMessage(
-      content ||
-        (selectedNotebookRecords.length || selectedHistorySessions.length
-          ? "Please use the selected context to help with this request."
-          : "") ||
-        (isMathAnimatorMode
-          ? attachments.some((a) => a.type === "image")
-            ? "Generate a math animation from the attached reference image(s)."
-            : ""
-          : attachments.some((a) => a.type === "image")
-            ? "Please analyze the attached image(s)."
-            : ""),
-      extraAttachments,
-      config,
-      notebookReferencesPayload,
-      historyReferencesPayload,
-    );
-    shouldAutoScrollRef.current = true;
-    if (isResearchMode) {
-      setResearchPanelCollapsed(true);
+      sendMessage(
+        content ||
+          (selectedNotebookRecords.length || selectedHistorySessions.length
+            ? "Please use the selected context to help with this request."
+            : "") ||
+          (isMathAnimatorMode
+            ? attachments.some((a) => a.type === "image")
+              ? "Generate a math animation from the attached reference image(s)."
+              : ""
+            : attachments.some((a) => a.type === "image")
+              ? "Please analyze the attached image(s)."
+              : ""),
+        extraAttachments,
+        config,
+        notebookReferencesPayload,
+        historyReferencesPayload,
+      );
+      markOutgoingActionStreaming();
+      shouldAutoScrollRef.current = true;
+      if (isResearchMode) {
+        setResearchPanelCollapsed(true);
+      }
+      setInput("");
+      setAttachments([]);
+      setSelectedNotebookRecords([]);
+      setSelectedHistorySessions([]);
+      setShowAtPopup(false);
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      finishOutgoingAction();
     }
-    setInput("");
-    setAttachments([]);
-    setSelectedNotebookRecords([]);
-    setSelectedHistorySessions([]);
-    setShowAtPopup(false);
   };
 
   const handleConfirmOutline = useCallback(
@@ -715,7 +769,7 @@ export default function HomePage() {
       });
       shouldAutoScrollRef.current = true;
     },
-    [researchConfig, sendMessage],
+    [researchConfig, sendMessage, shouldAutoScrollRef],
   );
 
   return (
@@ -771,6 +825,7 @@ export default function HomePage() {
               activeAssistantMessage={activeAssistantMessage?.role === "assistant" ? activeAssistantMessage : null}
               sessionId={state.sessionId}
               language={state.language}
+              isActionPending={outgoingActionPending}
               onCancelStreaming={cancelStreamingTurn}
               onAnswerNow={handleAnswerNow}
               onCopyAssistantMessage={copyAssistantMessage}
@@ -812,6 +867,7 @@ export default function HomePage() {
           notebookReferenceGroups={notebookReferenceGroups}
           stateKnowledgeBase={state.knowledgeBases[0] || ""}
           isStreaming={state.isStreaming}
+          isSubmitting={outgoingActionPending}
           isResearchMode={isResearchMode}
           isQuizMode={isQuizMode}
           isMathAnimatorMode={isMathAnimatorMode}

@@ -1,0 +1,181 @@
+<!-- pages/profile/profile.wxml — 个人中心 -->
+<view class="profile-page {{isDark?'':'light'}}">
+
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <view class="nav-back" bindtap="goHome">
+        <text class="nav-back-arrow">‹</text>
+        <text class="nav-back-txt">{{navBackLabel}}</text>
+      </view>
+      <view style="flex:1"></view>
+    </view>
+  </view>
+
+  <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px; bottom: 0">
+    <view class="page-inner">
+
+      <!-- ── 用户信息卡片 ──────────────────────────── -->
+      <view class="user-card glass-card">
+        <view class="user-avatar" bindtap="onChangeAvatar">
+          <image
+            wx:if="{{avatarUrl}}"
+            class="avatar-image"
+            src="{{avatarUrl}}"
+            mode="aspectFill"
+          />
+          <text wx:else class="avatar-char">{{avatarChar}}</text>
+          <view class="avatar-edit-badge">
+            <text class="avatar-edit-icon">+</text>
+          </view>
+        </view>
+        <view class="user-info">
+          <view class="user-name-row" bindtap="onChangeName">
+            <text class="user-name">{{username}}</text>
+            <text class="user-name-edit">›</text>
+          </view>
+          <view class="user-stats">
+            <view class="stat-chip">
+              <text class="stat-label">Lv.{{level}}</text>
+            </view>
+            <view class="stat-chip">
+              <text class="stat-val">{{xp}} XP</text>
+            </view>
+            <view class="stat-chip stat-points">
+              <text class="stat-icon">✦</text>
+              <text class="stat-val">{{points}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- ── 学习设置 ───────────────────────────────── -->
+      <view class="section-header">
+        <text class="section-title">学习设置</text>
+      </view>
+
+      <view class="settings-card glass-card">
+        <!-- 考试日期 -->
+        <view class="setting-row">
+          <text class="setting-label">考试日期</text>
+          <picker mode="date" value="{{examDate}}" bindchange="onExamDateChange">
+            <view class="setting-value-row">
+              <text class="setting-value">{{examDate || '待设置'}}</text>
+              <text class="setting-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="divider"></view>
+
+        <!-- 每日目标 -->
+        <view class="setting-row">
+          <text class="setting-label">每日目标</text>
+          <view class="chips-row">
+            <view
+              class="chip {{dailyTarget === item ? 'chip-active' : ''}}"
+              wx:for="{{dailyTargetOptions}}"
+              wx:key="index"
+              bindtap="setDailyTarget"
+              data-val="{{item}}"
+            >
+              <text class="chip-txt">{{item}} 题</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="divider"></view>
+
+        <!-- 难度偏好 -->
+        <view class="setting-row">
+          <text class="setting-label">难度偏好</text>
+          <view class="chips-row">
+            <view
+              class="chip {{difficultyPref === item.val ? 'chip-active' : ''}}"
+              wx:for="{{difficultyOptions}}"
+              wx:key="val"
+              bindtap="setDifficulty"
+              data-val="{{item.val}}"
+            >
+              <text class="chip-txt">{{item.label}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="divider"></view>
+
+        <!-- 解题风格 -->
+        <view class="setting-row">
+          <text class="setting-label">解题风格</text>
+          <view class="chips-row">
+            <view
+              class="chip {{explainStyle === item.val ? 'chip-active' : ''}}"
+              wx:for="{{explainOptions}}"
+              wx:key="val"
+              bindtap="setExplainStyle"
+              data-val="{{item.val}}"
+            >
+              <text class="chip-txt">{{item.label}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="divider"></view>
+
+        <!-- 复习提醒 -->
+        <view class="setting-row">
+          <text class="setting-label">复习提醒</text>
+          <switch
+            class="setting-switch"
+            checked="{{reviewReminder}}"
+            bindchange="onReminderChange"
+            color="#3b82f6"
+          />
+        </view>
+      </view>
+
+      <!-- ── 我的成就 ───────────────────────────────── -->
+      <view class="section-header">
+        <text class="section-title">我的成就</text>
+      </view>
+
+      <view class="badges-grid glass-card">
+        <view
+          class="badge-item {{item.earned ? '' : 'badge-locked'}}"
+          wx:for="{{badges}}"
+          wx:key="id"
+        >
+          <text class="badge-icon">{{item.icon}}</text>
+          <text class="badge-name">{{item.name}}</text>
+        </view>
+      </view>
+
+      <!-- ── 链接列表 ───────────────────────────────── -->
+      <view class="links-card glass-card">
+        <view
+          class="link-row"
+          wx:for="{{linkItems}}"
+          wx:key="id"
+          bindtap="openLink"
+          data-id="{{item.id}}"
+        >
+          <view class="link-left">
+            <text class="link-icon">{{item.icon}}</text>
+            <text class="link-title">{{item.title}}</text>
+          </view>
+          <text class="link-arrow">›</text>
+        </view>
+      </view>
+
+      <!-- 退出登录 -->
+      <view class="logout-btn" bindtap="logout">
+        <text class="logout-btn-txt">退出登录</text>
+      </view>
+
+      <view style="height: 240rpx"></view>
+    </view>
+  </scroll-view>
+
+  <workspace-shell id="workspaceShell"></workspace-shell>
+
+</view>

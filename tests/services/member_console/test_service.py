@@ -236,6 +236,21 @@ def test_verify_phone_code_rejects_invalid_code(tmp_path: Path) -> None:
         service.verify_phone_code("13955556666", "000000")
 
 
+def test_send_phone_code_fails_closed_in_production_without_sms(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.delenv("ALIYUN_SMS_ACCESS_KEY_ID", raising=False)
+    monkeypatch.delenv("ALIYUN_SMS_ACCESS_KEY_SECRET", raising=False)
+    monkeypatch.delenv("MEMBER_CONSOLE_USE_REAL_SMS", raising=False)
+
+    with pytest.raises(RuntimeError, match="短信服务未配置，生产环境已禁止调试验证码"):
+        service.send_phone_code("13955556666")
+
+
 @pytest.mark.asyncio
 async def test_bind_phone_for_wechat_accepts_phone_code_exchange(
     monkeypatch: pytest.MonkeyPatch,

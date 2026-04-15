@@ -329,6 +329,26 @@ def test_list_sessions_by_owner_filters_source_and_archived(store: SQLiteSession
     assert active[0]["preferences"]["archived"] is False
 
 
+def test_list_sessions_supports_keyset_cursor(store: SQLiteSessionStore) -> None:
+    asyncio.run(store.create_session(session_id="session-a", owner_key=build_user_owner_key("student_demo")))
+    asyncio.run(store.create_session(session_id="session-b", owner_key=build_user_owner_key("student_demo")))
+    asyncio.run(store.create_session(session_id="session-c", owner_key=build_user_owner_key("student_demo")))
+
+    with sqlite3.connect(store.db_path) as conn:
+        conn.execute("UPDATE sessions SET updated_at = ? WHERE id = ?", (300.0, "session-a"))
+        conn.execute("UPDATE sessions SET updated_at = ? WHERE id = ?", (200.0, "session-b"))
+        conn.execute("UPDATE sessions SET updated_at = ? WHERE id = ?", (100.0, "session-c"))
+        conn.commit()
+
+    first_page = asyncio.run(store.list_sessions(limit=2))
+    assert [item["session_id"] for item in first_page] == ["session-a", "session-b"]
+
+    second_page = asyncio.run(
+        store.list_sessions(limit=2, before_updated_at=200.0, before_session_id="session-b")
+    )
+    assert [item["session_id"] for item in second_page] == ["session-c"]
+
+
 def test_update_notebook_entry_bookmark_roundtrip(store: SQLiteSessionStore) -> None:
     session = asyncio.run(store.create_session())
     asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(("q1", "Q?", False))))
@@ -347,6 +367,29 @@ def test_update_followup_session_id(store: SQLiteSessionStore) -> None:
     asyncio.run(store.update_notebook_entry(entry_id, {"followup_session_id": "sess_fu"}))
     entry = asyncio.run(store.get_notebook_entry(entry_id))
     assert entry["followup_session_id"] == "sess_fu"
+
+
+def test_list_notebook_entries_supports_keyset_cursor(store: SQLiteSessionStore) -> None:
+    session = asyncio.run(store.create_session(session_id="notebook-cursor"))
+    asyncio.run(store.upsert_notebook_entries(session["id"], _make_items(("q1", "Q1", False), ("q2", "Q2", False), ("q3", "Q3", False))))
+
+    with sqlite3.connect(store.db_path) as conn:
+        conn.execute("UPDATE notebook_entries SET created_at = ?, updated_at = ? WHERE question_id = ?", (300.0, 300.0, "q1"))
+        conn.execute("UPDATE notebook_entries SET created_at = ?, updated_at = ? WHERE question_id = ?", (200.0, 200.0, "q2"))
+        conn.execute("UPDATE notebook_entries SET created_at = ?, updated_at = ? WHERE question_id = ?", (100.0, 100.0, "q3"))
+        conn.commit()
+
+    first_page = asyncio.run(store.list_notebook_entries(limit=2))
+    assert [item["question_id"] for item in first_page["items"]] == ["q1", "q2"]
+
+    second_page = asyncio.run(
+        store.list_notebook_entries(
+            limit=2,
+            before_created_at=200.0,
+            before_entry_id=first_page["items"][-1]["id"],
+        )
+    )
+    assert [item["question_id"] for item in second_page["items"]] == ["q3"]
 
 
 def test_find_notebook_entry(store: SQLiteSessionStore) -> None:

@@ -25,11 +25,13 @@ DeepTutor 必须优先保证：
 
 - **对外 contract 必须单一**
 - **对内实现允许多样**
+- **同一业务事实只能有一个一等概念**
 
 也就是：
 
 - transport / schema / 状态来源 / trace 词汇表不能长第二套
 - provider / pipeline / strategy / prompt / 内部算法可以演进
+- 身份 / 工具 / 知识库绑定 / 表现风格不能混成多套平行概念
 
 ## 当前必须单点治理的控制面
 
@@ -102,6 +104,28 @@ DeepTutor 必须优先保证：
 4. 确认是否还需要改 schema
 5. 再改业务代码
 6. 最后补测试
+
+## 概念去重规则
+
+以下属于仓库级硬约束，不是建议：
+
+- `TutorBot` 是唯一业务身份。
+- `TutorBot` 只指完整 TutorBot runtime；轻量默认绑定、入口 hint、interaction profile 不得再占用 `TutorBot` 这个名字。
+- `bot_runtime_defaults` 只表示 `bot_id -> 默认工具 / 默认知识库` 的绑定契约，不得伪装成完整 TutorBot 执行层。
+- `rag` 是唯一知识召回工具。
+- 知识库如 `construction-exam` 只能作为工具绑定或数据源，不得再包装成平行“模式身份”。
+- `teaching_mode` 只表示表达风格或交互节奏，不得承担身份、知识链、工具路由语义。
+- `product_surface` / `source` / `entry_role` 只表示入口表面信息，不得演变为第二套业务身份。
+- 历史兼容字段允许短期存在，但必须在统一入口层完成归一化，不能继续深入运行时。
+
+如果一个改动引入了第二套：
+
+- Tutor 身份
+- Grounding 模式
+- 知识链概念
+- 入口状态来源
+
+则默认判定为违反 contract，需要先删重再继续实现。
 
 ## Schema 规则
 

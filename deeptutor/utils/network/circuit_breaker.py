@@ -63,6 +63,21 @@ class CircuitBreaker:
                     % (provider, self.failure_count[provider])
                 )
 
+    def snapshot(self) -> dict[str, dict[str, float | int | str]]:
+        """Return the current circuit-breaker state per provider."""
+        with self.lock:
+            providers = set(self.state) | set(self.failure_count) | set(self.last_failure_time)
+            return {
+                provider: {
+                    "state": self.state.get(provider, "closed"),
+                    "failure_count": int(self.failure_count.get(provider, 0)),
+                    "last_failure_time": float(self.last_failure_time.get(provider, 0.0)),
+                    "recovery_timeout": int(self.recovery_timeout),
+                    "failure_threshold": int(self.failure_threshold),
+                }
+                for provider in sorted(providers)
+            }
+
 
 # Global instance
 circuit_breaker = CircuitBreaker()
@@ -86,3 +101,16 @@ def record_call_success(provider: str) -> None:
 def record_call_failure(provider: str) -> None:
     """Record failed call."""
     circuit_breaker.record_failure(provider)
+
+
+def get_circuit_breaker_snapshot() -> dict[str, dict[str, float | int | str]]:
+    """Return the current state of all provider circuit breakers."""
+    return circuit_breaker.snapshot()
+
+
+def reset_circuit_breakers() -> None:
+    """Reset circuit-breaker state. Intended for tests."""
+    with circuit_breaker.lock:
+        circuit_breaker.failure_count.clear()
+        circuit_breaker.last_failure_time.clear()
+        circuit_breaker.state.clear()

@@ -23,6 +23,7 @@ import { useTranslation } from "react-i18next";
 import SessionList from "@/components/SessionList";
 import { TutorBotRecent } from "@/components/sidebar/TutorBotRecent";
 import type { SessionSummary } from "@/lib/session-api";
+import { allowsLegacyWebSurfaces, requiresWebAuth } from "@/lib/web-access";
 
 interface NavEntry {
   href: string;
@@ -74,6 +75,16 @@ export function SidebarShell({
   const router = useRouter();
   const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
+  const authEnabled = requiresWebAuth();
+  const legacyEnabled = allowsLegacyWebSurfaces();
+  const visiblePrimaryNav = PRIMARY_NAV.filter((item) => {
+    if (item.href === "/") return true;
+    if (item.href === "/agents" || item.href === "/co-writer" || item.href === "/guide") {
+      return legacyEnabled;
+    }
+    return authEnabled;
+  });
+  const visibleSecondaryNav = SECONDARY_NAV.filter(() => authEnabled);
 
   const handleNewChat = () => {
     if (onNewChat) {
@@ -104,7 +115,7 @@ export function SidebarShell({
         </button>
 
         <nav className="flex flex-col items-center gap-px pt-1">
-          {PRIMARY_NAV.map((item) => {
+          {visiblePrimaryNav.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return (
               <div key={item.href} className="flex flex-col items-center">
@@ -181,7 +192,7 @@ export function SidebarShell({
             <span>{t("New Chat")}</span>
           </button>
 
-          {PRIMARY_NAV.map((item) => {
+          {visiblePrimaryNav.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             const hasSessionsBelow = item.href === "/" && showSessions && onSelectSession && onRenameSession && onDeleteSession;
             const hasBots = item.href === "/agents";
@@ -223,7 +234,7 @@ export function SidebarShell({
 
       {/* Secondary nav + footer */}
       <div className="border-t border-[var(--border)]/40 px-2 py-2">
-        {SECONDARY_NAV.map((item) => {
+        {visibleSecondaryNav.map((item) => {
           const active = pathname.startsWith(item.href);
           return (
             <Link

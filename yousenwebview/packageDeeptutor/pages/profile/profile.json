@@ -1,0 +1,6 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "workspace-shell": "../../custom-tab-bar/index"
+  }
+}

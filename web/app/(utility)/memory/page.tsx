@@ -4,8 +4,10 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Brain, Eraser, Loader2, RefreshCw, Save, BookOpen, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import RestrictedSurface from "@/components/common/RestrictedSurface";
 import { useAppShell } from "@/context/AppShellContext";
 import { apiUrl } from "@/lib/api";
+import { requiresWebAuth } from "@/lib/web-access";
 
 const MarkdownRenderer = dynamic(() => import("@/components/common/MarkdownRenderer"), {
   ssr: false,
@@ -52,6 +54,14 @@ function formatUpdatedAt(value: string | null): string {
 }
 
 export default function MemoryPage() {
+  if (!requiresWebAuth()) {
+    return (
+      <RestrictedSurface
+        title="Memory workspace unavailable"
+        message="当前 Web 端未接入登录态，Memory 工作台已默认关闭。请使用已鉴权入口访问。"
+      />
+    );
+  }
   const { t } = useTranslation();
   const { activeSessionId, language } = useAppShell();
   const [data, setData] = useState<MemoryData>(EMPTY);

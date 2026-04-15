@@ -147,6 +147,7 @@ const AssistantMessage = memo(function AssistantMessage({
 AssistantMessage.displayName = "AssistantMessage";
 
 function CostFooter({ cost, tokens, calls }: { cost: number; tokens: number; calls: number }) {
+  const { t } = useTranslation();
   const formatCost = (usd: number) => {
     if (usd < 0.01) return `$${usd.toFixed(4)}`;
     return `$${usd.toFixed(2)}`;
@@ -160,9 +161,9 @@ function CostFooter({ cost, tokens, calls }: { cost: number; tokens: number; cal
       <Coins size={10} strokeWidth={1.5} className="shrink-0" />
       <span>{formatCost(cost)}</span>
       <span className="opacity-40">·</span>
-      <span>{formatTokens(tokens)} tokens</span>
+      <span>{formatTokens(tokens)} {t("tokens")}</span>
       <span className="opacity-40">·</span>
-      <span>{calls} calls</span>
+      <span>{calls} {t("calls")}</span>
     </div>
   );
 }
@@ -248,6 +249,7 @@ export function ReferenceChips({
 export function ChatMessageList({
   messages,
   isStreaming,
+  isActionPending,
   activeUserIndex,
   activeAssistantMessage,
   sessionId,
@@ -260,6 +262,7 @@ export function ChatMessageList({
 }: {
   messages: ChatMessageItem[];
   isStreaming: boolean;
+  isActionPending?: boolean;
   activeUserIndex: number;
   activeAssistantMessage: ChatMessageItem | null;
   sessionId?: string | null;
@@ -388,6 +391,7 @@ export function ChatMessageList({
                     <RoughActionButton
                       icon={Zap}
                       label="Answer now"
+                      disabled={isActionPending}
                       onClick={() =>
                         onAnswerNow(
                           msg.requestSnapshot,
@@ -448,6 +452,7 @@ export function ChatMessageList({
                       <RoughActionButton
                         icon={RotateCcw}
                         label="Retry"
+                        disabled={isActionPending}
                         onClick={() => onRetryMessage(pairedUserMessage?.requestSnapshot)}
                       />
                     )}

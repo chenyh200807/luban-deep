@@ -17,6 +17,8 @@ if sys.platform == "win32":
 
 import uvicorn
 
+from deeptutor.services.runtime_env import is_production_environment
+
 # Force unbuffered output
 os.environ["PYTHONUNBUFFERED"] = "1"
 if hasattr(sys.stdout, "reconfigure"):
@@ -24,20 +26,6 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(line_buffering=True)
 
-
-def _runtime_environment() -> str:
-    env = (
-        os.getenv("DEEPTUTOR_ENV")
-        or os.getenv("APP_ENV")
-        or os.getenv("ENV")
-        or os.getenv("ENVIRONMENT")
-        or "local"
-    )
-    return str(env).strip().lower()
-
-
-def _is_production_environment() -> bool:
-    return _runtime_environment() in {"prod", "production"}
 
 def main() -> None:
     # Get project root directory
@@ -71,7 +59,7 @@ def main() -> None:
     # Filter out non-existent directories to avoid warnings
     reload_excludes = [d for d in reload_excludes if Path(d).exists()]
 
-    reload_enabled = not _is_production_environment()
+    reload_enabled = not is_production_environment()
 
     uvicorn_kwargs = {
         "host": "0.0.0.0",

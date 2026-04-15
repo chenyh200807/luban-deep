@@ -92,7 +92,7 @@ services:
       - ./data/knowledge_bases:/app/data/knowledge_bases
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT:-8001}/"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:${BACKEND_PORT:-8001}/readyz"]
       interval: 30s
       timeout: 10s
       retries: 3

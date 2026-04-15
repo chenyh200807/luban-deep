@@ -30,6 +30,8 @@ import {
   type NotebookCategory,
   type NotebookEntry,
 } from "@/lib/notebook-api";
+import RestrictedSurface from "@/components/common/RestrictedSurface";
+import { requiresWebAuth } from "@/lib/web-access";
 
 const MarkdownRenderer = dynamic(
   () => import("@/components/common/MarkdownRenderer"),
@@ -39,6 +41,14 @@ const MarkdownRenderer = dynamic(
 type FilterMode = "all" | "bookmarked" | "wrong";
 
 export default function NotebookPage() {
+  if (!requiresWebAuth()) {
+    return (
+      <RestrictedSurface
+        title="Question notebook unavailable"
+        message="当前 Web 端未接入登录态，题本页面已默认关闭。请使用已鉴权入口访问。"
+      />
+    );
+  }
   const { t } = useTranslation();
   const [items, setItems] = useState<NotebookEntry[]>([]);
   const [total, setTotal] = useState(0);

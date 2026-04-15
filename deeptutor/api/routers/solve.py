@@ -16,6 +16,7 @@ from deeptutor.api.utils.log_interceptor import LogInterceptor
 from deeptutor.capabilities.deep_solve import DeepSolveCapability
 from deeptutor.api.utils.task_id_manager import TaskIDManager
 from deeptutor.services.path_service import get_path_service
+from deeptutor.utils.error_utils import public_error_detail
 
 from deeptutor.logging import get_logger
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
@@ -203,7 +204,9 @@ async def websocket_solve(websocket: WebSocket):
             api_version = getattr(llm_config, "api_version", None)
         except Exception as e:
             logger.error(f"Failed to get LLM config: {e}", exc_info=True)
-            await websocket.send_json({"type": "error", "content": f"LLM configuration error: {e}"})
+            await websocket.send_json(
+                {"type": "error", "content": public_error_detail("Solve operation")}
+            )
             return
 
         ui_language = get_ui_language(default=config.get("system", {}).get("language", "en"))
@@ -381,7 +384,7 @@ async def websocket_solve(websocket: WebSocket):
     except Exception as e:
         # Mark connection as closed before sending error (to prevent log_pusher from interfering)
         connection_closed.set()
-        await safe_send_json({"type": "error", "content": str(e)})
+        await safe_send_json({"type": "error", "content": public_error_detail("Solve operation")})
         logger.error(f"[{task_id if 'task_id' in locals() else 'unknown'}] Solving failed: {e}")
         if "task_id" in locals():
             task_manager.update_task_status(task_id, "error", error=str(e))

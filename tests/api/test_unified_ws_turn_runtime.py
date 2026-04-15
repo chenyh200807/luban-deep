@@ -181,6 +181,76 @@ async def test_turn_runtime_captures_exact_authority_response_content(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_routes_construction_exam_bot_to_tutorbot_capability(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            assert context.active_capability == "tutorbot"
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="tutorbot",
+                stage="responding",
+                content="TutorBot reply",
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "你好",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {"bot_id": "construction-exam-coach"},
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    assert turn["capability"] == "tutorbot"
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert detail["preferences"]["capability"] == "tutorbot"
+    assert detail["preferences"]["tools"] == ["rag"]
+    assert detail["preferences"]["knowledge_bases"] == ["construction-exam"]
+    assert detail["messages"][-1]["content"] == "TutorBot reply"
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_injects_usage_summary_into_result_events(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -662,7 +732,7 @@ async def test_turn_runtime_bootstraps_interaction_hints_as_soft_system_guidance
             "language": "zh",
             "config": {
                 "interaction_hints": {
-                    "profile": "mini_tutor",
+                    "profile": "tutorbot",
                     "preferred_question_type": "choice",
                 }
             },
@@ -677,10 +747,12 @@ async def test_turn_runtime_bootstraps_interaction_hints_as_soft_system_guidance
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
     assert [message["role"] for message in detail["messages"]] == ["user", "assistant"]
-    assert detail["preferences"]["interaction_hints"]["profile"] == "mini_tutor"
+    assert detail["preferences"]["interaction_hints"]["profile"] == "tutorbot"
     assert detail["preferences"]["interaction_hints"]["preferred_question_type"] == "choice"
+    assert "suppress_answer_reveal_on_generate" not in detail["preferences"]["interaction_hints"]
     assert "interaction_hints" not in captured["config_overrides"]
-    assert captured["metadata"]["interaction_hints"]["profile"] == "mini_tutor"
+    assert captured["metadata"]["interaction_hints"]["profile"] == "tutorbot"
+    assert "suppress_answer_reveal_on_generate" not in captured["metadata"]["interaction_hints"]
     assert captured["conversation_history"] == []
 
 
@@ -1245,7 +1317,7 @@ async def test_turn_runtime_injects_tutorbot_default_knowledge_chain(
             "language": "zh",
             "config": {
                 "bot_id": "construction-exam-coach",
-                "interaction_profile": "mini_tutor",
+                "interaction_profile": "tutorbot",
             },
         }
     )
@@ -1257,13 +1329,8 @@ async def test_turn_runtime_injects_tutorbot_default_knowledge_chain(
     assert [event["type"] for event in events] == ["session", "content", "done"]
     assert captured["enabled_tools"] == ["rag"]
     assert captured["knowledge_bases"] == ["construction-exam"]
-    metadata = captured["metadata"]
-    assert metadata["knowledge_chain_profile"] == "construction_exam_grounded"
-    assert metadata["knowledge_chain_source"] == "tutorbot_runtime_defaults"
 
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
     assert detail["preferences"]["tools"] == ["rag"]
     assert detail["preferences"]["knowledge_bases"] == ["construction-exam"]
-    assert detail["preferences"]["knowledge_chain_profile"] == "construction_exam_grounded"
-    assert detail["preferences"]["knowledge_chain_source"] == "tutorbot_runtime_defaults"

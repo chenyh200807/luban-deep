@@ -23,6 +23,7 @@ import yaml
 
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.path_service import get_path_service
+from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
 from deeptutor.tutorbot.utils.helpers import safe_filename
 
 logger = logging.getLogger(__name__)
@@ -83,6 +84,7 @@ class TutorBotManager:
     def __init__(self) -> None:
         self._bots: dict[str, TutorBotInstance] = {}
         self._path_service = get_path_service()
+        self._session_store = get_sqlite_session_store()
 
     # ── Path helpers ──────────────────────────────────────────────
 
@@ -120,6 +122,55 @@ class TutorBotManager:
     def _session_path_for_key(self, bot_id: str, session_key: str) -> Path:
         safe_key = safe_filename(str(session_key or "").replace(":", "_"))
         return self._bot_workspace(bot_id) / "sessions" / f"{safe_key}.jsonl"
+
+    @staticmethod
+    def _sqlite_session_id_for_key(session_key: str) -> str:
+        return f"tutorbot:{session_key}"
+
+    def _sqlite_session_id_for_conversation(self, bot_id: str, conversation_id: str, *, user_id: str | None = None) -> str:
+        session_key = self.build_chat_session_key(bot_id, conversation_id, user_id=user_id)
+        return self._sqlite_session_id_for_key(session_key)
+
+    @staticmethod
+    def _row_matches_bot(row: dict[str, Any], bot_id: str) -> bool:
+        preferences = row.get("preferences") if isinstance(row.get("preferences"), dict) else {}
+        pref_bot_id = str(preferences.get("bot_id") or "").strip()
+        if pref_bot_id:
+            return pref_bot_id == bot_id
+        session_id = str(row.get("session_id") or row.get("id") or "").strip()
+        return session_id.startswith(f"tutorbot:bot:{bot_id}:")
+
+    @staticmethod
+    def _conversation_id_from_row(row: dict[str, Any]) -> str:
+        preferences = row.get("preferences") if isinstance(row.get("preferences"), dict) else {}
+        conversation_id = str(preferences.get("conversation_id") or "").strip()
+        if conversation_id:
+            return conversation_id
+        session_id = str(row.get("session_id") or row.get("id") or "").strip()
+        marker = ":chat:"
+        if marker in session_id:
+            return session_id.split(marker, 1)[1]
+        return ""
+
+    def _list_sqlite_bot_sessions(
+        self,
+        bot_id: str,
+        *,
+        owner_key: str | None = None,
+        archived: bool | None = None,
+        limit: int = 200,
+    ) -> list[dict[str, Any]]:
+        if owner_key:
+            rows = self._session_store._list_sessions_by_owner_sync(
+                owner_key=owner_key,
+                archived=archived,
+                limit=max(limit * 3, 100),
+            )
+        else:
+            rows = self._session_store._list_sessions_sync(limit=max(limit * 5, 200))
+        filtered = [row for row in rows if self._row_matches_bot(row, bot_id)]
+        filtered.sort(key=lambda item: float(item.get("updated_at") or 0.0), reverse=True)
+        return filtered[:limit]
 
     def _load_session_file(self, path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]] | None:
         import json as _json
@@ -166,62 +217,34 @@ class TutorBotManager:
         archived: bool | None = None,
         limit: int = 200,
     ) -> list[dict[str, Any]]:
-        sessions_dir = self._bot_workspace(bot_id) / "sessions"
-        if not sessions_dir.exists():
-            return []
-
+        rows = self._list_sqlite_bot_sessions(
+            bot_id,
+            owner_key=build_user_owner_key(user_id),
+            archived=archived,
+            limit=limit,
+        )
         items: list[dict[str, Any]] = []
-        for path in sessions_dir.glob("*.jsonl"):
-            loaded = self._load_session_file(path)
-            if not loaded:
-                continue
-            metadata_line, messages = loaded
-            metadata = metadata_line.get("metadata") or {}
-            if str(metadata.get("user_id") or "").strip() != str(user_id).strip():
-                continue
-
-            is_archived = bool(metadata.get("archived", False))
-            if archived is not None and is_archived != archived:
-                continue
-
-            conversation_id = str(metadata.get("conversation_id") or "").strip()
+        for row in rows:
+            preferences = row.get("preferences") if isinstance(row.get("preferences"), dict) else {}
+            conversation_id = self._conversation_id_from_row(row)
             if not conversation_id:
                 continue
-
-            last_message = ""
-            message_count = 0
-            first_user_message = ""
-            for msg in messages:
-                if msg.get("role") not in {"user", "assistant"}:
-                    continue
-                content = str(msg.get("content") or "").strip()
-                if not content:
-                    continue
-                message_count += 1
-                last_message = content
-                if not first_user_message and msg.get("role") == "user":
-                    first_user_message = content
-
-            title = str(metadata.get("title") or "").strip()
-            if not title:
-                title = self._infer_conversation_title(first_user_message or last_message)
-
+            last_message = str(row.get("last_message") or "").strip()
+            title = str(row.get("title") or "").strip() or self._infer_conversation_title(last_message)
             items.append(
                 {
                     "id": conversation_id,
                     "title": title,
                     "last_message": last_message[:200],
-                    "message_count": message_count,
-                    "status": "idle",
-                    "capability": "tutorbot",
-                    "source": str(metadata.get("source") or "wx_miniprogram"),
-                    "created_at": metadata_line.get("created_at"),
-                    "updated_at": metadata_line.get("updated_at"),
-                    "archived": is_archived,
+                    "message_count": int(row.get("message_count") or 0),
+                    "status": str(row.get("status") or "idle"),
+                    "capability": str(row.get("capability") or "tutorbot"),
+                    "source": str(preferences.get("source") or "wx_miniprogram"),
+                    "created_at": row.get("created_at"),
+                    "updated_at": row.get("updated_at"),
+                    "archived": bool(preferences.get("archived", False)),
                 }
             )
-
-        items.sort(key=lambda item: str(item.get("updated_at") or ""), reverse=True)
         return items[:limit]
 
     def get_bot_conversation_messages(
@@ -231,16 +254,14 @@ class TutorBotManager:
         user_id: str,
         conversation_id: str,
     ) -> list[dict[str, Any]] | None:
-        session_key = self.build_chat_session_key(bot_id, conversation_id, user_id=user_id)
-        path = self._session_path_for_key(bot_id, session_key)
-        loaded = self._load_session_file(path)
-        if not loaded:
+        session_id = self._sqlite_session_id_for_conversation(bot_id, conversation_id, user_id=user_id)
+        row = self._session_store._get_session_sync(session_id)
+        if row is None:
             return None
-
-        metadata_line, messages = loaded
-        metadata = metadata_line.get("metadata") or {}
-        if str(metadata.get("user_id") or "").strip() != str(user_id).strip():
+        preferences = row.get("preferences") if isinstance(row.get("preferences"), dict) else {}
+        if str(preferences.get("user_id") or "").strip() != str(user_id).strip():
             return None
+        messages = self._session_store._get_messages_sync(session_id)
 
         result: list[dict[str, Any]] = []
         for msg in messages:
@@ -264,21 +285,14 @@ class TutorBotManager:
         conversation_id: str,
         archived: bool,
     ) -> bool:
-        session_key = self.build_chat_session_key(bot_id, conversation_id, user_id=user_id)
-        path = self._session_path_for_key(bot_id, session_key)
-        loaded = self._load_session_file(path)
-        if not loaded:
+        session_id = self._sqlite_session_id_for_conversation(bot_id, conversation_id, user_id=user_id)
+        row = self._session_store._get_session_sync(session_id)
+        if row is None:
             return False
-
-        metadata_line, messages = loaded
-        metadata = dict(metadata_line.get("metadata") or {})
-        if str(metadata.get("user_id") or "").strip() != str(user_id).strip():
+        preferences = row.get("preferences") if isinstance(row.get("preferences"), dict) else {}
+        if str(preferences.get("user_id") or "").strip() != str(user_id).strip():
             return False
-
-        metadata["archived"] = bool(archived)
-        metadata_line["metadata"] = metadata
-        self._rewrite_session_file(path, metadata_line, messages)
-        return True
+        return self._session_store._update_session_preferences_sync(session_id, {"archived": bool(archived)})
 
     def delete_bot_conversation(
         self,
@@ -287,19 +301,14 @@ class TutorBotManager:
         user_id: str,
         conversation_id: str,
     ) -> bool:
-        session_key = self.build_chat_session_key(bot_id, conversation_id, user_id=user_id)
-        path = self._session_path_for_key(bot_id, session_key)
-        loaded = self._load_session_file(path)
-        if not loaded:
+        session_id = self._sqlite_session_id_for_conversation(bot_id, conversation_id, user_id=user_id)
+        row = self._session_store._get_session_sync(session_id)
+        if row is None:
             return False
-
-        metadata_line, _messages = loaded
-        metadata = metadata_line.get("metadata") or {}
-        if str(metadata.get("user_id") or "").strip() != str(user_id).strip():
+        preferences = row.get("preferences") if isinstance(row.get("preferences"), dict) else {}
+        if str(preferences.get("user_id") or "").strip() != str(user_id).strip():
             return False
-
-        path.unlink(missing_ok=True)
-        return True
+        return self._session_store._delete_session_sync(session_id)
 
     # ── Per-bot directory setup ───────────────────────────────────
 
@@ -420,6 +429,15 @@ class TutorBotManager:
             data["model"] = config.model
         path.write_text(yaml.dump(data, allow_unicode=True), encoding="utf-8")
 
+    def _default_bot_config(self, bot_id: str) -> BotConfig:
+        soul = self.get_soul(bot_id)
+        if soul:
+            return BotConfig(
+                name=str(soul.get("name") or bot_id),
+                persona=str(soul.get("content") or ""),
+            )
+        return BotConfig(name=bot_id)
+
     # ── Bot lifecycle ─────────────────────────────────────────────
 
     async def start_bot(self, bot_id: str, config: BotConfig | None = None) -> TutorBotInstance:
@@ -432,20 +450,20 @@ class TutorBotManager:
         if config is None:
             config = self._load_bot_config(bot_id)
         if config is None:
-            config = BotConfig(name=bot_id)
+            config = self._default_bot_config(bot_id)
             self._save_bot_config(bot_id, config)
 
         from deeptutor.tutorbot.providers.deeptutor_adapter import create_deeptutor_provider
         from deeptutor.tutorbot.bus.queue import MessageBus
         from deeptutor.tutorbot.agent.loop import AgentLoop
         from deeptutor.tutorbot.config.schema import ExecToolConfig
-        from deeptutor.tutorbot.session.manager import SessionManager
+        from deeptutor.tutorbot.session.sqlite_adapter import SQLiteSessionAdapter
 
         provider = create_deeptutor_provider()
         bus = MessageBus()
 
         workspace = self._bot_workspace(bot_id)
-        session_adapter = SessionManager(workspace)
+        session_adapter = SQLiteSessionAdapter(self._session_store)
 
         if config.persona:
             soul_path = workspace / "SOUL.md"
@@ -541,6 +559,16 @@ class TutorBotManager:
         self._save_bot_config(bot_id, config)
         logger.info("TutorBot '%s' started (workspace=%s)", bot_id, workspace)
         return instance
+
+    async def ensure_bot_running(
+        self,
+        bot_id: str,
+        config: BotConfig | None = None,
+    ) -> TutorBotInstance:
+        instance = self.get_bot(bot_id)
+        if instance and instance.running:
+            return instance
+        return await self.start_bot(bot_id, config=config)
 
     async def _outbound_router(self, bot_id: str, bus: Any, instance: TutorBotInstance) -> None:
         """Route outbound messages to channels, web notify_queue, and EventBus.
@@ -671,65 +699,34 @@ class TutorBotManager:
         return self._bots.get(bot_id)
 
     def get_bot_history(self, bot_id: str, limit: int = 100) -> list[dict[str, Any]]:
-        """Read chat messages from a bot's JSONL session files."""
-        import json as _json
-
-        sessions_dir = self._bot_workspace(bot_id) / "sessions"
-        if not sessions_dir.exists():
-            return []
-
+        """Read chat messages from a bot's unified SQLite-backed sessions."""
         all_messages: list[dict[str, Any]] = []
-        for path in sorted(sessions_dir.glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True):
+        for row in self._list_sqlite_bot_sessions(bot_id, limit=max(limit * 3, 100)):
+            session_id = str(row.get("session_id") or row.get("id") or "").strip()
+            if not session_id:
+                continue
             try:
-                with open(path, encoding="utf-8") as f:
-                    for line in f:
-                        line = line.strip()
-                        if not line:
-                            continue
-                        data = _json.loads(line)
-                        if data.get("_type") == "metadata":
-                            continue
-                        if data.get("role") in ("user", "assistant") and data.get("content"):
-                            all_messages.append(data)
+                messages = self._session_store._get_messages_sync(session_id)
             except Exception:
                 continue
+            for msg in messages:
+                if msg.get("role") in ("user", "assistant") and msg.get("content"):
+                    all_messages.append(msg)
             if len(all_messages) >= limit:
                 break
-
         return all_messages[-limit:]
 
     def get_recent_active_bots(self, limit: int = 3) -> list[dict[str, Any]]:
         """Return the most recently active bots with their last message preview."""
-        import json as _json
-
         bot_activity: list[tuple[float, str, dict[str, Any]]] = []
 
         for bid in self._discover_bot_ids():
-            sessions_dir = self._bot_workspace(bid) / "sessions"
-            if not sessions_dir.is_dir():
+            rows = self._list_sqlite_bot_sessions(bid, limit=1)
+            if not rows:
                 continue
-
-            jsonl_files = list(sessions_dir.glob("*.jsonl"))
-            if not jsonl_files:
-                continue
-
-            newest = max(jsonl_files, key=lambda p: p.stat().st_mtime)
-            mtime = newest.stat().st_mtime
-
-            last_msg = ""
-            try:
-                with open(newest, encoding="utf-8") as f:
-                    for line in f:
-                        line = line.strip()
-                        if not line:
-                            continue
-                        data = _json.loads(line)
-                        if data.get("_type") == "metadata":
-                            continue
-                        if data.get("role") in ("user", "assistant") and data.get("content"):
-                            last_msg = data["content"]
-            except Exception:
-                pass
+            newest = rows[0]
+            mtime = float(newest.get("updated_at") or 0.0)
+            last_msg = str(newest.get("last_message") or "").strip()
 
             cfg = self._load_bot_config(bid)
             instance = self._bots.get(bid)
@@ -738,7 +735,7 @@ class TutorBotManager:
                 "name": cfg.name if cfg else bid,
                 "running": instance.running if instance else False,
                 "last_message": last_msg[:200] if last_msg else "",
-                "updated_at": datetime.fromtimestamp(mtime).isoformat(),
+                "updated_at": datetime.fromtimestamp(mtime).isoformat() if mtime else "",
             }))
 
         bot_activity.sort(key=lambda x: x[0], reverse=True)
@@ -751,6 +748,8 @@ class TutorBotManager:
         chat_id: str = "web",
         on_progress: Callable[[str], Awaitable[None]] | None = None,
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
+        on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
+        on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
         mode: str = "smart",
         session_key: str | None = None,
         session_metadata: dict[str, Any] | None = None,
@@ -774,34 +773,78 @@ class TutorBotManager:
         instance.agent_loop.sessions.save(session)
         user_id = str(merged_metadata.get("user_id") or "").strip()
         source = str(merged_metadata.get("source") or "tutorbot").strip() or "tutorbot"
-        turn_id = f"{effective_session_key}:{datetime.now().timestamp()}"
+        external_session_id = str(merged_metadata.get("session_id") or "").strip()
+        external_turn_id = str(merged_metadata.get("turn_id") or "").strip()
+        trace_name = str(merged_metadata.get("trace_name") or "").strip() or f"tutorbot.{bot_id}"
+        trace_session_id = external_session_id or effective_session_key
+        turn_id = external_turn_id or f"{effective_session_key}:{datetime.now().timestamp()}"
+        tool_trace_summary: dict[str, Any] = {
+            "tool_calls": [],
+            "sources": [],
+            "authority_applied": False,
+            "exact_question": {},
+        }
         trace_metadata = {
-            "trace_name": f"tutorbot.{bot_id}",
-            "session_id": effective_session_key,
+            "trace_name": trace_name,
+            "session_id": trace_session_id,
             "turn_id": turn_id,
             "user_id": user_id,
             "bot_id": bot_id,
+            "execution_engine": "tutorbot_runtime",
             "conversation_id": effective_chat_id,
             "channel": "web",
             "capability": "tutorbot",
             "teaching_mode": mode,
             "source": source,
             "title": str(merged_metadata.get("title") or "").strip(),
+            "tutorbot_session_key": effective_session_key,
+            "default_tools": list(merged_metadata.get("default_tools") or []),
+            "knowledge_bases": list(merged_metadata.get("knowledge_bases") or []),
+            "default_kb": str(merged_metadata.get("default_kb") or "").strip(),
         }
 
         async def _progress(text: str, *, tool_hint: bool = False) -> None:
             if on_progress:
                 await on_progress(text)
 
+        async def _tool_call(tool_name: str, args: dict[str, Any]) -> None:
+            tool_trace_summary["tool_calls"].append(
+                {
+                    "name": str(tool_name or "").strip(),
+                    "args": dict(args or {}),
+                }
+            )
+            if on_tool_call:
+                await on_tool_call(tool_name, args)
+
+        async def _tool_result(
+            tool_name: str,
+            result: str,
+            metadata: dict[str, Any] | None = None,
+        ) -> None:
+            metadata = dict(metadata or {})
+            sources = metadata.get("sources")
+            if isinstance(sources, list) and sources:
+                tool_trace_summary["sources"] = sources[:8]
+            exact_question = metadata.get("exact_question")
+            if isinstance(exact_question, dict) and exact_question:
+                tool_trace_summary["exact_question"] = exact_question
+                tool_trace_summary["authority_applied"] = bool(metadata.get("authority_applied", False))
+            if on_tool_result:
+                await on_tool_result(tool_name, result, metadata)
+
+        runtime_metadata = dict(merged_metadata)
+        runtime_metadata["teaching_mode"] = mode
+
         response = ""
         try:
             with observability.usage_scope(
                 scope_id=turn_id,
-                session_id=effective_session_key,
+                session_id=trace_session_id,
                 turn_id=turn_id,
                 capability="tutorbot",
             ), observability.start_observation(
-                name="turn.tutorbot",
+                name="tutorbot.runtime" if external_turn_id else "turn.tutorbot",
                 as_type="chain",
                 input_payload={"content": content},
                 metadata=trace_metadata,
@@ -814,13 +857,19 @@ class TutorBotManager:
                         chat_id=effective_chat_id,
                         on_progress=_progress,
                         on_content_delta=on_content_delta,
-                        metadata={"teaching_mode": mode},
+                        on_tool_call=_tool_call,
+                        on_tool_result=_tool_result,
+                        metadata=runtime_metadata,
                     )
                     observability.update_observation(
                         turn_observation,
                         output_payload={"assistant_content": response},
                         metadata={
                             **trace_metadata,
+                            "tool_calls": tool_trace_summary["tool_calls"],
+                            "sources": tool_trace_summary["sources"],
+                            "authority_applied": tool_trace_summary["authority_applied"],
+                            "exact_question": tool_trace_summary["exact_question"],
                             "usage_summary": observability.get_current_usage_summary(),
                         },
                     )

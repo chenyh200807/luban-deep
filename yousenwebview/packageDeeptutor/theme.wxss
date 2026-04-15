@@ -1,0 +1,302 @@
+/* ============================================================
+ * app.wxss — 全局设计系统 Token
+ * 完全复刻 Web 端 /static/shared/shared.css
+ * ============================================================ */
+
+page {
+  /* ── 主色 — 蓝色系 ─────────────────────────────────────── */
+  --primary-50: #eff6ff;
+  --primary-100: #dbeafe;
+  --primary-200: #bfdbfe;
+  --primary-300: #93c5fd;
+  --primary-400: #60a5fa;
+  --primary-500: #3b82f6;
+  --primary-600: #2563eb;
+  --primary-700: #1d4ed8;
+
+  /* ── 强调色 ─────────────────────────────────────────────── */
+  --accent-gold: #f59e0b;
+  --accent-green: #10b981;
+  --accent-green-light: #34d399;
+  --accent-red: #ef4444;
+  --accent-red-light: #f87171;
+  --accent-cyan: #06b6d4;
+  --accent-purple: #8b5cf6;
+  --accent-orange: #f97316;
+
+  /* ── 背景 — 深海军蓝主题（对齐 Web 端 #101622）─────────── */
+  --bg-primary: #101622;
+  --bg-secondary: #1a2130;
+  --bg-tertiary: #232d3f;
+  --bg-card: rgba(26, 33, 48, 0.92);
+  --bg-elevated: rgba(35, 45, 63, 0.95);
+  --bg-glass: rgba(255, 255, 255, 0.03);
+  --bg-input: #1f2937;
+
+  /* ── 文字 ───────────────────────────────────────────────── */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.75);
+  --text-tertiary: rgba(255, 255, 255, 0.65);
+  --text-muted: rgba(255, 255, 255, 0.5);
+
+  /* ── 边框 ───────────────────────────────────────────────── */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-light: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.08);
+
+  /* ── 阴影 ───────────────────────────────────────────────── */
+  --shadow-sm: 0 2rpx 16rpx rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8rpx 32rpx rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16rpx 64rpx rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 80rpx rgba(59, 130, 246, 0.3);
+
+  /* ── 圆角（rpx，对应 Web px × 2）──────────────────────── */
+  --radius-xs: 12rpx;   /* 6px */
+  --radius-sm: 20rpx;   /* 10px */
+  --radius-md: 28rpx;   /* 14px */
+  --radius-lg: 40rpx;   /* 20px */
+  --radius-xl: 56rpx;   /* 28px */
+  --radius-full: 9999rpx;
+
+  /* ── 间距（rpx = Web px × 2）────────────────────────────── */
+  --space-1: 8rpx;    /* 4px */
+  --space-2: 16rpx;   /* 8px */
+  --space-3: 24rpx;   /* 12px */
+  --space-4: 32rpx;   /* 16px */
+  --space-5: 40rpx;   /* 20px */
+  --space-6: 48rpx;   /* 24px */
+  --space-8: 64rpx;   /* 32px */
+  --space-10: 80rpx;  /* 40px */
+
+  /* ── 字号（rpx）────────────────────────────────────────── */
+  --text-xs: 22rpx;   /* 11px */
+  --text-sm: 26rpx;   /* 13px */
+  --text-base: 28rpx; /* 14px */
+  --text-md: 30rpx;   /* 15px */
+  --text-lg: 36rpx;   /* 18px */
+  --text-xl: 40rpx;   /* 20px */
+  --text-2xl: 48rpx;  /* 24px */
+  --text-3xl: 64rpx;  /* 32px */
+  --text-4xl: 96rpx;  /* 48px */
+
+  /* ── 动画 ───────────────────────────────────────────────── */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── 页面基础样式 ───────────────────────────────────────── */
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: var(--text-base);
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+
+/* ── 通用卡片（Glass Card 风格）────────────────────────────── */
+.glass-card {
+  background: var(--bg-card);
+  border: 1rpx solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── 渐变文字 ───────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-400), var(--accent-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── 骨架屏 shimmer ─────────────────────────────────────────── */
+.skel-block {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.05) 0%,
+    rgba(255,255,255,0.1) 50%,
+    rgba(255,255,255,0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skel-shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skel-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── 进度条 ─────────────────────────────────────────────────── */
+.progress-bar {
+  width: 100%;
+  height: 8rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--primary-500), var(--accent-cyan));
+  transition: width var(--duration-normal) var(--ease-out);
+}
+
+/* ── 徽章 ───────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 16rpx;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+/* ── 分隔线 ─────────────────────────────────────────────────── */
+.divider-glow {
+  height: 1rpx;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255,255,255,0.08) 30%,
+    rgba(255,255,255,0.08) 70%,
+    transparent
+  );
+  margin: 0 32rpx;
+}
+
+/* ── 主按钮 ─────────────────────────────────────────────────── */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 28rpx;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+  color: #ffffff;
+  font-size: var(--text-md);
+  font-weight: 600;
+  letter-spacing: 0.5rpx;
+  border: none;
+  box-shadow: 0 8rpx 24rpx rgba(59, 130, 246, 0.35);
+}
+
+.btn-primary:active {
+  opacity: 0.85;
+  transform: scale(0.98);
+}
+
+/* ── 链接按钮 ───────────────────────────────────────────────── */
+.btn-link {
+  background: transparent;
+  border: none;
+  color: var(--primary-400);
+  font-size: var(--text-sm);
+}
+
+/* ── 输入框 ─────────────────────────────────────────────────── */
+.input-field {
+  background: var(--bg-input);
+  border: 1rpx solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 24rpx;
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── 通用 section-header ──────────────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
+.section-title {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.section-more {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* ── 选择芯片 chip ──────────────────────────────────────────── */
+.chip {
+  padding: 10rpx 24rpx;
+  border-radius: var(--radius-full);
+  background: rgba(255,255,255,0.06);
+  border: 1rpx solid var(--border);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  transition: all var(--duration-fast);
+}
+
+.chip.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: var(--primary-500);
+  color: var(--primary-400);
+}
+
+/* ── 数字显示（等宽字体）────────────────────────────────────── */
+.num-display {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ── 链接行 link-row ─────────────────────────────────────────── */
+.link-row {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  background: var(--bg-card);
+  border-bottom: 1rpx solid var(--border-subtle);
+}
+
+.link-row:active {
+  background: rgba(255,255,255,0.04);
+}
+
+.link-icon {
+  width: 64rpx;
+  font-size: 36rpx;
+  margin-right: 24rpx;
+}
+
+.link-label {
+  flex: 1;
+  font-size: var(--text-base);
+  color: var(--text-primary);
+}
+
+.link-arrow {
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+}
+
+/* ── Light Mode — 通过 class 控制，默认深色 ───── */
+/* 用法：在 page 元素上加 class="theme-light" 切换浅色 */
+page.theme-light {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-elevated: rgba(255, 255, 255, 0.98);
+  --bg-input: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: rgba(15, 23, 42, 0.75);
+  --text-tertiary: rgba(15, 23, 42, 0.6);
+  --text-muted: rgba(15, 23, 42, 0.45);
+  --border-subtle: rgba(0, 0, 0, 0.04);
+  --border-light: rgba(0, 0, 0, 0.06);
+  --border-medium: rgba(0, 0, 0, 0.1);
+  --border: rgba(0, 0, 0, 0.08);
+}

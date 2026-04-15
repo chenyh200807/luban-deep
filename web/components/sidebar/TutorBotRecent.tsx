@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Bot } from "lucide-react";
 import { apiUrl } from "@/lib/api";
+import { allowsLegacyWebSurfaces, requiresWebAuth } from "@/lib/web-access";
 
 interface RecentBot {
   bot_id: string;
@@ -25,6 +26,8 @@ function relativeTime(iso: string): string {
 }
 
 export function TutorBotRecent({ collapsed = false }: { collapsed?: boolean }) {
+  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) return null;
+
   const [bots, setBots] = useState<RecentBot[]>([]);
 
   useEffect(() => {

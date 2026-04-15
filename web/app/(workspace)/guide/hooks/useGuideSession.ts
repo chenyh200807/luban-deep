@@ -32,6 +32,8 @@ type PagePayload = {
 export function useGuideSession() {
   const isHydrated = useRef(false);
   const pollingRef = useRef<number | null>(null);
+  const sessionActionLockRef = useRef(false);
+  const pageActionLockRef = useRef<Set<number>>(new Set());
 
   const [sessionState, setSessionState] = useState<SessionState>(
     INITIAL_SESSION_STATE,
@@ -377,8 +379,9 @@ export function useGuideSession() {
       notebookReferences?: Array<{ notebook_id: string; record_ids: string[] }>,
     ) => {
       const trimmedInput = userInput.trim();
-      if (!trimmedInput) return;
+      if (!trimmedInput || sessionActionLockRef.current) return;
 
+      sessionActionLockRef.current = true;
       stopPolling();
       setIsLoading(true);
       setLoadingMessage("Designing your guided learning plan...");
@@ -450,14 +453,17 @@ export function useGuideSession() {
           "❌ Failed to create session, please try again later",
           `error-${Date.now()}`,
         );
+      } finally {
+        sessionActionLockRef.current = false;
       }
     },
     [addChatMessage, addLoadingMessage, removeLoadingMessage, stopPolling],
   );
 
   const startLearning = useCallback(async () => {
-    if (!sessionState.session_id) return;
+    if (!sessionState.session_id || sessionActionLockRef.current) return;
 
+    sessionActionLockRef.current = true;
     setIsLoading(true);
     setLoadingMessage("Generating interactive learning pages...");
     const loadingId = addLoadingMessage(
@@ -522,6 +528,8 @@ export function useGuideSession() {
         "❌ Failed to start learning, please try again later",
         `error-${Date.now()}`,
       );
+    } finally {
+      sessionActionLockRef.current = false;
     }
   }, [
     addChatMessage,
@@ -534,8 +542,9 @@ export function useGuideSession() {
 
   const navigateTo = useCallback(
     async (knowledgeIndex: number) => {
-      if (!sessionState.session_id) return;
+      if (!sessionState.session_id || pageActionLockRef.current.has(knowledgeIndex)) return;
 
+      pageActionLockRef.current.add(knowledgeIndex);
       setSessionState((prev) => ({
         ...prev,
         current_index: knowledgeIndex,
@@ -585,6 +594,8 @@ export function useGuideSession() {
         }
       } catch (err) {
         console.error("Failed to navigate knowledge point:", err);
+      } finally {
+        pageActionLockRef.current.delete(knowledgeIndex);
       }
     },
     [
@@ -600,8 +611,14 @@ export function useGuideSession() {
 
   const retryPage = useCallback(
     async (pageIndex: number) => {
-      if (!sessionState.session_id) return;
+      if (!sessionState.session_id || pageActionLockRef.current.has(pageIndex)) return;
 
+      pageActionLockRef.current.add(pageIndex);
+      const previousStatus = sessionState.page_statuses[pageIndex] || "failed";
+      mergePageState({
+        page_statuses: { [pageIndex]: "generating" },
+        page_errors: { [pageIndex]: "" },
+      });
       try {
         const res = await fetch(apiUrl("/api/v1/guide/retry_page"), {
           method: "POST",
@@ -631,23 +648,34 @@ export function useGuideSession() {
             `retry-${Date.now()}`,
             pageIndex,
           );
+        } else {
+          mergePageState({
+            page_statuses: { [pageIndex]: previousStatus },
+          });
         }
       } catch (err) {
         console.error("Failed to retry page:", err);
+        mergePageState({
+          page_statuses: { [pageIndex]: previousStatus },
+        });
+      } finally {
+        pageActionLockRef.current.delete(pageIndex);
       }
     },
     [
       addChatMessage,
-      isSessionMissingResponse,
       mergePageState,
+      isSessionMissingResponse,
       resetGuideState,
       sessionState.session_id,
+      sessionState.page_statuses,
     ],
   );
 
   const completeLearning = useCallback(async () => {
-    if (!sessionState.session_id) return;
+    if (!sessionState.session_id || sessionActionLockRef.current) return;
 
+    sessionActionLockRef.current = true;
     setIsLoading(true);
     setLoadingMessage("Generating learning summary...");
     const loadingId = addLoadingMessage("Generating learning summary...");
@@ -690,6 +718,8 @@ export function useGuideSession() {
       setIsLoading(false);
       setLoadingMessage("");
       console.error("Failed to complete learning:", err);
+    } finally {
+      sessionActionLockRef.current = false;
     }
   }, [
     addChatMessage,

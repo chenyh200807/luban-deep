@@ -289,6 +289,21 @@ page{
   box-shadow: 0 12rpx 30rpx rgba(38, 102, 255, 0.28);
 }
 
+.deeptutor-entry-card-orange {
+  background: linear-gradient(180deg, #ffb14e 0%, #ff7a2f 100%);
+  box-shadow: 0 12rpx 30rpx rgba(255, 123, 47, 0.28);
+}
+
+.deeptutor-entry-card-teal {
+  background: linear-gradient(180deg, #3fd7c8 0%, #178db2 100%);
+  box-shadow: 0 12rpx 30rpx rgba(23, 141, 178, 0.28);
+}
+
+.deeptutor-entry-card-dark {
+  background: linear-gradient(180deg, #313e61 0%, #16233d 100%);
+  box-shadow: 0 12rpx 30rpx rgba(12, 22, 45, 0.34);
+}
+
 .deeptutor-entry-badge {
   width: 72rpx;
   height: 72rpx;
@@ -301,6 +316,21 @@ page{
   color: #ffffff;
   font-size: 28rpx;
   font-weight: 700;
+}
+
+.deeptutor-entry-badge-orange {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 242, 232, 0.44);
+}
+
+.deeptutor-entry-badge-teal {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(229, 255, 252, 0.42);
+}
+
+.deeptutor-entry-badge-dark {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .deeptutor-entry-title {

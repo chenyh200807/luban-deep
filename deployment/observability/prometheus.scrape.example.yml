@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - /etc/prometheus/deeptutor-alerts.yml
+
+scrape_configs:
+  - job_name: deeptutor
+    metrics_path: /metrics/prometheus
+    static_configs:
+      - targets:
+          - 127.0.0.1:8001

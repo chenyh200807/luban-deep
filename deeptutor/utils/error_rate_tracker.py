@@ -54,6 +54,26 @@ class ErrorRateTracker:
         rate = self.get_error_rate(provider)
         return rate > self.threshold
 
+    def snapshot(self) -> dict[str, dict[str, float | int | bool]]:
+        """Return a machine-readable snapshot for ops endpoints."""
+        now = time.time()
+        with self._lock:
+            providers = set(self._total_calls) | set(self._errors) | set(self._alerted)
+            snapshot: dict[str, dict[str, float | int | bool]] = {}
+            for provider in sorted(providers):
+                self._cleanup_old_entries(provider, now)
+                total = len(self._total_calls[provider])
+                errors = len(self._errors[provider])
+                error_rate = errors / total if total > 0 else 0.0
+                snapshot[provider] = {
+                    "total_calls": total,
+                    "error_calls": errors,
+                    "error_rate": error_rate,
+                    "threshold_exceeded": total > 0 and error_rate > self.threshold,
+                    "alert_open": bool(self._alerted.get(provider)),
+                }
+            return snapshot
+
     def _check_alert(self, provider: str):
         """Check and trigger alert if needed."""
         rate = self.get_error_rate(provider)
@@ -109,3 +129,16 @@ def check_provider_threshold(provider: str) -> bool:
 def set_alert_callback(callback: Callable[[str, float], None]):
     """Set the alert callback for the tracker."""
     tracker.alert_callback = callback
+
+
+def get_tracker_snapshot() -> dict[str, dict[str, float | int | bool]]:
+    """Return all tracked provider error-rate metrics."""
+    return tracker.snapshot()
+
+
+def clear_tracker_state() -> None:
+    """Reset tracked provider stats. Intended for tests."""
+    with tracker._lock:
+        tracker._errors.clear()
+        tracker._total_calls.clear()
+        tracker._alerted.clear()

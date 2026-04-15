@@ -116,6 +116,10 @@ interface TurnContractCheckResult {
   error?: string;
 }
 
+const RECONNECT_BASE_DELAY_MS = 250;
+const RECONNECT_MAX_DELAY_MS = 5_000;
+const RECONNECT_MAX_ATTEMPTS = 6;
+
 const STRICT_CONTRACT_CHECK = process.env.NEXT_PUBLIC_STRICT_CONTRACT_CHECK === "true";
 let turnContractCheckPromise: Promise<TurnContractCheckResult> | null = null;
 
@@ -191,17 +195,26 @@ export class UnifiedWSClient {
   private ws: WebSocket | null = null;
   private onEvent: EventHandler;
   private onClose?: () => void;
+  private onOpen?: () => void;
   private connectInFlight = false;
   private connectAttempt = 0;
+  private reconnectAttempt = 0;
+  private reconnectEnabled = true;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private permanentlyClosed = false;
 
-  constructor(onEvent: EventHandler, onClose?: () => void) {
+  constructor(onEvent: EventHandler, onClose?: () => void, onOpen?: () => void) {
     this.onEvent = onEvent;
     this.onClose = onClose;
+    this.onOpen = onOpen;
   }
 
   connect(): void {
+    if (this.permanentlyClosed) return;
     if (this.ws && this.ws.readyState <= WebSocket.OPEN) return;
     if (this.connectInFlight) return;
+    this.reconnectEnabled = true;
+    this.clearReconnectTimer();
     this.connectInFlight = true;
     this.connectAttempt += 1;
     void this.connectWithContractCheck(this.connectAttempt);
@@ -245,15 +258,56 @@ export class UnifiedWSClient {
       }
     };
 
+    this.ws.onopen = () => {
+      this.connectInFlight = false;
+      this.reconnectAttempt = 0;
+      this.clearReconnectTimer();
+      this.onOpen?.();
+    };
+
     this.ws.onclose = () => {
       this.ws = null;
       this.connectInFlight = false;
+      if (this.reconnectEnabled) {
+        this.scheduleReconnect();
+        return;
+      }
       this.onClose?.();
     };
 
     this.ws.onerror = (err) => {
       console.error("WS error:", err);
     };
+  }
+
+  private clearReconnectTimer(): void {
+    if (this.reconnectTimer !== null) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+  }
+
+  private scheduleReconnect(): void {
+    if (this.reconnectTimer !== null) return;
+    if (this.reconnectAttempt >= RECONNECT_MAX_ATTEMPTS) {
+      this.reconnectEnabled = false;
+      this.permanentlyClosed = true;
+      this.onClose?.();
+      return;
+    }
+    const attempt = this.reconnectAttempt + 1;
+    const delay = Math.min(
+      RECONNECT_MAX_DELAY_MS,
+      RECONNECT_BASE_DELAY_MS * 2 ** Math.max(0, attempt - 1),
+    );
+    const jitter = Math.floor(delay * 0.2 * Math.random());
+    this.reconnectAttempt = attempt;
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (!this.reconnectEnabled) return;
+      this.connectInFlight = false;
+      this.connect();
+    }, delay + jitter);
   }
 
   send(msg: ChatMessage): void {
@@ -266,6 +320,9 @@ export class UnifiedWSClient {
 
   disconnect(): void {
     this.connectAttempt += 1;
+    this.reconnectEnabled = false;
+    this.permanentlyClosed = true;
+    this.clearReconnectTimer();
     this.ws?.close();
     this.ws = null;
     this.connectInFlight = false;
@@ -273,5 +330,9 @@ export class UnifiedWSClient {
 
   get connected(): boolean {
     return this.ws?.readyState === WebSocket.OPEN;
+  }
+
+  get terminated(): boolean {
+    return this.permanentlyClosed;
   }
 }

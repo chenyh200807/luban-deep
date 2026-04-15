@@ -28,6 +28,7 @@ except ImportError:  # pragma: no cover - non-Unix fallback
     fcntl = None
 
 from deeptutor.services.path_service import get_path_service
+from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.services.session import get_sqlite_session_store
 
 _TZ = timezone(timedelta(hours=8))
@@ -533,13 +534,7 @@ class MemberConsoleService:
             or os.getenv("WECHAT_MP_APPSECRET")
             or "deeptutor-dev-member-secret"
         ).strip()
-        env = str(
-            os.getenv("DEEPTUTOR_ENV")
-            or os.getenv("APP_ENV")
-            or os.getenv("ENV")
-            or ""
-        ).strip().lower()
-        if secret == "deeptutor-dev-member-secret" and env in {"prod", "production"}:
+        if secret == "deeptutor-dev-member-secret" and is_production_environment():
             raise RuntimeError("DEEPTUTOR_AUTH_SECRET must be configured in production")
         return secret
 
@@ -630,13 +625,7 @@ class MemberConsoleService:
         if not raw:
             return None
         if raw.startswith("demo-token-"):
-            env = str(
-                os.getenv("DEEPTUTOR_ENV")
-                or os.getenv("APP_ENV")
-                or os.getenv("ENV")
-                or ""
-            ).strip().lower()
-            if env in {"prod", "production"}:
+            if is_production_environment():
                 return None
             value = raw[len("demo-token-") :]
             return {"uid": value.split("-", 1)[0], "provider": "demo"}
@@ -818,13 +807,12 @@ class MemberConsoleService:
         return bool(self._sms_access_key_id() and self._sms_access_key_secret())
 
     def _should_use_real_sms(self) -> bool:
-        env = str(os.getenv("SERVICE_ENV") or os.getenv("APP_ENV") or "local").strip().lower()
-        explicit = str(os.getenv("MEMBER_CONSOLE_USE_REAL_SMS") or "").strip().lower()
-        if explicit in {"1", "true", "yes", "on"}:
+        if env_flag("MEMBER_CONSOLE_USE_REAL_SMS", default=False):
             return self._sms_configured()
+        explicit = str(os.getenv("MEMBER_CONSOLE_USE_REAL_SMS") or "").strip().lower()
         if explicit in {"0", "false", "no", "off"}:
             return False
-        return self._sms_configured() and env in {"prod", "production"}
+        return self._sms_configured() and is_production_environment()
 
     @staticmethod
     def _generate_sms_code() -> str:
@@ -1807,7 +1795,9 @@ class MemberConsoleService:
             if username in {member["phone"], member["display_name"], member["user_id"]}:
                 target = member
                 break
-        if target is None or not self._verify_password_hash(password, target.get("password_hash")):
+        if target is None:
+            raise ValueError("用户名或密码错误")
+        if not self._verify_password_hash(password, target.get("password_hash")):
             raise ValueError("用户名或密码错误")
         token = self._issue_access_token(user_id=target["user_id"])
         return {
@@ -1980,6 +1970,8 @@ class MemberConsoleService:
                 }
             delivery = "sms"
             message = "验证码发送成功"
+        elif is_production_environment():
+            raise RuntimeError("短信服务未配置，生产环境已禁止调试验证码")
 
         expires_at = now + timedelta(minutes=10)
 
@@ -2017,6 +2009,7 @@ class MemberConsoleService:
     def verify_phone_code(self, phone: str, code: str) -> dict[str, Any]:
         normalized = _slugify_phone(phone)
         provided_code = str(code or "").strip()
+
         def _apply(data: dict[str, Any]) -> str:
             record = (data.get("phone_codes") or {}).get(normalized) or {}
             expected_code = str(record.get("code") or "").strip()

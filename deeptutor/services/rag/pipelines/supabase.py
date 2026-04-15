@@ -186,6 +186,25 @@ class SupabasePipeline:
     def __init__(self, kb_base_dir: Optional[str] = None):
         self.logger = get_logger("SupabasePipeline")
         self.kb_base_dir = kb_base_dir or DEFAULT_KB_BASE_DIR
+        self._client: httpx.AsyncClient | None = None
+        self._client_timeout_s: float | None = None
+
+    async def _get_client(self, timeout_s: float) -> httpx.AsyncClient:
+        normalized_timeout = float(timeout_s)
+        if self._client is not None and self._client_timeout_s == normalized_timeout:
+            return self._client
+        if self._client is not None:
+            await self._client.aclose()
+        self._client = httpx.AsyncClient(timeout=normalized_timeout)
+        self._client_timeout_s = normalized_timeout
+        return self._client
+
+    async def aclose(self) -> None:
+        if self._client is None:
+            return
+        await self._client.aclose()
+        self._client = None
+        self._client_timeout_s = None
 
     async def initialize(self, kb_name: str, file_paths: list[str], **kwargs) -> bool:
         _ = (kb_name, file_paths, kwargs)
@@ -249,56 +268,56 @@ class SupabasePipeline:
             exact_text_plans: list[dict[str, Any]] = []
 
             try:
-                async with httpx.AsyncClient(timeout=config.timeout_s) as client:
-                    exact_text_task: asyncio.Task[list[dict[str, Any]]] | None = None
-                    if (
-                        exact_probe
-                        and config.exact_question_text_first
-                        and len(exact_probe.query) <= config.exact_question_max_text_len
-                    ):
-                        exact_text_candidates = [exact_probe.query]
-                        for candidate in case_exact_queries:
-                            if candidate not in exact_text_candidates:
-                                exact_text_candidates.append(candidate)
-                        exact_text_task = asyncio.create_task(
-                            self._search_exact_question_text_batch(
-                                client=client,
-                                probe_queries=exact_text_candidates,
-                                allowed_question_types=exact_probe.allowed_question_types,
-                                original_query=query,
-                                option_validation_required=exact_probe.option_validation_required,
-                                config=config,
-                            )
-                        )
-                    primary_plan_task = asyncio.create_task(
-                        self._run_query_plan(
+                client = await self._get_client(config.timeout_s)
+                exact_text_task: asyncio.Task[list[dict[str, Any]]] | None = None
+                if (
+                    exact_probe
+                    and config.exact_question_text_first
+                    and len(exact_probe.query) <= config.exact_question_max_text_len
+                ):
+                    exact_text_candidates = [exact_probe.query]
+                    for candidate in case_exact_queries:
+                        if candidate not in exact_text_candidates:
+                            exact_text_candidates.append(candidate)
+                    exact_text_task = asyncio.create_task(
+                        self._search_exact_question_text_batch(
                             client=client,
-                            queries=primary_queries,
-                            question_like=question_like,
-                            source_plan=source_plan,
-                            standard_codes=rewritten.standard_codes,
-                            precision_node_code=precision_node_code,
-                            exact_probe=exact_probe,
+                            probe_queries=exact_text_candidates,
+                            allowed_question_types=exact_probe.allowed_question_types,
                             original_query=query,
+                            option_validation_required=exact_probe.option_validation_required,
                             config=config,
                         )
                     )
-                    primary_plan = await primary_plan_task
-                    if exact_text_task is not None:
-                        exact_text_batches = await exact_text_task
-                        for batch_index, batch in enumerate(exact_text_batches):
-                            exact_text_rows = batch.get("results") if isinstance(batch, dict) else None
-                            if exact_text_rows:
-                                exact_text_plans.append(
-                                    {
-                                        "phase": "primary",
-                                        "group_name": "question_exact_text",
-                                        "query": str(batch.get("query") or exact_probe.query if exact_probe else query),
-                                        "query_index": batch_index,
-                                        "query_weight": 1.0,
-                                        "results": exact_text_rows,
-                                    }
-                                )
+                primary_plan_task = asyncio.create_task(
+                    self._run_query_plan(
+                        client=client,
+                        queries=primary_queries,
+                        question_like=question_like,
+                        source_plan=source_plan,
+                        standard_codes=rewritten.standard_codes,
+                        precision_node_code=precision_node_code,
+                        exact_probe=exact_probe,
+                        original_query=query,
+                        config=config,
+                    )
+                )
+                primary_plan = await primary_plan_task
+                if exact_text_task is not None:
+                    exact_text_batches = await exact_text_task
+                    for batch_index, batch in enumerate(exact_text_batches):
+                        exact_text_rows = batch.get("results") if isinstance(batch, dict) else None
+                        if exact_text_rows:
+                            exact_text_plans.append(
+                                {
+                                    "phase": "primary",
+                                    "group_name": "question_exact_text",
+                                    "query": str(batch.get("query") or exact_probe.query if exact_probe else query),
+                                    "query_index": batch_index,
+                                    "query_weight": 1.0,
+                                    "results": exact_text_rows,
+                                }
+                            )
             except Exception as exc:
                 observability.update_observation(
                     observation,
@@ -359,20 +378,20 @@ class SupabasePipeline:
             second_pass_queries = [item for item in second_pass_queries if item not in primary_queries]
             if second_pass_queries:
                 try:
-                    async with httpx.AsyncClient(timeout=config.timeout_s) as client:
-                        second_pass_plan = await self._run_query_plan(
-                            client=client,
-                            queries=second_pass_queries,
-                            question_like=question_like,
-                            source_plan=source_plan,
-                            standard_codes=rewritten.standard_codes,
-                            precision_node_code=precision_node_code,
-                            exact_probe=exact_probe,
-                            original_query=query,
-                            config=config,
-                            query_weight=0.72,
-                            phase="second_pass",
-                        )
+                    client = await self._get_client(config.timeout_s)
+                    second_pass_plan = await self._run_query_plan(
+                        client=client,
+                        queries=second_pass_queries,
+                        question_like=question_like,
+                        source_plan=source_plan,
+                        standard_codes=rewritten.standard_codes,
+                        precision_node_code=precision_node_code,
+                        exact_probe=exact_probe,
+                        original_query=query,
+                        config=config,
+                        query_weight=0.72,
+                        phase="second_pass",
+                    )
                     fused = self._fuse_plan_results(
                         [*exact_text_plans, *primary_plan, *second_pass_plan],
                         query=query,
@@ -1457,14 +1476,14 @@ class SupabasePipeline:
             return results
 
         try:
-            async with httpx.AsyncClient(timeout=config.timeout_s) as client:
-                rows = await self._select(
-                    client,
-                    table="kb_chunks",
-                    select="chunk_id,source_doc,metadata,standard_code,page_num",
-                    query={"chunk_id": f"in.({quoted_ids})"},
-                    config=config,
-                )
+            client = await self._get_client(config.timeout_s)
+            rows = await self._select(
+                client,
+                table="kb_chunks",
+                select="chunk_id,source_doc,metadata,standard_code,page_num",
+                query={"chunk_id": f"in.({quoted_ids})"},
+                config=config,
+            )
         except Exception as exc:
             self.logger.debug("Skipping source hydration after Supabase error: %s", exc)
             return results

@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from deeptutor.api.dependencies import AuthContext, require_self_or_admin, route_rate_limit
+from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.session import (
@@ -21,7 +22,7 @@ member_service = get_member_console_service()
 turn_runtime = get_turn_runtime_manager()
 session_store = get_sqlite_session_store()
 
-_MOBILE_TUTORBOT_ID = "construction-exam-coach"
+_MOBILE_TUTORBOT_ID = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
 _MOBILE_TUTORBOT_NAME = "Construction Exam Coach"
 _MOBILE_TUTORBOT_DESCRIPTION = "微信小程序主聊天默认建筑实务 TutorBot"
 
@@ -95,7 +96,13 @@ def _merge_interaction_hints(
     current_info_required: bool,
 ) -> dict[str, Any]:
     merged = dict(hints or {})
-    merged["profile"] = profile or "mini_tutor"
+    normalized_profile = str(profile or "").strip().lower()
+    if normalized_profile == "":
+        normalized_profile = "tutorbot"
+    merged["profile"] = normalized_profile
+    merged.setdefault("product_surface", "wechat_miniprogram")
+    merged.setdefault("entry_role", "tutorbot")
+    merged.setdefault("subject_domain", "construction_exam")
     if current_info_required:
         merged["current_info_required"] = True
     return merged
@@ -112,7 +119,7 @@ def _build_mobile_turn_payload(
     if current_info_required and "web_search" not in requested_tools:
         requested_tools.append("web_search")
 
-    interaction_profile = str(body.interaction_profile or "mini_tutor").strip() or "mini_tutor"
+    interaction_profile = str(body.interaction_profile or "tutorbot").strip() or "tutorbot"
     interaction_hints = _merge_interaction_hints(
         interaction_profile,
         body.interaction_hints,
@@ -251,7 +258,7 @@ class MobileStartTurnRequest(BaseModel):
     capability: str = ""
     mode: str = "AUTO"
     language: str = "zh"
-    interaction_profile: str = "mini_tutor"
+    interaction_profile: str = "tutorbot"
     interaction_hints: dict[str, Any] | None = None
     tools: list[str] = Field(default_factory=list)
     knowledge_bases: list[str] = Field(default_factory=list)
@@ -294,12 +301,25 @@ async def auth_login(body: LoginRequest) -> dict[str, Any]:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
 
 
-@router.post("/auth/send-code")
+@router.post(
+    "/auth/send-code",
+    dependencies=[
+        Depends(route_rate_limit("mobile_auth_send_code", default_max_requests=3, default_window_seconds=60.0))
+    ],
+)
 async def auth_send_code(body: PhoneRequest) -> dict[str, Any]:
-    return member_service.send_phone_code(body.phone)
+    try:
+        return member_service.send_phone_code(body.phone)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
-@router.post("/auth/verify-code")
+@router.post(
+    "/auth/verify-code",
+    dependencies=[
+        Depends(route_rate_limit("mobile_auth_verify_code", default_max_requests=6, default_window_seconds=60.0))
+    ],
+)
 async def auth_verify_code(body: VerifyCodeRequest) -> dict[str, Any]:
     try:
         return member_service.verify_phone_code(body.phone, body.code)

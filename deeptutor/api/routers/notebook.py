@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from deeptutor.agents.notebook import NotebookSummarizeAgent
 from deeptutor.services.notebook import notebook_manager
+from deeptutor.utils.error_utils import public_error_detail
 
 router = APIRouter()
 
@@ -125,7 +126,7 @@ async def _stream_add_record_with_summary(
         }
         yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
     except Exception as exc:
-        payload = {"type": "error", "detail": str(exc)}
+        payload = {"type": "error", "detail": public_error_detail("Notebook operation")}
         yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
 
@@ -141,7 +142,7 @@ async def list_notebooks():
         notebooks = notebook_manager.list_notebooks()
         return {"notebooks": notebooks, "total": len(notebooks)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
 
 
 @router.get("/statistics")
@@ -156,7 +157,7 @@ async def get_statistics():
         stats = notebook_manager.get_statistics()
         return stats
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
 
 
 @router.post("/create")
@@ -179,7 +180,7 @@ async def create_notebook(request: CreateNotebookRequest):
         )
         return {"success": True, "notebook": notebook}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
 
 
 @router.get("/{notebook_id}")
@@ -201,7 +202,7 @@ async def get_notebook(notebook_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
 
 
 @router.put("/{notebook_id}")
@@ -230,7 +231,7 @@ async def update_notebook(notebook_id: str, request: UpdateNotebookRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
 
 
 @router.delete("/{notebook_id}")
@@ -252,7 +253,7 @@ async def delete_notebook(notebook_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
 
 
 @router.post("/add_record")
@@ -285,7 +286,7 @@ async def add_record(request: AddRecordRequest):
             "added_to_notebooks": result["added_to_notebooks"],
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
 
 
 @router.post("/add_record_with_summary")
@@ -318,7 +319,7 @@ async def remove_record(notebook_id: str, record_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
 
 
 @router.put("/{notebook_id}/records/{record_id}")
@@ -341,7 +342,7 @@ async def update_record(notebook_id: str, record_id: str, request: UpdateRecordR
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
 
 
 @router.get("/health")

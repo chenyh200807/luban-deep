@@ -32,3 +32,4 @@ def test_get_env_defined_kbs_includes_builtin_tutorbot_aliases(monkeypatch) -> N
     assert env_kbs["construction-exam"]["rag_provider"] == "supabase"
     assert env_kbs["construction-exam"]["supabase_remote_kb"] == "supabase-main"
     assert env_kbs["construction-exam-coach"]["rag_provider"] == "supabase"
+    assert env_kbs["construction-exam-tutor"]["rag_provider"] == "supabase"

@@ -456,6 +456,39 @@ class LangfuseObservability:
         if trace_name:
             attributes["trace_name"] = trace_name
 
+        bot_id = str(metadata.get("bot_id", "") or "").strip()
+        if bot_id:
+            attributes["bot_id"] = bot_id
+
+        turn_id = str(metadata.get("turn_id", "") or "").strip()
+        if turn_id:
+            attributes["turn_id"] = turn_id
+
+        capability = str(metadata.get("capability", "") or "").strip()
+        if capability:
+            attributes["capability"] = capability
+
+        execution_engine = str(metadata.get("execution_engine", "") or "").strip()
+        if execution_engine:
+            attributes["execution_engine"] = execution_engine
+
+        raw_tool_calls = metadata.get("tool_calls")
+        if isinstance(raw_tool_calls, list):
+            attributes["tool_calls"] = _sanitize_value(
+                raw_tool_calls,
+                mask_pii=_env_flag("LANGFUSE_MASK_PII", True),
+            )
+
+        raw_sources = metadata.get("sources")
+        if isinstance(raw_sources, list):
+            attributes["sources"] = _sanitize_value(
+                raw_sources,
+                mask_pii=_env_flag("LANGFUSE_MASK_PII", True),
+            )
+
+        if "authority_applied" in metadata:
+            attributes["authority_applied"] = bool(metadata.get("authority_applied"))
+
         raw_tags = metadata.get("tags")
         if isinstance(raw_tags, (list, tuple)):
             tags = [str(item).strip() for item in raw_tags if str(item or "").strip()]
@@ -500,7 +533,24 @@ class LangfuseObservability:
             yield
             return
 
-        propagate_kwargs = self._filter_supported_kwargs(propagate, trace_attributes)
+        propagation_metadata = {
+            key: trace_attributes.get(key)
+            for key in (
+                "bot_id",
+                "turn_id",
+                "capability",
+                "execution_engine",
+                "authority_applied",
+            )
+            if key in trace_attributes and trace_attributes.get(key) not in (None, "", [], {})
+        }
+        propagate_kwargs = self._filter_supported_kwargs(
+            propagate,
+            {
+                **trace_attributes,
+                "metadata": propagation_metadata or None,
+            },
+        )
         if not propagate_kwargs:
             yield
             return
@@ -702,6 +752,10 @@ class LangfuseObservability:
                     "session_id": trace_attributes.get("session_id"),
                     "user_id": trace_attributes.get("user_id"),
                     "trace_name": trace_attributes.get("trace_name"),
+                    "bot_id": trace_attributes.get("bot_id"),
+                    "turn_id": trace_attributes.get("turn_id"),
+                    "capability": trace_attributes.get("capability"),
+                    "execution_engine": trace_attributes.get("execution_engine"),
                     "tags": trace_attributes.get("tags"),
                 },
             )

@@ -1,5 +1,6 @@
 // package/freeCourse/freeCourse.js
 var behavior = require('../../utils/behavior')
+var analytics = require('../../utils/analytics')
 Component({
   behaviors: [behavior],
 
@@ -95,8 +96,85 @@ Component({
     ggimage:'',
     ggimageurl:'',
     shoponlie : '',
+    deeptutorEntryEnabled: true,
+    deeptutorEntryVisible: true,
+    deeptutorEntryConfig: {
+      title: "鲁班AI智考",
+      subtitle: "智能答疑入口",
+      tip: "点击进入",
+      badge: "AI",
+      variant: "blue",
+    },
+  },
+  lifetimes: {
+    attached() {
+      this.syncDeeptutorEntryState();
+    },
+  },
+  pageLifetimes: {
+    show() {
+      this.syncDeeptutorEntryState();
+      this.trackDeeptutorEntryExposure();
+    },
+    hide() {
+      this._deeptutorEntryExposureTracked = false;
+    },
   },
   methods: {
+    syncDeeptutorEntryState() {
+      const app = getApp();
+      const enabled =
+        app && typeof app.getDeeptutorEntryEnabled === "function"
+          ? app.getDeeptutorEntryEnabled()
+          : !(
+              app &&
+              app.globalData &&
+              app.globalData.deeptutorEntryEnabled === false
+            );
+      const config =
+        app && typeof app.getDeeptutorEntryConfig === "function"
+          ? app.getDeeptutorEntryConfig()
+          : this.data.deeptutorEntryConfig;
+      const currentConfig = JSON.stringify(this.data.deeptutorEntryConfig || {});
+      const nextConfig = JSON.stringify(config || {});
+      if (
+        enabled !== this.data.deeptutorEntryEnabled ||
+        enabled !== this.data.deeptutorEntryVisible ||
+        currentConfig !== nextConfig
+      ) {
+        this.setData({
+          deeptutorEntryEnabled: enabled,
+          deeptutorEntryVisible: enabled,
+          deeptutorEntryConfig: config,
+        });
+      }
+      return enabled;
+    },
+    syncDeeptutorEntryStateFromPayload(payload) {
+      const app = getApp();
+      if (app && typeof app.syncDeeptutorEntryFlagFromPayload === "function") {
+        app.syncDeeptutorEntryFlagFromPayload(payload);
+      }
+      return this.syncDeeptutorEntryState();
+    },
+    showDeeptutorEntryDisabledToast() {
+      wx.showToast({
+        title: "鲁班AI智考已关闭",
+        icon: "none",
+        duration: 2200,
+      });
+    },
+    trackDeeptutorEntryExposure() {
+      if (!this.data.deeptutorEntryVisible || this._deeptutorEntryExposureTracked) {
+        return;
+      }
+      this._deeptutorEntryExposureTracked = true;
+      analytics.track('deeptutor_entry_expose', {
+        entry_source: 'free_course_float_entry',
+        entry_title: this.data.deeptutorEntryConfig.title,
+        entry_variant: this.data.deeptutorEntryConfig.variant,
+      });
+    },
     rotateImage: function() {
       // debugger;
       var animation = wx.createAnimation({
@@ -213,6 +291,10 @@ Component({
     },
 
     togglePanel() {
+      if (!this.syncDeeptutorEntryState()) {
+        this.showDeeptutorEntryDisabledToast();
+        return;
+      }
       if (this.data.isPanelShow) {
         console.log('隐藏入口');
         this.animation.translateX('-100%').step()
@@ -316,6 +398,7 @@ Component({
       }
       let _this = this;
       this.isPostHttp('Getmajorzm',data).then(res=>{
+        this.syncDeeptutorEntryStateFromPayload(res);
        // debugger;
         if (res.status==1){
           let getGratisCourseList = this.data.getGratisCourseList.concat(res.data)
@@ -496,14 +579,29 @@ Component({
       return 1;
     },
 
-    //跳转到 DeepTutor 模块
+    // 跳转到鲁班AI智考原生分包入口
     navigateToShop:function(e){
-      console.log('跳转到 DeepTutor');
-      wx.switchTab({
-        url: '/pages/chat/chat',
-        fail() {
+      if (!this.syncDeeptutorEntryState()) {
+        this.showDeeptutorEntryDisabledToast();
+        return;
+      }
+      console.log('跳转到鲁班AI智考原生入口');
+      const entrySource = 'free_course_float_entry';
+      const returnTo = '/packageDeeptutor/pages/chat/chat?entry_source=' + entrySource;
+      analytics.track('deeptutor_entry_click', {
+        entry_source: entrySource,
+        entry_title: this.data.deeptutorEntryConfig.title,
+        entry_variant: this.data.deeptutorEntryConfig.variant,
+      });
+      wx.navigateTo({
+        url:
+          '/packageDeeptutor/pages/login/login?entrySource=' +
+          encodeURIComponent(entrySource) +
+          '&returnTo=' +
+          encodeURIComponent(returnTo),
+        fail: () => {
           wx.showToast({
-            title: 'DeepTutor 模块未接入当前版本',
+            title: '鲁班AI智考暂时无法打开',
             icon: 'none',
             duration: 2500
           });

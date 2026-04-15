@@ -34,6 +34,14 @@ class _FakeClient:
         model_parameters=None,
         usage_details=None,
         cost_details=None,
+        session_id=None,
+        user_id=None,
+        trace_name=None,
+        bot_id=None,
+        turn_id=None,
+        capability=None,
+        execution_engine=None,
+        tags=None,
     ):
         self.call_order.append("start")
         self.start_calls.append(
@@ -46,6 +54,14 @@ class _FakeClient:
                 "model_parameters": model_parameters,
                 "usage_details": usage_details,
                 "cost_details": cost_details,
+                "session_id": session_id,
+                "user_id": user_id,
+                "trace_name": trace_name,
+                "bot_id": bot_id,
+                "turn_id": turn_id,
+                "capability": capability,
+                "execution_engine": execution_engine,
+                "tags": tags,
             }
         )
         yield self.observation
@@ -57,6 +73,11 @@ class _FakeClient:
         session_id: str | None = None,
         user_id: str | None = None,
         trace_name: str | None = None,
+        bot_id: str | None = None,
+        turn_id: str | None = None,
+        capability: str | None = None,
+        execution_engine: str | None = None,
+        metadata: dict | None = None,
         tags: list[str] | None = None,
     ):
         self.call_order.append("propagate")
@@ -65,6 +86,11 @@ class _FakeClient:
                 "session_id": session_id,
                 "user_id": user_id,
                 "trace_name": trace_name,
+                "bot_id": bot_id,
+                "turn_id": turn_id,
+                "capability": capability,
+                "execution_engine": execution_engine,
+                "metadata": metadata,
                 "tags": tags,
             }
         )
@@ -77,6 +103,11 @@ def _fake_module_propagate_attributes(
     session_id: str | None = None,
     user_id: str | None = None,
     trace_name: str | None = None,
+    bot_id: str | None = None,
+    turn_id: str | None = None,
+    capability: str | None = None,
+    execution_engine: str | None = None,
+    metadata: dict | None = None,
     tags: list[str] | None = None,
 ):
     _fake_module_propagate_attributes.calls.append(
@@ -84,6 +115,11 @@ def _fake_module_propagate_attributes(
             "session_id": session_id,
             "user_id": user_id,
             "trace_name": trace_name,
+            "bot_id": bot_id,
+            "turn_id": turn_id,
+            "capability": capability,
+            "execution_engine": execution_engine,
+            "metadata": metadata,
             "tags": tags,
         }
     )
@@ -107,6 +143,9 @@ def test_start_observation_propagates_session_id_to_langfuse_trace() -> None:
             "session_id": "unified_123",
             "turn_id": "turn_456",
             "user_id": "user_789",
+            "bot_id": "construction-exam-coach",
+            "capability": "tutorbot",
+            "execution_engine": "tutorbot_runtime",
             "tags": ["chat", "session"],
         },
     ) as observation:
@@ -121,12 +160,32 @@ def test_start_observation_propagates_session_id_to_langfuse_trace() -> None:
                 "session_id": "unified_123",
                 "turn_id": "turn_456",
                 "user_id": "user_789",
+                "bot_id": "construction-exam-coach",
+                "capability": "tutorbot",
+                "execution_engine": "tutorbot_runtime",
                 "tags": ["chat", "session"],
             },
             "model": None,
             "model_parameters": None,
             "usage_details": None,
             "cost_details": None,
+            "session_id": "unified_123",
+            "user_id": "user_789",
+            "trace_name": None,
+            "bot_id": "construction-exam-coach",
+            "turn_id": "turn_456",
+            "capability": "tutorbot",
+            "execution_engine": "tutorbot_runtime",
+            "metadata": {
+                "session_id": "unified_123",
+                "turn_id": "turn_456",
+                "user_id": "user_789",
+                "bot_id": "construction-exam-coach",
+                "capability": "tutorbot",
+                "execution_engine": "tutorbot_runtime",
+                "tags": ["chat", "session"],
+            },
+            "tags": ["chat", "session"],
         }
     ]
     assert client.propagate_calls == [
@@ -134,6 +193,16 @@ def test_start_observation_propagates_session_id_to_langfuse_trace() -> None:
             "session_id": "unified_123",
             "user_id": "user_789",
             "trace_name": None,
+            "bot_id": "construction-exam-coach",
+            "turn_id": "turn_456",
+            "capability": "tutorbot",
+            "execution_engine": "tutorbot_runtime",
+            "metadata": {
+                "bot_id": "construction-exam-coach",
+                "turn_id": "turn_456",
+                "capability": "tutorbot",
+                "execution_engine": "tutorbot_runtime",
+            },
             "tags": ["chat", "session"],
         }
     ]
@@ -189,7 +258,14 @@ def test_start_observation_uses_module_level_propagation_when_client_lacks_it(
     with adapter.start_observation(
         name="turn.chat",
         as_type="chain",
-        metadata={"session_id": "session-v4", "user_id": "user-v4"},
+        metadata={
+            "session_id": "session-v4",
+            "user_id": "user-v4",
+            "bot_id": "construction-exam-coach",
+            "turn_id": "turn-v4",
+            "capability": "tutorbot",
+            "execution_engine": "tutorbot_runtime",
+        },
     ) as observation:
         assert observation is client.observation
 
@@ -198,6 +274,16 @@ def test_start_observation_uses_module_level_propagation_when_client_lacks_it(
             "session_id": "session-v4",
             "user_id": "user-v4",
             "trace_name": None,
+            "bot_id": "construction-exam-coach",
+            "turn_id": "turn-v4",
+            "capability": "tutorbot",
+            "execution_engine": "tutorbot_runtime",
+            "metadata": {
+                "bot_id": "construction-exam-coach",
+                "turn_id": "turn-v4",
+                "capability": "tutorbot",
+                "execution_engine": "tutorbot_runtime",
+            },
             "tags": None,
         }
     ]

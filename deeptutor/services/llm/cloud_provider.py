@@ -8,11 +8,12 @@ Provides both complete() and stream() methods.
 
 from collections.abc import AsyncGenerator, Mapping
 import logging
-import os
 import threading
 from typing import cast
 
 import aiohttp
+
+from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 from .capabilities import get_effective_temperature, supports_response_format
 from .config import get_token_limit_kwargs
@@ -90,9 +91,11 @@ def _get_aiohttp_connector() -> aiohttp.TCPConnector | None:
         is truthy; otherwise None to use aiohttp defaults.
     """
     # Thread-safe check and one-time warning emission
-    disable_flag = os.getenv("DISABLE_SSL_VERIFY", "").lower() in ("true", "1", "yes")
+    disable_flag = env_flag("DISABLE_SSL_VERIFY", default=False)
     if not disable_flag:
         return None
+    if is_production_environment():
+        raise LLMConfigError("DISABLE_SSL_VERIFY is not allowed in production")
 
     # Emit warning once across threads
     with _ssl_warning_lock:

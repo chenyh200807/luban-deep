@@ -17,6 +17,7 @@ from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
 from deeptutor.services.llm import get_llm_config
 from deeptutor.services.notebook import notebook_manager
 from deeptutor.services.settings.interface_settings import get_ui_language
+from deeptutor.utils.error_utils import public_error_detail
 
 router = APIRouter()
 _guide_manager: GuideManager | None = None
@@ -90,7 +91,7 @@ def get_guide_manager():
         api_version = getattr(llm_config, "api_version", None)
         binding = llm_config.binding
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"LLM config error: {e!s}")
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
     ui_language = get_ui_language(default=config.get("system", {}).get("language", "en"))
     _guide_manager = GuideManager(
@@ -183,7 +184,7 @@ async def create_session(request: CreateSessionRequest):
         raise
     except Exception as e:
         logger.error(f"Create session failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.post("/start")
@@ -197,7 +198,7 @@ async def start_learning(request: SessionActionRequest):
         return result
     except Exception as e:
         logger.error(f"Start learning failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.post("/navigate")
@@ -211,7 +212,7 @@ async def navigate_to_knowledge(request: NavigateRequest):
         return result
     except Exception as e:
         logger.error(f"Navigate knowledge failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.post("/complete")
@@ -226,7 +227,7 @@ async def complete_learning(request: SessionActionRequest):
         return result
     except Exception as e:
         logger.error(f"Complete learning failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.post("/chat")
@@ -240,7 +241,7 @@ async def chat(request: ChatRequest):
         return result
     except Exception as e:
         logger.error(f"Chat failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.post("/fix_html")
@@ -254,7 +255,7 @@ async def fix_html(request: FixHtmlRequest):
         return result
     except Exception as e:
         logger.error(f"Fix HTML failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.post("/retry_page")
@@ -268,7 +269,7 @@ async def retry_page(request: RetryPageRequest):
         return result
     except Exception as e:
         logger.error(f"Retry page failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.post("/reset")
@@ -282,7 +283,7 @@ async def reset_session(request: SessionActionRequest):
         return result
     except Exception as e:
         logger.error(f"Reset session failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.delete("/session/{session_id}")
@@ -296,7 +297,7 @@ async def delete_session(session_id: str):
         return result
     except Exception as e:
         logger.error(f"Delete session failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.get("/sessions")
@@ -310,7 +311,7 @@ async def list_sessions():
         return {"sessions": sessions}
     except Exception as e:
         logger.error(f"List sessions failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.get("/session/{session_id}")
@@ -328,7 +329,7 @@ async def get_session(session_id: str):
         raise
     except Exception as e:
         logger.error(f"Get session failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.get("/session/{session_id}/html")
@@ -346,7 +347,7 @@ async def get_current_html(session_id: str):
         raise
     except Exception as e:
         logger.error(f"Get HTML failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 @router.get("/session/{session_id}/pages")
@@ -364,7 +365,7 @@ async def get_session_pages(session_id: str):
         raise
     except Exception as e:
         logger.error(f"Get session pages failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=public_error_detail("Guided learning"))
 
 
 # === WebSocket Endpoint ===
@@ -469,7 +470,9 @@ async def websocket_guide(websocket: WebSocket, session_id: str):
                 break
             except Exception as e:
                 logger.error(f"WebSocket error: {e}")
-                await websocket.send_json({"type": "error", "content": str(e)})
+                await websocket.send_json(
+                    {"type": "error", "content": public_error_detail("Guided learning")}
+                )
 
     except Exception as e:
         logger.error(f"WebSocket connection error: {e}")

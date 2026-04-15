@@ -179,11 +179,74 @@ def _reload_main(
     return importlib.reload(module)
 
 
+def _install_fake_startup_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _FakeLLMClient:
+        class config:
+            model = "test-model"
+
+    class _FakeEventBus:
+        async def start(self) -> None:
+            return None
+
+        async def stop(self) -> None:
+            return None
+
+    class _FakeTutorbotManager:
+        async def auto_start_bots(self) -> None:
+            return None
+
+        async def stop_all(self) -> None:
+            return None
+
+    llm_module = importlib.import_module("deeptutor.services.llm")
+    event_bus_module = importlib.import_module("deeptutor.events.event_bus")
+    tutorbot_module = importlib.import_module("deeptutor.services.tutorbot")
+    monkeypatch.setattr(llm_module, "get_llm_client", lambda: _FakeLLMClient())
+    monkeypatch.setattr(event_bus_module, "get_event_bus", lambda: _FakeEventBus())
+    monkeypatch.setattr(tutorbot_module, "get_tutorbot_manager", lambda: _FakeTutorbotManager())
+
+
+def _install_failing_startup_dependencies(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    llm_error: str | None = None,
+) -> None:
+    class _FakeEventBus:
+        async def start(self) -> None:
+            return None
+
+        async def stop(self) -> None:
+            return None
+
+    class _FakeTutorbotManager:
+        async def auto_start_bots(self) -> None:
+            return None
+
+        async def stop_all(self) -> None:
+            return None
+
+    llm_module = importlib.import_module("deeptutor.services.llm")
+    event_bus_module = importlib.import_module("deeptutor.events.event_bus")
+    tutorbot_module = importlib.import_module("deeptutor.services.tutorbot")
+    if llm_error is not None:
+        monkeypatch.setattr(
+            llm_module,
+            "get_llm_client",
+            lambda: (_ for _ in ()).throw(RuntimeError(llm_error)),
+        )
+    monkeypatch.setattr(event_bus_module, "get_event_bus", lambda: _FakeEventBus())
+    monkeypatch.setattr(tutorbot_module, "get_tutorbot_manager", lambda: _FakeTutorbotManager())
+
+
 def _cors_middleware_options(app: FastAPI) -> dict[str, object]:
     for middleware in app.user_middleware:
         if middleware.cls is CORSMiddleware:
             return middleware.kwargs
     raise AssertionError("CORS middleware not configured")
+
+
+def _route_paths(app: FastAPI) -> set[str]:
+    return {str(getattr(route, "path", "") or "") for route in app.routes}
 
 
 def test_cors_defaults_to_safe_origins_in_non_production(
@@ -233,6 +296,50 @@ def test_cors_uses_env_allowlist_and_ignores_wildcard(
     ]
 
 
+def test_production_disables_legacy_router_mounts_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_ENABLE_LEGACY_ROUTERS": None,
+        },
+        tmp_path=tmp_path,
+    )
+
+    paths = _route_paths(module.app)
+    assert "/api/v1/ws" in paths
+    assert "/api/v1/sessions" in paths
+    assert "/api/v1/solve" not in paths
+    assert "/api/v1/question/mimic" not in paths
+    assert "/api/v1/dashboard/recent" not in paths
+    assert "/api/v1/notebook/list" not in paths
+    assert "/api/v1/plugins/list" not in paths
+    assert "/api/v1/tutorbot" not in paths
+
+
+def test_legacy_router_flag_explicitly_reenables_compatibility_mounts(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_ENABLE_LEGACY_ROUTERS": "1",
+        },
+        tmp_path=tmp_path,
+    )
+
+    paths = _route_paths(module.app)
+    assert "/api/v1/solve" in paths
+    assert "/api/v1/question/mimic" in paths
+    assert "/api/v1/dashboard/recent" in paths
+    assert "/api/v1/notebook/list" in paths
+
+
 def test_readyz_reflects_readiness_state(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -275,6 +382,49 @@ def test_readyz_reflects_readiness_state(
     assert degraded_payload["ready"] is False
 
 
+def test_production_startup_fails_fast_when_critical_dependency_is_missing(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_STARTUP_FAIL_FAST": None,
+        },
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_failing_startup_dependencies(monkeypatch, llm_error="llm boom")
+
+    with pytest.raises(RuntimeError, match="Critical startup dependencies failed: llm_client_ready: llm boom"):
+        with TestClient(module.app):
+            pass
+
+
+def test_local_startup_keeps_process_alive_when_fail_fast_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "DEEPTUTOR_STARTUP_FAIL_FAST": "0",
+        },
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_failing_startup_dependencies(monkeypatch, llm_error="llm boom")
+
+    with TestClient(module.app) as client:
+        response = client.get("/readyz")
+
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["checks"]["llm_client_ready"] is False
+
+
 def test_http_request_id_is_echoed_and_bound_to_request_state(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -291,31 +441,7 @@ def test_http_request_id_is_echoed_and_bound_to_request_state(
         tmp_path=tmp_path,
     )
     monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
-
-    class _FakeLLMClient:
-        class config:
-            model = "test-model"
-
-    class _FakeEventBus:
-        async def start(self) -> None:
-            return None
-
-        async def stop(self) -> None:
-            return None
-
-    class _FakeTutorbotManager:
-        async def auto_start_bots(self) -> None:
-            return None
-
-        async def stop_all(self) -> None:
-            return None
-
-    llm_module = importlib.import_module("deeptutor.services.llm")
-    event_bus_module = importlib.import_module("deeptutor.events.event_bus")
-    tutorbot_module = importlib.import_module("deeptutor.services.tutorbot")
-    monkeypatch.setattr(llm_module, "get_llm_client", lambda: _FakeLLMClient())
-    monkeypatch.setattr(event_bus_module, "get_event_bus", lambda: _FakeEventBus())
-    monkeypatch.setattr(tutorbot_module, "get_tutorbot_manager", lambda: _FakeTutorbotManager())
+    _install_fake_startup_dependencies(monkeypatch)
 
     @module.app.get("/_request_id_probe", include_in_schema=False)
     async def _request_id_probe(request: Request):
@@ -333,3 +459,115 @@ def test_http_request_id_is_echoed_and_bound_to_request_state(
     assert generated.headers["X-Request-ID"]
     assert generated.headers["X-Request-ID"] == generated.json()["request_id"]
     assert generated.headers["X-Request-ID"] != "req-123"
+
+
+def test_healthz_and_metrics_expose_runtime_snapshots(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "APP_ENV": None,
+            "ENV": None,
+            "ENVIRONMENT": None,
+            "DEEPTUTOR_CORS_ALLOW_ORIGINS": None,
+        },
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_fake_startup_dependencies(monkeypatch)
+    module.app.state.readiness_checks = {
+        "config_consistent": True,
+        "llm_client_ready": True,
+        "event_bus_ready": True,
+        "tutorbots_ready": True,
+    }
+
+    error_rate_module = importlib.import_module("deeptutor.utils.error_rate_tracker")
+    circuit_breaker_module = importlib.import_module("deeptutor.utils.network.circuit_breaker")
+    error_rate_module.clear_tracker_state()
+    circuit_breaker_module.reset_circuit_breakers()
+    error_rate_module.record_provider_call("test-provider", success=False)
+    circuit_breaker_module.record_call_failure("test-provider")
+
+    @module.app.get("/_metrics_probe", include_in_schema=False)
+    async def _metrics_probe():
+        return {"ok": True}
+
+    with TestClient(module.app) as client:
+        health = client.get("/healthz")
+        probe = client.get("/_metrics_probe")
+        missing = client.get("/does-not-exist")
+        metrics = client.get("/metrics")
+
+    assert health.status_code == 200
+    assert health.json()["alive"] is True
+    assert health.json()["uptime_seconds"] >= 0
+
+    assert probe.status_code == 200
+    assert missing.status_code == 404
+
+    assert metrics.status_code == 200
+    payload = metrics.json()
+    assert payload["readiness"]["ready"] is True
+    assert payload["http"]["requests_total"] >= 3
+    assert any(route["route"] == "GET /_metrics_probe" for route in payload["http"]["routes"])
+    assert "404" in payload["http"]["status_counts"]
+    assert payload["providers"]["error_rates"]["test-provider"]["error_calls"] >= 1
+    assert payload["providers"]["circuit_breakers"]["test-provider"]["failure_count"] >= 1
+    error_rate_module.clear_tracker_state()
+    circuit_breaker_module.reset_circuit_breakers()
+
+
+def test_metrics_prometheus_exports_runtime_and_provider_snapshots(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "APP_ENV": None,
+            "ENV": None,
+            "ENVIRONMENT": None,
+            "DEEPTUTOR_CORS_ALLOW_ORIGINS": None,
+        },
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_fake_startup_dependencies(monkeypatch)
+    module.app.state.readiness_checks = {
+        "config_consistent": True,
+        "llm_client_ready": True,
+        "event_bus_ready": True,
+        "tutorbots_ready": True,
+    }
+
+    error_rate_module = importlib.import_module("deeptutor.utils.error_rate_tracker")
+    circuit_breaker_module = importlib.import_module("deeptutor.utils.network.circuit_breaker")
+    error_rate_module.clear_tracker_state()
+    circuit_breaker_module.reset_circuit_breakers()
+    error_rate_module.record_provider_call("test-provider", success=False)
+    circuit_breaker_module.record_call_failure("test-provider")
+
+    @module.app.get("/_prometheus_probe", include_in_schema=False)
+    async def _prometheus_probe():
+        return {"ok": True}
+
+    with TestClient(module.app) as client:
+        client.get("/_prometheus_probe")
+        metrics = client.get("/metrics/prometheus")
+
+    assert metrics.status_code == 200
+    assert metrics.headers["content-type"].startswith("text/plain")
+    body = metrics.text
+    assert "deeptutor_ready 1" in body
+    assert 'deeptutor_http_requests_total ' in body
+    assert 'deeptutor_http_route_requests_total{route="GET /_prometheus_probe"}' in body
+    assert 'deeptutor_provider_error_rate{provider="test-provider"}' in body
+    assert 'deeptutor_provider_threshold_exceeded{provider="test-provider"} 1' in body
+    assert 'deeptutor_circuit_breaker_failure_count{provider="test-provider"}' in body
+    error_rate_module.clear_tracker_state()
+    circuit_breaker_module.reset_circuit_breakers()

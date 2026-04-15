@@ -1,4 +1,41 @@
 // pages/index1/index1.js
+function syncDeeptutorEntryFlag(payload) {
+  try {
+    var app = getApp();
+    if (app && typeof app.syncDeeptutorEntryFlagFromPayload === "function") {
+      app.syncDeeptutorEntryFlagFromPayload(payload);
+    }
+  } catch (_) {}
+}
+
+function resolveLaunchTarget(payload) {
+  if (payload === 1 || payload === "1") {
+    return "/pages/freeCourse/freeCourse";
+  }
+  if (typeof payload === "string") {
+    return payload.indexOf("pages/") !== -1 ? payload : "";
+  }
+  if (!payload || typeof payload !== "object") {
+    return "";
+  }
+  var candidates = [
+    payload.route,
+    payload.path,
+    payload.url,
+    payload.target_path,
+    payload.targetPath,
+    payload.page,
+    payload.data,
+  ];
+  for (var i = 0; i < candidates.length; i++) {
+    var item = candidates[i];
+    if (typeof item !== "string") continue;
+    if (item === "1") return "/pages/freeCourse/freeCourse";
+    if (item.indexOf("pages/") !== -1) return item;
+  }
+  return "";
+}
+
 Page({
 
   /**
@@ -25,21 +62,13 @@ Page({
       success: (res) => {
         console.log(res);
         //debugger;
-        
-        if(res.data == 1){
+        syncDeeptutorEntryFlag(res.data);
+        var launchTarget = resolveLaunchTarget(res.data);
+        if (launchTarget) {
           wx.reLaunch({
-            url: '/pages/freeCourse/freeCourse'
-          })
-        }else{
-          if(res.data.indexOf('pages/') != -1 ){
-            wx.reLaunch({
-              url: res.data
-            })
-          }
-
+            url: launchTarget
+          });
         }
-        
-        
       },
     })
 

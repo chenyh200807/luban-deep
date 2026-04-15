@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from deeptutor.contracts.tutorbot_profiles import iter_tutorbot_knowledge_chain_profiles
+from deeptutor.contracts.bot_runtime_defaults import iter_bot_runtime_defaults
 from deeptutor.logging import get_logger
 from deeptutor.services.rag.factory import (
     DEFAULT_PROVIDER,
@@ -47,8 +47,8 @@ def _env_csv(name: str, default: str = "") -> list[str]:
 def _collect_supabase_aliases() -> list[str]:
     aliases: list[str] = []
     seen: set[str] = set()
-    for profile in iter_tutorbot_knowledge_chain_profiles():
-        for alias in profile.supabase_kb_aliases:
+    for defaults in iter_bot_runtime_defaults():
+        for alias in defaults.supabase_kb_aliases:
             normalized = str(alias or "").strip()
             if not normalized:
                 continue

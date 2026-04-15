@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 from loguru import logger
 
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.rag.pipelines.supabase_strategy import prepare_exact_question_probe
 from deeptutor.tutorbot.agent.context import ContextBuilder
 from deeptutor.tutorbot.agent.memory import MemoryConsolidator
 from deeptutor.tutorbot.agent.team import TeamManager
@@ -187,12 +188,31 @@ class AgentLoop:
         finally:
             self._mcp_connecting = False
 
-    def _set_tool_context(self, channel: str, chat_id: str, message_id: str | None = None) -> None:
+    def _set_tool_context(
+        self,
+        channel: str,
+        chat_id: str,
+        message_id: str | None = None,
+        *,
+        session_key: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
         """Update context for all tools that need routing info."""
         for name in ("message", "spawn", "cron", "team"):
             if tool := self.tools.get(name):
                 if hasattr(tool, "set_context"):
                     tool.set_context(channel, chat_id, *([message_id] if name == "message" else []))
+        runtime_metadata = dict(metadata or {})
+        if session_key:
+            runtime_metadata.setdefault("session_key", session_key)
+        runtime_metadata.setdefault("channel", channel)
+        runtime_metadata.setdefault("chat_id", chat_id)
+        if message_id:
+            runtime_metadata.setdefault("message_id", message_id)
+        for tool_name in self.tools.tool_names:
+            tool = self.tools.get(tool_name)
+            if tool and hasattr(tool, "set_runtime_context"):
+                tool.set_runtime_context(metadata=runtime_metadata)
 
     @staticmethod
     def _strip_think(text: str | None) -> str | None:
@@ -217,12 +237,15 @@ class AgentLoop:
         initial_messages: list[dict],
         on_progress: Callable[..., Awaitable[None]] | None = None,
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
+        on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
+        on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
     ) -> tuple[str | None, list[str], list[dict]]:
         """Run the agent iteration loop."""
         messages = initial_messages
         iteration = 0
         final_content = None
         tools_used: list[str] = []
+        exact_authority: dict[str, Any] | None = None
         raw_stream_buffer = ""
         emitted_stream_len = 0
 
@@ -292,9 +315,34 @@ class AgentLoop:
 
                 for tool_call in response.tool_calls:
                     tools_used.append(tool_call.name)
-                    args_str = json.dumps(tool_call.arguments, ensure_ascii=False)
+                    preview_args = dict(tool_call.arguments or {})
+                    tool = self.tools.get(tool_call.name)
+                    if tool is not None:
+                        try:
+                            preview_args = tool.preview_args(preview_args)
+                        except Exception:
+                            preview_args = dict(tool_call.arguments or {})
+                    args_str = json.dumps(preview_args, ensure_ascii=False)
                     logger.info("Tool call: {}({})", tool_call.name, args_str[:200])
+                    if on_tool_call:
+                        await on_tool_call(tool_call.name, preview_args)
                     result = await self.tools.execute(tool_call.name, tool_call.arguments)
+                    tool_trace_metadata: dict[str, Any] | None = None
+                    if tool is not None:
+                        try:
+                            tool_trace_metadata = tool.consume_trace_metadata()
+                        except Exception:
+                            tool_trace_metadata = None
+                    if isinstance(tool_trace_metadata, dict):
+                        exact_candidate = (
+                            tool_trace_metadata.get("exact_question")
+                            if isinstance(tool_trace_metadata.get("exact_question"), dict)
+                            else None
+                        )
+                        if exact_candidate and self._should_force_exact_authority(exact_candidate):
+                            exact_authority = exact_candidate
+                    if on_tool_result:
+                        await on_tool_result(tool_call.name, result, tool_trace_metadata)
                     messages = self.context.add_tool_result(
                         messages, tool_call.id, tool_call.name, result
                     )
@@ -320,7 +368,145 @@ class AgentLoop:
                 "without completing the task. You can try breaking the task into smaller steps."
             )
 
+        if exact_authority:
+            exact_response = self._build_exact_authority_response(exact_authority)
+            if exact_response:
+                final_content = exact_response
+                self._replace_last_assistant_message(messages, exact_response)
+
         return final_content, tools_used, messages
+
+    @staticmethod
+    def _should_force_exact_authority(exact_question: dict[str, Any]) -> bool:
+        answer_kind = str(exact_question.get("answer_kind") or "").strip().lower()
+        if answer_kind in {"mcq", "free_text"}:
+            return True
+        if answer_kind == "case_study":
+            coverage_ratio = float(exact_question.get("coverage_ratio") or 0.0)
+            missing_subquestions = exact_question.get("missing_subquestions")
+            if coverage_ratio >= 0.999:
+                return True
+            if isinstance(missing_subquestions, list) and not missing_subquestions:
+                return True
+            if str(exact_question.get("coverage_state") or "").strip() == "multi_subquestion_exact":
+                return True
+        return False
+
+    @staticmethod
+    def _build_exact_authority_response(exact_question: dict[str, Any]) -> str:
+        answer_kind = str(exact_question.get("answer_kind") or "").strip().lower()
+        if answer_kind == "mcq":
+            answer = str(exact_question.get("correct_answer") or "").strip()
+            analysis = str(exact_question.get("analysis") or "").strip()
+            parts = []
+            if answer:
+                parts.append(f"标准答案：{answer}")
+            if analysis:
+                parts.append(f"解析：{analysis}")
+            return "\n".join(parts).strip()
+        if answer_kind == "free_text":
+            answer = str(exact_question.get("correct_answer") or "").strip()
+            analysis = str(exact_question.get("analysis") or "").strip()
+            return "\n\n".join([item for item in [answer, analysis] if item]).strip()
+        if answer_kind == "case_study":
+            covered = exact_question.get("covered_subquestions")
+            if not isinstance(covered, list) or not covered:
+                return ""
+            lines: list[str] = []
+            for item in covered:
+                if not isinstance(item, dict):
+                    continue
+                display_index = str(item.get("display_index") or "").strip()
+                answer = str(item.get("authoritative_answer") or "").strip()
+                analysis = str(item.get("analysis") or "").strip()
+                prefix = f"{display_index}. " if display_index else ""
+                if answer:
+                    lines.append(f"{prefix}{answer}")
+                if analysis:
+                    lines.append(f"解析：{analysis}")
+            return "\n".join(lines).strip()
+        return ""
+
+    @staticmethod
+    def _replace_last_assistant_message(messages: list[dict[str, Any]], content: str) -> None:
+        for item in reversed(messages):
+            if str(item.get("role") or "") == "assistant":
+                item["content"] = content
+                return
+
+    async def _maybe_run_exact_rag_fast_path(
+        self,
+        *,
+        current_message: str,
+        history: list[dict[str, Any]],
+        media: list[str] | None,
+        channel: str,
+        chat_id: str,
+        runtime_instruction: str | None,
+        runtime_metadata: dict[str, Any],
+        on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
+        on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
+    ) -> tuple[str, list[dict[str, Any]], dict[str, Any] | None] | None:
+        rag_tool = self.tools.get("rag")
+        if rag_tool is None:
+            return None
+        if prepare_exact_question_probe(current_message) is None:
+            return None
+
+        preview_args = {"query": current_message}
+        default_kb = str(runtime_metadata.get("default_kb") or "").strip()
+        if not default_kb:
+            knowledge_bases = runtime_metadata.get("knowledge_bases")
+            if isinstance(knowledge_bases, list):
+                for item in knowledge_bases:
+                    normalized = str(item or "").strip()
+                    if normalized:
+                        default_kb = normalized
+                        break
+        if default_kb:
+            preview_args["kb_name"] = default_kb
+        try:
+            preview_args = rag_tool.preview_args(preview_args)
+        except Exception:
+            preview_args = dict(preview_args)
+
+        result = await self.tools.execute("rag", preview_args)
+        tool_trace_metadata: dict[str, Any] | None = None
+        try:
+            tool_trace_metadata = rag_tool.consume_trace_metadata()
+        except Exception:
+            tool_trace_metadata = None
+        exact_candidate = (
+            tool_trace_metadata.get("exact_question")
+            if isinstance(tool_trace_metadata, dict)
+            and isinstance(tool_trace_metadata.get("exact_question"), dict)
+            else None
+        )
+        if not exact_candidate or not self._should_force_exact_authority(exact_candidate):
+            return None
+
+        exact_response = self._build_exact_authority_response(exact_candidate)
+        if not exact_response:
+            return None
+
+        merged_metadata = dict(tool_trace_metadata or {})
+        merged_metadata["authority_applied"] = True
+
+        if on_tool_call:
+            await on_tool_call("rag", preview_args)
+        if on_tool_result:
+            await on_tool_result("rag", result, merged_metadata)
+
+        messages = self.context.build_messages(
+            history=history,
+            current_message=current_message,
+            media=media,
+            channel=channel,
+            chat_id=chat_id,
+            runtime_instruction=runtime_instruction,
+        )
+        messages = self.context.add_assistant_message(messages, exact_response)
+        return exact_response, messages, merged_metadata
 
     async def run(self) -> None:
         """Run the agent loop, dispatching messages as tasks to stay responsive to /stop."""
@@ -423,6 +609,8 @@ class AgentLoop:
         session_key: str | None = None,
         on_progress: Callable[[str], Awaitable[None]] | None = None,
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
+        on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
+        on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
     ) -> OutboundMessage | None:
         """Process a single inbound message and return the response."""
         # System messages: parse origin from chat_id ("channel:chat_id")
@@ -433,7 +621,15 @@ class AgentLoop:
             key = f"{channel}:{chat_id}"
             session = self.sessions.get_or_create(key)
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
-            self._set_tool_context(channel, chat_id, msg.metadata.get("message_id"))
+            runtime_metadata = dict(session.metadata or {})
+            runtime_metadata.update(msg.metadata or {})
+            self._set_tool_context(
+                channel,
+                chat_id,
+                msg.metadata.get("message_id"),
+                session_key=key,
+                metadata=runtime_metadata,
+            )
             history = session.get_history(max_messages=0)
             messages = self.context.build_messages(
                 history=history,
@@ -655,20 +851,57 @@ class AgentLoop:
 
         await self.memory_consolidator.maybe_consolidate_by_tokens(session)
 
-        self._set_tool_context(msg.channel, msg.chat_id, msg.metadata.get("message_id"))
+        runtime_metadata = dict(session.metadata or {})
+        runtime_metadata.update(msg.metadata or {})
+        self._set_tool_context(
+            msg.channel,
+            msg.chat_id,
+            msg.metadata.get("message_id"),
+            session_key=key,
+            metadata=runtime_metadata,
+        )
         if message_tool := self.tools.get("message"):
             if isinstance(message_tool, MessageTool):
                 message_tool.start_turn()
 
         history = session.get_history(max_messages=0)
+        runtime_instruction = get_teaching_mode_instruction(
+            (msg.metadata or {}).get("teaching_mode"),
+        )
+        fast_path = await self._maybe_run_exact_rag_fast_path(
+            current_message=current_message,
+            history=history,
+            media=msg.media if msg.media else None,
+            channel=msg.channel,
+            chat_id=msg.chat_id,
+            runtime_instruction=runtime_instruction,
+            runtime_metadata=runtime_metadata,
+            on_tool_call=on_tool_call,
+            on_tool_result=on_tool_result,
+        )
+        if fast_path is not None:
+            final_content, all_msgs, fast_path_metadata = fast_path
+            self._save_turn(session, all_msgs, 1 + len(history))
+            session.metadata["last_exact_fast_path"] = bool(
+                fast_path_metadata and fast_path_metadata.get("authority_applied")
+            )
+            self.sessions.save(session)
+            await self.memory_consolidator.maybe_consolidate_by_tokens(session)
+            preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
+            logger.info("Fast-path exact authority response to {}:{}: {}", msg.channel, msg.sender_id, preview)
+            return OutboundMessage(
+                channel=msg.channel,
+                chat_id=msg.chat_id,
+                content=final_content,
+                metadata=msg.metadata or {},
+            )
+
         initial_messages = self.context.build_messages(
             history=history,
             current_message=current_message,
             media=msg.media if msg.media else None,
             channel=msg.channel, chat_id=msg.chat_id,
-            runtime_instruction=get_teaching_mode_instruction(
-                (msg.metadata or {}).get("teaching_mode"),
-            ),
+            runtime_instruction=runtime_instruction,
         )
 
         async def _bus_progress(content: str, *, tool_hint: bool = False) -> None:
@@ -683,6 +916,8 @@ class AgentLoop:
             initial_messages,
             on_progress=on_progress or _bus_progress,
             on_content_delta=on_content_delta,
+            on_tool_call=on_tool_call,
+            on_tool_result=on_tool_result,
         )
 
         if final_content is None:
@@ -746,6 +981,8 @@ class AgentLoop:
         chat_id: str = "direct",
         on_progress: Callable[[str], Awaitable[None]] | None = None,
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
+        on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
+        on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> str:
         """Process a message directly (for CLI or cron usage)."""
@@ -762,5 +999,7 @@ class AgentLoop:
             session_key=session_key,
             on_progress=on_progress,
             on_content_delta=on_content_delta,
+            on_tool_call=on_tool_call,
+            on_tool_result=on_tool_result,
         )
         return response.content if response else ""

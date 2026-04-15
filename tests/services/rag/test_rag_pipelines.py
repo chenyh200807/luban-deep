@@ -314,3 +314,35 @@ def test_filter_partial_case_results_prunes_unrelated_exam_noise() -> None:
     filtered = pipeline._filter_partial_case_results(results, exact_question=exact_question)
 
     assert [item["chunk_id"] for item in filtered] == ["question-9717", "STD-1"]
+
+
+@pytest.mark.asyncio
+async def test_supabase_pipeline_reuses_async_client_until_timeout_changes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    created_clients: list[float] = []
+
+    class _FakeAsyncClient:
+        def __init__(self, *, timeout: float):
+            self.timeout = timeout
+            self.closed = False
+            created_clients.append(timeout)
+
+        async def aclose(self) -> None:
+            self.closed = True
+
+    monkeypatch.setattr(supabase_module.httpx, "AsyncClient", _FakeAsyncClient)
+
+    pipeline = supabase_module.SupabasePipeline()
+    client_one = await pipeline._get_client(12.0)
+    client_two = await pipeline._get_client(12.0)
+    client_three = await pipeline._get_client(18.0)
+
+    assert client_one is client_two
+    assert client_three is not client_one
+    assert created_clients == [12.0, 18.0]
+
+    await pipeline.aclose()
+    assert client_three.closed is True

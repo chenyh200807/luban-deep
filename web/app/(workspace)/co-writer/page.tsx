@@ -40,8 +40,10 @@ import {
   WandSparkles,
   Workflow,
 } from "lucide-react";
+import RestrictedSurface from "@/components/common/RestrictedSurface";
 import { apiUrl } from "@/lib/api";
 import { listKnowledgeBases } from "@/lib/knowledge-api";
+import { allowsLegacyWebSurfaces, requiresWebAuth } from "@/lib/web-access";
 import { CO_WRITER_SAMPLE_TEMPLATE } from "./sampleTemplate";
 
 const MarkdownRenderer = dynamic(() => import("@/components/common/MarkdownRenderer"), {
@@ -142,6 +144,14 @@ interface StreamEditResult {
 }
 
 export default function CoWriterPage() {
+  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) {
+    return (
+      <RestrictedSurface
+        title="Co-writer unavailable"
+        message="当前 Web 端未接入登录态，或 legacy Co-writer 页面未显式开启，因此已默认关闭。请使用已鉴权入口访问。"
+      />
+    );
+  }
   const { t } = useTranslation();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const selectionPopoverRef = useRef<HTMLDivElement>(null);

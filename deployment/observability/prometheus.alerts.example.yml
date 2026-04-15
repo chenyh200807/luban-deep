@@ -1,0 +1,38 @@
+groups:
+  - name: deeptutor-api
+    rules:
+      - alert: DeepTutorNotReady
+        expr: deeptutor_ready == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: DeepTutor readiness failed
+          description: One or more DeepTutor readiness checks are failing.
+
+      - alert: DeepTutorServerErrors
+        expr: increase(deeptutor_http_errors_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: DeepTutor is returning 5xx responses
+          description: DeepTutor emitted more than 5 HTTP 5xx responses in the last 5 minutes.
+
+      - alert: DeepTutorProviderThresholdExceeded
+        expr: deeptutor_provider_threshold_exceeded == 1
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: Upstream provider error rate is above threshold
+          description: At least one provider has exceeded the configured sliding-window error threshold.
+
+      - alert: DeepTutorCircuitBreakerOpen
+        expr: deeptutor_circuit_breaker_open == 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: DeepTutor circuit breaker is open
+          description: A provider circuit breaker has opened and requests are being blocked.

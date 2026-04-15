@@ -88,6 +88,31 @@ async def test_orchestrator_respects_interaction_hint_for_question_type() -> Non
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_hides_answers_by_default_when_generation_hint_omits_reveal_policy() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s1-default-hide",
+        user_message="出道题",
+        config_overrides={},
+        metadata={
+            "interaction_hints": {
+                "profile": "tutorbot",
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["reveal_explanations"] is False
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_prioritizes_explicit_case_type_over_default_choice_hint() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()

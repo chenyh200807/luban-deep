@@ -141,6 +141,7 @@ type Action =
       sessionId: string;
       messages: MessageItem[];
       activeTurnId?: string | null;
+      lastSeq?: number;
       status?: SessionRuntimeStatus;
       tools?: string[];
       capability?: string | null;
@@ -364,6 +365,7 @@ function reducer(state: ProviderState, action: Action): ProviderState {
             isStreaming: (action.status || "idle") === "running",
             currentStage: "",
             activeTurnId: action.activeTurnId || null,
+            lastSeq: action.lastSeq ?? existing.lastSeq,
             status: action.status || "idle",
             language: action.language ?? existing.language,
             updatedAt: Date.now(),
@@ -439,6 +441,7 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
       }
     >
   >(new Map());
+  const resumeTargetsRef = useRef<Map<string, { turnId: string; seq: number }>>(new Map());
   const draftCounterRef = useRef(0);
   const retryTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
@@ -493,12 +496,44 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
     runnersRef.current.delete(oldKey);
     runner.key = newKey;
     runnersRef.current.set(newKey, runner);
+    const target = resumeTargetsRef.current.get(oldKey);
+    if (target) {
+      resumeTargetsRef.current.delete(oldKey);
+      resumeTargetsRef.current.set(newKey, target);
+    }
+  }, []);
+
+  const resumeActiveTurn = useCallback((key: string) => {
+    const target =
+      resumeTargetsRef.current.get(key) ||
+      (() => {
+        const session = stateRef.current.sessions[key];
+        if (!session?.isStreaming || !session.activeTurnId) return null;
+        return { turnId: session.activeTurnId, seq: session.lastSeq };
+      })();
+    if (!target) return;
+    const runner = runnersRef.current.get(key);
+    if (!runner?.client.connected) return;
+    runner.client.send({
+      type: "resume_from",
+      turn_id: target.turnId,
+      seq: target.seq,
+    });
   }, []);
 
   const handleRunnerEvent = useCallback(
     (runnerKey: string, event: StreamEvent) => {
       const runner = runnersRef.current.get(runnerKey);
       const effectiveKey = runner?.key || runnerKey;
+      const turnIdFromEvent =
+        (event.metadata as { turn_id?: string } | undefined)?.turn_id || event.turn_id || "";
+      if (turnIdFromEvent) {
+        const existingTarget = resumeTargetsRef.current.get(effectiveKey);
+        resumeTargetsRef.current.set(effectiveKey, {
+          turnId: turnIdFromEvent,
+          seq: typeof event.seq === "number" ? event.seq : existingTarget?.seq ?? 0,
+        });
+      }
       if (event.type === "session") {
         const sessionId =
           (event.metadata as { session_id?: string } | undefined)?.session_id ||
@@ -518,6 +553,7 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
         return;
       }
       if (event.type === "done") {
+        resumeTargetsRef.current.delete(effectiveKey);
         const status = String((event.metadata as { status?: string } | undefined)?.status || "completed");
         dispatch({
           type: "STREAM_END",
@@ -535,6 +571,7 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
         event.type === "error" &&
         Boolean((event.metadata as { turn_terminal?: boolean } | undefined)?.turn_terminal)
       ) {
+        resumeTargetsRef.current.delete(effectiveKey);
         const status = String((event.metadata as { status?: string } | undefined)?.status || "failed");
         dispatch({
           type: "STREAM_END",
@@ -559,10 +596,15 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
         client: new UnifiedWSClient(
           (event) => handleRunnerEvent(record.key, event),
           () => {
+            resumeTargetsRef.current.delete(record.key);
             const session = stateRef.current.sessions[record.key];
             if (session?.isStreaming) {
               dispatch({ type: "STREAM_END", key: record.key, status: "failed" });
             }
+            runnersRef.current.delete(record.key);
+          },
+          () => {
+            resumeActiveTurn(record.key);
           },
         ),
       };
@@ -570,22 +612,35 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
       record.client.connect();
       return record;
     },
-    [handleRunnerEvent],
+    [handleRunnerEvent, resumeActiveTurn],
   );
 
   const sendThroughRunner = useCallback(
     function dispatchToRunner(key: string, msg: ChatMessage, attempt = 0) {
+      if (attempt > 0) {
+        const session = stateRef.current.sessions[key];
+        if (session && !session.isStreaming && session.status !== "running") {
+          return;
+        }
+      }
       const runner = ensureRunner(key);
+      if (runner.client.terminated) {
+        return;
+      }
       if (!runner.client.connected) {
-        if (attempt >= 10) {
+        if (attempt >= 8) {
           console.error("WebSocket failed to connect after retries");
+          resumeTargetsRef.current.delete(key);
+          runnersRef.current.delete(key);
           dispatch({ type: "STREAM_END", key, status: "failed" });
           return;
         }
+        const delay = Math.min(4_000, 200 * 2 ** Math.max(0, attempt));
+        const jitter = Math.floor(delay * 0.2 * Math.random());
         const timerId = setTimeout(() => {
           retryTimersRef.current.delete(timerId);
           dispatchToRunner(key, msg, attempt + 1);
-        }, 200);
+        }, delay + jitter);
         retryTimersRef.current.add(timerId);
         return;
       }
@@ -598,12 +653,14 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
     async (sessionId: string) => {
       const session = await getSession(sessionId);
       const activeTurn = Array.isArray(session.active_turns) ? session.active_turns[0] : undefined;
+      const key = session.session_id || session.id;
       dispatch({
         type: "LOAD_SESSION",
-        key: session.session_id || session.id,
-        sessionId: session.session_id || session.id,
+        key,
+        sessionId: key,
         messages: hydrateMessages(session.messages ?? []),
         activeTurnId: activeTurn?.turn_id || activeTurn?.id || null,
+        lastSeq: activeTurn?.last_seq || 0,
         status: (session.status as SessionRuntimeStatus | undefined) || (activeTurn ? "running" : "idle"),
         tools: Array.isArray(session.preferences?.tools) ? session.preferences.tools : [],
         capability: session.preferences?.capability || null,
@@ -614,15 +671,17 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
         language: session.preferences?.language || "en",
       });
       if (activeTurn?.turn_id || activeTurn?.id) {
-        const key = session.session_id || session.id;
-        sendThroughRunner(key, {
-          type: "subscribe_turn",
-          turn_id: activeTurn.turn_id || activeTurn.id,
-          after_seq: 0,
+        resumeTargetsRef.current.set(key, {
+          turnId: activeTurn.turn_id || activeTurn.id,
+          seq: activeTurn?.last_seq || 0,
         });
+        const runner = ensureRunner(key);
+        if (runner.client.connected) {
+          resumeActiveTurn(key);
+        }
       }
     },
-    [hydrateMessages, sendThroughRunner],
+    [ensureRunner, hydrateMessages, resumeActiveTurn],
   );
 
   useEffect(() => {
@@ -749,6 +808,7 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
     const session = currentState.sessions[key];
     const turnId = session?.activeTurnId;
     if (!session || !turnId) return;
+    resumeTargetsRef.current.delete(key);
     const runner = runnersRef.current.get(key);
     if (runner?.client.connected) {
       runner.client.send({ type: "cancel_turn", turn_id: turnId });

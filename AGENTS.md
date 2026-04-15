@@ -20,6 +20,24 @@ CLI, WebSocket API, and Python SDK.
 - 只有对外稳定边界才允许升级为 contract / schema，普通内部实现不要滥加
 - 禁止新增 `/api/v1/mobile/tutorbot/ws/...` 之类的专用聊天 WebSocket 路由
 
+### Concept Discipline
+
+以下规则用于约束概念层，防止系统长出两套重复语义：
+
+- 同一业务事实只能有一个一等概念，禁止用多个名字表达同一件事。
+- `TutorBot` 是唯一业务身份；不要再并行创造第二套执行身份，如历史遗留的 `mini_tutor`。
+- `TutorBot` 只指完整、持久、可多实例、可心跳、可技能扩展的 TutorBot runtime；不要再把轻量默认绑定、入口 hint 或风格 profile 也叫作 `TutorBot`。
+- `rag` 是唯一知识召回工具；知识库如 `construction-exam` 只是工具绑定，不要再包一层重复的“grounded mode”概念。
+- `bot_runtime_defaults` 只表示 `bot_id -> 默认工具/默认知识库` 的绑定契约；它不是 TutorBot 本体，也不能承担执行引擎语义。
+- `teaching_mode` 只表示表达风格或交互节奏，如 `fast / deep / smart`；不得承担知识链、身份路由、工具启用等职责。
+- `product_surface`、`source`、`entry_role` 这类字段只表达入口表面信息，不得升级成新的业务身份。
+- 允许存在兼容旧字段的 alias，但必须在入口层立即归一化，不能让 alias 继续参与执行决策。
+- 如果发现两个模块、两个字段、两个模式名在表达同一语义，优先删除重复概念，而不是继续补同步逻辑。
+- 任何新设计在进入代码前，先回答三个问题：
+  1. 这是不是一个已经存在的概念换了个名字？
+  2. 它表达的是身份、工具、知识库绑定、还是表现风格？
+  3. 不新增这个概念，能否直接复用现有控制面？
+
 ## Execution Discipline
 
 以下规则用于约束 agent 的执行方式；它们补充项目规则，但不替代 contract 约束。

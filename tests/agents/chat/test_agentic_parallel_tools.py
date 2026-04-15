@@ -321,9 +321,9 @@ async def test_native_tool_loop_forces_rag_for_grounded_tutorbot_profile(
         language="zh",
         metadata={
             "turn_id": "turn-grounded",
-            "knowledge_chain_profile": "construction_exam_grounded",
+            "bot_id": "construction-exam-coach",
         },
-        config_overrides={"interaction_profile": "mini_tutor"},
+        config_overrides={"interaction_profile": "tutorbot"},
     )
 
     traces = await pipeline._run_native_tool_loop(
@@ -391,9 +391,9 @@ async def test_react_fallback_forces_rag_for_grounded_tutorbot_profile(
         language="zh",
         metadata={
             "turn_id": "turn-react-grounded",
-            "knowledge_chain_profile": "construction_exam_grounded",
+            "bot_id": "construction-exam-coach",
         },
-        config_overrides={"interaction_profile": "mini_tutor"},
+        config_overrides={"interaction_profile": "tutorbot"},
     )
 
     traces = await pipeline._run_react_fallback(
@@ -975,8 +975,8 @@ async def test_run_short_circuits_to_exact_case_authority_before_observing(
         enabled_tools=["rag"],
         knowledge_bases=["construction-exam"],
         language="zh",
-        metadata={"turn_id": "turn-case-run", "knowledge_chain_profile": "construction_exam_grounded"},
-        config_overrides={"interaction_profile": "mini_tutor"},
+        metadata={"turn_id": "turn-case-run", "bot_id": "construction-exam-coach"},
+        config_overrides={"interaction_profile": "tutorbot"},
     )
 
     await pipeline.run(context, bus)
@@ -1043,8 +1043,8 @@ async def test_run_uses_retrieval_first_grounding_without_thinking_when_rag_has_
         enabled_tools=["rag"],
         knowledge_bases=["construction-exam"],
         language="zh",
-        metadata={"turn_id": "turn-case-retrieval-first", "knowledge_chain_profile": "construction_exam_grounded"},
-        config_overrides={"interaction_profile": "mini_tutor"},
+        metadata={"turn_id": "turn-case-retrieval-first", "bot_id": "construction-exam-coach"},
+        config_overrides={"interaction_profile": "tutorbot"},
     )
 
     await pipeline.run(context, bus)
@@ -1055,3 +1055,51 @@ async def test_run_uses_retrieval_first_grounding_without_thinking_when_rag_has_
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["response"] == "基于召回结果整理后的答案。"
     assert result_event.metadata["observation"] == "已根据 rag 结果整理观察。"
+
+
+@pytest.mark.asyncio
+async def test_run_short_circuits_social_greeting_for_grounded_tutorbot(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+
+    async def _unexpected(*_args, **_kwargs):
+        raise AssertionError("social greeting should short-circuit before tool or llm stages")
+
+    monkeypatch.setattr(pipeline, "_stage_smart_responding", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_retrieval_first", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_thinking", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_acting", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_observing", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_responding", _unexpected)
+
+    bus = StreamBus()
+    events, consumer = await _collect_bus_events(bus)
+    context = UnifiedContext(
+        session_id="session-greeting",
+        user_message="你好",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        language="zh",
+        metadata={"turn_id": "turn-greeting", "bot_id": "construction-exam-coach"},
+        config_overrides={"interaction_profile": "tutorbot", "chat_mode": "smart"},
+    )
+
+    await pipeline.run(context, bus)
+    await asyncio.sleep(0)
+    await bus.close()
+    await consumer
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert "你好，我是" in response
+    assert "考我一道题" in response
+    assert "正确答案" not in response
+    assert "题目" not in response
+    assert result_event.metadata["tool_traces"] == []
+    stage_starts = [event.stage for event in events if event.type == StreamEventType.STAGE_START]
+    assert stage_starts == ["responding"]

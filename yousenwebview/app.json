@@ -17,6 +17,24 @@
     "pages/showpdf/showpdf",
     "pages/logs/logs"
   ],
+  "subpackages": [
+    {
+      "root": "packageDeeptutor",
+      "pages": [
+        "pages/chat/chat",
+        "pages/history/history",
+        "pages/report/report",
+        "pages/profile/profile",
+        "pages/login/login",
+        "pages/login/manual",
+        "pages/register/register",
+        "pages/billing/billing",
+        "pages/practice/practice",
+        "pages/assessment/assessment",
+        "pages/legal/terms"
+      ]
+    }
+  ],
   "window":{
     "backgroundTextStyle":"light",
     "navigationBarBackgroundColor": "#fff",

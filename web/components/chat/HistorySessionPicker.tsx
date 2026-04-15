@@ -31,6 +31,7 @@ export default function HistorySessionPicker({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [restricted, setRestricted] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -42,9 +43,11 @@ export default function HistorySessionPicker({
         const data = await listSessions(200, 0);
         if (!mounted) return;
         setSessions(data);
+        setRestricted(false);
       } catch {
         if (!mounted) return;
         setSessions([]);
+        setRestricted(true);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -130,6 +133,10 @@ export default function HistorySessionPicker({
               <div className="flex min-h-[280px] items-center justify-center">
                 <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
               </div>
+            ) : restricted ? (
+              <div className="px-6 py-14 text-center text-[13px] text-slate-500 dark:text-slate-400">
+                {t("Web authentication is not enabled, so history sessions are unavailable here.")}
+              </div>
             ) : filteredSessions.length ? (
               <div className="divide-y divide-slate-200 dark:divide-slate-800">
                 {filteredSessions.map((session) => {
@@ -187,7 +194,7 @@ export default function HistorySessionPicker({
             </div>
             <button
               onClick={handleApply}
-              disabled={!selectedIds.length}
+              disabled={!selectedIds.length || restricted}
               className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-[13px] font-medium text-[var(--primary-foreground)] transition disabled:cursor-not-allowed disabled:opacity-40"
             >
               Use Selected Sessions ({selectedIds.length})

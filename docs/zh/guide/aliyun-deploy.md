@@ -19,6 +19,8 @@
 - 后端快速发布脚本：[scripts/redeploy_aliyun_fast.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/redeploy_aliyun_fast.sh)
 - 一键部署脚本：[scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh)
 - 服务器启动脚本：[scripts/server_bootstrap_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/server_bootstrap_aliyun.sh)
+- 运行态备份与恢复 runbook：[docs/zh/guide/runtime-backup-restore.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/zh/guide/runtime-backup-restore.md)
+- 运行态观测与告警说明：[docs/zh/guide/runtime-observability.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/zh/guide/runtime-observability.md)
 - 环境变量模板：[deployment/aliyun/aliyun.env.example](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/deployment/aliyun/aliyun.env.example)
 - Langfuse 联通覆盖：[deployment/aliyun/docker-compose.langfuse.yml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/deployment/aliyun/docker-compose.langfuse.yml)
 - nginx 示例：
@@ -36,13 +38,26 @@
 - `BACKEND_PORT=8001`
 - `FRONTEND_PORT=3782`
 - `NEXT_PUBLIC_API_BASE_EXTERNAL=http://8.135.42.145:8001`
+- `SERVICE_ENV=production`
+- `APP_ENV=production`
+- `MEMBER_CONSOLE_USE_REAL_SMS=true`
 
 你需要补齐至少这些项：
 
 - `LLM_API_KEY`
 - `EMBEDDING_API_KEY`
+- `WECHAT_MP_APP_ID`
+- `WECHAT_MP_APP_SECRET`
+- `ALIYUN_SMS_ACCESS_KEY_ID`
+- `ALIYUN_SMS_ACCESS_KEY_SECRET`
+- `ALIYUN_SMS_SIGN_NAME`
+- `ALIYUN_SMS_TEMPLATE_CODE`
 
 如果你继续使用 DashScope，这两个 key 可以相同。
+
+如果不显式把 `SERVICE_ENV` / `APP_ENV` 设成 `production`，或者没把
+`MEMBER_CONSOLE_USE_REAL_SMS` 打开，小程序验证码会退回调试模式，接口返回
+`debug_code`，不会真正发短信。
 
 模板里还默认给了阿里云构建加速参数：
 

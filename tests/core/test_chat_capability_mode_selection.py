@@ -215,7 +215,8 @@ async def test_agentic_chat_pipeline_uses_compact_response_for_smart_mode(
         config_overrides={
             "chat_mode": "smart",
             "interaction_hints": {
-                "profile": "mini_tutor",
+                "profile": "tutorbot",
+                "entry_role": "tutorbot",
                 "teaching_mode": "smart",
             },
         },
@@ -270,16 +271,19 @@ async def test_agentic_chat_pipeline_skips_compact_response_for_grounded_tutorbo
     context = UnifiedContext(
         user_message="这道建筑案例题请按真题标准作答。",
         enabled_tools=[],
+        knowledge_bases=["construction-exam"],
         config_overrides={
             "chat_mode": "smart",
-            "interaction_profile": "mini_tutor",
+            "interaction_profile": "tutorbot",
             "interaction_hints": {
-                "profile": "mini_tutor",
+                "profile": "tutorbot",
+                "entry_role": "tutorbot",
+                "subject_domain": "construction_exam",
                 "teaching_mode": "smart",
             },
         },
         metadata={
-            "knowledge_chain_profile": "construction_exam_grounded",
+            "bot_id": "construction-exam-coach",
         },
         language="zh",
     )

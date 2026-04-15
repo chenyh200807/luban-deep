@@ -23,7 +23,7 @@ import sys
 from typing import Any, List, Optional, Union
 
 from deeptutor.config.constants import PROJECT_ROOT
-from deeptutor.logging.context import get_request_id
+from deeptutor.logging.context import get_log_context, get_request_id
 
 # Note: path_service is imported lazily inside Logger.__init__ to avoid
 # circular import: logging -> services -> services/config -> logging
@@ -83,11 +83,13 @@ class ConsoleFormatter(logging.Formatter):
 
         # Get module name
         module = getattr(record, "module_name", record.name)
-        request_id = getattr(record, "request_id", "") or get_request_id()
+        context = _resolve_record_context(record)
+        request_id = context["request_id"]
 
         # Build module tag [Module]
         module_tag = f"[{module}]"
         request_tag = f"[req={request_id}]"
+        scope_tag = _build_scope_tag(context)
 
         # Build level tag with colon
         level_tag = f"{display_level}:"
@@ -110,10 +112,10 @@ class ConsoleFormatter(logging.Formatter):
             service_tag = f"[{self.service_prefix}]"
             return (
                 f"{dim}{service_tag}{reset} {dim}{module_tag}{reset} "
-                f"{dim}{request_tag}{reset} {color}{level_tag}{reset} {message}"
+                f"{dim}{request_tag}{reset}{scope_tag} {color}{level_tag}{reset} {message}"
             )
         else:
-            return f"{dim}{module_tag}{reset} {dim}{request_tag}{reset} {color}{level_tag}{reset} {message}"
+            return f"{dim}{module_tag}{reset} {dim}{request_tag}{reset}{scope_tag} {color}{level_tag}{reset} {message}"
 
 
 class FileFormatter(logging.Formatter):
@@ -124,7 +126,11 @@ class FileFormatter(logging.Formatter):
 
     def __init__(self):
         super().__init__(
-            fmt="%(asctime)s [%(levelname)-8s] [%(module_name)-12s] [req=%(request_id)s] %(message)s",
+            fmt=(
+                "%(asctime)s [%(levelname)-8s] [%(module_name)-12s] "
+                "[req=%(request_id)s] [user=%(user_id)s] [session=%(session_id)s] "
+                "[turn=%(turn_id)s] %(message)s"
+            ),
             datefmt="%Y-%m-%d %H:%M:%S",
         )
 
@@ -132,8 +138,7 @@ class FileFormatter(logging.Formatter):
         # Ensure module_name exists
         if not hasattr(record, "module_name"):
             record.module_name = record.name
-        if not hasattr(record, "request_id") or record.request_id is None:
-            record.request_id = get_request_id()
+        _attach_context_fields(record)
         return super().format(record)
 
 
@@ -142,13 +147,16 @@ class JSONFileFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         module_name = getattr(record, "module_name", record.name)
-        request_id = getattr(record, "request_id", "") or get_request_id()
+        context = _resolve_record_context(record)
         payload = {
             "timestamp": datetime.fromtimestamp(record.created).isoformat(),
             "level": record.levelname,
             "module": module_name,
             "message": record.getMessage(),
-            "request_id": request_id,
+            "request_id": context["request_id"],
+            "user_id": context["user_id"],
+            "session_id": context["session_id"],
+            "turn_id": context["turn_id"],
         }
         return json.dumps(payload, ensure_ascii=False)
 
@@ -159,9 +167,38 @@ class _RequestContextFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         if not hasattr(record, "module_name"):
             record.module_name = record.name
-        if not hasattr(record, "request_id") or record.request_id is None:
-            record.request_id = get_request_id()
+        _attach_context_fields(record)
         return True
+
+
+def _resolve_record_context(record: logging.LogRecord) -> dict[str, str]:
+    context = get_log_context()
+    for field in ("request_id", "user_id", "session_id", "turn_id"):
+        value = getattr(record, field, None)
+        if value is not None and str(value).strip():
+            context[field] = str(value).strip()
+    if not context["request_id"]:
+        context["request_id"] = get_request_id()
+    return context
+
+
+def _attach_context_fields(record: logging.LogRecord) -> None:
+    context = _resolve_record_context(record)
+    for field, value in context.items():
+        setattr(record, field, value)
+
+
+def _build_scope_tag(context: dict[str, str]) -> str:
+    parts: list[str] = []
+    if context["user_id"]:
+        parts.append(f"user={context['user_id']}")
+    if context["session_id"]:
+        parts.append(f"session={context['session_id']}")
+    if context["turn_id"]:
+        parts.append(f"turn={context['turn_id']}")
+    if not parts:
+        return ""
+    return " [" + " ".join(parts) + "]"
 
 
 def _resolve_json_file_output(json_file_output: Optional[bool]) -> bool:

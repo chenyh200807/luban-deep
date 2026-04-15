@@ -6,6 +6,8 @@ Error Utilities - Error formatting and handling utilities
 import json
 from typing import Optional
 
+PUBLIC_ERROR_MESSAGE = "Operation failed. Please try again later."
+
 
 def _find_json_block(message: str) -> Optional[str]:
     """Extract potential JSON block from message by matching braces."""
@@ -79,3 +81,10 @@ def format_exception_message(exc: Exception) -> str:
 
     # Return original message if parsing fails
     return message
+
+
+def public_error_detail(operation: str | None = None) -> str:
+    """Return a safe, user-facing error message for public API responses."""
+    if operation:
+        return f"{operation} failed. Please try again later."
+    return PUBLIC_ERROR_MESSAGE

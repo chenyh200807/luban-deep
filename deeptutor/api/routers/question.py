@@ -18,7 +18,7 @@ from deeptutor.services.path_service import get_path_service
 from deeptutor.services.settings.interface_settings import get_ui_language
 from deeptutor.tools.question import mimic_exam_questions
 from deeptutor.utils.document_validator import DocumentValidator
-from deeptutor.utils.error_utils import format_exception_message
+from deeptutor.utils.error_utils import public_error_detail
 
 # Setup module logger with unified logging system (from config)
 config = load_config_with_main("main.yaml", PROJECT_ROOT)
@@ -288,7 +288,7 @@ async def websocket_mimic_generate(websocket: WebSocket):
         logger.debug("Client disconnected during mimic generation")
     except Exception as e:
         logger.exception("Mimic generation error")
-        error_msg = format_exception_message(e)
+        error_msg = public_error_detail("Question generation")
         try:
             await websocket.send_json({"type": "error", "content": error_msg})
         except Exception:
@@ -478,11 +478,11 @@ async def websocket_question_generate(websocket: WebSocket):
                 except (RuntimeError, WebSocketDisconnect):
                     logger.debug("WebSocket closed, cannot send complete signal")
 
-        except Exception as e:
-            error_msg = format_exception_message(e)
-            error_traceback = traceback.format_exc()
-            logger.error(f"Question generation error: {error_msg}")
-            logger.error(f"Error traceback:\n{error_traceback}")
+    except Exception as e:
+        error_msg = public_error_detail("Question generation")
+        error_traceback = traceback.format_exc()
+        logger.error(f"Question generation error: {e}")
+        logger.error(f"Error traceback:\n{error_traceback}")
 
             # Log additional context if available
             try:
@@ -521,5 +521,5 @@ async def websocket_question_generate(websocket: WebSocket):
     except WebSocketDisconnect:
         logger.debug("Client disconnected")
     except Exception as e:
-        error_msg = format_exception_message(e)
-        logger.error(f"WebSocket error: {error_msg}")
+        error_msg = public_error_detail("Question generation")
+        logger.error(f"WebSocket error: {e}")

@@ -44,6 +44,10 @@ class BrainstormAdapterTool(Tool):
 
 
 class RAGAdapterTool(Tool):
+    def __init__(self) -> None:
+        self._runtime_context: dict[str, Any] = {}
+        self._last_trace_metadata: dict[str, Any] = {}
+
     @property
     def name(self) -> str:
         return "rag"
@@ -77,11 +81,68 @@ class RAGAdapterTool(Tool):
     async def execute(self, **kwargs: Any) -> str:
         from deeptutor.tools.rag_tool import rag_search
 
+        kb_name = self._normalize_requested_kb(str(kwargs.get("kb_name") or "").strip()) or self._resolve_default_kb()
         result = await rag_search(
             query=kwargs.get("query", ""),
-            kb_name=kwargs.get("kb_name"),
+            kb_name=kb_name or None,
         )
+        exact_question = result.get("exact_question") if isinstance(result.get("exact_question"), dict) else None
+        sources = result.get("sources") if isinstance(result.get("sources"), list) else []
+        self._last_trace_metadata = {
+            "kb_name": kb_name or "",
+            "sources": sources[:8],
+            "tool_source_count": len(sources),
+            "exact_question": exact_question or {},
+            "authority_applied": False,
+        }
         return result.get("answer") or result.get("content", "")
+
+    def set_runtime_context(self, **kwargs: Any) -> None:
+        metadata = kwargs.get("metadata")
+        self._runtime_context = dict(metadata) if isinstance(metadata, dict) else {}
+
+    def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+        preview = dict(params or {})
+        normalized = self._normalize_requested_kb(str(preview.get("kb_name") or "").strip()) or self._resolve_default_kb()
+        if normalized:
+            preview["kb_name"] = normalized
+        return preview
+
+    def consume_trace_metadata(self) -> dict[str, Any] | None:
+        metadata = dict(self._last_trace_metadata)
+        self._last_trace_metadata = {}
+        return metadata or None
+
+    def _resolve_default_kb(self) -> str:
+        metadata = self._runtime_context
+        direct = str(metadata.get("default_kb") or "").strip()
+        if direct:
+            return direct
+        for key in ("knowledge_bases", "default_knowledge_bases"):
+            values = metadata.get(key)
+            if isinstance(values, list):
+                for item in values:
+                    normalized = str(item or "").strip()
+                    if normalized:
+                        return normalized
+        return ""
+
+    def _normalize_requested_kb(self, requested: str) -> str:
+        normalized = str(requested or "").strip()
+        if not normalized:
+            return ""
+        default_kb = self._resolve_default_kb()
+        if not default_kb:
+            return normalized
+        aliases = self._runtime_context.get("kb_aliases")
+        alias_set = {
+            str(item or "").strip().lower()
+            for item in (aliases if isinstance(aliases, list) else [])
+            if str(item or "").strip()
+        }
+        if normalized.strip().lower() in alias_set:
+            return default_kb
+        return normalized
 
 
 class CodeExecutionAdapterTool(Tool):

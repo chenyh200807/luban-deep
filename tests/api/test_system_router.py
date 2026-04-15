@@ -49,6 +49,10 @@ def test_turn_contract_endpoint_exposes_unified_schema() -> None:
     assert "start_turn_message" in body["schemas"]
     assert "turn_start_response" in body["schemas"]
     assert "bot_id" in body["trace_fields"]
+    assert "execution_engine" in body["trace_fields"]
+    assert "tool_calls" in body["trace_fields"]
+    assert "sources" in body["trace_fields"]
+    assert "authority_applied" in body["trace_fields"]
     assert body["docs"]["contract"] == "/CONTRACT.md"
     assert body["docs"]["guide"] == "/docs/zh/guide/unified-turn-contract.md"
 
@@ -76,6 +80,8 @@ def test_runtime_topology_declares_ws_as_single_stream_entry() -> None:
     body = response.json()
     assert body["primary_runtime"]["transport"] == "/api/v1/ws"
     assert {"router": "mobile", "mode": "http_bootstrap_adapter"} in body["compatibility_routes"]
+    assert {"router": "tutorbot", "mode": "management_http_only"} in body["compatibility_routes"]
+    assert body["deprecated_routes"] == []
     assert all(
         route["mode"] != "streaming_adapter" for route in body["compatibility_routes"]
     )

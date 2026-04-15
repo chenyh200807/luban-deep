@@ -31,13 +31,16 @@ if [ -f "${LANGFUSE_OVERRIDE_FILE}" ] && docker network inspect "${SHARED_LANGFU
     compose_args+=(-f "${LANGFUSE_OVERRIDE_FILE}")
 fi
 
+docker compose "${compose_args[@]}" up -d --no-deps --force-recreate deeptutor
+docker compose "${compose_args[@]}" ps deeptutor
+
 container_id="$(docker compose "${compose_args[@]}" ps -q deeptutor)"
 if [ -z "${container_id}" ]; then
     echo "deeptutor 容器未运行，无法执行快速发布。请先完整部署。" >&2
     exit 1
 fi
 
-echo "同步后端代码到运行中的容器 ${container_id} ..."
+echo "同步后端代码到新容器 ${container_id} ..."
 docker cp deeptutor/. "${container_id}:/app/deeptutor/"
 docker cp deeptutor_cli/. "${container_id}:/app/deeptutor_cli/"
 docker cp scripts/. "${container_id}:/app/scripts/"
@@ -45,8 +48,7 @@ docker cp pyproject.toml "${container_id}:/app/pyproject.toml"
 docker cp requirements.txt "${container_id}:/app/requirements.txt"
 docker cp requirements/. "${container_id}:/app/requirements/"
 
-docker compose "${compose_args[@]}" restart deeptutor
-docker compose "${compose_args[@]}" ps deeptutor
+docker restart "${container_id}" >/dev/null
 
 backend_port="$(read_env_default BACKEND_PORT 8001)"
 frontend_port="$(read_env_default FRONTEND_PORT 3782)"

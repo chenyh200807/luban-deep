@@ -8,7 +8,7 @@ domains:
       - contracts/turn.md
       - docs/zh/guide/unified-turn-contract.md
       - deeptutor/contracts/unified_turn.py
-      - deeptutor/contracts/tutorbot_profiles.py
+      - deeptutor/contracts/bot_runtime_defaults.py
       - contracts/index.yaml
     protected_patterns:
       - deeptutor/api/routers/unified_ws.py
@@ -32,7 +32,7 @@ domains:
       - tests/api/test_mobile_router.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
-      - deeptutor/contracts/tutorbot_profiles.py
+      - deeptutor/contracts/bot_runtime_defaults.py
 
   capability:
     summary: Capability routing, request config schema, orchestrator ownership.
@@ -66,7 +66,7 @@ domains:
       - CONTRACT.md
       - contracts/rag.md
       - contracts/index.yaml
-      - deeptutor/contracts/tutorbot_profiles.py
+      - deeptutor/contracts/bot_runtime_defaults.py
     protected_patterns:
       - deeptutor/services/rag/*.py
       - deeptutor/services/rag/**/*.py
@@ -82,7 +82,7 @@ domains:
       - tests/services/rag/test_supabase_strategy.py
       - tests/agents/chat/test_agentic_parallel_tools.py
     schema_files:
-      - deeptutor/contracts/tutorbot_profiles.py
+      - deeptutor/contracts/bot_runtime_defaults.py
 
   config_runtime:
     summary: Runtime config loading, env/catalog precedence, provider resolution.
