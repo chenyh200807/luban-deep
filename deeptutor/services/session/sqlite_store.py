@@ -39,6 +39,64 @@ def _json_loads(value: str | None, default: Any) -> Any:
         return default
 
 
+def build_user_owner_key(user_id: str | None) -> str:
+    resolved = str(user_id or "").strip()
+    return f"user:{resolved}" if resolved else ""
+
+
+def _normalize_session_source(value: Any) -> str:
+    return str(value or "").strip().lower()
+
+
+def _derive_owner_key_from_preferences(preferences: dict[str, Any] | None) -> str:
+    if not isinstance(preferences, dict):
+        return ""
+    explicit = str(preferences.get("owner_key") or "").strip()
+    if explicit:
+        return explicit
+    return build_user_owner_key(preferences.get("user_id"))
+
+
+def _derive_session_source(
+    preferences: dict[str, Any] | None,
+    current_source: str | None = "",
+) -> str:
+    if isinstance(preferences, dict) and "source" in preferences:
+        return _normalize_session_source(preferences.get("source"))
+    return _normalize_session_source(current_source)
+
+
+def _derive_session_archived(
+    preferences: dict[str, Any] | None,
+    current_archived: Any = 0,
+) -> int:
+    if isinstance(preferences, dict) and "archived" in preferences:
+        return 1 if bool(preferences.get("archived")) else 0
+    return 1 if bool(current_archived) else 0
+
+
+def _resolve_effective_owner_key(row_owner_key: str | None, session_owner_key: str | None) -> str:
+    resolved = str(row_owner_key or "").strip()
+    if resolved:
+        return resolved
+    return str(session_owner_key or "").strip()
+
+
+def _materialize_session_preferences(
+    preferences_json: str | None,
+    source: str | None,
+    archived: Any,
+) -> dict[str, Any]:
+    preferences = _json_loads(preferences_json, {})
+    if not isinstance(preferences, dict):
+        preferences = {}
+    normalized_source = _normalize_session_source(source)
+    if normalized_source:
+        preferences["source"] = normalized_source
+    preferences["archived"] = bool(archived)
+    return preferences
+
+
 def _is_interaction_hint_system_message(content: str | None) -> bool:
     text = str(content or "")
     return any(text.startswith(prefix) for prefix in _INTERACTION_HINT_SYSTEM_PREFIXES)
@@ -232,6 +290,7 @@ class SQLiteSessionStore:
 
     def _initialize(self) -> None:
         with sqlite3.connect(self.db_path, timeout=_SQLITE_TIMEOUT_SECONDS) as conn:
+            conn.row_factory = sqlite3.Row
             conn.execute("PRAGMA foreign_keys = ON")
             conn.execute(f"PRAGMA busy_timeout = {_SQLITE_BUSY_TIMEOUT_MS}")
             conn.execute("PRAGMA journal_mode = WAL")
@@ -245,7 +304,10 @@ class SQLiteSessionStore:
                     updated_at REAL NOT NULL,
                     compressed_summary TEXT DEFAULT '',
                     summary_up_to_msg_id INTEGER DEFAULT 0,
-                    preferences_json TEXT DEFAULT '{}'
+                    preferences_json TEXT DEFAULT '{}',
+                    source TEXT DEFAULT '',
+                    archived INTEGER DEFAULT 0,
+                    owner_key TEXT DEFAULT ''
                 );
 
                 CREATE TABLE IF NOT EXISTS messages (
@@ -302,6 +364,7 @@ class SQLiteSessionStore:
                 CREATE TABLE IF NOT EXISTS notebook_entries (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                    owner_key TEXT DEFAULT '',
                     question_id TEXT NOT NULL,
                     question TEXT NOT NULL,
                     question_type TEXT DEFAULT '',
@@ -327,6 +390,7 @@ class SQLiteSessionStore:
                 CREATE TABLE IF NOT EXISTS notebook_categories (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL UNIQUE,
+                    owner_key TEXT DEFAULT '',
                     created_at REAL NOT NULL
                 );
 
@@ -341,6 +405,125 @@ class SQLiteSessionStore:
             if "preferences_json" not in columns:
                 conn.execute(
                     "ALTER TABLE sessions ADD COLUMN preferences_json TEXT DEFAULT '{}'"
+                )
+            if "source" not in columns:
+                conn.execute("ALTER TABLE sessions ADD COLUMN source TEXT DEFAULT ''")
+            if "archived" not in columns:
+                conn.execute("ALTER TABLE sessions ADD COLUMN archived INTEGER DEFAULT 0")
+            if "owner_key" not in columns:
+                conn.execute("ALTER TABLE sessions ADD COLUMN owner_key TEXT DEFAULT ''")
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_sessions_owner_updated_at
+                    ON sessions(owner_key, updated_at DESC)
+                """
+            )
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_sessions_owner_source_archived_updated
+                    ON sessions(owner_key, source, archived, updated_at DESC)
+                """
+            )
+            rows = conn.execute(
+                """
+                SELECT id, owner_key, source, archived, preferences_json
+                FROM sessions
+                """
+            ).fetchall()
+            for row in rows:
+                preferences = _json_loads(row["preferences_json"], {})
+                derived_owner_key = str(row["owner_key"] or "").strip() or _derive_owner_key_from_preferences(
+                    preferences
+                )
+                derived_source = _derive_session_source(preferences, row["source"])
+                derived_archived = _derive_session_archived(preferences, row["archived"])
+                conn.execute(
+                    """
+                    UPDATE sessions
+                    SET owner_key = ?, source = ?, archived = ?
+                    WHERE id = ?
+                    """,
+                    (
+                        derived_owner_key,
+                        derived_source,
+                        derived_archived,
+                        row["id"],
+                    ),
+                )
+
+            notebook_columns = {
+                row[1] for row in conn.execute("PRAGMA table_info(notebook_entries)").fetchall()
+            }
+            if "owner_key" not in notebook_columns:
+                conn.execute("ALTER TABLE notebook_entries ADD COLUMN owner_key TEXT DEFAULT ''")
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_notebook_entries_owner
+                    ON notebook_entries(owner_key, created_at DESC)
+                """
+            )
+            notebook_rows = conn.execute(
+                """
+                SELECT n.id, n.owner_key, s.owner_key AS session_owner_key
+                FROM notebook_entries n
+                LEFT JOIN sessions s ON s.id = n.session_id
+                WHERE COALESCE(n.owner_key, '') = ''
+                """
+            ).fetchall()
+            for row in notebook_rows:
+                derived_owner_key = _resolve_effective_owner_key(
+                    row["owner_key"],
+                    row["session_owner_key"],
+                )
+                if not derived_owner_key:
+                    continue
+                conn.execute(
+                    "UPDATE notebook_entries SET owner_key = ? WHERE id = ?",
+                    (derived_owner_key, row["id"]),
+                )
+
+            category_columns = {
+                row[1] for row in conn.execute("PRAGMA table_info(notebook_categories)").fetchall()
+            }
+            if "owner_key" not in category_columns:
+                conn.execute("ALTER TABLE notebook_categories ADD COLUMN owner_key TEXT DEFAULT ''")
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_notebook_categories_owner_name
+                    ON notebook_categories(owner_key, name)
+                """
+            )
+            category_rows = conn.execute(
+                """
+                SELECT c.id
+                FROM notebook_categories c
+                WHERE COALESCE(c.owner_key, '') = ''
+                """
+            ).fetchall()
+            for row in category_rows:
+                derived_owner_key_row = conn.execute(
+                    """
+                    SELECT COALESCE(NULLIF(n.owner_key, ''), s.owner_key, '') AS owner_key
+                    FROM notebook_entry_categories ec
+                    INNER JOIN notebook_entries n ON n.id = ec.entry_id
+                    LEFT JOIN sessions s ON s.id = n.session_id
+                    WHERE ec.category_id = ?
+                      AND COALESCE(NULLIF(n.owner_key, ''), s.owner_key, '') != ''
+                    ORDER BY ec.entry_id ASC
+                    LIMIT 1
+                    """,
+                    (row["id"],),
+                ).fetchone()
+                derived_owner_key = (
+                    str(derived_owner_key_row["owner_key"] or "").strip()
+                    if derived_owner_key_row is not None
+                    else ""
+                )
+                if not derived_owner_key:
+                    continue
+                conn.execute(
+                    "UPDATE notebook_categories SET owner_key = ? WHERE id = ?",
+                    (derived_owner_key, row["id"]),
                 )
             conn.commit()
 
@@ -422,17 +605,45 @@ class SQLiteSessionStore:
     def _get_usage_summary_for_session_sync(self, session_id: str) -> dict[str, Any] | None:
         return self._get_usage_summaries_for_sessions_sync([session_id]).get(session_id)
 
-    def _create_session_sync(self, title: str | None = None, session_id: str | None = None) -> dict[str, Any]:
+    def _create_session_sync(
+        self,
+        title: str | None = None,
+        session_id: str | None = None,
+        owner_key: str | None = None,
+        source: str | None = None,
+        archived: bool | None = None,
+    ) -> dict[str, Any]:
         now = time.time()
         resolved_id = session_id or f"unified_{int(now * 1000)}_{uuid.uuid4().hex[:8]}"
         resolved_title = (title or "New conversation").strip() or "New conversation"
+        resolved_owner_key = str(owner_key or "").strip()
+        resolved_source = _normalize_session_source(source)
+        resolved_archived = 1 if bool(archived) else 0
         with self._connect() as conn:
             conn.execute(
                 """
-                INSERT INTO sessions (id, title, created_at, updated_at, compressed_summary, summary_up_to_msg_id)
-                VALUES (?, ?, ?, ?, '', 0)
+                INSERT INTO sessions (
+                    id,
+                    title,
+                    created_at,
+                    updated_at,
+                    compressed_summary,
+                    summary_up_to_msg_id,
+                    source,
+                    archived,
+                    owner_key
+                )
+                VALUES (?, ?, ?, ?, '', 0, ?, ?, ?)
                 """,
-                (resolved_id, resolved_title[:100], now, now),
+                (
+                    resolved_id,
+                    resolved_title[:100],
+                    now,
+                    now,
+                    resolved_source,
+                    resolved_archived,
+                    resolved_owner_key,
+                ),
             )
             conn.commit()
         return {
@@ -443,10 +654,20 @@ class SQLiteSessionStore:
             "updated_at": now,
             "compressed_summary": "",
             "summary_up_to_msg_id": 0,
+            "source": resolved_source,
+            "archived": bool(resolved_archived),
+            "owner_key": resolved_owner_key,
         }
 
-    async def create_session(self, title: str | None = None, session_id: str | None = None) -> dict[str, Any]:
-        return await self._run(self._create_session_sync, title, session_id)
+    async def create_session(
+        self,
+        title: str | None = None,
+        session_id: str | None = None,
+        owner_key: str | None = None,
+        source: str | None = None,
+        archived: bool | None = None,
+    ) -> dict[str, Any]:
+        return await self._run(self._create_session_sync, title, session_id, owner_key, source, archived)
 
     def _get_session_sync(self, session_id: str) -> dict[str, Any] | None:
         with self._connect() as conn:
@@ -460,6 +681,9 @@ class SQLiteSessionStore:
                     s.compressed_summary,
                     s.summary_up_to_msg_id,
                     s.preferences_json,
+                    s.source,
+                    s.archived,
+                    s.owner_key,
                     COALESCE(
                         (
                             SELECT t.status
@@ -500,19 +724,35 @@ class SQLiteSessionStore:
             return None
         payload = dict(row)
         payload["session_id"] = payload["id"]
-        payload["preferences"] = _json_loads(payload.pop("preferences_json", ""), {})
+        payload["preferences"] = _materialize_session_preferences(
+            payload.pop("preferences_json", ""),
+            payload.pop("source", ""),
+            payload.pop("archived", 0),
+        )
+        payload.pop("owner_key", None)
         payload["cost_summary"] = self._get_usage_summary_for_session_sync(payload["id"])
         return payload
 
     async def get_session(self, session_id: str) -> dict[str, Any] | None:
         return await self._run(self._get_session_sync, session_id)
 
-    async def ensure_session(self, session_id: str | None = None) -> dict[str, Any]:
+    async def ensure_session(
+        self,
+        session_id: str | None = None,
+        owner_key: str | None = None,
+        source: str | None = None,
+        archived: bool | None = None,
+    ) -> dict[str, Any]:
         if session_id:
             session = await self.get_session(session_id)
             if session is not None:
                 return session
-        return await self.create_session(session_id=session_id)
+        return await self.create_session(
+            session_id=session_id,
+            owner_key=owner_key,
+            source=source,
+            archived=archived,
+        )
 
     @staticmethod
     def _serialize_turn(row: sqlite3.Row) -> dict[str, Any]:
@@ -900,6 +1140,9 @@ class SQLiteSessionStore:
                     s.compressed_summary,
                     s.summary_up_to_msg_id,
                     s.preferences_json,
+                    s.source,
+                    s.archived,
+                    s.owner_key,
                     COUNT(m.id) AS message_count,
                     COALESCE(
                         (
@@ -955,13 +1198,148 @@ class SQLiteSessionStore:
         for row in rows:
             payload = dict(row)
             payload["session_id"] = payload["id"]
-            payload["preferences"] = _json_loads(payload.pop("preferences_json", ""), {})
+            payload["preferences"] = _materialize_session_preferences(
+                payload.pop("preferences_json", ""),
+                payload.pop("source", ""),
+                payload.pop("archived", 0),
+            )
+            payload.pop("owner_key", None)
             payload["cost_summary"] = usage_summaries.get(payload["id"])
             sessions.append(payload)
         return sessions
 
     async def list_sessions(self, limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
         return await self._run(self._list_sessions_sync, limit, offset)
+
+    def _list_sessions_by_owner_sync(
+        self,
+        owner_key: str,
+        source: str | None = None,
+        archived: bool | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        with self._connect() as conn:
+            conditions = ["s.owner_key = ?"]
+            params: list[Any] = [owner_key]
+            if source is not None:
+                conditions.append("s.source = ?")
+                params.append(_normalize_session_source(source))
+            if archived is not None:
+                conditions.append("s.archived = ?")
+                params.append(1 if bool(archived) else 0)
+            where_clause = " AND ".join(conditions)
+            rows = conn.execute(
+                f"""
+                SELECT
+                    s.id,
+                    s.title,
+                    s.created_at,
+                    s.updated_at,
+                    s.compressed_summary,
+                    s.summary_up_to_msg_id,
+                    s.preferences_json,
+                    s.source,
+                    s.archived,
+                    s.owner_key,
+                    COUNT(m.id) AS message_count,
+                    COALESCE(
+                        (
+                            SELECT t.status
+                            FROM turns t
+                            WHERE t.session_id = s.id
+                            ORDER BY t.updated_at DESC
+                            LIMIT 1
+                        ),
+                        'idle'
+                    ) AS status,
+                    COALESCE(
+                        (
+                            SELECT t.id
+                            FROM turns t
+                            WHERE t.session_id = s.id AND t.status = 'running'
+                            ORDER BY t.updated_at DESC
+                            LIMIT 1
+                        ),
+                        ''
+                    ) AS active_turn_id,
+                    COALESCE(
+                        (
+                            SELECT t.capability
+                            FROM turns t
+                            WHERE t.session_id = s.id
+                            ORDER BY t.updated_at DESC
+                            LIMIT 1
+                        ),
+                        ''
+                    ) AS capability,
+                    COALESCE(
+                        (
+                            SELECT m2.content
+                            FROM messages m2
+                            WHERE m2.session_id = s.id
+                              AND TRIM(COALESCE(m2.content, '')) != ''
+                            ORDER BY m2.id DESC
+                            LIMIT 1
+                        ),
+                        ''
+                    ) AS last_message
+                FROM sessions s
+                LEFT JOIN messages m ON m.session_id = s.id
+                WHERE {where_clause}
+                GROUP BY s.id
+                ORDER BY s.updated_at DESC
+                LIMIT ? OFFSET ?
+                """,
+                tuple(params) + (limit, offset),
+            ).fetchall()
+        sessions = []
+        usage_summaries = self._get_usage_summaries_for_sessions_sync([str(row["id"]) for row in rows])
+        for row in rows:
+            payload = dict(row)
+            payload["session_id"] = payload["id"]
+            payload["preferences"] = _materialize_session_preferences(
+                payload.pop("preferences_json", ""),
+                payload.pop("source", ""),
+                payload.pop("archived", 0),
+            )
+            payload.pop("owner_key", None)
+            payload["cost_summary"] = usage_summaries.get(payload["id"])
+            sessions.append(payload)
+        return sessions
+
+    async def list_sessions_by_owner(
+        self,
+        owner_key: str,
+        source: str | None = None,
+        archived: bool | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        return await self._run(
+            self._list_sessions_by_owner_sync,
+            owner_key,
+            source,
+            archived,
+            limit,
+            offset,
+        )
+
+    def _get_session_owner_key_sync(self, session_id: str) -> str:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT owner_key, preferences_json FROM sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+        if row is None:
+            return ""
+        owner_key = str(row["owner_key"] or "").strip()
+        if owner_key:
+            return owner_key
+        return _derive_owner_key_from_preferences(_json_loads(row["preferences_json"], {}))
+
+    async def get_session_owner_key(self, session_id: str) -> str:
+        return await self._run(self._get_session_owner_key_sync, session_id)
 
     def _update_summary_sync(self, session_id: str, summary: str, up_to_msg_id: int) -> bool:
         with self._connect() as conn:
@@ -982,7 +1360,7 @@ class SQLiteSessionStore:
     def _update_session_preferences_sync(self, session_id: str, preferences: dict[str, Any]) -> bool:
         with self._connect() as conn:
             current = conn.execute(
-                "SELECT preferences_json FROM sessions WHERE id = ?",
+                "SELECT preferences_json, owner_key, source, archived FROM sessions WHERE id = ?",
                 (session_id,),
             ).fetchone()
             if current is None:
@@ -991,13 +1369,16 @@ class SQLiteSessionStore:
                 **_json_loads(current["preferences_json"], {}),
                 **(preferences or {}),
             }
+            owner_key = _derive_owner_key_from_preferences(merged) or str(current["owner_key"] or "").strip()
+            source = _derive_session_source(merged, current["source"])
+            archived = _derive_session_archived(merged, current["archived"])
             cur = conn.execute(
                 """
                 UPDATE sessions
-                SET preferences_json = ?, updated_at = ?
+                SET preferences_json = ?, source = ?, archived = ?, owner_key = ?, updated_at = ?
                 WHERE id = ?
                 """,
-                (_json_dumps(merged), time.time(), session_id),
+                (_json_dumps(merged), source, archived, owner_key, time.time(), session_id),
             )
             conn.commit()
         return cur.rowcount > 0
@@ -1087,8 +1468,16 @@ class SQLiteSessionStore:
             return 0
         now = time.time()
         with self._connect() as conn:
-            if conn.execute("SELECT id FROM sessions WHERE id = ?", (session_id,)).fetchone() is None:
+            session_row = conn.execute(
+                "SELECT id, owner_key, preferences_json FROM sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+            if session_row is None:
                 raise ValueError(f"Session not found: {session_id}")
+            session_owner_key = _resolve_effective_owner_key(
+                session_row["owner_key"],
+                _derive_owner_key_from_preferences(_json_loads(session_row["preferences_json"], {})),
+            )
             upserted = 0
             for item in items:
                 question = (item.get("question") or "").strip()
@@ -1098,18 +1487,20 @@ class SQLiteSessionStore:
                 conn.execute(
                     """
                     INSERT INTO notebook_entries (
-                        session_id, question_id, question, question_type,
+                        session_id, owner_key, question_id, question, question_type,
                         options_json, correct_answer, explanation, difficulty,
                         user_answer, is_correct, bookmarked, followup_session_id,
                         created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, '', ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, '', ?, ?)
                     ON CONFLICT(session_id, question_id) DO UPDATE SET
                         user_answer = excluded.user_answer,
                         is_correct = excluded.is_correct,
+                        owner_key = excluded.owner_key,
                         updated_at = excluded.updated_at
                     """,
                     (
                         session_id,
+                        session_owner_key,
                         question_id,
                         question,
                         item.get("question_type") or "",
@@ -1160,6 +1551,7 @@ class SQLiteSessionStore:
         is_correct: bool | None,
         limit: int,
         offset: int,
+        owner_key: str | None = None,
     ) -> dict[str, Any]:
         base = """
             SELECT
@@ -1171,15 +1563,28 @@ class SQLiteSessionStore:
             FROM notebook_entries n
             LEFT JOIN sessions s ON s.id = n.session_id
         """
-        count_base = "SELECT COUNT(*) AS cnt FROM notebook_entries n"
+        count_base = """
+            SELECT COUNT(*) AS cnt
+            FROM notebook_entries n
+            LEFT JOIN sessions s ON s.id = n.session_id
+        """
         conditions: list[str] = []
         params: list[Any] = []
         if category_id is not None:
             join = " INNER JOIN notebook_entry_categories ec ON ec.entry_id = n.id"
             base += join
             count_base += join
+            if owner_key is not None:
+                base += " INNER JOIN notebook_categories c ON c.id = ec.category_id"
+                count_base += " INNER JOIN notebook_categories c ON c.id = ec.category_id"
             conditions.append("ec.category_id = ?")
             params.append(category_id)
+            if owner_key is not None:
+                conditions.append("c.owner_key = ?")
+                params.append(owner_key)
+        if owner_key is not None:
+            conditions.append("COALESCE(NULLIF(n.owner_key, ''), s.owner_key) = ?")
+            params.append(owner_key)
         if bookmarked is not None:
             conditions.append("n.bookmarked = ?")
             params.append(1 if bookmarked else 0)
@@ -1204,24 +1609,31 @@ class SQLiteSessionStore:
         is_correct: bool | None = None,
         limit: int = 50,
         offset: int = 0,
+        owner_key: str | None = None,
     ) -> dict[str, Any]:
         return await self._run(
             self._list_notebook_entries_sync,
-            category_id, bookmarked, is_correct, limit, offset,
+            category_id, bookmarked, is_correct, limit, offset, owner_key,
         )
 
-    def _get_notebook_entry_sync(self, entry_id: int) -> dict[str, Any] | None:
+    def _get_notebook_entry_sync(
+        self,
+        entry_id: int,
+        owner_key: str | None = None,
+    ) -> dict[str, Any] | None:
         with self._connect() as conn:
-            row = conn.execute(
-                """
+            query = """
                 SELECT
                     n.*, COALESCE(s.title, '') AS session_title
                 FROM notebook_entries n
                 LEFT JOIN sessions s ON s.id = n.session_id
                 WHERE n.id = ?
-                """,
-                (entry_id,),
-            ).fetchone()
+            """
+            params: list[Any] = [entry_id]
+            if owner_key is not None:
+                query += " AND COALESCE(NULLIF(n.owner_key, ''), s.owner_key) = ?"
+                params.append(owner_key)
+            row = conn.execute(query, tuple(params)).fetchone()
             if row is None:
                 return None
             entry = self._serialize_notebook_entry(row)
@@ -1231,36 +1643,56 @@ class SQLiteSessionStore:
                 FROM notebook_categories c
                 INNER JOIN notebook_entry_categories ec ON ec.category_id = c.id
                 WHERE ec.entry_id = ?
+                  AND (? IS NULL OR c.owner_key = ?)
                 ORDER BY c.name
                 """,
-                (entry_id,),
+                (entry_id, owner_key, owner_key),
             ).fetchall()
             entry["categories"] = [{"id": c["id"], "name": c["name"]} for c in cats]
         return entry
 
-    async def get_notebook_entry(self, entry_id: int) -> dict[str, Any] | None:
-        return await self._run(self._get_notebook_entry_sync, entry_id)
+    async def get_notebook_entry(
+        self,
+        entry_id: int,
+        owner_key: str | None = None,
+    ) -> dict[str, Any] | None:
+        return await self._run(self._get_notebook_entry_sync, entry_id, owner_key)
 
-    def _find_notebook_entry_sync(self, session_id: str, question_id: str) -> dict[str, Any] | None:
+    def _find_notebook_entry_sync(
+        self,
+        session_id: str,
+        question_id: str,
+        owner_key: str | None = None,
+    ) -> dict[str, Any] | None:
         with self._connect() as conn:
-            row = conn.execute(
-                """
+            query = """
                 SELECT n.*, COALESCE(s.title, '') AS session_title
                 FROM notebook_entries n
                 LEFT JOIN sessions s ON s.id = n.session_id
                 WHERE n.session_id = ? AND n.question_id = ?
-                """,
-                (session_id, question_id),
-            ).fetchone()
+            """
+            params: list[Any] = [session_id, question_id]
+            if owner_key is not None:
+                query += " AND COALESCE(NULLIF(n.owner_key, ''), s.owner_key) = ?"
+                params.append(owner_key)
+            row = conn.execute(query, tuple(params)).fetchone()
         if row is None:
             return None
         return self._serialize_notebook_entry(row)
 
-    async def find_notebook_entry(self, session_id: str, question_id: str) -> dict[str, Any] | None:
-        return await self._run(self._find_notebook_entry_sync, session_id, question_id)
+    async def find_notebook_entry(
+        self,
+        session_id: str,
+        question_id: str,
+        owner_key: str | None = None,
+    ) -> dict[str, Any] | None:
+        return await self._run(self._find_notebook_entry_sync, session_id, question_id, owner_key)
 
     def _update_notebook_entry_sync(
-        self, entry_id: int, updates: dict[str, Any]
+        self,
+        entry_id: int,
+        updates: dict[str, Any],
+        owner_key: str | None = None,
     ) -> bool:
         allowed = {"bookmarked", "followup_session_id", "user_answer", "is_correct"}
         fields = {k: v for k, v in updates.items() if k in allowed}
@@ -1274,6 +1706,19 @@ class SQLiteSessionStore:
         set_clause = ", ".join(f"{k} = ?" for k in fields)
         values = list(fields.values()) + [entry_id]
         with self._connect() as conn:
+            if owner_key is not None:
+                row = conn.execute(
+                    """
+                    SELECT n.id
+                    FROM notebook_entries n
+                    LEFT JOIN sessions s ON s.id = n.session_id
+                    WHERE n.id = ?
+                      AND COALESCE(NULLIF(n.owner_key, ''), s.owner_key) = ?
+                    """,
+                    (entry_id, owner_key),
+                ).fetchone()
+                if row is None:
+                    return False
             cur = conn.execute(
                 f"UPDATE notebook_entries SET {set_clause} WHERE id = ?",
                 tuple(values),
@@ -1281,56 +1726,107 @@ class SQLiteSessionStore:
             conn.commit()
         return cur.rowcount > 0
 
-    async def update_notebook_entry(self, entry_id: int, updates: dict[str, Any]) -> bool:
-        return await self._run(self._update_notebook_entry_sync, entry_id, updates)
+    async def update_notebook_entry(
+        self,
+        entry_id: int,
+        updates: dict[str, Any],
+        owner_key: str | None = None,
+    ) -> bool:
+        return await self._run(self._update_notebook_entry_sync, entry_id, updates, owner_key)
 
-    def _delete_notebook_entry_sync(self, entry_id: int) -> bool:
+    def _delete_notebook_entry_sync(self, entry_id: int, owner_key: str | None = None) -> bool:
         with self._connect() as conn:
+            if owner_key is not None:
+                row = conn.execute(
+                    """
+                    SELECT n.id
+                    FROM notebook_entries n
+                    LEFT JOIN sessions s ON s.id = n.session_id
+                    WHERE n.id = ?
+                      AND COALESCE(NULLIF(n.owner_key, ''), s.owner_key) = ?
+                    """,
+                    (entry_id, owner_key),
+                ).fetchone()
+                if row is None:
+                    return False
             cur = conn.execute("DELETE FROM notebook_entries WHERE id = ?", (entry_id,))
             conn.commit()
         return cur.rowcount > 0
 
-    async def delete_notebook_entry(self, entry_id: int) -> bool:
-        return await self._run(self._delete_notebook_entry_sync, entry_id)
+    async def delete_notebook_entry(self, entry_id: int, owner_key: str | None = None) -> bool:
+        return await self._run(self._delete_notebook_entry_sync, entry_id, owner_key)
 
     # ── Notebook categories ────────────────────────────────────────
 
-    def _create_category_sync(self, name: str) -> dict[str, Any]:
+    def _create_category_sync(self, name: str, owner_key: str | None = None) -> dict[str, Any]:
         now = time.time()
         with self._connect() as conn:
             cur = conn.execute(
-                "INSERT INTO notebook_categories (name, created_at) VALUES (?, ?)",
-                (name.strip(), now),
+                "INSERT INTO notebook_categories (name, owner_key, created_at) VALUES (?, ?, ?)",
+                (name.strip(), str(owner_key or "").strip(), now),
             )
             conn.commit()
-        return {"id": int(cur.lastrowid), "name": name.strip(), "created_at": now}
+        return {
+            "id": int(cur.lastrowid),
+            "name": name.strip(),
+            "owner_key": str(owner_key or "").strip(),
+            "created_at": now,
+        }
 
-    async def create_category(self, name: str) -> dict[str, Any]:
-        return await self._run(self._create_category_sync, name)
+    async def create_category(self, name: str, owner_key: str | None = None) -> dict[str, Any]:
+        return await self._run(self._create_category_sync, name, owner_key)
 
-    def _list_categories_sync(self) -> list[dict[str, Any]]:
+    def _list_categories_sync(self, owner_key: str | None = None) -> list[dict[str, Any]]:
         with self._connect() as conn:
-            rows = conn.execute(
-                """
-                SELECT c.id, c.name, c.created_at,
-                       COUNT(ec.entry_id) AS entry_count
-                FROM notebook_categories c
-                LEFT JOIN notebook_entry_categories ec ON ec.category_id = c.id
-                GROUP BY c.id
-                ORDER BY c.name
-                """,
-            ).fetchall()
+            if owner_key is None:
+                rows = conn.execute(
+                    """
+                    SELECT c.id, c.name, c.created_at,
+                           COUNT(ec.entry_id) AS entry_count
+                    FROM notebook_categories c
+                    LEFT JOIN notebook_entry_categories ec ON ec.category_id = c.id
+                    GROUP BY c.id
+                    ORDER BY c.name
+                    """,
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    """
+                    SELECT c.id, c.name, c.created_at,
+                           COUNT(ec.entry_id) AS entry_count
+                    FROM notebook_categories c
+                    LEFT JOIN notebook_entry_categories ec ON ec.category_id = c.id
+                    LEFT JOIN notebook_entries n ON n.id = ec.entry_id
+                    LEFT JOIN sessions s ON s.id = n.session_id
+                    WHERE c.owner_key = ?
+                    GROUP BY c.id
+                    ORDER BY c.name
+                    """,
+                    (owner_key,),
+                ).fetchall()
         return [
             {"id": r["id"], "name": r["name"], "created_at": float(r["created_at"]),
              "entry_count": int(r["entry_count"])}
             for r in rows
         ]
 
-    async def list_categories(self) -> list[dict[str, Any]]:
-        return await self._run(self._list_categories_sync)
+    async def list_categories(self, owner_key: str | None = None) -> list[dict[str, Any]]:
+        return await self._run(self._list_categories_sync, owner_key)
 
-    def _rename_category_sync(self, category_id: int, name: str) -> bool:
+    def _rename_category_sync(
+        self,
+        category_id: int,
+        name: str,
+        owner_key: str | None = None,
+    ) -> bool:
         with self._connect() as conn:
+            if owner_key is not None:
+                row = conn.execute(
+                    "SELECT id FROM notebook_categories WHERE id = ? AND owner_key = ?",
+                    (category_id, owner_key),
+                ).fetchone()
+                if row is None:
+                    return False
             cur = conn.execute(
                 "UPDATE notebook_categories SET name = ? WHERE id = ?",
                 (name.strip(), category_id),
@@ -1338,21 +1834,55 @@ class SQLiteSessionStore:
             conn.commit()
         return cur.rowcount > 0
 
-    async def rename_category(self, category_id: int, name: str) -> bool:
-        return await self._run(self._rename_category_sync, category_id, name)
+    async def rename_category(
+        self,
+        category_id: int,
+        name: str,
+        owner_key: str | None = None,
+    ) -> bool:
+        return await self._run(self._rename_category_sync, category_id, name, owner_key)
 
-    def _delete_category_sync(self, category_id: int) -> bool:
+    def _delete_category_sync(self, category_id: int, owner_key: str | None = None) -> bool:
         with self._connect() as conn:
+            if owner_key is not None:
+                row = conn.execute(
+                    "SELECT id FROM notebook_categories WHERE id = ? AND owner_key = ?",
+                    (category_id, owner_key),
+                ).fetchone()
+                if row is None:
+                    return False
             cur = conn.execute("DELETE FROM notebook_categories WHERE id = ?", (category_id,))
             conn.commit()
         return cur.rowcount > 0
 
-    async def delete_category(self, category_id: int) -> bool:
-        return await self._run(self._delete_category_sync, category_id)
+    async def delete_category(self, category_id: int, owner_key: str | None = None) -> bool:
+        return await self._run(self._delete_category_sync, category_id, owner_key)
 
-    def _add_entry_to_category_sync(self, entry_id: int, category_id: int) -> bool:
+    def _add_entry_to_category_sync(
+        self,
+        entry_id: int,
+        category_id: int,
+        owner_key: str | None = None,
+    ) -> bool:
         with self._connect() as conn:
             try:
+                if owner_key is not None:
+                    row = conn.execute(
+                        """
+                        SELECT
+                            COALESCE(NULLIF(n.owner_key, ''), s.owner_key, '') AS entry_owner_key,
+                            COALESCE(NULLIF(c.owner_key, ''), '') AS category_owner_key
+                        FROM notebook_entries n
+                        LEFT JOIN sessions s ON s.id = n.session_id
+                        INNER JOIN notebook_categories c ON c.id = ?
+                        WHERE n.id = ?
+                        """,
+                        (category_id, entry_id),
+                    ).fetchone()
+                    if row is None:
+                        return False
+                    if row["entry_owner_key"] != owner_key or row["category_owner_key"] != owner_key:
+                        return False
                 conn.execute(
                     "INSERT OR IGNORE INTO notebook_entry_categories (entry_id, category_id) VALUES (?, ?)",
                     (entry_id, category_id),
@@ -1362,11 +1892,38 @@ class SQLiteSessionStore:
                 return False
         return True
 
-    async def add_entry_to_category(self, entry_id: int, category_id: int) -> bool:
-        return await self._run(self._add_entry_to_category_sync, entry_id, category_id)
+    async def add_entry_to_category(
+        self,
+        entry_id: int,
+        category_id: int,
+        owner_key: str | None = None,
+    ) -> bool:
+        return await self._run(self._add_entry_to_category_sync, entry_id, category_id, owner_key)
 
-    def _remove_entry_from_category_sync(self, entry_id: int, category_id: int) -> bool:
+    def _remove_entry_from_category_sync(
+        self,
+        entry_id: int,
+        category_id: int,
+        owner_key: str | None = None,
+    ) -> bool:
         with self._connect() as conn:
+            if owner_key is not None:
+                row = conn.execute(
+                    """
+                    SELECT
+                        COALESCE(NULLIF(n.owner_key, ''), s.owner_key, '') AS entry_owner_key,
+                        COALESCE(NULLIF(c.owner_key, ''), '') AS category_owner_key
+                    FROM notebook_entries n
+                    LEFT JOIN sessions s ON s.id = n.session_id
+                    INNER JOIN notebook_categories c ON c.id = ?
+                    WHERE n.id = ?
+                    """,
+                    (category_id, entry_id),
+                ).fetchone()
+                if row is None:
+                    return False
+                if row["entry_owner_key"] != owner_key or row["category_owner_key"] != owner_key:
+                    return False
             cur = conn.execute(
                 "DELETE FROM notebook_entry_categories WHERE entry_id = ? AND category_id = ?",
                 (entry_id, category_id),
@@ -1374,24 +1931,38 @@ class SQLiteSessionStore:
             conn.commit()
         return cur.rowcount > 0
 
-    async def remove_entry_from_category(self, entry_id: int, category_id: int) -> bool:
-        return await self._run(self._remove_entry_from_category_sync, entry_id, category_id)
+    async def remove_entry_from_category(
+        self,
+        entry_id: int,
+        category_id: int,
+        owner_key: str | None = None,
+    ) -> bool:
+        return await self._run(self._remove_entry_from_category_sync, entry_id, category_id, owner_key)
 
-    def _get_entry_categories_sync(self, entry_id: int) -> list[dict[str, Any]]:
+    def _get_entry_categories_sync(
+        self,
+        entry_id: int,
+        owner_key: str | None = None,
+    ) -> list[dict[str, Any]]:
         with self._connect() as conn:
-            rows = conn.execute(
-                """
+            query = """
                 SELECT c.id, c.name FROM notebook_categories c
                 INNER JOIN notebook_entry_categories ec ON ec.category_id = c.id
                 WHERE ec.entry_id = ?
-                ORDER BY c.name
-                """,
-                (entry_id,),
-            ).fetchall()
+            """
+            params: list[Any] = [entry_id]
+            if owner_key is not None:
+                query += " AND c.owner_key = ?"
+                params.append(owner_key)
+            rows = conn.execute(query + " ORDER BY c.name", tuple(params)).fetchall()
         return [{"id": r["id"], "name": r["name"]} for r in rows]
 
-    async def get_entry_categories(self, entry_id: int) -> list[dict[str, Any]]:
-        return await self._run(self._get_entry_categories_sync, entry_id)
+    async def get_entry_categories(
+        self,
+        entry_id: int,
+        owner_key: str | None = None,
+    ) -> list[dict[str, Any]]:
+        return await self._run(self._get_entry_categories_sync, entry_id, owner_key)
 
 
 _instance: SQLiteSessionStore | None = None

@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "TabNav":"/components/tabNav/tabNav"
+  },
+  "navigationBarTitleText": "佑森好课",
+  "enablePullDownRefresh": true
+}

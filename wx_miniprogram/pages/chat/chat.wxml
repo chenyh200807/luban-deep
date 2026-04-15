@@ -93,11 +93,7 @@
 	          <text class="tool-chip-icon">◎</text>
 	          <text class="tool-chip-txt">推理</text>
 	        </view>
-	        <view class="tool-chip {{enableWebSearch ? 'on' : ''}}" bindtap="onToggleWebSearch" aria-role="button" aria-label="{{enableWebSearch ? '关闭联网' : '开启联网'}}">
-	          <text class="tool-chip-icon">⌁</text>
-	          <text class="tool-chip-txt">联网</text>
-	        </view>
-	        <text class="tool-hint">知识库检索默认自动开启</text>
+	        <text class="tool-hint">知识库检索默认自动开启，时效性问题会自动联网</text>
 	      </view>
 	    </view>
 
@@ -472,11 +468,7 @@
 	          <text class="tool-chip-icon">◎</text>
 	          <text class="tool-chip-txt">推理</text>
 	        </view>
-	        <view class="tool-chip {{enableWebSearch ? 'on' : ''}}" bindtap="onToggleWebSearch" aria-role="button" aria-label="{{enableWebSearch ? '关闭联网' : '开启联网'}}">
-	          <text class="tool-chip-icon">⌁</text>
-	          <text class="tool-chip-txt">联网</text>
-	        </view>
-	        <text class="tool-hint">知识库检索默认自动开启</text>
+	        <text class="tool-hint">知识库检索默认自动开启，时效性问题会自动联网</text>
 	      </view>
 	    </view>
 	  </view>

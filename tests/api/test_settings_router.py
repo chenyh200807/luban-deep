@@ -46,6 +46,16 @@ class _FakeCatalogService:
     def load(self) -> dict[str, Any]:
         return deepcopy(self._catalog)
 
+    def sanitize(self, catalog: dict[str, Any] | None = None) -> dict[str, Any]:
+        sanitized = deepcopy(catalog or self._catalog)
+        for service in sanitized["services"].values():
+            for profile in service.get("profiles", []):
+                api_key = str(profile.get("api_key") or "")
+                profile["api_key_configured"] = bool(api_key)
+                profile["api_key_last4"] = api_key[-4:] if len(api_key) >= 4 else ""
+                profile["api_key"] = ""
+        return sanitized
+
     def apply(self, catalog: dict[str, Any]) -> dict[str, str]:
         current = self.save(catalog)
         llm_profile = current["services"]["llm"]["profiles"][0]
@@ -240,7 +250,8 @@ async def test_update_catalog_invalidates_runtime_caches(monkeypatch: pytest.Mon
     new_llm_client = llm_client_module.get_llm_client()
     new_embedding_client = embedding_client_module.get_embedding_client()
 
-    assert response == {"catalog": updated_catalog}
+    assert response["catalog"]["services"]["llm"]["profiles"][0]["api_key"] == ""
+    assert response["catalog"]["services"]["llm"]["profiles"][0]["api_key_configured"] is True
     assert old_llm_config.model == "gpt-old"
     assert new_llm_config.model == "gpt-new"
     assert new_llm_config.base_url == "https://new-llm.example/v1"
@@ -285,9 +296,8 @@ async def test_apply_catalog_invalidates_runtime_caches(monkeypatch: pytest.Monk
     new_llm_client = llm_client_module.get_llm_client()
     new_embedding_client = embedding_client_module.get_embedding_client()
 
-    assert response["catalog"] == applied_catalog
-    assert response["env"]["LLM_MODEL"] == "gpt-after-apply"
-    assert response["env"]["EMBEDDING_MODEL"] == "text-embedding-after-apply"
+    assert response["catalog"]["services"]["llm"]["profiles"][0]["api_key"] == ""
+    assert response["catalog"]["services"]["embedding"]["profiles"][0]["api_key"] == ""
     assert new_llm_config.model == "gpt-after-apply"
     assert new_llm_client is not old_llm_client
     assert new_llm_client.config.base_url == "https://after-apply-llm.example/v1"
@@ -335,8 +345,8 @@ async def test_complete_tour_invalidates_runtime_caches(
     new_embedding_client = embedding_client_module.get_embedding_client()
     cache = tour_cache.read_text(encoding="utf-8")
 
-    assert response["env"]["LLM_MODEL"] == "gpt-after-tour"
-    assert response["env"]["EMBEDDING_MODEL"] == "text-embedding-after-tour"
+    assert response["catalog"]["services"]["llm"]["profiles"][0]["api_key"] == ""
+    assert response["catalog"]["services"]["embedding"]["profiles"][0]["api_key"] == ""
     assert response["status"] == "completed"
     assert new_llm_config.model == "gpt-after-tour"
     assert new_llm_client is not old_llm_client

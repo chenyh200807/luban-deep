@@ -1,0 +1,37 @@
+/* components/pointsMall-fow-item/pointsMall-fow-item.wxss */
+.good-fow-wrap{
+  width: 340rpx;
+  border-radius: 10rpx;
+  overflow: hidden;
+  background: #fff;
+  margin-bottom: 29rpx;
+}
+.good-fow-info{
+  padding: 20rpx;
+}
+.good-fow-title{
+  font-size: 26rpx;
+  color: #212121;
+}
+.good-fow-tag>view{
+  display: inline;
+  border-radius: 6rpx;
+  color: #F49646;
+  border: 1rpx solid #F49646;
+  font-size: 20rpx;
+  padding: 2rpx 6rpx;
+  margin-right: 6rpx;
+}
+.good-fow-price{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10rpx;
+  color: #FA3D29;
+}
+.good-fow-price>view:nth-child(2){
+  padding-top: 10rpx;
+  font-size: 24rpx;
+  color: #999999;
+  text-decoration: line-through
+}

@@ -10,19 +10,51 @@ pytest.importorskip("fastapi")
 
 FastAPI = pytest.importorskip("fastapi").FastAPI
 TestClient = pytest.importorskip("fastapi.testclient").TestClient
+from deeptutor.api.dependencies import AuthContext, get_current_user
 notebook_router = importlib.import_module(
     "deeptutor.api.routers.question_notebook"
 ).router
 sessions_router = importlib.import_module("deeptutor.api.routers.sessions").router
 
-from deeptutor.services.session.sqlite_store import SQLiteSessionStore
+from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
 
 
 def _build_app(store: SQLiteSessionStore) -> FastAPI:
     app = FastAPI()
     app.include_router(notebook_router, prefix="/api/v1/question-notebook")
     app.include_router(sessions_router, prefix="/api/v1/sessions")
+    app.dependency_overrides[get_current_user] = lambda: AuthContext(
+        user_id="student_demo",
+        provider="test",
+        token="test-token",
+        claims={"uid": "student_demo"},
+        is_admin=False,
+    )
     return app
+
+
+def _owned_session(
+    store: SQLiteSessionStore,
+    owner_id: str = "student_demo",
+    *,
+    session_id: str | None = None,
+):
+    return asyncio.run(
+        store.create_session(
+            session_id=session_id,
+            owner_key=build_user_owner_key(owner_id),
+        )
+    )
+
+
+def _ctx(user_id: str, *, is_admin: bool = False) -> AuthContext:
+    return AuthContext(
+        user_id=user_id,
+        provider="test",
+        token="test-token",
+        claims={"uid": user_id},
+        is_admin=is_admin,
+    )
 
 
 @pytest.fixture
@@ -72,7 +104,7 @@ def test_list_entries_empty(store: SQLiteSessionStore) -> None:
 
 
 def test_quiz_results_populates_notebook(store: SQLiteSessionStore) -> None:
-    session = asyncio.run(store.create_session(title="Quiz Session"))
+    session = _owned_session(store, session_id="quiz-owned")
     sid = session["id"]
 
     with TestClient(_build_app(store)) as client:
@@ -93,7 +125,7 @@ def test_quiz_results_populates_notebook(store: SQLiteSessionStore) -> None:
 
 
 def test_quiz_results_upserts_on_retry(store: SQLiteSessionStore) -> None:
-    session = asyncio.run(store.create_session())
+    session = _owned_session(store, session_id="quiz-retry")
     sid = session["id"]
 
     with TestClient(_build_app(store)) as client:
@@ -110,8 +142,32 @@ def test_quiz_results_upserts_on_retry(store: SQLiteSessionStore) -> None:
         assert q1["user_answer"] == "B"
 
 
+def test_upsert_runtime_error_is_sanitized(store: SQLiteSessionStore, monkeypatch: pytest.MonkeyPatch) -> None:
+    session = _owned_session(store, session_id="upsert-error")
+
+    async def _boom(*_args, **_kwargs):
+        raise RuntimeError("notebook storage exploded secret")
+
+    monkeypatch.setattr(store, "upsert_notebook_entries", _boom)
+
+    with TestClient(_build_app(store)) as client:
+        resp = client.post(
+            "/api/v1/question-notebook/entries/upsert",
+            json={
+                "session_id": session["id"],
+                "question_id": "q1",
+                "question": "What is 2+2?",
+            },
+        )
+
+    assert resp.status_code == 500
+    detail = resp.json()["detail"]
+    assert detail == "Failed to upsert the notebook entry. Please try again later."
+    assert "notebook storage exploded secret" not in detail
+
+
 def test_bookmark_toggle(store: SQLiteSessionStore) -> None:
-    session = asyncio.run(store.create_session())
+    session = _owned_session(store, session_id="bookmark")
     asyncio.run(store.upsert_notebook_entries(session["id"], [{
         "question_id": "q1", "question": "Q?", "is_correct": False,
     }]))
@@ -133,7 +189,7 @@ def test_bookmark_toggle(store: SQLiteSessionStore) -> None:
 
 
 def test_delete_entry(store: SQLiteSessionStore) -> None:
-    session = asyncio.run(store.create_session())
+    session = _owned_session(store, session_id="delete")
     asyncio.run(store.upsert_notebook_entries(session["id"], [{
         "question_id": "q1", "question": "Q?", "is_correct": False,
     }]))
@@ -145,7 +201,7 @@ def test_delete_entry(store: SQLiteSessionStore) -> None:
 
 
 def test_category_crud_and_association(store: SQLiteSessionStore) -> None:
-    session = asyncio.run(store.create_session())
+    session = _owned_session(store, session_id="category")
     asyncio.run(store.upsert_notebook_entries(session["id"], [{
         "question_id": "q1", "question": "Q?", "is_correct": False,
     }]))
@@ -186,7 +242,7 @@ def test_category_crud_and_association(store: SQLiteSessionStore) -> None:
 
 
 def test_lookup_entry_by_question(store: SQLiteSessionStore) -> None:
-    session = asyncio.run(store.create_session())
+    session = _owned_session(store, session_id="lookup")
     asyncio.run(store.upsert_notebook_entries(session["id"], [{
         "question_id": "q1", "question": "Q?", "is_correct": False,
     }]))
@@ -204,3 +260,112 @@ def test_lookup_entry_by_question(store: SQLiteSessionStore) -> None:
             params={"session_id": session["id"], "question_id": "nope"},
         )
         assert resp404.status_code == 404
+
+
+def test_notebook_rejects_foreign_session_and_entry(store: SQLiteSessionStore) -> None:
+    own_session = _owned_session(store, "student_demo", session_id="own")
+    foreign_session = _owned_session(store, "student_other", session_id="foreign")
+    asyncio.run(store.upsert_notebook_entries(foreign_session["id"], [{
+        "question_id": "q1", "question": "Other?", "is_correct": False,
+    }]))
+    foreign_entry_id = asyncio.run(store.list_notebook_entries(owner_key=build_user_owner_key("student_other")))["items"][0]["id"]
+
+    app = _build_app(store)
+    app.dependency_overrides[get_current_user] = lambda: _ctx("student_demo")
+
+    with TestClient(app) as client:
+        assert client.post(
+            "/api/v1/question-notebook/entries/upsert",
+            json={
+                "session_id": foreign_session["id"],
+                "question_id": "q2",
+                "question": "Denied?",
+            },
+        ).status_code == 404
+
+        assert client.get(
+            "/api/v1/question-notebook/entries/lookup/by-question",
+            params={"session_id": foreign_session["id"], "question_id": "q1"},
+        ).status_code == 404
+
+        assert client.get(f"/api/v1/question-notebook/entries/{foreign_entry_id}").status_code == 404
+        assert client.patch(
+            f"/api/v1/question-notebook/entries/{foreign_entry_id}",
+            json={"bookmarked": True},
+        ).status_code == 404
+        assert client.delete(f"/api/v1/question-notebook/entries/{foreign_entry_id}").status_code == 404
+
+        own_entry = client.post(
+            "/api/v1/question-notebook/entries/upsert",
+            json={
+                "session_id": own_session["id"],
+                "question_id": "q1",
+                "question": "Own?",
+            },
+        )
+        assert own_entry.status_code == 200
+
+
+def test_notebook_scopes_categories_to_owner(store: SQLiteSessionStore) -> None:
+    own_session = _owned_session(store, "student_demo", session_id="own-cat")
+    foreign_session = _owned_session(store, "student_other", session_id="foreign-cat")
+    asyncio.run(store.upsert_notebook_entries(own_session["id"], [{
+        "question_id": "q1", "question": "Own Q?", "is_correct": False,
+    }]))
+    asyncio.run(store.upsert_notebook_entries(foreign_session["id"], [{
+        "question_id": "q2", "question": "Foreign Q?", "is_correct": False,
+    }]))
+    own_entry_id = asyncio.run(store.list_notebook_entries(owner_key=build_user_owner_key("student_demo")))["items"][0]["id"]
+    foreign_entry_id = asyncio.run(store.list_notebook_entries(owner_key=build_user_owner_key("student_other")))["items"][0]["id"]
+
+    own_category = asyncio.run(store.create_category("Math", owner_key=build_user_owner_key("student_demo")))
+    foreign_category = asyncio.run(store.create_category("History", owner_key=build_user_owner_key("student_other")))
+
+    app = _build_app(store)
+    app.dependency_overrides[get_current_user] = lambda: _ctx("student_demo")
+
+    with TestClient(app) as client:
+        cats = client.get("/api/v1/question-notebook/categories").json()
+        assert [item["name"] for item in cats] == ["Math"]
+
+        assert client.get(f"/api/v1/question-notebook/entries/{own_entry_id}").status_code == 200
+        assert client.get(f"/api/v1/question-notebook/entries/{foreign_entry_id}").status_code == 404
+
+        assert client.post(
+            f"/api/v1/question-notebook/entries/{own_entry_id}/categories",
+            json={"category_id": own_category["id"]},
+        ).status_code == 200
+
+        assert client.post(
+            f"/api/v1/question-notebook/entries/{own_entry_id}/categories",
+            json={"category_id": foreign_category["id"]},
+        ).status_code == 400
+
+        assert client.patch(
+            f"/api/v1/question-notebook/categories/{foreign_category['id']}",
+            json={"name": "Biology"},
+        ).status_code == 404
+        assert client.delete(f"/api/v1/question-notebook/categories/{foreign_category['id']}").status_code == 404
+
+
+def test_admin_can_access_foreign_notebook_data(store: SQLiteSessionStore) -> None:
+    foreign_session = _owned_session(store, "student_other", session_id="foreign-admin")
+    asyncio.run(store.upsert_notebook_entries(foreign_session["id"], [{
+        "question_id": "q1", "question": "Foreign?", "is_correct": False,
+    }]))
+    foreign_entry_id = asyncio.run(store.list_notebook_entries(owner_key=build_user_owner_key("student_other")))["items"][0]["id"]
+    foreign_category = asyncio.run(store.create_category("AdminView", owner_key=build_user_owner_key("student_other")))
+
+    app = _build_app(store)
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_user", is_admin=True)
+
+    with TestClient(app) as client:
+        entries = client.get("/api/v1/question-notebook/entries").json()
+        assert any(item["id"] == foreign_entry_id for item in entries["items"])
+        assert client.get(f"/api/v1/question-notebook/entries/{foreign_entry_id}").status_code == 200
+        cats = client.get("/api/v1/question-notebook/categories").json()
+        assert any(category["id"] == foreign_category["id"] for category in cats)
+        assert client.patch(
+            f"/api/v1/question-notebook/categories/{foreign_category['id']}",
+            json={"name": "AdminRenamed"},
+        ).status_code == 200

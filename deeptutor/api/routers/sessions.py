@@ -7,9 +7,10 @@ from __future__ import annotations
 import logging
 
 from pydantic import BaseModel, Field, field_validator
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
-from deeptutor.services.session import get_sqlite_session_store
+from deeptutor.api.dependencies import AuthContext, get_current_user
+from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
 
 logger = logging.getLogger(__name__)
 
@@ -64,19 +65,47 @@ def _format_quiz_results_message(answers: list[QuizResultItem]) -> str:
     return "\n".join(lines)
 
 
+async def _authorize_session_access(
+    session_id: str,
+    current_user: AuthContext,
+) -> None:
+    store = get_sqlite_session_store()
+    owner_key = await store.get_session_owner_key(session_id)
+    if not owner_key:
+        if current_user.is_admin:
+            return
+        raise HTTPException(status_code=404, detail="Session not found")
+    if current_user.is_admin:
+        return
+    if owner_key != build_user_owner_key(current_user.user_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+
+
 @router.get("")
 async def list_sessions(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    current_user: AuthContext = Depends(get_current_user),
 ):
     store = get_sqlite_session_store()
-    sessions = await store.list_sessions(limit=limit, offset=offset)
+    if current_user.is_admin:
+        sessions = await store.list_sessions(limit=limit, offset=offset)
+    else:
+        sessions = await store.list_sessions_by_owner(
+            build_user_owner_key(current_user.user_id),
+            limit=limit,
+            offset=offset,
+        )
     return {"sessions": sessions}
 
 
 @router.get("/{session_id}")
-async def get_session(session_id: str):
+async def get_session(
+    session_id: str,
+    current_user: AuthContext = Depends(get_current_user),
+):
     store = get_sqlite_session_store()
+    await _authorize_session_access(session_id, current_user)
     session = await store.get_session_with_messages(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -84,8 +113,13 @@ async def get_session(session_id: str):
 
 
 @router.patch("/{session_id}")
-async def rename_session(session_id: str, payload: SessionRenameRequest):
+async def rename_session(
+    session_id: str,
+    payload: SessionRenameRequest,
+    current_user: AuthContext = Depends(get_current_user),
+):
     store = get_sqlite_session_store()
+    await _authorize_session_access(session_id, current_user)
     updated = await store.update_session_title(session_id, payload.title)
     if not updated:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -94,8 +128,12 @@ async def rename_session(session_id: str, payload: SessionRenameRequest):
 
 
 @router.delete("/{session_id}")
-async def delete_session(session_id: str):
+async def delete_session(
+    session_id: str,
+    current_user: AuthContext = Depends(get_current_user),
+):
     store = get_sqlite_session_store()
+    await _authorize_session_access(session_id, current_user)
     deleted = await store.delete_session(session_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -103,10 +141,15 @@ async def delete_session(session_id: str):
 
 
 @router.post("/{session_id}/quiz-results")
-async def record_quiz_results(session_id: str, payload: QuizResultsRequest):
+async def record_quiz_results(
+    session_id: str,
+    payload: QuizResultsRequest,
+    current_user: AuthContext = Depends(get_current_user),
+):
     if not payload.answers:
         raise HTTPException(status_code=400, detail="Quiz results are required")
     store = get_sqlite_session_store()
+    await _authorize_session_access(session_id, current_user)
     session = await store.get_session(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")

@@ -99,6 +99,7 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
     assert [message["role"] for message in detail["messages"]] == ["user", "assistant"]
     assert detail["messages"][1]["content"] == "Hello Frank"
     assert detail["preferences"] == {
+        "archived": False,
         "capability": "chat",
         "chat_mode": get_default_chat_mode(),
         "tools": [],
@@ -109,6 +110,74 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["status"] == "completed"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_captures_exact_authority_response_content(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="1. 标准答案\n\n2. 标准答案",
+                metadata={"call_kind": "exact_authority_response", "call_id": "exact-1"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "案例题",
+            "session_id": None,
+            "capability": None,
+            "tools": ["rag"],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    assert events[-1]["type"] == "done"
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert detail["messages"][-1]["role"] == "assistant"
+    assert detail["messages"][-1]["content"] == "1. 标准答案\n\n2. 标准答案"
 
 
 @pytest.mark.asyncio

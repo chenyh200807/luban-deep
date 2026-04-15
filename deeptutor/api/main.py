@@ -1,13 +1,17 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from deeptutor.logging import get_logger
+from deeptutor.logging.context import bind_request_id, reset_request_id
+from deeptutor.services.config import get_env_store
 from deeptutor.services.branding import get_api_title, get_api_welcome_message
 from deeptutor.services.path_service import get_path_service
 
@@ -33,6 +37,19 @@ CONFIG_DRIFT_ERROR_TEMPLATE = (
     "remove the stale tool names from the capability manifests."
 )
 
+_DEFAULT_DEV_CORS_ORIGINS = (
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3782",
+    "http://127.0.0.1:3782",
+)
+_READINESS_CHECK_NAMES = (
+    "config_consistent",
+    "llm_client_ready",
+    "event_bus_ready",
+    "tutorbots_ready",
+)
+
 
 class SafeOutputStaticFiles(StaticFiles):
     """Static file mount that only exposes explicitly whitelisted artifacts."""
@@ -45,6 +62,76 @@ class SafeOutputStaticFiles(StaticFiles):
         if not self._path_service.is_public_output_path(path):
             raise HTTPException(status_code=404, detail="Output not found")
         return await super().get_response(path, scope)
+
+
+def _runtime_environment() -> str:
+    env = (
+        os.getenv("DEEPTUTOR_ENV")
+        or os.getenv("APP_ENV")
+        or os.getenv("ENV")
+        or os.getenv("ENVIRONMENT")
+        or "local"
+    )
+    return str(env).strip().lower()
+
+
+def _is_production_environment() -> bool:
+    return _runtime_environment() in {"prod", "production"}
+
+
+def _default_cors_allow_origins() -> list[str]:
+    if _is_production_environment():
+        return []
+    return list(_DEFAULT_DEV_CORS_ORIGINS)
+
+
+def get_cors_allow_origins() -> list[str]:
+    """Return the effective CORS origin allowlist used by the API app."""
+    raw_allowlist = get_env_store().get("DEEPTUTOR_CORS_ALLOW_ORIGINS", "").strip()
+    if raw_allowlist:
+        origins: list[str] = []
+        seen: set[str] = set()
+        for origin in raw_allowlist.split(","):
+            candidate = origin.strip()
+            if not candidate or candidate == "*":
+                continue
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            origins.append(candidate)
+        if origins:
+            return origins
+        logger.warning(
+            "DEEPTUTOR_CORS_ALLOW_ORIGINS did not contain any valid origins; falling back to defaults"
+        )
+    return _default_cors_allow_origins()
+
+
+def _initial_readiness_checks() -> dict[str, bool]:
+    return {name: False for name in _READINESS_CHECK_NAMES}
+
+
+def _set_readiness_check(app: FastAPI, name: str, ready: bool) -> None:
+    checks = getattr(app.state, "readiness_checks", None)
+    if not isinstance(checks, dict):
+        checks = _initial_readiness_checks()
+    checks[name] = ready
+    app.state.readiness_checks = checks
+    app.state.readiness_ready = bool(checks) and all(checks.values())
+
+
+def get_readyz_payload(app: FastAPI | None = None) -> tuple[int, dict[str, object]]:
+    target_app = app or globals()["app"]
+    checks = getattr(target_app.state, "readiness_checks", _initial_readiness_checks())
+    if not isinstance(checks, dict):
+        checks = _initial_readiness_checks()
+    ready = bool(checks) and all(bool(value) for value in checks.values())
+    payload = {
+        "status": "ok" if ready else "degraded",
+        "ready": ready,
+        "checks": checks,
+    }
+    return (200 if ready else 503, payload)
 
 
 def validate_tool_consistency():
@@ -83,9 +170,12 @@ async def lifespan(app: FastAPI):
     """
     # Execute on startup
     logger.info("Application startup")
+    app.state.readiness_checks = _initial_readiness_checks()
+    app.state.readiness_ready = False
 
     # Validate configuration consistency
     validate_tool_consistency()
+    _set_readiness_check(app, "config_consistent", True)
 
     # Initialize LLM client early so OPENAI_* env vars are available before
     # any downstream provider integrations start.
@@ -94,6 +184,7 @@ async def lifespan(app: FastAPI):
 
         llm_client = get_llm_client()
         logger.info(f"LLM client initialized: model={llm_client.config.model}")
+        _set_readiness_check(app, "llm_client_ready", True)
     except Exception as e:
         logger.warning(f"Failed to initialize LLM client at startup: {e}")
 
@@ -103,15 +194,20 @@ async def lifespan(app: FastAPI):
         event_bus = get_event_bus()
         await event_bus.start()
         logger.info("EventBus started")
+        _set_readiness_check(app, "event_bus_ready", True)
     except Exception as e:
         logger.warning(f"Failed to start EventBus: {e}")
 
     try:
         from deeptutor.services.tutorbot import get_tutorbot_manager
         await get_tutorbot_manager().auto_start_bots()
+        _set_readiness_check(app, "tutorbots_ready", True)
     except Exception as e:
         logger.warning(f"Failed to auto-start TutorBots: {e}")
 
+    app.state.readiness_ready = bool(app.state.readiness_checks) and all(
+        app.state.readiness_checks.values()
+    )
     yield
 
     # Execute on shutdown
@@ -147,31 +243,31 @@ app = FastAPI(
     redirect_slashes=False,
 )
 
-# Log only non-200 requests (uvicorn access_log is disabled in run_server.py)
-_access_logger = logging.getLogger("uvicorn.access")
-
+app.state.readiness_checks = _initial_readiness_checks()
+app.state.readiness_ready = False
 
 @app.middleware("http")
 async def selective_access_log(request, call_next):
-    response = await call_next(request)
-    if response.status_code != 200:
-        query_string = request.url.query
-        request_path = request.url.path if not query_string else f"{request.url.path}?{query_string}"
-        _access_logger.info(
-            '%s - "%s %s HTTP/%s" %d',
-            request.client.host if request.client else "-",
-            request.method,
-            request_path,
-            request.scope.get("http_version", "1.1"),
-            response.status_code,
-        )
-    return response
+    request_id, token = bind_request_id(request.headers.get("X-Request-ID"))
+    request.state.request_id = request_id
+    try:
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        if response.status_code != 200:
+            query_string = request.url.query
+            request_path = request.url.path if not query_string else f"{request.url.path}?{query_string}"
+            logger.info(
+                f'{request.client.host if request.client else "-"} - "{request.method} {request_path} HTTP/{request.scope.get("http_version", "1.1")}" {response.status_code}',
+                extra={"request_id": request_id},
+            )
+        return response
+    finally:
+        reset_request_id(token)
 
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific frontend origin
+    allow_origins=get_cors_allow_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -255,6 +351,12 @@ app.include_router(unified_ws.router, prefix="/api/v1", tags=["unified-ws"])
 @app.get("/")
 async def root():
     return {"message": get_api_welcome_message()}
+
+
+@app.get("/readyz", include_in_schema=False)
+async def readyz():
+    status_code, payload = get_readyz_payload(app)
+    return JSONResponse(status_code=status_code, content=payload)
 
 
 if __name__ == "__main__":

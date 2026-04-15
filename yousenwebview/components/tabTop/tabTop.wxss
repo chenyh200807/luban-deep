@@ -1,0 +1,26 @@
+/* components/tabTop/tabTop.wxss */
+.tabTopWrap{
+  text-align: center;
+  width: 100%;
+  font-weight: bold;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index:9;
+}
+.left_img{
+  /* width: 21rpx;
+  height: 38rpx; */
+  left:30rpx;
+  position: fixed;
+}
+.top_bg{
+  width: 297rpx;
+  height: 90%;
+  background: #F0F1FF;
+  border-radius: 30rpx;
+  filter: blur(20rpx);
+  position: absolute;
+  top: 0;
+  left: 0;
+}

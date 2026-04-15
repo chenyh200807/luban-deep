@@ -1,0 +1,12 @@
+/* components/noData/noData.wxss */
+.noData-wrap{
+  font-size: 24rpx;
+  color: #C3C3C3;
+  text-align: center;
+  padding-top: 100px;
+}
+.noData-wrap>image{
+  width: 374rpx;
+  height: 288rpx;
+  margin: 0rpx auto 30rpx;
+}

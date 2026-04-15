@@ -1,0 +1,14 @@
+<!--pages/wxshop/wxshop.wxml-->
+<view>
+  <view><store-home  appid="wx70b10f0bee143b8e" ></store-home></view>      
+    <!-- page="index" 
+        product-id="商品ID" 
+        bind:success="onSuccess" -->
+</view>
+<!-- <web-view src="https://channels.weixin.qq.com/shop/b/zOBcMDFusfa4SBr?entrance_id=h5"></web-view> -->
+<view>
+  <store-product appid="wx70b10f0bee143b8e"  product-id='10000184031850'></store-product>
+  
+</view>
+
+<button bindtap="gotoshop" >前往</button>

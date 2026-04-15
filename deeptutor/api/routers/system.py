@@ -9,7 +9,7 @@ import time
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from deeptutor.api.dependencies import require_admin
+from deeptutor.api.dependencies import require_admin, route_rate_limit
 from deeptutor.contracts import export_contract_index, export_unified_turn_contract
 from deeptutor.services.config import resolve_search_runtime_config
 from deeptutor.services.embedding import get_embedding_client, get_embedding_config
@@ -159,7 +159,14 @@ async def get_system_status():
     return result
 
 
-@router.post("/test/llm", response_model=TestResponse, dependencies=[Depends(require_admin)])
+@router.post(
+    "/test/llm",
+    response_model=TestResponse,
+    dependencies=[
+        Depends(require_admin),
+        Depends(route_rate_limit("system_test", default_max_requests=5, default_window_seconds=60.0)),
+    ],
+)
 async def test_llm_connection():
     """
     Test LLM model connection by sending a simple completion request
@@ -230,7 +237,10 @@ async def test_llm_connection():
 @router.post(
     "/test/embeddings",
     response_model=TestResponse,
-    dependencies=[Depends(require_admin)],
+    dependencies=[
+        Depends(require_admin),
+        Depends(route_rate_limit("system_test", default_max_requests=5, default_window_seconds=60.0)),
+    ],
 )
 async def test_embeddings_connection():
     """
@@ -282,7 +292,14 @@ async def test_embeddings_connection():
         )
 
 
-@router.post("/test/search", response_model=TestResponse, dependencies=[Depends(require_admin)])
+@router.post(
+    "/test/search",
+    response_model=TestResponse,
+    dependencies=[
+        Depends(require_admin),
+        Depends(route_rate_limit("system_test", default_max_requests=5, default_window_seconds=60.0)),
+    ],
+)
 async def test_search_connection():
     start_time = time.time()
 

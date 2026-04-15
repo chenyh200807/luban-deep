@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import importlib
+import tempfile
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -8,7 +12,15 @@ pytest.importorskip("fastapi")
 
 FastAPI = pytest.importorskip("fastapi").FastAPI
 TestClient = pytest.importorskip("fastapi.testclient").TestClient
+from deeptutor.services.path_service import PathService
+
+_TEST_USER_DATA_DIR = Path(tempfile.mkdtemp(prefix="deeptutor-mobile-tests-")) / "user"
+_TEST_USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
+_ORIGINAL_USER_DATA_DIR = PathService.get_instance()._user_data_dir
+PathService.get_instance()._user_data_dir = _TEST_USER_DATA_DIR
+
 mobile_module = importlib.import_module("deeptutor.api.routers.mobile")
+rate_limit_module = importlib.import_module("deeptutor.api.dependencies.rate_limit")
 router = mobile_module.router
 
 
@@ -16,6 +28,15 @@ def _build_app() -> FastAPI:
     app = FastAPI()
     app.include_router(router, prefix="/api/v1")
     return app
+
+
+@pytest.fixture(autouse=True)
+def _clear_rate_limit_state() -> None:
+    PathService.get_instance()._user_data_dir = _TEST_USER_DATA_DIR
+    rate_limit_module.clear_rate_limit_state()
+    yield
+    rate_limit_module.clear_rate_limit_state()
+    PathService.get_instance()._user_data_dir = _ORIGINAL_USER_DATA_DIR
 
 
 def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -39,6 +60,13 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
     monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "session_store",
+        SimpleNamespace(
+            get_session_owner_key=AsyncMock(return_value="user:student_demo")
+        ),
+    )
 
     with TestClient(_build_app()) as client:
         response = client.post(
@@ -90,6 +118,13 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
     monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "session_store",
+        SimpleNamespace(
+            get_session_owner_key=AsyncMock(return_value="user:student_demo")
+        ),
+    )
 
     with TestClient(_build_app()) as client:
         response = client.post(
@@ -215,7 +250,10 @@ def test_get_conversation_messages_includes_interactive_payload(
     session_payload = {
         "id": "session_mcq",
         "title": "防水工程练习",
-        "preferences": {},
+        "preferences": {
+            "source": "wx_miniprogram",
+            "archived": False,
+        },
         "messages": [
             {
                 "id": 1,
@@ -256,6 +294,7 @@ def test_get_conversation_messages_includes_interactive_payload(
         return session_payload
 
     monkeypatch.setattr(mobile_module.session_store, "get_session_with_messages", _fake_get_session_with_messages)
+    monkeypatch.setattr(mobile_module.session_store, "get_session_owner_key", AsyncMock(return_value="user:student_demo"))
     monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
 
     with TestClient(_build_app()) as client:
@@ -305,9 +344,123 @@ def test_wechat_bind_phone_uses_bound_user(monkeypatch: pytest.MonkeyPatch) -> N
     assert response.json()["user_id"] == "wx_user_1"
 
 
-def test_list_conversations_exposes_cost_summary(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_auth_login_maps_invalid_password_to_401(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _failing_login(_username: str, _password: str):
+        raise ValueError("用户名或密码错误")
+
+    monkeypatch.setattr(mobile_module.member_service, "login_with_password", _failing_login)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/login",
+            json={"username": "student_demo", "password": "bad-password"},
+        )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "用户名或密码错误"
+
+
+def test_auth_login_rate_limits_by_route_and_client_ip(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        rate_limit_module,
+        "_RATE_LIMIT_POLICY_OVERRIDES",
+        {
+            "mobile_auth_login": rate_limit_module.RateLimitPolicy(
+                max_requests=1,
+                window_seconds=60.0,
+            )
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "login_with_password",
+        lambda _username, _password: {"token": "ok"},
+    )
+
+    with TestClient(_build_app()) as client:
+        first = client.post(
+            "/api/v1/auth/login",
+            json={"username": "student_demo", "password": "good-password"},
+        )
+        second = client.post(
+            "/api/v1/auth/login",
+            json={"username": "student_demo", "password": "good-password"},
+        )
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.json()["detail"] == "Too many requests"
+
+
+def test_wechat_login_rate_limits_by_route_and_client_ip(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        rate_limit_module,
+        "_RATE_LIMIT_POLICY_OVERRIDES",
+        {
+            "mobile_wechat_login": rate_limit_module.RateLimitPolicy(
+                max_requests=1,
+                window_seconds=60.0,
+            )
+        },
+    )
+
+    async def _fake_login(_code: str) -> dict[str, str]:
+        return {"token": "ok"}
+
+    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_code", _fake_login)
+
+    with TestClient(_build_app()) as client:
+        first = client.post("/api/v1/wechat/mp/login", json={"code": "abc"})
+        second = client.post("/api/v1/wechat/mp/login", json={"code": "abc"})
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.json()["detail"] == "Too many requests"
+
+
+def test_mobile_chat_start_turn_rejects_other_users_conversation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _fake_get_session_owner_key(_conversation_id: str):
+        return "user:student_other"
+
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(mobile_module.session_store, "get_session_owner_key", _fake_get_session_owner_key)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "继续刚才的对话",
+                "conversation_id": "session_other",
+            },
+        )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Conversation not found"
+
+
+def test_list_conversations_uses_owner_source_and_archived_filters(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
     class FakeSessionStore:
-        async def list_sessions(self, limit: int = 200, offset: int = 0):
+        async def list_sessions_by_owner(
+            self,
+            owner_key: str,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 200,
+            offset: int = 0,
+        ):
+            captured["args"] = {
+                "owner_key": owner_key,
+                "source": source,
+                "archived": archived,
+                "limit": limit,
+                "offset": offset,
+            }
             return [
                 {
                     "id": "session_1",
@@ -347,7 +500,52 @@ def test_list_conversations_exposes_cost_summary(monkeypatch: pytest.MonkeyPatch
         response = client.get("/api/v1/conversations")
 
     assert response.status_code == 200
+    assert captured["args"] == {
+        "owner_key": "user:student_demo",
+        "source": "wx_miniprogram",
+        "archived": False,
+        "limit": 200,
+        "offset": 0,
+    }
     conversation = response.json()["conversations"][0]
     assert conversation["id"] == "session_1"
     assert conversation["cost_summary"]["total_tokens"] == 440
     assert conversation["cost_summary"]["usage_accuracy"] == "mixed"
+
+
+def test_list_conversations_can_request_archived_items(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeSessionStore:
+        async def list_sessions_by_owner(
+            self,
+            owner_key: str,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 200,
+            offset: int = 0,
+        ):
+            captured["args"] = {
+                "owner_key": owner_key,
+                "source": source,
+                "archived": archived,
+                "limit": limit,
+                "offset": offset,
+            }
+            return []
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations?archived=true")
+
+    assert response.status_code == 200
+    assert captured["args"] == {
+        "owner_key": "user:student_demo",
+        "source": "wx_miniprogram",
+        "archived": True,
+        "limit": 200,
+        "offset": 0,
+    }
+    assert response.json()["conversations"] == []

@@ -4,13 +4,14 @@ Two-file public memory API: SUMMARY and PROFILE.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from deeptutor.api.dependencies import require_admin
 from deeptutor.services.memory import MemoryFile, get_memory_service
 from deeptutor.services.session import get_sqlite_session_store
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 _VALID_FILES: set[MemoryFile] = {"summary", "profile"}
 

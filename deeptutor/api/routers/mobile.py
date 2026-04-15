@@ -4,12 +4,17 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from deeptutor.api.dependencies import AuthContext, require_self_or_admin, route_rate_limit
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.member_console import get_member_console_service
-from deeptutor.services.session import get_sqlite_session_store, get_turn_runtime_manager
+from deeptutor.services.session import (
+    build_user_owner_key,
+    get_sqlite_session_store,
+    get_turn_runtime_manager,
+)
 
 router = APIRouter()
 member_service = get_member_console_service()
@@ -32,6 +37,17 @@ def _resolve_user_id(authorization: str | None, user_id: str | None = None) -> s
     if not str(resolved or "").strip():
         raise HTTPException(status_code=401, detail="Authentication required")
     return resolved
+
+
+async def _assert_mobile_conversation_access(conversation_id: str, user_id: str) -> None:
+    resolved_conversation_id = str(conversation_id or "").strip()
+    if not resolved_conversation_id:
+        return
+    owner_key = await session_store.get_session_owner_key(resolved_conversation_id)
+    if not owner_key:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    if owner_key != build_user_owner_key(user_id):
+        raise HTTPException(status_code=404, detail="Conversation not found")
 
 
 def _new_mobile_conversation_id() -> str:
@@ -267,9 +283,15 @@ class BatchConversationRequest(BaseModel):
     conversation_ids: list[str] = Field(default_factory=list)
 
 
-@router.post("/auth/login")
+@router.post(
+    "/auth/login",
+    dependencies=[Depends(route_rate_limit("mobile_auth_login", default_max_requests=10, default_window_seconds=60.0))],
+)
 async def auth_login(body: LoginRequest) -> dict[str, Any]:
-    return member_service.login_with_password(body.username)
+    try:
+        return member_service.login_with_password(body.username, body.password)
+    except ValueError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
 
 
 @router.post("/auth/send-code")
@@ -298,7 +320,12 @@ async def auth_profile_settings(
     return member_service.update_profile(_resolve_user_id(authorization), patch)
 
 
-@router.post("/wechat/mp/login")
+@router.post(
+    "/wechat/mp/login",
+    dependencies=[
+        Depends(route_rate_limit("mobile_wechat_login", default_max_requests=10, default_window_seconds=60.0))
+    ],
+)
 async def wechat_login(body: WechatLoginRequest) -> dict[str, Any]:
     try:
         return await member_service.login_with_wechat_code(body.code)
@@ -370,8 +397,11 @@ async def profile_badges(authorization: str | None = Header(default=None)) -> di
 
 
 @router.get("/bi/radar/{user_id}")
-async def bi_radar(user_id: str, authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    resolved = _resolve_user_id(authorization, user_id=user_id)
+async def bi_radar(
+    user_id: str,
+    current_user: AuthContext = Depends(require_self_or_admin),
+) -> dict[str, Any]:
+    resolved = current_user.user_id if not current_user.is_admin else user_id
     return member_service.get_radar_data(resolved)
 
 
@@ -413,7 +443,10 @@ async def assessment_submit(
 @router.post("/conversations")
 async def create_conversation(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     resolved_user_id = _resolve_user_id(authorization)
-    session = await session_store.ensure_session(_new_mobile_conversation_id())
+    session = await session_store.ensure_session(
+        _new_mobile_conversation_id(),
+        owner_key=build_user_owner_key(resolved_user_id),
+    )
     await session_store.update_session_title(session["id"], "新对话")
     await session_store.update_session_preferences(
         session["id"],
@@ -439,18 +472,14 @@ async def list_conversations(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     resolved_user_id = _resolve_user_id(authorization)
-    sessions = await session_store.list_sessions(limit=200, offset=0)
-    items = []
-    for session in sessions:
-        preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
-        if preferences.get("source") != "wx_miniprogram":
-            continue
-        if str(preferences.get("user_id") or "").strip() != resolved_user_id:
-            continue
-        if bool(preferences.get("archived")) != bool(archived):
-            continue
-        items.append(session)
-    return {"conversations": items}
+    sessions = await session_store.list_sessions_by_owner(
+        build_user_owner_key(resolved_user_id),
+        source="wx_miniprogram",
+        archived=archived,
+        limit=200,
+        offset=0,
+    )
+    return {"conversations": sessions}
 
 
 @router.get("/conversations/{conversation_id}/messages")
@@ -459,15 +488,14 @@ async def get_conversation_messages(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     resolved_user_id = _resolve_user_id(authorization)
+    owner_key = await session_store.get_session_owner_key(conversation_id)
+    if owner_key != build_user_owner_key(resolved_user_id):
+        raise HTTPException(status_code=404, detail="Conversation not found")
     session = await session_store.get_session_with_messages(conversation_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Conversation not found")
     preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
-    if (
-        preferences.get("source") == "wx_miniprogram"
-        and str(preferences.get("user_id") or "").strip()
-        and str(preferences.get("user_id") or "").strip() != resolved_user_id
-    ):
+    if preferences.get("source") != "wx_miniprogram":
         raise HTTPException(status_code=404, detail="Conversation not found")
     return {
         "messages": [_serialize_mobile_message(item) for item in list(session.get("messages") or [])]
@@ -480,14 +508,14 @@ async def delete_conversation(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     resolved_user_id = _resolve_user_id(authorization)
+    owner_key = await session_store.get_session_owner_key(conversation_id)
+    if owner_key != build_user_owner_key(resolved_user_id):
+        raise HTTPException(status_code=404, detail="Conversation not found")
     session = await session_store.get_session(conversation_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Conversation not found")
     preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
-    if (
-        preferences.get("source") != "wx_miniprogram"
-        or str(preferences.get("user_id") or "").strip() != resolved_user_id
-    ):
+    if preferences.get("source") != "wx_miniprogram":
         raise HTTPException(status_code=404, detail="Conversation not found")
     deleted = await session_store.delete_session(conversation_id)
     if not deleted:
@@ -503,14 +531,14 @@ async def batch_conversations(
     resolved_user_id = _resolve_user_id(authorization)
     updated = 0
     for conversation_id in body.conversation_ids:
+        owner_key = await session_store.get_session_owner_key(conversation_id)
+        if owner_key != build_user_owner_key(resolved_user_id):
+            continue
         session = await session_store.get_session(conversation_id)
         if session is None:
             continue
         preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
-        if (
-            preferences.get("source") != "wx_miniprogram"
-            or str(preferences.get("user_id") or "").strip() != resolved_user_id
-        ):
+        if preferences.get("source") != "wx_miniprogram":
             continue
         if body.action == "delete":
             updated += 1 if await session_store.delete_session(conversation_id) else 0
@@ -544,6 +572,7 @@ async def mobile_chat_start_turn(
         raise HTTPException(status_code=400, detail="query is required")
 
     resolved_user_id = _resolve_user_id(authorization)
+    await _assert_mobile_conversation_access(body.conversation_id, resolved_user_id)
     payload = _build_mobile_turn_payload(
         body=body,
         user_id=resolved_user_id,

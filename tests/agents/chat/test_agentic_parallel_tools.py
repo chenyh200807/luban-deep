@@ -781,3 +781,277 @@ async def test_apply_case_exact_question_authority_rewrites_whole_answer(
 
     assert "有限数量制" in corrected
     assert "10.07亿元" not in corrected
+
+
+@pytest.mark.asyncio
+async def test_apply_case_exact_question_authority_renders_full_exact_bundle_without_llm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    context = UnifiedContext(
+        session_id="session-case-full",
+        user_message="某旧城改造工程案例题，请按标准答案作答。",
+        language="zh",
+    )
+    trace = ToolTrace(
+        name="rag",
+        arguments={"query": "案例题"},
+        result="kb result",
+        success=True,
+        sources=[],
+        metadata={
+            "exact_question": {
+                "id": "9717",
+                "stem": "某旧城改造工程案例题",
+                "question_type": "case_study",
+                "answer_kind": "case_study",
+                "coverage_ratio": 1.0,
+                "covered_subquestions": [
+                    {
+                        "display_index": "1",
+                        "prompt": "通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？",
+                        "authoritative_answer": "①潜在投标人数量较多的项目；②大型、技术复杂的项目。①合格制；②有限数量制。",
+                    },
+                    {
+                        "display_index": "4",
+                        "prompt": "按照完全成本法计算的工程施工项目成本是多少亿元？",
+                        "authoritative_answer": "12.10-0.72-1.10=10.28 亿元。工程投标、施工准备、施工过程、竣工验收。",
+                    },
+                ],
+                "missing_subquestions": [],
+            }
+        },
+    )
+
+    async def _unexpected_rewrite(**_kwargs):
+        raise AssertionError("full exact case bundle should not call llm rewrite")
+
+    monkeypatch.setattr(pipeline, "_rewrite_exact_question_response", _unexpected_rewrite)
+
+    corrected = await pipeline._apply_exact_question_authority(
+        context=context,
+        answer_type="problem_solving",
+        content="1. 特点不详。4. 成本约10.07亿元。",
+        tool_traces=[trace],
+        max_tokens=800,
+    )
+
+    assert corrected == (
+        "1. ①潜在投标人数量较多的项目；②大型、技术复杂的项目。①合格制；②有限数量制。\n\n"
+        "4. 12.10-0.72-1.10=10.28 亿元。工程投标、施工准备、施工过程、竣工验收。"
+    )
+
+
+@pytest.mark.asyncio
+async def test_apply_case_exact_question_authority_ignores_answer_type_gate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    context = UnifiedContext(
+        session_id="session-case-full-knowledge",
+        user_message="某旧城改造工程案例题，请按标准答案作答。",
+        language="zh",
+    )
+    trace = ToolTrace(
+        name="rag",
+        arguments={"query": "案例题"},
+        result="kb result",
+        success=True,
+        sources=[],
+        metadata={
+            "exact_question": {
+                "id": "9717",
+                "stem": "某旧城改造工程案例题",
+                "question_type": "case_study",
+                "answer_kind": "case_study",
+                "coverage_ratio": 1.0,
+                "covered_subquestions": [
+                    {
+                        "display_index": "2",
+                        "prompt": "管理策划内容还有哪些？",
+                        "authoritative_answer": "（1）计划、组织、协调方案。",
+                    },
+                    {
+                        "display_index": "4",
+                        "prompt": "按照完全成本法计算的工程施工项目成本是多少亿元？",
+                        "authoritative_answer": "（1）12.10-0.72-1.10=10.28 亿元。",
+                    },
+                ],
+                "missing_subquestions": [],
+            }
+        },
+    )
+
+    async def _unexpected_rewrite(**_kwargs):
+        raise AssertionError("full exact case bundle should not call llm rewrite")
+
+    monkeypatch.setattr(pipeline, "_rewrite_exact_question_response", _unexpected_rewrite)
+
+    corrected = await pipeline._apply_exact_question_authority(
+        context=context,
+        answer_type="knowledge_explainer",
+        content="2. 组织方案、合同管理方案。4. 10.07亿元。",
+        tool_traces=[trace],
+        max_tokens=800,
+    )
+
+    assert corrected == "2. （1）计划、组织、协调方案。\n\n4. （1）12.10-0.72-1.10=10.28 亿元。"
+
+
+@pytest.mark.asyncio
+async def test_run_short_circuits_to_exact_case_authority_before_observing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+
+    trace = ToolTrace(
+        name="rag",
+        arguments={"query": "案例题"},
+        result="kb result",
+        success=True,
+        sources=[{"type": "rag", "title": "case-study"}],
+        metadata={
+            "exact_question": {
+                "id": "9717",
+                "stem": "某旧城改造工程案例题",
+                "question_type": "case_study",
+                "answer_kind": "case_study",
+                "coverage_ratio": 1.0,
+                "covered_subquestions": [
+                    {
+                        "display_index": "1",
+                        "prompt": "通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？",
+                        "authoritative_answer": "（1）①潜在投标人数量较多的项目；②大型、技术复杂的项目。\n（2）①合格制；②有限数量制。",
+                    },
+                    {
+                        "display_index": "4",
+                        "prompt": "按照完全成本法计算的工程施工项目成本是多少亿元？",
+                        "authoritative_answer": "（1）12.10-0.72-1.10=10.28 亿元。\n（2）工程投标、施工准备、施工过程、竣工验收。",
+                    },
+                ],
+                "missing_subquestions": [],
+            }
+        },
+    )
+
+    async def _fake_retrieval_first(*_args, **_kwargs):
+        return [trace]
+
+    async def _unexpected_thinking(*_args, **_kwargs):
+        raise AssertionError("full exact case authority should short-circuit before thinking")
+
+    async def _unexpected_acting(*_args, **_kwargs):
+        raise AssertionError("full exact case authority should short-circuit before acting")
+
+    async def _unexpected_observing(*_args, **_kwargs):
+        raise AssertionError("full exact case authority should short-circuit before observing")
+
+    async def _unexpected_responding(*_args, **_kwargs):
+        raise AssertionError("full exact case authority should short-circuit before llm responding")
+
+    monkeypatch.setattr(pipeline, "_stage_retrieval_first", _fake_retrieval_first)
+    monkeypatch.setattr(pipeline, "_stage_thinking", _unexpected_thinking)
+    monkeypatch.setattr(pipeline, "_stage_acting", _unexpected_acting)
+    monkeypatch.setattr(pipeline, "_stage_observing", _unexpected_observing)
+    monkeypatch.setattr(pipeline, "_stage_responding", _unexpected_responding)
+
+    bus = StreamBus()
+    events, consumer = await _collect_bus_events(bus)
+    context = UnifiedContext(
+        session_id="session-case-run",
+        user_message="某旧城改造工程案例题，请按标准答案作答。",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        language="zh",
+        metadata={"turn_id": "turn-case-run", "knowledge_chain_profile": "construction_exam_grounded"},
+        config_overrides={"interaction_profile": "mini_tutor"},
+    )
+
+    await pipeline.run(context, bus)
+    await asyncio.sleep(0)
+    await bus.close()
+    await consumer
+
+    result_events = [event for event in events if event.type == StreamEventType.RESULT]
+    assert len(result_events) == 1
+    response = result_events[0].metadata["response"]
+    assert "10.28 亿元" in response
+    assert "合格制" in response
+    assert "10.07" not in response
+    assert result_events[0].metadata["observation"] == ""
+    stage_starts = [event.stage for event in events if event.type == StreamEventType.STAGE_START]
+    assert stage_starts == ["responding"]
+
+
+@pytest.mark.asyncio
+async def test_run_uses_retrieval_first_grounding_without_thinking_when_rag_has_evidence(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+
+    trace = ToolTrace(
+        name="rag",
+        arguments={"query": "案例题"},
+        result="标准答案片段",
+        success=True,
+        sources=[{"type": "rag", "title": "case-study"}],
+        metadata={"exact_question": {"id": "9717", "answer_kind": "case_study", "coverage_ratio": 0.4, "covered_subquestions": [{"display_index": "1", "prompt": "Q1", "authoritative_answer": "A1"}], "missing_subquestions": [{"display_index": "2", "prompt": "Q2"}]}},
+    )
+
+    async def _fake_retrieval_first(*_args, **_kwargs):
+        return [trace]
+
+    async def _unexpected_thinking(*_args, **_kwargs):
+        raise AssertionError("grounded retrieval-first path should not call thinking when rag already has evidence")
+
+    async def _unexpected_acting(*_args, **_kwargs):
+        raise AssertionError("grounded retrieval-first path should not call acting twice")
+
+    async def _fake_observing(*_args, **_kwargs):
+        return "已根据 rag 结果整理观察。"
+
+    async def _fake_responding(*_args, **_kwargs):
+        return "基于召回结果整理后的答案。", {"label": "Final response", "trace_kind": "stage"}
+
+    monkeypatch.setattr(pipeline, "_stage_retrieval_first", _fake_retrieval_first)
+    monkeypatch.setattr(pipeline, "_stage_thinking", _unexpected_thinking)
+    monkeypatch.setattr(pipeline, "_stage_acting", _unexpected_acting)
+    monkeypatch.setattr(pipeline, "_stage_observing", _fake_observing)
+    monkeypatch.setattr(pipeline, "_stage_responding", _fake_responding)
+
+    bus = StreamBus()
+    events, consumer = await _collect_bus_events(bus)
+    context = UnifiedContext(
+        session_id="session-case-retrieval-first",
+        user_message="某旧城改造工程案例题，请结合知识库作答。",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        language="zh",
+        metadata={"turn_id": "turn-case-retrieval-first", "knowledge_chain_profile": "construction_exam_grounded"},
+        config_overrides={"interaction_profile": "mini_tutor"},
+    )
+
+    await pipeline.run(context, bus)
+    await asyncio.sleep(0)
+    await bus.close()
+    await consumer
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["response"] == "基于召回结果整理后的答案。"
+    assert result_event.metadata["observation"] == "已根据 rag 结果整理观察。"

@@ -17,11 +17,13 @@ from datetime import datetime
 from enum import Enum
 import json
 import logging
+import os
 from pathlib import Path
 import sys
 from typing import Any, List, Optional, Union
 
 from deeptutor.config.constants import PROJECT_ROOT
+from deeptutor.logging.context import get_request_id
 
 # Note: path_service is imported lazily inside Logger.__init__ to avoid
 # circular import: logging -> services -> services/config -> logging
@@ -81,9 +83,11 @@ class ConsoleFormatter(logging.Formatter):
 
         # Get module name
         module = getattr(record, "module_name", record.name)
+        request_id = getattr(record, "request_id", "") or get_request_id()
 
         # Build module tag [Module]
         module_tag = f"[{module}]"
+        request_tag = f"[req={request_id}]"
 
         # Build level tag with colon
         level_tag = f"{display_level}:"
@@ -104,9 +108,12 @@ class ConsoleFormatter(logging.Formatter):
         # Build output: [Backend] [Module] INFO: Message (module first, then level)
         if self.service_prefix:
             service_tag = f"[{self.service_prefix}]"
-            return f"{dim}{service_tag}{reset} {dim}{module_tag}{reset} {color}{level_tag}{reset} {message}"
+            return (
+                f"{dim}{service_tag}{reset} {dim}{module_tag}{reset} "
+                f"{dim}{request_tag}{reset} {color}{level_tag}{reset} {message}"
+            )
         else:
-            return f"{dim}{module_tag}{reset} {color}{level_tag}{reset} {message}"
+            return f"{dim}{module_tag}{reset} {dim}{request_tag}{reset} {color}{level_tag}{reset} {message}"
 
 
 class FileFormatter(logging.Formatter):
@@ -117,7 +124,7 @@ class FileFormatter(logging.Formatter):
 
     def __init__(self):
         super().__init__(
-            fmt="%(asctime)s [%(levelname)-8s] [%(module_name)-12s] %(message)s",
+            fmt="%(asctime)s [%(levelname)-8s] [%(module_name)-12s] [req=%(request_id)s] %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
 
@@ -125,7 +132,54 @@ class FileFormatter(logging.Formatter):
         # Ensure module_name exists
         if not hasattr(record, "module_name"):
             record.module_name = record.name
+        if not hasattr(record, "request_id") or record.request_id is None:
+            record.request_id = get_request_id()
         return super().format(record)
+
+
+class JSONFileFormatter(logging.Formatter):
+    """Structured JSON formatter for file logging."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        module_name = getattr(record, "module_name", record.name)
+        request_id = getattr(record, "request_id", "") or get_request_id()
+        payload = {
+            "timestamp": datetime.fromtimestamp(record.created).isoformat(),
+            "level": record.levelname,
+            "module": module_name,
+            "message": record.getMessage(),
+            "request_id": request_id,
+        }
+        return json.dumps(payload, ensure_ascii=False)
+
+
+class _RequestContextFilter(logging.Filter):
+    """Attach request context to every record emitted through this logger."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if not hasattr(record, "module_name"):
+            record.module_name = record.name
+        if not hasattr(record, "request_id") or record.request_id is None:
+            record.request_id = get_request_id()
+        return True
+
+
+def _resolve_json_file_output(json_file_output: Optional[bool]) -> bool:
+    """Resolve file format from explicit flag or environment."""
+    if json_file_output is not None:
+        return json_file_output
+
+    env_json = os.getenv("DEEPTUTOR_LOG_JSON", "").strip().lower()
+    if env_json in {"1", "true", "yes", "on"}:
+        return True
+    if env_json in {"0", "false", "no", "off"}:
+        return False
+
+    env_format = os.getenv("DEEPTUTOR_LOG_FILE_FORMAT", "").strip().lower()
+    if env_format:
+        return env_format == "json"
+
+    return False
 
 
 class Logger:
@@ -155,6 +209,7 @@ class Logger:
         file_output: bool = True,
         log_dir: Optional[Union[str, Path]] = None,
         service_prefix: Optional[str] = None,
+        json_file_output: Optional[bool] = None,
     ):
         """
         Initialize logger.
@@ -166,15 +221,18 @@ class Logger:
             file_output: Whether to output to file
             log_dir: Log directory (default: ../user/logs/)
             service_prefix: Optional service layer prefix (e.g., "Backend", "Frontend")
+            json_file_output: Enable JSON file logging when file_output is enabled
         """
         self.name = name
         self.level = getattr(logging, level.upper(), logging.INFO)
         self.service_prefix = service_prefix
+        self.json_file_output = _resolve_json_file_output(json_file_output)
 
         # Create underlying Python logger
         self.logger = logging.getLogger(f"deeptutor.{name}")
         self.logger.setLevel(logging.DEBUG)  # Capture all, filter at handlers
         self.logger.handlers.clear()
+        self.logger.addFilter(_RequestContextFilter())
         self.logger.propagate = False  # Prevent duplicate logs from root logger
         # Setup log directory
         log_dir_path: Path
@@ -206,7 +264,9 @@ class Logger:
 
             file_handler = logging.FileHandler(log_file, encoding="utf-8")
             file_handler.setLevel(logging.DEBUG)  # Log everything to file
-            file_handler.setFormatter(FileFormatter())
+            file_handler.setFormatter(
+                JSONFileFormatter() if self.json_file_output else FileFormatter()
+            )
             self.logger.addHandler(file_handler)
 
             self._log_file = log_file
@@ -234,7 +294,7 @@ class Logger:
 
         handler = logging.FileHandler(task_log_file, encoding="utf-8")
         handler.setLevel(logging.DEBUG)
-        handler.setFormatter(FileFormatter())
+        handler.setFormatter(JSONFileFormatter() if self.json_file_output else FileFormatter())
         self.logger.addHandler(handler)
         self._task_handlers.append(handler)
 
@@ -267,6 +327,9 @@ class Logger:
             "module_name": self.name,
             "display_level": display_level or logging.getLevelName(level),
         }
+        user_extra = kwargs.get("extra")
+        if isinstance(user_extra, dict):
+            extra.update(user_extra)
         # Extract standard logging parameters from kwargs
         log_kwargs = {
             "extra": extra,
@@ -632,12 +695,13 @@ def set_default_service_prefix(prefix: Optional[str]):
 
 def get_logger(
     name: str = "Main",
-    level: Optional[str] = None,
-    console_output: bool = True,
-    file_output: bool = True,
-    log_dir: Optional[str] = None,
-    service_prefix: Optional[str] = None,
-) -> Logger:
+        level: Optional[str] = None,
+        console_output: bool = True,
+        file_output: bool = True,
+        log_dir: Optional[str] = None,
+        service_prefix: Optional[str] = None,
+        json_file_output: Optional[bool] = None,
+    ) -> Logger:
     """
     Get or create a logger instance.
 
@@ -648,6 +712,7 @@ def get_logger(
         file_output: Enable file output
         log_dir: Log directory (if None, will try to load from config/main.yaml)
         service_prefix: Optional service prefix (if None, uses default set by set_default_service_prefix)
+        json_file_output: Enable JSON file logging for file handlers
 
     Returns:
         Logger instance
@@ -658,6 +723,7 @@ def get_logger(
     effective_service_prefix = (
         service_prefix if service_prefix is not None else _default_service_prefix
     )
+    effective_json_file_output = _resolve_json_file_output(json_file_output)
 
     # Load config for log_dir and level
     effective_level = level
@@ -687,6 +753,7 @@ def get_logger(
         file_output,
         log_dir_key,
         effective_service_prefix,
+        effective_json_file_output,
     )
 
     if cache_key not in _loggers:
@@ -697,6 +764,7 @@ def get_logger(
             file_output=file_output,
             log_dir=log_dir,
             service_prefix=effective_service_prefix,
+            json_file_output=effective_json_file_output,
         )
 
     return _loggers[cache_key]

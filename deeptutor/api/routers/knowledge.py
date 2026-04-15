@@ -15,6 +15,7 @@ from uuid import uuid4
 from fastapi import (
     APIRouter,
     BackgroundTasks,
+    Depends,
     File,
     Form,
     HTTPException,
@@ -28,6 +29,7 @@ from pydantic import BaseModel
 from deeptutor.api.utils.progress_broadcaster import ProgressBroadcaster
 from deeptutor.api.utils.task_id_manager import TaskIDManager
 from deeptutor.api.utils.task_log_stream import capture_task_logs, get_task_stream_manager
+from deeptutor.api.dependencies import require_admin
 from deeptutor.knowledge.add_documents import DocumentAdder
 from deeptutor.knowledge.initializer import KnowledgeBaseInitializer
 from deeptutor.knowledge.manager import KnowledgeBaseManager
@@ -47,9 +49,23 @@ logger = get_logger("Knowledge", level="INFO", log_dir=log_dir)
 
 router = APIRouter()
 
+_ALLOWED_LINK_FOLDER_ROOT_ENV_VARS = (
+    "DEEPTUTOR_KNOWLEDGE_FOLDER_ROOTS",
+    "DEEPTUTOR_KNOWLEDGE_LINK_ROOTS",
+)
+
 # Constants for byte conversions
 BYTES_PER_GB = 1024**3
 BYTES_PER_MB = 1024**2
+
+
+def _public_failure_message(action: str) -> str:
+    return f"Failed to {action}. Please try again later."
+
+
+def _raise_internal_error(action: str) -> None:
+    logger.exception(f"Knowledge base {action} failed")
+    raise HTTPException(status_code=500, detail=_public_failure_message(action))
 
 
 def format_bytes_human_readable(size_bytes: int) -> str:
@@ -190,6 +206,44 @@ def _validate_registered_provider(raw_provider: str | None) -> str:
     return normalize_provider_name(candidate)
 
 
+def _get_allowed_link_folder_roots() -> list[Path]:
+    raw_roots = ""
+    for env_name in _ALLOWED_LINK_FOLDER_ROOT_ENV_VARS:
+        raw_roots = str(os.getenv(env_name) or "").strip()
+        if raw_roots:
+            break
+
+    roots: list[Path] = []
+    for raw_root in raw_roots.split(os.pathsep) if raw_roots else []:
+        candidate = raw_root.strip()
+        if candidate:
+            roots.append(Path(candidate).expanduser().resolve())
+
+    if roots:
+        return roots
+
+    return [(_kb_base_dir.parent).resolve()]
+
+
+def _is_path_under_root(path: Path, root: Path) -> bool:
+    return path == root or root in path.parents
+
+
+def _resolve_linked_folder_path(folder_path: str) -> Path:
+    folder = Path(folder_path).expanduser().resolve()
+    allowed_roots = _get_allowed_link_folder_roots()
+    if not any(_is_path_under_root(folder, root) for root in allowed_roots):
+        allowed_roots_display = ", ".join(str(root) for root in allowed_roots)
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Folder path must be under an allowed root. "
+                f"Allowed roots: {allowed_roots_display}"
+            ),
+        )
+    return folder
+
+
 def _load_kb_entry_or_404(manager: KnowledgeBaseManager, kb_name: str) -> dict:
     manager.config = manager._load_config()
     kb_entry = manager.config.get("knowledge_bases", {}).get(kb_name)
@@ -263,10 +317,11 @@ async def run_initialization_task(initializer: KnowledgeBaseInitializer, task_id
             task_stream_manager.emit_complete(
                 task_id, f"Knowledge base '{initializer.kb_name}' initialization complete"
             )
-        except Exception as e:
-            error_msg = str(e)
+        except Exception:
+            logger.exception(f"Knowledge base initialization failed for '{initializer.kb_name}'")
+            error_msg = _public_failure_message("initialize the knowledge base")
 
-            _task_log(task_id, f"Initialization failed: {error_msg}", level="error")
+            _task_log(task_id, error_msg, level="error")
 
             task_manager.update_task_status(task_id, "error", error=error_msg)
 
@@ -276,7 +331,7 @@ async def run_initialization_task(initializer: KnowledgeBaseInitializer, task_id
                 status="error",
                 progress={
                     "stage": "error",
-                    "message": f"Initialization failed: {error_msg}",
+                    "message": error_msg,
                     "percent": 0,
                     "error": error_msg,
                     "task_id": task_id,
@@ -285,9 +340,7 @@ async def run_initialization_task(initializer: KnowledgeBaseInitializer, task_id
             )
 
             if initializer.progress_tracker:
-                initializer.progress_tracker.update(
-                    ProgressStage.ERROR, f"Initialization failed: {error_msg}", error=error_msg
-                )
+                initializer.progress_tracker.update(ProgressStage.ERROR, error_msg, error=error_msg)
             task_stream_manager.emit_failed(task_id, error_msg)
 
 
@@ -386,14 +439,15 @@ async def run_upload_processing_task(
             task_stream_manager.emit_complete(
                 task_id, f"Successfully processed {num_processed} files for '{kb_name}'"
             )
-        except Exception as e:
-            error_msg = f"Upload processing failed (KB '{kb_name}'): {e}"
+        except Exception:
+            logger.exception(f"Upload processing failed for KB '{kb_name}'")
+            error_msg = _public_failure_message("process uploaded files")
             _task_log(task_id, error_msg, level="error")
 
             task_manager.update_task_status(task_id, "error", error=error_msg)
 
             progress_tracker.update(
-                ProgressStage.ERROR, f"Processing failed: {error_msg}", error=error_msg
+                ProgressStage.ERROR, error_msg, error=error_msg
             )
             task_stream_manager.emit_failed(task_id, error_msg)
 
@@ -413,8 +467,12 @@ async def health_check():
             "base_dir_exists": manager.base_dir.exists(),
             "knowledge_bases_count": kb_count,
         }
-    except Exception as e:
-        return {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
+    except Exception:
+        logger.exception("Knowledge base health check failed")
+        return {
+            "status": "error",
+            "error": _public_failure_message("run the knowledge base health check"),
+        }
 
 
 @router.get("/rag-providers")
@@ -425,9 +483,8 @@ async def get_rag_providers():
 
         providers = RAGService.list_providers()
         return {"providers": providers}
-    except Exception as e:
-        logger.error(f"Error getting RAG providers: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error("fetch RAG providers")
 
 
 @router.get("/configs")
@@ -438,9 +495,8 @@ async def get_all_kb_configs():
 
         service = get_kb_config_service()
         return service.get_all_configs()
-    except Exception as e:
-        logger.error(f"Error getting KB configs: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error("load knowledge base configurations")
 
 
 @router.get("/{kb_name}/config")
@@ -452,9 +508,8 @@ async def get_kb_config(kb_name: str):
         service = get_kb_config_service()
         config = service.get_kb_config(kb_name)
         return {"kb_name": kb_name, "config": config}
-    except Exception as e:
-        logger.error(f"Error getting config for KB '{kb_name}': {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error(f"load the configuration for knowledge base '{kb_name}'")
 
 
 @router.put("/{kb_name}/config")
@@ -471,9 +526,8 @@ async def update_kb_config(kb_name: str, config: dict):
         return {"status": "success", "kb_name": kb_name, "config": service.get_kb_config(kb_name)}
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error updating config for KB '{kb_name}': {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error(f"update the configuration for knowledge base '{kb_name}'")
 
 
 @router.post("/configs/sync")
@@ -485,9 +539,8 @@ async def sync_configs_from_metadata():
         service = get_kb_config_service()
         service.sync_all_from_metadata(_kb_base_dir)
         return {"status": "success", "message": "Configurations synced from metadata files"}
-    except Exception as e:
-        logger.error(f"Error syncing configs: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error("sync knowledge base configurations")
 
 
 @router.get("/default")
@@ -497,9 +550,8 @@ async def get_default_kb():
         manager = get_kb_manager()
         default_kb = manager.get_default()
         return {"default_kb": default_kb}
-    except Exception as e:
-        logger.error(f"Error getting default KB: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error("load the default knowledge base")
 
 
 @router.put("/default/{kb_name}")
@@ -516,9 +568,8 @@ async def set_default_kb(kb_name: str):
         return {"status": "success", "default_kb": kb_name}
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error setting default KB: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error(f"set the default knowledge base to '{kb_name}'")
 
 
 @router.get("/list", response_model=list[KnowledgeBaseInfo])
@@ -576,9 +627,11 @@ async def list_knowledge_bases():
                     logger.error(f"Fallback also failed for KB '{name}': {fallback_err}")
 
         if errors and not result:
-            error_detail = f"Failed to load knowledge bases. Errors: {'; '.join(errors)}"
-            logger.error(error_detail)
-            raise HTTPException(status_code=500, detail=error_detail)
+            logger.error(f"Failed to load knowledge bases: {errors}")
+            raise HTTPException(
+                status_code=500,
+                detail=_public_failure_message("load knowledge bases"),
+            )
 
         if errors:
             logger.warning(
@@ -589,10 +642,8 @@ async def list_knowledge_bases():
         return result
     except HTTPException:
         raise
-    except Exception as e:
-        error_msg = f"Error listing knowledge bases: {e}"
-        logger.error(f"{error_msg}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Failed to list knowledge bases: {e!s}")
+    except Exception:
+        _raise_internal_error("list knowledge bases")
 
 
 @router.get("/{kb_name}")
@@ -603,8 +654,8 @@ async def get_knowledge_base_details(kb_name: str):
         return manager.get_info(kb_name)
     except ValueError:
         raise HTTPException(status_code=404, detail=f"Knowledge base '{kb_name}' not found")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error(f"fetch knowledge base details for '{kb_name}'")
 
 
 @router.delete("/{kb_name}")
@@ -628,8 +679,8 @@ async def delete_knowledge_base(kb_name: str):
         return {"message": f"Knowledge base '{kb_name}' deleted successfully"}
     except ValueError:
         raise HTTPException(status_code=404, detail=f"Knowledge base '{kb_name}' not found")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error(f"delete knowledge base '{kb_name}'")
 
 
 @router.get("/tasks/{task_id}/stream")
@@ -700,10 +751,8 @@ async def upload_files(
         raise
     except ValueError:
         raise HTTPException(status_code=404, detail=f"Knowledge base '{kb_name}' not found")
-    except Exception as e:
-        # Unexpected failure (Server error)
-        formatted_error = format_exception_message(e)
-        raise HTTPException(status_code=500, detail=formatted_error) from e
+    except Exception:
+        _raise_internal_error(f"upload files to knowledge base '{kb_name}'")
 
 
 @router.post("/create")
@@ -796,10 +845,8 @@ async def create_knowledge_base(
 
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Failed to create KB: {e}")
-        logger.debug(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error(f"create knowledge base '{name}'")
 
 
 @router.get("/{kb_name}/progress")
@@ -813,8 +860,8 @@ async def get_progress(kb_name: str):
             return {"status": "not_started", "message": "Initialization not started"}
 
         return progress
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error(f"read progress for knowledge base '{kb_name}'")
 
 
 @router.post("/{kb_name}/progress/clear")
@@ -824,8 +871,8 @@ async def clear_progress(kb_name: str):
         progress_tracker = ProgressTracker(kb_name, _kb_base_dir)
         progress_tracker.clear()
         return {"status": "success", "message": f"Progress cleared for {kb_name}"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error(f"clear progress for knowledge base '{kb_name}'")
 
 
 @router.websocket("/{kb_name}/progress/ws")
@@ -936,10 +983,17 @@ async def websocket_progress(websocket: WebSocket, kb_name: str):
             except Exception:
                 break
 
-    except Exception as e:
-        logger.debug(f"Progress WS error: {e}")
+    except Exception:
+        logger.exception(f"Progress websocket error for KB '{kb_name}'")
         try:
-            await websocket.send_json({"type": "error", "message": str(e)})
+            await websocket.send_json(
+                {
+                    "type": "error",
+                    "message": _public_failure_message(
+                        f"stream progress updates for knowledge base '{kb_name}'"
+                    ),
+                }
+            )
         except Exception:
             pass
     finally:
@@ -950,7 +1004,11 @@ async def websocket_progress(websocket: WebSocket, kb_name: str):
             pass
 
 
-@router.post("/{kb_name}/link-folder", response_model=LinkedFolderInfo)
+@router.post(
+    "/{kb_name}/link-folder",
+    response_model=LinkedFolderInfo,
+    dependencies=[Depends(require_admin)],
+)
 async def link_folder(kb_name: str, request: LinkFolderRequest):
     """
     Link a local folder to a knowledge base.
@@ -965,19 +1023,26 @@ async def link_folder(kb_name: str, request: LinkFolderRequest):
     """
     try:
         manager = get_kb_manager()
-        folder_info = manager.link_folder(kb_name, request.folder_path)
+        resolved_folder = _resolve_linked_folder_path(request.folder_path)
+        folder_info = manager.link_folder(kb_name, str(resolved_folder))
         logger.info(f"Linked folder '{request.folder_path}' to KB '{kb_name}'")
         return LinkedFolderInfo(**folder_info)
+    except HTTPException:
+        raise
     except ValueError as e:
         error_msg = str(e)
         if "not found" in error_msg.lower():
-            raise HTTPException(status_code=404, detail=error_msg)
-        raise HTTPException(status_code=400, detail=error_msg)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=404, detail="Knowledge base or folder not found")
+        raise HTTPException(status_code=400, detail="Folder path is invalid or cannot be linked")
+    except Exception:
+        _raise_internal_error(f"link the folder for knowledge base '{kb_name}'")
 
 
-@router.get("/{kb_name}/linked-folders", response_model=list[LinkedFolderInfo])
+@router.get(
+    "/{kb_name}/linked-folders",
+    response_model=list[LinkedFolderInfo],
+    dependencies=[Depends(require_admin)],
+)
 async def get_linked_folders(kb_name: str):
     """Get list of linked folders for a knowledge base."""
     try:
@@ -986,11 +1051,14 @@ async def get_linked_folders(kb_name: str):
         return [LinkedFolderInfo(**f) for f in folders]
     except ValueError:
         raise HTTPException(status_code=404, detail=f"Knowledge base '{kb_name}' not found")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error(f"list linked folders for knowledge base '{kb_name}'")
 
 
-@router.delete("/{kb_name}/linked-folders/{folder_id}")
+@router.delete(
+    "/{kb_name}/linked-folders/{folder_id}",
+    dependencies=[Depends(require_admin)],
+)
 async def unlink_folder(kb_name: str, folder_id: str):
     """Unlink a folder from a knowledge base."""
     try:
@@ -1002,11 +1070,14 @@ async def unlink_folder(kb_name: str, folder_id: str):
         return {"message": "Folder unlinked successfully", "folder_id": folder_id}
     except ValueError:
         raise HTTPException(status_code=404, detail=f"Knowledge base '{kb_name}' not found")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error(f"unlink the folder from knowledge base '{kb_name}'")
 
 
-@router.post("/{kb_name}/sync-folder/{folder_id}")
+@router.post(
+    "/{kb_name}/sync-folder/{folder_id}",
+    dependencies=[Depends(require_admin)],
+)
 async def sync_folder(kb_name: str, folder_id: str, background_tasks: BackgroundTasks):
     """
     Sync files from a linked folder to the knowledge base.
@@ -1027,7 +1098,7 @@ async def sync_folder(kb_name: str, folder_id: str, background_tasks: Background
         if not folder_info:
             raise HTTPException(status_code=404, detail=f"Linked folder '{folder_id}' not found")
 
-        folder_path = folder_info["path"]
+        folder_path = _resolve_linked_folder_path(folder_info["path"])
 
         # Check for changes (new or modified files)
         changes = manager.detect_folder_changes(kb_name, folder_id)
@@ -1059,7 +1130,7 @@ async def sync_folder(kb_name: str, folder_id: str, background_tasks: Background
 
         return {
             "message": f"Syncing {len(files_to_process)} files from linked folder",
-            "folder_path": folder_path,
+            "folder_path": str(folder_path),
             "new_files": changes["new_count"],
             "modified_files": changes["modified_count"],
             "file_count": len(files_to_process),
@@ -1069,5 +1140,5 @@ async def sync_folder(kb_name: str, folder_id: str, background_tasks: Background
         raise
     except ValueError:
         raise HTTPException(status_code=404, detail=f"Knowledge base '{kb_name}' not found")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        _raise_internal_error(f"sync folder '{folder_id}' for knowledge base '{kb_name}'")

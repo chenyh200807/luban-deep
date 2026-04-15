@@ -1,0 +1,25 @@
+<view class="bodyview">
+ <view class="bodybg">
+    <view >
+        <image  class="shoplogo" src="" ></image>
+    </view>
+    
+    <view class="bodylogo" >
+        <view class="bodyshop"><store-home appid='wx70b10f0bee143b8e'></store-home></view>
+    </view>
+    <view style="height: 20rpx;">
+    </view>
+</view>
+  <view class="productlist">
+    <view wx:for="{{shopproductList}}" wx:key="index">
+      <store-product appid="{{shopappid}}"  product-id='{{item.product_id}}'></store-product>
+    </view>
+    <!-- <view >
+      <store-product appid="wx70b10f0bee143b8e"  product-id='10000184031850'></store-product>
+    </view>
+    <view >
+      <store-product appid="wx70b10f0bee143b8e"  product-id='10000184031850'></store-product>
+    </view> -->
+  </view>
+  <view style="height: 20rpx;"></view>
+</view>

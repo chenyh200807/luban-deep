@@ -1,0 +1,24 @@
+<!--components/tabbar/tabbar.wxml-->
+<view style="height:144rpx" wx:if="{{isIphoneX}}"></view>
+<view style="height:100rpx" wx:if="{{!isIphoneX}}"></view>
+<view class="tabBar" style="bottom: {{isIphoneX?'44':'0'}}rpx;">
+    <view class="tabBer-model">
+      <block wx:for="{{tabBar}}" wx:key="index" wx:if="{{sysInfo.is_audit==1}}">
+        <view class="tabNer-item p-r" data-index="{{index}}" catchtap="onChange">
+          <image src="{{active != index?item.iconPath:''}}" class="noSelect"></image>
+          <image src="{{item.selectedIconPath}}" wx:if="{{active == index }}" class="select_icon"></image>
+          <view class="tabbar_tag" wx:if="{{index ==3}}">免费</view>
+          <view class="{{active==index?'active':''}}">{{item.text}}</view>
+        </view>
+      </block>
+      <block wx:for="{{tabBar2}}" wx:key="index" wx:if="{{sysInfo.is_audit==0}}">
+        <view class="tabNer-item p-r" data-index="{{index}}" catchtap="onChange">
+          <image src="{{active != index?item.iconPath:''}}" class="noSelect"></image>
+          <image src="{{item.selectedIconPath}}" wx:if="{{active == index }}" class="select_icon"></image>
+          <view class="tabbar_tag" wx:if="{{index ==1}}">免费</view>
+          <view class="{{active==index?'active':''}}">{{item.text}}</view>
+        </view>
+      </block>
+    </view>
+</view>
+<view class="isShowIphoneX" wx:if="{{isIphoneX}}"></view>

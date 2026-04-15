@@ -1,0 +1,219 @@
+/**app.wxss**/
+@import "/vant/common/index.wxss";
+page {
+  font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Helvetica Neue', Helvetica,
+  Segoe UI, Arial, Roboto, 'Hiragino Sans GB', 'Microsoft Yahei','SourceHanSansCN',
+  sans-serif;
+  font-size: 28rpx;
+  box-sizing: border-box;
+  vertical-align: baseline;
+  line-height: inherit;
+  word-break: break-all;
+}
+.wxParse-img{width: 100% !important;}
+image{display: block;}
+view{box-sizing: border-box;line-height: 1.5;}
+.bg-w{background: #fff;}
+.clear{zoom: 1;}
+.clear::after { content: "";clear: both;display: block;overflow: hidden;font-size: 0;height: 0;}
+
+/* 公用样式 */
+.over_hidden{overflow: hidden;}
+.ell {overflow: hidden;text-overflow: ellipsis;white-space: nowrap;}
+.ell-2{text-overflow: -o-ellipsis-lastline;overflow: hidden;text-overflow: ellipsis;display: -webkit-box;-webkit-line-clamp: 2;line-clamp: 2;-webkit-box-orient: vertical;}
+.ell-3{text-overflow: -o-ellipsis-lastline;overflow: hidden;text-overflow: ellipsis;display: -webkit-box;-webkit-line-clamp: 3;line-clamp: 3;-webkit-box-orient: vertical;}
+.ell-4{text-overflow: -o-ellipsis-lastline;overflow: hidden;text-overflow: ellipsis;display: -webkit-box;-webkit-line-clamp: 4;line-clamp: 4;-webkit-box-orient: vertical;}
+.wh-100{width:100%;height:100%}
+.w-100{width:100%}
+
+.border-50{border-radius: 50%}
+.border-r60{border-radius: 60rpx}
+.border-r50{border-radius: 50rpx}
+.border-r40{border-radius: 40rpx}
+.border-r30{border-radius: 30rpx}
+.border-r24{border-radius: 24rpx}
+.border-r20{border-radius: 20rpx}
+.border-r16{border-radius: 16rpx}
+.border-r12{border-radius: 12rpx}
+.border-r10{border-radius: 10rpx}
+.border-r8{border-radius: 8rpx}
+.border-r5{border-radius: 5rpx}
+
+.m-a{margin: 0 auto}
+.ml-5{margin-left: 5rpx}
+.ml-10{margin-left: 10rpx}
+.ml-15{margin-left: 15rpx;}
+.ml-20{margin-left: 20rpx}
+.ml-26{margin-left: 26rpx}
+.ml-30{margin-left: 30rpx}
+.ml-35{margin-left: 35rpx}
+.ml-50{margin-left: 50rpx}
+.ml-55{margin-left: 55rpx}
+.ml-80{margin-left: 80rpx}
+
+.mt-5{margin-top: 5rpx}
+.mt-8{margin-top: 8rpx}
+.mt-10{margin-top: 10rpx}
+.mt-14{margin-top: 14rpx}
+.mt-16{margin-top: 16rpx}
+.mt-20{margin-top: 20rpx}
+.mt-24{margin-top: 24rpx}
+.mt-30{margin-top: 30rpx}
+.mt-40{margin-top: 40rpx}
+.mt-50{margin-top: 50rpx}
+.mt-60{margin-top: 60rpx}
+.mt-70{margin-top: 70rpx}
+.mt-80{margin-top: 80rpx}
+
+.mr-5{margin-right: 5rpx}
+.mr-10{margin-right: 10rpx}
+.mr-16{margin-right: 16rpx;}
+.mr-20{margin-right: 20rpx}
+.mr-25{margin-right: 25rpx}
+.mr-30{margin-right: 30rpx}
+.mr-40{margin-right: 40rpx}
+.mr-50{margin-right: 50rpx}
+.mr-80{margin-right: 80rpx}
+
+.mb-5{margin-bottom: 5rpx;}
+.mb-10{margin-bottom: 10rpx;}
+.mb-16{margin-bottom: 16rpx;}
+.mb-20{margin-bottom: 20rpx}
+.mb-24{margin-bottom: 24rpx}
+.mb-30{margin-bottom: 30rpx}
+.mb-40{margin-bottom: 40rpx}
+.mb-50{margin-bottom: 50rpx}
+.mb-60{margin-bottom: 60rpx}
+.mb-80{margin-bottom: 80rpx}
+
+.pb-5{padding-bottom: 5rpx}
+.pb-10{padding-bottom: 10rpx}
+.pb-14{padding-bottom: 14rpx;}
+.pb-16{padding-bottom: 16rpx;}
+.pb-20{padding-bottom: 20rpx;}
+.pb-24{padding-bottom: 24rpx;}
+.pb-26{padding-bottom: 26rpx;}
+.pb-30{padding-bottom: 30rpx}
+.pb-35{padding-bottom: 35rpx}
+.pb-40{padding-bottom:40rpx }
+.pb-50{padding-bottom: 50rpx}
+.pb-60{padding-bottom: 60rpx}
+.pb-80{padding-bottom:80rpx }
+.pb-150{padding-bottom:150rpx }
+
+.pl-5{padding-left: 5rpx}
+.pl-10{padding-left: 10rpx}
+.pl-14{padding-left: 14rpx}
+.pl-16{padding-left: 16rpx}
+.pl-20{padding-left: 20rpx}
+.pl-24{padding-left: 24rpx}
+.pl-26{padding-left: 26rpx}
+.pl-30{padding-left: 30rpx}
+.pl-36{padding-left: 36rpx}
+.pl-40{padding-left: 40rpx}
+.pl-50{padding-left: 50rpx}
+.pl-60{padding-left: 60rpx}
+.pl-64{padding-left: 64rpx;}
+.pl-70{padding-left: 70rpx}
+
+.pr-6{padding-right: 6rpx}
+.pr-10{padding-right: 10rpx}
+.pr-14{padding-right: 14rpx}
+.pr-16{padding-right: 16rpx}
+.pr-20{padding-right: 20rpx}
+.pr-24{padding-right: 24rpx}
+.pr-26{padding-right: 26rpx}
+.pr-30{padding-right: 30rpx}
+.pr-36{padding-right: 36rpx}
+.pr-40{padding-right: 40rpx}
+.pr-50{padding-right: 50rpx}
+.pr-60{padding-right: 60rpx}
+.pr-64{padding-right: 64rpx;}
+.pr-70{padding-right:70rpx }
+.pr-80{padding-right: 80rpx}
+
+.pt-5{padding-top: 5rpx}
+.pt-10{padding-top: 10rpx}
+.pt-14{padding-top: 14rpx}
+.pt-16{padding-top: 16rpx}
+.pr-14{padding-right: 14rpx}
+.pt-20{padding-top: 20rpx}
+.pt-24{padding-top: 24rpx}
+.pt-26{padding-top: 26rpx}
+.pt-30{padding-top: 30rpx}
+.pt-35{padding-top: 35rpx}
+.pt-40{padding-top:40rpx }
+.pt-50{padding-top: 50rpx}
+.pt-60{padding-top: 60rpx}
+.pt-70{padding-top: 70rpx}
+.pt-80{padding-top: 80rpx}
+
+.p-r{position: relative}
+.p-a{position: absolute}
+.p-f{position: fixed}
+
+.b-0{bottom: 0}
+.l-0{left:0}
+.t-0{top: 0;}
+.r-0{right: 0;}
+
+.d-f{display: flex;}
+.fl{flex: 1}
+.d-c-c{justify-content: center;align-items: center;}
+.d-c-c-c{justify-content: center;align-items: center;flex-direction:column;}
+.d-s-c{justify-content: space-between;align-items: center}
+.d-s-a{justify-content: space-around;align-items: center}
+.ffc{display: flex;justify-content: flex-start;align-items: center;}
+.efc{display: flex;justify-content: flex-end;align-items: center;}
+
+.t-l{text-align: left}
+.t-c{text-align: center}
+.t-r{text-align: right}
+.f-14{font-size: 14rpx}
+.f-16{font-size: 16rpx}
+.f-18{font-size: 18rpx}
+.f-20{font-size: 20rpx}
+.f-22{font-size: 22rpx}
+.f-24{font-size: 24rpx}
+.f-26{font-size:26rpx;}
+.f-28{font-size: 28rpx}
+.f-30{font-size:30rpx}
+.f-32{font-size: 32rpx}
+.f-34{font-size:34rpx}
+.f-36{font-size: 36rpx}
+.f-38{font-size: 38rpx}
+.f-40{font-size:40rpx}
+.f-42{font-size:42rpx}
+.f-44{font-size:44rpx}
+.f-46{font-size:46rpx}
+.f-48{font-size:48rpx}
+.f-50{font-size:50rpx}
+.f-54{font-size:54rpx}
+.f-60{font-size:60rpx}
+.f-70{font-size:70rpx}
+
+.c-999{color: #999}
+.c-333{color:#333}
+.c-666{color:#666}
+.c-ccc{color:#ccc}
+.c-000{color: #000;}
+.c-b1{color:#1b1b1b}
+.c-7{color:#777}
+.c-aaa{color: #AAA !important;}
+.c-w{color:#fff !important}
+.c-red{color: #FF4C4C;}
+.c-A5{color: #A5A5A5;}
+
+.t-d{text-decoration: line-through}
+.t-b{text-decoration: underline;}
+
+.b-b{border-bottom: 2rpx solid #f0f0f0}
+.b-b10{border-bottom: 10rpx solid #f0f0f0}
+.b-t{border-top: 2rpx solid #f0f0f0}
+.b-r{border-right: 2rpx solid #f5f5f5}
+.f-w6{font-weight:600 }
+.f-b{font-weight:bold }
+.f-s{font-style:italic}
+.o-h{overflow: hidden}
+.btn{border: none;background: none;outline: none;font-weight: normal;}
+.fdc{display: flex;flex-direction: column;justify-content: center;align-items: center;}

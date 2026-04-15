@@ -223,6 +223,55 @@ class AgenticChatPipeline:
             await stream.result(result_payload, source="chat")
             return
 
+        retrieval_first_traces: list[ToolTrace] = []
+        if self._should_try_retrieval_first(context, enabled_tools):
+            retrieval_first_traces = await self._stage_retrieval_first(
+                context=context,
+                stream=stream,
+            )
+            exact_authority_response = self._resolve_exact_authority_response(retrieval_first_traces)
+            if exact_authority_response:
+                final_response, responding_trace = await self._stage_exact_authority_responding(
+                    response=exact_authority_response,
+                    stream=stream,
+                )
+                await self._emit_sources_and_result(
+                    stream=stream,
+                    responding_trace=responding_trace,
+                    tool_traces=retrieval_first_traces,
+                    final_response=final_response,
+                    observation="",
+                    source_trace_label=responding_trace.get("label", "Exact authority response"),
+                )
+                return
+            if self._has_grounded_retrieval_evidence(retrieval_first_traces):
+                observation = await self._stage_observing(
+                    context=context,
+                    enabled_tools=["rag"] if "rag" in {trace.name for trace in retrieval_first_traces} else enabled_tools,
+                    answer_type=answer_type,
+                    thinking_text="",
+                    tool_traces=retrieval_first_traces,
+                    stream=stream,
+                )
+                final_response, responding_trace = await self._stage_responding(
+                    context=context,
+                    enabled_tools=["rag"] if "rag" in {trace.name for trace in retrieval_first_traces} else enabled_tools,
+                    answer_type=answer_type,
+                    thinking_text="",
+                    observation=observation,
+                    tool_traces=retrieval_first_traces,
+                    stream=stream,
+                )
+                await self._emit_sources_and_result(
+                    stream=stream,
+                    responding_trace=responding_trace,
+                    tool_traces=retrieval_first_traces,
+                    final_response=final_response,
+                    observation=observation,
+                    source_trace_label=responding_trace.get("label", "Final response"),
+                )
+                return
+
         thinking_text = await self._stage_thinking(context, enabled_tools, stream)
         tool_traces = await self._stage_acting(
             context=context,
@@ -230,6 +279,21 @@ class AgenticChatPipeline:
             thinking_text=thinking_text,
             stream=stream,
         )
+        exact_authority_response = self._resolve_exact_authority_response(tool_traces)
+        if exact_authority_response:
+            final_response, responding_trace = await self._stage_exact_authority_responding(
+                response=exact_authority_response,
+                stream=stream,
+            )
+            await self._emit_sources_and_result(
+                stream=stream,
+                responding_trace=responding_trace,
+                tool_traces=tool_traces,
+                final_response=final_response,
+                observation="",
+                source_trace_label=responding_trace.get("label", "Exact authority response"),
+            )
+            return
         observation = await self._stage_observing(
             context=context,
             enabled_tools=enabled_tools,
@@ -247,30 +311,13 @@ class AgenticChatPipeline:
             tool_traces=tool_traces,
             stream=stream,
         )
-
-        all_sources: list[dict[str, Any]] = []
-        for trace in tool_traces:
-            all_sources.extend(trace.sources)
-        if all_sources:
-            await stream.sources(
-                all_sources,
-                source="chat",
-                stage="responding",
-                metadata=merge_trace_metadata(
-                    responding_trace,
-                    {"trace_kind": "sources"},
-                ),
-            )
-
-        result_payload: dict[str, Any] = {
-            "response": final_response,
-            "observation": observation,
-            "tool_traces": [asdict(trace) for trace in tool_traces],
-        }
-        cs = self._get_cost_summary()
-        if cs:
-            result_payload["metadata"] = {"cost_summary": cs}
-        await stream.result(result_payload, source="chat")
+        await self._emit_sources_and_result(
+            stream=stream,
+            responding_trace=responding_trace,
+            tool_traces=tool_traces,
+            final_response=final_response,
+            observation=observation,
+        )
 
     async def _stage_thinking(
         self,
@@ -1949,8 +1996,6 @@ class AgenticChatPipeline:
         answer_type: str,
         tool_traces: list[ToolTrace] | None = None,
     ) -> bool:
-        if answer_type != ANSWER_TYPE_PROBLEM:
-            return False
         return self._extract_exact_question_authority(tool_traces) is not None
 
     def _exact_question_response_contract(self, authority: dict[str, Any]) -> str:
@@ -1959,6 +2004,9 @@ class AgenticChatPipeline:
             covered = authority.get("covered_subquestions") or []
             missing = authority.get("missing_subquestions") or []
             coverage_state = str(authority.get("coverage_state") or "partial").strip()
+            is_full_coverage = bool(covered) and (
+                not missing or float(authority.get("coverage_ratio") or 0.0) >= 0.999
+            )
             covered_lines = [
                 (
                     f"- 第{item.get('display_index') or '?'}问："
@@ -1974,31 +2022,53 @@ class AgenticChatPipeline:
                 for item in missing
                 if isinstance(item, dict)
             ]
+            zh_intro = (
+                "已命中题库案例原题，且当前权威答案已完整覆盖全部小问。以下信息具有最高优先级，必须严格服从：\n"
+                if is_full_coverage
+                else "已命中题库案例原题，但当前权威答案只覆盖部分小问。以下信息具有最高优先级，必须严格服从：\n"
+            )
+            zh_rule_2 = (
+                "2. 当前已完整覆盖，最终答案应直接按第1问、第2问……输出标准答案，不再自行补充推断。\n"
+                if is_full_coverage
+                else "2. 未覆盖小问只能根据已召回资料和明确计算推导作答；如果证据不足，必须谨慎表达，不能假装题库已覆盖。\n"
+            )
+            en_intro = (
+                "An exact case-study match was found and the authoritative answer fully covers all subquestions.\n"
+                if is_full_coverage
+                else "An exact case-study match was found, but the authoritative answer only covers part of the subquestions.\n"
+            )
+            en_rule_2 = (
+                "2. Because coverage is complete, output the authoritative subquestion answers directly rather than adding extra inference.\n"
+                if is_full_coverage
+                else "2. Missing subquestions may only be answered from grounded evidence or explicit calculation.\n"
+            )
+            zh_body = (
+                zh_intro
+                + f"- 命中题目：{str(authority.get('stem') or '').strip() or '(unknown)'}\n"
+                + f"- 覆盖状态：{coverage_state}\n"
+                + f"- 已覆盖小问：\n{chr(10).join(covered_lines) if covered_lines else '- (none)'}\n"
+                + f"- 未覆盖小问：\n{chr(10).join(missing_lines) if missing_lines else '- (none)'}\n"
+                + "要求：\n"
+                + "1. 已覆盖小问必须严格按题库标准答案作答，不得改写事实结论。\n"
+                + zh_rule_2
+                + "3. 最终输出仍需完整按第1问、第2问……组织，不能只回答已覆盖部分。\n"
+                + "4. 不要提到内部纠偏、命中原题或覆盖率。"
+            )
+            en_body = (
+                en_intro
+                + f"- Matched stem: {str(authority.get('stem') or '').strip() or '(unknown)'}\n"
+                + f"- Coverage: {coverage_state}\n"
+                + f"- Covered subquestions:\n{chr(10).join(covered_lines) if covered_lines else '- (none)'}\n"
+                + f"- Missing subquestions:\n{chr(10).join(missing_lines) if missing_lines else '- (none)'}\n"
+                + "Rules:\n"
+                + "1. Covered subquestions must follow the authoritative answers exactly.\n"
+                + en_rule_2
+                + "3. Keep the final answer structured by subquestion.\n"
+                + "4. Do not mention internal correction or exact-match coverage."
+            )
             return self._text(
-                zh=(
-                    "已命中题库案例原题，但当前权威答案只覆盖部分小问。以下信息具有最高优先级，必须严格服从：\n"
-                    f"- 命中题目：{str(authority.get('stem') or '').strip() or '(unknown)'}\n"
-                    f"- 覆盖状态：{coverage_state}\n"
-                    f"- 已覆盖小问：\n{chr(10).join(covered_lines) if covered_lines else '- (none)'}\n"
-                    f"- 未覆盖小问：\n{chr(10).join(missing_lines) if missing_lines else '- (none)'}\n"
-                    "要求：\n"
-                    "1. 已覆盖小问必须严格按题库标准答案作答，不得改写事实结论。\n"
-                    "2. 未覆盖小问只能根据已召回资料和明确计算推导作答；如果证据不足，必须谨慎表达，不能假装题库已覆盖。\n"
-                    "3. 最终输出仍需完整按第1问、第2问……组织，不能只回答已覆盖部分。\n"
-                    "4. 不要提到内部纠偏、命中原题或覆盖率。"
-                ),
-                en=(
-                    "An exact case-study match was found, but the authoritative answer only covers part of the subquestions.\n"
-                    f"- Matched stem: {str(authority.get('stem') or '').strip() or '(unknown)'}\n"
-                    f"- Coverage: {coverage_state}\n"
-                    f"- Covered subquestions:\n{chr(10).join(covered_lines) if covered_lines else '- (none)'}\n"
-                    f"- Missing subquestions:\n{chr(10).join(missing_lines) if missing_lines else '- (none)'}\n"
-                    "Rules:\n"
-                    "1. Covered subquestions must follow the authoritative answers exactly.\n"
-                    "2. Missing subquestions may only be answered from grounded evidence or explicit calculation.\n"
-                    "3. Keep the final answer structured by subquestion.\n"
-                    "4. Do not mention internal correction or exact-match coverage."
-                ),
+                zh=zh_body,
+                en=en_body,
             )
 
         answer = str(authority.get("authoritative_answer") or "").strip()
@@ -2031,6 +2101,129 @@ class AgenticChatPipeline:
             ),
         )
 
+    @staticmethod
+    def _render_case_exact_authority_response(authority: dict[str, Any]) -> str:
+        covered = authority.get("covered_subquestions") or []
+        lines: list[str] = []
+        for item in covered:
+            if not isinstance(item, dict):
+                continue
+            display_index = str(item.get("display_index") or "").strip() or "?"
+            answer = str(item.get("authoritative_answer") or "").strip()
+            if not answer:
+                continue
+            lines.append(f"{display_index}. {answer}")
+        return "\n\n".join(lines).strip()
+
+    def _resolve_exact_authority_response(
+        self,
+        tool_traces: list[ToolTrace] | None = None,
+    ) -> str | None:
+        authority = self._extract_exact_question_authority(tool_traces)
+        if not authority:
+            return None
+        authority_kind = str(authority.get("authority_kind") or "").strip().lower()
+        if authority_kind != "case_study":
+            return None
+        missing = authority.get("missing_subquestions") or []
+        coverage_ratio = float(authority.get("coverage_ratio") or 0.0)
+        covered = authority.get("covered_subquestions") or []
+        if not covered:
+            return None
+        if missing and coverage_ratio < 0.999:
+            return None
+        rendered = self._render_case_exact_authority_response(authority)
+        return rendered or None
+
+    async def _stage_exact_authority_responding(
+        self,
+        *,
+        response: str,
+        stream: StreamBus,
+    ) -> tuple[str, dict[str, Any]]:
+        trace_meta = build_trace_metadata(
+            call_id=new_call_id("chat-exact-authority"),
+            phase="responding",
+            label=self._text(zh="Exact authority response", en="Exact authority response"),
+            call_kind="exact_authority_response",
+            trace_id="chat-exact-authority",
+            trace_role="response",
+            trace_group="stage",
+        )
+        with observability.start_observation(
+            name="chat.stage.exact_authority_responding",
+            as_type="span",
+            input_payload={"response_length": len(response)},
+            metadata=trace_meta,
+        ) as stage_observation:
+            async with stream.stage("responding", source="chat", metadata=trace_meta):
+                await stream.progress(
+                    trace_meta["label"],
+                    source="chat",
+                    stage="responding",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "running"},
+                    ),
+                )
+                await stream.content(
+                    response,
+                    source="chat",
+                    stage="responding",
+                    metadata=merge_trace_metadata(trace_meta, {"trace_kind": "exact_authority"}),
+                )
+                await stream.progress(
+                    "",
+                    source="chat",
+                    stage="responding",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "complete"},
+                    ),
+                )
+                observability.update_observation(
+                    stage_observation,
+                    output_payload=response,
+                    metadata=trace_meta,
+                )
+                return response, trace_meta
+
+    async def _emit_sources_and_result(
+        self,
+        *,
+        stream: StreamBus,
+        responding_trace: dict[str, Any],
+        tool_traces: list[ToolTrace],
+        final_response: str,
+        observation: str,
+        source_trace_label: str | None = None,
+    ) -> None:
+        all_sources: list[dict[str, Any]] = []
+        for trace in tool_traces:
+            all_sources.extend(trace.sources)
+        if all_sources:
+            await stream.sources(
+                all_sources,
+                source="chat",
+                stage="responding",
+                metadata=merge_trace_metadata(
+                    responding_trace,
+                    {"trace_kind": "sources"},
+                ),
+            )
+
+        result_payload: dict[str, Any] = {
+            "response": final_response,
+            "observation": observation,
+            "tool_traces": [asdict(trace) for trace in tool_traces],
+        }
+        if source_trace_label:
+            result_payload["source_trace"] = source_trace_label
+        cs = self._get_cost_summary()
+        if cs:
+            result_payload["metadata"] = {"cost_summary": cs}
+        await stream.result(result_payload, source="chat")
+
     async def _apply_exact_question_authority(
         self,
         *,
@@ -2041,11 +2234,14 @@ class AgenticChatPipeline:
         max_tokens: int = 1200,
     ) -> str:
         authority = self._extract_exact_question_authority(tool_traces)
-        if not authority or answer_type != ANSWER_TYPE_PROBLEM:
+        if not authority:
             return content
 
         authority_kind = str(authority.get("authority_kind") or "").strip().lower()
         if authority_kind != "mcq":
+            rendered = self._resolve_exact_authority_response(tool_traces)
+            if rendered:
+                return rendered
             rewritten = await self._rewrite_exact_question_response(
                 context=context,
                 content=content,
@@ -2071,6 +2267,77 @@ class AgenticChatPipeline:
                 return rewritten
 
         return _replace_final_answer_letters(content, authoritative_answer)
+
+    def _should_try_retrieval_first(
+        self,
+        context: UnifiedContext,
+        enabled_tools: list[str],
+    ) -> bool:
+        return self._should_force_rag_grounding(context, enabled_tools)
+
+    def _has_grounded_retrieval_evidence(
+        self,
+        tool_traces: list[ToolTrace] | None = None,
+    ) -> bool:
+        for trace in tool_traces or []:
+            if str(trace.name or "").strip().lower() != "rag":
+                continue
+            if trace.success and (str(trace.result or "").strip() or trace.sources):
+                return True
+        return False
+
+    async def _stage_retrieval_first(
+        self,
+        *,
+        context: UnifiedContext,
+        stream: StreamBus,
+    ) -> list[ToolTrace]:
+        trace_meta = build_trace_metadata(
+            call_id=new_call_id("chat-retrieval-first"),
+            phase="acting",
+            label=self._text(zh="Retrieve first", en="Retrieve first"),
+            call_kind="tool_retrieval_first",
+            trace_id="chat-retrieval-first",
+            trace_role="tool",
+            trace_group="tool_call",
+        )
+        with observability.start_observation(
+            name="chat.stage.retrieval_first",
+            as_type="span",
+            input_payload={"knowledge_chain_profile": self._knowledge_chain_profile(context)},
+            metadata=trace_meta,
+        ) as stage_observation:
+            async with stream.stage("acting", source="chat", metadata=trace_meta):
+                await stream.progress(
+                    trace_meta["label"],
+                    source="chat",
+                    stage="acting",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "running"},
+                    ),
+                )
+                result = await self._run_forced_rag_fallback(
+                    context=context,
+                    thinking_text="",
+                    stream=stream,
+                    trace_meta=trace_meta,
+                )
+                await stream.progress(
+                    "",
+                    source="chat",
+                    stage="acting",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {"trace_kind": "call_status", "call_state": "complete"},
+                    ),
+                )
+                observability.update_observation(
+                    stage_observation,
+                    output_payload={"tool_trace_count": len(result)},
+                    metadata=trace_meta,
+                )
+                return result
 
     async def _rewrite_exact_question_response(
         self,

@@ -88,6 +88,22 @@ turn 合法状态只允许：
 - `authoritative_answer`
 - `corrected_from`
 
+## grounded TutorBot 的 fast path
+
+统一 turn contract 只约束 transport、schema、状态来源和 trace 词汇表，不要求所有请求都必须先走 `thinking`。
+
+因此对 grounded TutorBot（例如 `construction-exam-coach`）允许存在这样的合法内部顺序：
+
+- `acting -> responding`
+
+典型场景是：
+
+- 服务端先执行一次统一 `rag` 检索
+- 如果 `exact_question` 已完整命中并覆盖全部小问，直接进入 authoritative response
+- 不再额外跑通用 `thinking/observing`
+
+这属于**统一 turn contract 之内的优化**，不是第二套链路。客户端只能依赖统一事件协议，不能把 `thinking` 当成必经阶段。
+
 ## TutorBot 怎么接进来
 
 TutorBot 现在是业务身份，不是 transport。

@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from deeptutor.services.path_service import PathService
-from deeptutor.services.session.sqlite_store import SQLiteSessionStore
+from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
 
 
 def test_sqlite_store_defaults_to_data_user_chat_history_db(tmp_path: Path) -> None:
@@ -50,6 +50,119 @@ def test_sqlite_store_migrates_legacy_chat_history_db(tmp_path: Path) -> None:
     finally:
         service._project_root = original_root
         service._user_data_dir = original_user_dir
+
+
+def test_sqlite_store_migrates_legacy_notebook_owner_columns(tmp_path: Path) -> None:
+    db_path = tmp_path / "legacy-notebook.db"
+    with sqlite3.connect(db_path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE sessions (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL DEFAULT 'New conversation',
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL,
+                compressed_summary TEXT DEFAULT '',
+                summary_up_to_msg_id INTEGER DEFAULT 0,
+                preferences_json TEXT DEFAULT '{}'
+            );
+
+            CREATE TABLE notebook_entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                question_id TEXT NOT NULL,
+                question TEXT NOT NULL,
+                question_type TEXT DEFAULT '',
+                options_json TEXT DEFAULT '{}',
+                correct_answer TEXT DEFAULT '',
+                explanation TEXT DEFAULT '',
+                difficulty TEXT DEFAULT '',
+                user_answer TEXT DEFAULT '',
+                is_correct INTEGER DEFAULT 0,
+                bookmarked INTEGER DEFAULT 0,
+                followup_session_id TEXT DEFAULT '',
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL,
+                UNIQUE(session_id, question_id)
+            );
+
+            CREATE TABLE notebook_categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                created_at REAL NOT NULL
+            );
+
+            CREATE TABLE notebook_entry_categories (
+                entry_id INTEGER NOT NULL REFERENCES notebook_entries(id) ON DELETE CASCADE,
+                category_id INTEGER NOT NULL REFERENCES notebook_categories(id) ON DELETE CASCADE,
+                PRIMARY KEY (entry_id, category_id)
+            );
+            """
+        )
+        conn.commit()
+
+    store = SQLiteSessionStore(db_path=db_path)
+
+    with sqlite3.connect(store.db_path) as conn:
+        session_columns = {row[1] for row in conn.execute("PRAGMA table_info(sessions)").fetchall()}
+        entry_columns = {row[1] for row in conn.execute("PRAGMA table_info(notebook_entries)").fetchall()}
+        category_columns = {row[1] for row in conn.execute("PRAGMA table_info(notebook_categories)").fetchall()}
+
+    assert "owner_key" in session_columns
+    assert "owner_key" in entry_columns
+    assert "owner_key" in category_columns
+
+
+def test_sqlite_store_backfills_session_source_archived_columns(tmp_path: Path) -> None:
+    db_path = tmp_path / "legacy-session-metadata.db"
+    with sqlite3.connect(db_path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE sessions (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL DEFAULT 'New conversation',
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL,
+                compressed_summary TEXT DEFAULT '',
+                summary_up_to_msg_id INTEGER DEFAULT 0,
+                preferences_json TEXT DEFAULT '{}',
+                owner_key TEXT DEFAULT ''
+            );
+            """
+        )
+        conn.execute(
+            """
+            INSERT INTO sessions (
+                id, title, created_at, updated_at, preferences_json, owner_key
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "session_mobile",
+                "Mobile",
+                1.0,
+                1.0,
+                '{"source":"wx_miniprogram","archived":true,"user_id":"student_demo"}',
+                "",
+            ),
+        )
+        conn.commit()
+
+    store = SQLiteSessionStore(db_path=db_path)
+
+    with sqlite3.connect(store.db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(sessions)").fetchall()}
+        row = conn.execute(
+            "SELECT owner_key, source, archived FROM sessions WHERE id = ?",
+            ("session_mobile",),
+        ).fetchone()
+
+    assert "source" in columns
+    assert "archived" in columns
+    assert row is not None
+    assert row["owner_key"] == build_user_owner_key("student_demo")
+    assert row["source"] == "wx_miniprogram"
+    assert row["archived"] == 1
 
 
 @pytest.fixture
@@ -145,6 +258,75 @@ def test_list_entries_filters_is_correct(store: SQLiteSessionStore) -> None:
     wrong = asyncio.run(store.list_notebook_entries(is_correct=False))
     assert wrong["total"] == 1
     assert wrong["items"][0]["question_id"] == "q1"
+
+
+def test_list_sessions_by_owner_filters_source_and_archived(store: SQLiteSessionStore) -> None:
+    owner_key = build_user_owner_key("student_demo")
+    other_owner_key = build_user_owner_key("student_other")
+
+    asyncio.run(store.create_session(session_id="wx_live", owner_key=owner_key))
+    asyncio.run(
+        store.update_session_preferences(
+            "wx_live",
+            {
+                "source": "wx_miniprogram",
+                "archived": False,
+            },
+        )
+    )
+
+    asyncio.run(store.create_session(session_id="wx_archived", owner_key=owner_key))
+    asyncio.run(
+        store.update_session_preferences(
+            "wx_archived",
+            {
+                "source": "wx_miniprogram",
+                "archived": True,
+            },
+        )
+    )
+
+    asyncio.run(store.create_session(session_id="web_live", owner_key=owner_key))
+    asyncio.run(
+        store.update_session_preferences(
+            "web_live",
+            {
+                "source": "web",
+                "archived": False,
+            },
+        )
+    )
+
+    asyncio.run(store.create_session(session_id="other_owner", owner_key=other_owner_key))
+    asyncio.run(
+        store.update_session_preferences(
+            "other_owner",
+            {
+                "source": "wx_miniprogram",
+                "archived": False,
+            },
+        )
+    )
+
+    active = asyncio.run(
+        store.list_sessions_by_owner(
+            owner_key,
+            source="wx_miniprogram",
+            archived=False,
+        )
+    )
+    archived = asyncio.run(
+        store.list_sessions_by_owner(
+            owner_key,
+            source="wx_miniprogram",
+            archived=True,
+        )
+    )
+
+    assert [item["id"] for item in active] == ["wx_live"]
+    assert [item["id"] for item in archived] == ["wx_archived"]
+    assert active[0]["preferences"]["source"] == "wx_miniprogram"
+    assert active[0]["preferences"]["archived"] is False
 
 
 def test_update_notebook_entry_bookmark_roundtrip(store: SQLiteSessionStore) -> None:

@@ -2,13 +2,17 @@
 Chat API Router
 ================
 
-WebSocket endpoint for lightweight chat with session management.
-REST endpoints for session operations.
+Legacy chat transport kept for backward compatibility.
+
+The production chat contract is the unified `/api/v1/ws` runtime. This module
+remains admin-only because its legacy JSON session manager has no first-class
+ownership model.
 """
 
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 
 from deeptutor.agents.chat import ChatAgent, SessionManager
+from deeptutor.api.dependencies import require_admin
 from deeptutor.logging import get_logger
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
 from deeptutor.services.llm.config import get_llm_config
@@ -19,7 +23,7 @@ config = load_config_with_main("main.yaml", PROJECT_ROOT)
 log_dir = config.get("paths", {}).get("user_log_dir") or config.get("logging", {}).get("log_dir")
 logger = get_logger("ChatAPI", level="INFO", log_dir=log_dir)
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 # Initialize session manager
 session_manager = SessionManager()

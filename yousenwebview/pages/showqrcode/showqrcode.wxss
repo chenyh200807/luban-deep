@@ -1,0 +1,135 @@
+/* pages/showqrcode/showqrcode.wxss */
+
+.course-logo {
+  width: 300rpx;
+  height: 300rpx;
+  display: inline-flex;
+  /* margin-bottom: 50rpx; */
+}
+ .container-title {
+      text-align: center;
+      display: flex;
+      align-items: center;
+      height: 142rpx;
+      text-align: center;
+      background-image: url(https://www.yousenjiaoyu.com/static/default/wxmini/img/title-bg.png);
+      background-size: cover;
+  }
+
+  .title-text{
+    width: 100%;
+    font-weight: bold;
+    color: white;
+  }
+
+  .title-des{
+    background: #fef9eb;
+    border-bottom-left-radius: 0.3rem;
+    border-bottom-right-radius: 0.3rem;
+    border-bottom: 0.1rem solid #fadead;
+    border-left: 0.1rem solid #fadead;
+    border-right: 0.1rem solid #fadead
+  }
+
+  .course-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20rpx;
+    margin-top: 30rpx;
+  }
+
+  .buttonqrcode{
+    width: 50%;
+    margin-left: 24%;
+    margin-top: 12px;
+  }
+
+  
+.course-description {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  color: red;
+}
+
+.benefit-title{
+  border-style: solid;
+  line-height: 30px;
+    border-width: 2px;
+    border-color: rgb(253, 246, 197);
+    border-radius: 9px;
+    background-image: -webkit-linear-gradient( 90deg, rgb(196,46,34) 0%, rgb(234,51,35) 100%);
+    color: #fff!important;
+    padding: 1% 3%;
+    margin-right: 2%;
+    width: 30%!important;
+    font-size: 14px!important;
+    font-weight: normal;
+    text-align: center;
+}
+
+.desc{
+  /* width: 100%; */
+  display: flex;
+  border-radius: 12px;
+  background-color: rgb(253, 237, 215);
+  padding: 5% 3%;
+  align-items: center;
+}
+
+.desc1{
+  text-align: center;
+    border-radius: 12px;
+    background-color: rgb(253, 237, 215);
+    padding: 5% 21%;
+    align-items: center;
+}
+
+.showimage{
+  background-color: white;
+  width: 70%;
+  margin-left: 16%;
+  padding-bottom: 14px;
+  border-radius: 20rpx;
+}
+/* .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.course-logo {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 50rpx;
+}
+
+.course-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.course-description {
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.course-benefits {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.benefit-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.benefit-item {
+  font-size: 24rpx;
+  line-height: 1.5;
+} */

@@ -155,8 +155,11 @@ Page({
       contentHeight: contentHeight,
       isDark: helpers.isDark(),
       enableReason: !!savedToolPrefs.enableReason,
-      enableWebSearch: !!savedToolPrefs.enableWebSearch,
+      enableWebSearch: false,
     });
+    if (savedToolPrefs.enableWebSearch) {
+      this._saveToolPrefs(!!savedToolPrefs.enableReason, false);
+    }
 
     // [FIX-SESSION-1] 仅在 5 分钟内恢复 session（处理页面刷新），
     // 超时则开启新对话，防止所有问题堆积在同一个历史记录中

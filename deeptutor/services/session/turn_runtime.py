@@ -20,11 +20,16 @@ from deeptutor.contracts.tutorbot_profiles import resolve_tutorbot_knowledge_cha
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
-from deeptutor.services.session.sqlite_store import SQLiteSessionStore, get_sqlite_session_store
+from deeptutor.services.session.sqlite_store import (
+    SQLiteSessionStore,
+    build_user_owner_key,
+    get_sqlite_session_store,
+)
 
 logger = logging.getLogger(__name__)
 observability = get_langfuse_observability()
 _MINI_PROGRAM_CAPTURE_COST = 20
+_CAPTURED_ASSISTANT_CALL_KINDS = {"llm_final_response", "exact_authority_response"}
 
 
 def _should_capture_assistant_content(event: StreamEvent) -> bool:
@@ -34,7 +39,7 @@ def _should_capture_assistant_content(event: StreamEvent) -> bool:
     call_id = metadata.get("call_id")
     if not call_id:
         return True
-    return metadata.get("call_kind") == "llm_final_response"
+    return str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS
 
 
 def _clip_text(value: str, limit: int = 4000) -> str:
@@ -622,7 +627,11 @@ class TurnRuntimeManager:
                 ),
             },
         }
-        session = await self.store.ensure_session(payload.get("session_id"))
+        billing_context = _extract_billing_context(dict(runtime_only_config)) or {}
+        session = await self.store.ensure_session(
+            payload.get("session_id"),
+            owner_key=build_user_owner_key(billing_context.get("user_id")),
+        )
         await self.store.update_session_preferences(
             session["id"],
             {
@@ -641,7 +650,7 @@ class TurnRuntimeManager:
                     else {}
                 ),
                 **({"interaction_hints": runtime_interaction_hints} if runtime_interaction_hints else {}),
-                **(_extract_billing_context(dict(runtime_only_config)) or {}),
+                **(billing_context or {}),
                 **(
                     {"knowledge_chain_profile": knowledge_chain_defaults["knowledge_chain_profile"]}
                     if knowledge_chain_defaults["knowledge_chain_profile"]

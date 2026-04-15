@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+from contextlib import contextmanager
 import hashlib
 import hmac
 import json
@@ -20,6 +21,11 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - non-Unix fallback
+    fcntl = None
 
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.session import get_sqlite_session_store
@@ -377,21 +383,63 @@ class MemberConsoleService:
 
     def _load(self) -> dict[str, Any]:
         with self._lock:
-            if not self._data_path.exists():
-                data = self._seed_data()
-                self._save(data)
-                return data
-            data = json.loads(self._data_path.read_text(encoding="utf-8"))
-            data.setdefault("assessment_sessions", {})
-            data.setdefault("phone_codes", {})
-            return data
+            with self._storage_lock():
+                return self._load_unlocked()
 
     def _save(self, data: dict[str, Any]) -> None:
         with self._lock:
-            self._data_path.write_text(
-                json.dumps(data, ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
+            with self._storage_lock():
+                self._save_unlocked(data)
+
+    def _lock_path(self) -> Path:
+        return self._data_path.with_name(f"{self._data_path.name}.lock")
+
+    @contextmanager
+    def _storage_lock(self):
+        lock_path = self._lock_path()
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with lock_path.open("a+", encoding="utf-8") as lock_handle:
+            if fcntl is not None:
+                fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                if fcntl is not None:
+                    fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
+
+    def _load_unlocked(self) -> dict[str, Any]:
+        if not self._data_path.exists():
+            data = self._seed_data()
+            self._save_unlocked(data)
+            return data
+        data = json.loads(self._data_path.read_text(encoding="utf-8"))
+        data.setdefault("assessment_sessions", {})
+        data.setdefault("phone_codes", {})
+        return data
+
+    def _save_unlocked(self, data: dict[str, Any]) -> None:
+        self._data_path.parent.mkdir(parents=True, exist_ok=True)
+        temp_path = self._data_path.with_name(
+            f"{self._data_path.name}.{uuid.uuid4().hex}.tmp"
+        )
+        payload = json.dumps(data, ensure_ascii=False, indent=2)
+        try:
+            with temp_path.open("w", encoding="utf-8") as handle:
+                handle.write(payload)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temp_path, self._data_path)
+        finally:
+            if temp_path.exists():
+                temp_path.unlink(missing_ok=True)
+
+    def _mutate(self, mutator):
+        with self._lock:
+            with self._storage_lock():
+                data = self._load_unlocked()
+                result = mutator(data)
+                self._save_unlocked(data)
+                return result
 
     def _find_member(self, data: dict[str, Any], user_id: str) -> dict[str, Any]:
         for member in data["members"]:
@@ -485,6 +533,14 @@ class MemberConsoleService:
             or os.getenv("WECHAT_MP_APPSECRET")
             or "deeptutor-dev-member-secret"
         ).strip()
+        env = str(
+            os.getenv("DEEPTUTOR_ENV")
+            or os.getenv("APP_ENV")
+            or os.getenv("ENV")
+            or ""
+        ).strip().lower()
+        if secret == "deeptutor-dev-member-secret" and env in {"prod", "production"}:
+            raise RuntimeError("DEEPTUTOR_AUTH_SECRET must be configured in production")
         return secret
 
     def _admin_user_ids(self) -> set[str]:
@@ -863,55 +919,56 @@ class MemberConsoleService:
         source: str = "practice",
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
-        learning = self._ensure_learning_profile(member)
-        today = _date_key()
-        amount = max(0, int(count or 0))
-        correct_count = max(0, int(correct or 0))
-        if amount <= 0:
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            member = self._ensure_member(data, user_id)
+            learning = self._ensure_learning_profile(member)
+            today = _date_key()
+            amount = max(0, int(count or 0))
+            correct_count = max(0, int(correct or 0))
+            normalized_chapter = str(chapter or "").strip()
+            if amount <= 0:
+                return {
+                    "today_done": int(learning["daily_counts"].get(today) or 0),
+                    "chapter": normalized_chapter,
+                }
+
+            learning["daily_counts"][today] = int(learning["daily_counts"].get(today) or 0) + amount
+            if member.get("last_study_date") != today:
+                member["study_days"] = int(member.get("study_days") or 0) + 1
+                member["last_study_date"] = today
+            member["last_active_at"] = _iso()
+            member["last_practice_at"] = _iso()
+
+            if normalized_chapter:
+                chapter_stats = learning["chapter_stats"].setdefault(
+                    normalized_chapter,
+                    {"done": 0, "correct": 0, "last_activity_at": ""},
+                )
+                chapter_stats["done"] = int(chapter_stats.get("done") or 0) + amount
+                chapter_stats["correct"] = int(chapter_stats.get("correct") or 0) + min(correct_count, amount)
+                chapter_stats["last_activity_at"] = _iso()
+                member["focus_topic"] = normalized_chapter
+                member["focus_query"] = f"我想练习{normalized_chapter}相关的题目"
+
+            self._append_audit(
+                data,
+                action="learning_activity",
+                target_user=user_id,
+                operator=source,
+                reason="activity_tracked",
+                after={
+                    "count": amount,
+                    "correct": min(correct_count, amount),
+                    "chapter": normalized_chapter,
+                    "metadata": metadata or {},
+                },
+            )
             return {
                 "today_done": int(learning["daily_counts"].get(today) or 0),
-                "chapter": chapter,
+                "chapter": normalized_chapter,
             }
 
-        learning["daily_counts"][today] = int(learning["daily_counts"].get(today) or 0) + amount
-        if member.get("last_study_date") != today:
-            member["study_days"] = int(member.get("study_days") or 0) + 1
-            member["last_study_date"] = today
-        member["last_active_at"] = _iso()
-        member["last_practice_at"] = _iso()
-
-        normalized_chapter = str(chapter or "").strip()
-        if normalized_chapter:
-            chapter_stats = learning["chapter_stats"].setdefault(
-                normalized_chapter,
-                {"done": 0, "correct": 0, "last_activity_at": ""},
-            )
-            chapter_stats["done"] = int(chapter_stats.get("done") or 0) + amount
-            chapter_stats["correct"] = int(chapter_stats.get("correct") or 0) + min(correct_count, amount)
-            chapter_stats["last_activity_at"] = _iso()
-            member["focus_topic"] = normalized_chapter
-            member["focus_query"] = f"我想练习{normalized_chapter}相关的题目"
-
-        self._append_audit(
-            data,
-            action="learning_activity",
-            target_user=user_id,
-            operator=source,
-            reason="activity_tracked",
-            after={
-                "count": amount,
-                "correct": min(correct_count, amount),
-                "chapter": normalized_chapter,
-                "metadata": metadata or {},
-            },
-        )
-        self._save(data)
-        return {
-            "today_done": int(learning["daily_counts"].get(today) or 0),
-            "chapter": normalized_chapter,
-        }
+        return self._mutate(_apply)
 
     def record_chat_learning(
         self,
@@ -1129,26 +1186,27 @@ class MemberConsoleService:
         *,
         operator: str = "admin",
     ) -> dict[str, Any]:
-        data = self._load()
-        member = self._find_member(data, user_id)
-        note = {
-            "id": f"note_{uuid.uuid4().hex[:10]}",
-            "content": content,
-            "channel": channel,
-            "pinned": pinned,
-            "created_at": _iso(),
-        }
-        member.setdefault("notes", []).insert(0, note)
-        self._append_audit(
-            data,
-            action="note",
-            target_user=user_id,
-            reason="note_created",
-            after=note,
-            operator=operator,
-        )
-        self._save(data)
-        return note
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            member = self._find_member(data, user_id)
+            note = {
+                "id": f"note_{uuid.uuid4().hex[:10]}",
+                "content": content,
+                "channel": channel,
+                "pinned": pinned,
+                "created_at": _iso(),
+            }
+            member.setdefault("notes", []).insert(0, note)
+            self._append_audit(
+                data,
+                action="note",
+                target_user=user_id,
+                reason="note_created",
+                after=note,
+                operator=operator,
+            )
+            return note
+
+        return self._mutate(_apply)
 
     def update_note(
         self,
@@ -1158,48 +1216,50 @@ class MemberConsoleService:
         *,
         operator: str = "admin",
     ) -> dict[str, Any]:
-        data = self._load()
-        for member in data["members"]:
-            for note in member.get("notes", []):
-                if note["id"] != note_id:
-                    continue
-                before = deepcopy(note)
-                if content is not None:
-                    note["content"] = content
-                if pinned is not None:
-                    note["pinned"] = pinned
-                self._append_audit(
-                    data,
-                    action="note_update",
-                    target_user=member["user_id"],
-                    reason="note_updated",
-                    before=before,
-                    after=note,
-                    operator=operator,
-                )
-                self._save(data)
-                return note
-        raise KeyError(f"Unknown note: {note_id}")
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            for member in data["members"]:
+                for note in member.get("notes", []):
+                    if note["id"] != note_id:
+                        continue
+                    before = deepcopy(note)
+                    if content is not None:
+                        note["content"] = content
+                    if pinned is not None:
+                        note["pinned"] = pinned
+                    self._append_audit(
+                        data,
+                        action="note_update",
+                        target_user=member["user_id"],
+                        reason="note_updated",
+                        before=before,
+                        after=note,
+                        operator=operator,
+                    )
+                    return note
+            raise KeyError(f"Unknown note: {note_id}")
+
+        return self._mutate(_apply)
 
     def delete_note(self, note_id: str, *, operator: str = "admin") -> bool:
-        data = self._load()
-        for member in data["members"]:
-            notes = member.get("notes", [])
-            for index, note in enumerate(notes):
-                if note["id"] != note_id:
-                    continue
-                removed = notes.pop(index)
-                self._append_audit(
-                    data,
-                    action="note_delete",
-                    target_user=member["user_id"],
-                    reason="note_deleted",
-                    before=removed,
-                    operator=operator,
-                )
-                self._save(data)
-                return True
-        return False
+        def _apply(data: dict[str, Any]) -> bool:
+            for member in data["members"]:
+                notes = member.get("notes", [])
+                for index, note in enumerate(notes):
+                    if note["id"] != note_id:
+                        continue
+                    removed = notes.pop(index)
+                    self._append_audit(
+                        data,
+                        action="note_delete",
+                        target_user=member["user_id"],
+                        reason="note_deleted",
+                        before=removed,
+                        operator=operator,
+                    )
+                    return True
+            return False
+
+        return self._mutate(_apply)
 
     def get_audit_log(
         self,
@@ -1233,24 +1293,25 @@ class MemberConsoleService:
         *,
         operator: str = "admin",
     ) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
-        before = deepcopy(member)
-        base = max(_parse_time(member["expire_at"]), _now())
-        member["tier"] = tier
-        member["status"] = "active"
-        member["expire_at"] = _iso(base + timedelta(days=days))
-        self._append_audit(
-            data,
-            action="grant",
-            target_user=user_id,
-            reason=reason or "manual_grant",
-            before=before,
-            after=member,
-            operator=operator,
-        )
-        self._save(data)
-        return member
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            member = self._ensure_member(data, user_id)
+            before = deepcopy(member)
+            base = max(_parse_time(member["expire_at"]), _now())
+            member["tier"] = tier
+            member["status"] = "active"
+            member["expire_at"] = _iso(base + timedelta(days=days))
+            self._append_audit(
+                data,
+                action="grant",
+                target_user=user_id,
+                reason=reason or "manual_grant",
+                before=before,
+                after=member,
+                operator=operator,
+            )
+            return member
+
+        return self._mutate(_apply)
 
     def update_subscription(
         self,
@@ -1263,29 +1324,30 @@ class MemberConsoleService:
         reason: str = "",
         operator: str = "admin",
     ) -> dict[str, Any]:
-        data = self._load()
-        member = self._find_member(data, user_id)
-        before = deepcopy(member)
-        if tier:
-            member["tier"] = tier
-        if days:
-            member["expire_at"] = _iso(_parse_time(member["expire_at"]) + timedelta(days=days))
-        if expire_at:
-            member["expire_at"] = expire_at
-        if auto_renew is not None:
-            member["auto_renew"] = auto_renew
-        member["status"] = "active" if _parse_time(member["expire_at"]) > _now() else "expired"
-        self._append_audit(
-            data,
-            action="update",
-            target_user=user_id,
-            reason=reason or "manual_update",
-            before=before,
-            after=member,
-            operator=operator,
-        )
-        self._save(data)
-        return member
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            member = self._find_member(data, user_id)
+            before = deepcopy(member)
+            if tier:
+                member["tier"] = tier
+            if days:
+                member["expire_at"] = _iso(_parse_time(member["expire_at"]) + timedelta(days=days))
+            if expire_at:
+                member["expire_at"] = expire_at
+            if auto_renew is not None:
+                member["auto_renew"] = auto_renew
+            member["status"] = "active" if _parse_time(member["expire_at"]) > _now() else "expired"
+            self._append_audit(
+                data,
+                action="update",
+                target_user=user_id,
+                reason=reason or "manual_update",
+                before=before,
+                after=member,
+                operator=operator,
+            )
+            return member
+
+        return self._mutate(_apply)
 
     def revoke_subscription(
         self,
@@ -1294,23 +1356,24 @@ class MemberConsoleService:
         *,
         operator: str = "admin",
     ) -> dict[str, Any]:
-        data = self._load()
-        member = self._find_member(data, user_id)
-        before = deepcopy(member)
-        member["status"] = "revoked"
-        member["auto_renew"] = False
-        member["expire_at"] = _iso(_now())
-        self._append_audit(
-            data,
-            action="revoke",
-            target_user=user_id,
-            reason=reason or "manual_revoke",
-            before=before,
-            after=member,
-            operator=operator,
-        )
-        self._save(data)
-        return member
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            member = self._find_member(data, user_id)
+            before = deepcopy(member)
+            member["status"] = "revoked"
+            member["auto_renew"] = False
+            member["expire_at"] = _iso(_now())
+            self._append_audit(
+                data,
+                action="revoke",
+                target_user=user_id,
+                reason=reason or "manual_revoke",
+                before=before,
+                after=member,
+                operator=operator,
+            )
+            return member
+
+        return self._mutate(_apply)
 
     def get_wallet(self, user_id: str) -> dict[str, Any]:
         data = self._load()
@@ -1334,35 +1397,36 @@ class MemberConsoleService:
         return {"entries": page, "has_more": offset + limit < len(entries), "total": len(entries)}
 
     def capture_points(self, user_id: str, amount: int = 20, reason: str = "capture") -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
-        current_balance = max(0, int(member.get("points_balance") or 0))
-        requested_amount = max(0, int(amount or 0))
-        debit = min(current_balance, requested_amount)
-        if debit <= 0:
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            member = self._ensure_member(data, user_id)
+            current_balance = max(0, int(member.get("points_balance") or 0))
+            requested_amount = max(0, int(amount or 0))
+            debit = min(current_balance, requested_amount)
+            if debit <= 0:
+                return {
+                    "captured": 0,
+                    "requested": requested_amount,
+                    "balance": current_balance,
+                    "entry": None,
+                }
+
+            entry = {
+                "id": f"ledger_{uuid.uuid4().hex[:12]}",
+                "delta": -debit,
+                "reason": reason or "capture",
+                "created_at": _iso(),
+            }
+            member.setdefault("ledger", []).insert(0, entry)
+            member["points_balance"] = current_balance - debit
+            member["last_active_at"] = _iso()
             return {
-                "captured": 0,
+                "captured": debit,
                 "requested": requested_amount,
-                "balance": current_balance,
-                "entry": None,
+                "balance": member["points_balance"],
+                "entry": entry,
             }
 
-        entry = {
-            "id": f"ledger_{uuid.uuid4().hex[:12]}",
-            "delta": -debit,
-            "reason": reason or "capture",
-            "created_at": _iso(),
-        }
-        member.setdefault("ledger", []).insert(0, entry)
-        member["points_balance"] = current_balance - debit
-        member["last_active_at"] = _iso()
-        self._save(data)
-        return {
-            "captured": debit,
-            "requested": requested_amount,
-            "balance": member["points_balance"],
-            "entry": entry,
-        }
+        return self._mutate(_apply)
 
     def get_profile(self, user_id: str) -> dict[str, Any]:
         data = self._load()
@@ -1391,24 +1455,32 @@ class MemberConsoleService:
         }
 
     def update_profile(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
-        before = deepcopy(member)
-        mapping = {
-            "display_name": "display_name",
-            "username": "display_name",
-            "exam_date": "exam_date",
-            "daily_target": "daily_target",
-            "difficulty_preference": "difficulty_preference",
-            "explanation_style": "explanation_style",
-            "review_reminder": "review_reminder",
-            "avatar_url": "avatar_url",
-        }
-        for src, dst in mapping.items():
-            if src in patch:
-                member[dst] = patch[src]
-        self._append_audit(data, action="profile_update", target_user=user_id, reason="profile_patch", before=before, after=member)
-        self._save(data)
+        def _apply(data: dict[str, Any]) -> None:
+            member = self._ensure_member(data, user_id)
+            before = deepcopy(member)
+            mapping = {
+                "display_name": "display_name",
+                "username": "display_name",
+                "exam_date": "exam_date",
+                "daily_target": "daily_target",
+                "difficulty_preference": "difficulty_preference",
+                "explanation_style": "explanation_style",
+                "review_reminder": "review_reminder",
+                "avatar_url": "avatar_url",
+            }
+            for src, dst in mapping.items():
+                if src in patch:
+                    member[dst] = patch[src]
+            self._append_audit(
+                data,
+                action="profile_update",
+                target_user=user_id,
+                reason="profile_patch",
+                before=before,
+                after=member,
+            )
+
+        self._mutate(_apply)
         return self.get_profile(user_id)
 
     def get_today_progress(self, user_id: str) -> dict[str, Any]:
@@ -1608,122 +1680,125 @@ class MemberConsoleService:
         }
 
     def create_assessment(self, user_id: str, count: int = 20) -> dict[str, Any]:
-        data = self._load()
-        questions = []
-        bank = _ASSESSMENT_BANK * max(1, (count + len(_ASSESSMENT_BANK) - 1) // len(_ASSESSMENT_BANK))
-        session_questions = []
-        for index, item in enumerate(bank[:count], start=1):
-            question_id = f"{item.id}__{index:02d}_{uuid.uuid4().hex[:6]}"
-            questions.append(
-                {
-                    "question_id": question_id,
-                    "question_stem": item.question,
-                    "question_type": "single_choice",
-                    "difficulty": "medium",
-                    "chapter": item.chapter,
-                    "options": [{"key": key, "text": value} for key, value in item.options.items()],
-                }
-            )
-            session_questions.append(
-                {
-                    "question_id": question_id,
-                    "source_question_id": item.id,
-                    "answer": item.answer,
-                    "chapter": item.chapter,
-                }
-            )
-        quiz_id = f"quiz_{uuid.uuid4().hex[:10]}"
-        data.setdefault("assessment_sessions", {})[quiz_id] = {
-            "user_id": user_id,
-            "questions": session_questions,
-            "created_at": _iso(),
-        }
-        self._save(data)
-        return {"quiz_id": quiz_id, "questions": questions}
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            questions = []
+            bank = _ASSESSMENT_BANK * max(1, (count + len(_ASSESSMENT_BANK) - 1) // len(_ASSESSMENT_BANK))
+            session_questions = []
+            for index, item in enumerate(bank[:count], start=1):
+                question_id = f"{item.id}__{index:02d}_{uuid.uuid4().hex[:6]}"
+                questions.append(
+                    {
+                        "question_id": question_id,
+                        "question_stem": item.question,
+                        "question_type": "single_choice",
+                        "difficulty": "medium",
+                        "chapter": item.chapter,
+                        "options": [{"key": key, "text": value} for key, value in item.options.items()],
+                    }
+                )
+                session_questions.append(
+                    {
+                        "question_id": question_id,
+                        "source_question_id": item.id,
+                        "answer": item.answer,
+                        "chapter": item.chapter,
+                    }
+                )
+            quiz_id = f"quiz_{uuid.uuid4().hex[:10]}"
+            data.setdefault("assessment_sessions", {})[quiz_id] = {
+                "user_id": user_id,
+                "questions": session_questions,
+                "created_at": _iso(),
+            }
+            return {"quiz_id": quiz_id, "questions": questions}
+
+        return self._mutate(_apply)
 
     def submit_assessment(self, user_id: str, quiz_id: str, answers: dict[str, str], time_spent_seconds: int) -> dict[str, Any]:
-        data = self._load()
-        session = data.get("assessment_sessions", {}).get(quiz_id)
-        if not session:
-            raise KeyError(f"Unknown quiz: {quiz_id}")
-        questions = session.get("questions", [])
-        correct = 0
-        chapter_hits: dict[str, list[int]] = {}
-        for question in questions:
-            chapter = question["chapter"]
-            chapter_hits.setdefault(chapter, [])
-            is_correct = str(answers.get(question["question_id"], "")).upper() == question["answer"]
-            chapter_hits[chapter].append(1 if is_correct else 0)
-            correct += 1 if is_correct else 0
-        score_pct = round((correct / max(len(questions), 1)) * 100)
-        chapter_mastery = {
-            chapter: {"name": chapter, "mastery": round(sum(values) / max(len(values), 1) * 100)}
-            for chapter, values in chapter_hits.items()
-        }
-        level = "advanced" if score_pct >= 75 else "intermediate" if score_pct >= 50 else "beginner"
-        feedback = {
-            "ability_overview": {
-                "score_pct": score_pct,
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            session = data.get("assessment_sessions", {}).get(quiz_id)
+            if not session:
+                raise KeyError(f"Unknown quiz: {quiz_id}")
+            questions = session.get("questions", [])
+            correct = 0
+            chapter_hits: dict[str, list[int]] = {}
+            for question in questions:
+                chapter = question["chapter"]
+                chapter_hits.setdefault(chapter, [])
+                is_correct = str(answers.get(question["question_id"], "")).upper() == question["answer"]
+                chapter_hits[chapter].append(1 if is_correct else 0)
+                correct += 1 if is_correct else 0
+            score_pct = round((correct / max(len(questions), 1)) * 100)
+            chapter_mastery = {
+                chapter: {"name": chapter, "mastery": round(sum(values) / max(len(values), 1) * 100)}
+                for chapter, values in chapter_hits.items()
+            }
+            level = "advanced" if score_pct >= 75 else "intermediate" if score_pct >= 50 else "beginner"
+            feedback = {
+                "ability_overview": {
+                    "score_pct": score_pct,
+                    "chapter_mastery": chapter_mastery,
+                    "error_pattern": "slip_dominant" if score_pct >= 60 else "gap_dominant",
+                },
+                "cognitive_insight": {
+                    "response_profile": "fluent" if time_spent_seconds / max(len(questions), 1) < 20 else "deliberate",
+                    "calibration_label": "accurate",
+                },
+                "learner_profile": {
+                    "archetype": "strategist" if score_pct >= 70 else "builder",
+                    "traits": ["目标导向", "有复盘意识", "能持续投入"],
+                    "study_tip": "建议把错题重新按章节回看一遍，再用 AI 追问不会的步骤。",
+                },
+                "action_plan": {
+                    "priority_chapters": [
+                        {"name": chapter}
+                        for chapter, _ in sorted(
+                            chapter_mastery.items(),
+                            key=lambda item: int(item[1].get("mastery") or 0),
+                        )[:5]
+                    ],
+                    "plan_strategy": "先补最弱章节，再做一次 10 题针对训练。",
+                },
+            }
+            member = self._ensure_member(data, user_id)
+            member["chapter_mastery"].update(chapter_mastery)
+            learning = self._ensure_learning_profile(member)
+            today = _date_key()
+            learning["daily_counts"][today] = int(learning["daily_counts"].get(today) or 0) + len(questions)
+            if member.get("last_study_date") != today:
+                member["study_days"] = int(member.get("study_days") or 0) + 1
+                member["last_study_date"] = today
+            member["last_active_at"] = _iso()
+            member["last_practice_at"] = _iso()
+            for chapter, values in chapter_hits.items():
+                chapter_name = chapter_mastery[chapter]["name"]
+                stats = learning["chapter_stats"].setdefault(
+                    chapter_name,
+                    {"done": 0, "correct": 0, "last_activity_at": ""},
+                )
+                stats["done"] = int(stats.get("done") or 0) + len(values)
+                stats["correct"] = int(stats.get("correct") or 0) + sum(values)
+                stats["last_activity_at"] = _iso()
+            return {
+                "score": score_pct,
+                "level": level,
                 "chapter_mastery": chapter_mastery,
-                "error_pattern": "slip_dominant" if score_pct >= 60 else "gap_dominant",
-            },
-            "cognitive_insight": {
-                "response_profile": "fluent" if time_spent_seconds / max(len(questions), 1) < 20 else "deliberate",
-                "calibration_label": "accurate",
-            },
-            "learner_profile": {
-                "archetype": "strategist" if score_pct >= 70 else "builder",
-                "traits": ["目标导向", "有复盘意识", "能持续投入"],
-                "study_tip": "建议把错题重新按章节回看一遍，再用 AI 追问不会的步骤。",
-            },
-            "action_plan": {
-                "priority_chapters": [
-                    {"name": chapter}
-                    for chapter, _ in sorted(
-                        chapter_mastery.items(),
-                        key=lambda item: int(item[1].get("mastery") or 0),
-                    )[:5]
-                ],
-                "plan_strategy": "先补最弱章节，再做一次 10 题针对训练。",
-            },
-        }
-        member = self._ensure_member(data, user_id)
-        member["chapter_mastery"].update(chapter_mastery)
-        learning = self._ensure_learning_profile(member)
-        today = _date_key()
-        learning["daily_counts"][today] = int(learning["daily_counts"].get(today) or 0) + len(questions)
-        if member.get("last_study_date") != today:
-            member["study_days"] = int(member.get("study_days") or 0) + 1
-            member["last_study_date"] = today
-        member["last_active_at"] = _iso()
-        member["last_practice_at"] = _iso()
-        for chapter, values in chapter_hits.items():
-            chapter_name = chapter_mastery[chapter]["name"]
-            stats = learning["chapter_stats"].setdefault(
-                chapter_name,
-                {"done": 0, "correct": 0, "last_activity_at": ""},
-            )
-            stats["done"] = int(stats.get("done") or 0) + len(values)
-            stats["correct"] = int(stats.get("correct") or 0) + sum(values)
-            stats["last_activity_at"] = _iso()
-        self._save(data)
-        return {
-            "score": score_pct,
-            "level": level,
-            "chapter_mastery": chapter_mastery,
-            "diagnostic_feedback": feedback,
-            "diagnostic_profile": {
-                "learner_archetype": feedback["learner_profile"]["archetype"],
-                "response_profile": feedback["cognitive_insight"]["response_profile"],
-                "calibration_label": feedback["cognitive_insight"]["calibration_label"],
-            },
-        }
+                "diagnostic_feedback": feedback,
+                "diagnostic_profile": {
+                    "learner_archetype": feedback["learner_profile"]["archetype"],
+                    "response_profile": feedback["cognitive_insight"]["response_profile"],
+                    "calibration_label": feedback["cognitive_insight"]["calibration_label"],
+                },
+            }
+
+        return self._mutate(_apply)
 
     def set_password(self, user_id: str, password: str) -> None:
-        data = self._load()
-        member = self._find_member(data, user_id)
-        member["password_hash"] = self._hash_password(password)
-        self._save(data)
+        def _apply(data: dict[str, Any]) -> None:
+            member = self._find_member(data, user_id)
+            member["password_hash"] = self._hash_password(password)
+
+        self._mutate(_apply)
 
     def login_with_password(self, username: str, password: str) -> dict[str, Any]:
         data = self._load()
@@ -1755,24 +1830,26 @@ class MemberConsoleService:
         unionid = str(session_payload.get("unionid") or "").strip()
         session_key = str(session_payload.get("session_key") or "").strip()
 
-        data = self._load()
-        target = self._find_member_by_wechat_identity(
-            data,
-            openid=openid,
-            unionid=unionid,
-        )
-        if target is None:
-            user_id = f"wx_{openid[-12:]}".replace("-", "_")
-            target = self._ensure_member(data, user_id)
-        target["display_name"] = target.get("display_name") or f"微信用户{target['user_id'][-4:]}"
-        target["last_active_at"] = _iso()
-        target["wx_openid"] = openid
-        target["wx_unionid"] = unionid
-        target["wx_session_key"] = session_key
-        target["wx_last_login_at"] = _iso()
-        self._save(data)
+        def _apply(data: dict[str, Any]) -> str:
+            target = self._find_member_by_wechat_identity(
+                data,
+                openid=openid,
+                unionid=unionid,
+            )
+            if target is None:
+                user_id = f"wx_{openid[-12:]}".replace("-", "_")
+                target = self._ensure_member(data, user_id)
+            target["display_name"] = target.get("display_name") or f"微信用户{target['user_id'][-4:]}"
+            target["last_active_at"] = _iso()
+            target["wx_openid"] = openid
+            target["wx_unionid"] = unionid
+            target["wx_session_key"] = session_key
+            target["wx_last_login_at"] = _iso()
+            return str(target["user_id"])
+
+        target_user_id = self._mutate(_apply)
         token = self._issue_access_token(
-            user_id=target["user_id"],
+            user_id=target_user_id,
             openid=openid,
             unionid=unionid,
         )
@@ -1781,7 +1858,7 @@ class MemberConsoleService:
             "token_type": "Bearer",
             "openid": openid,
             "unionid": unionid,
-            "user": self.get_profile(target["user_id"]),
+            "user": self.get_profile(target_user_id),
         }
 
     async def bind_phone_for_wechat(self, user_id: str, phone_code: str) -> dict[str, Any]:
@@ -1800,91 +1877,83 @@ class MemberConsoleService:
             if len(normalized) != 11:
                 raise ValueError("valid phone_code or phone is required")
 
-        data = self._load()
-        current = self._ensure_member(data, user_id)
-        target = self._find_member_by_phone(data, normalized)
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            current = self._ensure_member(data, user_id)
+            target = self._find_member_by_phone(data, normalized)
 
-        if target and target["user_id"] != current["user_id"]:
-            before = deepcopy(target)
-            for key in ("wx_openid", "wx_unionid", "wx_session_key", "wx_last_login_at"):
-                if current.get(key):
-                    target[key] = current[key]
-            target["phone"] = normalized
-            target["last_active_at"] = _iso()
-            current["merged_into"] = target["user_id"]
+            if target and target["user_id"] != current["user_id"]:
+                before = deepcopy(target)
+                for key in ("wx_openid", "wx_unionid", "wx_session_key", "wx_last_login_at"):
+                    if current.get(key):
+                        target[key] = current[key]
+                target["phone"] = normalized
+                target["last_active_at"] = _iso()
+                current["merged_into"] = target["user_id"]
+                current["last_active_at"] = _iso()
+                self._append_audit(
+                    data,
+                    action="wechat_bind_phone",
+                    target_user=target["user_id"],
+                    operator="wechat_mp",
+                    reason="bind_phone_merge",
+                    before=before,
+                    after=target,
+                )
+                return {
+                    "bound": True,
+                    "merged": True,
+                    "phone": normalized,
+                    "user_id": str(target["user_id"]),
+                    "openid": str(target.get("wx_openid") or ""),
+                    "unionid": str(target.get("wx_unionid") or ""),
+                }
+
+            before = deepcopy(current)
+            current["phone"] = normalized
             current["last_active_at"] = _iso()
+            if not str(current.get("display_name") or "").strip():
+                current["display_name"] = f"学员{normalized[-4:]}"
             self._append_audit(
                 data,
                 action="wechat_bind_phone",
-                target_user=target["user_id"],
+                target_user=current["user_id"],
                 operator="wechat_mp",
-                reason="bind_phone_merge",
+                reason="bind_phone_direct",
                 before=before,
-                after=target,
-            )
-            self._save(data)
-            token = self._issue_access_token(
-                user_id=target["user_id"],
-                openid=str(target.get("wx_openid") or ""),
-                unionid=str(target.get("wx_unionid") or ""),
+                after=current,
             )
             return {
                 "bound": True,
-                "merged": True,
+                "merged": False,
                 "phone": normalized,
-                "token": token,
-                "token_type": "Bearer",
-                "user": self.get_profile(target["user_id"]),
+                "user_id": str(current["user_id"]),
+                "openid": str(current.get("wx_openid") or ""),
+                "unionid": str(current.get("wx_unionid") or ""),
             }
 
-        before = deepcopy(current)
-        current["phone"] = normalized
-        current["last_active_at"] = _iso()
-        if not str(current.get("display_name") or "").strip():
-            current["display_name"] = f"学员{normalized[-4:]}"
-        self._append_audit(
-            data,
-            action="wechat_bind_phone",
-            target_user=current["user_id"],
-            operator="wechat_mp",
-            reason="bind_phone_direct",
-            before=before,
-            after=current,
-        )
-        self._save(data)
+        result = self._mutate(_apply)
         token = self._issue_access_token(
-            user_id=current["user_id"],
-            openid=str(current.get("wx_openid") or ""),
-            unionid=str(current.get("wx_unionid") or ""),
+            user_id=result["user_id"],
+            openid=result["openid"],
+            unionid=result["unionid"],
         )
         return {
             "bound": True,
-            "merged": False,
+            "merged": result["merged"],
             "phone": normalized,
             "token": token,
             "token_type": "Bearer",
-            "user": self.get_profile(current["user_id"]),
+            "user": self.get_profile(result["user_id"]),
         }
 
     def send_phone_code(self, phone: str) -> dict[str, Any]:
-        data = self._load()
         normalized = _slugify_phone(phone)
         now = _now()
         retry_after = 60
-        existing = (data.get("phone_codes") or {}).get(normalized) or {}
-        created_at = _parse_time(existing.get("created_at"))
-        elapsed = max(0, int((now - created_at).total_seconds()))
-        if existing and elapsed < retry_after:
-            return {
-                "sent": False,
-                "retry_after": retry_after - elapsed,
-                "phone": normalized,
-                "message": f"请等待{retry_after - elapsed}秒后再试",
-            }
-        expires_at = now + timedelta(minutes=10)
-        debug_code = self._generate_sms_code()
         delivery = "debug"
         message = "当前环境未接入短信服务，已生成测试验证码。"
+        debug_code = self._generate_sms_code()
+
         if self._should_use_real_sms():
             sms_result = self._send_sms(normalized, debug_code)
             sms_code = str(sms_result.get("Code") or "").strip()
@@ -1911,54 +1980,71 @@ class MemberConsoleService:
                 }
             delivery = "sms"
             message = "验证码发送成功"
-        data["phone_codes"][normalized] = {
-            "code": debug_code,
-            "created_at": _iso(now),
-            "expires_at": _iso(expires_at),
-            "retry_after": retry_after,
-            "delivery": delivery,
-        }
-        self._save(data)
-        result = {
-            "sent": True,
-            "retry_after": retry_after,
-            "phone": normalized,
-            "delivery": delivery,
-            "message": message,
-        }
-        if delivery != "sms":
-            result["debug_code"] = debug_code
-        return result
+
+        expires_at = now + timedelta(minutes=10)
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            existing = (data.get("phone_codes") or {}).get(normalized) or {}
+            created_at = _parse_time(existing.get("created_at"))
+            elapsed = max(0, int((now - created_at).total_seconds()))
+            if existing and elapsed < retry_after:
+                return {
+                    "sent": False,
+                    "retry_after": retry_after - elapsed,
+                    "phone": normalized,
+                    "message": f"请等待{retry_after - elapsed}秒后再试",
+                }
+            data["phone_codes"][normalized] = {
+                "code": debug_code,
+                "created_at": _iso(now),
+                "expires_at": _iso(expires_at),
+                "retry_after": retry_after,
+                "delivery": delivery,
+            }
+            result = {
+                "sent": True,
+                "retry_after": retry_after,
+                "phone": normalized,
+                "delivery": delivery,
+                "message": message,
+            }
+            if delivery != "sms":
+                result["debug_code"] = debug_code
+            return result
+
+        return self._mutate(_apply)
 
     def verify_phone_code(self, phone: str, code: str) -> dict[str, Any]:
-        data = self._load()
         normalized = _slugify_phone(phone)
         provided_code = str(code or "").strip()
-        record = (data.get("phone_codes") or {}).get(normalized) or {}
-        expected_code = str(record.get("code") or "").strip()
-        expires_at = _parse_time(record.get("expires_at"))
-        if not expected_code:
-            raise ValueError("验证码不存在，请先获取验证码")
-        if expires_at < _now():
-            raise ValueError("验证码已过期，请重新获取")
-        if provided_code != expected_code:
-            raise ValueError("验证码错误")
-        target = None
-        for member in data["members"]:
-            if _slugify_phone(member["phone"]) == normalized:
-                target = member
-                break
-        if target is None:
-            target = self._ensure_member(data, f"user_{normalized}")
-            target["phone"] = normalized
-            target["display_name"] = f"学员{normalized[-4:]}"
-        data.get("phone_codes", {}).pop(normalized, None)
-        self._save(data)
-        token = self._issue_access_token(user_id=target["user_id"])
+        def _apply(data: dict[str, Any]) -> str:
+            record = (data.get("phone_codes") or {}).get(normalized) or {}
+            expected_code = str(record.get("code") or "").strip()
+            expires_at = _parse_time(record.get("expires_at"))
+            if not expected_code:
+                raise ValueError("验证码不存在，请先获取验证码")
+            if expires_at < _now():
+                raise ValueError("验证码已过期，请重新获取")
+            if provided_code != expected_code:
+                raise ValueError("验证码错误")
+            target = None
+            for member in data["members"]:
+                if _slugify_phone(member["phone"]) == normalized:
+                    target = member
+                    break
+            if target is None:
+                target = self._ensure_member(data, f"user_{normalized}")
+                target["phone"] = normalized
+                target["display_name"] = f"学员{normalized[-4:]}"
+            data.get("phone_codes", {}).pop(normalized, None)
+            return str(target["user_id"])
+
+        target_user_id = self._mutate(_apply)
+        token = self._issue_access_token(user_id=target_user_id)
         return {
             "token": token,
             "token_type": "Bearer",
-            "user": self.get_profile(target["user_id"]),
+            "user": self.get_profile(target_user_id),
         }
 
     def create_demo_token(self, user_id: str) -> str:

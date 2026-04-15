@@ -1,0 +1,8 @@
+<!--components/tabNav/tabNav.wxml-->
+<view class="tabNavwrap">
+  <scroll-view scroll-x="true" scroll-left="0">
+    <block wx:for="{{tabNavList}}" wx:key="index">
+      <view class="p-r t-c pl-20 pr-20 tab-item ell {{item.pk_id==active_index?'nav_active':''}}" style="width:{{itemWidth}};" bindtap='switchs' data-pk_id="{{item.pk_id}}">{{item.name}}</view>
+    </block>
+  </scroll-view>
+</view>

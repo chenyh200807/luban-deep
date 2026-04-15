@@ -24,6 +24,21 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(line_buffering=True)
 
+
+def _runtime_environment() -> str:
+    env = (
+        os.getenv("DEEPTUTOR_ENV")
+        or os.getenv("APP_ENV")
+        or os.getenv("ENV")
+        or os.getenv("ENVIRONMENT")
+        or "local"
+    )
+    return str(env).strip().lower()
+
+
+def _is_production_environment() -> bool:
+    return _runtime_environment() in {"prod", "production"}
+
 def main() -> None:
     # Get project root directory
     project_root = Path(__file__).parent.parent.parent
@@ -56,16 +71,19 @@ def main() -> None:
     # Filter out non-existent directories to avoid warnings
     reload_excludes = [d for d in reload_excludes if Path(d).exists()]
 
-    # Start uvicorn server with reload enabled
-    uvicorn.run(
-        "deeptutor.api.main:app",
-        host="0.0.0.0",
-        port=backend_port,
-        reload=True,
-        reload_excludes=reload_excludes,
-        log_level="info",
-        access_log=False,
-    )
+    reload_enabled = not _is_production_environment()
+
+    uvicorn_kwargs = {
+        "host": "0.0.0.0",
+        "port": backend_port,
+        "reload": reload_enabled,
+        "log_level": "info",
+        "access_log": False,
+    }
+    if reload_enabled:
+        uvicorn_kwargs["reload_excludes"] = reload_excludes
+
+    uvicorn.run("deeptutor.api.main:app", **uvicorn_kwargs)
 
 
 if __name__ == "__main__":

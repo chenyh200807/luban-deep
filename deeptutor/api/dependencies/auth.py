@@ -26,22 +26,16 @@ def _extract_bearer_token(authorization: str | None) -> str:
     return raw
 
 
-def get_current_user(authorization: str | None = Header(default=None)) -> AuthContext:
+def resolve_auth_context(authorization: str | None) -> AuthContext | None:
     token = _extract_bearer_token(authorization)
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-        )
+        return None
 
     service = get_member_console_service()
     claims = service.verify_access_token(token)
     user_id = str((claims or {}).get("uid") or (claims or {}).get("sub") or "").strip()
     if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-        )
+        return None
 
     return AuthContext(
         user_id=user_id,
@@ -50,6 +44,16 @@ def get_current_user(authorization: str | None = Header(default=None)) -> AuthCo
         claims=dict(claims or {}),
         is_admin=service.is_admin_user(user_id),
     )
+
+
+def get_current_user(authorization: str | None = Header(default=None)) -> AuthContext:
+    current_user = resolve_auth_context(authorization)
+    if current_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+        )
+    return current_user
 
 
 def require_admin(current_user: AuthContext = Depends(get_current_user)) -> AuthContext:

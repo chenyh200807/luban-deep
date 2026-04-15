@@ -147,3 +147,103 @@ def test_load_syncs_existing_active_profiles_from_env(tmp_path: Path, monkeypatc
     assert emb_model["model"] == "text-embedding-v4"
     assert emb_model["name"] == "text-embedding-v4"
     assert emb_model["dimension"] == "2048"
+
+
+def test_save_preserves_existing_api_key_when_payload_leaves_it_blank(tmp_path: Path) -> None:
+    catalog_path = tmp_path / "model_catalog.json"
+    catalog_path.write_text(
+        """{
+  "version": 1,
+  "services": {
+    "llm": {
+      "active_profile_id": "llm-profile-default",
+      "active_model_id": "llm-model-default",
+      "profiles": [
+        {
+          "id": "llm-profile-default",
+          "name": "Default LLM Endpoint",
+          "binding": "openai",
+          "base_url": "https://existing.example/v1",
+          "api_key": "existing-secret",
+          "api_version": "",
+          "extra_headers": {},
+          "models": [{"id": "llm-model-default", "name": "gpt", "model": "gpt"}]
+        }
+      ]
+    },
+    "embedding": {"active_profile_id": null, "active_model_id": null, "profiles": []},
+    "search": {"active_profile_id": null, "profiles": []}
+  }
+}
+""",
+        encoding="utf-8",
+    )
+
+    service = ModelCatalogService(path=catalog_path)
+    saved = service.save(
+        {
+            "version": 1,
+            "services": {
+                "llm": {
+                    "active_profile_id": "llm-profile-default",
+                    "active_model_id": "llm-model-default",
+                    "profiles": [
+                        {
+                            "id": "llm-profile-default",
+                            "name": "Updated Endpoint",
+                            "binding": "openai",
+                            "base_url": "https://updated.example/v1",
+                            "api_key": "",
+                            "api_version": "",
+                            "extra_headers": {},
+                            "models": [
+                                {
+                                    "id": "llm-model-default",
+                                    "name": "gpt-4.1",
+                                    "model": "gpt-4.1",
+                                }
+                            ],
+                        }
+                    ],
+                },
+                "embedding": {"active_profile_id": None, "active_model_id": None, "profiles": []},
+                "search": {"active_profile_id": None, "profiles": []},
+            },
+        }
+    )
+
+    assert saved["services"]["llm"]["profiles"][0]["api_key"] == "existing-secret"
+
+
+def test_sanitize_redacts_api_keys(tmp_path: Path) -> None:
+    service = ModelCatalogService(path=tmp_path / "model_catalog.json")
+    catalog = {
+        "version": 1,
+        "services": {
+            "llm": {
+                "active_profile_id": "llm-profile-default",
+                "active_model_id": "llm-model-default",
+                "profiles": [
+                    {
+                        "id": "llm-profile-default",
+                        "name": "Default LLM Endpoint",
+                        "binding": "openai",
+                        "base_url": "https://example.test/v1",
+                        "api_key": "sk-secret-1234",
+                        "api_version": "",
+                        "extra_headers": {},
+                        "models": [{"id": "llm-model-default", "name": "gpt", "model": "gpt"}],
+                    }
+                ],
+            },
+            "embedding": {"active_profile_id": None, "active_model_id": None, "profiles": []},
+            "search": {"active_profile_id": None, "profiles": []},
+        },
+    }
+
+    sanitized = service.sanitize(catalog)
+    profile = sanitized["services"]["llm"]["profiles"][0]
+
+    assert profile["api_key"] == ""
+    assert profile["api_key_configured"] is True
+    assert profile["api_key_last4"] == "1234"

@@ -1,0 +1,34 @@
+{
+  "pages":[
+   
+    "pages/index/index",
+    "pages/view/view",
+    "pages/getpeople/getpeople",
+    "pages/showqrcode/showqrcode",
+    "pages/getphone/getphone",
+    "pages/freeCourse/freeCourse",
+    "pages/freeCourseDetails/freeCourseDetails",
+    "pages/freeCourseDetailsonline/freeCourseDetailsonline",
+    "pages/text/text",
+    "pages/text1/text1",
+    "pages/dyforios/dyforios",
+    "pages/wxshop/wxshop",
+    "pages/wxshopview/wxshopview",
+    "pages/showpdf/showpdf",
+    "pages/logs/logs"
+  ],
+  "window":{
+    "backgroundTextStyle":"light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "佑森咨询",
+    "navigationBarTextStyle":"black"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "plugins": {
+    "materialPlugin": {
+      "version": "1.0.5",
+      "provider": "wx4d2deeab3aed6e5a"
+    }
+  }  
+}

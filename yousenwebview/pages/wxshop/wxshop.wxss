@@ -1,0 +1,4 @@
+/* pages/wxshop/wxshop.wxss */
+.wx_store_home .wx_store_home_img_desc {
+  display: none;
+  }

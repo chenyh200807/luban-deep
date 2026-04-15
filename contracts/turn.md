@@ -24,6 +24,7 @@
 3. turn 正文字段只能叫 `content`，不能再并行使用 `message` / `text`。
 4. `resume_from` 只能重放已有 turn，不能创建新的状态机。
 5. mobile / web / tutorbot 不能维护独立的 pending turn 状态来源。
+6. 客户端不得假设 turn 一定先经过 `thinking` 再进入 `acting/responding`；在 grounded TutorBot fast path 下，合法顺序可以是 `acting -> responding`。
 
 ## TutorBot 规则
 
@@ -37,6 +38,7 @@
   - 默认工具链
   - 默认 knowledge base
   - 相关 trace 字段
+- grounded TutorBot 可以在统一 turn runtime 内执行 retrieval-first / exact-first fast path；这只改变内部执行顺序，不改变 `/api/v1/ws` transport contract。
 
 ## Schema
 

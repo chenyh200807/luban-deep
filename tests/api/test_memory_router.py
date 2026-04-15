@@ -8,12 +8,21 @@ pytest.importorskip("fastapi")
 
 FastAPI = pytest.importorskip("fastapi").FastAPI
 TestClient = pytest.importorskip("fastapi.testclient").TestClient
+from deeptutor.api.dependencies import AuthContext, get_current_user
+
 router = importlib.import_module("deeptutor.api.routers.memory").router
 
 
 def _build_app() -> FastAPI:
     app = FastAPI()
     app.include_router(router, prefix="/api/v1/memory")
+    app.dependency_overrides[get_current_user] = lambda: AuthContext(
+        user_id="admin_demo",
+        provider="test",
+        token="test-token",
+        claims={"uid": "admin_demo"},
+        is_admin=True,
+    )
     return app
 
 
@@ -113,3 +122,21 @@ def test_memory_router_updates_document(monkeypatch) -> None:
     body = response.json()
     assert body["saved"] is True
     assert body["profile"] == "## Preferences\n- Prefer concise answers."
+
+
+def test_memory_router_requires_admin() -> None:
+    app = FastAPI()
+    app.include_router(router, prefix="/api/v1/memory")
+    app.dependency_overrides[get_current_user] = lambda: AuthContext(
+        user_id="student_demo",
+        provider="test",
+        token="test-token",
+        claims={"uid": "student_demo"},
+        is_admin=False,
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/memory")
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Admin access required"

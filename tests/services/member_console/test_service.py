@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import threading
 
 import pytest
 
@@ -29,6 +30,7 @@ async def test_login_with_wechat_code_issues_signed_token_and_persists_identity(
     assert result["openid"] == "openid_123456789012"
     assert result["unionid"] == "unionid_abcdef"
     assert result["token"].startswith("dtm.")
+    assert "session_key" not in result
 
     resolved_user_id = service.resolve_user_id(f"Bearer {result['token']}")
     assert resolved_user_id == result["user"]["user_id"]
@@ -71,6 +73,82 @@ def test_resolve_user_id_accepts_signed_access_token(tmp_path: Path) -> None:
     )
 
     assert service.resolve_user_id(f"Bearer {token}") == "student_demo"
+
+
+def test_login_with_password_requires_matching_hash(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.set_password("student_demo", "StrongPass123")
+
+    result = service.login_with_password("student_demo", "StrongPass123")
+
+    assert result["token"].startswith("dtm.")
+    assert result["user"]["user_id"] == "student_demo"
+
+
+def test_login_with_password_rejects_unknown_or_invalid_password(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.set_password("student_demo", "StrongPass123")
+
+    with pytest.raises(ValueError, match="用户名或密码错误"):
+        service.login_with_password("student_demo", "wrong-password")
+
+    with pytest.raises(ValueError, match="用户名或密码错误"):
+        service.login_with_password("unknown-user", "StrongPass123")
+
+
+def test_member_console_serializes_multi_step_writes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    audit_started = threading.Event()
+    allow_finish = threading.Event()
+    second_write_done = threading.Event()
+    note_holder: dict[str, object] = {}
+    errors: list[BaseException] = []
+
+    original_append_audit = service._append_audit
+
+    def _gated_append_audit(data, **kwargs):
+        if kwargs.get("action") == "note":
+            audit_started.set()
+            allow_finish.wait(timeout=2)
+        return original_append_audit(data, **kwargs)
+
+    monkeypatch.setattr(service, "_append_audit", _gated_append_audit)
+
+    def _add_note() -> None:
+        try:
+            note_holder["note"] = service.add_note("student_demo", "并发写入测试")
+        except BaseException as exc:  # pragma: no cover - surfaced by assertion below
+            errors.append(exc)
+
+    def _update_subscription() -> None:
+        try:
+            service.update_subscription("student_demo", auto_renew=False, reason="concurrency_test")
+            second_write_done.set()
+        except BaseException as exc:  # pragma: no cover - surfaced by assertion below
+            errors.append(exc)
+
+    writer_one = threading.Thread(target=_add_note)
+    writer_two = threading.Thread(target=_update_subscription)
+
+    writer_one.start()
+    assert audit_started.wait(timeout=1.0)
+
+    writer_two.start()
+    assert not second_write_done.wait(timeout=0.1)
+
+    allow_finish.set()
+    writer_one.join(timeout=2.0)
+    writer_two.join(timeout=2.0)
+
+    assert not errors
+    data = service._load()
+    member = service._find_member(data, "student_demo")
+    assert member["auto_renew"] is False
+    assert any(note["id"] == note_holder["note"]["id"] for note in member["notes"])
 
 
 def test_capture_points_updates_balance_and_prepends_ledger(tmp_path: Path) -> None:

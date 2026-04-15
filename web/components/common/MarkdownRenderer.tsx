@@ -34,10 +34,6 @@ function detectMermaidContent(content: string): boolean {
   return /```mermaid/i.test(content);
 }
 
-function detectHtmlContent(content: string): boolean {
-  return /<\/?[A-Za-z][\w:-]*(\s|>)/.test(content);
-}
-
 export default function MarkdownRenderer({
   content,
   className = "",
@@ -50,10 +46,11 @@ export default function MarkdownRenderer({
   const resolvedEnableMath = enableMath ?? detectMathContent(content);
   const resolvedEnableCode = enableCode ?? detectCodeContent(content);
   const resolvedEnableMermaid = enableMermaid ?? detectMermaidContent(content);
-  const resolvedAllowHtml = allowHtml ?? detectHtmlContent(content);
+  // Raw HTML is intentionally disabled until a sanitizer policy exists.
+  const resolvedAllowHtml = false;
   const shouldUseRich =
     variant !== "trace" &&
-    (resolvedEnableMath || resolvedEnableCode || resolvedEnableMermaid || resolvedAllowHtml);
+    (resolvedEnableMath || resolvedEnableCode || resolvedEnableMermaid);
 
   if (!shouldUseRich) {
     return <SimpleMarkdownRenderer content={content} className={className} variant={variant} />;

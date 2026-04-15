@@ -8,12 +8,21 @@ pytest.importorskip("fastapi")
 
 FastAPI = pytest.importorskip("fastapi").FastAPI
 TestClient = pytest.importorskip("fastapi.testclient").TestClient
+from deeptutor.api.dependencies import AuthContext, get_current_user
+
 router = importlib.import_module("deeptutor.api.routers.tutor_state").router
 
 
 def _build_app() -> FastAPI:
     app = FastAPI()
     app.include_router(router, prefix="/api/v1/tutor-state")
+    app.dependency_overrides[get_current_user] = lambda: AuthContext(
+        user_id="student_demo",
+        provider="test",
+        token="test-token",
+        claims={"uid": "student_demo"},
+        is_admin=False,
+    )
     return app
 
 
@@ -78,3 +87,13 @@ def test_tutor_state_router_returns_rendered_context(monkeypatch) -> None:
         "max_chars": 2400,
         "context": "## Dedicated Tutor Context\n### Student Profile\n- user: student_demo",
     }
+
+
+def test_tutor_state_router_rejects_other_user() -> None:
+    app = _build_app()
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/tutor-state/student_other")
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Forbidden"

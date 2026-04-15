@@ -1,0 +1,74 @@
+/* container 容器样式 */
+.bodyview{
+  background: linear-gradient(to bottom, #f1e5d1, #f9f1e5);
+  height: 100vh;
+}
+.container {
+  /* display: flex; */
+  justify-content: center;
+  align-items: center;
+  padding-top: 3%;
+  /* margin-top: 2%;  */
+  /* height: 100vh;  */
+  
+  /* background-color: #f5f5f5; */
+}
+
+/* search-bar 搜索框样式 */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 25px;
+  padding: 10px;
+  width: 80%;
+  margin-left: 10%;
+  max-width: 600px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* search-input 输入框样式 */
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  padding: 0 10px;
+  color: #333;
+}
+
+/* search-button 搜索按钮样式 */
+.search-button {
+  width: 15% !important;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+/* search-icon 搜索图标样式 */
+.search-icon {
+  width: 25px;
+  height: 25px;
+  fill: #333;
+}
+
+.shoplogo{
+  width: 200rpx;
+  height: 41rpx;
+  padding: 20rpx;
+}
+
+.bodyshop{
+  margin-left: 18.5%;
+  /* margin-top: 5%; */
+  margin-bottom: 5%;
+}
+
+.bodybg{
+  background-image: url(https://www.yousenjiaoyu.com/static/default/wxmini/shopimage/shopbj.jpg?1);
+  background-size: cover;      /* 或 100% 100% */
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 50%;
+}

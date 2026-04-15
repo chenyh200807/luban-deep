@@ -1,0 +1,66 @@
+<view class="content">
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+      width="100%" height="100%" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice">
+      <defs>
+        <linearGradient id="bg">
+          <stop offset="0%" style="stop-color:rgba(130, 158, 249, 0.06)"></stop>
+          <stop offset="50%" style="stop-color:rgba(76, 190, 255, 0.6)"></stop>
+          <stop offset="100%" style="stop-color:rgba(115, 209, 72, 0.2)"></stop>
+        </linearGradient>
+        <path id="wave" fill="url(#bg)"
+           />
+      </defs>
+      <g>
+        <use xlink:href='#wave' opacity=".3">
+          <animateTransform attributeName="transform" attributeType="XML" type="translate" dur="10s"
+            calcMode="spline" values="270 230; -334 180; 270 230" keyTimes="0; .5; 1"
+            keySplines="0.42, 0, 0.58, 1.0;0.42, 0, 0.58, 1.0" repeatCount="indefinite" />
+        </use>
+        <use xlink:href='#wave' opacity=".6">
+          <animateTransform attributeName="transform" attributeType="XML" type="translate" dur="8s"
+            calcMode="spline" values="-270 230;243 220;-270 230" keyTimes="0; .6; 1"
+            keySplines="0.42, 0, 0.58, 1.0;0.42, 0, 0.58, 1.0" repeatCount="indefinite" />
+        </use>
+        <use xlink:href='#wave' opacty=".9">
+          <animateTransform attributeName="transform" attributeType="XML" type="translate" dur="6s"
+            calcMode="spline" values="0 230;-140 200;0 230" keyTimes="0; .4; 1"
+            keySplines="0.42, 0, 0.58, 1.0;0.42, 0, 0.58, 1.0" repeatCount="indefinite" />
+        </use>
+      </g>
+    </svg>
+    
+    <view class="loginBox">
+      <h3 style="text-align: center;margin-bottom:120rpx;">欢迎登录</h3>
+      <view class="inputBox">
+        <view class="ipt">
+          <uni-icons type="contact" size="24" color="rgb(66,157,250)"></uni-icons>
+          <input type="text" value="" placeholder="请输入账号"/>
+        </view>
+        <view class="ipt">
+          <uni-icons type="eye" size="24" color="rgb(66,157,250)"></uni-icons>
+          <input type="passsword" value="" placeholder="请输入密码"/>
+        </view>
+        <view class="ipt">
+          <uni-icons type="checkmarkempty" size="24" color="rgb(66,157,250)"></uni-icons>
+          <input type="text" value="" placeholder="请输入验证码"/>
+          <view class="yzm">
+            验证码
+          </view>
+        </view>
+        <button>登录</button>
+        <view class="forgetPwd">
+          <span>忘记密码</span>
+          <span>没有账号，去注册</span>
+        </view>
+      </view>
+      <view class="tipbox">
+        <view class="txt">
+          —— 其他账号登录 ——
+        </view>
+        <view class="otherUser">
+          <uni-icons type="qq" size="40" color="rgb(66,157,250)"></uni-icons>
+          <uni-icons type="weixin" size="40" color="rgb(2,187,17)"></uni-icons>
+        </view>
+      </view>
+    </view>
+  </view>

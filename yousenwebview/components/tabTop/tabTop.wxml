@@ -1,0 +1,6 @@
+<!--components/tabTop/tabTop.wxml-->
+<view class="tabTopWrap" style="height:{{navHeight}}px;line-height:{{titleHeight}}px;font-size:{{fontSizeSetting}};color:{{tabTopColor}};background:{{bg}} ;">
+  <van-icon wx:if="{{!isHome}}" name="arrow-left" size="24" style="top:{{navHeight}}rpx" class="left_img" catchtap="navigateBack"/>
+  <text wx:if="{{tabTopTitle}}" style="position: relative;z-index: 10;">{{tabTopTitle}}</text>
+  <slot />
+</view>

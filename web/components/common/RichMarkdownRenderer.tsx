@@ -32,7 +32,6 @@ const LazyCodeBlock = dynamic(() => import("./RichCodeBlock"), {
 type PluginBundle = {
   remarkMath?: unknown;
   rehypeKatex?: unknown;
-  rehypeRaw?: unknown;
 };
 
 function extractText(children: React.ReactNode): string {
@@ -120,11 +119,6 @@ export default function RichMarkdownRenderer({
         nextPlugins.rehypeKatex = rehypeKatexModule.default;
       }
 
-      if (allowHtml) {
-        const rehypeRawModule = await import("rehype-raw");
-        nextPlugins.rehypeRaw = rehypeRawModule.default;
-      }
-
       if (!cancelled) {
         setPlugins(nextPlugins);
       }
@@ -135,7 +129,7 @@ export default function RichMarkdownRenderer({
     return () => {
       cancelled = true;
     };
-  }, [allowHtml, enableMath]);
+  }, [enableMath]);
 
   const processedContent = useMemo(() => {
     return enableMath || enableMermaid ? processMarkdownContent(normalizedContent) : normalizedContent;
@@ -488,10 +482,9 @@ export default function RichMarkdownRenderer({
 
   const rehypePlugins = useMemo(() => {
     const p: Array<any> = [];
-    if (allowHtml && plugins.rehypeRaw) p.push(plugins.rehypeRaw as never);
     if (enableMath && plugins.rehypeKatex) p.push(plugins.rehypeKatex as never);
     return p;
-  }, [allowHtml, enableMath, plugins.rehypeRaw, plugins.rehypeKatex]);
+  }, [enableMath, plugins.rehypeKatex]);
 
   return (
     <div className={`${rootClasses} ${className}`}>

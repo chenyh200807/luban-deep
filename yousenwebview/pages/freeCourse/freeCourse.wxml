@@ -1,0 +1,110 @@
+<!--package/freeCourse/freeCourse.wxml-->
+<view class="section">
+  <!-- <view class="section__title">专业/课程选择</view> -->
+  <picker style="min-width:220rpx;height:60rpx;background:#fff;top:0;border-bottom-right-radius:50rpx;border-top-right-radius:50rpx;padding:0 5px;wxcs_style_padding:0 14rpx;/* display:flex; */text-align:center;" mode="multiSelector" class='asdas' bindchange="bindMultiPickerChange" bindcolumnchange="bindMultiPickerColumnChange" value="{{multiIndex}}" range="{{multiArray}}" bindtap='rotateImage' bindcancel='stopRotateImage'>
+        <input style="float:left;padding-left: 28%;" disabled="true" value='{{multiArray[0][multiIndex[0]]}} {{multiArray[1][multiIndex[1]]}}'></input>
+     
+      <image src="{{imageUrl}}" style="width:20px;height:20px;float:left;margin-top: 2px;" class="rotate-image" animation="{{rotationAnim}}"></image>
+      <!-- <image src="{{imageUrl}}" class="rotate-image" animation="{{rotationAnim}}"></image> -->
+      <text decode>      {{zw}}      </text>
+  </picker>
+</view>
+<!-- 广告位 -->
+<view wx:if="{{ggimage}}" style="text-align: center;display: flex;">
+    <image src="{{ggimage}}"  style="display:flex;width:742rpx;height:274rpx;margin-left: 5rpx;" bindtap="goToggimageurl" />
+</view>
+<view style="height:30rpx"></view>
+<view class="pl-24 pr-24">
+  <block wx:for="{{getGratisCourseList}}" wx:key="index">
+    <view class="freeCourse_item mb-30" data-url="/pages/freeCourseDetails/freeCourseDetails?pk_id={{item.id}}" catchtap="linkTo">
+     
+      <image src="{{item.cart_image}}"></image>
+     
+     
+      <view class="d-f d-s-c">
+        <view style="height: 65%;">
+          <text class="f-28 f-b c-333 ell" style="width:50%;white-space:normal">{{item.title}}</text>
+        </view>
+        
+        <view style="">
+          <!-- <text class="f-20 pl-10" style="color:#FF8421;padding-right: 8px;">{{item.relation_user_count}}人已学习</text> -->
+          <!-- <text class="f-20 pl-10" style="color:#000000;padding-right: 8px;">{{item.create_at}}</text> -->
+          <view class="efc" style="display:block;padding-top: 14px;">
+          <view class="free_user d-f d-c-c" style="justify-content: unset;float: left;">
+            <block wx:for="{{item.teacher}}" wx:for-item="kk" wx:for-index="ind" wx:key="ind">
+              <image src="{{kk.head_image}}"></image>
+              <text style="font-size:20rpx;padding-left: 4px;" wx:if="{{item.teacher.length==1}}">{{kk.name}}</text>
+            </block>
+            
+          </view>
+          <view class="free_btn" ><text style="color: white;">立即听课</text></view>
+        </view>
+         
+         
+        </view>
+      </view>
+    </view>
+  </block>
+  <noData title="暂无免费课程数据" wx:if="{{noData}}"></noData>
+
+  <!-- <view class="icon" bindtap="onuserline" >1111</view> -->
+  <!-- <view class="quality_bottom ffc p-r">
+  <view class="quality_bottom_l ffc pl-50 ">
+    <image src="/images/icon/serve_icon_01.png"></image>
+    <view class="f-36 f-b c-333 pl-10">咨询客服</view>
+    <button open-type="contact" class="p-a t-0 l-0" style="width:50%;height:100%;opacity: 0;"></button>
+  </view>
+  <view class="quality_bottom_r p-r">
+    <image src="/images/icon/btn_bg.png" class="wh-100"></image>
+    <view class="p-a t-0 l-0 wh-100 f-b c-w f-36 d-f d-c-c" catchtap="showPoput">选科购买</view>
+  </view>
+</view> -->
+
+</view>
+
+<view class="container">
+  <view class="modal" wx:if="{{showModal}}">
+    <image bindtap="gotoModalurl"  src="{{showimg}}" style="height:100%;margin-top:-30%;" mode="aspectFit" />
+    <View id="left-right-top" class="left-right-top">
+      <view class="left-top" bindtap="goToLeftTopPage">
+        <!-- 左上部分的内容 -->
+      </view>
+      <view class="right-bottom" bindtap="goToRightBottomPage">
+            <!-- 右下部分的内容 -->
+      </view>
+    </View>
+
+    <view class="close-btn" bindtap="closeModal">
+      <image src="https://cnd.yousenjiaoyu.com/79/379ce2fcc1b659dc69eac4f27e1340.png?attname=%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20240529115513.png" mode="aspectFit" />
+    </view>
+  </view>
+
+    <!-- 浮动商店入口 -->
+    <!-- 浮动商店入口 -->
+    <view class="float-shop-entry" wx:if=""  bindtap="navigateToShop">
+      <image class="shop-icon" src="{{shoponlie}}" mode="aspectFit"></image>
+    </view>
+
+  <!-- 吸附侧边的触发按钮 -->
+  <view class="trigger-btn"  bindtap="togglePanel" animation="{{panelAnimationhidden}}">
+     <text>AI</text>
+     <text>答疑</text>
+  </view>
+  
+  <!-- 滑动面板 -->
+  <view class="slide-panel" animation="{{panelAnimation}}">
+    <view class="deeptutor-entry-shell">
+      <view class="deeptutor-entry-close" bindtap="togglePanel">
+        <image class="close-btn-shop-entry" src="https://cnd.yousenjiaoyu.com/60/39d9cdf52998c29e6560e5b0a32ac3.png?attname=close.png" mode="aspectFit" />
+      </view>
+      <view class="deeptutor-entry-card" bindtap="navigateToShop">
+        <view class="deeptutor-entry-badge">AI</view>
+        <text class="deeptutor-entry-title">DeepTutor</text>
+        <text class="deeptutor-entry-subtitle">智能答疑入口</text>
+        <text class="deeptutor-entry-tip">点击进入</text>
+      </view>
+    </view>
+  </view>
+
+</view>
+
