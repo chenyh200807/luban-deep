@@ -5,11 +5,17 @@ from .auth import (
     require_self_or_admin,
     resolve_auth_context,
 )
-from .rate_limit import clear_rate_limit_state, route_rate_limit, set_rate_limit_policy
+from .rate_limit import (
+    clear_rate_limit_state,
+    enforce_websocket_rate_limit,
+    route_rate_limit,
+    set_rate_limit_policy,
+)
 
 __all__ = [
     "AuthContext",
     "clear_rate_limit_state",
+    "enforce_websocket_rate_limit",
     "get_current_user",
     "require_admin",
     "require_self_or_admin",

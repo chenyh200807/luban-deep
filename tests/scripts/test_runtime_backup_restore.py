@@ -7,7 +7,7 @@ import tarfile
 import pytest
 
 from deeptutor.services.path_service import PathService
-from scripts.backup_data import create_backup_archive, resolve_backup_dir
+from scripts.backup_data import create_backup_archive, prune_backup_archives, resolve_backup_dir
 from scripts.restore_data import find_latest_backup, restore_backup_archive
 
 
@@ -174,5 +174,42 @@ def test_find_latest_backup_prefers_newest_name(tmp_path: Path) -> None:
 
         assert latest == newer
         assert older.exists()
+    finally:
+        _restore_project_root(service, original_root, original_user_dir)
+
+
+def test_prune_backup_archives_keeps_newest_requested_count(tmp_path: Path) -> None:
+    service, original_root, original_user_dir = _use_project_root(tmp_path)
+    try:
+        user_data_dir = service.user_data_dir
+        _write_sample_user_data(user_data_dir)
+        backup_dir = resolve_backup_dir(service.project_root)
+
+        oldest = create_backup_archive(
+            user_data_dir=user_data_dir,
+            project_root=service.project_root,
+            backup_dir=backup_dir,
+            archive_name="deeptutor-data-user-20240101-000000Z.tar.gz",
+        )
+        middle = create_backup_archive(
+            user_data_dir=user_data_dir,
+            project_root=service.project_root,
+            backup_dir=backup_dir,
+            archive_name="deeptutor-data-user-20240102-000000Z.tar.gz",
+        )
+        newest = create_backup_archive(
+            user_data_dir=user_data_dir,
+            project_root=service.project_root,
+            backup_dir=backup_dir,
+            archive_name="deeptutor-data-user-20240103-000000Z.tar.gz",
+        )
+
+        removed = prune_backup_archives(backup_dir, keep=2)
+
+        assert removed == [oldest]
+        assert not oldest.exists()
+        assert middle.exists()
+        assert newest.exists()
+        assert prune_backup_archives(backup_dir, keep=5) == []
     finally:
         _restore_project_root(service, original_root, original_user_dir)

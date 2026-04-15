@@ -27,6 +27,12 @@ try:
 except ImportError:  # pragma: no cover - non-Unix fallback
     fcntl = None
 
+from deeptutor.services.member_console.external_auth import (
+    create_external_auth_user,
+    ensure_external_auth_user_for_phone,
+    get_external_auth_user,
+    verify_external_auth_user,
+)
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.services.session import get_sqlite_session_store
@@ -58,10 +64,6 @@ def _slugify_phone(value: str) -> str:
 
 def _date_key(value: datetime | None = None) -> str:
     return (value or _now()).strftime("%Y-%m-%d")
-
-
-_PASSWORD_HASH_PREFIX = "pbkdf2_sha256"
-_PASSWORD_HASH_ITERATIONS = 240_000
 
 
 def _default_chapter_mastery() -> dict[str, dict[str, Any]]:
@@ -547,45 +549,6 @@ class MemberConsoleService:
         if not raw:
             return set()
         return {item.strip() for item in raw.split(",") if item.strip()}
-
-    @staticmethod
-    def _hash_password(password: str, *, salt: str | None = None) -> str:
-        normalized = str(password or "")
-        if len(normalized) < 8:
-            raise ValueError("Password must be at least 8 characters")
-        salt_bytes = bytes.fromhex(salt) if salt else secrets.token_bytes(16)
-        derived = hashlib.pbkdf2_hmac(
-            "sha256",
-            normalized.encode("utf-8"),
-            salt_bytes,
-            _PASSWORD_HASH_ITERATIONS,
-        )
-        return (
-            f"{_PASSWORD_HASH_PREFIX}${_PASSWORD_HASH_ITERATIONS}"
-            f"${salt_bytes.hex()}${derived.hex()}"
-        )
-
-    @staticmethod
-    def _verify_password_hash(password: str, encoded: str | None) -> bool:
-        raw = str(encoded or "").strip()
-        if not raw:
-            return False
-        try:
-            scheme, iterations, salt, digest = raw.split("$", 3)
-        except ValueError:
-            return False
-        if scheme != _PASSWORD_HASH_PREFIX:
-            return False
-        try:
-            expected = hashlib.pbkdf2_hmac(
-                "sha256",
-                str(password or "").encode("utf-8"),
-                bytes.fromhex(salt),
-                int(iterations),
-            ).hex()
-        except (TypeError, ValueError):
-            return False
-        return hmac.compare_digest(expected, digest)
 
     def _issue_access_token(
         self,
@@ -1781,29 +1744,79 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
-    def set_password(self, user_id: str, password: str) -> None:
-        def _apply(data: dict[str, Any]) -> None:
-            member = self._find_member(data, user_id)
-            member["password_hash"] = self._hash_password(password)
+    def _find_member_by_external_auth(
+        self,
+        data: dict[str, Any],
+        *,
+        username: str,
+        phone: str = "",
+        external_user_id: str = "",
+    ) -> dict[str, Any] | None:
+        normalized_username = str(username or "").strip()
+        normalized_phone = _slugify_phone(phone) if phone else ""
+        normalized_external_user_id = str(external_user_id or "").strip()
+        for member in data["members"]:
+            if str(member.get("auth_username") or "").strip() == normalized_username:
+                return member
+            if str(member.get("display_name") or "").strip() == normalized_username:
+                return member
+            if normalized_external_user_id and str(member.get("external_auth_user_id") or "").strip() == normalized_external_user_id:
+                return member
+            if normalized_phone and _slugify_phone(str(member.get("phone") or "")) == normalized_phone:
+                return member
+        return None
 
-        self._mutate(_apply)
+    def _ensure_member_for_external_auth(self, username: str, user_data: dict[str, Any]) -> dict[str, Any]:
+        normalized_username = str(username or "").strip()
+        external_user_id = str(user_data.get("id") or "").strip()
+        external_phone = str(user_data.get("phone") or "").strip()
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            member = self._find_member_by_external_auth(
+                data,
+                username=normalized_username,
+                phone=external_phone,
+                external_user_id=external_user_id,
+            )
+            if member is None:
+                fallback_id = hashlib.sha1(normalized_username.encode("utf-8")).hexdigest()[:24]
+                member_user_id = f"auth_{(external_user_id or fallback_id).replace('-', '')[:24]}"
+                member = self._ensure_member(data, member_user_id)
+            member["display_name"] = normalized_username or str(member.get("display_name") or "")
+            member["auth_username"] = normalized_username
+            member["external_auth_provider"] = "fastapi20251222_simple_auth"
+            if external_user_id:
+                member["external_auth_user_id"] = external_user_id
+            if external_phone:
+                member["phone"] = _slugify_phone(external_phone)
+            member["last_active_at"] = _iso()
+            self._ensure_learning_profile(member)
+            return deepcopy(member)
+
+        return self._mutate(_apply)
 
     def login_with_password(self, username: str, password: str) -> dict[str, Any]:
-        data = self._load()
-        target = None
-        for member in data["members"]:
-            if username in {member["phone"], member["display_name"], member["user_id"]}:
-                target = member
-                break
-        if target is None:
+        if get_external_auth_user(username) is None:
             raise ValueError("用户名或密码错误")
-        if not self._verify_password_hash(password, target.get("password_hash")):
+        verified_external_user = verify_external_auth_user(username, password)
+        if verified_external_user is None:
             raise ValueError("用户名或密码错误")
-        token = self._issue_access_token(user_id=target["user_id"])
+        member = self._ensure_member_for_external_auth(username, verified_external_user)
+        token = self._issue_access_token(user_id=member["user_id"])
         return {
             "token": token,
             "token_type": "Bearer",
-            "user": self.get_profile(target["user_id"]),
+            "user": self.get_profile(member["user_id"]),
+        }
+
+    def register_with_external_auth(self, username: str, password: str, phone: str) -> dict[str, Any]:
+        external_user = create_external_auth_user(username, password, phone=phone)
+        member = self._ensure_member_for_external_auth(username, external_user)
+        token = self._issue_access_token(user_id=member["user_id"])
+        return {
+            "token": token,
+            "token_type": "Bearer",
+            "user": self.get_profile(member["user_id"]),
         }
 
     async def login_with_wechat_code(self, code: str) -> dict[str, Any]:
@@ -2020,24 +2033,18 @@ class MemberConsoleService:
                 raise ValueError("验证码已过期，请重新获取")
             if provided_code != expected_code:
                 raise ValueError("验证码错误")
-            target = None
-            for member in data["members"]:
-                if _slugify_phone(member["phone"]) == normalized:
-                    target = member
-                    break
-            if target is None:
-                target = self._ensure_member(data, f"user_{normalized}")
-                target["phone"] = normalized
-                target["display_name"] = f"学员{normalized[-4:]}"
             data.get("phone_codes", {}).pop(normalized, None)
-            return str(target["user_id"])
+            return normalized
 
-        target_user_id = self._mutate(_apply)
-        token = self._issue_access_token(user_id=target_user_id)
+        verified_phone = self._mutate(_apply)
+        external_user = ensure_external_auth_user_for_phone(verified_phone)
+        external_username = str(external_user.get("username") or "").strip()
+        member = self._ensure_member_for_external_auth(external_username, external_user)
+        token = self._issue_access_token(user_id=member["user_id"])
         return {
             "token": token,
             "token_type": "Bearer",
-            "user": self.get_profile(target_user_id),
+            "user": self.get_profile(member["user_id"]),
         }
 
     def create_demo_token(self, user_id: str) -> str:

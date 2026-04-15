@@ -21,11 +21,7 @@ function track(eventName, payload) {
   try {
     if (typeof wx.reportAnalytics === "function") {
       wx.reportAnalytics(name, data);
-      return;
     }
-  } catch (_) {}
-  try {
-    console.info("[deeptutor.analytics]", name, data);
   } catch (_) {}
 }
 

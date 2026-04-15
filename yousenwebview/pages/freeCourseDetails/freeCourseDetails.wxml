@@ -1,8 +1,10 @@
 <!--package/freeCourseDetails/freeCourseDetails.wxml-->
 <view class="freeCourseDetails " style="height:100%">
+  <view wx:if="{{detailError}}" class="pl-30 pr-30 pt-30 pb-30 bg-w c-666 f-28">{{detailError}}</view>
+  <view wx:elif="{{loadingDetail}}" class="pl-30 pr-30 pt-30 pb-30 bg-w c-666 f-28">课程加载中...</view>
   <view class="video_wrap" wx:if="{{show}}">
     <view class="wh-100">
-      <video id="myVideo" catchtap="isShowBsClick" autoplay="{{videoSrc.autoplay}}" src="{{videoSrc.src}}" class="wh-100 p-r" bindplay="staPlay" bindpause="endPlay" object-fit="contain" page-gesture="true" show-center-play-btn="false">
+      <video id="myVideo" catchtap="isShowBsClick" autoplay="{{videoSrc.autoplay}}" src="{{videoSrc.src}}" class="wh-100 p-r" bindplay="staPlay" bindpause="endPlay" bindloadedmetadata="handleVideoReady" bindcanplay="handleVideoReady" object-fit="contain" page-gesture="true" show-center-play-btn="false">
         <cover-view class="p-a c-w t-c f-24" style="width:100rpx;bottom:80rpx;right:20rpx;background: rgba(0,0,0,.6);" wx:if="{{videoSrc.isShowBeishu}}">
           <cover-view wx:if="{{!videoSrc.showBeishu}}" class="c-w" style="width:100rpx;padding:10rpx 0" catchtap="clickShowBeishu">{{videoSrc.view}}</cover-view>
           <block wx:if="{{videoSrc.showBeishu}}">
@@ -29,11 +31,11 @@
     </view>
 
     <view wx:if="{{showmulu}}" class="freeCourse_wrap bg-w pl-24 pr-24">
-      <block wx:for="{{gratisDetail.chapter}}" wx:key="index">
-        <view class="freeCourse_item pt-30 pb-30  d-f d-s-c" style="border-bottom: 1rpx solid #F6F7F9;" data-video_id="{{item.play_id}}" data-index="{{index}}" data-flag="{{!item.flag}}" catchtap="choicePlays">
-          <view class="f-28 c-333 ell {{item.flag?'free_active':''}}" style="width:80%">{{item.title}}</view>
-          <image src="/images/icon/live_icon.png" wx:if="{{item.flag}}"></image>
-          <image src="/images/icon/play_icon_01.png" wx:if="{{!item.flag}}"></image>
+      <block wx:for="{{gratisDetail.chapter}}" wx:key="id">
+        <view class="freeCourse_item pt-30 pb-30  d-f d-s-c" style="border-bottom: 1rpx solid #F6F7F9;" data-video_id="{{item.play_id}}" data-index="{{index}}" data-flag="{{activeChapterIndex != index}}" catchtap="choicePlays">
+          <view class="f-28 c-333 ell {{activeChapterIndex == index?'free_active':''}}" style="width:80%">{{item.title}}</view>
+          <image src="/images/icon/live_icon.png" wx:if="{{activeChapterIndex == index}}"></image>
+          <image src="/images/icon/play_icon_01.png" wx:if="{{activeChapterIndex != index}}"></image>
         </view>
       </block>
     </view>
@@ -42,26 +44,6 @@
       <rich-text nodes="{{neirong}}"></rich-text>
 
     </view>
-    <view wx:if="{{jianyi}}">
-
-      <view class="container">
-        <view class="title">文档列表</view>
-          <view class="doc-list">
-            <block>
-              <view class="doc-item">
-                <view class="doc-name">测试</view>
-                <view class="doc-actions">
-                  <button class="watch-btn" bindtap="downloadDoc" data-id="1">观看</button>
-                </view>
-              </view>
-            </block>
-          </view>
-
- 
-
-      </view>
-    </view>
-
   </view>
   <view class="freeCourse_bottom d-f d-c-c p-r">
     <image src="/images/icon/share_icon_02.png"></image>

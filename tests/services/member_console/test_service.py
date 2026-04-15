@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
 import threading
 
+import bcrypt
 import pytest
 
 from deeptutor.services.member_console.service import MemberConsoleService
@@ -75,27 +78,102 @@ def test_resolve_user_id_accepts_signed_access_token(tmp_path: Path) -> None:
     assert service.resolve_user_id(f"Bearer {token}") == "student_demo"
 
 
-def test_login_with_password_requires_matching_hash(tmp_path: Path) -> None:
+def test_login_with_password_accepts_external_fastapi_auth_store(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    password_hash = bcrypt.hashpw(
+        hashlib.sha256("Chen9028".encode("utf-8")).hexdigest().encode("utf-8"),
+        bcrypt.gensalt(),
+    ).decode("utf-8")
+    users_file.write_text(
+        (
+            '{\n'
+            '  "chenyh2008": {\n'
+            '    "id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",\n'
+            f'    "password_hash": "{password_hash}",\n'
+            '    "username": "chenyh2008"\n'
+            "  }\n"
+            "}\n"
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
-    service.set_password("student_demo", "StrongPass123")
+    service._mutate(
+        lambda data: data["members"].append(
+            {
+                **data["members"][0],
+                "user_id": "user_2008",
+                "display_name": "chenyh2008",
+                "phone": "2008",
+            }
+        )
+    )
 
-    result = service.login_with_password("student_demo", "StrongPass123")
+    result = service.login_with_password("chenyh2008", "Chen9028")
 
     assert result["token"].startswith("dtm.")
-    assert result["user"]["user_id"] == "student_demo"
+    assert result["user"]["user_id"] == "user_2008"
+    assert result["user"]["username"] == "chenyh2008"
 
 
-def test_login_with_password_rejects_unknown_or_invalid_password(tmp_path: Path) -> None:
+def test_login_with_password_rejects_unknown_or_invalid_external_password(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    password_hash = bcrypt.hashpw(
+        hashlib.sha256("StrongPass123".encode("utf-8")).hexdigest().encode("utf-8"),
+        bcrypt.gensalt(),
+    ).decode("utf-8")
+    users_file.write_text(
+        json.dumps(
+            {
+                "student_demo": {
+                    "id": "user_demo",
+                    "username": "student_demo",
+                    "password_hash": password_hash,
+                }
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
-    service.set_password("student_demo", "StrongPass123")
 
     with pytest.raises(ValueError, match="用户名或密码错误"):
         service.login_with_password("student_demo", "wrong-password")
 
     with pytest.raises(ValueError, match="用户名或密码错误"):
         service.login_with_password("unknown-user", "StrongPass123")
+
+
+def test_register_with_external_auth_creates_external_user_and_member(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    result = service.register_with_external_auth("new_student", "StrongPass123", "13812345678")
+    external_users = json.loads(users_file.read_text(encoding="utf-8"))
+
+    assert result["token"].startswith("dtm.")
+    assert result["user"]["username"] == "new_student"
+    assert "new_student" in external_users
+    assert external_users["new_student"]["phone"] == "+8613812345678"
 
 
 def test_member_console_serializes_multi_step_writes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -210,7 +288,12 @@ def test_submit_assessment_updates_today_progress_and_chapter_practice(tmp_path:
     assert any(item["done"] >= 1 for item in chapters)
 
 
-def test_verify_phone_code_bootstraps_clean_new_member_state(tmp_path: Path) -> None:
+def test_verify_phone_code_bootstraps_clean_new_member_state(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
@@ -218,12 +301,16 @@ def test_verify_phone_code_bootstraps_clean_new_member_state(tmp_path: Path) -> 
     result = service.verify_phone_code("13955556666", send_result["debug_code"])
     profile = result["user"]
     today = service.get_today_progress(profile["user_id"])
+    external_users = json.loads(users_file.read_text(encoding="utf-8"))
+    external_user = next(iter(external_users.values()))
 
     assert profile["tier"] == "trial"
     assert profile["points"] == 120
     assert profile["level"] == 1
     assert today["today_done"] == 0
     assert today["streak_days"] == 0
+    assert external_user["phone"] == "+8613955556666"
+    assert str(profile["username"]).startswith("user_6666")
 
 
 def test_verify_phone_code_rejects_invalid_code(tmp_path: Path) -> None:

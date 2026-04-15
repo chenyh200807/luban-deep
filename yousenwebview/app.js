@@ -28,6 +28,18 @@ const USE_LOCAL_DEVTOOLS =
   typeof __USE_LOCAL_DEVTOOLS__ !== "undefined"
     ? __USE_LOCAL_DEVTOOLS__
     : false;
+const HOST_SYS_INFO_KEY = "yousen_host_sys_info";
+const DEFAULT_HOST_SYS_INFO = {
+  is_audit: 0,
+};
+const DEFAULT_HOST_LAYOUT = {
+  navHeight: 44,
+  titleHeight: 44,
+  fontSizeSetting: "28rpx",
+};
+const { getrq } = require("./utils/request");
+
+let hostSysInfoPromise = null;
 
 function getStoredToken() {
   return wx.getStorageSync(TOKEN_KEY) || null;
@@ -159,6 +171,48 @@ function resolveDeeptutorWorkspaceFlags() {
   return normalizeDeeptutorWorkspaceFlags(
     wx.getStorageSync(DEEPTUTOR_WORKSPACE_FLAGS_KEY)
   );
+}
+
+function normalizeHostSysInfo(sysInfo) {
+  const source = sysInfo && typeof sysInfo === "object" ? sysInfo : {};
+  let isAudit = source.is_audit;
+  if (isAudit === undefined || isAudit === null || isAudit === "") {
+    isAudit = DEFAULT_HOST_SYS_INFO.is_audit;
+  }
+  if (typeof isAudit === "boolean") {
+    isAudit = isAudit ? 1 : 0;
+  } else if (typeof isAudit === "string") {
+    const normalized = isAudit.trim().toLowerCase();
+    if (["1", "true", "yes", "on"].includes(normalized)) {
+      isAudit = 1;
+    } else if (["0", "false", "no", "off"].includes(normalized)) {
+      isAudit = 0;
+    }
+  }
+  return {
+    ...DEFAULT_HOST_SYS_INFO,
+    ...source,
+    is_audit: Number(isAudit) === 1 ? 1 : 0,
+  };
+}
+
+function readStoredHostSysInfo() {
+  return normalizeHostSysInfo(wx.getStorageSync(HOST_SYS_INFO_KEY));
+}
+
+function resolveHostLayout() {
+  try {
+    const systemInfo = wx.getSystemInfoSync() || {};
+    const statusBarHeight = Number(systemInfo.statusBarHeight) || 0;
+    const navHeight = statusBarHeight > 0 ? statusBarHeight + 44 : 44;
+    return {
+      navHeight,
+      titleHeight: navHeight,
+      fontSizeSetting: DEFAULT_HOST_LAYOUT.fontSizeSetting,
+    };
+  } catch (error) {
+    return { ...DEFAULT_HOST_LAYOUT };
+  }
 }
 
 function extractDeeptutorEntryEnabled(payload) {
@@ -356,11 +410,18 @@ App({
       this.globalData.token = token;
     }
 
+    const hostLayout = resolveHostLayout();
+    const storedHostSysInfo = readStoredHostSysInfo();
     this.globalData.theme = wx.getStorageSync("theme") || "dark";
     this.globalData.apiUrl = resolveBaseUrl();
     this.globalData.gatewayUrl = resolveBaseUrl();
     this.globalData.apiCandidates = [resolveBaseUrl()];
     this.globalData.gatewayCandidates = [resolveBaseUrl()];
+    this.globalData.navHeight = hostLayout.navHeight;
+    this.globalData.titleHeight = hostLayout.titleHeight;
+    this.globalData.fontSizeSetting = hostLayout.fontSizeSetting;
+    this.globalData.sysInfo = storedHostSysInfo;
+    this.globalData.sysInfoLoaded = !!wx.getStorageSync(HOST_SYS_INFO_KEY);
     this.globalData.deeptutorEntryEnabled = resolveDeeptutorEntryEnabled();
     this.globalData.deeptutorEntryConfig = resolveDeeptutorEntryConfig();
     this.globalData.deeptutorWorkspaceFlags = resolveDeeptutorWorkspaceFlags();
@@ -403,6 +464,36 @@ App({
     this.globalData.token = token;
     this.globalData.userId = wx.getStorageSync(USER_ID_KEY) || null;
     if (callback) callback(token);
+  },
+
+  getHostSysInfo(force = false) {
+    if (!force && this.globalData.sysInfoLoaded) {
+      return Promise.resolve(
+        this.globalData.sysInfo || normalizeHostSysInfo()
+      );
+    }
+    if (hostSysInfoPromise) {
+      return hostSysInfoPromise;
+    }
+    hostSysInfoPromise = getrq("GetSysInfo")
+      .then((res) => {
+        const nextSysInfo =
+          res && res.status == 1 && res.data && typeof res.data === "object"
+            ? normalizeHostSysInfo(res.data)
+            : this.globalData.sysInfo || normalizeHostSysInfo();
+        this.globalData.sysInfo = nextSysInfo;
+        this.globalData.sysInfoLoaded = true;
+        wx.setStorageSync(HOST_SYS_INFO_KEY, nextSysInfo);
+        return nextSysInfo;
+      })
+      .catch(() => {
+        this.globalData.sysInfoLoaded = !!wx.getStorageSync(HOST_SYS_INFO_KEY);
+        return this.globalData.sysInfo || normalizeHostSysInfo();
+      })
+      .finally(() => {
+        hostSysInfoPromise = null;
+      });
+    return hostSysInfoPromise;
   },
 
   getDeeptutorEntryEnabled() {
@@ -487,6 +578,11 @@ App({
     apiUrl: "",
     gatewayCandidates: [],
     apiCandidates: [],
+    navHeight: DEFAULT_HOST_LAYOUT.navHeight,
+    titleHeight: DEFAULT_HOST_LAYOUT.titleHeight,
+    fontSizeSetting: DEFAULT_HOST_LAYOUT.fontSizeSetting,
+    sysInfo: { ...DEFAULT_HOST_SYS_INFO },
+    sysInfoLoaded: false,
     chatEngine: "deeptutor",
     theme: "dark",
     networkAvailable: true,

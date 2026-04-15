@@ -1,0 +1,59 @@
+name: Runtime Ops Assets
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - "scripts/backup_data.py"
+      - "scripts/restore_data.py"
+      - "scripts/verify_runtime_assets.py"
+      - "tests/scripts/test_runtime_backup_restore.py"
+      - "tests/scripts/test_runtime_assets.py"
+      - "deployment/observability/**"
+      - "docs/zh/guide/runtime-backup-restore.md"
+      - "docs/zh/guide/runtime-observability.md"
+      - "docker-compose.yml"
+      - ".github/workflows/runtime-ops.yml"
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths:
+      - "scripts/backup_data.py"
+      - "scripts/restore_data.py"
+      - "scripts/verify_runtime_assets.py"
+      - "tests/scripts/test_runtime_backup_restore.py"
+      - "tests/scripts/test_runtime_assets.py"
+      - "deployment/observability/**"
+      - "docs/zh/guide/runtime-backup-restore.md"
+      - "docs/zh/guide/runtime-observability.md"
+      - "docker-compose.yml"
+      - ".github/workflows/runtime-ops.yml"
+  schedule:
+    - cron: "0 3 * * 1"
+
+jobs:
+  runtime-assets:
+    name: Runtime Asset Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install runtime validation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/server.txt pytest
+
+      - name: Validate runtime asset suite
+        run: |
+          python scripts/verify_runtime_assets.py
+          pytest -q tests/scripts/test_runtime_backup_restore.py tests/scripts/test_runtime_assets.py

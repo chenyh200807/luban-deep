@@ -244,6 +244,12 @@ class VerifyCodeRequest(BaseModel):
     code: str
 
 
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+    phone: str
+
+
 class WechatLoginRequest(BaseModel):
     code: str = ""
 
@@ -299,6 +305,19 @@ async def auth_login(body: LoginRequest) -> dict[str, Any]:
         return member_service.login_with_password(body.username, body.password)
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
+
+
+@router.post(
+    "/auth/register",
+    dependencies=[
+        Depends(route_rate_limit("mobile_auth_register", default_max_requests=3, default_window_seconds=60.0))
+    ],
+)
+async def auth_register(body: RegisterRequest) -> dict[str, Any]:
+    try:
+        return member_service.register_with_external_auth(body.username, body.password, body.phone)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post(

@@ -37,6 +37,27 @@ def build_archive_name(now: datetime | None = None) -> str:
     return f"deeptutor-data-user-{current.strftime('%Y%m%d-%H%M%SZ')}.tar.gz"
 
 
+def list_backup_archives(backup_dir: Path) -> list[Path]:
+    backup_dir = backup_dir.resolve()
+    if not backup_dir.exists():
+        return []
+    return sorted(path for path in backup_dir.glob("deeptutor-data-user-*.tar.gz") if path.is_file())
+
+
+def prune_backup_archives(backup_dir: Path, keep: int) -> list[Path]:
+    if keep <= 0:
+        return []
+
+    archives = list_backup_archives(backup_dir)
+    if len(archives) <= keep:
+        return []
+
+    to_remove = archives[:-keep]
+    for archive_path in to_remove:
+        archive_path.unlink(missing_ok=True)
+    return to_remove
+
+
 def iter_runtime_files(user_data_dir: Path) -> Iterable[Path]:
     for path in user_data_dir.rglob("*"):
         if path.is_file():
@@ -84,11 +105,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--project-root", type=Path, help="Override project root")
     parser.add_argument("--backup-dir", type=Path, help="Override backup output directory")
     parser.add_argument("--archive-name", help="Override backup archive filename")
+    parser.add_argument(
+        "--keep",
+        type=int,
+        default=0,
+        help="Keep only the newest N archives after creating a backup (0 disables pruning)",
+    )
     args = parser.parse_args(argv)
 
     project_root = resolve_project_root(args.project_root)
     user_data_dir = resolve_user_data_dir(project_root)
     backup_dir = args.backup_dir or resolve_backup_dir(project_root)
+
+    if args.keep < 0:
+        parser.error("--keep must be greater than or equal to 0")
 
     archive_path = create_backup_archive(
         user_data_dir=user_data_dir,
@@ -96,12 +126,18 @@ def main(argv: list[str] | None = None) -> int:
         backup_dir=backup_dir,
         archive_name=args.archive_name,
     )
+    pruned_archives = prune_backup_archives(backup_dir, args.keep)
     file_count, total_bytes = summarize_runtime_tree(user_data_dir)
 
     print(f"backed up: {user_data_dir}")
     print(f"archive: {archive_path}")
     print(f"files: {file_count}")
     print(f"bytes: {total_bytes}")
+    if args.keep > 0:
+        print(f"keep: {args.keep}")
+        print(f"pruned: {len(pruned_archives)}")
+        for path in pruned_archives:
+            print(f"removed: {path}")
     return 0
 
 

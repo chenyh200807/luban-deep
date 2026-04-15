@@ -1,80 +1,40 @@
 // pages/text/text.js
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
     url:''
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-      if(options.url){
-        let targetUrl = options.url;
-        try {
-          targetUrl = decodeURIComponent(options.url);
-        } catch (err) {
-          console.log('url decode skip', err);
-        }
-        this.setData({
-          url:targetUrl
-        });
-      }else{
-        this.setData({
-          url:'https://www.yousenjiaoyu.com'
-        });
+  normalizeTargetUrl(options = {}) {
+    if (options.url) {
+      try {
+        return decodeURIComponent(options.url);
+      } catch (_) {
+        return options.url;
       }
+    }
+
+    if (options.urlname) {
+      if (options.urlname.indexOf('.yousenjiaoyu.com') !== -1) {
+        return options.urlname;
+      }
+
+      const baseUrl = options.online === 'true'
+        ? 'https://www.yousenjiaoyu.com'
+        : 'https://test2.yousenjiaoyu.com';
+
+      return `${baseUrl}/getwx/urlname/${options.urlname}`;
+    }
+
+    if (options.cid) {
+      return `https://www.yousenjiaoyu.com/checkxcx?cid=${options.cid}`;
+    }
+
+    return 'https://www.yousenjiaoyu.com';
   },
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onLoad(options) {
+      this.setData({
+        url: this.normalizeTargetUrl(options)
+      });
   }
 })

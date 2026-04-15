@@ -16,10 +16,8 @@ const uploadFileGroup = (arr, prefix = false) => {
         filePath: item,
         name: 'fileUrl',
         success(res) {
-          console.log(res,"res")
           num += 1
           const obj = JSON.parse(res.data)
-          // if (prefix) obj.data = baseUrl + obj.data
           newA.push(obj.data.file_path)
           if (num == arr.length) {
             resolve(newA)
@@ -27,7 +25,6 @@ const uploadFileGroup = (arr, prefix = false) => {
           }
         },
         fail(err) {
-          console.log(err,"err")
           reject(err)
           wxHide()
         }

@@ -144,4 +144,5 @@ def test_mimic_websocket_accepts_config_and_returns_messages(
     assert [message["type"] for message in messages] == ["status", "status", "error"]
     assert messages[0]["stage"] == "init"
     assert messages[1]["stage"] == "processing"
-    assert messages[2]["content"] == "stub mimic failure"
+    assert messages[2]["content"] == "Question generation failed. Please try again later."
+    assert "stub mimic failure" not in messages[2]["content"]

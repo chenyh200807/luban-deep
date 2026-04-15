@@ -1,2 +1,5 @@
 <!--pages/index1/index.wxml-->
-<web-view src="https://www.yousenjiaoyu.com/xcxsyzm"></web-view>
+<web-view wx:if="{{showWebView}}" src="https://www.yousenjiaoyu.com/xcxsyzm"></web-view>
+<view wx:else class="launch-loading">
+  <text>{{loadingLaunch ? '加载中...' : ''}}</text>
+</view>

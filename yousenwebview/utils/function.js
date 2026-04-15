@@ -32,7 +32,9 @@ function isLogin(){
   var admin = wx.getStorageSync("admin");
   if (!admin){
     linkTo("/pages/Admin/login/login");
+    return false;
   }
+  return true;
 }
 
 /*获得元素上的绑定的值*/
@@ -92,8 +94,9 @@ function getLocateStore(data,callback){
 //判断有无授权
 function isAuth(){
   return new Promise((resolve,reject)=>{
-    if(wx.getStorageSync('members')){
-      resolve();
+    const members = wx.getStorageSync('members');
+    if(members && members.pk_id){
+      resolve(members);
     }else{
       wx.showModal({
         title: '提示',
@@ -103,17 +106,30 @@ function isAuth(){
             wx.navigateTo({
               url: '/pages/auth/auth',
             })
-          } else if (res.cancel) {
-            console.log('用户点击取消')
           }
+          reject(new Error('unauthorized'));
+        },
+        fail(err) {
+          reject(err);
         }
       })
-      reject();
     }
   })
 }
 //获取系统基础信息
 function getSysInfo(callback){
+  let app = null
+  try {
+    app = getApp()
+  } catch (error) {}
+  if (app && typeof app.getHostSysInfo === "function") {
+    app.getHostSysInfo().then((res) => {
+      callback && callback(res)
+    }).catch(() => {
+      callback && callback(app.globalData && app.globalData.sysInfo ? app.globalData.sysInfo : { is_audit: 0 })
+    })
+    return
+  }
   wx.request({
     url: Config.restUrl + 'System/SysInfo',
     data: {},
@@ -128,10 +144,13 @@ function getSysInfo(callback){
 }
 
 function getUserDetail(data,callback){
-  data.fk_store_id=wx.getStorageSync('storeInfo').fk_store_id;
+  const storeInfo = wx.getStorageSync('storeInfo') || {};
+  const requestData = Object.assign({}, data, {
+    fk_store_id: storeInfo.fk_store_id || 0
+  });
   wx.request({
     url: Config.restUrl +'System/UserDetail',
-    data: data,
+    data: requestData,
     method: "post",
     header: {
       'content-type': 'application/json'
@@ -158,23 +177,6 @@ function wxGetImageInfo(src) {
     })
   })
 }
-
-//获取用户信息
-// function getUserInfo(members_id, callback){
-//   wx.request({
-//     url: Config.restUrl + 'Action=GetUserDetail',
-//     data: {
-//       fk_user_id: members_id
-//     },
-//     method: "post",
-//     header: {
-//       'content-type': 'application/json'
-//     },
-//     success: function (res) {
-//       callback && callback(res.data);
-//     }
-//   });
-// }
 
 module.exports={
   linkTo: linkTo,

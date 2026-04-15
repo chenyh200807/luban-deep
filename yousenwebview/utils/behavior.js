@@ -1,9 +1,52 @@
 import { resUrl } from "./config"
 import { postrq,getrq,postrq2 } from "./request"
 import {phoneSafeArea} from "./system"
-import {wxModel} from "./wxPromise" 
+import {wxModel} from "./wxPromise"
 let Function = require("./function")
 const app = getApp()
+const BROTHER_MAJOR_CACHE_KEY = "yousen_brother_major_cache"
+const BROTHER_MAJOR_CACHE_TTL = 12 * 60 * 60 * 1000
+const brotherMajorPromiseMap = {}
+
+function getBrotherMajorCacheKey(majorId) {
+  return `${BROTHER_MAJOR_CACHE_KEY}:${majorId}`
+}
+
+function readBrotherMajorCacheList(majorId, allowExpired) {
+  try {
+    const cache = wx.getStorageSync(getBrotherMajorCacheKey(majorId))
+    if (!cache || typeof cache !== "object") {
+      return null
+    }
+    if (
+      !allowExpired &&
+      Date.now() - (Number(cache.updatedAt) || 0) > BROTHER_MAJOR_CACHE_TTL
+    ) {
+      return null
+    }
+    return Array.isArray(cache.majorList) ? cache.majorList : null
+  } catch (_) {
+    return null
+  }
+}
+
+function writeBrotherMajorCacheList(majorId, majorList) {
+  try {
+    wx.setStorageSync(getBrotherMajorCacheKey(majorId), {
+      majorList: majorList,
+      updatedAt: Date.now(),
+    })
+  } catch (_) {}
+}
+
+function normalizeBrotherMajorList(list, majorId) {
+  const source = Array.isArray(list) ? list : []
+  return source.map((item) => {
+    return Object.assign({}, item, {
+      flag: item && item.pk_id == majorId,
+    })
+  })
+}
 module.exports = Behavior({
   behaviors: [],
   data: {
@@ -42,7 +85,22 @@ module.exports = Behavior({
     },
     //获取系统信息
     getSysInfo(){
-      this.isGetHttp('GetSysInfo').then(res=>{
+      if (app && typeof app.getHostSysInfo === "function") {
+        return app.getHostSysInfo().then((sysInfo) => {
+          this.setData({
+            sysInfo: sysInfo
+          })
+          return sysInfo
+        }).catch(() => {
+          const fallback = app.globalData.sysInfo || { is_audit: 0 }
+          app.globalData.sysInfo = fallback
+          this.setData({
+            sysInfo: fallback
+          })
+          return fallback
+        })
+      }
+      return this.isGetHttp('GetSysInfo').then(res=>{
         if(res.status == 1){
           app.globalData.sysInfo = res.data
           this.setData({
@@ -53,7 +111,11 @@ module.exports = Behavior({
     },
     //获取用户信息
     getUserInfo(){
-      postrq('GetUserDetail',{fk_user_id:wx.getStorageSync('members').pk_id},false).then(res=>{
+      const members = wx.getStorageSync('members')
+      if (!members || !members.pk_id) {
+        return Promise.resolve(null)
+      }
+      return postrq('GetUserDetail',{fk_user_id:members.pk_id},false).then(res=>{
         if(res.status==1){
           app.globalData.userInfo = res.data
           wx.setStorageSync('members', res.data)
@@ -66,14 +128,20 @@ module.exports = Behavior({
     //判断有无授权
     checkLogin(){
       return new Promise((resolve,reject)=>{
-        if(wx.getStorageSync('members')){
-          resolve();
+        const members = wx.getStorageSync('members')
+        if(members && members.pk_id){
+          resolve(members);
         }else{
           wxModel({content:'你还未授权是否前往授权'}).then(()=>{
             wx.navigateTo({
               url: '/pages/auth/auth',
+              complete: () => {
+                reject(new Error('unauthorized'))
+              }
             })
-          }).catch()
+          }).catch((err) => {
+            reject(err || new Error('unauthorized'))
+          })
         }
       })
     },
@@ -86,24 +154,42 @@ module.exports = Behavior({
     },
     //获取同级分类
     getBrotherMajor(){
-      let data = {
-        fk_major_id:wx.getStorageSync('major_id')?wx.getStorageSync('major_id'):0
-      }
-      this.isPostHttp('GetBrotherMajor',data).then(res=>{
-        if(res.status == 1){
-          res.data.forEach((item)=>{
-            if(item.pk_id == wx.getStorageSync('major_id')){
-              item.flag = true
-            }else{
-              item.flag = false
-            }
-            
-          })
+      const majorId = wx.getStorageSync('major_id') ? wx.getStorageSync('major_id') : 0
+      const cachedList = readBrotherMajorCacheList(majorId, false)
+      if (cachedList) {
+        if (this && typeof this.setData === "function") {
           this.setData({
-            majorList:res.data
+            majorList: cachedList
           })
         }
-      }).catch()
+        return Promise.resolve(cachedList)
+      }
+      if (!brotherMajorPromiseMap[majorId]) {
+        let data = {
+          fk_major_id: majorId
+        }
+        brotherMajorPromiseMap[majorId] = this.isPostHttp('GetBrotherMajor',data).then(res=>{
+          if(res.status == 1){
+            const majorList = normalizeBrotherMajorList(res.data, majorId)
+            writeBrotherMajorCacheList(majorId, majorList)
+            return majorList
+          }
+          return readBrotherMajorCacheList(majorId, true) || []
+        }).catch(()=>{
+          const fallbackList = readBrotherMajorCacheList(majorId, true)
+          return fallbackList || []
+        }).finally(()=>{
+          delete brotherMajorPromiseMap[majorId]
+        })
+      }
+      return brotherMajorPromiseMap[majorId].then(majorList => {
+        if (this && typeof this.setData === "function") {
+          this.setData({
+            majorList:majorList
+          })
+        }
+        return majorList
+      })
     },
   }
 })

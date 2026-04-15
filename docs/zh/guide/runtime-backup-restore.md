@@ -18,6 +18,12 @@
 
 - 备份脚本：[scripts/backup_data.py](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/backup_data.py)
 - 恢复脚本：[scripts/restore_data.py](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/restore_data.py)
+- 清理脚本：[scripts/prune_backups.py](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/prune_backups.py)
+
+## 仓库内自动化样例
+
+- 定时任务样例：[deployment/backup/runtime-backup.cron.example](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/deployment/backup/runtime-backup.cron.example)
+- CI 恢复演练：[.github/workflows/runtime-drill.yml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/.github/workflows/runtime-drill.yml)
 
 ## 备份命令
 
@@ -43,6 +49,32 @@ python scripts/backup_data.py --project-root /root/deeptutor
 
 ```bash
 python scripts/backup_data.py --backup-dir /mnt/backup/deeptutor
+```
+
+## 清理旧备份
+
+默认保留策略：
+
+- 最近 7 份日备份
+- 最近 2 份周备份
+- 最近 1 份月备份
+
+执行命令：
+
+```bash
+python scripts/prune_backups.py
+```
+
+如果只想预览将删除哪些文件：
+
+```bash
+python scripts/prune_backups.py --dry-run
+```
+
+如果想顺手清理旧归档，可以保留最近 7 份：
+
+```bash
+python scripts/backup_data.py --keep 7
 ```
 
 ## 恢复命令
@@ -90,6 +122,14 @@ python scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYmm
 4. 检查 `chat_history.db`、`settings/`、`workspace/` 是否都恢复成功。
 5. 再启动一次最小服务验证，确认程序能正常读取恢复后的 runtime 数据。
 
+如果你希望把这件事尽量自动化，最小可落地做法是把备份命令交给 cron 或 systemd timer，再加上 `--keep`：
+
+```cron
+0 3 * * * cd /root/deeptutor && /usr/bin/python3 scripts/backup_data.py --keep 7 >> data/user/logs/backup.log 2>&1
+```
+
+这个方式不需要额外平台，只是把“人工点一下备份”变成“每天固定生成并清理旧包”。
+
 最小演练命令示例：
 
 ```bash
@@ -99,18 +139,11 @@ python scripts/restore_data.py --project-root /tmp/deeptutor-drill --replace
 
 ## 保留策略建议
 
-最小可执行建议如下：
+默认清理脚本就是按这条策略工作的；如果磁盘更紧张，可调：
 
-- 每天保留 1 份最近备份
-- 每周保留 1 份周备份
-- 每月保留 1 份月备份
-- 至少保留最近 7 天的备份
-
-如果磁盘紧张，优先保留：
-
-- 最近 3 份日备份
-- 最近 2 份周备份
-- 最近 1 份月备份
+```bash
+python scripts/prune_backups.py --keep-daily 3 --keep-weekly 2 --keep-monthly 1
+```
 
 不要把备份文件放回 `data/user`，否则恢复和备份边界会混在一起。
 
@@ -129,6 +162,7 @@ python scripts/restore_data.py --project-root /tmp/deeptutor-drill --replace
 
 - 备份对象明确
 - 恢复路径明确
+- 清理策略明确
 - 校验步骤明确
 - 演练步骤明确
 

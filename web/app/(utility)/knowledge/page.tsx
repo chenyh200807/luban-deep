@@ -45,6 +45,7 @@ import {
   updateNotebookEntry,
   deleteNotebookEntry,
   removeEntryFromCategory,
+  type NotebookEntryListCursor,
   type NotebookEntry,
   type NotebookCategory,
 } from "@/lib/notebook-api";
@@ -178,7 +179,10 @@ function KnowledgePageContent() {
   const [selectedNotebookId, setSelectedNotebookId] = useState<string | null>(null);
   const [selectedNotebook, setSelectedNotebook] = useState<NotebookDetail | null>(null);
   const [loadingNotebookDetail, setLoadingNotebookDetail] = useState(false);
+  const [loadingNotebookMore, setLoadingNotebookMore] = useState(false);
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
+  const [selectedNotebookNextCursor, setSelectedNotebookNextCursor] =
+    useState<NotebookEntryListCursor | null>(null);
   const [createProcess, setCreateProcess] = useState<ProcessState>(EMPTY_PROCESS_STATE);
   const [uploadProcess, setUploadProcess] = useState<ProcessState>(EMPTY_PROCESS_STATE);
   const socketsRef = useRef<Record<string, WebSocket>>({});
@@ -195,7 +199,7 @@ function KnowledgePageContent() {
   const [qTotal, setQTotal] = useState(0);
   const [qLoading, setQLoading] = useState(true);
   const [qError, setQError] = useState<string | null>(null);
-  const [qRefreshing, setQRefreshing] = useState(false);
+  const [qLoadingMore, setQLoadingMore] = useState(false);
   const [qFilter, setQFilter] = useState<QFilterMode>("all");
   const [qActiveCategoryId, setQActiveCategoryId] = useState<number | null>(null);
   const [qCategories, setQCategories] = useState<NotebookCategory[]>([]);
@@ -203,6 +207,7 @@ function KnowledgePageContent() {
   const [qShowCategoryManager, setQShowCategoryManager] = useState(false);
   const [qNewCatName, setQNewCatName] = useState("");
   const [qRenamingCat, setQRenamingCat] = useState<{ id: number; name: string } | null>(null);
+  const [qNextCursor, setQNextCursor] = useState<NotebookEntryListCursor | null>(null);
 
   // ── Question Notebook handlers ──
   const loadQCategories = useCallback(async () => {
@@ -210,27 +215,50 @@ function KnowledgePageContent() {
   }, []);
 
   const loadQItems = useCallback(
-    async (mode: QFilterMode, catId: number | null) => {
-      setQRefreshing(true);
+    async (
+      mode: QFilterMode,
+      catId: number | null,
+      cursor?: NotebookEntryListCursor | null,
+      append = false,
+    ) => {
       setQError(null);
+      if (!append) {
+        setQLoading(true);
+        setQItems([]);
+        setQNextCursor(null);
+      } else {
+        setQLoadingMore(true);
+      }
       try {
         const response = await listNotebookEntries({
           bookmarked: mode === "bookmarked" ? true : undefined,
           is_correct: mode === "wrong" ? false : undefined,
           category_id: catId ?? undefined,
-          limit: 200,
+          limit: 50,
+          before_created_at: cursor?.before_created_at,
+          before_entry_id: cursor?.before_entry_id,
         });
-        setQItems(response.items);
+        setQItems((prev) => {
+          if (!append) return response.items;
+          const seen = new Set(prev.map((item) => item.id));
+          return [...prev, ...response.items.filter((item) => !seen.has(item.id))];
+        });
         setQTotal(response.total);
+        setQNextCursor(response.next_cursor ?? null);
       } catch (err) {
         setQError(String(err instanceof Error ? err.message : err));
       } finally {
-        setQLoading(false);
-        setQRefreshing(false);
+        if (!append) setQLoading(false);
+        else setQLoadingMore(false);
       }
     },
     [],
   );
+
+  const loadMoreQItems = useCallback(() => {
+    if (!qNextCursor || qLoadingMore) return;
+    void loadQItems(qFilter, qActiveCategoryId, qNextCursor, true);
+  }, [loadQItems, qActiveCategoryId, qFilter, qLoadingMore, qNextCursor]);
 
   const handleQToggleBookmark = useCallback(
     async (item: NotebookEntry) => {
@@ -667,13 +695,27 @@ function KnowledgePageContent() {
     await loadAll();
   };
 
-  const loadNotebookDetail = async (notebookId: string) => {
+  const loadNotebookDetail = async (
+    notebookId: string,
+    cursor?: NotebookEntryListCursor | null,
+    append = false,
+  ) => {
     setSelectedNotebookId(notebookId);
     setExpandedRecordId(null);
-    setLoadingNotebookDetail(true);
+    if (!append) {
+      setLoadingNotebookDetail(true);
+      setSelectedNotebookNextCursor(null);
+    } else {
+      setLoadingNotebookMore(true);
+    }
     try {
       const info = notebooks.find((n) => n.id === notebookId);
-      const data = await listNotebookEntries({ category_id: Number(notebookId) });
+      const data = await listNotebookEntries({
+        category_id: Number(notebookId),
+        limit: 50,
+        before_created_at: cursor?.before_created_at,
+        before_entry_id: cursor?.before_entry_id,
+      });
       const records: NotebookRecord[] = (data.items || []).map((e) => ({
         id: String(e.id),
         type: e.question_type,
@@ -683,19 +725,40 @@ function KnowledgePageContent() {
         output: e.correct_answer,
         created_at: e.created_at,
       }));
-      setSelectedNotebook({
-        id: notebookId,
-        name: info?.name ?? "",
-        description: info?.description,
-        record_count: data.total,
-        color: info?.color,
-        records,
+      setSelectedNotebook((prev) => {
+        if (append && prev?.id === notebookId) {
+          const seen = new Set(prev.records.map((record) => record.id));
+          return {
+            ...prev,
+            name: info?.name ?? prev.name,
+            description: info?.description ?? prev.description,
+            color: info?.color ?? prev.color,
+            record_count: data.total,
+            records: [...prev.records, ...records.filter((record) => !seen.has(record.id))],
+          };
+        }
+        return {
+          id: notebookId,
+          name: info?.name ?? "",
+          description: info?.description,
+          record_count: data.total,
+          color: info?.color,
+          records,
+        };
       });
+      setSelectedNotebookNextCursor(data.next_cursor ?? null);
     } catch {
       setSelectedNotebook(null);
+      setSelectedNotebookNextCursor(null);
     } finally {
-      setLoadingNotebookDetail(false);
+      if (!append) setLoadingNotebookDetail(false);
+      else setLoadingNotebookMore(false);
     }
+  };
+
+  const loadMoreNotebookRecords = () => {
+    if (!selectedNotebookId || !selectedNotebookNextCursor || loadingNotebookMore) return;
+    void loadNotebookDetail(selectedNotebookId, selectedNotebookNextCursor, true);
   };
 
   const openNotebookRecord = (record: NotebookRecord) => {
@@ -1333,6 +1396,19 @@ function KnowledgePageContent() {
                         )}
                         </div>
                       </div>
+                      {selectedNotebookNextCursor ? (
+                        <div className="mt-3 shrink-0 border-t border-[var(--border)] pt-3">
+                          <button
+                            type="button"
+                            onClick={loadMoreNotebookRecords}
+                            disabled={loadingNotebookMore}
+                            className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[12px] font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            {loadingNotebookMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                            {t("Load more records")}
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   ) : (
                     <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-dashed border-[var(--border)] text-[13px] text-[var(--muted-foreground)]">
@@ -1499,6 +1575,7 @@ function KnowledgePageContent() {
                 </p>
               </div>
             ) : (
+              <>
               <ul className="flex flex-col gap-3">
                 {qItems.map((item) => {
                   const disabled = qPendingId === item.id;
@@ -1701,10 +1778,24 @@ function KnowledgePageContent() {
                         </div>
                         <span className="text-[var(--muted-foreground)]">{new Date(item.created_at * 1000).toLocaleString()}</span>
                       </div>
-                    </li>
-                  );
-                })}
+                  </li>
+                );
+              })}
               </ul>
+              {qNextCursor ? (
+                <div className="mt-4 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={loadMoreQItems}
+                    disabled={qLoadingMore}
+                    className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[12px] font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {qLoadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                    {t("Load more entries")}
+                  </button>
+                </div>
+              ) : null}
+              </>
             )}
           </div>
         )}

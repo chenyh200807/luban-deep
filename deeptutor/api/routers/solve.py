@@ -13,6 +13,7 @@ from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 
 from deeptutor.agents.solve import MainSolver, SolverSessionManager
 from deeptutor.api.utils.log_interceptor import LogInterceptor
+from deeptutor.api.dependencies import enforce_websocket_rate_limit
 from deeptutor.capabilities.deep_solve import DeepSolveCapability
 from deeptutor.api.utils.task_id_manager import TaskIDManager
 from deeptutor.services.path_service import get_path_service
@@ -93,6 +94,13 @@ async def delete_solver_session(session_id: str):
 
 @router.websocket("/solve")
 async def websocket_solve(websocket: WebSocket):
+    if not await enforce_websocket_rate_limit(
+        websocket,
+        "solve_ws",
+        default_max_requests=60,
+        default_window_seconds=60.0,
+    ):
+        return
     await websocket.accept()
 
     task_manager = TaskIDManager.get_instance()

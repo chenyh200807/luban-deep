@@ -1,4 +1,8 @@
 // pages/index1/index1.js
+const LAUNCH_CACHE_KEY = "yousen_launch_cache";
+const LAUNCH_CACHE_TTL = 12 * 60 * 60 * 1000;
+const WEB_VIEW_FALLBACK = "__WEB_VIEW__";
+
 function syncDeeptutorEntryFlag(payload) {
   try {
     var app = getApp();
@@ -36,20 +40,109 @@ function resolveLaunchTarget(payload) {
   return "";
 }
 
+function readCachedLaunchState(allowExpired) {
+  try {
+    var cache = wx.getStorageSync(LAUNCH_CACHE_KEY);
+    if (!cache || typeof cache !== "object") {
+      return null;
+    }
+    if (
+      !allowExpired &&
+      Date.now() - (Number(cache.updatedAt) || 0) > LAUNCH_CACHE_TTL
+    ) {
+      return null;
+    }
+    return {
+      payload: cache.payload,
+      target:
+        cache.target === WEB_VIEW_FALLBACK
+          ? WEB_VIEW_FALLBACK
+          : resolveLaunchTarget(cache.payload),
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
+function writeCachedLaunchState(payload, target) {
+  try {
+    wx.setStorageSync(LAUNCH_CACHE_KEY, {
+      payload: payload,
+      target: target ? target : WEB_VIEW_FALLBACK,
+      updatedAt: Date.now(),
+    });
+  } catch (_) {}
+}
+
+function clearCachedLaunchState() {
+  try {
+    wx.removeStorageSync(LAUNCH_CACHE_KEY);
+  } catch (_) {}
+}
+
 Page({
 
   /**
    * 页面的初始数据
    */
   data: {
+    showWebView: false,
+    loadingLaunch: true
+  },
 
+  fallbackToWebView() {
+    if (this._launchFinished) {
+      return;
+    }
+    this._launchFinished = true;
+    this.setData({
+      showWebView: true,
+      loadingLaunch: false
+    });
+  },
+
+  resolveLaunchResponse(payload) {
+    syncDeeptutorEntryFlag(payload);
+    var launchTarget = resolveLaunchTarget(payload);
+    writeCachedLaunchState(payload, launchTarget);
+    if (launchTarget) {
+      this.redirectToLaunchTarget(launchTarget);
+      return;
+    }
+    this.fallbackToWebView();
+  },
+
+  redirectToLaunchTarget(target) {
+    if (!target || this._launchFinished) {
+      return;
+    }
+    this._launchFinished = true;
+    wx.reLaunch({
+      url: target,
+      fail: () => {
+        clearCachedLaunchState();
+        this._launchFinished = false;
+        this.fallbackToWebView();
+      }
+    });
   },
 
   /**
    * 生命周期函数--监听页面加载
-   */
+  */
   onLoad(options) {
-
+    this._launchFinished = false;
+    var cachedLaunchState = readCachedLaunchState(false);
+    var staleLaunchState = cachedLaunchState || readCachedLaunchState(true);
+    if (cachedLaunchState && cachedLaunchState.target) {
+      syncDeeptutorEntryFlag(cachedLaunchState.payload);
+      if (cachedLaunchState.target === WEB_VIEW_FALLBACK) {
+        this.fallbackToWebView();
+        return;
+      }
+      this.redirectToLaunchTarget(cachedLaunchState.target);
+      return;
+    }
     wx.request({
       url: 'https://www.yousenjiaoyu.com/gettopzm',
       method : 'POST',
@@ -60,66 +153,20 @@ Page({
         "Content-Type": "application/x-www-form-urlencoded"
       },
       success: (res) => {
-        console.log(res);
-        //debugger;
-        syncDeeptutorEntryFlag(res.data);
-        var launchTarget = resolveLaunchTarget(res.data);
-        if (launchTarget) {
-          wx.reLaunch({
-            url: launchTarget
-          });
-        }
+        this.resolveLaunchResponse(res.data);
       },
+      fail: () => {
+        if (staleLaunchState && staleLaunchState.target) {
+          syncDeeptutorEntryFlag(staleLaunchState.payload);
+          if (staleLaunchState.target === WEB_VIEW_FALLBACK) {
+            this.fallbackToWebView();
+            return;
+          }
+          this.redirectToLaunchTarget(staleLaunchState.target);
+          return;
+        }
+        this.fallbackToWebView();
+      }
     })
-
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
   }
 })

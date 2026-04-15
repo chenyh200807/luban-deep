@@ -80,7 +80,7 @@ export function SidebarShell({
   const visiblePrimaryNav = PRIMARY_NAV.filter((item) => {
     if (item.href === "/") return true;
     if (item.href === "/agents" || item.href === "/co-writer" || item.href === "/guide") {
-      return legacyEnabled;
+      return authEnabled && legacyEnabled;
     }
     return authEnabled;
   });

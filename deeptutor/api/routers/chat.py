@@ -12,7 +12,7 @@ ownership model.
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 
 from deeptutor.agents.chat import ChatAgent, SessionManager
-from deeptutor.api.dependencies import require_admin
+from deeptutor.api.dependencies import enforce_websocket_rate_limit, require_admin
 from deeptutor.logging import get_logger
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
 from deeptutor.services.llm.config import get_llm_config
@@ -109,6 +109,13 @@ async def websocket_chat(websocket: WebSocket):
     - {"type": "result", "content": str}               # Final complete response
     - {"type": "error", "message": str}                # Error message
     """
+    if not await enforce_websocket_rate_limit(
+        websocket,
+        "chat_ws",
+        default_max_requests=60,
+        default_window_seconds=60.0,
+    ):
+        return
     await websocket.accept()
 
     try:

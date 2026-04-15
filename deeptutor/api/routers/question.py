@@ -9,6 +9,7 @@ import traceback
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from deeptutor.agents.question import AgentCoordinator
+from deeptutor.api.dependencies import enforce_websocket_rate_limit
 from deeptutor.api.utils.log_interceptor import LogInterceptor
 from deeptutor.api.utils.task_id_manager import TaskIDManager
 from deeptutor.logging import get_logger
@@ -58,6 +59,13 @@ async def websocket_mimic_generate(websocket: WebSocket):
         "max_questions": 5  // optional
     }
     """
+    if not await enforce_websocket_rate_limit(
+        websocket,
+        "question_mimic_ws",
+        default_max_requests=60,
+        default_window_seconds=60.0,
+    ):
+        return
     await websocket.accept()
 
     pusher_task = None
@@ -155,9 +163,9 @@ async def websocket_mimic_generate(websocket: WebSocket):
                 # Decode PDF data first to check size
                 try:
                     pdf_bytes = base64.b64decode(pdf_data)
-                except Exception as e:
+                except Exception:
                     await websocket.send_json(
-                        {"type": "error", "content": f"Invalid base64 PDF data: {e}"}
+                        {"type": "error", "content": "Invalid PDF upload payload"}
                     )
                     return
 
@@ -166,8 +174,13 @@ async def websocket_mimic_generate(websocket: WebSocket):
                     safe_name = DocumentValidator.validate_upload_safety(
                         pdf_name, len(pdf_bytes), {".pdf"}
                     )
-                except ValueError as e:
-                    await websocket.send_json({"type": "error", "content": str(e)})
+                except ValueError:
+                    await websocket.send_json(
+                        {
+                            "type": "error",
+                            "content": "Invalid PDF upload payload. Please try again later.",
+                        }
+                    )
                     return
 
                 # Create batch directory for this mimic session
@@ -190,10 +203,15 @@ async def websocket_mimic_generate(websocket: WebSocket):
                 # Additional validation (file readability, etc.)
                 try:
                     DocumentValidator.validate_file(pdf_path)
-                except (ValueError, FileNotFoundError, PermissionError) as e:
+                except (ValueError, FileNotFoundError, PermissionError):
                     # Clean up invalid or inaccessible file
                     pdf_path.unlink(missing_ok=True)
-                    await websocket.send_json({"type": "error", "content": str(e)})
+                    await websocket.send_json(
+                        {
+                            "type": "error",
+                            "content": "Uploaded PDF validation failed. Please try again later.",
+                        }
+                    )
                     return
 
                 await websocket.send_json(
@@ -271,12 +289,12 @@ async def websocket_mimic_generate(websocket: WebSocket):
                 except (RuntimeError, WebSocketDisconnect):
                     logger.debug("WebSocket closed before complete signal could be sent")
             else:
-                error_msg = result.get("error", "Unknown error")
+                error_msg = public_error_detail("Question generation")
                 try:
                     await websocket.send_json({"type": "error", "content": error_msg})
                 except (RuntimeError, WebSocketDisconnect):
                     pass
-                logger.error(f"Mimic generation failed: {error_msg}")
+                logger.error(f"Mimic generation failed: {result.get('error', error_msg)}")
 
         finally:
             # Close interceptor and restore stdout
@@ -323,10 +341,18 @@ async def websocket_mimic_generate(websocket: WebSocket):
 
 @router.websocket("/generate")
 async def websocket_question_generate(websocket: WebSocket):
+    if not await enforce_websocket_rate_limit(
+        websocket,
+        "question_generate_ws",
+        default_max_requests=60,
+        default_window_seconds=60.0,
+    ):
+        return
     await websocket.accept()
 
     # Get task ID manager
     task_manager = TaskIDManager.get_instance()
+    pusher_task = None
 
     try:
         # 1. Wait for config
@@ -410,116 +436,99 @@ async def websocket_question_generate(websocket: WebSocket):
         interceptor = LogInterceptor(target_logger, log_queue)
 
         # 6. Run Generation with LogInterceptor
-        try:
-            with interceptor:
-                try:
-                    await websocket.send_json({"type": "status", "content": "started"})
-                except (RuntimeError, WebSocketDisconnect):
-                    logger.debug("WebSocket closed, stopping question generation")
-                    return
+        with interceptor:
+            try:
+                await websocket.send_json({"type": "status", "content": "started"})
+            except (RuntimeError, WebSocketDisconnect):
+                logger.debug("WebSocket closed, stopping question generation")
+                return
 
-                # Extract fields from requirement dict
-                user_topic = (
-                    requirement.get("knowledge_point", "")
-                    if isinstance(requirement, dict)
-                    else str(requirement)
+            user_topic = (
+                requirement.get("knowledge_point", "")
+                if isinstance(requirement, dict)
+                else str(requirement)
+            )
+            preference = requirement.get("preference", "") if isinstance(requirement, dict) else ""
+            difficulty = requirement.get("difficulty", "") if isinstance(requirement, dict) else ""
+            question_type = (
+                requirement.get("question_type", "") if isinstance(requirement, dict) else ""
+            )
+
+            logger.info(f"Starting question generation for {count} question(s), topic: {user_topic}")
+
+            batch_result = await coordinator.generate_from_topic(
+                user_topic=user_topic,
+                preference=preference,
+                num_questions=count,
+                difficulty=difficulty,
+                question_type=question_type,
+            )
+
+            try:
+                await websocket.send_json(
+                    {
+                        "type": "batch_summary",
+                        "requested": count,
+                        "completed": batch_result.get("completed", 0),
+                        "failed": batch_result.get("failed", 0),
+                    }
                 )
-                preference = (
-                    requirement.get("preference", "") if isinstance(requirement, dict) else ""
-                )
-                difficulty = (
-                    requirement.get("difficulty", "") if isinstance(requirement, dict) else ""
-                )
-                question_type = (
-                    requirement.get("question_type", "") if isinstance(requirement, dict) else ""
+            except (RuntimeError, WebSocketDisconnect):
+                pass
+
+            if not batch_result.get("success"):
+                logger.warning(
+                    f"Question generation had failures: {batch_result.get('failed', 0)} failed"
                 )
 
-                logger.info(
-                    f"Starting question generation for {count} question(s), topic: {user_topic}"
-                )
+            await asyncio.sleep(0.1)
+            while not log_queue.empty():
+                await asyncio.sleep(0.05)
 
-                batch_result = await coordinator.generate_from_topic(
-                    user_topic=user_topic,
-                    preference=preference,
-                    num_questions=count,
-                    difficulty=difficulty,
-                    question_type=question_type,
-                )
+            try:
+                await websocket.send_json({"type": "complete"})
+                logger.info(f"[{task_id}] Question generation completed")
+                task_manager.update_task_status(task_id, "completed")
+            except (RuntimeError, WebSocketDisconnect):
+                logger.debug("WebSocket closed, cannot send complete signal")
 
-                # Send batch summary
-                try:
-                    await websocket.send_json(
-                        {
-                            "type": "batch_summary",
-                            "requested": count,
-                            "completed": batch_result.get("completed", 0),
-                            "failed": batch_result.get("failed", 0),
-                        }
-                    )
-                except (RuntimeError, WebSocketDisconnect):
-                    pass
-
-                if not batch_result.get("success"):
-                    logger.warning(
-                        f"Question generation had failures: {batch_result.get('failed', 0)} failed"
-                    )
-
-                # Wait for any pending messages in the queue to be sent
-                # Give the pusher a moment to process remaining messages
-                await asyncio.sleep(0.1)
-                while not log_queue.empty():
-                    await asyncio.sleep(0.05)
-
-                # Send complete signal
-                try:
-                    await websocket.send_json({"type": "complete"})
-                    logger.info(f"[{task_id}] Question generation completed")
-                    task_manager.update_task_status(task_id, "completed")
-                except (RuntimeError, WebSocketDisconnect):
-                    logger.debug("WebSocket closed, cannot send complete signal")
-
+    except WebSocketDisconnect:
+        logger.debug("Client disconnected")
     except Exception as e:
         error_msg = public_error_detail("Question generation")
         error_traceback = traceback.format_exc()
         logger.error(f"Question generation error: {e}")
         logger.error(f"Error traceback:\n{error_traceback}")
 
-            # Log additional context if available
-            try:
-                if "result" in locals():
-                    logger.error(
-                        f"Result type: {type(result)}, result keys: {result.keys() if isinstance(result, dict) else 'N/A'}"
-                    )
-                    if isinstance(result, dict) and "validation" in result:
-                        validation = result["validation"]
-                        logger.error(f"Validation type: {type(validation)}")
-                        if isinstance(validation, dict):
-                            logger.error(f"Validation keys: {validation.keys()}")
-                            logger.error(
-                                f"Issues type: {type(validation.get('issues'))}, value: {validation.get('issues')}"
-                            )
-                            logger.error(
-                                f"Suggestions type: {type(validation.get('suggestions'))}, value: {validation.get('suggestions')}"
-                            )
-            except Exception as context_error:
-                logger.warning(f"Failed to log error context: {context_error}")
+        try:
+            if "batch_result" in locals():
+                logger.error(
+                    f"batch_result keys: {batch_result.keys() if isinstance(batch_result, dict) else 'N/A'}"
+                )
+                if isinstance(batch_result, dict) and "validation" in batch_result:
+                    validation = batch_result["validation"]
+                    logger.error(f"Validation type: {type(validation)}")
+                    if isinstance(validation, dict):
+                        logger.error(f"Validation keys: {validation.keys()}")
+        except Exception as context_error:
+            logger.warning(f"Failed to log error context: {context_error}")
 
-            try:
-                await websocket.send_json({"type": "error", "content": error_msg})
-            except (RuntimeError, WebSocketDisconnect):
-                logger.debug("WebSocket closed, cannot send error message")
+        try:
+            await websocket.send_json({"type": "error", "content": error_msg})
+        except (RuntimeError, WebSocketDisconnect):
+            logger.debug("WebSocket closed, cannot send error message")
+        if "task_id" in locals():
             task_manager.update_task_status(task_id, "error", error=error_msg)
-
-        finally:
+    finally:
+        if pusher_task:
             pusher_task.cancel()
             try:
                 await pusher_task
             except asyncio.CancelledError:
                 pass
+            except Exception:
+                pass
+        try:
             await websocket.close()
-
-    except WebSocketDisconnect:
-        logger.debug("Client disconnected")
-    except Exception as e:
-        error_msg = public_error_detail("Question generation")
-        logger.error(f"WebSocket error: {e}")
+        except Exception:
+            pass

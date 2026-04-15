@@ -1,7 +1,18 @@
 // package/freeCourseDetails/freeCourseDetails.js
 var behavior = require('../../utils/behavior')
-import polyv from '../../utils/polyv.js';
 var utilMd5 = require('../../utils/md5.js');
+
+let polyvModule = null;
+
+function getPolyvModule() {
+  if (!polyvModule) {
+    const loadedModule = require('../../utils/polyv.js');
+    polyvModule =
+      loadedModule && loadedModule.default ? loadedModule.default : loadedModule;
+  }
+  return polyvModule;
+}
+
 Component({
   behaviors: [behavior],
 
@@ -9,356 +20,440 @@ Component({
    * 页面的初始数据
    */
   data: {
+    pk_id: '',
     videoSrc: {
-      src:'',
-      showBeishu:false,
-      view:'倍速', 
-      autoplay:true,
-      isShowBeishu:false
-      
+      src: '',
+      showBeishu: false,
+      view: '倍速',
+      autoplay: true,
+      isShowBeishu: false
     },
-    showmulu:true,
-    neirong1:false,
-    jianyi:false,
-    neirong:'',
-    show_index:true,
-    hdata:'',
-    thevideoshow:'',
-    chapterid:'',
-    kechengmulu:'',
-    kechengneirong:'',
-    show:false,
-    videotitle:'',
+    loadingDetail: true,
+    detailError: '',
+    showmulu: true,
+    neirong1: false,
+    neirong: '',
+    introHtmlRaw: '',
+    introContentReady: false,
+    hdata: {
+      title: ''
+    },
+    thevideoshow: '',
+    chapterid: '',
+    activeChapterIndex: -1,
+    kechengmulu: '',
+    kechengneirong: '',
+    show: false,
+    videotitle: '',
+    gratisDetail: {
+      chapter: []
+    }
   },
   methods: {
+    clearBeishuTimer: function() {
+      if (this.beishuTimer) {
+        clearTimeout(this.beishuTimer);
+        this.beishuTimer = null;
+      }
+    },
+    scheduleBeishuHide: function() {
+      this.clearBeishuTimer();
+      this.beishuTimer = setTimeout(() => {
+        this.setData({
+          'videoSrc.isShowBeishu': false
+        });
+      }, 6000);
+    },
+    getSafeChapterList: function(detail) {
+      if (detail && Array.isArray(detail.chapter)) {
+        return detail.chapter.map(item => Object.assign({}, item));
+      }
+      return [];
+    },
+    getSafeIntroData: function(hdataList, fallbackTitle) {
+      const source = Array.isArray(hdataList) ? hdataList[0] : hdataList;
+      const hdata = source && typeof source === 'object' ? Object.assign({}, source) : {};
+      if (!hdata.title && fallbackTitle) {
+        hdata.title = fallbackTitle;
+      }
+      hdata.introduce = hdata.introduce || '';
+      return hdata;
+    },
+    buildRichTextNodes: function(html) {
+      return html
+        ? html.replace(/\<img/gi, '<img style="max-width:100%;height:auto"')
+        : '';
+    },
+    resolveInitialChapter: function(chapterList, preferredChapterId, preferredPlayId) {
+      const byChapterId = preferredChapterId
+        ? chapterList.findIndex(item => String(item.id) === String(preferredChapterId))
+        : -1;
+      if (byChapterId > -1) {
+        return {
+          index: byChapterId,
+          item: chapterList[byChapterId]
+        };
+      }
+      const byPlayId = preferredPlayId
+        ? chapterList.findIndex(item => String(item.play_id) === String(preferredPlayId))
+        : -1;
+      if (byPlayId > -1) {
+        return {
+          index: byPlayId,
+          item: chapterList[byPlayId]
+        };
+      }
+      if (chapterList.length > 0) {
+        return {
+          index: 0,
+          item: chapterList[0]
+        };
+      }
+      return {
+        index: -1,
+        item: null
+      };
+    },
+    resetVideoState: function() {
+      this.clearBeishuTimer();
+      this.pendingAutoPlaySeq = 0;
+      this.videoRequestSeq = (this.videoRequestSeq || 0) + 1;
+      if (this.videoContext && this.videoContext.pause) {
+        this.videoContext.pause();
+      }
+    },
+    cleanupPage: function(options) {
+      this.resetVideoState();
+      this.detailRequestSeq = (this.detailRequestSeq || 0) + 1;
+      this.videoRequestSeq = (this.videoRequestSeq || 0) + 1;
+      if (options && options.destroy && polyvModule && polyvModule.destroy) {
+        polyvModule.destroy();
+      }
+    },
+    requestVideoSrc: function(vid, shouldAutoPlay) {
+      if (!vid) {
+        return;
+      }
+      const polyv = getPolyvModule();
+      if (!polyv || typeof polyv.getVideo !== 'function') {
+        this.pendingAutoPlaySeq = 0;
+        console.error('polyv sdk unavailable');
+        return;
+      }
+      const requestSeq = (this.videoRequestSeq || 0) + 1;
+      this.videoRequestSeq = requestSeq;
+      this.pendingAutoPlaySeq = shouldAutoPlay ? requestSeq : 0;
+      const timestamp = Date.parse(new Date());
+      const secretKey = 'mnABa9XMn8';
+      const ts = timestamp;
+      const sign = utilMd5.hexMD5(secretKey + vid + ts);
+      const that = this;
+      polyv.getVideo({
+        vid: vid,
+        ts: ts,
+        sign: sign,
+        callback: function(videoInfo) {
+          if (requestSeq !== that.videoRequestSeq) {
+            return;
+          }
+          const src = videoInfo && videoInfo.src
+            ? (Array.isArray(videoInfo.src) ? videoInfo.src[0] : videoInfo.src)
+            : '';
+          if (!src) {
+            that.pendingAutoPlaySeq = 0;
+            return;
+          }
+          that.setData({
+            'videoSrc.src': src
+          });
+          if (that.pendingAutoPlaySeq === requestSeq) {
+            setTimeout(() => {
+              if (that.pendingAutoPlaySeq !== requestSeq) {
+                return;
+              }
+              if (that.videoContext && that.videoContext.play) {
+                that.videoContext.play();
+              }
+            }, 350);
+          }
+        }
+      });
+    },
+    startInitialVideo: function(detail, initial) {
+      const playId =
+        detail && detail.play_id
+          ? detail.play_id
+          : initial && initial.item && initial.item.play_id
+            ? initial.item.play_id
+            : '';
+      if (!playId) {
+        return;
+      }
+      try {
+        this.requestVideoSrc(playId, true);
+      } catch (error) {
+        this.pendingAutoPlaySeq = 0;
+        console.error('video init failed', error);
+      }
+    },
     /**
      * 生命周期函数--监听页面加载
      */
     onLoad: function (options) {
-      if(options.pk_id){
-        this.data.pk_id = options.pk_id
-        if(options.chapterid){
-          this.data.chapterid = options.chapterid
-        }
-        this.getGratisDetail()
+      this.detailRequestSeq = 0;
+      this.videoRequestSeq = 0;
+      this.pendingAutoPlaySeq = 0;
+      this.beishuTimer = null;
+      if (options.pk_id) {
+        this.setData({
+          pk_id: options.pk_id,
+          chapterid: options.chapterid || '',
+          loadingDetail: true,
+          detailError: '',
+          show: false,
+          gratisDetail: {
+            chapter: []
+          },
+          hdata: {
+            title: ''
+          },
+          neirong: '',
+          introHtmlRaw: '',
+          introContentReady: false,
+          thevideoshow: '',
+          videotitle: '',
+          activeChapterIndex: -1,
+        });
+        this.getGratisDetail();
       }
-      
     },
-    getGratisDetail(){
+    getGratisDetail() {
+      const requestSeq = ++this.detailRequestSeq;
+      const members = wx.getStorageSync('members');
       let data = {
-        pk_id:this.data.pk_id,
-        chapterid:this.data.chapterid,
-        fk_user_id:wx.getStorageSync('members')?wx.getStorageSync('members').pk_id:0
-      }
-      this.isPostHttp('Getmajordetailedzm',data,true).then(res=>{
-        //debugger;
-        if(res.status == 1){
-          res.data.chapter.forEach((item)=>{
-            item.flag = false
-          })
-          if(res.data.play_id !=''){
-            this.publicVideo(res.data.play_id)
-          }else if(res.data.chapter.length>0){
-            this.publicVideo(res.data.chapter[0].play_id)
-            res.data.chapter[0].flag = true
-            this.setData({
-              videotitle : '正在播放：  '+res.data.chapter[0].title
-            })
-          }
+        pk_id: this.data.pk_id,
+        chapterid: this.data.chapterid,
+        fk_user_id: members ? members.pk_id : 0
+      };
+      this.resetVideoState();
+      this.setData({
+        loadingDetail: true,
+        detailError: '',
+        show: false
+      });
+      this.isPostHttp('Getmajordetailedzm', data, true).then(res => {
+        if (requestSeq !== this.detailRequestSeq) {
+          return;
+        }
+        if (res.status == 1) {
+          const detail = res.data || {};
+          const chapterList = this.getSafeChapterList(detail);
+          const hdata = this.getSafeIntroData(res.hdata, detail.name || '');
+          const initial = this.resolveInitialChapter(chapterList, this.data.chapterid, detail.play_id);
+          const shouldShowVideo = res.show !== false && Boolean(detail.play_id || initial.item);
+
           wx.setNavigationBarTitle({
-            title: res.data.name
-          })
-          
-          this.setData({
-            gratisDetail:res.data
-          })
-          if(!this.data.chapterid){
-              this.setData({
-                chapterid:res.data.chapter[0].id
-              })
+            title: detail.name || '佑森好课'
+          });
+
+          if (res.showvier == 27) {
+            wx.redirectTo({
+              url: '/pages/freeCourseDetailsonline/freeCourseDetailsonline'
+            });
+            return;
           }
-        //提交版本的时候把这个值调大
-        //showvier 控制小程序详细页面是否显示课程等字眼，正式使用的时候，这个值要和后台传的不一样，提交代码的时候要一样
 
-        //暂不能提供在线视频教育类目，进行视频内容下架处理先，等能提供时再上架处理
-        let d = res.showvier;
-        if(d!=null){
-          console.log('资质问题')
-        }
+          this.setData({
+            gratisDetail: Object.assign({}, detail, {
+              chapter: chapterList
+            }),
+            hdata: hdata,
+            neirong: '',
+            introHtmlRaw: hdata.introduce || '',
+            introContentReady: false,
+            thevideoshow: initial.item ? initial.item.title : (detail.name || ''),
+            chapterid: initial.item && initial.item.id ? initial.item.id : this.data.chapterid,
+            activeChapterIndex: initial.index,
+            videotitle: initial.item && initial.item.title ? '正在播放：  ' + initial.item.title : '',
+            kechengmulu: res.kechengmulu || '',
+            kechengneirong: res.kechengneirong || '',
+            show: shouldShowVideo,
+            loadingDetail: false
+          });
 
-        // if(res.showvier == 15){
-        //   wx.navigateTo({
-        //     url: '/pages/text/text?url='+this.data.showurl
-        //   })
-        // }
-      //showvier 控制小程序详细页面是否显示课程等字眼，正式使用的时候，这个值要和小程序的不一样，提交代码的时候要一样
-       //线上版本 
-        if(res.showvier == 27){
-          wx.redirectTo({
-            url: '/pages/freeCourseDetailsonline/freeCourseDetailsonline'
-          })
-        }else{
+          this.startInitialVideo(detail, initial);
+
+        } else {
           this.setData({
-            kechengmulu:res.kechengmulu,
-            kechengneirong:res.kechengneirong,
-            show:res.show,
-          })
+            loadingDetail: false,
+            detailError: res.msg || '课程内容暂不可用'
+          });
         }
-         
-          
-          let hdata = res.hdata[0];
-          this.setData({
-            neirong : hdata.introduce.replace(/\<img/gi, '<img style="max-width:100%;height:auto"'),
-            hdata : hdata,
-            thevideoshow : res.data.chapter[0].title,
-          })
+      }).catch(() => {
+        if (requestSeq !== this.detailRequestSeq) {
+          return;
         }
-      }).catch()
+        this.setData({
+          loadingDetail: false,
+          detailError: '课程加载失败，请稍后重试'
+        });
+      });
     },
     //选择课程播放
-  choicePlays:function(e){
-    let { video_id,index,flag} = e.currentTarget.dataset
-    this.data.gratisDetail.chapter.forEach((item)=>{
-      item.flag = false
-    })
-    this.data.gratisDetail.chapter[index].flag=flag;
-    if(flag){
-      this.publicVideo(video_id);
-    }
-    // wx.showToast({
-    //   title: '加载中。。。',
-    //   icon: 'loading',
-    //   duration: 1500
-    // })
-    this.setData({
-      videotitle : '正在播放：  '+this.data.gratisDetail.chapter[index].title
-    })
-    if(flag){
-      setTimeout(() => {
-          this.videoContext.play();
-      }, 1000);
-    }else{
-      this.videoContext.pause();
-    }
-    this.setData({
-      gratisDetail:this.data.gratisDetail,
-      'videoSrc.isShowBeishu':true
-    })
-    setTimeout(()=>{
-      this.setData({
-        'videoSrc.isShowBeishu':false
-      })
-    },6000)
-
-    debugger;
-    this.setData({
-      thevideoshow:this.data.gratisDetail.chapter[index].title,
-      chapterid:this.data.gratisDetail.chapter[index].id,
-    })
-
-  },
+    choicePlays: function(e) {
+      let { video_id, index, flag } = e.currentTarget.dataset;
+      const chapterList = this.data.gratisDetail && this.data.gratisDetail.chapter ? this.data.gratisDetail.chapter : [];
+      const currentChapter = chapterList[index];
+      if (!currentChapter) {
+        return;
+      }
+      this.clearBeishuTimer();
+      if (flag) {
+        this.setData({
+          activeChapterIndex: index,
+          chapterid: currentChapter.id || this.data.chapterid,
+          videotitle: '正在播放：  ' + (currentChapter.title || ''),
+          thevideoshow: currentChapter.title || '',
+          'videoSrc.isShowBeishu': true
+        });
+        this.scheduleBeishuHide();
+        if (video_id) {
+          this.requestVideoSrc(video_id, true);
+        }
+      } else {
+        this.pendingAutoPlaySeq = 0;
+        if (this.videoContext && this.videoContext.pause) {
+          this.videoContext.pause();
+        }
+        this.setData({
+          activeChapterIndex: -1,
+          chapterid: currentChapter.id || this.data.chapterid,
+          thevideoshow: currentChapter.title || this.data.thevideoshow,
+          'videoSrc.isShowBeishu': true
+        });
+        this.scheduleBeishuHide();
+      }
+    },
     //第三方视频
-    publicVideo:function(id){
-      let that=this;
-      let vid = id;
-      //播放web加密需要添加ts和sign参数。
-      var timestamp = Date.parse(new Date());
-      var secretKey = "mnABa9XMn8";
-      var ts = timestamp;
-      var sign = utilMd5.hexMD5(secretKey + vid + ts);
-      /*获取视频数据*/
-      /*获取视频数据*/
-      let vidObj = {
-        vid: vid,
-        callback: function (videoInfo) {
-          that.setData({
-            'videoSrc.src': videoInfo.src[0]
-          });
-        }, ts, sign
-      };
-      polyv.getVideo(vidObj);
+    publicVideo: function(id) {
+      this.requestVideoSrc(id, true);
     },
-    isShowBsClick:function(){
-      let that=this;
+    staPlay: function() {
+      this.pendingAutoPlaySeq = 0;
+    },
+    endPlay: function() {
+      return;
+    },
+    handleVideoReady: function() {
+      if (!this.pendingAutoPlaySeq || this.pendingAutoPlaySeq !== this.videoRequestSeq) {
+        return;
+      }
+      if (this.videoContext && this.videoContext.play) {
+        this.videoContext.play();
+      }
+      this.pendingAutoPlaySeq = 0;
+    },
+    isShowBsClick: function() {
+      this.clearBeishuTimer();
       this.setData({
-        'videoSrc.isShowBeishu':true
-      })
-      setTimeout(()=>{
-        that.setData({
-          'videoSrc.isShowBeishu':false
-        })
-      },6000)
+        'videoSrc.isShowBeishu': true
+      });
+      this.scheduleBeishuHide();
     },
-    clickShowBeishu:function(){
-      let that=this;
+    clickShowBeishu: function() {
       this.setData({
-        'videoSrc.showBeishu':!that.data.videoSrc.showBeishu
-      })
+        'videoSrc.showBeishu': !this.data.videoSrc.showBeishu
+      });
     },
-    clickShowBeishu2:function(){
-      let that=this;
+    clickShowBeishu2: function() {
       this.setData({
-        'videoSrc.showBeishu':false
-      })
+        'videoSrc.showBeishu': false
+      });
     },
-    itemClick:function(e){
-      let that=this;
-      let bei=e.currentTarget.dataset.bei;
-      let viewBei=e.currentTarget.dataset.view;
-      that.setData({
-        'videoSrc.view':viewBei,
-        'videoSrc.showBeishu':false,
-      })
+    itemClick: function(e) {
+      let bei = e.currentTarget.dataset.bei;
+      let viewBei = e.currentTarget.dataset.view;
+      this.setData({
+        'videoSrc.view': viewBei,
+        'videoSrc.showBeishu': false
+      });
       wx.createVideoContext('myVideo').playbackRate(Number(bei));
-      console.log(e.currentTarget.dataset.bei)
     },
 
     /**
      * 生命周期函数--监听页面初次渲染完成
      */
     onReady: function () {
-      this.videoContext = wx.createVideoContext('myVideo')
+      this.videoContext = wx.createVideoContext('myVideo');
+      if (this.pendingAutoPlaySeq && this.videoContext && this.videoContext.play) {
+        this.videoContext.play();
+      }
     },
 
     /**
      * 生命周期函数--监听页面显示
      */
     onShow: function () {
-      if(wx.getStorageSync('members') && wx.getStorageSync('members').mobile==''){
-        this.selectComponent('#phone').setData({
-          phoneVisible:true
-        })
+      const members = wx.getStorageSync('members');
+      if (members && members.mobile == '') {
+        const phone = this.selectComponent('#phone');
+        if (phone) {
+          phone.setData({
+            phoneVisible: true
+          });
+        }
       }
-
-      
     },
 
     /**
      * 生命周期函数--监听页面隐藏
      */
     onHide: function () {
-
+      this.cleanupPage({ destroy: false });
     },
 
     /**
      * 生命周期函数--监听页面卸载
      */
     onUnload: function () {
-
+      this.cleanupPage({ destroy: true });
     },
 
-    /**
-     * 页面相关事件处理函数--监听用户下拉动作
-     */
-    onPullDownRefresh: function () {
-
-    },
-
-    /**
-     * 页面上拉触底事件的处理函数
-     */
-    onReachBottom: function () {
-
-    },
-
-    showmulu: function(){
-      console.log('ss');
+    showmulu: function() {
       this.setData({
-        showmulu:true,
-        neirong1:false,
-        jianyi:false
-      })
+        showmulu: true,
+        neirong1: false
+      });
     },
-    showneirong: function(){
-      console.log('ss');
-      this.setData({
-        showmulu:false,
-        neirong1:true,
-        jianyi:false
-      })
-    },
-    showjianyi: function(){
-      console.log('ss');
-      //debugger;
-      this.setData({
-        showmulu:false,
-        neirong1:false,
-        jianyi:true
-      })
-    },
-
-    downloadDoc : function(){
-      console.log('sss');
-      const filePath = 'https://cnd.yousenjiaoyu.com/0d/26a18b84fae565234aa7fa6c234d44.docx?attname=%E6%B5%8B%E8%AF%95.docx'; // 替换为实际的文档路径
-      const fileName = 'document.pdf'; // 替换为实际的文档名称
-      // wx.openDocument({
-      //   filePath: filePath, // 替换为实际的文件路径
-      //   success: function(res) {
-      //     console.log('文件打开成功');
-      //     // 在这里可以添加其他操作，如获取文件信息或进行其他处理
-      //   },
-      //   fail: function(err) {
-      //     console.error('文件打开失败', err);
-      //     // 在这里可以添加错误处理逻辑
-      //   }
-      // });
-      // wx.downloadFile({
-      //   url: 'https://cnd.yousenjiaoyu.com/0d/26a18b84fae565234aa7fa6c234d44.docx',//仅为示例，并非真实的资源
-      //  // filePath: wx.env.USER_DATA_PATH + `1.pdf`,
-      //   success (res) {
-      //     // 只要服务器有响应数据，就会把响应内容写入文件并进入 success 回调，业务需要自行判断是否下载到了想要的内容
-      //     if (res.statusCode === 200) {
-      //       wx.playVoice({
-      //         filePath: res.tempFilePath
-      //       })
-      //     }
-      //   }
-      // })
-
-      wx.downloadFile({
-
-        url: 'https://cnd.yousenjiaoyu.com/0d/26a18b84fae565234aa7fa6c234d44.docx',
-
-        success(res) {
-
-          const filePath = res.tempFilePath    
-
-          wx.openDocument({
-
-            filePath,
-
-            showMenu: true,
-
-            fileType: 'pdf',
-
-            success(res) {
-
-              console.log('打开文档成功', res)
-
-            }
-
-          })
-
-        }
-
-      })
-    
+    showneirong: function() {
+      const nextState = {
+        showmulu: false,
+        neirong1: true
+      };
+      if (!this.data.introContentReady) {
+        nextState.neirong = this.buildRichTextNodes(this.data.introHtmlRaw);
+        nextState.introContentReady = true;
+      }
+      this.setData(nextState);
     },
     /**
      * 用户点击右上角分享
      */
     onShareAppMessage: function () {
-      
-      if(this.data.chapterid){
+      const shareTitle = this.data.hdata && this.data.hdata.title
+        ? this.data.hdata.title
+        : (this.data.gratisDetail && this.data.gratisDetail.name ? this.data.gratisDetail.name : '佑森好课');
+      const videoTitle = this.data.thevideoshow || '课程详情';
+      if (this.data.chapterid) {
         return {
-          title: this.data.hdata.title + '（' + this.data.thevideoshow + '）',
-          path: '/pages/freeCourseDetails/freeCourseDetails?pk_id='+this.data.pk_id + '&chapterid=' + this.data.chapterid,
-        }
-      }else{
+          title: shareTitle + '（' + videoTitle + '）',
+          path: '/pages/freeCourseDetails/freeCourseDetails?pk_id=' + this.data.pk_id + '&chapterid=' + this.data.chapterid
+        };
+      } else {
         return {
-          title: this.data.hdata.title + '（' + this.data.thevideoshow + '）',
-          path: '/pages/freeCourseDetails/freeCourseDetails?pk_id='+this.data.pk_id,
-        }
+          title: shareTitle + '（' + videoTitle + '）',
+          path: '/pages/freeCourseDetails/freeCourseDetails?pk_id=' + this.data.pk_id
+        };
       }
     }
   }

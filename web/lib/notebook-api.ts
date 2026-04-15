@@ -1,5 +1,6 @@
 import { apiUrl } from "@/lib/api";
 import { ApiError } from "@/lib/api-errors";
+import { buildNotebookEntrySearchParams } from "@/lib/pagination-contract";
 
 export interface NotebookEntry {
   id: number;
@@ -21,6 +22,11 @@ export interface NotebookEntry {
   categories?: NotebookCategory[];
 }
 
+export interface NotebookEntryListCursor {
+  before_created_at: number;
+  before_entry_id: number;
+}
+
 export interface NotebookCategory {
   id: number;
   name: string;
@@ -31,6 +37,7 @@ export interface NotebookCategory {
 export interface NotebookEntryListResponse {
   items: NotebookEntry[];
   total: number;
+  next_cursor?: NotebookEntryListCursor | null;
 }
 
 async function expectJson<T>(response: Response): Promise<T> {
@@ -48,19 +55,21 @@ export async function listNotebookEntries(filter: {
   is_correct?: boolean;
   limit?: number;
   offset?: number;
+  before_created_at?: number;
+  before_entry_id?: number;
 } = {}): Promise<NotebookEntryListResponse> {
-  const params = new URLSearchParams();
-  if (filter.category_id !== undefined) params.set("category_id", String(filter.category_id));
-  if (filter.bookmarked !== undefined) params.set("bookmarked", String(filter.bookmarked));
-  if (filter.is_correct !== undefined) params.set("is_correct", String(filter.is_correct));
-  if (filter.limit !== undefined) params.set("limit", String(filter.limit));
-  if (filter.offset !== undefined) params.set("offset", String(filter.offset));
+  const params = buildNotebookEntrySearchParams(filter);
   const query = params.toString();
   const response = await fetch(
     apiUrl(`/api/v1/question-notebook/entries${query ? `?${query}` : ""}`),
     { cache: "no-store" },
   );
-  return expectJson<NotebookEntryListResponse>(response);
+  const data = await expectJson<NotebookEntryListResponse>(response);
+  return {
+    items: data.items ?? [],
+    total: data.total ?? 0,
+    next_cursor: data.next_cursor ?? null,
+  };
 }
 
 export async function getNotebookEntry(entryId: number): Promise<NotebookEntry> {

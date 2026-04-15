@@ -1,5 +1,4 @@
 /**app.wxss**/
-@import "/vant/common/index.wxss";
 @import "/deeptutor-theme.wxss";
 page {
   font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Helvetica Neue', Helvetica,

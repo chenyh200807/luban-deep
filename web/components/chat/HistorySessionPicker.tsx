@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, Loader2, MessageSquare, Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { listSessions, type SessionSummary } from "@/lib/session-api";
+import {
+  listSessionsPage,
+  type SessionPageCursor,
+  type SessionSummary,
+} from "@/lib/session-api";
 
 export interface SelectedHistorySession {
   sessionId: string;
@@ -31,7 +35,9 @@ export default function HistorySessionPicker({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [restricted, setRestricted] = useState(false);
+  const [nextCursor, setNextCursor] = useState<SessionPageCursor | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -39,14 +45,18 @@ export default function HistorySessionPicker({
     let mounted = true;
     const load = async () => {
       setLoading(true);
+      setQuery("");
+      setSelectedIds([]);
       try {
-        const data = await listSessions(200, 0);
+        const data = await listSessionsPage(50, 0, { force: true });
         if (!mounted) return;
-        setSessions(data);
+        setSessions(data.sessions);
+        setNextCursor(data.next_cursor);
         setRestricted(false);
       } catch {
         if (!mounted) return;
         setSessions([]);
+        setNextCursor(null);
         setRestricted(true);
       } finally {
         if (mounted) setLoading(false);
@@ -58,6 +68,26 @@ export default function HistorySessionPicker({
       mounted = false;
     };
   }, [open]);
+
+  const loadMoreSessions = async () => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const data = await listSessionsPage(50, 0, {
+        before_updated_at: nextCursor.before_updated_at,
+        before_session_id: nextCursor.before_session_id,
+      });
+      setSessions((prev) => {
+        const seen = new Set(prev.map((session) => session.session_id || session.id));
+        return [...prev, ...data.sessions.filter((session) => !seen.has(session.session_id || session.id))];
+      });
+      setNextCursor(data.next_cursor);
+    } catch (error) {
+      console.error("Failed to load more sessions", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const filteredSessions = useMemo(() => {
     const keyword = query.trim().toLowerCase();
@@ -180,6 +210,19 @@ export default function HistorySessionPicker({
                     </button>
                   );
                 })}
+                {nextCursor ? (
+                  <button
+                    type="button"
+                    onClick={() => void loadMoreSessions()}
+                    disabled={loadingMore}
+                    className="flex w-full items-center justify-center gap-2 px-4 py-3 text-[12px] font-medium text-[var(--muted-foreground)] transition hover:bg-slate-50 hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-800/60"
+                  >
+                    {loadingMore ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : null}
+                    {t("Load more sessions")}
+                  </button>
+                ) : null}
               </div>
             ) : (
               <div className="px-6 py-14 text-center text-[13px] text-slate-500 dark:text-slate-400">

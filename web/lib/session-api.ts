@@ -2,6 +2,7 @@ import type { StreamEvent } from "@/lib/unified-ws";
 import { apiUrl } from "@/lib/api";
 import { ApiError } from "@/lib/api-errors";
 import { invalidateClientCache, withClientCache } from "@/lib/client-cache";
+import { buildSessionPageSearchParams } from "@/lib/pagination-contract";
 
 export interface SessionMessage {
   id: number;
@@ -37,6 +38,16 @@ export interface SessionSummary {
     knowledge_bases?: string[];
     language?: string;
   };
+}
+
+export interface SessionPageCursor {
+  before_updated_at: number;
+  before_session_id: string;
+}
+
+export interface SessionPageResponse {
+  sessions: SessionSummary[];
+  next_cursor: SessionPageCursor | null;
 }
 
 export interface ActiveTurnSummary {
@@ -92,6 +103,22 @@ async function expectJson<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function fetchSessionPage(
+  limit: number,
+  offset = 0,
+  options?: { before_updated_at?: number; before_session_id?: string },
+): Promise<SessionPageResponse> {
+  const query = buildSessionPageSearchParams(limit, offset, options).toString();
+  const response = await fetch(apiUrl(`/api/v1/sessions?${query}`), {
+    cache: "no-store",
+  });
+  const data = await expectJson<SessionPageResponse>(response);
+  return {
+    sessions: data.sessions ?? [],
+    next_cursor: data.next_cursor ?? null,
+  };
+}
+
 export async function listSessions(
   limit = 50,
   offset = 0,
@@ -99,13 +126,26 @@ export async function listSessions(
 ): Promise<SessionSummary[]> {
   return withClientCache<SessionSummary[]>(
     `sessions:${limit}:${offset}`,
-    async () => {
-      const response = await fetch(apiUrl(`/api/v1/sessions?limit=${limit}&offset=${offset}`), {
-        cache: "no-store",
-      });
-      const data = await expectJson<{ sessions: SessionSummary[] }>(response);
-      return data.sessions ?? [];
+    async () => (await fetchSessionPage(limit, offset)).sessions,
+    {
+      force: options?.force,
+      ttlMs: 15_000,
     },
+  );
+}
+
+export async function listSessionsPage(
+  limit = 50,
+  offset = 0,
+  options?: {
+    force?: boolean;
+    before_updated_at?: number;
+    before_session_id?: string;
+  },
+): Promise<SessionPageResponse> {
+  return withClientCache<SessionPageResponse>(
+    `sessions-page:${limit}:${offset}:${options?.before_updated_at ?? ""}:${options?.before_session_id ?? ""}`,
+    () => fetchSessionPage(limit, offset, options),
     {
       force: options?.force,
       ttlMs: 15_000,

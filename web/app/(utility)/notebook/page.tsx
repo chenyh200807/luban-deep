@@ -27,6 +27,7 @@ import {
   removeEntryFromCategory,
   renameCategory,
   updateNotebookEntry,
+  type NotebookEntryListCursor,
   type NotebookCategory,
   type NotebookEntry,
 } from "@/lib/notebook-api";
@@ -54,11 +55,12 @@ export default function NotebookPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [filter, setFilter] = useState<FilterMode>("all");
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<NotebookCategory[]>([]);
   const [pendingId, setPendingId] = useState<number | null>(null);
+  const [nextCursor, setNextCursor] = useState<NotebookEntryListCursor | null>(null);
 
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [newCatName, setNewCatName] = useState("");
@@ -71,23 +73,37 @@ export default function NotebookPage() {
   }, []);
 
   const loadItems = useCallback(
-    async (mode: FilterMode, catId: number | null) => {
-      setRefreshing(true);
+    async (mode: FilterMode, catId: number | null, cursor?: NotebookEntryListCursor | null, append = false) => {
       setError(null);
+      if (!append) {
+        setLoading(true);
+        setItems([]);
+        setNextCursor(null);
+      } else {
+        setLoadingMore(true);
+      }
       try {
         const response = await listNotebookEntries({
           bookmarked: mode === "bookmarked" ? true : undefined,
           is_correct: mode === "wrong" ? false : undefined,
           category_id: catId ?? undefined,
-          limit: 200,
+          limit: 50,
+          before_created_at: cursor?.before_created_at,
+          before_entry_id: cursor?.before_entry_id,
         });
-        setItems(response.items);
+        setItems((prev) => {
+          const nextItems = response.items;
+          if (!append) return nextItems;
+          const seen = new Set(prev.map((item) => item.id));
+          return [...prev, ...nextItems.filter((item) => !seen.has(item.id))];
+        });
         setTotal(response.total);
+        setNextCursor(response.next_cursor ?? null);
       } catch (err) {
         setError(String(err instanceof Error ? err.message : err));
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (!append) setLoading(false);
+        else setLoadingMore(false);
       }
     },
     [],
@@ -97,6 +113,11 @@ export default function NotebookPage() {
     void loadItems(filter, activeCategoryId);
     void loadCategories();
   }, [filter, activeCategoryId, loadItems, loadCategories]);
+
+  const loadMoreItems = useCallback(() => {
+    if (!nextCursor || loadingMore) return;
+    void loadItems(filter, activeCategoryId, nextCursor, true);
+  }, [activeCategoryId, filter, loadItems, loadingMore, nextCursor]);
 
   const handleToggleBookmark = useCallback(
     async (item: NotebookEntry) => {
@@ -347,6 +368,7 @@ export default function NotebookPage() {
             </p>
           </div>
         ) : (
+          <>
           <ul className="flex flex-col gap-3">
             {items.map((item) => {
               const disabled = pendingId === item.id;
@@ -553,6 +575,20 @@ export default function NotebookPage() {
               );
             })}
           </ul>
+          {nextCursor ? (
+            <div className="mt-4 flex justify-center">
+              <button
+                type="button"
+                onClick={loadMoreItems}
+                disabled={loadingMore}
+                className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[12px] font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                {t("Load more entries")}
+              </button>
+            </div>
+          ) : null}
+          </>
         )}
       </div>
     </div>

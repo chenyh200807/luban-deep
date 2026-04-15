@@ -81,6 +81,13 @@ curl -fsS http://127.0.0.1:8001/metrics/prometheus
 - scrape 配置：[deployment/observability/prometheus.scrape.example.yml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/deployment/observability/prometheus.scrape.example.yml)
 - alert rules：[deployment/observability/prometheus.alerts.example.yml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/deployment/observability/prometheus.alerts.example.yml)
 
+仓库内还提供了一个最小一致性校验脚本和工作流：
+
+- 校验脚本：[scripts/verify_runtime_assets.py](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/verify_runtime_assets.py)
+- 工作流：[.github/workflows/runtime-ops.yml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/.github/workflows/runtime-ops.yml)
+
+它们只负责验证仓库内的约定是否还对齐，不替代生产环境里的 Prometheus / Alertmanager 接线。
+
 典型接法：
 
 1. 把 `prometheus.scrape.example.yml` 合并到你们现有 Prometheus 配置。
@@ -95,6 +102,13 @@ curl -fsS http://127.0.0.1:8001/metrics/prometheus
 2. `DeepTutorServerErrors`
 3. `DeepTutorProviderThresholdExceeded`
 4. `DeepTutorCircuitBreakerOpen`
+
+如果你想减少人工核对，这个工作流会在相关文件变更时自动校验：
+
+- `docker-compose.yml` 的 `readyz` healthcheck
+- `prometheus.scrape.example.yml` 的 `metrics_path`
+- `prometheus.alerts.example.yml` 的核心告警名
+- 两份 runbook 是否仍引用正确脚本和端点
 
 ## 仍需在环境侧完成的动作
 
@@ -116,3 +130,15 @@ curl -fsS http://127.0.0.1:8001/metrics/prometheus
 - 最小告警规则样例
 
 剩下的是环境接线，不再是代码缺失。
+
+## 仓库内自动化守门
+
+为了避免这条链路只停在文档层，仓库里还补了定期演练工作流：
+
+- 运行态演练工作流：[.github/workflows/runtime-drill.yml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/.github/workflows/runtime-drill.yml)
+
+它会定期跑备份/恢复与保留策略回归，保证：
+
+- 备份脚本仍可执行
+- 恢复脚本仍可执行
+- 清理策略不会误删最近归档

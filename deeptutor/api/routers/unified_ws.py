@@ -15,7 +15,7 @@ from typing import Any
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
-from deeptutor.api.dependencies import AuthContext, resolve_auth_context
+from deeptutor.api.dependencies import AuthContext, enforce_websocket_rate_limit, resolve_auth_context
 from deeptutor.contracts.unified_turn import (
     UnifiedTurnCancelMessage,
     UnifiedTurnResumeMessage,
@@ -123,6 +123,13 @@ def _bind_authenticated_user(
 
 @router.websocket("/ws")
 async def unified_websocket(ws: WebSocket) -> None:
+    if not await enforce_websocket_rate_limit(
+        ws,
+        "unified_ws_connect",
+        default_max_requests=60,
+        default_window_seconds=60.0,
+    ):
+        return
     await ws.accept()
     closed = False
     subscription_tasks: dict[str, asyncio.Task[None]] = {}

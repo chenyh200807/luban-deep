@@ -1,5 +1,0 @@
-<!--components/noData/noData.wxml-->
-<view class="noData-wrap">
-  <image src="/images/icon/noData_icon2.png"></image>
-  <view>{{title}}</view>
-</view>

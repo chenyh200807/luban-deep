@@ -360,6 +360,54 @@ def test_auth_login_maps_invalid_password_to_401(monkeypatch: pytest.MonkeyPatch
     assert response.json()["detail"] == "用户名或密码错误"
 
 
+def test_auth_register_maps_validation_error_to_400(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _failing_register(_username: str, _password: str, _phone: str):
+        raise ValueError("用户名已存在")
+
+    monkeypatch.setattr(mobile_module.member_service, "register_with_external_auth", _failing_register)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/register",
+            json={"username": "student_demo", "password": "StrongPass123", "phone": "13800000000"},
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "用户名已存在"
+
+
+def test_auth_register_rate_limits_by_route_and_client_ip(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        rate_limit_module,
+        "_RATE_LIMIT_POLICY_OVERRIDES",
+        {
+            "mobile_auth_register": rate_limit_module.RateLimitPolicy(
+                max_requests=1,
+                window_seconds=60.0,
+            )
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "register_with_external_auth",
+        lambda _username, _password, _phone: {"token": "ok"},
+    )
+
+    with TestClient(_build_app()) as client:
+        first = client.post(
+            "/api/v1/auth/register",
+            json={"username": "student_demo", "password": "StrongPass123", "phone": "13800000000"},
+        )
+        second = client.post(
+            "/api/v1/auth/register",
+            json={"username": "student_demo", "password": "StrongPass123", "phone": "13800000000"},
+        )
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.json()["detail"] == "Too many requests"
+
+
 def test_auth_login_rate_limits_by_route_and_client_ip(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         rate_limit_module,

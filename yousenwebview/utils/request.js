@@ -1,100 +1,50 @@
 import url from "../api/baseApi"
 import { baseUrl,baseUrl2,baseUrl3 } from "../utils/config"
-import { wxToast } from "../utils/wxPromise"
 //获取接口路径
 const getUrl = (urlName) => {
 	return url[urlName]
 }
-//post请求
-function postrq(urlName,data={},isLoading=false) {
+function requestByBaseUrl(baseUrlName, urlName, data = {}, isLoading = false, method = "GET") {
   return new Promise(function (resolve, reject) {
-    if(isLoading){
+    let shouldHideLoading = false
+    if (isLoading) {
+      shouldHideLoading = true
       wx.showLoading({
-        title: '加载中',
-        mask:false
+        title: "加载中",
+        mask: false
       })
     }
-    // debugger;
     wx.request({
-      url: baseUrl3 + getUrl(urlName),
+      url: baseUrlName + getUrl(urlName),
       data: data,
       header: {
-        'content-type': 'application/json'
+        "content-type": "application/json"
       },
-      method: "POST",
+      method: method,
       success: function (res) {
-        if(res.data.code==200){
-          resolve(res.data)
-          wx.hideLoading()
-        }else{
-          resolve(res.data)
-          wx.hideLoading()
-        }
+        resolve(res.data)
       },
       fail: (err) => {
         reject(err)
+      },
+      complete: () => {
+        if (shouldHideLoading) {
+          wx.hideLoading()
+        }
       }
     })
-    
   })
 }
+//post请求
+function postrq(urlName,data={},isLoading=false) {
+  return requestByBaseUrl(baseUrl3, urlName, data, isLoading, "POST")
+}
 function postrq2(urlName,data={},isLoading=false) {
-  return new Promise(function (resolve, reject) {
-    if(isLoading){
-      wx.showLoading({
-        title: '加载中',
-        mask:false
-      })
-    }
-    wx.request({
-      url: baseUrl2 + getUrl(urlName),
-      data: data,
-      header: {
-        'content-type': 'application/json'
-      },
-      method: "POST",
-      success: function (res) {
-        if(res.data.code==200){
-          resolve(res.data)
-          wx.hideLoading()
-        }else{
-          resolve(res.data)
-          wx.hideLoading()
-        }
-      },
-      fail: (err) => {
-        reject(err)
-      }
-    })
-    
-  })
+  return requestByBaseUrl(baseUrl2, urlName, data, isLoading, "POST")
 }
 // get请求
 function getrq(urlName, data,isLoading=false) {
-  return new Promise(function (resolve, reject) {
-    if(isLoading){
-      wx.showLoading({
-        title: '加载中',
-        mask:false
-      })
-    }
-    setTimeout(() => {
-      wx.request({
-        url:baseUrl + getUrl(urlName),
-        data: data,
-        header: {
-          'content-type': 'application/json'
-        },
-        method: "GET",
-        success: function (res) {
-          resolve(res.data)
-        },
-        fail: (err) => {
-          reject(err)
-        }
-      })
-    }, 1000);
-  })
+  return requestByBaseUrl(baseUrl, urlName, data, isLoading, "GET")
 }
 module.exports={
   postrq:postrq,

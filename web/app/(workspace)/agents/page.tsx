@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 import dynamic from "next/dynamic";
 import RestrictedSurface from "@/components/common/RestrictedSurface";
 import { apiUrl } from "@/lib/api";
-import { allowsLegacyWebSurfaces } from "@/lib/web-access";
+import { allowsLegacyWebSurfaces, requiresWebAuth } from "@/lib/web-access";
 
 const MarkdownRenderer = dynamic(() => import("@/components/common/MarkdownRenderer"), {
   ssr: false,
@@ -53,11 +53,11 @@ type BotFile = (typeof BOT_FILES)[number];
 /* ── Main Page ──────────────────────────────────────────── */
 
 export default function AgentsPage() {
-  if (!allowsLegacyWebSurfaces()) {
+  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) {
     return (
       <RestrictedSurface
         title="TutorBot agents unavailable"
-        message="当前 Web 端已默认关闭 legacy TutorBot 管理页面。请使用显式开启的内部入口访问。"
+        message="当前 Web 端未开放 legacy TutorBot 管理页面。请使用已鉴权且显式开启的内部入口访问。"
       />
     );
   }

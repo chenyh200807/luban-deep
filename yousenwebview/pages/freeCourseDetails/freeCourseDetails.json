@@ -1,4 +1,6 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "PhoneBox": "/components/phoneBox/phoneBox"
+  },
   "navigationBarTitleText": "佑森好课"
 }

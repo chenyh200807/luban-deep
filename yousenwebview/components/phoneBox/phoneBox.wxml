@@ -1,11 +1,13 @@
 <!--components/phoneBox/phoneBox.wxml-->
-<van-popup show="{{isPhoneVisible}}">
-  <view class="clb-popup-content">
-    <view class="clb-popup-title">授权获取手机号</view>
-    <view class="clb-popup-avatar">
-      <open-data type="userAvatarUrl"></open-data>
+<view wx:if="{{isPhoneVisible}}" class="clb-popup-mask">
+  <view class="clb-popup-panel">
+    <view class="clb-popup-content">
+      <view class="clb-popup-title">授权获取手机号</view>
+      <view class="clb-popup-avatar">
+        <open-data type="userAvatarUrl"></open-data>
+      </view>
+      <view class="clb-popup-desc">申请获取您绑定的手机号</view>
+      <button class="clb-phone-btn" open-type="getPhoneNumber" bind:getphonenumber="getPhoneNumber">确认</button>
     </view>
-    <view class="clb-popup-desc">申请获取您绑定的手机号</view>
-    <button class="clb-phone-btn" open-type="getPhoneNumber" bind:getphonenumber="getPhoneNumber">确认</button>
   </view>
-</van-popup>
+</view>

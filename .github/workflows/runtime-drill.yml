@@ -1,0 +1,40 @@
+name: Runtime Drill
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * 1"
+
+jobs:
+  backup-restore-drill:
+    name: Backup / Restore Drill
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-runtime-drill-${{ hashFiles('requirements/server.txt', 'requirements/cli.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-runtime-drill-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/server.txt
+          pip install pytest
+
+      - name: Run backup / restore regression
+        run: |
+          pytest -q tests/scripts/test_runtime_backup_restore.py tests/scripts/test_prune_backups.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}

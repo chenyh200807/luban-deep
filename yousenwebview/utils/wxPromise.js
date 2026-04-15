@@ -11,7 +11,6 @@ function wxLogin() {
         resolve(res)
       },
       fail() {
-        console.error('wx登录获取用户失败')
         reject('wx登录获取用户失败')
       }
     })
@@ -76,14 +75,7 @@ function checkSetting(authStr, msg = '是否去权限管理页打开授权') {
             content: msg,
             success: res => {
               if (res.confirm) {
-                wx.openSetting({
-                  // success() {
-                  //   reject()
-                  // }
-                  // complete: () => {
-                    
-                  // }
-                })
+                wx.openSetting({})
               }
             }
           })
@@ -146,7 +138,6 @@ function wxRedirect(url) {
   wx.redirectTo({
     url,
     fail: function () {
-      console.info("jumpToPageOrTab = ", url);
       wx.switchTab({
         url,
       });
@@ -158,7 +149,6 @@ function wxNavigate(url) {
   wx.navigateTo({
     url,
     fail: function () {
-      console.info("jumpToPageOrTab = ", url);
       wx.switchTab({
         url,
       });
@@ -253,7 +243,6 @@ function wxGetRect(id, that = false) {
  * @param url
  */
 function wxSaveImageToPhotosAlbum(url) {
-  console.log(url);
   return new Promise((resolve, reject) => {
     checkSetting('scope.writePhotosAlbum').then(() => {
       wx.saveImageToPhotosAlbum({

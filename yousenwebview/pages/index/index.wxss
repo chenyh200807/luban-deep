@@ -1,4 +1,14 @@
 /**index.wxss**/
+.launch-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 28rpx;
+  background: #fff;
+}
+
 .userinfo {
   display: flex;
   flex-direction: column;
