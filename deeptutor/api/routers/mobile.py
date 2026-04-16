@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from deeptutor.api.dependencies import AuthContext, require_self_or_admin, route_rate_limit
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
+from deeptutor.services.learner_state import LearnerStateService
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.session import (
     build_user_owner_key,
@@ -19,6 +20,7 @@ from deeptutor.services.session import (
 
 router = APIRouter()
 member_service = get_member_console_service()
+learner_state_service = LearnerStateService()
 turn_runtime = get_turn_runtime_manager()
 session_store = get_sqlite_session_store()
 
@@ -89,6 +91,72 @@ def _query_requires_current_info(query: str) -> bool:
     return any(keyword in text for keyword in keywords)
 
 
+def _extract_goal_patches(patch: dict[str, Any]) -> list[dict[str, Any]]:
+    if not isinstance(patch, dict):
+        return []
+    raw_goals = patch.get("goals")
+    if isinstance(raw_goals, list):
+        return [dict(item) for item in raw_goals if isinstance(item, dict)]
+    raw_goal = patch.get("goal")
+    if isinstance(raw_goal, dict):
+        return [dict(raw_goal)]
+    goal_fields = {
+        "id",
+        "goal_type",
+        "title",
+        "target_node_codes",
+        "target_question_count",
+        "progress",
+        "deadline",
+        "completed_at",
+    }
+    if goal_fields.intersection(patch.keys()):
+        return [{key: value for key, value in patch.items() if key in goal_fields}]
+    return []
+
+
+def _build_learner_profile_payload(profile: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
+    merged = dict(profile or {})
+    passthrough_fields = {
+        "timezone",
+        "source",
+        "plan",
+        "exam_target",
+        "knowledge_level",
+        "communication_style",
+    }
+    passthrough_objects = {
+        "learning_preferences",
+        "support_preferences",
+        "heartbeat_preferences",
+        "consent",
+    }
+    for key in passthrough_fields:
+        if key in patch:
+            merged[key] = patch[key]
+    for key in passthrough_objects:
+        if isinstance(patch.get(key), dict):
+            merged[key] = dict(patch[key])
+    return merged
+
+
+def _build_member_profile_rollback_patch(profile: dict[str, Any]) -> dict[str, Any]:
+    rollback_fields = (
+        "display_name",
+        "exam_date",
+        "daily_target",
+        "difficulty_preference",
+        "explanation_style",
+        "review_reminder",
+        "avatar_url",
+    )
+    return {
+        key: profile[key]
+        for key in rollback_fields
+        if isinstance(profile, dict) and key in profile
+    }
+
+
 def _merge_interaction_hints(
     profile: str,
     hints: dict[str, Any] | None,
@@ -103,6 +171,7 @@ def _merge_interaction_hints(
     merged.setdefault("product_surface", "wechat_miniprogram")
     merged.setdefault("entry_role", "tutorbot")
     merged.setdefault("subject_domain", "construction_exam")
+    merged.setdefault("suppress_answer_reveal_on_generate", True)
     if current_info_required:
         merged["current_info_required"] = True
     return merged
@@ -315,7 +384,14 @@ async def auth_login(body: LoginRequest) -> dict[str, Any]:
 )
 async def auth_register(body: RegisterRequest) -> dict[str, Any]:
     try:
-        return member_service.register_with_external_auth(body.username, body.password, body.phone)
+        result = member_service.register_with_external_auth(body.username, body.password, body.phone)
+        user_id = str(result.get("user_id") or result.get("id") or "").strip()
+        if user_id:
+            try:
+                learner_state_service.read_snapshot(user_id)
+            except Exception:
+                pass
+        return result
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -356,7 +432,37 @@ async def auth_profile_settings(
     patch: dict[str, Any],
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    return member_service.update_profile(_resolve_user_id(authorization), patch)
+    user_id = _resolve_user_id(authorization)
+    previous_profile = member_service.get_profile(user_id)
+    previous_learner_profile = learner_state_service.read_profile(user_id)
+    goal_patches = _extract_goal_patches(patch)
+    previous_goals = learner_state_service.read_goals(user_id) if goal_patches else []
+    profile = member_service.update_profile(user_id, patch)
+    learner_profile = _build_learner_profile_payload(profile, patch)
+    try:
+        learner_state_service.write_profile_strict(user_id, learner_profile)
+        if goal_patches:
+            learner_state_service.sync_goals_strict(user_id, goal_patches)
+    except Exception as exc:
+        rollback_errors: list[str] = []
+        try:
+            member_service.update_profile(user_id, _build_member_profile_rollback_patch(previous_profile))
+        except Exception as rollback_exc:
+            rollback_errors.append(f"member profile rollback failed: {rollback_exc}")
+        try:
+            learner_state_service.write_profile_strict(user_id, previous_learner_profile)
+        except Exception as rollback_exc:
+            rollback_errors.append(f"learner profile rollback failed: {rollback_exc}")
+        if goal_patches:
+            try:
+                learner_state_service.sync_goals_strict(user_id, previous_goals)
+            except Exception as rollback_exc:
+                rollback_errors.append(f"learner goals rollback failed: {rollback_exc}")
+        detail = f"Failed to sync learner state: {exc}"
+        if rollback_errors:
+            detail = f"{detail}; rollback failed: {'; '.join(rollback_errors)}"
+        raise HTTPException(status_code=503, detail=detail) from exc
+    return profile
 
 
 @router.post(

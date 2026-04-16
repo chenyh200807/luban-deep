@@ -39,13 +39,13 @@ function buildMcqInteractiveEvent(resultMetadata) {
     if (!options.length) continue;
 
     var index = questions.length + 1;
+    var multiSelect =
+      qaPair.multi_select === true ||
+      String(qaPair.correct_answer || "").trim().length > 1;
     questions.push({
       index: index,
       stem: String(qaPair.question || "").trim(),
-      question_type:
-        String(qaPair.correct_answer || "").trim().length > 1
-          ? "multi_choice"
-          : "single_choice",
+      question_type: multiSelect ? "multi_choice" : "single_choice",
       options: options,
     });
     hiddenContexts.push({

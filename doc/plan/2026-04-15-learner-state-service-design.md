@@ -67,6 +67,30 @@ flowchart TD
     LSS --> OVERLAY["BotLearnerOverlayService (Phase 2)"]
 ```
 
+### 5.1 与上下文编排、Overlay 的协作关系
+
+`LearnerStateService` 在系统里的定位必须稳定为：
+
+1. 它是**长期真相入口**
+   - 负责 `user_id` 级 learner core 的统一读写
+2. 它不是**每轮 prompt 装配器**
+   - 不负责决定本轮最终注入哪些上下文块
+   - 这个职责属于 TutorBot 的 context orchestration
+3. 它是**上下文编排的稳定供给层**
+   - context orchestration 只能消费它输出的 snapshot / compact learner card / active plan 信息
+   - 不能绕过本服务直接拼装第二套长期真相
+4. 它是**Overlay 的上游**
+   - 第二阶段 overlay 只能建立在稳定 learner core 之上
+   - 运行时顺序必须先读 global learner core，再叠加 bot-local overlay
+
+换句话说：
+
+1. `LearnerStateService` 决定长期事实
+2. `Context Orchestration` 决定每轮最小必要上下文包
+3. `BotLearnerOverlayService` 只在第二阶段追加局部差异
+
+任何实现都不得把这三个职责重新混成一个“大而全 memory service”。
+
 ## 6. 读模型
 
 ### 6.1 核心读取对象

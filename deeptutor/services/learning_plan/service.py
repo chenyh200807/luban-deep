@@ -128,7 +128,10 @@ class LearningPlanService:
         normalized["knowledge_summary"] = _coerce_str(normalized.get("knowledge_summary"))
         normalized["user_difficulty"] = _coerce_str(normalized.get("user_difficulty"))
         normalized["html"] = _coerce_str(normalized.get("html"))
-        normalized["page_status"] = _coerce_str(normalized.get("page_status")) or "pending"
+        page_status = _coerce_str(normalized.get("page_status")) or "pending"
+        if normalized["html"] and page_status == "pending":
+            page_status = "ready"
+        normalized["page_status"] = page_status
         normalized["page_error"] = _coerce_str(normalized.get("page_error"))
         normalized["created_at"] = _coerce_float(normalized.get("created_at"), timestamp)
         normalized["updated_at"] = _coerce_float(normalized.get("updated_at"), timestamp)

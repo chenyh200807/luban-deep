@@ -7,6 +7,16 @@ const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
 const flags = require("../../utils/flags");
 
+function _buildRadarSignature(dims) {
+  return (dims || [])
+    .map(function (d) {
+      var name = String(d && d.name ? d.name : "").trim();
+      var value = Math.round((Number(d && d.value) || 0) * 1000);
+      return name + ":" + value;
+    })
+    .join("|");
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -56,6 +66,11 @@ Page({
     assessmentEnabled: true,
   },
 
+  _radarRenderSeq: 0,
+  _radarRenderPending: false,
+  _radarImageSignature: "",
+  _radarSignature: "",
+
   onLoad() {
     const windowInfo = helpers.getWindowInfo();
     const navHeight = windowInfo.statusBarHeight + 44;
@@ -97,9 +112,10 @@ Page({
 
   onReady() {
     this._canvasReady = true;
-    if (this.data.radarDimensions.length > 0) {
-      this._drawRadar(this.data.radarDimensions);
-    }
+    this._ensureRadarRendered(
+      this.data.radarDimensions,
+      this._radarSignature || _buildRadarSignature(this.data.radarDimensions),
+    );
   },
 
   // ── 返回首页 ───────────────────────────────────────
@@ -227,6 +243,7 @@ Page({
           color: pct >= 70 ? "#34d399" : pct >= 40 ? "#fbbf24" : "#f87171",
         };
       });
+      var signature = _buildRadarSignature(dims);
 
       this.setData({
         radarDimensions: dims,
@@ -238,9 +255,8 @@ Page({
         radarLoading: false,
       });
 
-      if (this._canvasReady) {
-        this._drawRadar(dims);
-      }
+      this._radarSignature = signature;
+      this._ensureRadarRendered(dims, signature);
     } catch (e) {
       // 雷达数据加载失败，通过 radarError 状态展示
       this.setData({ radarLoading: false, radarError: true });
@@ -345,6 +361,10 @@ Page({
 
   // ── 重试 ──────────────────────────────────────────
   retryRadar() {
+    this._radarImageSignature = "";
+    this._radarSignature = "";
+    this._radarRenderPending = false;
+    this._radarRenderSeq += 1;
     this.setData({ radarError: false, radarLoading: true, radarImage: "" });
     this._loadRadar();
   },
@@ -355,13 +375,31 @@ Page({
   },
 
   // ── Canvas 2D 绘制雷达图 ──────────────────────────
-  _drawRadar(dims) {
+  _ensureRadarRendered(dims, signature) {
+    signature = signature || _buildRadarSignature(dims);
+    if (!this._canvasReady) return;
+    if (!Array.isArray(dims) || dims.length === 0) return;
+    if (this._radarRenderPending) return;
+    if (this.data.radarImage && this._radarImageSignature === signature) return;
+    this._drawRadar(dims, signature);
+  },
+
+  _drawRadar(dims, signature) {
+    signature = signature || _buildRadarSignature(dims);
+    var renderSeq = ++this._radarRenderSeq;
+    this._radarRenderPending = true;
     const query = wx.createSelectorQuery().in(this);
     query
       .select("#radarCanvas")
       .fields({ node: true, size: true })
       .exec((res) => {
-        if (!res || !res[0] || !res[0].node) return;
+        if (!res || !res[0] || !res[0].node) {
+          if (renderSeq === this._radarRenderSeq) {
+            this._radarRenderPending = false;
+          }
+          return;
+        }
+        if (renderSeq !== this._radarRenderSeq) return;
 
         const canvas = res[0].node;
         const ctx = canvas.getContext("2d");
@@ -475,16 +513,24 @@ Page({
           ctx.fillText(labels[i], lx, ly);
         }
 
-        // 转为图片，解决 canvas 不跟随 scroll-view 滚动的问题
-        setTimeout(() => {
+        // 仅在 canvas 完成本次绘制后导出一次图片，避免靠定时器猜测时机
+        wx.nextTick(() => {
+          if (renderSeq !== this._radarRenderSeq) return;
           wx.canvasToTempFilePath({
             canvas: canvas,
             success: (result) => {
+              if (renderSeq !== this._radarRenderSeq) return;
+              this._radarImageSignature = signature;
               this.setData({ radarImage: result.tempFilePath });
             },
             fail: () => {},
+            complete: () => {
+              if (renderSeq === this._radarRenderSeq) {
+                this._radarRenderPending = false;
+              }
+            },
           });
-        }, 100);
+        });
       });
   },
 

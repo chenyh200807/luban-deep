@@ -37,7 +37,14 @@ class TutorStateUpdateResult:
 
 
 class UserTutorStateService:
-    """Projection/cache over learner state with a stable tutor-facing view."""
+    """Compatibility projection/cache over learner state for tutor-facing views.
+
+    This service exists to preserve the historical tutor-state surface
+    (`PROFILE.md` / `PERSONA.md` / `MEMORY.md`) while learner-state remains
+    the only long-term source of truth. Write methods are compatibility
+    wrappers that delegate to `LearnerStateService` and then refresh the
+    projection files.
+    """
 
     def __init__(
         self,
@@ -209,6 +216,62 @@ class UserTutorStateService:
             source_bot_id=source_bot_id,
         )
         self._sync_projection_state(normalized)
+
+    async def sync_learning_plan(
+        self,
+        *,
+        user_id: str,
+        plan_id: str,
+        knowledge_points_json: list[dict[str, Any]] | None = None,
+        source_material_refs_json: list[dict[str, Any]] | None = None,
+        notebook_id: str | None = None,
+        notebook_name: str | None = None,
+        notebook_context: str | None = None,
+        chat_history: list[dict[str, Any]] | None = None,
+        source_bot_id: str | None = None,
+        status: str = "initialized",
+        current_index: int = -1,
+        completion_summary_md: str = "",
+    ) -> None:
+        normalized = _normalize_user_id(user_id)
+        await self._learner_state_service.upsert_learning_plan(
+            user_id=normalized,
+            plan_id=plan_id,
+            knowledge_points_json=knowledge_points_json,
+            source_material_refs_json=source_material_refs_json,
+            notebook_id=notebook_id,
+            notebook_name=notebook_name,
+            notebook_context=notebook_context,
+            chat_history=chat_history,
+            source_bot_id=source_bot_id,
+            status=status,
+            current_index=current_index,
+            completion_summary_md=completion_summary_md,
+        )
+
+    async def record_learning_plan_page(
+        self,
+        *,
+        user_id: str,
+        plan_id: str,
+        page_index: int,
+        page_status: str,
+        html_content: str = "",
+        error_message: str = "",
+        generated_at: str | None = None,
+        source_bot_id: str | None = None,
+    ) -> None:
+        normalized = _normalize_user_id(user_id)
+        await self._learner_state_service.update_learning_plan_page(
+            user_id=normalized,
+            plan_id=plan_id,
+            page_index=page_index,
+            page_status=page_status,
+            html_content=html_content,
+            error_message=error_message,
+            generated_at=generated_at,
+            source_bot_id=source_bot_id,
+        )
 
     async def record_notebook_writeback(
         self,

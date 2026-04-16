@@ -7,6 +7,7 @@ from typing import Any
 
 import httpx
 
+from deeptutor.services.learner_state.heartbeat.store import LearnerHeartbeatJobStore
 from deeptutor.services.learning_plan import LearningPlanService
 from deeptutor.services.learner_state.outbox import LearnerStateOutboxItem
 from deeptutor.services.path_service import PathService, get_path_service
@@ -44,6 +45,9 @@ class LearnerStateSupabaseWriter:
         self._owns_client = client is None
         self._path_service = path_service or get_path_service()
         self._learning_plan_service = LearningPlanService(path_service=self._path_service)
+        self._heartbeat_job_store = LearnerHeartbeatJobStore(
+            self._path_service.project_root / "data" / "runtime" / "learner_state" / "heartbeat_jobs.json"
+        )
 
     @property
     def is_configured(self) -> bool:
@@ -80,6 +84,7 @@ class LearnerStateSupabaseWriter:
         payload = self._unpack_payload(item)
         inner_payload = dict(payload.get("payload_json") or {})
         guide_rows: tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]] | None = None
+        heartbeat_job_row: dict[str, Any] | None = None
         summary_row: dict[str, Any] | None = None
         memory_event_row: dict[str, Any] | None = None
 
@@ -91,7 +96,7 @@ class LearnerStateSupabaseWriter:
                     event_type,
                     reason="summary_refresh payload is missing summary_md",
                 )
-        else:
+        elif event_type not in {"heartbeat_job", "learning_plan_page"}:
             memory_event_row = self._build_memory_event_row(item, payload)
 
         if event_type == "guide_completion":
@@ -101,6 +106,29 @@ class LearnerStateSupabaseWriter:
                     False,
                     event_type,
                     reason="guide_completion payload is missing guide_id or summary",
+                )
+
+        if event_type == "heartbeat_job":
+            heartbeat_job_row = self._build_heartbeat_job_row(item, payload)
+            if heartbeat_job_row is None:
+                return LearnerStateSupabaseWriteResult(
+                    False,
+                    event_type,
+                    reason="heartbeat_job payload is missing job_id",
+                )
+
+        learning_plan_page_rows: tuple[dict[str, Any], dict[str, Any]] | None = None
+        if event_type == "learning_plan_page":
+            learning_plan_page_rows = self._build_learning_plan_page_sync_rows(
+                item,
+                payload,
+                inner_payload,
+            )
+            if learning_plan_page_rows is None:
+                return LearnerStateSupabaseWriteResult(
+                    False,
+                    event_type,
+                    reason="learning_plan_page payload is missing plan_id or page_index",
                 )
 
         try:
@@ -147,6 +175,32 @@ class LearnerStateSupabaseWriter:
                         on_conflict="plan_id,page_index",
                     )
                     written_tables.append("learning_plan_pages")
+
+            if heartbeat_job_row is not None:
+                await self._upsert(
+                    client,
+                    table="heartbeat_jobs",
+                    rows=[heartbeat_job_row],
+                    on_conflict="job_id",
+                )
+                written_tables.append("heartbeat_jobs")
+
+            if learning_plan_page_rows is not None:
+                plan_row, page_row = learning_plan_page_rows
+                await self._upsert(
+                    client,
+                    table="learning_plans",
+                    rows=[plan_row],
+                    on_conflict="plan_id",
+                )
+                written_tables.append("learning_plans")
+                await self._upsert(
+                    client,
+                    table="learning_plan_pages",
+                    rows=[page_row],
+                    on_conflict="plan_id,page_index",
+                )
+                written_tables.append("learning_plan_pages")
 
             return LearnerStateSupabaseWriteResult(True, event_type, tuple(written_tables))
         except httpx.HTTPStatusError as exc:
@@ -206,7 +260,15 @@ class LearnerStateSupabaseWriter:
 
     @staticmethod
     def _supports_event_type(event_type: str) -> bool:
-        return event_type in {"turn", "guide_completion", "progress", "summary_refresh"} or event_type.startswith(
+        return event_type in {
+            "turn",
+            "guide_completion",
+            "progress",
+            "summary_refresh",
+            "heartbeat_job",
+            "heartbeat_delivery",
+            "learning_plan_page",
+        } or event_type.startswith(
             "notebook_"
         )
 
@@ -248,6 +310,120 @@ class LearnerStateSupabaseWriter:
             "last_refreshed_from_feature": str(payload.get("source_feature") or "summary_refresh").strip(),
             "updated_at": str(payload.get("updated_at") or item.created_at).strip(),
         }
+
+    def _build_heartbeat_job_row(
+        self,
+        item: LearnerStateOutboxItem,
+        payload: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        job_id = str(payload.get("job_id") or item.id).strip()
+        if not job_id:
+            return None
+        job = self._heartbeat_job_store.get_by_id(job_id)
+        if job is None:
+            return None
+        job_payload = job.to_dict()
+        return {
+            "job_id": job_payload["job_id"],
+            "user_id": job_payload["user_id"],
+            "bot_id": job_payload["bot_id"],
+            "channel": job_payload["channel"],
+            "policy_json": job_payload["policy_json"],
+            "next_run_at": job_payload["next_run_at"],
+            "last_run_at": job_payload["last_run_at"],
+            "last_result_json": job_payload["last_result_json"],
+            "failure_count": int(job_payload["failure_count"]),
+            "status": self._normalize_heartbeat_status(str(job_payload["status"] or "")),
+            "created_at": job_payload["created_at"],
+            "updated_at": job_payload["updated_at"],
+        }
+
+    def _build_learning_plan_page_sync_rows(
+        self,
+        item: LearnerStateOutboxItem,
+        payload: dict[str, Any],
+        inner_payload: dict[str, Any],
+    ) -> tuple[dict[str, Any], dict[str, Any]] | None:
+        plan_id = str(inner_payload.get("plan_id") or payload.get("source_id") or "").strip()
+        page_index_value = inner_payload.get("page_index")
+        if page_index_value is None:
+            page_index_value = payload.get("page_index")
+        try:
+            page_index = int(page_index_value)
+        except (TypeError, ValueError):
+            return None
+        if not plan_id:
+            return None
+
+        plan_view = self._learning_plan_service.read_guided_session_view(plan_id) or {}
+        plan_pages = [dict(page) for page in list(plan_view.get("pages") or []) if isinstance(page, dict)]
+        page_view = next(
+            (
+                page
+                for page in plan_pages
+                if int(page.get("page_index", -1) or -1) == page_index
+            ),
+            None,
+        )
+        page_status = str(
+            inner_payload.get("page_status")
+            or payload.get("page_status")
+            or (page_view or {}).get("page_status")
+            or "pending"
+        ).strip() or "pending"
+        html_content = str(
+            inner_payload.get("html_content")
+            or (page_view or {}).get("html")
+            or ""
+        ).strip()
+        error_message = str(
+            inner_payload.get("error_message")
+            or (page_view or {}).get("page_error")
+            or ""
+        ).strip()
+        generated_at = str(
+            inner_payload.get("generated_at")
+            or payload.get("generated_at")
+            or (page_view or {}).get("updated_at")
+            or (page_view or {}).get("created_at")
+            or item.created_at
+        ).strip()
+
+        plan_row = {
+            "plan_id": plan_id,
+            "user_id": str(item.user_id).strip(),
+            "source_bot_id": self._null_if_blank(
+                inner_payload.get("source_bot_id") or payload.get("source_bot_id") or plan_view.get("source_bot_id")
+            ),
+            "source_material_refs_json": list(
+                plan_view.get("source_material_refs_json")
+                or inner_payload.get("source_material_refs_json")
+                or []
+            ),
+            "knowledge_points_json": [
+                {
+                    "knowledge_title": str(point.get("knowledge_title") or "").strip(),
+                    "knowledge_summary": str(point.get("knowledge_summary") or "").strip(),
+                    "user_difficulty": str(point.get("user_difficulty") or "").strip(),
+                }
+                for point in list(plan_view.get("knowledge_points") or [])
+                if isinstance(point, dict)
+            ],
+            "status": str(plan_view.get("status") or "initialized").strip() or "initialized",
+            "current_index": int(plan_view.get("current_index")) if plan_view.get("current_index") is not None else -1,
+            "completion_summary_md": str(plan_view.get("summary") or "").strip(),
+            "created_at": str(plan_view.get("created_at") or item.created_at).strip(),
+            "updated_at": str(plan_view.get("updated_at") or item.created_at).strip(),
+        }
+        page_row = {
+            "plan_id": plan_id,
+            "page_index": page_index,
+            "page_status": page_status,
+            "html_content": html_content,
+            "error_message": error_message,
+            "generated_at": generated_at,
+        }
+        return plan_row, page_row
 
     def _build_guide_completion_rows(
         self,
@@ -396,6 +572,15 @@ class LearnerStateSupabaseWriter:
     def _null_if_blank(value: Any) -> str | None:
         text = str(value or "").strip()
         return text or None
+
+    @staticmethod
+    def _normalize_heartbeat_status(status: str) -> str:
+        normalized = str(status or "").strip()
+        if normalized == "stopped":
+            return "disabled"
+        if normalized in {"active", "paused", "disabled", "failed"}:
+            return normalized
+        return "active"
 
     @staticmethod
     def _format_http_error(response: httpx.Response) -> str:

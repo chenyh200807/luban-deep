@@ -1,3 +1,7 @@
+const ONLINE_PDF_CACHE_KEY = 'showpdf_online_pdf_cache_v1';
+const ONLINE_PDF_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+const onlinePdfCacheMemory = {};
+
 Page({
   data: {
     pdfFiles: [],
@@ -21,7 +25,6 @@ Page({
   previewPdf(e) {
     const index = e.currentTarget.dataset.index;
     const pdfFile = this.data.pdfFiles[index];
-    let filePath = '';
 
     this.setData({ errorMsg: '' });
 
@@ -33,43 +36,147 @@ Page({
     wx.showLoading({ title: '准备预览...' });
 
     if (pdfFile.type === 'online') {
-      wx.downloadFile({
-        url: pdfFile.url,
-        success: res => {
-          wx.hideLoading();
-
-          if (res.statusCode !== 200) {
-            this.setData({ errorMsg: '下载PDF失败，请稍后重试' });
-            return;
-          }
-
-          filePath = res.tempFilePath;
-          this.openPdfDocument(filePath);
-        },
-        fail: err => {
-          wx.hideLoading();
-          console.error('下载失败:', err);
-          this.setData({ errorMsg: '下载PDF失败: ' + (err.errMsg || '未知错误') });
-        }
-      });
+      this.openOnlinePdf(pdfFile, { showLoading: false });
     } else {
-      filePath = pdfFile.path;
       wx.hideLoading();
-      this.openPdfDocument(filePath);
+      this.openPdfDocument(pdfFile.path);
     }
   },
 
-  openPdfDocument(filePath) {
+  getOnlinePdfCacheKey(url) {
+    return `${ONLINE_PDF_CACHE_KEY}:${url}`;
+  },
+
+  readOnlinePdfCache(url) {
+    if (!url) {
+      return Promise.reject(new Error('missing url'));
+    }
+
+    const memoryCache = onlinePdfCacheMemory[url];
+    if (memoryCache && memoryCache.filePath) {
+      if (!memoryCache.updatedAt || Date.now() - memoryCache.updatedAt <= ONLINE_PDF_CACHE_TTL) {
+        return this.validateLocalFilePath(memoryCache.filePath).then(() => memoryCache.filePath);
+      }
+    }
+
+    try {
+      const cache = wx.getStorageSync(this.getOnlinePdfCacheKey(url));
+      if (!cache || typeof cache !== 'object' || !cache.filePath) {
+        return Promise.reject(new Error('cache miss'));
+      }
+      if (cache.updatedAt && Date.now() - Number(cache.updatedAt) > ONLINE_PDF_CACHE_TTL) {
+        this.clearOnlinePdfCache(url);
+        return Promise.reject(new Error('cache expired'));
+      }
+      return this.validateLocalFilePath(cache.filePath).then(() => {
+        onlinePdfCacheMemory[url] = {
+          filePath: cache.filePath,
+          updatedAt: Number(cache.updatedAt) || Date.now()
+        };
+        return cache.filePath;
+      });
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+
+  writeOnlinePdfCache(url, filePath) {
+    const cache = {
+      filePath,
+      updatedAt: Date.now()
+    };
+    onlinePdfCacheMemory[url] = cache;
+    try {
+      wx.setStorageSync(this.getOnlinePdfCacheKey(url), cache);
+    } catch (error) {}
+  },
+
+  clearOnlinePdfCache(url) {
+    delete onlinePdfCacheMemory[url];
+    try {
+      wx.removeStorageSync(this.getOnlinePdfCacheKey(url));
+    } catch (error) {}
+  },
+
+  validateLocalFilePath(filePath) {
+    return new Promise((resolve, reject) => {
+      wx.getFileInfo({
+        filePath,
+        success: () => resolve(filePath),
+        fail: reject
+      });
+    });
+  },
+
+  downloadAndCacheOnlinePdf(pdfFile) {
+    return new Promise((resolve, reject) => {
+      wx.downloadFile({
+        url: pdfFile.url,
+        success: res => {
+          if (res.statusCode !== 200) {
+            reject(new Error('下载PDF失败，请稍后重试'));
+            return;
+          }
+
+          wx.saveFile({
+            tempFilePath: res.tempFilePath,
+            success: saveRes => {
+              this.writeOnlinePdfCache(pdfFile.url, saveRes.savedFilePath);
+              resolve(saveRes.savedFilePath);
+            },
+            fail: () => {
+              resolve(res.tempFilePath);
+            }
+          });
+        },
+        fail: err => {
+          console.error('下载失败:', err);
+          reject(new Error(err.errMsg || '未知错误'));
+        }
+      });
+    });
+  },
+
+  openOnlinePdf(pdfFile, options = {}) {
+    if (options.showLoading !== false) {
+      wx.showLoading({ title: '准备预览...' });
+    }
+    this.readOnlinePdfCache(pdfFile.url).then(filePath => {
+      wx.hideLoading();
+      this.openPdfDocument(filePath, {
+        onFail: err => {
+          this.clearOnlinePdfCache(pdfFile.url);
+          console.error('缓存PDF打开失败:', err);
+          this.openOnlinePdf(pdfFile);
+        }
+      });
+    }).catch(() => {
+      this.downloadAndCacheOnlinePdf(pdfFile).then(filePath => {
+        wx.hideLoading();
+        this.openPdfDocument(filePath);
+      }).catch(err => {
+        wx.hideLoading();
+        console.error('下载失败:', err);
+        this.setData({ errorMsg: '下载PDF失败: ' + (err.errMsg || err.message || '未知错误') });
+      });
+    });
+  },
+
+  openPdfDocument(filePath, options = {}) {
     if (!filePath) {
       this.setData({ errorMsg: '文件路径不存在' });
       return;
     }
-    
+
     wx.openDocument({
       fileType: 'pdf',
       filePath: filePath,
       showMenu: true,
       fail: err => {
+        if (options && typeof options.onFail === 'function') {
+          options.onFail(err);
+          return;
+        }
         console.error('打开PDF失败:', err);
         this.setData({ errorMsg: '打开PDF失败: ' + (err.errMsg || '未知错误') });
       }

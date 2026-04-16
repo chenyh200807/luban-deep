@@ -4,6 +4,7 @@ from deeptutor.services.question_followup import (
     build_question_followup_context_from_summary,
     detect_answer_reveal_preference,
     detect_requested_question_type,
+    extract_choice_summary_from_text,
     resolve_submission,
 )
 
@@ -70,3 +71,35 @@ def test_build_question_followup_context_from_summary_keeps_all_items() -> None:
     assert len(context["items"]) == 2
     assert context["reveal_answers"] is False
     assert context["correct_answer"] == ""
+
+
+def test_extract_choice_summary_from_text_supports_chinese_numbered_titles() -> None:
+    summary = extract_choice_summary_from_text(
+        "\n".join(
+            [
+                "现在给你三道题。",
+                "",
+                "## 题目一：建筑构造",
+                "防火门构造的基本要求有（ ）。",
+                "A. 甲级防火门耐火极限为 1.5h",
+                "B. 向内开启",
+                "C. 关闭后应能从内外两侧手动开启",
+                "D. 具有自行关闭功能",
+                "E. 开启后，门扇不应跨越变形缝",
+                "",
+                "## 题目二：屋面工程",
+                "倒置式屋面保温层应设置在（ ）。",
+                "A. 找平层下",
+                "B. 防水层上",
+                "C. 结构层上",
+                "D. 保护层下",
+            ]
+        )
+    )
+
+    assert summary is not None
+    assert len(summary["results"]) == 2
+    first = summary["results"][0]["qa_pair"]
+    assert first["question"] == "防火门构造的基本要求有（ ）。"
+    assert first["multi_select"] is True
+    assert first["options"]["E"] == "开启后，门扇不应跨越变形缝"

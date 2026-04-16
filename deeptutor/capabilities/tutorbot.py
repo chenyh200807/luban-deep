@@ -7,6 +7,10 @@ from deeptutor.contracts.bot_runtime_defaults import resolve_bot_runtime_default
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
+from deeptutor.services.question_followup import (
+    build_question_followup_context_from_summary,
+    extract_choice_summary_from_text,
+)
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 
@@ -54,6 +58,9 @@ class TutorBotCapability(BaseCapability):
         }
         if runtime_defaults:
             session_metadata["kb_aliases"] = list(runtime_defaults.supabase_kb_aliases or [])
+        session_metadata["suppress_answer_reveal_on_generate"] = (
+            self._suppress_answer_reveal_on_generate(context)
+        )
         turn_id = str((context.metadata or {}).get("turn_id") or "").strip()
         if turn_id:
             session_metadata["turn_id"] = turn_id
@@ -142,16 +149,24 @@ class TutorBotCapability(BaseCapability):
                     stage="responding",
                     metadata={"execution_engine": "tutorbot_runtime"},
                 )
-            await stream.result(
-                {
-                    "response": response or "".join(chunks),
-                    "bot_id": bot_id,
-                    "execution_engine": "tutorbot_runtime",
-                    "authority_applied": turn_summary["authority_applied"],
-                    "exact_question": turn_summary["exact_question"],
-                },
-                source=self.name,
-            )
+            final_response = response or "".join(chunks)
+            result_payload = {
+                "response": final_response,
+                "bot_id": bot_id,
+                "execution_engine": "tutorbot_runtime",
+                "authority_applied": turn_summary["authority_applied"],
+                "exact_question": turn_summary["exact_question"],
+            }
+            parsed_summary = extract_choice_summary_from_text(final_response)
+            if parsed_summary:
+                result_payload["summary"] = parsed_summary
+                result_payload["question_followup_context"] = build_question_followup_context_from_summary(
+                    parsed_summary,
+                    final_response,
+                    reveal_answers=False,
+                    reveal_explanations=False,
+                )
+            await stream.result(result_payload, source=self.name)
 
     @staticmethod
     def _bot_id(context: UnifiedContext) -> str:
@@ -185,6 +200,12 @@ class TutorBotCapability(BaseCapability):
         metadata = context.metadata if isinstance(context.metadata, dict) else {}
         billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
         return str(billing_context.get("source") or "").strip().lower()
+
+    def _suppress_answer_reveal_on_generate(self, context: UnifiedContext) -> bool:
+        hints = context.metadata.get("interaction_hints", {}) if isinstance(context.metadata, dict) else {}
+        if isinstance(hints, dict) and "suppress_answer_reveal_on_generate" in hints:
+            return bool(hints.get("suppress_answer_reveal_on_generate"))
+        return self._billing_source(context) == "wx_miniprogram"
 
     def _default_bot_config(self, context: UnifiedContext) -> BotConfig | None:
         bot_id = self._bot_id(context)

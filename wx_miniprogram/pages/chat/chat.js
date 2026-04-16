@@ -713,9 +713,9 @@ Page({
     if (!cards.length) return null;
     return {
       cards: cards,
-      hint: "当前题卡缺少原始上下文，仅供查看；如需作答，请让 AI 重新出题。",
+      hint: "这是从题面文本识别出的选择题，可先点选答案，再让 AI 判断并讲解。",
       receipt: detected && detected.receipt ? detected.receipt : "",
-      interactiveReady: false,
+      interactiveReady: true,
     };
   },
 
@@ -727,6 +727,46 @@ Page({
         keys.push(card.options[i].key);
     }
     return keys.sort();
+  },
+
+  _buildFallbackMcqJudgePrompt: function (cards, selections) {
+    var items = Array.isArray(cards) ? cards : [];
+    if (!items.length || !Array.isArray(selections) || !selections.length) return "";
+
+    var questionBlocks = [];
+    for (var i = 0; i < items.length; i++) {
+      var card = items[i];
+      if (!card) continue;
+      var selectedKeys = this._selectedMcqKeys(card);
+      if (!selectedKeys.length) continue;
+
+      var lines = [];
+      lines.push("第" + (card.index || i + 1) + "题：");
+      lines.push(card.stem || "请选择正确选项");
+
+      var opts = Array.isArray(card.options) ? card.options : [];
+      for (var j = 0; j < opts.length; j++) {
+        var opt = opts[j];
+        if (!opt || !opt.key) continue;
+        lines.push(String(opt.key).toUpperCase() + ". " + (opt.text || ""));
+      }
+
+      lines.push("我的答案：" + selectedKeys.join("、"));
+      questionBlocks.push(lines.join("\n"));
+    }
+
+    if (!questionBlocks.length) return "";
+    if (questionBlocks.length === 1) {
+      return (
+        "请根据你刚才出的这道选择题，判断我选得对不对，并给出正确答案与简明解析。\n\n" +
+        questionBlocks[0]
+      );
+    }
+
+    return (
+      "请根据你刚才出的这些选择题，逐题判断我选得对不对，并按“第N题：是否正确 / 正确答案 / 简明解析”的格式回复。\n\n" +
+      questionBlocks.join("\n\n")
+    );
   },
 
   _buildMcqSubmitPayload: function (cards) {
@@ -779,7 +819,6 @@ Page({
       }
     }
     if (!selections.length) return null;
-    if (missingContext) return { error: "missing_context" };
     var rows = [];
     for (var k = 0; k < selections.length; k++) {
       rows.push("第" + selections[k].index + "题：" + selections[k].keys.join("、"));
@@ -826,6 +865,16 @@ Page({
       selections.length === 1 && followupQuestionContext
         ? "我选" + selections[0].keys.join("、")
         : rows.join("；");
+    if (missingContext) {
+      return {
+        text: this._buildFallbackMcqJudgePrompt(items, selections),
+        structuredSubmitContext: {
+          questions: structuredQuestions,
+          answers: structuredAnswers,
+        },
+        followupQuestionContext: null,
+      };
+    }
     return {
       text: text,
       structuredSubmitContext: {
@@ -1512,13 +1561,6 @@ Page({
     var payload = this._buildMcqSubmitPayload(msg.mcqCards || []);
     if (!payload) {
       wx.showToast({ title: "请先选择答案", icon: "none" });
-      return;
-    }
-    if (payload.error === "missing_context") {
-      wx.showToast({
-        title: "题目上下文缺失，请让 AI 重新出题后再作答",
-        icon: "none",
-      });
       return;
     }
     helpers.vibrate("medium");

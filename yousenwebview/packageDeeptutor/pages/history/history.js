@@ -79,6 +79,16 @@ function _joinMeta(parts) {
   return parts.filter(Boolean).join(" · ");
 }
 
+function _joinSearchText(parts) {
+  return parts
+    .map(function (part) {
+      return String(part || "").trim();
+    })
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
 function _buildConversationItem(c) {
   var updatedAt = c.updated_at || c.created_at || "";
   var preview = _normalizePreview(c.last_message || c.preview || "");
@@ -102,6 +112,13 @@ function _buildConversationItem(c) {
     capabilityLabel: capabilityLabel,
     messageCount: messageCount,
     metaLine: _joinMeta([messageCount > 0 ? messageCount + " 条消息" : ""]),
+    searchText: _joinSearchText([
+      c.title,
+      preview,
+      source.label,
+      capabilityLabel,
+      messageCount > 0 ? messageCount + " 条消息" : "",
+    ]),
   };
 }
 
@@ -193,6 +210,7 @@ Page({
   },
 
   _lastFetch: 0,
+  _searchTimer: null,
 
   onLoad: function () {
     var info = helpers.getWindowInfo();
@@ -223,6 +241,13 @@ Page({
     runtime.checkAuth(function () {
       self._loadWithCache();
     });
+  },
+
+  onUnload: function () {
+    if (this._searchTimer) {
+      clearTimeout(this._searchTimer);
+      this._searchTimer = null;
+    }
   },
 
   // ── SWR: 先展示缓存，后台刷新 ─────────────────
@@ -283,7 +308,7 @@ Page({
 
   _applyConversationState: function (convs, fromFetch) {
     var list = Array.isArray(convs) ? convs : [];
-    var groups = _groupByDate(_filterConversations(list, this.data.query));
+    var groups = this._buildVisibleGroups(list, this.data.query);
     this.setData({
       conversations: list,
       groups: groups,
@@ -314,15 +339,19 @@ Page({
     var query = String((e.detail && e.detail.value) || "");
     this.setData({
       query: query,
-      groups: _groupByDate(_filterConversations(this.data.conversations, query)),
       emptyState: _emptyState(this.data.tab, query),
     });
+    this._scheduleSearchUpdate(query, false);
   },
 
   clearSearch: function () {
+    if (this._searchTimer) {
+      clearTimeout(this._searchTimer);
+      this._searchTimer = null;
+    }
     this.setData({
       query: "",
-      groups: _groupByDate(this.data.conversations),
+      groups: this._buildVisibleGroups(this.data.conversations, ""),
       emptyState: _emptyState(this.data.tab, ""),
     });
   },
@@ -561,9 +590,7 @@ Page({
     var newConversations = this.data.conversations.filter(function (item) {
       return !idSet[item.id];
     });
-    var newGroups = _groupByDate(
-      _filterConversations(newConversations, this.data.query),
-    );
+    var newGroups = this._buildVisibleGroups(newConversations, this.data.query);
     this.setData({
       conversations: newConversations,
       groups: newGroups,
@@ -579,6 +606,30 @@ Page({
       totalCount: newConversations.length,
       ts: Date.now(),
     });
+  },
+
+  _scheduleSearchUpdate: function (query, immediate) {
+    var self = this;
+    if (this._searchTimer) {
+      clearTimeout(this._searchTimer);
+      this._searchTimer = null;
+    }
+    var run = function () {
+      self._searchTimer = null;
+      self.setData({
+        groups: self._buildVisibleGroups(self.data.conversations, query),
+        emptyState: _emptyState(self.data.tab, query),
+      });
+    };
+    if (immediate) {
+      run();
+      return;
+    }
+    this._searchTimer = setTimeout(run, 160);
+  },
+
+  _buildVisibleGroups: function (convs, query) {
+    return _groupByDate(_filterConversations(convs, query));
   },
 
   goHome: function () {
@@ -641,14 +692,16 @@ function _filterConversations(convs, query) {
   var keyword = String(query || "").trim().toLowerCase();
   if (!keyword) return convs;
   return convs.filter(function (item) {
-    return [
-      item.title,
-      item.preview,
-      item.sourceLabel,
-      item.capabilityLabel,
-      item.metaLine,
-    ].some(function (part) {
-      return String(part || "").toLowerCase().indexOf(keyword) !== -1;
-    });
+    var haystack = item.searchText;
+    if (!haystack) {
+      haystack = _joinSearchText([
+        item.title,
+        item.preview,
+        item.sourceLabel,
+        item.capabilityLabel,
+        item.metaLine,
+      ]);
+    }
+    return haystack.indexOf(keyword) !== -1;
   });
 }

@@ -1,0 +1,62 @@
+[
+  {
+    "name": "low_signal_social",
+    "user_message": "你好",
+    "expected_route": "low_signal_social",
+    "has_active_question": false,
+    "has_active_plan": false
+  },
+  {
+    "name": "active_question_followup",
+    "user_message": "这个题为什么这样做",
+    "expected_route": "active_question_followup",
+    "has_active_question": true,
+    "has_active_plan": false
+  },
+  {
+    "name": "guided_plan_continuation",
+    "user_message": "继续刚才这个学习页面",
+    "expected_route": "guided_plan_continuation",
+    "has_active_question": false,
+    "has_active_plan": true
+  },
+  {
+    "name": "notebook_followup",
+    "user_message": "把这个记到笔记里",
+    "expected_route": "notebook_followup",
+    "has_active_question": false,
+    "has_active_plan": false,
+    "notebook_references": ["note_1"]
+  },
+  {
+    "name": "personal_recall",
+    "user_message": "你记得我偏好什么讲法吗",
+    "expected_route": "personal_recall",
+    "has_active_question": false,
+    "has_active_plan": false,
+    "personal_recall_hint": true
+  },
+  {
+    "name": "cross_session_recall",
+    "user_message": "你上次建议我怎么学",
+    "expected_route": "cross_session_recall",
+    "has_active_question": false,
+    "has_active_plan": false,
+    "history_references": ["session_old"]
+  },
+  {
+    "name": "user_correction",
+    "user_message": "不是一建，是二建",
+    "expected_route": "general_learning_query",
+    "has_active_question": false,
+    "has_active_plan": false
+  },
+  {
+    "name": "current_override",
+    "user_message": "别管上次，先回答我现在这句",
+    "expected_route": "active_question_followup",
+    "has_active_question": true,
+    "has_active_plan": false,
+    "history_references": ["session_old"]
+  }
+]

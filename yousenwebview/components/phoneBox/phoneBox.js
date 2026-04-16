@@ -44,9 +44,7 @@ Component({
             that.isPostHttp('GetPhone',data,true).then(res=>{
               if (res.status==1){
                 wxToast(res.msg)
-                setTimeout(() => {
-                  that.getUserInfo();
-                }, 1000);
+                that.getUserInfo();
               }
             }).catch()
           }

@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 import json
 
+import pytest
+
 from deeptutor.services.learner_state.service import LearnerStateEvent, LearnerStateOutboxService, LearnerStateService
 
 
@@ -60,10 +62,54 @@ class _FakeMemberService:
         ]
 
 
-def _make_service(tmp_path):
+class _CoreStoreStub:
+    def __init__(self) -> None:
+        self.is_configured = True
+        self.profile: dict[str, object] = {}
+        self.progress: dict[str, object] = {}
+        self.goals: list[dict[str, object]] = []
+        self.fail_goal_title: str | None = None
+
+    def read_profile(self, _user_id: str):
+        return dict(self.profile)
+
+    def write_profile(self, _user_id: str, profile: dict[str, object]):
+        self.profile = dict(profile)
+        return dict(profile)
+
+    def read_progress(self, _user_id: str):
+        return dict(self.progress)
+
+    def write_progress(self, _user_id: str, progress: dict[str, object]):
+        self.progress = dict(progress)
+        return dict(progress)
+
+    def read_goals(self, _user_id: str):
+        return [dict(item) for item in self.goals]
+
+    def upsert_goal(self, _user_id: str, goal: dict[str, object]):
+        title = str(goal.get("title") or "")
+        if self.fail_goal_title and title == self.fail_goal_title:
+            raise RuntimeError("goal sync failed")
+        saved = dict(goal)
+        saved.setdefault("id", title or f"goal_{len(self.goals) + 1}")
+        goal_id = str(saved["id"])
+        self.goals = [item for item in self.goals if str(item.get("id")) != goal_id] + [saved]
+        return dict(saved)
+
+    def delete_goal(self, goal_id: str) -> None:
+        self.goals = [item for item in self.goals if str(item.get("id")) != str(goal_id)]
+
+
+class _DisabledCoreStoreStub:
+    is_configured = False
+
+
+def _make_service(tmp_path, *, core_store=None):
     return LearnerStateService(
         path_service=_PathServiceStub(tmp_path),
         member_service=_FakeMemberService(),
+        core_store=core_store or _DisabledCoreStoreStub(),
     )
 
 
@@ -89,6 +135,127 @@ def test_learner_state_build_context_seeds_profile_summary_progress(tmp_path) ->
     assert profile["display_name"] == "陈同学"
     assert progress["today"]["today_done"] == 6
     assert "当前学习概览" in summary
+
+
+def test_learner_state_build_compact_context_returns_learner_facts_only(tmp_path) -> None:
+    core_store = _CoreStoreStub()
+    core_store.goals = [
+        {
+            "id": "goal_1",
+            "user_id": "student_demo",
+            "goal_type": "study",
+            "title": "掌握承载力与沉降控制区分",
+            "progress": 35,
+            "deadline": "2026-05-01",
+        }
+    ]
+    service = _make_service(tmp_path, core_store=core_store)
+
+    compact = service.build_compact_context("student_demo", language="zh")
+
+    assert compact["user_id"] == "student_demo"
+    assert "learner_profile" in compact["source_tags"]
+    assert "learner_summary" in compact["source_tags"]
+    assert "learner_progress" in compact["source_tags"]
+    assert "learner_goals" in compact["source_tags"]
+    assert "memory_hit" not in compact["content"]
+    assert any(segment["source_tag"] == "learner_profile" for segment in compact["segments"])
+    assert any(segment["source_tag"] == "learner_goals" for segment in compact["segments"])
+
+
+def test_learner_state_build_context_candidates_default_skips_memory_hits(tmp_path) -> None:
+    core_store = _CoreStoreStub()
+    core_store.goals = [
+        {
+            "id": "goal_1",
+            "user_id": "student_demo",
+            "goal_type": "study",
+            "title": "掌握承载力与沉降控制区分",
+            "progress": 35,
+            "deadline": "2026-05-01",
+        }
+    ]
+    service = _make_service(tmp_path, core_store=core_store)
+    service.record_turn_event(
+        user_id="student_demo",
+        session_id="session_1",
+        capability="chat",
+        user_message="我刚才问的是承载力怎么区分。",
+        assistant_message="先看承载力，再看沉降控制。",
+        source_bot_id="bot_a",
+    )
+
+    candidates = service.build_context_candidates("student_demo", query="继续讲解", language="zh")
+
+    assert candidates["route"] == "default"
+    assert candidates["memory_candidates"] == []
+    assert candidates["candidates"]
+    assert all(item["source_tag"] != "memory_hit" for item in candidates["candidates"])
+    assert {item["source_tag"] for item in candidates["learner_candidates"]} >= {
+        "learner_profile",
+        "learner_summary",
+        "learner_progress",
+        "learner_goals",
+    }
+
+
+def test_learner_state_build_context_candidates_recall_includes_memory_hits(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    service.record_turn_event(
+        user_id="student_demo",
+        session_id="session_2",
+        capability="chat",
+        user_message="承载力和沉降控制要怎么区分？",
+        assistant_message="承载力看极限状态，沉降控制看正常使用阶段。",
+        source_bot_id="bot_a",
+    )
+    asyncio.run(
+        service.record_notebook_writeback(
+            user_id="student_demo",
+            notebook_id="nb_1",
+            record_id="rec_1",
+            operation="writeback",
+            title="承载力和沉降控制",
+            summary="先分清极限承载和正常使用阶段。",
+            user_query="回顾承载力和沉降控制",
+            record_type="guide",
+            source_bot_id="bot_a",
+        )
+    )
+
+    candidates = service.build_context_candidates(
+        "student_demo",
+        query="请回顾一下刚才承载力和沉降控制的说法",
+        language="zh",
+    )
+
+    assert candidates["route"] == "recall"
+    assert candidates["memory_candidates"]
+    assert any(item["source_tag"] == "memory_hit" for item in candidates["candidates"])
+    assert any("承载力和沉降控制" in item["content"] for item in candidates["memory_candidates"])
+
+
+def test_learner_state_build_context_candidates_accepts_orchestration_route_aliases(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    service.record_turn_event(
+        user_id="student_demo",
+        session_id="session_2",
+        capability="chat",
+        user_message="我喜欢先讲概念再做题。",
+        assistant_message="记住了，你偏好先讲概念再做题。",
+        source_bot_id="bot_a",
+    )
+
+    candidates = service.build_context_candidates(
+        "student_demo",
+        query="你还记得我偏好吗",
+        route="personal_recall",
+        language="zh",
+    )
+
+    assert candidates["route"] == "recall"
+    assert candidates["memory_candidates"]
+    assert any(item["source_tag"] == "memory_hit" for item in candidates["candidates"])
 
 
 def test_learner_state_write_progress_and_refresh_from_turn(monkeypatch, tmp_path) -> None:
@@ -132,9 +299,8 @@ def test_learner_state_write_progress_and_refresh_from_turn(monkeypatch, tmp_pat
     assert event["memory_kind"] == "turn"
     assert event["payload_json"]["assistant_message"].startswith("先区分极限承载能力")
 
-    pending = service.outbox_service.list_pending("student_demo", limit=10)
-    assert len(pending) == 2
-    event_types = {item.event_type for item in pending}
+    pending = service.outbox_service.list_pending("student_demo", limit=None)
+    event_types = [item.event_type for item in pending]
     assert "turn" in event_types
     assert "summary_refresh" in event_types
 
@@ -196,6 +362,15 @@ def test_learner_state_learning_plan_store_tracks_plan_and_pages(tmp_path) -> No
             error_message="",
             source_bot_id="bot_alpha",
         )
+        await service.update_learning_plan_page(
+            user_id="student_demo",
+            plan_id="session_demo",
+            page_index=1,
+            page_status="failed",
+            html_content="<div class='page'>学习页面</div>",
+            error_message="llm timeout",
+            source_bot_id="bot_alpha",
+        )
         await service.upsert_learning_plan(
             user_id="student_demo",
             plan_id="session_demo",
@@ -234,6 +409,10 @@ def test_learner_state_learning_plan_store_tracks_plan_and_pages(tmp_path) -> No
     assert pages[0]["page_status"] == "ready"
     assert pages[0]["html"] == "<div class='page'>学习页面</div>"
     assert pages[0]["updated_at"]
+    assert pages[1]["session_id"] == "session_demo"
+    assert pages[1]["page_status"] == "failed"
+    pending = service.outbox_service.list_pending("student_demo", limit=None)
+    assert any(item.event_type == "learning_plan_page" for item in pending)
 
 
 def test_learner_state_outbox_enqueue_and_status_transitions(tmp_path) -> None:
@@ -308,9 +487,10 @@ def test_learner_state_guide_completion_enqueues_outbox_event(tmp_path) -> None:
     )
 
     pending = service.outbox_service.list_pending("student_demo")
+    guide_events = [item for item in pending if item.event_type == "guide_completion"]
 
-    assert len(pending) == 1
-    item = pending[0]
+    assert len(guide_events) == 1
+    item = guide_events[0]
     assert item.id == event.event_id
     assert item.event_type == "guide_completion"
     assert item.payload_json["source_feature"] == "guide"
@@ -319,3 +499,143 @@ def test_learner_state_guide_completion_enqueues_outbox_event(tmp_path) -> None:
         item.payload_json["payload_json"]["knowledge_points"][0]["knowledge_title"]
         == "承载力和沉降控制"
     )
+    progress = service.read_progress("student_demo")
+    assert progress["today"]["today_done"] == 7
+    assert progress["knowledge_map"]["guided_learning"]["guide_id"] == "guide_42"
+    assert progress["knowledge_map"]["guided_learning"]["completed_titles"] == ["承载力和沉降控制"]
+
+
+def test_learner_state_guide_completion_is_idempotent_by_guide_id(tmp_path) -> None:
+    service = _make_service(tmp_path)
+
+    asyncio.run(
+        service.record_guide_completion(
+            user_id="student_demo",
+            guide_id="guide_42",
+            notebook_name="地基基础",
+            summary="第一次完成引导。",
+            knowledge_points=[
+                {
+                    "knowledge_title": "承载力和沉降控制",
+                    "knowledge_summary": "先分清极限承载和正常使用极限状态。",
+                    "user_difficulty": "medium",
+                }
+            ],
+            source_bot_id="bot_a",
+        )
+    )
+    asyncio.run(
+        service.record_guide_completion(
+            user_id="student_demo",
+            guide_id="guide_42",
+            notebook_name="地基基础",
+            summary="重复回放同一个引导，但内容略有变化。",
+            knowledge_points=[
+                {
+                    "knowledge_title": "地基承载力验算",
+                    "knowledge_summary": "重复调用不应再累计今日完成。",
+                    "user_difficulty": "hard",
+                },
+                {
+                    "knowledge_title": "沉降控制",
+                    "knowledge_summary": "重复调用不应再插入等价历史记录。",
+                    "user_difficulty": "medium",
+                },
+            ],
+            source_bot_id="bot_a",
+        )
+    )
+
+    progress = service.read_progress("student_demo")
+    guided_learning = progress["knowledge_map"]["guided_learning"]
+    history = progress["knowledge_map"]["guided_learning_history"]
+
+    assert progress["today"]["today_done"] == 7
+    assert guided_learning["guide_id"] == "guide_42"
+    assert guided_learning["total_points"] == 1
+    assert guided_learning["completed_titles"] == ["承载力和沉降控制"]
+    assert len(history) == 1
+    assert history[0]["guide_id"] == "guide_42"
+
+
+def test_sync_goals_strict_rolls_back_partial_goal_updates(tmp_path) -> None:
+    core_store = _CoreStoreStub()
+    core_store.goals = [
+        {
+            "id": "goal_existing",
+            "user_id": "student_demo",
+            "goal_type": "study",
+            "title": "旧目标",
+            "target_question_count": 10,
+        }
+    ]
+    core_store.fail_goal_title = "失败目标"
+    service = _make_service(tmp_path, core_store=core_store)
+
+    with pytest.raises(RuntimeError):
+        service.sync_goals_strict(
+            "student_demo",
+            [
+                {
+                    "id": "goal_new",
+                    "goal_type": "study",
+                    "title": "新目标",
+                    "target_question_count": 20,
+                },
+                {
+                    "id": "goal_fail",
+                    "goal_type": "study",
+                    "title": "失败目标",
+                    "target_question_count": 30,
+                },
+            ],
+        )
+
+    assert core_store.goals == [
+        {
+            "id": "goal_existing",
+            "user_id": "student_demo",
+            "goal_type": "study",
+            "title": "旧目标",
+            "target_question_count": 10,
+        }
+    ]
+
+
+def test_learner_state_heartbeat_job_sync_enqueues_outbox_event(tmp_path) -> None:
+    service = _make_service(tmp_path)
+
+    job = service.ensure_default_job(
+        "student_demo",
+        bot_id="bot_alpha",
+        channel="web",
+        policy_json={"enabled": True, "consent": True, "interval_hours": 3},
+    )
+
+    pending = service.outbox_service.list_pending("student_demo")
+    assert len(pending) == 1
+    first = pending[0]
+    assert first.event_type == "heartbeat_job"
+    assert first.payload_json["job_id"] == job.job_id
+    assert first.payload_json["last_result_json"] == {}
+    assert first.dedupe_key.startswith(f"heartbeat-job:{job.job_id}:")
+
+    service.outbox_service.mark_sent(first.id)
+    updated = service.record_run_result(
+        job_id=job.job_id,
+        success=True,
+        result_json={"message": "sent"},
+    )
+
+    pending_after = service.outbox_service.list_pending("student_demo")
+    assert len(pending_after) == 2
+    job_event = next(item for item in pending_after if item.event_type == "heartbeat_job")
+    delivery_event = next(item for item in pending_after if item.event_type == "heartbeat_delivery")
+    assert job_event.payload_json["job_id"] == updated.job_id
+    assert job_event.payload_json["last_result_json"]["success"] is True
+    assert job_event.payload_json["last_result_json"]["delivery"]["state"] == "sent"
+    assert job_event.payload_json["last_result_json"]["audit"]["status"] == "ok"
+    assert delivery_event.payload_json["payload_json"]["job_id"] == updated.job_id
+    assert delivery_event.payload_json["payload_json"]["delivery"]["state"] == "sent"
+    assert delivery_event.payload_json["payload_json"]["audit"]["status"] == "ok"
+    assert job_event.id != first.id

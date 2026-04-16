@@ -107,6 +107,58 @@ def get_teaching_mode_instruction(value: str | None) -> str:
     return ""
 
 
+def looks_like_practice_generation_request(user_message: str | None) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+
+    negative_markers = ("不要出题", "别出题", "不想做题")
+    if any(marker in text for marker in negative_markers):
+        return False
+
+    positive_markers = (
+        "出题",
+        "出一道",
+        "来一道",
+        "来一题",
+        "考我",
+        "练习",
+        "刷题",
+        "测我",
+        "继续出",
+        "继续来一道",
+        "再来一道",
+        "再出一道",
+        "下一题",
+        "下一道",
+        "quiz me",
+        "test me",
+        "give me a question",
+        "give me one question",
+    )
+    if any(marker in text for marker in positive_markers):
+        return True
+    return bool(re.search(r"(给我|帮我|来|出|做)\s*\d{0,2}\s*(?:道|题)", text))
+
+
+def get_practice_generation_instruction(
+    *,
+    user_message: str | None,
+    suppress_answer_reveal_on_generate: bool,
+) -> str:
+    if not suppress_answer_reveal_on_generate:
+        return ""
+    if not looks_like_practice_generation_request(user_message):
+        return ""
+    return """
+当前这一轮如果用户是在要求你出题、考他或安排练习：
+- 只输出题目本身，以及必要的选项或作答说明。
+- 不要提前给答案、正确选项、参考答案、解析、评分点。
+- 等用户提交作答后，再进入批改、讲解或公布答案。
+- 只有当用户明确要求“带答案”“附解析”“公布答案”时，才可以透露答案与解析。
+""".strip()
+
+
 def detect_construction_exam_scene(
     user_message: str | None,
     *,

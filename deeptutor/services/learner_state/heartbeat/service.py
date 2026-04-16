@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
+from zoneinfo import ZoneInfo
 
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.services.path_service import PathService, get_path_service
@@ -205,7 +206,7 @@ class LearnerHeartbeatService:
         due = [
             job
             for job in self._store.list_due_jobs(current)
-            if bool(job.policy_json.get("enabled", True)) and bool(job.policy_json.get("consent", False))
+            if _is_heartbeat_job_enabled(job, current)
         ]
         if user_id is None:
             return due
@@ -241,6 +242,12 @@ class LearnerHeartbeatService:
         next_run_dt = _coerce_datetime(next_run_at) if next_run_at is not None else None
         failure_count = 0 if success else int(job.failure_count) + 1
         status = job.status if job.status in {"active", "paused", "stopped"} else "active"
+        normalized_result_json = _normalize_heartbeat_result_json(
+            job=job,
+            success=success,
+            result_json=result_json,
+            recorded_at=run_at or current,
+        )
 
         updated = store.mark_run(
             job_id=normalized_job_id,
@@ -252,11 +259,7 @@ class LearnerHeartbeatService:
                 failure_count=failure_count,
                 success=success,
             ),
-            last_result_json={
-                **dict(result_json or {}),
-                "success": bool(success),
-                "recorded_at": (run_at or current).isoformat(),
-            },
+            last_result_json=normalized_result_json,
             failure_count=failure_count,
             status=status,  # type: ignore[arg-type]
             updated_at=current,
@@ -300,6 +303,154 @@ def _schedule_next_run(
 
     multiplier = 1 if success else min(2 ** max(0, failure_count - 1), 8)
     return reference_at + timedelta(hours=interval_hours * multiplier)
+
+
+def _normalize_heartbeat_result_json(
+    *,
+    job: LearnerHeartbeatJob,
+    success: bool,
+    result_json: dict[str, Any] | None,
+    recorded_at: datetime,
+) -> dict[str, Any]:
+    payload = dict(result_json or {})
+    delivery = dict(payload.get("delivery") or {})
+    audit = dict(payload.get("audit") or {})
+    recorded_at_iso = recorded_at.isoformat()
+    delivery_state = str(
+        payload.get("delivery_state")
+        or delivery.get("state")
+        or ("sent" if success else "failed")
+    ).strip() or ("sent" if success else "failed")
+
+    delivery.setdefault("state", delivery_state)
+    if "message" not in delivery and payload.get("message") is not None:
+        delivery["message"] = payload.get("message")
+    if "message_len" not in delivery and isinstance(delivery.get("message"), str):
+        delivery["message_len"] = len(str(delivery.get("message") or ""))
+    delivery.setdefault("conversation_id", f"learner-heartbeat:{job.user_id}:{job.channel}")
+    delivery.setdefault("channel", job.channel)
+    delivery.setdefault("bot_id", job.bot_id)
+    delivery.setdefault("user_id", job.user_id)
+
+    audit.setdefault("job_id", job.job_id)
+    audit.setdefault("user_id", job.user_id)
+    audit.setdefault("bot_id", job.bot_id)
+    audit.setdefault("channel", job.channel)
+    audit.setdefault("source", "learner_heartbeat")
+    audit.setdefault("conversation_id", delivery.get("conversation_id"))
+    audit["status"] = "ok" if success else "error"
+    audit["success"] = bool(success)
+    audit["recorded_at"] = recorded_at_iso
+
+    normalized = {
+        **payload,
+        "success": bool(success),
+        "recorded_at": recorded_at_iso,
+        "job_id": job.job_id,
+        "user_id": job.user_id,
+        "bot_id": job.bot_id,
+        "channel": job.channel,
+        "delivery_state": delivery_state,
+        "delivery": delivery,
+        "audit": audit,
+    }
+    if not success and "error" not in normalized and payload.get("error") is not None:
+        normalized["error"] = payload.get("error")
+    return normalized
+
+
+def _is_heartbeat_job_enabled(job: LearnerHeartbeatJob, current: datetime) -> bool:
+    policy = dict(job.policy_json or {})
+    if not bool(policy.get("enabled", True)):
+        return False
+    if not bool(policy.get("consent", False)):
+        return False
+    if _is_within_quiet_hours(policy, current):
+        return False
+    if _is_in_cooldown(job, current):
+        return False
+    if _is_snoozed(job, current):
+        return False
+    if _has_negative_feedback_stop(job):
+        return False
+    return True
+
+
+def _is_within_quiet_hours(policy: dict[str, Any], current: datetime) -> bool:
+    raw_quiet_hours = policy.get("quiet_hours")
+    if not raw_quiet_hours:
+        return False
+    timezone_name = str(policy.get("timezone") or "UTC").strip() or "UTC"
+    try:
+        localized = current.astimezone(ZoneInfo(timezone_name))
+    except Exception:
+        localized = current
+    minutes = localized.hour * 60 + localized.minute
+    if isinstance(raw_quiet_hours, dict):
+        start_minutes = _parse_quiet_hour_value(raw_quiet_hours.get("start"))
+        end_minutes = _parse_quiet_hour_value(raw_quiet_hours.get("end"))
+    elif isinstance(raw_quiet_hours, (list, tuple)) and len(raw_quiet_hours) >= 2:
+        start_minutes = _parse_quiet_hour_value(raw_quiet_hours[0])
+        end_minutes = _parse_quiet_hour_value(raw_quiet_hours[1])
+    else:
+        return False
+    if start_minutes is None or end_minutes is None or start_minutes == end_minutes:
+        return False
+    if start_minutes < end_minutes:
+        return start_minutes <= minutes < end_minutes
+    return minutes >= start_minutes or minutes < end_minutes
+
+
+def _is_in_cooldown(job: LearnerHeartbeatJob, current: datetime) -> bool:
+    policy = dict(job.policy_json or {})
+    try:
+        cooldown_hours = max(0, int(policy.get("cooldown_hours") or 0))
+    except Exception:
+        cooldown_hours = 0
+    if cooldown_hours <= 0 or job.last_run_at is None:
+        return False
+    return current < job.last_run_at + timedelta(hours=cooldown_hours)
+
+
+def _is_snoozed(job: LearnerHeartbeatJob, current: datetime) -> bool:
+    last_result = dict(job.last_result_json or {})
+    snooze_until = _coerce_datetime(last_result.get("snooze_until"))
+    return snooze_until is not None and current < snooze_until
+
+
+def _has_negative_feedback_stop(job: LearnerHeartbeatJob) -> bool:
+    last_result = dict(job.last_result_json or {})
+    feedback_action = str(
+        last_result.get("feedback_action")
+        or last_result.get("negative_feedback_action")
+        or ""
+    ).strip().lower()
+    if feedback_action in {"stop", "pause"}:
+        return True
+    feedback = last_result.get("negative_feedback")
+    return isinstance(feedback, dict) and bool(feedback.get("stop"))
+
+
+def _parse_quiet_hour_value(value: Any) -> int | None:
+    if value in {None, ""}:
+        return None
+    if isinstance(value, int):
+        return max(0, min(23, value)) * 60
+    text = str(value).strip()
+    if not text:
+        return None
+    if ":" in text:
+        hours_text, minutes_text = (text.split(":", 1) + ["0"])[:2]
+        try:
+            hours = max(0, min(23, int(hours_text)))
+            minutes = max(0, min(59, int(minutes_text)))
+        except Exception:
+            return None
+        return hours * 60 + minutes
+    try:
+        return max(0, min(23, int(text))) * 60
+    except Exception:
+        return None
 
 
 def _iter_user_ids(root: Path) -> list[str]:

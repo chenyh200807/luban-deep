@@ -8,6 +8,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import os
 import sqlite3
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
@@ -35,6 +36,13 @@ _MINI_PROGRAM_CAPTURE_COST = 20
 _CAPTURED_ASSISTANT_CALL_KINDS = {"llm_final_response", "exact_authority_response"}
 
 
+class _ContextOrchestrationStageError(RuntimeError):
+    def __init__(self, stage: str, cause: Exception) -> None:
+        super().__init__(f"{stage}: {cause}")
+        self.stage = stage
+        self.cause_type = type(cause).__name__
+
+
 def _should_capture_assistant_content(event: StreamEvent) -> bool:
     if event.type != StreamEventType.CONTENT:
         return False
@@ -50,6 +58,113 @@ def _clip_text(value: str, limit: int = 4000) -> str:
     if len(text) <= limit:
         return text
     return text[:limit].rstrip() + "\n...[truncated]"
+
+
+def _env_flag(name: str, default: bool = True) -> bool:
+    raw = str(os.getenv(name, "1" if default else "0") or "").strip().lower()
+    if not raw:
+        return default
+    return raw not in {"0", "false", "no", "off"}
+
+
+def _coerce_context_flag(value: Any) -> bool | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    text = str(value or "").strip().lower()
+    if not text:
+        return None
+    if text in {"1", "true", "yes", "on"}:
+        return True
+    if text in {"0", "false", "no", "off"}:
+        return False
+    return None
+
+
+def _normalize_reference_tokens(values: list[Any] | tuple[Any, ...] | None) -> tuple[str, ...]:
+    normalized: list[str] = []
+    for item in values or []:
+        if isinstance(item, dict):
+            for key in ("kind", "id", "title", "notebook_id", "session_id", "content"):
+                value = str(item.get(key, "") or "").strip()
+                if value:
+                    normalized.append(value)
+                    break
+            continue
+        value = str(item or "").strip()
+        if value:
+            normalized.append(value)
+    return tuple(normalized)
+
+
+def _candidate_content_lines(candidates: tuple[Any, ...] | list[Any]) -> list[str]:
+    lines: list[str] = []
+    for candidate in candidates:
+        content = str(getattr(candidate, "content", "") or "").strip()
+        if not content:
+            continue
+        title = str(getattr(candidate, "source_id", "") or "").strip()
+        source_type = str(getattr(candidate, "source_type", "") or "").strip()
+        metadata = getattr(candidate, "metadata", {}) if isinstance(getattr(candidate, "metadata", {}), dict) else {}
+        label = (
+            str(metadata.get("title") or "").strip()
+            or str(metadata.get("source_tag") or "").strip()
+            or title
+            or source_type
+        )
+        if label:
+            lines.append(f"### {label}\n{content}")
+        else:
+            lines.append(content)
+    return lines
+
+
+def _render_memory_context_from_candidates(
+    candidates: tuple[Any, ...] | list[Any],
+    *,
+    language: str,
+) -> str:
+    lines = _candidate_content_lines(candidates)
+    if not lines:
+        return ""
+    title = "## 学员级长期状态" if str(language).lower().startswith("zh") else "## Learner State"
+    intro = (
+        "以下内容属于当前学员的长期状态真相，按需使用，不要外溢到其他学员。"
+        if str(language).lower().startswith("zh")
+        else "This is the authoritative long-term learner state for the current learner only."
+    )
+    return f"{title}\n{intro}\n\n" + "\n\n".join(lines)
+
+
+def _render_evidence_block(
+    candidates: tuple[Any, ...] | list[Any],
+    *,
+    language: str,
+) -> str:
+    sections: list[str] = []
+    for candidate in candidates:
+        content = str(getattr(candidate, "content", "") or "").strip()
+        if not content:
+            continue
+        source_type = str(getattr(candidate, "source_type", "") or "").strip()
+        metadata = getattr(candidate, "metadata", {}) if isinstance(getattr(candidate, "metadata", {}), dict) else {}
+        label = (
+            str(metadata.get("title") or "").strip()
+            or str(metadata.get("source_tag") or "").strip()
+            or source_type
+            or "evidence"
+        )
+        sections.append(f"### {label}\n{content}")
+    if not sections:
+        return ""
+    header = "## 参考证据" if str(language).lower().startswith("zh") else "## Supporting Evidence"
+    note = (
+        "以下内容是辅助证据，不得覆盖当前用户问题与当前会话锚点。"
+        if str(language).lower().startswith("zh")
+        else "The following content is supporting evidence only and must not override the current user question or session anchor."
+    )
+    return f"{header}\n{note}\n\n" + "\n\n".join(sections)
 
 
 def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
@@ -602,6 +717,622 @@ class TurnRuntimeManager:
         except Exception:
             logger.warning("Failed to record learning activity for user %s", user_id, exc_info=True)
 
+    def _context_orchestration_enabled(self, request_config: dict[str, Any]) -> bool:
+        explicit = _coerce_context_flag(request_config.get("context_orchestration_enabled"))
+        if explicit is not None:
+            return explicit
+        return _env_flag("DEEPTUTOR_CONTEXT_ORCHESTRATION_ENABLED", default=True)
+
+    def _context_source_enabled(self, request_config: dict[str, Any], source_name: str) -> bool:
+        source_flags = request_config.get("context_sources")
+        if isinstance(source_flags, dict):
+            explicit = _coerce_context_flag(source_flags.get(source_name))
+            if explicit is not None:
+                return explicit
+        env_name = f"DEEPTUTOR_CONTEXT_{source_name.upper()}_ENABLED"
+        return _env_flag(env_name, default=True)
+
+    @staticmethod
+    def _resolve_active_plan_id(
+        request_config: dict[str, Any],
+        notebook_references: list[dict[str, Any]],
+    ) -> str:
+        for key in ("active_plan_id", "plan_id", "guide_session_id", "learning_plan_id"):
+            value = str(request_config.get(key, "") or "").strip()
+            if value:
+                return value
+        for ref in notebook_references:
+            if not isinstance(ref, dict):
+                continue
+            for key in ("plan_id", "session_id"):
+                value = str(ref.get(key, "") or "").strip()
+                if value and str(ref.get("kind", "") or "").strip() in {"plan_page", "guided_learning", "learning_plan"}:
+                    return value
+        return ""
+
+    @staticmethod
+    def _build_context_budget(
+        *,
+        context_window_tokens: int,
+        output_reserve_tokens: int,
+        tools_enabled: bool,
+        route_label: str,
+    ) -> dict[str, Any]:
+        tool_reserve_tokens = 768 if tools_enabled else 384
+        safety_margin_tokens = max(256, int(context_window_tokens * 0.05))
+        effective_input_budget = max(
+            1024,
+            int(context_window_tokens) - int(output_reserve_tokens) - tool_reserve_tokens - safety_margin_tokens,
+        )
+        if route_label == "low_signal_social":
+            ratios = {"anchor": 0.12, "session": 0.42, "learner": 0.16, "evidence": 0.0}
+        elif route_label in {"cross_session_recall", "personal_recall"}:
+            ratios = {"anchor": 0.12, "session": 0.30, "learner": 0.14, "evidence": 0.24}
+        elif route_label in {"guided_plan_continuation", "notebook_followup"}:
+            ratios = {"anchor": 0.16, "session": 0.28, "learner": 0.12, "evidence": 0.24}
+        else:
+            ratios = {"anchor": 0.14, "session": 0.34, "learner": 0.14, "evidence": 0.18}
+        anchor_budget = max(128, int(effective_input_budget * ratios["anchor"]))
+        session_budget = max(256, int(effective_input_budget * ratios["session"]))
+        learner_budget = max(192, int(effective_input_budget * ratios["learner"]))
+        evidence_budget = max(0, effective_input_budget - anchor_budget - session_budget - learner_budget)
+        return {
+            "effective_input_budget": effective_input_budget,
+            "output_reserve_tokens": int(output_reserve_tokens),
+            "tool_reserve_tokens": tool_reserve_tokens,
+            "safety_margin_tokens": safety_margin_tokens,
+            "anchor_budget": anchor_budget,
+            "session_budget": session_budget,
+            "learner_budget": learner_budget,
+            "evidence_budget": evidence_budget,
+        }
+
+    async def _build_orchestrated_context_payload(
+        self,
+        *,
+        execution: _TurnExecution,
+        raw_user_content: str,
+        payload: dict[str, Any],
+        request_config: dict[str, Any],
+        llm_config: Any,
+        builder: Any,
+        learner_state_service: Any,
+        memory_service: Any,
+        notebook_manager: Any,
+        user_id: str,
+        language: str,
+        source_bot_id: str,
+        followup_question_context: dict[str, Any] | None,
+        interaction_hints: dict[str, Any] | None,
+        notebook_references: list[dict[str, Any]],
+        history_references: list[str],
+    ) -> dict[str, Any]:
+        from deeptutor.services.session.context_budget import ContextBudget, pack_context_candidates
+        from deeptutor.services.session.context_pack import ContextBlockType, ContextCandidate
+        from deeptutor.services.session.context_router import ContextRouteInput, decide_context_route
+        from deeptutor.services.session.context_sources import ContextSourceLoader
+        from deeptutor.services.session.context_trace import (
+            build_context_trace_summary,
+            resolve_target_escalation_level,
+        )
+        from deeptutor.services.session.context_builder import count_tokens
+
+        try:
+            route_decision = decide_context_route(
+                ContextRouteInput(
+                    user_message=raw_user_content,
+                    has_active_question=bool(followup_question_context),
+                    has_active_plan=bool(self._resolve_active_plan_id(request_config, notebook_references)),
+                    notebook_references=_normalize_reference_tokens(notebook_references),
+                    history_references=_normalize_reference_tokens(history_references),
+                    memory_references=(),
+                    explicit_grounding=False,
+                    session_followup_hint=False,
+                    personal_recall_hint=False,
+                )
+            )
+        except Exception as exc:
+            raise _ContextOrchestrationStageError("route_resolver", exc) from exc
+        active_plan_id = self._resolve_active_plan_id(request_config, notebook_references)
+        context_window_tokens = (
+            int(builder.context_window_tokens(llm_config))
+            if hasattr(builder, "context_window_tokens")
+            else max(
+                8192,
+                int(getattr(llm_config, "context_window_tokens", 0) or 0)
+                or int(getattr(llm_config, "max_tokens", 4096) or 4096),
+            )
+        )
+        budget_parts = self._build_context_budget(
+            context_window_tokens=context_window_tokens,
+            output_reserve_tokens=int(getattr(llm_config, "max_tokens", 1024) or 1024),
+            tools_enabled=bool(payload.get("tools") or payload.get("knowledge_bases")),
+            route_label=route_decision.route_label,
+        )
+        try:
+            history_result = await builder.build(
+                session_id=execution.session_id,
+                llm_config=llm_config,
+                language=language,
+                budget_override=budget_parts["session_budget"],
+                on_event=lambda event: self._persist_and_publish(execution, event),
+            )
+        except Exception as exc:
+            raise _ContextOrchestrationStageError("session_history", exc) from exc
+
+        learner_candidates_payload: dict[str, Any] | None = None
+        overlay_payload: dict[str, Any] | None = None
+        compact_memory_context = ""
+        try:
+            if user_id and hasattr(learner_state_service, "build_compact_context"):
+                learner_candidates_payload = learner_state_service.build_context_candidates(
+                    user_id=user_id,
+                    query=raw_user_content,
+                    route=route_decision.route_label,
+                    language=language,
+                )
+            elif user_id:
+                compact_memory_context = learner_state_service.build_context(
+                    user_id=user_id,
+                    language=language,
+                )
+            else:
+                compact_memory_context = memory_service.build_memory_context()
+        except Exception as exc:
+            raise _ContextOrchestrationStageError("learner_state", exc) from exc
+
+        if not user_id and not compact_memory_context:
+            compact_memory_context = memory_service.build_memory_context()
+
+        source_flags_snapshot = {
+            "memory": self._context_source_enabled(request_config, "memory"),
+            "notebook": self._context_source_enabled(request_config, "notebook"),
+            "history": self._context_source_enabled(request_config, "history"),
+            "overlay": self._context_source_enabled(request_config, "overlay"),
+        }
+        if (
+            user_id
+            and source_bot_id
+            and source_flags_snapshot["overlay"]
+        ):
+            try:
+                from deeptutor.services.learner_state import get_bot_learner_overlay_service
+
+                overlay_payload = get_bot_learner_overlay_service().read_overlay(source_bot_id, user_id)
+            except Exception:
+                logger.debug(
+                    "Failed to load bot learner overlay for user %s bot %s",
+                    user_id,
+                    source_bot_id,
+                    exc_info=True,
+                )
+                overlay_payload = None
+
+        notebook_loading_allowed = route_decision.route_label in {
+            "guided_plan_continuation",
+            "notebook_followup",
+            "tool_or_grounding_needed",
+        }
+        history_loading_allowed = route_decision.route_label == "cross_session_recall"
+        target_escalation_level = resolve_target_escalation_level(route_label=route_decision.route_label)
+        loader = ContextSourceLoader(
+            notebook_manager=notebook_manager,
+            session_store=self.store,
+        )
+        notebook_source_candidates: list[Any] = []
+        plan_source_candidates: list[Any] = []
+        history_source_candidates: list[Any] = []
+        if target_escalation_level >= 2:
+            try:
+                if notebook_loading_allowed and source_flags_snapshot["notebook"]:
+                    notebook_source_candidates = loader.load_notebook_candidates(
+                        user_question=raw_user_content,
+                        notebook_references=notebook_references,
+                        max_candidates=3,
+                        max_excerpt_chars=360,
+                    )
+                    plan_source_candidates = loader.load_active_plan_page_candidates(
+                        user_question=raw_user_content,
+                        user_id=user_id,
+                        plan_id=active_plan_id,
+                        max_candidates=3,
+                        max_excerpt_chars=360,
+                    )
+            except Exception as exc:
+                raise _ContextOrchestrationStageError("source_loader:notebook_plan", exc) from exc
+        if target_escalation_level >= 3 and history_loading_allowed and source_flags_snapshot["history"]:
+            try:
+                history_source_candidates = await loader.load_history_candidates(
+                    user_question=raw_user_content,
+                    user_id=user_id,
+                    current_session_id=execution.session_id,
+                    history_references=history_references,
+                    max_candidates=2,
+                    max_excerpt_chars=600,
+                )
+            except Exception as exc:
+                raise _ContextOrchestrationStageError("source_loader:history", exc) from exc
+
+        source_priority = {
+            "current_question": 0,
+            "active_plan": 1,
+            "session_history": 2,
+            "learner_card": 3,
+            "overlay": 4,
+            "notebook": 4,
+            "memory": 5,
+            "history": 6,
+        }
+        source_budgets = {
+            "current_question": budget_parts["anchor_budget"],
+            "active_plan": max(0, min(budget_parts["anchor_budget"], int(budget_parts["evidence_budget"] * 0.7)) or budget_parts["anchor_budget"]),
+            "session_history": budget_parts["session_budget"],
+            "learner_card": budget_parts["learner_budget"],
+            "overlay": max(0, int(budget_parts["evidence_budget"] * 0.45)),
+            "notebook": max(0, int(budget_parts["evidence_budget"] * 0.7)),
+            "memory": max(0, int(budget_parts["evidence_budget"] * 0.55)),
+            "history": max(0, int(budget_parts["evidence_budget"] * (0.8 if route_decision.route_label == "cross_session_recall" else 0.45))),
+        }
+        budget = ContextBudget(
+            total_tokens=budget_parts["effective_input_budget"],
+            block_budgets={
+                ContextBlockType.ANCHOR: budget_parts["anchor_budget"],
+                ContextBlockType.SESSION: budget_parts["session_budget"],
+                ContextBlockType.LEARNER: budget_parts["learner_budget"],
+                ContextBlockType.EVIDENCE: budget_parts["evidence_budget"],
+            },
+            source_budgets=source_budgets,
+            source_priority=source_priority,
+            trace_metadata={
+                "route_confidence": route_decision.confidence,
+                "anchor_confidence": 1.0 if route_decision.task_anchor_type.value != "none" else 0.0,
+                "compression_applied": bool(history_result.conversation_summary),
+                "history_search_applied": False,
+                "cache_hits": [],
+                "fallback_path": "",
+                "target_escalation_level": target_escalation_level,
+                "source_flags": dict(source_flags_snapshot),
+                "token_budget_reserved_output": budget_parts["output_reserve_tokens"],
+                "token_budget_tool_reserve": budget_parts["tool_reserve_tokens"],
+                "token_budget_safety_margin": budget_parts["safety_margin_tokens"],
+            },
+        )
+
+        base_candidates: list[Any] = []
+        level2_candidates: list[Any] = []
+        level3_candidates: list[Any] = []
+        if followup_question_context:
+            anchor_text = _clip_text(_format_followup_question_context(followup_question_context, language=language), limit=max(300, budget_parts["anchor_budget"] * 4))
+            base_candidates.append(
+                ContextCandidate(
+                    candidate_id="active-question",
+                    block=ContextBlockType.ANCHOR,
+                    source_bucket="current_question",
+                    source_type="active_question_context",
+                    source_id=str(followup_question_context.get("question_id", "") or "active-question"),
+                    content=anchor_text,
+                    token_cost=max(1, count_tokens(anchor_text)),
+                    authority=10,
+                    relevance=10,
+                    recency=10,
+                    anchor_alignment=10,
+                    metadata={"title": "Active Question" if not language.startswith("zh") else "当前题目"},
+                )
+            )
+        if history_result.context_text.strip():
+            base_candidates.append(
+                ContextCandidate(
+                    candidate_id="session-history",
+                    block=ContextBlockType.SESSION,
+                    source_bucket="session_history",
+                    source_type="session_history",
+                    source_id=execution.session_id,
+                    content=history_result.context_text,
+                    token_cost=max(1, int(history_result.token_count or count_tokens(history_result.context_text))),
+                    authority=9,
+                    relevance=8,
+                    recency=9,
+                    anchor_alignment=8,
+                    metadata={"title": "Conversation Summary" if not language.startswith("zh") else "会话连续性"},
+                )
+            )
+        if learner_candidates_payload is not None:
+            for index, segment in enumerate(list(learner_candidates_payload.get("learner_candidates") or [])):
+                content = str(segment.get("content", "") or "").strip()
+                if not content:
+                    continue
+                source_tag = str(segment.get("source_tag", "") or "learner_card").strip()
+                base_candidates.append(
+                    ContextCandidate(
+                        candidate_id=f"learner-{source_tag}-{index}",
+                        block=ContextBlockType.LEARNER,
+                        source_bucket="learner_card",
+                        source_type=source_tag,
+                        source_id=user_id or "global-memory",
+                        content=content,
+                        token_cost=max(1, count_tokens(content)),
+                        authority=7 if source_tag != "learner_summary" else 6,
+                        relevance=6,
+                        recency=7,
+                        anchor_alignment=3,
+                        metadata={"source_tag": source_tag, "title": str(segment.get("title", "") or source_tag)},
+                    )
+                )
+            if source_flags_snapshot["memory"]:
+                for index, segment in enumerate(list(learner_candidates_payload.get("memory_candidates") or [])):
+                    content = str(segment.get("content", "") or "").strip()
+                    if not content:
+                        continue
+                    metadata = dict(segment.get("metadata") or {})
+                    level2_candidates.append(
+                        ContextCandidate(
+                            candidate_id=f"memory-{metadata.get('event_id') or index}",
+                            block=ContextBlockType.EVIDENCE,
+                            source_bucket="memory",
+                            source_type="memory_hit",
+                            source_id=str(metadata.get("event_id", "") or index),
+                            content=content,
+                            token_cost=max(1, count_tokens(content)),
+                            authority=4,
+                            relevance=max(1, int(round(float(segment.get("score", 1.0)) * 2))),
+                            recency=6,
+                            anchor_alignment=3,
+                            conflict_risk=1,
+                            metadata={"source_tag": "memory_hit", "title": metadata.get("memory_kind") or "memory_hit", **metadata},
+                        )
+                    )
+        if overlay_payload is not None:
+            effective_overlay = dict(overlay_payload.get("effective_overlay") or {})
+            overlay_candidates_added = 0
+
+            def _append_overlay_candidate(
+                *,
+                suffix: str,
+                block: Any,
+                content: str,
+                title: str,
+                authority: int,
+                relevance: int,
+                recency: int,
+                anchor_alignment: int,
+                conflict_risk: int = 1,
+            ) -> None:
+                nonlocal overlay_candidates_added
+                normalized = str(content or "").strip()
+                if not normalized:
+                    return
+                overlay_candidates_added += 1
+                level2_candidates.append(
+                    ContextCandidate(
+                        candidate_id=f"overlay-{suffix}-{overlay_candidates_added}",
+                        block=block,
+                        source_bucket="overlay",
+                        source_type=f"overlay_{suffix}",
+                        source_id=source_bot_id,
+                        content=normalized,
+                        token_cost=max(1, count_tokens(normalized)),
+                        authority=authority,
+                        relevance=relevance,
+                        recency=recency,
+                        anchor_alignment=anchor_alignment,
+                        conflict_risk=conflict_risk,
+                        metadata={
+                            "title": title,
+                            "source_tag": f"overlay_{suffix}",
+                            "bot_id": source_bot_id,
+                            "user_id": user_id,
+                        },
+                    )
+                )
+
+            local_focus = dict(effective_overlay.get("local_focus") or {})
+            if local_focus:
+                _append_overlay_candidate(
+                    suffix="local_focus",
+                    block=ContextBlockType.LEARNER,
+                    content=json.dumps(local_focus, ensure_ascii=False, indent=2),
+                    title="Bot Local Focus" if not language.startswith("zh") else "Bot 局部 Focus",
+                    authority=5,
+                    relevance=5,
+                    recency=6,
+                    anchor_alignment=4,
+                )
+
+            teaching_policy_override = dict(effective_overlay.get("teaching_policy_override") or {})
+            if teaching_policy_override:
+                _append_overlay_candidate(
+                    suffix="teaching_policy",
+                    block=ContextBlockType.LEARNER,
+                    content=json.dumps(teaching_policy_override, ensure_ascii=False, indent=2),
+                    title="Teaching Policy Override" if not language.startswith("zh") else "教学策略局部覆盖",
+                    authority=4,
+                    relevance=4,
+                    recency=5,
+                    anchor_alignment=3,
+                )
+
+            engagement_state = dict(effective_overlay.get("engagement_state") or {})
+            if engagement_state:
+                _append_overlay_candidate(
+                    suffix="engagement_state",
+                    block=ContextBlockType.LEARNER,
+                    content=json.dumps(engagement_state, ensure_ascii=False, indent=2),
+                    title="Engagement State" if not language.startswith("zh") else "局部互动状态",
+                    authority=3,
+                    relevance=3,
+                    recency=6,
+                    anchor_alignment=2,
+                )
+
+            working_memory_projection = str(effective_overlay.get("working_memory_projection", "") or "").strip()
+            if working_memory_projection:
+                _append_overlay_candidate(
+                    suffix="working_memory",
+                    block=ContextBlockType.EVIDENCE,
+                    content=working_memory_projection,
+                    title="Working Memory Projection" if not language.startswith("zh") else "局部工作记忆投影",
+                    authority=4,
+                    relevance=5,
+                    recency=7,
+                    anchor_alignment=4,
+                )
+
+            active_plan_binding = dict(effective_overlay.get("active_plan_binding") or {})
+            if active_plan_binding:
+                _append_overlay_candidate(
+                    suffix="active_plan_binding",
+                    block=ContextBlockType.EVIDENCE,
+                    content=json.dumps(active_plan_binding, ensure_ascii=False, indent=2),
+                    title="Active Plan Binding" if not language.startswith("zh") else "局部学习计划绑定",
+                    authority=4,
+                    relevance=5,
+                    recency=6,
+                    anchor_alignment=4,
+                )
+
+            local_notebook_scope_refs = list(effective_overlay.get("local_notebook_scope_refs") or [])
+            if local_notebook_scope_refs:
+                _append_overlay_candidate(
+                    suffix="notebook_scope",
+                    block=ContextBlockType.EVIDENCE,
+                    content=json.dumps(local_notebook_scope_refs, ensure_ascii=False, indent=2),
+                    title="Notebook Scope Override" if not language.startswith("zh") else "局部 Notebook 范围",
+                    authority=3,
+                    relevance=4,
+                    recency=5,
+                    anchor_alignment=3,
+                )
+
+            if overlay_candidates_added:
+                budget.trace_metadata["overlay_candidate_count"] = overlay_candidates_added
+                budget.trace_metadata["overlay_fields"] = sorted(
+                    key for key, value in effective_overlay.items() if value not in ({}, [], "")
+                )
+        for index, item in enumerate([*plan_source_candidates, *notebook_source_candidates]):
+            source_bucket = "active_plan" if item.source_kind == "active_plan" else item.source_kind
+            authority_map = {"anchor": 9, "primary": 8, "supporting": 6, "fallback": 4}
+            block = ContextBlockType.EVIDENCE
+            if item.source_kind == "active_plan" and route_decision.route_label == "guided_plan_continuation":
+                block = ContextBlockType.ANCHOR if item.authority in {"anchor", "primary"} else ContextBlockType.EVIDENCE
+            level2_candidates.append(
+                ContextCandidate(
+                    candidate_id=f"{item.source_kind}-{item.fragment_id}-{index}",
+                    block=block,
+                    source_bucket=source_bucket,
+                    source_type=item.source_kind,
+                    source_id=item.source_id,
+                    content=item.content,
+                    token_cost=max(1, int(item.cost_tokens or count_tokens(item.content))),
+                    authority=authority_map.get(item.authority, 4),
+                    relevance=max(1, int(round(float(item.score or 0.0) + 3))),
+                    recency=7 if item.source_kind == "active_plan" else 5,
+                    anchor_alignment=8 if item.source_kind == "active_plan" else 4,
+                    conflict_risk=1 if item.source_kind == "history" else 0,
+                    metadata={"title": item.title, "fragment_kind": item.fragment_kind, **dict(item.metadata or {})},
+                )
+            )
+        for index, item in enumerate(history_source_candidates):
+            level3_candidates.append(
+                ContextCandidate(
+                    candidate_id=f"{item.source_kind}-{item.fragment_id}-{index}",
+                    block=ContextBlockType.EVIDENCE,
+                    source_bucket="history",
+                    source_type=item.source_kind,
+                    source_id=item.source_id,
+                    content=item.content,
+                    token_cost=max(1, int(item.cost_tokens or count_tokens(item.content))),
+                    authority={"anchor": 9, "primary": 8, "supporting": 6, "fallback": 4}.get(item.authority, 4),
+                    relevance=max(1, int(round(float(item.score or 0.0) + 3))),
+                    recency=5,
+                    anchor_alignment=4,
+                    conflict_risk=1,
+                    metadata={"title": item.title, "fragment_kind": item.fragment_kind, **dict(item.metadata or {})},
+                )
+            )
+
+        try:
+            escalation_attempts: list[int] = [1]
+            pack = pack_context_candidates(base_candidates, budget, route=route_decision)
+            escalation_stop_reason = "target_level_reached" if target_escalation_level <= 1 else ""
+            if target_escalation_level >= 2:
+                escalation_attempts.append(2)
+                if level2_candidates:
+                    pack = pack_context_candidates([*base_candidates, *level2_candidates], budget, route=route_decision)
+                elif route_decision.route_label in {"guided_plan_continuation", "notebook_followup", "personal_recall", "tool_or_grounding_needed"}:
+                    escalation_stop_reason = "no_level2_candidates"
+                else:
+                    escalation_stop_reason = "level2_not_required"
+            if target_escalation_level >= 3:
+                escalation_attempts.append(3)
+                if level3_candidates:
+                    pack = pack_context_candidates(
+                        [*base_candidates, *level2_candidates, *level3_candidates],
+                        budget,
+                        route=route_decision,
+                    )
+                    escalation_stop_reason = "target_level_reached"
+                elif not source_flags_snapshot["history"]:
+                    escalation_stop_reason = "source_flag_disabled:history"
+                else:
+                    escalation_stop_reason = "no_level3_candidates"
+            if not escalation_stop_reason:
+                escalation_stop_reason = "target_level_reached"
+            pack.trace_metadata["escalation_attempts"] = escalation_attempts
+            pack.trace_metadata["escalation_stop_reason"] = escalation_stop_reason
+        except Exception as exc:
+            raise _ContextOrchestrationStageError("context_pack", exc) from exc
+        anchor_text = _render_evidence_block(pack.anchor_block.selected_candidates, language=language)
+        evidence_text = _render_evidence_block(pack.evidence_block.selected_candidates, language=language)
+        memory_context = compact_memory_context or _render_memory_context_from_candidates(
+            pack.learner_block.selected_candidates,
+            language=language,
+        )
+        user_sections: list[str] = []
+        if anchor_text:
+            user_sections.append(anchor_text)
+        if evidence_text:
+            user_sections.append(evidence_text)
+        if user_sections:
+            user_sections.append(
+                ("## 当前用户问题" if language.startswith("zh") else "## Current User Question")
+                + f"\n{raw_user_content}"
+            )
+            effective_user_message = "\n\n".join(user_sections)
+        else:
+            effective_user_message = raw_user_content
+
+        notebook_context = _render_evidence_block(
+            [
+                candidate
+                for candidate in pack.evidence_block.selected_candidates
+                if str(getattr(candidate, "source_bucket", "")) in {"notebook", "active_plan"}
+            ],
+            language=language,
+        )
+        history_context = _render_evidence_block(
+            [
+                candidate
+                for candidate in pack.evidence_block.selected_candidates
+                if str(getattr(candidate, "source_bucket", "")) == "history"
+            ],
+            language=language,
+        )
+        history_search_applied = bool(history_context.strip())
+        budget.trace_metadata["history_search_applied"] = history_search_applied
+        pack.trace_metadata["history_search_applied"] = history_search_applied
+        context_trace = build_context_trace_summary(pack, fallback_path="")
+        return {
+            "route_decision": route_decision,
+            "budget": budget,
+            "pack": pack,
+            "context_trace": context_trace,
+            "history_result": history_result,
+            "effective_user_message": effective_user_message,
+            "memory_context": memory_context,
+            "notebook_context": notebook_context,
+            "history_context": history_context,
+        }
+
     async def start_turn(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
         requested_capability = str(payload.get("capability") or "").strip() or None
         capability = requested_capability or "chat"
@@ -614,6 +1345,12 @@ class TurnRuntimeManager:
             "billing_context",
             "interaction_profile",
             "chat_mode_explicit",
+            "context_orchestration_enabled",
+            "context_sources",
+            "active_plan_id",
+            "plan_id",
+            "guide_session_id",
+            "learning_plan_id",
         )
         runtime_only_config = {
             key: raw_config.pop(key)
@@ -871,7 +1608,6 @@ class TurnRuntimeManager:
             from deeptutor.services.learner_state import get_learner_state_service
             from deeptutor.services.memory import get_memory_service
             from deeptutor.services.notebook import notebook_manager
-            from deeptutor.services.tutor_state import get_user_tutor_state_service
             from deeptutor.services.llm.config import get_llm_config
             from deeptutor.services.session.context_builder import ContextBuilder
 
@@ -901,6 +1637,29 @@ class TurnRuntimeManager:
             history_references = payload.get("history_references", []) or []
             notebook_context = ""
             history_context = ""
+            context_pack: Any | None = None
+            context_route: str = ""
+            task_anchor_type: str = ""
+            route_confidence = 0.0
+            try:
+                from deeptutor.services.session.context_router import ContextRouteInput, decide_context_route
+
+                preview_route = decide_context_route(
+                    ContextRouteInput(
+                        user_message=raw_user_content,
+                        has_active_question=bool(followup_question_context),
+                        has_active_plan=bool(self._resolve_active_plan_id(request_config, notebook_references)),
+                        notebook_references=_normalize_reference_tokens(notebook_references),
+                        history_references=_normalize_reference_tokens(history_references),
+                        explicit_grounding=False,
+                        session_followup_hint=False,
+                    )
+                )
+                context_route = preview_route.route_label
+                task_anchor_type = preview_route.task_anchor_type.value
+                route_confidence = float(preview_route.confidence or 0.0)
+            except Exception:
+                logger.debug("Failed to preview context route", exc_info=True)
             trace_metadata["language"] = payload.get("language", "en")
             trace_metadata["chat_mode"] = str(
                 request_config.get("chat_mode")
@@ -908,6 +1667,11 @@ class TurnRuntimeManager:
                 or ""
             ).strip()
             trace_metadata["source"] = str((billing_context or {}).get("source", "") or "").strip()
+            if context_route:
+                trace_metadata["context_route"] = context_route
+            if task_anchor_type:
+                trace_metadata["task_anchor_type"] = task_anchor_type
+                trace_metadata["route_confidence"] = route_confidence
             if followup_question_context:
                 trace_metadata["question_followup_context"] = dict(followup_question_context)
             user_id = str((billing_context or {}).get("user_id", "") or "").strip()
@@ -966,162 +1730,239 @@ class TurnRuntimeManager:
 
                 llm_config = get_llm_config()
                 builder = ContextBuilder(self.store)
-                try:
-                    history_result = await builder.build(
-                        session_id=session_id,
-                        llm_config=llm_config,
-                        language=payload.get("language", "en"),
-                        on_event=lambda event: self._persist_and_publish(execution, event),
-                    )
-                except Exception as exc:
-                    if not self._is_persistence_error(exc):
-                        raise
-                    self._mark_persistence_degraded(execution, "build_context_history", exc)
-                    history_result = SimpleNamespace(
-                        conversation_history=[],
-                        conversation_summary="",
-                        context_text="",
-                        token_count=0,
-                        budget=0,
-                    )
                 memory_service = get_memory_service()
                 learner_state_service = get_learner_state_service()
-                tutor_state_service = get_user_tutor_state_service()
                 user_id = str((billing_context or {}).get("user_id", "") or "").strip()
                 source_bot_id = str(request_config.get("bot_id", "") or "").strip()
-                if user_id:
+
+                history_result = None
+                memory_context = ""
+                effective_user_message = raw_user_content
+                context_trace: dict[str, Any] = {
+                    "fallback_path": "legacy",
+                    "fallback_stage": "legacy_flag",
+                    "fallback_reason": "context_orchestration_disabled",
+                    "escalation_level": 0,
+                }
+                if self._context_orchestration_enabled(request_config):
                     try:
-                        memory_context = learner_state_service.build_context(
+                        orchestrated = await self._build_orchestrated_context_payload(
+                            execution=execution,
+                            raw_user_content=raw_user_content,
+                            payload=payload,
+                            request_config=request_config,
+                            llm_config=llm_config,
+                            builder=builder,
+                            learner_state_service=learner_state_service,
+                            memory_service=memory_service,
+                            notebook_manager=notebook_manager,
                             user_id=user_id,
                             language=str(payload.get("language", "en") or "en"),
+                            source_bot_id=source_bot_id,
+                            followup_question_context=followup_question_context,
+                            interaction_hints=interaction_hints,
+                            notebook_references=notebook_references,
+                            history_references=history_references,
                         )
-                    except Exception:
+                        history_result = orchestrated["history_result"]
+                        context_pack = orchestrated["pack"]
+                        effective_user_message = orchestrated["effective_user_message"]
+                        memory_context = orchestrated["memory_context"]
+                        notebook_context = orchestrated["notebook_context"]
+                        history_context = orchestrated["history_context"]
+                        context_route = orchestrated["route_decision"].route_label
+                        task_anchor_type = orchestrated["route_decision"].task_anchor_type.value
+                        route_confidence = float(orchestrated["route_decision"].confidence or 0.0)
+                        context_trace = dict(orchestrated.get("context_trace") or {})
+                    except _ContextOrchestrationStageError as exc:
                         logger.warning(
-                            "Failed to build learner state context for user %s",
-                            user_id,
+                            "Context orchestration failed at stage %s, falling back to legacy path",
+                            exc.stage,
                             exc_info=True,
                         )
-                        memory_context = memory_service.build_memory_context()
-                else:
-                    memory_context = memory_service.build_memory_context()
+                        context_trace = {
+                            "fallback_path": f"legacy_context_builder:{exc.stage}",
+                            "fallback_stage": exc.stage,
+                            "fallback_reason": exc.cause_type,
+                            "escalation_level": 0,
+                        }
+                    except Exception:
+                        logger.warning("Context orchestration failed, falling back to legacy path", exc_info=True)
+                        context_trace = {
+                            "fallback_path": "legacy_context_builder:unknown",
+                            "fallback_stage": "unknown",
+                            "fallback_reason": "UnexpectedError",
+                            "escalation_level": 0,
+                        }
 
-                if notebook_references:
-                    referenced_records = notebook_manager.get_records_by_references(
-                        notebook_references
-                    )
-                    if referenced_records:
-                        analysis_agent = NotebookAnalysisAgent(
-                            language=str(payload.get("language", "en") or "en")
+                if history_result is None:
+                    try:
+                        history_result = await builder.build(
+                            session_id=session_id,
+                            llm_config=llm_config,
+                            language=payload.get("language", "en"),
+                            on_event=lambda event: self._persist_and_publish(execution, event),
                         )
-                        notebook_context = await analysis_agent.analyze(
-                            user_question=raw_user_content,
-                            records=referenced_records,
-                            emit=lambda event: self._persist_and_publish(execution, event),
+                    except Exception as exc:
+                        if not self._is_persistence_error(exc):
+                            raise
+                        self._mark_persistence_degraded(execution, "build_context_history", exc)
+                        history_result = SimpleNamespace(
+                            conversation_history=[],
+                            conversation_summary="",
+                            context_text="",
+                            token_count=0,
+                            budget=0,
                         )
-
-                if history_references:
-                    history_records: list[dict[str, Any]] = []
-                    for session_ref in history_references:
-                        history_session_id = str(session_ref or "").strip()
-                        if not history_session_id:
-                            continue
-
-                        history_session = await self._safe_store_call(
-                            execution,
-                            "get_history_reference_session",
-                            self.store.get_session,
-                            history_session_id,
-                            default=None,
-                        )
-                        if not history_session:
-                            continue
-
-                        history_messages = await self._safe_store_call(
-                            execution,
-                            "get_history_reference_messages",
-                            self.store.get_messages_for_context,
-                            history_session_id,
-                            default=[],
-                        )
-                        transcript_lines = [
-                            f"## {str(message.get('role', '')).title()}\n{message.get('content', '')}"
-                            for message in history_messages
-                            if str(message.get("content", "") or "").strip()
-                        ]
-                        if not transcript_lines:
-                            continue
-
-                        history_summary = str(
-                            history_session.get("compressed_summary", "") or ""
-                        ).strip()
-                        if not history_summary:
-                            history_summary = _clip_text(
-                                " ".join(
-                                    str(message.get("content", "") or "").strip()
-                                    for message in history_messages[-4:]
-                                    if str(message.get("content", "") or "").strip()
-                                ),
-                                limit=400,
+                    if user_id:
+                        try:
+                            memory_context = learner_state_service.build_context(
+                                user_id=user_id,
+                                language=str(payload.get("language", "en") or "en"),
                             )
-                        if not history_summary:
-                            history_summary = f"{len(history_messages)} messages"
+                        except Exception:
+                            logger.warning(
+                                "Failed to build learner state context for user %s",
+                                user_id,
+                                exc_info=True,
+                            )
+                            memory_context = memory_service.build_memory_context()
+                    else:
+                        memory_context = memory_service.build_memory_context()
 
-                        history_records.append(
-                            {
-                                "id": history_session_id,
-                                "notebook_id": "__history__",
-                                "notebook_name": "History",
-                                "title": str(
-                                    history_session.get("title", "") or "Untitled session"
-                                ),
-                                "summary": history_summary,
-                                "output": "\n\n".join(transcript_lines),
-                                "metadata": {
-                                    "session_id": history_session_id,
-                                    "source": "history",
-                                },
-                            }
+                    if notebook_references and self._context_source_enabled(request_config, "notebook"):
+                        referenced_records = notebook_manager.get_records_by_references(
+                            notebook_references
                         )
+                        if referenced_records:
+                            analysis_agent = NotebookAnalysisAgent(
+                                language=str(payload.get("language", "en") or "en")
+                            )
+                            notebook_context = await analysis_agent.analyze(
+                                user_question=raw_user_content,
+                                records=referenced_records,
+                                emit=lambda event: self._persist_and_publish(execution, event),
+                            )
 
-                    if history_records:
-                        analysis_agent = NotebookAnalysisAgent(
-                            language=str(payload.get("language", "en") or "en")
-                        )
-                        history_context = await analysis_agent.analyze(
-                            user_question=raw_user_content,
-                            records=history_records,
-                            emit=lambda event: self._persist_and_publish(execution, event),
-                        )
-                        if not history_context.strip():
-                            max_fallback_chars = 8000
-                            parts: list[str] = []
-                            total = 0
-                            for record in history_records:
-                                output = record.get("output")
-                                if not output:
-                                    continue
-                                part = f"## Session: {record.get('title', 'Untitled')}\n{output}"
-                                if total + len(part) > max_fallback_chars:
-                                    remaining = max_fallback_chars - total
-                                    if remaining > 100:
-                                        parts.append(part[:remaining] + "\n...(truncated)")
-                                    break
-                                parts.append(part)
-                                total += len(part)
-                            history_context = "\n\n".join(parts)
+                    if history_references and self._context_source_enabled(request_config, "history"):
+                        history_records: list[dict[str, Any]] = []
+                        for session_ref in history_references:
+                            history_session_id = str(session_ref or "").strip()
+                            if not history_session_id:
+                                continue
 
-                effective_user_message = raw_user_content
-                context_parts: list[str] = []
-                if notebook_context:
-                    context_parts.append(f"[Notebook Context]\n{notebook_context}")
-                if history_context:
-                    context_parts.append(f"[History Context]\n{history_context}")
-                if context_parts:
-                    context_parts.append(f"[User Question]\n{raw_user_content}")
-                    effective_user_message = "\n\n".join(context_parts)
+                            history_session = await self._safe_store_call(
+                                execution,
+                                "get_history_reference_session",
+                                self.store.get_session,
+                                history_session_id,
+                                default=None,
+                            )
+                            if not history_session:
+                                continue
+
+                            history_messages = await self._safe_store_call(
+                                execution,
+                                "get_history_reference_messages",
+                                self.store.get_messages_for_context,
+                                history_session_id,
+                                default=[],
+                            )
+                            transcript_lines = [
+                                f"## {str(message.get('role', '')).title()}\n{message.get('content', '')}"
+                                for message in history_messages
+                                if str(message.get("content", "") or "").strip()
+                            ]
+                            if not transcript_lines:
+                                continue
+
+                            history_summary = str(
+                                history_session.get("compressed_summary", "") or ""
+                            ).strip()
+                            if not history_summary:
+                                history_summary = _clip_text(
+                                    " ".join(
+                                        str(message.get("content", "") or "").strip()
+                                        for message in history_messages[-4:]
+                                        if str(message.get("content", "") or "").strip()
+                                    ),
+                                    limit=400,
+                                )
+                            if not history_summary:
+                                history_summary = f"{len(history_messages)} messages"
+
+                            history_records.append(
+                                {
+                                    "id": history_session_id,
+                                    "notebook_id": "__history__",
+                                    "notebook_name": "History",
+                                    "title": str(
+                                        history_session.get("title", "") or "Untitled session"
+                                    ),
+                                    "summary": history_summary,
+                                    "output": "\n\n".join(transcript_lines),
+                                    "metadata": {
+                                        "session_id": history_session_id,
+                                        "source": "history",
+                                    },
+                                }
+                            )
+
+                        if history_records:
+                            analysis_agent = NotebookAnalysisAgent(
+                                language=str(payload.get("language", "en") or "en")
+                            )
+                            history_context = await analysis_agent.analyze(
+                                user_question=raw_user_content,
+                                records=history_records,
+                                emit=lambda event: self._persist_and_publish(execution, event),
+                            )
+                            if not history_context.strip():
+                                max_fallback_chars = 8000
+                                parts: list[str] = []
+                                total = 0
+                                for record in history_records:
+                                    output = record.get("output")
+                                    if not output:
+                                        continue
+                                    part = f"## Session: {record.get('title', 'Untitled')}\n{output}"
+                                    if total + len(part) > max_fallback_chars:
+                                        remaining = max_fallback_chars - total
+                                        if remaining > 100:
+                                            parts.append(part[:remaining] + "\n...(truncated)")
+                                        break
+                                    parts.append(part)
+                                    total += len(part)
+                                history_context = "\n\n".join(parts)
+
+                    context_parts: list[str] = []
+                    if notebook_context:
+                        context_parts.append(f"[Notebook Context]\n{notebook_context}")
+                    if history_context:
+                        context_parts.append(f"[History Context]\n{history_context}")
+                    if context_parts:
+                        context_parts.append(f"[User Question]\n{raw_user_content}")
+                        effective_user_message = "\n\n".join(context_parts)
 
                 conversation_history = list(history_result.conversation_history)
                 conversation_context_text = history_result.context_text
+                trace_metadata.update(
+                    {
+                        "context_route": context_route,
+                        "task_anchor_type": task_anchor_type,
+                        "escalation_level": context_trace.get("escalation_level"),
+                        "route_confidence": route_confidence,
+                        "loaded_sources": list(context_trace.get("loaded_sources", []) or []),
+                        "candidate_sources": list(context_trace.get("candidate_sources", []) or []),
+                        "excluded_sources": list(context_trace.get("excluded_sources", []) or []),
+                        "token_budget_total": context_trace.get("token_budget_total"),
+                        "token_budget_used": context_trace.get("token_budget_used"),
+                        "token_budget_by_source": dict(context_trace.get("token_budget_by_source", {}) or {}),
+                        "compression_applied": context_trace.get("compression_applied"),
+                        "history_search_applied": context_trace.get("history_search_applied"),
+                        "fallback_path": context_trace.get("fallback_path", ""),
+                    }
+                )
 
                 if persist_user_message:
                     await self._safe_store_call(
@@ -1167,6 +2008,20 @@ class TurnRuntimeManager:
                         "notebook_references": notebook_references,
                         "history_references": history_references,
                         "memory_context": memory_context,
+                        "context_route": context_route,
+                        "task_anchor_type": task_anchor_type,
+                        "escalation_level": context_trace.get("escalation_level"),
+                        "route_confidence": route_confidence,
+                        "context_pack_trace": context_trace,
+                        "token_budget_total": context_trace.get("token_budget_total"),
+                        "token_budget_used": context_trace.get("token_budget_used"),
+                        "token_budget_by_source": context_trace.get("token_budget_by_source", {}),
+                        "loaded_sources": context_trace.get("loaded_sources", []),
+                        "candidate_sources": context_trace.get("candidate_sources", []),
+                        "excluded_sources": context_trace.get("excluded_sources", []),
+                        "compression_applied": context_trace.get("compression_applied"),
+                        "history_search_applied": context_trace.get("history_search_applied"),
+                        "fallback_path": context_trace.get("fallback_path", ""),
                     },
                 )
 
@@ -1215,7 +2070,7 @@ class TurnRuntimeManager:
                 )
                 try:
                     if user_id:
-                        await tutor_state_service.refresh_from_turn(
+                        await learner_state_service.refresh_from_turn(
                             user_id=user_id,
                             user_message=raw_user_content,
                             assistant_message=assistant_content,
@@ -1224,6 +2079,46 @@ class TurnRuntimeManager:
                             language=str(payload.get("language", "en") or "en"),
                             source_bot_id=source_bot_id or None,
                         )
+                        if source_bot_id and assistant_content.strip():
+                            try:
+                                from deeptutor.services.learner_state import get_bot_learner_overlay_service
+
+                                operations: list[dict[str, Any]] = [
+                                    {
+                                        "op": "set",
+                                        "field": "working_memory_projection",
+                                        "value": assistant_content.strip()[:500],
+                                    },
+                                    {
+                                        "op": "merge",
+                                        "field": "engagement_state",
+                                        "value": {
+                                            "last_interaction_at": datetime.now().astimezone().isoformat(),
+                                            "last_context_route": str(context_route or "").strip(),
+                                            "last_capability": str(capability_name or "chat").strip(),
+                                        },
+                                    },
+                                ]
+                                if task_anchor_type and task_anchor_type != "none":
+                                    operations.append(
+                                        {
+                                            "op": "merge",
+                                            "field": "local_focus",
+                                            "value": {
+                                                "task_anchor_type": task_anchor_type,
+                                                "last_user_question": raw_user_content.strip()[:160],
+                                            },
+                                        }
+                                    )
+                                get_bot_learner_overlay_service().patch_overlay(
+                                    source_bot_id,
+                                    user_id,
+                                    {"operations": operations},
+                                    source_feature="turn",
+                                    source_id=session_id,
+                                )
+                            except Exception:
+                                logger.debug("Failed to patch bot learner overlay from turn runtime", exc_info=True)
                     else:
                         await memory_service.refresh_from_turn(
                             user_message=raw_user_content,

@@ -107,3 +107,80 @@ def test_list_due_jobs_filters_paused_and_orders_by_next_run(tmp_path) -> None:
     assert due[0].channel == "web"
     assert third.job_id not in {job.job_id for job in due}
 
+
+def test_get_due_jobs_respects_consent_quiet_hours_cooldown_and_negative_feedback(tmp_path) -> None:
+    current = [datetime(2026, 4, 15, 15, 0, tzinfo=timezone.utc)]
+    service = _service(tmp_path, current)
+
+    ready = service.upsert_job(
+        user_id="student_ready",
+        bot_id="bot_alpha",
+        channel="web",
+        policy_json={
+            "enabled": True,
+            "consent": True,
+            "timezone": "UTC",
+            "quiet_hours": ["22:00", "08:00"],
+        },
+        next_run_at=current[0] - timedelta(minutes=10),
+    )
+    service.upsert_job(
+        user_id="student_no_consent",
+        bot_id="bot_alpha",
+        channel="web",
+        policy_json={"enabled": True, "consent": False},
+        next_run_at=current[0] - timedelta(minutes=10),
+    )
+    quiet = service.upsert_job(
+        user_id="student_quiet",
+        bot_id="bot_alpha",
+        channel="web",
+        policy_json={
+            "enabled": True,
+            "consent": True,
+            "timezone": "Asia/Shanghai",
+            "quiet_hours": ["22:00", "08:00"],
+        },
+        next_run_at=current[0] - timedelta(minutes=10),
+    )
+    service.mark_run(
+        job_id=quiet.job_id,
+        next_run_at=quiet.next_run_at,
+        last_result_json={"message": "sent"},
+        failure_count=0,
+        last_run_at="2026-04-15T23:10:00+08:00",
+    )
+
+    cooldown = service.upsert_job(
+        user_id="student_cooldown",
+        bot_id="bot_alpha",
+        channel="web",
+        policy_json={"enabled": True, "consent": True, "cooldown_hours": 4},
+        next_run_at=current[0] - timedelta(minutes=10),
+    )
+    service.mark_run(
+        job_id=cooldown.job_id,
+        next_run_at=cooldown.next_run_at,
+        last_result_json={"message": "sent"},
+        failure_count=0,
+        last_run_at=current[0] - timedelta(hours=1),
+    )
+
+    negative = service.upsert_job(
+        user_id="student_negative",
+        bot_id="bot_alpha",
+        channel="web",
+        policy_json={"enabled": True, "consent": True},
+        next_run_at=current[0] - timedelta(minutes=10),
+    )
+    service.mark_run(
+        job_id=negative.job_id,
+        next_run_at=negative.next_run_at,
+        last_result_json={"feedback_action": "stop"},
+        failure_count=0,
+        last_run_at=current[0] - timedelta(hours=5),
+    )
+
+    current[0] = datetime(2026, 4, 15, 15, 0, tzinfo=timezone.utc)
+    due = service.get_due_jobs(now=current[0])
+    assert [job.job_id for job in due] == [ready.job_id]

@@ -1,6 +1,6 @@
 ---
 name: deep-question
-description: "Generate quiz questions with answers on any topic."
+description: "Generate quiz questions on any topic. Default to questions only unless the user explicitly asks for answers."
 metadata: {"nanobot":{"emoji":"❓","requires":{"bins":["deeptutor"]}}}
 always: false
 ---
@@ -8,6 +8,9 @@ always: false
 # Deep Question (Quiz Generation)
 
 Use the `exec` tool to invoke DeepTutor's quiz generation pipeline (ideation → evaluation → generation → validation).
+默认行为：
+- 用户说“出题 / 考我 / 来一道 / 练习 / 下一题”时，只给题目，不要主动公布答案或解析。
+- 只有用户明确要求“带答案 / 附解析 / 公布答案”时，才展示答案或解析。
 
 ## When to Use
 

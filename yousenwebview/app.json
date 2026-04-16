@@ -14,8 +14,7 @@
     "pages/dyforios/dyforios",
     "pages/wxshop/wxshop",
     "pages/wxshopview/wxshopview",
-    "pages/showpdf/showpdf",
-    "pages/logs/logs"
+    "pages/showpdf/showpdf"
   ],
   "subpackages": [
     {

@@ -1,26 +1,28 @@
 // utils/mcq-detect.js — 从 AI 回复中提取交互式选择题
 
 var OPTION_RE = /^\s*(?:[-*+]\s*)?[(（]?([A-E])[)）.、:：]\s*(.+)\s*$/;
-var STEM_MARKER_RE = /^\s*(?:题目|例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|[\(（]\s*\d+\s*[\)）]|问题)\s*[:：]?\s*$/;
+var STEM_MARKER_RE = /^\s*(?:题目|例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|[\(（]\s*\d+\s*[\)）]|问题)\s*[:：]?\s*$/;
 var MULTI_RE = /多选|不定项|可多选|正确的有|错误的有|哪些说法|下列说法正确的有/;
 var LEAD_IN_RE =
   /^\s*(?:你先选选看.*|选完我.*|先别急着看答案.*|请选择.*|提交后我再告诉你.*)\s*$/;
 var RECEIPT_RE = /<!--QCTX:([A-Za-z0-9_\-+=/]+)-->/;
 var QUESTION_MARKER_PATTERNS = [
-  /^\s*(?:\*\*)?\s*(?:例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+|[\(（]\s*\d+\s*[\)）])\s*[:：]?\s*(?:\*\*)?\s*$/i,
+  /^\s*(?:\*\*)?\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目\s*[一二三四五六七八九十两百零\d]+|[\(（]\s*\d+\s*[\)）])\s*[:：]?\s*(?:\*\*)?\s*$/i,
   /^\s*(?:\*\*)?\s*\d+\s*[.、．]\s+.*$/i,
-  /^\s*(?:\*\*)?\s*(?:例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+)\s*[:：].+$/i,
+  /^\s*(?:\*\*)?\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目\s*[一二三四五六七八九十两百零\d]+)\s*[:：].+$/i,
 ];
 var GENERIC_NUMBERED_QUESTION_RE = /^\s*(?:\*\*)?\d+\s*[.、．]\s+.*$/i;
 var QUESTION_LINE_RE =
-  /^\s*(?:例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])(?:\s*[（(][^()（）]{0,40}[)）])?\s*(?:[:：]\s*.*)?$/i;
+  /^\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目\s*[一二三四五六七八九十两百零\d]+|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])(?:\s*[（(][^()（）]{0,40}[)）])?\s*(?:[:：]\s*.*)?$/i;
 var INLINE_QUESTION_MARKER_RE =
-  /(?:\*\*)?\s*(?:例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])\s*[:：]?\s*(?:\*\*)?/i;
+  /(?:\*\*)?\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目\s*[一二三四五六七八九十两百零\d]+|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])\s*[:：]?\s*(?:\*\*)?/i;
 var PRACTICE_NOTICE_MARKERS = [
   "当前题库里暂无与",
   "你要 ",
   "我先给你出一组同专题相关题训练。",
 ];
+var ANSWER_CONTEXT_LINE_RE =
+  /^(?:第\s*[一二三四五六七八九十两百零\d]+\s*[题道](?:的)?答案|答案(?:与核心解析|与解析|解析)?|参考答案|正确答案|判断依据|解析思路|踩分点|得分点|评分点|采分点)\s*[：:]?$/i;
 var ANSWER_SECTION_MARKERS = [
   "答案与核心解析",
   "答案与解析",
@@ -149,13 +151,13 @@ function _collectStemFragments(stem) {
     push(cleaned);
     push(
       cleaned.replace(
-        /^\s*(?:题目|第\s*[一二三四五六七八九十\d]+\s*[题道]|[\(（]\s*\d+\s*[\)）]|问题)\s*[:：]?\s*/,
+        /^\s*(?:题目|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|[\(（]\s*\d+\s*[\)）]|问题)\s*[:：]?\s*/,
         "",
       ),
     );
     push(
       cleaned.replace(
-        /^\s*(?:例题\s*\d+)\s*[:：]?\s*/,
+        /^\s*(?:例题\s*[一二三四五六七八九十两百零\d]+)\s*[:：]?\s*/,
         "",
       ),
     );
@@ -256,6 +258,22 @@ function _findQuestionStartIndexes(lines) {
   return indexes;
 }
 
+function _hasQuestionMarker(lines) {
+  for (var i = 0; i < lines.length; i++) {
+    if (_isQuestionMarkerLine(lines[i])) return true;
+  }
+  return false;
+}
+
+function _hasStrongAnswerContext(lines) {
+  for (var i = 0; i < lines.length; i++) {
+    var text = _normalizeQuestionLine(lines[i]).replace(/^\*+|\*+$/g, "").trim();
+    if (!text) continue;
+    if (ANSWER_CONTEXT_LINE_RE.test(text)) return true;
+  }
+  return false;
+}
+
 function _splitQuestionBlocks(lines) {
   var starts = _findQuestionStartIndexes(lines);
   if (starts.length < 2) return [];
@@ -294,7 +312,7 @@ function _stripStemMarker(stem) {
   if (!lines.length) return _trim(stem);
 
   var markerRe =
-    /^\s*(?:例题\s*\d+|第\s*[一二三四五六七八九十\d]+\s*[题道]|题目\s*\d+|[\(（]\s*\d+\s*[\)）])(?:\s*[（(][^()（）]+[)）])?\s*[:：]?\s*/;
+    /^\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目\s*[一二三四五六七八九十两百零\d]+|[\(（]\s*\d+\s*[\)）])(?:\s*[（(][^()（）]+[)）])?\s*[:：]?\s*/;
   var first = _normalizeQuestionLine(lines[0]).replace(/^\*+|\*+$/g, "").trim();
   var strippedFirst = first.replace(markerRe, "").trim();
   if (_isQuestionMarkerLine(first)) {
@@ -310,6 +328,9 @@ function _detectOne(raw, index) {
   if (!parsed.options) return null;
 
   var prefixLines = lines.slice(0, parsed.firstIndex);
+  if (!_hasQuestionMarker(prefixLines) && _hasStrongAnswerContext(prefixLines)) {
+    return null;
+  }
   var suffixLines = lines.slice(parsed.lastIndex + 1).filter(function (line) {
     return !LEAD_IN_RE.test(line);
   });
@@ -354,6 +375,30 @@ function detect(text) {
   if (!raw) return null;
 
   var lines = raw.split("\n");
+  var starts = _findQuestionStartIndexes(lines);
+  if (starts.length === 1) {
+    var prefix = _trim(lines.slice(0, starts[0]).join("\n"));
+    var focusedRaw = _stripAnswerSection(_trim(lines.slice(starts[0]).join("\n")));
+    var focused = _detectOne(focusedRaw, 1);
+    if (focused) {
+      var focusedDisplayParts = [];
+      if (prefix) focusedDisplayParts.push(prefix);
+      if (focused.displayText) focusedDisplayParts.push(focused.displayText);
+      return {
+        stem: focused.stem,
+        displayText: focusedDisplayParts.join("\n\n"),
+        options: focused.options,
+        questionType: focused.questionType,
+        receipt: extracted.receipt,
+        questions: [focused],
+        total: 1,
+        submitHint:
+          focused.questionType === "multi_choice"
+            ? "多选题，先点选，再提交答案。"
+            : "单选题，先点选，再提交答案。",
+      };
+    }
+  }
   var blocks = _splitQuestionBlocks(lines);
   var questions = [];
 

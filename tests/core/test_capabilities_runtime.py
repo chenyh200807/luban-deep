@@ -492,6 +492,7 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     assert captured["send"]["session_metadata"]["default_tools"] == ["rag"]
     assert captured["send"]["session_metadata"]["knowledge_bases"] == ["construction-exam"]
     assert captured["send"]["session_metadata"]["default_kb"] == "construction-exam"
+    assert captured["send"]["session_metadata"]["suppress_answer_reveal_on_generate"] is True
     assert "construction-knowledge" in captured["send"]["session_metadata"]["kb_aliases"]
     assert "construction-exam-tutor" in captured["send"]["session_metadata"]["kb_aliases"]
     assert any(event.type == StreamEventType.PROGRESS for event in events)
@@ -502,6 +503,88 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["response"] == "TutorBot"
     assert result_event.metadata["execution_engine"] == "tutorbot_runtime"
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_capability_emits_structured_mcq_summary_for_plain_text_generation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            return "\n".join(
+                [
+                    "下面给你两道题。",
+                    "",
+                    "题目一：建筑构造",
+                    "防火门构造的基本要求有（ ）。",
+                    "A. 甲级防火门耐火极限为 1.5h",
+                    "B. 向内开启",
+                    "C. 关闭后应能从内外两侧手动开启",
+                    "D. 具有自行关闭功能",
+                    "E. 开启后，门扇不应跨越变形缝",
+                    "",
+                    "题目二：屋面工程",
+                    "倒置式屋面保温层应设置在（ ）。",
+                    "A. 找平层下",
+                    "B. 防水层上",
+                    "C. 结构层上",
+                    "D. 保护层下",
+                ]
+            )
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-1",
+        user_message="我想练习建筑构造相关的题目",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
+        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    summary = result_event.metadata.get("summary")
+    assert isinstance(summary, dict)
+    assert len(summary["results"]) == 2
+    assert summary["results"][0]["qa_pair"]["multi_select"] is True
+    followup_context = result_event.metadata.get("question_followup_context")
+    assert isinstance(followup_context, dict)
+    assert len(followup_context["items"]) == 2
 
 
 @pytest.mark.asyncio
@@ -1023,6 +1106,95 @@ async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
     assert "3335.40 万元" in content
     assert captured["tool_calls"] == [("rag", {"query": "背景资料：某旧城改造工程。问题：1. 通常进行资格预审的工程有哪些特点？2. 管理策划内容还有哪些？4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？", "kb_name": "construction-exam"})]
     assert captured["tool_results"][0][2]["authority_applied"] is True
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_agent_loop_skips_exact_authority_for_practice_generation(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class PracticeOnlyProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            if on_content_delta is not None:
+                await on_content_delta("下面这道题你先自己做：")
+            return LLMResponse(content="下面这道题你先自己做：\n某双代号网络计划中，关键线路的特点是什么？")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class ExactAuthorityTool(Tool):
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "should not be called for practice generation"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "kb_name": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            raise AssertionError("Exact-authority RAG fast path should be skipped for practice generation.")
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=PracticeOnlyProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(ExactAuthorityTool())
+
+    content = await loop.process_direct(
+        "考我一道关键线路的题，不要给答案",
+        metadata={
+            "default_kb": "construction-exam",
+            "suppress_answer_reveal_on_generate": True,
+        },
+    )
+
+    assert "关键线路的特点是什么" in content
+    assert "答案" not in content
 
 
 @pytest.mark.asyncio

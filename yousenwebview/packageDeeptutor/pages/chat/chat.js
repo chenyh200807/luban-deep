@@ -144,6 +144,10 @@ Page({
   _inputText: "",
   _flushCount: 0,
   _convId: null,
+  _messageIndexMap: Object.create(null),
+  _sessionPersistTimer: null,
+  _historyCacheTimer: null,
+  _pendingHistoryTitle: "",
   _observer: null, // IntersectionObserver 用于懒解析 Markdown
   _visibleSet: {}, // 当前可见消息 id 集合
   _autoScrollEnabled: true,
@@ -268,9 +272,11 @@ Page({
     // [FIX] 切后台时不中断流式会话，只暂停 observer 降低内存开销。
     // 切回 onShow 时流式输出继续，避免用户切 app 后内容断掉。
     // 只有 onUnload（页面销毁）才调 _stop() 中断连接。
+    this._flushDeferredWrites();
     this._teardownObserver();
   },
   onUnload: function () {
+    this._flushDeferredWrites();
     this._stop();
     this._teardownObserver();
   },
@@ -329,6 +335,106 @@ Page({
       this._observer = null;
     }
     this._visibleSet = {};
+  },
+
+  _syncMessageIndexMap: function (msgs) {
+    var map = Object.create(null);
+    var list = Array.isArray(msgs) ? msgs : [];
+    for (var i = 0; i < list.length; i++) {
+      var msg = list[i];
+      if (!msg || msg.id === undefined || msg.id === null) continue;
+      map[msg.id] = i;
+    }
+    this._messageIndexMap = map;
+    return map;
+  },
+
+  _flushSessionPersist: function () {
+    if (this._sessionPersistTimer) {
+      clearTimeout(this._sessionPersistTimer);
+      this._sessionPersistTimer = null;
+    }
+    if (!this._sid || !this._convId) return;
+    wx.setStorageSync("current_session_id", this._sid);
+    wx.setStorageSync("current_session_ts", Date.now());
+  },
+
+  _scheduleSessionPersist: function (immediate) {
+    if (!this._sid || !this._convId) return;
+    if (immediate) {
+      this._flushSessionPersist();
+      return;
+    }
+    var self = this;
+    if (this._sessionPersistTimer) {
+      clearTimeout(this._sessionPersistTimer);
+    }
+    this._sessionPersistTimer = setTimeout(function () {
+      self._sessionPersistTimer = null;
+      if (!self._sid || !self._convId) return;
+      wx.setStorageSync("current_session_id", self._sid);
+      wx.setStorageSync("current_session_ts", Date.now());
+    }, 1200);
+  },
+
+  _flushHistoryCachePersist: function () {
+    if (this._historyCacheTimer) {
+      clearTimeout(this._historyCacheTimer);
+      this._historyCacheTimer = null;
+    }
+    if (!this._pendingHistoryTitle || !this._convId) {
+      this._pendingHistoryTitle = "";
+      return;
+    }
+    try {
+      var cacheKey = "history_cache";
+      var cached = wx.getStorageSync(cacheKey);
+      if (cached && cached.groups) {
+        var found = false;
+        for (var i = 0; i < cached.groups.length; i++) {
+          var group = cached.groups[i];
+          var items = (group && group.items) || [];
+          for (var j = 0; j < items.length; j++) {
+            var item = items[j];
+            if (item && item.id === this._convId) {
+              item.title = this._pendingHistoryTitle;
+              found = true;
+            }
+          }
+        }
+        if (found) wx.setStorageSync(cacheKey, cached);
+      }
+    } catch (_) {}
+    this._pendingHistoryTitle = "";
+  },
+
+  _scheduleHistoryCachePersist: function (title) {
+    if (!title || !this._convId) return;
+    this._pendingHistoryTitle = title;
+    var self = this;
+    if (this._historyCacheTimer) {
+      clearTimeout(this._historyCacheTimer);
+    }
+    this._historyCacheTimer = setTimeout(function () {
+      self._flushHistoryCachePersist();
+    }, 300);
+  },
+
+  _flushDeferredWrites: function () {
+    this._flushSessionPersist();
+    this._flushHistoryCachePersist();
+  },
+
+  _cancelDeferredWrites: function () {
+    if (this._sessionPersistTimer) {
+      clearTimeout(this._sessionPersistTimer);
+      this._sessionPersistTimer = null;
+    }
+    if (this._historyCacheTimer) {
+      clearTimeout(this._historyCacheTimer);
+      this._historyCacheTimer = null;
+    }
+    this._pendingHistoryTitle = "";
   },
 
   _lazyParseBlocks: function (msgId) {
@@ -592,9 +698,19 @@ Page({
 
   _find: function (id) {
     if (id === null) return -1;
-    var msgs = this.data.messages;
-    for (var i = 0; i < msgs.length; i++) {
-      if (msgs[i].id === id) return i;
+    var map = this._messageIndexMap || Object.create(null);
+    var idx = map[id];
+    if (idx !== undefined) {
+      var msgs = this.data.messages;
+      if (msgs[idx] && msgs[idx].id === id) return idx;
+    }
+    var list = this.data.messages;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) {
+        map[id] = i;
+        this._messageIndexMap = map;
+        return i;
+      }
     }
     return -1;
   },
@@ -747,9 +863,9 @@ Page({
     if (!cards.length) return null;
     return {
       cards: cards,
-      hint: "当前题卡缺少原始上下文，仅供查看；如需作答，请让 AI 重新出题。",
+      hint: "这是从题面文本识别出的选择题，可先点选答案，再让 AI 判断并讲解。",
       receipt: detected && detected.receipt ? detected.receipt : "",
-      interactiveReady: false,
+      interactiveReady: true,
     };
   },
 
@@ -761,6 +877,46 @@ Page({
         keys.push(card.options[i].key);
     }
     return keys.sort();
+  },
+
+  _buildFallbackMcqJudgePrompt: function (cards, selections) {
+    var items = Array.isArray(cards) ? cards : [];
+    if (!items.length || !Array.isArray(selections) || !selections.length) return "";
+
+    var questionBlocks = [];
+    for (var i = 0; i < items.length; i++) {
+      var card = items[i];
+      if (!card) continue;
+      var selectedKeys = this._selectedMcqKeys(card);
+      if (!selectedKeys.length) continue;
+
+      var lines = [];
+      lines.push("第" + (card.index || i + 1) + "题：");
+      lines.push(card.stem || "请选择正确选项");
+
+      var opts = Array.isArray(card.options) ? card.options : [];
+      for (var j = 0; j < opts.length; j++) {
+        var opt = opts[j];
+        if (!opt || !opt.key) continue;
+        lines.push(String(opt.key).toUpperCase() + ". " + (opt.text || ""));
+      }
+
+      lines.push("我的答案：" + selectedKeys.join("、"));
+      questionBlocks.push(lines.join("\n"));
+    }
+
+    if (!questionBlocks.length) return "";
+    if (questionBlocks.length === 1) {
+      return (
+        "请根据你刚才出的这道选择题，判断我选得对不对，并给出正确答案与简明解析。\n\n" +
+        questionBlocks[0]
+      );
+    }
+
+    return (
+      "请根据你刚才出的这些选择题，逐题判断我选得对不对，并按“第N题：是否正确 / 正确答案 / 简明解析”的格式回复。\n\n" +
+      questionBlocks.join("\n\n")
+    );
   },
 
   _buildMcqSubmitPayload: function (cards) {
@@ -813,7 +969,6 @@ Page({
       }
     }
     if (!selections.length) return null;
-    if (missingContext) return { error: "missing_context" };
     var rows = [];
     for (var k = 0; k < selections.length; k++) {
       rows.push("第" + selections[k].index + "题：" + selections[k].keys.join("、"));
@@ -860,6 +1015,16 @@ Page({
       selections.length === 1 && followupQuestionContext
         ? "我选" + selections[0].keys.join("、")
         : rows.join("；");
+    if (missingContext) {
+      return {
+        text: this._buildFallbackMcqJudgePrompt(items, selections),
+        structuredSubmitContext: {
+          questions: structuredQuestions,
+          answers: structuredAnswers,
+        },
+        followupQuestionContext: null,
+      };
+    }
     return {
       text: text,
       structuredSubmitContext: {
@@ -1143,8 +1308,7 @@ Page({
 
     if (self._convId && !self._sid) {
       self._sid = self._convId;
-      wx.setStorageSync("current_session_id", self._sid);
-      wx.setStorageSync("current_session_ts", Date.now());
+      self._scheduleSessionPersist(true);
     }
 
     // 首次发消息时先创建对话，后续复用同一个 _convId
@@ -1167,8 +1331,7 @@ Page({
           self._convId = conv.id;
           self._sid = conv.id; // conversation_id 同时用作 session_id
           // [FIX-SESSION-2] 立即持久化（含时间戳），防止刷新/重启后丢失
-          wx.setStorageSync("current_session_id", conv.id);
-          wx.setStorageSync("current_session_ts", Date.now());
+          self._scheduleSessionPersist(true);
           self._doSend(query, extraOpts);
         })
         .catch(function () {
@@ -1196,8 +1359,8 @@ Page({
       return;
     }
 
-    // 每次发消息刷新时间戳，保持活跃对话不过期
-    wx.setStorageSync("current_session_ts", Date.now());
+    // 每次发消息只做低频续期，避免把同步落盘放到高频流式路径里
+    self._scheduleSessionPersist(false);
 
     var userMsg = { id: "u" + self._counter++, role: "user", content: query };
     var aiMsg = {
@@ -1243,6 +1406,7 @@ Page({
       existing = existing.slice(existing.length - (MAX_MESSAGES - 2));
     }
     var msgs = existing.concat([userMsg, aiMsg]);
+    self._syncMessageIndexMap(msgs);
     if (inferTitleOnStart) {
       analytics.track("deeptutor_first_question_start", {
         conversation_id: self._convId || self._sid || "",
@@ -1324,22 +1488,7 @@ Page({
         onUpdatedTitle: function (title) {
           // [FIX 2026-04-01] 服务端流式推送会话标题 → 同步更新 history 缓存
           if (!title) return;
-          try {
-            var cacheKey = "history_cache";
-            var cached = wx.getStorageSync(cacheKey);
-            if (cached && cached.groups) {
-              var found = false;
-              cached.groups.forEach(function (g) {
-                g.items.forEach(function (c) {
-                  if (c.id === self._convId) {
-                    c.title = title;
-                    found = true;
-                  }
-                });
-              });
-              if (found) wx.setStorageSync(cacheKey, cached);
-            }
-          } catch (_) {}
+          self._scheduleHistoryCachePersist(title);
         },
         onResult: function () {},
         onWorkflowStep: function () {},
@@ -1353,8 +1502,7 @@ Page({
     self._convId = convId;
     self._sid = convId;
     // [FIX-SESSION-3] 恢复历史对话时同步持久化（含时间戳）
-    wx.setStorageSync("current_session_id", convId);
-    wx.setStorageSync("current_session_ts", Date.now());
+    self._scheduleSessionPersist(true);
     api
       .getConversationMessages(convId)
       .then(function (raw) {
@@ -1428,6 +1576,7 @@ Page({
           return msg;
         });
         self._counter = counter;
+        self._syncMessageIndexMap(msgs);
         self.setData({
           messages: msgs,
           hasMessages: msgs.length > 0,
@@ -1484,10 +1633,12 @@ Page({
       chatScrollWithAnimation: false,
     });
     this._syncWorkspaceChrome({ hasMessages: false });
+    this._cancelDeferredWrites();
     this._sid = "s_" + Date.now();
     this._convId = null;
     this._streamId = null;
     this._firstAnswerPending = false;
+    this._messageIndexMap = Object.create(null);
     // [FIX-SESSION-4] 用户主动清除对话时清除持久化
     wx.removeStorageSync("current_session_id");
     wx.removeStorageSync("current_session_ts");
@@ -1557,13 +1708,6 @@ Page({
     var payload = this._buildMcqSubmitPayload(msg.mcqCards || []);
     if (!payload) {
       wx.showToast({ title: "请先选择答案", icon: "none" });
-      return;
-    }
-    if (payload.error === "missing_context") {
-      wx.showToast({
-        title: "题目上下文缺失，请让 AI 重新出题后再作答",
-        icon: "none",
-      });
       return;
     }
     helpers.vibrate("medium");
@@ -1757,9 +1901,7 @@ Page({
 
   onCopy: function (e) {
     helpers.vibrate("light");
-    var msg = this.data.messages.find(function (m) {
-      return m.id === e.currentTarget.dataset.msgid;
-    });
+    var msg = this._getMessageById(e.currentTarget.dataset.msgid);
     if (msg) wx.setClipboardData({ data: msg.content });
   },
 
@@ -1775,9 +1917,7 @@ Page({
 
   onEdit: function (e) {
     helpers.vibrate("light");
-    var msg = this.data.messages.find(function (m) {
-      return m.id === e.currentTarget.dataset.msgid;
-    });
+    var msg = this._getMessageById(e.currentTarget.dataset.msgid);
     if (msg) {
       this._inputText = msg.content;
       this.setData({ inputText: msg.content });
@@ -1789,13 +1929,7 @@ Page({
     helpers.vibrate("medium");
     var msgid = e.currentTarget.dataset.msgid;
     var msgs = this.data.messages;
-    var aiIdx = -1;
-    for (var i = 0; i < msgs.length; i++) {
-      if (msgs[i].id === msgid) {
-        aiIdx = i;
-        break;
-      }
-    }
+    var aiIdx = this._find(msgid);
     if (aiIdx <= 0) return;
     // 找到这条 AI 消息前面的用户消息
     var userMsg = null;
@@ -1808,6 +1942,7 @@ Page({
     if (!userMsg) return;
     // 移除旧的 AI 回复，重新发送
     var newMsgs = msgs.slice(0, aiIdx);
+    this._syncMessageIndexMap(newMsgs);
     this.setData({ messages: newMsgs });
     this._send(userMsg.content);
   },
@@ -1915,5 +2050,11 @@ Page({
       comment: comment || "",
       answer_mode: this.data.answerMode || "AUTO",
     });
+  },
+
+  _getMessageById: function (id) {
+    var idx = this._find(id);
+    if (idx === -1) return null;
+    return this.data.messages[idx] || null;
   },
 });

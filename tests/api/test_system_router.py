@@ -53,6 +53,11 @@ def test_turn_contract_endpoint_exposes_unified_schema() -> None:
     assert "tool_calls" in body["trace_fields"]
     assert "sources" in body["trace_fields"]
     assert "authority_applied" in body["trace_fields"]
+    assert "context_route" in body["trace_fields"]
+    assert "task_anchor_type" in body["trace_fields"]
+    assert "escalation_level" in body["trace_fields"]
+    assert "loaded_sources" in body["trace_fields"]
+    assert "token_budget_total" in body["trace_fields"]
     assert body["docs"]["contract"] == "/CONTRACT.md"
     assert body["docs"]["guide"] == "/docs/zh/guide/unified-turn-contract.md"
 

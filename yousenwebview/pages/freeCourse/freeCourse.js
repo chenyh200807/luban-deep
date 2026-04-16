@@ -94,6 +94,7 @@ Component({
     selectedSubjectLabel: '建筑实务',
     currentCourseCount: 0,
     featuredCourseTitle: '',
+    heroAnniversaryAnim: {},
     deeptutorEntryEnabled: true,
     deeptutorEntryVisible: true,
     deeptutorEntryConfig: {
@@ -135,15 +136,84 @@ Component({
         project: this.data.multiArray[0][this.data.multiIndex[0]]
       };
     },
-    refreshSelectionSummary: function() {
-      const majorIndex = this.data.multiIndex[0] || 0;
-      const subjectIndex = this.data.multiIndex[1] || 0;
-      const majorList = this.data.multiArray[0] || [];
-      const subjectList = this.data.multiArray[1] || [];
-      this.setData({
+    getSelectionSummary: function(multiArray, multiIndex) {
+      const nextMultiArray = Array.isArray(multiArray) ? multiArray : this.data.multiArray;
+      const nextMultiIndex = Array.isArray(multiIndex) ? multiIndex : this.data.multiIndex;
+      const majorIndex = Number(nextMultiIndex[0]) || 0;
+      const subjectIndex = Number(nextMultiIndex[1]) || 0;
+      const majorList = nextMultiArray[0] || [];
+      const subjectList = nextMultiArray[1] || [];
+      return {
         selectedMajorLabel: majorList[majorIndex] || majorList[0] || '',
         selectedSubjectLabel: subjectList[subjectIndex] || subjectList[0] || ''
+      };
+    },
+    getPickerVisualState: function(isExpanded) {
+      var animation = wx.createAnimation({
+        duration: 300,
+        timingFunction: 'linear'
       });
+      animation.rotate(isExpanded ? 180 : 0).step();
+      return {
+        rotationAnim: animation.export(),
+        imageUrl: isExpanded ? '/images/icon/play_icon_02_1.png' : '/images/icon/play_icon_02.png'
+      };
+    },
+    getHeroAnniversaryAnimation: function(isVisible) {
+      var animation = wx.createAnimation({
+        duration: 760,
+        timingFunction: 'ease-out'
+      });
+      if (isVisible) {
+        animation.opacity(1).translateY(0).translateX(0).scale(1.08).step();
+        animation.scale(0.98).step({
+          duration: 180,
+          timingFunction: 'ease-out'
+        });
+        animation.scale(1).step({
+          duration: 180,
+          timingFunction: 'ease-out'
+        });
+      } else {
+        animation.opacity(0).translateY(96).translateX(44).scale(0.58).step();
+      }
+      return animation.export();
+    },
+    resetHeroAnniversaryState: function() {
+      this._heroAnniversaryPlayed = false;
+      if (this.heroAnniversaryTimer) {
+        clearTimeout(this.heroAnniversaryTimer);
+        this.heroAnniversaryTimer = null;
+      }
+      this.setData({
+        heroAnniversaryAnim: this.getHeroAnniversaryAnimation(false)
+      });
+    },
+    maybeTriggerHeroAnniversary: function(scrollTop) {
+      if (this._heroAnniversaryPlayed || this.data.showModal) {
+        return;
+      }
+      if (Number(scrollTop) < 18) {
+        return;
+      }
+      this.playHeroAnniversaryEntrance(0);
+    },
+    playHeroAnniversaryEntrance: function(delay) {
+      if (this.heroAnniversaryTimer) {
+        clearTimeout(this.heroAnniversaryTimer);
+        this.heroAnniversaryTimer = null;
+      }
+      this._heroAnniversaryPlayed = true;
+      this.setData({
+        heroAnniversaryAnim: this.getHeroAnniversaryAnimation(false)
+      });
+      const entranceDelay = typeof delay === 'number' ? delay : 360;
+      this.heroAnniversaryTimer = setTimeout(() => {
+        this.setData({
+          heroAnniversaryAnim: this.getHeroAnniversaryAnimation(true)
+        });
+        this.heroAnniversaryTimer = null;
+      }, entranceDelay);
     },
     updateGratisCoursePromotion: function(res) {
       this.setData({
@@ -327,81 +397,49 @@ Component({
       });
     },
     rotateImage: function() {
-      var animation = wx.createAnimation({
-        duration: 300,  // 动画持续时间，单位ms
-        timingFunction: 'linear'  // 线性动画
-      });
-      animation.rotate(180).step();  // 旋转360度
-      this.setData({
-        rotationAnim: animation.export(),
-        imageUrl: '/images/icon/play_icon_02_1.png'
-      });
+      this.setData(this.getPickerVisualState(true));
     },
     stopRotateImage: function() {
-      var animation = wx.createAnimation();
-      animation.rotate(0).step();  // 旋转到初始状态
-      this.setData({
-        rotationAnim: animation.export(),
-        imageUrl: '/images/icon/play_icon_02.png'
-      });
+      this.setData(this.getPickerVisualState(false));
     },
-    
+
     bindMultiPickerChange: function (e) {
-      this.stopRotateImage();
-      this.setData({
-        multiIndex: e.detail.value
-      })
-      this.refreshSelectionSummary();
-      if(this.data.multiArray[0][e.detail.value[0]] == undefined){
-        this.data.multiArray[0][e.detail.value[0]] = Object.keys(this.data.allmajor)[0];
-      }
-      this.data.subject_id = this.data.allmajor[this.data.multiArray[0][e.detail.value[0]]][this.data.multiArray[1][e.detail.value[1]]];
-      this.data.cate_id = 4;
+      const nextMultiIndex = e.detail.value;
+      const nextMajorList = this.data.multiArray[0] || [];
+      const nextSubjectList = this.data.multiArray[1] || [];
+      const fallbackMajor = Object.keys(this.data.allmajor)[0];
+      const majorName = nextMajorList[nextMultiIndex[0]] || fallbackMajor;
+      const subjectName = nextSubjectList[nextMultiIndex[1]] || nextSubjectList[0] || '';
+      const subjectId = (this.data.allmajor[majorName] || {})[subjectName] || 0;
       this.gratisCourseHasMore = true;
+      this.setData(Object.assign({
+        multiIndex: nextMultiIndex,
+        subject_id: subjectId,
+        cate_id: 4
+      }, this.getSelectionSummary(this.data.multiArray, nextMultiIndex), this.getPickerVisualState(false)));
       this.getGratisCourse({
         reset: true
       })
     },
     bindMultiPickerColumnChange: function (e) {
-      this.rotateImage();
-      var data = {
-        multiArray: this.data.multiArray,
-        multiIndex: this.data.multiIndex
-      };
-
-    data.multiIndex[e.detail.column] = e.detail.value;
-      switch (e.detail.column) {
-        case 0:
-          switch (data.multiIndex[0]) {
-            case 0:
-              data.multiArray[1] = Object.keys(this.data.allmajor[data.multiArray[0][data.multiIndex[0]]]);
-              break;
-            case 1:
-              data.multiArray[1] = Object.keys(this.data.allmajor[data.multiArray[0][data.multiIndex[0]]]);
-              break;
-            case 2:
-              data.multiArray[1] = Object.keys(this.data.allmajor[data.multiArray[0][data.multiIndex[0]]]);
-              break;
-            case 3:
-              data.multiArray[1] = Object.keys(this.data.allmajor[data.multiArray[0][data.multiIndex[0]]]);
-              break;
-            case 4:
-              data.multiArray[1] = Object.keys(this.data.allmajor[data.multiArray[0][data.multiIndex[0]]]);
-              break;
-            case 5:
-              data.multiArray[1] = Object.keys(this.data.allmajor[data.multiArray[0][data.multiIndex[0]]]);
-              break;
-            case 6:
-              data.multiArray[1] = Object.keys(this.data.allmajor[data.multiArray[0][data.multiIndex[0]]]);
-              break;
-            case 7:
-              data.multiArray[1] = Object.keys(this.data.allmajor[data.multiArray[0][data.multiIndex[0]]]);
-              break;
-          }
-          break;
+      var multiArray = [
+        (this.data.multiArray[0] || []).slice(),
+        (this.data.multiArray[1] || []).slice()
+      ];
+      var multiIndex = (this.data.multiIndex || [0, 0]).slice();
+      multiIndex[e.detail.column] = e.detail.value;
+      if (e.detail.column === 0) {
+        const majorName = multiArray[0][multiIndex[0]] || Object.keys(this.data.allmajor)[0];
+        multiArray[1] = Object.keys(this.data.allmajor[majorName] || {});
+        multiIndex[1] = 0;
       }
-      this.setData(data);
-      this.refreshSelectionSummary();
+      if (multiIndex[1] >= multiArray[1].length) {
+        multiIndex[1] = 0;
+      }
+      this.setData(Object.assign({
+        multiArray: multiArray,
+        multiIndex: multiIndex
+      }, this.getSelectionSummary(multiArray, multiIndex)));
     },
     /**
      * 生命周期函数--监听页面加载
@@ -413,15 +451,16 @@ Component({
       //如果没有传值进来，就直接默认
       this.data.subject_id = 63;
       this.data.cate_id = 4;
-      this.data.multiArray[0] = Object.keys(this.data.allmajor);
-      this.data.multiArray[1] = Object.keys(this.data.allmajor['一级建造师'])
-      
-      var data = {
-        multiArray: this.data.multiArray,
-        multiIndex: [0, 0]
-      };
-      this.setData(data);
-      this.refreshSelectionSummary();
+      const multiArray = this.data.multiArray.slice();
+      multiArray[0] = Object.keys(this.data.allmajor);
+      multiArray[1] = Object.keys(this.data.allmajor['一级建造师']);
+      const multiIndex = [0, 0];
+      this.setData(Object.assign({
+        multiArray: multiArray,
+        multiIndex: multiIndex,
+        subject_id: 63,
+        cate_id: 4
+      }, this.getSelectionSummary(multiArray, multiIndex), this.getPickerVisualState(false)));
     },
 
     //关闭弹窗
@@ -545,7 +584,11 @@ Component({
           reset: true
         })
       }
+      this.resetHeroAnniversaryState();
 
+    },
+    onPageScroll: function(e) {
+      this.maybeTriggerHeroAnniversary(e && e.scrollTop);
     },
 
     /**
@@ -556,6 +599,10 @@ Component({
         clearTimeout(this.modalDisplayTimer);
         this.modalDisplayTimer = null;
       }
+      if (this.heroAnniversaryTimer) {
+        clearTimeout(this.heroAnniversaryTimer);
+        this.heroAnniversaryTimer = null;
+      }
     },
 
     /**
@@ -565,6 +612,10 @@ Component({
       if (this.modalDisplayTimer) {
         clearTimeout(this.modalDisplayTimer);
         this.modalDisplayTimer = null;
+      }
+      if (this.heroAnniversaryTimer) {
+        clearTimeout(this.heroAnniversaryTimer);
+        this.heroAnniversaryTimer = null;
       }
     },
 
@@ -601,6 +652,20 @@ Component({
     //省略标题内容
     gettitle:function(e){
       return 1;
+    },
+    openFeaturedCourse: function() {
+      const list = Array.isArray(this.data.getGratisCourseList) ? this.data.getGratisCourseList : [];
+      if (!list.length || !list[0] || !list[0].id) {
+        wx.showToast({
+          title: '课程加载中',
+          icon: 'none',
+          duration: 1800
+        });
+        return;
+      }
+      wx.navigateTo({
+        url: '/pages/freeCourseDetails/freeCourseDetails?pk_id=' + list[0].id
+      });
     },
 
     // 跳转到鲁班AI智考原生分包入口

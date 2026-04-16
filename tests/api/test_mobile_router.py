@@ -88,6 +88,7 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
     assert captured["payload"]["capability"] is None
     assert captured["payload"]["content"] == "考我一道流水施工的题"
     assert captured["payload"]["config"]["interaction_hints"]["profile"] == "tutorbot"
+    assert captured["payload"]["config"]["interaction_hints"]["suppress_answer_reveal_on_generate"] is True
     assert captured["payload"]["config"]["bot_id"] == "construction-exam-coach"
     assert captured["payload"]["config"]["billing_context"] == {
         "source": "wx_miniprogram",
@@ -374,6 +375,225 @@ def test_auth_register_maps_validation_error_to_400(monkeypatch: pytest.MonkeyPa
 
     assert response.status_code == 400
     assert response.json()["detail"] == "用户名已存在"
+
+
+def test_auth_register_seeds_learner_state_when_user_id_present(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
+
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "register_with_external_auth",
+        lambda _username, _password, _phone: {"user_id": "student_demo", "token": "ok"},
+    )
+    monkeypatch.setattr(
+        mobile_module.learner_state_service,
+        "read_snapshot",
+        lambda user_id: calls.append(user_id) or {"user_id": user_id},
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/register",
+            json={"username": "student_demo", "password": "StrongPass123", "phone": "13800000000"},
+        )
+
+    assert response.status_code == 200
+    assert calls == ["student_demo"]
+
+
+def test_auth_profile_settings_syncs_learner_profile_and_goals(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, str, dict[str, Any]]] = []
+
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_profile",
+        lambda user_id: {
+            "user_id": user_id,
+            "display_name": "旧昵称",
+            "difficulty_preference": "medium",
+            "review_reminder": True,
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "update_profile",
+        lambda user_id, patch: {
+            "user_id": user_id,
+            "display_name": "小陈",
+            "difficulty_preference": patch.get("difficulty_preference", "medium"),
+            "review_reminder": patch.get("review_reminder", True),
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module.learner_state_service,
+        "read_profile",
+        lambda user_id: {"user_id": user_id, "display_name": "旧昵称"},
+    )
+    monkeypatch.setattr(
+        mobile_module.learner_state_service,
+        "read_goals",
+        lambda _user_id: [],
+    )
+    monkeypatch.setattr(
+        mobile_module.learner_state_service,
+        "write_profile_strict",
+        lambda user_id, profile: calls.append(("profile", user_id, dict(profile))) or dict(profile),
+    )
+    monkeypatch.setattr(
+        mobile_module.learner_state_service,
+        "sync_goals_strict",
+        lambda user_id, goals: [
+            calls.append(("goal", user_id, dict(goal))) or dict(goal)
+            for goal in goals
+        ],
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.patch(
+            "/api/v1/auth/profile/settings",
+            json={
+                "difficulty_preference": "hard",
+                "heartbeat_preferences": {
+                    "enabled": True,
+                    "quiet_hours": ["22:00", "08:00"],
+                },
+                "consent": {"heartbeat": True},
+                "goal": {
+                    "goal_type": "study",
+                    "title": "本周完成 20 道案例题",
+                    "target_question_count": 20,
+                },
+            },
+        )
+
+    assert response.status_code == 200
+    assert calls[0][0] == "profile"
+    assert calls[0][1] == "student_demo"
+    assert calls[0][2]["difficulty_preference"] == "hard"
+    assert calls[0][2]["heartbeat_preferences"]["enabled"] is True
+    assert calls[0][2]["consent"]["heartbeat"] is True
+    assert calls[1] == (
+        "goal",
+        "student_demo",
+        {
+            "goal_type": "study",
+            "title": "本周完成 20 道案例题",
+            "target_question_count": 20,
+        },
+    )
+
+
+def test_auth_profile_settings_rolls_back_member_and_learner_state_on_sync_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    update_calls: list[dict[str, Any]] = []
+    profile_sync_calls: list[dict[str, Any]] = []
+    goal_sync_calls: list[list[dict[str, Any]]] = []
+
+    previous_profile = {
+        "user_id": "student_demo",
+        "display_name": "旧昵称",
+        "difficulty_preference": "medium",
+        "review_reminder": True,
+    }
+    previous_learner_profile = {"user_id": "student_demo", "display_name": "旧昵称", "consent": {"heartbeat": False}}
+    previous_goals = [
+        {
+            "id": "goal_existing",
+            "goal_type": "study",
+            "title": "旧目标",
+            "target_question_count": 10,
+        }
+    ]
+
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(mobile_module.member_service, "get_profile", lambda _user_id: dict(previous_profile))
+
+    def _update_profile(user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
+        update_calls.append(dict(patch))
+        if patch.get("display_name") == previous_profile["display_name"]:
+            return dict(previous_profile)
+        return {
+            "user_id": user_id,
+            "display_name": "新昵称",
+            "difficulty_preference": patch.get("difficulty_preference", "hard"),
+            "review_reminder": patch.get("review_reminder", False),
+        }
+
+    monkeypatch.setattr(mobile_module.member_service, "update_profile", _update_profile)
+    monkeypatch.setattr(
+        mobile_module.learner_state_service,
+        "read_profile",
+        lambda _user_id: dict(previous_learner_profile),
+    )
+    monkeypatch.setattr(
+        mobile_module.learner_state_service,
+        "read_goals",
+        lambda _user_id: [dict(item) for item in previous_goals],
+    )
+
+    def _write_profile_strict(user_id: str, profile: dict[str, Any]) -> dict[str, Any]:
+        profile_sync_calls.append({"user_id": user_id, **dict(profile)})
+        return dict(profile)
+
+    def _sync_goals_strict(user_id: str, goals: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        goal_sync_calls.append([dict(item) for item in goals])
+        if goals and goals[0].get("title") != "旧目标":
+            raise RuntimeError("supabase unavailable")
+        return [dict(item) for item in goals]
+
+    monkeypatch.setattr(mobile_module.learner_state_service, "write_profile_strict", _write_profile_strict)
+    monkeypatch.setattr(mobile_module.learner_state_service, "sync_goals_strict", _sync_goals_strict)
+
+    with TestClient(_build_app()) as client:
+        response = client.patch(
+            "/api/v1/auth/profile/settings",
+            json={
+                "display_name": "新昵称",
+                "difficulty_preference": "hard",
+                "review_reminder": False,
+                "goal": {
+                    "goal_type": "study",
+                    "title": "新目标",
+                    "target_question_count": 20,
+                },
+            },
+        )
+
+    assert response.status_code == 503
+    assert "Failed to sync learner state" in response.json()["detail"]
+    assert update_calls == [
+        {
+            "display_name": "新昵称",
+            "difficulty_preference": "hard",
+            "review_reminder": False,
+            "goal": {
+                "goal_type": "study",
+                "title": "新目标",
+                "target_question_count": 20,
+            },
+        },
+        {
+            "display_name": "旧昵称",
+            "difficulty_preference": "medium",
+            "review_reminder": True,
+        },
+    ]
+    assert profile_sync_calls[0]["display_name"] == "新昵称"
+    assert profile_sync_calls[1]["display_name"] == "旧昵称"
+    assert goal_sync_calls == [
+        [
+            {
+                "goal_type": "study",
+                "title": "新目标",
+                "target_question_count": 20,
+            }
+        ],
+        previous_goals,
+    ]
 
 
 def test_auth_register_rate_limits_by_route_and_client_ip(monkeypatch: pytest.MonkeyPatch) -> None:

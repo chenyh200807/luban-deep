@@ -397,10 +397,6 @@ function resolveBaseUrl() {
 
 App({
   onLaunch() {
-    const logs = wx.getStorageSync("logs") || [];
-    logs.unshift(Date.now());
-    wx.setStorageSync("logs", logs);
-
     wx.login({
       success: () => {},
     });
@@ -412,11 +408,12 @@ App({
 
     const hostLayout = resolveHostLayout();
     const storedHostSysInfo = readStoredHostSysInfo();
+    const baseUrl = resolveBaseUrl();
     this.globalData.theme = wx.getStorageSync("theme") || "dark";
-    this.globalData.apiUrl = resolveBaseUrl();
-    this.globalData.gatewayUrl = resolveBaseUrl();
-    this.globalData.apiCandidates = [resolveBaseUrl()];
-    this.globalData.gatewayCandidates = [resolveBaseUrl()];
+    this.globalData.apiUrl = baseUrl;
+    this.globalData.gatewayUrl = baseUrl;
+    this.globalData.apiCandidates = [baseUrl];
+    this.globalData.gatewayCandidates = [baseUrl];
     this.globalData.navHeight = hostLayout.navHeight;
     this.globalData.titleHeight = hostLayout.titleHeight;
     this.globalData.fontSizeSetting = hostLayout.fontSizeSetting;

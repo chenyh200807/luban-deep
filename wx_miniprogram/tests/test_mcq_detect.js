@@ -137,6 +137,36 @@ run("inline question title format still splits correctly", function () {
   );
 });
 
+run("chinese numbered titles split correctly", function () {
+  var text = [
+    "题目一：建筑构造",
+    "防火门构造的基本要求有（ ）。",
+    "A. 甲级防火门耐火极限为 1.5h",
+    "B. 向内开启",
+    "C. 关闭后应能从内外两侧手动开启",
+    "D. 具有自行关闭功能",
+    "E. 开启后，门扇不应跨越变形缝",
+    "",
+    "题目二：屋面工程",
+    "倒置式屋面保温层应设置在（ ）。",
+    "A. 找平层下",
+    "B. 防水层上",
+    "C. 结构层上",
+    "D. 保护层下",
+  ].join("\n");
+
+  var detected = mcq.detect(text);
+  assert(detected, "detected should exist");
+  assertEqual(detected.total, 2, "should detect 2 chinese-numbered questions");
+  assertEqual(
+    detected.questions.map(function (q) {
+      return q.questionType;
+    }),
+    ["multi_choice", "single_choice"],
+    "question types should stay stable",
+  );
+});
+
 run("interleaved answers do not truncate later examples", function () {
   var text = [
     "好，地基基础是实务的重难点。",
@@ -179,6 +209,67 @@ run("interleaved answers do not truncate later examples", function () {
     String(detected.displayText || "").indexOf("正确答案") === -1,
     "interleaved answers should not leak into display text",
   );
+});
+
+run("answer explanation with A/B/C/D conditions should not become first card", function () {
+  var text = [
+    "**第一题的答案：**",
+    "",
+    "**需要专家论证。**",
+    "",
+    "**判断依据：**",
+    "混凝土模板支撑工程，需要专家论证的条件包括：",
+    "A. 搭设高度 5m 及以上",
+    "B. 搭设跨度 10m 及以上",
+    "C. 施工总荷载 10kN/m² 及以上",
+    "D. 集中线荷载 15kN/m 及以上",
+    "",
+    "题目中建筑高度较大，因此该工程需要组织专家论证。",
+    "",
+    "**第二题（选择题）：**",
+    "",
+    "**题目：**",
+    "关于建筑幕墙工程的安全管理，下列说法正确的是：",
+    "",
+    "A. 建筑幕墙安装工程属于危险性较大的分部分项工程",
+    "B. 幕墙施工不需要编制专项施工方案",
+    "C. 高处作业吊篮不需要专项验收",
+    "D. 幕墙安装前无需进行技术交底",
+  ].join("\n");
+
+  var detected = mcq.detect(text);
+  assert(detected, "detected should exist");
+  assertEqual(detected.total, 1, "only the real second question becomes a card");
+  assert(
+    String(detected.displayText || "").indexOf("第一题的答案") >= 0,
+    "first answer explanation should remain visible",
+  );
+  assert(
+    String(detected.stem || "").indexOf("关于建筑幕墙工程的安全管理") >= 0,
+    "card stem should come from the actual second question",
+  );
+});
+
+run("standalone answer explanation with option-like lines should not become mcq", function () {
+  var text = [
+    "**第一题的答案：**",
+    "",
+    "**需要专家论证。**",
+    "",
+    "**判断依据：**",
+    "混凝土模板支撑工程，需要专家论证的条件包括：",
+    "A. 搭设高度 5m 及以上",
+    "B. 搭设跨度 10m 及以上",
+    "C. 施工总荷载 10kN/m² 及以上",
+    "D. 集中线荷载 15kN/m 及以上",
+    "",
+    "**踩分点：**",
+    "1. 直接判断需要专家论证",
+    "2. 明确依据是住建部令第 37 号附件一",
+  ].join("\n");
+
+  var detected = mcq.detect(text);
+  assertEqual(detected, null, "answer explanation should stay plain text");
 });
 
 if (fail > 0) {

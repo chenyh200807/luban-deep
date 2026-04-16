@@ -388,6 +388,47 @@ flowchart TD
     CAP --> LEARNER
 ```
 
+### 8.1.1 与上下文编排、Overlay 的系统分工
+
+这份 PRD 不是单独成立的“状态文档”，而是整套 TutorBot 个性化体系里的**长期控制面**。
+
+它与其余设计的分工必须固定为：
+
+1. `Learner State`
+   - 定义学员级长期真相是什么
+   - 定义哪些事实可以长期保存、如何受控写回
+2. `Context Orchestration`
+   - 不生产新的长期真相
+   - 只负责每轮从 session / learner state / notebook / history 中装配最小必要上下文包
+3. `Guided Learning / Notebook / Heartbeat`
+   - 不各自维护平行 learner truth
+   - 只能作为长期事实的生产域或消费域，通过统一 writeback / read path 与 learner state 协同
+4. `Bot-Learner Overlay`
+   - 只在第二阶段出现
+   - 只表达 `bot_id + user_id` 的局部差异
+   - 不得替代 learner state 的全局主真相
+
+因此，这套架构必须形成固定链路：
+
+```mermaid
+flowchart TD
+    TURN["Current Turn / Session"] --> ORCH["Context Orchestration"]
+    ORCH --> CORE["Learner State"]
+    ORCH --> ASSETS["Notebook / Guide / History"]
+    CORE --> BOT["TutorBot Runtime"]
+    ASSETS --> BOT
+    BOT --> WRITEBACK["Structured Writeback"]
+    WRITEBACK --> CORE
+    CORE --> OVERLAY["Bot-Learner Overlay (Phase 2)"]
+```
+
+硬要求：
+
+1. `Learner State` 决定“长期事实是什么”
+2. `Context Orchestration` 决定“这一轮带哪些事实进模型”
+3. `Guided Learning / Notebook / Heartbeat` 决定“哪些行为会产生新事实”
+4. `Overlay` 只决定“未来多 Bot 时，哪些是 bot 局部差异”
+
 ### 8.2 四层状态模型
 
 #### 1. Session State

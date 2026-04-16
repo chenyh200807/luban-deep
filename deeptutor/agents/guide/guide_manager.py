@@ -18,8 +18,8 @@ import yaml
 from deeptutor.logging import get_logger
 from deeptutor.services.learning_plan import LearningPlanService
 from deeptutor.services.config import load_config_with_main, parse_language
+from deeptutor.services.learner_state.service import get_learner_state_service
 from deeptutor.services.path_service import get_path_service
-from deeptutor.services.tutor_state.service import UserTutorStateService
 
 from .agents import ChatAgent, DesignAgent, InteractiveAgent, SummaryAgent
 
@@ -290,7 +290,7 @@ class GuideManager:
         if not resolved_user_id or not summary_text:
             return False
 
-        learner_state_service = UserTutorStateService()
+        learner_state_service = get_learner_state_service()
         await learner_state_service.record_guide_completion(
             user_id=resolved_user_id,
             guide_id=session.session_id,
@@ -311,6 +311,37 @@ class GuideManager:
         )
         return True
 
+    async def _writeback_learning_plan_page(
+        self,
+        session: GuidedSession,
+        *,
+        page_index: int,
+        page_status: str,
+        html_content: str = "",
+        error_message: str = "",
+        generated_at: str | None = None,
+        source_bot_id: str | None = None,
+    ) -> bool:
+        resolved_user_id, resolved_source_bot_id = self._resolve_learner_identity(
+            session,
+            source_bot_id=source_bot_id,
+        )
+        if not resolved_user_id:
+            return False
+
+        learner_state_service = get_learner_state_service()
+        await learner_state_service.record_learning_plan_page(
+            user_id=resolved_user_id,
+            plan_id=session.session_id,
+            page_index=page_index,
+            page_status=page_status,
+            html_content=html_content,
+            error_message=error_message,
+            generated_at=generated_at,
+            source_bot_id=resolved_source_bot_id or None,
+        )
+        return True
+
     @staticmethod
     def _build_learning_plan_source_refs(
         user_input: str,
@@ -323,7 +354,7 @@ class GuideManager:
             refs.append({"kind": "notebook_context", "content": notebook_context.strip()})
         return refs
 
-    def _persist_learning_plan(self, session: GuidedSession) -> None:
+    def _persist_learning_plan(self, session: GuidedSession) -> list[dict[str, Any]]:
         pages: list[dict[str, Any]] = []
         for index, knowledge in enumerate(session.knowledge_points):
             key = str(index)
@@ -359,7 +390,7 @@ class GuideManager:
                 pages=pages,
                 **fields,
             )
-            return
+            return pages
 
         self._learning_plan_service.update_plan(session.session_id, **fields)
         for page in pages:
@@ -374,6 +405,7 @@ class GuideManager:
                 page_index,
                 **page_fields,
             )
+        return pages
 
     async def _sync_learning_plan(
         self,
@@ -398,7 +430,72 @@ class GuideManager:
                 session.html_pages[key] = html_content
         session.user_id = resolved_user_id
         session.source_bot_id = resolved_source_bot_id
-        self._persist_learning_plan(session)
+        pages = self._persist_learning_plan(session)
+        learner_state_service = get_learner_state_service()
+        await learner_state_service.sync_learning_plan(
+            user_id=resolved_user_id,
+            plan_id=session.session_id,
+            knowledge_points_json=list(session.knowledge_points),
+            pages=list(pages or []),
+            source_material_refs_json=list(session.source_material_refs_json),
+            notebook_id=session.notebook_id,
+            notebook_name=session.notebook_name,
+            notebook_context=session.notebook_context,
+            chat_history=list(session.chat_history),
+            source_bot_id=resolved_source_bot_id or None,
+            status=session.status,
+            current_index=session.current_index,
+            completion_summary_md=session.summary,
+        )
+        if resolved_source_bot_id:
+            try:
+                from deeptutor.services.learner_state import get_bot_learner_overlay_service
+
+                current_focus = {}
+                if 0 <= int(session.current_index) < len(session.knowledge_points):
+                    knowledge = dict(session.knowledge_points[int(session.current_index)] or {})
+                    current_focus = {
+                        "knowledge_title": str(knowledge.get("knowledge_title", "") or "").strip(),
+                        "knowledge_summary": str(knowledge.get("knowledge_summary", "") or "").strip(),
+                        "page_index": int(session.current_index),
+                    }
+                operations: list[dict[str, Any]] = [
+                    {
+                        "op": "merge",
+                        "field": "active_plan_binding",
+                        "value": {
+                            "plan_id": session.session_id,
+                            "status": str(session.status or "").strip(),
+                            "current_index": int(session.current_index),
+                            "notebook_id": str(session.notebook_id or "").strip(),
+                        },
+                    }
+                ]
+                if current_focus:
+                    operations.append(
+                        {
+                            "op": "merge",
+                            "field": "local_focus",
+                            "value": current_focus,
+                        }
+                    )
+                if str(session.notebook_id or "").strip():
+                    operations.append(
+                        {
+                            "op": "set",
+                            "field": "local_notebook_scope_refs",
+                            "value": [str(session.notebook_id).strip()],
+                        }
+                    )
+                get_bot_learner_overlay_service().patch_overlay(
+                    resolved_source_bot_id,
+                    resolved_user_id,
+                    {"operations": operations},
+                    source_feature="guide",
+                    source_id=session.session_id,
+                )
+            except Exception:
+                self.logger.warning("Failed to sync guide overlay patch", exc_info=True)
         return True
 
     async def _generate_single_page(self, session_id: str, knowledge_index: int) -> dict[str, Any]:
@@ -435,6 +532,14 @@ class GuideManager:
                     html_content=session.html_pages.get(key, ""),
                     error_message=session.page_errors.get(key, ""),
                 )
+                await self._writeback_learning_plan_page(
+                    session,
+                    page_index=knowledge_index,
+                    page_status=session.page_statuses.get(key, "ready"),
+                    html_content=session.html_pages.get(key, ""),
+                    error_message=session.page_errors.get(key, ""),
+                    generated_at=None,
+                )
             except Exception:
                 self.logger.debug(
                     f"Learning plan page sync failed for guided session {session.session_id} page {knowledge_index}",
@@ -454,6 +559,15 @@ class GuideManager:
                 html_content=session.html_pages.get(key, ""),
                 error_message=session.page_errors.get(key, ""),
             )
+            if not retryable:
+                await self._writeback_learning_plan_page(
+                    session,
+                    page_index=knowledge_index,
+                    page_status=session.page_statuses.get(key, "failed"),
+                    html_content=session.html_pages.get(key, ""),
+                    error_message=session.page_errors.get(key, ""),
+                    generated_at=None,
+                )
         except Exception:
             self.logger.debug(
                 f"Learning plan page sync failed for guided session {session.session_id} page {knowledge_index}",
@@ -513,6 +627,14 @@ class GuideManager:
                                     page_status=failed_session.page_statuses.get(key, "failed"),
                                     html_content=failed_session.html_pages.get(key, ""),
                                     error_message=failed_session.page_errors.get(key, ""),
+                                )
+                                await self._writeback_learning_plan_page(
+                                    failed_session,
+                                    page_index=index,
+                                    page_status=failed_session.page_statuses.get(key, "failed"),
+                                    html_content=failed_session.html_pages.get(key, ""),
+                                    error_message=failed_session.page_errors.get(key, ""),
+                                    generated_at=None,
                                 )
                             except Exception:
                                 self.logger.debug(
@@ -927,6 +1049,14 @@ class GuideManager:
                     page_status=session.page_statuses.get(str(session.current_index), "ready"),
                     html_content=session.html_pages.get(str(session.current_index), ""),
                     error_message=session.page_errors.get(str(session.current_index), ""),
+                )
+                await self._writeback_learning_plan_page(
+                    session,
+                    page_index=session.current_index,
+                    page_status=session.page_statuses.get(str(session.current_index), "ready"),
+                    html_content=session.html_pages.get(str(session.current_index), ""),
+                    error_message=session.page_errors.get(str(session.current_index), ""),
+                    generated_at=None,
                 )
             except Exception:
                 self.logger.debug(

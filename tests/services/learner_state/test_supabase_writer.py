@@ -6,6 +6,7 @@ from pathlib import Path
 
 import httpx
 
+from deeptutor.services.learner_state.heartbeat.service import LearnerHeartbeatService
 from deeptutor.services.learning_plan import LearningPlanService
 from deeptutor.services.learner_state.outbox import LearnerStateOutboxItem
 from deeptutor.services.learner_state.supabase_writer import LearnerStateSupabaseWriter
@@ -214,6 +215,177 @@ def test_write_item_guide_completion_writes_summary_and_plan(tmp_path) -> None:
     assert page_rows[1]["page_index"] == 1
     assert page_rows[1]["page_status"] == "failed"
     assert page_rows[1]["error_message"] == "llm timeout"
+
+    asyncio.run(client.aclose())
+
+
+def test_write_item_learning_plan_page_syncs_single_page_and_parent_plan(tmp_path) -> None:
+    requests: list[dict[str, object]] = []
+    client = _make_client(requests)
+    path_service = _PathServiceStub(tmp_path)
+    plan_service = LearningPlanService(path_service=path_service)
+    plan_service.create_plan(
+        session_id="guide_42",
+        user_id="student_demo",
+        source_bot_id="bot_alpha",
+        notebook_name="地基基础",
+        source_material_refs_json=[{"kind": "user_input", "content": "地基基础"}],
+        status="learning",
+        current_index=0,
+        summary="",
+        pages=[
+            {
+                "page_index": 0,
+                "knowledge_title": "承载力",
+                "knowledge_summary": "理解极限承载和正常使用状态。",
+                "user_difficulty": "medium",
+                "html": "<h1>承载力</h1>",
+                "page_status": "ready",
+            },
+            {
+                "page_index": 1,
+                "knowledge_title": "沉降控制",
+                "knowledge_summary": "避免把结构安全和使用性能混在一起。",
+                "user_difficulty": "medium",
+                "page_status": "failed",
+                "page_error": "llm timeout",
+            },
+        ],
+    )
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+        path_service=path_service,
+    )
+    item = _make_item(
+        event_type="learning_plan_page",
+        dedupe_key="guide:guide_42:page:1",
+        payload_json={
+            "plan_id": "guide_42",
+            "page_index": 1,
+            "page_status": "failed",
+            "error_message": "llm timeout",
+            "generated_at": "2026-04-15T10:15:00+08:00",
+            "source_feature": "guide",
+            "source_id": "guide_42",
+            "source_bot_id": "bot_alpha",
+            "memory_kind": "learning_plan_page",
+        },
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    assert result.written_tables == ("learning_plans", "learning_plan_pages")
+    assert [request["path"] for request in requests] == [
+        "/rest/v1/learning_plans",
+        "/rest/v1/learning_plan_pages",
+    ]
+    plan_body = requests[0]["json"][0]
+    page_body = requests[1]["json"][0]
+    assert plan_body["plan_id"] == "guide_42"
+    assert plan_body["status"] == "learning"
+    assert page_body["plan_id"] == "guide_42"
+    assert page_body["page_index"] == 1
+    assert page_body["page_status"] == "failed"
+    assert page_body["error_message"] == "llm timeout"
+
+    asyncio.run(client.aclose())
+
+
+def test_write_item_heartbeat_job_writes_heartbeat_jobs_only(tmp_path) -> None:
+    requests: list[dict[str, object]] = []
+    client = _make_client(requests)
+    path_service = _PathServiceStub(tmp_path)
+    heartbeat_service = LearnerHeartbeatService(path_service=path_service)
+    job = heartbeat_service.ensure_default_job(
+        "student_demo",
+        bot_id="bot_alpha",
+        channel="web",
+        policy_json={"enabled": True, "consent": True, "interval_hours": 3},
+    )
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+        path_service=path_service,
+    )
+    item = _make_item(
+        event_type="heartbeat_job",
+        dedupe_key=f"heartbeat-job:{job.job_id}:{job.updated_at.isoformat()}",
+        payload_json={
+            "job_id": job.job_id,
+            "source_feature": "heartbeat_job",
+            "source_id": job.job_id,
+            "source_bot_id": job.bot_id,
+            "memory_kind": "heartbeat_job",
+            "updated_at": job.updated_at.isoformat(),
+        },
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    assert result.written_tables == ("heartbeat_jobs",)
+    assert len(requests) == 1
+    request = requests[0]
+    assert request["path"] == "/rest/v1/heartbeat_jobs"
+    assert request["params"]["on_conflict"] == "job_id"
+    body = request["json"][0]
+    assert body["job_id"] == job.job_id
+    assert body["user_id"] == "student_demo"
+    assert body["bot_id"] == "bot_alpha"
+    assert body["channel"] == "web"
+    assert body["status"] == "active"
+    assert body["last_result_json"] == {}
+
+    asyncio.run(client.aclose())
+
+
+def test_write_item_heartbeat_job_preserves_structured_last_result_json(tmp_path) -> None:
+    requests: list[dict[str, object]] = []
+    client = _make_client(requests)
+    path_service = _PathServiceStub(tmp_path)
+    heartbeat_service = LearnerHeartbeatService(path_service=path_service)
+    job = heartbeat_service.ensure_default_job(
+        "student_demo",
+        bot_id="bot_alpha",
+        channel="web",
+        policy_json={"enabled": True, "consent": True, "interval_hours": 3},
+    )
+    heartbeat_service.record_run_result(
+        user_id="student_demo",
+        job_id=job.job_id,
+        success=True,
+        result_json={"message": "heartbeat response"},
+    )
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+        path_service=path_service,
+    )
+    item = _make_item(
+        event_type="heartbeat_job",
+        dedupe_key=f"heartbeat-job:{job.job_id}:{job.updated_at.isoformat()}",
+        payload_json={
+            "job_id": job.job_id,
+            "source_feature": "heartbeat_job",
+            "source_id": job.job_id,
+            "source_bot_id": job.bot_id,
+            "memory_kind": "heartbeat_job",
+            "updated_at": job.updated_at.isoformat(),
+        },
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    body = requests[0]["json"][0]
+    assert body["last_result_json"]["success"] is True
+    assert body["last_result_json"]["delivery"]["state"] == "sent"
+    assert body["last_result_json"]["audit"]["status"] == "ok"
 
     asyncio.run(client.aclose())
 

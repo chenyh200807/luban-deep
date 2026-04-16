@@ -29,7 +29,11 @@ from deeptutor.tutorbot.bus.events import InboundMessage, OutboundMessage
 from deeptutor.tutorbot.bus.queue import MessageBus
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
-from deeptutor.tutorbot.teaching_modes import get_teaching_mode_instruction
+from deeptutor.tutorbot.teaching_modes import (
+    get_practice_generation_instruction,
+    get_teaching_mode_instruction,
+    looks_like_practice_generation_request,
+)
 
 if TYPE_CHECKING:
     from deeptutor.tutorbot.config.schema import ChannelsConfig, ExecToolConfig, WebSearchConfig
@@ -450,6 +454,8 @@ class AgentLoop:
         rag_tool = self.tools.get("rag")
         if rag_tool is None:
             return None
+        if bool(runtime_metadata.get("suppress_answer_reveal_on_generate")) and looks_like_practice_generation_request(current_message):
+            return None
         if prepare_exact_question_probe(current_message) is None:
             return None
 
@@ -865,8 +871,17 @@ class AgentLoop:
                 message_tool.start_turn()
 
         history = session.get_history(max_messages=0)
-        runtime_instruction = get_teaching_mode_instruction(
-            (msg.metadata or {}).get("teaching_mode"),
+        runtime_instruction_parts = [
+            get_teaching_mode_instruction(runtime_metadata.get("teaching_mode")),
+            get_practice_generation_instruction(
+                user_message=current_message,
+                suppress_answer_reveal_on_generate=bool(
+                    runtime_metadata.get("suppress_answer_reveal_on_generate")
+                ),
+            ),
+        ]
+        runtime_instruction = "\n\n".join(
+            part for part in runtime_instruction_parts if str(part or "").strip()
         )
         fast_path = await self._maybe_run_exact_rag_fast_path(
             current_message=current_message,

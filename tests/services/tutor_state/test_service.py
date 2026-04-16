@@ -65,7 +65,7 @@ def _make_service(tmp_path):
     )
 
 
-def test_user_tutor_state_build_context_seeds_profile_persona_and_memory(tmp_path) -> None:
+def test_user_tutor_state_build_context_renders_projection_from_learner_state(tmp_path) -> None:
     service = _make_service(tmp_path)
 
     context = service.build_context("student_demo", language="zh")
@@ -98,7 +98,7 @@ async def _rewrite_stream(**_kwargs):
     )
 
 
-def test_user_tutor_state_refresh_from_turn_updates_long_term_memory(monkeypatch, tmp_path) -> None:
+def test_user_tutor_state_refresh_from_turn_updates_projection_after_learner_writeback(monkeypatch, tmp_path) -> None:
     service = _make_service(tmp_path)
     monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", _rewrite_stream)
 
@@ -119,3 +119,4 @@ def test_user_tutor_state_refresh_from_turn_updates_long_term_memory(monkeypatch
     assert result.changed is True
     assert "沉降控制" in result.content
     assert "下一次继续做两道案例题" in memory_text
+    assert "沉降控制" in service._learner_state_service.read_summary("student_demo")

@@ -22,6 +22,11 @@ class _FakeDesignAgent(_FakeBaseAgent):
                     "knowledge_title": "地基基础承载力",
                     "knowledge_summary": "核心概念梳理",
                     "user_difficulty": "medium",
+                },
+                {
+                    "knowledge_title": "沉降控制",
+                    "knowledge_summary": "识别正常使用极限状态。",
+                    "user_difficulty": "medium",
                 }
             ],
         }
@@ -45,6 +50,16 @@ class _FakeInteractiveAgent(_FakeBaseAgent):
         }
 
 
+class _FakeFailingInteractiveAgent(_FakeBaseAgent):
+    async def process(self, **kwargs):
+        return {
+            "success": False,
+            "retryable": False,
+            "error": "render failed",
+            "knowledge": kwargs.get("knowledge", {}),
+        }
+
+
 class _FakeLearnerStateService:
     def __init__(self, calls):
         self._calls = calls
@@ -55,6 +70,32 @@ class _FakeLearnerStateService:
     async def refresh_from_turn(self, **kwargs):
         self._calls.append({"kind": "refresh", **kwargs})
         return None
+
+    async def sync_learning_plan(self, **kwargs):
+        self._calls.append({"kind": "plan_sync", **kwargs})
+        return None
+
+    async def record_learning_plan_page(self, **kwargs):
+        self._calls.append({"kind": "page_sync", **kwargs})
+        return None
+
+
+class _FakeOverlayService:
+    def __init__(self, calls):
+        self._calls = calls
+
+    def patch_overlay(self, bot_id: str, user_id: str, patch: dict, *, source_feature: str, source_id: str):
+        self._calls.append(
+            {
+                "kind": "overlay_patch",
+                "bot_id": bot_id,
+                "user_id": user_id,
+                "patch": patch,
+                "source_feature": source_feature,
+                "source_id": source_id,
+            }
+        )
+        return {"effective_overlay": {}}
 
 
 class _FakeRouterManager:
@@ -80,7 +121,7 @@ def test_guide_manager_preserves_identifiers_and_writes_back_on_complete(monkeyp
     monkeypatch.setattr(guide_manager_module, "SummaryAgent", _FakeSummaryAgent)
     monkeypatch.setattr(
         guide_manager_module,
-        "UserTutorStateService",
+        "get_learner_state_service",
         lambda: _FakeLearnerStateService(calls),
     )
 
@@ -137,6 +178,63 @@ def test_guide_manager_preserves_identifiers_and_writes_back_on_complete(monkeyp
     assert refreshes[0]["session_id"] == created["session_id"]
     assert refreshes[0]["capability"] == "guide:bot_alpha"
     assert "Notebook context for guided learning." in refreshes[0]["user_message"]
+
+
+def test_guide_manager_syncs_learning_plan_pages_incrementally(monkeypatch, tmp_path) -> None:
+    calls: list[dict] = []
+
+    monkeypatch.setattr(guide_manager_module, "DesignAgent", _FakeDesignAgent)
+    monkeypatch.setattr(guide_manager_module, "InteractiveAgent", _FakeInteractiveAgent)
+    monkeypatch.setattr(guide_manager_module, "ChatAgent", _FakeBaseAgent)
+    monkeypatch.setattr(guide_manager_module, "SummaryAgent", _FakeSummaryAgent)
+    monkeypatch.setattr(
+        guide_manager_module,
+        "get_learner_state_service",
+        lambda: _FakeLearnerStateService(calls),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_bot_learner_overlay_service",
+        lambda: _FakeOverlayService(calls),
+    )
+
+    manager = GuideManager(
+        api_key="test-key",
+        base_url="https://example.invalid",
+        config_path=str(tmp_path / "missing.yaml"),
+        output_dir=str(tmp_path / "guide"),
+        language="zh",
+    )
+
+    created = asyncio.run(
+        manager.create_session(
+            user_input="请帮我设计一个地基基础承载力的 guided learning 计划。",
+            display_title="地基基础承载力学习",
+            notebook_context="Notebook context for guided learning.",
+            user_id="student_demo",
+            source_bot_id="bot_alpha",
+        )
+    )
+
+    asyncio.run(manager._generate_single_page(created["session_id"], 0))
+    manager.interactive_agent = _FakeFailingInteractiveAgent()
+    asyncio.run(manager._generate_single_page(created["session_id"], 1))
+
+    page_syncs = [call for call in calls if call["kind"] == "page_sync"]
+    assert len(page_syncs) == 2
+    assert page_syncs[0]["plan_id"] == created["session_id"]
+    assert page_syncs[0]["page_index"] == 0
+    assert page_syncs[0]["page_status"] == "ready"
+    assert page_syncs[0]["source_bot_id"] == "bot_alpha"
+    assert page_syncs[1]["page_index"] == 1
+    assert page_syncs[1]["page_status"] == "failed"
+    overlay_patches = [call for call in calls if call["kind"] == "overlay_patch"]
+    assert overlay_patches
+    assert overlay_patches[0]["bot_id"] == "bot_alpha"
+    assert overlay_patches[0]["user_id"] == "student_demo"
+    operations = overlay_patches[0]["patch"]["operations"]
+    assert any(item["field"] == "active_plan_binding" for item in operations)
+    assert any(item["field"] == "local_focus" for item in operations)
+    assert any(item["field"] == "local_notebook_scope_refs" for item in operations)
 
 
 def test_guide_router_forwards_optional_identity_fields(monkeypatch) -> None:

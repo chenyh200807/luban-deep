@@ -73,6 +73,34 @@
 
 > 在保证全局 Summary / Profile / Memory 继续共享的前提下，为不同 TutorBot 引入可控、有限、可治理的局部差异。
 
+## 2.2 与第一阶段、上下文编排的关系
+
+这份 PRD 必须被视为第一阶段 learner state 设计的**补充层**，而不是新的平行体系。
+
+系统分工必须固定为：
+
+1. 第一阶段 `Learner State`
+   - 继续担任唯一全局长期主真相
+2. 第二阶段 `Overlay`
+   - 只表达 bot-local difference
+   - 不表达第二份 profile / summary / progress
+3. `Context Orchestration`
+   - 在运行时先读取 global learner core
+   - 再按需叠加 overlay fragment
+   - 最终把两者装配成当前轮最小必要上下文包
+
+因此 Overlay 的正确角色不是“另一个 memory 系统”，而是：
+
+1. 对 `Learner State` 的局部补充
+2. 对 `Context Orchestration` 的 bot-local 输入
+3. 对 `Heartbeat` 仲裁的局部偏好输入
+
+禁止的错误理解：
+
+1. 先读 overlay，再回头决定全局 learner truth
+2. 把 overlay 当成 TutorBot 自己的长期主脑
+3. 让 notebook / guide / heartbeat 直接绕过 learner state，只写 overlay
+
 ## 3. 这份 PRD 要解决什么问题
 
 ### 3.1 典型未来场景

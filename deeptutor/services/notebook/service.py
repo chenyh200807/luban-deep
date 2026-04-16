@@ -18,8 +18,8 @@ import uuid
 
 from pydantic import BaseModel
 
+from deeptutor.services.learner_state.service import get_learner_state_service
 from deeptutor.services.path_service import get_path_service
-from deeptutor.services.tutor_state.service import UserTutorStateService
 
 
 class RecordType(str, Enum):
@@ -202,7 +202,7 @@ class NotebookManager:
         if not assistant_message:
             return False
 
-        learner_state_service = UserTutorStateService()
+        learner_state_service = get_learner_state_service()
         await learner_state_service.record_notebook_writeback(
             user_id=normalized_user_id,
             notebook_id=notebook_id,
@@ -226,6 +226,34 @@ class NotebookManager:
             timestamp=datetime.now().isoformat(),
             source_bot_id=source_bot_id or None,
         )
+        if source_bot_id:
+            try:
+                from deeptutor.services.learner_state import get_bot_learner_overlay_service
+
+                operations: list[dict[str, Any]] = [
+                    {
+                        "op": "set",
+                        "field": "local_notebook_scope_refs",
+                        "value": [str(notebook_id).strip()],
+                    }
+                ]
+                if normalized_summary or normalized_title:
+                    operations.append(
+                        {
+                            "op": "set",
+                            "field": "working_memory_projection",
+                            "value": normalized_summary or normalized_title,
+                        }
+                    )
+                get_bot_learner_overlay_service().patch_overlay(
+                    source_bot_id,
+                    normalized_user_id,
+                    {"operations": operations},
+                    source_feature="notebook",
+                    source_id=str((metadata or {}).get("record_id", "") or notebook_id),
+                )
+            except Exception:
+                pass
         return True
 
     # === Notebook Operations ===

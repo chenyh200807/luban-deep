@@ -59,10 +59,15 @@ class _FakeMemberService:
         ]
 
 
+class _DisabledCoreStoreStub:
+    is_configured = False
+
+
 def _make_service(tmp_path):
     return LearnerStateService(
         path_service=_PathServiceStub(tmp_path),
         member_service=_FakeMemberService(),
+        core_store=_DisabledCoreStoreStub(),
     )
 
 
@@ -96,7 +101,12 @@ def test_learner_state_ensure_default_job_get_due_jobs_and_record_run_result(tmp
         user_id="student_demo",
         now="2026-04-14T12:00:00+08:00",
     )
+    heartbeat_due_jobs = service._heartbeat_job_service.get_due_jobs(
+        user_id="student_demo",
+        now="2026-04-14T12:00:00+08:00",
+    )
     assert [item.job_id for item in due_jobs] == [job.job_id]
+    assert [item.job_id for item in due_jobs] == [item.job_id for item in heartbeat_due_jobs]
 
     failed = service.record_run_result(
         user_id="student_demo",
@@ -108,6 +118,8 @@ def test_learner_state_ensure_default_job_get_due_jobs_and_record_run_result(tmp
     assert failed.failure_count == 1
     assert failed.last_result_json["success"] is False
     assert failed.last_result_json["error"] == "timeout"
+    assert failed.last_result_json["delivery"]["state"] == "failed"
+    assert failed.last_result_json["audit"]["status"] == "error"
 
     due_after_failure = service.get_due_jobs(
         user_id="student_demo",
@@ -125,3 +137,45 @@ def test_learner_state_ensure_default_job_get_due_jobs_and_record_run_result(tmp
     assert success.failure_count == 0
     assert success.last_result_json["success"] is True
     assert success.last_result_json["sent"] is True
+    assert success.last_result_json["delivery"]["state"] == "sent"
+    assert success.last_result_json["audit"]["status"] == "ok"
+
+
+def test_learner_state_record_run_result_persists_heartbeat_arbitration_event(tmp_path) -> None:
+    service = _make_service(tmp_path)
+
+    job = service.ensure_default_job(
+        "student_demo",
+        policy_json={"consent": True, "interval_hours": 1},
+        next_run_at="2026-04-14T10:00:00+08:00",
+    )
+
+    updated = service.record_run_result(
+        user_id="student_demo",
+        job_id=job.job_id,
+        success=True,
+        result_json={
+            "sent": True,
+            "arbitration": {
+                "winner_job_id": job.job_id,
+                "winner_bot_id": "construction-exam-coach",
+                "suppressed_bot_ids": ["review-bot"],
+                "reasons": ["active_plan_match:+50"],
+                "decisions": [
+                    {
+                        "job_id": job.job_id,
+                        "bot_id": "construction-exam-coach",
+                        "score": 50,
+                    }
+                ],
+            },
+        },
+        finished_at="2026-04-14T13:05:00+08:00",
+    )
+
+    assert updated.last_result_json["arbitration"]["winner_job_id"] == job.job_id
+    events = service.list_memory_events("student_demo", limit=10)
+    arbitration_events = [event for event in events if event.memory_kind == "heartbeat_arbitration"]
+    assert arbitration_events
+    assert arbitration_events[-1].payload_json["winner_job_id"] == job.job_id
+    assert arbitration_events[-1].payload_json["suppressed_bot_ids"] == ["review-bot"]

@@ -185,6 +185,9 @@ class ContextBuilder:
         configured_output_budget = self._positive_int(getattr(llm_config, "max_tokens", None)) or 4096
         return max(_MIN_CONTEXT_WINDOW_TOKENS, configured_output_budget)
 
+    def context_window_tokens(self, llm_config: LLMConfig) -> int:
+        return self._context_window_tokens(llm_config)
+
     def _history_budget(self, llm_config: LLMConfig) -> int:
         configured = self._context_window_tokens(llm_config)
         return max(256, int(configured * self.history_budget_ratio))
@@ -387,14 +390,16 @@ class ContextBuilder:
         session_id: str,
         llm_config: LLMConfig,
         language: str = "en",
+        budget_override: int | None = None,
         on_event: Callable[[StreamEvent], Awaitable[None]] | None = None,
     ) -> ContextBuildResult:
         session = await self.store.get_session(session_id)
         messages = await self.store.get_messages_for_context(session_id)
+        history_budget = max(128, int(budget_override or 0)) if budget_override else self._history_budget(llm_config)
         if session is None:
-            return ContextBuildResult([], "", "", [], 0, self._history_budget(llm_config))
+            return ContextBuildResult([], "", "", [], 0, history_budget)
 
-        budget = self._history_budget(llm_config)
+        budget = history_budget
         summary_budget = self._summary_budget(budget)
         recent_budget = self._recent_budget(budget)
 

@@ -8,7 +8,7 @@ begin;
 -- They must not create parallel profile/progress/goals truths.
 
 create table if not exists public.learner_summaries (
-  user_id uuid primary key references public.users(id) on delete cascade,
+  user_id text primary key references public.users(id) on delete cascade,
   summary_md text not null default '',
   summary_structured_json jsonb not null default '{}'::jsonb,
   last_refreshed_from_turn_id text,
@@ -25,7 +25,7 @@ create index if not exists idx_learner_summaries_updated_at
 
 create table if not exists public.learner_memory_events (
   event_id uuid primary key,
-  user_id uuid not null references public.users(id) on delete cascade,
+  user_id text not null references public.users(id) on delete cascade,
   source_feature text not null,
   source_id text not null,
   source_bot_id text,
@@ -50,7 +50,7 @@ create index if not exists idx_learner_memory_events_feature_created
 
 create table if not exists public.learning_plans (
   plan_id text primary key,
-  user_id uuid not null references public.users(id) on delete cascade,
+  user_id text not null references public.users(id) on delete cascade,
   source_bot_id text,
   source_material_refs_json jsonb not null default '[]'::jsonb,
   knowledge_points_json jsonb not null default '[]'::jsonb,
@@ -91,7 +91,7 @@ comment on table public.learning_plan_pages is
 
 create table if not exists public.heartbeat_jobs (
   job_id uuid primary key,
-  user_id uuid not null references public.users(id) on delete cascade,
+  user_id text not null references public.users(id) on delete cascade,
   bot_id text not null,
   channel text not null,
   policy_json jsonb not null default '{}'::jsonb,

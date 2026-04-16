@@ -42,10 +42,28 @@ def test_add_and_update_record_trigger_learner_state_writeback(monkeypatch, tmp_
             calls.append({"kind": "refresh", **kwargs})
             return None
 
+    class _FakeOverlayService:
+        def patch_overlay(self, bot_id: str, user_id: str, patch: dict, *, source_feature: str, source_id: str):
+            calls.append(
+                {
+                    "kind": "overlay_patch",
+                    "bot_id": bot_id,
+                    "user_id": user_id,
+                    "patch": patch,
+                    "source_feature": source_feature,
+                    "source_id": source_id,
+                }
+            )
+            return {"effective_overlay": {}}
+
     monkeypatch.setattr(
         notebook_service_module,
-        "UserTutorStateService",
+        "get_learner_state_service",
         lambda: _FakeLearnerStateService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_bot_learner_overlay_service",
+        lambda: _FakeOverlayService(),
     )
 
     manager = NotebookManager(base_dir=str(tmp_path))
@@ -71,6 +89,11 @@ def test_add_and_update_record_trigger_learner_state_writeback(monkeypatch, tmp_
     assert calls[1]["session_id"] == notebook["id"]
     assert calls[1]["capability"] == "notebook:bot_alpha"
     assert "结构化总结" in calls[1]["assistant_message"]
+    assert calls[2]["kind"] == "overlay_patch"
+    assert calls[2]["bot_id"] == "bot_alpha"
+    assert calls[2]["user_id"] == "student_demo"
+    assert any(item["field"] == "local_notebook_scope_refs" for item in calls[2]["patch"]["operations"])
+    assert any(item["field"] == "working_memory_projection" for item in calls[2]["patch"]["operations"])
 
     updated = manager.update_record(
         notebook["id"],
@@ -80,10 +103,12 @@ def test_add_and_update_record_trigger_learner_state_writeback(monkeypatch, tmp_
     )
 
     assert updated is not None
-    assert len(calls) == 4
-    assert calls[2]["kind"] == "event"
-    assert calls[2]["operation"] == "update"
-    assert calls[2]["user_id"] == "student_demo"
-    assert calls[3]["kind"] == "refresh"
-    assert calls[3]["session_id"] == notebook["id"]
-    assert calls[3]["assistant_message"] == "更新后的总结"
+    assert len(calls) == 6
+    assert calls[3]["kind"] == "event"
+    assert calls[3]["operation"] == "update"
+    assert calls[3]["user_id"] == "student_demo"
+    assert calls[4]["kind"] == "refresh"
+    assert calls[4]["session_id"] == notebook["id"]
+    assert calls[4]["assistant_message"] == "更新后的总结"
+    assert calls[5]["kind"] == "overlay_patch"
+    assert calls[5]["source_feature"] == "notebook"

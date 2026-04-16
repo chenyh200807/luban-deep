@@ -16,11 +16,14 @@ from deeptutor.services.learner_state.heartbeat import (
     LearnerHeartbeatJob,
     LearnerHeartbeatJobService,
 )
+from deeptutor.services.learner_state.heartbeat.service import _normalize_heartbeat_result_json
+from deeptutor.services.learner_state.heartbeat.store import _coerce_datetime
 from deeptutor.services.learner_state.outbox import (
     LearnerStateOutbox as LearnerStateOutboxService,
     LearnerStateOutboxItem,
 )
 from deeptutor.services.path_service import PathService, get_path_service
+from deeptutor.services.learner_state.supabase_store import LearnerStateSupabaseSyncCoreStore
 
 llm_stream: Any | None = None
 
@@ -131,10 +134,12 @@ class LearnerStateService:
         path_service: PathService | None = None,
         member_service: Any | None = None,
         outbox_service: LearnerStateOutboxService | None = None,
+        core_store: LearnerStateSupabaseSyncCoreStore | Any | None = None,
     ) -> None:
         self._path_service = path_service or get_path_service()
         self._member_service = member_service or self._default_member_service()
         self._outbox_service = outbox_service or LearnerStateOutboxService(path_service=self._path_service)
+        self._core_store = core_store or LearnerStateSupabaseSyncCoreStore()
         self._learning_plan_service = LearningPlanService(path_service=self._path_service)
         self._heartbeat_job_service = LearnerHeartbeatJobService(path_service=self._path_service)
         self._locks: dict[str, asyncio.Lock] = {}
@@ -227,6 +232,13 @@ class LearnerStateService:
         return progress
 
     def _read_profile_raw(self, user_id: str) -> dict[str, Any]:
+        if bool(getattr(self._core_store, "is_configured", False)):
+            try:
+                remote = self._core_store.read_profile(user_id)
+            except Exception:
+                remote = None
+            if remote:
+                return dict(remote)
         path = self._path(user_id, "profile")
         if not path.exists():
             return {}
@@ -246,6 +258,13 @@ class LearnerStateService:
             return ""
 
     def _read_progress_raw(self, user_id: str) -> dict[str, Any]:
+        if bool(getattr(self._core_store, "is_configured", False)):
+            try:
+                remote = self._core_store.read_progress(user_id)
+            except Exception:
+                remote = None
+            if remote:
+                return dict(remote)
         path = self._path(user_id, "progress")
         if not path.exists():
             return {}
@@ -286,17 +305,32 @@ class LearnerStateService:
         self._ensure_seed_state(normalized)
         return self._read_profile_raw(normalized)
 
-    def write_profile(self, user_id: str, profile: dict[str, Any]) -> dict[str, Any]:
-        normalized = _normalize_user_id(user_id)
-        path = self._path(normalized, "profile")
+    def _write_profile_local(self, user_id: str, profile: dict[str, Any]) -> dict[str, Any]:
+        path = self._path(user_id, "profile")
         path.parent.mkdir(parents=True, exist_ok=True)
-        payload = _json_dump(profile)
-        path.write_text(payload, encoding="utf-8")
+        path.write_text(_json_dump(profile), encoding="utf-8")
         try:
-            self.ensure_default_job(normalized)
+            self.ensure_default_job(user_id)
         except Exception:
             pass
-        return self.read_profile(normalized)
+        return self.read_profile(user_id)
+
+    def write_profile(self, user_id: str, profile: dict[str, Any]) -> dict[str, Any]:
+        normalized = _normalize_user_id(user_id)
+        remote_profile = dict(profile or {})
+        if bool(getattr(self._core_store, "is_configured", False)):
+            try:
+                remote_profile = dict(self._core_store.write_profile(normalized, profile) or remote_profile)
+            except Exception:
+                remote_profile = dict(profile or {})
+        return self._write_profile_local(normalized, remote_profile)
+
+    def write_profile_strict(self, user_id: str, profile: dict[str, Any]) -> dict[str, Any]:
+        normalized = _normalize_user_id(user_id)
+        if not bool(getattr(self._core_store, "is_configured", False)):
+            raise RuntimeError("user_profiles sync requires configured Supabase core store")
+        remote_profile = dict(self._core_store.write_profile(normalized, profile) or dict(profile or {}))
+        return self._write_profile_local(normalized, remote_profile)
 
     def merge_profile(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         profile = self.read_profile(user_id)
@@ -324,18 +358,99 @@ class LearnerStateService:
         self._ensure_seed_state(normalized)
         return self._read_progress_raw(normalized)
 
+    def _write_progress_local(self, user_id: str, progress: dict[str, Any]) -> dict[str, Any]:
+        path = self._path(user_id, "progress")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(_json_dump(progress), encoding="utf-8")
+        return self.read_progress(user_id)
+
     def write_progress(self, user_id: str, progress: dict[str, Any]) -> dict[str, Any]:
         normalized = _normalize_user_id(user_id)
-        path = self._path(normalized, "progress")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        payload = _json_dump(progress)
-        path.write_text(payload, encoding="utf-8")
-        return self.read_progress(normalized)
+        remote_progress = dict(progress or {})
+        if bool(getattr(self._core_store, "is_configured", False)):
+            try:
+                remote_progress = dict(self._core_store.write_progress(normalized, progress) or remote_progress)
+            except Exception:
+                remote_progress = dict(progress or {})
+        return self._write_progress_local(normalized, remote_progress)
+
+    def write_progress_strict(self, user_id: str, progress: dict[str, Any]) -> dict[str, Any]:
+        normalized = _normalize_user_id(user_id)
+        if not bool(getattr(self._core_store, "is_configured", False)):
+            raise RuntimeError("user_stats sync requires configured Supabase core store")
+        remote_progress = dict(self._core_store.write_progress(normalized, progress) or dict(progress or {}))
+        return self._write_progress_local(normalized, remote_progress)
 
     def merge_progress(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         progress = self.read_progress(user_id)
         merged = _deep_merge(progress, patch)
         return self.write_progress(user_id, merged)
+
+    def merge_progress_strict(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
+        progress = self.read_progress(user_id)
+        merged = _deep_merge(progress, patch)
+        return self.write_progress_strict(user_id, merged)
+
+    def read_goals(self, user_id: str) -> list[dict[str, Any]]:
+        normalized = _normalize_user_id(user_id)
+        if bool(getattr(self._core_store, "is_configured", False)):
+            try:
+                return [
+                    dict(item)
+                    for item in list(self._core_store.read_goals(normalized) or [])
+                    if isinstance(item, dict)
+                ]
+            except Exception:
+                return []
+        return []
+
+    def upsert_goal(self, user_id: str, goal: dict[str, Any]) -> dict[str, Any]:
+        normalized = _normalize_user_id(user_id)
+        if not bool(getattr(self._core_store, "is_configured", False)):
+            raise RuntimeError("user_goals sync requires configured Supabase core store")
+        payload = dict(goal or {})
+        payload["user_id"] = normalized
+        return dict(self._core_store.upsert_goal(normalized, payload) or {})
+
+    def sync_goals_strict(self, user_id: str, goals: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        normalized = _normalize_user_id(user_id)
+        if not bool(getattr(self._core_store, "is_configured", False)):
+            raise RuntimeError("user_goals sync requires configured Supabase core store")
+        previous_goals = self.read_goals(normalized)
+        applied: list[dict[str, Any]] = []
+        try:
+            for goal in goals:
+                if not isinstance(goal, dict):
+                    continue
+                applied.append(self.upsert_goal(normalized, goal))
+        except Exception as exc:
+            try:
+                self._restore_goals_snapshot(normalized, previous_goals, applied)
+            except Exception as rollback_exc:
+                raise RuntimeError(
+                    f"user_goals rollback failed after sync error: {rollback_exc}"
+                ) from exc
+            raise
+        return applied
+
+    def _restore_goals_snapshot(
+        self,
+        user_id: str,
+        previous_goals: list[dict[str, Any]],
+        applied_goals: list[dict[str, Any]],
+    ) -> None:
+        previous_ids = {
+            str(item.get("id") or "").strip()
+            for item in previous_goals
+            if isinstance(item, dict) and str(item.get("id") or "").strip()
+        }
+        for goal in previous_goals:
+            if isinstance(goal, dict):
+                self.upsert_goal(user_id, goal)
+        for goal in applied_goals:
+            goal_id = str(goal.get("id") or "").strip() if isinstance(goal, dict) else ""
+            if goal_id and goal_id not in previous_ids:
+                self._core_store.delete_goal(goal_id)
 
     def list_memory_events(self, user_id: str, limit: int | None = 20) -> list[LearnerStateEvent]:
         normalized = _normalize_user_id(user_id)
@@ -539,7 +654,12 @@ class LearnerStateService:
         user_id: str,
         plan_id: str,
         knowledge_points_json: list[dict[str, Any]] | None = None,
+        pages: list[dict[str, Any]] | None = None,
         source_material_refs_json: list[dict[str, Any]] | None = None,
+        notebook_id: str | None = None,
+        notebook_name: str | None = None,
+        notebook_context: str | None = None,
+        chat_history: list[dict[str, Any]] | None = None,
         source_bot_id: str | None = None,
         status: str = "initialized",
         current_index: int = -1,
@@ -560,7 +680,30 @@ class LearnerStateService:
                 if source_material_refs_json is not None
                 else (existing.get("source_material_refs_json") if existing else [])
             )
-            pages = _build_learning_plan_pages(normalized_plan_id, normalized_points, existing_pages)
+            if pages is None:
+                normalized_pages = _build_learning_plan_pages(normalized_plan_id, normalized_points, existing_pages)
+            else:
+                normalized_pages = []
+                for index, page in enumerate(pages):
+                    if not isinstance(page, dict):
+                        continue
+                    page_index_value = page.get("page_index", index)
+                    try:
+                        page_index = int(page_index_value)
+                    except (TypeError, ValueError):
+                        page_index = index
+                    normalized_pages.append(
+                        {
+                            "session_id": normalized_plan_id,
+                            "page_index": page_index,
+                            "knowledge_title": str(page.get("knowledge_title", "") or "").strip(),
+                            "knowledge_summary": str(page.get("knowledge_summary", "") or "").strip(),
+                            "user_difficulty": str(page.get("user_difficulty", "") or "").strip(),
+                            "html": str(page.get("html", "") or "").strip(),
+                            "page_status": str(page.get("page_status", "pending") or "pending").strip() or "pending",
+                            "page_error": str(page.get("page_error", "") or "").strip(),
+                        }
+                    )
             plan_fields = {
                 "user_id": normalized,
                 "source_bot_id": str(source_bot_id or (existing or {}).get("source_bot_id") or "").strip(),
@@ -568,20 +711,20 @@ class LearnerStateService:
                 "status": str(status or (existing or {}).get("status") or "initialized"),
                 "current_index": int(current_index),
                 "summary": str(completion_summary_md or "").strip(),
-                "notebook_id": str((existing or {}).get("notebook_id") or "").strip(),
-                "notebook_name": str((existing or {}).get("notebook_name") or "").strip(),
-                "notebook_context": str((existing or {}).get("notebook_context") or "").strip(),
-                "chat_history": list((existing or {}).get("chat_history") or []),
+                "notebook_id": str(notebook_id or (existing or {}).get("notebook_id") or "").strip(),
+                "notebook_name": str(notebook_name or (existing or {}).get("notebook_name") or "").strip(),
+                "notebook_context": str(notebook_context or (existing or {}).get("notebook_context") or "").strip(),
+                "chat_history": list(chat_history if chat_history is not None else (existing or {}).get("chat_history") or []),
             }
             if existing is None:
                 plan = self._learning_plan_service.create_plan(
                     session_id=normalized_plan_id,
-                    pages=pages,
+                    pages=normalized_pages,
                     **plan_fields,
                 )
             else:
                 plan = self._learning_plan_service.update_plan(normalized_plan_id, **plan_fields) or {}
-                for page in pages:
+                for page in normalized_pages:
                     page_index_value = int(page.get("page_index", 0) or 0)
                     page_fields = {
                         key: value
@@ -606,10 +749,10 @@ class LearnerStateService:
                         "knowledge_summary": str(page.get("knowledge_summary", "") or "").strip(),
                         "user_difficulty": str(page.get("user_difficulty", "") or "").strip(),
                     }
-                    for page in pages
+                    for page in normalized_pages
                 ],
                 status=str(plan.get("status", "initialized") or "initialized"),
-                current_index=int(plan.get("current_index", -1) or -1),
+                current_index=int(plan.get("current_index")) if plan.get("current_index") is not None else -1,
                 completion_summary_md=str(plan.get("summary", "") or "").strip(),
                 created_at=_timestamp_to_iso(plan.get("created_at")) or _iso_now(),
                 updated_at=_timestamp_to_iso(plan.get("updated_at")) or _iso_now(),
@@ -647,7 +790,7 @@ class LearnerStateService:
                 user_id=normalized,
                 source_bot_id=plan_source_bot_id,
             )
-            return LearningPlanPageRecord(
+            page_record = LearningPlanPageRecord(
                 plan_id=normalized_plan_id,
                 page_index=int(page.get("page_index", page_index) or page_index),
                 page_status=str(page.get("page_status", page_status) or page_status),
@@ -655,6 +798,12 @@ class LearnerStateService:
                 error_message=str(page.get("page_error", error_message) or error_message),
                 generated_at=_timestamp_to_iso(page.get("updated_at") or generated_at) or _iso_now(),
             )
+            self._enqueue_learning_plan_page_sync(
+                user_id=normalized,
+                page=page_record,
+                source_bot_id=plan_source_bot_id or None,
+            )
+            return page_record
 
     def ensure_default_job(self, user_id: str, **kwargs: Any) -> LearnerHeartbeatJob:
         normalized = _normalize_user_id(user_id)
@@ -666,27 +815,34 @@ class LearnerStateService:
             dict(kwargs.get("policy_json") or {}),
         )
         next_run_at = kwargs.get("next_run_at") or _default_next_heartbeat_run()
-        return self._heartbeat_job_service.upsert_job(
+        existing = self._heartbeat_job_service._store.get_by_identity(normalized, bot_id, channel)
+        if existing is not None:
+            existing_policy = dict(existing.policy_json or {})
+            desired_policy = dict(policy_json or {})
+            desired_status = str(kwargs.get("status") or existing.status or "active").strip() or "active"
+            desired_next_run_at = _timestamp_to_iso(next_run_at) or _timestamp_to_iso(existing.next_run_at)
+            existing_next_run_at = _timestamp_to_iso(existing.next_run_at)
+            if (
+                existing_policy == desired_policy
+                and existing.status == desired_status
+                and existing_next_run_at == desired_next_run_at
+            ):
+                return existing
+        job = self._heartbeat_job_service.upsert_job(
             user_id=normalized,
             bot_id=bot_id,
             channel=channel,
             policy_json=policy_json,
             next_run_at=next_run_at,
         )
+        self._enqueue_heartbeat_job_sync(job)
+        return job
 
     def get_due_jobs(self, **kwargs: Any) -> list[LearnerHeartbeatJob]:
-        user_id = kwargs.get("user_id")
-        now = kwargs.get("now")
-        jobs = self._heartbeat_job_service.list_due_jobs(now=now)
-        filtered = [
-            job
-            for job in jobs
-            if bool(job.policy_json.get("enabled", True)) and bool(job.policy_json.get("consent", False))
-        ]
-        if not user_id:
-            return filtered
-        normalized = _normalize_user_id(str(user_id))
-        return [job for job in filtered if job.user_id == normalized]
+        return self._heartbeat_job_service.get_due_jobs(
+            user_id=kwargs.get("user_id"),
+            now=kwargs.get("now"),
+        )
 
     def record_run_result(self, **kwargs: Any) -> LearnerHeartbeatJob:
         job_id = str(kwargs.get("job_id") or "").strip()
@@ -697,17 +853,123 @@ class LearnerStateService:
         finished_at = kwargs.get("finished_at")
         next_run_at = kwargs.get("next_run_at") or _default_next_heartbeat_run(reference=finished_at)
         failure_count = 0 if success else int(kwargs.get("failure_count", 0) or 0) + 1
+        current_job = self._heartbeat_job_service._store.get_by_id(job_id)
+        if current_job is None:
+            raise KeyError(f"heartbeat job not found: {job_id}")
+        recorded_at = _coerce_datetime(finished_at) or datetime.now(timezone.utc).astimezone()
+        normalized_result_json = _normalize_heartbeat_result_json(
+            job=current_job,
+            success=success,
+            result_json=result_json,
+            recorded_at=recorded_at,
+        )
         job = self._heartbeat_job_service.mark_run(
             job_id=job_id,
             last_run_at=finished_at,
             next_run_at=next_run_at,
-            last_result_json={**result_json, "success": success},
+            last_result_json=normalized_result_json,
             failure_count=failure_count,
             status=str(kwargs.get("status") or "active"),
         )
         if job is None:
             raise KeyError(f"heartbeat job not found: {job_id}")
+        self._enqueue_heartbeat_job_sync(job)
+        self.append_memory_event(
+            job.user_id,
+            source_feature="heartbeat",
+            source_id=job.job_id,
+            source_bot_id=job.bot_id,
+            memory_kind="heartbeat_delivery",
+            payload_json={
+                "job_id": job.job_id,
+                "delivery": dict(normalized_result_json.get("delivery") or {}),
+                "audit": dict(normalized_result_json.get("audit") or {}),
+                "success": bool(normalized_result_json.get("success", success)),
+                "failure_count": int(job.failure_count),
+                "next_run_at": _timestamp_to_iso(job.next_run_at),
+                "last_run_at": _timestamp_to_iso(job.last_run_at),
+            },
+            dedupe_key=(
+                f"heartbeat-delivery:{job.job_id}:"
+                f"{normalized_result_json.get('audit', {}).get('recorded_at') or _iso_now()}"
+            ),
+        )
+        arbitration_payload = dict(normalized_result_json.get("arbitration") or {})
+        if arbitration_payload:
+            self.append_memory_event(
+                job.user_id,
+                source_feature="heartbeat",
+                source_id=job.job_id,
+                source_bot_id=job.bot_id,
+                memory_kind="heartbeat_arbitration",
+                payload_json={
+                    "job_id": job.job_id,
+                    "winner_job_id": arbitration_payload.get("winner_job_id"),
+                    "winner_bot_id": arbitration_payload.get("winner_bot_id"),
+                    "suppressed_bot_ids": list(arbitration_payload.get("suppressed_bot_ids") or []),
+                    "reasons": list(arbitration_payload.get("reasons") or []),
+                    "decisions": list(arbitration_payload.get("decisions") or []),
+                    "recorded_at": normalized_result_json.get("recorded_at") or _iso_now(),
+                },
+                dedupe_key=(
+                    f"heartbeat-arbitration:{job.job_id}:"
+                    f"{arbitration_payload.get('winner_job_id') or 'none'}:"
+                    f"{normalized_result_json.get('recorded_at') or _iso_now()}"
+                ),
+            )
         return job
+
+    def _enqueue_learning_plan_page_sync(
+        self,
+        *,
+        user_id: str,
+        page: LearningPlanPageRecord,
+        source_bot_id: str | None = None,
+    ) -> None:
+        generated_at = str(page.generated_at or _iso_now()).strip()
+        dedupe_key = f"learning-plan-page:{page.plan_id}:{page.page_index}:{page.page_status}:{generated_at}"
+        self._outbox_service.enqueue(
+            id=dedupe_key,
+            user_id=user_id,
+            event_type="learning_plan_page",
+            payload_json={
+                "plan_id": page.plan_id,
+                "page_index": page.page_index,
+                "page_status": page.page_status,
+                "html_content": page.html_content,
+                "error_message": page.error_message,
+                "generated_at": generated_at,
+                "updated_at": generated_at,
+                "source_feature": "guide",
+                "source_id": page.plan_id,
+                "source_bot_id": str(source_bot_id or "").strip() or None,
+                "memory_kind": "learning_plan_page",
+            },
+            dedupe_key=dedupe_key,
+        )
+
+    def _enqueue_heartbeat_job_sync(self, job: LearnerHeartbeatJob) -> None:
+        updated_at = _timestamp_to_iso(job.updated_at) or _iso_now()
+        dedupe_key = f"heartbeat-job:{job.job_id}:{updated_at}"
+        self._outbox_service.enqueue(
+            id=dedupe_key,
+            user_id=job.user_id,
+            event_type="heartbeat_job",
+            payload_json={
+                "job_id": job.job_id,
+                "source_feature": "heartbeat_job",
+                "source_id": job.job_id,
+                "source_bot_id": job.bot_id,
+                "memory_kind": "heartbeat_job",
+                "status": job.status,
+                "failure_count": int(job.failure_count),
+                "next_run_at": _timestamp_to_iso(job.next_run_at),
+                "last_run_at": _timestamp_to_iso(job.last_run_at),
+                "last_result_json": dict(job.last_result_json or {}),
+                "updated_at": updated_at,
+            },
+            dedupe_key=dedupe_key,
+        )
 
     async def record_guide_completion(
         self,
@@ -720,7 +982,27 @@ class LearnerStateService:
         source_bot_id: str | None = None,
     ) -> LearnerStateEvent:
         normalized = _normalize_user_id(user_id)
+        normalized_points = [
+            {
+                "knowledge_title": str(point.get("knowledge_title", "") or "").strip(),
+                "knowledge_summary": str(point.get("knowledge_summary", "") or "").strip(),
+                "user_difficulty": str(point.get("user_difficulty", "") or "").strip(),
+            }
+            for point in (knowledge_points or [])
+            if isinstance(point, dict)
+        ]
         async with self._safe_lock(normalized):
+            progress = self.read_progress(normalized)
+            progress_patch = _build_guide_completion_progress_patch(
+                progress,
+                guide_id=guide_id,
+                knowledge_points=normalized_points,
+            )
+            if progress_patch:
+                if bool(getattr(self._core_store, "is_configured", False)):
+                    self.merge_progress_strict(normalized, progress_patch)
+                else:
+                    self.merge_progress(normalized, progress_patch)
             return self.record_guide_event(
                 user_id=normalized,
                 guide_id=guide_id,
@@ -730,16 +1012,8 @@ class LearnerStateService:
                     "guide_id": guide_id,
                     "notebook_name": notebook_name,
                     "summary": str(summary or "").strip(),
-                    "total_points": len(knowledge_points or []),
-                    "knowledge_points": [
-                        {
-                            "knowledge_title": str(point.get("knowledge_title", "") or "").strip(),
-                            "knowledge_summary": str(point.get("knowledge_summary", "") or "").strip(),
-                            "user_difficulty": str(point.get("user_difficulty", "") or "").strip(),
-                        }
-                        for point in (knowledge_points or [])
-                        if isinstance(point, dict)
-                    ],
+                    "total_points": len(normalized_points),
+                    "knowledge_points": normalized_points,
                 },
             )
 
@@ -815,6 +1089,10 @@ class LearnerStateService:
         if progress_text:
             parts.append(f"### Learner Progress\n{progress_text}")
 
+        goals_text = self.render_goals_markdown(self.read_goals(user_id), language=language)
+        if goals_text:
+            parts.append(f"### Learner Goals\n{goals_text}")
+
         events_text = self.render_events_markdown(snapshot.memory_events, language=language)
         if events_text:
             parts.append(f"### Recent Memory Events\n{events_text}")
@@ -837,6 +1115,64 @@ class LearnerStateService:
             "This is the authoritative long-term state for the current learner only.\n\n"
             f"{combined}"
         )
+
+    def build_compact_context(
+        self,
+        user_id: str,
+        *,
+        language: str = "zh",
+        max_chars: int = 1400,
+    ) -> dict[str, Any]:
+        normalized = _normalize_user_id(user_id)
+        snapshot = self.read_snapshot(normalized, event_limit=3)
+        segments = [
+            self._compact_profile_segment(snapshot.profile, language=language),
+            self._compact_summary_segment(snapshot.summary, language=language),
+            self._compact_progress_segment(snapshot.progress, language=language),
+            self._compact_goals_segment(self.read_goals(normalized), language=language),
+        ]
+        segments = [segment for segment in segments if segment.get("content")]
+        return {
+            "user_id": normalized,
+            "language": language,
+            "budget_chars": max_chars,
+            "source_tags": [str(segment.get("source_tag", "")) for segment in segments],
+            "segments": segments,
+            "content": self._render_compact_segments(segments, language=language, max_chars=max_chars),
+        }
+
+    def build_context_candidates(
+        self,
+        user_id: str,
+        *,
+        query: str = "",
+        route: str = "",
+        language: str = "zh",
+        max_memory_hits: int = 5,
+    ) -> dict[str, Any]:
+        normalized = _normalize_user_id(user_id)
+        query_text = str(query or "").strip()
+        route_value = self._normalize_context_route(route=route, query=query_text)
+        compact = self.build_compact_context(normalized, language=language)
+        learner_candidates = [dict(segment, score=1.0) for segment in list(compact.get("segments") or [])]
+        memory_candidates: list[dict[str, Any]] = []
+        if self._should_include_memory_hits(route_value=route_value, query=query_text):
+            memory_candidates = self._build_memory_hit_candidates(
+                normalized,
+                query=query_text,
+                language=language,
+                max_hits=max_memory_hits,
+            )
+        candidates = learner_candidates + memory_candidates
+        return {
+            "user_id": normalized,
+            "query": query_text,
+            "route": route_value,
+            "compact": compact,
+            "learner_candidates": learner_candidates,
+            "memory_candidates": memory_candidates,
+            "candidates": candidates,
+        }
 
     async def refresh_from_turn(
         self,
@@ -993,6 +1329,276 @@ class LearnerStateService:
             }
         )
         return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _compact_segment(source_tag: str, content: str, *, metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+        return {
+            "source_tag": source_tag,
+            "content": str(content or "").strip(),
+            "metadata": dict(metadata or {}),
+        }
+
+    @staticmethod
+    def _render_compact_segments(segments: list[dict[str, Any]], *, language: str, max_chars: int) -> str:
+        if not segments:
+            return ""
+        title = "学员紧凑卡片" if str(language).lower().startswith("zh") else "Learner Compact Card"
+        parts = [f"## {title}"]
+        for segment in segments:
+            source_tag = str(segment.get("source_tag", "") or "learner_fact").strip()
+            content = str(segment.get("content", "") or "").strip()
+            if not content:
+                continue
+            parts.append(f"### {source_tag}\n{content}")
+        combined = "\n\n".join(parts).strip()
+        if len(combined) > max_chars:
+            combined = combined[:max_chars].rstrip() + "\n...[truncated]"
+        return combined
+
+    def _compact_profile_segment(self, profile: dict[str, Any], *, language: str) -> dict[str, Any]:
+        lines: list[str] = []
+        display_name = _preferred_display_name(profile)
+        lines.append(
+            f"- 学员：{display_name}（{_display(profile.get('user_id'))}）"
+            if str(language).lower().startswith("zh")
+            else f"- Learner: {display_name} ({_display(profile.get('user_id'))})"
+        )
+        focus_topic = str(profile.get("focus_topic") or "").strip()
+        focus_query = str(profile.get("focus_query") or "").strip()
+        if focus_topic:
+            lines.append(
+                f"- 当前聚焦：{focus_topic}" if str(language).lower().startswith("zh") else f"- Focus topic: {focus_topic}"
+            )
+        if focus_query:
+            lines.append(
+                f"- 当前目标提问：{focus_query}"
+                if str(language).lower().startswith("zh")
+                else f"- Focus query: {focus_query}"
+            )
+        difficulty = _difficulty_label(profile.get("difficulty_preference"))
+        style = _explanation_style_label(profile.get("explanation_style"))
+        lines.append(
+            f"- 难度偏好：{difficulty}" if str(language).lower().startswith("zh") else f"- Difficulty preference: {difficulty}"
+        )
+        lines.append(
+            f"- 讲解风格：{style}" if str(language).lower().startswith("zh") else f"- Explanation style: {style}"
+        )
+        return self._compact_segment(
+            "learner_profile",
+            "\n".join(lines),
+            metadata={"fields": ["user_id", "focus_topic", "focus_query", "difficulty_preference", "explanation_style"]},
+        )
+
+    def _compact_summary_segment(self, summary: str, *, language: str) -> dict[str, Any]:
+        text = str(summary or "").strip()
+        if not text:
+            return self._compact_segment("learner_summary", "")
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        trimmed = "\n".join(lines[:4]) if lines else text[:220]
+        if len(trimmed) > 260:
+            trimmed = trimmed[:260].rstrip() + "..."
+        return self._compact_segment("learner_summary", trimmed, metadata={"source": "summary"})
+
+    def _compact_progress_segment(self, progress: dict[str, Any], *, language: str) -> dict[str, Any]:
+        if not progress:
+            return self._compact_segment("learner_progress", "")
+        today = dict(progress.get("today") or {})
+        chapters = list(progress.get("chapters") or [])
+        lines: list[str] = []
+        if today:
+            if str(language).lower().startswith("zh"):
+                lines.append(f"- 今日完成：{_display(today.get('today_done'))}/{_display(today.get('daily_target'))}")
+                lines.append(f"- 连续天数：{_display(today.get('streak_days'))}")
+            else:
+                lines.append(f"- Done today: {_display(today.get('today_done'))}/{_display(today.get('daily_target'))}")
+                lines.append(f"- Streak days: {_display(today.get('streak_days'))}")
+        for item in chapters[:2]:
+            name = _display(item.get("chapter_name"), fallback=str(item.get("chapter_id") or ""))
+            done = _display(item.get("done"))
+            total = _display(item.get("total"))
+            lines.append(
+                f"- {name}：{done}/{total}" if str(language).lower().startswith("zh") else f"- {name}: {done}/{total}"
+            )
+        return self._compact_segment("learner_progress", "\n".join(lines), metadata={"fields": ["today", "chapters"]})
+
+    def _compact_goals_segment(self, goals: list[dict[str, Any]], *, language: str) -> dict[str, Any]:
+        if not goals:
+            return self._compact_segment("learner_goals", "")
+        lines: list[str] = []
+        for item in goals[:3]:
+            title = _display(item.get("title"), fallback="未命名目标" if str(language).lower().startswith("zh") else "Untitled goal")
+            progress = _display(item.get("progress", 0))
+            deadline = _display(item.get("deadline"), fallback="未设截止时间" if str(language).lower().startswith("zh") else "No deadline")
+            lines.append(
+                f"- {title}｜进度：{progress}｜截止：{deadline}"
+                if str(language).lower().startswith("zh")
+                else f"- {title} | Progress: {progress} | Deadline: {deadline}"
+            )
+        return self._compact_segment("learner_goals", "\n".join(lines), metadata={"count": min(len(goals), 3)})
+
+    @staticmethod
+    def _normalize_context_route(*, route: str, query: str) -> str:
+        route_value = str(route or "").strip().lower()
+        route_aliases = {
+            "personal_recall": "recall",
+            "cross_session_recall": "history",
+        }
+        if route_value in route_aliases:
+            return route_aliases[route_value]
+        if route_value:
+            return route_value
+        if LearnerStateService._is_recall_like_query(query):
+            return "recall"
+        return "default"
+
+    @staticmethod
+    def _is_recall_like_query(query: str) -> bool:
+        text = str(query or "").strip().lower()
+        if not text:
+            return False
+        hints = (
+            "之前",
+            "刚才",
+            "上次",
+            "上回",
+            "记得",
+            "还记得",
+            "回顾",
+            "复盘",
+            "之前说",
+            "刚刚",
+            "earlier",
+            "before",
+            "remember",
+            "recall",
+            "what did you say",
+            "last time",
+        )
+        return any(hint in text for hint in hints)
+
+    @staticmethod
+    def _query_terms(query: str) -> list[str]:
+        text = str(query or "").strip().lower()
+        if not text:
+            return []
+        parts = re.split(r"[^\w\u4e00-\u9fff]+", text)
+        terms: set[str] = set()
+        for part in parts:
+            if not part:
+                continue
+            if re.fullmatch(r"[a-z0-9_]+", part):
+                if len(part) > 1:
+                    terms.add(part)
+                continue
+            if re.search(r"[\u4e00-\u9fff]", part):
+                if len(part) <= 6:
+                    terms.add(part)
+                limit = min(len(part), 6)
+                for size in range(2, limit + 1):
+                    for idx in range(0, len(part) - size + 1):
+                        terms.add(part[idx : idx + size])
+        return sorted(terms, key=len, reverse=True)
+
+    def _should_include_memory_hits(self, *, route_value: str, query: str) -> bool:
+        if route_value in {"recall", "history", "memory", "review"}:
+            return True
+        return self._is_recall_like_query(query)
+
+    def _memory_event_text(self, event: LearnerStateEvent, *, language: str) -> str:
+        payload = dict(event.payload_json or {})
+        if event.memory_kind == "turn":
+            user_message = str(payload.get("user_message") or "").strip()
+            assistant_message = str(payload.get("assistant_message") or "").strip()
+            return "\n".join(
+                part
+                for part in [
+                    f"用户：{user_message}" if str(language).lower().startswith("zh") else f"User: {user_message}",
+                    f"助手：{assistant_message}" if str(language).lower().startswith("zh") else f"Assistant: {assistant_message}",
+                ]
+                if part.strip()
+            ).strip()
+        if event.memory_kind == "guide_completion":
+            summary = str(payload.get("summary") or "").strip()
+            titles = [
+                str(point.get("knowledge_title") or "").strip()
+                for point in list(payload.get("knowledge_points") or [])
+                if isinstance(point, dict) and str(point.get("knowledge_title") or "").strip()
+            ]
+            parts = [summary] if summary else []
+            if titles:
+                parts.append("、".join(titles) if str(language).lower().startswith("zh") else ", ".join(titles))
+            return "\n".join(parts).strip()
+        if event.memory_kind.startswith("notebook_"):
+            title = str(payload.get("title") or "").strip()
+            summary = str(payload.get("summary") or "").strip()
+            user_query = str(payload.get("user_query") or "").strip()
+            return "\n".join(part for part in [title, summary, user_query] if part).strip()
+        if event.memory_kind == "heartbeat_delivery":
+            delivery = dict(payload.get("delivery") or {})
+            audit = dict(payload.get("audit") or {})
+            return "\n".join(
+                part
+                for part in [
+                    str(delivery.get("message") or "").strip(),
+                    str(audit.get("status") or "").strip(),
+                ]
+                if part
+            ).strip()
+        return str(payload.get("summary") or payload.get("text") or "").strip() or _json_dump(payload)
+
+    def _score_memory_event(self, query_terms: list[str], text: str, *, rank: int) -> float:
+        if not text:
+            return 0.0
+        if not query_terms:
+            return max(0.1, 1.0 - (rank * 0.05))
+        normalized_text = text.lower()
+        matches = sum(1 for term in query_terms if term in normalized_text)
+        if matches <= 0:
+            return 0.0
+        return float(matches) + max(0.0, 0.3 - (rank * 0.03))
+
+    def _build_memory_hit_candidates(
+        self,
+        user_id: str,
+        *,
+        query: str,
+        language: str,
+        max_hits: int,
+    ) -> list[dict[str, Any]]:
+        events = self.list_memory_events(user_id, limit=20)
+        if not events:
+            return []
+        query_terms = self._query_terms(query)
+        scored: list[tuple[float, int, LearnerStateEvent, str]] = []
+        for rank, event in enumerate(reversed(events)):
+            text = self._memory_event_text(event, language=language)
+            score = self._score_memory_event(query_terms, text, rank=rank)
+            if score <= 0:
+                continue
+            scored.append((score, rank, event, text))
+        if not scored and events:
+            for rank, event in enumerate(reversed(events)):
+                text = self._memory_event_text(event, language=language)
+                scored.append((self._score_memory_event([], text, rank=rank), rank, event, text))
+        scored.sort(key=lambda item: (-item[0], item[1]))
+        candidates: list[dict[str, Any]] = []
+        for score, _rank, event, text in scored[:max_hits]:
+            candidates.append(
+                {
+                    "source_tag": "memory_hit",
+                    "content": text,
+                    "score": round(float(score), 3),
+                    "metadata": {
+                        "event_id": event.event_id,
+                        "source_feature": event.source_feature,
+                        "source_id": event.source_id,
+                        "memory_kind": event.memory_kind,
+                        "source_bot_id": event.source_bot_id,
+                        "created_at": event.created_at,
+                    },
+                }
+            )
+        return candidates
 
     @staticmethod
     def _learning_plan_to_dict(plan: LearningPlanRecord) -> dict[str, Any]:
@@ -1195,6 +1801,26 @@ class LearnerStateService:
                     f"- {kind} / {source} / {source_id}"
                     if str(language).lower().startswith("zh")
                     else f"- {kind} / {source} / {source_id}"
+                )
+            )
+        return "\n".join(lines).strip()
+
+    @staticmethod
+    def render_goals_markdown(goals: list[dict[str, Any]], *, language: str = "zh") -> str:
+        if not goals:
+            return ""
+        lines = [
+            "## 当前目标" if str(language).lower().startswith("zh") else "## Goals",
+        ]
+        for item in goals[:5]:
+            title = _display(item.get("title"), fallback="未命名目标" if str(language).lower().startswith("zh") else "Untitled goal")
+            progress = item.get("progress", 0)
+            deadline = _display(item.get("deadline"), fallback="未设截止时间" if str(language).lower().startswith("zh") else "No deadline")
+            lines.append(
+                (
+                    f"- {title}｜进度：{_display(progress)}｜截止：{deadline}"
+                    if str(language).lower().startswith("zh")
+                    else f"- {title} | Progress: {_display(progress)} | Deadline: {deadline}"
                 )
             )
         return "\n".join(lines).strip()
@@ -1454,6 +2080,73 @@ def _build_learning_plan_pages(
             }
         )
     return pages
+
+
+def _build_guide_completion_progress_patch(
+    progress: dict[str, Any],
+    *,
+    guide_id: str,
+    knowledge_points: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if not guide_id and not knowledge_points:
+        return {}
+    normalized_guide_id = str(guide_id or "").strip()
+    now = _iso_now()
+    total_points = len(knowledge_points)
+    today = dict(progress.get("today") or {})
+    knowledge_map = dict(progress.get("knowledge_map") or {})
+    if normalized_guide_id and _guide_completion_already_recorded(knowledge_map, normalized_guide_id):
+        return {}
+    completed_titles = [
+        str(point.get("knowledge_title") or "").strip()
+        for point in knowledge_points
+        if str(point.get("knowledge_title") or "").strip()
+    ]
+    weak_points = [
+        str(point.get("knowledge_title") or "").strip()
+        for point in knowledge_points
+        if str(point.get("knowledge_title") or "").strip()
+        and str(point.get("user_difficulty") or "").strip().lower() in {"hard", "difficult", "high"}
+    ]
+    existing_history = list(knowledge_map.get("guided_learning_history") or [])
+    history_entry = {
+        "guide_id": str(guide_id or "").strip(),
+        "completed_at": now,
+        "total_points": total_points,
+        "completed_titles": completed_titles,
+        "weak_points": weak_points,
+    }
+    guided_learning = dict(knowledge_map.get("guided_learning") or {})
+    guided_learning.update(history_entry)
+    knowledge_map["guided_learning"] = guided_learning
+    knowledge_map["guided_learning_history"] = [history_entry] + [
+        dict(item) for item in existing_history[:9] if isinstance(item, dict)
+    ]
+    if weak_points:
+        knowledge_map["weak_points"] = weak_points[:8]
+
+    patch: dict[str, Any] = {
+        "knowledge_map": knowledge_map,
+        "last_practiced_at": now,
+        "last_updated": now,
+    }
+    if total_points > 0:
+        patch["today"] = {"today_done": int(today.get("today_done") or 0) + total_points}
+    return patch
+
+
+def _guide_completion_already_recorded(knowledge_map: dict[str, Any], guide_id: str) -> bool:
+    if not guide_id:
+        return False
+    current = dict(knowledge_map.get("guided_learning") or {})
+    if str(current.get("guide_id") or "").strip() == guide_id:
+        return True
+    for item in list(knowledge_map.get("guided_learning_history") or []):
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("guide_id") or "").strip() == guide_id:
+            return True
+    return False
 
 
 def _default_heartbeat_policy(

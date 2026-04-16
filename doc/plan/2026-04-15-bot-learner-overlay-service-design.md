@@ -64,6 +64,33 @@ flowchart TD
 3. 直接拼装 TutorBot 最终 prompt。
 4. 直接读取或修改 bot template。
 
+### 4.3 与 LearnerStateService / Context Orchestration 的协作关系
+
+`BotLearnerOverlayService` 必须明确是一个**后置局部差异层**，它与其它服务的关系不能模糊：
+
+1. `LearnerStateService`
+   - 负责全局 learner truth
+   - 永远先于 overlay 被读取
+2. `BotLearnerOverlayService`
+   - 只在 global learner core 之后提供 bot-local fragment
+   - 不能反向定义或覆盖全局真相
+3. `Context Orchestration`
+   - 负责决定本轮是否需要 overlay、加载多少 overlay、放进哪个上下文槽位
+   - 不能把 overlay 伪装成新的 learner summary / learner profile
+
+因此固定链路应为：
+
+1. 先读 `session state`
+2. 再读 `LearnerStateService`
+3. 再按需读 `BotLearnerOverlayService`
+4. 再由 context orchestration 统一装配 `anchor/session/learner/evidence` 四个 block
+
+硬要求：
+
+1. overlay 只能补充 learner block 或 evidence block
+2. overlay 不得进入 stable prefix
+3. overlay 不得绕过 learner writeback pipeline 晋升为全局事实
+
 ## 5. 数据模型原则
 
 ### 5.1 主键

@@ -99,6 +99,40 @@ _NUMBERED_SUBMISSION_RE = re.compile(
     r"^第?\s*([0-9一二两三四五六七八九十]+)\s*[题问][：:,.，、 ]*(.+)$",
     re.IGNORECASE | re.DOTALL,
 )
+_MCQ_OPTION_RE = re.compile(r"^\s*(?:[-*+]\s*)?[(（]?([A-E])[)）.、:：]\s*(.+?)\s*$", re.IGNORECASE)
+_MCQ_MULTI_RE = re.compile(r"多选|不定项|可多选|正确的有|错误的有|哪些说法|下列说法正确的有")
+_MCQ_QUESTION_LABEL = r"[一二两三四五六七八九十百零\d]+"
+_MCQ_QUESTION_MARKER = (
+    rf"(?:例题\s*{_MCQ_QUESTION_LABEL}|第\s*{_MCQ_QUESTION_LABEL}\s*[题道]|"
+    rf"题目\s*{_MCQ_QUESTION_LABEL}|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])"
+)
+_MCQ_QUESTION_LINE_RE = re.compile(
+    rf"^\s*(?:\*\*)?\s*{_MCQ_QUESTION_MARKER}(?:\s*[（(][^()（）]{{0,40}}[)）])?"
+    rf"\s*(?:[:：]\s*.*)?\s*(?:\*\*)?\s*$",
+    re.IGNORECASE,
+)
+_MCQ_GENERIC_NUMBERED_RE = re.compile(r"^\s*(?:\*\*)?\d+\s*[.、．]\s+.*$", re.IGNORECASE)
+_MCQ_STEM_MARKER_RE = re.compile(
+    rf"^\s*(?:题目|例题\s*{_MCQ_QUESTION_LABEL}|第\s*{_MCQ_QUESTION_LABEL}\s*[题道]|"
+    rf"[\(（]\s*\d+\s*[\)）]|问题)\s*[:：]?\s*$",
+    re.IGNORECASE,
+)
+_MCQ_ANSWER_MARKERS = (
+    "答案与核心解析",
+    "答案与解析",
+    "标准答案",
+    "参考答案",
+    "正确答案",
+    "答案解析",
+)
+_MCQ_CORRECT_ANSWER_RE = re.compile(
+    r"(?:标准答案|参考答案|正确答案|答案)\s*[：:]\s*([A-E](?:\s*[、，,/／\s]\s*[A-E])*)",
+    re.IGNORECASE,
+)
+_MCQ_EXPLANATION_RE = re.compile(
+    r"(?:答案与核心解析|答案与解析|答案解析|解析)\s*[：:]\s*(.+)",
+    re.IGNORECASE | re.DOTALL,
+)
 
 
 def normalize_question_followup_context(raw: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -301,6 +335,23 @@ def build_question_followup_context_from_summary(
     return normalize_question_followup_context(primary)
 
 
+def extract_choice_summary_from_text(text: str) -> dict[str, Any] | None:
+    raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not raw:
+        return None
+
+    lines = raw.split("\n")
+    blocks = _split_choice_question_blocks(lines) or [raw]
+    results: list[dict[str, Any]] = []
+    for index, block in enumerate(blocks, 1):
+        qa_pair = _extract_choice_qa_pair(block, index)
+        if qa_pair:
+            results.append({"qa_pair": qa_pair})
+    if not results:
+        return None
+    return {"results": results}
+
+
 def _extract_single_submission(message: str, question_context: dict[str, Any]) -> str | None:
     text = str(message or "").strip()
     if not text:
@@ -420,3 +471,144 @@ def _parse_small_zh_number(value: str) -> int | None:
         "十": 10,
     }
     return mapping.get(raw)
+
+
+def _normalize_mcq_line(line: str) -> str:
+    return re.sub(r"^#{1,6}\s*", "", str(line or "").replace("**", "")).strip()
+
+
+def _is_mcq_question_marker_line(line: str) -> bool:
+    normalized = _normalize_mcq_line(line)
+    if not normalized or re.search(r"答案|解析", normalized):
+        return False
+    return bool(_MCQ_QUESTION_LINE_RE.match(normalized))
+
+
+def _find_choice_question_starts(lines: list[str]) -> list[int]:
+    starts: list[int] = []
+    for index, line in enumerate(lines):
+        if not _is_mcq_question_marker_line(line):
+            continue
+        normalized = _normalize_mcq_line(line)
+        if _MCQ_GENERIC_NUMBERED_RE.match(normalized):
+            option_hits = 0
+            for next_index in range(index + 1, min(len(lines), index + 7)):
+                if _MCQ_OPTION_RE.match(lines[next_index]):
+                    option_hits += 1
+            if option_hits < 2:
+                continue
+        starts.append(index)
+    return starts
+
+
+def _split_choice_question_blocks(lines: list[str]) -> list[str]:
+    starts = _find_choice_question_starts(lines)
+    if not starts:
+        return []
+    blocks: list[str] = []
+    for index, start in enumerate(starts):
+        end = starts[index + 1] if index + 1 < len(starts) else len(lines)
+        block = "\n".join(lines[start:end]).strip()
+        if block:
+            blocks.append(block)
+    return blocks
+
+
+def _strip_choice_answer_section(block: str) -> str:
+    cleaned = str(block or "")
+    cut_index = -1
+    for marker in _MCQ_ANSWER_MARKERS:
+        idx = cleaned.find(marker)
+        if idx > 0 and (cut_index < 0 or idx < cut_index):
+            cut_index = idx
+    if cut_index > 0:
+        cleaned = cleaned[:cut_index]
+    return cleaned.strip()
+
+
+def _extract_choice_correct_answer(block: str) -> str:
+    match = _MCQ_CORRECT_ANSWER_RE.search(str(block or ""))
+    if not match:
+        return ""
+    return "".join(re.findall(r"[A-E]", match.group(1).upper()))
+
+
+def _extract_choice_explanation(block: str) -> str:
+    match = _MCQ_EXPLANATION_RE.search(str(block or ""))
+    if not match:
+        return ""
+    return str(match.group(1) or "").strip()
+
+
+def _strip_choice_stem_marker(text: str) -> str:
+    lines = str(text or "").split("\n")
+    if not lines:
+        return str(text or "").strip()
+
+    marker_re = re.compile(
+        rf"^\s*(?:例题\s*{_MCQ_QUESTION_LABEL}|第\s*{_MCQ_QUESTION_LABEL}\s*[题道]|"
+        rf"题目\s*{_MCQ_QUESTION_LABEL}|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])"
+        rf"(?:\s*[（(][^()（）]+[)）])?\s*[:：]?\s*",
+        re.IGNORECASE,
+    )
+    first = _normalize_mcq_line(lines[0]).strip("* ").strip()
+    stripped_first = marker_re.sub("", first).strip()
+    if _is_mcq_question_marker_line(first):
+        return "\n".join([stripped_first] + lines[1:]).strip()
+    return marker_re.sub("", _normalize_mcq_line(text)).strip()
+
+
+def _extract_choice_qa_pair(block: str, index: int) -> dict[str, Any] | None:
+    raw_block = str(block or "").strip()
+    if not raw_block:
+        return None
+
+    correct_answer = _extract_choice_correct_answer(raw_block)
+    explanation = _extract_choice_explanation(raw_block)
+    cleaned_block = _strip_choice_answer_section(raw_block)
+    lines = cleaned_block.split("\n")
+
+    options: dict[str, str] = {}
+    first_option_index = -1
+    for line_index, line in enumerate(lines):
+        match = _MCQ_OPTION_RE.match(line)
+        if not match:
+            continue
+        if first_option_index < 0:
+            first_option_index = line_index
+        key = match.group(1).upper()
+        if key in options:
+            continue
+        options[key] = str(match.group(2) or "").strip()
+
+    if len(options) < 2 or first_option_index < 0:
+        return None
+
+    prefix_lines = lines[:first_option_index]
+    stem_lines = prefix_lines
+    for line_index, line in enumerate(prefix_lines):
+        if _MCQ_STEM_MARKER_RE.match(line):
+            stem_lines = prefix_lines[line_index:]
+    stem = _strip_choice_stem_marker("\n".join(stem_lines)).strip() or "请选择正确选项"
+    stem_parts = [part.strip() for part in stem.split("\n") if part.strip()]
+    if len(stem_parts) > 1:
+        heading = stem_parts[0]
+        if len(heading) <= 12 and not re.search(r"[。？！?（）()]", heading):
+            stem = "\n".join(stem_parts[1:]).strip()
+    multi_select = bool(
+        _MCQ_MULTI_RE.search(raw_block)
+        or len(correct_answer) > 1
+        or len(options) >= 5
+    )
+
+    return {
+        "question_id": f"tb_q_{index}",
+        "question": stem,
+        "question_type": "choice",
+        "options": options,
+        "correct_answer": correct_answer,
+        "explanation": explanation,
+        "difficulty": "",
+        "concentration": "",
+        "multi_select": multi_select,
+    }

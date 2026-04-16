@@ -124,3 +124,27 @@ def test_context_builder_uses_safe_minimum_context_window(tmp_path: Path) -> Non
     llm_config = type("FakeConfig", (), {"max_tokens": 4096})()
 
     assert builder._history_budget(llm_config) == int(8192 * builder.history_budget_ratio)
+
+
+@pytest.mark.asyncio
+async def test_context_builder_respects_explicit_budget_override(tmp_path: Path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    builder = ContextBuilder(store)
+    session = await store.create_session("预算覆盖测试")
+    await store.add_message(
+        session_id=session["id"],
+        role="user",
+        content="请保留最近这段上下文",
+        capability="chat",
+    )
+
+    llm_config = type("FakeConfig", (), {"max_tokens": 4096, "context_window_tokens": 32768})()
+    result = await builder.build(
+        session_id=session["id"],
+        llm_config=llm_config,
+        language="zh",
+        budget_override=256,
+    )
+
+    assert result.budget == 256
+    assert result.token_count <= 256

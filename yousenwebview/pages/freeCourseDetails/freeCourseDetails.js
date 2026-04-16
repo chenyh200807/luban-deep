@@ -117,10 +117,20 @@ Component({
     resetVideoState: function() {
       this.clearBeishuTimer();
       this.pendingAutoPlaySeq = 0;
+      this.videoReady = false;
       this.videoRequestSeq = (this.videoRequestSeq || 0) + 1;
       if (this.videoContext && this.videoContext.pause) {
         this.videoContext.pause();
       }
+    },
+    tryAutoPlayVideo: function(seq) {
+      if (!seq || this.pendingAutoPlaySeq !== seq || !this.videoReady) {
+        return;
+      }
+      if (this.videoContext && this.videoContext.play) {
+        this.videoContext.play();
+      }
+      this.pendingAutoPlaySeq = 0;
     },
     cleanupPage: function(options) {
       this.resetVideoState();
@@ -166,16 +176,7 @@ Component({
           that.setData({
             'videoSrc.src': src
           });
-          if (that.pendingAutoPlaySeq === requestSeq) {
-            setTimeout(() => {
-              if (that.pendingAutoPlaySeq !== requestSeq) {
-                return;
-              }
-              if (that.videoContext && that.videoContext.play) {
-                that.videoContext.play();
-              }
-            }, 350);
-          }
+          that.tryAutoPlayVideo(requestSeq);
         }
       });
     },
@@ -203,6 +204,7 @@ Component({
       this.detailRequestSeq = 0;
       this.videoRequestSeq = 0;
       this.pendingAutoPlaySeq = 0;
+      this.videoReady = false;
       this.beishuTimer = null;
       if (options.pk_id) {
         this.setData({
@@ -345,13 +347,8 @@ Component({
       return;
     },
     handleVideoReady: function() {
-      if (!this.pendingAutoPlaySeq || this.pendingAutoPlaySeq !== this.videoRequestSeq) {
-        return;
-      }
-      if (this.videoContext && this.videoContext.play) {
-        this.videoContext.play();
-      }
-      this.pendingAutoPlaySeq = 0;
+      this.videoReady = true;
+      this.tryAutoPlayVideo(this.videoRequestSeq);
     },
     isShowBsClick: function() {
       this.clearBeishuTimer();
@@ -385,9 +382,8 @@ Component({
      */
     onReady: function () {
       this.videoContext = wx.createVideoContext('myVideo');
-      if (this.pendingAutoPlaySeq && this.videoContext && this.videoContext.play) {
-        this.videoContext.play();
-      }
+      this.videoReady = true;
+      this.tryAutoPlayVideo(this.videoRequestSeq);
     },
 
     /**
