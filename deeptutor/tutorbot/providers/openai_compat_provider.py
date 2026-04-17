@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any
 import json_repair
 from openai import AsyncOpenAI
 
+from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
 
 if TYPE_CHECKING:
@@ -32,6 +33,7 @@ _DEFAULT_OPENROUTER_HEADERS = {
     "HTTP-Referer": "https://github.com/HKUDS/DeepTutor",
     "X-OpenRouter-Title": "DeepTutor",
 }
+observability = get_langfuse_observability()
 
 
 def _short_tool_id() -> str:
@@ -505,15 +507,67 @@ class OpenAICompatProvider(LLMProvider):
             messages, tools, model, max_tokens, temperature,
             reasoning_effort, tool_choice,
         )
-        try:
-            return self._parse(await self._client.chat.completions.create(**kwargs))
-        except Exception as e:
-            if tools and self._is_tool_format_error(e):
-                return await self.chat_stream(
-                    messages, tools, model, max_tokens, temperature,
-                    reasoning_effort, tool_choice,
+        model_name = str(kwargs.get("model") or model or self.default_model)
+        with observability.start_observation(
+            name="tutorbot.llm.chat",
+            as_type="generation",
+            input_payload=messages,
+            metadata={
+                "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
+                "streaming": False,
+            },
+            model=model_name,
+            model_parameters={
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "reasoning_effort": reasoning_effort,
+                "tool_choice": tool_choice,
+                "tool_count": len(tools or []),
+            },
+        ) as observation:
+            try:
+                parsed = self._parse(await self._client.chat.completions.create(**kwargs))
+            except Exception as e:
+                observability.update_observation(
+                    observation,
+                    metadata={
+                        "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
+                        "streaming": False,
+                    },
+                    level="ERROR",
+                    status_message=str(e),
                 )
-            return self._handle_error(e)
+                if tools and self._is_tool_format_error(e):
+                    return await self.chat_stream(
+                        messages, tools, model, max_tokens, temperature,
+                        reasoning_effort, tool_choice,
+                    )
+                return self._handle_error(e)
+
+            usage_details = self._normalize_usage_details(parsed.usage)
+            usage_source = "provider"
+            if usage_details is None:
+                usage_details = observability.estimate_usage_details(
+                    input_payload=messages,
+                    output_payload=parsed.content,
+                )
+                usage_source = "tiktoken"
+            observability.update_observation(
+                observation,
+                output_payload=parsed.content,
+                metadata={
+                    "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
+                    "streaming": False,
+                },
+                usage_details=usage_details,
+                usage_source=usage_source,
+                model=model_name,
+                cost_details=observability.estimate_cost_details(
+                    model=model_name,
+                    usage_details=usage_details,
+                ),
+            )
+            return parsed
 
     async def chat_stream(
         self,
@@ -533,31 +587,92 @@ class OpenAICompatProvider(LLMProvider):
         kwargs["stream"] = True
         kwargs["stream_options"] = {"include_usage": True}
         idle_timeout_s = 90
-        try:
-            stream = await self._client.chat.completions.create(**kwargs)
-            chunks: list[Any] = []
-            stream_iter = stream.__aiter__()
-            while True:
-                try:
-                    chunk = await asyncio.wait_for(
-                        stream_iter.__anext__(),
-                        timeout=idle_timeout_s,
-                    )
-                except StopAsyncIteration:
-                    break
-                chunks.append(chunk)
-                if on_content_delta and chunk.choices:
-                    text = getattr(chunk.choices[0].delta, "content", None)
-                    if text:
-                        await on_content_delta(text)
-            return self._parse_chunks(chunks)
-        except asyncio.TimeoutError:
-            return LLMResponse(
-                content=f"Error calling LLM: stream stalled for more than {idle_timeout_s} seconds",
-                finish_reason="error",
+        model_name = str(kwargs.get("model") or model or self.default_model)
+        with observability.start_observation(
+            name="tutorbot.llm.stream",
+            as_type="generation",
+            input_payload=messages,
+            metadata={
+                "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
+                "streaming": True,
+            },
+            model=model_name,
+            model_parameters={
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "reasoning_effort": reasoning_effort,
+                "tool_choice": tool_choice,
+                "tool_count": len(tools or []),
+            },
+        ) as observation:
+            try:
+                stream = await self._client.chat.completions.create(**kwargs)
+                chunks: list[Any] = []
+                stream_iter = stream.__aiter__()
+                while True:
+                    try:
+                        chunk = await asyncio.wait_for(
+                            stream_iter.__anext__(),
+                            timeout=idle_timeout_s,
+                        )
+                    except StopAsyncIteration:
+                        break
+                    chunks.append(chunk)
+                    if on_content_delta and chunk.choices:
+                        text = getattr(chunk.choices[0].delta, "content", None)
+                        if text:
+                            await on_content_delta(text)
+                parsed = self._parse_chunks(chunks)
+            except asyncio.TimeoutError:
+                observability.update_observation(
+                    observation,
+                    metadata={
+                        "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
+                        "streaming": True,
+                    },
+                    level="ERROR",
+                    status_message=f"stream stalled for more than {idle_timeout_s} seconds",
+                )
+                return LLMResponse(
+                    content=f"Error calling LLM: stream stalled for more than {idle_timeout_s} seconds",
+                    finish_reason="error",
+                )
+            except Exception as e:
+                observability.update_observation(
+                    observation,
+                    metadata={
+                        "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
+                        "streaming": True,
+                    },
+                    level="ERROR",
+                    status_message=str(e),
+                )
+                return self._handle_error(e)
+
+            usage_details = self._normalize_usage_details(parsed.usage)
+            usage_source = "provider"
+            if usage_details is None:
+                usage_details = observability.estimate_usage_details(
+                    input_payload=messages,
+                    output_payload=parsed.content,
+                )
+                usage_source = "tiktoken"
+            observability.update_observation(
+                observation,
+                output_payload=parsed.content,
+                metadata={
+                    "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
+                    "streaming": True,
+                },
+                usage_details=usage_details,
+                usage_source=usage_source,
+                model=model_name,
+                cost_details=observability.estimate_cost_details(
+                    model=model_name,
+                    usage_details=usage_details,
+                ),
             )
-        except Exception as e:
-            return self._handle_error(e)
+            return parsed
 
     def get_default_model(self) -> str:
         return self.default_model

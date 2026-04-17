@@ -16,6 +16,7 @@ from typing import Any
 
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
+from deeptutor.services.render_presentation import build_canonical_presentation
 
 _STALE_TURN_TIMEOUT_SECONDS = 180.0
 _SQLITE_TIMEOUT_SECONDS = 5.0
@@ -24,6 +25,7 @@ _INTERACTION_HINT_SYSTEM_PREFIXES = (
     "你正在一个学习型产品场景中工作。",
     "You are operating in a learning-product scenario.",
 )
+_SESSION_TITLE_PLACEHOLDERS = {"new conversation", "新对话"}
 
 
 def _json_dumps(value: Any) -> str:
@@ -100,6 +102,44 @@ def _materialize_session_preferences(
 def _is_interaction_hint_system_message(content: str | None) -> bool:
     text = str(content or "")
     return any(text.startswith(prefix) for prefix in _INTERACTION_HINT_SYSTEM_PREFIXES)
+
+
+def _normalize_message_events_for_presentation(
+    content: str | None,
+    events: list[dict[str, Any]] | None,
+) -> tuple[list[dict[str, Any]], bool]:
+    normalized_events: list[dict[str, Any]] = []
+    changed = False
+    rendered_content = str(content or "")
+
+    for raw_event in events or []:
+        if not isinstance(raw_event, dict):
+            normalized_events.append(raw_event)
+            continue
+        event = dict(raw_event)
+        metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else None
+        if str(event.get("type") or "").strip() == "result" and metadata is not None:
+            normalized_metadata = dict(metadata)
+            presentation = normalized_metadata.get("presentation")
+            # Legacy "summary" here is old result metadata for one message, not sessions.compressed_summary.
+            legacy_result_summary = normalized_metadata.get("summary")
+            if isinstance(presentation, dict):
+                if "summary" in normalized_metadata:
+                    normalized_metadata.pop("summary", None)
+                    changed = True
+            elif isinstance(legacy_result_summary, dict):
+                presentation = build_canonical_presentation(
+                    content=rendered_content,
+                    result_summary=legacy_result_summary,
+                )
+                if presentation:
+                    normalized_metadata["presentation"] = presentation
+                normalized_metadata.pop("summary", None)
+                changed = True
+            if normalized_metadata != metadata:
+                event["metadata"] = normalized_metadata
+        normalized_events.append(event)
+    return normalized_events, changed
 
 
 def _empty_cost_summary(*, session_id: str = "", scope_id: str = "") -> dict[str, Any]:
@@ -1067,7 +1107,8 @@ class SQLiteSessionStore:
             )
 
             title = None
-            if session["title"] == "New conversation" and role == "user":
+            session_title = str(session["title"] or "").strip().lower()
+            if session_title in _SESSION_TITLE_PLACEHOLDERS and role == "user":
                 trimmed = (content or "").strip()
                 if trimmed:
                     title = trimmed[:50] + ("..." if len(trimmed) > 50 else "")
@@ -1104,13 +1145,14 @@ class SQLiteSessionStore:
         )
 
     def _serialize_message(self, row: sqlite3.Row) -> dict[str, Any]:
+        events = _json_loads(row["events_json"], [])
         return {
             "id": row["id"],
             "session_id": row["session_id"],
             "role": row["role"],
             "content": row["content"],
             "capability": row["capability"] or "",
-            "events": _json_loads(row["events_json"], []),
+            "events": events,
             "attachments": _json_loads(row["attachments_json"], []),
             "created_at": row["created_at"],
         }
@@ -1130,6 +1172,59 @@ class SQLiteSessionStore:
 
     async def get_messages(self, session_id: str) -> list[dict[str, Any]]:
         return await self._run(self._get_messages_sync, session_id)
+
+    def _backfill_message_presentations_sync(
+        self,
+        session_id: str | None = None,
+    ) -> dict[str, int]:
+        with self._connect() as conn:
+            if session_id:
+                rows = conn.execute(
+                    """
+                    SELECT id, content, events_json
+                    FROM messages
+                    WHERE session_id = ? AND role = 'assistant'
+                    ORDER BY id ASC
+                    """,
+                    (session_id,),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    """
+                    SELECT id, content, events_json
+                    FROM messages
+                    WHERE role = 'assistant'
+                    ORDER BY id ASC
+                    """
+                ).fetchall()
+
+            scanned = 0
+            updated = 0
+            for row in rows:
+                scanned += 1
+                events = _json_loads(row["events_json"], [])
+                if not isinstance(events, list):
+                    continue
+                normalized_events, changed = _normalize_message_events_for_presentation(
+                    row["content"],
+                    events,
+                )
+                if not changed:
+                    continue
+                conn.execute(
+                    "UPDATE messages SET events_json = ? WHERE id = ?",
+                    (_json_dumps(normalized_events), row["id"]),
+                )
+                updated += 1
+            if updated:
+                conn.commit()
+        return {"scanned": scanned, "updated": updated}
+
+    async def backfill_message_presentations(
+        self,
+        session_id: str | None = None,
+    ) -> dict[str, int]:
+        return await self._run(self._backfill_message_presentations_sync, session_id)
 
     def _get_messages_for_context_sync(self, session_id: str) -> list[dict[str, Any]]:
         with self._connect() as conn:

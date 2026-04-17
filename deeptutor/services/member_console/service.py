@@ -161,6 +161,58 @@ class MemberConsoleService:
         self._wechat_access_token: str = ""
         self._wechat_access_token_expires_at: float = 0.0
 
+    def _get_learner_state_service(self):
+        from deeptutor.services.learner_state import get_learner_state_service
+
+        return get_learner_state_service()
+
+    def _get_overlay_service(self):
+        from deeptutor.services.learner_state import get_bot_learner_overlay_service
+
+        return get_bot_learner_overlay_service()
+
+    @staticmethod
+    def _serialize_learner_snapshot(snapshot: Any) -> dict[str, Any]:
+        return {
+            "user_id": snapshot.user_id,
+            "profile": dict(snapshot.profile or {}),
+            "summary": str(snapshot.summary or ""),
+            "progress": dict(snapshot.progress or {}),
+            "recent_memory_events": [
+                {
+                    "event_id": event.event_id,
+                    "source_feature": event.source_feature,
+                    "source_id": event.source_id,
+                    "source_bot_id": event.source_bot_id,
+                    "memory_kind": event.memory_kind,
+                    "payload_json": dict(event.payload_json or {}),
+                    "created_at": event.created_at,
+                }
+                for event in list(snapshot.memory_events or [])
+            ],
+            "profile_updated_at": snapshot.profile_updated_at,
+            "summary_updated_at": snapshot.summary_updated_at,
+            "progress_updated_at": snapshot.progress_updated_at,
+            "memory_events_updated_at": snapshot.memory_events_updated_at,
+        }
+
+    @staticmethod
+    def _serialize_heartbeat_job(job: Any) -> dict[str, Any]:
+        return {
+            "job_id": job.job_id,
+            "user_id": job.user_id,
+            "bot_id": job.bot_id,
+            "channel": job.channel,
+            "policy_json": dict(job.policy_json or {}),
+            "next_run_at": job.next_run_at.isoformat() if job.next_run_at else None,
+            "last_run_at": job.last_run_at.isoformat() if job.last_run_at else None,
+            "last_result_json": dict(job.last_result_json or {}) if job.last_result_json else None,
+            "failure_count": int(job.failure_count or 0),
+            "status": job.status,
+            "created_at": job.created_at.isoformat() if job.created_at else None,
+            "updated_at": job.updated_at.isoformat() if job.updated_at else None,
+        }
+
     def _seed_data(self) -> dict[str, Any]:
         now = _now()
         members = [
@@ -1118,7 +1170,289 @@ class MemberConsoleService:
         }
         member["recent_ledger"] = member["ledger"][:10]
         member["recent_notes"] = member["notes"][:10]
+        try:
+            learner_state_service = self._get_learner_state_service()
+            snapshot = learner_state_service.read_snapshot(user_id, event_limit=10)
+            member["learner_state"] = self._serialize_learner_snapshot(snapshot)
+            member["heartbeat"] = {
+                "jobs": [
+                    self._serialize_heartbeat_job(job)
+                    for job in learner_state_service.list_heartbeat_jobs(user_id)
+                ],
+                "history": learner_state_service.list_heartbeat_history(
+                    user_id,
+                    limit=10,
+                    include_arbitration=True,
+                ),
+                "arbitration_history": learner_state_service.list_heartbeat_arbitration_history(
+                    user_id,
+                    limit=10,
+                ),
+            }
+        except Exception:
+            member["learner_state"] = None
+            member["heartbeat"] = {"history": [], "arbitration_history": []}
+        try:
+            member["bot_overlays"] = self._get_overlay_service().list_user_overlays(user_id, limit=20)
+        except Exception:
+            member["bot_overlays"] = []
         return member
+
+    def get_member_learner_state_panel(self, user_id: str, *, limit: int = 20) -> dict[str, Any]:
+        self._find_member(self._load(), user_id)
+        learner_state_service = self._get_learner_state_service()
+        overlay_service = self._get_overlay_service()
+        snapshot = learner_state_service.read_snapshot(user_id, event_limit=limit)
+        heartbeat_jobs = [
+            self._serialize_heartbeat_job(job)
+            for job in learner_state_service.list_heartbeat_jobs(user_id)
+        ]
+        return {
+            "user_id": user_id,
+            "learner_state": self._serialize_learner_snapshot(snapshot),
+            "heartbeat_jobs": heartbeat_jobs,
+            "heartbeat_history": learner_state_service.list_heartbeat_history(
+                user_id,
+                limit=limit,
+                include_arbitration=True,
+            ),
+            "heartbeat_arbitration_history": learner_state_service.list_heartbeat_arbitration_history(
+                user_id,
+                limit=limit,
+            ),
+            "bot_overlays": overlay_service.list_user_overlays(user_id, limit=limit),
+        }
+
+    def list_member_heartbeat_jobs(self, user_id: str) -> dict[str, Any]:
+        self._find_member(self._load(), user_id)
+        learner_state_service = self._get_learner_state_service()
+        jobs = [
+            self._serialize_heartbeat_job(job)
+            for job in learner_state_service.list_heartbeat_jobs(user_id)
+        ]
+        return {"user_id": user_id, "items": jobs, "total": len(jobs)}
+
+    def pause_member_heartbeat_job(
+        self,
+        user_id: str,
+        job_id: str,
+        *,
+        operator: str = "admin",
+    ) -> dict[str, Any]:
+        self._find_member(self._load(), user_id)
+        learner_state_service = self._get_learner_state_service()
+        job = learner_state_service.pause_heartbeat_job(user_id, job_id)
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            self._find_member(data, user_id)
+            serialized = self._serialize_heartbeat_job(job)
+            self._append_audit(
+                data,
+                action="heartbeat_job_pause",
+                target_user=user_id,
+                operator=operator,
+                reason="member_console_pause_heartbeat_job",
+                after=serialized,
+            )
+            return serialized
+
+        return self._mutate(_apply)
+
+    def resume_member_heartbeat_job(
+        self,
+        user_id: str,
+        job_id: str,
+        *,
+        operator: str = "admin",
+    ) -> dict[str, Any]:
+        self._find_member(self._load(), user_id)
+        learner_state_service = self._get_learner_state_service()
+        job = learner_state_service.resume_heartbeat_job(user_id, job_id)
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            self._find_member(data, user_id)
+            serialized = self._serialize_heartbeat_job(job)
+            self._append_audit(
+                data,
+                action="heartbeat_job_resume",
+                target_user=user_id,
+                operator=operator,
+                reason="member_console_resume_heartbeat_job",
+                after=serialized,
+            )
+            return serialized
+
+        return self._mutate(_apply)
+
+    def get_member_overlay(self, user_id: str, bot_id: str) -> dict[str, Any]:
+        self._find_member(self._load(), user_id)
+        return self._get_overlay_service().read_overlay(bot_id, user_id)
+
+    def get_member_overlay_events(
+        self,
+        user_id: str,
+        bot_id: str,
+        *,
+        limit: int = 20,
+        event_type: str | None = None,
+    ) -> dict[str, Any]:
+        self._find_member(self._load(), user_id)
+        items = self._get_overlay_service().list_overlay_events(
+            bot_id,
+            user_id,
+            limit=limit,
+            event_type=event_type,
+        )
+        return {
+            "user_id": user_id,
+            "bot_id": bot_id,
+            "limit": limit,
+            "event_type": event_type,
+            "items": items,
+        }
+
+    def get_member_overlay_audit(
+        self,
+        user_id: str,
+        bot_id: str,
+        *,
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        self._find_member(self._load(), user_id)
+        items = self._get_overlay_service().list_overlay_audit(bot_id, user_id, limit=limit)
+        return {
+            "user_id": user_id,
+            "bot_id": bot_id,
+            "limit": limit,
+            "items": items,
+        }
+
+    def patch_member_overlay(
+        self,
+        user_id: str,
+        bot_id: str,
+        operations: list[dict[str, Any]],
+        *,
+        operator: str = "admin",
+    ) -> dict[str, Any]:
+        self._find_member(self._load(), user_id)
+        overlay_service = self._get_overlay_service()
+        patched = overlay_service.patch_overlay(
+            bot_id,
+            user_id,
+            {"operations": list(operations or [])},
+            source_feature="member_console_overlay",
+            source_id=operator,
+        )
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            self._find_member(data, user_id)
+            self._append_audit(
+                data,
+                action="overlay_patch",
+                target_user=user_id,
+                operator=operator,
+                reason=f"member_console_overlay:{bot_id}",
+                after={
+                    "bot_id": bot_id,
+                    "operations": list(operations or []),
+                    "overlay_version": patched.get("version"),
+                },
+            )
+            return patched
+
+        return self._mutate(_apply)
+
+    def apply_member_overlay_promotions(
+        self,
+        user_id: str,
+        bot_id: str,
+        *,
+        operator: str = "admin",
+        min_confidence: float = 0.7,
+        max_candidates: int = 10,
+    ) -> dict[str, Any]:
+        self._find_member(self._load(), user_id)
+        overlay_service = self._get_overlay_service()
+        result = overlay_service.apply_promotions(
+            bot_id,
+            user_id,
+            learner_state_service=self._get_learner_state_service(),
+            min_confidence=min_confidence,
+            max_candidates=max_candidates,
+        )
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            self._find_member(data, user_id)
+            self._append_audit(
+                data,
+                action="overlay_promotion_apply",
+                target_user=user_id,
+                operator=operator,
+                reason=f"member_console_overlay_promotion:{bot_id}",
+                after={
+                    "bot_id": bot_id,
+                    "acked_ids": list(result.get("acked_ids") or []),
+                    "dropped_ids": list(result.get("dropped_ids") or []),
+                },
+            )
+            return result
+
+        return self._mutate(_apply)
+
+    def ack_member_overlay_promotions(
+        self,
+        user_id: str,
+        bot_id: str,
+        candidate_ids: list[str],
+        *,
+        operator: str = "admin",
+        reason: str = "",
+    ) -> dict[str, Any]:
+        self._find_member(self._load(), user_id)
+        overlay_service = self._get_overlay_service()
+        result = overlay_service.ack_promotions(bot_id, user_id, candidate_ids, reason=reason)
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            self._find_member(data, user_id)
+            self._append_audit(
+                data,
+                action="overlay_promotion_ack",
+                target_user=user_id,
+                operator=operator,
+                reason=reason or f"member_console_overlay_ack:{bot_id}",
+                after={"bot_id": bot_id, "candidate_ids": list(candidate_ids)},
+            )
+            return result
+
+        return self._mutate(_apply)
+
+    def drop_member_overlay_promotions(
+        self,
+        user_id: str,
+        bot_id: str,
+        candidate_ids: list[str],
+        *,
+        operator: str = "admin",
+        reason: str = "",
+    ) -> dict[str, Any]:
+        self._find_member(self._load(), user_id)
+        overlay_service = self._get_overlay_service()
+        result = overlay_service.drop_promotions(bot_id, user_id, candidate_ids, reason=reason)
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            self._find_member(data, user_id)
+            self._append_audit(
+                data,
+                action="overlay_promotion_drop",
+                target_user=user_id,
+                operator=operator,
+                reason=reason or f"member_console_overlay_drop:{bot_id}",
+                after={"bot_id": bot_id, "candidate_ids": list(candidate_ids)},
+            )
+            return result
+
+        return self._mutate(_apply)
 
     def get_notes(self, user_id: str, page: int = 1, page_size: int = 20) -> dict[str, Any]:
         data = self._load()

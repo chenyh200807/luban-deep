@@ -50,7 +50,7 @@ function _findCalloutVariant(keyword) {
 function parse(text) {
   if (!text || typeof text !== "string") return [];
 
-  var lines = text.split("\n");
+  var lines = text.replace(/\r\n?/g, "\n").split("\n");
   var blocks = [];
   var i = 0;
 
@@ -200,13 +200,19 @@ function parse(text) {
       continue;
     }
 
-    // ── 段落 ──────────────────────────────────────────
+    // ── 段落（连续非空行应收拢为同一段）──────────────────
+    var paragraphLines = [line];
+    i++;
+    while (i < lines.length && !_startsNewBlock(lines[i])) {
+      paragraphLines.push(lines[i]);
+      i++;
+    }
+    var paragraphText = _joinParagraphLines(paragraphLines);
     blocks.push({
       type: "paragraph",
-      content: parseInline(line),
-      raw: line,
+      content: parseInline(paragraphText),
+      raw: paragraphText,
     });
-    i++;
   }
 
   while (blocks.length > 0 && blocks[blocks.length - 1].type === "blank") {
@@ -216,6 +222,57 @@ function parse(text) {
   var result = _splitInlineCircledNums(blocks);
   result = _detectCallouts(result);
   return result;
+}
+
+function _startsNewBlock(line) {
+  if (typeof line !== "string") return true;
+  if (line.trim() === "") return true;
+  if (line.startsWith("```")) return true;
+  if (/^(#{1,6})\s+(.+)$/.test(line)) return true;
+  if (/^---+$/.test(line) || /^\*\*\*+$/.test(line)) return true;
+  if (line.trim().indexOf("|") !== -1 && _looksLikeTableRow(line)) return true;
+  if (line.startsWith("> ") || line === ">") return true;
+  if (/^[-*+]\s+/.test(line)) return true;
+  if (/^\d+\.\s+/.test(line)) return true;
+  if (CIRCLED_PREFIX_RE.test(line)) return true;
+  return false;
+}
+
+function _joinParagraphLines(lines) {
+  var parts = Array.isArray(lines) ? lines : [];
+  var result = "";
+  for (var i = 0; i < parts.length; i++) {
+    var line = String(parts[i] || "").trim();
+    if (!line) continue;
+    if (!result) {
+      result = line;
+      continue;
+    }
+    result += _needsInlineSpace(result.charAt(result.length - 1), line.charAt(0))
+      ? " " + line
+      : line;
+  }
+  return result;
+}
+
+function _needsInlineSpace(prevChar, nextChar) {
+  if (!prevChar || !nextChar) return false;
+  if (/\s/.test(prevChar) || /\s/.test(nextChar)) return false;
+  if (_isCjkChar(prevChar) || _isCjkChar(nextChar)) return false;
+  if (_isOpeningPunctuation(prevChar) || _isClosingPunctuation(nextChar)) return false;
+  return /[A-Za-z0-9]/.test(prevChar) && /[A-Za-z0-9]/.test(nextChar);
+}
+
+function _isCjkChar(ch) {
+  return /[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/.test(ch);
+}
+
+function _isOpeningPunctuation(ch) {
+  return /[([{\u201c\u2018\u300a\u3008\u3010\u3014\uff08]/.test(ch);
+}
+
+function _isClosingPunctuation(ch) {
+  return /[,.!?;:)\]}%\u201d\u2019\u3001\u3002\uff0c\uff1b\uff1a\uff01\uff1f\u300b\u3009\u3011\u3015\uff09]/.test(ch);
 }
 
 // ── 表格解析 ──────────────────────────────────────────────

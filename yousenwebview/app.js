@@ -200,9 +200,22 @@ function readStoredHostSysInfo() {
   return normalizeHostSysInfo(wx.getStorageSync(HOST_SYS_INFO_KEY));
 }
 
+function getHostWindowInfo() {
+  if (wx.getWindowInfo) {
+    try {
+      return wx.getWindowInfo() || {};
+    } catch (error) {}
+  }
+  try {
+    return wx.getSystemInfoSync() || {};
+  } catch (error) {
+    return {};
+  }
+}
+
 function resolveHostLayout() {
   try {
-    const systemInfo = wx.getSystemInfoSync() || {};
+    const systemInfo = getHostWindowInfo();
     const statusBarHeight = Number(systemInfo.statusBarHeight) || 0;
     const navHeight = statusBarHeight > 0 ? statusBarHeight + 44 : 44;
     return {

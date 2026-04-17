@@ -15,9 +15,11 @@ from typing import Any
 
 import json_repair
 
+from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
 
 _ALNUM = string.ascii_letters + string.digits
+observability = get_langfuse_observability()
 
 
 def _gen_tool_id() -> str:
@@ -430,11 +432,54 @@ class AnthropicProvider(LLMProvider):
             messages, tools, model, max_tokens, temperature,
             reasoning_effort, tool_choice,
         )
-        try:
-            response = await self._client.messages.create(**kwargs)
-            return self._parse_response(response)
-        except Exception as e:
-            return self._handle_error(e)
+        model_name = str(kwargs.get("model") or model or self.default_model)
+        with observability.start_observation(
+            name="tutorbot.llm.chat",
+            as_type="generation",
+            input_payload=messages,
+            metadata={"provider_name": "anthropic", "streaming": False},
+            model=model_name,
+            model_parameters={
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "reasoning_effort": reasoning_effort,
+                "tool_choice": tool_choice,
+                "tool_count": len(tools or []),
+            },
+        ) as observation:
+            try:
+                response = await self._client.messages.create(**kwargs)
+                parsed = self._parse_response(response)
+            except Exception as e:
+                observability.update_observation(
+                    observation,
+                    metadata={"provider_name": "anthropic", "streaming": False},
+                    level="ERROR",
+                    status_message=str(e),
+                )
+                return self._handle_error(e)
+
+            usage_details = self._normalize_usage_details(parsed.usage)
+            usage_source = "provider"
+            if usage_details is None:
+                usage_details = observability.estimate_usage_details(
+                    input_payload=messages,
+                    output_payload=parsed.content,
+                )
+                usage_source = "tiktoken"
+            observability.update_observation(
+                observation,
+                output_payload=parsed.content,
+                metadata={"provider_name": "anthropic", "streaming": False},
+                usage_details=usage_details,
+                usage_source=usage_source,
+                model=model_name,
+                cost_details=observability.estimate_cost_details(
+                    model=model_name,
+                    usage_details=usage_details,
+                ),
+            )
+            return parsed
 
     async def chat_stream(
         self,
@@ -452,31 +497,80 @@ class AnthropicProvider(LLMProvider):
             reasoning_effort, tool_choice,
         )
         idle_timeout_s = 90
-        try:
-            async with self._client.messages.stream(**kwargs) as stream:
-                if on_content_delta:
-                    stream_iter = stream.text_stream.__aiter__()
-                    while True:
-                        try:
-                            text = await asyncio.wait_for(
-                                stream_iter.__anext__(),
-                                timeout=idle_timeout_s,
-                            )
-                        except StopAsyncIteration:
-                            break
-                        await on_content_delta(text)
-                response = await asyncio.wait_for(
-                    stream.get_final_message(),
-                    timeout=idle_timeout_s,
+        model_name = str(kwargs.get("model") or model or self.default_model)
+        with observability.start_observation(
+            name="tutorbot.llm.stream",
+            as_type="generation",
+            input_payload=messages,
+            metadata={"provider_name": "anthropic", "streaming": True},
+            model=model_name,
+            model_parameters={
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "reasoning_effort": reasoning_effort,
+                "tool_choice": tool_choice,
+                "tool_count": len(tools or []),
+            },
+        ) as observation:
+            try:
+                async with self._client.messages.stream(**kwargs) as stream:
+                    if on_content_delta:
+                        stream_iter = stream.text_stream.__aiter__()
+                        while True:
+                            try:
+                                text = await asyncio.wait_for(
+                                    stream_iter.__anext__(),
+                                    timeout=idle_timeout_s,
+                                )
+                            except StopAsyncIteration:
+                                break
+                            await on_content_delta(text)
+                    response = await asyncio.wait_for(
+                        stream.get_final_message(),
+                        timeout=idle_timeout_s,
+                    )
+                parsed = self._parse_response(response)
+            except asyncio.TimeoutError:
+                observability.update_observation(
+                    observation,
+                    metadata={"provider_name": "anthropic", "streaming": True},
+                    level="ERROR",
+                    status_message=f"stream stalled for more than {idle_timeout_s} seconds",
                 )
-            return self._parse_response(response)
-        except asyncio.TimeoutError:
-            return LLMResponse(
-                content=f"Error calling LLM: stream stalled for more than {idle_timeout_s} seconds",
-                finish_reason="error",
+                return LLMResponse(
+                    content=f"Error calling LLM: stream stalled for more than {idle_timeout_s} seconds",
+                    finish_reason="error",
+                )
+            except Exception as e:
+                observability.update_observation(
+                    observation,
+                    metadata={"provider_name": "anthropic", "streaming": True},
+                    level="ERROR",
+                    status_message=str(e),
+                )
+                return self._handle_error(e)
+
+            usage_details = self._normalize_usage_details(parsed.usage)
+            usage_source = "provider"
+            if usage_details is None:
+                usage_details = observability.estimate_usage_details(
+                    input_payload=messages,
+                    output_payload=parsed.content,
+                )
+                usage_source = "tiktoken"
+            observability.update_observation(
+                observation,
+                output_payload=parsed.content,
+                metadata={"provider_name": "anthropic", "streaming": True},
+                usage_details=usage_details,
+                usage_source=usage_source,
+                model=model_name,
+                cost_details=observability.estimate_cost_details(
+                    model=model_name,
+                    usage_details=usage_details,
+                ),
             )
-        except Exception as e:
-            return self._handle_error(e)
+            return parsed
 
     def get_default_model(self) -> str:
         return self.default_model

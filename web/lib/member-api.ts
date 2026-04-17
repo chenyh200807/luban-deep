@@ -52,6 +52,74 @@ export interface MemberLedgerEntry {
   created_at: string;
 }
 
+export interface LearnerStateMemoryEvent {
+  event_id: string;
+  source_feature: string;
+  source_id: string;
+  source_bot_id?: string | null;
+  memory_kind: string;
+  payload_json: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface MemberLearnerStateSnapshot {
+  user_id: string;
+  profile: Record<string, unknown>;
+  summary: string;
+  progress: Record<string, unknown>;
+  recent_memory_events: LearnerStateMemoryEvent[];
+  profile_updated_at?: string | null;
+  summary_updated_at?: string | null;
+  progress_updated_at?: string | null;
+  memory_events_updated_at?: string | null;
+}
+
+export interface HeartbeatJob {
+  job_id: string;
+  user_id: string;
+  bot_id: string;
+  channel: string;
+  policy_json: Record<string, unknown>;
+  next_run_at?: string | null;
+  last_run_at?: string | null;
+  last_result_json?: Record<string, unknown> | null;
+  failure_count: number;
+  status: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface HeartbeatEvent {
+  event_id: string;
+  memory_kind?: string;
+  source_feature?: string;
+  source_id?: string;
+  source_bot_id?: string | null;
+  payload_json?: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface BotOverlaySummary {
+  bot_id: string;
+  user_id: string;
+  version: number;
+  effective_overlay?: {
+    local_focus?: Record<string, unknown>;
+    active_plan_binding?: Record<string, unknown>;
+    teaching_policy_override?: Record<string, unknown>;
+    heartbeat_override?: Record<string, unknown>;
+    local_notebook_scope_refs?: unknown[];
+    engagement_state?: Record<string, unknown>;
+    working_memory_projection?: string;
+    promotion_candidates?: Array<Record<string, unknown>>;
+  };
+  promotion_candidates?: Array<Record<string, unknown>>;
+  heartbeat_override_candidate?: Record<string, unknown>;
+  created_at?: string;
+  updated_at?: string;
+  event_count?: number;
+}
+
 export interface MemberDetail {
   user_id: string;
   display_name: string;
@@ -80,6 +148,13 @@ export interface MemberDetail {
   chapter_mastery: Record<string, { name: string; mastery: number }>;
   recent_notes: MemberNote[];
   recent_ledger: MemberLedgerEntry[];
+  learner_state?: MemberLearnerStateSnapshot | null;
+  heartbeat?: {
+    jobs?: HeartbeatJob[];
+    history?: HeartbeatEvent[];
+    arbitration_history?: HeartbeatEvent[];
+  };
+  bot_overlays?: BotOverlaySummary[];
 }
 
 async function expectJson<T>(response: Response): Promise<T> {
@@ -154,4 +229,31 @@ export async function revokeMembership(payload: { user_id: string; reason?: stri
     body: JSON.stringify(payload),
   });
   return expectJson<MemberDetail>(response);
+}
+
+export async function pauseHeartbeatJob(userId: string, jobId: string): Promise<HeartbeatJob> {
+  const response = await fetch(apiUrl(`/api/v1/member/${userId}/heartbeat-jobs/${jobId}/pause`), {
+    method: "POST",
+  });
+  return expectJson<HeartbeatJob>(response);
+}
+
+export async function resumeHeartbeatJob(userId: string, jobId: string): Promise<HeartbeatJob> {
+  const response = await fetch(apiUrl(`/api/v1/member/${userId}/heartbeat-jobs/${jobId}/resume`), {
+    method: "POST",
+  });
+  return expectJson<HeartbeatJob>(response);
+}
+
+export async function applyOverlayPromotions(
+  userId: string,
+  botId: string,
+  payload: { min_confidence?: number; max_candidates?: number } = {},
+): Promise<{ acked_ids: string[]; dropped_ids: string[] }> {
+  const response = await fetch(apiUrl(`/api/v1/member/${userId}/overlays/${botId}/promotions/apply`), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return expectJson<{ acked_ids: string[]; dropped_ids: string[] }>(response);
 }

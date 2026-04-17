@@ -485,6 +485,57 @@ class LearnerStateService:
             return events
         return events[-limit:]
 
+    def list_heartbeat_history(
+        self,
+        user_id: str,
+        *,
+        limit: int | None = 20,
+        include_arbitration: bool = True,
+    ) -> list[dict[str, Any]]:
+        event_limit = None if limit is None else max(int(limit) * 3, int(limit))
+        events = self.list_memory_events(user_id, limit=event_limit)
+        allowed_kinds = {"heartbeat_delivery"}
+        if include_arbitration:
+            allowed_kinds.add("heartbeat_arbitration")
+        filtered = [
+            {
+                "event_id": event.event_id,
+                "memory_kind": event.memory_kind,
+                "source_feature": event.source_feature,
+                "source_id": event.source_id,
+                "source_bot_id": event.source_bot_id,
+                "payload_json": dict(event.payload_json or {}),
+                "created_at": event.created_at,
+            }
+            for event in events
+            if event.memory_kind in allowed_kinds
+        ]
+        if limit is None or limit < 0:
+            return filtered
+        return filtered[-int(limit):]
+
+    def list_heartbeat_arbitration_history(
+        self,
+        user_id: str,
+        *,
+        limit: int | None = 20,
+    ) -> list[dict[str, Any]]:
+        events = self.list_memory_events(user_id, limit=None if limit is None else max(int(limit) * 2, int(limit)))
+        filtered = [
+            {
+                "event_id": event.event_id,
+                "source_id": event.source_id,
+                "source_bot_id": event.source_bot_id,
+                "payload_json": dict(event.payload_json or {}),
+                "created_at": event.created_at,
+            }
+            for event in events
+            if event.memory_kind == "heartbeat_arbitration"
+        ]
+        if limit is None or limit < 0:
+            return filtered
+        return filtered[-int(limit):]
+
     def append_memory_event(
         self,
         user_id: str,
@@ -843,6 +894,33 @@ class LearnerStateService:
             user_id=kwargs.get("user_id"),
             now=kwargs.get("now"),
         )
+
+    def list_heartbeat_jobs(self, user_id: str) -> list[LearnerHeartbeatJob]:
+        normalized = _normalize_user_id(user_id)
+        self._ensure_seed_state(normalized)
+        return self._heartbeat_job_service.list_jobs(user_id=normalized)
+
+    def pause_heartbeat_job(self, user_id: str, job_id: str) -> LearnerHeartbeatJob:
+        normalized = _normalize_user_id(user_id)
+        self._ensure_seed_state(normalized)
+        job = self._heartbeat_job_service.pause_job(job_id)
+        if job is None:
+            raise KeyError(f"heartbeat job not found: {job_id}")
+        if job.user_id != normalized:
+            raise KeyError(f"heartbeat job user mismatch: {job_id}")
+        self._enqueue_heartbeat_job_sync(job)
+        return job
+
+    def resume_heartbeat_job(self, user_id: str, job_id: str) -> LearnerHeartbeatJob:
+        normalized = _normalize_user_id(user_id)
+        self._ensure_seed_state(normalized)
+        job = self._heartbeat_job_service.resume_job(job_id)
+        if job is None:
+            raise KeyError(f"heartbeat job not found: {job_id}")
+        if job.user_id != normalized:
+            raise KeyError(f"heartbeat job user mismatch: {job_id}")
+        self._enqueue_heartbeat_job_sync(job)
+        return job
 
     def record_run_result(self, **kwargs: Any) -> LearnerHeartbeatJob:
         job_id = str(kwargs.get("job_id") or "").strip()

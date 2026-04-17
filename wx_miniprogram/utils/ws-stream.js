@@ -9,71 +9,10 @@ function inferConversationTitle(query) {
   return text.length > 50 ? text.slice(0, 50) + "..." : text;
 }
 
-function buildMcqInteractiveEvent(resultMetadata) {
-  var summary = resultMetadata && resultMetadata.summary;
-  var results = summary && Array.isArray(summary.results) ? summary.results : [];
-  var questions = [];
-  var hiddenContexts = [];
-
-  for (var i = 0; i < results.length; i++) {
-    var item = results[i];
-    var qaPair = item && item.qa_pair;
-    if (!qaPair || typeof qaPair !== "object") continue;
-    var questionType = String(qaPair.question_type || "").trim().toLowerCase();
-    var rawOptions = qaPair.options;
-    if (questionType !== "choice" || !rawOptions || typeof rawOptions !== "object") {
-      continue;
-    }
-    var optionKeys = Object.keys(rawOptions).sort();
-    if (!optionKeys.length) continue;
-
-    var options = [];
-    var optionMap = {};
-    for (var j = 0; j < optionKeys.length; j++) {
-      var key = String(optionKeys[j] || "").trim().toUpperCase();
-      var value = String(rawOptions[optionKeys[j]] || "").trim();
-      if (!key || !value) continue;
-      options.push({ key: key, text: value });
-      optionMap[key] = value;
-    }
-    if (!options.length) continue;
-
-    var index = questions.length + 1;
-    var multiSelect =
-      qaPair.multi_select === true ||
-      String(qaPair.correct_answer || "").trim().length > 1;
-    questions.push({
-      index: index,
-      stem: String(qaPair.question || "").trim(),
-      question_type: multiSelect ? "multi_choice" : "single_choice",
-      options: options,
-    });
-    hiddenContexts.push({
-      question_id: String(qaPair.question_id || "q_" + index).trim(),
-      question: String(qaPair.question || "").trim(),
-      question_type: "choice",
-      options: optionMap,
-      correct_answer: String(qaPair.correct_answer || "").trim(),
-      explanation: String(qaPair.explanation || "").trim(),
-      difficulty: String(qaPair.difficulty || "").trim(),
-      concentration: String(
-        qaPair.concentration || qaPair.knowledge_point || qaPair.topic || "",
-      ).trim(),
-      knowledge_context: String(
-        qaPair.knowledge_context || qaPair.explanation || "",
-      ).trim(),
-    });
-  }
-
-  if (!questions.length) return null;
-  return {
-    type: "mcq_interactive",
-    questions: questions,
-    hidden_contexts: hiddenContexts,
-    submit_hint:
-      questions.length > 1 ? "多题作答，先分别点选，再提交答案。" : "请选择后提交答案",
-    receipt: "",
-  };
+function buildPresentationEvent(resultMetadata) {
+  var presentation = resultMetadata && resultMetadata.presentation;
+  if (!presentation || typeof presentation !== "object") return null;
+  return presentation;
 }
 
 var RECONNECT_BASE_DELAY_MS = 400;
@@ -279,9 +218,10 @@ function streamChat(opts, callbacks) {
     }
 
     if (eventType === "result") {
-      var interactiveEvent = buildMcqInteractiveEvent(eventMetadata);
-      if (interactiveEvent && cb.onMcqInteractive) {
-        cb.onMcqInteractive(interactiveEvent);
+      var presentationEvent = buildPresentationEvent(eventMetadata);
+      if (presentationEvent && cb.onPresentation) {
+        cb.onPresentation(presentationEvent);
+        return;
       }
       return;
     }
@@ -438,7 +378,7 @@ function streamChat(opts, callbacks) {
 
 module.exports = {
   streamChat: streamChat,
-  buildMcqInteractiveEvent: buildMcqInteractiveEvent,
+  buildPresentationEvent: buildPresentationEvent,
   buildTurnSocketPayload: buildTurnSocketPayload,
   computeReconnectDelayMs: computeReconnectDelayMs,
   inferConversationTitle: inferConversationTitle,

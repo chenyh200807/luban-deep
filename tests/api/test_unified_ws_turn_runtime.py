@@ -343,6 +343,104 @@ async def test_turn_runtime_injects_usage_summary_into_result_events(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_updates_turn_observation_with_usage_details(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured_updates: list[dict[str, object]] = []
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={"response": "answer", "metadata": {}},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    def _capture_update(_observation, **kwargs):
+        captured_updates.append(kwargs)
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.get_current_usage_summary",
+        lambda: {
+            "scope_id": "turn_scope",
+            "session_id": "session_scope",
+            "turn_id": "turn_scope",
+            "capability": "chat",
+            "total_input_tokens": 90,
+            "total_output_tokens": 10,
+            "total_tokens": 100,
+            "total_calls": 1,
+            "measured_calls": 1,
+            "estimated_calls": 0,
+            "usage_accuracy": "measured",
+            "usage_sources": {"provider": 1},
+            "models": {"gpt-4o": 1},
+            "total_cost_usd": 0.0008,
+        },
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.update_observation",
+        _capture_update,
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "en",
+            "config": {},
+        }
+    )
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert captured_updates
+    final_update = captured_updates[-1]
+    assert final_update["usage_details"] == {
+        "input": 90.0,
+        "output": 10.0,
+        "total": 100.0,
+    }
+    assert final_update["cost_details"] == {
+        "input": 0.0,
+        "output": 0.0,
+        "total": 0.0008,
+    }
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_bootstraps_question_followup_context_once(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -1902,6 +2000,16 @@ async def test_turn_runtime_uses_user_scoped_learner_state_when_user_id_is_avail
             }
             return {"effective_overlay": {}}
 
+        def apply_promotions(self, bot_id: str, user_id: str, *, learner_state_service, min_confidence: float = 0.7, max_candidates: int = 10):
+            captured["overlay_promotions"] = {
+                "bot_id": bot_id,
+                "user_id": user_id,
+                "min_confidence": min_confidence,
+                "max_candidates": max_candidates,
+                "learner_state_service_type": learner_state_service.__class__.__name__,
+            }
+            return {"applied": [], "dropped": [], "acked_ids": [], "dropped_ids": []}
+
     async def _unexpected_global_refresh(**_kwargs):
         captured["global_refresh_called"] = True
         return None
@@ -1960,6 +2068,7 @@ async def test_turn_runtime_uses_user_scoped_learner_state_when_user_id_is_avail
     }
     assert captured["overlay_patch"]["bot_id"] == "construction-exam-coach"
     assert captured["overlay_patch"]["source_feature"] == "turn"
+    assert captured["overlay_promotions"]["bot_id"] == "construction-exam-coach"
     assert refresh_calls[0]["user_id"] == "student_demo"
     assert refresh_calls[0]["assistant_message"] == "User scoped reply"
     assert refresh_calls[0]["source_bot_id"] == "construction-exam-coach"
@@ -2043,6 +2152,15 @@ async def test_turn_runtime_context_orchestration_loads_bot_overlay_into_context
             }
             return {"effective_overlay": {}}
 
+        def apply_promotions(self, bot_id: str, user_id: str, *, learner_state_service, min_confidence: float = 0.7, max_candidates: int = 10):
+            captured["overlay_promotions"] = {
+                "bot_id": bot_id,
+                "user_id": user_id,
+                "min_confidence": min_confidence,
+                "max_candidates": max_candidates,
+            }
+            return {"applied": [], "dropped": [], "acked_ids": [], "dropped_ids": []}
+
     monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace(max_tokens=1024))
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
@@ -2116,6 +2234,7 @@ async def test_turn_runtime_context_orchestration_loads_bot_overlay_into_context
     assert "当前用户问题" in str(captured["user_message"])
     assert captured["overlay_patch"]["bot_id"] == "construction-exam-coach"
     assert captured["overlay_patch"]["source_feature"] == "turn"
+    assert captured["overlay_promotions"]["bot_id"] == "construction-exam-coach"
 
 
 @pytest.mark.asyncio

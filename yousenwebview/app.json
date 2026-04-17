@@ -32,6 +32,17 @@
         "pages/assessment/assessment",
         "pages/legal/terms"
       ]
+    },
+    {
+      "root": "packageHost",
+      "pages": [
+        "pages/showpdf/showpdf",
+        "pages/freeCourseDetailsonline/freeCourseDetailsonline",
+        "pages/dyforios/dyforios",
+        "pages/getpeople/getpeople",
+        "pages/showqrcode/showqrcode",
+        "pages/getphone/getphone"
+      ]
     }
   ],
   "window":{
@@ -40,6 +51,7 @@
     "navigationBarTitleText": "佑森咨询",
     "navigationBarTextStyle":"black"
   },
+  "lazyCodeLoading": "requiredComponents",
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "plugins": {

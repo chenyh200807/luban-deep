@@ -109,6 +109,13 @@ class LearnerHeartbeatService:
     def resume_job(self, job_id: str) -> LearnerHeartbeatJob | None:
         return self._store.resume(self._normalize_text(job_id), self._now())
 
+    def get_job(self, job_id: str) -> LearnerHeartbeatJob | None:
+        return self._store.get_by_id(self._normalize_text(job_id))
+
+    def list_jobs(self, *, user_id: str | None = None) -> list[LearnerHeartbeatJob]:
+        normalized_user_id = self._normalize_text(user_id) if user_id is not None else None
+        return self._store.list_jobs(user_id=normalized_user_id or None)
+
     def list_due_jobs(self, now: datetime | str | None = None) -> list[LearnerHeartbeatJob]:
         current = _coerce_datetime(now) if now is not None else self._now()
         if current is None:

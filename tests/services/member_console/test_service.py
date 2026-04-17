@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 import threading
 
@@ -257,6 +258,245 @@ def test_create_assessment_uses_unique_question_ids_per_quiz(tmp_path: Path) -> 
     stored = service._load()["assessment_sessions"][payload["quiz_id"]]["questions"]
     stored_ids = [item["question_id"] for item in stored]
     assert stored_ids == question_ids
+
+
+def test_member_360_includes_learner_state_heartbeat_and_bot_overlays(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "student_demo"
+            assert event_limit == 10
+            event = type(
+                "Event",
+                (),
+                {
+                    "event_id": "evt_1",
+                    "source_feature": "heartbeat",
+                    "source_id": "job_1",
+                    "source_bot_id": "review-bot",
+                    "memory_kind": "heartbeat_delivery",
+                    "payload_json": {"status": "sent"},
+                    "created_at": "2026-04-16T09:00:00+08:00",
+                },
+            )()
+            return type(
+                "Snapshot",
+                (),
+                {
+                    "user_id": user_id,
+                    "profile": {"display_name": "陈同学"},
+                    "summary": "正在复习地基基础。",
+                    "progress": {"knowledge_map": {"weak_points": ["防火间距"]}},
+                    "memory_events": [event],
+                    "profile_updated_at": "2026-04-16T08:00:00+08:00",
+                    "summary_updated_at": "2026-04-16T08:10:00+08:00",
+                    "progress_updated_at": "2026-04-16T08:20:00+08:00",
+                    "memory_events_updated_at": "2026-04-16T09:00:00+08:00",
+                },
+            )()
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 20, include_arbitration: bool = True):
+            assert user_id == "student_demo"
+            assert limit == 10
+            assert include_arbitration is True
+            return [{"event_id": "hb_1", "memory_kind": "heartbeat_delivery"}]
+
+        def list_heartbeat_arbitration_history(self, user_id: str, *, limit: int = 20):
+            assert user_id == "student_demo"
+            assert limit == 10
+            return [{"event_id": "arb_1", "payload_json": {"winner_bot_id": "review-bot"}}]
+
+    class FakeOverlayService:
+        def list_user_overlays(self, user_id: str, *, limit: int | None = None):
+            assert user_id == "student_demo"
+            assert limit == 20
+            return [{"bot_id": "review-bot", "version": 3}]
+
+    service._get_learner_state_service = lambda: FakeLearnerStateService()  # type: ignore[method-assign]
+    service._get_overlay_service = lambda: FakeOverlayService()  # type: ignore[method-assign]
+
+    payload = service.get_member_360("student_demo")
+
+    assert payload["learner_state"]["summary"] == "正在复习地基基础。"
+    assert payload["learner_state"]["recent_memory_events"][0]["memory_kind"] == "heartbeat_delivery"
+    assert payload["heartbeat"]["history"][0]["event_id"] == "hb_1"
+    assert payload["heartbeat"]["arbitration_history"][0]["payload_json"]["winner_bot_id"] == "review-bot"
+    assert payload["bot_overlays"][0]["bot_id"] == "review-bot"
+
+
+def test_member_console_learner_state_panel_and_controls(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "student_demo"
+            return type(
+                "Snapshot",
+                (),
+                {
+                    "user_id": user_id,
+                    "profile": {"display_name": "陈同学"},
+                    "summary": "正在复习案例题。",
+                    "progress": {"knowledge_map": {"weak_points": ["网络计划"]}},
+                    "memory_events": [],
+                    "profile_updated_at": "2026-04-16T08:00:00+08:00",
+                    "summary_updated_at": "2026-04-16T08:10:00+08:00",
+                    "progress_updated_at": "2026-04-16T08:20:00+08:00",
+                    "memory_events_updated_at": "2026-04-16T08:30:00+08:00",
+                },
+            )()
+
+        def list_heartbeat_jobs(self, user_id: str):
+            assert user_id == "student_demo"
+            active = type(
+                "Job",
+                (),
+                {
+                    "job_id": "job_1",
+                    "user_id": user_id,
+                    "bot_id": "review-bot",
+                    "channel": "heartbeat",
+                    "policy_json": {"enabled": True},
+                    "next_run_at": datetime(2026, 4, 17, 9, 0, tzinfo=timezone.utc),
+                    "last_run_at": None,
+                    "last_result_json": None,
+                    "failure_count": 0,
+                    "status": "active",
+                    "created_at": datetime(2026, 4, 16, 9, 0, tzinfo=timezone.utc),
+                    "updated_at": datetime(2026, 4, 16, 9, 0, tzinfo=timezone.utc),
+                },
+            )()
+            return [active]
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 20, include_arbitration: bool = True):
+            return [{"event_id": "hb_1"}]
+
+        def list_heartbeat_arbitration_history(self, user_id: str, *, limit: int = 20):
+            return [{"event_id": "arb_1"}]
+
+        def pause_heartbeat_job(self, user_id: str, job_id: str):
+            assert user_id == "student_demo"
+            assert job_id == "job_1"
+            return type(
+                "Job",
+                (),
+                {
+                    "job_id": job_id,
+                    "user_id": user_id,
+                    "bot_id": "review-bot",
+                    "channel": "heartbeat",
+                    "policy_json": {"enabled": True},
+                    "next_run_at": datetime(2026, 4, 17, 9, 0, tzinfo=timezone.utc),
+                    "last_run_at": None,
+                    "last_result_json": None,
+                    "failure_count": 0,
+                    "status": "paused",
+                    "created_at": datetime(2026, 4, 16, 9, 0, tzinfo=timezone.utc),
+                    "updated_at": datetime(2026, 4, 16, 9, 5, tzinfo=timezone.utc),
+                },
+            )()
+
+        def resume_heartbeat_job(self, user_id: str, job_id: str):
+            assert user_id == "student_demo"
+            assert job_id == "job_1"
+            return type(
+                "Job",
+                (),
+                {
+                    "job_id": job_id,
+                    "user_id": user_id,
+                    "bot_id": "review-bot",
+                    "channel": "heartbeat",
+                    "policy_json": {"enabled": True},
+                    "next_run_at": datetime(2026, 4, 17, 9, 0, tzinfo=timezone.utc),
+                    "last_run_at": None,
+                    "last_result_json": None,
+                    "failure_count": 0,
+                    "status": "active",
+                    "created_at": datetime(2026, 4, 16, 9, 0, tzinfo=timezone.utc),
+                    "updated_at": datetime(2026, 4, 16, 9, 10, tzinfo=timezone.utc),
+                },
+            )()
+
+    class FakeOverlayService:
+        def list_user_overlays(self, user_id: str, *, limit: int | None = None):
+            return [{"bot_id": "review-bot", "version": 4}]
+
+        def read_overlay(self, bot_id: str, user_id: str):
+            return {"bot_id": bot_id, "user_id": user_id, "version": 4}
+
+        def list_overlay_events(self, bot_id: str, user_id: str, *, limit: int | None = None, event_type: str | None = None):
+            return [{"event_id": "evt_1"}]
+
+        def list_overlay_audit(self, bot_id: str, user_id: str, *, limit: int | None = None):
+            return [{"event_id": "audit_1"}]
+
+        def patch_overlay(self, bot_id: str, user_id: str, patch, *, source_feature: str, source_id: str):
+            return {"bot_id": bot_id, "user_id": user_id, "version": 5, "patch": patch}
+
+        def apply_promotions(self, bot_id: str, user_id: str, *, learner_state_service, min_confidence: float = 0.7, max_candidates: int = 10):
+            return {"acked_ids": ["cand_1"], "dropped_ids": []}
+
+        def ack_promotions(self, bot_id: str, user_id: str, candidate_ids, *, reason: str = ""):
+            return {"affected_count": len(candidate_ids), "reason": reason}
+
+        def drop_promotions(self, bot_id: str, user_id: str, candidate_ids, *, reason: str = ""):
+            return {"affected_count": len(candidate_ids), "reason": reason}
+
+    service._get_learner_state_service = lambda: FakeLearnerStateService()  # type: ignore[method-assign]
+    service._get_overlay_service = lambda: FakeOverlayService()  # type: ignore[method-assign]
+
+    panel = service.get_member_learner_state_panel("student_demo", limit=5)
+    jobs = service.list_member_heartbeat_jobs("student_demo")
+    paused = service.pause_member_heartbeat_job("student_demo", "job_1", operator="admin_demo")
+    resumed = service.resume_member_heartbeat_job("student_demo", "job_1", operator="admin_demo")
+    overlay = service.get_member_overlay("student_demo", "review-bot")
+    events = service.get_member_overlay_events("student_demo", "review-bot", limit=5)
+    audit = service.get_member_overlay_audit("student_demo", "review-bot", limit=5)
+    patched = service.patch_member_overlay(
+        "student_demo",
+        "review-bot",
+        [{"op": "merge", "field": "heartbeat_override", "value": {"suppress": True}}],
+        operator="admin_demo",
+    )
+    applied = service.apply_member_overlay_promotions(
+        "student_demo",
+        "review-bot",
+        operator="admin_demo",
+        min_confidence=0.8,
+        max_candidates=3,
+    )
+    acked = service.ack_member_overlay_promotions(
+        "student_demo",
+        "review-bot",
+        ["cand_1"],
+        operator="admin_demo",
+        reason="confirmed",
+    )
+    dropped = service.drop_member_overlay_promotions(
+        "student_demo",
+        "review-bot",
+        ["cand_2"],
+        operator="admin_demo",
+        reason="noise",
+    )
+
+    assert panel["learner_state"]["summary"] == "正在复习案例题。"
+    assert panel["heartbeat_jobs"][0]["job_id"] == "job_1"
+    assert panel["bot_overlays"][0]["bot_id"] == "review-bot"
+    assert jobs["items"][0]["status"] == "active"
+    assert paused["status"] == "paused"
+    assert resumed["status"] == "active"
+    assert overlay["version"] == 4
+    assert events["items"][0]["event_id"] == "evt_1"
+    assert audit["items"][0]["event_id"] == "audit_1"
+    assert patched["version"] == 5
+    assert applied["acked_ids"] == ["cand_1"]
+    assert acked["affected_count"] == 1
+    assert dropped["affected_count"] == 1
 
 
 @pytest.mark.asyncio

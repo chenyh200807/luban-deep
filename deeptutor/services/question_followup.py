@@ -104,7 +104,7 @@ _MCQ_MULTI_RE = re.compile(r"多选|不定项|可多选|正确的有|错误的�
 _MCQ_QUESTION_LABEL = r"[一二两三四五六七八九十百零\d]+"
 _MCQ_QUESTION_MARKER = (
     rf"(?:例题\s*{_MCQ_QUESTION_LABEL}|第\s*{_MCQ_QUESTION_LABEL}\s*[题道]|"
-    rf"题目\s*{_MCQ_QUESTION_LABEL}|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])"
+    rf"题目(?:\s*{_MCQ_QUESTION_LABEL})?|问题|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])"
 )
 _MCQ_QUESTION_LINE_RE = re.compile(
     rf"^\s*(?:\*\*)?\s*{_MCQ_QUESTION_MARKER}(?:\s*[（(][^()（）]{{0,40}}[)）])?"
@@ -115,6 +115,12 @@ _MCQ_GENERIC_NUMBERED_RE = re.compile(r"^\s*(?:\*\*)?\d+\s*[.、．]\s+.*$", re.
 _MCQ_STEM_MARKER_RE = re.compile(
     rf"^\s*(?:题目|例题\s*{_MCQ_QUESTION_LABEL}|第\s*{_MCQ_QUESTION_LABEL}\s*[题道]|"
     rf"[\(（]\s*\d+\s*[\)）]|问题)\s*[:：]?\s*$",
+    re.IGNORECASE,
+)
+_MCQ_STEM_INLINE_MARKER_RE = re.compile(
+    rf"^\s*(?:题目(?:\s*{_MCQ_QUESTION_LABEL})?|例题\s*{_MCQ_QUESTION_LABEL}|"
+    rf"第\s*{_MCQ_QUESTION_LABEL}\s*[题道]|[\(（]\s*\d+\s*[\)）]|问题)"
+    rf"(?:\s*[（(][^()（）]{{0,40}}[)）])?\s*[:：]\s*.+$",
     re.IGNORECASE,
 )
 _MCQ_ANSWER_MARKERS = (
@@ -271,18 +277,19 @@ def should_reveal_reference_material(
     return any(marker in text for marker in explicit_request_markers)
 
 
-def build_question_followup_context_from_summary(
-    summary: dict[str, Any] | None,
+def build_question_followup_context_from_result_summary(
+    result_summary: dict[str, Any] | None,
     rendered_response: str,
     *,
     reveal_answers: bool = False,
     reveal_explanations: bool = False,
 ) -> dict[str, Any] | None:
-    if not isinstance(summary, dict):
+    # This consumes legacy per-message result_summary, not the session-level compressed_summary.
+    if not isinstance(result_summary, dict):
         return None
 
     items: list[dict[str, Any]] = []
-    for index, result in enumerate(summary.get("results", []) or [], 1):
+    for index, result in enumerate(result_summary.get("results", []) or [], 1):
         if not isinstance(result, dict):
             continue
         qa_pair = result.get("qa_pair") or {}
@@ -335,7 +342,80 @@ def build_question_followup_context_from_summary(
     return normalize_question_followup_context(primary)
 
 
-def extract_choice_summary_from_text(text: str) -> dict[str, Any] | None:
+def build_question_followup_context_from_presentation(
+    presentation: dict[str, Any] | None,
+    rendered_response: str,
+    *,
+    reveal_answers: bool = False,
+    reveal_explanations: bool = False,
+) -> dict[str, Any] | None:
+    if not isinstance(presentation, dict):
+        return None
+
+    items: list[dict[str, Any]] = []
+    blocks = presentation.get("blocks") if isinstance(presentation.get("blocks"), list) else []
+    for index, block in enumerate(blocks, 1):
+        if not isinstance(block, dict):
+            continue
+        if str(block.get("type") or "").strip() != "mcq":
+            continue
+        questions = block.get("questions") if isinstance(block.get("questions"), list) else []
+        for question_index, question in enumerate(questions, 1):
+            if not isinstance(question, dict):
+                continue
+            followup = (
+                question.get("followup_context")
+                if isinstance(question.get("followup_context"), dict)
+                else {}
+            )
+            stem = str(question.get("stem") or followup.get("question") or "").strip()
+            if not stem:
+                continue
+            raw_options = followup.get("options")
+            if not raw_options:
+                raw_options = {
+                    str(option.get("key") or "").strip(): str(option.get("text") or "").strip()
+                    for option in (question.get("options") or [])
+                    if isinstance(option, dict) and str(option.get("key") or "").strip()
+                }
+            items.append(
+                {
+                    "question_id": str(
+                        question.get("question_id")
+                        or followup.get("question_id")
+                        or f"q_{index}_{question_index}"
+                    ).strip(),
+                    "question": stem,
+                    "question_type": _normalize_question_type(
+                        followup.get("question_type") or question.get("question_type")
+                    ),
+                    "options": _normalize_options(raw_options),
+                    "correct_answer": str(followup.get("correct_answer", "") or "").strip(),
+                    "explanation": str(followup.get("explanation", "") or "").strip(),
+                    "difficulty": str(followup.get("difficulty", "") or "").strip(),
+                    "concentration": str(followup.get("concentration", "") or "").strip(),
+                    "knowledge_context": str(followup.get("knowledge_context", "") or "").strip(),
+                }
+            )
+
+    if not items:
+        return None
+
+    primary = dict(items[0])
+    if len(items) > 1:
+        primary["question_id"] = primary.get("question_id") or "question_set"
+        primary["question"] = str(rendered_response or primary.get("question") or "").strip()
+        primary["options"] = None
+        primary["correct_answer"] = ""
+        primary["explanation"] = ""
+
+    primary["reveal_answers"] = reveal_answers
+    primary["reveal_explanations"] = reveal_explanations
+    primary["items"] = items
+    return normalize_question_followup_context(primary)
+
+
+def extract_choice_result_summary_from_text(text: str) -> dict[str, Any] | None:
     raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
     if not raw:
         return None
@@ -547,7 +627,7 @@ def _strip_choice_stem_marker(text: str) -> str:
 
     marker_re = re.compile(
         rf"^\s*(?:例题\s*{_MCQ_QUESTION_LABEL}|第\s*{_MCQ_QUESTION_LABEL}\s*[题道]|"
-        rf"题目\s*{_MCQ_QUESTION_LABEL}|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])"
+        rf"题目(?:\s*{_MCQ_QUESTION_LABEL})?|问题|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])"
         rf"(?:\s*[（(][^()（）]+[)）])?\s*[:：]?\s*",
         re.IGNORECASE,
     )
@@ -587,7 +667,8 @@ def _extract_choice_qa_pair(block: str, index: int) -> dict[str, Any] | None:
     prefix_lines = lines[:first_option_index]
     stem_lines = prefix_lines
     for line_index, line in enumerate(prefix_lines):
-        if _MCQ_STEM_MARKER_RE.match(line):
+        normalized_line = _normalize_mcq_line(line)
+        if _MCQ_STEM_MARKER_RE.match(normalized_line) or _MCQ_STEM_INLINE_MARKER_RE.match(normalized_line):
             stem_lines = prefix_lines[line_index:]
     stem = _strip_choice_stem_marker("\n".join(stem_lines)).strip() or "请选择正确选项"
     stem_parts = [part.strip() for part in stem.split("\n") if part.strip()]

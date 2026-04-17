@@ -245,7 +245,7 @@ def test_mobile_chat_start_turn_requires_authentication() -> None:
     assert response.json()["detail"] == "Authentication required"
 
 
-def test_get_conversation_messages_includes_interactive_payload(
+def test_get_conversation_messages_include_presentation_payload(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     session_payload = {
@@ -265,24 +265,40 @@ def test_get_conversation_messages_includes_interactive_payload(
                     {
                         "type": "result",
                         "metadata": {
-                            "summary": {
-                                "results": [
+                            "presentation": {
+                                "schema_version": 1,
+                                "blocks": [
                                     {
-                                        "qa_pair": {
-                                            "question_id": "q_1",
-                                            "question": "某防水工程题目",
-                                            "question_type": "choice",
-                                            "options": {
-                                                "A": "方案A",
-                                                "B": "方案B",
-                                            },
-                                            "correct_answer": "B",
-                                            "explanation": "B 更符合规范。",
-                                            "difficulty": "medium",
-                                            "concentration": "地下防水",
-                                        }
+                                        "type": "mcq",
+                                        "questions": [
+                                            {
+                                                "index": 1,
+                                                "question_id": "q_1",
+                                                "stem": "某防水工程题目",
+                                                "question_type": "single_choice",
+                                                "options": [
+                                                    {"key": "A", "text": "方案A"},
+                                                    {"key": "B", "text": "方案B"},
+                                                ],
+                                                "followup_context": {
+                                                    "question_id": "q_1",
+                                                    "question": "某防水工程题目",
+                                                    "question_type": "choice",
+                                                    "options": {"A": "方案A", "B": "方案B"},
+                                                    "correct_answer": "B",
+                                                    "explanation": "B 更符合规范。",
+                                                    "difficulty": "medium",
+                                                    "concentration": "地下防水",
+                                                },
+                                            }
+                                        ],
+                                        "submit_hint": "请选择后提交答案",
+                                        "receipt": "",
+                                        "review_mode": False,
                                     }
-                                ]
+                                ],
+                                "fallback_text": "### Question 1\n某防水工程题目",
+                                "meta": {"streamingMode": "block_finalized"},
                             }
                         },
                     }
@@ -303,9 +319,8 @@ def test_get_conversation_messages_includes_interactive_payload(
 
     assert response.status_code == 200
     messages = response.json()["messages"]
-    assert messages[0]["interactive"]["type"] == "mcq_interactive"
-    assert messages[0]["interactive"]["questions"][0]["question_id"] == "q_1"
-    assert messages[0]["interactive"]["hidden_contexts"][0]["correct_answer"] == "B"
+    assert messages[0]["presentation"]["blocks"][0]["type"] == "mcq"
+    assert messages[0]["presentation"]["blocks"][0]["questions"][0]["question_id"] == "q_1"
 
 
 def test_wechat_login_route_maps_service_errors(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -890,3 +905,68 @@ def test_list_conversations_can_request_archived_items(monkeypatch: pytest.Monke
         "offset": 0,
     }
     assert response.json()["conversations"] == []
+
+
+def test_list_conversations_merges_internal_tutorbot_mirror_sessions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeSessionStore:
+        async def list_sessions_by_owner(
+            self,
+            owner_key: str,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 200,
+            offset: int = 0,
+        ):
+            return [
+                {
+                    "id": "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123",
+                    "title": "建筑构造是什么？",
+                    "updated_at": 20.0,
+                    "created_at": 10.0,
+                    "message_count": 8,
+                    "last_message": "标准答案：CDE",
+                    "status": "idle",
+                    "active_turn_id": "",
+                    "capability": "tutorbot",
+                    "cost_summary": {"total_tokens": 88},
+                    "preferences": {
+                        "source": "wx_miniprogram",
+                        "conversation_id": "tb_123",
+                        "session_id": "tb_123",
+                        "bot_id": "construction-exam-coach",
+                    },
+                },
+                {
+                    "id": "tb_123",
+                    "title": "新对话",
+                    "updated_at": 18.0,
+                    "created_at": 9.0,
+                    "message_count": 2,
+                    "last_message": "",
+                    "status": "completed",
+                    "active_turn_id": "",
+                    "capability": "tutorbot",
+                    "cost_summary": {"total_tokens": 44},
+                    "preferences": {
+                        "source": "wx_miniprogram",
+                        "bot_id": "construction-exam-coach",
+                    },
+                },
+            ]
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations")
+
+    assert response.status_code == 200
+    conversations = response.json()["conversations"]
+    assert len(conversations) == 1
+    assert conversations[0]["id"] == "tb_123"
+    assert conversations[0]["title"] == "建筑构造是什么？"
+    assert conversations[0]["message_count"] == 8
+    assert conversations[0]["last_message"] == "标准答案：CDE"
+    assert conversations[0]["cost_summary"]["total_tokens"] == 88

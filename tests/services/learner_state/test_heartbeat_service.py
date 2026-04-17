@@ -179,3 +179,37 @@ def test_learner_state_record_run_result_persists_heartbeat_arbitration_event(tm
     assert arbitration_events
     assert arbitration_events[-1].payload_json["winner_job_id"] == job.job_id
     assert arbitration_events[-1].payload_json["suppressed_bot_ids"] == ["review-bot"]
+
+
+def test_learner_state_lists_heartbeat_history_and_arbitration_history(tmp_path) -> None:
+    service = _make_service(tmp_path)
+
+    job = service.ensure_default_job(
+        "student_demo",
+        policy_json={"consent": True, "interval_hours": 1},
+        next_run_at="2026-04-14T10:00:00+08:00",
+    )
+    service.record_run_result(
+        user_id="student_demo",
+        job_id=job.job_id,
+        success=True,
+        result_json={
+            "sent": True,
+            "arbitration": {
+                "winner_job_id": job.job_id,
+                "winner_bot_id": "construction-exam-coach",
+                "suppressed_bot_ids": ["review-bot"],
+                "reasons": ["active_plan_match:+50"],
+                "decisions": [],
+            },
+        },
+        finished_at="2026-04-14T13:05:00+08:00",
+    )
+
+    history = service.list_heartbeat_history("student_demo", limit=10)
+    arbitration = service.list_heartbeat_arbitration_history("student_demo", limit=10)
+
+    assert any(item["memory_kind"] == "heartbeat_delivery" for item in history)
+    assert any(item["memory_kind"] == "heartbeat_arbitration" for item in history)
+    assert arbitration
+    assert arbitration[-1]["payload_json"]["winner_job_id"] == job.job_id

@@ -27,6 +27,7 @@ session_store = get_sqlite_session_store()
 _MOBILE_TUTORBOT_ID = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
 _MOBILE_TUTORBOT_NAME = "Construction Exam Coach"
 _MOBILE_TUTORBOT_DESCRIPTION = "微信小程序主聊天默认建筑实务 TutorBot"
+_MOBILE_PLACEHOLDER_TITLES = {"", "new conversation", "新对话"}
 
 
 def _ts_to_iso(timestamp: float | int | None) -> str:
@@ -62,6 +63,62 @@ def _infer_mobile_conversation_title(text: str) -> str:
     if not normalized:
         return "新对话"
     return normalized[:32] + ("..." if len(normalized) > 32 else "")
+
+
+def _normalize_mobile_conversation_id(session: dict[str, Any]) -> str:
+    session_id = str(session.get("id") or session.get("session_id") or "").strip()
+    preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
+    conversation_id = str(preferences.get("conversation_id") or "").strip()
+    if session_id.startswith("tutorbot:") and conversation_id:
+        return conversation_id
+    return session_id
+
+
+def _is_placeholder_mobile_title(value: Any) -> bool:
+    normalized = str(value or "").strip().lower()
+    return normalized in _MOBILE_PLACEHOLDER_TITLES
+
+
+def _merge_mobile_conversation_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    merged: dict[str, dict[str, Any]] = {}
+    order: list[str] = []
+
+    for row in rows or []:
+        if not isinstance(row, dict):
+            continue
+        canonical_id = _normalize_mobile_conversation_id(row)
+        if not canonical_id:
+            continue
+        current = merged.get(canonical_id)
+        if current is None:
+            current = dict(row)
+            current["id"] = canonical_id
+            current["session_id"] = canonical_id
+            merged[canonical_id] = current
+            order.append(canonical_id)
+        else:
+            current_updated = float(current.get("updated_at") or 0.0)
+            row_updated = float(row.get("updated_at") or 0.0)
+            if row_updated > current_updated:
+                for key in ("updated_at", "created_at", "status", "active_turn_id", "capability", "cost_summary"):
+                    if key in row:
+                        current[key] = row.get(key)
+            current["message_count"] = max(
+                int(current.get("message_count") or 0),
+                int(row.get("message_count") or 0),
+            )
+            if _is_placeholder_mobile_title(current.get("title")) and not _is_placeholder_mobile_title(row.get("title")):
+                current["title"] = row.get("title")
+            if not str(current.get("last_message") or "").strip() and str(row.get("last_message") or "").strip():
+                current["last_message"] = row.get("last_message")
+            current_prefs = current.get("preferences") if isinstance(current.get("preferences"), dict) else {}
+            row_prefs = row.get("preferences") if isinstance(row.get("preferences"), dict) else {}
+            if not current_prefs.get("conversation_id") and row_prefs.get("conversation_id"):
+                current["preferences"] = dict(row_prefs)
+
+    result = [merged[item_id] for item_id in order]
+    result.sort(key=lambda item: float(item.get("updated_at") or 0.0), reverse=True)
+    return result
 
 
 def _normalize_tutorbot_mode(value: str | None) -> str:
@@ -222,53 +279,25 @@ def _build_mobile_turn_payload(
     }
 
 
-def _build_interactive_payload(message: dict[str, Any]) -> dict[str, Any] | None:
+def _build_presentation_payload(message: dict[str, Any]) -> dict[str, Any] | None:
     events = message.get("events") if isinstance(message.get("events"), list) else []
-    questions: list[dict[str, Any]] = []
-    hidden_contexts: list[dict[str, Any]] = []
     for event in events:
         if not isinstance(event, dict):
             continue
         metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
-        summary = metadata.get("summary") if isinstance(metadata.get("summary"), dict) else {}
-        results = summary.get("results") if isinstance(summary.get("results"), list) else []
-        for result in results:
-            qa_pair = result.get("qa_pair") if isinstance(result, dict) else None
-            if not isinstance(qa_pair, dict):
-                continue
-            question = {
-                "question_id": str(qa_pair.get("question_id") or "").strip(),
-                "question": str(qa_pair.get("question") or "").strip(),
-                "question_type": str(qa_pair.get("question_type") or "").strip(),
-                "options": qa_pair.get("options") or {},
-                "difficulty": qa_pair.get("difficulty"),
-                "concentration": qa_pair.get("concentration"),
-            }
-            if question["question_id"] and question["question"]:
-                questions.append(question)
-                hidden_contexts.append(
-                    {
-                        "question_id": question["question_id"],
-                        "correct_answer": qa_pair.get("correct_answer"),
-                        "explanation": qa_pair.get("explanation"),
-                    }
-                )
-    if not questions:
-        return None
-    return {
-        "type": "mcq_interactive",
-        "questions": questions,
-        "hidden_contexts": hidden_contexts,
-    }
+        presentation = metadata.get("presentation")
+        if isinstance(presentation, dict):
+            return presentation
+    return None
 
 
 def _serialize_mobile_message(message: dict[str, Any]) -> dict[str, Any]:
-    interactive = _build_interactive_payload(message)
+    presentation = _build_presentation_payload(message)
     return {
         "role": str(message.get("role") or ""),
         "content": str(message.get("content") or ""),
         "created_at": _ts_to_iso(message.get("created_at")),
-        "interactive": interactive,
+        "presentation": presentation,
     }
 
 
@@ -624,7 +653,7 @@ async def list_conversations(
         limit=200,
         offset=0,
     )
-    return {"conversations": sessions}
+    return {"conversations": _merge_mobile_conversation_rows(list(sessions or []))}
 
 
 @router.get("/conversations/{conversation_id}/messages")

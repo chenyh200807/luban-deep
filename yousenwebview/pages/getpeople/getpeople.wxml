@@ -1,6 +1,1 @@
-<!--pages/getpeople/getpeople.wxml-->
-<view>
-  <image src="{{imageUrl}}" mode="aspectFit" bindtap="previewImage"></image>
-  <button bindtap="show">点击</button>
-  <cell bind:startmessage='startmessage' bind:completemessage="completemessage" url='https://work.weixin.qq.com/gm/e94fe429a2159d6326260f292b4d98d5'  />
-</view>
+<view></view>

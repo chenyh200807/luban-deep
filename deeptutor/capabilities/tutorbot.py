@@ -8,9 +8,11 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.services.question_followup import (
-    build_question_followup_context_from_summary,
-    extract_choice_summary_from_text,
+    build_question_followup_context_from_presentation,
+    build_question_followup_context_from_result_summary,
+    extract_choice_result_summary_from_text,
 )
+from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 
@@ -83,12 +85,6 @@ class TutorBotCapability(BaseCapability):
             if not text:
                 return
             chunks.append(text)
-            await stream.content(
-                text,
-                source=self.name,
-                stage="responding",
-                metadata={"execution_engine": "tutorbot_runtime"},
-            )
 
         async def _on_tool_call(tool_name: str, args: dict[str, Any]) -> None:
             await stream.tool_call(
@@ -142,14 +138,17 @@ class TutorBotCapability(BaseCapability):
                 session_key=session_key,
                 session_metadata=session_metadata,
             )
-            if response and not chunks:
+            final_response = response or "".join(chunks)
+            if final_response:
                 await stream.content(
-                    response,
+                    final_response,
                     source=self.name,
                     stage="responding",
-                    metadata={"execution_engine": "tutorbot_runtime"},
+                    metadata={
+                        "execution_engine": "tutorbot_runtime",
+                        "call_kind": "llm_final_response",
+                    },
                 )
-            final_response = response or "".join(chunks)
             result_payload = {
                 "response": final_response,
                 "bot_id": bot_id,
@@ -157,15 +156,28 @@ class TutorBotCapability(BaseCapability):
                 "authority_applied": turn_summary["authority_applied"],
                 "exact_question": turn_summary["exact_question"],
             }
-            parsed_summary = extract_choice_summary_from_text(final_response)
-            if parsed_summary:
-                result_payload["summary"] = parsed_summary
-                result_payload["question_followup_context"] = build_question_followup_context_from_summary(
-                    parsed_summary,
-                    final_response,
-                    reveal_answers=False,
-                    reveal_explanations=False,
+            parsed_result_summary = extract_choice_result_summary_from_text(final_response)
+            if parsed_result_summary:
+                presentation = build_canonical_presentation(
+                    content=final_response,
+                    result_summary=parsed_result_summary,
                 )
+                result_payload["question_followup_context"] = (
+                    build_question_followup_context_from_presentation(
+                        presentation,
+                        final_response,
+                        reveal_answers=False,
+                        reveal_explanations=False,
+                    )
+                    or build_question_followup_context_from_result_summary(
+                        parsed_result_summary,
+                        final_response,
+                        reveal_answers=False,
+                        reveal_explanations=False,
+                    )
+                )
+                if presentation:
+                    result_payload["presentation"] = presentation
             await stream.result(result_payload, source=self.name)
 
     @staticmethod

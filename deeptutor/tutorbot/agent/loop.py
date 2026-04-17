@@ -243,6 +243,7 @@ class AgentLoop:
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
+        allow_exact_authority_override: bool = False,
     ) -> tuple[str | None, list[str], list[dict]]:
         """Run the agent iteration loop."""
         messages = initial_messages
@@ -285,20 +286,6 @@ class AgentLoop:
                 model=self.model,
                 on_content_delta=_stream_delta if on_content_delta else None,
             )
-            usage = response.usage or {}
-            if usage:
-                observability.record_usage(
-                    usage_details={
-                        "input": float(usage.get("prompt_tokens") or 0),
-                        "output": float(usage.get("completion_tokens") or 0),
-                        "total": float(
-                            usage.get("total_tokens")
-                            or (float(usage.get("prompt_tokens") or 0) + float(usage.get("completion_tokens") or 0))
-                        ),
-                    },
-                    source="provider",
-                    model=self.model,
-                )
 
             if response.has_tool_calls:
                 if on_progress:
@@ -343,7 +330,11 @@ class AgentLoop:
                             if isinstance(tool_trace_metadata.get("exact_question"), dict)
                             else None
                         )
-                        if exact_candidate and self._should_force_exact_authority(exact_candidate):
+                        if (
+                            allow_exact_authority_override
+                            and exact_candidate
+                            and self._should_force_exact_authority(exact_candidate)
+                        ):
                             exact_authority = exact_candidate
                     if on_tool_result:
                         await on_tool_result(tool_call.name, result, tool_trace_metadata)
@@ -372,7 +363,7 @@ class AgentLoop:
                 "without completing the task. You can try breaking the task into smaller steps."
             )
 
-        if exact_authority:
+        if allow_exact_authority_override and exact_authority:
             exact_response = self._build_exact_authority_response(exact_authority)
             if exact_response:
                 final_content = exact_response
@@ -933,6 +924,7 @@ class AgentLoop:
             on_content_delta=on_content_delta,
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
+            allow_exact_authority_override=prepare_exact_question_probe(current_message) is not None,
         )
 
         if final_content is None:

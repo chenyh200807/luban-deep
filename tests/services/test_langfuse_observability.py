@@ -329,6 +329,27 @@ def test_usage_scope_accumulates_usage_with_sources() -> None:
     assert adapter.get_current_usage_summary() is None
 
 
+def test_usage_details_and_cost_details_from_summary() -> None:
+    adapter = LangfuseObservability()
+    summary = {
+        "total_input_tokens": 128,
+        "total_output_tokens": 32,
+        "total_tokens": 160,
+        "total_cost_usd": 0.0016,
+    }
+
+    assert adapter.usage_details_from_summary(summary) == {
+        "input": 128.0,
+        "output": 32.0,
+        "total": 160.0,
+    }
+    assert adapter.cost_details_from_summary(summary) == {
+        "input": 0.0,
+        "output": 0.0,
+        "total": 0.0016,
+    }
+
+
 def test_start_observation_preserves_body_exception() -> None:
     adapter = LangfuseObservability()
     client = _FakeClient()

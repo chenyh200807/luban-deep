@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import sqlite3
 import time
 from pathlib import Path
@@ -197,6 +198,14 @@ def test_upsert_notebook_entries_persists_all(store: SQLiteSessionStore) -> None
     result = asyncio.run(store.list_notebook_entries())
     assert result["total"] == 3
     assert all(entry["session_title"] == "Test" for entry in result["items"])
+
+
+def test_add_message_updates_mobile_placeholder_title(store: SQLiteSessionStore) -> None:
+    session = asyncio.run(store.create_session(title="新对话", source="wx_miniprogram"))
+    asyncio.run(store.add_message(session["id"], "user", "建筑构造是什么？"))
+    updated = asyncio.run(store.get_session(session["id"]))
+    assert updated is not None
+    assert updated["title"] == "建筑构造是什么？"
 
 
 def test_upsert_notebook_entries_updates_on_conflict(store: SQLiteSessionStore) -> None:
@@ -572,6 +581,113 @@ async def test_sqlite_store_persists_active_question_context_in_runtime_state(
     assert context is not None
     assert context["question_id"] == "q_1"
     assert context["correct_answer"] == "A"
+
+
+@pytest.mark.asyncio
+async def test_sqlite_store_projects_and_backfills_presentation_from_legacy_summary(
+    tmp_path: Path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = await store.create_session(title="Quiz", session_id="session-legacy-presentation")
+
+    await store.add_message(
+        session["id"],
+        "assistant",
+        "### Question 1\n某防水工程题目",
+        capability="deep_question",
+        events=[
+            {
+                "type": "result",
+                "metadata": {
+                    "summary": {
+                        "results": [
+                            {
+                                "qa_pair": {
+                                    "question_id": "q_1",
+                                    "question": "某防水工程题目",
+                                    "question_type": "choice",
+                                    "options": {"A": "方案A", "B": "方案B"},
+                                    "correct_answer": "B",
+                                    "explanation": "B 更符合规范。",
+                                }
+                            }
+                        ]
+                    }
+                },
+            }
+        ],
+    )
+
+    messages = await store.get_messages(session["id"])
+    metadata = messages[0]["events"][0]["metadata"]
+    assert isinstance(metadata["summary"], dict)
+    assert "presentation" not in metadata
+
+    stats = await store.backfill_message_presentations(session["id"])
+    assert stats == {"scanned": 1, "updated": 1}
+
+    messages = await store.get_messages(session["id"])
+    metadata = messages[0]["events"][0]["metadata"]
+    assert "summary" not in metadata
+    assert metadata["presentation"]["blocks"][0]["questions"][0]["question_id"] == "q_1"
+
+    with sqlite3.connect(store.db_path) as conn:
+        row = conn.execute(
+            "SELECT events_json FROM messages WHERE session_id = ?",
+            (session["id"],),
+        ).fetchone()
+    persisted_events = json.loads(row[0])
+    persisted_metadata = persisted_events[0]["metadata"]
+    assert "summary" not in persisted_metadata
+    assert persisted_metadata["presentation"]["blocks"][0]["questions"][0]["question_id"] == "q_1"
+
+
+@pytest.mark.asyncio
+async def test_sqlite_store_archives_unrenderable_summary_as_plain_text(
+    tmp_path: Path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = await store.create_session(title="Written", session_id="session-legacy-written")
+
+    await store.add_message(
+        session["id"],
+        "assistant",
+        "### Question 1\n请说明流水施工的基本特点。",
+        capability="deep_question",
+        events=[
+            {
+                "type": "result",
+                "metadata": {
+                    "summary": {
+                        "results": [
+                            {
+                                "qa_pair": {
+                                    "question_id": "q_1",
+                                    "question": "请说明流水施工的基本特点。",
+                                    "question_type": "written",
+                                    "correct_answer": "略",
+                                    "explanation": "略",
+                                }
+                            }
+                        ]
+                    }
+                },
+            }
+        ],
+    )
+
+    before = await store.get_messages(session["id"])
+    before_metadata = before[0]["events"][0]["metadata"]
+    assert isinstance(before_metadata["summary"], dict)
+    assert "presentation" not in before_metadata
+
+    stats = await store.backfill_message_presentations(session["id"])
+    assert stats == {"scanned": 1, "updated": 1}
+
+    after = await store.get_messages(session["id"])
+    after_metadata = after[0]["events"][0]["metadata"]
+    assert "summary" not in after_metadata
+    assert "presentation" not in after_metadata
 
 
 @pytest.mark.asyncio

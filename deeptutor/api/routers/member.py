@@ -44,6 +44,20 @@ class RevokeRequest(BaseModel):
     reason: str = ""
 
 
+class OverlayPatchRequest(BaseModel):
+    operations: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class OverlayPromotionApplyRequest(BaseModel):
+    min_confidence: float = Field(default=0.7, ge=0.0, le=1.0)
+    max_candidates: int = Field(default=10, ge=1, le=100)
+
+
+class OverlayPromotionDecisionRequest(BaseModel):
+    candidate_ids: list[str] = Field(default_factory=list)
+    reason: str = ""
+
+
 @router.get("/health")
 async def member_health() -> dict[str, Any]:
     return {"status": "ok", "module": "member"}
@@ -85,6 +99,164 @@ async def member_list(
 async def member_360(user_id: str) -> dict[str, Any]:
     try:
         return service.get_member_360(user_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/{user_id}/learner-state")
+async def member_learner_state(user_id: str, limit: int = Query(default=20, ge=1, le=200)) -> dict[str, Any]:
+    try:
+        return service.get_member_learner_state_panel(user_id, limit=limit)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/{user_id}/heartbeat-jobs")
+async def member_heartbeat_jobs(user_id: str) -> dict[str, Any]:
+    try:
+        return service.list_member_heartbeat_jobs(user_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/{user_id}/heartbeat-jobs/{job_id}/pause")
+async def pause_member_heartbeat_job(
+    user_id: str,
+    job_id: str,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    try:
+        return service.pause_member_heartbeat_job(user_id, job_id, operator=current_user.user_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/{user_id}/heartbeat-jobs/{job_id}/resume")
+async def resume_member_heartbeat_job(
+    user_id: str,
+    job_id: str,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    try:
+        return service.resume_member_heartbeat_job(user_id, job_id, operator=current_user.user_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/{user_id}/overlays/{bot_id}")
+async def member_overlay(user_id: str, bot_id: str) -> dict[str, Any]:
+    try:
+        return service.get_member_overlay(user_id, bot_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/{user_id}/overlays/{bot_id}/events")
+async def member_overlay_events(
+    user_id: str,
+    bot_id: str,
+    limit: int = Query(default=20, ge=1, le=200),
+    event_type: str | None = None,
+) -> dict[str, Any]:
+    try:
+        return service.get_member_overlay_events(user_id, bot_id, limit=limit, event_type=event_type)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/{user_id}/overlays/{bot_id}/audit")
+async def member_overlay_audit(
+    user_id: str,
+    bot_id: str,
+    limit: int = Query(default=20, ge=1, le=200),
+) -> dict[str, Any]:
+    try:
+        return service.get_member_overlay_audit(user_id, bot_id, limit=limit)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.patch("/{user_id}/overlays/{bot_id}")
+async def patch_member_overlay(
+    user_id: str,
+    bot_id: str,
+    body: OverlayPatchRequest,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    operations = list(body.operations or [])
+    if not operations:
+        raise HTTPException(status_code=400, detail="Overlay patch operations are required")
+    try:
+        return service.patch_member_overlay(
+            user_id,
+            bot_id,
+            operations,
+            operator=current_user.user_id,
+        )
+    except (KeyError, ValueError) as exc:
+        status_code = 404 if isinstance(exc, KeyError) else 400
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+
+
+@router.post("/{user_id}/overlays/{bot_id}/promotions/apply")
+async def apply_member_overlay_promotions(
+    user_id: str,
+    bot_id: str,
+    body: OverlayPromotionApplyRequest,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    try:
+        return service.apply_member_overlay_promotions(
+            user_id,
+            bot_id,
+            operator=current_user.user_id,
+            min_confidence=body.min_confidence,
+            max_candidates=body.max_candidates,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/{user_id}/overlays/{bot_id}/promotions/ack")
+async def ack_member_overlay_promotions(
+    user_id: str,
+    bot_id: str,
+    body: OverlayPromotionDecisionRequest,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    candidate_ids = [str(item or "").strip() for item in body.candidate_ids if str(item or "").strip()]
+    if not candidate_ids:
+        raise HTTPException(status_code=400, detail="candidate_ids are required")
+    try:
+        return service.ack_member_overlay_promotions(
+            user_id,
+            bot_id,
+            candidate_ids,
+            operator=current_user.user_id,
+            reason=body.reason,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/{user_id}/overlays/{bot_id}/promotions/drop")
+async def drop_member_overlay_promotions(
+    user_id: str,
+    bot_id: str,
+    body: OverlayPromotionDecisionRequest,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    candidate_ids = [str(item or "").strip() for item in body.candidate_ids if str(item or "").strip()]
+    if not candidate_ids:
+        raise HTTPException(status_code=400, detail="candidate_ids are required")
+    try:
+        return service.drop_member_overlay_promotions(
+            user_id,
+            bot_id,
+            candidate_ids,
+            operator=current_user.user_id,
+            reason=body.reason,
+        )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

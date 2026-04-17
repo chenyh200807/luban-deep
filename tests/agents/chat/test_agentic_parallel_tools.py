@@ -62,6 +62,32 @@ async def test_native_tool_loop_executes_parallel_tool_calls(monkeypatch: pytest
     registry = FakeRegistry()
     monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: registry)
 
+    class FakeObservability:
+        def __init__(self) -> None:
+            self.updated: list[dict[str, Any]] = []
+
+        def estimate_usage_details(self, **_kwargs):
+            return {"input": 10.0, "output": 3.0, "total": 13.0}
+
+        def estimate_cost_details(self, **_kwargs):
+            return {"input": 0.0, "output": 0.0, "total": 0.0}
+
+        def start_observation(self, **_kwargs):
+            class _Manager:
+                def __enter__(self_inner):
+                    return object()
+
+                def __exit__(self_inner, exc_type, exc, tb):
+                    return False
+
+            return _Manager()
+
+        def update_observation(self, _observation, **kwargs):
+            self.updated.append(kwargs)
+
+    fake_observability = FakeObservability()
+    monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.observability", fake_observability)
+
     pipeline = AgenticChatPipeline(language="en")
     pipeline.registry = registry
 
@@ -73,6 +99,7 @@ async def test_native_tool_loop_executes_parallel_tool_calls(monkeypatch: pytest
             self.calls += 1
             if self.calls == 1:
                 return SimpleNamespace(
+                    usage=SimpleNamespace(prompt_tokens=41, completion_tokens=9, total_tokens=50),
                     choices=[
                         SimpleNamespace(
                             message=SimpleNamespace(
@@ -142,6 +169,12 @@ async def test_native_tool_loop_executes_parallel_tool_calls(monkeypatch: pytest
     assert fake_create.calls == 1
     assert registry.max_inflight >= 2
     assert [trace.name for trace in traces] == ["web_search", "reason"]
+    assert fake_observability.updated[0]["usage_source"] == "provider"
+    assert fake_observability.updated[0]["usage_details"] == {
+        "input": 41.0,
+        "output": 9.0,
+        "total": 50.0,
+    }
 
     tool_result_events = [event for event in events if event.type.value == "tool_result"]
     assert len(tool_result_events) == 2

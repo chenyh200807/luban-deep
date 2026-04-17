@@ -133,6 +133,20 @@ class LearnerHeartbeatJobStore:
                 return job
         return None
 
+    def list_jobs(self, *, user_id: str | None = None) -> list[LearnerHeartbeatJob]:
+        jobs = self.load()
+        if user_id is not None:
+            jobs = [job for job in jobs if job.user_id == user_id]
+        return sorted(
+            jobs,
+            key=lambda job: (
+                0 if job.status == "active" else 1,
+                _to_iso(job.next_run_at) or "9999-12-31T23:59:59+00:00",
+                _to_iso(job.created_at) or "",
+                job.job_id,
+            ),
+        )
+
     def upsert(self, job: LearnerHeartbeatJob) -> LearnerHeartbeatJob:
         jobs = self.load()
         index = next((i for i, item in enumerate(jobs) if item.job_id == job.job_id), None)

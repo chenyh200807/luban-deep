@@ -167,6 +167,39 @@ run("chinese numbered titles split correctly", function () {
   );
 });
 
+run("explanation prefix remains visible when bare question marker is used", function () {
+  var text = [
+    "我先给你讲解防水工程的核心知识点，然后出一道选择题。",
+    "",
+    "## 防水工程核心知识讲解",
+    "",
+    "### 一、屋面防水",
+    "1. 防水层应按等级和设防要求设置。",
+    "",
+    "## 现在给你出一道选择题：",
+    "",
+    "**题目：** 关于室内防水工程，下列做法正确的是：",
+    "",
+    "A. 卫生间墙面防水层高度做到1.2m即可",
+    "B. 淋浴区墙面防水层高度应不小于1.8m",
+    "C. 厨房地面不需要做防水层",
+    "D. 独立水容器防水不属于室内防水范畴",
+  ].join("\n");
+
+  var detected = mcq.detect(text);
+  assert(detected, "detected should exist");
+  assertEqual(detected.total, 1, "should detect a single question card");
+  assert(
+    String(detected.displayText || "").indexOf("防水工程核心知识讲解") >= 0,
+    "explanation prefix should remain in display text",
+  );
+  assertEqual(
+    detected.questions[0].stem,
+    "关于室内防水工程，下列做法正确的是：",
+    "stem should keep only the choice question",
+  );
+});
+
 run("interleaved answers do not truncate later examples", function () {
   var text = [
     "好，地基基础是实务的重难点。",
@@ -270,6 +303,20 @@ run("standalone answer explanation with option-like lines should not become mcq"
 
   var detected = mcq.detect(text);
   assertEqual(detected, null, "answer explanation should stay plain text");
+});
+
+run("stripReceipt removes visible receipt tail without touching answer body", function () {
+  var text = [
+    "屋面防水等级应结合建筑性质、使用功能和重要程度综合确定。",
+    "",
+    "回执：已生成 1 道题",
+  ].join("\n");
+
+  assertEqual(
+    mcq.stripReceipt(text),
+    "屋面防水等级应结合建筑性质、使用功能和重要程度综合确定。",
+    "visible receipt tail should be removed",
+  );
 });
 
 if (fail > 0) {

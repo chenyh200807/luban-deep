@@ -153,15 +153,28 @@ class AgenticChatPipeline:
             self._usage["completion_tokens"] += completion_tokens
             self._usage["total_tokens"] += total_tokens
             self._usage["calls"] += 1
-            observability.record_usage(
-                usage_details={
-                    "input": float(prompt_tokens),
-                    "output": float(completion_tokens),
-                    "total": float(total_tokens),
-                },
-                source="provider",
-                model=self.model,
-            )
+
+    @staticmethod
+    def _normalize_usage_details(usage: Any) -> dict[str, float] | None:
+        if usage is None:
+            return None
+        prompt_tokens = getattr(usage, "prompt_tokens", None)
+        completion_tokens = getattr(usage, "completion_tokens", None)
+        total_tokens = getattr(usage, "total_tokens", None)
+        if prompt_tokens is None and hasattr(usage, "input_tokens"):
+            prompt_tokens = getattr(usage, "input_tokens", 0) or 0
+        if completion_tokens is None and hasattr(usage, "output_tokens"):
+            completion_tokens = getattr(usage, "output_tokens", 0) or 0
+        prompt_tokens = float(prompt_tokens or 0.0)
+        completion_tokens = float(completion_tokens or 0.0)
+        total_tokens = float(total_tokens or (prompt_tokens + completion_tokens))
+        if total_tokens <= 0:
+            return None
+        return {
+            "input": prompt_tokens,
+            "output": completion_tokens,
+            "total": total_tokens,
+        }
 
     def _get_cost_summary(self) -> dict[str, Any] | None:
         usage_summary = observability.get_current_usage_summary()
@@ -971,13 +984,59 @@ class AgenticChatPipeline:
                 {"trace_kind": "call_status", "call_state": "running"},
             ),
         )
-        response = await client.chat.completions.create(
+        completion_kwargs = self._completion_kwargs(max_tokens=1500)
+        with observability.start_observation(
+            name="chat.native_tool_planning",
+            as_type="generation",
+            input_payload=messages,
+            metadata=merge_trace_metadata(trace_meta, {"tool_count": len(tool_schemas)}),
             model=self.model,
-            messages=messages,
-            tools=tool_schemas,
-            tool_choice="auto",
-            **self._completion_kwargs(max_tokens=1500),
-        )
+            model_parameters={
+                "tool_choice": "auto",
+                "tool_count": len(tool_schemas),
+                **completion_kwargs,
+            },
+        ) as observation:
+            try:
+                response = await client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    tools=tool_schemas,
+                    tool_choice="auto",
+                    **completion_kwargs,
+                )
+            except Exception as exc:
+                observability.update_observation(
+                    observation,
+                    metadata=merge_trace_metadata(trace_meta, {"tool_count": len(tool_schemas)}),
+                    level="ERROR",
+                    status_message=str(exc),
+                )
+                raise
+            usage_details = self._normalize_usage_details(getattr(response, "usage", None))
+            usage_source = "provider"
+            if usage_details is None:
+                usage_details = observability.estimate_usage_details(
+                    input_payload=messages,
+                    output_payload=getattr(getattr(response.choices[0], "message", None), "content", "")
+                    if getattr(response, "choices", None)
+                    else "",
+                )
+                usage_source = "tiktoken"
+            observability.update_observation(
+                observation,
+                output_payload=getattr(getattr(response.choices[0], "message", None), "content", "")
+                if getattr(response, "choices", None)
+                else "",
+                metadata=merge_trace_metadata(trace_meta, {"tool_count": len(tool_schemas)}),
+                usage_details=usage_details,
+                usage_source=usage_source,
+                model=self.model,
+                cost_details=observability.estimate_cost_details(
+                    model=self.model,
+                    usage_details=usage_details,
+                ),
+            )
         self._accumulate_usage(response)
         if not response.choices:
             return tool_traces

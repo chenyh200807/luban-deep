@@ -1,0 +1,31 @@
+<view style=" height: 100%;">
+  <view class="container-title">
+    <text class="title-text">{{title}}</text>
+  </view>
+  <view class="title-des">
+    <view style="text-align: center;padding-top: 15px;">
+      <view class="showimage">
+        <image class="course-logo" src="https://www.yousenjiaoyu.com/static/default/wxcss/images/%E4%BA%8C%E5%BB%BA.png"></image>
+        <view style="border-bottom:  1px solid #c1b5b5;"></view>
+        <view class="buttonqrcode">
+          <cell bind:startmessage='startmessage' bind:completemessage="completemessage" url='{{wxqrcodeurl}}' />
+        </view>
+      </view>
+    </view>
+    <view>
+      <view class="course-title">
+        <text>{{title1}}</text>
+      </view>
+      <view class="course-description">
+        <text>{{title2}}</text>
+      </view>
+      <view class="desc" wx:for="{{arraydesc}}" data-item-index="{{index}}">
+        <text class="benefit-title">{{item.desctitle}}</text>
+        <text class="benefit-item">{{item.descdesc}}</text>
+      </view>
+      <view class="desc1" style="text-align: center;">
+        <text class="benefit-item" style="text-align: center;">{{descstring}}</text>
+      </view>
+    </view>
+  </view>
+</view>

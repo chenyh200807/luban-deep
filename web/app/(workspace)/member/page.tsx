@@ -5,13 +5,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Crown, RefreshCw, Search, ShieldAlert, Sparkles, Wallet } from "lucide-react";
 import RestrictedSurface from "@/components/common/RestrictedSurface";
 import {
+  applyOverlayPromotions,
   createMemberNote,
   getMemberDashboard,
   getMemberDetail,
   grantMembership,
   listMembers,
+  pauseHeartbeatJob,
   revokeMembership,
+  resumeHeartbeatJob,
   updateMembership,
+  type BotOverlaySummary,
+  type HeartbeatJob,
   type MemberDashboard,
   type MemberDetail,
   type MemberListItem,
@@ -38,6 +43,41 @@ function statusTone(status: string) {
   if (status === "expired") return "bg-zinc-200 text-zinc-700";
   if (status === "revoked") return "bg-rose-100 text-rose-700";
   return "bg-[var(--muted)] text-[var(--muted-foreground)]";
+}
+
+function getOverlayFocusLabel(overlay: BotOverlaySummary) {
+  const localFocus = overlay.effective_overlay?.local_focus ?? {};
+  const activePlan = overlay.effective_overlay?.active_plan_binding ?? {};
+  const explicitTopic = String(localFocus.topic ?? localFocus.knowledge_point ?? localFocus.task_anchor ?? "").trim();
+  if (explicitTopic) return explicitTopic;
+  const explicitPlan = String(activePlan.plan_id ?? activePlan.status ?? "").trim();
+  return explicitPlan || "无明确局部焦点";
+}
+
+function getHeartbeatCadence(job: HeartbeatJob) {
+  const interval = Number(job.policy_json?.interval_hours ?? 0);
+  if (interval > 0) return `${interval} 小时`;
+  return "未配置";
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
+}
+
+function compactJson(value: unknown) {
+  if (!value || (typeof value === "object" && Object.keys(value as Record<string, unknown>).length === 0)) {
+    return "";
+  }
+  try {
+    return JSON.stringify(value, ensureAsciiReplacer, 2);
+  } catch {
+    return String(value);
+  }
+}
+
+function ensureAsciiReplacer(_key: string, value: unknown) {
+  return value;
 }
 
 export default function MemberPage() {
@@ -68,6 +108,11 @@ export default function MemberPage() {
   const fetchDashboard = useCallback(async () => {
     setDashboard(await getMemberDashboard());
   }, []);
+
+  const refreshSelectedMember = useCallback(async () => {
+    if (!selectedUserId) return;
+    setSelectedMember(await getMemberDetail(selectedUserId));
+  }, [selectedUserId]);
 
   const fetchMembers = useCallback(async () => {
     const list = await listMembers({
@@ -110,7 +155,7 @@ export default function MemberPage() {
     const run = async () => {
       try {
         setDetailLoading(true);
-        setSelectedMember(await getMemberDetail(selectedUserId));
+        await refreshSelectedMember();
       } catch (err) {
         setError(err instanceof Error ? err.message : "会员详情加载失败");
       } finally {
@@ -118,15 +163,13 @@ export default function MemberPage() {
       }
     };
     void run();
-  }, [selectedUserId]);
+  }, [refreshSelectedMember, selectedUserId]);
 
   const refreshAll = async () => {
     try {
       setLoading(true);
       await Promise.all([fetchDashboard(), fetchMembers()]);
-      if (selectedUserId) {
-        setSelectedMember(await getMemberDetail(selectedUserId));
-      }
+      await refreshSelectedMember();
     } finally {
       setLoading(false);
     }
@@ -152,7 +195,7 @@ export default function MemberPage() {
       } else {
         await revokeMembership({ user_id: selectedUserId, reason: "会员工作台手动撤销" });
       }
-      setSelectedMember(await getMemberDetail(selectedUserId));
+      await refreshSelectedMember();
       await Promise.all([fetchDashboard(), fetchMembers()]);
     } finally {
       setActionLoading(false);
@@ -164,8 +207,38 @@ export default function MemberPage() {
     try {
       setActionLoading(true);
       await createMemberNote(selectedUserId, { content: noteDraft.trim(), pinned: false, channel: "manual" });
-      setSelectedMember(await getMemberDetail(selectedUserId));
+      await refreshSelectedMember();
       setNoteDraft("");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleHeartbeatJobAction = async (job: HeartbeatJob) => {
+    if (!selectedUserId) return;
+    try {
+      setActionLoading(true);
+      if (job.status === "active") {
+        await pauseHeartbeatJob(selectedUserId, job.job_id);
+      } else {
+        await resumeHeartbeatJob(selectedUserId, job.job_id);
+      }
+      await refreshSelectedMember();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Heartbeat job 操作失败");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleApplyOverlayPromotions = async (overlay: BotOverlaySummary) => {
+    if (!selectedUserId) return;
+    try {
+      setActionLoading(true);
+      await applyOverlayPromotions(selectedUserId, overlay.bot_id, { min_confidence: 0.7, max_candidates: 10 });
+      await refreshSelectedMember();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Overlay promotion 执行失败");
     } finally {
       setActionLoading(false);
     }
@@ -178,6 +251,16 @@ export default function MemberPage() {
       .sort((a, b) => a.mastery - b.mastery)
       .slice(0, 4);
   }, [selectedMember]);
+
+  const learnerWeakPoints = useMemo(() => {
+    const value = selectedMember?.learner_state?.progress?.knowledge_map as { weak_points?: unknown[] } | undefined;
+    return (value?.weak_points ?? []).map((item) => String(item)).filter(Boolean).slice(0, 6);
+  }, [selectedMember]);
+
+  const heartbeatJobs = selectedMember?.heartbeat?.jobs ?? [];
+  const heartbeatHistory = selectedMember?.heartbeat?.history ?? [];
+  const arbitrationHistory = selectedMember?.heartbeat?.arbitration_history ?? [];
+  const botOverlays = selectedMember?.bot_overlays ?? [];
 
   return (
     <div className="h-full overflow-y-auto bg-[radial-gradient(circle_at_top_left,_rgba(195,90,44,0.12),_transparent_32%),linear-gradient(180deg,#faf9f6_0%,#f4efe8_100%)] px-6 py-6">
@@ -406,6 +489,121 @@ export default function MemberPage() {
                       ))}
                     </div>
                   </div>
+
+                  <div className="mt-6">
+                    <SectionTitle
+                      title="Learner State"
+                      extra={selectedMember.learner_state?.summary_updated_at ? `更新于 ${formatTime(selectedMember.learner_state.summary_updated_at)}` : ""}
+                    />
+                    <div className="mt-3 space-y-3">
+                      <div className="rounded-2xl border bg-white px-4 py-4">
+                        <p className="text-sm leading-6 text-[var(--secondary-foreground)]">
+                          {selectedMember.learner_state?.summary || "还没有 learner summary。"}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {learnerWeakPoints.length > 0 ? (
+                          learnerWeakPoints.map((item) => (
+                            <span
+                              key={item}
+                              className="rounded-full bg-[rgba(195,90,44,0.10)] px-3 py-1 text-xs text-[var(--primary)]"
+                            >
+                              {item}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-[var(--muted-foreground)]">当前没有全局 weak points。</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6">
+                    <SectionTitle title="Heartbeat Jobs" extra={`${heartbeatJobs.length} 条`} />
+                    <div className="mt-3 space-y-3">
+                      {heartbeatJobs.map((job) => (
+                        <div key={job.job_id} className="rounded-2xl border bg-white px-4 py-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium">{job.bot_id}</span>
+                                <span className={`rounded-full px-2.5 py-1 text-xs ${statusTone(job.status)}`}>
+                                  {job.status}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                                channel {job.channel} · cadence {getHeartbeatCadence(job)} · next {formatTime(job.next_run_at ?? "")}
+                              </p>
+                              {job.last_run_at ? (
+                                <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                                  last {formatTime(job.last_run_at)} · failures {job.failure_count}
+                                </p>
+                              ) : null}
+                            </div>
+                            <ActionButton
+                              label={job.status === "active" ? "暂停" : "恢复"}
+                              onClick={() => void handleHeartbeatJobAction(job)}
+                              disabled={actionLoading}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      {heartbeatJobs.length === 0 ? (
+                        <p className="text-sm text-[var(--muted-foreground)]">当前没有 heartbeat job。</p>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="mt-6">
+                    <SectionTitle title="Bot Overlays" extra={`${botOverlays.length} 个 Bot`} />
+                    <div className="mt-3 space-y-3">
+                      {botOverlays.map((overlay) => {
+                        const promotionCount = overlay.promotion_candidates?.length ?? 0;
+                        const workingMemory = String(overlay.effective_overlay?.working_memory_projection ?? "").trim();
+                        const heartbeatOverride = overlay.effective_overlay?.heartbeat_override ?? {};
+                        return (
+                          <div key={overlay.bot_id} className="rounded-2xl border bg-white px-4 py-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="font-medium">{overlay.bot_id}</span>
+                                  <span className="rounded-full bg-[var(--secondary)] px-2.5 py-1 text-xs text-[var(--secondary-foreground)]">
+                                    v{overlay.version}
+                                  </span>
+                                  <span className="rounded-full bg-[rgba(195,90,44,0.10)] px-2.5 py-1 text-xs text-[var(--primary)]">
+                                    {promotionCount} 个 promotion 候选
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                                  焦点 {getOverlayFocusLabel(overlay)} · 事件 {overlay.event_count ?? 0} · 更新 {formatTime(overlay.updated_at ?? "")}
+                                </p>
+                              </div>
+                              {promotionCount > 0 ? (
+                                <ActionButton
+                                  label="晋升候选"
+                                  onClick={() => void handleApplyOverlayPromotions(overlay)}
+                                  disabled={actionLoading}
+                                />
+                              ) : null}
+                            </div>
+                            {workingMemory ? (
+                              <p className="mt-3 rounded-2xl bg-[var(--muted)]/40 px-3 py-3 text-sm leading-6 text-[var(--secondary-foreground)]">
+                                {workingMemory}
+                              </p>
+                            ) : null}
+                            {Object.keys(heartbeatOverride).length > 0 ? (
+                              <pre className="mt-3 overflow-x-auto rounded-2xl bg-[#201a17] px-3 py-3 text-xs leading-6 text-white/80">
+                                {compactJson(heartbeatOverride)}
+                              </pre>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                      {botOverlays.length === 0 ? (
+                        <p className="text-sm text-[var(--muted-foreground)]">当前没有 bot-local overlay。</p>
+                      ) : null}
+                    </div>
+                  </div>
                 </>
               ) : (
                 <div className="py-16 text-center text-sm text-[var(--muted-foreground)]">从左侧选择一位会员查看详情。</div>
@@ -441,6 +639,62 @@ export default function MemberPage() {
                 ))}
                 {selectedMember && selectedMember.recent_notes.length === 0 ? (
                   <p className="text-sm text-[var(--muted-foreground)]">还没有运营备注。</p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="surface-card p-5">
+              <SectionTitle title="Heartbeat 历史" extra={selectedMember ? `${heartbeatHistory.length} 条` : ""} />
+              <div className="mt-4 space-y-3">
+                {heartbeatHistory.slice(0, 4).map((entry) => (
+                  <div key={entry.event_id} className="rounded-2xl border bg-white px-4 py-3 text-sm">
+                    {(() => {
+                      const payload = asRecord(entry.payload_json);
+                      const delivery = asRecord(payload.delivery);
+                      const stateValue = delivery.state ?? payload.success ?? "--";
+                      return (
+                        <>
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="font-medium">{entry.source_bot_id || entry.source_id || "heartbeat"}</p>
+                            <span className="text-xs text-[var(--muted-foreground)]">{formatTime(entry.created_at)}</span>
+                          </div>
+                          <p className="mt-2 text-xs leading-6 text-[var(--muted-foreground)]">
+                            {entry.memory_kind || "heartbeat"} · {String(stateValue)}
+                          </p>
+                        </>
+                      );
+                    })()}
+                  </div>
+                ))}
+                {selectedMember && heartbeatHistory.length === 0 ? (
+                  <p className="text-sm text-[var(--muted-foreground)]">暂无 heartbeat 历史。</p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="surface-card p-5">
+              <SectionTitle title="仲裁历史" extra={selectedMember ? `${arbitrationHistory.length} 条` : ""} />
+              <div className="mt-4 space-y-3">
+                {arbitrationHistory.slice(0, 4).map((entry) => (
+                  <div key={entry.event_id} className="rounded-2xl border bg-white px-4 py-3 text-sm">
+                    {(() => {
+                      const payload = asRecord(entry.payload_json);
+                      return (
+                        <>
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="font-medium">{entry.source_bot_id || entry.source_id || "arbitration"}</p>
+                            <span className="text-xs text-[var(--muted-foreground)]">{formatTime(entry.created_at)}</span>
+                          </div>
+                          <p className="mt-2 text-xs leading-6 text-[var(--muted-foreground)]">
+                            winner {String(payload.winner_bot_id ?? "--")}
+                          </p>
+                        </>
+                      );
+                    })()}
+                  </div>
+                ))}
+                {selectedMember && arbitrationHistory.length === 0 ? (
+                  <p className="text-sm text-[var(--muted-foreground)]">暂无 heartbeat 仲裁历史。</p>
                 ) : null}
               </div>
             </div>

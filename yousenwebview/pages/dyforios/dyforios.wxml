@@ -1,13 +1,1 @@
-<view class="container">
-  <view class="qrcode-container">
-    <view><text>点击“加入群聊”</text></view>
-    <view>
-      <text>请点击下方按钮加入群聊，与更多志同道合的朋友交流学习，共同成长</text>
-    </view>
-    <image src="{{qrcodePath}}" mode="aspectFit" class="qrcode-image" />
-    <view class="buttonqrcode">
-        <cell bind:startmessage='startmessage' bind:completemessage="completemessage" url='{{wxqrcodeurl}}'  />
-    </view>
-  </view>
-  
-</view>
+<view></view>

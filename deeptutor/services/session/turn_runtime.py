@@ -2059,6 +2059,7 @@ class TurnRuntimeManager:
                     "completed",
                     default=False,
                 )
+                usage_summary = observability.get_current_usage_summary()
                 observability.update_observation(
                     turn_observation,
                     output_payload={"assistant_content": assistant_content},
@@ -2066,7 +2067,10 @@ class TurnRuntimeManager:
                         **trace_metadata,
                         **_summarize_assistant_events(assistant_events),
                         "assistant_event_count": len(assistant_events),
+                        "usage_summary": usage_summary,
                     },
+                    usage_details=observability.usage_details_from_summary(usage_summary),
+                    cost_details=observability.cost_details_from_summary(usage_summary),
                 )
                 try:
                     if user_id:
@@ -2117,6 +2121,13 @@ class TurnRuntimeManager:
                                     source_feature="turn",
                                     source_id=session_id,
                                 )
+                                overlay_service = get_bot_learner_overlay_service()
+                                if hasattr(overlay_service, "apply_promotions"):
+                                    overlay_service.apply_promotions(
+                                        source_bot_id,
+                                        user_id,
+                                        learner_state_service=learner_state_service,
+                                    )
                             except Exception:
                                 logger.debug("Failed to patch bot learner overlay from turn runtime", exc_info=True)
                     else:
@@ -2130,10 +2141,13 @@ class TurnRuntimeManager:
                 except Exception:
                     logger.debug("Failed to refresh lightweight tutor memory", exc_info=True)
         except asyncio.CancelledError:
+            usage_summary = observability.get_current_usage_summary()
             observability.update_observation(
                 turn_observation,
                 output_payload={"assistant_content": assistant_content},
-                metadata=trace_metadata,
+                metadata={**trace_metadata, "usage_summary": usage_summary},
+                usage_details=observability.usage_details_from_summary(usage_summary),
+                cost_details=observability.cost_details_from_summary(usage_summary),
                 level="ERROR",
                 status_message="Turn cancelled",
             )
@@ -2165,10 +2179,13 @@ class TurnRuntimeManager:
             )
             raise
         except Exception as exc:
+            usage_summary = observability.get_current_usage_summary()
             observability.update_observation(
                 turn_observation,
                 output_payload={"assistant_content": assistant_content},
-                metadata=trace_metadata,
+                metadata={**trace_metadata, "usage_summary": usage_summary},
+                usage_details=observability.usage_details_from_summary(usage_summary),
+                cost_details=observability.cost_details_from_summary(usage_summary),
                 level="ERROR",
                 status_message=str(exc),
             )

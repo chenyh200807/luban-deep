@@ -172,6 +172,29 @@ class LLMProvider(ABC):
             sanitized.append(clean)
         return sanitized
 
+    @staticmethod
+    def _normalize_usage_details(usage: dict[str, Any] | None) -> dict[str, float] | None:
+        if not usage:
+            return None
+        prompt_tokens = float(
+            usage.get("prompt_tokens")
+            or usage.get("input_tokens")
+            or 0.0
+        )
+        completion_tokens = float(
+            usage.get("completion_tokens")
+            or usage.get("output_tokens")
+            or 0.0
+        )
+        total_tokens = float(usage.get("total_tokens") or (prompt_tokens + completion_tokens))
+        if total_tokens <= 0:
+            return None
+        return {
+            "input": prompt_tokens,
+            "output": completion_tokens,
+            "total": total_tokens,
+        }
+
     @abstractmethod
     async def chat(
         self,

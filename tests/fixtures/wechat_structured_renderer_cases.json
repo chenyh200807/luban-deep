@@ -1,0 +1,253 @@
+[
+  {
+    "name": "structured_table_formula_mcq_combo",
+    "content": "先看表格，再看公式，最后作答。",
+    "presentation": {
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            { "text": "考点" },
+            { "text": "分值", "align": "right" }
+          ],
+          "rows": [
+            [
+              { "text": "防火门" },
+              { "text": "2", "highlight": true }
+            ],
+            [
+              { "text": "防火分区" },
+              { "text": "3" }
+            ]
+          ],
+          "caption": "表 1 高频考点",
+          "mobile_strategy": "compact_cards"
+        },
+        {
+          "type": "formula_block",
+          "latex": "A = \\pi r^2",
+          "display_text": "A = πr²",
+          "svg_url": "https://example.com/formula-area.svg",
+          "copy_text": "A = \\pi r^2"
+        },
+        {
+          "type": "mcq",
+          "questions": [
+            {
+              "index": 1,
+              "stem": "请选择正确答案",
+              "question_type": "single_choice",
+              "options": [
+                { "key": "A", "text": "方案A" },
+                { "key": "B", "text": "方案B" }
+              ],
+              "followup_context": {
+                "question_id": "q_combo_1",
+                "correct_answer": "B"
+              }
+            }
+          ],
+          "submit_hint": "请选择后提交答案"
+        }
+      ],
+      "fallback_text": "先看表格，再看公式，最后作答。",
+      "meta": { "streamingMode": "block_finalized" }
+    },
+    "expected": {
+      "hasStructuredContent": true,
+      "renderBlockTypes": ["table", "formula_block"],
+      "visibleBlockTypes": ["table", "formula_block", "mcq"],
+      "mcqCount": 1
+    },
+    "manual_focus": [
+      "compact_cards 在窄屏上可读",
+      "公式 SVG 和文本同时可见",
+      "MCQ 不被正文或表格覆盖"
+    ]
+  },
+  {
+    "name": "structured_formula_fallback_text_only",
+    "content": "公式失败时至少要保留文本表达。",
+    "presentation": {
+      "blocks": [
+        {
+          "type": "formula_block",
+          "latex": "\\frac{a+b}{c}",
+          "display_text": "(a+b)/c",
+          "copy_text": "\\frac{a+b}{c}"
+        }
+      ],
+      "fallback_text": "公式失败时至少要保留文本表达。",
+      "meta": { "streamingMode": "block_finalized" }
+    },
+    "expected": {
+      "hasStructuredContent": true,
+      "renderBlockTypes": ["formula_block"],
+      "visibleBlockTypes": ["formula_block"],
+      "mcqCount": 0
+    },
+    "manual_focus": [
+      "无 SVG 时 display text 可读",
+      "copy latex 仍可选择复制"
+    ]
+  },
+  {
+    "name": "structured_inline_formula_and_scroll_table",
+    "content": "以下是结构化行内公式与横滑表格。",
+    "presentation": {
+      "blocks": [
+        {
+          "type": "formula_inline",
+          "latex": "q=mc\\Delta t",
+          "display_text": "q = mcΔt",
+          "copy_text": "q=mc\\Delta t"
+        },
+        {
+          "type": "table",
+          "headers": [
+            { "text": "材料" },
+            { "text": "导热系数" },
+            { "text": "等级" },
+            { "text": "备注" }
+          ],
+          "rows": [
+            [
+              { "text": "岩棉" },
+              { "text": "0.041" },
+              { "text": "A" },
+              { "text": "常见保温材料" }
+            ]
+          ],
+          "caption": "表 2 材料参数",
+          "mobile_strategy": "scroll"
+        }
+      ],
+      "fallback_text": "以下是结构化行内公式与横滑表格。",
+      "meta": { "streamingMode": "block_finalized" }
+    },
+    "expected": {
+      "hasStructuredContent": true,
+      "renderBlockTypes": ["formula_inline", "table"],
+      "visibleBlockTypes": ["formula_inline", "table"],
+      "mcqCount": 0
+    },
+      "manual_focus": [
+      "横滑提示文案可见",
+      "行内公式与中文说明不冲突"
+    ]
+  },
+  {
+    "name": "structured_steps_recap_chart_combo",
+    "content": "步骤、总结和图表一起出现时都必须可读。",
+    "presentation": {
+      "blocks": [
+        {
+          "type": "steps",
+          "title": "解题步骤",
+          "steps": [
+            { "index": 1, "title": "审题", "detail": "确认题目要求。" },
+            { "index": 2, "title": "列式", "detail": "把关键条件写出来。" }
+          ]
+        },
+        {
+          "type": "recap",
+          "title": "本节课总结",
+          "summary": "先结构化，再渲染。",
+          "bullets": ["步骤要稳定", "总结要轻量"]
+        },
+        {
+          "type": "chart",
+          "chart_type": "bar",
+          "title": "题型分布",
+          "summary": "图表失败时必须回退为数据卡。",
+          "series": [
+            { "name": "单选题", "value": "3" },
+            { "name": "多选题", "value": "1" }
+          ],
+          "axes": { "x": "题型", "y": "数量" },
+          "caption": "图 1 题型统计",
+          "fallback_table": {
+            "headers": [
+              { "text": "题型" },
+              { "text": "数量" }
+            ],
+            "rows": [
+              [
+                { "text": "单选题" },
+                { "text": "3" }
+              ],
+              [
+                { "text": "多选题" },
+                { "text": "1" }
+              ]
+            ],
+            "mobile_strategy": "compact_cards"
+          }
+        }
+      ],
+      "fallback_text": "步骤、总结和图表一起出现时都必须可读。",
+      "meta": { "streamingMode": "block_finalized" }
+    },
+    "expected": {
+      "hasStructuredContent": true,
+      "renderBlockTypes": ["steps", "recap", "chart"],
+      "visibleBlockTypes": ["steps", "recap", "chart"],
+      "mcqCount": 0
+    },
+    "manual_focus": [
+      "步骤卡显示顺序稳定",
+      "总结卡不是旧 summary 名",
+      "图表失败时仍有数据卡"
+    ]
+  },
+  {
+    "name": "structured_chart_fallback_table_only",
+    "content": "没有正式图形时，至少要保留 fallback_table。",
+    "presentation": {
+      "blocks": [
+        {
+          "type": "chart",
+          "chart_type": "line",
+          "title": "错题趋势",
+          "summary": "这里不画重图，只展示数据卡。",
+          "series": [
+            { "name": "近三天", "values": ["8", "5", "2"] }
+          ],
+          "fallback_table": {
+            "headers": [
+              { "text": "日期" },
+              { "text": "错题数" }
+            ],
+            "rows": [
+              [
+                { "text": "周一" },
+                { "text": "8" }
+              ],
+              [
+                { "text": "周二" },
+                { "text": "5" }
+              ],
+              [
+                { "text": "周三" },
+                { "text": "2" }
+              ]
+            ],
+            "mobile_strategy": "scroll"
+          }
+        }
+      ],
+      "fallback_text": "没有正式图形时，至少要保留 fallback_table。",
+      "meta": { "streamingMode": "block_finalized" }
+    },
+    "expected": {
+      "hasStructuredContent": true,
+      "renderBlockTypes": ["chart"],
+      "visibleBlockTypes": ["chart"],
+      "mcqCount": 0
+    },
+    "manual_focus": [
+      "chart 标题和摘要可读",
+      "fallback_table 可横滑"
+    ]
+  }
+]

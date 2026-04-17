@@ -166,6 +166,19 @@ function getWindowInfo() {
   }
 }
 
+function getDeviceInfoCompat() {
+  if (wx.getDeviceInfo) {
+    try {
+      return wx.getDeviceInfo() || {};
+    } catch (_) {}
+  }
+  try {
+    return wx.getSystemInfoSync() || {};
+  } catch (_) {
+    return {};
+  }
+}
+
 // ── 性能分级系统 ──────────────────────────────────────────
 
 /**
@@ -184,7 +197,7 @@ function getPerformanceLevel() {
 
   var level = "high"; // 默认高端
   try {
-    var sys = wx.getSystemInfoSync();
+    var sys = getDeviceInfoCompat();
 
     // 1) 微信官方 benchmarkLevel（-1=未知, >=0 数值越高越好）
     //    iOS 无此字段; Android: 0-10 低端, 10-20 中端, 20+ 高端

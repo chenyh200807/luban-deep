@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from deeptutor.services.learner_state.outbox import LearnerStateOutbox
 from deeptutor.services.path_service import PathService, get_path_service
 
 _ALLOWED_FIELDS: tuple[str, ...] = (
@@ -122,6 +123,13 @@ class BotLearnerOverlayService:
 
     def __init__(self, path_service: PathService | None = None) -> None:
         self._path_service = path_service or get_path_service()
+        self._outbox: LearnerStateOutbox | None = self._build_outbox()
+
+    def _build_outbox(self) -> LearnerStateOutbox | None:
+        try:
+            return LearnerStateOutbox(path_service=self._path_service)
+        except Exception:
+            return None
 
     @property
     def _overlay_root(self) -> Path:
@@ -131,6 +139,34 @@ class BotLearnerOverlayService:
 
     def _path(self, bot_id: str, user_id: str) -> Path:
         return self._overlay_root / f"{_normalize_key(user_id)}__{_normalize_key(bot_id)}.json"
+
+    def _events_path(self, bot_id: str, user_id: str) -> Path:
+        return self._overlay_root / f"{_normalize_key(user_id)}__{_normalize_key(bot_id)}.events.jsonl"
+
+    def _read_events_raw(
+        self,
+        bot_id: str,
+        user_id: str,
+    ) -> list[dict[str, Any]]:
+        path = self._events_path(bot_id, user_id)
+        if not path.exists():
+            return []
+        events: list[dict[str, Any]] = []
+        try:
+            with path.open("r", encoding="utf-8") as handle:
+                for line in handle:
+                    raw = line.strip()
+                    if not raw:
+                        continue
+                    try:
+                        payload = json.loads(raw)
+                    except Exception:
+                        continue
+                    if isinstance(payload, dict):
+                        events.append(dict(payload))
+        except Exception:
+            return []
+        return events
 
     def _read_raw(self, bot_id: str, user_id: str) -> dict[str, Any]:
         path = self._path(bot_id, user_id)
@@ -154,6 +190,52 @@ class BotLearnerOverlayService:
         path = self._path(str(payload["bot_id"]), str(payload["user_id"]))
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    def _append_event(
+        self,
+        bot_id: str,
+        user_id: str,
+        *,
+        event_type: str,
+        payload: dict[str, Any],
+    ) -> None:
+        path = self._events_path(bot_id, user_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        event = {
+            "event_id": uuid.uuid4().hex,
+            "event_type": str(event_type or "").strip() or "overlay_event",
+            "bot_id": bot_id,
+            "user_id": user_id,
+            "created_at": _iso_now(),
+            **dict(payload or {}),
+        }
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(event, ensure_ascii=False) + "\n")
+
+    def _enqueue_outbox_sync(
+        self,
+        bot_id: str,
+        user_id: str,
+        *,
+        event_type: str,
+        payload: dict[str, Any],
+    ) -> None:
+        if self._outbox is None:
+            return
+        dedupe_key = (
+            f"overlay-sync:{event_type}:{_normalize_key(user_id)}:{_normalize_key(bot_id)}:"
+            f"{payload.get('overlay_version') or payload.get('created_at') or uuid.uuid4().hex}"
+        )
+        self._outbox.enqueue(
+            user_id=user_id,
+            event_type=event_type,
+            payload_json={
+                "bot_id": bot_id,
+                "user_id": user_id,
+                **dict(payload or {}),
+            },
+            dedupe_key=dedupe_key,
+        )
 
     def _normalize_field_value(self, field: str, value: Any) -> Any:
         if field in _DICT_FIELDS:
@@ -218,6 +300,86 @@ class BotLearnerOverlayService:
             "heartbeat_override_candidate": dict(effective_overlay.get("heartbeat_override") or {}),
         }
 
+    def list_overlay_events(
+        self,
+        bot_id: str,
+        user_id: str,
+        *,
+        limit: int | None = 20,
+        event_type: str | None = None,
+    ) -> list[dict[str, Any]]:
+        events = self._read_events_raw(bot_id, user_id)
+        normalized_type = str(event_type or "").strip()
+        if normalized_type:
+            events = [
+                item for item in events
+                if str(item.get("event_type") or "").strip() == normalized_type
+            ]
+        if limit is None or limit < 0:
+            return events
+        return events[-int(limit):]
+
+    def list_overlay_audit(
+        self,
+        bot_id: str,
+        user_id: str,
+        *,
+        limit: int | None = 20,
+    ) -> list[dict[str, Any]]:
+        audit_event_types = {
+            "overlay_patch",
+            "overlay_promotion_queue_update",
+            "overlay_promotion_apply",
+            "overlay_decay",
+        }
+        events = [
+            item
+            for item in self._read_events_raw(bot_id, user_id)
+            if str(item.get("event_type") or "").strip() in audit_event_types
+        ]
+        if limit is None or limit < 0:
+            return events
+        return events[-int(limit):]
+
+    def list_user_overlays(
+        self,
+        user_id: str,
+        *,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
+        normalized_user = _normalize_key(user_id)
+        items: list[dict[str, Any]] = []
+        for path in self._overlay_root.glob(f"{normalized_user}__*.json"):
+            if path.name.endswith(".events.jsonl"):
+                continue
+            try:
+                raw = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            bot_id = str(raw.get("bot_id") or "").strip()
+            if not bot_id:
+                stem = str(path.stem or "")
+                if "__" in stem:
+                    bot_id = stem.split("__", 1)[1]
+            if not bot_id:
+                continue
+            overlay = self.read_overlay(bot_id, user_id)
+            overlay["created_at"] = str(raw.get("created_at") or "")
+            overlay["updated_at"] = str(raw.get("updated_at") or "")
+            overlay["event_count"] = len(self._read_events_raw(bot_id, user_id))
+            items.append(overlay)
+        items.sort(
+            key=lambda item: (
+                str(item.get("updated_at") or ""),
+                str(item.get("created_at") or ""),
+                str(item.get("bot_id") or ""),
+            ),
+            reverse=True,
+        )
+        if limit is None or limit < 0:
+            return items
+        return items[: int(limit)]
+
     def patch_overlay(
         self,
         bot_id: str,
@@ -265,6 +427,33 @@ class BotLearnerOverlayService:
                 raise ValueError(f"unsupported overlay patch operation: {op}")
 
         self._write_raw(payload)
+        outbox_payload = {
+            "overlay_version": int(payload.get("version", 1) or 1),
+            "overlay_write_type": "patch",
+            "overlay_write_reason": source_feature,
+            "source_feature": source_feature,
+            "source_id": source_id,
+            "overlay_fields": [
+                str(dict(item).get("field") or "").strip()
+                for item in operations
+                if str(dict(item).get("field") or "").strip()
+            ],
+            "promotion_candidate_count": len(list(payload["overlay"].get("promotion_candidates") or [])),
+            "overlay_snapshot": deepcopy(payload["overlay"]),
+            "created_at": now,
+        }
+        self._append_event(
+            bot_id,
+            user_id,
+            event_type="overlay_patch",
+            payload=outbox_payload,
+        )
+        self._enqueue_outbox_sync(
+            bot_id,
+            user_id,
+            event_type="overlay_patch",
+            payload=outbox_payload,
+        )
         return self.read_overlay(bot_id, user_id)
 
     def build_context_fragment(
@@ -390,6 +579,27 @@ class BotLearnerOverlayService:
             payload["updated_at"] = _iso_now()
             payload["version"] = int(payload.get("version", 1) or 1) + 1
             self._write_raw(payload)
+            outbox_payload = {
+                "overlay_version": int(payload.get("version", 1) or 1),
+                "overlay_write_type": action,
+                "overlay_write_reason": reason,
+                "affected_candidate_ids": list(wanted),
+                "affected_count": len(affected),
+                "overlay_snapshot": deepcopy(payload["overlay"]),
+                "created_at": payload["updated_at"],
+            }
+            self._append_event(
+                bot_id,
+                user_id,
+                event_type="overlay_promotion_queue_update",
+                payload=outbox_payload,
+            )
+            self._enqueue_outbox_sync(
+                bot_id,
+                user_id,
+                event_type="overlay_promotion_queue_update",
+                payload=outbox_payload,
+            )
         result = self.read_overlay(bot_id, user_id)
         result["affected_candidates"] = affected
         result["affected_count"] = len(affected)
@@ -584,6 +794,26 @@ class BotLearnerOverlayService:
                 drop_ids,
                 reason="not_promotion_eligible",
             )
+        outbox_payload = {
+            "overlay_write_type": "promotion_apply",
+            "promotion_applied": len(applied),
+            "promotion_dropped": len(dropped),
+            "acked_ids": ack_ids,
+            "dropped_ids": drop_ids,
+            "created_at": _iso_now(),
+        }
+        self._append_event(
+            bot_id,
+            user_id,
+            event_type="overlay_promotion_apply",
+            payload=outbox_payload,
+        )
+        self._enqueue_outbox_sync(
+            bot_id,
+            user_id,
+            event_type="overlay_promotion_apply",
+            payload=outbox_payload,
+        )
         return {
             "applied": applied,
             "dropped": dropped,
@@ -611,6 +841,25 @@ class BotLearnerOverlayService:
             payload["updated_at"] = reference.isoformat()
             payload["version"] = int(payload.get("version", 1) or 1) + 1
             self._write_raw(payload)
+            outbox_payload = {
+                "overlay_version": int(payload.get("version", 1) or 1),
+                "overlay_decay_applied": True,
+                "expired_fields": expired_fields,
+                "overlay_snapshot": deepcopy(payload["overlay"]),
+                "created_at": payload["updated_at"],
+            }
+            self._append_event(
+                bot_id,
+                user_id,
+                event_type="overlay_decay",
+                payload=outbox_payload,
+            )
+            self._enqueue_outbox_sync(
+                bot_id,
+                user_id,
+                event_type="overlay_decay",
+                payload=outbox_payload,
+            )
         result = self.read_overlay(bot_id, user_id)
         result["overlay_decay_applied"] = bool(expired_fields)
         result["expired_fields"] = expired_fields

@@ -1,22 +1,17 @@
 // package/freeCourse/freeCourse.js
-var behavior = require('../../utils/behavior')
 var analytics = require('../../utils/analytics')
-Component({
-  behaviors: [behavior],
+var request = require('../../utils/request')
+var functionUtil = require('../../utils/function')
+
+Page({
 
   /**
    * 页面的初始数据
    */
   data: {
-    showModal: false,
-    showurl:'',
-    shownum:1,
-    showurl1:'',
-    showurl2:'',
-    showimg:'',
-    modalImageLoading: false,
     page:1,
     getGratisCourseList:[],
+    renderedCourseList: [],
     noData:false,
     major_id:10,
     subject_id : 0,  //科目id
@@ -93,8 +88,16 @@ Component({
     selectedMajorLabel: '一级建造师',
     selectedSubjectLabel: '建筑实务',
     currentCourseCount: 0,
-    featuredCourseTitle: '',
-    heroAnniversaryAnim: {},
+    heroCoverImageStyle: '',
+    heroCoverGlowStyle: '',
+    heroAnniversaryStyle: '',
+    heroAiStoryStyle: '',
+    pageScrollTop: 0,
+    pageScrollEnabled: true,
+    sheetDocked: false,
+    contentScrollTop: 0,
+    contentScrollEnabled: false,
+    contentPaneStyle: '',
     deeptutorEntryEnabled: true,
     deeptutorEntryVisible: true,
     deeptutorEntryConfig: {
@@ -105,21 +108,23 @@ Component({
       variant: "blue",
     },
   },
-  lifetimes: {
-    attached() {
-      this.syncDeeptutorEntryState();
-    },
+  linkTo: function(e) {
+    let url = e.currentTarget.dataset.url
+    let urlList = ['/pages/index/index','/pages/qualityCourses/qualityCourses','/pages/teacherQuestion/teacherQuestion','/pages/activityCenter/activityCenter','/pages/my/my']
+    if(urlList.includes(url)){
+      wx.reLaunch({
+        url: url
+      })
+    }else{
+      functionUtil.linkTo(url)
+    }
   },
-  pageLifetimes: {
-    show() {
-      this.syncDeeptutorEntryState();
-      this.trackDeeptutorEntryExposure();
-    },
-    hide() {
-      this._deeptutorEntryExposureTracked = false;
-    },
+  isPostHttp: function(urlName, data, isLoading) {
+    return request.postrq(urlName, data, isLoading)
   },
-  methods: {
+    initCourseRenderState: function() {
+      this.courseRenderBatchSize = 4;
+    },
     initGratisCourseState: function() {
       this.gratisCourseRequestSeq = 0;
       this.gratisCourseLoaded = false;
@@ -159,69 +164,145 @@ Component({
         imageUrl: isExpanded ? '/images/icon/play_icon_02_1.png' : '/images/icon/play_icon_02.png'
       };
     },
-    getHeroAnniversaryAnimation: function(isVisible) {
-      var animation = wx.createAnimation({
-        duration: 760,
-        timingFunction: 'ease-out'
-      });
-      if (isVisible) {
-        animation.opacity(1).translateY(0).translateX(0).scale(1.08).step();
-        animation.scale(0.98).step({
-          duration: 180,
-          timingFunction: 'ease-out'
-        });
-        animation.scale(1).step({
-          duration: 180,
-          timingFunction: 'ease-out'
-        });
-      } else {
-        animation.opacity(0).translateY(96).translateX(44).scale(0.58).step();
-      }
-      return animation.export();
+    clamp: function(value, min, max) {
+      return Math.min(Math.max(value, min), max);
     },
-    resetHeroAnniversaryState: function() {
-      this._heroAnniversaryPlayed = false;
-      if (this.heroAnniversaryTimer) {
-        clearTimeout(this.heroAnniversaryTimer);
-        this.heroAnniversaryTimer = null;
-      }
-      this.setData({
-        heroAnniversaryAnim: this.getHeroAnniversaryAnimation(false)
-      });
+    rpxToPx: function(rpx) {
+      const ratio = this._windowWidth ? this._windowWidth / 750 : 1;
+      return rpx * ratio;
     },
-    maybeTriggerHeroAnniversary: function(scrollTop) {
-      if (this._heroAnniversaryPlayed || this.data.showModal) {
+    lerp: function(start, end, progress) {
+      return start + (end - start) * progress;
+    },
+    easeOutCubic: function(progress) {
+      var next = this.clamp(progress, 0, 1);
+      return 1 - Math.pow(1 - next, 3);
+    },
+    buildHeroLayerStyle: function(progress, options) {
+      var config = options || {};
+      var eased = this.easeOutCubic(progress);
+      var opacity = this.lerp(config.fromOpacity || 0, config.toOpacity === undefined ? 1 : config.toOpacity, eased);
+      var translateY = this.lerp(config.fromY || 0, config.toY || 0, eased);
+      var translateX = this.lerp(config.fromX || 0, config.toX || 0, eased);
+      var scale = this.lerp(config.fromScale === undefined ? 1 : config.fromScale, config.toScale === undefined ? 1 : config.toScale, eased);
+      return [
+        'opacity:' + opacity.toFixed(3),
+        'transform: translate3d(' + translateX.toFixed(1) + 'px,' + translateY.toFixed(1) + 'px,0) scale(' + scale.toFixed(3) + ')'
+      ].join(';') + ';';
+    },
+    getHeroScrollStyles: function(scrollTop) {
+      var top = Math.max(Number(scrollTop) || 0, 0);
+      var anniversaryProgress = this.clamp((top - 18) / 170, 0, 1);
+      var aiProgress = this.clamp((top - 150) / 260, 0, 1);
+      var imageProgress = this.clamp(top / 420, 0, 1);
+      var imageScale = this.lerp(1.025, 1.075, imageProgress);
+      var imageTranslateY = this.lerp(0, -22, imageProgress);
+      var imageTranslateX = this.lerp(0, -8, imageProgress);
+      var glowScale = this.lerp(0.94, 1.08, imageProgress);
+      var glowOpacity = this.lerp(0.48, 0.84, imageProgress);
+      var glowTranslateY = this.lerp(0, 18, imageProgress);
+      return {
+        heroCoverImageStyle: 'transform: translate3d(' + imageTranslateX.toFixed(1) + 'px,' + imageTranslateY.toFixed(1) + 'px,0) scale(' + imageScale.toFixed(3) + ');',
+        heroCoverGlowStyle: 'opacity:' + glowOpacity.toFixed(3) + ';transform: translate3d(0,' + glowTranslateY.toFixed(1) + 'px,0) scale(' + glowScale.toFixed(3) + ');',
+        heroAnniversaryStyle: this.buildHeroLayerStyle(anniversaryProgress, {
+          fromOpacity: 0,
+          toOpacity: 1,
+          fromY: 84,
+          toY: 0,
+          fromX: 26,
+          toX: 0,
+          fromScale: 0.74,
+          toScale: 1
+        }),
+        heroAiStoryStyle: this.buildHeroLayerStyle(aiProgress, {
+          fromOpacity: 0,
+          toOpacity: 1,
+          fromY: 54,
+          toY: 0,
+          fromScale: 0.98,
+          toScale: 1
+        })
+      };
+    },
+    updateHeroScrollScene: function(scrollTop, force) {
+      var normalizedTop = Math.max(Number(scrollTop) || 0, 0);
+      var quantizedTop = Math.round(normalizedTop / 12) * 12;
+      if (!force && this._lastHeroSceneTop === quantizedTop) {
         return;
       }
-      if (Number(scrollTop) < 18) {
+      var nextStyles = this.getHeroScrollStyles(quantizedTop);
+      var sceneKey = Object.keys(nextStyles).map(key => nextStyles[key]).join('|');
+      if (!force && this._heroSceneKey === sceneKey) {
         return;
       }
-      this.playHeroAnniversaryEntrance(0);
+      this._lastHeroSceneTop = quantizedTop;
+      this._heroSceneKey = sceneKey;
+      this.setData(nextStyles);
     },
-    playHeroAnniversaryEntrance: function(delay) {
-      if (this.heroAnniversaryTimer) {
-        clearTimeout(this.heroAnniversaryTimer);
-        this.heroAnniversaryTimer = null;
-      }
-      this._heroAnniversaryPlayed = true;
+    initHeroDockLayout: function() {
+      const windowInfo = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : wx.getSystemInfoSync();
+      const windowHeight = Number(windowInfo && windowInfo.windowHeight) || 812;
+      const windowWidth = Number(windowInfo && windowInfo.windowWidth) || 375;
+      this._windowWidth = windowWidth;
+      this._windowHeight = windowHeight;
+      const logoRevealTopRpx = 304;
+      const sheetOffsetRpx = 860;
+      this._sheetDockScrollTop = windowHeight + this.rpxToPx(sheetOffsetRpx - logoRevealTopRpx);
+      const innerPaneHeight = Math.max(windowHeight - this.rpxToPx(logoRevealTopRpx), this.rpxToPx(420));
       this.setData({
-        heroAnniversaryAnim: this.getHeroAnniversaryAnimation(false)
+        pageScrollTop: 0,
+        pageScrollEnabled: true,
+        sheetDocked: false,
+        contentScrollTop: 0,
+        contentScrollEnabled: false,
+        contentPaneStyle: 'height:' + innerPaneHeight.toFixed(1) + 'px;'
       });
-      const entranceDelay = typeof delay === 'number' ? delay : 360;
-      this.heroAnniversaryTimer = setTimeout(() => {
+    },
+    handlePageScroll: function(e) {
+      const scrollTop = Number(e && e.detail && e.detail.scrollTop) || 0;
+      const dockTop = this._sheetDockScrollTop || 0;
+      const effectiveTop = Math.min(scrollTop, dockTop);
+      this.updateHeroScrollScene(effectiveTop);
+      if (!this.data.sheetDocked && scrollTop >= dockTop) {
         this.setData({
-          heroAnniversaryAnim: this.getHeroAnniversaryAnimation(true)
+          pageScrollEnabled: false,
+          sheetDocked: true,
+          pageScrollTop: dockTop,
+          contentScrollTop: 0,
+          contentScrollEnabled: true
         });
-        this.heroAnniversaryTimer = null;
-      }, entranceDelay);
+      }
+    },
+    handleContentScroll: function(e) {
+      this._contentInnerScrollTop = Number(e && e.detail && e.detail.scrollTop) || 0;
+    },
+    handleContentScrollToLower: function() {
+      if (this.appendRenderedCourseBatch()) {
+        return;
+      }
+      this.getGratisCourse({
+        showLoadMore: true
+      });
+    },
+    handleContentScrollToUpper: function() {
+      this._contentInnerScrollTop = 0;
+      if (!this.data.sheetDocked) {
+        return;
+      }
+      const restoreTop = Math.max((this._sheetDockScrollTop || 0) - this.rpxToPx(48), 0);
+      this.setData({
+        pageScrollEnabled: true,
+        sheetDocked: false,
+        pageScrollTop: restoreTop,
+        contentScrollTop: 0,
+        contentScrollEnabled: false
+      });
+      this.updateHeroScrollScene(restoreTop, true);
     },
     updateGratisCoursePromotion: function(res) {
       this.setData({
         ggimageurl: res.ggimageurl,
-        ggimage: res.ggimage,
-        shownum: res.shownum,
-        showurl1: res.showurl1,
-        showurl2: res.showurl2
+        ggimage: res.ggimage
       });
     },
     normalizeGratisCourseList: function(courseList) {
@@ -249,33 +330,26 @@ Component({
         });
       });
     },
-    syncGratisCourseModal: function(res) {
-      const showkey = wx.getStorageSync('showkey');
-      const now = Date.now();
-      const modalLocked = showkey > now;
-      if (this.modalDisplayTimer) {
-        clearTimeout(this.modalDisplayTimer);
-        this.modalDisplayTimer = null;
+    getRenderedCourseCountAfterFetch: function(nextList, reset) {
+      const total = Array.isArray(nextList) ? nextList.length : 0;
+      const batchSize = this.courseRenderBatchSize || 4;
+      if (reset) {
+        return Math.min(total, batchSize);
       }
-      if (!res.showimg || modalLocked) {
-        if (this.data.showModal) {
-          this.setData({
-            showModal: false,
-            modalImageLoading: false
-          });
-        }
-        return;
+      const currentRendered = Array.isArray(this.data.renderedCourseList) ? this.data.renderedCourseList.length : 0;
+      return Math.min(total, currentRendered + batchSize);
+    },
+    appendRenderedCourseBatch: function() {
+      const fullList = Array.isArray(this.data.getGratisCourseList) ? this.data.getGratisCourseList : [];
+      const renderedList = Array.isArray(this.data.renderedCourseList) ? this.data.renderedCourseList : [];
+      if (renderedList.length >= fullList.length) {
+        return false;
       }
-      wx.setStorageSync('showkey', now + 3 * 60 * 60 * 1000);
-      this.modalDisplayTimer = setTimeout(() => {
-        this.setData({
-          showModal: true,
-          showimg: res.showimg,
-          showurl: res.showurl || '',
-          modalImageLoading: true
-        });
-        this.modalDisplayTimer = null;
-      }, 450);
+      const nextCount = Math.min(fullList.length, renderedList.length + (this.courseRenderBatchSize || 4));
+      this.setData({
+        renderedCourseList: fullList.slice(0, nextCount)
+      });
+      return true;
     },
     finalizeGratisCourseRequest: function(options) {
       if (options && options.stopPullDownRefresh) {
@@ -321,15 +395,15 @@ Component({
           : this.data.getGratisCourseList.concat(normalizedPageData);
         this.gratisCourseLoaded = true;
         this.gratisCourseHasMore = hasPageData;
+        const nextRenderedCount = this.getRenderedCourseCountAfterFetch(nextList, reset);
         return new Promise(resolve => {
           this.setData({
             page: hasPageData ? targetPage : (reset ? 1 : this.data.page),
             getGratisCourseList: nextList,
+            renderedCourseList: nextList.slice(0, nextRenderedCount),
             noData: nextList.length === 0,
-            currentCourseCount: nextList.length,
-            featuredCourseTitle: nextList.length > 0 ? nextList[0].title : ''
+            currentCourseCount: nextList.length
           }, () => {
-            this.syncGratisCourseModal(res);
             resolve(hasPageData);
           });
         });
@@ -445,7 +519,10 @@ Component({
      * 生命周期函数--监听页面加载
      */
     onLoad: function (options) {
+      this.syncDeeptutorEntryState();
+      this.initCourseRenderState();
       this.initGratisCourseState();
+      this.initHeroDockLayout();
       this.data.major_id = wx.getStorageSync('major_id')
       this.data.major_id = 10
       //如果没有传值进来，就直接默认
@@ -461,77 +538,7 @@ Component({
         subject_id: 63,
         cate_id: 4
       }, this.getSelectionSummary(multiArray, multiIndex), this.getPickerVisualState(false)));
-    },
-
-    //关闭弹窗
-    closeModal: function () {
-      if (this.modalDisplayTimer) {
-        clearTimeout(this.modalDisplayTimer);
-        this.modalDisplayTimer = null;
-      }
-      this.setData({
-        showModal: false,
-        modalImageLoading: false
-      });
-    },
-    handleModalImageLoad: function() {
-      if (!this.data.showModal) {
-        return;
-      }
-      this.setData({
-        modalImageLoading: false
-      });
-    },
-    handleModalImageError: function() {
-      this.closeModal();
-      wx.showToast({
-        title: '广告加载失败',
-        icon: 'none',
-        duration: 1800
-      });
-    },
-
-    //广告跳转
-    gotoModalurl: function(){
-      if(this.data.showurl){
-        wx.navigateTo({
-          url: '/pages/text/text?url='+this.data.showurl
-        })
-      }
-      
-    },
-    //左边跳转
-    goToLeftTopPage: function(){
-      if(this.data.shownum == 1){
-        if(this.data.showurl){
-          wx.navigateTo({
-            url: '/pages/text/text?url='+this.data.showurl
-          })
-        }
-      }else if(this.data.shownum == 2){
-        if(this.data.showurl1){
-          wx.navigateTo({
-            url: '/pages/text/text?url='+this.data.showurl1
-          })
-        }
-      }
-    },
-    //右边跳转
-    goToRightBottomPage: function(){
-      if(this.data.shownum == 1){
-        if(this.data.showurl){
-          wx.navigateTo({
-            url: '/pages/text/text?url='+this.data.showurl
-          })
-        }
-      }else if(this.data.shownum == 2){
-        if(this.data.showurl2){
-          wx.navigateTo({
-            url: '/pages/text/text?url='+this.data.showurl2
-          })
-        }
-      }
-      
+      this.updateHeroScrollScene(0, true);
     },
 
     //头部广告跳转
@@ -579,50 +586,42 @@ Component({
      * 生命周期函数--监听页面显示
      */
     onShow: function () {
+      this.syncDeeptutorEntryState();
+      this.trackDeeptutorEntryExposure();
       if (!this.gratisCourseLoaded) {
         this.getGratisCourse({
           reset: true
         })
       }
-      this.resetHeroAnniversaryState();
+      if (!this.data.sheetDocked) {
+        this.setData({
+          pageScrollTop: 0,
+          contentScrollTop: 0,
+          pageScrollEnabled: true,
+          contentScrollEnabled: false
+        });
+        this.updateHeroScrollScene(0, true);
+      }
 
-    },
-    onPageScroll: function(e) {
-      this.maybeTriggerHeroAnniversary(e && e.scrollTop);
     },
 
     /**
      * 生命周期函数--监听页面隐藏
      */
     onHide: function () {
-      if (this.modalDisplayTimer) {
-        clearTimeout(this.modalDisplayTimer);
-        this.modalDisplayTimer = null;
-      }
-      if (this.heroAnniversaryTimer) {
-        clearTimeout(this.heroAnniversaryTimer);
-        this.heroAnniversaryTimer = null;
-      }
+      this._deeptutorEntryExposureTracked = false;
     },
 
     /**
      * 生命周期函数--监听页面卸载
      */
     onUnload: function () {
-      if (this.modalDisplayTimer) {
-        clearTimeout(this.modalDisplayTimer);
-        this.modalDisplayTimer = null;
-      }
-      if (this.heroAnniversaryTimer) {
-        clearTimeout(this.heroAnniversaryTimer);
-        this.heroAnniversaryTimer = null;
-      }
     },
 
     /**
    * 页面相关事件处理函数--监听用户下拉动作
    */
-  onPullDownRefresh: function () {
+    onPullDownRefresh: function () {
     this.gratisCourseHasMore = true;
     this.getGratisCourse({
       reset: true,
@@ -634,6 +633,9 @@ Component({
    * 页面上拉触底事件的处理函数
    */
   onReachBottom: function () {
+    if (this.appendRenderedCourseBatch()) {
+      return;
+    }
     this.getGratisCourse({
       showLoadMore: true
     });
@@ -647,25 +649,6 @@ Component({
         title: '佑森好课',
         path: 'pages/freeCourse/freeCourse?top_id='+wx.getStorageSync('members').pk_id+'&major_id='+wx.getStorageSync('major_id')+'&major_title='+wx.getStorageSync('major_title'),
       }
-    },
-
-    //省略标题内容
-    gettitle:function(e){
-      return 1;
-    },
-    openFeaturedCourse: function() {
-      const list = Array.isArray(this.data.getGratisCourseList) ? this.data.getGratisCourseList : [];
-      if (!list.length || !list[0] || !list[0].id) {
-        wx.showToast({
-          title: '课程加载中',
-          icon: 'none',
-          duration: 1800
-        });
-        return;
-      }
-      wx.navigateTo({
-        url: '/pages/freeCourseDetails/freeCourseDetails?pk_id=' + list[0].id
-      });
     },
 
     // 跳转到鲁班AI智考原生分包入口
@@ -696,6 +679,4 @@ Component({
         }
       })
     }
-    
-  }
 })

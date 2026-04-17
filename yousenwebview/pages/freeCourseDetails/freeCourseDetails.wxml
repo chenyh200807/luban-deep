@@ -1,54 +1,164 @@
 <!--package/freeCourseDetails/freeCourseDetails.wxml-->
-<view class="freeCourseDetails " style="height:100%">
-  <view wx:if="{{detailError}}" class="pl-30 pr-30 pt-30 pb-30 bg-w c-666 f-28">{{detailError}}</view>
-  <view wx:elif="{{loadingDetail}}" class="pl-30 pr-30 pt-30 pb-30 bg-w c-666 f-28">课程加载中...</view>
-  <view class="video_wrap" wx:if="{{show}}">
-    <view class="wh-100">
-      <video id="myVideo" catchtap="isShowBsClick" autoplay="{{videoSrc.autoplay}}" src="{{videoSrc.src}}" class="wh-100 p-r" bindplay="staPlay" bindpause="endPlay" bindloadedmetadata="handleVideoReady" bindcanplay="handleVideoReady" object-fit="contain" page-gesture="true" show-center-play-btn="false">
-        <cover-view class="p-a c-w t-c f-24" style="width:100rpx;bottom:80rpx;right:20rpx;background: rgba(0,0,0,.6);" wx:if="{{videoSrc.isShowBeishu}}">
-          <cover-view wx:if="{{!videoSrc.showBeishu}}" class="c-w" style="width:100rpx;padding:10rpx 0" catchtap="clickShowBeishu">{{videoSrc.view}}</cover-view>
-          <block wx:if="{{videoSrc.showBeishu}}">
-            <!-- <cover-view class="c-w" style="width:100rpx;padding:10rpx 0" data-bei="0.5" data-view="0.5x" catchtap="itemClick">0.5x</cover-view> -->
-            <cover-view class="c-w" style="width:100rpx;padding:10rpx 0" data-bei="0.8" data-view="0.8x" catchtap="itemClick">0.8x</cover-view>
-            <cover-view class="c-w" style="width:100rpx;padding:10rpx 0" data-bei="1.0" data-view="1.0x" catchtap="itemClick">1.0x</cover-view>
-            <cover-view class="c-w" style="width:100rpx;padding:10rpx 0" data-bei="1.25" data-view="1.25x" catchtap="itemClick">1.25x</cover-view>
-            <cover-view class="c-w" style="width:100rpx;padding:10rpx 0" data-bei="1.5" data-view="1.5x" catchtap="itemClick">1.5x</cover-view>
-            <cover-view class="c-w" style="width:100rpx;padding:10rpx 0" data-bei="2.0" data-view="2.0x" catchtap="itemClick">2.0x</cover-view>
-          </block>
-        </cover-view>
-      </video>
-    </view>
-  </view>
-  <view class="pb-50" style="height:calc(100% - 530rpx);overflow: auto;">
-    <view class="pl-30 pr-30 bg-w pt-30 pb-30 mb-20">
-      <view class="f-30 f-b c-333 pb-10">{{hdata.title}}</view>
-      <view class="f-18 c-666">{{videotitle}}</view>
-    </view>
-    <view class="pl-26 bg-w pt-30 pb-30 f-b f-34 c-333 mb-20" style="text-align: center;height: 17%;">
-      <view class="show_{{ showmulu == true ? 'active' : ''}}" style="float:left;margin-left: 21%;" catchtap="showmulu">{{kechengmulu}}</view>
-      <view class="show_{{ neirong1 == true ? 'active' : ''}}" catchtap="showneirong" style="float:right;margin-right: 21%;">{{kechengneirong}}</view>
-  
-    </view>
+<view class="course-page">
+  <view wx:if="{{detailError}}" class="state-panel state-panel--error">{{detailError}}</view>
+  <view wx:elif="{{loadingDetail}}" class="state-panel">课程加载中...</view>
 
-    <view wx:if="{{showmulu}}" class="freeCourse_wrap bg-w pl-24 pr-24">
-      <block wx:for="{{gratisDetail.chapter}}" wx:key="id">
-        <view class="freeCourse_item pt-30 pb-30  d-f d-s-c" style="border-bottom: 1rpx solid #F6F7F9;" data-video_id="{{item.play_id}}" data-index="{{index}}" data-flag="{{activeChapterIndex != index}}" catchtap="choicePlays">
-          <view class="f-28 c-333 ell {{activeChapterIndex == index?'free_active':''}}" style="width:80%">{{item.title}}</view>
-          <image src="/images/icon/live_icon.png" wx:if="{{activeChapterIndex == index}}"></image>
-          <image src="/images/icon/play_icon_01.png" wx:if="{{activeChapterIndex != index}}"></image>
+  <block wx:else>
+    <view class="hero-wrap">
+      <view class="hero-glow hero-glow--left"></view>
+      <view class="hero-glow hero-glow--right"></view>
+
+      <view class="hero-copy">
+        <view class="hero-kicker">佑森好课 · 一级建造师</view>
+        <view class="hero-title ell-2">{{hdata.title}}</view>
+        <view class="hero-chip-row">
+          <view class="hero-chip hero-chip--accent">直播回放</view>
+          <view class="hero-chip">共{{chapterCount}}讲</view>
+          <view class="hero-chip" wx:if="{{currentChapterNumber}}">第{{currentChapterNumber}}讲</view>
         </view>
-      </block>
-    </view>
-    <view wx:if="{{neirong1}}">
+      </view>
 
-      <rich-text nodes="{{neirong}}"></rich-text>
+      <view class="video-shell" wx:if="{{show}}">
+        <video
+          id="myVideo"
+          bindtap="isShowBsClick"
+          autoplay="{{videoSrc.autoplay}}"
+          src="{{videoSrc.src}}"
+          class="video-player"
+          bindplay="staPlay"
+          bindpause="endPlay"
+          bindloadedmetadata="handleVideoReady"
+          bindcanplay="handleVideoReady"
+          bindfullscreenchange="handleFullscreenChange"
+          object-fit="contain"
+          page-gesture="true"
+          show-center-play-btn="false"
+          show-fullscreen-btn="{{true}}"
+        >
+          <cover-view class="speed-wrap" wx:if="{{videoSrc.isShowBeishu}}">
+            <cover-view wx:if="{{!videoSrc.showBeishu}}" class="speed-trigger" catchtap="clickShowBeishu">{{videoSrc.view}}</cover-view>
+            <block wx:if="{{videoSrc.showBeishu}}">
+              <cover-view class="speed-option" data-bei="0.8" data-view="0.8x" catchtap="itemClick">0.8x</cover-view>
+              <cover-view class="speed-option" data-bei="1.0" data-view="1.0x" catchtap="itemClick">1.0x</cover-view>
+              <cover-view class="speed-option" data-bei="1.25" data-view="1.25x" catchtap="itemClick">1.25x</cover-view>
+              <cover-view class="speed-option" data-bei="1.5" data-view="1.5x" catchtap="itemClick">1.5x</cover-view>
+              <cover-view class="speed-option" data-bei="2.0" data-view="2.0x" catchtap="itemClick">2.0x</cover-view>
+            </block>
+          </cover-view>
+        </video>
+      </view>
 
+      <view wx:else class="video-shell video-shell--placeholder">
+        <view class="video-placeholder-title">课程暂未开放播放</view>
+        <view class="video-placeholder-subtitle">你仍然可以先查看课时目录与课程说明</view>
+      </view>
     </view>
-  </view>
-  <view class="freeCourse_bottom d-f d-c-c p-r">
-    <image src="/images/icon/share_icon_02.png"></image>
-    <view class="f-36 c-w f-b pl-20">分享给好友</view>
-    <button open-type="share" style="width:100%;height:100%" class="btn p-a t-0 l-0"></button>
+
+    <view class="course-summary">
+      <view class="summary-main">
+        <view class="summary-title ell-2">{{hdata.title}}</view>
+      </view>
+
+      <view class="summary-progress">
+        <view class="summary-progress-head">
+          <text class="summary-progress-label">学习进度</text>
+          <text class="summary-progress-value">第{{currentChapterNumber}}讲 / 共{{chapterCount}}讲</text>
+        </view>
+        <view class="summary-progress-track">
+          <view class="summary-progress-fill" style="width: {{progressPercent}}%;"></view>
+        </view>
+      </view>
+
+      <view class="summary-metrics">
+        <view class="metric-item">
+          <view class="metric-value">{{chapterCount}}</view>
+          <view class="metric-label">课时总数</view>
+        </view>
+        <view class="metric-item">
+          <view class="metric-value">{{currentChapterNumber}}</view>
+          <view class="metric-label">当前讲次</view>
+        </view>
+        <view class="metric-item">
+          <view class="metric-value">直播</view>
+          <view class="metric-label">学习形式</view>
+        </view>
+      </view>
+
+      <view class="summary-tag-row">
+        <view class="summary-tag">考点梳理</view>
+        <view class="summary-tag">章节回看</view>
+        <view class="summary-tag">资料说明</view>
+      </view>
+    </view>
+
+    <view class="detail-tabs">
+      <view class="detail-tab {{showmulu ? 'detail-tab--active' : ''}}" catchtap="showmulu">
+        <view class="detail-tab-title">课时</view>
+        <view class="detail-tab-meta">{{chapterCount}}节</view>
+      </view>
+      <view class="detail-tab {{neirong1 ? 'detail-tab--active' : ''}}" catchtap="showneirong">
+        <view class="detail-tab-title">课程说明</view>
+        <view class="detail-tab-meta">详情</view>
+      </view>
+    </view>
+
+    <view wx:if="{{showmulu}}" id="course-catalog" class="section-block">
+      <view class="section-head">
+        <view class="section-title">课程轨道</view>
+        <view class="section-caption">按讲次顺序浏览，当前播放课时会高亮显示</view>
+      </view>
+
+      <view class="chapter-list">
+        <block wx:for="{{gratisDetail.chapter}}" wx:key="id">
+          <view
+            id="{{currentChapterNumber == item.displayIndex ? 'current-chapter' : ''}}"
+            class="chapter-item {{activeChapterIndex == index ? 'chapter-item--active' : ''}}"
+            data-video_id="{{item.play_id}}"
+            data-index="{{index}}"
+            data-flag="{{activeChapterIndex != index}}"
+            catchtap="choicePlays"
+          >
+            <view class="chapter-index {{currentChapterNumber == item.displayIndex ? 'chapter-index--current' : ''}}">
+              {{item.displayIndex}}
+            </view>
+
+            <view class="chapter-main">
+              <view class="chapter-title {{activeChapterIndex == index ? 'chapter-title--active' : ''}} ell">{{item.title}}</view>
+              <view class="chapter-meta-row">
+                <view wx:if="{{activeChapterIndex == index}}" class="chapter-tag chapter-tag--accent">正在学习</view>
+                <view wx:elif="{{currentChapterNumber == item.displayIndex}}" class="chapter-tag chapter-tag--recent">最近学习</view>
+                <view wx:else class="chapter-tag">点击进入</view>
+                <view class="chapter-tag">支持回看</view>
+              </view>
+            </view>
+
+            <view class="chapter-action">
+              <image src="{{activeChapterIndex == index ? '/images/icon/live_icon.png' : '/images/icon/play_icon_01.png'}}"></image>
+              <view class="chapter-action-text">{{activeChapterIndex == index ? '播放中' : '进入'}}</view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <view wx:if="{{neirong1}}" class="section-block intro-block">
+      <view class="section-head">
+        <view class="section-title">课程说明</view>
+        <view class="section-caption">查看课程介绍、配套说明与学习建议</view>
+      </view>
+      <view class="intro-rich">
+        <rich-text nodes="{{neirong}}"></rich-text>
+      </view>
+    </view>
+  </block>
+
+  <view wx:if="{{!detailError && !loadingDetail}}" class="bottom-actions">
+    <view class="bottom-action bottom-action--secondary" catchtap="openCatalog">课时目录</view>
+    <view class="bottom-action bottom-action--primary">
+      <image src="/images/icon/share_icon_02.png"></image>
+      <text>分享课程</text>
+      <button open-type="share" class="share-overlay"></button>
+    </view>
   </view>
 </view>
 <PhoneBox id="phone"></PhoneBox>

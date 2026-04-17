@@ -10,10 +10,17 @@ class _PathServiceStub:
     def __init__(self, root):
         self._root = root
 
+    @property
+    def project_root(self):
+        return self._root
+
     def get_learner_state_root(self):
         path = self._root / "learner_state"
         path.mkdir(parents=True, exist_ok=True)
         return path
+
+    def get_learner_state_outbox_db(self):
+        return self._root / "runtime" / "outbox.db"
 
 
 def _make_service(tmp_path) -> BotLearnerOverlayService:
@@ -127,6 +134,13 @@ def test_patch_overlay_supports_set_merge_clear_and_append_candidate(tmp_path) -
     assert overlay["effective_overlay"]["local_notebook_scope_refs"] == ["nb-1", "rec-2"]
     assert len(overlay["promotion_candidates"]) == 1
     assert overlay["promotion_candidates"][0]["source_feature"] == "guide"
+    events_path = tmp_path / "learner_state" / "bot_overlays" / "student_demo__bot_alpha.events.jsonl"
+    events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert events
+    assert events[-1]["event_type"] == "overlay_patch"
+    assert events[-1]["overlay_write_reason"] == "guide"
+    outbox_path = tmp_path / "runtime" / "outbox.db"
+    assert outbox_path.exists()
 
 
 def test_build_context_fragment_renders_local_overlay_only(tmp_path) -> None:
@@ -333,3 +347,63 @@ def test_apply_promotions_updates_global_learner_state_and_acks_candidates(tmp_p
 
     overlay = service.read_overlay("bot_alpha", "student_demo")
     assert overlay["promotion_candidates"] == []
+    events_path = tmp_path / "learner_state" / "bot_overlays" / "student_demo__bot_alpha.events.jsonl"
+    events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert any(item["event_type"] == "overlay_promotion_apply" for item in events)
+    outbox_path = tmp_path / "runtime" / "outbox.db"
+    assert outbox_path.exists()
+
+
+def test_list_overlay_events_and_audit_support_filters(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    service.patch_overlay(
+        "bot_alpha",
+        "student_demo",
+        {"op": "merge", "field": "local_focus", "value": {"topic": "foundation"}},
+        source_feature="guide",
+        source_id="guide_1",
+    )
+    service.decay_overlay(
+        "bot_alpha",
+        "student_demo",
+        now=(datetime.now(timezone.utc) + timedelta(hours=96)).astimezone().isoformat(),
+        max_age_hours=1,
+    )
+
+    patch_events = service.list_overlay_events(
+        "bot_alpha",
+        "student_demo",
+        event_type="overlay_patch",
+    )
+    audit_events = service.list_overlay_audit("bot_alpha", "student_demo")
+
+    assert patch_events
+    assert all(item["event_type"] == "overlay_patch" for item in patch_events)
+    assert audit_events
+    assert {item["event_type"] for item in audit_events} >= {"overlay_patch", "overlay_decay"}
+
+
+def test_list_user_overlays_returns_per_bot_view_sorted_by_updated_at(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    first = service.patch_overlay(
+        "bot_alpha",
+        "student_demo",
+        {"op": "merge", "field": "local_focus", "value": {"topic": "foundation"}},
+        source_feature="guide",
+        source_id="guide_1",
+    )
+    second = service.patch_overlay(
+        "bot_beta",
+        "student_demo",
+        {"op": "merge", "field": "local_focus", "value": {"topic": "fire_distance"}},
+        source_feature="guide",
+        source_id="guide_2",
+    )
+    assert first["version"] >= 2
+    assert second["version"] >= 2
+
+    items = service.list_user_overlays("student_demo")
+
+    assert [item["bot_id"] for item in items] == ["bot_beta", "bot_alpha"]
+    assert items[0]["effective_overlay"]["local_focus"]["topic"] == "fire_distance"
+    assert items[0]["event_count"] >= 1

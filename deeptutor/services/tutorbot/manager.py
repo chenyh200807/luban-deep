@@ -861,6 +861,7 @@ class TutorBotManager:
                         on_tool_result=_tool_result,
                         metadata=runtime_metadata,
                     )
+                    usage_summary = observability.get_current_usage_summary()
                     observability.update_observation(
                         turn_observation,
                         output_payload={"assistant_content": response},
@@ -870,23 +871,31 @@ class TutorBotManager:
                             "sources": tool_trace_summary["sources"],
                             "authority_applied": tool_trace_summary["authority_applied"],
                             "exact_question": tool_trace_summary["exact_question"],
-                            "usage_summary": observability.get_current_usage_summary(),
+                            "usage_summary": usage_summary,
                         },
+                        usage_details=observability.usage_details_from_summary(usage_summary),
+                        cost_details=observability.cost_details_from_summary(usage_summary),
                     )
                 except asyncio.CancelledError:
+                    usage_summary = observability.get_current_usage_summary()
                     observability.update_observation(
                         turn_observation,
                         output_payload={"assistant_content": response},
-                        metadata=trace_metadata,
+                        metadata={**trace_metadata, "usage_summary": usage_summary},
+                        usage_details=observability.usage_details_from_summary(usage_summary),
+                        cost_details=observability.cost_details_from_summary(usage_summary),
                         level="ERROR",
                         status_message="TutorBot turn cancelled",
                     )
                     raise
                 except Exception as exc:
+                    usage_summary = observability.get_current_usage_summary()
                     observability.update_observation(
                         turn_observation,
                         output_payload={"assistant_content": response},
-                        metadata=trace_metadata,
+                        metadata={**trace_metadata, "usage_summary": usage_summary},
+                        usage_details=observability.usage_details_from_summary(usage_summary),
+                        cost_details=observability.cost_details_from_summary(usage_summary),
                         level="ERROR",
                         status_message=str(exc),
                     )

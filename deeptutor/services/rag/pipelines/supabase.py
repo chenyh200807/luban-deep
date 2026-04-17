@@ -95,6 +95,52 @@ _CASE_SUPPORT_STOPWORDS = {
 }
 
 
+def _normalized_text_signature(value: Any, *, limit: int = 400) -> str:
+    return re.sub(r"\s+", " ", str(value or "").strip().lower())[:limit]
+
+
+def _dedupe_rendered_content_blocks(blocks: list[str]) -> list[str]:
+    deduped: list[str] = []
+    seen_signatures: set[str] = set()
+
+    for block in blocks:
+        clean = str(block or "").strip()
+        if not clean:
+            continue
+        signature = _normalized_text_signature(clean, limit=600)
+        if not signature or signature in seen_signatures:
+            continue
+        seen_signatures.add(signature)
+        deduped.append(clean)
+
+    return deduped
+
+
+def _dedupe_source_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    deduped: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    seen_signatures: set[str] = set()
+
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        chunk_id = str(item.get("chunk_id") or item.get("id") or "").strip()
+        if chunk_id and chunk_id in seen_ids:
+            continue
+        title = _normalized_text_signature(item.get("title") or "")
+        content = _normalized_text_signature(item.get("content") or "", limit=220)
+        signature = f"{title}|{content}" if title or content else ""
+        if signature and signature in seen_signatures:
+            continue
+        if chunk_id:
+            seen_ids.add(chunk_id)
+        if signature:
+            seen_signatures.add(signature)
+        deduped.append(item)
+
+    return deduped
+
+
 def _weighted_rrf_fusion(
     results_by_group: dict[str, list[dict[str, Any]]],
     weights: dict[str, float],
@@ -419,10 +465,12 @@ class SupabasePipeline:
         reranked = self._filter_partial_case_results(reranked, exact_question=exact_question)
         final_results = dedupe_ranked_results(reranked, max_items=config.top_k)
 
-        content_blocks = [str(item.get("rag_content") or "").strip() for item in final_results]
+        content_blocks = _dedupe_rendered_content_blocks(
+            [str(item.get("rag_content") or "").strip() for item in final_results]
+        )
         content = "\n\n".join(block for block in content_blocks if block)
 
-        sources = [
+        sources = _dedupe_source_items([
             {
                 "title": item.get("card_title") or item.get("title") or "Document",
                 "content": str(item.get("rag_content") or "")[:200],
@@ -433,7 +481,7 @@ class SupabasePipeline:
                 "source_type": item.get("source_type") or "",
             }
             for item in final_results
-        ]
+        ])
 
         payload = {
             "query": query,

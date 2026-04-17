@@ -184,3 +184,32 @@ def test_get_due_jobs_respects_consent_quiet_hours_cooldown_and_negative_feedbac
     current[0] = datetime(2026, 4, 15, 15, 0, tzinfo=timezone.utc)
     due = service.get_due_jobs(now=current[0])
     assert [job.job_id for job in due] == [ready.job_id]
+
+
+def test_list_jobs_and_get_job_expose_current_job_state(tmp_path) -> None:
+    current = [datetime(2026, 4, 15, 10, 0, tzinfo=timezone.utc)]
+    service = _service(tmp_path, current)
+
+    active = service.upsert_job(
+        user_id="student_1",
+        bot_id="bot_alpha",
+        channel="heartbeat",
+        policy_json={"enabled": True},
+        next_run_at=current[0] + timedelta(hours=1),
+    )
+    paused = service.upsert_job(
+        user_id="student_1",
+        bot_id="bot_beta",
+        channel="heartbeat",
+        policy_json={"enabled": True},
+        next_run_at=current[0] + timedelta(hours=2),
+    )
+    service.pause_job(paused.job_id)
+
+    jobs = service.list_jobs(user_id="student_1")
+    fetched = service.get_job(paused.job_id)
+
+    assert [job.job_id for job in jobs] == [active.job_id, paused.job_id]
+    assert fetched is not None
+    assert fetched.job_id == paused.job_id
+    assert fetched.status == "paused"

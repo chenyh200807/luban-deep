@@ -438,6 +438,34 @@ class LangfuseObservability:
             return None
         return scope.to_summary()
 
+    @staticmethod
+    def usage_details_from_summary(summary: dict[str, Any] | None) -> dict[str, float] | None:
+        if not isinstance(summary, dict):
+            return None
+        input_tokens = float(summary.get("total_input_tokens") or 0.0)
+        output_tokens = float(summary.get("total_output_tokens") or 0.0)
+        total_tokens = float(summary.get("total_tokens") or (input_tokens + output_tokens))
+        if total_tokens <= 0:
+            return None
+        return {
+            "input": input_tokens,
+            "output": output_tokens,
+            "total": total_tokens,
+        }
+
+    @staticmethod
+    def cost_details_from_summary(summary: dict[str, Any] | None) -> dict[str, float] | None:
+        if not isinstance(summary, dict):
+            return None
+        total_cost = float(summary.get("total_cost_usd") or 0.0)
+        if total_cost <= 0:
+            return None
+        return {
+            "input": 0.0,
+            "output": 0.0,
+            "total": total_cost,
+        }
+
     def _extract_trace_attributes(self, metadata: dict[str, Any] | None) -> dict[str, Any]:
         if not metadata:
             return {}

@@ -2,20 +2,24 @@
 
 var OPTION_RE = /^\s*(?:[-*+]\s*)?[(（]?([A-E])[)）.、:：]\s*(.+)\s*$/;
 var STEM_MARKER_RE = /^\s*(?:题目|例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|[\(（]\s*\d+\s*[\)）]|问题)\s*[:：]?\s*$/;
+var STEM_INLINE_MARKER_RE =
+  /^\s*(?:题目(?:\s*[一二三四五六七八九十两百零\d]+)?|例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|[\(（]\s*\d+\s*[\)）]|问题)(?:\s*[（(][^()（）]{0,40}[)）])?\s*[:：]\s*.+$/i;
 var MULTI_RE = /多选|不定项|可多选|正确的有|错误的有|哪些说法|下列说法正确的有/;
 var LEAD_IN_RE =
   /^\s*(?:你先选选看.*|选完我.*|先别急着看答案.*|请选择.*|提交后我再告诉你.*)\s*$/;
 var RECEIPT_RE = /<!--QCTX:([A-Za-z0-9_\-+=/]+)-->/;
+var VISIBLE_RECEIPT_LINE_RE =
+  /^\s*(?:回执|题卡回执|作答回执|提交回执|receipt)\s*[:：].*$/i;
 var QUESTION_MARKER_PATTERNS = [
-  /^\s*(?:\*\*)?\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目\s*[一二三四五六七八九十两百零\d]+|[\(（]\s*\d+\s*[\)）])\s*[:：]?\s*(?:\*\*)?\s*$/i,
+  /^\s*(?:\*\*)?\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目(?:\s*[一二三四五六七八九十两百零\d]+)?|问题|[\(（]\s*\d+\s*[\)）])\s*[:：]?\s*(?:\*\*)?\s*$/i,
   /^\s*(?:\*\*)?\s*\d+\s*[.、．]\s+.*$/i,
-  /^\s*(?:\*\*)?\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目\s*[一二三四五六七八九十两百零\d]+)\s*[:：].+$/i,
+  /^\s*(?:\*\*)?\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目(?:\s*[一二三四五六七八九十两百零\d]+)?|问题)\s*[:：].+$/i,
 ];
 var GENERIC_NUMBERED_QUESTION_RE = /^\s*(?:\*\*)?\d+\s*[.、．]\s+.*$/i;
 var QUESTION_LINE_RE =
-  /^\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目\s*[一二三四五六七八九十两百零\d]+|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])(?:\s*[（(][^()（）]{0,40}[)）])?\s*(?:[:：]\s*.*)?$/i;
+  /^\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目(?:\s*[一二三四五六七八九十两百零\d]+)?|问题|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])(?:\s*[（(][^()（）]{0,40}[)）])?\s*(?:[:：]\s*.*)?$/i;
 var INLINE_QUESTION_MARKER_RE =
-  /(?:\*\*)?\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目\s*[一二三四五六七八九十两百零\d]+|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])\s*[:：]?\s*(?:\*\*)?/i;
+  /(?:\*\*)?\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目(?:\s*[一二三四五六七八九十两百零\d]+)?|问题|[\(（]\s*\d+\s*[\)）]|\d+\s*[.、．])\s*[:：]?\s*(?:\*\*)?/i;
 var PRACTICE_NOTICE_MARKERS = [
   "当前题库里暂无与",
   "你要 ",
@@ -199,9 +203,20 @@ function _cleanOptionText(text, key, stem) {
 function _extractReceipt(text) {
   var raw = String(text || "");
   var match = raw.match(RECEIPT_RE);
+  var cleanText = raw.replace(RECEIPT_RE, "").trim();
+  var lines = cleanText ? cleanText.split("\n") : [];
+  while (lines.length && !String(lines[lines.length - 1] || "").trim()) {
+    lines.pop();
+  }
+  while (lines.length && VISIBLE_RECEIPT_LINE_RE.test(lines[lines.length - 1])) {
+    lines.pop();
+    while (lines.length && !String(lines[lines.length - 1] || "").trim()) {
+      lines.pop();
+    }
+  }
   return {
     receipt: match ? match[1] : "",
-    cleanText: raw.replace(RECEIPT_RE, "").trim(),
+    cleanText: lines.join("\n").trim(),
   };
 }
 
@@ -291,7 +306,10 @@ function _splitQuestionBlocks(lines) {
 function _splitPrefixAndStem(preOptionLines) {
   var markerIndex = -1;
   for (var i = 0; i < preOptionLines.length; i++) {
-    if (STEM_MARKER_RE.test(preOptionLines[i])) markerIndex = i;
+    var normalized = _normalizeQuestionLine(preOptionLines[i]);
+    if (STEM_MARKER_RE.test(normalized) || STEM_INLINE_MARKER_RE.test(normalized)) {
+      markerIndex = i;
+    }
   }
 
   if (markerIndex >= 0) {
@@ -312,7 +330,7 @@ function _stripStemMarker(stem) {
   if (!lines.length) return _trim(stem);
 
   var markerRe =
-    /^\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目\s*[一二三四五六七八九十两百零\d]+|[\(（]\s*\d+\s*[\)）])(?:\s*[（(][^()（）]+[)）])?\s*[:：]?\s*/;
+    /^\s*(?:例题\s*[一二三四五六七八九十两百零\d]+|第\s*[一二三四五六七八九十两百零\d]+\s*[题道]|题目(?:\s*[一二三四五六七八九十两百零\d]+)?|问题|[\(（]\s*\d+\s*[\)）])(?:\s*[（(][^()（）]+[)）])?\s*[:：]?\s*/;
   var first = _normalizeQuestionLine(lines[0]).replace(/^\*+|\*+$/g, "").trim();
   var strippedFirst = first.replace(markerRe, "").trim();
   if (_isQuestionMarkerLine(first)) {

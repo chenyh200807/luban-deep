@@ -11,13 +11,13 @@
   <image class="bg-horizon" src="../../images/bg_horizon.jpg" mode="aspectFill" />
 
   <!-- 顶栏 — 仅 logo + 新对话 -->
-  <view class="navbar" style="padding-top:{{statusBarHeight}}px">
+  <view class="navbar {{hasMessages ? 'navbar-chat' : ''}}" style="padding-top:{{statusBarHeight}}px">
     <view class="navbar-inner">
-      <view class="nav-back-pill" wx:if="{{workspaceBackVisible}}" bindtap="goWorkspaceBack" aria-role="button" aria-label="返回{{workspaceBackLabel}}">
+      <view class="nav-back-pill" wx:if="{{workspaceBackVisible || hasMessages}}" bindtap="onNavBackTap" aria-role="button" aria-label="{{workspaceBackVisible ? '返回' + workspaceBackLabel : '返回首页'}}">
         <text class="nav-back-arrow">‹</text>
-        <text class="nav-back-label">{{workspaceBackLabel}}</text>
+        <text class="nav-back-label">{{workspaceBackVisible ? workspaceBackLabel : '返回首页'}}</text>
       </view>
-      <image class="nav-logo" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" aria-role="button" aria-label="回到首页" />
+      <image class="nav-logo {{hasMessages ? 'nav-logo-chat' : ''}}" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" aria-role="button" aria-label="回到首页" />
       <view style="flex:1"></view>
       <view class="nav-icon-btn nav-new-chat" wx:if="{{hasMessages}}" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
         <text class="nav-new-icon">+</text>
@@ -35,6 +35,9 @@
       <view class="points-pill" bindtap="goBilling" aria-role="button" aria-label="积分明细: {{userPoints}} 点">
         <text class="points-star">★</text>
         <text class="points-num">{{userPoints}}</text>
+      </view>
+      <view class="home-entry-btn" bindtap="goYousenHome" aria-role="button" aria-label="返回佑森首页">
+        <text class="home-entry-glyph">佑</text>
       </view>
       <view class="row-icon-btn" bindtap="onToggleTheme" aria-role="button" aria-label="{{isDark ? '切换浅色模式' : '切换深色模式'}}">
         <view class="ico ico-theme-{{isDark?'sun':'moon'}}"></view>
@@ -177,9 +180,9 @@
         </view>
 
         <!-- AI 消息 -->
-        <view class="bubble-ai {{item.thinkingStatus && !item.content && !item.blocks.length ? 'bubble-ai-thinking' : ''}}" wx:else>
-          <!-- 思考中：独立状态面板 -->
-          <view class="thinking-panel thinking-panel-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}" wx:if="{{item.thinkingStatus && !item.content && !item.blocks.length}}">
+          <view class="bubble-ai {{item.thinkingStatus && !item.renderableContent && !item.blocks.length && !(item.mcqCards && item.mcqCards.length) ? 'bubble-ai-thinking' : ''}}" wx:else>
+            <!-- 思考中：独立状态面板 -->
+          <view class="thinking-panel thinking-panel-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}" wx:if="{{item.thinkingStatus && !item.renderableContent && !item.blocks.length && !(item.mcqCards && item.mcqCards.length)}}">
             <view class="thinking-rail"></view>
             <view class="thinking-main">
               <view class="thinking-head">
@@ -215,12 +218,12 @@
 	          </view>
 
           <!-- 思考中：生成阶段维持轻量提示 -->
-          <view class="thinking thinking-inline" wx:elif="{{item.thinkingStatus}}">
+          <view class="thinking thinking-inline" wx:elif="{{item.thinkingStatus && !(item.mcqCards && item.mcqCards.length)}}">
             <view class="dots-bounce"><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
             <text class="thinking-label">{{item.thinkingStatus}}</text>
           </view>
 
-          <view class="workflow-card workflow-card-{{item.workflowTone ? item.workflowTone : 'compose'}}" wx:if="{{item.workflowEntries.length && (item.content || item.blocks.length)}}">
+          <view class="workflow-card workflow-card-{{item.workflowTone ? item.workflowTone : 'compose'}}" wx:if="{{item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}">
             <view class="workflow-card-head">
               <view class="workflow-card-title">
                 <text class="workflow-card-badge">{{item.workflowBadge || '本轮推演'}}</text>
@@ -249,8 +252,11 @@
             </view>
           </view>
 
+          <!-- 结构化内容的正文说明，避免 table/formula 只挂在块里不显示 -->
+          <text class="ai-text" user-select wx:if="{{item.hasStructuredContent && item.renderableContent}}">{{item.renderableContent}}</text>
+
           <!-- 纯文本回退：流式初期 blocks 尚未解析 -->
-          <text class="ai-text" user-select wx:if="{{item.streaming && !item.blocks.length && (item.renderableContent || item.content)}}">{{item.renderableContent || item.content}}</text>
+          <text class="ai-text" user-select wx:if="{{!item.hasStructuredContent && !item.blocks.length && (item.renderableContent || item.content)}}">{{item.renderableContent || item.content}}</text>
 
           <!-- Markdown 实时渲染（流式 + 完成态共用） -->
           <block wx:if="{{item.blocks.length}}">
@@ -272,7 +278,36 @@
               <!-- 水平线 -->
               <view class="md-hr" wx:elif="{{b.type==='hr'}}"></view>
 
-              <!-- 表格 -->
+              <!-- 结构化表格 -->
+              <view wx:if="{{b.type==='table' && b.isStructured}}">
+                <text class="md-table-caption" wx:if="{{b.caption}}" selectable>{{b.caption}}</text>
+                <text class="md-table-strategy" wx:if="{{b.mobileStrategy}}">手机端策略：{{b.mobileStrategy==='compact_cards' ? '紧凑卡片' : '横向滚动'}}</text>
+                <view wx:if="{{b.mobileStrategy==='compact_cards'}}">
+                  <view class="md-table-card" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row" wx:for-index="rowIndex">
+                    <text class="md-table-card-title">第{{rowIndex + 1}}行</text>
+                    <view class="md-table-card-row" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
+                      <text class="md-table-card-key">{{h.text}}</text>
+                      <text class="md-table-card-val">{{row[colIndex] ? row[colIndex].text : ''}}</text>
+                    </view>
+                  </view>
+                </view>
+                <scroll-view wx:else scroll-x class="md-table-scroll">
+                  <view class="md-table">
+                    <view class="md-thead">
+                      <view class="md-th {{h.align==='center' ? 'md-align-center' : (h.align==='right' ? 'md-align-right' : 'md-align-left')}} {{h.highlight ? 'md-cell-highlight' : ''}}" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h">
+                        <text user-select class="{{h.highlight?'b':''}}">{{h.text}}</text>
+                      </view>
+                    </view>
+                    <view class="md-tr" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row">
+                      <view class="md-td {{cell.align==='center' ? 'md-align-center' : (cell.align==='right' ? 'md-align-right' : 'md-align-left')}} {{cell.highlight ? 'md-cell-highlight' : ''}}" wx:for="{{row}}" wx:key="index" wx:for-item="cell">
+                        <text user-select class="{{cell.highlight?'b':''}}">{{cell.text}}</text>
+                      </view>
+                    </view>
+                  </view>
+                </scroll-view>
+              </view>
+
+              <!-- Markdown 表格兜底 -->
               <scroll-view scroll-x wx:elif="{{b.type==='table'}}" class="md-table-scroll">
                 <view class="md-table">
                   <view class="md-thead">
@@ -311,6 +346,85 @@
                 </view>
               </view>
 
+              <!-- 结构化公式 -->
+              <view wx:elif="{{(b.type==='formula_block' || b.type==='formula_inline') && b.isStructured}}" class="md-formula {{b.type==='formula_inline' ? 'md-formula-inline' : ''}}">
+                <text class="md-formula-label">{{b.type==='formula_inline' ? '行内公式' : '公式'}}</text>
+                <image wx:if="{{b.svgUrl}}" class="md-formula-svg" src="{{b.svgUrl}}" mode="widthFix" show-menu-by-longpress />
+                <text class="md-formula-text" selectable>{{b.displayText || b.latex || b.copyText}}</text>
+                <text class="md-formula-copy" wx:if="{{b.copyText && b.copyText !== (b.displayText || b.latex)}}" selectable>{{b.copyText}}</text>
+              </view>
+
+              <!-- 教学步骤 -->
+              <view class="md-steps" wx:elif="{{b.type==='steps' && b.isStructured}}">
+                <text class="md-steps-title" wx:if="{{b.title}}">{{b.title}}</text>
+                <view class="md-step" wx:for="{{b.steps}}" wx:key="index" wx:for-item="step">
+                  <text class="md-step-index">{{step.index}}.</text>
+                  <view class="md-step-body">
+                    <text class="md-step-name">{{step.title}}</text>
+                    <text class="md-step-detail" wx:if="{{step.detail}}">{{step.detail}}</text>
+                  </view>
+                </view>
+              </view>
+
+              <!-- 教学总结 -->
+              <view class="md-recap" wx:elif="{{b.type==='recap' && b.isStructured}}">
+                <text class="md-recap-title">{{b.title || '教学总结'}}</text>
+                <text class="md-recap-summary" wx:if="{{b.summary}}" selectable>{{b.summary}}</text>
+                <view wx:if="{{b.bullets && b.bullets.length}}">
+                  <view class="md-recap-bullet" wx:for="{{b.bullets}}" wx:key="index" wx:for-item="bullet">
+                    <text class="md-recap-bullet-mark">•</text>
+                    <text class="md-recap-bullet-text" selectable>{{bullet}}</text>
+                  </view>
+                </view>
+              </view>
+
+              <!-- 图表数据卡 -->
+              <view class="md-chart" wx:elif="{{b.type==='chart' && b.isStructured}}">
+                <view class="md-chart-head">
+                  <text class="md-chart-type">{{b.chartType}}</text>
+                  <text class="md-chart-title" wx:if="{{b.title}}">{{b.title}}</text>
+                </view>
+                <text class="md-chart-summary" wx:if="{{b.summary}}" selectable>{{b.summary}}</text>
+                <view class="md-chart-series" wx:if="{{b.series && b.series.length}}">
+                  <view class="md-chart-series-item" wx:for="{{b.series}}" wx:key="index" wx:for-item="series">
+                    <text class="md-chart-series-name">{{series.name}}</text>
+                    <text class="md-chart-series-summary" wx:if="{{series.summary}}" selectable>{{series.summary}}</text>
+                  </view>
+                </view>
+                <view class="md-chart-axes" wx:if="{{b.axes && (b.axes.x || b.axes.y)}}">
+                  <text class="md-chart-axis" wx:if="{{b.axes.x}}">横轴：{{b.axes.x}}</text>
+                  <text class="md-chart-axis" wx:if="{{b.axes.y}}">纵轴：{{b.axes.y}}</text>
+                </view>
+                <text class="md-chart-caption" wx:if="{{b.caption}}" selectable>{{b.caption}}</text>
+                <view wx:if="{{b.fallbackTable && b.fallbackTable.headers && b.fallbackTable.headers.length}}">
+                  <text class="md-chart-fallback-title">fallback_table</text>
+                  <text class="md-chart-strategy">图形不可用时回退为数据表</text>
+                  <view wx:if="{{b.fallbackTable.mobileStrategy==='compact_cards'}}">
+                    <view class="md-table-card" wx:for="{{b.fallbackTable.rows}}" wx:key="index" wx:for-item="row" wx:for-index="rowIndex">
+                      <text class="md-table-card-title">第{{rowIndex + 1}}行</text>
+                      <view class="md-table-card-row" wx:for="{{b.fallbackTable.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
+                        <text class="md-table-card-key">{{h.text}}</text>
+                        <text class="md-table-card-val">{{row[colIndex] ? row[colIndex].text : ''}}</text>
+                      </view>
+                    </view>
+                  </view>
+                  <scroll-view wx:else scroll-x class="md-table-scroll">
+                    <view class="md-table">
+                      <view class="md-thead">
+                        <view class="md-th {{h.align==='center' ? 'md-align-center' : (h.align==='right' ? 'md-align-right' : 'md-align-left')}} {{h.highlight ? 'md-cell-highlight' : ''}}" wx:for="{{b.fallbackTable.headers}}" wx:key="index" wx:for-item="h">
+                          <text user-select class="{{h.highlight?'b':''}}">{{h.text}}</text>
+                        </view>
+                      </view>
+                      <view class="md-tr" wx:for="{{b.fallbackTable.rows}}" wx:key="index" wx:for-item="row">
+                        <view class="md-td {{cell.align==='center' ? 'md-align-center' : (cell.align==='right' ? 'md-align-right' : 'md-align-left')}} {{cell.highlight ? 'md-cell-highlight' : ''}}" wx:for="{{row}}" wx:key="index" wx:for-item="cell">
+                          <text user-select class="{{cell.highlight?'b':''}}">{{cell.text}}</text>
+                        </view>
+                      </view>
+                    </view>
+                  </scroll-view>
+                </view>
+              </view>
+
               <!-- 无序列表 -->
               <view class="md-ul" wx:elif="{{b.type==='ul'}}">
                 <view class="md-li" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
@@ -340,8 +454,13 @@
 
               <!-- 段落 -->
               <view class="md-p" wx:else>
-                <block wx:for="{{b.content}}" wx:key="index" wx:for-item="s">
-                  <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
+                <block wx:if="{{b.schemaVersion===1 && b.text}}">
+                  <text user-select>{{b.text}}</text>
+                </block>
+                <block wx:else>
+                  <block wx:for="{{b.content}}" wx:key="index" wx:for-item="s">
+                    <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
+                  </block>
                 </block>
               </view>
 
@@ -351,7 +470,7 @@
 	          <view class="cursor" wx:if="{{item.streaming}}"></view>
 
           <!-- MCQ -->
-          <view class="mcq" wx:if="{{item.mcqCards && item.mcqCards.length && !item.streaming}}">
+          <view class="mcq" wx:if="{{item.mcqCards && item.mcqCards.length && (!item.streaming || (!item.renderableContent && !item.blocks.length))}}">
             <view class="mcq-head">
               <text class="mcq-head-title">{{item.mcqInteractiveReady ? '交互式作答' : '题目回看'}}</text>
               <text class="mcq-head-hint">{{item.mcqHint ? item.mcqHint : '点击选项后提交答案'}}</text>
@@ -393,7 +512,7 @@
           </view>
         </view>
         <!-- AI 操作栏 — 气泡外部，左对齐 -->
-        <view class="msg-actions msg-actions-left" wx:if="{{item.role !== 'user' && !item.streaming && item.content}}">
+        <view class="msg-actions msg-actions-left" wx:if="{{item.role !== 'user' && !item.streaming && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}">
           <view class="act-btn {{item.feedback==='up'?'act-on act-like':''}}" bindtap="onThumbUp" data-msgid="{{item.id}}" aria-role="button" aria-label="点赞">
             <view class="ico ico-thumbup"></view>
           </view>

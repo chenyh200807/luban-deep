@@ -1,5 +1,5 @@
 // package/freeCourseDetails/freeCourseDetails.js
-var behavior = require('../../utils/behavior')
+var request = require('../../utils/request')
 var utilMd5 = require('../../utils/md5.js');
 
 let polyvModule = null;
@@ -13,8 +13,7 @@ function getPolyvModule() {
   return polyvModule;
 }
 
-Component({
-  behaviors: [behavior],
+Page({
 
   /**
    * 页面的初始数据
@@ -25,7 +24,7 @@ Component({
       src: '',
       showBeishu: false,
       view: '倍速',
-      autoplay: true,
+      autoplay: false,
       isShowBeishu: false
     },
     loadingDetail: true,
@@ -41,15 +40,19 @@ Component({
     thevideoshow: '',
     chapterid: '',
     activeChapterIndex: -1,
+    currentChapterNumber: 0,
+    chapterCount: 0,
+    progressPercent: 0,
     kechengmulu: '',
     kechengneirong: '',
     show: false,
-    videotitle: '',
     gratisDetail: {
       chapter: []
     }
   },
-  methods: {
+  isPostHttp: function(urlName, data, isLoading) {
+    return request.postrq(urlName, data, isLoading)
+  },
     clearBeishuTimer: function() {
       if (this.beishuTimer) {
         clearTimeout(this.beishuTimer);
@@ -66,9 +69,25 @@ Component({
     },
     getSafeChapterList: function(detail) {
       if (detail && Array.isArray(detail.chapter)) {
-        return detail.chapter.map(item => Object.assign({}, item));
+        return detail.chapter.map((item, index) =>
+          Object.assign({}, item, {
+            displayIndex: index + 1
+          })
+        );
       }
       return [];
+    },
+    getProgressState: function(chapterList, currentChapterNumber) {
+      const chapterCount = Array.isArray(chapterList) ? chapterList.length : 0;
+      const safeCurrent = currentChapterNumber > 0 ? currentChapterNumber : (chapterCount > 0 ? 1 : 0);
+      const progressPercent = chapterCount > 0
+        ? Math.max(8, Math.min(100, Math.round((safeCurrent / chapterCount) * 100)))
+        : 0;
+      return {
+        chapterCount: chapterCount,
+        currentChapterNumber: safeCurrent,
+        progressPercent: progressPercent
+      };
     },
     getSafeIntroData: function(hdataList, fallbackTitle) {
       const source = Array.isArray(hdataList) ? hdataList[0] : hdataList;
@@ -128,9 +147,15 @@ Component({
         return;
       }
       if (this.videoContext && this.videoContext.play) {
-        this.videoContext.play();
+        setTimeout(() => {
+          if (this.pendingAutoPlaySeq !== seq || !this.videoReady) {
+            return;
+          }
+          this.videoContext.play();
+          this.pendingAutoPlaySeq = 0;
+        }, 32);
+        return;
       }
-      this.pendingAutoPlaySeq = 0;
     },
     cleanupPage: function(options) {
       this.resetVideoState();
@@ -153,6 +178,7 @@ Component({
       const requestSeq = (this.videoRequestSeq || 0) + 1;
       this.videoRequestSeq = requestSeq;
       this.pendingAutoPlaySeq = shouldAutoPlay ? requestSeq : 0;
+      this.videoReady = false;
       const timestamp = Date.parse(new Date());
       const secretKey = 'mnABa9XMn8';
       const ts = timestamp;
@@ -176,7 +202,6 @@ Component({
           that.setData({
             'videoSrc.src': src
           });
-          that.tryAutoPlayVideo(requestSeq);
         }
       });
     },
@@ -223,8 +248,10 @@ Component({
           introHtmlRaw: '',
           introContentReady: false,
           thevideoshow: '',
-          videotitle: '',
           activeChapterIndex: -1,
+          currentChapterNumber: 0,
+          chapterCount: 0,
+          progressPercent: 0,
         });
         this.getGratisDetail();
       }
@@ -252,6 +279,10 @@ Component({
           const chapterList = this.getSafeChapterList(detail);
           const hdata = this.getSafeIntroData(res.hdata, detail.name || '');
           const initial = this.resolveInitialChapter(chapterList, this.data.chapterid, detail.play_id);
+          const progressState = this.getProgressState(
+            chapterList,
+            initial.item && initial.item.displayIndex ? initial.item.displayIndex : 0
+          );
           const shouldShowVideo = res.show !== false && Boolean(detail.play_id || initial.item);
 
           wx.setNavigationBarTitle({
@@ -276,7 +307,9 @@ Component({
             thevideoshow: initial.item ? initial.item.title : (detail.name || ''),
             chapterid: initial.item && initial.item.id ? initial.item.id : this.data.chapterid,
             activeChapterIndex: initial.index,
-            videotitle: initial.item && initial.item.title ? '正在播放：  ' + initial.item.title : '',
+            currentChapterNumber: progressState.currentChapterNumber,
+            chapterCount: progressState.chapterCount,
+            progressPercent: progressState.progressPercent,
             kechengmulu: res.kechengmulu || '',
             kechengneirong: res.kechengneirong || '',
             show: shouldShowVideo,
@@ -311,10 +344,13 @@ Component({
       }
       this.clearBeishuTimer();
       if (flag) {
+        const progressState = this.getProgressState(chapterList, currentChapter.displayIndex || (Number(index) + 1));
         this.setData({
           activeChapterIndex: index,
           chapterid: currentChapter.id || this.data.chapterid,
-          videotitle: '正在播放：  ' + (currentChapter.title || ''),
+          currentChapterNumber: progressState.currentChapterNumber,
+          chapterCount: progressState.chapterCount,
+          progressPercent: progressState.progressPercent,
           thevideoshow: currentChapter.title || '',
           'videoSrc.isShowBeishu': true
         });
@@ -323,6 +359,7 @@ Component({
           this.requestVideoSrc(video_id, true);
         }
       } else {
+        const progressState = this.getProgressState(chapterList, currentChapter.displayIndex || (Number(index) + 1));
         this.pendingAutoPlaySeq = 0;
         if (this.videoContext && this.videoContext.pause) {
           this.videoContext.pause();
@@ -330,6 +367,9 @@ Component({
         this.setData({
           activeChapterIndex: -1,
           chapterid: currentChapter.id || this.data.chapterid,
+          currentChapterNumber: progressState.currentChapterNumber,
+          chapterCount: progressState.chapterCount,
+          progressPercent: progressState.progressPercent,
           thevideoshow: currentChapter.title || this.data.thevideoshow,
           'videoSrc.isShowBeishu': true
         });
@@ -349,6 +389,16 @@ Component({
     handleVideoReady: function() {
       this.videoReady = true;
       this.tryAutoPlayVideo(this.videoRequestSeq);
+    },
+    handleFullscreenChange: function(e) {
+      const detail = e && e.detail ? e.detail : {};
+      if (detail.fullScreen) {
+        this.clearBeishuTimer();
+        this.setData({
+          'videoSrc.showBeishu': false,
+          'videoSrc.isShowBeishu': false
+        });
+      }
     },
     isShowBsClick: function() {
       this.clearBeishuTimer();
@@ -382,8 +432,6 @@ Component({
      */
     onReady: function () {
       this.videoContext = wx.createVideoContext('myVideo');
-      this.videoReady = true;
-      this.tryAutoPlayVideo(this.videoRequestSeq);
     },
 
     /**
@@ -415,6 +463,49 @@ Component({
       this.cleanupPage({ destroy: true });
     },
 
+    scrollToSelector: function(selector) {
+      const query = wx.createSelectorQuery().in(this);
+      query.select(selector).boundingClientRect();
+      query.selectViewport().scrollOffset();
+      query.exec(res => {
+        const targetRect = res && res[0];
+        const viewport = res && res[1];
+        if (!targetRect || !viewport) {
+          return;
+        }
+        const nextTop = Math.max(0, viewport.scrollTop + targetRect.top - 132);
+        wx.pageScrollTo({
+          scrollTop: nextTop,
+          duration: 260
+        });
+      });
+    },
+    scrollToCatalog: function() {
+      setTimeout(() => {
+        this.scrollToSelector('#course-catalog');
+      }, 80);
+    },
+    scrollToCurrentChapter: function() {
+      setTimeout(() => {
+        const query = wx.createSelectorQuery().in(this);
+        query.select('#current-chapter').boundingClientRect();
+        query.exec(res => {
+          if (res && res[0]) {
+            this.scrollToSelector('#current-chapter');
+            return;
+          }
+          this.scrollToSelector('#course-catalog');
+        });
+      }, 80);
+    },
+    openCatalog: function() {
+      this.setData({
+        showmulu: true,
+        neirong1: false
+      }, () => {
+        this.scrollToCurrentChapter();
+      });
+    },
     showmulu: function() {
       this.setData({
         showmulu: true,
@@ -452,5 +543,4 @@ Component({
         };
       }
     }
-  }
 })

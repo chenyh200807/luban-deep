@@ -899,6 +899,28 @@ function testParagraph() {
       blocks[0].content.length > 1,
       "Formatted paragraph has multiple spans",
     );
+
+    blocks = md.parse(
+      [
+        "**防水等级**：答题时要写“根据建筑物的重要性、使用功能要求，",
+        "环境条件等确定的防水设计标准”。",
+      ].join("\n"),
+    );
+    assertEqual(blocks.length, 1, "Soft-wrapped paragraph stays one block");
+    assertEqual(blocks[0].type, "paragraph", "Soft-wrapped paragraph type");
+    assertEqual(
+      blocks[0].raw,
+      "**防水等级**：答题时要写“根据建筑物的重要性、使用功能要求，环境条件等确定的防水设计标准”。",
+      "Soft-wrapped paragraph merged",
+    );
+
+    blocks = md.parse(["**防水等级**", "：答题时要写规范定义。"].join("\n"));
+    assertEqual(blocks.length, 1, "Leading punctuation line merged");
+    assertEqual(
+      blocks[0].raw,
+      "**防水等级**：答题时要写规范定义。",
+      "Leading punctuation keeps with previous line",
+    );
   });
 }
 

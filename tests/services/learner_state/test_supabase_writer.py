@@ -472,6 +472,71 @@ def test_write_item_unknown_event_type_is_rejected_without_network() -> None:
 
     assert result.ok is False
     assert "unsupported event_type" in (result.reason or "")
+
+
+def test_write_item_overlay_patch_writes_overlay_tables_and_event_stream() -> None:
+    requests: list[dict[str, object]] = []
+    client = _make_client(requests)
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+    item = _make_item(
+        event_type="overlay_patch",
+        dedupe_key="overlay-sync:overlay_patch:student_demo:bot_alpha:2",
+        payload_json={
+            "bot_id": "bot_alpha",
+            "user_id": "student_demo",
+            "overlay_version": 2,
+            "overlay_write_type": "patch",
+            "overlay_write_reason": "guide",
+            "source_feature": "guide",
+            "source_id": "guide_42",
+            "overlay_fields": ["active_plan_binding", "local_focus"],
+            "promotion_candidate_count": 1,
+            "overlay_snapshot": {
+                "local_focus": {"knowledge_title": "承载力"},
+                "active_plan_binding": {"plan_id": "plan_1", "current_index": 0},
+                "teaching_policy_override": {},
+                "heartbeat_override": {},
+                "channel_presence_override": {},
+                "local_notebook_scope_refs": ["nb_1"],
+                "engagement_state": {"last_context_route": "guided_plan_continuation"},
+                "promotion_candidates": [{"candidate_id": "cand_1"}],
+                "working_memory_projection": "继续当前计划",
+            },
+            "created_at": "2026-04-15T10:00:00+08:00",
+        },
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    assert result.written_tables == (
+        "learner_memory_events",
+        "bot_learner_overlays",
+        "bot_learner_overlay_events",
+        "bot_learner_overlay_audit",
+    )
+    assert [request["path"] for request in requests] == [
+        "/rest/v1/learner_memory_events",
+        "/rest/v1/bot_learner_overlays",
+        "/rest/v1/bot_learner_overlay_events",
+        "/rest/v1/bot_learner_overlay_audit",
+    ]
+    overlay_body = requests[1]["json"][0]
+    event_body = requests[2]["json"][0]
+    audit_body = requests[3]["json"][0]
+    assert overlay_body["bot_id"] == "bot_alpha"
+    assert overlay_body["active_plan_id"] == "plan_1"
+    assert overlay_body["working_memory_projection_md"] == "继续当前计划"
+    assert event_body["patch_kind"] == "overlay_patch"
+    assert event_body["payload_json"]["overlay_write_reason"] == "guide"
+    assert audit_body["action"] == "overlay_patch"
+    assert audit_body["fields_json"] == ["active_plan_binding", "local_focus"]
+
+    asyncio.run(client.aclose())
     assert requests == []
 
     asyncio.run(client.aclose())

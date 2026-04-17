@@ -4,7 +4,11 @@
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
     <view class="nav-content">
-      <image class="nav-logo" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" />
+      <view class="nav-back-pill" bindtap="goBack" aria-role="button" aria-label="返回对话">
+        <text class="nav-back-arrow">‹</text>
+        <text class="nav-back-label">返回对话</text>
+      </view>
+      <image class="nav-logo" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" aria-role="button" aria-label="回到首页" />
       <view style="flex:1"></view>
     </view>
   </view>

@@ -1,8 +1,0 @@
-<view class="empty-card {{isDark?'':'light'}}">
-  <text class="empty-emoji" wx:if="{{emoji}}">{{emoji}}</text>
-  <text class="empty-title">{{title}}</text>
-  <text class="empty-desc" wx:if="{{desc}}">{{desc}}</text>
-  <view class="empty-btn" wx:if="{{btnText}}" bindtap="onBtnTap" aria-role="button" aria-label="{{btnText}}">
-    <text class="empty-btn-txt">{{btnText}}</text>
-  </view>
-</view>

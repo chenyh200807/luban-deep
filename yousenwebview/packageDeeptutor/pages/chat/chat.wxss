@@ -71,10 +71,14 @@
 
 /* ── 顶栏 ─────────────────────────────────────── */
 .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: transparent; }
+.navbar-chat {
+  background: linear-gradient(180deg, rgba(8,12,24,0.96) 0%, rgba(8,12,24,0.82) 74%, rgba(8,12,24,0) 100%);
+  backdrop-filter: blur(12rpx);
+}
 .content { z-index: 1; }
-.navbar-inner { height: 96rpx; display: flex; align-items: center; padding: 0 20rpx 0 0; gap: 12rpx; }
+.navbar-inner { height: 88rpx; display: flex; align-items: center; padding: 0 24rpx 0 0; gap: 16rpx; }
 .nav-back-pill {
-  margin-left: 28rpx;
+  margin-left: 24rpx;
   padding: 10rpx 20rpx 10rpx 16rpx;
   border-radius: 999rpx;
   display: flex;
@@ -82,6 +86,7 @@
   gap: 6rpx;
   background: rgba(255, 255, 255, 0.08);
   border: 1rpx solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
 }
 .nav-back-pill:active {
   background: rgba(255, 255, 255, 0.16);
@@ -95,7 +100,8 @@
   font-size: 24rpx;
   color: rgba(255, 255, 255, 0.78);
 }
-.nav-logo { height: 100rpx; margin-left: 28rpx; }
+.nav-logo { height: 78rpx; margin-left: 24rpx; display: block; flex-shrink: 0; }
+.nav-logo-chat { height: 70rpx; margin-left: 20rpx; }
 .nav-icon-btn {
   width: 60rpx; height: 60rpx; border-radius: 50%;
   background: rgba(255,255,255,0.08);
@@ -125,9 +131,21 @@
 .ico-dollar {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='1' x2='12' y2='23'/%3E%3Cpath d='M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6'/%3E%3C/svg%3E");
 }
-
 /* 用户信息行 */
 .user-row { display: flex; align-items: center; justify-content: flex-end; gap: 12rpx; padding: 16rpx 36rpx 0; }
+.home-entry-btn {
+  width: 56rpx; height: 56rpx; border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 1rpx solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+}
+.home-entry-btn:active { background: rgba(255,255,255,0.16); }
+.home-entry-glyph {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: rgba(255,255,255,0.88);
+  line-height: 1;
+}
 .row-icon-btn {
   width: 56rpx; height: 56rpx; border-radius: 50%;
   background: rgba(255,255,255,0.08);
@@ -138,19 +156,20 @@
 .row-icon-btn:active .ico { opacity: 1; }
 .hero-spacer { height: 15vh; }
 .points-pill {
-  display: flex; align-items: center; gap: 8rpx;
+  min-height: 56rpx;
+  display: flex; align-items: center; justify-content: center; gap: 8rpx;
   background: rgba(245,158,11,0.12); border: 1rpx solid rgba(245,158,11,0.3);
-  border-radius: 32rpx; padding: 8rpx 20rpx;
+  border-radius: 999rpx; padding: 0 18rpx;
 }
 .points-star { color: #f59e0b; font-size: 22rpx; }
 .points-num { color: #f59e0b; font-size: 24rpx; font-weight: 600; }
 .avatar {
-  width: 64rpx; height: 64rpx; border-radius: 50%;
+  width: 56rpx; height: 56rpx; border-radius: 50%;
   background: linear-gradient(135deg, #374151, #1f2937);
   border: 2rpx solid rgba(255,255,255,0.15);
   display: flex; align-items: center; justify-content: center;
 }
-.avatar-char { color: #fff; font-size: 26rpx; font-weight: 600; }
+.avatar-char { color: #fff; font-size: 24rpx; font-weight: 600; }
 
 /* ── 内容区 ───────────────────────────────────── */
 .content { position: fixed; left: 0; right: 0; bottom: 0; overflow: hidden; box-sizing: border-box; }
@@ -280,7 +299,7 @@
    ★ 消息列表 — 深色沉浸式
    ═══════════════════════════════════════════════ */
 
-.msg-list { padding: 16rpx 20rpx; display: flex; flex-direction: column; gap: 20rpx; }
+.msg-list { padding: 36rpx 20rpx 16rpx; display: flex; flex-direction: column; gap: 20rpx; }
 .msg { display: flex; flex-direction: column; }
 .msg.user { align-items: flex-end; }
 .msg.ai { align-items: flex-start; }
@@ -787,6 +806,18 @@
 
 /* ── 表格 — 深色横向可滚动 ──────────────────────── */
 .md-table-scroll { width: 100%; margin: 12rpx 0; white-space: nowrap; }
+.md-table-caption {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: rgba(191,219,254,0.76);
+}
+.md-table-strategy {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: rgba(148,163,184,0.84);
+}
 .md-table {
   display: table; width: 100%; min-width: 100%;
   border: 1rpx solid rgba(255,255,255,0.08);
@@ -815,6 +846,175 @@
 }
 .md-td:last-child { border-right: none; }
 .md-tr:last-child .md-td { border-bottom: none; }
+.md-align-left { text-align: left; }
+.md-align-center { text-align: center; }
+.md-align-right { text-align: right; }
+.md-cell-highlight { background: rgba(96,165,250,0.12); }
+.md-table-card {
+  margin-top: 12rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid rgba(148,163,184,0.16);
+  background: rgba(15,23,42,0.72);
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+.md-table-card-title {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+.md-table-card-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+.md-table-card-key {
+  flex: 0 0 180rpx;
+  font-size: 24rpx;
+  color: rgba(148,163,184,0.92);
+}
+.md-table-card-val {
+  flex: 1;
+  font-size: 25rpx;
+  color: rgba(226,232,240,0.92);
+  text-align: right;
+  word-break: break-word;
+}
+
+/* ── 公式块 ───────────────────────────────────── */
+.md-formula {
+  margin: 14rpx 0;
+  padding: 18rpx 20rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid rgba(148,163,184,0.16);
+  background: linear-gradient(180deg, rgba(15,23,42,0.92) 0%, rgba(15,23,42,0.72) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+.md-formula-inline {
+  padding: 14rpx 18rpx;
+}
+.md-formula-label {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: rgba(191,219,254,0.82);
+}
+.md-formula-svg {
+  width: 100%;
+}
+.md-formula-text {
+  font-size: 28rpx;
+  line-height: 1.7;
+  color: #f8fafc;
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.md-formula-copy {
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: rgba(148,163,184,0.88);
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── 教学步骤 / 总结 / 图表数据卡 ───────────────── */
+.md-steps,
+.md-recap,
+.md-chart {
+  margin: 14rpx 0;
+  padding: 18rpx 20rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid rgba(148,163,184,0.16);
+  background: rgba(15,23,42,0.72);
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+.md-steps-title,
+.md-recap-title,
+.md-chart-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #f8fafc;
+}
+.md-step {
+  display: flex;
+  gap: 12rpx;
+  padding: 12rpx 0;
+  border-top: 1rpx solid rgba(255,255,255,0.06);
+}
+.md-step:first-of-type { border-top: none; padding-top: 0; }
+.md-step-index {
+  flex-shrink: 0;
+  min-width: 34rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #60a5fa;
+}
+.md-step-body { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
+.md-step-name,
+.md-chart-type {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: rgba(191,219,254,0.92);
+}
+.md-step-detail,
+.md-recap-summary,
+.md-chart-summary,
+.md-chart-caption,
+.md-chart-axis,
+.md-chart-series-summary,
+.md-recap-bullet-text {
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: rgba(226,232,240,0.9);
+  word-break: break-word;
+}
+.md-recap-bullet {
+  display: flex;
+  gap: 10rpx;
+  align-items: flex-start;
+}
+.md-recap-bullet-mark {
+  font-size: 28rpx;
+  color: #60a5fa;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+.md-chart-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+.md-chart-series {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+.md-chart-series-item {
+  padding: 12rpx 14rpx;
+  border-radius: 12rpx;
+  background: rgba(255,255,255,0.04);
+  border: 1rpx solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+.md-chart-fallback-title {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: rgba(191,219,254,0.8);
+}
+.md-chart-strategy {
+  font-size: 20rpx;
+  color: rgba(148,163,184,0.84);
+}
 
 /* ── 引用块 — 左侧青色边线 ─────────────────────── */
 .md-blockquote {
@@ -1137,14 +1337,23 @@
 
 /* ── 顶栏 ──────────────────────────────────── */
 .page.light .nav-new-icon { color: #3158a5; }
+.page.light .navbar-chat {
+  background: linear-gradient(180deg, rgba(247,250,255,0.97) 0%, rgba(247,250,255,0.88) 76%, rgba(247,250,255,0) 100%);
+}
 .page.light .nav-icon-btn,
 .page.light .row-icon-btn {
   background: rgba(255,255,255,0.88);
   border: 1rpx solid rgba(176,193,224,0.58);
   box-shadow: 0 10rpx 28rpx rgba(117,139,180,0.12);
 }
+.page.light .home-entry-btn {
+  background: rgba(255,255,255,0.88);
+  border: 1rpx solid rgba(176,193,224,0.58);
+  box-shadow: 0 10rpx 28rpx rgba(117,139,180,0.12);
+}
 .page.light .nav-icon-btn .ico,
 .page.light .row-icon-btn .ico { filter: invert(1); opacity: 0.62; }
+.page.light .home-entry-glyph { color: #334155; }
 
 /* ── 积分 ──────────────────────────────────── */
 .page.light .points-pill {
@@ -1266,6 +1475,55 @@
 .page.light .md-th { color: #132036; border-color: #dbe6f5; }
 .page.light .md-td { color: #334155; border-color: #edf2fb; }
 .page.light .md-tr:nth-child(even) { background: rgba(47,107,255,0.03); }
+.page.light .md-table-caption { color: #4f6b95; }
+.page.light .md-table-strategy { color: #7b8aa2; }
+.page.light .md-cell-highlight { background: #eef4ff; }
+.page.light .md-table-card {
+  background: rgba(247,250,255,0.96);
+  border-color: #dbe6f5;
+}
+.page.light .md-table-card-title { color: #132036; }
+.page.light .md-table-card-key { color: #607086; }
+.page.light .md-table-card-val { color: #334155; }
+
+/* ── 公式块 ──────────────────────────────────── */
+.page.light .md-formula {
+  background: linear-gradient(180deg, rgba(247,250,255,0.98) 0%, rgba(238,244,255,0.94) 100%);
+  border-color: #dbe6f5;
+}
+.page.light .md-formula-label { color: #2f6bff; }
+.page.light .md-formula-text { color: #162033; }
+.page.light .md-formula-copy { color: #607086; }
+
+/* ── 步骤 / 总结 / 图表 ───────────────────── */
+.page.light .md-steps,
+.page.light .md-recap,
+.page.light .md-chart {
+  background: rgba(247,250,255,0.96);
+  border-color: #dbe6f5;
+}
+.page.light .md-steps-title,
+.page.light .md-recap-title,
+.page.light .md-chart-title,
+.page.light .md-step-name,
+.page.light .md-chart-type {
+  color: #132036;
+}
+.page.light .md-step-index,
+.page.light .md-recap-bullet-mark { color: #2f6bff; }
+.page.light .md-step-detail,
+.page.light .md-recap-summary,
+.page.light .md-chart-summary,
+.page.light .md-chart-caption,
+.page.light .md-chart-axis,
+.page.light .md-chart-series-summary,
+.page.light .md-recap-bullet-text { color: #334155; }
+.page.light .md-chart-series-item {
+  background: #f8fbff;
+  border-color: #e2eaf7;
+}
+.page.light .md-chart-fallback-title { color: #2f6bff; }
+.page.light .md-chart-strategy { color: #7b8aa2; }
 
 /* ── 引用块 ────────────────────────────────── */
 .page.light .md-blockquote {
@@ -1438,6 +1696,13 @@
 .page.light .cursor { background: #2f6bff; }
 
 /* ── Logo ──────────────────────────────────── */
+.page.light .nav-back-pill {
+  background: rgba(255,255,255,0.82);
+  border-color: rgba(148,163,184,0.24);
+  box-shadow: 0 10rpx 24rpx rgba(148,163,184,0.14);
+}
+.page.light .nav-back-arrow,
+.page.light .nav-back-label { color: #334155; }
 .page.light .nav-logo { filter: brightness(0); }
 .page.light .nav-back-pill {
   background: rgba(15, 23, 42, 0.06);

@@ -1,6 +1,3 @@
 {
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "empty-state": "../../components/empty-state/empty-state"
-  }
+  "navigationStyle": "custom"
 }

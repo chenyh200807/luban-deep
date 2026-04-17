@@ -1,5 +1,1 @@
-<!--pages/freeCourseDetailsonline/freeCourseDetailsonline.wxml-->
-<!-- <view style="width:60%;margin:20%;text-align: center;">
-  <text>因为业务调整，暂时进行内容调整，请等待，或者重新进入小程序</text>
-</view> -->
-<web-view src="https://www.yousenjiaoyu.com/static/default/wxmini/%E8%AF%A6%E6%83%85.jpg"></web-view>
+<view></view>

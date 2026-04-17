@@ -346,3 +346,87 @@ async def test_supabase_pipeline_reuses_async_client_until_timeout_changes(
 
     await pipeline.aclose()
     assert client_three.closed is True
+
+
+@pytest.mark.asyncio
+async def test_supabase_search_dedupes_duplicate_rendered_content_and_sources(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-key")
+    monkeypatch.setenv("SUPABASE_RAG_ENABLE_RERANK", "false")
+    monkeypatch.setenv("SUPABASE_RAG_SECOND_PASS", "false")
+
+    class _FakeKbConfigService:
+        def get_kb_config(self, kb_name: str) -> dict[str, object]:
+            _ = kb_name
+            return {}
+
+    monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
+
+    pipeline = supabase_module.SupabasePipeline()
+
+    async def _fake_run_query_plan(**kwargs):
+        _ = kwargs
+        return [
+            {
+                "phase": "primary",
+                "group_name": "standards",
+                "query": "建筑构造是什么",
+                "query_index": 0,
+                "query_weight": 1.0,
+                "results": [
+                    {
+                        "id": "std-1",
+                        "chunk_id": "std-1",
+                        "card_title": "GB 50016-2019 §6.13.1 建筑构造",
+                        "rag_content": "【6.13.1】地面的基本构造层宜为面层、垫层和地基。",
+                        "source_type": "standard",
+                        "score": 0.99,
+                        "_source_group": "standards",
+                        "_source_table": "kb_chunks",
+                    },
+                    {
+                        "id": "std-dup",
+                        "chunk_id": "std-dup",
+                        "card_title": "GB 50016-2019 §6.13.1 建筑构造",
+                        "rag_content": "【6.13.1】地面的基本构造层宜为面层、垫层和地基。",
+                        "source_type": "standard",
+                        "score": 0.98,
+                        "_source_group": "standards",
+                        "_source_table": "kb_chunks",
+                    },
+                    {
+                        "id": "std-2",
+                        "chunk_id": "std-2",
+                        "card_title": "GB 50016-2019 §6.13.1 建筑构造",
+                        "rag_content": "【6.13.1】楼面的基本构造层宜为面层和楼板。",
+                        "source_type": "standard",
+                        "score": 0.97,
+                        "_source_group": "standards",
+                        "_source_table": "kb_chunks",
+                    },
+                ],
+            }
+        ]
+
+    async def _identity(results, **kwargs):
+        _ = kwargs
+        return results
+
+    monkeypatch.setattr(pipeline, "_search_exact_question_text", lambda **kwargs: [])
+    monkeypatch.setattr(pipeline, "_run_query_plan", _fake_run_query_plan)
+    monkeypatch.setattr(pipeline, "_hydrate_sources", _identity)
+    monkeypatch.setattr(pipeline, "_rerank_results", _identity)
+
+    result = await pipeline.search(
+        query="建筑构造是什么？",
+        kb_name="construction-exam",
+    )
+
+    assert result["answer"].count("地面的基本构造层宜为面层、垫层和地基") == 1
+    assert result["answer"].count("楼面的基本构造层宜为面层和楼板") == 1
+    assert len(result["sources"]) == 2
+    assert [item["chunk_id"] for item in result["sources"]] == ["std-1", "std-2"]

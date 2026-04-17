@@ -87,6 +87,7 @@ class LearnerStateSupabaseWriter:
         heartbeat_job_row: dict[str, Any] | None = None
         summary_row: dict[str, Any] | None = None
         memory_event_row: dict[str, Any] | None = None
+        overlay_rows: tuple[dict[str, Any] | None, dict[str, Any], dict[str, Any]] | None = None
 
         if event_type == "summary_refresh":
             summary_row = self._build_summary_refresh_row(item, payload)
@@ -98,6 +99,8 @@ class LearnerStateSupabaseWriter:
                 )
         elif event_type not in {"heartbeat_job", "learning_plan_page"}:
             memory_event_row = self._build_memory_event_row(item, payload)
+            if event_type.startswith("overlay_"):
+                overlay_rows = self._build_overlay_sync_rows(item, payload, event_type=event_type)
 
         if event_type == "guide_completion":
             guide_rows = self._build_guide_completion_rows(item, payload, inner_payload)
@@ -141,6 +144,31 @@ class LearnerStateSupabaseWriter:
                     on_conflict="dedupe_key",
                 )
                 written_tables.append("learner_memory_events")
+
+            if overlay_rows is not None:
+                overlay_row, overlay_event_row, overlay_audit_row = overlay_rows
+                if overlay_row is not None:
+                    await self._upsert(
+                        client,
+                        table="bot_learner_overlays",
+                        rows=[overlay_row],
+                        on_conflict="bot_id,user_id",
+                    )
+                    written_tables.append("bot_learner_overlays")
+                await self._upsert(
+                    client,
+                    table="bot_learner_overlay_events",
+                    rows=[overlay_event_row],
+                    on_conflict="dedupe_key",
+                )
+                written_tables.append("bot_learner_overlay_events")
+                await self._upsert(
+                    client,
+                    table="bot_learner_overlay_audit",
+                    rows=[overlay_audit_row],
+                    on_conflict="audit_id",
+                )
+                written_tables.append("bot_learner_overlay_audit")
 
             if summary_row is not None:
                 await self._upsert(
@@ -268,6 +296,10 @@ class LearnerStateSupabaseWriter:
             "heartbeat_job",
             "heartbeat_delivery",
             "learning_plan_page",
+            "overlay_patch",
+            "overlay_promotion_queue_update",
+            "overlay_promotion_apply",
+            "overlay_decay",
         } or event_type.startswith(
             "notebook_"
         )
@@ -337,6 +369,63 @@ class LearnerStateSupabaseWriter:
             "created_at": job_payload["created_at"],
             "updated_at": job_payload["updated_at"],
         }
+
+    def _build_overlay_sync_rows(
+        self,
+        item: LearnerStateOutboxItem,
+        payload: dict[str, Any],
+        *,
+        event_type: str,
+    ) -> tuple[dict[str, Any] | None, dict[str, Any], dict[str, Any]]:
+        bot_id = str(payload.get("bot_id") or "").strip()
+        user_id = str(payload.get("user_id") or item.user_id).strip()
+        overlay_snapshot = dict(payload.get("overlay_snapshot") or {})
+        active_plan_binding = dict(overlay_snapshot.get("active_plan_binding") or {})
+        overlay_row: dict[str, Any] | None = None
+        if bot_id and user_id and overlay_snapshot:
+            overlay_row = {
+                "bot_id": bot_id,
+                "user_id": user_id,
+                "local_focus_json": dict(overlay_snapshot.get("local_focus") or {}),
+                "active_plan_id": self._null_if_blank(active_plan_binding.get("plan_id")),
+                "teaching_policy_override_json": dict(overlay_snapshot.get("teaching_policy_override") or {}),
+                "heartbeat_override_json": dict(overlay_snapshot.get("heartbeat_override") or {}),
+                "channel_presence_override_json": dict(overlay_snapshot.get("channel_presence_override") or {}),
+                "local_notebook_scope_refs_json": list(overlay_snapshot.get("local_notebook_scope_refs") or []),
+                "engagement_state_json": dict(overlay_snapshot.get("engagement_state") or {}),
+                "promotion_candidates_json": list(overlay_snapshot.get("promotion_candidates") or []),
+                "working_memory_projection_md": str(overlay_snapshot.get("working_memory_projection") or "").strip(),
+                "version": int(payload.get("overlay_version") or 1),
+                "created_at": str(payload.get("created_at") or item.created_at).strip(),
+                "updated_at": str(payload.get("created_at") or item.created_at).strip(),
+            }
+
+        overlay_event_row = {
+            "event_id": str(payload.get("event_id") or item.id).strip(),
+            "bot_id": bot_id,
+            "user_id": user_id,
+            "source_feature": str(payload.get("source_feature") or "overlay").strip() or "overlay",
+            "source_id": str(payload.get("source_id") or item.id).strip(),
+            "patch_kind": event_type,
+            "payload_json": dict(payload),
+            "dedupe_key": str(item.dedupe_key).strip(),
+            "created_at": str(payload.get("created_at") or item.created_at).strip(),
+        }
+        overlay_audit_row = {
+            "audit_id": str(payload.get("audit_id") or item.id).strip(),
+            "bot_id": bot_id,
+            "user_id": user_id,
+            "actor": self._null_if_blank(payload.get("actor")),
+            "action": event_type,
+            "fields_json": list(payload.get("overlay_fields") or []),
+            "metadata_json": {
+                key: value
+                for key, value in dict(payload).items()
+                if key != "overlay_snapshot"
+            },
+            "created_at": str(payload.get("created_at") or item.created_at).strip(),
+        }
+        return overlay_row, overlay_event_row, overlay_audit_row
 
     def _build_learning_plan_page_sync_rows(
         self,

@@ -20,11 +20,13 @@ from deeptutor.core.stream_bus import StreamBus
 from deeptutor.core.trace import merge_trace_metadata
 from deeptutor.services.question_followup import (
     answers_match,
-    build_question_followup_context_from_summary,
+    build_question_followup_context_from_presentation,
+    build_question_followup_context_from_result_summary,
     extract_submission_answer,
     normalize_question_followup_context,
     resolve_submission,
 )
+from deeptutor.services.render_presentation import build_canonical_presentation
 
 
 class DeepQuestionCapability(BaseCapability):
@@ -248,18 +250,31 @@ class DeepQuestionCapability(BaseCapability):
         if content:
             await stream.content(content, source=self.name, stage="generation")
 
+        presentation = build_canonical_presentation(
+            content=content or "",
+            result_summary=result,
+        )
         result_payload: dict[str, Any] = {
             "response": content or "No questions generated.",
-            "summary": result,
             "mode": mode,
-            "question_followup_context": build_question_followup_context_from_summary(
-                result,
-                content or "",
-                reveal_answers=reveal_answers,
-                reveal_explanations=reveal_explanations,
-            )
-            or {},
+            "question_followup_context": (
+                build_question_followup_context_from_presentation(
+                    presentation,
+                    content or "",
+                    reveal_answers=reveal_answers,
+                    reveal_explanations=reveal_explanations,
+                )
+                or build_question_followup_context_from_result_summary(
+                    result,
+                    content or "",
+                    reveal_answers=reveal_answers,
+                    reveal_explanations=reveal_explanations,
+                )
+                or {}
+            ),
         }
+        if presentation:
+            result_payload["presentation"] = presentation
         cost_meta = self._collect_cost_summary("question")
         if cost_meta:
             result_payload["metadata"] = {"cost_summary": cost_meta}

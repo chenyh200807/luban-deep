@@ -1,143 +1,171 @@
 <view class="yousen-page">
-  <view class="cover-hero">
-    <view class="cover-overlay"></view>
-    <view class="cover-glow"></view>
+  <scroll-view
+    class="page-scroll"
+    scroll-y="{{pageScrollEnabled}}"
+    scroll-top="{{pageScrollTop}}"
+    enhanced="{{true}}"
+    show-scrollbar="{{false}}"
+    scroll-with-animation="{{false}}"
+    bindscroll="handlePageScroll"
+  >
+    <view class="page-scroll-inner">
+      <view class="cover-hero">
+        <image class="cover-image" style="{{heroCoverImageStyle}}" src="/pages/images/yousen-cover.jpg" mode="aspectFill"></image>
+        <view class="cover-overlay"></view>
+        <view class="cover-glow" style="{{heroCoverGlowStyle}}"></view>
 
-    <view class="hero-inner">
-      <view class="hero-brand-block">
-        <view class="hero-brand-row">
-          <view class="hero-brand-copy">
-            <text class="hero-brand-name">佑森教育</text>
-            <text class="hero-brand-slogan">佑森教育，只做建工培训</text>
-          </view>
-        </view>
-      </view>
-
-      <view class="hero-anniversary-panel" animation="{{heroAnniversaryAnim}}">
-        <text class="hero-anniversary-watermark">11</text>
-        <view class="hero-anniversary-copy">
-          <text class="hero-anniversary-date">2015—2026</text>
-          <text class="hero-anniversary-title">周年</text>
-          <text class="hero-anniversary-meta">累计 7w+ 通关学员</text>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <view class="content-sheet">
-    <view class="hero-ai-bridge" wx:if="{{deeptutorEntryVisible}}" bindtap="navigateToShop">
-      <view class="hero-ai-bridge-mark">AI</view>
-      <view class="hero-ai-bridge-copy">
-        <text class="hero-ai-bridge-title">{{deeptutorEntryConfig.title}}</text>
-        <text class="hero-ai-bridge-subtitle">智能答疑入口</text>
-      </view>
-      <view class="hero-ai-bridge-cta">
-        <text class="hero-ai-bridge-cta-text">开始答疑</text>
-        <view class="hero-ai-bridge-cta-arrow">
-          <text class="hero-ai-bridge-cta-arrow-text">›</text>
-        </view>
-      </view>
-    </view>
-
-    <view class="sheet-topline">
-      <view class="sheet-copy">
-        <text class="sheet-label">SELECTED TRACK</text>
-        <text class="sheet-title">{{selectedMajorLabel}} · {{selectedSubjectLabel}}</text>
-      </view>
-
-      <picker
-        mode="multiSelector"
-        class="direction-picker"
-        bindchange="bindMultiPickerChange"
-        bindcolumnchange="bindMultiPickerColumnChange"
-        value="{{multiIndex}}"
-        range="{{multiArray}}"
-        bindtap="rotateImage"
-        bindcancel="stopRotateImage"
-      >
-        <view class="direction-picker-inner">
-          <text class="direction-picker-value">切换方向</text>
-          <image src="{{imageUrl}}" class="direction-picker-icon rotate-image" animation="{{rotationAnim}}"></image>
-        </view>
-      </picker>
-    </view>
-
-    <text class="sheet-subtitle" wx:if="{{featuredCourseTitle}}">推荐从「{{featuredCourseTitle}}」开始。</text>
-    <text class="sheet-subtitle" wx:else>从公开课进入，再逐步深入学习。</text>
-
-    <view class="course-section">
-      <view class="section-head">
-        <text class="section-title">精选课程</text>
-        <text class="section-count">{{currentCourseCount}} 节</text>
-      </view>
-
-      <block wx:for="{{getGratisCourseList}}" wx:key="id">
-        <view class="course-card" data-url="/pages/freeCourseDetails/freeCourseDetails?pk_id={{item.id}}" catchtap="linkTo">
-          <image class="course-media" src="{{item.cart_image}}" mode="aspectFill" lazy-load="{{true}}"></image>
-
-          <view class="course-content">
-            <view class="course-heading">
-              <text class="course-tag">公开课</text>
-              <text class="course-title ell-2">{{item.title}}</text>
-            </view>
-
-            <text class="course-summary">适合当前阶段先梳理知识结构，再衔接练题与强化。</text>
-
-            <view class="course-footer">
-              <view class="teacher-row" wx:if="{{item.teacher && item.teacher.length}}">
-                <view class="teacher-avatars">
-                  <block wx:for="{{item.teacher}}" wx:for-item="kk" wx:key="__teacherKey">
-                    <image wx:if="{{index < 3}}" class="teacher-avatar" src="{{kk.head_image}}" mode="aspectFill" lazy-load="{{true}}"></image>
-                  </block>
-                </view>
-                <view class="teacher-copy">
-                  <block wx:for="{{item.teacher}}" wx:for-item="kk" wx:key="__teacherKey">
-                    <text class="teacher-name" wx:if="{{index < 2}}">{{kk.name}}{{index == 0 && item.teacher.length > 1 ? ' / ' : ''}}</text>
-                  </block>
-                  <text class="teacher-count" wx:if="{{item.teacher.length > 2}}">等 {{item.teacher.length}} 位老师</text>
-                </view>
-              </view>
-              <view class="course-action">
-                <text class="course-action-text">进入课程</text>
+        <view class="hero-inner">
+          <view class="hero-anniversary-panel" style="{{heroAnniversaryStyle}}">
+            <text class="hero-anniversary-watermark">11</text>
+            <view class="hero-anniversary-copy">
+              <text class="hero-anniversary-kicker">YOUSEN EDUCATION</text>
+              <text class="hero-anniversary-title">十一周年</text>
+              <view class="hero-anniversary-foot">
+                <text class="hero-anniversary-date">2015—2026</text>
+                <text class="hero-anniversary-dot"></text>
+                <text class="hero-anniversary-meta">7w+ 学员通关</text>
               </view>
             </view>
           </view>
         </view>
-      </block>
 
-      <view wx:if="{{noData}}" class="course-empty">
-        <text class="course-empty-title">当前方向暂时没有公开课</text>
-        <text class="course-empty-subtitle">可以切换专业或科目查看其他内容。</text>
-      </view>
-    </view>
-
-    <view class="service-banner" wx:if="{{ggimage}}" bindtap="goToggimageurl">
-      <image class="service-banner-image" src="{{ggimage}}" mode="aspectFill" lazy-load="{{true}}"></image>
-      <view class="service-banner-overlay"></view>
-      <view class="service-banner-copy">
-        <text class="service-banner-label">活动与服务</text>
-        <text class="service-banner-title">查看更多课程配套与服务入口</text>
-      </view>
-    </view>
-
-    <view class="bottom-space"></view>
-  </view>
-
-  <view class="promo-modal" wx:if="{{showModal}}">
-    <view class="promo-modal-mask" bindtap="closeModal"></view>
-    <view class="promo-modal-card">
-      <view class="promo-modal-figure">
-        <image bindtap="gotoModalurl" bindload="handleModalImageLoad" binderror="handleModalImageError" class="promo-modal-image" src="{{showimg}}" mode="widthFix" />
-        <view id="left-right-top" class="promo-modal-hitbox">
-          <view class="promo-hit-left" bindtap="goToLeftTopPage"></view>
-          <view class="promo-hit-right" bindtap="goToRightBottomPage"></view>
-        </view>
-        <view class="promo-modal-loading" wx:if="{{modalImageLoading}}">
-          <text class="promo-modal-loading-text">广告加载中...</text>
+        <view class="hero-ai-story" wx:if="{{deeptutorEntryVisible}}" style="{{heroAiStoryStyle}}" bindtap="navigateToShop">
+          <view class="hero-ai-story-copy">
+            <text class="hero-ai-story-kicker">现已隆重推出</text>
+            <text class="hero-ai-story-title">{{deeptutorEntryConfig.title}}</text>
+            <text class="hero-ai-story-subtitle">知道你哪题不会，更知道你为什么不会</text>
+            <text class="hero-ai-story-detail">针对一级建造师建筑实务复习场景，帮你定位薄弱点、拆解题目逻辑、梳理答题思路。</text>
+            <view class="hero-ai-story-action">
+              <text class="hero-ai-story-action-text">进入鲁班AI智考</text>
+              <text class="hero-ai-story-action-arrow">›</text>
+            </view>
+          </view>
         </view>
       </view>
-      <view class="promo-modal-close" bindtap="closeModal">
-        <image src="https://cnd.yousenjiaoyu.com/60/39d9cdf52998c29e6560e5b0a32ac3.png?attname=close.png" mode="aspectFit" />
+
+      <view class="hero-dock-spacer"></view>
+
+      <view class="content-sheet {{sheetDocked ? 'is-docked' : ''}}">
+        <scroll-view
+          class="content-sheet-body {{sheetDocked ? 'is-docked' : ''}}"
+          scroll-y="{{contentScrollEnabled}}"
+          scroll-top="{{contentScrollTop}}"
+          enhanced="{{true}}"
+          show-scrollbar="{{false}}"
+          scroll-with-animation="{{false}}"
+          upper-threshold="20"
+          lower-threshold="180"
+          style="{{contentPaneStyle}}"
+          bindscroll="handleContentScroll"
+          bindscrolltoupper="handleContentScrollToUpper"
+          bindscrolltolower="handleContentScrollToLower"
+        >
+          <view class="content-sheet-scroll-head">
+            <view class="hero-ai-bridge" wx:if="{{deeptutorEntryVisible}}" bindtap="navigateToShop">
+              <view class="hero-ai-bridge-mark">AI</view>
+              <view class="hero-ai-bridge-copy">
+                <text class="hero-ai-bridge-title">{{deeptutorEntryConfig.title}}</text>
+                <text class="hero-ai-bridge-subtitle">智能答疑入口</text>
+              </view>
+              <view class="hero-ai-bridge-cta">
+                <text class="hero-ai-bridge-cta-text">开始答疑</text>
+                <view class="hero-ai-bridge-cta-arrow">
+                  <text class="hero-ai-bridge-cta-arrow-text">›</text>
+                </view>
+              </view>
+            </view>
+
+            <view class="sheet-topline">
+              <view class="sheet-copy">
+                <text class="sheet-label">SELECTED TRACK</text>
+                <text class="sheet-title">{{selectedMajorLabel}} · {{selectedSubjectLabel}}</text>
+              </view>
+
+              <picker
+                mode="multiSelector"
+                class="direction-picker"
+                bindchange="bindMultiPickerChange"
+                bindcolumnchange="bindMultiPickerColumnChange"
+                value="{{multiIndex}}"
+                range="{{multiArray}}"
+                bindtap="rotateImage"
+                bindcancel="stopRotateImage"
+              >
+                <view class="direction-picker-inner">
+                  <text class="direction-picker-value">切换方向</text>
+                  <image src="{{imageUrl}}" class="direction-picker-icon rotate-image" animation="{{rotationAnim}}"></image>
+                </view>
+              </picker>
+            </view>
+
+            <view class="service-banner content-sheet-service-banner" wx:if="{{ggimage}}" bindtap="goToggimageurl">
+              <image class="service-banner-image" src="{{ggimage}}" mode="aspectFill" lazy-load="{{true}}"></image>
+              <view class="service-banner-overlay"></view>
+              <view class="service-banner-copy">
+                <text class="service-banner-label">活动与服务</text>
+                <text class="service-banner-title">查看更多课程配套与服务入口</text>
+              </view>
+            </view>
+
+            <view class="section-head content-sheet-section-head">
+              <text class="section-title">精选课程</text>
+              <text class="section-count">{{currentCourseCount}} 节</text>
+            </view>
+          </view>
+
+          <view class="course-section">
+            <block wx:for="{{renderedCourseList}}" wx:key="id">
+              <view class="course-card" data-url="/pages/freeCourseDetails/freeCourseDetails?pk_id={{item.id}}" catchtap="linkTo">
+                <image class="course-media" src="{{item.cart_image}}" mode="aspectFill" lazy-load="{{true}}"></image>
+
+                <view class="course-content">
+                  <view class="course-heading">
+                    <text class="course-tag">公开课</text>
+                    <text class="course-title ell-2">{{item.title}}</text>
+                  </view>
+
+                  <view class="course-footer">
+                    <view class="teacher-row" wx:if="{{item.teacher && item.teacher.length}}">
+                      <view class="teacher-avatars">
+                        <block wx:for="{{item.teacher}}" wx:for-item="kk" wx:key="__teacherKey">
+                          <image wx:if="{{index < 3}}" class="teacher-avatar" src="{{kk.head_image}}" mode="aspectFill" lazy-load="{{true}}"></image>
+                        </block>
+                      </view>
+                      <view class="teacher-copy">
+                        <block wx:for="{{item.teacher}}" wx:for-item="kk" wx:key="__teacherKey">
+                          <text class="teacher-name" wx:if="{{index < 2}}">{{kk.name}}{{index == 0 && item.teacher.length > 1 ? ' / ' : ''}}</text>
+                        </block>
+                        <text class="teacher-count" wx:if="{{item.teacher.length > 2}}">等 {{item.teacher.length}} 位老师</text>
+                      </view>
+                    </view>
+                    <view class="course-action">
+                      <text class="course-action-text">进入课程</text>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </block>
+
+            <view wx:if="{{noData}}" class="course-empty">
+              <text class="course-empty-title">当前方向暂时没有公开课</text>
+              <text class="course-empty-subtitle">可以切换专业或科目查看其他内容。</text>
+            </view>
+          </view>
+
+          <view class="bottom-space"></view>
+        </scroll-view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="hero-brand-fixed">
+    <view class="hero-brand-block">
+      <view class="hero-brand-row">
+        <image class="hero-logo" src="/pages/images/yousen-logo-mark-white.png" mode="aspectFit"></image>
+        <view class="hero-brand-copy">
+          <text class="hero-brand-name">佑森教育</text>
+          <text class="hero-brand-slogan">佑森教育，只做建工培训</text>
+        </view>
       </view>
     </view>
   </view>
