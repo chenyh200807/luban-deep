@@ -24,7 +24,7 @@ import json
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator
 
-from .stream import StreamEvent, StreamEventType
+from .stream import StreamEvent, StreamEventType, StreamVisibility
 from .trace import merge_trace_metadata
 
 
@@ -81,6 +81,7 @@ class StreamBus:
                 source=source,
                 stage=name,
                 metadata=metadata or {},
+                visibility="internal",
             )
         )
         try:
@@ -92,6 +93,7 @@ class StreamBus:
                     source=source,
                     stage=name,
                     metadata=metadata or {},
+                    visibility="internal",
                 )
             )
 
@@ -101,6 +103,7 @@ class StreamBus:
         source: str = "",
         stage: str = "",
         metadata: dict[str, Any] | None = None,
+        visibility: StreamVisibility = "public",
     ) -> None:
         await self.emit(
             StreamEvent(
@@ -109,6 +112,7 @@ class StreamBus:
                 stage=stage,
                 content=text,
                 metadata=metadata or {},
+                visibility=visibility,
             )
         )
 
@@ -118,6 +122,7 @@ class StreamBus:
         source: str = "",
         stage: str = "",
         metadata: dict[str, Any] | None = None,
+        visibility: StreamVisibility = "internal",
     ) -> None:
         await self.emit(
             StreamEvent(
@@ -126,6 +131,7 @@ class StreamBus:
                 stage=stage,
                 content=text,
                 metadata=metadata or {},
+                visibility=visibility,
             )
         )
 
@@ -135,6 +141,7 @@ class StreamBus:
         source: str = "",
         stage: str = "",
         metadata: dict[str, Any] | None = None,
+        visibility: StreamVisibility = "internal",
     ) -> None:
         await self.emit(
             StreamEvent(
@@ -143,6 +150,7 @@ class StreamBus:
                 stage=stage,
                 content=text,
                 metadata=metadata or {},
+                visibility=visibility,
             )
         )
 
@@ -153,6 +161,7 @@ class StreamBus:
         source: str = "",
         stage: str = "",
         metadata: dict[str, Any] | None = None,
+        visibility: StreamVisibility = "internal",
     ) -> None:
         await self.emit(
             StreamEvent(
@@ -161,6 +170,7 @@ class StreamBus:
                 stage=stage,
                 content=tool_name,
                 metadata=merge_trace_metadata({"args": args}, metadata),
+                visibility=visibility,
             )
         )
 
@@ -171,6 +181,7 @@ class StreamBus:
         source: str = "",
         stage: str = "",
         metadata: dict[str, Any] | None = None,
+        visibility: StreamVisibility = "internal",
     ) -> None:
         await self.emit(
             StreamEvent(
@@ -179,6 +190,7 @@ class StreamBus:
                 stage=stage,
                 content=result,
                 metadata=merge_trace_metadata({"tool": tool_name}, metadata),
+                visibility=visibility,
             )
         )
 
@@ -190,6 +202,7 @@ class StreamBus:
         source: str = "",
         stage: str = "",
         metadata: dict[str, Any] | None = None,
+        visibility: StreamVisibility = "internal",
     ) -> None:
         await self.emit(
             StreamEvent(
@@ -201,6 +214,7 @@ class StreamBus:
                     {"current": current, "total": total},
                     metadata,
                 ),
+                visibility=visibility,
             )
         )
 
@@ -210,6 +224,7 @@ class StreamBus:
         source: str = "",
         stage: str = "",
         metadata: dict[str, Any] | None = None,
+        visibility: StreamVisibility = "public",
     ) -> None:
         await self.emit(
             StreamEvent(
@@ -217,6 +232,7 @@ class StreamBus:
                 source=source,
                 stage=stage,
                 metadata=merge_trace_metadata({"sources": sources}, metadata),
+                visibility=visibility,
             )
         )
 
@@ -225,12 +241,14 @@ class StreamBus:
         data: dict[str, Any],
         source: str = "",
         metadata: dict[str, Any] | None = None,
+        visibility: StreamVisibility = "public",
     ) -> None:
         await self.emit(
             StreamEvent(
                 type=StreamEventType.RESULT,
                 source=source,
                 metadata=merge_trace_metadata(data, metadata),
+                visibility=visibility,
             )
         )
 
@@ -240,6 +258,7 @@ class StreamBus:
         source: str = "",
         stage: str = "",
         metadata: dict[str, Any] | None = None,
+        visibility: StreamVisibility = "public",
     ) -> None:
         await self.emit(
             StreamEvent(
@@ -248,6 +267,7 @@ class StreamBus:
                 stage=stage,
                 content=message,
                 metadata=metadata or {},
+                visibility=visibility,
             )
         )
 

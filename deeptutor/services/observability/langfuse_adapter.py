@@ -15,6 +15,7 @@ import httpx
 
 from deeptutor.logging import get_logger
 from deeptutor.services.observability.usage_ledger import get_usage_ledger
+from deeptutor.services.user_visible_output import redact_internal_output
 
 logger = get_logger("LangfuseObservability")
 
@@ -513,7 +514,10 @@ class LangfuseObservability:
     def sanitize_output(self, value: Any) -> Any:
         if not _env_flag("LANGFUSE_CAPTURE_OUTPUT", True):
             return None
-        return _sanitize_value(value, mask_pii=_env_flag("LANGFUSE_MASK_PII", True))
+        return _sanitize_value(
+            redact_internal_output(value),
+            mask_pii=_env_flag("LANGFUSE_MASK_PII", True),
+        )
 
     def sanitize_metadata(self, metadata: dict[str, Any] | None) -> dict[str, Any] | None:
         if not metadata:

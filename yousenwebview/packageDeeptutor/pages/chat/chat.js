@@ -48,9 +48,14 @@ function extractPointsValue(raw) {
   var candidates = [
     source.balance,
     source.points,
+    source.points_balance,
     source.wallet_balance,
     source.walletBalance,
     source.wallet && source.wallet.balance,
+    source.wallet && source.wallet.points,
+    source.data && source.data.balance,
+    source.data && source.data.points,
+    source.data && source.data.points_balance,
     source.billing && source.billing.balance_after,
   ];
   for (var i = 0; i < candidates.length; i++) {
@@ -89,6 +94,7 @@ Page({
     feedbackTags: [],
     feedbackComment: "",
     isDark: true,
+    showInternalStatus: false,
     // 性能分级：控制 WXML 中动效开关
     enableOrbs: _animCfg.enableBreathingOrbs,
     enableMarquee: _animCfg.enableMarquee,
@@ -1902,6 +1908,20 @@ Page({
     wx.navigateTo({ url: route.profile() });
   },
 
+  onSwitchAccount: function () {
+    helpers.vibrate("light");
+    wx.showModal({
+      title: "切换账号",
+      content: "将退出当前账号并返回登录页，是否继续？",
+      confirmColor: "#ef4444",
+      success: function (res) {
+        if (res.confirm) {
+          runtime.logout();
+        }
+      },
+    });
+  },
+
   _syncWorkspaceBack: function () {
     var workspaceBack = runtime.getWorkspaceBack(route.chat());
     if (workspaceBack && !flags.isRouteEnabled(workspaceBack.url)) {
@@ -2026,8 +2046,10 @@ Page({
     api
       .getWallet()
       .then(function (data) {
-        var d = api.unwrapResponse(data);
-        self.setData({ billingBalance: d.balance || 0 });
+        var points = extractPointsValue(data);
+        if (points !== null) {
+          self.setData({ billingBalance: points, userPoints: points });
+        }
       })
       .catch(function (err) {
         log.warn("Chat", "getWallet failed: " + ((err && err.message) || err));

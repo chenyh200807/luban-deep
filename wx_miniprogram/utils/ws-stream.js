@@ -15,6 +15,15 @@ function buildPresentationEvent(resultMetadata) {
   return presentation;
 }
 
+function resolveEventVisibility(event) {
+  if (!event || typeof event !== "object") return "public";
+  var direct = String(event.visibility || "").trim().toLowerCase();
+  if (direct === "internal") return "internal";
+  var metadata = event.metadata || {};
+  var nested = String(metadata.visibility || "").trim().toLowerCase();
+  return nested === "internal" ? "internal" : "public";
+}
+
 var RECONNECT_BASE_DELAY_MS = 400;
 var RECONNECT_MAX_DELAY_MS = 4000;
 var RECONNECT_MAX_ATTEMPTS = 5;
@@ -174,6 +183,7 @@ function streamChat(opts, callbacks) {
     if (!event || typeof event !== "object") return;
     var eventType = String(event.type || "").trim();
     var eventMetadata = event.metadata || {};
+    var visibility = resolveEventVisibility(event);
     var eventSeq = typeof event.seq === "number" ? event.seq : null;
     if (event.turn_id) {
       turnId = String(event.turn_id || "").trim() || turnId;
@@ -200,6 +210,9 @@ function streamChat(opts, callbacks) {
     }
 
     if (eventType === "content") {
+      if (visibility !== "public") {
+        return;
+      }
       if (!firstTokenReceived) {
         firstTokenReceived = true;
         clearSlowTimer();
@@ -209,6 +222,9 @@ function streamChat(opts, callbacks) {
     }
 
     if (eventType === "thinking" || eventType === "progress") {
+      if (visibility !== "public") {
+        return;
+      }
       if (cb.onStatus) {
         cb.onStatus({
           type: "status",
@@ -225,6 +241,9 @@ function streamChat(opts, callbacks) {
     }
 
     if (eventType === "result") {
+      if (visibility !== "public") {
+        return;
+      }
       var presentationEvent = buildPresentationEvent(eventMetadata);
       if (presentationEvent && cb.onPresentation) {
         cb.onPresentation(presentationEvent);

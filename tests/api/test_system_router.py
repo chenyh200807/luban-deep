@@ -44,10 +44,11 @@ def test_turn_contract_endpoint_exposes_unified_schema() -> None:
 
     assert response.status_code == 200
     body = response.json()
-    assert body["version"] == 1
+    assert body["version"] == 2
     assert body["transport"]["primary_websocket"] == "/api/v1/ws"
     assert "start_turn_message" in body["schemas"]
     assert "turn_start_response" in body["schemas"]
+    assert "turn_stream_event" in body["schemas"]
     assert "bot_id" in body["trace_fields"]
     assert "execution_engine" in body["trace_fields"]
     assert "tool_calls" in body["trace_fields"]
@@ -58,6 +59,8 @@ def test_turn_contract_endpoint_exposes_unified_schema() -> None:
     assert "escalation_level" in body["trace_fields"]
     assert "loaded_sources" in body["trace_fields"]
     assert "token_budget_total" in body["trace_fields"]
+    assert "visibility" in body["trace_fields"]
+    assert "assistant_content_source" in body["trace_fields"]
     assert body["docs"]["contract"] == "/CONTRACT.md"
     assert body["docs"]["guide"] == "/docs/zh/guide/unified-turn-contract.md"
 

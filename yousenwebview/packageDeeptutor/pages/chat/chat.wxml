@@ -51,6 +51,12 @@
         <text class="avatar-char">{{avatarChar}}</text>
       </view>
     </view>
+    <view class="account-row">
+      <text class="account-name">当前账号：{{userName || '用户'}}</text>
+      <view class="account-switch-btn" bindtap="onSwitchAccount" aria-role="button" aria-label="切换账号">
+        <text class="account-switch-txt">切换账号</text>
+      </view>
+    </view>
 
     <!-- 撑开空间，把内容推到中下部 -->
     <view class="hero-spacer"></view>
@@ -182,9 +188,9 @@
         </view>
 
         <!-- AI 消息 -->
-          <view class="bubble-ai {{item.thinkingStatus && !item.renderableContent && !item.blocks.length && !(item.mcqCards && item.mcqCards.length) ? 'bubble-ai-thinking' : ''}}" wx:else>
+          <view class="bubble-ai {{showInternalStatus && item.thinkingStatus && !item.renderableContent && !item.blocks.length && !(item.mcqCards && item.mcqCards.length) ? 'bubble-ai-thinking' : ''}}" wx:else>
             <!-- 思考中：独立状态面板 -->
-          <view class="thinking-panel thinking-panel-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}" wx:if="{{item.thinkingStatus && !item.renderableContent && !item.blocks.length && !(item.mcqCards && item.mcqCards.length)}}">
+          <view class="thinking-panel thinking-panel-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}" wx:if="{{showInternalStatus && item.thinkingStatus && !item.renderableContent && !item.blocks.length && !(item.mcqCards && item.mcqCards.length)}}">
             <view class="thinking-rail"></view>
             <view class="thinking-main">
               <view class="thinking-head">
@@ -220,12 +226,12 @@
 	          </view>
 
           <!-- 思考中：生成阶段维持轻量提示 -->
-          <view class="thinking thinking-inline" wx:elif="{{item.thinkingStatus && !(item.mcqCards && item.mcqCards.length) && !(item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length)))}}">
+          <view class="thinking thinking-inline" wx:elif="{{showInternalStatus && item.thinkingStatus && !(item.mcqCards && item.mcqCards.length) && !(item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length)))}}">
             <view class="dots-bounce"><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
             <text class="thinking-label">{{item.thinkingStatus}}</text>
           </view>
 
-          <view class="workflow-card workflow-card-{{item.workflowTone ? item.workflowTone : 'compose'}}" wx:if="{{item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}">
+          <view class="workflow-card workflow-card-{{item.workflowTone ? item.workflowTone : 'compose'}}" wx:if="{{showInternalStatus && item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}">
             <view class="workflow-card-head">
               <view class="workflow-card-title">
                 <text class="workflow-card-badge">{{item.workflowBadge || '本轮推演'}}</text>

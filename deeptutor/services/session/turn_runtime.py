@@ -12,6 +12,7 @@ import os
 import sqlite3
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
+from datetime import datetime
 from types import SimpleNamespace
 from typing import Any
 
@@ -25,9 +26,12 @@ from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
     build_question_followup_context_from_presentation,
+    followup_action_route,
+    interpret_question_followup_action,
     looks_like_question_followup,
     normalize_question_followup_context,
 )
+from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
     build_user_owner_key,
@@ -40,6 +44,8 @@ logger = logging.getLogger(__name__)
 observability = get_langfuse_observability()
 _MINI_PROGRAM_CAPTURE_COST = 20
 _CAPTURED_ASSISTANT_CALL_KINDS = {"llm_final_response", "exact_authority_response"}
+_PUBLIC_VISIBILITY = "public"
+_INTERNAL_VISIBILITY = "internal"
 
 
 class _ContextOrchestrationStageError(RuntimeError):
@@ -49,7 +55,18 @@ class _ContextOrchestrationStageError(RuntimeError):
         self.cause_type = type(cause).__name__
 
 
+def _event_visibility(event: StreamEvent | dict[str, Any]) -> str:
+    raw = (
+        getattr(event, "visibility", None)
+        if not isinstance(event, dict)
+        else event.get("visibility")
+    )
+    return _INTERNAL_VISIBILITY if str(raw or "").strip().lower() == _INTERNAL_VISIBILITY else _PUBLIC_VISIBILITY
+
+
 def _should_capture_assistant_content(event: StreamEvent) -> bool:
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return False
     if event.type != StreamEventType.CONTENT:
         return False
     metadata = event.metadata or {}
@@ -57,6 +74,22 @@ def _should_capture_assistant_content(event: StreamEvent) -> bool:
     if not call_id:
         return True
     return str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS
+
+
+def _extract_authoritative_assistant_content(event: StreamEvent) -> str:
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return ""
+    if event.type == StreamEventType.RESULT:
+        metadata = event.metadata or {}
+        response = metadata.get("response")
+        if response is None and isinstance(metadata.get("metadata"), dict):
+            response = metadata["metadata"].get("response")
+        return str(response or "").strip()
+    if event.type == StreamEventType.CONTENT:
+        metadata = event.metadata or {}
+        if str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS:
+            return str(event.content or "").strip()
+    return ""
 
 
 def _clip_text(value: str, limit: int = 4000) -> str:
@@ -73,11 +106,67 @@ def _env_flag(name: str, default: bool = True) -> bool:
     return raw not in {"0", "false", "no", "off"}
 
 
+def _normalize_question_followup_action(raw: Any) -> dict[str, Any] | None:
+    if not isinstance(raw, dict):
+        return None
+    intent = str(raw.get("intent") or "").strip()
+    if not intent:
+        return None
+    return {
+        "intent": intent,
+        "confidence": raw.get("confidence"),
+        "preserve_other_answers": bool(raw.get("preserve_other_answers", False)),
+        "answers": raw.get("answers") if isinstance(raw.get("answers"), list) else [],
+        "reason": str(raw.get("reason") or "").strip(),
+    }
+
+
+async def _resolve_question_followup_context_and_action(
+    *,
+    user_message: str,
+    explicit_context: dict[str, Any] | None,
+    explicit_action: dict[str, Any] | None,
+    candidate_contexts: list[dict[str, Any] | None] | tuple[dict[str, Any] | None, ...] = (),
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    normalized_explicit = normalize_question_followup_context(explicit_context)
+    normalized_action = _normalize_question_followup_action(explicit_action)
+
+    if normalized_explicit is not None:
+        if normalized_action is None:
+            normalized_action = await interpret_question_followup_action(
+                user_message,
+                normalized_explicit,
+            )
+        return normalized_explicit, normalized_action
+
+    for candidate in candidate_contexts:
+        normalized_candidate = normalize_question_followup_context(candidate)
+        if normalized_candidate is None:
+            continue
+        candidate_action = await interpret_question_followup_action(
+            user_message,
+            normalized_candidate,
+        )
+        if followup_action_route(candidate_action) in {
+            "submission",
+            "followup",
+            "practice_generation",
+        }:
+            return normalized_candidate, candidate_action
+        if looks_like_question_followup(user_message, normalized_candidate):
+            return normalized_candidate, None
+
+    return None, None
+
+
 def _should_pin_tutorbot_capability(
     *,
     user_message: str,
     followup_question_context: dict[str, Any] | None,
+    followup_action: dict[str, Any] | None = None,
 ) -> bool:
+    if followup_action_route(followup_action) in {"submission", "followup", "practice_generation"}:
+        return False
     normalized_followup = normalize_question_followup_context(followup_question_context)
     if normalized_followup and looks_like_question_followup(user_message, normalized_followup):
         return False
@@ -1080,7 +1169,7 @@ class TurnRuntimeManager:
         overlay_payload: dict[str, Any] | None = None
         compact_memory_context = ""
         try:
-            if user_id and hasattr(learner_state_service, "build_compact_context"):
+            if user_id and hasattr(learner_state_service, "build_context_candidates"):
                 learner_candidates_payload = learner_state_service.build_context_candidates(
                     user_id=user_id,
                     query=raw_user_content,
@@ -1300,6 +1389,11 @@ class TurnRuntimeManager:
         if overlay_payload is not None:
             effective_overlay = dict(overlay_payload.get("effective_overlay") or {})
             overlay_candidates_added = 0
+            overlay_candidate_target = (
+                base_candidates
+                if route_decision.route_label == "session_followup"
+                else level2_candidates
+            )
 
             def _append_overlay_candidate(
                 *,
@@ -1318,7 +1412,7 @@ class TurnRuntimeManager:
                 if not normalized:
                     return
                 overlay_candidates_added += 1
-                level2_candidates.append(
+                overlay_candidate_target.append(
                     ContextCandidate(
                         candidate_id=f"overlay-{suffix}-{overlay_candidates_added}",
                         block=block,
@@ -1560,6 +1654,7 @@ class TurnRuntimeManager:
         runtime_only_keys = (
             "_persist_user_message",
             "followup_question_context",
+            "_question_followup_action",
             "interaction_hints",
             "billing_context",
             "interaction_profile",
@@ -1582,10 +1677,10 @@ class TurnRuntimeManager:
         runtime_followup_question_context = normalize_question_followup_context(
             runtime_only_config.get("followup_question_context")
         )
-        if runtime_followup_question_context is not None:
-            runtime_only_config["followup_question_context"] = dict(
-                runtime_followup_question_context
-            )
+        runtime_followup_action = _normalize_question_followup_action(
+            runtime_only_config.get("_question_followup_action")
+        )
+        candidate_followup_contexts: list[dict[str, Any] | None] = []
         if not runtime_followup_question_context and session_id:
             stored_followup_question_context = await self._safe_store_call(
                 None,
@@ -1594,22 +1689,25 @@ class TurnRuntimeManager:
                 session_id,
                 default=None,
             )
-            if looks_like_question_followup(
-                raw_user_content,
-                stored_followup_question_context,
-            ):
-                runtime_followup_question_context = dict(stored_followup_question_context)
-            elif looks_like_question_followup(
-                raw_user_content,
-                self._volatile_question_contexts.get(session_id),
-            ):
-                runtime_followup_question_context = dict(
-                    self._volatile_question_contexts[session_id]
-                )
-            if runtime_followup_question_context is not None:
-                runtime_only_config["followup_question_context"] = dict(
-                    runtime_followup_question_context
-                )
+            volatile_followup_question_context = self._volatile_question_contexts.get(session_id)
+            candidate_followup_contexts.extend(
+                [stored_followup_question_context, volatile_followup_question_context]
+            )
+        (
+            runtime_followup_question_context,
+            runtime_followup_action,
+        ) = await _resolve_question_followup_context_and_action(
+            user_message=raw_user_content,
+            explicit_context=runtime_followup_question_context,
+            explicit_action=runtime_followup_action,
+            candidate_contexts=candidate_followup_contexts,
+        )
+        if runtime_followup_question_context is not None:
+            runtime_only_config["followup_question_context"] = dict(
+                runtime_followup_question_context
+            )
+        if runtime_followup_action is not None:
+            runtime_only_config["_question_followup_action"] = dict(runtime_followup_action)
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
 
@@ -1644,6 +1742,7 @@ class TurnRuntimeManager:
             and _should_pin_tutorbot_capability(
                 user_message=raw_user_content,
                 followup_question_context=runtime_followup_question_context,
+                followup_action=runtime_followup_action,
             )
         ):
             selected_capability = "tutorbot"
@@ -1859,6 +1958,8 @@ class TurnRuntimeManager:
         attachment_records = []
         assistant_events: list[dict[str, Any]] = []
         assistant_content = ""
+        authoritative_assistant_content = ""
+        assistant_content_source = "content_stream"
         turn_observation: Any | None = None
         trace_metadata = {
             "session_id": session_id,
@@ -1885,6 +1986,9 @@ class TurnRuntimeManager:
             request_config = dict(payload.get("config", {}) or {})
             raw_user_content = str(payload.get("content", "") or "")
             followup_question_context = _extract_followup_question_context(request_config)
+            followup_question_action = _normalize_question_followup_action(
+                request_config.pop("_question_followup_action", None)
+            )
             interaction_hints = await self._resolve_interaction_hints(
                 session_id,
                 request_config,
@@ -1892,6 +1996,8 @@ class TurnRuntimeManager:
             )
             persist_user_message = _extract_persist_user_message(request_config)
             billing_context = await self._resolve_billing_context(session_id, request_config)
+            stored_followup_question_context = None
+            volatile_followup_question_context = None
             if not followup_question_context:
                 stored_followup_question_context = await self._safe_store_call(
                     execution,
@@ -1900,18 +2006,19 @@ class TurnRuntimeManager:
                     session_id,
                     default=None,
                 )
-                if looks_like_question_followup(
-                    raw_user_content,
-                    stored_followup_question_context,
-                ):
-                    followup_question_context = stored_followup_question_context
-            if not followup_question_context:
                 volatile_followup_question_context = self._volatile_question_contexts.get(session_id)
-                if looks_like_question_followup(
-                    raw_user_content,
+            (
+                followup_question_context,
+                followup_question_action,
+            ) = await _resolve_question_followup_context_and_action(
+                user_message=raw_user_content,
+                explicit_context=followup_question_context,
+                explicit_action=followup_question_action,
+                candidate_contexts=[
+                    stored_followup_question_context,
                     volatile_followup_question_context,
-                ):
-                    followup_question_context = volatile_followup_question_context
+                ],
+            )
             if followup_question_context:
                 self._volatile_question_contexts[session_id] = dict(followup_question_context)
             notebook_references = payload.get("notebook_references", []) or []
@@ -2085,9 +2192,13 @@ class TurnRuntimeManager:
                             on_event=lambda event: self._persist_and_publish(execution, event),
                         )
                     except Exception as exc:
-                        if not self._is_persistence_error(exc):
-                            raise
-                        self._mark_persistence_degraded(execution, "build_context_history", exc)
+                        if self._is_persistence_error(exc):
+                            self._mark_persistence_degraded(execution, "build_context_history", exc)
+                        else:
+                            logger.warning(
+                                "Legacy context builder failed, continuing with empty context",
+                                exc_info=True,
+                            )
                         history_result = SimpleNamespace(
                             conversation_history=[],
                             conversation_summary="",
@@ -2286,6 +2397,7 @@ class TurnRuntimeManager:
                             payload.get("config", {}).get("interaction_profile", "") or ""
                         ).strip(),
                         "question_followup_context": followup_question_context or {},
+                        "question_followup_action": followup_question_action or {},
                         "interaction_hints": interaction_hints or {},
                         "notebook_references": notebook_references,
                         "history_references": history_references,
@@ -2312,11 +2424,23 @@ class TurnRuntimeManager:
                     if event.type == StreamEventType.SESSION:
                         continue
                     payload_event = await self._persist_and_publish(execution, event)
-                    if payload_event.get("type") not in {"done", "session"}:
+                    if (
+                        payload_event.get("type") not in {"done", "session"}
+                        and _event_visibility(payload_event) == _PUBLIC_VISIBILITY
+                    ):
                         assistant_events.append(payload_event)
-                    if _should_capture_assistant_content(event):
+                    authoritative_candidate = _extract_authoritative_assistant_content(event)
+                    if authoritative_candidate:
+                        authoritative_assistant_content = authoritative_candidate
+                        assistant_content_source = (
+                            "result.response" if event.type == StreamEventType.RESULT else "final_content"
+                        )
+                    elif _should_capture_assistant_content(event):
                         assistant_content += event.content
-                assistant_content = normalize_markdown_for_tutorbot(assistant_content)
+                assistant_content = authoritative_assistant_content or assistant_content
+                assistant_content = normalize_markdown_for_tutorbot(
+                    coerce_user_visible_answer(assistant_content)
+                )
                 await self._safe_store_call(
                     execution,
                     "add_assistant_message",
@@ -2351,6 +2475,7 @@ class TurnRuntimeManager:
                         **trace_metadata,
                         **_summarize_assistant_events(assistant_events),
                         "assistant_event_count": len(assistant_events),
+                        "assistant_content_source": assistant_content_source,
                     },
                     usage_details=observability.usage_details_from_summary(usage_summary),
                     cost_details=observability.cost_details_from_summary(usage_summary),
@@ -2377,6 +2502,7 @@ class TurnRuntimeManager:
                 metadata={
                     **observability.summary_metadata(usage_summary),
                     **trace_metadata,
+                    "assistant_content_source": assistant_content_source,
                 },
                 usage_details=observability.usage_details_from_summary(usage_summary),
                 cost_details=observability.cost_details_from_summary(usage_summary),
@@ -2419,6 +2545,7 @@ class TurnRuntimeManager:
                 metadata={
                     **observability.summary_metadata(usage_summary),
                     **trace_metadata,
+                    "assistant_content_source": assistant_content_source,
                 },
                 usage_details=observability.usage_details_from_summary(usage_summary),
                 cost_details=observability.cost_details_from_summary(usage_summary),

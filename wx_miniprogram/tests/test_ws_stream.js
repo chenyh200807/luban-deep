@@ -251,6 +251,93 @@ Promise.resolve(
     });
   })
   .then(function () {
+    return run("internal visibility events never enter user token or presentation callbacks", async function () {
+      socketState.sent = [];
+      socketState.closed = [];
+      socketState.handlers = {};
+
+      var tokens = [];
+      var presentations = [];
+      var statuses = [];
+      wsStream.streamChat(
+        {
+          query: "建筑构造是什么？",
+          sessionId: "session_1",
+          mode: "AUTO",
+        },
+        {
+          onToken: function (token) {
+            tokens.push(token);
+          },
+          onPresentation: function (payload) {
+            presentations.push(payload);
+          },
+          onStatus: function (payload) {
+            statuses.push(payload);
+          },
+        },
+      );
+
+      await flush();
+      if (socketState.handlers.open) {
+        socketState.handlers.open();
+      }
+
+      emitMessage({
+        type: "content",
+        seq: 11,
+        content: "我来读取相关技能文件。",
+        visibility: "internal",
+        turn_id: "turn_1",
+        session_id: "session_1",
+      });
+      emitMessage({
+        type: "progress",
+        seq: 12,
+        content: "后台处理中",
+        visibility: "internal",
+        turn_id: "turn_1",
+        session_id: "session_1",
+      });
+      emitMessage({
+        type: "result",
+        seq: 13,
+        visibility: "internal",
+        metadata: {
+          presentation: {
+            type: "qa",
+            answer: "不该显示",
+          },
+        },
+        turn_id: "turn_1",
+        session_id: "session_1",
+      });
+      emitMessage({
+        type: "content",
+        seq: 14,
+        content: "建筑构造是研究建筑物组成与连接方式的技术。",
+        visibility: "public",
+        turn_id: "turn_1",
+        session_id: "session_1",
+      });
+      emitMessage({
+        type: "done",
+        seq: 15,
+        turn_id: "turn_1",
+        session_id: "session_1",
+      });
+      await flush();
+
+      assertEqual(
+        tokens,
+        ["建筑构造是研究建筑物组成与连接方式的技术。"],
+        "internal content must be dropped before onToken",
+      );
+      assertEqual(presentations, [], "internal result presentation must be dropped");
+      assertEqual(statuses, [], "internal status events must be dropped");
+    });
+  })
+  .then(function () {
     if (fail) {
       console.error(errors.join("\n"));
       process.exit(1);

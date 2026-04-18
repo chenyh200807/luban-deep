@@ -184,6 +184,38 @@
   display: flex; align-items: center; justify-content: center;
 }
 .avatar-char { color: #fff; font-size: 24rpx; font-weight: 600; }
+.account-row {
+  margin: 14rpx 36rpx 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12rpx;
+}
+.account-name {
+  max-width: 360rpx;
+  font-size: 22rpx;
+  color: rgba(226,232,240,0.68);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.account-switch-btn {
+  min-height: 48rpx;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.08);
+  border: 1rpx solid rgba(255,255,255,0.12);
+}
+.account-switch-btn:active {
+  background: rgba(255,255,255,0.16);
+}
+.account-switch-txt {
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.88);
+}
 
 /* ── 内容区 ───────────────────────────────────── */
 .content { position: fixed; left: 0; right: 0; bottom: 0; overflow: hidden; box-sizing: border-box; }
@@ -1391,6 +1423,13 @@
   border-color: #c8dafc;
 }
 .page.light .avatar-char { color: #1e3a8a; }
+.page.light .account-name { color: rgba(15,23,42,0.6); }
+.page.light .account-switch-btn {
+  background: rgba(255,255,255,0.88);
+  border-color: rgba(176,193,224,0.58);
+  box-shadow: 0 10rpx 28rpx rgba(117,139,180,0.12);
+}
+.page.light .account-switch-txt { color: rgba(15,23,42,0.82); }
 
 /* ── Hero 问候 ─────────────────────────────── */
 .page.light .greeting-name { color: #111827; }

@@ -19,10 +19,11 @@ from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.core.trace import merge_trace_metadata
 from deeptutor.services.question_followup import (
-    annotate_batch_submission_context,
+    apply_followup_action_to_context,
     answers_match,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
+    followup_action_route,
     normalize_question_followup_context,
     resolve_submission_attempt,
 )
@@ -54,6 +55,10 @@ class DeepQuestionCapability(BaseCapability):
         followup_question_context = (
             context.metadata.get("question_followup_context", {}) or {}
         )
+        followup_action = context.metadata.get("question_followup_action", {}) or {}
+        followup_route = followup_action_route(
+            followup_action if isinstance(followup_action, dict) else None
+        )
         if (
             not force_generate_questions
             and isinstance(followup_question_context, dict)
@@ -61,24 +66,116 @@ class DeepQuestionCapability(BaseCapability):
             "question"
             )
         ):
-            narrowed_context, submission = resolve_submission_attempt(
+            action_context = None
+            if followup_route == "submission":
+                action_context = apply_followup_action_to_context(
+                    followup_question_context,
+                    followup_action if isinstance(followup_action, dict) else None,
+                )
+            if action_context is not None:
+                from deeptutor.agents.question.agents.submission_grader_agent import (
+                    SubmissionGraderAgent,
+                )
+
+                if (action_context.get("items") or []) and len(action_context.get("items") or []) > 1:
+                    graded_context = self._build_batch_submission_context(
+                        action_context,
+                        None,
+                    )
+                else:
+                    graded_context = self._build_submission_context(
+                        action_context,
+                        str(action_context.get("user_answer") or "").strip(),
+                        raw_submission=context.user_message,
+                    )
+                agent = SubmissionGraderAgent(
+                    language=context.language,
+                    api_key=llm_config.api_key,
+                    base_url=llm_config.base_url,
+                    api_version=llm_config.api_version,
+                )
+                agent.set_trace_callback(self._build_trace_bridge(stream))
+                async with stream.stage("generation", source=self.name):
+                    answer = await agent.process(
+                        user_message=context.user_message,
+                        question_context=graded_context,
+                        history_context=str(
+                            context.metadata.get("conversation_context_text", "") or ""
+                        ).strip(),
+                    )
+                    if answer:
+                        await stream.content(answer, source=self.name, stage="generation")
+                    result_payload: dict[str, Any] = {
+                        "response": answer or "",
+                        "mode": "grading",
+                        "question_id": graded_context.get("question_id", ""),
+                        "user_answer": graded_context.get("user_answer", ""),
+                        "is_correct": graded_context.get("is_correct"),
+                        "question_followup_context": normalize_question_followup_context(
+                            graded_context
+                        )
+                        or {},
+                    }
+                    cost_meta = self._collect_cost_summary("question")
+                    if cost_meta:
+                        result_payload["metadata"] = {"cost_summary": cost_meta}
+                    await stream.result(result_payload, source=self.name)
+                return
+
+            if followup_route == "followup":
+                from deeptutor.agents.question.agents.followup_agent import FollowupAgent
+
+                agent = FollowupAgent(
+                    language=context.language,
+                    api_key=llm_config.api_key,
+                    base_url=llm_config.base_url,
+                    api_version=llm_config.api_version,
+                )
+                agent.set_trace_callback(self._build_trace_bridge(stream))
+                async with stream.stage("generation", source=self.name):
+                    answer = await agent.process(
+                        user_message=context.user_message,
+                        question_context=followup_question_context,
+                        history_context=str(
+                            context.metadata.get("conversation_context_text", "") or ""
+                        ).strip(),
+                    )
+                    if answer:
+                        await stream.content(answer, source=self.name, stage="generation")
+                    followup_payload: dict[str, Any] = {
+                        "response": answer or "",
+                        "mode": "followup",
+                        "question_id": followup_question_context.get("question_id", ""),
+                        "question_followup_context": normalize_question_followup_context(
+                            followup_question_context
+                        )
+                        or {},
+                    }
+                    cost_meta = self._collect_cost_summary("question")
+                    if cost_meta:
+                        followup_payload["metadata"] = {"cost_summary": cost_meta}
+                    await stream.result(followup_payload, source=self.name)
+                return
+
+            target_context, submission = resolve_submission_attempt(
                 context.user_message,
                 followup_question_context,
             )
-            if narrowed_context and submission is not None:
+            if target_context and submission:
                 from deeptutor.agents.question.agents.submission_grader_agent import (
                     SubmissionGraderAgent,
                 )
 
                 if submission.get("kind") == "batch":
                     graded_context = self._build_batch_submission_context(
-                        narrowed_context,
+                        target_context,
                         submission.get("answers"),
                     )
                 else:
+                    user_answer = str(submission.get("answer") or "").strip()
                     graded_context = self._build_submission_context(
-                        narrowed_context,
-                        str(submission.get("answer") or "").strip(),
+                        target_context,
+                        user_answer,
                         raw_submission=context.user_message,
                     )
                 agent = SubmissionGraderAgent(
@@ -311,9 +408,16 @@ class DeepQuestionCapability(BaseCapability):
         question_context: dict[str, Any],
         answers: list[dict[str, Any]] | None,
     ) -> dict[str, Any]:
-        graded_context = annotate_batch_submission_context(question_context, answers) or dict(
-            question_context
-        )
+        graded_context = dict(question_context)
+        if answers:
+            graded_context = apply_followup_action_to_context(
+                question_context,
+                {
+                    "intent": "answer_questions",
+                    "answers": answers,
+                    "preserve_other_answers": False,
+                },
+            ) or dict(question_context)
         items = graded_context.get("items") or []
         correct_count = sum(1 for item in items if isinstance(item, dict) and item.get("is_correct") is True)
         total_count = len(items)

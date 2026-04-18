@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from typing import Any
 
@@ -19,6 +20,11 @@ from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
+
+
+def _stream_public_deltas_enabled() -> bool:
+    raw = str(os.getenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "0") or "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
 
 
 class TutorBotCapability(BaseCapability):
@@ -94,7 +100,7 @@ class TutorBotCapability(BaseCapability):
             if not text:
                 return
             chunks.append(text)
-            if hide_generated_answers:
+            if hide_generated_answers or not _stream_public_deltas_enabled():
                 return
             streamed_chunks.append(text)
             await stream.content(
@@ -175,16 +181,15 @@ class TutorBotCapability(BaseCapability):
                 parsed_result_summary=parsed_result_summary,
             )
             if final_response:
-                if not streamed_chunks:
-                    await stream.content(
-                        visible_response,
-                        source=self.name,
-                        stage="responding",
-                        metadata={
-                            "execution_engine": "tutorbot_runtime",
-                            "call_kind": "llm_final_response",
-                        },
-                    )
+                await stream.content(
+                    visible_response,
+                    source=self.name,
+                    stage="responding",
+                    metadata={
+                        "execution_engine": "tutorbot_runtime",
+                        "call_kind": "llm_final_response",
+                    },
+                )
             result_payload = {
                 "response": visible_response,
                 "bot_id": bot_id,

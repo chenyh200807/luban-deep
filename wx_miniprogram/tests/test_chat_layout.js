@@ -72,6 +72,10 @@ assert(
   "chat.wxml should enable a compact logo in chat mode",
 );
 assert(
+  /showInternalStatus:\s*false/.test(chatJs),
+  "chat.js should default internal status panels to hidden for end users",
+);
+assert(
   chatWxml.indexOf("nav-points-pill") >= 0 &&
     chatWxml.indexOf("{{userPoints}}") >= 0,
   "chat navbar should keep showing the current points balance",
@@ -98,9 +102,13 @@ assert(
 );
 assert(
   chatWxml.indexOf(
-    "thinking-inline\" wx:elif=\"{{item.thinkingStatus && !(item.mcqCards && item.mcqCards.length) && !(item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length)))}}\"",
+    "thinking-inline\" wx:elif=\"{{showInternalStatus && item.thinkingStatus && !(item.mcqCards && item.mcqCards.length) && !(item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length)))}}\"",
   ) >= 0,
   "inline thinking hint should stay hidden once workflow card is visible, avoiding duplicate progress summaries",
+);
+assert(
+  chatWxml.indexOf("workflow-card workflow-card-{{item.workflowTone ? item.workflowTone : 'compose'}}\" wx:if=\"{{showInternalStatus && item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}\"") >= 0,
+  "workflow card should stay behind the internal-status visibility gate",
 );
 
 if (fail) {

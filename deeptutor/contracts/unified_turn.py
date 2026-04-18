@@ -7,6 +7,22 @@ from pydantic import BaseModel, ConfigDict, Field
 
 TurnStatus = Literal["idle", "running", "completed", "failed", "cancelled"]
 StreamTransport = Literal["websocket"]
+TurnEventVisibility = Literal["public", "internal"]
+TurnEventType = Literal[
+    "stage_start",
+    "stage_end",
+    "thinking",
+    "observation",
+    "content",
+    "tool_call",
+    "tool_result",
+    "progress",
+    "sources",
+    "result",
+    "error",
+    "session",
+    "done",
+]
 
 
 class UnifiedTurnStartMessage(BaseModel):
@@ -122,6 +138,21 @@ class UnifiedTurnStartResponse(BaseModel):
     stream: UnifiedTurnStreamBootstrap
 
 
+class UnifiedTurnStreamEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: TurnEventType
+    source: str = ""
+    stage: str = ""
+    content: str = ""
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    visibility: TurnEventVisibility = "public"
+    session_id: str = ""
+    turn_id: str = ""
+    seq: int = 0
+    timestamp: float | None = None
+
+
 def _build_schema(model_type: type[BaseModel]) -> dict[str, Any]:
     return model_type.model_json_schema(mode="validation")
 
@@ -142,12 +173,13 @@ UNIFIED_TURN_SCHEMAS: dict[str, dict[str, Any]] = {
     "cancel_turn_message": _build_schema(UnifiedTurnCancelMessage),
     "unsubscribe_message": _build_schema(UnifiedTurnUnsubscribeMessage),
     "turn_start_response": _build_schema(UnifiedTurnStartResponse),
+    "turn_stream_event": _build_schema(UnifiedTurnStreamEvent),
 }
 
 
 def export_unified_turn_contract() -> dict[str, Any]:
     return {
-        "version": 1,
+        "version": 2,
         "transport": {"primary_websocket": "/api/v1/ws"},
         "schemas": {key: dict(value) for key, value in UNIFIED_TURN_SCHEMAS.items()},
         "trace_fields": list(UNIFIED_TURN_TRACE_FIELDS),
@@ -187,6 +219,8 @@ UNIFIED_TURN_TRACE_FIELDS: tuple[str, ...] = (
     "exact_question",
     "authoritative_answer",
     "corrected_from",
+    "visibility",
+    "assistant_content_source",
 )
 
 
@@ -201,6 +235,7 @@ __all__ = [
     "UnifiedTurnStartMessage",
     "UnifiedTurnStartResponse",
     "UnifiedTurnStreamBootstrap",
+    "UnifiedTurnStreamEvent",
     "UnifiedTurnSubscribeMessage",
     "UnifiedTurnSubscribeSessionMessage",
     "UnifiedTurnSummary",

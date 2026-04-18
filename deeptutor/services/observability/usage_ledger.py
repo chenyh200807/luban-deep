@@ -107,6 +107,7 @@ class UsageLedger:
                 CREATE TABLE IF NOT EXISTS llm_usage_events (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     created_at REAL NOT NULL,
+                    dedupe_key TEXT NOT NULL DEFAULT '',
                     session_id TEXT NOT NULL DEFAULT '',
                     turn_id TEXT NOT NULL DEFAULT '',
                     capability TEXT NOT NULL DEFAULT '',
@@ -130,8 +131,23 @@ class UsageLedger:
 
                 CREATE INDEX IF NOT EXISTS idx_llm_usage_events_provider_model_created_at
                     ON llm_usage_events(provider_name, model, created_at);
+
+                CREATE TABLE IF NOT EXISTS llm_usage_dedupe_keys (
+                    dedupe_key TEXT PRIMARY KEY,
+                    created_at REAL NOT NULL
+                );
                 """
             )
+            columns = {
+                str(row["name"]): row
+                for row in conn.execute("PRAGMA table_info(llm_usage_events)").fetchall()
+            }
+            if "dedupe_key" not in columns:
+                conn.execute(
+                    "ALTER TABLE llm_usage_events ADD COLUMN dedupe_key TEXT NOT NULL DEFAULT ''"
+                )
+            conn.execute("DROP INDEX IF EXISTS idx_llm_usage_events_dedupe_key")
+            conn.commit()
 
     def record_usage_event(
         self,
@@ -145,9 +161,11 @@ class UsageLedger:
         turn_id: str = "",
         capability: str = "",
         scope_id: str = "",
-    ) -> None:
+        dedupe_key: str = "",
+        created_at: float | None = None,
+    ) -> bool:
         if not usage_details and not cost_details:
-            return
+            return False
 
         source = _as_str(usage_source).lower() or "estimated"
         measured = source in {"provider", "measured", "actual"}
@@ -160,10 +178,11 @@ class UsageLedger:
         total_cost = round(_safe_float((cost_details or {}).get("total")), 8)
 
         if total_tokens <= 0 and total_cost <= 0:
-            return
+            return False
 
         row = {
-            "created_at": time.time(),
+            "created_at": float(created_at if created_at is not None else time.time()),
+            "dedupe_key": _as_str(dedupe_key),
             "session_id": _as_str(session_id),
             "turn_id": _as_str(turn_id),
             "capability": _as_str(capability),
@@ -184,16 +203,29 @@ class UsageLedger:
 
         with self._lock:
             with self._connect() as conn:
+                dedupe_value = row["dedupe_key"]
+                if dedupe_value:
+                    before_changes = conn.total_changes
+                    conn.execute(
+                        """
+                        INSERT OR IGNORE INTO llm_usage_dedupe_keys (dedupe_key, created_at)
+                        VALUES (?, ?)
+                        """,
+                        (dedupe_value, row["created_at"]),
+                    )
+                    if conn.total_changes == before_changes:
+                        conn.rollback()
+                        return False
                 conn.execute(
                     """
-                    INSERT INTO llm_usage_events (
-                        created_at, session_id, turn_id, capability, scope_id, model,
+                    INSERT OR IGNORE INTO llm_usage_events (
+                        created_at, dedupe_key, session_id, turn_id, capability, scope_id, model,
                         provider_name, usage_source,
                         measured_input_tokens, measured_output_tokens, measured_total_tokens, measured_total_cost,
                         estimated_input_tokens, estimated_output_tokens, estimated_total_tokens, estimated_total_cost,
                         metadata_json
                     ) VALUES (
-                        :created_at, :session_id, :turn_id, :capability, :scope_id, :model,
+                        :created_at, :dedupe_key, :session_id, :turn_id, :capability, :scope_id, :model,
                         :provider_name, :usage_source,
                         :measured_input_tokens, :measured_output_tokens, :measured_total_tokens, :measured_total_cost,
                         :estimated_input_tokens, :estimated_output_tokens, :estimated_total_tokens, :estimated_total_cost,
@@ -202,7 +234,9 @@ class UsageLedger:
                     """,
                     row,
                 )
+                inserted = conn.total_changes > 0
                 conn.commit()
+        return inserted
 
     def get_totals(
         self,
@@ -258,6 +292,22 @@ class UsageLedger:
             coverage_start_ts=_safe_float(aggregate["coverage_start_ts"]) or None,
             coverage_end_ts=_safe_float(aggregate["coverage_end_ts"]) or None,
         )
+
+    def has_usage_for_turn(self, turn_id: str) -> bool:
+        resolved_turn_id = _as_str(turn_id)
+        if not resolved_turn_id:
+            return False
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT 1
+                FROM llm_usage_events
+                WHERE turn_id = ?
+                LIMIT 1
+                """,
+                (resolved_turn_id,),
+            ).fetchone()
+        return row is not None
 
 
 _ledger: UsageLedger | None = None

@@ -25,6 +25,8 @@
 4. `resume_from` 只能重放已有 turn，不能创建新的状态机。
 5. mobile / web / tutorbot 不能维护独立的 pending turn 状态来源。
 6. 客户端不得假设 turn 一定先经过 `thinking` 再进入 `acting/responding`；在 grounded TutorBot fast path 下，合法顺序可以是 `acting -> responding`。
+7. 所有 stream event 必须声明统一可见性语义：`visibility=public|internal`。
+8. `messages.content`、outer trace `assistant_content`、post-turn learning 只允许由 canonical final answer 物化；禁止再由任意中间 `content` 流片段直接拼接冒充最终答案。
 
 ## TutorBot 规则
 
@@ -48,6 +50,13 @@
 - contract 域索引导出：`/api/v1/system/contracts-index`
 - 前端启动自检：读取 `/api/v1/system/turn-contract`
 - Python SDK 启动自检：读取本地 `contracts/index.yaml` 并校验 turn contract 导出
+
+## 流事件可见性
+
+- `public`：允许进入用户可见链路，如正文 token、presentation、sources、public error。
+- `internal`：只允许用于内部 trace、debug、运维或受控调试面板；默认不得进入用户正文、历史正文、outer turn trace 输出。
+- `stage_start` / `stage_end` / `thinking` / `observation` / `tool_call` / `tool_result` / `progress` 默认应视为 `internal`，除非调用方显式提升。
+- `result.metadata.response` 是 canonical final answer；如果某 capability 需要流式增量展示，增量 `content` 只能服务展示，不能替代 canonical final answer 的历史落库权威。
 
 ## 必测项
 

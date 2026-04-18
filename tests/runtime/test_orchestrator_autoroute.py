@@ -389,6 +389,239 @@ async def test_orchestrator_autoroutes_compact_batch_letters_using_question_cont
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_autoroutes_compact_numbered_batch_using_question_context() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-compact-numbered-batch-followup",
+        user_message="1a2c3d",
+        config_overrides={},
+        metadata={
+            "question_followup_context": {
+                "question_id": "quiz_compact_numbered",
+                "question": "第1题...\n第2题...\n第3题...",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_1",
+                        "question": "题1",
+                        "question_type": "single_choice",
+                        "correct_answer": "A",
+                    },
+                    {
+                        "question_id": "q_2",
+                        "question": "题2",
+                        "question_type": "single_choice",
+                        "correct_answer": "C",
+                    },
+                    {
+                        "question_id": "q_3",
+                        "question": "题3",
+                        "question_type": "single_choice",
+                        "correct_answer": "B",
+                    },
+                ],
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    graded = context.metadata["question_followup_context"]
+    assert [item["user_answer"] for item in graded["items"]] == ["A", "C", "D"]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_autoroutes_batch_correction_using_existing_answers() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-batch-correction-followup",
+        user_message="第2题改成C，其他不变",
+        config_overrides={},
+        metadata={
+            "question_followup_context": {
+                "question_id": "quiz_correction",
+                "question": "第1题...\n第2题...\n第3题...",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_1",
+                        "question": "题1",
+                        "question_type": "single_choice",
+                        "correct_answer": "A",
+                        "user_answer": "A",
+                    },
+                    {
+                        "question_id": "q_2",
+                        "question": "题2",
+                        "question_type": "single_choice",
+                        "correct_answer": "C",
+                        "user_answer": "B",
+                    },
+                    {
+                        "question_id": "q_3",
+                        "question": "题3",
+                        "question_type": "single_choice",
+                        "correct_answer": "D",
+                        "user_answer": "D",
+                    },
+                ],
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    graded = context.metadata["question_followup_context"]
+    assert [item["user_answer"] for item in graded["items"]] == ["A", "C", "D"]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_prefers_llm_followup_action_before_regex_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _fake_interpret(*_args, **_kwargs):
+        return {
+            "intent": "revise_answers",
+            "confidence": 0.98,
+            "preserve_other_answers": True,
+            "answers": [
+                {
+                    "index": 1,
+                    "question_id": "q_1",
+                    "user_answer": "C",
+                }
+            ],
+            "reason": "用户是在基于现有题组修改第一题答案，其他答案保持不变。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.interpret_question_followup_action",
+        _fake_interpret,
+    )
+
+    context = UnifiedContext(
+        session_id="s-llm-first-followup",
+        user_message="第一题我改C，别的不动",
+        config_overrides={},
+        metadata={
+            "question_followup_context": {
+                "question_id": "quiz_llm_first",
+                "question": "第1题...\n第2题...\n第3题...",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_1",
+                        "question": "题1",
+                        "question_type": "single_choice",
+                        "correct_answer": "C",
+                        "user_answer": "A",
+                    },
+                    {
+                        "question_id": "q_2",
+                        "question": "题2",
+                        "question_type": "single_choice",
+                        "correct_answer": "B",
+                        "user_answer": "B",
+                    },
+                    {
+                        "question_id": "q_3",
+                        "question": "题3",
+                        "question_type": "single_choice",
+                        "correct_answer": "D",
+                        "user_answer": "D",
+                    },
+                ],
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    graded = context.metadata["question_followup_context"]
+    assert [item["user_answer"] for item in graded["items"]] == ["C", "B", "D"]
+    assert context.metadata["question_followup_action"]["intent"] == "revise_answers"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_keeps_regex_as_fallback_when_llm_returns_unknown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _fake_interpret(*_args, **_kwargs):
+        return {
+            "intent": "unknown",
+            "confidence": 0.21,
+            "preserve_other_answers": False,
+            "answers": [],
+            "reason": "无法从模型判定中得到可靠结构化答案。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.interpret_question_followup_action",
+        _fake_interpret,
+    )
+
+    context = UnifiedContext(
+        session_id="s-regex-fallback-followup",
+        user_message="ACD",
+        config_overrides={},
+        metadata={
+            "question_followup_context": {
+                "question_id": "quiz_compact_regex_fallback",
+                "question": "第1题...\n第2题...\n第3题...",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_1",
+                        "question": "题1",
+                        "question_type": "single_choice",
+                        "correct_answer": "A",
+                    },
+                    {
+                        "question_id": "q_2",
+                        "question": "题2",
+                        "question_type": "single_choice",
+                        "correct_answer": "C",
+                    },
+                    {
+                        "question_id": "q_3",
+                        "question": "题3",
+                        "question_type": "single_choice",
+                        "correct_answer": "D",
+                    },
+                ],
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    graded = context.metadata["question_followup_context"]
+    assert [item["user_answer"] for item in graded["items"]] == ["A", "C", "D"]
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_treats_continue_issue_as_new_practice_request() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()

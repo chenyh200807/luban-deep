@@ -21,10 +21,11 @@ from deeptutor.events.event_bus import Event, EventType, get_event_bus
 from deeptutor.runtime.registry.capability_registry import get_capability_registry
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
 from deeptutor.services.question_followup import (
-    annotate_batch_submission_context,
-    answers_match,
+    apply_followup_action_to_context,
     detect_answer_reveal_preference,
     detect_requested_question_type,
+    followup_action_route,
+    interpret_question_followup_action,
     looks_like_question_followup,
     resolve_submission_attempt,
 )
@@ -53,7 +54,7 @@ class ChatOrchestrator:
         if not context.session_id:
             context.session_id = str(uuid.uuid4())
 
-        cap_name = self._select_capability(context)
+        cap_name = await self._select_capability(context)
         capability = self._cap_registry.get(cap_name)
 
         if capability is None:
@@ -98,17 +99,28 @@ class ChatOrchestrator:
         await task
         await self._publish_completion(context, cap_name)
 
-    def _select_capability(self, context: UnifiedContext) -> str:
+    async def _select_capability(self, context: UnifiedContext) -> str:
         routing_user_message = self._routing_user_message(context)
         if context.active_capability:
             return context.active_capability
 
-        if self._looks_like_question_submission(context, routing_user_message):
-            self._prepare_question_submission_context(context)
+        followup_action = await self._resolve_question_followup_action(context, routing_user_message)
+        followup_route = followup_action_route(followup_action)
+        if followup_route == "submission":
+            self._prepare_question_submission_context(context, followup_action)
+            return "deep_question"
+        if followup_route == "practice_generation":
+            self._prepare_practice_request_context(context, routing_user_message)
+            return "deep_question"
+        if followup_route == "followup":
             return "deep_question"
 
         if looks_like_practice_generation_request(routing_user_message):
             self._prepare_practice_request_context(context, routing_user_message)
+            return "deep_question"
+
+        if self._looks_like_question_submission(context, routing_user_message):
+            self._prepare_question_submission_context(context)
             return "deep_question"
 
         if self._looks_like_question_followup(context, routing_user_message):
@@ -122,6 +134,26 @@ class ChatOrchestrator:
         raw = str(metadata.get("raw_user_message") or "").strip()
         return raw or str(context.user_message or "").strip()
 
+    async def _resolve_question_followup_action(
+        self,
+        context: UnifiedContext,
+        message: str,
+    ) -> dict[str, Any] | None:
+        qctx = context.metadata.get("question_followup_context", {}) or {}
+        if not isinstance(qctx, dict) or not qctx.get("question"):
+            return None
+        cached = context.metadata.get("question_followup_action")
+        if isinstance(cached, dict) and cached:
+            return cached
+        action = await interpret_question_followup_action(
+            message,
+            qctx,
+            history_context=str(context.metadata.get("conversation_context_text", "") or "").strip(),
+        )
+        if action:
+            context.metadata["question_followup_action"] = action
+        return action
+
     def _looks_like_question_submission(self, context: UnifiedContext, message: str) -> bool:
         qctx = context.metadata.get("question_followup_context", {}) or {}
         if not isinstance(qctx, dict) or not qctx.get("question"):
@@ -129,27 +161,38 @@ class ChatOrchestrator:
         _target_context, submission = resolve_submission_attempt(message, qctx)
         return submission is not None
 
-    def _prepare_question_submission_context(self, context: UnifiedContext) -> None:
+    def _prepare_question_submission_context(
+        self,
+        context: UnifiedContext,
+        action: dict[str, Any] | None = None,
+    ) -> None:
         qctx = dict(context.metadata.get("question_followup_context", {}) or {})
+        action_context = apply_followup_action_to_context(qctx, action)
+        if action_context:
+            context.metadata["question_followup_context"] = action_context
+            return
+
         target_context, submission = resolve_submission_attempt(context.user_message, qctx)
         if not target_context or not submission:
             return
-        if submission.get("kind") == "batch":
-            graded_context = annotate_batch_submission_context(
-                target_context,
-                submission.get("answers"),
-            )
-            if graded_context:
-                context.metadata["question_followup_context"] = graded_context
-            return
-        answer = str(submission.get("answer") or "").strip()
-        if not answer:
-            return
-        correct_answer = str(target_context.get("correct_answer", "") or "").strip()
-        graded_context = dict(target_context)
-        graded_context["user_answer"] = answer
-        graded_context["is_correct"] = answers_match(answer, correct_answer, graded_context)
-        context.metadata["question_followup_context"] = graded_context
+        fallback_action = {
+            "intent": "answer_questions",
+            "answers": (
+                submission.get("answers")
+                if submission.get("kind") == "batch"
+                else [
+                    {
+                        "index": 1,
+                        "question_id": str(target_context.get("question_id") or "").strip(),
+                        "user_answer": str(submission.get("answer") or "").strip(),
+                    }
+                ]
+            ),
+            "preserve_other_answers": False,
+        }
+        fallback_context = apply_followup_action_to_context(target_context, fallback_action)
+        if fallback_context:
+            context.metadata["question_followup_context"] = fallback_context
 
     def _looks_like_question_followup(self, context: UnifiedContext, message: str) -> bool:
         qctx = context.metadata.get("question_followup_context", {}) or {}

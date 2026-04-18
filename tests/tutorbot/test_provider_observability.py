@@ -95,6 +95,54 @@ async def test_openai_compat_provider_records_provider_usage(monkeypatch: pytest
 
 
 @pytest.mark.asyncio
+async def test_openai_compat_provider_does_not_promote_reasoning_to_content(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_observability = _FakeObservability()
+    monkeypatch.setattr(
+        "deeptutor.tutorbot.providers.openai_compat_provider.observability",
+        fake_observability,
+    )
+
+    provider = OpenAICompatProvider.__new__(OpenAICompatProvider)
+    LLMProvider.__init__(provider, api_key="sk-test", api_base="https://example.com")
+    provider.default_model = "gpt-test"
+    provider.extra_headers = {}
+    provider._spec = None
+    provider._provider_name = "openai"
+    provider._client = SimpleNamespace(
+        chat=SimpleNamespace(
+            completions=SimpleNamespace(
+                create=_async_return(
+                    SimpleNamespace(
+                        choices=[
+                            SimpleNamespace(
+                                message=SimpleNamespace(
+                                    content=None,
+                                    tool_calls=[],
+                                    reasoning="internal-only reasoning",
+                                    reasoning_content=None,
+                                ),
+                                finish_reason="stop",
+                            )
+                        ],
+                        usage=SimpleNamespace(prompt_tokens=10, completion_tokens=5, total_tokens=15),
+                    )
+                )
+            )
+        )
+    )
+
+    response = await provider.chat(
+        messages=[{"role": "user", "content": "hi"}],
+        model="gpt-test",
+    )
+
+    assert response.content is None
+    assert response.reasoning_content == "internal-only reasoning"
+
+
+@pytest.mark.asyncio
 async def test_anthropic_provider_records_provider_usage(monkeypatch: pytest.MonkeyPatch) -> None:
     fake_observability = _FakeObservability()
     monkeypatch.setattr(

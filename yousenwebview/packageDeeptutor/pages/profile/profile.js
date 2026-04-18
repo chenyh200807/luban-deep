@@ -10,6 +10,32 @@ var flags = require("../../utils/flags");
 var _saveTimer = null;
 var SAVE_DEBOUNCE_MS = 500;
 
+function toFiniteNumber(value) {
+  var num = Number(value);
+  return isNaN(num) ? null : num;
+}
+
+function extractPointsValue(raw) {
+  var source = api.unwrapResponse(raw) || raw || {};
+  var candidates = [
+    source.points,
+    source.balance,
+    source.points_balance,
+    source.wallet_balance,
+    source.walletBalance,
+    source.wallet && source.wallet.balance,
+    source.wallet && source.wallet.points,
+    source.data && source.data.balance,
+    source.data && source.data.points,
+    source.data && source.data.points_balance,
+  ];
+  for (var i = 0; i < candidates.length; i++) {
+    var parsed = toFiniteNumber(candidates[i]);
+    if (parsed !== null) return parsed;
+  }
+  return null;
+}
+
 function buildLinkItems(workspaceFlags) {
   var flagsValue = workspaceFlags && typeof workspaceFlags === "object" ? workspaceFlags : {};
   var items = [];
@@ -107,7 +133,25 @@ Page({
     api
       .getWallet()
       .then(function (data) {
-        self.setData({ userPoints: data.balance || 0 });
+        var points = extractPointsValue(data);
+        if (points !== null) {
+          self.setData({ userPoints: points, points: points });
+          return;
+        }
+        return api.getPoints().then(function (fallbackRaw) {
+          var fallbackPoints = extractPointsValue(fallbackRaw);
+          if (fallbackPoints !== null) {
+            self.setData({ userPoints: fallbackPoints, points: fallbackPoints });
+          }
+        });
+      })
+      .catch(function () {
+        return api.getPoints().then(function (fallbackRaw) {
+          var fallbackPoints = extractPointsValue(fallbackRaw);
+          if (fallbackPoints !== null) {
+            self.setData({ userPoints: fallbackPoints, points: fallbackPoints });
+          }
+        });
       })
       .catch(function () {});
   },
@@ -118,18 +162,22 @@ Page({
       .getUserInfo()
       .then(function (info) {
         var name = info.display_name || info.username || "用户";
+        var nextPoints = extractPointsValue(info);
         var update = {
           username: name,
           avatarChar: name.charAt(0).toUpperCase(),
           level: info.level || 1,
           xp: info.xp || 0,
-          points: info.points || 0,
           examDate: info.exam_date || "",
           dailyTarget: info.daily_target || 30,
           difficultyPref: info.difficulty_preference || "medium",
           explainStyle: info.explanation_style || "detailed",
           reviewReminder: info.review_reminder || false,
         };
+        if (nextPoints !== null) {
+          update.points = nextPoints;
+          update.userPoints = nextPoints;
+        }
         // 服务端头像优先，本地缓存兜底
         if (info.avatar_url) {
           update.avatarUrl = info.avatar_url;

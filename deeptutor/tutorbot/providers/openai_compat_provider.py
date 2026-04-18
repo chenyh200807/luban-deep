@@ -355,9 +355,6 @@ class OpenAICompatProvider(LLMProvider):
                     finish_reason = ch.finish_reason
             if not content and m.content:
                 content = m.content
-            if not content and getattr(m, "reasoning", None):
-                content = m.reasoning
-
         tool_calls = []
         for tc in raw_tool_calls:
             args = tc.function.arguments

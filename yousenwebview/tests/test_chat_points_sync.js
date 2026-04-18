@@ -110,7 +110,9 @@ function loadChatPage(overrides) {
       return {};
     },
     clearWorkspaceBack: function () {},
+    logout: function () {},
   };
+  Object.assign(runtimeMock, (overrides && overrides.runtime) || {});
   var flagsMock = {
     shouldShowWorkspaceShell: function () {
       return false;
@@ -151,6 +153,7 @@ function loadChatPage(overrides) {
       removeStorageSync: function (key) {
         delete storage[key];
       },
+      showModal: function () {},
       showToast: function () {},
       navigateTo: function () {},
       reLaunch: function () {},
@@ -189,7 +192,7 @@ function loadChatPage(overrides) {
   page.clearMessages = function () {};
   page._send = function () {};
 
-  return { page: page };
+  return { page: page, wx: sandbox.wx };
 }
 
 (async function main() {
@@ -236,6 +239,27 @@ function loadChatPage(overrides) {
 
     assert(loaded.page.data.userPoints === 36, "chat hero points should fallback to points api");
     assert(loaded.page.data.billingBalance === 36, "fallback points should sync billing balance too");
+  });
+
+  await run("chat hero switch account should logout after confirmation", async function () {
+    var logoutCount = 0;
+    var loaded = loadChatPage({
+      runtime: {
+        logout: function () {
+          logoutCount++;
+        },
+      },
+    });
+
+    loaded.wx.showModal = function (options) {
+      if (options && typeof options.success === "function") {
+        options.success({ confirm: true, cancel: false });
+      }
+    };
+
+    loaded.page.onSwitchAccount();
+
+    assert(logoutCount === 1, "switch account should call runtime.logout after user confirmation");
   });
 
   if (fail) {

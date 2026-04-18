@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from typing import Any
+
+from deeptutor.services.llm.factory import complete
+
+logger = logging.getLogger(__name__)
 
 _CHOICE_MARKERS = (
     "单选题",
@@ -97,7 +102,7 @@ _FOLLOWUP_MARKERS = (
 _JUDGMENT_TRUE_TOKENS = {"对", "正确", "是", "true", "yes", "√", "t"}
 _JUDGMENT_FALSE_TOKENS = {"错", "错误", "否", "false", "no", "×", "x", "f"}
 _LEADING_SUBMISSION_PREFIX = re.compile(
-    r"^(?:我答(?:案)?(?:是)?|答案(?:是)?|我选|我觉得选|选|就是|应该是|option|answer)[:：]?",
+    r"^(?:我答(?:案)?(?:是)?|我的(?:答案)?(?:是)?|答案(?:是)?|我选|我觉得选|选|就是|应该是|option|answer)[:：]?",
     re.IGNORECASE,
 )
 _NUMBERED_SUBMISSION_RE = re.compile(
@@ -151,6 +156,44 @@ _MCQ_EXPLANATION_RE = re.compile(
     r"(?:\*\*)?(?:答案与核心解析|答案与解析|答案解析|解析)(?:\*\*)?\s*[：:]\s*(.+)",
     re.IGNORECASE | re.DOTALL,
 )
+_FOLLOWUP_ACTION_INTENTS = {
+    "answer_questions",
+    "revise_answers",
+    "ask_followup",
+    "generate_more_questions",
+    "unknown",
+    "unrelated",
+}
+_FOLLOWUP_ACTION_SUBMISSION_INTENTS = {"answer_questions", "revise_answers"}
+_FOLLOWUP_ACTION_FOLLOWUP_INTENTS = {"ask_followup"}
+_FOLLOWUP_ACTION_GENERATION_INTENTS = {"generate_more_questions"}
+_FOLLOWUP_ACTION_INTENT_ALIASES = {
+    "answer": "answer_questions",
+    "answer_question": "answer_questions",
+    "answer_questions": "answer_questions",
+    "submit_answer": "answer_questions",
+    "submit_answers": "answer_questions",
+    "grading": "answer_questions",
+    "grade_submission": "answer_questions",
+    "revise": "revise_answers",
+    "revise_answers": "revise_answers",
+    "correct_answers": "revise_answers",
+    "change_answers": "revise_answers",
+    "correction": "revise_answers",
+    "ask_followup": "ask_followup",
+    "followup": "ask_followup",
+    "explanation": "ask_followup",
+    "ask_explanation": "ask_followup",
+    "question_followup": "ask_followup",
+    "generate_more": "generate_more_questions",
+    "generate_more_questions": "generate_more_questions",
+    "more_questions": "generate_more_questions",
+    "continue_practice": "generate_more_questions",
+    "practice": "generate_more_questions",
+    "unknown": "unknown",
+    "none": "unknown",
+    "unrelated": "unrelated",
+}
 
 
 def normalize_question_followup_context(raw: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -205,6 +248,101 @@ def detect_answer_reveal_preference(message: str) -> bool | None:
     if any(marker in text for marker in _REVEAL_ANSWER_MARKERS):
         return True
     return None
+
+
+async def interpret_question_followup_action(
+    message: str,
+    question_context: dict[str, Any] | None,
+    *,
+    history_context: str = "",
+) -> dict[str, Any] | None:
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized:
+        return None
+
+    prompt = _build_followup_action_prompt(
+        user_message=message,
+        question_context=normalized,
+        history_context=history_context,
+    )
+    try:
+        raw = await complete(
+            prompt=prompt,
+            system_prompt=(
+                "你是 DeepTutor 的题目 follow-up 判定器。"
+                "你的唯一任务是根据当前用户消息和题目上下文，输出结构化 JSON，"
+                "判断这是答题、改答案、问解析、继续出题，还是无关内容。"
+            ),
+            temperature=0,
+            response_format={"type": "json_object"},
+            max_tokens=500,
+        )
+    except Exception:
+        logger.debug("LLM followup interpretation failed", exc_info=True)
+        return None
+
+    parsed = _parse_followup_action_payload(raw)
+    if parsed is None:
+        return None
+    return _normalize_followup_action(parsed, normalized)
+
+
+def followup_action_route(action: dict[str, Any] | None) -> str | None:
+    if not isinstance(action, dict):
+        return None
+    intent = _normalize_followup_action_intent(action.get("intent"))
+    if intent in _FOLLOWUP_ACTION_SUBMISSION_INTENTS:
+        return "submission"
+    if intent in _FOLLOWUP_ACTION_FOLLOWUP_INTENTS:
+        return "followup"
+    if intent in _FOLLOWUP_ACTION_GENERATION_INTENTS:
+        return "practice_generation"
+    return None
+
+
+def apply_followup_action_to_context(
+    question_context: dict[str, Any] | None,
+    action: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized:
+        return None
+    if followup_action_route(action) != "submission":
+        return None
+
+    answers = _normalized_followup_action_answers(action, normalized)
+    if not answers:
+        return None
+    preserve_other_answers = bool((action or {}).get("preserve_other_answers"))
+    items = normalized.get("items") or []
+    if items:
+        answer_map = {int(answer["index"]): dict(answer) for answer in answers}
+        if preserve_other_answers:
+            for index, item in enumerate(items, 1):
+                if index in answer_map:
+                    continue
+                existing = str(item.get("user_answer") or "").strip()
+                if not existing:
+                    continue
+                answer_map[index] = {
+                    "index": index,
+                    "question_id": str(item.get("question_id") or "").strip(),
+                    "user_answer": existing,
+                }
+        ordered_answers = [answer_map[index] for index in sorted(answer_map)]
+        return annotate_batch_submission_context(normalized, ordered_answers)
+
+    answer = str(answers[0].get("user_answer") or "").strip()
+    if not answer:
+        return None
+    graded_context = dict(normalized)
+    graded_context["user_answer"] = answer
+    graded_context["is_correct"] = answers_match(
+        answer,
+        str(normalized.get("correct_answer") or "").strip(),
+        graded_context,
+    )
+    return graded_context
 
 
 def looks_like_question_followup(message: str, question_context: dict[str, Any] | None) -> bool:
@@ -606,9 +744,15 @@ def _parse_batch_submission(
     message: str,
     items: list[dict[str, Any]],
 ) -> list[dict[str, Any]] | None:
+    corrected = _parse_batch_correction_submission(message, items)
+    if corrected:
+        return corrected
     numbered = _parse_numbered_batch_submission(message, items)
     if numbered:
         return numbered
+    compact_numbered = _parse_compact_numbered_batch_submission(message, items)
+    if compact_numbered:
+        return compact_numbered
     return _parse_positional_batch_submission(message, items)
 
 
@@ -648,6 +792,91 @@ def _parse_numbered_batch_submission(
             }
         )
     return answers or None
+
+
+def _parse_compact_numbered_batch_submission(
+    message: str,
+    items: list[dict[str, Any]],
+) -> list[dict[str, Any]] | None:
+    text = _strip_submission_prefix(message)
+    if not text:
+        return None
+
+    marker_re = re.compile(
+        r"(?:第\s*([0-9一二两三四五六七八九十]+)\s*(?:题|问)?|([0-9]+)\s*(?:题|问)?|([一二两三四五六七八九十])(?=[A-Ea-e]))",
+        re.IGNORECASE,
+    )
+    matches = list(marker_re.finditer(text))
+    if len(matches) < 2:
+        return None
+
+    answers: list[dict[str, Any]] = []
+    seen_indexes: set[int] = set()
+    for idx, match in enumerate(matches):
+        raw_index = match.group(1) or match.group(2) or match.group(3) or ""
+        item_index = _parse_small_zh_number(raw_index)
+        if item_index is None or item_index < 1 or item_index > len(items):
+            return None
+        if item_index in seen_indexes:
+            return None
+        next_start = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
+        fragment = text[match.end() : next_start].strip(" \t\r\n；;，,。.!！?：:、")
+        if not fragment:
+            return None
+        answer = _extract_single_submission(fragment, items[item_index - 1])
+        if answer is None:
+            return None
+        seen_indexes.add(item_index)
+        answers.append(
+            {
+                "index": item_index,
+                "question_id": str(items[item_index - 1].get("question_id") or "").strip(),
+                "user_answer": answer,
+            }
+        )
+    return answers or None
+
+
+def _parse_batch_correction_submission(
+    message: str,
+    items: list[dict[str, Any]],
+) -> list[dict[str, Any]] | None:
+    text = str(message or "").strip()
+    if not text:
+        return None
+    if "不变" not in text and "不改" not in text:
+        return None
+
+    existing_answers = _existing_batch_answers(items)
+    if len(existing_answers) != len(items):
+        return None
+
+    change_re = re.compile(
+        r"第?\s*([0-9一二两三四五六七八九十]+)\s*[题问]?\s*(?:答案)?\s*(?:改成|改为|改|换成|换为|换)\s*([A-Ea-e]+)",
+        re.IGNORECASE,
+    )
+    matches = list(change_re.finditer(text))
+    if not matches:
+        return None
+
+    updated_answers = dict(existing_answers)
+    for match in matches:
+        item_index = _parse_small_zh_number(match.group(1))
+        if item_index is None or item_index < 1 or item_index > len(items):
+            return None
+        normalized = _normalize_option_answer(match.group(2), items[item_index - 1])
+        if normalized is None:
+            return None
+        updated_answers[item_index] = normalized
+
+    return [
+        {
+            "index": index,
+            "question_id": str(item.get("question_id") or "").strip(),
+            "user_answer": updated_answers[index],
+        }
+        for index, item in enumerate(items, 1)
+    ]
 
 
 def _parse_positional_batch_submission(
@@ -745,15 +974,10 @@ def _split_compact_positional_answers(
 ) -> list[str] | None:
     if not items or not all(_question_prefers_single_option_answer(item) for item in items):
         return None
-    normalized = _strip_submission_prefix(fragment)
+    normalized = _extract_compact_answer_core(fragment, expected_len=len(items))
     if not normalized:
         return None
-    if not re.fullmatch(r"[A-Ea-e]+", normalized):
-        return None
-    letters = [letter.upper() for letter in normalized]
-    if len(letters) != len(items):
-        return None
-    return letters
+    return [letter.upper() for letter in normalized]
 
 
 def _strip_submission_prefix(value: str) -> str:
@@ -762,6 +986,233 @@ def _strip_submission_prefix(value: str) -> str:
         return ""
     stripped = _LEADING_SUBMISSION_PREFIX.sub("", text).strip()
     return stripped.strip("。.!！?；;，,：:、 ")
+
+
+def _extract_compact_answer_core(value: str, *, expected_len: int) -> str:
+    text = _strip_submission_prefix(value)
+    if not text:
+        return ""
+
+    context_prefix_re = re.compile(
+        r"^(?:前面(?:[一二两三四五六七八九十0-9]+)?题|前[一二两三四五六七八九十0-9]+题|前三题|前五题|这(?:几|[一二两三四五六七八九十0-9]+)?题|上面(?:[一二两三四五六七八九十0-9]+)?题)\s*",
+        re.IGNORECASE,
+    )
+    text = context_prefix_re.sub("", text).strip()
+    text = _strip_submission_prefix(text)
+    if not text:
+        return ""
+
+    text = re.sub(r"(?:吧|呢|呀|啊|哈|哦|喔|噢)$", "", text, flags=re.IGNORECASE).strip()
+    compact = re.sub(r"[，,；;\s/:：、.\-]+", "", text)
+    if re.fullmatch(rf"[A-Ea-e]{{{expected_len}}}", compact):
+        return compact.upper()
+    return ""
+
+
+def _existing_batch_answers(items: list[dict[str, Any]]) -> dict[int, str]:
+    answers: dict[int, str] = {}
+    for index, item in enumerate(items, 1):
+        normalized = _normalize_option_answer(str(item.get("user_answer") or "").strip(), item)
+        if normalized:
+            answers[index] = normalized
+    return answers
+
+
+def _build_followup_action_prompt(
+    *,
+    user_message: str,
+    question_context: dict[str, Any],
+    history_context: str = "",
+) -> str:
+    items = question_context.get("items") or []
+    if not isinstance(items, list) or not items:
+        items = [question_context]
+
+    question_snapshot: list[dict[str, Any]] = []
+    for index, item in enumerate(items, 1):
+        if not isinstance(item, dict):
+            continue
+        question_snapshot.append(
+            {
+                "question_index": index,
+                "question_id": str(item.get("question_id") or "").strip(),
+                "question_type": str(item.get("question_type") or "").strip(),
+                "question": str(item.get("question") or "").strip(),
+                "options": item.get("options") or {},
+                "user_answer": str(item.get("user_answer") or "").strip(),
+                "multi_select": bool(item.get("multi_select", False)),
+            }
+        )
+
+    prompt_payload = {
+        "history_context": str(history_context or "").strip(),
+        "user_message": str(user_message or "").strip(),
+        "active_question_set": question_snapshot,
+    }
+    return (
+        "请根据当前用户消息和题目上下文，判断用户意图。"
+        "只能从以下 intent 中选择一个："
+        "answer_questions, revise_answers, ask_followup, generate_more_questions, unknown, unrelated。\n"
+        "规则：\n"
+        "1. 如果用户是在提交当前题目/题组答案，intent=answer_questions。\n"
+        "2. 如果用户是在修改已经提交过的答案，如“第2题改成C，其他不变”，intent=revise_answers。\n"
+        "3. 如果用户是在问解析/讲解/为什么/哪题错了，intent=ask_followup。\n"
+        "4. 如果用户是在要求继续出题/再来几题，intent=generate_more_questions。\n"
+        "5. 如果无法有把握地判断为题目 follow-up，返回 unknown 或 unrelated，不要猜。\n"
+        "6. 只有在上下文足够支持时，才能把紧凑字母串解释成答案。\n"
+        "7. 如果需要输出答案，请放在 answers 数组里，每项包含 question_index、question_id、answer。\n"
+        "8. 如果用户表达“其他不变”，preserve_other_answers=true，否则 false。\n"
+        "9. 输出必须是 JSON 对象，键固定为 intent, confidence, preserve_other_answers, answers, reason。\n\n"
+        f"{json.dumps(prompt_payload, ensure_ascii=False)}"
+    )
+
+
+def _parse_followup_action_payload(raw: str) -> dict[str, Any] | None:
+    text = str(raw or "").strip()
+    if not text:
+        return None
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if not match:
+            return None
+        try:
+            payload = json.loads(match.group(0))
+        except json.JSONDecodeError:
+            return None
+    return payload if isinstance(payload, dict) else None
+
+
+def _normalize_followup_action(
+    raw: dict[str, Any],
+    question_context: dict[str, Any],
+) -> dict[str, Any] | None:
+    if not isinstance(raw, dict):
+        return None
+    intent = _normalize_followup_action_intent(raw.get("intent"))
+    confidence = raw.get("confidence")
+    try:
+        normalized_confidence = max(0.0, min(1.0, float(confidence)))
+    except (TypeError, ValueError):
+        normalized_confidence = 0.0
+
+    answers = _normalize_followup_action_answers(raw.get("answers"), question_context)
+    action = {
+        "intent": intent,
+        "confidence": normalized_confidence,
+        "preserve_other_answers": bool(raw.get("preserve_other_answers", False)),
+        "answers": answers,
+        "reason": str(raw.get("reason") or "").strip(),
+    }
+    if intent in _FOLLOWUP_ACTION_SUBMISSION_INTENTS and not answers:
+        action["intent"] = "unknown"
+    return action
+
+
+def _normalize_followup_action_intent(value: Any) -> str:
+    normalized = str(value or "").strip().lower()
+    intent = _FOLLOWUP_ACTION_INTENT_ALIASES.get(normalized, normalized)
+    if intent in _FOLLOWUP_ACTION_INTENTS:
+        return intent
+    return "unknown"
+
+
+def _normalize_followup_action_answers(
+    raw_answers: Any,
+    question_context: dict[str, Any],
+) -> list[dict[str, Any]]:
+    if not isinstance(raw_answers, list):
+        return []
+    items = question_context.get("items") or []
+    normalized_answers: list[dict[str, Any]] = []
+    for raw in raw_answers:
+        if not isinstance(raw, dict):
+            continue
+        item_index = _resolve_followup_action_item_index(raw, items, question_context)
+        if item_index is None:
+            continue
+        target_context = (
+            normalize_question_followup_context(items[item_index - 1])
+            if items and 1 <= item_index <= len(items)
+            else question_context
+        )
+        if not target_context:
+            continue
+        answer = _normalize_followup_action_answer(raw.get("answer"), target_context)
+        if answer is None:
+            continue
+        normalized_answers.append(
+            {
+                "index": item_index,
+                "question_id": str(target_context.get("question_id") or "").strip(),
+                "user_answer": answer,
+            }
+        )
+    return normalized_answers
+
+
+def _normalized_followup_action_answers(
+    action: dict[str, Any] | None,
+    question_context: dict[str, Any],
+) -> list[dict[str, Any]]:
+    if not isinstance(action, dict):
+        return []
+    answers = action.get("answers")
+    if isinstance(answers, list) and answers and isinstance(answers[0], dict) and "user_answer" in answers[0]:
+        return [
+            {
+                "index": int(answer["index"]),
+                "question_id": str(answer.get("question_id") or "").strip(),
+                "user_answer": str(answer.get("user_answer") or "").strip(),
+            }
+            for answer in answers
+            if isinstance(answer, dict) and str(answer.get("user_answer") or "").strip()
+        ]
+    return _normalize_followup_action_answers(answers, question_context)
+
+
+def _resolve_followup_action_item_index(
+    raw_answer: dict[str, Any],
+    items: list[dict[str, Any]],
+    question_context: dict[str, Any],
+) -> int | None:
+    raw_index = raw_answer.get("question_index")
+    try:
+        item_index = int(raw_index)
+    except (TypeError, ValueError):
+        item_index = None
+    if item_index is not None:
+        if items and 1 <= item_index <= len(items):
+            return item_index
+        if not items and item_index == 1:
+            return 1
+
+    raw_question_id = str(raw_answer.get("question_id") or "").strip()
+    if raw_question_id and items:
+        for index, item in enumerate(items, 1):
+            if str(item.get("question_id") or "").strip() == raw_question_id:
+                return index
+    if raw_question_id and not items and raw_question_id == str(question_context.get("question_id") or "").strip():
+        return 1
+    return 1 if not items else None
+
+
+def _normalize_followup_action_answer(value: Any, question_context: dict[str, Any]) -> str | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    option_answer = _normalize_option_answer(text, question_context)
+    if option_answer is not None:
+        return option_answer
+    judgment = _normalize_judgment_token(text)
+    if judgment is not None:
+        options = question_context.get("options") or {}
+        option_key = _match_option_key_by_value(judgment, options)
+        if option_key:
+            return option_key
+        return judgment
+    return text
 
 
 def _question_allows_multi_option_answer(question_context: dict[str, Any] | None) -> bool:

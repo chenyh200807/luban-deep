@@ -23,6 +23,7 @@ from typing import Any
 import yaml
 
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
 from deeptutor.tutorbot.utils.helpers import safe_filename
@@ -879,6 +880,7 @@ class TutorBotManager:
                         on_tool_result=_tool_result,
                         metadata=runtime_metadata,
                     )
+                    response = coerce_user_visible_answer(response)
                     usage_summary = observability.get_current_usage_summary()
                     observability.update_observation(
                         turn_observation,

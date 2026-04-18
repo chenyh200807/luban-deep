@@ -11,7 +11,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, Literal
 
 
 class StreamEventType(str, Enum):
@@ -32,6 +32,9 @@ class StreamEventType(str, Enum):
     DONE = "done"
 
 
+StreamVisibility = Literal["public", "internal"]
+
+
 @dataclass
 class StreamEvent:
     """
@@ -43,6 +46,7 @@ class StreamEvent:
         stage: Current stage within the source (e.g. "planning").
         content: Human-readable text payload.
         metadata: Arbitrary structured data (tool args, sources, metrics, …).
+        visibility: Whether the event is intended for end-user rendering or internal tracing only.
         timestamp: Unix epoch seconds when the event was created.
     """
 
@@ -51,6 +55,7 @@ class StreamEvent:
     stage: str = ""
     content: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
+    visibility: StreamVisibility = "public"
     session_id: str = ""
     turn_id: str = ""
     seq: int = 0
@@ -63,6 +68,7 @@ class StreamEvent:
             "stage": self.stage,
             "content": self.content,
             "metadata": self.metadata,
+            "visibility": self.visibility,
             "session_id": self.session_id,
             "turn_id": self.turn_id,
             "seq": self.seq,

@@ -208,6 +208,14 @@ class BIService:
         )
 
     @staticmethod
+    def _pick_backfill_model(cost_summary: dict[str, Any] | None) -> str:
+        models = cost_summary.get("models") if isinstance(cost_summary, dict) else {}
+        if not isinstance(models, dict) or len(models) != 1:
+            return ""
+        model_name = next(iter(models.keys()), "")
+        return str(model_name or "").strip()
+
+    @staticmethod
     def _average(values: list[float]) -> float:
         if not values:
             return 0.0
@@ -352,6 +360,7 @@ class BIService:
                 """
                 SELECT
                     te.turn_id,
+                    te.seq,
                     te.created_at,
                     te.metadata_json,
                     t.session_id,
@@ -1379,6 +1388,114 @@ class BIService:
             "cards": cards,
             "models": models,
             "providers": providers,
+        }
+
+    async def backfill_usage_ledger(
+        self,
+        *,
+        days: int = 3650,
+        capability: str | None = None,
+        entrypoint: str | None = None,
+        tier: str | None = None,
+        provider_name: str = "dashscope",
+    ) -> dict[str, Any]:
+        window_start = self._window_start(days)
+        now_ts = time.time()
+        context = self._apply_filters(
+            await self._load_context_since(window_start),
+            self._normalize_filters(capability, entrypoint, tier),
+        )
+        provider_label = str(provider_name or "").strip()
+        scanned = 0
+        inserted = 0
+        measured_inserted = 0
+        estimated_inserted = 0
+        skipped_existing_turns = 0
+
+        for event in context.result_events:
+            scanned += 1
+            if self._usage_ledger.has_usage_for_turn(str(event.get("turn_id") or "")):
+                skipped_existing_turns += 1
+                continue
+            cost_summary = event.get("cost_summary") or {}
+            rollup = self._rollup_cost_summary(cost_summary)
+            scope_id = str(
+                cost_summary.get("scope_id") or f"turn:{str(event.get('turn_id') or '').strip()}"
+            ).strip()
+            event_identity = (
+                f"{str(event.get('turn_id') or '').strip()}:"
+                f"{_safe_int(event.get('seq'))}:"
+                f"{int(round(_safe_float(event.get('created_at')) * 1000))}"
+            )
+            model_name = self._pick_backfill_model(cost_summary)
+            common_metadata = {
+                "provider_name": provider_label,
+                "backfill_source": "turn_result_cost_summary",
+                "backfill_event_identity": event_identity,
+                "backfill_usage_accuracy": str(cost_summary.get("usage_accuracy") or "").strip(),
+                "backfill_models": cost_summary.get("models") or {},
+                "backfill_usage_sources": cost_summary.get("usage_sources") or {},
+            }
+
+            if rollup.measured_total_tokens > 0 or rollup.measured_total_cost > 0:
+                inserted_now = self._usage_ledger.record_usage_event(
+                    usage_source="provider",
+                    usage_details={
+                        "input": float(rollup.measured_input_tokens),
+                        "output": float(rollup.measured_output_tokens),
+                        "total": float(rollup.measured_total_tokens),
+                    },
+                    cost_details={"total": float(rollup.measured_total_cost)},
+                    model=model_name,
+                    metadata=common_metadata,
+                    session_id=str(event.get("session_id") or ""),
+                    turn_id=str(event.get("turn_id") or ""),
+                    capability=str(event.get("capability") or ""),
+                    scope_id=scope_id,
+                    dedupe_key=f"turn-result-backfill:{event_identity}:measured",
+                    created_at=_safe_float(event.get("created_at")),
+                )
+                if inserted_now:
+                    inserted += 1
+                    measured_inserted += 1
+
+            if rollup.estimated_total_tokens > 0 or rollup.estimated_total_cost > 0:
+                inserted_now = self._usage_ledger.record_usage_event(
+                    usage_source="tiktoken",
+                    usage_details={
+                        "input": float(rollup.estimated_input_tokens),
+                        "output": float(rollup.estimated_output_tokens),
+                        "total": float(rollup.estimated_total_tokens),
+                    },
+                    cost_details={"total": float(rollup.estimated_total_cost)},
+                    model=model_name,
+                    metadata=common_metadata,
+                    session_id=str(event.get("session_id") or ""),
+                    turn_id=str(event.get("turn_id") or ""),
+                    capability=str(event.get("capability") or ""),
+                    scope_id=scope_id,
+                    dedupe_key=f"turn-result-backfill:{event_identity}:estimated",
+                    created_at=_safe_float(event.get("created_at")),
+                )
+                if inserted_now:
+                    inserted += 1
+                    estimated_inserted += 1
+
+        return {
+            "status": "ok",
+            "window_days": days,
+            "time_range": {"start_ts": window_start, "end_ts": now_ts},
+            "filters": {
+                "capability": str(capability or "").strip().lower(),
+                "entrypoint": str(entrypoint or "").strip().lower(),
+                "tier": str(tier or "").strip().lower(),
+                "provider_name": provider_label,
+            },
+            "scanned_result_events": scanned,
+            "inserted_ledger_events": inserted,
+            "inserted_measured_events": measured_inserted,
+            "inserted_estimated_events": estimated_inserted,
+            "skipped_existing_turns": skipped_existing_turns,
         }
 
     async def get_cost_reconciliation(

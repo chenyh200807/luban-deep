@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from deeptutor.services.question_followup import (
+    apply_followup_action_to_context,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
@@ -161,6 +162,188 @@ def test_resolve_submission_attempt_supports_compact_batch_letters_when_context_
         assert submission["kind"] == "batch"
         assert [item["user_answer"] for item in submission["answers"]] == ["A", "C", "D"]
         assert looks_like_question_followup(message, question_set) is True
+
+
+def test_resolve_submission_attempt_supports_compact_numbered_batch_variants() -> None:
+    question_set = {
+        "question_id": "quiz_3_numbered",
+        "question": "第1题...\n第2题...\n第3题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "题1",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "题2",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+                "correct_answer": "C",
+            },
+            {
+                "question_id": "q_3",
+                "question": "题3",
+                "question_type": "single_choice",
+                "options": {"A": "A3", "B": "B3", "C": "C3", "D": "D3"},
+                "correct_answer": "D",
+            },
+        ],
+    }
+
+    for message in (
+        "第一题A第二题C第三题D",
+        "第1题A第2题C第3题D",
+        "1A2C3D",
+        "1a2c3d",
+        "1:A 2:C 3:D",
+        "一A二C三D",
+    ):
+        target, submission = resolve_submission_attempt(message, question_set)
+        assert target is not None
+        assert submission is not None
+        assert submission["kind"] == "batch"
+        assert [item["user_answer"] for item in submission["answers"]] == ["A", "C", "D"]
+        assert looks_like_question_followup(message, question_set) is True
+
+
+def test_resolve_submission_attempt_supports_prefixed_compact_batch_letters() -> None:
+    question_set = {
+        "question_id": "quiz_3_prefixed",
+        "question": "第1题...\n第2题...\n第3题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "题1",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "题2",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+                "correct_answer": "C",
+            },
+            {
+                "question_id": "q_3",
+                "question": "题3",
+                "question_type": "single_choice",
+                "options": {"A": "A3", "B": "B3", "C": "C3", "D": "D3"},
+                "correct_answer": "D",
+            },
+        ],
+    }
+
+    expected_answers = {
+        "我的：acd": ["A", "C", "D"],
+        "我的答案：ACD": ["A", "C", "D"],
+        "答案是acd": ["A", "C", "D"],
+        "前面三题我选acd": ["A", "C", "D"],
+        "cad吧": ["C", "A", "D"],
+    }
+    for message, expected in expected_answers.items():
+        target, submission = resolve_submission_attempt(message, question_set)
+        assert target is not None
+        assert submission is not None
+        assert submission["kind"] == "batch"
+        assert [item["user_answer"] for item in submission["answers"]] == expected
+
+
+def test_resolve_submission_attempt_supports_batch_correction_with_other_answers_unchanged() -> None:
+    question_set = {
+        "question_id": "quiz_correction",
+        "question": "第1题...\n第2题...\n第3题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "题1",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+                "correct_answer": "A",
+                "user_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "题2",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+                "correct_answer": "C",
+                "user_answer": "B",
+            },
+            {
+                "question_id": "q_3",
+                "question": "题3",
+                "question_type": "single_choice",
+                "options": {"A": "A3", "B": "B3", "C": "C3", "D": "D3"},
+                "correct_answer": "D",
+                "user_answer": "D",
+            },
+        ],
+    }
+
+    target, submission = resolve_submission_attempt("第2题改成C，其他不变", question_set)
+
+    assert target is not None
+    assert submission is not None
+    assert submission["kind"] == "batch"
+    assert [item["user_answer"] for item in submission["answers"]] == ["A", "C", "D"]
+
+
+def test_apply_followup_action_to_context_preserves_other_answers_for_llm_revisions() -> None:
+    question_set = {
+        "question_id": "quiz_llm_revision",
+        "question": "第1题...\n第2题...\n第3题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "题1",
+                "question_type": "single_choice",
+                "correct_answer": "C",
+                "user_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "题2",
+                "question_type": "single_choice",
+                "correct_answer": "B",
+                "user_answer": "B",
+            },
+            {
+                "question_id": "q_3",
+                "question": "题3",
+                "question_type": "single_choice",
+                "correct_answer": "D",
+                "user_answer": "D",
+            },
+        ],
+    }
+
+    graded = apply_followup_action_to_context(
+        question_set,
+        {
+            "intent": "revise_answers",
+            "preserve_other_answers": True,
+            "answers": [
+                {
+                    "index": 1,
+                    "question_id": "q_1",
+                    "user_answer": "C",
+                }
+            ],
+        },
+    )
+
+    assert graded is not None
+    assert [item["user_answer"] for item in graded["items"]] == ["C", "B", "D"]
+    assert [item["is_correct"] for item in graded["items"]] == [True, True, True]
 
 
 def test_resolve_submission_keeps_compact_letters_for_single_multi_select_question() -> None:

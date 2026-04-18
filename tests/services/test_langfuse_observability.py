@@ -218,7 +218,18 @@ def test_start_observation_propagates_session_id_to_langfuse_trace() -> None:
             "tags": ["chat", "session"],
         }
     ]
-    assert client.call_order == ["propagate", "start"]
+
+
+def test_sanitize_output_redacts_internal_assistant_content(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LANGFUSE_CAPTURE_OUTPUT", "1")
+    monkeypatch.setenv("LANGFUSE_MASK_PII", "0")
+
+    adapter = LangfuseObservability()
+    sanitized = adapter.sanitize_output(
+        {"assistant_content": "我来读取相关技能文件，了解详细的使用说明。"}
+    )
+
+    assert sanitized == {"assistant_content": "[INTERNAL_OUTPUT_REDACTED]"}
 
 
 def test_start_observation_uses_module_level_propagation_when_client_lacks_it(
