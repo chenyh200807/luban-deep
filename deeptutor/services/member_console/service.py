@@ -5,6 +5,7 @@ from contextlib import contextmanager
 import hashlib
 import hmac
 import json
+import logging
 import os
 import re
 import secrets
@@ -38,6 +39,7 @@ from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.services.session import get_sqlite_session_store
 
 _TZ = timezone(timedelta(hours=8))
+logger = logging.getLogger(__name__)
 
 
 def _now() -> datetime:
@@ -170,6 +172,68 @@ class MemberConsoleService:
         from deeptutor.services.learner_state import get_bot_learner_overlay_service
 
         return get_bot_learner_overlay_service()
+
+    @staticmethod
+    def _default_packages() -> list[dict[str, Any]]:
+        return [
+            {"id": "starter", "points": 100, "price": "9.9", "badge": "", "per": ""},
+            {"id": "standard", "points": 500, "price": "39", "badge": "热门", "per": "¥0.078/点"},
+            {"id": "pro", "points": 1200, "price": "79", "badge": "", "per": "¥0.066/点"},
+            {"id": "ultimate", "points": 3000, "price": "169", "badge": "SVIP", "per": "¥0.056/点"},
+        ]
+
+    @staticmethod
+    def _empty_data() -> dict[str, Any]:
+        return {
+            "members": [],
+            "packages": MemberConsoleService._default_packages(),
+            "audit_log": [],
+            "assessment_sessions": {},
+            "phone_codes": {},
+        }
+
+    @staticmethod
+    def _build_default_member(user_id: str) -> dict[str, Any]:
+        now = _now()
+        return {
+            "user_id": user_id,
+            "display_name": user_id,
+            "phone": _slugify_phone(user_id),
+            "tier": "trial",
+            "status": "active",
+            "segment": "general",
+            "risk_level": "low",
+            "auto_renew": False,
+            "created_at": _iso(now),
+            "last_active_at": _iso(now),
+            "expire_at": _iso(now + timedelta(days=30)),
+            "avatar_url": "",
+            "points_balance": 120,
+            "level": 1,
+            "xp": 0,
+            "study_days": 0,
+            "review_due": 0,
+            "focus_topic": "入门摸底",
+            "focus_query": "帮我做一次入门摸底测试",
+            "exam_date": "",
+            "daily_target": 30,
+            "difficulty_preference": "medium",
+            "explanation_style": "detailed",
+            "review_reminder": True,
+            "earned_badge_ids": [],
+            "chapter_mastery": _default_chapter_mastery(),
+            "notes": [],
+            "ledger": [],
+            "daily_practice_counts": {},
+            "chapter_practice_stats": {},
+            "last_study_date": "",
+            "last_practice_at": "",
+        }
+
+    def _bootstrap_data(self) -> dict[str, Any]:
+        if is_production_environment():
+            return self._empty_data()
+        return self._seed_data()
 
     @staticmethod
     def _serialize_learner_snapshot(snapshot: Any) -> dict[str, Any]:
@@ -416,12 +480,7 @@ class MemberConsoleService:
         ]
         return {
             "members": members,
-            "packages": [
-                {"id": "starter", "points": 100, "price": "9.9", "badge": "", "per": ""},
-                {"id": "standard", "points": 500, "price": "39", "badge": "热门", "per": "¥0.078/点"},
-                {"id": "pro", "points": 1200, "price": "79", "badge": "", "per": "¥0.066/点"},
-                {"id": "ultimate", "points": 3000, "price": "169", "badge": "SVIP", "per": "¥0.056/点"},
-            ],
+            "packages": self._default_packages(),
             "audit_log": [
                 {
                     "id": "audit_seed_1",
@@ -464,10 +523,13 @@ class MemberConsoleService:
 
     def _load_unlocked(self) -> dict[str, Any]:
         if not self._data_path.exists():
-            data = self._seed_data()
+            data = self._bootstrap_data()
             self._save_unlocked(data)
             return data
         data = json.loads(self._data_path.read_text(encoding="utf-8"))
+        data.setdefault("members", [])
+        data.setdefault("packages", self._default_packages())
+        data.setdefault("audit_log", [])
         data.setdefault("assessment_sessions", {})
         data.setdefault("phone_codes", {})
         return data
@@ -508,43 +570,7 @@ class MemberConsoleService:
             self._ensure_learning_profile(member)
             return member
         except KeyError:
-            seed = deepcopy(data["members"][0])
-            seed.update(
-                {
-                    "user_id": user_id,
-                    "display_name": user_id,
-                    "phone": _slugify_phone(user_id),
-                    "tier": "trial",
-                    "status": "active",
-                    "segment": "general",
-                    "risk_level": "low",
-                    "auto_renew": False,
-                    "created_at": _iso(),
-                    "last_active_at": _iso(),
-                    "expire_at": _iso(_now() + timedelta(days=30)),
-                    "avatar_url": "",
-                    "points_balance": 120,
-                    "level": 1,
-                    "xp": 0,
-                    "study_days": 0,
-                    "review_due": 0,
-                    "focus_topic": "入门摸底",
-                    "focus_query": "帮我做一次入门摸底测试",
-                    "exam_date": "",
-                    "daily_target": 30,
-                    "difficulty_preference": "medium",
-                    "explanation_style": "detailed",
-                    "review_reminder": True,
-                    "earned_badge_ids": [],
-                    "chapter_mastery": _default_chapter_mastery(),
-                    "notes": [],
-                    "ledger": [],
-                    "daily_practice_counts": {},
-                    "chapter_practice_stats": {},
-                    "last_study_date": "",
-                    "last_practice_at": "",
-                }
-            )
+            seed = self._build_default_member(user_id)
             self._ensure_learning_profile(seed)
             data["members"].append(seed)
             return seed
@@ -791,6 +817,8 @@ class MemberConsoleService:
         return None
 
     def _supports_dev_wechat_login(self, code: str) -> bool:
+        if is_production_environment():
+            return False
         enabled = str(os.getenv("DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN") or "").strip().lower()
         if enabled in {"1", "true", "yes", "on"}:
             return True
@@ -1170,31 +1198,54 @@ class MemberConsoleService:
         }
         member["recent_ledger"] = member["ledger"][:10]
         member["recent_notes"] = member["notes"][:10]
+        member["learner_state"] = None
+        heartbeat_payload = {"jobs": [], "history": [], "arbitration_history": []}
         try:
             learner_state_service = self._get_learner_state_service()
             snapshot = learner_state_service.read_snapshot(user_id, event_limit=10)
             member["learner_state"] = self._serialize_learner_snapshot(snapshot)
-            member["heartbeat"] = {
-                "jobs": [
-                    self._serialize_heartbeat_job(job)
-                    for job in learner_state_service.list_heartbeat_jobs(user_id)
-                ],
-                "history": learner_state_service.list_heartbeat_history(
-                    user_id,
-                    limit=10,
-                    include_arbitration=True,
-                ),
-                "arbitration_history": learner_state_service.list_heartbeat_arbitration_history(
-                    user_id,
-                    limit=10,
-                ),
-            }
         except Exception:
-            member["learner_state"] = None
-            member["heartbeat"] = {"history": [], "arbitration_history": []}
+            logger.warning("Failed to load learner snapshot for member 360: user_id=%s", user_id, exc_info=True)
+        try:
+            learner_state_service = self._get_learner_state_service()
+            heartbeat_payload["jobs"] = [
+                self._serialize_heartbeat_job(job)
+                for job in learner_state_service.list_heartbeat_jobs(user_id)
+            ]
+        except Exception:
+            logger.warning("Failed to load heartbeat jobs for member 360: user_id=%s", user_id, exc_info=True)
+        try:
+            learner_state_service = self._get_learner_state_service()
+            heartbeat_payload["history"] = learner_state_service.list_heartbeat_history(
+                user_id,
+                limit=10,
+                include_arbitration=True,
+            )
+        except Exception:
+            logger.warning(
+                "Failed to load heartbeat history for member 360: user_id=%s",
+                user_id,
+                exc_info=True,
+            )
+        try:
+            learner_state_service = self._get_learner_state_service()
+            heartbeat_payload["arbitration_history"] = (
+                learner_state_service.list_heartbeat_arbitration_history(
+                    user_id,
+                    limit=10,
+                )
+            )
+        except Exception:
+            logger.warning(
+                "Failed to load heartbeat arbitration history for member 360: user_id=%s",
+                user_id,
+                exc_info=True,
+            )
+        member["heartbeat"] = heartbeat_payload
         try:
             member["bot_overlays"] = self._get_overlay_service().list_user_overlays(user_id, limit=20)
         except Exception:
+            logger.warning("Failed to load bot overlays for member 360: user_id=%s", user_id, exc_info=True)
             member["bot_overlays"] = []
         return member
 

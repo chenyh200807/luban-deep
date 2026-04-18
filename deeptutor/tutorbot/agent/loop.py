@@ -689,6 +689,141 @@ class AgentLoop:
                 item["content"] = content
                 return
 
+    @staticmethod
+    def _is_grounded_construction_exam_runtime(runtime_metadata: dict[str, Any] | None) -> bool:
+        if not isinstance(runtime_metadata, dict):
+            return False
+        aliases = {
+            "construction-exam",
+            "construction-exam-coach",
+            "construction-exam-tutor",
+            "construction_exam_tutor",
+        }
+        direct = str(runtime_metadata.get("default_kb") or "").strip().lower()
+        if direct in aliases:
+            return True
+        for key in ("knowledge_bases", "kb_aliases"):
+            values = runtime_metadata.get(key)
+            if not isinstance(values, list):
+                continue
+            for item in values:
+                normalized = str(item or "").strip().lower()
+                if normalized in aliases:
+                    return True
+        return str(runtime_metadata.get("bot_id") or "").strip().lower() == "construction-exam-coach"
+
+    @classmethod
+    def _should_prefetch_grounded_rag(
+        cls,
+        *,
+        current_message: str,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> bool:
+        if not cls._is_grounded_construction_exam_runtime(runtime_metadata):
+            return False
+        if prepare_exact_question_probe(current_message) is not None:
+            return False
+        if looks_like_practice_generation_request(current_message):
+            return False
+
+        text = cls._normalize_query_text(current_message)
+        textbook_delta = (
+            "教材" in text
+            and any(marker in text for marker in ("变化", "变动", "更新", "改版", "对比", "不一样"))
+        )
+        return bool(runtime_metadata.get("current_info_required")) or textbook_delta
+
+    async def _maybe_prefetch_grounded_rag(
+        self,
+        *,
+        initial_messages: list[dict[str, Any]],
+        current_message: str,
+        runtime_metadata: dict[str, Any] | None,
+        on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
+        on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
+    ) -> list[dict[str, Any]]:
+        if not self._should_prefetch_grounded_rag(
+            current_message=current_message,
+            runtime_metadata=runtime_metadata,
+        ):
+            return initial_messages
+
+        rag_tool = self.tools.get("rag")
+        if rag_tool is None:
+            return initial_messages
+
+        preview_args = {"query": current_message}
+        default_kb = str((runtime_metadata or {}).get("default_kb") or "").strip()
+        if not default_kb and isinstance(runtime_metadata, dict):
+            knowledge_bases = runtime_metadata.get("knowledge_bases")
+            if isinstance(knowledge_bases, list):
+                for item in knowledge_bases:
+                    normalized = str(item or "").strip()
+                    if normalized:
+                        default_kb = normalized
+                        break
+        if default_kb:
+            preview_args["kb_name"] = default_kb
+        try:
+            preview_args = rag_tool.preview_args(preview_args)
+        except Exception:
+            preview_args = dict(preview_args)
+
+        result = await self.tools.execute("rag", preview_args)
+        result_text = str(result or "").strip()
+        if not result_text:
+            return initial_messages
+
+        tool_trace_metadata: dict[str, Any] | None = None
+        try:
+            tool_trace_metadata = rag_tool.consume_trace_metadata()
+        except Exception:
+            tool_trace_metadata = None
+        merged_metadata = self._augment_rag_trace_metadata(
+            preview_args=preview_args,
+            tool_trace_metadata=tool_trace_metadata if isinstance(tool_trace_metadata, dict) else None,
+            rag_rounds=[],
+        )
+
+        if on_tool_call:
+            await on_tool_call("rag", preview_args)
+        if on_tool_result:
+            await on_tool_result("rag", result_text, merged_metadata)
+
+        prefetch_messages = list(initial_messages)
+        tool_call_id = "prefetch-rag-1"
+        prefetch_messages = self.context.add_assistant_message(
+            prefetch_messages,
+            None,
+            tool_calls=[
+                {
+                    "id": tool_call_id,
+                    "type": "function",
+                    "function": {
+                        "name": "rag",
+                        "arguments": json.dumps(preview_args, ensure_ascii=False),
+                    },
+                }
+            ],
+        )
+        prefetch_messages = self.context.add_tool_result(
+            prefetch_messages,
+            tool_call_id,
+            "rag",
+            result_text,
+        )
+        prefetch_messages.append(
+            {
+                "role": "system",
+                "content": (
+                    "首轮知识召回已完成。请直接基于现有证据回答学员，"
+                    "不要复述“我去搜索/我正在查找”这类过程话术；"
+                    "只有当前证据仍明显不足时，才继续调用其他工具。"
+                ),
+            }
+        )
+        return prefetch_messages
+
     async def _maybe_run_exact_rag_fast_path(
         self,
         *,
@@ -1176,6 +1311,13 @@ class AgentLoop:
             media=msg.media if msg.media else None,
             channel=msg.channel, chat_id=msg.chat_id,
             runtime_instruction=runtime_instruction,
+        )
+        initial_messages = await self._maybe_prefetch_grounded_rag(
+            initial_messages=initial_messages,
+            current_message=current_message,
+            runtime_metadata=runtime_metadata,
+            on_tool_call=on_tool_call,
+            on_tool_result=on_tool_result,
         )
 
         async def _bus_progress(content: str, *, tool_hint: bool = False) -> None:

@@ -1970,6 +1970,139 @@ async def test_tutorbot_process_direct_limits_tool_schemas_to_default_tools(
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_process_direct_prefetches_grounded_rag_for_current_info_query(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {"tool_calls": [], "tool_results": []}
+
+    class PrefetchProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            tool_messages = [item for item in messages if item.get("role") == "tool"]
+            assert len(tool_messages) == 1
+            assert "2026教材重点变化" in str(tool_messages[0].get("content") or "")
+            assert any(
+                item.get("role") == "system"
+                and "首轮知识召回已完成" in str(item.get("content") or "")
+                for item in messages
+            )
+            return LLMResponse(content="2026版教材确实有较大变化，重点集中在安全、BIM 和资源管理。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class PrefetchRagTool(Tool):
+        def __init__(self) -> None:
+            self._trace_metadata = {
+                "kb_name": "construction-exam",
+                "sources": [{"chunk_id": "DELTA26_SAFETY_FIRE_RESOURCE", "source_type": "textbook"}],
+                "authority_applied": False,
+                "exact_question": {},
+            }
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "grounded rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "kb_name": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            assert kwargs["query"] == "2026年的教材有什么不一样"
+            assert kwargs["kb_name"] == "construction-exam"
+            return "## 2026教材重点变化：安全检查·消防管理·资源管理"
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            metadata = dict(self._trace_metadata)
+            self._trace_metadata = {}
+            return metadata
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=PrefetchProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(PrefetchRagTool())
+
+    content = await loop.process_direct(
+        "2026年的教材有什么不一样",
+        metadata={
+            "default_kb": "construction-exam",
+            "knowledge_bases": ["construction-exam"],
+            "current_info_required": True,
+            "bot_id": "construction-exam-coach",
+        },
+        on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert "较大变化" in content
+    assert captured["tool_calls"] == [
+        ("rag", {"query": "2026年的教材有什么不一样", "kb_name": "construction-exam"})
+    ]
+    assert captured["tool_results"][0][2]["rag_round"] == {
+        "round_index": 1,
+        "query": "2026年的教材有什么不一样",
+        "kb_name": "construction-exam",
+        "source_count": 1,
+        "sources": [{"chunk_id": "DELTA26_SAFETY_FIRE_RESOURCE", "source_type": "textbook"}],
+        "query_similarity_to_prev": None,
+        "source_overlap_to_prev": None,
+        "shared_source_count_with_prev": 0,
+    }
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_agent_loop_skips_exact_authority_for_practice_generation(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
