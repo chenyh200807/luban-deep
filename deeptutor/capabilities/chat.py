@@ -16,7 +16,8 @@ from deeptutor.agents.chat.agentic_pipeline import (
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.capabilities.request_contracts import get_capability_request_schema
 
-CHAT_FAST_TOOLS = {"rag", "web_search"}
+# Fast mode is intentionally KB-first and should not fan out to live web retrieval.
+CHAT_FAST_TOOLS = {"rag"}
 
 
 def _flatten_sources(raw_sources: dict[str, Any] | None) -> list[dict[str, Any]]:

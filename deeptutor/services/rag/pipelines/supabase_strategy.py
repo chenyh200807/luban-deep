@@ -18,6 +18,8 @@ import os
 import re
 from typing import Any
 
+from deeptutor.services.observability import get_langfuse_observability
+
 
 _FILLER_PATTERNS = (
     "请问",
@@ -78,6 +80,7 @@ _QUESTION_HINTS = (
     "正确的是",
 )
 _CONTRAST_MARKERS = ("区别", "不同", "差异", "联系", "关系", "对比")
+observability = get_langfuse_observability()
 _TOKEN_RE = re.compile(r"[A-Za-z0-9./_-]+|[\u4e00-\u9fff]{2,12}")
 _NODE_CODE_RE = re.compile(r"\b\d+(?:\.\d+){1,3}\b")
 _STANDARD_CODE_RE = re.compile(r"(?:GB|JGJ|CJJ|GB/T|JGJ/T)\s*\d", re.IGNORECASE)
@@ -393,8 +396,25 @@ def prepare_exact_question_probe(query: str) -> ExactQuestionProbe | None:
         return None
 
     query_shape = classify_query_shape(original)
-    exam_like = is_exam_like_query(original) or is_question_like_query(original)
-    if query_shape not in {"mcq_like", "case_like"} and not exam_like:
+    normalized = normalize_query(original)
+    explicit_exam_keyword_patterns = (
+        r"选择题",
+        r"单选",
+        r"多选",
+        r"选项",
+        r"刷题",
+        r"真题",
+        r"做题(?!时)",
+    )
+    has_explicit_question_surface = (
+        bool(_EXAM_OPTION_RE.search(original))
+        or any(re.search(pattern, original) for pattern in explicit_exam_keyword_patterns)
+        or any(marker in original for marker in ("下列", "哪项", "哪个", "正确的是", "错误的是", "【问题】", "问题：", "问题:"))
+        or any(normalized.endswith(suffix) for suffix in _EXACT_QUESTION_ENDINGS)
+    )
+    if query_shape == "case_like":
+        pass
+    elif not has_explicit_question_surface:
         return None
 
     stem, options = _split_mcq_stem_options(original)
@@ -918,7 +938,36 @@ async def rerank_documents(
     if not cleaned_docs:
         return []
 
-    def _sync_call() -> list[dict[str, Any]]:
+    def _normalize_rerank_usage(usage: object) -> dict[str, float] | None:
+        if usage is None:
+            return None
+        if isinstance(usage, dict):
+            total_tokens = float(
+                usage.get("total_tokens")
+                or usage.get("input_tokens")
+                or usage.get("prompt_tokens")
+                or usage.get("total")
+                or usage.get("input")
+                or 0.0
+            )
+        else:
+            total_tokens = float(
+                getattr(usage, "total_tokens", 0.0)
+                or getattr(usage, "input_tokens", 0.0)
+                or getattr(usage, "prompt_tokens", 0.0)
+                or getattr(usage, "total", 0.0)
+                or getattr(usage, "input", 0.0)
+                or 0.0
+            )
+        if total_tokens <= 0:
+            return None
+        return {
+            "input": total_tokens,
+            "output": 0.0,
+            "total": total_tokens,
+        }
+
+    def _sync_call() -> tuple[list[dict[str, Any]], dict[str, float] | None]:
         response = dashscope.TextReRank.call(
             model=model_name,
             query=query,
@@ -928,11 +977,69 @@ async def rerank_documents(
             api_key=api_key,
         )
         if response.status_code != HTTPStatus.OK:
-            return []
+            return [], None
         results = response.output.get("results", [])
-        return results if isinstance(results, list) else []
+        return (
+            results if isinstance(results, list) else [],
+            _normalize_rerank_usage(getattr(response, "usage", None)),
+        )
 
-    try:
-        return await asyncio.wait_for(asyncio.to_thread(_sync_call), timeout=timeout_s)
-    except Exception:
-        return []
+    with observability.start_observation(
+        name="rerank.dashscope",
+        as_type="generation",
+        input_payload={"query": query, "documents": cleaned_docs},
+        metadata={
+            "provider_name": "dashscope",
+            "document_count": len(cleaned_docs),
+            "top_n": top_n,
+        },
+        model=model_name,
+        model_parameters={"top_n": top_n, "return_documents": False},
+    ) as observation:
+        try:
+            results, provider_usage_details = await asyncio.wait_for(
+                asyncio.to_thread(_sync_call),
+                timeout=timeout_s,
+            )
+        except Exception as exc:
+            observability.update_observation(
+                observation,
+                metadata={
+                    "provider_name": "dashscope",
+                    "document_count": len(cleaned_docs),
+                    "top_n": top_n,
+                },
+                model=model_name,
+                level="ERROR",
+                status_message=str(exc),
+            )
+            return []
+
+        usage_details = provider_usage_details
+        usage_source = "provider"
+        if usage_details is None:
+            usage_details = observability.estimate_usage_details(
+                input_payload={"query": query, "documents": cleaned_docs},
+                output_payload={"result_count": len(results)},
+            )
+            usage_source = "tiktoken"
+        observability.update_observation(
+            observation,
+            output_payload={
+                "result_count": len(results),
+                "top_indices": [item.get("index") for item in results[:10] if isinstance(item, dict)],
+            },
+            metadata={
+                "provider_name": "dashscope",
+                "document_count": len(cleaned_docs),
+                "top_n": top_n,
+            },
+            usage_details=usage_details,
+            usage_source=usage_source,
+            model=model_name,
+            cost_details=observability.estimate_cost_details(
+                model=model_name,
+                usage_details=usage_details,
+            ),
+        )
+        return results

@@ -23,12 +23,18 @@ from deeptutor.contracts.bot_runtime_defaults import (
 from deeptutor.logging.context import bind_log_context, reset_log_context
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.path_service import get_path_service
-from deeptutor.services.question_followup import normalize_question_followup_context
+from deeptutor.services.question_followup import (
+    build_question_followup_context_from_presentation,
+    looks_like_question_followup,
+    normalize_question_followup_context,
+)
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
     build_user_owner_key,
     get_sqlite_session_store,
 )
+from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
+from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 logger = logging.getLogger(__name__)
 observability = get_langfuse_observability()
@@ -65,6 +71,64 @@ def _env_flag(name: str, default: bool = True) -> bool:
     if not raw:
         return default
     return raw not in {"0", "false", "no", "off"}
+
+
+def _should_pin_tutorbot_capability(
+    *,
+    user_message: str,
+    followup_question_context: dict[str, Any] | None,
+) -> bool:
+    normalized_followup = normalize_question_followup_context(followup_question_context)
+    if normalized_followup and looks_like_question_followup(user_message, normalized_followup):
+        return False
+    if looks_like_practice_generation_request(user_message):
+        return False
+    return True
+
+
+def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
+    normalized_metadata = dict(metadata or {})
+    explicit = normalize_question_followup_context(
+        normalized_metadata.get("question_followup_context")
+    )
+    if explicit is not None:
+        return explicit
+
+    nested_metadata = (
+        normalized_metadata.get("metadata")
+        if isinstance(normalized_metadata.get("metadata"), dict)
+        else {}
+    )
+    explicit_nested = normalize_question_followup_context(
+        nested_metadata.get("question_followup_context")
+    )
+    if explicit_nested is not None:
+        return explicit_nested
+
+    presentation = normalized_metadata.get("presentation")
+    if not isinstance(presentation, dict):
+        presentation = nested_metadata.get("presentation")
+    if not isinstance(presentation, dict):
+        return None
+
+    rendered_response = str(
+        normalized_metadata.get("response")
+        or nested_metadata.get("response")
+        or presentation.get("fallback_text")
+        or ""
+    ).strip()
+    return build_question_followup_context_from_presentation(
+        presentation,
+        rendered_response,
+        reveal_answers=bool(
+            normalized_metadata.get("reveal_answers")
+            or nested_metadata.get("reveal_answers")
+        ),
+        reveal_explanations=bool(
+            normalized_metadata.get("reveal_explanations")
+            or nested_metadata.get("reveal_explanations")
+        ),
+    )
 
 
 def _coerce_context_flag(value: Any) -> bool | None:
@@ -246,6 +310,7 @@ def _extract_interaction_hints(
         "product_surface": str(raw.get("product_surface", "") or "").strip().lower(),
         "entry_role": str(raw.get("entry_role", "") or "").strip().lower(),
         "subject_domain": str(raw.get("subject_domain", "") or "").strip().lower(),
+        "teaching_mode": str(raw.get("teaching_mode", "") or "").strip().lower(),
         "preferred_question_type": preferred_question_type,
         "allow_general_chat_fallback": raw.get("allow_general_chat_fallback", True) is not False,
         "priorities": normalized_priorities,
@@ -270,6 +335,7 @@ def _extract_interaction_hints(
             hints["product_surface"],
             hints["entry_role"],
             hints["subject_domain"],
+            hints["teaching_mode"],
             hints["preferred_question_type"],
             hints["priorities"],
             hints.get("suppress_answer_reveal_on_generate"),
@@ -489,6 +555,7 @@ def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> st
             lines.append("- 若已有题目上下文，短答案如 A/B/C/D、我选B，应优先结合题目上下文理解为作答提交。")
         if hints.get("prefer_concept_teaching_slots"):
             lines.append("- 遇到知识讲解且本轮用了知识召回时，优先覆盖核心结论、踩分点、易错点；记忆口诀和心得仅在确有帮助时补充。")
+        lines.append("- 回答排版优先使用少量稳定标题和单层列表；避免多级缩进列表，以及“加粗标签 + 冒号 + 长正文 + 子列表”混搭。")
         if hints.get("allow_general_chat_fallback"):
             lines.append("- 如果用户明显转入闲聊、产品问答或开放问题，正常切回通用智能助理模式。")
         else:
@@ -543,6 +610,7 @@ class TurnRuntimeManager:
         self._lock = asyncio.Lock()
         self._executions: dict[str, _TurnExecution] = {}
         self._volatile_question_contexts: dict[str, dict[str, Any]] = {}
+        self._background_tasks: set[asyncio.Task[None]] = set()
 
     @staticmethod
     def _is_persistence_error(exc: Exception) -> bool:
@@ -590,6 +658,107 @@ class TurnRuntimeManager:
                 raise
             self._mark_persistence_degraded(execution, operation, exc)
             return default
+
+    def _track_background_task(self, task: asyncio.Task[None]) -> None:
+        self._background_tasks.add(task)
+
+        def _discard(done_task: asyncio.Task[None]) -> None:
+            self._background_tasks.discard(done_task)
+            exc: BaseException | None = None
+            with contextlib.suppress(asyncio.CancelledError):
+                exc = done_task.exception()
+            if exc is not None:
+                logger.debug("Background turn task failed: %s", exc, exc_info=True)
+
+        task.add_done_callback(_discard)
+
+    def _schedule_post_turn_refresh(
+        self,
+        *,
+        user_id: str,
+        raw_user_content: str,
+        assistant_content: str,
+        session_id: str,
+        capability_name: str,
+        language: str,
+        source_bot_id: str,
+        context_route: str,
+        task_anchor_type: str,
+        learner_state_service: Any,
+        memory_service: Any,
+    ) -> None:
+        async def _run() -> None:
+            try:
+                if user_id:
+                    await learner_state_service.refresh_from_turn(
+                        user_id=user_id,
+                        user_message=raw_user_content,
+                        assistant_message=assistant_content,
+                        session_id=session_id,
+                        capability=capability_name or "chat",
+                        language=language,
+                        source_bot_id=source_bot_id or None,
+                    )
+                    if source_bot_id and assistant_content.strip():
+                        try:
+                            from deeptutor.services.learner_state import get_bot_learner_overlay_service
+
+                            operations: list[dict[str, Any]] = [
+                                {
+                                    "op": "set",
+                                    "field": "working_memory_projection",
+                                    "value": assistant_content.strip()[:500],
+                                },
+                                {
+                                    "op": "merge",
+                                    "field": "engagement_state",
+                                    "value": {
+                                        "last_interaction_at": datetime.now().astimezone().isoformat(),
+                                        "last_context_route": str(context_route or "").strip(),
+                                        "last_capability": str(capability_name or "chat").strip(),
+                                    },
+                                },
+                            ]
+                            if task_anchor_type and task_anchor_type != "none":
+                                operations.append(
+                                    {
+                                        "op": "merge",
+                                        "field": "local_focus",
+                                        "value": {
+                                            "task_anchor_type": task_anchor_type,
+                                            "last_user_question": raw_user_content.strip()[:160],
+                                        },
+                                    }
+                                )
+                            get_bot_learner_overlay_service().patch_overlay(
+                                source_bot_id,
+                                user_id,
+                                {"operations": operations},
+                                source_feature="turn",
+                                source_id=session_id,
+                            )
+                            overlay_service = get_bot_learner_overlay_service()
+                            if hasattr(overlay_service, "apply_promotions"):
+                                overlay_service.apply_promotions(
+                                    source_bot_id,
+                                    user_id,
+                                    learner_state_service=learner_state_service,
+                                )
+                        except Exception:
+                            logger.debug("Failed to patch bot learner overlay from turn runtime", exc_info=True)
+                    return
+
+                await memory_service.refresh_from_turn(
+                    user_message=raw_user_content,
+                    assistant_message=assistant_content,
+                    session_id=session_id,
+                    capability=capability_name or "chat",
+                    language=language,
+                )
+            except Exception:
+                logger.debug("Failed to refresh lightweight tutor memory", exc_info=True)
+
+        self._track_background_task(asyncio.create_task(_run()))
 
     async def _resolve_billing_context(
         self,
@@ -667,6 +836,53 @@ class TurnRuntimeManager:
                 reason,
                 default=False,
             )
+
+    async def _cancel_active_turn_for_new_request(
+        self,
+        session_id: str,
+        *,
+        reason: str,
+    ) -> bool:
+        active_turn = await self._safe_store_call(
+            None,
+            "get_active_turn_for_new_request",
+            self.store.get_active_turn,
+            session_id,
+            default=None,
+        )
+        if not isinstance(active_turn, dict):
+            return False
+        turn_id = str(active_turn.get("id") or active_turn.get("turn_id") or "").strip()
+        if not turn_id:
+            return False
+
+        async with self._lock:
+            execution = self._executions.get(turn_id)
+
+        if execution is None or execution.task is None or execution.task.done():
+            updated = await self._safe_store_call(
+                None,
+                "cancel_superseded_turn_without_execution",
+                self.store.update_turn_status,
+                turn_id,
+                "cancelled",
+                reason,
+                default=False,
+            )
+            return bool(updated)
+
+        execution.task.cancel()
+        with contextlib.suppress(asyncio.CancelledError, asyncio.TimeoutError):
+            await asyncio.wait_for(execution.task, timeout=2.0)
+
+        refreshed_turn = await self._safe_store_call(
+            None,
+            "get_cancelled_turn_for_new_request",
+            self.store.get_turn,
+            turn_id,
+            default=None,
+        )
+        return bool(refreshed_turn) and refreshed_turn.get("status") != "running"
 
     def _capture_mobile_points(
         self,
@@ -1336,8 +1552,11 @@ class TurnRuntimeManager:
     async def start_turn(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
         requested_capability = str(payload.get("capability") or "").strip() or None
         capability = requested_capability or "chat"
+        session_id = str(payload.get("session_id") or "").strip()
+        raw_user_content = str(payload.get("content") or "").strip()
         raw_config = dict(payload.get("config", {}) or {})
         explicit_chat_mode = "chat_mode" in raw_config
+        effective_chat_mode_explicit = explicit_chat_mode
         runtime_only_keys = (
             "_persist_user_message",
             "followup_question_context",
@@ -1360,6 +1579,37 @@ class TurnRuntimeManager:
         runtime_interaction_hints = _extract_interaction_hints(
             {"interaction_hints": runtime_only_config.get("interaction_hints")}
         )
+        runtime_followup_question_context = normalize_question_followup_context(
+            runtime_only_config.get("followup_question_context")
+        )
+        if runtime_followup_question_context is not None:
+            runtime_only_config["followup_question_context"] = dict(
+                runtime_followup_question_context
+            )
+        if not runtime_followup_question_context and session_id:
+            stored_followup_question_context = await self._safe_store_call(
+                None,
+                "get_active_question_context_for_start_turn",
+                self.store.get_active_question_context,
+                session_id,
+                default=None,
+            )
+            if looks_like_question_followup(
+                raw_user_content,
+                stored_followup_question_context,
+            ):
+                runtime_followup_question_context = dict(stored_followup_question_context)
+            elif looks_like_question_followup(
+                raw_user_content,
+                self._volatile_question_contexts.get(session_id),
+            ):
+                runtime_followup_question_context = dict(
+                    self._volatile_question_contexts[session_id]
+                )
+            if runtime_followup_question_context is not None:
+                runtime_only_config["followup_question_context"] = dict(
+                    runtime_followup_question_context
+                )
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
 
@@ -1368,11 +1618,12 @@ class TurnRuntimeManager:
             raise RuntimeError(str(exc)) from exc
         if capability == "chat" and not explicit_chat_mode:
             hinted_chat_mode = _infer_chat_mode_from_interaction_hints(runtime_interaction_hints)
-            if hinted_chat_mode == "smart":
+            if hinted_chat_mode in {"fast", "deep", "smart"}:
                 validated_public_config = {
                     **validated_public_config,
-                    "chat_mode": "smart",
+                    "chat_mode": hinted_chat_mode,
                 }
+                effective_chat_mode_explicit = True
         bot_id = str(validated_public_config.get("bot_id") or "").strip()
         interaction_profile = _normalize_interaction_profile_name(
             runtime_only_config.get("interaction_profile")
@@ -1387,13 +1638,20 @@ class TurnRuntimeManager:
             knowledge_bases=payload.get("knowledge_bases"),
         )
         selected_capability = requested_capability
-        if selected_capability is None and knowledge_chain_defaults.get("execution_engine") == "tutorbot_runtime":
+        if (
+            selected_capability is None
+            and knowledge_chain_defaults.get("execution_engine") == "tutorbot_runtime"
+            and _should_pin_tutorbot_capability(
+                user_message=raw_user_content,
+                followup_question_context=runtime_followup_question_context,
+            )
+        ):
             selected_capability = "tutorbot"
             capability = "tutorbot"
         payload = {
             **payload,
             "capability": selected_capability,
-            "_chat_mode_explicit": explicit_chat_mode,
+            "_chat_mode_explicit": effective_chat_mode_explicit,
             "tools": knowledge_chain_defaults["tools"],
             "knowledge_bases": knowledge_chain_defaults["knowledge_bases"],
             "config": {
@@ -1431,15 +1689,28 @@ class TurnRuntimeManager:
             session["id"],
             reason="Recovered orphaned running turn before starting a new turn",
         )
+        await self._cancel_active_turn_for_new_request(
+            session["id"],
+            reason="Cancelled superseded running turn before starting a new turn",
+        )
         try:
             turn = await self.store.create_turn(session["id"], capability=capability)
         except RuntimeError as exc:
             if "active turn" not in str(exc).lower():
                 raise
-            await self._recover_orphaned_running_turns(
+            cancelled = await self._cancel_active_turn_for_new_request(
                 session["id"],
-                reason="Recovered orphaned running turn after create_turn conflict",
+                reason="Cancelled superseded running turn after create_turn conflict",
             )
+            if not cancelled:
+                await self._recover_orphaned_running_turns(
+                    session["id"],
+                    reason="Recovered orphaned running turn after create_turn conflict",
+                )
+                await self._cancel_active_turn_for_new_request(
+                    session["id"],
+                    reason="Cancelled superseded running turn after orphan recovery conflict",
+                )
             turn = await self.store.create_turn(session["id"], capability=capability)
         execution = _TurnExecution(
             turn_id=turn["id"],
@@ -1612,6 +1883,7 @@ class TurnRuntimeManager:
             from deeptutor.services.session.context_builder import ContextBuilder
 
             request_config = dict(payload.get("config", {}) or {})
+            raw_user_content = str(payload.get("content", "") or "")
             followup_question_context = _extract_followup_question_context(request_config)
             interaction_hints = await self._resolve_interaction_hints(
                 session_id,
@@ -1621,18 +1893,27 @@ class TurnRuntimeManager:
             persist_user_message = _extract_persist_user_message(request_config)
             billing_context = await self._resolve_billing_context(session_id, request_config)
             if not followup_question_context:
-                followup_question_context = await self._safe_store_call(
+                stored_followup_question_context = await self._safe_store_call(
                     execution,
                     "get_active_question_context",
                     self.store.get_active_question_context,
                     session_id,
                     default=None,
                 )
+                if looks_like_question_followup(
+                    raw_user_content,
+                    stored_followup_question_context,
+                ):
+                    followup_question_context = stored_followup_question_context
             if not followup_question_context:
-                followup_question_context = self._volatile_question_contexts.get(session_id)
+                volatile_followup_question_context = self._volatile_question_contexts.get(session_id)
+                if looks_like_question_followup(
+                    raw_user_content,
+                    volatile_followup_question_context,
+                ):
+                    followup_question_context = volatile_followup_question_context
             if followup_question_context:
                 self._volatile_question_contexts[session_id] = dict(followup_question_context)
-            raw_user_content = str(payload.get("content", "") or "")
             notebook_references = payload.get("notebook_references", []) or []
             history_references = payload.get("history_references", []) or []
             notebook_context = ""
@@ -1991,6 +2272,7 @@ class TurnRuntimeManager:
                     history_context=history_context,
                     memory_context=memory_context,
                     metadata={
+                        "raw_user_message": raw_user_content,
                         "conversation_summary": history_result.conversation_summary,
                         "conversation_context_text": conversation_context_text,
                         "history_token_count": history_result.token_count,
@@ -2034,6 +2316,7 @@ class TurnRuntimeManager:
                         assistant_events.append(payload_event)
                     if _should_capture_assistant_content(event):
                         assistant_content += event.content
+                assistant_content = normalize_markdown_for_tutorbot(assistant_content)
                 await self._safe_store_call(
                     execution,
                     "add_assistant_message",
@@ -2064,90 +2347,40 @@ class TurnRuntimeManager:
                     turn_observation,
                     output_payload={"assistant_content": assistant_content},
                     metadata={
+                        **observability.summary_metadata(usage_summary),
                         **trace_metadata,
                         **_summarize_assistant_events(assistant_events),
                         "assistant_event_count": len(assistant_events),
-                        "usage_summary": usage_summary,
                     },
                     usage_details=observability.usage_details_from_summary(usage_summary),
                     cost_details=observability.cost_details_from_summary(usage_summary),
+                    usage_source="summary",
                 )
-                try:
-                    if user_id:
-                        await learner_state_service.refresh_from_turn(
-                            user_id=user_id,
-                            user_message=raw_user_content,
-                            assistant_message=assistant_content,
-                            session_id=session_id,
-                            capability=capability_name or "chat",
-                            language=str(payload.get("language", "en") or "en"),
-                            source_bot_id=source_bot_id or None,
-                        )
-                        if source_bot_id and assistant_content.strip():
-                            try:
-                                from deeptutor.services.learner_state import get_bot_learner_overlay_service
-
-                                operations: list[dict[str, Any]] = [
-                                    {
-                                        "op": "set",
-                                        "field": "working_memory_projection",
-                                        "value": assistant_content.strip()[:500],
-                                    },
-                                    {
-                                        "op": "merge",
-                                        "field": "engagement_state",
-                                        "value": {
-                                            "last_interaction_at": datetime.now().astimezone().isoformat(),
-                                            "last_context_route": str(context_route or "").strip(),
-                                            "last_capability": str(capability_name or "chat").strip(),
-                                        },
-                                    },
-                                ]
-                                if task_anchor_type and task_anchor_type != "none":
-                                    operations.append(
-                                        {
-                                            "op": "merge",
-                                            "field": "local_focus",
-                                            "value": {
-                                                "task_anchor_type": task_anchor_type,
-                                                "last_user_question": raw_user_content.strip()[:160],
-                                            },
-                                        }
-                                    )
-                                get_bot_learner_overlay_service().patch_overlay(
-                                    source_bot_id,
-                                    user_id,
-                                    {"operations": operations},
-                                    source_feature="turn",
-                                    source_id=session_id,
-                                )
-                                overlay_service = get_bot_learner_overlay_service()
-                                if hasattr(overlay_service, "apply_promotions"):
-                                    overlay_service.apply_promotions(
-                                        source_bot_id,
-                                        user_id,
-                                        learner_state_service=learner_state_service,
-                                    )
-                            except Exception:
-                                logger.debug("Failed to patch bot learner overlay from turn runtime", exc_info=True)
-                    else:
-                        await memory_service.refresh_from_turn(
-                            user_message=raw_user_content,
-                            assistant_message=assistant_content,
-                            session_id=session_id,
-                            capability=capability_name or "chat",
-                            language=str(payload.get("language", "en") or "en"),
-                        )
-                except Exception:
-                    logger.debug("Failed to refresh lightweight tutor memory", exc_info=True)
+                self._schedule_post_turn_refresh(
+                    user_id=user_id,
+                    raw_user_content=raw_user_content,
+                    assistant_content=assistant_content,
+                    session_id=session_id,
+                    capability_name=capability_name or "chat",
+                    language=str(payload.get("language", "en") or "en"),
+                    source_bot_id=source_bot_id,
+                    context_route=context_route,
+                    task_anchor_type=task_anchor_type,
+                    learner_state_service=learner_state_service,
+                    memory_service=memory_service,
+                )
         except asyncio.CancelledError:
             usage_summary = observability.get_current_usage_summary()
             observability.update_observation(
                 turn_observation,
                 output_payload={"assistant_content": assistant_content},
-                metadata={**trace_metadata, "usage_summary": usage_summary},
+                metadata={
+                    **observability.summary_metadata(usage_summary),
+                    **trace_metadata,
+                },
                 usage_details=observability.usage_details_from_summary(usage_summary),
                 cost_details=observability.cost_details_from_summary(usage_summary),
+                usage_source="summary",
                 level="ERROR",
                 status_message="Turn cancelled",
             )
@@ -2183,9 +2416,13 @@ class TurnRuntimeManager:
             observability.update_observation(
                 turn_observation,
                 output_payload={"assistant_content": assistant_content},
-                metadata={**trace_metadata, "usage_summary": usage_summary},
+                metadata={
+                    **observability.summary_metadata(usage_summary),
+                    **trace_metadata,
+                },
                 usage_details=observability.usage_details_from_summary(usage_summary),
                 cost_details=observability.cost_details_from_summary(usage_summary),
+                usage_source="summary",
                 level="ERROR",
                 status_message=str(exc),
             )
@@ -2246,11 +2483,9 @@ class TurnRuntimeManager:
                 existing_cost_summary = nested_metadata.get("cost_summary")
                 if existing_cost_summary and existing_cost_summary != usage_summary:
                     nested_metadata["capability_cost_summary"] = existing_cost_summary
-                nested_metadata["cost_summary"] = usage_summary
+                    nested_metadata["cost_summary"] = usage_summary
                 metadata["metadata"] = nested_metadata
-            question_followup_context = normalize_question_followup_context(
-                metadata.get("question_followup_context")
-            )
+            question_followup_context = _result_question_followup_context(metadata)
             if question_followup_context is not None:
                 self._volatile_question_contexts[execution.session_id] = dict(question_followup_context)
                 await self._safe_store_call(

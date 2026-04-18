@@ -46,10 +46,51 @@ function getChatEngine() {
   return String(globalData.chatEngine || "").trim();
 }
 
+function getTheme() {
+  var globalData = getGlobalData();
+  if (globalData && globalData.theme) {
+    return String(globalData.theme || "").trim() || "dark";
+  }
+  try {
+    return wx.getStorageSync("theme") || "dark";
+  } catch (_) {
+    return "dark";
+  }
+}
+
+function setTheme(theme) {
+  var normalized = String(theme || "").trim() || "dark";
+  try {
+    wx.setStorageSync("theme", normalized);
+  } catch (_) {}
+  var globalData = getGlobalData();
+  if (globalData) {
+    globalData.theme = normalized;
+  }
+  return normalized;
+}
+
+function getWorkspaceFlags() {
+  var app = getAppSafe();
+  if (app && typeof app.getDeeptutorWorkspaceFlags === "function") {
+    try {
+      return app.getDeeptutorWorkspaceFlags();
+    } catch (_) {}
+  }
+  var globalData = getGlobalData();
+  if (globalData && globalData.deeptutorWorkspaceFlags) {
+    return Object.assign({}, globalData.deeptutorWorkspaceFlags);
+  }
+  return null;
+}
+
 module.exports = {
   getAppSafe: getAppSafe,
   getGlobalData: getGlobalData,
   getRuntimeBaseConfig: getRuntimeBaseConfig,
   rememberWorkingBaseUrl: rememberWorkingBaseUrl,
   getChatEngine: getChatEngine,
+  getTheme: getTheme,
+  setTheme: setTheme,
+  getWorkspaceFlags: getWorkspaceFlags,
 };

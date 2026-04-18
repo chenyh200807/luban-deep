@@ -221,7 +221,7 @@ function parse(text) {
 
   var result = _splitInlineCircledNums(blocks);
   result = _detectCallouts(result);
-  return result;
+  return _attachInlineNodes(result);
 }
 
 function _startsNewBlock(line) {
@@ -466,12 +466,103 @@ function parseInline(text) {
   return spans.length > 0 ? spans : [{ type: "text", text: text }];
 }
 
+function _inlineStyleForSpanType(type) {
+  if (type === "bold") return "font-weight:700;";
+  if (type === "italic") return "font-style:italic;";
+  if (type === "bold_italic") return "font-weight:700;font-style:italic;";
+  if (type === "code") {
+    return (
+      "font-family:monospace;" +
+      "background-color:rgba(96,165,250,0.15);" +
+      "padding:0 0.28em;" +
+      "border-radius:0.28em;"
+    );
+  }
+  return "";
+}
+
+function spansToRichTextNodes(spans) {
+  var items = Array.isArray(spans) ? spans : [];
+  var nodes = [];
+
+  for (var i = 0; i < items.length; i++) {
+    var span = items[i] || {};
+    var text = String(span.text || "");
+    if (!text) continue;
+
+    var style = _inlineStyleForSpanType(span.type);
+    if (!style) {
+      nodes.push({ type: "text", text: text });
+      continue;
+    }
+
+    nodes.push({
+      name: "span",
+      attrs: { style: style },
+      children: [{ type: "text", text: text }],
+    });
+  }
+
+  return nodes.length ? nodes : [{ type: "text", text: "" }];
+}
+
+function _attachInlineNodes(blocks) {
+  var items = Array.isArray(blocks) ? blocks : [];
+  for (var i = 0; i < items.length; i++) {
+    var block = items[i];
+    if (!block || typeof block !== "object") continue;
+
+    if (
+      block.type === "paragraph" ||
+      block.type === "heading" ||
+      block.type === "callout"
+    ) {
+      block.nodes = spansToRichTextNodes(block.content);
+      continue;
+    }
+
+    if (block.type === "blockquote" && Array.isArray(block.lines)) {
+      block.lineNodes = block.lines.map(function (line) {
+        return spansToRichTextNodes(line);
+      });
+      continue;
+    }
+
+    if ((block.type === "ul" || block.type === "ol") && Array.isArray(block.items)) {
+      for (var j = 0; j < block.items.length; j++) {
+        if (!block.items[j] || typeof block.items[j] !== "object") continue;
+        block.items[j].nodes = spansToRichTextNodes(block.items[j].content);
+      }
+      continue;
+    }
+
+    if (block.type === "table") {
+      if (Array.isArray(block.headers)) {
+        for (var h = 0; h < block.headers.length; h++) {
+          if (!block.headers[h] || typeof block.headers[h] !== "object") continue;
+          block.headers[h].nodes = spansToRichTextNodes(block.headers[h].content);
+        }
+      }
+      if (Array.isArray(block.rows)) {
+        for (var r = 0; r < block.rows.length; r++) {
+          var row = Array.isArray(block.rows[r]) ? block.rows[r] : [];
+          for (var c = 0; c < row.length; c++) {
+            if (!row[c] || typeof row[c] !== "object") continue;
+            row[c].nodes = spansToRichTextNodes(row[c].content);
+          }
+        }
+      }
+    }
+  }
+  return items;
+}
+
 // ── 附加 ID ──────────────────────────────────────────────
 
 function parseWithIds(text) {
   var blocks = parse(text);
   return blocks.map(function (block, idx) {
-    block.id = "b" + idx;
+    block.id = "b" + idx + "-" + String(block.type || "block");
     return block;
   });
 }
@@ -479,5 +570,6 @@ function parseWithIds(text) {
 module.exports = {
   parse: parse,
   parseInline: parseInline,
+  spansToRichTextNodes: spansToRichTextNodes,
   parseWithIds: parseWithIds,
 };

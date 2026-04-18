@@ -3,6 +3,30 @@ const LAUNCH_CACHE_KEY = "yousen_launch_cache";
 const LAUNCH_CACHE_TTL = 12 * 60 * 60 * 1000;
 const WEB_VIEW_FALLBACK = "__WEB_VIEW__";
 
+function normalizeBooleanFlag(value) {
+  if (value === undefined || value === null || value === "") {
+    return false;
+  }
+  if (typeof value === "boolean") {
+    return value;
+  }
+  if (typeof value === "number") {
+    return value !== 0;
+  }
+  if (typeof value === "string") {
+    var normalized = value.trim().toLowerCase();
+    return ["1", "true", "yes", "on"].indexOf(normalized) >= 0;
+  }
+  return Boolean(value);
+}
+
+function shouldForceHome(options) {
+  var source = options && typeof options === "object" ? options : {};
+  return normalizeBooleanFlag(
+    source.forceHome !== undefined ? source.forceHome : source.force_home,
+  );
+}
+
 function syncDeeptutorEntryFlag(payload) {
   try {
     var app = getApp();
@@ -132,6 +156,11 @@ Page({
   */
   onLoad(options) {
     this._launchFinished = false;
+    if (shouldForceHome(options)) {
+      clearCachedLaunchState();
+      this.fallbackToWebView();
+      return;
+    }
     var cachedLaunchState = readCachedLaunchState(false);
     var staleLaunchState = cachedLaunchState || readCachedLaunchState(true);
     if (cachedLaunchState && cachedLaunchState.target) {

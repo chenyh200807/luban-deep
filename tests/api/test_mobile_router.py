@@ -245,6 +245,137 @@ def test_mobile_chat_start_turn_requires_authentication() -> None:
     assert response.json()["detail"] == "Authentication required"
 
 
+def test_mobile_chat_feedback_persists_structured_row(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeFeedbackClient:
+        def __init__(self, *args, **kwargs) -> None:
+            self.is_configured = True
+
+        async def insert_feedback(self, row):
+            captured["row"] = dict(row)
+            return dict(row)
+
+        async def aclose(self) -> None:
+            captured["closed"] = True
+
+    monkeypatch.setattr(mobile_module, "MobileFeedbackSupabaseClient", FakeFeedbackClient)
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "session_store",
+        SimpleNamespace(
+            get_session_owner_key=AsyncMock(return_value="user:student_demo")
+        ),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/sessions/session_feedback_1/messages/42/feedback",
+            json={
+                "rating": -1,
+                "reason_tags": ["事实错误", "逻辑不通", "事实错误"],
+                "comment": "这里的规范引用不对",
+                "answer_mode": "fast",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    row = captured["row"]
+    assert row["user_id"] is None
+    assert row["conversation_id"] is None
+    assert row["message_id"] is None
+    assert row["rating"] == -1
+    assert row["reason_tags"] == ["事实错误", "逻辑不通"]
+    assert row["comment"] == "这里的规范引用不对"
+    assert row["metadata"]["answer_mode"] == "FAST"
+    assert row["metadata"]["feedback_source"] == "wx_miniprogram_message_actions"
+    assert row["metadata"]["surface"] == "wx_miniprogram"
+    assert row["metadata"]["deeptutor_user_id"] == "student_demo"
+    assert row["metadata"]["deeptutor_session_id"] == "session_feedback_1"
+    assert row["metadata"]["deeptutor_message_id"] == "42"
+    assert captured["closed"] is True
+
+
+def test_mobile_chat_feedback_legacy_alias_reuses_same_persistence_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeFeedbackClient:
+        def __init__(self, *args, **kwargs) -> None:
+            self.is_configured = True
+
+        async def insert_feedback(self, row):
+            captured["row"] = dict(row)
+            return dict(row)
+
+        async def aclose(self) -> None:
+            captured["closed"] = True
+
+    monkeypatch.setattr(mobile_module, "MobileFeedbackSupabaseClient", FakeFeedbackClient)
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "session_store",
+        SimpleNamespace(
+            get_session_owner_key=AsyncMock(return_value="user:student_demo")
+        ),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/feedback",
+            json={
+                "message_id": "42",
+                "conversation_id": "session_feedback_legacy",
+                "rating": 1,
+                "reason_tags": ["有帮助"],
+                "comment": "这个解释清楚",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    row = captured["row"]
+    assert row["conversation_id"] is None
+    assert row["message_id"] is None
+    assert row["rating"] == 1
+    assert row["reason_tags"] == ["有帮助"]
+    assert row["metadata"]["deeptutor_session_id"] == "session_feedback_legacy"
+    assert row["metadata"]["deeptutor_message_id"] == "42"
+    assert captured["closed"] is True
+
+
+def test_mobile_chat_feedback_returns_503_when_storage_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeFeedbackClient:
+        def __init__(self, *args, **kwargs) -> None:
+            self.is_configured = False
+
+        async def aclose(self) -> None:
+            return None
+
+    monkeypatch.setattr(mobile_module, "MobileFeedbackSupabaseClient", FakeFeedbackClient)
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/feedback",
+            json={
+                "message_id": "42",
+                "rating": 1,
+            },
+        )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Feedback storage unavailable"
+
+
 def test_get_conversation_messages_include_presentation_payload(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -310,6 +441,10 @@ def test_get_conversation_messages_include_presentation_payload(
     async def _fake_get_session_with_messages(_conversation_id: str):
         return session_payload
 
+    async def _fake_list_sessions_by_owner(*_args, **_kwargs):
+        return [session_payload]
+
+    monkeypatch.setattr(mobile_module.session_store, "list_sessions_by_owner", _fake_list_sessions_by_owner)
     monkeypatch.setattr(mobile_module.session_store, "get_session_with_messages", _fake_get_session_with_messages)
     monkeypatch.setattr(mobile_module.session_store, "get_session_owner_key", AsyncMock(return_value="user:student_demo"))
     monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
@@ -321,6 +456,139 @@ def test_get_conversation_messages_include_presentation_payload(
     messages = response.json()["messages"]
     assert messages[0]["presentation"]["blocks"][0]["type"] == "mcq"
     assert messages[0]["presentation"]["blocks"][0]["questions"][0]["question_id"] == "q_1"
+
+
+def test_get_conversation_messages_merges_internal_tutorbot_variants(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_rows = [
+        {
+            "id": "tb_123",
+            "updated_at": 20.0,
+            "created_at": 10.0,
+            "preferences": {
+                "source": "wx_miniprogram",
+                "user_id": "student_demo",
+                "bot_id": "construction-exam-coach",
+            },
+        },
+        {
+            "id": "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123",
+            "updated_at": 21.0,
+            "created_at": 11.0,
+            "preferences": {
+                "source": "wx_miniprogram",
+                "user_id": "student_demo",
+                "conversation_id": "tb_123",
+                "bot_id": "construction-exam-coach",
+            },
+        },
+    ]
+
+    session_payloads = {
+        "tb_123": {
+            "id": "tb_123",
+            "preferences": {"source": "wx_miniprogram", "archived": False},
+            "messages": [
+                {
+                    "id": 1,
+                    "role": "user",
+                    "content": "建筑构造是什么？",
+                    "created_at": 100.0,
+                    "events": [],
+                },
+                {
+                    "id": 2,
+                    "role": "assistant",
+                    "content": "我来帮你梳理建筑构造的核心概念。",
+                    "created_at": 101.0,
+                    "events": [],
+                },
+            ],
+        },
+        "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123": {
+            "id": "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123",
+            "preferences": {"source": "wx_miniprogram", "archived": False},
+            "messages": [
+                {
+                    "id": 10,
+                    "role": "assistant",
+                    "content": "标准答案：CDE",
+                    "created_at": 102.0,
+                    "events": [
+                        {
+                            "type": "result",
+                            "metadata": {
+                                "presentation": {
+                                    "schema_version": 1,
+                                    "blocks": [
+                                        {
+                                            "type": "mcq",
+                                            "questions": [
+                                                {
+                                                    "index": 1,
+                                                    "question_id": "q_1",
+                                                    "stem": "防火门设置要求有（ ）。",
+                                                    "question_type": "multi_choice",
+                                                    "options": [
+                                                        {"key": "A", "text": "方案A"},
+                                                        {"key": "B", "text": "方案B"},
+                                                    ],
+                                                }
+                                            ],
+                                            "submit_hint": "请选择后提交答案",
+                                            "receipt": "",
+                                            "review_mode": False,
+                                        }
+                                    ],
+                                    "fallback_text": "",
+                                    "meta": {"streamingMode": "block_finalized"},
+                                }
+                            },
+                        }
+                    ],
+                }
+            ],
+        },
+    }
+
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            if session_id == "tb_123":
+                return ""
+            if session_id in session_payloads:
+                return "user:student_demo"
+            return ""
+
+        async def list_sessions_by_owner(
+            self,
+            owner_key: str,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 500,
+            offset: int = 0,
+        ):
+            assert owner_key == "user:student_demo"
+            assert source == "wx_miniprogram"
+            return session_rows
+
+        async def get_session_with_messages(self, session_id: str):
+            return session_payloads.get(session_id)
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/tb_123/messages")
+
+    assert response.status_code == 200
+    messages = response.json()["messages"]
+    assert [item["content"] for item in messages] == [
+        "建筑构造是什么？",
+        "我来帮你梳理建筑构造的核心概念。",
+        "标准答案：CDE",
+    ]
+    assert messages[-1]["presentation"]["blocks"][0]["questions"][0]["stem"] == "防火门设置要求有（ ）。"
 
 
 def test_wechat_login_route_maps_service_errors(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -867,6 +1135,64 @@ def test_list_conversations_uses_owner_source_and_archived_filters(
     assert conversation["id"] == "session_1"
     assert conversation["cost_summary"]["total_tokens"] == 440
     assert conversation["cost_summary"]["usage_accuracy"] == "mixed"
+
+
+def test_create_conversation_initializes_mobile_tutorbot_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeSessionStore:
+        async def ensure_session(self, session_id: str, owner_key: str):
+            captured["ensure_session"] = {
+                "session_id": session_id,
+                "owner_key": owner_key,
+            }
+            return {
+                "id": session_id,
+                "created_at": 1_700_000_000.0,
+            }
+
+        async def update_session_title(self, session_id: str, title: str):
+            captured["title"] = {
+                "session_id": session_id,
+                "title": title,
+            }
+
+        async def update_session_preferences(self, session_id: str, preferences: dict[str, object]):
+            captured["preferences"] = {
+                "session_id": session_id,
+                "preferences": preferences,
+            }
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/conversations")
+
+    assert response.status_code == 200
+    body = response.json()
+    conversation = body["conversation"]
+    assert conversation["id"].startswith("tb_")
+    assert conversation["title"] == "新对话"
+    assert captured["ensure_session"] == {
+        "session_id": conversation["id"],
+        "owner_key": "user:student_demo",
+    }
+    assert captured["title"] == {
+        "session_id": conversation["id"],
+        "title": "新对话",
+    }
+    assert captured["preferences"] == {
+        "session_id": conversation["id"],
+        "preferences": {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "archived": False,
+            "bot_id": "construction-exam-coach",
+        },
+    }
 
 
 def test_list_conversations_can_request_archived_items(monkeypatch: pytest.MonkeyPatch) -> None:

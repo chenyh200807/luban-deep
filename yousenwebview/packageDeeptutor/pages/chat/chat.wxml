@@ -13,11 +13,13 @@
   <!-- 顶栏 — 仅 logo + 新对话 -->
   <view class="navbar {{hasMessages ? 'navbar-chat' : ''}}" style="padding-top:{{statusBarHeight}}px">
     <view class="navbar-inner">
-      <view class="nav-back-pill" wx:if="{{workspaceBackVisible || hasMessages}}" bindtap="onNavBackTap" aria-role="button" aria-label="{{workspaceBackVisible ? '返回' + workspaceBackLabel : '返回首页'}}">
-        <text class="nav-back-arrow">‹</text>
-        <text class="nav-back-label">{{workspaceBackVisible ? workspaceBackLabel : '返回首页'}}</text>
+      <view class="nav-brand-stack">
+        <image class="nav-logo {{hasMessages ? 'nav-logo-chat' : ''}}" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" aria-role="button" aria-label="回到首页" />
+        <view class="nav-back-pill" wx:if="{{workspaceBackVisible || hasMessages}}" bindtap="onNavBackTap" aria-role="button" aria-label="{{workspaceBackVisible ? '返回' + workspaceBackLabel : '返回首页'}}">
+          <text class="nav-back-arrow">‹</text>
+          <text class="nav-back-label">{{workspaceBackVisible ? workspaceBackLabel : '返回首页'}}</text>
+        </view>
       </view>
-      <image class="nav-logo {{hasMessages ? 'nav-logo-chat' : ''}}" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" aria-role="button" aria-label="回到首页" />
       <view style="flex:1"></view>
       <view class="nav-icon-btn nav-new-chat" wx:if="{{hasMessages}}" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
         <text class="nav-new-icon">+</text>
@@ -218,7 +220,7 @@
 	          </view>
 
           <!-- 思考中：生成阶段维持轻量提示 -->
-          <view class="thinking thinking-inline" wx:elif="{{item.thinkingStatus && !(item.mcqCards && item.mcqCards.length)}}">
+          <view class="thinking thinking-inline" wx:elif="{{item.thinkingStatus && !(item.mcqCards && item.mcqCards.length) && !(item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length)))}}">
             <view class="dots-bounce"><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
             <text class="thinking-label">{{item.thinkingStatus}}</text>
           </view>
@@ -264,9 +266,7 @@
 
               <!-- 标题 -->
               <view class="md-h{{b.level}}" wx:if="{{b.type==='heading'}}">
-                <block wx:for="{{b.content}}" wx:key="index" wx:for-item="s">
-                  <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
-                </block>
+                <rich-text class="md-richtext" nodes="{{b.nodes}}"></rich-text>
               </view>
 
               <!-- 代码块 -->
@@ -279,7 +279,7 @@
               <view class="md-hr" wx:elif="{{b.type==='hr'}}"></view>
 
               <!-- 结构化表格 -->
-              <view wx:if="{{b.type==='table' && b.isStructured}}">
+              <view wx:elif="{{b.type==='table' && b.isStructured}}">
                 <text class="md-table-caption" wx:if="{{b.caption}}" selectable>{{b.caption}}</text>
                 <text class="md-table-strategy" wx:if="{{b.mobileStrategy}}">手机端策略：{{b.mobileStrategy==='compact_cards' ? '紧凑卡片' : '横向滚动'}}</text>
                 <view wx:if="{{b.mobileStrategy==='compact_cards'}}">
@@ -311,17 +311,13 @@
               <scroll-view scroll-x wx:elif="{{b.type==='table'}}" class="md-table-scroll">
                 <view class="md-table">
                   <view class="md-thead">
-                    <view class="md-th" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h">
-                      <block wx:for="{{h.content}}" wx:key="index" wx:for-item="s">
-                        <text user-select class="{{s.type==='bold'?'b':s.type==='code'?'c':''}}">{{s.text}}</text>
-                      </block>
+                  <view class="md-th" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h">
+                      <rich-text class="md-richtext" nodes="{{h.nodes}}"></rich-text>
                     </view>
                   </view>
                   <view class="md-tr" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row">
                     <view class="md-td" wx:for="{{row}}" wx:key="index" wx:for-item="cell">
-                      <block wx:for="{{cell.content}}" wx:key="index" wx:for-item="s">
-                        <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='code'?'c':''}}">{{s.text}}</text>
-                      </block>
+                      <rich-text class="md-richtext" nodes="{{cell.nodes}}"></rich-text>
                     </view>
                   </view>
                 </view>
@@ -329,21 +325,13 @@
 
               <!-- 引用块 -->
               <view class="md-blockquote" wx:elif="{{b.type==='blockquote'}}">
-                <view class="bq-line" wx:for="{{b.lines}}" wx:key="index" wx:for-item="bqline">
-                  <block wx:for="{{bqline}}" wx:key="index" wx:for-item="s">
-                    <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
-                  </block>
-                </view>
+                <rich-text class="bq-line md-richtext" wx:for="{{b.lineNodes}}" wx:key="index" wx:for-item="lineNodes" nodes="{{lineNodes}}"></rich-text>
               </view>
 
               <!-- 核心结论/注意/要点高亮 -->
               <view class="md-callout md-callout-{{b.variant}}" wx:elif="{{b.type==='callout'}}">
                 <text class="callout-tag callout-tag-{{b.variant}}">{{b.label}}</text>
-                <view class="callout-body" wx:if="{{b.content.length}}">
-                  <block wx:for="{{b.content}}" wx:key="index" wx:for-item="s">
-                    <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='code'?'c':''}}">{{s.text}}</text>
-                  </block>
-                </view>
+                <rich-text class="callout-body md-richtext" wx:if="{{b.content.length}}" nodes="{{b.nodes}}"></rich-text>
               </view>
 
               <!-- 结构化公式 -->
@@ -430,9 +418,7 @@
                 <view class="md-li" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
                   <text class="bullet">·</text>
                   <view class="li-body">
-                    <block wx:for="{{li.content}}" wx:key="index" wx:for-item="s">
-                      <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
-                    </block>
+                    <rich-text class="md-richtext md-richtext-inline" nodes="{{li.nodes}}"></rich-text>
                   </view>
                 </view>
               </view>
@@ -442,9 +428,7 @@
                 <view class="md-li" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
                   <text class="ol-idx">{{li.index}}.</text>
                   <view class="li-body">
-                    <block wx:for="{{li.content}}" wx:key="index" wx:for-item="s">
-                      <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
-                    </block>
+                    <rich-text class="md-richtext md-richtext-inline" nodes="{{li.nodes}}"></rich-text>
                   </view>
                 </view>
               </view>
@@ -458,9 +442,7 @@
                   <text user-select>{{b.text}}</text>
                 </block>
                 <block wx:else>
-                  <block wx:for="{{b.content}}" wx:key="index" wx:for-item="s">
-                    <text user-select class="{{s.type==='bold'?'b':s.type==='italic'?'i':s.type==='bold_italic'?'bi':s.type==='code'?'c':''}}">{{s.text}}</text>
-                  </block>
+                  <rich-text class="md-richtext" nodes="{{b.nodes}}"></rich-text>
                 </block>
               </view>
 

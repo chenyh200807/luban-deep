@@ -88,16 +88,6 @@ Page({
     selectedMajorLabel: '一级建造师',
     selectedSubjectLabel: '建筑实务',
     currentCourseCount: 0,
-    heroCoverImageStyle: '',
-    heroCoverGlowStyle: '',
-    heroAnniversaryStyle: '',
-    heroAiStoryStyle: '',
-    pageScrollTop: 0,
-    pageScrollEnabled: true,
-    sheetDocked: false,
-    contentScrollTop: 0,
-    contentScrollEnabled: false,
-    contentPaneStyle: '',
     deeptutorEntryEnabled: true,
     deeptutorEntryVisible: true,
     deeptutorEntryConfig: {
@@ -164,141 +154,6 @@ Page({
         imageUrl: isExpanded ? '/images/icon/play_icon_02_1.png' : '/images/icon/play_icon_02.png'
       };
     },
-    clamp: function(value, min, max) {
-      return Math.min(Math.max(value, min), max);
-    },
-    rpxToPx: function(rpx) {
-      const ratio = this._windowWidth ? this._windowWidth / 750 : 1;
-      return rpx * ratio;
-    },
-    lerp: function(start, end, progress) {
-      return start + (end - start) * progress;
-    },
-    easeOutCubic: function(progress) {
-      var next = this.clamp(progress, 0, 1);
-      return 1 - Math.pow(1 - next, 3);
-    },
-    buildHeroLayerStyle: function(progress, options) {
-      var config = options || {};
-      var eased = this.easeOutCubic(progress);
-      var opacity = this.lerp(config.fromOpacity || 0, config.toOpacity === undefined ? 1 : config.toOpacity, eased);
-      var translateY = this.lerp(config.fromY || 0, config.toY || 0, eased);
-      var translateX = this.lerp(config.fromX || 0, config.toX || 0, eased);
-      var scale = this.lerp(config.fromScale === undefined ? 1 : config.fromScale, config.toScale === undefined ? 1 : config.toScale, eased);
-      return [
-        'opacity:' + opacity.toFixed(3),
-        'transform: translate3d(' + translateX.toFixed(1) + 'px,' + translateY.toFixed(1) + 'px,0) scale(' + scale.toFixed(3) + ')'
-      ].join(';') + ';';
-    },
-    getHeroScrollStyles: function(scrollTop) {
-      var top = Math.max(Number(scrollTop) || 0, 0);
-      var anniversaryProgress = this.clamp((top - 18) / 170, 0, 1);
-      var aiProgress = this.clamp((top - 150) / 260, 0, 1);
-      var imageProgress = this.clamp(top / 420, 0, 1);
-      var imageScale = this.lerp(1.025, 1.075, imageProgress);
-      var imageTranslateY = this.lerp(0, -22, imageProgress);
-      var imageTranslateX = this.lerp(0, -8, imageProgress);
-      var glowScale = this.lerp(0.94, 1.08, imageProgress);
-      var glowOpacity = this.lerp(0.48, 0.84, imageProgress);
-      var glowTranslateY = this.lerp(0, 18, imageProgress);
-      return {
-        heroCoverImageStyle: 'transform: translate3d(' + imageTranslateX.toFixed(1) + 'px,' + imageTranslateY.toFixed(1) + 'px,0) scale(' + imageScale.toFixed(3) + ');',
-        heroCoverGlowStyle: 'opacity:' + glowOpacity.toFixed(3) + ';transform: translate3d(0,' + glowTranslateY.toFixed(1) + 'px,0) scale(' + glowScale.toFixed(3) + ');',
-        heroAnniversaryStyle: this.buildHeroLayerStyle(anniversaryProgress, {
-          fromOpacity: 0,
-          toOpacity: 1,
-          fromY: 84,
-          toY: 0,
-          fromX: 26,
-          toX: 0,
-          fromScale: 0.74,
-          toScale: 1
-        }),
-        heroAiStoryStyle: this.buildHeroLayerStyle(aiProgress, {
-          fromOpacity: 0,
-          toOpacity: 1,
-          fromY: 54,
-          toY: 0,
-          fromScale: 0.98,
-          toScale: 1
-        })
-      };
-    },
-    updateHeroScrollScene: function(scrollTop, force) {
-      var normalizedTop = Math.max(Number(scrollTop) || 0, 0);
-      var quantizedTop = Math.round(normalizedTop / 12) * 12;
-      if (!force && this._lastHeroSceneTop === quantizedTop) {
-        return;
-      }
-      var nextStyles = this.getHeroScrollStyles(quantizedTop);
-      var sceneKey = Object.keys(nextStyles).map(key => nextStyles[key]).join('|');
-      if (!force && this._heroSceneKey === sceneKey) {
-        return;
-      }
-      this._lastHeroSceneTop = quantizedTop;
-      this._heroSceneKey = sceneKey;
-      this.setData(nextStyles);
-    },
-    initHeroDockLayout: function() {
-      const windowInfo = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : wx.getSystemInfoSync();
-      const windowHeight = Number(windowInfo && windowInfo.windowHeight) || 812;
-      const windowWidth = Number(windowInfo && windowInfo.windowWidth) || 375;
-      this._windowWidth = windowWidth;
-      this._windowHeight = windowHeight;
-      const logoRevealTopRpx = 304;
-      const sheetOffsetRpx = 860;
-      this._sheetDockScrollTop = windowHeight + this.rpxToPx(sheetOffsetRpx - logoRevealTopRpx);
-      const innerPaneHeight = Math.max(windowHeight - this.rpxToPx(logoRevealTopRpx), this.rpxToPx(420));
-      this.setData({
-        pageScrollTop: 0,
-        pageScrollEnabled: true,
-        sheetDocked: false,
-        contentScrollTop: 0,
-        contentScrollEnabled: false,
-        contentPaneStyle: 'height:' + innerPaneHeight.toFixed(1) + 'px;'
-      });
-    },
-    handlePageScroll: function(e) {
-      const scrollTop = Number(e && e.detail && e.detail.scrollTop) || 0;
-      const dockTop = this._sheetDockScrollTop || 0;
-      const effectiveTop = Math.min(scrollTop, dockTop);
-      this.updateHeroScrollScene(effectiveTop);
-      if (!this.data.sheetDocked && scrollTop >= dockTop) {
-        this.setData({
-          pageScrollEnabled: false,
-          sheetDocked: true,
-          pageScrollTop: dockTop,
-          contentScrollTop: 0,
-          contentScrollEnabled: true
-        });
-      }
-    },
-    handleContentScroll: function(e) {
-      this._contentInnerScrollTop = Number(e && e.detail && e.detail.scrollTop) || 0;
-    },
-    handleContentScrollToLower: function() {
-      if (this.appendRenderedCourseBatch()) {
-        return;
-      }
-      this.getGratisCourse({
-        showLoadMore: true
-      });
-    },
-    handleContentScrollToUpper: function() {
-      this._contentInnerScrollTop = 0;
-      if (!this.data.sheetDocked) {
-        return;
-      }
-      const restoreTop = Math.max((this._sheetDockScrollTop || 0) - this.rpxToPx(48), 0);
-      this.setData({
-        pageScrollEnabled: true,
-        sheetDocked: false,
-        pageScrollTop: restoreTop,
-        contentScrollTop: 0,
-        contentScrollEnabled: false
-      });
-      this.updateHeroScrollScene(restoreTop, true);
-    },
     updateGratisCoursePromotion: function(res) {
       this.setData({
         ggimageurl: res.ggimageurl,
@@ -350,6 +205,17 @@ Page({
         renderedCourseList: fullList.slice(0, nextCount)
       });
       return true;
+    },
+    loadMoreCourses: function() {
+      if (this.appendRenderedCourseBatch()) {
+        return;
+      }
+      this.getGratisCourse({
+        showLoadMore: true
+      });
+    },
+    handlePageScrollToLower: function() {
+      this.loadMoreCourses();
     },
     finalizeGratisCourseRequest: function(options) {
       if (options && options.stopPullDownRefresh) {
@@ -522,7 +388,6 @@ Page({
       this.syncDeeptutorEntryState();
       this.initCourseRenderState();
       this.initGratisCourseState();
-      this.initHeroDockLayout();
       this.data.major_id = wx.getStorageSync('major_id')
       this.data.major_id = 10
       //如果没有传值进来，就直接默认
@@ -538,7 +403,6 @@ Page({
         subject_id: 63,
         cate_id: 4
       }, this.getSelectionSummary(multiArray, multiIndex), this.getPickerVisualState(false)));
-      this.updateHeroScrollScene(0, true);
     },
 
     //头部广告跳转
@@ -593,16 +457,6 @@ Page({
           reset: true
         })
       }
-      if (!this.data.sheetDocked) {
-        this.setData({
-          pageScrollTop: 0,
-          contentScrollTop: 0,
-          pageScrollEnabled: true,
-          contentScrollEnabled: false
-        });
-        this.updateHeroScrollScene(0, true);
-      }
-
     },
 
     /**
@@ -633,12 +487,7 @@ Page({
    * 页面上拉触底事件的处理函数
    */
   onReachBottom: function () {
-    if (this.appendRenderedCourseBatch()) {
-      return;
-    }
-    this.getGratisCourse({
-      showLoadMore: true
-    });
+    this.loadMoreCourses();
   },
 
     /**
@@ -664,19 +513,23 @@ Page({
         entry_title: this.data.deeptutorEntryConfig.title,
         entry_variant: this.data.deeptutorEntryConfig.variant,
       });
-      wx.navigateTo({
-        url:
-          '/packageDeeptutor/pages/login/login?entrySource=' +
-          encodeURIComponent(entrySource) +
-          '&returnTo=' +
-          encodeURIComponent(returnTo),
-        fail: () => {
+      const app = getApp();
+      if (!app || typeof app.openDeeptutorLogin !== 'function') {
+        wx.showToast({
+          title: '鲁班AI智考暂时无法打开',
+          icon: 'none',
+          duration: 2500
+        });
+        return;
+      }
+      app.openDeeptutorLogin(entrySource, returnTo, {
+        onFail: () => {
           wx.showToast({
             title: '鲁班AI智考暂时无法打开',
             icon: 'none',
             duration: 2500
           });
-        }
+        },
       })
     }
 })

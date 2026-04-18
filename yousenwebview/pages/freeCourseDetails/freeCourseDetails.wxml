@@ -9,7 +9,7 @@
       <view class="hero-glow hero-glow--right"></view>
 
       <view class="hero-copy">
-        <view class="hero-kicker">佑森好课 · 一级建造师</view>
+        <view class="hero-kicker">佑森好课</view>
         <view class="hero-title ell-2">{{hdata.title}}</view>
         <view class="hero-chip-row">
           <view class="hero-chip hero-chip--accent">直播回放</view>

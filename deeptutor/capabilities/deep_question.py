@@ -19,12 +19,12 @@ from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.core.trace import merge_trace_metadata
 from deeptutor.services.question_followup import (
+    annotate_batch_submission_context,
     answers_match,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
-    extract_submission_answer,
     normalize_question_followup_context,
-    resolve_submission,
+    resolve_submission_attempt,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
 
@@ -61,20 +61,26 @@ class DeepQuestionCapability(BaseCapability):
             "question"
             )
         ):
-            narrowed_context, submission_answer = resolve_submission(
+            narrowed_context, submission = resolve_submission_attempt(
                 context.user_message,
                 followup_question_context,
             )
-            if narrowed_context and submission_answer is not None:
+            if narrowed_context and submission is not None:
                 from deeptutor.agents.question.agents.submission_grader_agent import (
                     SubmissionGraderAgent,
                 )
 
-                graded_context = self._build_submission_context(
-                    narrowed_context,
-                    submission_answer,
-                    raw_submission=context.user_message,
-                )
+                if submission.get("kind") == "batch":
+                    graded_context = self._build_batch_submission_context(
+                        narrowed_context,
+                        submission.get("answers"),
+                    )
+                else:
+                    graded_context = self._build_submission_context(
+                        narrowed_context,
+                        str(submission.get("answer") or "").strip(),
+                        raw_submission=context.user_message,
+                    )
                 agent = SubmissionGraderAgent(
                     language=context.language,
                     api_key=llm_config.api_key,
@@ -298,6 +304,26 @@ class DeepQuestionCapability(BaseCapability):
             user_answer=user_answer,
             raw_submission=raw_submission,
         )
+        return graded_context
+
+    @staticmethod
+    def _build_batch_submission_context(
+        question_context: dict[str, Any],
+        answers: list[dict[str, Any]] | None,
+    ) -> dict[str, Any]:
+        graded_context = annotate_batch_submission_context(question_context, answers) or dict(
+            question_context
+        )
+        items = graded_context.get("items") or []
+        correct_count = sum(1 for item in items if isinstance(item, dict) and item.get("is_correct") is True)
+        total_count = len(items)
+        graded_context["score"] = int((correct_count / total_count) * 100) if total_count else 0
+        if total_count and correct_count == total_count:
+            graded_context["diagnosis"] = "CORRECT"
+        elif correct_count:
+            graded_context["diagnosis"] = "PARTIAL"
+        else:
+            graded_context["diagnosis"] = "CONFUSION"
         return graded_context
 
     @staticmethod

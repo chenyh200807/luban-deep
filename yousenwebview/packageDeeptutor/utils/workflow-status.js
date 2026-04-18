@@ -639,7 +639,6 @@ function summarizeWorkflow(entries, active) {
       ? "后台已完成证据检索、推导校验和答案组织，可展开查看完整过程。"
       : "后台处理已经完成，可展开回看完整过程。";
   var metaParts = [];
-  if (count) metaParts.push((active ? "处理中" : "已完成") + " " + count + " 条后台记录");
   if (toolLabels.length) metaParts.push("调用了 " + toolLabels.slice(0, 3).join(" · "));
 
   return {

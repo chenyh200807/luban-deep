@@ -10,6 +10,7 @@ Memory is shared across all bots via ``data/memory/``.
 from __future__ import annotations
 
 import asyncio
+from contextlib import ExitStack
 import logging
 import shutil
 import sys
@@ -783,6 +784,8 @@ class TutorBotManager:
             "sources": [],
             "authority_applied": False,
             "exact_question": {},
+            "rag_rounds": [],
+            "rag_saturation": {},
         }
         trace_metadata = {
             "trace_name": trace_name,
@@ -826,6 +829,14 @@ class TutorBotManager:
             sources = metadata.get("sources")
             if isinstance(sources, list) and sources:
                 tool_trace_summary["sources"] = sources[:8]
+            rag_rounds = metadata.get("rag_rounds")
+            if isinstance(rag_rounds, list) and rag_rounds:
+                tool_trace_summary["rag_rounds"] = [
+                    dict(item) for item in rag_rounds if isinstance(item, dict)
+                ]
+            rag_saturation = metadata.get("rag_saturation")
+            if isinstance(rag_saturation, dict) and rag_saturation:
+                tool_trace_summary["rag_saturation"] = dict(rag_saturation)
             exact_question = metadata.get("exact_question")
             if isinstance(exact_question, dict) and exact_question:
                 tool_trace_summary["exact_question"] = exact_question
@@ -838,17 +849,24 @@ class TutorBotManager:
 
         response = ""
         try:
-            with observability.usage_scope(
-                scope_id=turn_id,
-                session_id=trace_session_id,
-                turn_id=turn_id,
-                capability="tutorbot",
-            ), observability.start_observation(
-                name="tutorbot.runtime" if external_turn_id else "turn.tutorbot",
-                as_type="chain",
-                input_payload={"content": content},
-                metadata=trace_metadata,
-            ) as turn_observation:
+            with ExitStack() as stack:
+                if not external_turn_id:
+                    stack.enter_context(
+                        observability.usage_scope(
+                            scope_id=turn_id,
+                            session_id=trace_session_id,
+                            turn_id=turn_id,
+                            capability="tutorbot",
+                        )
+                    )
+                turn_observation = stack.enter_context(
+                    observability.start_observation(
+                        name="tutorbot.runtime" if external_turn_id else "turn.tutorbot",
+                        as_type="chain",
+                        input_payload={"content": content},
+                        metadata=trace_metadata,
+                    )
+                )
                 try:
                     response = await instance.agent_loop.process_direct(
                         content,
@@ -866,24 +884,32 @@ class TutorBotManager:
                         turn_observation,
                         output_payload={"assistant_content": response},
                         metadata={
+                            **observability.summary_metadata(usage_summary),
                             **trace_metadata,
                             "tool_calls": tool_trace_summary["tool_calls"],
                             "sources": tool_trace_summary["sources"],
+                            "rag_rounds": tool_trace_summary["rag_rounds"],
+                            "rag_round_count": len(tool_trace_summary["rag_rounds"]),
+                            "rag_saturation": tool_trace_summary["rag_saturation"],
                             "authority_applied": tool_trace_summary["authority_applied"],
                             "exact_question": tool_trace_summary["exact_question"],
-                            "usage_summary": usage_summary,
                         },
                         usage_details=observability.usage_details_from_summary(usage_summary),
                         cost_details=observability.cost_details_from_summary(usage_summary),
+                        usage_source="summary",
                     )
                 except asyncio.CancelledError:
                     usage_summary = observability.get_current_usage_summary()
                     observability.update_observation(
                         turn_observation,
                         output_payload={"assistant_content": response},
-                        metadata={**trace_metadata, "usage_summary": usage_summary},
+                        metadata={
+                            **observability.summary_metadata(usage_summary),
+                            **trace_metadata,
+                        },
                         usage_details=observability.usage_details_from_summary(usage_summary),
                         cost_details=observability.cost_details_from_summary(usage_summary),
+                        usage_source="summary",
                         level="ERROR",
                         status_message="TutorBot turn cancelled",
                     )
@@ -893,9 +919,13 @@ class TutorBotManager:
                     observability.update_observation(
                         turn_observation,
                         output_payload={"assistant_content": response},
-                        metadata={**trace_metadata, "usage_summary": usage_summary},
+                        metadata={
+                            **observability.summary_metadata(usage_summary),
+                            **trace_metadata,
+                        },
                         usage_details=observability.usage_details_from_summary(usage_summary),
                         cost_details=observability.cost_details_from_summary(usage_summary),
+                        usage_source="summary",
                         level="ERROR",
                         status_message=str(exc),
                     )

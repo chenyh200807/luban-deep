@@ -1,5 +1,7 @@
 // utils/helpers.js — 共享工具函数（消除页面间重复代码）
 
+var hostRuntime = require("./host-runtime");
+
 /**
  * 友好时间格式化
  * @param {string} isoStr - ISO 时间字符串
@@ -52,13 +54,7 @@ function getTimeGreeting() {
  * @returns {string} "dark" | "light"
  */
 function getTheme() {
-  try {
-    var app = getApp();
-    if (app && app.globalData && app.globalData.theme) {
-      return app.globalData.theme;
-    }
-  } catch (_) {}
-  return wx.getStorageSync("theme") || "dark";
+  return hostRuntime.getTheme();
 }
 
 /**
@@ -66,13 +62,7 @@ function getTheme() {
  * @param {string} theme - "dark" | "light"
  */
 function setTheme(theme) {
-  wx.setStorageSync("theme", theme);
-  try {
-    var app = getApp();
-    if (app && app.globalData) {
-      app.globalData.theme = theme;
-    }
-  } catch (_) {}
+  hostRuntime.setTheme(theme);
 }
 
 /**

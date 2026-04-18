@@ -113,6 +113,38 @@ class SubmissionGraderAgent(BaseAgent):
                 str(question_context.get("explanation", "") or "(none)"),
             ]
         )
+        items = question_context.get("items") or []
+        if isinstance(items, list) and items:
+            lines.extend(["", "Question set items:"])
+            for index, item in enumerate(items, 1):
+                if not isinstance(item, dict):
+                    continue
+                item_options = item.get("options") or {}
+                item_option_lines: list[str] = []
+                if isinstance(item_options, dict):
+                    for key, value in item_options.items():
+                        if str(value or "").strip():
+                            item_option_lines.append(f"{key}. {value}")
+                lines.extend(
+                    [
+                        "",
+                        f"Item {index} ID: {item.get('question_id') or '(none)'}",
+                        f"Item {index} type: {item.get('question_type') or '(none)'}",
+                        f"Item {index} prompt:",
+                        str(item.get("question", "") or "(none)"),
+                    ]
+                )
+                if item_option_lines:
+                    lines.extend(["Options:", *item_option_lines])
+                lines.extend(
+                    [
+                        f"Learner answer: {item.get('user_answer') or '(not provided)'}",
+                        f"Reference answer: {item.get('correct_answer') or '(none)'}",
+                        f"Is correct: {item.get('is_correct')}",
+                        "Explanation:",
+                        str(item.get("explanation", "") or "(none)"),
+                    ]
+                )
         knowledge_context = str(question_context.get("knowledge_context", "") or "").strip()
         if knowledge_context:
             lines.extend(["", "Knowledge context:", knowledge_context])

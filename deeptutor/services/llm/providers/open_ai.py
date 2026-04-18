@@ -9,6 +9,7 @@ import httpx
 import openai
 
 from deeptutor.logging import get_logger
+from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 from ..config import LLMConfig, get_token_limit_kwargs
@@ -19,6 +20,7 @@ from ..types import AsyncStreamGenerator, TutorResponse, TutorStreamChunk
 from .base_provider import BaseLLMProvider
 
 logger = get_logger(__name__)
+observability = get_langfuse_observability()
 F = TypeVar("F", bound=Callable[..., object])
 
 
@@ -48,6 +50,21 @@ class OpenAIStream(Protocol):
 
 def _typed_track_llm_call(provider: str) -> Callable[[F], F]:
     return cast(Callable[[F], F], track_llm_call(provider))
+
+
+def _normalize_usage_details(usage: object) -> dict[str, float] | None:
+    if not isinstance(usage, dict):
+        return None
+    input_tokens = float(usage.get("prompt_tokens") or usage.get("input_tokens") or 0.0)
+    output_tokens = float(usage.get("completion_tokens") or usage.get("output_tokens") or 0.0)
+    total_tokens = float(usage.get("total_tokens") or (input_tokens + output_tokens))
+    if total_tokens <= 0:
+        return None
+    return {
+        "input": input_tokens,
+        "output": output_tokens,
+        "total": total_tokens,
+    }
 
 
 @register_provider("openai")
@@ -117,7 +134,55 @@ class OpenAIProvider(BaseLLMProvider):
                 cost_estimate=self.calculate_cost(usage),
             )
 
-        return await self.execute_with_retry(_call_api)
+        with observability.start_observation(
+            name="provider.openai.complete",
+            as_type="generation",
+            input_payload=prompt,
+            metadata={
+                "provider_name": self.provider_name,
+                "provider_mode": "legacy_provider",
+                "base_url": self.base_url,
+            },
+            model=model,
+        ) as observation:
+            try:
+                result = await self.execute_with_retry(_call_api)
+            except Exception as exc:
+                observability.update_observation(
+                    observation,
+                    metadata={
+                        "provider_name": self.provider_name,
+                        "provider_mode": "legacy_provider",
+                    },
+                    level="ERROR",
+                    status_message=str(exc),
+                )
+                raise
+
+            usage_details = _normalize_usage_details(result.usage)
+            usage_source = "provider"
+            if usage_details is None:
+                usage_details = observability.estimate_usage_details(
+                    input_payload=prompt,
+                    output_payload=result.content,
+                )
+                usage_source = "tiktoken"
+            observability.update_observation(
+                observation,
+                output_payload=result.content,
+                metadata={
+                    "provider_name": self.provider_name,
+                    "provider_mode": "legacy_provider",
+                },
+                usage_details=usage_details,
+                usage_source=usage_source,
+                model=model,
+                cost_details=observability.estimate_cost_details(
+                    model=model,
+                    usage_details=usage_details,
+                ),
+            )
+            return result
 
     def stream(self, prompt: str, **kwargs: object) -> AsyncStreamGenerator:
         model_raw = kwargs.pop("model", None)
@@ -138,26 +203,80 @@ class OpenAIProvider(BaseLLMProvider):
             )
 
         async def _stream() -> AsyncStreamGenerator:
-            stream = cast(OpenAIStream, await self.execute_with_retry(_create_stream))
-            accumulated_content = ""
-            provider_label = (
-                "azure" if isinstance(self.client, openai.AsyncAzureOpenAI) else "openai"
-            )
+            with observability.start_observation(
+                name="provider.openai.stream",
+                as_type="generation",
+                input_payload=prompt,
+                metadata={
+                    "provider_name": self.provider_name,
+                    "provider_mode": "legacy_provider",
+                    "base_url": self.base_url,
+                },
+                model=model,
+            ) as observation:
+                try:
+                    stream = cast(OpenAIStream, await self.execute_with_retry(_create_stream))
+                except Exception as exc:
+                    observability.update_observation(
+                        observation,
+                        metadata={
+                            "provider_name": self.provider_name,
+                            "provider_mode": "legacy_provider",
+                        },
+                        level="ERROR",
+                        status_message=str(exc),
+                    )
+                    raise
 
-            try:
-                async for chunk in stream:
-                    delta = ""
-                    if chunk.choices and chunk.choices[0].delta.content:
-                        delta = chunk.choices[0].delta.content
-                        accumulated_content += delta
-                        yield TutorStreamChunk(
-                            content=accumulated_content,
-                            delta=delta,
-                            provider=provider_label,
-                            model=model,
-                            is_complete=False,
-                        )
-            finally:
+                accumulated_content = ""
+                provider_label = (
+                    "azure" if isinstance(self.client, openai.AsyncAzureOpenAI) else "openai"
+                )
+
+                try:
+                    async for chunk in stream:
+                        delta = ""
+                        if chunk.choices and chunk.choices[0].delta.content:
+                            delta = chunk.choices[0].delta.content
+                            accumulated_content += delta
+                            yield TutorStreamChunk(
+                                content=accumulated_content,
+                                delta=delta,
+                                provider=provider_label,
+                                model=model,
+                                is_complete=False,
+                            )
+                except Exception as exc:
+                    observability.update_observation(
+                        observation,
+                        metadata={
+                            "provider_name": self.provider_name,
+                            "provider_mode": "legacy_provider",
+                        },
+                        level="ERROR",
+                        status_message=str(exc),
+                    )
+                    raise
+
+                usage_details = observability.estimate_usage_details(
+                    input_payload=prompt,
+                    output_payload=accumulated_content,
+                )
+                observability.update_observation(
+                    observation,
+                    output_payload=accumulated_content,
+                    metadata={
+                        "provider_name": self.provider_name,
+                        "provider_mode": "legacy_provider",
+                    },
+                    usage_details=usage_details,
+                    usage_source="tiktoken",
+                    model=model,
+                    cost_details=observability.estimate_cost_details(
+                        model=model,
+                        usage_details=usage_details,
+                    ),
+                )
                 yield TutorStreamChunk(
                     content=accumulated_content,
                     delta="",

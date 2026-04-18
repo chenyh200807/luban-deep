@@ -8,6 +8,7 @@ for TutorBot and DeepTutor in a single database.
 from __future__ import annotations
 
 import asyncio
+import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,7 @@ from loguru import logger
 
 from deeptutor.services.session.sqlite_store import build_user_owner_key
 from deeptutor.tutorbot.session.manager import Session
+from deeptutor.tutorbot.utils.helpers import normalize_message_content
 
 
 class SQLiteSessionAdapter:
@@ -28,6 +30,7 @@ class SQLiteSessionAdapter:
         """
         self.store = store
         self._cache: dict[str, Session] = {}
+        self._save_locks: dict[str, asyncio.Lock] = {}
 
     @property
     def sessions_dir(self) -> Path:
@@ -58,6 +61,81 @@ class SQLiteSessionAdapter:
     @staticmethod
     def _title_from_metadata(key: str, metadata: dict[str, Any]) -> str:
         return str(metadata.get("title") or "").strip() or f"TutorBot: {key}"
+
+    @staticmethod
+    def _message_signature(message: dict[str, Any]) -> tuple[Any, ...]:
+        return (
+            message.get("role", "user"),
+            normalize_message_content(message.get("content")),
+            json.dumps(message.get("tool_calls", []), ensure_ascii=False, sort_keys=True),
+            message.get("tool_call_id", ""),
+            message.get("name", ""),
+        )
+
+    @classmethod
+    def _stored_tutorbot_messages(cls, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        messages: list[dict[str, Any]] = []
+        for row in rows:
+            events = row.get("events") if isinstance(row.get("events"), list) else []
+            raw_message = next(
+                (
+                    item.get("_tutorbot_message")
+                    for item in events
+                    if isinstance(item, dict) and isinstance(item.get("_tutorbot_message"), dict)
+                ),
+                None,
+            )
+            if isinstance(raw_message, dict):
+                normalized = dict(raw_message)
+                normalized["content"] = normalize_message_content(normalized.get("content"))
+                messages.append(normalized)
+                continue
+            messages.append(
+                {
+                    "role": row.get("role", "user"),
+                    "content": normalize_message_content(row.get("content")),
+                    "timestamp": row.get("created_at", ""),
+                }
+            )
+        return messages
+
+    @classmethod
+    def _stored_rows_are_stable(cls, rows: list[dict[str, Any]]) -> bool:
+        stored_messages = cls._stored_tutorbot_messages(rows)
+        stable_messages = Session(key="stable-check", messages=stored_messages).stable_messages()
+        if len(stored_messages) != len(stable_messages):
+            return False
+        return all(
+            cls._message_signature(left) == cls._message_signature(right)
+            for left, right in zip(stored_messages, stable_messages, strict=False)
+        )
+
+    async def _rebuild_sqlite_session(
+        self,
+        *,
+        session_id: str,
+        session_key: str,
+        metadata: dict[str, Any],
+        stable_messages: list[dict[str, Any]],
+    ) -> None:
+        await self.store.delete_session(session_id)
+        await self.store.create_session(
+            title=self._title_from_metadata(session_key, metadata),
+            session_id=session_id,
+            owner_key=self._owner_key_from_metadata(metadata) or None,
+            source=self._source_from_metadata(metadata),
+            archived=bool(metadata.get("archived", False)),
+        )
+        if metadata:
+            await self.store.update_session_preferences(session_id, metadata)
+        for msg in stable_messages:
+            await self.store.add_message(
+                session_id=session_id,
+                role=msg.get("role", "user"),
+                content=msg.get("content", ""),
+                capability="tutorbot",
+                events=[{"_tutorbot_message": dict(msg)}],
+            )
 
     def get_or_create(self, key: str) -> Session:
         """Get or create a session synchronously (loads from SQLite via event loop)."""
@@ -109,12 +187,14 @@ class SQLiteSessionAdapter:
                 None,
             )
             if isinstance(raw_message, dict):
-                messages.append(dict(raw_message))
+                normalized = dict(raw_message)
+                normalized["content"] = normalize_message_content(normalized.get("content"))
+                messages.append(normalized)
                 continue
             messages.append(
                 {
                     "role": message.get("role", "user"),
-                    "content": message.get("content", ""),
+                    "content": normalize_message_content(message.get("content")),
                     "timestamp": message.get("created_at", ""),
                 }
             )
@@ -159,36 +239,48 @@ class SQLiteSessionAdapter:
         """Write new messages to SQLite."""
         session_id = self._session_id(session.key)
         metadata = self._normalize_metadata(session.metadata)
+        lock = self._save_locks.setdefault(session_id, asyncio.Lock())
 
-        existing = await self.store.get_session(session_id)
-        if existing is None:
-            await self.store.create_session(
-                title=self._title_from_metadata(session.key, metadata),
-                session_id=session_id,
-                owner_key=self._owner_key_from_metadata(metadata) or None,
-                source=self._source_from_metadata(metadata),
-                archived=bool(metadata.get("archived", False)),
-            )
-            if metadata:
-                await self.store.update_session_preferences(session_id, metadata)
-        else:
-            title = self._title_from_metadata(session.key, metadata)
-            if title and title != str(existing.get("title") or ""):
-                await self.store.update_session_title(session_id, title)
-            if metadata:
-                await self.store.update_session_preferences(session_id, metadata)
+        async with lock:
+            existing = await self.store.get_session(session_id)
+            if existing is None:
+                await self.store.create_session(
+                    title=self._title_from_metadata(session.key, metadata),
+                    session_id=session_id,
+                    owner_key=self._owner_key_from_metadata(metadata) or None,
+                    source=self._source_from_metadata(metadata),
+                    archived=bool(metadata.get("archived", False)),
+                )
+                if metadata:
+                    await self.store.update_session_preferences(session_id, metadata)
+            else:
+                title = self._title_from_metadata(session.key, metadata)
+                if title and title != str(existing.get("title") or ""):
+                    await self.store.update_session_title(session_id, title)
+                if metadata:
+                    await self.store.update_session_preferences(session_id, metadata)
 
-        existing_msgs = await self.store.get_messages(session_id)
-        existing_count = len(existing_msgs)
+            stable_messages = session.stable_messages()
+            existing_msgs = await self.store.get_messages(session_id)
+            if existing_msgs and not self._stored_rows_are_stable(existing_msgs):
+                await self._rebuild_sqlite_session(
+                    session_id=session_id,
+                    session_key=session.key,
+                    metadata=metadata,
+                    stable_messages=stable_messages,
+                )
+                existing_count = len(stable_messages)
+            else:
+                existing_count = len(existing_msgs)
 
-        for msg in session.messages[existing_count:]:
-            role = msg.get("role", "user")
-            content = msg.get("content", "")
-            await self.store.add_message(
-                session_id=session_id,
-                role=role,
-                content=content,
-                capability="tutorbot",
-                events=[{"_tutorbot_message": dict(msg)}],
-            )
+            for msg in stable_messages[existing_count:]:
+                role = msg.get("role", "user")
+                content = msg.get("content", "")
+                await self.store.add_message(
+                    session_id=session_id,
+                    role=role,
+                    content=content,
+                    capability="tutorbot",
+                    events=[{"_tutorbot_message": dict(msg)}],
+                )
         self._cache[session.key] = session

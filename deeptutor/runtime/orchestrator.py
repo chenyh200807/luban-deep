@@ -21,12 +21,14 @@ from deeptutor.events.event_bus import Event, EventType, get_event_bus
 from deeptutor.runtime.registry.capability_registry import get_capability_registry
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
 from deeptutor.services.question_followup import (
+    annotate_batch_submission_context,
     answers_match,
     detect_answer_reveal_preference,
     detect_requested_question_type,
     looks_like_question_followup,
-    resolve_submission,
+    resolve_submission_attempt,
 )
+from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 logger = logging.getLogger(__name__)
 
@@ -97,52 +99,51 @@ class ChatOrchestrator:
         await self._publish_completion(context, cap_name)
 
     def _select_capability(self, context: UnifiedContext) -> str:
+        routing_user_message = self._routing_user_message(context)
         if context.active_capability:
             return context.active_capability
 
-        if self._looks_like_question_submission(context):
+        if self._looks_like_question_submission(context, routing_user_message):
             self._prepare_question_submission_context(context)
             return "deep_question"
 
-        if self._looks_like_practice_request(context.user_message):
-            self._prepare_practice_request_context(context)
+        if looks_like_practice_generation_request(routing_user_message):
+            self._prepare_practice_request_context(context, routing_user_message)
             return "deep_question"
 
-        if self._looks_like_question_followup(context):
+        if self._looks_like_question_followup(context, routing_user_message):
             return "deep_question"
 
         return "chat"
 
     @staticmethod
-    def _looks_like_practice_request(message: str) -> bool:
-        text = str(message or "").strip().lower()
-        if not text:
-            return False
-        positive_markers = (
-            "出题", "出一道", "来一道", "来一题", "考我", "练习", "刷题", "测我",
-            "继续出", "继续来一道", "再来一道", "再出一道", "下一题", "下一道",
-            "quiz me", "test me", "give me a question", "give me one question",
-        )
-        negative_markers = ("不要出题", "别出题", "不想做题")
-        if any(marker in text for marker in negative_markers):
-            return False
-        if re.search(r"(给我|帮我|来|出|做)\s*\d{0,2}\s*(?:道|题)", text):
-            return True
-        if re.search(r"(给我|帮我|来|出|做)\s*[一二两三四五六七八九十]?\s*(?:道|题)", text):
-            return True
-        return any(marker in text for marker in positive_markers)
+    def _routing_user_message(context: UnifiedContext) -> str:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        raw = str(metadata.get("raw_user_message") or "").strip()
+        return raw or str(context.user_message or "").strip()
 
-    def _looks_like_question_submission(self, context: UnifiedContext) -> bool:
+    def _looks_like_question_submission(self, context: UnifiedContext, message: str) -> bool:
         qctx = context.metadata.get("question_followup_context", {}) or {}
         if not isinstance(qctx, dict) or not qctx.get("question"):
             return False
-        _target_context, answer = resolve_submission(context.user_message, qctx)
-        return answer is not None
+        _target_context, submission = resolve_submission_attempt(message, qctx)
+        return submission is not None
 
     def _prepare_question_submission_context(self, context: UnifiedContext) -> None:
         qctx = dict(context.metadata.get("question_followup_context", {}) or {})
-        target_context, answer = resolve_submission(context.user_message, qctx)
-        if not target_context or not answer:
+        target_context, submission = resolve_submission_attempt(context.user_message, qctx)
+        if not target_context or not submission:
+            return
+        if submission.get("kind") == "batch":
+            graded_context = annotate_batch_submission_context(
+                target_context,
+                submission.get("answers"),
+            )
+            if graded_context:
+                context.metadata["question_followup_context"] = graded_context
+            return
+        answer = str(submission.get("answer") or "").strip()
+        if not answer:
             return
         correct_answer = str(target_context.get("correct_answer", "") or "").strip()
         graded_context = dict(target_context)
@@ -150,11 +151,11 @@ class ChatOrchestrator:
         graded_context["is_correct"] = answers_match(answer, correct_answer, graded_context)
         context.metadata["question_followup_context"] = graded_context
 
-    def _looks_like_question_followup(self, context: UnifiedContext) -> bool:
+    def _looks_like_question_followup(self, context: UnifiedContext, message: str) -> bool:
         qctx = context.metadata.get("question_followup_context", {}) or {}
         if not isinstance(qctx, dict) or not qctx.get("question"):
             return False
-        return looks_like_question_followup(context.user_message, qctx)
+        return looks_like_question_followup(message, qctx)
 
     @staticmethod
     def _preferred_question_type(message: str) -> str:
@@ -188,7 +189,7 @@ class ChatOrchestrator:
             return 3
         return 1
 
-    def _prepare_practice_request_context(self, context: UnifiedContext) -> None:
+    def _prepare_practice_request_context(self, context: UnifiedContext, message: str) -> None:
         if not isinstance(context.config_overrides, dict):
             context.config_overrides = {}
         interaction_hints = (
@@ -202,14 +203,14 @@ class ChatOrchestrator:
                 interaction_hints.get("preferred_question_type", "") or ""
             ).strip().lower()
         explicit_question_type, is_explicit_type = detect_requested_question_type(
-            context.user_message
+            message
         )
-        reveal_preference = detect_answer_reveal_preference(context.user_message)
+        reveal_preference = detect_answer_reveal_preference(message)
         context.config_overrides.setdefault("mode", "custom")
-        context.config_overrides.setdefault("topic", context.user_message)
+        context.config_overrides.setdefault("topic", message)
         context.config_overrides.setdefault(
             "num_questions",
-            self._infer_question_count(context.user_message),
+            self._infer_question_count(message),
         )
         context.config_overrides.setdefault(
             "question_type",

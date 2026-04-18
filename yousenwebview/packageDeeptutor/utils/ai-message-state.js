@@ -1,6 +1,7 @@
 // utils/ai-message-state.js — 统一 AI 消息的正文/题卡渲染状态
 var md = require("./markdown");
 var mcqDetect = require("./mcq-detect");
+var markdownNormalize = require("./markdown-normalize");
 var renderSchema = require("./render-schema");
 
 function toInlineContent(text) {
@@ -176,6 +177,29 @@ function buildPresentationState(presentation) {
   };
 }
 
+function shouldRenderStructuredFallback(presentationState) {
+  if (!presentationState || !presentationState.canonical) return true;
+  var blocks = Array.isArray(presentationState.canonical.blocks)
+    ? presentationState.canonical.blocks
+    : [];
+  if (!blocks.length) return true;
+
+  for (var i = 0; i < blocks.length; i++) {
+    var block = blocks[i];
+    var type = block && block.type;
+    if (
+      type === renderSchema.BLOCK_TYPES.table ||
+      type === renderSchema.BLOCK_TYPES.formula_block ||
+      type === renderSchema.BLOCK_TYPES.chart ||
+      type === renderSchema.BLOCK_TYPES.image
+    ) {
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
 function deriveAiMessageRenderState(input) {
   var content = String((input && input.content) || "");
   var presentation =
@@ -184,12 +208,18 @@ function deriveAiMessageRenderState(input) {
       : null;
   var parseBlocks = !!(input && input.parseBlocks);
   var presentationState = buildPresentationState(presentation);
+  var renderStructuredFallback = shouldRenderStructuredFallback(presentationState);
   var renderableContent = presentationState && presentationState.canonical
     ? String(
-        presentationState.canonical.fallbackText ||
-          mcqDetect.stripReceipt(content),
+        renderStructuredFallback
+          ? presentationState.canonical.fallbackText ||
+              mcqDetect.stripReceipt(content)
+          : "",
       )
     : mcqDetect.stripReceipt(content);
+  renderableContent = markdownNormalize.normalizeMarkdownForWechat(
+    renderableContent || "",
+  );
   var canonicalMessage =
     presentationState && presentationState.canonical
       ? presentationState.canonical

@@ -71,6 +71,11 @@ assert(
   chatWxml.indexOf("nav-logo {{hasMessages ? 'nav-logo-chat' : ''}}") >= 0,
   "chat.wxml should enable a compact logo in chat mode",
 );
+assert(
+  chatWxml.indexOf("nav-points-pill") >= 0 &&
+    chatWxml.indexOf("{{userPoints}}") >= 0,
+  "chat navbar should keep showing the current points balance",
+);
 
 var navInnerHeight = getRpxValue(navInnerRule, "height");
 var navLogoHeight = getRpxValue(navLogoRule, "height");
@@ -90,6 +95,12 @@ assert(
 assert(
   getCssRule(".navbar-chat").indexOf("backdrop-filter") >= 0,
   "chat navbar should provide a visual separation layer",
+);
+assert(
+  chatWxml.indexOf(
+    "thinking-inline\" wx:elif=\"{{item.thinkingStatus && !(item.mcqCards && item.mcqCards.length) && !(item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length)))}}\"",
+  ) >= 0,
+  "inline thinking hint should stay hidden once workflow card is visible, avoiding duplicate progress summaries",
 );
 
 if (fail) {

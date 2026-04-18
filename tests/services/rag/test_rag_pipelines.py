@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -173,6 +175,96 @@ async def test_supabase_search_prioritizes_parallel_exact_question_match(
     assert result["sources"][0]["source_type"] == "textbook_assessment"
     assert result["exact_question"]["chunk_id"] == "question-q-exact"
     assert result["exact_question"]["source_group"] == "question_exact_text"
+
+
+@pytest.mark.asyncio
+async def test_rerank_documents_records_langfuse_observation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase_strategy
+
+    class _FakeObservation:
+        pass
+
+    class _FakeObservability:
+        def __init__(self) -> None:
+            self.started: list[dict[str, object]] = []
+            self.updated: list[dict[str, object]] = []
+
+        class _Context:
+            def __init__(self, outer: "_FakeObservability", kwargs: dict[str, object]) -> None:
+                self._outer = outer
+                self._kwargs = kwargs
+
+            def __enter__(self) -> _FakeObservation:
+                self._outer.started.append(self._kwargs)
+                return _FakeObservation()
+
+            def __exit__(self, exc_type, exc, tb) -> bool:
+                return False
+
+        def start_observation(self, **kwargs):
+            return self._Context(self, kwargs)
+
+        def update_observation(self, observation, **kwargs) -> None:
+            _ = observation
+            self.updated.append(kwargs)
+
+        def estimate_usage_details(self, *, input_payload, output_payload=None):
+            _ = output_payload
+            return {
+                "input": float(len(str(input_payload))),
+                "output": 0.0,
+                "total": float(len(str(input_payload))),
+            }
+
+        def estimate_cost_details(self, *, model, usage_details):
+            return {"model": model, "total": usage_details["total"]}
+
+    class _FakeDashscopeResponse:
+        def __init__(self) -> None:
+            self.status_code = 200
+            self.usage = SimpleNamespace(total_tokens=80)
+            self.output = {
+                "results": [
+                    {"index": 1, "relevance_score": 0.92},
+                    {"index": 0, "relevance_score": 0.81},
+                ]
+            }
+
+    class _FakeTextReRank:
+        @staticmethod
+        def call(**kwargs):
+            assert kwargs["model"] == "gte-rerank"
+            assert kwargs["top_n"] == 2
+            return _FakeDashscopeResponse()
+
+    fake_observability = _FakeObservability()
+    monkeypatch.setattr(supabase_strategy, "observability", fake_observability)
+    monkeypatch.setenv("DASHSCOPE_API_KEY", "test-key")
+    monkeypatch.setenv("SUPABASE_RAG_RERANK_MODEL", "gte-rerank")
+    monkeypatch.setitem(sys.modules, "dashscope", SimpleNamespace(TextReRank=_FakeTextReRank))
+
+    results = await supabase_strategy.rerank_documents(
+        "abc",
+        ["xx", "yyyy"],
+        top_n=2,
+        timeout_s=1.0,
+    )
+
+    assert [item["index"] for item in results] == [1, 0]
+    assert fake_observability.started[0]["name"] == "rerank.dashscope"
+    assert fake_observability.started[0]["model"] == "gte-rerank"
+    assert fake_observability.updated[-1]["usage_details"] == {
+        "input": 80.0,
+        "output": 0.0,
+        "total": 80.0,
+    }
+    assert fake_observability.updated[-1]["usage_source"] == "provider"
+    assert fake_observability.updated[-1]["cost_details"] == {
+        "model": "gte-rerank",
+        "total": 80.0,
+    }
 
 
 @pytest.mark.asyncio

@@ -8,6 +8,8 @@ from typing import Callable, Protocol, TypeVar, cast
 
 import anthropic
 
+from deeptutor.services.observability import get_langfuse_observability
+
 from ..config import LLMConfig
 from ..http_client import get_shared_http_client
 from ..registry import register_provider
@@ -28,6 +30,7 @@ _DISALLOWED_KWARGS = {
 }
 
 F = TypeVar("F", bound=Callable[..., object])
+observability = get_langfuse_observability()
 
 
 class AnthropicDelta(Protocol):
@@ -71,6 +74,21 @@ def _coerce_int(value: object, default: int) -> int:
 
 def _typed_track_llm_call(provider: str) -> Callable[[F], F]:
     return cast(Callable[[F], F], track_llm_call(provider))
+
+
+def _normalize_usage_details(usage: object) -> dict[str, float] | None:
+    if not isinstance(usage, dict):
+        return None
+    input_tokens = float(usage.get("input_tokens") or usage.get("prompt_tokens") or 0.0)
+    output_tokens = float(usage.get("output_tokens") or usage.get("completion_tokens") or 0.0)
+    total_tokens = float(usage.get("total_tokens") or (input_tokens + output_tokens))
+    if total_tokens <= 0:
+        return None
+    return {
+        "input": input_tokens,
+        "output": output_tokens,
+        "total": total_tokens,
+    }
 
 
 def _sanitize_kwargs(kwargs: dict[str, object]) -> dict[str, object]:
@@ -183,7 +201,55 @@ class AnthropicProvider(BaseLLMProvider):
                 cost_estimate=self.calculate_cost(usage),
             )
 
-        return await self.execute_with_retry(_call_api)
+        with observability.start_observation(
+            name="provider.anthropic.complete",
+            as_type="generation",
+            input_payload=prompt,
+            metadata={
+                "provider_name": self.provider_name,
+                "provider_mode": "legacy_provider",
+                "base_url": self.base_url,
+            },
+            model=model,
+        ) as observation:
+            try:
+                result = await self.execute_with_retry(_call_api)
+            except Exception as exc:
+                observability.update_observation(
+                    observation,
+                    metadata={
+                        "provider_name": self.provider_name,
+                        "provider_mode": "legacy_provider",
+                    },
+                    level="ERROR",
+                    status_message=str(exc),
+                )
+                raise
+
+            usage_details = _normalize_usage_details(result.usage)
+            usage_source = "provider"
+            if usage_details is None:
+                usage_details = observability.estimate_usage_details(
+                    input_payload=prompt,
+                    output_payload=result.content,
+                )
+                usage_source = "tiktoken"
+            observability.update_observation(
+                observation,
+                output_payload=result.content,
+                metadata={
+                    "provider_name": self.provider_name,
+                    "provider_mode": "legacy_provider",
+                },
+                usage_details=usage_details,
+                usage_source=usage_source,
+                model=model,
+                cost_details=observability.estimate_cost_details(
+                    model=model,
+                    usage_details=usage_details,
+                ),
+            )
+            return result
 
     @_typed_track_llm_call("anthropic")
     def stream(self, prompt: str, **kwargs: object) -> AsyncStreamGenerator:
@@ -224,35 +290,95 @@ class AnthropicProvider(BaseLLMProvider):
             )
 
         async def _stream() -> AsyncStreamGenerator:
-            stream = cast(AnthropicStream, await self.execute_with_retry(_create_stream))
-            accumulated_content = ""
-            usage = None
-
-            async for chunk in stream:
-                if chunk.type == "content_block_delta" and chunk.delta.text:
-                    delta = chunk.delta.text
-                    accumulated_content += delta
-
-                    yield TutorStreamChunk(
-                        content=accumulated_content,
-                        delta=delta,
-                        provider="anthropic",
-                        model=model,
-                        is_complete=False,
-                    )
-                elif chunk.type == "message_delta" and chunk.usage is not None:
-                    usage = {
-                        "input_tokens": chunk.usage.input_tokens,
-                        "output_tokens": chunk.usage.output_tokens,
-                    }
-
-            yield TutorStreamChunk(
-                content=accumulated_content,
-                delta="",
-                provider="anthropic",
+            with observability.start_observation(
+                name="provider.anthropic.stream",
+                as_type="generation",
+                input_payload=prompt,
+                metadata={
+                    "provider_name": self.provider_name,
+                    "provider_mode": "legacy_provider",
+                    "base_url": self.base_url,
+                },
                 model=model,
-                is_complete=True,
-                usage=usage,
-            )
+            ) as observation:
+                try:
+                    stream = cast(AnthropicStream, await self.execute_with_retry(_create_stream))
+                except Exception as exc:
+                    observability.update_observation(
+                        observation,
+                        metadata={
+                            "provider_name": self.provider_name,
+                            "provider_mode": "legacy_provider",
+                        },
+                        level="ERROR",
+                        status_message=str(exc),
+                    )
+                    raise
+
+                accumulated_content = ""
+                usage = None
+
+                try:
+                    async for chunk in stream:
+                        if chunk.type == "content_block_delta" and chunk.delta.text:
+                            delta = chunk.delta.text
+                            accumulated_content += delta
+
+                            yield TutorStreamChunk(
+                                content=accumulated_content,
+                                delta=delta,
+                                provider="anthropic",
+                                model=model,
+                                is_complete=False,
+                            )
+                        elif chunk.type == "message_delta" and chunk.usage is not None:
+                            usage = {
+                                "input_tokens": chunk.usage.input_tokens,
+                                "output_tokens": chunk.usage.output_tokens,
+                            }
+                except Exception as exc:
+                    observability.update_observation(
+                        observation,
+                        metadata={
+                            "provider_name": self.provider_name,
+                            "provider_mode": "legacy_provider",
+                        },
+                        level="ERROR",
+                        status_message=str(exc),
+                    )
+                    raise
+
+                usage_details = _normalize_usage_details(usage)
+                usage_source = "provider"
+                if usage_details is None:
+                    usage_details = observability.estimate_usage_details(
+                        input_payload=prompt,
+                        output_payload=accumulated_content,
+                    )
+                    usage_source = "tiktoken"
+                observability.update_observation(
+                    observation,
+                    output_payload=accumulated_content,
+                    metadata={
+                        "provider_name": self.provider_name,
+                        "provider_mode": "legacy_provider",
+                    },
+                    usage_details=usage_details,
+                    usage_source=usage_source,
+                    model=model,
+                    cost_details=observability.estimate_cost_details(
+                        model=model,
+                        usage_details=usage_details,
+                    ),
+                )
+
+                yield TutorStreamChunk(
+                    content=accumulated_content,
+                    delta="",
+                    provider="anthropic",
+                    model=model,
+                    is_complete=True,
+                    usage=usage,
+                )
 
         return _stream()

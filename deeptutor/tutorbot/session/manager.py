@@ -43,9 +43,43 @@ class Session:
         self.messages.append(msg)
         self.updated_at = datetime.now()
 
+    def stable_messages(self) -> list[dict[str, Any]]:
+        """Collapse each turn to stable user-visible facts only."""
+        stable: list[dict[str, Any]] = []
+        pending_user_messages: list[dict[str, Any]] = []
+        latest_assistant: dict[str, Any] | None = None
+
+        def flush_turn() -> None:
+            nonlocal pending_user_messages, latest_assistant
+            if pending_user_messages:
+                stable.extend(dict(item) for item in pending_user_messages)
+            if latest_assistant is not None:
+                stable.append(dict(latest_assistant))
+            pending_user_messages = []
+            latest_assistant = None
+
+        for msg in self.messages:
+            role = msg.get("role")
+            if role == "user":
+                flush_turn()
+                pending_user_messages = [dict(msg)]
+                continue
+            if role != "assistant":
+                continue
+            if msg.get("tool_calls"):
+                continue
+            content = msg.get("content")
+            if not isinstance(content, str) or not content.strip():
+                continue
+            latest_assistant = dict(msg)
+
+        flush_turn()
+        return stable
+
     def get_history(self, max_messages: int = 500) -> list[dict[str, Any]]:
-        """Return unconsolidated messages for LLM input, aligned to a user turn."""
-        unconsolidated = self.messages[self.last_consolidated:]
+        """Return stable turn history for LLM input, aligned to a user turn."""
+        stable = self.stable_messages()
+        unconsolidated = stable[self.last_consolidated:]
         sliced = unconsolidated[-max_messages:]
 
         # Drop leading non-user messages to avoid orphaned tool_result blocks

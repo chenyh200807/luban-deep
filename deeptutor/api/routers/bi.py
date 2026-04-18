@@ -107,6 +107,29 @@ async def bi_cost(
     return await get_bi_service().get_cost_stats(days=days, capability=capability, entrypoint=entrypoint, tier=tier)
 
 
+@router.get("/cost/reconciliation")
+async def bi_cost_reconciliation(
+    days: int = Query(30, ge=1, le=365),
+    capability: str | None = Query(None),
+    entrypoint: str | None = Query(None),
+    tier: str | None = Query(None),
+    workspace_id: str | None = Query(None),
+    apikey_id: str | None = Query(None),
+    model: str | None = Query(None),
+    billing_cycle: str | None = Query(None, pattern=r"^\d{4}-\d{2}$"),
+):
+    return await get_bi_service().get_cost_reconciliation(
+        days=days,
+        capability=capability,
+        entrypoint=entrypoint,
+        tier=tier,
+        workspace_id=workspace_id,
+        apikey_id=apikey_id,
+        model=model,
+        billing_cycle=billing_cycle,
+    )
+
+
 @router.get("/anomalies")
 async def bi_anomalies(
     days: int = Query(30, ge=1, le=365),
@@ -122,3 +145,11 @@ async def bi_anomalies(
         entrypoint=entrypoint,
         tier=tier,
     )
+
+
+@router.get("/feedback")
+async def bi_feedback(
+    days: int = Query(30, ge=1, le=365),
+    limit: int = Query(20, ge=1, le=100),
+):
+    return await get_bi_service().get_feedback(days=days, limit=limit)

@@ -452,12 +452,17 @@ class GuideManager:
                 from deeptutor.services.learner_state import get_bot_learner_overlay_service
 
                 current_focus = {}
-                if 0 <= int(session.current_index) < len(session.knowledge_points):
-                    knowledge = dict(session.knowledge_points[int(session.current_index)] or {})
+                focus_index = int(session.current_index)
+                if not (0 <= focus_index < len(session.knowledge_points)) and page_index is not None:
+                    focus_index = int(page_index)
+                if not (0 <= focus_index < len(session.knowledge_points)) and session.knowledge_points:
+                    focus_index = 0
+                if 0 <= focus_index < len(session.knowledge_points):
+                    knowledge = dict(session.knowledge_points[focus_index] or {})
                     current_focus = {
                         "knowledge_title": str(knowledge.get("knowledge_title", "") or "").strip(),
                         "knowledge_summary": str(knowledge.get("knowledge_summary", "") or "").strip(),
-                        "page_index": int(session.current_index),
+                        "page_index": focus_index,
                     }
                 operations: list[dict[str, Any]] = [
                     {

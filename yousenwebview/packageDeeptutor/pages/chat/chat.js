@@ -9,6 +9,7 @@ var log = require("../../utils/logger");
 var workflowStatus = require("../../utils/workflow-status");
 var citationFormat = require("../../utils/citation-format");
 var chatTurnRecovery = require("../../utils/chat-turn-recovery");
+var markdownFixtures = require("../../utils/devtools-markdown-fixtures");
 var runtime = require("../../utils/runtime");
 var route = require("../../utils/route");
 var flags = require("../../utils/flags");
@@ -26,7 +27,7 @@ var HERO_VIBRATE_THRESHOLD_PX = 40; // Hero 拖拽震动阈值
 var SCROLL_TOGGLE_COOLDOWN_MS = 300; // 滚动切换 tab bar 冷却
 var VIEWPORT_MARGIN_PX = 600; // IntersectionObserver 上下扩展边距
 var CHAT_TOOL_PREFS_KEY = "chat_tool_prefs";
-var NAVBAR_INNER_HEIGHT_RPX = 88;
+var NAVBAR_INNER_HEIGHT_RPX = 128;
 var _IS_DEVTOOLS =
   typeof __wxConfig !== "undefined" && __wxConfig.platform === "devtools";
 var AUTO_WEB_SEARCH_PATTERNS = [
@@ -36,6 +37,30 @@ var AUTO_WEB_SEARCH_PATTERNS = [
   /(住建部|住房和城乡建设部|建标|国标|地标|规范更新|标准更新)/,
   /(202[4-9]|20[3-9]\d).{0,12}(政策|规范|标准|通知|公告|文件|变化|更新)?/,
 ];
+
+function toFiniteNumber(value) {
+  var num = Number(value);
+  return isNaN(num) ? null : num;
+}
+
+function extractPointsValue(raw) {
+  var source = unwrap(raw) || raw || {};
+  var candidates = [
+    source.balance,
+    source.points,
+    source.wallet_balance,
+    source.walletBalance,
+    source.wallet && source.wallet.balance,
+    source.billing && source.billing.balance_after,
+  ];
+  for (var i = 0; i < candidates.length; i++) {
+    var parsed = toFiniteNumber(candidates[i]);
+    if (parsed !== null) {
+      return parsed;
+    }
+  }
+  return null;
+}
 
 Page({
   data: {
@@ -244,15 +269,19 @@ Page({
         .then(function (raw) {
           var info = api.unwrapResponse(raw);
           var name = info.username || info.display_name || "用户";
+          var nextPoints = extractPointsValue(info);
           // 保存 userId 供统一聊天运行时使用
           var uid = info.id || info.user_id;
           if (uid) auth.setToken(auth.getToken(), uid);
-          self.setData({
+          var nextState = {
             userName: name,
             avatarChar: name.charAt(0).toUpperCase(),
-            userPoints: info.points || 0,
-            billingBalance: info.points || 0,
-          });
+          };
+          if (nextPoints !== null) {
+            nextState.userPoints = nextPoints;
+            nextState.billingBalance = nextPoints;
+          }
+          self.setData(nextState);
           self._refreshPoints();
         })
         .catch(function (e) {
@@ -497,6 +526,27 @@ Page({
     return true;
   },
 
+  debugListMarkdownRegressionSamples: function () {
+    if (!_IS_DEVTOOLS) {
+      log.warn("Chat", "debugListMarkdownRegressionSamples is devtools-only");
+      return [];
+    }
+    return markdownFixtures.listMarkdownRegressionSamples();
+  },
+
+  debugLoadMarkdownRegressionSample: function (name) {
+    if (!_IS_DEVTOOLS) {
+      log.warn("Chat", "debugLoadMarkdownRegressionSample is devtools-only");
+      return false;
+    }
+    var sample = markdownFixtures.getMarkdownRegressionSample(String(name || ""));
+    if (!sample) {
+      log.warn("Chat", "unknown markdown regression sample: " + name);
+      return false;
+    }
+    return this.debugReplaceMessagesWithStructuredSample(sample);
+  },
+
   _recoverTurnFromHistory: function () {
     var self = this;
     var pending = self._pendingTurn;
@@ -673,10 +723,10 @@ Page({
 
   // ── 流式控制 ──────────────────────────────────
 
-  _stop: function () {
+  _stop: function (options) {
     if (this._abort) {
       try {
-        this._abort();
+        this._abort(options || {});
       } catch (_) {}
       this._abort = null;
     }
@@ -1219,7 +1269,10 @@ Page({
               ? node.name.substring(0, 8)
               : node.name || "";
           update.focusText = "今日焦点：薄弱点速练：5 题 · " + name;
-          update.focusQuery = "我想练习" + (node.name || "") + "相关的题目";
+          update.focusQuery =
+            "我想练习" +
+            (node.name || "") +
+            "，请给我来5道高价值选择题，不要提前给答案和解析。";
         } else if (overdue > 0) {
           update.focusText = "今日焦点：" + overdue + " 个逾期复习待处理";
           update.focusQuery = "帮我复习逾期的知识点";
@@ -1443,8 +1496,7 @@ Page({
 
   stopStream: function () {
     helpers.vibrate("light");
-    this._stop();
-    this.setData({ isStreaming: false });
+    this._stop({ cancelTurn: true });
   },
 
   _send: function (query, extraOpts) {
@@ -1807,9 +1859,13 @@ Page({
   goYousenHome: function () {
     helpers.vibrate("light");
     runtime.clearWorkspaceBack();
-    wx.reLaunch({
-      url: "/pages/index/index",
-      fail: function () {
+    var app = getApp();
+    if (!app || typeof app.goHostHome !== "function") {
+      wx.showToast({ title: "返回首页失败", icon: "none" });
+      return;
+    }
+    app.goHostHome({
+      onFail: function () {
         wx.showToast({ title: "返回首页失败", icon: "none" });
       },
     });
@@ -1818,6 +1874,9 @@ Page({
   goWorkspaceBack: function () {
     helpers.vibrate("light");
     var workspaceBack = runtime.consumeWorkspaceBack(route.chat());
+    if (workspaceBack && !flags.isRouteEnabled(workspaceBack.url)) {
+      workspaceBack = null;
+    }
     if (workspaceBack && workspaceBack.url) {
       wx.reLaunch({ url: workspaceBack.url });
       return;
@@ -1845,6 +1904,10 @@ Page({
 
   _syncWorkspaceBack: function () {
     var workspaceBack = runtime.getWorkspaceBack(route.chat());
+    if (workspaceBack && !flags.isRouteEnabled(workspaceBack.url)) {
+      runtime.clearWorkspaceBack();
+      workspaceBack = null;
+    }
     this.setData({
       workspaceBackVisible: !!(workspaceBack && workspaceBack.url),
       workspaceBackLabel: workspaceBack ? workspaceBack.label : "返回",
@@ -1899,17 +1962,31 @@ Page({
 
   _refreshPoints: function () {
     var self = this;
+    var applyPoints = function (points) {
+      if (points !== null) {
+        self.setData({
+          userPoints: points,
+          billingBalance: points,
+        });
+      }
+    };
     api
-      .getPoints()
+      .getWallet()
       .then(function (raw) {
-        var data = unwrap(raw) || {};
-        var points = Number(data.points);
-        if (!isNaN(points)) {
-          self.setData({
-            userPoints: points,
-            billingBalance: points,
-          });
+        var points = extractPointsValue(raw);
+        if (points !== null) {
+          applyPoints(points);
+          return;
         }
+        return api.getPoints().then(function (fallbackRaw) {
+          applyPoints(extractPointsValue(fallbackRaw));
+        });
+      })
+      .catch(function (walletErr) {
+        log.warn("Chat", "getWallet failed: " + ((walletErr && walletErr.message) || walletErr));
+        return api.getPoints().then(function (fallbackRaw) {
+          applyPoints(extractPointsValue(fallbackRaw));
+        });
       })
       .catch(function (err) {
         log.warn("Chat", "getPoints failed: " + ((err && err.message) || err));

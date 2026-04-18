@@ -1,0 +1,70 @@
+.bridge-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #f4f8ff 0%, #e7eefc 100%);
+}
+
+.bridge-panel {
+  width: 100%;
+  max-width: 640rpx;
+  padding: 56rpx 44rpx;
+  border-radius: 32rpx;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24rpx 60rpx rgba(47, 87, 165, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.bridge-spinner {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  border: 6rpx solid rgba(45, 105, 255, 0.14);
+  border-top-color: #2d69ff;
+  animation: bridge-spin 0.88s linear infinite;
+}
+
+.bridge-title {
+  margin-top: 28rpx;
+  font-size: 36rpx;
+  line-height: 1.35;
+  font-weight: 700;
+  color: #10214c;
+}
+
+.bridge-desc {
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  line-height: 1.65;
+  color: #52627f;
+}
+
+.bridge-retry {
+  margin-top: 32rpx;
+  width: 100%;
+  border-radius: 24rpx;
+  background: linear-gradient(90deg, #2d69ff 0%, #5c98ff 100%);
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.bridge-retry::after {
+  border: none;
+}
+
+@keyframes bridge-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

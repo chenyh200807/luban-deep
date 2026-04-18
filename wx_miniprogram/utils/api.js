@@ -355,10 +355,22 @@ function getLedger(limit, offset) {
 
 /** 提交消息反馈（点赞/点踩） */
 function submitFeedback(data) {
+  var sessionId = String((data && data.conversation_id) || "").trim();
+  var messageId = String((data && data.message_id) || "").trim();
+  var payload = Object.assign({}, data || {});
+  delete payload.conversation_id;
+  delete payload.message_id;
   return request({
-    url: "/api/v1/chat/feedback",
+    url:
+      sessionId && messageId
+        ? "/api/v1/sessions/" +
+          encodeURIComponent(sessionId) +
+          "/messages/" +
+          encodeURIComponent(messageId) +
+          "/feedback"
+        : "/api/v1/chat/feedback",
     method: "POST",
-    data: data,
+    data: payload,
   });
 }
 

@@ -120,6 +120,94 @@ async def test_deep_question_routes_choice_submission_to_grading_agent(
     assert result_event.metadata["question_followup_context"]["user_answer"] == "B"
 
 
+@pytest.mark.asyncio
+async def test_deep_question_routes_batch_submission_to_grading_agent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+            self._trace_callback = None
+
+        def set_trace_callback(self, callback) -> None:
+            self._trace_callback = callback
+
+        async def process(self, **kwargs: Any) -> str:
+            captured["process"] = kwargs
+            items = kwargs["question_context"]["items"]
+            assert [item["user_answer"] for item in items] == ["C", "A", "B"]
+            assert [item["is_correct"] for item in items] == [True, True, False]
+            return "第1题和第2题正确，第3题需要回看防水等级与设防道数。"
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="第1题：C；第2题：A；第3题：B",
+        language="zh",
+        metadata={
+            "conversation_context_text": "用户刚完成一组建筑构造选择题。",
+            "question_followup_context": {
+                "question_id": "quiz_batch",
+                "question": "第1题...\n第2题...\n第3题...",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_1",
+                        "question": "题1",
+                        "question_type": "choice",
+                        "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+                        "correct_answer": "C",
+                    },
+                    {
+                        "question_id": "q_2",
+                        "question": "题2",
+                        "question_type": "choice",
+                        "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+                        "correct_answer": "A",
+                    },
+                    {
+                        "question_id": "q_3",
+                        "question": "题3",
+                        "question_type": "choice",
+                        "options": {"A": "A3", "B": "B3", "C": "C3", "D": "D3"},
+                        "correct_answer": "D",
+                    },
+                ],
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["process"]["history_context"] == "用户刚完成一组建筑构造选择题。"
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["is_correct"] is False
+    assert result_event.metadata["question_followup_context"]["items"][0]["user_answer"] == "C"
+    assert result_event.metadata["question_followup_context"]["items"][2]["is_correct"] is False
+
+
 def test_build_submission_context_marks_oversight_for_negative_stem() -> None:
     capability = DeepQuestionCapability()
 

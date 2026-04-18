@@ -30,7 +30,6 @@
           </view>
         </view>
         <text class="overview-tip" wx:if="{{studyTip}}">{{studyTip}}</text>
-        <text class="overview-tip" wx:elif="{{focusHint}}">{{focusHint}}</text>
         <view class="overview-metrics">
           <view class="metric-chip">
             <text class="metric-num">{{todayDone}} / {{dailyTarget || 0}}</text>

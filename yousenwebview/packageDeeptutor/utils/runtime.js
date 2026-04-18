@@ -132,6 +132,14 @@ function clearWorkspaceBack() {
   runtimeState.workspaceBackLabel = "";
 }
 
+function clearWorkspaceBackIfMatches(url) {
+  var current = _normalizeRoute(url);
+  var target = _normalizeRoute(runtimeState.workspaceBackUrl);
+  if (!current || !target || current !== target) return false;
+  clearWorkspaceBack();
+  return true;
+}
+
 function getWorkspaceBack(currentUrl) {
   var targetUrl = String(runtimeState.workspaceBackUrl || "").trim();
   if (!targetUrl) return null;
@@ -191,6 +199,7 @@ module.exports = {
   getWorkspaceBack: getWorkspaceBack,
   consumeWorkspaceBack: consumeWorkspaceBack,
   clearWorkspaceBack: clearWorkspaceBack,
+  clearWorkspaceBackIfMatches: clearWorkspaceBackIfMatches,
   setNetworkAvailable: setNetworkAvailable,
   isNetworkAvailable: isNetworkAvailable,
   initNetworkMonitor: initNetworkMonitor,

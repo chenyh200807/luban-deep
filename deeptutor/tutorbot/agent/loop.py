@@ -34,6 +34,7 @@ from deeptutor.tutorbot.teaching_modes import (
     get_teaching_mode_instruction,
     looks_like_practice_generation_request,
 )
+from deeptutor.tutorbot.markdown_style import get_markdown_style_instruction
 
 if TYPE_CHECKING:
     from deeptutor.tutorbot.config.schema import ChannelsConfig, ExecToolConfig, WebSearchConfig
@@ -55,6 +56,8 @@ class AgentLoop:
     """
 
     _TOOL_RESULT_MAX_CHARS = 16_000
+    _RAG_STOP_QUERY_SIMILARITY_THRESHOLD = 0.85
+    _RAG_STOP_SOURCE_OVERLAP_THRESHOLD = 0.6
 
     def __init__(
         self,
@@ -236,9 +239,237 @@ class AgentLoop:
             return f'{tc.name}("{val[:40]}…")' if len(val) > 40 else f'{tc.name}("{val}")'
         return ", ".join(_fmt(tc) for tc in tool_calls)
 
+    @staticmethod
+    def _normalize_query_text(text: str) -> str:
+        normalized = re.sub(r"\s+", " ", str(text or "").strip().lower())
+        return normalized
+
+    @classmethod
+    def _query_terms(cls, text: str) -> set[str]:
+        normalized = cls._normalize_query_text(text)
+        if not normalized:
+            return set()
+        return set(re.findall(r"[a-z0-9]+|[\u4e00-\u9fff]", normalized))
+
+    @staticmethod
+    def _jaccard_similarity(left: set[str], right: set[str]) -> float | None:
+        if not left or not right:
+            return None
+        union = left | right
+        if not union:
+            return None
+        return round(len(left & right) / len(union), 4)
+
+    @staticmethod
+    def _copy_sources(sources: Any) -> list[dict[str, Any]]:
+        if not isinstance(sources, list):
+            return []
+        copied: list[dict[str, Any]] = []
+        for item in sources:
+            if isinstance(item, dict):
+                copied.append(dict(item))
+        return copied
+
+    @classmethod
+    def _source_identity(cls, source: dict[str, Any]) -> str:
+        for key in ("chunk_id", "id", "source_id"):
+            value = str(source.get(key) or "").strip()
+            if value:
+                return value
+        parts: list[str] = []
+        for key in ("kb_name", "source_type", "title", "url", "file_path", "path", "page", "page_number"):
+            value = str(source.get(key) or "").strip()
+            if value:
+                parts.append(f"{key}={value}")
+        if parts:
+            return "|".join(parts)
+        return json.dumps(source, ensure_ascii=False, sort_keys=True)
+
+    @classmethod
+    def _source_overlap(cls, previous: list[dict[str, Any]], current: list[dict[str, Any]]) -> tuple[float | None, int]:
+        previous_ids = {cls._source_identity(item) for item in previous if isinstance(item, dict)}
+        current_ids = {cls._source_identity(item) for item in current if isinstance(item, dict)}
+        if not previous_ids or not current_ids:
+            return None, 0
+        union = previous_ids | current_ids
+        if not union:
+            return None, 0
+        overlap = len(previous_ids & current_ids)
+        return round(overlap / len(union), 4), overlap
+
+    @classmethod
+    def _build_rag_round_metadata(
+        cls,
+        *,
+        preview_args: dict[str, Any],
+        tool_trace_metadata: dict[str, Any] | None,
+        prior_rounds: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        metadata = dict(tool_trace_metadata or {})
+        sources = cls._copy_sources(metadata.get("sources"))
+        query = str(preview_args.get("query") or "").strip()
+        kb_name = str(
+            preview_args.get("kb_name")
+            or metadata.get("kb_name")
+            or ""
+        ).strip()
+
+        previous_round = prior_rounds[-1] if prior_rounds else None
+        previous_query = (
+            str(previous_round.get("query") or "").strip()
+            if isinstance(previous_round, dict)
+            else ""
+        )
+        previous_sources = (
+            cls._copy_sources(previous_round.get("sources"))
+            if isinstance(previous_round, dict)
+            else []
+        )
+        query_similarity = cls._jaccard_similarity(
+            cls._query_terms(previous_query),
+            cls._query_terms(query),
+        )
+        source_overlap, shared_source_count = cls._source_overlap(previous_sources, sources)
+
+        round_metadata = {
+            "round_index": len(prior_rounds) + 1,
+            "query": query,
+            "kb_name": kb_name,
+            "source_count": len(sources),
+            "sources": sources,
+            "query_similarity_to_prev": query_similarity,
+            "source_overlap_to_prev": source_overlap,
+            "shared_source_count_with_prev": shared_source_count,
+        }
+        return round_metadata
+
+    @classmethod
+    def _augment_rag_trace_metadata(
+        cls,
+        *,
+        preview_args: dict[str, Any],
+        tool_trace_metadata: dict[str, Any] | None,
+        rag_rounds: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        merged_metadata = dict(tool_trace_metadata or {})
+        rag_round = cls._build_rag_round_metadata(
+            preview_args=preview_args,
+            tool_trace_metadata=merged_metadata,
+            prior_rounds=rag_rounds,
+        )
+        rag_rounds.append(dict(rag_round))
+        merged_metadata["rag_round"] = dict(rag_round)
+        merged_metadata["rag_rounds"] = [dict(item) for item in rag_rounds]
+        merged_metadata["rag_round_count"] = len(rag_rounds)
+        return merged_metadata
+
+    def _resolve_tool_definitions(self, runtime_metadata: dict[str, Any] | None) -> list[dict[str, Any]]:
+        configured = runtime_metadata.get("default_tools") if isinstance(runtime_metadata, dict) else None
+        if not isinstance(configured, list):
+            return self.tools.get_definitions()
+
+        ordered_names: list[str] = []
+        seen: set[str] = set()
+        for item in configured:
+            name = str(item or "").strip()
+            if not name or name in seen or not self.tools.has(name):
+                continue
+            ordered_names.append(name)
+            seen.add(name)
+
+        if not ordered_names:
+            return self.tools.get_definitions()
+        return self.tools.get_definitions(ordered_names)
+
+    @classmethod
+    def _rag_stop_enabled(cls, runtime_metadata: dict[str, Any] | None) -> bool:
+        if not isinstance(runtime_metadata, dict):
+            return True
+        if "enable_rag_saturation_stop" not in runtime_metadata:
+            return True
+        return bool(runtime_metadata.get("enable_rag_saturation_stop"))
+
+    @classmethod
+    def _rag_stop_threshold(
+        cls,
+        runtime_metadata: dict[str, Any] | None,
+        *,
+        key: str,
+        default: float,
+    ) -> float:
+        if not isinstance(runtime_metadata, dict):
+            return default
+        raw = runtime_metadata.get(key)
+        try:
+            value = float(raw)
+        except (TypeError, ValueError):
+            return default
+        return max(0.0, min(1.0, value))
+
+    @classmethod
+    def _build_rag_saturation(
+        cls,
+        *,
+        rag_round: dict[str, Any],
+        runtime_metadata: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if not cls._rag_stop_enabled(runtime_metadata):
+            return None
+        if int(rag_round.get("round_index") or 0) < 2:
+            return None
+
+        query_similarity = rag_round.get("query_similarity_to_prev")
+        source_overlap = rag_round.get("source_overlap_to_prev")
+        if not isinstance(query_similarity, (int, float)):
+            return None
+        if not isinstance(source_overlap, (int, float)):
+            return None
+
+        query_threshold = cls._rag_stop_threshold(
+            runtime_metadata,
+            key="rag_stop_query_similarity_threshold",
+            default=cls._RAG_STOP_QUERY_SIMILARITY_THRESHOLD,
+        )
+        source_threshold = cls._rag_stop_threshold(
+            runtime_metadata,
+            key="rag_stop_source_overlap_threshold",
+            default=cls._RAG_STOP_SOURCE_OVERLAP_THRESHOLD,
+        )
+        if query_similarity < query_threshold or source_overlap < source_threshold:
+            return None
+
+        return {
+            "detected": True,
+            "reason": "high_query_similarity_and_source_overlap",
+            "round_index": int(rag_round.get("round_index") or 0),
+            "query_similarity_to_prev": float(query_similarity),
+            "source_overlap_to_prev": float(source_overlap),
+            "shared_source_count_with_prev": int(rag_round.get("shared_source_count_with_prev") or 0),
+            "query_similarity_threshold": query_threshold,
+            "source_overlap_threshold": source_threshold,
+        }
+
+    @staticmethod
+    def _filter_out_tool_definitions(
+        tool_defs: list[dict[str, Any]],
+        *,
+        disabled_names: set[str],
+    ) -> list[dict[str, Any]]:
+        if not disabled_names:
+            return tool_defs
+        filtered: list[dict[str, Any]] = []
+        for item in tool_defs:
+            function_spec = item.get("function") if isinstance(item, dict) else None
+            name = str(function_spec.get("name") or "").strip() if isinstance(function_spec, dict) else ""
+            if name and name in disabled_names:
+                continue
+            filtered.append(item)
+        return filtered
+
     async def _run_agent_loop(
         self,
         initial_messages: list[dict],
+        runtime_metadata: dict[str, Any] | None = None,
         on_progress: Callable[..., Awaitable[None]] | None = None,
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
@@ -251,6 +482,8 @@ class AgentLoop:
         final_content = None
         tools_used: list[str] = []
         exact_authority: dict[str, Any] | None = None
+        rag_rounds: list[dict[str, Any]] = []
+        rag_saturation: dict[str, Any] | None = None
         raw_stream_buffer = ""
         emitted_stream_len = 0
 
@@ -278,7 +511,9 @@ class AgentLoop:
         while iteration < self.max_iterations:
             iteration += 1
 
-            tool_defs = self.tools.get_definitions()
+            tool_defs = self._resolve_tool_definitions(runtime_metadata)
+            if rag_saturation:
+                tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
 
             response = await self.provider.chat_with_retry(
                 messages=messages,
@@ -336,6 +571,31 @@ class AgentLoop:
                             and self._should_force_exact_authority(exact_candidate)
                         ):
                             exact_authority = exact_candidate
+                    if tool_call.name == "rag":
+                        tool_trace_metadata = self._augment_rag_trace_metadata(
+                            preview_args=preview_args,
+                            tool_trace_metadata=tool_trace_metadata,
+                            rag_rounds=rag_rounds,
+                        )
+                        current_round = (
+                            tool_trace_metadata.get("rag_round")
+                            if isinstance(tool_trace_metadata, dict)
+                            and isinstance(tool_trace_metadata.get("rag_round"), dict)
+                            else None
+                        )
+                        saturation = (
+                            self._build_rag_saturation(
+                                rag_round=current_round,
+                                runtime_metadata=runtime_metadata,
+                            )
+                            if current_round
+                            else None
+                        )
+                        if saturation:
+                            rag_saturation = saturation
+                            tool_trace_metadata["rag_saturation"] = dict(saturation)
+                    elif rag_saturation and isinstance(tool_trace_metadata, dict):
+                        tool_trace_metadata["rag_saturation"] = dict(rag_saturation)
                     if on_tool_result:
                         await on_tool_result(tool_call.name, result, tool_trace_metadata)
                     messages = self.context.add_tool_result(
@@ -486,7 +746,11 @@ class AgentLoop:
         if not exact_response:
             return None
 
-        merged_metadata = dict(tool_trace_metadata or {})
+        merged_metadata = self._augment_rag_trace_metadata(
+            preview_args=preview_args,
+            tool_trace_metadata=tool_trace_metadata,
+            rag_rounds=[],
+        )
         merged_metadata["authority_applied"] = True
 
         if on_tool_call:
@@ -632,7 +896,10 @@ class AgentLoop:
                 history=history,
                 current_message=msg.content, channel=channel, chat_id=chat_id,
             )
-            final_content, _, all_msgs = await self._run_agent_loop(messages)
+            final_content, _, all_msgs = await self._run_agent_loop(
+                messages,
+                runtime_metadata=runtime_metadata,
+            )
             self._save_turn(session, all_msgs, 1 + len(history))
             self.sessions.save(session)
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
@@ -864,6 +1131,7 @@ class AgentLoop:
         history = session.get_history(max_messages=0)
         runtime_instruction_parts = [
             get_teaching_mode_instruction(runtime_metadata.get("teaching_mode")),
+            get_markdown_style_instruction(),
             get_practice_generation_instruction(
                 user_message=current_message,
                 suppress_answer_reveal_on_generate=bool(
@@ -920,6 +1188,7 @@ class AgentLoop:
 
         final_content, _, all_msgs = await self._run_agent_loop(
             initial_messages,
+            runtime_metadata=runtime_metadata,
             on_progress=on_progress or _bus_progress,
             on_content_delta=on_content_delta,
             on_tool_call=on_tool_call,

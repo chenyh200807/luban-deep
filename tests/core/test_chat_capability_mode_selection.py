@@ -232,6 +232,59 @@ async def test_agentic_chat_pipeline_uses_compact_response_for_smart_mode(
 
 
 @pytest.mark.asyncio
+async def test_chat_capability_fast_mode_ignores_web_search(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakePipeline:
+        def __init__(self, language: str = "zh") -> None:
+            self.language = language
+
+        def _infer_answer_type(self, _message: str) -> str:
+            return "knowledge_explainer"
+
+        def resolve_enabled_tools(self, *_args, **_kwargs) -> list[str]:
+            return ["rag", "web_search"]
+
+    class FakeChatAgent:
+        def __init__(self, language: str = "zh") -> None:
+            self.language = language
+
+        async def process(self, **kwargs):
+            captured.update(kwargs)
+
+            async def _result():
+                yield {
+                    "type": "complete",
+                    "sources": {"rag": [], "web": []},
+                    "truncated_history": [],
+                }
+
+            return _result()
+
+    monkeypatch.setattr("deeptutor.capabilities.chat.AgenticChatPipeline", FakePipeline)
+    monkeypatch.setattr("deeptutor.capabilities.chat.ChatAgent", FakeChatAgent)
+
+    capability = ChatCapability()
+    bus = StreamBus()
+    context = UnifiedContext(
+        user_message="屋面防水等级怎么划分？",
+        enabled_tools=["web_search"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"chat_mode": "fast"},
+        metadata={"chat_mode_explicit": True},
+        language="zh",
+    )
+
+    await capability.run(context, bus)
+
+    assert captured["kb_name"] == "construction-exam"
+    assert captured["enable_rag"] is True
+    assert captured["enable_web_search"] is False
+
+
+@pytest.mark.asyncio
 async def test_agentic_chat_pipeline_skips_compact_response_for_grounded_tutorbot(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

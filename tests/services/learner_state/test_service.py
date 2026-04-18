@@ -500,9 +500,12 @@ def test_learner_state_guide_completion_enqueues_outbox_event(tmp_path) -> None:
         == "承载力和沉降控制"
     )
     progress = service.read_progress("student_demo")
+    profile = service.read_profile("student_demo")
     assert progress["today"]["today_done"] == 7
     assert progress["knowledge_map"]["guided_learning"]["guide_id"] == "guide_42"
     assert progress["knowledge_map"]["guided_learning"]["completed_titles"] == ["承载力和沉降控制"]
+    assert profile["focus_topic"] == "承载力和沉降控制"
+    assert profile["focus_query"] == "继续巩固承载力和沉降控制"
 
 
 def test_learner_state_guide_completion_is_idempotent_by_guide_id(tmp_path) -> None:
@@ -547,6 +550,7 @@ def test_learner_state_guide_completion_is_idempotent_by_guide_id(tmp_path) -> N
     )
 
     progress = service.read_progress("student_demo")
+    profile = service.read_profile("student_demo")
     guided_learning = progress["knowledge_map"]["guided_learning"]
     history = progress["knowledge_map"]["guided_learning_history"]
 
@@ -556,6 +560,39 @@ def test_learner_state_guide_completion_is_idempotent_by_guide_id(tmp_path) -> N
     assert guided_learning["completed_titles"] == ["承载力和沉降控制"]
     assert len(history) == 1
     assert history[0]["guide_id"] == "guide_42"
+    assert profile["focus_topic"] == "承载力和沉降控制"
+    assert profile["focus_query"] == "继续巩固承载力和沉降控制"
+
+
+def test_learner_state_guide_completion_prefers_hard_point_for_profile_focus(tmp_path) -> None:
+    service = _make_service(tmp_path)
+
+    asyncio.run(
+        service.record_guide_completion(
+            user_id="student_demo",
+            guide_id="guide_focus_1",
+            notebook_name="地基基础",
+            summary="本次重点暴露在承载力验算。",
+            knowledge_points=[
+                {
+                    "knowledge_title": "沉降控制",
+                    "knowledge_summary": "先区分工后沉降和总沉降。",
+                    "user_difficulty": "medium",
+                },
+                {
+                    "knowledge_title": "地基承载力验算",
+                    "knowledge_summary": "要先明确承载力修正与基础埋深。",
+                    "user_difficulty": "hard",
+                },
+            ],
+            source_bot_id="bot_a",
+        )
+    )
+
+    profile = service.read_profile("student_demo")
+
+    assert profile["focus_topic"] == "地基承载力验算"
+    assert profile["focus_query"] == "继续巩固地基承载力验算"
 
 
 def test_sync_goals_strict_rolls_back_partial_goal_updates(tmp_path) -> None:

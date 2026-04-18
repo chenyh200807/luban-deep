@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -37,9 +38,17 @@ class ToolRegistry:
         """Check if a tool is registered."""
         return name in self._tools
 
-    def get_definitions(self) -> list[dict[str, Any]]:
-        """Get all tool definitions in OpenAI format."""
-        return [tool.to_schema() for tool in self._tools.values()]
+    def get_definitions(self, names: list[str] | None = None) -> list[dict[str, Any]]:
+        """Get tool definitions in OpenAI format."""
+        if names is None:
+            return [tool.to_schema() for tool in self._tools.values()]
+
+        definitions: list[dict[str, Any]] = []
+        for name in names:
+            tool = self._tools.get(name)
+            if tool is not None:
+                definitions.append(tool.to_schema())
+        return definitions
 
     async def execute(self, name: str, params: dict[str, Any]) -> str:
         """Execute a tool by name with given parameters."""
@@ -58,9 +67,15 @@ class ToolRegistry:
             if errors:
                 return f"Error: Invalid parameters for tool '{name}': " + "; ".join(errors) + _HINT
             result = await tool.execute(**params)
-            if isinstance(result, str) and result.startswith("Error"):
-                return result + _HINT
-            return result
+            if result is None:
+                return ""
+            if isinstance(result, str):
+                if result.startswith("Error"):
+                    return result + _HINT
+                return result
+            if isinstance(result, (dict, list)):
+                return json.dumps(result, ensure_ascii=False)
+            return str(result)
         except Exception as e:
             return f"Error executing {name}: {str(e)}" + _HINT
 

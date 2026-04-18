@@ -60,6 +60,50 @@ async def test_orchestrator_autoroutes_practice_request_to_deep_question() -> No
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_autoroutes_natural_one_question_phrase_to_deep_question() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s1-natural",
+        user_message="给我一道题测试一下这个知识点",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    events = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["question_type"] == "choice"
+    result = next(event for event in events if event.type.value == "result")
+    assert result.metadata["question_type"] == "choice"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_keeps_learning_strategy_request_in_chat_even_if_effective_message_contains_practice_words() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    raw_message = "我现在最大问题不是听不懂，是记不住，做题时规范数字和条件全串了。给我一个今晚就能执行的冲刺学习法。"
+    context = UnifiedContext(
+        session_id="s-learning-plan",
+        user_message="## 参考上下文\n给我一道题测试一下这个知识点\n\n## 当前用户问题\n" + raw_message,
+        config_overrides={},
+        metadata={"raw_user_message": raw_message},
+        language="zh",
+    )
+
+    events = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "chat"
+    result = next(event for event in events if event.type.value == "result")
+    assert result.metadata["capability"] == "auto"
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_respects_interaction_hint_for_question_type() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
@@ -245,6 +289,103 @@ async def test_orchestrator_autoroutes_question_followup_without_revealing_answe
     _ = [event async for event in orchestrator.handle(context)]
 
     assert registry.captured[0] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_autoroutes_batch_submission_to_deep_question() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-batch-followup",
+        user_message="第1题：C；第2题：A；第3题：B",
+        config_overrides={},
+        metadata={
+            "question_followup_context": {
+                "question_id": "quiz_batch",
+                "question": "第1题...\n第2题...\n第3题...",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_1",
+                        "question": "题1",
+                        "question_type": "choice",
+                        "correct_answer": "C",
+                    },
+                    {
+                        "question_id": "q_2",
+                        "question": "题2",
+                        "question_type": "choice",
+                        "correct_answer": "A",
+                    },
+                    {
+                        "question_id": "q_3",
+                        "question": "题3",
+                        "question_type": "choice",
+                        "correct_answer": "D",
+                    },
+                ],
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    graded = context.metadata["question_followup_context"]
+    assert graded["items"][0]["user_answer"] == "C"
+    assert graded["items"][0]["is_correct"] is True
+    assert graded["items"][2]["user_answer"] == "B"
+    assert graded["items"][2]["is_correct"] is False
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_autoroutes_compact_batch_letters_using_question_context() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-compact-batch-followup",
+        user_message="ACD",
+        config_overrides={},
+        metadata={
+            "question_followup_context": {
+                "question_id": "quiz_compact",
+                "question": "第1题...\n第2题...\n第3题...",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_1",
+                        "question": "题1",
+                        "question_type": "single_choice",
+                        "correct_answer": "A",
+                    },
+                    {
+                        "question_id": "q_2",
+                        "question": "题2",
+                        "question_type": "single_choice",
+                        "correct_answer": "C",
+                    },
+                    {
+                        "question_id": "q_3",
+                        "question": "题3",
+                        "question_type": "single_choice",
+                        "correct_answer": "B",
+                    },
+                ],
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    graded = context.metadata["question_followup_context"]
+    assert [item["user_answer"] for item in graded["items"]] == ["A", "C", "D"]
 
 
 @pytest.mark.asyncio

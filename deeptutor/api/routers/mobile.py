@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import json
+import logging
 from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
+import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -12,6 +15,10 @@ from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAU
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.learner_state import LearnerStateService
 from deeptutor.services.member_console import get_member_console_service
+from deeptutor.services.feedback_service import (
+    SupabaseFeedbackStore,
+    build_mobile_feedback_row,
+)
 from deeptutor.services.session import (
     build_user_owner_key,
     get_sqlite_session_store,
@@ -19,6 +26,7 @@ from deeptutor.services.session import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 member_service = get_member_console_service()
 learner_state_service = LearnerStateService()
 turn_runtime = get_turn_runtime_manager()
@@ -28,6 +36,7 @@ _MOBILE_TUTORBOT_ID = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
 _MOBILE_TUTORBOT_NAME = "Construction Exam Coach"
 _MOBILE_TUTORBOT_DESCRIPTION = "微信小程序主聊天默认建筑实务 TutorBot"
 _MOBILE_PLACEHOLDER_TITLES = {"", "new conversation", "新对话"}
+MobileFeedbackSupabaseClient = SupabaseFeedbackStore
 
 
 def _ts_to_iso(timestamp: float | int | None) -> str:
@@ -48,10 +57,12 @@ async def _assert_mobile_conversation_access(conversation_id: str, user_id: str)
     if not resolved_conversation_id:
         return
     owner_key = await session_store.get_session_owner_key(resolved_conversation_id)
-    if not owner_key:
-        raise HTTPException(status_code=404, detail="Conversation not found")
-    if owner_key != build_user_owner_key(user_id):
-        raise HTTPException(status_code=404, detail="Conversation not found")
+    if owner_key == build_user_owner_key(user_id):
+        return
+    variants = await _load_mobile_conversation_variants(resolved_conversation_id, user_id)
+    if variants:
+        return
+    raise HTTPException(status_code=404, detail="Conversation not found")
 
 
 def _new_mobile_conversation_id() -> str:
@@ -119,6 +130,114 @@ def _merge_mobile_conversation_rows(rows: list[dict[str, Any]]) -> list[dict[str
     result = [merged[item_id] for item_id in order]
     result.sort(key=lambda item: float(item.get("updated_at") or 0.0), reverse=True)
     return result
+
+
+def _matches_mobile_conversation_id(session: dict[str, Any], conversation_id: str) -> bool:
+    normalized_conversation_id = str(conversation_id or "").strip()
+    if not normalized_conversation_id:
+        return False
+    session_id = str(session.get("id") or session.get("session_id") or "").strip()
+    return (
+        session_id == normalized_conversation_id
+        or _normalize_mobile_conversation_id(session) == normalized_conversation_id
+    )
+
+
+async def _load_mobile_conversation_variants(
+    conversation_id: str,
+    user_id: str,
+) -> list[dict[str, Any]]:
+    normalized_conversation_id = str(conversation_id or "").strip()
+    if not normalized_conversation_id:
+        return []
+    rows = await session_store.list_sessions_by_owner(
+        build_user_owner_key(user_id),
+        source="wx_miniprogram",
+        archived=None,
+        limit=500,
+        offset=0,
+    )
+    return [
+        row
+        for row in list(rows or [])
+        if isinstance(row, dict) and _matches_mobile_conversation_id(row, normalized_conversation_id)
+    ]
+
+
+def _merge_mobile_message_rows(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    ordered = sorted(
+        [item for item in messages if isinstance(item, dict)],
+        key=lambda item: (
+            float(item.get("created_at") or 0.0),
+            int(item.get("id") or 0),
+        ),
+    )
+    merged: list[dict[str, Any]] = []
+    for item in ordered:
+        presentation = _build_presentation_payload(item)
+        signature = (
+            str(item.get("role") or ""),
+            str(item.get("content") or ""),
+            json.dumps(presentation, ensure_ascii=False, sort_keys=True) if presentation else "",
+        )
+        created_at = float(item.get("created_at") or 0.0)
+        if merged:
+            previous = merged[-1]
+            previous_presentation = _build_presentation_payload(previous)
+            previous_signature = (
+                str(previous.get("role") or ""),
+                str(previous.get("content") or ""),
+                json.dumps(previous_presentation, ensure_ascii=False, sort_keys=True)
+                if previous_presentation
+                else "",
+            )
+            previous_created_at = float(previous.get("created_at") or 0.0)
+            if signature == previous_signature and abs(created_at - previous_created_at) <= 2.0:
+                continue
+        merged.append(item)
+    return merged
+
+
+async def _persist_mobile_feedback(
+    *,
+    body: "ChatFeedbackRequest",
+    authorization: str | None,
+    session_id: str | None = None,
+    message_id: str | None = None,
+) -> dict[str, Any]:
+    user_id = _resolve_user_id(authorization)
+    normalized_session_id = str(session_id or body.conversation_id or "").strip()
+    normalized_message_id = str(message_id or body.message_id or "").strip()
+    if normalized_session_id:
+        await _assert_mobile_conversation_access(normalized_session_id, user_id)
+
+    writer = MobileFeedbackSupabaseClient()
+    if not writer.is_configured:
+        raise HTTPException(status_code=503, detail="Feedback storage unavailable")
+
+    row = build_mobile_feedback_row(
+        user_id=user_id,
+        session_id=normalized_session_id,
+        message_id=normalized_message_id,
+        rating=body.rating,
+        reason_tags=body.reason_tags,
+        comment=body.comment,
+        answer_mode=body.answer_mode,
+    )
+    try:
+        await writer.insert_feedback(row)
+    except httpx.HTTPStatusError as exc:
+        logger.warning("Mobile feedback write failed: status=%s body=%s", exc.response.status_code, exc.response.text)
+        raise HTTPException(status_code=502, detail="Failed to persist feedback") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Unexpected mobile feedback write failure")
+        raise HTTPException(status_code=500, detail="Failed to persist feedback") from exc
+    finally:
+        await writer.aclose()
+
+    return {"ok": True}
 
 
 def _normalize_tutorbot_mode(value: str | None) -> str:
@@ -662,17 +781,25 @@ async def get_conversation_messages(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     resolved_user_id = _resolve_user_id(authorization)
-    owner_key = await session_store.get_session_owner_key(conversation_id)
-    if owner_key != build_user_owner_key(resolved_user_id):
+    sessions = await _load_mobile_conversation_variants(conversation_id, resolved_user_id)
+    if not sessions:
         raise HTTPException(status_code=404, detail="Conversation not found")
-    session = await session_store.get_session_with_messages(conversation_id)
-    if session is None:
-        raise HTTPException(status_code=404, detail="Conversation not found")
-    preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
-    if preferences.get("source") != "wx_miniprogram":
+    merged_messages: list[dict[str, Any]] = []
+    for session_row in sessions:
+        session = await session_store.get_session_with_messages(str(session_row.get("id") or ""))
+        if session is None:
+            continue
+        preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
+        if preferences.get("source") != "wx_miniprogram":
+            continue
+        merged_messages.extend(list(session.get("messages") or []))
+    if not merged_messages:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return {
-        "messages": [_serialize_mobile_message(item) for item in list(session.get("messages") or [])]
+        "messages": [
+            _serialize_mobile_message(item)
+            for item in _merge_mobile_message_rows(merged_messages)
+        ]
     }
 
 
@@ -682,16 +809,15 @@ async def delete_conversation(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     resolved_user_id = _resolve_user_id(authorization)
-    owner_key = await session_store.get_session_owner_key(conversation_id)
-    if owner_key != build_user_owner_key(resolved_user_id):
+    sessions = await _load_mobile_conversation_variants(conversation_id, resolved_user_id)
+    if not sessions:
         raise HTTPException(status_code=404, detail="Conversation not found")
-    session = await session_store.get_session(conversation_id)
-    if session is None:
-        raise HTTPException(status_code=404, detail="Conversation not found")
-    preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
-    if preferences.get("source") != "wx_miniprogram":
-        raise HTTPException(status_code=404, detail="Conversation not found")
-    deleted = await session_store.delete_session(conversation_id)
+    deleted = False
+    for session in sessions:
+        session_id = str(session.get("id") or "").strip()
+        if not session_id:
+            continue
+        deleted = await session_store.delete_session(session_id) or deleted
     if not deleted:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return {"deleted": True}
@@ -705,35 +831,43 @@ async def batch_conversations(
     resolved_user_id = _resolve_user_id(authorization)
     updated = 0
     for conversation_id in body.conversation_ids:
-        owner_key = await session_store.get_session_owner_key(conversation_id)
-        if owner_key != build_user_owner_key(resolved_user_id):
-            continue
-        session = await session_store.get_session(conversation_id)
-        if session is None:
-            continue
-        preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
-        if preferences.get("source") != "wx_miniprogram":
+        sessions = await _load_mobile_conversation_variants(conversation_id, resolved_user_id)
+        if not sessions:
             continue
         if body.action == "delete":
-            updated += 1 if await session_store.delete_session(conversation_id) else 0
+            for session in sessions:
+                updated += 1 if await session_store.delete_session(str(session.get("id") or "")) else 0
             continue
-        updated += 1 if await session_store.update_session_preferences(
-            conversation_id,
-            {"archived": body.action == "archive"},
-        ) else 0
+        for session in sessions:
+            updated += 1 if await session_store.update_session_preferences(
+                str(session.get("id") or ""),
+                {"archived": body.action == "archive"},
+            ) else 0
     return {"updated": updated, "action": body.action}
+
+
+@router.post("/sessions/{session_id}/messages/{message_id}/feedback")
+async def submit_message_feedback(
+    session_id: str,
+    message_id: str,
+    body: ChatFeedbackRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    return await _persist_mobile_feedback(
+        body=body,
+        authorization=authorization,
+        session_id=session_id,
+        message_id=message_id,
+    )
 
 
 @router.post("/chat/feedback")
 async def chat_feedback(body: ChatFeedbackRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    user_id = _resolve_user_id(authorization)
-    member_service.add_note(
-        user_id,
-        content=f"消息反馈 rating={body.rating} tags={','.join(body.reason_tags)} comment={body.comment}".strip(),
-        channel="system",
-        pinned=False,
+    # Backward-compatible alias for older mini program builds.
+    return await _persist_mobile_feedback(
+        body=body,
+        authorization=authorization,
     )
-    return {"ok": True}
 
 
 @router.post("/chat/start-turn")

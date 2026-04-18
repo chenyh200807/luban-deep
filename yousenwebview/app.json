@@ -7,6 +7,7 @@
     "pages/showqrcode/showqrcode",
     "pages/getphone/getphone",
     "pages/freeCourse/freeCourse",
+    "pages/deeptutorEntry/deeptutorEntry",
     "pages/freeCourseDetails/freeCourseDetails",
     "pages/freeCourseDetailsonline/freeCourseDetailsonline",
     "pages/text/text",

@@ -39,6 +39,14 @@ assert(
   "chat.js should expose a devtools fixture injection helper",
 );
 assert(
+  /debugListMarkdownRegressionSamples\s*:\s*function/.test(chatJs),
+  "chat.js should expose a devtools markdown sample listing helper",
+);
+assert(
+  /debugLoadMarkdownRegressionSample\s*:\s*function/.test(chatJs),
+  "chat.js should expose a devtools markdown sample loader",
+);
+assert(
   chatWxml.indexOf("b.type==='steps' && b.isStructured") >= 0,
   "chat.wxml should render structured steps blocks",
 );
@@ -49,6 +57,10 @@ assert(
 assert(
   chatWxml.indexOf("b.type==='chart' && b.isStructured") >= 0,
   "chat.wxml should render structured chart blocks",
+);
+assert(
+  chatWxml.indexOf("wx:elif=\"{{b.type==='table' && b.isStructured}}\"") >= 0,
+  "structured table branch should stay in the main wx:elif chain to avoid duplicate heading rendering",
 );
 assert(
   chatWxml.indexOf("图形不可用时回退为数据表") >= 0,

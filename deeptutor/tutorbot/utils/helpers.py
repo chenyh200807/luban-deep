@@ -72,6 +72,25 @@ def split_message(content: str, max_len: int = 2000) -> list[str]:
     return chunks
 
 
+def normalize_message_content(content: Any) -> str:
+    """Normalize internal message content to a string.
+
+    TutorBot runtime should treat message/tool content as text internally.
+    Provider-specific ``null`` handling is deferred to the outbound provider
+    serialization layer.
+    """
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, (dict, list)):
+        try:
+            return json.dumps(content, ensure_ascii=False)
+        except Exception:
+            return str(content)
+    return str(content)
+
+
 def build_assistant_message(
     content: str | None,
     tool_calls: list[dict[str, Any]] | None = None,
@@ -79,7 +98,7 @@ def build_assistant_message(
     thinking_blocks: list[dict] | None = None,
 ) -> dict[str, Any]:
     """Build a provider-safe assistant message with optional reasoning fields."""
-    msg: dict[str, Any] = {"role": "assistant", "content": content}
+    msg: dict[str, Any] = {"role": "assistant", "content": normalize_message_content(content)}
     if tool_calls:
         msg["tool_calls"] = tool_calls
     if reasoning_content is not None:

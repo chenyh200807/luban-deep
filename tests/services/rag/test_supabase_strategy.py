@@ -181,6 +181,15 @@ def test_prepare_exact_question_probe_skips_pure_concept_query() -> None:
     assert prepare_exact_question_probe("防水等级和设防层数有什么区别") is None
 
 
+def test_prepare_exact_question_probe_skips_learning_strategy_prompt_with_exam_words() -> None:
+    assert (
+        prepare_exact_question_probe(
+            "我现在最大问题不是听不懂，是记不住，做题时规范数字和条件全串了。给我一个今晚就能执行的冲刺学习法。"
+        )
+        is None
+    )
+
+
 def test_prepare_exact_question_probe_extracts_case_focus_query() -> None:
     query = """
 背景资料：

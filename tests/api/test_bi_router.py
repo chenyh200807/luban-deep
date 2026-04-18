@@ -13,6 +13,7 @@ TestClient = pytest.importorskip("fastapi.testclient").TestClient
 bi_router = importlib.import_module("deeptutor.api.routers.bi").router
 
 from deeptutor.services.bi_service import BIService
+from deeptutor.services.feedback_service import build_mobile_feedback_row
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore
 
 
@@ -75,7 +76,155 @@ def _build_app(service: BIService) -> FastAPI:
 @pytest.fixture
 def bi_service(tmp_path: Path, monkeypatch) -> BIService:
     store = SQLiteSessionStore(db_path=tmp_path / "bi-router.db")
-    service = BIService(session_store=store, member_service=_FakeMemberService())
+    feedback_rows = [
+        build_mobile_feedback_row(
+            user_id="u1",
+            session_id="session_feedback_1",
+            message_id="42",
+            rating=-1,
+            reason_tags=["事实错误", "逻辑不通"],
+            comment="这里不对",
+            answer_mode="fast",
+        ),
+        build_mobile_feedback_row(
+            user_id="u1",
+            session_id="session_feedback_1",
+            message_id="43",
+            rating=1,
+            reason_tags=["有帮助"],
+            comment="",
+            answer_mode="deep",
+        ),
+        {
+            "id": "ignore-other-source",
+            "created_at": "2026-04-15T10:00:00+08:00",
+            "user_id": None,
+            "conversation_id": None,
+            "message_id": None,
+            "rating": -1,
+            "reason_tags": ["noise"],
+            "comment": "ignore",
+            "metadata": {"source": "other_app"},
+        },
+    ]
+
+    class _FakeFeedbackStore:
+        def __init__(self, rows) -> None:
+            self._rows = list(rows)
+            self.is_configured = True
+
+        async def list_feedback(self, *, created_after: str, limit: int = 500, offset: int = 0):
+            assert created_after
+            return self._rows[offset : offset + limit]
+
+    class _FakeBailianTelemetryClient:
+        def is_configured(self) -> bool:
+            return True
+
+        async def get_usage_totals(self, **kwargs):
+            assert kwargs["start_ts"] > 0
+            assert kwargs["end_ts"] >= kwargs["start_ts"]
+            return type(
+                "Totals",
+                (),
+                {
+                    "to_dict": lambda self: {
+                        "input_tokens": 1000,
+                        "output_tokens": 180,
+                        "total_tokens": 1180,
+                        "models": {"deepseek-v3.2": 1170, "text-embedding-v3": 10},
+                        "model_details": {
+                            "deepseek-v3.2": {
+                                "input_tokens": 1000,
+                                "output_tokens": 170,
+                                "total_tokens": 1170,
+                                "estimated_cost_usd": 0.00251,
+                            },
+                            "text-embedding-v3": {
+                                "input_tokens": 10,
+                                "output_tokens": 0,
+                                "total_tokens": 10,
+                                "estimated_cost_usd": 0.00001,
+                            },
+                        },
+                        "estimated_total_cost_usd": 0.00252,
+                    },
+                },
+            )()
+
+    class _FakeBailianBillingClient:
+        def is_configured(self) -> bool:
+            return True
+
+        async def get_totals(self, **kwargs):
+            assert kwargs["billing_cycles"]
+            return type(
+                "BillingTotals",
+                (),
+                {
+                    "to_dict": lambda self: {
+                        "billing_cycles": [
+                            {
+                                "billing_cycle": "2026-04",
+                                "pretax_amount": 0.0124,
+                                "after_discount_amount": 0.0124,
+                                "items_count": 3,
+                                "currency": "CNY",
+                                "model_amounts": {"deepseek-v3.2": 0.0124},
+                                "usage_kind_amounts": {
+                                    "input_token": 0.0041,
+                                    "output_token": 0.0083,
+                                },
+                            }
+                        ],
+                        "pretax_amount": 0.0124,
+                        "after_discount_amount": 0.0124,
+                        "items_count": 3,
+                        "currency": "CNY",
+                        "model_amounts": {"deepseek-v3.2": 0.0124},
+                        "usage_kind_amounts": {
+                            "input_token": 0.0041,
+                            "output_token": 0.0083,
+                        },
+                    },
+                },
+            )()
+
+    class _FakeUsageLedger:
+        def get_totals(self, **kwargs):
+            assert kwargs["provider_name"] == "dashscope"
+            return type(
+                "LedgerTotals",
+                (),
+                {
+                    "to_dict": lambda self: {
+                        "input_tokens": 1600,
+                        "output_tokens": 120,
+                        "total_tokens": 1720,
+                        "total_cost_usd": 0.0181,
+                        "measured_input_tokens": 1200,
+                        "measured_output_tokens": 100,
+                        "measured_total_tokens": 1300,
+                        "measured_total_cost_usd": 0.0123,
+                        "estimated_input_tokens": 400,
+                        "estimated_output_tokens": 20,
+                        "estimated_total_tokens": 420,
+                        "estimated_total_cost_usd": 0.0058,
+                        "events": 4,
+                        "coverage_start_ts": kwargs["start_ts"] + 10,
+                        "coverage_end_ts": kwargs["end_ts"] - 10,
+                    },
+                },
+            )()
+
+    service = BIService(
+        session_store=store,
+        member_service=_FakeMemberService(),
+        feedback_store=_FakeFeedbackStore(feedback_rows),
+        bailian_telemetry_client=_FakeBailianTelemetryClient(),
+        bailian_billing_client=_FakeBailianBillingClient(),
+        usage_ledger=_FakeUsageLedger(),
+    )
     monkeypatch.setattr("deeptutor.api.routers.bi.get_bi_service", lambda: service)
 
     session = asyncio.run(store.create_session(title="BI Session"))
@@ -124,6 +273,8 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
                         "cost_summary": {
                             "total_tokens": 1200,
                             "total_cost_usd": 0.0123,
+                            "estimated_total_tokens": 300,
+                            "estimated_total_cost_usd": 0.003,
                         }
                     }
                 },
@@ -231,6 +382,39 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         assert cost.status_code == 200
         assert len(cost.json()["cards"]) >= 1
 
+        reconciliation = client.get(
+            "/api/v1/bi/cost/reconciliation?days=30&workspace_id=ws-1&apikey_id=42&billing_cycle=2026-04"
+        )
+        assert reconciliation.status_code == 200
+        reconciliation_body = reconciliation.json()
+        assert reconciliation_body["system"]["total_tokens"] == 1500
+        assert reconciliation_body["system"]["measured_total_tokens"] == 1200
+        assert reconciliation_body["system"]["estimated_total_tokens"] == 300
+        assert reconciliation_body["system"]["total_cost_usd"] == 0.0153
+        assert reconciliation_body["system"]["measured_total_cost_usd"] == 0.0123
+        assert reconciliation_body["system"]["estimated_total_cost_usd"] == 0.003
+        assert reconciliation_body["bailian"]["total_tokens"] == 1180
+        assert reconciliation_body["bailian"]["estimated_total_cost_usd"] == 0.00252
+        assert reconciliation_body["bailian_billing"]["pretax_amount"] == 0.0124
+        assert reconciliation_body["system_global_bailian"]["total_tokens"] == 1720
+        assert reconciliation_body["system_global_bailian"]["estimated_total_cost_usd"] == 0.0058
+        assert reconciliation_body["reconciliation"]["billing_cycle"] == "2026-04"
+        assert reconciliation_body["reconciliation"]["billing_scope_system_cost_usd"] == 0.0153
+        assert reconciliation_body["reconciliation"]["token_delta"] == 320
+        assert reconciliation_body["reconciliation"]["cost_delta_usd"] == 0.01278
+        assert reconciliation_body["reconciliation"]["status"] == "ok"
+        assert any("usage ledger" in warning for warning in reconciliation_body["warnings"])
+
         anomalies = client.get("/api/v1/bi/anomalies?days=30&limit=10")
         assert anomalies.status_code == 200
         assert isinstance(anomalies.json()["items"], list)
+
+        feedback = client.get("/api/v1/bi/feedback?days=30&limit=10")
+        assert feedback.status_code == 200
+        feedback_body = feedback.json()
+        assert feedback_body["storage_status"] == "ok"
+        assert feedback_body["summary"]["total_feedback"] == 2
+        assert feedback_body["summary"]["thumbs_down"] == 1
+        assert feedback_body["summary"]["thumbs_up"] == 1
+        assert feedback_body["top_reason_tags"][0]["tag"] in {"事实错误", "逻辑不通", "有帮助"}
+        assert feedback_body["recent"][0]["session_id"] == "session_feedback_1"

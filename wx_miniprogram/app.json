@@ -1,11 +1,11 @@
 {
   "pages": [
+    "pages/login/login",
+    "pages/login/manual",
     "pages/chat/chat",
     "pages/history/history",
     "pages/report/report",
-    "pages/profile/profile",
-    "pages/login/login",
-    "pages/login/manual"
+    "pages/profile/profile"
   ],
   "subpackages": [
     {

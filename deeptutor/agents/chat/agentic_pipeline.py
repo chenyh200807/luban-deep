@@ -45,6 +45,7 @@ from deeptutor.tutorbot.teaching_modes import (
     get_lecture_skill_instruction,
     get_teaching_mode_instruction,
 )
+from deeptutor.tutorbot.markdown_style import get_markdown_style_instruction
 from deeptutor.tools.builtin import BUILTIN_TOOL_NAMES
 from deeptutor.utils.json_parser import parse_json_response
 
@@ -2981,6 +2982,7 @@ class AgenticChatPipeline:
         mode_instruction = get_teaching_mode_instruction(mode) if mode in {"fast", "deep"} else ""
         if mode_instruction:
             parts.append(mode_instruction)
+        parts.append(get_markdown_style_instruction())
         skill_instruction = get_construction_exam_skill_instruction(scene)
         if skill_instruction:
             parts.append(skill_instruction)

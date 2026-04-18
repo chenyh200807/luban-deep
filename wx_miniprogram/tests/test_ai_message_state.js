@@ -238,6 +238,7 @@ run("structured steps recap and chart blocks become the render source", function
   assertEqual(state.blocks[2].type, "chart", "chart should be preserved as a structured card");
   assertEqual(state.blocks[2].fallbackTable.mobileStrategy, "compact_cards", "chart fallback table should normalize");
   assertEqual(state.visibleBlocks.length, 3, "visibleBlocks should retain all canonical blocks");
+  assertEqual(state.renderableContent, "", "text-native structured blocks should not repeat fallback prose");
 });
 
 run("structured mcq still renders as cards and does not regress table path", function () {
@@ -281,6 +282,7 @@ run("structured mcq still renders as cards and does not regress table path", fun
   assert(state.mcqCards && state.mcqCards.length === 1, "mcq should still become a card");
   assertEqual(state.mcqCards[0].questionId, "q_mcq_1", "mcq question id should be preserved");
   assertEqual(state.mcqInteractiveReady, true, "mcq presentation should remain interactive");
+  assertEqual(state.renderableContent, "", "mcq-backed structured text should not duplicate the card stem");
 });
 
 run("structured renderer sample set remains renderable", function () {
@@ -322,6 +324,69 @@ run("structured renderer sample set remains renderable", function () {
       sample.name + " should preserve mcq card count",
     );
   });
+});
+
+run("markdown blocks expose rich-text nodes for inline emphasis and punctuation", function () {
+  var text = [
+    "**拿分要点：**",
+    "1. **时间限制**：必须记住\"24小时\"这个关键数字，这是考试常考点",
+    "2. **顺序要求**：初拧→复拧→终拧，三个步骤都要在24小时内完成",
+    "",
+    "**易错点提醒：**",
+    "- 不要记成\"48小时\"或\"72小时\"，必须是\"24小时\"",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    parseBlocks: true,
+  });
+
+  assert(state.blocks && state.blocks.length >= 4, "markdown content should stay renderable");
+  assert(Array.isArray(state.blocks[0].nodes), "section title paragraph should expose nodes");
+  assert(
+    Array.isArray(state.blocks[1].items[0].nodes),
+    "ordered list item should expose inline rich-text nodes",
+  );
+  assertEqual(
+    state.blocks[1].items[0].nodes[0].children[0].text,
+    "时间限制：",
+    "ordered list label should normalize colon into the bold label",
+  );
+  assertEqual(
+    state.blocks[1].items[0].nodes[1].text.indexOf(" 必须记住"),
+    0,
+    "ordered list trailing text should stay attached after label normalization",
+  );
+});
+
+run("markdown normalization flattens nested lists into the supported mobile subset", function () {
+  var text = [
+    "## 2.设防层数（定量要求）",
+    "",
+    "- **举例**：",
+    "  - 屋面一级防水→**不应少于3道防水层**",
+    "  - 地下工程二级防水  →  **不应少于2道防水层**",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    parseBlocks: true,
+  });
+
+  assertEqual(
+    state.renderableContent.indexOf("- 屋面一级防水 → **不应少于3道防水层**") >= 0,
+    true,
+    "renderable content should normalize nested bullet indentation and arrow spacing",
+  );
+  assert(
+    state.blocks && state.blocks[2] && state.blocks[2].type === "ul",
+    "normalized content should remain inside supported unordered lists",
+  );
+  assertEqual(
+    state.blocks[2].items.length,
+    3,
+    "flattened example lines should stay as sibling list items instead of a broken paragraph",
+  );
 });
 
 if (fail) {

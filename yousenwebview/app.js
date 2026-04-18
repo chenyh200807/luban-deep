@@ -37,9 +37,13 @@ const DEFAULT_HOST_LAYOUT = {
   titleHeight: 44,
   fontSizeSetting: "28rpx",
 };
+const CROSS_HOME_NAV_LOCK_MS = 1200;
+const HOST_HOME_URL = "/pages/freeCourse/freeCourse";
 const { getrq } = require("./utils/request");
 
 let hostSysInfoPromise = null;
+let crossHomeNavLockExpiresAt = 0;
+let crossHomeNavLockTimer = null;
 
 function getStoredToken() {
   return wx.getStorageSync(TOKEN_KEY) || null;
@@ -48,6 +52,48 @@ function getStoredToken() {
 function clearStoredToken() {
   wx.removeStorageSync(TOKEN_KEY);
   wx.removeStorageSync(USER_ID_KEY);
+}
+
+function clearCrossHomeNavLock() {
+  crossHomeNavLockExpiresAt = 0;
+  if (crossHomeNavLockTimer) {
+    clearTimeout(crossHomeNavLockTimer);
+    crossHomeNavLockTimer = null;
+  }
+}
+
+function tryLockCrossHomeNav(durationMs) {
+  const now = Date.now();
+  if (crossHomeNavLockExpiresAt > now) {
+    return false;
+  }
+  const lockMs = Number(durationMs) > 0 ? Number(durationMs) : CROSS_HOME_NAV_LOCK_MS;
+  crossHomeNavLockExpiresAt = now + lockMs;
+  if (crossHomeNavLockTimer) {
+    clearTimeout(crossHomeNavLockTimer);
+  }
+  crossHomeNavLockTimer = setTimeout(() => {
+    clearCrossHomeNavLock();
+  }, lockMs);
+  return true;
+}
+
+function buildDeeptutorLoginUrl(entrySource, returnTo) {
+  return (
+    "/packageDeeptutor/pages/login/login?entrySource=" +
+    encodeURIComponent(String(entrySource || "").trim()) +
+    "&returnTo=" +
+    encodeURIComponent(String(returnTo || "").trim())
+  );
+}
+
+function buildDeeptutorEntryBridgeUrl(entrySource, returnTo) {
+  return (
+    "/pages/deeptutorEntry/deeptutorEntry?entrySource=" +
+    encodeURIComponent(String(entrySource || "").trim()) +
+    "&returnTo=" +
+    encodeURIComponent(String(returnTo || "").trim())
+  );
 }
 
 function normalizeBooleanFlag(value, defaultValue) {
@@ -556,6 +602,62 @@ App({
       return this.getDeeptutorEntryEnabled();
     }
     return this.setDeeptutorEntryEnabled(nextValue);
+  },
+
+  goHostHome(options) {
+    const opts = options && typeof options === "object" ? options : {};
+    if (!tryLockCrossHomeNav(opts.lockMs)) {
+      return false;
+    }
+    wx.reLaunch({
+      url: HOST_HOME_URL,
+      fail: (err) => {
+        clearCrossHomeNavLock();
+        if (typeof opts.onFail === "function") {
+          opts.onFail(err);
+        }
+      },
+    });
+    return true;
+  },
+
+  openDeeptutorLogin(entrySource, returnTo, options) {
+    const opts = options && typeof options === "object" ? options : {};
+    if (!tryLockCrossHomeNav(opts.lockMs)) {
+      return false;
+    }
+    const targetUrl = buildDeeptutorEntryBridgeUrl(entrySource, returnTo);
+    const handleFinalFailure = (err) => {
+      clearCrossHomeNavLock();
+      console.error("[deeptutor.nav] unable to open login page", err);
+      if (typeof opts.onFail === "function") {
+        opts.onFail(err);
+      }
+    };
+    wx.navigateTo({
+      url: targetUrl,
+      fail: (err) => {
+        console.warn(
+          "[deeptutor.nav] navigateTo login bridge failed, fallback to reLaunch",
+          err
+        );
+        wx.reLaunch({
+          url: targetUrl,
+          fail: (fallbackErr) => {
+            handleFinalFailure(fallbackErr || err);
+          },
+        });
+      },
+    });
+    return true;
+  },
+
+  isCrossHomeNavigationLocked() {
+    return crossHomeNavLockExpiresAt > Date.now();
+  },
+
+  _resetCrossHomeNavigationLock() {
+    clearCrossHomeNavLock();
   },
 
   logout() {

@@ -1,16 +1,30 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 import sqlite3
 import time
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime
+import re
 from typing import Any
 
+from deeptutor.services.feedback_service import (
+    SupabaseFeedbackStore,
+    is_deeptutor_feedback_record,
+    normalize_feedback_record,
+)
 from deeptutor.services.member_console import get_member_console_service
+from deeptutor.services.observability import (
+    get_bailian_billing_client,
+    get_bailian_telemetry_client,
+    get_usage_ledger,
+)
 from deeptutor.services.session import get_sqlite_session_store
+
+logger = logging.getLogger(__name__)
 
 
 def _json_loads(value: str | None, default: Any) -> Any:
@@ -45,6 +59,34 @@ def _round(value: float, digits: int = 2) -> float:
 
 
 @dataclass(slots=True)
+class _CostSummaryRollup:
+    measured_input_tokens: int = 0
+    measured_output_tokens: int = 0
+    measured_total_tokens: int = 0
+    measured_total_cost: float = 0.0
+    estimated_input_tokens: int = 0
+    estimated_output_tokens: int = 0
+    estimated_total_tokens: int = 0
+    estimated_total_cost: float = 0.0
+
+    @property
+    def effective_input_tokens(self) -> int:
+        return self.measured_input_tokens + self.estimated_input_tokens
+
+    @property
+    def effective_output_tokens(self) -> int:
+        return self.measured_output_tokens + self.estimated_output_tokens
+
+    @property
+    def effective_total_tokens(self) -> int:
+        return self.measured_total_tokens + self.estimated_total_tokens
+
+    @property
+    def effective_total_cost(self) -> float:
+        return self.measured_total_cost + self.estimated_total_cost
+
+
+@dataclass(slots=True)
 class _BiContext:
     sessions: list[dict[str, Any]]
     turns: list[dict[str, Any]]
@@ -61,9 +103,21 @@ class _BiFilters:
 
 
 class BIService:
-    def __init__(self, session_store=None, member_service=None) -> None:
+    def __init__(
+        self,
+        session_store=None,
+        member_service=None,
+        feedback_store=None,
+        bailian_telemetry_client=None,
+        bailian_billing_client=None,
+        usage_ledger=None,
+    ) -> None:
         self._store = session_store or get_sqlite_session_store()
         self._member_service = member_service or get_member_console_service()
+        self._feedback_store = feedback_store or SupabaseFeedbackStore()
+        self._bailian_telemetry_client = bailian_telemetry_client or get_bailian_telemetry_client()
+        self._bailian_billing_client = bailian_billing_client or get_bailian_billing_client()
+        self._usage_ledger = usage_ledger or get_usage_ledger()
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._store.db_path)
@@ -74,6 +128,43 @@ class BIService:
     def _window_start(days: int) -> float:
         safe_days = max(1, min(int(days or 30), 365))
         return time.time() - (safe_days * 86400)
+
+    @staticmethod
+    def _normalize_billing_cycle(value: str | None) -> str:
+        normalized = str(value or "").strip()
+        if not normalized:
+            return ""
+        if not re.fullmatch(r"\d{4}-\d{2}", normalized):
+            raise ValueError("billing_cycle must be in YYYY-MM format")
+        return normalized
+
+    @staticmethod
+    def _iter_billing_cycles(start_ts: float, end_ts: float) -> list[str]:
+        start_dt = datetime.fromtimestamp(start_ts)
+        end_dt = datetime.fromtimestamp(end_ts)
+        year = start_dt.year
+        month = start_dt.month
+        cycles: list[str] = []
+        while (year, month) <= (end_dt.year, end_dt.month):
+            cycles.append(f"{year:04d}-{month:02d}")
+            if month == 12:
+                year += 1
+                month = 1
+            else:
+                month += 1
+        return cycles
+
+    @staticmethod
+    def _billing_cycle_bounds(billing_cycle: str) -> tuple[float, float]:
+        cycle = BIService._normalize_billing_cycle(billing_cycle)
+        start_dt = datetime.strptime(f"{cycle}-01", "%Y-%m-%d")
+        year = start_dt.year
+        month = start_dt.month
+        if month == 12:
+            end_dt = datetime(year + 1, 1, 1)
+        else:
+            end_dt = datetime(year, month + 1, 1)
+        return start_dt.timestamp(), end_dt.timestamp()
 
     @staticmethod
     def _resolve_entrypoint(preferences: dict[str, Any]) -> str:
@@ -103,10 +194,32 @@ class BIService:
         return None
 
     @staticmethod
+    def _rollup_cost_summary(cost_summary: dict[str, Any] | None) -> _CostSummaryRollup:
+        summary = cost_summary if isinstance(cost_summary, dict) else {}
+        return _CostSummaryRollup(
+            measured_input_tokens=_safe_int(summary.get("total_input_tokens")),
+            measured_output_tokens=_safe_int(summary.get("total_output_tokens")),
+            measured_total_tokens=_safe_int(summary.get("total_tokens")),
+            measured_total_cost=_safe_float(summary.get("total_cost_usd")),
+            estimated_input_tokens=_safe_int(summary.get("estimated_input_tokens")),
+            estimated_output_tokens=_safe_int(summary.get("estimated_output_tokens")),
+            estimated_total_tokens=_safe_int(summary.get("estimated_total_tokens")),
+            estimated_total_cost=_safe_float(summary.get("estimated_total_cost_usd")),
+        )
+
+    @staticmethod
     def _average(values: list[float]) -> float:
         if not values:
             return 0.0
         return sum(values) / len(values)
+
+    @staticmethod
+    def _delta_ratio(system_value: int, external_value: int) -> float | None:
+        if external_value > 0:
+            return _round((system_value - external_value) / external_value, 6)
+        if system_value > 0:
+            return 1.0
+        return None
 
     @staticmethod
     def _normalize_filters(
@@ -174,8 +287,7 @@ class BIService:
             notebook_entries=notebook_entries,
         )
 
-    async def _load_context(self, days: int) -> _BiContext:
-        window_start = self._window_start(days)
+    async def _load_context_since(self, window_start: float) -> _BiContext:
         with self._connect() as conn:
             session_rows = conn.execute(
                 """
@@ -336,6 +448,9 @@ class BIService:
             notebook_entries=notebook_entries,
         )
 
+    async def _load_context(self, days: int) -> _BiContext:
+        return await self._load_context_since(self._window_start(days))
+
     def _load_all_members(self) -> list[dict[str, Any]]:
         first_page = self._member_service.list_members(page=1, page_size=200)
         items = list(first_page["items"])
@@ -343,6 +458,36 @@ class BIService:
             current = self._member_service.list_members(page=page, page_size=200)
             items.extend(current["items"])
         return items
+
+    async def _load_feedback_records(self, days: int) -> tuple[str, list[dict[str, Any]]]:
+        if not self._feedback_store.is_configured:
+            return "unconfigured", []
+        created_after = datetime.fromtimestamp(self._window_start(days)).astimezone().isoformat()
+        rows: list[dict[str, Any]] = []
+        page_size = 200
+        max_records = 2000
+        offset = 0
+        try:
+            while len(rows) < max_records:
+                batch = await self._feedback_store.list_feedback(
+                    created_after=created_after,
+                    limit=min(page_size, max_records - len(rows)),
+                    offset=offset,
+                )
+                if not batch:
+                    break
+                rows.extend(batch)
+                if len(batch) < page_size:
+                    break
+                offset += len(batch)
+        except Exception:
+            logger.exception("Failed to load feedback records from Supabase")
+            return "error", []
+        return "ok", [
+            normalize_feedback_record(row)
+            for row in rows
+            if is_deeptutor_feedback_record(row)
+        ]
 
     async def get_overview(
         self,
@@ -1236,6 +1381,350 @@ class BIService:
             "providers": providers,
         }
 
+    async def get_cost_reconciliation(
+        self,
+        days: int = 30,
+        capability: str | None = None,
+        entrypoint: str | None = None,
+        tier: str | None = None,
+        workspace_id: str | None = None,
+        apikey_id: str | None = None,
+        model: str | None = None,
+        billing_cycle: str | None = None,
+    ) -> dict[str, Any]:
+        window_start = self._window_start(days)
+        now_ts = time.time()
+        filters = self._normalize_filters(capability, entrypoint, tier)
+        explicit_billing_cycle = self._normalize_billing_cycle(billing_cycle)
+        billing_cycles = (
+            [explicit_billing_cycle]
+            if explicit_billing_cycle
+            else self._iter_billing_cycles(window_start, now_ts)
+        )
+
+        context = self._apply_filters(await self._load_context(days), filters)
+
+        system_measured_input = 0
+        system_measured_output = 0
+        system_measured_total = 0
+        system_measured_cost = 0.0
+        system_estimated_input = 0
+        system_estimated_output = 0
+        system_estimated_total = 0
+        system_estimated_cost = 0.0
+        system_models = Counter()
+        system_sources = Counter()
+        for event in context.result_events:
+            cost_summary = event.get("cost_summary") or {}
+            rollup = self._rollup_cost_summary(cost_summary)
+            system_measured_input += rollup.measured_input_tokens
+            system_measured_output += rollup.measured_output_tokens
+            system_measured_total += rollup.measured_total_tokens
+            system_measured_cost += rollup.measured_total_cost
+            system_estimated_input += rollup.estimated_input_tokens
+            system_estimated_output += rollup.estimated_output_tokens
+            system_estimated_total += rollup.estimated_total_tokens
+            system_estimated_cost += rollup.estimated_total_cost
+            for name, count in (cost_summary.get("models") or {}).items():
+                system_models[str(name)] += _safe_int(count)
+            for name, count in (cost_summary.get("usage_sources") or {}).items():
+                system_sources[str(name)] += _safe_int(count)
+
+        system_input = system_measured_input + system_estimated_input
+        system_output = system_measured_output + system_estimated_output
+        system_total = system_measured_total + system_estimated_total
+        system_cost = system_measured_cost + system_estimated_cost
+
+        telemetry_status = "unconfigured"
+        bailian_payload: dict[str, Any] = {
+            "status": telemetry_status,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "models": {},
+        }
+        billing_status = "unconfigured"
+        bailian_billing_payload: dict[str, Any] = {
+            "status": billing_status,
+            "billing_cycles": billing_cycles,
+            "pretax_amount": 0.0,
+            "after_discount_amount": 0.0,
+            "items_count": 0,
+            "currency": "CNY",
+            "model_amounts": {},
+            "usage_kind_amounts": {},
+        }
+        system_global_payload: dict[str, Any] = {
+            "status": "ok",
+            "provider_name": "dashscope",
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "total_cost_usd": 0.0,
+            "measured_input_tokens": 0,
+            "measured_output_tokens": 0,
+            "measured_total_tokens": 0,
+            "measured_total_cost_usd": 0.0,
+            "estimated_input_tokens": 0,
+            "estimated_output_tokens": 0,
+            "estimated_total_tokens": 0,
+            "estimated_total_cost_usd": 0.0,
+            "events": 0,
+            "coverage_start_ts": None,
+            "coverage_end_ts": None,
+        }
+        warnings: list[str] = []
+        try:
+            system_global_totals = self._usage_ledger.get_totals(
+                start_ts=window_start,
+                end_ts=now_ts,
+                provider_name="dashscope",
+                model=model,
+            )
+            system_global_totals_dict = (
+                system_global_totals.to_dict()
+                if hasattr(system_global_totals, "to_dict")
+                else dict(system_global_totals or {})
+            )
+            system_global_payload = {
+                "status": "ok",
+                "provider_name": "dashscope",
+                **system_global_totals_dict,
+            }
+            coverage_start_ts = system_global_totals_dict.get(
+                "coverage_start_ts",
+                getattr(system_global_totals, "coverage_start_ts", None),
+            )
+            if (
+                coverage_start_ts is None
+                or float(coverage_start_ts) > float(window_start)
+            ):
+                warnings.append("全量 LLM usage ledger 尚未覆盖整个查询窗口；system_global_bailian 仅代表新账期/新部署后的调用。")
+        except Exception as exc:
+            logger.exception("Failed to query usage ledger")
+            system_global_payload = {
+                "status": "error",
+                "provider_name": "dashscope",
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "total_tokens": 0,
+                "total_cost_usd": 0.0,
+                "measured_input_tokens": 0,
+                "measured_output_tokens": 0,
+                "measured_total_tokens": 0,
+                "measured_total_cost_usd": 0.0,
+                "estimated_input_tokens": 0,
+                "estimated_output_tokens": 0,
+                "estimated_total_tokens": 0,
+                "estimated_total_cost_usd": 0.0,
+                "events": 0,
+                "coverage_start_ts": None,
+                "coverage_end_ts": None,
+                "error": str(exc),
+            }
+            warnings.append("全量 LLM usage ledger 查询失败，system_global_bailian 不可用。")
+        telemetry_config = getattr(self._bailian_telemetry_client, "config", None)
+        billing_config = getattr(self._bailian_billing_client, "config", None)
+        effective_workspace_id = str(
+            workspace_id
+            or getattr(telemetry_config, "workspace_id", "")
+            or getattr(billing_config, "workspace_id", "")
+            or ""
+        ).strip()
+        effective_apikey_id = str(
+            apikey_id
+            or getattr(telemetry_config, "apikey_id", "")
+            or getattr(billing_config, "apikey_id", "")
+            or ""
+        ).strip()
+        if not self._bailian_telemetry_client.is_configured():
+            warnings.append("百炼 Prometheus 监控未配置，无法查询外部账。")
+        else:
+            try:
+                bailian_totals = await self._bailian_telemetry_client.get_usage_totals(
+                    start_ts=window_start,
+                    end_ts=now_ts,
+                    workspace_id=effective_workspace_id,
+                    apikey_id=effective_apikey_id,
+                    model=model,
+                )
+                telemetry_status = "ok"
+                bailian_payload = {
+                    "status": telemetry_status,
+                    **bailian_totals.to_dict(),
+                }
+            except Exception as exc:
+                logger.exception("Failed to query Bailian telemetry")
+                telemetry_status = "error"
+                bailian_payload = {
+                    "status": telemetry_status,
+                    "input_tokens": 0,
+                    "output_tokens": 0,
+                    "total_tokens": 0,
+                    "models": {},
+                    "error": str(exc),
+                }
+                warnings.append("百炼 Prometheus 查询失败，请检查地址、AK/SK 和实例权限。")
+
+        if not self._bailian_billing_client.is_configured():
+            warnings.append("百炼官方账单接口未配置，无法查询金额账。")
+        else:
+            try:
+                bailian_billing_totals = await self._bailian_billing_client.get_totals(
+                    billing_cycles=billing_cycles,
+                    workspace_id=effective_workspace_id,
+                    apikey_id=effective_apikey_id,
+                    model=model,
+                )
+                billing_status = "ok"
+                bailian_billing_payload = {
+                    "status": billing_status,
+                    **bailian_billing_totals.to_dict(),
+                }
+            except Exception as exc:
+                logger.exception("Failed to query Bailian billing")
+                billing_status = "error"
+                bailian_billing_payload = {
+                    "status": billing_status,
+                    "billing_cycles": billing_cycles,
+                    "pretax_amount": 0.0,
+                    "after_discount_amount": 0.0,
+                    "items_count": 0,
+                    "currency": "CNY",
+                    "model_amounts": {},
+                    "usage_kind_amounts": {},
+                    "error": str(exc),
+                }
+                warnings.append("百炼官方账单查询失败，请检查 AK/SK、BssOpenApi 依赖和权限。")
+
+        token_delta = system_total - _safe_int(bailian_payload.get("total_tokens"))
+        input_delta = system_input - _safe_int(bailian_payload.get("input_tokens"))
+        output_delta = system_output - _safe_int(bailian_payload.get("output_tokens"))
+        cost_delta = _round(
+            system_cost - _safe_float(bailian_payload.get("estimated_total_cost_usd")),
+            8,
+        )
+        if telemetry_status == "ok" and not effective_apikey_id:
+            warnings.append("当前未按 apikey_id 过滤百炼外部账，结果可能包含控制台或其他调用。")
+        if billing_status == "ok" and not effective_apikey_id:
+            warnings.append("当前未按 apikey_id 过滤百炼官方账单，金额可能包含其他 API Key 的调用。")
+        if telemetry_status == "ok" and model:
+            warnings.append("系统内账当前只有回合级总 token，model 过滤主要作用于百炼外部账。")
+        if billing_status == "ok" and not explicit_billing_cycle:
+            warnings.append("百炼官方账单按账期（月）聚合；若要做精确金额对账，请显式传入 billing_cycle=YYYY-MM。")
+        if billing_status == "ok" and (filters.capability or filters.entrypoint or filters.tier):
+            warnings.append("百炼官方账单不支持 capability/entrypoint/tier 维度过滤；金额对账以 workspace_id/apikey_id/model 为准。")
+        if billing_status == "ok" and explicit_billing_cycle:
+            current_cycle = datetime.fromtimestamp(now_ts).strftime("%Y-%m")
+            if explicit_billing_cycle == current_cycle:
+                warnings.append("当前账期官方账单存在结算延迟，月内数据仅供参考；精确金额请以下月已结账数据为准。")
+
+        billing_scope_system_cost = None
+        billing_cost_delta = None
+        billing_cost_delta_ratio = None
+        if explicit_billing_cycle:
+            cycle_start_ts, cycle_end_ts = self._billing_cycle_bounds(explicit_billing_cycle)
+            cycle_context = context
+            if cycle_start_ts < window_start:
+                cycle_context = self._apply_filters(await self._load_context_since(cycle_start_ts), filters)
+
+            billing_scope_system_cost = 0.0
+            for event in cycle_context.result_events:
+                event_ts = _safe_float(event.get("created_at"))
+                if event_ts < cycle_start_ts or event_ts >= cycle_end_ts:
+                    continue
+                rollup = self._rollup_cost_summary(event.get("cost_summary") or {})
+                billing_scope_system_cost += rollup.effective_total_cost
+
+            if billing_status == "ok":
+                billing_cost_delta = _round(
+                    billing_scope_system_cost - _safe_float(bailian_billing_payload.get("pretax_amount")),
+                    8,
+                )
+                if _safe_float(bailian_billing_payload.get("pretax_amount")) > 0:
+                    billing_cost_delta_ratio = _round(
+                        billing_cost_delta / _safe_float(bailian_billing_payload.get("pretax_amount")),
+                        6,
+                    )
+
+        return {
+            "window_days": days,
+            "time_range": {
+                "start_ts": window_start,
+                "end_ts": now_ts,
+            },
+            "filters": {
+                "capability": str(capability or "").strip().lower(),
+                "entrypoint": str(entrypoint or "").strip().lower(),
+                "tier": str(tier or "").strip().lower(),
+                "workspace_id": effective_workspace_id,
+                "apikey_id": effective_apikey_id,
+                "model": str(model or "").strip(),
+                "billing_cycle": explicit_billing_cycle,
+            },
+            "system": {
+                "status": "ok",
+                "input_tokens": system_input,
+                "output_tokens": system_output,
+                "total_tokens": system_total,
+                "total_cost_usd": _round(system_cost, 8),
+                "measured_input_tokens": system_measured_input,
+                "measured_output_tokens": system_measured_output,
+                "measured_total_tokens": system_measured_total,
+                "measured_total_cost_usd": _round(system_measured_cost, 8),
+                "estimated_input_tokens": system_estimated_input,
+                "estimated_output_tokens": system_estimated_output,
+                "estimated_total_tokens": system_estimated_total,
+                "estimated_total_cost_usd": _round(system_estimated_cost, 8),
+                "result_events": len(context.result_events),
+                "turns": len(context.turns),
+                "models": {key: value for key, value in system_models.most_common()},
+                "usage_sources": {key: value for key, value in system_sources.most_common()},
+            },
+            "bailian": bailian_payload,
+            "bailian_billing": bailian_billing_payload,
+            "system_global_bailian": system_global_payload,
+            "reconciliation": {
+                "status": "ok" if telemetry_status == "ok" else telemetry_status,
+                "token_delta": token_delta,
+                "input_token_delta": input_delta,
+                "output_token_delta": output_delta,
+                "cost_delta_usd": cost_delta,
+                "token_delta_ratio": self._delta_ratio(
+                    system_total,
+                    _safe_int(bailian_payload.get("total_tokens")),
+                ),
+                "input_token_delta_ratio": self._delta_ratio(
+                    system_input,
+                    _safe_int(bailian_payload.get("input_tokens")),
+                ),
+                "output_token_delta_ratio": self._delta_ratio(
+                    system_output,
+                    _safe_int(bailian_payload.get("output_tokens")),
+                ),
+                "cost_delta_ratio": (
+                    _round(
+                        (
+                            system_cost - _safe_float(bailian_payload.get("estimated_total_cost_usd"))
+                        )
+                        / _safe_float(bailian_payload.get("estimated_total_cost_usd")),
+                        6,
+                    )
+                    if _safe_float(bailian_payload.get("estimated_total_cost_usd")) > 0
+                    else None
+                ),
+                "billing_cycle": explicit_billing_cycle,
+                "billing_scope_system_cost_usd": (
+                    _round(float(billing_scope_system_cost), 8)
+                    if billing_scope_system_cost is not None
+                    else None
+                ),
+                "billing_cost_delta_usd": billing_cost_delta,
+                "billing_cost_delta_ratio": billing_cost_delta_ratio,
+            },
+            "warnings": warnings,
+        }
+
     async def get_anomalies(
         self,
         days: int = 30,
@@ -1316,6 +1805,65 @@ class BIService:
         )[: max(1, min(limit, 100))]
 
         return {"window_days": days, "items": anomalies}
+
+    async def get_feedback(self, days: int = 30, limit: int = 20) -> dict[str, Any]:
+        storage_status, records = await self._load_feedback_records(days)
+        records.sort(key=lambda item: item.get("created_at") or "", reverse=True)
+
+        rating_counter = Counter(item["rating"] for item in records)
+        reason_counter = Counter(
+            tag
+            for item in records
+            for tag in item.get("reason_tags") or []
+        )
+        answer_mode_counter = Counter(
+            str(item.get("answer_mode") or "").strip().upper() or "UNKNOWN"
+            for item in records
+        )
+        session_ids = {
+            str(item.get("session_id") or "").strip()
+            for item in records
+            if str(item.get("session_id") or "").strip()
+        }
+        message_ids = {
+            str(item.get("message_id") or "").strip()
+            for item in records
+            if str(item.get("message_id") or "").strip()
+        }
+        user_ids = {
+            str(item.get("user_id") or "").strip()
+            for item in records
+            if str(item.get("user_id") or "").strip()
+        }
+
+        return {
+            "window_days": days,
+            "storage_status": storage_status,
+            "summary": {
+                "total_feedback": len(records),
+                "thumbs_up": rating_counter.get(1, 0),
+                "thumbs_down": rating_counter.get(-1, 0),
+                "neutral": rating_counter.get(0, 0),
+                "commented": sum(1 for item in records if item.get("comment")),
+                "unique_users": len(user_ids),
+                "unique_sessions": len(session_ids),
+                "unique_messages": len(message_ids),
+            },
+            "rating_breakdown": [
+                {"rating": 1, "label": "thumbs_up", "count": rating_counter.get(1, 0)},
+                {"rating": -1, "label": "thumbs_down", "count": rating_counter.get(-1, 0)},
+                {"rating": 0, "label": "neutral", "count": rating_counter.get(0, 0)},
+            ],
+            "top_reason_tags": [
+                {"tag": tag, "count": count}
+                for tag, count in reason_counter.most_common(10)
+            ],
+            "answer_modes": [
+                {"answer_mode": mode, "count": count}
+                for mode, count in answer_mode_counter.most_common()
+            ],
+            "recent": records[: max(1, min(limit, 100))],
+        }
 
 
 _bi_service: BIService | None = None

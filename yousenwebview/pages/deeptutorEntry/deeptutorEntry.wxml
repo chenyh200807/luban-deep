@@ -1,0 +1,13 @@
+<view class="bridge-page">
+  <view class="bridge-panel">
+    <view class="bridge-spinner" wx:if="{{loading}}"></view>
+    <text class="bridge-title">{{loading ? '正在打开鲁班AI智考' : '鲁班AI智考暂时无法打开'}}</text>
+    <text class="bridge-desc" wx:if="{{loading}}">
+      正在准备智能答疑入口，请稍候。
+    </text>
+    <text class="bridge-desc" wx:else>{{errorMsg}}</text>
+    <button class="bridge-retry" wx:if="{{!loading}}" bindtap="handleRetry">
+      重试
+    </button>
+  </view>
+</view>

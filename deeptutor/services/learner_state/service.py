@@ -1081,6 +1081,13 @@ class LearnerStateService:
                     self.merge_progress_strict(normalized, progress_patch)
                 else:
                     self.merge_progress(normalized, progress_patch)
+                profile_patch = _build_guide_completion_profile_patch(
+                    self.read_profile(normalized),
+                    notebook_name=notebook_name,
+                    knowledge_points=normalized_points,
+                )
+                if profile_patch:
+                    self.merge_profile(normalized, profile_patch)
             return self.record_guide_event(
                 user_id=normalized,
                 guide_id=guide_id,
@@ -2210,6 +2217,46 @@ def _build_guide_completion_progress_patch(
     }
     if total_points > 0:
         patch["today"] = {"today_done": int(today.get("today_done") or 0) + total_points}
+    return patch
+
+
+def _build_guide_completion_profile_patch(
+    profile: dict[str, Any],
+    *,
+    notebook_name: str,
+    knowledge_points: list[dict[str, Any]],
+) -> dict[str, Any]:
+    weak_points = [
+        str(point.get("knowledge_title") or "").strip()
+        for point in knowledge_points
+        if str(point.get("knowledge_title") or "").strip()
+        and str(point.get("user_difficulty") or "").strip().lower() in {"hard", "difficult", "high"}
+    ]
+    completed_titles = [
+        str(point.get("knowledge_title") or "").strip()
+        for point in knowledge_points
+        if str(point.get("knowledge_title") or "").strip()
+    ]
+    focus_topic = (
+        weak_points[0]
+        if weak_points
+        else completed_titles[0]
+        if completed_titles
+        else str(notebook_name or "").strip()
+    )
+    focus_topic = str(focus_topic or "").strip()
+    if not focus_topic:
+        return {}
+
+    current_focus_topic = str(profile.get("focus_topic") or "").strip()
+    current_focus_query = str(profile.get("focus_query") or "").strip()
+    next_focus_query = f"继续巩固{focus_topic}"
+
+    patch: dict[str, Any] = {}
+    if focus_topic != current_focus_topic:
+        patch["focus_topic"] = focus_topic
+    if next_focus_query != current_focus_query:
+        patch["focus_query"] = next_focus_query
     return patch
 
 

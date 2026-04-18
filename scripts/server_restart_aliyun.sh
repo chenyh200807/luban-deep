@@ -7,6 +7,11 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PUBLIC_HOST="${PUBLIC_HOST:-8.135.42.145}"
 LANGFUSE_OVERRIDE_FILE="deployment/aliyun/docker-compose.langfuse.yml"
 SHARED_LANGFUSE_NETWORK="${SHARED_LANGFUSE_NETWORK:-luban_jgzk-network}"
+export APT_MIRROR="${APT_MIRROR:-https://mirrors.aliyun.com/debian}"
+export SECURITY_MIRROR="${SECURITY_MIRROR:-https://mirrors.aliyun.com/debian-security}"
+export PIP_INDEX_URL="${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}"
+export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-https://rsproxy.cn}"
+export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-https://rsproxy.cn/rustup}"
 
 cd "${REPO_ROOT}"
 
@@ -31,7 +36,7 @@ if [ -f "${LANGFUSE_OVERRIDE_FILE}" ] && docker network inspect "${SHARED_LANGFU
     compose_args+=(-f "${LANGFUSE_OVERRIDE_FILE}")
 fi
 
-docker compose "${compose_args[@]}" build deeptutor
+docker compose --progress plain "${compose_args[@]}" build deeptutor
 docker compose "${compose_args[@]}" up -d --no-deps --force-recreate deeptutor
 docker compose "${compose_args[@]}" ps deeptutor
 

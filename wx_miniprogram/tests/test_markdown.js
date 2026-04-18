@@ -711,9 +711,10 @@ function testParseWithIds() {
     }
     assert(allHaveId, "All blocks have id field");
 
-    // IDs should be sequential b0, b1, b2, ...
-    assertEqual(blocks[0].id, "b0", "First block id is b0");
-    assertEqual(blocks[1].id, "b1", "Second block id is b1");
+    // IDs should include position and block type
+    assertEqual(blocks[0].id, "b0-heading", "First block id includes heading type");
+    assertEqual(blocks[1].id, "b1-blank", "Second block id includes blank type");
+    assertEqual(blocks[2].id, "b2-paragraph", "Third block id includes paragraph type");
 
     // Block types preserved
     assertEqual(
@@ -728,8 +729,17 @@ function testParseWithIds() {
       return b.id;
     });
     for (var j = 0; j < ids.length; j++) {
-      assertEqual(ids[j], "b" + j, "Sequential id b" + j);
+      assertEqual(
+        ids[j],
+        "b" + j + "-" + blocksWithBlanks[j].type,
+        "Sequential id includes block type for b" + j,
+      );
     }
+
+    var partial = md.parseWithIds("#");
+    var completed = md.parseWithIds("# Title");
+    assertEqual(partial[0].id, "b0-paragraph", "partial heading is still a paragraph block");
+    assertEqual(completed[0].id, "b0-heading", "completed heading changes key with block type");
   });
 }
 
@@ -1121,6 +1131,38 @@ function testCircledNumberInlineSplit() {
   });
 }
 
+function testRichTextNodes() {
+  suite("Rich Text Nodes", function () {
+    var blocks = md.parse(
+      [
+        "**拿分要点：**",
+        "1. **时间限制**：必须记住\"24小时\"这个关键数字，这是考试常考点",
+        "> **依据：**根据规范要求执行",
+      ].join("\n"),
+    );
+
+    assert(Array.isArray(blocks[0].nodes), "Callout title paragraph should expose rich-text nodes");
+    assert(Array.isArray(blocks[1].items[0].nodes), "Ordered list item should expose rich-text nodes");
+    assert(Array.isArray(blocks[2].lineNodes), "Blockquote should expose rich-text line nodes");
+
+    var orderedNodes = blocks[1].items[0].nodes;
+    assertEqual(
+      orderedNodes[0].name,
+      "span",
+      "Bold list label should become a styled span node",
+    );
+    assertEqual(
+      orderedNodes[1].type,
+      "text",
+      "Colon and trailing content should stay in the same inline node stream",
+    );
+    assert(
+      orderedNodes[1].text.indexOf("：必须记住") === 0,
+      "Colon should remain attached to the trailing inline text",
+    );
+  });
+}
+
 // ── Run All Tests ───────────────────────────────────────────
 
 function runAll() {
@@ -1147,6 +1189,7 @@ function runAll() {
     ["18. Real-World Input", testRealWorldInput],
     ["19. Edge Cases & Regression", testEdgeCases],
     ["20. Circled Number Inline Split", testCircledNumberInlineSplit],
+    ["21. Rich Text Nodes", testRichTextNodes],
   ];
 
   for (var i = 0; i < tests.length; i++) {

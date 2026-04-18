@@ -39,6 +39,52 @@ def _resolve_adapter_class(binding: str) -> type[BaseEmbeddingAdapter]:
     )
 
 
+def _normalize_embedding_usage(usage: object) -> dict[str, float] | None:
+    if not isinstance(usage, dict):
+        return None
+
+    input_tokens = float(
+        usage.get("prompt_tokens")
+        or usage.get("input_tokens")
+        or usage.get("tokens")
+        or usage.get("input")
+        or 0.0
+    )
+    output_tokens = float(
+        usage.get("completion_tokens")
+        or usage.get("output_tokens")
+        or usage.get("output")
+        or 0.0
+    )
+    total_tokens = float(
+        usage.get("total_tokens")
+        or usage.get("total")
+        or (input_tokens + output_tokens)
+    )
+    if total_tokens <= 0:
+        return None
+    return {
+        "input": input_tokens,
+        "output": output_tokens,
+        "total": total_tokens,
+    }
+
+
+def _merge_usage_details(
+    current: dict[str, float] | None,
+    incoming: dict[str, float] | None,
+) -> dict[str, float] | None:
+    if incoming is None:
+        return current
+    if current is None:
+        return dict(incoming)
+    return {
+        "input": float(current.get("input") or 0.0) + float(incoming.get("input") or 0.0),
+        "output": float(current.get("output") or 0.0) + float(incoming.get("output") or 0.0),
+        "total": float(current.get("total") or 0.0) + float(incoming.get("total") or 0.0),
+    }
+
+
 class EmbeddingClient:
     """Unified embedding client for RAG and retrieval services."""
 
@@ -74,7 +120,6 @@ class EmbeddingClient:
         all_embeddings: List[List[float]] = []
         batch_delay = self.config.batch_delay
 
-        usage_details = observability.estimate_usage_details(input_payload=texts, output_payload=None)
         with observability.start_observation(
             name="embedding.embed",
             as_type="embedding",
@@ -87,15 +132,10 @@ class EmbeddingClient:
             },
             model=self.config.model,
             model_parameters={"batch_size": batch_size, "dimensions": self.config.dim},
-            usage_details=usage_details,
-            usage_source="tiktoken",
-            cost_details=observability.estimate_cost_details(
-                model=self.config.model,
-                usage_details=usage_details,
-            ),
         ) as observation:
             try:
                 total_batches = (len(texts) + batch_size - 1) // batch_size
+                provider_usage_details: dict[str, float] | None = None
                 for i, start in enumerate(range(0, len(texts), batch_size)):
                     batch = texts[start : start + batch_size]
                     request = EmbeddingRequest(
@@ -105,6 +145,10 @@ class EmbeddingClient:
                     )
                     response = await self.adapter.embed(request)
                     all_embeddings.extend(response.embeddings)
+                    provider_usage_details = _merge_usage_details(
+                        provider_usage_details,
+                        _normalize_embedding_usage(getattr(response, "usage", None)),
+                    )
 
                     if progress_callback:
                         try:
@@ -124,6 +168,14 @@ class EmbeddingClient:
                 self.logger.error(f"Embedding request failed: {exc}")
                 raise
 
+            usage_details = provider_usage_details
+            usage_source = "provider"
+            if usage_details is None:
+                usage_details = observability.estimate_usage_details(
+                    input_payload=texts,
+                    output_payload=None,
+                )
+                usage_source = "tiktoken"
             observability.update_observation(
                 observation,
                 output_payload={"embeddings": len(all_embeddings)},
@@ -132,6 +184,13 @@ class EmbeddingClient:
                     "dimensions": self.config.dim,
                     "embedding_count": len(all_embeddings),
                 },
+                usage_details=usage_details,
+                usage_source=usage_source,
+                model=self.config.model,
+                cost_details=observability.estimate_cost_details(
+                    model=self.config.model,
+                    usage_details=usage_details,
+                ),
             )
             self.logger.debug(
                 f"Generated {len(all_embeddings)} embeddings using "

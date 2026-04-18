@@ -139,10 +139,10 @@ Page({
   startMode(e) {
     const modeId = e.currentTarget.dataset.id;
     const modeQueries = {
-      smart: "根据我当前薄弱点，给我出5道高价值选择题。每次只出一题，等我作答后再讲解下一题。",
-      chapter: "请按我当前最薄弱的章节，给我安排一组5题的章节专项练习。不要提前给答案。",
-      mock: "请按一建建筑实务模考风格，给我来一组5题递进式选择题，控制节奏，先出题后批改。",
-      weak: "针对我最近最薄弱的知识点，给我做一组5题攻克训练。每题讲清踩分点和易错点。",
+      smart: "根据我当前薄弱点，给我来5道高价值选择题，不要提前给答案和解析。",
+      chapter: "请按我当前最薄弱的章节，给我安排5道章节专项选择题，不要提前给答案和解析。",
+      mock: "请按一建建筑实务模考风格，给我来5道递进式选择题，不要提前给答案和解析。",
+      weak: "针对我最近最薄弱的知识点，给我来5道攻克训练选择题，不要提前给答案和解析。",
     };
     this._openPracticeChat(modeQueries[modeId] || "给我安排一组练习题。", "AUTO");
   },
@@ -152,7 +152,7 @@ Page({
     const current = (this.data.chapters || []).find((item) => item.id === chapterId);
     const chapterName = current && current.name ? current.name : "当前章节";
     this._openPracticeChat(
-      `我想练习${chapterName}，请给我出5道选择题，每次只出一题，等我回答后再继续。`,
+      `我想练习${chapterName}，请给我来5道选择题，不要提前给答案和解析。`,
       "AUTO",
     );
   },

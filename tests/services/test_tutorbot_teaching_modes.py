@@ -4,6 +4,7 @@ from deeptutor.tutorbot.teaching_modes import (
     get_construction_exam_skill_instruction,
     get_lecture_skill_instruction,
     get_teaching_mode_instruction,
+    looks_like_practice_generation_request,
     normalize_teaching_mode,
 )
 
@@ -18,6 +19,16 @@ def test_normalize_teaching_mode_accepts_fast_and_deep():
     assert normalize_teaching_mode("fast") == "fast"
     assert normalize_teaching_mode("FAST") == "fast"
     assert normalize_teaching_mode("deep") == "deep"
+
+
+def test_looks_like_practice_generation_request_accepts_natural_one_question_phrasing():
+    assert looks_like_practice_generation_request("给我一道题测试一下这个知识点") is True
+    assert looks_like_practice_generation_request("给我5道题练练") is True
+
+
+def test_looks_like_practice_generation_request_rejects_learning_strategy_phrasing():
+    assert looks_like_practice_generation_request("我现在最大问题是记不住，做题时规范数字总串，给我一个今晚能执行的学习法") is False
+    assert looks_like_practice_generation_request("给我一个练习方法，不要出题") is False
 
 
 def test_get_teaching_mode_instruction_matches_expected_density():

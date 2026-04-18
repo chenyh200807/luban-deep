@@ -12,7 +12,11 @@ from typing import Any
 from deeptutor.services.branding import get_brand_name
 from deeptutor.tutorbot.agent.memory import MemoryStore
 from deeptutor.tutorbot.agent.skills import SkillsLoader
-from deeptutor.tutorbot.utils.helpers import build_assistant_message, detect_image_mime
+from deeptutor.tutorbot.utils.helpers import (
+    build_assistant_message,
+    detect_image_mime,
+    normalize_message_content,
+)
 
 
 class ContextBuilder:
@@ -256,7 +260,14 @@ Reply directly with text for conversations. Only use the 'message' tool to send 
         tool_call_id: str, tool_name: str, result: str,
     ) -> list[dict[str, Any]]:
         """Add a tool result to the message list."""
-        messages.append({"role": "tool", "tool_call_id": tool_call_id, "name": tool_name, "content": result})
+        messages.append(
+            {
+                "role": "tool",
+                "tool_call_id": tool_call_id,
+                "name": tool_name,
+                "content": normalize_message_content(result),
+            }
+        )
         return messages
 
     def add_assistant_message(

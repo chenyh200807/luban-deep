@@ -462,7 +462,8 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
                     },
                 )
             if on_content_delta is not None:
-                await on_content_delta("让我先查一下资料。")
+                await on_content_delta("Tutor")
+                await on_content_delta("Bot")
             return "TutorBot"
 
     monkeypatch.setattr(
@@ -488,7 +489,7 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     assert captured["send"]["chat_id"] == "session-1"
     assert captured["send"]["mode"] == "smart"
     assert captured["send"]["session_metadata"]["user_id"] == "u1"
-    assert captured["send"]["session_metadata"]["default_tools"] == ["rag"]
+    assert captured["send"]["session_metadata"]["default_tools"] == []
     assert captured["send"]["session_metadata"]["knowledge_bases"] == ["construction-exam"]
     assert captured["send"]["session_metadata"]["default_kb"] == "construction-exam"
     assert captured["send"]["session_metadata"]["suppress_answer_reveal_on_generate"] is True
@@ -499,15 +500,15 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     assert any(event.type == StreamEventType.TOOL_RESULT and "知识库命中" in event.content for event in events)
     assert any(event.type == StreamEventType.SOURCES and event.metadata["sources"][0]["chunk_id"] == "q-1" for event in events)
     content_events = [event for event in events if event.type == StreamEventType.CONTENT]
-    assert [event.content for event in content_events] == ["TutorBot"]
-    assert content_events[0].metadata["call_kind"] == "llm_final_response"
+    assert [event.content for event in content_events] == ["Tutor", "Bot"]
+    assert all(event.metadata["call_kind"] == "llm_stream_delta" for event in content_events)
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["response"] == "TutorBot"
     assert result_event.metadata["execution_engine"] == "tutorbot_runtime"
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_capability_ignores_intermediate_deltas_and_emits_only_final_response(
+async def test_tutorbot_capability_streams_intermediate_deltas_without_duplicate_final_content(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class FakeManager:
@@ -540,9 +541,8 @@ async def test_tutorbot_capability_ignores_intermediate_deltas_and_emits_only_fi
             session_metadata: dict[str, Any] | None = None,
         ) -> str:
             if on_content_delta is not None:
-                await on_content_delta("让我再查一下更详细的定义和区别：")
-                await on_content_delta("\n\n")
-                await on_content_delta("现在我来看看讲义中的相关内容：")
+                await on_content_delta("最终答案：")
+                await on_content_delta("防水等级是设计标准，设防层数是施工构造。")
             return "最终答案：防水等级是设计标准，设防层数是施工构造。"
 
     monkeypatch.setattr(
@@ -565,9 +565,12 @@ async def test_tutorbot_capability_ignores_intermediate_deltas_and_emits_only_fi
 
     content_events = [event for event in events if event.type == StreamEventType.CONTENT]
     assert [event.content for event in content_events] == [
-        "最终答案：防水等级是设计标准，设防层数是施工构造。"
+        "最终答案：",
+        "防水等级是设计标准，设防层数是施工构造。",
     ]
-    assert "让我再查一下" not in content_events[0].content
+    assert all(event.metadata["call_kind"] == "llm_stream_delta" for event in content_events)
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["response"] == "最终答案：防水等级是设计标准，设防层数是施工构造。"
 
 
 @pytest.mark.asyncio
@@ -650,6 +653,171 @@ async def test_tutorbot_capability_emits_structured_mcq_summary_for_plain_text_g
     followup_context = result_event.metadata.get("question_followup_context")
     assert isinstance(followup_context, dict)
     assert len(followup_context["items"]) == 2
+
+
+@pytest.mark.parametrize("chat_mode", ["fast", "deep"])
+@pytest.mark.asyncio
+async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visible_response(
+    monkeypatch: pytest.MonkeyPatch,
+    chat_mode: str,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            captured["mode"] = mode
+            captured["session_metadata"] = session_metadata
+            return "\n".join(
+                [
+                    "**题目**：关于混凝土养护开始时间，下列哪项说法是正确的？",
+                    "A. 混凝土应在初凝前开始养护",
+                    "B. 混凝土应在终凝后开始养护",
+                    "C. 混凝土应在终凝前开始养护",
+                    "D. 混凝土应在浇筑后立即开始养护",
+                    "",
+                    "**答案**：C",
+                    "",
+                    "**踩分点**",
+                    "- 正确选项是“终凝前开始养护”。",
+                ]
+            )
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-practice-1",
+        user_message="给我一道题测试一下这个知识点",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": chat_mode},
+        metadata={
+            "billing_context": {"user_id": "u1", "source": "wx_miniprogram"},
+            "interaction_hints": {"suppress_answer_reveal_on_generate": True},
+        },
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    content_event = next(event for event in events if event.type == StreamEventType.CONTENT)
+    assert "关于混凝土养护开始时间" in content_event.content
+    assert "A. 混凝土应在初凝前开始养护" in content_event.content
+    assert "答案" not in content_event.content
+    assert "踩分点" not in content_event.content
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert captured["mode"] == chat_mode
+    assert captured["session_metadata"]["default_tools"] == ["rag"]
+    assert "答案" not in result_event.metadata["response"]
+    assert "踩分点" not in result_event.metadata["response"]
+    assert result_event.metadata["question_followup_context"]["correct_answer"] == "C"
+    assert isinstance(result_event.metadata.get("presentation"), dict)
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_capability_hides_case_reference_sections_when_user_explicitly_suppresses_answers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            return "\n".join(
+                [
+                    "【背景资料】某主体结构施工项目正在进行模板拆除。",
+                    "",
+                    "【问题】",
+                    "1. 请说明侧模与底模的拆除判断依据。",
+                    "2. 请写出作答要求与评分点提醒。",
+                    "",
+                    "Answer: 侧模看棱角不受损，底模按跨度和强度百分比控制。",
+                    "",
+                    "Explanation: 重点抓 1.0MPa、板二八、梁八悬一百。",
+                ]
+            )
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-case-practice",
+        user_message="按模板拆除给我出一道案例题，先不要直接给答案，先给作答要求和评分点提醒。",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
+        metadata={"billing_context": {"user_id": "u1", "source": "ws"}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    content_event = next(event for event in events if event.type == StreamEventType.CONTENT)
+    assert "【问题】" in content_event.content
+    assert "Answer:" not in content_event.content
+    assert "Explanation:" not in content_event.content
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert "Answer:" not in result_event.metadata["response"]
+    assert "Explanation:" not in result_event.metadata["response"]
 
 
 @pytest.mark.asyncio
@@ -810,6 +978,83 @@ def test_rag_adapter_tool_preview_args_normalizes_alias() -> None:
     assert preview["kb_name"] == "construction-exam"
 
 
+@pytest.mark.asyncio
+async def test_rag_adapter_tool_coerces_none_answer_to_empty_string(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+
+    async def _fake_rag_search(*, query: str, kb_name: str | None = None, **_kwargs: Any) -> dict[str, Any]:
+        assert query == "防水等级"
+        assert kb_name == "construction-exam"
+        return {
+            "answer": None,
+            "content": None,
+            "sources": [{"chunk_id": "c1", "source_type": "standard"}],
+        }
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(metadata={"default_kb": "construction-exam"})
+
+    result = await tool.execute(query="防水等级")
+
+    assert result == ""
+    assert tool.consume_trace_metadata() == {
+        "kb_name": "construction-exam",
+        "sources": [{"chunk_id": "c1", "source_type": "standard"}],
+        "tool_source_count": 1,
+        "exact_question": {},
+        "authority_applied": False,
+    }
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_tool_registry_coerces_none_result_to_empty_string() -> None:
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+
+    class NullTool(Tool):
+        @property
+        def name(self) -> str:
+            return "null_tool"
+
+        @property
+        def description(self) -> str:
+            return "returns none"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"topic": {"type": "string"}},
+                "required": ["topic"],
+            }
+
+        async def execute(self, **kwargs: Any) -> None:
+            return None
+
+    registry = TutorBotToolRegistry()
+    registry.register(NullTool())
+
+    result = await registry.execute("null_tool", {"topic": "x"})
+
+    assert result == ""
+
+
 async def _capture_async(bucket: list[Any], value: Any) -> None:
     bucket.append(value)
 
@@ -937,6 +1182,344 @@ async def test_tutorbot_agent_loop_executes_tool_calls_with_registry_get(
             },
         )
     ]
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_agent_loop_records_rag_round_query_and_source_overlap(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    captured: dict[str, Any] = {"tool_results": []}
+
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class FakeProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            if self.calls == 1:
+                return LLMResponse(
+                    content="先查第一轮",
+                    tool_calls=[
+                        ToolCallRequest(
+                            id="call_1",
+                            name="rag",
+                            arguments={"query": "construction exam definition", "kb_name": "construction-exam"},
+                        )
+                    ],
+                )
+            if self.calls == 2:
+                return LLMResponse(
+                    content="再查第二轮",
+                    tool_calls=[
+                        ToolCallRequest(
+                            id="call_2",
+                            name="rag",
+                            arguments={"query": "construction definition", "kb_name": "construction-exam"},
+                        )
+                    ],
+                )
+            return LLMResponse(content="最终回答")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class MultiRoundRagTool(Tool):
+        def __init__(self) -> None:
+            self._execute_count = 0
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "kb_name": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        async def execute(self, **kwargs: Any) -> str:
+            self._execute_count += 1
+            return f"round-{self._execute_count}:{kwargs['query']}"
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            if self._execute_count == 1:
+                return {
+                    "kb_name": "construction-exam",
+                    "sources": [
+                        {"chunk_id": "chunk-1", "source_type": "standard"},
+                        {"chunk_id": "chunk-2", "source_type": "standard"},
+                    ],
+                }
+            return {
+                "kb_name": "construction-exam",
+                "sources": [
+                    {"chunk_id": "chunk-2", "source_type": "standard"},
+                    {"chunk_id": "chunk-3", "source_type": "standard"},
+                ],
+            }
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=FakeProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(MultiRoundRagTool())
+
+    final_content, tools_used, _messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "帮我解释建筑构造"}],
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert final_content == "最终回答"
+    assert tools_used == ["rag", "rag"]
+    first_metadata = captured["tool_results"][0][2]
+    second_metadata = captured["tool_results"][1][2]
+
+    assert first_metadata["rag_round"] == {
+        "round_index": 1,
+        "query": "construction exam definition",
+        "kb_name": "construction-exam",
+        "source_count": 2,
+        "sources": [
+            {"chunk_id": "chunk-1", "source_type": "standard"},
+            {"chunk_id": "chunk-2", "source_type": "standard"},
+        ],
+        "query_similarity_to_prev": None,
+        "source_overlap_to_prev": None,
+        "shared_source_count_with_prev": 0,
+    }
+    assert first_metadata["rag_round_count"] == 1
+    assert first_metadata["rag_rounds"] == [first_metadata["rag_round"]]
+
+    assert second_metadata["rag_round"] == {
+        "round_index": 2,
+        "query": "construction definition",
+        "kb_name": "construction-exam",
+        "source_count": 2,
+        "sources": [
+            {"chunk_id": "chunk-2", "source_type": "standard"},
+            {"chunk_id": "chunk-3", "source_type": "standard"},
+        ],
+        "query_similarity_to_prev": 0.6667,
+        "source_overlap_to_prev": 0.3333,
+        "shared_source_count_with_prev": 1,
+    }
+    assert second_metadata["rag_round_count"] == 2
+    assert second_metadata["rag_rounds"] == [
+        first_metadata["rag_round"],
+        second_metadata["rag_round"],
+    ]
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_agent_loop_disables_further_rag_after_high_overlap_saturation(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    captured: dict[str, Any] = {"tool_results": [], "tool_name_sets": []}
+
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class FakeProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            tool_names = [
+                str(item.get("function", {}).get("name") or "")
+                for item in list(tools or [])
+            ]
+            captured["tool_name_sets"].append(tool_names)
+            self.calls += 1
+            if self.calls == 1:
+                return LLMResponse(
+                    content="先查第一轮",
+                    tool_calls=[
+                        ToolCallRequest(
+                            id="call_1",
+                            name="rag",
+                            arguments={"query": "construction exam definition", "kb_name": "construction-exam"},
+                        )
+                    ],
+                )
+            if self.calls == 2:
+                return LLMResponse(
+                    content="再查第二轮",
+                    tool_calls=[
+                        ToolCallRequest(
+                            id="call_2",
+                            name="rag",
+                            arguments={"query": "construction exam definition exam", "kb_name": "construction-exam"},
+                        )
+                    ],
+                )
+            return LLMResponse(content="基于现有资料直接回答")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class SaturatingRagTool(Tool):
+        def __init__(self) -> None:
+            self._execute_count = 0
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "kb_name": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        async def execute(self, **kwargs: Any) -> str:
+            self._execute_count += 1
+            return f"round-{self._execute_count}:{kwargs['query']}"
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            return {
+                "kb_name": "construction-exam",
+                "sources": [
+                    {"chunk_id": "chunk-1", "source_type": "standard"},
+                    {"chunk_id": "chunk-2", "source_type": "standard"},
+                ],
+            }
+
+    class DummyTool(Tool):
+        @property
+        def name(self) -> str:
+            return "web_search"
+
+        @property
+        def description(self) -> str:
+            return "dummy"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            return str(kwargs)
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=FakeProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(SaturatingRagTool())
+    loop.tools.register(DummyTool())
+
+    final_content, tools_used, _messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "帮我解释建筑构造"}],
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert final_content == "基于现有资料直接回答"
+    assert tools_used == ["rag", "rag"]
+    assert "rag" in captured["tool_name_sets"][0]
+    assert "rag" in captured["tool_name_sets"][1]
+    assert "rag" not in captured["tool_name_sets"][2]
+    assert "web_search" in captured["tool_name_sets"][2]
+    second_metadata = captured["tool_results"][1][2]
+    assert second_metadata["rag_saturation"] == {
+        "detected": True,
+        "reason": "high_query_similarity_and_source_overlap",
+        "round_index": 2,
+        "query_similarity_to_prev": 1.0,
+        "source_overlap_to_prev": 1.0,
+        "shared_source_count_with_prev": 2,
+        "query_similarity_threshold": 0.85,
+        "source_overlap_threshold": 0.6,
+    }
 
 
 @pytest.mark.asyncio
@@ -1278,6 +1861,112 @@ async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
     assert "3335.40 万元" in content
     assert captured["tool_calls"] == [("rag", {"query": "背景资料：某旧城改造工程。问题：1. 通常进行资格预审的工程有哪些特点？2. 管理策划内容还有哪些？4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？", "kb_name": "construction-exam"})]
     assert captured["tool_results"][0][2]["authority_applied"] is True
+    assert captured["tool_results"][0][2]["rag_round"] == {
+        "round_index": 1,
+        "query": "背景资料：某旧城改造工程。问题：1. 通常进行资格预审的工程有哪些特点？2. 管理策划内容还有哪些？4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？",
+        "kb_name": "construction-exam",
+        "source_count": 1,
+        "sources": [{"chunk_id": "question-9717", "source_type": "real_exam"}],
+        "query_similarity_to_prev": None,
+        "source_overlap_to_prev": None,
+        "shared_source_count_with_prev": 0,
+    }
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_process_direct_limits_tool_schemas_to_default_tools(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {}
+
+    class CapturingProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            captured["tool_names"] = [
+                str(item.get("function", {}).get("name") or "")
+                for item in list(tools or [])
+            ]
+            if on_content_delta is not None:
+                await on_content_delta("已完成")
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class NamedTool(Tool):
+        def __init__(self, tool_name: str) -> None:
+            self._tool_name = tool_name
+
+        @property
+        def name(self) -> str:
+            return self._tool_name
+
+        @property
+        def description(self) -> str:
+            return f"{self._tool_name} description"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            return str(kwargs)
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=CapturingProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    for tool_name in ("rag", "web_search", "code_execution"):
+        loop.tools.register(NamedTool(tool_name))
+
+    content = await loop.process_direct(
+        "建筑构造是什么？",
+        metadata={"default_tools": ["rag"]},
+    )
+
+    assert content == "已完成"
+    assert captured["tool_names"] == ["rag"]
 
 
 @pytest.mark.asyncio

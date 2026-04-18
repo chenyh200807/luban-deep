@@ -11,7 +11,11 @@ from deeptutor.services.observability.langfuse_adapter import LangfuseObservabil
 
 
 class _FakeObservation:
-    def update(self, **_kwargs) -> None:
+    def __init__(self) -> None:
+        self.updates: list[dict] = []
+
+    def update(self, **kwargs) -> None:
+        self.updates.append(kwargs)
         return None
 
 
@@ -95,6 +99,14 @@ class _FakeClient:
             }
         )
         yield
+
+
+class _FakeUsageLedger:
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+
+    def record_usage_event(self, **kwargs) -> None:
+        self.calls.append(kwargs)
 
 
 @contextmanager
@@ -315,9 +327,12 @@ def test_usage_scope_accumulates_usage_with_sources() -> None:
         "session_id": "unified_123",
         "turn_id": "turn_123",
         "capability": "chat",
-        "total_input_tokens": 170,
-        "total_output_tokens": 55,
-        "total_tokens": 225,
+        "total_input_tokens": 120,
+        "total_output_tokens": 30,
+        "total_tokens": 150,
+        "estimated_input_tokens": 50,
+        "estimated_output_tokens": 25,
+        "estimated_total_tokens": 75,
         "total_calls": 2,
         "measured_calls": 1,
         "estimated_calls": 1,
@@ -325,8 +340,53 @@ def test_usage_scope_accumulates_usage_with_sources() -> None:
         "usage_sources": {"provider": 1, "tiktoken": 1},
         "models": {"gpt-4o": 2},
         "total_cost_usd": 0.0,
+        "estimated_total_cost_usd": 0.0,
     }
     assert adapter.get_current_usage_summary() is None
+
+
+def test_record_usage_writes_global_usage_ledger_without_scope() -> None:
+    adapter = LangfuseObservability()
+    fake_ledger = _FakeUsageLedger()
+    adapter._usage_ledger = fake_ledger
+
+    adapter.record_usage(
+        usage_details={"input": 12.0, "output": 8.0, "total": 20.0},
+        cost_details={"total": 0.12},
+        source="provider",
+        model="deepseek-v3.2",
+        metadata={"provider_name": "dashscope"},
+    )
+
+    assert fake_ledger.calls == [
+        {
+            "usage_source": "provider",
+            "usage_details": {"input": 12.0, "output": 8.0, "total": 20.0},
+            "cost_details": {"total": 0.12},
+            "model": "deepseek-v3.2",
+            "metadata": {"provider_name": "dashscope"},
+            "session_id": "",
+            "turn_id": "",
+            "capability": "",
+            "scope_id": "",
+        }
+    ]
+
+
+def test_record_usage_skips_summary_for_global_usage_ledger() -> None:
+    adapter = LangfuseObservability()
+    fake_ledger = _FakeUsageLedger()
+    adapter._usage_ledger = fake_ledger
+
+    adapter.record_usage(
+        usage_details={"input": 100.0, "output": 20.0, "total": 120.0},
+        cost_details={"total": 0.5},
+        source="summary",
+        model="deepseek-v3.2",
+        metadata={"provider_name": "dashscope"},
+    )
+
+    assert fake_ledger.calls == []
 
 
 def test_usage_details_and_cost_details_from_summary() -> None:
@@ -347,6 +407,109 @@ def test_usage_details_and_cost_details_from_summary() -> None:
         "input": 0.0,
         "output": 0.0,
         "total": 0.0016,
+    }
+
+
+def test_summary_metadata_flattens_usage_summary() -> None:
+    adapter = LangfuseObservability()
+    summary = {
+        "scope_id": "turn_123",
+        "total_input_tokens": 128,
+        "total_output_tokens": 32,
+        "total_tokens": 160,
+        "estimated_input_tokens": 12,
+        "estimated_output_tokens": 0,
+        "estimated_total_tokens": 12,
+        "total_calls": 4,
+        "measured_calls": 3,
+        "estimated_calls": 1,
+        "usage_accuracy": "mixed",
+        "usage_sources": {"provider": 3, "tiktoken": 1},
+        "models": {"deepseek-v3.2": 2, "text-embedding-v3": 1},
+        "total_cost_usd": 0.0016,
+        "estimated_total_cost_usd": 0.00001,
+    }
+
+    assert adapter.summary_metadata(summary) == {
+        "usage_rollup": "tokens=160; cost=0.0016; accuracy=mixed",
+        "usage_scope_id": "turn_123",
+        "usage_total_input_tokens": 128,
+        "usage_total_output_tokens": 32,
+        "usage_total_tokens": 160,
+        "usage_estimated_input_tokens": 12,
+        "usage_estimated_output_tokens": 0,
+        "usage_estimated_total_tokens": 12,
+        "usage_total_calls": 4,
+        "usage_measured_calls": 3,
+        "usage_estimated_calls": 1,
+        "usage_accuracy": "mixed",
+        "usage_total_cost": 0.0016,
+        "usage_estimated_total_cost": 0.00001,
+        "usage_sources": {"provider": 3, "tiktoken": 1},
+        "usage_models": {"deepseek-v3.2": 2, "text-embedding-v3": 1},
+    }
+
+
+def test_estimated_usage_is_metadata_only_in_langfuse_payload() -> None:
+    adapter = LangfuseObservability()
+    client = _FakeClient()
+    adapter._client = client
+    adapter._init_attempted = True
+
+    with adapter.start_observation(
+        name="tool.search",
+        metadata={"session_id": "session-1"},
+        usage_details={"input": 50.0, "output": 10.0, "total": 60.0},
+        cost_details={"input": 0.001, "output": 0.002, "total": 0.003},
+        usage_source="tiktoken",
+    ) as observation:
+        adapter.update_observation(
+            observation,
+            metadata={"turn_id": "turn-1"},
+            usage_details={"input": 50.0, "output": 10.0, "total": 60.0},
+            cost_details={"input": 0.001, "output": 0.002, "total": 0.003},
+            usage_source="tiktoken",
+        )
+
+    assert client.start_calls[-1]["usage_details"] is None
+    assert client.start_calls[-1]["cost_details"] is None
+    assert client.start_calls[-1]["metadata"]["usage_source"] == "tiktoken"
+    assert client.start_calls[-1]["metadata"]["estimated_usage_details"] == {
+        "input": 50.0,
+        "output": 10.0,
+        "total": 60.0,
+    }
+    assert client.start_calls[-1]["metadata"]["estimated_cost_details"] == {
+        "input": 0.001,
+        "output": 0.002,
+        "total": 0.003,
+    }
+
+    assert client.observation.updates[-1]["usage_details"] is None
+    assert client.observation.updates[-1]["cost_details"] is None
+    assert client.observation.updates[-1]["metadata"]["usage_source"] == "tiktoken"
+    assert client.observation.updates[-1]["metadata"]["estimated_usage_details"] == {
+        "input": 50.0,
+        "output": 10.0,
+        "total": 60.0,
+    }
+    assert client.observation.updates[-1]["metadata"]["estimated_cost_details"] == {
+        "input": 0.001,
+        "output": 0.002,
+        "total": 0.003,
+    }
+
+
+def test_estimate_cost_details_supports_gte_rerank_alias() -> None:
+    adapter = LangfuseObservability()
+
+    assert adapter.estimate_cost_details(
+        model="gte-rerank",
+        usage_details={"input": 1250.0, "output": 0.0, "total": 1250.0},
+    ) == {
+        "input": 0.001,
+        "output": 0.0,
+        "total": 0.001,
     }
 
 

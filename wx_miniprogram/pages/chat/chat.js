@@ -9,6 +9,7 @@ var log = require("../../utils/logger");
 var workflowStatus = require("../../utils/workflow-status");
 var citationFormat = require("../../utils/citation-format");
 var chatTurnRecovery = require("../../utils/chat-turn-recovery");
+var markdownFixtures = require("../../utils/devtools-markdown-fixtures");
 
 // ── 常量（部分由性能分级动态覆盖）──────────────
 var _animCfg = helpers.getAnimConfig();
@@ -331,10 +332,10 @@ Page({
 
   // ── 流式控制 ──────────────────────────────────
 
-  _stop: function () {
+  _stop: function (options) {
     if (this._abort) {
       try {
-        this._abort();
+        this._abort(options || {});
       } catch (_) {}
       this._abort = null;
     }
@@ -495,6 +496,27 @@ Page({
       self._setupObserver();
     }, 50);
     return true;
+  },
+
+  debugListMarkdownRegressionSamples: function () {
+    if (!_IS_DEVTOOLS) {
+      log.warn("Chat", "debugListMarkdownRegressionSamples is devtools-only");
+      return [];
+    }
+    return markdownFixtures.listMarkdownRegressionSamples();
+  },
+
+  debugLoadMarkdownRegressionSample: function (name) {
+    if (!_IS_DEVTOOLS) {
+      log.warn("Chat", "debugLoadMarkdownRegressionSample is devtools-only");
+      return false;
+    }
+    var sample = markdownFixtures.getMarkdownRegressionSample(String(name || ""));
+    if (!sample) {
+      log.warn("Chat", "unknown markdown regression sample: " + name);
+      return false;
+    }
+    return this.debugReplaceMessagesWithStructuredSample(sample);
   },
 
   _recoverTurnFromHistory: function () {
@@ -1065,7 +1087,10 @@ Page({
               ? node.name.substring(0, 8)
               : node.name || "";
           update.focusText = "今日焦点：薄弱点速练：5 题 · " + name;
-          update.focusQuery = "我想练习" + (node.name || "") + "相关的题目";
+          update.focusQuery =
+            "我想练习" +
+            (node.name || "") +
+            "，请给我来5道高价值选择题，不要提前给答案和解析。";
         } else if (overdue > 0) {
           update.focusText = "今日焦点：" + overdue + " 个逾期复习待处理";
           update.focusQuery = "帮我复习逾期的知识点";
@@ -1287,8 +1312,7 @@ Page({
 
   stopStream: function () {
     helpers.vibrate("light");
-    this._stop();
-    this.setData({ isStreaming: false });
+    this._stop({ cancelTurn: true });
   },
 
   _send: function (query, extraOpts) {

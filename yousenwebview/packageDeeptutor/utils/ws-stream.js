@@ -79,6 +79,8 @@ function streamChat(opts, callbacks) {
   var lastSeq = 0;
   var socketUrls = [];
   var reconnectAttempts = 0;
+  var socketOpen = false;
+  var cancelRequested = false;
 
   function clearIdleTimer() {
     if (idleTimer) {
@@ -172,9 +174,7 @@ function streamChat(opts, callbacks) {
     if (!event || typeof event !== "object") return;
     var eventType = String(event.type || "").trim();
     var eventMetadata = event.metadata || {};
-    if (typeof event.seq === "number" && event.seq > lastSeq) {
-      lastSeq = event.seq;
-    }
+    var eventSeq = typeof event.seq === "number" ? event.seq : null;
     if (event.turn_id) {
       turnId = String(event.turn_id || "").trim() || turnId;
     }
@@ -190,6 +190,13 @@ function streamChat(opts, callbacks) {
         turnId = String(eventMetadata.turn_id || "").trim() || turnId;
       }
       return;
+    }
+
+    if (eventSeq !== null) {
+      if (eventSeq <= lastSeq) {
+        return;
+      }
+      lastSeq = eventSeq;
     }
 
     if (eventType === "content") {
@@ -227,6 +234,9 @@ function streamChat(opts, callbacks) {
     }
 
     if (eventType === "error") {
+      if (eventMetadata && eventMetadata.status === "cancelled") {
+        return;
+      }
       if (eventMetadata && eventMetadata.turn_terminal) {
         failStream(String(event.content || "服务异常"));
         return;
@@ -283,6 +293,7 @@ function streamChat(opts, callbacks) {
 
     socketTask.onOpen(function () {
       if (aborted || doneReceived) return;
+      socketOpen = true;
       reconnectAttempts = 0;
       resetIdleTimer();
       var payload = buildTurnSocketPayload(turnId, lastSeq);
@@ -293,6 +304,14 @@ function streamChat(opts, callbacks) {
       socketTask.send({
         data: JSON.stringify(payload),
       });
+      if (cancelRequested && turnId) {
+        socketTask.send({
+          data: JSON.stringify({
+            type: "cancel_turn",
+            turn_id: turnId,
+          }),
+        });
+      }
     });
 
     socketTask.onMessage(function (res) {
@@ -312,6 +331,7 @@ function streamChat(opts, callbacks) {
     });
 
     socketTask.onClose(function (res) {
+      socketOpen = false;
       if (aborted || doneReceived) return;
       if (!scheduleReconnect(res)) {
         failStream(res);
@@ -367,6 +387,23 @@ function streamChat(opts, callbacks) {
     });
 
   return function abort() {
+    var shouldCancel = arguments[0] && arguments[0].cancelTurn;
+    if (shouldCancel && !doneReceived) {
+      cancelRequested = true;
+      clearSlowTimer();
+      if (socketOpen && socketTask && turnId) {
+        resetIdleTimer();
+        try {
+          socketTask.send({
+            data: JSON.stringify({
+              type: "cancel_turn",
+              turn_id: turnId,
+            }),
+          });
+          return;
+        } catch (_) {}
+      }
+    }
     aborted = true;
     clearIdleTimer();
     clearSlowTimer();

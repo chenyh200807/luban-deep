@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from deeptutor.capabilities.request_contracts import get_capability_request_schema
@@ -8,13 +9,16 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.services.question_followup import (
+    build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
+    detect_answer_reveal_preference,
     extract_choice_result_summary_from_text,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
+from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 
 class TutorBotCapability(BaseCapability):
@@ -33,14 +37,19 @@ class TutorBotCapability(BaseCapability):
             await stream.error("TutorBot capability requires bot_id.", source=self.name)
             return
         runtime_defaults = resolve_bot_runtime_defaults(bot_id=bot_id)
+        teaching_mode = self._teaching_mode(context)
+        hide_generated_answers = self._should_hide_generated_answers(context)
 
         manager = get_tutorbot_manager()
         await manager.ensure_bot_running(bot_id, config=self._default_bot_config(context))
 
         chunks: list[str] = []
+        streamed_chunks: list[str] = []
         turn_summary: dict[str, Any] = {
             "authority_applied": False,
             "exact_question": {},
+            "rag_rounds": [],
+            "rag_saturation": {},
         }
         user_id = self._billing_user_id(context)
         conversation_id = str(context.session_id or "").strip() or "web"
@@ -55,7 +64,7 @@ class TutorBotCapability(BaseCapability):
             "source": self._billing_source(context) or "ws",
             "title": manager._infer_conversation_title(context.user_message),
             "bot_id": bot_id,
-            "default_tools": list(context.enabled_tools or []),
+            "default_tools": self._session_default_tools(context, teaching_mode=teaching_mode),
             "knowledge_bases": list(context.knowledge_bases or []),
         }
         if runtime_defaults:
@@ -85,6 +94,18 @@ class TutorBotCapability(BaseCapability):
             if not text:
                 return
             chunks.append(text)
+            if hide_generated_answers:
+                return
+            streamed_chunks.append(text)
+            await stream.content(
+                text,
+                source=self.name,
+                stage="responding",
+                metadata={
+                    "execution_engine": "tutorbot_runtime",
+                    "call_kind": "llm_stream_delta",
+                },
+            )
 
         async def _on_tool_call(tool_name: str, args: dict[str, Any]) -> None:
             await stream.tool_call(
@@ -105,6 +126,12 @@ class TutorBotCapability(BaseCapability):
                 turn_summary["authority_applied"] = True
             if isinstance(merged_metadata.get("exact_question"), dict) and merged_metadata.get("exact_question"):
                 turn_summary["exact_question"] = dict(merged_metadata["exact_question"])
+            if isinstance(merged_metadata.get("rag_rounds"), list) and merged_metadata.get("rag_rounds"):
+                turn_summary["rag_rounds"] = [
+                    dict(item) for item in merged_metadata["rag_rounds"] if isinstance(item, dict)
+                ]
+            if isinstance(merged_metadata.get("rag_saturation"), dict) and merged_metadata.get("rag_saturation"):
+                turn_summary["rag_saturation"] = dict(merged_metadata["rag_saturation"])
             await stream.tool_result(
                 tool_name,
                 result,
@@ -134,32 +161,42 @@ class TutorBotCapability(BaseCapability):
                 on_content_delta=_on_content_delta,
                 on_tool_call=_on_tool_call,
                 on_tool_result=_on_tool_result,
-                mode=self._teaching_mode(context),
+                mode=teaching_mode,
                 session_key=session_key,
                 session_metadata=session_metadata,
             )
             final_response = response or "".join(chunks)
+            parsed_result_summary = build_choice_result_summary_from_exact_question(
+                turn_summary["exact_question"]
+            ) or extract_choice_result_summary_from_text(final_response)
+            visible_response = self._build_visible_response(
+                context=context,
+                final_response=final_response,
+                parsed_result_summary=parsed_result_summary,
+            )
             if final_response:
-                await stream.content(
-                    final_response,
-                    source=self.name,
-                    stage="responding",
-                    metadata={
-                        "execution_engine": "tutorbot_runtime",
-                        "call_kind": "llm_final_response",
-                    },
-                )
+                if not streamed_chunks:
+                    await stream.content(
+                        visible_response,
+                        source=self.name,
+                        stage="responding",
+                        metadata={
+                            "execution_engine": "tutorbot_runtime",
+                            "call_kind": "llm_final_response",
+                        },
+                    )
             result_payload = {
-                "response": final_response,
+                "response": visible_response,
                 "bot_id": bot_id,
                 "execution_engine": "tutorbot_runtime",
                 "authority_applied": turn_summary["authority_applied"],
                 "exact_question": turn_summary["exact_question"],
+                "rag_rounds": turn_summary["rag_rounds"],
+                "rag_saturation": turn_summary["rag_saturation"],
             }
-            parsed_result_summary = extract_choice_result_summary_from_text(final_response)
             if parsed_result_summary:
                 presentation = build_canonical_presentation(
-                    content=final_response,
+                    content=visible_response,
                     result_summary=parsed_result_summary,
                 )
                 result_payload["question_followup_context"] = (
@@ -202,6 +239,12 @@ class TutorBotCapability(BaseCapability):
         return "smart"
 
     @staticmethod
+    def _session_default_tools(context: UnifiedContext, *, teaching_mode: str) -> list[str]:
+        if teaching_mode == "smart":
+            return []
+        return list(context.enabled_tools or [])
+
+    @staticmethod
     def _billing_user_id(context: UnifiedContext) -> str:
         metadata = context.metadata if isinstance(context.metadata, dict) else {}
         billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
@@ -214,10 +257,72 @@ class TutorBotCapability(BaseCapability):
         return str(billing_context.get("source") or "").strip().lower()
 
     def _suppress_answer_reveal_on_generate(self, context: UnifiedContext) -> bool:
+        explicit_preference = detect_answer_reveal_preference(context.user_message)
+        if explicit_preference is False:
+            return True
         hints = context.metadata.get("interaction_hints", {}) if isinstance(context.metadata, dict) else {}
         if isinstance(hints, dict) and "suppress_answer_reveal_on_generate" in hints:
             return bool(hints.get("suppress_answer_reveal_on_generate"))
         return self._billing_source(context) == "wx_miniprogram"
+
+    def _should_hide_generated_answers(self, context: UnifiedContext) -> bool:
+        if not self._suppress_answer_reveal_on_generate(context):
+            return False
+        return looks_like_practice_generation_request(context.user_message)
+
+    def _build_visible_response(
+        self,
+        *,
+        context: UnifiedContext,
+        final_response: str,
+        parsed_result_summary: dict[str, Any] | None,
+    ) -> str:
+        if not self._should_hide_generated_answers(context):
+            return final_response
+        if parsed_result_summary:
+            return self._render_question_only_response(parsed_result_summary) or final_response
+        return self._strip_reference_sections(final_response) or final_response
+
+    @staticmethod
+    def _strip_reference_sections(text: str) -> str:
+        raw = str(text or "").strip()
+        if not raw:
+            return ""
+        marker_re = re.compile(
+            r"^\s*(?:\*\*)?(?:answer|explanation|标准答案|参考答案|正确答案|答案|解析)(?:\*\*)?\s*[:：]",
+            re.IGNORECASE,
+        )
+        lines = raw.splitlines()
+        kept: list[str] = []
+        for line in lines:
+            if marker_re.match(line):
+                break
+            kept.append(line)
+        return "\n".join(kept).rstrip()
+
+    @staticmethod
+    def _render_question_only_response(summary: dict[str, Any]) -> str:
+        results = summary.get("results", []) if isinstance(summary, dict) else []
+        if not isinstance(results, list) or not results:
+            return ""
+
+        lines: list[str] = []
+        for idx, item in enumerate(results, 1):
+            qa_pair = item.get("qa_pair", {}) if isinstance(item, dict) else {}
+            question = str(qa_pair.get("question", "") or "").strip()
+            options = qa_pair.get("options")
+            if not question:
+                continue
+            lines.append(f"**第{idx}题**")
+            lines.append(question)
+            if isinstance(options, dict):
+                for key, value in options.items():
+                    option_key = str(key or "").strip().upper()
+                    option_text = str(value or "").strip()
+                    if option_key and option_text:
+                        lines.append(f"{option_key}. {option_text}")
+            lines.append("")
+        return "\n".join(lines).strip()
 
     def _default_bot_config(self, context: UnifiedContext) -> BotConfig | None:
         bot_id = self._bot_id(context)

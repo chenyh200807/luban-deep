@@ -95,7 +95,7 @@ class RAGAdapterTool(Tool):
             "exact_question": exact_question or {},
             "authority_applied": False,
         }
-        return result.get("answer") or result.get("content", "")
+        return str(result.get("answer") or result.get("content") or "")
 
     def set_runtime_context(self, **kwargs: Any) -> None:
         metadata = kwargs.get("metadata")

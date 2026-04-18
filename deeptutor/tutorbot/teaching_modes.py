@@ -122,7 +122,6 @@ def looks_like_practice_generation_request(user_message: str | None) -> bool:
         "来一道",
         "来一题",
         "考我",
-        "练习",
         "刷题",
         "测我",
         "继续出",
@@ -138,7 +137,13 @@ def looks_like_practice_generation_request(user_message: str | None) -> bool:
     )
     if any(marker in text for marker in positive_markers):
         return True
-    return bool(re.search(r"(给我|帮我|来|出|做)\s*\d{0,2}\s*(?:道|题)", text))
+    request_patterns = (
+        r"(给我|帮我|来|出)\s*(?:\d{0,2}|[一二两三四五六七八九十]?)\s*(?:道题|题|道)",
+        r"(给我|帮我)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道)?(?:单选题|多选题|案例题|选择题|判断题)",
+        r"(我想|想)\s*(?:来|做|练)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道题|题|道)",
+        r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
+    )
+    return any(re.search(pattern, text) for pattern in request_patterns)
 
 
 def get_practice_generation_instruction(

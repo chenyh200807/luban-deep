@@ -1,4 +1,6 @@
 var route = require("./route");
+var hostRuntime = require("./host-runtime");
+var runtime = require("./runtime");
 
 var DEFAULT_FLAGS = {
   workspaceEnabled: true,
@@ -13,31 +15,45 @@ var FEATURE_META = {
     key: "historyEnabled",
     label: "历史",
     fallbackUrl: route.chat(),
+    pageUrl: route.history(),
   },
   report: {
     key: "reportEnabled",
     label: "学情",
     fallbackUrl: route.chat(),
+    pageUrl: route.report(),
   },
   profile: {
     key: "profileEnabled",
     label: "我的",
     fallbackUrl: route.chat(),
+    pageUrl: route.profile(),
   },
   assessment: {
     key: "assessmentEnabled",
     label: "摸底测试",
     fallbackUrl: route.chat(),
+    pageUrl: route.assessment(),
   },
 };
 
+function normalizeRoutePath(url) {
+  var raw = String(url || "").trim();
+  if (!raw) return "";
+  var clean = raw.split("?")[0];
+  if (!clean) return "";
+  if (clean.indexOf("/packageDeeptutor/") === 0) return clean;
+  if (clean.indexOf("packageDeeptutor/") === 0) return "/" + clean;
+  if (clean.indexOf("/pages/") === 0) return route.resolve(clean.slice(1));
+  if (clean.indexOf("pages/") === 0) return route.resolve(clean);
+  return clean;
+}
+
 function getWorkspaceFlags() {
-  try {
-    var app = getApp();
-    if (app && typeof app.getDeeptutorWorkspaceFlags === "function") {
-      return app.getDeeptutorWorkspaceFlags();
-    }
-  } catch (_) {}
+  var runtimeFlags = hostRuntime.getWorkspaceFlags();
+  if (runtimeFlags && typeof runtimeFlags === "object") {
+    return Object.assign({}, DEFAULT_FLAGS, runtimeFlags);
+  }
   return Object.assign({}, DEFAULT_FLAGS);
 }
 
@@ -64,6 +80,25 @@ function shouldShowWorkspaceShell() {
   );
 }
 
+function getFeatureByRoute(url) {
+  var normalized = normalizeRoutePath(url);
+  if (!normalized) return "";
+  var names = Object.keys(FEATURE_META);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    if (normalizeRoutePath(FEATURE_META[name].pageUrl) === normalized) {
+      return name;
+    }
+  }
+  return "";
+}
+
+function isRouteEnabled(url) {
+  var feature = getFeatureByRoute(url);
+  if (!feature) return true;
+  return isFeatureEnabled(feature);
+}
+
 function resolveShellList(baseList) {
   var list = Array.isArray(baseList) ? baseList.slice() : [];
   return list.map(function (item) {
@@ -84,6 +119,9 @@ function resolveShellList(baseList) {
 function ensureFeatureEnabled(name, options) {
   if (isFeatureEnabled(name)) return true;
   var meta = FEATURE_META[name] || {};
+  if (meta.pageUrl) {
+    runtime.clearWorkspaceBackIfMatches(meta.pageUrl);
+  }
   var config = options && typeof options === "object" ? options : {};
   var message = config.message || (meta.label ? meta.label + "暂未开放" : "当前功能暂未开放");
   wx.showToast({ title: message, icon: "none" });
@@ -100,6 +138,8 @@ module.exports = {
   isWorkspaceEnabled: isWorkspaceEnabled,
   isFeatureEnabled: isFeatureEnabled,
   shouldShowWorkspaceShell: shouldShowWorkspaceShell,
+  getFeatureByRoute: getFeatureByRoute,
+  isRouteEnabled: isRouteEnabled,
   resolveShellList: resolveShellList,
   ensureFeatureEnabled: ensureFeatureEnabled,
 };

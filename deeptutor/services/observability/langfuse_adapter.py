@@ -14,6 +14,7 @@ from typing import Any, Iterator
 import httpx
 
 from deeptutor.logging import get_logger
+from deeptutor.services.observability.usage_ledger import get_usage_ledger
 
 logger = get_logger("LangfuseObservability")
 
@@ -77,11 +78,120 @@ _DEFAULT_MODEL_PRICING = {
         "currency": "CNY",
         "source": "aliyun-embedding-pricing-2026-04-12",
     },
+    "gte-rerank-v2": {
+        "input_per_1m": 0.8,
+        "output_per_1m": 0.0,
+        "currency": "CNY",
+        "source": "aliyun-text-rerank-pricing-2026-04-17",
+    },
 }
 _MODEL_PRICE_ALIASES = {
     "deepseek-chat": "deepseek-v3.2",
     "deepseek-v3.2-exp": "deepseek-v3.2",
+    "gte-rerank": "gte-rerank-v2",
 }
+def _normalize_cost_currency(currency: str | None) -> str:
+    return str(currency or "").strip().upper()
+
+
+def _get_pricing_override(model: str) -> dict[str, float] | None:
+    raw = str(os.getenv("LANGFUSE_MODEL_PRICING_JSON", "") or "").strip()
+    if not raw:
+        return None
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        logger.warning("Invalid LANGFUSE_MODEL_PRICING_JSON, skipping pricing overrides")
+        return None
+    if not isinstance(payload, dict):
+        return None
+    entry = payload.get(model) or payload.get(str(model or "").lower())
+    if not isinstance(entry, dict):
+        return None
+    result: dict[str, float] = {}
+    for key in (
+        "input",
+        "output",
+        "total",
+        "input_per_1m",
+        "output_per_1m",
+        "total_per_1m",
+    ):
+        value = entry.get(key)
+        if isinstance(value, (int, float)):
+            result[key] = float(value)
+    currency = entry.get("currency")
+    if isinstance(currency, str) and currency.strip():
+        result["currency"] = _normalize_cost_currency(currency)
+    source = entry.get("source")
+    if isinstance(source, str) and source.strip():
+        result["source"] = source.strip()
+    return result or None
+
+
+def _get_builtin_pricing(model: str) -> dict[str, Any] | None:
+    model_lower = str(model or "").strip().lower()
+    if not model_lower:
+        return None
+
+    canonical = _MODEL_PRICE_ALIASES.get(model_lower, model_lower)
+    if canonical in _DEFAULT_MODEL_PRICING:
+        return dict(_DEFAULT_MODEL_PRICING[canonical])
+
+    for key, value in _DEFAULT_MODEL_PRICING.items():
+        if key in canonical or canonical in key:
+            return dict(value)
+    return None
+
+
+def resolve_model_pricing(model: str | None) -> dict[str, Any] | None:
+    if not model:
+        return None
+    return _get_pricing_override(model) or _get_builtin_pricing(model)
+
+
+def get_model_pricing_metadata(model: str | None) -> dict[str, Any] | None:
+    pricing = resolve_model_pricing(model)
+    if not pricing:
+        return None
+    metadata = {
+        "pricing_currency": _normalize_cost_currency(pricing.get("currency", "USD")),
+        "pricing_unit": "per_1m_tokens",
+        "pricing_source": pricing.get("source", "built_in"),
+    }
+    return {key: value for key, value in metadata.items() if value is not None}
+
+
+def estimate_model_cost(
+    *,
+    model: str | None,
+    usage_details: dict[str, float] | None,
+) -> dict[str, Any] | None:
+    if not model or not usage_details:
+        return None
+
+    pricing = resolve_model_pricing(model)
+    if pricing is None:
+        return None
+
+    input_units = float(usage_details.get("input") or 0.0)
+    output_units = float(usage_details.get("output") or 0.0)
+    total_units = float(usage_details.get("total") or (input_units + output_units))
+    if "input_per_1m" in pricing or "output_per_1m" in pricing or "total_per_1m" in pricing:
+        input_cost = (input_units / 1_000_000.0) * float(pricing.get("input_per_1m") or 0.0)
+        output_cost = (output_units / 1_000_000.0) * float(pricing.get("output_per_1m") or 0.0)
+        total_cost = (total_units / 1_000_000.0) * float(pricing.get("total_per_1m") or 0.0)
+    else:
+        input_cost = (input_units / 1000.0) * float(pricing.get("input") or 0.0)
+        output_cost = (output_units / 1000.0) * float(pricing.get("output") or 0.0)
+        total_cost = (total_units / 1000.0) * float(pricing.get("total") or 0.0)
+    return {
+        "input": round(input_cost, 8),
+        "output": round(output_cost, 8),
+        "total": round(total_cost if total_cost > 0 else (input_cost + output_cost), 8),
+        "currency": _normalize_cost_currency(pricing.get("currency", "USD")),
+        "source": pricing.get("source", "built_in"),
+    }
 
 
 @dataclass
@@ -94,6 +204,10 @@ class _UsageScopeState:
     output_tokens: float = 0.0
     total_tokens: float = 0.0
     total_cost_usd: float = 0.0
+    estimated_input_tokens: float = 0.0
+    estimated_output_tokens: float = 0.0
+    estimated_total_tokens: float = 0.0
+    estimated_total_cost_usd: float = 0.0
     total_calls: int = 0
     measured_calls: int = 0
     estimated_calls: int = 0
@@ -117,29 +231,37 @@ class _UsageScopeState:
         if total_tokens <= 0:
             return
 
-        self.input_tokens += input_tokens
-        self.output_tokens += output_tokens
-        self.total_tokens += total_tokens
         self.total_calls += 1
 
         source_key = str(source or "estimated").strip().lower() or "estimated"
         self.sources[source_key] = int(self.sources.get(source_key) or 0) + 1
-        if source_key in {"provider", "measured", "actual"}:
-            self.measured_calls += 1
-        else:
-            self.estimated_calls += 1
 
         if model:
             model_key = str(model).strip()
             if model_key:
                 self.models[model_key] = int(self.models.get(model_key) or 0) + 1
 
+        is_measured = source_key in {"provider", "measured", "actual"}
+        if is_measured:
+            self.input_tokens += input_tokens
+            self.output_tokens += output_tokens
+            self.total_tokens += total_tokens
+            self.measured_calls += 1
+            if cost_details:
+                self.total_cost_usd += float(cost_details.get("total") or 0.0)
+            return
+
+        self.estimated_input_tokens += input_tokens
+        self.estimated_output_tokens += output_tokens
+        self.estimated_total_tokens += total_tokens
+        self.estimated_calls += 1
         if cost_details:
-            self.total_cost_usd += float(cost_details.get("total") or 0.0)
+            self.estimated_total_cost_usd += float(cost_details.get("total") or 0.0)
 
     def to_summary(self) -> dict[str, Any] | None:
         total_tokens = int(round(self.total_tokens))
-        if total_tokens <= 0 and self.total_calls <= 0:
+        estimated_total_tokens = int(round(self.estimated_total_tokens))
+        if total_tokens <= 0 and estimated_total_tokens <= 0 and self.total_calls <= 0:
             return None
 
         sources = {
@@ -170,6 +292,9 @@ class _UsageScopeState:
             "total_input_tokens": int(round(self.input_tokens)),
             "total_output_tokens": int(round(self.output_tokens)),
             "total_tokens": total_tokens,
+            "estimated_input_tokens": int(round(self.estimated_input_tokens)),
+            "estimated_output_tokens": int(round(self.estimated_output_tokens)),
+            "estimated_total_tokens": estimated_total_tokens,
             "total_calls": int(self.total_calls),
             "measured_calls": int(self.measured_calls),
             "estimated_calls": int(self.estimated_calls),
@@ -177,6 +302,7 @@ class _UsageScopeState:
             "usage_sources": sources,
             "models": models,
             "total_cost_usd": round(self.total_cost_usd, 8),
+            "estimated_total_cost_usd": round(self.estimated_total_cost_usd, 8),
         }
 
 
@@ -298,6 +424,7 @@ class LangfuseObservability:
         self._client: Any | None = None
         self._init_attempted = False
         self._init_error_logged = False
+        self._usage_ledger = get_usage_ledger()
 
     def is_enabled(self) -> bool:
         return _env_flag("LANGFUSE_ENABLED", False)
@@ -421,16 +548,42 @@ class LangfuseObservability:
         cost_details: dict[str, float] | None = None,
         source: str = "estimated",
         model: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
-        scope = _current_usage_scope.get()
-        if scope is None:
+        source_key = self.normalize_usage_source(source)
+        if source_key in {"summary", "rollup", "scope"}:
             return
-        scope.add(
-            usage_details=usage_details,
-            cost_details=cost_details,
-            source=source,
-            model=model,
-        )
+        scope = _current_usage_scope.get()
+        if scope is not None:
+            scope.add(
+                usage_details=usage_details,
+                cost_details=cost_details,
+                source=source_key,
+                model=model,
+            )
+        try:
+            self._usage_ledger.record_usage_event(
+                usage_source=source_key,
+                usage_details=usage_details,
+                cost_details=cost_details,
+                model=model,
+                metadata=metadata,
+                session_id=scope.session_id if scope is not None else "",
+                turn_id=scope.turn_id if scope is not None else "",
+                capability=scope.capability if scope is not None else "",
+                scope_id=scope.scope_id if scope is not None else "",
+            )
+        except Exception as exc:
+            logger.debug(f"Usage ledger write skipped: {exc}", exc_info=True)
+
+    @staticmethod
+    def normalize_usage_source(source: str | None) -> str:
+        source_key = str(source or "estimated").strip().lower()
+        return source_key or "estimated"
+
+    @classmethod
+    def is_measured_usage_source(cls, source: str | None) -> bool:
+        return cls.normalize_usage_source(source) in {"provider", "measured", "actual"}
 
     def get_current_usage_summary(self) -> dict[str, Any] | None:
         scope = _current_usage_scope.get()
@@ -465,6 +618,79 @@ class LangfuseObservability:
             "output": 0.0,
             "total": total_cost,
         }
+
+    @staticmethod
+    def summary_metadata(summary: dict[str, Any] | None) -> dict[str, Any]:
+        if not isinstance(summary, dict):
+            return {}
+
+        metadata: dict[str, Any] = {}
+        total_tokens = summary.get("total_tokens")
+        total_cost = summary.get("total_cost_usd")
+        usage_accuracy = summary.get("usage_accuracy")
+        rollup_parts: list[str] = []
+        if isinstance(total_tokens, (int, float)) and float(total_tokens) > 0:
+            rollup_parts.append(f"tokens={int(round(float(total_tokens)))}")
+        if isinstance(total_cost, (int, float)) and float(total_cost) > 0:
+            rollup_parts.append(f"cost={round(float(total_cost), 8)}")
+        if isinstance(usage_accuracy, str) and usage_accuracy.strip():
+            rollup_parts.append(f"accuracy={usage_accuracy.strip()}")
+        if rollup_parts:
+            metadata["usage_rollup"] = "; ".join(rollup_parts)
+
+        scalar_fields = {
+            "scope_id": "usage_scope_id",
+            "total_input_tokens": "usage_total_input_tokens",
+            "total_output_tokens": "usage_total_output_tokens",
+            "total_tokens": "usage_total_tokens",
+            "estimated_input_tokens": "usage_estimated_input_tokens",
+            "estimated_output_tokens": "usage_estimated_output_tokens",
+            "estimated_total_tokens": "usage_estimated_total_tokens",
+            "total_calls": "usage_total_calls",
+            "measured_calls": "usage_measured_calls",
+            "estimated_calls": "usage_estimated_calls",
+            "usage_accuracy": "usage_accuracy",
+        }
+        for source_key, target_key in scalar_fields.items():
+            value = summary.get(source_key)
+            if value in (None, "", [], {}):
+                continue
+            metadata[target_key] = value
+
+        if isinstance(total_cost, (int, float)) and float(total_cost) > 0:
+            metadata["usage_total_cost"] = round(float(total_cost), 8)
+        estimated_total_cost = summary.get("estimated_total_cost_usd")
+        if isinstance(estimated_total_cost, (int, float)) and float(estimated_total_cost) > 0:
+            metadata["usage_estimated_total_cost"] = round(float(estimated_total_cost), 8)
+
+        usage_sources = summary.get("usage_sources")
+        if isinstance(usage_sources, dict) and usage_sources:
+            metadata["usage_sources"] = dict(usage_sources)
+
+        models = summary.get("models")
+        if isinstance(models, dict) and models:
+            metadata["usage_models"] = dict(models)
+
+        return metadata
+
+    def _build_usage_metadata(
+        self,
+        *,
+        usage_source: str | None,
+        usage_details: dict[str, float] | None,
+        cost_details: dict[str, float] | None,
+    ) -> dict[str, Any]:
+        if not usage_details and not cost_details:
+            return {}
+        source_key = self.normalize_usage_source(usage_source)
+        metadata: dict[str, Any] = {"usage_source": source_key}
+        if self.is_measured_usage_source(source_key):
+            return metadata
+        if usage_details:
+            metadata["estimated_usage_details"] = dict(usage_details)
+        if cost_details:
+            metadata["estimated_cost_details"] = dict(cost_details)
+        return metadata
 
     def _extract_trace_attributes(self, metadata: dict[str, Any] | None) -> dict[str, Any]:
         if not metadata:
@@ -616,66 +842,8 @@ class LangfuseObservability:
             "total": float(total_tokens),
         }
 
-    def _get_pricing_override(self, model: str) -> dict[str, float] | None:
-        raw = str(os.getenv("LANGFUSE_MODEL_PRICING_JSON", "") or "").strip()
-        if not raw:
-            return None
-        try:
-            payload = json.loads(raw)
-        except json.JSONDecodeError:
-            logger.warning("Invalid LANGFUSE_MODEL_PRICING_JSON, skipping pricing overrides")
-            return None
-        if not isinstance(payload, dict):
-            return None
-        entry = payload.get(model) or payload.get(model.lower())
-        if not isinstance(entry, dict):
-            return None
-        result: dict[str, float] = {}
-        for key in (
-            "input",
-            "output",
-            "total",
-            "input_per_1m",
-            "output_per_1m",
-            "total_per_1m",
-        ):
-            value = entry.get(key)
-            if isinstance(value, (int, float)):
-                result[key] = float(value)
-        currency = entry.get("currency")
-        if isinstance(currency, str) and currency.strip():
-            result["currency"] = currency.strip().upper()
-        source = entry.get("source")
-        if isinstance(source, str) and source.strip():
-            result["source"] = source.strip()
-        return result or None
-
-    def _get_builtin_pricing(self, model: str) -> dict[str, Any] | None:
-        model_lower = str(model or "").strip().lower()
-        if not model_lower:
-            return None
-
-        canonical = _MODEL_PRICE_ALIASES.get(model_lower, model_lower)
-        if canonical in _DEFAULT_MODEL_PRICING:
-            return dict(_DEFAULT_MODEL_PRICING[canonical])
-
-        for key, value in _DEFAULT_MODEL_PRICING.items():
-            if key in canonical or canonical in key:
-                return dict(value)
-        return None
-
     def get_pricing_metadata(self, model: str | None) -> dict[str, Any] | None:
-        if not model:
-            return None
-        pricing = self._get_pricing_override(model) or self._get_builtin_pricing(model)
-        if not pricing:
-            return None
-        metadata = {
-            "pricing_currency": pricing.get("currency", "USD"),
-            "pricing_unit": "per_1m_tokens",
-            "pricing_source": pricing.get("source", "built_in"),
-        }
-        return {key: value for key, value in metadata.items() if value is not None}
+        return get_model_pricing_metadata(model)
 
     def estimate_cost_details(
         self,
@@ -683,50 +851,13 @@ class LangfuseObservability:
         model: str | None,
         usage_details: dict[str, float] | None,
     ) -> dict[str, float] | None:
-        if not model or not usage_details:
+        estimated = estimate_model_cost(model=model, usage_details=usage_details)
+        if not estimated:
             return None
-
-        override = self._get_pricing_override(model)
-        if override:
-            input_units = float(usage_details.get("input") or 0.0)
-            output_units = float(usage_details.get("output") or 0.0)
-            total_units = float(usage_details.get("total") or (input_units + output_units))
-            if "input_per_1m" in override or "output_per_1m" in override or "total_per_1m" in override:
-                input_cost = (input_units / 1_000_000.0) * float(override.get("input_per_1m") or 0.0)
-                output_cost = (output_units / 1_000_000.0) * float(
-                    override.get("output_per_1m") or 0.0
-                )
-                total_cost = (total_units / 1_000_000.0) * float(
-                    override.get("total_per_1m") or 0.0
-                )
-            else:
-                input_cost = (input_units / 1000.0) * float(override.get("input") or 0.0)
-                output_cost = (output_units / 1000.0) * float(override.get("output") or 0.0)
-                total_cost = (total_units / 1000.0) * float(override.get("total") or 0.0)
-            payload = {
-                "input": round(input_cost, 8),
-                "output": round(output_cost, 8),
-                "total": round(
-                    total_cost if total_cost > 0 else (input_cost + output_cost),
-                    8,
-                ),
-            }
-            return payload
-
-        pricing = self._get_builtin_pricing(model)
-        if pricing is None:
-            return None
-
-        input_cost = (float(usage_details.get("input") or 0.0) / 1_000_000.0) * float(
-            pricing.get("input_per_1m") or 0.0
-        )
-        output_cost = (float(usage_details.get("output") or 0.0) / 1_000_000.0) * float(
-            pricing.get("output_per_1m") or 0.0
-        )
         return {
-            "input": round(input_cost, 8),
-            "output": round(output_cost, 8),
-            "total": round(input_cost + output_cost, 8),
+            "input": float(estimated.get("input") or 0.0),
+            "output": float(estimated.get("output") or 0.0),
+            "total": float(estimated.get("total") or 0.0),
         }
 
     @contextmanager
@@ -744,18 +875,27 @@ class LangfuseObservability:
         usage_source: str | None = None,
     ) -> Iterator[Any]:
         client = self._get_client()
+        source_key = self.normalize_usage_source(usage_source)
+        merged_metadata = dict(metadata or {})
+        merged_metadata.update(
+            self._build_usage_metadata(
+                usage_source=source_key,
+                usage_details=usage_details,
+                cost_details=cost_details,
+            )
+        )
         self.record_usage(
             usage_details=usage_details,
             cost_details=cost_details,
-            source=usage_source or "estimated",
+            source=source_key,
             model=model,
+            metadata=merged_metadata,
         )
         if client is None:
             yield _NoopObservation()
             return
 
         safe_input = self.sanitize_input(input_payload)
-        merged_metadata = dict(metadata or {})
         pricing_metadata = self.get_pricing_metadata(model)
         if pricing_metadata:
             merged_metadata.update(pricing_metadata)
@@ -775,8 +915,8 @@ class LangfuseObservability:
                     "metadata": safe_metadata,
                     "model": model,
                     "model_parameters": model_parameters,
-                    "usage_details": usage_details,
-                    "cost_details": cost_details,
+                    "usage_details": usage_details if self.is_measured_usage_source(source_key) else None,
+                    "cost_details": cost_details if self.is_measured_usage_source(source_key) else None,
                     "session_id": trace_attributes.get("session_id"),
                     "user_id": trace_attributes.get("user_id"),
                     "trace_name": trace_attributes.get("trace_name"),
@@ -816,20 +956,30 @@ class LangfuseObservability:
         level: str | None = None,
         status_message: str | None = None,
     ) -> None:
+        source_key = self.normalize_usage_source(usage_source)
         self.record_usage(
             usage_details=usage_details,
             cost_details=cost_details,
-            source=usage_source or "estimated",
+            source=source_key,
             model=model,
+            metadata=metadata,
         )
         if observation is None or isinstance(observation, _NoopObservation):
             return
         try:
+            merged_metadata = dict(metadata or {})
+            merged_metadata.update(
+                self._build_usage_metadata(
+                    usage_source=source_key,
+                    usage_details=usage_details,
+                    cost_details=cost_details,
+                )
+            )
             observation.update(
                 output=self.sanitize_output(output_payload),
-                metadata=self.sanitize_metadata(metadata),
-                usage_details=usage_details,
-                cost_details=cost_details,
+                metadata=self.sanitize_metadata(merged_metadata),
+                usage_details=usage_details if self.is_measured_usage_source(source_key) else None,
+                cost_details=cost_details if self.is_measured_usage_source(source_key) else None,
                 level=level,
                 status_message=status_message,
             )
