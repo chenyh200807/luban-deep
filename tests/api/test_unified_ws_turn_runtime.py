@@ -181,6 +181,71 @@ async def test_turn_runtime_captures_exact_authority_response_content(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_bootstraps_open_chat_active_object_when_no_stronger_object(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["active_object"] = context.metadata.get("active_object")
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={"response": "继续聊这个话题。", "metadata": {}},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "我们继续聊施工组织总设计",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    active_object = captured["active_object"]
+    assert active_object["object_type"] == "open_chat_topic"
+    assert active_object["object_id"] == session["id"]
+    assert active_object["state_snapshot"]["session_id"] == session["id"]
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_prefers_result_response_as_assistant_content(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -532,7 +597,7 @@ async def test_turn_runtime_leaves_tutorbot_question_followup_for_orchestrator_a
         ),
     )
 
-    _session, turn = await runtime.start_turn(
+    session, turn = await runtime.start_turn(
         {
             "type": "start_turn",
             "content": "我选B",
@@ -637,7 +702,7 @@ async def test_turn_runtime_injects_usage_summary_into_result_events(
         },
     )
 
-    _session, turn = await runtime.start_turn(
+    session, turn = await runtime.start_turn(
         {
             "type": "start_turn",
             "content": "hello",
@@ -734,7 +799,7 @@ async def test_turn_runtime_updates_turn_observation_with_usage_details(
         _capture_update,
     )
 
-    _session, turn = await runtime.start_turn(
+    session, turn = await runtime.start_turn(
         {
             "type": "start_turn",
             "content": "hello",
@@ -762,6 +827,99 @@ async def test_turn_runtime_updates_turn_observation_with_usage_details(
         "output": 0.0,
         "total": 0.0008,
     }
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_records_semantic_router_rollout_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured_updates: list[dict[str, object]] = []
+    captured_context: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured_context["config_overrides"] = dict(context.config_overrides)
+            context.metadata["semantic_router_mode"] = "shadow"
+            context.metadata["semantic_router_shadow_decision"] = {
+                "relation_to_active_object": "answer_active_object",
+                "next_action": "route_to_grading",
+            }
+            context.metadata["semantic_router_shadow_route"] = "deep_question"
+            context.metadata["semantic_router_selected_capability"] = "chat"
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={"response": "仍按旧链路执行。", "metadata": {}},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    def _capture_update(_observation, **kwargs):
+        captured_updates.append(kwargs)
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.get_current_usage_summary",
+        lambda: {},
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.update_observation",
+        _capture_update,
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "继续",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "semantic_router_enabled": False,
+                "semantic_router_shadow_mode": True,
+            },
+        }
+    )
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    config_overrides = captured_context["config_overrides"]
+    assert config_overrides["semantic_router_enabled"] is False
+    assert config_overrides["semantic_router_shadow_mode"] is True
+    assert captured_updates
+    final_update = captured_updates[-1]
+    metadata = final_update["metadata"]
+    assert metadata["semantic_router_mode"] == "shadow"
+    assert metadata["semantic_router_shadow_route"] == "deep_question"
+    assert metadata["semantic_router_selected_capability"] == "chat"
+    assert metadata["semantic_router_shadow_decision"]["next_action"] == "route_to_grading"
 
 
 @pytest.mark.asyncio
@@ -1248,7 +1406,7 @@ async def test_turn_runtime_does_not_pin_tutorbot_for_recovered_question_submiss
         },
     )
 
-    _session, turn = await runtime.start_turn(
+    session, turn = await runtime.start_turn(
         {
             "type": "start_turn",
             "content": "我选A。",
@@ -3386,10 +3544,12 @@ async def test_turn_runtime_context_orchestration_prioritizes_active_plan_page(
             if plan_id != "plan_demo":
                 return None
             return {
+                "session_id": "plan_demo",
                 "user_id": "",
                 "status": "in_progress",
                 "current_index": 1,
                 "summary": "当前正在学流水施工与网络计划。",
+                "notebook_id": "nb_demo",
                 "notebook_name": "施工组织",
                 "progress": 50,
                 "ready_count": 2,
@@ -3427,6 +3587,10 @@ async def test_turn_runtime_context_orchestration_prioritizes_active_plan_page(
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
     monkeypatch.setattr(
+        "deeptutor.services.learning_plan.get_learning_plan_service",
+        lambda: FakeLearningPlanService(),
+    )
+    monkeypatch.setattr(
         "deeptutor.services.session.context_sources.get_learning_plan_service",
         lambda: FakeLearningPlanService(),
     )
@@ -3438,7 +3602,7 @@ async def test_turn_runtime_context_orchestration_prioritizes_active_plan_page(
         ),
     )
 
-    _session, turn = await runtime.start_turn(
+    session, turn = await runtime.start_turn(
         {
             "type": "start_turn",
             "content": "继续刚才这个学习页面",
@@ -3456,9 +3620,142 @@ async def test_turn_runtime_context_orchestration_prioritizes_active_plan_page(
         pass
 
     assert captured["metadata"]["context_route"] == "guided_plan_continuation"
+    assert captured["metadata"]["active_object"]["object_type"] == "guide_page"
+    assert captured["metadata"]["active_object"]["state_snapshot"]["plan_id"] == "plan_demo"
+    assert "question_followup_context" not in captured["metadata"]
+    assert "question_followup_action" not in captured["metadata"]
     assert "active_plan" in captured["metadata"]["loaded_sources"]
     assert "网络计划关键线路" in captured["user_message"]
     assert "当前用户问题" in captured["user_message"]
+
+    stored_active_object = await store.get_active_object(session["id"])
+    assert stored_active_object is not None
+    assert stored_active_object["object_type"] == "guide_page"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_recovers_guided_plan_active_object_without_repassing_plan_id(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: list[dict[str, object]] = []
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        def context_window_tokens(self, _llm_config) -> int:
+            return 8192
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=512,
+            )
+
+    class FakeLearningPlanService:
+        def read_guided_session_view(self, plan_id: str):
+            if plan_id != "plan_demo":
+                return None
+            return {
+                "session_id": "plan_demo",
+                "user_id": "",
+                "status": "in_progress",
+                "current_index": 1,
+                "summary": "当前正在学流水施工与网络计划。",
+                "notebook_id": "nb_demo",
+                "notebook_name": "施工组织",
+                "progress": 50,
+                "ready_count": 2,
+                "page_count": 3,
+                "pages": [
+                    {
+                        "page_index": 1,
+                        "knowledge_title": "网络计划关键线路",
+                        "knowledge_summary": "继续聚焦关键线路、总时差和自由时差。",
+                        "user_difficulty": "hard",
+                    },
+                ],
+            }
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured.append(
+                {
+                    "user_message": context.user_message,
+                    "metadata": context.metadata,
+                }
+            )
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="继续当前学习页面。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace(max_tokens=1024))
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.learning_plan.get_learning_plan_service",
+        lambda: FakeLearningPlanService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.context_sources.get_learning_plan_service",
+        lambda: FakeLearningPlanService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, first_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "继续刚才这个学习页面",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {"active_plan_id": "plan_demo"},
+        }
+    )
+    async for _event in runtime.subscribe_turn(first_turn["id"], after_seq=0):
+        pass
+
+    second_turn_payload = {
+        "type": "start_turn",
+        "content": "继续刚才这个学习页面",
+        "session_id": session["id"],
+        "capability": None,
+        "tools": [],
+        "knowledge_bases": [],
+        "attachments": [],
+        "language": "zh",
+        "config": {},
+    }
+    _session, second_turn = await runtime.start_turn(second_turn_payload)
+    async for _event in runtime.subscribe_turn(second_turn["id"], after_seq=0):
+        pass
+
+    assert len(captured) == 2
+    second_metadata = captured[1]["metadata"]
+    assert second_metadata["active_object"]["object_type"] == "guide_page"
+    assert second_metadata["active_object"]["state_snapshot"]["plan_id"] == "plan_demo"
+    assert second_metadata["context_route"] == "guided_plan_continuation"
+    assert "active_plan" in second_metadata["loaded_sources"]
 
 
 @pytest.mark.asyncio

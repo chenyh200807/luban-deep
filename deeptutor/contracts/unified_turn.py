@@ -8,6 +8,42 @@ from pydantic import BaseModel, ConfigDict, Field
 TurnStatus = Literal["idle", "running", "completed", "failed", "cancelled"]
 StreamTransport = Literal["websocket"]
 TurnEventVisibility = Literal["public", "internal"]
+ActiveObjectType = Literal[
+    "question_set",
+    "single_question",
+    "guide_page",
+    "study_plan",
+    "open_chat_topic",
+]
+TurnSemanticRelation = Literal[
+    "answer_active_object",
+    "revise_answer_on_active_object",
+    "ask_about_active_object",
+    "continue_same_learning_flow",
+    "switch_to_new_object",
+    "temporary_detour",
+    "out_of_scope_chat",
+    "uncertain",
+]
+TurnSemanticNextAction = Literal[
+    "route_to_grading",
+    "route_to_followup_explainer",
+    "route_to_generation",
+    "route_to_guide",
+    "route_to_general_chat",
+    "route_to_account_or_product_help",
+    "ask_clarifying_question",
+    "hold_and_wait",
+]
+TurnSemanticAllowedPatch = Literal[
+    "update_answer_slot",
+    "append_answer_slots",
+    "set_active_object",
+    "suspend_current_object",
+    "resume_suspended_object",
+    "clear_active_object",
+    "no_state_change",
+]
 TurnEventType = Literal[
     "stage_start",
     "stage_end",
@@ -153,6 +189,43 @@ class UnifiedTurnStreamEvent(BaseModel):
     timestamp: float | None = None
 
 
+class UnifiedTurnObjectRef(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    object_type: ActiveObjectType | Literal[""] = ""
+    object_id: str = ""
+
+
+class UnifiedTurnActiveObject(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    object_type: ActiveObjectType
+    object_id: str
+    scope: dict[str, Any] = Field(default_factory=dict)
+    state_snapshot: dict[str, Any] = Field(default_factory=dict)
+    version: int = 1
+    entered_at: str = ""
+    last_touched_at: str = ""
+    source_turn_id: str = ""
+
+
+class UnifiedTurnSuspendedObjectStack(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[UnifiedTurnActiveObject] = Field(default_factory=list)
+
+
+class UnifiedTurnSemanticDecision(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    relation_to_active_object: TurnSemanticRelation
+    next_action: TurnSemanticNextAction
+    allowed_patch: list[TurnSemanticAllowedPatch] = Field(default_factory=list)
+    confidence: float = 0.0
+    reason: str = ""
+    target_object_ref: UnifiedTurnObjectRef = Field(default_factory=UnifiedTurnObjectRef)
+
+
 def _build_schema(model_type: type[BaseModel]) -> dict[str, Any]:
     return model_type.model_json_schema(mode="validation")
 
@@ -174,6 +247,9 @@ UNIFIED_TURN_SCHEMAS: dict[str, dict[str, Any]] = {
     "unsubscribe_message": _build_schema(UnifiedTurnUnsubscribeMessage),
     "turn_start_response": _build_schema(UnifiedTurnStartResponse),
     "turn_stream_event": _build_schema(UnifiedTurnStreamEvent),
+    "active_object": _build_schema(UnifiedTurnActiveObject),
+    "suspended_object_stack": _build_schema(UnifiedTurnSuspendedObjectStack),
+    "turn_semantic_decision": _build_schema(UnifiedTurnSemanticDecision),
 }
 
 
@@ -202,7 +278,14 @@ UNIFIED_TURN_TRACE_FIELDS: tuple[str, ...] = (
     "source",
     "interaction_profile",
     "chat_mode",
+    "active_object",
+    "suspended_object_stack",
+    "turn_semantic_decision",
     "question_followup_context",
+    "semantic_router_mode",
+    "semantic_router_shadow_decision",
+    "semantic_router_shadow_route",
+    "semantic_router_selected_capability",
     "context_route",
     "task_anchor_type",
     "escalation_level",
@@ -226,16 +309,21 @@ UNIFIED_TURN_TRACE_FIELDS: tuple[str, ...] = (
 
 __all__ = [
     "TurnStatus",
+    "ActiveObjectType",
     "UNIFIED_TURN_TRACE_FIELDS",
     "UNIFIED_TURN_SCHEMAS",
+    "UnifiedTurnActiveObject",
     "UnifiedBotSummary",
     "UnifiedConversationSummary",
+    "UnifiedTurnObjectRef",
     "UnifiedTurnCancelMessage",
     "UnifiedTurnResumeMessage",
+    "UnifiedTurnSemanticDecision",
     "UnifiedTurnStartMessage",
     "UnifiedTurnStartResponse",
     "UnifiedTurnStreamBootstrap",
     "UnifiedTurnStreamEvent",
+    "UnifiedTurnSuspendedObjectStack",
     "UnifiedTurnSubscribeMessage",
     "UnifiedTurnSubscribeSessionMessage",
     "UnifiedTurnSummary",

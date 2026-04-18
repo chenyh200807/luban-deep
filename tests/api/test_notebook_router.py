@@ -360,7 +360,7 @@ def test_notebook_scopes_categories_to_owner(store: SQLiteSessionStore) -> None:
     foreign_entry_id = asyncio.run(store.list_notebook_entries(owner_key=build_user_owner_key("student_other")))["items"][0]["id"]
 
     own_category = asyncio.run(store.create_category("Math", owner_key=build_user_owner_key("student_demo")))
-    foreign_category = asyncio.run(store.create_category("History", owner_key=build_user_owner_key("student_other")))
+    foreign_category = asyncio.run(store.create_category("Math", owner_key=build_user_owner_key("student_other")))
 
     app = _build_app(store)
     app.dependency_overrides[get_current_user] = lambda: _ctx("student_demo")
@@ -387,6 +387,25 @@ def test_notebook_scopes_categories_to_owner(store: SQLiteSessionStore) -> None:
             json={"name": "Biology"},
         ).status_code == 404
         assert client.delete(f"/api/v1/question-notebook/categories/{foreign_category['id']}").status_code == 404
+
+
+def test_notebook_category_rename_returns_conflict_for_same_owner_duplicate(store: SQLiteSessionStore) -> None:
+    asyncio.run(store.create_category("Math", owner_key=build_user_owner_key("student_demo")))
+    geometry = asyncio.run(
+        store.create_category("Geometry", owner_key=build_user_owner_key("student_demo"))
+    )
+
+    app = _build_app(store)
+    app.dependency_overrides[get_current_user] = lambda: _ctx("student_demo")
+
+    with TestClient(app) as client:
+        response = client.patch(
+            f"/api/v1/question-notebook/categories/{geometry['id']}",
+            json={"name": "Math"},
+        )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Category name already exists"
 
 
 def test_admin_can_access_foreign_notebook_data(store: SQLiteSessionStore) -> None:

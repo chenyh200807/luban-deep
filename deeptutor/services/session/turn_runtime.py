@@ -34,8 +34,14 @@ from deeptutor.services.question_followup import (
 from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
+    build_active_object_from_learning_plan_view,
+    build_active_object_from_question_context,
+    build_active_object_from_session,
     build_user_owner_key,
+    extract_question_context_from_active_object,
     get_sqlite_session_store,
+    normalize_active_object,
+    normalize_suspended_object_stack,
 )
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
@@ -119,6 +125,99 @@ def _normalize_question_followup_action(raw: Any) -> dict[str, Any] | None:
         "answers": raw.get("answers") if isinstance(raw.get("answers"), list) else [],
         "reason": str(raw.get("reason") or "").strip(),
     }
+
+
+def _active_object_ref(active_object: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(active_object, dict):
+        return {}
+    return {
+        "object_type": str(active_object.get("object_type") or "").strip(),
+        "object_id": str(active_object.get("object_id") or "").strip(),
+    }
+
+
+def _active_object_plan_id(active_object: dict[str, Any] | None) -> str:
+    normalized = normalize_active_object(active_object)
+    if not isinstance(normalized, dict):
+        return ""
+    scope = normalized.get("scope") if isinstance(normalized.get("scope"), dict) else {}
+    state_snapshot = (
+        normalized.get("state_snapshot")
+        if isinstance(normalized.get("state_snapshot"), dict)
+        else {}
+    )
+    for source in (scope, state_snapshot):
+        value = str(source.get("plan_id") or source.get("session_id") or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _same_active_object_identity(
+    left: dict[str, Any] | None,
+    right: dict[str, Any] | None,
+) -> bool:
+    normalized_left = normalize_active_object(left)
+    normalized_right = normalize_active_object(right)
+    if not isinstance(normalized_left, dict) or not isinstance(normalized_right, dict):
+        return False
+    return (
+        str(normalized_left.get("object_type") or "").strip()
+        == str(normalized_right.get("object_type") or "").strip()
+        and str(normalized_left.get("object_id") or "").strip()
+        == str(normalized_right.get("object_id") or "").strip()
+    )
+
+
+def _suspended_stack_plan_id(suspended_object_stack: list[dict[str, Any]] | None) -> str:
+    for item in normalize_suspended_object_stack(suspended_object_stack):
+        plan_id = _active_object_plan_id(item)
+        if plan_id:
+            return plan_id
+    return ""
+
+
+def _build_turn_semantic_decision(
+    *,
+    active_object: dict[str, Any] | None,
+    followup_question_action: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if not isinstance(active_object, dict):
+        return {}
+
+    route = followup_action_route(followup_question_action)
+    intent = str((followup_question_action or {}).get("intent") or "").strip()
+    confidence = (followup_question_action or {}).get("confidence")
+    try:
+        normalized_confidence = float(confidence) if confidence is not None else None
+    except (TypeError, ValueError):
+        normalized_confidence = None
+
+    decision = {
+        "relation_to_active_object": "uncertain",
+        "next_action": "hold_and_wait",
+        "target_object_ref": _active_object_ref(active_object),
+        "allowed_patch": "no_state_change",
+        "confidence": normalized_confidence,
+        "reason": str((followup_question_action or {}).get("reason") or "").strip()
+        or "question_domain_adapter",
+    }
+    if route == "submission":
+        decision["relation_to_active_object"] = (
+            "revise_answer_on_active_object"
+            if intent == "revise_answers"
+            else "answer_active_object"
+        )
+        decision["next_action"] = "route_to_grading"
+        decision["allowed_patch"] = "update_answer_slot"
+    elif route == "followup":
+        decision["relation_to_active_object"] = "ask_about_active_object"
+        decision["next_action"] = "route_to_followup_explainer"
+    elif route == "practice_generation":
+        decision["relation_to_active_object"] = "continue_same_learning_flow"
+        decision["next_action"] = "route_to_generation"
+        decision["allowed_patch"] = "set_active_object"
+    return decision
 
 
 async def _resolve_question_followup_context_and_action(
@@ -218,6 +317,49 @@ def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[s
             or nested_metadata.get("reveal_explanations")
         ),
     )
+
+
+def _result_active_object(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
+    normalized_metadata = dict(metadata or {})
+    explicit = normalize_active_object(normalized_metadata.get("active_object"))
+    if explicit is not None:
+        return explicit
+
+    nested_metadata = (
+        normalized_metadata.get("metadata")
+        if isinstance(normalized_metadata.get("metadata"), dict)
+        else {}
+    )
+    explicit_nested = normalize_active_object(nested_metadata.get("active_object"))
+    if explicit_nested is not None:
+        return explicit_nested
+
+    question_followup_context = _result_question_followup_context(normalized_metadata)
+    if question_followup_context is None:
+        return None
+    return build_active_object_from_question_context(
+        question_followup_context,
+        source_turn_id=str(
+            normalized_metadata.get("turn_id")
+            or nested_metadata.get("turn_id")
+            or ""
+        ).strip(),
+    )
+
+
+def _result_suspended_object_stack(metadata: dict[str, Any] | None) -> list[dict[str, Any]]:
+    normalized_metadata = dict(metadata or {})
+    explicit = normalize_suspended_object_stack(normalized_metadata.get("suspended_object_stack"))
+    if explicit:
+        return explicit
+
+    nested_metadata = (
+        normalized_metadata.get("metadata")
+        if isinstance(normalized_metadata.get("metadata"), dict)
+        else {}
+    )
+    explicit_nested = normalize_suspended_object_stack(nested_metadata.get("suspended_object_stack"))
+    return explicit_nested
 
 
 def _coerce_context_flag(value: Any) -> bool | None:
@@ -1107,6 +1249,8 @@ class TurnRuntimeManager:
         user_id: str,
         language: str,
         source_bot_id: str,
+        active_plan_id: str,
+        active_object: dict[str, Any] | None,
         followup_question_context: dict[str, Any] | None,
         interaction_hints: dict[str, Any] | None,
         notebook_references: list[dict[str, Any]],
@@ -1122,12 +1266,13 @@ class TurnRuntimeManager:
         )
         from deeptutor.services.session.context_builder import count_tokens
 
+        active_plan_id = str(active_plan_id or "").strip() or _active_object_plan_id(active_object)
         try:
             route_decision = decide_context_route(
                 ContextRouteInput(
                     user_message=raw_user_content,
                     has_active_question=bool(followup_question_context),
-                    has_active_plan=bool(self._resolve_active_plan_id(request_config, notebook_references)),
+                    has_active_plan=bool(active_plan_id),
                     notebook_references=_normalize_reference_tokens(notebook_references),
                     history_references=_normalize_reference_tokens(history_references),
                     memory_references=(),
@@ -1138,7 +1283,6 @@ class TurnRuntimeManager:
             )
         except Exception as exc:
             raise _ContextOrchestrationStageError("route_resolver", exc) from exc
-        active_plan_id = self._resolve_active_plan_id(request_config, notebook_references)
         context_window_tokens = (
             int(builder.context_window_tokens(llm_config))
             if hasattr(builder, "context_window_tokens")
@@ -1655,6 +1799,8 @@ class TurnRuntimeManager:
             "_persist_user_message",
             "followup_question_context",
             "_question_followup_action",
+            "semantic_router_enabled",
+            "semantic_router_shadow_mode",
             "interaction_hints",
             "billing_context",
             "interaction_profile",
@@ -1680,14 +1826,18 @@ class TurnRuntimeManager:
         runtime_followup_action = _normalize_question_followup_action(
             runtime_only_config.get("_question_followup_action")
         )
+        stored_active_object = None
         candidate_followup_contexts: list[dict[str, Any] | None] = []
         if not runtime_followup_question_context and session_id:
-            stored_followup_question_context = await self._safe_store_call(
+            stored_active_object = await self._safe_store_call(
                 None,
-                "get_active_question_context_for_start_turn",
-                self.store.get_active_question_context,
+                "get_active_object_for_start_turn",
+                self.store.get_active_object,
                 session_id,
                 default=None,
+            )
+            stored_followup_question_context = extract_question_context_from_active_object(
+                stored_active_object
             )
             volatile_followup_question_context = self._volatile_question_contexts.get(session_id)
             candidate_followup_contexts.extend(
@@ -1996,17 +2146,84 @@ class TurnRuntimeManager:
             )
             persist_user_message = _extract_persist_user_message(request_config)
             billing_context = await self._resolve_billing_context(session_id, request_config)
+            stored_active_object = None
+            stored_suspended_object_stack: list[dict[str, Any]] = []
             stored_followup_question_context = None
             volatile_followup_question_context = None
-            if not followup_question_context:
-                stored_followup_question_context = await self._safe_store_call(
+            stored_object_type = ""
+            if session_id:
+                stored_active_object = await self._safe_store_call(
                     execution,
-                    "get_active_question_context",
-                    self.store.get_active_question_context,
+                    "get_active_object",
+                    self.store.get_active_object,
                     session_id,
                     default=None,
                 )
+                stored_suspended_object_stack = await self._safe_store_call(
+                    execution,
+                    "get_suspended_object_stack",
+                    self.store.get_suspended_object_stack,
+                    session_id,
+                    default=[],
+                )
+                stored_object_type = str((stored_active_object or {}).get("object_type") or "").strip()
+            notebook_references = payload.get("notebook_references", []) or []
+            history_references = payload.get("history_references", []) or []
+            active_plan_id = (
+                self._resolve_active_plan_id(request_config, notebook_references)
+                or _active_object_plan_id(stored_active_object)
+                or _suspended_stack_plan_id(stored_suspended_object_stack)
+            )
+            plan_active_object = None
+            if active_plan_id:
+                try:
+                    from deeptutor.services.learning_plan import get_learning_plan_service
+
+                    plan_view = get_learning_plan_service().read_guided_session_view(active_plan_id)
+                except Exception:
+                    logger.debug("Failed to load guided plan view for %s", active_plan_id, exc_info=True)
+                    plan_view = None
+                if isinstance(plan_view, dict):
+                    plan_user_id = str(plan_view.get("user_id") or "").strip()
+                    resolved_user_id = str((billing_context or {}).get("user_id", "") or "").strip()
+                    if not plan_user_id or not resolved_user_id or plan_user_id == resolved_user_id:
+                        plan_previous_active_object = (
+                            stored_active_object
+                            if str((stored_active_object or {}).get("object_type") or "").strip()
+                            in {"guide_page", "study_plan"}
+                            else None
+                        )
+                        plan_active_object = build_active_object_from_learning_plan_view(
+                            plan_view,
+                            previous_active_object=plan_previous_active_object,
+                            source_turn_id=turn_id,
+                        )
+            if not followup_question_context:
+                stored_followup_question_context = extract_question_context_from_active_object(
+                    stored_active_object
+                )
                 volatile_followup_question_context = self._volatile_question_contexts.get(session_id)
+            session_active_object = None
+            if (
+                session_id
+                and not followup_question_context
+                and plan_active_object is None
+                and stored_object_type in {"", "open_chat_topic"}
+            ):
+                session_view = await self._safe_store_call(
+                    execution,
+                    "get_session_for_open_chat_active_object",
+                    self.store.get_session,
+                    session_id,
+                    default=None,
+                )
+                session_active_object = build_active_object_from_session(
+                    session_view,
+                    previous_active_object=(
+                        stored_active_object if stored_object_type == "open_chat_topic" else None
+                    ),
+                    source_turn_id=turn_id,
+                )
             (
                 followup_question_context,
                 followup_question_action,
@@ -2020,9 +2237,38 @@ class TurnRuntimeManager:
                 ],
             )
             if followup_question_context:
+                active_object = build_active_object_from_question_context(
+                    followup_question_context,
+                    previous_active_object=stored_active_object,
+                )
+            elif (
+                isinstance(plan_active_object, dict)
+                and str((stored_active_object or {}).get("object_type") or "").strip()
+                in {"guide_page", "study_plan"}
+            ):
+                active_object = plan_active_object
+            elif session_active_object is not None and stored_object_type == "open_chat_topic":
+                active_object = session_active_object
+            else:
+                active_object = stored_active_object or plan_active_object or session_active_object
+            if active_object is not None and (
+                not _same_active_object_identity(stored_active_object, active_object)
+                or stored_active_object != active_object
+            ):
+                await self._safe_store_call(
+                    execution,
+                    "set_active_object_for_turn_start",
+                    self.store.set_active_object,
+                    session_id,
+                    active_object,
+                    default=False,
+                )
+            turn_semantic_decision = _build_turn_semantic_decision(
+                active_object=active_object,
+                followup_question_action=followup_question_action,
+            )
+            if followup_question_context:
                 self._volatile_question_contexts[session_id] = dict(followup_question_context)
-            notebook_references = payload.get("notebook_references", []) or []
-            history_references = payload.get("history_references", []) or []
             notebook_context = ""
             history_context = ""
             context_pack: Any | None = None
@@ -2036,7 +2282,7 @@ class TurnRuntimeManager:
                     ContextRouteInput(
                         user_message=raw_user_content,
                         has_active_question=bool(followup_question_context),
-                        has_active_plan=bool(self._resolve_active_plan_id(request_config, notebook_references)),
+                        has_active_plan=bool(active_plan_id or _active_object_plan_id(active_object)),
                         notebook_references=_normalize_reference_tokens(notebook_references),
                         history_references=_normalize_reference_tokens(history_references),
                         explicit_grounding=False,
@@ -2055,6 +2301,11 @@ class TurnRuntimeManager:
                 or ""
             ).strip()
             trace_metadata["source"] = str((billing_context or {}).get("source", "") or "").strip()
+            trace_metadata["active_object"] = dict(active_object) if active_object else {}
+            trace_metadata["suspended_object_stack"] = list(stored_suspended_object_stack)
+            trace_metadata["turn_semantic_decision"] = (
+                dict(turn_semantic_decision) if turn_semantic_decision else {}
+            )
             if context_route:
                 trace_metadata["context_route"] = context_route
             if task_anchor_type:
@@ -2147,6 +2398,8 @@ class TurnRuntimeManager:
                             user_id=user_id,
                             language=str(payload.get("language", "en") or "en"),
                             source_bot_id=source_bot_id,
+                            active_plan_id=active_plan_id,
+                            active_object=active_object,
                             followup_question_context=followup_question_context,
                             interaction_hints=interaction_hints,
                             notebook_references=notebook_references,
@@ -2396,8 +2649,9 @@ class TurnRuntimeManager:
                         "interaction_profile": str(
                             payload.get("config", {}).get("interaction_profile", "") or ""
                         ).strip(),
-                        "question_followup_context": followup_question_context or {},
-                        "question_followup_action": followup_question_action or {},
+                        "active_object": active_object or {},
+                        "suspended_object_stack": stored_suspended_object_stack,
+                        "turn_semantic_decision": turn_semantic_decision or {},
                         "interaction_hints": interaction_hints or {},
                         "notebook_references": notebook_references,
                         "history_references": history_references,
@@ -2416,6 +2670,20 @@ class TurnRuntimeManager:
                         "compression_applied": context_trace.get("compression_applied"),
                         "history_search_applied": context_trace.get("history_search_applied"),
                         "fallback_path": context_trace.get("fallback_path", ""),
+                        **(
+                            {
+                                "question_followup_context": followup_question_context,
+                            }
+                            if followup_question_context
+                            else {}
+                        ),
+                        **(
+                            {
+                                "question_followup_action": followup_question_action,
+                            }
+                            if followup_question_action
+                            else {}
+                        ),
                     },
                 )
 
@@ -2437,6 +2705,36 @@ class TurnRuntimeManager:
                         )
                     elif _should_capture_assistant_content(event):
                         assistant_content += event.content
+                trace_metadata.update(
+                    {
+                        "active_object": dict(context.metadata.get("active_object", {}) or {}),
+                        "suspended_object_stack": list(
+                            context.metadata.get("suspended_object_stack", []) or []
+                        ),
+                        "turn_semantic_decision": dict(
+                            context.metadata.get("turn_semantic_decision", {}) or {}
+                        ),
+                        "semantic_router_mode": str(
+                            context.metadata.get("semantic_router_mode", "") or ""
+                        ).strip(),
+                        "semantic_router_shadow_decision": dict(
+                            context.metadata.get("semantic_router_shadow_decision", {}) or {}
+                        ),
+                        "semantic_router_shadow_route": str(
+                            context.metadata.get("semantic_router_shadow_route", "") or ""
+                        ).strip(),
+                        "semantic_router_selected_capability": str(
+                            context.metadata.get("semantic_router_selected_capability", "")
+                            or ""
+                        ).strip(),
+                    }
+                )
+                if isinstance(context.metadata.get("question_followup_context"), dict):
+                    trace_metadata["question_followup_context"] = dict(
+                        context.metadata.get("question_followup_context", {}) or {}
+                    )
+                elif "question_followup_context" in trace_metadata:
+                    trace_metadata.pop("question_followup_context", None)
                 assistant_content = authoritative_assistant_content or assistant_content
                 assistant_content = normalize_markdown_for_tutorbot(
                     coerce_user_visible_answer(assistant_content)
@@ -2612,15 +2910,64 @@ class TurnRuntimeManager:
                     nested_metadata["capability_cost_summary"] = existing_cost_summary
                     nested_metadata["cost_summary"] = usage_summary
                 metadata["metadata"] = nested_metadata
-            question_followup_context = _result_question_followup_context(metadata)
-            if question_followup_context is not None:
+            active_object = _result_active_object(metadata)
+            suspended_object_stack = _result_suspended_object_stack(metadata)
+            if active_object is not None:
+                metadata["active_object"] = dict(active_object)
+            metadata["suspended_object_stack"] = list(suspended_object_stack)
+
+            question_followup_context = (
+                extract_question_context_from_active_object(active_object)
+                if active_object is not None
+                else _result_question_followup_context(metadata)
+            )
+            if question_followup_context is not None and "question_followup_context" not in metadata:
+                metadata["question_followup_context"] = dict(question_followup_context)
+            if active_object is not None:
+                self._volatile_question_contexts[execution.session_id] = dict(
+                    question_followup_context or {}
+                )
+                await self._safe_store_call(
+                    execution,
+                    "set_active_object",
+                    self.store.set_active_object,
+                    execution.session_id,
+                    active_object,
+                    default=False,
+                )
+                await self._safe_store_call(
+                    execution,
+                    "set_suspended_object_stack",
+                    self.store.set_suspended_object_stack,
+                    execution.session_id,
+                    suspended_object_stack,
+                    default=False,
+                )
+            elif question_followup_context is not None:
                 self._volatile_question_contexts[execution.session_id] = dict(question_followup_context)
                 await self._safe_store_call(
                     execution,
-                    "set_active_question_context",
-                    self.store.set_active_question_context,
+                    "set_active_object_from_question_adapter",
+                    self.store.set_active_object,
                     execution.session_id,
                     question_followup_context,
+                    default=False,
+                )
+                await self._safe_store_call(
+                    execution,
+                    "set_suspended_object_stack_from_question_adapter",
+                    self.store.set_suspended_object_stack,
+                    execution.session_id,
+                    suspended_object_stack,
+                    default=False,
+                )
+            elif suspended_object_stack:
+                await self._safe_store_call(
+                    execution,
+                    "set_suspended_object_stack_only",
+                    self.store.set_suspended_object_stack,
+                    execution.session_id,
+                    suspended_object_stack,
                     default=False,
                 )
         event.metadata = metadata

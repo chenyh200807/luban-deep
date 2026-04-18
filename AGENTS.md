@@ -132,6 +132,29 @@ CLI, WebSocket API, and Python SDK.
   2. 我之前为什么把问题想窄了
   3. 更符合 first principles / less is more 的通用思路是什么
 
+### 5.6 Why Teams Repeat The Same Mistakes
+
+- 光写“first principles”“less is more”“不要打补丁”还不够。团队和 agent 之所以反复犯老错误，通常不是因为不知道这些口号，而是因为没有把它们变成设计前的强制门槛。
+- 常见复发机制有五种：
+  1. 把原则当价值观，而不是当设计约束
+  2. 把当前症状当问题本体，跳过业务事实抽象
+  3. 把“快速可过”误当成“正确方向”
+  4. 习惯沿现有字段、模块、补丁名继续思考，而不是回到一等事实
+  5. 文档只说“不要这样”，却没有规定“如果想这样做，必须先证明什么”
+- 以后凡是涉及状态、路由、上下文承接、follow-up、router、interpreter、fallback 的设计，开始前必须先写出五件事：
+  1. `一等业务事实`：系统真正要维护的唯一事实是什么
+  2. `单一 authority`：这个事实由谁唯一写、存、恢复、读
+  3. `概念收敛`：这次准备删除、降级或归一化哪些旧概念
+  4. `加法理由`：如果要新增字段 / router / wrapper / state，为什么删不掉旧层
+  5. `LLM vs deterministic`：为什么这件事应该由主 LLM 判断，或者为什么必须 deterministic
+- 如果这五件事写不出来，不允许开始设计，更不允许开始编码。
+- 对任何新增的 router / classifier / interpreter / fallback / special-case state，一律默认先做“有罪推定”：
+  1. 它是不是在制造第二套 authority？
+  2. 它是不是在把语义问题错误降级成规则问题？
+  3. 它会不会让系统多一个无法删除的中间状态？
+  4. 它未来会不会诱发更多特例补丁？
+- 文档内容设计也必须防复发：原则章节后面必须跟“复发机制”和“硬门槛”，否则 agent 很容易在高压 debugging 场景里重新滑回熟悉但错误的套路。
+
 ## Architecture
 
 ```

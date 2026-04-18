@@ -1,0 +1,193 @@
+[
+  {
+    "name": "answer_active_object",
+    "user_message": "我选B",
+    "active_object": {
+      "object_type": "single_question",
+      "object_id": "q_1",
+      "state_snapshot": {
+        "question_id": "q_1",
+        "question": "流水步距反映的是什么？",
+        "question_type": "choice",
+        "options": {"A": "工期", "B": "相邻专业队投入间隔"},
+        "correct_answer": "B"
+      }
+    },
+    "llm_action": {
+      "intent": "answer_questions",
+      "confidence": 0.95,
+      "preserve_other_answers": false,
+      "answers": [{"index": 1, "question_id": "q_1", "user_answer": "B"}],
+      "reason": "用户正在回答当前题目。"
+    },
+    "expected_relation": "answer_active_object",
+    "expected_next_action": "route_to_grading"
+  },
+  {
+    "name": "revise_active_object",
+    "user_message": "第二题改成C，其他不变",
+    "active_object": {
+      "object_type": "question_set",
+      "object_id": "quiz_batch",
+      "state_snapshot": {
+        "question_id": "quiz_batch",
+        "question": "第1题...第2题...",
+        "question_type": "choice",
+        "items": [
+          {
+            "question_id": "q_1",
+            "question": "题1",
+            "question_type": "choice",
+            "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+            "correct_answer": "A",
+            "user_answer": "A"
+          },
+          {
+            "question_id": "q_2",
+            "question": "题2",
+            "question_type": "choice",
+            "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+            "correct_answer": "C",
+            "user_answer": "B"
+          }
+        ]
+      }
+    },
+    "llm_action": {
+      "intent": "revise_answers",
+      "confidence": 0.93,
+      "preserve_other_answers": true,
+      "answers": [{"index": 2, "question_id": "q_2", "user_answer": "C"}],
+      "reason": "用户在修改当前题组的答案。"
+    },
+    "expected_relation": "revise_answer_on_active_object",
+    "expected_next_action": "route_to_grading"
+  },
+  {
+    "name": "followup_explainer",
+    "user_message": "这个为什么不对",
+    "active_object": {
+      "object_type": "single_question",
+      "object_id": "q_followup",
+      "state_snapshot": {
+        "question_id": "q_followup",
+        "question": "流水步距反映的是什么？",
+        "question_type": "choice",
+        "options": {"A": "工期", "B": "相邻专业队投入间隔"},
+        "correct_answer": "B",
+        "user_answer": "A",
+        "is_correct": false
+      }
+    },
+    "llm_action": {
+      "intent": "ask_followup",
+      "confidence": 0.92,
+      "preserve_other_answers": false,
+      "answers": [],
+      "reason": "用户在追问当前题目的原因。"
+    },
+    "expected_relation": "ask_about_active_object",
+    "expected_next_action": "route_to_followup_explainer"
+  },
+  {
+    "name": "temporary_detour",
+    "user_message": "我还有多少点数",
+    "active_object": {
+      "object_type": "single_question",
+      "object_id": "q_detour",
+      "state_snapshot": {
+        "question_id": "q_detour",
+        "question": "流水步距反映的是什么？",
+        "question_type": "choice",
+        "options": {"A": "工期", "B": "相邻专业队投入间隔"},
+        "correct_answer": "B"
+      }
+    },
+    "llm_action": {
+      "intent": "unrelated",
+      "confidence": 0.88,
+      "preserve_other_answers": false,
+      "answers": [],
+      "reason": "用户临时切去问账户问题。"
+    },
+    "expected_relation": "temporary_detour",
+    "expected_next_action": "route_to_general_chat"
+  },
+  {
+    "name": "continue_same_learning_flow",
+    "user_message": "再来五题类似的",
+    "active_object": {
+      "object_type": "question_set",
+      "object_id": "quiz_more",
+      "state_snapshot": {
+        "question_id": "quiz_more",
+        "question": "第1题...第2题...",
+        "question_type": "choice",
+        "items": [
+          {
+            "question_id": "q_1",
+            "question": "题1",
+            "question_type": "choice",
+            "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+            "correct_answer": "A"
+          },
+          {
+            "question_id": "q_2",
+            "question": "题2",
+            "question_type": "choice",
+            "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+            "correct_answer": "C"
+          }
+        ]
+      }
+    },
+    "llm_action": {
+      "intent": "generate_more_questions",
+      "confidence": 0.9,
+      "preserve_other_answers": false,
+      "answers": [],
+      "reason": "用户希望继续当前练题流。"
+    },
+    "expected_relation": "continue_same_learning_flow",
+    "expected_next_action": "route_to_generation"
+  },
+  {
+    "name": "fallback_compact_answer",
+    "user_message": "ACD",
+    "active_object": {
+      "object_type": "question_set",
+      "object_id": "quiz_compact",
+      "state_snapshot": {
+        "question_id": "quiz_compact",
+        "question": "第1题...\\n第2题...\\n第3题...",
+        "question_type": "choice",
+        "items": [
+          {
+            "question_id": "q_1",
+            "question": "题1",
+            "question_type": "choice",
+            "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+            "correct_answer": "A"
+          },
+          {
+            "question_id": "q_2",
+            "question": "题2",
+            "question_type": "choice",
+            "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+            "correct_answer": "C"
+          },
+          {
+            "question_id": "q_3",
+            "question": "题3",
+            "question_type": "choice",
+            "options": {"A": "A3", "B": "B3", "C": "C3", "D": "D3"},
+            "correct_answer": "D"
+          }
+        ]
+      }
+    },
+    "llm_action": null,
+    "expected_relation": "answer_active_object",
+    "expected_next_action": "route_to_grading"
+  }
+]

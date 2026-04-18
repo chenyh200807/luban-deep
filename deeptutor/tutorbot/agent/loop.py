@@ -15,6 +15,13 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 from loguru import logger
 
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.query_intent import (
+    build_grounding_decision_from_metadata,
+)
+from deeptutor.services.rag.exact_authority import (
+    build_exact_authority_response,
+    should_force_exact_authority,
+)
 from deeptutor.services.rag.pipelines.supabase_strategy import prepare_exact_question_probe
 from deeptutor.tutorbot.agent.context import ContextBuilder
 from deeptutor.tutorbot.agent.memory import MemoryConsolidator
@@ -633,54 +640,11 @@ class AgentLoop:
 
     @staticmethod
     def _should_force_exact_authority(exact_question: dict[str, Any]) -> bool:
-        answer_kind = str(exact_question.get("answer_kind") or "").strip().lower()
-        if answer_kind in {"mcq", "free_text"}:
-            return True
-        if answer_kind == "case_study":
-            coverage_ratio = float(exact_question.get("coverage_ratio") or 0.0)
-            missing_subquestions = exact_question.get("missing_subquestions")
-            if coverage_ratio >= 0.999:
-                return True
-            if isinstance(missing_subquestions, list) and not missing_subquestions:
-                return True
-            if str(exact_question.get("coverage_state") or "").strip() == "multi_subquestion_exact":
-                return True
-        return False
+        return should_force_exact_authority(exact_question)
 
     @staticmethod
     def _build_exact_authority_response(exact_question: dict[str, Any]) -> str:
-        answer_kind = str(exact_question.get("answer_kind") or "").strip().lower()
-        if answer_kind == "mcq":
-            answer = str(exact_question.get("correct_answer") or "").strip()
-            analysis = str(exact_question.get("analysis") or "").strip()
-            parts = []
-            if answer:
-                parts.append(f"标准答案：{answer}")
-            if analysis:
-                parts.append(f"解析：{analysis}")
-            return "\n".join(parts).strip()
-        if answer_kind == "free_text":
-            answer = str(exact_question.get("correct_answer") or "").strip()
-            analysis = str(exact_question.get("analysis") or "").strip()
-            return "\n\n".join([item for item in [answer, analysis] if item]).strip()
-        if answer_kind == "case_study":
-            covered = exact_question.get("covered_subquestions")
-            if not isinstance(covered, list) or not covered:
-                return ""
-            lines: list[str] = []
-            for item in covered:
-                if not isinstance(item, dict):
-                    continue
-                display_index = str(item.get("display_index") or "").strip()
-                answer = str(item.get("authoritative_answer") or "").strip()
-                analysis = str(item.get("analysis") or "").strip()
-                prefix = f"{display_index}. " if display_index else ""
-                if answer:
-                    lines.append(f"{prefix}{answer}")
-                if analysis:
-                    lines.append(f"解析：{analysis}")
-            return "\n".join(lines).strip()
-        return ""
+        return build_exact_authority_response(exact_question)
 
     @staticmethod
     def _replace_last_assistant_message(messages: list[dict[str, Any]], content: str) -> None:
@@ -689,29 +653,6 @@ class AgentLoop:
                 item["content"] = content
                 return
 
-    @staticmethod
-    def _is_grounded_construction_exam_runtime(runtime_metadata: dict[str, Any] | None) -> bool:
-        if not isinstance(runtime_metadata, dict):
-            return False
-        aliases = {
-            "construction-exam",
-            "construction-exam-coach",
-            "construction-exam-tutor",
-            "construction_exam_tutor",
-        }
-        direct = str(runtime_metadata.get("default_kb") or "").strip().lower()
-        if direct in aliases:
-            return True
-        for key in ("knowledge_bases", "kb_aliases"):
-            values = runtime_metadata.get(key)
-            if not isinstance(values, list):
-                continue
-            for item in values:
-                normalized = str(item or "").strip().lower()
-                if normalized in aliases:
-                    return True
-        return str(runtime_metadata.get("bot_id") or "").strip().lower() == "construction-exam-coach"
-
     @classmethod
     def _should_prefetch_grounded_rag(
         cls,
@@ -719,19 +660,62 @@ class AgentLoop:
         current_message: str,
         runtime_metadata: dict[str, Any] | None,
     ) -> bool:
-        if not cls._is_grounded_construction_exam_runtime(runtime_metadata):
-            return False
-        if prepare_exact_question_probe(current_message) is not None:
-            return False
-        if looks_like_practice_generation_request(current_message):
-            return False
-
-        text = cls._normalize_query_text(current_message)
-        textbook_delta = (
-            "教材" in text
-            and any(marker in text for marker in ("变化", "变动", "更新", "改版", "对比", "不一样"))
+        decision = build_grounding_decision_from_metadata(
+            query=current_message,
+            runtime_metadata=runtime_metadata,
+            rag_enabled=True,
+            tutorbot_context=True,
+            exact_question_candidate=prepare_exact_question_probe(current_message) is not None,
+            practice_generation_request=looks_like_practice_generation_request(current_message),
         )
-        return bool(runtime_metadata.get("current_info_required")) or textbook_delta
+        if (
+            not decision.grounded_construction_exam_runtime
+            and str((runtime_metadata or {}).get("bot_id") or "").strip().lower()
+            == "construction-exam-coach"
+        ):
+            return decision.current_info_required or decision.textbook_delta_query
+        return decision.should_prefetch_grounded_rag
+
+    @staticmethod
+    def _build_rag_preview_args(
+        current_message: str,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        preview_args: dict[str, Any] = {"query": current_message}
+        default_kb = str(metadata.get("default_kb") or "").strip()
+        if not default_kb:
+            knowledge_bases = metadata.get("knowledge_bases")
+            if isinstance(knowledge_bases, list):
+                for item in knowledge_bases:
+                    normalized = str(item or "").strip()
+                    if normalized:
+                        default_kb = normalized
+                        break
+        if default_kb:
+            preview_args["kb_name"] = default_kb
+        intent = str(metadata.get("intent") or "").strip()
+        if intent:
+            preview_args["intent"] = intent
+        question_flow_active = bool(
+            metadata.get("question_followup_context") or metadata.get("followup_question_context")
+        ) or intent in {"answer_questions", "revise_answers"}
+        question_type = str(metadata.get("question_type") or "").strip() if question_flow_active else ""
+        if question_type:
+            preview_args["question_type"] = question_type
+        interaction_hints = (
+            metadata.get("interaction_hints")
+            if isinstance(metadata.get("interaction_hints"), dict)
+            else {}
+        )
+        routing_metadata = {
+            "profile": str(interaction_hints.get("profile") or "").strip(),
+            "entry_role": str(interaction_hints.get("entry_role") or "").strip(),
+            "subject_domain": str(interaction_hints.get("subject_domain") or "").strip(),
+        }
+        if any(routing_metadata.values()):
+            preview_args["routing_metadata"] = routing_metadata
+        return preview_args
 
     async def _maybe_prefetch_grounded_rag(
         self,
@@ -752,18 +736,7 @@ class AgentLoop:
         if rag_tool is None:
             return initial_messages
 
-        preview_args = {"query": current_message}
-        default_kb = str((runtime_metadata or {}).get("default_kb") or "").strip()
-        if not default_kb and isinstance(runtime_metadata, dict):
-            knowledge_bases = runtime_metadata.get("knowledge_bases")
-            if isinstance(knowledge_bases, list):
-                for item in knowledge_bases:
-                    normalized = str(item or "").strip()
-                    if normalized:
-                        default_kb = normalized
-                        break
-        if default_kb:
-            preview_args["kb_name"] = default_kb
+        preview_args = self._build_rag_preview_args(current_message, runtime_metadata)
         try:
             preview_args = rag_tool.preview_args(preview_args)
         except Exception:
@@ -840,23 +813,28 @@ class AgentLoop:
         rag_tool = self.tools.get("rag")
         if rag_tool is None:
             return None
-        if bool(runtime_metadata.get("suppress_answer_reveal_on_generate")) and looks_like_practice_generation_request(current_message):
+        exact_probe = prepare_exact_question_probe(current_message)
+        practice_generation_request = looks_like_practice_generation_request(current_message)
+        if bool(runtime_metadata.get("suppress_answer_reveal_on_generate")) and practice_generation_request:
             return None
-        if prepare_exact_question_probe(current_message) is None:
+        decision = build_grounding_decision_from_metadata(
+            query=current_message,
+            runtime_metadata=runtime_metadata,
+            rag_enabled=True,
+            tutorbot_context=True,
+            exact_question_candidate=exact_probe is not None,
+            practice_generation_request=practice_generation_request,
+        )
+        if (
+            not decision.should_try_exact_fast_path
+            and str((runtime_metadata or {}).get("bot_id") or "").strip().lower()
+            != "construction-exam-coach"
+        ):
+            return None
+        if exact_probe is None:
             return None
 
-        preview_args = {"query": current_message}
-        default_kb = str(runtime_metadata.get("default_kb") or "").strip()
-        if not default_kb:
-            knowledge_bases = runtime_metadata.get("knowledge_bases")
-            if isinstance(knowledge_bases, list):
-                for item in knowledge_bases:
-                    normalized = str(item or "").strip()
-                    if normalized:
-                        default_kb = normalized
-                        break
-        if default_kb:
-            preview_args["kb_name"] = default_kb
+        preview_args = self._build_rag_preview_args(current_message, runtime_metadata)
         try:
             preview_args = rag_tool.preview_args(preview_args)
         except Exception:

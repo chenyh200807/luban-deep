@@ -114,6 +114,159 @@ def test_sqlite_store_migrates_legacy_notebook_owner_columns(tmp_path: Path) -> 
     assert "owner_key" in category_columns
 
 
+def test_sqlite_store_migrates_legacy_category_uniqueness_to_owner_scope(tmp_path: Path) -> None:
+    db_path = tmp_path / "legacy-category-unique.db"
+    with sqlite3.connect(db_path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE notebook_categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                owner_key TEXT DEFAULT '',
+                created_at REAL NOT NULL
+            );
+            """
+        )
+        conn.execute(
+            """
+            INSERT INTO notebook_categories (name, owner_key, created_at)
+            VALUES (?, ?, ?)
+            """,
+            ("错题", "user:u1", 1.0),
+        )
+        conn.commit()
+
+    store = SQLiteSessionStore(db_path=db_path)
+
+    existing = asyncio.run(store.list_categories(owner_key="user:u1"))
+    created = asyncio.run(store.create_category("错题", owner_key="user:u2"))
+
+    assert [item["name"] for item in existing] == ["错题"]
+    assert created["owner_key"] == "user:u2"
+
+
+def test_sqlite_store_prunes_cross_owner_category_links_during_owner_scope_migration(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "legacy-category-cross-owner.db"
+    with sqlite3.connect(db_path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE sessions (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL DEFAULT 'New conversation',
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL,
+                compressed_summary TEXT DEFAULT '',
+                summary_up_to_msg_id INTEGER DEFAULT 0,
+                preferences_json TEXT DEFAULT '{}',
+                owner_key TEXT DEFAULT ''
+            );
+
+            CREATE TABLE notebook_entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                owner_key TEXT DEFAULT '',
+                question_id TEXT NOT NULL,
+                question TEXT NOT NULL,
+                question_type TEXT DEFAULT '',
+                options_json TEXT DEFAULT '{}',
+                correct_answer TEXT DEFAULT '',
+                explanation TEXT DEFAULT '',
+                difficulty TEXT DEFAULT '',
+                user_answer TEXT DEFAULT '',
+                is_correct INTEGER DEFAULT 0,
+                bookmarked INTEGER DEFAULT 0,
+                followup_session_id TEXT DEFAULT '',
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL,
+                UNIQUE(session_id, question_id)
+            );
+
+            CREATE TABLE notebook_categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                owner_key TEXT DEFAULT '',
+                created_at REAL NOT NULL
+            );
+
+            CREATE TABLE notebook_entry_categories (
+                entry_id INTEGER NOT NULL REFERENCES notebook_entries(id) ON DELETE CASCADE,
+                category_id INTEGER NOT NULL REFERENCES notebook_categories(id) ON DELETE CASCADE,
+                PRIMARY KEY (entry_id, category_id)
+            );
+            """
+        )
+        conn.execute(
+            """
+            INSERT INTO sessions (id, title, created_at, updated_at, owner_key)
+            VALUES (?, ?, ?, ?, ?), (?, ?, ?, ?, ?)
+            """,
+            (
+                "s1",
+                "u1",
+                1.0,
+                1.0,
+                "user:u1",
+                "s2",
+                "u2",
+                1.0,
+                1.0,
+                "user:u2",
+            ),
+        )
+        conn.execute(
+            """
+            INSERT INTO notebook_entries (
+                id, session_id, owner_key, question_id, question, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                1,
+                "s1",
+                "user:u1",
+                "q1",
+                "Q1",
+                1.0,
+                1.0,
+                2,
+                "s2",
+                "user:u2",
+                "q2",
+                "Q2",
+                1.0,
+                1.0,
+            ),
+        )
+        conn.execute(
+            """
+            INSERT INTO notebook_categories (id, name, owner_key, created_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (1, "错题", "", 1.0),
+        )
+        conn.execute(
+            """
+            INSERT INTO notebook_entry_categories (entry_id, category_id)
+            VALUES (?, ?), (?, ?)
+            """,
+            (1, 1, 2, 1),
+        )
+        conn.commit()
+
+    store = SQLiteSessionStore(db_path=db_path)
+
+    u1_categories = asyncio.run(store.get_entry_categories(1, owner_key="user:u1"))
+    u2_categories = asyncio.run(store.get_entry_categories(2, owner_key="user:u2"))
+    u1_list = asyncio.run(store.list_categories(owner_key="user:u1"))
+    u2_list = asyncio.run(store.list_categories(owner_key="user:u2"))
+
+    assert [item["name"] for item in u1_categories] == ["错题"]
+    assert u2_categories == []
+    assert [(item["name"], item["entry_count"]) for item in u1_list] == [("错题", 1)]
+    assert u2_list == []
+
+
 def test_sqlite_store_backfills_session_source_archived_columns(tmp_path: Path) -> None:
     db_path = tmp_path / "legacy-session-metadata.db"
     with sqlite3.connect(db_path) as conn:
@@ -440,6 +593,17 @@ def test_category_crud(store: SQLiteSessionStore) -> None:
 
     asyncio.run(store.delete_category(category["id"]))
     assert asyncio.run(store.list_categories()) == []
+
+
+def test_category_name_is_unique_per_owner_only(store: SQLiteSessionStore) -> None:
+    own = asyncio.run(store.create_category("错题", owner_key=build_user_owner_key("student_demo")))
+    other = asyncio.run(store.create_category("错题", owner_key=build_user_owner_key("student_other")))
+
+    assert own["owner_key"] == build_user_owner_key("student_demo")
+    assert other["owner_key"] == build_user_owner_key("student_other")
+
+    with pytest.raises(sqlite3.IntegrityError):
+        asyncio.run(store.create_category("错题", owner_key=build_user_owner_key("student_demo")))
 
 
 def test_entry_category_association(store: SQLiteSessionStore) -> None:

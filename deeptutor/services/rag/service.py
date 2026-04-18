@@ -136,6 +136,25 @@ class RAGService:
                 result["answer"] = result["content"]
             if "content" not in result and "answer" in result:
                 result["content"] = result["answer"]
+            if "kb_name" not in result:
+                result["kb_name"] = kb_name
+            evidence_bundle = result.get("evidence_bundle")
+            if not isinstance(evidence_bundle, dict):
+                evidence_bundle = {
+                    "bundle_id": "",
+                    "query": result["query"],
+                    "provider": result.get("provider") or provider,
+                    "kb_name": result["kb_name"],
+                    "content_blocks": [result.get("content") or result.get("answer") or ""],
+                    "sources": list(result.get("sources") or []),
+                    "exact_question": (
+                        result.get("exact_question")
+                        if isinstance(result.get("exact_question"), dict)
+                        else {}
+                    ),
+                    "retrieval_empty": not bool(result.get("sources")),
+                }
+            result["evidence_bundle"] = evidence_bundle
             result["provider"] = normalize_provider_name(result.get("provider") or provider)
 
             answer = result.get("answer") or result.get("content") or ""

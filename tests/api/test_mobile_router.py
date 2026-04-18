@@ -232,6 +232,45 @@ def test_mobile_chat_start_turn_auto_enables_web_search_for_policy_queries(
     assert captured["payload"]["config"]["interaction_hints"]["current_info_required"] is True
 
 
+def test_mobile_chat_start_turn_auto_enables_web_search_for_textbook_delta_queries(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": "session_4b",
+                    "title": "教材变化",
+                    "created_at": 1_700_000_041.0,
+                },
+                {
+                    "id": "turn_4b",
+                    "status": "running",
+                    "capability": "chat",
+                },
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "2026年的教材有什么不一样",
+                "mode": "AUTO",
+                "language": "zh",
+            },
+        )
+
+    assert response.status_code == 200
+    assert "web_search" in captured["payload"]["tools"]
+    assert captured["payload"]["config"]["interaction_hints"]["current_info_required"] is True
+
+
 def test_mobile_chat_start_turn_requires_authentication() -> None:
     with TestClient(_build_app()) as client:
         response = client.post(
@@ -591,6 +630,75 @@ def test_get_conversation_messages_merges_internal_tutorbot_variants(
     assert messages[-1]["presentation"]["blocks"][0]["questions"][0]["stem"] == "防火门设置要求有（ ）。"
 
 
+def test_get_conversation_messages_pages_past_first_500_sessions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    first_batch = [
+        {
+            "id": f"session_{index}",
+            "updated_at": float(1000 - index),
+            "created_at": float(index),
+            "preferences": {"source": "wx_miniprogram", "user_id": "student_demo"},
+        }
+        for index in range(500)
+    ]
+    target_row = {
+        "id": "tb_target",
+        "updated_at": 1.0,
+        "created_at": 1.0,
+        "preferences": {"source": "wx_miniprogram", "user_id": "student_demo"},
+    }
+    target_payload = {
+        "id": "tb_target",
+        "preferences": {"source": "wx_miniprogram", "archived": False},
+        "messages": [
+            {
+                "id": 1,
+                "role": "assistant",
+                "content": "命中了第 501 条之后的会话。",
+                "created_at": 1.0,
+                "events": [],
+            }
+        ],
+    }
+
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            if session_id == "tb_target":
+                return ""
+            return "user:student_demo"
+
+        async def list_sessions_by_owner(
+            self,
+            owner_key: str,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 500,
+            offset: int = 0,
+        ):
+            assert owner_key == "user:student_demo"
+            assert source == "wx_miniprogram"
+            if offset == 0:
+                return first_batch
+            if offset == 500:
+                return [target_row]
+            return []
+
+        async def get_session_with_messages(self, session_id: str):
+            if session_id == "tb_target":
+                return target_payload
+            return None
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/tb_target/messages")
+
+    assert response.status_code == 200
+    assert response.json()["messages"][0]["content"] == "命中了第 501 条之后的会话。"
+
+
 def test_wechat_login_route_maps_service_errors(monkeypatch: pytest.MonkeyPatch) -> None:
     async def _failing_login(_code: str):
         raise RuntimeError("WeChat code2Session failed")
@@ -667,6 +775,35 @@ def test_auth_register_seeds_learner_state_when_user_id_present(monkeypatch: pyt
         mobile_module.member_service,
         "register_with_external_auth",
         lambda _username, _password, _phone: {"user_id": "student_demo", "token": "ok"},
+    )
+    monkeypatch.setattr(
+        mobile_module.learner_state_service,
+        "read_snapshot",
+        lambda user_id: calls.append(user_id) or {"user_id": user_id},
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/register",
+            json={"username": "student_demo", "password": "StrongPass123", "phone": "13800000000"},
+        )
+
+    assert response.status_code == 200
+    assert calls == ["student_demo"]
+
+
+def test_auth_register_seeds_learner_state_when_user_id_is_nested_under_user(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "register_with_external_auth",
+        lambda _username, _password, _phone: {
+            "token": "ok",
+            "user": {"user_id": "student_demo"},
+        },
     )
     monkeypatch.setattr(
         mobile_module.learner_state_service,
@@ -1014,6 +1151,21 @@ def test_auth_send_code_returns_503_when_sms_debug_fallback_is_forbidden(
 
     assert response.status_code == 503
     assert response.json()["detail"] == "短信服务未配置，生产环境已禁止调试验证码"
+
+
+def test_auth_send_code_returns_400_for_invalid_phone_input(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise_value_error(_phone: str) -> dict[str, object]:
+        raise ValueError("手机号格式不正确")
+
+    monkeypatch.setattr(mobile_module.member_service, "send_phone_code", _raise_value_error)
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/auth/send-code", json={"phone": "dev-phone-code"})
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "手机号格式不正确"
 
 
 def test_wechat_login_rate_limits_by_route_and_client_ip(monkeypatch: pytest.MonkeyPatch) -> None:

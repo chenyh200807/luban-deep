@@ -41,6 +41,450 @@ def _json_loads(value: str | None, default: Any) -> Any:
         return default
 
 
+_QUESTION_ACTIVE_OBJECT_TYPES = {"single_question", "question_set"}
+_QUESTION_ACTIVE_OBJECT_TYPE_ALIASES = {
+    "question": "single_question",
+    "single_question": "single_question",
+    "question_set": "question_set",
+}
+_LEARNING_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
+_SESSION_ACTIVE_OBJECT_TYPES = {"open_chat_topic"}
+
+
+def _coerce_positive_int(value: Any) -> int | None:
+    try:
+        resolved = int(value)
+    except (TypeError, ValueError):
+        return None
+    return resolved if resolved > 0 else None
+
+
+def _coerce_timestamp(value: Any) -> float | None:
+    try:
+        resolved = float(value)
+    except (TypeError, ValueError):
+        return None
+    return resolved if resolved > 0 else None
+
+
+def _normalize_runtime_state(runtime_state: Any) -> dict[str, Any]:
+    return dict(runtime_state) if isinstance(runtime_state, dict) else {}
+
+
+def _normalize_question_active_object_type(
+    value: Any,
+    *,
+    has_items: bool,
+) -> str:
+    normalized = _QUESTION_ACTIVE_OBJECT_TYPE_ALIASES.get(str(value or "").strip().lower())
+    if normalized:
+        return normalized
+    return "question_set" if has_items else "single_question"
+
+
+def _build_question_active_object_scope(question_context: dict[str, Any]) -> dict[str, Any]:
+    items = question_context.get("items") if isinstance(question_context.get("items"), list) else []
+    question_ids = [
+        str(item.get("question_id") or "").strip()
+        for item in items
+        if isinstance(item, dict) and str(item.get("question_id") or "").strip()
+    ]
+    primary_question_id = str(question_context.get("question_id") or "").strip()
+    if primary_question_id and primary_question_id not in question_ids:
+        question_ids.insert(0, primary_question_id)
+    return {
+        "domain": "question",
+        "question_ids": question_ids,
+        "item_count": len(items) if items else 1,
+    }
+
+
+def _derive_question_active_object_id(question_context: dict[str, Any]) -> str:
+    items = question_context.get("items") if isinstance(question_context.get("items"), list) else []
+    item_ids = [
+        str(item.get("question_id") or "").strip()
+        for item in items
+        if isinstance(item, dict) and str(item.get("question_id") or "").strip()
+    ]
+    if len(item_ids) > 1:
+        parent_quiz_session_id = str(question_context.get("parent_quiz_session_id") or "").strip()
+        if parent_quiz_session_id:
+            return parent_quiz_session_id
+        return "question_set:" + "|".join(item_ids[:8])
+
+    question_id = str(question_context.get("question_id") or "").strip()
+    if question_id:
+        return question_id
+
+    if item_ids:
+        return item_ids[0]
+
+    parent_quiz_session_id = str(question_context.get("parent_quiz_session_id") or "").strip()
+    if parent_quiz_session_id:
+        return parent_quiz_session_id
+
+    question_text = str(question_context.get("question") or "").strip().lower()
+    if not question_text:
+        return "question"
+    token = "".join(char if char.isalnum() else "_" for char in question_text).strip("_")
+    return f"question:{token[:48] or 'anonymous'}"
+
+
+def _resolve_learning_plan_current_page(
+    plan_view: dict[str, Any],
+) -> tuple[dict[str, Any] | None, int]:
+    pages = [page for page in list(plan_view.get("pages") or []) if isinstance(page, dict)]
+    if not pages:
+        return None, -1
+    current_index = int(plan_view.get("current_index") or -1)
+    current_page = next(
+        (
+            page
+            for page in pages
+            if int(page.get("page_index", -1) or -1) == current_index
+        ),
+        None,
+    )
+    if current_page is None:
+        current_page = pages[0]
+        current_index = int(current_page.get("page_index", 0) or 0)
+    return current_page, current_index
+
+
+def _build_learning_plan_active_object_scope(
+    plan_view: dict[str, Any],
+    *,
+    object_type: str,
+    page_index: int,
+) -> dict[str, Any]:
+    return {
+        "domain": "guided_plan",
+        "plan_id": str(plan_view.get("session_id") or "").strip(),
+        "page_index": page_index if object_type == "guide_page" else -1,
+        "notebook_id": str(plan_view.get("notebook_id") or "").strip(),
+    }
+
+
+def _build_learning_plan_state_snapshot(
+    plan_view: dict[str, Any],
+    *,
+    current_page: dict[str, Any] | None,
+    current_index: int,
+) -> dict[str, Any]:
+    snapshot: dict[str, Any] = {
+        "plan_id": str(plan_view.get("session_id") or "").strip(),
+        "user_id": str(plan_view.get("user_id") or "").strip(),
+        "status": str(plan_view.get("status") or "").strip(),
+        "summary": str(plan_view.get("summary") or "").strip(),
+        "progress": plan_view.get("progress"),
+        "current_index": current_index,
+        "page_count": int(plan_view.get("page_count") or 0),
+        "ready_count": int(plan_view.get("ready_count") or 0),
+        "notebook_id": str(plan_view.get("notebook_id") or "").strip(),
+        "notebook_name": str(plan_view.get("notebook_name") or "").strip(),
+    }
+    if isinstance(current_page, dict):
+        snapshot["current_page"] = {
+            "page_index": current_index,
+            "knowledge_title": str(current_page.get("knowledge_title") or "").strip(),
+            "knowledge_summary": str(current_page.get("knowledge_summary") or "").strip(),
+            "page_status": str(current_page.get("page_status") or "").strip(),
+        }
+    return snapshot
+
+
+def build_active_object_from_learning_plan_view(
+    plan_view: dict[str, Any] | None,
+    *,
+    previous_active_object: dict[str, Any] | None = None,
+    object_type: Any = None,
+    object_id: Any = None,
+    scope: Any = None,
+    version: Any = None,
+    entered_at: Any = None,
+    last_touched_at: Any = None,
+    source_turn_id: Any = None,
+    now: float | None = None,
+) -> dict[str, Any] | None:
+    if not isinstance(plan_view, dict):
+        return None
+    plan_id = str(plan_view.get("session_id") or "").strip()
+    if not plan_id:
+        return None
+
+    current_page, current_index = _resolve_learning_plan_current_page(plan_view)
+    resolved_object_type = str(object_type or "").strip().lower()
+    if resolved_object_type not in _LEARNING_ACTIVE_OBJECT_TYPES:
+        resolved_object_type = "guide_page" if current_page is not None else "study_plan"
+    resolved_object_id = str(object_id or "").strip()
+    if not resolved_object_id:
+        resolved_object_id = (
+            f"{plan_id}:page:{current_index}"
+            if resolved_object_type == "guide_page"
+            else plan_id
+        )
+
+    resolved_now = float(now if now is not None else time.time())
+    previous = previous_active_object if isinstance(previous_active_object, dict) else {}
+    previous_object_type = str(previous.get("object_type") or "").strip()
+    previous_object_id = str(previous.get("object_id") or "").strip()
+    same_identity = (
+        previous_object_type in _LEARNING_ACTIVE_OBJECT_TYPES
+        and previous_object_type == resolved_object_type
+        and previous_object_id == resolved_object_id
+    )
+
+    resolved_scope = scope if isinstance(scope, dict) else _build_learning_plan_active_object_scope(
+        plan_view,
+        object_type=resolved_object_type,
+        page_index=current_index,
+    )
+    resolved_version = _coerce_positive_int(version)
+    if resolved_version is None:
+        previous_version = _coerce_positive_int(previous.get("version")) or 0
+        resolved_version = previous_version + 1 if same_identity else 1
+
+    resolved_entered_at = _coerce_timestamp(entered_at)
+    if resolved_entered_at is None:
+        resolved_entered_at = (
+            _coerce_timestamp(previous.get("entered_at")) if same_identity else resolved_now
+        )
+    resolved_last_touched_at = _coerce_timestamp(last_touched_at) or resolved_now
+    resolved_source_turn_id = str(source_turn_id or "").strip() or (
+        str(previous.get("source_turn_id") or "").strip() if same_identity else ""
+    )
+
+    return {
+        "object_type": resolved_object_type,
+        "object_id": resolved_object_id,
+        "scope": dict(resolved_scope),
+        "state_snapshot": _build_learning_plan_state_snapshot(
+            plan_view,
+            current_page=current_page,
+            current_index=current_index,
+        ),
+        "version": resolved_version,
+        "entered_at": resolved_entered_at,
+        "last_touched_at": resolved_last_touched_at,
+        "source_turn_id": resolved_source_turn_id,
+    }
+
+
+def build_active_object_from_session(
+    session_view: dict[str, Any] | None,
+    *,
+    previous_active_object: dict[str, Any] | None = None,
+    object_type: Any = None,
+    object_id: Any = None,
+    scope: Any = None,
+    version: Any = None,
+    entered_at: Any = None,
+    last_touched_at: Any = None,
+    source_turn_id: Any = None,
+    now: float | None = None,
+) -> dict[str, Any] | None:
+    if not isinstance(session_view, dict):
+        return None
+    session_id = str(session_view.get("session_id") or session_view.get("id") or "").strip()
+    if not session_id:
+        return None
+
+    resolved_now = float(now if now is not None else time.time())
+    previous = previous_active_object if isinstance(previous_active_object, dict) else {}
+    resolved_object_type = str(object_type or "").strip().lower()
+    if resolved_object_type not in _SESSION_ACTIVE_OBJECT_TYPES:
+        resolved_object_type = "open_chat_topic"
+    resolved_object_id = str(object_id or "").strip() or session_id
+    previous_object_type = str(previous.get("object_type") or "").strip()
+    previous_object_id = str(previous.get("object_id") or "").strip()
+    same_identity = (
+        previous_object_type in _SESSION_ACTIVE_OBJECT_TYPES
+        and previous_object_type == resolved_object_type
+        and previous_object_id == resolved_object_id
+    )
+
+    resolved_scope = scope if isinstance(scope, dict) else {
+        "domain": "session",
+        "session_id": session_id,
+        "source": str(session_view.get("source") or "").strip(),
+    }
+    resolved_version = _coerce_positive_int(version)
+    if resolved_version is None:
+        previous_version = _coerce_positive_int(previous.get("version")) or 0
+        resolved_version = previous_version + 1 if same_identity else 1
+
+    resolved_entered_at = _coerce_timestamp(entered_at)
+    if resolved_entered_at is None:
+        resolved_entered_at = (
+            _coerce_timestamp(previous.get("entered_at")) if same_identity else resolved_now
+        )
+    resolved_last_touched_at = _coerce_timestamp(last_touched_at) or resolved_now
+    resolved_source_turn_id = str(source_turn_id or "").strip() or (
+        str(previous.get("source_turn_id") or "").strip() if same_identity else ""
+    )
+    state_snapshot = {
+        "session_id": session_id,
+        "title": str(session_view.get("title") or "").strip(),
+        "compressed_summary": str(session_view.get("compressed_summary") or "").strip(),
+        "source": str(session_view.get("source") or "").strip(),
+        "status": str(session_view.get("status") or "").strip(),
+    }
+
+    return {
+        "object_type": resolved_object_type,
+        "object_id": resolved_object_id,
+        "scope": dict(resolved_scope),
+        "state_snapshot": state_snapshot,
+        "version": resolved_version,
+        "entered_at": resolved_entered_at,
+        "last_touched_at": resolved_last_touched_at,
+        "source_turn_id": resolved_source_turn_id,
+    }
+
+
+def build_active_object_from_question_context(
+    question_context: dict[str, Any] | None,
+    *,
+    previous_active_object: dict[str, Any] | None = None,
+    object_type: Any = None,
+    object_id: Any = None,
+    scope: Any = None,
+    version: Any = None,
+    entered_at: Any = None,
+    last_touched_at: Any = None,
+    source_turn_id: Any = None,
+    now: float | None = None,
+) -> dict[str, Any] | None:
+    normalized_question = normalize_question_followup_context(question_context)
+    if normalized_question is None:
+        return None
+
+    resolved_now = float(now if now is not None else time.time())
+    previous = previous_active_object if isinstance(previous_active_object, dict) else {}
+    has_items = bool(normalized_question.get("items"))
+    resolved_object_type = _normalize_question_active_object_type(object_type, has_items=has_items)
+    resolved_object_id = str(object_id or "").strip() or _derive_question_active_object_id(
+        normalized_question
+    )
+    previous_object_type = str(previous.get("object_type") or "").strip()
+    previous_object_id = str(previous.get("object_id") or "").strip()
+    same_identity = (
+        previous_object_type in _QUESTION_ACTIVE_OBJECT_TYPES
+        and previous_object_type == resolved_object_type
+        and previous_object_id == resolved_object_id
+    )
+
+    resolved_scope = scope if isinstance(scope, dict) else _build_question_active_object_scope(
+        normalized_question
+    )
+    resolved_version = _coerce_positive_int(version)
+    if resolved_version is None:
+        previous_version = _coerce_positive_int(previous.get("version")) or 0
+        resolved_version = previous_version + 1 if same_identity else 1
+
+    resolved_entered_at = _coerce_timestamp(entered_at)
+    if resolved_entered_at is None:
+        resolved_entered_at = (
+            _coerce_timestamp(previous.get("entered_at")) if same_identity else resolved_now
+        )
+    resolved_last_touched_at = _coerce_timestamp(last_touched_at) or resolved_now
+    resolved_source_turn_id = str(source_turn_id or "").strip() or (
+        str(previous.get("source_turn_id") or "").strip() if same_identity else ""
+    )
+
+    return {
+        "object_type": resolved_object_type,
+        "object_id": resolved_object_id,
+        "scope": dict(resolved_scope),
+        "state_snapshot": dict(normalized_question),
+        "version": resolved_version,
+        "entered_at": resolved_entered_at,
+        "last_touched_at": resolved_last_touched_at,
+        "source_turn_id": resolved_source_turn_id,
+    }
+
+
+def extract_question_context_from_active_object(
+    active_object: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if not isinstance(active_object, dict):
+        return None
+    snapshot = (
+        active_object.get("state_snapshot")
+        if isinstance(active_object.get("state_snapshot"), dict)
+        else active_object.get("question_followup_context")
+        if isinstance(active_object.get("question_followup_context"), dict)
+        else None
+    )
+    if not isinstance(snapshot, dict):
+        return None
+    return normalize_question_followup_context(snapshot)
+
+
+def normalize_active_object(
+    raw: dict[str, Any] | None,
+    *,
+    previous_active_object: dict[str, Any] | None = None,
+    now: float | None = None,
+) -> dict[str, Any] | None:
+    if not isinstance(raw, dict):
+        return None
+
+    question_snapshot = (
+        raw.get("state_snapshot")
+        if isinstance(raw.get("state_snapshot"), dict)
+        else raw
+        if ("question" in raw or "items" in raw)
+        else None
+    )
+    if isinstance(question_snapshot, dict) and normalize_question_followup_context(question_snapshot):
+        return build_active_object_from_question_context(
+            question_snapshot,
+            previous_active_object=previous_active_object,
+            object_type=raw.get("object_type"),
+            object_id=raw.get("object_id"),
+            scope=raw.get("scope"),
+            version=raw.get("version"),
+            entered_at=raw.get("entered_at"),
+            last_touched_at=raw.get("last_touched_at"),
+            source_turn_id=raw.get("source_turn_id"),
+            now=now,
+        )
+
+    object_type = str(raw.get("object_type") or "").strip()
+    object_id = str(raw.get("object_id") or "").strip()
+    state_snapshot = raw.get("state_snapshot") if isinstance(raw.get("state_snapshot"), dict) else {}
+    if not object_type or not object_id:
+        return None
+
+    resolved_now = float(now if now is not None else time.time())
+    resolved_version = _coerce_positive_int(raw.get("version")) or 1
+    resolved_entered_at = _coerce_timestamp(raw.get("entered_at")) or resolved_now
+    resolved_last_touched_at = _coerce_timestamp(raw.get("last_touched_at")) or resolved_now
+    resolved_scope = raw.get("scope") if isinstance(raw.get("scope"), dict) else {}
+    return {
+        "object_type": object_type,
+        "object_id": object_id,
+        "scope": dict(resolved_scope),
+        "state_snapshot": dict(state_snapshot),
+        "version": resolved_version,
+        "entered_at": resolved_entered_at,
+        "last_touched_at": resolved_last_touched_at,
+        "source_turn_id": str(raw.get("source_turn_id") or "").strip(),
+    }
+
+
+def normalize_suspended_object_stack(raw: Any) -> list[dict[str, Any]]:
+    if not isinstance(raw, list):
+        return []
+    normalized_stack: list[dict[str, Any]] = []
+    for item in raw:
+        normalized = normalize_active_object(item)
+        if normalized is not None:
+            normalized_stack.append(normalized)
+    return normalized_stack
+
+
 def build_user_owner_key(user_id: str | None) -> str:
     resolved = str(user_id or "").strip()
     return f"user:{resolved}" if resolved else ""
@@ -438,9 +882,10 @@ class SQLiteSessionStore:
 
                 CREATE TABLE IF NOT EXISTS notebook_categories (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL UNIQUE,
+                    name TEXT NOT NULL,
                     owner_key TEXT DEFAULT '',
-                    created_at REAL NOT NULL
+                    created_at REAL NOT NULL,
+                    UNIQUE(owner_key, name)
                 );
 
                 CREATE TABLE IF NOT EXISTS notebook_entry_categories (
@@ -592,11 +1037,98 @@ class SQLiteSessionStore:
                     "UPDATE notebook_categories SET owner_key = ? WHERE id = ?",
                     (derived_owner_key, row["id"]),
                 )
+            if self._notebook_categories_require_owner_scope_migration(conn):
+                self._migrate_notebook_categories_owner_scope(conn)
+            self._prune_notebook_entry_category_owner_mismatches(conn)
             conn.commit()
 
     async def _run(self, fn, *args):
         async with self._lock:
             return await asyncio.to_thread(fn, *args)
+
+    @staticmethod
+    def _notebook_categories_require_owner_scope_migration(conn: sqlite3.Connection) -> bool:
+        row = conn.execute(
+            """
+            SELECT sql
+            FROM sqlite_master
+            WHERE type = 'table' AND name = 'notebook_categories'
+            """
+        ).fetchone()
+        table_sql = str(row["sql"] or "").lower() if row is not None else ""
+        if "unique(owner_key, name)" in table_sql:
+            return False
+
+        indexes = conn.execute("PRAGMA index_list(notebook_categories)").fetchall()
+        has_owner_scoped_unique = False
+        has_name_only_unique = False
+        for index_row in indexes:
+            if not int(index_row["unique"]):
+                continue
+            columns = [
+                str(info_row["name"] or "")
+                for info_row in conn.execute(
+                    f"PRAGMA index_info({index_row['name']})"
+                ).fetchall()
+            ]
+            if columns == ["owner_key", "name"]:
+                has_owner_scoped_unique = True
+            elif columns == ["name"]:
+                has_name_only_unique = True
+
+        return not has_owner_scoped_unique and has_name_only_unique
+
+    @staticmethod
+    def _migrate_notebook_categories_owner_scope(conn: sqlite3.Connection) -> None:
+        conn.commit()
+        conn.execute("PRAGMA foreign_keys = OFF")
+        try:
+            conn.execute(
+                """
+                CREATE TABLE notebook_categories_new (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    owner_key TEXT DEFAULT '',
+                    created_at REAL NOT NULL,
+                    UNIQUE(owner_key, name)
+                )
+                """
+            )
+            conn.execute(
+                """
+                INSERT INTO notebook_categories_new (id, name, owner_key, created_at)
+                SELECT id, name, COALESCE(owner_key, ''), created_at
+                FROM notebook_categories
+                """
+            )
+            conn.execute("DROP TABLE notebook_categories")
+            conn.execute("ALTER TABLE notebook_categories_new RENAME TO notebook_categories")
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_notebook_categories_owner_name
+                    ON notebook_categories(owner_key, name)
+                """
+            )
+        finally:
+            conn.execute("PRAGMA foreign_keys = ON")
+
+    @staticmethod
+    def _prune_notebook_entry_category_owner_mismatches(conn: sqlite3.Connection) -> None:
+        conn.execute(
+            """
+            DELETE FROM notebook_entry_categories
+            WHERE (entry_id, category_id) IN (
+                SELECT
+                    ec.entry_id,
+                    ec.category_id
+                FROM notebook_entry_categories ec
+                INNER JOIN notebook_categories c ON c.id = ec.category_id
+                INNER JOIN notebook_entries n ON n.id = ec.entry_id
+                LEFT JOIN sessions s ON s.id = n.session_id
+                WHERE COALESCE(NULLIF(n.owner_key, ''), s.owner_key, '') != COALESCE(c.owner_key, '')
+            )
+            """
+        )
 
     def _connect(self) -> sqlite3.Connection:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1527,7 +2059,7 @@ class SQLiteSessionStore:
     async def update_session_preferences(self, session_id: str, preferences: dict[str, Any]) -> bool:
         return await self._run(self._update_session_preferences_sync, session_id, preferences)
 
-    def _get_active_question_context_sync(self, session_id: str) -> dict[str, Any] | None:
+    def _get_active_object_sync(self, session_id: str) -> dict[str, Any] | None:
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT preferences_json FROM sessions WHERE id = ?",
@@ -1536,22 +2068,20 @@ class SQLiteSessionStore:
         if row is None:
             return None
         preferences = _json_loads(row["preferences_json"], {})
-        runtime_state = (
-            preferences.get("runtime_state")
-            if isinstance(preferences.get("runtime_state"), dict)
-            else {}
-        )
-        return normalize_question_followup_context(runtime_state.get("active_question_context"))
+        runtime_state = _normalize_runtime_state(preferences.get("runtime_state"))
+        active_object = normalize_active_object(runtime_state.get("active_object"))
+        if active_object is not None:
+            return active_object
+        return normalize_active_object(runtime_state.get("active_question_context"))
 
-    async def get_active_question_context(self, session_id: str) -> dict[str, Any] | None:
-        return await self._run(self._get_active_question_context_sync, session_id)
+    async def get_active_object(self, session_id: str) -> dict[str, Any] | None:
+        return await self._run(self._get_active_object_sync, session_id)
 
-    def _set_active_question_context_sync(
+    def _set_active_object_sync(
         self,
         session_id: str,
-        question_context: dict[str, Any] | None,
+        active_object: dict[str, Any] | None,
     ) -> bool:
-        normalized = normalize_question_followup_context(question_context)
         with self._connect() as conn:
             current = conn.execute(
                 "SELECT preferences_json FROM sessions WHERE id = ?",
@@ -1560,15 +2090,22 @@ class SQLiteSessionStore:
             if current is None:
                 return False
             preferences = _json_loads(current["preferences_json"], {})
-            runtime_state = (
-                dict(preferences.get("runtime_state"))
-                if isinstance(preferences.get("runtime_state"), dict)
-                else {}
+            runtime_state = _normalize_runtime_state(preferences.get("runtime_state"))
+            previous_active_object = normalize_active_object(runtime_state.get("active_object"))
+            normalized = normalize_active_object(
+                active_object,
+                previous_active_object=previous_active_object,
             )
             if normalized is None:
+                runtime_state.pop("active_object", None)
                 runtime_state.pop("active_question_context", None)
             else:
-                runtime_state["active_question_context"] = normalized
+                runtime_state["active_object"] = normalized
+                question_context = extract_question_context_from_active_object(normalized)
+                if question_context is None:
+                    runtime_state.pop("active_question_context", None)
+                else:
+                    runtime_state["active_question_context"] = question_context
             merged = {**preferences, "runtime_state": runtime_state}
             cur = conn.execute(
                 """
@@ -1580,6 +2117,99 @@ class SQLiteSessionStore:
             )
             conn.commit()
         return cur.rowcount > 0
+
+    async def set_active_object(
+        self,
+        session_id: str,
+        active_object: dict[str, Any] | None,
+    ) -> bool:
+        return await self._run(
+            self._set_active_object_sync,
+            session_id,
+            active_object,
+        )
+
+    def _get_suspended_object_stack_sync(self, session_id: str) -> list[dict[str, Any]]:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT preferences_json FROM sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+        if row is None:
+            return []
+        preferences = _json_loads(row["preferences_json"], {})
+        runtime_state = _normalize_runtime_state(preferences.get("runtime_state"))
+        return normalize_suspended_object_stack(runtime_state.get("suspended_object_stack"))
+
+    async def get_suspended_object_stack(self, session_id: str) -> list[dict[str, Any]]:
+        return await self._run(self._get_suspended_object_stack_sync, session_id)
+
+    def _set_suspended_object_stack_sync(
+        self,
+        session_id: str,
+        suspended_object_stack: list[dict[str, Any]] | None,
+    ) -> bool:
+        normalized_stack = normalize_suspended_object_stack(suspended_object_stack)
+        with self._connect() as conn:
+            current = conn.execute(
+                "SELECT preferences_json FROM sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+            if current is None:
+                return False
+            preferences = _json_loads(current["preferences_json"], {})
+            runtime_state = _normalize_runtime_state(preferences.get("runtime_state"))
+            if normalized_stack:
+                runtime_state["suspended_object_stack"] = normalized_stack
+            else:
+                runtime_state.pop("suspended_object_stack", None)
+            merged = {**preferences, "runtime_state": runtime_state}
+            cur = conn.execute(
+                """
+                UPDATE sessions
+                SET preferences_json = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (_json_dumps(merged), time.time(), session_id),
+            )
+            conn.commit()
+        return cur.rowcount > 0
+
+    async def set_suspended_object_stack(
+        self,
+        session_id: str,
+        suspended_object_stack: list[dict[str, Any]] | None,
+    ) -> bool:
+        return await self._run(
+            self._set_suspended_object_stack_sync,
+            session_id,
+            suspended_object_stack,
+        )
+
+    def _get_active_question_context_sync(self, session_id: str) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT preferences_json FROM sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        preferences = _json_loads(row["preferences_json"], {})
+        runtime_state = _normalize_runtime_state(preferences.get("runtime_state"))
+        active_object = normalize_active_object(runtime_state.get("active_object"))
+        if active_object is not None:
+            return extract_question_context_from_active_object(active_object)
+        return normalize_question_followup_context(runtime_state.get("active_question_context"))
+
+    async def get_active_question_context(self, session_id: str) -> dict[str, Any] | None:
+        return await self._run(self._get_active_question_context_sync, session_id)
+
+    def _set_active_question_context_sync(
+        self,
+        session_id: str,
+        question_context: dict[str, Any] | None,
+    ) -> bool:
+        return self._set_active_object_sync(session_id, question_context)
 
     async def set_active_question_context(
         self,

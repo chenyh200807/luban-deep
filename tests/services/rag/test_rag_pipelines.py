@@ -75,6 +75,54 @@ def test_get_pipeline_invalid_raises() -> None:
 
 
 @pytest.mark.asyncio
+async def test_builtin_rag_tool_emits_summary_metadata_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.tools.builtin import RAGTool
+    import deeptutor.tools.rag_tool as rag_tool_module
+
+    async def _fake_rag_search(**kwargs):
+        assert kwargs["query"] == "防水等级"
+        return {
+            "query": "防水等级",
+            "provider": "supabase",
+            "kb_name": "construction-exam",
+            "sources": [{"chunk_id": "c1"}, {"chunk_id": "c2"}],
+            "exact_question": {"id": "q1"},
+            "evidence_bundle": {
+                "bundle_id": "bundle-1",
+                "kb_name": "construction-exam",
+                "provider": "supabase",
+                "query_shape": "concept_like",
+                "retrieval_empty": False,
+                "content_blocks": ["A", "B", "C"],
+                "sources": [{"chunk_id": "c1"}, {"chunk_id": "c2"}],
+                "exact_question": {"id": "q1"},
+            },
+            "answer": "答案",
+        }
+
+    monkeypatch.setattr(rag_tool_module, "rag_search", _fake_rag_search)
+
+    tool = RAGTool()
+    result = await tool.execute(query="防水等级", kb_name="construction-exam")
+
+    assert result.content == "答案"
+    assert result.metadata["tool_source_count"] == 2
+    assert result.metadata["evidence_bundle_summary"] == {
+        "bundle_id": "bundle-1",
+        "kb_name": "construction-exam",
+        "provider": "supabase",
+        "query_shape": "concept_like",
+        "retrieval_empty": False,
+        "source_count": 2,
+        "content_block_count": 3,
+        "exact_question": True,
+    }
+    assert "evidence_bundle" not in result.metadata
+
+
+@pytest.mark.asyncio
 async def test_rag_search_invalid_provider_falls_back_to_kb_provider(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -175,6 +223,73 @@ async def test_supabase_search_prioritizes_parallel_exact_question_match(
     assert result["sources"][0]["source_type"] == "textbook_assessment"
     assert result["exact_question"]["chunk_id"] == "question-q-exact"
     assert result["exact_question"]["source_group"] == "question_exact_text"
+
+
+@pytest.mark.asyncio
+async def test_supabase_search_emits_evidence_bundle_and_respects_routing_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-key")
+    monkeypatch.setenv("SUPABASE_RAG_ENABLE_RERANK", "false")
+    monkeypatch.setenv("SUPABASE_RAG_SECOND_PASS", "false")
+
+    class _FakeKbConfigService:
+        def get_kb_config(self, kb_name: str) -> dict[str, object]:
+            _ = kb_name
+            return {}
+
+    monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
+
+    pipeline = supabase_module.SupabasePipeline()
+
+    async def _fake_run_query_plan(**kwargs):
+        source_plan = kwargs["source_plan"]
+        assert source_plan.search_questions_bank is True
+        assert "force_qbank_by_question_type" in source_plan.selection_reasons
+        return [
+            {
+                "phase": "primary",
+                "group_name": "questions_bank",
+                "query": kwargs["queries"][0],
+                "query_index": 0,
+                "query_weight": 1.0,
+                "results": [
+                    {
+                        "id": "q-fuzzy",
+                        "chunk_id": "question-q-fuzzy",
+                        "card_title": "题目: 屋面防水等级",
+                        "rag_content": "【题目】屋面防水等级应根据什么\n【答案】建筑物类别",
+                        "source_type": "textbook_assessment",
+                        "score": 0.83,
+                        "_source_group": "questions_bank",
+                        "_source_table": "questions_bank",
+                    }
+                ],
+            }
+        ]
+
+    async def _identity(results, **kwargs):
+        _ = kwargs
+        return results
+
+    monkeypatch.setattr(pipeline, "_run_query_plan", _fake_run_query_plan)
+    monkeypatch.setattr(pipeline, "_hydrate_sources", _identity)
+    monkeypatch.setattr(pipeline, "_rerank_results", _identity)
+
+    result = await pipeline.search(
+        query="屋面防水等级",
+        kb_name="construction-exam",
+        question_type="single_choice",
+        routing_metadata={"preferred_question_type": "choice"},
+    )
+
+    assert result["evidence_bundle"]["kb_name"] == "construction-exam"
+    assert result["evidence_bundle"]["retrieval_empty"] is False
+    assert result["evidence_bundle"]["source_plan"]["search_questions_bank"] is True
+    assert result["evidence_bundle"]["sources"][0]["chunk_id"] == "question-q-fuzzy"
 
 
 @pytest.mark.asyncio
@@ -508,7 +623,11 @@ async def test_supabase_search_dedupes_duplicate_rendered_content_and_sources(
         _ = kwargs
         return results
 
-    monkeypatch.setattr(pipeline, "_search_exact_question_text", lambda **kwargs: [])
+    async def _empty_exact_text(**kwargs):
+        _ = kwargs
+        return []
+
+    monkeypatch.setattr(pipeline, "_search_exact_question_text", _empty_exact_text)
     monkeypatch.setattr(pipeline, "_run_query_plan", _fake_run_query_plan)
     monkeypatch.setattr(pipeline, "_hydrate_sources", _identity)
     monkeypatch.setattr(pipeline, "_rerank_results", _identity)
@@ -522,3 +641,60 @@ async def test_supabase_search_dedupes_duplicate_rendered_content_and_sources(
     assert result["answer"].count("楼面的基本构造层宜为面层和楼板") == 1
     assert len(result["sources"]) == 2
     assert [item["chunk_id"] for item in result["sources"]] == ["std-1", "std-2"]
+
+
+@pytest.mark.asyncio
+async def test_supabase_pipeline_embedding_cache_reuses_same_query_embedding(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    supabase_module._EMBEDDING_CACHE.clear()
+    monkeypatch.setenv("SUPABASE_RAG_EMBEDDING_CACHE_ENABLED", "true")
+    calls: list[list[str]] = []
+
+    class _FakeEmbeddingClient:
+        async def embed(self, queries: list[str]) -> list[list[float]]:
+            calls.append(list(queries))
+            return [[0.1, 0.2, 0.3]]
+
+    monkeypatch.setattr(supabase_module, "get_embedding_client", lambda: _FakeEmbeddingClient())
+
+    pipeline = supabase_module.SupabasePipeline()
+    first = await pipeline._embed_query("2026教材变化")
+    second = await pipeline._embed_query("2026教材变化")
+
+    assert first == [0.1, 0.2, 0.3]
+    assert second == [0.1, 0.2, 0.3]
+    assert calls == [["2026教材变化"]]
+
+
+def test_supabase_similarity_floor_guarantees_high_similarity_chunk_into_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    monkeypatch.setenv("SUPABASE_RAG_SIM_FLOOR_THRESHOLD", "0.72")
+    monkeypatch.setenv("SUPABASE_RAG_SIM_FLOOR_BOOST", "0.02")
+    monkeypatch.setenv("SUPABASE_RAG_SIM_FLOOR_HARD_THRESHOLD", "0.82")
+    monkeypatch.setenv("SUPABASE_RAG_SIM_FLOOR_HARD_MAX", "1")
+
+    fused = [
+        {"chunk_id": "rrf-low", "weighted_rrf_score": 0.0200, "score": 0.62},
+        {"chunk_id": "high-sim", "weighted_rrf_score": 0.0190, "score": 0.91},
+    ]
+    results_map = {
+        "primary:textbook:q0": [
+            {"chunk_id": "rrf-low", "score": 0.62},
+            {"chunk_id": "high-sim", "score": 0.91},
+        ]
+    }
+
+    adjusted = supabase_module._apply_similarity_floor(
+        fused,
+        results_map,
+        target_window=1,
+    )
+
+    assert adjusted[0]["chunk_id"] == "high-sim"
+    assert adjusted[0].get("_sim_floor_boosted") or adjusted[0].get("_sim_floor_guaranteed")

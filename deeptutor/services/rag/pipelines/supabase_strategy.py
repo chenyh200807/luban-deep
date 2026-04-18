@@ -90,6 +90,12 @@ _STANDARD_CODE_EXTRACT_RE = re.compile(
 )
 _EXAM_OPTION_RE = re.compile(r"(?:^|\n|\s)[A-E][\.．、\)]\s*\S")
 _EXAM_SPLIT_RE = re.compile(r"(?:^|\n|\s)[A-E][\.．、\)]\s*")
+_INLINE_MCQ_OPTION_MARKER = re.compile(r"(?:^|[\s。；;！？?）\)])([A-E][.、．:：])")
+_EXAM_PREFIX_RE = re.compile(r"^【(?:问题|题目|背景)】[：:\s]*")
+_EXAM_SOURCE_PREFIX_RE = re.compile(
+    r"^\s*(?:\d{4}年)?(?:[^：:\n]{0,24})?(?:真题|模拟题|试题)[：:\s]+"
+)
+_MIN_RETRIEVAL_QUERY_LEN = 10
 _EXAM_STRONG_KEYWORDS = ("选择题", "单选", "多选", "选项", "刷题", "真题", "做题")
 _EXAM_WEAK_KEYWORDS = ("考点", "考试", "解析", "答案", "题目")
 _MCQ_STEM_RE = re.compile(
@@ -130,6 +136,13 @@ _DOMAIN_KEYWORDS = (
     "地下工程",
 )
 
+_QUESTION_TYPE_ALIASES: dict[str, set[str]] = {
+    "single": {"single", "single_choice", "choice_single"},
+    "multi": {"multi", "multi_choice", "multiple_choice", "choice_multi"},
+    "case": {"case", "case_study", "case_background"},
+    "calculation": {"calculation", "calc", "written_calculation"},
+}
+
 
 @dataclass(slots=True)
 class SourceSelectionPlan:
@@ -141,7 +154,22 @@ class SourceSelectionPlan:
     query_form_complete: bool = True
     pruning_applied: bool = False
     pruning_reason: str | None = None
+    eval_parity_risk: bool = False
     selection_reasons: list[str] = field(default_factory=list)
+
+    def to_trace_dict(self) -> dict[str, Any]:
+        return {
+            "search_questions_bank": self.search_questions_bank,
+            "search_textbook_chunks": self.search_textbook_chunks,
+            "search_standard_chunks": self.search_standard_chunks,
+            "search_exam_chunks": self.search_exam_chunks,
+            "query_shape": self.query_shape,
+            "query_form_complete": self.query_form_complete,
+            "pruning_applied": self.pruning_applied,
+            "pruning_reason": self.pruning_reason,
+            "eval_parity_risk": self.eval_parity_risk,
+            "selection_reasons": list(self.selection_reasons),
+        }
 
 
 @dataclass(slots=True)
@@ -174,6 +202,33 @@ def normalize_query(query: str) -> str:
     text = re.sub(r"[？?。！!；;，,：:（）()\[\]【】]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
+
+
+def normalize_retrieval_query(query: str) -> str:
+    """Strip retrieval noise copied from the legacy FastAPI RAG stack."""
+    original = str(query or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not original:
+        return ""
+
+    if _looks_like_case_study(original):
+        focused = _build_case_focus_query(original)
+        if len(focused) >= _MIN_RETRIEVAL_QUERY_LEN:
+            return focused
+
+    option_marker_count = len(_INLINE_MCQ_OPTION_MARKER.findall(original))
+    normalized = _split_mcq_stem_options(original)[0].strip()
+    normalized = _EXAM_PREFIX_RE.sub("", normalized).strip()
+    normalized = _EXAM_SOURCE_PREFIX_RE.sub("", normalized).strip()
+
+    inline_matches = list(_INLINE_MCQ_OPTION_MARKER.finditer(normalized))
+    if inline_matches and option_marker_count >= 2:
+        candidate = normalized[: inline_matches[0].start(1)].strip(" \n\r\t:：;；，,。.()（）")
+        if candidate:
+            normalized = candidate
+
+    if len(normalized) < _MIN_RETRIEVAL_QUERY_LEN:
+        return original
+    return normalized
 
 
 def extract_standard_codes(query: str) -> list[str]:
@@ -237,13 +292,16 @@ def _expand_static_synonyms(text: str) -> list[str]:
 
 def rewrite_query(query: str, *, max_variants: int = 6) -> QueryRewriteResult:
     original = str(query or "").strip()
-    normalized = normalize_query(original)
+    retrieval_query = normalize_retrieval_query(original)
+    normalized = normalize_query(retrieval_query or original)
     query_shape = classify_query_shape(original)
     standard_codes = extract_standard_codes(original)
     reasons: list[str] = [f"query_shape={query_shape}"]
 
-    stem, options = _split_mcq_stem_options(original)
-    primary_query = stem or original
+    stem, options = _split_mcq_stem_options(retrieval_query or original)
+    primary_query = stem or retrieval_query or original
+    if retrieval_query and retrieval_query != original:
+        reasons.append("retrieval_query_normalized")
     if query_shape == "case_like":
         primary_query = _build_case_focus_query(original) or primary_query
     keywords = extract_domain_keywords(primary_query)
@@ -252,7 +310,11 @@ def rewrite_query(query: str, *, max_variants: int = 6) -> QueryRewriteResult:
         reasons.append("mcq_keyword_enhanced")
 
     variants: list[str] = []
-    candidates = [primary_query, original]
+    candidates = [primary_query]
+    if retrieval_query and retrieval_query not in candidates:
+        candidates.append(retrieval_query)
+    if original and original not in candidates:
+        candidates.append(original)
     if normalized and normalized not in candidates:
         candidates.append(normalized)
 
@@ -539,11 +601,24 @@ def matches_allowed_question_type(
     normalized = str(question_type or "").strip().lower()
     if not normalized:
         return False
-    return any(
-        allowed in normalized or normalized in allowed
-        for allowed in [str(item or "").strip().lower() for item in allowed_question_types]
-        if allowed
-    )
+    normalized_aliases = {normalized}
+    for canonical, aliases in _QUESTION_TYPE_ALIASES.items():
+        if normalized == canonical or normalized in aliases:
+            normalized_aliases.add(canonical)
+            normalized_aliases.update(aliases)
+
+    for raw_allowed in allowed_question_types:
+        allowed = str(raw_allowed or "").strip().lower()
+        if not allowed:
+            continue
+        allowed_aliases = {allowed}
+        for canonical, aliases in _QUESTION_TYPE_ALIASES.items():
+            if allowed == canonical or allowed in aliases:
+                allowed_aliases.add(canonical)
+                allowed_aliases.update(aliases)
+        if normalized_aliases.intersection(allowed_aliases):
+            return True
+    return False
 
 
 def validate_exact_question_options(
@@ -624,21 +699,57 @@ def classify_query_shape(query: str) -> str:
     return "concept_like"
 
 
-def select_sources(query: str, *, include_questions_default: bool = True) -> SourceSelectionPlan:
+def select_sources(
+    query: str,
+    *,
+    include_questions_default: bool = True,
+    intent: str = "",
+    question_type: str | None = None,
+    routing_metadata: dict[str, Any] | None = None,
+) -> SourceSelectionPlan:
     text = str(query or "").strip()
     plan = SourceSelectionPlan(search_questions_bank=include_questions_default)
     reasons: list[str] = []
     plan.query_shape = classify_query_shape(text)
     reasons.append(f"query_shape={plan.query_shape}")
+    intent_norm = str(intent or "").strip()
+    if intent_norm:
+        reasons.append(f"intent={intent_norm}")
+
+    routing = routing_metadata if isinstance(routing_metadata, dict) else {}
+    normalized_question_type = str(
+        question_type
+        or routing.get("question_type")
+        or ""
+    ).strip().lower()
+    if normalized_question_type:
+        reasons.append(f"question_type={normalized_question_type}")
 
     has_options = bool(_EXAM_OPTION_RE.search(text))
     if plan.query_shape == "mcq_like" and not has_options:
         plan.query_form_complete = False
+        plan.eval_parity_risk = True
         reasons.append("query_form_incomplete")
 
     exam_like = is_exam_like_query(text) or is_question_like_query(text)
     standard_like = is_standard_like_query(text)
     short_ambiguous = len(text) < 24 and plan.query_shape == "concept_like"
+    question_type_forces_qbank = normalized_question_type in {
+        "single",
+        "multi",
+        "single_choice",
+        "multi_choice",
+        "choice",
+        "case",
+        "case_study",
+    }
+    intent_forces_qbank = intent_norm in {
+        "Targeted_Practice",
+        "Grading_Submission",
+        "Calculation",
+        "answer_questions",
+        "revise_answers",
+    }
 
     if plan.query_shape == "case_like":
         plan.search_questions_bank = True
@@ -646,6 +757,14 @@ def select_sources(query: str, *, include_questions_default: bool = True) -> Sou
         reasons.append("force_case_sources")
         plan.selection_reasons = reasons
         return plan
+
+    if question_type_forces_qbank:
+        plan.search_questions_bank = True
+        reasons.append("force_qbank_by_question_type")
+
+    if intent_forces_qbank:
+        plan.search_questions_bank = True
+        reasons.append("force_qbank_by_intent")
 
     if plan.query_shape == "mcq_like" or exam_like:
         plan.search_questions_bank = True
@@ -660,6 +779,8 @@ def select_sources(query: str, *, include_questions_default: bool = True) -> Sou
     elif (
         plan.query_shape == "concept_like"
         and not exam_like
+        and not intent_forces_qbank
+        and not question_type_forces_qbank
         and plan.query_form_complete
         and not short_ambiguous
     ):

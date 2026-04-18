@@ -361,12 +361,30 @@ function streamChat(opts, callbacks) {
   resetIdleTimer();
   startSlowTimer();
 
+  var startTurnPayload = {
+    query: query,
+    conversation_id: sessionId,
+    mode: mode,
+  };
+  if (Array.isArray(opts && opts.tools) && opts.tools.length) {
+    startTurnPayload.tools = opts.tools.slice();
+  }
+  if (opts && opts.interactionProfile) {
+    startTurnPayload.interaction_profile = opts.interactionProfile;
+  }
+  if (opts && opts.interactionHints && typeof opts.interactionHints === "object") {
+    startTurnPayload.interaction_hints = opts.interactionHints;
+  }
+  if (
+    opts &&
+    opts.followupQuestionContext &&
+    typeof opts.followupQuestionContext === "object"
+  ) {
+    startTurnPayload.followup_question_context = opts.followupQuestionContext;
+  }
+
   api
-    .startChatTurn({
-      query: query,
-      conversation_id: sessionId,
-      mode: mode,
-    })
+    .startChatTurn(startTurnPayload)
     .then(function (raw) {
       if (aborted) return;
       var payload = api.unwrapResponse(raw) || {};

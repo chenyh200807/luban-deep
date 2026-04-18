@@ -15,6 +15,9 @@ from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAU
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.learner_state import LearnerStateService
 from deeptutor.services.member_console import get_member_console_service
+from deeptutor.services.query_intent import (
+    build_grounding_decision,
+)
 from deeptutor.services.feedback_service import (
     SupabaseFeedbackStore,
     build_mobile_feedback_row,
@@ -36,6 +39,7 @@ _MOBILE_TUTORBOT_ID = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
 _MOBILE_TUTORBOT_NAME = "Construction Exam Coach"
 _MOBILE_TUTORBOT_DESCRIPTION = "微信小程序主聊天默认建筑实务 TutorBot"
 _MOBILE_PLACEHOLDER_TITLES = {"", "new conversation", "新对话"}
+_MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE = 500
 MobileFeedbackSupabaseClient = SupabaseFeedbackStore
 
 
@@ -150,18 +154,29 @@ async def _load_mobile_conversation_variants(
     normalized_conversation_id = str(conversation_id or "").strip()
     if not normalized_conversation_id:
         return []
-    rows = await session_store.list_sessions_by_owner(
-        build_user_owner_key(user_id),
-        source="wx_miniprogram",
-        archived=None,
-        limit=500,
-        offset=0,
-    )
-    return [
-        row
-        for row in list(rows or [])
-        if isinstance(row, dict) and _matches_mobile_conversation_id(row, normalized_conversation_id)
-    ]
+    owner_key = build_user_owner_key(user_id)
+    matches: list[dict[str, Any]] = []
+    offset = 0
+    while True:
+        rows = await session_store.list_sessions_by_owner(
+            owner_key,
+            source="wx_miniprogram",
+            archived=None,
+            limit=_MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE,
+            offset=offset,
+        )
+        batch = list(rows or [])
+        if not batch:
+            break
+        matches.extend(
+            row
+            for row in batch
+            if isinstance(row, dict) and _matches_mobile_conversation_id(row, normalized_conversation_id)
+        )
+        if len(batch) < _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE:
+            break
+        offset += _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE
+    return matches
 
 
 def _merge_mobile_message_rows(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -247,24 +262,6 @@ def _normalize_tutorbot_mode(value: str | None) -> str:
     if normalized in {"fast", "deep"}:
         return normalized
     return "smart"
-
-
-def _query_requires_current_info(query: str) -> bool:
-    text = str(query or "").strip().lower()
-    keywords = (
-        "最新",
-        "现行",
-        "当前",
-        "今年",
-        "最近",
-        "政策",
-        "通知",
-        "公告",
-        "新规",
-        "发文",
-        "变化",
-    )
-    return any(keyword in text for keyword in keywords)
 
 
 def _extract_goal_patches(patch: dict[str, Any]) -> list[dict[str, Any]]:
@@ -360,7 +357,13 @@ def _build_mobile_turn_payload(
     query: str,
 ) -> dict[str, Any]:
     requested_tools = [str(item).strip() for item in (body.tools or []) if str(item).strip()]
-    current_info_required = _query_requires_current_info(query)
+    grounding_decision = build_grounding_decision(
+        query=query,
+        knowledge_bases=body.knowledge_bases,
+        rag_enabled=True,
+        tutorbot_context=True,
+    )
+    current_info_required = grounding_decision.current_info_required or grounding_decision.textbook_delta_query
     if current_info_required and "web_search" not in requested_tools:
         requested_tools.append("web_search")
 
@@ -370,6 +373,8 @@ def _build_mobile_turn_payload(
         body.interaction_hints,
         current_info_required=current_info_required,
     )
+    if grounding_decision.reasons:
+        interaction_hints["grounding_reasons"] = list(grounding_decision.reasons)
     config: dict[str, Any] = {
         "chat_mode": _normalize_tutorbot_mode(body.mode),
         "interaction_hints": interaction_hints,
@@ -533,7 +538,14 @@ async def auth_login(body: LoginRequest) -> dict[str, Any]:
 async def auth_register(body: RegisterRequest) -> dict[str, Any]:
     try:
         result = member_service.register_with_external_auth(body.username, body.password, body.phone)
-        user_id = str(result.get("user_id") or result.get("id") or "").strip()
+        user = result.get("user") if isinstance(result.get("user"), dict) else {}
+        user_id = str(
+            result.get("user_id")
+            or result.get("id")
+            or user.get("user_id")
+            or user.get("id")
+            or ""
+        ).strip()
         if user_id:
             try:
                 learner_state_service.read_snapshot(user_id)
@@ -553,6 +565,8 @@ async def auth_register(body: RegisterRequest) -> dict[str, Any]:
 async def auth_send_code(body: PhoneRequest) -> dict[str, Any]:
     try:
         return member_service.send_phone_code(body.phone)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 

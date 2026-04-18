@@ -82,12 +82,42 @@ class RAGAdapterTool(Tool):
         from deeptutor.tools.rag_tool import rag_search
 
         kb_name = self._normalize_requested_kb(str(kwargs.get("kb_name") or "").strip()) or self._resolve_default_kb()
-        result = await rag_search(
-            query=kwargs.get("query", ""),
-            kb_name=kb_name or None,
+        interaction_hints = (
+            self._runtime_context.get("interaction_hints")
+            if isinstance(self._runtime_context.get("interaction_hints"), dict)
+            else {}
         )
+        routing_metadata = {
+            "profile": str(interaction_hints.get("profile") or "").strip(),
+            "entry_role": str(interaction_hints.get("entry_role") or "").strip(),
+            "subject_domain": str(interaction_hints.get("subject_domain") or "").strip(),
+        }
+        search_kwargs: dict[str, Any] = {
+            "query": kwargs.get("query", ""),
+            "kb_name": kb_name or None,
+        }
+        intent = str(self._runtime_context.get("intent") or "").strip()
+        if intent:
+            search_kwargs["intent"] = intent
+        question_flow_active = bool(
+            self._runtime_context.get("question_followup_context")
+            or self._runtime_context.get("followup_question_context")
+        ) or intent in {"answer_questions", "revise_answers"}
+        question_type = (
+            str(self._runtime_context.get("question_type") or "").strip()
+            if question_flow_active
+            else ""
+        )
+        if question_type:
+            search_kwargs["question_type"] = question_type
+        if any(routing_metadata.values()):
+            search_kwargs["routing_metadata"] = routing_metadata
+        result = await rag_search(**search_kwargs)
         exact_question = result.get("exact_question") if isinstance(result.get("exact_question"), dict) else None
         sources = result.get("sources") if isinstance(result.get("sources"), list) else []
+        evidence_bundle = (
+            result.get("evidence_bundle") if isinstance(result.get("evidence_bundle"), dict) else {}
+        )
         self._last_trace_metadata = {
             "kb_name": kb_name or "",
             "sources": sources[:8],
@@ -95,6 +125,10 @@ class RAGAdapterTool(Tool):
             "exact_question": exact_question or {},
             "authority_applied": False,
         }
+        if evidence_bundle:
+            self._last_trace_metadata["evidence_bundle_summary"] = self._summarize_evidence_bundle(
+                evidence_bundle
+            )
         return str(result.get("answer") or result.get("content") or "")
 
     def set_runtime_context(self, **kwargs: Any) -> None:
@@ -143,6 +177,23 @@ class RAGAdapterTool(Tool):
         if normalized.strip().lower() in alias_set:
             return default_kb
         return normalized
+
+    @staticmethod
+    def _summarize_evidence_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
+        sources = bundle.get("sources") if isinstance(bundle.get("sources"), list) else []
+        content_blocks = (
+            bundle.get("content_blocks") if isinstance(bundle.get("content_blocks"), list) else []
+        )
+        return {
+            "bundle_id": str(bundle.get("bundle_id") or "").strip(),
+            "kb_name": str(bundle.get("kb_name") or "").strip(),
+            "provider": str(bundle.get("provider") or "").strip(),
+            "query_shape": str(bundle.get("query_shape") or "").strip(),
+            "retrieval_empty": bool(bundle.get("retrieval_empty")),
+            "source_count": len(sources),
+            "content_block_count": len(content_blocks),
+            "exact_question": bool(bundle.get("exact_question")),
+        }
 
 
 class CodeExecutionAdapterTool(Tool):

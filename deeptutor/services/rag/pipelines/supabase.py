@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+from collections import OrderedDict
+import hashlib
 import json
 import os
 import re
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -47,12 +50,82 @@ _QUESTION_SELECT = (
     "background_context,parent_id,source_chunk_id,structured_rules,logic_rule"
 )
 
+_EMBEDDING_CACHE: OrderedDict[str, tuple[list[float], float]] = OrderedDict()
+
 
 def _env_flag(name: str, default: bool = False) -> bool:
     raw = str(os.getenv(name, "") or "").strip().lower()
     if not raw:
         return default
     return raw in {"1", "true", "yes", "on"}
+
+
+def _env_float_compat(primary: str, fallback: str, default: float) -> float:
+    raw = str(os.getenv(primary, "") or "").strip()
+    if not raw:
+        raw = str(os.getenv(fallback, "") or "").strip()
+    try:
+        return float(raw) if raw else float(default)
+    except Exception:
+        return float(default)
+
+
+def _env_int_compat(primary: str, fallback: str, default: int) -> int:
+    raw = str(os.getenv(primary, "") or "").strip()
+    if not raw:
+        raw = str(os.getenv(fallback, "") or "").strip()
+    try:
+        return int(raw) if raw else int(default)
+    except Exception:
+        return int(default)
+
+
+def _embedding_cache_enabled() -> bool:
+    return _env_flag(
+        "SUPABASE_RAG_EMBEDDING_CACHE_ENABLED",
+        _env_flag("FF_EMBEDDING_CACHE_ENABLED", True),
+    )
+
+
+def _get_cached_embedding(query: str) -> list[float] | None:
+    ttl_s = _env_float_compat(
+        "SUPABASE_RAG_EMBEDDING_CACHE_TTL_SECONDS",
+        "EMBEDDING_CACHE_TTL_SECONDS",
+        600.0,
+    )
+    key = hashlib.sha256(str(query or "").encode("utf-8")).hexdigest()
+    entry = _EMBEDDING_CACHE.get(key)
+    if entry and (time.time() - entry[1]) < ttl_s:
+        try:
+            _EMBEDDING_CACHE.move_to_end(key)
+        except KeyError:
+            pass
+        return entry[0]
+    if entry:
+        _EMBEDDING_CACHE.pop(key, None)
+    return None
+
+
+def _cache_embedding(query: str, embedding: list[float]) -> None:
+    max_entries = _env_int_compat(
+        "SUPABASE_RAG_EMBEDDING_CACHE_MAX_ENTRIES",
+        "EMBEDDING_CACHE_MAX_ENTRIES",
+        1000,
+    )
+    key = hashlib.sha256(str(query or "").encode("utf-8")).hexdigest()
+    if key in _EMBEDDING_CACHE:
+        _EMBEDDING_CACHE[key] = (embedding, time.time())
+        try:
+            _EMBEDDING_CACHE.move_to_end(key)
+        except KeyError:
+            pass
+        return
+    if len(_EMBEDDING_CACHE) >= max_entries:
+        try:
+            _EMBEDDING_CACHE.popitem(last=False)
+        except KeyError:
+            pass
+    _EMBEDDING_CACHE[key] = (embedding, time.time())
 
 
 def _env_csv(name: str, default: str = "") -> list[str]:
@@ -141,6 +214,45 @@ def _dedupe_source_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return deduped
 
 
+def _build_evidence_bundle(
+    *,
+    query: str,
+    provider: str,
+    kb_name: str,
+    content_blocks: list[str],
+    sources: list[dict[str, Any]],
+    exact_question: dict[str, Any] | None,
+    source_plan,
+    query_shape: str,
+    rewritten,
+    second_pass_queries: list[str],
+) -> dict[str, Any]:
+    return {
+        "bundle_id": hashlib.sha256(f"{kb_name}:{query}".encode("utf-8")).hexdigest()[:16],
+        "query": query,
+        "provider": provider,
+        "kb_name": kb_name,
+        "query_shape": query_shape,
+        "retrieval_query": str(rewritten.primary_query or query).strip(),
+        "query_rewrite": {
+            "normalized_query": str(rewritten.normalized_query or "").strip(),
+            "keywords": list(rewritten.keywords or []),
+            "standard_codes": list(rewritten.standard_codes or []),
+            "reasons": list(rewritten.reasons or []),
+            "second_pass_queries": list(second_pass_queries or []),
+        },
+        "source_plan": (
+            source_plan.to_trace_dict()
+            if hasattr(source_plan, "to_trace_dict")
+            else {}
+        ),
+        "content_blocks": list(content_blocks or []),
+        "sources": list(sources or []),
+        "exact_question": dict(exact_question or {}),
+        "retrieval_empty": not bool(sources),
+    }
+
+
 def _weighted_rrf_fusion(
     results_by_group: dict[str, list[dict[str, Any]]],
     weights: dict[str, float],
@@ -193,6 +305,107 @@ def _enforce_doc_diversity(
         else:
             tail.append(item)
     return head + tail
+
+
+def _apply_similarity_floor(
+    fused: list[dict[str, Any]],
+    results_map: dict[str, list[dict[str, Any]]],
+    *,
+    target_window: int,
+) -> list[dict[str, Any]]:
+    threshold = _env_float_compat("SUPABASE_RAG_SIM_FLOOR_THRESHOLD", "SIM_FLOOR_THRESHOLD", 0.72)
+    boost_factor = _env_float_compat("SUPABASE_RAG_SIM_FLOOR_BOOST", "SIM_FLOOR_BOOST", 0.02)
+    max_boosted = _env_int_compat("SUPABASE_RAG_SIM_FLOOR_MAX_BOOSTED", "SIM_FLOOR_MAX_BOOSTED", 3)
+    hard_threshold = _env_float_compat(
+        "SUPABASE_RAG_SIM_FLOOR_HARD_THRESHOLD",
+        "SIM_FLOOR_HARD_THRESHOLD",
+        0.82,
+    )
+    hard_max = _env_int_compat("SUPABASE_RAG_SIM_FLOOR_HARD_MAX", "SIM_FLOOR_HARD_MAX", 2)
+
+    if target_window <= 0 or not fused:
+        return fused
+
+    chunk_best_sim: dict[str, float] = {}
+    chunk_source_doc: dict[str, dict[str, Any]] = {}
+    for source_results in results_map.values():
+        for chunk in source_results:
+            sim = chunk.get("similarity")
+            if not isinstance(sim, (int, float)):
+                sim = chunk.get("score") or 0.0
+            sim = float(sim or 0.0)
+            if sim < threshold:
+                continue
+            chunk_id = str(chunk.get("chunk_id") or chunk.get("id") or "").strip()
+            if not chunk_id:
+                continue
+            if sim > chunk_best_sim.get(chunk_id, 0.0):
+                chunk_best_sim[chunk_id] = sim
+                chunk_source_doc[chunk_id] = dict(chunk)
+
+    if not chunk_best_sim:
+        return fused
+
+    eligible = sorted(chunk_best_sim.items(), key=lambda item: item[1], reverse=True)
+    boost_ids = {chunk_id for chunk_id, _ in eligible[:max_boosted]}
+    for chunk in fused:
+        chunk_id = str(chunk.get("chunk_id") or chunk.get("id") or "").strip()
+        if chunk_id not in boost_ids:
+            continue
+        sim = chunk_best_sim[chunk_id]
+        original_score = float(chunk.get("weighted_rrf_score") or 0.0)
+        chunk["weighted_rrf_score"] = original_score + (boost_factor * sim)
+        chunk["_sim_floor_boosted"] = True
+        chunk["_sim_floor_original_score"] = original_score
+
+    fused.sort(key=lambda item: float(item.get("weighted_rrf_score") or 0.0), reverse=True)
+
+    hard_candidates = [
+        (chunk_id, sim)
+        for chunk_id, sim in chunk_best_sim.items()
+        if sim >= hard_threshold
+    ]
+    hard_candidates.sort(key=lambda item: item[1], reverse=True)
+
+    for chunk_id, sim in hard_candidates[:hard_max]:
+        window_end = min(target_window, len(fused))
+        in_window = any(
+            str(fused[index].get("chunk_id") or fused[index].get("id") or "").strip() == chunk_id
+            for index in range(window_end)
+        )
+        if in_window:
+            continue
+
+        source_index = None
+        for index, chunk in enumerate(fused):
+            if str(chunk.get("chunk_id") or chunk.get("id") or "").strip() == chunk_id:
+                source_index = index
+                break
+
+        if source_index is None and chunk_id in chunk_source_doc:
+            doc = dict(chunk_source_doc[chunk_id])
+            doc["weighted_rrf_score"] = boost_factor * sim
+            fused.append(doc)
+            source_index = len(fused) - 1
+
+        if source_index is None:
+            continue
+
+        fused[source_index]["_sim_floor_guaranteed"] = True
+        worst_index = None
+        worst_score = float("inf")
+        for index in range(window_end):
+            if fused[index].get("_sim_floor_guaranteed"):
+                continue
+            score = float(fused[index].get("weighted_rrf_score") or 0.0)
+            if score < worst_score:
+                worst_score = score
+                worst_index = index
+        if worst_index is None or worst_index == source_index:
+            continue
+        fused[source_index], fused[worst_index] = fused[worst_index], fused[source_index]
+
+    return fused
 
 
 @dataclass(slots=True)
@@ -275,6 +488,9 @@ class SupabasePipeline:
             return {"query": "", "answer": "", "content": "", "sources": [], "provider": "supabase"}
 
         config = self._load_search_config(kb_name=kb_name, kwargs=kwargs)
+        intent = str(kwargs.get("intent") or "").strip()
+        question_type = str(kwargs.get("question_type") or "").strip()
+        routing_metadata = kwargs.get("routing_metadata")
         with observability.start_observation(
             name="rag.supabase.search",
             as_type="retriever",
@@ -289,7 +505,15 @@ class SupabasePipeline:
             precision_node_code = extract_node_code_prefix(query)
             rewritten = rewrite_query(query, max_variants=config.max_query_variants)
             question_like = is_question_like_query(query) or rewritten.query_shape == "mcq_like"
-            source_plan = select_sources(query, include_questions_default=config.include_questions)
+            source_plan = select_sources(
+                query,
+                include_questions_default=config.include_questions,
+                intent=intent,
+                question_type=question_type,
+                routing_metadata=(
+                    routing_metadata if isinstance(routing_metadata, dict) else None
+                ),
+            )
             query_shape = rewritten.query_shape or classify_query_shape(query)
             exact_probe = (
                 prepare_exact_question_probe(query)
@@ -482,6 +706,18 @@ class SupabasePipeline:
             }
             for item in final_results
         ])
+        evidence_bundle = _build_evidence_bundle(
+            query=query,
+            provider="supabase",
+            kb_name=kb_name,
+            content_blocks=content_blocks,
+            sources=sources,
+            exact_question=exact_question,
+            source_plan=source_plan,
+            query_shape=query_shape,
+            rewritten=rewritten,
+            second_pass_queries=second_pass_queries,
+        )
 
         payload = {
             "query": query,
@@ -489,6 +725,8 @@ class SupabasePipeline:
             "content": content,
             "sources": sources,
             "provider": "supabase",
+            "kb_name": kb_name,
+            "evidence_bundle": evidence_bundle,
         }
         if exact_question:
             payload["exact_question"] = exact_question
@@ -509,13 +747,7 @@ class SupabasePipeline:
                     "reasons": rewritten.reasons,
                 },
                 "source_plan": {
-                    "search_questions_bank": source_plan.search_questions_bank,
-                    "search_textbook_chunks": source_plan.search_textbook_chunks,
-                    "search_standard_chunks": source_plan.search_standard_chunks,
-                    "search_exam_chunks": source_plan.search_exam_chunks,
-                    "pruning_applied": source_plan.pruning_applied,
-                    "pruning_reason": source_plan.pruning_reason,
-                    "selection_reasons": source_plan.selection_reasons,
+                    **source_plan.to_trace_dict(),
                 },
                 "precision_node_code": precision_node_code,
                 "primary_queries": primary_queries,
@@ -679,6 +911,8 @@ class SupabasePipeline:
                 item["_query_phase"] = phase
 
         fused = _weighted_rrf_fusion(results_map, weights)
+        target_window = max(1, max(config.top_k, min(config.fetch_count, config.rerank_window)))
+        fused = _apply_similarity_floor(fused, results_map, target_window=target_window)
         fused = _enrich_question_weights(fused, question_like=question_like, config=config)
         return dedupe_ranked_results(fused)
 
@@ -732,10 +966,17 @@ class SupabasePipeline:
         return reranked
 
     async def _embed_query(self, query: str) -> list[float]:
+        if _embedding_cache_enabled():
+            cached = _get_cached_embedding(query)
+            if cached:
+                return cached
         embeddings = await get_embedding_client().embed([query])
         if not embeddings or not embeddings[0]:
             raise RuntimeError("Embedding API returned no query embedding.")
-        return embeddings[0]
+        result = embeddings[0]
+        if _embedding_cache_enabled():
+            _cache_embedding(query, result)
+        return result
 
     def _load_search_config(self, *, kb_name: str, kwargs: dict[str, Any]) -> SupabaseSearchConfig:
         kb_config = get_kb_config_service().get_kb_config(kb_name)

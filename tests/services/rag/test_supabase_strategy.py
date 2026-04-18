@@ -9,6 +9,8 @@ from deeptutor.services.rag.pipelines.supabase_strategy import (
     expand_query_variants,
     extract_case_subquestion_items,
     extract_standard_codes,
+    normalize_retrieval_query,
+    matches_allowed_question_type,
     prepare_exact_question_probe,
     resolve_group_weights,
     rewrite_query,
@@ -81,6 +83,39 @@ def test_select_sources_keeps_question_bank_for_mcq_like_query() -> None:
 
     assert plan.query_shape == "mcq_like"
     assert plan.search_questions_bank is True
+
+
+def test_select_sources_respects_upstream_question_type_for_ambiguous_query() -> None:
+    plan = select_sources(
+        "屋面防水等级",
+        include_questions_default=True,
+        question_type="single_choice",
+    )
+
+    assert plan.search_questions_bank is True
+    assert "force_qbank_by_question_type" in plan.selection_reasons
+
+
+def test_select_sources_respects_upstream_intent_for_answer_submission() -> None:
+    plan = select_sources(
+        "屋面防水等级",
+        include_questions_default=True,
+        intent="answer_questions",
+    )
+
+    assert plan.search_questions_bank is True
+    assert "force_qbank_by_intent" in plan.selection_reasons
+
+
+def test_select_sources_does_not_treat_preferred_question_type_as_current_question_type() -> None:
+    plan = select_sources(
+        "建筑防水等级划分依据和设防要求分别是什么，请系统解释原因",
+        include_questions_default=True,
+        routing_metadata={"preferred_question_type": "choice"},
+    )
+
+    assert plan.search_questions_bank is False
+    assert plan.pruning_applied is True
 
 
 def test_resolve_group_weights_matches_query_shape() -> None:
@@ -158,6 +193,16 @@ def test_rewrite_query_enhances_mcq_stem() -> None:
     assert rewritten.query_shape == "mcq_like"
     assert "屋面工程" in rewritten.primary_query
     assert rewritten.variants[0] == rewritten.primary_query
+
+
+def test_normalize_retrieval_query_strips_exam_prefix_and_inline_options() -> None:
+    normalized = normalize_retrieval_query(
+        "2024年一级建造师《建筑实务》真题：关于屋面防水等级，下列说法正确的是（ ）A. 一级防水 B. 二级防水 C. 三级防水"
+    )
+
+    assert normalized.startswith("关于屋面防水等级")
+    assert "真题" not in normalized
+    assert "A." not in normalized
 
 
 def test_expand_query_variants_includes_normalized_standard_codes() -> None:
@@ -273,3 +318,8 @@ def test_validate_exact_question_options_supports_list_payloads() -> None:
         options=["A. 建筑物类别", "B. 建筑物用途"],
         option_validation_required=True,
     )
+
+
+def test_matches_allowed_question_type_uses_alias_table_not_substring_match() -> None:
+    assert matches_allowed_question_type("single_choice", ["single"])
+    assert not matches_allowed_question_type("case_study_followup", ["case_study"])

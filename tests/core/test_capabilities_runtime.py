@@ -477,7 +477,10 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
         enabled_tools=["rag"],
         knowledge_bases=["construction-exam"],
         config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
-        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        metadata={
+            "billing_context": {"user_id": "u1", "source": "wx_miniprogram"},
+            "interaction_hints": {"current_info_required": True},
+        },
         language="zh",
     )
 
@@ -489,9 +492,10 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     assert captured["send"]["chat_id"] == "session-1"
     assert captured["send"]["mode"] == "smart"
     assert captured["send"]["session_metadata"]["user_id"] == "u1"
-    assert captured["send"]["session_metadata"]["default_tools"] == []
+    assert captured["send"]["session_metadata"]["default_tools"] == ["rag"]
     assert captured["send"]["session_metadata"]["knowledge_bases"] == ["construction-exam"]
     assert captured["send"]["session_metadata"]["default_kb"] == "construction-exam"
+    assert captured["send"]["session_metadata"]["current_info_required"] is True
     assert captured["send"]["session_metadata"]["suppress_answer_reveal_on_generate"] is True
     assert "construction-knowledge" in captured["send"]["session_metadata"]["kb_aliases"]
     assert "construction-exam-tutor" in captured["send"]["session_metadata"]["kb_aliases"]
@@ -500,8 +504,8 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     assert any(event.type == StreamEventType.TOOL_RESULT and "知识库命中" in event.content for event in events)
     assert any(event.type == StreamEventType.SOURCES and event.metadata["sources"][0]["chunk_id"] == "q-1" for event in events)
     content_events = [event for event in events if event.type == StreamEventType.CONTENT]
-    assert [event.content for event in content_events] == ["Tutor", "Bot"]
-    assert all(event.metadata["call_kind"] == "llm_stream_delta" for event in content_events)
+    assert [event.content for event in content_events] == ["TutorBot"]
+    assert all(event.metadata["call_kind"] == "llm_final_response" for event in content_events)
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["response"] == "TutorBot"
     assert result_event.metadata["execution_engine"] == "tutorbot_runtime"
@@ -1020,6 +1024,144 @@ async def test_rag_adapter_tool_coerces_none_answer_to_empty_string(
         "exact_question": {},
         "authority_applied": False,
     }
+
+
+@pytest.mark.asyncio
+async def test_rag_adapter_tool_emits_only_evidence_bundle_summary_in_trace_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+
+    async def _fake_rag_search(*, query: str, kb_name: str | None = None, **_kwargs: Any) -> dict[str, Any]:
+        assert query == "防水等级"
+        assert kb_name == "construction-exam"
+        return {
+            "answer": "答案",
+            "content": "答案",
+            "sources": [{"chunk_id": "c1", "source_type": "standard"}],
+            "evidence_bundle": {
+                "bundle_id": "bundle-1",
+                "kb_name": "construction-exam",
+                "provider": "supabase",
+                "query_shape": "concept_like",
+                "retrieval_empty": False,
+                "content_blocks": ["A", "B"],
+                "sources": [{"chunk_id": "c1"}, {"chunk_id": "c2"}],
+                "exact_question": {},
+            },
+        }
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(metadata={"default_kb": "construction-exam"})
+
+    result = await tool.execute(query="防水等级")
+
+    assert result == "答案"
+    metadata = tool.consume_trace_metadata()
+    assert metadata["evidence_bundle_summary"] == {
+        "bundle_id": "bundle-1",
+        "kb_name": "construction-exam",
+        "provider": "supabase",
+        "query_shape": "concept_like",
+        "retrieval_empty": False,
+        "source_count": 2,
+        "content_block_count": 2,
+        "exact_question": False,
+    }
+    assert "evidence_bundle" not in metadata
+
+
+@pytest.mark.asyncio
+async def test_rag_adapter_tool_does_not_forward_stale_question_type_without_question_flow(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+    captured: dict[str, Any] = {}
+
+    async def _fake_rag_search(**kwargs: Any) -> dict[str, Any]:
+        captured.update(kwargs)
+        return {"answer": "ok", "content": "ok", "sources": []}
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(
+        metadata={
+            "default_kb": "construction-exam",
+            "question_type": "single_choice",
+        }
+    )
+
+    await tool.execute(query="防水等级")
+
+    assert captured["query"] == "防水等级"
+    assert "question_type" not in captured
+
+
+@pytest.mark.asyncio
+async def test_rag_adapter_tool_forwards_question_type_only_for_question_flow(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+    captured: dict[str, Any] = {}
+
+    async def _fake_rag_search(**kwargs: Any) -> dict[str, Any]:
+        captured.update(kwargs)
+        return {"answer": "ok", "content": "ok", "sources": []}
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(
+        metadata={
+            "default_kb": "construction-exam",
+            "intent": "answer_questions",
+            "question_type": "single_choice",
+            "question_followup_context": {"question_id": "q1"},
+        }
+    )
+
+    await tool.execute(query="第1题我改成C")
+
+    assert captured["question_type"] == "single_choice"
 
 
 @pytest.mark.asyncio

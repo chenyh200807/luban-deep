@@ -321,11 +321,14 @@ async def rename_category(
     current_user: AuthContext = Depends(get_current_user),
 ):
     store = get_sqlite_session_store()
-    updated = await store.rename_category(
-        category_id,
-        payload.name,
-        owner_key=None if current_user.is_admin else _owner_key(current_user),
-    )
+    try:
+        updated = await store.rename_category(
+            category_id,
+            payload.name,
+            owner_key=None if current_user.is_admin else _owner_key(current_user),
+        )
+    except sqlite3.IntegrityError as e:
+        raise HTTPException(status_code=409, detail="Category name already exists") from e
     if not updated:
         raise HTTPException(status_code=404, detail="Category not found")
     return {"updated": True, "id": category_id, "name": payload.name}

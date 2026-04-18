@@ -64,6 +64,13 @@ def _slugify_phone(value: str) -> str:
     return digits[-11:] if digits else "13800000000"
 
 
+def _normalize_phone_input(value: str | None) -> str:
+    digits = "".join(ch for ch in str(value or "") if ch.isdigit())
+    if len(digits) < 11:
+        return ""
+    return digits[-11:]
+
+
 def _date_key(value: datetime | None = None) -> str:
     return (value or _now()).strftime("%Y-%m-%d")
 
@@ -231,27 +238,38 @@ class MemberConsoleService:
         }
 
     def _bootstrap_data(self) -> dict[str, Any]:
+        if self._demo_seed_enabled():
+            return self._seed_data()
+        return self._empty_data()
+
+    @staticmethod
+    def _demo_seed_enabled() -> bool:
         if is_production_environment():
-            return self._empty_data()
-        return self._seed_data()
+            return False
+        return env_flag("DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED", default=False)
+
+    @staticmethod
+    def _serialize_learner_memory_event(event: Any) -> dict[str, Any]:
+        return {
+            "event_id": event.event_id,
+            "source_feature": event.source_feature,
+            "source_id": event.source_id,
+            "source_bot_id": event.source_bot_id,
+            "memory_kind": event.memory_kind,
+            "payload_json": dict(event.payload_json or {}),
+            "created_at": event.created_at,
+        }
 
     @staticmethod
     def _serialize_learner_snapshot(snapshot: Any) -> dict[str, Any]:
         return {
             "user_id": snapshot.user_id,
+            "available": True,
             "profile": dict(snapshot.profile or {}),
             "summary": str(snapshot.summary or ""),
             "progress": dict(snapshot.progress or {}),
             "recent_memory_events": [
-                {
-                    "event_id": event.event_id,
-                    "source_feature": event.source_feature,
-                    "source_id": event.source_id,
-                    "source_bot_id": event.source_bot_id,
-                    "memory_kind": event.memory_kind,
-                    "payload_json": dict(event.payload_json or {}),
-                    "created_at": event.created_at,
-                }
+                MemberConsoleService._serialize_learner_memory_event(event)
                 for event in list(snapshot.memory_events or [])
             ],
             "profile_updated_at": snapshot.profile_updated_at,
@@ -259,6 +277,92 @@ class MemberConsoleService:
             "progress_updated_at": snapshot.progress_updated_at,
             "memory_events_updated_at": snapshot.memory_events_updated_at,
         }
+
+    @staticmethod
+    def _empty_learner_snapshot_payload(user_id: str) -> dict[str, Any]:
+        return {
+            "user_id": user_id,
+            "available": False,
+            "profile": {},
+            "summary": "",
+            "progress": {},
+            "recent_memory_events": [],
+            "profile_updated_at": None,
+            "summary_updated_at": None,
+            "progress_updated_at": None,
+            "memory_events_updated_at": None,
+        }
+
+    @staticmethod
+    def _learner_state_updated_at(learner_state_service: Any, user_id: str, section: str) -> str | None:
+        reader = getattr(learner_state_service, "_file_updated_at", None)
+        if not callable(reader):
+            return None
+        try:
+            return reader(user_id, section)
+        except Exception:
+            logger.warning(
+                "Failed to read learner state updated_at for member 360: user_id=%s section=%s",
+                user_id,
+                section,
+                exc_info=True,
+            )
+            return None
+
+    def _load_partial_learner_snapshot_payload(
+        self,
+        learner_state_service: Any,
+        user_id: str,
+        *,
+        event_limit: int,
+    ) -> dict[str, Any]:
+        payload = self._empty_learner_snapshot_payload(user_id)
+        loaded_any = False
+        try:
+            payload["profile"] = dict(learner_state_service.read_profile(user_id) or {})
+            payload["profile_updated_at"] = self._learner_state_updated_at(
+                learner_state_service,
+                user_id,
+                "profile",
+            )
+            loaded_any = True
+        except Exception:
+            logger.warning("Failed to load learner profile for member 360: user_id=%s", user_id, exc_info=True)
+        try:
+            payload["summary"] = str(learner_state_service.read_summary(user_id) or "")
+            payload["summary_updated_at"] = self._learner_state_updated_at(
+                learner_state_service,
+                user_id,
+                "summary",
+            )
+            loaded_any = True
+        except Exception:
+            logger.warning("Failed to load learner summary for member 360: user_id=%s", user_id, exc_info=True)
+        try:
+            payload["progress"] = dict(learner_state_service.read_progress(user_id) or {})
+            payload["progress_updated_at"] = self._learner_state_updated_at(
+                learner_state_service,
+                user_id,
+                "progress",
+            )
+            loaded_any = True
+        except Exception:
+            logger.warning("Failed to load learner progress for member 360: user_id=%s", user_id, exc_info=True)
+        try:
+            payload["recent_memory_events"] = [
+                self._serialize_learner_memory_event(event)
+                for event in list(learner_state_service.list_memory_events(user_id, limit=event_limit) or [])
+            ]
+            payload["memory_events_updated_at"] = self._learner_state_updated_at(
+                learner_state_service,
+                user_id,
+                "events",
+            )
+            loaded_any = True
+        except Exception:
+            logger.warning("Failed to load learner memory events for member 360: user_id=%s", user_id, exc_info=True)
+        payload["available"] = loaded_any
+        return payload
 
     @staticmethod
     def _serialize_heartbeat_job(job: Any) -> dict[str, Any]:
@@ -575,6 +679,29 @@ class MemberConsoleService:
             data["members"].append(seed)
             return seed
 
+    def _load_member_snapshot(self, user_id: str) -> dict[str, Any]:
+        with self._lock:
+            with self._storage_lock():
+                data = self._load_unlocked()
+                changed = False
+                try:
+                    member = self._find_member(data, user_id)
+                    before = deepcopy(member)
+                    self._ensure_learning_profile(member)
+                    changed = member != before
+                except KeyError:
+                    member = self._build_default_member(user_id)
+                    self._ensure_learning_profile(member)
+                    data["members"].append(member)
+                    changed = True
+                snapshot = {
+                    "member": deepcopy(member),
+                    "packages": deepcopy(data.get("packages") or self._default_packages()),
+                }
+                if changed:
+                    self._save_unlocked(data)
+                return snapshot
+
     def _ensure_learning_profile(self, member: dict[str, Any]) -> dict[str, Any]:
         daily_counts = member.setdefault("daily_practice_counts", {})
         chapter_stats = member.setdefault("chapter_practice_stats", {})
@@ -617,6 +744,15 @@ class MemberConsoleService:
         if secret == "deeptutor-dev-member-secret" and is_production_environment():
             raise RuntimeError("DEEPTUTOR_AUTH_SECRET must be configured in production")
         return secret
+
+    @staticmethod
+    def _extract_access_token(auth_header: str | None) -> str:
+        raw = str(auth_header or "").strip()
+        if not raw:
+            return ""
+        if raw.lower().startswith("bearer "):
+            return raw[7:].strip()
+        return raw
 
     def _admin_user_ids(self) -> set[str]:
         raw = str(
@@ -1024,11 +1160,31 @@ class MemberConsoleService:
         )
 
     def resolve_user_id(self, auth_header: str | None = None, user_id: str | None = None) -> str:
-        token = str(auth_header or "").replace("Bearer", "").strip()
+        token = self._extract_access_token(auth_header)
         verified = self.verify_access_token(token)
         if verified and str(verified.get("uid") or "").strip():
             return str(verified["uid"]).strip()
         return ""
+
+    def _build_auth_response(
+        self,
+        *,
+        user_id: str,
+        token: str,
+        openid: str = "",
+        unionid: str = "",
+    ) -> dict[str, Any]:
+        payload = {
+            "user_id": user_id,
+            "token": token,
+            "token_type": "Bearer",
+            "user": self.get_profile(user_id),
+        }
+        if openid:
+            payload["openid"] = openid
+        if unionid:
+            payload["unionid"] = unionid
+        return payload
 
     def _append_audit(
         self,
@@ -1198,7 +1354,7 @@ class MemberConsoleService:
         }
         member["recent_ledger"] = member["ledger"][:10]
         member["recent_notes"] = member["notes"][:10]
-        member["learner_state"] = None
+        member["learner_state"] = self._empty_learner_snapshot_payload(user_id)
         heartbeat_payload = {"jobs": [], "history": [], "arbitration_history": []}
         try:
             learner_state_service = self._get_learner_state_service()
@@ -1206,6 +1362,11 @@ class MemberConsoleService:
             member["learner_state"] = self._serialize_learner_snapshot(snapshot)
         except Exception:
             logger.warning("Failed to load learner snapshot for member 360: user_id=%s", user_id, exc_info=True)
+            member["learner_state"] = self._load_partial_learner_snapshot_payload(
+                learner_state_service,
+                user_id,
+                event_limit=10,
+            )
         try:
             learner_state_service = self._get_learner_state_service()
             heartbeat_payload["jobs"] = [
@@ -1712,18 +1873,17 @@ class MemberConsoleService:
         return self._mutate(_apply)
 
     def get_wallet(self, user_id: str) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
+        snapshot = self._load_member_snapshot(user_id)
+        member = snapshot["member"]
         return {
             "balance": member["points_balance"],
             "tier": member["tier"],
             "expire_at": member["expire_at"],
-            "packages": data["packages"],
+            "packages": snapshot["packages"],
         }
 
     def get_ledger(self, user_id: str, limit: int = 20, offset: int = 0) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
+        member = self._load_member_snapshot(user_id)["member"]
         entries = sorted(
             member.get("ledger", []),
             key=lambda item: _parse_time(item.get("created_at")),
@@ -1765,8 +1925,7 @@ class MemberConsoleService:
         return self._mutate(_apply)
 
     def get_profile(self, user_id: str) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
+        member = self._load_member_snapshot(user_id)["member"]
         return {
             "id": member["user_id"],
             "user_id": member["user_id"],
@@ -1820,8 +1979,7 @@ class MemberConsoleService:
         return self.get_profile(user_id)
 
     def get_today_progress(self, user_id: str) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
+        member = self._load_member_snapshot(user_id)["member"]
         learning = self._ensure_learning_profile(member)
         done = int(learning["daily_counts"].get(_date_key()) or 0)
         return {
@@ -1831,8 +1989,7 @@ class MemberConsoleService:
         }
 
     def get_chapter_progress(self, user_id: str) -> list[dict[str, Any]]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
+        member = self._load_member_snapshot(user_id)["member"]
         learning = self._ensure_learning_profile(member)
         items = []
         for index, (key, value) in enumerate(member["chapter_mastery"].items(), start=1):
@@ -1854,8 +2011,7 @@ class MemberConsoleService:
         return items
 
     def get_home_dashboard(self, user_id: str) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
+        member = self._load_member_snapshot(user_id)["member"]
         weak_nodes = [
             {"name": value.get("name") or key, "mastery": value.get("mastery") or 0}
             for key, value in member["chapter_mastery"].items()
@@ -1872,8 +2028,7 @@ class MemberConsoleService:
         }
 
     def get_badges(self, user_id: str) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
+        member = self._load_member_snapshot(user_id)["member"]
         catalog = [
             {"id": 1, "icon": "🏆", "name": "首战告捷"},
             {"id": 2, "icon": "🎯", "name": "连胜达人"},
@@ -1898,8 +2053,7 @@ class MemberConsoleService:
         }
 
     def get_daily_question(self, user_id: str) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
+        member = self._load_member_snapshot(user_id)["member"]
         chapter_mastery = member["chapter_mastery"]
         weakest = min(
             chapter_mastery.items(),
@@ -1918,8 +2072,7 @@ class MemberConsoleService:
         }
 
     def get_radar_data(self, user_id: str) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
+        member = self._load_member_snapshot(user_id)["member"]
         dimensions = [
             {
                 "key": key,
@@ -1932,8 +2085,7 @@ class MemberConsoleService:
         return {"dimensions": dimensions}
 
     def get_mastery_dashboard(self, user_id: str) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
+        member = self._load_member_snapshot(user_id)["member"]
         chapters = [
             {
                 "name": value.get("name") or key,
@@ -1970,8 +2122,7 @@ class MemberConsoleService:
         }
 
     def get_assessment_profile(self, user_id: str) -> dict[str, Any]:
-        data = self._load()
-        member = self._ensure_member(data, user_id)
+        member = self._load_member_snapshot(user_id)["member"]
         chapter_mastery = member["chapter_mastery"]
         avg_mastery = round(
             sum(int(item.get("mastery") or 0) for item in chapter_mastery.values())
@@ -2143,8 +2294,6 @@ class MemberConsoleService:
         for member in data["members"]:
             if str(member.get("auth_username") or "").strip() == normalized_username:
                 return member
-            if str(member.get("display_name") or "").strip() == normalized_username:
-                return member
             if normalized_external_user_id and str(member.get("external_auth_user_id") or "").strip() == normalized_external_user_id:
                 return member
             if normalized_phone and _slugify_phone(str(member.get("phone") or "")) == normalized_phone:
@@ -2188,21 +2337,13 @@ class MemberConsoleService:
             raise ValueError("用户名或密码错误")
         member = self._ensure_member_for_external_auth(username, verified_external_user)
         token = self._issue_access_token(user_id=member["user_id"])
-        return {
-            "token": token,
-            "token_type": "Bearer",
-            "user": self.get_profile(member["user_id"]),
-        }
+        return self._build_auth_response(user_id=member["user_id"], token=token)
 
     def register_with_external_auth(self, username: str, password: str, phone: str) -> dict[str, Any]:
         external_user = create_external_auth_user(username, password, phone=phone)
         member = self._ensure_member_for_external_auth(username, external_user)
         token = self._issue_access_token(user_id=member["user_id"])
-        return {
-            "token": token,
-            "token_type": "Bearer",
-            "user": self.get_profile(member["user_id"]),
-        }
+        return self._build_auth_response(user_id=member["user_id"], token=token)
 
     async def login_with_wechat_code(self, code: str) -> dict[str, Any]:
         normalized = str(code or "").strip()
@@ -2241,27 +2382,26 @@ class MemberConsoleService:
             openid=openid,
             unionid=unionid,
         )
-        return {
-            "token": token,
-            "token_type": "Bearer",
-            "openid": openid,
-            "unionid": unionid,
-            "user": self.get_profile(target_user_id),
-        }
+        return self._build_auth_response(
+            user_id=target_user_id,
+            token=token,
+            openid=openid,
+            unionid=unionid,
+        )
 
     async def bind_phone_for_wechat(self, user_id: str, phone_code: str) -> dict[str, Any]:
         raw_code = str(phone_code or "").strip()
         if not raw_code:
             raise ValueError("valid phone_code or phone is required")
 
-        normalized = _slugify_phone(raw_code)
+        normalized = _normalize_phone_input(raw_code)
         if len(normalized) != 11:
             try:
                 normalized = await self._exchange_wechat_phone_code(raw_code)
             except RuntimeError:
                 if not self._supports_dev_wechat_login(raw_code):
                     raise
-                normalized = _slugify_phone("13800000000" + raw_code[-4:])
+                normalized = _normalize_phone_input("13800000000" + raw_code[-4:])
             if len(normalized) != 11:
                 raise ValueError("valid phone_code or phone is required")
 
@@ -2325,17 +2465,25 @@ class MemberConsoleService:
             openid=result["openid"],
             unionid=result["unionid"],
         )
-        return {
-            "bound": True,
-            "merged": result["merged"],
-            "phone": normalized,
-            "token": token,
-            "token_type": "Bearer",
-            "user": self.get_profile(result["user_id"]),
-        }
+        payload = self._build_auth_response(
+            user_id=result["user_id"],
+            token=token,
+            openid=result["openid"],
+            unionid=result["unionid"],
+        )
+        payload.update(
+            {
+                "bound": True,
+                "merged": result["merged"],
+                "phone": normalized,
+            }
+        )
+        return payload
 
     def send_phone_code(self, phone: str) -> dict[str, Any]:
-        normalized = _slugify_phone(phone)
+        normalized = _normalize_phone_input(phone)
+        if not normalized:
+            raise ValueError("手机号格式不正确")
         now = _now()
         retry_after = 60
         delivery = "debug"
@@ -2405,7 +2553,9 @@ class MemberConsoleService:
         return self._mutate(_apply)
 
     def verify_phone_code(self, phone: str, code: str) -> dict[str, Any]:
-        normalized = _slugify_phone(phone)
+        normalized = _normalize_phone_input(phone)
+        if not normalized:
+            raise ValueError("手机号格式不正确")
         provided_code = str(code or "").strip()
 
         def _apply(data: dict[str, Any]) -> str:
@@ -2426,11 +2576,7 @@ class MemberConsoleService:
         external_username = str(external_user.get("username") or "").strip()
         member = self._ensure_member_for_external_auth(external_username, external_user)
         token = self._issue_access_token(user_id=member["user_id"])
-        return {
-            "token": token,
-            "token_type": "Bearer",
-            "user": self.get_profile(member["user_id"]),
-        }
+        return self._build_auth_response(user_id=member["user_id"], token=token)
 
     def create_demo_token(self, user_id: str) -> str:
         return f"demo-token-{user_id}-{secrets.token_hex(4)}"

@@ -56,6 +56,44 @@ class BrainstormTool(_PromptHintsMixin, BaseTool):
 
 
 class RAGTool(_PromptHintsMixin, BaseTool):
+    @staticmethod
+    def _summarize_metadata(result: dict[str, Any], *, query: str, kb_name: str | None) -> dict[str, Any]:
+        exact_question = result.get("exact_question") if isinstance(result.get("exact_question"), dict) else {}
+        evidence_bundle = (
+            result.get("evidence_bundle") if isinstance(result.get("evidence_bundle"), dict) else {}
+        )
+        sources = result.get("sources") if isinstance(result.get("sources"), list) else []
+        summary: dict[str, Any] = {
+            "query": str(result.get("query") or query or "").strip(),
+            "provider": str(result.get("provider") or "").strip(),
+            "kb_name": str(result.get("kb_name") or kb_name or "").strip(),
+            "sources": sources[:8],
+            "tool_source_count": len(sources),
+            "exact_question": exact_question,
+        }
+        if evidence_bundle:
+            content_blocks = (
+                evidence_bundle.get("content_blocks")
+                if isinstance(evidence_bundle.get("content_blocks"), list)
+                else []
+            )
+            bundle_sources = (
+                evidence_bundle.get("sources")
+                if isinstance(evidence_bundle.get("sources"), list)
+                else []
+            )
+            summary["evidence_bundle_summary"] = {
+                "bundle_id": str(evidence_bundle.get("bundle_id") or "").strip(),
+                "kb_name": str(evidence_bundle.get("kb_name") or "").strip(),
+                "provider": str(evidence_bundle.get("provider") or "").strip(),
+                "query_shape": str(evidence_bundle.get("query_shape") or "").strip(),
+                "retrieval_empty": bool(evidence_bundle.get("retrieval_empty")),
+                "source_count": len(bundle_sources),
+                "content_block_count": len(content_blocks),
+                "exact_question": bool(evidence_bundle.get("exact_question")),
+            }
+        return summary
+
     def get_definition(self) -> ToolDefinition:
         return ToolDefinition(
             name="rag",
@@ -96,7 +134,7 @@ class RAGTool(_PromptHintsMixin, BaseTool):
         return ToolResult(
             content=content,
             sources=[{"type": "rag", "query": query, "kb_name": kb_name}],
-            metadata=result,
+            metadata=self._summarize_metadata(result, query=query, kb_name=kb_name),
         )
 
 

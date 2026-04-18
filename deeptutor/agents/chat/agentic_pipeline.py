@@ -38,6 +38,16 @@ from deeptutor.services.llm import (
     supports_tools,
 )
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.query_intent import (
+    build_grounding_decision,
+    has_grounded_construction_exam_kb,
+    looks_like_textbook_delta_query,
+)
+from deeptutor.services.rag.exact_authority import (
+    extract_exact_question_authority_from_metadata,
+    render_case_exact_authority_response,
+    resolve_exact_authority_response_from_authority,
+)
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.tutorbot.teaching_modes import (
     detect_construction_exam_scene,
@@ -1778,6 +1788,34 @@ class AgenticChatPipeline:
             kwargs.setdefault("mode", "hybrid")
             if not str(kwargs.get("query", "") or "").strip():
                 kwargs["query"] = context.user_message
+            interaction_hints = self._interaction_hints(context)
+            intent = str(
+                context.metadata.get("intent")
+                or context.config_overrides.get("intent")
+                or ""
+            ).strip()
+            if intent:
+                kwargs.setdefault("intent", intent)
+            question_flow_active = bool(self._followup_question_context(context)) or intent in {
+                "answer_questions",
+                "revise_answers",
+            }
+            question_type = ""
+            if question_flow_active:
+                question_type = str(
+                    context.metadata.get("question_type")
+                    or context.config_overrides.get("question_type")
+                    or ""
+                ).strip()
+            if question_type:
+                kwargs.setdefault("question_type", question_type)
+            routing_metadata = {
+                "profile": str(interaction_hints.get("profile") or "").strip(),
+                "entry_role": str(interaction_hints.get("entry_role") or "").strip(),
+                "subject_domain": str(interaction_hints.get("subject_domain") or "").strip(),
+            }
+            if any(routing_metadata.values()):
+                kwargs.setdefault("routing_metadata", routing_metadata)
         elif tool_name == "code_execution":
             kwargs.setdefault("intent", context.user_message)
             kwargs.setdefault("timeout", 30)
@@ -1825,8 +1863,6 @@ class AgenticChatPipeline:
                 f"7. 单轮最多并行调用 {MAX_PARALLEL_TOOL_CALLS} 个工具；如果有多个互补工具都相关，优先在同一轮一起调用。\n\n"
                 f"当前可用工具：\n{tool_list or '- 无'}\n\n"
                 f"工具使用提示：\n{tool_aliases or '- 无'}\n\n"
-                "补充要求：只要当前对话挂了知识库，且问题明显属于课程知识、概念解释、规范判断、题目讲解或基于资料作答，"
-                "优先先调用 RAG 做知识召回；只有知识库证据不足时，再补外部搜索或其他工具。"
             ),
             en=(
                 f"You are {BRAND_NAME}'s tool-using agent. Based on the user request and prior thinking, "
@@ -1841,9 +1877,6 @@ class AgenticChatPipeline:
                 f"7. At most {MAX_PARALLEL_TOOL_CALLS} tools may run in parallel in one turn; if several complementary tools are relevant, prefer issuing them together in the same turn.\n\n"
                 f"Enabled tools:\n{tool_list or '- none'}\n\n"
                 f"Tool usage notes:\n{tool_aliases or '- none'}\n\n"
-                "Extra requirement: whenever a knowledge base is attached and the request is course-grounded "
-                "such as concept explanation, regulation judgment, question analysis, or answering from provided materials, "
-                "prefer calling RAG first for grounding. Use web search or other tools only when the knowledge-base evidence is insufficient."
             ),
         )
 
@@ -2060,55 +2093,10 @@ class AgenticChatPipeline:
         for trace in tool_traces or []:
             if str(trace.name or "").strip().lower() != "rag":
                 continue
-            metadata = trace.metadata if isinstance(trace.metadata, dict) else {}
-            exact = metadata.get("exact_question")
-            if not isinstance(exact, dict):
-                continue
-            normalized = dict(exact)
-            normalized["confidence"] = float(exact.get("confidence") or 0.0)
-            case_bundle = normalized.get("case_bundle")
-            covered_subquestions = normalized.get("covered_subquestions") or []
-            answer_kind = str(normalized.get("answer_kind") or "").strip().lower()
-            if case_bundle or covered_subquestions or answer_kind in {"case_study", "case_bundle"}:
-                if isinstance(case_bundle, dict):
-                    normalized["covered_subquestions"] = (
-                        case_bundle.get("covered_subquestions") or covered_subquestions or []
-                    )
-                    normalized["missing_subquestions"] = (
-                        case_bundle.get("missing_subquestions")
-                        or normalized.get("missing_subquestions")
-                        or []
-                    )
-                    normalized["query_subquestions"] = (
-                        case_bundle.get("query_subquestions")
-                        or normalized.get("query_subquestions")
-                        or []
-                    )
-                    normalized["coverage_ratio"] = float(
-                        case_bundle.get("coverage_ratio")
-                        or normalized.get("coverage_ratio")
-                        or 0.0
-                    )
-                    normalized["coverage_state"] = str(
-                        case_bundle.get("coverage_state")
-                        or normalized.get("coverage_state")
-                        or "partial"
-                    )
-                if normalized.get("covered_subquestions"):
-                    normalized["authority_kind"] = "case_study"
-                    return normalized
-
-            authoritative_answer = _normalize_mcq_answer_letters(exact.get("correct_answer"))
-            if authoritative_answer:
-                normalized["authority_kind"] = "mcq"
-                normalized["authoritative_answer"] = authoritative_answer
-                return normalized
-
-            free_text_answer = str(exact.get("correct_answer") or "").strip()
-            if free_text_answer:
-                normalized["authority_kind"] = "free_text"
-                normalized["authoritative_answer"] = free_text_answer
-                return normalized
+            metadata = trace.metadata if isinstance(trace.metadata, dict) else None
+            authority = extract_exact_question_authority_from_metadata(metadata)
+            if authority:
+                return authority
         return None
 
     def _should_buffer_authoritative_response(
@@ -2224,37 +2212,14 @@ class AgenticChatPipeline:
 
     @staticmethod
     def _render_case_exact_authority_response(authority: dict[str, Any]) -> str:
-        covered = authority.get("covered_subquestions") or []
-        lines: list[str] = []
-        for item in covered:
-            if not isinstance(item, dict):
-                continue
-            display_index = str(item.get("display_index") or "").strip() or "?"
-            answer = str(item.get("authoritative_answer") or "").strip()
-            if not answer:
-                continue
-            lines.append(f"{display_index}. {answer}")
-        return "\n\n".join(lines).strip()
+        return render_case_exact_authority_response(authority)
 
     def _resolve_exact_authority_response(
         self,
         tool_traces: list[ToolTrace] | None = None,
     ) -> str | None:
         authority = self._extract_exact_question_authority(tool_traces)
-        if not authority:
-            return None
-        authority_kind = str(authority.get("authority_kind") or "").strip().lower()
-        if authority_kind != "case_study":
-            return None
-        missing = authority.get("missing_subquestions") or []
-        coverage_ratio = float(authority.get("coverage_ratio") or 0.0)
-        covered = authority.get("covered_subquestions") or []
-        if not covered:
-            return None
-        if missing and coverage_ratio < 0.999:
-            return None
-        rendered = self._render_case_exact_authority_response(authority)
-        return rendered or None
+        return resolve_exact_authority_response_from_authority(authority)
 
     async def _stage_exact_authority_responding(
         self,
@@ -2582,6 +2547,9 @@ class AgenticChatPipeline:
         if any(marker in text for marker in knowledge_markers):
             return ANSWER_TYPE_KNOWLEDGE
 
+        if looks_like_textbook_delta_query(user_message):
+            return ANSWER_TYPE_KNOWLEDGE
+
         if any(marker in text for marker in problem_markers):
             return ANSWER_TYPE_PROBLEM
 
@@ -2795,8 +2763,13 @@ class AgenticChatPipeline:
         return hints.get("entry_role") == "tutorbot" or bool(self._bot_id(context))
 
     def _has_construction_exam_kb(self, context: UnifiedContext) -> bool:
-        aliases = {"construction-exam", "construction-exam-coach"}
-        return any(str(item or "").strip().lower() in aliases for item in (context.knowledge_bases or []))
+        hints = self._interaction_hints(context)
+        kb_aliases = hints.get("kb_aliases")
+        return has_grounded_construction_exam_kb(
+            default_kb=context.knowledge_bases[0] if context.knowledge_bases else "",
+            knowledge_bases=context.knowledge_bases,
+            kb_aliases=kb_aliases if isinstance(kb_aliases, (list, tuple)) else None,
+        )
 
     def _is_construction_exam_tutorbot(self, context: UnifiedContext) -> bool:
         if self._bot_id(context) == "construction-exam-coach":
@@ -2884,18 +2857,19 @@ class AgenticChatPipeline:
         context: UnifiedContext,
         enabled_tools: list[str],
     ) -> bool:
-        if not self._is_construction_exam_tutorbot(context):
-            return False
-        if not self._has_construction_exam_kb(context):
-            return False
-        if "rag" not in {str(name or "").strip().lower() for name in enabled_tools}:
-            return False
-        if self._followup_question_context(context):
-            return True
-        answer_type = self._infer_answer_type(context.user_message)
-        if answer_type in {ANSWER_TYPE_KNOWLEDGE, ANSWER_TYPE_PROBLEM}:
-            return True
-        return self._is_tutorbot_context(context) and len(str(context.user_message or "").strip()) >= 40
+        hints = self._interaction_hints(context)
+        kb_aliases = hints.get("kb_aliases")
+        decision = build_grounding_decision(
+            query=context.user_message,
+            default_kb=context.knowledge_bases[0] if context.knowledge_bases else "",
+            knowledge_bases=context.knowledge_bases,
+            kb_aliases=kb_aliases if isinstance(kb_aliases, (list, tuple)) else None,
+            rag_enabled="rag" in {str(name or "").strip().lower() for name in enabled_tools},
+            tutorbot_context=self._is_tutorbot_context(context),
+            followup_question=bool(self._followup_question_context(context)),
+            answer_type=self._infer_answer_type(context.user_message),
+        )
+        return decision.should_force_retrieval_first
 
     async def _run_forced_rag_fallback(
         self,

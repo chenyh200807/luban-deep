@@ -78,6 +78,8 @@ class TutorBotCapability(BaseCapability):
         session_metadata["suppress_answer_reveal_on_generate"] = (
             self._suppress_answer_reveal_on_generate(context)
         )
+        if self._current_info_required(context):
+            session_metadata["current_info_required"] = True
         turn_id = str((context.metadata or {}).get("turn_id") or "").strip()
         if turn_id:
             session_metadata["turn_id"] = turn_id
@@ -245,9 +247,15 @@ class TutorBotCapability(BaseCapability):
 
     @staticmethod
     def _session_default_tools(context: UnifiedContext, *, teaching_mode: str) -> list[str]:
-        if teaching_mode == "smart":
-            return []
         return list(context.enabled_tools or [])
+
+    @staticmethod
+    def _current_info_required(context: UnifiedContext) -> bool:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        if bool(metadata.get("current_info_required")):
+            return True
+        hints = metadata.get("interaction_hints") if isinstance(metadata.get("interaction_hints"), dict) else {}
+        return bool(hints.get("current_info_required"))
 
     @staticmethod
     def _billing_user_id(context: UnifiedContext) -> str:

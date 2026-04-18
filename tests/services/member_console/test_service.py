@@ -12,6 +12,11 @@ import pytest
 from deeptutor.services.member_console.service import MemberConsoleService
 
 
+@pytest.fixture(autouse=True)
+def _enable_demo_seed(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED", "1")
+
+
 @pytest.mark.asyncio
 async def test_login_with_wechat_code_issues_signed_token_and_persists_identity(
     monkeypatch: pytest.MonkeyPatch,
@@ -33,6 +38,7 @@ async def test_login_with_wechat_code_issues_signed_token_and_persists_identity(
 
     assert result["openid"] == "openid_123456789012"
     assert result["unionid"] == "unionid_abcdef"
+    assert result["user_id"] == result["user"]["user_id"]
     assert result["token"].startswith("dtm.")
     assert "session_key" not in result
 
@@ -66,6 +72,25 @@ async def test_login_with_wechat_code_supports_dev_fallback_without_credentials(
     assert service.resolve_user_id(f"Bearer {result['token']}") == result["user"]["user_id"]
 
 
+@pytest.mark.asyncio
+async def test_login_with_wechat_code_fails_closed_in_production_even_for_dev_prefix(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN", "1")
+
+    async def _raise_missing(_code: str) -> dict[str, str]:
+        raise RuntimeError("Missing WeChat Mini Program credentials.")
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _raise_missing)
+
+    with pytest.raises(RuntimeError, match="Missing WeChat Mini Program credentials."):
+        await service.login_with_wechat_code("dev-local-user")
+
+
 def test_resolve_user_id_accepts_signed_access_token(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
@@ -77,6 +102,101 @@ def test_resolve_user_id_accepts_signed_access_token(tmp_path: Path) -> None:
     )
 
     assert service.resolve_user_id(f"Bearer {token}") == "student_demo"
+
+
+def test_resolve_user_id_accepts_lowercase_bearer_prefix(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    token = service._issue_access_token(user_id="student_demo")
+
+    assert service.resolve_user_id(f"bearer {token}") == "student_demo"
+
+
+def test_production_bootstrap_starts_without_demo_members(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+
+    data = service._load()
+
+    assert data["members"] == []
+    assert data["audit_log"] == []
+    assert {package["id"] for package in data["packages"]} == {
+        "starter",
+        "standard",
+        "pro",
+        "ultimate",
+    }
+
+
+def test_non_production_bootstrap_defaults_to_empty_members_without_demo_seed_flag(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.delenv("DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED", raising=False)
+    monkeypatch.delenv("DEEPTUTOR_ENV", raising=False)
+
+    data = service._load()
+
+    assert data["members"] == []
+    assert data["audit_log"] == []
+
+
+def test_production_bootstrap_can_create_first_real_member_without_seed_template(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+
+    profile = service.get_profile("prod_first_user")
+
+    assert profile["user_id"] == "prod_first_user"
+    assert profile["tier"] == "trial"
+    assert profile["points"] == 120
+
+
+def test_get_profile_persists_first_real_member(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    profile = service.get_profile("ghost_user")
+    data = service._load()
+
+    assert profile["user_id"] == "ghost_user"
+    assert any(member["user_id"] == "ghost_user" for member in data["members"])
+
+
+@pytest.mark.asyncio
+async def test_production_bootstrap_persists_first_wechat_user_without_demo_seed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {
+            "openid": "openid_prod_first_user",
+            "unionid": "unionid_prod_first_user",
+            "session_key": "session_key_prod_first_user",
+        }
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+
+    result = await service.login_with_wechat_code("wx-prod-code")
+    data = service._load()
+
+    assert result["user"]["user_id"].startswith("wx_")
+    assert [member["user_id"] for member in data["members"]] == [result["user"]["user_id"]]
 
 
 def test_login_with_password_accepts_external_fastapi_auth_store(
@@ -110,6 +230,8 @@ def test_login_with_password_accepts_external_fastapi_auth_store(
                 **data["members"][0],
                 "user_id": "user_2008",
                 "display_name": "chenyh2008",
+                "auth_username": "chenyh2008",
+                "external_auth_user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
                 "phone": "2008",
             }
         )
@@ -118,6 +240,7 @@ def test_login_with_password_accepts_external_fastapi_auth_store(
     result = service.login_with_password("chenyh2008", "Chen9028")
 
     assert result["token"].startswith("dtm.")
+    assert result["user_id"] == "user_2008"
     assert result["user"]["user_id"] == "user_2008"
     assert result["user"]["username"] == "chenyh2008"
 
@@ -172,9 +295,38 @@ def test_register_with_external_auth_creates_external_user_and_member(
     external_users = json.loads(users_file.read_text(encoding="utf-8"))
 
     assert result["token"].startswith("dtm.")
+    assert result["user_id"] == result["user"]["user_id"]
     assert result["user"]["username"] == "new_student"
     assert "new_student" in external_users
     assert external_users["new_student"]["phone"] == "+8613812345678"
+
+
+def test_register_with_external_auth_does_not_match_existing_display_name(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._mutate(
+        lambda data: data["members"].append(
+            {
+                **service._build_default_member("wx_attacker"),
+                "display_name": "victimname",
+                "phone": "13800001111",
+            }
+        )
+    )
+
+    result = service.register_with_external_auth("victimname", "StrongPass123", "13800002222")
+    data = service._load()
+    attacker = service._find_member(data, "wx_attacker")
+
+    assert result["user"]["user_id"] != "wx_attacker"
+    assert attacker.get("auth_username") in {None, ""}
+    assert attacker["phone"] == "13800001111"
 
 
 def test_member_console_serializes_multi_step_writes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -303,6 +455,10 @@ def test_member_360_includes_learner_state_heartbeat_and_bot_overlays(tmp_path: 
             assert include_arbitration is True
             return [{"event_id": "hb_1", "memory_kind": "heartbeat_delivery"}]
 
+        def list_heartbeat_jobs(self, user_id: str):
+            assert user_id == "student_demo"
+            return []
+
         def list_heartbeat_arbitration_history(self, user_id: str, *, limit: int = 20):
             assert user_id == "student_demo"
             assert limit == 10
@@ -319,11 +475,208 @@ def test_member_360_includes_learner_state_heartbeat_and_bot_overlays(tmp_path: 
 
     payload = service.get_member_360("student_demo")
 
+    assert payload["learner_state"]["available"] is True
     assert payload["learner_state"]["summary"] == "正在复习地基基础。"
     assert payload["learner_state"]["recent_memory_events"][0]["memory_kind"] == "heartbeat_delivery"
     assert payload["heartbeat"]["history"][0]["event_id"] == "hb_1"
     assert payload["heartbeat"]["arbitration_history"][0]["payload_json"]["winner_bot_id"] == "review-bot"
     assert payload["bot_overlays"][0]["bot_id"] == "review-bot"
+
+
+def test_member_360_keeps_learner_state_when_heartbeat_jobs_fail(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "student_demo"
+            assert event_limit == 10
+            return type(
+                "Snapshot",
+                (),
+                {
+                    "user_id": user_id,
+                    "profile": {"display_name": "陈同学"},
+                    "summary": "正在复习地基基础。",
+                    "progress": {"knowledge_map": {"weak_points": ["防火间距"]}},
+                    "memory_events": [],
+                    "profile_updated_at": "2026-04-16T08:00:00+08:00",
+                    "summary_updated_at": "2026-04-16T08:10:00+08:00",
+                    "progress_updated_at": "2026-04-16T08:20:00+08:00",
+                    "memory_events_updated_at": "2026-04-16T09:00:00+08:00",
+                },
+            )()
+
+        def list_heartbeat_jobs(self, user_id: str):
+            assert user_id == "student_demo"
+            raise RuntimeError("jobs unavailable")
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 20, include_arbitration: bool = True):
+            assert user_id == "student_demo"
+            assert limit == 10
+            assert include_arbitration is True
+            return [{"event_id": "hb_1"}]
+
+        def list_heartbeat_arbitration_history(self, user_id: str, *, limit: int = 20):
+            assert user_id == "student_demo"
+            assert limit == 10
+            return [{"event_id": "arb_1"}]
+
+    service._get_learner_state_service = lambda: FakeLearnerStateService()  # type: ignore[method-assign]
+    service._get_overlay_service = lambda: type("OverlayService", (), {"list_user_overlays": lambda *_args, **_kwargs: []})()  # type: ignore[method-assign]
+
+    payload = service.get_member_360("student_demo")
+
+    assert payload["learner_state"]["available"] is True
+    assert payload["learner_state"]["summary"] == "正在复习地基基础。"
+    assert payload["heartbeat"]["jobs"] == []
+    assert payload["heartbeat"]["history"] == [{"event_id": "hb_1"}]
+    assert payload["heartbeat"]["arbitration_history"] == [{"event_id": "arb_1"}]
+
+
+def test_member_360_loads_partial_learner_state_when_snapshot_fails(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "student_demo"
+            assert event_limit == 10
+            raise RuntimeError("snapshot unavailable")
+
+        def list_heartbeat_jobs(self, user_id: str):
+            assert user_id == "student_demo"
+            return []
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 20, include_arbitration: bool = True):
+            assert user_id == "student_demo"
+            assert limit == 10
+            assert include_arbitration is True
+            return [{"event_id": "hb_1"}]
+
+        def list_heartbeat_arbitration_history(self, user_id: str, *, limit: int = 20):
+            assert user_id == "student_demo"
+            assert limit == 10
+            return [{"event_id": "arb_1"}]
+
+        def read_profile(self, user_id: str):
+            assert user_id == "student_demo"
+            return {"display_name": "陈同学"}
+
+        def read_summary(self, user_id: str):
+            assert user_id == "student_demo"
+            return "正在复习地基基础。"
+
+        def read_progress(self, user_id: str):
+            assert user_id == "student_demo"
+            return {"knowledge_map": {"weak_points": ["防火间距"]}}
+
+        def list_memory_events(self, user_id: str, limit: int | None = 20):
+            assert user_id == "student_demo"
+            assert limit == 10
+            return [
+                type(
+                    "Event",
+                    (),
+                    {
+                        "event_id": "evt_1",
+                        "source_feature": "heartbeat",
+                        "source_id": "job_1",
+                        "source_bot_id": "review-bot",
+                        "memory_kind": "heartbeat_delivery",
+                        "payload_json": {"status": "sent"},
+                        "created_at": "2026-04-16T09:00:00+08:00",
+                    },
+                )()
+            ]
+
+        def _file_updated_at(self, user_id: str, section: str):
+            assert user_id == "student_demo"
+            return {
+                "profile": "2026-04-16T08:00:00+08:00",
+                "summary": "2026-04-16T08:10:00+08:00",
+                "progress": "2026-04-16T08:20:00+08:00",
+                "events": "2026-04-16T09:00:00+08:00",
+            }[section]
+
+    service._get_learner_state_service = lambda: FakeLearnerStateService()  # type: ignore[method-assign]
+    service._get_overlay_service = lambda: type("OverlayService", (), {"list_user_overlays": lambda *_args, **_kwargs: []})()  # type: ignore[method-assign]
+
+    payload = service.get_member_360("student_demo")
+
+    assert payload["learner_state"]["available"] is True
+    assert payload["learner_state"]["profile"] == {"display_name": "陈同学"}
+    assert payload["learner_state"]["summary"] == "正在复习地基基础。"
+    assert payload["learner_state"]["progress"] == {"knowledge_map": {"weak_points": ["防火间距"]}}
+    assert payload["learner_state"]["recent_memory_events"][0]["event_id"] == "evt_1"
+    assert payload["learner_state"]["memory_events_updated_at"] == "2026-04-16T09:00:00+08:00"
+    assert payload["heartbeat"]["history"] == [{"event_id": "hb_1"}]
+    assert payload["heartbeat"]["arbitration_history"] == [{"event_id": "arb_1"}]
+
+
+def test_member_360_returns_empty_learner_state_payload_when_snapshot_and_partial_reads_fail(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "student_demo"
+            assert event_limit == 10
+            raise RuntimeError("snapshot unavailable")
+
+        def read_profile(self, user_id: str):
+            assert user_id == "student_demo"
+            raise RuntimeError("profile unavailable")
+
+        def read_summary(self, user_id: str):
+            assert user_id == "student_demo"
+            raise RuntimeError("summary unavailable")
+
+        def read_progress(self, user_id: str):
+            assert user_id == "student_demo"
+            raise RuntimeError("progress unavailable")
+
+        def list_memory_events(self, user_id: str, limit: int | None = 20):
+            assert user_id == "student_demo"
+            assert limit == 10
+            raise RuntimeError("events unavailable")
+
+        def list_heartbeat_jobs(self, user_id: str):
+            assert user_id == "student_demo"
+            return []
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 20, include_arbitration: bool = True):
+            assert user_id == "student_demo"
+            assert limit == 10
+            assert include_arbitration is True
+            return [{"event_id": "hb_1"}]
+
+        def list_heartbeat_arbitration_history(self, user_id: str, *, limit: int = 20):
+            assert user_id == "student_demo"
+            assert limit == 10
+            return [{"event_id": "arb_1"}]
+
+    service._get_learner_state_service = lambda: FakeLearnerStateService()  # type: ignore[method-assign]
+    service._get_overlay_service = lambda: type("OverlayService", (), {"list_user_overlays": lambda *_args, **_kwargs: []})()  # type: ignore[method-assign]
+
+    payload = service.get_member_360("student_demo")
+
+    assert payload["learner_state"] == {
+        "user_id": "student_demo",
+        "available": False,
+        "profile": {},
+        "summary": "",
+        "progress": {},
+        "recent_memory_events": [],
+        "profile_updated_at": None,
+        "summary_updated_at": None,
+        "progress_updated_at": None,
+        "memory_events_updated_at": None,
+    }
+    assert payload["heartbeat"]["history"] == [{"event_id": "hb_1"}]
+    assert payload["heartbeat"]["arbitration_history"] == [{"event_id": "arb_1"}]
 
 
 def test_member_console_learner_state_panel_and_controls(tmp_path: Path) -> None:
@@ -508,6 +861,7 @@ async def test_bind_phone_for_wechat_merges_into_existing_phone_user(tmp_path: P
 
     assert result["bound"] is True
     assert result["merged"] is True
+    assert result["user_id"] == result["user"]["user_id"]
     assert result["user"]["user_id"] == "student_risk"
 
 
@@ -545,6 +899,7 @@ def test_verify_phone_code_bootstraps_clean_new_member_state(
     external_user = next(iter(external_users.values()))
 
     assert profile["tier"] == "trial"
+    assert result["user_id"] == profile["user_id"]
     assert profile["points"] == 120
     assert profile["level"] == 1
     assert today["today_done"] == 0
@@ -561,6 +916,14 @@ def test_verify_phone_code_rejects_invalid_code(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="验证码错误"):
         service.verify_phone_code("13955556666", "000000")
+
+
+def test_send_phone_code_rejects_invalid_phone_input(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    with pytest.raises(ValueError, match="手机号格式不正确"):
+        service.send_phone_code("dev-phone-code")
 
 
 def test_send_phone_code_fails_closed_in_production_without_sms(
@@ -594,4 +957,24 @@ async def test_bind_phone_for_wechat_accepts_phone_code_exchange(
     result = await service.bind_phone_for_wechat("student_demo", "phone-code-123")
 
     assert result["bound"] is True
+    assert result["user_id"] == result["user"]["user_id"]
     assert result["phone"] == "13911112222"
+
+
+@pytest.mark.asyncio
+async def test_bind_phone_for_wechat_fails_closed_in_production_even_for_dev_prefix(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN", "1")
+
+    async def _raise_exchange(_phone_code: str) -> str:
+        raise RuntimeError("wechat phone exchange failed")
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _raise_exchange)
+
+    with pytest.raises(RuntimeError, match="wechat phone exchange failed"):
+        await service.bind_phone_for_wechat("student_demo", "dev-phone-code")

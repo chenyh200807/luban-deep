@@ -23,11 +23,19 @@ from deeptutor.services.question_followup import (
     answers_match,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
-    followup_action_route,
     normalize_question_followup_context,
     resolve_submission_attempt,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
+from deeptutor.services.semantic_router import (
+    apply_active_object_transition,
+    build_active_object_from_question_context,
+    build_turn_semantic_decision,
+    normalize_active_object,
+    normalize_suspended_object_stack,
+    normalize_turn_semantic_decision,
+    question_context_from_active_object,
+)
 
 
 class DeepQuestionCapability(BaseCapability):
@@ -52,25 +60,40 @@ class DeepQuestionCapability(BaseCapability):
 
         overrides = context.config_overrides
         force_generate_questions = bool(overrides.get("force_generate_questions", False))
-        followup_question_context = (
+        active_object = normalize_active_object(context.metadata.get("active_object")) or (
+            build_active_object_from_question_context(
+                context.metadata.get("question_followup_context"),
+                source_turn_id=turn_id,
+            )
+        )
+        suspended_object_stack = normalize_suspended_object_stack(
+            context.metadata.get("suspended_object_stack")
+        )
+        turn_semantic_decision = normalize_turn_semantic_decision(
+            context.metadata.get("turn_semantic_decision")
+        ) or {}
+        followup_question_context = question_context_from_active_object(active_object) or (
             context.metadata.get("question_followup_context", {}) or {}
         )
-        followup_action = context.metadata.get("question_followup_action", {}) or {}
-        followup_route = followup_action_route(
-            followup_action if isinstance(followup_action, dict) else None
+        followup_action = (
+            context.metadata.get("question_followup_action")
+            if isinstance(context.metadata.get("question_followup_action"), dict)
+            else None
         )
+        next_action = str(turn_semantic_decision.get("next_action") or "").strip()
         if (
             not force_generate_questions
             and isinstance(followup_question_context, dict)
             and followup_question_context.get(
             "question"
             )
+            and next_action != "route_to_generation"
         ):
             action_context = None
-            if followup_route == "submission":
+            if next_action == "route_to_grading":
                 action_context = apply_followup_action_to_context(
                     followup_question_context,
-                    followup_action if isinstance(followup_action, dict) else None,
+                    followup_action,
                 )
             if action_context is not None:
                 from deeptutor.agents.question.agents.submission_grader_agent import (
@@ -105,6 +128,11 @@ class DeepQuestionCapability(BaseCapability):
                     )
                     if answer:
                         await stream.content(answer, source=self.name, stage="generation")
+                    result_active_object = build_active_object_from_question_context(
+                        graded_context,
+                        source_turn_id=turn_id,
+                        previous_active_object=active_object,
+                    )
                     result_payload: dict[str, Any] = {
                         "response": answer or "",
                         "mode": "grading",
@@ -115,6 +143,15 @@ class DeepQuestionCapability(BaseCapability):
                             graded_context
                         )
                         or {},
+                        "active_object": result_active_object or {},
+                        "suspended_object_stack": suspended_object_stack,
+                        "turn_semantic_decision": turn_semantic_decision
+                        or self._default_turn_semantic_decision(
+                            next_action="route_to_grading",
+                            active_object=result_active_object or active_object,
+                            question_context=graded_context,
+                            user_message=context.user_message,
+                        ),
                     }
                     cost_meta = self._collect_cost_summary("question")
                     if cost_meta:
@@ -122,7 +159,7 @@ class DeepQuestionCapability(BaseCapability):
                     await stream.result(result_payload, source=self.name)
                 return
 
-            if followup_route == "followup":
+            if next_action == "route_to_followup_explainer":
                 from deeptutor.agents.question.agents.followup_agent import FollowupAgent
 
                 agent = FollowupAgent(
@@ -142,6 +179,11 @@ class DeepQuestionCapability(BaseCapability):
                     )
                     if answer:
                         await stream.content(answer, source=self.name, stage="generation")
+                    result_active_object = build_active_object_from_question_context(
+                        followup_question_context,
+                        source_turn_id=turn_id,
+                        previous_active_object=active_object,
+                    )
                     followup_payload: dict[str, Any] = {
                         "response": answer or "",
                         "mode": "followup",
@@ -150,6 +192,68 @@ class DeepQuestionCapability(BaseCapability):
                             followup_question_context
                         )
                         or {},
+                        "active_object": result_active_object or {},
+                        "suspended_object_stack": suspended_object_stack,
+                        "turn_semantic_decision": turn_semantic_decision
+                        or self._default_turn_semantic_decision(
+                            next_action="route_to_followup_explainer",
+                            active_object=result_active_object or active_object,
+                            question_context=followup_question_context,
+                            user_message=context.user_message,
+                        ),
+                    }
+                    cost_meta = self._collect_cost_summary("question")
+                    if cost_meta:
+                        followup_payload["metadata"] = {"cost_summary": cost_meta}
+                    await stream.result(followup_payload, source=self.name)
+                return
+
+            if self._prefer_followup_without_semantic_decision(
+                turn_semantic_decision=turn_semantic_decision,
+                followup_action=followup_action,
+                question_context=followup_question_context,
+                user_message=context.user_message,
+            ):
+                from deeptutor.agents.question.agents.followup_agent import FollowupAgent
+
+                agent = FollowupAgent(
+                    language=context.language,
+                    api_key=llm_config.api_key,
+                    base_url=llm_config.base_url,
+                    api_version=llm_config.api_version,
+                )
+                agent.set_trace_callback(self._build_trace_bridge(stream))
+                async with stream.stage("generation", source=self.name):
+                    answer = await agent.process(
+                        user_message=context.user_message,
+                        question_context=followup_question_context,
+                        history_context=str(
+                            context.metadata.get("conversation_context_text", "") or ""
+                        ).strip(),
+                    )
+                    if answer:
+                        await stream.content(answer, source=self.name, stage="generation")
+                    result_active_object = build_active_object_from_question_context(
+                        followup_question_context,
+                        source_turn_id=turn_id,
+                        previous_active_object=active_object,
+                    )
+                    followup_payload: dict[str, Any] = {
+                        "response": answer or "",
+                        "mode": "followup",
+                        "question_id": followup_question_context.get("question_id", ""),
+                        "question_followup_context": normalize_question_followup_context(
+                            followup_question_context
+                        )
+                        or {},
+                        "active_object": result_active_object or {},
+                        "suspended_object_stack": suspended_object_stack,
+                        "turn_semantic_decision": self._default_turn_semantic_decision(
+                            next_action="route_to_followup_explainer",
+                            active_object=result_active_object or active_object,
+                            question_context=followup_question_context,
+                            user_message=context.user_message,
+                        ),
                     }
                     cost_meta = self._collect_cost_summary("question")
                     if cost_meta:
@@ -195,6 +299,11 @@ class DeepQuestionCapability(BaseCapability):
                     )
                     if answer:
                         await stream.content(answer, source=self.name, stage="generation")
+                    result_active_object = build_active_object_from_question_context(
+                        graded_context,
+                        source_turn_id=turn_id,
+                        previous_active_object=active_object,
+                    )
                     result_payload: dict[str, Any] = {
                         "response": answer or "",
                         "mode": "grading",
@@ -205,6 +314,15 @@ class DeepQuestionCapability(BaseCapability):
                             graded_context
                         )
                         or {},
+                        "active_object": result_active_object or {},
+                        "suspended_object_stack": suspended_object_stack,
+                        "turn_semantic_decision": turn_semantic_decision
+                        or self._default_turn_semantic_decision(
+                            next_action="route_to_grading",
+                            active_object=result_active_object or active_object,
+                            question_context=graded_context,
+                            user_message=context.user_message,
+                        ),
                     }
                     cost_meta = self._collect_cost_summary("question")
                     if cost_meta:
@@ -231,6 +349,11 @@ class DeepQuestionCapability(BaseCapability):
                 )
                 if answer:
                     await stream.content(answer, source=self.name, stage="generation")
+                result_active_object = build_active_object_from_question_context(
+                    followup_question_context,
+                    source_turn_id=turn_id,
+                    previous_active_object=active_object,
+                )
                 followup_payload: dict[str, Any] = {
                     "response": answer or "",
                     "mode": "followup",
@@ -239,6 +362,15 @@ class DeepQuestionCapability(BaseCapability):
                         followup_question_context
                     )
                     or {},
+                    "active_object": result_active_object or {},
+                    "suspended_object_stack": suspended_object_stack,
+                    "turn_semantic_decision": turn_semantic_decision
+                    or self._default_turn_semantic_decision(
+                        next_action="route_to_followup_explainer",
+                        active_object=result_active_object or active_object,
+                        question_context=followup_question_context,
+                        user_message=context.user_message,
+                    ),
                 }
                 cost_meta = self._collect_cost_summary("question")
                 if cost_meta:
@@ -376,12 +508,106 @@ class DeepQuestionCapability(BaseCapability):
                 or {}
             ),
         }
+        result_payload["active_object"] = (
+            build_active_object_from_question_context(
+                result_payload["question_followup_context"],
+                source_turn_id=turn_id,
+                previous_active_object=active_object,
+            )
+            or {}
+        )
+        result_payload["turn_semantic_decision"] = turn_semantic_decision or self._default_turn_semantic_decision(
+            next_action="route_to_generation",
+            active_object=result_payload["active_object"] or active_object,
+            question_context=result_payload["question_followup_context"],
+            user_message=context.user_message,
+        )
+        transitioned_active_object, transitioned_stack = apply_active_object_transition(
+            previous_active_object=active_object,
+            previous_suspended_object_stack=suspended_object_stack,
+            turn_semantic_decision=result_payload["turn_semantic_decision"],
+            resolved_active_object=result_payload["active_object"],
+        )
+        result_payload["active_object"] = transitioned_active_object or {}
+        result_payload["suspended_object_stack"] = transitioned_stack
         if presentation:
             result_payload["presentation"] = presentation
         cost_meta = self._collect_cost_summary("question")
         if cost_meta:
             result_payload["metadata"] = {"cost_summary": cost_meta}
         await stream.result(result_payload, source=self.name)
+
+    @staticmethod
+    def _default_turn_semantic_decision(
+        *,
+        next_action: str,
+        active_object: dict[str, Any] | None,
+        question_context: dict[str, Any] | None,
+        user_message: str,
+    ) -> dict[str, Any]:
+        items = (question_context or {}).get("items") or []
+        if next_action == "route_to_grading":
+            relation = (
+                "revise_answer_on_active_object"
+                if any(marker in str(user_message or "") for marker in ("改", "更正", "修正", "订正"))
+                else "answer_active_object"
+            )
+            allowed_patch = "append_answer_slots" if len(items) > 1 else "update_answer_slot"
+            reason = "deep_question 按当前 active object 完成答题/批改。"
+        elif next_action == "route_to_followup_explainer":
+            relation = "ask_about_active_object"
+            allowed_patch = "no_state_change"
+            reason = "deep_question 按当前 active object 完成题目追问解释。"
+        else:
+            relation = (
+                "continue_same_learning_flow" if active_object is not None else "switch_to_new_object"
+            )
+            allowed_patch = "set_active_object"
+            reason = "deep_question 生成了新的题目对象并更新 active object。"
+        return build_turn_semantic_decision(
+            relation_to_active_object=relation,
+            next_action=next_action,
+            allowed_patch=allowed_patch,
+            confidence=1.0,
+            reason=reason,
+            active_object=active_object,
+        )
+
+    @staticmethod
+    def _prefer_followup_without_semantic_decision(
+        *,
+        turn_semantic_decision: dict[str, Any] | None,
+        followup_action: dict[str, Any] | None,
+        question_context: dict[str, Any] | None,
+        user_message: str,
+    ) -> bool:
+        if turn_semantic_decision or followup_action:
+            return False
+        if not isinstance(question_context, dict) or not question_context.get("question"):
+            return False
+        if not (
+            question_context.get("user_answer")
+            or question_context.get("is_correct") is not None
+            or question_context.get("explanation")
+        ):
+            return False
+        text = str(user_message or "").strip().lower()
+        if not text:
+            return False
+        followup_markers = (
+            "why",
+            "wrong",
+            "explain",
+            "because",
+            "?",
+            "为什么",
+            "错在哪",
+            "解析",
+            "讲解",
+            "思路",
+            "哪里不对",
+        )
+        return any(marker in text for marker in followup_markers)
 
     @staticmethod
     def _build_submission_context(

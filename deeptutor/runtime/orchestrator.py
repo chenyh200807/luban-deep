@@ -24,14 +24,32 @@ from deeptutor.services.question_followup import (
     apply_followup_action_to_context,
     detect_answer_reveal_preference,
     detect_requested_question_type,
-    followup_action_route,
     interpret_question_followup_action,
     looks_like_question_followup,
     resolve_submission_attempt,
 )
+from deeptutor.services.semantic_router import (
+    build_active_object_from_question_context,
+    normalize_active_object,
+    question_context_from_active_object,
+    resolve_question_semantic_routing,
+    turn_semantic_decision_route,
+)
+from deeptutor.services.runtime_env import env_flag
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 logger = logging.getLogger(__name__)
+
+
+def _coerce_flag(value: Any) -> bool | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    raw = str(value or "").strip().lower()
+    if not raw:
+        return None
+    return raw not in {"0", "false", "no", "off"}
 
 
 class ChatOrchestrator:
@@ -104,29 +122,61 @@ class ChatOrchestrator:
         if context.active_capability:
             return context.active_capability
 
-        followup_action = await self._resolve_question_followup_action(context, routing_user_message)
-        followup_route = followup_action_route(followup_action)
-        if followup_route == "submission":
-            self._prepare_question_submission_context(context, followup_action)
-            return "deep_question"
-        if followup_route == "practice_generation":
-            self._prepare_practice_request_context(context, routing_user_message)
-            return "deep_question"
-        if followup_route == "followup":
-            return "deep_question"
+        semantic_router_enabled = self._semantic_router_enabled(context)
+        semantic_router_shadow_mode = self._semantic_router_shadow_mode(context)
 
-        if looks_like_practice_generation_request(routing_user_message):
-            self._prepare_practice_request_context(context, routing_user_message)
-            return "deep_question"
+        if semantic_router_shadow_mode:
+            shadow_decision = await self._preview_turn_semantic_decision(context, routing_user_message)
+            context.metadata["semantic_router_mode"] = "shadow"
+            context.metadata["semantic_router_shadow_decision"] = shadow_decision or {}
+            context.metadata["semantic_router_shadow_route"] = (
+                turn_semantic_decision_route(shadow_decision) or ""
+            )
+            cap_name = self._select_legacy_capability(context, routing_user_message)
+            context.metadata["semantic_router_selected_capability"] = cap_name
+            return cap_name
 
-        if self._looks_like_question_submission(context, routing_user_message):
-            self._prepare_question_submission_context(context)
-            return "deep_question"
+        if semantic_router_enabled:
+            turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
+            context.metadata["semantic_router_mode"] = "primary"
+            context.metadata["semantic_router_shadow_decision"] = {}
+            context.metadata["semantic_router_shadow_route"] = ""
+            semantic_route = turn_semantic_decision_route(turn_decision)
+            if semantic_route == "deep_question":
+                next_action = str((turn_decision or {}).get("next_action") or "").strip()
+                if next_action == "route_to_grading":
+                    self._prepare_question_submission_context(
+                        context,
+                        context.metadata.get("question_followup_action"),
+                    )
+                elif next_action == "route_to_generation":
+                    self._prepare_practice_request_context(context, routing_user_message)
+                context.metadata["semantic_router_selected_capability"] = "deep_question"
+                return "deep_question"
+            if semantic_route == "chat":
+                context.metadata["semantic_router_selected_capability"] = "chat"
+                return "chat"
 
-        if self._looks_like_question_followup(context, routing_user_message):
-            return "deep_question"
+        context.metadata["semantic_router_mode"] = "disabled"
+        context.metadata["semantic_router_shadow_decision"] = {}
+        context.metadata["semantic_router_shadow_route"] = ""
+        cap_name = self._select_legacy_capability(context, routing_user_message)
+        context.metadata["semantic_router_selected_capability"] = cap_name
+        return cap_name
 
-        return "chat"
+    @staticmethod
+    def _semantic_router_enabled(context: UnifiedContext) -> bool:
+        override = _coerce_flag(context.config_overrides.get("semantic_router_enabled"))
+        if override is not None:
+            return override
+        return env_flag("DEEPTUTOR_SEMANTIC_ROUTER_ENABLED", default=True)
+
+    @staticmethod
+    def _semantic_router_shadow_mode(context: UnifiedContext) -> bool:
+        override = _coerce_flag(context.config_overrides.get("semantic_router_shadow_mode"))
+        if override is not None:
+            return override
+        return env_flag("DEEPTUTOR_SEMANTIC_ROUTER_SHADOW_MODE", default=False)
 
     @staticmethod
     def _routing_user_message(context: UnifiedContext) -> str:
@@ -134,28 +184,81 @@ class ChatOrchestrator:
         raw = str(metadata.get("raw_user_message") or "").strip()
         return raw or str(context.user_message or "").strip()
 
-    async def _resolve_question_followup_action(
+    async def _resolve_turn_semantic_decision(
         self,
         context: UnifiedContext,
         message: str,
     ) -> dict[str, Any] | None:
-        qctx = context.metadata.get("question_followup_context", {}) or {}
-        if not isinstance(qctx, dict) or not qctx.get("question"):
-            return None
-        cached = context.metadata.get("question_followup_action")
-        if isinstance(cached, dict) and cached:
-            return cached
-        action = await interpret_question_followup_action(
-            message,
-            qctx,
-            history_context=str(context.metadata.get("conversation_context_text", "") or "").strip(),
+        routing = await self._resolve_semantic_routing(context, message, metadata=context.metadata)
+        if routing.active_object is not None:
+            context.metadata["active_object"] = routing.active_object
+        if routing.question_context is not None:
+            context.metadata["question_followup_context"] = routing.question_context
+        context.metadata["turn_semantic_decision"] = routing.turn_semantic_decision
+        context.metadata["suspended_object_stack"] = routing.suspended_object_stack
+        if routing.followup_action:
+            context.metadata["question_followup_action"] = routing.followup_action
+        return routing.turn_semantic_decision
+
+    async def _preview_turn_semantic_decision(
+        self,
+        context: UnifiedContext,
+        message: str,
+    ) -> dict[str, Any] | None:
+        preview_metadata = dict(context.metadata or {})
+        routing = await self._resolve_semantic_routing(context, message, metadata=preview_metadata)
+        return routing.turn_semantic_decision
+
+    async def _resolve_semantic_routing(
+        self,
+        context: UnifiedContext,
+        message: str,
+        *,
+        metadata: dict[str, Any],
+    ):
+        active_object = normalize_active_object(metadata.get("active_object")) or (
+            build_active_object_from_question_context(
+                metadata.get("question_followup_context"),
+                source_turn_id=str(metadata.get("turn_id") or "").strip(),
+            )
         )
-        if action:
-            context.metadata["question_followup_action"] = action
-        return action
+        if active_object is not None:
+            metadata["active_object"] = active_object
+
+        return await resolve_question_semantic_routing(
+            user_message=message,
+            metadata=metadata,
+            history_context=str(metadata.get("conversation_context_text", "") or "").strip(),
+            interpret_followup_action=lambda message_text, question_context: interpret_question_followup_action(
+                message_text,
+                question_context,
+                history_context=str(
+                    metadata.get("conversation_context_text", "") or ""
+                ).strip(),
+            ),
+            resolve_submission_attempt=resolve_submission_attempt,
+            looks_like_question_followup=looks_like_question_followup,
+            looks_like_practice_generation_request=looks_like_practice_generation_request,
+        )
+
+    def _select_legacy_capability(self, context: UnifiedContext, message: str) -> str:
+        if looks_like_practice_generation_request(message):
+            self._prepare_practice_request_context(context, message)
+            return "deep_question"
+
+        if self._looks_like_question_submission(context, message):
+            self._prepare_question_submission_context(context)
+            return "deep_question"
+
+        if self._looks_like_question_followup(context, message):
+            return "deep_question"
+
+        return "chat"
 
     def _looks_like_question_submission(self, context: UnifiedContext, message: str) -> bool:
-        qctx = context.metadata.get("question_followup_context", {}) or {}
+        qctx = question_context_from_active_object(context.metadata.get("active_object")) or (
+            context.metadata.get("question_followup_context", {}) or {}
+        )
         if not isinstance(qctx, dict) or not qctx.get("question"):
             return False
         _target_context, submission = resolve_submission_attempt(message, qctx)
@@ -166,10 +269,20 @@ class ChatOrchestrator:
         context: UnifiedContext,
         action: dict[str, Any] | None = None,
     ) -> None:
-        qctx = dict(context.metadata.get("question_followup_context", {}) or {})
+        active_object = normalize_active_object(context.metadata.get("active_object"))
+        qctx = question_context_from_active_object(active_object) or dict(
+            context.metadata.get("question_followup_context", {}) or {}
+        )
         action_context = apply_followup_action_to_context(qctx, action)
         if action_context:
             context.metadata["question_followup_context"] = action_context
+            active_object = build_active_object_from_question_context(
+                action_context,
+                source_turn_id=str(context.metadata.get("turn_id") or "").strip(),
+                previous_active_object=active_object,
+            )
+            if active_object is not None:
+                context.metadata["active_object"] = active_object
             return
 
         target_context, submission = resolve_submission_attempt(context.user_message, qctx)
@@ -193,9 +306,18 @@ class ChatOrchestrator:
         fallback_context = apply_followup_action_to_context(target_context, fallback_action)
         if fallback_context:
             context.metadata["question_followup_context"] = fallback_context
+            active_object = build_active_object_from_question_context(
+                fallback_context,
+                source_turn_id=str(context.metadata.get("turn_id") or "").strip(),
+                previous_active_object=active_object,
+            )
+            if active_object is not None:
+                context.metadata["active_object"] = active_object
 
     def _looks_like_question_followup(self, context: UnifiedContext, message: str) -> bool:
-        qctx = context.metadata.get("question_followup_context", {}) or {}
+        qctx = question_context_from_active_object(context.metadata.get("active_object")) or (
+            context.metadata.get("question_followup_context", {}) or {}
+        )
         if not isinstance(qctx, dict) or not qctx.get("question"):
             return False
         return looks_like_question_followup(message, qctx)

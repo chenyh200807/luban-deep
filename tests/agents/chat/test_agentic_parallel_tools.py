@@ -551,6 +551,15 @@ def test_infer_answer_type_detects_knowledge_explainer(monkeypatch: pytest.Monke
     assert pipeline._infer_answer_type("什么是流水施工，怎么区分流水步距和流水节拍？") == "knowledge_explainer"
 
 
+def test_infer_answer_type_detects_textbook_delta_query(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+    assert pipeline._infer_answer_type("2026年的教材有什么不一样") == "knowledge_explainer"
+
+
 def test_missing_teaching_elements_requires_exact_zh_section_titles(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
