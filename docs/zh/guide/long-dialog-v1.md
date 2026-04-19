@@ -17,7 +17,7 @@ eval/sets/long_dialog_v1.jsonl
 1. 从旧系统留存的长对话 artifact 中读取 `session_full_conversations`
 2. 抽出每条链真实的 `user_query`
 3. 用当前 DeepTutor 的 `TurnRuntimeManager` 逐轮重放
-4. 全部走 `mini_tutor + smart`
+4. 全部走 `construction_exam_tutor + smart`
 5. 在本仓库 `tmp/` 下输出 JSON 和 Markdown 报告
 
 脚本已经固化为：

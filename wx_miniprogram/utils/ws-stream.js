@@ -54,6 +54,38 @@ function buildTurnSocketPayload(turnId, lastSeq) {
   };
 }
 
+function buildStatusEvent(event) {
+  if (!event || typeof event !== "object") return null;
+  var eventType = String(event.type || "").trim();
+  if (["thinking", "progress", "observation"].indexOf(eventType) === -1) {
+    return null;
+  }
+
+  var eventMetadata = event.metadata || {};
+  var visibility = resolveEventVisibility(event);
+  var stage = String(event.stage || "").trim();
+  var content = String(event.content || "");
+  var metadata = Object.assign({}, eventMetadata, {
+    visibility: visibility,
+  });
+
+  if (visibility === "internal" && (eventType === "thinking" || eventType === "observation")) {
+    metadata.sanitized_internal = true;
+    content = "";
+  }
+
+  return {
+    type: "status",
+    data: content || stage || eventType,
+    content: content,
+    source: event.source || "",
+    stage: stage,
+    eventType: eventType,
+    metadata: metadata,
+    seq: 0,
+  };
+}
+
 function streamChat(opts, callbacks) {
   var cb = callbacks || {};
   var query = String((opts && opts.query) || "").trim();
@@ -221,21 +253,10 @@ function streamChat(opts, callbacks) {
       return;
     }
 
-    if (eventType === "thinking" || eventType === "progress") {
-      if (visibility !== "public") {
-        return;
-      }
+    var statusEvent = buildStatusEvent(event);
+    if (statusEvent) {
       if (cb.onStatus) {
-        cb.onStatus({
-          type: "status",
-          data: event.content || eventType,
-          content: event.content || "",
-          source: event.source || "",
-          stage: "",
-          eventType: eventType,
-          metadata: eventMetadata,
-          seq: 0,
-        });
+        cb.onStatus(statusEvent);
       }
       return;
     }
@@ -452,6 +473,7 @@ function streamChat(opts, callbacks) {
 
 module.exports = {
   streamChat: streamChat,
+  buildStatusEvent: buildStatusEvent,
   buildPresentationEvent: buildPresentationEvent,
   buildTurnSocketPayload: buildTurnSocketPayload,
   computeReconnectDelayMs: computeReconnectDelayMs,

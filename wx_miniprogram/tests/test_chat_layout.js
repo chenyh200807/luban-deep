@@ -72,8 +72,8 @@ assert(
   "chat.wxml should enable a compact logo in chat mode",
 );
 assert(
-  /showInternalStatus:\s*false/.test(chatJs),
-  "chat.js should default internal status panels to hidden for end users",
+  /showInternalStatus:\s*true/.test(chatJs),
+  "chat.js should default workflow status panels to visible during streaming",
 );
 assert(
   chatWxml.indexOf("nav-points-pill") >= 0 &&

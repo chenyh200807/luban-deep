@@ -172,6 +172,74 @@ def test_ws_start_turn_binds_authenticated_user_into_billing_context(
     assert message["type"] == "done"
 
 
+def test_ws_start_turn_normalizes_legacy_interaction_fields_into_interaction_hints(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_runtime = _FakeRuntime()
+
+    monkeypatch.setattr(ws_module, "resolve_auth_context", lambda _authorization: _ctx("student_demo"))
+    monkeypatch.setattr("deeptutor.services.session.get_turn_runtime_manager", lambda: fake_runtime)
+
+    with TestClient(_build_app()) as client:
+        with client.websocket_connect("/api/v1/ws") as websocket:
+            websocket.send_json(
+                {
+                    "type": "start_turn",
+                    "content": "hello",
+                    "config": {
+                        "product_surface": "prelaunch_audit",
+                        "entry_role": "tutorbot",
+                        "subject_domain": "construction_exam",
+                        "teaching_mode": "smart",
+                    },
+                }
+            )
+            message = websocket.receive_json()
+
+    config = fake_runtime.started_payload["config"]
+    interaction_hints = config["interaction_hints"]
+    assert "product_surface" not in config
+    assert "entry_role" not in config
+    assert interaction_hints["product_surface"] == "prelaunch_audit"
+    assert interaction_hints["entry_role"] == "tutorbot"
+    assert interaction_hints["subject_domain"] == "construction_exam"
+    assert interaction_hints["teaching_mode"] == "smart"
+    assert config["billing_context"]["user_id"] == "student_demo"
+    assert message["type"] == "done"
+
+
+def test_ws_start_turn_normalizes_legacy_interaction_fields_without_authentication(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_runtime = _FakeRuntime()
+
+    monkeypatch.setattr(ws_module, "resolve_auth_context", lambda _authorization: None)
+    monkeypatch.setattr("deeptutor.services.session.get_turn_runtime_manager", lambda: fake_runtime)
+
+    with TestClient(_build_app()) as client:
+        with client.websocket_connect("/api/v1/ws") as websocket:
+            websocket.send_json(
+                {
+                    "type": "start_turn",
+                    "content": "hello",
+                    "config": {
+                        "product_surface": "prelaunch_audit",
+                        "priorities": ["stability", "compatibility"],
+                    },
+                }
+            )
+            message = websocket.receive_json()
+
+    config = fake_runtime.started_payload["config"]
+    interaction_hints = config["interaction_hints"]
+    assert "product_surface" not in config
+    assert "priorities" not in config
+    assert "billing_context" not in config
+    assert interaction_hints["product_surface"] == "prelaunch_audit"
+    assert interaction_hints["priorities"] == ["stability", "compatibility"]
+    assert message["type"] == "done"
+
+
 def test_ws_start_turn_runtime_error_is_sanitized(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

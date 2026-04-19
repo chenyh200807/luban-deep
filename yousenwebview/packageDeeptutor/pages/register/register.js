@@ -2,7 +2,7 @@ var api = require("../../utils/api");
 var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
-var analytics = require("../../../utils/analytics");
+var analytics = require("../../utils/analytics");
 
 var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 var CN_MOBILE_RE = /^1[3-9]\d{9}$/;

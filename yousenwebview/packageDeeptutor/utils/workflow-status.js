@@ -523,6 +523,8 @@ function buildWorkflowEntry(payload) {
   var args = metadata.args && typeof metadata.args === "object" ? metadata.args : {};
   var eventType = _safeString(source.eventType || source.type || "status");
   var seq = Number(source.seq || 0);
+  var visibility = _safeString(source.visibility || metadata.visibility).toLowerCase();
+  var isInternal = visibility === "internal";
   var rawText = _safeString(source.content || source.message || source.text || source.data);
   var toolName =
     source.toolName ||
@@ -561,6 +563,10 @@ function buildWorkflowEntry(payload) {
   } else if (eventType === "thinking" || eventType === "progress" || eventType === "observation") {
     rawLabel = "后台过程";
     rawBody = rawText || source.stage || "";
+  }
+
+  if (isInternal && (eventType === "thinking" || eventType === "observation")) {
+    rawBody = _safeString(source.stage || eventType);
   }
 
   if (translatedRaw && _looksEnglishStatus(rawBody)) {

@@ -178,6 +178,7 @@ Overlay 必须支持：
 
 - `turn_runtime`
 - 本轮 capability 执行链
+- Notebook 的 owner-scoped runtime 引用（如错题本 entry/category 关联）只能围绕同一个 `user_id -> owner_key` 边界持久化，不能跨学员串用或泄露。
 
 禁止写入：
 

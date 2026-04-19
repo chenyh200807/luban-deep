@@ -407,6 +407,7 @@ async def test_deep_question_capability_uses_single_call_followup_agent(
 async def test_tutorbot_capability_bridges_tutorbot_manager(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "0")
     captured: dict[str, Any] = {}
 
     class FakeManager:
@@ -515,6 +516,8 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
 async def test_tutorbot_capability_streams_intermediate_deltas_without_duplicate_final_content(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "1")
+
     class FakeManager:
         async def ensure_bot_running(self, bot_id: str, config=None):
             return SimpleNamespace(running=True)
@@ -575,6 +578,16 @@ async def test_tutorbot_capability_streams_intermediate_deltas_without_duplicate
     assert all(event.metadata["call_kind"] == "llm_stream_delta" for event in content_events)
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["response"] == "最终答案：防水等级是设计标准，设防层数是施工构造。"
+
+
+def test_tutorbot_stream_public_deltas_enabled_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("TUTORBOT_STREAM_PUBLIC_DELTAS", raising=False)
+
+    from deeptutor.capabilities.tutorbot import _stream_public_deltas_enabled
+
+    assert _stream_public_deltas_enabled() is True
 
 
 @pytest.mark.asyncio

@@ -13,7 +13,7 @@ var markdownFixtures = require("../../utils/devtools-markdown-fixtures");
 var runtime = require("../../utils/runtime");
 var route = require("../../utils/route");
 var flags = require("../../utils/flags");
-var analytics = require("../../../utils/analytics");
+var analytics = require("../../utils/analytics");
 
 // ── 常量（部分由性能分级动态覆盖）──────────────
 var _animCfg = helpers.getAnimConfig();
@@ -79,11 +79,13 @@ Page({
     workspaceShellHidden: false,
     heroBottomSpacer: 64,
     chatBottomSpacer: 220,
+    bottomBarCompact: false,
     bottomBarStyle: "",
     hasMessages: false,
     messages: [],
     inputText: "",
     isStreaming: false,
+    chatScrollTop: 0,
     scrollToId: "",
     chatScrollWithAnimation: false,
     answerMode: "AUTO",
@@ -94,7 +96,7 @@ Page({
     feedbackTags: [],
     feedbackComment: "",
     isDark: true,
-    showInternalStatus: false,
+    showInternalStatus: true,
     // 性能分级：控制 WXML 中动效开关
     enableOrbs: _animCfg.enableBreathingOrbs,
     enableMarquee: _animCfg.enableMarquee,
@@ -264,6 +266,15 @@ Page({
       this.clearMessages();
     }
     runtime.checkAuth(function () {
+      var proceedAfterAuthReady = function () {
+        self._loadDashboard();
+        self._checkDiagnostic();
+        var pendingIntent = runtime.consumePendingChatIntent();
+        if (pendingIntent.query && !self.data.isStreaming) {
+          self.setData({ answerMode: pendingIntent.mode || "AUTO" });
+          self._send(pendingIntent.query);
+        }
+      };
       self.setData({ timeGreeting: helpers.getTimeGreeting() });
       var pendingConvId = runtime.consumePendingConversationId();
       if (pendingConvId) {
@@ -289,21 +300,17 @@ Page({
           }
           self.setData(nextState);
           self._refreshPoints();
+          proceedAfterAuthReady();
         })
         .catch(function (e) {
           log.warn("Chat", "getUserInfo failed: " + ((e && e.message) || e));
-          self._refreshPoints();
           // 401 已被 api.js 拦截跳转登录
+          if (String((e && e.message) || "") === "AUTH_EXPIRED") {
+            return;
+          }
+          self._refreshPoints();
+          proceedAfterAuthReady();
         });
-      // 获取首页仪表盘数据（复习/薄弱点）
-      self._loadDashboard();
-      // 新用户弹窗：建议做摸底测试
-      self._checkDiagnostic();
-      var pendingIntent = runtime.consumePendingChatIntent();
-      if (pendingIntent.query && !self.data.isStreaming) {
-        self.setData({ answerMode: pendingIntent.mode || "AUTO" });
-        self._send(pendingIntent.query);
-      }
     });
     // [FIX] 从后台切回时重建 observer（onHide 中已 teardown）
     if (this.data.hasMessages) {
@@ -1945,8 +1952,52 @@ Page({
     });
   },
 
+  _syncMeasuredChatBottomSpacer: function (bottomBarBottom) {
+    var self = this;
+    if (!self.data.hasMessages || typeof self.createSelectorQuery !== "function") {
+      return;
+    }
+    var viewportWidth = self.data.viewportWidth || 375;
+    var unit = function (rpx) {
+      return Math.round((viewportWidth * rpx) / 750);
+    };
+    var runMeasure = function () {
+      var query = self.createSelectorQuery();
+      if (!query || typeof query.select !== "function") return;
+      query.select(".bottom-bar").boundingClientRect(function (rect) {
+        if (!rect || !rect.height) return;
+        var previousSpacer = self.data.chatBottomSpacer || 0;
+        var measuredSpacer = Math.round(rect.height) + bottomBarBottom + unit(12);
+        if (Math.abs((self.data.chatBottomSpacer || 0) - measuredSpacer) <= 1) {
+          return;
+        }
+        var nextState = {
+          chatBottomSpacer: measuredSpacer,
+        };
+        var delta = measuredSpacer - previousSpacer;
+        if (Math.abs(delta) > 1) {
+          var currentScrollTop = self._lastScrollY || self.data.chatScrollTop || 0;
+          var compensatedScrollTop = Math.max(0, currentScrollTop + delta);
+          nextState.chatScrollTop = compensatedScrollTop;
+          self._lastScrollY = compensatedScrollTop;
+        }
+        self.setData(nextState);
+      });
+      if (typeof query.exec === "function") {
+        query.exec();
+      }
+    };
+    if (typeof wx !== "undefined" && wx && typeof wx.nextTick === "function") {
+      wx.nextTick(runMeasure);
+      return;
+    }
+    runMeasure();
+  },
+
   _syncWorkspaceChrome: function (options) {
     var next = options && typeof options === "object" ? options : {};
+    var previousHasMessages = !!this.data.hasMessages;
+    var previousSpacer = this.data.chatBottomSpacer || 0;
     var hidden =
       next.hidden !== undefined ? !!next.hidden : !!this.data.workspaceShellHidden;
     var hasMessages =
@@ -1961,15 +2012,16 @@ Page({
       return Math.round((viewportWidth * rpx) / 750);
     };
     var bottomBarBottom = shellVisible ? shellHeight : 0;
-    var bottomBarPaddingBottom = shellVisible ? unit(12) : safeBottom + unit(12);
+    var bottomBarPaddingBottom = shellVisible ? 0 : safeBottom + unit(12);
     var heroBottomSpacer = shellVisible ? shellHeight + unit(32) : unit(120);
     var chatBottomSpacer =
       unit(236) + bottomBarBottom + bottomBarPaddingBottom + unit(48);
 
-    this.setData({
+    var nextState = {
       workspaceShellHidden: hidden,
       heroBottomSpacer: heroBottomSpacer,
       chatBottomSpacer: chatBottomSpacer,
+      bottomBarCompact: shellVisible,
       bottomBarStyle: hasMessages
         ? "bottom:" +
           bottomBarBottom +
@@ -1977,7 +2029,18 @@ Page({
           bottomBarPaddingBottom +
           "px;"
         : "",
-    });
+    };
+    var delta = chatBottomSpacer - previousSpacer;
+    if (previousHasMessages && hasMessages && Math.abs(delta) > 1) {
+      var currentScrollTop = this._lastScrollY || this.data.chatScrollTop || 0;
+      var compensatedScrollTop = Math.max(0, currentScrollTop + delta);
+      nextState.chatScrollTop = compensatedScrollTop;
+      this._lastScrollY = compensatedScrollTop;
+    }
+    this.setData(nextState);
+    if (hasMessages) {
+      this._syncMeasuredChatBottomSpacer(bottomBarBottom);
+    }
   },
 
   _refreshPoints: function () {

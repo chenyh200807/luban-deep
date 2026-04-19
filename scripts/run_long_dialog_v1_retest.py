@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Long Dialog V1 复测脚本（DeepTutor / mini_tutor / smart）。
+"""Long Dialog V1 复测脚本（DeepTutor / construction_exam_tutor / smart）。
 
 当前仓库里已经没有旧系统原始的 `eval/sets/long_dialog_v1.jsonl`，
 所以这里改为读取旧系统留存的 `session_full_conversations` 明细，
@@ -8,7 +8,7 @@
 默认行为：
 1. 从历史 artifact 中恢复 10 条长对话链的用户问题。
 2. 用当前 DeepTutor 的 turn runtime 按同一 session 连续执行。
-3. 全部使用 `mini_tutor + smart` 配置。
+3. 全部使用 `construction_exam_tutor + smart` 配置。
 4. 产出 JSON + Markdown 报告到 `tmp/`。
 
 说明：
@@ -158,7 +158,7 @@ def _build_retest_interaction_hints(
     hints: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     merged = dict(hints or {})
-    merged["profile"] = profile or "mini_tutor"
+    merged["profile"] = profile or "construction_exam_tutor"
     normalized_mode = str(mode or "").strip().lower()
     if normalized_mode in {"smart", "fast", "deep"}:
         merged["teaching_mode"] = normalized_mode
@@ -346,10 +346,10 @@ async def _run_single_turn(
     teaching_mode: str,
 ) -> tuple[str, str, float, list[str]]:
     config = {
-        "interaction_profile": "mini_tutor",
+        "interaction_profile": "construction_exam_tutor",
         "interaction_hints": _build_retest_interaction_hints(
             mode=teaching_mode,
-            profile="mini_tutor",
+            profile="construction_exam_tutor",
             query=query,
             hints={},
         ),

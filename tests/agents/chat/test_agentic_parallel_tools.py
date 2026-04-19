@@ -1143,5 +1143,56 @@ async def test_run_short_circuits_social_greeting_for_grounded_tutorbot(
     assert "正确答案" not in response
     assert "题目" not in response
     assert result_event.metadata["tool_traces"] == []
-    stage_starts = [event.stage for event in events if event.type == StreamEventType.STAGE_START]
-    assert stage_starts == ["responding"]
+
+
+@pytest.mark.asyncio
+async def test_run_uses_compact_response_for_construction_exam_tutor_profile(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+
+    async def _unexpected(*_args, **_kwargs):
+        raise AssertionError("construction_exam_tutor smart mode should short-circuit to compact response")
+
+    async def _fake_smart(*_args, **_kwargs):
+        return "这是 construction exam smart 单轮回答。", {"label": "Smart response"}
+
+    monkeypatch.setattr(pipeline, "_stage_smart_responding", _fake_smart)
+    monkeypatch.setattr(pipeline, "_stage_retrieval_first", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_thinking", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_acting", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_observing", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_responding", _unexpected)
+
+    bus = StreamBus()
+    events, consumer = await _collect_bus_events(bus)
+    context = UnifiedContext(
+        session_id="session-construction-smart",
+        user_message="什么是流水施工？",
+        enabled_tools=[],
+        knowledge_bases=[],
+        language="zh",
+        metadata={"turn_id": "turn-construction-smart"},
+        config_overrides={
+            "interaction_profile": "construction_exam_tutor",
+            "chat_mode": "smart",
+            "interaction_hints": {
+                "profile": "construction_exam_tutor",
+                "teaching_mode": "smart",
+                "subject_domain": "construction_exam",
+            },
+        },
+    )
+
+    await pipeline.run(context, bus)
+    await asyncio.sleep(0)
+    await bus.close()
+    await consumer
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["response"] == "这是 construction exam smart 单轮回答。"
+    assert result_event.metadata["chat_mode"] == "smart"

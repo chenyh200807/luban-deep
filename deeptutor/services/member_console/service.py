@@ -1988,6 +1988,37 @@ class MemberConsoleService:
             "streak_days": member["study_days"],
         }
 
+    @staticmethod
+    def _chapter_mastery_items(member: dict[str, Any]) -> list[dict[str, Any]]:
+        return [
+            {
+                "name": value.get("name") or key,
+                "mastery": int(value.get("mastery") or 0),
+            }
+            for key, value in (member.get("chapter_mastery") or {}).items()
+        ]
+
+    def _build_provisional_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
+        learning = self._ensure_learning_profile(member)
+        items: list[dict[str, Any]] = []
+        has_signal = False
+        for key, value in (member.get("chapter_mastery") or {}).items():
+            chapter_name = value.get("name") or key
+            stats = learning["chapter_stats"].get(chapter_name) or {}
+            done = int(stats.get("done") or 0)
+            total = max(30, done, 1)
+            mastery = round((done / total) * 100) if done > 0 else 0
+            if mastery > 0:
+                has_signal = True
+            items.append({"name": chapter_name, "mastery": mastery})
+        return items if has_signal else []
+
+    def _report_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
+        mastery_items = self._chapter_mastery_items(member)
+        if any(int(item.get("mastery") or 0) > 0 for item in mastery_items):
+            return mastery_items
+        return self._build_provisional_mastery_items(member)
+
     def get_chapter_progress(self, user_id: str) -> list[dict[str, Any]]:
         member = self._load_member_snapshot(user_id)["member"]
         learning = self._ensure_learning_profile(member)
@@ -2012,10 +2043,11 @@ class MemberConsoleService:
 
     def get_home_dashboard(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
+        mastery_items = self._report_mastery_items(member)
         weak_nodes = [
-            {"name": value.get("name") or key, "mastery": value.get("mastery") or 0}
-            for key, value in member["chapter_mastery"].items()
-            if int(value.get("mastery") or 0) < 60
+            {"name": item["name"], "mastery": item["mastery"]}
+            for item in mastery_items
+            if int(item.get("mastery") or 0) < 60
         ]
         weak_nodes.sort(key=lambda item: item["mastery"])
         return {
@@ -2073,26 +2105,31 @@ class MemberConsoleService:
 
     def get_radar_data(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
+        mastery_items = self._report_mastery_items(member)
         dimensions = [
             {
-                "key": key,
-                "label": value.get("name") or key,
-                "value": round(int(value.get("mastery") or 0) / 100, 2),
-                "score": int(value.get("mastery") or 0),
+                "key": item["name"],
+                "label": item["name"],
+                "value": round(int(item.get("mastery") or 0) / 100, 2),
+                "score": int(item.get("mastery") or 0),
             }
-            for key, value in member["chapter_mastery"].items()
+            for item in mastery_items
         ]
         return {"dimensions": dimensions}
 
     def get_mastery_dashboard(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
-        chapters = [
-            {
-                "name": value.get("name") or key,
-                "mastery": int(value.get("mastery") or 0),
+        chapters = self._report_mastery_items(member)
+        if not chapters:
+            return {
+                "overall_mastery": 0,
+                "groups": [],
+                "hotspots": [],
+                "review_summary": {
+                    "total_due": member["review_due"],
+                    "overdue_count": max(0, member["review_due"] - 1),
+                },
             }
-            for key, value in member["chapter_mastery"].items()
-        ]
         weak = [item for item in chapters if item["mastery"] < 40]
         normal = [item for item in chapters if 40 <= item["mastery"] < 70]
         strong = [item for item in chapters if item["mastery"] >= 70]
@@ -2123,7 +2160,43 @@ class MemberConsoleService:
 
     def get_assessment_profile(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
-        chapter_mastery = member["chapter_mastery"]
+        mastery_items = self._report_mastery_items(member)
+        chapter_mastery = {
+            item["name"]: {"name": item["name"], "mastery": item["mastery"]}
+            for item in mastery_items
+        }
+        if not mastery_items:
+            return {
+                "score": 0,
+                "level": "",
+                "chapter_mastery": {},
+                "diagnostic_profile": {
+                    "learner_archetype": "",
+                    "response_profile": "",
+                    "calibration_label": "",
+                },
+                "diagnostic_feedback": {
+                    "ability_overview": {
+                        "score_pct": 0,
+                        "chapter_mastery": {},
+                        "error_pattern": "",
+                    },
+                    "cognitive_insight": {
+                        "response_profile": "",
+                        "calibration_label": "",
+                    },
+                    "learner_profile": {
+                        "archetype": "",
+                        "traits": [],
+                        "study_tip": "完成一组练习或摸底测试后，系统会自动生成学习画像。",
+                    },
+                    "action_plan": {
+                        "priority_chapters": [],
+                        "plan_strategy": "先完成一组练习，再回来看学情变化。",
+                    },
+                },
+            }
+
         avg_mastery = round(
             sum(int(item.get("mastery") or 0) for item in chapter_mastery.values())
             / max(len(chapter_mastery), 1)

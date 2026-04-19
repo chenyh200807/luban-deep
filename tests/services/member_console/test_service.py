@@ -882,6 +882,48 @@ def test_submit_assessment_updates_today_progress_and_chapter_practice(tmp_path:
     assert any(item["done"] >= 1 for item in chapters)
 
 
+def test_report_analytics_stay_empty_before_any_assessment_or_practice(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    radar = service.get_radar_data("blank_user")
+    dashboard = service.get_mastery_dashboard("blank_user")
+    profile = service.get_assessment_profile("blank_user")
+
+    assert radar["dimensions"] == []
+    assert dashboard["overall_mastery"] == 0
+    assert dashboard["groups"] == []
+    assert dashboard["hotspots"] == []
+    assert profile["score"] == 0
+    assert profile["chapter_mastery"] == {}
+
+
+def test_chat_learning_builds_provisional_report_analytics_without_assessment(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    service.record_learning_activity(
+        "blank_user",
+        count=12,
+        chapter="建筑构造",
+        source="chat",
+    )
+
+    radar = service.get_radar_data("blank_user")
+    dashboard = service.get_mastery_dashboard("blank_user")
+    profile = service.get_assessment_profile("blank_user")
+
+    assert any(item["label"] == "建筑构造" and item["score"] > 0 for item in radar["dimensions"])
+    assert dashboard["overall_mastery"] > 0
+    assert any(
+        chapter["name"] == "建筑构造" and chapter["mastery"] > 0
+        for group in dashboard["groups"]
+        for chapter in group["chapters"]
+    )
+    assert profile["score"] > 0
+    assert profile["chapter_mastery"]["建筑构造"]["mastery"] > 0
+
+
 def test_verify_phone_code_bootstraps_clean_new_member_state(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
