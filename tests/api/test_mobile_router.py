@@ -149,6 +149,105 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
     assert config["interaction_hints"]["profile"] == "tutorbot"
 
 
+def test_mobile_chat_start_turn_writes_requested_response_mode_and_legacy_alias(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": "session_mode_1",
+                    "title": "模式归一",
+                    "created_at": 1_700_000_011.0,
+                },
+                {
+                    "id": "turn_mode_1",
+                    "status": "running",
+                    "capability": "chat",
+                },
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "session_store",
+        SimpleNamespace(
+            get_session_owner_key=AsyncMock(return_value="user:student_demo")
+        ),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "请详细讲一下流水步距",
+                "conversation_id": "session_mode_1",
+                "mode": "DEEP",
+            },
+        )
+
+    assert response.status_code == 200
+    config = captured["payload"]["config"]
+    assert config["chat_mode"] == "deep"
+    assert config["interaction_hints"]["requested_response_mode"] == "deep"
+    assert config["interaction_hints"]["teaching_mode"] == "deep"
+
+
+def test_mobile_chat_start_turn_overrides_conflicting_legacy_teaching_mode_with_canonical_mode(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": "session_mode_2",
+                    "title": "模式冲突归一",
+                    "created_at": 1_700_000_012.0,
+                },
+                {
+                    "id": "turn_mode_2",
+                    "status": "running",
+                    "capability": "chat",
+                },
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "session_store",
+        SimpleNamespace(
+            get_session_owner_key=AsyncMock(return_value="user:student_demo")
+        ),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "请展开讲解流水步距",
+                "conversation_id": "session_mode_2",
+                "mode": "DEEP",
+                "interaction_hints": {
+                    "teaching_mode": "fast",
+                },
+            },
+        )
+
+    assert response.status_code == 200
+    config = captured["payload"]["config"]
+    assert config["chat_mode"] == "deep"
+    assert config["interaction_hints"]["requested_response_mode"] == "deep"
+    assert config["interaction_hints"]["teaching_mode"] == "deep"
+
+
 def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
