@@ -66,6 +66,9 @@ def build_mobile_feedback_row(
     reason_tags: list[str] | None = None,
     comment: str = "",
     answer_mode: str = "AUTO",
+    requested_response_mode: str = "",
+    effective_response_mode: str = "",
+    response_mode_degrade_reason: str = "",
 ) -> dict[str, Any]:
     normalized_conversation_id = str(session_id or "").strip()
     normalized_message_id = str(message_id or "").strip()
@@ -77,6 +80,9 @@ def build_mobile_feedback_row(
     normalized_message_uuid = normalize_uuid_or_none(normalized_message_id)
     metadata = {
         "answer_mode": normalized_answer_mode,
+        "requested_response_mode": str(requested_response_mode or "").strip(),
+        "effective_response_mode": str(effective_response_mode or "").strip(),
+        "response_mode_degrade_reason": str(response_mode_degrade_reason or "").strip(),
         "feedback_source": "wx_miniprogram_message_actions",
         "surface": "wx_miniprogram",
         "platform": "wechat_miniprogram",
@@ -121,6 +127,11 @@ def normalize_feedback_record(row: Mapping[str, Any]) -> dict[str, Any]:
         "reason_tags": normalize_feedback_reason_tags(row.get("reason_tags")),
         "comment": str(row.get("comment") or "").strip(),
         "answer_mode": _metadata_str(normalized_metadata, "answer_mode"),
+        "requested_response_mode": _metadata_str(normalized_metadata, "requested_response_mode"),
+        "effective_response_mode": _metadata_str(normalized_metadata, "effective_response_mode"),
+        "response_mode_degrade_reason": _metadata_str(
+            normalized_metadata, "response_mode_degrade_reason"
+        ),
         "feedback_source": _metadata_str(normalized_metadata, "feedback_source"),
         "surface": _metadata_str(normalized_metadata, "surface"),
         "platform": _metadata_str(normalized_metadata, "platform"),

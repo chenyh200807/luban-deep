@@ -500,6 +500,7 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
 
     return {
         "tool_calls": tool_calls[:8],
+        "actual_tool_rounds": len(tool_calls),
         "sources": sources[:8],
         "authority_applied": authority_applied,
     }
@@ -2309,10 +2310,34 @@ class TurnRuntimeManager:
             except Exception:
                 logger.debug("Failed to preview context route", exc_info=True)
             trace_metadata["language"] = payload.get("language", "en")
-            trace_metadata["chat_mode"] = str(
+            raw_interaction_hints = (
+                (payload.get("config", {}) or {}).get("interaction_hints")
+                if isinstance((payload.get("config", {}) or {}).get("interaction_hints"), dict)
+                else {}
+            )
+            chat_mode = str(
                 request_config.get("chat_mode")
                 or (interaction_hints or {}).get("teaching_mode")
                 or ""
+            ).strip()
+            raw_requested_response_mode = str(
+                raw_interaction_hints.get("requested_response_mode") or ""
+            ).strip()
+            requested_response_mode = (
+                normalize_requested_response_mode(raw_requested_response_mode)
+                if raw_requested_response_mode
+                else ""
+            )
+            effective_response_mode = str(
+                request_config.get("chat_mode")
+                or (interaction_hints or {}).get("effective_response_mode")
+                or requested_response_mode
+            ).strip()
+            trace_metadata["chat_mode"] = chat_mode
+            trace_metadata["requested_response_mode"] = requested_response_mode
+            trace_metadata["effective_response_mode"] = effective_response_mode
+            trace_metadata["response_mode_degrade_reason"] = str(
+                (interaction_hints or {}).get("response_mode_degrade_reason") or ""
             ).strip()
             trace_metadata["source"] = str((billing_context or {}).get("source", "") or "").strip()
             trace_metadata["active_object"] = dict(active_object) if active_object else {}
@@ -2791,13 +2816,14 @@ class TurnRuntimeManager:
                     default=False,
                 )
                 usage_summary = observability.get_current_usage_summary()
+                assistant_event_summary = _summarize_assistant_events(assistant_events)
                 observability.update_observation(
                     turn_observation,
                     output_payload={"assistant_content": assistant_content},
                     metadata={
                         **observability.summary_metadata(usage_summary),
                         **trace_metadata,
-                        **_summarize_assistant_events(assistant_events),
+                        **assistant_event_summary,
                         "assistant_event_count": len(assistant_events),
                         "assistant_content_source": assistant_content_source,
                     },
@@ -2820,12 +2846,14 @@ class TurnRuntimeManager:
                 )
         except asyncio.CancelledError:
             usage_summary = observability.get_current_usage_summary()
+            assistant_event_summary = _summarize_assistant_events(assistant_events)
             observability.update_observation(
                 turn_observation,
                 output_payload={"assistant_content": assistant_content},
                 metadata={
                     **observability.summary_metadata(usage_summary),
                     **trace_metadata,
+                    **assistant_event_summary,
                     "assistant_content_source": assistant_content_source,
                 },
                 usage_details=observability.usage_details_from_summary(usage_summary),
@@ -2863,12 +2891,14 @@ class TurnRuntimeManager:
             raise
         except Exception as exc:
             usage_summary = observability.get_current_usage_summary()
+            assistant_event_summary = _summarize_assistant_events(assistant_events)
             observability.update_observation(
                 turn_observation,
                 output_payload={"assistant_content": assistant_content},
                 metadata={
                     **observability.summary_metadata(usage_summary),
                     **trace_metadata,
+                    **assistant_event_summary,
                     "assistant_content_source": assistant_content_source,
                 },
                 usage_details=observability.usage_details_from_summary(usage_summary),
