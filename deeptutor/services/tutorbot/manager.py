@@ -799,6 +799,13 @@ class TutorBotManager:
             "channel": "web",
             "capability": "tutorbot",
             "teaching_mode": mode,
+            "requested_response_mode": str(merged_metadata.get("requested_response_mode") or mode).strip()
+            or mode,
+            "effective_response_mode": str(merged_metadata.get("effective_response_mode") or mode).strip()
+            or mode,
+            "response_mode_degrade_reason": str(
+                merged_metadata.get("response_mode_degrade_reason") or ""
+            ).strip(),
             "source": source,
             "title": str(merged_metadata.get("title") or "").strip(),
             "tutorbot_session_key": effective_session_key,
@@ -847,6 +854,9 @@ class TutorBotManager:
 
         runtime_metadata = dict(merged_metadata)
         runtime_metadata["teaching_mode"] = mode
+        runtime_metadata["effective_response_mode"] = (
+            str(merged_metadata.get("effective_response_mode") or mode).strip() or mode
+        )
 
         response = ""
         try:
@@ -889,6 +899,7 @@ class TutorBotManager:
                             **observability.summary_metadata(usage_summary),
                             **trace_metadata,
                             "tool_calls": tool_trace_summary["tool_calls"],
+                            "actual_tool_rounds": len(tool_trace_summary["tool_calls"]),
                             "sources": tool_trace_summary["sources"],
                             "rag_rounds": tool_trace_summary["rag_rounds"],
                             "rag_round_count": len(tool_trace_summary["rag_rounds"]),

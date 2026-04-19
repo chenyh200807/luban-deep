@@ -19,11 +19,15 @@ from deeptutor.services.question_followup import (
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
+from deeptutor.tutorbot.response_mode import (
+    build_mode_execution_policy,
+    resolve_requested_response_mode,
+)
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 
 def _stream_public_deltas_enabled() -> bool:
-    raw = str(os.getenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "0") or "").strip().lower()
+    raw = str(os.getenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "1") or "").strip().lower()
     return raw in {"1", "true", "yes", "on"}
 
 
@@ -43,7 +47,9 @@ class TutorBotCapability(BaseCapability):
             await stream.error("TutorBot capability requires bot_id.", source=self.name)
             return
         runtime_defaults = resolve_bot_runtime_defaults(bot_id=bot_id)
-        teaching_mode = self._teaching_mode(context)
+        requested_mode = self._response_mode(context)
+        policy = build_mode_execution_policy(requested_mode)
+        teaching_mode = policy.effective_mode
         hide_generated_answers = self._should_hide_generated_answers(context)
 
         manager = get_tutorbot_manager()
@@ -72,6 +78,16 @@ class TutorBotCapability(BaseCapability):
             "bot_id": bot_id,
             "default_tools": self._session_default_tools(context, teaching_mode=teaching_mode),
             "knowledge_bases": list(context.knowledge_bases or []),
+            "requested_response_mode": policy.requested_mode,
+            "effective_response_mode": policy.effective_mode,
+            "response_mode_degrade_reason": policy.response_mode_degrade_reason,
+            "teaching_mode": policy.effective_mode,
+            "mode_execution_policy": {
+                "max_tool_rounds": policy.max_tool_rounds,
+                "allow_deep_stage": policy.allow_deep_stage,
+                "response_density": policy.response_density,
+                "latency_budget_ms": policy.latency_budget_ms,
+            },
         }
         if runtime_defaults:
             session_metadata["kb_aliases"] = list(runtime_defaults.supabase_kb_aliases or [])
@@ -169,7 +185,7 @@ class TutorBotCapability(BaseCapability):
                 on_content_delta=_on_content_delta,
                 on_tool_call=_on_tool_call,
                 on_tool_result=_on_tool_result,
-                mode=teaching_mode,
+                mode=policy.effective_mode,
                 session_key=session_key,
                 session_metadata=session_metadata,
             )
@@ -182,9 +198,16 @@ class TutorBotCapability(BaseCapability):
                 final_response=final_response,
                 parsed_result_summary=parsed_result_summary,
             )
-            if final_response:
+            streamed_visible_response = "".join(streamed_chunks)
+            final_visible_delta = visible_response
+            if streamed_visible_response:
+                if visible_response.startswith(streamed_visible_response):
+                    final_visible_delta = visible_response[len(streamed_visible_response):]
+                else:
+                    final_visible_delta = ""
+            if final_visible_delta:
                 await stream.content(
-                    visible_response,
+                    final_visible_delta,
                     source=self.name,
                     stage="responding",
                     metadata={
@@ -235,15 +258,12 @@ class TutorBotCapability(BaseCapability):
         return ""
 
     @staticmethod
-    def _teaching_mode(context: UnifiedContext) -> str:
+    def _response_mode(context: UnifiedContext) -> str:
         hints = context.metadata.get("interaction_hints", {}) if isinstance(context.metadata, dict) else {}
-        mode = (
-            str(context.config_overrides.get("chat_mode") or "").strip().lower()
-            or str((hints or {}).get("teaching_mode") or "").strip().lower()
+        return resolve_requested_response_mode(
+            chat_mode=context.config_overrides.get("chat_mode"),
+            interaction_hints=hints if isinstance(hints, dict) else None,
         )
-        if mode in {"fast", "deep"}:
-            return mode
-        return "smart"
 
     @staticmethod
     def _session_default_tools(context: UnifiedContext, *, teaching_mode: str) -> list[str]:

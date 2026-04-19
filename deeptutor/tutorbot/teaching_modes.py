@@ -6,6 +6,8 @@ import re
 from pathlib import Path
 from typing import Literal
 
+from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
+
 TutorBotTeachingMode = Literal["smart", "fast", "deep"]
 ConstructionExamScene = Literal["general", "concept", "mcq", "case", "error_review"]
 
@@ -90,12 +92,7 @@ _DEEP_INSTRUCTION = """
 
 
 def normalize_teaching_mode(value: str | None) -> TutorBotTeachingMode:
-    normalized = str(value or "").strip().lower()
-    if normalized == _FAST:
-        return _FAST
-    if normalized == _DEEP:
-        return _DEEP
-    return _SMART
+    return normalize_requested_response_mode(value)
 
 
 def get_teaching_mode_instruction(value: str | None) -> str:

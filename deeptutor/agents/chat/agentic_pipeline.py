@@ -642,18 +642,8 @@ class AgenticChatPipeline:
                     user_content=user_prompt,
                 )
 
-                if required_elements or force_buffer:
-                    if required_elements:
-                        content = await self._complete_validated_response(
-                            context=context,
-                            messages=messages,
-                            answer_type=answer_type,
-                            observation=observation,
-                            tool_traces=tool_traces,
-                            max_tokens=1800,
-                        )
-                    else:
-                        content = await self._complete_messages(messages, max_tokens=1800)
+                if force_buffer:
+                    content = await self._complete_messages(messages, max_tokens=1800)
                     content = await self._apply_exact_question_authority(
                         context=context,
                         answer_type=answer_type,
@@ -740,6 +730,7 @@ class AgenticChatPipeline:
                         f"用户问题：\n{context.user_message}\n\n"
                         "请直接给出正式回答。保持教学连续性，但不要展示内部推理、阶段或工具信息。"
                         "当前优先按微信小程序对话来答：除非用户明确要求详细展开，否则尽量短答，控制在 2 到 3 个信息块内，不要写成讲义。"
+                        "如果用户当前问题里已经给了具体案例锚点或对象原词，回答里默认沿用该原词，不要自行缩写、泛化或换称呼。"
                         "如果题目存在会影响安全、责任或索赔结论的歧义，优先做条件化判断，不要硬猜。"
                         "如果本轮没有已确认依据，不要主动补具体程序时限或合同天数。"
                     ),
@@ -748,6 +739,7 @@ class AgenticChatPipeline:
                         "Provide the final answer directly. Maintain tutoring continuity, "
                         "but do not reveal internal reasoning, stages, or tool details. "
                         "Prefer a concise WeChat mini-program style answer unless the user explicitly asks for detail. "
+                        "If the current user request already gives a concrete case anchor or exact object wording, preserve it instead of shortening or renaming it. "
                         "If ambiguity would change the safety, liability, or claim conclusion, answer conditionally instead of guessing. "
                         "Do not invent exact procedural or contractual time limits without confirmed evidence."
                     ),
@@ -761,35 +753,18 @@ class AgenticChatPipeline:
                     user_content=user_prompt,
                 )
 
-                if required_elements:
-                    content = await self._complete_validated_response(
-                        context=context,
-                        messages=messages,
-                        answer_type=answer_type,
-                        observation="",
-                        tool_traces=[],
-                        max_tokens=1800,
+                chunks: list[str] = []
+                async for chunk in self._stream_messages(messages, max_tokens=1800):
+                    if not chunk:
+                        continue
+                    chunks.append(chunk)
+                    await stream.content(
+                        chunk,
+                        source="chat",
+                        stage="responding",
+                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
                     )
-                    if content:
-                        await stream.content(
-                            content,
-                            source="chat",
-                            stage="responding",
-                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
-                        )
-                else:
-                    chunks: list[str] = []
-                    async for chunk in self._stream_messages(messages, max_tokens=1800):
-                        if not chunk:
-                            continue
-                        chunks.append(chunk)
-                        await stream.content(
-                            chunk,
-                            source="chat",
-                            stage="responding",
-                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
-                        )
-                    content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                content = clean_thinking_tags("".join(chunks), self.binding, self.model)
                 await stream.progress(
                     "",
                     source="chat",
@@ -913,39 +888,18 @@ class AgenticChatPipeline:
                     user_content=user_prompt,
                 )
 
-                if required_elements:
-                    observation = self._text(
-                        zh=f"现有草稿：\n{partial_response or '(empty)'}",
-                        en=f"Current draft:\n{partial_response or '(empty)'}",
+                chunks: list[str] = []
+                async for chunk in self._stream_messages(messages, max_tokens=1800):
+                    if not chunk:
+                        continue
+                    chunks.append(chunk)
+                    await stream.content(
+                        chunk,
+                        source="chat",
+                        stage="responding",
+                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
                     )
-                    content = await self._complete_validated_response(
-                        context=context,
-                        messages=messages,
-                        answer_type=answer_type,
-                        observation=observation,
-                        tool_traces=[],
-                        max_tokens=1800,
-                    )
-                    if content:
-                        await stream.content(
-                            content,
-                            source="chat",
-                            stage="responding",
-                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
-                        )
-                else:
-                    chunks: list[str] = []
-                    async for chunk in self._stream_messages(messages, max_tokens=1800):
-                        if not chunk:
-                            continue
-                        chunks.append(chunk)
-                        await stream.content(
-                            chunk,
-                            source="chat",
-                            stage="responding",
-                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
-                        )
-                    content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                content = clean_thinking_tags("".join(chunks), self.binding, self.model)
                 await stream.progress(
                     "",
                     source="chat",
@@ -1984,7 +1938,9 @@ class AgenticChatPipeline:
                 "\n\n要求：\n"
                 "1. 只输出面向用户的正式回答。\n"
                 "2. 不要暴露内部链路、思考过程或工具编排。\n"
-                "3. 若工具结果提供了证据或限制，请自然融入答案。\n\n"
+                "3. 若工具结果提供了证据或限制，请自然融入答案。\n"
+                "4. 如果用户当前问题里给了具体案例锚点或对象原词（如楼层数、建筑类型、工程对象、题目设定），"
+                "默认沿用该原词，不要自行缩写、泛化或换称呼。\n\n"
                 f"本轮工具背景：\n{tool_list or '- 无'}"
             ),
             en=(
@@ -1993,7 +1949,9 @@ class AgenticChatPipeline:
                 "Requirements:\n"
                 "1. Output only the final user-facing answer.\n"
                 "2. Do not reveal the internal chain, reasoning, or tool orchestration.\n"
-                "3. Naturally integrate evidence or limits surfaced by the tools.\n\n"
+                "3. Naturally integrate evidence or limits surfaced by the tools.\n"
+                "4. If the current user request includes a concrete case anchor or exact object wording such as floor count, "
+                "building type, project object, or problem setup, preserve that wording instead of shortening or renaming it.\n\n"
                 f"Tool context for this turn:\n{tool_list or '- none'}"
             ),
         )
@@ -2723,9 +2681,12 @@ class AgenticChatPipeline:
 
     def _configured_teaching_mode(self, context: UnifiedContext) -> str:
         hints = self._interaction_hints(context)
-        hinted_mode = str(hints.get("teaching_mode") or "").strip().lower()
+        hinted_mode = str(hints.get("requested_response_mode") or "").strip().lower()
         if hinted_mode in {"fast", "deep", "smart"}:
             return hinted_mode
+        legacy_mode = str(hints.get("teaching_mode") or "").strip().lower()
+        if legacy_mode in {"fast", "deep", "smart"}:
+            return legacy_mode
         runtime_mode = str(context.config_overrides.get("chat_mode") or "").strip().lower()
         return runtime_mode if runtime_mode in {"fast", "deep", "smart"} else ""
 
@@ -2963,6 +2924,18 @@ class AgenticChatPipeline:
         lecture_instruction = get_lecture_skill_instruction(context.user_message)
         if lecture_instruction:
             parts.append(lecture_instruction)
+        parts.append(
+            self._text(
+                zh=(
+                    "如果用户已经指定了具体案例锚点（如楼层数、建筑类型、工程对象、题目设定），"
+                    "后续讲解默认沿用该锚点原词，不要自行缩写、泛化或换称呼。"
+                ),
+                en=(
+                    "If the user establishes a concrete case anchor such as floor count, building type, project object, "
+                    "or problem setup, preserve that anchor wording across follow-up explanations rather than shortening or renaming it."
+                ),
+            )
+        )
         return "\n\n".join(part for part in parts if part).strip()
 
     def _required_heading_block(self, required_elements: list[str], english: bool = False) -> str:

@@ -1242,8 +1242,13 @@ class AgentLoop:
                 message_tool.start_turn()
 
         history = session.get_history(max_messages=0)
+        response_mode = (
+            runtime_metadata.get("effective_response_mode")
+            or runtime_metadata.get("requested_response_mode")
+            or runtime_metadata.get("teaching_mode")
+        )
         runtime_instruction_parts = [
-            get_teaching_mode_instruction(runtime_metadata.get("teaching_mode")),
+            get_teaching_mode_instruction(response_mode),
             get_markdown_style_instruction(),
             get_practice_generation_instruction(
                 user_message=current_message,
