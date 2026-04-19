@@ -8,9 +8,12 @@ import pytest
 
 pytest.importorskip("fastapi")
 
-FastAPI = pytest.importorskip("fastapi").FastAPI
+fastapi_module = pytest.importorskip("fastapi")
+FastAPI = fastapi_module.FastAPI
+HTTPException = fastapi_module.HTTPException
 TestClient = pytest.importorskip("fastapi.testclient").TestClient
-bi_router = importlib.import_module("deeptutor.api.routers.bi").router
+bi_router_module = importlib.import_module("deeptutor.api.routers.bi")
+bi_router = bi_router_module.router
 
 from deeptutor.services.bi_service import BIService
 from deeptutor.services.feedback_service import build_mobile_feedback_row
@@ -328,8 +331,40 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
     return service
 
 
-def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> None:
+def test_bi_router_requires_admin_for_sensitive_endpoints(bi_service: BIService) -> None:
+    protected_paths = [
+        "/api/v1/bi/overview?days=30",
+        "/api/v1/bi/learner/u1?days=30",
+        "/api/v1/bi/cost/reconciliation?days=30&workspace_id=ws-1&apikey_id=42&billing_cycle=2026-04",
+        "/api/v1/bi/feedback?days=30&limit=10",
+    ]
+
     with TestClient(_build_app(bi_service)) as client:
+        for path in protected_paths:
+            response = client.get(path)
+            assert response.status_code == 401
+            assert response.json()["detail"] == "Authentication required"
+
+
+def test_bi_router_rejects_non_admin_even_with_authenticated_context(bi_service: BIService) -> None:
+    app = _build_app(bi_service)
+
+    def _deny_non_admin():
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    app.dependency_overrides[bi_router_module.require_admin] = _deny_non_admin
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/bi/overview?days=30")
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Admin access required"
+
+
+def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> None:
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_admin] = lambda: None
+
+    with TestClient(app) as client:
         overview = client.get("/api/v1/bi/overview?days=30")
         assert overview.status_code == 200
         overview_body = overview.json()

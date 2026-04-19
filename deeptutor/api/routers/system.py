@@ -22,6 +22,7 @@ from deeptutor.services.llm import get_llm_config, get_token_limit_kwargs
 from deeptutor.services.search import web_search
 
 router = APIRouter()
+_ADMIN_ONLY = [Depends(require_admin)]
 
 
 class TestResponse(BaseModel):
@@ -32,7 +33,7 @@ class TestResponse(BaseModel):
     error: str | None = None
 
 
-@router.get("/runtime-topology")
+@router.get("/runtime-topology", dependencies=_ADMIN_ONLY)
 async def get_runtime_topology():
     """
     Describe the current execution topology.
@@ -67,7 +68,7 @@ async def get_runtime_topology():
     }
 
 
-@router.get("/turn-contract")
+@router.get("/turn-contract", dependencies=_ADMIN_ONLY)
 async def get_turn_contract():
     """
     Return the machine-readable unified turn contract.
@@ -78,7 +79,7 @@ async def get_turn_contract():
     return export_unified_turn_contract()
 
 
-@router.get("/contracts-index")
+@router.get("/contracts-index", dependencies=_ADMIN_ONLY)
 async def get_contracts_index():
     """
     Return the machine-readable contract domain index.
@@ -89,7 +90,7 @@ async def get_contracts_index():
     return export_contract_index()
 
 
-@router.get("/learner-state-contract")
+@router.get("/learner-state-contract", dependencies=_ADMIN_ONLY)
 async def get_learner_state_contract():
     """
     Return the machine-readable learner state contract.

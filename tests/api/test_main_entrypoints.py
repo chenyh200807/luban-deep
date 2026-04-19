@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from deeptutor.api.dependencies.auth import AuthContext
 from fastapi import Request
 from fastapi.testclient import TestClient
 
@@ -341,12 +342,30 @@ def test_production_disables_legacy_router_mounts_by_default(
     paths = _route_paths(module.app)
     assert "/api/v1/ws" in paths
     assert "/api/v1/sessions" in paths
+    assert "/api/outputs" not in paths
     assert "/api/v1/solve" not in paths
     assert "/api/v1/question/mimic" not in paths
     assert "/api/v1/dashboard/recent" not in paths
     assert "/api/v1/notebook/list" not in paths
     assert "/api/v1/plugins/list" not in paths
     assert "/api/v1/tutorbot" not in paths
+
+
+def test_public_outputs_can_be_explicitly_reenabled_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_ENABLE_PUBLIC_OUTPUTS": "1",
+        },
+        tmp_path=tmp_path,
+    )
+
+    paths = _route_paths(module.app)
+    assert "/api/outputs" in paths
 
 
 def test_legacy_router_flag_explicitly_reenables_compatibility_mounts(
@@ -548,6 +567,7 @@ def test_healthz_and_metrics_expose_runtime_snapshots(
         "event_bus_ready": True,
         "tutorbots_ready": True,
     }
+    module.app.dependency_overrides[module.require_metrics_access] = lambda: None
 
     error_rate_module = importlib.import_module("deeptutor.utils.error_rate_tracker")
     circuit_breaker_module = importlib.import_module("deeptutor.utils.network.circuit_breaker")
@@ -608,6 +628,7 @@ def test_metrics_prometheus_exports_runtime_and_provider_snapshots(
         "event_bus_ready": True,
         "tutorbots_ready": True,
     }
+    module.app.dependency_overrides[module.require_metrics_access] = lambda: None
 
     error_rate_module = importlib.import_module("deeptutor.utils.error_rate_tracker")
     circuit_breaker_module = importlib.import_module("deeptutor.utils.network.circuit_breaker")
@@ -635,3 +656,76 @@ def test_metrics_prometheus_exports_runtime_and_provider_snapshots(
     assert 'deeptutor_circuit_breaker_failure_count{provider="test-provider"}' in body
     error_rate_module.clear_tracker_state()
     circuit_breaker_module.reset_circuit_breakers()
+
+
+@pytest.mark.parametrize(("path"), ("/metrics", "/metrics/prometheus"))
+def test_metrics_endpoints_require_admin_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    path: str,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "APP_ENV": None,
+            "ENV": None,
+            "ENVIRONMENT": None,
+            "DEEPTUTOR_CORS_ALLOW_ORIGINS": None,
+        },
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_fake_startup_dependencies(monkeypatch)
+
+    with TestClient(module.app) as client:
+        unauthenticated = client.get(path)
+
+    assert unauthenticated.status_code == 401
+    assert unauthenticated.json()["detail"] == "Authentication required"
+
+    auth_module = importlib.import_module("deeptutor.api.dependencies.auth")
+    monkeypatch.setattr(
+        auth_module,
+        "resolve_auth_context",
+        lambda _authorization: AuthContext(
+            user_id="student_demo",
+            provider="test",
+            token="test-token",
+            claims={"uid": "student_demo"},
+            is_admin=False,
+        ),
+    )
+
+    with TestClient(module.app) as client:
+        forbidden = client.get(path)
+
+    assert forbidden.status_code == 403
+    assert forbidden.json()["detail"] == "Admin access required"
+
+
+@pytest.mark.parametrize(("path"), ("/metrics", "/metrics/prometheus"))
+def test_metrics_endpoints_accept_dedicated_metrics_token(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    path: str,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "APP_ENV": None,
+            "ENV": None,
+            "ENVIRONMENT": None,
+            "DEEPTUTOR_CORS_ALLOW_ORIGINS": None,
+            "DEEPTUTOR_METRICS_TOKEN": "metrics-secret",
+        },
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_fake_startup_dependencies(monkeypatch)
+
+    with TestClient(module.app) as client:
+        response = client.get(path, headers={"X-Metrics-Token": "metrics-secret"})
+
+    assert response.status_code == 200

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+import json
 
 from deeptutor.services.notebook.service import NotebookManager, RecordType
 
@@ -112,3 +113,33 @@ def test_add_and_update_record_trigger_learner_state_writeback(monkeypatch, tmp_
     assert calls[4]["assistant_message"] == "更新后的总结"
     assert calls[5]["kind"] == "overlay_patch"
     assert calls[5]["source_feature"] == "notebook"
+
+
+def test_notebook_manager_scopes_storage_by_owner(tmp_path) -> None:
+    manager = NotebookManager(base_dir=str(tmp_path))
+
+    owner_a = "user:student_a"
+    owner_b = "user:student_b"
+    notebook_a = manager.create_notebook("A", owner_key=owner_a)
+    notebook_b = manager.create_notebook("B", owner_key=owner_b)
+
+    assert [item["id"] for item in manager.list_notebooks(owner_key=owner_a)] == [notebook_a["id"]]
+    assert [item["id"] for item in manager.list_notebooks(owner_key=owner_b)] == [notebook_b["id"]]
+    assert manager.get_notebook(notebook_a["id"], owner_key=owner_b) is None
+    assert manager.delete_notebook(notebook_a["id"], owner_key=owner_b) is False
+    assert manager.get_notebook(notebook_b["id"], owner_key=owner_b)["name"] == "B"
+
+
+def test_notebook_manager_rebuilds_index_when_index_file_is_corrupted(tmp_path) -> None:
+    manager = NotebookManager(base_dir=str(tmp_path))
+    owner_key = "user:student_demo"
+    notebook = manager.create_notebook("地基基础", owner_key=owner_key)
+
+    index_path = manager._index_file_for(owner_key)  # noqa: SLF001
+    index_path.write_text("{broken json", encoding="utf-8")
+
+    listing = manager.list_notebooks(owner_key=owner_key)
+
+    assert [item["id"] for item in listing] == [notebook["id"]]
+    rebuilt = json.loads(index_path.read_text(encoding="utf-8"))
+    assert rebuilt["notebooks"][0]["id"] == notebook["id"]

@@ -543,6 +543,17 @@ def _materialize_session_preferences(
     return preferences
 
 
+def _derive_session_conversation_id(
+    preferences: dict[str, Any] | None,
+    session_id: str | None,
+) -> str:
+    if isinstance(preferences, dict):
+        explicit = str(preferences.get("conversation_id") or "").strip()
+        if explicit:
+            return explicit
+    return str(session_id or "").strip()
+
+
 def _is_interaction_hint_system_message(content: str | None) -> bool:
     text = str(content or "")
     return any(text.startswith(prefix) for prefix in _INTERACTION_HINT_SYSTEM_PREFIXES)
@@ -768,9 +779,9 @@ class SQLiteSessionStore:
         try:
             os.replace(legacy_path, self.db_path)
         except OSError:
-            # Fall back to leaving the legacy DB in place if an OS-level move
-            # is not possible; the new DB path will be initialized empty.
-            pass
+            # Keep reading and writing the legacy DB instead of silently
+            # booting against a fresh empty database.
+            self.db_path = legacy_path
 
     def _initialize(self) -> None:
         with sqlite3.connect(self.db_path, timeout=_SQLITE_TIMEOUT_SECONDS) as conn:
@@ -791,7 +802,8 @@ class SQLiteSessionStore:
                     preferences_json TEXT DEFAULT '{}',
                     source TEXT DEFAULT '',
                     archived INTEGER DEFAULT 0,
-                    owner_key TEXT DEFAULT ''
+                    owner_key TEXT DEFAULT '',
+                    conversation_id TEXT DEFAULT ''
                 );
 
                 CREATE TABLE IF NOT EXISTS messages (
@@ -906,6 +918,8 @@ class SQLiteSessionStore:
                 conn.execute("ALTER TABLE sessions ADD COLUMN archived INTEGER DEFAULT 0")
             if "owner_key" not in columns:
                 conn.execute("ALTER TABLE sessions ADD COLUMN owner_key TEXT DEFAULT ''")
+            if "conversation_id" not in columns:
+                conn.execute("ALTER TABLE sessions ADD COLUMN conversation_id TEXT DEFAULT ''")
             conn.execute(
                 """
                 CREATE INDEX IF NOT EXISTS idx_sessions_owner_updated_at
@@ -930,9 +944,21 @@ class SQLiteSessionStore:
                     ON sessions(owner_key, source, archived, updated_at DESC, id DESC)
                 """
             )
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_sessions_owner_source_conversation_updated
+                    ON sessions(owner_key, source, conversation_id, updated_at DESC)
+                """
+            )
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_sessions_owner_source_conversation_updated_id
+                    ON sessions(owner_key, source, conversation_id, updated_at DESC, id DESC)
+                """
+            )
             rows = conn.execute(
                 """
-                SELECT id, owner_key, source, archived, preferences_json
+                SELECT id, owner_key, source, archived, preferences_json, conversation_id
                 FROM sessions
                 """
             ).fetchall()
@@ -943,16 +969,21 @@ class SQLiteSessionStore:
                 )
                 derived_source = _derive_session_source(preferences, row["source"])
                 derived_archived = _derive_session_archived(preferences, row["archived"])
+                derived_conversation_id = (
+                    str(row["conversation_id"] or "").strip()
+                    or _derive_session_conversation_id(preferences, row["id"])
+                )
                 conn.execute(
                     """
                     UPDATE sessions
-                    SET owner_key = ?, source = ?, archived = ?
+                    SET owner_key = ?, source = ?, archived = ?, conversation_id = ?
                     WHERE id = ?
                     """,
                     (
                         derived_owner_key,
                         derived_source,
                         derived_archived,
+                        derived_conversation_id,
                         row["id"],
                     ),
                 )
@@ -1230,9 +1261,10 @@ class SQLiteSessionStore:
                     summary_up_to_msg_id,
                     source,
                     archived,
-                    owner_key
+                    owner_key,
+                    conversation_id
                 )
-                VALUES (?, ?, ?, ?, '', 0, ?, ?, ?)
+                VALUES (?, ?, ?, ?, '', 0, ?, ?, ?, ?)
                 """,
                 (
                     resolved_id,
@@ -1242,6 +1274,7 @@ class SQLiteSessionStore:
                     resolved_source,
                     resolved_archived,
                     resolved_owner_key,
+                    resolved_id,
                 ),
             )
             conn.commit()
@@ -1998,6 +2031,49 @@ class SQLiteSessionStore:
             before_session_id,
         )
 
+    def _list_sessions_by_owner_and_conversation_sync(
+        self,
+        owner_key: str,
+        conversation_id: str,
+        source: str | None = None,
+        archived: bool | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        normalized_conversation_id = str(conversation_id or "").strip()
+        if not normalized_conversation_id:
+            return []
+        conditions = ["s.owner_key = ?", "s.conversation_id = ?"]
+        params: list[Any] = [owner_key, normalized_conversation_id]
+        if source is not None:
+            conditions.append("s.source = ?")
+            params.append(_normalize_session_source(source))
+        if archived is not None:
+            conditions.append("s.archived = ?")
+            params.append(1 if bool(archived) else 0)
+        return self._query_session_page_sync(
+            conditions=conditions,
+            params=params,
+            limit=limit,
+            offset=0,
+        )
+
+    async def list_sessions_by_owner_and_conversation(
+        self,
+        owner_key: str,
+        conversation_id: str,
+        source: str | None = None,
+        archived: bool | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        return await self._run(
+            self._list_sessions_by_owner_and_conversation_sync,
+            owner_key,
+            conversation_id,
+            source,
+            archived,
+            limit,
+        )
+
     def _get_session_owner_key_sync(self, session_id: str) -> str:
         with self._connect() as conn:
             row = conn.execute(
@@ -2045,13 +2121,14 @@ class SQLiteSessionStore:
             owner_key = _derive_owner_key_from_preferences(merged) or str(current["owner_key"] or "").strip()
             source = _derive_session_source(merged, current["source"])
             archived = _derive_session_archived(merged, current["archived"])
+            conversation_id = _derive_session_conversation_id(merged, session_id)
             cur = conn.execute(
                 """
                 UPDATE sessions
-                SET preferences_json = ?, source = ?, archived = ?, owner_key = ?, updated_at = ?
+                SET preferences_json = ?, source = ?, archived = ?, owner_key = ?, conversation_id = ?, updated_at = ?
                 WHERE id = ?
                 """,
-                (_json_dumps(merged), source, archived, owner_key, time.time(), session_id),
+                (_json_dumps(merged), source, archived, owner_key, conversation_id, time.time(), session_id),
             )
             conn.commit()
         return cur.rowcount > 0

@@ -64,7 +64,9 @@ async def _authorize_session_access(
     store = get_sqlite_session_store()
     owner_key = await store.get_session_owner_key(session_id)
     if not owner_key:
-        return
+        if current_user and current_user.is_admin:
+            return
+        raise PermissionError("Session not found")
     if current_user and (
         current_user.is_admin or owner_key == build_user_owner_key(current_user.user_id)
     ):

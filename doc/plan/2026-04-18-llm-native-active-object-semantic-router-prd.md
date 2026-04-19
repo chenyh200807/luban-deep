@@ -6,7 +6,7 @@
 - 文档路径：`/doc/plan/2026-04-18-llm-native-active-object-semantic-router-prd.md`
 - 创建日期：2026-04-18
 - 适用范围：统一 `/api/v1/ws`、turn runtime、ChatOrchestrator、TutorBot、练题、追问、学习计划、通用问答、微信小程序主链路
-- 状态：Draft v1
+- 状态：Implemented v1（按当前条件下最优替代方案收敛）
 - 关联文档：
   - [CONTRACT.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/CONTRACT.md)
   - [contracts/index.yaml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/index.yaml)
@@ -199,9 +199,13 @@ DeepTutor 当前已经具备：
 2. `single_question`
 3. `guide_page`
 4. `study_plan`
-5. `lesson_topic`
-6. `open_chat_topic`
-7. `account_task`
+5. `open_chat_topic`
+
+当前实现说明：
+
+1. `guide_page / study_plan / open_chat_topic` 已进入 canonical `active_object`
+2. `lesson_topic / account_task` 暂不独立落地为一等对象，原因不是功能遗漏，而是当前仓库尚无足够稳定的 authority
+3. 若未来出现稳定对象 truth，允许再升级；在此之前禁止为了“补齐名词”硬造新对象
 
 核心不是对象名字，而是：
 
@@ -782,6 +786,13 @@ LLM 可以理解语义，但不应直接拥有无限制 patch 权限。
 4. trace：至少能看到 `active_object / decision / fallback / object transition`
 5. 固定评测集：可做前后对比
 
+当前实现落点：
+
+1. 运行时开关：`semantic_router_enabled / semantic_router_shadow_mode / semantic_router_scope`
+2. 固定评测集入口：`python3 scripts/run_semantic_router_eval.py`
+3. rollout/rollback 报表入口：`python3 scripts/report_semantic_router_rollout.py <trace.jsonl>`
+4. rollback breadcrumb 统一落到 trace：`semantic_router_mode / semantic_router_mode_reason / semantic_router_scope / semantic_router_scope_match / semantic_router_shadow_* / semantic_router_selected_capability`
+
 ### 13.5 灰度策略
 
 建议按以下顺序灰度：
@@ -790,6 +801,12 @@ LLM 可以理解语义，但不应直接拥有无限制 patch 权限。
 2. 再在练题场景低流量真实执行
 3. 再扩到 guide / study plan
 4. 最后扩到通用学习主链路
+
+当前实现映射：
+
+1. `semantic_router_scope=question_only`
+2. `semantic_router_scope=question_and_guide`
+3. `semantic_router_scope=all`
 
 原因：
 
@@ -806,6 +823,11 @@ LLM 可以理解语义，但不应直接拥有无限制 patch 权限。
 3. 低置信仍误执行的比例上升
 4. P95 延迟明显恶化
 5. 微信小程序连续对话稳定性下降
+
+当前实现说明：
+
+1. rollback 动作仍保持最小化：把 `semantic_router_enabled=false` 或切回 `shadow`
+2. 回滚判断不再靠人脑临时 grep，而通过 `scripts/report_semantic_router_rollout.py` 汇总 `shadow_disagreement_rate / deep_question_to_chat_disagreements / confidence_buckets / p95_latency_ms`
 
 ## 14. 分阶段实施
 
@@ -834,11 +856,23 @@ LLM 可以理解语义，但不应直接拥有无限制 patch 权限。
 2. 统一学习流中的对象生命周期
 3. 打通学习对象间切换
 
+当前实现收敛：
+
+1. 已完成：`question_set / single_question / guide_page / study_plan / open_chat_topic`
+2. `lesson_topic` 暂不升级为独立一等对象；当前最优实现是让 guide continuity 继续通过 `guide_page / study_plan` 承载
+3. 这不是遗漏，而是遵守 `first principles + less is more`：在没有独立 authority 前不新增重复概念
+
 ### Phase 4：清退旧概念
 
 1. 清退 `question_followup_*` 并列决策职责
 2. 删除重复 parser / route 分支
 3. 只保留兼容 alias
+
+当前实现收敛：
+
+1. primary semantic-router 模式下，`turn_semantic_decision` 已成为主判断 authority
+2. `question_followup_*` 仍保留，但仅用于入口兼容、结果 adapter，以及 `shadow / disabled` rollback 轨道
+3. 旧 parser / route 不再与 primary 路由并列抢权，而只作为 deterministic fallback 或 rollback rail 存活
 
 ## 15. 不确定性、验证与替代方案
 

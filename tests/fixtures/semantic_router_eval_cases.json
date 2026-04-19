@@ -189,5 +189,141 @@
     "llm_action": null,
     "expected_relation": "answer_active_object",
     "expected_next_action": "route_to_grading"
+  },
+  {
+    "name": "guide_page_continuation",
+    "user_message": "继续刚才这个学习页面",
+    "active_object": {
+      "object_type": "guide_page",
+      "object_id": "plan_demo:page:1",
+      "state_snapshot": {
+        "plan_id": "plan_demo",
+        "status": "in_progress",
+        "current_index": 1,
+        "summary": "当前正在学习网络计划。",
+        "current_page": {
+          "page_index": 1,
+          "knowledge_title": "网络计划关键线路",
+          "knowledge_summary": "继续聚焦关键线路、总时差和自由时差。"
+        }
+      }
+    },
+    "llm_action": null,
+    "expected_relation": "continue_same_learning_flow",
+    "expected_next_action": "route_to_guide"
+  },
+  {
+    "name": "open_chat_topic_continuation",
+    "user_message": "继续刚才那个话题",
+    "active_object": {
+      "object_type": "open_chat_topic",
+      "object_id": "session-open-chat",
+      "state_snapshot": {
+        "session_id": "session-open-chat",
+        "title": "施工组织总设计",
+        "compressed_summary": "用户一直在讨论施工组织总设计和网络计划。",
+        "source": "wx",
+        "status": "idle"
+      }
+    },
+    "llm_action": null,
+    "expected_relation": "continue_same_learning_flow",
+    "expected_next_action": "route_to_general_chat"
+  },
+  {
+    "name": "ambiguous_compact_answer_across_two_sets",
+    "user_message": "ACD",
+    "metadata": {
+      "active_object": {
+        "object_type": "question_set",
+        "object_id": "quiz_current",
+        "state_snapshot": {
+          "question_id": "quiz_current",
+          "question": "第1题...\\n第2题...\\n第3题...",
+          "question_type": "choice",
+          "items": [
+            {"question_id": "q_1", "question": "题1", "question_type": "choice", "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"}, "correct_answer": "A"},
+            {"question_id": "q_2", "question": "题2", "question_type": "choice", "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"}, "correct_answer": "C"},
+            {"question_id": "q_3", "question": "题3", "question_type": "choice", "options": {"A": "A3", "B": "B3", "C": "C3", "D": "D3"}, "correct_answer": "D"}
+          ]
+        }
+      },
+      "suspended_object_stack": [
+        {
+          "object_type": "question_set",
+          "object_id": "quiz_previous",
+          "state_snapshot": {
+            "question_id": "quiz_previous",
+            "question": "第1题...\\n第2题...\\n第3题...",
+            "question_type": "choice",
+            "items": [
+              {"question_id": "q_p1", "question": "旧题1", "question_type": "choice", "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"}, "correct_answer": "A"},
+              {"question_id": "q_p2", "question": "旧题2", "question_type": "choice", "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"}, "correct_answer": "C"},
+              {"question_id": "q_p3", "question": "旧题3", "question_type": "choice", "options": {"A": "A3", "B": "B3", "C": "C3", "D": "D3"}, "correct_answer": "D"}
+            ]
+          }
+        }
+      ]
+    },
+    "llm_action": null,
+    "expected_relation": "uncertain",
+    "expected_next_action": "ask_clarifying_question"
+  },
+  {
+    "name": "ordinal_reference_overflow",
+    "user_message": "第二个吧",
+    "active_object": {
+      "object_type": "single_question",
+      "object_id": "q_single",
+      "state_snapshot": {
+        "question_id": "q_single",
+        "question": "流水步距反映的是什么？",
+        "question_type": "choice",
+        "options": {"A": "工期", "B": "相邻专业队投入间隔"},
+        "correct_answer": "B"
+      }
+    },
+    "llm_action": null,
+    "expected_relation": "uncertain",
+    "expected_next_action": "ask_clarifying_question"
+  },
+  {
+    "name": "ambiguous_continue_between_question_and_guide",
+    "user_message": "继续",
+    "metadata": {
+      "active_object": {
+        "object_type": "question_set",
+        "object_id": "quiz_more",
+        "state_snapshot": {
+          "question_id": "quiz_more",
+          "question": "第1题...第2题...",
+          "question_type": "choice",
+          "items": [
+            {"question_id": "q_1", "question": "题1", "question_type": "choice", "options": {"A": "A1", "B": "B1"}, "correct_answer": "A"},
+            {"question_id": "q_2", "question": "题2", "question_type": "choice", "options": {"A": "A2", "B": "B2"}, "correct_answer": "B"}
+          ]
+        }
+      },
+      "suspended_object_stack": [
+        {
+          "object_type": "guide_page",
+          "object_id": "plan_demo:page:1",
+          "state_snapshot": {
+            "plan_id": "plan_demo",
+            "status": "in_progress",
+            "current_index": 1,
+            "summary": "当前正在学习网络计划。",
+            "current_page": {
+              "page_index": 1,
+              "knowledge_title": "网络计划关键线路",
+              "knowledge_summary": "继续聚焦关键线路、总时差和自由时差。"
+            }
+          }
+        }
+      ]
+    },
+    "llm_action": null,
+    "expected_relation": "uncertain",
+    "expected_next_action": "ask_clarifying_question"
   }
 ]

@@ -99,6 +99,30 @@ def test_ws_subscribe_session_rejects_foreign_owned_session(
     assert message["content"] == "Session not found"
 
 
+def test_ws_subscribe_session_rejects_ownerless_session_for_non_admin(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = SQLiteSessionStore(db_path=tmp_path / "ws-auth.db")
+    fake_runtime = _FakeRuntime()
+
+    monkeypatch.setattr(ws_module, "resolve_auth_context", lambda _authorization: _ctx("student_demo"))
+    monkeypatch.setattr("deeptutor.services.session.get_sqlite_session_store", lambda: store)
+    monkeypatch.setattr("deeptutor.services.session.get_turn_runtime_manager", lambda: fake_runtime)
+
+    import asyncio
+
+    asyncio.run(store.create_session(session_id="legacy_public", owner_key=""))
+
+    with TestClient(_build_app()) as client:
+        with client.websocket_connect("/api/v1/ws") as websocket:
+            websocket.send_json({"type": "subscribe_session", "session_id": "legacy_public"})
+            message = websocket.receive_json()
+
+    assert message["type"] == "error"
+    assert message["content"] == "Session not found"
+
+
 def test_ws_subscribe_session_allows_owner(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,

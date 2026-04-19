@@ -7,6 +7,11 @@
 - `metrics`：机器可读 JSON 快照
 - `metrics/prometheus`：Prometheus 文本导出
 
+注意：`/metrics` 与 `/metrics/prometheus` 不是匿名开放端点。它们要求：
+
+- 管理员 bearer token，或
+- 专用只读抓取令牌 `DEEPTUTOR_METRICS_TOKEN`
+
 ## HTTP 端点
 
 后端默认端口是 `8001`。
@@ -38,7 +43,7 @@ curl -fsS http://127.0.0.1:8001/readyz
 ### 3. JSON 指标
 
 ```bash
-curl -fsS http://127.0.0.1:8001/metrics | jq
+curl -fsS -H "X-Metrics-Token: $DEEPTUTOR_METRICS_TOKEN" http://127.0.0.1:8001/metrics | jq
 ```
 
 内容包括：
@@ -52,7 +57,7 @@ curl -fsS http://127.0.0.1:8001/metrics | jq
 ### 4. Prometheus 指标
 
 ```bash
-curl -fsS http://127.0.0.1:8001/metrics/prometheus
+curl -fsS -H "X-Metrics-Token: $DEEPTUTOR_METRICS_TOKEN" http://127.0.0.1:8001/metrics/prometheus
 ```
 
 当前导出的核心指标包括：
@@ -91,6 +96,7 @@ curl -fsS http://127.0.0.1:8001/metrics/prometheus
 典型接法：
 
 1. 把 `prometheus.scrape.example.yml` 合并到你们现有 Prometheus 配置。
+   确保目标环境注入 `DEEPTUTOR_METRICS_TOKEN`，让 scrape job 走只读 token。
 2. 把 `prometheus.alerts.example.yml` 放到 Prometheus `rule_files` 路径。
 3. 把告警接到你们自己的 Alertmanager、飞书或 PagerDuty。
 
@@ -115,6 +121,7 @@ curl -fsS http://127.0.0.1:8001/metrics/prometheus
 这些不能只靠仓库代码自动算“完成”：
 
 - 把 `/metrics/prometheus` 真正接入 Prometheus
+- 在目标环境配置 `DEEPTUTOR_METRICS_TOKEN`
 - 把告警规则接到你们真实通知渠道
 - 在目标环境跑一次 `readyz`、`metrics/prometheus` 实机验证
 - 至少做一次告警演练，确认通知链路是通的

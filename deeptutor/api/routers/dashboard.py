@@ -2,11 +2,12 @@
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from deeptutor.api.dependencies import require_admin
 from deeptutor.services.session import get_sqlite_session_store
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 
 @router.get("/recent")

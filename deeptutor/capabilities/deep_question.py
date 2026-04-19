@@ -80,6 +80,8 @@ class DeepQuestionCapability(BaseCapability):
             if isinstance(context.metadata.get("question_followup_action"), dict)
             else None
         )
+        semantic_router_mode = str(context.metadata.get("semantic_router_mode") or "").strip().lower()
+        allow_legacy_followup_fallback = semantic_router_mode != "primary"
         next_action = str(turn_semantic_decision.get("next_action") or "").strip()
         if (
             not force_generate_questions
@@ -208,7 +210,7 @@ class DeepQuestionCapability(BaseCapability):
                     await stream.result(followup_payload, source=self.name)
                 return
 
-            if self._prefer_followup_without_semantic_decision(
+            if allow_legacy_followup_fallback and self._prefer_followup_without_semantic_decision(
                 turn_semantic_decision=turn_semantic_decision,
                 followup_action=followup_action,
                 question_context=followup_question_context,
@@ -261,28 +263,79 @@ class DeepQuestionCapability(BaseCapability):
                     await stream.result(followup_payload, source=self.name)
                 return
 
-            target_context, submission = resolve_submission_attempt(
-                context.user_message,
-                followup_question_context,
-            )
-            if target_context and submission:
-                from deeptutor.agents.question.agents.submission_grader_agent import (
-                    SubmissionGraderAgent,
+            if allow_legacy_followup_fallback:
+                target_context, submission = resolve_submission_attempt(
+                    context.user_message,
+                    followup_question_context,
                 )
+                if target_context and submission:
+                    from deeptutor.agents.question.agents.submission_grader_agent import (
+                        SubmissionGraderAgent,
+                    )
 
-                if submission.get("kind") == "batch":
-                    graded_context = self._build_batch_submission_context(
-                        target_context,
-                        submission.get("answers"),
+                    if submission.get("kind") == "batch":
+                        graded_context = self._build_batch_submission_context(
+                            target_context,
+                            submission.get("answers"),
+                        )
+                    else:
+                        user_answer = str(submission.get("answer") or "").strip()
+                        graded_context = self._build_submission_context(
+                            target_context,
+                            user_answer,
+                            raw_submission=context.user_message,
+                        )
+                    agent = SubmissionGraderAgent(
+                        language=context.language,
+                        api_key=llm_config.api_key,
+                        base_url=llm_config.base_url,
+                        api_version=llm_config.api_version,
                     )
-                else:
-                    user_answer = str(submission.get("answer") or "").strip()
-                    graded_context = self._build_submission_context(
-                        target_context,
-                        user_answer,
-                        raw_submission=context.user_message,
-                    )
-                agent = SubmissionGraderAgent(
+                    agent.set_trace_callback(self._build_trace_bridge(stream))
+                    async with stream.stage("generation", source=self.name):
+                        answer = await agent.process(
+                            user_message=context.user_message,
+                            question_context=graded_context,
+                            history_context=str(
+                                context.metadata.get("conversation_context_text", "") or ""
+                            ).strip(),
+                        )
+                        if answer:
+                            await stream.content(answer, source=self.name, stage="generation")
+                        result_active_object = build_active_object_from_question_context(
+                            graded_context,
+                            source_turn_id=turn_id,
+                            previous_active_object=active_object,
+                        )
+                        result_payload: dict[str, Any] = {
+                            "response": answer or "",
+                            "mode": "grading",
+                            "question_id": graded_context.get("question_id", ""),
+                            "user_answer": graded_context.get("user_answer", ""),
+                            "is_correct": graded_context.get("is_correct"),
+                            "question_followup_context": normalize_question_followup_context(
+                                graded_context
+                            )
+                            or {},
+                            "active_object": result_active_object or {},
+                            "suspended_object_stack": suspended_object_stack,
+                            "turn_semantic_decision": turn_semantic_decision
+                            or self._default_turn_semantic_decision(
+                                next_action="route_to_grading",
+                                active_object=result_active_object or active_object,
+                                question_context=graded_context,
+                                user_message=context.user_message,
+                            ),
+                        }
+                        cost_meta = self._collect_cost_summary("question")
+                        if cost_meta:
+                            result_payload["metadata"] = {"cost_summary": cost_meta}
+                        await stream.result(result_payload, source=self.name)
+                    return
+
+                from deeptutor.agents.question.agents.followup_agent import FollowupAgent
+
+                agent = FollowupAgent(
                     language=context.language,
                     api_key=llm_config.api_key,
                     base_url=llm_config.base_url,
@@ -292,7 +345,7 @@ class DeepQuestionCapability(BaseCapability):
                 async with stream.stage("generation", source=self.name):
                     answer = await agent.process(
                         user_message=context.user_message,
-                        question_context=graded_context,
+                        question_context=followup_question_context,
                         history_context=str(
                             context.metadata.get("conversation_context_text", "") or ""
                         ).strip(),
@@ -300,83 +353,33 @@ class DeepQuestionCapability(BaseCapability):
                     if answer:
                         await stream.content(answer, source=self.name, stage="generation")
                     result_active_object = build_active_object_from_question_context(
-                        graded_context,
+                        followup_question_context,
                         source_turn_id=turn_id,
                         previous_active_object=active_object,
                     )
-                    result_payload: dict[str, Any] = {
+                    followup_payload: dict[str, Any] = {
                         "response": answer or "",
-                        "mode": "grading",
-                        "question_id": graded_context.get("question_id", ""),
-                        "user_answer": graded_context.get("user_answer", ""),
-                        "is_correct": graded_context.get("is_correct"),
+                        "mode": "followup",
+                        "question_id": followup_question_context.get("question_id", ""),
                         "question_followup_context": normalize_question_followup_context(
-                            graded_context
+                            followup_question_context
                         )
                         or {},
                         "active_object": result_active_object or {},
                         "suspended_object_stack": suspended_object_stack,
                         "turn_semantic_decision": turn_semantic_decision
                         or self._default_turn_semantic_decision(
-                            next_action="route_to_grading",
+                            next_action="route_to_followup_explainer",
                             active_object=result_active_object or active_object,
-                            question_context=graded_context,
+                            question_context=followup_question_context,
                             user_message=context.user_message,
                         ),
                     }
                     cost_meta = self._collect_cost_summary("question")
                     if cost_meta:
-                        result_payload["metadata"] = {"cost_summary": cost_meta}
-                    await stream.result(result_payload, source=self.name)
+                        followup_payload["metadata"] = {"cost_summary": cost_meta}
+                    await stream.result(followup_payload, source=self.name)
                 return
-
-            from deeptutor.agents.question.agents.followup_agent import FollowupAgent
-
-            agent = FollowupAgent(
-                language=context.language,
-                api_key=llm_config.api_key,
-                base_url=llm_config.base_url,
-                api_version=llm_config.api_version,
-            )
-            agent.set_trace_callback(self._build_trace_bridge(stream))
-            async with stream.stage("generation", source=self.name):
-                answer = await agent.process(
-                    user_message=context.user_message,
-                    question_context=followup_question_context,
-                    history_context=str(
-                        context.metadata.get("conversation_context_text", "") or ""
-                    ).strip(),
-                )
-                if answer:
-                    await stream.content(answer, source=self.name, stage="generation")
-                result_active_object = build_active_object_from_question_context(
-                    followup_question_context,
-                    source_turn_id=turn_id,
-                    previous_active_object=active_object,
-                )
-                followup_payload: dict[str, Any] = {
-                    "response": answer or "",
-                    "mode": "followup",
-                    "question_id": followup_question_context.get("question_id", ""),
-                    "question_followup_context": normalize_question_followup_context(
-                        followup_question_context
-                    )
-                    or {},
-                    "active_object": result_active_object or {},
-                    "suspended_object_stack": suspended_object_stack,
-                    "turn_semantic_decision": turn_semantic_decision
-                    or self._default_turn_semantic_decision(
-                        next_action="route_to_followup_explainer",
-                        active_object=result_active_object or active_object,
-                        question_context=followup_question_context,
-                        user_message=context.user_message,
-                    ),
-                }
-                cost_meta = self._collect_cost_summary("question")
-                if cost_meta:
-                    followup_payload["metadata"] = {"cost_summary": cost_meta}
-                await stream.result(followup_payload, source=self.name)
-            return
 
         mode = str(overrides.get("mode", "custom") or "custom").strip().lower()
         topic = str(overrides.get("topic") or context.user_message or "").strip()

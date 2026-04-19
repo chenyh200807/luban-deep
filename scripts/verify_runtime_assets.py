@@ -62,6 +62,12 @@ def validate_runtime_assets(repo_root: Path) -> list[str]:
                 job = deeptutor_jobs[0]
                 if job.get("metrics_path") != "/metrics/prometheus":
                     errors.append("deeptutor scrape job must use /metrics/prometheus")
+                authorization = job.get("authorization") or {}
+                if str(authorization.get("type") or "").lower() != "bearer":
+                    errors.append("deeptutor scrape job must use bearer authorization")
+                credentials = str(authorization.get("credentials") or "")
+                if "${DEEPTUTOR_METRICS_TOKEN}" not in credentials:
+                    errors.append("deeptutor scrape job must reference ${DEEPTUTOR_METRICS_TOKEN}")
                 if not job.get("static_configs"):
                     errors.append("deeptutor scrape job must define static_configs")
         except Exception as exc:
@@ -124,6 +130,7 @@ def validate_runtime_assets(repo_root: Path) -> list[str]:
                 "/healthz",
                 "/readyz",
                 "/metrics/prometheus",
+                "DEEPTUTOR_METRICS_TOKEN",
                 "prometheus.scrape.example.yml",
                 "prometheus.alerts.example.yml",
                 ".github/workflows/runtime-ops.yml",

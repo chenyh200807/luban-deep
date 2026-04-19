@@ -1197,11 +1197,25 @@ def test_wechat_login_rate_limits_by_route_and_client_ip(monkeypatch: pytest.Mon
 def test_mobile_chat_start_turn_rejects_other_users_conversation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    async def _fake_get_session_owner_key(_conversation_id: str):
-        return "user:student_other"
+    class FakeSessionStore:
+        async def list_sessions_by_owner_and_conversation(
+            self,
+            owner_key: str,
+            conversation_id: str,
+            *,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 50,
+        ):
+            assert owner_key == "user:student_demo"
+            assert conversation_id == "session_other"
+            assert source == "wx_miniprogram"
+            assert archived is None
+            assert limit == 50
+            return []
 
     monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
-    monkeypatch.setattr(mobile_module.session_store, "get_session_owner_key", _fake_get_session_owner_key)
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
 
     with TestClient(_build_app()) as client:
         response = client.post(

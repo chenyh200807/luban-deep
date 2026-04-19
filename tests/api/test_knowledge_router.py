@@ -34,6 +34,10 @@ def _build_app(admin: bool = True) -> FastAPI:
     return app
 
 
+def _assert_admin_required(response) -> None:
+    assert response.status_code in {401, 403}
+
+
 class _FakeKBManager:
     def __init__(self, base_dir: Path) -> None:
         self.base_dir = base_dir
@@ -59,6 +63,14 @@ class _FakeKBManager:
         kb_dir = self.base_dir / name
         kb_dir.mkdir(parents=True, exist_ok=True)
         return kb_dir
+
+    def delete_knowledge_base(self, name: str, confirm: bool = False) -> bool:
+        if not confirm:
+            return False
+        return self.config.get("knowledge_bases", {}).pop(name, None) is not None
+
+    def set_default(self, name: str) -> None:
+        self.default_kb = name
 
     def link_folder(self, kb_name: str, folder_path: str) -> dict:
         folder = Path(folder_path).expanduser().resolve()
@@ -174,17 +186,25 @@ def test_create_kb_does_not_require_llm_precheck(monkeypatch, tmp_path: Path) ->
 @pytest.mark.parametrize(
     ("method", "path", "kwargs"),
     [
+        ("put", "/api/v1/knowledge/demo/config", {"json": {"rag_provider": "llamaindex"}}),
+        ("post", "/api/v1/knowledge/configs/sync", {}),
+        ("put", "/api/v1/knowledge/default/demo", {}),
+        ("post", "/api/v1/knowledge/create", {"data": {"name": "demo", "rag_provider": "llamaindex"}, "files": _upload_payload()}),
+        ("delete", "/api/v1/knowledge/demo", {}),
+        ("get", "/api/v1/knowledge/tasks/task-1/stream", {}),
+        ("post", "/api/v1/knowledge/demo/upload", {"files": _upload_payload()}),
+        ("post", "/api/v1/knowledge/demo/progress/clear", {}),
         ("post", "/api/v1/knowledge/demo/link-folder", {"json": {"folder_path": "/tmp/demo"}}),
         ("get", "/api/v1/knowledge/demo/linked-folders", {}),
         ("delete", "/api/v1/knowledge/demo/linked-folders/folder-1", {}),
         ("post", "/api/v1/knowledge/demo/sync-folder/folder-1", {}),
     ],
 )
-def test_link_folder_routes_require_admin(method: str, path: str, kwargs: dict) -> None:
+def test_knowledge_management_routes_require_admin(method: str, path: str, kwargs: dict) -> None:
     with TestClient(_build_app(admin=False)) as client:
         response = getattr(client, method)(path, **kwargs)
 
-    assert response.status_code == 401
+    _assert_admin_required(response)
 
 
 def test_create_rejects_unregistered_provider(monkeypatch, tmp_path: Path) -> None:
@@ -319,6 +339,134 @@ def test_upload_ready_kb_returns_task_id(monkeypatch, tmp_path: Path) -> None:
     assert response.status_code == 200
     body = response.json()
     assert isinstance(body.get("task_id"), str) and body["task_id"]
+
+
+def test_delete_kb_requires_admin_but_authorized_delete_still_succeeds(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    manager = _FakeKBManager(tmp_path / "knowledge_bases")
+    manager.config["knowledge_bases"]["demo"] = {
+        "path": "demo",
+        "rag_provider": "llamaindex",
+        "needs_reindex": False,
+        "status": "ready",
+    }
+    monkeypatch.setattr(knowledge_router_module, "get_kb_manager", lambda: manager)
+
+    with TestClient(_build_app(admin=False)) as client:
+        unauthorized = client.delete("/api/v1/knowledge/demo")
+
+    _assert_admin_required(unauthorized)
+
+    with TestClient(_build_app()) as client:
+        authorized = client.delete("/api/v1/knowledge/demo")
+
+    assert authorized.status_code == 200
+    assert "deleted successfully" in authorized.json()["message"].lower()
+    assert "demo" not in manager.config["knowledge_bases"]
+
+
+def test_clear_progress_requires_admin_but_authorized_clear_still_succeeds(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    cleared: list[str] = []
+
+    class _FakeProgressTracker:
+        def __init__(self, kb_name: str, _base_dir: Path) -> None:
+            self.kb_name = kb_name
+
+        def clear(self) -> None:
+            cleared.append(self.kb_name)
+
+    monkeypatch.setattr(knowledge_router_module, "ProgressTracker", _FakeProgressTracker)
+    monkeypatch.setattr(knowledge_router_module, "_kb_base_dir", tmp_path / "knowledge_bases")
+
+    with TestClient(_build_app(admin=False)) as client:
+        unauthorized = client.post("/api/v1/knowledge/demo/progress/clear")
+
+    _assert_admin_required(unauthorized)
+
+    with TestClient(_build_app()) as client:
+        authorized = client.post("/api/v1/knowledge/demo/progress/clear")
+
+    assert authorized.status_code == 200
+    assert cleared == ["demo"]
+
+
+def test_task_log_stream_requires_admin_but_authorized_stream_still_succeeds(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _FakeTaskStreamManager:
+        def ensure_task(self, _task_id: str) -> None:
+            return None
+
+        async def stream(self, _task_id: str):
+            yield b"data: ok\n\n"
+
+    monkeypatch.setattr(
+        knowledge_router_module,
+        "get_task_stream_manager",
+        lambda: _FakeTaskStreamManager(),
+    )
+
+    with TestClient(_build_app(admin=False)) as client:
+        unauthorized = client.get("/api/v1/knowledge/tasks/task-1/stream")
+
+    _assert_admin_required(unauthorized)
+
+    with TestClient(_build_app()) as client:
+        authorized = client.get("/api/v1/knowledge/tasks/task-1/stream")
+
+    assert authorized.status_code == 200
+    assert authorized.text == "data: ok\n\n"
+
+
+def test_set_default_requires_admin_but_authorized_set_default_still_succeeds(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    manager = _FakeKBManager(tmp_path / "knowledge_bases")
+    manager.config["knowledge_bases"]["demo"] = {
+        "path": "demo",
+        "rag_provider": "llamaindex",
+        "needs_reindex": False,
+        "status": "ready",
+    }
+    monkeypatch.setattr(knowledge_router_module, "get_kb_manager", lambda: manager)
+
+    with TestClient(_build_app(admin=False)) as client:
+        unauthorized = client.put("/api/v1/knowledge/default/demo")
+
+    _assert_admin_required(unauthorized)
+
+    with TestClient(_build_app()) as client:
+        authorized = client.put("/api/v1/knowledge/default/demo")
+
+    assert authorized.status_code == 200
+    assert authorized.json()["default_kb"] == "demo"
+    assert getattr(manager, "default_kb", None) == "demo"
+
+
+def test_sync_configs_requires_admin_but_authorized_sync_still_succeeds(monkeypatch) -> None:
+    class _FakeConfigService:
+        def sync_all_from_metadata(self, root: Path) -> None:
+            self.root = root
+
+    fake_service = _FakeConfigService()
+    config_module = importlib.import_module("deeptutor.services.config")
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(config_module, "get_kb_config_service", lambda: fake_service)
+        with TestClient(_build_app(admin=False)) as client:
+            unauthorized = client.post("/api/v1/knowledge/configs/sync")
+        _assert_admin_required(unauthorized)
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(config_module, "get_kb_config_service", lambda: fake_service)
+        with TestClient(_build_app()) as client:
+            authorized = client.post("/api/v1/knowledge/configs/sync")
+
+    assert authorized.status_code == 200
+    assert authorized.json()["status"] == "success"
 
 
 def test_update_config_rejects_unregistered_provider() -> None:

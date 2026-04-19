@@ -324,3 +324,93 @@ async def test_deep_question_prefers_turn_semantic_decision_over_legacy_followup
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "followup"
     assert result_event.metadata["turn_semantic_decision"]["next_action"] == "route_to_followup_explainer"
+
+
+@pytest.mark.asyncio
+async def test_deep_question_primary_mode_skips_legacy_followup_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, _callback) -> None:
+            return None
+
+        def set_trace_callback(self, _callback) -> None:
+            return None
+
+        async def generate_from_topic(self, **_kwargs: Any) -> dict[str, Any]:
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question": "新题：流水节拍反映什么？",
+                            "options": {"A": "时间", "B": "资源"},
+                            "correct_answer": "A",
+                            "explanation": "节拍反映单位工作队作业时间。",
+                        }
+                    }
+                ]
+            }
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("primary mode should not fall back to legacy grading parser")
+
+    class FakeFollowupAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("primary mode should not fall back to legacy followup parser")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.followup_agent",
+        FollowupAgent=FakeFollowupAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    question_context = {
+        "question_id": "q_legacy",
+        "question": "流水步距反映的是什么？",
+        "question_type": "choice",
+        "options": {"A": "工期", "B": "相邻专业队投入间隔"},
+        "correct_answer": "B",
+    }
+    active_object = build_active_object_from_question_context(
+        question_context,
+        source_turn_id="turn-primary-no-legacy",
+    )
+
+    context = UnifiedContext(
+        user_message="我选B",
+        language="zh",
+        config_overrides={"mode": "custom", "topic": "流水施工", "num_questions": 1, "question_type": "choice"},
+        metadata={
+            "turn_id": "turn-primary-no-legacy",
+            "semantic_router_mode": "primary",
+            "active_object": active_object or {},
+            "question_followup_context": question_context,
+            "turn_semantic_decision": {},
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "custom"
+    assert result_event.metadata["turn_semantic_decision"]["next_action"] == "route_to_generation"

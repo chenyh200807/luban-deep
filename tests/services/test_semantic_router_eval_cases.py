@@ -22,6 +22,9 @@ async def test_semantic_router_eval_cases_cover_expected_decisions() -> None:
 
     for case in cases:
         llm_action = case.get("llm_action")
+        metadata = dict(case.get("metadata") or {})
+        if "active_object" not in metadata and "active_object" in case:
+            metadata["active_object"] = case["active_object"]
 
         async def fake_interpret(
             _message: str,
@@ -31,7 +34,7 @@ async def test_semantic_router_eval_cases_cover_expected_decisions() -> None:
 
         routing = await resolve_question_semantic_routing(
             user_message=case["user_message"],
-            metadata={"active_object": case["active_object"]},
+            metadata=metadata,
             history_context="",
             interpret_followup_action=fake_interpret,
             resolve_submission_attempt=resolve_submission_attempt,

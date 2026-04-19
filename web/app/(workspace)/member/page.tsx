@@ -81,14 +81,7 @@ function ensureAsciiReplacer(_key: string, value: unknown) {
 }
 
 export default function MemberPage() {
-  if (!requiresWebAuth()) {
-    return (
-      <RestrictedSurface
-        title="Membership console unavailable"
-        message="当前 Web 端未接入登录态，会员后台已默认关闭。请使用已鉴权入口访问。"
-      />
-    );
-  }
+  const webAuthEnabled = requiresWebAuth();
   const [dashboard, setDashboard] = useState<MemberDashboard | null>(null);
   const [members, setMembers] = useState<MemberListItem[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
@@ -96,7 +89,8 @@ export default function MemberPage() {
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [pageError, setPageError] = useState("");
+  const [detailError, setDetailError] = useState("");
   const [noteDraft, setNoteDraft] = useState("");
   const [filters, setFilters] = useState({
     search: "",
@@ -106,15 +100,18 @@ export default function MemberPage() {
   });
 
   const fetchDashboard = useCallback(async () => {
+    if (!webAuthEnabled) return;
     setDashboard(await getMemberDashboard());
-  }, []);
+  }, [webAuthEnabled]);
 
   const refreshSelectedMember = useCallback(async () => {
+    if (!webAuthEnabled || !selectedUserId) return;
     if (!selectedUserId) return;
     setSelectedMember(await getMemberDetail(selectedUserId));
-  }, [selectedUserId]);
+  }, [selectedUserId, webAuthEnabled]);
 
   const fetchMembers = useCallback(async () => {
+    if (!webAuthEnabled) return;
     const list = await listMembers({
       page: 1,
       page_size: 20,
@@ -130,24 +127,29 @@ export default function MemberPage() {
     if (selectedUserId && !list.items.some((item) => item.user_id === selectedUserId)) {
       setSelectedUserId(list.items[0]?.user_id ?? "");
     }
-  }, [filters.risk_level, filters.search, filters.status, filters.tier, selectedUserId]);
+  }, [filters.risk_level, filters.search, filters.status, filters.tier, selectedUserId, webAuthEnabled]);
 
   useEffect(() => {
+    if (!webAuthEnabled) return;
     const run = async () => {
       try {
         setLoading(true);
-        setError("");
+        setPageError("");
         await Promise.all([fetchDashboard(), fetchMembers()]);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "加载失败");
+        setPageError(err instanceof Error ? err.message : "加载失败");
       } finally {
         setLoading(false);
       }
     };
     void run();
-  }, [fetchDashboard, fetchMembers]);
+  }, [fetchDashboard, fetchMembers, webAuthEnabled]);
 
   useEffect(() => {
+    if (!webAuthEnabled) {
+      setSelectedMember(null);
+      return;
+    }
     if (!selectedUserId) {
       setSelectedMember(null);
       return;
@@ -155,21 +157,26 @@ export default function MemberPage() {
     const run = async () => {
       try {
         setDetailLoading(true);
+        setDetailError("");
         await refreshSelectedMember();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "会员详情加载失败");
+        setDetailError(err instanceof Error ? err.message : "会员详情加载失败");
       } finally {
         setDetailLoading(false);
       }
     };
     void run();
-  }, [refreshSelectedMember, selectedUserId]);
+  }, [refreshSelectedMember, selectedUserId, webAuthEnabled]);
 
   const refreshAll = async () => {
     try {
       setLoading(true);
+      setPageError("");
+      setDetailError("");
       await Promise.all([fetchDashboard(), fetchMembers()]);
       await refreshSelectedMember();
+    } catch (err) {
+      setPageError(err instanceof Error ? err.message : "刷新失败");
     } finally {
       setLoading(false);
     }
@@ -178,7 +185,10 @@ export default function MemberPage() {
   const applyFilters = async () => {
     try {
       setLoading(true);
+      setPageError("");
       await fetchMembers();
+    } catch (err) {
+      setPageError(err instanceof Error ? err.message : "筛选失败");
     } finally {
       setLoading(false);
     }
@@ -188,6 +198,7 @@ export default function MemberPage() {
     if (!selectedUserId) return;
     try {
       setActionLoading(true);
+      setDetailError("");
       if (type === "grant") {
         await grantMembership({ user_id: selectedUserId, days: 30, tier: "vip", reason: "会员工作台快捷开通" });
       } else if (type === "extend") {
@@ -197,6 +208,8 @@ export default function MemberPage() {
       }
       await refreshSelectedMember();
       await Promise.all([fetchDashboard(), fetchMembers()]);
+    } catch (err) {
+      setDetailError(err instanceof Error ? err.message : "会员操作失败");
     } finally {
       setActionLoading(false);
     }
@@ -206,9 +219,12 @@ export default function MemberPage() {
     if (!selectedUserId || !noteDraft.trim()) return;
     try {
       setActionLoading(true);
+      setDetailError("");
       await createMemberNote(selectedUserId, { content: noteDraft.trim(), pinned: false, channel: "manual" });
       await refreshSelectedMember();
       setNoteDraft("");
+    } catch (err) {
+      setDetailError(err instanceof Error ? err.message : "添加备注失败");
     } finally {
       setActionLoading(false);
     }
@@ -218,6 +234,7 @@ export default function MemberPage() {
     if (!selectedUserId) return;
     try {
       setActionLoading(true);
+      setDetailError("");
       if (job.status === "active") {
         await pauseHeartbeatJob(selectedUserId, job.job_id);
       } else {
@@ -225,7 +242,7 @@ export default function MemberPage() {
       }
       await refreshSelectedMember();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Heartbeat job 操作失败");
+      setDetailError(err instanceof Error ? err.message : "Heartbeat job 操作失败");
     } finally {
       setActionLoading(false);
     }
@@ -235,10 +252,11 @@ export default function MemberPage() {
     if (!selectedUserId) return;
     try {
       setActionLoading(true);
+      setDetailError("");
       await applyOverlayPromotions(selectedUserId, overlay.bot_id, { min_confidence: 0.7, max_candidates: 10 });
       await refreshSelectedMember();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Overlay promotion 执行失败");
+      setDetailError(err instanceof Error ? err.message : "Overlay promotion 执行失败");
     } finally {
       setActionLoading(false);
     }
@@ -261,6 +279,15 @@ export default function MemberPage() {
   const heartbeatHistory = selectedMember?.heartbeat?.history ?? [];
   const arbitrationHistory = selectedMember?.heartbeat?.arbitration_history ?? [];
   const botOverlays = selectedMember?.bot_overlays ?? [];
+
+  if (!webAuthEnabled) {
+    return (
+      <RestrictedSurface
+        title="Membership console unavailable"
+        message="当前 Web 端未接入登录态，会员后台已默认关闭。请使用已鉴权入口访问。"
+      />
+    );
+  }
 
   return (
     <div className="h-full overflow-y-auto bg-[radial-gradient(circle_at_top_left,_rgba(195,90,44,0.12),_transparent_32%),linear-gradient(180deg,#faf9f6_0%,#f4efe8_100%)] px-6 py-6">
@@ -289,9 +316,9 @@ export default function MemberPage() {
           </div>
         </section>
 
-        {error ? (
+        {pageError ? (
           <div className="surface-card border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
+            {pageError}
           </div>
         ) : null}
 
@@ -432,6 +459,11 @@ export default function MemberPage() {
 
           <aside className="space-y-6">
             <div className="surface-card min-h-[320px] p-5">
+              {detailError ? (
+                <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {detailError}
+                </div>
+              ) : null}
               {detailLoading ? (
                 <div className="py-16 text-center text-sm text-[var(--muted-foreground)]">正在加载会员画像...</div>
               ) : selectedMember ? (

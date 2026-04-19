@@ -19,6 +19,7 @@ from deeptutor.services.config import (
 
 from .base import SEARCH_API_KEY_ENV, BaseSearchProvider
 from .consolidation import PROVIDER_TEMPLATES, AnswerConsolidator
+from .exceptions import SearchError
 from .providers import (
     _DEPRECATED_UNSUPPORTED,
     get_available_providers,
@@ -138,9 +139,12 @@ def web_search(
     _logger.progress(f"[{search_provider.name}] Searching: {query[:50]}...")
     try:
         response = search_provider.search(query, **provider_kwargs)
+    except SearchError as exc:
+        _logger.error(f"[{search_provider.name}] Search failed: {exc}")
+        raise
     except Exception as exc:
         _logger.error(f"[{search_provider.name}] Search failed: {exc}")
-        raise Exception(f"{search_provider.name} search failed: {exc}") from exc
+        raise SearchError(f"{search_provider.name} search failed: {exc}", provider=search_provider.name) from exc
 
     # Auto-consolidate for providers that don't generate their own answers.
     if not search_provider.supports_answer:
@@ -208,4 +212,5 @@ __all__ = [
     "BaseSearchProvider",
     "SearchProvider",
     "SEARCH_API_KEY_ENV",
+    "SearchError",
 ]

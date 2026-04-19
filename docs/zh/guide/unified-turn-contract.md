@@ -88,6 +88,9 @@ turn 合法状态只允许：
 - `turn_semantic_decision`
 - `question_followup_context`
 - `semantic_router_mode`
+- `semantic_router_mode_reason`
+- `semantic_router_scope`
+- `semantic_router_scope_match`
 - `semantic_router_shadow_decision`
 - `semantic_router_shadow_route`
 - `semantic_router_selected_capability`
@@ -127,7 +130,7 @@ TutorBot 现在是业务身份，不是 transport。
 - `active_object` 不只服务题目域；guided plan continuity 也必须收敛到同一个 canonical object。`active_plan_id / plan_id / guide_session_id / learning_plan_id` 只是兼容输入 alias，进入 runtime 后立即归一，不得继续作为并行权威。
 - 通用对话域的 continuity 也允许落到 session-scoped `open_chat_topic`，它复用 session 自身 authority，不新增独立语义 topic runtime。
 - `question_followup_context / question_followup_action / active_question_context` 只保留 question-domain 兼容和 presentation/result adapter 角色；真正的主链判断必须落在 `active_object + turn_semantic_decision`，不能让旧字段继续并列抢权。
-- semantic router 灰度必须可审计：`semantic_router_mode` 表示 `primary / shadow / disabled`，`semantic_router_shadow_*` 只记录并行比较结果，真正执行权威仍以 `semantic_router_selected_capability` 和主链结果为准。
+- semantic router 灰度必须可审计：`semantic_router_mode` 表示 `primary / shadow / disabled`，`semantic_router_mode_reason` 表示当前为何进入该模式，`semantic_router_scope / semantic_router_scope_match` 表示灰度范围是否命中当前对象域，`semantic_router_shadow_*` 只记录并行比较结果，真正执行权威仍以 `semantic_router_selected_capability` 和主链结果为准。
 
 ## 工作流
 

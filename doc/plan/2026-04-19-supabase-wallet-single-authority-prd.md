@@ -5,7 +5,7 @@
 - 文档名称：Supabase 钱包唯一权威体系 PRD
 - 文档路径：`/doc/plan/2026-04-19-supabase-wallet-single-authority-prd.md`
 - 创建日期：2026-04-19
-- 状态：Draft v2
+- 状态：Draft v3
 - 适用范围：
   - `deeptutor/api/routers/mobile.py`
   - `deeptutor/services/member_console/service.py`
@@ -98,6 +98,8 @@
    - `has_wallet = false`
 6. 当前移动端 `/billing/points`、`/billing/wallet` 仍然读取 `member_console.get_wallet()`，不是 Supabase `wallets`。
 7. 当前微信登录在 `member_console` 里先生成或命中本地 `user_id`，并不是先归一化到 Supabase `users.id`。
+8. 当前仓库内 `supabase/migrations/` 还没有 `wallets` / `wallet_ledger` 的受控 migration，说明钱包 schema 还未纳入本仓显式治理。
+9. 当前 `.env` 里确认有 `SUPABASE_URL`、`SUPABASE_KEY`，但未确认 `SUPABASE_SERVICE_ROLE_KEY`，说明生产写链权限模型必须单独验清。
 
 这说明：
 
@@ -314,6 +316,65 @@
 2. 它只是 auth boundary 的 lookup 表
 3. 如果现有 `users` 结构已足够，则不新增该表
 
+### 8.1.3 token 语义与重签发策略
+
+必须明确：
+
+1. 鉴权边界谁负责把 legacy token 中的 `uid/sub` 归一化成真实 `users.id`
+2. 归一化后何时签发新的 UUID 语义 token
+3. 旧 token 如何进入兼容期、刷新期和强制失效期
+
+推荐策略：
+
+1. 登录成功后，服务端只签发 UUID 语义 token
+2. 对旧 token 只允许短暂兼容读取，不允许长期继续作为生产身份真相
+3. 一旦请求命中影子 ID，必须进入：
+   - 重新映射
+   - 重签 token
+   - 或强制重登
+
+禁止：
+
+1. 让客户端长期同时持有 legacy user_id 和 UUID 两套身份语义
+2. 服务端在命中影子 ID 时静默继续跑业务
+
+### 8.1.4 alias 冲突规则
+
+PRD 必须把以下冲突场景写死：
+
+1. 一个手机号对应多个 legacy user_id
+2. 一个用户名对应多个 legacy user_id
+3. openid / unionid 与手机号归属不一致
+4. 密码登录链、微信登录链、绑手机链指向不同候选用户
+
+处理规则：
+
+1. 若能唯一判定，则映射到唯一 UUID
+2. 若不能唯一判定，则进入人工复核
+3. 冲突用户不得自动迁移
+4. 高价值用户优先人工确认
+
+### 8.1.5 owner_key 与本地状态并档
+
+身份从 legacy user_id 切到 UUID 时，不仅要切钱包，还必须迁移以下所有权：
+
+1. chat session owner_key
+2. notebook / 访问授权 owner_key
+3. learner_state 本地目录
+4. heartbeat job
+5. 学习计划与相关本地索引
+
+否则会出现：
+
+1. 余额正确，但历史会话 404
+2. 余额正确，但 learner_state / 学情 / 心跳像换了人
+
+因此身份迁移必须至少包含：
+
+1. owner_key 迁移方案
+2. learner_state 并档方案
+3. 回迁与补救策略
+
 ## 8.2 一条写入主链
 
 所有积分变化都必须经过统一 wallet service。
@@ -504,6 +565,7 @@
 
 1. 不能再从 `user_profiles.attributes.points` 回填 UI
 2. 不能再从本地 `member_console` 当真值读余额
+3. 客户端若持有旧 token，必须按既定策略刷新或强制重登
 
 ## 10.3 AI 对话扣点
 
@@ -668,6 +730,16 @@
 2. 对所有幂等冲突、版本冲突、余额不足单独计数
 3. 提供按用户和按订单号的检索路径
 
+## 11.5 身份归一化观测
+
+身份切换期间必须额外观测：
+
+1. legacy token 命中次数
+2. 影子 ID 命中次数
+3. alias 冲突命中次数
+4. owner_key 访问失败次数
+5. learner_state 并档失败次数
+
 ## 12. 迁移方案
 
 ## 12.1 Phase 0：宣布唯一权威
@@ -691,6 +763,7 @@
 1. 钱包具备事实层
 2. 后续所有写入有统一入口
 3. 现有 `wallets` 约束与字段口径被正式确认
+4. staging 或影子环境已完成一次完整 dry-run
 
 ## 12.3 Phase 2：统一身份映射
 
@@ -699,12 +772,24 @@
 1. 梳理历史 alias 到 `users.id` 的映射
 2. 把 `user_2008` 这类影子 ID 对齐到真实 UUID
 3. 鉴权边界统一只向后传 UUID
+4. 明确 token 重签发与强制重登策略
+5. 迁移 session owner_key、notebook owner_key、learner_state、heartbeat、学习计划等 user_id 所有权
 
 交付结果：
 
 1. 钱包查询不再因 alias 漂移
 2. 用户不会再命中假钱包
 3. token 解析链路已能稳定落到真实 UUID
+
+放行门禁：
+
+1. canary 用户集 alias -> UUID 错绑数必须为 `0`
+2. 高价值用户人工复核清单必须清零
+3. 未映射活跃用户数必须为 `0`，否则不得切读链
+4. 新 token 解析命中 UUID 成功率必须达到预设阈值
+5. 任一请求命中影子 ID 时必须 hard fail 并告警，不允许静默兜底
+6. owner_key 访问错误数必须达到放行阈值以内
+7. learner_state 并档失败数必须清零
 
 ## 12.4 Phase 3：先切读链路
 
@@ -721,6 +806,22 @@
 2. 页面显示与真钱包对齐
 3. 新旧链路差异可观测、可统计
 
+放行门禁：
+
+1. shadow compare 字段必须至少包含：
+   - `user_id`
+   - `balance_micros`
+   - `display_points`
+   - `source`
+2. 差异必须按三类单独统计：
+   - 用户错绑差异
+   - 余额绝对值差异
+   - 单位换算差异
+3. shadow compare 必须连续观察至少一个明确窗口，建议 `48 小时`
+4. 真实请求量必须达到预设下限后才允许放量
+5. 用户错绑差异必须为 `0`
+6. 余额差异率必须低于预设阈值；当前建议阈值为 `< 0.01%`
+
 ## 12.5 Phase 4：再切写链路
 
 动作：
@@ -733,6 +834,16 @@
 
 1. 不再有并行写入口
 2. 所有生产写事件都有 ledger id 与 idempotency key
+
+放行门禁：
+
+1. 必须在低峰窗口或短暂写冻结窗口执行
+2. 所有旧写路径必须完成 grep 级确认清单
+3. 切写时顺序必须是：
+   - 先关闭旧写入口
+   - 再打开新写入口
+4. 上线后旧入口写入计数必须为 `0`
+5. 任一 residual write 命中旧链即自动 no-go
 
 ## 12.6 Phase 5：退役旧 authority
 
@@ -765,6 +876,31 @@
 
 1. 回滚期间继续双写新旧两套真钱包
 2. 事后人工猜测余额并直接覆盖生产数据
+
+### 12.7.1 分级回滚策略
+
+必须区分三类回滚：
+
+1. 读链回滚
+   - 关闭新读链灰度
+   - 页面回到旧展示口径
+   - 保留 shadow compare 数据继续分析
+2. 写链回滚
+   - 停止新写入口
+   - 不删除已写入的 `wallet_ledger`
+   - 通过补偿事件修正错误，不回滚事实层
+3. 全量停写保护
+   - 若出现无法快速归因的错绑或余额异常，进入只读保护窗口
+   - 禁止人工直接改余额
+
+### 12.7.2 回滚后的强制动作
+
+任何回滚后都必须执行：
+
+1. projection consistency audit
+2. alias -> UUID 映射复核
+3. 补偿事件清单确认
+4. 回滚窗口内所有写事件的审计复盘
 
 ## 13. 对账与回放
 
@@ -804,6 +940,23 @@
 1. 优先以现有 Supabase `wallets` 为开账基础
 2. 对冲突用户单独人工复核
 3. 对 `wallets` 不存在、但 legacy 有余额的用户生成专项迁移清单
+
+## 13.2 Dry-run 迁移产物
+
+在正式迁移前，必须先完成一次 dry-run，并产出以下固定产物：
+
+1. `migration_batch_id`
+2. 开账来源优先级规则
+3. 冲突用户人工复核队列
+4. 无钱包用户清单
+5. 迁移前后汇总 diff：
+   - 用户数
+   - 总余额
+   - 冲突数
+   - 无映射数
+6. dry-run 重复执行幂等结果
+7. owner_key 迁移前后可访问性 diff
+8. learner_state / heartbeat / 学习计划并档结果清单
 
 ## 14. 风险与缓解
 
@@ -875,7 +1028,19 @@
 2. 对高价值用户先人工校验
 3. 映射未收敛前，不进入钱包切换
 
-## 14.7 当前已知不确定性与验证方案
+### 14.7 token 语义切换不完整
+
+风险：
+
+- 客户端继续拿旧 token 自动登录，服务端或页面在灰度期继续命中 legacy user_id
+
+缓解：
+
+1. 明确 token 兼容窗口
+2. 上线后强制走 token 刷新或重签发
+3. 影子 ID 命中即告警并阻断主链
+
+## 14.8 当前已知不确定性与验证方案
 
 当前仍存在以下不确定性，必须先验证：
 
@@ -897,6 +1062,32 @@
 6. `users.identifier`、`users.phone` 以及未来微信身份字段是否具备唯一约束
    - 验证方式：检查 schema 与脏数据样本
    - 替代方案：若唯一性不足，则先清洗数据并补唯一索引，必要时引入最小 alias 表
+
+7. 线上现有 token 是否全部由同一 issuer 签发
+   - 验证方式：抽样核对 token issuer 与 payload 结构
+   - 替代方案：若存在多 issuer，则先补多 issuer 收口层
+
+## 14.9 实施前置检查清单
+
+在进入任何代码实现前，以下检查必须完成：
+
+1. 确认 Supabase 生产环境中 `wallets` 的真实 schema、索引、约束、RLS policy。
+2. 确认 `wallet_ledger` 是否确实不存在于生产，还是仅当前 key 无法访问。
+3. 确认服务端生产运行环境是否具备安全可控的钱包写权限。
+4. 确认 `users` 表是否能稳定承载：
+   - `identifier`
+   - `phone`
+   - 微信身份字段或其替代映射
+5. 确认 `balance_micros -> 点数` 的正式换算口径。
+6. 拉取活跃用户样本，完成 alias -> UUID 映射审计。
+7. 产出迁移前快照：
+   - `wallets`
+   - `v_members`
+   - 旧 `member_console`
+   - 关键用户清单
+8. 抽样确认旧 token issuer、旧 owner_key 与本地 learner_state 路径分布。
+
+如果上述任一项未完成，不得进入读链切换。
 
 ## 15. 验收标准
 
@@ -929,6 +1120,46 @@
 8. `migration_opening_balance` 每用户只允许一次
 9. alias 登录统一命中同一 UUID
 10. `/billing/wallet`、`/billing/points`、`/auth/profile` 返回一致
+11. 支付回调乱序、重复、超时重试
+12. ledger 已写成功但响应失败后的重试幂等
+13. wallets 更新失败时事务整体回滚
+14. 并发扣费与并发退款交叉
+15. migration batch 重复执行幂等
+16. 小程序真机回归：
+   - 登录
+   - 首页余额
+   - 我的页面余额
+   - 账单页
+   - 切账号
+   - 扣点后刷新一致
+
+## 15.2 建议的量化门禁
+
+若要从“可测”进入“可灰度”，建议采用以下量化门禁：
+
+1. canary 用户集中的 alias -> UUID 映射错误数必须为 `0`。
+2. canary 用户集中的 `/billing/wallet` shadow compare 差异数必须为 `0`。
+3. 全量 shadow compare 若存在差异，必须：
+   - 差异率低于 `0.1%`
+   - 且所有差异都有明确归因清单
+4. 并发扣费与重复回调测试必须全绿。
+5. `wallet_ledger` 重算结果与 `wallets` 投影差异必须为 `0`。
+
+## 15.3 上线演练要求
+
+正式切换前必须完成至少一次上线演练，覆盖：
+
+1. read cutover 演练
+2. write cutover 演练
+3. 回滚演练
+4. 对账演练
+
+如果未完成演练，不得进入正式切换窗口。
+
+说明：
+
+1. `0.1%` 是当前建议阈值，不是绝对标准。
+2. 如果业务体量较小，建议直接以“差异数为 0”作为正式放量门槛。
 
 ## 16. 当前代码基线下的改造重点
 
@@ -949,6 +1180,181 @@
 4. 最后删旧 truth
 
 如果顺序反过来，例如先切钱包读链、后收身份，系统会继续把真实钱包查错人，表面上看像“wallets 也不稳”，本质上仍是身份 authority 没收干净。
+
+## 16.1 推荐的实施工作包
+
+为避免再次陷入 patch spiral，本 PRD 推荐按以下工作包执行：
+
+### WP1：Schema 与权限基线
+
+目标：
+
+1. 把钱包 schema 纳入本仓显式治理
+2. 确认写权限与 RLS 边界
+
+建议落点：
+
+1. `supabase/migrations/` 新增钱包相关 migration
+2. 新增钱包 schema 说明或 appendix
+
+最小交付：
+
+1. `wallet_ledger` 建表 SQL
+2. `wallets` 约束/索引补齐 SQL
+3. RLS / server-side writer 策略说明
+
+### WP2：身份归一化层
+
+目标：
+
+1. 让鉴权边界稳定产出真实 `users.id`
+
+建议落点：
+
+1. `deeptutor/services/member_console/service.py`
+2. `deeptutor/api/routers/mobile.py`
+3. 必要时新增 `deeptutor/services/wallet/identity.py`
+
+最小交付：
+
+1. token `uid` 到 UUID 的解析路径
+2. alias 查找策略
+3. 影子用户命中保护
+4. token 重签发策略
+5. owner_key 迁移策略
+6. learner_state / heartbeat / 学习计划并档策略
+
+### WP3：统一 wallet service
+
+目标：
+
+1. 在 Python 服务端建立唯一写入口
+
+建议落点：
+
+1. 新增 `deeptutor/services/wallet/service.py`
+2. 新增 `deeptutor/services/wallet/store.py`
+3. 相关测试目录新增 `tests/services/wallet/`
+
+最小交付：
+
+1. `get_wallet`
+2. `list_wallet_ledger`
+3. `grant_points`
+4. `debit_points`
+5. `refund_points`
+6. `resolve_wallet_user_id`
+
+### WP4：移动端读链切换
+
+目标：
+
+1. 让展示链路先统一读新 authority
+
+建议落点：
+
+1. `deeptutor/api/routers/mobile.py`
+2. `yousenwebview/packageDeeptutor/pages/chat/chat.js`
+3. `yousenwebview/packageDeeptutor/pages/profile/profile.js`
+4. `wx_miniprogram/` 对应页面与 `utils/api.js`
+
+最小交付：
+
+1. `/billing/points`、`/billing/wallet`、`/billing/ledger` 新链路
+2. `/auth/profile.points` 新链路
+3. 页面不再依赖旧 points truth
+
+### WP5：写链切换与旧 authority 退役
+
+目标：
+
+1. 所有真实积分变化统一进入 wallet service
+
+建议落点：
+
+1. 充值/发放入口
+2. AI 扣费入口
+3. 后台补点入口
+4. 旧 `member_console` 调用点清理
+
+最小交付：
+
+1. 生产写事件全部生成 ledger
+2. 旧写入口下线或只保留 mock
+
+## 16.2 建议的执行顺序
+
+建议严格按以下顺序推进：
+
+1. `WP1 Schema 与权限基线`
+2. `WP2 身份归一化层`
+3. `WP3 统一 wallet service`
+4. `WP4 移动端读链切换`
+5. `WP5 写链切换与旧 authority 退役`
+
+任何跳步执行都必须被视为高风险操作。
+
+## 16.3 每个工作包的完成定义
+
+### WP1 完成定义
+
+1. schema 已纳入本仓 migration
+2. 写权限模型已验证
+3. `wallet_ledger` 可被服务端安全读写
+
+### WP2 完成定义
+
+1. canary 用户 alias 登录后全部命中唯一 UUID
+2. 影子 ID 不再进入钱包查询链
+3. 旧 session / notebook / learner_state 在 UUID 下可继续访问
+4. 客户端旧 token 刷新策略完成验证
+
+### WP3 完成定义
+
+1. wallet service 自动化测试通过
+2. 幂等与并发行为可重复验证
+
+### WP4 完成定义
+
+1. 小程序展示与后台展示一致
+2. shadow compare 达到门禁
+
+### WP5 完成定义
+
+1. 所有生产写事件均写入 `wallet_ledger`
+2. `member_console.points_balance` 不再参与生产决策
+3. `user_profiles.attributes.points` 不再参与生产决策
+
+## 16.4 最小上线 Runbook
+
+建议采用以下最小上线顺序：
+
+1. 备份当前 `wallets` 与关键用户快照
+2. 部署 schema 变更
+3. 部署身份归一化与 wallet service
+4. 开启 shadow read compare
+5. canary 放量
+6. 观察门禁指标
+7. 切正式读链
+8. 切正式写链
+9. 关闭旧 authority
+10. 运行对账与重算脚本
+
+## 16.5 回滚 Runbook
+
+若灰度阶段发现问题，允许的回滚动作只有：
+
+1. 关闭新读链灰度
+2. 回滚到旧接口实现
+3. 暂停新写入口
+4. 保留已写入的 `wallet_ledger` 作为审计事实
+5. 用对账脚本评估是否需要补偿事件
+
+明确禁止：
+
+1. 直接手改生产余额掩盖问题
+2. 无审计地删除 ledger
+3. 长期维持新旧两套真钱包并行写入
 
 ## 17. 最终结论
 

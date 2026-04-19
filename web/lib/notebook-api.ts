@@ -42,7 +42,14 @@ export interface NotebookEntryListResponse {
 
 async function expectJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    throw new ApiError(response.status);
+    let detail = "";
+    try {
+      const payload = (await response.json()) as { detail?: unknown; message?: unknown };
+      detail = String(payload.detail ?? payload.message ?? "").trim();
+    } catch {
+      detail = "";
+    }
+    throw new ApiError(response.status, detail || `Request failed: ${response.status}`);
   }
   return response.json() as Promise<T>;
 }

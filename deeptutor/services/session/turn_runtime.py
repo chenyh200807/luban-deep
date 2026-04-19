@@ -1801,6 +1801,7 @@ class TurnRuntimeManager:
             "_question_followup_action",
             "semantic_router_enabled",
             "semantic_router_shadow_mode",
+            "semantic_router_scope",
             "interaction_hints",
             "billing_context",
             "interaction_profile",
@@ -2717,6 +2718,15 @@ class TurnRuntimeManager:
                         "semantic_router_mode": str(
                             context.metadata.get("semantic_router_mode", "") or ""
                         ).strip(),
+                        "semantic_router_mode_reason": str(
+                            context.metadata.get("semantic_router_mode_reason", "") or ""
+                        ).strip(),
+                        "semantic_router_scope": str(
+                            context.metadata.get("semantic_router_scope", "") or ""
+                        ).strip(),
+                        "semantic_router_scope_match": bool(
+                            context.metadata.get("semantic_router_scope_match", False)
+                        ),
                         "semantic_router_shadow_decision": dict(
                             context.metadata.get("semantic_router_shadow_decision", {}) or {}
                         ),

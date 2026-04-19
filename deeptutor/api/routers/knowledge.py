@@ -48,6 +48,7 @@ log_dir = config.get("paths", {}).get("user_log_dir") or config.get("logging", {
 logger = get_logger("Knowledge", level="INFO", log_dir=log_dir)
 
 router = APIRouter()
+_KNOWLEDGE_ADMIN_DEPENDENCIES = [Depends(require_admin)]
 
 _ALLOWED_LINK_FOLDER_ROOT_ENV_VARS = (
     "DEEPTUTOR_KNOWLEDGE_FOLDER_ROOTS",
@@ -512,7 +513,7 @@ async def get_kb_config(kb_name: str):
         _raise_internal_error(f"load the configuration for knowledge base '{kb_name}'")
 
 
-@router.put("/{kb_name}/config")
+@router.put("/{kb_name}/config", dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES)
 async def update_kb_config(kb_name: str, config: dict):
     """Update configuration for a specific knowledge base."""
     try:
@@ -530,7 +531,7 @@ async def update_kb_config(kb_name: str, config: dict):
         _raise_internal_error(f"update the configuration for knowledge base '{kb_name}'")
 
 
-@router.post("/configs/sync")
+@router.post("/configs/sync", dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES)
 async def sync_configs_from_metadata():
     """Sync all KB configurations from their metadata.json files to centralized config."""
     try:
@@ -554,7 +555,7 @@ async def get_default_kb():
         _raise_internal_error("load the default knowledge base")
 
 
-@router.put("/default/{kb_name}")
+@router.put("/default/{kb_name}", dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES)
 async def set_default_kb(kb_name: str):
     """Set the default knowledge base."""
     try:
@@ -658,7 +659,7 @@ async def get_knowledge_base_details(kb_name: str):
         _raise_internal_error(f"fetch knowledge base details for '{kb_name}'")
 
 
-@router.delete("/{kb_name}")
+@router.delete("/{kb_name}", dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES)
 async def delete_knowledge_base(kb_name: str):
     """Delete a knowledge base."""
     try:
@@ -683,7 +684,7 @@ async def delete_knowledge_base(kb_name: str):
         _raise_internal_error(f"delete knowledge base '{kb_name}'")
 
 
-@router.get("/tasks/{task_id}/stream")
+@router.get("/tasks/{task_id}/stream", dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES)
 async def stream_task_logs(task_id: str):
     """Stream task-specific logs for knowledge-base operations."""
     manager = get_task_stream_manager()
@@ -695,7 +696,7 @@ async def stream_task_logs(task_id: str):
     )
 
 
-@router.post("/{kb_name}/upload")
+@router.post("/{kb_name}/upload", dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES)
 async def upload_files(
     kb_name: str,
     background_tasks: BackgroundTasks,
@@ -755,7 +756,7 @@ async def upload_files(
         _raise_internal_error(f"upload files to knowledge base '{kb_name}'")
 
 
-@router.post("/create")
+@router.post("/create", dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES)
 async def create_knowledge_base(
     background_tasks: BackgroundTasks,
     name: str = Form(...),
@@ -864,7 +865,7 @@ async def get_progress(kb_name: str):
         _raise_internal_error(f"read progress for knowledge base '{kb_name}'")
 
 
-@router.post("/{kb_name}/progress/clear")
+@router.post("/{kb_name}/progress/clear", dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES)
 async def clear_progress(kb_name: str):
     """Clear progress file for a knowledge base (useful for stuck states)"""
     try:
@@ -1007,7 +1008,7 @@ async def websocket_progress(websocket: WebSocket, kb_name: str):
 @router.post(
     "/{kb_name}/link-folder",
     response_model=LinkedFolderInfo,
-    dependencies=[Depends(require_admin)],
+    dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES,
 )
 async def link_folder(kb_name: str, request: LinkFolderRequest):
     """
@@ -1041,7 +1042,7 @@ async def link_folder(kb_name: str, request: LinkFolderRequest):
 @router.get(
     "/{kb_name}/linked-folders",
     response_model=list[LinkedFolderInfo],
-    dependencies=[Depends(require_admin)],
+    dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES,
 )
 async def get_linked_folders(kb_name: str):
     """Get list of linked folders for a knowledge base."""
@@ -1057,7 +1058,7 @@ async def get_linked_folders(kb_name: str):
 
 @router.delete(
     "/{kb_name}/linked-folders/{folder_id}",
-    dependencies=[Depends(require_admin)],
+    dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES,
 )
 async def unlink_folder(kb_name: str, folder_id: str):
     """Unlink a folder from a knowledge base."""
@@ -1076,7 +1077,7 @@ async def unlink_folder(kb_name: str, folder_id: str):
 
 @router.post(
     "/{kb_name}/sync-folder/{folder_id}",
-    dependencies=[Depends(require_admin)],
+    dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES,
 )
 async def sync_folder(kb_name: str, folder_id: str, background_tasks: BackgroundTasks):
     """

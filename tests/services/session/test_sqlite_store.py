@@ -53,6 +53,36 @@ def test_sqlite_store_migrates_legacy_chat_history_db(tmp_path: Path) -> None:
         service._user_data_dir = original_user_dir
 
 
+def test_sqlite_store_falls_back_to_legacy_db_when_move_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = PathService.get_instance()
+    original_root = service._project_root
+    original_user_dir = service._user_data_dir
+
+    try:
+        service._project_root = tmp_path
+        service._user_data_dir = tmp_path / "data" / "user"
+        legacy_db = tmp_path / "data" / "chat_history.db"
+        legacy_db.parent.mkdir(parents=True, exist_ok=True)
+        with sqlite3.connect(legacy_db) as conn:
+            conn.execute("CREATE TABLE legacy (id INTEGER PRIMARY KEY)")
+            conn.commit()
+
+        monkeypatch.setattr("deeptutor.services.session.sqlite_store.os.replace", lambda _src, _dst: (_ for _ in ()).throw(OSError("move denied")))
+
+        store = SQLiteSessionStore()
+
+        assert store.db_path == legacy_db
+        with sqlite3.connect(store.db_path) as conn:
+            tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+        assert "legacy" in tables
+    finally:
+        service._project_root = original_root
+        service._user_data_dir = original_user_dir
+
+
 def test_sqlite_store_migrates_legacy_notebook_owner_columns(tmp_path: Path) -> None:
     db_path = tmp_path / "legacy-notebook.db"
     with sqlite3.connect(db_path) as conn:
@@ -307,16 +337,18 @@ def test_sqlite_store_backfills_session_source_archived_columns(tmp_path: Path) 
         conn.row_factory = sqlite3.Row
         columns = {row[1] for row in conn.execute("PRAGMA table_info(sessions)").fetchall()}
         row = conn.execute(
-            "SELECT owner_key, source, archived FROM sessions WHERE id = ?",
+            "SELECT owner_key, source, archived, conversation_id FROM sessions WHERE id = ?",
             ("session_mobile",),
         ).fetchone()
 
     assert "source" in columns
     assert "archived" in columns
+    assert "conversation_id" in columns
     assert row is not None
     assert row["owner_key"] == build_user_owner_key("student_demo")
     assert row["source"] == "wx_miniprogram"
     assert row["archived"] == 1
+    assert row["conversation_id"] == "session_mobile"
 
 
 @pytest.fixture
@@ -489,6 +521,48 @@ def test_list_sessions_by_owner_filters_source_and_archived(store: SQLiteSession
     assert [item["id"] for item in archived] == ["wx_archived"]
     assert active[0]["preferences"]["source"] == "wx_miniprogram"
     assert active[0]["preferences"]["archived"] is False
+
+
+def test_list_sessions_by_owner_and_conversation_uses_canonical_id(
+    store: SQLiteSessionStore,
+) -> None:
+    owner_key = build_user_owner_key("student_demo")
+
+    asyncio.run(store.create_session(session_id="tb_123", owner_key=owner_key))
+    asyncio.run(
+        store.update_session_preferences(
+            "tb_123",
+            {
+                "source": "wx_miniprogram",
+                "conversation_id": "tb_123",
+                "user_id": "student_demo",
+            },
+        )
+    )
+
+    mirror_id = "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123"
+    asyncio.run(store.create_session(session_id=mirror_id, owner_key=owner_key))
+    asyncio.run(
+        store.update_session_preferences(
+            mirror_id,
+            {
+                "source": "wx_miniprogram",
+                "conversation_id": "tb_123",
+                "user_id": "student_demo",
+                "bot_id": "construction-exam-coach",
+            },
+        )
+    )
+
+    matches = asyncio.run(
+        store.list_sessions_by_owner_and_conversation(
+            owner_key,
+            "tb_123",
+            source="wx_miniprogram",
+        )
+    )
+
+    assert {item["id"] for item in matches} == {"tb_123", mirror_id}
 
 
 def test_list_sessions_supports_keyset_cursor(store: SQLiteSessionStore) -> None:

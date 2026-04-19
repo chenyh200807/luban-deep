@@ -8,6 +8,7 @@ can operate on the same files under ``data/user``.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 from enum import Enum
 import json
 from datetime import datetime
@@ -75,45 +76,109 @@ class NotebookManager:
 
         self.base_dir = base_dir_path
         self.base_dir.mkdir(parents=True, exist_ok=True)
-        self.index_file = self.base_dir / "notebooks_index.json"
         self._ensure_index()
 
-    def _ensure_index(self) -> None:
-        if not self.index_file.exists():
-            with open(self.index_file, "w", encoding="utf-8") as f:
-                json.dump({"notebooks": []}, f, indent=2, ensure_ascii=False)
+    @staticmethod
+    def _empty_index() -> dict[str, list[dict[str, Any]]]:
+        return {"notebooks": []}
 
-    def _load_index(self) -> dict:
+    @staticmethod
+    def _owner_scope_name(owner_key: str | None) -> str:
+        normalized = str(owner_key or "").strip()
+        if not normalized:
+            return ""
+        return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+    def _scope_dir(self, owner_key: str | None = None) -> Path:
+        scope_name = self._owner_scope_name(owner_key)
+        if not scope_name:
+            return self.base_dir
+        return self.base_dir / "owners" / scope_name
+
+    def _index_file_for(self, owner_key: str | None = None) -> Path:
+        return self._scope_dir(owner_key) / "notebooks_index.json"
+
+    def _ensure_index(self, owner_key: str | None = None) -> None:
+        index_file = self._index_file_for(owner_key)
+        index_file.parent.mkdir(parents=True, exist_ok=True)
+        if not index_file.exists():
+            self._write_json_file(index_file, self._empty_index())
+
+    def _write_json_file(self, path: Path, payload: dict[str, Any]) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temp_path = path.with_name(f"{path.name}.{uuid.uuid4().hex}.tmp")
+        with open(temp_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+        temp_path.replace(path)
+
+    def _rebuild_index(self, owner_key: str | None = None) -> dict[str, Any]:
+        scope_dir = self._scope_dir(owner_key)
+        notebooks: list[dict[str, Any]] = []
+        if scope_dir.exists():
+            for notebook_file in sorted(scope_dir.glob("*.json")):
+                if notebook_file.name == "notebooks_index.json":
+                    continue
+                notebook = self._read_json_file(notebook_file)
+                if not isinstance(notebook, dict) or not notebook.get("id"):
+                    continue
+                notebooks.append(
+                    {
+                        "id": notebook["id"],
+                        "name": notebook.get("name", ""),
+                        "description": notebook.get("description", ""),
+                        "created_at": notebook.get("created_at", 0),
+                        "updated_at": notebook.get("updated_at", 0),
+                        "record_count": len(notebook.get("records", [])),
+                        "color": notebook.get("color", "#3B82F6"),
+                        "icon": notebook.get("icon", "book"),
+                        "owner_key": str(notebook.get("owner_key") or str(owner_key or "").strip()),
+                    }
+                )
+        index = {"notebooks": notebooks}
+        self._write_json_file(self._index_file_for(owner_key), index)
+        return index
+
+    @staticmethod
+    def _read_json_file(path: Path) -> dict[str, Any] | None:
         try:
-            with open(self.index_file, encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return {"notebooks": []}
+            with open(path, encoding="utf-8") as f:
+                loaded = json.load(f)
+        except FileNotFoundError:
+            return None
+        except json.JSONDecodeError:
+            return None
+        if not isinstance(loaded, dict):
+            return None
+        return loaded
 
-    def _save_index(self, index: dict) -> None:
-        with open(self.index_file, "w", encoding="utf-8") as f:
-            json.dump(index, f, indent=2, ensure_ascii=False)
+    def _load_index(self, owner_key: str | None = None) -> dict:
+        index_file = self._index_file_for(owner_key)
+        loaded = self._read_json_file(index_file)
+        if loaded is None:
+            return self._rebuild_index(owner_key)
+        notebooks = loaded.get("notebooks")
+        if not isinstance(notebooks, list):
+            return self._rebuild_index(owner_key)
+        return loaded
 
-    def _get_notebook_file(self, notebook_id: str) -> Path:
-        return self.base_dir / f"{notebook_id}.json"
+    def _save_index(self, index: dict, owner_key: str | None = None) -> None:
+        self._write_json_file(self._index_file_for(owner_key), index)
 
-    def _load_notebook(self, notebook_id: str) -> dict | None:
-        filepath = self._get_notebook_file(notebook_id)
+    def _get_notebook_file(self, notebook_id: str, owner_key: str | None = None) -> Path:
+        return self._scope_dir(owner_key) / f"{notebook_id}.json"
+
+    def _load_notebook(self, notebook_id: str, owner_key: str | None = None) -> dict | None:
+        filepath = self._get_notebook_file(notebook_id, owner_key=owner_key)
         if not filepath.exists():
             return None
-        try:
-            with open(filepath, encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return None
+        return self._read_json_file(filepath)
 
-    def _save_notebook(self, notebook: dict) -> None:
-        filepath = self._get_notebook_file(notebook["id"])
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(notebook, f, indent=2, ensure_ascii=False)
+    def _save_notebook(self, notebook: dict, owner_key: str | None = None) -> None:
+        filepath = self._get_notebook_file(notebook["id"], owner_key=owner_key)
+        self._write_json_file(filepath, notebook)
 
-    def _touch_index_entry(self, notebook_id: str, notebook: dict) -> None:
-        index = self._load_index()
+    def _touch_index_entry(self, notebook_id: str, notebook: dict, owner_key: str | None = None) -> None:
+        index = self._load_index(owner_key)
         for nb_info in index.get("notebooks", []):
             if nb_info["id"] != notebook_id:
                 continue
@@ -123,8 +188,9 @@ class NotebookManager:
             nb_info["record_count"] = len(notebook.get("records", []))
             nb_info["color"] = notebook.get("color", nb_info.get("color", "#3B82F6"))
             nb_info["icon"] = notebook.get("icon", nb_info.get("icon", "book"))
+            nb_info["owner_key"] = str(notebook.get("owner_key") or str(owner_key or "").strip())
             break
-        self._save_index(index)
+        self._save_index(index, owner_key)
 
     def _resolve_learner_context(
         self,
@@ -259,10 +325,16 @@ class NotebookManager:
     # === Notebook Operations ===
 
     def create_notebook(
-        self, name: str, description: str = "", color: str = "#3B82F6", icon: str = "book"
+        self,
+        name: str,
+        description: str = "",
+        color: str = "#3B82F6",
+        icon: str = "book",
+        owner_key: str | None = None,
     ) -> dict:
         notebook_id = str(uuid.uuid4())[:8]
         now = time.time()
+        normalized_owner_key = str(owner_key or "").strip()
 
         notebook = {
             "id": notebook_id,
@@ -273,11 +345,13 @@ class NotebookManager:
             "records": [],
             "color": color,
             "icon": icon,
+            "owner_key": normalized_owner_key,
         }
 
-        self._save_notebook(notebook)
+        self._ensure_index(normalized_owner_key)
+        self._save_notebook(notebook, owner_key=normalized_owner_key)
 
-        index = self._load_index()
+        index = self._load_index(normalized_owner_key)
         index["notebooks"].append(
             {
                 "id": notebook_id,
@@ -288,17 +362,19 @@ class NotebookManager:
                 "record_count": 0,
                 "color": color,
                 "icon": icon,
+                "owner_key": normalized_owner_key,
             }
         )
-        self._save_index(index)
+        self._save_index(index, normalized_owner_key)
         return notebook
 
-    def list_notebooks(self) -> list[dict]:
-        index = self._load_index()
+    def list_notebooks(self, owner_key: str | None = None) -> list[dict]:
+        normalized_owner_key = str(owner_key or "").strip()
+        index = self._load_index(normalized_owner_key)
         notebooks: list[dict] = []
 
         for nb_info in index.get("notebooks", []):
-            notebook = self._load_notebook(nb_info["id"])
+            notebook = self._load_notebook(nb_info["id"], owner_key=normalized_owner_key)
             if notebook:
                 notebooks.append(
                     {
@@ -316,8 +392,8 @@ class NotebookManager:
         notebooks.sort(key=lambda x: x["updated_at"], reverse=True)
         return notebooks
 
-    def get_notebook(self, notebook_id: str) -> dict | None:
-        return self._load_notebook(notebook_id)
+    def get_notebook(self, notebook_id: str, owner_key: str | None = None) -> dict | None:
+        return self._load_notebook(notebook_id, owner_key=owner_key)
 
     def update_notebook(
         self,
@@ -326,8 +402,10 @@ class NotebookManager:
         description: str | None = None,
         color: str | None = None,
         icon: str | None = None,
+        owner_key: str | None = None,
     ) -> dict | None:
-        notebook = self._load_notebook(notebook_id)
+        normalized_owner_key = str(owner_key or "").strip()
+        notebook = self._load_notebook(notebook_id, owner_key=normalized_owner_key)
         if not notebook:
             return None
 
@@ -341,19 +419,20 @@ class NotebookManager:
             notebook["icon"] = icon
 
         notebook["updated_at"] = time.time()
-        self._save_notebook(notebook)
-        self._touch_index_entry(notebook_id, notebook)
+        self._save_notebook(notebook, owner_key=normalized_owner_key)
+        self._touch_index_entry(notebook_id, notebook, owner_key=normalized_owner_key)
         return notebook
 
-    def delete_notebook(self, notebook_id: str) -> bool:
-        filepath = self._get_notebook_file(notebook_id)
+    def delete_notebook(self, notebook_id: str, owner_key: str | None = None) -> bool:
+        normalized_owner_key = str(owner_key or "").strip()
+        filepath = self._get_notebook_file(notebook_id, owner_key=normalized_owner_key)
         if not filepath.exists():
             return False
 
         filepath.unlink()
-        index = self._load_index()
+        index = self._load_index(normalized_owner_key)
         index["notebooks"] = [nb for nb in index["notebooks"] if nb["id"] != notebook_id]
-        self._save_index(index)
+        self._save_index(index, normalized_owner_key)
         return True
 
     # === Record Operations ===
@@ -370,6 +449,7 @@ class NotebookManager:
         kb_name: str | None = None,
         user_id: str | None = None,
         source_bot_id: str | None = None,
+        owner_key: str | None = None,
     ) -> dict:
         record_id = str(uuid.uuid4())[:8]
         now = time.time()
@@ -400,13 +480,13 @@ class NotebookManager:
 
         added_to: list[str] = []
         for notebook_id in notebook_ids:
-            notebook = self._load_notebook(notebook_id)
+            notebook = self._load_notebook(notebook_id, owner_key=owner_key)
             if not notebook:
                 continue
             notebook["records"].append(record)
             notebook["updated_at"] = now
-            self._save_notebook(notebook)
-            self._touch_index_entry(notebook_id, notebook)
+            self._save_notebook(notebook, owner_key=owner_key)
+            self._touch_index_entry(notebook_id, notebook, owner_key=owner_key)
             added_to.append(notebook_id)
 
         if resolved_user_id and added_to:
@@ -431,8 +511,13 @@ class NotebookManager:
 
         return {"record": record, "added_to_notebooks": added_to}
 
-    def get_records(self, notebook_id: str, record_ids: list[str] | None = None) -> list[dict]:
-        notebook = self._load_notebook(notebook_id)
+    def get_records(
+        self,
+        notebook_id: str,
+        record_ids: list[str] | None = None,
+        owner_key: str | None = None,
+    ) -> list[dict]:
+        notebook = self._load_notebook(notebook_id, owner_key=owner_key)
         if not notebook:
             return []
 
@@ -443,8 +528,13 @@ class NotebookManager:
         wanted = set(record_ids)
         return [record for record in records if str(record.get("id", "")) in wanted]
 
-    def get_record(self, notebook_id: str, record_id: str) -> dict | None:
-        records = self.get_records(notebook_id, [record_id])
+    def get_record(
+        self,
+        notebook_id: str,
+        record_id: str,
+        owner_key: str | None = None,
+    ) -> dict | None:
+        records = self.get_records(notebook_id, [record_id], owner_key=owner_key)
         return records[0] if records else None
 
     def update_record(
@@ -460,8 +550,10 @@ class NotebookManager:
         kb_name: str | None | object = _UNSET,
         user_id: str | None = None,
         source_bot_id: str | None = None,
+        owner_key: str | None = None,
     ) -> dict | None:
-        notebook = self._load_notebook(notebook_id)
+        normalized_owner_key = str(owner_key or "").strip()
+        notebook = self._load_notebook(notebook_id, owner_key=normalized_owner_key)
         if not notebook:
             return None
 
@@ -509,8 +601,8 @@ class NotebookManager:
             return None
 
         notebook["updated_at"] = time.time()
-        self._save_notebook(notebook)
-        self._touch_index_entry(notebook_id, notebook)
+        self._save_notebook(notebook, owner_key=normalized_owner_key)
+        self._touch_index_entry(notebook_id, notebook, owner_key=normalized_owner_key)
 
         if resolved_user_id:
             self._dispatch_writeback(
@@ -533,7 +625,11 @@ class NotebookManager:
             )
         return updated_record
 
-    def get_records_by_references(self, notebook_references: list[dict]) -> list[dict]:
+    def get_records_by_references(
+        self,
+        notebook_references: list[dict],
+        owner_key: str | None = None,
+    ) -> list[dict]:
         resolved: list[dict] = []
 
         for ref in notebook_references:
@@ -545,12 +641,12 @@ class NotebookManager:
                 for record_id in (ref.get("record_ids") or [])
                 if str(record_id).strip()
             ]
-            notebook = self._load_notebook(notebook_id)
+            notebook = self._load_notebook(notebook_id, owner_key=owner_key)
             if not notebook:
                 continue
 
             notebook_name = str(notebook.get("name", "") or notebook_id)
-            for record in self.get_records(notebook_id, record_ids):
+            for record in self.get_records(notebook_id, record_ids, owner_key=owner_key):
                 resolved.append(
                     {
                         **record,
@@ -561,8 +657,9 @@ class NotebookManager:
 
         return resolved
 
-    def remove_record(self, notebook_id: str, record_id: str) -> bool:
-        notebook = self._load_notebook(notebook_id)
+    def remove_record(self, notebook_id: str, record_id: str, owner_key: str | None = None) -> bool:
+        normalized_owner_key = str(owner_key or "").strip()
+        notebook = self._load_notebook(notebook_id, owner_key=normalized_owner_key)
         if not notebook:
             return False
 
@@ -573,12 +670,12 @@ class NotebookManager:
             return False
 
         notebook["updated_at"] = time.time()
-        self._save_notebook(notebook)
-        self._touch_index_entry(notebook_id, notebook)
+        self._save_notebook(notebook, owner_key=normalized_owner_key)
+        self._touch_index_entry(notebook_id, notebook, owner_key=normalized_owner_key)
         return True
 
-    def get_statistics(self) -> dict:
-        notebooks = self.list_notebooks()
+    def get_statistics(self, owner_key: str | None = None) -> dict:
+        notebooks = self.list_notebooks(owner_key=owner_key)
 
         total_records = 0
         type_counts = {
@@ -591,7 +688,7 @@ class NotebookManager:
         }
 
         for nb_info in notebooks:
-            notebook = self._load_notebook(nb_info["id"])
+            notebook = self._load_notebook(nb_info["id"], owner_key=owner_key)
             if notebook:
                 for record in notebook.get("records", []):
                     total_records += 1

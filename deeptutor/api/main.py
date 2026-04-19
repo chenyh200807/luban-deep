@@ -3,6 +3,7 @@ import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +12,8 @@ from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from deeptutor.logging import get_logger
-from deeptutor.logging.context import bind_log_context, bind_request_id, reset_log_context, reset_request_id
+from deeptutor.logging.context import bind_request_id, reset_request_id
+from deeptutor.api.dependencies import require_admin, require_metrics_access
 from deeptutor.api.runtime_metrics import APIRuntimeMetrics, render_prometheus_metrics
 from deeptutor.services.config import get_env_store
 from deeptutor.services.branding import get_api_title, get_api_welcome_message
@@ -87,6 +89,13 @@ def _startup_fail_fast_enabled() -> bool:
     return env_flag(
         "DEEPTUTOR_STARTUP_FAIL_FAST",
         default=is_production_environment(),
+    )
+
+
+def _public_outputs_enabled() -> bool:
+    return env_flag(
+        "DEEPTUTOR_ENABLE_PUBLIC_OUTPUTS",
+        default=not is_production_environment(),
     )
 
 
@@ -349,11 +358,14 @@ except Exception:
     if not user_dir.exists():
         user_dir.mkdir(parents=True)
 
-app.mount(
-    "/api/outputs",
-    SafeOutputStaticFiles(directory=str(user_dir), path_service=path_service),
-    name="outputs",
-)
+if _public_outputs_enabled():
+    app.mount(
+        "/api/outputs",
+        SafeOutputStaticFiles(directory=str(user_dir), path_service=path_service),
+        name="outputs",
+    )
+else:
+    logger.info("Public output mount disabled; /api/outputs is not exposed in this environment")
 
 # Import routers only after runtime settings are initialized.
 # Some router modules load YAML settings at import time.
@@ -434,7 +446,7 @@ async def readyz():
     return JSONResponse(status_code=status_code, content=payload)
 
 
-@app.get("/metrics", include_in_schema=False)
+@app.get("/metrics", include_in_schema=False, dependencies=[Depends(require_metrics_access)])
 async def metrics():
     return {
         "http": app.state.runtime_metrics.snapshot(),
@@ -446,7 +458,7 @@ async def metrics():
     }
 
 
-@app.get("/metrics/prometheus", include_in_schema=False)
+@app.get("/metrics/prometheus", include_in_schema=False, dependencies=[Depends(require_metrics_access)])
 async def metrics_prometheus():
     http_snapshot = app.state.runtime_metrics.snapshot()
     readiness_snapshot = get_readyz_payload(app)[1]

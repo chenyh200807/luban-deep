@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any, Awaitable, Callable, Literal
 
 from deeptutor.services.question_followup import (
@@ -48,6 +49,29 @@ _GUIDE_DETOUR_MARKERS = (
     "你叫什么",
     "你是谁",
 )
+_LOW_SIGNAL_CONTINUATION_MARKERS = {
+    "继续",
+    "接着",
+    "然后",
+    "然后呢",
+    "下一步",
+    "下一个",
+    "那个",
+    "这个",
+}
+_ORDINAL_INDEX_MAP = {
+    "一": 1,
+    "二": 2,
+    "两": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9,
+    "十": 10,
+}
 
 
 QuestionActiveObjectType = Literal["question_set", "single_question"]
@@ -583,6 +607,22 @@ async def resolve_question_semantic_routing(
             user_message=user_message,
             active_object=active_object,
         )
+    clarify_decision = _decision_from_ambiguity_gate(
+        user_message=user_message,
+        active_object=active_object,
+        suspended_stack=suspended_stack,
+        question_context=question_context,
+        llm_decision=llm_decision,
+        resolve_submission_attempt=resolve_submission_attempt,
+    )
+    if clarify_decision is not None:
+        return SemanticRoutingResult(
+            active_object=active_object,
+            suspended_object_stack=suspended_stack,
+            turn_semantic_decision=clarify_decision,
+            question_context=question_context,
+            followup_action=llm_action if isinstance(llm_action, dict) else None,
+        )
     llm_route = semantic_route_for_decision(llm_decision)
     if llm_decision is not None and llm_route in {"submission", "followup", "practice_generation"}:
         return SemanticRoutingResult(
@@ -929,6 +969,80 @@ def _decision_from_fallback(
     )
 
 
+def _decision_from_ambiguity_gate(
+    *,
+    user_message: str,
+    active_object: dict[str, Any] | None,
+    suspended_stack: list[dict[str, Any]],
+    question_context: dict[str, Any] | None,
+    llm_decision: dict[str, Any] | None,
+    resolve_submission_attempt: Callable[[str, dict[str, Any] | None], tuple[dict[str, Any] | None, dict[str, Any] | None]],
+) -> dict[str, Any] | None:
+    if _referenced_slot_overflows(user_message, question_context):
+        return build_turn_semantic_decision(
+            relation_to_active_object="uncertain",
+            next_action="ask_clarifying_question",
+            allowed_patch="no_state_change",
+            confidence=0.34,
+            reason="当前输入引用了超出 active object 槽位范围的编号，必须先澄清再执行。",
+            active_object=active_object,
+        )
+
+    if (
+        not _message_prefers_previous_object(user_message)
+        and _has_multiple_parseable_question_candidates(
+            user_message=user_message,
+            active_object=active_object,
+            suspended_stack=suspended_stack,
+            resolve_submission_attempt=resolve_submission_attempt,
+        )
+    ):
+        return build_turn_semantic_decision(
+            relation_to_active_object="uncertain",
+            next_action="ask_clarifying_question",
+            allowed_patch="no_state_change",
+            confidence=0.31,
+            reason="当前输入可同时命中多个题目对象，不能在多候选间硬猜。",
+            active_object=active_object,
+        )
+
+    if _is_low_signal_continuation(user_message):
+        candidate_families = {
+            family
+            for family in (
+                _active_object_family(active_object),
+                *(_active_object_family(item) for item in suspended_stack),
+            )
+            if family
+        }
+        if len(candidate_families) >= 2:
+            return build_turn_semantic_decision(
+                relation_to_active_object="uncertain",
+                next_action="ask_clarifying_question",
+                allowed_patch="no_state_change",
+                confidence=0.29,
+                reason="低信号继续指令同时可能指向不同对象族，先澄清比误切更安全。",
+                active_object=active_object,
+            )
+
+    normalized_decision = normalize_turn_semantic_decision(llm_decision, active_object=active_object)
+    if normalized_decision is None:
+        return None
+    if (
+        normalized_decision.get("next_action") in {"route_to_grading", "route_to_followup_explainer"}
+        and float(normalized_decision.get("confidence") or 0.0) < 0.45
+    ):
+        return build_turn_semantic_decision(
+            relation_to_active_object="uncertain",
+            next_action="ask_clarifying_question",
+            allowed_patch="no_state_change",
+            confidence=0.3,
+            reason="当前语义判定置信度过低，继续执行会带来错误副作用，先进入澄清。",
+            active_object=active_object,
+        )
+    return None
+
+
 def _promote_suspended_candidate_decision(
     *,
     suspended_candidate: dict[str, Any],
@@ -1035,6 +1149,79 @@ def _normalize_confidence(raw: Any, *, default: float) -> float:
     if value > 1:
         return 1.0
     return value
+
+
+def _active_object_family(active_object: dict[str, Any] | None) -> str:
+    normalized = normalize_active_object(active_object)
+    if normalized is None:
+        return ""
+    object_type = str(normalized.get("object_type") or "").strip()
+    if object_type in QUESTION_ACTIVE_OBJECT_TYPES:
+        return "question"
+    if object_type in GUIDE_ACTIVE_OBJECT_TYPES:
+        return "guide"
+    if object_type in SESSION_ACTIVE_OBJECT_TYPES:
+        return "open_chat"
+    return ""
+
+
+def _is_low_signal_continuation(message: str) -> bool:
+    text = str(message or "").strip().lower()
+    if not text:
+        return False
+    return text in _LOW_SIGNAL_CONTINUATION_MARKERS
+
+
+def _has_multiple_parseable_question_candidates(
+    *,
+    user_message: str,
+    active_object: dict[str, Any] | None,
+    suspended_stack: list[dict[str, Any]],
+    resolve_submission_attempt: Callable[[str, dict[str, Any] | None], tuple[dict[str, Any] | None, dict[str, Any] | None]],
+) -> bool:
+    parseable_count = 0
+    for candidate in [active_object, *suspended_stack]:
+        question_context = question_context_from_active_object(candidate)
+        if question_context is None:
+            continue
+        _target_context, submission = resolve_submission_attempt(user_message, question_context)
+        if submission is None:
+            continue
+        parseable_count += 1
+        if parseable_count >= 2:
+            return True
+    return False
+
+
+def _referenced_slot_overflows(
+    message: str,
+    question_context: dict[str, Any] | None,
+) -> bool:
+    normalized = normalize_question_followup_context(question_context)
+    if normalized is None:
+        return False
+    referenced_index = _referenced_slot_index(message)
+    if referenced_index <= 0:
+        return False
+    items = normalized.get("items") if isinstance(normalized.get("items"), list) else []
+    item_count = len(items) if items else 1
+    return referenced_index > item_count
+
+
+def _referenced_slot_index(message: str) -> int:
+    text = str(message or "").strip()
+    if not text:
+        return 0
+    digit_match = re.search(r"第\s*(\d{1,2})\s*(?:题|个|个吧|个答案)?", text)
+    if digit_match:
+        return int(digit_match.group(1))
+    zh_match = re.search(r"第\s*([一二两三四五六七八九十])\s*(?:题|个|个吧|个答案)?", text)
+    if zh_match:
+        return _ORDINAL_INDEX_MAP.get(zh_match.group(1), 0)
+    if text.endswith("个吧") or text.endswith("个") or text.endswith("题吧") or text.endswith("题"):
+        leading = text[0]
+        return _ORDINAL_INDEX_MAP.get(leading, 0)
+    return 0
 
 
 def _coerce_version(raw: Any, *, default: int) -> int:

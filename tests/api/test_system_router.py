@@ -15,9 +15,13 @@ rate_limit_module = importlib.import_module("deeptutor.api.dependencies.rate_lim
 router = system_module.router
 
 
-def _build_app() -> FastAPI:
+def _build_app(*, is_admin: bool = True) -> FastAPI:
     app = FastAPI()
     app.include_router(router, prefix="/api/v1")
+    app.dependency_overrides[get_current_user] = lambda: _ctx(
+        "admin_demo" if is_admin else "student_demo",
+        is_admin=is_admin,
+    )
     return app
 
 
@@ -58,6 +62,9 @@ def test_turn_contract_endpoint_exposes_unified_schema() -> None:
     assert "task_anchor_type" in body["trace_fields"]
     assert "escalation_level" in body["trace_fields"]
     assert "semantic_router_mode" in body["trace_fields"]
+    assert "semantic_router_mode_reason" in body["trace_fields"]
+    assert "semantic_router_scope" in body["trace_fields"]
+    assert "semantic_router_scope_match" in body["trace_fields"]
     assert "semantic_router_shadow_route" in body["trace_fields"]
     assert "semantic_router_selected_capability" in body["trace_fields"]
     assert "loaded_sources" in body["trace_fields"]
@@ -123,9 +130,25 @@ def test_runtime_topology_declares_ws_as_single_stream_entry() -> None:
     )
 
 
+@pytest.mark.parametrize(
+    ("path"),
+    (
+        "/api/v1/turn-contract",
+        "/api/v1/contracts-index",
+        "/api/v1/learner-state-contract",
+        "/api/v1/runtime-topology",
+    ),
+)
+def test_internal_contract_and_topology_endpoints_require_admin(path: str) -> None:
+    with TestClient(_build_app(is_admin=False)) as client:
+        response = client.get(path)
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Admin access required"
+
+
 def test_system_status_requires_admin() -> None:
-    app = _build_app()
-    app.dependency_overrides[get_current_user] = lambda: _ctx("student_demo", is_admin=False)
+    app = _build_app(is_admin=False)
 
     with TestClient(app) as client:
         response = client.get("/api/v1/status")
@@ -135,8 +158,7 @@ def test_system_status_requires_admin() -> None:
 
 
 def test_system_llm_test_rate_limits_per_route_and_client_ip(monkeypatch: pytest.MonkeyPatch) -> None:
-    app = _build_app()
-    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    app = _build_app(is_admin=True)
     monkeypatch.setattr(
         rate_limit_module,
         "_RATE_LIMIT_POLICY_OVERRIDES",

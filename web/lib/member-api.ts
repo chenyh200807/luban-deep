@@ -1,4 +1,5 @@
 import { apiUrl } from "@/lib/api";
+import { ApiError } from "@/lib/api-errors";
 
 export interface MemberDashboard {
   total_count: number;
@@ -159,7 +160,14 @@ export interface MemberDetail {
 
 async function expectJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    let detail = "";
+    try {
+      const payload = (await response.json()) as { detail?: unknown; message?: unknown };
+      detail = String(payload.detail ?? payload.message ?? "").trim();
+    } catch {
+      detail = "";
+    }
+    throw new ApiError(response.status, detail || `Request failed: ${response.status}`);
   }
   return response.json() as Promise<T>;
 }

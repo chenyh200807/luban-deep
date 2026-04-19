@@ -6,6 +6,7 @@ import pytest
 
 from deeptutor.services.config.provider_runtime import ResolvedSearchConfig
 from deeptutor.services.search import web_search
+from deeptutor.services.search.exceptions import SearchError, SearchTimeoutError
 from deeptutor.services.search.types import WebSearchResponse
 
 
@@ -122,3 +123,51 @@ def test_web_search_searxng_uses_base_url(monkeypatch) -> None:
     assert captured["kwargs"]["base_url"] == "https://searx.example.com"
     assert captured["kwargs"]["max_results"] == 4
     assert result["provider"] == "searxng"
+
+
+def test_web_search_preserves_typed_provider_errors(monkeypatch) -> None:
+    class _FailingProvider(_FakeProvider):
+        def search(self, query: str, **kwargs):
+            raise SearchTimeoutError("timeout", provider=self.name)
+
+    monkeypatch.setattr(
+        "deeptutor.services.search._get_web_search_config",
+        lambda: {"enabled": True},
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.search.resolve_search_runtime_config",
+        lambda: ResolvedSearchConfig(
+            provider="brave",
+            requested_provider="brave",
+            api_key="secret",
+            max_results=3,
+        ),
+    )
+    monkeypatch.setattr("deeptutor.services.search.get_provider", lambda _name, **_kwargs: _FailingProvider("brave"))
+
+    with pytest.raises(SearchTimeoutError, match="timeout"):
+        web_search("hello")
+
+
+def test_web_search_wraps_unexpected_provider_errors(monkeypatch) -> None:
+    class _ExplodingProvider(_FakeProvider):
+        def search(self, query: str, **kwargs):
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr(
+        "deeptutor.services.search._get_web_search_config",
+        lambda: {"enabled": True},
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.search.resolve_search_runtime_config",
+        lambda: ResolvedSearchConfig(
+            provider="brave",
+            requested_provider="brave",
+            api_key="secret",
+            max_results=3,
+        ),
+    )
+    monkeypatch.setattr("deeptutor.services.search.get_provider", lambda _name, **_kwargs: _ExplodingProvider("brave"))
+
+    with pytest.raises(SearchError, match="brave search failed: boom"):
+        web_search("hello")

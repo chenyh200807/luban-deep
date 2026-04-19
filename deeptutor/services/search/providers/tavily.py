@@ -13,10 +13,7 @@ Features:
 """
 
 from datetime import datetime
-import json
 from typing import Any
-
-import requests
 
 from ..base import BaseSearchProvider
 from ..types import Citation, SearchResult, WebSearchResponse
@@ -91,20 +88,11 @@ class TavilyProvider(BaseSearchProvider):
         request_kwargs: dict[str, Any] = {"json": payload, "timeout": timeout}
         if self.proxy:
             request_kwargs["proxies"] = {"http": self.proxy, "https": self.proxy}
-        response = requests.post(self.BASE_URL, **request_kwargs)
-
-        if response.status_code != 200:
-            try:
-                error_data = response.json()
-            except (json.JSONDecodeError, ValueError):
-                error_data = {"error": response.text}
-            self.logger.error(f"Tavily API error: {response.status_code} - {error_data}")
-            raise Exception(
-                f"Tavily API error: {response.status_code} - "
-                f"{error_data.get('error', response.text)}"
-            )
-
-        data = response.json()
+        try:
+            data = self.request_json("POST", self.BASE_URL, **request_kwargs)
+        except Exception as exc:
+            self.logger.error(f"Tavily API error: {exc}")
+            raise
         self.logger.debug(f"Tavily returned {len(data.get('results', []))} results")
 
         # Extract answer

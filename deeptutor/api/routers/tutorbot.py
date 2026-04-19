@@ -4,14 +4,15 @@ TutorBot management API.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, WebSocket
+from fastapi import APIRouter, Depends, HTTPException, WebSocket
 from pydantic import BaseModel
 
+from deeptutor.api.dependencies import require_admin
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 from deeptutor.utils.error_utils import public_error_detail
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 
 class CreateBotRequest(BaseModel):

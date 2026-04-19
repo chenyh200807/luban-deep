@@ -60,9 +60,6 @@ async def _assert_mobile_conversation_access(conversation_id: str, user_id: str)
     resolved_conversation_id = str(conversation_id or "").strip()
     if not resolved_conversation_id:
         return
-    owner_key = await session_store.get_session_owner_key(resolved_conversation_id)
-    if owner_key == build_user_owner_key(user_id):
-        return
     variants = await _load_mobile_conversation_variants(resolved_conversation_id, user_id)
     if variants:
         return
@@ -136,17 +133,6 @@ def _merge_mobile_conversation_rows(rows: list[dict[str, Any]]) -> list[dict[str
     return result
 
 
-def _matches_mobile_conversation_id(session: dict[str, Any], conversation_id: str) -> bool:
-    normalized_conversation_id = str(conversation_id or "").strip()
-    if not normalized_conversation_id:
-        return False
-    session_id = str(session.get("id") or session.get("session_id") or "").strip()
-    return (
-        session_id == normalized_conversation_id
-        or _normalize_mobile_conversation_id(session) == normalized_conversation_id
-    )
-
-
 async def _load_mobile_conversation_variants(
     conversation_id: str,
     user_id: str,
@@ -155,6 +141,25 @@ async def _load_mobile_conversation_variants(
     if not normalized_conversation_id:
         return []
     owner_key = build_user_owner_key(user_id)
+    direct_owner_lookup = getattr(session_store, "get_session_owner_key", None)
+    if callable(direct_owner_lookup):
+        direct_owner_key = str(await direct_owner_lookup(normalized_conversation_id) or "").strip()
+        if direct_owner_key == owner_key:
+            return [{"id": normalized_conversation_id}]
+
+    exact_lookup = getattr(session_store, "list_sessions_by_owner_and_conversation", None)
+    if callable(exact_lookup):
+        return list(
+            await exact_lookup(
+                owner_key,
+                normalized_conversation_id,
+                source="wx_miniprogram",
+                archived=None,
+                limit=50,
+            )
+            or []
+        )
+
     matches: list[dict[str, Any]] = []
     offset = 0
     while True:
@@ -171,7 +176,7 @@ async def _load_mobile_conversation_variants(
         matches.extend(
             row
             for row in batch
-            if isinstance(row, dict) and _matches_mobile_conversation_id(row, normalized_conversation_id)
+            if isinstance(row, dict) and _normalize_mobile_conversation_id(row) == normalized_conversation_id
         )
         if len(batch) < _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE:
             break

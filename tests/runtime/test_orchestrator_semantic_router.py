@@ -214,3 +214,53 @@ async def test_orchestrator_disabled_mode_skips_semantic_router() -> None:
     assert context.metadata["semantic_router_mode"] == "disabled"
     assert context.metadata["semantic_router_selected_capability"] == "chat"
     assert "turn_semantic_decision" not in context.metadata
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_scope_excludes_guide_from_question_only_rollout() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="semantic-router-scope-guide",
+        user_message="继续刚才这个学习页面",
+        config_overrides={
+            "semantic_router_enabled": True,
+            "semantic_router_scope": "question_only",
+        },
+        metadata={"active_object": _guide_active_object()},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "chat"
+    assert context.metadata["semantic_router_mode"] == "disabled"
+    assert context.metadata["semantic_router_mode_reason"] == "scope_excluded"
+    assert context.metadata["semantic_router_scope"] == "question_only"
+    assert context.metadata["semantic_router_scope_match"] is False
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_scope_keeps_question_in_question_only_rollout() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="semantic-router-scope-question",
+        user_message="我选B",
+        config_overrides={
+            "semantic_router_enabled": True,
+            "semantic_router_scope": "question_only",
+        },
+        metadata={"active_object": _active_object()},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["semantic_router_mode"] == "primary"
+    assert context.metadata["semantic_router_scope_match"] is True

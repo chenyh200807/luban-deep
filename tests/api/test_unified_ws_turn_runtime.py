@@ -856,6 +856,9 @@ async def test_turn_runtime_records_semantic_router_rollout_metadata(
         async def handle(self, context):
             captured_context["config_overrides"] = dict(context.config_overrides)
             context.metadata["semantic_router_mode"] = "shadow"
+            context.metadata["semantic_router_mode_reason"] = "shadow_compare_only"
+            context.metadata["semantic_router_scope"] = "question_only"
+            context.metadata["semantic_router_scope_match"] = True
             context.metadata["semantic_router_shadow_decision"] = {
                 "relation_to_active_object": "answer_active_object",
                 "next_action": "route_to_grading",
@@ -904,6 +907,7 @@ async def test_turn_runtime_records_semantic_router_rollout_metadata(
             "config": {
                 "semantic_router_enabled": False,
                 "semantic_router_shadow_mode": True,
+                "semantic_router_scope": "question_only",
             },
         }
     )
@@ -913,10 +917,14 @@ async def test_turn_runtime_records_semantic_router_rollout_metadata(
     config_overrides = captured_context["config_overrides"]
     assert config_overrides["semantic_router_enabled"] is False
     assert config_overrides["semantic_router_shadow_mode"] is True
+    assert config_overrides["semantic_router_scope"] == "question_only"
     assert captured_updates
     final_update = captured_updates[-1]
     metadata = final_update["metadata"]
     assert metadata["semantic_router_mode"] == "shadow"
+    assert metadata["semantic_router_mode_reason"] == "shadow_compare_only"
+    assert metadata["semantic_router_scope"] == "question_only"
+    assert metadata["semantic_router_scope_match"] is True
     assert metadata["semantic_router_shadow_route"] == "deep_question"
     assert metadata["semantic_router_selected_capability"] == "chat"
     assert metadata["semantic_router_shadow_decision"]["next_action"] == "route_to_grading"

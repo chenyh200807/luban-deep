@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import re
 import uuid
 from typing import Any, AsyncIterator
@@ -124,10 +125,19 @@ class ChatOrchestrator:
 
         semantic_router_enabled = self._semantic_router_enabled(context)
         semantic_router_shadow_mode = self._semantic_router_shadow_mode(context)
+        semantic_router_scope = self._semantic_router_scope(context)
+        semantic_router_scope_match = self._semantic_router_scope_match(
+            context,
+            routing_user_message,
+            semantic_router_scope,
+        )
+        context.metadata["semantic_router_scope"] = semantic_router_scope
+        context.metadata["semantic_router_scope_match"] = semantic_router_scope_match
 
-        if semantic_router_shadow_mode:
+        if semantic_router_shadow_mode and semantic_router_scope_match:
             shadow_decision = await self._preview_turn_semantic_decision(context, routing_user_message)
             context.metadata["semantic_router_mode"] = "shadow"
+            context.metadata["semantic_router_mode_reason"] = "shadow_compare_only"
             context.metadata["semantic_router_shadow_decision"] = shadow_decision or {}
             context.metadata["semantic_router_shadow_route"] = (
                 turn_semantic_decision_route(shadow_decision) or ""
@@ -136,9 +146,10 @@ class ChatOrchestrator:
             context.metadata["semantic_router_selected_capability"] = cap_name
             return cap_name
 
-        if semantic_router_enabled:
+        if semantic_router_enabled and semantic_router_scope_match:
             turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
             context.metadata["semantic_router_mode"] = "primary"
+            context.metadata["semantic_router_mode_reason"] = "semantic_router_primary"
             context.metadata["semantic_router_shadow_decision"] = {}
             context.metadata["semantic_router_shadow_route"] = ""
             semantic_route = turn_semantic_decision_route(turn_decision)
@@ -158,6 +169,11 @@ class ChatOrchestrator:
                 return "chat"
 
         context.metadata["semantic_router_mode"] = "disabled"
+        context.metadata["semantic_router_mode_reason"] = (
+            "scope_excluded"
+            if not semantic_router_scope_match and (semantic_router_enabled or semantic_router_shadow_mode)
+            else "flag_disabled"
+        )
         context.metadata["semantic_router_shadow_decision"] = {}
         context.metadata["semantic_router_shadow_route"] = ""
         cap_name = self._select_legacy_capability(context, routing_user_message)
@@ -177,6 +193,14 @@ class ChatOrchestrator:
         if override is not None:
             return override
         return env_flag("DEEPTUTOR_SEMANTIC_ROUTER_SHADOW_MODE", default=False)
+
+    @staticmethod
+    def _semantic_router_scope(context: UnifiedContext) -> str:
+        override = str(context.config_overrides.get("semantic_router_scope") or "").strip().lower()
+        value = override or str(os.getenv("DEEPTUTOR_SEMANTIC_ROUTER_SCOPE") or "").strip().lower()
+        if value in {"question_only", "question_and_guide", "all"}:
+            return value
+        return "all"
 
     @staticmethod
     def _routing_user_message(context: UnifiedContext) -> str:
@@ -254,6 +278,38 @@ class ChatOrchestrator:
             return "deep_question"
 
         return "chat"
+
+    def _semantic_router_scope_match(
+        self,
+        context: UnifiedContext,
+        message: str,
+        scope: str,
+    ) -> bool:
+        if scope == "all":
+            return True
+        domain = self._semantic_router_target_domain(context, message)
+        if scope == "question_only":
+            return domain == "question"
+        if scope == "question_and_guide":
+            return domain in {"question", "guide"}
+        return True
+
+    def _semantic_router_target_domain(self, context: UnifiedContext, message: str) -> str:
+        active_object = normalize_active_object(context.metadata.get("active_object"))
+        object_type = str((active_object or {}).get("object_type") or "").strip()
+        if object_type in {"question_set", "single_question"}:
+            return "question"
+        if object_type in {"guide_page", "study_plan", "lesson_topic"}:
+            return "guide"
+        if object_type == "open_chat_topic":
+            return "general"
+        if looks_like_practice_generation_request(message):
+            return "question"
+        if self._looks_like_question_submission(context, message):
+            return "question"
+        if self._looks_like_question_followup(context, message):
+            return "question"
+        return "general"
 
     def _looks_like_question_submission(self, context: UnifiedContext, message: str) -> bool:
         qctx = question_context_from_active_object(context.metadata.get("active_object")) or (

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
+from deeptutor.api.dependencies import require_admin
 from deeptutor.services.bi_service import get_bi_service
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 
 @router.get("/overview")

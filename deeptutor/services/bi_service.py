@@ -6,7 +6,7 @@ import math
 import sqlite3
 import time
 from collections import Counter, defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 import re
 from typing import Any
@@ -25,6 +25,7 @@ from deeptutor.services.observability import (
 from deeptutor.services.session import get_sqlite_session_store
 
 logger = logging.getLogger(__name__)
+_BI_CONTEXT_ROW_LIMIT = 5000
 
 
 def _json_loads(value: str | None, default: Any) -> Any:
@@ -93,6 +94,7 @@ class _BiContext:
     result_events: list[dict[str, Any]]
     tool_events: list[dict[str, Any]]
     notebook_entries: list[dict[str, Any]]
+    truncated_collections: tuple[str, ...] = field(default_factory=tuple)
 
 
 @dataclass(slots=True)
@@ -293,11 +295,34 @@ class BIService:
             result_events=result_events,
             tool_events=tool_events,
             notebook_entries=notebook_entries,
+            truncated_collections=context.truncated_collections,
         )
 
+    @staticmethod
+    def _load_limited_rows(
+        conn: sqlite3.Connection,
+        query: str,
+        params: tuple[Any, ...],
+        *,
+        limit: int,
+        label: str,
+    ) -> tuple[list[sqlite3.Row], bool]:
+        rows = conn.execute(f"{query}\nLIMIT ?", (*params, limit + 1)).fetchall()
+        truncated = len(rows) > limit
+        if truncated:
+            logger.warning(
+                "BI context truncated for %s at %s rows; narrow filters or shorten window",
+                label,
+                limit,
+            )
+            rows = rows[:limit]
+        return list(rows), truncated
+
     async def _load_context_since(self, window_start: float) -> _BiContext:
+        row_limit = max(1, int(_BI_CONTEXT_ROW_LIMIT))
         with self._connect() as conn:
-            session_rows = conn.execute(
+            session_rows, sessions_truncated = self._load_limited_rows(
+                conn,
                 """
                 SELECT
                     s.id,
@@ -333,9 +358,12 @@ class BIService:
                 ORDER BY s.updated_at DESC
                 """,
                 (window_start,),
-            ).fetchall()
+                limit=row_limit,
+                label="sessions",
+            )
 
-            turn_rows = conn.execute(
+            turn_rows, turns_truncated = self._load_limited_rows(
+                conn,
                 """
                 SELECT
                     t.id,
@@ -354,9 +382,12 @@ class BIService:
                 ORDER BY t.updated_at DESC
                 """,
                 (window_start,),
-            ).fetchall()
+                limit=row_limit,
+                label="turns",
+            )
 
-            result_rows = conn.execute(
+            result_rows, results_truncated = self._load_limited_rows(
+                conn,
                 """
                 SELECT
                     te.turn_id,
@@ -377,9 +408,12 @@ class BIService:
                 ORDER BY te.created_at DESC
                 """,
                 (window_start,),
-            ).fetchall()
+                limit=row_limit,
+                label="result_events",
+            )
 
-            tool_rows = conn.execute(
+            tool_rows, tools_truncated = self._load_limited_rows(
+                conn,
                 """
                 SELECT
                     te.turn_id,
@@ -399,9 +433,12 @@ class BIService:
                 ORDER BY te.created_at DESC
                 """,
                 (window_start,),
-            ).fetchall()
+                limit=row_limit,
+                label="tool_events",
+            )
 
-            notebook_rows = conn.execute(
+            notebook_rows, notebook_truncated = self._load_limited_rows(
+                conn,
                 """
                 SELECT
                     n.id,
@@ -419,7 +456,9 @@ class BIService:
                 ORDER BY n.created_at DESC
                 """,
                 (window_start,),
-            ).fetchall()
+                limit=row_limit,
+                label="notebook_entries",
+            )
 
         sessions = []
         for row in session_rows:
@@ -449,12 +488,24 @@ class BIService:
             tool_events.append(payload)
 
         notebook_entries = [dict(row) for row in notebook_rows]
+        truncated_collections = tuple(
+            label
+            for label, truncated in (
+                ("sessions", sessions_truncated),
+                ("turns", turns_truncated),
+                ("result_events", results_truncated),
+                ("tool_events", tools_truncated),
+                ("notebook_entries", notebook_truncated),
+            )
+            if truncated
+        )
         return _BiContext(
             sessions=sessions,
             turns=turns,
             result_events=result_events,
             tool_events=tool_events,
             notebook_entries=notebook_entries,
+            truncated_collections=truncated_collections,
         )
 
     async def _load_context(self, days: int) -> _BiContext:

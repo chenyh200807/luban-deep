@@ -230,3 +230,33 @@ async def test_resolve_turn_semantic_decision_routes_open_chat_topic_to_chat() -
     assert decision["relation_to_active_object"] == "continue_same_learning_flow"
     assert decision["next_action"] == "route_to_general_chat"
     assert semantic_router.turn_semantic_decision_route(decision) == "chat"
+
+
+@pytest.mark.asyncio
+async def test_resolve_turn_semantic_decision_clarifies_low_confidence_grading_action(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_interpret(_message: str, _context: dict[str, object], *, history_context: str = ""):
+        return {
+            "intent": "answer_questions",
+            "confidence": 0.2,
+            "preserve_other_answers": False,
+            "answers": [{"index": 1, "question_id": "q_1", "user_answer": "B"}],
+            "reason": "模型低置信地猜测用户在作答。",
+        }
+
+    monkeypatch.setattr(semantic_router, "interpret_question_followup_action", fake_interpret)
+
+    active_object = semantic_router.build_active_object_from_question_context(
+        _question_context(),
+        source_turn_id="turn-low-confidence",
+    )
+
+    decision, _action = await semantic_router.resolve_turn_semantic_decision(
+        "这个吧",
+        active_object,
+    )
+
+    assert decision is not None
+    assert decision["relation_to_active_object"] == "uncertain"
+    assert decision["next_action"] == "ask_clarifying_question"
