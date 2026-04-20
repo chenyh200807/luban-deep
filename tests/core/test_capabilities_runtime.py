@@ -407,6 +407,7 @@ async def test_deep_question_capability_uses_single_call_followup_agent(
 async def test_tutorbot_capability_bridges_tutorbot_manager(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "0")
     captured: dict[str, Any] = {}
 
     class FakeManager:
@@ -512,9 +513,72 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_capability_fast_mode_sets_preferred_model_override(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None):
+            return SimpleNamespace(running=True)
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            captured["mode"] = mode
+            captured["session_metadata"] = session_metadata
+            return "Fast TutorBot"
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-fast-model",
+        user_message="简短解释流水节拍",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "fast"},
+        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["mode"] == "fast"
+    assert captured["session_metadata"]["preferred_model"] == "qwen3.5-flash"
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_capability_streams_intermediate_deltas_without_duplicate_final_content(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "1")
+
     class FakeManager:
         async def ensure_bot_running(self, bot_id: str, config=None):
             return SimpleNamespace(running=True)
@@ -575,6 +639,16 @@ async def test_tutorbot_capability_streams_intermediate_deltas_without_duplicate
     assert all(event.metadata["call_kind"] == "llm_stream_delta" for event in content_events)
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["response"] == "最终答案：防水等级是设计标准，设防层数是施工构造。"
+
+
+def test_tutorbot_stream_public_deltas_enabled_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("TUTORBOT_STREAM_PUBLIC_DELTAS", raising=False)
+
+    from deeptutor.capabilities.tutorbot import _stream_public_deltas_enabled
+
+    assert _stream_public_deltas_enabled() is True
 
 
 @pytest.mark.asyncio
@@ -2109,6 +2183,69 @@ async def test_tutorbot_process_direct_limits_tool_schemas_to_default_tools(
 
     assert content == "已完成"
     assert captured["tool_names"] == ["rag"]
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_process_direct_uses_preferred_model_override(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {}
+
+    class CapturingProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            captured["model"] = model
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "default-model"
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=CapturingProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+
+    content = await loop.process_direct(
+        "简要解释流水步距",
+        metadata={"preferred_model": "qwen3.5-flash"},
+    )
+
+    assert content == "已完成"
+    assert captured["model"] == "qwen3.5-flash"
 
 
 @pytest.mark.asyncio

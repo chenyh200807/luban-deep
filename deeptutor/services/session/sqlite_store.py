@@ -49,6 +49,7 @@ _QUESTION_ACTIVE_OBJECT_TYPE_ALIASES = {
 }
 _LEARNING_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 _SESSION_ACTIVE_OBJECT_TYPES = {"open_chat_topic"}
+_PLAN_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 
 
 def _coerce_positive_int(value: Any) -> int | None:
@@ -536,6 +537,7 @@ def _materialize_session_preferences(
     preferences = _json_loads(preferences_json, {})
     if not isinstance(preferences, dict):
         preferences = {}
+    preferences.pop("runtime_state", None)
     normalized_source = _normalize_session_source(source)
     if normalized_source:
         preferences["source"] = normalized_source

@@ -668,13 +668,208 @@ class MemberConsoleService:
                 return member
         raise KeyError(f"Unknown member: {user_id}")
 
-    def _ensure_member(self, data: dict[str, Any], user_id: str) -> dict[str, Any]:
+    @staticmethod
+    def _is_meaningful_phone(value: Any) -> bool:
+        return len(_normalize_phone_input(str(value or ""))) == 11
+
+    @staticmethod
+    def _member_signal_score(member: dict[str, Any]) -> int:
+        chapter_mastery = member.get("chapter_mastery") or {}
+        chapter_stats = member.get("chapter_practice_stats") or {}
+        daily_counts = member.get("daily_practice_counts") or {}
+        score = 0
+        score += sum(1 for item in chapter_mastery.values() if int((item or {}).get("mastery") or 0) > 0) * 2
+        score += sum(int((item or {}).get("done") or 0) for item in chapter_stats.values())
+        score += sum(int(value or 0) for value in daily_counts.values())
+        score += len(member.get("ledger") or [])
+        score += len(member.get("notes") or [])
+        score += len(member.get("earned_badge_ids") or [])
+        if int(member.get("study_days") or 0) > 0:
+            score += 1
+        if str(member.get("focus_topic") or "").strip() and str(member.get("focus_topic") or "").strip() != "入门摸底":
+            score += 1
+        if str(member.get("display_name") or "").strip() and str(member.get("display_name") or "").strip() != str(member.get("user_id") or "").strip():
+            score += 1
+        if MemberConsoleService._is_meaningful_phone(member.get("phone")):
+            score += 1
+        if str(member.get("auth_username") or "").strip():
+            score += 1
+        if str(member.get("external_auth_user_id") or "").strip():
+            score += 1
+        return score
+
+    @staticmethod
+    def _later_timestamp(*values: Any) -> str:
+        candidates = [str(item or "").strip() for item in values if str(item or "").strip()]
+        if not candidates:
+            return ""
+        return max(candidates, key=_parse_time)
+
+    def _merge_member_identity_view(
+        self,
+        target: dict[str, Any],
+        source: dict[str, Any],
+    ) -> None:
+        scalar_fields = (
+            "display_name",
+            "tier",
+            "status",
+            "segment",
+            "risk_level",
+            "auto_renew",
+            "created_at",
+            "expire_at",
+            "avatar_url",
+            "level",
+            "xp",
+            "study_days",
+            "review_due",
+            "focus_topic",
+            "focus_query",
+            "exam_date",
+            "daily_target",
+            "difficulty_preference",
+            "explanation_style",
+            "review_reminder",
+            "auth_username",
+            "external_auth_provider",
+            "external_auth_user_id",
+            "wx_openid",
+            "wx_unionid",
+            "wx_session_key",
+            "wx_last_login_at",
+        )
+        if self._member_signal_score(source) >= self._member_signal_score(target):
+            for key in scalar_fields:
+                value = deepcopy(source.get(key))
+                if value not in ("", None, [], {}):
+                    target[key] = value
+            if self._is_meaningful_phone(source.get("phone")):
+                target["phone"] = str(source.get("phone") or "").strip()
+            if int(source.get("points_balance") or 0) > 0:
+                target["points_balance"] = int(source.get("points_balance") or 0)
+
+        target["last_active_at"] = self._later_timestamp(
+            target.get("last_active_at"),
+            source.get("last_active_at"),
+        )
+        target["last_practice_at"] = self._later_timestamp(
+            target.get("last_practice_at"),
+            source.get("last_practice_at"),
+        )
+        target["last_study_date"] = self._later_timestamp(
+            target.get("last_study_date"),
+            source.get("last_study_date"),
+        )
+
+        target_mastery = target.setdefault("chapter_mastery", _default_chapter_mastery())
+        for key, value in (source.get("chapter_mastery") or {}).items():
+            source_name = str((value or {}).get("name") or key).strip() or key
+            source_mastery = int((value or {}).get("mastery") or 0)
+            current = target_mastery.get(key) or {"name": source_name, "mastery": 0}
+            current_name = str(current.get("name") or key).strip() or key
+            current_mastery = int(current.get("mastery") or 0)
+            target_mastery[key] = {
+                "name": source_name or current_name,
+                "mastery": max(current_mastery, source_mastery),
+            }
+
+        target_learning = self._ensure_learning_profile(target)
+        source_learning = self._ensure_learning_profile(source)
+        for date_key, count in (source_learning["daily_counts"] or {}).items():
+            target_learning["daily_counts"][date_key] = max(
+                int(target_learning["daily_counts"].get(date_key) or 0),
+                int(count or 0),
+            )
+        for chapter_name, stats in (source_learning["chapter_stats"] or {}).items():
+            target_stats = target_learning["chapter_stats"].setdefault(
+                chapter_name,
+                {"done": 0, "correct": 0, "last_activity_at": ""},
+            )
+            target_stats["done"] = max(int(target_stats.get("done") or 0), int((stats or {}).get("done") or 0))
+            target_stats["correct"] = max(
+                int(target_stats.get("correct") or 0),
+                int((stats or {}).get("correct") or 0),
+            )
+            target_stats["last_activity_at"] = self._later_timestamp(
+                target_stats.get("last_activity_at"),
+                (stats or {}).get("last_activity_at"),
+            )
+
+        target["earned_badge_ids"] = sorted(
+            {
+                *[int(item) for item in list(target.get("earned_badge_ids") or []) if str(item).strip()],
+                *[int(item) for item in list(source.get("earned_badge_ids") or []) if str(item).strip()],
+            }
+        )
+
+        merged_notes: dict[str, dict[str, Any]] = {}
+        for row in list(target.get("notes") or []) + list(source.get("notes") or []):
+            if not isinstance(row, dict):
+                continue
+            note_id = str(row.get("id") or uuid.uuid4().hex).strip()
+            merged_notes.setdefault(note_id, deepcopy(row))
+        target["notes"] = sorted(
+            merged_notes.values(),
+            key=lambda item: _parse_time(item.get("created_at")),
+            reverse=True,
+        )
+
+        merged_ledger: dict[str, dict[str, Any]] = {}
+        for row in list(target.get("ledger") or []) + list(source.get("ledger") or []):
+            if not isinstance(row, dict):
+                continue
+            entry_id = str(row.get("id") or uuid.uuid4().hex).strip()
+            merged_ledger.setdefault(entry_id, deepcopy(row))
+        target["ledger"] = sorted(
+            merged_ledger.values(),
+            key=lambda item: _parse_time(item.get("created_at")),
+            reverse=True,
+        )
+
+    def _reconcile_external_auth_member(self, data: dict[str, Any], user_id: str) -> dict[str, Any] | None:
+        normalized_user_id = str(user_id or "").strip()
+        if not normalized_user_id:
+            return None
+        legacy_sources = [
+            member
+            for member in data["members"]
+            if str(member.get("user_id") or "").strip() != normalized_user_id
+            and str(member.get("external_auth_user_id") or "").strip() == normalized_user_id
+            and str(member.get("merged_into") or "").strip() != normalized_user_id
+        ]
+        if not legacy_sources:
+            return None
         try:
-            member = self._find_member(data, user_id)
+            target = self._find_member(data, normalized_user_id)
+        except KeyError:
+            target = self._build_default_member(normalized_user_id)
+            self._ensure_learning_profile(target)
+            data["members"].append(target)
+        for source in sorted(legacy_sources, key=self._member_signal_score, reverse=True):
+            self._merge_member_identity_view(target, source)
+            source["merged_into"] = normalized_user_id
+            source["last_active_at"] = self._later_timestamp(
+                source.get("last_active_at"),
+                target.get("last_active_at"),
+            )
+        return target
+
+    def _ensure_member(self, data: dict[str, Any], user_id: str) -> dict[str, Any]:
+        normalized_user_id = str(user_id or "").strip()
+        reconciled = self._reconcile_external_auth_member(data, normalized_user_id)
+        if reconciled is not None:
+            self._ensure_learning_profile(reconciled)
+            return reconciled
+        try:
+            member = self._find_member(data, normalized_user_id)
+            merged_into = str(member.get("merged_into") or "").strip()
+            if merged_into and merged_into != normalized_user_id:
+                return self._ensure_member(data, merged_into)
             self._ensure_learning_profile(member)
             return member
         except KeyError:
-            seed = self._build_default_member(user_id)
+            seed = self._build_default_member(normalized_user_id)
             self._ensure_learning_profile(seed)
             data["members"].append(seed)
             return seed
@@ -683,22 +878,13 @@ class MemberConsoleService:
         with self._lock:
             with self._storage_lock():
                 data = self._load_unlocked()
-                changed = False
-                try:
-                    member = self._find_member(data, user_id)
-                    before = deepcopy(member)
-                    self._ensure_learning_profile(member)
-                    changed = member != before
-                except KeyError:
-                    member = self._build_default_member(user_id)
-                    self._ensure_learning_profile(member)
-                    data["members"].append(member)
-                    changed = True
+                before = deepcopy(data)
+                member = self._ensure_member(data, user_id)
                 snapshot = {
                     "member": deepcopy(member),
                     "packages": deepcopy(data.get("packages") or self._default_packages()),
                 }
-                if changed:
+                if data != before:
                     self._save_unlocked(data)
                 return snapshot
 
@@ -949,6 +1135,12 @@ class MemberConsoleService:
         normalized = _slugify_phone(phone)
         for member in data["members"]:
             if _slugify_phone(member.get("phone", "")) == normalized:
+                merged_into = str(member.get("merged_into") or "").strip()
+                if merged_into and merged_into != str(member.get("user_id") or "").strip():
+                    try:
+                        return self._find_member(data, merged_into)
+                    except KeyError:
+                        return member
                 return member
         return None
 
@@ -1988,6 +2180,37 @@ class MemberConsoleService:
             "streak_days": member["study_days"],
         }
 
+    @staticmethod
+    def _chapter_mastery_items(member: dict[str, Any]) -> list[dict[str, Any]]:
+        return [
+            {
+                "name": value.get("name") or key,
+                "mastery": int(value.get("mastery") or 0),
+            }
+            for key, value in (member.get("chapter_mastery") or {}).items()
+        ]
+
+    def _build_provisional_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
+        learning = self._ensure_learning_profile(member)
+        items: list[dict[str, Any]] = []
+        has_signal = False
+        for key, value in (member.get("chapter_mastery") or {}).items():
+            chapter_name = value.get("name") or key
+            stats = learning["chapter_stats"].get(chapter_name) or {}
+            done = int(stats.get("done") or 0)
+            total = max(30, done, 1)
+            mastery = round((done / total) * 100) if done > 0 else 0
+            if mastery > 0:
+                has_signal = True
+            items.append({"name": chapter_name, "mastery": mastery})
+        return items if has_signal else []
+
+    def _report_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
+        mastery_items = self._chapter_mastery_items(member)
+        if any(int(item.get("mastery") or 0) > 0 for item in mastery_items):
+            return mastery_items
+        return self._build_provisional_mastery_items(member)
+
     def get_chapter_progress(self, user_id: str) -> list[dict[str, Any]]:
         member = self._load_member_snapshot(user_id)["member"]
         learning = self._ensure_learning_profile(member)
@@ -2012,10 +2235,11 @@ class MemberConsoleService:
 
     def get_home_dashboard(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
+        mastery_items = self._report_mastery_items(member)
         weak_nodes = [
-            {"name": value.get("name") or key, "mastery": value.get("mastery") or 0}
-            for key, value in member["chapter_mastery"].items()
-            if int(value.get("mastery") or 0) < 60
+            {"name": item["name"], "mastery": item["mastery"]}
+            for item in mastery_items
+            if int(item.get("mastery") or 0) < 60
         ]
         weak_nodes.sort(key=lambda item: item["mastery"])
         return {
@@ -2073,26 +2297,31 @@ class MemberConsoleService:
 
     def get_radar_data(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
+        mastery_items = self._report_mastery_items(member)
         dimensions = [
             {
-                "key": key,
-                "label": value.get("name") or key,
-                "value": round(int(value.get("mastery") or 0) / 100, 2),
-                "score": int(value.get("mastery") or 0),
+                "key": item["name"],
+                "label": item["name"],
+                "value": round(int(item.get("mastery") or 0) / 100, 2),
+                "score": int(item.get("mastery") or 0),
             }
-            for key, value in member["chapter_mastery"].items()
+            for item in mastery_items
         ]
         return {"dimensions": dimensions}
 
     def get_mastery_dashboard(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
-        chapters = [
-            {
-                "name": value.get("name") or key,
-                "mastery": int(value.get("mastery") or 0),
+        chapters = self._report_mastery_items(member)
+        if not chapters:
+            return {
+                "overall_mastery": 0,
+                "groups": [],
+                "hotspots": [],
+                "review_summary": {
+                    "total_due": member["review_due"],
+                    "overdue_count": max(0, member["review_due"] - 1),
+                },
             }
-            for key, value in member["chapter_mastery"].items()
-        ]
         weak = [item for item in chapters if item["mastery"] < 40]
         normal = [item for item in chapters if 40 <= item["mastery"] < 70]
         strong = [item for item in chapters if item["mastery"] >= 70]
@@ -2123,7 +2352,43 @@ class MemberConsoleService:
 
     def get_assessment_profile(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
-        chapter_mastery = member["chapter_mastery"]
+        mastery_items = self._report_mastery_items(member)
+        chapter_mastery = {
+            item["name"]: {"name": item["name"], "mastery": item["mastery"]}
+            for item in mastery_items
+        }
+        if not mastery_items:
+            return {
+                "score": 0,
+                "level": "",
+                "chapter_mastery": {},
+                "diagnostic_profile": {
+                    "learner_archetype": "",
+                    "response_profile": "",
+                    "calibration_label": "",
+                },
+                "diagnostic_feedback": {
+                    "ability_overview": {
+                        "score_pct": 0,
+                        "chapter_mastery": {},
+                        "error_pattern": "",
+                    },
+                    "cognitive_insight": {
+                        "response_profile": "",
+                        "calibration_label": "",
+                    },
+                    "learner_profile": {
+                        "archetype": "",
+                        "traits": [],
+                        "study_tip": "完成一组练习或摸底测试后，系统会自动生成学习画像。",
+                    },
+                    "action_plan": {
+                        "priority_chapters": [],
+                        "plan_strategy": "先完成一组练习，再回来看学情变化。",
+                    },
+                },
+            }
+
         avg_mastery = round(
             sum(int(item.get("mastery") or 0) for item in chapter_mastery.values())
             / max(len(chapter_mastery), 1)
@@ -2316,6 +2581,10 @@ class MemberConsoleService:
                 fallback_id = hashlib.sha1(normalized_username.encode("utf-8")).hexdigest()[:24]
                 member_user_id = f"auth_{(external_user_id or fallback_id).replace('-', '')[:24]}"
                 member = self._ensure_member(data, member_user_id)
+            else:
+                merged_into = str(member.get("merged_into") or "").strip()
+                if merged_into and merged_into != str(member.get("user_id") or "").strip():
+                    member = self._ensure_member(data, merged_into)
             member["display_name"] = normalized_username or str(member.get("display_name") or "")
             member["auth_username"] = normalized_username
             member["external_auth_provider"] = "fastapi20251222_simple_auth"

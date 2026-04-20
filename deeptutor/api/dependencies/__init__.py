@@ -5,6 +5,7 @@ from .auth import (
     require_metrics_access,
     require_self_or_admin,
     resolve_auth_context,
+    resolve_wallet_user_id,
 )
 from .rate_limit import (
     clear_rate_limit_state,
@@ -22,6 +23,7 @@ __all__ = [
     "require_metrics_access",
     "require_self_or_admin",
     "resolve_auth_context",
+    "resolve_wallet_user_id",
     "route_rate_limit",
     "set_rate_limit_policy",
 ]

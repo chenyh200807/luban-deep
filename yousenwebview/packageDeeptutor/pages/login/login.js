@@ -2,7 +2,7 @@ var api = require("../../utils/api");
 var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
-var analytics = require("../../../utils/analytics");
+var analytics = require("../../utils/analytics");
 Page({
   data: {
     statusBarHeight: 44,
@@ -141,7 +141,7 @@ Page({
           resp.token ||
           resp._token ||
           user._token;
-        var userId = user.id || inner.id || resp.id;
+        var userId = auth.extractUserIdFromAuthPayload(resp);
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
         auth.setToken(token, userId);
         self._trackLoginSuccess("password");
@@ -309,7 +309,7 @@ Page({
     var inner = payload && (payload.data || payload);
     var user = (inner && inner.user) || {};
     var token = inner && inner.token;
-    var userId = user.id || user.user_id || inner.id;
+    var userId = auth.extractUserIdFromAuthPayload(payload);
     if (!token) throw new Error("服务端未返回凭证");
     auth.setToken(token, userId);
     return { token: token, userId: userId };
@@ -322,8 +322,7 @@ Page({
       .then(function (resp) {
         var inner = resp.data || resp;
         if (inner && inner.token) {
-          var user = inner.user || {};
-          auth.setToken(inner.token, user.id || user.user_id);
+          auth.setToken(inner.token, auth.extractUserIdFromAuthPayload(resp));
         }
       });
   },
@@ -396,8 +395,7 @@ Page({
           .then(function (resp) {
             var inner = resp.data || resp;
             if (inner && inner.token) {
-              var user = inner.user || {};
-              auth.setToken(inner.token, user.id || user.user_id);
+              auth.setToken(inner.token, auth.extractUserIdFromAuthPayload(resp));
             }
             self._trackLoginSuccess("wechat_phone");
             self._reLaunchAfterAuth();

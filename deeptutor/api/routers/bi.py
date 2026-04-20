@@ -1,11 +1,35 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 
-from deeptutor.api.dependencies import require_admin
+from deeptutor.api.dependencies.auth import AuthContext, resolve_auth_context
+from deeptutor.services.config import get_env_store
 from deeptutor.services.bi_service import get_bi_service
 
-router = APIRouter(dependencies=[Depends(require_admin)])
+
+def _bi_public_enabled() -> bool:
+    value = get_env_store().get("DEEPTUTOR_BI_PUBLIC_ENABLED", "").strip().lower()
+    return value in {"1", "true", "yes", "on"}
+
+
+def require_bi_access(authorization: str | None = Header(default=None)) -> AuthContext | None:
+    current_user = resolve_auth_context(authorization)
+    if _bi_public_enabled():
+        return current_user
+    if current_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+        )
+    if current_user.is_admin:
+        return current_user
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Admin access required",
+    )
+
+
+router = APIRouter(dependencies=[Depends(require_bi_access)])
 
 
 @router.get("/overview")

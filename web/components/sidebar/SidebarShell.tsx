@@ -78,7 +78,7 @@ export function SidebarShell({
   const authEnabled = requiresWebAuth();
   const legacyEnabled = allowsLegacyWebSurfaces();
   const visiblePrimaryNav = PRIMARY_NAV.filter((item) => {
-    if (item.href === "/") return true;
+    if (item.href === "/" || item.href === "/bi") return true;
     if (item.href === "/agents" || item.href === "/co-writer" || item.href === "/guide") {
       return authEnabled && legacyEnabled;
     }

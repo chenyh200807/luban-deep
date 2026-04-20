@@ -1,3 +1,5 @@
+@import "/packageDeeptutor/theme.wxss";
+
 /* pages/profile/profile.wxss — 个人中心样式 */
 
 .profile-page {

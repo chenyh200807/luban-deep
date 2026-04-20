@@ -29,6 +29,27 @@ from deeptutor.contracts.unified_turn import (
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+_LEGACY_INTERACTION_HINT_KEYS = (
+    "profile",
+    "scene",
+    "product_surface",
+    "entry_role",
+    "subject_domain",
+    "requested_response_mode",
+    "teaching_mode",
+    "effective_response_mode",
+    "response_mode_degrade_reason",
+    "preferred_question_type",
+    "allow_general_chat_fallback",
+    "priorities",
+    "suppress_answer_reveal_on_generate",
+    "prefer_question_context_grading",
+    "prefer_concept_teaching_slots",
+    "current_info_required",
+    "grounding_reasons",
+    "textbook_delta_query",
+)
+
 
 def _build_error_event(
     *,
@@ -104,10 +125,27 @@ def _bind_authenticated_user(
     payload: dict[str, Any],
     current_user: AuthContext | None,
 ) -> dict[str, Any]:
-    if current_user is None:
-        return payload
-
     config = dict(payload.get("config", {}) or {})
+    interaction_hints = config.get("interaction_hints")
+    if not isinstance(interaction_hints, dict):
+        interaction_hints = {}
+
+    legacy_interaction_hints = {
+        key: config.pop(key)
+        for key in _LEGACY_INTERACTION_HINT_KEYS
+        if key in config
+    }
+    if legacy_interaction_hints:
+        config["interaction_hints"] = {
+            **legacy_interaction_hints,
+            **interaction_hints,
+        }
+    elif isinstance(config.get("interaction_hints"), dict):
+        config["interaction_hints"] = interaction_hints
+
+    if current_user is None:
+        return {**payload, "config": config}
+
     billing_context = config.get("billing_context")
     if not isinstance(billing_context, dict):
         billing_context = {}

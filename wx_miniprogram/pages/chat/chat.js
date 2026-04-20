@@ -56,7 +56,7 @@ Page({
     feedbackTags: [],
     feedbackComment: "",
     isDark: true,
-    showInternalStatus: false,
+    showInternalStatus: true,
     // 性能分级：控制 WXML 中动效开关
     enableOrbs: _animCfg.enableBreathingOrbs,
     enableMarquee: _animCfg.enableMarquee,

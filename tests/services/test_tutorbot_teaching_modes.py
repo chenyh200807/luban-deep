@@ -1,3 +1,4 @@
+import deeptutor.tutorbot.teaching_modes as teaching_modes_module
 from deeptutor.tutorbot.teaching_modes import (
     detect_construction_exam_scene,
     detect_lecture_topic,
@@ -7,11 +8,13 @@ from deeptutor.tutorbot.teaching_modes import (
     looks_like_practice_generation_request,
     normalize_teaching_mode,
 )
+from deeptutor.tutorbot.response_mode import resolve_requested_response_mode
 
 
 def test_normalize_teaching_mode_defaults_to_smart():
     assert normalize_teaching_mode(None) == "smart"
     assert normalize_teaching_mode("") == "smart"
+    assert normalize_teaching_mode("AUTO") == "smart"
     assert normalize_teaching_mode("intelligent") == "smart"
 
 
@@ -19,6 +22,34 @@ def test_normalize_teaching_mode_accepts_fast_and_deep():
     assert normalize_teaching_mode("fast") == "fast"
     assert normalize_teaching_mode("FAST") == "fast"
     assert normalize_teaching_mode("deep") == "deep"
+
+
+def test_normalize_teaching_mode_delegates_to_requested_response_mode_normalizer(monkeypatch):
+    calls: list[object] = []
+
+    def _fake_normalizer(value: object) -> str:
+        calls.append(value)
+        return "smart"
+
+    monkeypatch.setattr(
+        teaching_modes_module,
+        "normalize_requested_response_mode",
+        _fake_normalizer,
+        raising=False,
+    )
+
+    assert normalize_teaching_mode("AUTO") == "smart"
+    assert calls == ["AUTO"]
+
+
+def test_resolve_requested_response_mode_prefers_new_hint_over_legacy_teaching_mode():
+    assert resolve_requested_response_mode(
+        chat_mode="",
+        interaction_hints={
+            "requested_response_mode": "deep",
+            "teaching_mode": "fast",
+        },
+    ) == "deep"
 
 
 def test_looks_like_practice_generation_request_accepts_natural_one_question_phrasing():

@@ -69,15 +69,6 @@ def test_agentic_chat_pipeline_auto_enables_rag_when_knowledge_base_is_attached(
         def get(self, name: str):
             return SimpleNamespace(name=name)
 
-        def build_prompt_text(self, _enabled_tools, **_kwargs):
-            return ""
-
-        def build_prompt_text(self, _enabled_tools, **_kwargs):
-            return ""
-
-        def build_prompt_text(self, _enabled_tools, **_kwargs):
-            return ""
-
     monkeypatch.setattr(
         "deeptutor.agents.chat.agentic_pipeline.get_tool_registry",
         lambda: FakeRegistry(),
@@ -115,9 +106,6 @@ def test_agentic_chat_pipeline_does_not_auto_enable_reason_in_deep_mode(
 
         def get(self, name: str):
             return SimpleNamespace(name=name)
-
-        def build_prompt_text(self, _enabled_tools, **_kwargs):
-            return ""
 
     monkeypatch.setattr(
         "deeptutor.agents.chat.agentic_pipeline.get_tool_registry",
@@ -244,7 +232,7 @@ async def test_agentic_chat_pipeline_uses_compact_response_for_smart_mode(
 
 
 @pytest.mark.asyncio
-async def test_smart_responding_prompt_preserves_explicit_anchor_terms(
+async def test_agentic_chat_pipeline_uses_compact_response_for_construction_exam_tutor_smart_mode(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
@@ -265,44 +253,87 @@ async def test_smart_responding_prompt_preserves_explicit_anchor_terms(
     )
 
     pipeline = AgenticChatPipeline(language="zh")
-    captured: dict[str, str] = {}
 
-    def _capture_build_messages(*, context, system_prompt, user_content):
-        captured["user_content"] = user_content
-        return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_content}]
+    async def _fail_stage(*_args, **_kwargs):
+        raise AssertionError("construction_exam_tutor smart mode should use compact path")
 
-    async def _fake_stream_messages(_messages, max_tokens):
-        yield "示例回答"
+    compact_calls: list[str] = []
 
-    monkeypatch.setattr(pipeline, "_build_messages", _capture_build_messages)
-    monkeypatch.setattr(pipeline, "_responding_system_prompt", lambda _tool_traces: "")
-    monkeypatch.setattr(pipeline, "_stream_messages", _fake_stream_messages)
+    async def _fake_smart_stage(*_args, **_kwargs):
+        compact_calls.append("smart")
+        return "这是 construction exam smart 单轮回答。", {"label": "Smart response"}
+
+    monkeypatch.setattr(pipeline, "_stage_thinking", _fail_stage)
+    monkeypatch.setattr(pipeline, "_stage_acting", _fail_stage)
+    monkeypatch.setattr(pipeline, "_stage_observing", _fail_stage)
+    monkeypatch.setattr(pipeline, "_stage_responding", _fail_stage)
+    monkeypatch.setattr(pipeline, "_stage_smart_responding", _fake_smart_stage)
 
     bus = StreamBus()
     context = UnifiedContext(
-        user_message="你用盖一栋6层住宅楼举个例子讲讲，最好让我一下子能形成画面感。",
+        user_message="什么是流水施工？",
         enabled_tools=[],
         config_overrides={
             "chat_mode": "smart",
-            "interaction_profile": "tutorbot",
             "interaction_hints": {
-                "profile": "tutorbot",
-                "entry_role": "tutorbot",
+                "profile": "construction_exam_tutor",
                 "teaching_mode": "smart",
+                "subject_domain": "construction_exam",
             },
         },
         language="zh",
     )
 
-    content, _trace_meta = await pipeline._stage_smart_responding(
-        context=context,
-        answer_type="knowledge_explainer",
-        stream=bus,
+    await pipeline.run(context, bus)
+
+    result_event = next(event for event in bus._history if event.type.value == "result")
+    assert compact_calls == ["smart"]
+    assert result_event.metadata["chat_mode"] == "smart"
+    assert result_event.metadata["response"] == "这是 construction exam smart 单轮回答。"
+
+
+def test_agentic_chat_pipeline_teaching_overlay_preserves_concrete_case_anchor_wording(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
     )
 
-    assert content == "示例回答"
-    assert "6层住宅楼" in captured["user_content"]
-    assert "不要改写成更泛的近义说法" in captured["user_content"]
+    pipeline = AgenticChatPipeline(language="zh")
+    context = UnifiedContext(
+        user_message="你用盖一栋6层住宅楼举个例子讲讲。",
+        config_overrides={
+            "chat_mode": "smart",
+            "interaction_hints": {
+                "profile": "construction_exam_tutor",
+                "teaching_mode": "smart",
+                "subject_domain": "construction_exam",
+            },
+        },
+        language="zh",
+    )
+
+    overlay = pipeline._teaching_mode_overlay(context)
+
+    assert "后续讲解默认沿用该锚点原词" in overlay
+    assert "不要自行缩写、泛化或换称呼" in overlay
+
+
+def test_agentic_chat_pipeline_responding_prompt_preserves_concrete_case_anchor_wording(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    pipeline = AgenticChatPipeline(language="zh")
+
+    prompt = pipeline._responding_system_prompt([])
+
+    assert "如果用户当前问题里给了具体案例锚点或对象原词" in prompt
+    assert "默认沿用该原词" in prompt
 
 
 @pytest.mark.asyncio
@@ -412,6 +443,161 @@ async def test_agentic_chat_pipeline_skips_compact_response_for_grounded_tutorbo
         metadata={
             "bot_id": "construction-exam-coach",
         },
+        language="zh",
+    )
+
+    await pipeline.run(context, bus)
+
+    assert pipeline._stage_thinking.await_count == 1
+    assert pipeline._stage_acting.await_count == 1
+    assert pipeline._stage_responding.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_agentic_chat_pipeline_smart_responding_streams_chunks_when_teaching_contract_applies(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    pipeline = AgenticChatPipeline(language="zh")
+
+    async def _fake_stream_messages(_messages, max_tokens: int):
+        assert max_tokens == 1800
+        yield "第一段。"
+        yield "第二段。"
+
+    monkeypatch.setattr(pipeline, "_stream_messages", _fake_stream_messages)
+    monkeypatch.setattr(
+        pipeline,
+        "_complete_validated_response",
+        AsyncMock(side_effect=AssertionError("teaching contract should no longer force buffered response")),
+    )
+
+    bus = StreamBus()
+    context = UnifiedContext(
+        user_message="什么是流水步距？",
+        config_overrides={
+            "chat_mode": "smart",
+            "interaction_hints": {
+                "profile": "tutorbot",
+                "entry_role": "tutorbot",
+                "subject_domain": "construction_exam",
+                "teaching_mode": "fast",
+            },
+        },
+        language="zh",
+    )
+
+    content, _trace = await pipeline._stage_smart_responding(
+        context,
+        "knowledge_explainer",
+        bus,
+    )
+
+    content_events = [event for event in bus._history if event.type.value == "content"]
+    assert content == "第一段。第二段。"
+    assert [event.content for event in content_events] == ["第一段。", "第二段。"]
+    assert pipeline._complete_validated_response.await_count == 0
+
+
+@pytest.mark.asyncio
+async def test_agentic_chat_pipeline_exact_authority_path_still_buffers_final_response(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    pipeline = AgenticChatPipeline(language="zh")
+
+    async def _unexpected_stream_messages(_messages, _max_tokens: int):
+        raise AssertionError("exact authority path should stay buffered")
+        yield ""
+
+    monkeypatch.setattr(pipeline, "_stream_messages", _unexpected_stream_messages)
+    monkeypatch.setattr(pipeline, "_complete_messages", AsyncMock(return_value="权威标准答案。"))
+    monkeypatch.setattr(
+        pipeline,
+        "_should_buffer_authoritative_response",
+        lambda **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "_apply_exact_question_authority",
+        AsyncMock(return_value="权威标准答案。"),
+    )
+
+    bus = StreamBus()
+    context = UnifiedContext(
+        user_message="请按原题标准答案作答。",
+        config_overrides={},
+        language="zh",
+    )
+
+    content, _trace = await pipeline._stage_responding(
+        context,
+        [],
+        "knowledge_explainer",
+        "",
+        "已有依据",
+        [],
+        bus,
+    )
+
+    content_events = [event for event in bus._history if event.type.value == "content"]
+    assert content == "权威标准答案。"
+    assert [event.content for event in content_events] == ["权威标准答案。"]
+    assert pipeline._complete_messages.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_agentic_chat_pipeline_deep_mode_skips_independent_observing_stage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    class FakeRegistry:
+        def get_enabled(self, selected):
+            return [SimpleNamespace(name=name) for name in selected]
+
+        def get(self, name: str):
+            return SimpleNamespace(name=name)
+
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_tool_registry",
+        lambda: FakeRegistry(),
+    )
+
+    pipeline = AgenticChatPipeline(language="zh")
+
+    monkeypatch.setattr(pipeline, "_should_use_compact_response", lambda *_args, **_kwargs: False)
+    monkeypatch.setattr(pipeline, "_should_try_retrieval_first", lambda *_args, **_kwargs: False)
+    monkeypatch.setattr(pipeline, "_stage_thinking", AsyncMock(return_value="需要先拆解问题。"))
+    monkeypatch.setattr(pipeline, "_stage_acting", AsyncMock(return_value=[]))
+
+    async def _unexpected_observing(*_args, **_kwargs):
+        raise AssertionError("deep mode should not run a separate observing llm stage")
+
+    monkeypatch.setattr(pipeline, "_stage_observing", _unexpected_observing)
+    monkeypatch.setattr(
+        pipeline,
+        "_stage_responding",
+        AsyncMock(return_value=("这是 deep 最终回答。", {"label": "Final response"})),
+    )
+
+    bus = StreamBus()
+    context = UnifiedContext(
+        user_message="这道建筑案例题请分步深度分析。",
+        enabled_tools=[],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"chat_mode": "deep"},
         language="zh",
     )
 

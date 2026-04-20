@@ -523,6 +523,31 @@ def test_list_sessions_by_owner_filters_source_and_archived(store: SQLiteSession
     assert active[0]["preferences"]["archived"] is False
 
 
+def test_session_payloads_do_not_expose_internal_runtime_state(
+    store: SQLiteSessionStore,
+) -> None:
+    session = asyncio.run(store.create_session(session_id="runtime_hidden"))
+    asyncio.run(
+        store.update_session_preferences(
+            session["id"],
+            {
+                "source": "web",
+                "runtime_state": {
+                    "active_object": {"object_type": "open_chat_topic", "id": "topic-1"}
+                },
+            },
+        )
+    )
+
+    detail = asyncio.run(store.get_session(session["id"]))
+    sessions = asyncio.run(store.list_sessions())
+
+    assert detail is not None
+    assert "runtime_state" not in detail["preferences"]
+    assert sessions[0]["id"] == session["id"]
+    assert "runtime_state" not in sessions[0]["preferences"]
+
+
 def test_list_sessions_by_owner_and_conversation_uses_canonical_id(
     store: SQLiteSessionStore,
 ) -> None:

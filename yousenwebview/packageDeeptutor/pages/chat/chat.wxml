@@ -51,13 +51,6 @@
         <text class="avatar-char">{{avatarChar}}</text>
       </view>
     </view>
-    <view class="account-row">
-      <text class="account-name">当前账号：{{userName || '用户'}}</text>
-      <view class="account-switch-btn" bindtap="onSwitchAccount" aria-role="button" aria-label="切换账号">
-        <text class="account-switch-txt">切换账号</text>
-      </view>
-    </view>
-
     <!-- 撑开空间，把内容推到中下部 -->
     <view class="hero-spacer"></view>
 
@@ -92,25 +85,18 @@
         show-confirm-bar="{{false}}"
         adjust-position="{{true}}"
       />
-	      <view class="input-bottom">
-	        <view class="mode-row">
-	          <view class="mode-pill {{answerMode==='AUTO'?'on':''}}" bindtap="onMode" data-m="AUTO"><text class="mode-pill-txt">智能</text></view>
-	          <view class="mode-pill {{answerMode==='DEEP'?'on':''}}" bindtap="onMode" data-m="DEEP"><text class="mode-pill-txt">深度</text></view>
-	          <view class="mode-pill {{answerMode==='FAST'?'on':''}}" bindtap="onMode" data-m="FAST"><text class="mode-pill-txt">快速</text></view>
-	          <text class="mode-hint">{{modeHintText}}</text>
-	        </view>
-	        <view class="send-btn {{inputText ? 'on' : ''}}" bindtap="sendMessage" aria-role="button" aria-label="发送消息">
-	          <text class="send-icon">▶</text>
-	        </view>
-	      </view>
-	      <view class="tool-row">
-	        <view class="tool-chip {{enableReason ? 'on' : ''}}" bindtap="onToggleReason" aria-role="button" aria-label="{{enableReason ? '关闭推理' : '开启推理'}}">
-	          <text class="tool-chip-icon">◎</text>
-	          <text class="tool-chip-txt">推理</text>
-	        </view>
-	        <text class="tool-hint">知识库检索默认自动开启，时效性问题会自动联网</text>
-	      </view>
-	    </view>
+		      <view class="input-bottom">
+			        <view class="mode-row">
+			          <view class="mode-pill {{answerMode==='AUTO'?'on':''}}" bindtap="onMode" data-m="AUTO"><text class="mode-pill-txt">智能</text></view>
+			          <view class="mode-pill {{answerMode==='DEEP'?'on':''}}" bindtap="onMode" data-m="DEEP"><text class="mode-pill-txt">深度</text></view>
+			          <view class="mode-pill {{answerMode==='FAST'?'on':''}}" bindtap="onMode" data-m="FAST"><text class="mode-pill-txt">快速</text></view>
+			          <view class="mode-pill {{enableReason ? 'on' : ''}}" bindtap="onToggleReason" aria-role="button" aria-label="{{enableReason ? '关闭推理' : '开启推理'}}"><text class="mode-pill-txt">推理</text></view>
+			        </view>
+			        <view class="send-btn {{inputText ? 'on' : ''}}" bindtap="sendMessage" aria-role="button" aria-label="发送消息">
+			          <text class="send-icon">▶</text>
+			        </view>
+			      </view>
+		    </view>
 
     <!-- 示例 -->
     <text class="example-label">试试这样问</text>
@@ -162,6 +148,7 @@
     enhanced="{{true}}"
     bounces="{{true}}"
     show-scrollbar="{{false}}"
+    scroll-top="{{chatScrollTop}}"
     scroll-into-view="{{scrollToId}}"
     scroll-with-animation="{{chatScrollWithAnimation}}"
     lower-threshold="120"
@@ -549,9 +536,9 @@
 
   <!-- 底部输入（仅 Chat 状态） -->
   <view class="bottom-bar" wx:if="{{hasMessages}}" style="{{bottomBarStyle}}">
-    <view class="bottom-input-card">
+    <view class="bottom-input-card {{bottomBarCompact ? 'bottom-input-card-compact' : ''}}">
       <textarea
-        class="input-field"
+        class="input-field bottom-input-field {{bottomBarCompact ? 'bottom-input-field-compact' : ''}}"
         value="{{inputText}}"
         bindinput="onInput"
         bindconfirm="sendMessage"
@@ -563,25 +550,18 @@
         show-confirm-bar="{{false}}"
         adjust-position="{{true}}"
       />
-	      <view class="input-bottom">
-	        <view class="mode-row">
-	          <view class="mode-pill {{answerMode==='AUTO'?'on':''}}" bindtap="onMode" data-m="AUTO"><text class="mode-pill-txt">智能</text></view>
-	          <view class="mode-pill {{answerMode==='DEEP'?'on':''}}" bindtap="onMode" data-m="DEEP"><text class="mode-pill-txt">深度</text></view>
-	          <view class="mode-pill {{answerMode==='FAST'?'on':''}}" bindtap="onMode" data-m="FAST"><text class="mode-pill-txt">快速</text></view>
-	          <text class="mode-hint">自动切换 · 1-10点</text>
-	        </view>
-	        <view class="send-btn {{isStreaming ? 'stop' : (inputText ? 'on' : '')}}" bindtap="{{isStreaming ? 'stopStream' : 'sendMessage'}}" aria-role="button" aria-label="{{isStreaming ? '停止生成' : '发送消息'}}">
-	          <text class="send-icon">{{isStreaming ? '■' : '▶'}}</text>
-	        </view>
-	      </view>
-	      <view class="tool-row">
-	        <view class="tool-chip {{enableReason ? 'on' : ''}}" bindtap="onToggleReason" aria-role="button" aria-label="{{enableReason ? '关闭推理' : '开启推理'}}">
-	          <text class="tool-chip-icon">◎</text>
-	          <text class="tool-chip-txt">推理</text>
-	        </view>
-	        <text class="tool-hint">知识库检索默认自动开启，时效性问题会自动联网</text>
-	      </view>
-	    </view>
+		      <view class="input-bottom {{bottomBarCompact ? 'input-bottom-compact' : ''}}">
+			        <view class="mode-row {{bottomBarCompact ? 'mode-row-compact' : ''}}">
+			          <view class="mode-pill {{answerMode==='AUTO'?'on':''}}" bindtap="onMode" data-m="AUTO"><text class="mode-pill-txt">智能</text></view>
+			          <view class="mode-pill {{answerMode==='DEEP'?'on':''}}" bindtap="onMode" data-m="DEEP"><text class="mode-pill-txt">深度</text></view>
+			          <view class="mode-pill {{answerMode==='FAST'?'on':''}}" bindtap="onMode" data-m="FAST"><text class="mode-pill-txt">快速</text></view>
+			          <view class="mode-pill {{enableReason ? 'on' : ''}}" bindtap="onToggleReason" aria-role="button" aria-label="{{enableReason ? '关闭推理' : '开启推理'}}"><text class="mode-pill-txt">推理</text></view>
+			        </view>
+			        <view class="send-btn {{isStreaming ? 'stop' : (inputText ? 'on' : '')}}" bindtap="{{isStreaming ? 'stopStream' : 'sendMessage'}}" aria-role="button" aria-label="{{isStreaming ? '停止生成' : '发送消息'}}">
+			          <text class="send-icon">{{isStreaming ? '■' : '▶'}}</text>
+			        </view>
+			      </view>
+		    </view>
 		  </view>
 
   <workspace-shell id="workspaceShell"></workspace-shell>

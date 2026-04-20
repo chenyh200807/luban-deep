@@ -140,7 +140,7 @@ function loadChatPage(overrides) {
       if (request === "../../utils/runtime") return runtimeMock;
       if (request === "../../utils/route") return { billing: function () { return "/billing"; } };
       if (request === "../../utils/flags") return flagsMock;
-      if (request === "../../../utils/analytics") return { track: function () {} };
+      if (request === "../../utils/analytics") return { track: function () {} };
       throw new Error("unexpected require: " + request);
     },
     wx: {
@@ -260,6 +260,55 @@ function loadChatPage(overrides) {
     loaded.page.onSwitchAccount();
 
     assert(logoutCount === 1, "switch account should call runtime.logout after user confirmation");
+  });
+
+  await run("chat page should not auto bootstrap dashboard or pending send after auth expired", async function () {
+    var sendCount = 0;
+    var dashboardCount = 0;
+    var diagnosticCount = 0;
+    var walletCount = 0;
+    var pointsCount = 0;
+    var loaded = loadChatPage({
+      api: {
+        getUserInfo: function () {
+          return Promise.reject(new Error("AUTH_EXPIRED"));
+        },
+        getWallet: function () {
+          walletCount += 1;
+          return Promise.resolve({ balance: 99 });
+        },
+        getPoints: function () {
+          pointsCount += 1;
+          return Promise.resolve({ points: 99 });
+        },
+      },
+      runtime: {
+        consumePendingChatIntent: function () {
+          return { query: "帮我分析这道题", mode: "AUTO" };
+        },
+      },
+    });
+
+    loaded.page._send = function () {
+      sendCount += 1;
+    };
+    loaded.page._loadDashboard = function () {
+      dashboardCount += 1;
+    };
+    loaded.page._checkDiagnostic = function () {
+      diagnosticCount += 1;
+    };
+
+    loaded.page.onLoad({});
+    loaded.page.onShow();
+    await flushPromises();
+    await flushPromises();
+
+    assert(sendCount === 0, "expired auth should block pending auto send on chat page");
+    assert(dashboardCount === 0, "expired auth should not load dashboard");
+    assert(diagnosticCount === 0, "expired auth should not run diagnostic bootstrap");
+    assert(walletCount === 0, "expired auth should not refresh wallet balance");
+    assert(pointsCount === 0, "expired auth should not fallback to legacy points api");
   });
 
   if (fail) {

@@ -51,6 +51,10 @@ from deeptutor.services.session.sqlite_store import (
     normalize_suspended_object_stack,
 )
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
+from deeptutor.tutorbot.response_mode import (
+    normalize_requested_response_mode,
+    resolve_requested_response_mode,
+)
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 logger = logging.getLogger(__name__)
@@ -59,6 +63,7 @@ _MINI_PROGRAM_CAPTURE_COST = 20
 _CAPTURED_ASSISTANT_CALL_KINDS = {"llm_final_response", "exact_authority_response"}
 _PUBLIC_VISIBILITY = "public"
 _INTERNAL_VISIBILITY = "internal"
+_PLAN_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 
 
 class _ContextOrchestrationStageError(RuntimeError):
@@ -148,7 +153,7 @@ def _active_object_plan_id(active_object: dict[str, Any] | None) -> str:
     if not isinstance(normalized, dict):
         return ""
     object_type = str(normalized.get("object_type") or "").strip()
-    if object_type not in {"guide_page", "study_plan"}:
+    if object_type not in _PLAN_ACTIVE_OBJECT_TYPES:
         return ""
     scope = normalized.get("scope") if isinstance(normalized.get("scope"), dict) else {}
     state_snapshot = (
@@ -518,6 +523,7 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
 
     return {
         "tool_calls": tool_calls[:8],
+        "actual_tool_rounds": len(tool_calls),
         "sources": sources[:8],
         "authority_applied": authority_applied,
     }
@@ -560,6 +566,10 @@ def _extract_interaction_hints(
     preferred_question_type = str(raw.get("preferred_question_type", "") or "").strip().lower()
     if preferred_question_type not in {"choice", "written", "coding"}:
         preferred_question_type = ""
+    requested_response_mode = normalize_requested_response_mode(
+        raw.get("requested_response_mode") or raw.get("teaching_mode")
+    )
+    teaching_mode = str(raw.get("teaching_mode", "") or "").strip().lower() or requested_response_mode
 
     hints = {
         "profile": profile,
@@ -567,7 +577,8 @@ def _extract_interaction_hints(
         "product_surface": str(raw.get("product_surface", "") or "").strip().lower(),
         "entry_role": str(raw.get("entry_role", "") or "").strip().lower(),
         "subject_domain": str(raw.get("subject_domain", "") or "").strip().lower(),
-        "teaching_mode": str(raw.get("teaching_mode", "") or "").strip().lower(),
+        "requested_response_mode": requested_response_mode,
+        "teaching_mode": teaching_mode,
         "preferred_question_type": preferred_question_type,
         "allow_general_chat_fallback": raw.get("allow_general_chat_fallback", True) is not False,
         "priorities": normalized_priorities,
@@ -592,6 +603,7 @@ def _extract_interaction_hints(
             hints["product_surface"],
             hints["entry_role"],
             hints["subject_domain"],
+            hints["requested_response_mode"],
             hints["teaching_mode"],
             hints["preferred_question_type"],
             hints["priorities"],
@@ -609,8 +621,7 @@ def _infer_chat_mode_from_interaction_hints(
 ) -> str | None:
     if not isinstance(hints, dict):
         return None
-    mode = str(hints.get("teaching_mode", "") or "").strip().lower()
-    return mode if mode in {"fast", "deep", "smart"} else None
+    return resolve_requested_response_mode(chat_mode="", interaction_hints=hints)
 
 
 def _extract_persist_user_message(config: dict[str, Any] | None) -> bool:
@@ -1154,7 +1165,11 @@ class TurnRuntimeManager:
             return
         if billing_context.get("source") != "wx_miniprogram":
             return
-        user_id = str(billing_context.get("user_id", "") or "").strip()
+        user_id = str(
+            billing_context.get("wallet_user_id")
+            or billing_context.get("user_id", "")
+            or ""
+        ).strip()
         if not user_id or not str(assistant_content or "").strip():
             return
         try:
@@ -1179,7 +1194,11 @@ class TurnRuntimeManager:
             return
         if billing_context.get("source") != "wx_miniprogram":
             return
-        user_id = str(billing_context.get("user_id", "") or "").strip()
+        user_id = str(
+            billing_context.get("learning_user_id")
+            or billing_context.get("user_id", "")
+            or ""
+        ).strip()
         if not user_id or not str(assistant_content or "").strip():
             return
         try:
@@ -2377,10 +2396,36 @@ class TurnRuntimeManager:
             except Exception:
                 logger.debug("Failed to preview context route", exc_info=True)
             trace_metadata["language"] = payload.get("language", "en")
-            trace_metadata["chat_mode"] = str(
+            raw_interaction_hints = (
+                (payload.get("config", {}) or {}).get("interaction_hints")
+                if isinstance((payload.get("config", {}) or {}).get("interaction_hints"), dict)
+                else {}
+            )
+            chat_mode = str(
                 request_config.get("chat_mode")
                 or (interaction_hints or {}).get("teaching_mode")
                 or ""
+            ).strip()
+            raw_requested_response_mode = str(
+                raw_interaction_hints.get("requested_response_mode")
+                or request_config.get("chat_mode")
+                or ""
+            ).strip()
+            requested_response_mode = (
+                normalize_requested_response_mode(raw_requested_response_mode)
+                if raw_requested_response_mode
+                else ""
+            )
+            effective_response_mode = str(
+                request_config.get("chat_mode")
+                or (interaction_hints or {}).get("effective_response_mode")
+                or requested_response_mode
+            ).strip()
+            trace_metadata["chat_mode"] = chat_mode
+            trace_metadata["requested_response_mode"] = requested_response_mode
+            trace_metadata["effective_response_mode"] = effective_response_mode
+            trace_metadata["response_mode_degrade_reason"] = str(
+                (interaction_hints or {}).get("response_mode_degrade_reason") or ""
             ).strip()
             trace_metadata["source"] = str((billing_context or {}).get("source", "") or "").strip()
             trace_metadata["active_object"] = dict(active_object) if active_object else {}
@@ -2755,9 +2800,9 @@ class TurnRuntimeManager:
                         "fallback_path": context_trace.get("fallback_path", ""),
                         **(
                             {
-                                "question_followup_context": followup_question_context,
+                                "question_followup_context": dict(followup_question_context),
                             }
-                            if followup_question_context
+                            if followup_question_context is not None
                             else {}
                         ),
                         **(
@@ -2821,7 +2866,10 @@ class TurnRuntimeManager:
                         ).strip(),
                     }
                 )
-                if isinstance(context.metadata.get("question_followup_context"), dict):
+                if (
+                    isinstance(context.metadata.get("question_followup_context"), dict)
+                    and context.metadata.get("question_followup_context")
+                ):
                     trace_metadata["question_followup_context"] = dict(
                         context.metadata.get("question_followup_context", {}) or {}
                     )
@@ -2857,6 +2905,7 @@ class TurnRuntimeManager:
                     default=False,
                 )
                 usage_summary = observability.get_current_usage_summary()
+                assistant_event_summary = _summarize_assistant_events(assistant_events)
                 observability.update_observation(
                     turn_observation,
                     output_payload={"assistant_content": assistant_content},
@@ -2884,6 +2933,7 @@ class TurnRuntimeManager:
                 terminal_status = "completed"
         except asyncio.CancelledError:
             usage_summary = observability.get_current_usage_summary()
+            assistant_event_summary = _summarize_assistant_events(assistant_events)
             observability.update_observation(
                 turn_observation,
                 output_payload={"assistant_content": assistant_content},
@@ -2927,6 +2977,7 @@ class TurnRuntimeManager:
             raise
         except Exception as exc:
             usage_summary = observability.get_current_usage_summary()
+            assistant_event_summary = _summarize_assistant_events(assistant_events)
             observability.update_observation(
                 turn_observation,
                 output_payload={"assistant_content": assistant_content},

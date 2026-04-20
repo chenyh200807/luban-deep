@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Long Dialog V1 复测脚本（DeepTutor / TutorBot / smart）。
+"""Long Dialog V1 复测脚本（DeepTutor / construction_exam_tutor / smart）。
 
 当前仓库里已经没有旧系统原始的 `eval/sets/long_dialog_v1.jsonl`，
 所以这里改为读取旧系统留存的 `session_full_conversations` 明细，
@@ -8,7 +8,7 @@
 默认行为：
 1. 从历史 artifact 中恢复 10 条长对话链的用户问题。
 2. 用当前 DeepTutor 的 turn runtime 按同一 session 连续执行。
-3. 全部使用 `TutorBot + smart` 配置。
+3. 全部使用 `construction_exam_tutor + smart` 配置。
 4. 产出 JSON + Markdown 报告到 `tmp/`。
 
 说明：
@@ -42,6 +42,16 @@ from deeptutor.services.session.sqlite_store import SQLiteSessionStore
 from deeptutor.services.session.turn_runtime import TurnRuntimeManager
 
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "tmp"
+DEFAULT_SOURCE_CANDIDATES = [
+    PROJECT_ROOT.parent
+    / "FastAPI20251222_broken_backup_20260414_002321"
+    / "artifacts"
+    / "long_dialog_round7_full_detail_20260328.json",
+    PROJECT_ROOT.parent
+    / "FastAPI20251222"
+    / "artifacts"
+    / "long_dialog_round7_full_detail_20260328.json",
+]
 
 FOLLOWUP_PATTERN = re.compile(
     r"第\d+题|为什么不是|再来一题|这道题|刚才|前面|继续批改|沿用|同一个案例|别重新开始|"
@@ -103,57 +113,6 @@ CURRENT_INFO_KEYWORDS = (
 )
 
 
-def _main_repo_root_from_worktree(project_root: Path) -> Path | None:
-    git_pointer = project_root / ".git"
-    if not git_pointer.is_file():
-        return None
-    raw = git_pointer.read_text(encoding="utf-8").strip()
-    if not raw.startswith("gitdir:"):
-        return None
-    gitdir_value = raw.split(":", 1)[1].strip()
-    gitdir = Path(gitdir_value).expanduser()
-    if not gitdir.is_absolute():
-        gitdir = (git_pointer.parent / gitdir).resolve()
-    if gitdir.parent.name != "worktrees":
-        return None
-    common_git_dir = gitdir.parent.parent
-    if common_git_dir.name != ".git":
-        return None
-    return common_git_dir.parent
-
-
-def _default_source_candidates() -> list[Path]:
-    candidates: list[Path] = []
-    seen: set[Path] = set()
-
-    def _append(candidate: Path) -> None:
-        resolved = candidate.expanduser().resolve()
-        if resolved in seen:
-            return
-        seen.add(resolved)
-        candidates.append(resolved)
-
-    roots = [PROJECT_ROOT.parent]
-    main_repo_root = _main_repo_root_from_worktree(PROJECT_ROOT)
-    if main_repo_root is not None:
-        roots.append(main_repo_root.parent)
-
-    for root in roots:
-        _append(
-            root
-            / "FastAPI20251222_broken_backup_20260414_002321"
-            / "artifacts"
-            / "long_dialog_round7_full_detail_20260328.json"
-        )
-        _append(
-            root
-            / "FastAPI20251222"
-            / "artifacts"
-            / "long_dialog_round7_full_detail_20260328.json"
-        )
-    return candidates
-
-
 def _build_ws_url(api_base_url: str) -> str:
     parsed = urlparse(api_base_url.rstrip("/"))
     scheme = "wss" if parsed.scheme == "https" else "ws"
@@ -168,12 +127,11 @@ def _resolve_source_path(cli_value: str | None) -> Path:
             raise FileNotFoundError(f"未找到 source json: {path}")
         return path
 
-    default_candidates = _default_source_candidates()
-    for candidate in default_candidates:
+    for candidate in DEFAULT_SOURCE_CANDIDATES:
         if candidate.exists():
             return candidate
 
-    searched = "\n".join(str(path) for path in default_candidates)
+    searched = "\n".join(str(path) for path in DEFAULT_SOURCE_CANDIDATES)
     raise FileNotFoundError(
         "未找到 long dialog V1 历史明细。请用 --source-json 指定。\n"
         f"默认查找位置：\n{searched}"
@@ -210,7 +168,7 @@ def _build_retest_interaction_hints(
     hints: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     merged = dict(hints or {})
-    merged["profile"] = profile or "tutorbot"
+    merged["profile"] = profile or "construction_exam_tutor"
     normalized_mode = str(mode or "").strip().lower()
     if normalized_mode in {"smart", "fast", "deep"}:
         merged["teaching_mode"] = normalized_mode
@@ -402,10 +360,10 @@ def _build_turn_config(
     if include_eval_user:
         billing_context["user_id"] = "ld_eval_user"
     return {
-        "interaction_profile": "tutorbot",
+        "interaction_profile": "construction_exam_tutor",
         "interaction_hints": _build_retest_interaction_hints(
             mode=teaching_mode,
-            profile="tutorbot",
+            profile="construction_exam_tutor",
             query=query,
             hints={},
         ),
@@ -413,13 +371,27 @@ def _build_turn_config(
     }
 
 
-async def _run_single_turn_runtime(
+def _percentile(values: list[float], q: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    k = (len(ordered) - 1) * q
+    floor_index = int(k)
+    ceil_index = min(floor_index + 1, len(ordered) - 1)
+    if floor_index == ceil_index:
+        return float(ordered[floor_index])
+    return float(
+        ordered[floor_index] + (ordered[ceil_index] - ordered[floor_index]) * (k - floor_index)
+    )
+
+
+async def _run_single_turn(
     runtime: TurnRuntimeManager,
     *,
     session_id: str | None,
     query: str,
     teaching_mode: str,
-) -> tuple[str, str, float, list[str]]:
+) -> tuple[str, str, float | None, float, list[str]]:
     config = _build_turn_config(
         query=query,
         teaching_mode=teaching_mode,
@@ -443,10 +415,13 @@ async def _run_single_turn_runtime(
     fragments: list[str] = []
     fallback_response = ""
     event_types: list[str] = []
+    first_content_at_ms: float | None = None
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         event_type = str(event.get("type") or "")
         event_types.append(event_type)
         if event_type == "content" and event.get("content"):
+            if first_content_at_ms is None:
+                first_content_at_ms = (time.perf_counter() - start) * 1000
             fragments.append(str(event["content"]))
         elif event_type == "result":
             metadata = event.get("metadata") or {}
@@ -458,7 +433,7 @@ async def _run_single_turn_runtime(
 
     response = "".join(fragments).strip() or fallback_response.strip()
     latency_ms = (time.perf_counter() - start) * 1000
-    return session["id"], response, latency_ms, event_types
+    return session["id"], response, first_content_at_ms, latency_ms, event_types
 
 
 async def _run_single_turn_live_ws(
@@ -467,7 +442,7 @@ async def _run_single_turn_live_ws(
     session_id: str | None,
     query: str,
     teaching_mode: str,
-) -> tuple[str, str, float, list[str]]:
+) -> tuple[str, str, float | None, float, list[str]]:
     config = _build_turn_config(
         query=query,
         teaching_mode=teaching_mode,
@@ -494,6 +469,7 @@ async def _run_single_turn_live_ws(
     event_types: list[str] = []
     resolved_session_id = session_id or ""
     started_at = time.perf_counter()
+    first_content_at_ms: float | None = None
 
     async with websockets.connect(ws_url) as websocket:
         await websocket.send(json.dumps(payload, ensure_ascii=False))
@@ -505,6 +481,8 @@ async def _run_single_turn_live_ws(
             if event_type == "session":
                 resolved_session_id = str(event.get("session_id") or resolved_session_id)
             elif event_type == "content" and event.get("content"):
+                if first_content_at_ms is None:
+                    first_content_at_ms = (time.perf_counter() - started_at) * 1000
                 fragments.append(str(event["content"]))
             elif event_type == "result":
                 metadata = event.get("metadata") or {}
@@ -520,7 +498,7 @@ async def _run_single_turn_live_ws(
 
     response = "".join(fragments).strip() or fallback_response.strip()
     latency_ms = (time.perf_counter() - started_at) * 1000
-    return resolved_session_id, response, latency_ms, event_types
+    return resolved_session_id, response, first_content_at_ms, latency_ms, event_types
 
 
 async def _run_case(
@@ -559,7 +537,7 @@ async def _run_case(
         turn_no = int(item.get("turn", 0) or 0)
         query = str(item.get("user_query") or "")
         try:
-            session_id, response, latency_ms, event_types = await asyncio.wait_for(
+            session_id, response, ttft_ms, latency_ms, event_types = await asyncio.wait_for(
                 (
                     _run_single_turn_live_ws(
                         api_base_url=api_base_url,
@@ -568,7 +546,7 @@ async def _run_case(
                         teaching_mode=teaching_mode,
                     )
                     if api_base_url
-                    else _run_single_turn_runtime(
+                    else _run_single_turn(
                         runtime,
                         session_id=session_id,
                         query=query,
@@ -589,6 +567,7 @@ async def _run_case(
                     "turn": turn_no,
                     "query": query,
                     "response": response,
+                    "ttft_ms": round(ttft_ms, 1) if ttft_ms is not None else None,
                     "latency_ms": round(latency_ms, 1),
                     "event_types": event_types,
                     **eval_result,
@@ -607,6 +586,7 @@ async def _run_case(
                     "turn": turn_no,
                     "query": query,
                     "response": "",
+                    "ttft_ms": None,
                     "latency_ms": None,
                     "event_types": [],
                     "empty": True,
@@ -650,6 +630,26 @@ async def _run_case(
         )
         if any(item["latency_ms"] is not None for item in results)
         else None,
+        "avg_ttft_ms": round(
+            mean([item["ttft_ms"] for item in results if item["ttft_ms"] is not None]),
+            1,
+        )
+        if any(item["ttft_ms"] is not None for item in results)
+        else None,
+        "p50_ttft_ms": round(
+            _percentile([item["ttft_ms"] for item in results if item["ttft_ms"] is not None], 0.5)
+            or 0.0,
+            1,
+        )
+        if any(item["ttft_ms"] is not None for item in results)
+        else None,
+        "p90_ttft_ms": round(
+            _percentile([item["ttft_ms"] for item in results if item["ttft_ms"] is not None], 0.9)
+            or 0.0,
+            1,
+        )
+        if any(item["ttft_ms"] is not None for item in results)
+        else None,
         "semantic_score": semantic_score,
         "satisfaction_score": satisfaction_score,
         "aborted": aborted,
@@ -682,6 +682,20 @@ def _render_markdown(
     total_turns = sum(item["summary"]["turns"] for item in results)
     avg_semantic = mean(item["summary"]["semantic_score"] for item in results) if results else 0
     avg_satisfaction = mean(item["summary"]["satisfaction_score"] for item in results) if results else 0
+    ttft_values = [
+        summary["avg_ttft_ms"]
+        for item in results
+        if isinstance((summary := item["summary"]).get("avg_ttft_ms"), (int, float))
+    ]
+    avg_ttft = mean(ttft_values) if ttft_values else 0.0
+    p50_ttft = _percentile(
+        [turn["ttft_ms"] for item in results for turn in item["turns"] if turn.get("ttft_ms") is not None],
+        0.5,
+    )
+    p90_ttft = _percentile(
+        [turn["ttft_ms"] for item in results for turn in item["turns"] if turn.get("ttft_ms") is not None],
+        0.9,
+    )
 
     lines = [
         "# Long Dialog V1 Retest",
@@ -698,6 +712,9 @@ def _render_markdown(
         "",
         f"- 系统语义理解均分: {avg_semantic:.1f}/100",
         f"- 付费学员满意度均分: {avg_satisfaction:.1f}/100",
+        f"- 平均 TTFT: {avg_ttft:.1f}ms",
+        f"- P50 TTFT: {(p50_ttft or 0.0):.1f}ms",
+        f"- P90 TTFT: {(p90_ttft or 0.0):.1f}ms",
         f"- 硬错误/空回复: {sum(item['summary']['hard_errors'] for item in results)}",
         f"- 跟题/批改断裂: {sum(item['summary']['followup_object_mismatch_count'] for item in results)}",
         f"- 出题契约失配: {sum(item['summary']['question_count_mismatch_count'] for item in results)}",
@@ -709,8 +726,8 @@ def _render_markdown(
         "",
         "## 分场景",
         "",
-        "| Case | 语义分 | 满意度分 | 硬错误 | 跟题断裂 | 契约失配 | 锚点遗漏 | 上下文重置 | 对比表缺失 | 慢响应 | 平均延迟 |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| Case | 语义分 | 满意度分 | 硬错误 | 跟题断裂 | 契约失配 | 锚点遗漏 | 上下文重置 | 对比表缺失 | 慢响应 | 平均 TTFT | 平均延迟 |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
 
     for item in results:
@@ -720,7 +737,7 @@ def _render_markdown(
             f"{summary['hard_errors']} | {summary['followup_object_mismatch_count']} | "
             f"{summary['question_count_mismatch_count']} | {summary['anchor_miss_count']} | "
             f"{summary['context_reset_count']} | {summary['compare_table_miss_count']} | "
-            f"{summary['slow_turns']} | {summary['avg_latency_ms'] or 0:.1f}ms |"
+            f"{summary['slow_turns']} | {summary['avg_ttft_ms'] or 0:.1f}ms | {summary['avg_latency_ms'] or 0:.1f}ms |"
         )
 
     lines.append("")

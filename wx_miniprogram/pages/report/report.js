@@ -4,6 +4,40 @@ const api = require("../../utils/api");
 const auth = require("../../utils/auth");
 const helpers = require("../../utils/helpers");
 
+function buildRadarDimensionsFromAssessment(data) {
+  var mastery = (data && data.chapter_mastery) || {};
+  return Object.keys(mastery).map(function (key) {
+    var item = mastery[key];
+    var score = (typeof item === "object" ? item.mastery : item) || 0;
+    return {
+      name: (typeof item === "object" ? item.name : key) || key,
+      value: Number(score || 0) / 100,
+    };
+  });
+}
+
+function hasPositiveRadarSignal(dims) {
+  return (dims || []).some(function (item) {
+    return Number(item && item.value) > 0;
+  });
+}
+
+function normalizeRadarDimensions(radarData) {
+  return ((radarData && radarData.dimensions) || []).map(function (item) {
+    var score = Number(item.score);
+    var value =
+      typeof item.value === "number"
+        ? item.value
+        : Number.isFinite(score)
+        ? score / 100
+        : 0;
+    return {
+      name: item.label || item.name || item.key || "",
+      value: value || 0,
+    };
+  });
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -136,40 +170,26 @@ Page({
     this.setData({ masteryExpanded: !this.data.masteryExpanded });
   },
 
-  // ── 加载学情数据（统一使用 assessment profile API）────
+  // ── 加载学情数据（assessment profile 为唯一主 authority）────
   async _loadRadar() {
     try {
-      var userId = auth.getUserId();
       var dims = [];
-      if (userId) {
-        var radarResult = await api.getRadarData(userId);
-        var radarData = api.unwrapResponse(radarResult) || {};
-        dims = (radarData.dimensions || []).map(function (item) {
-          var score = Number(item.score);
-          var value =
-            typeof item.value === "number"
-              ? item.value
-              : Number.isFinite(score)
-              ? score / 100
-              : 0;
-          return {
-            name: item.label || item.name || item.key || "",
-            value: value || 0,
-          };
-        });
-      }
+      var result = await api.getAssessmentProfile();
+      var data = api.unwrapResponse(result) || {};
+      dims = buildRadarDimensionsFromAssessment(data);
 
-      if (dims.length === 0) {
-        var result = await api.getAssessmentProfile();
-        var data = api.unwrapResponse(result) || {};
-        var cm = data.chapter_mastery || {};
-        dims = Object.keys(cm).map(function (k) {
-          var v = cm[k];
-          return {
-            name: (typeof v === "object" ? v.name : k) || k,
-            value: ((typeof v === "object" ? v.mastery : v) || 0) / 100,
-          };
-        });
+      if (!dims.length || !hasPositiveRadarSignal(dims)) {
+        var userId = auth.getUserId();
+        if (userId) {
+          try {
+            var radarResult = await api.getRadarData(userId);
+            var radarData = api.unwrapResponse(radarResult) || {};
+            var radarDims = normalizeRadarDimensions(radarData);
+            if (radarDims.length && hasPositiveRadarSignal(radarDims)) {
+              dims = radarDims;
+            }
+          } catch (_) {}
+        }
       }
 
       if (dims.length === 0) {

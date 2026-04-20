@@ -105,6 +105,8 @@ domains:
       - tests/services/config/test_provider_runtime.py
       - tests/services/config/test_embedding_runtime.py
       - tests/services/config/test_knowledge_base_config.py
+      - tests/services/search/test_web_search_runtime.py
+      - tests/services/search/test_search_provider_resilience.py
     schema_files: []
 
   learner_state:
