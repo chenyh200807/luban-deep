@@ -49,6 +49,54 @@ def _safe_int(value: str | None, default: int) -> int:
         return default
 
 
+def _resolve_path(path: Path | str) -> Path:
+    return Path(path).expanduser().resolve()
+
+
+def _main_repo_root_from_worktree(project_root: Path) -> Path | None:
+    git_pointer = project_root / ".git"
+    if not git_pointer.is_file():
+        return None
+    raw = git_pointer.read_text(encoding="utf-8").strip()
+    if not raw.startswith("gitdir:"):
+        return None
+    gitdir_value = raw.split(":", 1)[1].strip()
+    gitdir = Path(gitdir_value).expanduser()
+    if not gitdir.is_absolute():
+        gitdir = (git_pointer.parent / gitdir).resolve()
+    if gitdir.parent.name != "worktrees":
+        return None
+    common_git_dir = gitdir.parent.parent
+    if common_git_dir.name != ".git":
+        return None
+    return common_git_dir.parent
+
+
+def _default_fallback_paths(local_env_path: Path) -> tuple[Path, ...]:
+    candidates: list[Path] = []
+    seen: set[Path] = set()
+
+    def _append(candidate: Path | str | None) -> None:
+        if not candidate:
+            return
+        resolved = _resolve_path(candidate)
+        if resolved == local_env_path or resolved in seen:
+            return
+        seen.add(resolved)
+        candidates.append(resolved)
+
+    explicit_override = os.getenv("DEEPTUTOR_ENV_FILE") or os.getenv("DEEPTUTOR_ENV_PATH")
+    _append(explicit_override)
+
+    main_repo_root = _main_repo_root_from_worktree(local_env_path.parent)
+    if main_repo_root is not None:
+        _append(main_repo_root / ".env")
+        if main_repo_root.name == "deeptutor":
+            _append(main_repo_root.parent / "FastAPI20251222" / ".env")
+
+    return tuple(candidates)
+
+
 @dataclass(slots=True)
 class ConfigSummary:
     backend_port: int
@@ -61,14 +109,38 @@ class ConfigSummary:
 class EnvStore:
     """Canonical `.env` reader/writer for local DeepTutor configuration."""
 
-    def __init__(self, path: Path = ENV_PATH):
-        self.path = path
+    def __init__(
+        self,
+        path: Path | str | None = None,
+        fallback_paths: Iterable[Path | str] | None = None,
+    ):
+        self.path = _resolve_path(path or ENV_PATH)
+        if fallback_paths is None and path is None:
+            self._fallback_paths = _default_fallback_paths(self.path)
+        else:
+            self._fallback_paths = tuple(
+                _resolve_path(candidate) for candidate in (fallback_paths or ())
+            )
+
+    def resolve_source_path(self) -> Path:
+        if self.path.exists():
+            return self.path
+        for candidate in self._fallback_paths:
+            if candidate.exists():
+                return candidate
+        return self.path
 
     def load(self) -> OrderedDict[str, str]:
+        values: OrderedDict[str, str] = OrderedDict()
         if self.path.exists():
-            values = _parse_env_lines(self.path.read_text(encoding="utf-8").splitlines())
-        else:
-            values = OrderedDict()
+            values.update(_parse_env_lines(self.path.read_text(encoding="utf-8").splitlines()))
+        for candidate in self._fallback_paths:
+            if not candidate.exists():
+                continue
+            fallback_values = _parse_env_lines(candidate.read_text(encoding="utf-8").splitlines())
+            for key, value in fallback_values.items():
+                if key not in values or values[key] == "":
+                    values[key] = value
         for key in ENV_KEY_ORDER:
             env_value = os.getenv(key)
             if key not in values and env_value is not None:

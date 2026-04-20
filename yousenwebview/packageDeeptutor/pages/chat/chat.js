@@ -13,6 +13,7 @@ var markdownFixtures = require("../../utils/devtools-markdown-fixtures");
 var runtime = require("../../utils/runtime");
 var route = require("../../utils/route");
 var flags = require("../../utils/flags");
+var surfaceTelemetry = require("../../utils/surface-telemetry");
 var analytics = require("../../../utils/analytics");
 
 // ── 常量（部分由性能分级动态覆盖）──────────────
@@ -184,6 +185,9 @@ Page({
   _sessionPersistTimer: null,
   _historyCacheTimer: null,
   _pendingHistoryTitle: "",
+  _surfaceTurnId: "",
+  _firstVisibleAckSent: false,
+  _doneRenderedAckSent: false,
   _observer: null, // IntersectionObserver 用于懒解析 Markdown
   _visibleSet: {}, // 当前可见消息 id 集合
   _autoScrollEnabled: true,
@@ -730,6 +734,16 @@ Page({
   // ── 流式控制 ──────────────────────────────────
 
   _stop: function (options) {
+    if (options && options.cancelTurn) {
+      surfaceTelemetry.trackOnce(
+        "yousen:user-cancelled:" + (this._surfaceTurnId || this._sid),
+        "user_cancelled",
+        {
+          sessionId: this._sid,
+          turnId: this._surfaceTurnId || "",
+        },
+      );
+    }
     if (this._abort) {
       try {
         this._abort(options || {});
@@ -799,6 +813,28 @@ Page({
       parseBlocks: shouldParseBlocks,
     });
     if (!normalized) return;
+    if (
+      !this._firstVisibleAckSent &&
+      this._surfaceTurnId &&
+      (
+        normalized.state.renderableContent ||
+        (normalized.state.blocks && normalized.state.blocks.length) ||
+        (normalized.state.mcqCards && normalized.state.mcqCards.length)
+      )
+    ) {
+      this._firstVisibleAckSent = true;
+      surfaceTelemetry.trackOnce(
+        "yousen:first-visible:" + this._surfaceTurnId,
+        "first_visible_content_rendered",
+        {
+          sessionId: this._sid,
+          turnId: this._surfaceTurnId,
+          metadata: {
+            answer_mode: this.data.answerMode,
+          },
+        },
+      );
+    }
 
     var update = normalized.updates;
     if (this._autoScrollEnabled) {
@@ -853,6 +889,28 @@ Page({
         u.chatScrollWithAnimation = false;
       }
       this.setData(u);
+      if (
+        !this._doneRenderedAckSent &&
+        this._surfaceTurnId &&
+        (
+          state.renderableContent ||
+          (state.blocks && state.blocks.length) ||
+          (state.mcqCards && state.mcqCards.length)
+        )
+      ) {
+        this._doneRenderedAckSent = true;
+        surfaceTelemetry.trackOnce(
+          "yousen:done-rendered:" + this._surfaceTurnId,
+          "done_rendered",
+          {
+            sessionId: this._sid,
+            turnId: this._surfaceTurnId,
+            metadata: {
+              answer_mode: this.data.answerMode,
+            },
+          },
+        );
+      }
       if (this._autoScrollEnabled) {
         var self = this;
         setTimeout(function () {
@@ -911,6 +969,17 @@ Page({
       }
       self._onDone();
       self._clearPendingTurn();
+      surfaceTelemetry.trackOnce(
+        "yousen:surface-render-failed:" + (self._surfaceTurnId || self._sid),
+        "surface_render_failed",
+        {
+          sessionId: self._sid,
+          turnId: self._surfaceTurnId || "",
+          metadata: {
+            message: m || "服务异常",
+          },
+        },
+      );
       wx.showToast({ title: m || "回复失败", icon: "none" });
     });
   },
@@ -969,6 +1038,7 @@ Page({
       }
       if (d.engine_turn_id) {
         updates["messages[" + idx + "].engineTurnId"] = d.engine_turn_id;
+        this._surfaceTurnId = d.engine_turn_id;
       }
       if (d.billing && typeof d.billing === "object") {
         updates["messages[" + idx + "].billing"] = d.billing;
@@ -1661,6 +1731,16 @@ Page({
       Math.random().toString(36).substr(2, 4);
 
     var tutorInteraction = self._buildTutorInteraction();
+    self._surfaceTurnId = "";
+    self._firstVisibleAckSent = false;
+    self._doneRenderedAckSent = false;
+    surfaceTelemetry.track("start_turn_sent", {
+      sessionId: self._sid,
+      metadata: {
+        answer_mode: self.data.answerMode,
+        tools_count: selectedTools.length,
+      },
+    });
     self._abort = wsStream.streamChat(
       {
         query: query,
@@ -1699,6 +1779,29 @@ Page({
         },
         onPresentation: function (d) {
           self._onPresentation(d);
+        },
+        onTelemetryEvent: function (event) {
+          if (!event || !event.eventName) return;
+          if (event.turnId) {
+            self._surfaceTurnId = event.turnId;
+          }
+          if (event.eventName === "resume_succeeded") {
+            surfaceTelemetry.trackOnce(
+              "yousen:resume-succeeded:" + (event.turnId || self._sid),
+              event.eventName,
+              {
+                sessionId: event.sessionId || self._sid,
+                turnId: event.turnId || "",
+                metadata: event.metadata || {},
+              },
+            );
+            return;
+          }
+          surfaceTelemetry.track(event.eventName, {
+            sessionId: event.sessionId || self._sid,
+            turnId: event.turnId || "",
+            metadata: event.metadata || {},
+          });
         },
         onUpdatedTitle: function (title) {
           // [FIX 2026-04-01] 服务端流式推送会话标题 → 同步更新 history 缓存

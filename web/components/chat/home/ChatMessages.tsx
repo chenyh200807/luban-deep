@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { memo, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
 import Image from "next/image";
 import {
   BookOpen,
@@ -20,6 +20,7 @@ import AssistantResponse from "@/components/common/AssistantResponse";
 import type { MessageRequestSnapshot } from "@/context/UnifiedChatContext";
 import { extractMathAnimatorResult } from "@/lib/math-animator-types";
 import { extractQuizQuestions } from "@/lib/quiz-types";
+import { trackWebSurfaceEventOnce } from "@/lib/surface-telemetry";
 import { extractVisualizeResult } from "@/lib/visualize-types";
 import type { StreamEvent } from "@/lib/unified-ws";
 import { hasVisibleMarkdownContent } from "@/lib/markdown-display";
@@ -66,6 +67,16 @@ function getModeBadgeLabel(capability?: string | null) {
   if (capability === "math_animator") return "Math Animator";
   if (capability === "visualize") return "Visualize";
   return capability;
+}
+
+function extractTurnIdFromEvents(events: StreamEvent[]): string | null {
+  for (let i = events.length - 1; i >= 0; i -= 1) {
+    const event = events[i];
+    const turnId =
+      (event.metadata as { turn_id?: string } | undefined)?.turn_id || event.turn_id || "";
+    if (turnId) return turnId;
+  }
+  return null;
 }
 
 const AssistantMessage = memo(function AssistantMessage({
@@ -118,6 +129,37 @@ const AssistantMessage = memo(function AssistantMessage({
     if (msg.capability !== "visualize" || !resultEvent) return null;
     return extractVisualizeResult(resultEvent.metadata);
   }, [msg.capability, resultEvent]);
+
+  const turnId = useMemo(() => extractTurnIdFromEvents(events), [events]);
+  const hasVisibleAssistantContent = useMemo(() => {
+    if (hasVisibleMarkdownContent(msg.content)) return true;
+    if (outlinePreview?.sub_topics.length) return true;
+    if (mathAnimatorResult) return true;
+    if (visualizeResult) return true;
+    if (quizQuestions?.length) return true;
+    return false;
+  }, [mathAnimatorResult, msg.content, outlinePreview, quizQuestions, visualizeResult]);
+  const hasDoneEvent = useMemo(() => events.some((event) => event.type === "done"), [events]);
+
+  useEffect(() => {
+    if (!turnId || !sessionId || !hasVisibleAssistantContent) return;
+    trackWebSurfaceEventOnce(`web:first-visible:${turnId}`, {
+      eventName: "first_visible_content_rendered",
+      sessionId,
+      turnId,
+      metadata: { capability: msg.capability || "chat" },
+    });
+  }, [hasVisibleAssistantContent, msg.capability, sessionId, turnId]);
+
+  useEffect(() => {
+    if (!turnId || !sessionId || !hasVisibleAssistantContent || !hasDoneEvent) return;
+    trackWebSurfaceEventOnce(`web:done-rendered:${turnId}`, {
+      eventName: "done_rendered",
+      sessionId,
+      turnId,
+      metadata: { capability: msg.capability || "chat" },
+    });
+  }, [hasDoneEvent, hasVisibleAssistantContent, msg.capability, sessionId, turnId]);
 
   return (
     <>

@@ -14,6 +14,7 @@ import {
   readStoredLanguage,
   writeStoredActiveSessionId,
 } from "@/context/AppShellContext";
+import { trackWebSurfaceEvent, trackWebSurfaceEventOnce } from "@/lib/surface-telemetry";
 import type { StreamEvent, ChatMessage } from "@/lib/unified-ws";
 import { primeUnifiedTurnContractCheck, UnifiedWSClient } from "@/lib/unified-ws";
 import { getSession, type SessionMessage } from "@/lib/session-api";
@@ -442,6 +443,7 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
     >
   >(new Map());
   const resumeTargetsRef = useRef<Map<string, { turnId: string; seq: number }>>(new Map());
+  const pendingResumeTelemetryRef = useRef<Map<string, string>>(new Map());
   const draftCounterRef = useRef(0);
   const retryTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
@@ -501,6 +503,11 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
       resumeTargetsRef.current.delete(oldKey);
       resumeTargetsRef.current.set(newKey, target);
     }
+    const pendingResumeTurnId = pendingResumeTelemetryRef.current.get(oldKey);
+    if (pendingResumeTurnId) {
+      pendingResumeTelemetryRef.current.delete(oldKey);
+      pendingResumeTelemetryRef.current.set(newKey, pendingResumeTurnId);
+    }
   }, []);
 
   const resumeActiveTurn = useCallback((key: string) => {
@@ -514,6 +521,14 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
     if (!target) return;
     const runner = runnersRef.current.get(key);
     if (!runner?.client.connected) return;
+    const session = stateRef.current.sessions[key];
+    pendingResumeTelemetryRef.current.set(key, target.turnId);
+    void trackWebSurfaceEvent({
+      eventName: "resume_attempted",
+      sessionId: session?.sessionId,
+      turnId: target.turnId,
+      metadata: { seq: target.seq },
+    });
     runner.client.send({
       type: "resume_from",
       turn_id: target.turnId,
@@ -534,6 +549,24 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
           seq: typeof event.seq === "number" ? event.seq : existingTarget?.seq ?? 0,
         });
       }
+      const pendingResumeTurnId = pendingResumeTelemetryRef.current.get(effectiveKey);
+      if (
+        pendingResumeTurnId &&
+        turnIdFromEvent &&
+        pendingResumeTurnId === turnIdFromEvent &&
+        event.type !== "error"
+      ) {
+        pendingResumeTelemetryRef.current.delete(effectiveKey);
+        trackWebSurfaceEventOnce(`web:resume-succeeded:${turnIdFromEvent}`, {
+          eventName: "resume_succeeded",
+          sessionId:
+            (event.metadata as { session_id?: string } | undefined)?.session_id ||
+            event.session_id ||
+            stateRef.current.sessions[effectiveKey]?.sessionId,
+          turnId: turnIdFromEvent,
+          metadata: { event_type: event.type },
+        });
+      }
       if (event.type === "session") {
         const sessionId =
           (event.metadata as { session_id?: string } | undefined)?.session_id ||
@@ -550,10 +583,16 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
           });
           moveRunner(effectiveKey, sessionId);
         }
+        void trackWebSurfaceEvent({
+          eventName: "session_event_received",
+          sessionId: sessionId || stateRef.current.sessions[effectiveKey]?.sessionId,
+          turnId,
+        });
         return;
       }
       if (event.type === "done") {
         resumeTargetsRef.current.delete(effectiveKey);
+        pendingResumeTelemetryRef.current.delete(effectiveKey);
         const status = String((event.metadata as { status?: string } | undefined)?.status || "completed");
         dispatch({
           type: "STREAM_END",
@@ -572,6 +611,19 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
         Boolean((event.metadata as { turn_terminal?: boolean } | undefined)?.turn_terminal)
       ) {
         resumeTargetsRef.current.delete(effectiveKey);
+        pendingResumeTelemetryRef.current.delete(effectiveKey);
+        trackWebSurfaceEventOnce(`web:surface-render-failed:${turnIdFromEvent || effectiveKey}`, {
+          eventName: "surface_render_failed",
+          sessionId:
+            (event.metadata as { session_id?: string } | undefined)?.session_id ||
+            event.session_id ||
+            stateRef.current.sessions[effectiveKey]?.sessionId,
+          turnId: turnIdFromEvent || null,
+          metadata: {
+            status: (event.metadata as { status?: string } | undefined)?.status || "failed",
+            source: event.source,
+          },
+        });
         const status = String((event.metadata as { status?: string } | undefined)?.status || "failed");
         dispatch({
           type: "STREAM_END",
@@ -599,11 +651,27 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
             resumeTargetsRef.current.delete(record.key);
             const session = stateRef.current.sessions[record.key];
             if (session?.isStreaming) {
+              trackWebSurfaceEventOnce(
+                `web:surface-render-failed:runner-close:${session.activeTurnId || record.key}`,
+                {
+                  eventName: "surface_render_failed",
+                  sessionId: session.sessionId,
+                  turnId: session.activeTurnId,
+                  metadata: { source: "runner_close" },
+                },
+              );
               dispatch({ type: "STREAM_END", key: record.key, status: "failed" });
             }
             runnersRef.current.delete(record.key);
           },
           () => {
+            const session = stateRef.current.sessions[record.key];
+            const resumeTarget = resumeTargetsRef.current.get(record.key);
+            void trackWebSurfaceEvent({
+              eventName: "ws_connected",
+              sessionId: session?.sessionId,
+              turnId: resumeTarget?.turnId || session?.activeTurnId || null,
+            });
             resumeActiveTurn(record.key);
           },
         ),
@@ -774,6 +842,14 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
         });
       }
       dispatch({ type: "STREAM_START", key });
+      void trackWebSurfaceEvent({
+        eventName: "start_turn_sent",
+        sessionId: session.sessionId,
+        metadata: {
+          capability: effectiveCapability || "chat",
+          has_attachments: Boolean(msgAttachments?.length),
+        },
+      });
       const effectiveConfig =
         options?.persistUserMessage === false
           ? { ...requestConfig, _persist_user_message: false }
@@ -809,6 +885,12 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
     const turnId = session?.activeTurnId;
     if (!session || !turnId) return;
     resumeTargetsRef.current.delete(key);
+    pendingResumeTelemetryRef.current.delete(key);
+    void trackWebSurfaceEvent({
+      eventName: "user_cancelled",
+      sessionId: session.sessionId,
+      turnId,
+    });
     const runner = runnersRef.current.get(key);
     if (runner?.client.connected) {
       runner.client.send({ type: "cancel_turn", turn_id: turnId });

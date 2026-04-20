@@ -269,6 +269,12 @@ def export_unified_turn_contract() -> dict[str, Any]:
 UNIFIED_TURN_TRACE_FIELDS: tuple[str, ...] = (
     "session_id",
     "turn_id",
+    "release_id",
+    "git_sha",
+    "service_version",
+    "deployment_environment",
+    "prompt_version",
+    "ff_snapshot_hash",
     "capability",
     "execution_engine",
     "bot_id",
