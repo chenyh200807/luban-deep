@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Create a runtime backup archive for ``data/user``."""
 
-from __future__ import annotations
-
 import argparse
 from datetime import datetime, timezone
 from pathlib import Path
