@@ -54,7 +54,7 @@ backend_port="$(read_env_default BACKEND_PORT 8001)"
 frontend_port="$(read_env_default FRONTEND_PORT 3782)"
 
 for _ in $(seq 1 30); do
-    health="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' deeptutor 2>/dev/null || true)"
+    health="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "${container_id}" 2>/dev/null || true)"
     if [ "${health}" = "healthy" ] || [ "${health}" = "running" ]; then
         break
     fi

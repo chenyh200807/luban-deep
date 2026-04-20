@@ -2,6 +2,25 @@
 
 这份说明对应当前主服务器 `8.135.42.145`，部署目录固定为 `/root/deeptutor`。
 
+## 发布硬护栏
+
+- 默认只允许从干净候选分支发布；`main` 或 dirty tree 会被 [scripts/sync_to_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/sync_to_aliyun.sh) 直接拒绝。
+- 默认只允许发往 `Aliyun-ECS-2:/root/deeptutor`；如果要改主机或目录，必须显式设置 `ALLOW_NON_CANONICAL_DEPLOY=1`。
+- [scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh) 和 [scripts/redeploy_aliyun_fast.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/redeploy_aliyun_fast.sh) 在远端重启前都会先执行 `python3 scripts/backup_data.py`，自动生成本次发布的 rollback 基线。
+- 紧急绕过护栏必须显式设置：
+  - `ALLOW_DIRTY_DEPLOY=1`
+  - `ALLOW_MAIN_BRANCH_DEPLOY=1`
+  - `ALLOW_NON_CANONICAL_DEPLOY=1`
+
+建议发布前固定执行：
+
+```bash
+git branch --show-current
+git status --short
+python scripts/check_contract_guard.py
+python scripts/verify_runtime_assets.py
+```
+
 ## 当前服务器结论
 
 - 当前可用服务器：`Aliyun-ECS-2` -> `8.135.42.145`
@@ -78,6 +97,8 @@ bash scripts/sync_to_aliyun.sh once
 说明：
 
 - 目标目录固定为 `/root/deeptutor`
+- 默认目标主机固定为 `Aliyun-ECS-2`
+- dirty tree 或 `main` 会被脚本直接拒绝
 - 会排除 `.env`、`data/`、`.git`、`.venv`、`node_modules`
 - 这样不会覆盖服务器上已经生成的数据和密钥
 
@@ -97,9 +118,10 @@ bash scripts/deploy_aliyun.sh
 脚本会做这些事：
 
 1. 同步仓库到 `Aliyun-ECS-2:/root/deeptutor`
-2. 远程执行 `scripts/server_bootstrap_aliyun.sh`
-3. 若 `.env` 缺失则自动生成模板
-4. 若 `.env` 已存在则执行 `docker compose up -d --build`
+2. 先在远端执行 `python3 scripts/backup_data.py --project-root /root/deeptutor`
+3. 远程执行 `scripts/server_bootstrap_aliyun.sh`
+4. 若 `.env` 缺失则自动生成模板
+5. 若 `.env` 已存在则执行 `docker compose up -d --build`
 
 这条是“完整部署”路径，适用于：
 
@@ -149,11 +171,13 @@ bash scripts/deploy_aliyun.sh
   - 适合临时恢复服务
 - `redeploy_aliyun_fast.sh`
   - 先 `rsync` 到服务器
+  - 再先执行一次远端 `python3 scripts/backup_data.py --project-root /root/deeptutor`
   - 再把 `deeptutor/` 等后端代码 `docker cp` 到正在运行的容器
   - 最后重启容器
   - 适合 Python 后端、Prompt、YAML、路由等无需重装依赖的改动
 - `deploy_aliyun.sh`
   - 先同步，再执行 `docker compose up -d --build`
+  - 同样会在真正重建前生成远端 runtime 备份
   - 最慢，但最完整
   - 适合依赖、Dockerfile、前端构建相关改动
 
@@ -244,3 +268,28 @@ LANGFUSE_TRACING_ENVIRONMENT=production
 - 阿里云服务器访问 Debian 官方源较慢
 
 现在仓库已经补了阿里云默认镜像源和缓存挂载，但完整部署仍然会比“快速发布”慢很多。
+
+## 回滚步骤
+
+如果发布后出现问题，先判断是“代码/镜像问题”还是“运行态数据问题”。
+
+运行态回滚：
+
+```bash
+ssh Aliyun-ECS-2
+cd /root/deeptutor
+ls -lt data/backups | head
+python3 scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYmmdd-HHMMSSZ.tar.gz --project-root /root/deeptutor --replace
+docker compose restart deeptutor
+curl -sS http://127.0.0.1:8001/healthz
+curl -sS http://127.0.0.1:8001/readyz
+```
+
+代码版本回滚：
+
+```bash
+git checkout <上一个稳定提交>
+bash scripts/deploy_aliyun.sh
+```
+
+不要把“代码版本回滚”和“运行态数据回滚”混成一步；先判断是哪一层出问题，再分别执行。
