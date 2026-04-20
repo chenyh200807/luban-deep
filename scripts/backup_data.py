@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Create a runtime backup archive for ``data/user``."""
 
 from __future__ import annotations
@@ -8,43 +8,57 @@ from datetime import datetime, timezone
 from pathlib import Path
 import tarfile
 import sys
-from typing import Iterable
+from typing import Iterable, List, Optional, Union
 
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from deeptutor.services.path_service import PathService
+
+PathLike = Union[str, Path]
 
 
-def resolve_project_root(project_root: str | Path | None = None) -> Path:
+def _is_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def _unlink_if_exists(path: Path) -> None:
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        return
+
+
+def resolve_project_root(project_root: Optional[PathLike] = None) -> Path:
     if project_root is not None:
         return Path(project_root).expanduser().resolve()
-    return PathService.get_instance().project_root
+    return Path(__file__).resolve().parent.parent
 
 
-def resolve_user_data_dir(project_root: str | Path | None = None) -> Path:
-    if project_root is not None:
-        return resolve_project_root(project_root) / "data" / "user"
-    return PathService.get_instance().user_data_dir
+def resolve_user_data_dir(project_root: Optional[PathLike] = None) -> Path:
+    return resolve_project_root(project_root) / "data" / "user"
 
 
-def resolve_backup_dir(project_root: str | Path | None = None) -> Path:
+def resolve_backup_dir(project_root: Optional[PathLike] = None) -> Path:
     return resolve_project_root(project_root) / "data" / "backups"
 
 
-def build_archive_name(now: datetime | None = None) -> str:
+def build_archive_name(now: Optional[datetime] = None) -> str:
     current = now or datetime.now(timezone.utc)
     return f"deeptutor-data-user-{current.strftime('%Y%m%d-%H%M%SZ')}.tar.gz"
 
 
-def list_backup_archives(backup_dir: Path) -> list[Path]:
+def list_backup_archives(backup_dir: Path) -> List[Path]:
     backup_dir = backup_dir.resolve()
     if not backup_dir.exists():
         return []
     return sorted(path for path in backup_dir.glob("deeptutor-data-user-*.tar.gz") if path.is_file())
 
 
-def prune_backup_archives(backup_dir: Path, keep: int) -> list[Path]:
+def prune_backup_archives(backup_dir: Path, keep: int) -> List[Path]:
     if keep <= 0:
         return []
 
@@ -54,7 +68,7 @@ def prune_backup_archives(backup_dir: Path, keep: int) -> list[Path]:
 
     to_remove = archives[:-keep]
     for archive_path in to_remove:
-        archive_path.unlink(missing_ok=True)
+        _unlink_if_exists(archive_path)
     return to_remove
 
 
@@ -77,7 +91,7 @@ def create_backup_archive(
     user_data_dir: Path,
     project_root: Path,
     backup_dir: Path,
-    archive_name: str | None = None,
+    archive_name: Optional[str] = None,
 ) -> Path:
     user_data_dir = user_data_dir.resolve()
     project_root = project_root.resolve()
@@ -87,7 +101,7 @@ def create_backup_archive(
         raise FileNotFoundError(f"user data dir does not exist: {user_data_dir}")
     if not user_data_dir.is_dir():
         raise NotADirectoryError(f"user data dir is not a directory: {user_data_dir}")
-    if not user_data_dir.is_relative_to(project_root):
+    if not _is_relative_to(user_data_dir, project_root):
         raise ValueError(f"user data dir must live under project root: {user_data_dir}")
 
     backup_dir.mkdir(parents=True, exist_ok=True)
@@ -100,7 +114,7 @@ def create_backup_archive(
     return archive_path
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Back up data/user into a tar.gz archive")
     parser.add_argument("--project-root", type=Path, help="Override project root")
     parser.add_argument("--backup-dir", type=Path, help="Override backup output directory")
