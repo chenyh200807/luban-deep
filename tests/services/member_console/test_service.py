@@ -7,6 +7,7 @@ from pathlib import Path
 import threading
 
 import bcrypt
+import httpx
 import pytest
 
 from deeptutor.services.member_console.service import MemberConsoleService
@@ -89,6 +90,23 @@ async def test_login_with_wechat_code_fails_closed_in_production_even_for_dev_pr
 
     with pytest.raises(RuntimeError, match="Missing WeChat Mini Program credentials."):
         await service.login_with_wechat_code("dev-local-user")
+
+
+@pytest.mark.asyncio
+async def test_login_with_wechat_code_maps_upstream_timeout_to_runtime_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    async def _raise_timeout(_code: str) -> dict[str, str]:
+        raise httpx.ConnectTimeout("timed out")
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _raise_timeout)
+
+    with pytest.raises(RuntimeError, match="WeChat code2Session request timed out"):
+        await service.login_with_wechat_code("wx-code")
 
 
 def test_resolve_user_id_accepts_signed_access_token(tmp_path: Path) -> None:
@@ -918,7 +936,15 @@ async def test_bind_phone_for_wechat_merges_into_existing_phone_user(tmp_path: P
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
-    result = await service.bind_phone_for_wechat("student_demo", "13800000002")
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13800000002"
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+    try:
+        result = await service.bind_phone_for_wechat("student_demo", "phone-code-merge")
+    finally:
+        monkeypatch.undo()
 
     assert result["bound"] is True
     assert result["merged"] is True
@@ -1062,6 +1088,72 @@ async def test_bind_phone_for_wechat_accepts_phone_code_exchange(
     assert result["bound"] is True
     assert result["user_id"] == result["user"]["user_id"]
     assert result["phone"] == "13911112222"
+
+
+@pytest.mark.asyncio
+async def test_bind_phone_for_wechat_accepts_normalized_phone_for_legacy_clients(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    result = await service.bind_phone_for_wechat("student_demo", "13911112222")
+
+    assert result["bound"] is True
+    assert result["user_id"] == result["user"]["user_id"]
+    assert result["phone"] == "13911112222"
+
+
+@pytest.mark.asyncio
+async def test_login_with_wechat_code_reuses_merged_canonical_member_after_phone_bind(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {
+            "openid": "openid_123456789012",
+            "unionid": "unionid_abcdef",
+            "session_key": "session_key_value",
+        }
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13800000002"
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+
+    first_login = await service.login_with_wechat_code("wx-code")
+    bind_result = await service.bind_phone_for_wechat(first_login["user_id"], "phone-code-merge")
+    second_login = await service.login_with_wechat_code("wx-code")
+    second_claims = service.verify_access_token(second_login["token"])
+
+    assert bind_result["merged"] is True
+    assert bind_result["user_id"] == "student_risk"
+    assert second_login["user_id"] == "student_risk"
+    assert second_login["user"]["user_id"] == "student_risk"
+    assert second_claims is not None
+    assert second_claims["canonical_uid"] == "student_risk"
+    assert second_claims["uid"] == "student_risk"
+
+
+@pytest.mark.asyncio
+async def test_bind_phone_for_wechat_maps_upstream_timeout_to_runtime_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    async def _raise_timeout(_phone_code: str) -> str:
+        raise httpx.ConnectTimeout("timed out")
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _raise_timeout)
+
+    with pytest.raises(RuntimeError, match="WeChat getuserphonenumber request timed out"):
+        await service.bind_phone_for_wechat("student_demo", "phone-code-123")
 
 
 @pytest.mark.asyncio

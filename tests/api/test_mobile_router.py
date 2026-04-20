@@ -20,6 +20,7 @@ _ORIGINAL_USER_DATA_DIR = PathService.get_instance()._user_data_dir
 PathService.get_instance()._user_data_dir = _TEST_USER_DATA_DIR
 
 mobile_module = importlib.import_module("deeptutor.api.routers.mobile")
+auth_dependency_module = importlib.import_module("deeptutor.api.dependencies.auth")
 rate_limit_module = importlib.import_module("deeptutor.api.dependencies.rate_limit")
 router = mobile_module.router
 
@@ -59,11 +60,10 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
             )
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
     monkeypatch.setattr(
         mobile_module,
-        "_resolve_learning_user_id",
-        lambda *_args, **_kwargs: "legacy_student_demo",
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
     )
     monkeypatch.setattr(
         mobile_module,
@@ -99,7 +99,7 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
         "source": "wx_miniprogram",
         "user_id": "student_demo",
         "wallet_user_id": "student_demo",
-        "learning_user_id": "legacy_student_demo",
+        "learning_user_id": "student_demo",
     }
 
 
@@ -125,7 +125,11 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
             )
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
     monkeypatch.setattr(
         mobile_module,
         "session_store",
@@ -178,7 +182,11 @@ def test_mobile_chat_start_turn_writes_requested_response_mode_and_legacy_alias(
             )
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
     monkeypatch.setattr(
         mobile_module,
         "session_store",
@@ -226,7 +234,11 @@ def test_mobile_chat_start_turn_overrides_conflicting_legacy_teaching_mode_with_
             )
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
     monkeypatch.setattr(
         mobile_module,
         "session_store",
@@ -277,7 +289,11 @@ def test_mobile_chat_start_turn_preserves_legacy_teaching_mode_when_mode_is_impl
             )
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
     monkeypatch.setattr(
         mobile_module,
         "session_store",
@@ -327,7 +343,11 @@ def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
             )
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
 
     with TestClient(_build_app()) as client:
         response = client.post(
@@ -371,7 +391,11 @@ def test_mobile_chat_start_turn_auto_enables_web_search_for_policy_queries(
             )
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
 
     with TestClient(_build_app()) as client:
         response = client.post(
@@ -410,7 +434,11 @@ def test_mobile_chat_start_turn_auto_enables_web_search_for_textbook_delta_queri
             )
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
 
     with TestClient(_build_app()) as client:
         response = client.post(
@@ -457,7 +485,11 @@ def test_mobile_chat_feedback_persists_structured_row(
             captured["closed"] = True
 
     monkeypatch.setattr(mobile_module, "MobileFeedbackSupabaseClient", FakeFeedbackClient)
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
     monkeypatch.setattr(
         mobile_module,
         "session_store",
@@ -512,7 +544,11 @@ def test_mobile_chat_feedback_legacy_alias_reuses_same_persistence_path(
             captured["closed"] = True
 
     monkeypatch.setattr(mobile_module, "MobileFeedbackSupabaseClient", FakeFeedbackClient)
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
     monkeypatch.setattr(
         mobile_module,
         "session_store",
@@ -562,7 +598,11 @@ def test_mobile_chat_feedback_infers_response_mode_metadata_from_session_history
             captured["closed"] = True
 
     monkeypatch.setattr(mobile_module, "MobileFeedbackSupabaseClient", FakeFeedbackClient)
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
     monkeypatch.setattr(
         mobile_module,
         "session_store",
@@ -626,7 +666,11 @@ def test_mobile_chat_feedback_returns_503_when_storage_unavailable(
             return None
 
     monkeypatch.setattr(mobile_module, "MobileFeedbackSupabaseClient", FakeFeedbackClient)
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
 
     with TestClient(_build_app()) as client:
         response = client.post(
@@ -712,7 +756,11 @@ def test_get_conversation_messages_include_presentation_payload(
     monkeypatch.setattr(mobile_module.session_store, "list_sessions_by_owner", _fake_list_sessions_by_owner)
     monkeypatch.setattr(mobile_module.session_store, "get_session_with_messages", _fake_get_session_with_messages)
     monkeypatch.setattr(mobile_module.session_store, "get_session_owner_key", AsyncMock(return_value="user:student_demo"))
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
 
     with TestClient(_build_app()) as client:
         response = client.get("/api/v1/conversations/session_mcq/messages")
@@ -841,7 +889,11 @@ def test_get_conversation_messages_merges_internal_tutorbot_variants(
             return session_payloads.get(session_id)
 
     monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
 
     with TestClient(_build_app()) as client:
         response = client.get("/api/v1/conversations/tb_123/messages")
@@ -916,7 +968,11 @@ def test_get_conversation_messages_pages_past_first_500_sessions(
             return None
 
     monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
 
     with TestClient(_build_app()) as client:
         response = client.get("/api/v1/conversations/tb_target/messages")
@@ -939,7 +995,11 @@ def test_wechat_login_route_maps_service_errors(monkeypatch: pytest.MonkeyPatch)
 
 
 def test_wechat_bind_phone_uses_bound_user(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "wx_user_1")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "wx_user_1",
+    )
     
     async def _fake_bind_phone(user_id, phone_code):
         return {
@@ -960,6 +1020,25 @@ def test_wechat_bind_phone_uses_bound_user(monkeypatch: pytest.MonkeyPatch) -> N
     assert response.status_code == 200
     assert response.json()["bound"] is True
     assert response.json()["user_id"] == "wx_user_1"
+
+
+def test_bi_radar_self_uses_authenticated_user_id(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = _build_app()
+    app.dependency_overrides[auth_dependency_module.get_current_user] = lambda: SimpleNamespace(
+        user_id="student_demo",
+        is_admin=False,
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_radar_data",
+        lambda user_id: {"user_id": user_id, "dimensions": []},
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/bi/radar/self")
+
+    assert response.status_code == 200
+    assert response.json()["user_id"] == "student_demo"
 
 
 def test_auth_login_maps_invalid_password_to_401(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1052,7 +1131,11 @@ def test_auth_profile_settings_syncs_learner_profile_and_goals(
 ) -> None:
     calls: list[tuple[str, str, dict[str, Any]]] = []
 
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
     monkeypatch.setattr(
         mobile_module.member_service,
         "get_profile",
@@ -1132,6 +1215,35 @@ def test_auth_profile_settings_syncs_learner_profile_and_goals(
     )
 
 
+def test_auth_profile_surfaces_wallet_service_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "wx_demo_user",
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_profile",
+        lambda user_id: {
+            "user_id": user_id,
+            "display_name": "微信学员",
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module.wallet_service,
+        "get_wallet",
+        lambda _user_id: (_ for _ in ()).throw(RuntimeError("wallet unavailable")),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/auth/profile")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Wallet service unavailable"
+
+
 def test_auth_profile_settings_rolls_back_member_and_learner_state_on_sync_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1155,7 +1267,11 @@ def test_auth_profile_settings_rolls_back_member_and_learner_state_on_sync_failu
         }
     ]
 
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
     monkeypatch.setattr(mobile_module.member_service, "get_profile", lambda _user_id: dict(previous_profile))
 
     def _update_profile(user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
@@ -1440,7 +1556,11 @@ def test_mobile_chat_start_turn_rejects_other_users_conversation(
             assert limit == 50
             return []
 
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
     monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
 
     with TestClient(_build_app()) as client:
@@ -1510,7 +1630,11 @@ def test_list_conversations_uses_owner_source_and_archived_filters(
             ]
 
     monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
 
     with TestClient(_build_app()) as client:
         response = client.get("/api/v1/conversations")
@@ -1558,7 +1682,11 @@ def test_create_conversation_initializes_mobile_tutorbot_session(
             }
 
     monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
 
     with TestClient(_build_app()) as client:
         response = client.post("/api/v1/conversations")
@@ -1609,7 +1737,11 @@ def test_list_conversations_can_request_archived_items(monkeypatch: pytest.Monke
             return []
 
     monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
 
     with TestClient(_build_app()) as client:
         response = client.get("/api/v1/conversations?archived=true")
@@ -1675,7 +1807,11 @@ def test_list_conversations_merges_internal_tutorbot_mirror_sessions(
             ]
 
     monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
-    monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
 
     with TestClient(_build_app()) as client:
         response = client.get("/api/v1/conversations")

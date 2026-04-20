@@ -289,9 +289,6 @@ Page({
           var info = api.unwrapResponse(raw);
           var name = info.username || info.display_name || "用户";
           var nextPoints = extractPointsValue(info);
-          // 保存 userId 供统一聊天运行时使用
-          var uid = info.id || info.user_id;
-          if (uid) auth.setToken(auth.getToken(), uid);
           var nextState = {
             userName: name,
             avatarChar: name.charAt(0).toUpperCase(),
@@ -301,7 +298,6 @@ Page({
             nextState.billingBalance = nextPoints;
           }
           self.setData(nextState);
-          self._refreshPoints();
           proceedAfterAuthReady();
         })
         .catch(function (e) {
@@ -1742,7 +1738,6 @@ Page({
       {
         query: query,
         sessionId: self._sid,
-        userId: auth.getUserId(),
         mode: self.data.answerMode,
         tools: selectedTools,
         interactionProfile: tutorInteraction.profile,

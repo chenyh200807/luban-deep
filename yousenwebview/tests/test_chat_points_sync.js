@@ -196,13 +196,15 @@ function loadChatPage(overrides) {
 }
 
 (async function main() {
-  await run("chat hero points should prefer wallet balance over stale profile points", async function () {
+  await run("chat hero should reuse auth profile balance without redundant wallet refresh", async function () {
+    var walletCount = 0;
     var loaded = loadChatPage({
       api: {
         getUserInfo: function () {
-          return Promise.resolve({ username: "chenyh2008", points: 0 });
+          return Promise.resolve({ username: "chenyh2008", balance: 128 });
         },
         getWallet: function () {
+          walletCount += 1;
           return Promise.resolve({ balance: 128 });
         },
       },
@@ -213,11 +215,12 @@ function loadChatPage(overrides) {
     await flushPromises();
     await flushPromises();
 
-    assert(loaded.page.data.userPoints === 128, "chat hero points should update from wallet balance");
-    assert(loaded.page.data.billingBalance === 128, "billing balance should stay in sync with wallet balance");
+    assert(loaded.page.data.userPoints === 128, "chat hero should hydrate points from auth profile wallet payload");
+    assert(loaded.page.data.billingBalance === 128, "billing balance should stay in sync with auth profile wallet payload");
+    assert(walletCount === 0, "chat bootstrap should not issue a second wallet request after auth profile succeeds");
   });
 
-  await run("chat hero points should fallback to legacy points api when wallet fails", async function () {
+  await run("chat hero points refresh should fallback to legacy points api when wallet fails", async function () {
     var loaded = loadChatPage({
       api: {
         getUserInfo: function () {
@@ -232,12 +235,11 @@ function loadChatPage(overrides) {
       },
     });
 
-    loaded.page.onLoad({});
-    loaded.page.onShow();
+    loaded.page._refreshPoints();
     await flushPromises();
     await flushPromises();
 
-    assert(loaded.page.data.userPoints === 36, "chat hero points should fallback to points api");
+    assert(loaded.page.data.userPoints === 36, "chat points refresh should fallback to points api");
     assert(loaded.page.data.billingBalance === 36, "fallback points should sync billing balance too");
   });
 
@@ -309,6 +311,36 @@ function loadChatPage(overrides) {
     assert(diagnosticCount === 0, "expired auth should not run diagnostic bootstrap");
     assert(walletCount === 0, "expired auth should not refresh wallet balance");
     assert(pointsCount === 0, "expired auth should not fallback to legacy points api");
+  });
+
+  await run("chat bootstrap should refresh points when auth profile temporarily fails", async function () {
+    var walletCount = 0;
+    var pointsCount = 0;
+    var loaded = loadChatPage({
+      api: {
+        getUserInfo: function () {
+          return Promise.reject(new Error("profile temporarily unavailable"));
+        },
+        getWallet: function () {
+          walletCount += 1;
+          return Promise.resolve({ balance: 52 });
+        },
+        getPoints: function () {
+          pointsCount += 1;
+          return Promise.resolve({ points: 52 });
+        },
+      },
+    });
+
+    loaded.page.onLoad({});
+    loaded.page.onShow();
+    await flushPromises();
+    await flushPromises();
+
+    assert(walletCount === 1, "non-auth bootstrap failure should still refresh wallet balance");
+    assert(pointsCount === 0, "wallet refresh should satisfy fallback before points api");
+    assert(loaded.page.data.userPoints === 52, "bootstrap fallback should hydrate points from wallet");
+    assert(loaded.page.data.billingBalance === 52, "bootstrap fallback should keep billing balance in sync");
   });
 
   if (fail) {

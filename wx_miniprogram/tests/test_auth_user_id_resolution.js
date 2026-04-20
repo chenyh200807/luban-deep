@@ -18,7 +18,7 @@ function assert(condition, message) {
 var writes = [];
 var removes = [];
 var source = fs.readFileSync(
-  path.join(__dirname, "../packageDeeptutor/utils/auth.js"),
+  path.join(__dirname, "../utils/auth.js"),
   "utf8",
 );
 var sandbox = {
@@ -41,7 +41,7 @@ var sandbox = {
 };
 
 vm.runInNewContext(source, sandbox, {
-  filename: "packageDeeptutor/utils/auth.js",
+  filename: "utils/auth.js",
 });
 
 var moduleExports = sandbox.module.exports;
@@ -49,29 +49,29 @@ moduleExports.setToken("fresh_token", "ignored_user_id");
 
 assert(
   typeof moduleExports.extractUserIdFromAuthPayload === "undefined",
-  "auth helper should no longer expose a local user_id extractor",
+  "wx_miniprogram auth helper should no longer expose a local user_id extractor",
 );
 
 assert(
   typeof moduleExports.getUserId === "undefined",
-  "auth helper should no longer expose local auth_user_id reads",
+  "wx_miniprogram auth helper should no longer expose local auth_user_id reads",
 );
 
 assert(
   writes.length === 1 &&
     writes[0].key === "auth_token" &&
     writes[0].value === "fresh_token",
-  "auth helper should only persist auth_token",
+  "wx_miniprogram auth helper should only persist auth_token",
 );
 
 assert(
   removes.indexOf("auth_user_id") !== -1,
-  "auth helper should clear legacy auth_user_id cache when setting token",
+  "wx_miniprogram auth helper should clear legacy auth_user_id cache when setting token",
 );
 
 assert(
   moduleExports.getToken() === "saved_token",
-  "auth helper should keep token reads unchanged",
+  "wx_miniprogram auth helper should keep token reads unchanged",
 );
 
 if (fail) {

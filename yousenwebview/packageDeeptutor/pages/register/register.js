@@ -62,8 +62,10 @@ Page({
         .then(function () {
           self._reLaunchAfterAuth();
         })
-        .catch(function () {
-          auth.clearToken();
+        .catch(function (err) {
+          if (String((err && err.message) || "") === "AUTH_EXPIRED") {
+            auth.clearToken();
+          }
         });
     }
   },
@@ -143,9 +145,8 @@ Page({
         var inner = resp.data || resp;
         var user = inner.user || resp.user || {};
         var token = inner.token || inner._token || resp.token || resp._token || user._token;
-        var userId = auth.extractUserIdFromAuthPayload(resp);
         if (!token) throw new Error("服务端未返回凭证");
-        auth.setToken(token, userId);
+        auth.setToken(token);
         self._trackLoginSuccess("register_password");
         self._reLaunchAfterAuth();
       })
@@ -180,19 +181,8 @@ Page({
   _completeWechatAuth: function (payload) {
     var inner = payload && (payload.data || payload);
     var token = inner && inner.token;
-    var userId = auth.extractUserIdFromAuthPayload(payload);
     if (!token) throw new Error("服务端未返回凭证");
-    auth.setToken(token, userId);
-  },
-  _bindPhoneAfterWechat: function () {
-    var phone = (this.data.phone || "").trim();
-    if (!phone || phone.length < 11) return Promise.resolve();
-    return api.bindPhone(phone).then(function (resp) {
-      var inner = resp.data || resp;
-      if (inner && inner.token) {
-        auth.setToken(inner.token, auth.extractUserIdFromAuthPayload(resp));
-      }
-    });
+    auth.setToken(token);
   },
   handleWechatRegister: function () {
     var self = this;
@@ -208,7 +198,6 @@ Page({
           .wxLogin(loginRes.code)
           .then(function (resp) {
             self._completeWechatAuth(resp);
-            return self._bindPhoneAfterWechat();
           })
           .then(function () {
             self._trackLoginSuccess("register_wechat");
@@ -260,7 +249,7 @@ Page({
           .then(function (resp) {
             var inner = resp.data || resp;
             if (inner && inner.token) {
-              auth.setToken(inner.token, auth.extractUserIdFromAuthPayload(resp));
+              auth.setToken(inner.token);
             }
             self._trackLoginSuccess("register_wechat_phone");
             self._reLaunchAfterAuth();

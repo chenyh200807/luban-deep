@@ -8,6 +8,7 @@ var MAX_RETRIES = 2; // 最大重试次数
 var RETRY_BASE_DELAY = 1000; // 首次重试延迟 ms
 var REQUEST_TIMEOUT = 15000; // 请求超时 ms
 var RETRYABLE_METHODS = { GET: true, PUT: true, DELETE: true }; // 幂等方法才重试
+var IN_FLIGHT_REQUESTS = Object.create(null);
 
 function relaunchLogin() {
   runtime.redirectToLogin();
@@ -28,6 +29,20 @@ function unwrapResponse(raw) {
   return raw;
 }
 
+function requestStateGet(url, opts) {
+  return request(
+    Object.assign(
+      {
+        url: url,
+        method: "GET",
+        dedupeInFlight: true,
+        noRetry: true,
+      },
+      opts || {},
+    ),
+  );
+}
+
 /**
  * 通用请求（带 token 自动注入 + 指数退避重试 + Token 刷新）
  * @param {object} opts - { url, method, data, useGateway, noAuth, _retryCount }
@@ -45,6 +60,10 @@ function request(opts) {
   var baseUrl = baseCandidates[baseIndex] || getBaseUrl(useGateway);
   var fullUrl = opts.url.startsWith("http") ? opts.url : baseUrl + opts.url;
   var token = auth.getToken();
+  var inFlightKey =
+    method === "GET" && opts.dedupeInFlight
+      ? [method, fullUrl, noAuth ? "" : token || ""].join("::")
+      : "";
 
   var header = {
     "Content-Type": "application/json",
@@ -54,7 +73,11 @@ function request(opts) {
     header["Authorization"] = "Bearer " + token;
   }
 
-  return new Promise(function (resolve, reject) {
+  if (inFlightKey && IN_FLIGHT_REQUESTS[inFlightKey]) {
+    return IN_FLIGHT_REQUESTS[inFlightKey];
+  }
+
+  var pendingPromise = new Promise(function (resolve, reject) {
     wx.request({
       url: fullUrl,
       method: method,
@@ -114,6 +137,7 @@ function request(opts) {
         // 5xx 服务端错误 — 可重试
         if (
           res.statusCode >= 500 &&
+          !opts.noRetry &&
           RETRYABLE_METHODS[method] &&
           retryCount < MAX_RETRIES
         ) {
@@ -168,6 +192,10 @@ function request(opts) {
 
         // 网络错误 — 幂等请求可重试
         if (RETRYABLE_METHODS[method] && retryCount < MAX_RETRIES) {
+          if (opts.noRetry) {
+            reject(new Error("NETWORK_ERROR: " + (err.errMsg || "unknown")));
+            return;
+          }
           var delay = RETRY_BASE_DELAY * Math.pow(2, retryCount);
           console.warn(
             "[API] Network error on " +
@@ -192,6 +220,21 @@ function request(opts) {
       },
     });
   });
+
+  if (inFlightKey) {
+    IN_FLIGHT_REQUESTS[inFlightKey] = pendingPromise;
+    pendingPromise.then(function () {
+      if (IN_FLIGHT_REQUESTS[inFlightKey] === pendingPromise) {
+        delete IN_FLIGHT_REQUESTS[inFlightKey];
+      }
+    }, function () {
+      if (IN_FLIGHT_REQUESTS[inFlightKey] === pendingPromise) {
+        delete IN_FLIGHT_REQUESTS[inFlightKey];
+      }
+    });
+  }
+
+  return pendingPromise;
 }
 
 // ── Gateway 接口 ─────────────────────────────────────────────
@@ -221,22 +264,22 @@ function bindPhone(phoneCode) {
 
 /** 获取用户信息 */
 function getUserInfo() {
-  return request({ url: "/api/v1/auth/profile", method: "GET" });
+  return requestStateGet("/api/v1/auth/profile");
 }
 
 /** 获取今日练习进度 */
 function getTodayProgress() {
-  return request({ url: "/api/v1/practice/today-progress", method: "GET" });
+  return requestStateGet("/api/v1/practice/today-progress");
 }
 
 /** 获取章节进度 */
 function getChapterProgress() {
-  return request({ url: "/api/v1/practice/chapter-progress", method: "GET" });
+  return requestStateGet("/api/v1/practice/chapter-progress");
 }
 
 /** 获取用户积分 */
 function getPoints() {
-  return request({ url: "/api/v1/billing/points", method: "GET" });
+  return requestStateGet("/api/v1/billing/points");
 }
 
 /** 更新用户设置 */
@@ -250,35 +293,29 @@ function updateSettings(settings) {
 
 /** 获取成就徽章 */
 function getBadges() {
-  return request({ url: "/api/v1/profile/badges", method: "GET" });
+  return requestStateGet("/api/v1/profile/badges");
 }
 
 /** 获取每日一题 */
 function getDailyQuestion() {
-  return request({ url: "/api/v1/practice/daily-question", method: "GET" });
+  return requestStateGet("/api/v1/practice/daily-question");
 }
 
 /** 获取能力雷达数据（8D 维度） */
 function getRadarData(userId) {
-  return request({
-    url: "/api/v1/bi/radar/" + userId,
-    method: "GET",
-  });
+  return requestStateGet("/api/v1/bi/radar/" + userId);
 }
 
 /** 获取掌握度看板（章节掌握度 + 易错热点 + 复习预报） */
 function getMasteryDashboard() {
-  return request({
-    url: "/api/v1/plan/mastery-dashboard",
-    method: "GET",
-  });
+  return requestStateGet("/api/v1/plan/mastery-dashboard");
 }
 
 /** 获取对话列表 */
 function getConversations(archived) {
   var url = "/api/v1/conversations";
   if (archived === true) url += "?archived=true";
-  return request({ url: url, method: "GET" });
+  return requestStateGet(url);
 }
 
 /** 创建新对话 */
@@ -297,10 +334,7 @@ function startChatTurn(payload) {
 
 /** 获取对话消息 */
 function getConversationMessages(convId) {
-  return request({
-    url: "/api/v1/conversations/" + convId + "/messages",
-    method: "GET",
-  });
+  return requestStateGet("/api/v1/conversations/" + convId + "/messages");
 }
 
 /** 删除对话 */
@@ -319,17 +353,14 @@ function batchConversations(action, conversationIds) {
 
 /** 获取钱包余额 */
 function getWallet() {
-  return request({ url: "/api/v1/billing/wallet", method: "GET" });
+  return requestStateGet("/api/v1/billing/wallet");
 }
 
 /** 获取积分流水（支持分页） */
 function getLedger(limit, offset) {
   var q = "?limit=" + (limit || 20);
   if (offset) q += "&offset=" + offset;
-  return request({
-    url: "/api/v1/billing/ledger" + q,
-    method: "GET",
-  });
+  return requestStateGet("/api/v1/billing/ledger" + q);
 }
 
 /** 提交消息反馈（点赞/点踩） */
@@ -355,12 +386,12 @@ function submitFeedback(data) {
 
 /** 获取首页仪表盘（问候/复习/薄弱点） */
 function getHomeDashboard() {
-  return request({ url: "/api/v1/homepage/dashboard", method: "GET" });
+  return requestStateGet("/api/v1/homepage/dashboard");
 }
 
 /** 摸底测试 — 获取诊断档案 */
 function getAssessmentProfile() {
-  return request({ url: "/api/v1/assessment/profile", method: "GET" });
+  return requestStateGet("/api/v1/assessment/profile");
 }
 
 /** 摸底测试 — 创建测试 */

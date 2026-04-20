@@ -3,6 +3,14 @@ var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
 var analytics = require("../../utils/analytics");
+
+function showSmsSentFeedback(message) {
+  wx.showToast({
+    title: message || "验证码发送成功",
+    icon: "none",
+  });
+}
+
 Page({
   data: {
     statusBarHeight: 44,
@@ -62,8 +70,10 @@ Page({
         .then(function () {
           self._reLaunchAfterAuth();
         })
-        .catch(function () {
-          auth.clearToken();
+        .catch(function (err) {
+          if (String((err && err.message) || "") === "AUTH_EXPIRED") {
+            auth.clearToken();
+          }
         });
     }
   },
@@ -141,9 +151,8 @@ Page({
           resp.token ||
           resp._token ||
           user._token;
-        var userId = auth.extractUserIdFromAuthPayload(resp);
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
-        auth.setToken(token, userId);
+        auth.setToken(token);
         self._trackLoginSuccess("password");
         self._reLaunchAfterAuth();
       })
@@ -204,10 +213,13 @@ Page({
         if (outerCode === 0 || sent) {
           // Success: start countdown
           var debugCode = (dataObj && dataObj.debug_code) || inner.debug_code || "";
+          var successMsg =
+            (dataObj && dataObj.message) || inner.message || resp.message || "验证码发送成功";
           var nextData = { codeCountdown: retryAfter, loading: false };
           if (debugCode) nextData.phoneCode = debugCode;
           self.setData(nextData);
           self._startCountdown(retryAfter);
+          showSmsSentFeedback(successMsg);
           if (debugCode) {
             wx.showModal({
               title: "测试验证码",
@@ -262,11 +274,9 @@ Page({
       })
       .then(function (resp) {
         var inner = resp.data || resp;
-        var user = inner.user || {};
         var token = inner.token;
-        var userId = user.id || inner.id;
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
-        auth.setToken(token, userId);
+        auth.setToken(token);
         self._trackLoginSuccess("phone_code");
         self._reLaunchAfterAuth();
       })
@@ -307,24 +317,10 @@ Page({
   },
   _completeWechatAuth: function (payload) {
     var inner = payload && (payload.data || payload);
-    var user = (inner && inner.user) || {};
     var token = inner && inner.token;
-    var userId = auth.extractUserIdFromAuthPayload(payload);
     if (!token) throw new Error("服务端未返回凭证");
-    auth.setToken(token, userId);
-    return { token: token, userId: userId };
-  },
-  _bindPhoneAfterWechat: function (token) {
-    var phone = (this.data.username || "").trim();
-    if (!phone || phone.length < 11) return Promise.resolve();
-    return api
-      .bindPhone(phone)
-      .then(function (resp) {
-        var inner = resp.data || resp;
-        if (inner && inner.token) {
-          auth.setToken(inner.token, auth.extractUserIdFromAuthPayload(resp));
-        }
-      });
+    auth.setToken(token);
+    return { token: token };
   },
   handleWechatLogin: function () {
     var self = this;
@@ -339,8 +335,7 @@ Page({
         api
           .wxLogin(loginRes.code)
           .then(function (resp) {
-            var authInfo = self._completeWechatAuth(resp);
-            return self._bindPhoneAfterWechat(authInfo.token);
+            self._completeWechatAuth(resp);
           })
           .then(function () {
             self._trackLoginSuccess("wechat");
@@ -395,7 +390,7 @@ Page({
           .then(function (resp) {
             var inner = resp.data || resp;
             if (inner && inner.token) {
-              auth.setToken(inner.token, auth.extractUserIdFromAuthPayload(resp));
+              auth.setToken(inner.token);
             }
             self._trackLoginSuccess("wechat_phone");
             self._reLaunchAfterAuth();

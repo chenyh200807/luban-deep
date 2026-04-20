@@ -1,11 +1,12 @@
 // pages/report/report.js — 学习报告：能力雷达 + 摸底报告
 
 const api = require("../../utils/api");
-const auth = require("../../utils/auth");
 const helpers = require("../../utils/helpers");
 const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
 const flags = require("../../utils/flags");
+
+const RADAR_SELF_SUBJECT = "self";
 
 function _buildRadarSignature(dims) {
   return (dims || [])
@@ -146,6 +147,7 @@ Page({
   _radarRenderPending: false,
   _radarImageSignature: "",
   _radarSignature: "",
+  _reportSnapshot: null,
 
   onLoad() {
     const windowInfo = helpers.getWindowInfo();
@@ -168,16 +170,51 @@ Page({
       hidden: !flags.shouldShowWorkspaceShell(),
     });
     runtime.checkAuth(() => {
-      this._loadOverview();
-      this._loadRadar();
-      this._loadMastery();
-      this._loadPoints();
+      this.setData({
+        radarLoading: true,
+        masteryLoading: true,
+        radarError: false,
+        masteryError: false,
+      });
+      this._loadReportPage();
     });
   },
 
-  async _loadPoints() {
+  async _loadReportSnapshot() {
+    const tasks = [
+      api.getTodayProgress().catch(() => null),
+      api.getHomeDashboard().catch(() => null),
+      api.getAssessmentProfile().catch(() => null),
+      api.getMasteryDashboard().catch(() => null),
+      api.getWallet().catch(() => null),
+    ];
+    const result = await Promise.all(tasks);
+    return {
+      progress: api.unwrapResponse(result[0]) || {},
+      home: api.unwrapResponse(result[1]) || {},
+      assessment: api.unwrapResponse(result[2]) || {},
+      mastery: api.unwrapResponse(result[3]) || {},
+      wallet: api.unwrapResponse(result[4]) || {},
+    };
+  },
+
+  async _loadReportPage() {
+    var snapshot = await this._loadReportSnapshot();
+    this._reportSnapshot = snapshot;
+    await Promise.all([
+      this._loadOverview(snapshot),
+      this._loadPoints(snapshot),
+      this._loadRadar(snapshot),
+      this._loadMastery(snapshot),
+    ]);
+  },
+
+  async _loadPoints(snapshot) {
     try {
-      const data = await api.getWallet();
+      const data =
+        snapshot && snapshot.wallet
+          ? snapshot.wallet
+          : api.unwrapResponse(await api.getWallet()) || {};
       this.setData({ userPoints: data.balance || 0 });
     } catch (_) {}
   },
@@ -212,18 +249,20 @@ Page({
     wx.navigateTo({ url: route.assessment() });
   },
 
-  async _loadOverview() {
+  async _loadOverview(snapshot) {
     try {
-      const tasks = [
-        api.getTodayProgress().catch(() => null),
-        api.getHomeDashboard().catch(() => null),
-        api.getAssessmentProfile().catch(() => null),
-      ];
-
-      const result = await Promise.all(tasks);
-      const progress = api.unwrapResponse(result[0]) || {};
-      const home = api.unwrapResponse(result[1]) || {};
-      const assessment = api.unwrapResponse(result[2]) || {};
+      const progress =
+        snapshot && snapshot.progress
+          ? snapshot.progress
+          : api.unwrapResponse(await api.getTodayProgress()) || {};
+      const home =
+        snapshot && snapshot.home
+          ? snapshot.home
+          : api.unwrapResponse(await api.getHomeDashboard()) || {};
+      const assessment =
+        snapshot && snapshot.assessment
+          ? snapshot.assessment
+          : api.unwrapResponse(await api.getAssessmentProfile()) || {};
 
       const weakNodes = ((home.mastery || {}).weak_nodes || []).filter(Boolean);
       const diagnosticFeedback = assessment.diagnostic_feedback || {};
@@ -248,25 +287,24 @@ Page({
   },
 
   // ── 加载学情数据（统一使用 assessment profile API）────
-  async _loadRadar() {
+  async _loadRadar(snapshot) {
     try {
       var dims = [];
-      var result = await api.getAssessmentProfile();
-      var assessmentData = api.unwrapResponse(result) || {};
+      var assessmentData =
+        snapshot && snapshot.assessment
+          ? snapshot.assessment
+          : api.unwrapResponse(await api.getAssessmentProfile()) || {};
       dims = _buildRadarDimensionsFromAssessment(assessmentData);
 
       if (!dims.length || !_hasPositiveRadarSignal(dims)) {
-        var userId = auth.getUserId();
-        if (userId) {
-          try {
-            var radarResult = await api.getRadarData(userId);
-            var radarData = api.unwrapResponse(radarResult) || {};
-            var radarDims = _normalizeRadarDimensions(radarData);
-            if (radarDims.length && _hasPositiveRadarSignal(radarDims)) {
-              dims = radarDims;
-            }
-          } catch (_) {}
-        }
+        try {
+          var radarResult = await api.getRadarData(RADAR_SELF_SUBJECT);
+          var radarData = api.unwrapResponse(radarResult) || {};
+          var radarDims = _normalizeRadarDimensions(radarData);
+          if (radarDims.length && _hasPositiveRadarSignal(radarDims)) {
+            dims = radarDims;
+          }
+        } catch (_) {}
       }
 
       if (dims.length === 0) {
@@ -292,17 +330,14 @@ Page({
     } catch (e) {
       try {
         var fallbackDims = [];
-        var userId = auth.getUserId();
-        if (userId) {
-          try {
-            var radarFallback = await api.getRadarData(userId);
-            var radarFallbackData = api.unwrapResponse(radarFallback) || {};
-            var radarDims = _normalizeRadarDimensions(radarFallbackData);
-            if (radarDims.length && _hasPositiveRadarSignal(radarDims)) {
-              fallbackDims = radarDims;
-            }
-          } catch (_) {}
-        }
+        try {
+          var radarFallback = await api.getRadarData(RADAR_SELF_SUBJECT);
+          var radarFallbackData = api.unwrapResponse(radarFallback) || {};
+          var radarDims = _normalizeRadarDimensions(radarFallbackData);
+          if (radarDims.length && _hasPositiveRadarSignal(radarDims)) {
+            fallbackDims = radarDims;
+          }
+        } catch (_) {}
         if (!fallbackDims.length) {
           this.setData({ radarLoading: false, radarError: true });
           return;
@@ -329,10 +364,12 @@ Page({
   },
 
   // ── 加载掌握度数据（也从 assessment profile 获取）────
-  async _loadMastery() {
+  async _loadMastery(snapshot) {
     try {
-      var result = await api.getMasteryDashboard();
-      var data = api.unwrapResponse(result) || {};
+      var data =
+        snapshot && snapshot.mastery
+          ? snapshot.mastery
+          : api.unwrapResponse(await api.getMasteryDashboard()) || {};
       var groups = (data.groups || []).map(function (group) {
         return {
           name: group.name || "",
@@ -362,8 +399,10 @@ Page({
       var reviewSummary = data.review_summary || { total_due: 0, overdue_count: 0 };
 
       if (!groups.length && !overall) {
-        var fallback = await api.getAssessmentProfile();
-        var fallbackData = api.unwrapResponse(fallback) || {};
+        var fallbackData =
+          snapshot && snapshot.assessment
+            ? snapshot.assessment
+            : api.unwrapResponse(await api.getAssessmentProfile()) || {};
         var cm = fallbackData.chapter_mastery || {};
         var weakChapters = [];
         var normalChapters = [];

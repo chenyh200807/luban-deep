@@ -112,6 +112,25 @@ run("cached launch redirect still works without explicit home intent", function 
   );
 });
 
+run("cold launch should go directly to freeCourse without legacy gettopzm request", function () {
+  var setup = loadIndexPage();
+
+  setup.page.onLoad({});
+
+  assert(
+    setup.requestCalls.length === 0,
+    "cold launch should no longer depend on legacy gettopzm",
+  );
+  assert(
+    setup.reLaunchCalls.length === 1,
+    "cold launch should relaunch directly to freeCourse",
+  );
+  assert(
+    setup.reLaunchCalls[0] && setup.reLaunchCalls[0].url === "/pages/freeCourse/freeCourse",
+    "cold launch should target freeCourse as the single host home",
+  );
+});
+
 run("chat home button should target index with explicit forceHome flag", function () {
   var appSource = fs.readFileSync(
     path.join(__dirname, "../app.js"),

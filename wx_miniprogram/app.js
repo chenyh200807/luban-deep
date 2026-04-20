@@ -64,7 +64,6 @@ const _RUNTIME_CANDIDATES =
 App({
   globalData: {
     token: null,
-    userId: null,
     userInfo: null,
     goHomeFlag: false,
     pendingChatQuery: "",
@@ -181,7 +180,6 @@ App({
   logout() {
     auth.clearToken();
     this.globalData.token = null;
-    this.globalData.userId = null;
     this.globalData.userInfo = null;
     if (this.globalData._authRedirecting) return;
     this.globalData._authRedirecting = true;

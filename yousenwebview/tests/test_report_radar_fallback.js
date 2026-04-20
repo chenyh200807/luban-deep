@@ -61,10 +61,12 @@ function createPageInstance(pageDef, data) {
 async function run() {
   var radarCalls = 0;
   var profileCalls = 0;
+  var requestedUserId = "";
   var pageDef = loadReportPage({
     api: {
-      getRadarData: async function () {
+      getRadarData: async function (userId) {
         radarCalls++;
+        requestedUserId = userId;
         return {
           dimensions: [
             { label: "建筑构造", score: 80, value: 0.8 },
@@ -82,7 +84,7 @@ async function run() {
     },
     auth: {
       getUserId: function () {
-        return "stale_user_alias";
+        throw new Error("report radar fallback should not read auth storage");
       },
     },
     helpers: {
@@ -104,10 +106,19 @@ async function run() {
 
   assert(profileCalls === 1, "report radar flow should try assessment profile first");
   assert(radarCalls === 1, "report radar flow should fall back to dedicated radar when assessment fails");
+  assert(requestedUserId === "self", "report radar fallback should use the authenticated self subject");
   assert(page.data.radarLoading === false, "report radar flow should finish loading after radar fallback succeeds");
   assert(page.data.radarError === false, "report radar fallback should not leave the page in error state");
-  assert(page.data.radarDimensions.length === 2, "report radar fallback should still populate dimensions");
-  assert(page.data.radarDimensions[0].name === "建筑构造", "report radar fallback should preserve radar labels");
+  assert(
+    Array.isArray(page.data.radarDimensions) && page.data.radarDimensions.length === 2,
+    "report radar fallback should still populate dimensions",
+  );
+  assert(
+    page.data.radarDimensions &&
+      page.data.radarDimensions[0] &&
+      page.data.radarDimensions[0].name === "建筑构造",
+    "report radar fallback should preserve radar labels",
+  );
   assert(page.data.avgScore === 60, "report radar fallback should recompute average score from radar dimensions");
 
   if (fail) {

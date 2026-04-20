@@ -56,8 +56,10 @@ Page({
         .then(function () {
           wx.switchTab({ url: "/pages/chat/chat" });
         })
-        .catch(function () {
-          auth.clearToken();
+        .catch(function (err) {
+          if (String((err && err.message) || "") === "AUTH_EXPIRED") {
+            auth.clearToken();
+          }
         });
     }
   },
@@ -109,9 +111,8 @@ Page({
         var inner = resp.data || resp;
         var user = inner.user || resp.user || {};
         var token = inner.token || inner._token || resp.token || resp._token || user._token;
-        var userId = user.id || user.user_id || inner.id || resp.id;
         if (!token) throw new Error("服务端未返回凭证");
-        auth.setToken(token, userId);
+        auth.setToken(token);
         wx.switchTab({ url: "/pages/chat/chat" });
       })
       .catch(function (err) {
@@ -140,22 +141,9 @@ Page({
   },
   _completeWechatAuth: function (payload) {
     var inner = payload && (payload.data || payload);
-    var user = (inner && inner.user) || {};
     var token = inner && inner.token;
-    var userId = user.id || user.user_id || inner.id;
     if (!token) throw new Error("服务端未返回凭证");
-    auth.setToken(token, userId);
-  },
-  _bindPhoneAfterWechat: function () {
-    var phone = (this.data.phone || "").trim();
-    if (!phone || phone.length < 11) return Promise.resolve();
-    return api.bindPhone(phone).then(function (resp) {
-      var inner = resp.data || resp;
-      if (inner && inner.token) {
-        var user = inner.user || {};
-        auth.setToken(inner.token, user.id || user.user_id);
-      }
-    });
+    auth.setToken(token);
   },
   handleWechatRegister: function () {
     var self = this;
@@ -171,7 +159,6 @@ Page({
           .wxLogin(loginRes.code)
           .then(function (resp) {
             self._completeWechatAuth(resp);
-            return self._bindPhoneAfterWechat();
           })
           .then(function () {
             wx.switchTab({ url: "/pages/chat/chat" });
@@ -222,8 +209,7 @@ Page({
           .then(function (resp) {
             var inner = resp.data || resp;
             if (inner && inner.token) {
-              var user = inner.user || {};
-              auth.setToken(inner.token, user.id || user.user_id);
+              auth.setToken(inner.token);
             }
             wx.switchTab({ url: "/pages/chat/chat" });
           })

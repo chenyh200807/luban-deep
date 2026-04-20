@@ -518,7 +518,6 @@ App({
       return;
     }
     this.globalData.token = token;
-    this.globalData.userId = wx.getStorageSync(USER_ID_KEY) || null;
     if (callback) callback(token);
   },
 
@@ -663,7 +662,6 @@ App({
   logout() {
     clearStoredToken();
     this.globalData.token = null;
-    this.globalData.userId = null;
     this.globalData.userInfo = null;
     if (this.globalData._authRedirecting) {
       return;
@@ -681,7 +679,6 @@ App({
     userInfo: null,
     pathurl_route: null,
     token: null,
-    userId: null,
     goHomeFlag: false,
     pendingChatQuery: "",
     pendingChatMode: "AUTO",

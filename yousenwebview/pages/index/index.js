@@ -2,6 +2,7 @@
 const LAUNCH_CACHE_KEY = "yousen_launch_cache";
 const LAUNCH_CACHE_TTL = 12 * 60 * 60 * 1000;
 const WEB_VIEW_FALLBACK = "__WEB_VIEW__";
+const HOST_HOME_URL = "/pages/freeCourse/freeCourse";
 
 function normalizeBooleanFlag(value) {
   if (value === undefined || value === null || value === "") {
@@ -158,11 +159,10 @@ Page({
     this._launchFinished = false;
     if (shouldForceHome(options)) {
       clearCachedLaunchState();
-      this.fallbackToWebView();
+      this.redirectToLaunchTarget(HOST_HOME_URL);
       return;
     }
     var cachedLaunchState = readCachedLaunchState(false);
-    var staleLaunchState = cachedLaunchState || readCachedLaunchState(true);
     if (cachedLaunchState && cachedLaunchState.target) {
       syncDeeptutorEntryFlag(cachedLaunchState.payload);
       if (cachedLaunchState.target === WEB_VIEW_FALLBACK) {
@@ -172,30 +172,6 @@ Page({
       this.redirectToLaunchTarget(cachedLaunchState.target);
       return;
     }
-    wx.request({
-      url: 'https://www.yousenjiaoyu.com/gettopzm',
-      method : 'POST',
-      data:{
-        act : '1'
-      },
-      header: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      success: (res) => {
-        this.resolveLaunchResponse(res.data);
-      },
-      fail: () => {
-        if (staleLaunchState && staleLaunchState.target) {
-          syncDeeptutorEntryFlag(staleLaunchState.payload);
-          if (staleLaunchState.target === WEB_VIEW_FALLBACK) {
-            this.fallbackToWebView();
-            return;
-          }
-          this.redirectToLaunchTarget(staleLaunchState.target);
-          return;
-        }
-        this.fallbackToWebView();
-      }
-    })
+    this.redirectToLaunchTarget(HOST_HOME_URL);
   }
 })

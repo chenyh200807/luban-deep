@@ -113,12 +113,17 @@ function request(opts) {
         }
 
         if (res.statusCode === 401) {
+          if (noAuth) {
+            reject(
+              new Error("HTTP_401: " + JSON.stringify(res.data)),
+            );
+            return;
+          }
           // Token 过期 — 清除并跳转登录
           auth.clearToken();
           var app = getApp_();
           if (app) {
             app.globalData.token = null;
-            app.globalData.userId = null;
           }
           relaunchLogin();
           reject(new Error("AUTH_EXPIRED"));

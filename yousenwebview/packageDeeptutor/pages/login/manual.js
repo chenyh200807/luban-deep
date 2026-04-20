@@ -4,6 +4,13 @@ var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
 var analytics = require("../../utils/analytics");
 
+function showSmsSentFeedback(message) {
+  wx.showToast({
+    title: message || "验证码发送成功",
+    icon: "none",
+  });
+}
+
 Page({
   data: {
     statusBarHeight: 44,
@@ -39,8 +46,10 @@ Page({
         .then(function () {
           self._reLaunchAfterAuth();
         })
-        .catch(function () {
-          auth.clearToken();
+        .catch(function (err) {
+          if (String((err && err.message) || "") === "AUTH_EXPIRED") {
+            auth.clearToken();
+          }
         });
     }
   },
@@ -143,10 +152,13 @@ Page({
 
         if (outerCode === 0 || sent) {
           var debugCode = (dataObj && dataObj.debug_code) || inner.debug_code || "";
+          var successMsg =
+            (dataObj && dataObj.message) || inner.message || resp.message || "验证码发送成功";
           var nextData = { codeCountdown: retryAfter, loading: false };
           if (debugCode) nextData.phoneCode = debugCode;
           self.setData(nextData);
           self._startCountdown(retryAfter);
+          showSmsSentFeedback(successMsg);
           if (debugCode) {
             wx.showModal({
               title: "测试验证码",
@@ -200,9 +212,8 @@ Page({
       .then(function (resp) {
         var inner = resp.data || resp;
         var token = inner.token;
-        var userId = auth.extractUserIdFromAuthPayload(resp);
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
-        auth.setToken(token, userId);
+        auth.setToken(token);
         self._trackLoginSuccess("phone_code");
         self._reLaunchAfterAuth();
       })
@@ -245,9 +256,8 @@ Page({
         var inner = resp.data || resp;
         var user = inner.user || resp.user || {};
         var token = inner.token || inner._token || resp.token || resp._token || user._token;
-        var userId = auth.extractUserIdFromAuthPayload(resp);
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
-        auth.setToken(token, userId);
+        auth.setToken(token);
         self._trackLoginSuccess("password");
         self._reLaunchAfterAuth();
       })

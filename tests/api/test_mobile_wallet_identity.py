@@ -108,7 +108,7 @@ def test_billing_wallet_prefers_canonical_uid_claim(monkeypatch: pytest.MonkeyPa
     assert captured["user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
 
 
-def test_profile_endpoint_uses_canonical_wallet_identity(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_profile_endpoint_uses_single_canonical_identity(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, object] = {}
 
     def _fake_verify_access_token(_token: str) -> dict[str, str]:
@@ -148,7 +148,7 @@ def test_profile_endpoint_uses_canonical_wallet_identity(monkeypatch: pytest.Mon
     assert response.json()["display_name"] == "铁"
     assert response.json()["points"] == 999
     assert response.json()["balance_micros"] == 999_000_000
-    assert captured["user_id"] == "user_2008"
+    assert captured["user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     assert captured["wallet_user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
 
 
@@ -239,14 +239,14 @@ def test_billing_points_and_ledger_use_wallet_service(monkeypatch: pytest.Monkey
     assert captured["ledger_offset"] == 0
 
 
-def test_homepage_dashboard_uses_profile_source_identity_for_learning_state(
+def test_homepage_dashboard_uses_single_canonical_identity(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, object] = {}
 
     monkeypatch.setattr(
         mobile_module,
-        "_resolve_learning_user_id",
+        "_resolve_authenticated_user_id",
         lambda _authorization: "legacy_user_2008",
     )
     monkeypatch.setattr(
@@ -265,16 +265,11 @@ def test_homepage_dashboard_uses_profile_source_identity_for_learning_state(
     assert captured["user_id"] == "legacy_user_2008"
 
 
-def test_homepage_dashboard_prefers_token_source_uid_for_learning_state(
+def test_homepage_dashboard_prefers_canonical_uid_claim(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, object] = {}
 
-    monkeypatch.setattr(
-        mobile_module,
-        "resolve_wallet_user_id",
-        lambda _authorization: "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
-    )
     monkeypatch.setattr(
         mobile_module.member_service,
         "verify_access_token",
@@ -297,4 +292,4 @@ def test_homepage_dashboard_prefers_token_source_uid_for_learning_state(
         response = client.get("/api/v1/homepage/dashboard", headers={"Authorization": "Bearer test-token"})
 
     assert response.status_code == 200
-    assert captured["user_id"] == "user_2008"
+    assert captured["user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"

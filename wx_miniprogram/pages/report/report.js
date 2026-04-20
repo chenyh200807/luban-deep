@@ -1,8 +1,9 @@
 // pages/report/report.js — 学习报告：能力雷达 + 摸底报告
 
 const api = require("../../utils/api");
-const auth = require("../../utils/auth");
 const helpers = require("../../utils/helpers");
+
+const RADAR_SELF_SUBJECT = "self";
 
 function buildRadarDimensionsFromAssessment(data) {
   var mastery = (data && data.chapter_mastery) || {};
@@ -179,17 +180,14 @@ Page({
       dims = buildRadarDimensionsFromAssessment(data);
 
       if (!dims.length || !hasPositiveRadarSignal(dims)) {
-        var userId = auth.getUserId();
-        if (userId) {
-          try {
-            var radarResult = await api.getRadarData(userId);
-            var radarData = api.unwrapResponse(radarResult) || {};
-            var radarDims = normalizeRadarDimensions(radarData);
-            if (radarDims.length && hasPositiveRadarSignal(radarDims)) {
-              dims = radarDims;
-            }
-          } catch (_) {}
-        }
+        try {
+          var radarResult = await api.getRadarData(RADAR_SELF_SUBJECT);
+          var radarData = api.unwrapResponse(radarResult) || {};
+          var radarDims = normalizeRadarDimensions(radarData);
+          if (radarDims.length && hasPositiveRadarSignal(radarDims)) {
+            dims = radarDims;
+          }
+        } catch (_) {}
       }
 
       if (dims.length === 0) {

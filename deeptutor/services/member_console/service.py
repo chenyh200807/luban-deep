@@ -954,15 +954,19 @@ class MemberConsoleService:
         self,
         *,
         user_id: str,
+        canonical_uid: str = "",
         openid: str = "",
         unionid: str = "",
         ttl_seconds: int = 60 * 60 * 24 * 30,
     ) -> str:
         now = int(_now().timestamp())
+        resolved_user_id = str(user_id or "").strip()
+        canonical_user_id = str(canonical_uid or resolved_user_id).strip()
         payload = {
             "v": 1,
-            "sub": user_id,
-            "uid": user_id,
+            "sub": canonical_user_id,
+            "uid": canonical_user_id,
+            "canonical_uid": canonical_user_id,
             "openid": openid,
             "unionid": unionid,
             "provider": "wechat_mp" if openid else "local",
@@ -1037,6 +1041,16 @@ class MemberConsoleService:
                 "Missing WeChat Mini Program credentials. Set WECHAT_MP_APP_ID and WECHAT_MP_APP_SECRET."
             )
         return app_id, app_secret
+
+    @staticmethod
+    def _normalize_wechat_upstream_error(exc: Exception, action: str) -> RuntimeError:
+        if isinstance(exc, httpx.TimeoutException):
+            return RuntimeError(f"WeChat {action} request timed out. Please try again.")
+        if isinstance(exc, httpx.HTTPError):
+            return RuntimeError(f"WeChat {action} request failed. Please try again.")
+        if isinstance(exc, RuntimeError):
+            return exc
+        return RuntimeError(f"WeChat {action} request failed. Please try again.")
 
     async def _exchange_wechat_code(self, code: str) -> dict[str, Any]:
         app_id, app_secret = self._get_wechat_mp_credentials()
@@ -1354,8 +1368,8 @@ class MemberConsoleService:
     def resolve_user_id(self, auth_header: str | None = None, user_id: str | None = None) -> str:
         token = self._extract_access_token(auth_header)
         verified = self.verify_access_token(token)
-        if verified and str(verified.get("uid") or "").strip():
-            return str(verified["uid"]).strip()
+        if verified and str(verified.get("canonical_uid") or verified.get("uid") or "").strip():
+            return str(verified.get("canonical_uid") or verified.get("uid") or "").strip()
         return ""
 
     def _build_auth_response(
@@ -2620,9 +2634,10 @@ class MemberConsoleService:
             raise ValueError("code is required")
         try:
             session_payload = await self._exchange_wechat_code(normalized)
-        except RuntimeError:
+        except (RuntimeError, httpx.HTTPError) as exc:
+            normalized_exc = self._normalize_wechat_upstream_error(exc, "code2Session")
             if not self._supports_dev_wechat_login(normalized):
-                raise
+                raise normalized_exc
             session_payload = self._mock_wechat_session(normalized)
         openid = str(session_payload.get("openid") or "").strip()
         unionid = str(session_payload.get("unionid") or "").strip()
@@ -2637,6 +2652,11 @@ class MemberConsoleService:
             if target is None:
                 user_id = f"wx_{openid[-12:]}".replace("-", "_")
                 target = self._ensure_member(data, user_id)
+            else:
+                merged_into = str(target.get("merged_into") or "").strip()
+                current_user_id = str(target.get("user_id") or "").strip()
+                if merged_into and merged_into != current_user_id:
+                    target = self._ensure_member(data, merged_into)
             target["display_name"] = target.get("display_name") or f"微信用户{target['user_id'][-4:]}"
             target["last_active_at"] = _iso()
             target["wx_openid"] = openid
@@ -2661,18 +2681,19 @@ class MemberConsoleService:
     async def bind_phone_for_wechat(self, user_id: str, phone_code: str) -> dict[str, Any]:
         raw_code = str(phone_code or "").strip()
         if not raw_code:
-            raise ValueError("valid phone_code or phone is required")
+            raise ValueError("valid phone_code is required")
 
         normalized = _normalize_phone_input(raw_code)
         if len(normalized) != 11:
             try:
                 normalized = await self._exchange_wechat_phone_code(raw_code)
-            except RuntimeError:
+            except (RuntimeError, httpx.HTTPError) as exc:
+                normalized_exc = self._normalize_wechat_upstream_error(exc, "getuserphonenumber")
                 if not self._supports_dev_wechat_login(raw_code):
-                    raise
+                    raise normalized_exc
                 normalized = _normalize_phone_input("13800000000" + raw_code[-4:])
-            if len(normalized) != 11:
-                raise ValueError("valid phone_code or phone is required")
+        if len(normalized) != 11:
+            raise ValueError("valid phone_code is required")
 
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             current = self._ensure_member(data, user_id)
@@ -2683,6 +2704,7 @@ class MemberConsoleService:
                 for key in ("wx_openid", "wx_unionid", "wx_session_key", "wx_last_login_at"):
                     if current.get(key):
                         target[key] = current[key]
+                        current[key] = ""
                 target["phone"] = normalized
                 target["last_active_at"] = _iso()
                 current["merged_into"] = target["user_id"]

@@ -10,7 +10,7 @@ import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from deeptutor.api.dependencies import AuthContext, require_self_or_admin, resolve_wallet_user_id, route_rate_limit
+from deeptutor.api.dependencies import AuthContext, require_self_or_admin, resolve_auth_context, route_rate_limit
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.learner_state import LearnerStateService
@@ -52,41 +52,11 @@ def _ts_to_iso(timestamp: float | int | None) -> str:
     return datetime.fromtimestamp(float(timestamp)).isoformat()
 
 
-def _resolve_user_id(authorization: str | None, user_id: str | None = None) -> str:
-    resolved = resolve_wallet_user_id(authorization)
-    if not str(resolved or "").strip():
-        resolved = member_service.resolve_user_id(authorization, user_id=user_id)
-    if not str(resolved or "").strip():
+def _resolve_authenticated_user_id(authorization: str | None) -> str:
+    current_user = resolve_auth_context(authorization)
+    if current_user is None or not str(current_user.user_id or "").strip():
         raise HTTPException(status_code=401, detail="Authentication required")
-    return resolved
-
-
-def _resolve_wallet_principal(authorization: str | None) -> str:
-    resolved = resolve_wallet_user_id(authorization)
-    if not str(resolved or "").strip():
-        raise HTTPException(status_code=401, detail="Authentication required")
-    return resolved
-
-
-def _resolve_learning_user_id(authorization: str | None) -> str:
-    wallet_user_id = _resolve_user_id(authorization)
-    return _resolve_profile_source_user_id(
-        authorization,
-        fallback_user_id=wallet_user_id,
-    )
-
-
-def _resolve_profile_source_user_id(
-    authorization: str | None,
-    *,
-    fallback_user_id: str,
-) -> str:
-    token = str(authorization or "").strip()
-    if token.lower().startswith("bearer "):
-        token = token[7:].strip()
-    claims = member_service.verify_access_token(token)
-    source_user_id = str((claims or {}).get("uid") or (claims or {}).get("sub") or "").strip()
-    return source_user_id or fallback_user_id
+    return str(current_user.user_id).strip()
 
 
 def _micros_to_points(value: int | float | None) -> int:
@@ -126,7 +96,11 @@ def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: st
 def _wallet_snapshot_or_zero(user_id: str) -> WalletSnapshot:
     if not getattr(wallet_service, "is_configured", False):
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
-    snapshot = wallet_service.get_wallet(user_id)
+    try:
+        snapshot = wallet_service.get_wallet(user_id)
+    except Exception as exc:
+        logger.warning("wallet lookup failed for user_id=%s: %s", user_id, exc)
+        raise HTTPException(status_code=503, detail="Wallet service unavailable") from exc
     if snapshot is not None:
         return snapshot
     return WalletSnapshot(
@@ -367,7 +341,7 @@ async def _persist_mobile_feedback(
     session_id: str | None = None,
     message_id: str | None = None,
 ) -> dict[str, Any]:
-    user_id = _resolve_user_id(authorization)
+    user_id = _resolve_authenticated_user_id(authorization)
     normalized_session_id = str(session_id or body.conversation_id or "").strip()
     normalized_message_id = str(message_id or body.message_id or "").strip()
     if normalized_session_id:
@@ -601,7 +575,6 @@ def _build_mobile_turn_payload(
     *,
     body: MobileStartTurnRequest,
     user_id: str,
-    learning_user_id: str,
     query: str,
 ) -> dict[str, Any]:
     requested_tools = [str(item).strip() for item in (body.tools or []) if str(item).strip()]
@@ -633,7 +606,7 @@ def _build_mobile_turn_payload(
             "source": "wx_miniprogram",
             "user_id": user_id,
             "wallet_user_id": user_id,
-            "learning_user_id": learning_user_id,
+            "learning_user_id": user_id,
         },
         "interaction_profile": interaction_profile,
     }
@@ -839,22 +812,18 @@ async def auth_verify_code(body: VerifyCodeRequest) -> dict[str, Any]:
 
 @router.get("/auth/profile")
 async def auth_profile(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    wallet_user_id = _resolve_wallet_principal(authorization)
-    profile_user_id = _resolve_profile_source_user_id(
-        authorization,
-        fallback_user_id=wallet_user_id,
-    )
-    profile = member_service.get_profile(profile_user_id)
-    snapshot = _wallet_snapshot_or_zero(wallet_user_id)
+    user_id = _resolve_authenticated_user_id(authorization)
+    profile = member_service.get_profile(user_id)
+    snapshot = _wallet_snapshot_or_zero(user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
-    profile["id"] = wallet_user_id
-    profile["user_id"] = wallet_user_id
+    profile["id"] = user_id
+    profile["user_id"] = user_id
     profile["points"] = wallet_payload["points"]
     profile["balance"] = wallet_payload["balance"]
     profile["balance_micros"] = wallet_payload["balance_micros"]
     profile["frozen_micros"] = wallet_payload["frozen_micros"]
     profile["wallet"] = wallet_payload
-    _shadow_compare_wallet_read(wallet_user_id, balance_points=wallet_payload["points"], source="auth_profile")
+    _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="auth_profile")
     return profile
 
 
@@ -863,7 +832,7 @@ async def auth_profile_settings(
     patch: dict[str, Any],
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    user_id = _resolve_learning_user_id(authorization)
+    user_id = _resolve_authenticated_user_id(authorization)
     previous_profile = member_service.get_profile(user_id)
     previous_learner_profile = learner_state_service.read_profile(user_id)
     goal_patches = _extract_goal_patches(patch)
@@ -918,7 +887,7 @@ async def wechat_bind_phone(
 ) -> dict[str, Any]:
     try:
         return await member_service.bind_phone_for_wechat(
-            _resolve_learning_user_id(authorization),
+            _resolve_authenticated_user_id(authorization),
             body.phone_code,
         )
     except ValueError as exc:
@@ -929,22 +898,22 @@ async def wechat_bind_phone(
 
 @router.get("/practice/today-progress")
 async def practice_today_progress(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_today_progress(_resolve_learning_user_id(authorization))
+    return member_service.get_today_progress(_resolve_authenticated_user_id(authorization))
 
 
 @router.get("/practice/chapter-progress")
 async def practice_chapter_progress(authorization: str | None = Header(default=None)) -> list[dict[str, Any]]:
-    return member_service.get_chapter_progress(_resolve_learning_user_id(authorization))
+    return member_service.get_chapter_progress(_resolve_authenticated_user_id(authorization))
 
 
 @router.get("/practice/daily-question")
 async def practice_daily_question(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_daily_question(_resolve_learning_user_id(authorization))
+    return member_service.get_daily_question(_resolve_authenticated_user_id(authorization))
 
 
 @router.get("/billing/points")
 async def billing_points(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    user_id = _resolve_wallet_principal(authorization)
+    user_id = _resolve_authenticated_user_id(authorization)
     snapshot = _wallet_snapshot_or_zero(user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
     _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_points")
@@ -960,7 +929,7 @@ async def billing_points(authorization: str | None = Header(default=None)) -> di
 
 @router.get("/billing/wallet")
 async def billing_wallet(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    user_id = _resolve_wallet_principal(authorization)
+    user_id = _resolve_authenticated_user_id(authorization)
     snapshot = _wallet_snapshot_or_zero(user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
     _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_wallet")
@@ -973,7 +942,7 @@ async def billing_ledger(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> dict[str, Any]:
-    user_id = _resolve_wallet_principal(authorization)
+    user_id = _resolve_authenticated_user_id(authorization)
     if not getattr(wallet_service, "is_configured", False):
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
     rows = wallet_service.list_wallet_ledger(user_id, limit=limit + 1, offset=offset)
@@ -988,12 +957,12 @@ async def billing_ledger(
 
 @router.get("/homepage/dashboard")
 async def homepage_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_home_dashboard(_resolve_learning_user_id(authorization))
+    return member_service.get_home_dashboard(_resolve_authenticated_user_id(authorization))
 
 
 @router.get("/profile/badges")
 async def profile_badges(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_badges(_resolve_learning_user_id(authorization))
+    return member_service.get_badges(_resolve_authenticated_user_id(authorization))
 
 
 @router.get("/bi/radar/{user_id}")
@@ -1007,12 +976,12 @@ async def bi_radar(
 
 @router.get("/plan/mastery-dashboard")
 async def mastery_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_mastery_dashboard(_resolve_learning_user_id(authorization))
+    return member_service.get_mastery_dashboard(_resolve_authenticated_user_id(authorization))
 
 
 @router.get("/assessment/profile")
 async def assessment_profile(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_assessment_profile(_resolve_learning_user_id(authorization))
+    return member_service.get_assessment_profile(_resolve_authenticated_user_id(authorization))
 
 
 @router.post("/assessment/create")
@@ -1020,7 +989,7 @@ async def assessment_create(
     body: AssessmentCreateRequest,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    return member_service.create_assessment(_resolve_learning_user_id(authorization), count=body.count)
+    return member_service.create_assessment(_resolve_authenticated_user_id(authorization), count=body.count)
 
 
 @router.post("/assessment/{quiz_id}/submit")
@@ -1031,7 +1000,7 @@ async def assessment_submit(
 ) -> dict[str, Any]:
     try:
         return member_service.submit_assessment(
-            _resolve_learning_user_id(authorization),
+            _resolve_authenticated_user_id(authorization),
             quiz_id,
             answers=body.answers,
             time_spent_seconds=body.time_spent_seconds,
@@ -1042,7 +1011,7 @@ async def assessment_submit(
 
 @router.post("/conversations")
 async def create_conversation(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    resolved_user_id = _resolve_user_id(authorization)
+    resolved_user_id = _resolve_authenticated_user_id(authorization)
     session = await session_store.ensure_session(
         _new_mobile_conversation_id(),
         owner_key=build_user_owner_key(resolved_user_id),
@@ -1071,7 +1040,7 @@ async def list_conversations(
     archived: bool = False,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    resolved_user_id = _resolve_user_id(authorization)
+    resolved_user_id = _resolve_authenticated_user_id(authorization)
     sessions = await session_store.list_sessions_by_owner(
         build_user_owner_key(resolved_user_id),
         source="wx_miniprogram",
@@ -1087,7 +1056,7 @@ async def get_conversation_messages(
     conversation_id: str,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    resolved_user_id = _resolve_user_id(authorization)
+    resolved_user_id = _resolve_authenticated_user_id(authorization)
     sessions = await _load_mobile_conversation_variants(conversation_id, resolved_user_id)
     if not sessions:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -1115,7 +1084,7 @@ async def delete_conversation(
     conversation_id: str,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    resolved_user_id = _resolve_user_id(authorization)
+    resolved_user_id = _resolve_authenticated_user_id(authorization)
     sessions = await _load_mobile_conversation_variants(conversation_id, resolved_user_id)
     if not sessions:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -1135,7 +1104,7 @@ async def batch_conversations(
     body: BatchConversationRequest,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    resolved_user_id = _resolve_user_id(authorization)
+    resolved_user_id = _resolve_authenticated_user_id(authorization)
     updated = 0
     for conversation_id in body.conversation_ids:
         sessions = await _load_mobile_conversation_variants(conversation_id, resolved_user_id)
@@ -1186,12 +1155,11 @@ async def mobile_chat_start_turn(
     if not query:
         raise HTTPException(status_code=400, detail="query is required")
 
-    resolved_user_id = _resolve_user_id(authorization)
+    resolved_user_id = _resolve_authenticated_user_id(authorization)
     await _assert_mobile_conversation_access(body.conversation_id, resolved_user_id)
     payload = _build_mobile_turn_payload(
         body=body,
         user_id=resolved_user_id,
-        learning_user_id=_resolve_learning_user_id(authorization),
         query=query,
     )
     session, turn = await turn_runtime.start_turn(payload)
