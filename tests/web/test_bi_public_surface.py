@@ -11,6 +11,7 @@ def test_bi_page_is_not_guarded_by_generic_web_auth() -> None:
 
     assert "if (!requiresWebAuth())" not in source
     assert 'title="BI workspace unavailable"' not in source
+    assert "DeepTutor BI Deck" in source
 
 
 def test_sidebar_keeps_bi_visible_without_web_auth() -> None:
