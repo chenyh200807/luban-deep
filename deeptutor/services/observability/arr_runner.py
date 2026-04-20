@@ -148,6 +148,7 @@ async def run_semantic_router_suite() -> tuple[dict[str, Any], list[dict[str, An
 
     for case in cases:
         llm_action = case.get("llm_action")
+        metadata = case.get("metadata") or {"active_object": case.get("active_object")}
 
         async def fake_interpret(
             _message: str,
@@ -158,7 +159,7 @@ async def run_semantic_router_suite() -> tuple[dict[str, Any], list[dict[str, An
         started_at = time.perf_counter()
         routing = await resolve_question_semantic_routing(
             user_message=case["user_message"],
-            metadata={"active_object": case.get("active_object")},
+            metadata=metadata,
             history_context="",
             interpret_followup_action=fake_interpret,
             resolve_submission_attempt=resolve_submission_attempt,
