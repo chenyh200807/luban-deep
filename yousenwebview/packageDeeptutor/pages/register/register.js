@@ -143,7 +143,7 @@ Page({
         var inner = resp.data || resp;
         var user = inner.user || resp.user || {};
         var token = inner.token || inner._token || resp.token || resp._token || user._token;
-        var userId = user.id || user.user_id || inner.id || resp.id;
+        var userId = auth.extractUserIdFromAuthPayload(resp);
         if (!token) throw new Error("服务端未返回凭证");
         auth.setToken(token, userId);
         self._trackLoginSuccess("register_password");
@@ -179,9 +179,8 @@ Page({
   },
   _completeWechatAuth: function (payload) {
     var inner = payload && (payload.data || payload);
-    var user = (inner && inner.user) || {};
     var token = inner && inner.token;
-    var userId = user.id || user.user_id || inner.id;
+    var userId = auth.extractUserIdFromAuthPayload(payload);
     if (!token) throw new Error("服务端未返回凭证");
     auth.setToken(token, userId);
   },
@@ -191,8 +190,7 @@ Page({
     return api.bindPhone(phone).then(function (resp) {
       var inner = resp.data || resp;
       if (inner && inner.token) {
-        var user = inner.user || {};
-        auth.setToken(inner.token, user.id || user.user_id);
+        auth.setToken(inner.token, auth.extractUserIdFromAuthPayload(resp));
       }
     });
   },
@@ -262,8 +260,7 @@ Page({
           .then(function (resp) {
             var inner = resp.data || resp;
             if (inner && inner.token) {
-              var user = inner.user || {};
-              auth.setToken(inner.token, user.id || user.user_id);
+              auth.setToken(inner.token, auth.extractUserIdFromAuthPayload(resp));
             }
             self._trackLoginSuccess("register_wechat_phone");
             self._reLaunchAfterAuth();

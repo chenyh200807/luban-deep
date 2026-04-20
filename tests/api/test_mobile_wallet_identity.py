@@ -237,3 +237,64 @@ def test_billing_points_and_ledger_use_wallet_service(monkeypatch: pytest.Monkey
     assert captured["ledger_user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     assert captured["ledger_limit"] == 3
     assert captured["ledger_offset"] == 0
+
+
+def test_homepage_dashboard_uses_profile_source_identity_for_learning_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_learning_user_id",
+        lambda _authorization: "legacy_user_2008",
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_home_dashboard",
+        lambda user_id: (
+            captured.setdefault("user_id", user_id),
+            {"review": {}, "mastery": {"weak_nodes": []}, "today": {"hint": ""}},
+        )[1],
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/homepage/dashboard", headers={"Authorization": "Bearer test-token"})
+
+    assert response.status_code == 200
+    assert captured["user_id"] == "legacy_user_2008"
+
+
+def test_homepage_dashboard_prefers_token_source_uid_for_learning_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_wallet_user_id",
+        lambda _authorization: "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "verify_access_token",
+        lambda _token: {
+            "uid": "user_2008",
+            "canonical_uid": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+            "provider": "local",
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_home_dashboard",
+        lambda user_id: (
+            captured.setdefault("user_id", user_id),
+            {"review": {}, "mastery": {"weak_nodes": []}, "today": {"hint": ""}},
+        )[1],
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/homepage/dashboard", headers={"Authorization": "Bearer test-token"})
+
+    assert response.status_code == 200
+    assert captured["user_id"] == "user_2008"

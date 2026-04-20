@@ -53,7 +53,9 @@ def _ts_to_iso(timestamp: float | int | None) -> str:
 
 
 def _resolve_user_id(authorization: str | None, user_id: str | None = None) -> str:
-    resolved = member_service.resolve_user_id(authorization, user_id=user_id)
+    resolved = resolve_wallet_user_id(authorization)
+    if not str(resolved or "").strip():
+        resolved = member_service.resolve_user_id(authorization, user_id=user_id)
     if not str(resolved or "").strip():
         raise HTTPException(status_code=401, detail="Authentication required")
     return resolved
@@ -64,6 +66,14 @@ def _resolve_wallet_principal(authorization: str | None) -> str:
     if not str(resolved or "").strip():
         raise HTTPException(status_code=401, detail="Authentication required")
     return resolved
+
+
+def _resolve_learning_user_id(authorization: str | None) -> str:
+    wallet_user_id = _resolve_user_id(authorization)
+    return _resolve_profile_source_user_id(
+        authorization,
+        fallback_user_id=wallet_user_id,
+    )
 
 
 def _resolve_profile_source_user_id(
@@ -591,6 +601,7 @@ def _build_mobile_turn_payload(
     *,
     body: MobileStartTurnRequest,
     user_id: str,
+    learning_user_id: str,
     query: str,
 ) -> dict[str, Any]:
     requested_tools = [str(item).strip() for item in (body.tools or []) if str(item).strip()]
@@ -621,6 +632,8 @@ def _build_mobile_turn_payload(
         "billing_context": {
             "source": "wx_miniprogram",
             "user_id": user_id,
+            "wallet_user_id": user_id,
+            "learning_user_id": learning_user_id,
         },
         "interaction_profile": interaction_profile,
     }
@@ -850,7 +863,7 @@ async def auth_profile_settings(
     patch: dict[str, Any],
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    user_id = _resolve_user_id(authorization)
+    user_id = _resolve_learning_user_id(authorization)
     previous_profile = member_service.get_profile(user_id)
     previous_learner_profile = learner_state_service.read_profile(user_id)
     goal_patches = _extract_goal_patches(patch)
@@ -905,7 +918,7 @@ async def wechat_bind_phone(
 ) -> dict[str, Any]:
     try:
         return await member_service.bind_phone_for_wechat(
-            _resolve_user_id(authorization),
+            _resolve_learning_user_id(authorization),
             body.phone_code,
         )
     except ValueError as exc:
@@ -916,17 +929,17 @@ async def wechat_bind_phone(
 
 @router.get("/practice/today-progress")
 async def practice_today_progress(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_today_progress(_resolve_user_id(authorization))
+    return member_service.get_today_progress(_resolve_learning_user_id(authorization))
 
 
 @router.get("/practice/chapter-progress")
 async def practice_chapter_progress(authorization: str | None = Header(default=None)) -> list[dict[str, Any]]:
-    return member_service.get_chapter_progress(_resolve_user_id(authorization))
+    return member_service.get_chapter_progress(_resolve_learning_user_id(authorization))
 
 
 @router.get("/practice/daily-question")
 async def practice_daily_question(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_daily_question(_resolve_user_id(authorization))
+    return member_service.get_daily_question(_resolve_learning_user_id(authorization))
 
 
 @router.get("/billing/points")
@@ -975,12 +988,12 @@ async def billing_ledger(
 
 @router.get("/homepage/dashboard")
 async def homepage_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_home_dashboard(_resolve_user_id(authorization))
+    return member_service.get_home_dashboard(_resolve_learning_user_id(authorization))
 
 
 @router.get("/profile/badges")
 async def profile_badges(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_badges(_resolve_user_id(authorization))
+    return member_service.get_badges(_resolve_learning_user_id(authorization))
 
 
 @router.get("/bi/radar/{user_id}")
@@ -994,12 +1007,12 @@ async def bi_radar(
 
 @router.get("/plan/mastery-dashboard")
 async def mastery_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_mastery_dashboard(_resolve_user_id(authorization))
+    return member_service.get_mastery_dashboard(_resolve_learning_user_id(authorization))
 
 
 @router.get("/assessment/profile")
 async def assessment_profile(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_assessment_profile(_resolve_user_id(authorization))
+    return member_service.get_assessment_profile(_resolve_learning_user_id(authorization))
 
 
 @router.post("/assessment/create")
@@ -1007,7 +1020,7 @@ async def assessment_create(
     body: AssessmentCreateRequest,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    return member_service.create_assessment(_resolve_user_id(authorization), count=body.count)
+    return member_service.create_assessment(_resolve_learning_user_id(authorization), count=body.count)
 
 
 @router.post("/assessment/{quiz_id}/submit")
@@ -1018,7 +1031,7 @@ async def assessment_submit(
 ) -> dict[str, Any]:
     try:
         return member_service.submit_assessment(
-            _resolve_user_id(authorization),
+            _resolve_learning_user_id(authorization),
             quiz_id,
             answers=body.answers,
             time_spent_seconds=body.time_spent_seconds,
@@ -1178,6 +1191,7 @@ async def mobile_chat_start_turn(
     payload = _build_mobile_turn_payload(
         body=body,
         user_id=resolved_user_id,
+        learning_user_id=_resolve_learning_user_id(authorization),
         query=query,
     )
     session, turn = await turn_runtime.start_turn(payload)

@@ -17,6 +17,82 @@ function _buildRadarSignature(dims) {
     .join("|");
 }
 
+function _buildRadarDimensionsFromAssessment(data) {
+  var profile = data || {};
+  var chapterMastery = profile.chapter_mastery || {};
+  return Object.keys(chapterMastery).map(function (key) {
+    var item = chapterMastery[key];
+    var mastery = Number(typeof item === "object" ? item.mastery : item) || 0;
+    return {
+      name: (typeof item === "object" ? item.name : key) || key,
+      value: mastery / 100,
+    };
+  });
+}
+
+function _hasPositiveRadarSignal(dims) {
+  return (dims || []).some(function (item) {
+    return Number(item && item.value) > 0;
+  });
+}
+
+function _normalizeRadarDimensions(radarData) {
+  return ((radarData && radarData.dimensions) || []).map(function (item) {
+    var score = Number(item.score);
+    var value =
+      typeof item.value === "number"
+        ? item.value
+        : Number.isFinite(score)
+        ? score / 100
+        : 0;
+    return {
+      name: item.label || item.name || item.key || "",
+      value: value || 0,
+    };
+  });
+}
+
+function _buildRadarViewModel(dims) {
+  var strong = 0;
+  var normal = 0;
+  var weak = 0;
+  (dims || []).forEach(function (d) {
+    var pct = Math.round((d.value || 0) * 100);
+    if (pct >= 70) strong++;
+    else if (pct >= 40) normal++;
+    else weak++;
+  });
+  var avg = Math.round(
+    ((dims || []).reduce(function (sum, d) {
+      return sum + (d.value || 0);
+    }, 0) /
+      Math.max((dims || []).length, 1)) *
+      100,
+  );
+  var dimList = (dims || [])
+    .slice()
+    .sort(function (a, b) {
+      return (a.value || 0) - (b.value || 0);
+    })
+    .map(function (d, index) {
+      var pct = Math.round((d.value || 0) * 100);
+      return {
+        rank: index + 1,
+        name: d.name,
+        pct: pct,
+        cls: pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak",
+        color: pct >= 70 ? "#34d399" : pct >= 40 ? "#fbbf24" : "#f87171",
+      };
+    });
+  return {
+    strongCount: strong,
+    normalCount: normal,
+    weakCount: weak,
+    avgScore: avg,
+    dimList: dimList,
+  };
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -174,92 +250,81 @@ Page({
   // ── 加载学情数据（统一使用 assessment profile API）────
   async _loadRadar() {
     try {
-      var userId = auth.getUserId();
       var dims = [];
-      if (userId) {
-        var radarResult = await api.getRadarData(userId);
-        var radarData = api.unwrapResponse(radarResult) || {};
-        dims = (radarData.dimensions || []).map(function (item) {
-          var score = Number(item.score);
-          var value =
-            typeof item.value === "number"
-              ? item.value
-              : Number.isFinite(score)
-              ? score / 100
-              : 0;
-          return {
-            name: item.label || item.name || item.key || "",
-            value: value || 0,
-          };
-        });
+      var result = await api.getAssessmentProfile();
+      var assessmentData = api.unwrapResponse(result) || {};
+      dims = _buildRadarDimensionsFromAssessment(assessmentData);
+
+      if (!dims.length || !_hasPositiveRadarSignal(dims)) {
+        var userId = auth.getUserId();
+        if (userId) {
+          try {
+            var radarResult = await api.getRadarData(userId);
+            var radarData = api.unwrapResponse(radarResult) || {};
+            var radarDims = _normalizeRadarDimensions(radarData);
+            if (radarDims.length && _hasPositiveRadarSignal(radarDims)) {
+              dims = radarDims;
+            }
+          } catch (_) {}
+        }
       }
 
       if (dims.length === 0) {
-        var result = await api.getAssessmentProfile();
-        var data = api.unwrapResponse(result) || {};
-        var cm = data.chapter_mastery || {};
-        dims = Object.keys(cm).map(function (k) {
-          var v = cm[k];
-          return {
-            name: (typeof v === "object" ? v.name : k) || k,
-            value: ((typeof v === "object" ? v.mastery : v) || 0) / 100,
-          };
-        });
-      }
-
-      if (dims.length === 0) {
-        this.setData({ radarLoading: false });
+        this.setData({ radarLoading: false, radarError: false });
         return;
       }
 
-      var strong = 0,
-        normal = 0,
-        weak = 0;
-      dims.forEach(function (d) {
-        var pct = Math.round((d.value || 0) * 100);
-        if (pct >= 70) strong++;
-        else if (pct >= 40) normal++;
-        else weak++;
-      });
-
-      var avg = Math.round(
-        (dims.reduce(function (s, d) {
-          return s + (d.value || 0);
-        }, 0) /
-          dims.length) *
-          100,
-      );
-
-      var sorted = dims.slice().sort(function (a, b) {
-        return (a.value || 0) - (b.value || 0);
-      });
-      var dimList = sorted.map(function (d, i) {
-        var pct = Math.round((d.value || 0) * 100);
-        return {
-          rank: i + 1,
-          name: d.name,
-          pct: pct,
-          cls: pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak",
-          color: pct >= 70 ? "#34d399" : pct >= 40 ? "#fbbf24" : "#f87171",
-        };
-      });
+      var viewModel = _buildRadarViewModel(dims);
       var signature = _buildRadarSignature(dims);
 
       this.setData({
         radarDimensions: dims,
-        strongCount: strong,
-        normalCount: normal,
-        weakCount: weak,
-        avgScore: avg,
-        dimList: dimList,
+        strongCount: viewModel.strongCount,
+        normalCount: viewModel.normalCount,
+        weakCount: viewModel.weakCount,
+        avgScore: viewModel.avgScore,
+        dimList: viewModel.dimList,
         radarLoading: false,
       });
 
       this._radarSignature = signature;
       this._ensureRadarRendered(dims, signature);
     } catch (e) {
-      // 雷达数据加载失败，通过 radarError 状态展示
-      this.setData({ radarLoading: false, radarError: true });
+      try {
+        var fallbackDims = [];
+        var userId = auth.getUserId();
+        if (userId) {
+          try {
+            var radarFallback = await api.getRadarData(userId);
+            var radarFallbackData = api.unwrapResponse(radarFallback) || {};
+            var radarDims = _normalizeRadarDimensions(radarFallbackData);
+            if (radarDims.length && _hasPositiveRadarSignal(radarDims)) {
+              fallbackDims = radarDims;
+            }
+          } catch (_) {}
+        }
+        if (!fallbackDims.length) {
+          this.setData({ radarLoading: false, radarError: true });
+          return;
+        }
+        var fallbackViewModel = _buildRadarViewModel(fallbackDims);
+        var signature = _buildRadarSignature(fallbackDims);
+        this.setData({
+          radarDimensions: fallbackDims,
+          strongCount: fallbackViewModel.strongCount,
+          normalCount: fallbackViewModel.normalCount,
+          weakCount: fallbackViewModel.weakCount,
+          avgScore: fallbackViewModel.avgScore,
+          dimList: fallbackViewModel.dimList,
+          radarLoading: false,
+          radarError: false,
+        });
+        this._radarSignature = signature;
+        this._ensureRadarRendered(fallbackDims, signature);
+      } catch (_) {
+        // 雷达数据加载失败，通过 radarError 状态展示
+        this.setData({ radarLoading: false, radarError: true });
+      }
     }
   },
 

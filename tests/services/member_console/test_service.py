@@ -281,6 +281,67 @@ def test_login_with_password_rejects_unknown_or_invalid_external_password(
         service.login_with_password("unknown-user", "StrongPass123")
 
 
+def test_canonical_member_snapshot_merges_legacy_external_auth_learning_state(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_user_id = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"] = [
+            service._build_default_member(canonical_user_id),
+            {
+                **service._build_default_member("user_2008"),
+                "user_id": "user_2008",
+                "display_name": "chenyh2008",
+                "auth_username": "chenyh2008",
+                "external_auth_user_id": canonical_user_id,
+                "points_balance": 360,
+                "focus_topic": "地基基础",
+                "focus_query": "我想练习地基基础相关的题目",
+                "study_days": 3,
+                "chapter_mastery": {
+                    "建筑构造": {"name": "建筑构造", "mastery": 50},
+                    "地基基础": {"name": "地基基础", "mastery": 50},
+                    "防水工程": {"name": "防水工程", "mastery": 50},
+                    "施工管理": {"name": "施工管理", "mastery": 50},
+                    "主体结构": {"name": "主体结构", "mastery": 50},
+                },
+                "daily_practice_counts": {"2026-04-14": 2},
+                "chapter_practice_stats": {
+                    "地基基础": {
+                        "done": 2,
+                        "correct": 1,
+                        "last_activity_at": "2026-04-14T10:00:00+08:00",
+                    }
+                },
+            },
+        ]
+
+    service._mutate(_seed)
+
+    assessment = service.get_assessment_profile(canonical_user_id)
+    canonical_profile = service.get_profile(canonical_user_id)
+    legacy_profile = service.get_profile("user_2008")
+    chapter_progress = service.get_chapter_progress(canonical_user_id)
+    data = service._load()
+    canonical_member = service._find_member(data, canonical_user_id)
+    legacy_member = service._find_member(data, "user_2008")
+    foundation_progress = next(item for item in chapter_progress if item["chapter_name"] == "地基基础")
+
+    assert assessment["score"] == 50
+    assert assessment["chapter_mastery"]["地基基础"]["mastery"] == 50
+    assert canonical_profile["user_id"] == canonical_user_id
+    assert canonical_profile["username"] == "chenyh2008"
+    assert legacy_profile["user_id"] == canonical_user_id
+    assert legacy_member["merged_into"] == canonical_user_id
+    assert canonical_member["focus_topic"] == "地基基础"
+    assert canonical_member["study_days"] == 3
+    assert foundation_progress["done"] == 2
+    assert foundation_progress["total"] == 30
+
+
 def test_register_with_external_auth_creates_external_user_and_member(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

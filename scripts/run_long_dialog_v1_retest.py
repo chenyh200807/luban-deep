@@ -338,13 +338,27 @@ def _build_cases(source_payload: dict[str, Any]) -> list[dict[str, Any]]:
     return sorted(cases, key=lambda item: item["case_id"])
 
 
+def _percentile(values: list[float], q: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    k = (len(ordered) - 1) * q
+    floor_index = int(k)
+    ceil_index = min(floor_index + 1, len(ordered) - 1)
+    if floor_index == ceil_index:
+        return float(ordered[floor_index])
+    return float(
+        ordered[floor_index] + (ordered[ceil_index] - ordered[floor_index]) * (k - floor_index)
+    )
+
+
 async def _run_single_turn(
     runtime: TurnRuntimeManager,
     *,
     session_id: str | None,
     query: str,
     teaching_mode: str,
-) -> tuple[str, str, float, list[str]]:
+) -> tuple[str, str, float | None, float, list[str]]:
     config = {
         "interaction_profile": "construction_exam_tutor",
         "interaction_hints": _build_retest_interaction_hints(
@@ -376,10 +390,13 @@ async def _run_single_turn(
     fragments: list[str] = []
     fallback_response = ""
     event_types: list[str] = []
+    first_content_at_ms: float | None = None
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         event_type = str(event.get("type") or "")
         event_types.append(event_type)
         if event_type == "content" and event.get("content"):
+            if first_content_at_ms is None:
+                first_content_at_ms = (time.perf_counter() - start) * 1000
             fragments.append(str(event["content"]))
         elif event_type == "result":
             metadata = event.get("metadata") or {}
@@ -391,7 +408,7 @@ async def _run_single_turn(
 
     response = "".join(fragments).strip() or fallback_response.strip()
     latency_ms = (time.perf_counter() - start) * 1000
-    return session["id"], response, latency_ms, event_types
+    return session["id"], response, first_content_at_ms, latency_ms, event_types
 
 
 async def _run_case(
@@ -427,7 +444,7 @@ async def _run_case(
         turn_no = int(item.get("turn", 0) or 0)
         query = str(item.get("user_query") or "")
         try:
-            session_id, response, latency_ms, event_types = await asyncio.wait_for(
+            session_id, response, ttft_ms, latency_ms, event_types = await asyncio.wait_for(
                 _run_single_turn(
                     runtime,
                     session_id=session_id,
@@ -448,6 +465,7 @@ async def _run_case(
                     "turn": turn_no,
                     "query": query,
                     "response": response,
+                    "ttft_ms": round(ttft_ms, 1) if ttft_ms is not None else None,
                     "latency_ms": round(latency_ms, 1),
                     "event_types": event_types,
                     **eval_result,
@@ -466,6 +484,7 @@ async def _run_case(
                     "turn": turn_no,
                     "query": query,
                     "response": "",
+                    "ttft_ms": None,
                     "latency_ms": None,
                     "event_types": [],
                     "empty": True,
@@ -509,6 +528,26 @@ async def _run_case(
         )
         if any(item["latency_ms"] is not None for item in results)
         else None,
+        "avg_ttft_ms": round(
+            mean([item["ttft_ms"] for item in results if item["ttft_ms"] is not None]),
+            1,
+        )
+        if any(item["ttft_ms"] is not None for item in results)
+        else None,
+        "p50_ttft_ms": round(
+            _percentile([item["ttft_ms"] for item in results if item["ttft_ms"] is not None], 0.5)
+            or 0.0,
+            1,
+        )
+        if any(item["ttft_ms"] is not None for item in results)
+        else None,
+        "p90_ttft_ms": round(
+            _percentile([item["ttft_ms"] for item in results if item["ttft_ms"] is not None], 0.9)
+            or 0.0,
+            1,
+        )
+        if any(item["ttft_ms"] is not None for item in results)
+        else None,
         "semantic_score": semantic_score,
         "satisfaction_score": satisfaction_score,
         "aborted": aborted,
@@ -535,6 +574,20 @@ def _render_markdown(results: list[dict[str, Any]], *, source_json: Path, teachi
     total_turns = sum(item["summary"]["turns"] for item in results)
     avg_semantic = mean(item["summary"]["semantic_score"] for item in results) if results else 0
     avg_satisfaction = mean(item["summary"]["satisfaction_score"] for item in results) if results else 0
+    ttft_values = [
+        summary["avg_ttft_ms"]
+        for item in results
+        if isinstance((summary := item["summary"]).get("avg_ttft_ms"), (int, float))
+    ]
+    avg_ttft = mean(ttft_values) if ttft_values else 0.0
+    p50_ttft = _percentile(
+        [turn["ttft_ms"] for item in results for turn in item["turns"] if turn.get("ttft_ms") is not None],
+        0.5,
+    )
+    p90_ttft = _percentile(
+        [turn["ttft_ms"] for item in results for turn in item["turns"] if turn.get("ttft_ms") is not None],
+        0.9,
+    )
 
     lines = [
         "# Long Dialog V1 Retest",
@@ -549,6 +602,9 @@ def _render_markdown(results: list[dict[str, Any]], *, source_json: Path, teachi
         "",
         f"- 系统语义理解均分: {avg_semantic:.1f}/100",
         f"- 付费学员满意度均分: {avg_satisfaction:.1f}/100",
+        f"- 平均 TTFT: {avg_ttft:.1f}ms",
+        f"- P50 TTFT: {(p50_ttft or 0.0):.1f}ms",
+        f"- P90 TTFT: {(p90_ttft or 0.0):.1f}ms",
         f"- 硬错误/空回复: {sum(item['summary']['hard_errors'] for item in results)}",
         f"- 跟题/批改断裂: {sum(item['summary']['followup_object_mismatch_count'] for item in results)}",
         f"- 出题契约失配: {sum(item['summary']['question_count_mismatch_count'] for item in results)}",
@@ -560,8 +616,8 @@ def _render_markdown(results: list[dict[str, Any]], *, source_json: Path, teachi
         "",
         "## 分场景",
         "",
-        "| Case | 语义分 | 满意度分 | 硬错误 | 跟题断裂 | 契约失配 | 锚点遗漏 | 上下文重置 | 对比表缺失 | 慢响应 | 平均延迟 |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| Case | 语义分 | 满意度分 | 硬错误 | 跟题断裂 | 契约失配 | 锚点遗漏 | 上下文重置 | 对比表缺失 | 慢响应 | 平均 TTFT | 平均延迟 |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
 
     for item in results:
@@ -571,7 +627,7 @@ def _render_markdown(results: list[dict[str, Any]], *, source_json: Path, teachi
             f"{summary['hard_errors']} | {summary['followup_object_mismatch_count']} | "
             f"{summary['question_count_mismatch_count']} | {summary['anchor_miss_count']} | "
             f"{summary['context_reset_count']} | {summary['compare_table_miss_count']} | "
-            f"{summary['slow_turns']} | {summary['avg_latency_ms'] or 0:.1f}ms |"
+            f"{summary['slow_turns']} | {summary['avg_ttft_ms'] or 0:.1f}ms | {summary['avg_latency_ms'] or 0:.1f}ms |"
         )
 
     lines.append("")

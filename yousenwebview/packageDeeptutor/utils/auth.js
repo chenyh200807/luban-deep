@@ -3,6 +3,21 @@ const TOKEN_KEY = "auth_token";
 const USER_ID_KEY = "auth_user_id";
 
 const auth = {
+  extractUserIdFromAuthPayload(payload) {
+    var raw = payload || {};
+    var inner = (raw && raw.data) || raw || {};
+    var user = inner.user || raw.user || {};
+    return (
+      raw.user_id ||
+      inner.user_id ||
+      user.user_id ||
+      user.id ||
+      inner.id ||
+      raw.id ||
+      null
+    );
+  },
+
   getToken() {
     return wx.getStorageSync(TOKEN_KEY) || null;
   },

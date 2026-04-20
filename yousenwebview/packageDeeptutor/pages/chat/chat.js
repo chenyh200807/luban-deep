@@ -89,7 +89,6 @@ Page({
     scrollToId: "",
     chatScrollWithAnimation: false,
     answerMode: "AUTO",
-    modeHintText: "TutorBot 陪学 · 智能调度",
     enableReason: false,
     enableWebSearch: false,
     feedbackMsgId: "",
@@ -1368,7 +1367,6 @@ Page({
     var nextMode = e.currentTarget.dataset.m;
     var nextState = {
       answerMode: nextMode,
-      modeHintText: this._getModeHintText(nextMode),
     };
     if (nextMode !== "DEEP" && this.data.enableReason) {
       nextState.enableReason = false;
@@ -1390,7 +1388,6 @@ Page({
     this.setData({
       enableReason: nextReason,
       answerMode: nextMode,
-      modeHintText: this._getModeHintText(nextMode),
     });
   },
 
@@ -1424,12 +1421,6 @@ Page({
       tools.push("web_search");
     }
     return tools;
-  },
-
-  _getModeHintText: function (mode) {
-    if (mode === "FAST") return "TutorBot 快答 · 踩分点优先";
-    if (mode === "DEEP") return "TutorBot 精讲 · 讲透拿分逻辑";
-    return "TutorBot 陪学 · 智能调度";
   },
 
   _buildTutorInteraction: function () {
@@ -1913,20 +1904,6 @@ Page({
     }
     runtime.clearWorkspaceBack();
     wx.navigateTo({ url: route.profile() });
-  },
-
-  onSwitchAccount: function () {
-    helpers.vibrate("light");
-    wx.showModal({
-      title: "切换账号",
-      content: "将退出当前账号并返回登录页，是否继续？",
-      confirmColor: "#ef4444",
-      success: function (res) {
-        if (res.confirm) {
-          runtime.logout();
-        }
-      },
-    });
   },
 
   _syncWorkspaceBack: function () {

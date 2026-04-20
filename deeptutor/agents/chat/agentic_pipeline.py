@@ -286,14 +286,16 @@ class AgenticChatPipeline:
                 )
                 return
             if self._has_grounded_retrieval_evidence(retrieval_first_traces):
-                observation = await self._stage_observing(
-                    context=context,
-                    enabled_tools=["rag"] if "rag" in {trace.name for trace in retrieval_first_traces} else enabled_tools,
-                    answer_type=answer_type,
-                    thinking_text="",
-                    tool_traces=retrieval_first_traces,
-                    stream=stream,
-                )
+                observation = ""
+                if not self._should_skip_independent_observing_stage(context):
+                    observation = await self._stage_observing(
+                        context=context,
+                        enabled_tools=["rag"] if "rag" in {trace.name for trace in retrieval_first_traces} else enabled_tools,
+                        answer_type=answer_type,
+                        thinking_text="",
+                        tool_traces=retrieval_first_traces,
+                        stream=stream,
+                    )
                 final_response, responding_trace = await self._stage_responding(
                     context=context,
                     enabled_tools=["rag"] if "rag" in {trace.name for trace in retrieval_first_traces} else enabled_tools,
@@ -335,14 +337,16 @@ class AgenticChatPipeline:
                 source_trace_label=responding_trace.get("label", "Exact authority response"),
             )
             return
-        observation = await self._stage_observing(
-            context=context,
-            enabled_tools=enabled_tools,
-            answer_type=answer_type,
-            thinking_text=thinking_text,
-            tool_traces=tool_traces,
-            stream=stream,
-        )
+        observation = ""
+        if not self._should_skip_independent_observing_stage(context):
+            observation = await self._stage_observing(
+                context=context,
+                enabled_tools=enabled_tools,
+                answer_type=answer_type,
+                thinking_text=thinking_text,
+                tool_traces=tool_traces,
+                stream=stream,
+            )
         final_response, responding_trace = await self._stage_responding(
             context=context,
             enabled_tools=enabled_tools,
@@ -2692,6 +2696,9 @@ class AgenticChatPipeline:
 
     def _is_smart_tutor_mode(self, context: UnifiedContext) -> bool:
         return self._configured_teaching_mode(context) == "smart"
+
+    def _should_skip_independent_observing_stage(self, context: UnifiedContext) -> bool:
+        return self._configured_teaching_mode(context) == "deep"
 
     def _followup_question_context(self, context: UnifiedContext) -> dict[str, Any]:
         for container in (context.metadata, context.config_overrides):

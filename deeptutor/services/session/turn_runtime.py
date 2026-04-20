@@ -1138,7 +1138,11 @@ class TurnRuntimeManager:
             return
         if billing_context.get("source") != "wx_miniprogram":
             return
-        user_id = str(billing_context.get("user_id", "") or "").strip()
+        user_id = str(
+            billing_context.get("wallet_user_id")
+            or billing_context.get("user_id", "")
+            or ""
+        ).strip()
         if not user_id or not str(assistant_content or "").strip():
             return
         try:
@@ -1163,7 +1167,11 @@ class TurnRuntimeManager:
             return
         if billing_context.get("source") != "wx_miniprogram":
             return
-        user_id = str(billing_context.get("user_id", "") or "").strip()
+        user_id = str(
+            billing_context.get("learning_user_id")
+            or billing_context.get("user_id", "")
+            or ""
+        ).strip()
         if not user_id or not str(assistant_content or "").strip():
             return
         try:

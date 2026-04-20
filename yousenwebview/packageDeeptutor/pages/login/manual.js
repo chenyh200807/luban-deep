@@ -199,9 +199,8 @@ Page({
       })
       .then(function (resp) {
         var inner = resp.data || resp;
-        var user = inner.user || {};
         var token = inner.token;
-        var userId = user.id || inner.id;
+        var userId = auth.extractUserIdFromAuthPayload(resp);
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
         auth.setToken(token, userId);
         self._trackLoginSuccess("phone_code");
@@ -246,7 +245,7 @@ Page({
         var inner = resp.data || resp;
         var user = inner.user || resp.user || {};
         var token = inner.token || inner._token || resp.token || resp._token || user._token;
-        var userId = user.id || inner.id || resp.id;
+        var userId = auth.extractUserIdFromAuthPayload(resp);
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
         auth.setToken(token, userId);
         self._trackLoginSuccess("password");

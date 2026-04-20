@@ -171,28 +171,30 @@ run("workspace shell visible should pin composer flush to tab bar", function () 
 
 run("bottom bar container should not keep its own bottom gap", function () {
   var loaded = loadChatPage();
+  var chatWxml = fs.readFileSync(
+    path.join(__dirname, "../packageDeeptutor/pages/chat/chat.wxml"),
+    "utf8",
+  );
 
   assert(
     /\.bottom-bar\s*\{[\s\S]*padding:\s*12rpx 20rpx 0;/.test(loaded.chatWxss),
     "bottom bar CSS should remove the fixed bottom padding so the composer card can sit flush on the tab bar",
   );
   assert(
-    /bottom-input-card \{\{bottomBarCompact \? 'bottom-input-card-compact' : ''\}\}/.test(
-      fs.readFileSync(
-        path.join(__dirname, "../packageDeeptutor/pages/chat/chat.wxml"),
-        "utf8",
-      ),
-    ),
+    /bottom-input-card \{\{bottomBarCompact \? 'bottom-input-card-compact' : ''\}\}/.test(chatWxml),
     "chat bottom composer should expose a compact visual variant in WXML",
   );
   assert(
-    /<view class="tool-row" wx:if="\{\{!bottomBarCompact\}\}">/.test(
-      fs.readFileSync(
-        path.join(__dirname, "../packageDeeptutor/pages/chat/chat.wxml"),
-        "utf8",
-      ),
-    ),
-    "compact composer should hide the extra tool row to save vertical space",
+    /data-m="FAST"><text class="mode-pill-txt">快速<\/text><\/view>\s*<view class="mode-pill \{\{enableReason \? 'on' : ''\}\}" bindtap="onToggleReason"/.test(chatWxml),
+    "reason toggle should sit in the same mode row immediately to the right of the FAST pill",
+  );
+  assert(
+    !/tool-row|tool-chip/.test(chatWxml),
+    "chat composer should no longer render a second tool row for the reason toggle",
+  );
+  assert(
+    !/当前账号：|切换账号|TutorBot 陪学|自动切换 · 1-10点|知识库检索默认自动开启，时效性问题会自动联网/.test(chatWxml),
+    "hero and bottom composers should not render the removed helper microcopy",
   );
 });
 

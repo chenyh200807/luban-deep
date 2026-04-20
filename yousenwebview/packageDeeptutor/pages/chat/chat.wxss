@@ -184,39 +184,6 @@
   display: flex; align-items: center; justify-content: center;
 }
 .avatar-char { color: #fff; font-size: 24rpx; font-weight: 600; }
-.account-row {
-  margin: 14rpx 36rpx 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12rpx;
-}
-.account-name {
-  max-width: 360rpx;
-  font-size: 22rpx;
-  color: rgba(226,232,240,0.68);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.account-switch-btn {
-  min-height: 48rpx;
-  padding: 0 18rpx;
-  border-radius: 999rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.08);
-  border: 1rpx solid rgba(255,255,255,0.12);
-}
-.account-switch-btn:active {
-  background: rgba(255,255,255,0.16);
-}
-.account-switch-txt {
-  font-size: 22rpx;
-  color: rgba(255,255,255,0.88);
-}
-
 /* ── 内容区 ───────────────────────────────────── */
 .content { position: fixed; left: 0; right: 0; bottom: 0; overflow: hidden; box-sizing: border-box; }
 /* Hero 首页：内容始终略高于容器，保证上下拖拽都有回弹 */
@@ -256,8 +223,8 @@
   box-sizing: border-box;
 }
 .input-ph { color: rgba(255,255,255,0.35); }
-.input-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 16rpx; }
-.mode-row { display: flex; align-items: center; gap: 6rpx; }
+.input-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; margin-top: 16rpx; }
+.mode-row { display: flex; align-items: center; gap: 6rpx; flex: 1; min-width: 0; }
 .mode-pill {
   padding: 8rpx 20rpx; border-radius: 999rpx; border: 1rpx solid rgba(255,255,255,0.1);
   background: transparent;
@@ -265,7 +232,6 @@
 .mode-pill-txt { font-size: 22rpx; color: rgba(255,255,255,0.45); }
 .mode-pill.on { background: #2563eb; border-color: #2563eb; }
 .mode-pill.on .mode-pill-txt { color: #fff; font-weight: 500; }
-.mode-hint { font-size: 20rpx; color: rgba(203,213,225,0.4); margin-left: 8rpx; }
 .send-btn {
   width: 72rpx; height: 72rpx; border-radius: 18rpx;
   background: rgba(255,255,255,0.08);
@@ -275,44 +241,6 @@
 .send-btn.stop { background: #ef4444; }
 .send-icon { font-size: 24rpx; color: rgba(255,255,255,0.3); }
 .send-btn.on .send-icon, .send-btn.stop .send-icon { color: #fff; }
-.tool-row {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  margin-top: 18rpx;
-  flex-wrap: wrap;
-}
-.tool-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8rpx;
-  padding: 10rpx 18rpx;
-  border-radius: 999rpx;
-  background: rgba(255,255,255,0.04);
-  border: 1rpx solid rgba(148,163,184,0.14);
-}
-.tool-chip.on {
-  background: rgba(37,99,235,0.18);
-  border-color: rgba(96,165,250,0.48);
-}
-.tool-chip-icon {
-  font-size: 20rpx;
-  color: rgba(191,219,254,0.9);
-  line-height: 1;
-}
-.tool-chip-txt {
-  font-size: 22rpx;
-  color: rgba(226,232,240,0.72);
-}
-.tool-chip.on .tool-chip-txt {
-  color: #fff;
-  font-weight: 600;
-}
-.tool-hint {
-  font-size: 20rpx;
-  color: rgba(148,163,184,0.68);
-}
-
 /* ── 示例卡片 ─────────────────────────────────── */
 .example-label { display: block; padding: 0 36rpx 16rpx; font-size: 24rpx; color: rgba(226,232,240,0.38); }
 .marquee-wrap { width: 100%; overflow: hidden; padding: 0 0 8rpx; }
@@ -1447,14 +1375,6 @@
   border-color: #c8dafc;
 }
 .page.light .avatar-char { color: #1e3a8a; }
-.page.light .account-name { color: rgba(15,23,42,0.6); }
-.page.light .account-switch-btn {
-  background: rgba(255,255,255,0.88);
-  border-color: rgba(176,193,224,0.58);
-  box-shadow: 0 10rpx 28rpx rgba(117,139,180,0.12);
-}
-.page.light .account-switch-txt { color: rgba(15,23,42,0.82); }
-
 /* ── Hero 问候 ─────────────────────────────── */
 .page.light .greeting-name { color: #111827; }
 .page.light .greeting-time { color: #2f6bff; }
@@ -1492,7 +1412,6 @@
 .page.light .mode-pill-txt { color: #64748b; }
 .page.light .mode-pill.on { background: #2f6bff; border-color: #2f6bff; }
 .page.light .mode-pill.on .mode-pill-txt { color: #fff; }
-.page.light .mode-hint { color: #8b98ad; }
 .page.light .send-btn {
   background: #e8efff;
   border: 1rpx solid #d4e1fa;

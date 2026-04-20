@@ -552,3 +552,57 @@ async def test_agentic_chat_pipeline_exact_authority_path_still_buffers_final_re
     assert content == "权威标准答案。"
     assert [event.content for event in content_events] == ["权威标准答案。"]
     assert pipeline._complete_messages.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_agentic_chat_pipeline_deep_mode_skips_independent_observing_stage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    class FakeRegistry:
+        def get_enabled(self, selected):
+            return [SimpleNamespace(name=name) for name in selected]
+
+        def get(self, name: str):
+            return SimpleNamespace(name=name)
+
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_tool_registry",
+        lambda: FakeRegistry(),
+    )
+
+    pipeline = AgenticChatPipeline(language="zh")
+
+    monkeypatch.setattr(pipeline, "_should_use_compact_response", lambda *_args, **_kwargs: False)
+    monkeypatch.setattr(pipeline, "_should_try_retrieval_first", lambda *_args, **_kwargs: False)
+    monkeypatch.setattr(pipeline, "_stage_thinking", AsyncMock(return_value="需要先拆解问题。"))
+    monkeypatch.setattr(pipeline, "_stage_acting", AsyncMock(return_value=[]))
+
+    async def _unexpected_observing(*_args, **_kwargs):
+        raise AssertionError("deep mode should not run a separate observing llm stage")
+
+    monkeypatch.setattr(pipeline, "_stage_observing", _unexpected_observing)
+    monkeypatch.setattr(
+        pipeline,
+        "_stage_responding",
+        AsyncMock(return_value=("这是 deep 最终回答。", {"label": "Final response"})),
+    )
+
+    bus = StreamBus()
+    context = UnifiedContext(
+        user_message="这道建筑案例题请分步深度分析。",
+        enabled_tools=[],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"chat_mode": "deep"},
+        language="zh",
+    )
+
+    await pipeline.run(context, bus)
+
+    assert pipeline._stage_thinking.await_count == 1
+    assert pipeline._stage_acting.await_count == 1
+    assert pipeline._stage_responding.await_count == 1

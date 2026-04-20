@@ -62,6 +62,11 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(mobile_module, "_resolve_user_id", lambda *_args, **_kwargs: "student_demo")
     monkeypatch.setattr(
         mobile_module,
+        "_resolve_learning_user_id",
+        lambda *_args, **_kwargs: "legacy_student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
         "session_store",
         SimpleNamespace(
             get_session_owner_key=AsyncMock(return_value="user:student_demo")
@@ -93,6 +98,8 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
     assert captured["payload"]["config"]["billing_context"] == {
         "source": "wx_miniprogram",
         "user_id": "student_demo",
+        "wallet_user_id": "student_demo",
+        "learning_user_id": "legacy_student_demo",
     }
 
 
