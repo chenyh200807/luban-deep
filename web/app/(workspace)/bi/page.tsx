@@ -23,7 +23,6 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import RestrictedSurface from "@/components/common/RestrictedSurface";
 import Modal from "@/components/common/Modal";
 import {
   getBiLearnerDetail,
@@ -36,7 +35,6 @@ import {
   type BiTrendData,
   type BiWorkbenchData,
 } from "@/lib/bi-api";
-import { requiresWebAuth } from "@/lib/web-access";
 import type { ReactNode } from "react";
 
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
@@ -142,14 +140,6 @@ function sparkPath(values: number[], width = 240, height = 72) {
 }
 
 export default function BiPage() {
-  if (!requiresWebAuth()) {
-    return (
-      <RestrictedSurface
-        title="BI workspace unavailable"
-        message="当前 Web 端未接入登录态，BI 工作台已默认关闭。请使用已鉴权入口访问。"
-      />
-    );
-  }
   const [days, setDays] = useState<7 | 30 | 90>(30);
   const [filters, setFilters] = useState({ capability: "", entrypoint: "", tier: "" });
   const [data, setData] = useState<BiWorkbenchData | null>(null);

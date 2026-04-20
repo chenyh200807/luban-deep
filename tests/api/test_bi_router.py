@@ -352,7 +352,7 @@ def test_bi_router_rejects_non_admin_even_with_authenticated_context(bi_service:
     def _deny_non_admin():
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    app.dependency_overrides[bi_router_module.require_admin] = _deny_non_admin
+    app.dependency_overrides[bi_router_module.require_bi_access] = _deny_non_admin
 
     with TestClient(app) as client:
         response = client.get("/api/v1/bi/overview?days=30")
@@ -360,9 +360,21 @@ def test_bi_router_rejects_non_admin_even_with_authenticated_context(bi_service:
         assert response.json()["detail"] == "Admin access required"
 
 
+def test_bi_router_allows_public_access_when_flag_enabled(
+    bi_service: BIService,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BI_PUBLIC_ENABLED", "1")
+
+    with TestClient(_build_app(bi_service)) as client:
+        response = client.get("/api/v1/bi/overview?days=30")
+        assert response.status_code == 200
+        assert response.json()["summary"]["total_sessions"] >= 1
+
+
 def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> None:
     app = _build_app(bi_service)
-    app.dependency_overrides[bi_router_module.require_admin] = lambda: None
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: None
 
     with TestClient(app) as client:
         overview = client.get("/api/v1/bi/overview?days=30")
