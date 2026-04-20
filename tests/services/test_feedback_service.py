@@ -35,12 +35,14 @@ def test_build_mobile_feedback_row_keeps_answer_mode_and_response_mode_metadata(
         requested_response_mode="deep",
         effective_response_mode="fast",
         response_mode_degrade_reason="token_budget",
+        actual_tool_rounds=2,
     )
 
     assert row["metadata"]["answer_mode"] == "SMART"
-    assert row["metadata"]["requested_response_mode"] == "deep"
-    assert row["metadata"]["effective_response_mode"] == "fast"
+    assert row["metadata"]["requested_response_mode"] == "DEEP"
+    assert row["metadata"]["effective_response_mode"] == "FAST"
     assert row["metadata"]["response_mode_degrade_reason"] == "token_budget"
+    assert row["metadata"]["actual_tool_rounds"] == 2
 
 
 def test_normalize_feedback_record_prefers_top_level_ids_then_metadata_fallback() -> None:
@@ -88,14 +90,16 @@ def test_normalize_feedback_record_reads_response_mode_fields_from_metadata() ->
             "comment": "",
             "metadata": {
                 "answer_mode": "FAST",
-                "requested_response_mode": "deep",
-                "effective_response_mode": "fast",
+                "requested_response_mode": "DEEP",
+                "effective_response_mode": "FAST",
                 "response_mode_degrade_reason": "tool_budget",
+                "actual_tool_rounds": 3,
             },
         }
     )
 
     assert record["answer_mode"] == "FAST"
-    assert record["requested_response_mode"] == "deep"
-    assert record["effective_response_mode"] == "fast"
+    assert record["requested_response_mode"] == "DEEP"
+    assert record["effective_response_mode"] == "FAST"
     assert record["response_mode_degrade_reason"] == "tool_budget"
+    assert record["actual_tool_rounds"] == 3

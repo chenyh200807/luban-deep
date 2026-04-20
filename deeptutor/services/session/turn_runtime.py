@@ -2321,7 +2321,9 @@ class TurnRuntimeManager:
                 or ""
             ).strip()
             raw_requested_response_mode = str(
-                raw_interaction_hints.get("requested_response_mode") or ""
+                raw_interaction_hints.get("requested_response_mode")
+                or request_config.get("chat_mode")
+                or ""
             ).strip()
             requested_response_mode = (
                 normalize_requested_response_mode(raw_requested_response_mode)

@@ -51,12 +51,15 @@ def test_build_mode_execution_policy_returns_expected_budget_shape():
     assert fast.allow_deep_stage is False
     assert fast.response_density == "short"
     assert fast.latency_budget_ms == 6000
+    assert fast.preferred_model == "qwen3.5-flash"
     assert smart.max_tool_rounds == 2
     assert smart.allow_deep_stage is False
     assert smart.response_density == "balanced"
     assert smart.latency_budget_ms == 12000
+    assert smart.preferred_model == ""
     assert deep.allow_deep_stage is True
     assert deep.max_tool_rounds == 4
     assert deep.response_density == "detailed"
     assert deep.latency_budget_ms == 20000
+    assert deep.preferred_model == ""
     assert deep.latency_budget_ms > smart.latency_budget_ms > fast.latency_budget_ms

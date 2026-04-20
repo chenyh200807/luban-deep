@@ -484,6 +484,7 @@ class AgentLoop:
         allow_exact_authority_override: bool = False,
     ) -> tuple[str | None, list[str], list[dict]]:
         """Run the agent iteration loop."""
+        runtime_metadata = dict(runtime_metadata or {})
         messages = initial_messages
         iteration = 0
         final_content = None
@@ -493,6 +494,7 @@ class AgentLoop:
         rag_saturation: dict[str, Any] | None = None
         raw_stream_buffer = ""
         emitted_stream_len = 0
+        effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
 
         def _visible_stream_text(raw_text: str) -> str:
             # Hide completed and in-progress <think> blocks before forwarding deltas.
@@ -525,7 +527,7 @@ class AgentLoop:
             response = await self.provider.chat_with_retry(
                 messages=messages,
                 tools=tool_defs,
-                model=self.model,
+                model=effective_model,
                 on_content_delta=_stream_delta if on_content_delta else None,
             )
 

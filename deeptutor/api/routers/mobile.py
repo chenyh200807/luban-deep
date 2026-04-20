@@ -362,6 +362,10 @@ async def _persist_mobile_feedback(
     normalized_message_id = str(message_id or body.message_id or "").strip()
     if normalized_session_id:
         await _assert_mobile_conversation_access(normalized_session_id, user_id)
+    response_mode_metadata = await _load_feedback_response_mode_metadata(
+        session_id=normalized_session_id,
+        message_id=normalized_message_id,
+    )
 
     writer = MobileFeedbackSupabaseClient()
     if not writer.is_configured:
@@ -375,6 +379,16 @@ async def _persist_mobile_feedback(
         reason_tags=body.reason_tags,
         comment=body.comment,
         answer_mode=body.answer_mode,
+        requested_response_mode=str(response_mode_metadata.get("requested_response_mode") or ""),
+        effective_response_mode=str(response_mode_metadata.get("effective_response_mode") or ""),
+        response_mode_degrade_reason=str(
+            response_mode_metadata.get("response_mode_degrade_reason") or ""
+        ),
+        actual_tool_rounds=(
+            int(response_mode_metadata.get("actual_tool_rounds"))
+            if response_mode_metadata.get("actual_tool_rounds") is not None
+            else None
+        ),
     )
     try:
         await writer.insert_feedback(row)
@@ -397,6 +411,94 @@ def _normalize_tutorbot_mode(value: str | None) -> str:
     if normalized == "auto":
         return "smart"
     return normalize_requested_response_mode(normalized)
+
+
+def _resolve_mobile_requested_response_mode(
+    body: "MobileStartTurnRequest",
+    interaction_hints: dict[str, Any],
+) -> str:
+    if "mode" in getattr(body, "model_fields_set", set()):
+        return _normalize_tutorbot_mode(body.mode)
+    legacy_requested_mode = str(
+        interaction_hints.get("requested_response_mode") or interaction_hints.get("teaching_mode") or ""
+    ).strip()
+    if legacy_requested_mode:
+        return normalize_requested_response_mode(legacy_requested_mode)
+    return _normalize_tutorbot_mode(body.mode)
+
+
+def _assistant_message_by_id(
+    messages: list[dict[str, Any]] | None,
+    *,
+    message_id: str,
+) -> dict[str, Any] | None:
+    normalized_message_id = str(message_id or "").strip()
+    assistant_messages = [
+        item
+        for item in (messages or [])
+        if isinstance(item, dict) and str(item.get("role") or "").strip() == "assistant"
+    ]
+    if normalized_message_id:
+        for item in assistant_messages:
+            if str(item.get("id") or "").strip() == normalized_message_id:
+                return item
+    return assistant_messages[-1] if assistant_messages else None
+
+
+async def _load_feedback_response_mode_metadata(
+    *,
+    session_id: str,
+    message_id: str,
+) -> dict[str, Any]:
+    normalized_session_id = str(session_id or "").strip()
+    if not normalized_session_id:
+        return {}
+    loader = getattr(session_store, "get_session_with_messages", None)
+    if not callable(loader):
+        return {}
+    session = await loader(normalized_session_id)
+    if not isinstance(session, dict):
+        return {}
+    preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
+    interaction_hints = (
+        preferences.get("interaction_hints")
+        if isinstance(preferences.get("interaction_hints"), dict)
+        else {}
+    )
+    requested_response_mode = normalize_requested_response_mode(
+        str(
+            interaction_hints.get("requested_response_mode")
+            or interaction_hints.get("teaching_mode")
+            or preferences.get("chat_mode")
+            or ""
+        ).strip()
+    )
+    effective_response_mode = normalize_requested_response_mode(
+        str(
+            interaction_hints.get("effective_response_mode")
+            or preferences.get("chat_mode")
+            or requested_response_mode
+            or ""
+        ).strip()
+    )
+    assistant_message = _assistant_message_by_id(
+        session.get("messages") if isinstance(session.get("messages"), list) else [],
+        message_id=message_id,
+    )
+    events = assistant_message.get("events") if isinstance(assistant_message, dict) else []
+    actual_tool_rounds = sum(
+        1
+        for item in (events or [])
+        if isinstance(item, dict) and str(item.get("type") or "").strip() == "tool_call"
+    )
+    return {
+        "requested_response_mode": requested_response_mode,
+        "effective_response_mode": effective_response_mode,
+        "response_mode_degrade_reason": str(
+            interaction_hints.get("response_mode_degrade_reason") or ""
+        ).strip(),
+        "actual_tool_rounds": actual_tool_rounds,
+    }
 
 
 def _extract_goal_patches(patch: dict[str, Any]) -> list[dict[str, Any]]:
@@ -508,7 +610,7 @@ def _build_mobile_turn_payload(
         body.interaction_hints,
         current_info_required=current_info_required,
     )
-    requested_response_mode = _normalize_tutorbot_mode(body.mode)
+    requested_response_mode = _resolve_mobile_requested_response_mode(body, interaction_hints)
     interaction_hints["requested_response_mode"] = requested_response_mode
     interaction_hints["teaching_mode"] = requested_response_mode
     if grounding_decision.reasons:

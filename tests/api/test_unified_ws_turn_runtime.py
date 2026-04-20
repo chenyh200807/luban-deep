@@ -2757,6 +2757,88 @@ async def test_turn_runtime_prefers_requested_response_mode_hint_when_chat_mode_
     assert [event["type"] for event in events] == ["session", "content", "done"]
 
 
+@pytest.mark.asyncio
+async def test_turn_runtime_trace_requested_response_mode_falls_back_to_chat_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured_updates: list[dict[str, object]] = []
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={"response": "smart mode from chat_mode", "metadata": {}},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    def _capture_update(_observation, **kwargs):
+        captured_updates.append(kwargs)
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.get_current_usage_summary",
+        lambda: {},
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.update_observation",
+        _capture_update,
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "概括一下流水施工",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "chat_mode": "smart",
+                "interaction_hints": {
+                    "profile": "tutorbot",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert captured_updates
+    metadata = captured_updates[-1]["metadata"]
+    assert metadata["chat_mode"] == "smart"
+    assert metadata["requested_response_mode"] == "smart"
+    assert metadata["effective_response_mode"] == "smart"
+
+
 def test_bind_authenticated_user_promotes_legacy_response_mode_hints() -> None:
     payload = {
         "type": "start_turn",

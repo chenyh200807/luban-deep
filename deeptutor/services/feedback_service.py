@@ -69,6 +69,7 @@ def build_mobile_feedback_row(
     requested_response_mode: str = "",
     effective_response_mode: str = "",
     response_mode_degrade_reason: str = "",
+    actual_tool_rounds: int | None = None,
 ) -> dict[str, Any]:
     normalized_conversation_id = str(session_id or "").strip()
     normalized_message_id = str(message_id or "").strip()
@@ -80,14 +81,19 @@ def build_mobile_feedback_row(
     normalized_message_uuid = normalize_uuid_or_none(normalized_message_id)
     metadata = {
         "answer_mode": normalized_answer_mode,
-        "requested_response_mode": str(requested_response_mode or "").strip(),
-        "effective_response_mode": str(effective_response_mode or "").strip(),
+        "requested_response_mode": str(requested_response_mode or "").strip().upper(),
+        "effective_response_mode": str(effective_response_mode or "").strip().upper(),
         "response_mode_degrade_reason": str(response_mode_degrade_reason or "").strip(),
         "feedback_source": "wx_miniprogram_message_actions",
         "surface": "wx_miniprogram",
         "platform": "wechat_miniprogram",
         "source": "wx_miniprogram",
     }
+    if actual_tool_rounds is not None:
+        try:
+            metadata["actual_tool_rounds"] = max(0, int(actual_tool_rounds))
+        except (TypeError, ValueError):
+            pass
     if user_id and normalized_user_uuid != user_id:
         metadata["deeptutor_user_id"] = user_id
     if normalized_conversation_id and normalized_conversation_uuid != normalized_conversation_id:
@@ -111,6 +117,13 @@ def _metadata_str(metadata: Mapping[str, Any], key: str) -> str:
     return str(metadata.get(key) or "").strip()
 
 
+def _metadata_int(metadata: Mapping[str, Any], key: str) -> int:
+    try:
+        return int(metadata.get(key) or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
 def normalize_feedback_record(row: Mapping[str, Any]) -> dict[str, Any]:
     metadata = row.get("metadata")
     normalized_metadata = dict(metadata) if isinstance(metadata, dict) else {}
@@ -132,6 +145,7 @@ def normalize_feedback_record(row: Mapping[str, Any]) -> dict[str, Any]:
         "response_mode_degrade_reason": _metadata_str(
             normalized_metadata, "response_mode_degrade_reason"
         ),
+        "actual_tool_rounds": _metadata_int(normalized_metadata, "actual_tool_rounds"),
         "feedback_source": _metadata_str(normalized_metadata, "feedback_source"),
         "surface": _metadata_str(normalized_metadata, "surface"),
         "platform": _metadata_str(normalized_metadata, "platform"),
