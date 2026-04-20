@@ -90,6 +90,18 @@ function streamChat(opts, callbacks) {
   var reconnectAttempts = 0;
   var socketOpen = false;
   var cancelRequested = false;
+  var resumeAttempted = false;
+  var resumeSucceeded = false;
+
+  function emitTelemetry(eventName, metadata) {
+    if (!cb.onTelemetryEvent) return;
+    cb.onTelemetryEvent({
+      eventName: eventName,
+      sessionId: chatId || sessionId,
+      turnId: turnId,
+      metadata: metadata || {},
+    });
+  }
 
   function clearIdleTimer() {
     if (idleTimer) {
@@ -147,6 +159,9 @@ function streamChat(opts, callbacks) {
     clearIdleTimer();
     clearSlowTimer();
     clearReconnectTimer();
+    emitTelemetry("surface_render_failed", {
+      message: normalizeErrorMessage(err),
+    });
     if (cb.onError) cb.onError(normalizeErrorMessage(err));
     if (cb.onDone) cb.onDone();
     try {
@@ -199,7 +214,13 @@ function streamChat(opts, callbacks) {
       if (eventMetadata.turn_id) {
         turnId = String(eventMetadata.turn_id || "").trim() || turnId;
       }
+      emitTelemetry("session_event_received");
       return;
+    }
+
+    if (resumeAttempted && !resumeSucceeded && turnId) {
+      resumeSucceeded = true;
+      emitTelemetry("resume_succeeded", { event_type: eventType });
     }
 
     if (eventSeq !== null) {
@@ -319,6 +340,12 @@ function streamChat(opts, callbacks) {
       if (!payload) {
         failStream("启动流式会话失败");
         return;
+      }
+      emitTelemetry("ws_connected", { reconnect_attempts: reconnectAttempts });
+      if (payload.type === "resume_from") {
+        resumeAttempted = true;
+        resumeSucceeded = false;
+        emitTelemetry("resume_attempted", { seq: payload.seq || 0 });
       }
       socketTask.send({
         data: JSON.stringify(payload),

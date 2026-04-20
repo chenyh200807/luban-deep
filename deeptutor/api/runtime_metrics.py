@@ -86,6 +86,80 @@ class APIRuntimeMetrics:
             }
 
 
+class TurnRuntimeMetrics:
+    """In-process websocket and turn runtime metrics for OM baseline."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._ws_active_connections = 0
+        self._ws_opened_total = 0
+        self._ws_closed_total = 0
+        self._turns_started_total = 0
+        self._turns_completed_total = 0
+        self._turns_failed_total = 0
+        self._turns_cancelled_total = 0
+        self._turns_in_flight = 0
+        self._turn_latency_total_ms = 0.0
+        self._turn_latency_count = 0
+
+    def record_ws_open(self) -> None:
+        with self._lock:
+            self._ws_active_connections += 1
+            self._ws_opened_total += 1
+
+    def record_ws_close(self) -> None:
+        with self._lock:
+            self._ws_closed_total += 1
+            self._ws_active_connections = max(0, self._ws_active_connections - 1)
+
+    def record_turn_started(self) -> None:
+        with self._lock:
+            self._turns_started_total += 1
+            self._turns_in_flight += 1
+
+    def record_turn_finished(self, *, status: str, duration_ms: float) -> None:
+        normalized_status = str(status or "").strip().lower() or "completed"
+        with self._lock:
+            self._turns_in_flight = max(0, self._turns_in_flight - 1)
+            self._turn_latency_total_ms += max(float(duration_ms), 0.0)
+            self._turn_latency_count += 1
+            if normalized_status == "completed":
+                self._turns_completed_total += 1
+            elif normalized_status == "cancelled":
+                self._turns_cancelled_total += 1
+            else:
+                self._turns_failed_total += 1
+
+    def snapshot(self) -> dict[str, Any]:
+        with self._lock:
+            avg_turn_latency_ms = (
+                self._turn_latency_total_ms / self._turn_latency_count if self._turn_latency_count else 0.0
+            )
+            return {
+                "ws_active_connections": int(self._ws_active_connections),
+                "ws_opened_total": int(self._ws_opened_total),
+                "ws_closed_total": int(self._ws_closed_total),
+                "turns_started_total": int(self._turns_started_total),
+                "turns_completed_total": int(self._turns_completed_total),
+                "turns_failed_total": int(self._turns_failed_total),
+                "turns_cancelled_total": int(self._turns_cancelled_total),
+                "turns_in_flight": int(self._turns_in_flight),
+                "turn_avg_latency_ms": round(avg_turn_latency_ms, 2),
+            }
+
+
+_turn_runtime_metrics = TurnRuntimeMetrics()
+
+
+def get_turn_runtime_metrics() -> TurnRuntimeMetrics:
+    return _turn_runtime_metrics
+
+
+def reset_turn_runtime_metrics() -> None:
+    global _turn_runtime_metrics
+    _turn_runtime_metrics = TurnRuntimeMetrics()
+
+
 def _escape_label(value: object) -> str:
     return str(value).replace("\\", r"\\").replace("\n", r"\n").replace('"', r"\"")
 
@@ -93,9 +167,12 @@ def _escape_label(value: object) -> str:
 def render_prometheus_metrics(
     *,
     http_snapshot: dict[str, Any],
+    turn_snapshot: dict[str, Any],
+    surface_snapshot: dict[str, Any],
     readiness_snapshot: dict[str, Any],
     provider_error_rates: dict[str, dict[str, float | int | bool]],
     circuit_breakers: dict[str, dict[str, float | int | str]],
+    release_snapshot: dict[str, str],
 ) -> str:
     """Render a Prometheus-compatible text exposition."""
     lines: list[str] = []
@@ -137,6 +214,76 @@ def render_prometheus_metrics(
         emit("deeptutor_http_route_requests_total", route_entry.get("requests", 0), route_labels)
         emit("deeptutor_http_route_errors_total", route_entry.get("errors", 0), route_labels)
         emit("deeptutor_http_route_avg_latency_ms", route_entry.get("avg_latency_ms", 0), route_labels)
+
+    lines.append("# HELP deeptutor_ws_active_connections Current active websocket connections.")
+    lines.append("# TYPE deeptutor_ws_active_connections gauge")
+    emit("deeptutor_ws_active_connections", turn_snapshot.get("ws_active_connections", 0))
+
+    lines.append("# HELP deeptutor_ws_opened_total Total websocket connections opened.")
+    lines.append("# TYPE deeptutor_ws_opened_total counter")
+    emit("deeptutor_ws_opened_total", turn_snapshot.get("ws_opened_total", 0))
+
+    lines.append("# HELP deeptutor_ws_closed_total Total websocket connections closed.")
+    lines.append("# TYPE deeptutor_ws_closed_total counter")
+    emit("deeptutor_ws_closed_total", turn_snapshot.get("ws_closed_total", 0))
+
+    lines.append("# HELP deeptutor_turns_started_total Total turns started by the runtime.")
+    lines.append("# TYPE deeptutor_turns_started_total counter")
+    emit("deeptutor_turns_started_total", turn_snapshot.get("turns_started_total", 0))
+
+    lines.append("# HELP deeptutor_turns_completed_total Total turns completed by the runtime.")
+    lines.append("# TYPE deeptutor_turns_completed_total counter")
+    emit("deeptutor_turns_completed_total", turn_snapshot.get("turns_completed_total", 0))
+
+    lines.append("# HELP deeptutor_turns_failed_total Total turns failed by the runtime.")
+    lines.append("# TYPE deeptutor_turns_failed_total counter")
+    emit("deeptutor_turns_failed_total", turn_snapshot.get("turns_failed_total", 0))
+
+    lines.append("# HELP deeptutor_turns_cancelled_total Total turns cancelled by the runtime.")
+    lines.append("# TYPE deeptutor_turns_cancelled_total counter")
+    emit("deeptutor_turns_cancelled_total", turn_snapshot.get("turns_cancelled_total", 0))
+
+    lines.append("# HELP deeptutor_turns_in_flight Current number of in-flight turns.")
+    lines.append("# TYPE deeptutor_turns_in_flight gauge")
+    emit("deeptutor_turns_in_flight", turn_snapshot.get("turns_in_flight", 0))
+
+    lines.append("# HELP deeptutor_turn_avg_latency_ms Average turn runtime latency in milliseconds.")
+    lines.append("# TYPE deeptutor_turn_avg_latency_ms gauge")
+    emit("deeptutor_turn_avg_latency_ms", turn_snapshot.get("turn_avg_latency_ms", 0))
+
+    lines.append("# HELP deeptutor_surface_event_total Total surface telemetry events by surface, event, and ingest status.")
+    lines.append("# TYPE deeptutor_surface_event_total counter")
+    for event_entry in surface_snapshot.get("event_counts") or []:
+        emit(
+            "deeptutor_surface_event_total",
+            event_entry.get("count", 0),
+            {
+                "surface": event_entry.get("surface", ""),
+                "event_name": event_entry.get("event_name", ""),
+                "status": event_entry.get("status", ""),
+            },
+        )
+
+    lines.append("# HELP deeptutor_surface_first_render_coverage_ratio Ratio of first render ACKs over start_turn_sent by surface.")
+    lines.append("# TYPE deeptutor_surface_first_render_coverage_ratio gauge")
+    lines.append("# HELP deeptutor_surface_done_render_coverage_ratio Ratio of done_rendered ACKs over start_turn_sent by surface.")
+    lines.append("# TYPE deeptutor_surface_done_render_coverage_ratio gauge")
+    for coverage_entry in surface_snapshot.get("coverage") or []:
+        surface = coverage_entry.get("surface", "")
+        first_ratio = coverage_entry.get("first_render_coverage_ratio")
+        done_ratio = coverage_entry.get("done_render_coverage_ratio")
+        if first_ratio is not None:
+            emit(
+                "deeptutor_surface_first_render_coverage_ratio",
+                first_ratio,
+                {"surface": surface},
+            )
+        if done_ratio is not None:
+            emit(
+                "deeptutor_surface_done_render_coverage_ratio",
+                done_ratio,
+                {"surface": surface},
+            )
 
     lines.append("# HELP deeptutor_ready Whether DeepTutor readiness checks currently pass.")
     lines.append("# TYPE deeptutor_ready gauge")
@@ -181,5 +328,20 @@ def render_prometheus_metrics(
         emit("deeptutor_circuit_breaker_failure_count", snapshot.get("failure_count", 0), provider_labels)
         emit("deeptutor_circuit_breaker_open", 1 if state == "open" else 0, provider_labels)
         emit("deeptutor_circuit_breaker_half_open", 1 if state == "half-open" else 0, provider_labels)
+
+    lines.append("# HELP deeptutor_release_info Build and release lineage for the running service.")
+    lines.append("# TYPE deeptutor_release_info gauge")
+    emit(
+        "deeptutor_release_info",
+        1,
+        {
+            "release_id": release_snapshot.get("release_id", ""),
+            "service_version": release_snapshot.get("service_version", ""),
+            "git_sha": release_snapshot.get("git_sha", ""),
+            "deployment_environment": release_snapshot.get("deployment_environment", ""),
+            "prompt_version": release_snapshot.get("prompt_version", ""),
+            "ff_snapshot_hash": release_snapshot.get("ff_snapshot_hash", ""),
+        },
+    )
 
     return "\n".join(lines) + "\n"

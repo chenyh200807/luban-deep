@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Long Dialog V1 复测脚本（DeepTutor / mini_tutor / smart）。
+"""Long Dialog V1 复测脚本（DeepTutor / TutorBot / smart）。
 
 当前仓库里已经没有旧系统原始的 `eval/sets/long_dialog_v1.jsonl`，
 所以这里改为读取旧系统留存的 `session_full_conversations` 明细，
@@ -8,7 +8,7 @@
 默认行为：
 1. 从历史 artifact 中恢复 10 条长对话链的用户问题。
 2. 用当前 DeepTutor 的 turn runtime 按同一 session 连续执行。
-3. 全部使用 `mini_tutor + smart` 配置。
+3. 全部使用 `TutorBot + smart` 配置。
 4. 产出 JSON + Markdown 报告到 `tmp/`。
 
 说明：
@@ -30,6 +30,9 @@ import tempfile
 import time
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse, urlunparse
+
+import websockets
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -39,16 +42,6 @@ from deeptutor.services.session.sqlite_store import SQLiteSessionStore
 from deeptutor.services.session.turn_runtime import TurnRuntimeManager
 
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "tmp"
-DEFAULT_SOURCE_CANDIDATES = [
-    PROJECT_ROOT.parent
-    / "FastAPI20251222_broken_backup_20260414_002321"
-    / "artifacts"
-    / "long_dialog_round7_full_detail_20260328.json",
-    PROJECT_ROOT.parent
-    / "FastAPI20251222"
-    / "artifacts"
-    / "long_dialog_round7_full_detail_20260328.json",
-]
 
 FOLLOWUP_PATTERN = re.compile(
     r"第\d+题|为什么不是|再来一题|这道题|刚才|前面|继续批改|沿用|同一个案例|别重新开始|"
@@ -110,6 +103,64 @@ CURRENT_INFO_KEYWORDS = (
 )
 
 
+def _main_repo_root_from_worktree(project_root: Path) -> Path | None:
+    git_pointer = project_root / ".git"
+    if not git_pointer.is_file():
+        return None
+    raw = git_pointer.read_text(encoding="utf-8").strip()
+    if not raw.startswith("gitdir:"):
+        return None
+    gitdir_value = raw.split(":", 1)[1].strip()
+    gitdir = Path(gitdir_value).expanduser()
+    if not gitdir.is_absolute():
+        gitdir = (git_pointer.parent / gitdir).resolve()
+    if gitdir.parent.name != "worktrees":
+        return None
+    common_git_dir = gitdir.parent.parent
+    if common_git_dir.name != ".git":
+        return None
+    return common_git_dir.parent
+
+
+def _default_source_candidates() -> list[Path]:
+    candidates: list[Path] = []
+    seen: set[Path] = set()
+
+    def _append(candidate: Path) -> None:
+        resolved = candidate.expanduser().resolve()
+        if resolved in seen:
+            return
+        seen.add(resolved)
+        candidates.append(resolved)
+
+    roots = [PROJECT_ROOT.parent]
+    main_repo_root = _main_repo_root_from_worktree(PROJECT_ROOT)
+    if main_repo_root is not None:
+        roots.append(main_repo_root.parent)
+
+    for root in roots:
+        _append(
+            root
+            / "FastAPI20251222_broken_backup_20260414_002321"
+            / "artifacts"
+            / "long_dialog_round7_full_detail_20260328.json"
+        )
+        _append(
+            root
+            / "FastAPI20251222"
+            / "artifacts"
+            / "long_dialog_round7_full_detail_20260328.json"
+        )
+    return candidates
+
+
+def _build_ws_url(api_base_url: str) -> str:
+    parsed = urlparse(api_base_url.rstrip("/"))
+    scheme = "wss" if parsed.scheme == "https" else "ws"
+    path = parsed.path.rstrip("/") + "/api/v1/ws"
+    return urlunparse((scheme, parsed.netloc, path, "", "", ""))
+
+
 def _resolve_source_path(cli_value: str | None) -> Path:
     if cli_value:
         path = Path(cli_value).expanduser().resolve()
@@ -117,11 +168,12 @@ def _resolve_source_path(cli_value: str | None) -> Path:
             raise FileNotFoundError(f"未找到 source json: {path}")
         return path
 
-    for candidate in DEFAULT_SOURCE_CANDIDATES:
+    default_candidates = _default_source_candidates()
+    for candidate in default_candidates:
         if candidate.exists():
             return candidate
 
-    searched = "\n".join(str(path) for path in DEFAULT_SOURCE_CANDIDATES)
+    searched = "\n".join(str(path) for path in default_candidates)
     raise FileNotFoundError(
         "未找到 long dialog V1 历史明细。请用 --source-json 指定。\n"
         f"默认查找位置：\n{searched}"
@@ -158,7 +210,7 @@ def _build_retest_interaction_hints(
     hints: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     merged = dict(hints or {})
-    merged["profile"] = profile or "mini_tutor"
+    merged["profile"] = profile or "tutorbot"
     normalized_mode = str(mode or "").strip().lower()
     if normalized_mode in {"smart", "fast", "deep"}:
         merged["teaching_mode"] = normalized_mode
@@ -338,26 +390,41 @@ def _build_cases(source_payload: dict[str, Any]) -> list[dict[str, Any]]:
     return sorted(cases, key=lambda item: item["case_id"])
 
 
-async def _run_single_turn(
+def _build_turn_config(
+    *,
+    query: str,
+    teaching_mode: str,
+    include_eval_user: bool,
+) -> dict[str, Any]:
+    billing_context: dict[str, Any] = {
+        "source": "wx_miniprogram",
+    }
+    if include_eval_user:
+        billing_context["user_id"] = "ld_eval_user"
+    return {
+        "interaction_profile": "tutorbot",
+        "interaction_hints": _build_retest_interaction_hints(
+            mode=teaching_mode,
+            profile="tutorbot",
+            query=query,
+            hints={},
+        ),
+        "billing_context": billing_context,
+    }
+
+
+async def _run_single_turn_runtime(
     runtime: TurnRuntimeManager,
     *,
     session_id: str | None,
     query: str,
     teaching_mode: str,
 ) -> tuple[str, str, float, list[str]]:
-    config = {
-        "interaction_profile": "mini_tutor",
-        "interaction_hints": _build_retest_interaction_hints(
-            mode=teaching_mode,
-            profile="mini_tutor",
-            query=query,
-            hints={},
-        ),
-        "billing_context": {
-            "source": "wx_miniprogram",
-            "user_id": "ld_eval_user",
-        },
-    }
+    config = _build_turn_config(
+        query=query,
+        teaching_mode=teaching_mode,
+        include_eval_user=True,
+    )
     start = time.perf_counter()
     session, turn = await runtime.start_turn(
         {
@@ -394,16 +461,81 @@ async def _run_single_turn(
     return session["id"], response, latency_ms, event_types
 
 
+async def _run_single_turn_live_ws(
+    *,
+    api_base_url: str,
+    session_id: str | None,
+    query: str,
+    teaching_mode: str,
+) -> tuple[str, str, float, list[str]]:
+    config = _build_turn_config(
+        query=query,
+        teaching_mode=teaching_mode,
+        include_eval_user=False,
+    )
+    payload = {
+        "type": "start_turn",
+        "content": query,
+        "capability": None,
+        "tools": [],
+        "knowledge_bases": [],
+        "attachments": [],
+        "language": "zh",
+        "config": config,
+        "history_references": [],
+        "notebook_references": [],
+    }
+    if session_id:
+        payload["session_id"] = session_id
+
+    ws_url = _build_ws_url(api_base_url)
+    fragments: list[str] = []
+    fallback_response = ""
+    event_types: list[str] = []
+    resolved_session_id = session_id or ""
+    started_at = time.perf_counter()
+
+    async with websockets.connect(ws_url) as websocket:
+        await websocket.send(json.dumps(payload, ensure_ascii=False))
+        while True:
+            raw = await websocket.recv()
+            event = json.loads(raw)
+            event_type = str(event.get("type") or "")
+            event_types.append(event_type)
+            if event_type == "session":
+                resolved_session_id = str(event.get("session_id") or resolved_session_id)
+            elif event_type == "content" and event.get("content"):
+                fragments.append(str(event["content"]))
+            elif event_type == "result":
+                metadata = event.get("metadata") or {}
+                fallback_response = str(
+                    metadata.get("response")
+                    or (metadata.get("metadata") or {}).get("response")
+                    or fallback_response
+                )
+            if event_type == "error":
+                raise RuntimeError(str(event.get("content") or "live_ws_turn_failed"))
+            if event_type == "done":
+                break
+
+    response = "".join(fragments).strip() or fallback_response.strip()
+    latency_ms = (time.perf_counter() - started_at) * 1000
+    return resolved_session_id, response, latency_ms, event_types
+
+
 async def _run_case(
     case: dict[str, Any],
     *,
     teaching_mode: str,
     per_turn_timeout_s: float,
     turn_mode: str,
+    api_base_url: str | None = None,
 ) -> dict[str, Any]:
-    tmpdir = tempfile.mkdtemp(prefix=f"long_dialog_{case['case_id'].lower()}_")
-    store = SQLiteSessionStore(Path(tmpdir) / "chat_history.db")
-    runtime = TurnRuntimeManager(store)
+    runtime: TurnRuntimeManager | None = None
+    if not api_base_url:
+        tmpdir = tempfile.mkdtemp(prefix=f"long_dialog_{case['case_id'].lower()}_")
+        store = SQLiteSessionStore(Path(tmpdir) / "chat_history.db")
+        runtime = TurnRuntimeManager(store)
 
     session_id: str | None = None
     prev_response = ""
@@ -428,11 +560,20 @@ async def _run_case(
         query = str(item.get("user_query") or "")
         try:
             session_id, response, latency_ms, event_types = await asyncio.wait_for(
-                _run_single_turn(
-                    runtime,
-                    session_id=session_id,
-                    query=query,
-                    teaching_mode=teaching_mode,
+                (
+                    _run_single_turn_live_ws(
+                        api_base_url=api_base_url,
+                        session_id=session_id,
+                        query=query,
+                        teaching_mode=teaching_mode,
+                    )
+                    if api_base_url
+                    else _run_single_turn_runtime(
+                        runtime,
+                        session_id=session_id,
+                        query=query,
+                        teaching_mode=teaching_mode,
+                    )
                 ),
                 timeout=per_turn_timeout_s,
             )
@@ -531,7 +672,13 @@ async def _run_case(
     }
 
 
-def _render_markdown(results: list[dict[str, Any]], *, source_json: Path, teaching_mode: str) -> str:
+def _render_markdown(
+    results: list[dict[str, Any]],
+    *,
+    source_json: Path,
+    teaching_mode: str,
+    api_base_url: str | None,
+) -> str:
     total_turns = sum(item["summary"]["turns"] for item in results)
     avg_semantic = mean(item["summary"]["semantic_score"] for item in results) if results else 0
     avg_satisfaction = mean(item["summary"]["satisfaction_score"] for item in results) if results else 0
@@ -541,6 +688,8 @@ def _render_markdown(results: list[dict[str, Any]], *, source_json: Path, teachi
         "",
         f"**时间**: {time.strftime('%Y-%m-%d %H:%M:%S')}",
         f"**教学模式**: {teaching_mode}",
+        f"**执行方式**: {'live_ws' if api_base_url else 'in_process_runtime'}",
+        f"**API Base URL**: `{api_base_url}`" if api_base_url else "**API Base URL**: `N/A`",
         f"**数据源**: `{source_json}`",
         f"**场景数**: {len(results)}",
         f"**总轮次**: {total_turns}",
@@ -621,6 +770,10 @@ async def main() -> None:
         default=160.0,
         help="单轮总超时秒数；超时后当前 case 直接中止，默认 160s",
     )
+    parser.add_argument(
+        "--api-base-url",
+        help="提供后，经真实 /api/v1/ws 执行每一轮；不提供则使用本进程 TurnRuntimeManager",
+    )
     args = parser.parse_args()
 
     source_json = _resolve_source_path(args.source_json)
@@ -650,11 +803,17 @@ async def main() -> None:
             teaching_mode=args.teaching_mode,
             per_turn_timeout_s=args.per_turn_timeout,
             turn_mode=args.turn_mode,
+            api_base_url=args.api_base_url,
         )
         results.append(case_result)
         json_path.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
         md_path.write_text(
-            _render_markdown(results, source_json=source_json, teaching_mode=args.teaching_mode),
+            _render_markdown(
+                results,
+                source_json=source_json,
+                teaching_mode=args.teaching_mode,
+                api_base_url=args.api_base_url,
+            ),
             encoding="utf-8",
         )
 

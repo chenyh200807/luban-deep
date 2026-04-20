@@ -1,0 +1,101 @@
+[
+  {
+    "name": "exact_authority_full_case_bundle",
+    "kind": "exact_authority",
+    "metadata": {
+      "exact_question": {
+        "answer_kind": "case_study",
+        "case_bundle": {
+          "covered_subquestions": [
+            {
+              "display_index": "1",
+              "prompt": "Q1",
+              "authoritative_answer": "项目经理应先核查关键线路。",
+              "analysis": "关键线路决定总工期。"
+            },
+            {
+              "display_index": "2",
+              "prompt": "Q2",
+              "authoritative_answer": "随后调整资源投入。",
+              "analysis": "资源投入会影响后续衔接。"
+            }
+          ],
+          "missing_subquestions": [],
+          "coverage_ratio": 1.0,
+          "coverage_state": "multi_subquestion_exact"
+        }
+      }
+    },
+    "expected_force_exact": true,
+    "expected_response_contains": [
+      "1. 项目经理应先核查关键线路。",
+      "2. 随后调整资源投入。"
+    ]
+  },
+  {
+    "name": "exact_authority_partial_case_bundle",
+    "kind": "exact_authority",
+    "metadata": {
+      "exact_question": {
+        "answer_kind": "case_study",
+        "case_bundle": {
+          "covered_subquestions": [
+            {
+              "display_index": "1",
+              "prompt": "Q1",
+              "authoritative_answer": "先判断总工期风险。"
+            }
+          ],
+          "missing_subquestions": [
+            {
+              "display_index": "2",
+              "prompt": "Q2"
+            }
+          ],
+          "coverage_ratio": 0.5,
+          "coverage_state": "single_subquestion_only"
+        }
+      }
+    },
+    "expected_force_exact": false,
+    "expected_response_contains": []
+  },
+  {
+    "name": "grounded_followup_forces_retrieval_first",
+    "kind": "grounding_decision",
+    "query": "这道题我为什么错了，结合教材再解释一下",
+    "default_kb": "construction-exam",
+    "knowledge_bases": [
+      "construction-exam"
+    ],
+    "rag_enabled": true,
+    "tutorbot_context": true,
+    "followup_question": true,
+    "answer_type": "knowledge_explainer",
+    "expected": {
+      "grounded_construction_exam_runtime": true,
+      "should_force_retrieval_first": true
+    }
+  },
+  {
+    "name": "current_info_query_prefetches_grounded_rag",
+    "kind": "grounding_decision_from_metadata",
+    "query": "2026年教材变化有哪些更新",
+    "runtime_metadata": {
+      "default_kb": "construction-exam",
+      "knowledge_bases": [
+        "construction-exam"
+      ],
+      "current_info_required": true
+    },
+    "rag_enabled": true,
+    "tutorbot_context": true,
+    "exact_question_candidate": false,
+    "practice_generation_request": false,
+    "expected": {
+      "current_info_required": true,
+      "textbook_delta_query": true,
+      "should_prefetch_grounded_rag": true
+    }
+  }
+]

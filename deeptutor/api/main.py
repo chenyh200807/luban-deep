@@ -12,10 +12,11 @@ from fastapi.staticfiles import StaticFiles
 
 from deeptutor.logging import get_logger
 from deeptutor.logging.context import bind_log_context, bind_request_id, reset_log_context, reset_request_id
-from deeptutor.api.runtime_metrics import APIRuntimeMetrics, render_prometheus_metrics
+from deeptutor.api.runtime_metrics import APIRuntimeMetrics, get_turn_runtime_metrics, render_prometheus_metrics
 from deeptutor.services.config import get_env_store
 from deeptutor.services.branding import get_api_title, get_api_welcome_message
 from deeptutor.services.learner_state.runtime import create_default_learner_state_runtime
+from deeptutor.services.observability import get_release_lineage_snapshot, get_surface_event_store
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.utils.error_rate_tracker import get_tracker_snapshot
@@ -369,6 +370,7 @@ from deeptutor.api.routers import (
     memory,
     mobile,
     notebook,
+    observability,
     plugins_api,
     question,
     sessions,
@@ -407,6 +409,7 @@ app.include_router(settings.router, prefix="/api/v1/settings", tags=["settings"]
 app.include_router(system.router, prefix="/api/v1/system", tags=["system"])
 app.include_router(agent_config.router, prefix="/api/v1/agent-config", tags=["agent-config"])
 app.include_router(tutor_state.router, prefix="/api/v1/tutor-state", tags=["tutor-state"])
+app.include_router(observability.router, prefix="/api/v1/observability", tags=["observability"])
 app.include_router(vision_solver.router, prefix="/api/v1", tags=["vision-solver"])
 app.include_router(mobile.router, prefix="/api/v1", tags=["mobile"])
 
@@ -437,7 +440,10 @@ async def readyz():
 @app.get("/metrics", include_in_schema=False)
 async def metrics():
     return {
+        "release": get_release_lineage_snapshot(),
         "http": app.state.runtime_metrics.snapshot(),
+        "turn_runtime": get_turn_runtime_metrics().snapshot(),
+        "surface_events": get_surface_event_store().snapshot(),
         "readiness": get_readyz_payload(app)[1],
         "providers": {
             "error_rates": get_tracker_snapshot(),
@@ -449,15 +455,21 @@ async def metrics():
 @app.get("/metrics/prometheus", include_in_schema=False)
 async def metrics_prometheus():
     http_snapshot = app.state.runtime_metrics.snapshot()
+    turn_snapshot = get_turn_runtime_metrics().snapshot()
+    surface_snapshot = get_surface_event_store().snapshot()
     readiness_snapshot = get_readyz_payload(app)[1]
     provider_error_rates = get_tracker_snapshot()
     circuit_breakers = get_circuit_breaker_snapshot()
+    release_snapshot = get_release_lineage_snapshot()
     return PlainTextResponse(
         render_prometheus_metrics(
             http_snapshot=http_snapshot,
+            turn_snapshot=turn_snapshot,
+            surface_snapshot=surface_snapshot,
             readiness_snapshot=readiness_snapshot,
             provider_error_rates=provider_error_rates,
             circuit_breakers=circuit_breakers,
+            release_snapshot=release_snapshot,
         ),
         media_type="text/plain; version=0.0.4; charset=utf-8",
     )

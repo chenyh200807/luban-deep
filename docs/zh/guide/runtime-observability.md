@@ -6,6 +6,11 @@
 - `readyz`：启动期 readiness
 - `metrics`：机器可读 JSON 快照
 - `metrics/prometheus`：Prometheus 文本导出
+- `control plane`：OM / ARR / AAE / OA / Release Gate 的 best-effort run history
+
+控制面说明见：
+
+- [docs/zh/guide/observability-control-plane.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/zh/guide/observability-control-plane.md)
 
 ## HTTP 端点
 
@@ -45,6 +50,9 @@ curl -fsS http://127.0.0.1:8001/metrics | jq
 
 - HTTP 请求总量、5xx 数量、状态码分布
 - route 维度请求量、错误量、平均延迟
+- release lineage 快照
+- turn runtime 快照
+- surface ack coverage 快照
 - readiness 快照
 - provider error rate 快照
 - circuit breaker 快照

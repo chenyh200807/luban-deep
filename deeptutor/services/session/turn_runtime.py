@@ -10,19 +10,26 @@ import json
 import logging
 import os
 import sqlite3
+import time
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from types import SimpleNamespace
 from typing import Any
 
+from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.contracts.bot_runtime_defaults import (
     resolve_bot_runtime_defaults as resolve_bot_binding_defaults,
 )
 from deeptutor.logging.context import bind_log_context, reset_log_context
-from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.observability import (
+    get_langfuse_observability,
+    get_release_lineage_metadata,
+    get_surface_event_store,
+)
+from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
     build_question_followup_context_from_presentation,
@@ -140,6 +147,9 @@ def _active_object_plan_id(active_object: dict[str, Any] | None) -> str:
     normalized = normalize_active_object(active_object)
     if not isinstance(normalized, dict):
         return ""
+    object_type = str(normalized.get("object_type") or "").strip()
+    if object_type not in {"guide_page", "study_plan"}:
+        return ""
     scope = normalized.get("scope") if isinstance(normalized.get("scope"), dict) else {}
     state_snapshot = (
         normalized.get("state_snapshot")
@@ -175,6 +185,22 @@ def _suspended_stack_plan_id(suspended_object_stack: list[dict[str, Any]] | None
         if plan_id:
             return plan_id
     return ""
+
+
+def _prepend_suspended_object(
+    suspended_object_stack: list[dict[str, Any]] | None,
+    active_object: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    normalized_object = normalize_active_object(active_object)
+    if normalized_object is None:
+        return normalize_suspended_object_stack(suspended_object_stack)
+
+    deduped = [
+        item
+        for item in normalize_suspended_object_stack(suspended_object_stack)
+        if not _same_active_object_identity(item, normalized_object)
+    ]
+    return [normalized_object, *deduped]
 
 
 def _build_turn_semantic_decision(
@@ -627,7 +653,11 @@ def _normalize_name_list(values: list[str] | None) -> list[str]:
 
 
 def _normalize_interaction_profile_name(value: Any) -> str:
-    return str(value or "").strip().lower()
+    normalized = str(value or "").strip().lower()
+    return {
+        "mini_tutor": "tutorbot",
+        "construction_exam_tutor": "tutorbot",
+    }.get(normalized, normalized)
 
 
 def _resolve_bot_runtime_defaults(
@@ -1969,6 +1999,7 @@ class TurnRuntimeManager:
         )
         async with self._lock:
             self._executions[turn["id"]] = execution
+        get_turn_runtime_metrics().record_turn_started()
         await self._persist_and_publish(
             execution,
             StreamEvent(
@@ -2111,9 +2142,13 @@ class TurnRuntimeManager:
         authoritative_assistant_content = ""
         assistant_content_source = "content_stream"
         turn_observation: Any | None = None
+        terminal_status = "failed"
+        turn_started_at = time.perf_counter()
+        surface_event_store = get_surface_event_store()
         trace_metadata = {
             "session_id": session_id,
             "turn_id": turn_id,
+            **get_release_lineage_metadata(),
             "capability": capability_name or "chat",
             "execution_engine": "tutorbot_runtime" if capability_name == "tutorbot" else "capability",
             "bot_id": str((payload.get("config", {}) or {}).get("bot_id", "") or "").strip(),
@@ -2122,6 +2157,29 @@ class TurnRuntimeManager:
             ).strip(),
         }
         log_context_tokens: dict[str, Any] | None = None
+
+        def _build_final_observation_metadata(
+            *,
+            usage_summary: dict[str, Any],
+            terminal_status: str,
+        ) -> dict[str, Any]:
+            assistant_event_summary = _summarize_assistant_events(assistant_events)
+            turn_duration_ms = (time.perf_counter() - turn_started_at) * 1000.0
+            surface_turn_summary = surface_event_store.get_turn_summary(turn_id)
+            return {
+                **observability.summary_metadata(usage_summary),
+                **trace_metadata,
+                **assistant_event_summary,
+                "assistant_event_count": len(assistant_events),
+                "assistant_content_source": assistant_content_source,
+                **build_turn_aae_metadata(
+                    trace_metadata=trace_metadata,
+                    assistant_event_summary=assistant_event_summary,
+                    terminal_status=terminal_status,
+                    turn_duration_ms=turn_duration_ms,
+                    surface_turn_summary=surface_turn_summary,
+                ),
+            }
 
         try:
             from deeptutor.core.context import Attachment, UnifiedContext
@@ -2151,6 +2209,7 @@ class TurnRuntimeManager:
             stored_followup_question_context = None
             volatile_followup_question_context = None
             stored_object_type = ""
+            original_stored_suspended_object_stack: list[dict[str, Any]] = []
             if session_id:
                 stored_active_object = await self._safe_store_call(
                     execution,
@@ -2166,9 +2225,22 @@ class TurnRuntimeManager:
                     session_id,
                     default=[],
                 )
+                original_stored_suspended_object_stack = list(stored_suspended_object_stack)
                 stored_object_type = str((stored_active_object or {}).get("object_type") or "").strip()
             notebook_references = payload.get("notebook_references", []) or []
             history_references = payload.get("history_references", []) or []
+            if (
+                stored_active_object is not None
+                and extract_question_context_from_active_object(stored_active_object) is not None
+                and followup_question_context is None
+                and followup_action_route(followup_question_action) is None
+            ):
+                stored_suspended_object_stack = _prepend_suspended_object(
+                    stored_suspended_object_stack,
+                    stored_active_object,
+                )
+                stored_active_object = None
+                stored_object_type = ""
             active_plan_id = (
                 self._resolve_active_plan_id(request_config, notebook_references)
                 or _active_object_plan_id(stored_active_object)
@@ -2261,6 +2333,15 @@ class TurnRuntimeManager:
                     self.store.set_active_object,
                     session_id,
                     active_object,
+                    default=False,
+                )
+            if stored_suspended_object_stack != original_stored_suspended_object_stack:
+                await self._safe_store_call(
+                    execution,
+                    "set_suspended_object_stack_for_turn_start",
+                    self.store.set_suspended_object_stack,
+                    session_id,
+                    stored_suspended_object_stack,
                     default=False,
                 )
             turn_semantic_decision = _build_turn_semantic_decision(
@@ -2643,6 +2724,7 @@ class TurnRuntimeManager:
                         "history_budget": history_result.budget,
                         "chat_mode_explicit": bool(payload.get("_chat_mode_explicit", False)),
                         "turn_id": turn_id,
+                        **get_release_lineage_metadata(),
                         "bot_id": str(request_config.get("bot_id", "") or "").strip(),
                         "billing_context": billing_context or {},
                         "source": str((billing_context or {}).get("source", "") or "").strip(),
@@ -2768,13 +2850,10 @@ class TurnRuntimeManager:
                 observability.update_observation(
                     turn_observation,
                     output_payload={"assistant_content": assistant_content},
-                    metadata={
-                        **observability.summary_metadata(usage_summary),
-                        **trace_metadata,
-                        **_summarize_assistant_events(assistant_events),
-                        "assistant_event_count": len(assistant_events),
-                        "assistant_content_source": assistant_content_source,
-                    },
+                    metadata=_build_final_observation_metadata(
+                        usage_summary=usage_summary,
+                        terminal_status="completed",
+                    ),
                     usage_details=observability.usage_details_from_summary(usage_summary),
                     cost_details=observability.cost_details_from_summary(usage_summary),
                     usage_source="summary",
@@ -2792,16 +2871,16 @@ class TurnRuntimeManager:
                     learner_state_service=learner_state_service,
                     memory_service=memory_service,
                 )
+                terminal_status = "completed"
         except asyncio.CancelledError:
             usage_summary = observability.get_current_usage_summary()
             observability.update_observation(
                 turn_observation,
                 output_payload={"assistant_content": assistant_content},
-                metadata={
-                    **observability.summary_metadata(usage_summary),
-                    **trace_metadata,
-                    "assistant_content_source": assistant_content_source,
-                },
+                metadata=_build_final_observation_metadata(
+                    usage_summary=usage_summary,
+                    terminal_status="cancelled",
+                ),
                 usage_details=observability.usage_details_from_summary(usage_summary),
                 cost_details=observability.cost_details_from_summary(usage_summary),
                 usage_source="summary",
@@ -2834,17 +2913,17 @@ class TurnRuntimeManager:
                     metadata={"status": "cancelled"},
                 ),
             )
+            terminal_status = "cancelled"
             raise
         except Exception as exc:
             usage_summary = observability.get_current_usage_summary()
             observability.update_observation(
                 turn_observation,
                 output_payload={"assistant_content": assistant_content},
-                metadata={
-                    **observability.summary_metadata(usage_summary),
-                    **trace_metadata,
-                    "assistant_content_source": assistant_content_source,
-                },
+                metadata=_build_final_observation_metadata(
+                    usage_summary=usage_summary,
+                    terminal_status="failed",
+                ),
                 usage_details=observability.usage_details_from_summary(usage_summary),
                 cost_details=observability.cost_details_from_summary(usage_summary),
                 usage_source="summary",
@@ -2879,6 +2958,10 @@ class TurnRuntimeManager:
                 ),
             )
         finally:
+            get_turn_runtime_metrics().record_turn_finished(
+                status=terminal_status,
+                duration_ms=(time.perf_counter() - turn_started_at) * 1000.0,
+            )
             if log_context_tokens:
                 reset_log_context(log_context_tokens)
             async with self._lock:

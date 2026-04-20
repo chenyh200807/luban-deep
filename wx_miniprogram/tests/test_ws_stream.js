@@ -251,6 +251,76 @@ Promise.resolve(
     });
   })
   .then(function () {
+    return run("telemetry callback emits ws/session/resume lifecycle events", async function () {
+      socketState.sent = [];
+      socketState.closed = [];
+      socketState.handlers = {};
+
+      var originalStartChatTurn = api.startChatTurn;
+      api.startChatTurn = function () {
+        return Promise.resolve({
+          stream: {
+            url: "/api/v1/ws",
+            subscribe: { turn_id: "turn_telemetry" },
+            resume: { seq: 7 },
+            chat_id: "session_telemetry",
+          },
+          conversation: { id: "session_telemetry" },
+        });
+      };
+
+      var telemetry = [];
+      wsStream.streamChat(
+        {
+          query: "继续上一题",
+          sessionId: "session_telemetry",
+          mode: "AUTO",
+        },
+        {
+          onTelemetryEvent: function (payload) {
+            telemetry.push(payload);
+          },
+        },
+      );
+
+      await flush();
+      if (socketState.handlers.open) {
+        socketState.handlers.open();
+      }
+
+      emitMessage({
+        type: "session",
+        metadata: {
+          session_id: "session_telemetry",
+          turn_id: "turn_telemetry",
+        },
+      });
+      emitMessage({
+        type: "content",
+        seq: 8,
+        content: "恢复后的第一段内容",
+        turn_id: "turn_telemetry",
+        session_id: "session_telemetry",
+      });
+      await flush();
+
+      api.startChatTurn = originalStartChatTurn;
+
+      assertEqual(
+        telemetry.map(function (item) {
+          return item.eventName;
+        }),
+        [
+          "ws_connected",
+          "resume_attempted",
+          "session_event_received",
+          "resume_succeeded",
+        ],
+        "telemetry callback should expose ws/session/resume lifecycle in order",
+      );
+    });
+  })
+  .then(function () {
     return run("internal visibility events never enter user token or presentation callbacks", async function () {
       socketState.sent = [];
       socketState.closed = [];

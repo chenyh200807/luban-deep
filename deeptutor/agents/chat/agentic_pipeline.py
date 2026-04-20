@@ -752,6 +752,20 @@ class AgenticChatPipeline:
                         "Do not invent exact procedural or contractual time limits without confirmed evidence."
                     ),
                 )
+                anchor_terms = self._explicit_anchor_terms(context)
+                if anchor_terms:
+                    user_prompt += "\n\n" + self._text(
+                        zh=(
+                            "本轮如果继续沿用用户点名的具体例子或对象，必须显式保留这些锚点词："
+                            f"{'、'.join(anchor_terms)}。"
+                            "不要改写成更泛的近义说法。"
+                        ),
+                        en=(
+                            "If you continue using the user's explicit example or object, preserve these anchor terms verbatim: "
+                            f"{', '.join(anchor_terms)}. "
+                            "Do not rewrite them into broader paraphrases."
+                        ),
+                    )
                 required_elements = self._required_teaching_elements(context, answer_type, [])
                 if required_elements:
                     user_prompt += "\n\n" + self._knowledge_response_contract(required_elements)
@@ -2809,6 +2823,26 @@ class AgenticChatPipeline:
         if len(normalized) <= 6 and normalized.endswith("吗") and normalized in {"在吗", "忙吗"}:
             return True
         return False
+
+    def _explicit_anchor_terms(self, context: UnifiedContext) -> list[str]:
+        text = str(context.user_message or "").strip()
+        if not text:
+            return []
+
+        anchors: list[str] = []
+        seen: set[str] = set()
+        for match in re.findall(
+            r"([0-9一二两三四五六七八九十百]+层(?:住宅楼|办公楼|教学楼|厂房|楼))",
+            text,
+            flags=re.IGNORECASE,
+        ):
+            candidate = str(match or "").strip()
+            lowered = candidate.lower()
+            if not candidate or lowered in seen:
+                continue
+            seen.add(lowered)
+            anchors.append(candidate)
+        return anchors[:3]
 
     def _should_use_social_greeting_shortcut(
         self,
