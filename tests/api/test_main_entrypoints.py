@@ -344,6 +344,7 @@ def test_production_disables_legacy_router_mounts_by_default(
     assert "/api/v1/sessions" in paths
     assert "/api/outputs" not in paths
     assert "/api/v1/solve" not in paths
+    assert "/api/v1/chat" not in paths
     assert "/api/v1/question/mimic" not in paths
     assert "/api/v1/dashboard/recent" not in paths
     assert "/api/v1/notebook/list" not in paths
@@ -383,6 +384,7 @@ def test_legacy_router_flag_explicitly_reenables_compatibility_mounts(
 
     paths = _route_paths(module.app)
     assert "/api/v1/solve" in paths
+    assert "/api/v1/chat" not in paths
     assert "/api/v1/question/mimic" in paths
     assert "/api/v1/dashboard/recent" in paths
     assert "/api/v1/notebook/list" in paths
@@ -408,6 +410,7 @@ def test_readyz_reflects_readiness_state(
         "llm_client_ready": True,
         "event_bus_ready": True,
         "tutorbots_ready": True,
+        "learner_state_runtime_ready": True,
     }
 
     response = asyncio.run(module.readyz())
@@ -421,6 +424,7 @@ def test_readyz_reflects_readiness_state(
         "llm_client_ready": False,
         "event_bus_ready": True,
         "tutorbots_ready": True,
+        "learner_state_runtime_ready": True,
     }
 
     degraded = asyncio.run(module.readyz())
@@ -471,6 +475,7 @@ def test_local_startup_keeps_process_alive_when_fail_fast_disabled(
     assert response.status_code == 503
     payload = response.json()
     assert payload["checks"]["llm_client_ready"] is False
+    assert payload["checks"]["learner_state_runtime_ready"] is True
 
 
 def test_startup_and_shutdown_manage_learner_state_runtime(
@@ -506,6 +511,7 @@ def test_startup_and_shutdown_manage_learner_state_runtime(
         pass
 
     assert runtime_calls == {"start": 1, "stop": 1}
+    assert module.app.state.readiness_checks["learner_state_runtime_ready"] is True
 
 
 def test_http_request_id_is_echoed_and_bound_to_request_state(
