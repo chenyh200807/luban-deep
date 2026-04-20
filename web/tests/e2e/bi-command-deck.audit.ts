@@ -5,6 +5,71 @@ async function mockBiApis(page: Page) {
     const url = new URL(route.request().url());
     const path = url.pathname;
 
+    if (path.startsWith("/api/v1/bi/overview")) {
+      await route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            title: "DeepTutor BI 工作台",
+            subtitle: "Mock overview",
+            cards: [
+              { label: "活跃学员", value: 128, delta: "+8%", tone: "good" },
+            ],
+            highlights: ["成功率最近三个周期持续抬升"],
+            entrypoints: [
+              { label: "wx_miniprogram", value: 62, rate: 0.73 },
+            ],
+            alerts: [
+              {
+                level: "warning",
+                title: "成功率波动偏大",
+                detail: "过去 7 天有 2 个周期成功率低于 75%",
+              },
+            ],
+          },
+        }),
+      });
+      return;
+    }
+
+    if (path.startsWith("/api/v1/bi/active-trend")) {
+      await route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            points: [
+              { label: "04-14", active: 92, cost: 320, successful: 0.82 },
+              { label: "04-15", active: 104, cost: 348, successful: 0.79 },
+              { label: "04-16", active: 110, cost: 372, successful: 0.76 },
+              { label: "04-17", active: 121, cost: 395, successful: 0.88 },
+            ],
+          },
+        }),
+      });
+      return;
+    }
+
+    if (path.startsWith("/api/v1/bi/anomalies")) {
+      await route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            items: [
+              {
+                level: "critical",
+                title: "TutorBot 延迟尖峰",
+                detail: "04-16 19:00 后延迟高于基线 42%",
+              },
+            ],
+          },
+        }),
+      });
+      return;
+    }
+
     if (path.startsWith("/api/v1/bi/members")) {
       await route.fulfill({
         status: 200,
@@ -112,5 +177,19 @@ test.describe("BI Command Deck audit", () => {
     await expect(page.getByRole("button", { name: /示例学员 A/ })).toBeVisible();
     await page.getByRole("button", { name: /示例学员 A/ }).click();
     await expect(page.getByRole("heading", { name: "Learner 360" })).toBeVisible();
+  });
+
+  test("quality tab renders stability signals from existing BI data", async ({ page }) => {
+    await mockBiApis(page);
+
+    await visitBi(page);
+
+    await page.getByRole("link", { name: "Quality" }).click();
+
+    await expect(page).toHaveURL(/\/bi\?tab=quality$/);
+    await expect(page.getByText("质量摘要")).toBeVisible();
+    await expect(page.getByText("趋势波动")).toBeVisible();
+    await expect(page.getByText("TutorBot 延迟尖峰")).toBeVisible();
+    await expect(page.getByText("成功率波动偏大")).toBeVisible();
   });
 });
