@@ -25,6 +25,7 @@ test.describe("BI Command Deck audit", () => {
     await page.goto("/bi");
 
     await expect(page.getByRole("heading", { name: "DeepTutor BI Deck" })).toBeVisible();
+    await expect(page.getByText("经营、质量、会员、TutorBot 四条主线的一体化指挥舱")).toBeVisible();
   });
 
   test("bi deck exposes the new primary tabs", async ({ page }) => {
