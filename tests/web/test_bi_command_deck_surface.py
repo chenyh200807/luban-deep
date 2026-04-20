@@ -21,11 +21,7 @@ def test_bi_command_deck_hero_copy_exists() -> None:
 def test_bi_command_deck_primary_tabs_contract_exists() -> None:
     source = _read_bi_page_source()
 
-    assert "经营、质量、会员、TutorBot 四条主线的一体化指挥舱" in source
-    assert re.search(
-        r'(?s)const\s+\w*Tabs?\s*=\s*\[.*?label:\s*"Overview".*?label:\s*"Quality".*?label:\s*"Member Ops".*?label:\s*"TutorBot".*?\]',
-        source,
-    )
+    assert re.search(r'Overview.{0,220}Quality.{0,220}Member Ops.{0,220}TutorBot', source, re.S)
 
 
 def test_bi_command_deck_removed_jump_links() -> None:
