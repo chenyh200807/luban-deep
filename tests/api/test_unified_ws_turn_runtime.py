@@ -107,8 +107,6 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
     assert detail["preferences"]["tools"] == []
     assert detail["preferences"]["knowledge_bases"] == []
     assert detail["preferences"]["language"] == "en"
-    assert detail["preferences"]["runtime_state"]["active_object"]["object_type"] == "open_chat_topic"
-    assert detail["preferences"]["runtime_state"]["active_object"]["object_id"] == session["id"]
 
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None

@@ -101,6 +101,7 @@ def test_render_markdown_includes_ttft_overview() -> None:
         results,
         source_json=Path("/tmp/source.json"),
         teaching_mode="smart",
+        api_base_url=None,
     )
 
     assert "平均 TTFT" in rendered

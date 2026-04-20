@@ -2159,6 +2159,19 @@ Page({
     wx.navigateTo({ url: route.billing() });
   },
 
+  onSwitchAccount: function () {
+    wx.showModal({
+      title: "切换账号",
+      content: "确定要退出当前账号并切换吗？",
+      confirmColor: "#ef4444",
+      success: function (res) {
+        if (res.confirm) {
+          runtime.logout();
+        }
+      },
+    });
+  },
+
   onToggleTheme: function () {
     helpers.vibrate("light");
     var dark = !this.data.isDark;
