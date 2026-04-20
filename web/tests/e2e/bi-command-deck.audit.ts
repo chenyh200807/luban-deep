@@ -70,6 +70,7 @@ test.describe("BI Command Deck audit", () => {
 
     await visitBi(page);
 
+    await expect(page).toHaveURL(/\/bi$/);
     await expect(page.getByText("BI workspace unavailable")).toHaveCount(0);
   });
 
