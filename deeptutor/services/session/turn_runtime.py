@@ -54,6 +54,7 @@ from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
     normalize_requested_response_mode,
     resolve_requested_response_mode,
+    select_response_mode,
 )
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
@@ -497,6 +498,10 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     tool_calls: list[dict[str, Any]] = []
     sources: list[dict[str, Any]] = []
     authority_applied = False
+    selected_mode = ""
+    execution_path = ""
+    exact_fast_path_hit = False
+    actual_tool_rounds: int | None = None
 
     for item in events:
         if not isinstance(item, dict):
@@ -520,12 +525,22 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
             authority_applied = True
         if metadata.get("authoritative_answer") or metadata.get("corrected_from"):
             authority_applied = True
+        selected_mode = str(metadata.get("selected_mode") or selected_mode).strip()
+        execution_path = str(metadata.get("execution_path") or execution_path).strip()
+        if "exact_fast_path_hit" in metadata:
+            exact_fast_path_hit = bool(metadata.get("exact_fast_path_hit"))
+        raw_tool_rounds = metadata.get("actual_tool_rounds")
+        if isinstance(raw_tool_rounds, int):
+            actual_tool_rounds = raw_tool_rounds
 
     return {
         "tool_calls": tool_calls[:8],
-        "actual_tool_rounds": len(tool_calls),
+        "actual_tool_rounds": actual_tool_rounds if actual_tool_rounds is not None else len(tool_calls),
         "sources": sources[:8],
         "authority_applied": authority_applied,
+        "selected_mode": selected_mode,
+        "execution_path": execution_path,
+        "exact_fast_path_hit": exact_fast_path_hit,
     }
 
 
@@ -570,6 +585,17 @@ def _extract_interaction_hints(
         raw.get("requested_response_mode") or raw.get("teaching_mode")
     )
     teaching_mode = str(raw.get("teaching_mode", "") or "").strip().lower() or requested_response_mode
+    raw_effective_response_mode = raw.get("effective_response_mode") or raw.get("selected_mode")
+    effective_response_mode = (
+        normalize_requested_response_mode(raw_effective_response_mode)
+        if raw_effective_response_mode is not None and str(raw_effective_response_mode).strip()
+        else ""
+    )
+    selected_mode = (
+        effective_response_mode
+        if effective_response_mode in {"fast", "deep"}
+        else ""
+    )
 
     hints = {
         "profile": profile,
@@ -579,6 +605,11 @@ def _extract_interaction_hints(
         "subject_domain": str(raw.get("subject_domain", "") or "").strip().lower(),
         "requested_response_mode": requested_response_mode,
         "teaching_mode": teaching_mode,
+        "effective_response_mode": effective_response_mode,
+        "selected_mode": selected_mode,
+        "response_mode_selection_reason": str(
+            raw.get("response_mode_selection_reason") or ""
+        ).strip(),
         "preferred_question_type": preferred_question_type,
         "allow_general_chat_fallback": raw.get("allow_general_chat_fallback", True) is not False,
         "priorities": normalized_priorities,
@@ -607,6 +638,9 @@ def _extract_interaction_hints(
             hints["teaching_mode"],
             hints["preferred_question_type"],
             hints["priorities"],
+            hints.get("effective_response_mode"),
+            hints.get("selected_mode"),
+            hints.get("response_mode_selection_reason"),
             hints.get("suppress_answer_reveal_on_generate"),
             hints.get("prefer_question_context_grading"),
             hints.get("prefer_concept_teaching_slots"),
@@ -616,12 +650,26 @@ def _extract_interaction_hints(
     return hints if meaningful else None
 
 
-def _infer_chat_mode_from_interaction_hints(
-    hints: dict[str, Any] | None,
-) -> str | None:
-    if not isinstance(hints, dict):
-        return None
-    return resolve_requested_response_mode(chat_mode="", interaction_hints=hints)
+def _should_select_tutorbot_mode(
+    *,
+    capability: str,
+    bot_id: str,
+    interaction_profile: str,
+    interaction_hints: dict[str, Any] | None,
+    explicit_chat_mode: bool,
+) -> bool:
+    if capability not in {"chat", "tutorbot"}:
+        return False
+    if explicit_chat_mode:
+        return True
+    if bot_id:
+        return True
+    if interaction_profile == "tutorbot":
+        return True
+    hints = interaction_hints if isinstance(interaction_hints, dict) else {}
+    return str(hints.get("profile") or "").strip().lower() == "tutorbot" or any(
+        key in hints for key in ("requested_response_mode", "teaching_mode")
+    )
 
 
 def _extract_persist_user_message(config: dict[str, Any] | None) -> bool:
@@ -1914,14 +1962,6 @@ class TurnRuntimeManager:
             validated_public_config = validate_capability_config(capability, raw_config)
         except ValueError as exc:
             raise RuntimeError(str(exc)) from exc
-        if capability == "chat" and not explicit_chat_mode:
-            hinted_chat_mode = _infer_chat_mode_from_interaction_hints(runtime_interaction_hints)
-            if hinted_chat_mode in {"fast", "deep", "smart"}:
-                validated_public_config = {
-                    **validated_public_config,
-                    "chat_mode": hinted_chat_mode,
-                }
-                effective_chat_mode_explicit = True
         bot_id = str(validated_public_config.get("bot_id") or "").strip()
         interaction_profile = _normalize_interaction_profile_name(
             runtime_only_config.get("interaction_profile")
@@ -1930,6 +1970,36 @@ class TurnRuntimeManager:
         )
         if interaction_profile:
             runtime_only_config["interaction_profile"] = interaction_profile
+        requested_response_mode = resolve_requested_response_mode(
+            chat_mode=raw_config.get("chat_mode"),
+            interaction_hints=runtime_interaction_hints,
+        )
+        if _should_select_tutorbot_mode(
+            capability=capability,
+            bot_id=bot_id,
+            interaction_profile=interaction_profile,
+            interaction_hints=runtime_interaction_hints,
+            explicit_chat_mode=explicit_chat_mode,
+        ):
+            selected_chat_mode, selection_reason = select_response_mode(
+                requested_response_mode,
+                user_message=raw_user_content,
+                interaction_hints=runtime_interaction_hints,
+                has_active_object=bool(runtime_followup_question_context or stored_active_object),
+            )
+            validated_public_config = {
+                **validated_public_config,
+                "chat_mode": selected_chat_mode,
+            }
+            runtime_interaction_hints = {
+                **dict(runtime_interaction_hints or {}),
+                "requested_response_mode": requested_response_mode,
+                "teaching_mode": selected_chat_mode,
+                "effective_response_mode": selected_chat_mode,
+                "selected_mode": selected_chat_mode,
+                "response_mode_selection_reason": selection_reason,
+            }
+            effective_chat_mode_explicit = True
         knowledge_chain_defaults = _resolve_bot_runtime_defaults(
             bot_id=bot_id,
             tools=payload.get("tools"),
@@ -1967,10 +2037,9 @@ class TurnRuntimeManager:
             session["id"],
             {
                 "capability": capability,
-                "chat_mode": (
-                    validated_public_config.get("chat_mode", get_default_chat_mode())
-                    if capability == "chat"
-                    else raw_config.get("chat_mode", get_default_chat_mode())
+                "chat_mode": (payload.get("config", {}) or {}).get(
+                    "chat_mode",
+                    validated_public_config.get("chat_mode", get_default_chat_mode()),
                 ),
                 "tools": list(payload.get("tools") or []),
                 "knowledge_bases": list(payload.get("knowledge_bases") or []),
@@ -2401,13 +2470,10 @@ class TurnRuntimeManager:
                 if isinstance((payload.get("config", {}) or {}).get("interaction_hints"), dict)
                 else {}
             )
-            chat_mode = str(
-                request_config.get("chat_mode")
-                or (interaction_hints or {}).get("teaching_mode")
-                or ""
-            ).strip()
+            chat_mode = str(request_config.get("chat_mode") or "").strip()
             raw_requested_response_mode = str(
-                raw_interaction_hints.get("requested_response_mode")
+                (interaction_hints or {}).get("requested_response_mode")
+                or raw_interaction_hints.get("requested_response_mode")
                 or request_config.get("chat_mode")
                 or ""
             ).strip()
@@ -2418,12 +2484,18 @@ class TurnRuntimeManager:
             )
             effective_response_mode = str(
                 request_config.get("chat_mode")
+                or (interaction_hints or {}).get("selected_mode")
                 or (interaction_hints or {}).get("effective_response_mode")
                 or requested_response_mode
+            ).strip()
+            selected_mode = str(
+                (interaction_hints or {}).get("selected_mode")
+                or effective_response_mode
             ).strip()
             trace_metadata["chat_mode"] = chat_mode
             trace_metadata["requested_response_mode"] = requested_response_mode
             trace_metadata["effective_response_mode"] = effective_response_mode
+            trace_metadata["selected_mode"] = selected_mode
             trace_metadata["response_mode_degrade_reason"] = str(
                 (interaction_hints or {}).get("response_mode_degrade_reason") or ""
             ).strip()
@@ -2776,6 +2848,17 @@ class TurnRuntimeManager:
                         "source": str((billing_context or {}).get("source", "") or "").strip(),
                         "interaction_profile": str(
                             payload.get("config", {}).get("interaction_profile", "") or ""
+                        ).strip(),
+                        "requested_response_mode": str(
+                            (interaction_hints or {}).get("requested_response_mode") or ""
+                        ).strip(),
+                        "selected_mode": str(
+                            request_config.get("chat_mode")
+                            or (interaction_hints or {}).get("selected_mode")
+                            or ""
+                        ).strip(),
+                        "response_mode_selection_reason": str(
+                            (interaction_hints or {}).get("response_mode_selection_reason") or ""
                         ).strip(),
                         "active_object": active_object or {},
                         "suspended_object_stack": stored_suspended_object_stack,

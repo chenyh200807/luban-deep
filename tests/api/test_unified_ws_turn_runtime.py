@@ -3239,7 +3239,7 @@ async def test_turn_runtime_prefers_requested_response_mode_hint_when_chat_mode_
 
 
 @pytest.mark.asyncio
-async def test_turn_runtime_trace_requested_response_mode_falls_back_to_chat_mode(
+async def test_turn_runtime_trace_requested_response_mode_records_selected_mode_for_smart_request(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -3265,7 +3265,13 @@ async def test_turn_runtime_trace_requested_response_mode_falls_back_to_chat_mod
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
-                metadata={"response": "smart mode from chat_mode", "metadata": {}},
+                metadata={
+                    "response": "smart mode from chat_mode",
+                    "metadata": {},
+                    "selected_mode": "fast",
+                    "execution_path": "tutorbot_fast_policy",
+                    "exact_fast_path_hit": False,
+                },
             )
             yield StreamEvent(type=StreamEventType.DONE, source="chat")
 
@@ -3315,9 +3321,105 @@ async def test_turn_runtime_trace_requested_response_mode_falls_back_to_chat_mod
 
     assert captured_updates
     metadata = captured_updates[-1]["metadata"]
-    assert metadata["chat_mode"] == "smart"
+    assert metadata["chat_mode"] == "fast"
     assert metadata["requested_response_mode"] == "smart"
-    assert metadata["effective_response_mode"] == "smart"
+    assert metadata["effective_response_mode"] == "fast"
+    assert metadata["selected_mode"] == "fast"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_separates_requested_smart_from_selected_fast_in_trace(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured_updates: list[dict[str, object]] = []
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["chat_mode"] = context.config_overrides.get("chat_mode")
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="tutorbot",
+                metadata={
+                    "response": "简短回答",
+                    "selected_mode": "fast",
+                    "execution_path": "tutorbot_fast_policy",
+                    "exact_fast_path_hit": False,
+                    "actual_tool_rounds": 0,
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
+
+    def _capture_update(_observation, **kwargs):
+        captured_updates.append(kwargs)
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.get_current_usage_summary",
+        lambda: {},
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.update_observation",
+        _capture_update,
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "什么是流水节拍，简单说一下",
+            "session_id": None,
+            "capability": "tutorbot",
+            "tools": [],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "chat_mode": "smart",
+                "interaction_hints": {
+                    "profile": "tutorbot",
+                    "requested_response_mode": "smart",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert captured["chat_mode"] == "fast"
+    metadata = captured_updates[-1]["metadata"]
+    assert metadata["chat_mode"] == "fast"
+    assert metadata["requested_response_mode"] == "smart"
+    assert metadata["effective_response_mode"] == "fast"
+    assert metadata["selected_mode"] == "fast"
+    assert metadata["execution_path"] == "tutorbot_fast_policy"
+    assert metadata["exact_fast_path_hit"] is False
 
 
 def test_bind_authenticated_user_promotes_legacy_response_mode_hints() -> None:

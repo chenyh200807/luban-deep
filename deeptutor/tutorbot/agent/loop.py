@@ -799,6 +799,34 @@ class AgentLoop:
         )
         return prefetch_messages
 
+    async def _run_fast_policy_once(
+        self,
+        initial_messages: list[dict[str, Any]],
+        *,
+        runtime_metadata: dict[str, Any] | None = None,
+        on_content_delta: Callable[[str], Awaitable[None]] | None = None,
+    ) -> tuple[str | None, list[dict[str, Any]]]:
+        runtime_metadata = dict(runtime_metadata or {})
+        effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
+        response = await self.provider.chat_with_retry(
+            messages=initial_messages,
+            tools=None,
+            model=effective_model,
+            on_content_delta=on_content_delta,
+        )
+        clean = self._strip_think(response.content)
+        if response.finish_reason == "error":
+            final_content = clean or "Sorry, I encountered an error calling the AI model."
+        else:
+            final_content = clean
+        messages = self.context.add_assistant_message(
+            initial_messages,
+            final_content,
+            reasoning_content=response.reasoning_content,
+            thinking_blocks=response.thinking_blocks,
+        )
+        return final_content, messages
+
     async def _maybe_run_exact_rag_fast_path(
         self,
         *,
@@ -1304,6 +1332,26 @@ class AgentLoop:
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
         )
+        if response_mode == "fast":
+            final_content, all_msgs = await self._run_fast_policy_once(
+                initial_messages,
+                runtime_metadata=runtime_metadata,
+                on_content_delta=on_content_delta,
+            )
+            if final_content is None:
+                final_content = "I've completed processing but have no response to give."
+            self._save_turn(session, all_msgs, 1 + len(history))
+            session.metadata["last_exact_fast_path"] = False
+            self.sessions.save(session)
+            await self.memory_consolidator.maybe_consolidate_by_tokens(session)
+            preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
+            logger.info("Fast policy response to {}:{}: {}", msg.channel, msg.sender_id, preview)
+            return OutboundMessage(
+                channel=msg.channel,
+                chat_id=msg.chat_id,
+                content=final_content,
+                metadata=msg.metadata or {},
+            )
 
         async def _bus_progress(content: str, *, tool_hint: bool = False) -> None:
             meta = dict(msg.metadata or {})
@@ -1327,6 +1375,7 @@ class AgentLoop:
             final_content = "I've completed processing but have no response to give."
 
         self._save_turn(session, all_msgs, 1 + len(history))
+        session.metadata["last_exact_fast_path"] = False
         self.sessions.save(session)
         await self.memory_consolidator.maybe_consolidate_by_tokens(session)
 

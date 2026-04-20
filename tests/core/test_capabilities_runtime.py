@@ -474,13 +474,13 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
 
     context = UnifiedContext(
         session_id="session-1",
-        user_message="你好",
+        user_message="什么是流水节拍，简单说一下",
         enabled_tools=["rag"],
         knowledge_bases=["construction-exam"],
         config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
         metadata={
             "billing_context": {"user_id": "u1", "source": "wx_miniprogram"},
-            "interaction_hints": {"current_info_required": True},
+            "interaction_hints": {},
         },
         language="zh",
     )
@@ -491,13 +491,15 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     assert captured["ensure"]["bot_id"] == "construction-exam-coach"
     assert captured["send"]["bot_id"] == "construction-exam-coach"
     assert captured["send"]["chat_id"] == "session-1"
-    assert captured["send"]["mode"] == "smart"
+    assert captured["send"]["mode"] == "fast"
     assert captured["send"]["session_metadata"]["user_id"] == "u1"
     assert captured["send"]["session_metadata"]["default_tools"] == ["rag"]
     assert captured["send"]["session_metadata"]["knowledge_bases"] == ["construction-exam"]
     assert captured["send"]["session_metadata"]["default_kb"] == "construction-exam"
-    assert captured["send"]["session_metadata"]["current_info_required"] is True
     assert captured["send"]["session_metadata"]["suppress_answer_reveal_on_generate"] is True
+    assert captured["send"]["session_metadata"]["requested_response_mode"] == "smart"
+    assert captured["send"]["session_metadata"]["selected_mode"] == "fast"
+    assert captured["send"]["session_metadata"]["effective_response_mode"] == "fast"
     assert "construction-knowledge" in captured["send"]["session_metadata"]["kb_aliases"]
     assert "construction-exam-tutor" in captured["send"]["session_metadata"]["kb_aliases"]
     assert any(event.type == StreamEventType.PROGRESS for event in events)
@@ -510,6 +512,75 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["response"] == "TutorBot"
     assert result_event.metadata["execution_engine"] == "tutorbot_runtime"
+    assert result_event.metadata["selected_mode"] == "fast"
+    assert result_event.metadata["execution_path"] == "tutorbot_fast_policy"
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_capability_prefers_canonical_chat_mode_over_legacy_hints(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None):
+            return SimpleNamespace(running=True)
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            captured["mode"] = mode
+            captured["session_metadata"] = session_metadata
+            return "Fast TutorBot"
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-authority",
+        user_message="简短解释流水节拍",
+        enabled_tools=["rag", "web_search"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "fast"},
+        metadata={
+            "interaction_hints": {
+                "requested_response_mode": "deep",
+                "teaching_mode": "deep",
+            }
+        },
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["mode"] == "fast"
+    assert captured["session_metadata"]["requested_response_mode"] == "fast"
+    assert captured["session_metadata"]["selected_mode"] == "fast"
 
 
 @pytest.mark.asyncio
@@ -2246,6 +2317,84 @@ async def test_tutorbot_process_direct_uses_preferred_model_override(
 
     assert content == "已完成"
     assert captured["model"] == "qwen3.5-flash"
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_process_direct_fast_mode_uses_single_shot_fast_policy(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {}
+
+    class CapturingProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            captured["tools"] = tools
+            if on_content_delta is not None:
+                await on_content_delta("快速回答")
+            return LLMResponse(content="快速回答")
+
+        def get_default_model(self) -> str:
+            return "default-model"
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=CapturingProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+
+    async def _no_fast_path(*_args, **_kwargs):
+        return None
+
+    async def _prefetched_messages(*, initial_messages, **_kwargs):
+        return list(initial_messages) + [{"role": "tool", "content": "知识库命中"}]
+
+    async def _fail_agent_loop(*_args, **_kwargs):
+        raise AssertionError("fast mode should not enter the generic multi-step agent loop")
+
+    monkeypatch.setattr(loop, "_maybe_run_exact_rag_fast_path", _no_fast_path)
+    monkeypatch.setattr(loop, "_maybe_prefetch_grounded_rag", _prefetched_messages)
+    monkeypatch.setattr(loop, "_run_agent_loop", _fail_agent_loop)
+
+    content = await loop.process_direct(
+        "简短解释流水节拍",
+        metadata={"effective_response_mode": "fast", "default_tools": ["rag"]},
+    )
+
+    assert content == "快速回答"
+    assert captured["tools"] is None
 
 
 @pytest.mark.asyncio

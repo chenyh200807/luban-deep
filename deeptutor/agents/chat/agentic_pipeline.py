@@ -243,7 +243,7 @@ class AgenticChatPipeline:
         enabled_tools = self.resolve_enabled_tools(
             context,
             answer_type=answer_type,
-            mode=str(context.config_overrides.get("chat_mode") or "deep"),
+            mode=self._configured_teaching_mode(context) or "deep",
         )
         if self._should_use_compact_response(context, enabled_tools):
             final_response, trace_meta = await self._stage_smart_responding(
@@ -2698,6 +2698,10 @@ class AgenticChatPipeline:
         return mode if mode in {"fast", "deep"} else ""
 
     def _configured_teaching_mode(self, context: UnifiedContext) -> str:
+        runtime_mode = str(context.config_overrides.get("chat_mode") or "").strip().lower()
+        if runtime_mode in {"fast", "deep", "smart"}:
+            return runtime_mode
+
         hints = self._interaction_hints(context)
         hinted_mode = str(hints.get("requested_response_mode") or "").strip().lower()
         if hinted_mode in {"fast", "deep", "smart"}:
@@ -2705,8 +2709,7 @@ class AgenticChatPipeline:
         legacy_mode = str(hints.get("teaching_mode") or "").strip().lower()
         if legacy_mode in {"fast", "deep", "smart"}:
             return legacy_mode
-        runtime_mode = str(context.config_overrides.get("chat_mode") or "").strip().lower()
-        return runtime_mode if runtime_mode in {"fast", "deep", "smart"} else ""
+        return ""
 
     def _is_smart_tutor_mode(self, context: UnifiedContext) -> bool:
         return self._configured_teaching_mode(context) == "smart"

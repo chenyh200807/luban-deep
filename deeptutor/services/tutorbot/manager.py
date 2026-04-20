@@ -801,11 +801,19 @@ class TutorBotManager:
             "teaching_mode": mode,
             "requested_response_mode": str(merged_metadata.get("requested_response_mode") or mode).strip()
             or mode,
+            "selected_mode": str(
+                merged_metadata.get("selected_mode")
+                or merged_metadata.get("effective_response_mode")
+                or mode
+            ).strip()
+            or mode,
             "effective_response_mode": str(merged_metadata.get("effective_response_mode") or mode).strip()
             or mode,
             "response_mode_degrade_reason": str(
                 merged_metadata.get("response_mode_degrade_reason") or ""
             ).strip(),
+            "execution_path": "",
+            "exact_fast_path_hit": False,
             "actual_tool_rounds": len(tool_trace_summary["tool_calls"]),
             "source": source,
             "title": str(merged_metadata.get("title") or "").strip(),
@@ -855,6 +863,10 @@ class TutorBotManager:
 
         runtime_metadata = dict(merged_metadata)
         runtime_metadata["teaching_mode"] = mode
+        runtime_metadata["selected_mode"] = (
+            str(merged_metadata.get("selected_mode") or merged_metadata.get("effective_response_mode") or mode).strip()
+            or mode
+        )
         runtime_metadata["effective_response_mode"] = (
             str(merged_metadata.get("effective_response_mode") or mode).strip() or mode
         )
@@ -907,6 +919,39 @@ class TutorBotManager:
                         on_tool_result=_tool_result,
                         metadata=runtime_metadata,
                     )
+                    loop_session = instance.agent_loop.sessions.get_or_create(effective_session_key)
+                    loop_metadata = dict(getattr(loop_session, "metadata", {}) or {})
+                    exact_fast_path_hit = bool(loop_metadata.get("last_exact_fast_path", False))
+                    selected_mode = str(
+                        runtime_metadata.get("selected_mode")
+                        or runtime_metadata.get("effective_response_mode")
+                        or mode
+                    ).strip() or mode
+                    execution_path = (
+                        "tutorbot_exact_fast_path"
+                        if exact_fast_path_hit
+                        else ("tutorbot_fast_policy" if selected_mode == "fast" else "tutorbot_deep_policy")
+                    )
+                    trace_metadata["selected_mode"] = selected_mode
+                    trace_metadata["effective_response_mode"] = selected_mode
+                    trace_metadata["execution_path"] = execution_path
+                    trace_metadata["exact_fast_path_hit"] = exact_fast_path_hit
+                    trace_metadata["actual_tool_rounds"] = len(tool_trace_summary["tool_calls"])
+                    merged_metadata["selected_mode"] = selected_mode
+                    merged_metadata["effective_response_mode"] = selected_mode
+                    merged_metadata["execution_path"] = execution_path
+                    merged_metadata["exact_fast_path_hit"] = exact_fast_path_hit
+                    merged_metadata["actual_tool_rounds"] = len(tool_trace_summary["tool_calls"])
+                    if session_metadata is not None:
+                        session_metadata.update(
+                            {
+                                "selected_mode": selected_mode,
+                                "effective_response_mode": selected_mode,
+                                "execution_path": execution_path,
+                                "exact_fast_path_hit": exact_fast_path_hit,
+                                "actual_tool_rounds": len(tool_trace_summary["tool_calls"]),
+                            }
+                        )
                     response = coerce_user_visible_answer(response)
                     usage_summary = observability.get_current_usage_summary()
                     observability.update_observation(

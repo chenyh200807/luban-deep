@@ -171,6 +171,7 @@ def _build_retest_interaction_hints(
     merged["profile"] = profile or "construction_exam_tutor"
     normalized_mode = str(mode or "").strip().lower()
     if normalized_mode in {"smart", "fast", "deep"}:
+        merged["requested_response_mode"] = normalized_mode
         merged["teaching_mode"] = normalized_mode
     if _query_requires_current_info(query):
         merged["current_info_required"] = True
@@ -360,10 +361,11 @@ def _build_turn_config(
     if include_eval_user:
         billing_context["user_id"] = "ld_eval_user"
     return {
-        "interaction_profile": "construction_exam_tutor",
+        "bot_id": "construction-exam-coach",
+        "interaction_profile": "tutorbot",
         "interaction_hints": _build_retest_interaction_hints(
             mode=teaching_mode,
-            profile="construction_exam_tutor",
+            profile="tutorbot",
             query=query,
             hints={},
         ),
@@ -385,13 +387,49 @@ def _percentile(values: list[float], q: float) -> float | None:
     )
 
 
+def _turn_metric_values(results: list[dict[str, Any]], field: str) -> list[float]:
+    values: list[float] = []
+    for item in results:
+        for turn in item.get("turns", []):
+            value = turn.get(field)
+            if isinstance(value, (int, float)):
+                values.append(float(value))
+    return values
+
+
+def _turn_metric_summary(results: list[dict[str, Any]], field: str) -> tuple[float, float | None, float | None]:
+    values = _turn_metric_values(results, field)
+    if not values:
+        return 0.0, None, None
+    return mean(values), _percentile(values, 0.5), _percentile(values, 0.9)
+
+
+def _build_run_summary(results: list[dict[str, Any]]) -> dict[str, Any]:
+    avg_ttft, p50_ttft, p90_ttft = _turn_metric_summary(results, "ttft_ms")
+    avg_latency, p50_latency, p90_latency = _turn_metric_summary(results, "latency_ms")
+    return {
+        "cases": len(results),
+        "total_turns": sum(item["summary"]["turns"] for item in results),
+        "avg_semantic": mean(item["summary"]["semantic_score"] for item in results) if results else 0.0,
+        "avg_satisfaction": (
+            mean(item["summary"]["satisfaction_score"] for item in results) if results else 0.0
+        ),
+        "avg_ttft_ms": avg_ttft,
+        "p50_ttft_ms": p50_ttft,
+        "p90_ttft_ms": p90_ttft,
+        "avg_latency_ms": avg_latency,
+        "p50_latency_ms": p50_latency,
+        "p90_latency_ms": p90_latency,
+    }
+
+
 async def _run_single_turn(
     runtime: TurnRuntimeManager,
     *,
     session_id: str | None,
     query: str,
     teaching_mode: str,
-) -> tuple[str, str, float | None, float, list[str]]:
+) -> tuple[str, str, float | None, float, list[str], dict[str, Any]]:
     config = _build_turn_config(
         query=query,
         teaching_mode=teaching_mode,
@@ -403,7 +441,7 @@ async def _run_single_turn(
             "type": "start_turn",
             "content": query,
             "session_id": session_id,
-            "capability": None,
+            "capability": "tutorbot",
             "tools": [],
             "knowledge_bases": [],
             "attachments": [],
@@ -416,6 +454,7 @@ async def _run_single_turn(
     fallback_response = ""
     event_types: list[str] = []
     first_content_at_ms: float | None = None
+    result_metadata: dict[str, Any] = {}
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         event_type = str(event.get("type") or "")
         event_types.append(event_type)
@@ -425,6 +464,7 @@ async def _run_single_turn(
             fragments.append(str(event["content"]))
         elif event_type == "result":
             metadata = event.get("metadata") or {}
+            result_metadata = dict(metadata)
             fallback_response = str(
                 metadata.get("response")
                 or (metadata.get("metadata") or {}).get("response")
@@ -433,7 +473,7 @@ async def _run_single_turn(
 
     response = "".join(fragments).strip() or fallback_response.strip()
     latency_ms = (time.perf_counter() - start) * 1000
-    return session["id"], response, first_content_at_ms, latency_ms, event_types
+    return session["id"], response, first_content_at_ms, latency_ms, event_types, result_metadata
 
 
 async def _run_single_turn_live_ws(
@@ -442,7 +482,7 @@ async def _run_single_turn_live_ws(
     session_id: str | None,
     query: str,
     teaching_mode: str,
-) -> tuple[str, str, float | None, float, list[str]]:
+) -> tuple[str, str, float | None, float, list[str], dict[str, Any]]:
     config = _build_turn_config(
         query=query,
         teaching_mode=teaching_mode,
@@ -451,7 +491,7 @@ async def _run_single_turn_live_ws(
     payload = {
         "type": "start_turn",
         "content": query,
-        "capability": None,
+        "capability": "tutorbot",
         "tools": [],
         "knowledge_bases": [],
         "attachments": [],
@@ -470,6 +510,7 @@ async def _run_single_turn_live_ws(
     resolved_session_id = session_id or ""
     started_at = time.perf_counter()
     first_content_at_ms: float | None = None
+    result_metadata: dict[str, Any] = {}
 
     async with websockets.connect(ws_url) as websocket:
         await websocket.send(json.dumps(payload, ensure_ascii=False))
@@ -486,6 +527,7 @@ async def _run_single_turn_live_ws(
                 fragments.append(str(event["content"]))
             elif event_type == "result":
                 metadata = event.get("metadata") or {}
+                result_metadata = dict(metadata)
                 fallback_response = str(
                     metadata.get("response")
                     or (metadata.get("metadata") or {}).get("response")
@@ -498,7 +540,14 @@ async def _run_single_turn_live_ws(
 
     response = "".join(fragments).strip() or fallback_response.strip()
     latency_ms = (time.perf_counter() - started_at) * 1000
-    return resolved_session_id, response, first_content_at_ms, latency_ms, event_types
+    return (
+        resolved_session_id,
+        response,
+        first_content_at_ms,
+        latency_ms,
+        event_types,
+        result_metadata,
+    )
 
 
 async def _run_case(
@@ -537,7 +586,7 @@ async def _run_case(
         turn_no = int(item.get("turn", 0) or 0)
         query = str(item.get("user_query") or "")
         try:
-            session_id, response, ttft_ms, latency_ms, event_types = await asyncio.wait_for(
+            session_id, response, ttft_ms, latency_ms, event_types, result_metadata = await asyncio.wait_for(
                 (
                     _run_single_turn_live_ws(
                         api_base_url=api_base_url,
@@ -570,6 +619,10 @@ async def _run_case(
                     "ttft_ms": round(ttft_ms, 1) if ttft_ms is not None else None,
                     "latency_ms": round(latency_ms, 1),
                     "event_types": event_types,
+                    "selected_mode": str(result_metadata.get("selected_mode") or "").strip(),
+                    "execution_path": str(result_metadata.get("execution_path") or "").strip(),
+                    "exact_fast_path_hit": bool(result_metadata.get("exact_fast_path_hit", False)),
+                    "actual_tool_rounds": int(result_metadata.get("actual_tool_rounds") or 0),
                     **eval_result,
                 }
             )
@@ -679,23 +732,7 @@ def _render_markdown(
     teaching_mode: str,
     api_base_url: str | None,
 ) -> str:
-    total_turns = sum(item["summary"]["turns"] for item in results)
-    avg_semantic = mean(item["summary"]["semantic_score"] for item in results) if results else 0
-    avg_satisfaction = mean(item["summary"]["satisfaction_score"] for item in results) if results else 0
-    ttft_values = [
-        summary["avg_ttft_ms"]
-        for item in results
-        if isinstance((summary := item["summary"]).get("avg_ttft_ms"), (int, float))
-    ]
-    avg_ttft = mean(ttft_values) if ttft_values else 0.0
-    p50_ttft = _percentile(
-        [turn["ttft_ms"] for item in results for turn in item["turns"] if turn.get("ttft_ms") is not None],
-        0.5,
-    )
-    p90_ttft = _percentile(
-        [turn["ttft_ms"] for item in results for turn in item["turns"] if turn.get("ttft_ms") is not None],
-        0.9,
-    )
+    run_summary = _build_run_summary(results)
 
     lines = [
         "# Long Dialog V1 Retest",
@@ -705,16 +742,19 @@ def _render_markdown(
         f"**执行方式**: {'live_ws' if api_base_url else 'in_process_runtime'}",
         f"**API Base URL**: `{api_base_url}`" if api_base_url else "**API Base URL**: `N/A`",
         f"**数据源**: `{source_json}`",
-        f"**场景数**: {len(results)}",
-        f"**总轮次**: {total_turns}",
+        f"**场景数**: {run_summary['cases']}",
+        f"**总轮次**: {run_summary['total_turns']}",
         "",
         "## 总览",
         "",
-        f"- 系统语义理解均分: {avg_semantic:.1f}/100",
-        f"- 付费学员满意度均分: {avg_satisfaction:.1f}/100",
-        f"- 平均 TTFT: {avg_ttft:.1f}ms",
-        f"- P50 TTFT: {(p50_ttft or 0.0):.1f}ms",
-        f"- P90 TTFT: {(p90_ttft or 0.0):.1f}ms",
+        f"- 系统语义理解均分: {run_summary['avg_semantic']:.1f}/100",
+        f"- 付费学员满意度均分: {run_summary['avg_satisfaction']:.1f}/100",
+        f"- 平均 TTFT: {run_summary['avg_ttft_ms']:.1f}ms",
+        f"- P50 TTFT: {(run_summary['p50_ttft_ms'] or 0.0):.1f}ms",
+        f"- P90 TTFT: {(run_summary['p90_ttft_ms'] or 0.0):.1f}ms",
+        f"- 平均延迟: {run_summary['avg_latency_ms']:.1f}ms",
+        f"- P50 延迟: {(run_summary['p50_latency_ms'] or 0.0):.1f}ms",
+        f"- P90 延迟: {(run_summary['p90_latency_ms'] or 0.0):.1f}ms",
         f"- 硬错误/空回复: {sum(item['summary']['hard_errors'] for item in results)}",
         f"- 跟题/批改断裂: {sum(item['summary']['followup_object_mismatch_count'] for item in results)}",
         f"- 出题契约失配: {sum(item['summary']['question_count_mismatch_count'] for item in results)}",
@@ -834,13 +874,18 @@ async def main() -> None:
             encoding="utf-8",
         )
 
-    avg_semantic = mean(item["summary"]["semantic_score"] for item in results)
-    avg_satisfaction = mean(item["summary"]["satisfaction_score"] for item in results)
+    run_summary = _build_run_summary(results)
     print("")
     print("=" * 60)
-    print(f"Long Dialog V1 Retest 完成: {len(results)} cases")
-    print(f"系统语义理解均分: {avg_semantic:.1f}/100")
-    print(f"付费学员满意度均分: {avg_satisfaction:.1f}/100")
+    print(f"Long Dialog V1 Retest 完成: {run_summary['cases']} cases")
+    print(f"系统语义理解均分: {run_summary['avg_semantic']:.1f}/100")
+    print(f"付费学员满意度均分: {run_summary['avg_satisfaction']:.1f}/100")
+    print(f"平均 TTFT: {run_summary['avg_ttft_ms']:.1f}ms")
+    print(f"P50 TTFT: {(run_summary['p50_ttft_ms'] or 0.0):.1f}ms")
+    print(f"P90 TTFT: {(run_summary['p90_ttft_ms'] or 0.0):.1f}ms")
+    print(f"平均延迟: {run_summary['avg_latency_ms']:.1f}ms")
+    print(f"P50 延迟: {(run_summary['p50_latency_ms'] or 0.0):.1f}ms")
+    print(f"P90 延迟: {(run_summary['p90_latency_ms'] or 0.0):.1f}ms")
     print(f"JSON: {json_path}")
     print(f"MD:   {md_path}")
     print("=" * 60)

@@ -21,7 +21,9 @@ from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 from deeptutor.tutorbot.response_mode import (
     build_mode_execution_policy,
+    normalize_requested_response_mode,
     resolve_requested_response_mode,
+    select_response_mode,
 )
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
@@ -47,8 +49,7 @@ class TutorBotCapability(BaseCapability):
             await stream.error("TutorBot capability requires bot_id.", source=self.name)
             return
         runtime_defaults = resolve_bot_runtime_defaults(bot_id=bot_id)
-        requested_mode = self._response_mode(context)
-        policy = build_mode_execution_policy(requested_mode)
+        policy = self._mode_policy(context)
         teaching_mode = policy.effective_mode
         hide_generated_answers = self._should_hide_generated_answers(context)
 
@@ -79,8 +80,10 @@ class TutorBotCapability(BaseCapability):
             "default_tools": self._session_default_tools(context, teaching_mode=teaching_mode),
             "knowledge_bases": list(context.knowledge_bases or []),
             "requested_response_mode": policy.requested_mode,
+            "selected_mode": policy.selected_mode,
             "effective_response_mode": policy.effective_mode,
             "response_mode_degrade_reason": policy.response_mode_degrade_reason,
+            "response_mode_selection_reason": policy.selection_reason,
             "teaching_mode": policy.effective_mode,
             "mode_execution_policy": {
                 "max_tool_rounds": policy.max_tool_rounds,
@@ -225,6 +228,13 @@ class TutorBotCapability(BaseCapability):
                 "exact_question": turn_summary["exact_question"],
                 "rag_rounds": turn_summary["rag_rounds"],
                 "rag_saturation": turn_summary["rag_saturation"],
+                "requested_response_mode": policy.requested_mode,
+                "selected_mode": policy.selected_mode,
+                "effective_response_mode": policy.effective_mode,
+                "execution_path": str(session_metadata.get("execution_path") or "").strip()
+                or ("tutorbot_fast_policy" if policy.selected_mode == "fast" else "tutorbot_deep_policy"),
+                "exact_fast_path_hit": bool(session_metadata.get("exact_fast_path_hit", False)),
+                "actual_tool_rounds": int(session_metadata.get("actual_tool_rounds") or 0),
             }
             if parsed_result_summary:
                 presentation = build_canonical_presentation(
@@ -261,14 +271,50 @@ class TutorBotCapability(BaseCapability):
 
     @staticmethod
     def _response_mode(context: UnifiedContext) -> str:
-        hints = context.metadata.get("interaction_hints", {}) if isinstance(context.metadata, dict) else {}
-        return resolve_requested_response_mode(
-            chat_mode=context.config_overrides.get("chat_mode"),
-            interaction_hints=hints if isinstance(hints, dict) else None,
+        return TutorBotCapability._mode_policy(context).requested_mode
+
+    @staticmethod
+    def _mode_policy(context: UnifiedContext):
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        hints = (
+            metadata.get("interaction_hints")
+            if isinstance(metadata.get("interaction_hints"), dict)
+            else {}
+        )
+        requested_mode = normalize_requested_response_mode(
+            metadata.get("requested_response_mode")
+            or resolve_requested_response_mode(
+                chat_mode=context.config_overrides.get("chat_mode"),
+                interaction_hints=hints if isinstance(hints, dict) else None,
+            )
+        )
+        selected_mode = normalize_requested_response_mode(
+            metadata.get("selected_mode") or context.config_overrides.get("chat_mode")
+        )
+        selection_reason = str(
+            metadata.get("response_mode_selection_reason")
+            or (hints.get("response_mode_selection_reason") if isinstance(hints, dict) else "")
+            or ""
+        ).strip()
+        if selected_mode == "smart":
+            selected_mode, inferred_reason = select_response_mode(
+                requested_mode,
+                user_message=context.user_message,
+                interaction_hints=hints if isinstance(hints, dict) else None,
+                has_active_object=bool(metadata.get("active_object")),
+            )
+            if not selection_reason:
+                selection_reason = inferred_reason
+        return build_mode_execution_policy(
+            requested_mode,
+            selected_mode=selected_mode,
+            selection_reason=selection_reason,
         )
 
     @staticmethod
     def _session_default_tools(context: UnifiedContext, *, teaching_mode: str) -> list[str]:
+        if teaching_mode == "fast":
+            return ["rag"] if ("rag" in (context.enabled_tools or []) or context.knowledge_bases) else []
         return list(context.enabled_tools or [])
 
     @staticmethod
