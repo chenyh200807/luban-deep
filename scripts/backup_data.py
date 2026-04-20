@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import tarfile
 import sys
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, List, Optional, Tuple, Union
 
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
@@ -76,7 +76,7 @@ def iter_runtime_files(user_data_dir: Path) -> Iterable[Path]:
             yield path
 
 
-def summarize_runtime_tree(user_data_dir: Path) -> tuple[int, int]:
+def summarize_runtime_tree(user_data_dir: Path) -> Tuple[int, int]:
     file_count = 0
     total_bytes = 0
     for path in iter_runtime_files(user_data_dir):
