@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -11,9 +12,7 @@ import {
   BookOpen,
   BrainCircuit,
   CircleAlert,
-  Download,
   Database,
-  CalendarDays,
   RefreshCw,
   ShieldAlert,
   Sparkles,
@@ -36,6 +35,9 @@ import {
   type BiWorkbenchData,
 } from "@/lib/bi-api";
 import type { ReactNode } from "react";
+import { BiCommandDeckHero } from "./_components/BiCommandDeckHero";
+import { BiCommandDeckTabs } from "./_components/BiCommandDeckTabs";
+import { BI_PRIMARY_TABS, normalizeBiPrimaryTab, type BiPrimaryTab } from "./_components/BiShared";
 
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
   month: "2-digit",
@@ -140,7 +142,9 @@ function sparkPath(values: number[], width = 240, height = 72) {
 }
 
 export default function BiPage() {
+  const searchParams = useSearchParams();
   const [days, setDays] = useState<7 | 30 | 90>(30);
+  const [activeTab, setActiveTab] = useState<BiPrimaryTab>("overview");
   const [filters, setFilters] = useState({ capability: "", entrypoint: "", tier: "" });
   const [data, setData] = useState<BiWorkbenchData | null>(null);
   const [issues, setIssues] = useState<string[]>([]);
@@ -176,6 +180,10 @@ export default function BiPage() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    setActiveTab(normalizeBiPrimaryTab(searchParams.get("tab")));
+  }, [searchParams]);
 
   useEffect(() => {
     if (!selectedLearner) {
@@ -236,11 +244,6 @@ export default function BiPage() {
     [trend.points],
   );
 
-  const heroTitle = overview?.title ?? "DeepTutor BI 工作台";
-  const heroSubtitle =
-    overview?.subtitle ??
-    "加载后端 BI 接口后即可查看经营、学习、能力、知识库与会员的统一视图。";
-
   const topCards = useMemo(() => {
     const combined = [...(overview?.cards ?? []), ...(cost.cards ?? []), ...(members.cards ?? []), ...(tutorbots.cards ?? [])];
     return combined.slice(0, 6);
@@ -253,6 +256,7 @@ export default function BiPage() {
   ].filter(Boolean);
 
   const rangeLabel = days === 7 ? "7 天" : days === 90 ? "90 天" : "30 天";
+  const activeTabMeta = BI_PRIMARY_TABS.find((tab) => tab.key === activeTab) ?? BI_PRIMARY_TABS[0];
   const exportPayload = useMemo(
     () => ({
       exported_at: new Date().toISOString(),
@@ -305,65 +309,22 @@ export default function BiPage() {
   return (
     <div className="h-full overflow-y-auto [scrollbar-gutter:stable] bg-[radial-gradient(circle_at_top_left,_rgba(195,90,44,0.14),_transparent_34%),radial-gradient(circle_at_85%_10%,_rgba(18,122,134,0.09),_transparent_28%),linear-gradient(180deg,#faf9f6_0%,#f4efe8_100%)] px-6 py-6">
       <div className="mx-auto flex max-w-[1540px] flex-col gap-6">
-        <section className="surface-card overflow-hidden border-0 bg-[linear-gradient(135deg,#151312_0%,#2a211d_44%,#8f4625_100%)] text-white shadow-[0_24px_60px_rgba(31,26,23,0.22)]">
-          <div className="flex flex-col gap-6 p-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs tracking-[0.2em] text-white/75">
-                <BarChart3 size={14} />
-                BI WORKBENCH
-              </div>
-              <h1 className="text-3xl font-semibold tracking-tight">{heroTitle}</h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/75">{heroSubtitle}</p>
-              <div className="mt-5 flex flex-wrap gap-2">
-                <JumpChip href="#overview" label="总览" />
-                <JumpChip href="#trend" label="趋势" />
-                <JumpChip href="#tutorbot" label="TutorBot" />
-                <JumpChip href="#capability" label="能力与工具" />
-                <JumpChip href="#knowledge" label="知识库" />
-                <JumpChip href="#member" label="会员" />
-              </div>
-            </div>
+        <BiCommandDeckHero
+          title="DeepTutor BI Deck"
+          subtitle="经营、质量、会员、TutorBot 四条主线的一体化指挥舱"
+          days={days}
+          onDaysChange={setDays}
+          onExport={handleExport}
+          exporting={exporting}
+          onRefresh={() => void refresh()}
+          refreshing={refreshing}
+          canExport={Boolean(data)}
+          lastUpdatedLabel={lastUpdatedAt ? formatTime(lastUpdatedAt) : "尚未同步"}
+          rangeLabel={rangeLabel}
+          activeFilters={activeFilters}
+        />
 
-            <div className="flex flex-col gap-3 self-start">
-              <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-white/8 p-2">
-                {[7, 30, 90].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => setDays(value as 7 | 30 | 90)}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
-                      days === value ? "bg-white text-[#2d2119]" : "text-white/75 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    <CalendarDays size={14} />
-                    {value} 天
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={handleExport}
-                disabled={exporting || !data}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-[#2d2119] transition hover:bg-white/90 disabled:opacity-60"
-              >
-                <Download size={16} className={exporting ? "animate-pulse" : ""} />
-                导出 JSON
-              </button>
-              <button
-                onClick={() => void refresh()}
-                disabled={refreshing}
-                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/16 disabled:opacity-60"
-              >
-                <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
-                刷新数据
-              </button>
-              <div className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-xs leading-5 text-white/80">
-                <p>最近同步：{lastUpdatedAt ? formatTime(lastUpdatedAt) : "尚未同步"}</p>
-                <p className="mt-1">时间范围：{rangeLabel}</p>
-                <p className="mt-1">当前筛选：{activeFilters.length ? activeFilters.join(" · ") : "全部"}</p>
-                <p className="mt-1">当前接口：`/api/v1/bi/*`</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <BiCommandDeckTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
         <section className="surface-card p-5">
           <SectionHeader
@@ -418,342 +379,357 @@ export default function BiPage() {
           </div>
         ) : null}
 
-        <section id="overview" className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-          {(loading ? createLoadingCards() : topCards).map((card, index) => (
-            <MetricCard
-              key={`${card.label}-${index}`}
-              title={card.label}
-              value={card.value}
-              hint={card.hint ?? ""}
-              delta={card.delta}
-              tone={card.tone}
-              icon={metricIconByIndex(index)}
-            />
-          ))}
-        </section>
-
-        <section id="trend" className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)]">
-          <div className="space-y-6">
-            <div className="surface-card p-5">
-              <SectionHeader
-                title="趋势与波动"
-                extra={trend.points.length ? `${trend.points.length} 个周期` : "等待趋势数据"}
-              />
-              <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_320px]">
-                <TrendChart
-                  points={trend.points}
-                  activeSeries={trendSeries}
-                  costSeries={trendCostSeries}
-                  successSeries={trendSuccessSeries}
-                  days={days}
+        {activeTab === "overview" ? (
+          <>
+            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+              {(loading ? createLoadingCards() : topCards).map((card, index) => (
+                <MetricCard
+                  key={`${card.label}-${index}`}
+                  title={card.label}
+                  value={card.value}
+                  hint={card.hint ?? ""}
+                  delta={card.delta}
+                  tone={card.tone}
+                  icon={metricIconByIndex(index)}
                 />
-                <div className="space-y-3">
-                  {(overview?.highlights ?? []).slice(0, 4).map((item) => (
-                    <div key={item} className="rounded-2xl bg-[var(--secondary)] px-4 py-3">
-                      <p className="text-[11px] tracking-[0.18em] text-[var(--muted-foreground)]">洞察</p>
-                      <p className="mt-1 text-sm leading-6 text-[var(--secondary-foreground)]">{item}</p>
-                    </div>
-                  ))}
-                  {!overview?.highlights?.length ? (
-                    <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
-                      后端尚未返回洞察文本，趋势会在接口就绪后自动显示。
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-            </div>
+              ))}
+            </section>
 
-            <div className="surface-card p-5">
-              <SectionHeader title="留存矩阵" extra={retention.labels.join(" / ") || "D0 / D1 / D7 / D30"} />
-              <div className="mt-4 overflow-hidden rounded-2xl border border-[var(--border)]/60 bg-[var(--background)]">
-                <div className="grid grid-cols-[160px_repeat(4,minmax(0,1fr))] border-b border-[var(--border)]/60 bg-[var(--secondary)]/40 px-4 py-3 text-xs tracking-[0.18em] text-[var(--muted-foreground)]">
-                  <span>队列</span>
-                  {(retention.labels.length ? retention.labels : ["D0", "D1", "D7", "D30"]).map((label) => (
-                    <span key={label} className="text-right">
-                      {label}
-                    </span>
-                  ))}
-                </div>
-                <div className="divide-y divide-[var(--border)]/50">
-                  {retention.cohorts.length ? (
-                    retention.cohorts.map((row) => (
-                      <div key={row.label} className="grid grid-cols-[160px_repeat(4,minmax(0,1fr))] gap-0 px-4 py-3">
-                        <div className="pr-4">
-                          <p className="font-medium text-[var(--foreground)]">{row.label}</p>
+            <section className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)]">
+              <div className="space-y-6">
+                <div className="surface-card p-5">
+                  <SectionHeader
+                    title="趋势与波动"
+                    extra={trend.points.length ? `${trend.points.length} 个周期` : "等待趋势数据"}
+                  />
+                  <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_320px]">
+                    <TrendChart
+                      points={trend.points}
+                      activeSeries={trendSeries}
+                      costSeries={trendCostSeries}
+                      successSeries={trendSuccessSeries}
+                      days={days}
+                    />
+                    <div className="space-y-3">
+                      {(overview?.highlights ?? []).slice(0, 4).map((item) => (
+                        <div key={item} className="rounded-2xl bg-[var(--secondary)] px-4 py-3">
+                          <p className="text-[11px] tracking-[0.18em] text-[var(--muted-foreground)]">洞察</p>
+                          <p className="mt-1 text-sm leading-6 text-[var(--secondary-foreground)]">{item}</p>
                         </div>
-                        {(retention.labels.length ? retention.labels : ["D0", "D1", "D7", "D30"]).map((label, index) => {
-                          const value = row.values[index] ?? 0;
-                          const intensity = Math.max(0.08, Math.min(1, value / 100));
-                          return (
-                            <div key={`${row.label}-${label}`} className="flex justify-end">
-                              <span
-                                className="inline-flex min-w-[84px] justify-center rounded-xl px-3 py-2 text-sm font-medium"
-                                style={{
-                                  backgroundColor: `rgba(195, 90, 44, ${intensity * 0.22 + 0.04})`,
-                                  color: intensity > 0.45 ? "var(--foreground)" : "var(--muted-foreground)",
-                                }}
-                              >
-                                {formatPercent(value)}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="px-4 py-10 text-center text-sm text-[var(--muted-foreground)]">
-                      等待留存接口返回 cohort 数据。
+                      ))}
+                      {!overview?.highlights?.length ? (
+                        <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+                          后端尚未返回洞察文本，趋势会在接口就绪后自动显示。
+                        </p>
+                      ) : null}
                     </div>
-                  )}
+                  </div>
+                </div>
+
+                <div className="surface-card p-5">
+                  <SectionHeader title="留存矩阵" extra={retention.labels.join(" / ") || "D0 / D1 / D7 / D30"} />
+                  <div className="mt-4 overflow-hidden rounded-2xl border border-[var(--border)]/60 bg-[var(--background)]">
+                    <div className="grid grid-cols-[160px_repeat(4,minmax(0,1fr))] border-b border-[var(--border)]/60 bg-[var(--secondary)]/40 px-4 py-3 text-xs tracking-[0.18em] text-[var(--muted-foreground)]">
+                      <span>队列</span>
+                      {(retention.labels.length ? retention.labels : ["D0", "D1", "D7", "D30"]).map((label) => (
+                        <span key={label} className="text-right">
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="divide-y divide-[var(--border)]/50">
+                      {retention.cohorts.length ? (
+                        retention.cohorts.map((row) => (
+                          <div key={row.label} className="grid grid-cols-[160px_repeat(4,minmax(0,1fr))] gap-0 px-4 py-3">
+                            <div className="pr-4">
+                              <p className="font-medium text-[var(--foreground)]">{row.label}</p>
+                            </div>
+                            {(retention.labels.length ? retention.labels : ["D0", "D1", "D7", "D30"]).map((label, index) => {
+                              const value = row.values[index] ?? 0;
+                              const intensity = Math.max(0.08, Math.min(1, value / 100));
+                              return (
+                                <div key={`${row.label}-${label}`} className="flex justify-end">
+                                  <span
+                                    className="inline-flex min-w-[84px] justify-center rounded-xl px-3 py-2 text-sm font-medium"
+                                    style={{
+                                      backgroundColor: `rgba(195, 90, 44, ${intensity * 0.22 + 0.04})`,
+                                      color: intensity > 0.45 ? "var(--foreground)" : "var(--muted-foreground)",
+                                    }}
+                                  >
+                                    {formatPercent(value)}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-10 text-center text-sm text-[var(--muted-foreground)]">
+                          等待留存接口返回 cohort 数据。
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="surface-card p-5">
+                  <SectionHeader
+                    title="异常中心"
+                    extra={anomalies.items.length ? `${anomalies.items.length} 条异常` : "无明显异常"}
+                  />
+                  <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                    {(anomalies.items.length ? anomalies.items : overview?.alerts ?? []).map((item) => (
+                      <AlertCard key={`${item.title}-${item.detail ?? ""}`} item={item} />
+                    ))}
+                    {!anomalies.items.length && !(overview?.alerts ?? []).length ? (
+                      <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+                        后端没有返回告警，当前仅展示数据总览。
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="surface-card p-5">
-              <SectionHeader
-                title="异常中心"
-                extra={anomalies.items.length ? `${anomalies.items.length} 条异常` : "无明显异常"}
-              />
-              <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                {(anomalies.items.length ? anomalies.items : overview?.alerts ?? []).map((item) => (
-                  <AlertCard key={`${item.title}-${item.detail ?? ""}`} item={item} />
-                ))}
-                {!anomalies.items.length && !(overview?.alerts ?? []).length ? (
-                  <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
-                    后端没有返回告警，当前仅展示数据总览。
-                  </p>
-                ) : null}
-              </div>
-            </div>
-          </div>
-
-          <aside className="space-y-6">
-            <OverviewStack overview={overview} cost={cost} members={members} />
-            <RankingCard
-              title="经营入口分布"
-              items={overview?.entrypoints ?? []}
-              emptyText="等待入口分布数据。"
-            />
-            <SimpleListCard
-              title="成本结构"
-              items={cost.models.length ? cost.models : cost.providers}
-              emptyText="等待成本与模型结构数据。"
-              icon={<Wallet size={16} />}
-            />
-          </aside>
-        </section>
-
-        <section id="tutorbot" className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-          <div className="space-y-6">
-            <div className="surface-card p-5">
-              <SectionHeader title="TutorBot 指标" extra={tutorbots.cards.length ? `${tutorbots.cards.length} 项` : "等待指标"} />
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                {tutorbots.cards.length ? (
-                  tutorbots.cards.slice(0, 4).map((card) => (
-                    <MiniStatCard key={card.label} label={card.label} value={card.value} hint={card.hint} />
-                  ))
-                ) : (
-                  <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
-                    后端返回 TutorBot 指标后，这里会展示运行、成功率、调用量等关键数据。
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <RankingCard
-              title="TutorBot 排行"
-              items={tutorbots.ranking}
-              emptyText="等待 TutorBot 排行数据。"
-              icon={<Bot size={16} />}
-              headerMeta={tutorbots.cards.length ? `${tutorbots.cards.length} 个指标` : undefined}
-            />
-            <div className="surface-card p-5">
-              <SectionHeader title="最近活跃" extra={tutorbots.recentActive.length ? `${tutorbots.recentActive.length} 个样本` : "等待活跃样本"} />
-              <div className="mt-4 space-y-3">
-                {tutorbots.recentActive.length ? (
-                  tutorbots.recentActive.slice(0, 5).map((bot) => (
-                    <BotActiveCard key={bot.bot_id || bot.name} bot={bot} />
-                  ))
-                ) : (
-                  <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
-                    后端返回 TutorBot 最近活跃后，这里会展示运行状态、入口与最新活动时间。
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <RankingCard
-              title="运行状态"
-              items={tutorbots.statusBreakdown}
-              emptyText="等待 TutorBot 运行状态。"
-              icon={<Activity size={16} />}
-            />
-            <div className="surface-card p-5">
-              <SectionHeader
-                title="最近消息预览"
-                extra={tutorbots.recentMessages.length ? `${tutorbots.recentMessages.length} 条` : "等待消息预览"}
-              />
-              <div className="mt-4 space-y-3">
-                {tutorbots.recentMessages.length ? (
-                  tutorbots.recentMessages.slice(0, 5).map((bot) => (
-                    <BotMessageCard key={bot.bot_id || bot.name || bot.recent_message} bot={bot} />
-                  ))
-                ) : (
-                  <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
-                    后端返回最近消息预览后，这里会展示近期对话摘要。
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="capability" className="grid gap-6 xl:grid-cols-2">
-          <RankingCard
-            title="能力表现"
-            items={capabilities.items}
-            emptyText="等待 capability 数据。"
-            icon={<BrainCircuit size={16} />}
-            footerItems={capabilities.upgradePaths}
-            footerTitle="升级路径"
-          />
-          <RankingCard
-            title="工具效果"
-            items={tools.items}
-            emptyText="等待 tool 数据。"
-            icon={<Sparkles size={16} />}
-            footerItems={tools.efficiency}
-            footerTitle="效率/ROI"
-          />
-        </section>
-
-        <section id="knowledge" className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-          <RankingCard
-            title="知识库表现"
-            items={knowledge.items}
-            emptyText="等待知识库分析数据。"
-            icon={<BookOpen size={16} />}
-            headerMeta={knowledge.zeroHitRate !== undefined ? `零结果率 ${formatPercent(knowledge.zeroHitRate)}` : undefined}
-            footerItems={knowledge.topQueries}
-            footerTitle="热查询"
-          />
-          <div className="space-y-6">
-            <div className="surface-card p-5">
-              <SectionHeader title="知识库策略" extra="面向内容资产与召回质量" />
-              <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--secondary-foreground)]">
-                <InfoLine
-                  label="命中率"
-                  value={knowledge.items.length ? "关注高频 KB 的零结果率变化" : "等待后端指标"}
-                />
-                <InfoLine
-                  label="文档资产"
-                  value="建议后续把教材、题库、规范、TutorBot 素材统一纳入资产榜单。"
-                />
-                <InfoLine
-                  label="学习闭环"
-                  value="优先看 notebook 保存率与知识库查询后的后续行为变化。"
-                />
-              </div>
-            </div>
-
-            <div id="member" className="surface-card p-5">
-              <SectionHeader
-                title="会员与用户画像"
-                extra={members.samples.length ? `${members.samples.length} 个样本` : "等待会员分层数据"}
-              />
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                {members.cards.length
-                  ? members.cards.slice(0, 4).map((card) => (
-                      <MiniStatCard key={card.label} label={card.label} value={card.value} hint={card.hint} />
-                    ))
-                  : null}
-                {!members.cards.length ? (
-                  <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
-                    会员侧数据将显示活跃、到期、风险和续费相关卡片。
-                  </p>
-                ) : null}
-              </div>
-              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <aside className="space-y-6">
+                <OverviewStack overview={overview} cost={cost} members={members} />
                 <RankingCard
-                  title="会员分层"
-                  items={members.tiers}
-                  emptyText="等待会员层级数据。"
-                  compact
+                  title="经营入口分布"
+                  items={overview?.entrypoints ?? []}
+                  emptyText="等待入口分布数据。"
                 />
-                <RankingCard
-                  title="风险分层"
-                  items={members.risks}
-                  emptyText="等待风险分层数据。"
-                  compact
+                <SimpleListCard
+                  title="成本结构"
+                  items={cost.models.length ? cost.models : cost.providers}
+                  emptyText="等待成本与模型结构数据。"
+                  icon={<Wallet size={16} />}
                 />
-              </div>
-              <div className="mt-4 space-y-3">
-                {members.samples.slice(0, 4).map((sample) => (
-                  <button
-                    key={sample.user_id || sample.display_name}
-                    type="button"
-                    onClick={() => {
-                      if (!sample.user_id) return;
-                      openLearnerDetail({ user_id: sample.user_id, display_name: sample.display_name });
-                    }}
-                    className="w-full rounded-2xl border bg-[var(--background)] px-4 py-3 text-left transition hover:-translate-y-0.5 hover:border-[var(--primary)]/30 hover:shadow-[0_10px_28px_rgba(45,33,25,0.08)]"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-medium text-[var(--foreground)]">{sample.display_name}</p>
-                        <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                          {sample.user_id || "--"} · {sample.last_active_at ? formatTime(sample.last_active_at) : "最近活跃待补全"}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {sample.tier ? <span className="muted-chip">{sample.tier}</span> : null}
-                        {sample.risk_level ? <span className={`muted-chip ${toneClasses(sample.risk_level === "high" ? "critical" : sample.risk_level === "medium" ? "warning" : "info")}`}>{sample.risk_level}</span> : null}
-                      </div>
-                    </div>
-                    {sample.detail ? <p className="mt-2 text-sm leading-6 text-[var(--secondary-foreground)]">{sample.detail}</p> : null}
-                    <div className="mt-3 inline-flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
-                      <UserRound size={13} />
-                      点击查看 Learner 360
-                    </div>
-                  </button>
-                ))}
-                {!members.samples.length ? (
-                  <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
-                    后端返回会员样本后，这里会展示高价值、风险和续费窗口用户。
-                  </p>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </section>
+              </aside>
+            </section>
 
-        <section className="grid gap-6 xl:grid-cols-3">
-          <SimpleListCard
-            title="成本与模型"
-            items={cost.models}
-            emptyText="等待成本模型明细。"
-            icon={<TimerReset size={16} />}
-            footer={cost.providers.length ? `来源 ${cost.providers.length} 个` : undefined}
-          />
-          <SimpleListCard
-            title="成本来源"
-            items={cost.providers}
-            emptyText="等待成本来源拆分。"
-            icon={<Database size={16} />}
-          />
-          <SimpleListCard
-            title="总览提示"
-            items={(overview?.alerts ?? []).map((item) => ({
-              label: item.title,
-              value: 0,
-              hint: item.detail,
-            }))}
-            emptyText="后端暂无提示。"
-            icon={<Target size={16} />}
-          />
-        </section>
+            <section className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+              <div className="space-y-6">
+                <div className="surface-card p-5">
+                  <SectionHeader title="TutorBot 指标" extra={tutorbots.cards.length ? `${tutorbots.cards.length} 项` : "等待指标"} />
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    {tutorbots.cards.length ? (
+                      tutorbots.cards.slice(0, 4).map((card) => (
+                        <MiniStatCard key={card.label} label={card.label} value={card.value} hint={card.hint} />
+                      ))
+                    ) : (
+                      <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+                        后端返回 TutorBot 指标后，这里会展示运行、成功率、调用量等关键数据。
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <RankingCard
+                  title="TutorBot 排行"
+                  items={tutorbots.ranking}
+                  emptyText="等待 TutorBot 排行数据。"
+                  icon={<Bot size={16} />}
+                  headerMeta={tutorbots.cards.length ? `${tutorbots.cards.length} 个指标` : undefined}
+                />
+                <div className="surface-card p-5">
+                  <SectionHeader title="最近活跃" extra={tutorbots.recentActive.length ? `${tutorbots.recentActive.length} 个样本` : "等待活跃样本"} />
+                  <div className="mt-4 space-y-3">
+                    {tutorbots.recentActive.length ? (
+                      tutorbots.recentActive.slice(0, 5).map((bot) => (
+                        <BotActiveCard key={bot.bot_id || bot.name} bot={bot} />
+                      ))
+                    ) : (
+                      <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+                        后端返回 TutorBot 最近活跃后，这里会展示运行状态、入口与最新活动时间。
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <RankingCard
+                  title="运行状态"
+                  items={tutorbots.statusBreakdown}
+                  emptyText="等待 TutorBot 运行状态。"
+                  icon={<Activity size={16} />}
+                />
+                <div className="surface-card p-5">
+                  <SectionHeader
+                    title="最近消息预览"
+                    extra={tutorbots.recentMessages.length ? `${tutorbots.recentMessages.length} 条` : "等待消息预览"}
+                  />
+                  <div className="mt-4 space-y-3">
+                    {tutorbots.recentMessages.length ? (
+                      tutorbots.recentMessages.slice(0, 5).map((bot) => (
+                        <BotMessageCard key={bot.bot_id || bot.name || bot.recent_message} bot={bot} />
+                      ))
+                    ) : (
+                      <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+                        后端返回最近消息预览后，这里会展示近期对话摘要。
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="grid gap-6 xl:grid-cols-2">
+              <RankingCard
+                title="能力表现"
+                items={capabilities.items}
+                emptyText="等待 capability 数据。"
+                icon={<BrainCircuit size={16} />}
+                footerItems={capabilities.upgradePaths}
+                footerTitle="升级路径"
+              />
+              <RankingCard
+                title="工具效果"
+                items={tools.items}
+                emptyText="等待 tool 数据。"
+                icon={<Sparkles size={16} />}
+                footerItems={tools.efficiency}
+                footerTitle="效率/ROI"
+              />
+            </section>
+
+            <section className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+              <RankingCard
+                title="知识库表现"
+                items={knowledge.items}
+                emptyText="等待知识库分析数据。"
+                icon={<BookOpen size={16} />}
+                headerMeta={knowledge.zeroHitRate !== undefined ? `零结果率 ${formatPercent(knowledge.zeroHitRate)}` : undefined}
+                footerItems={knowledge.topQueries}
+                footerTitle="热查询"
+              />
+              <div className="space-y-6">
+                <div className="surface-card p-5">
+                  <SectionHeader title="知识库策略" extra="面向内容资产与召回质量" />
+                  <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--secondary-foreground)]">
+                    <InfoLine
+                      label="命中率"
+                      value={knowledge.items.length ? "关注高频 KB 的零结果率变化" : "等待后端指标"}
+                    />
+                    <InfoLine
+                      label="文档资产"
+                      value="建议后续把教材、题库、规范、TutorBot 素材统一纳入资产榜单。"
+                    />
+                    <InfoLine
+                      label="学习闭环"
+                      value="优先看 notebook 保存率与知识库查询后的后续行为变化。"
+                    />
+                  </div>
+                </div>
+
+                <div className="surface-card p-5">
+                  <SectionHeader
+                    title="会员与用户画像"
+                    extra={members.samples.length ? `${members.samples.length} 个样本` : "等待会员分层数据"}
+                  />
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    {members.cards.length
+                      ? members.cards.slice(0, 4).map((card) => (
+                          <MiniStatCard key={card.label} label={card.label} value={card.value} hint={card.hint} />
+                        ))
+                      : null}
+                    {!members.cards.length ? (
+                      <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+                        会员侧数据将显示活跃、到期、风险和续费相关卡片。
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                    <RankingCard
+                      title="会员分层"
+                      items={members.tiers}
+                      emptyText="等待会员层级数据。"
+                      compact
+                    />
+                    <RankingCard
+                      title="风险分层"
+                      items={members.risks}
+                      emptyText="等待风险分层数据。"
+                      compact
+                    />
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {members.samples.slice(0, 4).map((sample) => (
+                      <button
+                        key={sample.user_id || sample.display_name}
+                        type="button"
+                        onClick={() => {
+                          if (!sample.user_id) return;
+                          openLearnerDetail({ user_id: sample.user_id, display_name: sample.display_name });
+                        }}
+                        className="w-full rounded-2xl border bg-[var(--background)] px-4 py-3 text-left transition hover:-translate-y-0.5 hover:border-[var(--primary)]/30 hover:shadow-[0_10px_28px_rgba(45,33,25,0.08)]"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-medium text-[var(--foreground)]">{sample.display_name}</p>
+                            <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                              {sample.user_id || "--"} · {sample.last_active_at ? formatTime(sample.last_active_at) : "最近活跃待补全"}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            {sample.tier ? <span className="muted-chip">{sample.tier}</span> : null}
+                            {sample.risk_level ? <span className={`muted-chip ${toneClasses(sample.risk_level === "high" ? "critical" : sample.risk_level === "medium" ? "warning" : "info")}`}>{sample.risk_level}</span> : null}
+                          </div>
+                        </div>
+                        {sample.detail ? <p className="mt-2 text-sm leading-6 text-[var(--secondary-foreground)]">{sample.detail}</p> : null}
+                        <div className="mt-3 inline-flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
+                          <UserRound size={13} />
+                          点击查看 Learner 360
+                        </div>
+                      </button>
+                    ))}
+                    {!members.samples.length ? (
+                      <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+                        后端返回会员样本后，这里会展示高价值、风险和续费窗口用户。
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="grid gap-6 xl:grid-cols-3">
+              <SimpleListCard
+                title="成本与模型"
+                items={cost.models}
+                emptyText="等待成本模型明细。"
+                icon={<TimerReset size={16} />}
+                footer={cost.providers.length ? `来源 ${cost.providers.length} 个` : undefined}
+              />
+              <SimpleListCard
+                title="成本来源"
+                items={cost.providers}
+                emptyText="等待成本来源拆分。"
+                icon={<Database size={16} />}
+              />
+              <SimpleListCard
+                title="总览提示"
+                items={(overview?.alerts ?? []).map((item) => ({
+                  label: item.title,
+                  value: 0,
+                  hint: item.detail,
+                }))}
+                emptyText="后端暂无提示。"
+                icon={<Target size={16} />}
+              />
+            </section>
+          </>
+        ) : (
+          <section className="surface-card overflow-hidden border-0 bg-[linear-gradient(135deg,rgba(21,19,18,0.95),rgba(42,33,29,0.94),rgba(143,70,37,0.88))] p-6 text-white shadow-[0_24px_60px_rgba(31,26,23,0.16)]">
+            <div className="max-w-3xl">
+              <p className="text-xs tracking-[0.24em] text-white/70">COMMAND DECK SHELL</p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight">{activeTabMeta.label}</h2>
+              <p className="mt-3 text-sm leading-6 text-white/75">{activeTabMeta.summary}</p>
+              <p className="mt-5 text-sm leading-6 text-white/70">
+                本次任务只先完成 BI Command Deck 的统一壳层，让一级导航、公开入口与 Learner 360 保持稳定；该分区的完整内容拆分会在后续任务继续实现。
+              </p>
+            </div>
+          </section>
+        )}
 
         <Modal
           isOpen={Boolean(selectedLearner)}
@@ -950,17 +926,6 @@ function createLoadingCards() {
 function metricIconByIndex(index: number) {
   const icons: LucideIcon[] = [BarChart3, Bot, Sparkles, Target, Wallet, CircleAlert];
   return icons[index % icons.length];
-}
-
-function JumpChip({ href, label }: { href: string; label: string }) {
-  return (
-    <a
-      href={href}
-      className="rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs text-white/80 transition hover:bg-white/14 hover:text-white"
-    >
-      {label}
-    </a>
-  );
 }
 
 function SectionHeader({ title, extra }: { title: string; extra?: string }) {
