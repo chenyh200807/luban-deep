@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 
@@ -17,21 +18,29 @@ def test_bi_command_deck_hero_copy_exists() -> None:
     assert "经营、质量、会员、TutorBot 四条主线的一体化指挥舱" in source
 
 
-def test_bi_command_deck_navigation_chips_exist() -> None:
+def test_bi_command_deck_primary_tabs_contract_exists() -> None:
     source = _read_bi_page_source()
 
-    assert "Overview" in source
-    assert "Quality" in source
-    assert "Member Ops" in source
-    assert "TutorBot" in source
+    assert "经营、质量、会员、TutorBot 四条主线的一体化指挥舱" in source
+    assert re.search(
+        r'(?s)const\s+\w*Tabs?\s*=\s*\[.*?label:\s*"Overview".*?label:\s*"Quality".*?label:\s*"Member Ops".*?label:\s*"TutorBot".*?\]',
+        source,
+    )
 
 
 def test_bi_command_deck_removed_jump_links() -> None:
     source = _read_bi_page_source()
 
-    assert "function JumpChip" not in source
-    assert 'href="#trend"' not in source
-    assert 'href="#knowledge"' not in source
+    old_section_hrefs = (
+        'href="#overview"',
+        'href="#trend"',
+        'href="#tutorbot"',
+        'href="#capability"',
+        'href="#knowledge"',
+        'href="#member"',
+    )
+
+    assert not any(href in source for href in old_section_hrefs)
 
 
 def test_bi_command_deck_learner_detail_title_exists() -> None:
