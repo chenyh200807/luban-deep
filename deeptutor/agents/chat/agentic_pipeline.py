@@ -2701,14 +2701,6 @@ class AgenticChatPipeline:
         runtime_mode = str(context.config_overrides.get("chat_mode") or "").strip().lower()
         if runtime_mode in {"fast", "deep", "smart"}:
             return runtime_mode
-
-        hints = self._interaction_hints(context)
-        hinted_mode = str(hints.get("requested_response_mode") or "").strip().lower()
-        if hinted_mode in {"fast", "deep", "smart"}:
-            return hinted_mode
-        legacy_mode = str(hints.get("teaching_mode") or "").strip().lower()
-        if legacy_mode in {"fast", "deep", "smart"}:
-            return legacy_mode
         return ""
 
     def _is_smart_tutor_mode(self, context: UnifiedContext) -> bool:
