@@ -45,6 +45,7 @@ export default function BiPage() {
   const [issues, setIssues] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [selectedLearner, setSelectedLearner] = useState<{ user_id: string; display_name: string } | null>(null);
   const [learnerDetail, setLearnerDetail] = useState<BiLearnerDetailData | null>(null);
@@ -154,14 +155,42 @@ export default function BiPage() {
     setFilters({ capability: "", entrypoint: "", tier: "" });
   }, []);
 
+  const exportJson = useCallback(() => {
+    setExporting(true);
+    try {
+      const payload = {
+        exported_at: new Date().toISOString(),
+        days,
+        filters,
+        last_updated_at: lastUpdatedAt,
+        issues,
+        data,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `bi-workbench-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  }, [days, data, issues, filters, lastUpdatedAt]);
+
+  const canExport = Boolean(data || issues.length);
+
   return (
     <div className="h-full overflow-y-auto [scrollbar-gutter:stable] bg-[radial-gradient(circle_at_top_left,_rgba(195,90,44,0.14),_transparent_34%),radial-gradient(circle_at_85%_10%,_rgba(18,122,134,0.09),_transparent_28%),linear-gradient(180deg,#faf9f6_0%,#f4efe8_100%)] px-6 py-6">
       <div className="mx-auto flex max-w-[1540px] flex-col gap-6">
         <BiBossHeader
           days={days}
           onDaysChange={setDays}
+          onExport={exportJson}
+          exporting={exporting}
           onRefresh={() => void refresh()}
           refreshing={refreshing}
+          canExport={canExport}
           lastUpdatedLabel={lastUpdatedAt ? formatTime(lastUpdatedAt) : "尚未同步"}
           filtersOpen={filtersOpen}
           onToggleFilters={() => setFiltersOpen((open) => !open)}
@@ -180,7 +209,7 @@ export default function BiPage() {
           />
         ) : null}
 
-        {heroIssue ? null : <BiIssuesBanner issues={issues} />}
+        <BiIssuesBanner issues={issues} />
 
         {activeTab === "overview" ? (
           <BiOverviewTab
