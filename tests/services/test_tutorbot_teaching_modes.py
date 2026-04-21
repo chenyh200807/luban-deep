@@ -2,10 +2,12 @@ import deeptutor.tutorbot.teaching_modes as teaching_modes_module
 from deeptutor.tutorbot.teaching_modes import (
     detect_construction_exam_scene,
     detect_lecture_topic,
+    get_anchor_preservation_instruction,
     get_construction_exam_skill_instruction,
     get_lecture_skill_instruction,
     get_teaching_mode_instruction,
     looks_like_practice_generation_request,
+    normalize_anchor_terms_in_response,
     normalize_teaching_mode,
 )
 from deeptutor.tutorbot.response_mode import resolve_requested_response_mode
@@ -76,6 +78,22 @@ def test_get_teaching_mode_instruction_matches_expected_density():
     assert "案例题" in deep
 
     assert smart == ""
+
+
+def test_get_anchor_preservation_instruction_preserves_explicit_case_anchor_wording():
+    instruction = get_anchor_preservation_instruction("你用盖一栋6层住宅楼举个例子讲讲")
+
+    assert "6层住宅楼" in instruction
+    assert "不要自行缩写、泛化或换称呼" in instruction
+
+
+def test_normalize_anchor_terms_in_response_restores_exact_user_anchor_wording():
+    normalized = normalize_anchor_terms_in_response(
+        user_message="你用盖一栋6层住宅楼举个例子讲讲",
+        response="想象你盖一栋 6 层住宅楼，先做第一层，再做第二层。",
+    )
+
+    assert "6层住宅楼" in normalized
 
 
 def test_detect_construction_exam_scene_routes_to_expected_variants():

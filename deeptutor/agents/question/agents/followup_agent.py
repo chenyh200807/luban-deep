@@ -8,6 +8,10 @@ from __future__ import annotations
 from typing import Any
 
 from deeptutor.agents.base_agent import BaseAgent
+from deeptutor.agents.question.agents._anchor_terms import (
+    extract_anchor_terms,
+    render_anchor_contract,
+)
 from deeptutor.core.trace import build_trace_metadata, new_call_id
 from deeptutor.services.question_followup import should_reveal_reference_material
 
@@ -50,6 +54,16 @@ class FollowupAgent(BaseAgent):
             history_context=history_context or "(none)",
             user_message=user_message.strip() or "(empty)",
         )
+        anchor_contract = render_anchor_contract(
+            self.language,
+            extract_anchor_terms(
+                user_message,
+                question_context.get("question"),
+                *((item or {}).get("question") for item in question_context.get("items") or []),
+            ),
+        )
+        if anchor_contract:
+            user_prompt = f"{user_prompt.rstrip()}\n\n{anchor_contract}"
 
         _chunks: list[str] = []
         async for _c in self.stream_llm(

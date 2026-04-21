@@ -7,7 +7,10 @@ from types import ModuleType
 
 import pytest
 
-from deeptutor.services.observability.langfuse_adapter import LangfuseObservability
+from deeptutor.services.observability.langfuse_adapter import (
+    LangfuseObservability,
+    _normalize_langfuse_host,
+)
 
 
 class _FakeObservation:
@@ -406,18 +409,22 @@ def test_usage_details_and_cost_details_from_summary() -> None:
         "total_input_tokens": 128,
         "total_output_tokens": 32,
         "total_tokens": 160,
+        "estimated_input_tokens": 12,
+        "estimated_output_tokens": 0,
+        "estimated_total_tokens": 12,
         "total_cost_usd": 0.0016,
+        "estimated_total_cost_usd": 0.00001,
     }
 
     assert adapter.usage_details_from_summary(summary) == {
-        "input": 128.0,
+        "input": 140.0,
         "output": 32.0,
-        "total": 160.0,
+        "total": 172.0,
     }
     assert adapter.cost_details_from_summary(summary) == {
         "input": 0.0,
         "output": 0.0,
-        "total": 0.0016,
+        "total": 0.00161,
     }
 
 
@@ -442,7 +449,7 @@ def test_summary_metadata_flattens_usage_summary() -> None:
     }
 
     assert adapter.summary_metadata(summary) == {
-        "usage_rollup": "tokens=160; cost=0.0016; accuracy=mixed",
+        "usage_rollup": "tokens=172; cost=0.00161; accuracy=mixed",
         "usage_scope_id": "turn_123",
         "usage_total_input_tokens": 128,
         "usage_total_output_tokens": 32,
@@ -461,7 +468,7 @@ def test_summary_metadata_flattens_usage_summary() -> None:
     }
 
 
-def test_estimated_usage_is_metadata_only_in_langfuse_payload() -> None:
+def test_estimated_usage_is_exported_to_langfuse_payload() -> None:
     adapter = LangfuseObservability()
     client = _FakeClient()
     adapter._client = client
@@ -482,8 +489,16 @@ def test_estimated_usage_is_metadata_only_in_langfuse_payload() -> None:
             usage_source="tiktoken",
         )
 
-    assert client.start_calls[-1]["usage_details"] is None
-    assert client.start_calls[-1]["cost_details"] is None
+    assert client.start_calls[-1]["usage_details"] == {
+        "input": 50.0,
+        "output": 10.0,
+        "total": 60.0,
+    }
+    assert client.start_calls[-1]["cost_details"] == {
+        "input": 0.001,
+        "output": 0.002,
+        "total": 0.003,
+    }
     assert client.start_calls[-1]["metadata"]["usage_source"] == "tiktoken"
     assert client.start_calls[-1]["metadata"]["estimated_usage_details"] == {
         "input": 50.0,
@@ -496,8 +511,16 @@ def test_estimated_usage_is_metadata_only_in_langfuse_payload() -> None:
         "total": 0.003,
     }
 
-    assert client.observation.updates[-1]["usage_details"] is None
-    assert client.observation.updates[-1]["cost_details"] is None
+    assert client.observation.updates[-1]["usage_details"] == {
+        "input": 50.0,
+        "output": 10.0,
+        "total": 60.0,
+    }
+    assert client.observation.updates[-1]["cost_details"] == {
+        "input": 0.001,
+        "output": 0.002,
+        "total": 0.003,
+    }
     assert client.observation.updates[-1]["metadata"]["usage_source"] == "tiktoken"
     assert client.observation.updates[-1]["metadata"]["estimated_usage_details"] == {
         "input": 50.0,
@@ -559,3 +582,69 @@ def test_get_client_disables_langfuse_when_auth_check_fails(
     adapter = LangfuseObservability()
 
     assert adapter._get_client() is None
+
+
+def test_normalize_langfuse_host_strips_public_api_suffixes() -> None:
+    assert _normalize_langfuse_host("http://localhost:3001/api/public") == "http://localhost:3001"
+    assert (
+        _normalize_langfuse_host("https://langfuse.example.com/base/api/public/ingestion")
+        == "https://langfuse.example.com/base"
+    )
+
+
+def test_get_client_normalizes_langfuse_host_before_sdk_init(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = ModuleType("langfuse")
+    captured: dict[str, object] = {}
+
+    class _CapturingLangfuse:
+        def __init__(
+            self,
+            *,
+            public_key=None,
+            secret_key=None,
+            host=None,
+            base_url=None,
+            timeout=None,
+            httpx_client=None,
+            debug=None,
+            tracing_enabled=None,
+            flush_at=None,
+            flush_interval=None,
+            environment=None,
+        ) -> None:
+            captured.update(
+                {
+                    "public_key": public_key,
+                    "secret_key": secret_key,
+                    "host": host,
+                    "base_url": base_url,
+                    "timeout": timeout,
+                    "httpx_client": httpx_client,
+                    "debug": debug,
+                    "tracing_enabled": tracing_enabled,
+                    "flush_at": flush_at,
+                    "flush_interval": flush_interval,
+                    "environment": environment,
+                }
+            )
+
+        def start_as_current_observation(self, **_kwargs):
+            raise AssertionError("observation should not start in client init test")
+
+        def auth_check(self) -> bool:
+            return True
+
+    module.Langfuse = _CapturingLangfuse
+    monkeypatch.setitem(__import__("sys").modules, "langfuse", module)
+    monkeypatch.setenv("LANGFUSE_ENABLED", "1")
+    monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-test")
+    monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-test")
+    monkeypatch.setenv("LANGFUSE_BASE_URL", "http://localhost:3001/api/public")
+
+    adapter = LangfuseObservability()
+
+    assert adapter._get_client() is not None
+    assert captured["host"] == "http://localhost:3001"
+    assert captured["base_url"] == "http://localhost:3001"

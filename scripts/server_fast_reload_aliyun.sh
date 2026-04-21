@@ -65,7 +65,7 @@ curl -fsS "http://127.0.0.1:${backend_port}/" >/dev/null
 curl -fsS "http://127.0.0.1:${frontend_port}/" >/dev/null
 
 cat <<EOF
-DeepTutor 已完成快速发布。
+DeepTutor 已完成远端快速重载，等待公网验收。
 适用范围: Python 后端 / Prompt / YAML / 路由等无需重新安装依赖的改动。
 前端: http://${PUBLIC_HOST}:${frontend_port}
 后端: http://${PUBLIC_HOST}:${backend_port}

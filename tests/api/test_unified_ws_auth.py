@@ -203,7 +203,8 @@ def test_ws_start_turn_normalizes_legacy_interaction_fields_into_interaction_hin
     assert interaction_hints["product_surface"] == "prelaunch_audit"
     assert interaction_hints["entry_role"] == "tutorbot"
     assert interaction_hints["subject_domain"] == "construction_exam"
-    assert interaction_hints["teaching_mode"] == "smart"
+    assert interaction_hints["requested_response_mode"] == "smart"
+    assert "teaching_mode" not in interaction_hints
     assert config["billing_context"]["user_id"] == "student_demo"
     assert message["type"] == "done"
 

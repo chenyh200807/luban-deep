@@ -10,6 +10,7 @@ import asyncio
 from typing import Dict, List, Optional
 
 # Import RAGService as the single entry point
+from deeptutor.services.rag.exceptions import RAGError, wrap_rag_error
 from deeptutor.services.rag.service import RAGService
 from deeptutor.services.rag.factory import DEFAULT_PROVIDER as DEFAULT_RAG_PROVIDER
 
@@ -51,8 +52,16 @@ async def rag_search(
             event_sink=event_sink,
             **kwargs,
         )
+    except RAGError:
+        raise
     except Exception as e:
-        raise Exception(f"RAG search failed: {e}")
+        raise wrap_rag_error(
+            e,
+            provider=(provider or DEFAULT_RAG_PROVIDER),
+            kb_name=kb_name,
+            query=query,
+            stage="tool.rag_search",
+        ) from e
 
 
 async def initialize_rag(

@@ -17,6 +17,7 @@ from .factory import (
     list_pipelines,
     normalize_provider_name,
 )
+from .exceptions import RAGError, wrap_rag_error
 
 
 class _RAGRawLogHandler(logging.Handler):
@@ -128,7 +129,27 @@ class RAGService:
                 {"provider": provider, "trace_layer": "summary"},
             )
 
-            result = await pipeline.search(query=query, kb_name=kb_name, **kwargs)
+            try:
+                result = await pipeline.search(query=query, kb_name=kb_name, **kwargs)
+            except RAGError:
+                raise
+            except Exception as exc:
+                raise wrap_rag_error(
+                    exc,
+                    provider=provider,
+                    kb_name=kb_name,
+                    query=query,
+                    stage="service.search",
+                ) from exc
+
+            if not isinstance(result, dict):
+                raise wrap_rag_error(
+                    RuntimeError("Pipeline returned non-dict result"),
+                    provider=provider,
+                    kb_name=kb_name,
+                    query=query,
+                    stage="service.search",
+                )
 
             if "query" not in result:
                 result["query"] = query

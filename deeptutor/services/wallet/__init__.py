@@ -6,6 +6,7 @@ from .identity import (
 )
 from .service import (
     SupabaseWalletService,
+    WalletCaptureResult,
     WalletLedgerEntry,
     WalletSnapshot,
     get_wallet_service,
@@ -13,6 +14,7 @@ from .service import (
 
 __all__ = [
     "SupabaseWalletService",
+    "WalletCaptureResult",
     "WalletIdentityResolution",
     "WalletIdentitySupabaseStore",
     "WalletLedgerEntry",

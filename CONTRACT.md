@@ -128,7 +128,8 @@ DeepTutor 必须优先保证：
 - `bot_runtime_defaults` 只表示 `bot_id -> 默认工具 / 默认知识库` 的绑定契约，不得伪装成完整 TutorBot 执行层。
 - `rag` 是唯一知识召回工具。
 - 知识库如 `construction-exam` 只能作为工具绑定或数据源，不得再包装成平行“模式身份”。
-- `teaching_mode` 只表示表达风格或交互节奏，不得承担身份、知识链、工具路由语义。
+- `requested_response_mode` 是响应风格的唯一公开权威字段。
+- `teaching_mode` 只允许作为历史兼容 alias 存在，并且必须在入口层立即归一化到 `requested_response_mode`；它不得继续参与运行时决策、持久化、trace 或公开 contract。
 - `product_surface` / `source` / `entry_role` 只表示入口表面信息，不得演变为第二套业务身份。
 - 历史兼容字段允许短期存在，但必须在统一入口层完成归一化，不能继续深入运行时。
 

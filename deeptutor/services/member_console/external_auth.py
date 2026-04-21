@@ -15,19 +15,29 @@ from threading import Lock
 from typing import Any
 
 import bcrypt
+from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 logger = logging.getLogger(__name__)
 
 _PASSWORD_MAX_LENGTH = 128
 _CN_MOBILE_RE = re.compile(r"^1[3-9]\d{9}$")
 _STORE_LOCK = Lock()
+_PRIMARY_USERS_FILE = Path("/app/data/user/external_auth/users.json")
+_LEGACY_USERS_FILE = Path("/root/luban/.storage/users.json")
+_PRIMARY_SESSIONS_FILE = Path("/app/data/user/external_auth/sessions.json")
+_LEGACY_SESSIONS_FILE = Path("/root/luban/.storage/sessions.json")
+
+
+def _allow_legacy_external_auth_default() -> bool:
+    if not is_production_environment():
+        return True
+    return env_flag("DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT", default=False)
 
 
 def _default_users_file() -> Path | None:
-    candidates = [
-        Path("/app/data/user/external_auth/users.json"),
-        Path("/root/luban/.storage/users.json"),
-    ]
+    candidates = [_PRIMARY_USERS_FILE]
+    if _allow_legacy_external_auth_default():
+        candidates.append(_LEGACY_USERS_FILE)
     for path in candidates:
         if path.exists():
             return path
@@ -35,10 +45,9 @@ def _default_users_file() -> Path | None:
 
 
 def _default_sessions_file() -> Path | None:
-    candidates = [
-        Path("/app/data/user/external_auth/sessions.json"),
-        Path("/root/luban/.storage/sessions.json"),
-    ]
+    candidates = [_PRIMARY_SESSIONS_FILE]
+    if _allow_legacy_external_auth_default():
+        candidates.append(_LEGACY_SESSIONS_FILE)
     for path in candidates:
         if path.exists():
             return path
@@ -59,7 +68,7 @@ def _ensure_parent(path: Path) -> None:
 def _resolve_users_file_for_write() -> Path:
     path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", _default_users_file())
     if path is None:
-        path = Path("/app/data/user/external_auth/users.json")
+        path = _PRIMARY_USERS_FILE
     _ensure_parent(path)
     return path
 

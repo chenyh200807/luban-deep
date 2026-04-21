@@ -84,6 +84,16 @@ def _setup_wrapper_repo(tmp_path: Path, wrapper_name: str) -> Path:
     shutil.copy2(SOURCE_SCRIPTS / wrapper_name, scripts_dir / wrapper_name)
     _make_executable(scripts_dir / wrapper_name)
     _write_stub(
+        scripts_dir / "verify_aliyun_public_endpoints.sh",
+        textwrap.dedent(
+            """\
+            #!/usr/bin/env bash
+            printf 'verify-public:%s\n' "$*" >> "${CALLS_LOG}"
+            exit 0
+            """
+        ),
+    )
+    _write_stub(
         scripts_dir / "sync_to_aliyun.sh",
         textwrap.dedent(
             """\
@@ -160,6 +170,7 @@ def test_deploy_runs_remote_backup_before_bootstrap(tmp_path: Path) -> None:
     assert log_lines[0] == "sync:once"
     assert "python3 scripts/backup_data.py --project-root '/root/deeptutor' --keep '2'" in log_lines[1]
     assert "bash scripts/server_bootstrap_aliyun.sh" in log_lines[2]
+    assert log_lines[3] == "verify-public:"
 
 
 def test_fast_redeploy_runs_remote_backup_before_reload(tmp_path: Path) -> None:
@@ -173,3 +184,4 @@ def test_fast_redeploy_runs_remote_backup_before_reload(tmp_path: Path) -> None:
     assert log_lines[0] == "sync:once"
     assert "python3 scripts/backup_data.py --project-root '/root/deeptutor' --keep '2'" in log_lines[1]
     assert "bash scripts/server_fast_reload_aliyun.sh" in log_lines[2]
+    assert log_lines[3] == "verify-public:"

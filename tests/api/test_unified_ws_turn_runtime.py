@@ -9,7 +9,11 @@ import pytest
 
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.core.stream import StreamEvent, StreamEventType
-from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
+from deeptutor.services.session.sqlite_store import (
+    SQLiteSessionStore,
+    build_active_object_from_session,
+    build_user_owner_key,
+)
 from deeptutor.services.session.turn_runtime import (
     TurnRuntimeManager,
     _LiveSubscriber,
@@ -1487,6 +1491,52 @@ async def test_turn_runtime_recovers_active_question_context_from_previous_resul
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_backfills_result_execution_metadata_for_deep_question(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    session = await store.create_session(session_id="session-meta")
+    turn = await store.create_turn(session["id"], capability="deep_question")
+    execution = _TurnExecution(
+        turn_id=turn["id"],
+        session_id=session["id"],
+        capability="chat",
+        payload={
+            "capability": None,
+            "config": {
+                "chat_mode": "fast",
+                "interaction_hints": {
+                    "requested_response_mode": "smart",
+                    "selected_mode": "fast",
+                },
+            },
+        },
+    )
+    monkeypatch.setattr(
+        TurnRuntimeManager,
+        "_mirror_event_to_workspace",
+        staticmethod(lambda *_args, **_kwargs: None),
+    )
+
+    payload = await runtime._persist_and_publish(
+        execution,
+        StreamEvent(
+            type=StreamEventType.RESULT,
+            source="deep_question",
+            metadata={
+                "response": "graded response",
+                "mode": "grading",
+            },
+        ),
+    )
+
+    assert payload["metadata"]["selected_mode"] == "fast"
+    assert payload["metadata"]["execution_path"] == "deep_question_grading"
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_recovers_active_question_context_from_result_presentation_only(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -1987,6 +2037,137 @@ async def test_turn_runtime_suspends_active_question_for_unrelated_general_query
     assert stored_active_object is not None
     assert stored_active_object["object_type"] == "open_chat_topic"
     assert stored_suspended_stack[0]["object_type"] == "question_set"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_suspends_active_question_before_smart_mode_selection(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured_updates: list[dict[str, object]] = []
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, session_store, *_args, **_kwargs) -> None:
+            self.store = session_store
+
+        async def build(self, **kwargs):
+            messages = await self.store.get_messages_for_context(kwargs["session_id"])
+            return SimpleNamespace(
+                conversation_history=[
+                    {"role": item["role"], "content": item["content"]}
+                    for item in messages
+                ],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["chat_mode"] = context.config_overrides.get("chat_mode")
+            captured["metadata"] = dict(context.metadata)
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="tutorbot",
+                metadata={
+                    "response": "先回答这个新问题。",
+                    "selected_mode": "fast",
+                    "execution_path": "tutorbot_fast_policy",
+                    "exact_fast_path_hit": False,
+                    "actual_tool_rounds": 0,
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
+
+    def _capture_update(_observation, **kwargs):
+        captured_updates.append(kwargs)
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.get_current_usage_summary",
+        lambda: {},
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.update_observation",
+        _capture_update,
+    )
+
+    session = await store.create_session(
+        session_id="session_suspend_question_mode",
+        title="流水施工",
+    )
+    await store.set_active_question_context(
+        session["id"],
+        {
+            "question_id": "quiz_suspend_runtime_mode",
+            "question": "第1题...\n第2题...",
+            "question_type": "choice",
+            "items": [
+                {
+                    "question_id": "q_1",
+                    "question": "题1",
+                    "question_type": "single_choice",
+                    "correct_answer": "A",
+                    "user_answer": "B",
+                },
+                {
+                    "question_id": "q_2",
+                    "question": "题2",
+                    "question_type": "single_choice",
+                    "correct_answer": "C",
+                    "user_answer": "C",
+                },
+            ],
+            "reveal_answers": False,
+            "reveal_explanations": False,
+        },
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "先暂停一下。顺便问个别的：横道图和网络图哪个更适合考试答题时分析关键线路？",
+            "session_id": session["id"],
+            "capability": "tutorbot",
+            "tools": [],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "chat_mode": "smart",
+                "interaction_hints": {
+                    "profile": "tutorbot",
+                    "requested_response_mode": "smart",
+                },
+            },
+        }
+    )
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert captured["chat_mode"] == "fast"
+    assert "question_followup_context" not in captured["metadata"]
+    assert captured["metadata"]["context_route"] == "general_learning_query"
+    assert captured["metadata"]["active_object"]["object_type"] == "open_chat_topic"
+    metadata = captured_updates[-1]["metadata"]
+    assert metadata["chat_mode"] == "fast"
+    assert metadata["requested_response_mode"] == "smart"
+    assert metadata["effective_response_mode"] == "fast"
+    assert metadata["selected_mode"] == "fast"
 
 
 @pytest.mark.asyncio
@@ -3083,7 +3264,7 @@ async def test_turn_runtime_marks_explicit_chat_mode_in_metadata(
 
 
 @pytest.mark.asyncio
-async def test_turn_runtime_normalizes_hint_teaching_mode_to_explicit_chat_mode(
+async def test_turn_runtime_uses_canonical_requested_response_mode_to_set_explicit_chat_mode(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -3142,7 +3323,7 @@ async def test_turn_runtime_normalizes_hint_teaching_mode_to_explicit_chat_mode(
                 "interaction_hints": {
                     "profile": "tutorbot",
                     "entry_role": "tutorbot",
-                    "teaching_mode": "fast",
+                    "requested_response_mode": "fast",
                 }
             },
         }
@@ -3328,6 +3509,107 @@ async def test_turn_runtime_trace_requested_response_mode_records_selected_mode_
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_open_chat_active_object_does_not_force_deep_mode_for_smart_request(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured_updates: list[dict[str, object]] = []
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["chat_mode"] = context.config_overrides.get("chat_mode")
+            captured["active_object"] = context.metadata.get("active_object")
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="tutorbot",
+                metadata={
+                    "response": "简短回答",
+                    "selected_mode": "fast",
+                    "execution_path": "tutorbot_fast_policy",
+                    "exact_fast_path_hit": False,
+                    "actual_tool_rounds": 0,
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
+
+    def _capture_update(_observation, **kwargs):
+        captured_updates.append(kwargs)
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.get_current_usage_summary",
+        lambda: {},
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.update_observation",
+        _capture_update,
+    )
+
+    session = await store.create_session(session_id="session_open_chat_mode", title="新对话")
+    active_object = build_active_object_from_session(session)
+    assert active_object is not None
+    await store.set_active_object(session["id"], active_object)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "什么是流水节拍，简单说一下",
+            "session_id": session["id"],
+            "capability": "tutorbot",
+            "tools": [],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "chat_mode": "smart",
+                "interaction_hints": {
+                    "profile": "tutorbot",
+                    "requested_response_mode": "smart",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert captured["chat_mode"] == "fast"
+    assert captured["active_object"]["object_type"] == "open_chat_topic"
+    metadata = captured_updates[-1]["metadata"]
+    assert metadata["chat_mode"] == "fast"
+    assert metadata["requested_response_mode"] == "smart"
+    assert metadata["effective_response_mode"] == "fast"
+    assert metadata["selected_mode"] == "fast"
+    assert metadata["execution_path"] == "tutorbot_fast_policy"
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_separates_requested_smart_from_selected_fast_in_trace(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -3441,7 +3723,7 @@ def test_bind_authenticated_user_promotes_legacy_response_mode_hints() -> None:
 
     assert hints["profile"] == "tutorbot"
     assert hints["requested_response_mode"] == "smart"
-    assert hints["teaching_mode"] == "fast"
+    assert "teaching_mode" not in hints
     assert "requested_response_mode" not in config
     assert "teaching_mode" not in config
 
@@ -3480,17 +3762,34 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
             yield StreamEvent(type=StreamEventType.DONE, source="chat")
 
     class FakeMemberService:
-        def capture_points(self, user_id: str, amount: int = 20, reason: str = "capture"):
-            captured["user_id"] = user_id
-            captured["amount"] = amount
-            captured["reason"] = reason
-            return {"captured": amount}
-
         def record_chat_learning(self, user_id: str, *, query: str, assistant_content: str):
             captured["learning_user_id"] = user_id
             captured["learning_query"] = query
             captured["learning_content"] = assistant_content
             return {"today_done": 1}
+
+    class FakeWalletService:
+        is_configured = True
+
+        def capture_points(
+            self,
+            *,
+            user_id: str,
+            amount_points: int,
+            idempotency_key: str,
+            reference_id: str,
+            reason: str = "capture",
+            reference_type: str = "ai_usage",
+            metadata: dict[str, object] | None = None,
+        ):
+            captured["wallet_user_id"] = user_id
+            captured["amount_points"] = amount_points
+            captured["idempotency_key"] = idempotency_key
+            captured["reference_id"] = reference_id
+            captured["reason"] = reason
+            captured["reference_type"] = reference_type
+            captured["capture_metadata"] = dict(metadata or {})
+            return {"captured": amount_points}
 
     monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
@@ -3506,8 +3805,12 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
         "deeptutor.services.member_console.get_member_console_service",
         lambda: FakeMemberService(),
     )
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: FakeWalletService(),
+    )
 
-    _, turn = await runtime.start_turn(
+    session, turn = await runtime.start_turn(
         {
             "type": "start_turn",
             "content": "考我一道题",
@@ -3521,6 +3824,8 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
                 "billing_context": {
                     "source": "wx_miniprogram",
                     "user_id": "student_demo",
+                    "wallet_user_id": "wallet_demo",
+                    "learning_user_id": "learner_demo",
                 }
             },
         }
@@ -3532,12 +3837,118 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
 
     assert [event["type"] for event in events] == ["session", "content", "done"]
     assert captured == {
-        "user_id": "student_demo",
-        "amount": 20,
+        "wallet_user_id": "wallet_demo",
+        "amount_points": 20,
+        "idempotency_key": f"mini_program_capture:{turn['id']}",
+        "reference_id": turn["id"],
         "reason": "capture",
-        "learning_user_id": "student_demo",
+        "reference_type": "ai_usage",
+        "capture_metadata": {
+            "source": "wx_miniprogram",
+            "turn_id": turn["id"],
+            "session_id": session["id"],
+        },
+        "learning_user_id": "learner_demo",
         "learning_query": "考我一道题",
         "learning_content": "这是一次会扣分的回复。",
+    }
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_skips_mini_program_capture_without_wallet_authority(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="这是一次不会扣分的回复。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    class FakeMemberService:
+        def record_chat_learning(self, user_id: str, *, query: str, assistant_content: str):
+            captured["learning_user_id"] = user_id
+            captured["learning_query"] = query
+            captured["learning_content"] = assistant_content
+            return {"today_done": 1}
+
+    class FakeWalletService:
+        is_configured = True
+
+        def capture_points(self, **_kwargs):
+            captured["wallet_capture_called"] = True
+            return {"captured": 20}
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.member_console.get_member_console_service",
+        lambda: FakeMemberService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: FakeWalletService(),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "继续解释这道题",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "wx_miniprogram",
+                    "user_id": "student_demo",
+                    "learning_user_id": "learner_demo",
+                }
+            },
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert captured == {
+        "learning_user_id": "learner_demo",
+        "learning_query": "继续解释这道题",
+        "learning_content": "这是一次不会扣分的回复。",
     }
 
 

@@ -125,6 +125,8 @@ def _bind_authenticated_user(
     payload: dict[str, Any],
     current_user: AuthContext | None,
 ) -> dict[str, Any]:
+    from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
+
     config = dict(payload.get("config", {}) or {})
     interaction_hints = config.get("interaction_hints")
     if not isinstance(interaction_hints, dict):
@@ -142,6 +144,15 @@ def _bind_authenticated_user(
         }
     elif isinstance(config.get("interaction_hints"), dict):
         config["interaction_hints"] = interaction_hints
+
+    normalized_hints = config.get("interaction_hints")
+    if isinstance(normalized_hints, dict):
+        requested_response_mode = normalize_requested_response_mode(
+            normalized_hints.get("requested_response_mode") or normalized_hints.get("teaching_mode")
+        )
+        if requested_response_mode:
+            normalized_hints["requested_response_mode"] = requested_response_mode
+        normalized_hints.pop("teaching_mode", None)
 
     if current_user is None:
         return {**payload, "config": config}

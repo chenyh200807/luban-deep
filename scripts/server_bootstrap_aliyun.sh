@@ -46,7 +46,7 @@ docker compose "${compose_args[@]}" ps
 
 cat <<EOF
 
-DeepTutor 已提交启动。
+DeepTutor 远端容器已启动，等待公网验收。
 前端: http://${PUBLIC_HOST}:3782
 后端: http://${PUBLIC_HOST}:8001
 API 文档: http://${PUBLIC_HOST}:8001/docs

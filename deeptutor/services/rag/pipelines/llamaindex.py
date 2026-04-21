@@ -21,6 +21,7 @@ from llama_index.core.bridge.pydantic import PrivateAttr
 
 from deeptutor.logging import get_logger
 from deeptutor.services.embedding import get_embedding_client, get_embedding_config
+from deeptutor.services.rag.exceptions import RAGSearchError
 from deeptutor.services.rag.components.routing import FileTypeRouter
 
 # Default knowledge base directory
@@ -378,12 +379,13 @@ class LlamaIndexPipeline:
             import traceback
 
             self.logger.error(traceback.format_exc())
-            return {
-                "query": query,
-                "answer": f"Search failed: {str(e)}",
-                "content": "",
-                "provider": "llamaindex",
-            }
+            raise RAGSearchError(
+                f"llamaindex retrieval failed: {e}",
+                provider="llamaindex",
+                kb_name=kb_name,
+                query=query,
+                stage="pipeline.search",
+            ) from e
 
     async def add_documents(self, kb_name: str, file_paths: List[str], **kwargs) -> bool:
         """

@@ -19,6 +19,7 @@ from deeptutor.logging import get_logger
 from deeptutor.services.config import get_kb_config_service
 from deeptutor.services.embedding import get_embedding_client
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.rag.exceptions import wrap_rag_error
 from .supabase_strategy import (
     build_exact_question_keyword_terms,
     build_exact_question_text_candidates,
@@ -146,6 +147,21 @@ def _safe_json_dumps(value: Any) -> str:
         return json.dumps(value, ensure_ascii=False)
     except Exception:
         return str(value)
+
+
+def _rag_warning_payload(
+    *,
+    phase: str,
+    group_name: str,
+    query: str,
+    exc: Exception,
+) -> dict[str, str]:
+    return {
+        "phase": str(phase or "").strip() or "primary",
+        "group_name": str(group_name or "").strip(),
+        "query": str(query or "").strip(),
+        "message": str(exc).strip() or exc.__class__.__name__,
+    }
 
 
 _CASE_SUPPORT_TOKEN_RE = re.compile(r"[A-Za-z0-9.%/_-]+|[\u4e00-\u9fff]{2,12}")
@@ -536,6 +552,7 @@ class SupabasePipeline:
                 else [rewritten.primary_query or query]
             ) or [rewritten.primary_query or query]
             exact_text_plans: list[dict[str, Any]] = []
+            retrieval_warnings: list[dict[str, str]] = []
 
             try:
                 client = await self._get_client(config.timeout_s)
@@ -557,6 +574,7 @@ class SupabasePipeline:
                             original_query=query,
                             option_validation_required=exact_probe.option_validation_required,
                             config=config,
+                            warning_sink=retrieval_warnings,
                         )
                     )
                 primary_plan_task = asyncio.create_task(
@@ -570,6 +588,7 @@ class SupabasePipeline:
                         exact_probe=exact_probe,
                         original_query=query,
                         config=config,
+                        failure_sink=retrieval_warnings,
                     )
                 )
                 primary_plan = await primary_plan_task
@@ -589,20 +608,21 @@ class SupabasePipeline:
                                 }
                             )
             except Exception as exc:
+                rag_error = wrap_rag_error(
+                    exc,
+                    provider="supabase",
+                    kb_name=kb_name,
+                    query=query,
+                    stage="pipeline.search",
+                )
                 observability.update_observation(
                     observation,
                     metadata={"kb_name": kb_name, "sources": config.sources},
                     level="ERROR",
-                    status_message=str(exc),
+                    status_message=str(rag_error),
                 )
-                self.logger.error(f"Supabase retrieval failed: {exc}")
-                return {
-                    "query": query,
-                    "answer": f"Search failed: {exc}",
-                    "content": "",
-                    "sources": [],
-                    "provider": "supabase",
-                }
+                self.logger.error(f"Supabase retrieval failed: {rag_error}")
+                raise rag_error from exc
 
         fused = self._fuse_plan_results(
             [*exact_text_plans, *primary_plan],
@@ -661,6 +681,7 @@ class SupabasePipeline:
                         config=config,
                         query_weight=0.72,
                         phase="second_pass",
+                        failure_sink=retrieval_warnings,
                     )
                     fused = self._fuse_plan_results(
                         [*exact_text_plans, *primary_plan, *second_pass_plan],
@@ -669,6 +690,14 @@ class SupabasePipeline:
                         config=config,
                     )
                 except Exception as exc:
+                    retrieval_warnings.append(
+                        _rag_warning_payload(
+                            phase="second_pass",
+                            group_name="query_plan",
+                            query=" | ".join(second_pass_queries),
+                            exc=exc,
+                        )
+                    )
                     self.logger.warning(f"Supabase second-pass retrieval failed: {exc}")
 
         all_plans = [*exact_text_plans, *primary_plan, *second_pass_plan]
@@ -728,6 +757,9 @@ class SupabasePipeline:
             "kb_name": kb_name,
             "evidence_bundle": evidence_bundle,
         }
+        if retrieval_warnings:
+            payload["warnings"] = list(retrieval_warnings)
+            payload["evidence_bundle"]["warnings"] = list(retrieval_warnings)
         if exact_question:
             payload["exact_question"] = exact_question
         observability.update_observation(
@@ -787,6 +819,7 @@ class SupabasePipeline:
         config: SupabaseSearchConfig,
         query_weight: float = 1.0,
         phase: str = "primary",
+        failure_sink: list[dict[str, str]] | None = None,
     ) -> list[dict[str, Any]]:
         plans: list[dict[str, Any]] = []
         selected_sources = [
@@ -865,6 +898,15 @@ class SupabasePipeline:
             raw_results = await asyncio.gather(*tasks, return_exceptions=True)
             for group_name, result in zip(task_groups, raw_results):
                 if isinstance(result, Exception):
+                    if failure_sink is not None:
+                        failure_sink.append(
+                            _rag_warning_payload(
+                                phase=phase,
+                                group_name=group_name,
+                                query=current_query,
+                                exc=result,
+                            )
+                        )
                     self.logger.warning(
                         f"Supabase group '{group_name}' failed for query '{current_query}': {result}"
                     )
@@ -1194,6 +1236,7 @@ class SupabasePipeline:
         original_query: str,
         option_validation_required: bool,
         config: SupabaseSearchConfig,
+        warning_sink: list[dict[str, str]] | None = None,
     ) -> list[dict[str, Any]]:
         clean = str(probe_query or "").strip()
         if not clean:
@@ -1202,6 +1245,7 @@ class SupabasePipeline:
             client=client,
             probe_query=clean,
             config=config,
+            warning_sink=warning_sink,
         )
         for row in direct_rows:
             if not matches_allowed_question_type(row.get("question_type"), allowed_question_types):
@@ -1262,6 +1306,7 @@ class SupabasePipeline:
         original_query: str,
         option_validation_required: bool,
         config: SupabaseSearchConfig,
+        warning_sink: list[dict[str, str]] | None = None,
     ) -> list[dict[str, Any]]:
         batches: list[dict[str, Any]] = []
         seen_queries: set[str] = set()
@@ -1277,6 +1322,7 @@ class SupabasePipeline:
                 original_query=original_query,
                 option_validation_required=option_validation_required,
                 config=config,
+                warning_sink=warning_sink,
             )
             batches.append({"query": clean, "results": rows})
         return batches
@@ -1287,6 +1333,7 @@ class SupabasePipeline:
         client: httpx.AsyncClient,
         probe_query: str,
         config: SupabaseSearchConfig,
+        warning_sink: list[dict[str, str]] | None = None,
     ) -> list[dict[str, Any]]:
         candidates = build_exact_question_text_candidates(probe_query, max_candidates=6)
         merged_rows: list[dict[str, Any]] = []
@@ -1313,8 +1360,20 @@ class SupabasePipeline:
             question_rows, stem_rows = await asyncio.gather(
                 question_stem_task, stem_task, return_exceptions=True
             )
-            for batch in (question_rows, stem_rows):
+            for group_name, batch in (
+                ("question_stem", question_rows),
+                ("stem", stem_rows),
+            ):
                 if isinstance(batch, Exception):
+                    if warning_sink is not None:
+                        warning_sink.append(
+                            _rag_warning_payload(
+                                phase="primary",
+                                group_name=f"question_exact_text.{group_name}",
+                                query=escaped,
+                                exc=batch,
+                            )
+                        )
                     continue
                 for row in batch:
                     row_id = str(row.get("id") or "").strip()

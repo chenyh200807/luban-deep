@@ -208,6 +208,86 @@ async def test_deep_question_routes_batch_submission_to_grading_agent(
     assert result_event.metadata["question_followup_context"]["items"][2]["is_correct"] is False
 
 
+@pytest.mark.asyncio
+async def test_deep_question_fast_mode_uses_deterministic_grading_feedback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FailingSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("fast deterministic grading should not instantiate SubmissionGraderAgent")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FailingSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="第1题选B，第2题选C。你帮我批改，并且针对我错的地方解释一下。",
+        language="zh",
+        metadata={
+            "selected_mode": "fast",
+            "turn_semantic_decision": {
+                "next_action": "route_to_grading",
+            },
+            "question_followup_action": {
+                "intent": "answer_questions",
+                "answers": [
+                    {"question_id": "q_1", "answer": "B"},
+                    {"question_id": "q_2", "answer": "C"},
+                ],
+            },
+            "question_followup_context": {
+                "question_id": "quiz_batch",
+                "question": "第1题...\n第2题...",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_1",
+                        "question": "题1",
+                        "question_type": "choice",
+                        "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+                        "correct_answer": "B",
+                        "explanation": "第1题考查流水步距定义。",
+                    },
+                    {
+                        "question_id": "q_2",
+                        "question": "题2",
+                        "question_type": "choice",
+                        "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+                        "correct_answer": "B",
+                        "explanation": "第2题关键在于先抓住同一施工段的起算点。",
+                    },
+                ],
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["is_correct"] is False
+    assert "得分" in result_event.metadata["response"]
+    assert "第2题：错误" in result_event.metadata["response"]
+    assert "第2题关键在于先抓住同一施工段的起算点。" in result_event.metadata["response"]
+
+
 def test_build_submission_context_marks_oversight_for_negative_stem() -> None:
     capability = DeepQuestionCapability()
 

@@ -169,6 +169,16 @@ def _active_object_plan_id(active_object: dict[str, Any] | None) -> str:
     return ""
 
 
+def _active_object_requires_deep_mode(active_object: dict[str, Any] | None) -> bool:
+    normalized = normalize_active_object(active_object)
+    if not isinstance(normalized, dict):
+        return False
+    if extract_question_context_from_active_object(normalized) is not None:
+        return True
+    object_type = str(normalized.get("object_type") or "").strip()
+    return object_type not in {"", "open_chat_topic"}
+
+
 def _same_active_object_identity(
     left: dict[str, Any] | None,
     right: dict[str, Any] | None,
@@ -544,6 +554,105 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _result_selected_mode(
+    metadata: dict[str, Any] | None,
+    execution: "_TurnExecution",
+) -> str:
+    normalized_metadata = dict(metadata or {})
+    nested_metadata = (
+        normalized_metadata.get("metadata")
+        if isinstance(normalized_metadata.get("metadata"), dict)
+        else {}
+    )
+
+    for candidate in (
+        normalized_metadata.get("selected_mode"),
+        normalized_metadata.get("effective_response_mode"),
+        nested_metadata.get("selected_mode"),
+        nested_metadata.get("effective_response_mode"),
+    ):
+        normalized = normalize_requested_response_mode(candidate)
+        if normalized in {"fast", "deep"}:
+            return normalized
+
+    payload = execution.payload if isinstance(execution.payload, dict) else {}
+    config = payload.get("config") if isinstance(payload.get("config"), dict) else {}
+    hints = (
+        config.get("interaction_hints")
+        if isinstance(config.get("interaction_hints"), dict)
+        else {}
+    )
+    for candidate in (
+        config.get("chat_mode"),
+        hints.get("selected_mode"),
+        hints.get("effective_response_mode"),
+        hints.get("requested_response_mode"),
+    ):
+        normalized = normalize_requested_response_mode(candidate)
+        if normalized in {"fast", "deep"}:
+            return normalized
+    return ""
+
+
+def _result_execution_path(
+    metadata: dict[str, Any] | None,
+    execution: "_TurnExecution",
+    *,
+    event_source: str = "",
+    selected_mode: str,
+) -> str:
+    normalized_metadata = dict(metadata or {})
+    nested_metadata = (
+        normalized_metadata.get("metadata")
+        if isinstance(normalized_metadata.get("metadata"), dict)
+        else {}
+    )
+
+    explicit = str(
+        normalized_metadata.get("execution_path")
+        or nested_metadata.get("execution_path")
+        or ""
+    ).strip()
+    if explicit:
+        return explicit
+
+    capability = str(
+        event_source
+        or execution.capability
+        or (
+            execution.payload.get("capability")
+            if isinstance(execution.payload, dict)
+            else ""
+        )
+        or ""
+    ).strip().lower()
+    mode = str(
+        normalized_metadata.get("mode")
+        or nested_metadata.get("mode")
+        or ""
+    ).strip().lower()
+
+    if capability == "tutorbot":
+        if selected_mode == "fast":
+            return "tutorbot_fast_policy"
+        if selected_mode == "deep":
+            return "tutorbot_deep_policy"
+        return "tutorbot_runtime"
+
+    if capability == "deep_question":
+        normalized_mode = {
+            "custom": "generation",
+            "question": "generation",
+            "grading": "grading",
+            "followup": "followup",
+        }.get(mode, mode or "capability")
+        return f"deep_question_{normalized_mode}"
+
+    if capability:
+        return f"{capability}_capability"
+    return ""
+
+
 def _extract_followup_question_context(
     config: dict[str, Any] | None,
 ) -> dict[str, Any] | None:
@@ -582,9 +691,8 @@ def _extract_interaction_hints(
     if preferred_question_type not in {"choice", "written", "coding"}:
         preferred_question_type = ""
     requested_response_mode = normalize_requested_response_mode(
-        raw.get("requested_response_mode") or raw.get("teaching_mode")
+        raw.get("requested_response_mode")
     )
-    teaching_mode = str(raw.get("teaching_mode", "") or "").strip().lower() or requested_response_mode
     raw_effective_response_mode = raw.get("effective_response_mode") or raw.get("selected_mode")
     effective_response_mode = (
         normalize_requested_response_mode(raw_effective_response_mode)
@@ -604,7 +712,6 @@ def _extract_interaction_hints(
         "entry_role": str(raw.get("entry_role", "") or "").strip().lower(),
         "subject_domain": str(raw.get("subject_domain", "") or "").strip().lower(),
         "requested_response_mode": requested_response_mode,
-        "teaching_mode": teaching_mode,
         "effective_response_mode": effective_response_mode,
         "selected_mode": selected_mode,
         "response_mode_selection_reason": str(
@@ -635,7 +742,6 @@ def _extract_interaction_hints(
             hints["entry_role"],
             hints["subject_domain"],
             hints["requested_response_mode"],
-            hints["teaching_mode"],
             hints["preferred_question_type"],
             hints["priorities"],
             hints.get("effective_response_mode"),
@@ -667,8 +773,8 @@ def _should_select_tutorbot_mode(
     if interaction_profile == "tutorbot":
         return True
     hints = interaction_hints if isinstance(interaction_hints, dict) else {}
-    return str(hints.get("profile") or "").strip().lower() == "tutorbot" or any(
-        key in hints for key in ("requested_response_mode", "teaching_mode")
+    return str(hints.get("profile") or "").strip().lower() == "tutorbot" or (
+        "requested_response_mode" in hints
     )
 
 
@@ -683,17 +789,30 @@ def _extract_persist_user_message(config: dict[str, Any] | None) -> bool:
     return bool(raw)
 
 
-def _extract_billing_context(config: dict[str, Any] | None) -> dict[str, str] | None:
-    if not isinstance(config, dict):
-        return None
-    raw = config.pop("billing_context", None)
+def _normalize_billing_context(raw: dict[str, Any] | None) -> dict[str, str] | None:
     if not isinstance(raw, dict):
         return None
     source = str(raw.get("source", "") or "").strip().lower()
     user_id = str(raw.get("user_id", "") or "").strip()
     if not source or not user_id:
         return None
-    return {"source": source, "user_id": user_id}
+    normalized = {
+        "source": source,
+        "user_id": user_id,
+    }
+    wallet_user_id = str(raw.get("wallet_user_id", "") or "").strip()
+    learning_user_id = str(raw.get("learning_user_id", "") or "").strip()
+    if wallet_user_id:
+        normalized["wallet_user_id"] = wallet_user_id
+    if learning_user_id:
+        normalized["learning_user_id"] = learning_user_id
+    return normalized
+
+
+def _extract_billing_context(config: dict[str, Any] | None) -> dict[str, str] | None:
+    if not isinstance(config, dict):
+        return None
+    return _normalize_billing_context(config.pop("billing_context", None))
 
 
 def _normalize_name_list(values: list[str] | None) -> list[str]:
@@ -1098,11 +1217,7 @@ class TurnRuntimeManager:
         if session is None:
             return None
         preferences = session.get("preferences") or {}
-        source = str(preferences.get("source", "") or "").strip().lower()
-        user_id = str(preferences.get("user_id", "") or "").strip()
-        if not source or not user_id:
-            return None
-        return {"source": source, "user_id": user_id}
+        return _normalize_billing_context(preferences if isinstance(preferences, dict) else None)
 
     async def _resolve_interaction_hints(
         self,
@@ -1208,26 +1323,36 @@ class TurnRuntimeManager:
         self,
         billing_context: dict[str, str] | None,
         assistant_content: str,
+        *,
+        session_id: str = "",
+        turn_id: str = "",
     ) -> None:
         if not billing_context:
             return
         if billing_context.get("source") != "wx_miniprogram":
             return
-        user_id = str(
-            billing_context.get("wallet_user_id")
-            or billing_context.get("user_id", "")
-            or ""
-        ).strip()
+        user_id = str(billing_context.get("wallet_user_id") or "").strip()
         if not user_id or not str(assistant_content or "").strip():
             return
         try:
-            from deeptutor.services.member_console import get_member_console_service
+            from deeptutor.services.wallet import get_wallet_service
 
-            member_service = get_member_console_service()
-            member_service.capture_points(
+            wallet_service = get_wallet_service()
+            wallet_service.capture_points(
                 user_id=user_id,
-                amount=_MINI_PROGRAM_CAPTURE_COST,
+                amount_points=_MINI_PROGRAM_CAPTURE_COST,
+                idempotency_key=(
+                    f"mini_program_capture:{turn_id}"
+                    if str(turn_id or "").strip()
+                    else f"mini_program_capture:{session_id}"
+                ),
+                reference_id=str(turn_id or session_id or "").strip(),
                 reason="capture",
+                metadata={
+                    "source": "wx_miniprogram",
+                    "turn_id": str(turn_id or "").strip(),
+                    "session_id": str(session_id or "").strip(),
+                },
             )
         except Exception:
             logger.warning("Failed to capture points for user %s", user_id, exc_info=True)
@@ -1950,6 +2075,14 @@ class TurnRuntimeManager:
             explicit_action=runtime_followup_action,
             candidate_contexts=candidate_followup_contexts,
         )
+        mode_selection_active_object = stored_active_object
+        if (
+            mode_selection_active_object is not None
+            and extract_question_context_from_active_object(mode_selection_active_object) is not None
+            and runtime_followup_question_context is None
+            and followup_action_route(runtime_followup_action) is None
+        ):
+            mode_selection_active_object = None
         if runtime_followup_question_context is not None:
             runtime_only_config["followup_question_context"] = dict(
                 runtime_followup_question_context
@@ -1985,7 +2118,10 @@ class TurnRuntimeManager:
                 requested_response_mode,
                 user_message=raw_user_content,
                 interaction_hints=runtime_interaction_hints,
-                has_active_object=bool(runtime_followup_question_context or stored_active_object),
+                has_active_object=bool(
+                    runtime_followup_question_context
+                    or _active_object_requires_deep_mode(mode_selection_active_object)
+                ),
             )
             validated_public_config = {
                 **validated_public_config,
@@ -1994,7 +2130,6 @@ class TurnRuntimeManager:
             runtime_interaction_hints = {
                 **dict(runtime_interaction_hints or {}),
                 "requested_response_mode": requested_response_mode,
-                "teaching_mode": selected_chat_mode,
                 "effective_response_mode": selected_chat_mode,
                 "selected_mode": selected_chat_mode,
                 "response_mode_selection_reason": selection_reason,
@@ -2973,7 +3108,12 @@ class TurnRuntimeManager:
                     events=assistant_events,
                     default=None,
                 )
-                self._capture_mobile_points(billing_context, assistant_content)
+                self._capture_mobile_points(
+                    billing_context,
+                    assistant_content,
+                    session_id=session_id,
+                    turn_id=turn_id,
+                )
                 self._record_mobile_learning(
                     billing_context,
                     raw_user_content,
@@ -3137,6 +3277,17 @@ class TurnRuntimeManager:
                     nested_metadata["capability_cost_summary"] = existing_cost_summary
                     nested_metadata["cost_summary"] = usage_summary
                 metadata["metadata"] = nested_metadata
+            selected_mode = _result_selected_mode(metadata, execution)
+            if selected_mode and not str(metadata.get("selected_mode") or "").strip():
+                metadata["selected_mode"] = selected_mode
+            execution_path = _result_execution_path(
+                metadata,
+            execution,
+                event_source=str(event.source or "").strip(),
+                selected_mode=str(metadata.get("selected_mode") or selected_mode).strip(),
+            )
+            if execution_path and not str(metadata.get("execution_path") or "").strip():
+                metadata["execution_path"] = execution_path
             active_object = _result_active_object(metadata)
             suspended_object_stack = _result_suspended_object_stack(metadata)
             if active_object is not None:
