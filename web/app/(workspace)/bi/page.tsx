@@ -8,6 +8,7 @@ import Modal from "@/components/common/Modal";
 import {
   getBiLearnerDetail,
   loadBiWorkbench,
+  type BiBossActionItem,
   type BiLearnerDetailData,
   type BiTutorBotData,
 } from "@/lib/bi-api";
@@ -41,7 +42,7 @@ export default function BiPage() {
   const [activeTab, setActiveTab] = useState<BiPrimaryTab>("overview");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<BiFilterState>({ capability: "", entrypoint: "", tier: "" });
-  const [data, setData] = useState<Awaited<ReturnType<typeof loadBiWorkbench>>["data"] | null>(null);
+  const [workbench, setWorkbench] = useState<Awaited<ReturnType<typeof loadBiWorkbench>> | null>(null);
   const [issues, setIssues] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -61,7 +62,7 @@ export default function BiPage() {
         entrypoint: filters.entrypoint || undefined,
         tier: filters.tier || undefined,
       });
-      setData(result.data);
+      setWorkbench(result);
       setIssues(result.issues);
       setLastUpdatedAt(new Date().toISOString());
     } catch (error) {
@@ -114,6 +115,8 @@ export default function BiPage() {
     };
   }, [days, selectedLearner]);
 
+  const data = workbench?.data ?? null;
+  const boss = workbench?.boss ?? { kpis: [], actionQueue: [], heroIssue: "" };
   const overview = data?.overview;
   const trend = data?.trend ?? { points: [] };
   const retention = data?.retention ?? { cohorts: [], labels: ["D0", "D1", "D7", "D30"] };
@@ -132,7 +135,7 @@ export default function BiPage() {
     filters.tier ? `tier: ${filters.tier}` : "",
   ].filter(Boolean);
   const activeTabMeta = BI_PRIMARY_TABS.find((tab) => tab.key === activeTab) ?? BI_PRIMARY_TABS[0];
-  const heroIssue = issues[0] ?? null;
+  const heroIssue = boss.heroIssue || issues[0] || null;
 
   const openLearnerDetail = useCallback((sample: { user_id: string; display_name: string }) => {
     setSelectedLearner(sample);
@@ -155,6 +158,23 @@ export default function BiPage() {
     setFilters({ capability: "", entrypoint: "", tier: "" });
   }, []);
 
+  const navigateFromBossQueue = useCallback(
+    (source?: BiBossActionItem["source"]) => {
+      if (source === "anomalies") {
+        setActiveTab("quality");
+        return;
+      }
+      if (source === "members") {
+        setActiveTab("member-ops");
+        return;
+      }
+      if (source === "cost") {
+        setActiveTab("overview");
+      }
+    },
+    [setActiveTab],
+  );
+
   const exportJson = useCallback(() => {
     setExporting(true);
     try {
@@ -165,6 +185,7 @@ export default function BiPage() {
         last_updated_at: lastUpdatedAt,
         issues,
         data,
+        boss,
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
       const url = URL.createObjectURL(blob);
@@ -178,7 +199,7 @@ export default function BiPage() {
     }
   }, [days, data, issues, filters, lastUpdatedAt]);
 
-  const canExport = Boolean(data || issues.length);
+  const canExport = Boolean(workbench || issues.length);
 
   return (
     <div className="h-full overflow-y-auto [scrollbar-gutter:stable] bg-[radial-gradient(circle_at_top_left,_rgba(195,90,44,0.14),_transparent_34%),radial-gradient(circle_at_85%_10%,_rgba(18,122,134,0.09),_transparent_28%),linear-gradient(180deg,#faf9f6_0%,#f4efe8_100%)] px-6 py-6">
@@ -215,16 +236,12 @@ export default function BiPage() {
           <BiOverviewTab
             loading={loading}
             days={days}
+            boss={boss}
             overview={overview}
             trend={trend}
             retention={retention}
-            anomalies={anomalies}
-            capabilities={capabilities}
-            tools={tools}
-            knowledge={knowledge}
             members={members}
-            cost={cost}
-            tutorbots={tutorbots}
+            onNavigateFromBossQueue={navigateFromBossQueue}
             onOpenLearnerDetail={openLearnerDetail}
           />
         ) : activeTab === "quality" ? (
