@@ -1,0 +1,266 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - link "鲁班智考 鲁班智考" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "鲁班智考" [ref=e6]
+          - generic [ref=e7]: 鲁班智考
+        - button "Collapse sidebar" [ref=e8] [cursor=pointer]:
+          - img [ref=e9]
+      - navigation [ref=e12]:
+        - generic [ref=e13]:
+          - button "New Chat" [ref=e14] [cursor=pointer]:
+            - img [ref=e15]
+            - generic [ref=e16]: New Chat
+          - link "Chat" [ref=e18] [cursor=pointer]:
+            - /url: /
+            - img [ref=e19]
+            - generic [ref=e21]: Chat
+          - link "BI" [ref=e23] [cursor=pointer]:
+            - /url: /bi
+            - img [ref=e24]
+            - generic [ref=e26]: BI
+    - main [ref=e29]:
+      - generic [ref=e31]:
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e35]:
+              - img [ref=e36]
+              - text: BI WORKBENCH
+            - heading "DeepTutor BI 工作台" [level=1] [ref=e38]
+            - paragraph [ref=e39]: 加载后端 BI 接口后即可查看经营、学习、能力、知识库与会员的统一视图。
+            - generic [ref=e40]:
+              - link "总览" [ref=e41] [cursor=pointer]:
+                - /url: "#overview"
+              - link "趋势" [ref=e42] [cursor=pointer]:
+                - /url: "#trend"
+              - link "TutorBot" [ref=e43] [cursor=pointer]:
+                - /url: "#tutorbot"
+              - link "能力与工具" [ref=e44] [cursor=pointer]:
+                - /url: "#capability"
+              - link "知识库" [ref=e45] [cursor=pointer]:
+                - /url: "#knowledge"
+              - link "会员" [ref=e46] [cursor=pointer]:
+                - /url: "#member"
+          - generic [ref=e47]:
+            - generic [ref=e48]:
+              - button "7 天" [ref=e49] [cursor=pointer]:
+                - img [ref=e50]
+                - text: 7 天
+              - button "30 天" [ref=e52] [cursor=pointer]:
+                - img [ref=e53]
+                - text: 30 天
+              - button "90 天" [ref=e55] [cursor=pointer]:
+                - img [ref=e56]
+                - text: 90 天
+            - button "导出 JSON" [ref=e58] [cursor=pointer]:
+              - img [ref=e59]
+              - text: 导出 JSON
+            - button "刷新数据" [ref=e62] [cursor=pointer]:
+              - img [ref=e63]
+              - text: 刷新数据
+            - generic [ref=e68]:
+              - paragraph [ref=e69]: 最近同步：04/20 23:35
+              - paragraph [ref=e70]: 时间范围：30 天
+              - paragraph [ref=e71]: 当前筛选：全部
+              - paragraph [ref=e72]: "当前接口：`/api/v1/bi/*`"
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - heading "筛选器" [level=2] [ref=e75]
+            - generic [ref=e76]: 当前未启用额外筛选
+          - generic [ref=e77]:
+            - generic [ref=e78]:
+              - text: Capability
+              - combobox "Capability" [ref=e79]:
+                - option "全部 capability" [selected]
+                - option "chat"
+                - option "deep_solve"
+                - option "deep_question"
+                - option "deep_research"
+            - generic [ref=e80]:
+              - text: Entrypoint
+              - combobox "Entrypoint" [ref=e81]:
+                - option "全部 entrypoint" [selected]
+                - option "wx_miniprogram"
+                - option "chat"
+                - option "app"
+                - option "web"
+                - option "local"
+                - option "tutorbot"
+            - generic [ref=e82]:
+              - text: Tier
+              - combobox "Tier" [ref=e83]:
+                - option "全部 tier" [selected]
+                - option "trial"
+                - option "vip"
+                - option "svip"
+            - button "重置筛选" [disabled] [ref=e85]:
+              - img [ref=e86]
+              - text: 重置筛选
+          - paragraph [ref=e91]: 筛选会透传到 BI 聚合接口；会员、能力、趋势全量生效，TutorBot 当前按入口和层级筛选。
+        - generic [ref=e92]:
+          - generic [ref=e93]:
+            - generic [ref=e94]:
+              - generic [ref=e95]:
+                - heading "趋势与波动" [level=2] [ref=e96]
+                - generic [ref=e97]: 等待趋势数据
+              - generic [ref=e98]:
+                - generic [ref=e99]:
+                  - generic [ref=e100]:
+                    - generic [ref=e101]:
+                      - paragraph [ref=e102]: 30 天趋势
+                      - paragraph [ref=e103]: 活跃、成本与成功结果同屏对比。
+                    - generic [ref=e104]:
+                      - generic [ref=e105]: 活跃
+                      - generic [ref=e107]: 成本
+                      - generic [ref=e109]: 成功
+                  - generic [ref=e112]: 等待趋势数据。
+                - paragraph [ref=e114]: 后端尚未返回洞察文本，趋势会在接口就绪后自动显示。
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - heading "留存矩阵" [level=2] [ref=e117]
+                - generic [ref=e118]: D0 / D1 / D7 / D30
+              - generic [ref=e119]:
+                - generic [ref=e120]:
+                  - generic [ref=e121]: 队列
+                  - generic [ref=e122]: D0
+                  - generic [ref=e123]: D1
+                  - generic [ref=e124]: D7
+                  - generic [ref=e125]: D30
+                - generic [ref=e127]: 等待留存接口返回 cohort 数据。
+            - generic [ref=e128]:
+              - generic [ref=e129]:
+                - heading "异常中心" [level=2] [ref=e130]
+                - generic [ref=e131]: 无明显异常
+              - paragraph [ref=e133]: 后端没有返回告警，当前仅展示数据总览。
+          - complementary [ref=e134]:
+            - generic [ref=e135]:
+              - generic [ref=e136]:
+                - heading "经营总览" [level=2] [ref=e137]
+                - generic [ref=e138]: 经营 / 学习 / 成本
+              - paragraph [ref=e140]: 等待 BI 总览卡片。
+            - generic [ref=e141]:
+              - heading "经营入口分布" [level=2] [ref=e144]
+              - paragraph [ref=e146]: 等待入口分布数据。
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - heading "成本结构" [level=2] [ref=e150]
+                - img [ref=e152]
+              - paragraph [ref=e156]: 等待成本与模型结构数据。
+        - generic [ref=e157]:
+          - generic [ref=e158]:
+            - generic [ref=e159]:
+              - generic [ref=e160]:
+                - heading "TutorBot 指标" [level=2] [ref=e161]
+                - generic [ref=e162]: 等待指标
+              - paragraph [ref=e164]: 后端返回 TutorBot 指标后，这里会展示运行、成功率、调用量等关键数据。
+            - generic [ref=e165]:
+              - generic [ref=e166]:
+                - heading "TutorBot 排行" [level=2] [ref=e168]
+                - img [ref=e170]
+              - paragraph [ref=e174]: 等待 TutorBot 排行数据。
+            - generic [ref=e175]:
+              - generic [ref=e176]:
+                - heading "最近活跃" [level=2] [ref=e177]
+                - generic [ref=e178]: 等待活跃样本
+              - paragraph [ref=e180]: 后端返回 TutorBot 最近活跃后，这里会展示运行状态、入口与最新活动时间。
+          - generic [ref=e181]:
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - heading "运行状态" [level=2] [ref=e185]
+                - img [ref=e187]
+              - paragraph [ref=e190]: 等待 TutorBot 运行状态。
+            - generic [ref=e191]:
+              - generic [ref=e192]:
+                - heading "最近消息预览" [level=2] [ref=e193]
+                - generic [ref=e194]: 等待消息预览
+              - paragraph [ref=e196]: 后端返回最近消息预览后，这里会展示近期对话摘要。
+        - generic [ref=e197]:
+          - generic [ref=e198]:
+            - generic [ref=e199]:
+              - heading "能力表现" [level=2] [ref=e201]
+              - img [ref=e203]
+            - paragraph [ref=e216]: 等待 capability 数据。
+          - generic [ref=e217]:
+            - generic [ref=e218]:
+              - heading "工具效果" [level=2] [ref=e220]
+              - img [ref=e222]
+            - paragraph [ref=e226]: 等待 tool 数据。
+        - generic [ref=e227]:
+          - generic [ref=e228]:
+            - generic [ref=e229]:
+              - heading "知识库表现" [level=2] [ref=e231]
+              - img [ref=e233]
+            - paragraph [ref=e236]: 等待知识库分析数据。
+          - generic [ref=e237]:
+            - generic [ref=e238]:
+              - generic [ref=e239]:
+                - heading "知识库策略" [level=2] [ref=e240]
+                - generic [ref=e241]: 面向内容资产与召回质量
+              - generic [ref=e242]:
+                - generic [ref=e243]:
+                  - generic [ref=e244]: 命中率
+                  - generic [ref=e245]: 等待后端指标
+                - generic [ref=e246]:
+                  - generic [ref=e247]: 文档资产
+                  - generic [ref=e248]: 建议后续把教材、题库、规范、TutorBot 素材统一纳入资产榜单。
+                - generic [ref=e249]:
+                  - generic [ref=e250]: 学习闭环
+                  - generic [ref=e251]: 优先看 notebook 保存率与知识库查询后的后续行为变化。
+            - generic [ref=e252]:
+              - generic [ref=e253]:
+                - heading "会员与用户画像" [level=2] [ref=e254]
+                - generic [ref=e255]: 1 个样本
+              - paragraph [ref=e257]: 会员侧数据将显示活跃、到期、风险和续费相关卡片。
+              - generic [ref=e258]:
+                - generic [ref=e259]:
+                  - heading "会员分层" [level=2] [ref=e262]
+                  - paragraph [ref=e264]: 等待会员层级数据。
+                - generic [ref=e265]:
+                  - heading "风险分层" [level=2] [ref=e268]
+                  - paragraph [ref=e270]: 等待风险分层数据。
+              - button "示例学员 A learner-001 · 04/20 16:00 vip low 会员样本入口 点击查看 Learner 360" [ref=e272] [cursor=pointer]:
+                - generic [ref=e273]:
+                  - generic [ref=e274]:
+                    - paragraph [ref=e275]: 示例学员 A
+                    - paragraph [ref=e276]: learner-001 · 04/20 16:00
+                  - generic [ref=e277]:
+                    - generic [ref=e278]: vip
+                    - generic [ref=e279]: low
+                - paragraph [ref=e280]: 会员样本入口
+                - generic [ref=e281]:
+                  - img [ref=e282]
+                  - text: 点击查看 Learner 360
+        - generic [ref=e285]:
+          - generic [ref=e286]:
+            - generic [ref=e287]:
+              - heading "成本与模型" [level=2] [ref=e289]
+              - img [ref=e291]
+            - paragraph [ref=e295]: 等待成本模型明细。
+          - generic [ref=e296]:
+            - generic [ref=e297]:
+              - heading "成本来源" [level=2] [ref=e299]
+              - img [ref=e301]
+            - paragraph [ref=e306]: 等待成本来源拆分。
+          - generic [ref=e307]:
+            - generic [ref=e308]:
+              - heading "总览提示" [level=2] [ref=e310]
+              - img [ref=e312]
+            - paragraph [ref=e317]: 后端暂无提示。
+  - generic [ref=e322] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e323]:
+      - img [ref=e324]
+    - generic [ref=e327]:
+      - button "Open issues overlay" [ref=e328]:
+        - generic [ref=e329]:
+          - generic [ref=e330]: "0"
+          - generic [ref=e331]: "1"
+        - generic [ref=e332]: Issue
+      - button "Collapse issues badge" [ref=e333]:
+        - img [ref=e334]
+  - alert [ref=e336]
+```

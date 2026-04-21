@@ -4,18 +4,56 @@ Page({
     url:''
   },
 
+  isAllowedHost(hostname = '') {
+    const host = String(hostname || '').trim().toLowerCase();
+    if (!host) return false;
+    return (
+      host === 'www.yousenjiaoyu.com' ||
+      host === 'test2.yousenjiaoyu.com' ||
+      host === 'user.yousenjiaoyu.com' ||
+      host.endsWith('.yousenjiaoyu.com') ||
+      host === 'work.weixin.qq.com' ||
+      host === 'channels.weixin.qq.com'
+    );
+  },
+
+  sanitizeAbsoluteUrl(rawUrl) {
+    const source = String(rawUrl || '').trim();
+    if (!source) return '';
+    const match = source.match(/^(https?):\/\/([^\/?#]+)([^\s]*)$/i);
+    if (!match) {
+      return '';
+    }
+    const protocol = match[1].toLowerCase();
+    const hostname = match[2].toLowerCase();
+    const suffix = match[3] || '';
+    if (!['http', 'https'].includes(protocol)) {
+      return '';
+    }
+    if (!this.isAllowedHost(hostname)) {
+      return '';
+    }
+    return `${protocol}://${hostname}${suffix}`;
+  },
+
   normalizeTargetUrl(options = {}) {
     if (options.url) {
+      let decodedUrl = '';
       try {
-        return decodeURIComponent(options.url);
+        decodedUrl = decodeURIComponent(options.url);
       } catch (_) {
-        return options.url;
+        decodedUrl = options.url;
+      }
+      const sanitizedUrl = this.sanitizeAbsoluteUrl(decodedUrl);
+      if (sanitizedUrl) {
+        return sanitizedUrl;
       }
     }
 
     if (options.urlname) {
-      if (options.urlname.indexOf('.yousenjiaoyu.com') !== -1) {
-        return options.urlname;
+      const sanitizedUrlName = this.sanitizeAbsoluteUrl(options.urlname);
+      if (sanitizedUrlName) {
+        return sanitizedUrlName;
       }
 
       const baseUrl = options.online === 'true'

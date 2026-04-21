@@ -1,8 +1,41 @@
 // package/freeCourseDetails/freeCourseDetails.js
-var request = require('../../utils/request')
+var hostApiMap = require('../../api/baseApi')
+var hostConfig = require('../../utils/config')
 var utilMd5 = require('../../utils/md5.js');
 
 let polyvModule = null;
+
+function postHostRequest(urlName, data = {}, isLoading = false) {
+  return new Promise(function (resolve, reject) {
+    let shouldHideLoading = false;
+    if (isLoading) {
+      shouldHideLoading = true;
+      wx.showLoading({
+        title: "加载中",
+        mask: false
+      });
+    }
+    wx.request({
+      url: hostConfig.baseUrl3 + hostApiMap[urlName],
+      data: data,
+      header: {
+        "content-type": "application/json"
+      },
+      method: "POST",
+      success: function (res) {
+        resolve(res.data);
+      },
+      fail: function (err) {
+        reject(err);
+      },
+      complete: function () {
+        if (shouldHideLoading) {
+          wx.hideLoading();
+        }
+      }
+    });
+  });
+}
 
 function getPolyvModule() {
   if (!polyvModule) {
@@ -51,7 +84,7 @@ Page({
     }
   },
   isPostHttp: function(urlName, data, isLoading) {
-    return request.postrq(urlName, data, isLoading)
+    return postHostRequest(urlName, data, isLoading)
   },
     clearBeishuTimer: function() {
       if (this.beishuTimer) {

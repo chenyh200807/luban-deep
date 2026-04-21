@@ -130,7 +130,7 @@ def test_runtime_topology_declares_ws_as_single_stream_entry() -> None:
     assert body["primary_runtime"]["transport"] == "/api/v1/ws"
     assert {"router": "mobile", "mode": "http_bootstrap_adapter"} in body["compatibility_routes"]
     assert {"router": "tutorbot", "mode": "management_http_only"} in body["compatibility_routes"]
-    assert body["deprecated_routes"] == []
+    assert {"router": "chat", "mode": "legacy_chat_transport_unmounted"} in body["deprecated_routes"]
     assert all(
         route["mode"] != "streaming_adapter" for route in body["compatibility_routes"]
     )

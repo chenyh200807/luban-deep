@@ -1,17 +1,48 @@
 var auth = require("./auth");
 var route = require("./route");
 
-var runtimeState = {
+var fallbackRuntimeState = {
   goHomeFlag: false,
   pendingConversationId: "",
   pendingChatQuery: "",
   pendingChatMode: "AUTO",
-  workspaceBackUrl: "",
-  workspaceBackLabel: "",
-  authRedirecting: false,
+  _authRedirecting: false,
   networkAvailable: true,
-  networkMonitorReady: false,
 };
+var workspaceBackState = {
+  url: "",
+  label: "",
+};
+var networkMonitorReady = false;
+
+function getAppSafe() {
+  try {
+    return typeof getApp === "function" ? getApp() : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function getGlobalData() {
+  var app = getAppSafe();
+  if (!app || !app.globalData || typeof app.globalData !== "object") {
+    return null;
+  }
+  return app.globalData;
+}
+
+function getRuntimeStore() {
+  return getGlobalData() || fallbackRuntimeState;
+}
+
+function resetSessionState() {
+  var store = getRuntimeStore();
+  store.goHomeFlag = false;
+  store.pendingConversationId = "";
+  store.pendingChatQuery = "";
+  store.pendingChatMode = "AUTO";
+  store._authRedirecting = false;
+}
 
 function _normalizeRoute(url) {
   var clean = String(url || "")
@@ -38,22 +69,23 @@ function _reLaunch(url) {
   wx.reLaunch({
     url: url,
     complete: function () {
-      runtimeState.authRedirecting = false;
+      getRuntimeStore()._authRedirecting = false;
     },
   });
 }
 
 function _setAuthRedirecting(flag) {
-  runtimeState.authRedirecting = !!flag;
+  getRuntimeStore()._authRedirecting = !!flag;
 }
 
 function _isAuthRedirecting() {
-  return !!runtimeState.authRedirecting;
+  return !!getRuntimeStore()._authRedirecting;
 }
 
 function redirectToLogin() {
-  if (runtimeState.authRedirecting) return false;
-  runtimeState.authRedirecting = true;
+  var store = getRuntimeStore();
+  if (store._authRedirecting) return false;
+  store._authRedirecting = true;
   _reLaunch(route.login());
   return true;
 }
@@ -72,12 +104,7 @@ function checkAuth(callback) {
 
 function logout() {
   auth.clearToken();
-  runtimeState.goHomeFlag = false;
-  runtimeState.pendingConversationId = "";
-  runtimeState.pendingChatQuery = "";
-  runtimeState.pendingChatMode = "AUTO";
-  runtimeState.workspaceBackUrl = "";
-  runtimeState.workspaceBackLabel = "";
+  resetSessionState();
   redirectToLogin();
 }
 
@@ -90,65 +117,69 @@ function navigateTo(url) {
 }
 
 function markGoHome() {
-  runtimeState.goHomeFlag = true;
+  getRuntimeStore().goHomeFlag = true;
 }
 
 function consumeGoHomeFlag() {
-  var flag = runtimeState.goHomeFlag;
-  runtimeState.goHomeFlag = false;
+  var store = getRuntimeStore();
+  var flag = !!store.goHomeFlag;
+  store.goHomeFlag = false;
   return flag;
 }
 
 function setPendingConversationId(id) {
-  runtimeState.pendingConversationId = id || "";
+  getRuntimeStore().pendingConversationId = id || "";
 }
 
 function consumePendingConversationId() {
-  var id = runtimeState.pendingConversationId || "";
-  runtimeState.pendingConversationId = "";
+  var store = getRuntimeStore();
+  var id = store.pendingConversationId || "";
+  store.pendingConversationId = "";
   return id;
 }
 
 function setPendingChatIntent(query, mode) {
-  runtimeState.pendingChatQuery = query || "";
-  runtimeState.pendingChatMode = mode || "AUTO";
+  var store = getRuntimeStore();
+  store.pendingChatQuery = query || "";
+  store.pendingChatMode = mode || "AUTO";
 }
 
 function consumePendingChatIntent() {
-  var query = runtimeState.pendingChatQuery || "";
-  var mode = runtimeState.pendingChatMode || "AUTO";
-  runtimeState.pendingChatQuery = "";
-  runtimeState.pendingChatMode = "AUTO";
+  var store = getRuntimeStore();
+  var query = store.pendingChatQuery || "";
+  var mode = store.pendingChatMode || "AUTO";
+  store.pendingChatQuery = "";
+  store.pendingChatMode = "AUTO";
   return { query: query, mode: mode };
 }
 
 function setWorkspaceBack(url, label) {
-  runtimeState.workspaceBackUrl = String(url || "").trim();
-  runtimeState.workspaceBackLabel = String(label || "").trim();
+  workspaceBackState.url = String(url || "").trim();
+  workspaceBackState.label = String(label || "").trim();
 }
 
 function clearWorkspaceBack() {
-  runtimeState.workspaceBackUrl = "";
-  runtimeState.workspaceBackLabel = "";
+  workspaceBackState.url = "";
+  workspaceBackState.label = "";
 }
 
 function clearWorkspaceBackIfMatches(url) {
   var current = _normalizeRoute(url);
-  var target = _normalizeRoute(runtimeState.workspaceBackUrl);
+  var target = _normalizeRoute(workspaceBackState.url);
   if (!current || !target || current !== target) return false;
   clearWorkspaceBack();
   return true;
 }
 
 function getWorkspaceBack(currentUrl) {
-  var targetUrl = String(runtimeState.workspaceBackUrl || "").trim();
+  var targetUrl = String(workspaceBackState.url || "").trim();
   if (!targetUrl) return null;
   var current = _normalizeRoute(currentUrl || _getCurrentRoute());
   var target = _normalizeRoute(targetUrl);
   if (current && target && current === target) return null;
   return {
     url: targetUrl,
-    label: runtimeState.workspaceBackLabel || "返回",
+    label: workspaceBackState.label || "返回",
   };
 }
 
@@ -159,26 +190,26 @@ function consumeWorkspaceBack(currentUrl) {
 }
 
 function setNetworkAvailable(available) {
-  runtimeState.networkAvailable = !!available;
+  getRuntimeStore().networkAvailable = !!available;
 }
 
 function isNetworkAvailable() {
-  return runtimeState.networkAvailable !== false;
+  return getRuntimeStore().networkAvailable !== false;
 }
 
 function initNetworkMonitor() {
-  if (runtimeState.networkMonitorReady) return;
-  runtimeState.networkMonitorReady = true;
+  if (networkMonitorReady) return;
+  networkMonitorReady = true;
   try {
     wx.getNetworkType({
       success: function (res) {
-        runtimeState.networkAvailable = res.networkType !== "none";
+        getRuntimeStore().networkAvailable = res.networkType !== "none";
       },
     });
   } catch (_) {}
   if (typeof wx.onNetworkStatusChange === "function") {
     wx.onNetworkStatusChange(function (res) {
-      runtimeState.networkAvailable = !!(res && res.isConnected);
+      getRuntimeStore().networkAvailable = !!(res && res.isConnected);
     });
   }
 }

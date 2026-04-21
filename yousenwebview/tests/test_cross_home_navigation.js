@@ -38,8 +38,11 @@ function loadAppDefinition() {
     setTimeout: setTimeout,
     clearTimeout: clearTimeout,
     require: function (request) {
-      if (request === "./utils/request") {
-        return { getrq: function () { return Promise.resolve({}); } };
+      if (request === "./api/baseApi") {
+        return { GetSysInfo: "Action=GetSysInfo" };
+      }
+      if (request === "./utils/config") {
+        return { baseUrl: "https://xytk.kailly.com/Api/Xytk.ashx?" };
       }
       throw new Error("unexpected require: " + request);
     },
@@ -49,6 +52,11 @@ function loadAppDefinition() {
       },
       setStorageSync: function () {},
       removeStorageSync: function () {},
+      request: function (options) {
+        if (options && typeof options.success === "function") {
+          options.success({ data: { status: 1, data: {} } });
+        }
+      },
       reLaunch: function (options) {
         reLaunchCalls.push(options);
       },

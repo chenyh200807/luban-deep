@@ -66,6 +66,7 @@ _READINESS_CHECK_NAMES = (
     "llm_client_ready",
     "event_bus_ready",
     "tutorbots_ready",
+    "learner_state_runtime_ready",
 )
 
 
@@ -257,9 +258,11 @@ async def lifespan(app: FastAPI):
     try:
         await _start_learner_state_runtime(app)
         logger.info("LearnerState runtime started")
+        _set_readiness_check(app, "learner_state_runtime_ready", True)
     except Exception as e:
         logger.warning(f"Failed to start LearnerState runtime: {e}")
         startup_failures.append(f"learner_state_runtime: {e}")
+        _set_readiness_check(app, "learner_state_runtime_ready", False)
         if _startup_fail_fast_enabled():
             raise RuntimeError(
                 "Critical startup dependencies failed: " + "; ".join(startup_failures)
@@ -408,7 +411,6 @@ from deeptutor.api.routers import (
 # Include routers
 if _legacy_routers_enabled():
     app.include_router(solve.router, prefix="/api/v1", tags=["solve"])
-    app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
     app.include_router(question.router, prefix="/api/v1/question", tags=["question"])
     app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboard"])
     app.include_router(co_writer.router, prefix="/api/v1/co_writer", tags=["co_writer"])
