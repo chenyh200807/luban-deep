@@ -1,7 +1,7 @@
 /* eslint-disable i18n/no-literal-ui-text */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { UserRound } from "lucide-react";
 import Modal from "@/components/common/Modal";
@@ -11,7 +11,7 @@ import {
   type BiLearnerDetailData,
   type BiTutorBotData,
 } from "@/lib/bi-api";
-import { BiCommandDeckHero } from "./_components/BiCommandDeckHero";
+import { BiBossHeader } from "./_components/BiBossHeader";
 import { BiCommandDeckTabs } from "./_components/BiCommandDeckTabs";
 import { BiMemberOpsTab } from "./_components/BiMemberOpsTab";
 import { BiOverviewTab } from "./_components/BiOverviewTab";
@@ -39,13 +39,13 @@ export default function BiPage() {
   const searchParams = useSearchParams();
   const [days, setDays] = useState<7 | 30 | 90>(30);
   const [activeTab, setActiveTab] = useState<BiPrimaryTab>("overview");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<BiFilterState>({ capability: "", entrypoint: "", tier: "" });
   const [data, setData] = useState<Awaited<ReturnType<typeof loadBiWorkbench>>["data"] | null>(null);
   const [issues, setIssues] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
-  const [exporting, setExporting] = useState(false);
   const [selectedLearner, setSelectedLearner] = useState<{ user_id: string; display_name: string } | null>(null);
   const [learnerDetail, setLearnerDetail] = useState<BiLearnerDetailData | null>(null);
   const [learnerLoading, setLearnerLoading] = useState(false);
@@ -130,36 +130,8 @@ export default function BiPage() {
     filters.entrypoint ? `entrypoint: ${filters.entrypoint}` : "",
     filters.tier ? `tier: ${filters.tier}` : "",
   ].filter(Boolean);
-  const rangeLabel = days === 7 ? "7 天" : days === 90 ? "90 天" : "30 天";
   const activeTabMeta = BI_PRIMARY_TABS.find((tab) => tab.key === activeTab) ?? BI_PRIMARY_TABS[0];
-
-  const exportPayload = useMemo(
-    () => ({
-      exported_at: new Date().toISOString(),
-      days,
-      filters,
-      last_updated_at: lastUpdatedAt,
-      issues,
-      data,
-    }),
-    [data, days, filters, issues, lastUpdatedAt],
-  );
-
-  const handleExport = useCallback(() => {
-    setExporting(true);
-    try {
-      const fileName = `deeptutor-bi-${days}d-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-      const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = fileName;
-      anchor.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setExporting(false);
-    }
-  }, [days, exportPayload]);
+  const heroIssue = issues[0] ?? null;
 
   const openLearnerDetail = useCallback((sample: { user_id: string; display_name: string }) => {
     setSelectedLearner(sample);
@@ -185,31 +157,30 @@ export default function BiPage() {
   return (
     <div className="h-full overflow-y-auto [scrollbar-gutter:stable] bg-[radial-gradient(circle_at_top_left,_rgba(195,90,44,0.14),_transparent_34%),radial-gradient(circle_at_85%_10%,_rgba(18,122,134,0.09),_transparent_28%),linear-gradient(180deg,#faf9f6_0%,#f4efe8_100%)] px-6 py-6">
       <div className="mx-auto flex max-w-[1540px] flex-col gap-6">
-        <BiCommandDeckHero
-          title="DeepTutor BI Deck"
-          subtitle="经营、质量、会员、TutorBot 四条主线的一体化指挥舱"
+        <BiBossHeader
           days={days}
           onDaysChange={setDays}
-          onExport={handleExport}
-          exporting={exporting}
           onRefresh={() => void refresh()}
           refreshing={refreshing}
-          canExport={Boolean(data)}
           lastUpdatedLabel={lastUpdatedAt ? formatTime(lastUpdatedAt) : "尚未同步"}
-          rangeLabel={rangeLabel}
+          filtersOpen={filtersOpen}
+          onToggleFilters={() => setFiltersOpen((open) => !open)}
           activeFilters={activeFilters}
+          heroIssue={heroIssue}
         />
 
         <BiCommandDeckTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-        <BiFiltersPanel
-          filters={filters}
-          activeFilters={activeFilters}
-          onChange={updateFilter}
-          onReset={resetFilters}
-        />
+        {filtersOpen ? (
+          <BiFiltersPanel
+            filters={filters}
+            activeFilters={activeFilters}
+            onChange={updateFilter}
+            onReset={resetFilters}
+          />
+        ) : null}
 
-        <BiIssuesBanner issues={issues} />
+        {heroIssue ? null : <BiIssuesBanner issues={issues} />}
 
         {activeTab === "overview" ? (
           <BiOverviewTab
@@ -283,7 +254,7 @@ export default function BiPage() {
                     {learnerDetail?.display_name ?? selectedLearner?.display_name ?? "Learner 360"}
                   </h3>
                   <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                    {learnerDetail?.user_id ?? selectedLearner?.user_id ?? "--"} · {rangeLabel} 视图
+                    {learnerDetail?.user_id ?? selectedLearner?.user_id ?? "--"} · {days} 天视图
                   </p>
                 </div>
                 <div className="rounded-2xl bg-white/80 px-4 py-3 text-right">
