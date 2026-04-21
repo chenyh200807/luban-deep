@@ -36,6 +36,8 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
   const successRates = trend.points.map((point) => toRate(point.successful));
   const costSeries = trend.points.map((point) => point.cost);
   const activeSeries = trend.points.map((point) => point.active);
+  const activePath = sparkPath(activeSeries, 420, 160);
+  const costPath = sparkPath(costSeries, 420, 160);
   const successPath = sparkPath(successRates, 420, 160);
   const maxSuccessSwing = getAdjacentSwing(successRates);
   const maxCostSwing = getAdjacentSwing(costSeries);
@@ -56,13 +58,13 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
     },
     {
       label: "异常列表",
-      ready: anomalies.items.length > 0,
-      value: anomalies.items.length ? `${anomalies.items.length} 条` : "当前为空",
+      ready: true,
+      value: anomalies.items.length ? `${anomalies.items.length} 条` : "0 条",
     },
     {
       label: "总览 alerts",
-      ready: (overview?.alerts ?? []).length > 0,
-      value: (overview?.alerts ?? []).length ? `${overview?.alerts.length ?? 0} 条` : "当前为空",
+      ready: true,
+      value: (overview?.alerts ?? []).length ? `${overview?.alerts.length ?? 0} 条` : "0 条",
     },
     {
       label: "降级接口",
@@ -138,6 +140,8 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
             <div className="mt-4 overflow-hidden rounded-2xl bg-[linear-gradient(180deg,rgba(109,40,217,0.08),rgba(255,255,255,0.7))] p-3">
               {trend.points.length ? (
                 <svg viewBox="0 0 420 160" className="h-[240px] w-full">
+                  <path d={activePath} fill="none" stroke="#C35A2C" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
+                  <path d={costPath} fill="none" stroke="#0f766e" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
                   <path d={successPath} fill="none" stroke="#6d28d9" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
                   {trend.points.map((point, index) => {
                     const x = (index / Math.max(trend.points.length - 1, 1)) * 420;

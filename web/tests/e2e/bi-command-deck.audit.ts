@@ -1,6 +1,26 @@
 import { expect, test, type Page } from "@playwright/test";
 
-async function mockBiApis(page: Page) {
+type MockBiApisOptions = {
+  overviewAlerts?: Array<{ level: string; title: string; detail?: string }>;
+  anomalyItems?: Array<{ level: string; title: string; detail?: string }>;
+};
+
+async function mockBiApis(page: Page, options: MockBiApisOptions = {}) {
+  const overviewAlerts = options.overviewAlerts ?? [
+    {
+      level: "warning",
+      title: "成功率波动偏大",
+      detail: "过去 7 天有 2 个周期成功率低于 75%",
+    },
+  ];
+  const anomalyItems = options.anomalyItems ?? [
+    {
+      level: "critical",
+      title: "TutorBot 延迟尖峰",
+      detail: "04-16 19:00 后延迟高于基线 42%",
+    },
+  ];
+
   await page.route("**/api/v1/bi/**", async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname;
@@ -20,13 +40,7 @@ async function mockBiApis(page: Page) {
             entrypoints: [
               { label: "wx_miniprogram", value: 62, rate: 0.73 },
             ],
-            alerts: [
-              {
-                level: "warning",
-                title: "成功率波动偏大",
-                detail: "过去 7 天有 2 个周期成功率低于 75%",
-              },
-            ],
+            alerts: overviewAlerts,
           },
         }),
       });
@@ -57,13 +71,7 @@ async function mockBiApis(page: Page) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           data: {
-            items: [
-              {
-                level: "critical",
-                title: "TutorBot 延迟尖峰",
-                detail: "04-16 19:00 后延迟高于基线 42%",
-              },
-            ],
+            items: anomalyItems,
           },
         }),
       });
@@ -191,5 +199,66 @@ test.describe("BI Command Deck audit", () => {
     await expect(page.getByText("趋势波动")).toBeVisible();
     await expect(page.getByText("TutorBot 延迟尖峰")).toBeVisible();
     await expect(page.getByText("成功率波动偏大")).toBeVisible();
+  });
+
+  test("quality tab treats empty alert feeds as complete data instead of missing data", async ({ page }) => {
+    await mockBiApis(page, { overviewAlerts: [], anomalyItems: [] });
+
+    await visitBi(page);
+
+    await page.getByRole("link", { name: "Quality" }).click();
+
+    const completenessCard = page.locator("article").filter({
+      has: page.getByText("数据完整性"),
+    });
+
+    await expect(completenessCard).toContainText("4/4");
+    await expect(page.getByText("当前为空 · 待补齐")).toHaveCount(0);
+    await expect(page.getByText("当前没有可展示的异常或告警")).toBeVisible();
+  });
+
+  test("quality trend chart renders success, cost, and active series together", async ({ page }) => {
+    await mockBiApis(page);
+
+    await visitBi(page);
+
+    await page.getByRole("link", { name: "Quality" }).click();
+
+    const chart = page.locator("svg").filter({
+      has: page.locator('path[stroke="#6d28d9"]'),
+    }).first();
+
+    await expect(chart.locator('path[stroke="#6d28d9"]')).toHaveCount(1);
+    await expect(chart.locator('path[stroke="#0f766e"]')).toHaveCount(1);
+    await expect(chart.locator('path[stroke="#C35A2C"]')).toHaveCount(1);
+  });
+
+  test("member ops tab mounts the dedicated member workspace instead of the shell placeholder", async ({ page }) => {
+    await mockBiApis(page);
+
+    await visitBi(page);
+
+    await page.getByRole("link", { name: "Member Ops" }).click();
+
+    await expect(page).toHaveURL(/\/bi\?tab=member-ops$/);
+    await expect(page.getByText("会员分层与风险")).toBeVisible();
+    await expect(page.getByText("留存矩阵")).toBeVisible();
+    await expect(page.getByText("重点样本入口")).toBeVisible();
+    await expect(page.getByRole("button", { name: /示例学员 A/ })).toBeVisible();
+    await expect(page.getByText("COMMAND DECK SHELL")).toHaveCount(0);
+  });
+
+  test("tutorbot tab mounts the dedicated tutorbot workspace instead of the shell placeholder", async ({ page }) => {
+    await mockBiApis(page);
+
+    await visitBi(page);
+
+    await page.getByRole("link", { name: "TutorBot" }).click();
+
+    await expect(page).toHaveURL(/\/bi\?tab=tutorbot$/);
+    await expect(page.getByText("运行态总览")).toBeVisible();
+    await expect(page.getByText("知识库副面板")).toBeVisible();
+    await expect(page.getByText("成本摘要")).toBeVisible();
+    await expect(page.getByText("COMMAND DECK SHELL")).toHaveCount(0);
   });
 });
