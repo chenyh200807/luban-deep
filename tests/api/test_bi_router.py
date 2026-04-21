@@ -465,3 +465,48 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         assert feedback_body["summary"]["thumbs_up"] == 1
         assert feedback_body["top_reason_tags"][0]["tag"] in {"事实错误", "逻辑不通", "有帮助"}
         assert feedback_body["recent"][0]["session_id"] == "session_feedback_1"
+
+
+def test_bi_router_boss_homepage_contract_shapes(bi_service: BIService) -> None:
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: None
+
+    with TestClient(app) as client:
+        overview = client.get("/api/v1/bi/overview?days=30")
+        assert overview.status_code == 200
+        overview_body = overview.json()
+        assert {"cards", "entrypoints"}.issubset(overview_body)
+        assert isinstance(overview_body["cards"], list)
+        assert isinstance(overview_body["entrypoints"], list)
+        assert overview_body["cards"][0]["label"]
+        assert overview_body["cards"][0]["value"] is not None
+
+        trend = client.get("/api/v1/bi/active-trend?days=30")
+        assert trend.status_code == 200
+        trend_body = trend.json()
+        assert "points" in trend_body
+        assert isinstance(trend_body["points"], list)
+        assert "date" in trend_body["points"][0]
+        assert "active" in trend_body["points"][0]
+
+        members = client.get("/api/v1/bi/members?days=30")
+        assert members.status_code == 200
+        members_body = members.json()
+        assert {"samples", "tiers", "risks"}.issubset(members_body)
+        assert isinstance(members_body["samples"], list)
+        assert isinstance(members_body["tiers"], list)
+        assert isinstance(members_body["risks"], list)
+        assert {"user_id", "tier", "risk_level"}.issubset(members_body["samples"][0])
+
+        retention = client.get("/api/v1/bi/retention?days=30")
+        assert retention.status_code == 200
+        retention_body = retention.json()
+        assert retention_body["labels"] == ["D0", "D1", "D7", "D30"]
+        assert isinstance(retention_body["cohorts"], list)
+        assert {"label", "values"}.issubset(retention_body["cohorts"][0])
+
+        anomalies = client.get("/api/v1/bi/anomalies?days=30&limit=10")
+        assert anomalies.status_code == 200
+        anomalies_body = anomalies.json()
+        assert "items" in anomalies_body
+        assert isinstance(anomalies_body["items"], list)
