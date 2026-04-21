@@ -39,7 +39,8 @@ const DEFAULT_HOST_LAYOUT = {
 };
 const CROSS_HOME_NAV_LOCK_MS = 1200;
 const HOST_HOME_URL = "/pages/freeCourse/freeCourse";
-const { getrq } = require("./utils/request");
+const hostApiMap = require("./api/baseApi");
+const { baseUrl: HOST_LEGACY_API_BASE_URL } = require("./utils/config");
 
 let hostSysInfoPromise = null;
 let crossHomeNavLockExpiresAt = 0;
@@ -454,6 +455,25 @@ function resolveBaseUrl() {
   return PROD_API;
 }
 
+function requestHostSysInfo() {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: HOST_LEGACY_API_BASE_URL + hostApiMap.GetSysInfo,
+      method: "GET",
+      data: {},
+      header: {
+        "content-type": "application/json",
+      },
+      success: function (res) {
+        resolve(res.data);
+      },
+      fail: function (err) {
+        reject(err);
+      },
+    });
+  });
+}
+
 App({
   onLaunch() {
     wx.login({
@@ -530,7 +550,7 @@ App({
     if (hostSysInfoPromise) {
       return hostSysInfoPromise;
     }
-    hostSysInfoPromise = getrq("GetSysInfo")
+    hostSysInfoPromise = requestHostSysInfo()
       .then((res) => {
         const nextSysInfo =
           res && res.status == 1 && res.data && typeof res.data === "object"

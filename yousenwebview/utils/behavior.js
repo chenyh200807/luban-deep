@@ -1,5 +1,5 @@
-import { resUrl } from "./config"
-import { postrq,getrq,postrq2 } from "./request"
+import hostApiMap from "../api/baseApi"
+import { resUrl, baseUrl, baseUrl2, baseUrl3 } from "./config"
 import {phoneSafeArea} from "./system"
 import {wxModel} from "./wxPromise"
 let Function = require("./function")
@@ -7,6 +7,50 @@ const app = getApp()
 const BROTHER_MAJOR_CACHE_KEY = "yousen_brother_major_cache"
 const BROTHER_MAJOR_CACHE_TTL = 12 * 60 * 60 * 1000
 const brotherMajorPromiseMap = {}
+
+function requestByBaseUrl(baseUrlName, urlName, data = {}, isLoading = false, method = "GET") {
+  return new Promise((resolve, reject) => {
+    let shouldHideLoading = false
+    if (isLoading) {
+      shouldHideLoading = true
+      wx.showLoading({
+        title: "加载中",
+        mask: false
+      })
+    }
+    wx.request({
+      url: baseUrlName + hostApiMap[urlName],
+      data: data,
+      header: {
+        "content-type": "application/json"
+      },
+      method: method,
+      success: (res) => {
+        resolve(res.data)
+      },
+      fail: (err) => {
+        reject(err)
+      },
+      complete: () => {
+        if (shouldHideLoading) {
+          wx.hideLoading()
+        }
+      }
+    })
+  })
+}
+
+function postrq(urlName, data = {}, isLoading = false) {
+  return requestByBaseUrl(baseUrl3, urlName, data, isLoading, "POST")
+}
+
+function postrq2(urlName, data = {}, isLoading = false) {
+  return requestByBaseUrl(baseUrl2, urlName, data, isLoading, "POST")
+}
+
+function getrq(urlName, data = {}, isLoading = false) {
+  return requestByBaseUrl(baseUrl, urlName, data, isLoading, "GET")
+}
 
 function getBrotherMajorCacheKey(majorId) {
   return `${BROTHER_MAJOR_CACHE_KEY}:${majorId}`

@@ -16,6 +16,7 @@
   - [2026-04-15-bot-learner-overlay-prd.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/doc/plan/2026-04-15-bot-learner-overlay-prd.md)
   - [2026-04-15-bot-learner-overlay-service-design.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/doc/plan/2026-04-15-bot-learner-overlay-service-design.md)
   - [2026-04-15-learner-state-service-design.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/doc/plan/2026-04-15-learner-state-service-design.md)
+  - [2026-04-20-teaching-methods-matrix-prd.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/doc/plan/2026-04-20-teaching-methods-matrix-prd.md)
 - 概念参考：
   - [2026-04-10-active-teaching-object-prd.md](/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/plans/2026-04-10-active-teaching-object-prd.md)
   - [2026-04-05-compiled-learning-assets-prd.md](/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/plans/2026-04-05-compiled-learning-assets-prd.md)
@@ -155,6 +156,32 @@
 因此，本 PRD 的治本点不是“继续加 memory”，而是：
 
 > 让 learner understanding 最终落到一组可执行、可解释、可回退的教学决策上。
+
+### 4.4 当前 Draft v1 仍需加强的地方
+
+如果按当前 Draft v1 直接推进，仍然有 5 个容易在落地时长歪的缺口：
+
+1. 缺少“教学动作原语”
+   - 现在定义了 `diagnosis / next_step / explanation_mode` 等决策位，但还没有进一步规定这些决策最终落成哪些有限、可验证的教学动作。
+   - 风险是实现时又退回 prompt 大杂烩。
+
+2. 缺少“证据等级”
+   - 当前只有 `confidence`，但没有规定什么样的证据允许静默适配，什么样的证据才允许显性点破。
+   - 风险是系统太早“看懂人”。
+
+3. 缺少“优先打穿的真实场景清单”
+   - 当前方向正确，但如果不先限定首批高价值场景，实施时容易摊大。
+   - 风险是每个功能都做一点，最终没有一个场景做透。
+
+4. 缺少“政策可观测性”
+   - 现在写了效果回流，但还没有把 policy proposal、最终采用动作、证据来源、结果窗口做成统一可观测链路。
+   - 风险是线上看起来更会说了，但不知道到底哪种教法真的有效。
+
+5. 缺少“明确不确定项”
+   - 有些假设方向正确，但在当前产品条件下并未被验证，例如：
+     - `explanation_style` 的个体匹配，是否真的能稳定提升提分效率
+     - 文本内推断“最近状态”的准确率是否足够高
+   - 风险是把研究上成立的方向，过早当作当前系统已验证的事实
 
 ## 5. 产品目标
 
@@ -342,6 +369,84 @@
 3. 不是讲抽象心理学，而是服务当前学习动作
 4. 不用每轮都说，只在该说时说
 
+### 8.6 Learner Model 必须再拆成 4 个子模型
+
+为了避免“一个 learner profile 什么都装”，本 PRD 推荐把教学相关 learner understanding 进一步拆成 4 个子模型：
+
+1. `mastery_model`
+   - 表达什么：
+     - 章节掌握度
+     - 核心知识点熟练度
+     - 稳定薄弱主题
+   - 特征：
+     - 相对稳定
+     - 优先来自结构化测评、练习、批改、Guide completion
+
+2. `error_model`
+   - 表达什么：
+     - 重复错因
+     - 易混淆边界
+     - 常见误判模式
+   - 特征：
+     - 比 mastery 更动态
+     - 但比情绪和节奏稳定
+
+3. `pedagogy_preference_model`
+   - 表达什么：
+     - 该学员当前更吃哪种讲法
+     - 更适合 `conclusion_first / skeleton_first / principle_first / hint_first`
+   - 特征：
+     - 允许调整
+     - 但必须慢于单轮波动
+
+4. `learning_state_model`
+   - 表达什么：
+     - 最近是否急、乱、疲劳、碎片化
+     - 当前更适合推进、稳住还是先减负
+   - 特征：
+     - 强时效
+     - 必须默认衰减
+     - 默认不直接晋升为长期 truth
+
+这样拆的价值在于：
+
+1. 不同类型信号拥有不同 half-life
+2. 不同类型结论拥有不同显性表达资格
+3. 可以明显降低“把短期状态误判成长期人格”的风险
+
+### 8.7 Teaching Policy 下面还需要一层有限教学动作库
+
+为了防止 `Teaching Policy Layer` 最终退回 prompt 大拼装，第一版必须把可执行动作收敛成有限动作库。
+
+建议第一版只允许 7 类原子动作：
+
+1. `name_the_gap`
+   - 点出当前真正卡点
+
+2. `minimal_scaffold`
+   - 先给最小判断骨架
+
+3. `worked_example`
+   - 给一题完整示范
+
+4. `contrastive_error_review`
+   - 对比“错法 vs 对法”
+
+5. `targeted_micro_drill`
+   - 立即安排一小组针对练习
+
+6. `pace_recovery`
+   - 先稳节奏、减压、缩短任务
+
+7. `spaced_revisit_assignment`
+   - 安排下次复现与回看
+
+硬约束：
+
+1. 第一版每轮最多选择 `1 个主动作 + 1 个辅动作`
+2. 不允许每轮同时触发 3 个以上动作
+3. 动作必须能被记录并进入后续效果评估
+
 ## 9. 证据阈值驱动模型
 
 ### 9.1 为什么不能用固定“5 天”
@@ -406,6 +511,36 @@
 1. 保留已有 learner truth
 2. 本轮只回退为高质量通用教学
 3. 不强行继续显性诊断
+
+### 9.5 证据等级必须分层，而不是只有一个 confidence
+
+建议把证据等级拆成 4 档：
+
+1. `E0: no_evidence`
+   - 没有足够证据
+   - 只能通用教学
+
+2. `E1: directional`
+   - 有方向性怀疑，但证据单薄
+   - 允许内部参考
+   - 不允许对学员显性下判断
+
+3. `E2: actionable`
+   - 足以静默改变教法
+   - 例如先给骨架、先减负、先做一题
+   - 但仍不一定允许显性点破
+
+4. `E3: explicit_ready`
+   - 至少有两类独立信号支持
+   - 且与当前对象不冲突
+   - 允许做老师式显性诊断表达
+
+建议显性表达必须满足：
+
+1. 至少 2 类独立信号
+2. 至少 1 条近期强证据
+3. 不与当前轮输入冲突
+4. 学员没有明确要求“不要分析我”
 
 ## 10. 显性表达合同
 
@@ -507,6 +642,65 @@
 4. policy 只产生决策，不直接改写 learner truth
 5. 显性表达是 policy 的消费结果，不是新的状态来源
 
+### 12.3 Policy Runtime Chain
+
+为了保证这层真的可落地，运行时链路必须固定为：
+
+1. `facts collection`
+   - 收集 assessment、quiz、guide、recent errors、recent session signals
+
+2. `feature assembly`
+   - 组装四类 learner fragments：
+     - mastery
+     - error
+     - pedagogy preference
+     - learning state
+
+3. `policy proposal`
+   - 产出候选：
+     - diagnosis
+     - next_step
+     - explanation_mode
+     - pace_mode
+     - challenge_mode
+     - explicitness
+     - primary_action
+     - secondary_action
+
+4. `confidence / evidence gate`
+   - 根据 `E0-E3` 决定：
+     - 直接采用
+     - 静默采用
+     - 仅内部保留
+     - 放弃并回退通用教学
+
+5. `delivery rendering`
+   - 若允许显性表达，再走 `Explicit Diagnosis Contract`
+
+6. `outcome logging`
+   - 记录：
+     - 采用了什么动作
+     - 学员是否完成
+     - 后续同类错误是否下降
+     - 学员是否继续学
+
+### 12.4 可观测性与运营审查必须先于大规模 rollout
+
+第一版必须为每次 policy 决策记录最小审查包：
+
+1. `current_object_id`
+2. `policy_snapshot`
+3. `evidence_refs`
+4. `confidence_level`
+5. `rendered_response_excerpt`
+6. `outcome_window`
+
+这样做的原因不是为了好看，而是为了能回答 3 个最关键问题：
+
+1. 这次为什么这样教
+2. 这次是不是看错了人
+3. 这类教学动作到底有没有带来更好的结果
+
 ## 13. 产品形态
 
 ### 13.1 新用户冷启动
@@ -551,6 +745,60 @@
 1. 这 4 个不是分散功能，而是同一 policy layer 的 4 个输出
 2. 学员感知上应是一种统一体验：
    - “它越来越知道该怎么教我”
+
+### 13.4 第一批必须优先打穿的 6 个高价值场景
+
+为了保证当前条件下最稳健、最可交付，首批不应做“全场景个性化”，而应先打穿下面 6 个高价值场景：
+
+1. `摸底后首轮正式教学`
+   - 目标：
+     - 新用户第一轮就感觉到不是统一模板
+
+2. `连续同类错因复现`
+   - 目标：
+     - 系统能显性点破“你不是不会，是总错在同一个边界”
+
+3. `长解释失速`
+   - 目标：
+     - 系统识别“现在不该继续铺长原理”，转成骨架或例题
+
+4. `Guide completion 后回到练题`
+   - 目标：
+     - 学习旅程结果真正改变后续教学与练习安排
+
+5. `回流复学`
+   - 目标：
+     - 学员几天后回来，系统能快速承接而不重新开始
+
+6. `明显状态波动`
+   - 目标：
+     - 系统先稳住节奏，再决定是否推进
+
+原因：
+
+1. 这 6 个场景同时覆盖冷启动、连续使用、承接、显性诊断、节奏调节
+2. 足够代表真实产品价值
+3. 又不会把第一阶段摊成一个过大的系统
+
+### 13.5 明确不该个性化或应延后个性化的场景
+
+以下场景默认不应强做个性化：
+
+1. 纯服务类问题
+   - 如点数、会员、登录、页面使用
+
+2. 完全新主题且证据稀薄
+   - 不应拿旧主题画像硬套
+
+3. 只有情绪猜测、没有学习证据
+   - 不应显性说“你最近焦虑/厌学”
+
+4. 用户明确要求切换风格
+   - 用户当前显式要求高于历史偏好
+
+5. 高风险评估时刻
+   - 如正式测评、分数报告解释
+   - 不应被过度个性化表达污染客观性
 
 ## 14. 风险与负面影响
 
@@ -613,6 +861,51 @@
 
 所以只要严格按本 PRD 的边界实施，它不是加复杂度，而是在消除“已经有很多信号却不会稳定做决策”的低效复杂度。
 
+### 14.4 当前仍然存在的不确定性、验证方式与替代方案
+
+以下 4 件事方向上大概率正确，但在当前系统中仍属于“应验证，而不是直接假定”的内容：
+
+1. `explanation_style` 的个体匹配是否真能显著提分
+   - 不确定性：
+     - 学员喜欢某种讲法，不一定代表这种讲法最能提分
+   - 验证方式：
+     - 对同类学员做 shadow evaluation 或小流量 A/B
+     - 看同类错因纠正率与后续命中率
+   - 替代方案：
+     - 第一版先只让它影响表达密度，不影响核心练习安排
+
+2. 仅凭文本判断近期状态是否足够可靠
+   - 不确定性：
+     - “急、乱、疲劳”从文本中可以猜到，但容易误判
+   - 验证方式：
+     - 先用行为代理信号：
+       - 超短回复
+       - 重复答非所问
+       - 连续中断
+       - 快速放弃
+   - 替代方案：
+     - 先把 `learning_state_model` 用作静默调节，不做强显性表达
+
+3. 哪些教学动作在建筑实务场景最有效
+   - 不确定性：
+     - 研究上 worked example、timely feedback、scaffolding 通常有效，但你这个考试场景下的最优组合尚未验证
+   - 验证方式：
+     - 先聚焦 2 到 3 个高频错因族，比较：
+       - `骨架先`
+       - `例题先`
+       - `错因对照`
+   - 替代方案：
+     - 第一阶段不做自动策略学习，只做人定义动作库 + 效果记录
+
+4. 长期“策略学习层”是否值得在早期就做
+   - 不确定性：
+     - 数据量不足时，系统很容易学到噪音或 reward hacking
+   - 验证方式：
+     - 先看 shadow logs 是否足够稳定
+     - 先做离线回放与人工复核
+   - 替代方案：
+     - 早期只做规则化 policy + 人审复盘，不做 bandit / RL
+
 ## 15. 预期收益
 
 ### 15.1 直接收益
@@ -643,7 +936,9 @@
 
 1. 明确现有个性化能力已覆盖到哪里
 2. 明确现有 learner core、overlay、teaching mode 的职责边界
-3. 不新增代码路径，只建立统一术语和上位 PRD
+3. 明确首批 6 个高价值场景
+4. 明确 `E0-E3` 证据等级与最小审查包
+5. 不新增代码路径，只建立统一术语和上位 PRD
 
 ### 16.2 Phase 1：Teaching Policy Shadow
 
@@ -657,12 +952,15 @@
    - explanation_mode
    - pace_mode
    - explicitness
+   - primary_action
+   - secondary_action
 
 验收：
 
 1. policy 输出可解释
 2. policy 输出不与 learner core 争权
 3. policy 输出可回溯到证据
+4. 至少能在 6 个优先场景里稳定产出合理候选
 
 ### 16.3 Phase 2：显性表达 limited rollout
 
@@ -670,12 +968,14 @@
 
 1. 在高置信度场景中启用显性诊断表达
 2. 表达必须遵守“像老师，不像系统”的合同
+3. 首批只开放 2 到 3 个最稳场景，不追求全覆盖
 
 验收：
 
 1. 学员体感提升
 2. 不增加明显误判投诉
 3. 不增加“被系统分析”的反感
+4. 同类错因纠正率有可观察改善
 
 ### 16.4 Phase 3：Intervention Effectiveness 闭环
 
@@ -689,6 +989,7 @@
 
 1. 这一阶段才允许谈“系统逐步学会哪种教法更有效”
 2. 不应在第一阶段就把效果学习层做得过重
+3. 早期优先做离线分析与人工复核，不直接上自动策略优化
 
 ## 17. 成功定义
 
@@ -708,6 +1009,7 @@
 3. 证据不足时能稳妥回退，不强做个性化
 4. 显性表达不变成画像播报
 5. 学员满意度与提分效率双指标上升
+6. 首批优先场景的教学动作与结果之间能建立可分析闭环
 
 ### 17.3 明确失败信号
 

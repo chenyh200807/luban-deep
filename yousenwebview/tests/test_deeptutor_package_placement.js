@@ -72,6 +72,26 @@ run("deeptutor pages should use subpackage analytics helper", function () {
   });
 });
 
+run("deeptutor subpackage should not depend on host legacy request helper", function () {
+  [
+    "packageDeeptutor/pages/login/login.js",
+    "packageDeeptutor/pages/login/manual.js",
+    "packageDeeptutor/pages/register/register.js",
+    "packageDeeptutor/pages/chat/chat.js",
+    "packageDeeptutor/pages/history/history.js",
+    "packageDeeptutor/pages/report/report.js",
+    "packageDeeptutor/pages/profile/profile.js",
+    "packageDeeptutor/utils/runtime.js",
+    "packageDeeptutor/utils/api.js",
+  ].forEach(function (relativePath) {
+    var source = read(relativePath);
+    assert(
+      source.indexOf('utils/request') === -1,
+      relativePath + " should not depend on host legacy request helper",
+    );
+  });
+});
+
 run("host root should not keep duplicated deeptutor theme copy", function () {
   assert(
     exists("deeptutor-theme.wxss") === false,

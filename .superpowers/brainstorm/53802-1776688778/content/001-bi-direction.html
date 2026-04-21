@@ -1,0 +1,114 @@
+<h2>BI 对齐方向确认</h2>
+<p class="subtitle">我先把旧仓 FastAPI20251222 的 BI 气质和当前 DeepTutor BI 的现状放在一页里。你只需要确认这次要对齐到哪一层。</p>
+
+<div class="section">
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">目标参考: FastAPI20251222 /bi</div>
+      <div class="mockup-body">
+        <div class="label">Command Deck</div>
+        <div style="display:grid;gap:10px">
+          <div style="padding:14px;border-radius:14px;background:linear-gradient(135deg,#0f172a,#1d4ed8,#0f766e);color:#fff">
+            <div style="font-size:12px;letter-spacing:.18em;opacity:.72">INDUSTRIAL OBSERVABILITY CONTROL PLANE</div>
+            <div style="margin-top:8px;font-size:24px;font-weight:700">BI Command Intelligence Deck</div>
+            <div style="margin-top:6px;font-size:13px;opacity:.82">大 Hero + 顶部工具条 + Tab 指挥舱</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="mock-button">Overview</button>
+            <button class="mock-button">Reliability</button>
+            <button class="mock-button">Skills</button>
+            <button class="mock-button">Economics</button>
+            <button class="mock-button">Eval</button>
+            <button class="mock-button">Member Mgmt</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+            <div class="placeholder">KPI 卡片</div>
+            <div class="placeholder">图表面板</div>
+            <div class="placeholder">告警 / 健康</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:8px">
+            <div class="placeholder">留存 / 漏斗 / 质量趋势</div>
+            <div class="placeholder">会员运营 / 生命周期 / 审计</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup">
+      <div class="mockup-header">当前: DeepTutor BI 工作台</div>
+      <div class="mockup-body">
+        <div class="label">Workbench</div>
+        <div style="display:grid;gap:10px">
+          <div style="padding:14px;border-radius:14px;background:linear-gradient(135deg,#151312,#2a211d,#8f4625);color:#fff">
+            <div style="font-size:12px;letter-spacing:.18em;opacity:.72">BI WORKBENCH</div>
+            <div style="margin-top:8px;font-size:24px;font-weight:700">DeepTutor BI 工作台</div>
+            <div style="margin-top:6px;font-size:13px;opacity:.82">大 Hero + 锚点跳转 + 单页长卷</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="mock-button">总览</button>
+            <button class="mock-button">趋势</button>
+            <button class="mock-button">TutorBot</button>
+            <button class="mock-button">能力与工具</button>
+            <button class="mock-button">知识库</button>
+            <button class="mock-button">会员</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+            <div class="placeholder">KPI 卡片</div>
+            <div class="placeholder">趋势 + 留存</div>
+            <div class="placeholder">异常中心</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="placeholder">TutorBot / Capability / Knowledge</div>
+            <div class="placeholder">Member / Cost / Learner 360</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>我建议的三种对齐层级</h3>
+  <div class="options">
+    <div class="option" data-choice="a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>只对齐视觉</h3>
+        <p>保留当前 DeepTutor 数据结构和单页长卷，只把 Hero、Tab 感、卡片层级、配色和图表气质做成旧仓那种指挥舱风格。</p>
+      </div>
+    </div>
+    <div class="option" data-choice="b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>视觉 + 信息架构对齐</h3>
+        <p>把当前单页工作台收敛成旧仓那种 Tab 式分区，至少拆成总览、稳定性/质量、经营/会员、TutorBot/能力几大块，但尽量复用当前 `/api/v1/bi/*` 数据合同。</p>
+      </div>
+    </div>
+    <div class="option" data-choice="c" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>连功能一起追平</h3>
+        <p>除了视觉和分区，还把旧仓里更重的会员运营、生命周期、审计、评测质量、观测栈等功能逐步补到 DeepTutor BI。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>我当前推荐</h4>
+      <ul>
+        <li><strong>B</strong> 最稳。它能把“看起来像旧仓”做出来，同时不强行把旧仓那套重后端能力一次搬过来。</li>
+        <li>当前 DeepTutor 已经有 Hero、留存、TutorBot、会员、成本、Learner 360 数据块，足够重组为更像旧仓的驾驶舱。</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>风险提醒</h4>
+      <ul>
+        <li><strong>A</strong> 看起来接近，但结构还是现在这一套，容易“像但不神似”。</li>
+        <li><strong>C</strong> 会很快从前端改版升级成产品级 BI 重构，范围明显更大。</li>
+      </ul>
+    </div>
+  </div>
+</div>

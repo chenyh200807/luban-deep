@@ -35,6 +35,15 @@ var AUTO_WEB_SEARCH_PATTERNS = [
   /(202[4-9]|20[3-9]\d).{0,12}(政策|规范|标准|通知|公告|文件|变化|更新)?/,
 ];
 
+function hasAssessmentSignal(raw) {
+  var assessment = unwrap(raw) || raw || {};
+  var level = String(assessment.level || "").trim();
+  var chapterMastery = assessment.chapter_mastery;
+  if (level) return true;
+  if (!chapterMastery || typeof chapterMastery !== "object") return false;
+  return Object.keys(chapterMastery).length > 0;
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -1658,21 +1667,35 @@ Page({
     if (wx.getStorageSync("diagnostic_skipped")) return;
     // 只在 Hero 主页弹出
     if (this.data.hasMessages) return;
+    function showDiagnosticModal() {
+      wx.showModal({
+        title: "欢迎新同学",
+        content:
+          "建议先做一次摸底测试（约 8 分钟），AI 会根据你的水平定制学习内容。",
+        confirmText: "开始测试",
+        cancelText: "稍后再说",
+        success: function (res) {
+          if (res.confirm) {
+            wx.navigateTo({ url: "/pages/assessment/assessment" });
+          } else {
+            wx.setStorageSync("diagnostic_skipped", true);
+          }
+        },
+      });
+    }
 
-    wx.showModal({
-      title: "欢迎新同学",
-      content:
-        "建议先做一次摸底测试（约 8 分钟），AI 会根据你的水平定制学习内容。",
-      confirmText: "开始测试",
-      cancelText: "稍后再说",
-      success: function (res) {
-        if (res.confirm) {
-          wx.navigateTo({ url: "/pages/assessment/assessment" });
-        } else {
-          wx.setStorageSync("diagnostic_skipped", true);
+    return api
+      .getAssessmentProfile()
+      .then(function (raw) {
+        if (hasAssessmentSignal(raw)) {
+          wx.setStorageSync("diagnostic_completed", true);
+          return;
         }
-      },
-    });
+        showDiagnosticModal();
+      })
+      .catch(function () {
+        showDiagnosticModal();
+      });
   },
 
   clearMessages: function () {

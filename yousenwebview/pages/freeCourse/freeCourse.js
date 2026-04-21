@@ -1,7 +1,40 @@
 // package/freeCourse/freeCourse.js
 var analytics = require('../../utils/analytics')
-var request = require('../../utils/request')
+var hostApiMap = require('../../api/baseApi')
+var hostConfig = require('../../utils/config')
 var functionUtil = require('../../utils/function')
+
+function postHostRequest(urlName, data = {}, isLoading = false) {
+  return new Promise(function (resolve, reject) {
+    let shouldHideLoading = false
+    if (isLoading) {
+      shouldHideLoading = true
+      wx.showLoading({
+        title: "加载中",
+        mask: false
+      })
+    }
+    wx.request({
+      url: hostConfig.baseUrl3 + hostApiMap[urlName],
+      data: data,
+      header: {
+        "content-type": "application/json"
+      },
+      method: "POST",
+      success: function (res) {
+        resolve(res.data)
+      },
+      fail: function (err) {
+        reject(err)
+      },
+      complete: function () {
+        if (shouldHideLoading) {
+          wx.hideLoading()
+        }
+      }
+    })
+  })
+}
 
 Page({
 
@@ -110,7 +143,7 @@ Page({
     }
   },
   isPostHttp: function(urlName, data, isLoading) {
-    return request.postrq(urlName, data, isLoading)
+    return postHostRequest(urlName, data, isLoading)
   },
     initCourseRenderState: function() {
       this.courseRenderBatchSize = 4;
@@ -388,20 +421,18 @@ Page({
       this.syncDeeptutorEntryState();
       this.initCourseRenderState();
       this.initGratisCourseState();
-      this.data.major_id = wx.getStorageSync('major_id')
-      this.data.major_id = 10
-      //如果没有传值进来，就直接默认
-      this.data.subject_id = 63;
-      this.data.cate_id = 4;
+      const storedMajorId = wx.getStorageSync('major_id');
+      const majorId = storedMajorId ? storedMajorId : 10;
       const multiArray = this.data.multiArray.slice();
       multiArray[0] = Object.keys(this.data.allmajor);
       multiArray[1] = Object.keys(this.data.allmajor['一级建造师']);
       const multiIndex = [0, 0];
       this.setData(Object.assign({
+        major_id: majorId,
+        subject_id: 63,
+        cate_id: 4,
         multiArray: multiArray,
         multiIndex: multiIndex,
-        subject_id: 63,
-        cate_id: 4
       }, this.getSelectionSummary(multiArray, multiIndex), this.getPickerVisualState(false)));
     },
 
@@ -494,9 +525,13 @@ Page({
      * 用户点击右上角分享
      */
     onShareAppMessage: function () {
+      const members = wx.getStorageSync('members') || {};
+      const topId = members.pk_id ? members.pk_id : 0;
+      const majorId = this.data.major_id || 10;
+      const majorTitle = this.data.selectedMajorLabel || wx.getStorageSync('major_title') || '';
       return {
         title: '佑森好课',
-        path: 'pages/freeCourse/freeCourse?top_id='+wx.getStorageSync('members').pk_id+'&major_id='+wx.getStorageSync('major_id')+'&major_title='+wx.getStorageSync('major_title'),
+        path: 'pages/freeCourse/freeCourse?top_id=' + topId + '&major_id=' + majorId + '&major_title=' + majorTitle,
       }
     },
 

@@ -40,11 +40,14 @@ function loadApp(storageSeed) {
     },
     clearTimeout: function () {},
     require: function (request) {
-      if (request === "./utils/request") {
+      if (request === "./api/baseApi") {
         return {
-          getrq: function () {
-            return Promise.resolve({ status: 1, data: {} });
-          },
+          GetSysInfo: "Action=GetSysInfo",
+        };
+      }
+      if (request === "./utils/config") {
+        return {
+          baseUrl: "https://xytk.kailly.com/Api/Xytk.ashx?",
         };
       }
       throw new Error("unexpected require: " + request);
@@ -86,6 +89,11 @@ function loadApp(storageSeed) {
       getNetworkType: function (options) {
         if (options && typeof options.success === "function") {
           options.success({ networkType: "wifi" });
+        }
+      },
+      request: function (options) {
+        if (options && typeof options.success === "function") {
+          options.success({ data: { status: 1, data: {} } });
         }
       },
       showToast: function () {},

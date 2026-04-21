@@ -208,6 +208,25 @@ function createPageInstance(pageDef) {
     assert(page.data.userPoints === 66, "report bootstrap should hydrate wallet balance from shared snapshot");
     assert(page.data.learnerLevel === "intermediate", "report bootstrap should hydrate overview from shared snapshot");
     assert(page.data.avgScore === 50, "report bootstrap should hydrate radar from shared assessment snapshot");
+    assert(page.data.learnerStageTitle === "中级阶段", "report bootstrap should expose a user-facing learner stage title");
+    assert(
+      page.data.battlePlan && page.data.battlePlan.focusTopic === "防水工程",
+      "report bootstrap should build AI battle plan around the weakest chapter",
+    );
+    assert(
+      page.data.battlePlan &&
+        page.data.battlePlan.priorityTask.indexOf("待复习点") >= 0,
+      "report bootstrap should incorporate review pressure into the AI battle plan",
+    );
+    assert(
+      typeof page.data.progressSummary === "string" &&
+        page.data.progressSummary.indexOf("6/12") >= 0,
+      "report bootstrap should generate progress feedback summary from today progress",
+    );
+    assert(
+      Array.isArray(page.data.progressCards) && page.data.progressCards.length === 4,
+      "report bootstrap should build compact progress feedback cards",
+    );
   });
 
   if (fail) {

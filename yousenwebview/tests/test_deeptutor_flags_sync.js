@@ -36,8 +36,11 @@ function loadAppDefinition(storageSeed) {
     setTimeout: setTimeout,
     clearTimeout: clearTimeout,
     require: function (request) {
-      if (request === "./utils/request") {
-        return { getrq: function () { return Promise.resolve({}); } };
+      if (request === "./api/baseApi") {
+        return { GetSysInfo: "Action=GetSysInfo" };
+      }
+      if (request === "./utils/config") {
+        return { baseUrl: "https://xytk.kailly.com/Api/Xytk.ashx?" };
       }
       throw new Error("unexpected require: " + request);
     },
@@ -60,6 +63,11 @@ function loadAppDefinition(storageSeed) {
       getNetworkType: function (opts) {
         if (opts && typeof opts.success === "function") {
           opts.success({ networkType: "wifi" });
+        }
+      },
+      request: function (opts) {
+        if (opts && typeof opts.success === "function") {
+          opts.success({ data: { status: 1, data: {} } });
         }
       },
       getWindowInfo: function () {
