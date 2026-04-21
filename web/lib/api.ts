@@ -1,11 +1,13 @@
 // API configuration and utility functions
 
+const CURRENT_ORIGIN_SENTINEL = "__CURRENT_ORIGIN__";
+
 // Keep the injected API base when it exists. Otherwise, browser surfaces fall back
 // to the current origin so IP and domain entrances can both use same-origin `/api/...`.
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE?.trim() || "";
 
 function resolveApiBaseUrl(): string {
-  if (API_BASE_URL) {
+  if (API_BASE_URL && API_BASE_URL !== CURRENT_ORIGIN_SENTINEL) {
     return API_BASE_URL;
   }
 
