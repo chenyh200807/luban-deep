@@ -194,7 +194,13 @@ export function SidebarShell({
 
           {visiblePrimaryNav.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-            const hasSessionsBelow = item.href === "/" && showSessions && onSelectSession && onRenameSession && onDeleteSession;
+            const hasSessionsBelow =
+              authEnabled &&
+              item.href === "/" &&
+              showSessions &&
+              onSelectSession &&
+              onRenameSession &&
+              onDeleteSession;
             const hasBots = item.href === "/agents";
             return (
               <div key={item.href}>
