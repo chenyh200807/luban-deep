@@ -21,22 +21,22 @@ export const BI_PRIMARY_TABS = [
   {
     key: "overview",
     label: "总览",
-    summary: "当前先保留现有全量内容，作为老板工作台的总览入口。",
+    summary: "先看经营健康、待处理事项和重点会员，再决定往哪里下钻。",
   },
   {
     key: "quality",
     label: "质量",
-    summary: "质量主线聚焦趋势波动、异常中心与当前数据完整性。",
+    summary: "查看教学质量趋势、异常波动和当前数据完整性。",
   },
   {
     key: "member-ops",
     label: "会员运营",
-    summary: "会员运营分区会在后续任务中独立收口，不在本次 shell 内展开。",
+    summary: "聚焦会员分层、风险、留存和重点样本入口。",
   },
   {
     key: "tutorbot",
     label: "TutorBot",
-    summary: "TutorBot 主线会在后续任务中拆成独立视图与操作面板。",
+    summary: "聚焦 TutorBot 运行状态、消息样本和知识联动。",
   },
 ] as const;
 

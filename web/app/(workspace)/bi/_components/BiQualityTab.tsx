@@ -62,12 +62,12 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
       value: anomalies.items.length ? `${anomalies.items.length} 条` : "0 条",
     },
     {
-      label: "总览 alerts",
+      label: "总览告警",
       ready: true,
       value: (overview?.alerts ?? []).length ? `${overview?.alerts.length ?? 0} 条` : "0 条",
     },
     {
-      label: "降级接口",
+      label: "接口降级",
       ready: issues.length === 0,
       value: issues.length ? `${issues.length} 个` : "无",
     },
@@ -105,7 +105,7 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
           hint={
             allAlerts.length
               ? `critical ${criticalCount} / warning ${warningCount}`
-              : "当前无异常或 alerts"
+              : "当前无异常或告警"
           }
           tone={criticalCount ? "critical" : warningCount ? "warning" : "good"}
           icon={CircleAlert}
@@ -125,14 +125,14 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
           <div className="mt-4 rounded-2xl border border-[var(--border)]/60 bg-[var(--background)] p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs tracking-[0.18em] text-[var(--muted-foreground)]">SUCCESS TREND</p>
+                <p className="text-xs tracking-[0.18em] text-[var(--muted-foreground)]">质量趋势</p>
                 <p className="mt-1 text-sm text-[var(--secondary-foreground)]">
-                  仅用现有 trend 数据观察成功率、成本和活跃波动。
+                  用现有趋势数据观察教学质量、成本压力和活跃波动。
                 </p>
               </div>
               <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
                 <LegendDot color="#6d28d9" label="成功率" />
-                <LegendDot color="#0f766e" label="成本" />
+                <LegendDot color="#0f766e" label="成本压力" />
                 <LegendDot color="#C35A2C" label="活跃" />
               </div>
             </div>
@@ -219,7 +219,7 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
                 content={
                   allAlerts.length
                     ? `critical ${criticalCount} 条，warning ${warningCount} 条，总计 ${allAlerts.length} 条异常/告警。`
-                    : "当前未收到异常或 overview alerts。"
+                    : "当前未收到异常或总览告警。"
                 }
               />
               <QualitySummaryCard
@@ -253,7 +253,7 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
               <div key={`${item.source}-${item.title}-${item.detail ?? ""}`} className="space-y-2">
                 <div className="flex items-center gap-2 text-[11px] tracking-[0.18em] text-[var(--muted-foreground)]">
                   <span className="rounded-full bg-[var(--secondary)] px-2 py-1">
-                    {item.source === "anomaly" ? "ANOMALY" : "OVERVIEW ALERT"}
+                    {item.source === "anomaly" ? "异常" : "总览告警"}
                   </span>
                 </div>
                 <AlertCard item={item} />

@@ -75,11 +75,11 @@ export function BiTutorBotTab({
             />
           ))
         ) : (
-          <article className="surface-card col-span-full overflow-hidden border-0 bg-[linear-gradient(135deg,rgba(33,26,21,0.96),rgba(65,42,30,0.94),rgba(195,90,44,0.82))] p-6 text-white shadow-[0_24px_60px_rgba(31,26,23,0.16)]">
-            <p className="text-xs tracking-[0.22em] text-white/70">TUTORBOT COMMAND DECK</p>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight">运行指标就绪后，这里直接接管 TutorBot 主视图</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-white/78">
-              当前没有返回 TutorBot 指标卡片，页面仍保留排行、状态、最近活跃、最近消息和能力/工具联动位，等 BI 聚合接口补齐后会自动落到同一条指挥链。
+          <article className="surface-card col-span-full border border-[var(--border)]/60 bg-white/88 p-6 shadow-[0_14px_32px_rgba(45,33,25,0.06)]">
+            <p className="text-xs tracking-[0.22em] text-[var(--muted-foreground)]">TUTORBOT WORKBENCH</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--foreground)]">TutorBot 指标补齐后，这里会承接运行主视图</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--secondary-foreground)]">
+              当前还没有返回 TutorBot 指标卡片，但下面仍保留排行、状态、最近活跃、最近消息和知识联动位。接口补齐后会自动落到这条运行视图，不需要再回首页找。
             </p>
           </article>
         )}
