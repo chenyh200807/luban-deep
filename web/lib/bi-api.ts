@@ -177,6 +177,8 @@ export interface BiBossWorkbench {
   heroIssue: string;
 }
 
+type BiBossCoreModule = "overview" | "active-trend" | "members" | "cost";
+
 export interface BiWorkbenchData {
   overview: BiOverviewData;
   trend: BiTrendData;
@@ -434,6 +436,12 @@ function normalizeLearnerNotes(raw: unknown): BiLearnerNoteLedgerSummary {
   };
 }
 
+const BOSS_ACTION_COPY = {
+  anomalyDetail: "建议尽快复核该异常信号。",
+  memberRiskDetail: "建议跟进高风险会员变化。",
+  costDetail: "建议持续观察成本波动。",
+} as const;
+
 function buildBossKpis(data: BiWorkbenchData): BiBossKpiItem[] {
   const kpis: BiBossKpiItem[] = [];
   const seen = new Set<string>();
@@ -469,7 +477,7 @@ function buildBossActionQueue(data: BiWorkbenchData): BiBossActionItem[] {
   for (const item of data.anomalies.items) {
     append(
       item.title,
-      item.detail || "建议尽快复核该异常信号。",
+      item.detail || BOSS_ACTION_COPY.anomalyDetail,
       toBossTone(item.level),
       "anomalies",
     );
@@ -480,7 +488,7 @@ function buildBossActionQueue(data: BiWorkbenchData): BiBossActionItem[] {
     for (const item of data.members.risks) {
       append(
         `会员风险：${item.label}`,
-        item.hint || item.secondary || "建议跟进高风险会员变化。",
+        item.hint || item.secondary || BOSS_ACTION_COPY.memberRiskDetail,
         "warning",
         "members",
       );
@@ -492,7 +500,7 @@ function buildBossActionQueue(data: BiWorkbenchData): BiBossActionItem[] {
     for (const item of data.cost.cards) {
       append(
         `成本关注：${item.label}`,
-        item.hint || item.delta || "建议持续观察成本波动。",
+        item.hint || item.delta || BOSS_ACTION_COPY.costDetail,
         item.tone ?? "neutral",
         "cost",
       );
@@ -503,16 +511,20 @@ function buildBossActionQueue(data: BiWorkbenchData): BiBossActionItem[] {
   return queue;
 }
 
-function buildBossHeroIssue(data: BiWorkbenchData): string {
-  const hasCoreSignals = data.overview.cards.length > 0 || data.members.cards.length > 0 || data.cost.cards.length > 0;
-  return hasCoreSignals ? "" : "核心经营模块暂未返回，老板首页先显示基础装配结果。";
+function buildBossHeroIssue(missingCoreModules: BiBossCoreModule[]): string {
+  if (missingCoreModules.length === 0) {
+    return "";
+  }
+
+  const scope = missingCoreModules.length === 1 ? "1 个" : `${missingCoreModules.length} 个`;
+  return `有 ${scope}核心经营模块暂未返回，老板首页先基于已成功模块装配。`;
 }
 
-function buildBiBossWorkbench(data: BiWorkbenchData): BiBossWorkbench {
+function buildBiBossWorkbench(data: BiWorkbenchData, missingCoreModules: BiBossCoreModule[]): BiBossWorkbench {
   return {
     kpis: buildBossKpis(data),
     actionQueue: buildBossActionQueue(data),
-    heroIssue: buildBossHeroIssue(data),
+    heroIssue: buildBossHeroIssue(missingCoreModules),
   };
 }
 
@@ -788,6 +800,7 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
   ]);
 
   const issues: string[] = [];
+  const missingCoreModules: BiBossCoreModule[] = [];
   const data = structuredClone(DEFAULT_DATA);
   const [
     overview,
@@ -803,10 +816,16 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
   ] = results;
 
   if (overview.status === "fulfilled") data.overview = overview.value;
-  else issues.push(overview.reason instanceof Error ? overview.reason.message : "概览加载失败");
+  else {
+    missingCoreModules.push("overview");
+    issues.push(overview.reason instanceof Error ? overview.reason.message : "概览加载失败");
+  }
 
   if (trend.status === "fulfilled") data.trend = trend.value;
-  else issues.push(trend.reason instanceof Error ? trend.reason.message : "趋势加载失败");
+  else {
+    missingCoreModules.push("active-trend");
+    issues.push(trend.reason instanceof Error ? trend.reason.message : "趋势加载失败");
+  }
 
   if (retention.status === "fulfilled") data.retention = retention.value;
   else issues.push(retention.reason instanceof Error ? retention.reason.message : "留存加载失败");
@@ -821,10 +840,16 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
   else issues.push(knowledge.reason instanceof Error ? knowledge.reason.message : "知识库加载失败");
 
   if (members.status === "fulfilled") data.members = members.value;
-  else issues.push(members.reason instanceof Error ? members.reason.message : "会员加载失败");
+  else {
+    missingCoreModules.push("members");
+    issues.push(members.reason instanceof Error ? members.reason.message : "会员加载失败");
+  }
 
   if (cost.status === "fulfilled") data.cost = cost.value;
-  else issues.push(cost.reason instanceof Error ? cost.reason.message : "成本加载失败");
+  else {
+    missingCoreModules.push("cost");
+    issues.push(cost.reason instanceof Error ? cost.reason.message : "成本加载失败");
+  }
 
   if (tutorbots.status === "fulfilled") data.tutorbots = tutorbots.value;
   else issues.push(tutorbots.reason instanceof Error ? tutorbots.reason.message : "TutorBot 加载失败");
@@ -832,5 +857,5 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
   if (anomalies.status === "fulfilled") data.anomalies = anomalies.value;
   else issues.push(anomalies.reason instanceof Error ? anomalies.reason.message : "异常加载失败");
 
-  return { data, issues, boss: buildBiBossWorkbench(data) };
+  return { data, issues, boss: buildBiBossWorkbench(data, missingCoreModules) };
 }
