@@ -25,6 +25,41 @@ async def load_metrics_snapshot_async(*, api_base_url: str) -> dict[str, Any]:
         return response.json()
 
 
+def _build_metrics_capture(
+    *,
+    url: str,
+    ok: bool,
+    status_code: int | None = None,
+    error: str = "",
+) -> dict[str, Any]:
+    return {
+        "url": url,
+        "ok": ok,
+        "status_code": status_code,
+        "error": error,
+    }
+
+
+async def _try_load_metrics_snapshot_async(*, api_base_url: str) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    url = f"{api_base_url.rstrip('/')}/metrics"
+    try:
+        snapshot = await load_metrics_snapshot_async(api_base_url=api_base_url)
+    except httpx.HTTPStatusError as exc:
+        return None, _build_metrics_capture(
+            url=url,
+            ok=False,
+            status_code=exc.response.status_code if exc.response is not None else None,
+            error=f"{exc.__class__.__name__}: {exc}",
+        )
+    except Exception as exc:
+        return None, _build_metrics_capture(
+            url=url,
+            ok=False,
+            error=f"{exc.__class__.__name__}: {exc}",
+        )
+    return snapshot, _build_metrics_capture(url=url, ok=True, status_code=200)
+
+
 async def run_unified_ws_smoke(
     *,
     api_base_url: str,
@@ -62,7 +97,7 @@ async def run_unified_ws_smoke(
                 terminal_event = data
                 break
 
-    metrics_after = await load_metrics_snapshot_async(api_base_url=api_base_url)
+    metrics_after, metrics_capture = await _try_load_metrics_snapshot_async(api_base_url=api_base_url)
     duration_ms = (time.perf_counter() - started_at) * 1000.0
     passed = bool(terminal_event) and terminal_event.get("type") == "done"
 
@@ -76,6 +111,6 @@ async def run_unified_ws_smoke(
         "terminal_event": terminal_event,
         "duration_ms": round(duration_ms, 1),
         "metrics_after": metrics_after,
+        "metrics_capture": metrics_capture,
         "passed": passed,
     }
-
