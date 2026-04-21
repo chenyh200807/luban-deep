@@ -13,11 +13,37 @@ import pytest
 
 import deeptutor.services.member_console.service as member_service_module
 from deeptutor.services.member_console.service import MemberConsoleService
+from deeptutor.services.member_console import external_auth as external_auth_module
 
 
 @pytest.fixture(autouse=True)
 def _enable_demo_seed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED", "1")
+
+
+class _FakeWalletBootstrapService:
+    is_configured = True
+
+    def __init__(self) -> None:
+        self.calls: list[dict[str, object]] = []
+        self.snapshots: dict[str, SimpleNamespace] = {}
+
+    def ensure_wallet_seeded(self, **kwargs):
+        self.calls.append(dict(kwargs))
+        user_id = str(kwargs["user_id"])
+        opening_points = int(kwargs.get("opening_points") or 0)
+        snapshot = self.snapshots.get(user_id)
+        if snapshot is None:
+            snapshot = SimpleNamespace(
+                user_id=user_id,
+                balance_micros=opening_points * 1_000_000,
+                frozen_micros=0,
+                plan_id=str(kwargs.get("plan_id") or ""),
+                version=1,
+                created_at="2026-04-21T10:00:00+08:00",
+            )
+            self.snapshots[user_id] = snapshot
+        return snapshot
 
 
 @pytest.mark.asyncio
@@ -53,6 +79,112 @@ async def test_login_with_wechat_code_issues_signed_token_and_persists_identity(
     assert member["wx_openid"] == "openid_123456789012"
     assert member["wx_unionid"] == "unionid_abcdef"
     assert member["wx_session_key"] == "session_key_value"
+
+
+@pytest.mark.asyncio
+async def test_login_with_wechat_code_promotes_phone_backed_member_to_canonical_wallet_identity(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"] = [
+            {
+                **service._build_default_member("wx_O4aNJg7O_wRk"),
+                "user_id": "wx_O4aNJg7O_wRk",
+                "phone": "34277511499",
+                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+            }
+        ]
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {
+            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+            "unionid": "unionid_live_user",
+            "session_key": "session_key_value",
+        }
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+    monkeypatch.setattr(
+        member_service_module,
+        "ensure_external_auth_user_for_phone",
+        lambda phone: {"id": canonical_uid, "username": "user_1499", "phone": phone},
+    )
+    service._mutate(_seed)
+
+    result = await service.login_with_wechat_code("wx-code")
+    claims = service.verify_access_token(result["token"])
+    snapshot = service._load_member_snapshot("wx_O4aNJg7O_wRk")["member"]
+
+    assert claims is not None
+    assert claims["canonical_uid"] == canonical_uid
+    assert result["user_id"] == "wx_O4aNJg7O_wRk"
+    assert snapshot["external_auth_user_id"] == canonical_uid
+    assert snapshot["auth_username"] == "user_1499"
+    assert wallet_service.calls[0]["user_id"] == canonical_uid
+    assert wallet_service.calls[0]["opening_points"] == 120
+
+
+@pytest.mark.asyncio
+async def test_login_with_wechat_code_uses_existing_wx_openid_alias_as_canonical_wallet_identity(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "wx_openid" and alias_value == "oTHl5610QTUB2maCO4aNJg7O-wRk":
+                return {"user_id": canonical_uid}
+            return None
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"] = [
+            {
+                **service._build_default_member("wx_O4aNJg7O_wRk"),
+                "user_id": "wx_O4aNJg7O_wRk",
+                "phone": "34277511499",
+                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+            }
+        ]
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {
+            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+            "unionid": "",
+            "session_key": "session_key_value",
+        }
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+    service._mutate(_seed)
+
+    result = await service.login_with_wechat_code("wx-code")
+    claims = service.verify_access_token(result["token"])
+    canonical_snapshot = service._load_member_snapshot(canonical_uid)["member"]
+    legacy_snapshot = service._load_member_snapshot("wx_O4aNJg7O_wRk")["member"]
+
+    assert claims is not None
+    assert claims["canonical_uid"] == canonical_uid
+    assert wallet_service.calls[0]["user_id"] == canonical_uid
+    assert canonical_snapshot["display_name"] == "wx_O4aNJg7O_wRk"
+    assert canonical_snapshot["wx_openid"] == "oTHl5610QTUB2maCO4aNJg7O-wRk"
+    assert legacy_snapshot["external_auth_user_id"] == canonical_uid
 
 
 @pytest.mark.asyncio
@@ -582,6 +714,75 @@ def test_register_with_external_auth_does_not_match_existing_display_name(
     assert result["user"]["user_id"] != "wx_attacker"
     assert attacker.get("auth_username") in {None, ""}
     assert attacker["phone"] == "13800001111"
+
+
+def test_external_auth_production_default_does_not_read_legacy_luban_store(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    primary_users = tmp_path / "app" / "users.json"
+    legacy_users = tmp_path / "luban" / "users.json"
+    legacy_users.parent.mkdir(parents=True, exist_ok=True)
+    password_hash = bcrypt.hashpw(
+        hashlib.sha256("StrongPass123".encode("utf-8")).hexdigest().encode("utf-8"),
+        bcrypt.gensalt(),
+    ).decode("utf-8")
+    legacy_users.write_text(
+        json.dumps(
+            {
+                "legacy_user": {
+                    "id": "legacy-user-id",
+                    "username": "legacy_user",
+                    "password_hash": password_hash,
+                }
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.delenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", raising=False)
+    monkeypatch.setattr(external_auth_module, "_PRIMARY_USERS_FILE", primary_users)
+    monkeypatch.setattr(external_auth_module, "_LEGACY_USERS_FILE", legacy_users)
+
+    assert external_auth_module.get_external_auth_user("legacy_user") is None
+    assert external_auth_module._resolve_users_file_for_write() == primary_users
+
+
+def test_external_auth_production_explicit_legacy_env_still_allows_compat_store(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    legacy_users = tmp_path / "luban" / "users.json"
+    legacy_users.parent.mkdir(parents=True, exist_ok=True)
+    password_hash = bcrypt.hashpw(
+        hashlib.sha256("StrongPass123".encode("utf-8")).hexdigest().encode("utf-8"),
+        bcrypt.gensalt(),
+    ).decode("utf-8")
+    legacy_users.write_text(
+        json.dumps(
+            {
+                "legacy_user": {
+                    "id": "legacy-user-id",
+                    "username": "legacy_user",
+                    "password_hash": password_hash,
+                }
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(legacy_users))
+
+    user = external_auth_module.get_external_auth_user("legacy_user")
+
+    assert user is not None
+    assert user["username"] == "legacy_user"
 
 
 def test_member_console_serializes_multi_step_writes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1287,6 +1488,8 @@ async def test_login_with_wechat_code_reuses_merged_canonical_member_after_phone
 ) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
 
     async def _fake_exchange(_code: str) -> dict[str, str]:
         return {
@@ -1300,6 +1503,12 @@ async def test_login_with_wechat_code_reuses_merged_canonical_member_after_phone
 
     monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
     monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+    monkeypatch.setattr(
+        member_service_module,
+        "ensure_external_auth_user_for_phone",
+        lambda phone: {"id": canonical_uid, "username": "user_0002", "phone": phone},
+    )
 
     first_login = await service.login_with_wechat_code("wx-code")
     bind_result = await service.bind_phone_for_wechat(first_login["user_id"], "phone-code-merge")
@@ -1311,8 +1520,9 @@ async def test_login_with_wechat_code_reuses_merged_canonical_member_after_phone
     assert second_login["user_id"] == "student_risk"
     assert second_login["user"]["user_id"] == "student_risk"
     assert second_claims is not None
-    assert second_claims["canonical_uid"] == "student_risk"
-    assert second_claims["uid"] == "student_risk"
+    assert second_claims["canonical_uid"] == canonical_uid
+    assert second_claims["uid"] == canonical_uid
+    assert wallet_service.calls[-1]["user_id"] == canonical_uid
 
 
 @pytest.mark.asyncio
