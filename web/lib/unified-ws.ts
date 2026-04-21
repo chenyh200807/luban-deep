@@ -6,6 +6,7 @@
  */
 
 import { apiUrl, wsUrl } from "./api";
+import { requiresWebAuth } from "./web-access";
 
 // ---- StreamEvent types (mirror Python StreamEventType) ----
 
@@ -139,6 +140,9 @@ function buildLocalContractError(message: string): StreamEvent {
 }
 
 async function fetchTurnContractCheck(): Promise<TurnContractCheckResult> {
+  if (!requiresWebAuth()) {
+    return { ok: true };
+  }
   try {
     const response = await fetch(apiUrl("/api/v1/system/turn-contract"), {
       method: "GET",
