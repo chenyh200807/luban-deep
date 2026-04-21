@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from deeptutor.services.rag.pipelines.supabase_strategy import (
     build_exact_question_keyword_terms,
     build_exact_question_text_candidates,
@@ -323,3 +325,82 @@ def test_validate_exact_question_options_supports_list_payloads() -> None:
 def test_matches_allowed_question_type_uses_alias_table_not_substring_match() -> None:
     assert matches_allowed_question_type("single_choice", ["single"])
     assert not matches_allowed_question_type("case_study_followup", ["case_study"])
+
+
+@pytest.mark.asyncio
+async def test_supabase_search_raises_typed_error_on_primary_failure() -> None:
+    from types import SimpleNamespace
+
+    from deeptutor.services.rag.exceptions import RAGSearchError
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    pipeline = supabase_module.SupabasePipeline()
+    config = supabase_module.SupabaseSearchConfig(
+        url="https://example.supabase.co",
+        service_key="test-key",
+        timeout_s=5.0,
+        sources=["textbook"],
+        include_questions=False,
+        top_k=3,
+        fetch_count=6,
+        match_threshold=0.5,
+        vector_weight=1.0,
+        text_weight=1.0,
+        source_weights={"textbook": 1.0},
+        question_weights={"questions_bank": 1.0},
+        max_per_document=2,
+        query_expansion_enabled=False,
+        max_query_variants=1,
+        second_pass_enabled=False,
+        second_pass_max_queries=0,
+        second_pass_min_hits=0,
+        second_pass_max_dup_ratio=1.0,
+        rerank_enabled=False,
+        rerank_window=3,
+        rerank_timeout_s=2.0,
+        exact_question_enabled=False,
+        exact_question_text_first=False,
+        exact_question_min_similarity=0.9,
+        exact_question_max_text_len=128,
+        exact_question_text_rpc_enabled=False,
+    )
+
+    async def _fake_get_client(*args, **kwargs):
+        _ = (args, kwargs)
+        return object()
+
+    async def _raise_runtime_error(*args, **kwargs):
+        _ = (args, kwargs)
+        raise RuntimeError("primary plan exploded")
+
+    pipeline._load_search_config = lambda **kwargs: config
+    pipeline._get_client = _fake_get_client
+    pipeline._run_query_plan = _raise_runtime_error
+    supabase_module.rewrite_query = lambda query, max_variants=1: SimpleNamespace(
+        primary_query=query,
+        query_shape="concept_like",
+        standard_codes=[],
+        keywords=[],
+        reasons=[],
+    )
+    supabase_module.is_question_like_query = lambda query: False
+    supabase_module.select_sources = lambda *args, **kwargs: SimpleNamespace(
+        search_textbook_chunks=True,
+        search_standard_chunks=False,
+        search_exam_chunks=False,
+        search_questions_bank=False,
+        to_trace_dict=lambda: {},
+        selection_reasons=[],
+    )
+    supabase_module.classify_query_shape = lambda query: "concept_like"
+    supabase_module.expand_query_variants = lambda query, max_variants=1: [query]
+
+    with pytest.raises(RAGSearchError) as exc_info:
+        await pipeline.search(query="防水等级", kb_name="construction-exam")
+
+    err = exc_info.value
+    assert err.provider == "supabase"
+    assert err.kb_name == "construction-exam"
+    assert err.query == "防水等级"
+    assert err.stage == "pipeline.search"
+    assert "primary plan exploded" in str(err)
