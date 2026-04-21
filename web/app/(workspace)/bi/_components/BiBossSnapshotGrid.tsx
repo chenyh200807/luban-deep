@@ -8,6 +8,9 @@ type BiBossSnapshotGridProps = {
   overview?: BiWorkbenchData["overview"];
   retention: BiRetentionData;
   members: BiMemberData;
+  overviewIssue?: string;
+  retentionIssue?: string;
+  memberIssue?: string;
 };
 
 function RankLine({
@@ -32,7 +35,14 @@ function RankLine({
   );
 }
 
-export function BiBossSnapshotGrid({ overview, retention, members }: BiBossSnapshotGridProps) {
+export function BiBossSnapshotGrid({
+  overview,
+  retention,
+  members,
+  overviewIssue,
+  retentionIssue,
+  memberIssue,
+}: BiBossSnapshotGridProps) {
   const memberTiers = members.tiers.slice(0, 3);
   const memberRisks = members.risks.slice(0, 2);
   const sampleCount = members.samples.length;
@@ -42,9 +52,14 @@ export function BiBossSnapshotGrid({ overview, retention, members }: BiBossSnaps
   const topHighlight = (overview?.highlights ?? [])[0] ?? "";
 
   return (
-    <section className="grid gap-6 xl:grid-cols-3">
+    <section id="boss-snapshot-grid" className="grid gap-6 xl:grid-cols-3">
       <div className="surface-card p-5">
         <SectionHeader title="会员分层" extra={sampleCount ? `${sampleCount} 个重点样本` : "等待会员样本"} />
+        {memberIssue ? (
+          <div className="mt-4 rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
+            会员模块暂未完整返回：{memberIssue}
+          </div>
+        ) : null}
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {members.cards.slice(0, 2).map((card) => (
             <MiniStatCard key={card.label} label={card.label} value={card.value} hint={card.hint} />
@@ -81,6 +96,11 @@ export function BiBossSnapshotGrid({ overview, retention, members }: BiBossSnaps
 
       <div className="surface-card p-5">
         <SectionHeader title="留存" extra={retentionLabels.join(" / ") || "D0 / D1 / D7 / D30"} />
+        {retentionIssue ? (
+          <div className="mt-4 rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
+            留存模块暂未完整返回：{retentionIssue}
+          </div>
+        ) : null}
         <div className="mt-4 space-y-3">
           <InfoLine
             label="队列数"
@@ -126,6 +146,11 @@ export function BiBossSnapshotGrid({ overview, retention, members }: BiBossSnaps
 
       <div className="surface-card p-5">
         <SectionHeader title="渠道" extra={entrypoints.length ? `${entrypoints.length} 个来源` : "等待渠道数据"} />
+        {overviewIssue ? (
+          <div className="mt-4 rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
+            渠道摘要暂未完整返回：{overviewIssue}
+          </div>
+        ) : null}
         <div className="mt-4 space-y-3">
           <InfoLine
             label="经营摘要"

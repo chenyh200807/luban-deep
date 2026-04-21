@@ -1,7 +1,14 @@
 /* eslint-disable i18n/no-literal-ui-text */
 "use client";
 
-import type { BiBossWorkbench, BiMemberData, BiRetentionData, BiTrendData, BiWorkbenchData } from "@/lib/bi-api";
+import type {
+  BiBossWorkbench,
+  BiMemberData,
+  BiRetentionData,
+  BiTrendData,
+  BiWorkbenchData,
+  BiWorkbenchModuleIssues,
+} from "@/lib/bi-api";
 import { BiBossHomeTab } from "./BiBossHomeTab";
 
 type BiOverviewTabProps = {
@@ -12,6 +19,7 @@ type BiOverviewTabProps = {
   trend: BiTrendData;
   retention: BiRetentionData;
   members: BiMemberData;
+  moduleIssues: BiWorkbenchModuleIssues;
   onNavigateFromBossQueue: (source?: BiBossWorkbench["actionQueue"][number]["source"]) => void;
   onOpenLearnerDetail: (sample: { user_id: string; display_name: string }) => void;
 };
@@ -24,6 +32,7 @@ export function BiOverviewTab({
   trend,
   retention,
   members,
+  moduleIssues,
   onNavigateFromBossQueue,
   onOpenLearnerDetail,
 }: BiOverviewTabProps) {
@@ -36,6 +45,7 @@ export function BiOverviewTab({
       trend={trend}
       retention={retention}
       members={members}
+      moduleIssues={moduleIssues}
       onNavigateFromBossQueue={onNavigateFromBossQueue}
       onOpenLearnerDetail={onOpenLearnerDetail}
     />

@@ -9,9 +9,10 @@ type BiBossTrendPanelProps = {
   days: 7 | 30 | 90;
   trend: BiTrendData;
   overview?: BiWorkbenchData["overview"];
+  issue?: string;
 };
 
-export function BiBossTrendPanel({ loading, days, trend, overview }: BiBossTrendPanelProps) {
+export function BiBossTrendPanel({ loading, days, trend, overview, issue }: BiBossTrendPanelProps) {
   const points = trend.points;
   const activeSeries = points.map((point) => point.active);
   const costSeries = points.map((point) => point.cost);
@@ -25,7 +26,7 @@ export function BiBossTrendPanel({ loading, days, trend, overview }: BiBossTrend
   const highlights = (overview?.highlights ?? []).slice(0, 3);
 
   return (
-    <section className="surface-card p-5">
+    <section id="boss-trend-panel" className="surface-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <SectionHeader title="主趋势图" extra={points.length ? `${points.length} 个周期` : loading ? "加载中" : "等待趋势数据"} />
         <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
@@ -34,6 +35,11 @@ export function BiBossTrendPanel({ loading, days, trend, overview }: BiBossTrend
           <LegendDot color="#6d28d9" label="成功" />
         </div>
       </div>
+      {issue ? (
+        <div className="mt-4 rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
+          经营趋势模块暂未完整返回：{issue}
+        </div>
+      ) : null}
 
       <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
         <div className="rounded-2xl border border-[var(--border)]/60 bg-[linear-gradient(180deg,rgba(195,90,44,0.04),rgba(255,255,255,0.74))] p-4">

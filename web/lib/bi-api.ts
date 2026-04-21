@@ -178,6 +178,18 @@ export interface BiBossWorkbench {
 }
 
 type BiBossCoreModule = "overview" | "active-trend" | "members" | "cost";
+export type BiWorkbenchModuleKey =
+  | "overview"
+  | "trend"
+  | "retention"
+  | "capabilities"
+  | "tools"
+  | "knowledge"
+  | "members"
+  | "cost"
+  | "tutorbots"
+  | "anomalies";
+export type BiWorkbenchModuleIssues = Partial<Record<BiWorkbenchModuleKey, string>>;
 
 export interface BiWorkbenchData {
   overview: BiOverviewData;
@@ -196,6 +208,7 @@ export interface BiWorkbenchState {
   data: BiWorkbenchData;
   issues: string[];
   boss: BiBossWorkbench;
+  moduleIssues: BiWorkbenchModuleIssues;
 }
 
 export interface BiFetchOptions {
@@ -452,13 +465,13 @@ function buildBossKpis(data: BiWorkbenchData): BiBossKpiItem[] {
       if (!label || seen.has(label)) continue;
       seen.add(label);
       kpis.push({ ...item, source });
-      if (kpis.length >= 6) return;
+      if (kpis.length >= 5) return;
     }
   };
 
   append(data.overview.cards, "overview");
-  if (kpis.length < 6) append(data.members.cards, "members");
-  if (kpis.length < 6) append(data.cost.cards, "cost");
+  if (kpis.length < 5) append(data.members.cards, "members");
+  if (kpis.length < 5) append(data.cost.cards, "cost");
 
   return kpis;
 }
@@ -800,6 +813,7 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
   ]);
 
   const issues: string[] = [];
+  const moduleIssues: BiWorkbenchModuleIssues = {};
   const missingCoreModules: BiBossCoreModule[] = [];
   const data = structuredClone(DEFAULT_DATA);
   const [
@@ -818,44 +832,66 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
   if (overview.status === "fulfilled") data.overview = overview.value;
   else {
     missingCoreModules.push("overview");
-    issues.push(overview.reason instanceof Error ? overview.reason.message : "概览加载失败");
+    moduleIssues.overview = overview.reason instanceof Error ? overview.reason.message : "概览加载失败";
+    issues.push(moduleIssues.overview);
   }
 
   if (trend.status === "fulfilled") data.trend = trend.value;
   else {
     missingCoreModules.push("active-trend");
-    issues.push(trend.reason instanceof Error ? trend.reason.message : "趋势加载失败");
+    moduleIssues.trend = trend.reason instanceof Error ? trend.reason.message : "趋势加载失败";
+    issues.push(moduleIssues.trend);
   }
 
   if (retention.status === "fulfilled") data.retention = retention.value;
-  else issues.push(retention.reason instanceof Error ? retention.reason.message : "留存加载失败");
+  else {
+    moduleIssues.retention = retention.reason instanceof Error ? retention.reason.message : "留存加载失败";
+    issues.push(moduleIssues.retention);
+  }
 
   if (capabilities.status === "fulfilled") data.capabilities = capabilities.value;
-  else issues.push(capabilities.reason instanceof Error ? capabilities.reason.message : "能力加载失败");
+  else {
+    moduleIssues.capabilities = capabilities.reason instanceof Error ? capabilities.reason.message : "能力加载失败";
+    issues.push(moduleIssues.capabilities);
+  }
 
   if (tools.status === "fulfilled") data.tools = tools.value;
-  else issues.push(tools.reason instanceof Error ? tools.reason.message : "工具加载失败");
+  else {
+    moduleIssues.tools = tools.reason instanceof Error ? tools.reason.message : "工具加载失败";
+    issues.push(moduleIssues.tools);
+  }
 
   if (knowledge.status === "fulfilled") data.knowledge = knowledge.value;
-  else issues.push(knowledge.reason instanceof Error ? knowledge.reason.message : "知识库加载失败");
+  else {
+    moduleIssues.knowledge = knowledge.reason instanceof Error ? knowledge.reason.message : "知识库加载失败";
+    issues.push(moduleIssues.knowledge);
+  }
 
   if (members.status === "fulfilled") data.members = members.value;
   else {
     missingCoreModules.push("members");
-    issues.push(members.reason instanceof Error ? members.reason.message : "会员加载失败");
+    moduleIssues.members = members.reason instanceof Error ? members.reason.message : "会员加载失败";
+    issues.push(moduleIssues.members);
   }
 
   if (cost.status === "fulfilled") data.cost = cost.value;
   else {
     missingCoreModules.push("cost");
-    issues.push(cost.reason instanceof Error ? cost.reason.message : "成本加载失败");
+    moduleIssues.cost = cost.reason instanceof Error ? cost.reason.message : "成本加载失败";
+    issues.push(moduleIssues.cost);
   }
 
   if (tutorbots.status === "fulfilled") data.tutorbots = tutorbots.value;
-  else issues.push(tutorbots.reason instanceof Error ? tutorbots.reason.message : "TutorBot 加载失败");
+  else {
+    moduleIssues.tutorbots = tutorbots.reason instanceof Error ? tutorbots.reason.message : "TutorBot 加载失败";
+    issues.push(moduleIssues.tutorbots);
+  }
 
   if (anomalies.status === "fulfilled") data.anomalies = anomalies.value;
-  else issues.push(anomalies.reason instanceof Error ? anomalies.reason.message : "异常加载失败");
+  else {
+    moduleIssues.anomalies = anomalies.reason instanceof Error ? anomalies.reason.message : "异常加载失败";
+    issues.push(moduleIssues.anomalies);
+  }
 
-  return { data, issues, boss: buildBiBossWorkbench(data, missingCoreModules) };
+  return { data, issues, boss: buildBiBossWorkbench(data, missingCoreModules), moduleIssues };
 }
