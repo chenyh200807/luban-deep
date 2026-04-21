@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { SidebarShell } from "@/components/sidebar/SidebarShell";
 import { useUnifiedChat } from "@/context/UnifiedChatContext";
 import { isAuthUnavailableError } from "@/lib/api-errors";
+import { requiresWebAuth } from "@/lib/web-access";
 import {
   deleteSession,
   listSessionsPage,
@@ -20,6 +21,7 @@ export default function WorkspaceSidebar() {
   const router = useRouter();
   const { newSession, loadSession, selectedSessionId, sessionStatuses, sidebarRefreshToken } =
     useUnifiedChat();
+  const authEnabled = requiresWebAuth();
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [loadingMoreSessions, setLoadingMoreSessions] = useState(false);
@@ -28,6 +30,14 @@ export default function WorkspaceSidebar() {
   const hasLoadedSessionsRef = useRef(false);
 
   const refreshSessions = useCallback(async () => {
+    if (!authEnabled) {
+      setHistoryUnavailable(false);
+      setSessions([]);
+      setNextCursor(null);
+      setLoadingSessions(false);
+      hasLoadedSessionsRef.current = true;
+      return;
+    }
     if (!hasLoadedSessionsRef.current) {
       setLoadingSessions(true);
     }
@@ -45,9 +55,10 @@ export default function WorkspaceSidebar() {
     } finally {
       setLoadingSessions(false);
     }
-  }, []);
+  }, [authEnabled]);
 
   const loadMoreSessions = useCallback(async () => {
+    if (!authEnabled) return;
     if (!nextCursor || loadingMoreSessions) return;
     setLoadingMoreSessions(true);
     try {
@@ -66,7 +77,7 @@ export default function WorkspaceSidebar() {
     } finally {
       setLoadingMoreSessions(false);
     }
-  }, [loadingMoreSessions, nextCursor]);
+  }, [authEnabled, loadingMoreSessions, nextCursor]);
 
   useEffect(() => {
     void refreshSessions();
