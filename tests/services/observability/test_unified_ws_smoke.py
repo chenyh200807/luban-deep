@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import httpx
 
 from deeptutor.services.observability.unified_ws_smoke import run_unified_ws_smoke
 
@@ -69,7 +70,35 @@ def test_run_unified_ws_smoke_collects_events_and_metrics(monkeypatch) -> None:
     assert result["passed"] is True
     assert result["terminal_event"]["type"] == "done"
     assert result["metrics_after"]["turn_runtime"]["turns_started_total"] == 3
+    assert result["metrics_capture"]["ok"] is True
+    assert result["metrics_capture"]["status_code"] == 200
     assert result["messages"][0]["type"] == "stage_start"
     assert result["sent_payload"]["type"] == "start_turn"
     assert metrics_calls == ["http://127.0.0.1:8001"]
 
+
+def test_run_unified_ws_smoke_keeps_ws_success_when_metrics_capture_fails(monkeypatch) -> None:
+    async def fake_load_metrics(*, api_base_url: str) -> dict:
+        request = httpx.Request("GET", f"{api_base_url.rstrip('/')}/metrics")
+        response = httpx.Response(404, request=request)
+        raise httpx.HTTPStatusError("metrics not exposed", request=request, response=response)
+
+    monkeypatch.setattr(
+        "deeptutor.services.observability.unified_ws_smoke.load_metrics_snapshot_async",
+        fake_load_metrics,
+    )
+
+    result = asyncio.run(
+        run_unified_ws_smoke(
+            api_base_url="https://test2.yousenjiaoyu.com",
+            message="请回复 ok",
+            connector_factory=lambda _url: _FakeConnector(),
+        )
+    )
+
+    assert result["passed"] is True
+    assert result["terminal_event"]["type"] == "done"
+    assert result["metrics_after"] is None
+    assert result["metrics_capture"]["ok"] is False
+    assert result["metrics_capture"]["status_code"] == 404
+    assert "metrics not exposed" in result["metrics_capture"]["error"]
