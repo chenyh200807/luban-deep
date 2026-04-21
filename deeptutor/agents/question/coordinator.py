@@ -21,6 +21,7 @@ from deeptutor.agents.question.models import QAPair, QuestionTemplate
 from deeptutor.logging import Logger, get_logger
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
 from deeptutor.services.path_service import get_path_service
+from deeptutor.services.question_followup import normalize_question_followup_context
 from deeptutor.tools.question.pdf_parser import parse_pdf_with_mineru
 from deeptutor.tools.question.question_extractor import extract_questions_from_paper
 
@@ -221,6 +222,67 @@ class AgentCoordinator:
             trace={"batches": batch_trace},
         )
 
+    async def generate_from_followup_context(
+        self,
+        user_topic: str,
+        preference: str,
+        num_questions: int,
+        followup_question_context: dict[str, Any] | None,
+        difficulty: str = "",
+        question_type: str = "",
+        history_context: str = "",
+    ) -> dict[str, Any]:
+        self._current_batch_dir = self._create_batch_dir("custom")
+        requested = max(1, int(num_questions or 1))
+        templates = self._build_templates_from_followup_context(
+            followup_question_context=followup_question_context,
+            requested=requested,
+            difficulty=difficulty,
+            question_type=question_type,
+        )
+
+        await self._send_ws_update(
+            "progress",
+            {
+                "stage": "ideation",
+                "status": "complete",
+                "current": len(templates),
+                "total": requested,
+                "anchor_generation": True,
+            },
+        )
+        await self._send_ws_update(
+            "templates_ready",
+            {
+                "stage": "ideation",
+                "count": len(templates),
+                "generated_total": len(templates),
+                "requested_total": requested,
+                "anchor_generation": True,
+                "templates": [t.__dict__ for t in templates],
+            },
+        )
+
+        qa_pairs = await self._generation_loop(
+            templates=templates,
+            user_topic=user_topic,
+            preference=preference,
+            history_context=history_context,
+        )
+        return self._build_summary(
+            source="topic",
+            requested=requested,
+            templates=templates,
+            qa_pairs=qa_pairs,
+            trace={
+                "anchor_generation": True,
+                "anchor_item_count": len(
+                    (normalize_question_followup_context(followup_question_context) or {}).get("items")
+                    or ([1] if normalize_question_followup_context(followup_question_context) else [])
+                ),
+            },
+        )
+
     async def generate_from_exam(
         self,
         exam_paper_path: str,
@@ -345,6 +407,72 @@ class AgentCoordinator:
             {"stage": "complete", "completed": len(results), "total": total},
         )
         return results
+
+    def _build_templates_from_followup_context(
+        self,
+        *,
+        followup_question_context: dict[str, Any] | None,
+        requested: int,
+        difficulty: str = "",
+        question_type: str = "",
+    ) -> list[QuestionTemplate]:
+        normalized = normalize_question_followup_context(followup_question_context) or {}
+        raw_items = normalized.get("items") if isinstance(normalized.get("items"), list) else []
+        anchor_items = [
+            item
+            for item in raw_items
+            if normalize_question_followup_context(item)
+        ] or ([normalized] if normalized else [])
+        if not anchor_items:
+            anchor_items = [{"question": "当前学习锚点", "question_type": "choice"}]
+
+        normalized_difficulty = str(difficulty or "").strip().lower()
+        normalized_question_type = str(question_type or "").strip().lower()
+        templates: list[QuestionTemplate] = []
+
+        for index in range(requested):
+            item = normalize_question_followup_context(anchor_items[index % len(anchor_items)]) or {}
+            concentration = (
+                str(item.get("concentration") or "").strip()
+                or str(item.get("question") or "").strip()[:120]
+                or "当前学习锚点"
+            )
+            reference_question = str(item.get("question") or "").strip()
+            knowledge_context = self._compose_followup_anchor_context(item)
+            templates.append(
+                QuestionTemplate(
+                    question_id=f"q_{index + 1}",
+                    concentration=concentration,
+                    question_type=normalized_question_type or str(item.get("question_type") or "choice").strip().lower() or "choice",
+                    difficulty=normalized_difficulty or str(item.get("difficulty") or "").strip().lower() or "medium",
+                    source="followup_anchor",
+                    reference_question=reference_question or None,
+                    reference_answer=str(item.get("correct_answer") or "").strip() or None,
+                    metadata={
+                        "knowledge_context": knowledge_context,
+                        "anchor_source": "followup_question_context",
+                        "anchor_question_id": str(item.get("question_id") or "").strip(),
+                    },
+                )
+            )
+        return templates
+
+    @staticmethod
+    def _compose_followup_anchor_context(item: dict[str, Any]) -> str:
+        sections: list[str] = []
+        concentration = str(item.get("concentration") or "").strip()
+        question = str(item.get("question") or "").strip()
+        explanation = str(item.get("explanation") or "").strip()
+        knowledge_context = str(item.get("knowledge_context") or "").strip()
+        if concentration:
+            sections.append(f"当前知识点：{concentration}")
+        if question:
+            sections.append(f"参考题目：{question}")
+        if explanation:
+            sections.append(f"参考解析：{explanation}")
+        if knowledge_context and knowledge_context not in explanation:
+            sections.append(f"补充知识：{knowledge_context}")
+        return "\n".join(sections)
 
     async def _parse_exam_to_templates(
         self,

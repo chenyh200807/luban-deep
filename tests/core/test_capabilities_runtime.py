@@ -310,6 +310,368 @@ async def test_deep_question_capability_uses_user_message_as_topic(
 
 
 @pytest.mark.asyncio
+async def test_deep_question_capability_anchors_deictic_generation_topic_to_open_chat_context(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+            self._callback = None
+
+        def set_ws_callback(self, callback) -> None:
+            self._callback = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["topic_call"] = kwargs
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question": "流水步距反映什么？",
+                            "options": {"A": "工期", "B": "相邻专业队投入间隔"},
+                            "correct_answer": "B",
+                            "explanation": "步距看相邻专业队之间的时间间隔。",
+                        }
+                    }
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="好，那你现在给我出2道很简单的选择题，只考刚才这几个概念，不要超纲。",
+        config_overrides={
+            "topic": "好，那你现在给我出2道很简单的选择题，只考刚才这几个概念，不要超纲。",
+            "num_questions": 2,
+            "question_type": "choice",
+            "force_generate_questions": True,
+        },
+        language="zh",
+        metadata={
+            "active_object": {
+                "object_type": "open_chat_topic",
+                "object_id": "session-1",
+                "scope": {"domain": "session", "session_id": "session-1", "source": "wx"},
+                "state_snapshot": {
+                    "session_id": "session-1",
+                    "title": "流水施工基本概念",
+                    "compressed_summary": "用户刚刚在讨论流水节拍、流水步距和施工段的区别。",
+                    "source": "wx",
+                    "status": "idle",
+                },
+                "version": 1,
+                "entered_at": "",
+                "last_touched_at": "",
+                "source_turn_id": "turn-1",
+            },
+            "conversation_context_text": "最近一直在讲流水节拍、流水步距和施工段。",
+        },
+    )
+    capability = DeepQuestionCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    resolved_topic = captured["topic_call"]["user_topic"]
+    assert "只考刚才这几个概念" in resolved_topic
+    assert "流水节拍" in resolved_topic
+    assert "如果锚点里没有出现某个新概念" in resolved_topic
+
+
+@pytest.mark.asyncio
+async def test_deep_question_capability_does_not_leak_old_open_chat_anchor_into_explicit_new_topic(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+            self._callback = None
+
+        def set_ws_callback(self, callback) -> None:
+            self._callback = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["topic_call"] = kwargs
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question": "模板工程单选题",
+                            "options": {"A": "A", "B": "B"},
+                            "correct_answer": "A",
+                            "explanation": "解析。",
+                        }
+                    }
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    explicit_topic = "给我出一道模板工程的选择题"
+    context = UnifiedContext(
+        user_message=explicit_topic,
+        config_overrides={"topic": explicit_topic, "question_type": "choice"},
+        language="zh",
+        metadata={
+            "active_object": {
+                "object_type": "open_chat_topic",
+                "object_id": "session-1",
+                "scope": {"domain": "session", "session_id": "session-1", "source": "wx"},
+                "state_snapshot": {
+                    "session_id": "session-1",
+                    "title": "流水施工基本概念",
+                    "compressed_summary": "用户刚刚在讨论流水节拍、流水步距和施工段的区别。",
+                    "source": "wx",
+                    "status": "idle",
+                },
+                "version": 1,
+                "entered_at": "",
+                "last_touched_at": "",
+                "source_turn_id": "turn-1",
+            },
+            "conversation_context_text": "最近一直在讲流水节拍、流水步距和施工段。",
+        },
+    )
+    capability = DeepQuestionCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["topic_call"]["user_topic"] == explicit_topic
+
+
+@pytest.mark.asyncio
+async def test_deep_question_capability_prefers_broader_anchor_over_current_question_for_concept_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+            self._callback = None
+
+        def set_ws_callback(self, callback) -> None:
+            self._callback = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["topic_call"] = kwargs
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question": "流水步距题",
+                            "options": {"A": "A", "B": "B"},
+                            "correct_answer": "A",
+                            "explanation": "解析。",
+                        }
+                    }
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="好，那你现在给我出2道很简单的选择题，只考刚才这几个概念，不要超纲。",
+        config_overrides={
+            "topic": "好，那你现在给我出2道很简单的选择题，只考刚才这几个概念，不要超纲。",
+            "num_questions": 2,
+            "question_type": "choice",
+            "force_generate_questions": True,
+        },
+        language="zh",
+        metadata={
+            "active_object": {
+                "object_type": "single_question",
+                "object_id": "quiz-check-1",
+                "scope": {"domain": "question"},
+                "state_snapshot": {
+                    "question_id": "quiz-check-1",
+                    "question": "木工和钢筋工的流水步距是几天？",
+                    "question_type": "choice",
+                    "options": {"A": "2天", "B": "3天"},
+                    "correct_answer": "B",
+                },
+                "version": 1,
+                "entered_at": "",
+                "last_touched_at": "",
+                "source_turn_id": "turn-check",
+            },
+            "question_followup_context": {
+                "question_id": "quiz-check-1",
+                "question": "木工和钢筋工的流水步距是几天？",
+                "question_type": "choice",
+                "options": {"A": "2天", "B": "3天"},
+                "correct_answer": "B",
+            },
+            "suspended_object_stack": [
+                {
+                    "object_type": "open_chat_topic",
+                    "object_id": "session-1",
+                    "scope": {"domain": "session", "session_id": "session-1", "source": "wx"},
+                    "state_snapshot": {
+                        "session_id": "session-1",
+                        "title": "流水施工基本概念",
+                        "compressed_summary": "用户刚刚在讨论流水节拍、流水步距和施工段的区别。",
+                        "source": "wx",
+                        "status": "idle",
+                    },
+                    "version": 1,
+                    "entered_at": "",
+                    "last_touched_at": "",
+                    "source_turn_id": "turn-open-chat",
+                }
+            ],
+            "conversation_context_text": "最近一直在讲流水节拍、流水步距和施工段。",
+        },
+    )
+    capability = DeepQuestionCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    resolved_topic = captured["topic_call"]["user_topic"]
+    assert "流水节拍" in resolved_topic
+    assert "施工段" in resolved_topic
+    assert "当前题目内容：木工和钢筋工的流水步距是几天" not in resolved_topic
+
+
+@pytest.mark.asyncio
+async def test_deep_question_capability_uses_followup_anchor_fast_generation_for_small_practice_continuation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+            self._callback = None
+
+        def set_ws_callback(self, callback) -> None:
+            self._callback = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            raise AssertionError("generate_from_topic should not be used for anchored continuation")
+
+        async def generate_from_followup_context(self, **kwargs: Any) -> dict[str, Any]:
+            captured["followup_call"] = kwargs
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question_id": "q_1",
+                            "question": "流水节拍题 1",
+                            "question_type": "choice",
+                            "options": {"A": "A", "B": "B"},
+                            "correct_answer": "A",
+                            "explanation": "解析 1",
+                            "concentration": "流水节拍",
+                        }
+                    },
+                    {
+                        "qa_pair": {
+                            "question_id": "q_2",
+                            "question": "流水步距题 2",
+                            "question_type": "choice",
+                            "options": {"A": "A", "B": "B"},
+                            "correct_answer": "B",
+                            "explanation": "解析 2",
+                            "concentration": "流水步距",
+                        }
+                    },
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="好，那你现在给我出2道很简单的选择题，只考刚才这几个概念，不要超纲。",
+        config_overrides={
+            "topic": "好，那你现在给我出2道很简单的选择题，只考刚才这几个概念，不要超纲。",
+            "num_questions": 2,
+            "question_type": "choice",
+            "force_generate_questions": True,
+        },
+        language="zh",
+        metadata={
+            "question_followup_context": {
+                "question_id": "set_1",
+                "question": "上一轮练习",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_prev_1",
+                        "question": "流水节拍反映什么？",
+                        "question_type": "choice",
+                        "options": {"A": "A", "B": "B"},
+                        "correct_answer": "A",
+                        "explanation": "节拍反映本专业队在一个施工段上的持续时间。",
+                        "concentration": "流水节拍",
+                        "difficulty": "easy",
+                        "knowledge_context": "上一轮重点 1",
+                    },
+                    {
+                        "question_id": "q_prev_2",
+                        "question": "流水步距反映什么？",
+                        "question_type": "choice",
+                        "options": {"A": "A", "B": "B"},
+                        "correct_answer": "B",
+                        "explanation": "步距反映相邻专业队投入间隔。",
+                        "concentration": "流水步距",
+                        "difficulty": "easy",
+                        "knowledge_context": "上一轮重点 2",
+                    },
+                ],
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["followup_call"]["num_questions"] == 2
+    assert captured["followup_call"]["question_type"] == "choice"
+    assert len(captured["followup_call"]["followup_question_context"]["items"]) == 2
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "custom"
+    assert result_event.metadata["question_followup_context"]["items"][0]["question"] == "流水节拍题 1"
+
+
+@pytest.mark.asyncio
 async def test_deep_question_capability_uses_single_call_followup_agent(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -892,6 +1254,177 @@ async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visi
     assert "踩分点" not in result_event.metadata["response"]
     assert result_event.metadata["question_followup_context"]["correct_answer"] == "C"
     assert isinstance(result_event.metadata.get("presentation"), dict)
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_capability_keeps_fast_mode_for_question_set_practice_generation_under_smart(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            captured["mode"] = mode
+            captured["session_metadata"] = session_metadata
+            return "### Question 1\n\n流水节拍题"
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-practice-fast",
+        user_message="好，那你现在给我出2道很简单的选择题，只考刚才这几个概念，不要超纲。",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
+        metadata={
+            "active_object": {
+                "object_type": "question_set",
+                "object_id": "set_1",
+                "scope": {"domain": "question"},
+                "state_snapshot": {"question_id": "set_1"},
+            },
+            "question_followup_context": {
+                "question_id": "set_1",
+                "question": "上一轮练习",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_prev_1",
+                        "question": "流水节拍反映什么？",
+                        "question_type": "choice",
+                        "correct_answer": "A",
+                    }
+                ],
+            },
+            "interaction_hints": {"suppress_answer_reveal_on_generate": True},
+        },
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["mode"] == "fast"
+    assert captured["session_metadata"]["selected_mode"] == "fast"
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_capability_keeps_fast_mode_for_question_set_submission_under_smart(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            captured["mode"] = mode
+            captured["session_metadata"] = session_metadata
+            return "第1题错，第2题对。"
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-grade-fast",
+        user_message="我答一下：第1题选B，第2题选C。你帮我批改，并且针对我错的地方解释一下。",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
+        metadata={
+            "active_object": {
+                "object_type": "question_set",
+                "object_id": "set_1",
+                "scope": {"domain": "question"},
+                "state_snapshot": {"question_id": "set_1"},
+            },
+            "question_followup_context": {
+                "question_id": "set_1",
+                "question": "上一轮练习",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_prev_1",
+                        "question": "流水节拍反映什么？",
+                        "question_type": "choice",
+                        "options": {"A": "工序时间", "B": "开工间隔"},
+                        "correct_answer": "A",
+                    },
+                    {
+                        "question_id": "q_prev_2",
+                        "question": "施工段是什么？",
+                        "question_type": "choice",
+                        "options": {"A": "空间划分", "B": "时间参数"},
+                        "correct_answer": "A",
+                    },
+                ],
+            },
+        },
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["mode"] == "fast"
+    assert captured["session_metadata"]["selected_mode"] == "fast"
 
 
 @pytest.mark.asyncio
@@ -2692,7 +3225,8 @@ async def test_deep_question_capability_skips_followup_agent_for_forced_generati
     capability = DeepQuestionCapability()
     events = await _collect_events(lambda bus: capability.run(context, bus))
 
-    assert captured["topic_call"]["user_topic"] == "继续出"
+    assert captured["topic_call"]["user_topic"].startswith("继续出")
+    assert "当前题目内容：旧题" in captured["topic_call"]["user_topic"]
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "custom"
     assert result_event.metadata["question_followup_context"]["question"] == "新的防水工程单选题"

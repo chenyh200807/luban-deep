@@ -5,9 +5,12 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from deeptutor.api.dependencies.auth import AuthContext, resolve_auth_context
 from deeptutor.services.config import get_env_store
 from deeptutor.services.bi_service import get_bi_service
+from deeptutor.services.runtime_env import is_production_environment
 
 
 def _bi_public_enabled() -> bool:
+    if is_production_environment():
+        return False
     value = get_env_store().get("DEEPTUTOR_BI_PUBLIC_ENABLED", "").strip().lower()
     return value in {"1", "true", "yes", "on"}
 

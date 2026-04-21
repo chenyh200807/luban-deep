@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any, Literal
 
 TutorBotResponseMode = Literal["smart", "fast", "deep"]
@@ -45,9 +46,6 @@ def resolve_requested_response_mode(
             hints.get("requested_response_mode"),
         )
 
-    if "teaching_mode" in hints:
-        return normalize_requested_response_mode(hints.get("teaching_mode"))
-
     return "smart"
 
 
@@ -60,28 +58,31 @@ def _looks_like_deep_query(user_message: str) -> bool:
     text = str(user_message or "").strip().lower()
     if not text:
         return False
-    if _contains_any(
-        text,
-        (
-            "案例",
-            "对比",
-            "比较",
-            "分析",
-            "详细",
-            "分步",
-            "规划",
-            "计划",
-            "批改",
-            "讲评",
-            "沿用",
-            "同一个案例",
-            "考试标准",
-            "风险",
-            "多问",
-            "为什么",
-            "怎么做",
-        ),
-    ):
+    strong_markers = (
+        "案例",
+        "对比",
+        "比较",
+        "详细",
+        "分步",
+        "规划",
+        "计划",
+        "批改",
+        "讲评",
+        "沿用",
+        "同一个案例",
+        "考试标准",
+        "风险",
+        "多问",
+    )
+    weak_markers = (
+        "分析",
+        "为什么",
+        "怎么做",
+    )
+    if _contains_any(text, strong_markers):
+        return True
+    weak_marker_hits = sum(1 for marker in weak_markers if marker in text)
+    if weak_marker_hits >= 2:
         return True
     return text.count("？") + text.count("?") >= 2
 
@@ -107,6 +108,15 @@ def _looks_like_fast_query(user_message: str) -> bool:
     )
 
 
+def _looks_like_structured_submission_followup(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    if not _contains_any(text, ("我答", "我选", "批改", "判分", "打分", "订正", "改一下")):
+        return False
+    return re.search(r"第\s*[0-9一二两三四五六七八九十]+\s*[题问]", text) is not None
+
+
 def select_response_mode(
     requested_mode: Any,
     *,
@@ -124,13 +134,17 @@ def select_response_mode(
 
     from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
+    if _looks_like_structured_submission_followup(user_message):
+        return "fast", "structured_submission"
+
+    if looks_like_practice_generation_request(user_message):
+        return "fast", "practice_generation"
+
     deep_reasons: list[str] = []
     if has_active_object:
         deep_reasons.append("active_object")
     if bool(hints.get("current_info_required")):
         deep_reasons.append("current_info_required")
-    if looks_like_practice_generation_request(user_message):
-        deep_reasons.append("practice_generation")
     if _looks_like_deep_query(user_message):
         deep_reasons.append("deep_query_shape")
     if deep_reasons:

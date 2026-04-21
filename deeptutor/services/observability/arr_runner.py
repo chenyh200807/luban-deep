@@ -441,8 +441,10 @@ def _map_long_dialog_failure(case_result: dict[str, Any]) -> str | None:
         return "FAIL_INFRA"
     if summary.get("followup_object_mismatch_count"):
         return "FAIL_CONTINUITY"
-    if summary.get("anchor_miss_count") or summary.get("context_reset_count"):
+    if summary.get("context_reset_count"):
         return "FAIL_CONTEXT_LOSS"
+    if summary.get("anchor_miss_count"):
+        return "FAIL_PRODUCT_BEHAVIOR"
     if summary.get("slow_turns"):
         return "FAIL_TIMEOUT"
     if (

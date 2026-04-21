@@ -37,6 +37,8 @@ from deeptutor.tutorbot.bus.queue import MessageBus
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
+    get_anchor_preservation_instruction,
+    normalize_anchor_terms_in_response,
     get_practice_generation_instruction,
     get_teaching_mode_instruction,
     looks_like_practice_generation_request,
@@ -1275,10 +1277,10 @@ class AgentLoop:
         response_mode = (
             runtime_metadata.get("effective_response_mode")
             or runtime_metadata.get("requested_response_mode")
-            or runtime_metadata.get("teaching_mode")
         )
         runtime_instruction_parts = [
             get_teaching_mode_instruction(response_mode),
+            get_anchor_preservation_instruction(current_message),
             get_markdown_style_instruction(),
             get_practice_generation_instruction(
                 user_message=current_message,
@@ -1303,6 +1305,12 @@ class AgentLoop:
         )
         if fast_path is not None:
             final_content, all_msgs, fast_path_metadata = fast_path
+            final_content = normalize_anchor_terms_in_response(
+                user_message=current_message,
+                response=final_content,
+            ) or final_content
+            if all_msgs:
+                all_msgs[-1]["content"] = final_content
             self._save_turn(session, all_msgs, 1 + len(history))
             session.metadata["last_exact_fast_path"] = bool(
                 fast_path_metadata and fast_path_metadata.get("authority_applied")
@@ -1340,6 +1348,12 @@ class AgentLoop:
             )
             if final_content is None:
                 final_content = "I've completed processing but have no response to give."
+            final_content = normalize_anchor_terms_in_response(
+                user_message=current_message,
+                response=final_content,
+            ) or final_content
+            if all_msgs:
+                all_msgs[-1]["content"] = final_content
             self._save_turn(session, all_msgs, 1 + len(history))
             session.metadata["last_exact_fast_path"] = False
             self.sessions.save(session)
@@ -1373,6 +1387,12 @@ class AgentLoop:
 
         if final_content is None:
             final_content = "I've completed processing but have no response to give."
+        final_content = normalize_anchor_terms_in_response(
+            user_message=current_message,
+            response=final_content,
+        ) or final_content
+        if all_msgs:
+            all_msgs[-1]["content"] = final_content
 
         self._save_turn(session, all_msgs, 1 + len(history))
         session.metadata["last_exact_fast_path"] = False

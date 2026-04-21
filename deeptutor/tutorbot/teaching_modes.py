@@ -30,6 +30,10 @@ _LECTURE_TOPIC_REFERENCES = {
     "energy_saving": "references/energy-saving.md",
     "decoration": "references/decoration.md",
 }
+_BUILDING_ANCHOR_RE = re.compile(
+    r"([0-9一二两三四五六七八九十百]+层(?:住宅楼|办公楼|教学楼|厂房|宿舍楼|综合楼|商住楼|楼))",
+    flags=re.IGNORECASE,
+)
 
 _FAST_INSTRUCTION = """
 当前教学模式：FAST（快答助教）。
@@ -102,6 +106,59 @@ def get_teaching_mode_instruction(value: str | None) -> str:
     if mode == _DEEP:
         return _DEEP_INSTRUCTION
     return ""
+
+
+def get_anchor_preservation_instruction(user_message: str | None) -> str:
+    text = str(user_message or "").strip()
+    if not text:
+        return ""
+    anchor_terms: list[str] = []
+    seen: set[str] = set()
+    for match in _BUILDING_ANCHOR_RE.findall(text):
+        candidate = str(match or "").strip()
+        lowered = candidate.lower()
+        if not candidate or lowered in seen:
+            continue
+        seen.add(lowered)
+        anchor_terms.append(candidate)
+        if len(anchor_terms) >= 3:
+            break
+    if not anchor_terms:
+        return ""
+    return (
+        "如果用户当前问题里已经明确给出具体案例锚点或对象原词，"
+        f"必须显式保留这些锚点原词：{'、'.join(anchor_terms)}。"
+        "不要自行缩写、泛化或换称呼。"
+    )
+
+
+def normalize_anchor_terms_in_response(
+    *,
+    user_message: str | None,
+    response: str | None,
+) -> str | None:
+    content = str(response or "")
+    if not content.strip():
+        return response
+    text = str(user_message or "").strip()
+    if not text:
+        return response
+    anchor_terms: list[str] = []
+    seen: set[str] = set()
+    for match in _BUILDING_ANCHOR_RE.findall(text):
+        candidate = str(match or "").strip()
+        lowered = candidate.lower()
+        if not candidate or lowered in seen:
+            continue
+        seen.add(lowered)
+        anchor_terms.append(candidate)
+        if len(anchor_terms) >= 3:
+            break
+    normalized = content
+    for anchor in anchor_terms:
+        pattern = re.escape(anchor).replace("层", r"\s*层")
+        normalized = re.sub(pattern, anchor, normalized, flags=re.IGNORECASE)
+    return normalized
 
 
 def looks_like_practice_generation_request(user_message: str | None) -> bool:

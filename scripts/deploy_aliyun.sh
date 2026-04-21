@@ -18,3 +18,4 @@ echo "执行远端运行态备份，作为本次发布的回滚基线..."
 ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && python3 scripts/backup_data.py --project-root '${REMOTE_DIR}' --keep '${BACKUP_KEEP}'"
 
 ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && PUBLIC_HOST='${PUBLIC_HOST}' bash scripts/server_bootstrap_aliyun.sh"
+bash "${SCRIPT_DIR}/verify_aliyun_public_endpoints.sh"

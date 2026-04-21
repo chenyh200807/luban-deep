@@ -7,6 +7,7 @@
 - 默认只允许从干净候选分支发布；`main` 或 dirty tree 会被 [scripts/sync_to_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/sync_to_aliyun.sh) 直接拒绝。
 - 默认只允许发往 `Aliyun-ECS-2:/root/deeptutor`；如果要改主机或目录，必须显式设置 `ALLOW_NON_CANONICAL_DEPLOY=1`。
 - [scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh) 和 [scripts/redeploy_aliyun_fast.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/redeploy_aliyun_fast.sh) 在远端重启前都会先执行 `python3 scripts/backup_data.py`，自动生成本次发布的 rollback 基线。
+- 发布完成的唯一验收口径是：本地发起端对公网 `front page`、`/healthz`、`/readyz` 探针全部通过；`docker compose ps` 或远端 `127.0.0.1` 只能算内部就绪，不能直接当成“已上线”。
 - 紧急绕过护栏必须显式设置：
   - `ALLOW_DIRTY_DEPLOY=1`
   - `ALLOW_MAIN_BRANCH_DEPLOY=1`
@@ -58,6 +59,8 @@ python scripts/verify_runtime_assets.py
 - `BACKEND_PORT=8001`
 - `FRONTEND_PORT=3782`
 - `NEXT_PUBLIC_API_BASE_EXTERNAL=http://8.135.42.145:8001`
+- 如果对外入口已经切到同域名 nginx 反代，可额外在本地发布验收时设置：
+  - `PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com`
 - `SERVICE_ENV=production`
 - `APP_ENV=production`
 - `MEMBER_CONSOLE_USE_REAL_SMS=true`
@@ -122,6 +125,9 @@ bash scripts/deploy_aliyun.sh
 3. 远程执行 `scripts/server_bootstrap_aliyun.sh`
 4. 若 `.env` 缺失则自动生成模板
 5. 若 `.env` 已存在则执行 `docker compose up -d --build`
+6. 回到本地发起端执行 `scripts/verify_aliyun_public_endpoints.sh`，只有公网探针通过才算发布完成
+   - 端口直连阶段：直接执行脚本，默认校验 `http://8.135.42.145:3782/8001`
+   - 域名同源阶段：先设置 `PUBLIC_BASE_URL=https://<你的真实公网域名>`，脚本会改为校验 `<PUBLIC_BASE_URL>/`、`/healthz`、`/readyz`
 
 这条是“完整部署”路径，适用于：
 
@@ -163,6 +169,20 @@ bash scripts/redeploy_aliyun_fast.sh
 bash scripts/deploy_aliyun.sh
 ```
 
+发布完成前，至少要看到这三条公网验收都通过：
+
+```bash
+curl -fsS http://8.135.42.145:3782/
+curl -fsS http://8.135.42.145:8001/healthz
+curl -fsS http://8.135.42.145:8001/readyz
+```
+
+如果现网入口已经切到同域名 nginx 反代，则改用：
+
+```bash
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public_endpoints.sh
+```
+
 三条路径的区别：
 
 - `restart_aliyun.sh`
@@ -174,10 +194,12 @@ bash scripts/deploy_aliyun.sh
   - 再先执行一次远端 `python3 scripts/backup_data.py --project-root /root/deeptutor`
   - 再把 `deeptutor/` 等后端代码 `docker cp` 到正在运行的容器
   - 最后重启容器
+  - 重启完成后，会回到本地发起端做一次公网探针验收
   - 适合 Python 后端、Prompt、YAML、路由等无需重装依赖的改动
 - `deploy_aliyun.sh`
   - 先同步，再执行 `docker compose up -d --build`
   - 同样会在真正重建前生成远端 runtime 备份
+  - 远端重建完成后，会回到本地发起端做一次公网探针验收
   - 最慢，但最完整
   - 适合依赖、Dockerfile、前端构建相关改动
 
@@ -283,6 +305,9 @@ python3 scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYm
 docker compose restart deeptutor
 curl -sS http://127.0.0.1:8001/healthz
 curl -sS http://127.0.0.1:8001/readyz
+bash scripts/verify_aliyun_public_endpoints.sh
+# 或：
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public_endpoints.sh
 ```
 
 代码版本回滚：

@@ -8,6 +8,7 @@ from .factory import (
     normalize_provider_name,
     register_pipeline,
 )
+from .exceptions import RAGError, RAGSearchError, wrap_rag_error
 from .pipeline import RAGPipeline
 from .service import RAGService
 from .types import Chunk, Document, SearchResult
@@ -34,5 +35,8 @@ __all__ = [
     "has_pipeline",
     "normalize_provider_name",
     "DEFAULT_PROVIDER",
+    "RAGError",
+    "RAGSearchError",
+    "wrap_rag_error",
     "LlamaIndexPipeline",
 ]

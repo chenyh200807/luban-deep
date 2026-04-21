@@ -16,3 +16,4 @@ echo "适合 Python 后端 / Prompt / YAML 改动；若改了 Dockerfile、requi
 echo "执行远端运行态备份，作为本次快速发布的回滚基线..."
 ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && python3 scripts/backup_data.py --project-root '${REMOTE_DIR}' --keep '${BACKUP_KEEP}'"
 ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && PUBLIC_HOST='${PUBLIC_HOST}' bash scripts/server_fast_reload_aliyun.sh"
+bash "${SCRIPT_DIR}/verify_aliyun_public_endpoints.sh"

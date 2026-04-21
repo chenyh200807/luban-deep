@@ -798,7 +798,6 @@ class TutorBotManager:
             "conversation_id": effective_chat_id,
             "channel": "web",
             "capability": "tutorbot",
-            "teaching_mode": mode,
             "requested_response_mode": str(merged_metadata.get("requested_response_mode") or mode).strip()
             or mode,
             "selected_mode": str(
@@ -862,7 +861,6 @@ class TutorBotManager:
                 await on_tool_result(tool_name, result, metadata)
 
         runtime_metadata = dict(merged_metadata)
-        runtime_metadata["teaching_mode"] = mode
         runtime_metadata["selected_mode"] = (
             str(merged_metadata.get("selected_mode") or merged_metadata.get("effective_response_mode") or mode).strip()
             or mode

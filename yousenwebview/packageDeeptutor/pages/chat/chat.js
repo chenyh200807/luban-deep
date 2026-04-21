@@ -1506,7 +1506,7 @@ Page({
         product_surface: "wechat_miniprogram",
         entry_role: "tutorbot",
         subject_domain: "construction_exam",
-        teaching_mode:
+        requested_response_mode:
           mode === "FAST" ? "fast" : mode === "DEEP" ? "deep" : "smart",
       },
     };

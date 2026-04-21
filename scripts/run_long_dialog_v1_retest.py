@@ -39,7 +39,15 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore
-from deeptutor.services.session.turn_runtime import TurnRuntimeManager
+from deeptutor.services.session.turn_runtime import (
+    TurnRuntimeManager,
+    _normalize_question_followup_action,
+    _result_question_followup_context,
+    _should_pin_tutorbot_capability,
+)
+from deeptutor.tutorbot.teaching_modes import (
+    normalize_anchor_terms_in_response,
+)
 
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "tmp"
 DEFAULT_SOURCE_CANDIDATES = [
@@ -162,17 +170,16 @@ def _query_requires_current_info(query: str) -> bool:
 
 def _build_retest_interaction_hints(
     *,
-    mode: str,
+    response_mode: str,
     profile: str,
     query: str,
     hints: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     merged = dict(hints or {})
     merged["profile"] = profile or "construction_exam_tutor"
-    normalized_mode = str(mode or "").strip().lower()
+    normalized_mode = str(response_mode or "").strip().lower()
     if normalized_mode in {"smart", "fast", "deep"}:
         merged["requested_response_mode"] = normalized_mode
-        merged["teaching_mode"] = normalized_mode
     if _query_requires_current_info(query):
         merged["current_info_required"] = True
     return merged
@@ -229,6 +236,13 @@ def _classify_turn(
 ) -> dict[str, Any]:
     issues: list[str] = []
     response_text = response or ""
+    normalized_response_text = (
+        normalize_anchor_terms_in_response(
+            user_message=query,
+            response=response_text,
+        )
+        or response_text
+    )
 
     empty = not response_text.strip()
     hard_error = empty or any(marker in response_text for marker in TEMP_ERROR_MARKERS)
@@ -260,7 +274,7 @@ def _classify_turn(
 
     anchor_miss = False
     for label, terms in _explicit_anchor_requirements(query):
-        if not all(term in response_text for term in terms):
+        if not all(term in normalized_response_text for term in terms):
             anchor_miss = True
             issues.append(f"anchor_miss:{label}")
             break
@@ -352,24 +366,19 @@ def _build_cases(source_payload: dict[str, Any]) -> list[dict[str, Any]]:
 def _build_turn_config(
     *,
     query: str,
-    teaching_mode: str,
+    response_mode: str,
     include_eval_user: bool,
 ) -> dict[str, Any]:
-    billing_context: dict[str, Any] = {
-        "source": "wx_miniprogram",
-    }
-    if include_eval_user:
-        billing_context["user_id"] = "ld_eval_user"
+    del include_eval_user
     return {
         "bot_id": "construction-exam-coach",
         "interaction_profile": "tutorbot",
         "interaction_hints": _build_retest_interaction_hints(
-            mode=teaching_mode,
+            response_mode=response_mode,
             profile="tutorbot",
             query=query,
             hints={},
         ),
-        "billing_context": billing_context,
     }
 
 
@@ -428,12 +437,23 @@ async def _run_single_turn(
     *,
     session_id: str | None,
     query: str,
-    teaching_mode: str,
+    response_mode: str,
+    followup_question_context: dict[str, Any] | None = None,
+    followup_action: dict[str, Any] | None = None,
 ) -> tuple[str, str, float | None, float, list[str], dict[str, Any]]:
     config = _build_turn_config(
         query=query,
-        teaching_mode=teaching_mode,
+        response_mode=response_mode,
         include_eval_user=True,
+    )
+    selected_capability = (
+        "tutorbot"
+        if _should_pin_tutorbot_capability(
+            user_message=query,
+            followup_question_context=followup_question_context,
+            followup_action=followup_action,
+        )
+        else None
     )
     start = time.perf_counter()
     session, turn = await runtime.start_turn(
@@ -441,7 +461,7 @@ async def _run_single_turn(
             "type": "start_turn",
             "content": query,
             "session_id": session_id,
-            "capability": "tutorbot",
+            "capability": selected_capability,
             "tools": [],
             "knowledge_bases": [],
             "attachments": [],
@@ -481,17 +501,27 @@ async def _run_single_turn_live_ws(
     api_base_url: str,
     session_id: str | None,
     query: str,
-    teaching_mode: str,
+    response_mode: str,
+    followup_question_context: dict[str, Any] | None = None,
+    followup_action: dict[str, Any] | None = None,
 ) -> tuple[str, str, float | None, float, list[str], dict[str, Any]]:
     config = _build_turn_config(
         query=query,
-        teaching_mode=teaching_mode,
+        response_mode=response_mode,
         include_eval_user=False,
     )
     payload = {
         "type": "start_turn",
         "content": query,
-        "capability": "tutorbot",
+        "capability": (
+            "tutorbot"
+            if _should_pin_tutorbot_capability(
+                user_message=query,
+                followup_question_context=followup_question_context,
+                followup_action=followup_action,
+            )
+            else None
+        ),
         "tools": [],
         "knowledge_bases": [],
         "attachments": [],
@@ -553,7 +583,7 @@ async def _run_single_turn_live_ws(
 async def _run_case(
     case: dict[str, Any],
     *,
-    teaching_mode: str,
+    response_mode: str,
     per_turn_timeout_s: float,
     turn_mode: str,
     api_base_url: str | None = None,
@@ -566,6 +596,8 @@ async def _run_case(
 
     session_id: str | None = None
     prev_response = ""
+    followup_question_context: dict[str, Any] | None = None
+    followup_action: dict[str, Any] | None = None
     results: list[dict[str, Any]] = []
     aborted = False
     abort_reason = ""
@@ -592,14 +624,18 @@ async def _run_case(
                         api_base_url=api_base_url,
                         session_id=session_id,
                         query=query,
-                        teaching_mode=teaching_mode,
+                        response_mode=response_mode,
+                        followup_question_context=followup_question_context,
+                        followup_action=followup_action,
                     )
                     if api_base_url
                     else _run_single_turn(
                         runtime,
                         session_id=session_id,
                         query=query,
-                        teaching_mode=teaching_mode,
+                        response_mode=response_mode,
+                        followup_question_context=followup_question_context,
+                        followup_action=followup_action,
                     )
                 ),
                 timeout=per_turn_timeout_s,
@@ -611,6 +647,10 @@ async def _run_case(
                 prev_response=prev_response,
             )
             prev_response = response
+            followup_question_context = _result_question_followup_context(result_metadata)
+            followup_action = _normalize_question_followup_action(
+                result_metadata.get("question_followup_action")
+            )
             results.append(
                 {
                     "turn": turn_no,
@@ -729,7 +769,7 @@ def _render_markdown(
     results: list[dict[str, Any]],
     *,
     source_json: Path,
-    teaching_mode: str,
+    response_mode: str,
     api_base_url: str | None,
 ) -> str:
     run_summary = _build_run_summary(results)
@@ -738,7 +778,7 @@ def _render_markdown(
         "# Long Dialog V1 Retest",
         "",
         f"**时间**: {time.strftime('%Y-%m-%d %H:%M:%S')}",
-        f"**教学模式**: {teaching_mode}",
+        f"**响应模式**: {response_mode}",
         f"**执行方式**: {'live_ws' if api_base_url else 'in_process_runtime'}",
         f"**API Base URL**: `{api_base_url}`" if api_base_url else "**API Base URL**: `N/A`",
         f"**数据源**: `{source_json}`",
@@ -816,10 +856,16 @@ async def main() -> None:
         help="full=整条链；focus=仅跑代表性关键轮次",
     )
     parser.add_argument(
-        "--teaching-mode",
+        "--response-mode",
         choices=["smart", "fast", "deep"],
         default="smart",
-        help="教学模式，默认 smart",
+        help="响应模式，默认 smart",
+    )
+    parser.add_argument(
+        "--teaching-mode",
+        choices=["smart", "fast", "deep"],
+        dest="legacy_teaching_mode",
+        help="兼容旧参数名；请改用 --response-mode",
     )
     parser.add_argument(
         "--per-turn-timeout",
@@ -849,15 +895,16 @@ async def main() -> None:
     if not cases:
         raise SystemExit("没有可执行的 case。")
 
+    response_mode = args.legacy_teaching_mode or args.response_mode
     stamp = time.strftime("%Y%m%d_%H%M%S")
-    json_path = output_dir / f"long_dialog_v1_retest_{args.teaching_mode}_{stamp}.json"
-    md_path = output_dir / f"long_dialog_v1_retest_{args.teaching_mode}_{stamp}.md"
+    json_path = output_dir / f"long_dialog_v1_retest_{response_mode}_{stamp}.json"
+    md_path = output_dir / f"long_dialog_v1_retest_{response_mode}_{stamp}.md"
 
     results: list[dict[str, Any]] = []
     for case in cases:
         case_result = await _run_case(
             case,
-            teaching_mode=args.teaching_mode,
+            response_mode=response_mode,
             per_turn_timeout_s=args.per_turn_timeout,
             turn_mode=args.turn_mode,
             api_base_url=args.api_base_url,
@@ -868,7 +915,7 @@ async def main() -> None:
             _render_markdown(
                 results,
                 source_json=source_json,
-                teaching_mode=args.teaching_mode,
+                response_mode=response_mode,
                 api_base_url=args.api_base_url,
             ),
             encoding="utf-8",

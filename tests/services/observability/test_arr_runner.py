@@ -7,6 +7,7 @@ import pytest
 
 from deeptutor.services.observability import reset_control_plane_store
 from deeptutor.services.observability.arr_runner import (
+    _map_long_dialog_failure,
     assess_long_dialog_readiness,
     build_arr_report_payload,
     compute_baseline_diff,
@@ -58,6 +59,46 @@ async def test_local_long_dialog_suite_returns_passing_fixture_results() -> None
     assert suite_summary["passed"] == len(case_results)
     assert all(item["status"] == "PASS" for item in case_results)
     assert all(item["case_tier"] == "regression_tier" for item in case_results)
+
+
+def test_map_long_dialog_failure_treats_anchor_miss_as_product_behavior() -> None:
+    assert (
+        _map_long_dialog_failure(
+            {
+                "summary": {
+                    "hard_errors": 0,
+                    "followup_object_mismatch_count": 0,
+                    "anchor_miss_count": 1,
+                    "context_reset_count": 0,
+                    "slow_turns": 0,
+                    "question_count_mismatch_count": 0,
+                    "compare_table_miss_count": 0,
+                    "stale_replay_count": 0,
+                }
+            }
+        )
+        == "FAIL_PRODUCT_BEHAVIOR"
+    )
+
+
+def test_map_long_dialog_failure_keeps_context_reset_as_context_loss() -> None:
+    assert (
+        _map_long_dialog_failure(
+            {
+                "summary": {
+                    "hard_errors": 0,
+                    "followup_object_mismatch_count": 0,
+                    "anchor_miss_count": 0,
+                    "context_reset_count": 1,
+                    "slow_turns": 0,
+                    "question_count_mismatch_count": 0,
+                    "compare_table_miss_count": 0,
+                    "stale_replay_count": 0,
+                }
+            }
+        )
+        == "FAIL_CONTEXT_LOSS"
+    )
 
 
 def test_compute_baseline_diff_detects_regressions_new_failures_and_recoveries() -> None:

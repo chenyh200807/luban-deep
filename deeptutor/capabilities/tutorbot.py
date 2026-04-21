@@ -15,6 +15,8 @@ from deeptutor.services.question_followup import (
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
     extract_choice_result_summary_from_text,
+    normalize_question_followup_context,
+    resolve_submission_attempt,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.tutorbot import get_tutorbot_manager
@@ -50,7 +52,7 @@ class TutorBotCapability(BaseCapability):
             return
         runtime_defaults = resolve_bot_runtime_defaults(bot_id=bot_id)
         policy = self._mode_policy(context)
-        teaching_mode = policy.effective_mode
+        response_mode = policy.effective_mode
         hide_generated_answers = self._should_hide_generated_answers(context)
 
         manager = get_tutorbot_manager()
@@ -77,14 +79,13 @@ class TutorBotCapability(BaseCapability):
             "source": self._billing_source(context) or "ws",
             "title": manager._infer_conversation_title(context.user_message),
             "bot_id": bot_id,
-            "default_tools": self._session_default_tools(context, teaching_mode=teaching_mode),
+            "default_tools": self._session_default_tools(context, response_mode=response_mode),
             "knowledge_bases": list(context.knowledge_bases or []),
             "requested_response_mode": policy.requested_mode,
             "selected_mode": policy.selected_mode,
             "effective_response_mode": policy.effective_mode,
             "response_mode_degrade_reason": policy.response_mode_degrade_reason,
             "response_mode_selection_reason": policy.selection_reason,
-            "teaching_mode": policy.effective_mode,
             "mode_execution_policy": {
                 "max_tool_rounds": policy.max_tool_rounds,
                 "allow_deep_stage": policy.allow_deep_stage,
@@ -301,7 +302,7 @@ class TutorBotCapability(BaseCapability):
                 requested_mode,
                 user_message=context.user_message,
                 interaction_hints=hints if isinstance(hints, dict) else None,
-                has_active_object=bool(metadata.get("active_object")),
+                has_active_object=TutorBotCapability._active_object_requires_deep(context),
             )
             if not selection_reason:
                 selection_reason = inferred_reason
@@ -312,8 +313,37 @@ class TutorBotCapability(BaseCapability):
         )
 
     @staticmethod
-    def _session_default_tools(context: UnifiedContext, *, teaching_mode: str) -> list[str]:
-        if teaching_mode == "fast":
+    def _active_object_requires_deep(context: UnifiedContext) -> bool:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        active_object = metadata.get("active_object") if isinstance(metadata.get("active_object"), dict) else {}
+        if not active_object:
+            return False
+        object_type = str(active_object.get("object_type") or "").strip()
+        if object_type == "open_chat_topic":
+            return False
+
+        followup_context = normalize_question_followup_context(
+            metadata.get("question_followup_context")
+            if isinstance(metadata.get("question_followup_context"), dict)
+            else None
+        )
+        if object_type in {"question_set", "single_question"} and followup_context:
+            if looks_like_practice_generation_request(context.user_message):
+                return False
+            _, submission = resolve_submission_attempt(context.user_message, followup_context)
+            if submission:
+                return False
+            text = str(context.user_message or "").strip()
+            if (
+                any(marker in text for marker in ("我答", "我选", "批改", "判分", "打分"))
+                and re.search(r"第\s*[0-9一二两三四五六七八九十]+\s*[题问]", text)
+            ):
+                return False
+        return True
+
+    @staticmethod
+    def _session_default_tools(context: UnifiedContext, *, response_mode: str) -> list[str]:
+        if response_mode == "fast":
             return ["rag"] if ("rag" in (context.enabled_tools or []) or context.knowledge_bases) else []
         return list(context.enabled_tools or [])
 

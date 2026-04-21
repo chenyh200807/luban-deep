@@ -24,6 +24,7 @@
 5. adapter 可以做输入归一化，但不能成为 capability 决策的真实来源。
 6. semantic router / rollout mode / shadow decision 也属于 orchestrator 的 capability 控制面；`mobile`、`unified_ws` 这类 adapter 只能传递 hints / auth / transport metadata，不能并行决定 capability。
 7. adapter 如果需要把 token claims、wallet identity 或旧字段 alias 归一到 canonical 用户上下文，也只能服务于统一 request config 装配；不能把 capability 选择下沉到 adapter 本身。
+8. 响应风格公开字段只能使用 `requested_response_mode`；`teaching_mode` 若仍被旧入口传入，只能在 adapter 层归一化并删除，不能继续作为 capability config 或路由决策字段存在。
 
 ## Schema
 

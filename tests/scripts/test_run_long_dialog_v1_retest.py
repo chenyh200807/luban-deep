@@ -20,7 +20,7 @@ SPEC.loader.exec_module(MODULE)
 async def test_run_case_records_ttft_metrics(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    async def _fake_run_single_turn(*_args, session_id=None, query: str, teaching_mode: str, **_kwargs):
+    async def _fake_run_single_turn(*_args, session_id=None, query: str, response_mode: str, **_kwargs):
         if "第一问" in query:
             return (
                 session_id or "session-1",
@@ -63,7 +63,7 @@ async def test_run_case_records_ttft_metrics(
 
     result = await MODULE._run_case(
         case,
-        teaching_mode="smart",
+        response_mode="smart",
         per_turn_timeout_s=5.0,
         turn_mode="full",
     )
@@ -127,7 +127,7 @@ def test_render_markdown_includes_ttft_overview() -> None:
     rendered = MODULE._render_markdown(
         results,
         source_json=Path("/tmp/source.json"),
-        teaching_mode="smart",
+        response_mode="smart",
         api_base_url=None,
     )
 
@@ -229,7 +229,7 @@ def test_render_markdown_uses_turn_weighted_global_ttft_average() -> None:
     rendered = MODULE._render_markdown(
         results,
         source_json=Path("/tmp/source.json"),
-        teaching_mode="smart",
+        response_mode="smart",
         api_base_url=None,
     )
 
@@ -239,21 +239,32 @@ def test_render_markdown_uses_turn_weighted_global_ttft_average() -> None:
 def test_build_turn_config_omits_eval_user_for_live_ws() -> None:
     runtime_config = MODULE._build_turn_config(
         query="测试问题",
-        teaching_mode="smart",
+        response_mode="smart",
         include_eval_user=True,
     )
     live_ws_config = MODULE._build_turn_config(
         query="测试问题",
-        teaching_mode="smart",
+        response_mode="smart",
         include_eval_user=False,
     )
 
-    assert runtime_config["billing_context"]["user_id"] == "ld_eval_user"
-    assert "user_id" not in live_ws_config["billing_context"]
-    assert live_ws_config["billing_context"]["source"] == "wx_miniprogram"
+    assert "billing_context" not in runtime_config
+    assert "billing_context" not in live_ws_config
     assert runtime_config["interaction_profile"] == "tutorbot"
     assert runtime_config["bot_id"] == "construction-exam-coach"
     assert runtime_config["interaction_hints"]["profile"] == "tutorbot"
+
+
+def test_classify_turn_normalizes_explicit_case_anchor_before_anchor_check() -> None:
+    result = MODULE._classify_turn(
+        query="你用盖一栋6层住宅楼举个例子讲讲",
+        response="想象你盖一栋 6 层住宅楼，先做第一层，再做第二层。",
+        latency_ms=1_000.0,
+        prev_response="",
+    )
+
+    assert result["anchor_miss"] is False
+    assert "anchor_miss:6层住宅楼" not in result["issues"]
 
 
 @pytest.mark.asyncio
@@ -311,7 +322,8 @@ async def test_main_prints_ttft_summary_to_stdout(
             cases=None,
             max_cases=None,
             turn_mode="full",
-            teaching_mode="smart",
+            response_mode="smart",
+            legacy_teaching_mode=None,
             per_turn_timeout=5.0,
             api_base_url=None,
         ),
@@ -324,3 +336,99 @@ async def test_main_prints_ttft_summary_to_stdout(
     assert "P50 TTFT: 1500.0ms" in captured.out
     assert "P90 TTFT: 1900.0ms" in captured.out
     assert "平均延迟: 2000.0ms" in captured.out
+
+
+@pytest.mark.asyncio
+async def test_run_single_turn_leaves_capability_unforced_for_semantic_router() -> None:
+    captured: dict[str, object] = {}
+
+    class _FakeRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return {"id": "session-1"}, {"id": "turn-1"}
+
+        async def subscribe_turn(self, _turn_id: str, after_seq: int = 0):
+            del after_seq
+            yield {"type": "session"}
+            yield {"type": "content", "content": "答复"}
+            yield {"type": "done"}
+
+    session_id, response, ttft_ms, latency_ms, event_types, result_metadata = await MODULE._run_single_turn(
+        _FakeRuntime(),
+        session_id=None,
+        query="给我出两道选择题",
+        response_mode="smart",
+    )
+
+    assert captured["payload"]["capability"] is None
+    assert session_id == "session-1"
+    assert response == "答复"
+    assert ttft_ms is not None
+    assert latency_ms >= 0
+    assert event_types == ["session", "content", "done"]
+    assert result_metadata == {}
+
+
+@pytest.mark.asyncio
+async def test_run_single_turn_keeps_tutorbot_for_non_generation_turns() -> None:
+    captured: dict[str, object] = {}
+
+    class _FakeRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return {"id": "session-1"}, {"id": "turn-1"}
+
+        async def subscribe_turn(self, _turn_id: str, after_seq: int = 0):
+            del after_seq
+            yield {"type": "done"}
+
+    await MODULE._run_single_turn(
+        _FakeRuntime(),
+        session_id=None,
+        query="你用盖一栋6层住宅楼举个例子讲讲",
+        response_mode="smart",
+    )
+
+    assert captured["payload"]["capability"] == "tutorbot"
+
+
+@pytest.mark.asyncio
+async def test_run_single_turn_unpins_tutorbot_when_question_followup_context_exists() -> None:
+    captured: dict[str, object] = {}
+
+    class _FakeRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return {"id": "session-1"}, {"id": "turn-1"}
+
+        async def subscribe_turn(self, _turn_id: str, after_seq: int = 0):
+            del after_seq
+            yield {"type": "done"}
+
+    await MODULE._run_single_turn(
+        _FakeRuntime(),
+        session_id="session-1",
+        query="我答一下：第1题选B，第2题选C。你帮我批改，并且针对我错的地方解释一下。",
+        response_mode="smart",
+        followup_question_context={
+            "question_id": "q_1",
+            "question": "### Question 1",
+            "question_type": "choice",
+            "items": [
+                {
+                    "question_id": "q_1",
+                    "question": "题目1",
+                    "question_type": "choice",
+                    "options": {"A": "a", "B": "b", "C": "c", "D": "d"},
+                },
+                {
+                    "question_id": "q_2",
+                    "question": "题目2",
+                    "question_type": "choice",
+                    "options": {"A": "a", "B": "b", "C": "c", "D": "d"},
+                },
+            ],
+        },
+    )
+
+    assert captured["payload"]["capability"] is None

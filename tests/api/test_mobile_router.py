@@ -67,6 +67,11 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
     )
     monkeypatch.setattr(
         mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
         "session_store",
         SimpleNamespace(
             get_session_owner_key=AsyncMock(return_value="user:student_demo")
@@ -98,7 +103,7 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
     assert captured["payload"]["config"]["billing_context"] == {
         "source": "wx_miniprogram",
         "user_id": "student_demo",
-        "wallet_user_id": "student_demo",
+        "wallet_user_id": "wallet_demo",
         "learning_user_id": "student_demo",
     }
 
@@ -129,6 +134,11 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
         mobile_module,
         "_resolve_authenticated_user_id",
         lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
     )
     monkeypatch.setattr(
         mobile_module,
@@ -209,7 +219,7 @@ def test_mobile_chat_start_turn_writes_requested_response_mode_and_legacy_alias(
     config = captured["payload"]["config"]
     assert config["chat_mode"] == "deep"
     assert config["interaction_hints"]["requested_response_mode"] == "deep"
-    assert config["interaction_hints"]["teaching_mode"] == "deep"
+    assert "teaching_mode" not in config["interaction_hints"]
 
 
 def test_mobile_chat_start_turn_overrides_conflicting_legacy_teaching_mode_with_canonical_mode(
@@ -264,7 +274,7 @@ def test_mobile_chat_start_turn_overrides_conflicting_legacy_teaching_mode_with_
     config = captured["payload"]["config"]
     assert config["chat_mode"] == "deep"
     assert config["interaction_hints"]["requested_response_mode"] == "deep"
-    assert config["interaction_hints"]["teaching_mode"] == "deep"
+    assert "teaching_mode" not in config["interaction_hints"]
 
 
 def test_mobile_chat_start_turn_preserves_legacy_teaching_mode_when_mode_is_implicit_auto(
@@ -318,7 +328,7 @@ def test_mobile_chat_start_turn_preserves_legacy_teaching_mode_when_mode_is_impl
     config = captured["payload"]["config"]
     assert config["chat_mode"] == "deep"
     assert config["interaction_hints"]["requested_response_mode"] == "deep"
-    assert config["interaction_hints"]["teaching_mode"] == "deep"
+    assert "teaching_mode" not in config["interaction_hints"]
 
 
 def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
@@ -1020,6 +1030,39 @@ def test_wechat_bind_phone_uses_bound_user(monkeypatch: pytest.MonkeyPatch) -> N
     assert response.status_code == 200
     assert response.json()["bound"] is True
     assert response.json()["user_id"] == "wx_user_1"
+
+
+def test_wechat_bind_phone_rate_limits_by_route_and_client_ip(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        rate_limit_module,
+        "_RATE_LIMIT_POLICY_OVERRIDES",
+        {
+            "mobile_wechat_bind_phone": rate_limit_module.RateLimitPolicy(
+                max_requests=1,
+                window_seconds=60.0,
+            )
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "wx_user_1",
+    )
+
+    async def _fake_bind_phone(_user_id: str, _phone_code: str) -> dict[str, object]:
+        return {"bound": True}
+
+    monkeypatch.setattr(mobile_module.member_service, "bind_phone_for_wechat", _fake_bind_phone)
+
+    with TestClient(_build_app()) as client:
+        first = client.post("/api/v1/wechat/mp/bind-phone", json={"phone_code": "13800001234"})
+        second = client.post("/api/v1/wechat/mp/bind-phone", json={"phone_code": "13800001234"})
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.json()["detail"] == "Too many requests"
 
 
 def test_bi_radar_self_uses_authenticated_user_id(monkeypatch: pytest.MonkeyPatch) -> None:

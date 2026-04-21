@@ -77,6 +77,14 @@ def _micros_to_points(value: int | float | None) -> int:
     return int(round(micros / 1_000_000))
 
 
+def _points_to_micros(value: int | float | None) -> int:
+    try:
+        points = int(value or 0)
+    except (TypeError, ValueError):
+        points = 0
+    return points * 1_000_000
+
+
 def _wallet_packages() -> list[dict[str, Any]]:
     getter = getattr(member_service, "_default_packages", None)
     if callable(getter):
@@ -190,6 +198,117 @@ def _serialize_wallet_ledger_entry(entry: WalletLedgerEntry) -> dict[str, Any]:
         "metadata": dict(entry.metadata or {}),
         "created_at": entry.created_at,
     }
+
+
+def _legacy_ledger_event_type(reason: str, delta_points: int) -> str:
+    normalized_reason = str(reason or "").strip().lower()
+    if normalized_reason == "refund":
+        return "refund"
+    if delta_points < 0:
+        return "debit"
+    if normalized_reason in {"purchase", "signup_bonus", "grant", "admin_grant"}:
+        return "grant"
+    return "admin_adjust"
+
+
+def _resolve_legacy_ledger_candidate_user_ids(authorization: str | None) -> list[str]:
+    current_user = resolve_auth_context(authorization)
+    candidates: list[str] = []
+
+    def _append(value: Any) -> None:
+        normalized = str(value or "").strip()
+        if normalized and normalized not in candidates:
+            candidates.append(normalized)
+
+    if current_user is None:
+        return candidates
+    _append(current_user.user_id)
+    claims = current_user.claims if isinstance(current_user.claims, dict) else {}
+    _append(claims.get("uid"))
+    _append(claims.get("sub"))
+    _append(claims.get("canonical_uid"))
+    return candidates
+
+
+def _load_legacy_wallet_ledger_entries(
+    authorization: str | None,
+    *,
+    wallet_user_id: str,
+    limit: int,
+) -> list[WalletLedgerEntry]:
+    if limit <= 0:
+        return []
+    candidates = _resolve_legacy_ledger_candidate_user_ids(authorization)
+    if not candidates:
+        return []
+
+    merged: list[WalletLedgerEntry] = []
+    seen_keys: set[tuple[str, str, int, str]] = set()
+    for candidate_user_id in candidates:
+        try:
+            profile = member_service.get_profile(candidate_user_id)
+            ledger_payload = member_service.get_ledger(candidate_user_id, limit=limit, offset=0)
+        except Exception:
+            continue
+        raw_entries = ledger_payload.get("entries") if isinstance(ledger_payload, dict) else []
+        if not isinstance(raw_entries, list) or not raw_entries:
+            continue
+        running_balance_points = int((profile or {}).get("points") or 0)
+        sorted_entries = sorted(
+            [dict(item) for item in raw_entries if isinstance(item, dict)],
+            key=lambda item: (str(item.get("created_at") or ""), str(item.get("id") or "")),
+            reverse=True,
+        )
+        for item in sorted_entries:
+            delta_points = int(item.get("delta") or 0)
+            reason = str(item.get("reason") or "").strip()
+            created_at = str(item.get("created_at") or "").strip()
+            legacy_id = str(item.get("id") or "").strip()
+            dedupe_key = (created_at, reason, delta_points, legacy_id)
+            if dedupe_key in seen_keys:
+                running_balance_points -= delta_points
+                continue
+            seen_keys.add(dedupe_key)
+            merged.append(
+                WalletLedgerEntry(
+                    id=f"legacy:{candidate_user_id}:{legacy_id or created_at}",
+                    user_id=wallet_user_id or candidate_user_id,
+                    event_type=_legacy_ledger_event_type(reason, delta_points),
+                    delta_micros=_points_to_micros(delta_points),
+                    balance_after_micros=_points_to_micros(running_balance_points),
+                    frozen_after_micros=0,
+                    reference_type="legacy_member_console",
+                    reference_id=legacy_id,
+                    idempotency_key=f"legacy:{candidate_user_id}:{legacy_id or created_at}",
+                    metadata={
+                        "reason": reason,
+                        "source": "legacy_member_console",
+                        "legacy_user_id": candidate_user_id,
+                        "legacy_entry_id": legacy_id,
+                    },
+                    created_at=created_at,
+                )
+            )
+            running_balance_points -= delta_points
+    merged.sort(key=lambda item: (item.created_at, item.id), reverse=True)
+    return merged[:limit]
+
+
+def _merge_wallet_ledger_entries(
+    wallet_entries: list[WalletLedgerEntry],
+    legacy_entries: list[WalletLedgerEntry],
+) -> list[WalletLedgerEntry]:
+    merged: list[WalletLedgerEntry] = []
+    seen_keys: set[tuple[str, str, int, str]] = set()
+    for entry in [*wallet_entries, *legacy_entries]:
+        reason = _ledger_reason(entry)
+        dedupe_key = (entry.created_at, reason, int(entry.delta_micros), str(entry.reference_id or ""))
+        if dedupe_key in seen_keys:
+            continue
+        seen_keys.add(dedupe_key)
+        merged.append(entry)
+    merged.sort(key=lambda item: (item.created_at, item.id), reverse=True)
+    return merged
 
 
 async def _assert_mobile_conversation_access(conversation_id: str, user_id: str) -> None:
@@ -594,7 +713,8 @@ def _merge_interaction_hints(
 def _build_mobile_turn_payload(
     *,
     body: MobileStartTurnRequest,
-    user_id: str,
+    authenticated_user_id: str,
+    wallet_user_id: str,
     query: str,
 ) -> dict[str, Any]:
     requested_tools = [str(item).strip() for item in (body.tools or []) if str(item).strip()]
@@ -616,7 +736,7 @@ def _build_mobile_turn_payload(
     )
     requested_response_mode = _resolve_mobile_requested_response_mode(body, interaction_hints)
     interaction_hints["requested_response_mode"] = requested_response_mode
-    interaction_hints["teaching_mode"] = requested_response_mode
+    interaction_hints.pop("teaching_mode", None)
     if grounding_decision.reasons:
         interaction_hints["grounding_reasons"] = list(grounding_decision.reasons)
     config: dict[str, Any] = {
@@ -624,9 +744,9 @@ def _build_mobile_turn_payload(
         "interaction_hints": interaction_hints,
         "billing_context": {
             "source": "wx_miniprogram",
-            "user_id": user_id,
-            "wallet_user_id": user_id,
-            "learning_user_id": user_id,
+            "user_id": authenticated_user_id,
+            "wallet_user_id": wallet_user_id or authenticated_user_id,
+            "learning_user_id": authenticated_user_id,
         },
         "interaction_profile": interaction_profile,
     }
@@ -859,6 +979,8 @@ async def auth_refresh(authorization: str | None = Header(default=None)) -> dict
         return member_service.refresh_access_token(authorization)
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.patch("/auth/profile/settings")
@@ -914,7 +1036,12 @@ async def wechat_login(body: WechatLoginRequest) -> dict[str, Any]:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
-@router.post("/wechat/mp/bind-phone")
+@router.post(
+    "/wechat/mp/bind-phone",
+    dependencies=[
+        Depends(route_rate_limit("mobile_wechat_bind_phone", default_max_requests=6, default_window_seconds=60.0))
+    ],
+)
 async def wechat_bind_phone(
     body: WechatBindPhoneRequest,
     authorization: str | None = Header(default=None),
@@ -990,13 +1117,20 @@ async def billing_ledger(
             "has_more": False,
             "total": 0,
         }
-    rows = wallet_service.list_wallet_ledger(wallet_user_id, limit=limit + 1, offset=offset)
-    has_more = len(rows) > limit
-    page = rows[:limit]
+    merge_window = offset + limit + 1
+    wallet_rows = wallet_service.list_wallet_ledger(wallet_user_id, limit=merge_window, offset=0)
+    legacy_rows = _load_legacy_wallet_ledger_entries(
+        authorization,
+        wallet_user_id=wallet_user_id,
+        limit=merge_window,
+    )
+    merged_rows = _merge_wallet_ledger_entries(wallet_rows, legacy_rows)
+    page = merged_rows[offset : offset + limit]
+    has_more = offset + limit < len(merged_rows)
     return {
         "entries": [_serialize_wallet_ledger_entry(item) for item in page],
         "has_more": has_more,
-        "total": offset + len(page) + (1 if has_more else 0),
+        "total": len(merged_rows),
     }
 
 
@@ -1201,10 +1335,12 @@ async def mobile_chat_start_turn(
         raise HTTPException(status_code=400, detail="query is required")
 
     resolved_user_id = _resolve_authenticated_user_id(authorization)
+    resolved_wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
     await _assert_mobile_conversation_access(body.conversation_id, resolved_user_id)
     payload = _build_mobile_turn_payload(
         body=body,
-        user_id=resolved_user_id,
+        authenticated_user_id=resolved_user_id,
+        wallet_user_id=resolved_wallet_user_id,
         query=query,
     )
     session, turn = await turn_runtime.start_turn(payload)

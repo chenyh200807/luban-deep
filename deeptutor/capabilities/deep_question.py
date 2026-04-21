@@ -36,6 +36,350 @@ from deeptutor.services.semantic_router import (
     normalize_turn_semantic_decision,
     question_context_from_active_object,
 )
+from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
+
+
+_GENERATION_TOPIC_ANCHOR_MARKERS = (
+    "刚才",
+    "上面",
+    "这些",
+    "这几个",
+    "这个概念",
+    "几个概念",
+    "类似",
+    "同类",
+    "继续",
+    "再来",
+    "不要超纲",
+    "围绕这个",
+    "围绕刚才",
+)
+_GENERATION_REQUEST_STRIP_PATTERNS = (
+    r"好[,，]?",
+    r"那你现在",
+    r"现在",
+    r"请",
+    r"麻烦你",
+    r"麻烦",
+    r"给我",
+    r"帮我",
+    r"我想",
+    r"想",
+    r"继续出",
+    r"继续来一道",
+    r"继续",
+    r"再来一道",
+    r"再来一题",
+    r"再来",
+    r"再出一道",
+    r"再出",
+    r"来一道",
+    r"来一题",
+    r"来",
+    r"出题",
+    r"出",
+    r"考我",
+    r"刷题",
+    r"测我",
+    r"[0-9一二两三四五六七八九十几]+(?:道|题|个题目|个小题)?",
+    r"单选题",
+    r"多选题",
+    r"选择题",
+    r"判断题",
+    r"案例题",
+    r"简答题",
+    r"题目",
+    r"很简单的",
+    r"简单的",
+    r"很简单",
+    r"简单",
+    r"容易的",
+    r"容易",
+)
+_CURRENT_QUESTION_ANCHOR_MARKERS = (
+    "这道题",
+    "这题",
+    "同类题",
+    "类似题",
+    "同类型题",
+    "按这题",
+    "围绕这题",
+    "照着这题",
+)
+
+
+def _compact_text(value: Any) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _clip_text(value: Any, *, limit: int = 280) -> str:
+    text = _compact_text(value)
+    if len(text) <= limit:
+        return text
+    return text[: max(0, limit - 3)].rstrip() + "..."
+
+
+def _append_unique(parts: list[str], candidate: Any) -> None:
+    text = _compact_text(candidate)
+    if not text or text in parts:
+        return
+    parts.append(text)
+
+
+def _question_context_generation_anchor(question_context: dict[str, Any] | None) -> str:
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized:
+        return ""
+
+    items = normalized.get("items") or []
+    contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
+    concentrations: list[str] = []
+    knowledge_parts: list[str] = []
+    question_parts: list[str] = []
+
+    for item in contexts:
+        _append_unique(concentrations, item.get("concentration"))
+        _append_unique(knowledge_parts, _clip_text(item.get("knowledge_context"), limit=220))
+        _append_unique(question_parts, _clip_text(item.get("question"), limit=160))
+
+    anchor_lines: list[str] = []
+    if concentrations:
+        anchor_lines.append(f"当前考点：{'；'.join(concentrations[:4])}")
+    if knowledge_parts:
+        anchor_lines.append(f"当前知识锚点：{'；'.join(knowledge_parts[:2])}")
+    elif question_parts:
+        anchor_lines.append(f"当前题目内容：{'；'.join(question_parts[:2])}")
+    return "\n".join(anchor_lines)
+
+
+def _active_object_generation_anchor(active_object: dict[str, Any] | None) -> str:
+    normalized = normalize_active_object(active_object)
+    if not normalized:
+        return ""
+
+    question_anchor = _question_context_generation_anchor(
+        question_context_from_active_object(normalized)
+    )
+    if question_anchor:
+        return question_anchor
+
+    snapshot = normalized.get("state_snapshot") if isinstance(normalized.get("state_snapshot"), dict) else {}
+    object_type = str(normalized.get("object_type") or "").strip()
+    anchor_lines: list[str] = []
+
+    if object_type == "open_chat_topic":
+        title = _clip_text(snapshot.get("title"), limit=80)
+        summary = _clip_text(snapshot.get("compressed_summary"), limit=220)
+        if summary:
+            anchor_lines.append(f"当前会话摘要：{summary}")
+        elif title:
+            anchor_lines.append(f"当前会话主题：{title}")
+        return "\n".join(anchor_lines)
+
+    if object_type in {"guide_page", "study_plan"}:
+        current_page = snapshot.get("current_page") if isinstance(snapshot.get("current_page"), dict) else {}
+        knowledge_title = _clip_text(current_page.get("knowledge_title"), limit=80)
+        knowledge_summary = _clip_text(current_page.get("knowledge_summary"), limit=220)
+        summary = _clip_text(snapshot.get("summary"), limit=180)
+        if knowledge_title:
+            anchor_lines.append(f"当前学习主题：{knowledge_title}")
+        if knowledge_summary:
+            anchor_lines.append(f"当前学习摘要：{knowledge_summary}")
+        if summary:
+            anchor_lines.append(f"计划上下文：{summary}")
+        return "\n".join(anchor_lines)
+
+    return ""
+
+
+def _conversation_generation_anchor(conversation_context_text: str) -> str:
+    text = _clip_text(conversation_context_text, limit=240)
+    if not text:
+        return ""
+    return f"最近对话摘要：{text}"
+
+
+def _suspended_stack_generation_anchor(
+    suspended_object_stack: list[dict[str, Any]] | None,
+) -> str:
+    for item in normalize_suspended_object_stack(suspended_object_stack):
+        normalized = normalize_active_object(item)
+        if not normalized:
+            continue
+        object_type = str(normalized.get("object_type") or "").strip()
+        if object_type in {"question_set", "single_question"}:
+            continue
+        anchor = _active_object_generation_anchor(normalized)
+        if anchor:
+            return anchor
+    return ""
+
+
+def _topic_needs_authoritative_anchor(topic: str) -> bool:
+    normalized = _compact_text(topic).lower()
+    if not normalized:
+        return False
+    if any(marker in normalized for marker in _GENERATION_TOPIC_ANCHOR_MARKERS):
+        return True
+    if not looks_like_practice_generation_request(normalized):
+        return False
+    residue = normalized
+    for pattern in _GENERATION_REQUEST_STRIP_PATTERNS:
+        residue = re.sub(pattern, " ", residue, flags=re.IGNORECASE)
+    residue = re.sub(r"[，。！？、,.!?\-:：\s]+", "", residue)
+    return not residue
+
+
+def _prefers_current_question_anchor(topic: str) -> bool:
+    normalized = _compact_text(topic).lower()
+    if not normalized:
+        return False
+    if any(marker in normalized for marker in _CURRENT_QUESTION_ANCHOR_MARKERS):
+        return True
+    if "概念" in normalized or "知识点" in normalized:
+        return False
+    return looks_like_practice_generation_request(normalized)
+
+
+def _resolve_generation_topic(
+    *,
+    raw_topic: str,
+    active_object: dict[str, Any] | None,
+    suspended_object_stack: list[dict[str, Any]] | None,
+    followup_question_context: dict[str, Any] | None,
+    conversation_context_text: str,
+) -> str:
+    topic = _compact_text(raw_topic)
+    if not topic:
+        return ""
+    if not _topic_needs_authoritative_anchor(topic):
+        return topic
+
+    normalized_active_object = normalize_active_object(active_object)
+    active_object_type = str((normalized_active_object or {}).get("object_type") or "").strip()
+    question_anchor = _question_context_generation_anchor(followup_question_context)
+    if not question_anchor and active_object_type in {"question_set", "single_question"}:
+        question_anchor = _active_object_generation_anchor(normalized_active_object)
+
+    broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
+    if not broader_anchor and active_object_type not in {"question_set", "single_question"}:
+        broader_anchor = _active_object_generation_anchor(normalized_active_object)
+    if not broader_anchor:
+        broader_anchor = _conversation_generation_anchor(conversation_context_text)
+
+    anchor = (
+        question_anchor or broader_anchor
+        if _prefers_current_question_anchor(topic)
+        else broader_anchor or question_anchor
+    )
+    if not anchor:
+        return topic
+    return (
+        f"{topic}\n\n"
+        "请严格围绕以下当前学习锚点出题，不要偏题，不要超纲；如果锚点里没有出现某个新概念，不要自行引入：\n"
+        f"{anchor}"
+    )
+
+
+def _should_use_followup_anchor_generation(
+    *,
+    raw_topic: str,
+    mode: str,
+    num_questions: int,
+    followup_question_context: dict[str, Any] | None,
+) -> bool:
+    if str(mode or "").strip().lower() != "custom":
+        return False
+    if int(num_questions or 1) > 3:
+        return False
+    normalized_context = normalize_question_followup_context(followup_question_context)
+    if not normalized_context:
+        return False
+    items = normalized_context.get("items") if isinstance(normalized_context.get("items"), list) else []
+    if not items:
+        return False
+    return _topic_needs_authoritative_anchor(raw_topic)
+
+
+def _grading_items(question_context: dict[str, Any] | None) -> list[dict[str, Any]]:
+    normalized = normalize_question_followup_context(question_context) or {}
+    raw_items = normalized.get("items") if isinstance(normalized.get("items"), list) else []
+    items = [
+        item
+        for item in (
+            normalize_question_followup_context(candidate)
+            for candidate in raw_items
+            if isinstance(candidate, dict)
+        )
+        if item
+    ]
+    return items or ([normalized] if normalized else [])
+
+
+def _should_use_deterministic_grading_feedback(
+    *,
+    selected_mode: str,
+    question_context: dict[str, Any] | None,
+) -> bool:
+    if str(selected_mode or "").strip().lower() != "fast":
+        return False
+    items = _grading_items(question_context)
+    if not items:
+        return False
+    for item in items:
+        question_type = str(item.get("question_type") or "").strip().lower()
+        if question_type not in {"choice", "judge", "judgment"}:
+            return False
+        if item.get("is_correct") is None:
+            return False
+        if not str(item.get("correct_answer") or "").strip():
+            return False
+    return True
+
+
+def _render_deterministic_grading_feedback(question_context: dict[str, Any] | None) -> str:
+    items = _grading_items(question_context)
+    if not items:
+        return ""
+    if len(items) == 1:
+        item = items[0]
+        is_correct = item.get("is_correct") is True
+        lines = [
+            "## 📊 阅卷结论",
+            f"**结果：** {'正确' if is_correct else '错误'}",
+            f"**你的答案：** {str(item.get('user_answer') or '未作答').strip()}",
+            f"**正确答案：** {str(item.get('correct_answer') or '未提供').strip()}",
+        ]
+        explanation = str(item.get("explanation") or "").strip()
+        if explanation:
+            lines.extend(["", "## 🧐 解析", explanation])
+        return "\n".join(lines).strip()
+
+    total = len(items)
+    correct_count = sum(1 for item in items if item.get("is_correct") is True)
+    lines = [
+        "## 📊 阅卷结论",
+        f"**得分：** {correct_count}/{total}题",
+        (
+            "**整体判断：** 全部答对。"
+            if correct_count == total
+            else "**整体判断：** 重点回看错题。"
+        ),
+    ]
+    for index, item in enumerate(items, 1):
+        is_correct = item.get("is_correct") is True
+        lines.extend(
+            [
+                "",
+                f"### 第{index}题：{'正确' if is_correct else '错误'}",
+                f"- 你的答案：{str(item.get('user_answer') or '未作答').strip()}",
+                f"- 正确答案：{str(item.get('correct_answer') or '未提供').strip()}",
+            ]
+        )
+        explanation = str(item.get("explanation") or "").strip()
+        if explanation and not is_correct:
+            lines.append(f"- 解析：{explanation}")
+    return "\n".join(lines).strip()
 
 
 class DeepQuestionCapability(BaseCapability):
@@ -81,6 +425,7 @@ class DeepQuestionCapability(BaseCapability):
             else None
         )
         semantic_router_mode = str(context.metadata.get("semantic_router_mode") or "").strip().lower()
+        selected_mode = str(context.metadata.get("selected_mode") or "").strip().lower()
         allow_legacy_followup_fallback = semantic_router_mode != "primary"
         next_action = str(turn_semantic_decision.get("next_action") or "").strip()
         if (
@@ -113,21 +458,27 @@ class DeepQuestionCapability(BaseCapability):
                         str(action_context.get("user_answer") or "").strip(),
                         raw_submission=context.user_message,
                     )
-                agent = SubmissionGraderAgent(
-                    language=context.language,
-                    api_key=llm_config.api_key,
-                    base_url=llm_config.base_url,
-                    api_version=llm_config.api_version,
-                )
-                agent.set_trace_callback(self._build_trace_bridge(stream))
                 async with stream.stage("generation", source=self.name):
-                    answer = await agent.process(
-                        user_message=context.user_message,
+                    if _should_use_deterministic_grading_feedback(
+                        selected_mode=selected_mode,
                         question_context=graded_context,
-                        history_context=str(
-                            context.metadata.get("conversation_context_text", "") or ""
-                        ).strip(),
-                    )
+                    ):
+                        answer = _render_deterministic_grading_feedback(graded_context)
+                    else:
+                        agent = SubmissionGraderAgent(
+                            language=context.language,
+                            api_key=llm_config.api_key,
+                            base_url=llm_config.base_url,
+                            api_version=llm_config.api_version,
+                        )
+                        agent.set_trace_callback(self._build_trace_bridge(stream))
+                        answer = await agent.process(
+                            user_message=context.user_message,
+                            question_context=graded_context,
+                            history_context=str(
+                                context.metadata.get("conversation_context_text", "") or ""
+                            ).strip(),
+                        )
                     if answer:
                         await stream.content(answer, source=self.name, stage="generation")
                     result_active_object = build_active_object_from_question_context(
@@ -285,21 +636,27 @@ class DeepQuestionCapability(BaseCapability):
                             user_answer,
                             raw_submission=context.user_message,
                         )
-                    agent = SubmissionGraderAgent(
-                        language=context.language,
-                        api_key=llm_config.api_key,
-                        base_url=llm_config.base_url,
-                        api_version=llm_config.api_version,
-                    )
-                    agent.set_trace_callback(self._build_trace_bridge(stream))
                     async with stream.stage("generation", source=self.name):
-                        answer = await agent.process(
-                            user_message=context.user_message,
+                        if _should_use_deterministic_grading_feedback(
+                            selected_mode=selected_mode,
                             question_context=graded_context,
-                            history_context=str(
-                                context.metadata.get("conversation_context_text", "") or ""
-                            ).strip(),
-                        )
+                        ):
+                            answer = _render_deterministic_grading_feedback(graded_context)
+                        else:
+                            agent = SubmissionGraderAgent(
+                                language=context.language,
+                                api_key=llm_config.api_key,
+                                base_url=llm_config.base_url,
+                                api_version=llm_config.api_version,
+                            )
+                            agent.set_trace_callback(self._build_trace_bridge(stream))
+                            answer = await agent.process(
+                                user_message=context.user_message,
+                                question_context=graded_context,
+                                history_context=str(
+                                    context.metadata.get("conversation_context_text", "") or ""
+                                ).strip(),
+                            )
                         if answer:
                             await stream.content(answer, source=self.name, stage="generation")
                         result_active_object = build_active_object_from_question_context(
@@ -382,7 +739,18 @@ class DeepQuestionCapability(BaseCapability):
                 return
 
         mode = str(overrides.get("mode", "custom") or "custom").strip().lower()
-        topic = str(overrides.get("topic") or context.user_message or "").strip()
+        raw_topic = str(overrides.get("topic") or context.user_message or "").strip()
+        topic = _resolve_generation_topic(
+            raw_topic=raw_topic,
+            active_object=active_object,
+            suspended_object_stack=suspended_object_stack,
+            followup_question_context=(
+                followup_question_context if isinstance(followup_question_context, dict) else None
+            ),
+            conversation_context_text=str(
+                context.metadata.get("conversation_context_text", "") or ""
+            ).strip(),
+        )
         num_questions = int(overrides.get("num_questions", 1) or 1)
         difficulty = str(overrides.get("difficulty", "") or "")
         question_type = str(overrides.get("question_type", "") or "")
@@ -471,14 +839,32 @@ class DeepQuestionCapability(BaseCapability):
             async with stream.stage("ideation", source=self.name):
                 await stream.thinking("Generating question templates...", source=self.name, stage="ideation")
 
-            result = await coordinator.generate_from_topic(
-                user_topic=topic,
-                preference=preference,
+            if _should_use_followup_anchor_generation(
+                raw_topic=raw_topic,
+                mode=mode,
                 num_questions=num_questions,
-                difficulty=difficulty,
-                question_type=question_type,
-                history_context=history_context,
-            )
+                followup_question_context=(
+                    followup_question_context if isinstance(followup_question_context, dict) else None
+                ),
+            ):
+                result = await coordinator.generate_from_followup_context(
+                    user_topic=topic,
+                    preference=preference,
+                    num_questions=num_questions,
+                    followup_question_context=followup_question_context,
+                    difficulty=difficulty,
+                    question_type=question_type,
+                    history_context=history_context,
+                )
+            else:
+                result = await coordinator.generate_from_topic(
+                    user_topic=topic,
+                    preference=preference,
+                    num_questions=num_questions,
+                    difficulty=difficulty,
+                    question_type=question_type,
+                    history_context=history_context,
+                )
 
         content = self._render_summary_markdown(
             result,

@@ -62,6 +62,15 @@ def _resolve_model_and_base(
     return resolved_model, effective_base, effective_key
 
 
+def _should_request_stream_usage(provider_name: str, base_url: str | None) -> bool:
+    spec = find_by_name(provider_name)
+    if spec and spec.name == "dashscope":
+        return True
+    effective_base = base_url or (spec.default_api_base if spec else "")
+    base = str(effective_base or "").strip().lower()
+    return "dashscope.aliyuncs.com/compatible-mode" in base or "dashscope-intl.aliyuncs.com/compatible-mode" in base
+
+
 async def sdk_complete(
     *,
     prompt: str,
@@ -96,7 +105,6 @@ async def sdk_complete(
 
     max_tokens_val = int(kwargs.pop("max_tokens", 4096))
     temperature_val = float(kwargs.pop("temperature", 0.7))
-
     payload: dict[str, Any] = {
         "model": resolved_model,
         "messages": _build_messages(
@@ -176,6 +184,7 @@ async def sdk_stream(
 
     max_tokens_val = int(kwargs.pop("max_tokens", 4096))
     temperature_val = float(kwargs.pop("temperature", 0.7))
+    stream_options = kwargs.pop("stream_options", None)
 
     payload: dict[str, Any] = {
         "model": resolved_model,
@@ -193,6 +202,10 @@ async def sdk_stream(
 
     if reasoning_effort:
         payload["reasoning_effort"] = reasoning_effort
+    if stream_options is not None:
+        payload["stream_options"] = stream_options
+    elif _should_request_stream_usage(provider_name, effective_base):
+        payload["stream_options"] = {"include_usage": True}
     payload.update(kwargs)
 
     stream_response = await client.chat.completions.create(**payload)
