@@ -45,6 +45,7 @@ from deeptutor.services.member_console.external_auth import (
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.services.session import get_sqlite_session_store
+from deeptutor.services.wallet.identity import is_uuid_like
 
 _TZ = timezone(timedelta(hours=8))
 logger = logging.getLogger(__name__)
@@ -187,6 +188,11 @@ class MemberConsoleService:
         from deeptutor.services.learner_state import get_bot_learner_overlay_service
 
         return get_bot_learner_overlay_service()
+
+    def _get_wallet_service(self):
+        from deeptutor.services.wallet.service import get_wallet_service
+
+        return get_wallet_service()
 
     @staticmethod
     def _default_packages() -> list[dict[str, Any]]:
@@ -896,6 +902,148 @@ class MemberConsoleService:
                     self._save_unlocked(data)
                 return snapshot
 
+    def _sync_phone_backed_external_identity(self, member: dict[str, Any]) -> None:
+        raw_phone = str(member.get("phone") or "").strip()
+        phone = _normalize_phone_input(raw_phone)
+        current_external_user_id = str(member.get("external_auth_user_id") or "").strip()
+        synthetic_default_phone = _slugify_phone(str(member.get("user_id") or ""))
+        if (
+            not phone
+            or phone == synthetic_default_phone
+            or is_uuid_like(current_external_user_id)
+        ):
+            return
+        try:
+            external_user = ensure_external_auth_user_for_phone(phone)
+        except ValueError as exc:
+            logger.warning(
+                "phone-backed external identity skipped for user_id=%s phone=%s: %s",
+                member.get("user_id"),
+                phone,
+                exc,
+            )
+            return
+        except Exception as exc:
+            logger.warning(
+                "phone-backed external identity bootstrap skipped for user_id=%s phone=%s: %s",
+                member.get("user_id"),
+                phone,
+                exc,
+            )
+            if is_production_environment():
+                raise RuntimeError("Phone-backed identity bootstrap failed") from exc
+            return
+        external_user_id = str(external_user.get("id") or "").strip()
+        if not is_uuid_like(external_user_id):
+            return
+        member["auth_username"] = str(external_user.get("username") or member.get("auth_username") or "").strip()
+        member["external_auth_provider"] = "fastapi20251222_simple_auth"
+        member["external_auth_user_id"] = external_user_id
+
+    def _auth_identity_for_member(self, user_id: str) -> dict[str, Any]:
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            member = self._ensure_member(data, user_id)
+            self._sync_phone_backed_external_identity(member)
+            return deepcopy(member)
+
+        member = self._mutate(_apply)
+        canonical_uid = ""
+        external_auth_user_id = str(member.get("external_auth_user_id") or "").strip()
+        if is_uuid_like(external_auth_user_id):
+            canonical_uid = external_auth_user_id
+        else:
+            from deeptutor.services.wallet.identity import get_wallet_identity_store
+
+            store = get_wallet_identity_store()
+            if getattr(store, "is_configured", False):
+                candidates: list[str] = []
+
+                def _append_candidate(alias_type: str, alias_value: Any) -> None:
+                    normalized = str(alias_value or "").strip()
+                    if not normalized:
+                        return
+                    try:
+                        row = store.resolve_alias(alias_type=alias_type, alias_value=normalized)
+                    except Exception as exc:
+                        logger.warning(
+                            "alias lookup failed for user_id=%s alias_type=%s alias_value=%s: %s",
+                            member.get("user_id"),
+                            alias_type,
+                            normalized,
+                            exc,
+                        )
+                        return
+                    if not isinstance(row, dict):
+                        return
+                    alias_user_id = str(row.get("user_id") or "").strip()
+                    if alias_user_id and alias_user_id not in candidates:
+                        candidates.append(alias_user_id)
+
+                _append_candidate("legacy_user_id", member.get("user_id"))
+                _append_candidate("auth_username", member.get("auth_username"))
+                _append_candidate("phone", member.get("phone"))
+                _append_candidate("wx_openid", member.get("wx_openid"))
+                _append_candidate("wx_unionid", member.get("wx_unionid"))
+                if len(candidates) == 1:
+                    canonical_uid = candidates[0]
+        if (
+            is_uuid_like(canonical_uid)
+            and canonical_uid != str(member.get("user_id") or "").strip()
+            and not is_uuid_like(external_auth_user_id)
+        ):
+            def _persist_alias_backed_canonical(data: dict[str, Any]) -> None:
+                target = self._ensure_member(data, str(member.get("user_id") or "").strip())
+                target["external_auth_user_id"] = canonical_uid
+                if not str(target.get("external_auth_provider") or "").strip():
+                    target["external_auth_provider"] = "wallet_alias"
+
+            self._mutate(_persist_alias_backed_canonical)
+            member["external_auth_user_id"] = canonical_uid
+            member["external_auth_provider"] = str(member.get("external_auth_provider") or "wallet_alias").strip()
+        if not canonical_uid:
+            canonical_uid = str(member.get("user_id") or "").strip()
+        if is_uuid_like(canonical_uid):
+            wallet_service = self._get_wallet_service()
+            if getattr(wallet_service, "is_configured", False):
+                try:
+                    snapshot = wallet_service.ensure_wallet_seeded(
+                        user_id=canonical_uid,
+                        opening_points=int(member.get("points_balance") or 0),
+                        plan_id=str(member.get("tier") or "").strip(),
+                        reference_type="signup_bonus",
+                        reference_id=str(member.get("user_id") or canonical_uid).strip(),
+                        idempotency_key=f"signup_bonus:{canonical_uid}:member_console_bootstrap",
+                        metadata={
+                            "source": "member_console_auth_bootstrap",
+                            "legacy_user_id": str(member.get("user_id") or "").strip(),
+                        },
+                    )
+                except Exception as exc:
+                    logger.warning(
+                        "wallet bootstrap failed for member user_id=%s canonical_uid=%s: %s",
+                        member.get("user_id"),
+                        canonical_uid,
+                        exc,
+                    )
+                    if is_production_environment():
+                        raise RuntimeError("Wallet bootstrap failed") from exc
+                else:
+                    if snapshot is not None:
+                        balance_points = int(round(int(snapshot.balance_micros) / 1_000_000))
+                        if balance_points != int(member.get("points_balance") or 0):
+                            def _sync_shadow(data: dict[str, Any]) -> None:
+                                target = self._ensure_member(data, user_id)
+                                target["points_balance"] = balance_points
+
+                            self._mutate(_sync_shadow)
+                            member["points_balance"] = balance_points
+        return {
+            "user_id": str(member.get("user_id") or "").strip(),
+            "canonical_uid": canonical_uid,
+            "openid": str(member.get("wx_openid") or "").strip(),
+            "unionid": str(member.get("wx_unionid") or "").strip(),
+        }
+
     def _ensure_learning_profile(self, member: dict[str, Any]) -> dict[str, Any]:
         daily_counts = member.setdefault("daily_practice_counts", {})
         chapter_stats = member.setdefault("chapter_practice_stats", {})
@@ -1446,18 +1594,19 @@ class MemberConsoleService:
         max_session_exp = orig_iat + self._access_token_max_session_age_seconds()
         if now >= max_session_exp:
             raise ValueError("Session refresh window expired")
+        auth_identity = self._auth_identity_for_member(user_id)
         refreshed_token = self._issue_access_token(
-            user_id=user_id,
-            canonical_uid=str(claims.get("canonical_uid") or user_id).strip(),
-            openid=str(claims.get("openid") or "").strip(),
-            unionid=str(claims.get("unionid") or "").strip(),
+            user_id=auth_identity["user_id"] or user_id,
+            canonical_uid=str(auth_identity["canonical_uid"] or claims.get("canonical_uid") or user_id).strip(),
+            openid=auth_identity["openid"] or str(claims.get("openid") or "").strip(),
+            unionid=auth_identity["unionid"] or str(claims.get("unionid") or "").strip(),
             orig_iat=orig_iat,
         )
         return self._build_auth_response(
-            user_id=user_id,
+            user_id=auth_identity["user_id"] or user_id,
             token=refreshed_token,
-            openid=str(claims.get("openid") or "").strip(),
-            unionid=str(claims.get("unionid") or "").strip(),
+            openid=auth_identity["openid"] or str(claims.get("openid") or "").strip(),
+            unionid=auth_identity["unionid"] or str(claims.get("unionid") or "").strip(),
         )
 
     def _append_audit(
@@ -2790,14 +2939,22 @@ class MemberConsoleService:
         if verified_external_user is None:
             raise ValueError("用户名或密码错误")
         member = self._ensure_member_for_external_auth(username, verified_external_user)
-        token = self._issue_access_token(user_id=member["user_id"])
-        return self._build_auth_response(user_id=member["user_id"], token=token)
+        auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
+        token = self._issue_access_token(
+            user_id=auth_identity["user_id"],
+            canonical_uid=auth_identity["canonical_uid"],
+        )
+        return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
     def register_with_external_auth(self, username: str, password: str, phone: str) -> dict[str, Any]:
         external_user = create_external_auth_user(username, password, phone=phone)
         member = self._ensure_member_for_external_auth(username, external_user)
-        token = self._issue_access_token(user_id=member["user_id"])
-        return self._build_auth_response(user_id=member["user_id"], token=token)
+        auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
+        token = self._issue_access_token(
+            user_id=auth_identity["user_id"],
+            canonical_uid=auth_identity["canonical_uid"],
+        )
+        return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
     async def login_with_wechat_code(self, code: str) -> dict[str, Any]:
         normalized = str(code or "").strip()
@@ -2842,16 +2999,18 @@ class MemberConsoleService:
             return str(target["user_id"])
 
         target_user_id = self._mutate(_apply)
+        auth_identity = self._auth_identity_for_member(target_user_id)
         token = self._issue_access_token(
-            user_id=target_user_id,
-            openid=openid,
-            unionid=unionid,
+            user_id=auth_identity["user_id"],
+            canonical_uid=auth_identity["canonical_uid"],
+            openid=auth_identity["openid"] or openid,
+            unionid=auth_identity["unionid"] or unionid,
         )
         return self._build_auth_response(
-            user_id=target_user_id,
+            user_id=auth_identity["user_id"],
             token=token,
-            openid=openid,
-            unionid=unionid,
+            openid=auth_identity["openid"] or openid,
+            unionid=auth_identity["unionid"] or unionid,
         )
 
     async def bind_phone_for_wechat(self, user_id: str, phone_code: str) -> dict[str, Any]:
@@ -2933,16 +3092,18 @@ class MemberConsoleService:
             }
 
         result = self._mutate(_apply)
+        auth_identity = self._auth_identity_for_member(str(result.get("user_id") or "").strip())
         token = self._issue_access_token(
-            user_id=result["user_id"],
-            openid=result["openid"],
-            unionid=result["unionid"],
+            user_id=auth_identity["user_id"],
+            canonical_uid=auth_identity["canonical_uid"],
+            openid=auth_identity["openid"] or result["openid"],
+            unionid=auth_identity["unionid"] or result["unionid"],
         )
         payload = self._build_auth_response(
-            user_id=result["user_id"],
+            user_id=auth_identity["user_id"],
             token=token,
-            openid=result["openid"],
-            unionid=result["unionid"],
+            openid=auth_identity["openid"] or result["openid"],
+            unionid=auth_identity["unionid"] or result["unionid"],
         )
         payload.update(
             {
@@ -3048,8 +3209,12 @@ class MemberConsoleService:
         external_user = ensure_external_auth_user_for_phone(verified_phone)
         external_username = str(external_user.get("username") or "").strip()
         member = self._ensure_member_for_external_auth(external_username, external_user)
-        token = self._issue_access_token(user_id=member["user_id"])
-        return self._build_auth_response(user_id=member["user_id"], token=token)
+        auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
+        token = self._issue_access_token(
+            user_id=auth_identity["user_id"],
+            canonical_uid=auth_identity["canonical_uid"],
+        )
+        return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
     def create_demo_token(self, user_id: str) -> str:
         return f"demo-token-{user_id}-{secrets.token_hex(4)}"
