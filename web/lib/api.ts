@@ -1,21 +1,22 @@
 // API configuration and utility functions
 
-// Get API base URL from environment variable.
-// The launcher injects NEXT_PUBLIC_API_BASE from the canonical project-root `.env`.
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE ||
-  (() => {
-    if (typeof window !== "undefined") {
-      console.error("NEXT_PUBLIC_API_BASE is not set.");
-      console.error(
-        "Please configure NEXT_PUBLIC_API_BASE in your environment and restart the application.",
-      );
-      console.error("Run python scripts/start_tour.py to rebuild your local setup if needed.");
-    }
-    throw new Error(
-      "NEXT_PUBLIC_API_BASE is not configured. Please set it in your environment and restart.",
-    );
-  })();
+// Keep the injected API base when it exists. Otherwise, browser surfaces fall back
+// to the current origin so IP and domain entrances can both use same-origin `/api/...`.
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE?.trim() || "";
+
+function resolveApiBaseUrl(): string {
+  if (API_BASE_URL) {
+    return API_BASE_URL;
+  }
+
+  if (typeof window !== "undefined" && window.location.origin) {
+    return window.location.origin;
+  }
+
+  throw new Error(
+    "NEXT_PUBLIC_API_BASE is not configured. Please set it in your environment and restart.",
+  );
+}
 
 /**
  * Construct a full API URL from a path
@@ -27,9 +28,10 @@ export function apiUrl(path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
   // Remove trailing slash from base URL if present
-  const base = API_BASE_URL.endsWith("/")
-    ? API_BASE_URL.slice(0, -1)
-    : API_BASE_URL;
+  const resolvedBase = resolveApiBaseUrl();
+  const base = resolvedBase.endsWith("/")
+    ? resolvedBase.slice(0, -1)
+    : resolvedBase;
 
   return `${base}${normalizedPath}`;
 }
@@ -42,7 +44,8 @@ export function apiUrl(path: string): string {
 export function wsUrl(path: string): string {
   // Security Hardening: Convert http to ws and https to wss.
   // In production environments (where API_BASE_URL starts with https), this ensures secure websockets.
-  const base = API_BASE_URL.replace(/^http:/, "ws:").replace(/^https:/, "wss:");
+  const resolvedBase = resolveApiBaseUrl();
+  const base = resolvedBase.replace(/^http:/, "ws:").replace(/^https:/, "wss:");
 
   // Remove leading slash if present to avoid double slashes
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
