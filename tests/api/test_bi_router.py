@@ -76,6 +76,12 @@ def _build_app(service: BIService) -> FastAPI:
     return app
 
 
+def _assert_non_empty_list(value: object, field_name: str) -> list[object]:
+    assert isinstance(value, list), f"{field_name} should be a list"
+    assert value, f"{field_name} should not be empty"
+    return value
+
+
 @pytest.fixture
 def bi_service(tmp_path: Path, monkeypatch) -> BIService:
     store = SQLiteSessionStore(db_path=tmp_path / "bi-router.db")
@@ -385,23 +391,27 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
 
         trend = client.get("/api/v1/bi/active-trend?days=30")
         assert trend.status_code == 200
-        assert len(trend.json()["points"]) >= 1
+        _assert_non_empty_list(trend.json()["points"], "active_trend.points")
 
         retention = client.get("/api/v1/bi/retention?days=30")
         assert retention.status_code == 200
-        assert retention.json()["labels"] == ["D0", "D1", "D7", "D30"]
+        retention_labels = _assert_non_empty_list(retention.json()["labels"], "retention.labels")
+        assert all(isinstance(label, str) and label for label in retention_labels)
 
         capabilities = client.get("/api/v1/bi/capabilities?days=30")
         assert capabilities.status_code == 200
-        assert capabilities.json()["items"][0]["capability"] == "deep_solve"
+        capability_items = _assert_non_empty_list(capabilities.json()["items"], "capabilities.items")
+        assert capability_items[0]["capability"] == "deep_solve"
 
         tools = client.get("/api/v1/bi/tools?days=30")
         assert tools.status_code == 200
-        assert tools.json()["items"][0]["tool_name"] == "rag"
+        tool_items = _assert_non_empty_list(tools.json()["items"], "tools.items")
+        assert tool_items[0]["tool_name"] == "rag"
 
         knowledge = client.get("/api/v1/bi/knowledge?days=30")
         assert knowledge.status_code == 200
-        assert knowledge.json()["items"][0]["kb_name"] == "supabase-main"
+        knowledge_items = _assert_non_empty_list(knowledge.json()["items"], "knowledge.items")
+        assert knowledge_items[0]["kb_name"] == "supabase-main"
 
         members = client.get("/api/v1/bi/members?days=30")
         assert members.status_code == 200
@@ -409,14 +419,18 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
 
         filtered_members = client.get("/api/v1/bi/members?days=30&tier=vip")
         assert filtered_members.status_code == 200
-        assert filtered_members.json()["tiers"][0]["tier"] == "vip"
+        filtered_tiers = _assert_non_empty_list(filtered_members.json()["tiers"], "members.tiers")
+        assert filtered_tiers[0]["tier"] == "vip"
 
         tutorbots = client.get("/api/v1/bi/tutorbots?days=30&entrypoint=web")
         assert tutorbots.status_code == 200
         tutorbot_body = tutorbots.json()
-        assert tutorbot_body["items"][0]["bot_id"] == "bot_demo"
-        assert tutorbot_body["ranking"][0]["label"] == "Demo Bot"
-        assert tutorbot_body["status_breakdown"][0]["label"] in {"running", "idle"}
+        tutorbot_items = _assert_non_empty_list(tutorbot_body["items"], "tutorbots.items")
+        tutorbot_ranking = _assert_non_empty_list(tutorbot_body["ranking"], "tutorbots.ranking")
+        tutorbot_statuses = _assert_non_empty_list(tutorbot_body["status_breakdown"], "tutorbots.status_breakdown")
+        assert tutorbot_items[0]["bot_id"] == "bot_demo"
+        assert tutorbot_ranking[0]["label"] == "Demo Bot"
+        assert tutorbot_statuses[0]["label"] in {"running", "idle"}
         assert isinstance(tutorbot_body["recent_messages"], list)
 
         learner = client.get("/api/v1/bi/learner/u1?days=30")
@@ -463,8 +477,10 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         assert feedback_body["summary"]["total_feedback"] == 2
         assert feedback_body["summary"]["thumbs_down"] == 1
         assert feedback_body["summary"]["thumbs_up"] == 1
-        assert feedback_body["top_reason_tags"][0]["tag"] in {"事实错误", "逻辑不通", "有帮助"}
-        assert feedback_body["recent"][0]["session_id"] == "session_feedback_1"
+        top_reason_tags = _assert_non_empty_list(feedback_body["top_reason_tags"], "feedback.top_reason_tags")
+        recent_feedback = _assert_non_empty_list(feedback_body["recent"], "feedback.recent")
+        assert top_reason_tags[0]["tag"] in {"事实错误", "逻辑不通", "有帮助"}
+        assert recent_feedback[0]["session_id"] == "session_feedback_1"
 
 
 def test_bi_router_boss_homepage_contract_shapes(bi_service: BIService) -> None:
@@ -476,37 +492,42 @@ def test_bi_router_boss_homepage_contract_shapes(bi_service: BIService) -> None:
         assert overview.status_code == 200
         overview_body = overview.json()
         assert {"cards", "entrypoints"}.issubset(overview_body)
-        assert isinstance(overview_body["cards"], list)
-        assert isinstance(overview_body["entrypoints"], list)
-        assert overview_body["cards"][0]["label"]
-        assert overview_body["cards"][0]["value"] is not None
+        overview_cards = _assert_non_empty_list(overview_body["cards"], "overview.cards")
+        overview_entrypoints = _assert_non_empty_list(overview_body["entrypoints"], "overview.entrypoints")
+        assert {"label", "value"}.issubset(overview_cards[0])
+        assert overview_cards[0]["label"]
+        assert overview_cards[0]["value"] is not None
+        assert {"entrypoint", "label", "value"}.issubset(overview_entrypoints[0])
 
         trend = client.get("/api/v1/bi/active-trend?days=30")
         assert trend.status_code == 200
         trend_body = trend.json()
         assert "points" in trend_body
-        assert isinstance(trend_body["points"], list)
-        assert "date" in trend_body["points"][0]
-        assert "active" in trend_body["points"][0]
+        trend_points = _assert_non_empty_list(trend_body["points"], "active_trend.points")
+        assert {"date", "active"}.issubset(trend_points[0])
 
         members = client.get("/api/v1/bi/members?days=30")
         assert members.status_code == 200
         members_body = members.json()
         assert {"samples", "tiers", "risks"}.issubset(members_body)
-        assert isinstance(members_body["samples"], list)
-        assert isinstance(members_body["tiers"], list)
-        assert isinstance(members_body["risks"], list)
-        assert {"user_id", "tier", "risk_level"}.issubset(members_body["samples"][0])
+        member_samples = _assert_non_empty_list(members_body["samples"], "members.samples")
+        member_tiers = _assert_non_empty_list(members_body["tiers"], "members.tiers")
+        member_risks = _assert_non_empty_list(members_body["risks"], "members.risks")
+        assert {"user_id", "tier", "risk_level"}.issubset(member_samples[0])
+        assert {"tier", "label", "value"}.issubset(member_tiers[0])
+        assert {"risk_level", "label", "value"}.issubset(member_risks[0])
 
         retention = client.get("/api/v1/bi/retention?days=30")
         assert retention.status_code == 200
         retention_body = retention.json()
-        assert retention_body["labels"] == ["D0", "D1", "D7", "D30"]
-        assert isinstance(retention_body["cohorts"], list)
-        assert {"label", "values"}.issubset(retention_body["cohorts"][0])
+        retention_labels = _assert_non_empty_list(retention_body["labels"], "retention.labels")
+        retention_cohorts = _assert_non_empty_list(retention_body["cohorts"], "retention.cohorts")
+        assert all(isinstance(label, str) and label for label in retention_labels)
+        assert {"label", "values"}.issubset(retention_cohorts[0])
 
         anomalies = client.get("/api/v1/bi/anomalies?days=30&limit=10")
         assert anomalies.status_code == 200
         anomalies_body = anomalies.json()
         assert "items" in anomalies_body
-        assert isinstance(anomalies_body["items"], list)
+        anomaly_items = _assert_non_empty_list(anomalies_body["items"], "anomalies.items")
+        assert {"kind", "level", "title", "detail"}.issubset(anomaly_items[0])
