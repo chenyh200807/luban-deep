@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
-from deeptutor.api.dependencies import resolve_auth_context
+from deeptutor.api.dependencies import require_admin, resolve_auth_context
 from deeptutor.services.observability import get_control_plane_store, get_surface_event_store
 
 router = APIRouter()
@@ -46,7 +46,7 @@ async def ingest_surface_event(
         ) from exc
 
 
-@router.get("/control-plane/{kind}/latest")
+@router.get("/control-plane/{kind}/latest", dependencies=[Depends(require_admin)])
 async def get_control_plane_latest(kind: str) -> dict[str, Any]:
     try:
         latest = get_control_plane_store().latest_run(kind)
@@ -63,7 +63,7 @@ async def get_control_plane_latest(kind: str) -> dict[str, Any]:
     }
 
 
-@router.get("/control-plane/{kind}/history")
+@router.get("/control-plane/{kind}/history", dependencies=[Depends(require_admin)])
 async def get_control_plane_history(kind: str, limit: int = 10) -> dict[str, Any]:
     try:
         records = get_control_plane_store().list_runs(kind, limit=max(1, min(limit, 50)))

@@ -101,6 +101,38 @@ function createPageInstance(pageDef) {
             review: { due_today: 2 },
             mastery: { weak_nodes: [{ name: "防水工程" }] },
             today: { hint: "继续推进防水工程专项训练" },
+            study_plan: {
+              focus_topic: "防水工程",
+              priority_task: "后端下发：先补 3 个待复习点，再做 5 题巩固",
+              study_method: "后端下发：先梳理防水工程，再做真题强化，最后回看错题",
+              time_budget: "约 18 分钟，先复习后加练",
+              coach_note: "后端下发：这是 learner-state 统一生成的作战建议",
+            },
+            progress_feedback: {
+              summary: "后端下发：近 3 天累计完成 18 题，比前 3 天多 6 题",
+              insight: "后端下发：系统已经把“防水工程”锁定为当前主攻",
+              cards: [
+                {
+                  label: "近 3 天完成",
+                  value: "18题",
+                  detail: "比前 3 天多 6 题",
+                  tone_class: "tone-good",
+                },
+                {
+                  label: "连续学习",
+                  value: "3天",
+                  detail: "学习节奏正在形成",
+                  tone_class: "tone-good",
+                },
+              ],
+              milestones: [
+                {
+                  title: "刚完成一次专题梳理",
+                  detail: "最近完成了屋面卷材铺贴、节点收头的梳理",
+                  tone_class: "tone-good",
+                },
+              ],
+            },
           };
         },
         getAssessmentProfile: async function () {
@@ -211,21 +243,33 @@ function createPageInstance(pageDef) {
     assert(page.data.learnerStageTitle === "中级阶段", "report bootstrap should expose a user-facing learner stage title");
     assert(
       page.data.battlePlan && page.data.battlePlan.focusTopic === "防水工程",
-      "report bootstrap should build AI battle plan around the weakest chapter",
+      "report bootstrap should hydrate AI battle plan focus from backend study plan authority",
     );
     assert(
       page.data.battlePlan &&
-        page.data.battlePlan.priorityTask.indexOf("待复习点") >= 0,
-      "report bootstrap should incorporate review pressure into the AI battle plan",
+        page.data.battlePlan.priorityTask === "后端下发：先补 3 个待复习点，再做 5 题巩固",
+      "report bootstrap should prefer backend study plan over local battle-plan synthesis",
     );
     assert(
-      typeof page.data.progressSummary === "string" &&
-        page.data.progressSummary.indexOf("6/12") >= 0,
-      "report bootstrap should generate progress feedback summary from today progress",
+      page.data.battlePlan &&
+        page.data.battlePlan.coachNote === "后端下发：这是 learner-state 统一生成的作战建议",
+      "report bootstrap should preserve backend coach note from study plan authority",
     );
     assert(
-      Array.isArray(page.data.progressCards) && page.data.progressCards.length === 4,
-      "report bootstrap should build compact progress feedback cards",
+      page.data.progressSummary === "后端下发：近 3 天累计完成 18 题，比前 3 天多 6 题",
+      "report bootstrap should prefer backend progress feedback summary over local synthesis",
+    );
+    assert(
+      page.data.progressInsight === "后端下发：系统已经把“防水工程”锁定为当前主攻",
+      "report bootstrap should hydrate backend progress feedback insight",
+    );
+    assert(
+      Array.isArray(page.data.progressCards) && page.data.progressCards.length === 2,
+      "report bootstrap should prefer backend progress feedback cards over local fallback cards",
+    );
+    assert(
+      Array.isArray(page.data.progressMilestones) && page.data.progressMilestones.length === 1,
+      "report bootstrap should hydrate backend progress milestones",
     );
   });
 

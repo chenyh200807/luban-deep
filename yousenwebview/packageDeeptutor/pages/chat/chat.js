@@ -1657,7 +1657,7 @@ Page({
       mcqHint: "",
       mcqReceipt: "",
       mcqInteractiveReady: false,
-      thinkingStatus: "AI 正在准备...",
+      thinkingStatus: "AI 正在分析你的问题...",
       thinkingBadge: "",
       thinkingSub: "",
       thinkingTone: "",

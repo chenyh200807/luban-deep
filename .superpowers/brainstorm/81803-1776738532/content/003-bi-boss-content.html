@@ -1,0 +1,137 @@
+<h2>老板工作台版 · 第二部分</h2>
+<p class="subtitle">这一页只确认功能内容。原则是：老板首页只放决策需要的信息，不放工程人自己看的技术细枝末节。</p>
+
+<div class="cards">
+  <div class="card">
+    <div class="card-body">
+      <h3>1. 经营 KPI 区</h3>
+      <p><strong>要看</strong></p>
+      <ul style="padding-left:18px;line-height:1.8;">
+        <li>总营收 / 当期营收</li>
+        <li>日活 / 周活</li>
+        <li>付费会员数</li>
+        <li>续费率</li>
+        <li>高风险会员数</li>
+      </ul>
+      <p><strong>不看</strong></p>
+      <ul style="padding-left:18px;line-height:1.8;">
+        <li>模型名</li>
+        <li>工具调用细目</li>
+        <li>TutorBot 运行细节</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h3>2. 经营主图</h3>
+      <p><strong>要看</strong></p>
+      <ul style="padding-left:18px;line-height:1.8;">
+        <li>营收趋势</li>
+        <li>活跃趋势</li>
+        <li>付费趋势</li>
+      </ul>
+      <p><strong>不看</strong></p>
+      <ul style="padding-left:18px;line-height:1.8;">
+        <li>多条技术类折线混在一起</li>
+        <li>过多双轴和复杂图例</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h3>3. 混合待处理区</h3>
+      <p><strong>要看</strong></p>
+      <ul style="padding-left:18px;line-height:1.8;">
+        <li>收入异常</li>
+        <li>活跃下滑</li>
+        <li>高风险会员</li>
+        <li>即将到期会员</li>
+      </ul>
+      <p><strong>形式</strong></p>
+      <ul style="padding-left:18px;line-height:1.8;">
+        <li>最多 4 到 6 条</li>
+        <li>每条都能点进对应下钻页</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h3>4. 会员运营区</h3>
+      <p><strong>要看</strong></p>
+      <ul style="padding-left:18px;line-height:1.8;">
+        <li>会员分层</li>
+        <li>流失风险分布</li>
+        <li>重点会员名单</li>
+        <li>快到期名单</li>
+      </ul>
+      <p><strong>不看</strong></p>
+      <ul style="padding-left:18px;line-height:1.8;">
+        <li>过多运营表单</li>
+        <li>大段后台操作控件直接上首页</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h3>5. 经营健康区</h3>
+      <p><strong>要看</strong></p>
+      <ul style="padding-left:18px;line-height:1.8;">
+        <li>留存漏斗</li>
+        <li>渠道 / 入口来源</li>
+        <li>新老会员结构</li>
+      </ul>
+      <p><strong>不看</strong></p>
+      <ul style="padding-left:18px;line-height:1.8;">
+        <li>太深的 cohort 细节矩阵直接砸首页</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h3>6. 二级区块保留什么</h3>
+      <p><strong>教学质量</strong>：只保留学习效果、异常波动、知识库命中这种老板能理解的内容。</p>
+      <p><strong>TutorBot 运行态</strong>：降到二级页，首页只保留一句状态摘要或一个告警入口，不再大面积展开。</p>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons" style="margin-top:20px;">
+  <div class="pros">
+    <h4>推荐保留</h4>
+    <ul>
+      <li>老板首页只看结果、风险、趋势、待处理事项</li>
+      <li>技术细项下沉到二级区块或详情页</li>
+      <li>每块都能继续下钻，但首页本身不变成后台操作台</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>推荐删除或下沉</h4>
+    <ul>
+      <li>首页直接展示 TutorBot 细粒度排行榜</li>
+      <li>首页直接展示工具效率、模型成本拆分等工程细项</li>
+      <li>首页直接挂复杂筛选和大面积空态说明</li>
+    </ul>
+  </div>
+</div>
+
+<div class="options" style="margin-top:18px;">
+  <div class="option" data-choice="approved-content" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>内容通过</h3>
+      <p>按这个内容范围进入写设计文档。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="needs-content-change" onclick="toggleSelect(this)">
+    <div class="letter">!</div>
+    <div class="content">
+      <h3>内容还要改</h3>
+      <p>告诉我你想加哪块、删哪块，或者哪块应该提前到首页。</p>
+    </div>
+  </div>
+</div>

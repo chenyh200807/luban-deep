@@ -28,6 +28,14 @@ try:
 except ImportError:  # pragma: no cover - non-Unix fallback
     fcntl = None
 
+from deeptutor.services.learner_state.progress_feedback import (
+    build_progress_feedback,
+    build_progress_feedback_from_learner_snapshot,
+)
+from deeptutor.services.learner_state.study_plan import (
+    build_study_plan,
+    build_study_plan_from_learner_snapshot,
+)
 from deeptutor.services.member_console.external_auth import (
     create_external_auth_user,
     ensure_external_auth_user_for_phone,
@@ -950,6 +958,30 @@ class MemberConsoleService:
             return set()
         return {item.strip() for item in raw.split(",") if item.strip()}
 
+    def _access_token_ttl_seconds(self) -> int:
+        raw = str(
+            os.getenv("DEEPTUTOR_AUTH_TOKEN_TTL_SECONDS")
+            or os.getenv("MEMBER_CONSOLE_ACCESS_TOKEN_TTL_SECONDS")
+            or ""
+        ).strip()
+        try:
+            ttl_seconds = int(raw) if raw else 60 * 60 * 24 * 30
+        except (TypeError, ValueError):
+            ttl_seconds = 60 * 60 * 24 * 30
+        return max(300, ttl_seconds)
+
+    def _access_token_max_session_age_seconds(self) -> int:
+        raw = str(
+            os.getenv("DEEPTUTOR_AUTH_MAX_SESSION_AGE_SECONDS")
+            or os.getenv("MEMBER_CONSOLE_MAX_SESSION_AGE_SECONDS")
+            or ""
+        ).strip()
+        try:
+            max_session_age = int(raw) if raw else 60 * 60 * 24 * 90
+        except (TypeError, ValueError):
+            max_session_age = 60 * 60 * 24 * 90
+        return max(self._access_token_ttl_seconds(), max_session_age)
+
     def _issue_access_token(
         self,
         *,
@@ -957,11 +989,15 @@ class MemberConsoleService:
         canonical_uid: str = "",
         openid: str = "",
         unionid: str = "",
-        ttl_seconds: int = 60 * 60 * 24 * 30,
+        ttl_seconds: int | None = None,
+        orig_iat: int | None = None,
     ) -> str:
         now = int(_now().timestamp())
         resolved_user_id = str(user_id or "").strip()
         canonical_user_id = str(canonical_uid or resolved_user_id).strip()
+        resolved_ttl_seconds = self._access_token_ttl_seconds() if ttl_seconds is None else max(300, int(ttl_seconds))
+        resolved_orig_iat = max(0, int(orig_iat or now))
+        max_session_exp = resolved_orig_iat + self._access_token_max_session_age_seconds()
         payload = {
             "v": 1,
             "sub": canonical_user_id,
@@ -971,7 +1007,8 @@ class MemberConsoleService:
             "unionid": unionid,
             "provider": "wechat_mp" if openid else "local",
             "iat": now,
-            "exp": now + max(300, int(ttl_seconds)),
+            "orig_iat": resolved_orig_iat,
+            "exp": min(now + resolved_ttl_seconds, max_session_exp),
         }
         payload_bytes = json.dumps(
             payload,
@@ -1380,10 +1417,14 @@ class MemberConsoleService:
         openid: str = "",
         unionid: str = "",
     ) -> dict[str, Any]:
+        claims = self.verify_access_token(token) or {}
+        expires_at = int(claims.get("exp") or 0)
         payload = {
             "user_id": user_id,
             "token": token,
             "token_type": "Bearer",
+            "expires_at": expires_at,
+            "expires_in": max(0, expires_at - int(_now().timestamp())) if expires_at else 0,
             "user": self.get_profile(user_id),
         }
         if openid:
@@ -1391,6 +1432,33 @@ class MemberConsoleService:
         if unionid:
             payload["unionid"] = unionid
         return payload
+
+    def refresh_access_token(self, auth_header: str | None = None) -> dict[str, Any]:
+        token = self._extract_access_token(auth_header)
+        claims = self.verify_access_token(token)
+        user_id = str((claims or {}).get("canonical_uid") or (claims or {}).get("uid") or "").strip()
+        if not claims or not user_id:
+            raise ValueError("Invalid or expired token")
+        now = int(_now().timestamp())
+        orig_iat = max(0, int((claims or {}).get("orig_iat") or (claims or {}).get("iat") or 0))
+        if not orig_iat:
+            raise ValueError("Invalid or expired token")
+        max_session_exp = orig_iat + self._access_token_max_session_age_seconds()
+        if now >= max_session_exp:
+            raise ValueError("Session refresh window expired")
+        refreshed_token = self._issue_access_token(
+            user_id=user_id,
+            canonical_uid=str(claims.get("canonical_uid") or user_id).strip(),
+            openid=str(claims.get("openid") or "").strip(),
+            unionid=str(claims.get("unionid") or "").strip(),
+            orig_iat=orig_iat,
+        )
+        return self._build_auth_response(
+            user_id=user_id,
+            token=refreshed_token,
+            openid=str(claims.get("openid") or "").strip(),
+            unionid=str(claims.get("unionid") or "").strip(),
+        )
 
     def _append_audit(
         self,
@@ -2249,6 +2317,7 @@ class MemberConsoleService:
 
     def get_home_dashboard(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
+        learning = self._ensure_learning_profile(member)
         mastery_items = self._report_mastery_items(member)
         weak_nodes = [
             {"name": item["name"], "mastery": item["mastery"]}
@@ -2256,14 +2325,116 @@ class MemberConsoleService:
             if int(item.get("mastery") or 0) < 60
         ]
         weak_nodes.sort(key=lambda item: item["mastery"])
+        review = {
+            "overdue": max(0, member["review_due"] - 1),
+            "due_today": 1 if member["review_due"] else 0,
+        }
+        snapshot = self._read_learner_snapshot(user_id, event_limit=20)
         return {
-            "review": {
-                "overdue": max(0, member["review_due"] - 1),
-                "due_today": 1 if member["review_due"] else 0,
-            },
+            "review": review,
             "mastery": {"weak_nodes": weak_nodes[:3]},
             "today": {"hint": f"继续推进 {member['focus_topic']} 的专项训练"},
+            "study_plan": self._build_home_study_plan(
+                member,
+                weak_nodes=weak_nodes,
+                review=review,
+                snapshot=snapshot,
+                learning=learning,
+            ),
+            "progress_feedback": self._build_home_progress_feedback(
+                member,
+                weak_nodes=weak_nodes,
+                snapshot=snapshot,
+                learning=learning,
+            ),
         }
+
+    def _read_learner_snapshot(self, user_id: str, *, event_limit: int = 5) -> Any | None:
+        try:
+            return self._get_learner_state_service().read_snapshot(user_id, event_limit=event_limit)
+        except Exception:
+            logger.warning(
+                "Failed to load learner snapshot for member console: user_id=%s event_limit=%s",
+                user_id,
+                event_limit,
+                exc_info=True,
+            )
+            return None
+
+    def _build_home_study_plan(
+        self,
+        member: dict[str, Any],
+        *,
+        weak_nodes: list[dict[str, Any]],
+        review: dict[str, Any],
+        snapshot: Any | None = None,
+        learning: dict[str, Any] | None = None,
+    ) -> dict[str, str]:
+        learning = learning or self._ensure_learning_profile(member)
+        focus_topic = str(member.get("focus_topic") or "").strip()
+        focus_hint = f"继续推进 {focus_topic} 的专项训练" if focus_topic else ""
+        today_done = int(learning["daily_counts"].get(_date_key()) or 0)
+        daily_target = int(member.get("daily_target") or 0)
+        weak_names = [item.get("name") for item in weak_nodes[:3] if str(item.get("name") or "").strip()]
+
+        if snapshot is not None:
+            plan = build_study_plan_from_learner_snapshot(
+                snapshot,
+                focus_hint=focus_hint,
+                hotspots=weak_names,
+                due_today_count=review.get("due_today") or 0,
+                total_due=member.get("review_due") or 0,
+                overdue_count=review.get("overdue") or 0,
+            )
+            if plan:
+                return plan
+
+        return build_study_plan(
+            focus_topic=focus_topic,
+            focus_hint=focus_hint,
+            weak_points=weak_names,
+            hotspots=weak_names,
+            today_done=today_done,
+            daily_target=daily_target,
+            due_today_count=review.get("due_today") or 0,
+            total_due=member.get("review_due") or 0,
+            overdue_count=review.get("overdue") or 0,
+        )
+
+    def _build_home_progress_feedback(
+        self,
+        member: dict[str, Any],
+        *,
+        weak_nodes: list[dict[str, Any]],
+        snapshot: Any | None = None,
+        learning: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        learning = learning or self._ensure_learning_profile(member)
+        weak_names = [item.get("name") for item in weak_nodes[:3] if str(item.get("name") or "").strip()]
+
+        if snapshot is not None:
+            feedback = build_progress_feedback_from_learner_snapshot(
+                snapshot,
+                daily_counts=learning.get("daily_counts") or {},
+                chapter_stats=learning.get("chapter_stats") or {},
+                streak_days=member.get("study_days") or 0,
+                review_due=member.get("review_due") or 0,
+                focus_topic=member.get("focus_topic") or "",
+            )
+            if feedback:
+                return feedback
+
+        today_done = int((learning.get("daily_counts") or {}).get(_date_key()) or 0)
+        return build_progress_feedback(
+            focus_topic=member.get("focus_topic") or "",
+            weak_points=weak_names,
+            today_done=today_done,
+            daily_target=member.get("daily_target") or 0,
+            streak_days=member.get("study_days") or 0,
+            review_due=member.get("review_due") or 0,
+            daily_counts=learning.get("daily_counts") or {},
+            chapter_stats=learning.get("chapter_stats") or {},
+        )
 
     def get_badges(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
@@ -2636,6 +2807,11 @@ class MemberConsoleService:
             session_payload = await self._exchange_wechat_code(normalized)
         except (RuntimeError, httpx.HTTPError) as exc:
             normalized_exc = self._normalize_wechat_upstream_error(exc, "code2Session")
+            logger.warning(
+                "wechat mp login upstream failed: action=code2Session dev_fallback=%s detail=%s",
+                self._supports_dev_wechat_login(normalized),
+                normalized_exc,
+            )
             if not self._supports_dev_wechat_login(normalized):
                 raise normalized_exc
             session_payload = self._mock_wechat_session(normalized)
@@ -2689,6 +2865,12 @@ class MemberConsoleService:
                 normalized = await self._exchange_wechat_phone_code(raw_code)
             except (RuntimeError, httpx.HTTPError) as exc:
                 normalized_exc = self._normalize_wechat_upstream_error(exc, "getuserphonenumber")
+                logger.warning(
+                    "wechat mp bind-phone upstream failed: action=getuserphonenumber user_id=%s dev_fallback=%s detail=%s",
+                    user_id,
+                    self._supports_dev_wechat_login(raw_code),
+                    normalized_exc,
+                )
                 if not self._supports_dev_wechat_login(raw_code):
                     raise normalized_exc
                 normalized = _normalize_phone_input("13800000000" + raw_code[-4:])

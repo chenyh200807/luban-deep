@@ -123,6 +123,43 @@ Page({
       page: "login",
     });
   },
+  _describeAuthError: function (err, fallbackMsg, options) {
+    if (!api || typeof api.describeRequestError !== "function") {
+      return fallbackMsg;
+    }
+    return api.describeRequestError(err, fallbackMsg, options || {});
+  },
+  _requestWechatSession: function (attempt) {
+    var self = this;
+    var currentAttempt = Number(attempt) || 0;
+    return new Promise(function (resolve, reject) {
+      wx.login({
+        success: function (loginRes) {
+          if (!loginRes.code) {
+            reject(new Error("WX_LOGIN_CODE_MISSING"));
+            return;
+          }
+          api
+            .wxLogin(loginRes.code)
+            .then(resolve)
+            .catch(function (err) {
+              if (
+                currentAttempt < 1 &&
+                typeof api.shouldRetryWechatLogin === "function" &&
+                api.shouldRetryWechatLogin(err)
+              ) {
+                self._requestWechatSession(currentAttempt + 1).then(resolve).catch(reject);
+                return;
+              }
+              reject(err);
+            });
+        },
+        fail: function () {
+          reject(new Error("WX_LOGIN_FAILED"));
+        },
+      });
+    });
+  },
   togglePassword: function () {
     this.setData({ showPassword: !this.data.showPassword });
   },
@@ -152,19 +189,28 @@ Page({
           resp._token ||
           user._token;
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
-        auth.setToken(token);
+        auth.setToken(token, inner.expires_at);
         self._trackLoginSuccess("password");
         self._reLaunchAfterAuth();
       })
       .catch(function (err) {
-        var m = String(err.message || ""),
-          msg = "登录失败，请重试";
-        if (m.includes("NETWORK_")) msg = "网络连接失败";
-        else if (m.includes("401") || m.includes("密码"))
-          msg = "用户名或密码错误";
-        else if (m.includes("429")) msg = "登录过于频繁";
-        else if (m.includes("token")) msg = "服务端未返回凭证";
-        else if (m && !m.startsWith("HTTP_")) msg = m;
+        var msg = self._describeAuthError(err, "登录失败，请重试", {
+          customMap: function (info) {
+            if (info.status === 401 || info.detailText.indexOf("密码") >= 0) {
+              return "用户名或密码错误";
+            }
+            if (info.status === 429) {
+              return "登录过于频繁";
+            }
+            if (
+              info.rawMessage.indexOf("token") >= 0 ||
+              info.rawMessage.indexOf("凭证") >= 0
+            ) {
+              return "服务端未返回凭证";
+            }
+            return "";
+          },
+        });
         self.setData({ errorMsg: msg });
       })
       .then(
@@ -236,10 +282,14 @@ Page({
         }
       })
       .catch(function (err) {
-        var m = String(err.message || "");
-        var msg = "发送失败，请重试";
-        if (m.includes("NETWORK_")) msg = "网络连接失败";
-        else if (m.includes("429")) msg = "发送过于频繁，请稍后再试";
+        var msg = self._describeAuthError(err, "发送失败，请重试", {
+          customMap: function (info) {
+            if (info.status === 429) {
+              return "发送过于频繁，请稍后再试";
+            }
+            return "";
+          },
+        });
         self.setData({ errorMsg: msg, loading: false });
       });
   },
@@ -276,18 +326,22 @@ Page({
         var inner = resp.data || resp;
         var token = inner.token;
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
-        auth.setToken(token);
+        auth.setToken(token, inner.expires_at);
         self._trackLoginSuccess("phone_code");
         self._reLaunchAfterAuth();
       })
       .catch(function (err) {
-        var m = String(err.message || ""),
-          msg = "验证失败，请重试";
-        if (m.includes("NETWORK_")) msg = "网络连接失败";
-        else if (m.includes("400") || m.includes("验证码"))
-          msg = "验证码错误或已过期";
-        else if (m.includes("429")) msg = "操作过于频繁";
-        else if (m && !m.startsWith("HTTP_")) msg = m;
+        var msg = self._describeAuthError(err, "验证失败，请重试", {
+          customMap: function (info) {
+            if (info.status === 400 || info.detailText.indexOf("验证码") >= 0) {
+              return "验证码错误或已过期";
+            }
+            if (info.status === 429) {
+              return "操作过于频繁";
+            }
+            return "";
+          },
+        });
         self.setData({ errorMsg: msg });
       })
       .then(
@@ -319,49 +373,51 @@ Page({
     var inner = payload && (payload.data || payload);
     var token = inner && inner.token;
     if (!token) throw new Error("服务端未返回凭证");
-    auth.setToken(token);
+    auth.setToken(token, inner && inner.expires_at);
     return { token: token };
   },
   handleWechatLogin: function () {
     var self = this;
     if (self.data.wechatLoading || self.data.loading) return;
     self.setData({ wechatLoading: true, errorMsg: "" });
-    wx.login({
-      success: function (loginRes) {
-        if (!loginRes.code) {
-          self.setData({ wechatLoading: false, errorMsg: "微信登录失败，请重试" });
-          return;
-        }
-        api
-          .wxLogin(loginRes.code)
-          .then(function (resp) {
-            self._completeWechatAuth(resp);
-          })
-          .then(function () {
-            self._trackLoginSuccess("wechat");
-            self._reLaunchAfterAuth();
-          })
-          .catch(function (err) {
-            var m = String((err && err.message) || "");
-            var msg = "微信登录失败，请重试";
-            if (m.includes("credentials")) msg = "后端未配置微信小程序密钥";
-            else if (m.includes("NETWORK_")) msg = "网络连接失败";
-            else if (m && !m.startsWith("HTTP_")) msg = m;
-            self.setData({ errorMsg: msg });
-          })
-          .then(
-            function () {
-              self.setData({ wechatLoading: false });
-            },
-            function () {
-              self.setData({ wechatLoading: false });
-            },
-          );
-      },
-      fail: function () {
-        self.setData({ wechatLoading: false, errorMsg: "无法获取微信登录凭证" });
-      },
-    });
+    self
+      ._requestWechatSession(0)
+      .then(function (resp) {
+        self._completeWechatAuth(resp);
+      })
+      .then(function () {
+        self._trackLoginSuccess("wechat");
+        self._reLaunchAfterAuth();
+      })
+      .catch(function (err) {
+        var msg = self._describeAuthError(err, "微信登录失败，请重试", {
+          context: "wechat_login",
+          customMap: function (info) {
+            if (
+              info.rawMessage.indexOf("credentials") >= 0 ||
+              info.detailText.indexOf("credentials") >= 0
+            ) {
+              return "后端未配置微信小程序密钥";
+            }
+            if (
+              info.rawMessage.indexOf("WX_LOGIN_") >= 0 ||
+              info.detailText.indexOf("WX_LOGIN_") >= 0
+            ) {
+              return "无法获取微信登录凭证";
+            }
+            return "";
+          },
+        });
+        self.setData({ errorMsg: msg });
+      })
+      .then(
+        function () {
+          self.setData({ wechatLoading: false });
+        },
+        function () {
+          self.setData({ wechatLoading: false });
+        },
+      );
   },
   handleWechatPhoneNumber: function (e) {
     var self = this;
@@ -375,48 +431,52 @@ Page({
       return;
     }
     self.setData({ wechatLoading: true, errorMsg: "" });
-    wx.login({
-      success: function (loginRes) {
-        if (!loginRes.code) {
-          self.setData({ wechatLoading: false, errorMsg: "微信登录失败，请重试" });
-          return;
+    self
+      ._requestWechatSession(0)
+      .then(function (resp) {
+        self._completeWechatAuth(resp);
+        return api.bindPhone(phoneCode);
+      })
+      .then(function (resp) {
+        var inner = resp.data || resp;
+        if (inner && inner.token) {
+          auth.setToken(inner.token, inner.expires_at);
         }
-        api
-          .wxLogin(loginRes.code)
-          .then(function (resp) {
-            self._completeWechatAuth(resp);
-            return api.bindPhone(phoneCode);
-          })
-          .then(function (resp) {
-            var inner = resp.data || resp;
-            if (inner && inner.token) {
-              auth.setToken(inner.token);
+        self._trackLoginSuccess("wechat_phone");
+        self._reLaunchAfterAuth();
+      })
+      .catch(function (err) {
+        var msg = self._describeAuthError(err, "微信手机号登录失败，请重试", {
+          context: "wechat_login",
+          customMap: function (info) {
+            if (
+              info.rawMessage.indexOf("credentials") >= 0 ||
+              info.detailText.indexOf("credentials") >= 0
+            ) {
+              return "后端未配置微信小程序密钥";
             }
-            self._trackLoginSuccess("wechat_phone");
-            self._reLaunchAfterAuth();
-          })
-          .catch(function (err) {
-            var m = String((err && err.message) || "");
-            var msg = "微信手机号登录失败，请重试";
-            if (m.includes("credentials")) msg = "后端未配置微信小程序密钥";
-            else if (m.includes("getuserphonenumber")) msg = "微信手机号授权失败";
-            else if (m.includes("NETWORK_")) msg = "网络连接失败";
-            else if (m && !m.startsWith("HTTP_")) msg = m;
-            self.setData({ errorMsg: msg });
-          })
-          .then(
-            function () {
-              self.setData({ wechatLoading: false });
-            },
-            function () {
-              self.setData({ wechatLoading: false });
-            },
-          );
-      },
-      fail: function () {
-        self.setData({ wechatLoading: false, errorMsg: "无法获取微信登录凭证" });
-      },
-    });
+            if (info.detailText.toLowerCase().indexOf("getuserphonenumber") >= 0) {
+              return "微信手机号授权失败";
+            }
+            if (
+              info.rawMessage.indexOf("WX_LOGIN_") >= 0 ||
+              info.detailText.indexOf("WX_LOGIN_") >= 0
+            ) {
+              return "无法获取微信登录凭证";
+            }
+            return "";
+          },
+        });
+        self.setData({ errorMsg: msg });
+      })
+      .then(
+        function () {
+          self.setData({ wechatLoading: false });
+        },
+        function () {
+          self.setData({ wechatLoading: false });
+        },
+      );
   },
   _initSubtitleScene: function (info) {
     this._subtitleSlideWidth = info.windowWidth || 375;

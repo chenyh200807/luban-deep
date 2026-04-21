@@ -235,6 +235,7 @@
 
       <view class="progress-panel glass-card">
         <text class="progress-summary">{{progressSummary}}</text>
+        <text class="progress-insight" wx:if="{{progressInsight}}">{{progressInsight}}</text>
         <view class="progress-grid">
           <view
             class="progress-item"
@@ -244,6 +245,19 @@
             <text class="progress-item-label">{{item.label}}</text>
             <text class="progress-item-value {{item.toneClass}}">{{item.value}}</text>
             <text class="progress-item-detail">{{item.detail}}</text>
+          </view>
+        </view>
+        <view class="progress-milestones" wx:if="{{progressMilestones.length}}">
+          <view
+            class="progress-milestone"
+            wx:for="{{progressMilestones}}"
+            wx:key="title"
+          >
+            <view class="progress-milestone-dot {{item.toneClass}}"></view>
+            <view class="progress-milestone-copy">
+              <text class="progress-milestone-title">{{item.title}}</text>
+              <text class="progress-milestone-detail">{{item.detail}}</text>
+            </view>
           </view>
         </view>
       </view>

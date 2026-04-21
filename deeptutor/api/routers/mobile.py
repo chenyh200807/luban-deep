@@ -10,7 +10,13 @@ import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from deeptutor.api.dependencies import AuthContext, require_self_or_admin, resolve_auth_context, route_rate_limit
+from deeptutor.api.dependencies import (
+    AuthContext,
+    require_self_or_admin,
+    resolve_auth_context,
+    resolve_wallet_user_id,
+    route_rate_limit,
+)
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.learner_state import LearnerStateService
@@ -59,6 +65,10 @@ def _resolve_authenticated_user_id(authorization: str | None) -> str:
     return str(current_user.user_id).strip()
 
 
+def _resolve_wallet_lookup_user_id(authorization: str | None) -> str:
+    return str(resolve_wallet_user_id(authorization) or "").strip()
+
+
 def _micros_to_points(value: int | float | None) -> int:
     try:
         micros = int(value or 0)
@@ -96,10 +106,20 @@ def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: st
 def _wallet_snapshot_or_zero(user_id: str) -> WalletSnapshot:
     if not getattr(wallet_service, "is_configured", False):
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
+    normalized_user_id = str(user_id or "").strip()
+    if not normalized_user_id:
+        return WalletSnapshot(
+            user_id="",
+            balance_micros=0,
+            frozen_micros=0,
+            plan_id="",
+            version=0,
+            created_at="",
+        )
     try:
-        snapshot = wallet_service.get_wallet(user_id)
+        snapshot = wallet_service.get_wallet(normalized_user_id)
     except Exception as exc:
-        logger.warning("wallet lookup failed for user_id=%s: %s", user_id, exc)
+        logger.warning("wallet lookup failed for user_id=%s: %s", normalized_user_id, exc)
         raise HTTPException(status_code=503, detail="Wallet service unavailable") from exc
     if snapshot is not None:
         return snapshot
@@ -814,8 +834,10 @@ async def auth_verify_code(body: VerifyCodeRequest) -> dict[str, Any]:
 async def auth_profile(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user_id = _resolve_authenticated_user_id(authorization)
     profile = member_service.get_profile(user_id)
-    snapshot = _wallet_snapshot_or_zero(user_id)
+    wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
+    snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
+    wallet_payload["user_id"] = user_id
     profile["id"] = user_id
     profile["user_id"] = user_id
     profile["points"] = wallet_payload["points"]
@@ -823,8 +845,20 @@ async def auth_profile(authorization: str | None = Header(default=None)) -> dict
     profile["balance_micros"] = wallet_payload["balance_micros"]
     profile["frozen_micros"] = wallet_payload["frozen_micros"]
     profile["wallet"] = wallet_payload
-    _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="auth_profile")
+    if wallet_user_id:
+        _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="auth_profile")
     return profile
+
+
+@router.post(
+    "/auth/refresh",
+    dependencies=[Depends(route_rate_limit("mobile_auth_refresh", default_max_requests=30, default_window_seconds=60.0))],
+)
+async def auth_refresh(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    try:
+        return member_service.refresh_access_token(authorization)
+    except ValueError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
 
 
 @router.patch("/auth/profile/settings")
@@ -914,9 +948,11 @@ async def practice_daily_question(authorization: str | None = Header(default=Non
 @router.get("/billing/points")
 async def billing_points(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user_id = _resolve_authenticated_user_id(authorization)
-    snapshot = _wallet_snapshot_or_zero(user_id)
+    wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
+    snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
-    _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_points")
+    if wallet_user_id:
+        _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_points")
     return {
         "user_id": user_id,
         "points": wallet_payload["points"],
@@ -930,9 +966,12 @@ async def billing_points(authorization: str | None = Header(default=None)) -> di
 @router.get("/billing/wallet")
 async def billing_wallet(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user_id = _resolve_authenticated_user_id(authorization)
-    snapshot = _wallet_snapshot_or_zero(user_id)
+    wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
+    snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
-    _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_wallet")
+    wallet_payload["user_id"] = user_id
+    if wallet_user_id:
+        _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_wallet")
     return wallet_payload
 
 
@@ -942,10 +981,16 @@ async def billing_ledger(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> dict[str, Any]:
-    user_id = _resolve_authenticated_user_id(authorization)
+    wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
     if not getattr(wallet_service, "is_configured", False):
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
-    rows = wallet_service.list_wallet_ledger(user_id, limit=limit + 1, offset=offset)
+    if not str(wallet_user_id or "").strip():
+        return {
+            "entries": [],
+            "has_more": False,
+            "total": 0,
+        }
+    rows = wallet_service.list_wallet_ledger(wallet_user_id, limit=limit + 1, offset=offset)
     has_more = len(rows) > limit
     page = rows[:limit]
     return {

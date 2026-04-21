@@ -9,6 +9,8 @@ var RETRY_BASE_DELAY = 1000; // 首次重试延迟 ms
 var REQUEST_TIMEOUT = 15000; // 请求超时 ms
 var RETRYABLE_METHODS = { GET: true, PUT: true, DELETE: true }; // 幂等方法才重试
 var IN_FLIGHT_REQUESTS = Object.create(null);
+var TOKEN_REFRESH_MARGIN_SECONDS = 60 * 60 * 24; // 仅在 token 临期 24 小时内续期
+var IN_FLIGHT_REFRESH = null;
 
 function relaunchLogin() {
   runtime.redirectToLogin();
@@ -29,6 +31,110 @@ function unwrapResponse(raw) {
   return raw;
 }
 
+function parseHttpError(message) {
+  var match = /^HTTP_(\d+):\s*(.*)$/.exec(String(message || ""));
+  if (!match) {
+    return { status: 0, payload: null, detailText: "" };
+  }
+  var payloadText = String(match[2] || "").trim();
+  var payload = null;
+  var detailText = payloadText;
+  if (payloadText) {
+    try {
+      payload = JSON.parse(payloadText);
+      if (payload && typeof payload === "object" && payload.detail !== undefined) {
+        detailText = String(payload.detail || "").trim() || payloadText;
+      }
+    } catch (_err) {}
+  }
+  return {
+    status: parseInt(match[1], 10) || 0,
+    payload: payload,
+    detailText: detailText,
+  };
+}
+
+function inspectRequestError(err) {
+  var message = String((err && err.message) || "");
+  var lowered = message.toLowerCase();
+  var http = parseHttpError(message);
+  var detailText = http.detailText || message;
+  return {
+    rawMessage: message,
+    loweredMessage: lowered,
+    status: http.status,
+    payload: http.payload,
+    detailText: String(detailText || "").trim(),
+    isAuthExpired: message === "AUTH_EXPIRED",
+    isNetworkError: message.indexOf("NETWORK_ERROR:") === 0,
+    isTimeout:
+      lowered.indexOf("timeout") >= 0 ||
+      lowered.indexOf("timed out") >= 0 ||
+      lowered.indexOf("超时") >= 0,
+  };
+}
+
+function shouldRetryWechatLogin(err) {
+  var info = inspectRequestError(err);
+  if (info.isNetworkError) {
+    return true;
+  }
+  if (info.status >= 500 && info.status < 600) {
+    return true;
+  }
+  if (info.detailText) {
+    var lowered = info.detailText.toLowerCase();
+    if (
+      lowered.indexOf("code2session") >= 0 ||
+      lowered.indexOf("stable_token") >= 0 ||
+      lowered.indexOf("request timed out") >= 0
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function describeRequestError(err, fallbackMsg, opts) {
+  var options = opts || {};
+  var info = inspectRequestError(err);
+  var customMap = options.customMap;
+  if (typeof customMap === "function") {
+    var customMsg = customMap(info);
+    if (customMsg) {
+      return customMsg;
+    }
+  }
+  if (info.isAuthExpired) {
+    return "登录已失效，请重新登录";
+  }
+  if (info.status === 429) {
+    return "操作过于频繁，请稍后再试";
+  }
+  if (info.isTimeout) {
+    if (options.context === "wechat_login") {
+      return "微信登录服务响应超时，请稍后重试";
+    }
+    return "请求超时，请稍后重试";
+  }
+  if (info.isNetworkError) {
+    return "连接服务器失败，请检查网络后重试";
+  }
+  if (info.status >= 500) {
+    if (options.context === "wechat_login") {
+      if (info.detailText.toLowerCase().indexOf("getuserphonenumber") >= 0) {
+        return "微信手机号授权服务暂时不可用，请稍后重试";
+      }
+      return "微信登录服务暂时不稳定，请稍后重试";
+    }
+    return "服务暂时不可用，请稍后重试";
+  }
+  if (info.detailText && !/^HTTP_\d+:/.test(info.rawMessage)) {
+    return info.detailText;
+  }
+  return fallbackMsg;
+}
+
 function requestStateGet(url, opts) {
   return request(
     Object.assign(
@@ -43,11 +149,99 @@ function requestStateGet(url, opts) {
   );
 }
 
+function applyAuthPayload(payload) {
+  var body = unwrapResponse(payload);
+  if (!body || typeof body !== "object" || !body.token) {
+    return null;
+  }
+  auth.setToken(body.token, body.expires_at);
+  return body.token;
+}
+
+function refreshAuthToken(opts) {
+  var token = auth.getToken();
+  var refreshOpts = Object.assign({}, opts || {});
+  if (!token) {
+    return Promise.reject(new Error("AUTH_EXPIRED"));
+  }
+  if (IN_FLIGHT_REFRESH) {
+    return IN_FLIGHT_REFRESH;
+  }
+  IN_FLIGHT_REFRESH = new Promise(function (resolve, reject) {
+    rawRequest({
+      url: "/api/v1/auth/refresh",
+      method: "POST",
+      useGateway: refreshOpts.useGateway,
+      baseUrl: refreshOpts.baseUrl,
+      _baseCandidates: refreshOpts._baseCandidates,
+      skipAuthRefresh: true,
+      dedupeInFlight: true,
+      noRetry: true,
+    })
+      .then(function (resp) {
+        var refreshedToken = applyAuthPayload(resp);
+        if (!refreshedToken) {
+          auth.clearToken();
+          relaunchLogin();
+          reject(new Error("AUTH_EXPIRED"));
+          return;
+        }
+        resolve(refreshedToken);
+      })
+      .catch(function (_err) {
+        auth.clearToken();
+        relaunchLogin();
+        reject(new Error("AUTH_EXPIRED"));
+      })
+      .then(
+        function () {
+          IN_FLIGHT_REFRESH = null;
+        },
+        function () {
+          IN_FLIGHT_REFRESH = null;
+        },
+      );
+  });
+  return IN_FLIGHT_REFRESH;
+}
+
+function ensureFreshAuthToken(opts) {
+  var token = auth.getToken();
+  if (!token) {
+    return Promise.reject(new Error("AUTH_EXPIRED"));
+  }
+  if (
+    typeof auth.shouldRefreshToken === "function" &&
+    auth.shouldRefreshToken(TOKEN_REFRESH_MARGIN_SECONDS)
+  ) {
+    return refreshAuthToken(opts).then(function (refreshedToken) {
+      return refreshedToken || auth.getToken() || "";
+    });
+  }
+  return Promise.resolve(token);
+}
+
 /**
  * 通用请求（带 token 自动注入 + 指数退避重试 + Token 刷新）
  * @param {object} opts - { url, method, data, useGateway, noAuth, _retryCount }
  */
 function request(opts) {
+  var requestOptions = Object.assign({}, opts || {});
+  if (
+    !requestOptions.noAuth &&
+    !requestOptions.skipAuthRefresh &&
+    auth.getToken() &&
+    typeof auth.shouldRefreshToken === "function" &&
+    auth.shouldRefreshToken(TOKEN_REFRESH_MARGIN_SECONDS)
+  ) {
+    return ensureFreshAuthToken(requestOptions).then(function () {
+      return rawRequest(requestOptions);
+    });
+  }
+  return rawRequest(requestOptions);
+}
+
+function rawRequest(opts) {
   var method = opts.method || "GET";
   var data = opts.data || {};
   var useGateway = opts.useGateway || false;
@@ -118,6 +312,10 @@ function request(opts) {
             reject(
               new Error("HTTP_401: " + JSON.stringify(res.data)),
             );
+            return;
+          }
+          if (opts.skipAuthRefresh) {
+            reject(new Error("AUTH_EXPIRED"));
             return;
           }
           // Token 过期 — 清除并跳转登录
@@ -414,7 +612,12 @@ function submitAssessment(quizId, answers, timeSpent) {
 
 module.exports = {
   request: request,
+  ensureFreshAuthToken: ensureFreshAuthToken,
+  refreshAuthToken: refreshAuthToken,
   unwrapResponse: unwrapResponse,
+  inspectRequestError: inspectRequestError,
+  describeRequestError: describeRequestError,
+  shouldRetryWechatLogin: shouldRetryWechatLogin,
   wxLogin: wxLogin,
   bindPhone: bindPhone,
   getUserInfo: getUserInfo,

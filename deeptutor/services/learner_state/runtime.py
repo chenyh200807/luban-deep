@@ -14,6 +14,7 @@ from .flusher import LearnerStateOutboxFlusher
 from .heartbeat import LearnerHeartbeatArbitrationHints
 from .heartbeat.scheduler import LearnerHeartbeatScheduler
 from .heartbeat.store import LearnerHeartbeatJob
+from .study_plan import build_study_plan_from_learner_snapshot, format_study_plan_for_prompt
 from .supabase_writer import LearnerStateSupabaseWriter
 
 logger = get_logger("LearnerStateRuntime")
@@ -149,6 +150,7 @@ class LearnerHeartbeatExecutor:
         cadence = str(policy.get("cadence") or "daily").strip() or "daily"
         profile_text = ""
         progress_text = ""
+        study_plan_text = ""
         goals_text = ""
         if self._learner_state_service is not None:
             try:
@@ -185,6 +187,9 @@ class LearnerHeartbeatExecutor:
                     progress_lines.append("薄弱点：" + "、".join(str(item).strip() for item in weak_points[:3] if str(item).strip()))
                 if progress_lines:
                     progress_text = "\n学习进度：\n- " + "\n- ".join(progress_lines)
+                study_plan_text = format_study_plan_for_prompt(
+                    build_study_plan_from_learner_snapshot(snapshot)
+                )
             else:
                 goals = []
             if goals:
@@ -206,7 +211,7 @@ class LearnerHeartbeatExecutor:
             f"当前 cadence 为 {cadence}。"
             "如果适合触达，就生成一段简短、具体、可执行的提醒；"
             "如果不适合触达，也请明确说明原因。"
-            f"{profile_text}{progress_text}{goals_text}"
+            f"{profile_text}{progress_text}{study_plan_text}{goals_text}"
         )
 
     async def __call__(self, job: Any) -> dict[str, Any]:

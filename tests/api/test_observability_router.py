@@ -9,13 +9,29 @@ pytest.importorskip("fastapi")
 FastAPI = pytest.importorskip("fastapi").FastAPI
 TestClient = pytest.importorskip("fastapi.testclient").TestClient
 
+from deeptutor.api.dependencies import AuthContext, get_current_user
+
 router = importlib.import_module("deeptutor.api.routers.observability").router
 observability_module = importlib.import_module("deeptutor.services.observability")
 
 
-def _build_app() -> FastAPI:
+def _ctx(user_id: str, *, is_admin: bool = False) -> AuthContext:
+    return AuthContext(
+        user_id=user_id,
+        provider="test",
+        token="test-token",
+        claims={"uid": user_id},
+        is_admin=is_admin,
+    )
+
+
+def _build_app(*, is_admin: bool = True) -> FastAPI:
     app = FastAPI()
     app.include_router(router, prefix="/api/v1/observability")
+    app.dependency_overrides[get_current_user] = lambda: _ctx(
+        "admin_demo" if is_admin else "student_demo",
+        is_admin=is_admin,
+    )
     return app
 
 
@@ -145,7 +161,7 @@ def test_surface_event_router_rejects_unknown_event_name() -> None:
 
 
 def test_control_plane_router_returns_latest_and_history() -> None:
-    app = _build_app()
+    app = _build_app(is_admin=True)
     store = observability_module.get_control_plane_store()
     store.write_run(
         kind="arr_runs",
@@ -162,3 +178,20 @@ def test_control_plane_router_returns_latest_and_history() -> None:
     assert latest.json()["record"]["run_id"] == "arr-lite-1"
     assert history.status_code == 200
     assert len(history.json()["records"]) == 1
+
+
+@pytest.mark.parametrize(
+    ("path"),
+    (
+        "/api/v1/observability/control-plane/arr_runs/latest",
+        "/api/v1/observability/control-plane/arr_runs/history?limit=5",
+    ),
+)
+def test_control_plane_router_requires_admin(path: str) -> None:
+    app = _build_app(is_admin=False)
+
+    with TestClient(app) as client:
+        response = client.get(path)
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Admin access required"

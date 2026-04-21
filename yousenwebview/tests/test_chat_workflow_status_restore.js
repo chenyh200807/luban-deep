@@ -97,6 +97,13 @@ function loadChatPage() {
   return pageDef;
 }
 
+function loadChatSource() {
+  return fs.readFileSync(
+    path.join(__dirname, "../packageDeeptutor/pages/chat/chat.js"),
+    "utf8",
+  );
+}
+
 function loadWsStream() {
   var source = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/utils/ws-stream.js"),
@@ -145,6 +152,21 @@ run("internal thinking status should be sanitized before entering workflow trace
   assert(payload.data === "responding", "internal thinking payload should fall back to stage name");
   assert(entry.title === "正在整理最终回答", "workflow entry should use safe stage summary");
   assert(entry.rawText === "正在整理最终回答", "workflow raw text should stay on safe summarized wording");
+});
+
+run("workflow summary should use active analysis wording by default", function () {
+  var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
+  var summary = workflowStatus.summarizeWorkflow([], true);
+
+  assert(summary.badge === "AI 正在分析", "default workflow badge should feel already in progress");
+  assert(summary.headline === "正在分析你的问题", "default workflow headline should avoid preparation wording");
+});
+
+run("chat page should not seed preparation wording for first-frame thinking status", function () {
+  var source = loadChatSource();
+
+  assert(source.indexOf("AI 正在准备") === -1, "chat page should not contain preparation wording");
+  assert(source.indexOf("AI 正在分析你的问题...") !== -1, "chat page should seed active analysis wording");
 });
 
 if (fail) {

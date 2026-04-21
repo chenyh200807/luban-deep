@@ -588,6 +588,13 @@
   color: var(--text-secondary);
 }
 
+.progress-insight {
+  margin-top: -6rpx;
+  font-size: 22rpx;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
 .progress-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -617,6 +624,47 @@
 }
 
 .progress-item-detail {
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.progress-milestones {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  padding-top: 4rpx;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.06);
+}
+
+.progress-milestone {
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
+}
+
+.progress-milestone-dot {
+  width: 14rpx;
+  height: 14rpx;
+  margin-top: 10rpx;
+  border-radius: 999rpx;
+  background: #7dd3fc;
+  flex-shrink: 0;
+}
+
+.progress-milestone-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.progress-milestone-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.progress-milestone-detail {
   font-size: 22rpx;
   line-height: 1.6;
   color: var(--text-secondary);
@@ -765,4 +813,8 @@
 .report-page.light .progress-item {
   background: rgba(255, 255, 255, 0.8);
   border-color: rgba(209, 222, 244, 0.85);
+}
+
+.report-page.light .progress-milestones {
+  border-color: rgba(209, 222, 244, 0.7);
 }

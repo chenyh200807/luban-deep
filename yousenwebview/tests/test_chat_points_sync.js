@@ -53,6 +53,12 @@ function loadChatPage(overrides) {
       getWallet: function () {
         return Promise.resolve({ balance: 88 });
       },
+      getLedger: function () {
+        return Promise.resolve({
+          entries: [],
+          has_more: false,
+        });
+      },
       getPoints: function () {
         return Promise.resolve({ points: 0 });
       },
@@ -262,6 +268,48 @@ function loadChatPage(overrides) {
     loaded.page.onSwitchAccount();
 
     assert(logoutCount === 1, "switch account should call runtime.logout after user confirmation");
+  });
+
+  await run("chat hero points pill should open billing drawer and load consumption records", async function () {
+    var navigateCount = 0;
+    var ledgerCount = 0;
+    var loaded = loadChatPage({
+      api: {
+        getWallet: function () {
+          return Promise.resolve({ balance: 66 });
+        },
+        getLedger: function () {
+          ledgerCount += 1;
+          return Promise.resolve({
+            entries: [
+              {
+                id: "entry-1",
+                delta: -10,
+                reason: "capture",
+                created_at: "2026-04-21T10:00:00+08:00",
+              },
+            ],
+            has_more: false,
+          });
+        },
+      },
+    });
+
+    loaded.wx.navigateTo = function () {
+      navigateCount += 1;
+    };
+
+    loaded.page.goBilling();
+    await flushPromises();
+    await flushPromises();
+
+    assert(loaded.page.data.billingShow === true, "points pill should open billing drawer");
+    assert(loaded.page.data.billingLoading === false, "billing drawer should finish loading ledger");
+    assert(loaded.page.data.billingBalance === 66, "billing drawer should sync latest wallet balance");
+    assert(loaded.page.data.billingEntries.length === 1, "billing drawer should render consumption records");
+    assert(loaded.page.data.billingEntries[0].reason === "对话消耗", "billing drawer should map ledger reasons for display");
+    assert(ledgerCount === 1, "points pill should request ledger records once");
+    assert(navigateCount === 0, "points pill should not navigate to recharge page");
   });
 
   await run("chat page should not auto bootstrap dashboard or pending send after auth expired", async function () {

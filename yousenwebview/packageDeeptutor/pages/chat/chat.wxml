@@ -183,7 +183,7 @@
               <view class="thinking-head">
                 <view class="thinking-badge thinking-badge-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}">
                   <view class="dots-bounce"><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
-                  <text class="thinking-badge-text">{{item.thinkingBadge ? item.thinkingBadge : 'AI 正在处理'}}</text>
+                  <text class="thinking-badge-text">{{item.thinkingBadge ? item.thinkingBadge : 'AI 正在分析'}}</text>
                 </view>
                 <view class="thinking-scan thinking-scan-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}"></view>
 	              </view>

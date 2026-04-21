@@ -1232,6 +1232,11 @@ def test_auth_profile_surfaces_wallet_service_failure(
         },
     )
     monkeypatch.setattr(
+        mobile_module,
+        "resolve_wallet_user_id",
+        lambda *_args, **_kwargs: "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+    )
+    monkeypatch.setattr(
         mobile_module.wallet_service,
         "get_wallet",
         lambda _user_id: (_ for _ in ()).throw(RuntimeError("wallet unavailable")),
@@ -1242,6 +1247,54 @@ def test_auth_profile_surfaces_wallet_service_failure(
 
     assert response.status_code == 503
     assert response.json()["detail"] == "Wallet service unavailable"
+
+
+def test_auth_refresh_reissues_token_for_valid_bearer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, str | None] = {"authorization": None}
+
+    def _refresh_access_token(authorization: str | None) -> dict[str, Any]:
+        captured["authorization"] = authorization
+        return {
+            "user_id": "student_demo",
+            "token": "dtm.refreshed.signature",
+            "token_type": "Bearer",
+            "expires_at": 1_800_000_000,
+            "expires_in": 2_592_000,
+            "user": {"user_id": "student_demo"},
+        }
+
+    monkeypatch.setattr(mobile_module.member_service, "refresh_access_token", _refresh_access_token)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/refresh",
+            headers={"Authorization": "Bearer old-token"},
+        )
+
+    assert response.status_code == 200
+    assert captured["authorization"] == "Bearer old-token"
+    assert response.json()["token"] == "dtm.refreshed.signature"
+    assert response.json()["expires_at"] == 1_800_000_000
+
+
+def test_auth_refresh_returns_401_for_invalid_token(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise_invalid(_authorization: str | None) -> dict[str, Any]:
+        raise ValueError("Invalid or expired token")
+
+    monkeypatch.setattr(mobile_module.member_service, "refresh_access_token", _raise_invalid)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/refresh",
+            headers={"Authorization": "Bearer expired-token"},
+        )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid or expired token"
 
 
 def test_auth_profile_settings_rolls_back_member_and_learner_state_on_sync_failure(

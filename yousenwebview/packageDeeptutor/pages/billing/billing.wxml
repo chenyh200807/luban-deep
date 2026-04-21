@@ -4,35 +4,42 @@
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
     <view class="nav-content">
+      <view class="nav-brand" bindtap="goHome" aria-role="button" aria-label="回到首页">
+        <image class="nav-logo" src="../../images/logo-white.png" mode="heightFix" />
+        <view class="nav-brand-copy">
+          <text class="nav-kicker">鲁班智考</text>
+          <text class="nav-title">充值中心</text>
+        </view>
+      </view>
+      <view style="flex:1"></view>
       <view class="nav-back-pill" bindtap="goBack" aria-role="button" aria-label="返回对话">
         <text class="nav-back-arrow">‹</text>
         <text class="nav-back-label">返回对话</text>
       </view>
-      <image class="nav-logo" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" aria-role="button" aria-label="回到首页" />
-      <view style="flex:1"></view>
     </view>
   </view>
 
   <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px; bottom: 0">
     <view class="page-inner">
 
-      <!-- Demo 提示 -->
-      <view class="demo-banner">
-        <text class="demo-txt">演示模式 · 充值功能即将上线</text>
-      </view>
-
       <!-- 余额卡片 -->
       <view class="balance-card">
-        <text class="balance-label">当前余额</text>
-        <view class="balance-row">
+        <view class="balance-topline">
+          <text class="balance-label">当前余额</text>
+          <text class="balance-note">用于答疑、解析与学习规划</text>
+        </view>
+        <view class="balance-core">
           <text class="balance-star">✦</text>
           <text class="balance-num">{{balance}}</text>
         </view>
-        <text class="balance-hint">智力点用于 AI 问答、深度推理等高级功能</text>
+        <text class="demo-txt balance-demo">演示模式 · 充值功能即将上线</text>
       </view>
 
       <!-- 套餐选择 -->
-      <text class="section-title">选择套餐</text>
+      <view class="section-head">
+        <text class="section-title">选择套餐</text>
+        <text class="section-sub">仅保留 3 档主套餐。</text>
+      </view>
       <view class="pkg-grid">
         <view
           class="pkg-card {{selectedPkg === item.id ? 'sel' : ''}}"
@@ -41,14 +48,25 @@
           bindtap="onSelectPkg"
           data-id="{{item.id}}"
         >
-          <text class="pkg-badge" wx:if="{{item.badge}}">{{item.badge}}</text>
-          <text class="pkg-points">{{item.points}}</text>
-          <text class="pkg-unit">智力点</text>
-          <view class="pkg-price-row">
-            <text class="pkg-yen">¥</text>
-            <text class="pkg-price">{{item.price}}</text>
+          <view class="pkg-main">
+            <view class="pkg-copy">
+              <view class="pkg-topline">
+                <text class="pkg-name">{{item.label}}</text>
+                <text class="pkg-badge" wx:if="{{item.badge}}">{{item.badge}}</text>
+              </view>
+              <text class="pkg-points">{{item.points}} 智力点</text>
+              <text class="pkg-desc">{{item.desc}}</text>
+            </view>
+            <view class="pkg-price-block">
+              <view class="pkg-price-row">
+                <text class="pkg-yen">¥</text>
+                <text class="pkg-price">{{item.price}}</text>
+              </view>
+            </view>
           </view>
-          <text class="pkg-per" wx:if="{{item.per}}">{{item.per}}</text>
+          <view class="pkg-check {{selectedPkg === item.id ? 'on' : ''}}">
+            <view class="pkg-check-dot"></view>
+          </view>
         </view>
       </view>
 
@@ -57,8 +75,13 @@
         <text class="recharge-btn-txt">立即充值</text>
       </view>
 
+      <text class="usage-inline">普通问答通常消耗 8-10 点，复杂任务会消耗更多点数。</text>
+
       <!-- 充值记录 -->
-      <text class="section-title" style="margin-top:40rpx">充值记录</text>
+      <view class="section-head section-head-records">
+        <text class="section-title">充值记录</text>
+        <text class="section-sub">最近流水</text>
+      </view>
 
       <view wx:if="{{loading}}" class="loading-wrap">
         <view class="skel-item" wx:for="{{[1,2,3]}}" wx:key="index">

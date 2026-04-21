@@ -212,3 +212,53 @@ def test_resolve_wallet_user_id_reads_member_store_when_snapshot_loader_missing(
         auth_module.resolve_wallet_user_id("Bearer test-token")
         == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     )
+
+
+def test_resolve_wallet_user_id_ignores_non_uuid_canonical_claim_and_uses_external_auth_id(
+    monkeypatch,
+) -> None:
+    class _FakeMemberService:
+        @staticmethod
+        def verify_access_token(_token: str) -> dict[str, str]:
+            return {
+                "uid": "auth_cd7d7bb78bba46b489c10c8a",
+                "canonical_uid": "auth_cd7d7bb78bba46b489c10c8a",
+                "provider": "local",
+            }
+
+        @staticmethod
+        def _load_member_snapshot(user_id: str) -> dict[str, object]:
+            assert user_id == "auth_cd7d7bb78bba46b489c10c8a"
+            return {
+                "member": {
+                    "user_id": user_id,
+                    "external_auth_user_id": "cd7d7bb7-8bba-46b4-89c1-0c8a150c3381",
+                    "auth_username": "user_5912",
+                }
+            }
+
+    class _FakeStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            assert alias_type in {
+                "legacy_user_id",
+                "auth_username",
+                "phone",
+                "wx_openid",
+                "wx_unionid",
+            }
+            assert alias_value in {
+                "auth_cd7d7bb78bba46b489c10c8a",
+                "user_5912",
+            }
+            return None
+
+    monkeypatch.setattr(auth_module, "get_member_console_service", lambda: _FakeMemberService())
+    monkeypatch.setattr(auth_module, "get_wallet_identity_store", lambda: _FakeStore())
+
+    assert (
+        auth_module.resolve_wallet_user_id("Bearer test-token")
+        == "cd7d7bb7-8bba-46b4-89c1-0c8a150c3381"
+    )

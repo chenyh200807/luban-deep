@@ -196,6 +196,27 @@ function _buildBattlePlanModel(input) {
   };
 }
 
+function _normalizeBattlePlan(raw) {
+  var plan = raw || {};
+  var focusTopic = String(plan.focus_topic || plan.focusTopic || "").trim();
+  var priorityTask = String(plan.priority_task || plan.priorityTask || "").trim();
+  var studyMethod = String(plan.study_method || plan.studyMethod || "").trim();
+  var timeBudget = String(plan.time_budget || plan.timeBudget || "").trim();
+  var coachNote = String(plan.coach_note || plan.coachNote || "").trim();
+
+  if (!(focusTopic || priorityTask || studyMethod || timeBudget || coachNote)) {
+    return null;
+  }
+
+  return {
+    focusTopic: focusTopic || "今天先稳住基础节奏",
+    priorityTask: priorityTask,
+    studyMethod: studyMethod,
+    timeBudget: timeBudget,
+    coachNote: coachNote,
+  };
+}
+
 function _buildProgressCards(input) {
   var data = input || {};
   var todayDone = Number(data.todayDone) || 0;
@@ -233,6 +254,28 @@ function _buildProgressCards(input) {
   ];
 }
 
+function _buildProgressInsight(input) {
+  var data = input || {};
+  var dueToday = Number(data.dueTodayCount) || 0;
+  var hotspotCount = Array.isArray(data.hotspots) ? data.hotspots.length : 0;
+  var weakGroup = (data.masteryGroups || []).find(function (group) {
+    return group && group.name === "需要加强" && Array.isArray(group.chapters) && group.chapters.length;
+  });
+  var weakChapter = weakGroup && weakGroup.chapters[0] ? weakGroup.chapters[0].name : "";
+
+  if (data.focusHint) return data.focusHint;
+  if (weakChapter) {
+    return "当前最值得观察的变化点在“" + weakChapter + "”，继续推进后这里最容易先出现抬升";
+  }
+  if (dueToday > 0) {
+    return "今天还有 " + dueToday + " 个待复习点，先清掉它们，后面的进步反馈会更扎实";
+  }
+  if (hotspotCount > 0) {
+    return "系统检测到 " + hotspotCount + " 个高频失分热点，先处理这些点更容易看到掌握度变化";
+  }
+  return "先保持今天的学习动作，系统会持续把你的节奏变化沉淀成可见反馈";
+}
+
 function _buildProgressSummary(input) {
   var data = input || {};
   var streakDays = Number(data.streakDays) || 0;
@@ -251,6 +294,95 @@ function _buildProgressSummary(input) {
   return streakDays > 0
     ? "已连续学习 " + streakDays + " 天，继续保持，系统会持续记录你的进步轨迹"
     : "开始完成今天的第一轮练习后，这里会出现更清晰的进步反馈";
+}
+
+function _buildProgressMilestones(input) {
+  var data = input || {};
+  var milestones = [];
+  var todayDone = Number(data.todayDone) || 0;
+  var dailyTarget = Number(data.dailyTarget) || 0;
+  var streakDays = Number(data.streakDays) || 0;
+  var dueToday = Number(data.dueTodayCount) || 0;
+  var weakGroup = (data.masteryGroups || []).find(function (group) {
+    return group && group.name === "需要加强" && Array.isArray(group.chapters) && group.chapters.length;
+  });
+  var weakChapter = weakGroup && weakGroup.chapters[0] ? weakGroup.chapters[0] : null;
+
+  if (todayDone > 0) {
+    milestones.push({
+      title: "今日学习已经启动",
+      detail:
+        dailyTarget > 0
+          ? "今天已完成 " + todayDone + "/" + dailyTarget + "，继续推进后这里会更快出现正向反馈"
+          : "今天已经完成 " + todayDone + " 题，系统开始记录你的变化轨迹",
+      toneClass: "tone-accent",
+    });
+  }
+
+  if (weakChapter && weakChapter.name) {
+    milestones.push({
+      title: "薄弱章节已经锁定",
+      detail: "当前最需要优先拉升的是“" + weakChapter.name + "”，掌握度 " + weakChapter.mastery + "%",
+      toneClass: "tone-warn",
+    });
+  }
+
+  if (streakDays > 0) {
+    milestones.push({
+      title: streakDays >= 3 ? "连续学习节奏已形成" : "连续学习正在建立",
+      detail:
+        streakDays >= 3
+          ? "已经连续学习 " + streakDays + " 天，继续保持更容易看到掌握度抬升"
+          : "已连续学习 " + streakDays + " 天，再保持几天就能形成更稳定的进步曲线",
+      toneClass: streakDays >= 3 ? "tone-good" : "tone-accent",
+    });
+  }
+
+  if (dueToday > 0) {
+    milestones.push({
+      title: "复习压力还需要处理",
+      detail: "今天还有 " + dueToday + " 个待复习点，先清理这些内容，再加练会更高效",
+      toneClass: "tone-warn",
+    });
+  }
+
+  return milestones.slice(0, 3);
+}
+
+function _normalizeProgressFeedback(raw) {
+  var feedback = raw || {};
+  var summary = String(feedback.summary || "").trim();
+  var insight = String(feedback.insight || "").trim();
+  var cards = (feedback.cards || []).map(function (item) {
+    return {
+      label: String(item.label || "").trim(),
+      value: String(item.value || "").trim(),
+      detail: String(item.detail || "").trim(),
+      toneClass: String(item.tone_class || item.toneClass || "tone-accent").trim() || "tone-accent",
+    };
+  }).filter(function (item) {
+    return item.label || item.value || item.detail;
+  });
+  var milestones = (feedback.milestones || []).map(function (item) {
+    return {
+      title: String(item.title || "").trim(),
+      detail: String(item.detail || "").trim(),
+      toneClass: String(item.tone_class || item.toneClass || "tone-accent").trim() || "tone-accent",
+    };
+  }).filter(function (item) {
+    return item.title || item.detail;
+  });
+
+  if (!(summary || insight || cards.length || milestones.length)) {
+    return null;
+  }
+
+  return {
+    summary: summary,
+    insight: insight,
+    cards: cards,
+    milestones: milestones,
+  };
 }
 
 Page({
@@ -295,6 +427,8 @@ Page({
     dueTodayCount: 0,
     weakNodeCount: 0,
     focusHint: "",
+    homeStudyPlan: null,
+    homeProgressFeedback: null,
     learnerLevel: "",
     learnerLevelName: "",
     learnerStageTitle: "当前学习状态",
@@ -308,7 +442,9 @@ Page({
       coachNote: "完成更多练习后，AI 作战建议会更准确",
     },
     progressSummary: "完成更多练习后，这里会出现更清晰的进步反馈",
+    progressInsight: "先开始今天的练习，系统会逐步把你的变化沉淀成更清晰的反馈",
     progressCards: _buildProgressCards({}),
+    progressMilestones: _buildProgressMilestones({}),
     navBackLabel: "对话",
     assessmentEnabled: true,
   },
@@ -446,6 +582,8 @@ Page({
         dueTodayCount: ((home.review || {}).due_today || 0),
         weakNodeCount: weakNodes.length,
         focusHint: ((home.today || {}).hint || ""),
+        homeStudyPlan: home.study_plan || null,
+        homeProgressFeedback: home.progress_feedback || null,
         learnerLevel: assessment.level || "",
         learnerLevelName: LEVEL_NAMES[assessment.level] || assessment.level || "",
         learnerStageTitle: assessment.level
@@ -653,12 +791,21 @@ Page({
       streakDays: this.data.streakDays,
       focusHint: this.data.focusHint,
     };
+    var progressFeedback = _normalizeProgressFeedback(this.data.homeProgressFeedback);
 
     this.setData({
       diagnosticScore: diagnosticScore,
-      battlePlan: _buildBattlePlanModel(sharedInput),
-      progressSummary: _buildProgressSummary(sharedInput),
-      progressCards: _buildProgressCards(sharedInput),
+      battlePlan: _normalizeBattlePlan(this.data.homeStudyPlan) || _buildBattlePlanModel(sharedInput),
+      progressSummary: (progressFeedback && progressFeedback.summary) || _buildProgressSummary(sharedInput),
+      progressInsight: (progressFeedback && progressFeedback.insight) || _buildProgressInsight(sharedInput),
+      progressCards:
+        (progressFeedback && progressFeedback.cards && progressFeedback.cards.length
+          ? progressFeedback.cards
+          : null) || _buildProgressCards(sharedInput),
+      progressMilestones:
+        (progressFeedback && progressFeedback.milestones && progressFeedback.milestones.length
+          ? progressFeedback.milestones
+          : null) || _buildProgressMilestones(sharedInput),
     });
   },
 

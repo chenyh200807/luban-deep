@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import threading
+from types import SimpleNamespace
 
 import bcrypt
 import httpx
 import pytest
 
+import deeptutor.services.member_console.service as member_service_module
 from deeptutor.services.member_console.service import MemberConsoleService
 
 
@@ -131,6 +133,88 @@ def test_resolve_user_id_accepts_lowercase_bearer_prefix(tmp_path: Path) -> None
     assert service.resolve_user_id(f"bearer {token}") == "student_demo"
 
 
+def test_issue_access_token_uses_configured_ttl(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("MEMBER_CONSOLE_ACCESS_TOKEN_TTL_SECONDS", "900")
+
+    token = service._issue_access_token(user_id="student_demo")
+    claims = service.verify_access_token(token)
+
+    assert claims is not None
+    assert int(claims["exp"]) - int(claims["iat"]) == 900
+
+
+def test_refresh_access_token_reissues_valid_token_without_second_credential(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("MEMBER_CONSOLE_ACCESS_TOKEN_TTL_SECONDS", "600")
+    monkeypatch.setenv("MEMBER_CONSOLE_MAX_SESSION_AGE_SECONDS", "1800")
+
+    base = datetime(2026, 4, 21, 10, 0, 0, tzinfo=timezone(timedelta(hours=8)))
+    current = {"value": base}
+
+    def _fake_now() -> datetime:
+        return current["value"]
+
+    monkeypatch.setattr(member_service_module, "_now", _fake_now)
+
+    token = service._issue_access_token(user_id="student_demo")
+    initial_claims = service.verify_access_token(token)
+    assert initial_claims is not None
+
+    current["value"] = base + timedelta(seconds=120)
+    refreshed = service.refresh_access_token(f"Bearer {token}")
+    refreshed_claims = service.verify_access_token(refreshed["token"])
+
+    assert refreshed["user_id"] == "student_demo"
+    assert refreshed_claims is not None
+    assert refreshed_claims["uid"] == "student_demo"
+    assert int(refreshed_claims["orig_iat"]) == int(initial_claims["orig_iat"])
+    assert refreshed["token"] != token
+    assert int(refreshed_claims["exp"]) > int(initial_claims["exp"])
+    assert refreshed["expires_at"] == int(refreshed_claims["exp"])
+    assert refreshed["expires_in"] == 600
+
+
+def test_refresh_access_token_honors_absolute_session_age_cap(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("MEMBER_CONSOLE_ACCESS_TOKEN_TTL_SECONDS", "600")
+    monkeypatch.setenv("MEMBER_CONSOLE_MAX_SESSION_AGE_SECONDS", "900")
+
+    base = datetime(2026, 4, 21, 10, 0, 0, tzinfo=timezone(timedelta(hours=8)))
+    current = {"value": base}
+
+    def _fake_now() -> datetime:
+        return current["value"]
+
+    monkeypatch.setattr(member_service_module, "_now", _fake_now)
+
+    token = service._issue_access_token(user_id="student_demo")
+
+    current["value"] = base + timedelta(seconds=360)
+    refreshed = service.refresh_access_token(f"Bearer {token}")
+    refreshed_claims = service.verify_access_token(refreshed["token"])
+
+    assert refreshed_claims is not None
+    assert int(refreshed_claims["exp"]) - int(refreshed_claims["orig_iat"]) == 900
+    assert refreshed["expires_in"] == 540
+
+    current["value"] = base + timedelta(seconds=900)
+    with pytest.raises(ValueError, match="Session refresh window expired"):
+        service.refresh_access_token(f"Bearer {refreshed['token']}")
+
+
 def test_production_bootstrap_starts_without_demo_members(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -190,6 +274,98 @@ def test_get_profile_persists_first_real_member(tmp_path: Path) -> None:
 
     assert profile["user_id"] == "ghost_user"
     assert any(member["user_id"] == "ghost_user" for member in data["members"])
+
+
+def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from_learner_state(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    profile = service.get_profile("student_plan")
+    assert profile["user_id"] == "student_plan"
+
+    def _apply(data: dict[str, object]) -> None:
+        for member in data["members"]:
+            if member["user_id"] != "student_plan":
+                continue
+            member["focus_topic"] = "施工管理"
+            member["daily_target"] = 8
+            member["review_due"] = 2
+            member["study_days"] = 3
+            member["daily_practice_counts"] = {
+                "2026-04-19": 6,
+                "2026-04-18": 7,
+                "2026-04-17": 5,
+            }
+            member["chapter_practice_stats"] = {
+                "防水工程": {"done": 9, "correct": 6, "last_activity_at": "2026-04-21T09:00:00+08:00"}
+            }
+            break
+
+    service._mutate(_apply)
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "student_plan"
+            assert event_limit == 20
+            return type(
+                "Snapshot",
+                (),
+                {
+                    "profile": {
+                        "focus_topic": "防水工程",
+                    },
+                    "progress": {
+                        "today": {"today_done": 4, "daily_target": 8},
+                        "knowledge_map": {
+                            "weak_points": ["防水工程"],
+                            "guided_learning_history": [
+                                {
+                                    "completed_titles": ["屋面卷材铺贴", "节点收头"],
+                                }
+                            ],
+                        },
+                    },
+                    "memory_events": [
+                        SimpleNamespace(
+                            memory_kind="heartbeat_delivery",
+                            payload_json={"delivery": {"message": "这是一条 heartbeat 提醒，不应该出现在进步反馈里"}},
+                        ),
+                        SimpleNamespace(
+                            memory_kind="guide_completion",
+                            payload_json={
+                                "payload_json": {
+                                    "knowledge_points": [
+                                        {"knowledge_title": "屋面卷材铺贴"},
+                                        {"knowledge_title": "节点收头"},
+                                    ]
+                                }
+                            },
+                        ),
+                    ],
+                },
+            )()
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    dashboard = service.get_home_dashboard("student_plan")
+
+    assert dashboard["study_plan"]["focus_topic"] == "防水工程"
+    assert "待复习点" in dashboard["study_plan"]["priority_task"]
+    assert dashboard["study_plan"]["study_method"].startswith("先看“防水工程”")
+    assert "近 3 天" in dashboard["progress_feedback"]["summary"]
+    assert "防水工程" in dashboard["progress_feedback"]["insight"]
+    assert dashboard["progress_feedback"]["cards"][2]["value"] == "9题"
+    assert any(
+        item["title"] == "刚完成一次专题梳理"
+        for item in dashboard["progress_feedback"]["milestones"]
+    )
+    assert not any(
+        "heartbeat" in item["detail"]
+        for item in dashboard["progress_feedback"]["milestones"]
+    )
 
 
 @pytest.mark.asyncio

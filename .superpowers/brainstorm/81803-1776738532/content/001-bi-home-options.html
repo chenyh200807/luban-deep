@@ -1,0 +1,113 @@
+<h2>老板 / 运营视角首页方向</h2>
+<p class="subtitle">目标不是炫，而是 3 秒看懂经营健康，30 秒找到异常来源。请选择最接近你要的首页。</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">A. 极简经营总览</div>
+        <div class="mockup-body">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">
+            <div class="placeholder" style="padding:14px;">营收</div>
+            <div class="placeholder" style="padding:14px;">活跃</div>
+            <div class="placeholder" style="padding:14px;">付费转化</div>
+            <div class="placeholder" style="padding:14px;">风险会员</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="placeholder" style="height:120px;">收入 / 活跃趋势</div>
+            <div class="placeholder" style="height:120px;">核心告警</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <div class="placeholder" style="height:88px;">会员分层</div>
+            <div class="placeholder" style="height:88px;">留存</div>
+            <div class="placeholder" style="height:88px;">渠道</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. 最清爽</h3>
+      <p>第一屏只保留经营 KPI、趋势、告警、会员风险。像传统管理驾驶舱，最接近 FastAPI 旧版的干净感。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">B. 经营 + 下钻工作台</div>
+        <div class="mockup-body">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">
+            <div class="placeholder" style="padding:14px;">营收</div>
+            <div class="placeholder" style="padding:14px;">日活</div>
+            <div class="placeholder" style="padding:14px;">续费</div>
+            <div class="placeholder" style="padding:14px;">流失风险</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="placeholder" style="height:120px;">经营趋势主图</div>
+            <div class="placeholder" style="height:120px;">待处理事项</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="placeholder" style="height:92px;">重点会员名单</div>
+            <div class="placeholder" style="height:92px;">下钻入口：会员 / 质量 / TutorBot</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. 我推荐</h3>
+      <p>第一屏先看经营，再直接给老板“下一步点哪儿”的入口。比 A 多一点动作感，但仍然很克制。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">C. 经营 + 质量并排</div>
+        <div class="mockup-body">
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px;">
+            <div class="placeholder" style="padding:14px;">营收</div>
+            <div class="placeholder" style="padding:14px;">活跃</div>
+            <div class="placeholder" style="padding:14px;">留存</div>
+            <div class="placeholder" style="padding:14px;">成功率</div>
+            <div class="placeholder" style="padding:14px;">成本</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="placeholder" style="height:110px;">经营趋势</div>
+            <div class="placeholder" style="height:110px;">质量波动</div>
+            <div class="placeholder" style="height:110px;">告警队列</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <div class="placeholder" style="height:86px;">会员层</div>
+            <div class="placeholder" style="height:86px;">知识库</div>
+            <div class="placeholder" style="height:86px;">TutorBot</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. 信息更全</h3>
+      <p>首页同时放经营和质量，更像综合驾驶舱。信息最多，但也更容易又走回现在这种“有点重”的感觉。</p>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons" style="margin-top:20px;">
+  <div class="pros">
+    <h4>这次我准备固定保留的东西</h4>
+    <ul>
+      <li>去掉现在这类大 Hero 和厚重渐变</li>
+      <li>把筛选器缩成顶栏轻工具条，不再占第一屏</li>
+      <li>首页主 tab 改成真正服务老板的经营工作台</li>
+      <li>异常提示改成更克制的提示条，不再一上来吓人</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>这次我准备删掉或降级的东西</h4>
+    <ul>
+      <li>Command Deck 戏剧化大标题</li>
+      <li>过多装饰性卡片和大面积深色块</li>
+      <li>把 TutorBot 放在首页中心位置</li>
+      <li>筛选器默认全展开的做法</li>
+    </ul>
+  </div>
+</div>

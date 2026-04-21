@@ -1,0 +1,93 @@
+<h2>老板工作台版 · 第一部分</h2>
+<p class="subtitle">这一页只确认首页结构和信息层级。目标是：老板打开后，先判断健康，再决定下钻方向。</p>
+
+<div class="mockup">
+  <div class="mockup-header">首页结构草图</div>
+  <div class="mockup-body">
+    <div style="border:1px solid #d9e3ef;border-radius:12px;background:#fff;padding:12px 14px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div>
+          <div style="font-size:12px;color:#6b7280;letter-spacing:.08em;">LUBAN BI</div>
+          <div style="font-size:22px;font-weight:700;color:#10213c;">老板工作台</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="mock-button">7 / 30 / 90 天</div>
+          <div class="mock-button">刷新</div>
+          <div class="mock-button">筛选</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;">
+      <div class="placeholder" style="padding:14px;">营收</div>
+      <div class="placeholder" style="padding:14px;">日活</div>
+      <div class="placeholder" style="padding:14px;">付费会员</div>
+      <div class="placeholder" style="padding:14px;">续费率</div>
+      <div class="placeholder" style="padding:14px;">流失风险</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.5fr 0.95fr;gap:12px;margin-bottom:14px;">
+      <div class="placeholder" style="height:148px;">经营主图：营收 / 活跃 / 付费趋势</div>
+      <div style="display:grid;grid-template-rows:1fr 1fr;gap:12px;">
+        <div class="placeholder">混合待处理区：经营异常 + 会员风险</div>
+        <div class="placeholder">下钻入口：会员运营 / 经营健康 / 教学质量 / TutorBot 运行态</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div class="placeholder" style="height:104px;">会员分层</div>
+      <div class="placeholder" style="height:104px;">留存漏斗</div>
+      <div class="placeholder" style="height:104px;">渠道 / 来源</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="placeholder" style="height:120px;">重点会员名单</div>
+      <div class="placeholder" style="height:120px;">告警与备注</div>
+    </div>
+  </div>
+</div>
+
+<div class="split" style="margin-top:18px;">
+  <div class="mockup">
+    <div class="mockup-header">信息层级</div>
+    <div class="mockup-body">
+      <ol style="margin:0;padding-left:18px;line-height:1.9;">
+        <li>先看 5 个经营 KPI</li>
+        <li>再看 1 张主趋势图</li>
+        <li>再看右侧混合待处理区</li>
+        <li>再看会员 / 留存 / 渠道三块结构信息</li>
+        <li>最后下钻到具体名单和详情</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">这次明确不做</div>
+    <div class="mockup-body">
+      <ul style="margin:0;padding-left:18px;line-height:1.9;">
+        <li>不再用大 Hero 占第一屏</li>
+        <li>不让 TutorBot 成为首页主角</li>
+        <li>不把筛选器默认全展开</li>
+        <li>不做大面积深色块和厚重阴影</li>
+        <li>不把异常提示做成吓人的主横幅</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="options" style="margin-top:18px;">
+  <div class="option" data-choice="approved-structure" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>这个骨架对</h3>
+      <p>继续下一部分：功能内容和每个区块具体放什么。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="needs-structure-change" onclick="toggleSelect(this)">
+    <div class="letter">!</div>
+    <div class="content">
+      <h3>骨架还要改</h3>
+      <p>告诉我你要改哪一块，比如 KPI 数量、主图位置、右侧栏内容、是否保留下钻入口。</p>
+    </div>
+  </div>
+</div>

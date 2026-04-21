@@ -104,7 +104,6 @@ function streamChat(opts, callbacks) {
     return function () {};
   }
 
-  var token = auth.getToken();
   var aborted = false;
   var doneReceived = false;
   var firstTokenReceived = false;
@@ -335,75 +334,82 @@ function streamChat(opts, callbacks) {
     if (!firstTokenReceived) {
       startSlowTimer();
     }
+    api
+      .ensureFreshAuthToken()
+      .then(function (currentToken) {
+        if (aborted || doneReceived) return;
+        var socketUrl = socketUrls[Math.min(reconnectAttempts, socketUrls.length - 1)] || socketUrls[0];
+        var headers = {
+          "ngrok-skip-browser-warning": "true",
+        };
+        if (currentToken) headers.Authorization = "Bearer " + currentToken;
+        var chatEngine = hostRuntime.getChatEngine();
+        if (chatEngine) {
+          headers["x-ai-engine"] = chatEngine;
+        }
 
-    var socketUrl = socketUrls[Math.min(reconnectAttempts, socketUrls.length - 1)] || socketUrls[0];
-    var headers = {
-      "ngrok-skip-browser-warning": "true",
-    };
-    if (token) headers.Authorization = "Bearer " + token;
-    var chatEngine = hostRuntime.getChatEngine();
-    if (chatEngine) {
-      headers["x-ai-engine"] = chatEngine;
-    }
-
-    socketTask = wx.connectSocket({
-      url: socketUrl,
-      header: headers,
-      timeout: 15000,
-    });
-
-    socketTask.onOpen(function () {
-      if (aborted || doneReceived) return;
-      socketOpen = true;
-      reconnectAttempts = 0;
-      resetIdleTimer();
-      var payload = buildTurnSocketPayload(turnId, lastSeq);
-      if (!payload) {
-        failStream("启动流式会话失败");
-        return;
-      }
-      emitTelemetry("ws_connected", { reconnect_attempts: reconnectAttempts });
-      if (payload.type === "resume_from") {
-        resumeAttempted = true;
-        resumeSucceeded = false;
-        emitTelemetry("resume_attempted", { seq: payload.seq || 0 });
-      }
-      socketTask.send({
-        data: JSON.stringify(payload),
-      });
-      if (cancelRequested && turnId) {
-        socketTask.send({
-          data: JSON.stringify({
-            type: "cancel_turn",
-            turn_id: turnId,
-          }),
+        socketTask = wx.connectSocket({
+          url: socketUrl,
+          header: headers,
+          timeout: 15000,
         });
-      }
-    });
 
-    socketTask.onMessage(function (res) {
-      if (aborted || doneReceived) return;
-      resetIdleTimer();
-      var raw = typeof res.data === "string" ? res.data : "";
-      if (!raw) return;
-      try {
-        handleEvent(JSON.parse(raw));
-      } catch (_) {}
-    });
+        socketTask.onOpen(function () {
+          if (aborted || doneReceived) return;
+          socketOpen = true;
+          reconnectAttempts = 0;
+          resetIdleTimer();
+          var payload = buildTurnSocketPayload(turnId, lastSeq);
+          if (!payload) {
+            failStream("启动流式会话失败");
+            return;
+          }
+          emitTelemetry("ws_connected", { reconnect_attempts: reconnectAttempts });
+          if (payload.type === "resume_from") {
+            resumeAttempted = true;
+            resumeSucceeded = false;
+            emitTelemetry("resume_attempted", { seq: payload.seq || 0 });
+          }
+          socketTask.send({
+            data: JSON.stringify(payload),
+          });
+          if (cancelRequested && turnId) {
+            socketTask.send({
+              data: JSON.stringify({
+                type: "cancel_turn",
+                turn_id: turnId,
+              }),
+            });
+          }
+        });
 
-    socketTask.onError(function (err) {
-      if (!scheduleReconnect(err)) {
+        socketTask.onMessage(function (res) {
+          if (aborted || doneReceived) return;
+          resetIdleTimer();
+          var raw = typeof res.data === "string" ? res.data : "";
+          if (!raw) return;
+          try {
+            handleEvent(JSON.parse(raw));
+          } catch (_) {}
+        });
+
+        socketTask.onError(function (err) {
+          if (!scheduleReconnect(err)) {
+            failStream(err);
+          }
+        });
+
+        socketTask.onClose(function (res) {
+          socketOpen = false;
+          if (aborted || doneReceived) return;
+          if (!scheduleReconnect(res)) {
+            failStream(res);
+          }
+        });
+      })
+      .catch(function (err) {
         failStream(err);
-      }
-    });
-
-    socketTask.onClose(function (res) {
-      socketOpen = false;
-      if (aborted || doneReceived) return;
-      if (!scheduleReconnect(res)) {
-        failStream(res);
-      }
-    });
+      });
   }
 
   resetIdleTimer();

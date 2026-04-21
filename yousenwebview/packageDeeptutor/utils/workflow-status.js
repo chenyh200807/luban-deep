@@ -334,9 +334,9 @@ var STAGE_COPY = {
     tone: "compose",
   },
   _default: {
-    badge: "AI 正在处理",
-    headline: "正在理解你的问题",
-    subline: "先判断问题核心，再查依据并组织回答。",
+    badge: "AI 正在分析",
+    headline: "正在分析你的问题",
+    subline: "先抓住核心条件，再调取依据并组织回答。",
     tone: "analyze",
   },
 };
@@ -418,7 +418,7 @@ function _normalizeUnknownHeader(raw) {
   var translated = _translateEnglishStatus(text);
   if (translated) {
     return {
-      badge: "AI 正在处理",
+      badge: "AI 正在分析",
       headline: translated.headline,
       subline: translated.detail,
       tone: "analyze",
@@ -465,7 +465,7 @@ function _normalizeUnknownHeader(raw) {
     };
   }
   return {
-    badge: "AI 正在处理",
+    badge: "AI 正在分析",
     headline: _headline(text, STAGE_COPY._default.headline),
     subline: STAGE_COPY._default.subline,
     tone: "analyze",

@@ -103,6 +103,12 @@ Page({
       page: "manual_login",
     });
   },
+  _describeAuthError: function (err, fallbackMsg, options) {
+    if (!api || typeof api.describeRequestError !== "function") {
+      return fallbackMsg;
+    }
+    return api.describeRequestError(err, fallbackMsg, options || {});
+  },
 
   togglePassword: function () {
     this.setData({ showPassword: !this.data.showPassword });
@@ -171,10 +177,14 @@ Page({
         }
       })
       .catch(function (err) {
-        var m = String(err.message || "");
-        var msg = "发送失败，请重试";
-        if (m.includes("NETWORK_")) msg = "网络连接失败";
-        else if (m.includes("429")) msg = "发送过于频繁，请稍后再试";
+        var msg = self._describeAuthError(err, "发送失败，请重试", {
+          customMap: function (info) {
+            if (info.status === 429) {
+              return "发送过于频繁，请稍后再试";
+            }
+            return "";
+          },
+        });
         self.setData({ errorMsg: msg, loading: false });
       });
   },
@@ -213,17 +223,22 @@ Page({
         var inner = resp.data || resp;
         var token = inner.token;
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
-        auth.setToken(token);
+        auth.setToken(token, inner.expires_at);
         self._trackLoginSuccess("phone_code");
         self._reLaunchAfterAuth();
       })
       .catch(function (err) {
-        var m = String(err.message || "");
-        var msg = "验证失败，请重试";
-        if (m.includes("NETWORK_")) msg = "网络连接失败";
-        else if (m.includes("400") || m.includes("验证码")) msg = "验证码错误或已过期";
-        else if (m.includes("429")) msg = "操作过于频繁";
-        else if (m && !m.startsWith("HTTP_")) msg = m;
+        var msg = self._describeAuthError(err, "验证失败，请重试", {
+          customMap: function (info) {
+            if (info.status === 400 || info.detailText.indexOf("验证码") >= 0) {
+              return "验证码错误或已过期";
+            }
+            if (info.status === 429) {
+              return "操作过于频繁";
+            }
+            return "";
+          },
+        });
         self.setData({ errorMsg: msg });
       })
       .then(
@@ -257,18 +272,28 @@ Page({
         var user = inner.user || resp.user || {};
         var token = inner.token || inner._token || resp.token || resp._token || user._token;
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
-        auth.setToken(token);
+        auth.setToken(token, inner.expires_at);
         self._trackLoginSuccess("password");
         self._reLaunchAfterAuth();
       })
       .catch(function (err) {
-        var m = String(err.message || "");
-        var msg = "登录失败，请重试";
-        if (m.includes("NETWORK_")) msg = "网络连接失败";
-        else if (m.includes("401") || m.includes("密码")) msg = "用户名或密码错误";
-        else if (m.includes("429")) msg = "登录过于频繁";
-        else if (m.includes("token")) msg = "服务端未返回凭证";
-        else if (m && !m.startsWith("HTTP_")) msg = m;
+        var msg = self._describeAuthError(err, "登录失败，请重试", {
+          customMap: function (info) {
+            if (info.status === 401 || info.detailText.indexOf("密码") >= 0) {
+              return "用户名或密码错误";
+            }
+            if (info.status === 429) {
+              return "登录过于频繁";
+            }
+            if (
+              info.rawMessage.indexOf("token") >= 0 ||
+              info.rawMessage.indexOf("凭证") >= 0
+            ) {
+              return "服务端未返回凭证";
+            }
+            return "";
+          },
+        });
         self.setData({ errorMsg: msg });
       })
       .then(

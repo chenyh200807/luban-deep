@@ -293,3 +293,142 @@ def test_homepage_dashboard_prefers_canonical_uid_claim(
 
     assert response.status_code == 200
     assert captured["user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+
+def test_wallet_endpoints_return_zero_when_wallet_identity_is_unresolved(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_auth_context",
+        lambda _authorization: mobile_module.AuthContext(
+            user_id="wx_GJBK5wy1CMs4",
+            provider="wechat_mp",
+            token="test-token",
+            claims={"uid": "wx_GJBK5wy1CMs4"},
+        ),
+    )
+    monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "wx_GJBK5wy1CMs4")
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_profile",
+        lambda user_id: (
+            captured.setdefault("profile_user_id", user_id),
+            {"user_id": user_id, "username": "", "display_name": "微信用户", "points": 0},
+        )[1],
+    )
+
+    class _FakeWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            captured["wallet_user_id"] = user_id
+            return None
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            captured["ledger_user_id"] = user_id
+            captured["ledger_limit"] = limit
+            captured["ledger_offset"] = offset
+            return []
+
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
+
+    with TestClient(_build_app()) as client:
+        profile_response = client.get("/api/v1/auth/profile", headers={"Authorization": "Bearer test-token"})
+        points_response = client.get("/api/v1/billing/points", headers={"Authorization": "Bearer test-token"})
+        wallet_response = client.get("/api/v1/billing/wallet", headers={"Authorization": "Bearer test-token"})
+        ledger_response = client.get("/api/v1/billing/ledger", headers={"Authorization": "Bearer test-token"})
+
+    assert profile_response.status_code == 200
+    assert profile_response.json()["user_id"] == "wx_GJBK5wy1CMs4"
+    assert profile_response.json()["points"] == 0
+    assert profile_response.json()["wallet"]["balance"] == 0
+
+    assert points_response.status_code == 200
+    assert points_response.json()["user_id"] == "wx_GJBK5wy1CMs4"
+    assert points_response.json()["points"] == 0
+
+    assert wallet_response.status_code == 200
+    assert wallet_response.json()["user_id"] == "wx_GJBK5wy1CMs4"
+    assert wallet_response.json()["balance"] == 0
+
+    assert ledger_response.status_code == 200
+    assert ledger_response.json() == {"entries": [], "has_more": False, "total": 0}
+    assert captured["wallet_user_id"] == "wx_GJBK5wy1CMs4"
+    assert captured["ledger_user_id"] == "wx_GJBK5wy1CMs4"
+    assert captured["profile_user_id"] == "wx_GJBK5wy1CMs4"
+
+
+def test_wallet_endpoints_preserve_raw_legacy_uid_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_auth_context",
+        lambda _authorization: mobile_module.AuthContext(
+            user_id="legacy_user_2008",
+            provider="local",
+            token="test-token",
+            claims={"uid": "legacy_user_2008"},
+        ),
+    )
+    monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "legacy_user_2008")
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_profile",
+        lambda user_id: {
+            "user_id": user_id,
+            "username": "legacy_user_2008",
+            "display_name": "老用户",
+            "points": 0,
+        },
+    )
+
+    class _FakeWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            captured["wallet_user_id"] = user_id
+            return _FakeWalletSnapshot(user_id=user_id, balance_micros=66_000_000, version=3)
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            captured["ledger_user_id"] = user_id
+            captured["ledger_limit"] = limit
+            captured["ledger_offset"] = offset
+            return [
+                _FakeLedgerEntry(
+                    id="evt_legacy_1",
+                    user_id=user_id,
+                    event_type="grant",
+                    delta_micros=66_000_000,
+                    balance_after_micros=66_000_000,
+                    reference_type="legacy_import",
+                    reference_id="legacy_user_2008",
+                    idempotency_key="legacy:legacy_user_2008",
+                    created_at="2026-04-21T10:00:00+08:00",
+                )
+            ]
+
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
+
+    with TestClient(_build_app()) as client:
+        profile_response = client.get("/api/v1/auth/profile", headers={"Authorization": "Bearer test-token"})
+        wallet_response = client.get("/api/v1/billing/wallet", headers={"Authorization": "Bearer test-token"})
+        ledger_response = client.get("/api/v1/billing/ledger", headers={"Authorization": "Bearer test-token"})
+
+    assert profile_response.status_code == 200
+    assert profile_response.json()["points"] == 66
+    assert wallet_response.status_code == 200
+    assert wallet_response.json()["balance"] == 66
+    assert ledger_response.status_code == 200
+    assert ledger_response.json()["entries"][0]["delta"] == 66
+    assert captured["wallet_user_id"] == "legacy_user_2008"
+    assert captured["ledger_user_id"] == "legacy_user_2008"

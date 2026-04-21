@@ -166,6 +166,9 @@ def test_learner_heartbeat_executor_uses_tutorbot_manager_send_message() -> None
     assert manager.calls[0]["session_metadata"]["user_id"] == "student_demo"
     assert manager.calls[0]["session_metadata"]["source"] == "learner_heartbeat"
     prompt = manager.calls[0]["content"]
+    assert "当前作战方案" in prompt
+    assert "今日主攻：地基基础承载力" in prompt
+    assert "优先任务：" in prompt
     assert "地基基础承载力" in prompt
     assert "沉降控制" in prompt
     assert "本周完成 20 道案例题" in prompt
