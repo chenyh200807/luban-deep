@@ -117,6 +117,7 @@ export default function BiPage() {
 
   const data = workbench?.data ?? null;
   const boss = workbench?.boss ?? { kpis: [], actionQueue: [], heroIssue: "" };
+  const moduleIssues = workbench?.moduleIssues ?? {};
   const overview = data?.overview;
   const trend = data?.trend ?? { points: [] };
   const retention = data?.retention ?? { cohorts: [], labels: ["D0", "D1", "D7", "D30"] };
@@ -170,6 +171,9 @@ export default function BiPage() {
       }
       if (source === "cost") {
         setActiveTab("overview");
+        requestAnimationFrame(() => {
+          document.getElementById("boss-snapshot-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
       }
     },
     [setActiveTab],
@@ -197,7 +201,7 @@ export default function BiPage() {
     } finally {
       setExporting(false);
     }
-  }, [days, data, issues, filters, lastUpdatedAt]);
+  }, [boss, days, data, issues, filters, lastUpdatedAt]);
 
   const canExport = Boolean(workbench || issues.length);
 
@@ -241,6 +245,7 @@ export default function BiPage() {
             trend={trend}
             retention={retention}
             members={members}
+            moduleIssues={moduleIssues}
             onNavigateFromBossQueue={navigateFromBossQueue}
             onOpenLearnerDetail={openLearnerDetail}
           />
