@@ -20,17 +20,17 @@ import type { BiAlertItem, BiMetricCard, BiRankItem } from "@/lib/bi-api";
 export const BI_PRIMARY_TABS = [
   {
     key: "overview",
-    label: "Overview",
-    summary: "当前先保留现有全量内容，作为 Command Deck 的总览入口。",
+    label: "总览",
+    summary: "当前先保留现有全量内容，作为老板工作台的总览入口。",
   },
   {
     key: "quality",
-    label: "Quality",
+    label: "质量",
     summary: "质量主线聚焦趋势波动、异常中心与当前数据完整性。",
   },
   {
     key: "member-ops",
-    label: "Member Ops",
+    label: "会员运营",
     summary: "会员运营分区会在后续任务中独立收口，不在本次 shell 内展开。",
   },
   {
@@ -399,12 +399,15 @@ export function BiIssuesBanner({ issues }: { issues: string[] }) {
   if (!issues.length) return null;
 
   return (
-    <div className="surface-card border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-      <div className="flex items-start gap-2">
-        <ShieldAlert size={16} className="mt-0.5 shrink-0" />
+    <div className="rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
+      <div className="flex items-start gap-2.5">
+        <ShieldAlert size={15} className="mt-0.5 shrink-0" />
         <div>
-          <p>部分 BI 接口未完全加载，页面已自动降级展示。</p>
+          <p className="font-medium">部分 BI 接口未完全加载，页面已降级展示。</p>
           <p className="mt-1 text-xs leading-5 text-amber-700">{issues[0]}</p>
+          {issues.length > 1 ? (
+            <p className="mt-1 text-[11px] leading-5 text-amber-700/90">其余 {issues.length - 1} 条已折叠，不在首页堆叠展示。</p>
+          ) : null}
         </div>
       </div>
     </div>
