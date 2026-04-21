@@ -396,18 +396,23 @@ export function BiFiltersPanel({
 }
 
 export function BiIssuesBanner({ issues }: { issues: string[] }) {
-  if (!issues.length) return null;
+  if (issues.length <= 1) return null;
+  const remainingIssues = issues.slice(1);
 
   return (
     <div className="rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
       <div className="flex items-start gap-2.5">
         <ShieldAlert size={15} className="mt-0.5 shrink-0" />
-        <div>
+        <div className="min-w-0">
           <p className="font-medium">部分 BI 接口未完全加载，页面已降级展示。</p>
-          <p className="mt-1 text-xs leading-5 text-amber-700">{issues[0]}</p>
-          {issues.length > 1 ? (
-            <p className="mt-1 text-[11px] leading-5 text-amber-700/90">其余 {issues.length - 1} 条已折叠，不在首页堆叠展示。</p>
-          ) : null}
+          <p className="mt-1 text-xs leading-5 text-amber-700">主问题已置顶在 header，下面保留其余 {remainingIssues.length} 条问题原文：</p>
+          <ul className="mt-2 space-y-1.5">
+            {remainingIssues.map((issue, index) => (
+              <li key={`${index}-${issue}`} className="text-xs leading-5 text-amber-700">
+                {index + 1}. {issue}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>

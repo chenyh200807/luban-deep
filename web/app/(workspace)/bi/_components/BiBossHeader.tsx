@@ -1,12 +1,15 @@
 "use client";
 
-import { CalendarDays, ChevronDown, Funnel, RefreshCw, ShieldAlert } from "lucide-react";
+import { CalendarDays, ChevronDown, Download, Funnel, RefreshCw, ShieldAlert } from "lucide-react";
 
 type BiBossHeaderProps = {
   days: 7 | 30 | 90;
   onDaysChange: (days: 7 | 30 | 90) => void;
+  onExport: () => void;
+  exporting: boolean;
   onRefresh: () => void;
   refreshing: boolean;
+  canExport: boolean;
   filtersOpen: boolean;
   onToggleFilters: () => void;
   activeFilters: string[];
@@ -17,8 +20,11 @@ type BiBossHeaderProps = {
 export function BiBossHeader({
   days,
   onDaysChange,
+  onExport,
+  exporting,
   onRefresh,
   refreshing,
+  canExport,
   filtersOpen,
   onToggleFilters,
   activeFilters,
@@ -69,6 +75,15 @@ export function BiBossHeader({
             >
               <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
               刷新
+            </button>
+            <button
+              type="button"
+              onClick={onExport}
+              disabled={exporting || !canExport}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-3.5 py-2 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--primary)]/40 hover:bg-[var(--secondary)] disabled:opacity-60"
+            >
+              <Download size={14} className={exporting ? "animate-pulse" : ""} />
+              导出 JSON
             </button>
             <button
               type="button"
