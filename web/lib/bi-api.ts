@@ -155,6 +155,28 @@ export interface BiAnomalyData {
   items: BiAlertItem[];
 }
 
+export interface BiBossKpiItem {
+  label: string;
+  value: number | string;
+  hint?: string;
+  delta?: string;
+  tone?: BiMetricCard["tone"];
+  source?: "overview" | "members" | "cost";
+}
+
+export interface BiBossActionItem {
+  title: string;
+  detail: string;
+  tone?: BiMetricCard["tone"];
+  source?: "anomalies" | "members" | "cost";
+}
+
+export interface BiBossWorkbench {
+  kpis: BiBossKpiItem[];
+  actionQueue: BiBossActionItem[];
+  heroIssue: string;
+}
+
 export interface BiWorkbenchData {
   overview: BiOverviewData;
   trend: BiTrendData;
@@ -171,6 +193,7 @@ export interface BiWorkbenchData {
 export interface BiWorkbenchState {
   data: BiWorkbenchData;
   issues: string[];
+  boss: BiBossWorkbench;
 }
 
 export interface BiFetchOptions {
@@ -323,6 +346,12 @@ function normalizeAlert(item: unknown, fallbackLabel = ""): BiAlertItem {
   };
 }
 
+function toBossTone(level: BiAlertItem["level"]): BiMetricCard["tone"] {
+  if (level === "critical") return "critical";
+  if (level === "warning") return "warning";
+  return "neutral";
+}
+
 function normalizeTutorBot(item: unknown, fallbackLabel = ""): BiTutorBotItem {
   const record = asRecord(item);
   return {
@@ -402,6 +431,88 @@ function normalizeLearnerNotes(raw: unknown): BiLearnerNoteLedgerSummary {
     wallet_balance: optionalNumber(record.wallet_balance ?? record.balance ?? record.points_balance),
     ledger_delta: optionalNumber(record.ledger_delta ?? record.delta),
     summary: toString(record.summary ?? record.detail ?? record.note, ""),
+  };
+}
+
+function buildBossKpis(data: BiWorkbenchData): BiBossKpiItem[] {
+  const kpis: BiBossKpiItem[] = [];
+  const seen = new Set<string>();
+
+  const append = (items: BiMetricCard[], source: BiBossKpiItem["source"]) => {
+    for (const item of items) {
+      const label = item.label.trim();
+      if (!label || seen.has(label)) continue;
+      seen.add(label);
+      kpis.push({ ...item, source });
+      if (kpis.length >= 6) return;
+    }
+  };
+
+  append(data.overview.cards, "overview");
+  if (kpis.length < 6) append(data.members.cards, "members");
+  if (kpis.length < 6) append(data.cost.cards, "cost");
+
+  return kpis;
+}
+
+function buildBossActionQueue(data: BiWorkbenchData): BiBossActionItem[] {
+  const queue: BiBossActionItem[] = [];
+  const seen = new Set<string>();
+
+  const append = (title: string, detail: string, tone: BiMetricCard["tone"], source: BiBossActionItem["source"]) => {
+    const key = `${title}::${detail}`;
+    if (!title || seen.has(key)) return;
+    seen.add(key);
+    queue.push({ title, detail, tone, source });
+  };
+
+  for (const item of data.anomalies.items) {
+    append(
+      item.title,
+      item.detail || "建议尽快复核该异常信号。",
+      toBossTone(item.level),
+      "anomalies",
+    );
+    if (queue.length >= 4) break;
+  }
+
+  if (queue.length < 4) {
+    for (const item of data.members.risks) {
+      append(
+        `会员风险：${item.label}`,
+        item.hint || item.secondary || "建议跟进高风险会员变化。",
+        "warning",
+        "members",
+      );
+      if (queue.length >= 4) break;
+    }
+  }
+
+  if (queue.length < 4) {
+    for (const item of data.cost.cards) {
+      append(
+        `成本关注：${item.label}`,
+        item.hint || item.delta || "建议持续观察成本波动。",
+        item.tone ?? "neutral",
+        "cost",
+      );
+      if (queue.length >= 4) break;
+    }
+  }
+
+  return queue;
+}
+
+function buildBossHeroIssue(data: BiWorkbenchData): string {
+  const hasCoreSignals = data.overview.cards.length > 0 || data.members.cards.length > 0 || data.cost.cards.length > 0;
+  return hasCoreSignals ? "" : "核心经营模块暂未返回，老板首页先显示基础装配结果。";
+}
+
+function buildBiBossWorkbench(data: BiWorkbenchData): BiBossWorkbench {
+  return {
+    kpis: buildBossKpis(data),
+    actionQueue: buildBossActionQueue(data),
+    heroIssue: buildBossHeroIssue(data),
   };
 }
 
@@ -721,5 +832,5 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
   if (anomalies.status === "fulfilled") data.anomalies = anomalies.value;
   else issues.push(anomalies.reason instanceof Error ? anomalies.reason.message : "异常加载失败");
 
-  return { data, issues };
+  return { data, issues, boss: buildBiBossWorkbench(data) };
 }
