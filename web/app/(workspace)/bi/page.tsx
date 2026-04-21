@@ -13,8 +13,10 @@ import {
 } from "@/lib/bi-api";
 import { BiCommandDeckHero } from "./_components/BiCommandDeckHero";
 import { BiCommandDeckTabs } from "./_components/BiCommandDeckTabs";
+import { BiMemberOpsTab } from "./_components/BiMemberOpsTab";
 import { BiOverviewTab } from "./_components/BiOverviewTab";
 import { BiQualityTab } from "./_components/BiQualityTab";
+import { BiTutorBotTab } from "./_components/BiTutorBotTab";
 import {
   BI_PRIMARY_TABS,
   BiFiltersPanel,
@@ -231,6 +233,25 @@ export default function BiPage() {
             anomalies={anomalies}
             overview={overview}
             issues={issues}
+          />
+        ) : activeTab === "member-ops" ? (
+          <BiMemberOpsTab
+            loading={loading}
+            overview={overview}
+            members={members}
+            cost={cost}
+            retention={retention}
+            onOpenLearnerDetail={openLearnerDetail}
+          />
+        ) : activeTab === "tutorbot" ? (
+          <BiTutorBotTab
+            days={days}
+            overview={overview}
+            tutorbots={tutorbots}
+            capabilities={capabilities}
+            tools={tools}
+            knowledge={knowledge}
+            cost={cost}
           />
         ) : (
           <BiTabShell title={activeTabMeta.label} summary={activeTabMeta.summary} />
