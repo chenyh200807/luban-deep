@@ -12,7 +12,7 @@
 - `data/user/tutor_state/`
 - `data/user/logs/`
 
-这是当前 runtime 的主边界；脚本会直接复用 `PathService` 的 `data/user` 语义。
+这是当前 runtime 的主边界。为了保证生产机也能执行，`scripts/backup_data.py` 已经收敛成独立运维脚本：直接基于脚本路径推导 project root，不再依赖应用 runtime 初始化。
 
 ## 仓库内脚本
 
@@ -30,7 +30,7 @@
 在仓库根目录执行：
 
 ```bash
-python scripts/backup_data.py
+python3 scripts/backup_data.py
 ```
 
 默认行为：
@@ -42,13 +42,13 @@ python scripts/backup_data.py
 如果要指定项目根目录：
 
 ```bash
-python scripts/backup_data.py --project-root /root/deeptutor
+python3 scripts/backup_data.py --project-root /root/deeptutor
 ```
 
 如果要把备份放到别的目录：
 
 ```bash
-python scripts/backup_data.py --backup-dir /mnt/backup/deeptutor
+python3 scripts/backup_data.py --backup-dir /mnt/backup/deeptutor
 ```
 
 ## 清理旧备份
@@ -74,7 +74,7 @@ python scripts/prune_backups.py --dry-run
 如果想顺手清理旧归档，可以保留最近 7 份：
 
 ```bash
-python scripts/backup_data.py --keep 7
+python3 scripts/backup_data.py --keep 7
 ```
 
 ## 恢复命令
@@ -122,6 +122,14 @@ python scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYmm
 4. 检查 `chat_history.db`、`settings/`、`workspace/` 是否都恢复成功。
 5. 再启动一次最小服务验证，确认程序能正常读取恢复后的 runtime 数据。
 
+当前阿里云发布链已经默认在 `deploy_aliyun.sh` / `redeploy_aliyun_fast.sh` 中先执行一次：
+
+```bash
+python3 scripts/backup_data.py --project-root /root/deeptutor --keep 2
+```
+
+这一步的目标不是替代完整演练，而是确保每次真正重启前都自动留下可回滚的 runtime 基线。
+
 如果你希望把这件事尽量自动化，最小可落地做法是把备份命令交给 cron 或 systemd timer，再加上 `--keep`：
 
 ```cron
@@ -133,8 +141,8 @@ python scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYmm
 最小演练命令示例：
 
 ```bash
-python scripts/backup_data.py --project-root /tmp/deeptutor-drill
-python scripts/restore_data.py --project-root /tmp/deeptutor-drill --replace
+python3 scripts/backup_data.py --project-root /tmp/deeptutor-drill
+python3 scripts/restore_data.py --project-root /tmp/deeptutor-drill --replace
 ```
 
 ## 保留策略建议
@@ -155,6 +163,18 @@ python scripts/prune_backups.py --keep-daily 3 --keep-weekly 2 --keep-monthly 1
 - 先保留失败现场的归档和报错输出
 - 检查归档是否完整、路径是否仍然是 `data/user/...`
 - 确认目标目录不是被别的进程占用
+
+生产回滚最小步骤：
+
+```bash
+ssh Aliyun-ECS-2
+cd /root/deeptutor
+ls -lt data/backups | head
+python3 scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYmmdd-HHMMSSZ.tar.gz --project-root /root/deeptutor --replace
+docker compose restart deeptutor
+curl -sS http://127.0.0.1:8001/healthz
+curl -sS http://127.0.0.1:8001/readyz
+```
 
 ## 结论
 

@@ -23,6 +23,7 @@
 4. 新 capability 如果有公开配置，就必须补 schema 和 request validator。
 5. adapter 可以做输入归一化，但不能成为 capability 决策的真实来源。
 6. semantic router / rollout mode / shadow decision 也属于 orchestrator 的 capability 控制面；`mobile`、`unified_ws` 这类 adapter 只能传递 hints / auth / transport metadata，不能并行决定 capability。
+7. adapter 如果需要把 token claims、wallet identity 或旧字段 alias 归一到 canonical 用户上下文，也只能服务于统一 request config 装配；不能把 capability 选择下沉到 adapter 本身。
 
 ## Schema
 

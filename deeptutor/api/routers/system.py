@@ -52,14 +52,15 @@ async def get_runtime_topology():
             "tool_entry": "ToolRegistry",
         },
         "compatibility_routes": [
-            {"router": "chat", "mode": "http_bootstrap_adapter"},
             {"router": "mobile", "mode": "http_bootstrap_adapter"},
             {"router": "tutorbot", "mode": "management_http_only"},
             {"router": "solve", "mode": "legacy_adapter_target"},
             {"router": "question", "mode": "legacy_specialized"},
             {"router": "research", "mode": "legacy_specialized"},
         ],
-        "deprecated_routes": [],
+        "deprecated_routes": [
+            {"router": "chat", "mode": "legacy_chat_transport_unmounted"},
+        ],
         "isolated_subsystems": [
             {"router": "guide", "mode": "independent_subsystem"},
             {"router": "co_writer", "mode": "independent_subsystem"},

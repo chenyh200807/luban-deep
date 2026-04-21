@@ -5,9 +5,13 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-REMOTE_HOST="${REMOTE_HOST:-}"
-REMOTE_DIR="${REMOTE_DIR:-/root/deeptutor}"
-REMOTE_HOST_CANDIDATES=("Aliyun-ECS-2" "Aliyun-ECS")
+CANONICAL_REMOTE_HOST="Aliyun-ECS-2"
+CANONICAL_REMOTE_DIR="/root/deeptutor"
+REMOTE_HOST="${REMOTE_HOST:-${CANONICAL_REMOTE_HOST}}"
+REMOTE_DIR="${REMOTE_DIR:-${CANONICAL_REMOTE_DIR}}"
+ALLOW_DIRTY_DEPLOY="${ALLOW_DIRTY_DEPLOY:-0}"
+ALLOW_MAIN_BRANCH_DEPLOY="${ALLOW_MAIN_BRANCH_DEPLOY:-0}"
+ALLOW_NON_CANONICAL_DEPLOY="${ALLOW_NON_CANONICAL_DEPLOY:-0}"
 
 EXCLUDES=(
     ".git"
@@ -26,22 +30,62 @@ EXCLUDES=(
     "*.log"
 )
 
-resolve_remote_host() {
-    if [ -n "${REMOTE_HOST}" ]; then
-        echo "${REMOTE_HOST}"
+require_git_release_hygiene() {
+    if [ "${ALLOW_DIRTY_DEPLOY}" = "1" ]; then
         return 0
     fi
 
-    local host
-    for host in "${REMOTE_HOST_CANDIDATES[@]}"; do
-        if ssh -o BatchMode=yes -o ConnectTimeout=5 "${host}" "echo ok" >/dev/null 2>&1; then
-            echo "${host}"
-            return 0
-        fi
-    done
+    if ! git -C "${REPO_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        echo "发布脚本必须从 Git 工作区执行。" >&2
+        exit 1
+    fi
 
-    echo "没有可用的阿里云 SSH Host: ${REMOTE_HOST_CANDIDATES[*]}" >&2
-    exit 1
+    local branch
+    branch="$(git -C "${REPO_ROOT}" branch --show-current)"
+    if [ -z "${branch}" ]; then
+        echo "无法识别当前分支；禁止在 detached HEAD 直接发布。" >&2
+        exit 1
+    fi
+
+    if [ "${ALLOW_MAIN_BRANCH_DEPLOY}" != "1" ] && [ "${branch}" = "main" ]; then
+        echo "禁止直接从 main 发布。请先切到干净候选分支，或显式设置 ALLOW_MAIN_BRANCH_DEPLOY=1。" >&2
+        exit 1
+    fi
+
+    local status
+    status="$(git -C "${REPO_ROOT}" status --short --untracked-files=all)"
+    if [ -n "${status}" ]; then
+        echo "工作区不干净，禁止发布。请先提交/清理改动，或显式设置 ALLOW_DIRTY_DEPLOY=1。" >&2
+        echo "${status}" >&2
+        exit 1
+    fi
+}
+
+require_canonical_target() {
+    if [ "${ALLOW_NON_CANONICAL_DEPLOY}" = "1" ]; then
+        return 0
+    fi
+
+    if [ "${REMOTE_HOST}" != "${CANONICAL_REMOTE_HOST}" ]; then
+        echo "REMOTE_HOST 必须固定为 ${CANONICAL_REMOTE_HOST}；当前为 ${REMOTE_HOST}。" >&2
+        echo "若确需临时发往其他主机，请显式设置 ALLOW_NON_CANONICAL_DEPLOY=1。" >&2
+        exit 1
+    fi
+
+    if [ "${REMOTE_DIR}" != "${CANONICAL_REMOTE_DIR}" ]; then
+        echo "REMOTE_DIR 必须固定为 ${CANONICAL_REMOTE_DIR}；当前为 ${REMOTE_DIR}。" >&2
+        echo "若确需临时发往其他目录，请显式设置 ALLOW_NON_CANONICAL_DEPLOY=1。" >&2
+        exit 1
+    fi
+}
+
+resolve_remote_host() {
+    echo "${REMOTE_HOST}"
+}
+
+preflight() {
+    require_git_release_hygiene
+    require_canonical_target
 }
 
 sync_once() {
@@ -86,6 +130,8 @@ watch_sync() {
 }
 
 MODE="${1:-once}"
+preflight
+
 case "${MODE}" in
     once)
         sync_once
