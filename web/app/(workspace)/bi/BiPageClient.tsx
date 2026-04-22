@@ -9,8 +9,7 @@ import {
   getStoredBiAdminSession,
   type BiAdminSession,
 } from "@/lib/api";
-import { ApiError, isAuthUnavailableError } from "@/lib/api-errors";
-import { fetchBiAdminProfile, loginBiAdmin } from "@/lib/bi-admin-auth";
+import { loginBiAdmin, restoreBiAdminSession } from "@/lib/bi-admin-auth";
 import {
   loadBiWorkbench,
   type BiBossActionItem,
@@ -152,25 +151,15 @@ export default function BiPageClient() {
     }
     try {
       setAuthError("");
-      const profile = await fetchBiAdminProfile(stored.token);
-      if (!profile.is_admin) {
-        throw new ApiError(403, "当前账号不是管理员，无法解锁会员后台。");
-      }
-      setAdminSession({
-        ...stored,
-        userId: profile.user_id || stored.userId,
-        displayName: profile.display_name?.trim() || stored.displayName,
-        isAdmin: true,
-      });
-    } catch (error) {
-      if (isAuthUnavailableError(error)) {
+      const restored = await restoreBiAdminSession(stored);
+      if (restored.clearStoredSession) {
         clearStoredBiAdminSession();
-        setAdminSession(null);
-        setAuthError(error.message || "管理员登录已失效，请重新登录。");
-      } else {
-        setAdminSession(stored);
-        setAuthError("管理员会话校验暂时失败，请稍后重试。");
       }
+      setAdminSession(restored.session);
+      setAuthError(restored.errorMessage);
+    } catch {
+      setAdminSession(stored);
+      setAuthError("管理员会话校验暂时失败，请稍后重试。");
     } finally {
       setAuthReady(true);
     }

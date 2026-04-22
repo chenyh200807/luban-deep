@@ -1581,13 +1581,17 @@ class MemberConsoleService:
     ) -> dict[str, Any]:
         claims = self.verify_access_token(token) or {}
         expires_at = int(claims.get("exp") or 0)
+        is_admin = self.is_admin_user(user_id)
+        user = self.get_profile(user_id)
+        user["is_admin"] = is_admin
         payload = {
             "user_id": user_id,
             "token": token,
             "token_type": "Bearer",
             "expires_at": expires_at,
             "expires_in": max(0, expires_at - int(_now().timestamp())) if expires_at else 0,
-            "user": self.get_profile(user_id),
+            "is_admin": is_admin,
+            "user": user,
         }
         if openid:
             payload["openid"] = openid

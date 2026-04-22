@@ -1100,6 +1100,34 @@ def test_auth_login_maps_invalid_password_to_401(monkeypatch: pytest.MonkeyPatch
     assert response.json()["detail"] == "用户名或密码错误"
 
 
+def test_auth_login_exposes_is_admin_without_profile_followup(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "login_with_password",
+        lambda _username, _password: {
+            "user_id": "admin_demo",
+            "token": "token-1",
+            "expires_at": 123,
+            "is_admin": True,
+            "user": {
+                "user_id": "admin_demo",
+                "display_name": "管理员",
+                "is_admin": True,
+            },
+        },
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/login",
+            json={"username": "admin_demo", "password": "good-password"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["is_admin"] is True
+    assert response.json()["user"]["is_admin"] is True
+
+
 def test_auth_register_maps_validation_error_to_400(monkeypatch: pytest.MonkeyPatch) -> None:
     def _failing_register(_username: str, _password: str, _phone: str):
         raise ValueError("用户名已存在")
