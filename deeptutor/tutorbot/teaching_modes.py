@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
 
@@ -33,6 +33,18 @@ _LECTURE_TOPIC_REFERENCES = {
 _BUILDING_ANCHOR_RE = re.compile(
     r"([0-9一二两三四五六七八九十百]+层(?:住宅楼|办公楼|教学楼|厂房|宿舍楼|综合楼|商住楼|楼))",
     flags=re.IGNORECASE,
+)
+_CONTINUITY_MARKERS = (
+    "接着",
+    "继续",
+    "沿用",
+    "回到刚才",
+    "别重新开始",
+    "不要重新开始",
+    "前面那个例子",
+    "刚才那个例子",
+    "同一个例子",
+    "同一个案例",
 )
 
 _FAST_INSTRUCTION = """
@@ -99,6 +111,53 @@ def normalize_teaching_mode(value: str | None) -> TutorBotTeachingMode:
     return normalize_requested_response_mode(value)
 
 
+def _extract_anchor_terms(*texts: str | None, limit: int = 3) -> list[str]:
+    anchors: list[str] = []
+    seen: set[str] = set()
+    for raw_text in texts:
+        text = str(raw_text or "").strip()
+        if not text:
+            continue
+        for match in _BUILDING_ANCHOR_RE.findall(text):
+            candidate = str(match or "").strip()
+            lowered = candidate.lower()
+            if not candidate or lowered in seen:
+                continue
+            seen.add(lowered)
+            anchors.append(candidate)
+            if len(anchors) >= limit:
+                return anchors
+    return anchors
+
+
+def _looks_like_continuity_request(user_message: str | None) -> bool:
+    text = str(user_message or "").strip()
+    if not text:
+        return False
+    return any(marker in text for marker in _CONTINUITY_MARKERS)
+
+
+def _coerce_continuity_summary(
+    *,
+    active_object: dict[str, Any] | None = None,
+    conversation_context_text: str | None = None,
+) -> str:
+    state_snapshot = (
+        active_object.get("state_snapshot")
+        if isinstance(active_object, dict) and isinstance(active_object.get("state_snapshot"), dict)
+        else {}
+    )
+    for candidate in (
+        state_snapshot.get("compressed_summary") if isinstance(state_snapshot, dict) else "",
+        state_snapshot.get("title") if isinstance(state_snapshot, dict) else "",
+        conversation_context_text,
+    ):
+        text = " ".join(str(candidate or "").strip().split())
+        if text:
+            return text[:160]
+    return ""
+
+
 def get_teaching_mode_instruction(value: str | None) -> str:
     mode = normalize_teaching_mode(value)
     if mode == _FAST:
@@ -112,24 +171,46 @@ def get_anchor_preservation_instruction(user_message: str | None) -> str:
     text = str(user_message or "").strip()
     if not text:
         return ""
-    anchor_terms: list[str] = []
-    seen: set[str] = set()
-    for match in _BUILDING_ANCHOR_RE.findall(text):
-        candidate = str(match or "").strip()
-        lowered = candidate.lower()
-        if not candidate or lowered in seen:
-            continue
-        seen.add(lowered)
-        anchor_terms.append(candidate)
-        if len(anchor_terms) >= 3:
-            break
+    anchor_terms = _extract_anchor_terms(text)
     if not anchor_terms:
         return ""
     return (
         "如果用户当前问题里已经明确给出具体案例锚点或对象原词，"
-        f"必须显式保留这些锚点原词：{'、'.join(anchor_terms)}。"
+        f"回答正文里必须至少显式保留一次这些锚点原词：{'、'.join(anchor_terms)}。"
         "不要自行缩写、泛化或换称呼。"
     )
+
+
+def build_continuity_anchor_instruction(
+    user_message: str | None,
+    *,
+    active_object: dict[str, Any] | None = None,
+    conversation_context_text: str | None = None,
+) -> str:
+    if not _looks_like_continuity_request(user_message):
+        return ""
+
+    summary = _coerce_continuity_summary(
+        active_object=active_object,
+        conversation_context_text=conversation_context_text,
+    )
+    anchor_terms = _extract_anchor_terms(
+        user_message,
+        summary,
+    )
+    if not anchor_terms and not summary:
+        return ""
+
+    parts = [
+        "用户这轮明确要求延续前文，同一案例要接着讲，不要重新起一个泛化的新例子。"
+    ]
+    if anchor_terms:
+        parts.append(
+            f"本轮必须显式沿用这些连续性锚点：{'、'.join(anchor_terms)}。"
+        )
+    if summary:
+        parts.append(f"当前连续性上下文：{summary}")
+    return "".join(parts)
 
 
 def normalize_anchor_terms_in_response(
@@ -143,17 +224,7 @@ def normalize_anchor_terms_in_response(
     text = str(user_message or "").strip()
     if not text:
         return response
-    anchor_terms: list[str] = []
-    seen: set[str] = set()
-    for match in _BUILDING_ANCHOR_RE.findall(text):
-        candidate = str(match or "").strip()
-        lowered = candidate.lower()
-        if not candidate or lowered in seen:
-            continue
-        seen.add(lowered)
-        anchor_terms.append(candidate)
-        if len(anchor_terms) >= 3:
-            break
+    anchor_terms = _extract_anchor_terms(text)
     normalized = content
     for anchor in anchor_terms:
         pattern = re.escape(anchor).replace("层", r"\s*层")

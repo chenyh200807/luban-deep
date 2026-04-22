@@ -123,6 +123,30 @@ def test_ws_subscribe_session_rejects_ownerless_session_for_non_admin(
     assert message["content"] == "Session not found"
 
 
+def test_ws_subscribe_session_allows_anonymous_ownerless_session(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = SQLiteSessionStore(db_path=tmp_path / "ws-auth.db")
+    fake_runtime = _FakeRuntime()
+
+    monkeypatch.setattr(ws_module, "resolve_auth_context", lambda _authorization: None)
+    monkeypatch.setattr("deeptutor.services.session.get_sqlite_session_store", lambda: store)
+    monkeypatch.setattr("deeptutor.services.session.get_turn_runtime_manager", lambda: fake_runtime)
+
+    import asyncio
+
+    asyncio.run(store.create_session(session_id="legacy_public", owner_key=""))
+
+    with TestClient(_build_app()) as client:
+        with client.websocket_connect("/api/v1/ws") as websocket:
+            websocket.send_json({"type": "subscribe_session", "session_id": "legacy_public"})
+            message = websocket.receive_json()
+
+    assert message["type"] == "done"
+    assert message["session_id"] == "legacy_public"
+
+
 def test_ws_subscribe_session_allows_owner(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,
@@ -206,6 +230,38 @@ def test_ws_start_turn_normalizes_legacy_interaction_fields_into_interaction_hin
     assert interaction_hints["requested_response_mode"] == "smart"
     assert "teaching_mode" not in interaction_hints
     assert config["billing_context"]["user_id"] == "student_demo"
+    assert message["type"] == "done"
+
+
+def test_ws_start_turn_allows_anonymous_followup_for_ownerless_session(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = SQLiteSessionStore(db_path=tmp_path / "ws-auth.db")
+    fake_runtime = _FakeRuntime()
+
+    monkeypatch.setattr(ws_module, "resolve_auth_context", lambda _authorization: None)
+    monkeypatch.setattr("deeptutor.services.session.get_sqlite_session_store", lambda: store)
+    monkeypatch.setattr("deeptutor.services.session.get_turn_runtime_manager", lambda: fake_runtime)
+
+    import asyncio
+
+    asyncio.run(store.create_session(session_id="legacy_public", owner_key=""))
+
+    with TestClient(_build_app()) as client:
+        with client.websocket_connect("/api/v1/ws") as websocket:
+            websocket.send_json(
+                {
+                    "type": "start_turn",
+                    "session_id": "legacy_public",
+                    "content": "继续讲",
+                    "config": {},
+                }
+            )
+            message = websocket.receive_json()
+
+    assert fake_runtime.started_payload is not None
+    assert fake_runtime.started_payload["session_id"] == "legacy_public"
     assert message["type"] == "done"
 
 

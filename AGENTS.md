@@ -155,6 +155,41 @@ CLI, WebSocket API, and Python SDK.
   4. 它未来会不会诱发更多特例补丁？
 - 文档内容设计也必须防复发：原则章节后面必须跟“复发机制”和“硬门槛”，否则 agent 很容易在高压 debugging 场景里重新滑回熟悉但错误的套路。
 
+### 5.7 Single Authority Hard Gate
+
+- `单一权威` 不是建议，而是设计和修复时的硬门槛。同一业务事实只能有一个 canonical truth source，必须能明确回答：谁唯一写、谁唯一存、谁唯一恢复、谁唯一读取。
+- 凡是涉及状态、路由、上下文承接、follow-up、resume、router、interpreter、fallback、trace 对齐、final 输出组装，开始前必须先写清楚：
+  1. `one business fact`：这次真正要维护的唯一业务事实是什么
+  2. `one authority`：这个事实由谁唯一写、唯一存、唯一恢复、唯一读取
+  3. `competing authorities`：现在有哪些模块、字段、状态、fallback、transport 层在偷偷争夺这个 authority
+  4. `canonical path`：从 writer 到 persistence / transfer / routing / assembly，再到 reader 的唯一主链路是什么
+  5. `delete or demote`：这次准备删除、降级、归一化哪些 mirror state、重复决策点、旁路 reader、兼容别名或 transport 再加工
+- 如果上面五件事写不出来，说明你还停留在症状层，不允许开始 patch。
+- 默认修法顺序必须是“先收权，再补逻辑”。优先删除：
+  1. mirror state competing with canonical state
+  2. duplicate decision points
+  3. bypass routing / bypass readers
+  4. transport 层对 canonical result 的二次改写
+  5. 兼容层中继续参与执行决策的 alias
+- 任何新增字段 / 状态 / router / classifier / interpreter / wrapper / fallback，默认先视为可疑。只有先证明下面四件事，才允许加：
+  1. 它没有制造第二套 authority
+  2. 它没有把语义问题错误降级成模式匹配问题
+  3. 它不会成为未来新的 patch anchor
+  4. 旧层确实不能删，且主链路确实不能直接承担
+- 遇到 follow-up / routing / state continuity 问题时，默认先排查 authority，而不是先补 regex。先确认：
+  1. 是否已经存在 authoritative context
+  2. 主链路是否真的使用了这份 context
+  3. route / final / resume 是否基于这份 context 做判断
+  4. 第一个错误 reader 或错误 decision 点到底在哪
+- `regex`、`fallback`、确定性规则只允许在两种情况下承担辅助职责：
+  1. 输入格式稳定、边界清晰、歧义很低
+  2. 主链路已经正确，只需要低成本保底
+- 如果 `regex`、`fallback`、wrapper、classifier 开始承担主要理解职责，视为 authority 越权，必须回到主链路收权。
+- 任何修复完成后，除功能回归外，还必须额外说明三件事：
+  1. 这次真正坏掉的一等业务事实是什么
+  2. 哪些地方曾经在争夺 authority
+  3. 为什么修完后系统比之前更接近单一 authority，而不是又多了一层补丁
+
 ## Architecture
 
 ```

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from deeptutor.services.path_service import PathService
 
 
@@ -38,6 +40,22 @@ def test_public_output_filter_allows_only_whitelisted_artifacts(tmp_path: Path) 
     finally:
         service._project_root = original_root
         service._user_data_dir = original_user_dir
+
+
+def test_path_service_honors_env_override_for_user_data_dir(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    override_dir = tmp_path / "runtime-user"
+    monkeypatch.setenv("DEEPTUTOR_USER_DATA_DIR", str(override_dir))
+    PathService.reset_instance()
+
+    try:
+        service = PathService.get_instance()
+        assert service.user_data_dir == override_dir.resolve()
+        assert service.get_chat_history_db() == override_dir.resolve() / "chat_history.db"
+    finally:
+        PathService.reset_instance()
 
 
 def test_public_output_filter_allows_math_animator_artifacts(tmp_path: Path) -> None:

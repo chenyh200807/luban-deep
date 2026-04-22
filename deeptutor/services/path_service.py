@@ -24,6 +24,7 @@ data/user/
         └── _detached_code_execution/
 """
 
+import os
 from pathlib import Path
 from typing import Literal
 
@@ -57,6 +58,18 @@ WorkspaceFeature = Literal[
 ]
 
 
+def resolve_runtime_user_data_dir(project_root: Path | None = None) -> Path:
+    """Resolve the canonical runtime user-data directory for the current process."""
+    root = project_root or Path(__file__).resolve().parent.parent.parent
+    override = str(os.getenv("DEEPTUTOR_USER_DATA_DIR") or "").strip()
+    if override:
+        candidate = Path(override).expanduser()
+        if not candidate.is_absolute():
+            candidate = root / candidate
+        return candidate.resolve()
+    return (root / "data" / "user").resolve()
+
+
 class PathService:
     """Singleton runtime path manager rooted at ``data/user``."""
 
@@ -85,7 +98,7 @@ class PathService:
             return
 
         self._project_root = Path(__file__).resolve().parent.parent.parent
-        self._user_data_dir = (self._project_root / "data" / "user").resolve()
+        self._user_data_dir = resolve_runtime_user_data_dir(self._project_root)
         self._initialized = True
 
     @classmethod
@@ -366,4 +379,5 @@ __all__ = [
     "PathService",
     "WorkspaceFeature",
     "get_path_service",
+    "resolve_runtime_user_data_dir",
 ]

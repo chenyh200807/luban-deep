@@ -454,6 +454,34 @@ def test_build_question_followup_context_from_result_summary_keeps_all_items() -
     assert context["correct_answer"] == ""
 
 
+def test_build_question_followup_context_from_result_summary_keeps_metadata_knowledge_context() -> None:
+    context = build_question_followup_context_from_result_summary(
+        {
+            "results": [
+                {
+                    "qa_pair": {
+                        "question_id": "q_1",
+                        "question_type": "choice",
+                        "question": "总时差和自由时差的区别，以下哪项正确？",
+                        "options": {"A": "说法A", "B": "说法B"},
+                        "correct_answer": "B",
+                        "explanation": "",
+                        "metadata": {
+                            "knowledge_context": "自由时差是不影响紧后工作最早开始的机动时间。"
+                        },
+                    }
+                }
+            ]
+        },
+        "### Question 1\n总时差和自由时差的区别，以下哪项正确？",
+        reveal_answers=False,
+        reveal_explanations=False,
+    )
+
+    assert context is not None
+    assert context["items"][0]["knowledge_context"] == "自由时差是不影响紧后工作最早开始的机动时间。"
+
+
 def test_build_question_followup_context_from_presentation_keeps_all_items() -> None:
     context = build_question_followup_context_from_presentation(
         {

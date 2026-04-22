@@ -513,15 +513,7 @@ async def _run_single_turn_live_ws(
     payload = {
         "type": "start_turn",
         "content": query,
-        "capability": (
-            "tutorbot"
-            if _should_pin_tutorbot_capability(
-                user_message=query,
-                followup_question_context=followup_question_context,
-                followup_action=followup_action,
-            )
-            else None
-        ),
+        "capability": None,
         "tools": [],
         "knowledge_bases": [],
         "attachments": [],

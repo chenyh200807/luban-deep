@@ -9,6 +9,7 @@ CANONICAL_REMOTE_HOST="Aliyun-ECS-2"
 CANONICAL_REMOTE_DIR="/root/deeptutor"
 REMOTE_HOST="${REMOTE_HOST:-${CANONICAL_REMOTE_HOST}}"
 REMOTE_DIR="${REMOTE_DIR:-${CANONICAL_REMOTE_DIR}}"
+RELEASE_KEEP="${RELEASE_KEEP:-5}"
 ALLOW_DIRTY_DEPLOY="${ALLOW_DIRTY_DEPLOY:-0}"
 ALLOW_MAIN_BRANCH_DEPLOY="${ALLOW_MAIN_BRANCH_DEPLOY:-0}"
 ALLOW_NON_CANONICAL_DEPLOY="${ALLOW_NON_CANONICAL_DEPLOY:-0}"
@@ -83,6 +84,88 @@ resolve_remote_host() {
     echo "${REMOTE_HOST}"
 }
 
+build_release_id() {
+    local timestamp branch commit
+    timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+    branch="$(git -C "${REPO_ROOT}" branch --show-current | tr '/ ' '__')"
+    commit="$(git -C "${REPO_ROOT}" rev-parse --short=12 HEAD)"
+    echo "${timestamp}_${branch}_${commit}"
+}
+
+snapshot_remote_release() {
+    local resolved_host release_id branch commit
+    resolved_host="$(resolve_remote_host)"
+    release_id="$(build_release_id)"
+    branch="$(git -C "${REPO_ROOT}" branch --show-current)"
+    commit="$(git -C "${REPO_ROOT}" rev-parse HEAD)"
+
+    ssh "${resolved_host}" \
+        "PYTHONIOENCODING='utf-8' REMOTE_DIR='${REMOTE_DIR}' RELEASE_ID='${release_id}' RELEASE_BRANCH='${branch}' RELEASE_COMMIT='${commit}' RELEASE_KEEP='${RELEASE_KEEP}' python3 - <<'PY'
+import json
+import os
+import subprocess
+import time
+from pathlib import Path
+
+remote_dir = Path(os.environ['REMOTE_DIR'])
+if not remote_dir.exists():
+    print(f'远端目录不存在，跳过代码快照: {remote_dir}')
+    raise SystemExit(0)
+if not (remote_dir / 'docker-compose.yml').exists():
+    print(f'远端目录缺少 docker-compose.yml，跳过代码快照: {remote_dir}')
+    raise SystemExit(0)
+
+release_dir = remote_dir / 'data' / 'releases' / 'code'
+release_dir.mkdir(parents=True, exist_ok=True)
+release_id = os.environ['RELEASE_ID']
+snapshot_path = release_dir / f'{release_id}.tar.gz'
+manifest_path = release_dir / f'{release_id}.json'
+
+tar_cmd = ['tar', '-czf', str(snapshot_path)]
+for pattern in (
+    '.git',
+    '.github',
+    '.venv',
+    'node_modules',
+    '__pycache__',
+    '.pytest_cache',
+    '.mypy_cache',
+    '.ruff_cache',
+    '.next',
+    '.DS_Store',
+    '.env',
+    'data',
+    'tmp',
+    '*.log',
+):
+    tar_cmd.append(f'--exclude={pattern}')
+tar_cmd.extend(['-C', str(remote_dir), '.'])
+subprocess.run(tar_cmd, check=True)
+
+manifest = {
+    'release_id': release_id,
+    'branch': os.environ['RELEASE_BRANCH'],
+    'commit': os.environ['RELEASE_COMMIT'],
+    'created_at': int(time.time()),
+    'snapshot_path': str(snapshot_path),
+    'remote_dir': str(remote_dir),
+}
+manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
+
+keep = max(1, int(os.environ.get('RELEASE_KEEP', '5') or '5'))
+snapshots = sorted(release_dir.glob('*.tar.gz'), key=lambda item: item.stat().st_mtime, reverse=True)
+for stale in snapshots[keep:]:
+    if stale.exists():
+        stale.unlink()
+    stale_manifest = stale.with_suffix('').with_suffix('.json')
+    if stale_manifest.exists():
+        stale_manifest.unlink()
+
+print(f'远端代码快照已生成: {snapshot_path}')
+print(f'远端代码清单已生成: {manifest_path}')
+PY"
+}
+
 preflight() {
     require_git_release_hygiene
     require_canonical_target
@@ -100,6 +183,7 @@ sync_once() {
 
     echo "同步到 ${resolved_host}:${REMOTE_DIR}"
     ssh "${resolved_host}" "mkdir -p '${REMOTE_DIR}'"
+    snapshot_remote_release
     rsync -avz --delete --stats --no-owner --no-group \
         "${exclude_args[@]}" \
         "${REPO_ROOT}/" "${resolved_host}:${REMOTE_DIR}/"

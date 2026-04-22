@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from deeptutor.services.config.loader import PROJECT_ROOT, load_config_with_main, resolve_config_path
+from deeptutor.services.config.loader import (
+    PROJECT_ROOT,
+    get_runtime_settings_dir,
+    load_config_with_main,
+    resolve_config_path,
+)
 
 
 def test_resolve_config_path_returns_existing_config(tmp_path: Path) -> None:
@@ -51,3 +56,13 @@ def test_load_config_with_main_uses_explicit_project_root() -> None:
 
     assert "system" in config
     assert config["paths"]["solve_output_dir"].endswith("data/user/workspace/chat/deep_solve")
+
+
+def test_runtime_settings_dir_honors_env_override(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    override_dir = tmp_path / "custom-runtime"
+    monkeypatch.setenv("DEEPTUTOR_USER_DATA_DIR", str(override_dir))
+
+    assert get_runtime_settings_dir(tmp_path) == override_dir.resolve() / "settings"

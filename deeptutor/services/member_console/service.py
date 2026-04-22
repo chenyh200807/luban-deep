@@ -1075,6 +1075,16 @@ class MemberConsoleService:
         return base64.urlsafe_b64decode(raw + padding)
 
     def _auth_secret(self) -> str:
+        if is_production_environment():
+            secret = str(
+                os.getenv("DEEPTUTOR_AUTH_SECRET")
+                or os.getenv("MEMBER_CONSOLE_AUTH_SECRET")
+                or ""
+            ).strip()
+            if not secret:
+                raise RuntimeError("DEEPTUTOR_AUTH_SECRET must be configured in production")
+            return secret
+
         secret = str(
             os.getenv("DEEPTUTOR_AUTH_SECRET")
             or os.getenv("MEMBER_CONSOLE_AUTH_SECRET")
@@ -1083,8 +1093,6 @@ class MemberConsoleService:
             or os.getenv("WECHAT_MP_APPSECRET")
             or "deeptutor-dev-member-secret"
         ).strip()
-        if secret == "deeptutor-dev-member-secret" and is_production_environment():
-            raise RuntimeError("DEEPTUTOR_AUTH_SECRET must be configured in production")
         return secret
 
     @staticmethod

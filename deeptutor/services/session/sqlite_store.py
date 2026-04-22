@@ -1538,6 +1538,22 @@ class SQLiteSessionStore:
     async def update_turn_status(self, turn_id: str, status: str, error: str = "") -> bool:
         return await self._run(self._update_turn_status_sync, turn_id, status, error)
 
+    def _update_turn_capability_sync(self, turn_id: str, capability: str) -> bool:
+        with self._connect() as conn:
+            cur = conn.execute(
+                """
+                UPDATE turns
+                SET capability = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (capability or "", time.time(), turn_id),
+            )
+            conn.commit()
+        return cur.rowcount > 0
+
+    async def update_turn_capability(self, turn_id: str, capability: str) -> bool:
+        return await self._run(self._update_turn_capability_sync, turn_id, capability)
+
     def _append_turn_event_sync(self, turn_id: str, event: dict[str, Any]) -> dict[str, Any]:
         now = time.time()
         with self._connect() as conn:

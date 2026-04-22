@@ -193,6 +193,7 @@ async def test_turn_runtime_bootstraps_open_chat_active_object_when_no_stronger_
     store = SQLiteSessionStore(tmp_path / "chat_history.db")
     runtime = TurnRuntimeManager(store)
     captured: dict[str, object] = {}
+    captured_updates: list[dict[str, object]] = []
 
     class FakeContextBuilder:
         def __init__(self, *_args, **_kwargs) -> None:
@@ -226,6 +227,14 @@ async def test_turn_runtime_bootstraps_open_chat_active_object_when_no_stronger_
             build_memory_context=lambda: "",
             refresh_from_turn=_noop_refresh,
         ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.get_current_usage_summary",
+        lambda: {},
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.update_observation",
+        lambda _observation, **kwargs: captured_updates.append(kwargs),
     )
 
     session, turn = await runtime.start_turn(
@@ -480,6 +489,7 @@ async def test_turn_runtime_leaves_tutorbot_practice_generation_for_orchestrator
     store = SQLiteSessionStore(tmp_path / "chat_history.db")
     runtime = TurnRuntimeManager(store)
     captured: dict[str, object] = {}
+    captured_updates: list[dict[str, object]] = []
 
     class FakeContextBuilder:
         def __init__(self, *_args, **_kwargs) -> None:
@@ -518,6 +528,14 @@ async def test_turn_runtime_leaves_tutorbot_practice_generation_for_orchestrator
             refresh_from_turn=_noop_refresh,
         ),
     )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.get_current_usage_summary",
+        lambda: {},
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.update_observation",
+        lambda _observation, **kwargs: captured_updates.append(kwargs),
+    )
 
     session, turn = await runtime.start_turn(
         {
@@ -543,15 +561,18 @@ async def test_turn_runtime_leaves_tutorbot_practice_generation_for_orchestrator
     async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
         pass
 
-    assert turn["capability"] == "chat"
+    assert turn["capability"] == "deep_question"
     assert captured["active_capability"] is None
     assert captured["user_message"] == "我想练习施工管理，请给我来5道选择题"
     assert captured["config_overrides"]["bot_id"] == "construction-exam-coach"
 
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
-    assert detail["preferences"]["capability"] == "chat"
+    assert detail["preferences"]["capability"] == "deep_question"
     assert detail["messages"][-1]["content"] == "第1题"
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
 
 
 @pytest.mark.asyncio
@@ -638,10 +659,16 @@ async def test_turn_runtime_leaves_tutorbot_question_followup_for_orchestrator_a
     async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
         pass
 
-    assert turn["capability"] == "chat"
+    assert turn["capability"] == "deep_question"
     assert captured["active_capability"] is None
     assert captured["followup_question_context"]["question_id"] == "q_1"
     assert captured["followup_question_context"]["correct_answer"] == "B"
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert detail["preferences"]["capability"] == "deep_question"
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
 
 
 @pytest.mark.asyncio
@@ -1706,6 +1733,9 @@ async def test_turn_runtime_does_not_pin_tutorbot_for_recovered_question_submiss
             )
 
     class FakeOrchestrator:
+        async def _select_capability(self, _context):
+            return "deep_question"
+
         async def handle(self, context):
             captured["active_capability"] = context.active_capability
             captured["question_followup_context"] = context.metadata.get(
@@ -1777,7 +1807,7 @@ async def test_turn_runtime_does_not_pin_tutorbot_for_recovered_question_submiss
     async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
         pass
 
-    assert captured["active_capability"] is None
+    assert captured["active_capability"] == "deep_question"
     assert captured["question_followup_context"]["question_id"] == "q_saved"
     assert captured["question_followup_context"]["correct_answer"] == "D"
 
@@ -1809,6 +1839,9 @@ async def test_turn_runtime_does_not_pin_tutorbot_when_llm_identifies_followup_t
             )
 
     class FakeOrchestrator:
+        async def _select_capability(self, _context):
+            return "deep_question"
+
         async def handle(self, context):
             captured["active_capability"] = context.active_capability
             captured["question_followup_context"] = context.metadata.get(
@@ -1920,10 +1953,13 @@ async def test_turn_runtime_does_not_pin_tutorbot_when_llm_identifies_followup_t
     async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
         pass
 
-    assert turn["capability"] == "chat"
-    assert captured["active_capability"] is None
+    assert turn["capability"] == "deep_question"
+    assert captured["active_capability"] == "deep_question"
     assert captured["question_followup_context"]["question_id"] == "quiz_llm_runtime"
     assert captured["question_followup_action"]["intent"] == "revise_answers"
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
 
 
 @pytest.mark.asyncio
@@ -2281,10 +2317,13 @@ async def test_turn_runtime_keeps_batch_submission_in_chat_for_stored_question_s
     async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
         pass
 
-    assert turn["capability"] == "chat"
+    assert turn["capability"] == "deep_question"
     assert captured["active_capability"] is None
     assert captured["question_followup_context"]["question_id"] == "quiz_batch"
     assert len(captured["question_followup_context"]["items"]) == 3
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
 
 
 @pytest.mark.asyncio
@@ -2398,13 +2437,16 @@ async def test_turn_runtime_keeps_compact_batch_letters_in_chat_for_stored_quest
     async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
         pass
 
-    assert turn["capability"] == "chat"
+    assert turn["capability"] == "deep_question"
     assert captured["active_capability"] is None
     assert [item["question_id"] for item in captured["question_followup_context"]["items"]] == [
         "q_1",
         "q_2",
         "q_3",
     ]
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
 
 
 @pytest.mark.asyncio
@@ -2518,13 +2560,16 @@ async def test_turn_runtime_keeps_compact_numbered_batch_in_chat_for_stored_ques
     async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
         pass
 
-    assert turn["capability"] == "chat"
+    assert turn["capability"] == "deep_question"
     assert captured["active_capability"] is None
     assert [item["question_id"] for item in captured["question_followup_context"]["items"]] == [
         "q_1",
         "q_2",
         "q_3",
     ]
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
 
 
 @pytest.mark.asyncio
@@ -2554,6 +2599,9 @@ async def test_turn_runtime_keeps_batch_correction_in_chat_for_stored_question_s
             )
 
     class FakeOrchestrator:
+        async def _select_capability(self, _context):
+            return "deep_question"
+
         async def handle(self, context):
             captured["active_capability"] = context.active_capability
             captured["question_followup_context"] = context.metadata.get(
@@ -2641,10 +2689,13 @@ async def test_turn_runtime_keeps_batch_correction_in_chat_for_stored_question_s
     async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
         pass
 
-    assert turn["capability"] == "chat"
-    assert captured["active_capability"] is None
+    assert turn["capability"] == "deep_question"
+    assert captured["active_capability"] == "deep_question"
     assert captured["question_followup_context"]["question_id"] == "quiz_correction"
     assert len(captured["question_followup_context"]["items"]) == 3
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
 
 
 @pytest.mark.asyncio
@@ -3192,7 +3243,10 @@ async def test_turn_runtime_preserves_auto_capability_selection_when_unspecified
 
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
-    assert detail["preferences"]["capability"] == "chat"
+    assert detail["preferences"]["capability"] == "deep_question"
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
     assert [event["type"] for event in events] == ["session", "content", "done"]
 
 

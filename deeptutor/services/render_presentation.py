@@ -61,6 +61,7 @@ def _build_choice_followup_context(
     index: int,
     option_map: dict[str, str],
 ) -> dict[str, Any]:
+    metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
     return {
         "question_id": _coerce_text(qa_pair.get("question_id") or f"q_{index}"),
         "question": _coerce_text(qa_pair.get("question") or ""),
@@ -76,7 +77,10 @@ def _build_choice_followup_context(
             or ""
         ),
         "knowledge_context": _coerce_text(
-            qa_pair.get("knowledge_context") or qa_pair.get("explanation") or ""
+            qa_pair.get("knowledge_context")
+            or metadata.get("knowledge_context")
+            or qa_pair.get("explanation")
+            or ""
         ),
     }
 

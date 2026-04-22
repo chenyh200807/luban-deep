@@ -301,6 +301,46 @@ def _should_use_followup_anchor_generation(
     return _topic_needs_authoritative_anchor(raw_topic)
 
 
+def _should_use_lightweight_followup_generation(
+    *,
+    selected_mode: str,
+    raw_topic: str,
+    num_questions: int,
+    followup_question_context: dict[str, Any] | None,
+) -> bool:
+    if str(selected_mode or "").strip().lower() != "fast":
+        return False
+    return _should_use_followup_anchor_generation(
+        raw_topic=raw_topic,
+        mode="custom",
+        num_questions=num_questions,
+        followup_question_context=followup_question_context,
+    )
+
+
+def _should_use_lightweight_topic_generation(
+    *,
+    selected_mode: str,
+    raw_topic: str,
+    resolved_topic: str,
+    num_questions: int,
+    question_type: str,
+    followup_question_context: dict[str, Any] | None,
+) -> bool:
+    if str(selected_mode or "").strip().lower() != "fast":
+        return False
+    if normalize_question_followup_context(followup_question_context):
+        return False
+    if int(num_questions or 1) > 3:
+        return False
+    normalized_question_type = str(question_type or "").strip().lower()
+    if normalized_question_type and normalized_question_type not in {"choice", "judge", "judgment"}:
+        return False
+    if not _topic_needs_authoritative_anchor(raw_topic):
+        return False
+    return resolved_topic != _compact_text(raw_topic)
+
+
 def _grading_items(question_context: dict[str, Any] | None) -> list[dict[str, Any]]:
     normalized = normalize_question_followup_context(question_context) or {}
     raw_items = normalized.get("items") if isinstance(normalized.get("items"), list) else []
@@ -757,6 +797,31 @@ class DeepQuestionCapability(BaseCapability):
         preference = str(overrides.get("preference", "") or "")
         reveal_answers = bool(overrides.get("reveal_answers", False))
         reveal_explanations = bool(overrides.get("reveal_explanations", reveal_answers))
+        lightweight_generation = bool(overrides.get("lightweight_generation", False))
+        lightweight_followup_generation = _should_use_lightweight_followup_generation(
+            selected_mode=selected_mode,
+            raw_topic=raw_topic,
+            num_questions=num_questions,
+            followup_question_context=(
+                followup_question_context if isinstance(followup_question_context, dict) else None
+            ),
+        )
+        lightweight_topic_generation = _should_use_lightweight_topic_generation(
+            selected_mode=selected_mode,
+            raw_topic=raw_topic,
+            resolved_topic=topic,
+            num_questions=num_questions,
+            question_type=question_type,
+            followup_question_context=(
+                followup_question_context if isinstance(followup_question_context, dict) else None
+            ),
+        )
+        lightweight_generation = (
+            lightweight_generation
+            or lightweight_followup_generation
+            or lightweight_topic_generation
+        )
+        require_explanation = reveal_explanations
         history_context = str(
             context.metadata.get("conversation_context_text", "") or ""
         ).strip()
@@ -765,11 +830,18 @@ class DeepQuestionCapability(BaseCapability):
             if context.enabled_tools is None
             else context.enabled_tools
         )
-        tool_flags_override = {
-            "rag": "rag" in enabled_tools,
-            "web_search": "web_search" in enabled_tools,
-            "code_execution": "code_execution" in enabled_tools,
-        }
+        if lightweight_followup_generation or lightweight_topic_generation:
+            tool_flags_override = {
+                "rag": False,
+                "web_search": False,
+                "code_execution": False,
+            }
+        else:
+            tool_flags_override = {
+                "rag": "rag" in enabled_tools,
+                "web_search": "web_search" in enabled_tools,
+                "code_execution": "code_execution" in enabled_tools,
+            }
 
         coordinator = AgentCoordinator(
             api_key=llm_config.api_key,
@@ -855,6 +927,8 @@ class DeepQuestionCapability(BaseCapability):
                     difficulty=difficulty,
                     question_type=question_type,
                     history_context=history_context,
+                    require_explanation=require_explanation,
+                    lightweight_generation=lightweight_followup_generation,
                 )
             else:
                 result = await coordinator.generate_from_topic(
@@ -864,6 +938,8 @@ class DeepQuestionCapability(BaseCapability):
                     difficulty=difficulty,
                     question_type=question_type,
                     history_context=history_context,
+                    lightweight_generation=lightweight_generation,
+                    require_explanation=require_explanation,
                 )
 
         content = self._render_summary_markdown(
