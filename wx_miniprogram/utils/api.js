@@ -7,6 +7,8 @@ var MAX_RETRIES = 2; // 最大重试次数
 var RETRY_BASE_DELAY = 1000; // 首次重试延迟 ms
 var REQUEST_TIMEOUT = 15000; // 请求超时 ms
 var RETRYABLE_METHODS = { GET: true, PUT: true, DELETE: true }; // 幂等方法才重试
+var TOKEN_REFRESH_MARGIN_SECONDS = 60 * 60 * 24; // 仅在 token 临期 24 小时内续期
+var IN_FLIGHT_REFRESH = null;
 
 function getApp_() {
   try {
@@ -50,11 +52,106 @@ function unwrapResponse(raw) {
   return raw;
 }
 
+function applyAuthPayload(payload) {
+  var body = unwrapResponse(payload);
+  if (!body || typeof body !== "object" || !body.token) {
+    return null;
+  }
+  auth.setToken(body.token, body.expires_at);
+  return body.token;
+}
+
+function refreshAuthToken(opts) {
+  var token = auth.getToken();
+  var refreshOpts = Object.assign({}, opts || {});
+  if (!token) {
+    return Promise.reject(new Error("AUTH_EXPIRED"));
+  }
+  if (IN_FLIGHT_REFRESH) {
+    return IN_FLIGHT_REFRESH;
+  }
+  IN_FLIGHT_REFRESH = new Promise(function (resolve, reject) {
+    rawRequest({
+      url: "/api/v1/auth/refresh",
+      method: "POST",
+      useGateway: refreshOpts.useGateway,
+      baseUrl: refreshOpts.baseUrl,
+      _baseCandidates: refreshOpts._baseCandidates,
+      skipAuthRefresh: true,
+      noRetry: true,
+    })
+      .then(function (resp) {
+        var refreshedToken = applyAuthPayload(resp);
+        if (!refreshedToken) {
+          auth.clearToken();
+          var invalidApp = getApp_();
+          if (invalidApp && invalidApp.globalData) {
+            invalidApp.globalData.token = null;
+          }
+          relaunchLogin();
+          reject(new Error("AUTH_EXPIRED"));
+          return;
+        }
+        resolve(refreshedToken);
+      })
+      .catch(function () {
+        auth.clearToken();
+        var expiredApp = getApp_();
+        if (expiredApp && expiredApp.globalData) {
+          expiredApp.globalData.token = null;
+        }
+        relaunchLogin();
+        reject(new Error("AUTH_EXPIRED"));
+      })
+      .then(
+        function () {
+          IN_FLIGHT_REFRESH = null;
+        },
+        function () {
+          IN_FLIGHT_REFRESH = null;
+        },
+      );
+  });
+  return IN_FLIGHT_REFRESH;
+}
+
+function ensureFreshAuthToken(opts) {
+  var token = auth.getToken();
+  if (!token) {
+    return Promise.reject(new Error("AUTH_EXPIRED"));
+  }
+  if (
+    typeof auth.shouldRefreshToken === "function" &&
+    auth.shouldRefreshToken(TOKEN_REFRESH_MARGIN_SECONDS)
+  ) {
+    return refreshAuthToken(opts).then(function (refreshedToken) {
+      return refreshedToken || auth.getToken() || "";
+    });
+  }
+  return Promise.resolve(token);
+}
+
 /**
  * 通用请求（带 token 自动注入 + 指数退避重试 + Token 刷新）
  * @param {object} opts - { url, method, data, useGateway, noAuth, _retryCount }
  */
 function request(opts) {
+  var requestOptions = Object.assign({}, opts || {});
+  if (
+    !requestOptions.noAuth &&
+    !requestOptions.skipAuthRefresh &&
+    auth.getToken() &&
+    typeof auth.shouldRefreshToken === "function" &&
+    auth.shouldRefreshToken(TOKEN_REFRESH_MARGIN_SECONDS)
+  ) {
+    return ensureFreshAuthToken(requestOptions).then(function () {
+      return rawRequest(requestOptions);
+    });
+  }
+  return rawRequest(requestOptions);
+}
+
+function rawRequest(opts) {
   var method = opts.method || "GET";
   var data = opts.data || {};
   var useGateway = opts.useGateway || false;
@@ -117,6 +214,10 @@ function request(opts) {
             reject(
               new Error("HTTP_401: " + JSON.stringify(res.data)),
             );
+            return;
+          }
+          if (opts.skipAuthRefresh) {
+            reject(new Error("AUTH_EXPIRED"));
             return;
           }
           // Token 过期 — 清除并跳转登录
@@ -194,6 +295,10 @@ function request(opts) {
 
         // 网络错误 — 幂等请求可重试
         if (RETRYABLE_METHODS[method] && retryCount < MAX_RETRIES) {
+          if (opts.noRetry) {
+            reject(new Error("NETWORK_ERROR: " + (err.errMsg || "unknown")));
+            return;
+          }
           var delay = RETRY_BASE_DELAY * Math.pow(2, retryCount);
           console.warn(
             "[API] Network error on " +
