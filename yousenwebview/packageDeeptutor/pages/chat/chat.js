@@ -10,6 +10,7 @@ var workflowStatus = require("../../utils/workflow-status");
 var citationFormat = require("../../utils/citation-format");
 var chatTurnRecovery = require("../../utils/chat-turn-recovery");
 var markdownFixtures = require("../../utils/devtools-markdown-fixtures");
+var surfaceTelemetry = require("../../utils/surface-telemetry");
 var runtime = require("../../utils/runtime");
 var route = require("../../utils/route");
 var flags = require("../../utils/flags");
