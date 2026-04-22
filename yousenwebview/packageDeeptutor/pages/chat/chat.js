@@ -200,7 +200,6 @@ Page({
   _visibleSet: {}, // 当前可见消息 id 集合
   _autoScrollEnabled: true,
   _chatReadyPromise: null,
-  _chatReadyValidated: false,
 
   // ── 生命周期 ──────────────────────────────────
 
@@ -337,26 +336,17 @@ Page({
 
   _ensureChatReady: function () {
     var self = this;
-    var authAllowed = true;
-    if (self._chatReadyValidated) {
-      return Promise.resolve();
-    }
     if (self._chatReadyPromise) {
       return self._chatReadyPromise;
     }
-    authAllowed = runtime.checkAuth(function () {});
-    if (authAllowed === false) {
+    if (!auth.getToken()) {
+      runtime.checkAuth(function () {});
       return Promise.reject(new Error("AUTH_EXPIRED"));
     }
     self._chatReadyPromise = api
       .getUserInfo()
       .then(function (raw) {
         self._applyAuthProfile(raw);
-        self._chatReadyValidated = true;
-      })
-      .catch(function (err) {
-        self._chatReadyValidated = false;
-        throw err;
       })
       .then(
         function (result) {
@@ -1635,7 +1625,6 @@ Page({
               wx.showToast({ title: "创建对话异常", icon: "none" });
               return;
             }
-            self._chatReadyValidated = true;
             self._convId = conv.id;
             self._sid = conv.id; // conversation_id 同时用作 session_id
             // [FIX-SESSION-2] 立即持久化（含时间戳），防止刷新/重启后丢失
@@ -1643,7 +1632,6 @@ Page({
             self._doSend(query, extraOpts);
           })
           .catch(function (err) {
-            self._chatReadyValidated = false;
             self.setData({ isStreaming: false });
             if (String((err && err.message) || "") === "AUTH_EXPIRED") {
               return;
@@ -1662,9 +1650,14 @@ Page({
     if (self.data.isStreaming) return;
     self._stop();
 
-    if (!self._chatReadyValidated) {
+    if (!auth.getToken()) {
+      runtime.checkAuth(function () {});
+      return;
+    }
+
+    if (self._chatReadyPromise) {
       self
-        ._ensureChatReady()
+        ._chatReadyPromise
         .then(function () {
           startSend();
         })

@@ -101,6 +101,14 @@ function loadChatPage(overrides) {
     },
     (overrides && overrides.runtime) || {},
   );
+  var authMock = Object.assign(
+    {
+      getToken: function () {
+        return "token";
+      },
+    },
+    (overrides && overrides.auth) || {},
+  );
   var sandbox = {
     console: console,
     Date: Date,
@@ -108,11 +116,7 @@ function loadChatPage(overrides) {
     clearTimeout: clearTimeout,
     require: function (request) {
       if (request === "../../utils/auth") {
-        return {
-          getToken: function () {
-            return "token";
-          },
-        };
+        return authMock;
       }
       if (request === "../../utils/api") return apiMock;
       if (request === "../../utils/ai-message-state") return {};
@@ -307,22 +311,27 @@ function loadChatPage(overrides) {
     assert(sendCount === 0, "pending auto-send should stay blocked when auth bootstrap is not authoritative");
   });
 
-  await run("chat page should not create conversation when bootstrap auth validation fails on manual send", async function () {
+  await run("chat page should not race past a failing bootstrap promise on manual send", async function () {
+    var bootstrapDeferred = createDeferred();
     var loaded = loadChatPage({
       api: {
         getUserInfo: function () {
           loaded.apiState.getUserInfoCalls += 1;
-          return Promise.reject(new Error("profile temporarily unavailable"));
+          return bootstrapDeferred.promise;
         },
       },
     });
 
     loaded.page.onLoad({});
     loaded.page.onShow();
-    await flushPromises();
-    await flushPromises();
-
     loaded.page._send("帮我分析这道题");
+    await flushPromises();
+    assert(
+      loaded.apiState.createConversationCalls === 0,
+      "manual send should stay behind the in-flight bootstrap promise",
+    );
+
+    bootstrapDeferred.reject(new Error("profile temporarily unavailable"));
     await flushPromises();
     await flushPromises();
 
@@ -338,6 +347,34 @@ function loadChatPage(overrides) {
       loaded.toastCalls.length >= 1 &&
         loaded.toastCalls[loaded.toastCalls.length - 1].title === "服务暂时不可用，请稍后重试",
       "manual send should surface an availability toast instead of a misleading create-conversation failure",
+    );
+  });
+
+  await run("chat page should not call profile bootstrap or create conversation after auth redirect starts", async function () {
+    var loaded = loadChatPage({
+      auth: {
+        getToken: function () {
+          return "";
+        },
+      },
+      runtime: {
+        checkAuth: function () {
+          return true;
+        },
+      },
+    });
+
+    loaded.page.onLoad({});
+    loaded.page._send("帮我分析这道题");
+    await flushPromises();
+
+    assert(
+      loaded.apiState.getUserInfoCalls === 0,
+      "manual send should not bootstrap auth profile when the authoritative token is already missing",
+    );
+    assert(
+      loaded.apiState.createConversationCalls === 0,
+      "manual send should not create conversation after auth redirect starts",
     );
   });
 
