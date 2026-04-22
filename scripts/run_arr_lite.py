@@ -52,6 +52,12 @@ async def main() -> None:
         "--api-base-url",
         help="提供后，long-dialog-full 将通过真实 /api/v1/ws 执行，而不是本进程 runtime 重放",
     )
+    parser.add_argument(
+        "--response-mode",
+        choices=["smart", "fast", "deep"],
+        default="smart",
+        help="long-dialog 复测使用的响应模式，默认 smart",
+    )
     args = parser.parse_args()
 
     baseline_payload = load_arr_baseline_payload(args.baseline)
@@ -63,6 +69,7 @@ async def main() -> None:
         long_dialog_max_cases=args.max_long_dialog_cases,
         output_dir=output_dir,
         api_base_url=args.api_base_url,
+        response_mode=args.response_mode,
     )
     payload["baseline_source"] = "explicit" if args.baseline else "control_plane_latest" if baseline_payload else "none"
     artifact_paths = write_arr_artifacts(payload, output_dir=output_dir)

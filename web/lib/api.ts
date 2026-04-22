@@ -6,6 +6,30 @@ const CURRENT_ORIGIN_SENTINEL = "__CURRENT_ORIGIN__";
 // to the current origin so IP and domain entrances can both use same-origin `/api/...`.
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE?.trim() || "";
 export const BI_API_TOKEN = process.env.NEXT_PUBLIC_BI_API_TOKEN?.trim() || "";
+const BI_ADMIN_SESSION_STORAGE_KEY = "deeptutor.bi.admin.session";
+
+export type BiAdminSession = {
+  token: string;
+  userId: string;
+  displayName: string;
+  isAdmin: boolean;
+  expiresAt: number;
+};
+
+function isBiAdminSession(value: unknown): value is BiAdminSession {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  return (
+    typeof record.token === "string" &&
+    typeof record.userId === "string" &&
+    typeof record.displayName === "string" &&
+    typeof record.isAdmin === "boolean" &&
+    typeof record.expiresAt === "number"
+  );
+}
 
 function resolveApiBaseUrl(): string {
   if (API_BASE_URL && API_BASE_URL !== CURRENT_ORIGIN_SENTINEL) {
@@ -66,5 +90,56 @@ export function withBiApiToken(headers?: HeadersInit): HeadersInit | undefined {
 
   const merged = new Headers(headers ?? {});
   merged.set("X-Metrics-Token", BI_API_TOKEN);
+  return Object.fromEntries(merged.entries());
+}
+
+export function getStoredBiAdminSession(): BiAdminSession | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(BI_ADMIN_SESSION_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw) as unknown;
+    if (!isBiAdminSession(parsed)) {
+      window.localStorage.removeItem(BI_ADMIN_SESSION_STORAGE_KEY);
+      return null;
+    }
+    if (parsed.expiresAt > 0 && parsed.expiresAt <= Math.floor(Date.now() / 1000)) {
+      window.localStorage.removeItem(BI_ADMIN_SESSION_STORAGE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredBiAdminSession(session: BiAdminSession): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(BI_ADMIN_SESSION_STORAGE_KEY, JSON.stringify(session));
+}
+
+export function clearStoredBiAdminSession(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.removeItem(BI_ADMIN_SESSION_STORAGE_KEY);
+}
+
+export function withAdminAuthorization(headers?: HeadersInit): HeadersInit | undefined {
+  const session = getStoredBiAdminSession();
+  const token = session?.token?.trim();
+  if (!token) {
+    return headers;
+  }
+
+  const merged = new Headers(headers ?? {});
+  merged.set("Authorization", `Bearer ${token}`);
   return Object.fromEntries(merged.entries());
 }

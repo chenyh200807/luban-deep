@@ -26,6 +26,58 @@ def _normalize_kind(kind: str) -> str:
     return normalized
 
 
+def _is_wrapper_shaped(document: dict[str, Any]) -> bool:
+    return any(key in document for key in ("kind", "release_id", "recorded_at", "payload"))
+
+
+def unwrap_payload_document(
+    document: dict[str, Any],
+    *,
+    expected_kind: str | None = None,
+) -> dict[str, Any]:
+    if not isinstance(document, dict):
+        raise TypeError("Observability document must be a JSON object")
+
+    normalized_expected = _normalize_kind(expected_kind) if expected_kind else None
+    if not _is_wrapper_shaped(document):
+        return document
+
+    raw_kind = str(document.get("kind") or "").strip()
+    if not raw_kind:
+        raise ValueError("Control plane wrapper missing 'kind'")
+    normalized_kind = _normalize_kind(raw_kind)
+    if normalized_expected and normalized_kind != normalized_expected:
+        raise ValueError(
+            f"Control plane payload kind mismatch: expected {normalized_expected!r}, got {normalized_kind!r}"
+        )
+    if "run_id" not in document:
+        raise ValueError("Control plane wrapper missing 'run_id'")
+    if "release_id" not in document:
+        raise ValueError("Control plane wrapper missing 'release_id'")
+    if "recorded_at" not in document:
+        raise ValueError("Control plane wrapper missing 'recorded_at'")
+    payload = document.get("payload")
+    if not isinstance(payload, dict):
+        raise ValueError("Control plane wrapper must contain dict payload")
+    return payload
+
+
+def load_payload_json(
+    path: str | Path | None,
+    *,
+    expected_kind: str | None = None,
+) -> dict[str, Any] | None:
+    if not path:
+        return None
+
+    target = Path(path).expanduser().resolve()
+    if not target.exists():
+        raise FileNotFoundError(target)
+
+    document = json.loads(target.read_text(encoding="utf-8"))
+    return unwrap_payload_document(document, expected_kind=expected_kind)
+
+
 class ObservabilityControlPlaneStore:
     """Best-effort observability control plane store with artifact fallback."""
 
@@ -104,6 +156,35 @@ class ObservabilityControlPlaneStore:
             if candidate.name == "latest.json":
                 continue
             return json.loads(candidate.read_text(encoding="utf-8"))
+        return None
+
+    def latest_payload(self, kind: str) -> dict[str, Any] | None:
+        kind_dir = self._kind_dir(kind)
+        latest_path = kind_dir / "latest.json"
+        candidates: list[Path] = []
+        if latest_path.exists():
+            candidates.append(latest_path)
+        candidates.extend(
+            candidate
+            for candidate in sorted(
+                kind_dir.glob("*.json"),
+                key=lambda item: item.stat().st_mtime,
+                reverse=True,
+            )
+            if candidate.name != "latest.json"
+        )
+
+        last_error: Exception | None = None
+        for candidate in candidates:
+            try:
+                record = json.loads(candidate.read_text(encoding="utf-8"))
+                return unwrap_payload_document(record, expected_kind=kind)
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                last_error = exc
+                continue
+
+        if last_error is not None:
+            raise last_error
         return None
 
     def list_runs(self, kind: str, *, limit: int = 20) -> list[dict[str, Any]]:

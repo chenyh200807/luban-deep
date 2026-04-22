@@ -463,6 +463,7 @@ async def run_long_dialog_suite(
     max_cases: int | None = None,
     output_dir: Path | None = None,
     api_base_url: str | None = None,
+    response_mode: str = "smart",
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     readiness = assess_long_dialog_readiness(explicit_source_json, api_base_url=api_base_url)
     suite_name = "long-dialog-focus" if mode == "lite" else "long-dialog-full"
@@ -492,6 +493,8 @@ async def run_long_dialog_suite(
         str(suite_output_dir),
         "--turn-mode",
         turn_mode,
+        "--response-mode",
+        str(response_mode or "smart"),
     ]
     if readiness["source_path"]:
         command.extend(["--source-json", readiness["source_path"]])
@@ -674,6 +677,7 @@ async def run_arr(
     long_dialog_max_cases: int | None = None,
     output_dir: Path | None = None,
     api_base_url: str | None = None,
+    response_mode: str = "smart",
 ) -> dict[str, Any]:
     if mode not in {"lite", "full"}:
         raise ValueError(f"Unsupported ARR mode: {mode}")
@@ -699,6 +703,7 @@ async def run_arr(
         max_cases=long_dialog_max_cases or (1 if mode == "lite" else None),
         output_dir=output_dir,
         api_base_url=api_base_url,
+        response_mode=response_mode,
     )
     suite_summaries.append(long_dialog_summary)
     case_results.extend(long_dialog_results)
@@ -716,6 +721,7 @@ async def run_arr(
         "summary": _build_summary(case_results),
         "execution_context": {
             "api_base_url": api_base_url.rstrip("/") if api_base_url else None,
+            "response_mode": str(response_mode or "smart"),
             "suite_execution_modes": {
                 "semantic-router": "static_analysis",
                 "context-orchestration": "static_analysis",

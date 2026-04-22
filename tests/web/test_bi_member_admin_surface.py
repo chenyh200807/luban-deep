@@ -80,3 +80,10 @@ def test_bi_page_client_exposes_token_read_only_mode() -> None:
 
     assert "biReadOnly" in source
     assert "BI API Token" in source
+
+
+def test_bi_page_client_only_clears_admin_session_for_auth_failures() -> None:
+    source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+
+    assert "isAuthUnavailableError" in source
+    assert "管理员会话校验暂时失败，请稍后重试。" in source

@@ -276,12 +276,15 @@ async def test_run_long_dialog_suite_passes_api_base_url_to_script(
         explicit_source_json=str(source_path),
         output_dir=output_dir,
         api_base_url="http://127.0.0.1:8001",
+        response_mode="deep",
     )
 
     assert suite_summary["passed"] == 1
     assert results[0]["status"] == "PASS"
     assert "--api-base-url" in captured["command"]
     assert "http://127.0.0.1:8001" in captured["command"]
+    assert "--response-mode" in captured["command"]
+    assert "deep" in captured["command"]
 
 
 def test_load_arr_baseline_payload_falls_back_to_latest_control_plane_run(tmp_path) -> None:

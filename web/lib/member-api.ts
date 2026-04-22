@@ -1,4 +1,4 @@
-import { apiUrl } from "@/lib/api";
+import { apiUrl, withAdminAuthorization } from "@/lib/api";
 import { ApiError } from "@/lib/api-errors";
 
 export interface MemberDashboard {
@@ -201,8 +201,15 @@ async function expectJson<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+function adminHeaders(headers?: HeadersInit): HeadersInit | undefined {
+  return withAdminAuthorization(headers);
+}
+
 export async function getMemberDashboard(): Promise<MemberDashboard> {
-  const response = await fetch(apiUrl("/api/v1/member/dashboard"), { cache: "no-store" });
+  const response = await fetch(apiUrl("/api/v1/member/dashboard"), {
+    cache: "no-store",
+    headers: adminHeaders(),
+  });
   return expectJson<MemberDashboard>(response);
 }
 
@@ -214,6 +221,7 @@ export async function listMembers(params: Record<string, string | number | boole
   });
   const response = await fetch(apiUrl(`/api/v1/member/list?${query.toString()}`), {
     cache: "no-store",
+    headers: adminHeaders(),
   });
   return expectJson<MemberListResponse>(response);
 }
@@ -221,6 +229,7 @@ export async function listMembers(params: Record<string, string | number | boole
 export async function getMemberDetail(userId: string): Promise<MemberDetail> {
   const response = await fetch(apiUrl(`/api/v1/member/${userId}/360`), {
     cache: "no-store",
+    headers: adminHeaders(),
   });
   return expectJson<MemberDetail>(response);
 }
@@ -228,7 +237,7 @@ export async function getMemberDetail(userId: string): Promise<MemberDetail> {
 export async function createMemberNote(userId: string, payload: { content: string; pinned?: boolean; channel?: string }): Promise<MemberNote> {
   const response = await fetch(apiUrl(`/api/v1/member/${userId}/notes`), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: adminHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
   return expectJson<MemberNote>(response);
@@ -237,7 +246,7 @@ export async function createMemberNote(userId: string, payload: { content: strin
 export async function grantMembership(payload: { user_id: string; days: number; tier: string; reason?: string }): Promise<MemberDetail> {
   const response = await fetch(apiUrl("/api/v1/member/grant"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: adminHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
   return expectJson<MemberDetail>(response);
@@ -253,7 +262,7 @@ export async function updateMembership(payload: {
 }): Promise<MemberDetail> {
   const response = await fetch(apiUrl("/api/v1/member/update"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: adminHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
   return expectJson<MemberDetail>(response);
@@ -262,7 +271,7 @@ export async function updateMembership(payload: {
 export async function revokeMembership(payload: { user_id: string; reason?: string }): Promise<MemberDetail> {
   const response = await fetch(apiUrl("/api/v1/member/revoke"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: adminHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
   return expectJson<MemberDetail>(response);
@@ -271,6 +280,7 @@ export async function revokeMembership(payload: { user_id: string; reason?: stri
 export async function pauseHeartbeatJob(userId: string, jobId: string): Promise<HeartbeatJob> {
   const response = await fetch(apiUrl(`/api/v1/member/${userId}/heartbeat-jobs/${jobId}/pause`), {
     method: "POST",
+    headers: adminHeaders(),
   });
   return expectJson<HeartbeatJob>(response);
 }
@@ -278,6 +288,7 @@ export async function pauseHeartbeatJob(userId: string, jobId: string): Promise<
 export async function resumeHeartbeatJob(userId: string, jobId: string): Promise<HeartbeatJob> {
   const response = await fetch(apiUrl(`/api/v1/member/${userId}/heartbeat-jobs/${jobId}/resume`), {
     method: "POST",
+    headers: adminHeaders(),
   });
   return expectJson<HeartbeatJob>(response);
 }
@@ -289,7 +300,7 @@ export async function applyOverlayPromotions(
 ): Promise<{ acked_ids: string[]; dropped_ids: string[] }> {
   const response = await fetch(apiUrl(`/api/v1/member/${userId}/overlays/${botId}/promotions/apply`), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: adminHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
   return expectJson<{ acked_ids: string[]; dropped_ids: string[] }>(response);
@@ -306,7 +317,7 @@ export async function batchUpdateMembers(payload: {
 }): Promise<MemberBatchActionResult> {
   const response = await fetch(apiUrl("/api/v1/member/batch"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: adminHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
   return expectJson<MemberBatchActionResult>(response);
@@ -320,6 +331,7 @@ export async function getMemberAuditLog(params: Record<string, string | number |
   });
   const response = await fetch(apiUrl(`/api/v1/member/audit-log?${query.toString()}`), {
     cache: "no-store",
+    headers: adminHeaders(),
   });
   return expectJson<MemberAuditLogResponse>(response);
 }

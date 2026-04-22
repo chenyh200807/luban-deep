@@ -1,4 +1,4 @@
-import { BI_API_TOKEN, apiUrl, withBiApiToken } from "@/lib/api";
+import { BI_API_TOKEN, apiUrl, withAdminAuthorization, withBiApiToken } from "@/lib/api";
 
 export interface BiMetricCard {
   label: string;
@@ -456,7 +456,7 @@ function buildBiUrl(path: string, params?: Record<string, string | number | bool
 async function fetchBiJson(path: string, params?: Record<string, string | number | boolean | undefined>): Promise<unknown> {
   const response = await fetch(buildBiUrl(path, params), {
     cache: "no-store",
-    headers: BI_API_TOKEN ? withBiApiToken() : undefined,
+    headers: withAdminAuthorization(BI_API_TOKEN ? withBiApiToken() : undefined),
   });
   if (!response.ok) {
     throw new Error(`请求失败: ${response.status} ${path}`);
