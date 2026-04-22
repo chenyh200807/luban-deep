@@ -17,6 +17,12 @@
 - 管理员 bearer token，或
 - 专用只读抓取令牌 `DEEPTUTOR_METRICS_TOKEN`
 
+对当前阿里云生产环境，默认收口方式是：
+
+- 公网域名 `https://test2.yousenjiaoyu.com` 不作为 metrics 抓取入口
+- metrics / prometheus 统一通过 SSH 登录到 `Aliyun-ECS-2` 后访问 `127.0.0.1:8001`
+- 发布链中的标准验收脚本是 [scripts/verify_aliyun_observability.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/verify_aliyun_observability.sh)
+
 ## HTTP 端点
 
 后端默认端口是 `8001`。
@@ -67,6 +73,15 @@ curl -fsS -H "X-Metrics-Token: $DEEPTUTOR_METRICS_TOKEN" http://127.0.0.1:8001/m
 ```bash
 curl -fsS -H "X-Metrics-Token: $DEEPTUTOR_METRICS_TOKEN" http://127.0.0.1:8001/metrics/prometheus
 ```
+
+### 4.1 阿里云生产验收
+
+```bash
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor
+bash scripts/verify_aliyun_observability.sh
+```
+
+脚本会通过 SSH 到 `Aliyun-ECS-2`，读取远端 `.env` 中的 `DEEPTUTOR_METRICS_TOKEN`，再对 `127.0.0.1:8001/metrics` 与 `127.0.0.1:8001/metrics/prometheus` 做只读校验。
 
 当前导出的核心指标包括：
 
@@ -128,10 +143,10 @@ curl -fsS -H "X-Metrics-Token: $DEEPTUTOR_METRICS_TOKEN" http://127.0.0.1:8001/m
 
 这些不能只靠仓库代码自动算“完成”：
 
-- 把 `/metrics/prometheus` 真正接入 Prometheus
+- 把 `127.0.0.1:8001/metrics/prometheus` 真正接入 Prometheus
 - 在目标环境配置 `DEEPTUTOR_METRICS_TOKEN`
 - 把告警规则接到你们真实通知渠道
-- 在目标环境跑一次 `readyz`、`metrics/prometheus` 实机验证
+- 在目标环境跑一次 `readyz`、`verify_aliyun_observability.sh` 实机验证
 - 至少做一次告警演练，确认通知链路是通的
 
 ## 结论
