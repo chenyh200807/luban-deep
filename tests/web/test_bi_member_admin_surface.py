@@ -101,13 +101,12 @@ def test_bi_page_client_exposes_admin_login_entry() -> None:
 def test_bi_page_client_explains_token_is_server_managed() -> None:
     source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
 
-    assert "公网老板工作台继续通过 BI API Token 只读开放" in source
-    assert "当前环境未配置 BI API Token" in source
+    assert "BI API Token 已由系统配置" in source
+    assert "无需手动填写" in source
 
 
 def test_bi_page_client_turns_protected_tabs_into_unlock_flow() -> None:
     source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
 
-    assert "会员运营（需管理员登录）" in source
-    assert "学员 360（需管理员登录）" in source
-    assert "经营审计（需管理员登录）" in source
+    assert "解锁会员后台" in source
+    assert "scrollIntoView" in source
