@@ -176,7 +176,7 @@ Page({
         var inner = resp.data || resp;
         var token = inner.token;
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
-        auth.setToken(token);
+        auth.setToken(token, inner.expires_at);
         wx.switchTab({ url: "/pages/chat/chat" });
       })
       .catch(function (err) {
@@ -219,7 +219,7 @@ Page({
         var user = inner.user || resp.user || {};
         var token = inner.token || inner._token || resp.token || resp._token || user._token;
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
-        auth.setToken(token);
+        auth.setToken(token, inner.expires_at);
         wx.switchTab({ url: "/pages/chat/chat" });
       })
       .catch(function (err) {
