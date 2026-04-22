@@ -26,6 +26,49 @@ def _normalize_kind(kind: str) -> str:
     return normalized
 
 
+def unwrap_payload_document(
+    document: dict[str, Any],
+    *,
+    expected_kind: str | None = None,
+) -> dict[str, Any]:
+    if not isinstance(document, dict):
+        raise TypeError("Observability document must be a JSON object")
+
+    normalized_expected = _normalize_kind(expected_kind) if expected_kind else None
+    record_kind = str(document.get("kind") or "").strip().lower()
+    payload = document.get("payload")
+    is_control_plane_record = (
+        isinstance(payload, dict)
+        and bool(record_kind)
+        and "run_id" in document
+        and "recorded_at" in document
+    )
+    if not is_control_plane_record:
+        return document
+
+    if normalized_expected and record_kind != normalized_expected:
+        raise ValueError(
+            f"Control plane payload kind mismatch: expected {normalized_expected!r}, got {record_kind!r}"
+        )
+    return payload
+
+
+def load_payload_json(
+    path: str | Path | None,
+    *,
+    expected_kind: str | None = None,
+) -> dict[str, Any] | None:
+    if not path:
+        return None
+
+    target = Path(path).expanduser().resolve()
+    if not target.exists():
+        raise FileNotFoundError(target)
+
+    document = json.loads(target.read_text(encoding="utf-8"))
+    return unwrap_payload_document(document, expected_kind=expected_kind)
+
+
 class ObservabilityControlPlaneStore:
     """Best-effort observability control plane store with artifact fallback."""
 
@@ -105,6 +148,10 @@ class ObservabilityControlPlaneStore:
                 continue
             return json.loads(candidate.read_text(encoding="utf-8"))
         return None
+
+    def latest_payload(self, kind: str) -> dict[str, Any] | None:
+        latest = self.latest_run(kind)
+        return unwrap_payload_document(latest, expected_kind=kind) if latest else None
 
     def list_runs(self, kind: str, *, limit: int = 20) -> list[dict[str, Any]]:
         kind_dir = self._kind_dir(kind)

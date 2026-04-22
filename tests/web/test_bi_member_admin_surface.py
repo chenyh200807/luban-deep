@@ -80,3 +80,34 @@ def test_bi_page_client_exposes_token_read_only_mode() -> None:
 
     assert "biReadOnly" in source
     assert "BI API Token" in source
+
+
+def test_member_api_supports_admin_authorization_header() -> None:
+    source = (REPO_ROOT / "web" / "lib" / "member-api.ts").read_text(encoding="utf-8")
+    api_source = (REPO_ROOT / "web" / "lib" / "api.ts").read_text(encoding="utf-8")
+
+    assert "withAdminAuthorization" in source
+    assert "Authorization" in api_source
+    assert "Bearer" in api_source
+
+
+def test_bi_page_client_exposes_admin_login_entry() -> None:
+    source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+
+    assert "管理员登录" in source
+    assert "adminSession" in source
+
+
+def test_bi_page_client_explains_token_is_server_managed() -> None:
+    source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+
+    assert "公网老板工作台继续通过 BI API Token 只读开放" in source
+    assert "当前环境未配置 BI API Token" in source
+
+
+def test_bi_page_client_turns_protected_tabs_into_unlock_flow() -> None:
+    source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+
+    assert "会员运营（需管理员登录）" in source
+    assert "学员 360（需管理员登录）" in source
+    assert "经营审计（需管理员登录）" in source

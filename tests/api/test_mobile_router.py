@@ -1292,6 +1292,52 @@ def test_auth_profile_surfaces_wallet_service_failure(
     assert response.json()["detail"] == "Wallet service unavailable"
 
 
+def test_auth_profile_exposes_is_admin_flag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "admin_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_auth_context",
+        lambda *_args, **_kwargs: SimpleNamespace(user_id="admin_demo", is_admin=True),
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_profile",
+        lambda user_id: {
+            "user_id": user_id,
+            "display_name": "管理员",
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_wallet_user_id",
+        lambda *_args, **_kwargs: "admin_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module.wallet_service,
+        "get_wallet",
+        lambda _user_id: SimpleNamespace(
+            user_id="admin_demo",
+            balance_micros=0,
+            frozen_micros=0,
+            plan_id="",
+            version=1,
+            created_at="2026-04-23T00:00:00+08:00",
+        ),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/auth/profile")
+
+    assert response.status_code == 200
+    assert response.json()["is_admin"] is True
+
+
 def test_auth_refresh_reissues_token_for_valid_bearer(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

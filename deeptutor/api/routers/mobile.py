@@ -953,6 +953,7 @@ async def auth_verify_code(body: VerifyCodeRequest) -> dict[str, Any]:
 @router.get("/auth/profile")
 async def auth_profile(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user_id = _resolve_authenticated_user_id(authorization)
+    current_user = resolve_auth_context(authorization)
     profile = member_service.get_profile(user_id)
     wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
     snapshot = _wallet_snapshot_or_zero(wallet_user_id)
@@ -964,6 +965,7 @@ async def auth_profile(authorization: str | None = Header(default=None)) -> dict
     profile["balance"] = wallet_payload["balance"]
     profile["balance_micros"] = wallet_payload["balance_micros"]
     profile["frozen_micros"] = wallet_payload["frozen_micros"]
+    profile["is_admin"] = bool(current_user.is_admin) if current_user is not None else False
     profile["wallet"] = wallet_payload
     if wallet_user_id:
         _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="auth_profile")

@@ -13,21 +13,16 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
+from deeptutor.services.observability.control_plane_store import load_payload_json  # noqa: E402
 from deeptutor.services.observability.oa_runner import build_oa_run  # noqa: E402
 
 
-def _load_json(path: str | None) -> dict | None:
-    if not path:
-        return None
-    target = Path(path).expanduser().resolve()
-    if not target.exists():
-        raise FileNotFoundError(target)
-    return json.loads(target.read_text(encoding="utf-8"))
+def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict | None:
+    return load_payload_json(path, expected_kind=expected_kind)
 
 
 def _load_store_payload(kind: str) -> dict | None:
-    latest = get_control_plane_store().latest_run(kind)
-    return (latest or {}).get("payload") if latest else None
+    return get_control_plane_store().latest_payload(kind)
 
 
 def _render_markdown(payload: dict) -> str:
@@ -65,9 +60,9 @@ def main() -> None:
     parser.add_argument("--aae-json")
     args = parser.parse_args()
 
-    om_payload = _load_json(args.om_json) or _load_store_payload("om_runs")
-    arr_payload = _load_json(args.arr_json) or _load_store_payload("arr_runs")
-    aae_payload = _load_json(args.aae_json) or _load_store_payload("aae_composite_runs")
+    om_payload = _load_json(args.om_json, expected_kind="om_runs") or _load_store_payload("om_runs")
+    arr_payload = _load_json(args.arr_json, expected_kind="arr_runs") or _load_store_payload("arr_runs")
+    aae_payload = _load_json(args.aae_json, expected_kind="aae_composite_runs") or _load_store_payload("aae_composite_runs")
     payload = build_oa_run(mode=args.mode, om_payload=om_payload, arr_payload=arr_payload, aae_payload=aae_payload)
     store_paths = get_control_plane_store().write_run(
         kind="oa_runs",

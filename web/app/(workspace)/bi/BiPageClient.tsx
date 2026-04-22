@@ -1,10 +1,16 @@
 /* eslint-disable i18n/no-literal-ui-text */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
-import { BI_API_TOKEN, apiUrl } from "@/lib/api";
+import {
+  BI_API_TOKEN,
+  clearStoredBiAdminSession,
+  getStoredBiAdminSession,
+  type BiAdminSession,
+} from "@/lib/api";
+import { fetchBiAdminProfile, loginBiAdmin } from "@/lib/bi-admin-auth";
 import {
   loadBiWorkbench,
   type BiBossActionItem,
@@ -80,7 +86,15 @@ const BI_READ_ONLY_SUMMARY =
 
 export default function BiPageClient() {
   const searchParams = useSearchParams();
-  const biReadOnly = Boolean(BI_API_TOKEN);
+  const loginPanelRef = useRef<HTMLDivElement | null>(null);
+  const loginUsernameRef = useRef<HTMLInputElement | null>(null);
+  const [adminSession, setAdminSession] = useState<BiAdminSession | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [adminUsername, setAdminUsername] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const biReadOnly = !adminSession?.isAdmin;
   const [days, setDays] = useState<7 | 30 | 90>(30);
   const [activeTab, setActiveTab] = useState<BiPrimaryTab>("boss-workbench");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -109,6 +123,7 @@ export default function BiPageClient() {
   const [auditFilters, setAuditFilters] = useState<AuditFilterState>(DEFAULT_AUDIT_FILTERS);
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditError, setAuditError] = useState("");
+  const isProtectedTab = activeTab === "member-ops" || activeTab === "learner-360" || activeTab === "audit";
 
   const refreshBi = useCallback(async () => {
     setRefreshing(true);
@@ -129,6 +144,32 @@ export default function BiPageClient() {
       setRefreshing(false);
     }
   }, [days, filters.capability, filters.entrypoint, filters.tier]);
+
+  const restoreAdminSession = useCallback(async () => {
+    const stored = getStoredBiAdminSession();
+    if (!stored) {
+      setAdminSession(null);
+      setAuthReady(true);
+      return;
+    }
+    try {
+      const profile = await fetchBiAdminProfile(stored.token);
+      if (!profile.is_admin) {
+        throw new Error("当前账号不是管理员，无法解锁会员后台。");
+      }
+      setAdminSession({
+        ...stored,
+        userId: profile.user_id || stored.userId,
+        displayName: profile.display_name?.trim() || stored.displayName,
+        isAdmin: true,
+      });
+    } catch {
+      clearStoredBiAdminSession();
+      setAdminSession(null);
+    } finally {
+      setAuthReady(true);
+    }
+  }, []);
 
   const refreshMembers = useCallback(async () => {
     if (biReadOnly) {
@@ -235,20 +276,36 @@ export default function BiPageClient() {
   }, [refreshBi]);
 
   useEffect(() => {
+    if (!authReady) return;
     void refreshMembers();
-  }, [refreshMembers]);
+  }, [authReady, refreshMembers]);
 
   useEffect(() => {
+    if (!authReady) return;
     void refreshAudit();
-  }, [refreshAudit]);
+  }, [authReady, refreshAudit]);
 
   useEffect(() => {
     setActiveTab(normalizeBiPrimaryTab(searchParams.get("tab")));
   }, [searchParams]);
 
   useEffect(() => {
+    if (!authReady) return;
     void refreshSelectedMember();
-  }, [refreshSelectedMember]);
+  }, [authReady, refreshSelectedMember]);
+
+  useEffect(() => {
+    void restoreAdminSession();
+  }, [restoreAdminSession]);
+
+  useEffect(() => {
+    if (!biReadOnly || !isProtectedTab) return;
+    const frame = window.requestAnimationFrame(() => {
+      loginPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      loginUsernameRef.current?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [biReadOnly, isProtectedTab]);
 
   useEffect(() => {
     const nextTier = filters.tier || "all";
@@ -485,6 +542,34 @@ export default function BiPageClient() {
     [refreshSelectedMember, selectedUserId],
   );
 
+  const handleAdminLogin = useCallback(async () => {
+    const username = adminUsername.trim();
+    const password = adminPassword.trim();
+    if (!username || !password) {
+      setAuthError("请输入管理员用户名和密码。");
+      return;
+    }
+    try {
+      setAuthSubmitting(true);
+      setAuthError("");
+      const session = await loginBiAdmin(username, password);
+      setAdminSession(session);
+      setAdminPassword("");
+      await refreshBi();
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "管理员登录失败");
+    } finally {
+      setAuthSubmitting(false);
+    }
+  }, [adminPassword, adminUsername, refreshBi]);
+
+  const handleAdminLogout = useCallback(() => {
+    clearStoredBiAdminSession();
+    setAdminSession(null);
+    setAdminPassword("");
+    setAuthError("");
+  }, []);
+
   const exportJson = useCallback(() => {
     setExporting(true);
     try {
@@ -511,17 +596,41 @@ export default function BiPageClient() {
     }
   }, [boss, data, days, filters, issues, lastUpdatedAt, memberDashboard, memberFilters]);
 
-  const canExport = Boolean(workbench || memberItems.length || issues.length);
-  const exportHref = useMemo(() => {
-    const query = new URLSearchParams();
-    if (memberFilters.status !== "all") query.set("status", memberFilters.status);
-    if (memberFilters.tier !== "all") query.set("tier", memberFilters.tier);
-    if (memberFilters.risk_level !== "all") query.set("risk_level", memberFilters.risk_level);
-    if (memberFilters.expire_within_days !== null) query.set("expire_within_days", String(memberFilters.expire_within_days));
-    if (memberFilters.search.trim()) query.set("search", memberFilters.search.trim());
-    const suffix = query.toString();
-    return apiUrl(`/api/v1/member/export${suffix ? `?${suffix}` : ""}`);
-  }, [memberFilters.expire_within_days, memberFilters.risk_level, memberFilters.search, memberFilters.status, memberFilters.tier]);
+  const canExport = !biReadOnly && Boolean(workbench || memberItems.length || issues.length);
+  const activeTabLabel = BI_PRIMARY_TABS.find((tab) => tab.key === activeTab)?.label ?? "会员后台";
+  const adminLoginForm = (
+    <form
+      className="grid w-full gap-3 xl:max-w-[520px] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void handleAdminLogin();
+      }}
+    >
+      <input
+        ref={loginUsernameRef}
+        value={adminUsername}
+        onChange={(event) => setAdminUsername(event.target.value)}
+        placeholder="管理员用户名"
+        autoComplete="username"
+        className="rounded-2xl border bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--primary)]"
+      />
+      <input
+        value={adminPassword}
+        onChange={(event) => setAdminPassword(event.target.value)}
+        placeholder="管理员密码"
+        type="password"
+        autoComplete="current-password"
+        className="rounded-2xl border bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--primary)]"
+      />
+      <button
+        type="submit"
+        disabled={!authReady || authSubmitting}
+        className="inline-flex items-center justify-center rounded-2xl bg-[var(--foreground)] px-4 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+      >
+        {authSubmitting ? "登录中..." : "登录后台"}
+      </button>
+    </form>
+  );
 
   return (
     <div className="h-full overflow-y-auto [scrollbar-gutter:stable] bg-[radial-gradient(circle_at_top_left,_rgba(195,90,44,0.14),_transparent_34%),radial-gradient(circle_at_85%_10%,_rgba(18,122,134,0.09),_transparent_28%),linear-gradient(180deg,#faf9f6_0%,#f4efe8_100%)] px-6 py-6">
@@ -553,6 +662,74 @@ export default function BiPageClient() {
         ) : null}
 
         <BiIssuesBanner issues={issues} />
+
+        {biReadOnly ? (
+          <section className="surface-card border border-[var(--border)]/60 bg-white/88 p-5 shadow-[0_12px_30px_rgba(45,33,25,0.05)]">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div className="max-w-2xl">
+                <p className="text-xs font-medium tracking-[0.2em] text-[var(--muted-foreground)]">ADMIN ACCESS</p>
+                <h2 className="mt-2 text-xl font-semibold tracking-tight text-[var(--foreground)]">管理员登录</h2>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+                  公网老板工作台继续通过 BI API Token 只读开放；若要直接管理会员、开通续期、查看学员 360 与经营审计，请在这里使用管理员账号登录。
+                </p>
+              </div>
+              <form
+                className="grid w-full gap-3 xl:max-w-[520px] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void handleAdminLogin();
+                }}
+              >
+                <input
+                  value={adminUsername}
+                  onChange={(event) => setAdminUsername(event.target.value)}
+                  placeholder="管理员用户名"
+                  autoComplete="username"
+                  className="rounded-2xl border bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--primary)]"
+                />
+                <input
+                  value={adminPassword}
+                  onChange={(event) => setAdminPassword(event.target.value)}
+                  placeholder="管理员密码"
+                  type="password"
+                  autoComplete="current-password"
+                  className="rounded-2xl border bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--primary)]"
+                />
+                <button
+                  type="submit"
+                  disabled={!authReady || authSubmitting}
+                  className="inline-flex items-center justify-center rounded-2xl bg-[var(--foreground)] px-4 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+                >
+                  {authSubmitting ? "登录中..." : "登录后台"}
+                </button>
+              </form>
+            </div>
+            {authError ? <p className="mt-3 text-sm text-rose-700">{authError}</p> : null}
+            {!BI_API_TOKEN ? (
+              <p className="mt-3 text-xs leading-5 text-amber-700">
+                当前环境未配置 BI API Token，老板工作台聚合数据也会要求管理员登录。
+              </p>
+            ) : null}
+          </section>
+        ) : (
+          <section className="surface-card border border-emerald-200/70 bg-emerald-50/70 p-4 shadow-[0_12px_30px_rgba(45,33,25,0.05)]">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-xs font-medium tracking-[0.18em] text-emerald-700">ADMIN SESSION</p>
+                <p className="mt-1 text-sm text-emerald-900">
+                  已使用管理员身份进入会员后台：{adminSession?.displayName || adminSession?.userId || "admin"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAdminLogout}
+                className="inline-flex items-center justify-center rounded-2xl border border-emerald-300 bg-white px-4 py-2.5 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100"
+              >
+                退出管理员登录
+              </button>
+            </div>
+          </section>
+        )}
 
         {(activeTab === "member-ops" || activeTab === "learner-360" || activeTab === "audit") && !biReadOnly ? (
           <section className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5 shadow-[0_12px_30px_rgba(45,33,25,0.05)]">
@@ -670,7 +847,7 @@ export default function BiPageClient() {
             audit={auditLog}
             loading={auditLoading}
             error={auditError}
-            exportHref={exportHref}
+            exportHref=""
             filters={auditFilters}
             onFilterChange={updateAuditFilter}
           />
