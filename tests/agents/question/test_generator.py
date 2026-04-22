@@ -14,6 +14,23 @@ class StubGenerator(Generator):
         return self._repaired_payload
 
 
+class PromptCapturingGenerator(Generator):
+    def __init__(self) -> None:
+        self.prompts: list[str] = []
+        self.tool_flags = {}
+
+    def _build_available_tools_text(self) -> str:  # type: ignore[override]
+        return "(no tools available)"
+
+    async def stream_llm(self, **kwargs):  # type: ignore[override]
+        self.prompts.append(str(kwargs.get("user_prompt") or ""))
+        yield (
+            '{"question_type":"choice","question":"下列哪项说法正确？",'
+            '"options":{"A":"甲","B":"乙","C":"丙","D":"丁"},'
+            '"correct_answer":"A","explanation":""}'
+        )
+
+
 @pytest.mark.asyncio
 async def test_generator_repairs_coding_question_that_looks_like_multiple_choice() -> None:
     generator = StubGenerator(
@@ -86,3 +103,79 @@ def test_generator_normalizes_choice_answer_from_option_text() -> None:
         "D": "Delta",
     }
     assert payload["correct_answer"] == "C"
+
+
+@pytest.mark.asyncio
+async def test_generator_allows_missing_explanation_when_not_required() -> None:
+    generator = StubGenerator()
+    template = QuestionTemplate(
+        question_id="q_1",
+        concentration="流水步距与总时差",
+        question_type="choice",
+        difficulty="easy",
+    )
+
+    normalized, validation = await generator._validate_and_repair_payload(
+        template=template,
+        payload={
+            "question_type": "choice",
+            "question": "总时差和自由时差的区别，以下哪项正确？",
+            "options": {
+                "A": "两者都表示总工期余量",
+                "B": "自由时差只影响紧后工作的最早开始",
+                "C": "总时差只看本工作持续时间",
+                "D": "自由时差一定大于总时差",
+            },
+            "correct_answer": "B",
+            "explanation": "",
+        },
+        user_topic="网络计划",
+        preference="只出题",
+        history_context="",
+        knowledge_context="",
+        available_tools="(no tools available)",
+        require_explanation=False,
+    )
+
+    assert normalized["correct_answer"] == "B"
+    assert normalized["explanation"] == ""
+    assert validation["schema_ok"] is True
+    assert validation["issues"] == []
+
+
+@pytest.mark.asyncio
+async def test_generator_lightweight_prompt_uses_canonical_anchor_only() -> None:
+    generator = PromptCapturingGenerator()
+    template = QuestionTemplate(
+        question_id="q_1",
+        concentration="防水工程",
+        question_type="choice",
+        difficulty="easy",
+        reference_question="屋面防水施工基本要求正确的有（　　）。",
+        reference_answer="BDE",
+        metadata={
+            "knowledge_context": (
+                "当前学习锚点：防水工程\n"
+                "题库参考题目：屋面防水施工基本要求正确的有（　　）。"
+            ),
+            "lightweight_generation": True,
+            "anchor_source": "rag_answer_bundle",
+        },
+    )
+
+    qa_pair = await generator.process(
+        template=template,
+        user_topic="我现在在学防水工程，先给我出1道建筑实务单选题，不要给答案。",
+        preference="只出题",
+        history_context="",
+        require_explanation=False,
+        lightweight_generation=True,
+    )
+
+    assert qa_pair.question == "下列哪项说法正确？"
+    assert generator.prompts
+    prompt = generator.prompts[0]
+    assert "Canonical anchor:" in prompt
+    assert "User topic:" not in prompt
+    assert '"concentration"' not in prompt
+    assert "当前学习锚点：防水工程" in prompt

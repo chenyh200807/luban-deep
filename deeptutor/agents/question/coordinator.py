@@ -9,10 +9,12 @@ Simplified architecture:
 
 from __future__ import annotations
 
+import ast
 from collections.abc import Callable
 from datetime import datetime
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 from deeptutor.agents.question.agents.generator import Generator
@@ -22,6 +24,7 @@ from deeptutor.logging import Logger, get_logger
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
+from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tools.question.pdf_parser import parse_pdf_with_mineru
 from deeptutor.tools.question.question_extractor import extract_questions_from_paper
 
@@ -114,10 +117,11 @@ class AgentCoordinator:
         difficulty: str = "",
         question_type: str = "",
         history_context: str = "",
+        lightweight_generation: bool = False,
+        require_explanation: bool = True,
     ) -> dict[str, Any]:
         self._current_batch_dir = self._create_batch_dir("custom")
         requested = max(1, int(num_questions or 1))
-        idea_agent = self._create_idea_agent()
         templates: list[QuestionTemplate] = []
         batch_trace: list[dict[str, Any]] = []
         existing_concentrations: list[str] = []
@@ -136,66 +140,99 @@ class AgentCoordinator:
         )
 
         batch_number = 0
-        while len(templates) < requested:
-            batch_number += 1
-            batch_size = min(BATCH_SIZE, requested - len(templates))
-            await self._send_ws_update(
-                "progress",
-                {
-                    "stage": "ideation",
-                    "status": "running",
-                    "batch": batch_number,
-                    "current": len(templates),
-                    "total": requested,
-                    "batch_size": batch_size,
-                },
-            )
-
-            idea_result = await idea_agent.process(
+        if lightweight_generation:
+            anchor_payload, retrieval_trace = await self._resolve_lightweight_topic_knowledge_anchor(
                 user_topic=user_topic,
-                preference=preference,
-                num_ideas=batch_size,
-                target_difficulty=target_difficulty,
-                target_question_type=target_question_type,
-                existing_concentrations=existing_concentrations,
-                batch_number=batch_number,
             )
-            batch_templates = idea_result.get("templates", [])
-            if not isinstance(batch_templates, list):
-                batch_templates = []
-
-            for template in batch_templates:
-                if not isinstance(template, QuestionTemplate):
-                    continue
-                template.question_id = f"q_{len(templates) + 1}"
-                templates.append(template)
-                existing_concentrations.append(template.concentration)
-
+            templates = self._build_lightweight_topic_templates(
+                user_topic=user_topic,
+                requested=requested,
+                difficulty=target_difficulty or "easy",
+                question_type=target_question_type or "choice",
+                anchor_payload=anchor_payload,
+            )
             batch_trace.append(
                 {
-                    "batch": batch_number,
-                    "requested": batch_size,
-                    "generated": len(batch_templates),
-                    "knowledge_context": idea_result.get("knowledge_context", ""),
+                    "mode": "lightweight_topic_generation",
+                    "requested": requested,
+                    "generated": len(templates),
+                    "knowledge_context": str(anchor_payload.get("knowledge_context") or ""),
+                    "retrieval": retrieval_trace,
                 }
             )
             await self._send_ws_update(
                 "templates_ready",
                 {
                     "stage": "ideation",
-                    "batch": batch_number,
-                    "count": len(batch_templates),
+                    "count": len(templates),
                     "generated_total": len(templates),
                     "requested_total": requested,
-                    "templates": [t.__dict__ for t in batch_templates],
+                    "lightweight_generation": True,
+                    "templates": [t.__dict__ for t in templates],
                 },
             )
-
-            if not batch_templates:
-                self.logger.warning(
-                    "Template generation returned an empty batch; stopping early."
+        else:
+            idea_agent = self._create_idea_agent()
+            while len(templates) < requested:
+                batch_number += 1
+                batch_size = min(BATCH_SIZE, requested - len(templates))
+                await self._send_ws_update(
+                    "progress",
+                    {
+                        "stage": "ideation",
+                        "status": "running",
+                        "batch": batch_number,
+                        "current": len(templates),
+                        "total": requested,
+                        "batch_size": batch_size,
+                    },
                 )
-                break
+
+                idea_result = await idea_agent.process(
+                    user_topic=user_topic,
+                    preference=preference,
+                    num_ideas=batch_size,
+                    target_difficulty=target_difficulty,
+                    target_question_type=target_question_type,
+                    existing_concentrations=existing_concentrations,
+                    batch_number=batch_number,
+                )
+                batch_templates = idea_result.get("templates", [])
+                if not isinstance(batch_templates, list):
+                    batch_templates = []
+
+                for template in batch_templates:
+                    if not isinstance(template, QuestionTemplate):
+                        continue
+                    template.question_id = f"q_{len(templates) + 1}"
+                    templates.append(template)
+                    existing_concentrations.append(template.concentration)
+
+                batch_trace.append(
+                    {
+                        "batch": batch_number,
+                        "requested": batch_size,
+                        "generated": len(batch_templates),
+                        "knowledge_context": idea_result.get("knowledge_context", ""),
+                    }
+                )
+                await self._send_ws_update(
+                    "templates_ready",
+                    {
+                        "stage": "ideation",
+                        "batch": batch_number,
+                        "count": len(batch_templates),
+                        "generated_total": len(templates),
+                        "requested_total": requested,
+                        "templates": [t.__dict__ for t in batch_templates],
+                    },
+                )
+
+                if not batch_templates:
+                    self.logger.warning(
+                        "Template generation returned an empty batch; stopping early."
+                    )
+                    break
 
         await self._send_ws_update(
             "progress",
@@ -213,13 +250,18 @@ class AgentCoordinator:
             user_topic=user_topic,
             preference=preference,
             history_context=history_context,
+            require_explanation=require_explanation,
+            lightweight_generation=lightweight_generation,
         )
         return self._build_summary(
             source="topic",
             requested=requested,
             templates=templates[:requested],
             qa_pairs=qa_pairs,
-            trace={"batches": batch_trace},
+            trace={
+                "batches": batch_trace,
+                "lightweight_generation": lightweight_generation,
+            },
         )
 
     async def generate_from_followup_context(
@@ -231,6 +273,8 @@ class AgentCoordinator:
         difficulty: str = "",
         question_type: str = "",
         history_context: str = "",
+        require_explanation: bool = True,
+        lightweight_generation: bool = False,
     ) -> dict[str, Any]:
         self._current_batch_dir = self._create_batch_dir("custom")
         requested = max(1, int(num_questions or 1))
@@ -268,6 +312,8 @@ class AgentCoordinator:
             user_topic=user_topic,
             preference=preference,
             history_context=history_context,
+            require_explanation=require_explanation,
+            lightweight_generation=lightweight_generation,
         )
         return self._build_summary(
             source="topic",
@@ -276,6 +322,7 @@ class AgentCoordinator:
             qa_pairs=qa_pairs,
             trace={
                 "anchor_generation": True,
+                "lightweight_generation": lightweight_generation,
                 "anchor_item_count": len(
                     (normalize_question_followup_context(followup_question_context) or {}).get("items")
                     or ([1] if normalize_question_followup_context(followup_question_context) else [])
@@ -331,6 +378,8 @@ class AgentCoordinator:
         user_topic: str,
         preference: str,
         history_context: str = "",
+        require_explanation: bool = True,
+        lightweight_generation: bool = False,
     ) -> list[dict[str, Any]]:
         generator = self._create_generator()
         results: list[dict[str, Any]] = []
@@ -356,6 +405,8 @@ class AgentCoordinator:
                     preference=preference,
                     history_context=history_context,
                     previous_questions=generated_questions or None,
+                    require_explanation=require_explanation,
+                    lightweight_generation=lightweight_generation,
                 )
             except Exception as exc:
                 success = False
@@ -407,6 +458,288 @@ class AgentCoordinator:
             {"stage": "complete", "completed": len(results), "total": total},
         )
         return results
+
+    @staticmethod
+    def _build_lightweight_topic_templates(
+        *,
+        user_topic: str,
+        requested: int,
+        difficulty: str,
+        question_type: str,
+        anchor_payload: dict[str, Any] | None = None,
+    ) -> list[QuestionTemplate]:
+        payload = dict(anchor_payload or {})
+        concentration = (
+            str(payload.get("concentration") or "").strip()
+            or str(user_topic or "").strip()
+            or "当前学习主题"
+        )
+        resolved_question_type = str(question_type or "").strip().lower() or "choice"
+        resolved_difficulty = str(difficulty or "").strip().lower() or "easy"
+        knowledge_anchor = str(payload.get("knowledge_context") or "").strip() or f"当前学习锚点：{concentration}"
+        reference_question = str(payload.get("reference_question") or "").strip() or None
+        reference_answer = str(payload.get("reference_answer") or "").strip() or None
+        anchor_metadata = {
+            key: value
+            for key, value in payload.items()
+            if key
+            not in {
+                "knowledge_context",
+                "concentration",
+                "reference_question",
+                "reference_answer",
+            }
+            and value not in (None, "", [], {})
+        }
+        return [
+            QuestionTemplate(
+                question_id=f"q_{index}",
+                concentration=concentration,
+                question_type=resolved_question_type,
+                difficulty=resolved_difficulty,
+                source="lightweight_topic",
+                reference_question=reference_question,
+                reference_answer=reference_answer,
+                metadata={
+                    "knowledge_context": knowledge_anchor,
+                    "lightweight_generation": True,
+                    **anchor_metadata,
+                },
+            )
+            for index in range(1, requested + 1)
+        ]
+
+    async def _resolve_lightweight_topic_knowledge_anchor(
+        self,
+        *,
+        user_topic: str,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        anchor_label = self._derive_lightweight_anchor_label(user_topic=user_topic)
+        fallback = {
+            "knowledge_context": f"当前学习锚点：{anchor_label}",
+            "concentration": anchor_label,
+        }
+        trace: dict[str, Any] = {"used_rag": False}
+        if not self.enable_idea_rag or not self.kb_name:
+            return fallback, trace
+
+        try:
+            result = await rag_search(
+                query=user_topic,
+                kb_name=self.kb_name,
+                only_need_context=True,
+            )
+        except Exception as exc:
+            self.logger.warning(
+                "Lightweight topic RAG anchor failed for '%s': %s",
+                user_topic,
+                exc,
+            )
+            trace["error"] = str(exc)
+            return fallback, trace
+
+        anchor = self._build_lightweight_rag_anchor_payload(
+            user_topic=user_topic,
+            result=result,
+        )
+        trace.update(
+            {
+                "used_rag": anchor != fallback,
+                "provider": str((result or {}).get("provider") or "").strip(),
+                "kb_name": str((result or {}).get("kb_name") or self.kb_name or "").strip(),
+                "exact_question": bool(
+                    isinstance((result or {}).get("exact_question"), dict)
+                    and (result or {}).get("exact_question")
+                ),
+                "anchor_source": str(anchor.get("anchor_source") or "").strip(),
+            }
+        )
+        return anchor, trace
+
+    @staticmethod
+    def _build_lightweight_rag_anchor_payload(
+        *,
+        user_topic: str,
+        result: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        anchor_label = AgentCoordinator._derive_lightweight_anchor_label(user_topic=user_topic)
+        base = {
+            "knowledge_context": f"当前学习锚点：{anchor_label}",
+            "concentration": anchor_label,
+        }
+        if not isinstance(result, dict):
+            return base
+
+        exact_question = (
+            result.get("exact_question")
+            if isinstance(result.get("exact_question"), dict)
+            else {}
+        )
+        stem = str(exact_question.get("stem") or "").strip()
+        analysis = str(exact_question.get("analysis") or "").strip()
+        correct_answer = str(exact_question.get("correct_answer") or "").strip()
+        options = exact_question.get("options")
+
+        parts: list[str] = [base["knowledge_context"]]
+        if stem:
+            parts.append(f"题库参考题目：{stem}")
+        option_lines = AgentCoordinator._format_reference_options(options)
+        if option_lines:
+            parts.append("题库选项风格参考：\n" + "\n".join(option_lines[:4]))
+        if correct_answer:
+            parts.append(f"题库参考答案（仅内部生成锚点）：{correct_answer}")
+        if analysis:
+            clipped_analysis = analysis[:280] + ("..." if len(analysis) > 280 else "")
+            parts.append(f"题库解析要点：{clipped_analysis}")
+        if len(parts) > 1:
+            return {
+                "knowledge_context": "\n".join(parts),
+                "concentration": anchor_label or stem or "当前学习主题",
+                "reference_question": stem,
+                "reference_answer": correct_answer,
+                "anchor_source": str(exact_question.get("source_group") or "").strip() or "exact_question",
+                "anchor_confidence": exact_question.get("confidence"),
+            }
+
+        answer = str(result.get("answer") or "").strip()
+        if not answer:
+            return base
+
+        parsed_bundle = AgentCoordinator._extract_structured_anchor_from_answer(answer)
+        if parsed_bundle:
+            bundle_parts: list[str] = [base["knowledge_context"]]
+            bundle_parts.append(f"题库参考题目：{parsed_bundle['reference_question']}")
+            parsed_option_lines = AgentCoordinator._format_reference_options(
+                parsed_bundle.get("options")
+            )
+            if parsed_option_lines:
+                bundle_parts.append("题库选项风格参考：\n" + "\n".join(parsed_option_lines[:4]))
+            if parsed_bundle.get("reference_answer"):
+                bundle_parts.append(
+                    f"题库参考答案（仅内部生成锚点）：{parsed_bundle['reference_answer']}"
+                )
+            if parsed_bundle.get("analysis"):
+                clipped_analysis = parsed_bundle["analysis"][:280] + (
+                    "..." if len(parsed_bundle["analysis"]) > 280 else ""
+                )
+                bundle_parts.append(f"题库解析要点：{clipped_analysis}")
+            return {
+                "knowledge_context": "\n".join(bundle_parts),
+                "concentration": anchor_label or parsed_bundle["reference_question"][:32] or "当前学习主题",
+                "reference_question": parsed_bundle["reference_question"],
+                "reference_answer": parsed_bundle.get("reference_answer"),
+                "anchor_source": "rag_answer_bundle",
+            }
+
+        clipped_answer = answer[:280] + ("..." if len(answer) > 280 else "")
+        return {
+            "knowledge_context": f"{base['knowledge_context']}\n题库参考资料：{clipped_answer}",
+            "concentration": anchor_label,
+            "anchor_source": "rag_answer_text",
+        }
+
+    @staticmethod
+    def _derive_lightweight_anchor_label(
+        *,
+        user_topic: str,
+    ) -> str:
+        text = re.sub(r"\s+", " ", str(user_topic or "")).strip()
+        if not text:
+            return "当前学习主题"
+        first_clause = re.split(r"[，,。!?！？]", text, maxsplit=1)[0].strip() or text
+        patterns = (
+            r"^(我现在学到|我学到|现在学到|学到)",
+            r"^(我现在在学|我在学|现在在学|最近在学|正在学)",
+            r"(先|请|麻烦你|麻烦)?给我",
+            r"来[一1]?道",
+            r"出[一1]?道",
+            r"建筑实务",
+            r"(单选题|多选题|选择题|判断题|简答题|案例题)",
+            r"(不要给答案|别给答案|先不要答案|只出题|不要解析|别解析)",
+            r"(很短的小题|很短的小测|小题|小测)",
+            r"(考我|刷题)",
+        )
+        cleaned = first_clause
+        for pattern in patterns:
+            cleaned = re.sub(pattern, " ", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"[，。！？、,.!?\-:：\s]+", " ", cleaned).strip()
+        cleaned = re.sub(r"(了|呢|呀)$", "", cleaned).strip()
+        if cleaned:
+            return cleaned[:32]
+        return text[:32] or "当前学习主题"
+
+    @staticmethod
+    def _extract_structured_anchor_from_answer(answer: str) -> dict[str, Any] | None:
+        text = str(answer or "").strip()
+        if "【题目】" not in text:
+            return None
+        match = re.search(
+            r"【题目】(?P<stem>.*?)(?:\n【选项】(?P<options>.*?))?(?:\n【答案】(?P<answer>.*?))?(?:\n【解析】(?P<analysis>.*?))?(?=\n【题目】|$)",
+            text,
+            flags=re.DOTALL,
+        )
+        if not match:
+            return None
+        stem = str(match.group("stem") or "").strip()
+        if not stem:
+            return None
+        reference_answer = re.sub(r"\s+", " ", str(match.group("answer") or "")).strip() or None
+        analysis = re.sub(r"\s+", " ", str(match.group("analysis") or "")).strip()
+        return {
+            "reference_question": stem,
+            "reference_answer": reference_answer,
+            "analysis": analysis,
+            "options": AgentCoordinator._parse_reference_options(match.group("options")),
+        }
+
+    @staticmethod
+    def _parse_reference_options(raw_options: Any) -> dict[str, str] | None:
+        raw_text = str(raw_options or "").strip()
+        if not raw_text:
+            return None
+        parsed: Any = None
+        for loader in (json.loads, ast.literal_eval):
+            try:
+                parsed = loader(raw_text)
+                break
+            except Exception:
+                continue
+        if isinstance(parsed, dict):
+            options = {
+                str(key or "").strip().upper()[:1]: str(value or "").strip()
+                for key, value in parsed.items()
+                if str(key or "").strip() and str(value or "").strip()
+            }
+            return options or None
+        if isinstance(parsed, list):
+            options: dict[str, str] = {}
+            for item in parsed:
+                if not isinstance(item, dict):
+                    continue
+                key = str(item.get("key") or item.get("label") or "").strip().upper()[:1]
+                value = str(item.get("value") or item.get("text") or "").strip()
+                if key and value:
+                    options[key] = value
+            return options or None
+
+        matches = re.findall(r"([A-D])[\.\):、]\s*([^\n]+)", raw_text, flags=re.IGNORECASE)
+        if not matches:
+            return None
+        return {
+            str(key).upper(): str(value).strip()
+            for key, value in matches
+            if str(value).strip()
+        } or None
+
+    @staticmethod
+    def _format_reference_options(options: Any) -> list[str]:
+        if not isinstance(options, dict) or not options:
+            return []
+        return [
+            f"{str(key or '').strip().upper()[:1]}. {str(value or '').strip()}"
+            for key, value in options.items()
+            if str(key or '').strip() and str(value or '').strip()
+        ]
 
     def _build_templates_from_followup_context(
         self,

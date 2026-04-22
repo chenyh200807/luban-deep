@@ -49,6 +49,8 @@ class Generator(BaseAgent):
         preference: str = "",
         history_context: str = "",
         previous_questions: list[str] | None = None,
+        require_explanation: bool = True,
+        lightweight_generation: bool = False,
     ) -> QAPair:
         """
         Generate one Q-A pair from a template in a single call.
@@ -64,6 +66,8 @@ class Generator(BaseAgent):
             knowledge_context=knowledge_context,
             available_tools=available_tools,
             previous_questions=prev_q_text,
+            require_explanation=require_explanation,
+            lightweight_generation=lightweight_generation,
         )
         payload, validation = await self._validate_and_repair_payload(
             template=template,
@@ -74,6 +78,8 @@ class Generator(BaseAgent):
             knowledge_context=knowledge_context,
             available_tools=available_tools,
             previous_questions=prev_q_text,
+            require_explanation=require_explanation,
+            lightweight_generation=lightweight_generation,
         )
 
         return QAPair(
@@ -96,6 +102,7 @@ class Generator(BaseAgent):
                 "enabled_tools": self._enabled_tool_names(),
                 "available_tools": available_tools,
                 "knowledge_context": knowledge_context,
+                "lightweight_generation": lightweight_generation,
             },
         )
 
@@ -119,10 +126,28 @@ class Generator(BaseAgent):
         knowledge_context: str,
         available_tools: str,
         previous_questions: str = "",
+        require_explanation: bool = True,
+        lightweight_generation: bool = False,
     ) -> dict[str, Any]:
         system_prompt = self.get_prompt("system", "")
         user_prompt_template = self.get_prompt("generate", "")
-        if not user_prompt_template:
+        if lightweight_generation:
+            user_prompt_template = (
+                "Generate one concise quiz payload from the anchor below.\n\n"
+                "Template contract: {template}\n"
+                "Previously generated questions (avoid overlap):\n{previous_questions}\n"
+                "Canonical anchor: {knowledge_context}\n\n"
+                "Hard rules:\n"
+                "- Stay strictly within the canonical anchor.\n"
+                "- Do not introduce new concepts outside the anchor.\n"
+                "- Keep the question short and exam-style.\n"
+                "- If the template includes reference_question or reference_answer, treat them as internal style/grounding anchors only.\n"
+                "- Your new question must not copy the reference question verbatim; it should be a same-topic, same-style fresh item.\n"
+                "- If question_type is choice, provide exactly 4 options A-D and return the correct option key.\n"
+                "- explanation may be empty when the learner only wants the question first.\n\n"
+                'Return JSON only: {{"question_type":"","question":"","options":{{}},"correct_answer":"","explanation":""}}'
+            )
+        elif not user_prompt_template:
             user_prompt_template = (
                 "Template: {template}\n"
                 "User topic: {user_topic}\n"
@@ -134,17 +159,26 @@ class Generator(BaseAgent):
                 'Return JSON {{"question_type":"","question":"","options":{{}},"correct_answer":"","explanation":""}}'
             )
 
-        template_dict = self._strip_template_knowledge_context(template)
+        template_dict = self._prepare_template_for_prompt(
+            template,
+            lightweight_generation=lightweight_generation,
+        )
 
         user_prompt = user_prompt_template.format(
             template=json.dumps(template_dict, ensure_ascii=False, indent=2),
-            user_topic=user_topic,
+            user_topic="(lightweight anchor only)" if lightweight_generation else user_topic,
             preference=preference or "(none)",
             history_context=history_context or "(none)",
             previous_questions=previous_questions or "(none)",
             knowledge_context=knowledge_context or "(none)",
             available_tools=available_tools,
         )
+        if not require_explanation:
+            user_prompt = (
+                f"{user_prompt.rstrip()}\n\n"
+                "附加约束：如果用户当前只是先看题目，`explanation` 可以留空字符串。"
+                "不要为了补解释而写长段分析。"
+            )
 
         _chunks: list[str] = []
         async for _c in self.stream_llm(
@@ -173,7 +207,7 @@ class Generator(BaseAgent):
         if "correct_answer" not in payload:
             payload["correct_answer"] = "N/A"
         if "explanation" not in payload:
-            payload["explanation"] = "N/A"
+            payload["explanation"] = "" if not require_explanation else "N/A"
         if "question_type" not in payload:
             payload["question_type"] = template.question_type
 
@@ -189,10 +223,16 @@ class Generator(BaseAgent):
         knowledge_context: str,
         available_tools: str,
         previous_questions: str = "",
+        require_explanation: bool = True,
+        lightweight_generation: bool = False,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         expected_type = self._normalize_question_type(template.question_type)
         normalized = self._normalize_payload_shape(expected_type, payload)
-        issues = self._collect_payload_issues(expected_type, normalized)
+        issues = self._collect_payload_issues(
+            expected_type,
+            normalized,
+            require_explanation=require_explanation,
+        )
         repaired = False
 
         if issues:
@@ -206,10 +246,16 @@ class Generator(BaseAgent):
                 knowledge_context=knowledge_context,
                 available_tools=available_tools,
                 previous_questions=previous_questions,
+                require_explanation=require_explanation,
+                lightweight_generation=lightweight_generation,
             )
             if repaired_payload:
                 candidate = self._normalize_payload_shape(expected_type, repaired_payload)
-                candidate_issues = self._collect_payload_issues(expected_type, candidate)
+                candidate_issues = self._collect_payload_issues(
+                    expected_type,
+                    candidate,
+                    require_explanation=require_explanation,
+                )
                 if not candidate_issues or len(candidate_issues) <= len(issues):
                     normalized = candidate
                     issues = candidate_issues
@@ -234,30 +280,55 @@ class Generator(BaseAgent):
         knowledge_context: str,
         available_tools: str,
         previous_questions: str = "",
+        require_explanation: bool = True,
+        lightweight_generation: bool = False,
     ) -> dict[str, Any]:
         expected_type = self._normalize_question_type(template.question_type)
-        template_dict = self._strip_template_knowledge_context(template)
-        repair_prompt = (
-            "You are repairing an invalid quiz question JSON.\n\n"
-            f"QuestionTemplate:\n{json.dumps(template_dict, ensure_ascii=False, indent=2)}\n\n"
-            f"User topic:\n{user_topic or '(none)'}\n\n"
-            f"User preference:\n{preference or '(none)'}\n\n"
-            f"Conversation context:\n{history_context or '(none)'}\n\n"
-            f"Previously generated questions:\n{previous_questions or '(none)'}\n\n"
-            f"Knowledge context:\n{knowledge_context or '(none)'}\n\n"
-            f"Enabled tools:\n{available_tools}\n\n"
-            f"Invalid payload:\n{json.dumps(payload, ensure_ascii=False, indent=2)}\n\n"
-            f"Detected issues:\n{json.dumps(issues, ensure_ascii=False)}\n\n"
-            f"Rewrite the payload so it strictly matches question_type='{expected_type}'.\n"
-            "Hard rules:\n"
-            "- Keep the same concentration and difficulty intent.\n"
-            "- question_type must exactly match the template.\n"
-            "- If question_type is choice: provide exactly 4 options (A-D), and correct_answer must be the correct option key.\n"
-            "- If question_type is written: do not provide options, and the learner must write an explanation or short answer.\n"
-            "- If question_type is coding: do not provide options, and the learner must write code, pseudocode, or an algorithmic solution.\n"
-            "- For written/coding questions, never ask the learner to select, choose, or pick among options.\n"
-            "- Return JSON only with keys: question_type, question, options, correct_answer, explanation.\n"
+        template_dict = self._prepare_template_for_prompt(
+            template,
+            lightweight_generation=lightweight_generation,
         )
+        if lightweight_generation:
+            repair_prompt = (
+                "You are repairing an invalid quiz question JSON.\n\n"
+                f"QuestionTemplate:\n{json.dumps(template_dict, ensure_ascii=False, indent=2)}\n\n"
+                f"Previously generated questions:\n{previous_questions or '(none)'}\n\n"
+                f"Canonical anchor:\n{knowledge_context or '(none)'}\n\n"
+                f"Invalid payload:\n{json.dumps(payload, ensure_ascii=False, indent=2)}\n\n"
+                f"Detected issues:\n{json.dumps(issues, ensure_ascii=False)}\n\n"
+                f"Rewrite the payload so it strictly matches question_type='{expected_type}'.\n"
+                "Hard rules:\n"
+                "- Keep the same concentration and difficulty intent.\n"
+                "- question_type must exactly match the template.\n"
+                "- If question_type is choice: provide exactly 4 options (A-D), and correct_answer must be the correct option key.\n"
+                "- Keep the repaired payload concise and strictly anchored to the canonical anchor.\n"
+                "- Do not add new concepts beyond the anchor just to make the question more complex.\n"
+                f"- explanation {'may be an empty string' if not require_explanation else 'must be present'}.\n"
+                "- Return JSON only with keys: question_type, question, options, correct_answer, explanation.\n"
+            )
+        else:
+            repair_prompt = (
+                "You are repairing an invalid quiz question JSON.\n\n"
+                f"QuestionTemplate:\n{json.dumps(template_dict, ensure_ascii=False, indent=2)}\n\n"
+                f"User topic:\n{user_topic or '(none)'}\n\n"
+                f"User preference:\n{preference or '(none)'}\n\n"
+                f"Conversation context:\n{history_context or '(none)'}\n\n"
+                f"Previously generated questions:\n{previous_questions or '(none)'}\n\n"
+                f"Knowledge context:\n{knowledge_context or '(none)'}\n\n"
+                f"Enabled tools:\n{available_tools}\n\n"
+                f"Invalid payload:\n{json.dumps(payload, ensure_ascii=False, indent=2)}\n\n"
+                f"Detected issues:\n{json.dumps(issues, ensure_ascii=False)}\n\n"
+                f"Rewrite the payload so it strictly matches question_type='{expected_type}'.\n"
+                "Hard rules:\n"
+                "- Keep the same concentration and difficulty intent.\n"
+                "- question_type must exactly match the template.\n"
+                "- If question_type is choice: provide exactly 4 options (A-D), and correct_answer must be the correct option key.\n"
+                "- If question_type is written: do not provide options, and the learner must write an explanation or short answer.\n"
+                "- If question_type is coding: do not provide options, and the learner must write code, pseudocode, or an algorithmic solution.\n"
+                "- For written/coding questions, never ask the learner to select, choose, or pick among options.\n"
+                f"- explanation {'may be an empty string' if not require_explanation else 'must be present'}.\n"
+                "- Return JSON only with keys: question_type, question, options, correct_answer, explanation.\n"
+            )
 
         _chunks: list[str] = []
         async for _c in self.stream_llm(
@@ -326,6 +397,8 @@ class Generator(BaseAgent):
         cls,
         expected_type: str,
         payload: dict[str, Any],
+        *,
+        require_explanation: bool = True,
     ) -> list[str]:
         issues: list[str] = []
         question = str(payload.get("question", "") or "")
@@ -348,7 +421,7 @@ class Generator(BaseAgent):
             issues.append("missing_question")
         if not correct_answer:
             issues.append("missing_correct_answer")
-        if not str(payload.get("explanation", "") or "").strip():
+        if require_explanation and not str(payload.get("explanation", "") or "").strip():
             issues.append("missing_explanation")
         return issues
 
@@ -400,8 +473,12 @@ class Generator(BaseAgent):
         return enabled_tools
 
     @staticmethod
-    def _strip_template_knowledge_context(template: QuestionTemplate) -> dict[str, Any]:
-        """Strip knowledge_context from template metadata to avoid prompt duplication."""
+    def _prepare_template_for_prompt(
+        template: QuestionTemplate,
+        *,
+        lightweight_generation: bool = False,
+    ) -> dict[str, Any]:
+        """Strip duplicated anchor fields before building the LLM prompt."""
         template_dict = template.__dict__.copy()
         if isinstance(template_dict.get("metadata"), dict):
             template_dict["metadata"] = {
@@ -409,6 +486,8 @@ class Generator(BaseAgent):
                 for k, v in template_dict["metadata"].items()
                 if k != "knowledge_context"
             }
+        if lightweight_generation:
+            template_dict.pop("concentration", None)
         return template_dict
 
     @classmethod
