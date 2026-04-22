@@ -312,7 +312,7 @@ class BIService:
                 "label": "即将到期会员",
                 "count": _safe_int(member_dashboard.get("expiring_soon_count")),
                 "detail": "建议优先进入会员运营页处理续费窗口。",
-                "handoff_filters": {"status": "expiring_soon"},
+                "handoff_filters": {"expire_within_days": 7},
             },
             {
                 "bucket": "high_risk",
@@ -550,6 +550,74 @@ class BIService:
             items.extend(current["items"])
         return items
 
+    @staticmethod
+    def _build_member_dashboard_from_items(
+        members: list[dict[str, Any]],
+        *,
+        days: int,
+    ) -> dict[str, Any]:
+        now = datetime.now().astimezone()
+        active_count = sum(1 for item in members if item.get("status") == "active")
+        expiring_soon_count = 0
+        new_today_count = 0
+        churn_risk_count = 0
+        tiers: Counter[str] = Counter()
+        expiry_buckets: Counter[str] = Counter()
+        auto_renew_count = 0
+
+        for item in members:
+            expire_at_raw = str(item.get("expire_at") or "").strip()
+            created_at_raw = str(item.get("created_at") or "").strip()
+            risk_level = str(item.get("risk_level") or "")
+            tier = str(item.get("tier") or "unknown")
+            auto_renew_count += 1 if item.get("auto_renew") else 0
+            tiers[tier] += 1
+            if risk_level == "high":
+                churn_risk_count += 1
+            if expire_at_raw:
+                try:
+                    expire_at = datetime.fromisoformat(expire_at_raw.replace("Z", "+00:00"))
+                    if 0 <= (expire_at - now).days <= 7:
+                        expiring_soon_count += 1
+                    expiry_buckets[expire_at.strftime("%m-%d")] += 1
+                except ValueError:
+                    pass
+            if created_at_raw:
+                try:
+                    created_at = datetime.fromisoformat(created_at_raw.replace("Z", "+00:00"))
+                    if (now - created_at).days <= 1:
+                        new_today_count += 1
+                except ValueError:
+                    pass
+
+        recommendations: list[str] = []
+        if expiring_soon_count:
+            recommendations.append(f"有 {expiring_soon_count} 名会员 7 天内到期，建议批量触达续费提醒。")
+        if churn_risk_count:
+            recommendations.append(f"当前高风险用户 {churn_risk_count} 名，建议安排 1 对 1 学习回访。")
+        if not recommendations:
+            recommendations.append("当前会员状态稳定，可继续推进高分用户的 SVIP 升级。")
+
+        return {
+            "total_count": len(members),
+            "active_count": active_count,
+            "expiring_soon_count": expiring_soon_count,
+            "new_today_count": new_today_count,
+            "churn_risk_count": churn_risk_count,
+            "health_score": round((active_count / max(len(members), 1)) * 100),
+            "auto_renew_coverage": round((auto_renew_count / max(len(members), 1)) * 100),
+            "tier_breakdown": [
+                {"tier": tier, "count": count}
+                for tier, count in sorted(tiers.items(), key=lambda item: item[0])
+            ],
+            "expiry_breakdown": [
+                {"label": label, "count": count}
+                for label, count in sorted(expiry_buckets.items(), key=lambda item: item[0])
+            ],
+            "admin_ops": {"window_days": days, "total": 0, "by_action": []},
+            "recommendations": recommendations,
+        }
+
     async def _load_feedback_records(self, days: int) -> tuple[str, list[dict[str, Any]]]:
         if not self._feedback_store.is_configured:
             return "unconfigured", []
@@ -591,7 +659,6 @@ class BIService:
             await self._load_context(days),
             self._normalize_filters(capability, entrypoint, tier),
         )
-        member_dashboard = self._member_service.get_dashboard(days=days)
 
         active_actors = {
             self._resolve_actor_id(session["session_id"], session["preferences"])
@@ -631,6 +698,14 @@ class BIService:
             for name, count in entrypoint_counter.most_common()
         ]
 
+        member_stats = await self.get_member_stats(
+            days=days,
+            capability=capability,
+            entrypoint=entrypoint,
+            tier=tier,
+        )
+        member_dashboard = member_stats.get("dashboard", {})
+
         risk_alerts = []
         if member_dashboard.get("expiring_soon_count"):
             risk_alerts.append(
@@ -641,13 +716,6 @@ class BIService:
             risk_alerts.append(f"最近 {days} 天共有 {failed_turns} 个失败回合，建议排查错误分布。")
         if not risk_alerts:
             risk_alerts.append("当前活跃、会员和回合状态整体平稳。")
-
-        member_stats = await self.get_member_stats(
-            days=days,
-            capability=capability,
-            entrypoint=entrypoint,
-            tier=tier,
-        )
 
         summary = {
             "total_sessions": len(context.sessions),
@@ -1085,13 +1153,13 @@ class BIService:
         entrypoint: str | None = None,
         tier: str | None = None,
     ) -> dict[str, Any]:
-        dashboard = self._member_service.get_dashboard(days=days)
         members = self._load_all_members()
         tier_filter = str(tier or "").strip().lower()
         if tier_filter:
             members = [
                 item for item in members if str(item.get("tier") or "").strip().lower() == tier_filter
             ]
+        dashboard = self._build_member_dashboard_from_items(members, days=days)
         tier_counter = Counter(member.get("tier") or "unknown" for member in members)
         risk_counter = Counter(member.get("risk_level") or "unknown" for member in members)
         status_counter = Counter(member.get("status") or "unknown" for member in members)

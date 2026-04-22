@@ -47,4 +47,20 @@ def test_bi_page_client_consumes_handoff_filters_from_boss_queue() -> None:
     source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
 
     assert "handoffFilters" in source
-    assert 'status: "expiring_soon"' in source or "status === \"expiring_soon\"" in source
+    assert 'expire_within_days' in source
+
+
+def test_bi_page_client_refreshes_boss_workbench_after_member_actions() -> None:
+    source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+
+    assert "await refreshBi()" in source
+
+
+def test_bi_audit_tab_exposes_filter_inputs() -> None:
+    source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiAuditTab.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert "target_user" in source or "目标用户" in source
+    assert "operator" in source or "操作人" in source
+    assert "action" in source or "动作" in source

@@ -558,5 +558,21 @@ def test_bi_overview_exposes_risk_queue_and_member_handoff(bi_service: BIService
     body = response.json()
     workbench = body["boss_workbench"]
     assert workbench["risk_queue"][0]["bucket"] == "expiring_soon"
-    assert workbench["risk_queue"][0]["handoff_filters"]["status"] == "expiring_soon"
+    assert workbench["risk_queue"][0]["handoff_filters"]["expire_within_days"] == 7
     assert workbench["watchlist"][0]["user_id"] == "u2"
+
+
+def test_bi_overview_keeps_member_snapshot_consistent_under_tier_filter(bi_service: BIService) -> None:
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: None
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/bi/overview?days=30&tier=vip")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["member_snapshot"]["churn_risk_count"] == 0
+    assert body["member_snapshot"]["health_score"] == 100
+    assert body["boss_workbench"]["risk_queue"][0]["count"] == 0
+    assert body["boss_workbench"]["risk_queue"][1]["count"] == 0
+    assert [item["tier"] for item in body["boss_workbench"]["watchlist"]] == ["vip"]

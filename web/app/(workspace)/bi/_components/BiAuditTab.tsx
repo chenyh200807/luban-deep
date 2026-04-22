@@ -9,9 +9,22 @@ type BiAuditTabProps = {
   loading?: boolean;
   error?: string;
   exportHref?: string;
+  filters: {
+    target_user: string;
+    operator: string;
+    action: string;
+  };
+  onFilterChange: (field: "target_user" | "operator" | "action", value: string) => void;
 };
 
-export function BiAuditTab({ audit, loading = false, error = "", exportHref = "" }: BiAuditTabProps) {
+export function BiAuditTab({
+  audit,
+  loading = false,
+  error = "",
+  exportHref = "",
+  filters,
+  onFilterChange,
+}: BiAuditTabProps) {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -24,6 +37,33 @@ export function BiAuditTab({ audit, loading = false, error = "", exportHref = ""
             导出当前会员 CSV
           </a>
         ) : null}
+      </div>
+
+      <div className="grid gap-3 rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-4 shadow-[0_12px_30px_rgba(45,33,25,0.05)] md:grid-cols-3">
+        <input
+          value={filters.target_user}
+          onChange={(event) => onFilterChange("target_user", event.target.value)}
+          placeholder="目标用户 target_user"
+          className="rounded-2xl border bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[var(--primary)]"
+        />
+        <input
+          value={filters.operator}
+          onChange={(event) => onFilterChange("operator", event.target.value)}
+          placeholder="操作人 operator"
+          className="rounded-2xl border bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[var(--primary)]"
+        />
+        <select
+          value={filters.action}
+          onChange={(event) => onFilterChange("action", event.target.value)}
+          className="rounded-2xl border bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[var(--primary)]"
+        >
+          <option value="all">全部动作</option>
+          <option value="grant">grant</option>
+          <option value="update">update</option>
+          <option value="revoke">revoke</option>
+          <option value="heartbeat_job_pause">heartbeat_job_pause</option>
+          <option value="heartbeat_job_resume">heartbeat_job_resume</option>
+        </select>
       </div>
 
       {error ? (

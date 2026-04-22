@@ -52,6 +52,13 @@ type MemberFilterState = {
   status: string;
   tier: string;
   risk_level: string;
+  expire_within_days: number | null;
+};
+
+type AuditFilterState = {
+  target_user: string;
+  operator: string;
+  action: string;
 };
 
 const DEFAULT_MEMBER_FILTERS: MemberFilterState = {
@@ -59,6 +66,13 @@ const DEFAULT_MEMBER_FILTERS: MemberFilterState = {
   status: "all",
   tier: "all",
   risk_level: "all",
+  expire_within_days: null,
+};
+
+const DEFAULT_AUDIT_FILTERS: AuditFilterState = {
+  target_user: "",
+  operator: "",
+  action: "all",
 };
 
 export default function BiPageClient() {
@@ -88,6 +102,7 @@ export default function BiPageClient() {
   const [actionLoading, setActionLoading] = useState(false);
 
   const [auditLog, setAuditLog] = useState<MemberAuditLogResponse | null>(null);
+  const [auditFilters, setAuditFilters] = useState<AuditFilterState>(DEFAULT_AUDIT_FILTERS);
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditError, setAuditError] = useState("");
 
@@ -115,9 +130,7 @@ export default function BiPageClient() {
     try {
       setMemberLoading(true);
       setMemberError("");
-      setAuditLoading(true);
-      setAuditError("");
-      const [dashboard, list, audit] = await Promise.all([
+      const [dashboard, list] = await Promise.all([
         getMemberDashboard(),
         listMembers({
           page: 1,
@@ -126,13 +139,12 @@ export default function BiPageClient() {
           status: memberFilters.status,
           tier: memberFilters.tier,
           risk_level: memberFilters.risk_level,
+          expire_within_days: memberFilters.expire_within_days ?? undefined,
         }),
-        getMemberAuditLog({ page: 1, page_size: 50 }),
       ]);
       setMemberDashboard(dashboard);
       setMemberItems(list.items);
       setMemberTotal(list.total);
-      setAuditLog(audit);
       if (!selectedUserId && list.items[0]) {
         setSelectedUserId(list.items[0].user_id);
       }
@@ -141,14 +153,37 @@ export default function BiPageClient() {
       }
       setSelectedIds((current) => current.filter((userId) => list.items.some((item) => item.user_id === userId)));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "会员后台加载失败";
-      setMemberError(message);
-      setAuditError(message);
+      setMemberError(error instanceof Error ? error.message : "会员后台加载失败");
     } finally {
       setMemberLoading(false);
+    }
+  }, [
+    memberFilters.expire_within_days,
+    memberFilters.risk_level,
+    memberFilters.search,
+    memberFilters.status,
+    memberFilters.tier,
+    selectedUserId,
+  ]);
+
+  const refreshAudit = useCallback(async () => {
+    try {
+      setAuditLoading(true);
+      setAuditError("");
+      const audit = await getMemberAuditLog({
+        page: 1,
+        page_size: 50,
+        target_user: auditFilters.target_user.trim() || undefined,
+        operator: auditFilters.operator.trim() || undefined,
+        action: auditFilters.action === "all" ? undefined : auditFilters.action,
+      });
+      setAuditLog(audit);
+    } catch (error) {
+      setAuditError(error instanceof Error ? error.message : "经营审计加载失败");
+    } finally {
       setAuditLoading(false);
     }
-  }, [memberFilters.risk_level, memberFilters.search, memberFilters.status, memberFilters.tier, selectedUserId]);
+  }, [auditFilters.action, auditFilters.operator, auditFilters.target_user]);
 
   const refreshSelectedMember = useCallback(async () => {
     if (!selectedUserId) {
@@ -177,6 +212,10 @@ export default function BiPageClient() {
   }, [refreshMembers]);
 
   useEffect(() => {
+    void refreshAudit();
+  }, [refreshAudit]);
+
+  useEffect(() => {
     setActiveTab(normalizeBiPrimaryTab(searchParams.get("tab")));
   }, [searchParams]);
 
@@ -185,8 +224,9 @@ export default function BiPageClient() {
   }, [refreshSelectedMember]);
 
   useEffect(() => {
-    if (filters.tier && filters.tier !== memberFilters.tier) {
-      setMemberFilters((current) => ({ ...current, tier: filters.tier }));
+    const nextTier = filters.tier || "all";
+    if (nextTier !== memberFilters.tier) {
+      setMemberFilters((current) => ({ ...current, tier: nextTier }));
     }
   }, [filters.tier, memberFilters.tier]);
 
@@ -230,12 +270,19 @@ export default function BiPageClient() {
     setMemberFilters((current) => ({ ...current, ...patch }));
   }, []);
 
+  const updateAuditFilter = useCallback((field: keyof AuditFilterState, value: string) => {
+    setAuditFilters((current) => ({ ...current, [field]: value }));
+  }, []);
+
   const navigateFromBossQueue = useCallback(
     (action?: BiBossActionItem) => {
       const handoffFilters = action?.handoffFilters;
       if (action?.source === "members") {
-        if (handoffFilters?.status === "expiring_soon") {
-          applyMemberFilterPatch({ ...DEFAULT_MEMBER_FILTERS, status: "expiring_soon" });
+        if (typeof handoffFilters?.expire_within_days === "number") {
+          applyMemberFilterPatch({
+            ...DEFAULT_MEMBER_FILTERS,
+            expire_within_days: handoffFilters.expire_within_days,
+          });
           setActiveTab("member-ops");
           return;
         }
@@ -255,7 +302,7 @@ export default function BiPageClient() {
           setActiveTab("member-ops");
           return;
         }
-        applyMemberFilterPatch({ risk_level: "high", status: "all" });
+        applyMemberFilterPatch({ ...DEFAULT_MEMBER_FILTERS, risk_level: "high" });
         setActiveTab("member-ops");
         return;
       }
@@ -275,8 +322,8 @@ export default function BiPageClient() {
   }, []);
 
   const refreshAll = useCallback(async () => {
-    await Promise.all([refreshBi(), refreshMembers(), refreshSelectedMember()]);
-  }, [refreshBi, refreshMembers, refreshSelectedMember]);
+    await Promise.all([refreshBi(), refreshMembers(), refreshAudit(), refreshSelectedMember()]);
+  }, [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember]);
 
   const handleBatchAction = useCallback(
     async (action: "grant" | "revoke") => {
@@ -290,7 +337,9 @@ export default function BiPageClient() {
           tier: action === "grant" ? "vip" : undefined,
           reason: action === "grant" ? "BI 会员工作台批量开通" : "BI 会员工作台批量撤销",
         });
+        await refreshBi();
         await refreshMembers();
+        await refreshAudit();
         if (selectedUserId) {
           await refreshSelectedMember();
         }
@@ -301,7 +350,7 @@ export default function BiPageClient() {
         setActionLoading(false);
       }
     },
-    [refreshMembers, refreshSelectedMember, selectedIds, selectedUserId],
+    [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedIds, selectedUserId],
   );
 
   const handleSingleGrant = useCallback(async () => {
@@ -309,42 +358,48 @@ export default function BiPageClient() {
     try {
       setActionLoading(true);
       await grantMembership({ user_id: selectedUserId, days: 30, tier: "vip", reason: "BI 会员工作台开通" });
+      await refreshBi();
       await refreshMembers();
+      await refreshAudit();
       await refreshSelectedMember();
     } catch (error) {
       setDetailError(error instanceof Error ? error.message : "开通会员失败");
     } finally {
       setActionLoading(false);
     }
-  }, [refreshMembers, refreshSelectedMember, selectedUserId]);
+  }, [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId]);
 
   const handleSingleExtend = useCallback(async () => {
     if (!selectedUserId) return;
     try {
       setActionLoading(true);
       await updateMembership({ user_id: selectedUserId, days: 90, reason: "BI 会员工作台续期 90 天" });
+      await refreshBi();
       await refreshMembers();
+      await refreshAudit();
       await refreshSelectedMember();
     } catch (error) {
       setDetailError(error instanceof Error ? error.message : "续期会员失败");
     } finally {
       setActionLoading(false);
     }
-  }, [refreshMembers, refreshSelectedMember, selectedUserId]);
+  }, [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId]);
 
   const handleSingleRevoke = useCallback(async () => {
     if (!selectedUserId) return;
     try {
       setActionLoading(true);
       await revokeMembership({ user_id: selectedUserId, reason: "BI 会员工作台撤销" });
+      await refreshBi();
       await refreshMembers();
+      await refreshAudit();
       await refreshSelectedMember();
     } catch (error) {
       setDetailError(error instanceof Error ? error.message : "撤销会员失败");
     } finally {
       setActionLoading(false);
     }
-  }, [refreshMembers, refreshSelectedMember, selectedUserId]);
+  }, [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId]);
 
   const handleAddNote = useCallback(
     async (content: string) => {
@@ -431,10 +486,11 @@ export default function BiPageClient() {
     if (memberFilters.status !== "all") query.set("status", memberFilters.status);
     if (memberFilters.tier !== "all") query.set("tier", memberFilters.tier);
     if (memberFilters.risk_level !== "all") query.set("risk_level", memberFilters.risk_level);
+    if (memberFilters.expire_within_days !== null) query.set("expire_within_days", String(memberFilters.expire_within_days));
     if (memberFilters.search.trim()) query.set("search", memberFilters.search.trim());
     const suffix = query.toString();
     return apiUrl(`/api/v1/member/export${suffix ? `?${suffix}` : ""}`);
-  }, [memberFilters.risk_level, memberFilters.search, memberFilters.status, memberFilters.tier]);
+  }, [memberFilters.expire_within_days, memberFilters.risk_level, memberFilters.search, memberFilters.status, memberFilters.tier]);
 
   return (
     <div className="h-full overflow-y-auto [scrollbar-gutter:stable] bg-[radial-gradient(circle_at_top_left,_rgba(195,90,44,0.14),_transparent_34%),radial-gradient(circle_at_85%_10%,_rgba(18,122,134,0.09),_transparent_28%),linear-gradient(180deg,#faf9f6_0%,#f4efe8_100%)] px-6 py-6">
@@ -474,7 +530,7 @@ export default function BiPageClient() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" size={16} />
                 <input
                   value={memberFilters.search}
-                  onChange={(event) => applyMemberFilterPatch({ search: event.target.value })}
+                  onChange={(event) => applyMemberFilterPatch({ search: event.target.value, expire_within_days: null })}
                   placeholder="搜索 User ID / 昵称 / 手机号"
                   className="w-full rounded-2xl border bg-white px-10 py-2.5 text-sm outline-none transition focus:border-[var(--primary)]"
                 />
@@ -482,18 +538,17 @@ export default function BiPageClient() {
               <div className="grid flex-1 gap-3 sm:grid-cols-3">
                 <select
                   value={memberFilters.status}
-                  onChange={(event) => applyMemberFilterPatch({ status: event.target.value })}
+                  onChange={(event) => applyMemberFilterPatch({ status: event.target.value, expire_within_days: null })}
                   className="rounded-2xl border bg-white px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)]"
                 >
                   <option value="all">全部状态</option>
                   <option value="active">活跃</option>
-                  <option value="expiring_soon">即将到期</option>
                   <option value="expired">已过期</option>
                   <option value="revoked">已撤销</option>
                 </select>
                 <select
                   value={memberFilters.tier}
-                  onChange={(event) => applyMemberFilterPatch({ tier: event.target.value })}
+                  onChange={(event) => applyMemberFilterPatch({ tier: event.target.value, expire_within_days: null })}
                   className="rounded-2xl border bg-white px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)]"
                 >
                   <option value="all">全部层级</option>
@@ -503,7 +558,7 @@ export default function BiPageClient() {
                 </select>
                 <select
                   value={memberFilters.risk_level}
-                  onChange={(event) => applyMemberFilterPatch({ risk_level: event.target.value })}
+                  onChange={(event) => applyMemberFilterPatch({ risk_level: event.target.value, expire_within_days: null })}
                   className="rounded-2xl border bg-white px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)]"
                 >
                   <option value="all">全部风险</option>
@@ -513,6 +568,11 @@ export default function BiPageClient() {
                 </select>
               </div>
             </div>
+            {memberFilters.expire_within_days !== null ? (
+              <p className="mt-3 text-sm text-[var(--muted-foreground)]">
+                当前附加筛选：{memberFilters.expire_within_days} 天内到期
+              </p>
+            ) : null}
           </section>
         ) : null}
 
@@ -564,7 +624,14 @@ export default function BiPageClient() {
             onApplyOverlay={(overlay) => void handleApplyOverlayPromotions(overlay)}
           />
         ) : activeTab === "audit" ? (
-          <BiAuditTab audit={auditLog} loading={auditLoading} error={auditError} exportHref={exportHref} />
+          <BiAuditTab
+            audit={auditLog}
+            loading={auditLoading}
+            error={auditError}
+            exportHref={exportHref}
+            filters={auditFilters}
+            onFilterChange={updateAuditFilter}
+          />
         ) : (
           <BiTabShell title={activeTabMeta.label} summary={activeTabMeta.summary} />
         )}
