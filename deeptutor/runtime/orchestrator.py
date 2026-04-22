@@ -53,6 +53,24 @@ def _coerce_flag(value: Any) -> bool | None:
     return raw not in {"0", "false", "no", "off"}
 
 
+def _should_use_lightweight_generation(
+    message: str,
+    reveal_preference: bool | None,
+) -> bool:
+    if reveal_preference is False:
+        return True
+    text = str(message or "").strip().lower()
+    if not text:
+        return False
+    if not looks_like_practice_generation_request(text):
+        return False
+    delayed_feedback_patterns = (
+        r"(做完|答完|写完).{0,12}(再|然后).{0,12}(分析|讲解|解析|批改)",
+        r"(先|先给我).{0,20}(出题|出\d{0,2}道题|出[一二两三四五六七八九十几]+道题|小题).{0,20}(再|然后).{0,12}(分析|讲解|解析|批改)",
+    )
+    return any(re.search(pattern, text) for pattern in delayed_feedback_patterns)
+
+
 class ChatOrchestrator:
     """
     Routes a ``UnifiedContext`` to the correct capability, manages
@@ -121,6 +139,13 @@ class ChatOrchestrator:
     async def _select_capability(self, context: UnifiedContext) -> str:
         routing_user_message = self._routing_user_message(context)
         if context.active_capability:
+            self._prepare_preselected_capability_context(context, routing_user_message)
+            context.metadata.setdefault("semantic_router_mode", "preselected")
+            context.metadata.setdefault("semantic_router_mode_reason", "preselected_capability")
+            context.metadata.setdefault(
+                "semantic_router_selected_capability",
+                str(context.active_capability or "").strip(),
+            )
             return context.active_capability
 
         semantic_router_enabled = self._semantic_router_enabled(context)
@@ -179,6 +204,21 @@ class ChatOrchestrator:
         cap_name = self._select_legacy_capability(context, routing_user_message)
         context.metadata["semantic_router_selected_capability"] = cap_name
         return cap_name
+
+    def _prepare_preselected_capability_context(
+        self,
+        context: UnifiedContext,
+        message: str,
+    ) -> None:
+        capability = str(context.active_capability or "").strip().lower()
+        if capability != "deep_question":
+            return
+        if looks_like_practice_generation_request(message):
+            self._prepare_practice_request_context(context, message)
+            return
+        action = context.metadata.get("question_followup_action")
+        if action or self._looks_like_question_submission(context, message):
+            self._prepare_question_submission_context(context, action)
 
     @staticmethod
     def _semantic_router_enabled(context: UnifiedContext) -> bool:
@@ -449,6 +489,10 @@ class ChatOrchestrator:
             suppress_answer_reveal = not reveal_preference
         context.config_overrides.setdefault("reveal_answers", not suppress_answer_reveal)
         context.config_overrides.setdefault("reveal_explanations", not suppress_answer_reveal)
+        context.config_overrides.setdefault(
+            "lightweight_generation",
+            _should_use_lightweight_generation(message, reveal_preference),
+        )
 
     async def _publish_completion(self, context: UnifiedContext, cap_name: str) -> None:
         """Publish CAPABILITY_COMPLETE to the global EventBus."""

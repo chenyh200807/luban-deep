@@ -1,6 +1,7 @@
 # DeepTutor 运行态备份与恢复 Runbook
 
 这份 runbook 只覆盖一件事：把 `data/user` 作为最小运行态单元做备份和恢复，不引入额外平台依赖。
+如果要回滚代码版本，请改用 [scripts/rollback_aliyun_release.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/rollback_aliyun_release.sh)。
 
 ## 备份对象
 

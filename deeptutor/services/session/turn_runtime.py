@@ -1036,6 +1036,7 @@ class _TurnExecution:
     session_id: str
     capability: str
     payload: dict[str, Any]
+    turn_view: dict[str, Any] | None = None
     task: asyncio.Task[None] | None = None
     subscribers: list[_LiveSubscriber] = field(default_factory=list)
     persistence_degraded: bool = False
@@ -1074,6 +1075,34 @@ class TurnRuntimeManager:
             )
             return
         logger.warning("Persistence degraded during %s: %s", operation, exc, exc_info=True)
+
+    async def _canonicalize_execution_capability(
+        self,
+        execution: _TurnExecution,
+        capability: str,
+    ) -> str:
+        normalized = str(capability or "").strip() or "chat"
+        execution.capability = normalized
+        execution.payload["capability"] = normalized
+        if isinstance(execution.turn_view, dict):
+            execution.turn_view["capability"] = normalized
+        await self._safe_store_call(
+            execution,
+            "update_turn_capability",
+            self.store.update_turn_capability,
+            execution.turn_id,
+            normalized,
+            default=False,
+        )
+        await self._safe_store_call(
+            execution,
+            "update_session_capability_preference",
+            self.store.update_session_preferences,
+            execution.session_id,
+            {"capability": normalized},
+            default=False,
+        )
+        return normalized
 
     async def _safe_store_call(
         self,
@@ -2011,7 +2040,8 @@ class TurnRuntimeManager:
 
     async def start_turn(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
         requested_capability = str(payload.get("capability") or "").strip() or None
-        capability = requested_capability or "chat"
+        capability = requested_capability or ""
+        config_capability = requested_capability or "chat"
         session_id = str(payload.get("session_id") or "").strip()
         raw_user_content = str(payload.get("content") or "").strip()
         raw_config = dict(payload.get("config", {}) or {})
@@ -2092,7 +2122,7 @@ class TurnRuntimeManager:
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
 
-            validated_public_config = validate_capability_config(capability, raw_config)
+            validated_public_config = validate_capability_config(config_capability, raw_config)
         except ValueError as exc:
             raise RuntimeError(str(exc)) from exc
         bot_id = str(validated_public_config.get("bot_id") or "").strip()
@@ -2108,7 +2138,7 @@ class TurnRuntimeManager:
             interaction_hints=runtime_interaction_hints,
         )
         if _should_select_tutorbot_mode(
-            capability=capability,
+            capability=config_capability,
             bot_id=bot_id,
             interaction_profile=interaction_profile,
             interaction_hints=runtime_interaction_hints,
@@ -2151,7 +2181,14 @@ class TurnRuntimeManager:
             )
         ):
             selected_capability = "tutorbot"
-            capability = "tutorbot"
+        capability = selected_capability or (
+            ""
+            if (
+                requested_capability is None
+                and knowledge_chain_defaults.get("execution_engine") == "tutorbot_runtime"
+            )
+            else config_capability
+        )
         payload = {
             **payload,
             "capability": selected_capability,
@@ -2171,7 +2208,6 @@ class TurnRuntimeManager:
         await self.store.update_session_preferences(
             session["id"],
             {
-                "capability": capability,
                 "chat_mode": (payload.get("config", {}) or {}).get(
                     "chat_mode",
                     validated_public_config.get("chat_mode", get_default_chat_mode()),
@@ -2184,6 +2220,7 @@ class TurnRuntimeManager:
                     if str(validated_public_config.get("bot_id") or "").strip()
                     else {}
                 ),
+                **({"capability": capability} if capability else {}),
                 **({"interaction_hints": runtime_interaction_hints} if runtime_interaction_hints else {}),
                 **(billing_context or {}),
             },
@@ -2220,6 +2257,7 @@ class TurnRuntimeManager:
             session_id=session["id"],
             capability=capability,
             payload=dict(payload),
+            turn_view=turn,
         )
         async with self._lock:
             self._executions[turn["id"]] = execution
@@ -2357,7 +2395,7 @@ class TurnRuntimeManager:
     async def _run_turn(self, execution: _TurnExecution) -> None:
         payload = execution.payload
         session_id = execution.session_id
-        capability_name = execution.capability
+        capability_name = str(execution.capability or "").strip()
         turn_id = execution.turn_id
         attachments = []
         attachment_records = []
@@ -2366,6 +2404,8 @@ class TurnRuntimeManager:
         authoritative_assistant_content = ""
         assistant_content_source = "content_stream"
         turn_observation: Any | None = None
+        turn_observation_cm: Any | None = None
+        usage_scope_cm: Any | None = None
         terminal_status = "failed"
         turn_started_at = time.perf_counter()
         surface_event_store = get_surface_event_store()
@@ -2373,7 +2413,7 @@ class TurnRuntimeManager:
             "session_id": session_id,
             "turn_id": turn_id,
             **get_release_lineage_metadata(),
-            "capability": capability_name or "chat",
+            "capability": capability_name,
             "execution_engine": "tutorbot_runtime" if capability_name == "tutorbot" else "capability",
             "bot_id": str((payload.get("config", {}) or {}).get("bot_id", "") or "").strip(),
             "interaction_profile": str(
@@ -2650,22 +2690,7 @@ class TurnRuntimeManager:
             user_id = str((billing_context or {}).get("user_id", "") or "").strip()
             if user_id:
                 trace_metadata["user_id"] = user_id
-            log_context_tokens = bind_log_context(
-                user_id=user_id,
-                session_id=session_id,
-                turn_id=turn_id,
-            )
-            with observability.usage_scope(
-                scope_id=turn_id,
-                session_id=session_id,
-                turn_id=turn_id,
-                capability=capability_name or "chat",
-            ), observability.start_observation(
-                name=f"turn.{capability_name or 'chat'}",
-                as_type="chain",
-                input_payload={"content": raw_user_content},
-                metadata=trace_metadata,
-            ) as turn_observation:
+            with contextlib.nullcontext(None) as turn_observation:
 
                 for item in payload.get("attachments", []):
                     record = {
@@ -2943,19 +2968,6 @@ class TurnRuntimeManager:
                     }
                 )
 
-                if persist_user_message:
-                    await self._safe_store_call(
-                        execution,
-                        "add_user_message",
-                        self.store.add_message,
-                        session_id=session_id,
-                        role="user",
-                        content=raw_user_content,
-                        capability=capability_name,
-                        attachments=attachment_records,
-                        default=None,
-                    )
-
                 context = UnifiedContext(
                     session_id=session_id,
                     user_message=effective_user_message,
@@ -3033,10 +3045,86 @@ class TurnRuntimeManager:
                     },
                 )
 
-                orch = ChatOrchestrator()
+                selector_orchestrator = ChatOrchestrator()
+                selector = getattr(selector_orchestrator, "_select_capability", None)
+                if not capability_name and callable(selector):
+                    resolved_capability = await selector(context)
+                    capability_name = await self._canonicalize_execution_capability(
+                        execution,
+                        resolved_capability,
+                    )
+                    trace_metadata["capability"] = capability_name
+                    trace_metadata["execution_engine"] = (
+                        "tutorbot_runtime" if capability_name == "tutorbot" else "capability"
+                    )
+                    context.active_capability = capability_name
+
+                log_context_tokens = bind_log_context(
+                    user_id=user_id,
+                    session_id=session_id,
+                    turn_id=turn_id,
+                )
+                try:
+                    usage_scope_cm = observability.usage_scope(
+                        scope_id=turn_id,
+                        session_id=session_id,
+                        turn_id=turn_id,
+                        capability=capability_name,
+                    )
+                    usage_scope_cm.__enter__()
+                    turn_observation_cm = observability.start_observation(
+                        name=f"turn.{capability_name}" if capability_name else "turn.runtime",
+                        as_type="chain",
+                        input_payload={"content": raw_user_content},
+                        metadata=trace_metadata,
+                    )
+                    turn_observation = turn_observation_cm.__enter__()
+                except Exception:
+                    if turn_observation_cm is not None:
+                        with contextlib.suppress(Exception):
+                            turn_observation_cm.__exit__(None, None, None)
+                        turn_observation_cm = None
+                    if usage_scope_cm is not None:
+                        with contextlib.suppress(Exception):
+                            usage_scope_cm.__exit__(None, None, None)
+                        usage_scope_cm = None
+                    raise
+
+                if persist_user_message:
+                    await self._safe_store_call(
+                        execution,
+                        "add_user_message",
+                        self.store.add_message,
+                        session_id=session_id,
+                        role="user",
+                        content=raw_user_content,
+                        capability=capability_name,
+                        attachments=attachment_records,
+                        default=None,
+                    )
+
+                orch = selector_orchestrator
                 async for event in orch.handle(context):
                     if event.type == StreamEventType.SESSION:
                         continue
+                    event_source = str(event.source or "").strip()
+                    if (
+                        event_source
+                        and event_source != capability_name
+                        and event_source not in {"orchestrator", "turn_runtime"}
+                    ):
+                        from deeptutor.runtime.registry.capability_registry import get_capability_registry
+
+                        if get_capability_registry().get(event_source) is not None:
+                            capability_name = await self._canonicalize_execution_capability(
+                                execution,
+                                event_source,
+                            )
+                            trace_metadata["capability"] = capability_name
+                            trace_metadata["execution_engine"] = (
+                                "tutorbot_runtime" if capability_name == "tutorbot" else "capability"
+                            )
+                            context.active_capability = capability_name
                     payload_event = await self._persist_and_publish(execution, event)
                     if (
                         payload_event.get("type") not in {"done", "session"}
@@ -3242,6 +3330,12 @@ class TurnRuntimeManager:
                 ),
             )
         finally:
+            if turn_observation_cm is not None:
+                with contextlib.suppress(Exception):
+                    turn_observation_cm.__exit__(None, None, None)
+            if usage_scope_cm is not None:
+                with contextlib.suppress(Exception):
+                    usage_scope_cm.__exit__(None, None, None)
             get_turn_runtime_metrics().record_turn_finished(
                 status=terminal_status,
                 duration_ms=(time.perf_counter() - turn_started_at) * 1000.0,

@@ -628,6 +628,7 @@ async def test_deep_question_capability_uses_followup_anchor_fast_generation_for
         },
         language="zh",
         metadata={
+            "selected_mode": "fast",
             "question_followup_context": {
                 "question_id": "set_1",
                 "question": "上一轮练习",
@@ -665,10 +666,119 @@ async def test_deep_question_capability_uses_followup_anchor_fast_generation_for
 
     assert captured["followup_call"]["num_questions"] == 2
     assert captured["followup_call"]["question_type"] == "choice"
+    assert captured["followup_call"]["lightweight_generation"] is True
+    assert captured["init"]["tool_flags_override"] == {
+        "rag": False,
+        "web_search": False,
+        "code_execution": False,
+    }
     assert len(captured["followup_call"]["followup_question_context"]["items"]) == 2
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "custom"
     assert result_event.metadata["question_followup_context"]["items"][0]["question"] == "流水节拍题 1"
+
+
+@pytest.mark.asyncio
+async def test_deep_question_capability_uses_lightweight_topic_generation_for_fast_open_chat_continuation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+            self._callback = None
+
+        def set_ws_callback(self, callback) -> None:
+            self._callback = callback
+
+        async def generate_from_followup_context(self, **kwargs: Any) -> dict[str, Any]:
+            raise AssertionError("followup generation should not be used without question followup context")
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["topic_call"] = kwargs
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question_id": "q_1",
+                            "question": "流水节拍题 1",
+                            "question_type": "choice",
+                            "options": {"A": "A", "B": "B", "C": "C", "D": "D"},
+                            "correct_answer": "A",
+                            "explanation": "",
+                            "concentration": "流水节拍",
+                        }
+                    },
+                    {
+                        "qa_pair": {
+                            "question_id": "q_2",
+                            "question": "流水步距题 2",
+                            "question_type": "choice",
+                            "options": {"A": "A", "B": "B", "C": "C", "D": "D"},
+                            "correct_answer": "B",
+                            "explanation": "",
+                            "concentration": "流水步距",
+                        }
+                    },
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="好，那你现在给我出2道很简单的选择题，只考刚才这几个概念，不要超纲。",
+        config_overrides={
+            "topic": "好，那你现在给我出2道很简单的选择题，只考刚才这几个概念，不要超纲。",
+            "num_questions": 2,
+            "question_type": "choice",
+            "force_generate_questions": True,
+        },
+        language="zh",
+        metadata={
+            "selected_mode": "fast",
+            "active_object": {
+                "object_type": "open_chat_topic",
+                "object_id": "session-1",
+                "scope": {"domain": "session", "session_id": "session-1", "source": "wx"},
+                "state_snapshot": {
+                    "session_id": "session-1",
+                    "title": "流水施工基本概念",
+                    "compressed_summary": "用户刚刚在讨论流水节拍、流水步距和施工段的区别。",
+                    "source": "wx",
+                    "status": "idle",
+                },
+                "version": 1,
+                "entered_at": "",
+                "last_touched_at": "",
+                "source_turn_id": "turn-open-chat",
+            },
+            "conversation_context_text": "最近一直在讲流水节拍、流水步距和施工段。",
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["topic_call"]["lightweight_generation"] is True
+    assert captured["topic_call"]["require_explanation"] is False
+    assert "如果锚点里没有出现某个新概念" in captured["topic_call"]["user_topic"]
+    assert captured["init"]["tool_flags_override"] == {
+        "rag": False,
+        "web_search": False,
+        "code_execution": False,
+    }
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert len(result_event.metadata["question_followup_context"]["items"]) == 2
 
 
 @pytest.mark.asyncio
@@ -843,6 +953,15 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
         metadata={
             "billing_context": {"user_id": "u1", "source": "wx_miniprogram"},
             "interaction_hints": {},
+            "active_object": {
+                "object_type": "open_chat_topic",
+                "object_id": "session-1",
+                "state_snapshot": {
+                    "title": "流水施工入门",
+                    "compressed_summary": "用户一直在用6层住宅楼的例子理解流水节拍和施工段。",
+                },
+            },
+            "conversation_context_text": "最近一直在沿用6层住宅楼这个案例。",
         },
         language="zh",
     )
@@ -864,6 +983,8 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     assert captured["send"]["session_metadata"]["effective_response_mode"] == "fast"
     assert "construction-knowledge" in captured["send"]["session_metadata"]["kb_aliases"]
     assert "construction-exam-tutor" in captured["send"]["session_metadata"]["kb_aliases"]
+    assert captured["send"]["session_metadata"]["active_object"]["object_type"] == "open_chat_topic"
+    assert "6层住宅楼" in captured["send"]["session_metadata"]["conversation_context_text"]
     assert any(event.type == StreamEventType.PROGRESS for event in events)
     assert any(event.type == StreamEventType.TOOL_CALL and event.content == "rag" for event in events)
     assert any(event.type == StreamEventType.TOOL_RESULT and "知识库命中" in event.content for event in events)

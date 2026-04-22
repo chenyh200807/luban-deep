@@ -37,6 +37,20 @@ def test_build_mcq_block_from_result_summary_returns_structured_questions() -> N
     assert block["questions"][0]["followup_context"]["correct_answer"] == "B"
 
 
+def test_build_mcq_block_from_result_summary_uses_metadata_knowledge_context_when_explanation_omitted() -> None:
+    summary = _choice_summary()
+    summary["results"][0]["qa_pair"]["explanation"] = ""
+    summary["results"][0]["qa_pair"]["metadata"] = {"knowledge_context": "网络计划里自由时差只看不影响紧后最早开始的余量。"}
+
+    block = build_mcq_block_from_result_summary(summary)
+
+    assert block is not None
+    assert (
+        block["questions"][0]["followup_context"]["knowledge_context"]
+        == "网络计划里自由时差只看不影响紧后最早开始的余量。"
+    )
+
+
 def test_build_canonical_presentation_wraps_blocks_and_fallback_text() -> None:
     presentation = build_canonical_presentation(
         content="### Question 1\n某防水工程题目",

@@ -522,6 +522,7 @@ def build_question_followup_context_from_result_summary(
         qa_pair = result.get("qa_pair") or {}
         if not isinstance(qa_pair, dict):
             continue
+        metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
         question = str(qa_pair.get("question", "") or "").strip()
         if not question:
             continue
@@ -535,6 +536,11 @@ def build_question_followup_context_from_result_summary(
                 "explanation": str(qa_pair.get("explanation", "") or "").strip(),
                 "difficulty": str(qa_pair.get("difficulty", "") or "").strip(),
                 "concentration": str(qa_pair.get("concentration", "") or "").strip(),
+                "knowledge_context": str(
+                    qa_pair.get("knowledge_context")
+                    or metadata.get("knowledge_context")
+                    or ""
+                ).strip(),
                 "multi_select": bool(qa_pair.get("multi_select", False)),
             }
         )

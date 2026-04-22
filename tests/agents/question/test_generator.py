@@ -86,3 +86,41 @@ def test_generator_normalizes_choice_answer_from_option_text() -> None:
         "D": "Delta",
     }
     assert payload["correct_answer"] == "C"
+
+
+@pytest.mark.asyncio
+async def test_generator_allows_missing_explanation_when_not_required() -> None:
+    generator = StubGenerator()
+    template = QuestionTemplate(
+        question_id="q_1",
+        concentration="流水步距与总时差",
+        question_type="choice",
+        difficulty="easy",
+    )
+
+    normalized, validation = await generator._validate_and_repair_payload(
+        template=template,
+        payload={
+            "question_type": "choice",
+            "question": "总时差和自由时差的区别，以下哪项正确？",
+            "options": {
+                "A": "两者都表示总工期余量",
+                "B": "自由时差只影响紧后工作的最早开始",
+                "C": "总时差只看本工作持续时间",
+                "D": "自由时差一定大于总时差",
+            },
+            "correct_answer": "B",
+            "explanation": "",
+        },
+        user_topic="网络计划",
+        preference="只出题",
+        history_context="",
+        knowledge_context="",
+        available_tools="(no tools available)",
+        require_explanation=False,
+    )
+
+    assert normalized["correct_answer"] == "B"
+    assert normalized["explanation"] == ""
+    assert validation["schema_ok"] is True
+    assert validation["issues"] == []

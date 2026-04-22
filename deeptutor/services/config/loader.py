@@ -13,7 +13,7 @@ from typing import Any
 
 import yaml
 
-from deeptutor.services.path_service import get_path_service
+from deeptutor.services.path_service import get_path_service, resolve_runtime_user_data_dir
 
 # PROJECT_ROOT points to the actual project root directory (DeepTutor/)
 # Path(__file__) = deeptutor/services/config/loader.py
@@ -26,8 +26,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 def get_runtime_settings_dir(project_root: Path | None = None) -> Path:
     """Return the canonical runtime settings directory under ``data/user/settings``."""
-    root = project_root or PROJECT_ROOT
-    return root / "data" / "user" / "settings"
+    return resolve_runtime_user_data_dir(project_root or PROJECT_ROOT) / "settings"
 
 def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
     """

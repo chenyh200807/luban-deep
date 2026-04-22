@@ -109,6 +109,18 @@ class TutorBotCapability(BaseCapability):
             session_metadata["default_kb"] = context.knowledge_bases[0]
         if user_id:
             session_metadata["user_id"] = user_id
+        active_object = (
+            context.metadata.get("active_object")
+            if isinstance(context.metadata, dict) and isinstance(context.metadata.get("active_object"), dict)
+            else None
+        )
+        if active_object:
+            session_metadata["active_object"] = dict(active_object)
+        conversation_context_text = str(
+            (context.metadata or {}).get("conversation_context_text") if isinstance(context.metadata, dict) else ""
+        ).strip()
+        if conversation_context_text:
+            session_metadata["conversation_context_text"] = conversation_context_text
 
         async def _on_progress(text: str) -> None:
             if not str(text or "").strip():
