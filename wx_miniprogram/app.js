@@ -41,12 +41,21 @@ const _LOCAL_CANDIDATES = endpoints
   .filter(function (item) {
     return /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(item);
   });
+const _REMOTE_FALLBACK_CANDIDATES = [_NGROK_URL].filter(function (item) {
+  return (
+    !!item &&
+    !item.includes("example.com") &&
+    /^https?:\/\//.test(item) &&
+    !/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(item)
+  );
+});
 const _HAS_REAL_NGROK =
   !!_NGROK_URL && !_NGROK_URL.includes("example.com") && /^https?:\/\//.test(_NGROK_URL);
+const _DEFAULT_LOCAL_DIRECT = _IS_DEVELOP && _IS_DEVTOOLS;
 const _USE_LOCAL_DIRECT =
   typeof __USE_LOCAL_DIRECT__ !== "undefined"
     ? !!__USE_LOCAL_DIRECT__
-    : _IS_DEVTOOLS && _IS_DEVELOP;
+    : _DEFAULT_LOCAL_DIRECT;
 const _USE_NGROK = _IS_DEVELOP && !_USE_LOCAL_DIRECT && _HAS_REAL_NGROK;
 const _RESOLVED_GATEWAY = _USE_NGROK
   ? _NGROK_URL
@@ -58,8 +67,11 @@ const _RESOLVED_API = _USE_NGROK
   : _IS_DEVELOP
     ? _LOCAL_CANDIDATES[0] || _LOCAL_BASE_URL
     : _PROD_API;
-const _RUNTIME_CANDIDATES =
-  _USE_NGROK || _IS_DEVELOP ? _LOCAL_CANDIDATES.slice() : [];
+const _RUNTIME_CANDIDATES = _USE_LOCAL_DIRECT
+  ? _LOCAL_CANDIDATES.concat(_REMOTE_FALLBACK_CANDIDATES)
+  : _USE_NGROK
+    ? _REMOTE_FALLBACK_CANDIDATES.slice()
+    : [];
 
 App({
   globalData: {

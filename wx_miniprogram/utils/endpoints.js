@@ -1,5 +1,6 @@
 // utils/endpoints.js — 小程序 API 地址解析与回退
 
+var DEFAULT_REMOTE_BASES = ["https://test2.yousenjiaoyu.com"];
 var DEFAULT_LOCAL_BASES = ["http://127.0.0.1:8001", "http://127.0.0.1:8012"];
 var ENV_VERSION =
   (typeof __wxConfig !== "undefined" && __wxConfig.envVersion) || "release";
@@ -8,8 +9,34 @@ var IS_DEVELOP = ENV_VERSION === "develop";
 function getAppSafe() {
   try {
     return getApp();
-  } catch (e) {
+  } catch (_) {
     return null;
+  }
+}
+
+function getRuntimeBaseConfig(useGateway) {
+  var app = getAppSafe();
+  if (!app || !app.globalData || typeof app.globalData !== "object") {
+    return { primary: "", candidates: [] };
+  }
+  var primary = useGateway ? app.globalData.gatewayUrl : app.globalData.apiUrl;
+  var candidates = useGateway
+    ? app.globalData.gatewayCandidates || []
+    : app.globalData.apiCandidates || [];
+  return {
+    primary: String(primary || "").trim(),
+    candidates: Array.isArray(candidates) ? candidates.slice() : [],
+  };
+}
+
+function rememberRuntimeBaseUrl(baseUrl, useGateway) {
+  var app = getAppSafe();
+  var normalized = String(baseUrl || "").trim();
+  if (!app || !app.globalData || !normalized) return;
+  if (useGateway) {
+    app.globalData.gatewayUrl = normalized;
+  } else {
+    app.globalData.apiUrl = normalized;
   }
 }
 
@@ -32,42 +59,30 @@ function isLocalBase(url) {
 }
 
 function getConfiguredBases(useGateway) {
-  var app = getAppSafe();
-  if (!app || !app.globalData) return [];
-  var primary = useGateway ? app.globalData.gatewayUrl : app.globalData.apiUrl;
-  var extras = useGateway
-    ? app.globalData.gatewayCandidates || []
-    : app.globalData.apiCandidates || [];
-  var list = [primary];
-  if (Array.isArray(extras)) list = list.concat(extras);
-  if (isLocalBase(primary)) list = list.concat(DEFAULT_LOCAL_BASES);
-  return uniq(list);
+  var config = getRuntimeBaseConfig(!!useGateway);
+  if (config.primary || config.candidates.length) {
+    return uniq([config.primary].concat(config.candidates || []));
+  }
+  if (IS_DEVELOP) {
+    return uniq(DEFAULT_LOCAL_BASES.concat(DEFAULT_REMOTE_BASES));
+  }
+  return DEFAULT_REMOTE_BASES.slice();
 }
 
 function getBaseUrlCandidates(useGateway, preferredBase) {
   var list = [];
   if (preferredBase) list.push(preferredBase);
-  var configured = getConfiguredBases(!!useGateway);
-  list = list.concat(configured);
-  if (IS_DEVELOP || isLocalBase(preferredBase)) {
-    list = list.concat(DEFAULT_LOCAL_BASES);
-  }
+  list = list.concat(getConfiguredBases(!!useGateway));
   return uniq(list);
 }
 
 function getPrimaryBaseUrl(useGateway) {
   var candidates = getBaseUrlCandidates(!!useGateway);
-  return candidates[0] || DEFAULT_LOCAL_BASES[0];
+  return candidates[0] || (IS_DEVELOP ? DEFAULT_LOCAL_BASES[0] : DEFAULT_REMOTE_BASES[0]);
 }
 
 function rememberWorkingBaseUrl(baseUrl, useGateway) {
-  var app = getAppSafe();
-  if (!app || !app.globalData || !baseUrl) return;
-  if (useGateway) {
-    app.globalData.gatewayUrl = baseUrl;
-  } else {
-    app.globalData.apiUrl = baseUrl;
-  }
+  rememberRuntimeBaseUrl(baseUrl, !!useGateway);
 }
 
 function toSocketBaseUrl(baseUrl) {
@@ -98,6 +113,7 @@ function getSocketUrlCandidates(path, preferredBase) {
 }
 
 module.exports = {
+  DEFAULT_REMOTE_BASES: DEFAULT_REMOTE_BASES,
   DEFAULT_LOCAL_BASES: DEFAULT_LOCAL_BASES,
   getBaseUrlCandidates: getBaseUrlCandidates,
   getPrimaryBaseUrl: getPrimaryBaseUrl,
