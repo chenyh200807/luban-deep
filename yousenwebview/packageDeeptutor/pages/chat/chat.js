@@ -199,6 +199,8 @@ Page({
   _observer: null, // IntersectionObserver 用于懒解析 Markdown
   _visibleSet: {}, // 当前可见消息 id 集合
   _autoScrollEnabled: true,
+  _chatReadyPromise: null,
+  _chatReadyValidated: false,
 
   // ── 生命周期 ──────────────────────────────────
 
@@ -277,8 +279,14 @@ Page({
     if (runtime.consumeGoHomeFlag()) {
       this.clearMessages();
     }
-    runtime.checkAuth(function () {
-      var proceedAfterAuthReady = function () {
+    self.setData({ timeGreeting: helpers.getTimeGreeting() });
+    var pendingConvId = runtime.consumePendingConversationId();
+    if (pendingConvId) {
+      self._restoreConversation(pendingConvId);
+    }
+    self
+      ._ensureChatReady()
+      .then(function () {
         self._loadDashboard();
         self._checkDiagnostic();
         var pendingIntent = runtime.consumePendingChatIntent();
@@ -286,40 +294,13 @@ Page({
           self.setData({ answerMode: pendingIntent.mode || "AUTO" });
           self._send(pendingIntent.query);
         }
-      };
-      self.setData({ timeGreeting: helpers.getTimeGreeting() });
-      var pendingConvId = runtime.consumePendingConversationId();
-      if (pendingConvId) {
-        self._restoreConversation(pendingConvId);
-      }
-      // 用 getUserInfo 验证 token 是否真的有效
-      api
-        .getUserInfo()
-        .then(function (raw) {
-          var info = api.unwrapResponse(raw);
-          var name = info.username || info.display_name || "用户";
-          var nextPoints = extractPointsValue(info);
-          var nextState = {
-            userName: name,
-            avatarChar: name.charAt(0).toUpperCase(),
-          };
-          if (nextPoints !== null) {
-            nextState.userPoints = nextPoints;
-            nextState.billingBalance = nextPoints;
-          }
-          self.setData(nextState);
-          proceedAfterAuthReady();
-        })
-        .catch(function (e) {
-          log.warn("Chat", "getUserInfo failed: " + ((e && e.message) || e));
-          // 401 已被 api.js 拦截跳转登录
-          if (String((e && e.message) || "") === "AUTH_EXPIRED") {
-            return;
-          }
+      })
+      .catch(function (e) {
+        log.warn("Chat", "chat bootstrap blocked: " + ((e && e.message) || e));
+        if (String((e && e.message) || "") !== "AUTH_EXPIRED") {
           self._refreshPoints();
-          proceedAfterAuthReady();
-        });
-    });
+        }
+      });
     // [FIX] 从后台切回时重建 observer（onHide 中已 teardown）
     if (this.data.hasMessages) {
       this._setupObserver();
@@ -337,6 +318,57 @@ Page({
     this._flushDeferredWrites();
     this._stop();
     this._teardownObserver();
+  },
+
+  _applyAuthProfile: function (raw) {
+    var info = api.unwrapResponse(raw);
+    var name = info.username || info.display_name || "用户";
+    var nextPoints = extractPointsValue(info);
+    var nextState = {
+      userName: name,
+      avatarChar: name.charAt(0).toUpperCase(),
+    };
+    if (nextPoints !== null) {
+      nextState.userPoints = nextPoints;
+      nextState.billingBalance = nextPoints;
+    }
+    this.setData(nextState);
+  },
+
+  _ensureChatReady: function () {
+    var self = this;
+    var authAllowed = true;
+    if (self._chatReadyValidated) {
+      return Promise.resolve();
+    }
+    if (self._chatReadyPromise) {
+      return self._chatReadyPromise;
+    }
+    authAllowed = runtime.checkAuth(function () {});
+    if (authAllowed === false) {
+      return Promise.reject(new Error("AUTH_EXPIRED"));
+    }
+    self._chatReadyPromise = api
+      .getUserInfo()
+      .then(function (raw) {
+        self._applyAuthProfile(raw);
+        self._chatReadyValidated = true;
+      })
+      .catch(function (err) {
+        self._chatReadyValidated = false;
+        throw err;
+      })
+      .then(
+        function (result) {
+          self._chatReadyPromise = null;
+          return result;
+        },
+        function (err) {
+          self._chatReadyPromise = null;
+          throw err;
+        },
+      );
+    return self._chatReadyPromise;
   },
 
   // ── 虚拟滚动：IntersectionObserver 懒解析 ─────
@@ -1580,6 +1612,49 @@ Page({
 
   _send: function (query, extraOpts) {
     var self = this;
+    var startSend = function () {
+      if (self._convId && !self._sid) {
+        self._sid = self._convId;
+        self._scheduleSessionPersist(true);
+      }
+
+      // 首次发消息时先创建对话，后续复用同一个 _convId
+      if (!self._convId || !self._sid) {
+        self.setData({ isStreaming: true });
+        api
+          .createConversation()
+          .then(function (raw) {
+            // [FIX-SESSION-ROOT-CAUSE 2026-04-01] ApiResponse 包装必须 unwrap
+            // 之前直接读 data.conversation，但 data 是 {code,data,message} 包装
+            // 导致 conv.id=undefined → session_id=None → 每次新 thread → 上下文断裂
+            var unwrapped = api.unwrapResponse(raw);
+            var conv = unwrapped.conversation || unwrapped;
+            if (!conv || !conv.id) {
+              log.error("Chat", "createConversation returned no id", unwrapped);
+              self.setData({ isStreaming: false });
+              wx.showToast({ title: "创建对话异常", icon: "none" });
+              return;
+            }
+            self._chatReadyValidated = true;
+            self._convId = conv.id;
+            self._sid = conv.id; // conversation_id 同时用作 session_id
+            // [FIX-SESSION-2] 立即持久化（含时间戳），防止刷新/重启后丢失
+            self._scheduleSessionPersist(true);
+            self._doSend(query, extraOpts);
+          })
+          .catch(function (err) {
+            self._chatReadyValidated = false;
+            self.setData({ isStreaming: false });
+            if (String((err && err.message) || "") === "AUTH_EXPIRED") {
+              return;
+            }
+            wx.showToast({ title: "创建对话失败", icon: "none" });
+          });
+        return;
+      }
+      self._doSend(query, extraOpts);
+    };
+
     if (!runtime.isNetworkAvailable()) {
       wx.showToast({ title: "当前无网络连接", icon: "none", duration: 2000 });
       return;
@@ -1587,41 +1662,25 @@ Page({
     if (self.data.isStreaming) return;
     self._stop();
 
-    if (self._convId && !self._sid) {
-      self._sid = self._convId;
-      self._scheduleSessionPersist(true);
-    }
-
-    // 首次发消息时先创建对话，后续复用同一个 _convId
-    if (!self._convId || !self._sid) {
-      self.setData({ isStreaming: true });
-      api
-        .createConversation()
-        .then(function (raw) {
-          // [FIX-SESSION-ROOT-CAUSE 2026-04-01] ApiResponse 包装必须 unwrap
-          // 之前直接读 data.conversation，但 data 是 {code,data,message} 包装
-          // 导致 conv.id=undefined → session_id=None → 每次新 thread → 上下文断裂
-          var unwrapped = api.unwrapResponse(raw);
-          var conv = unwrapped.conversation || unwrapped;
-          if (!conv || !conv.id) {
-            log.error("Chat", "createConversation returned no id", unwrapped);
-            self.setData({ isStreaming: false });
-            wx.showToast({ title: "创建对话异常", icon: "none" });
+    if (!self._chatReadyValidated) {
+      self
+        ._ensureChatReady()
+        .then(function () {
+          startSend();
+        })
+        .catch(function (err) {
+          var title = "服务暂时不可用，请稍后重试";
+          if (String((err && err.message) || "") === "AUTH_EXPIRED") {
             return;
           }
-          self._convId = conv.id;
-          self._sid = conv.id; // conversation_id 同时用作 session_id
-          // [FIX-SESSION-2] 立即持久化（含时间戳），防止刷新/重启后丢失
-          self._scheduleSessionPersist(true);
-          self._doSend(query, extraOpts);
-        })
-        .catch(function () {
-          self.setData({ isStreaming: false });
-          wx.showToast({ title: "创建对话失败", icon: "none" });
+          if (typeof api.describeRequestError === "function") {
+            title = api.describeRequestError(err, title);
+          }
+          wx.showToast({ title: title, icon: "none" });
         });
       return;
     }
-    self._doSend(query, extraOpts);
+    startSend();
   },
 
   _doSend: function (query, extraOpts) {
