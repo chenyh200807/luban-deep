@@ -25,10 +25,18 @@ fi
 probe_url() {
     local label="$1"
     local url="$2"
+    local expected_substring="${3:-}"
     local last_error=""
+    local body=""
 
     for attempt in $(seq 1 "${PROBE_RETRIES}"); do
-        if curl -fsS --connect-timeout "${PROBE_TIMEOUT_SECONDS}" --max-time "${PROBE_TIMEOUT_SECONDS}" "${url}" >/dev/null; then
+        if body="$(curl -fsS --connect-timeout "${PROBE_TIMEOUT_SECONDS}" --max-time "${PROBE_TIMEOUT_SECONDS}" "${url}")"; then
+            if [[ -n "${expected_substring}" ]] && [[ "${body}" != *"${expected_substring}"* ]]; then
+                last_error="公网探针失败(${attempt}/${PROBE_RETRIES}): ${label} -> ${url}，响应缺少 ${expected_substring}"
+                echo "${last_error}" >&2
+                sleep "${PROBE_INTERVAL_SECONDS}"
+                continue
+            fi
             echo "公网探针通过: ${label} -> ${url}"
             return 0
         fi
@@ -44,8 +52,8 @@ probe_url() {
 echo "执行公网发布验收..."
 echo "验收口径: ${PUBLIC_BASE_URL:-http://${PUBLIC_HOST}:${FRONTEND_PORT}}"
 probe_url "frontend" "${frontend_url}"
-probe_url "healthz" "${healthz_url}"
-probe_url "readyz" "${readyz_url}"
+probe_url "healthz" "${healthz_url}" '"alive":true'
+probe_url "readyz" "${readyz_url}" '"ready":true'
 
 cat <<EOF
 公网发布验收完成。

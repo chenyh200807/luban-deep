@@ -178,7 +178,7 @@ def build_mode_execution_policy(
             allow_deep_stage=False,
             response_density="short",
             latency_budget_ms=6000,
-            preferred_model="qwen3.5-flash",
+            preferred_model="deepseek-v3.2",
             selection_reason=selection_reason,
         )
 

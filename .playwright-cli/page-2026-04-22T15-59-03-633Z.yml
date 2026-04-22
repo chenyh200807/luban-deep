@@ -1,0 +1,74 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - link "鲁班智考 鲁班智考" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "鲁班智考" [ref=e6]
+          - generic [ref=e7]: 鲁班智考
+        - button "Collapse sidebar" [ref=e8] [cursor=pointer]:
+          - img [ref=e9]
+      - navigation [ref=e12]:
+        - generic [ref=e13]:
+          - button "New Chat" [ref=e14] [cursor=pointer]:
+            - img [ref=e15]
+            - generic [ref=e16]: New Chat
+          - link "Chat" [ref=e18] [cursor=pointer]:
+            - /url: /
+            - img [ref=e19]
+            - generic [ref=e21]: Chat
+          - link "BI" [ref=e23] [cursor=pointer]:
+            - /url: /bi
+            - img [ref=e24]
+            - generic [ref=e26]: BI
+    - main [ref=e29]:
+      - generic [ref=e31]:
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e35]:
+              - generic [ref=e36]: BOSS WORKBENCH
+              - generic [ref=e37]: 最近同步：04/22 23:57
+            - heading "DeepTutor BI 工作台" [level=1] [ref=e38]
+            - paragraph [ref=e39]: 经营、质量、会员、TutorBot 四条主线的轻量总览入口。
+            - paragraph [ref=e40]: 当前筛选：全部
+          - generic [ref=e41]:
+            - generic [ref=e42]:
+              - button "7 天" [ref=e43] [cursor=pointer]:
+                - img [ref=e44]
+                - text: 7 天
+              - button "30 天" [ref=e46] [cursor=pointer]:
+                - img [ref=e47]
+                - text: 30 天
+              - button "90 天" [ref=e49] [cursor=pointer]:
+                - img [ref=e50]
+                - text: 90 天
+              - button "刷新" [ref=e52] [cursor=pointer]:
+                - img [ref=e53]
+                - text: 刷新
+              - button "导出 JSON" [ref=e58] [cursor=pointer]:
+                - img [ref=e59]
+                - text: 导出 JSON
+              - button "筛选" [ref=e62] [cursor=pointer]:
+                - img [ref=e63]
+                - text: 筛选
+                - img [ref=e65]
+            - generic [ref=e205]:
+              - img [ref=e206]
+              - generic [ref=e208]:
+                - paragraph [ref=e209]: 当前数据已降级展示
+                - paragraph [ref=e210]: 最近 30 天共有 10 个失败回合，建议排查错误分布。
+        - navigation "BI primary tabs" [ref=e67]:
+          - link "老板工作台" [ref=e68] [cursor=pointer]:
+            - /url: /bi
+          - link "会员运营" [ref=e69] [cursor=pointer]:
+            - /url: /bi?tab=member-ops
+          - link "学员 360" [ref=e70] [cursor=pointer]:
+            - /url: /bi?tab=learner-360
+          - link "经营审计" [active] [ref=e71] [cursor=pointer]:
+            - /url: /bi?tab=audit
+        - generic [ref=e459]:
+          - paragraph [ref=e460]: COMMAND DECK SHELL
+          - heading "经营审计（需管理员登录）" [level=2] [ref=e465]
+          - paragraph [ref=e462]: 当前通过 BI API Token 只读访问，经营 BI 聚合可正常查看；会员运营、学员 360、经营审计与导出仍需管理员登录态。
+          - paragraph [ref=e463]: 本次任务只先完成 BI Command Deck 的统一壳层与主分区骨架；该分区的完整内容拆分会在后续任务继续实现。
+  - alert [ref=e204]

@@ -147,6 +147,45 @@ run("wx internal thinking status should be sanitized before entering workflow tr
   assert(entry.rawText === "正在整理最终回答", "wx workflow raw text should stay on safe summarized wording");
 });
 
+run("wx workflow trace should accept stage and tool events from ws stream", function () {
+  var wsStream = loadWsStream();
+  var workflowStatus = require(path.join(__dirname, "../utils/workflow-status.js"));
+
+  var stagePayload = wsStream.buildStatusEvent({
+    type: "stage_start",
+    stage: "responding",
+    seq: 11,
+    metadata: { visibility: "internal" },
+  });
+  var toolCallPayload = wsStream.buildStatusEvent({
+    type: "tool_call",
+    content: "rag",
+    seq: 12,
+    metadata: {
+      visibility: "internal",
+      args: { query: "流水节拍" },
+    },
+  });
+  var toolResultPayload = wsStream.buildStatusEvent({
+    type: "tool_result",
+    content: "查到相关教材依据",
+    seq: 13,
+    metadata: {
+      visibility: "internal",
+      tool: "rag",
+    },
+  });
+
+  var stageEntry = workflowStatus.buildWorkflowEntry(stagePayload);
+  var toolCallEntry = workflowStatus.buildWorkflowEntry(toolCallPayload);
+  var toolResultEntry = workflowStatus.buildWorkflowEntry(toolResultPayload);
+
+  assert(stagePayload.seq === 11, "wx stage payload should keep server seq");
+  assert(stageEntry.title === "正在整理最终回答", "wx stage_start should restore responding stage wording");
+  assert(toolCallEntry.title === "已启动 知识库检索", "wx tool_call should appear as workflow progress");
+  assert(toolResultEntry.title === "知识库检索 已返回结果", "wx tool_result should appear as workflow progress");
+});
+
 if (fail) {
   console.error(errors.join("\n"));
   process.exit(1);

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 
-from deeptutor.api.dependencies.auth import AuthContext, resolve_auth_context
+from deeptutor.api.dependencies.auth import AuthContext, _has_metrics_token_access, resolve_auth_context
 from deeptutor.services.config import get_env_store
 from deeptutor.services.bi_service import get_bi_service
 from deeptutor.services.runtime_env import is_production_environment
@@ -15,17 +15,22 @@ def _bi_public_enabled() -> bool:
     return value in {"1", "true", "yes", "on"}
 
 
-def require_bi_access(authorization: str | None = Header(default=None)) -> AuthContext | None:
+def require_bi_access(
+    authorization: str | None = Header(default=None),
+    metrics_token: str | None = Header(default=None, alias="X-Metrics-Token"),
+) -> AuthContext | None:
     current_user = resolve_auth_context(authorization)
+    if current_user is not None and current_user.is_admin:
+        return current_user
     if _bi_public_enabled():
         return current_user
+    if _has_metrics_token_access(authorization, metrics_token):
+        return None
     if current_user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required",
         )
-    if current_user.is_admin:
-        return current_user
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Admin access required",

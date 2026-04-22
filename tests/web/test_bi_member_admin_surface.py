@@ -64,3 +64,19 @@ def test_bi_audit_tab_exposes_filter_inputs() -> None:
     assert "target_user" in source or "目标用户" in source
     assert "operator" in source or "操作人" in source
     assert "action" in source or "动作" in source
+
+
+def test_bi_api_sends_metrics_token_header() -> None:
+    source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
+    api_source = (REPO_ROOT / "web" / "lib" / "api.ts").read_text(encoding="utf-8")
+
+    assert "withBiApiToken" in source
+    assert "BI_API_TOKEN" in source
+    assert "X-Metrics-Token" in api_source
+
+
+def test_bi_page_client_exposes_token_read_only_mode() -> None:
+    source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+
+    assert "biReadOnly" in source
+    assert "BI API Token" in source

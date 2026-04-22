@@ -45,13 +45,16 @@ prometheus_request = urllib.request.Request(prometheus_url, headers=headers)
 with urllib.request.urlopen(prometheus_request, timeout=8) as response:
     prometheus_body = response.read().decode('utf-8')
 
-if 'deeptutor_ready' not in prometheus_body:
-    raise SystemExit('metrics/prometheus 缺少 deeptutor_ready 指标')
-
 release_snapshot = payload.get('release') or {}
 readiness = payload.get('readiness') or {}
 http_snapshot = payload.get('http') or {}
 turn_snapshot = payload.get('turn_runtime') or {}
+
+if readiness.get('ready') is not True:
+    raise SystemExit(f'metrics readiness 未就绪: {readiness}')
+
+if 'deeptutor_ready 1' not in prometheus_body:
+    raise SystemExit('metrics/prometheus 未导出 deeptutor_ready 1')
 
 print('Observability 内网验收通过。')
 print('metrics=' + metrics_url)

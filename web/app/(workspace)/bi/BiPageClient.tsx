@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
-import { apiUrl } from "@/lib/api";
+import { BI_API_TOKEN, apiUrl } from "@/lib/api";
 import {
   loadBiWorkbench,
   type BiBossActionItem,
@@ -75,8 +75,12 @@ const DEFAULT_AUDIT_FILTERS: AuditFilterState = {
   action: "all",
 };
 
+const BI_READ_ONLY_SUMMARY =
+  "当前通过 BI API Token 只读访问，经营 BI 聚合可正常查看；会员运营、学员 360、经营审计与导出仍需管理员登录态。";
+
 export default function BiPageClient() {
   const searchParams = useSearchParams();
+  const biReadOnly = Boolean(BI_API_TOKEN);
   const [days, setDays] = useState<7 | 30 | 90>(30);
   const [activeTab, setActiveTab] = useState<BiPrimaryTab>("boss-workbench");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -127,6 +131,16 @@ export default function BiPageClient() {
   }, [days, filters.capability, filters.entrypoint, filters.tier]);
 
   const refreshMembers = useCallback(async () => {
+    if (biReadOnly) {
+      setMemberLoading(false);
+      setMemberError("");
+      setMemberDashboard(null);
+      setMemberItems([]);
+      setMemberTotal(0);
+      setSelectedIds([]);
+      setSelectedUserId("");
+      return;
+    }
     try {
       setMemberLoading(true);
       setMemberError("");
@@ -158,6 +172,7 @@ export default function BiPageClient() {
       setMemberLoading(false);
     }
   }, [
+    biReadOnly,
     memberFilters.expire_within_days,
     memberFilters.risk_level,
     memberFilters.search,
@@ -167,6 +182,12 @@ export default function BiPageClient() {
   ]);
 
   const refreshAudit = useCallback(async () => {
+    if (biReadOnly) {
+      setAuditLoading(false);
+      setAuditError("");
+      setAuditLog(null);
+      return;
+    }
     try {
       setAuditLoading(true);
       setAuditError("");
@@ -183,9 +204,15 @@ export default function BiPageClient() {
     } finally {
       setAuditLoading(false);
     }
-  }, [auditFilters.action, auditFilters.operator, auditFilters.target_user]);
+  }, [auditFilters.action, auditFilters.operator, auditFilters.target_user, biReadOnly]);
 
   const refreshSelectedMember = useCallback(async () => {
+    if (biReadOnly) {
+      setDetailLoading(false);
+      setDetailError("");
+      setSelectedMember(null);
+      return;
+    }
     if (!selectedUserId) {
       setSelectedMember(null);
       return;
@@ -201,7 +228,7 @@ export default function BiPageClient() {
     } finally {
       setDetailLoading(false);
     }
-  }, [selectedUserId]);
+  }, [biReadOnly, selectedUserId]);
 
   useEffect(() => {
     void refreshBi();
@@ -322,8 +349,12 @@ export default function BiPageClient() {
   }, []);
 
   const refreshAll = useCallback(async () => {
+    if (biReadOnly) {
+      await refreshBi();
+      return;
+    }
     await Promise.all([refreshBi(), refreshMembers(), refreshAudit(), refreshSelectedMember()]);
-  }, [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember]);
+  }, [biReadOnly, refreshAudit, refreshBi, refreshMembers, refreshSelectedMember]);
 
   const handleBatchAction = useCallback(
     async (action: "grant" | "revoke") => {
@@ -523,7 +554,7 @@ export default function BiPageClient() {
 
         <BiIssuesBanner issues={issues} />
 
-        {(activeTab === "member-ops" || activeTab === "learner-360" || activeTab === "audit") ? (
+        {(activeTab === "member-ops" || activeTab === "learner-360" || activeTab === "audit") && !biReadOnly ? (
           <section className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5 shadow-[0_12px_30px_rgba(45,33,25,0.05)]">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
               <div className="relative flex-1">
@@ -590,6 +621,9 @@ export default function BiPageClient() {
             onOpenLearnerDetail={openLearnerDetail}
           />
         ) : activeTab === "member-ops" ? (
+          biReadOnly ? (
+            <BiTabShell title="会员运营（需管理员登录）" summary={BI_READ_ONLY_SUMMARY} />
+          ) : (
           <BiMemberOpsTab
             loading={memberLoading}
             memberItems={memberItems}
@@ -610,7 +644,11 @@ export default function BiPageClient() {
             onToggleHeartbeat={(job) => void handleHeartbeatJobAction(job)}
             onApplyOverlay={(overlay) => void handleApplyOverlayPromotions(overlay)}
           />
+          )
         ) : activeTab === "learner-360" ? (
+          biReadOnly ? (
+            <BiTabShell title="学员 360（需管理员登录）" summary={BI_READ_ONLY_SUMMARY} />
+          ) : (
           <BiMember360Panel
             member={selectedMember}
             loading={detailLoading}
@@ -623,7 +661,11 @@ export default function BiPageClient() {
             onToggleHeartbeat={(job) => void handleHeartbeatJobAction(job)}
             onApplyOverlay={(overlay) => void handleApplyOverlayPromotions(overlay)}
           />
+          )
         ) : activeTab === "audit" ? (
+          biReadOnly ? (
+            <BiTabShell title="经营审计（需管理员登录）" summary={BI_READ_ONLY_SUMMARY} />
+          ) : (
           <BiAuditTab
             audit={auditLog}
             loading={auditLoading}
@@ -632,6 +674,7 @@ export default function BiPageClient() {
             filters={auditFilters}
             onFilterChange={updateAuditFilter}
           />
+          )
         ) : (
           <BiTabShell title={activeTabMeta.label} summary={activeTabMeta.summary} />
         )}

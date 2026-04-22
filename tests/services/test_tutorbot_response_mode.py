@@ -53,12 +53,12 @@ def test_build_mode_execution_policy_returns_expected_budget_shape():
     assert fast.allow_deep_stage is False
     assert fast.response_density == "short"
     assert fast.latency_budget_ms == 6000
-    assert fast.preferred_model == "qwen3.5-flash"
+    assert fast.preferred_model == "deepseek-v3.2"
     assert smart.max_tool_rounds == 1
     assert smart.allow_deep_stage is False
     assert smart.response_density == "short"
     assert smart.latency_budget_ms == 6000
-    assert smart.preferred_model == "qwen3.5-flash"
+    assert smart.preferred_model == "deepseek-v3.2"
     assert deep.allow_deep_stage is True
     assert deep.max_tool_rounds == 4
     assert deep.response_density == "detailed"

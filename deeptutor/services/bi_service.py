@@ -577,7 +577,11 @@ class BIService:
             if expire_at_raw:
                 try:
                     expire_at = datetime.fromisoformat(expire_at_raw.replace("Z", "+00:00"))
-                    if 0 <= (expire_at - now).days <= 7:
+                    # Use calendar-day distance for member ops dashboards.
+                    # `timedelta.days` floors partial days and can incorrectly
+                    # pull nearly-8-day expiries into the "7 days" queue.
+                    expire_in_days = (expire_at.date() - now.date()).days
+                    if 0 <= expire_in_days <= 7:
                         expiring_soon_count += 1
                     expiry_buckets[expire_at.strftime("%m-%d")] += 1
                 except ValueError:

@@ -1124,7 +1124,7 @@ async def test_tutorbot_capability_fast_mode_sets_preferred_model_override(
     await _collect_events(lambda bus: capability.run(context, bus))
 
     assert captured["mode"] == "fast"
-    assert captured["session_metadata"]["preferred_model"] == "qwen3.5-flash"
+    assert captured["session_metadata"]["preferred_model"] == "deepseek-v3.2"
 
 
 @pytest.mark.asyncio
@@ -2966,11 +2966,11 @@ async def test_tutorbot_process_direct_uses_preferred_model_override(
 
     content = await loop.process_direct(
         "简要解释流水步距",
-        metadata={"preferred_model": "qwen3.5-flash"},
+        metadata={"preferred_model": "deepseek-v3.2"},
     )
 
     assert content == "已完成"
-    assert captured["model"] == "qwen3.5-flash"
+    assert captured["model"] == "deepseek-v3.2"
 
 
 @pytest.mark.asyncio

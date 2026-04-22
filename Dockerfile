@@ -39,9 +39,12 @@ RUN --mount=type=cache,target=/root/.npm \
 # Copy frontend source code
 COPY web/ ./
 
-# Create .env.local with placeholder that will be replaced at runtime
-# Use a unique placeholder that can be safely replaced
-RUN echo "NEXT_PUBLIC_API_BASE=__NEXT_PUBLIC_API_BASE_PLACEHOLDER__" > .env.local
+# Create .env.local with placeholders that will be replaced at runtime.
+# Use unique placeholders that can be safely replaced in built assets.
+RUN cat > .env.local <<'EOF'
+NEXT_PUBLIC_API_BASE=__NEXT_PUBLIC_API_BASE_PLACEHOLDER__
+NEXT_PUBLIC_BI_API_TOKEN=__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__
+EOF
 
 # Build Next.js for production with standalone output
 # This allows runtime environment variable injection
@@ -307,12 +310,21 @@ else
     echo "[Frontend] 📌 Using runtime same-origin API URL"
 fi
 
+BI_API_TOKEN="${NEXT_PUBLIC_BI_API_TOKEN:-}"
+if [ -n "$BI_API_TOKEN" ]; then
+    echo "[Frontend] 📌 BI API Token 已注入只读访问头"
+else
+    echo "[Frontend] 📌 未配置 BI API Token"
+fi
+
 echo "[Frontend] 🚀 Starting Next.js frontend on port ${FRONTEND_PORT}..."
 
 # Replace placeholder in built Next.js files
 # This is necessary because NEXT_PUBLIC_* vars are inlined at build time
 find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
     sed -i "s|__NEXT_PUBLIC_API_BASE_PLACEHOLDER__|${API_BASE}|g" {} \; 2>/dev/null || true
+find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
+    sed -i "s|__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__|${BI_API_TOKEN}|g" {} \; 2>/dev/null || true
 
 # Start Next.js standalone server
 # The standalone server reads PORT and HOSTNAME from environment variables

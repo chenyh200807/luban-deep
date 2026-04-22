@@ -57,7 +57,7 @@ function buildTurnSocketPayload(turnId, lastSeq) {
 function buildStatusEvent(event) {
   if (!event || typeof event !== "object") return null;
   var eventType = String(event.type || "").trim();
-  if (["thinking", "progress", "observation"].indexOf(eventType) === -1) {
+  if (["thinking", "progress", "observation", "stage_start", "tool_call", "tool_result"].indexOf(eventType) === -1) {
     return null;
   }
 
@@ -65,9 +65,16 @@ function buildStatusEvent(event) {
   var visibility = resolveEventVisibility(event);
   var stage = String(event.stage || "").trim();
   var content = String(event.content || "");
+  var toolName =
+    String(event.tool_name || eventMetadata.tool_name || eventMetadata.tool || "").trim() ||
+    (eventType === "tool_call" ? content : "");
   var metadata = Object.assign({}, eventMetadata, {
     visibility: visibility,
   });
+
+  if (visibility === "internal" && eventType === "progress") {
+    return null;
+  }
 
   if (visibility === "internal" && (eventType === "thinking" || eventType === "observation")) {
     metadata.sanitized_internal = true;
@@ -81,8 +88,9 @@ function buildStatusEvent(event) {
     source: event.source || "",
     stage: stage,
     eventType: eventType,
+    toolName: toolName,
     metadata: metadata,
-    seq: 0,
+    seq: typeof event.seq === "number" ? event.seq : 0,
   };
 }
 

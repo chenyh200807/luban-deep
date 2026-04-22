@@ -5,6 +5,7 @@ const CURRENT_ORIGIN_SENTINEL = "__CURRENT_ORIGIN__";
 // Keep the injected API base when it exists. Otherwise, browser surfaces fall back
 // to the current origin so IP and domain entrances can both use same-origin `/api/...`.
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE?.trim() || "";
+export const BI_API_TOKEN = process.env.NEXT_PUBLIC_BI_API_TOKEN?.trim() || "";
 
 function resolveApiBaseUrl(): string {
   if (API_BASE_URL && API_BASE_URL !== CURRENT_ORIGIN_SENTINEL) {
@@ -56,4 +57,14 @@ export function wsUrl(path: string): string {
   const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
 
   return `${normalizedBase}${normalizedPath}`;
+}
+
+export function withBiApiToken(headers?: HeadersInit): HeadersInit | undefined {
+  if (!BI_API_TOKEN) {
+    return headers;
+  }
+
+  const merged = new Headers(headers ?? {});
+  merged.set("X-Metrics-Token", BI_API_TOKEN);
+  return Object.fromEntries(merged.entries());
 }

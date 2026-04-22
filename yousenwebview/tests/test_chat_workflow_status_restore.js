@@ -154,6 +154,45 @@ run("internal thinking status should be sanitized before entering workflow trace
   assert(entry.rawText === "正在整理最终回答", "workflow raw text should stay on safe summarized wording");
 });
 
+run("workflow trace should accept stage and tool events from ws stream", function () {
+  var wsStream = loadWsStream();
+  var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
+
+  var stagePayload = wsStream.buildStatusEvent({
+    type: "stage_start",
+    stage: "responding",
+    seq: 11,
+    metadata: { visibility: "internal" },
+  });
+  var toolCallPayload = wsStream.buildStatusEvent({
+    type: "tool_call",
+    content: "rag",
+    seq: 12,
+    metadata: {
+      visibility: "internal",
+      args: { query: "流水节拍" },
+    },
+  });
+  var toolResultPayload = wsStream.buildStatusEvent({
+    type: "tool_result",
+    content: "查到相关教材依据",
+    seq: 13,
+    metadata: {
+      visibility: "internal",
+      tool: "rag",
+    },
+  });
+
+  var stageEntry = workflowStatus.buildWorkflowEntry(stagePayload);
+  var toolCallEntry = workflowStatus.buildWorkflowEntry(toolCallPayload);
+  var toolResultEntry = workflowStatus.buildWorkflowEntry(toolResultPayload);
+
+  assert(stagePayload.seq === 11, "stage payload should keep server seq");
+  assert(stageEntry.title === "正在整理最终回答", "stage_start should restore responding stage wording");
+  assert(toolCallEntry.title === "已启动 知识库检索", "tool_call should appear as workflow progress");
+  assert(toolResultEntry.title === "知识库检索 已返回结果", "tool_result should appear as workflow progress");
+});
+
 run("workflow summary should use active analysis wording by default", function () {
   var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
   var summary = workflowStatus.summarizeWorkflow([], true);

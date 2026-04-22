@@ -1,0 +1,166 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - link "鲁班智考 鲁班智考" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "鲁班智考" [ref=e6]
+          - generic [ref=e7]: 鲁班智考
+        - button "Collapse sidebar" [ref=e8] [cursor=pointer]:
+          - img [ref=e9]
+      - navigation [ref=e12]:
+        - generic [ref=e13]:
+          - button "New Chat" [ref=e14] [cursor=pointer]:
+            - img [ref=e15]
+            - generic [ref=e16]: New Chat
+          - link "Chat" [ref=e18] [cursor=pointer]:
+            - /url: /
+            - img [ref=e19]
+            - generic [ref=e21]: Chat
+          - link "BI" [ref=e23] [cursor=pointer]:
+            - /url: /bi
+            - img [ref=e24]
+            - generic [ref=e26]: BI
+    - main [ref=e29]:
+      - generic [ref=e31]:
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e35]:
+              - generic [ref=e36]: BOSS WORKBENCH
+              - generic [ref=e37]: 最近同步：尚未同步
+            - heading "DeepTutor BI 工作台" [level=1] [ref=e38]
+            - paragraph [ref=e39]: 经营、质量、会员、TutorBot 四条主线的轻量总览入口。
+            - paragraph [ref=e40]: 当前筛选：全部
+          - generic [ref=e42]:
+            - button "7 天" [ref=e43] [cursor=pointer]:
+              - img [ref=e44]
+              - text: 7 天
+            - button "30 天" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - text: 30 天
+            - button "90 天" [ref=e49] [cursor=pointer]:
+              - img [ref=e50]
+              - text: 90 天
+            - button "刷新" [disabled] [ref=e52]:
+              - img [ref=e53]
+              - text: 刷新
+            - button "导出 JSON" [disabled] [ref=e58]:
+              - img [ref=e59]
+              - text: 导出 JSON
+            - button "筛选" [ref=e62] [cursor=pointer]:
+              - img [ref=e63]
+              - text: 筛选
+              - img [ref=e65]
+        - navigation "BI primary tabs" [ref=e67]:
+          - link "老板工作台" [ref=e68] [cursor=pointer]:
+            - /url: /bi
+          - link "会员运营" [ref=e69] [cursor=pointer]:
+            - /url: /bi?tab=member-ops
+          - link "学员 360" [ref=e70] [cursor=pointer]:
+            - /url: /bi?tab=learner-360
+          - link "经营审计" [ref=e71] [cursor=pointer]:
+            - /url: /bi?tab=audit
+        - generic [ref=e72]:
+          - generic [ref=e73]:
+            - generic [ref=e74]:
+              - heading "经营 KPI" [level=2] [ref=e75]
+              - generic [ref=e76]: 5 项已接入
+            - generic [ref=e77]:
+              - article [ref=e78]:
+                - generic [ref=e79]:
+                  - paragraph [ref=e80]: 加载中 1
+                  - img [ref=e82]
+                - paragraph [ref=e84]: "--"
+                - paragraph [ref=e85]: 等待 BI 接口
+              - article [ref=e86]:
+                - generic [ref=e87]:
+                  - paragraph [ref=e88]: 加载中 2
+                  - img [ref=e90]
+                - paragraph [ref=e93]: "--"
+                - paragraph [ref=e94]: 等待 BI 接口
+              - article [ref=e95]:
+                - generic [ref=e96]:
+                  - paragraph [ref=e97]: 加载中 3
+                  - img [ref=e99]
+                - paragraph [ref=e102]: "--"
+                - paragraph [ref=e103]: 等待 BI 接口
+              - article [ref=e104]:
+                - generic [ref=e105]:
+                  - paragraph [ref=e106]: 加载中 4
+                  - img [ref=e108]
+                - paragraph [ref=e112]: "--"
+                - paragraph [ref=e113]: 等待 BI 接口
+              - article [ref=e114]:
+                - generic [ref=e115]:
+                  - paragraph [ref=e116]: 加载中 5
+                  - img [ref=e118]
+                - paragraph [ref=e121]: "--"
+                - paragraph [ref=e122]: 等待 BI 接口
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - generic [ref=e125]:
+                - generic [ref=e126]:
+                  - heading "主趋势图" [level=2] [ref=e127]
+                  - generic [ref=e128]: 加载中
+                - generic [ref=e129]:
+                  - generic [ref=e130]: 活跃
+                  - generic [ref=e132]: 成本
+                  - generic [ref=e134]: 成功
+              - generic [ref=e136]:
+                - generic [ref=e138]: 趋势正在加载
+                - complementary [ref=e139]:
+                  - generic [ref=e140]:
+                    - paragraph [ref=e141]: 30 天视图
+                    - paragraph [ref=e142]: 这一块只负责老板判断趋势，不把 TutorBot、工具、知识库重新拉回一级叙事。
+                  - generic [ref=e144]: 后端尚未返回趋势洞察，先保留趋势图与最新周期的原始信号。
+            - generic [ref=e145]:
+              - generic [ref=e146]:
+                - generic [ref=e147]:
+                  - heading "右侧混合待处理区" [level=2] [ref=e148]
+                  - generic [ref=e149]: 当前没有待处理项
+                - img [ref=e151]
+              - generic [ref=e154]: 当前没有混合待处理项，空队列不视为异常。
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - generic [ref=e157]:
+                - heading "会员分层" [level=2] [ref=e158]
+                - generic [ref=e159]: 等待会员样本
+              - generic [ref=e161]: 会员 KPI 暂未返回，空数组保持为正常空态。
+              - generic [ref=e163]: 会员分层还没有返回。
+              - generic [ref=e165]: 当前没有风险分层信号。
+            - generic [ref=e166]:
+              - generic [ref=e167]:
+                - heading "留存" [level=2] [ref=e168]
+                - generic [ref=e169]: D0 / D1 / D7 / D30
+              - generic [ref=e170]:
+                - generic [ref=e171]:
+                  - generic [ref=e172]: 队列数
+                  - generic [ref=e173]: 等待 cohort
+                - generic [ref=e174]:
+                  - generic [ref=e175]: 最近样本
+                  - generic [ref=e176]: 空数组不视为失败
+                - generic [ref=e177]:
+                  - generic [ref=e178]: 覆盖窗口
+                  - generic [ref=e179]: D0 / D1 / D7 / D30
+              - generic [ref=e181]: 当前没有留存 cohort。
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - heading "渠道" [level=2] [ref=e184]
+                - generic [ref=e185]: 等待渠道数据
+              - generic [ref=e186]:
+                - generic [ref=e187]:
+                  - generic [ref=e188]: 经营摘要
+                  - generic [ref=e189]: 后端尚未返回渠道摘要。
+                - generic [ref=e190]:
+                  - generic [ref=e191]: 入口数量
+                  - generic [ref=e192]: 空数组不视为失败
+                - generic [ref=e193]:
+                  - generic [ref=e194]: 可见渠道
+                  - generic [ref=e195]: 等待 top entrypoints
+              - generic [ref=e197]: 渠道摘要还没有返回。
+          - generic [ref=e198]:
+            - generic [ref=e199]:
+              - heading "重点会员 watchlist" [level=2] [ref=e200]
+              - generic [ref=e201]: 等待重点会员
+            - generic [ref=e203]: 当前没有重点会员样本，空列表不视为失败。
+  - alert [ref=e204]

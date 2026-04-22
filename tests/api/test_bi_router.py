@@ -392,6 +392,40 @@ def test_bi_router_ignores_public_flag_in_production(
     assert response.json()["detail"] == "Authentication required"
 
 
+def test_bi_router_allows_metrics_token_in_production(
+    bi_service: BIService,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    monkeypatch.setattr(bi_router_module, "is_production_environment", lambda: True)
+
+    with TestClient(_build_app(bi_service)) as client:
+        response = client.get(
+            "/api/v1/bi/overview?days=30",
+            headers={"X-Metrics-Token": "bi-read-token"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["summary"]["total_sessions"] >= 1
+
+
+def test_bi_router_rejects_invalid_metrics_token_in_production(
+    bi_service: BIService,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    monkeypatch.setattr(bi_router_module, "is_production_environment", lambda: True)
+
+    with TestClient(_build_app(bi_service)) as client:
+        response = client.get(
+            "/api/v1/bi/overview?days=30",
+            headers={"X-Metrics-Token": "wrong-token"},
+        )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Authentication required"
+
+
 def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> None:
     app = _build_app(bi_service)
     app.dependency_overrides[bi_router_module.require_bi_access] = lambda: None

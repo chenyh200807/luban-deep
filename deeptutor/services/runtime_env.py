@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 _RUNTIME_ENV_KEYS = (
     "DEEPTUTOR_ENV",
     "APP_ENV",
@@ -15,8 +13,11 @@ _FALSY_VALUES = {"0", "false", "no", "off"}
 
 
 def runtime_environment(*, default: str = "local") -> str:
+    from deeptutor.services.config.env_store import get_env_store
+
+    env_store = get_env_store()
     for key in _RUNTIME_ENV_KEYS:
-        value = str(os.getenv(key) or "").strip().lower()
+        value = str(env_store.get(key, "") or "").strip().lower()
         if value:
             return value
     return default
@@ -27,7 +28,9 @@ def is_production_environment() -> bool:
 
 
 def env_flag(name: str, *, default: bool = False) -> bool:
-    raw = str(os.getenv(name) or "").strip().lower()
+    from deeptutor.services.config.env_store import get_env_store
+
+    raw = str(get_env_store().get(name, "") or "").strip().lower()
     if not raw:
         return default
     if raw in _TRUTHY_VALUES:

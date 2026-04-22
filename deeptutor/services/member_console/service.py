@@ -1387,12 +1387,16 @@ class MemberConsoleService:
         return bool(self._sms_access_key_id() and self._sms_access_key_secret())
 
     def _should_use_real_sms(self) -> bool:
+        # Snapshot provider credentials before consulting other runtime flags.
+        # Some import-time config loaders may hydrate os.environ lazily; the
+        # production auth path must not flip from fail-closed to real-SMS mid-call.
+        sms_configured = self._sms_configured()
         if env_flag("MEMBER_CONSOLE_USE_REAL_SMS", default=False):
-            return self._sms_configured()
+            return sms_configured
         explicit = str(os.getenv("MEMBER_CONSOLE_USE_REAL_SMS") or "").strip().lower()
         if explicit in {"0", "false", "no", "off"}:
             return False
-        return self._sms_configured() and is_production_environment()
+        return sms_configured and is_production_environment()
 
     @staticmethod
     def _generate_sms_code() -> str:
