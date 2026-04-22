@@ -1,0 +1,115 @@
+{
+  "version": "phase1",
+  "dataset_id": "benchmark_phase1",
+  "dataset_version": "phase1.0",
+  "suites": {
+    "pr_gate_core": {
+      "case_ids": [
+        "routing.semantic_router.case_set",
+        "routing.context_orchestration.case_set"
+      ]
+    },
+    "regression_watch": {
+      "case_ids": [
+        "grounding.rag.case_set"
+      ]
+    },
+    "incident_replay": {
+      "case_ids": [
+        "continuity.long_dialog.focus",
+        "surface.web.ack.smoke"
+      ]
+    },
+    "exploration_lab": {
+      "case_ids": [
+        "surface.wx.renderer.parity"
+      ]
+    }
+  },
+  "cases": {
+    "routing.semantic_router.case_set": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "case_tier": "gate_stable",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_ROUTE_WRONG"
+      ],
+      "source_fixture": "tests/fixtures/semantic_router_eval_cases.json"
+    },
+    "routing.context_orchestration.case_set": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "routing.context_orchestration.case_set",
+      "contract_domain": "continuity_contract",
+      "case_tier": "gate_stable",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "context_orchestration_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_CONTEXT_LOSS"
+      ],
+      "source_fixture": "tests/fixtures/context_orchestration_eval_cases.json"
+    },
+    "grounding.rag.case_set": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "grounding.rag.case_set",
+      "contract_domain": "grounding_contract",
+      "case_tier": "regression_tier",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "rag_grounding_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_GROUNDEDNESS"
+      ],
+      "source_fixture": "tests/fixtures/rag_grounding_eval_cases.json"
+    },
+    "continuity.long_dialog.focus": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "continuity.long_dialog.focus",
+      "contract_domain": "continuity_contract",
+      "case_tier": "incident_replay",
+      "execution_kind": "live_ws_replay",
+      "surface": "backend",
+      "expected_contract": "long_dialog_continuity_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_CONTINUITY"
+      ],
+      "source_fixture": "tests/fixtures/long_dialog_focus_eval_cases.json"
+    },
+    "surface.wx.renderer.parity": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "surface.wx.renderer.parity",
+      "contract_domain": "surface_contract",
+      "case_tier": "exploratory",
+      "execution_kind": "surface_parity_eval",
+      "surface": "wx_miniprogram",
+      "expected_contract": "wechat_structured_renderer_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_SURFACE_DELIVERY"
+      ],
+      "source_fixture": "tests/fixtures/wechat_structured_renderer_cases.json"
+    },
+    "surface.web.ack.smoke": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "surface.web.ack.smoke",
+      "contract_domain": "production_replay_contract",
+      "case_tier": "incident_replay",
+      "execution_kind": "live_ws_replay",
+      "surface": "web",
+      "expected_contract": "surface_ack_delivery_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_SURFACE_DELIVERY"
+      ],
+      "source_fixture": "scripts/run_surface_ack_smoke.py"
+    }
+  }
+}
