@@ -8,7 +8,8 @@
 - 默认只允许发往 `Aliyun-ECS-2:/root/deeptutor`；如果要改主机或目录，必须显式设置 `ALLOW_NON_CANONICAL_DEPLOY=1`。
 - [scripts/sync_to_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/sync_to_aliyun.sh) 每次覆盖远端前都会先生成代码快照 `data/releases/code/<release_id>.tar.gz`。
 - [scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh) 和 [scripts/redeploy_aliyun_fast.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/redeploy_aliyun_fast.sh) 在远端重启前都会先执行 `python3 scripts/backup_data.py`，自动生成本次发布的 runtime rollback 基线。
-- 发布完成的唯一验收口径是：本地发起端对公网 `front page`、`/healthz`、`/readyz` 探针全部通过；`docker compose ps` 或远端 `127.0.0.1` 只能算内部就绪，不能直接当成“已上线”。
+- 发布完成的唯一公网验收口径是：本地发起端对 `https://test2.yousenjiaoyu.com` 的 `front page`、`/healthz`、`/readyz` 探针全部通过；`docker compose ps` 或远端 `127.0.0.1` 只能算内部就绪，不能直接当成“已上线”。
+- Observability 默认不走公网暴露；阿里云生产环境统一通过 SSH/localhost 抓取 `/metrics` 与 `/metrics/prometheus`。
 - 紧急绕过护栏必须显式设置：
   - `ALLOW_DIRTY_DEPLOY=1`
   - `ALLOW_MAIN_BRANCH_DEPLOY=1`
@@ -31,7 +32,7 @@ python scripts/verify_runtime_assets.py
 - 当前可直接使用的 DeepTutor 端口：
   - 前端 `3782`
   - 后端 `8001`
-- 宿主机 `80/443` 已由现有 nginx 占用，因此第一阶段建议先直接用端口访问
+- 宿主机 `80/443` 已由现有 nginx 占用，但当前发布与公网验收 authority 已统一收口到 `https://test2.yousenjiaoyu.com`；`3782/8001` 只保留给 SSH 登录后的内部排障与 localhost 探针
 
 ## 仓库内新增的部署入口
 
@@ -40,6 +41,7 @@ python scripts/verify_runtime_assets.py
 - 后端快速发布脚本：[scripts/redeploy_aliyun_fast.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/redeploy_aliyun_fast.sh)
 - 一键部署脚本：[scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh)
 - 发布环境校验脚本：[scripts/validate_aliyun_release_env.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/validate_aliyun_release_env.sh)
+- 观测内网验收脚本：[scripts/verify_aliyun_observability.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/verify_aliyun_observability.sh)
 - 代码回滚脚本：[scripts/rollback_aliyun_release.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/rollback_aliyun_release.sh)
 - 服务器启动脚本：[scripts/server_bootstrap_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/server_bootstrap_aliyun.sh)
 - 运行态备份与恢复 runbook：[docs/zh/guide/runtime-backup-restore.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/zh/guide/runtime-backup-restore.md)
@@ -62,7 +64,7 @@ python scripts/verify_runtime_assets.py
 - `BACKEND_PORT=8001`
 - `FRONTEND_PORT=3782`
 - `NEXT_PUBLIC_API_BASE_EXTERNAL=http://8.135.42.145:8001`
-- 如果对外入口已经切到同域名 nginx 反代，可额外在本地发布验收时设置：
+- 本地发布验收默认域名固定为：
   - `PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com`
 - `SERVICE_ENV=production`
 - `APP_ENV=production`
@@ -126,7 +128,7 @@ bash scripts/sync_to_aliyun.sh watch
 
 ```bash
 cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor
-bash scripts/deploy_aliyun.sh
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/deploy_aliyun.sh
 ```
 
 脚本会做这些事：
@@ -136,9 +138,8 @@ bash scripts/deploy_aliyun.sh
 3. 远程执行 `scripts/server_bootstrap_aliyun.sh`
 4. 若 `.env` 缺失则自动生成模板
 5. 若 `.env` 已存在则执行 `docker compose up -d --build`
-6. 回到本地发起端执行 `scripts/verify_aliyun_public_endpoints.sh`，只有公网探针通过才算发布完成
-   - 端口直连阶段：直接执行脚本，默认校验 `http://8.135.42.145:3782/8001`
-   - 域名同源阶段：先设置 `PUBLIC_BASE_URL=https://<你的真实公网域名>`，脚本会改为校验 `<PUBLIC_BASE_URL>/`、`/healthz`、`/readyz`
+6. 回到本地发起端执行 `scripts/verify_aliyun_public_endpoints.sh`，默认固定校验 `https://test2.yousenjiaoyu.com/`、`/healthz`、`/readyz`
+7. 紧接着执行 `scripts/verify_aliyun_observability.sh`，通过 SSH/localhost 验证 `/metrics` 与 `/metrics/prometheus`
 
 这条是“完整部署”路径，适用于：
 
@@ -150,9 +151,10 @@ bash scripts/deploy_aliyun.sh
 
 ### 4. 访问地址
 
-- 前端：<http://8.135.42.145:3782>
-- 后端：<http://8.135.42.145:8001>
-- API 文档：<http://8.135.42.145:8001/docs>
+- 公网入口：<https://test2.yousenjiaoyu.com>
+- 内部前端端口：<http://8.135.42.145:3782>
+- 内部后端端口：<http://8.135.42.145:8001>
+- 内部 API 文档：<http://8.135.42.145:8001/docs>
 
 ## 常用运维命令
 
@@ -174,24 +176,24 @@ docker compose down
 bash scripts/restart_aliyun.sh
 
 # Python 后端 / Prompt / YAML 快速发布
-bash scripts/redeploy_aliyun_fast.sh
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/redeploy_aliyun_fast.sh
 
 # 完整重建发布
-bash scripts/deploy_aliyun.sh
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/deploy_aliyun.sh
 ```
 
 发布完成前，至少要看到这三条公网验收都通过：
 
 ```bash
-curl -fsS http://8.135.42.145:3782/
-curl -fsS http://8.135.42.145:8001/healthz
-curl -fsS http://8.135.42.145:8001/readyz
+curl -fsS https://test2.yousenjiaoyu.com/
+curl -fsS https://test2.yousenjiaoyu.com/healthz
+curl -fsS https://test2.yousenjiaoyu.com/readyz
 ```
 
-如果现网入口已经切到同域名 nginx 反代，则改用：
+Observability 验收不要打公网 `/metrics`。改用：
 
 ```bash
-PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public_endpoints.sh
+bash scripts/verify_aliyun_observability.sh
 ```
 
 三条路径的区别：
@@ -207,13 +209,13 @@ PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public
   - 再先执行一次远端 `python3 scripts/backup_data.py --project-root /root/deeptutor`
   - 再把 `deeptutor/` 等后端代码 `docker cp` 到正在运行的容器
   - 最后重启容器
-  - 重启完成后，会回到本地发起端做一次公网探针验收
+  - 重启完成后，会先做一次公网域名探针验收，再做一次 observability 内网验收
   - 适合 Python 后端、Prompt、YAML、路由等无需重装依赖的改动
 - `deploy_aliyun.sh`
   - 先同步，再执行 `docker compose up -d --build`
   - 覆盖前同样会先生成远端代码快照并校验远端发布环境
   - 同样会在真正重建前生成远端 runtime 备份
-  - 远端重建完成后，会回到本地发起端做一次公网探针验收
+  - 远端重建完成后，会先做一次公网域名探针验收，再做一次 observability 内网验收
   - 最慢，但最完整
   - 适合依赖、Dockerfile、前端构建相关改动
 
@@ -223,13 +225,13 @@ PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public
 
 ```bash
 cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor
-bash scripts/rollback_aliyun_release.sh latest
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/rollback_aliyun_release.sh latest
 ```
 
 也可以指定某个 release id：
 
 ```bash
-bash scripts/rollback_aliyun_release.sh 20260422T120000Z_feature_branch_deadbeef1234
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/rollback_aliyun_release.sh 20260422T120000Z_feature_branch_deadbeef1234
 ```
 
 说明：
@@ -239,11 +241,11 @@ bash scripts/rollback_aliyun_release.sh 20260422T120000Z_feature_branch_deadbeef
 
 ## 当前部署建议
 
-第一阶段先用端口访问，不先接管现有 `80/443`：
+第一阶段后续验收与发布都统一用域名入口 `https://test2.yousenjiaoyu.com`，不要再用裸 IP 口径判断“是否上线成功”。端口 `3782/8001` 仅保留给 SSH 登录后的内部排障与 localhost 探针：
 
-- 风险最低
+- 公网反代 authority 唯一
+- 不再被裸 IP 超时误判
 - 不影响 `/root/luban`
-- 最容易验证 DeepTutor 是否稳定
 
 等你确认 `deeptutor` 成为主项目后，再切 nginx 域名反代。
 
@@ -339,9 +341,8 @@ python3 scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYm
 docker compose restart deeptutor
 curl -sS http://127.0.0.1:8001/healthz
 curl -sS http://127.0.0.1:8001/readyz
-bash scripts/verify_aliyun_public_endpoints.sh
-# 或：
 PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public_endpoints.sh
+bash scripts/verify_aliyun_observability.sh
 ```
 
 代码版本回滚：
