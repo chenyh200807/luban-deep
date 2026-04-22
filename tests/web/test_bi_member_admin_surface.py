@@ -30,10 +30,20 @@ def test_bi_member_ops_tab_uses_table_and_detail_panel() -> None:
     assert "BiMember360Panel" in source
 
 
+def test_bi_member_360_panel_exposes_recent_conversations() -> None:
+    source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiMember360Panel.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert "最近聊天记录" in source
+    assert "recentConversations" in source
+
+
 def test_bi_page_client_mounts_audit_tab() -> None:
     source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
 
     assert "BiAuditTab" in source
+    assert "exportHref={exportHref}" in source
 
 
 def test_bi_api_prefers_backend_boss_workbench_payload() -> None:

@@ -1,10 +1,11 @@
 /* eslint-disable i18n/no-literal-ui-text */
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import {
+  apiUrl,
   clearStoredBiAdminSession,
   getStoredBiAdminSession,
   type BiAdminSession,
@@ -591,6 +592,26 @@ export default function BiPageClient() {
   }, [boss, data, days, filters, issues, lastUpdatedAt, memberDashboard, memberFilters]);
 
   const canExport = !biReadOnly && Boolean(workbench || memberItems.length || issues.length);
+  const exportHref = useMemo(() => {
+    if (biReadOnly) {
+      return "";
+    }
+    const query = new URLSearchParams();
+    if (memberFilters.status !== "all") query.set("status", memberFilters.status);
+    if (memberFilters.tier !== "all") query.set("tier", memberFilters.tier);
+    if (memberFilters.risk_level !== "all") query.set("risk_level", memberFilters.risk_level);
+    if (memberFilters.expire_within_days !== null) query.set("expire_within_days", String(memberFilters.expire_within_days));
+    if (memberFilters.search.trim()) query.set("search", memberFilters.search.trim());
+    const suffix = query.toString();
+    return apiUrl(`/api/v1/member/export${suffix ? `?${suffix}` : ""}`);
+  }, [
+    biReadOnly,
+    memberFilters.expire_within_days,
+    memberFilters.risk_level,
+    memberFilters.search,
+    memberFilters.status,
+    memberFilters.tier,
+  ]);
   const activeTabLabel = BI_PRIMARY_TABS.find((tab) => tab.key === activeTab)?.label ?? "会员后台";
   const adminLoginForm = (
     <form
@@ -871,7 +892,7 @@ export default function BiPageClient() {
             audit={auditLog}
             loading={auditLoading}
             error={auditError}
-            exportHref=""
+            exportHref={exportHref}
             filters={auditFilters}
             onFilterChange={updateAuditFilter}
           />
