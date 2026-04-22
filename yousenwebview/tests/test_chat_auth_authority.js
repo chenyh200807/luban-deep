@@ -129,6 +129,9 @@ function loadChatPage(overrides) {
       if (request === "../../utils/citation-format") return {};
       if (request === "../../utils/chat-turn-recovery") return {};
       if (request === "../../utils/devtools-markdown-fixtures") return {};
+      if (request === "../../utils/surface-telemetry") {
+        return { track: function () {}, trackOnce: function () {} };
+      }
       if (request === "../../utils/runtime") return runtimeMock;
       if (request === "../../utils/route") return {};
       if (request === "../../utils/flags") return flagsMock;
