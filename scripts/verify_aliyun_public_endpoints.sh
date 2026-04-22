@@ -2,10 +2,11 @@
 
 set -Eeuo pipefail
 
+CANONICAL_PUBLIC_BASE_URL="https://test2.yousenjiaoyu.com"
 PUBLIC_HOST="${PUBLIC_HOST:-8.135.42.145}"
 BACKEND_PORT="${BACKEND_PORT:-8001}"
 FRONTEND_PORT="${FRONTEND_PORT:-3782}"
-PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-}"
+PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-${CANONICAL_PUBLIC_BASE_URL}}"
 PROBE_RETRIES="${PROBE_RETRIES:-20}"
 PROBE_INTERVAL_SECONDS="${PROBE_INTERVAL_SECONDS:-3}"
 PROBE_TIMEOUT_SECONDS="${PROBE_TIMEOUT_SECONDS:-5}"
@@ -41,6 +42,7 @@ probe_url() {
 }
 
 echo "执行公网发布验收..."
+echo "验收口径: ${PUBLIC_BASE_URL:-http://${PUBLIC_HOST}:${FRONTEND_PORT}}"
 probe_url "frontend" "${frontend_url}"
 probe_url "healthz" "${healthz_url}"
 probe_url "readyz" "${readyz_url}"
