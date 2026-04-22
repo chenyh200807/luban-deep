@@ -545,3 +545,18 @@ def test_bi_router_boss_homepage_contract_shapes(bi_service: BIService) -> None:
         assert "items" in anomalies_body
         anomaly_items = _assert_non_empty_list(anomalies_body["items"], "anomalies.items")
         assert {"kind", "level", "title", "detail"}.issubset(anomaly_items[0])
+
+
+def test_bi_overview_exposes_risk_queue_and_member_handoff(bi_service: BIService) -> None:
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: None
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/bi/overview?days=30")
+
+    assert response.status_code == 200
+    body = response.json()
+    workbench = body["boss_workbench"]
+    assert workbench["risk_queue"][0]["bucket"] == "expiring_soon"
+    assert workbench["risk_queue"][0]["handoff_filters"]["status"] == "expiring_soon"
+    assert workbench["watchlist"][0]["user_id"] == "u2"

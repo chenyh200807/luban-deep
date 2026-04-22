@@ -1584,3 +1584,102 @@ async def test_bind_phone_for_wechat_fails_closed_in_production_even_for_dev_pre
 
     with pytest.raises(RuntimeError, match="wechat phone exchange failed"):
         await service.bind_phone_for_wechat("student_demo", "dev-phone-code")
+
+
+def test_list_members_supports_expiry_window_and_operational_flags(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"] = [
+            {
+                **service._build_default_member("vip_soon"),
+                "display_name": "即将到期会员",
+                "tier": "vip",
+                "status": "active",
+                "risk_level": "high",
+                "expire_at": "2026-04-25T00:00:00+08:00",
+                "last_active_at": "2026-04-20T10:00:00+08:00",
+                "auto_renew": False,
+            },
+            {
+                **service._build_default_member("svip_safe"),
+                "display_name": "稳定会员",
+                "tier": "svip",
+                "status": "active",
+                "risk_level": "low",
+                "expire_at": "2026-08-01T00:00:00+08:00",
+                "last_active_at": "2026-04-22T09:00:00+08:00",
+                "auto_renew": True,
+            },
+        ]
+
+    service._mutate(_seed)
+
+    result = service.list_members(
+        page=1,
+        page_size=20,
+        tier="vip",
+        risk_level="high",
+        expire_within_days=7,
+        auto_renew=False,
+    )
+
+    assert [item["user_id"] for item in result["items"]] == ["vip_soon"]
+    assert result["filters"]["expire_within_days"] == 7
+
+
+def test_batch_update_members_returns_success_and_failure_buckets(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"] = [
+            {**service._build_default_member("u1"), "tier": "trial"},
+            {**service._build_default_member("u2"), "tier": "trial"},
+        ]
+
+    service._mutate(_seed)
+
+    result = service.batch_update_members(
+        user_ids=["u1", "u2", "missing"],
+        action="grant",
+        tier="vip",
+        days=30,
+        operator="admin_demo",
+        reason="批量开通",
+    )
+
+    assert result["success_count"] == 2
+    assert result["failure_count"] == 1
+    assert result["failed"][0]["user_id"] == "missing"
+
+
+def test_list_audit_log_supports_target_user_and_action_filters(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    service._append_audit_log(
+        {
+            "id": "audit_1",
+            "target_user": "u1",
+            "operator": "admin_demo",
+            "action": "grant",
+            "reason": "manual",
+            "created_at": "2026-04-22T10:00:00+08:00",
+        }
+    )
+    service._append_audit_log(
+        {
+            "id": "audit_2",
+            "target_user": "u2",
+            "operator": "admin_demo",
+            "action": "revoke",
+            "reason": "manual",
+            "created_at": "2026-04-22T11:00:00+08:00",
+        }
+    )
+
+    result = service.list_audit_log(page=1, page_size=20, target_user="u1", action="grant")
+
+    assert [item["id"] for item in result["items"]] == ["audit_1"]

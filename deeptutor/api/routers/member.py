@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 
 from deeptutor.api.dependencies import AuthContext, require_admin
@@ -44,6 +44,16 @@ class RevokeRequest(BaseModel):
     reason: str = ""
 
 
+class BatchActionRequest(BaseModel):
+    user_ids: list[str] = Field(default_factory=list, min_length=1, max_length=100)
+    action: str = Field(..., pattern=r"^(grant|update|revoke)$")
+    days: int | None = Field(default=None, ge=-3650, le=3650)
+    tier: str | None = None
+    expire_at: str | None = None
+    auto_renew: bool | None = None
+    reason: str = ""
+
+
 class OverlayPatchRequest(BaseModel):
     operations: list[dict[str, Any]] = Field(default_factory=list)
 
@@ -80,6 +90,10 @@ async def member_list(
     segment: str | None = None,
     risk_level: str | None = None,
     auto_renew: bool | None = None,
+    expire_within_days: int | None = Query(default=None, ge=0, le=3650),
+    active_within_days: int | None = Query(default=None, ge=0, le=3650),
+    has_heartbeat_job: bool | None = None,
+    has_overlay_candidates: bool | None = None,
 ) -> dict[str, Any]:
     return service.list_members(
         page=page,
@@ -92,6 +106,10 @@ async def member_list(
         segment=segment,
         risk_level=risk_level,
         auto_renew=auto_renew,
+        expire_within_days=expire_within_days,
+        active_within_days=active_within_days,
+        has_heartbeat_job=has_heartbeat_job,
+        has_overlay_candidates=has_overlay_candidates,
     )
 
 
@@ -329,6 +347,55 @@ async def member_audit_log(
         target_user=target_user,
         operator=operator,
         action=action,
+    )
+
+
+@router.post("/batch")
+async def member_batch_action(
+    body: BatchActionRequest,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    return service.batch_update_members(
+        user_ids=body.user_ids,
+        action=body.action,
+        days=body.days,
+        tier=body.tier,
+        expire_at=body.expire_at,
+        auto_renew=body.auto_renew,
+        reason=body.reason,
+        operator=current_user.user_id,
+    )
+
+
+@router.get("/export")
+async def member_export(
+    status: str | None = None,
+    tier: str | None = None,
+    search: str | None = None,
+    segment: str | None = None,
+    risk_level: str | None = None,
+    auto_renew: bool | None = None,
+    expire_within_days: int | None = Query(default=None, ge=0, le=3650),
+    active_within_days: int | None = Query(default=None, ge=0, le=3650),
+    has_heartbeat_job: bool | None = None,
+    has_overlay_candidates: bool | None = None,
+) -> Response:
+    export = service.export_members_csv(
+        status=status,
+        tier=tier,
+        search=search,
+        segment=segment,
+        risk_level=risk_level,
+        auto_renew=auto_renew,
+        expire_within_days=expire_within_days,
+        active_within_days=active_within_days,
+        has_heartbeat_job=has_heartbeat_job,
+        has_overlay_candidates=has_overlay_candidates,
+    )
+    return Response(
+        content=export["content"],
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{export["filename"]}"'},
     )
 
 

@@ -207,3 +207,82 @@ def test_member_router_exposes_learner_state_overlay_and_heartbeat_controls(
     assert acked.json()["affected_count"] == 1
     assert dropped.status_code == 200
     assert dropped.json()["affected_count"] == 1
+
+
+def test_member_router_exposes_batch_and_audit_endpoints(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type(
+            "FakeMemberService",
+            (),
+            {
+                "batch_update_members": staticmethod(
+                    lambda **kwargs: {"action": kwargs["action"], "success_count": 2, "failure_count": 0, "items": []}
+                ),
+                "get_audit_log": staticmethod(
+                    lambda **kwargs: {
+                        "items": [{"id": "audit_1", "action": "grant"}],
+                        "page": 1,
+                        "page_size": 20,
+                        "pages": 1,
+                        "total": 1,
+                    }
+                ),
+                "export_members_csv": staticmethod(
+                    lambda **kwargs: {"filename": "members.csv", "content": "user_id,display_name\\nu1,陈同学\\n"}
+                ),
+            },
+        )(),
+    )
+
+    with TestClient(app) as client:
+        batch = client.post(
+            "/api/v1/member/batch",
+            json={"user_ids": ["u1", "u2"], "action": "grant", "days": 30, "tier": "vip", "reason": "batch"},
+        )
+        audit = client.get("/api/v1/member/audit-log?page=1&page_size=20&action=grant")
+        exported = client.get("/api/v1/member/export?status=active&tier=vip")
+
+    assert batch.status_code == 200
+    assert batch.json()["success_count"] == 2
+    assert audit.status_code == 200
+    assert audit.json()["items"][0]["id"] == "audit_1"
+    assert exported.status_code == 200
+    assert exported.headers["content-type"].startswith("text/csv")
+
+
+def test_member_list_forwards_operational_filters(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    captured: dict[str, object] = {}
+
+    def fake_list_members(**kwargs):
+        captured.update(kwargs)
+        return {"items": [], "page": 1, "page_size": 20, "pages": 0, "total": 0, "filters": kwargs}
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type("FakeMemberService", (), {"list_members": staticmethod(fake_list_members)})(),
+    )
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/member/list"
+            "?status=expiring_soon"
+            "&tier=vip"
+            "&expire_within_days=7"
+            "&active_within_days=3"
+            "&has_heartbeat_job=true"
+            "&has_overlay_candidates=false"
+        )
+
+    assert response.status_code == 200
+    assert captured["status"] == "expiring_soon"
+    assert captured["tier"] == "vip"
+    assert captured["expire_within_days"] == 7
+    assert captured["active_within_days"] == 3
+    assert captured["has_heartbeat_job"] is True
+    assert captured["has_overlay_candidates"] is False

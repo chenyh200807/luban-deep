@@ -299,6 +299,37 @@ class BIService:
         )
 
     @staticmethod
+    def _build_boss_workbench_payload(
+        *,
+        overview_cards: list[dict[str, Any]],
+        member_dashboard: dict[str, Any],
+        member_stats: dict[str, Any],
+        risk_alerts: list[str],
+    ) -> dict[str, Any]:
+        risk_queue = [
+            {
+                "bucket": "expiring_soon",
+                "label": "即将到期会员",
+                "count": _safe_int(member_dashboard.get("expiring_soon_count")),
+                "detail": "建议优先进入会员运营页处理续费窗口。",
+                "handoff_filters": {"status": "expiring_soon"},
+            },
+            {
+                "bucket": "high_risk",
+                "label": "高风险会员",
+                "count": _safe_int(member_dashboard.get("churn_risk_count")),
+                "detail": "建议优先查看高风险与沉默用户。",
+                "handoff_filters": {"risk_level": "high"},
+            },
+        ]
+        return {
+            "kpis": overview_cards[:6],
+            "risk_queue": risk_queue,
+            "watchlist": list(member_stats.get("samples") or [])[:6],
+            "hero_issue": risk_alerts[0] if risk_alerts else "",
+        }
+
+    @staticmethod
     def _load_limited_rows(
         conn: sqlite3.Connection,
         query: str,
@@ -611,6 +642,13 @@ class BIService:
         if not risk_alerts:
             risk_alerts.append("当前活跃、会员和回合状态整体平稳。")
 
+        member_stats = await self.get_member_stats(
+            days=days,
+            capability=capability,
+            entrypoint=entrypoint,
+            tier=tier,
+        )
+
         summary = {
             "total_sessions": len(context.sessions),
             "active_learners": len(active_actors),
@@ -623,6 +661,14 @@ class BIService:
             "active_members": member_dashboard.get("active_count", 0),
             "expiring_soon_count": member_dashboard.get("expiring_soon_count", 0),
         }
+        cards = [
+            {"label": "活跃学习会话", "value": summary["total_sessions"], "hint": f"{days} 天窗口内更新过的会话"},
+            {"label": "活跃学习者", "value": summary["active_learners"], "hint": "按用户或匿名会话去重"},
+            {"label": "回合成功率", "value": f"{summary['success_turn_rate']}%", "hint": f"总回合 {summary['total_turns']}"},
+            {"label": "平均会话深度", "value": summary["avg_session_depth"], "hint": "每个会话平均消息数"},
+            {"label": "Notebook 保存", "value": summary["notebook_saves"], "hint": "问题笔记沉淀量"},
+            {"label": "总成本", "value": summary["total_cost_usd"], "hint": f"总 Token {summary['total_tokens']}"},
+        ]
 
         return {
             "window_days": days,
@@ -635,14 +681,7 @@ class BIService:
             "title": "DeepTutor BI 工作台",
             "subtitle": f"最近 {days} 天的经营、学习、能力、知识库与会员统一视图。",
             "summary": summary,
-            "cards": [
-                {"label": "活跃学习会话", "value": summary["total_sessions"], "hint": f"{days} 天窗口内更新过的会话"},
-                {"label": "活跃学习者", "value": summary["active_learners"], "hint": "按用户或匿名会话去重"},
-                {"label": "回合成功率", "value": f"{summary['success_turn_rate']}%", "hint": f"总回合 {summary['total_turns']}"},
-                {"label": "平均会话深度", "value": summary["avg_session_depth"], "hint": "每个会话平均消息数"},
-                {"label": "Notebook 保存", "value": summary["notebook_saves"], "hint": "问题笔记沉淀量"},
-                {"label": "总成本", "value": summary["total_cost_usd"], "hint": f"总 Token {summary['total_tokens']}"},
-            ],
+            "cards": cards,
             "entrypoints": entrypoints,
             "top_capabilities": top_capabilities,
             "highlights": [
@@ -664,6 +703,12 @@ class BIService:
                 }
                 for text in risk_alerts
             ],
+            "boss_workbench": self._build_boss_workbench_payload(
+                overview_cards=cards,
+                member_dashboard=member_dashboard,
+                member_stats=member_stats,
+                risk_alerts=risk_alerts,
+            ),
         }
 
     async def get_active_trend(

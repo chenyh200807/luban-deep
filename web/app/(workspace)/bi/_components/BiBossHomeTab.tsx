@@ -2,6 +2,7 @@
 "use client";
 
 import type {
+  BiBossActionItem,
   BiBossWorkbench,
   BiMemberData,
   BiRetentionData,
@@ -24,7 +25,7 @@ type BiBossHomeTabProps = {
   retention: BiRetentionData;
   members: BiMemberData;
   moduleIssues: BiWorkbenchModuleIssues;
-  onNavigateFromBossQueue: (source?: BiBossWorkbench["actionQueue"][number]["source"]) => void;
+  onNavigateFromBossQueue: (item?: BiBossActionItem) => void;
   onOpenLearnerDetail: (sample: { user_id: string; display_name: string }) => void;
 };
 

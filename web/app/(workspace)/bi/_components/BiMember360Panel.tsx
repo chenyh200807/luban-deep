@@ -1,0 +1,228 @@
+/* eslint-disable i18n/no-literal-ui-text */
+"use client";
+
+import { Bot, Clock3, StickyNote } from "lucide-react";
+import type { BotOverlaySummary, HeartbeatJob, MemberDetail } from "@/lib/member-api";
+import { InfoLine, SectionHeader, formatTime } from "./BiShared";
+
+type BiMember360PanelProps = {
+  member: MemberDetail | null;
+  loading?: boolean;
+  error?: string;
+  actionLoading?: boolean;
+  onGrant: () => void;
+  onExtend: () => void;
+  onRevoke: () => void;
+  onAddNote: (content: string) => void;
+  onToggleHeartbeat: (job: HeartbeatJob) => void;
+  onApplyOverlay: (overlay: BotOverlaySummary) => void;
+};
+
+export function BiMember360Panel({
+  member,
+  loading = false,
+  error = "",
+  actionLoading = false,
+  onGrant,
+  onExtend,
+  onRevoke,
+  onAddNote,
+  onToggleHeartbeat,
+  onApplyOverlay,
+}: BiMember360PanelProps) {
+  if (loading) {
+    return <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] px-5 py-10 text-sm text-[var(--muted-foreground)]">正在加载学员 360...</div>;
+  }
+
+  if (error) {
+    return <div className="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">{error}</div>;
+  }
+
+  if (!member) {
+    return <div className="rounded-3xl border border-dashed border-[var(--border)]/70 bg-[var(--background)] px-5 py-10 text-sm text-[var(--muted-foreground)]">请选择一个会员查看学员 360。</div>;
+  }
+
+  const weakTopics = Object.values(member.chapter_mastery ?? {})
+    .slice()
+    .sort((a, b) => a.mastery - b.mastery)
+    .slice(0, 4);
+  const heartbeatJobs = member.heartbeat?.jobs ?? [];
+  const overlays = member.bot_overlays ?? [];
+
+  return (
+    <div className="space-y-5">
+      <section className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5 shadow-[0_12px_30px_rgba(45,33,25,0.05)]">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs tracking-[0.18em] text-[var(--muted-foreground)]">LEARNER 360</p>
+            <h2 className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{member.display_name}</h2>
+            <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+              {member.user_id} · {member.phone}
+            </p>
+          </div>
+          <div className="grid gap-2 text-right text-sm text-[var(--muted-foreground)]">
+            <span>状态：{member.status}</span>
+            <span>等级：{member.tier.toUpperCase()}</span>
+            <span>到期：{formatTime(member.expire_at)}</span>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <InfoLine label="钱包积分" value={String(member.wallet.balance)} />
+          <InfoLine label="学习天数" value={String(member.study_days)} />
+          <InfoLine label="待复习" value={String(member.review_due)} />
+          <InfoLine label="当前焦点" value={member.focus_topic || "--"} />
+        </div>
+
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button type="button" onClick={onGrant} disabled={actionLoading} className="rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
+            开通 30 天 VIP
+          </button>
+          <button type="button" onClick={onExtend} disabled={actionLoading} className="rounded-full bg-[var(--secondary)] px-4 py-2 text-sm font-medium text-[var(--secondary-foreground)] disabled:opacity-60">
+            续期 90 天
+          </button>
+          <button type="button" onClick={onRevoke} disabled={actionLoading} className="rounded-full bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 disabled:opacity-60">
+            撤销会员
+          </button>
+        </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)]">
+        <div className="space-y-5">
+          <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5">
+            <SectionHeader title="学习画像" extra={`考试日期 ${member.exam_date || "--"}`} />
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <InfoLine label="讲解风格" value={member.explanation_style} />
+              <InfoLine label="难度偏好" value={member.difficulty_preference} />
+              <InfoLine label="每日目标" value={`${member.daily_target} 题`} />
+              <InfoLine label="最近活跃" value={formatTime(member.last_active_at)} />
+            </div>
+            <div className="mt-4 rounded-2xl bg-[var(--secondary)]/60 px-4 py-4 text-sm leading-6 text-[var(--secondary-foreground)]">
+              {member.focus_topic || "暂无焦点主题"}。当前 focus query：{member.focus_query || "未设置"}。
+            </div>
+            <div className="mt-4 space-y-3">
+              {weakTopics.map((topic) => (
+                <div key={topic.name} className="rounded-2xl bg-[var(--secondary)] px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-medium text-[var(--foreground)]">{topic.name}</span>
+                    <span className="text-xs text-[var(--muted-foreground)]">{topic.mastery}%</span>
+                  </div>
+                </div>
+              ))}
+              {weakTopics.length === 0 ? (
+                <div className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">暂无章节掌握度数据。</div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5">
+            <SectionHeader title="运营记录" extra={`${member.recent_notes.length} 条备注`} />
+            <div className="mt-4 space-y-3">
+              <NoteComposer onSubmit={onAddNote} disabled={actionLoading} />
+              {(member.recent_notes ?? []).slice(0, 5).map((note) => (
+                <div key={note.id} className="rounded-2xl bg-[var(--secondary)] px-4 py-3">
+                  <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
+                    <StickyNote size={13} />
+                    {note.channel} · {formatTime(note.created_at)}
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-[var(--secondary-foreground)]">{note.content}</p>
+                </div>
+              ))}
+              {member.recent_notes.length === 0 ? (
+                <div className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">暂无运营备注。</div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-5">
+          <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5">
+            <SectionHeader title="Heartbeat Jobs" extra={`${heartbeatJobs.length} 个`} />
+            <div className="mt-4 space-y-3">
+              {heartbeatJobs.map((job) => (
+                <button
+                  key={job.job_id}
+                  type="button"
+                  onClick={() => onToggleHeartbeat(job)}
+                  className="w-full rounded-2xl bg-[var(--secondary)] px-4 py-3 text-left"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--foreground)]">{job.bot_id}</p>
+                      <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                        <Clock3 size={12} className="mr-1 inline-flex" />
+                        下次运行 {formatTime(job.next_run_at ?? "")}
+                      </p>
+                    </div>
+                    <span className="text-xs text-[var(--muted-foreground)]">{job.status === "active" ? "点击暂停" : "点击恢复"}</span>
+                  </div>
+                </button>
+              ))}
+              {heartbeatJobs.length === 0 ? (
+                <div className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">当前没有 heartbeat job。</div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5">
+            <SectionHeader title="Overlay / TutorBot" extra={`${overlays.length} 个 bot`} />
+            <div className="mt-4 space-y-3">
+              {overlays.map((overlay) => (
+                <button
+                  key={overlay.bot_id}
+                  type="button"
+                  onClick={() => onApplyOverlay(overlay)}
+                  className="w-full rounded-2xl bg-[var(--secondary)] px-4 py-3 text-left"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--foreground)]">
+                        <Bot size={14} className="mr-2 inline-flex" />
+                        {overlay.bot_id}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                        promotion candidates {(overlay.promotion_candidates ?? []).length}
+                      </p>
+                    </div>
+                    <span className="text-xs text-[var(--muted-foreground)]">执行 promotion</span>
+                  </div>
+                </button>
+              ))}
+              {overlays.length === 0 ? (
+                <div className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">当前没有 overlay 数据。</div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function NoteComposer({ onSubmit, disabled = false }: { onSubmit: (content: string) => void; disabled?: boolean }) {
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        const content = String(formData.get("content") || "").trim();
+        if (!content) return;
+        onSubmit(content);
+        event.currentTarget.reset();
+      }}
+      className="rounded-2xl border border-[var(--border)]/60 bg-white p-3"
+    >
+      <textarea
+        name="content"
+        rows={3}
+        placeholder="添加运营备注"
+        className="w-full resize-none rounded-2xl bg-transparent px-1 py-1 text-sm outline-none"
+      />
+      <div className="mt-3 flex justify-end">
+        <button type="submit" disabled={disabled} className="rounded-full bg-[var(--foreground)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
+          添加备注
+        </button>
+      </div>
+    </form>
+  );
+}

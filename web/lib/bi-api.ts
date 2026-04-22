@@ -169,6 +169,7 @@ export interface BiBossActionItem {
   detail: string;
   tone?: BiMetricCard["tone"];
   source?: "anomalies" | "members" | "cost";
+  handoffFilters?: Record<string, string | number | boolean | null>;
 }
 
 export interface BiBossWorkbench {
@@ -367,6 +368,65 @@ function toBossTone(level: BiAlertItem["level"]): BiMetricCard["tone"] {
   return "neutral";
 }
 
+function normalizeBossActionSource(record: Record<string, unknown>): BiBossActionItem["source"] {
+  const direct = record.source;
+  if (direct === "anomalies" || direct === "members" || direct === "cost") {
+    return direct;
+  }
+  const bucket = toString(record.bucket, "");
+  if (bucket === "high_risk" || bucket === "expiring_soon") {
+    return "members";
+  }
+  if (bucket === "cost") {
+    return "cost";
+  }
+  return "anomalies";
+}
+
+function normalizeBossActionItem(item: unknown, fallbackLabel = ""): BiBossActionItem {
+  const record = asRecord(item);
+  const handoffRecord = asRecord(record.handoff_filters ?? record.handoffFilters);
+  const handoffFilters: Record<string, string | number | boolean | null> = {};
+
+  Object.entries(handoffRecord).forEach(([key, value]) => {
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean" ||
+      value === null
+    ) {
+      handoffFilters[key] = value;
+    }
+  });
+
+  return {
+    title: toString(record.title ?? record.label ?? record.name ?? record.bucket, fallbackLabel),
+    detail: toString(record.detail ?? record.description ?? record.hint ?? record.note, ""),
+    tone:
+      record.tone === "good" || record.tone === "warning" || record.tone === "critical"
+        ? (record.tone as BiMetricCard["tone"])
+        : "neutral",
+    source: normalizeBossActionSource(record),
+    handoffFilters: Object.keys(handoffFilters).length ? handoffFilters : undefined,
+  };
+}
+
+function normalizeBossWorkbench(raw: unknown, fallbackHeroIssue = ""): BiBossWorkbench | undefined {
+  const record = asRecord(firstRecord(raw, ["boss_workbench", "boss", "workbench"]));
+  const hasBossPayload = Object.keys(record).length > 0 && ("kpis" in record || "risk_queue" in record || "hero_issue" in record);
+  if (!hasBossPayload) {
+    return undefined;
+  }
+
+  return {
+    kpis: firstArray(record, ["kpis", "cards", "metrics"]).map((item, index) => normalizeMetricCard(item, `老板 KPI ${index + 1}`)),
+    actionQueue: firstArray(record, ["risk_queue", "actionQueue", "action_queue", "queue"]).map((item, index) =>
+      normalizeBossActionItem(item, `待办 ${index + 1}`),
+    ),
+    heroIssue: toString(record.hero_issue ?? record.heroIssue ?? record.issue, fallbackHeroIssue),
+  };
+}
+
 function normalizeTutorBot(item: unknown, fallbackLabel = ""): BiTutorBotItem {
   const record = asRecord(item);
   return {
@@ -541,15 +601,12 @@ function buildBiBossWorkbench(data: BiWorkbenchData, missingCoreModules: BiBossC
   };
 }
 
-export async function getBiOverview(options: BiFetchOptions = {}): Promise<BiOverviewData> {
-  const raw = unwrapPayload(
-    await fetchBiJson("/api/v1/bi/overview", {
-      days: options.days,
-      capability: options.capability,
-      entrypoint: options.entrypoint,
-      tier: options.tier,
-    }),
-  );
+type BiOverviewBundle = {
+  overview: BiOverviewData;
+  bossWorkbench?: BiBossWorkbench;
+};
+
+function parseBiOverviewBundle(raw: unknown): BiOverviewBundle {
   const record = asRecord(firstRecord(raw, ["overview", "data", "summary"]));
   const cards = firstArray(raw, ["cards", "kpis", "metrics"]).map((item, index) =>
     normalizeMetricCard(item, `KPI ${index + 1}`),
@@ -563,8 +620,7 @@ export async function getBiOverview(options: BiFetchOptions = {}): Promise<BiOve
   const alerts = firstArray(raw, ["alerts", "warnings", "anomalies"]).map((item, index) =>
     normalizeAlert(item, `告警 ${index + 1}`),
   );
-
-  return {
+  const overview: BiOverviewData = {
     title: toString(record.title ?? record.name, "DeepTutor BI 工作台"),
     subtitle: toString(
       record.subtitle ?? record.description ?? record.summary,
@@ -575,6 +631,23 @@ export async function getBiOverview(options: BiFetchOptions = {}): Promise<BiOve
     entrypoints,
     alerts,
   };
+
+  return {
+    overview,
+    bossWorkbench: normalizeBossWorkbench(raw),
+  };
+}
+
+export async function getBiOverview(options: BiFetchOptions = {}): Promise<BiOverviewData> {
+  const raw = unwrapPayload(
+    await fetchBiJson("/api/v1/bi/overview", {
+      days: options.days,
+      capability: options.capability,
+      entrypoint: options.entrypoint,
+      tier: options.tier,
+    }),
+  );
+  return parseBiOverviewBundle(raw).overview;
 }
 
 export async function getBiActiveTrend(options: BiFetchOptions = {}): Promise<BiTrendData> {
@@ -800,7 +873,17 @@ export async function getBiLearnerDetail(userId: string, options: BiFetchOptions
 
 export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiWorkbenchState> {
   const results = await Promise.allSettled([
-    getBiOverview(options),
+    (async () => {
+      const raw = unwrapPayload(
+        await fetchBiJson("/api/v1/bi/overview", {
+          days: options.days,
+          capability: options.capability,
+          entrypoint: options.entrypoint,
+          tier: options.tier,
+        }),
+      );
+      return parseBiOverviewBundle(raw);
+    })(),
     getBiActiveTrend(options),
     getBiRetention(options),
     getBiCapabilities(options),
@@ -828,8 +911,12 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
     tutorbots,
     anomalies,
   ] = results;
+  let overviewBossWorkbench: BiBossWorkbench | undefined;
 
-  if (overview.status === "fulfilled") data.overview = overview.value;
+  if (overview.status === "fulfilled") {
+    data.overview = overview.value.overview;
+    overviewBossWorkbench = overview.value.bossWorkbench;
+  }
   else {
     missingCoreModules.push("overview");
     moduleIssues.overview = overview.reason instanceof Error ? overview.reason.message : "概览加载失败";
@@ -893,5 +980,10 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
     issues.push(moduleIssues.anomalies);
   }
 
-  return { data, issues, boss: buildBiBossWorkbench(data, missingCoreModules), moduleIssues };
+  return {
+    data,
+    issues,
+    boss: overviewBossWorkbench ?? buildBiBossWorkbench(data, missingCoreModules),
+    moduleIssues,
+  };
 }

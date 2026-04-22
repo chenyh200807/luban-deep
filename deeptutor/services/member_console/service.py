@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import base64
 from contextlib import contextmanager
+import csv
 import hashlib
 import hmac
+import io
 import json
 import logging
 import os
@@ -1642,6 +1644,15 @@ class MemberConsoleService:
             },
         )
 
+    def _append_audit_log(self, entry: dict[str, Any]) -> dict[str, Any]:
+        payload = dict(entry or {})
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            data.setdefault("audit_log", []).insert(0, payload)
+            return payload
+
+        return self._mutate(_apply)
+
     def get_dashboard(self, days: int = 30) -> dict[str, Any]:
         data = self._load()
         members = data["members"]
@@ -1718,10 +1729,35 @@ class MemberConsoleService:
         segment: str | None = None,
         risk_level: str | None = None,
         auto_renew: bool | None = None,
+        expire_within_days: int | None = None,
+        active_within_days: int | None = None,
+        has_heartbeat_job: bool | None = None,
+        has_overlay_candidates: bool | None = None,
     ) -> dict[str, Any]:
         data = self._load()
         members = [deepcopy(item) for item in data["members"]]
         search_text = str(search or "").strip().lower()
+        now = _now()
+        heartbeat_user_ids: set[str] | None = None
+        if has_heartbeat_job is not None:
+            try:
+                heartbeat_user_ids = {
+                    str(job.user_id)
+                    for job in self._get_learner_state_service().list_all_heartbeat_jobs()
+                }
+            except Exception:
+                heartbeat_user_ids = set()
+        overlay_candidate_user_ids: set[str] | None = None
+        if has_overlay_candidates is not None:
+            try:
+                overlay_candidate_user_ids = set()
+                overlay_service = self._get_overlay_service()
+                for item in members:
+                    overlays = overlay_service.list_user_overlays(item["user_id"], limit=20)
+                    if any(list(overlay.get("promotion_candidates") or []) for overlay in overlays):
+                        overlay_candidate_user_ids.add(item["user_id"])
+            except Exception:
+                overlay_candidate_user_ids = set()
         filtered = []
         for item in members:
             if status and status != "all" and item["status"] != status:
@@ -1739,6 +1775,23 @@ class MemberConsoleService:
                     [item["user_id"], item["display_name"], item["phone"]]
                 ).lower()
                 if search_text not in haystack:
+                    continue
+            if expire_within_days is not None:
+                expire_at = _parse_time(item.get("expire_at"))
+                remaining_seconds = (expire_at - now).total_seconds()
+                if remaining_seconds < 0 or remaining_seconds > expire_within_days * 24 * 60 * 60:
+                    continue
+            if active_within_days is not None:
+                last_active_at = _parse_time(item.get("last_active_at"))
+                if last_active_at < now - timedelta(days=active_within_days):
+                    continue
+            if has_heartbeat_job is not None:
+                member_has_heartbeat_job = item["user_id"] in (heartbeat_user_ids or set())
+                if member_has_heartbeat_job != has_heartbeat_job:
+                    continue
+            if has_overlay_candidates is not None:
+                member_has_overlay_candidates = item["user_id"] in (overlay_candidate_user_ids or set())
+                if member_has_overlay_candidates != has_overlay_candidates:
                     continue
             filtered.append(item)
         reverse = str(order).lower() == "desc"
@@ -1774,6 +1827,17 @@ class MemberConsoleService:
             "page": page,
             "page_size": page_size,
             "pages": max(1, (total + page_size - 1) // page_size),
+            "filters": {
+                "status": status,
+                "tier": tier,
+                "segment": segment,
+                "risk_level": risk_level,
+                "auto_renew": auto_renew,
+                "expire_within_days": expire_within_days,
+                "active_within_days": active_within_days,
+                "has_heartbeat_job": has_heartbeat_job,
+                "has_overlay_candidates": has_overlay_candidates,
+            },
         }
 
     def get_member_360(self, user_id: str) -> dict[str, Any]:
@@ -2189,7 +2253,7 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
-    def get_audit_log(
+    def list_audit_log(
         self,
         *,
         page: int = 1,
@@ -2210,7 +2274,140 @@ class MemberConsoleService:
             items.append(entry)
         start = max(0, (page - 1) * page_size)
         end = start + page_size
-        return {"items": items[start:end], "total": len(items), "page": page, "page_size": page_size}
+        total = len(items)
+        return {
+            "items": items[start:end],
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "pages": max(1, (total + page_size - 1) // page_size),
+        }
+
+    def get_audit_log(
+        self,
+        *,
+        page: int = 1,
+        page_size: int = 50,
+        target_user: str | None = None,
+        operator: str | None = None,
+        action: str | None = None,
+    ) -> dict[str, Any]:
+        return self.list_audit_log(
+            page=page,
+            page_size=page_size,
+            target_user=target_user,
+            operator=operator,
+            action=action,
+        )
+
+    def export_members_csv(
+        self,
+        *,
+        status: str | None = None,
+        tier: str | None = None,
+        search: str | None = None,
+        segment: str | None = None,
+        risk_level: str | None = None,
+        auto_renew: bool | None = None,
+        expire_within_days: int | None = None,
+        active_within_days: int | None = None,
+        has_heartbeat_job: bool | None = None,
+        has_overlay_candidates: bool | None = None,
+    ) -> dict[str, str]:
+        rows = self.list_members(
+            page=1,
+            page_size=max(1, len(self._load().get("members", [])) or 1),
+            status=status,
+            tier=tier,
+            search=search,
+            segment=segment,
+            risk_level=risk_level,
+            auto_renew=auto_renew,
+            expire_within_days=expire_within_days,
+            active_within_days=active_within_days,
+            has_heartbeat_job=has_heartbeat_job,
+            has_overlay_candidates=has_overlay_candidates,
+        )["items"]
+        buffer = io.StringIO()
+        writer = csv.DictWriter(
+            buffer,
+            fieldnames=[
+                "user_id",
+                "display_name",
+                "phone",
+                "tier",
+                "status",
+                "segment",
+                "risk_level",
+                "auto_renew",
+                "expire_at",
+                "created_at",
+                "last_active_at",
+                "points_balance",
+                "review_due",
+            ],
+        )
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+        return {
+            "filename": f"members-{_date_key()}.csv",
+            "content": buffer.getvalue(),
+        }
+
+    def batch_update_members(
+        self,
+        *,
+        user_ids: list[str],
+        action: str,
+        operator: str = "admin",
+        reason: str = "",
+        days: int | None = None,
+        tier: str | None = None,
+        expire_at: str | None = None,
+        auto_renew: bool | None = None,
+    ) -> dict[str, Any]:
+        succeeded: list[dict[str, Any]] = []
+        failed: list[dict[str, Any]] = []
+        for user_id in list(user_ids or []):
+            try:
+                self._find_member(self._load(), user_id)
+                if action == "grant":
+                    member = self.grant_subscription(
+                        user_id=user_id,
+                        days=max(1, int(days or 30)),
+                        tier=str(tier or "vip"),
+                        reason=reason,
+                        operator=operator,
+                    )
+                elif action == "revoke":
+                    member = self.revoke_subscription(
+                        user_id=user_id,
+                        reason=reason,
+                        operator=operator,
+                    )
+                elif action == "update":
+                    member = self.update_subscription(
+                        user_id=user_id,
+                        tier=tier,
+                        days=days,
+                        expire_at=expire_at,
+                        auto_renew=auto_renew,
+                        reason=reason,
+                        operator=operator,
+                    )
+                else:
+                    raise ValueError(f"Unsupported batch action: {action}")
+                succeeded.append({"user_id": user_id, "member": member})
+            except Exception as exc:
+                failed.append({"user_id": user_id, "detail": str(exc)})
+        return {
+            "action": action,
+            "success_count": len(succeeded),
+            "failure_count": len(failed),
+            "items": succeeded,
+            "failed": failed,
+        }
 
     def grant_subscription(
         self,

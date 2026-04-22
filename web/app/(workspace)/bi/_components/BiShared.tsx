@@ -19,24 +19,24 @@ import type { BiAlertItem, BiMetricCard, BiRankItem } from "@/lib/bi-api";
 
 export const BI_PRIMARY_TABS = [
   {
-    key: "overview",
-    label: "总览",
-    summary: "先看经营健康、待处理事项和重点会员，再决定往哪里下钻。",
-  },
-  {
-    key: "quality",
-    label: "质量",
-    summary: "查看教学质量趋势、异常波动和当前数据完整性。",
+    key: "boss-workbench",
+    label: "老板工作台",
+    summary: "先看经营健康、风险队列和重点会员，再决定往哪里下钻。",
   },
   {
     key: "member-ops",
     label: "会员运营",
-    summary: "聚焦会员分层、风险、留存和重点样本入口。",
+    summary: "聚焦会员筛选、批量动作和学员运营执行。",
   },
   {
-    key: "tutorbot",
-    label: "TutorBot",
-    summary: "聚焦 TutorBot 运行状态、消息样本和知识联动。",
+    key: "learner-360",
+    label: "学员 360",
+    summary: "下钻单个会员的学习画像、Heartbeat、Overlay 和备注。",
+  },
+  {
+    key: "audit",
+    label: "经营审计",
+    summary: "查看关键后台动作、操作人和留痕记录。",
   },
 ] as const;
 
@@ -91,14 +91,14 @@ const currencyFormatter = new Intl.NumberFormat("zh-CN", {
 });
 
 export function normalizeBiPrimaryTab(value: string | null | undefined): BiPrimaryTab {
-  if (value === "quality" || value === "member-ops" || value === "tutorbot") {
+  if (value === "member-ops" || value === "learner-360" || value === "audit") {
     return value;
   }
-  return "overview";
+  return "boss-workbench";
 }
 
 export function getBiPrimaryTabHref(tab: BiPrimaryTab) {
-  return tab === "overview" ? "/bi" : `/bi?tab=${tab}`;
+  return tab === "boss-workbench" ? "/bi" : `/bi?tab=${tab}`;
 }
 
 export function formatNumber(value: number | string) {

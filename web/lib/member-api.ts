@@ -36,6 +36,7 @@ export interface MemberListResponse {
   page: number;
   page_size: number;
   pages: number;
+  filters?: Record<string, string | number | boolean | null>;
 }
 
 export interface MemberNote {
@@ -51,6 +52,33 @@ export interface MemberLedgerEntry {
   delta: number;
   reason: string;
   created_at: string;
+}
+
+export interface MemberBatchActionResult {
+  action: string;
+  success_count: number;
+  failure_count: number;
+  items: Array<{ user_id: string; member?: MemberDetail }>;
+  failed: Array<{ user_id: string; detail: string }>;
+}
+
+export interface MemberAuditLogItem {
+  id: string;
+  operator?: string;
+  action?: string;
+  target_user?: string;
+  reason?: string;
+  created_at: string;
+  before?: Record<string, unknown>;
+  after?: Record<string, unknown>;
+}
+
+export interface MemberAuditLogResponse {
+  items: MemberAuditLogItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  pages: number;
 }
 
 export interface LearnerStateMemoryEvent {
@@ -140,6 +168,7 @@ export interface MemberDetail {
   study_days: number;
   review_due: number;
   focus_topic: string;
+  focus_query: string;
   exam_date: string;
   daily_target: number;
   difficulty_preference: string;
@@ -264,4 +293,33 @@ export async function applyOverlayPromotions(
     body: JSON.stringify(payload),
   });
   return expectJson<{ acked_ids: string[]; dropped_ids: string[] }>(response);
+}
+
+export async function batchUpdateMembers(payload: {
+  user_ids: string[];
+  action: "grant" | "update" | "revoke";
+  days?: number;
+  tier?: string;
+  expire_at?: string;
+  auto_renew?: boolean;
+  reason?: string;
+}): Promise<MemberBatchActionResult> {
+  const response = await fetch(apiUrl("/api/v1/member/batch"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return expectJson<MemberBatchActionResult>(response);
+}
+
+export async function getMemberAuditLog(params: Record<string, string | number | undefined>): Promise<MemberAuditLogResponse> {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === "") return;
+    query.set(key, String(value));
+  });
+  const response = await fetch(apiUrl(`/api/v1/member/audit-log?${query.toString()}`), {
+    cache: "no-store",
+  });
+  return expectJson<MemberAuditLogResponse>(response);
 }

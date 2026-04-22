@@ -8,7 +8,7 @@ import { SectionHeader, toneClasses } from "./BiShared";
 type BiBossActionQueueProps = {
   heroIssue: string;
   actionQueue: BiBossActionItem[];
-  onNavigate: (source?: BiBossActionItem["source"]) => void;
+  onNavigate: (item?: BiBossActionItem) => void;
 };
 
 function sourceLabel(source?: BiBossActionItem["source"]) {
@@ -42,7 +42,7 @@ export function BiBossActionQueue({ heroIssue, actionQueue, onNavigate }: BiBoss
             <button
               key={`${item.title}-${item.detail}`}
               type="button"
-              onClick={() => onNavigate(item.source)}
+              onClick={() => onNavigate(item)}
               className="w-full rounded-2xl border border-[var(--border)]/60 bg-[var(--background)] px-4 py-3 text-left transition hover:-translate-y-0.5 hover:border-[var(--primary)]/30 hover:shadow-[0_10px_28px_rgba(45,33,25,0.08)]"
             >
               <div className="flex items-start gap-3">
