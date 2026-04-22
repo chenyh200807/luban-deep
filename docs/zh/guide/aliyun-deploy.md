@@ -6,7 +6,8 @@
 
 - 默认只允许从干净候选分支发布；`main` 或 dirty tree 会被 [scripts/sync_to_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/sync_to_aliyun.sh) 直接拒绝。
 - 默认只允许发往 `Aliyun-ECS-2:/root/deeptutor`；如果要改主机或目录，必须显式设置 `ALLOW_NON_CANONICAL_DEPLOY=1`。
-- [scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh) 和 [scripts/redeploy_aliyun_fast.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/redeploy_aliyun_fast.sh) 在远端重启前都会先执行 `python3 scripts/backup_data.py`，自动生成本次发布的 rollback 基线。
+- [scripts/sync_to_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/sync_to_aliyun.sh) 每次覆盖远端前都会先生成代码快照 `data/releases/code/<release_id>.tar.gz`。
+- [scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh) 和 [scripts/redeploy_aliyun_fast.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/redeploy_aliyun_fast.sh) 在远端重启前都会先执行 `python3 scripts/backup_data.py`，自动生成本次发布的 runtime rollback 基线。
 - 发布完成的唯一验收口径是：本地发起端对公网 `front page`、`/healthz`、`/readyz` 探针全部通过；`docker compose ps` 或远端 `127.0.0.1` 只能算内部就绪，不能直接当成“已上线”。
 - 紧急绕过护栏必须显式设置：
   - `ALLOW_DIRTY_DEPLOY=1`
@@ -38,6 +39,8 @@ python scripts/verify_runtime_assets.py
 - 快速重启脚本：[scripts/restart_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/restart_aliyun.sh)
 - 后端快速发布脚本：[scripts/redeploy_aliyun_fast.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/redeploy_aliyun_fast.sh)
 - 一键部署脚本：[scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh)
+- 发布环境校验脚本：[scripts/validate_aliyun_release_env.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/validate_aliyun_release_env.sh)
+- 代码回滚脚本：[scripts/rollback_aliyun_release.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/rollback_aliyun_release.sh)
 - 服务器启动脚本：[scripts/server_bootstrap_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/server_bootstrap_aliyun.sh)
 - 运行态备份与恢复 runbook：[docs/zh/guide/runtime-backup-restore.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/zh/guide/runtime-backup-restore.md)
 - 备份定时任务样例：[deployment/backup/runtime-backup.cron.example](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/deployment/backup/runtime-backup.cron.example)
@@ -71,6 +74,8 @@ python scripts/verify_runtime_assets.py
 - `EMBEDDING_API_KEY`
 - `WECHAT_MP_APP_ID`
 - `WECHAT_MP_APP_SECRET`
+- `DEEPTUTOR_AUTH_SECRET`
+- `DEEPTUTOR_ADMIN_USER_IDS`
 - `ALIYUN_SMS_ACCESS_KEY_ID`
 - `ALIYUN_SMS_ACCESS_KEY_SECRET`
 - `ALIYUN_SMS_SIGN_NAME`
@@ -81,6 +86,12 @@ python scripts/verify_runtime_assets.py
 如果不显式把 `SERVICE_ENV` / `APP_ENV` 设成 `production`，或者没把
 `MEMBER_CONSOLE_USE_REAL_SMS` 打开，小程序验证码会退回调试模式，接口返回
 `debug_code`，不会真正发短信。
+
+认证上线额外约束：
+
+- production access token 只接受显式 `DEEPTUTOR_AUTH_SECRET` 或兼容别名 `MEMBER_CONSOLE_AUTH_SECRET`
+- 生产 `.env` 中禁止把 `DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE` / `DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE` 指到 `/root/luban`
+- 发布脚本会在远端重启前自动执行 `validate_aliyun_release_env.sh`；缺少 `DEEPTUTOR_AUTH_SECRET` 或 `DEEPTUTOR_ADMIN_USER_IDS` 会直接拒绝发布
 
 模板里还默认给了阿里云构建加速参数：
 
@@ -191,6 +202,8 @@ PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public
   - 适合临时恢复服务
 - `redeploy_aliyun_fast.sh`
   - 先 `rsync` 到服务器
+  - 覆盖前先自动生成远端代码快照
+  - 再执行远端发布环境校验
   - 再先执行一次远端 `python3 scripts/backup_data.py --project-root /root/deeptutor`
   - 再把 `deeptutor/` 等后端代码 `docker cp` 到正在运行的容器
   - 最后重启容器
@@ -198,10 +211,31 @@ PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public
   - 适合 Python 后端、Prompt、YAML、路由等无需重装依赖的改动
 - `deploy_aliyun.sh`
   - 先同步，再执行 `docker compose up -d --build`
+  - 覆盖前同样会先生成远端代码快照并校验远端发布环境
   - 同样会在真正重建前生成远端 runtime 备份
   - 远端重建完成后，会回到本地发起端做一次公网探针验收
   - 最慢，但最完整
   - 适合依赖、Dockerfile、前端构建相关改动
+
+### 代码回滚
+
+如果这次发布需要回滚代码，而不是只恢复 `data/user` 运行态数据：
+
+```bash
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor
+bash scripts/rollback_aliyun_release.sh latest
+```
+
+也可以指定某个 release id：
+
+```bash
+bash scripts/rollback_aliyun_release.sh 20260422T120000Z_feature_branch_deadbeef1234
+```
+
+说明：
+
+- 代码回滚会恢复最近一次远端代码快照，并重新执行 `server_bootstrap_aliyun.sh`
+- 运行态数据不在这个脚本里回滚；如果要同时回滚 `data/user`，请配合 [docs/zh/guide/runtime-backup-restore.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/zh/guide/runtime-backup-restore.md)
 
 ## 当前部署建议
 

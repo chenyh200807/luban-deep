@@ -37,11 +37,12 @@ from deeptutor.tutorbot.bus.queue import MessageBus
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
+    build_continuity_anchor_instruction,
     get_anchor_preservation_instruction,
-    normalize_anchor_terms_in_response,
     get_practice_generation_instruction,
     get_teaching_mode_instruction,
     looks_like_practice_generation_request,
+    normalize_anchor_terms_in_response,
 )
 from deeptutor.tutorbot.markdown_style import get_markdown_style_instruction
 
@@ -1281,6 +1282,15 @@ class AgentLoop:
         runtime_instruction_parts = [
             get_teaching_mode_instruction(response_mode),
             get_anchor_preservation_instruction(current_message),
+            build_continuity_anchor_instruction(
+                current_message,
+                active_object=runtime_metadata.get("active_object")
+                if isinstance(runtime_metadata.get("active_object"), dict)
+                else None,
+                conversation_context_text=str(
+                    runtime_metadata.get("conversation_context_text") or ""
+                ).strip(),
+            ),
             get_markdown_style_instruction(),
             get_practice_generation_instruction(
                 user_message=current_message,

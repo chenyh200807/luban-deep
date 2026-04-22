@@ -1,5 +1,6 @@
 import deeptutor.tutorbot.teaching_modes as teaching_modes_module
 from deeptutor.tutorbot.teaching_modes import (
+    build_continuity_anchor_instruction,
     detect_construction_exam_scene,
     detect_lecture_topic,
     get_anchor_preservation_instruction,
@@ -84,7 +85,27 @@ def test_get_anchor_preservation_instruction_preserves_explicit_case_anchor_word
     instruction = get_anchor_preservation_instruction("你用盖一栋6层住宅楼举个例子讲讲")
 
     assert "6层住宅楼" in instruction
+    assert "必须至少显式保留一次" in instruction
     assert "不要自行缩写、泛化或换称呼" in instruction
+
+
+def test_build_continuity_anchor_instruction_uses_authoritative_context_anchor():
+    instruction = build_continuity_anchor_instruction(
+        "你接着我前面那个例子讲，不要重新开始。",
+        active_object={
+            "object_type": "open_chat_topic",
+            "object_id": "session-1",
+            "state_snapshot": {
+                "title": "流水施工入门",
+                "compressed_summary": "用户一直在用6层住宅楼的例子理解流水节拍和施工段。",
+            },
+        },
+        conversation_context_text="最近一直在沿用6层住宅楼这个案例。",
+    )
+
+    assert "延续前文" in instruction
+    assert "6层住宅楼" in instruction
+    assert "不要重新起一个泛化的新例子" in instruction
 
 
 def test_normalize_anchor_terms_in_response_restores_exact_user_anchor_wording():

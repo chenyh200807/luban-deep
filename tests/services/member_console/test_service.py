@@ -508,6 +508,7 @@ async def test_production_bootstrap_persists_first_wechat_user_without_demo_seed
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
     monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("DEEPTUTOR_AUTH_SECRET", "prod_auth_secret")
 
     async def _fake_exchange(_code: str) -> dict[str, str]:
         return {
@@ -1445,6 +1446,30 @@ def test_send_phone_code_fails_closed_in_production_without_sms(
 
     with pytest.raises(RuntimeError, match="短信服务未配置，生产环境已禁止调试验证码"):
         service.send_phone_code("13955556666")
+
+
+def test_auth_secret_rejects_wechat_secret_fallback_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.delenv("DEEPTUTOR_AUTH_SECRET", raising=False)
+    monkeypatch.delenv("MEMBER_CONSOLE_AUTH_SECRET", raising=False)
+    monkeypatch.setenv("WECHAT_MP_APP_SECRET", "wx_secret_only")
+
+    with pytest.raises(RuntimeError, match="DEEPTUTOR_AUTH_SECRET must be configured in production"):
+        service._auth_secret()
+
+
+def test_auth_secret_allows_explicit_member_console_secret_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.delenv("DEEPTUTOR_AUTH_SECRET", raising=False)
+    monkeypatch.setenv("MEMBER_CONSOLE_AUTH_SECRET", "member_console_secret")
+
+    assert service._auth_secret() == "member_console_secret"
 
 
 @pytest.mark.asyncio

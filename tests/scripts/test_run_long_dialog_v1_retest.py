@@ -432,3 +432,34 @@ async def test_run_single_turn_unpins_tutorbot_when_question_followup_context_ex
     )
 
     assert captured["payload"]["capability"] is None
+
+
+@pytest.mark.asyncio
+async def test_run_single_turn_live_ws_keeps_capability_unforced() -> None:
+    captured: dict[str, object] = {}
+
+    class _FakeWebSocket:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def send(self, payload: str):
+            captured["payload"] = json.loads(payload)
+
+        async def recv(self):
+            return json.dumps({"type": "done"})
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(MODULE.websockets, "connect", lambda _url: _FakeWebSocket())
+
+    await MODULE._run_single_turn_live_ws(
+        api_base_url="http://127.0.0.1:8001",
+        session_id=None,
+        query="你用盖一栋6层住宅楼举个例子讲讲",
+        response_mode="smart",
+    )
+
+    assert captured["payload"]["capability"] is None
+    monkeypatch.undo()

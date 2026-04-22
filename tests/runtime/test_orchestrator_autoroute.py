@@ -649,3 +649,88 @@ async def test_orchestrator_treats_continue_issue_as_new_practice_request() -> N
     assert context.config_overrides["question_type"] == "choice"
     result = next(event for event in events if event.type.value == "result")
     assert result.metadata["question_type"] == "choice"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_only_enables_lightweight_generation_for_explicit_question_only_request() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-lightweight-explicit",
+        user_message="我现在学到网络计划了，但我特别容易把总时差和自由时差搞混。你先别长篇讲概念，先给我出3道很短的小题，我做完你再分析。",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["lightweight_generation"] is True
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_keeps_normal_practice_generation_on_full_path_without_explicit_question_only_intent() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-lightweight-normal",
+        user_message="考我3道网络计划选择题。",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["lightweight_generation"] is False
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_enables_lightweight_generation_for_single_question_without_answer_reveal() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-lightweight-single-no-answer",
+        user_message="出一道建筑实务单选题，不要给答案。",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["reveal_explanations"] is False
+    assert context.config_overrides["lightweight_generation"] is True
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_preselected_deep_question_still_prepares_lightweight_generation_context() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-lightweight-preselected",
+        user_message="出一道建筑实务单选题，不要给答案。",
+        config_overrides={},
+        metadata={"raw_user_message": "出一道建筑实务单选题，不要给答案。"},
+        language="zh",
+        active_capability="deep_question",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["reveal_explanations"] is False
+    assert context.config_overrides["lightweight_generation"] is True
