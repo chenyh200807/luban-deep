@@ -54,6 +54,25 @@ export interface MemberLedgerEntry {
   created_at: string;
 }
 
+export interface MemberConversationMessagePreview {
+  id: string;
+  role: string;
+  content: string;
+  created_at: string;
+  capability: string;
+}
+
+export interface MemberConversationPreview {
+  session_id: string;
+  title: string;
+  updated_at: string;
+  created_at: string;
+  capability: string;
+  message_count: number;
+  last_message: string;
+  messages: MemberConversationMessagePreview[];
+}
+
 export interface MemberBatchActionResult {
   action: string;
   success_count: number;
@@ -178,6 +197,7 @@ export interface MemberDetail {
   chapter_mastery: Record<string, { name: string; mastery: number }>;
   recent_notes: MemberNote[];
   recent_ledger: MemberLedgerEntry[];
+  recent_conversations: MemberConversationPreview[];
   learner_state?: MemberLearnerStateSnapshot | null;
   heartbeat?: {
     jobs?: HeartbeatJob[];

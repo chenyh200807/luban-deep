@@ -1,7 +1,7 @@
 /* eslint-disable i18n/no-literal-ui-text */
 "use client";
 
-import { Bot, Clock3, StickyNote } from "lucide-react";
+import { Bot, Clock3, MessageSquareMore, StickyNote } from "lucide-react";
 import type { BotOverlaySummary, HeartbeatJob, MemberDetail } from "@/lib/member-api";
 import { InfoLine, SectionHeader, formatTime } from "./BiShared";
 
@@ -48,6 +48,7 @@ export function BiMember360Panel({
     .slice(0, 4);
   const heartbeatJobs = member.heartbeat?.jobs ?? [];
   const overlays = member.bot_overlays ?? [];
+  const recentConversations = member.recent_conversations ?? [];
 
   return (
     <div className="space-y-5">
@@ -130,6 +131,46 @@ export function BiMember360Panel({
               ))}
               {member.recent_notes.length === 0 ? (
                 <div className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">暂无运营备注。</div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5">
+            <SectionHeader title="最近聊天记录" extra={`${recentConversations.length} 个会话`} />
+            <div className="mt-4 space-y-4">
+              {recentConversations.map((conversation) => (
+                <div key={conversation.session_id} className="rounded-2xl border border-[var(--border)]/60 bg-white px-4 py-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--foreground)]">
+                        <MessageSquareMore size={14} className="mr-2 inline-flex" />
+                        {conversation.title}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                        {conversation.capability} · {conversation.message_count} 条消息 · 最近更新 {formatTime(conversation.updated_at)}
+                      </p>
+                    </div>
+                    <span className="text-xs text-[var(--muted-foreground)]">{conversation.session_id}</span>
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    {conversation.messages.map((message) => (
+                      <div key={message.id} className="rounded-2xl bg-[var(--secondary)]/70 px-3 py-3 text-sm">
+                        <div className="flex items-center justify-between gap-3 text-xs text-[var(--muted-foreground)]">
+                          <span>{message.role === "assistant" ? "AI" : "学员"}</span>
+                          <span>{formatTime(message.created_at)}</span>
+                        </div>
+                        <p className="mt-2 whitespace-pre-wrap break-words leading-6 text-[var(--secondary-foreground)]">
+                          {message.content}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {recentConversations.length === 0 ? (
+                <div className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+                  当前没有可展示的聊天记录。
+                </div>
               ) : null}
             </div>
           </div>
