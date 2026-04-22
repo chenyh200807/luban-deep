@@ -1431,8 +1431,11 @@ Page({
           wx.setStorageSync("current_session_ts", Date.now());
           self._doSend(query, extraOpts);
         })
-        .catch(function () {
+        .catch(function (err) {
           self.setData({ isStreaming: false });
+          if (String((err && err.message) || "") === "AUTH_EXPIRED") {
+            return;
+          }
           wx.showToast({ title: "创建对话失败", icon: "none" });
         });
       return;
