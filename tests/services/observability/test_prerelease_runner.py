@@ -1,13 +1,20 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
-from deeptutor.services.observability import reset_control_plane_store
+import pytest
+
+from deeptutor.services.observability import reset_control_plane_store, reset_turn_event_log
+from deeptutor.services.observability import get_control_plane_store
+from deeptutor.services.observability import prerelease_runner as prerelease_module
+from deeptutor.services.observability.prerelease_runner import load_metrics_snapshot
 from deeptutor.services.observability.prerelease_runner import run_prerelease_observability
 
 
 def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_path, monkeypatch) -> None:
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    reset_turn_event_log(events_dir=tmp_path / "events")
 
     async def fake_run_unified_ws_smoke(**kwargs):
         return {
@@ -113,6 +120,29 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
             "md_path": str((Path(output_dir) if output_dir else tmp_path) / "arr.md"),
         },
     )
+    original_build_observer_snapshot = prerelease_module.build_observer_snapshot
+    original_build_oa_run = prerelease_module.build_oa_run
+    built_observer_payload = {}
+
+    def spy_build_observer_snapshot(**kwargs):
+        payload = original_build_observer_snapshot(**kwargs)
+        built_observer_payload["payload"] = payload
+        return payload
+
+    def spy_build_oa_run(**kwargs):
+        observer_payload = kwargs.get("observer_payload")
+        assert observer_payload is not built_observer_payload["payload"]
+        assert observer_payload == get_control_plane_store().latest_payload("observer_snapshots")
+        return original_build_oa_run(**kwargs)
+
+    monkeypatch.setattr(
+        "deeptutor.services.observability.prerelease_runner.build_observer_snapshot",
+        spy_build_observer_snapshot,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.observability.prerelease_runner.build_oa_run",
+        spy_build_oa_run,
+    )
 
     result = run_prerelease_observability(
         api_base_url="http://127.0.0.1:8001",
@@ -127,6 +157,20 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
     assert result["runs"]["om"]["run_id"].startswith("om-")
     assert result["runs"]["arr"]["run_id"] == "arr-lite-1"
     assert result["runs"]["aae"]["source_arr_run_id"] == "arr-lite-1"
+    assert result["runs"]["observer_snapshot"]["run_id"].startswith("observer-snapshot-")
+    assert result["runs"]["observer_snapshot"]["source_runs"]["arr_run_id"] == "arr-lite-1"
     assert result["runs"]["oa"]["mode"] == "pre-release"
+    assert result["runs"]["oa"]["raw_evidence_bundle"]["observer_snapshot_run_id"] == result["runs"][
+        "observer_snapshot"
+    ]["run_id"]
     assert result["runs"]["release_gate"]["final_status"] in {"PASS", "WARN"}
     assert result["artifacts"]["arr"]["json_path"].endswith("arr.json")
+    assert result["artifacts"]["observer_snapshot"]["json_path"].endswith("raw_data_latest.json")
+
+
+def test_load_metrics_snapshot_rejects_non_object_json(tmp_path) -> None:
+    target = tmp_path / "metrics.json"
+    target.write_text(json.dumps([], ensure_ascii=False), encoding="utf-8")
+
+    with pytest.raises(TypeError, match="Metrics snapshot must be a JSON object"):
+        load_metrics_snapshot(api_base_url="http://127.0.0.1:8001", metrics_json=str(target))

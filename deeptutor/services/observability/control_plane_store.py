@@ -12,6 +12,7 @@ DEFAULT_STORE_DIR = PROJECT_ROOT / "tmp" / "observability" / "control_plane"
 _ALLOWED_KINDS = {
     "benchmark_runs",
     "daily_trends",
+    "observer_snapshots",
     "om_runs",
     "arr_runs",
     "aae_composite_runs",
@@ -144,23 +145,20 @@ class ObservabilityControlPlaneStore:
         }
 
     def latest_run(self, kind: str) -> dict[str, Any] | None:
-        kind_dir = self._kind_dir(kind)
-        latest_path = kind_dir / "latest.json"
-        if latest_path.exists():
-            return json.loads(latest_path.read_text(encoding="utf-8"))
-
-        candidates = sorted(
-            kind_dir.glob("*.json"),
-            key=lambda item: item.stat().st_mtime,
-            reverse=True,
-        )
-        for candidate in candidates:
-            if candidate.name == "latest.json":
+        last_error: Exception | None = None
+        for candidate in self._latest_candidates(kind):
+            try:
+                record = json.loads(candidate.read_text(encoding="utf-8"))
+                unwrap_payload_document(record, expected_kind=kind)
+                return record
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                last_error = exc
                 continue
-            return json.loads(candidate.read_text(encoding="utf-8"))
+        if last_error is not None:
+            raise last_error
         return None
 
-    def latest_payload(self, kind: str) -> dict[str, Any] | None:
+    def _latest_candidates(self, kind: str) -> list[Path]:
         kind_dir = self._kind_dir(kind)
         latest_path = kind_dir / "latest.json"
         candidates: list[Path] = []
@@ -175,9 +173,11 @@ class ObservabilityControlPlaneStore:
             )
             if candidate.name != "latest.json"
         )
+        return candidates
 
+    def latest_payload(self, kind: str) -> dict[str, Any] | None:
         last_error: Exception | None = None
-        for candidate in candidates:
+        for candidate in self._latest_candidates(kind):
             try:
                 record = json.loads(candidate.read_text(encoding="utf-8"))
                 return unwrap_payload_document(record, expected_kind=kind)

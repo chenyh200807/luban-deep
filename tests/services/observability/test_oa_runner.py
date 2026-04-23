@@ -57,3 +57,29 @@ def test_build_oa_run_flags_unified_ws_smoke_failure_as_root_cause() -> None:
     )
 
     assert any("主聊天链路" in item["hypothesis"] for item in payload["root_causes"])
+
+
+def test_build_oa_run_consumes_observer_snapshot_blind_spots_and_turn_failures() -> None:
+    payload = build_oa_run(
+        mode="daily",
+        om_payload=None,
+        arr_payload=None,
+        aae_payload=None,
+        observer_payload={
+            "run_id": "observer-snapshot-1",
+            "release": {"release_id": "rel-1"},
+            "data_coverage": {"coverage_ratio": 0.4},
+            "blind_spots": [{"type": "missing_surface_coverage", "severity": "medium"}],
+            "turn_events": {
+                "event_count": 10,
+                "error_count": 2,
+                "timeout_count": 1,
+                "error_ratio": 0.2,
+            },
+        },
+    )
+
+    assert payload["raw_evidence_bundle"]["observer_snapshot_run_id"] == "observer-snapshot-1"
+    assert any(item["type"] == "missing_surface_coverage" for item in payload["blind_spots"])
+    assert any("真实 turn 失败率偏高" in item["hypothesis"] for item in payload["root_causes"])
+    assert any(item["kind"] == "observer_snapshot" for item in payload["signals"])

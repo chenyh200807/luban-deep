@@ -6,7 +6,7 @@
 - `readyz`：启动期 readiness
 - `metrics`：机器可读 JSON 快照
 - `metrics/prometheus`：Prometheus 文本导出
-- `control plane`：OM / ARR / AAE / OA / Release Gate 的 best-effort run history
+- `control plane`：OM / ARR / AAE / ObserverSnapshot / OA / Release Gate 的 best-effort run history
 
 控制面说明见：
 

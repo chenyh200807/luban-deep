@@ -10,6 +10,8 @@ import httpx
 from deeptutor.services.observability import get_control_plane_store
 from deeptutor.services.observability.aae_composite import build_aae_composite_run
 from deeptutor.services.observability.arr_runner import run_arr, write_arr_artifacts
+from deeptutor.services.observability.observer_snapshot import build_observer_snapshot
+from deeptutor.services.observability.observer_snapshot import write_observer_snapshot_artifacts
 from deeptutor.services.observability.oa_runner import build_oa_run
 from deeptutor.services.observability.om_snapshot import build_om_run
 from deeptutor.services.observability.release_gate import build_release_gate_report
@@ -47,13 +49,19 @@ def load_metrics_snapshot(*, api_base_url: str, metrics_json: str | None = None)
         target = Path(metrics_json).expanduser().resolve()
         if not target.exists():
             raise FileNotFoundError(target)
-        return json.loads(target.read_text(encoding="utf-8"))
+        payload = json.loads(target.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            raise TypeError("Metrics snapshot must be a JSON object")
+        return payload
 
     url = f"{api_base_url.rstrip('/')}/metrics"
     with httpx.Client(timeout=5.0, trust_env=False) as client:
         response = client.get(url)
         response.raise_for_status()
-        return response.json()
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise TypeError("Metrics snapshot must be a JSON object")
+        return payload
 
 
 def run_prerelease_observability(
@@ -152,11 +160,30 @@ def run_prerelease_observability(
         ],
     )
 
+    observer_payload = build_observer_snapshot(
+        metrics_snapshot=metrics_snapshot,
+        surface_snapshot=surface_smoke_payload,
+    )
+    observer_artifacts = write_observer_snapshot_artifacts(
+        observer_payload,
+        output_dir=target_output_dir / "observer",
+    )
+    observer_store_paths = get_control_plane_store().write_run(
+        kind="observer_snapshots",
+        run_id=str(observer_payload.get("run_id") or ""),
+        release_id=str((observer_payload.get("release") or {}).get("release_id") or ""),
+        payload=observer_payload,
+    )
+    persisted_observer_payload = get_control_plane_store().latest_payload("observer_snapshots")
+    if not isinstance(persisted_observer_payload, dict):
+        raise RuntimeError("observer snapshot was written but could not be read from control plane latest")
+
     oa_payload = build_oa_run(
         mode="pre-release",
         om_payload=om_payload,
         arr_payload=arr_payload,
         aae_payload=aae_payload,
+        observer_payload=persisted_observer_payload,
     )
     oa_artifacts = _write_control_plane_artifact(
         kind="oa_runs",
@@ -195,6 +222,7 @@ def run_prerelease_observability(
             "om": om_payload,
             "arr": arr_payload,
             "aae": aae_payload,
+            "observer_snapshot": persisted_observer_payload,
             "oa": oa_payload,
             "release_gate": release_gate_payload,
         },
@@ -207,6 +235,12 @@ def run_prerelease_observability(
                 "store_history_path": arr_store_paths["history_path"],
             },
             "aae": aae_artifacts,
+            "observer_snapshot": {
+                **observer_artifacts,
+                "store_json_path": observer_store_paths["json_path"],
+                "store_latest_path": observer_store_paths["latest_path"],
+                "store_history_path": observer_store_paths["history_path"],
+            },
             "oa": oa_artifacts,
             "release_gate": release_gate_artifacts,
         },

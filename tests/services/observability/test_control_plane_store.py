@@ -152,3 +152,39 @@ def test_control_plane_store_latest_payload_skips_malformed_latest_json(tmp_path
     )
 
     assert store.latest_payload("oa_runs") == {"run_id": "oa-older", "blockers": []}
+
+
+def test_control_plane_store_latest_run_uses_same_fallback_as_latest_payload(tmp_path) -> None:
+    store = ObservabilityControlPlaneStore(base_dir=tmp_path)
+    kind_dir = tmp_path / "observer_snapshots"
+    kind_dir.mkdir(parents=True, exist_ok=True)
+    (kind_dir / "latest.json").write_text(
+        json.dumps(
+            {
+                "kind": "observer_snapshots",
+                "run_id": "observer-bad",
+                "recorded_at": 456,
+                "payload": {"run_id": "observer-bad"},
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    (kind_dir / "observer-good.json").write_text(
+        json.dumps(
+            {
+                "kind": "observer_snapshots",
+                "run_id": "observer-good",
+                "release_id": "rel-1",
+                "recorded_at": 123,
+                "payload": {"run_id": "observer-good", "blind_spots": []},
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    latest_run = store.latest_run("observer_snapshots")
+    assert latest_run is not None
+    assert latest_run["run_id"] == "observer-good"
+    assert store.latest_payload("observer_snapshots") == {"run_id": "observer-good", "blind_spots": []}

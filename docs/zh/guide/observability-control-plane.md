@@ -1,6 +1,6 @@
 # DeepTutor 观测控制面
 
-这份说明覆盖 `OM / ARR / AAE / OA / Release Gate` 的仓库内最小控制面。
+这份说明覆盖 `OM / ARR / AAE / ObserverSnapshot / OA / Release Gate` 的仓库内最小控制面。
 
 目标不是替代生产 BI，而是保证当前仓库已经具备：
 
@@ -25,6 +25,7 @@
 6. `incident_ledger`
 7. `benchmark_runs`
 8. `daily_trends`
+9. `observer_snapshots`
 
 每个 kind 都包含：
 
@@ -84,21 +85,39 @@ python3.11 scripts/run_aae_snapshot.py
 python3.11 scripts/run_aae_snapshot.py --arr-json /path/to/arr.json --om-json /path/to/om.json
 ```
 
-### 2.4 OA
+### 2.4 ObserverSnapshot
+
+`ObserverSnapshot` 是 OA 的 raw evidence bundle。它只聚合已存在事实源：control-plane runs、turn event log、surface ack、以及可选 `/metrics` JSON；它不是新的 turn/session/trace authority。
+
+```bash
+python3.11 scripts/run_observer_snapshot.py
+python3.11 scripts/run_observer_snapshot.py --metrics-json tmp/observability/mock_metrics.json
+```
+
+当前产物：
+
+1. `tmp/observability/observer/raw_data_latest.json`
+2. `tmp/observability/observer/raw_data_latest.md`
+3. `tmp/observability/control_plane/observer_snapshots/*.json`
+
+### 2.5 OA
 
 ```bash
 python3.11 scripts/run_oa.py --mode daily
 python3.11 scripts/run_oa.py --mode pre-release
 python3.11 scripts/run_oa.py --mode incident
+python3.11 scripts/run_oa.py --mode pre-release --observer-json tmp/observability/observer/raw_data_latest.json
 ```
 
-### 2.5 Release Gate
+未显式传 `--observer-json` 时，`OA` 会 best-effort 读取控制面最新 `observer_snapshots/latest.json`。
+
+### 2.6 Release Gate
 
 ```bash
 python3.11 scripts/run_release_gate.py
 ```
 
-### 2.5.1 Benchmark 单一主脊梁
+### 2.6.1 Benchmark 单一主脊梁
 
 canonical benchmark runbook 见：
 
@@ -117,7 +136,7 @@ python3.11 scripts/run_incident_replay.py --incident-id INC-001 --output-dir tmp
 1. `benchmark_runs`
 2. `daily_trends`
 
-### 2.6 Unified WS Smoke
+### 2.7 Unified WS Smoke
 
 ```bash
 python3.11 scripts/run_unified_ws_smoke.py \
@@ -125,7 +144,7 @@ python3.11 scripts/run_unified_ws_smoke.py \
   --message "请只回复ok。"
 ```
 
-### 2.7 一键 Pre-release
+### 2.8 一键 Pre-release
 
 ```bash
 python3.11 scripts/run_prerelease_observability.py \
@@ -158,12 +177,14 @@ curl -fsS "http://127.0.0.1:8001/api/v1/observability/control-plane/release_gate
 1. turn/session truth 仍在 `unified_turn + session store`
 2. trace/observation truth 仍在 `Langfuse`
 3. runtime metrics truth 仍在 `/metrics` 与 `Prometheus`
-4. control plane 只做 run history、摘要、gate、blind spots、RCA 候选
+4. `ObserverSnapshot` 只做 raw evidence bundle 与 blind spots 聚合，不写回业务状态
+5. control plane 只做 run history、摘要、gate、blind spots、RCA 候选
 
 ## 5. 当前已知限制
 
 1. `OM` 的 live snapshot 仍依赖真实后端进程；若没有运行中的 `8001`，请用 `--metrics-json` 离线模式。
 2. `AAE` 第一版仍以 proxy 为主，尤其是 `paid_student_satisfaction_score`。
-3. `OA` 当前是规则化 observer，不是全自动高置信度根因系统。
-4. `Release Gate` 在 `AAE` 高比例 proxy 或 blind spot 偏大时，默认只给 `WARN` 或 `FAIL`，不会伪装成强 PASS。
-5. `Unified WS Smoke` 会触发一次真实 LLM turn；在本地验证或 pre-release 场景用它补强主链路证据，不建议高频定时触发。
+3. `ObserverSnapshot` 若没有 turn event log，会明确暴露 `missing_turn_event_log`，而不是用 OM/ARR 代理事实伪装成真实 turn 观测。
+4. `OA` 当前是规则化 observer，不是全自动高置信度根因系统。
+5. `Release Gate` 在 `AAE` 高比例 proxy 或 blind spot 偏大时，默认只给 `WARN` 或 `FAIL`，不会伪装成强 PASS。
+6. `Unified WS Smoke` 会触发一次真实 LLM turn；在本地验证或 pre-release 场景用它补强主链路证据，不建议高频定时触发。

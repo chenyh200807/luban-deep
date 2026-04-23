@@ -23,6 +23,7 @@ def _load_script_module(script_name: str):
 AAE_MODULE = _load_script_module("run_aae_snapshot.py")
 OA_MODULE = _load_script_module("run_oa.py")
 RELEASE_GATE_MODULE = _load_script_module("run_release_gate.py")
+OBSERVER_SNAPSHOT_MODULE = _load_script_module("run_observer_snapshot.py")
 
 
 def test_run_aae_snapshot_load_json_accepts_control_plane_wrapper(tmp_path) -> None:
@@ -46,6 +47,21 @@ def test_run_oa_load_json_accepts_raw_payload(tmp_path) -> None:
     target.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
     assert OA_MODULE._load_json(str(target), expected_kind="oa_runs") == payload
+
+
+def test_run_oa_load_json_accepts_observer_snapshot_wrapper(tmp_path) -> None:
+    payload = {"run_id": "observer-snapshot-1", "turn_events": {"event_count": 1}}
+    wrapper = {
+        "kind": "observer_snapshots",
+        "run_id": "observer-snapshot-1",
+        "release_id": "rel-1",
+        "recorded_at": 123,
+        "payload": payload,
+    }
+    target = tmp_path / "observer-control-plane.json"
+    target.write_text(json.dumps(wrapper, ensure_ascii=False), encoding="utf-8")
+
+    assert OA_MODULE._load_json(str(target), expected_kind="observer_snapshots") == payload
 
 
 def test_run_release_gate_load_json_accepts_control_plane_wrapper(tmp_path) -> None:
@@ -118,3 +134,11 @@ def test_run_release_gate_store_fallback_skips_malformed_latest_wrapper(tmp_path
         "run_id": "oa-good",
         "root_causes": [],
     }
+
+
+def test_run_observer_snapshot_load_json_accepts_metrics_raw_payload(tmp_path) -> None:
+    payload = {"readiness": {"ready": True}, "turn_runtime": {"turns_started_total": 1}}
+    target = tmp_path / "metrics.json"
+    target.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    assert OBSERVER_SNAPSHOT_MODULE._load_json(str(target)) == payload

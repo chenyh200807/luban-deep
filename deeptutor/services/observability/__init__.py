@@ -6,6 +6,7 @@ from .control_plane_store import get_control_plane_store, reset_control_plane_st
 from .langfuse_adapter import get_langfuse_observability
 from .release_lineage import get_release_lineage_metadata, get_release_lineage_snapshot
 from .surface_events import get_surface_event_store, reset_surface_event_store
+from .turn_event_log import get_turn_event_log, reset_turn_event_log
 from .usage_ledger import get_usage_ledger
 
 __all__ = [
@@ -16,7 +17,9 @@ __all__ = [
     "get_release_lineage_metadata",
     "get_release_lineage_snapshot",
     "get_surface_event_store",
+    "get_turn_event_log",
     "get_usage_ledger",
     "reset_control_plane_store",
     "reset_surface_event_store",
+    "reset_turn_event_log",
 ]

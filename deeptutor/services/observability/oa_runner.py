@@ -42,12 +42,14 @@ def build_oa_run(
     om_payload: dict[str, Any] | None,
     arr_payload: dict[str, Any] | None,
     aae_payload: dict[str, Any] | None,
+    observer_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if mode not in {"daily", "pre-release", "incident"}:
         raise ValueError(f"Unsupported OA mode: {mode}")
 
     release = (
-        (arr_payload or {}).get("release")
+        (observer_payload or {}).get("release")
+        or (arr_payload or {}).get("release")
         or (om_payload or {}).get("release")
         or (aae_payload or {}).get("release")
         or get_release_lineage_snapshot()
@@ -56,6 +58,54 @@ def build_oa_run(
     root_causes: list[dict[str, Any]] = []
     playbooks: list[dict[str, Any]] = []
     signals: list[dict[str, Any]] = []
+
+    if observer_payload:
+        observer_coverage = observer_payload.get("data_coverage") or {}
+        observer_turn_events = observer_payload.get("turn_events") or {}
+        signals.append(
+            {
+                "kind": "observer_snapshot",
+                "payload": {
+                    "run_id": observer_payload.get("run_id"),
+                    "data_coverage": observer_coverage,
+                    "turn_events": observer_turn_events,
+                    "source_runs": observer_payload.get("source_runs") or {},
+                },
+            }
+        )
+        for blind_spot in observer_payload.get("blind_spots") or []:
+            if isinstance(blind_spot, dict):
+                blind_spots.append(dict(blind_spot))
+        error_ratio = observer_turn_events.get("error_ratio")
+        if isinstance(error_ratio, (int, float)) and float(error_ratio) >= 0.05:
+            _append_root_cause(
+                root_causes,
+                hypothesis="真实 turn 失败率偏高，优先从 turn event log 回放失败 turn，而不是只看聚合分数。",
+                confidence="high" if float(error_ratio) >= 0.1 else "medium",
+                supporting_evidence=[
+                    f"observer.turn_events.error_ratio={error_ratio}",
+                    f"observer.turn_events.error_count={observer_turn_events.get('error_count')}",
+                    f"observer.turn_events.event_count={observer_turn_events.get('event_count')}",
+                ],
+                affected_cohorts=["interactive_turns"],
+                suspected_change_window=str(release.get("release_id") or "unknown"),
+                next_verification_step="读取 ObserverSnapshot 的 turn_events，再按 turn_id/trace_id 回放失败样本。",
+                counterfactual="若 turn event error_ratio < 0.05，则更可能是评测样本或表面覆盖问题。",
+                validation_cmds=[
+                    "python3.11 scripts/run_observer_snapshot.py",
+                    "python3.11 scripts/run_oa.py --mode incident",
+                ],
+                suggested_fix_type="收权",
+            )
+        coverage_ratio = observer_coverage.get("coverage_ratio")
+        if isinstance(coverage_ratio, (int, float)) and float(coverage_ratio) < 0.5:
+            blind_spots.append(
+                {
+                    "type": "low_observer_snapshot_coverage",
+                    "severity": "high",
+                    "evidence": {"coverage_ratio": coverage_ratio},
+                }
+            )
 
     if not om_payload:
         blind_spots.append({"type": "missing_om_snapshot", "severity": "high"})
@@ -198,6 +248,7 @@ def build_oa_run(
         "release": release,
         "health_summary": (om_payload or {}).get("health_summary") or {},
         "raw_evidence_bundle": {
+            "observer_snapshot_run_id": (observer_payload or {}).get("run_id"),
             "om_run_id": (om_payload or {}).get("run_id"),
             "arr_run_id": (arr_payload or {}).get("run_id"),
             "aae_run_id": (aae_payload or {}).get("run_id"),

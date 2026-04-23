@@ -1067,10 +1067,22 @@ async def test_turn_runtime_metrics_track_completed_and_failed_turns(
     tmp_path,
 ) -> None:
     from deeptutor.api.runtime_metrics import get_turn_runtime_metrics, reset_turn_runtime_metrics
+    from deeptutor.services.observability import get_turn_event_log, reset_turn_event_log
 
     reset_turn_runtime_metrics()
+    reset_turn_event_log(events_dir=tmp_path / "observer_events")
     store = SQLiteSessionStore(tmp_path / "chat_history.db")
     runtime = TurnRuntimeManager(store)
+    usage_scope_closed = {"value": False}
+
+    class FakeUsageScope:
+        def __enter__(self):
+            usage_scope_closed["value"] = False
+            return None
+
+        def __exit__(self, *_args):
+            usage_scope_closed["value"] = True
+            return False
 
     class FakeContextBuilder:
         def __init__(self, *_args, **_kwargs) -> None:
@@ -1109,8 +1121,19 @@ async def test_turn_runtime_metrics_track_completed_and_failed_turns(
         ),
     )
     monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.usage_scope",
+        lambda **_kwargs: FakeUsageScope(),
+    )
+    monkeypatch.setattr(
         "deeptutor.services.session.turn_runtime.observability.get_current_usage_summary",
-        lambda: {},
+        lambda: {}
+        if usage_scope_closed["value"]
+        else {
+            "total_input_tokens": 7,
+            "total_output_tokens": 5,
+            "total_tokens": 12,
+            "total_calls": 1,
+        },
     )
 
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", CompletedOrchestrator)
@@ -1153,6 +1176,10 @@ async def test_turn_runtime_metrics_track_completed_and_failed_turns(
     assert snapshot["turns_failed_total"] == 1
     assert snapshot["turns_in_flight"] == 0
     assert snapshot["turn_avg_latency_ms"] >= 0
+    turn_events = get_turn_event_log().load_events()
+    assert [item["status"] for item in turn_events] == ["completed", "failed"]
+    assert [item["token_total"] for item in turn_events] == [12, 12]
+    assert all((item.get("metadata") or {}).get("source") == "turn_runtime_terminal" for item in turn_events)
 
 
 @pytest.mark.asyncio

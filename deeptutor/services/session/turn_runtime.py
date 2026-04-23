@@ -27,9 +27,11 @@ from deeptutor.logging.context import bind_log_context, reset_log_context
 from deeptutor.services.observability import (
     get_langfuse_observability,
     get_release_lineage_metadata,
+    get_turn_event_log,
     get_surface_event_store,
 )
 from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
+from deeptutor.services.observability.turn_event_log import build_turn_observation_event
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
     build_question_followup_context_from_presentation,
@@ -116,6 +118,43 @@ def _clip_text(value: str, limit: int = 4000) -> str:
     if len(text) <= limit:
         return text
     return text[:limit].rstrip() + "\n...[truncated]"
+
+
+def _build_terminal_turn_observation_event(
+    *,
+    session_id: str,
+    turn_id: str,
+    status: str,
+    capability_name: str,
+    duration_ms: float,
+    trace_metadata: dict[str, Any],
+    usage_summary: dict[str, Any] | None,
+) -> dict[str, Any]:
+    usage = usage_summary if isinstance(usage_summary, dict) else {}
+    metadata = {
+        "source": "turn_runtime_terminal",
+        "execution_engine": str(trace_metadata.get("execution_engine") or "").strip(),
+        "bot_id": str(trace_metadata.get("bot_id") or "").strip(),
+        "context_route": str(trace_metadata.get("context_route") or "").strip(),
+        "task_anchor_type": str(trace_metadata.get("task_anchor_type") or "").strip(),
+        "assistant_content_source": str(trace_metadata.get("assistant_content_source") or "").strip(),
+        "total_input_tokens": int(usage.get("total_input_tokens") or 0),
+        "total_output_tokens": int(usage.get("total_output_tokens") or 0),
+        "total_calls": int(usage.get("total_calls") or 0),
+    }
+    return build_turn_observation_event(
+        session_id=session_id,
+        turn_id=turn_id,
+        status=status,
+        capability=capability_name or "chat",
+        route=metadata["context_route"] or metadata["execution_engine"],
+        surface=str(trace_metadata.get("source") or "").strip(),
+        user_id=str(trace_metadata.get("user_id") or "").strip(),
+        latency_ms=duration_ms,
+        token_total=int(usage.get("total_tokens") or 0),
+        error_type=status if status not in {"completed", "unknown"} else "",
+        metadata=metadata,
+    )
 
 
 def _env_flag(name: str, default: bool = True) -> bool:
@@ -3330,16 +3369,39 @@ class TurnRuntimeManager:
                 ),
             )
         finally:
+            terminal_usage_summary = observability.get_current_usage_summary()
             if turn_observation_cm is not None:
                 with contextlib.suppress(Exception):
                     turn_observation_cm.__exit__(None, None, None)
             if usage_scope_cm is not None:
                 with contextlib.suppress(Exception):
                     usage_scope_cm.__exit__(None, None, None)
+            turn_duration_ms = (time.perf_counter() - turn_started_at) * 1000.0
             get_turn_runtime_metrics().record_turn_finished(
                 status=terminal_status,
-                duration_ms=(time.perf_counter() - turn_started_at) * 1000.0,
+                duration_ms=turn_duration_ms,
             )
+            with contextlib.suppress(Exception):
+                event_log = get_turn_event_log()
+                append_ok = event_log.append(
+                    _build_terminal_turn_observation_event(
+                        session_id=session_id,
+                        turn_id=turn_id,
+                        status=terminal_status,
+                        capability_name=capability_name,
+                        duration_ms=turn_duration_ms,
+                        trace_metadata={
+                            **trace_metadata,
+                            "assistant_content_source": assistant_content_source,
+                        },
+                        usage_summary=terminal_usage_summary,
+                    )
+                )
+                if not append_ok:
+                    logger.debug(
+                        "Turn observation event append failed: %s",
+                        event_log.stats().get("last_write_error"),
+                    )
             if log_context_tokens:
                 reset_log_context(log_context_tokens)
             async with self._lock:
