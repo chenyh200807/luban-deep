@@ -781,6 +781,90 @@ def test_get_conversation_messages_include_presentation_payload(
     assert messages[0]["presentation"]["blocks"][0]["questions"][0]["question_id"] == "q_1"
 
 
+def test_get_conversation_messages_suppresses_presentation_for_exact_authority(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_payload = {
+        "id": "session_exact_authority",
+        "title": "真题讲解",
+        "preferences": {
+            "source": "wx_miniprogram",
+            "archived": False,
+        },
+        "messages": [
+            {
+                "id": 1,
+                "role": "assistant",
+                "content": "题干：结构的可靠性包括（　　）\n标准答案：BCE",
+                "created_at": 1_700_000_030.0,
+                "events": [
+                    {
+                        "type": "tool_result",
+                        "metadata": {
+                            "authority_applied": True,
+                            "exact_question": {"correct_answer": "BCE"},
+                        },
+                    },
+                    {
+                        "type": "result",
+                        "metadata": {
+                            "authority_applied": True,
+                            "presentation": {
+                                "schema_version": 1,
+                                "blocks": [
+                                    {
+                                        "type": "mcq",
+                                        "questions": [
+                                            {
+                                                "index": 1,
+                                                "question_id": "q_exact",
+                                                "stem": "结构的可靠性包括（　　）",
+                                                "question_type": "multi_choice",
+                                                "options": [
+                                                    {"key": "A", "text": "稳定"},
+                                                    {"key": "B", "text": "安全性"},
+                                                ],
+                                            }
+                                        ],
+                                        "submit_hint": "请选择后提交答案",
+                                        "receipt": "",
+                                        "review_mode": False,
+                                    }
+                                ],
+                                "fallback_text": "题干：结构的可靠性包括（　　）",
+                                "meta": {"streamingMode": "block_finalized"},
+                            },
+                        },
+                    },
+                ],
+            }
+        ],
+    }
+
+    async def _fake_get_session_with_messages(_conversation_id: str):
+        return session_payload
+
+    async def _fake_list_sessions_by_owner(*_args, **_kwargs):
+        return [session_payload]
+
+    monkeypatch.setattr(mobile_module.session_store, "list_sessions_by_owner", _fake_list_sessions_by_owner)
+    monkeypatch.setattr(mobile_module.session_store, "get_session_with_messages", _fake_get_session_with_messages)
+    monkeypatch.setattr(mobile_module.session_store, "get_session_owner_key", AsyncMock(return_value="user:student_demo"))
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/session_exact_authority/messages")
+
+    assert response.status_code == 200
+    messages = response.json()["messages"]
+    assert messages[0]["content"].startswith("题干：结构的可靠性包括")
+    assert messages[0]["presentation"] is None
+
+
 def test_get_conversation_messages_merges_internal_tutorbot_variants(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
