@@ -99,3 +99,33 @@ def test_bi_page_client_only_clears_admin_session_for_auth_failures() -> None:
     assert "restoreBiAdminSession" in source
     assert "isAuthUnavailableError" in auth_source
     assert "管理员会话校验暂时失败，请稍后重试。" in source
+
+
+def test_member_api_supports_admin_authorization_header() -> None:
+    source = (REPO_ROOT / "web" / "lib" / "member-api.ts").read_text(encoding="utf-8")
+    api_source = (REPO_ROOT / "web" / "lib" / "api.ts").read_text(encoding="utf-8")
+
+    assert "withAdminAuthorization" in source
+    assert "Authorization" in api_source
+    assert "Bearer" in api_source
+
+
+def test_bi_page_client_exposes_admin_login_entry() -> None:
+    source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+
+    assert "管理员登录" in source
+    assert "adminSession" in source
+
+
+def test_bi_page_client_explains_token_is_server_managed() -> None:
+    source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+
+    assert "BI API Token 已由系统配置" in source
+    assert "无需手动填写" in source
+
+
+def test_bi_page_client_turns_protected_tabs_into_unlock_flow() -> None:
+    source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+
+    assert "解锁会员后台" in source
+    assert "scrollIntoView" in source
