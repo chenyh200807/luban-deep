@@ -34,6 +34,15 @@ def main() -> None:
     parser.add_argument("--metrics-json", help="可选 live /metrics JSON；提供后进入 raw evidence bundle")
     parser.add_argument("--event-days", type=int, default=1)
     parser.add_argument("--output-dir")
+    parser.add_argument("--conversation-db", help="可选 chat_history.db 路径；默认读取 canonical data/user/chat_history.db")
+    parser.add_argument("--conversation-limit", type=int, default=100)
+    parser.add_argument(
+        "--backend-log",
+        action="append",
+        default=None,
+        help="可重复传入后台日志路径；默认读取 data/user/logs 当日日志和 tmp/backend.log",
+    )
+    parser.add_argument("--backend-log-tail-lines", type=int, default=1000)
     args = parser.parse_args()
 
     metrics_snapshot = _load_json(args.metrics_json)
@@ -42,6 +51,12 @@ def main() -> None:
         store=store,
         event_days=max(int(args.event_days or 1), 1),
         metrics_snapshot=metrics_snapshot,
+        conversation_db_path=Path(args.conversation_db).expanduser().resolve() if args.conversation_db else None,
+        conversation_limit=max(int(args.conversation_limit or 1), 1),
+        backend_log_paths=[Path(item).expanduser().resolve() for item in args.backend_log]
+        if args.backend_log is not None
+        else None,
+        backend_log_tail_lines=max(int(args.backend_log_tail_lines or 1), 1),
     )
     artifact_paths = write_observer_snapshot_artifacts(
         payload,

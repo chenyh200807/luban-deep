@@ -104,6 +104,7 @@ def main() -> None:
     changed_files = args.changed_file or collect_git_changed_files(base_ref=args.base_ref)
     om_payload = store.latest_payload("om_runs")
     arr_payload = store.latest_payload("arr_runs")
+    benchmark_payload = store.latest_payload("benchmark_runs")
     aae_payload = store.latest_payload("aae_composite_runs")
     change_impact_payload = build_change_impact_run(
         changed_files=changed_files,
@@ -128,6 +129,7 @@ def main() -> None:
         om_payload=om_payload,
         arr_payload=arr_payload,
         aae_payload=aae_payload,
+        benchmark_payload=benchmark_payload,
         observer_payload=observer_payload,
         change_impact_payload=change_impact_payload,
     )

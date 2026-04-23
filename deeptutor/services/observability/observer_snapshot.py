@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
+import re
+import sqlite3
 import time
 from collections import Counter
+from datetime import datetime
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -12,9 +17,16 @@ from deeptutor.services.observability.release_lineage import get_release_lineage
 from deeptutor.services.observability.surface_events import get_surface_event_store
 from deeptutor.services.observability.turn_event_log import TurnEventLog
 from deeptutor.services.observability.turn_event_log import get_turn_event_log
+from deeptutor.services.path_service import get_path_service
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OBSERVER_DIR = PROJECT_ROOT / "tmp" / "observability" / "observer"
+_PII_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"1[3-9]\d{9}"), "[PHONE]"),
+    (re.compile(r"[\w\.-]+@[\w\.-]+\.\w+"), "[EMAIL]"),
+    (re.compile(r"(?i)(sk-|pk-|api[_-]?key)[A-Za-z0-9_\-]{8,}"), "[API_KEY]"),
+)
+_LOG_LEVEL_PATTERN = re.compile(r"\[(ERROR|WARNING|WARN|CRITICAL)\s*\]|\b(ERROR|WARNING|WARN|CRITICAL)\b")
 
 
 def _safe_latest_payload(
@@ -61,6 +73,277 @@ def _percentile(values: list[float], percentile: float) -> float | None:
     ordered = sorted(values)
     index = min(len(ordered) - 1, max(0, int(round((len(ordered) - 1) * percentile))))
     return round(float(ordered[index]), 1)
+
+
+def _redact_excerpt(value: Any, *, limit: int = 240) -> str:
+    text = str(value or "").replace("\r", " ").replace("\n", " ").strip()
+    for pattern, replacement in _PII_PATTERNS:
+        text = pattern.sub(replacement, text)
+    if len(text) <= limit:
+        return text
+    return text[:limit].rstrip() + "..."
+
+
+def _timestamp_iso(value: Any) -> str:
+    try:
+        return datetime.fromtimestamp(float(value)).isoformat(timespec="seconds")
+    except (TypeError, ValueError, OSError):
+        return ""
+
+
+def _default_conversation_db_path() -> Path:
+    return get_path_service().get_chat_history_db()
+
+
+def _default_backend_log_paths(*, days: int) -> list[Path]:
+    path_service = get_path_service()
+    paths: list[Path] = []
+    for offset in range(max(int(days or 1), 1)):
+        day = (datetime.now() - timedelta(days=offset)).strftime("%Y%m%d")
+        paths.append(path_service.get_logs_dir() / f"deeptutor_{day}.log")
+    paths.append(PROJECT_ROOT / "tmp" / "backend.log")
+    return paths
+
+
+def _sqlite_count(conn: sqlite3.Connection, query: str, params: tuple[Any, ...]) -> int:
+    row = conn.execute(query, params).fetchone()
+    if row is None:
+        return 0
+    return int(row[0] or 0)
+
+
+def _sqlite_counter(conn: sqlite3.Connection, query: str, params: tuple[Any, ...]) -> dict[str, int]:
+    counter: dict[str, int] = {}
+    for row in conn.execute(query, params).fetchall():
+        key = str(row[0] or "unknown").strip() or "unknown"
+        counter[key] = int(row[1] or 0)
+    return dict(sorted(counter.items(), key=lambda item: item[0]))
+
+
+def _build_recent_conversations_snapshot(
+    *,
+    db_path: Path | None,
+    days: int,
+    limit: int,
+) -> dict[str, Any]:
+    target = (db_path or _default_conversation_db_path()).expanduser().resolve()
+    window_days = max(int(days or 1), 1)
+    cutoff = time.time() - (window_days * 24 * 60 * 60)
+    base: dict[str, Any] = {
+        "db_path": str(target),
+        "window_days": window_days,
+        "cutoff_timestamp": cutoff,
+        "session_count": 0,
+        "conversation_count": 0,
+        "message_count": 0,
+        "turn_count": 0,
+        "failed_turn_count": 0,
+        "role_distribution": {},
+        "turn_status_distribution": {},
+        "capability_distribution": {},
+        "source_distribution": {},
+        "recent_sessions": [],
+        "sample_limit": max(int(limit or 1), 1),
+        "read_error": "",
+    }
+    if not target.exists():
+        base["read_error"] = "conversation db missing"
+        return base
+
+    try:
+        with sqlite3.connect(target) as conn:
+            conn.row_factory = sqlite3.Row
+            session_rows = conn.execute(
+                """
+                SELECT
+                    s.id,
+                    s.title,
+                    s.created_at,
+                    s.updated_at,
+                    s.source,
+                    s.archived,
+                    COALESCE(NULLIF(s.conversation_id, ''), s.id) AS conversation_key,
+                    COUNT(m.id) AS message_count,
+                    SUM(CASE WHEN m.role = 'user' THEN 1 ELSE 0 END) AS user_message_count,
+                    SUM(CASE WHEN m.role = 'assistant' THEN 1 ELSE 0 END) AS assistant_message_count,
+                    (
+                        SELECT content FROM messages lm
+                        WHERE lm.session_id = s.id AND lm.role = 'user'
+                        ORDER BY lm.id DESC LIMIT 1
+                    ) AS last_user_message,
+                    (
+                        SELECT content FROM messages lm
+                        WHERE lm.session_id = s.id AND lm.role = 'assistant'
+                        ORDER BY lm.id DESC LIMIT 1
+                    ) AS last_assistant_message,
+                    (
+                        SELECT status FROM turns lt
+                        WHERE lt.session_id = s.id
+                        ORDER BY lt.updated_at DESC LIMIT 1
+                    ) AS latest_turn_status,
+                    (
+                        SELECT error FROM turns lt
+                        WHERE lt.session_id = s.id
+                        ORDER BY lt.updated_at DESC LIMIT 1
+                    ) AS latest_turn_error
+                FROM sessions s
+                LEFT JOIN messages m ON m.session_id = s.id
+                WHERE s.updated_at >= ?
+                GROUP BY s.id
+                ORDER BY s.updated_at DESC, s.id DESC
+                LIMIT ?
+                """,
+                (cutoff, max(int(limit or 1), 1)),
+            ).fetchall()
+            base["session_count"] = _sqlite_count(
+                conn,
+                "SELECT COUNT(*) FROM sessions WHERE updated_at >= ?",
+                (cutoff,),
+            )
+            base["conversation_count"] = _sqlite_count(
+                conn,
+                "SELECT COUNT(DISTINCT COALESCE(NULLIF(conversation_id, ''), id)) FROM sessions WHERE updated_at >= ?",
+                (cutoff,),
+            )
+            base["message_count"] = _sqlite_count(
+                conn,
+                "SELECT COUNT(*) FROM messages WHERE created_at >= ?",
+                (cutoff,),
+            )
+            base["turn_count"] = _sqlite_count(
+                conn,
+                "SELECT COUNT(*) FROM turns WHERE updated_at >= ?",
+                (cutoff,),
+            )
+            base["failed_turn_count"] = _sqlite_count(
+                conn,
+                "SELECT COUNT(*) FROM turns WHERE updated_at >= ? AND status IN ('failed', 'error', 'timeout', 'cancelled')",
+                (cutoff,),
+            )
+            base["role_distribution"] = _sqlite_counter(
+                conn,
+                "SELECT role, COUNT(*) FROM messages WHERE created_at >= ? GROUP BY role",
+                (cutoff,),
+            )
+            base["turn_status_distribution"] = _sqlite_counter(
+                conn,
+                "SELECT status, COUNT(*) FROM turns WHERE updated_at >= ? GROUP BY status",
+                (cutoff,),
+            )
+            base["capability_distribution"] = _sqlite_counter(
+                conn,
+                "SELECT capability, COUNT(*) FROM turns WHERE updated_at >= ? GROUP BY capability",
+                (cutoff,),
+            )
+            base["source_distribution"] = _sqlite_counter(
+                conn,
+                "SELECT source, COUNT(*) FROM sessions WHERE updated_at >= ? GROUP BY source",
+                (cutoff,),
+            )
+            base["recent_sessions"] = [
+                {
+                    "session_id": str(row["id"] or ""),
+                    "conversation_key": str(row["conversation_key"] or ""),
+                    "title": _redact_excerpt(row["title"], limit=160),
+                    "source": str(row["source"] or ""),
+                    "archived": bool(row["archived"]),
+                    "created_at": _timestamp_iso(row["created_at"]),
+                    "updated_at": _timestamp_iso(row["updated_at"]),
+                    "message_count": int(row["message_count"] or 0),
+                    "user_message_count": int(row["user_message_count"] or 0),
+                    "assistant_message_count": int(row["assistant_message_count"] or 0),
+                    "latest_turn_status": str(row["latest_turn_status"] or ""),
+                    "latest_turn_error": _redact_excerpt(row["latest_turn_error"], limit=240),
+                    "last_user_excerpt": _redact_excerpt(row["last_user_message"], limit=240),
+                    "last_assistant_excerpt": _redact_excerpt(row["last_assistant_message"], limit=240),
+                }
+                for row in session_rows
+            ]
+    except Exception as exc:
+        base["read_error"] = f"{type(exc).__name__}: {exc}"
+    return base
+
+
+def _build_backend_log_snapshot(
+    *,
+    paths: list[Path] | None,
+    days: int,
+    tail_lines: int,
+) -> dict[str, Any]:
+    candidates = paths if paths is not None else _default_backend_log_paths(days=days)
+    line_limit = max(int(tail_lines or 1000), 1)
+    files: list[dict[str, Any]] = []
+    error_samples: list[str] = []
+    warning_samples: list[str] = []
+    level_counter: Counter[str] = Counter()
+    scanned_lines = 0
+
+    for raw_path in candidates:
+        path = Path(raw_path).expanduser().resolve()
+        if not path.exists() or not path.is_file():
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()[-line_limit:]
+        except OSError as exc:
+            files.append({"path": str(path), "read_error": f"{type(exc).__name__}: {exc}", "line_count": 0})
+            continue
+        file_counter: Counter[str] = Counter()
+        for line in lines:
+            scanned_lines += 1
+            match = _LOG_LEVEL_PATTERN.search(line)
+            level = ""
+            if match:
+                level = str(match.group(1) or match.group(2) or "").upper()
+            elif "Traceback" in line or "Exception" in line:
+                level = "ERROR"
+            if not level:
+                continue
+            if level == "WARN":
+                level = "WARNING"
+            level_counter[level] += 1
+            file_counter[level] += 1
+            sample = _redact_excerpt(line, limit=320)
+            if level in {"ERROR", "CRITICAL"} and len(error_samples) < 12:
+                error_samples.append(sample)
+            if level == "WARNING" and len(warning_samples) < 12:
+                warning_samples.append(sample)
+        files.append(
+            {
+                "path": str(path),
+                "line_count": len(lines),
+                "levels": dict(sorted(file_counter.items(), key=lambda item: item[0])),
+                "mtime": _timestamp_iso(path.stat().st_mtime),
+            }
+        )
+
+    return {
+        "window_days": max(int(days or 1), 1),
+        "tail_lines_per_file": line_limit,
+        "files": files,
+        "scanned_lines": scanned_lines,
+        "error_count": int(level_counter.get("ERROR", 0) + level_counter.get("CRITICAL", 0)),
+        "warning_count": int(level_counter.get("WARNING", 0)),
+        "level_distribution": dict(sorted(level_counter.items(), key=lambda item: item[0])),
+        "error_samples": error_samples,
+        "warning_samples": warning_samples,
+    }
+
+
+def _build_trace_linkage_snapshot(events: list[dict[str, Any]]) -> dict[str, Any]:
+    trace_ids = [
+        str(item.get("trace_id") or "").strip()
+        for item in events
+        if str(item.get("trace_id") or "").strip()
+    ]
+    unique_trace_ids = sorted(set(trace_ids))
+    return {
+        "trace_id_count": len(trace_ids),
+        "unique_trace_id_count": len(unique_trace_ids),
+        "sample_trace_ids": unique_trace_ids[:20],
+        "langfuse_enabled": str(os.getenv("LANGFUSE_ENABLED", "") or "").strip().lower()
+        in {"1", "true", "yes", "on"},
+        "langfuse_host": str(os.getenv("LANGFUSE_BASE_URL", "") or os.getenv("LANGFUSE_HOST", "") or "").strip(),
+    }
 
 
 def _summarize_turn_events(events: list[dict[str, Any]]) -> dict[str, Any]:
@@ -160,6 +443,10 @@ def build_observer_snapshot(
     event_days: int = 1,
     metrics_snapshot: dict[str, Any] | None = None,
     surface_snapshot: dict[str, Any] | None = None,
+    conversation_db_path: Path | None = None,
+    conversation_limit: int = 100,
+    backend_log_paths: list[Path] | None = None,
+    backend_log_tail_lines: int = 1000,
 ) -> dict[str, Any]:
     control_store = store or get_control_plane_store()
     turn_log = event_log or get_turn_event_log()
@@ -177,6 +464,17 @@ def build_observer_snapshot(
     turn_events = turn_log.load_events_range(days=event_days)
     turn_log_stats = turn_log.stats()
     turn_summary = _summarize_turn_events(turn_events)
+    recent_conversations = _build_recent_conversations_snapshot(
+        db_path=conversation_db_path,
+        days=event_days,
+        limit=conversation_limit,
+    )
+    backend_logs = _build_backend_log_snapshot(
+        paths=backend_log_paths,
+        days=event_days,
+        tail_lines=backend_log_tail_lines,
+    )
+    trace_linkage = _build_trace_linkage_snapshot(turn_events)
     surface_payload = surface_snapshot if isinstance(surface_snapshot, dict) else get_surface_event_store().snapshot()
     surface_coverage = surface_payload.get("coverage") if isinstance(surface_payload, dict) else []
     has_quality_run = bool(arr_payload or benchmark_payload)
@@ -241,6 +539,36 @@ def build_observer_snapshot(
             reason="missing surface ack coverage",
             now=now,
         ),
+        "recent_conversations": _source_entry(
+            "recent_conversations",
+            has_data=int(recent_conversations.get("session_count") or 0) > 0,
+            source_id=str(recent_conversations.get("db_path") or ""),
+            sample_count=int(recent_conversations.get("session_count") or 0),
+            confidence="high"
+            if int(recent_conversations.get("session_count") or 0) > 0
+            and not recent_conversations.get("read_error")
+            else "low",
+            reason=str(recent_conversations.get("read_error") or "no recent conversations in window"),
+            now=now,
+        ),
+        "backend_logs": _source_entry(
+            "backend_logs",
+            has_data=int(backend_logs.get("scanned_lines") or 0) > 0,
+            source_id=",".join(str(item.get("path") or "") for item in backend_logs.get("files") or []),
+            sample_count=int(backend_logs.get("scanned_lines") or 0),
+            confidence="medium" if int(backend_logs.get("scanned_lines") or 0) > 0 else "low",
+            reason="no backend log files found",
+            now=now,
+        ),
+        "langfuse_trace_linkage": _source_entry(
+            "langfuse_trace_linkage",
+            has_data=int(trace_linkage.get("trace_id_count") or 0) > 0,
+            source_id=str(trace_linkage.get("langfuse_host") or ""),
+            sample_count=int(trace_linkage.get("trace_id_count") or 0),
+            confidence="medium" if int(trace_linkage.get("trace_id_count") or 0) > 0 else "low",
+            reason="no trace_id values in turn event window",
+            now=now,
+        ),
         "daily_trend": _source_entry(
             "daily_trend",
             has_data=bool(daily_trend_payload),
@@ -281,6 +609,20 @@ def build_observer_snapshot(
         blind_spots.append({"type": "missing_surface_coverage", "severity": "medium"})
     if not daily_trend_payload:
         blind_spots.append({"type": "missing_daily_trend", "severity": "low"})
+    if recent_conversations.get("read_error"):
+        blind_spots.append(
+            {
+                "type": "recent_conversation_evidence_read_error",
+                "severity": "medium",
+                "evidence": {"read_error": recent_conversations.get("read_error")},
+            }
+        )
+    elif int(recent_conversations.get("session_count") or 0) <= 0:
+        blind_spots.append({"type": "missing_recent_conversation_evidence", "severity": "medium"})
+    if int(backend_logs.get("scanned_lines") or 0) <= 0:
+        blind_spots.append({"type": "missing_backend_log_evidence", "severity": "medium"})
+    if int(trace_linkage.get("trace_id_count") or 0) <= 0:
+        blind_spots.append({"type": "missing_langfuse_trace_linkage", "severity": "medium"})
 
     run_id = f"observer-snapshot-{int(time.time())}"
     return {
@@ -293,6 +635,9 @@ def build_observer_snapshot(
         "blind_spots": blind_spots,
         "turn_events": turn_summary,
         "turn_event_log": turn_log_stats,
+        "recent_conversations": recent_conversations,
+        "backend_logs": backend_logs,
+        "langfuse_trace_linkage": trace_linkage,
         "source_runs": {
             "om_run_id": (om_payload or {}).get("run_id"),
             "arr_run_id": (arr_payload or {}).get("run_id"),
@@ -310,6 +655,9 @@ def build_observer_snapshot(
             "daily_trend_metrics": (daily_trend_payload or {}).get("metrics") or {},
             "surface_snapshot": surface_payload,
             "live_metrics_snapshot": metrics_snapshot or {},
+            "recent_conversations": recent_conversations,
+            "backend_logs": backend_logs,
+            "langfuse_trace_linkage": trace_linkage,
         },
     }
 
@@ -339,6 +687,8 @@ def render_observer_snapshot_markdown(payload: dict[str, Any]) -> str:
         f"- coverage: `{coverage.get('layers_with_data')}/{coverage.get('layers_total')}`",
         f"- turn_events: `{turn_events.get('event_count')}`",
         f"- turn_error_ratio: `{turn_events.get('error_ratio')}`",
+        f"- recent_conversations: `{(payload.get('recent_conversations') or {}).get('session_count')}` sessions",
+        f"- backend_log_errors: `{(payload.get('backend_logs') or {}).get('error_count')}`",
         "",
         "## Blind Spots",
         "",

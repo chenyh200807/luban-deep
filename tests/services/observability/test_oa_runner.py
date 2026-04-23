@@ -59,6 +59,29 @@ def test_build_oa_run_flags_unified_ws_smoke_failure_as_root_cause() -> None:
     assert any("主聊天链路" in item["hypothesis"] for item in payload["root_causes"])
 
 
+def test_build_oa_run_uses_benchmark_when_arr_is_missing() -> None:
+    payload = build_oa_run(
+        mode="incident",
+        om_payload=None,
+        arr_payload=None,
+        benchmark_payload={
+            "run_manifest": {"run_id": "benchmark-1"},
+            "release_spine": {"release_id": "rel-benchmark"},
+            "summary": {"total_cases": 2, "executed_cases": 2, "passed": 2, "failed": 0, "pass_rate": 1.0},
+            "suite_summaries": [{"suite": "regression_watch", "failed": 0, "skipped": 0}],
+            "baseline_diff": {"regressions": []},
+            "failure_taxonomy": [],
+        },
+        aae_payload=None,
+    )
+
+    blind_spot_types = {item["type"] for item in payload["blind_spots"]}
+    assert "missing_quality_run" not in blind_spot_types
+    assert payload["raw_evidence_bundle"]["benchmark_run_id"] == "benchmark-1"
+    assert any(item["kind"] == "benchmark_summary" for item in payload["signals"])
+    assert payload["release"]["release_id"] == "rel-benchmark"
+
+
 def test_build_oa_run_consumes_observer_snapshot_blind_spots_and_turn_failures() -> None:
     payload = build_oa_run(
         mode="daily",
@@ -83,6 +106,24 @@ def test_build_oa_run_consumes_observer_snapshot_blind_spots_and_turn_failures()
     assert any(item["type"] == "missing_surface_coverage" for item in payload["blind_spots"])
     assert any("真实 turn 失败率偏高" in item["hypothesis"] for item in payload["root_causes"])
     assert any(item["kind"] == "observer_snapshot" for item in payload["signals"])
+
+
+def test_build_oa_run_dedupes_blind_spots_from_observer_and_missing_inputs() -> None:
+    payload = build_oa_run(
+        mode="daily",
+        om_payload=None,
+        arr_payload=None,
+        aae_payload=None,
+        observer_payload={
+            "run_id": "observer-snapshot-1",
+            "release": {"release_id": "rel-1"},
+            "data_coverage": {"coverage_ratio": 0.8},
+            "blind_spots": [{"type": "missing_om_snapshot", "severity": "high"}],
+            "turn_events": {"event_count": 0, "error_count": 0, "error_ratio": None},
+        },
+    )
+
+    assert [item["type"] for item in payload["blind_spots"]].count("missing_om_snapshot") == 1
 
 
 def test_build_oa_run_consumes_change_impact_as_causal_evidence() -> None:

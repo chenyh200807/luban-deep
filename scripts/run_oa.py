@@ -57,6 +57,7 @@ def main() -> None:
     parser.add_argument("--mode", choices=["daily", "pre-release", "incident"], default="daily")
     parser.add_argument("--om-json")
     parser.add_argument("--arr-json")
+    parser.add_argument("--benchmark-json")
     parser.add_argument("--aae-json")
     parser.add_argument("--observer-json")
     parser.add_argument("--change-impact-json")
@@ -66,12 +67,14 @@ def main() -> None:
     change_impact_payload = _load_json(args.change_impact_json, expected_kind="change_impact_runs") or _load_store_payload("change_impact_runs")
     om_payload = _load_json(args.om_json, expected_kind="om_runs") or _load_store_payload("om_runs")
     arr_payload = _load_json(args.arr_json, expected_kind="arr_runs") or _load_store_payload("arr_runs")
+    benchmark_payload = _load_json(args.benchmark_json, expected_kind="benchmark_runs") or _load_store_payload("benchmark_runs")
     aae_payload = _load_json(args.aae_json, expected_kind="aae_composite_runs") or _load_store_payload("aae_composite_runs")
     payload = build_oa_run(
         mode=args.mode,
         om_payload=om_payload,
         arr_payload=arr_payload,
         aae_payload=aae_payload,
+        benchmark_payload=benchmark_payload,
         observer_payload=observer_payload,
         change_impact_payload=change_impact_payload,
     )
