@@ -72,6 +72,44 @@ class _RegisteredMemberService(_QuietMemberService):
         }
 
 
+class _BiProjectionMemberService(_QuietMemberService):
+    def list_members_for_bi(self) -> list[dict[str, object]]:
+        return [
+            {
+                "user_id": "member_projection",
+                "canonical_user_id": "member_projection",
+                "alias_user_ids": ["member_projection"],
+                "phone": "15558866509",
+                "tier": "svip",
+                "status": "active",
+                "risk_level": "low",
+                "auto_renew": True,
+                "created_at": "2026-04-20T10:00:00+08:00",
+                "expire_at": "2026-05-20T10:00:00+08:00",
+                "last_active_at": "2026-04-22T10:00:00+08:00",
+                "chapter_mastery": {
+                    "施工组织": {"name": "施工组织", "mastery": 62},
+                },
+            },
+            {
+                "user_id": "member_no_mastery",
+                "canonical_user_id": "member_no_mastery",
+                "alias_user_ids": ["member_no_mastery"],
+                "phone": "15558866510",
+                "tier": "trial",
+                "status": "active",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-20T10:00:00+08:00",
+                "expire_at": "2026-05-20T10:00:00+08:00",
+                "last_active_at": "2026-04-22T10:00:00+08:00",
+            },
+        ]
+
+    def get_member_360(self, user_id: str) -> dict[str, object]:
+        raise AssertionError(f"BI aggregate must not load heavyweight member 360: {user_id}")
+
+
 @pytest.fixture
 def store(tmp_path: Path) -> SQLiteSessionStore:
     return SQLiteSessionStore(db_path=tmp_path / "bi-limits.db")
@@ -327,6 +365,26 @@ def test_north_star_does_not_count_empty_registered_member_sessions(
     assert overview["summary"]["total_turns"] == 0
     assert overview["summary"]["active_learners"] == 0
     assert overview["north_star"]["value"] == 0
+
+
+def test_member_stats_uses_lightweight_bi_projection_not_member_360(
+    store: SQLiteSessionStore,
+) -> None:
+    service = BIService(session_store=store, member_service=_BiProjectionMemberService())
+
+    stats = asyncio.run(service.get_member_stats(days=30))
+
+    assert stats["dashboard"]["total_count"] == 2
+    assert stats["chapter_progress"] == [
+        {
+            "chapter_id": "施工组织",
+            "name": "施工组织",
+            "mastery": 62,
+            "member_count": 1,
+            "status": "stable",
+            "evidence": "1 名真实会员样本平均掌握度 62%",
+        }
+    ]
 
 
 def test_growth_funnel_does_not_use_renewal_risk_as_paid_proxy(

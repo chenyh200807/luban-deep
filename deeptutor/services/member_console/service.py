@@ -2168,6 +2168,9 @@ class MemberConsoleService:
             },
         }
 
+    def list_members_for_bi(self) -> list[dict[str, Any]]:
+        return deepcopy(self._members_for_bi(self._load()))
+
     def get_member_360(self, user_id: str) -> dict[str, Any]:
         data = self._load()
         member = deepcopy(self._find_member(data, user_id))

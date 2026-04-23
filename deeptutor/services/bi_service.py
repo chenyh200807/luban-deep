@@ -1101,6 +1101,9 @@ class BIService:
         return await self._load_context_since(self._window_start(days))
 
     def _load_all_members(self) -> list[dict[str, Any]]:
+        list_members_for_bi = getattr(self._member_service, "list_members_for_bi", None)
+        if callable(list_members_for_bi):
+            return list(list_members_for_bi())
         first_page = self._member_service.list_members(page=1, page_size=200)
         items = list(first_page["items"])
         for page in range(2, int(first_page.get("pages") or 1) + 1):
@@ -1754,19 +1757,6 @@ class BIService:
             members,
             key=lambda item: item.get("expire_at") or "",
         )[:5]
-        get_member_360 = getattr(self._member_service, "get_member_360", None)
-        learning_profiles = []
-        for item in members[:100]:
-            profile = dict(item)
-            if not self._extract_chapter_mastery(profile) and callable(get_member_360):
-                try:
-                    detail = get_member_360(str(item.get("user_id") or ""))
-                except Exception:
-                    logger.warning("Failed to load member learning profile for BI teaching effect", exc_info=True)
-                    detail = {}
-                if isinstance(detail, dict):
-                    profile["chapter_mastery"] = detail.get("chapter_mastery") or {}
-            learning_profiles.append(profile)
 
         return {
             "window_days": days,
@@ -1780,7 +1770,7 @@ class BIService:
             "risks": [{"risk_level": key, "count": value, "label": key, "value": value} for key, value in risk_counter.most_common()],
             "statuses": [{"status": key, "count": value} for key, value in status_counter.most_common()],
             "expiring_members": expiring,
-            "chapter_progress": self._build_chapter_progress_payload(learning_profiles),
+            "chapter_progress": self._build_chapter_progress_payload(members),
             "samples": [
                 {
                     "user_id": item.get("user_id", ""),
