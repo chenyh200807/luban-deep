@@ -920,6 +920,8 @@ class TutorBotManager:
                     loop_session = instance.agent_loop.sessions.get_or_create(effective_session_key)
                     loop_metadata = dict(getattr(loop_session, "metadata", {}) or {})
                     exact_fast_path_hit = bool(loop_metadata.get("last_exact_fast_path", False))
+                    if not exact_fast_path_hit and tool_trace_summary["authority_applied"] and not chunks:
+                        exact_fast_path_hit = True
                     selected_mode = str(
                         runtime_metadata.get("selected_mode")
                         or runtime_metadata.get("effective_response_mode")

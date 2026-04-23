@@ -54,6 +54,51 @@ _QUESTION_SELECT = (
 _EMBEDDING_CACHE: OrderedDict[str, tuple[list[float], float]] = OrderedDict()
 
 
+def _coerce_options_payload(options: Any) -> Any:
+    if isinstance(options, str):
+        raw = options.strip()
+        if raw.startswith(("[", "{")):
+            try:
+                return json.loads(raw)
+            except Exception:
+                return options
+    return options
+
+
+def _option_values(options: Any) -> list[str]:
+    options = _coerce_options_payload(options)
+    if isinstance(options, dict):
+        return [str(value or "").strip() for value in options.values() if str(value or "").strip()]
+    if isinstance(options, list):
+        values: list[str] = []
+        for item in options:
+            if isinstance(item, dict):
+                value = str(item.get("value") or item.get("text") or "").strip()
+            else:
+                value = re.sub(r"^[A-E][\.、．\)]\s*", "", str(item or "").strip())
+            if value:
+                values.append(value)
+        return values
+    return []
+
+
+def _normalize_option_overlap_text(text: Any) -> str:
+    clean = re.sub(r"^[A-E][\.、．\)]\s*", "", str(text or "").strip())
+    clean = re.sub(r"[\s\W_]+", "", clean, flags=re.UNICODE)
+    return clean.replace("的", "")
+
+
+def _option_overlap_count(*, original_query: str, options: Any) -> int:
+    query_surface = _normalize_option_overlap_text(original_query)
+    count = 0
+    for value in _option_values(options):
+        clean = _normalize_option_overlap_text(value)
+        min_len = 2 if re.search(r"[\u4e00-\u9fff]", clean) else 4
+        if len(clean) >= min_len and clean[:12] in query_surface:
+            count += 1
+    return count
+
+
 def _env_flag(name: str, default: bool = False) -> bool:
     raw = str(os.getenv(name, "") or "").strip().lower()
     if not raw:
@@ -702,7 +747,11 @@ class SupabasePipeline:
 
         all_plans = [*exact_text_plans, *primary_plan, *second_pass_plan]
         exact_question = self._augment_case_exact_question_with_query(
-            self._extract_exact_question_payload(all_plans),
+            self._extract_exact_question_payload(
+                all_plans,
+                original_query=query,
+                exact_probe=exact_probe,
+            ),
             query=query,
             query_shape=query_shape,
         )
@@ -1644,6 +1693,9 @@ class SupabasePipeline:
     def _extract_exact_question_payload(
         self,
         plans: list[dict[str, Any]],
+        *,
+        original_query: str = "",
+        exact_probe: Any = None,
     ) -> dict[str, Any] | None:
         priority = {"question_exact_text": 0, "question_exact_vector": 1}
         candidates = sorted(
@@ -1657,7 +1709,23 @@ class SupabasePipeline:
             key=lambda item: priority[str(item.get("group_name") or "")],
         )
         if not candidates:
-            return None
+            promoted_row = self._select_option_matched_question_bank_row(
+                plans,
+                original_query=original_query,
+                exact_probe=exact_probe,
+            )
+            if promoted_row is None:
+                return None
+            candidates = [
+                {
+                    "phase": promoted_row.get("_query_phase") or "primary",
+                    "group_name": "question_bank_option_match",
+                    "query": promoted_row.get("_query_variant") or original_query,
+                    "query_index": 0,
+                    "query_weight": 1.0,
+                    "results": [promoted_row],
+                }
+            ]
 
         case_rows: list[dict[str, Any]] = []
         for plan in candidates:
@@ -1776,6 +1844,63 @@ class SupabasePipeline:
             payload["coverage_state"] = case_bundle.get("coverage_state") or ""
             payload["covered_indexes"] = case_bundle.get("covered_indexes") or []
         return payload
+
+    def _select_option_matched_question_bank_row(
+        self,
+        plans: list[dict[str, Any]],
+        *,
+        original_query: str,
+        exact_probe: Any = None,
+    ) -> dict[str, Any] | None:
+        if not exact_probe or not original_query:
+            return None
+
+        candidates: list[tuple[int, float, dict[str, Any]]] = []
+        for plan in plans:
+            if str(plan.get("group_name") or "") != "questions_bank":
+                continue
+            for item in plan.get("results") or []:
+                row = dict(item or {})
+                if str(row.get("_source_table") or "").strip() != "questions_bank":
+                    continue
+                options = _coerce_options_payload(row.get("options"))
+                if not row.get("correct_answer") or not options:
+                    continue
+                source_type = str(row.get("source_type") or "").strip().lower()
+                if source_type and "exam" not in source_type:
+                    continue
+                if not matches_allowed_question_type(
+                    row.get("question_type"),
+                    getattr(exact_probe, "allowed_question_types", None),
+                ):
+                    continue
+                if not validate_exact_question_options(
+                    original_query=original_query,
+                    options=options,
+                    option_validation_required=bool(
+                        getattr(exact_probe, "option_validation_required", False)
+                    ),
+                ):
+                    continue
+                option_count = len(_option_values(options))
+                overlap_count = _option_overlap_count(
+                    original_query=original_query,
+                    options=options,
+                )
+                required_overlap = min(3, option_count) if option_count else 2
+                if overlap_count < required_overlap:
+                    continue
+                score = float(row.get("similarity") or row.get("score") or 0.0)
+                if score < 0.55:
+                    continue
+                row["_source_group"] = "question_bank_option_match"
+                row["options"] = options
+                candidates.append((overlap_count, score, row))
+
+        if not candidates:
+            return None
+        candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+        return candidates[0][2]
 
     @staticmethod
     def _augment_case_exact_question_with_query(

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from types import SimpleNamespace
@@ -230,6 +231,94 @@ async def test_supabase_search_prioritizes_parallel_exact_question_match(
     assert result["exact_question"]["source_group"] == "question_exact_text"
     assert result["exact_question"]["stem"] == full_exact_stem
     assert result["exact_question"]["options"] == [{"key": "A", "value": "建筑物类别"}]
+
+
+@pytest.mark.asyncio
+async def test_supabase_search_promotes_option_matched_real_exam_question(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-key")
+    monkeypatch.setenv("SUPABASE_RAG_ENABLE_RERANK", "false")
+    monkeypatch.setenv("SUPABASE_RAG_SECOND_PASS", "false")
+
+    class _FakeKbConfigService:
+        def get_kb_config(self, kb_name: str) -> dict[str, object]:
+            _ = kb_name
+            return {}
+
+    monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
+
+    pipeline = supabase_module.SupabasePipeline()
+    options = [
+        {"key": "A", "value": "单跨构件宜从跨端一侧向另一侧吊装"},
+        {"key": "B", "value": "单跨结构可从跨中间向两端吊装"},
+        {"key": "C", "value": "单跨结构不可从跨两端向中间吊装"},
+        {"key": "D", "value": "多跨结构宜先吊副跨后吊主跨"},
+        {"key": "E", "value": "多台起重设备共同作业时，可多跨同时吊装"},
+    ]
+
+    async def _empty_exact_text(**kwargs):
+        _ = kwargs
+        return []
+
+    async def _fake_run_query_plan(**kwargs):
+        assert kwargs["exact_probe"] is not None
+        return [
+            {
+                "phase": "primary",
+                "group_name": "questions_bank",
+                "query": kwargs["queries"][0],
+                "query_index": 0,
+                "query_weight": 1.0,
+                "results": [
+                    {
+                        "id": "17438",
+                        "chunk_id": "question-17438",
+                        "card_title": "题目: 关于单跨钢结构吊装顺序的说法，正确的有（　　）。",
+                        "stem": "关于单跨钢结构吊装顺序的说法，正确的有（　　）。",
+                        "options": json.dumps(options, ensure_ascii=False),
+                        "correct_answer": "ABE",
+                        "analysis": "C 错误；D 错误。",
+                        "question_type": "multi",
+                        "rag_content": "【题目】关于单跨钢结构吊装顺序的说法，正确的有（　　）。\n【答案】ABE",
+                        "source_type": "REAL_EXAM",
+                        "score": 0.7284,
+                        "similarity": 0.7284,
+                        "_source_group": "questions_bank",
+                        "_source_table": "questions_bank",
+                    }
+                ],
+            }
+        ]
+
+    async def _identity(results, **kwargs):
+        _ = kwargs
+        return results
+
+    monkeypatch.setattr(pipeline, "_search_exact_question_text", _empty_exact_text)
+    monkeypatch.setattr(pipeline, "_run_query_plan", _fake_run_query_plan)
+    monkeypatch.setattr(pipeline, "_hydrate_sources", _identity)
+    monkeypatch.setattr(pipeline, "_rerank_results", _identity)
+
+    result = await pipeline.search(
+        query=(
+            "关于单层钢结构吊装顺序的说法，正确的有（ ）。\n"
+            "A.单跨构宜从跨端一侧向另一侧吊装\n"
+            "B.单跨结构可从跨中间向两端吊装\n"
+            "C.单跨结构不可从跨两端向中间吊装\n"
+            "D.多跨结构宜先吊副跨后吊主跨\n"
+            "E.多台起重设备共同作业时，可多跨同时吊装；"
+        ),
+        kb_name="construction-exam",
+    )
+
+    assert result["exact_question"]["chunk_id"] == "question-17438"
+    assert result["exact_question"]["source_group"] == "question_bank_option_match"
+    assert result["exact_question"]["correct_answer"] == "ABE"
+    assert result["exact_question"]["answer_kind"] == "mcq"
 
 
 @pytest.mark.asyncio
