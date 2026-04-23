@@ -35,6 +35,21 @@ ALLOWED_FAILURE_TAXONOMY_SCOPE = {
     "FAIL_SURFACE_DELIVERY",
 }
 
+ALLOWED_ORIGIN_TYPES = {
+    "seed_fixture",
+    "legacy_replay",
+    "surface_smoke",
+    "incident_replay",
+    "production_trace",
+    "manual",
+}
+
+ALLOWED_PROMOTION_STATUSES = {
+    "seed",
+    "candidate",
+    "promoted",
+}
+
 
 def _coerce_string(value: Any, *, field_name: str) -> str:
     text = str(value).strip()
@@ -81,6 +96,10 @@ class BenchmarkCase:
     failure_taxonomy_scope: tuple[str, ...] = field(default_factory=tuple)
     # Source reference path; may point to a fixture file or a script entrypoint.
     source_fixture: str = ""
+    origin_type: str = "seed_fixture"
+    origin_ref: str = ""
+    promotion_status: str = "seed"
+    promoted_from_case_id: str = ""
 
     def __post_init__(self) -> None:
         _coerce_string(self.dataset_id, field_name="dataset_id")
@@ -95,6 +114,18 @@ class BenchmarkCase:
         _coerce_string(self.surface, field_name="surface")
         _coerce_string(self.expected_contract, field_name="expected_contract")
         _coerce_string(self.source_fixture, field_name="source_fixture")
+        if self.origin_type not in ALLOWED_ORIGIN_TYPES:
+            raise ValueError(f"Unsupported origin_type: {self.origin_type}")
+        if self.promotion_status not in ALLOWED_PROMOTION_STATUSES:
+            raise ValueError(f"Unsupported promotion_status: {self.promotion_status}")
+        if self.origin_ref:
+            _coerce_string(self.origin_ref, field_name="origin_ref")
+        if self.promoted_from_case_id:
+            _coerce_string(self.promoted_from_case_id, field_name="promoted_from_case_id")
+
+    @property
+    def is_incident_promoted(self) -> bool:
+        return self.origin_type == "incident_replay"
 
     @classmethod
     def from_dict(cls, payload: Mapping[str, Any]) -> "BenchmarkCase":
@@ -117,6 +148,13 @@ class BenchmarkCase:
             ),
             failure_taxonomy_scope=_coerce_scope(payload.get("failure_taxonomy_scope")),
             source_fixture=_coerce_string(payload["source_fixture"], field_name="source_fixture"),
+            origin_type=_coerce_string(payload.get("origin_type", "seed_fixture"), field_name="origin_type"),
+            origin_ref=str(payload.get("origin_ref", "") or "").strip(),
+            promotion_status=_coerce_string(
+                payload.get("promotion_status", "seed"),
+                field_name="promotion_status",
+            ),
+            promoted_from_case_id=str(payload.get("promoted_from_case_id", "") or "").strip(),
         )
 
 

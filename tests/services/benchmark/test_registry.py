@@ -28,7 +28,7 @@ def test_registry_uses_version_and_cases_mapping() -> None:
     assert not isinstance(registry.suites, dict)
     with pytest.raises(TypeError):
         registry.cases["new_case"] = registry.cases["routing.semantic_router.case_set"]  # type: ignore[index]
-    assert len(registry.cases) == 6
+    assert len(registry.cases) == 7
     assert set(registry.suites) == {
         "pr_gate_core",
         "regression_watch",
@@ -51,6 +51,9 @@ def test_semantic_case_uses_canonical_vocab() -> None:
     assert case.source_fixture == "tests/fixtures/semantic_router_eval_cases.json"
     assert case.failure_taxonomy_scope == ("FAIL_ROUTE_WRONG",)
     assert case.expected_contract
+    assert case.origin_type == "seed_fixture"
+    assert case.promotion_status == "seed"
+    assert case.is_incident_promoted is False
 
 
 def test_context_orchestration_case_uses_canonical_vocab() -> None:
@@ -83,6 +86,10 @@ def test_grounding_case_uses_canonical_vocab() -> None:
     assert case.source_fixture == "tests/fixtures/rag_grounding_eval_cases.json"
     assert case.failure_taxonomy_scope == ("FAIL_GROUNDEDNESS",)
     assert case.expected_contract
+    assert case.origin_type == "incident_replay"
+    assert case.promotion_status == "promoted"
+    assert case.promoted_from_case_id == "continuity.long_dialog.focus"
+    assert case.is_incident_promoted is True
 
 
 def test_long_dialog_case_uses_canonical_vocab() -> None:
@@ -104,6 +111,7 @@ def test_long_dialog_case_uses_canonical_vocab() -> None:
 def test_wx_and_web_surface_cases_use_canonical_vocab() -> None:
     registry = _load_registry()
     wx_case = registry.cases["surface.wx.renderer.parity"]
+    ysv_case = registry.cases["surface.yousenwebview.telemetry.smoke"]
     web_case = registry.cases["surface.web.ack.smoke"]
 
     assert wx_case.case_id == "surface.wx.renderer.parity"
@@ -114,6 +122,15 @@ def test_wx_and_web_surface_cases_use_canonical_vocab() -> None:
     assert wx_case.source_fixture == "tests/fixtures/wechat_structured_renderer_cases.json"
     assert wx_case.failure_taxonomy_scope == ("FAIL_SURFACE_DELIVERY",)
     assert wx_case.expected_contract
+
+    assert ysv_case.case_id == "surface.yousenwebview.telemetry.smoke"
+    assert ysv_case.contract_domain == "surface_contract"
+    assert ysv_case.case_tier == "exploratory"
+    assert ysv_case.execution_kind == "surface_parity_eval"
+    assert ysv_case.surface == "yousenwebview"
+    assert ysv_case.source_fixture == "yousenwebview/tests/test_chat_send_surface_telemetry.js"
+    assert ysv_case.failure_taxonomy_scope == ("FAIL_SURFACE_DELIVERY",)
+    assert ysv_case.expected_contract
 
     assert web_case.case_id == "surface.web.ack.smoke"
     assert web_case.contract_domain == "production_replay_contract"
@@ -134,6 +151,7 @@ def test_all_case_ids_exist() -> None:
         "grounding.rag.case_set",
         "continuity.long_dialog.focus",
         "surface.wx.renderer.parity",
+        "surface.yousenwebview.telemetry.smoke",
         "surface.web.ack.smoke",
     }
 
@@ -182,4 +200,7 @@ def test_dump_and_load_round_trip_preserves_key_fields(tmp_path: Path) -> None:
     )
     assert reloaded.cases["surface.web.ack.smoke"].source_fixture == (
         original.cases["surface.web.ack.smoke"].source_fixture
+    )
+    assert reloaded.cases["grounding.rag.case_set"].promoted_from_case_id == (
+        original.cases["grounding.rag.case_set"].promoted_from_case_id
     )

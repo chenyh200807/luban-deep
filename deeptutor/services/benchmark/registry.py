@@ -38,6 +38,10 @@ def dump_benchmark_registry(registry: BenchmarkRegistry) -> dict[str, Any]:
                 "expected_contract": case.expected_contract,
                 "failure_taxonomy_scope": list(case.failure_taxonomy_scope),
                 "source_fixture": case.source_fixture,
+                "origin_type": case.origin_type,
+                "origin_ref": case.origin_ref,
+                "promotion_status": case.promotion_status,
+                "promoted_from_case_id": case.promoted_from_case_id,
             }
             for case_id, case in registry.cases.items()
         },
