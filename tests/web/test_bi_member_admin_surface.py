@@ -162,6 +162,7 @@ def test_bi_page_client_exposes_token_read_only_mode() -> None:
 
     assert "biReadOnly" in source
     assert "BI API Token" in source
+    assert 'const heroIssueTitle = issues[0] ? "当前数据已降级展示" : "经营提醒";' in source
 
 
 def test_bi_page_client_only_clears_admin_session_for_auth_failures() -> None:

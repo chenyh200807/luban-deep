@@ -323,7 +323,8 @@ export default function BiPageClient() {
     filters.tier ? `tier: ${filters.tier}` : "",
   ].filter(Boolean);
   const activeTabMeta = BI_PRIMARY_TABS.find((tab) => tab.key === activeTab) ?? BI_PRIMARY_TABS[0];
-  const heroIssue = boss.heroIssue || issues[0] || null;
+  const heroIssue = issues[0] || boss.heroIssue || null;
+  const heroIssueTitle = issues[0] ? "当前数据已降级展示" : "经营提醒";
 
   const updateFilter = useCallback((field: BiFilterField, value: string) => {
     setFilters((current) => ({
@@ -663,6 +664,7 @@ export default function BiPageClient() {
           onToggleFilters={() => setFiltersOpen((open) => !open)}
           activeFilters={activeFilters}
           heroIssue={heroIssue}
+          heroIssueTitle={heroIssueTitle}
         />
 
         <BiCommandDeckTabs activeTab={activeTab} onTabChange={setActiveTab} />

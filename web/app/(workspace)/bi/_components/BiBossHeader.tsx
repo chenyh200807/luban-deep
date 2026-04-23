@@ -15,6 +15,7 @@ type BiBossHeaderProps = {
   activeFilters: string[];
   lastUpdatedLabel: string;
   heroIssue?: string | null;
+  heroIssueTitle?: string;
 };
 
 export function BiBossHeader({
@@ -30,6 +31,7 @@ export function BiBossHeader({
   activeFilters,
   lastUpdatedLabel,
   heroIssue,
+  heroIssueTitle = "经营提醒",
 }: BiBossHeaderProps) {
   return (
     <section className="surface-card border border-[var(--border)]/70 bg-white/88 px-5 py-4 shadow-[0_14px_32px_rgba(45,33,25,0.06)] backdrop-blur">
@@ -101,7 +103,7 @@ export function BiBossHeader({
             <div className="inline-flex max-w-[540px] items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50/90 px-3 py-2 text-xs leading-5 text-amber-800">
               <ShieldAlert size={14} className="mt-0.5 shrink-0" />
               <div>
-                <p className="font-medium">当前数据已降级展示</p>
+                <p className="font-medium">{heroIssueTitle}</p>
                 <p className="text-amber-700">{heroIssue}</p>
               </div>
             </div>
