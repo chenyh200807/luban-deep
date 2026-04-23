@@ -126,6 +126,8 @@ python3.11 scripts/run_change_impact.py --changed-file deeptutor/services/sessio
 python3.11 scripts/run_change_impact.py --observer-json tmp/observability/observer/raw_data_latest.json
 ```
 
+默认 `--base-ref` 是 `HEAD~1`，用于覆盖“当前提交相对上一提交”的影响分析；若要比较 release branch 或 merge-base，必须显式传 `--base-ref`。
+
 当前产物：
 
 1. `tmp/observability/control_plane/change_impact_runs/*.json`

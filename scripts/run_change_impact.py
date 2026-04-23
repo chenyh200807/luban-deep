@@ -12,10 +12,13 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
+from deeptutor.services.observability.change_impact import DEFAULT_CHANGE_IMPACT_BASE_REF  # noqa: E402
 from deeptutor.services.observability.change_impact import build_change_impact_run  # noqa: E402
 from deeptutor.services.observability.change_impact import collect_git_changed_files  # noqa: E402
 from deeptutor.services.observability.change_impact import render_change_impact_markdown  # noqa: E402
 from deeptutor.services.observability.control_plane_store import load_payload_json  # noqa: E402
+
+DEFAULT_BASE_REF = DEFAULT_CHANGE_IMPACT_BASE_REF
 
 
 def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict | None:
@@ -28,7 +31,7 @@ def _load_store_payload(kind: str) -> dict | None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run DeepTutor change-impact analysis")
-    parser.add_argument("--base-ref", default="HEAD")
+    parser.add_argument("--base-ref", default=DEFAULT_BASE_REF)
     parser.add_argument("--changed-file", action="append", default=[])
     parser.add_argument("--observer-json")
     parser.add_argument("--om-json")

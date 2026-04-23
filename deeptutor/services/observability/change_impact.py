@@ -8,6 +8,7 @@ from typing import Any
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_CHANGE_IMPACT_BASE_REF = "HEAD~1"
 
 
 _DOMAIN_RULES: tuple[dict[str, Any], ...] = (
@@ -52,6 +53,22 @@ _DOMAIN_RULES: tuple[dict[str, Any], ...] = (
         "risk": "medium",
         "prefixes": ("web/", "wx_miniprogram/", "yousenwebview/"),
         "gates": ("surface_smoke", "aae_snapshot", "observer_snapshot"),
+    },
+    {
+        "domain": "bi",
+        "risk": "medium",
+        "prefixes": (
+            "deeptutor/services/bi_service.py",
+            "deeptutor/services/bi_metrics.py",
+            "deeptutor/services/member_console/",
+            "web/lib/bi-api.ts",
+            "web/app/(workspace)/bi/",
+            "tests/services/test_bi_",
+            "tests/services/member_console/",
+            "tests/web/test_bi_member_admin_surface.py",
+            "docs/zh/bi/",
+        ),
+        "gates": ("bi_service_tests", "bi_web_tests", "observer_snapshot"),
     },
     {
         "domain": "benchmark",
@@ -106,6 +123,8 @@ _GATE_COMMANDS: dict[str, str] = {
     "release_gate": "python3.11 scripts/run_release_gate.py",
     "surface_smoke": "python3.11 scripts/run_prerelease_observability.py --api-base-url http://127.0.0.1:8001 --surface-smoke web",
     "daily_benchmark": "python3.11 scripts/run_daily_benchmark.py",
+    "bi_service_tests": "pytest tests/services/test_bi_metrics.py tests/services/test_bi_service_limits.py tests/services/member_console/test_service.py",
+    "bi_web_tests": "pytest tests/web/test_bi_member_admin_surface.py",
 }
 
 
@@ -122,7 +141,11 @@ def parse_git_status_changed_files(status_output: str) -> list[str]:
     return sorted(files)
 
 
-def collect_git_changed_files(*, base_ref: str = "HEAD", include_worktree: bool = True) -> list[str]:
+def collect_git_changed_files(
+    *,
+    base_ref: str = DEFAULT_CHANGE_IMPACT_BASE_REF,
+    include_worktree: bool = True,
+) -> list[str]:
     """Collect git changed files; callers can pass explicit files to scope a run."""
     diff = subprocess.run(
         ["git", "diff", "--name-only", base_ref],

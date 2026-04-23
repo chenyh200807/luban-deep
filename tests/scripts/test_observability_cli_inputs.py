@@ -163,6 +163,11 @@ def test_run_change_impact_load_json_accepts_observer_snapshot_wrapper(tmp_path)
     assert CHANGE_IMPACT_MODULE._load_json(str(target), expected_kind="observer_snapshots") == payload
 
 
+def test_observability_change_impact_scripts_default_to_previous_commit() -> None:
+    assert CHANGE_IMPACT_MODULE.DEFAULT_BASE_REF == "HEAD~1"
+    assert DAILY_OBSERVABILITY_MODULE.DEFAULT_BASE_REF == "HEAD~1"
+
+
 def test_run_change_impact_cli_writes_control_plane_latest_and_history(tmp_path) -> None:
     observer_payload = {
         "run_id": "observer-1",

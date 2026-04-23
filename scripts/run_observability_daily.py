@@ -15,6 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
+from deeptutor.services.observability.change_impact import DEFAULT_CHANGE_IMPACT_BASE_REF  # noqa: E402
 from deeptutor.services.observability.change_impact import build_change_impact_run  # noqa: E402
 from deeptutor.services.observability.change_impact import collect_git_changed_files  # noqa: E402
 from deeptutor.services.observability.change_impact import render_change_impact_markdown  # noqa: E402
@@ -24,6 +25,8 @@ from deeptutor.services.observability.observer_snapshot import build_observer_sn
 from deeptutor.services.observability.observer_snapshot import write_observer_snapshot_artifacts  # noqa: E402
 from deeptutor.services.observability.release_gate import build_release_gate_report  # noqa: E402
 from deeptutor.services.observability.run_history import build_observability_run_history_from_dir  # noqa: E402
+
+DEFAULT_BASE_REF = DEFAULT_CHANGE_IMPACT_BASE_REF
 
 
 def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict[str, Any] | None:
@@ -70,7 +73,7 @@ def build_daily_run_history(*, store_dir: str | Path, limit: int = 20) -> dict[s
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run DeepTutor daily observability control-plane spine")
-    parser.add_argument("--base-ref", default="HEAD")
+    parser.add_argument("--base-ref", default=DEFAULT_BASE_REF)
     parser.add_argument("--changed-file", action="append", default=[])
     parser.add_argument("--metrics-json")
     parser.add_argument("--event-days", type=int, default=1)

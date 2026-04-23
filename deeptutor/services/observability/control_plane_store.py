@@ -88,9 +88,11 @@ class ObservabilityControlPlaneStore:
     def __init__(self, *, base_dir: Path | None = None) -> None:
         configured_dir = str(os.getenv("DEEPTUTOR_OBSERVABILITY_STORE_DIR", "") or "").strip()
         self._base_dir = (
-            Path(configured_dir).expanduser().resolve()
+            Path(base_dir).expanduser().resolve()
+            if base_dir is not None
+            else Path(configured_dir).expanduser().resolve()
             if configured_dir
-            else (base_dir or DEFAULT_STORE_DIR).expanduser().resolve()
+            else DEFAULT_STORE_DIR.expanduser().resolve()
         )
         self._lock = threading.Lock()
 

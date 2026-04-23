@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from deeptutor.services.observability import change_impact
 from deeptutor.services.observability.change_impact import build_change_impact_run
+from deeptutor.services.observability.change_impact import collect_git_changed_files
 from deeptutor.services.observability.change_impact import parse_git_status_changed_files
 
 
@@ -59,3 +61,46 @@ def test_build_change_impact_run_marks_no_changes_as_blind_spot() -> None:
     assert payload["risk_level"] == "unknown"
     assert any(item["type"] == "missing_changed_files" for item in payload["blind_spots"])
     assert any(item["gate"] == "observer_snapshot" for item in payload["required_gates"])
+
+
+def test_collect_git_changed_files_defaults_to_previous_commit(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    class _Result:
+        returncode = 0
+        stdout = ""
+
+    def fake_run(args, **kwargs):  # noqa: ANN001, ANN202
+        calls.append(list(args))
+        return _Result()
+
+    monkeypatch.setattr("deeptutor.services.observability.change_impact.subprocess.run", fake_run)
+
+    assert collect_git_changed_files() == []
+    assert change_impact.DEFAULT_CHANGE_IMPACT_BASE_REF == "HEAD~1"
+    assert calls[0] == ["git", "diff", "--name-only", "HEAD~1"]
+
+
+def test_build_change_impact_run_maps_bi_backend_to_bi_domain_and_gates() -> None:
+    payload = build_change_impact_run(
+        changed_files=[
+            "deeptutor/services/bi_service.py",
+            "deeptutor/services/member_console/service.py",
+            "web/lib/bi-api.ts",
+        ],
+        observer_payload={
+            "run_id": "observer-1",
+            "release": {"release_id": "rel-1", "git_sha": "abc123"},
+            "turn_events": {"event_count": 1, "error_ratio": 0.0},
+            "blind_spots": [],
+        },
+    )
+
+    domains = {item["domain"]: item for item in payload["changed_domains"]}
+    gates = {item["gate"] for item in payload["required_gates"]}
+
+    assert "bi" in domains
+    assert domains["bi"]["risk"] == "medium"
+    assert "bi_service_tests" in gates
+    assert "bi_web_tests" in gates
+    assert "other" not in domains

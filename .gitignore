@@ -92,6 +92,8 @@ output/
 outputs/
 **/output/
 **/outputs/
+tmp/benchmark/
+tmp/observability/
 
 # Cache directories
 cache/

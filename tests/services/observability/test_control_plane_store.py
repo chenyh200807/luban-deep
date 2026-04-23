@@ -6,6 +6,7 @@ import pytest
 
 from deeptutor.services.observability.control_plane_store import ObservabilityControlPlaneStore
 from deeptutor.services.observability.control_plane_store import load_payload_json
+from deeptutor.services.observability.run_history import build_observability_run_history_from_dir
 
 
 def test_control_plane_store_writes_and_reads_latest_and_history(tmp_path) -> None:
@@ -204,3 +205,31 @@ def test_control_plane_store_latest_run_uses_same_fallback_as_latest_payload(tmp
     assert latest_run is not None
     assert latest_run["run_id"] == "observer-good"
     assert store.latest_payload("observer_snapshots") == {"run_id": "observer-good", "blind_spots": []}
+
+
+def test_run_history_from_dir_honors_explicit_store_dir_over_env(tmp_path, monkeypatch) -> None:
+    env_store = ObservabilityControlPlaneStore(base_dir=tmp_path / "env-store")
+    explicit_store = ObservabilityControlPlaneStore(base_dir=tmp_path / "explicit-store")
+    env_store.write_run(
+        kind="oa_runs",
+        run_id="oa-env",
+        release_id="rel-env",
+        payload={"run_id": "oa-env", "release": {"release_id": "rel-env", "git_sha": "env123"}},
+    )
+    explicit_store.write_run(
+        kind="oa_runs",
+        run_id="oa-explicit",
+        release_id="rel-explicit",
+        payload={
+            "run_id": "oa-explicit",
+            "release": {"release_id": "rel-explicit", "git_sha": "explicit123"},
+            "root_causes": [{"hypothesis": "explicit"}],
+            "blind_spots": [],
+        },
+    )
+    monkeypatch.setenv("DEEPTUTOR_OBSERVABILITY_STORE_DIR", str(env_store.base_dir))
+
+    history = build_observability_run_history_from_dir(store_dir=explicit_store.base_dir)
+
+    assert history["records"][0]["run_id"] == "oa-explicit"
+    assert history["records"][0]["git_sha"] == "explicit123"
