@@ -17,6 +17,7 @@ class ModeExecutionPolicy:
     allow_deep_stage: bool
     response_density: ResponseDensity
     latency_budget_ms: int
+    preferred_model: str = ""
     response_mode_degrade_reason: str = ""
     selection_reason: str = ""
 
@@ -177,6 +178,7 @@ def build_mode_execution_policy(
             allow_deep_stage=False,
             response_density="short",
             latency_budget_ms=6000,
+            preferred_model="qwen3.6-flash",
             selection_reason=selection_reason,
         )
 
@@ -188,5 +190,6 @@ def build_mode_execution_policy(
         allow_deep_stage=True,
         response_density="detailed",
         latency_budget_ms=20000,
+        preferred_model="deepseek-v3.2",
         selection_reason=selection_reason,
     )

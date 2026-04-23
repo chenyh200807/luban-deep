@@ -497,7 +497,7 @@ class AgentLoop:
         rag_saturation: dict[str, Any] | None = None
         raw_stream_buffer = ""
         emitted_stream_len = 0
-        effective_model = self.model
+        effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
 
         def _visible_stream_text(raw_text: str) -> str:
             # Hide completed and in-progress <think> blocks before forwarding deltas.
@@ -810,7 +810,7 @@ class AgentLoop:
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
     ) -> tuple[str | None, list[dict[str, Any]]]:
         runtime_metadata = dict(runtime_metadata or {})
-        effective_model = self.model
+        effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
         response = await self.provider.chat_with_retry(
             messages=initial_messages,
             tools=None,

@@ -93,6 +93,8 @@ class TutorBotCapability(BaseCapability):
                 "latency_budget_ms": policy.latency_budget_ms,
             },
         }
+        if policy.preferred_model:
+            session_metadata["preferred_model"] = policy.preferred_model
         if runtime_defaults:
             session_metadata["kb_aliases"] = list(runtime_defaults.supabase_kb_aliases or [])
         session_metadata["suppress_answer_reveal_on_generate"] = (

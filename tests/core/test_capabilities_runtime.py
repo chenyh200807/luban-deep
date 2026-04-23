@@ -1067,7 +1067,7 @@ async def test_tutorbot_capability_prefers_canonical_chat_mode_over_legacy_hints
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_capability_fast_mode_does_not_set_model_override(
+async def test_tutorbot_capability_fast_mode_sets_preferred_model_override(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, Any] = {}
@@ -1124,7 +1124,68 @@ async def test_tutorbot_capability_fast_mode_does_not_set_model_override(
     await _collect_events(lambda bus: capability.run(context, bus))
 
     assert captured["mode"] == "fast"
-    assert "preferred_model" not in captured["session_metadata"]
+    assert captured["session_metadata"]["preferred_model"] == "qwen3.6-flash"
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_capability_deep_mode_sets_preferred_model_override(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None):
+            return SimpleNamespace(running=True)
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            captured["mode"] = mode
+            captured["session_metadata"] = session_metadata
+            return "Deep TutorBot"
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-deep-model",
+        user_message="请详细分析流水节拍和流水步距的区别",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "deep"},
+        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["mode"] == "deep"
+    assert captured["session_metadata"]["preferred_model"] == "deepseek-v3.2"
 
 
 @pytest.mark.asyncio
@@ -2911,7 +2972,7 @@ async def test_tutorbot_process_direct_limits_tool_schemas_to_default_tools(
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_process_direct_ignores_preferred_model_metadata(
+async def test_tutorbot_process_direct_uses_preferred_model_override(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -2970,7 +3031,7 @@ async def test_tutorbot_process_direct_ignores_preferred_model_metadata(
     )
 
     assert content == "已完成"
-    assert captured["model"] == "default-model"
+    assert captured["model"] == "deepseek-v3.2"
 
 
 @pytest.mark.asyncio
