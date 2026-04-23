@@ -254,6 +254,55 @@ def test_member_router_exposes_batch_and_audit_endpoints(monkeypatch: pytest.Mon
     assert exported.headers["content-type"].startswith("text/csv")
 
 
+def test_member_router_records_ops_action_result(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    calls: list[dict[str, object]] = []
+
+    def _record_ops_action_result(user_id: str, **kwargs: object) -> dict[str, object]:
+        calls.append({"user_id": user_id, **kwargs})
+        return {
+            "status": kwargs["status"],
+            "result": kwargs["result"],
+            "action_title": kwargs["action_title"],
+            "next_follow_up_at": kwargs["next_follow_up_at"],
+            "note": {"id": "note_ops_1", "channel": "ops_action"},
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type(
+            "FakeMemberService",
+            (),
+            {"record_ops_action_result": staticmethod(_record_ops_action_result)},
+        )(),
+    )
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/member/student_demo/ops-actions",
+            json={
+                "status": "done",
+                "result": "已回访，确认续费",
+                "action_title": "即将到期会员",
+                "next_follow_up_at": "2026-04-26",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json()["note"]["channel"] == "ops_action"
+    assert calls == [
+        {
+            "user_id": "student_demo",
+            "status": "done",
+            "result": "已回访，确认续费",
+            "action_title": "即将到期会员",
+            "next_follow_up_at": "2026-04-26",
+            "operator": "admin_demo",
+        }
+    ]
+
+
 def test_member_list_forwards_operational_filters(monkeypatch: pytest.MonkeyPatch) -> None:
     app = _build_app()
     app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)

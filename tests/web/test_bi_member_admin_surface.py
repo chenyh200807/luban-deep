@@ -145,6 +145,21 @@ def test_bi_audit_tab_exposes_filter_inputs() -> None:
     assert "action" in source or "动作" in source
 
 
+def test_bi_member_360_exposes_ops_action_result_loop() -> None:
+    panel_source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiMember360Panel.tsx"
+    ).read_text(encoding="utf-8")
+    client_source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+    api_source = (REPO_ROOT / "web" / "lib" / "member-api.ts").read_text(encoding="utf-8")
+
+    assert "处理结果闭环" in panel_source
+    assert "onRecordOpsAction" in panel_source
+    assert "await onSubmit" in panel_source
+    assert "submitError" in panel_source
+    assert "recordMemberOpsAction" in api_source
+    assert "await refreshAudit()" in client_source
+
+
 def test_bi_api_sends_metrics_token_header() -> None:
     source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
     api_source = (REPO_ROOT / "web" / "lib" / "api.ts").read_text(encoding="utf-8")

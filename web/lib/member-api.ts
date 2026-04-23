@@ -47,6 +47,14 @@ export interface MemberNote {
   created_at: string;
 }
 
+export interface MemberOpsActionResult {
+  status: "open" | "in_progress" | "done" | "follow_up";
+  result: string;
+  action_title: string;
+  next_follow_up_at: string;
+  note: MemberNote;
+}
+
 export interface MemberLedgerEntry {
   id: string;
   delta: number;
@@ -261,6 +269,23 @@ export async function createMemberNote(userId: string, payload: { content: strin
     body: JSON.stringify(payload),
   });
   return expectJson<MemberNote>(response);
+}
+
+export async function recordMemberOpsAction(
+  userId: string,
+  payload: {
+    status: MemberOpsActionResult["status"];
+    result: string;
+    action_title?: string;
+    next_follow_up_at?: string;
+  },
+): Promise<MemberOpsActionResult> {
+  const response = await fetch(apiUrl(`/api/v1/member/${userId}/ops-actions`), {
+    method: "POST",
+    headers: adminHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(payload),
+  });
+  return expectJson<MemberOpsActionResult>(response);
 }
 
 export async function grantMembership(payload: { user_id: string; days: number; tier: string; reason?: string }): Promise<MemberDetail> {

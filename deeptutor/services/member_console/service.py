@@ -2529,6 +2529,61 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
+    def record_ops_action_result(
+        self,
+        user_id: str,
+        *,
+        status: str,
+        result: str,
+        action_title: str = "",
+        next_follow_up_at: str = "",
+        operator: str = "admin",
+    ) -> dict[str, Any]:
+        normalized_status = str(status or "").strip().lower()
+        if normalized_status not in {"open", "in_progress", "done", "follow_up"}:
+            raise ValueError("Unsupported ops action status")
+        normalized_result = str(result or "").strip()
+        if not normalized_result:
+            raise ValueError("Ops action result is required")
+        normalized_title = str(action_title or "").strip() or "会员运营处理"
+        normalized_follow_up = str(next_follow_up_at or "").strip()
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            member = self._find_member(data, user_id)
+            content_lines = [
+                f"处理事项：{normalized_title}",
+                f"处理状态：{normalized_status}",
+                f"处理结果：{normalized_result}",
+            ]
+            if normalized_follow_up:
+                content_lines.append(f"下次跟进：{normalized_follow_up}")
+            note = {
+                "id": f"note_{uuid.uuid4().hex[:10]}",
+                "content": "\n".join(content_lines),
+                "channel": "ops_action",
+                "pinned": normalized_status in {"follow_up", "open", "in_progress"},
+                "created_at": _iso(),
+            }
+            action_result = {
+                "status": normalized_status,
+                "result": normalized_result,
+                "action_title": normalized_title,
+                "next_follow_up_at": normalized_follow_up,
+                "note_id": note["id"],
+            }
+            member.setdefault("notes", []).insert(0, note)
+            self._append_audit(
+                data,
+                action="ops_action_result",
+                target_user=user_id,
+                reason=normalized_status,
+                after=action_result,
+                operator=operator,
+            )
+            return {**action_result, "note": note}
+
+        return self._mutate(_apply)
+
     def update_note(
         self,
         note_id: str,

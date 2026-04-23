@@ -15,6 +15,12 @@ type BiMember360PanelProps = {
   onExtend: () => void;
   onRevoke: () => void;
   onAddNote: (content: string) => void;
+  onRecordOpsAction: (payload: {
+    status: "open" | "in_progress" | "done" | "follow_up";
+    result: string;
+    action_title?: string;
+    next_follow_up_at?: string;
+  }) => Promise<void>;
   onToggleHeartbeat: (job: HeartbeatJob) => void;
   onApplyOverlay: (overlay: BotOverlaySummary) => void;
 };
@@ -28,6 +34,7 @@ export function BiMember360Panel({
   onExtend,
   onRevoke,
   onAddNote,
+  onRecordOpsAction,
   onToggleHeartbeat,
   onApplyOverlay,
 }: BiMember360PanelProps) {
@@ -128,6 +135,7 @@ export function BiMember360Panel({
           <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5">
             <SectionHeader title="运营记录" extra={`${member.recent_notes.length} 条备注`} />
             <div className="mt-4 space-y-3">
+              <OpsActionComposer onSubmit={onRecordOpsAction} disabled={actionLoading} />
               <NoteComposer onSubmit={onAddNote} disabled={actionLoading} />
               {(member.recent_notes ?? []).slice(0, 5).map((note) => (
                 <div key={note.id} className="rounded-2xl bg-[var(--secondary)] px-4 py-3">
@@ -271,6 +279,87 @@ export function BiMember360Panel({
         </div>
       </section>
     </div>
+  );
+}
+
+function OpsActionComposer({
+  onSubmit,
+  disabled = false,
+}: {
+  onSubmit: (payload: {
+    status: "open" | "in_progress" | "done" | "follow_up";
+    result: string;
+    action_title?: string;
+    next_follow_up_at?: string;
+  }) => Promise<void>;
+  disabled?: boolean;
+}) {
+  const [submitError, setSubmitError] = useState("");
+
+  return (
+    <form
+      onSubmit={async (event) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const result = String(formData.get("result") || "").trim();
+        if (!result) return;
+        setSubmitError("");
+        try {
+          await onSubmit({
+            status: String(formData.get("status") || "done") as "open" | "in_progress" | "done" | "follow_up",
+            action_title: String(formData.get("action_title") || "").trim(),
+            next_follow_up_at: String(formData.get("next_follow_up_at") || "").trim(),
+            result,
+          });
+          form.reset();
+        } catch (error) {
+          setSubmitError(error instanceof Error ? error.message : "处理结果提交失败，请保留内容后重试。");
+        }
+      }}
+      className="rounded-2xl border border-emerald-200/70 bg-emerald-50/60 p-3"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-medium text-emerald-950">处理结果闭环</p>
+          <p className="mt-1 text-xs text-emerald-800/80">记录状态和结果后，会同步进入会员备注与经营审计。</p>
+        </div>
+        <select
+          name="status"
+          defaultValue="done"
+          className="rounded-full border border-emerald-200 bg-white px-3 py-2 text-xs text-emerald-900 outline-none"
+        >
+          <option value="done">已处理</option>
+          <option value="follow_up">需跟进</option>
+          <option value="in_progress">处理中</option>
+          <option value="open">待处理</option>
+        </select>
+      </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_150px]">
+        <input
+          name="action_title"
+          placeholder="处理事项，例如：即将到期会员"
+          className="rounded-2xl border border-emerald-100 bg-white px-3 py-2 text-sm outline-none"
+        />
+        <input
+          name="next_follow_up_at"
+          placeholder="下次跟进"
+          className="rounded-2xl border border-emerald-100 bg-white px-3 py-2 text-sm outline-none"
+        />
+      </div>
+      <textarea
+        name="result"
+        rows={3}
+        placeholder="写清楚处理结果，例如：已电话回访，确认本周续费；仍需周五复查学习进度。"
+        className="mt-2 w-full resize-none rounded-2xl border border-emerald-100 bg-white px-3 py-2 text-sm outline-none"
+      />
+      <div className="mt-3 flex justify-end">
+        <button type="submit" disabled={disabled} className="rounded-full bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
+          记录处理结果
+        </button>
+      </div>
+      {submitError ? <p className="mt-2 text-xs text-rose-700">{submitError}</p> : null}
+    </form>
   );
 }
 

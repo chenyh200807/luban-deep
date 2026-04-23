@@ -24,6 +24,7 @@ import {
   getMemberDetail,
   listMembers,
   pauseHeartbeatJob,
+  recordMemberOpsAction,
   revokeMembership,
   resumeHeartbeatJob,
   updateMembership,
@@ -502,6 +503,32 @@ export default function BiPageClient() {
     [refreshMembers, refreshSelectedMember, selectedUserId],
   );
 
+  const handleRecordOpsAction = useCallback(
+    async (payload: {
+      status: "open" | "in_progress" | "done" | "follow_up";
+      result: string;
+      action_title?: string;
+      next_follow_up_at?: string;
+    }) => {
+      if (!selectedUserId) return;
+      try {
+        setActionLoading(true);
+        await recordMemberOpsAction(selectedUserId, payload);
+        await refreshBi();
+        await refreshMembers();
+        await refreshAudit();
+        await refreshSelectedMember();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "记录处理结果失败";
+        setDetailError(message);
+        throw new Error(message);
+      } finally {
+        setActionLoading(false);
+      }
+    },
+    [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId],
+  );
+
   const handleHeartbeatJobAction = useCallback(
     async (job: HeartbeatJob) => {
       if (!selectedUserId) return;
@@ -869,6 +896,7 @@ export default function BiPageClient() {
             onExtendSingle={() => void handleSingleExtend()}
             onRevokeSingle={() => void handleSingleRevoke()}
             onAddNote={(content) => void handleAddNote(content)}
+            onRecordOpsAction={handleRecordOpsAction}
             onToggleHeartbeat={(job) => void handleHeartbeatJobAction(job)}
             onApplyOverlay={(overlay) => void handleApplyOverlayPromotions(overlay)}
           />
@@ -884,6 +912,7 @@ export default function BiPageClient() {
             onExtend={() => void handleSingleExtend()}
             onRevoke={() => void handleSingleRevoke()}
             onAddNote={(content) => void handleAddNote(content)}
+            onRecordOpsAction={handleRecordOpsAction}
             onToggleHeartbeat={(job) => void handleHeartbeatJobAction(job)}
             onApplyOverlay={(overlay) => void handleApplyOverlayPromotions(overlay)}
           />

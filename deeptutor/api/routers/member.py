@@ -23,6 +23,13 @@ class NoteUpdateRequest(BaseModel):
     pinned: bool | None = None
 
 
+class OpsActionResultRequest(BaseModel):
+    status: str = Field(..., pattern=r"^(open|in_progress|done|follow_up)$")
+    result: str = Field(..., min_length=1, max_length=2000)
+    action_title: str = Field(default="", max_length=200)
+    next_follow_up_at: str = Field(default="", max_length=80)
+
+
 class GrantRequest(BaseModel):
     user_id: str
     days: int = Field(..., gt=0, le=3650)
@@ -303,6 +310,27 @@ async def create_member_note(
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/{user_id}/ops-actions")
+async def record_member_ops_action(
+    user_id: str,
+    body: OpsActionResultRequest,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    try:
+        return service.record_ops_action_result(
+            user_id,
+            status=body.status,
+            result=body.result,
+            action_title=body.action_title,
+            next_follow_up_at=body.next_follow_up_at,
+            operator=current_user.user_id,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.patch("/notes/{note_id}")

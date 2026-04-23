@@ -24,6 +24,12 @@ type BiMemberOpsTabProps = {
   onExtendSingle: () => void;
   onRevokeSingle: () => void;
   onAddNote: (content: string) => void;
+  onRecordOpsAction: (payload: {
+    status: "open" | "in_progress" | "done" | "follow_up";
+    result: string;
+    action_title?: string;
+    next_follow_up_at?: string;
+  }) => Promise<void>;
   onToggleHeartbeat: (job: HeartbeatJob) => void;
   onApplyOverlay: (overlay: BotOverlaySummary) => void;
 };
@@ -45,6 +51,7 @@ export function BiMemberOpsTab({
   onExtendSingle,
   onRevokeSingle,
   onAddNote,
+  onRecordOpsAction,
   onToggleHeartbeat,
   onApplyOverlay,
 }: BiMemberOpsTabProps) {
@@ -98,6 +105,7 @@ export function BiMemberOpsTab({
             onExtend={onExtendSingle}
             onRevoke={onRevokeSingle}
             onAddNote={onAddNote}
+            onRecordOpsAction={onRecordOpsAction}
             onToggleHeartbeat={onToggleHeartbeat}
             onApplyOverlay={onApplyOverlay}
           />

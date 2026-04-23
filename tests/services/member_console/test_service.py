@@ -1813,3 +1813,33 @@ def test_list_audit_log_supports_target_user_and_action_filters(tmp_path: Path) 
     result = service.list_audit_log(page=1, page_size=20, target_user="u1", action="grant")
 
     assert [item["id"] for item in result["items"]] == ["audit_1"]
+
+
+def test_record_ops_action_result_writes_note_and_audit_loop(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    result = service.record_ops_action_result(
+        "student_demo",
+        status="done",
+        result="已电话回访，确认本周续费",
+        action_title="即将到期会员",
+        next_follow_up_at="2026-04-26",
+        operator="admin_demo",
+    )
+
+    assert result["status"] == "done"
+    assert result["result"] == "已电话回访，确认本周续费"
+    assert result["note"]["channel"] == "ops_action"
+    assert "处理状态：done" in result["note"]["content"]
+    assert "处理结果：已电话回访，确认本周续费" in result["note"]["content"]
+
+    detail = service.get_member_360("student_demo")
+    assert detail["recent_notes"][0]["id"] == result["note"]["id"]
+
+    audit = service.list_audit_log(target_user="student_demo", action="ops_action_result")
+    assert audit["total"] == 1
+    assert audit["items"][0]["operator"] == "admin_demo"
+    assert audit["items"][0]["after"]["status"] == "done"
+    assert audit["items"][0]["after"]["note_id"] == result["note"]["id"]
+    assert audit["items"][0]["after"]["next_follow_up_at"] == "2026-04-26"
