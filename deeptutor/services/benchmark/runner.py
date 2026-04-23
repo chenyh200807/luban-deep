@@ -171,6 +171,10 @@ def _case_metadata(case: Any) -> dict[str, Any]:
         "expected_contract": case.expected_contract,
         "failure_taxonomy_scope": case.failure_taxonomy_scope,
         "source_fixture": case.source_fixture,
+        "origin_type": case.origin_type,
+        "origin_ref": case.origin_ref,
+        "promotion_status": case.promotion_status,
+        "promoted_from_case_id": case.promoted_from_case_id,
     }
 
 
@@ -191,6 +195,10 @@ def _canonicalize_case_result(
     canonical["surface"] = case_metadata.get("surface")
     canonical["expected_contract"] = case_metadata.get("expected_contract")
     canonical["case_tier"] = case_metadata.get("case_tier") or canonical.get("case_tier")
+    canonical["origin_type"] = case_metadata.get("origin_type")
+    canonical["origin_ref"] = case_metadata.get("origin_ref")
+    canonical["promotion_status"] = case_metadata.get("promotion_status")
+    canonical["promoted_from_case_id"] = case_metadata.get("promoted_from_case_id")
     return canonical
 
 
@@ -295,9 +303,15 @@ async def _run_long_dialog_case_set(
     return await run_local_long_dialog_suite()
 
 
-def _run_wx_surface_case_set(case_metadata: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+def _run_node_surface_case_set(
+    *,
+    case_metadata: dict[str, Any],
+    command: list[str],
+    pass_reason: str,
+    fail_reason: str,
+    timeout_reason: str,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     case_id = str(case_metadata["case_id"])
-    command = ["node", "wx_miniprogram/tests/test_renderer_parity.js"]
     if shutil.which("node") is None:
         result = _make_case_result(
             suite="exploration_lab",
@@ -328,7 +342,7 @@ def _run_wx_surface_case_set(case_metadata: dict[str, Any]) -> tuple[dict[str, A
             case_tier=str(case_metadata.get("case_tier") or "exploratory"),
             failure_type="FAIL_TIMEOUT",
             evidence={
-                "reason": "node_renderer_parity_timeout",
+                "reason": timeout_reason,
                 "stdout_tail": str(exc.stdout or "")[-1000:],
                 "stderr_tail": str(exc.stderr or "")[-1000:],
                 "source_fixture": case_metadata.get("source_fixture"),
@@ -344,7 +358,7 @@ def _run_wx_surface_case_set(case_metadata: dict[str, Any]) -> tuple[dict[str, A
             status="PASS",
             case_tier=str(case_metadata.get("case_tier") or "exploratory"),
             evidence={
-                "reason": "node_renderer_parity_passed",
+                "reason": pass_reason,
                 "stdout_tail": completed.stdout[-1000:],
                 "source_fixture": case_metadata.get("source_fixture"),
             },
@@ -360,7 +374,7 @@ def _run_wx_surface_case_set(case_metadata: dict[str, Any]) -> tuple[dict[str, A
         case_tier=str(case_metadata.get("case_tier") or "exploratory"),
         failure_type="FAIL_SURFACE_DELIVERY",
         evidence={
-            "reason": "node_renderer_parity_failed",
+            "reason": fail_reason,
             "stdout_tail": completed.stdout[-1000:],
             "stderr_tail": completed.stderr[-1000:],
             "source_fixture": case_metadata.get("source_fixture"),
@@ -373,6 +387,26 @@ def _run_wx_surface_case_set(case_metadata: dict[str, Any]) -> tuple[dict[str, A
         },
     )
     return _summarize_case_results("exploration_lab", [result]), [result]
+
+
+def _run_wx_surface_case_set(case_metadata: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    return _run_node_surface_case_set(
+        case_metadata=case_metadata,
+        command=["node", "wx_miniprogram/tests/test_renderer_parity.js"],
+        pass_reason="node_renderer_parity_passed",
+        fail_reason="node_renderer_parity_failed",
+        timeout_reason="node_renderer_parity_timeout",
+    )
+
+
+def _run_yousenwebview_surface_case_set(case_metadata: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    return _run_node_surface_case_set(
+        case_metadata=case_metadata,
+        command=["node", "yousenwebview/tests/test_chat_send_surface_telemetry.js"],
+        pass_reason="node_yousenwebview_surface_telemetry_passed",
+        fail_reason="node_yousenwebview_surface_telemetry_failed",
+        timeout_reason="node_yousenwebview_surface_telemetry_timeout",
+    )
 
 
 async def _run_surface_web_case_set(
@@ -457,6 +491,9 @@ async def _collect_suite_execution(
             )
         elif case_id == "surface.wx.renderer.parity":
             legacy_summary, legacy_results = _run_wx_surface_case_set(case_metadata)
+            include_in_legacy = False
+        elif case_id == "surface.yousenwebview.telemetry.smoke":
+            legacy_summary, legacy_results = _run_yousenwebview_surface_case_set(case_metadata)
             include_in_legacy = False
         elif case_id == "surface.web.ack.smoke":
             legacy_summary, legacy_results = await _run_surface_web_case_set(

@@ -22,7 +22,8 @@
     },
     "exploration_lab": {
       "case_ids": [
-        "surface.wx.renderer.parity"
+        "surface.wx.renderer.parity",
+        "surface.yousenwebview.telemetry.smoke"
       ]
     }
   },
@@ -39,7 +40,11 @@
       "failure_taxonomy_scope": [
         "FAIL_ROUTE_WRONG"
       ],
-      "source_fixture": "tests/fixtures/semantic_router_eval_cases.json"
+      "source_fixture": "tests/fixtures/semantic_router_eval_cases.json",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
     },
     "routing.context_orchestration.case_set": {
       "dataset_id": "benchmark_phase1",
@@ -53,7 +58,11 @@
       "failure_taxonomy_scope": [
         "FAIL_CONTEXT_LOSS"
       ],
-      "source_fixture": "tests/fixtures/context_orchestration_eval_cases.json"
+      "source_fixture": "tests/fixtures/context_orchestration_eval_cases.json",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/context_orchestration_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
     },
     "grounding.rag.case_set": {
       "dataset_id": "benchmark_phase1",
@@ -67,7 +76,11 @@
       "failure_taxonomy_scope": [
         "FAIL_GROUNDEDNESS"
       ],
-      "source_fixture": "tests/fixtures/rag_grounding_eval_cases.json"
+      "source_fixture": "tests/fixtures/rag_grounding_eval_cases.json",
+      "origin_type": "incident_replay",
+      "origin_ref": "continuity.long_dialog.focus",
+      "promotion_status": "promoted",
+      "promoted_from_case_id": "continuity.long_dialog.focus"
     },
     "continuity.long_dialog.focus": {
       "dataset_id": "benchmark_phase1",
@@ -81,7 +94,11 @@
       "failure_taxonomy_scope": [
         "FAIL_CONTINUITY"
       ],
-      "source_fixture": "tests/fixtures/long_dialog_focus_eval_cases.json"
+      "source_fixture": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "origin_type": "legacy_replay",
+      "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
     },
     "surface.wx.renderer.parity": {
       "dataset_id": "benchmark_phase1",
@@ -95,7 +112,29 @@
       "failure_taxonomy_scope": [
         "FAIL_SURFACE_DELIVERY"
       ],
-      "source_fixture": "tests/fixtures/wechat_structured_renderer_cases.json"
+      "source_fixture": "tests/fixtures/wechat_structured_renderer_cases.json",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/wechat_structured_renderer_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    "surface.yousenwebview.telemetry.smoke": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "surface.yousenwebview.telemetry.smoke",
+      "contract_domain": "surface_contract",
+      "case_tier": "exploratory",
+      "execution_kind": "surface_parity_eval",
+      "surface": "yousenwebview",
+      "expected_contract": "yousenwebview_surface_telemetry_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_SURFACE_DELIVERY"
+      ],
+      "source_fixture": "yousenwebview/tests/test_chat_send_surface_telemetry.js",
+      "origin_type": "seed_fixture",
+      "origin_ref": "yousenwebview/tests/test_chat_send_surface_telemetry.js",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
     },
     "surface.web.ack.smoke": {
       "dataset_id": "benchmark_phase1",
@@ -109,7 +148,11 @@
       "failure_taxonomy_scope": [
         "FAIL_SURFACE_DELIVERY"
       ],
-      "source_fixture": "scripts/run_surface_ack_smoke.py"
+      "source_fixture": "scripts/run_surface_ack_smoke.py",
+      "origin_type": "surface_smoke",
+      "origin_ref": "scripts/run_surface_ack_smoke.py",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
     }
   }
 }

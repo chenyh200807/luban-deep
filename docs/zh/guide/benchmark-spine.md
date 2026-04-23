@@ -102,6 +102,12 @@ python3 scripts/run_incident_replay.py \
 node wx_miniprogram/tests/test_renderer_parity.js
 ```
 
+`surface.yousenwebview.telemetry.smoke` 是 `yousenwebview` 在 Phase 1 的 targeted smoke。它不做重自动化，只验证仓内可执行的表面埋点合同：
+
+```bash
+node yousenwebview/tests/test_chat_send_surface_telemetry.js
+```
+
 结果规则：
 
 1. Node parity 通过：case `PASS`
@@ -111,7 +117,41 @@ node wx_miniprogram/tests/test_renderer_parity.js
 
 真实微信开发者工具或真机验证仍然是上线前 surface 验收的一部分；Node parity 只解决仓内自动化的最低合同。
 
-## 5. 禁止事项
+## 5. Incident Promotion
+
+incident 反哺 benchmark 必须走 registry proposal，不能口头把 case 挪进 gate。晋升链路固定为：
+
+1. `incident_replay` -> `regression_tier`
+2. `regression_tier` -> `gate_stable`
+
+直接从 `incident_replay` 晋升 `gate_stable` 会被拒绝。
+
+生成 registry proposal：
+
+```bash
+python3 scripts/promote_benchmark_case.py \
+  --case-id surface.web.ack.smoke \
+  --target-tier regression_tier \
+  --output-registry-path tmp/benchmark/promoted_registry.json \
+  --reason "INC-001 stable replay"
+```
+
+registry 中的 `origin_type / origin_ref / promotion_status / promoted_from_case_id` 是 case 来源与晋升状态的 canonical 字段。它们用于回答“这个 case 是否由 incident replay 晋升而来”，而不是靠 incident 文档或人工记忆。
+
+## 6. Phase 1 验收查询
+
+PRD §16 的 6 个问题必须能从 registry、suite projection、runner artifact 直接回答：
+
+1. case 登记位置：`tests/fixtures/benchmark_phase1_registry.json`
+2. 合同域：registry `contract_domain`
+3. 所属 suite：registry `suites[*].case_ids`
+4. 失败 taxonomy：registry `failure_taxonomy_scope` 与 artifact `failure_taxonomy`
+5. 是否影响 pre-release gate：是否属于 `pr_gate_core`，或是否被晋升到 `gate_stable`
+6. 是否由 incident replay 晋升：registry `origin_type == incident_replay`；`promoted_from_case_id` 只说明来源 case，不单独证明 incident 来源
+
+代码内的 `build_case_acceptance_snapshot()` 是这 6 个问题的最小可测试入口。
+
+## 7. 禁止事项
 
 1. 不新增第二套 benchmark registry
 2. 不新增第二套 failure taxonomy

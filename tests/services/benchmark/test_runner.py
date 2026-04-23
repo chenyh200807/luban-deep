@@ -176,7 +176,7 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
     ]
     assert payload["run_manifest"]["registry_version"] == "phase1"
     assert payload["release_spine"]
-    assert payload["summary"]["passed"] == 5
+    assert payload["summary"]["passed"] == 6
     assert payload["summary"]["failed"] == 1
     assert payload["summary"]["skipped"] == 1
     assert payload["failure_taxonomy"] == [{"failure_type": "FAIL_ROUTE_WRONG", "count": 1}]
@@ -189,7 +189,13 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
     )
     assert wx_case["status"] == "PASS"
     assert wx_case["evidence"]["reason"] == "node_renderer_parity_passed"
+    ysv_case = next(
+        item for item in payload["case_results"] if item["case_id"] == "surface.yousenwebview.telemetry.smoke"
+    )
+    assert ysv_case["status"] == "PASS"
+    assert ysv_case["evidence"]["reason"] == "node_yousenwebview_surface_telemetry_passed"
     assert not any(item["case_id"] == "surface.wx.renderer.parity" for item in payload["blind_spots"])
+    assert not any(item["case_id"] == "surface.yousenwebview.telemetry.smoke" for item in payload["blind_spots"])
     assert any(item["case_id"] == "surface.web.ack.smoke" for item in payload["blind_spots"])
     assert all("source_suite" in item for item in payload["case_results"])
     assert payload["legacy"]["suite_summaries"][0]["suite"] == "semantic-router"
