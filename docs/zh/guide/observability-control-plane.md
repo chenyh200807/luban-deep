@@ -144,6 +144,8 @@ python3.11 scripts/run_oa.py --mode pre-release --change-impact-json tmp/observa
 
 未显式传 `--observer-json` 或 `--change-impact-json` 时，`OA` 会 best-effort 读取控制面最新 `observer_snapshots/latest.json` 与 `change_impact_runs/latest.json`。
 
+`OA` 会额外输出 `causal_candidates`，schema 为 `causal_oa_v1`。它不是第二套变更影响判断，只是把 canonical `ChangeImpactRun.first_failing_signal`、`changed_domains`、source run ids、验证命令组织成可排序的因果候选。
+
 ### 2.7 Release Gate
 
 ```bash
@@ -208,6 +210,28 @@ python3.11 scripts/run_prerelease_observability.py \
 OM -> ARR -> AAE -> ObserverSnapshot -> ChangeImpactRun -> OA -> ReleaseGate
 ```
 
+### 2.10 一键 Daily Observability
+
+Daily 链路用于每天或每次开发收口时快速回答：
+
+1. 这次变更影响了哪些 domain
+2. 第一个失败信号是什么
+3. OA 的因果候选和 blind spots 是什么
+4. Release Gate 当前建议是什么
+5. 最近 run history 能否按 commit 过滤
+
+```bash
+python3.11 scripts/run_observability_daily.py
+python3.11 scripts/run_observability_daily.py --changed-file deeptutor/services/session/turn_runtime.py
+python3.11 scripts/run_observability_daily.py --output-dir tmp/observability/daily
+```
+
+固定链路为：
+
+```text
+ObserverSnapshot -> ChangeImpactRun -> OA(causal_oa_v1) -> ReleaseGate -> DailyTrend -> RunHistory
+```
+
 ## 3. API 入口
 
 当前已经开放最小控制面查询接口：
@@ -215,6 +239,7 @@ OM -> ARR -> AAE -> ObserverSnapshot -> ChangeImpactRun -> OA -> ReleaseGate
 1. `POST /api/v1/observability/surface-events`
 2. `GET /api/v1/observability/control-plane/{kind}/latest`
 3. `GET /api/v1/observability/control-plane/{kind}/history?limit=10`
+4. `GET /api/v1/observability/control-plane/run-history?limit=20&commit_sha=<sha-prefix>`
 
 例如：
 
@@ -222,6 +247,7 @@ OM -> ARR -> AAE -> ObserverSnapshot -> ChangeImpactRun -> OA -> ReleaseGate
 curl -fsS http://127.0.0.1:8001/api/v1/observability/control-plane/arr_runs/latest | jq
 curl -fsS http://127.0.0.1:8001/api/v1/observability/control-plane/change_impact_runs/latest | jq
 curl -fsS "http://127.0.0.1:8001/api/v1/observability/control-plane/release_gate_runs/history?limit=5" | jq
+curl -fsS "http://127.0.0.1:8001/api/v1/observability/control-plane/run-history?limit=20&commit_sha=$(git rev-parse --short HEAD)" | jq
 ```
 
 ## 4. 当前语义边界
@@ -235,8 +261,9 @@ curl -fsS "http://127.0.0.1:8001/api/v1/observability/control-plane/release_gate
 3. runtime metrics truth 仍在 `/metrics` 与 `Prometheus`
 4. `ObserverSnapshot` 只做 raw evidence bundle 与 blind spots 聚合，不写回业务状态
 5. `ChangeImpactRun` 是变更影响的唯一控制面 authority；`OA` 和 `Release Gate` 只消费它，不重新发明 change impact 语义
-6. failed turn promotion 只写 incident candidates，不直接改 benchmark registry 或 gate tier
-7. control plane 只做 run history、摘要、gate、blind spots、RCA 候选
+6. `causal_oa_v1` 只排序和解释 canonical source runs，不负责重新判定 changed domains
+7. failed turn promotion 只写 incident candidates，不直接改 benchmark registry 或 gate tier
+8. control plane 只做 run history、摘要、gate、blind spots、RCA 候选
 
 ## 5. 当前已知限制
 
@@ -245,6 +272,7 @@ curl -fsS "http://127.0.0.1:8001/api/v1/observability/control-plane/release_gate
 3. `ObserverSnapshot` 若没有 turn event log，会明确暴露 `missing_turn_event_log`，而不是用 OM/ARR 代理事实伪装成真实 turn 观测。
 4. `OA` 当前是规则化 observer，不是全自动高置信度根因系统。
 5. `ChangeImpactRun` 第一版使用 deterministic file-domain mapping 与已有信号交叉判断，不做学习式因果模型。
-6. failed turn promotion 第一版只生成 replay candidates；是否晋升为 regression tier 仍走 benchmark promotion 合同。
-7. `Release Gate` 在 `AAE` 高比例 proxy、blind spot 偏大或 change impact 高风险时，默认只给 `WARN` 或 `FAIL`，不会伪装成强 PASS。
-8. `Unified WS Smoke` 会触发一次真实 LLM turn；在本地验证或 pre-release 场景用它补强主链路证据，不建议高频定时触发。
+6. `RunHistory` 当前读取 control-plane `history.jsonl`，不做长期归档压缩；如果需要跨月趋势，应接外部 warehouse。
+7. failed turn promotion 第一版只生成 replay candidates；是否晋升为 regression tier 仍走 benchmark promotion 合同。
+8. `Release Gate` 在 `AAE` 高比例 proxy、blind spot 偏大或 change impact 高风险时，默认只给 `WARN` 或 `FAIL`，不会伪装成强 PASS。
+9. `Unified WS Smoke` 会触发一次真实 LLM turn；在本地验证或 pre-release 场景用它补强主链路证据，不建议高频定时触发。

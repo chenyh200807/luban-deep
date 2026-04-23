@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from deeptutor.api.dependencies import require_admin, resolve_auth_context
 from deeptutor.services.observability import get_control_plane_store, get_surface_event_store
+from deeptutor.services.observability.run_history import build_observability_run_history
 
 router = APIRouter()
 
@@ -44,6 +45,21 @@ async def ingest_surface_event(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
+
+
+@router.get("/control-plane/run-history", dependencies=[Depends(require_admin)])
+async def get_observability_run_history(
+    limit: int = 20,
+    commit_sha: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "ok": True,
+        **build_observability_run_history(
+            store=get_control_plane_store(),
+            limit=max(1, min(limit, 100)),
+            commit_sha=commit_sha,
+        ),
+    }
 
 
 @router.get("/control-plane/{kind}/latest", dependencies=[Depends(require_admin)])

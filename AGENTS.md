@@ -81,6 +81,12 @@ CLI, WebSocket API, and Python SDK.
 - 每一处改动都应能直接追溯到本次需求；无法追溯的改动不要提交。
 - 聊天相关能力必须继续复用统一流式入口 `/api/v1/ws`；禁止新增专用聊天 WebSocket 路由。
 
+### 3.5 Main Merge Workflow
+
+- 当用户要求“合并到 main”时，除了在干净 worktree 里完成 merge / push / 部署验证，还必须把当前 Codex 本地工作区的可见分支状态一并收口到 `main`。
+- 如果当前工作区存在未提交改动，禁止强行切换到 `main`；必须先明确说明哪些脏改动阻塞切换，并让用户决定是提交、暂存、丢弃还是保留在当前分支。
+- 合并到 `main` 后的最终汇报必须分别说明：远端 `origin/main` 的 commit、部署状态、当前本地工作区是否已经切回 `main`，以及如果没切回的具体原因。
+
 ### 4. Goal-Driven Execution
 
 - 开始前先把任务改写成可验证目标，而不是“差不多能用”。

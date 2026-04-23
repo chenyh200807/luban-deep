@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
+from deeptutor.services.observability.causal_oa import build_causal_candidates
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
 
 
@@ -279,6 +280,24 @@ def build_oa_run(
             }
         )
 
+    causal_candidates = build_causal_candidates(
+        observer_payload=observer_payload,
+        change_impact_payload=change_impact_payload,
+        om_payload=om_payload,
+        arr_payload=arr_payload,
+        aae_payload=aae_payload,
+    )
+    if causal_candidates:
+        signals.append(
+            {
+                "kind": "causal_oa_v1",
+                "payload": {
+                    "candidate_count": len(causal_candidates),
+                    "top_candidate": causal_candidates[0],
+                },
+            }
+        )
+
     run_id = f"oa-{mode}-{int(time.time())}"
     return {
         "run_id": run_id,
@@ -295,6 +314,7 @@ def build_oa_run(
         },
         "blind_spots": blind_spots,
         "root_causes": root_causes,
+        "causal_candidates": causal_candidates,
         "change_impact": change_impact_payload,
         "repair_playbooks": playbooks,
         "signals": signals,

@@ -27,6 +27,7 @@ OA_MODULE = _load_script_module("run_oa.py")
 RELEASE_GATE_MODULE = _load_script_module("run_release_gate.py")
 OBSERVER_SNAPSHOT_MODULE = _load_script_module("run_observer_snapshot.py")
 CHANGE_IMPACT_MODULE = _load_script_module("run_change_impact.py")
+DAILY_OBSERVABILITY_MODULE = _load_script_module("run_observability_daily.py")
 
 
 def test_run_aae_snapshot_load_json_accepts_control_plane_wrapper(tmp_path) -> None:
@@ -208,3 +209,42 @@ def test_run_change_impact_cli_writes_control_plane_latest_and_history(tmp_path)
     assert latest["kind"] == "change_impact_runs"
     assert latest["release_id"] == "rel-1"
     assert latest["payload"]["changed_domains"][0]["domain"] == "turn"
+
+
+def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_path) -> None:
+    store_dir = tmp_path / "control_plane"
+    output_dir = tmp_path / "daily"
+    env = {
+        **os.environ,
+        "DEEPTUTOR_OBSERVABILITY_STORE_DIR": str(store_dir),
+    }
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(Path(__file__).resolve().parents[2] / "scripts" / "run_observability_daily.py"),
+            "--changed-file",
+            "deeptutor/services/session/turn_runtime.py",
+            "--output-dir",
+            str(output_dir),
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    for kind in (
+        "observer_snapshots",
+        "change_impact_runs",
+        "oa_runs",
+        "release_gate_runs",
+        "daily_trends",
+    ):
+        assert (store_dir / kind / "latest.json").exists()
+
+    oa_latest = json.loads((store_dir / "oa_runs" / "latest.json").read_text(encoding="utf-8"))
+    assert oa_latest["payload"]["causal_candidates"]
+    run_history = DAILY_OBSERVABILITY_MODULE.build_daily_run_history(store_dir=store_dir)
+    assert run_history["summary"]["total"] >= 4
