@@ -1,7 +1,8 @@
 /* eslint-disable i18n/no-literal-ui-text */
 "use client";
 
-import { Bot, Clock3, MessageSquareMore, StickyNote } from "lucide-react";
+import { useState } from "react";
+import { Bot, ChevronDown, Clock3, MessageSquareMore, StickyNote } from "lucide-react";
 import type { BotOverlaySummary, HeartbeatJob, MemberDetail } from "@/lib/member-api";
 import { InfoLine, SectionHeader, formatTime } from "./BiShared";
 
@@ -30,6 +31,14 @@ export function BiMember360Panel({
   onToggleHeartbeat,
   onApplyOverlay,
 }: BiMember360PanelProps) {
+  const memberUserId = member?.user_id || "";
+  const [expandedConversation, setExpandedConversation] = useState<{
+    userId: string;
+    conversationId: string | null;
+  }>({ userId: "", conversationId: null });
+  const expandedConversationId =
+    expandedConversation.userId === memberUserId ? expandedConversation.conversationId : null;
+
   if (loading) {
     return <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] px-5 py-10 text-sm text-[var(--muted-foreground)]">正在加载学员 360...</div>;
   }
@@ -138,35 +147,60 @@ export function BiMember360Panel({
           <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5">
             <SectionHeader title="最近聊天记录" extra={`${recentConversations.length} 个会话`} />
             <div className="mt-4 space-y-4">
-              {recentConversations.map((conversation) => (
-                <div key={conversation.session_id} className="rounded-2xl border border-[var(--border)]/60 bg-white px-4 py-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium text-[var(--foreground)]">
-                        <MessageSquareMore size={14} className="mr-2 inline-flex" />
-                        {conversation.title}
-                      </p>
-                      <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                        {conversation.capability} · {conversation.message_count} 条消息 · 最近更新 {formatTime(conversation.updated_at)}
-                      </p>
-                    </div>
-                    <span className="text-xs text-[var(--muted-foreground)]">{conversation.session_id}</span>
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    {conversation.messages.map((message) => (
-                      <div key={message.id} className="rounded-2xl bg-[var(--secondary)]/70 px-3 py-3 text-sm">
-                        <div className="flex items-center justify-between gap-3 text-xs text-[var(--muted-foreground)]">
-                          <span>{message.role === "assistant" ? "AI" : "学员"}</span>
-                          <span>{formatTime(message.created_at)}</span>
+              {recentConversations.map((conversation) => {
+                const isExpanded = expandedConversationId === conversation.session_id;
+                const preview = conversation.last_message || conversation.messages.at(-1)?.content || "点击查看完整聊天内容";
+                return (
+                  <div key={conversation.session_id} className="rounded-2xl border border-[var(--border)]/60 bg-white px-4 py-4">
+                    <button
+                      type="button"
+                      aria-expanded={isExpanded}
+                      onClick={() =>
+                        setExpandedConversation({
+                          userId: memberUserId,
+                          conversationId: isExpanded ? null : conversation.session_id,
+                        })
+                      }
+                      className="w-full text-left"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-medium text-[var(--foreground)]">
+                            <MessageSquareMore size={14} className="mr-2 inline-flex" />
+                            {conversation.title}
+                          </p>
+                          <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                            {conversation.capability} · {conversation.message_count} 条消息 · 最近更新 {formatTime(conversation.updated_at)}
+                          </p>
                         </div>
-                        <p className="mt-2 whitespace-pre-wrap break-words leading-6 text-[var(--secondary-foreground)]">
-                          {message.content}
-                        </p>
+                        <span className="max-w-full break-all text-xs text-[var(--muted-foreground)] sm:max-w-[46%]">{conversation.session_id}</span>
                       </div>
-                    ))}
+                      <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-[var(--secondary)]/45 px-3 py-2 text-xs text-[var(--muted-foreground)]">
+                        <span className="line-clamp-1">最近一句：{preview}</span>
+                        <span className="inline-flex shrink-0 items-center gap-1 font-medium text-[var(--foreground)]">
+                          {isExpanded ? "收起全文" : "查看全文"}
+                          <ChevronDown size={14} className={isExpanded ? "rotate-180 transition-transform" : "transition-transform"} />
+                        </span>
+                      </div>
+                    </button>
+                    {isExpanded ? (
+                      <div className="mt-3 space-y-2">
+                        {conversation.messages.map((message) => (
+                          <div key={message.id} className="rounded-2xl bg-[var(--secondary)]/70 px-3 py-3 text-sm">
+                            <div className="flex items-center justify-between gap-3 text-xs text-[var(--muted-foreground)]">
+                              <span>{message.role === "assistant" ? "AI" : "学员"}</span>
+                              <span>{formatTime(message.created_at)}</span>
+                            </div>
+                            <p className="mt-2 whitespace-pre-wrap break-words leading-6 text-[var(--secondary-foreground)]">
+                              {message.content}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {recentConversations.length === 0 ? (
                 <div className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
                   当前没有可展示的聊天记录。

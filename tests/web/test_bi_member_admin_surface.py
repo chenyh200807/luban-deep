@@ -45,7 +45,7 @@ def test_bi_member_360_conversations_are_collapsed_until_clicked() -> None:
     ).read_text(encoding="utf-8")
 
     assert "expandedConversationId" in source
-    assert "setExpandedConversationId" in source
+    assert "setExpandedConversation" in source
     assert "aria-expanded={isExpanded}" in source
     assert "isExpanded ? (" in source
     assert "查看全文" in source
