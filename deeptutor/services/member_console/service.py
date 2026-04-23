@@ -2584,6 +2584,49 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
+    def record_conversation_view(
+        self,
+        user_id: str,
+        session_id: str,
+        *,
+        operator: str = "admin",
+    ) -> dict[str, Any]:
+        normalized_session_id = str(session_id or "").strip()
+        if not normalized_session_id:
+            raise ValueError("Conversation session_id is required")
+
+        data = self._load()
+        member = self._find_member(data, user_id)
+        conversations = self._load_recent_conversations_for_member(member, user_id, session_limit=20)
+        conversation = next(
+            (item for item in conversations if str(item.get("session_id") or "") == normalized_session_id),
+            None,
+        )
+        if conversation is None:
+            raise KeyError(f"Unknown conversation: {normalized_session_id}")
+
+        audit_payload = {
+            "session_id": normalized_session_id,
+            "title": str(conversation.get("title") or ""),
+            "message_count": int(conversation.get("message_count") or 0),
+            "capability": str(conversation.get("capability") or ""),
+            "view_scope": "full_conversation_messages",
+        }
+
+        def _apply(next_data: dict[str, Any]) -> dict[str, Any]:
+            self._find_member(next_data, user_id)
+            self._append_audit(
+                next_data,
+                action="conversation_view",
+                target_user=user_id,
+                reason="view_full_conversation",
+                after=audit_payload,
+                operator=operator,
+            )
+            return audit_payload
+
+        return self._mutate(_apply)
+
     def update_note(
         self,
         note_id: str,

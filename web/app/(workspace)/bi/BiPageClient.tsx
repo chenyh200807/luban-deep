@@ -24,6 +24,7 @@ import {
   getMemberDetail,
   listMembers,
   pauseHeartbeatJob,
+  recordMemberConversationView,
   recordMemberOpsAction,
   revokeMembership,
   resumeHeartbeatJob,
@@ -31,6 +32,7 @@ import {
   grantMembership,
   type BotOverlaySummary,
   type HeartbeatJob,
+  type MemberConversationPreview,
   type MemberAuditLogResponse,
   type MemberDashboard,
   type MemberDetail,
@@ -529,6 +531,15 @@ export default function BiPageClient() {
     [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId],
   );
 
+  const handleRecordConversationView = useCallback(
+    async (conversation: MemberConversationPreview) => {
+      if (!selectedUserId) return;
+      await recordMemberConversationView(selectedUserId, conversation.session_id);
+      await refreshAudit();
+    },
+    [refreshAudit, selectedUserId],
+  );
+
   const handleHeartbeatJobAction = useCallback(
     async (job: HeartbeatJob) => {
       if (!selectedUserId) return;
@@ -897,6 +908,7 @@ export default function BiPageClient() {
             onRevokeSingle={() => void handleSingleRevoke()}
             onAddNote={(content) => void handleAddNote(content)}
             onRecordOpsAction={handleRecordOpsAction}
+            onRecordConversationView={handleRecordConversationView}
             onToggleHeartbeat={(job) => void handleHeartbeatJobAction(job)}
             onApplyOverlay={(overlay) => void handleApplyOverlayPromotions(overlay)}
           />
@@ -913,6 +925,7 @@ export default function BiPageClient() {
             onRevoke={() => void handleSingleRevoke()}
             onAddNote={(content) => void handleAddNote(content)}
             onRecordOpsAction={handleRecordOpsAction}
+            onRecordConversationView={handleRecordConversationView}
             onToggleHeartbeat={(job) => void handleHeartbeatJobAction(job)}
             onApplyOverlay={(overlay) => void handleApplyOverlayPromotions(overlay)}
           />

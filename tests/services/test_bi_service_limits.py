@@ -43,12 +43,32 @@ class _RegisteredMemberService(_QuietMemberService):
                     "created_at": "2026-04-20T10:00:00+08:00",
                     "expire_at": "2026-05-20T10:00:00+08:00",
                     "last_active_at": "2026-04-22T10:00:00+08:00",
+                    "chapter_mastery": {
+                        "地基基础": {"name": "地基基础", "mastery": 58},
+                        "主体结构": {"name": "主体结构", "mastery": 76},
+                    },
+                },
+                {
+                    "user_id": "internal_probe",
+                    "canonical_user_id": "internal_probe",
+                    "alias_user_ids": ["internal_probe"],
+                    "phone": "",
+                    "tier": "trial",
+                    "status": "active",
+                    "risk_level": "high",
+                    "auto_renew": False,
+                    "created_at": "2026-04-20T10:00:00+08:00",
+                    "expire_at": "2026-05-20T10:00:00+08:00",
+                    "last_active_at": "2026-04-22T10:00:00+08:00",
+                    "chapter_mastery": {
+                        "内部压测": {"name": "内部压测", "mastery": 99},
+                    },
                 }
             ],
             "page": page,
             "page_size": page_size,
             "pages": 1,
-            "total": 1,
+            "total": 2,
         }
 
 
@@ -272,6 +292,10 @@ def test_overview_exposes_top_tier_bi_payloads_without_counting_unregistered_act
     assert overview["ai_quality"]["engineering_success_rate"] == 100
     assert overview["unit_economics"]["revenue_status"] == "pending"
     assert overview["unit_economics"]["cost_per_effective_learning_usd"] == 0.25
+    assert overview["teaching_effect"]["chapter_progress"][0]["name"] == "地基基础"
+    assert overview["teaching_effect"]["chapter_progress"][0]["mastery"] == 58
+    assert overview["teaching_effect"]["chapter_progress"][0]["member_count"] == 1
+    assert all(item["name"] != "内部压测" for item in overview["teaching_effect"]["chapter_progress"])
     assert overview["data_trust"]["status"] == "ready"
     assert all(
         {"metric_id", "label", "definition", "authority", "trust_level", "owner", "drilldown"}

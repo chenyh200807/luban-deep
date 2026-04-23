@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { Bot, ChevronDown, Clock3, MessageSquareMore, StickyNote } from "lucide-react";
-import type { BotOverlaySummary, HeartbeatJob, MemberDetail } from "@/lib/member-api";
+import type { BotOverlaySummary, HeartbeatJob, MemberConversationPreview, MemberDetail } from "@/lib/member-api";
 import { InfoLine, SectionHeader, formatTime } from "./BiShared";
 
 type BiMember360PanelProps = {
@@ -21,6 +21,7 @@ type BiMember360PanelProps = {
     action_title?: string;
     next_follow_up_at?: string;
   }) => Promise<void>;
+  onRecordConversationView: (conversation: MemberConversationPreview) => Promise<void>;
   onToggleHeartbeat: (job: HeartbeatJob) => void;
   onApplyOverlay: (overlay: BotOverlaySummary) => void;
 };
@@ -35,6 +36,7 @@ export function BiMember360Panel({
   onRevoke,
   onAddNote,
   onRecordOpsAction,
+  onRecordConversationView,
   onToggleHeartbeat,
   onApplyOverlay,
 }: BiMember360PanelProps) {
@@ -45,6 +47,7 @@ export function BiMember360Panel({
   }>({ userId: "", conversationId: null });
   const expandedConversationId =
     expandedConversation.userId === memberUserId ? expandedConversation.conversationId : null;
+  const [viewAuditError, setViewAuditError] = useState("");
 
   if (loading) {
     return <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] px-5 py-10 text-sm text-[var(--muted-foreground)]">正在加载学员 360...</div>;
@@ -65,6 +68,20 @@ export function BiMember360Panel({
   const heartbeatJobs = member.heartbeat?.jobs ?? [];
   const overlays = member.bot_overlays ?? [];
   const recentConversations = member.recent_conversations ?? [];
+
+  const toggleConversation = async (conversation: MemberConversationPreview, isExpanded: boolean) => {
+    setViewAuditError("");
+    if (isExpanded) {
+      setExpandedConversation({ userId: memberUserId, conversationId: null });
+      return;
+    }
+    try {
+      await onRecordConversationView(conversation);
+      setExpandedConversation({ userId: memberUserId, conversationId: conversation.session_id });
+    } catch (error) {
+      setViewAuditError(error instanceof Error ? error.message : "聊天查看审计失败，已阻止展开全文。");
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -154,6 +171,7 @@ export function BiMember360Panel({
 
           <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5">
             <SectionHeader title="最近聊天记录" extra={`${recentConversations.length} 个会话`} />
+            {viewAuditError ? <p className="mt-3 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{viewAuditError}</p> : null}
             <div className="mt-4 space-y-4">
               {recentConversations.map((conversation) => {
                 const isExpanded = expandedConversationId === conversation.session_id;
@@ -163,12 +181,7 @@ export function BiMember360Panel({
                     <button
                       type="button"
                       aria-expanded={isExpanded}
-                      onClick={() =>
-                        setExpandedConversation({
-                          userId: memberUserId,
-                          conversationId: isExpanded ? null : conversation.session_id,
-                        })
-                      }
+                      onClick={() => void toggleConversation(conversation, isExpanded)}
                       className="w-full text-left"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">

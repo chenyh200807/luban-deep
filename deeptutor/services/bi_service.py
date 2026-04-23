@@ -297,6 +297,10 @@ class BIService:
         return values
 
     @classmethod
+    def _is_registered_member(cls, member: dict[str, Any]) -> bool:
+        return bool(cls._normalize_member_phone(member.get("phone")))
+
+    @classmethod
     def _session_identity_values(cls, preferences: dict[str, Any]) -> set[str]:
         values: set[str] = set()
         for key in (
@@ -692,6 +696,51 @@ class BIService:
         }
 
     @staticmethod
+    def _extract_chapter_mastery(member: dict[str, Any]) -> dict[str, Any]:
+        mastery = member.get("chapter_mastery")
+        return mastery if isinstance(mastery, dict) else {}
+
+    @classmethod
+    def _build_chapter_progress_payload(cls, members: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        grouped: dict[str, dict[str, Any]] = {}
+        for member in members:
+            for key, value in cls._extract_chapter_mastery(member).items():
+                if not isinstance(value, dict):
+                    continue
+                name = str(value.get("name") or key or "").strip()
+                if not name:
+                    continue
+                mastery = max(0, min(100, _safe_int(value.get("mastery"))))
+                bucket = grouped.setdefault(
+                    name,
+                    {
+                        "chapter_id": str(key or name),
+                        "name": name,
+                        "masteries": [],
+                    },
+                )
+                bucket["masteries"].append(mastery)
+
+        progress = []
+        for bucket in grouped.values():
+            masteries = list(bucket["masteries"])
+            if not masteries:
+                continue
+            average_mastery = round(sum(masteries) / len(masteries))
+            progress.append(
+                {
+                    "chapter_id": bucket["chapter_id"],
+                    "name": bucket["name"],
+                    "mastery": average_mastery,
+                    "member_count": len(masteries),
+                    "status": "weak" if average_mastery < 60 else "stable",
+                    "evidence": f"{len(masteries)} 名真实会员样本平均掌握度 {average_mastery}%",
+                }
+            )
+        progress.sort(key=lambda item: (item["mastery"], item["name"]))
+        return progress[:8]
+
+    @staticmethod
     def _build_operating_rhythm_payload(risk_alerts: list[str]) -> dict[str, Any]:
         top_actions: list[dict[str, Any]] = []
         for text in risk_alerts[:3]:
@@ -730,16 +779,22 @@ class BIService:
         }
 
     @classmethod
-    def _build_teaching_effect_payload(cls, *, summary: dict[str, Any]) -> dict[str, Any]:
+    def _build_teaching_effect_payload(
+        cls,
+        *,
+        summary: dict[str, Any],
+        member_stats: dict[str, Any],
+    ) -> dict[str, Any]:
         metric = cls._metric_definition_payload("mastery_improvement")
+        chapter_progress = list(member_stats.get("chapter_progress") or [])
         return {
-            "status": "degraded",
-            "summary": "学习成果 authority 尚未完整核验；第一阶段先使用有效学习会话和 Notebook/错题沉淀做保守展示。",
+            "status": "partial" if chapter_progress else "degraded",
+            "summary": "学习成果 authority 尚未完整核验；第一阶段先使用真实会员章节掌握度、有效学习会话和 Notebook/错题沉淀做保守展示。",
             "metrics": [
                 {
                     **metric,
-                    "value": None,
-                    "status": "pending_source_validation",
+                    "value": chapter_progress[0]["mastery"] if chapter_progress else None,
+                    "status": "chapter_progress_available" if chapter_progress else "pending_source_validation",
                 },
                 {
                     "metric_id": "notebook_saves",
@@ -750,6 +805,7 @@ class BIService:
                     "drilldown": "student_360",
                 },
             ],
+            "chapter_progress": chapter_progress,
         }
 
     @classmethod
@@ -1296,7 +1352,10 @@ class BIService:
                 member_stats=member_stats,
             ),
             "operating_rhythm": self._build_operating_rhythm_payload(risk_alerts),
-            "teaching_effect": self._build_teaching_effect_payload(summary=summary),
+            "teaching_effect": self._build_teaching_effect_payload(
+                summary=summary,
+                member_stats=member_stats,
+            ),
             "ai_quality": self._build_ai_quality_payload(summary=summary, context=context),
             "unit_economics": self._build_unit_economics_payload(summary=summary, daily_cost=daily_cost),
             "data_trust": self._build_data_trust_payload(context=context),
@@ -1676,7 +1735,11 @@ class BIService:
         entrypoint: str | None = None,
         tier: str | None = None,
     ) -> dict[str, Any]:
-        members = self._load_all_members()
+        members = [
+            item
+            for item in self._load_all_members()
+            if self._is_registered_member(item)
+        ]
         tier_filter = str(tier or "").strip().lower()
         if tier_filter:
             members = [
@@ -1691,6 +1754,19 @@ class BIService:
             members,
             key=lambda item: item.get("expire_at") or "",
         )[:5]
+        get_member_360 = getattr(self._member_service, "get_member_360", None)
+        learning_profiles = []
+        for item in members[:100]:
+            profile = dict(item)
+            if not self._extract_chapter_mastery(profile) and callable(get_member_360):
+                try:
+                    detail = get_member_360(str(item.get("user_id") or ""))
+                except Exception:
+                    logger.warning("Failed to load member learning profile for BI teaching effect", exc_info=True)
+                    detail = {}
+                if isinstance(detail, dict):
+                    profile["chapter_mastery"] = detail.get("chapter_mastery") or {}
+            learning_profiles.append(profile)
 
         return {
             "window_days": days,
@@ -1704,6 +1780,7 @@ class BIService:
             "risks": [{"risk_level": key, "count": value, "label": key, "value": value} for key, value in risk_counter.most_common()],
             "statuses": [{"status": key, "count": value} for key, value in status_counter.most_common()],
             "expiring_members": expiring,
+            "chapter_progress": self._build_chapter_progress_payload(learning_profiles),
             "samples": [
                 {
                     "user_id": item.get("user_id", ""),

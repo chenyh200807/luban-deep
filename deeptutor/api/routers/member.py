@@ -333,6 +333,24 @@ async def record_member_ops_action(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@router.post("/{user_id}/conversations/{session_id}/view-audit")
+async def record_member_conversation_view(
+    user_id: str,
+    session_id: str,
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    try:
+        return service.record_conversation_view(
+            user_id,
+            session_id,
+            operator=current_user.user_id,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.patch("/notes/{note_id}")
 async def update_member_note(
     note_id: str,

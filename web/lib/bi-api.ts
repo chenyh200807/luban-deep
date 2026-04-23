@@ -170,10 +170,20 @@ export interface BiOperatingRhythmPayload {
   topActions: BiOperatingRhythmAction[];
 }
 
+export interface BiTeachingChapterProgress {
+  chapterId?: string;
+  name: string;
+  mastery: number;
+  memberCount: number;
+  status?: string;
+  evidence?: string;
+}
+
 export interface BiTeachingEffectPayload {
   status: string;
   summary: string;
   metrics: Array<BiMetricDefinition & { value?: number | string | null; status?: string }>;
+  chapterProgress: BiTeachingChapterProgress[];
 }
 
 export interface BiAiQualityPayload extends BiMetricDefinition {
@@ -599,6 +609,17 @@ function normalizeTeachingEffectPayload(raw: unknown): BiTeachingEffectPayload |
   return {
     status: toString(record.status, ""),
     summary: toString(record.summary ?? record.description, ""),
+    chapterProgress: firstArray(record, ["chapter_progress", "chapterProgress", "chapters"]).map((item, index) => {
+      const chapter = asRecord(item);
+      return {
+        chapterId: toString(chapter.chapter_id ?? chapter.chapterId ?? chapter.id, `chapter-${index + 1}`),
+        name: toString(chapter.name ?? chapter.label ?? chapter.title, `章节 ${index + 1}`),
+        mastery: toNumber(chapter.mastery ?? chapter.score ?? chapter.value, 0),
+        memberCount: toNumber(chapter.member_count ?? chapter.memberCount ?? chapter.members, 0),
+        status: toString(chapter.status ?? chapter.state, ""),
+        evidence: toString(chapter.evidence ?? chapter.detail ?? chapter.note, ""),
+      };
+    }),
     metrics: firstArray(record, ["metrics", "items"]).map((item, index) => {
       const metric = asRecord(item);
       return {

@@ -81,6 +81,14 @@ export interface MemberConversationPreview {
   messages: MemberConversationMessagePreview[];
 }
 
+export interface MemberConversationViewAudit {
+  session_id: string;
+  title: string;
+  message_count: number;
+  capability?: string;
+  view_scope?: string;
+}
+
 export interface MemberBatchActionResult {
   action: string;
   success_count: number;
@@ -286,6 +294,20 @@ export async function recordMemberOpsAction(
     body: JSON.stringify(payload),
   });
   return expectJson<MemberOpsActionResult>(response);
+}
+
+export async function recordMemberConversationView(
+  userId: string,
+  sessionId: string,
+): Promise<MemberConversationViewAudit> {
+  const response = await fetch(
+    apiUrl(`/api/v1/member/${encodeURIComponent(userId)}/conversations/${encodeURIComponent(sessionId)}/view-audit`),
+    {
+      method: "POST",
+      headers: adminHeaders(),
+    },
+  );
+  return expectJson<MemberConversationViewAudit>(response);
 }
 
 export async function grantMembership(payload: { user_id: string; days: number; tier: string; reason?: string }): Promise<MemberDetail> {

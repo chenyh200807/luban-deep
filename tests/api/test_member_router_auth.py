@@ -303,6 +303,38 @@ def test_member_router_records_ops_action_result(monkeypatch: pytest.MonkeyPatch
     ]
 
 
+def test_member_router_records_conversation_view(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    calls: list[dict[str, object]] = []
+
+    def _record_conversation_view(user_id: str, session_id: str, **kwargs: object) -> dict[str, object]:
+        calls.append({"user_id": user_id, "session_id": session_id, **kwargs})
+        return {"session_id": session_id, "title": "地基基础答疑", "message_count": 2}
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type(
+            "FakeMemberService",
+            (),
+            {"record_conversation_view": staticmethod(_record_conversation_view)},
+        )(),
+    )
+
+    with TestClient(app) as client:
+        response = client.post("/api/v1/member/student_demo/conversations/tb_student_demo/view-audit")
+
+    assert response.status_code == 200
+    assert response.json()["session_id"] == "tb_student_demo"
+    assert calls == [
+        {
+            "user_id": "student_demo",
+            "session_id": "tb_student_demo",
+            "operator": "admin_demo",
+        }
+    ]
+
+
 def test_member_list_forwards_operational_filters(monkeypatch: pytest.MonkeyPatch) -> None:
     app = _build_app()
     app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)

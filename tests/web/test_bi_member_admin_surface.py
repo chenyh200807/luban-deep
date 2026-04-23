@@ -49,6 +49,9 @@ def test_bi_member_360_conversations_are_collapsed_until_clicked() -> None:
     assert "aria-expanded={isExpanded}" in source
     assert "isExpanded ? (" in source
     assert "查看全文" in source
+    assert "onRecordConversationView" in source
+    assert "await onRecordConversationView(conversation)" in source
+    assert "viewAuditError" in source
 
 
 def test_bi_page_client_mounts_audit_tab() -> None:
@@ -122,6 +125,28 @@ def test_boss_workbench_exposes_daily_cost_surface() -> None:
     assert "日均成本" in trend_source
 
 
+def test_bi_teaching_effect_surface_exposes_chapter_progress() -> None:
+    api_source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
+    panel_source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiAiQualityPanel.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert "BiTeachingChapterProgress" in api_source
+    assert "chapter_progress" in api_source
+    assert "chapterProgress" in api_source
+    assert "章节进展" in panel_source
+    assert "teachingEffect.chapterProgress" in panel_source
+
+
+def test_bi_ai_quality_surface_exposes_quality_samples() -> None:
+    panel_source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiAiQualityPanel.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert "质量样本" in panel_source
+    assert "aiQuality.samples" in panel_source
+
+
 def test_bi_page_client_consumes_handoff_filters_from_boss_queue() -> None:
     source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
 
@@ -158,6 +183,15 @@ def test_bi_member_360_exposes_ops_action_result_loop() -> None:
     assert "submitError" in panel_source
     assert "recordMemberOpsAction" in api_source
     assert "await refreshAudit()" in client_source
+
+
+def test_member_api_exposes_conversation_view_audit() -> None:
+    source = (REPO_ROOT / "web" / "lib" / "member-api.ts").read_text(encoding="utf-8")
+    client_source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+
+    assert "recordMemberConversationView" in source
+    assert "/view-audit" in source
+    assert "recordMemberConversationView" in client_source
 
 
 def test_bi_api_sends_metrics_token_header() -> None:

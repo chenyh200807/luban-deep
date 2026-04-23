@@ -1008,6 +1008,39 @@ def test_member_360_includes_recent_conversation_messages(tmp_path: Path) -> Non
     assert payload["recent_conversations"][0]["messages"][1]["content"] == "先按承载力、验槽和防水节点拆开复习。"
 
 
+def test_record_conversation_view_writes_privacy_audit(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+
+    asyncio.run(
+        service._store.create_session(
+            title="地基基础答疑",
+            session_id="tb_student_demo",
+            owner_key=build_user_owner_key("student_demo"),
+            source="wx_miniprogram",
+        )
+    )
+    asyncio.run(service._store.add_message("tb_student_demo", "user", "帮我看看地基基础怎么复习"))
+    asyncio.run(service._store.add_message("tb_student_demo", "assistant", "先按承载力、验槽和防水节点拆开复习。"))
+
+    result = service.record_conversation_view(
+        "student_demo",
+        "tb_student_demo",
+        operator="admin_demo",
+    )
+
+    assert result["session_id"] == "tb_student_demo"
+    assert result["title"] == "地基基础答疑"
+    assert result["message_count"] == 2
+
+    audit = service.list_audit_log(target_user="student_demo", action="conversation_view")
+    assert audit["total"] == 1
+    assert audit["items"][0]["operator"] == "admin_demo"
+    assert audit["items"][0]["after"]["session_id"] == "tb_student_demo"
+    assert audit["items"][0]["after"]["message_count"] == 2
+
+
 def test_member_360_keeps_learner_state_when_heartbeat_jobs_fail(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
