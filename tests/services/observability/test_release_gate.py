@@ -19,6 +19,14 @@ def test_release_gate_report_marks_fail_and_warn_correctly() -> None:
         },
         arr_payload={
             "run_id": "arr-1",
+            "benchmark_run_manifest": {
+                "run_id": "benchmark-1",
+                "requested_suites": ["pr_gate_core"],
+            },
+            "benchmark_case_results": [
+                {"suite": "pr_gate_core", "case_id": "case_a", "status": "FAIL"}
+            ],
+            "blind_spots": [{"type": "benchmark_surface"}],
             "release": {
                 "release_id": "rel-1",
                 "git_sha": "abc",
@@ -43,7 +51,9 @@ def test_release_gate_report_marks_fail_and_warn_correctly() -> None:
 
     assert payload["final_status"] == "FAIL"
     assert any(item["gate"] == "P1 Trace Completeness" and item["status"] == "WARN" for item in payload["gate_results"])
-    assert any(item["gate"] == "P2 ARR" and item["status"] == "FAIL" for item in payload["gate_results"])
+    assert any(item["gate"] == "P2 Benchmark Regression" and item["status"] == "FAIL" for item in payload["gate_results"])
+    assert payload["latest_runs"]["benchmark_run_id"] == "benchmark-1"
+    assert "new_benchmark_regression" in payload["blockers"]
 
 
 def test_release_gate_report_fails_when_unified_ws_smoke_failed() -> None:
@@ -73,3 +83,30 @@ def test_release_gate_report_fails_when_unified_ws_smoke_failed() -> None:
     assert payload["final_status"] == "FAIL"
     assert any(item["gate"] == "P0 Runtime" and item["status"] == "FAIL" for item in payload["gate_results"])
     assert "ws_main_path_unhealthy" in payload["blockers"]
+
+
+def test_release_gate_uses_benchmark_blind_spots_without_oa_payload() -> None:
+    payload = build_release_gate_report(
+        om_payload=None,
+        arr_payload={
+            "run_id": "arr-1",
+            "benchmark_run_manifest": {
+                "run_id": "benchmark-1",
+                "requested_suites": ["incident_replay"],
+            },
+            "benchmark_case_results": [
+                {"suite": "incident_replay", "case_id": "surface_a", "status": "SKIP"}
+            ],
+            "blind_spots": [
+                {"suite": "incident_replay", "case_id": "surface_a", "reason": "missing_api_base_url"}
+            ],
+            "summary": {"pass_rate": None},
+            "baseline_diff": {"regressions": [], "new_failures": [], "recovered": []},
+        },
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p4 = next(item for item in payload["gate_results"] if item["gate"] == "P4 Blind Spot Budget")
+    assert p4["status"] == "PASS"
+    assert p4["evidence"][0] == "blind_spots=1"
