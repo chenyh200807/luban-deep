@@ -15,6 +15,22 @@ export interface BiTrendPoint {
   successful: number;
 }
 
+export interface BiBossDailyCostPoint {
+  date: string;
+  label: string;
+  costUsd: number;
+  tokens: number;
+  turns: number;
+}
+
+export interface BiBossDailyCost {
+  todayUsd: number;
+  windowTotalUsd: number;
+  averageDailyUsd: number;
+  source: string;
+  series: BiBossDailyCostPoint[];
+}
+
 export interface BiRetentionCohort {
   label: string;
   values: number[];
@@ -96,6 +112,94 @@ export interface BiAlertItem {
   detail?: string;
 }
 
+export interface BiMetricDefinition {
+  metric_id: string;
+  label: string;
+  group?: string;
+  definition: string;
+  authority: string;
+  trustLevel: "A" | "B" | "C" | "D" | string;
+  owner: string;
+  drilldown: string;
+  displayHint?: string;
+}
+
+export interface BiNorthStarInput extends BiMetricDefinition {
+  value?: number | string | null;
+}
+
+export interface BiNorthStarPayload extends BiMetricDefinition {
+  value: number;
+  windowDays: number;
+  calculation: string;
+  inputs: BiNorthStarInput[];
+}
+
+export interface BiGrowthFunnelStep {
+  id: string;
+  label: string;
+  value: number;
+  conversionRate: number;
+  trustLevel: string;
+  authority: string;
+  drilldown: string;
+}
+
+export interface BiGrowthFunnelPayload {
+  title: string;
+  summary: string;
+  steps: BiGrowthFunnelStep[];
+}
+
+export interface BiMemberHealthPayload {
+  score: BiMetricDefinition & { value?: number; note?: string };
+  distribution: Array<{ bucket: string; label: string; count: number }>;
+  reasons: string[];
+  samples: BiMemberSample[];
+}
+
+export interface BiOperatingRhythmAction {
+  title: string;
+  target: string;
+  status: string;
+  reason: string;
+}
+
+export interface BiOperatingRhythmPayload {
+  cadences: Array<{ id: string; label: string; focus: string }>;
+  topActions: BiOperatingRhythmAction[];
+}
+
+export interface BiTeachingEffectPayload {
+  status: string;
+  summary: string;
+  metrics: Array<BiMetricDefinition & { value?: number | string | null; status?: string }>;
+}
+
+export interface BiAiQualityPayload extends BiMetricDefinition {
+  engineeringSuccessRate: number;
+  failedTurns: number;
+  totalTurns: number;
+  teachingSuccessStatus: string;
+  note: string;
+  samples: Array<{ turn_id?: string; session_id?: string; status?: string }>;
+}
+
+export interface BiUnitEconomicsPayload extends BiMetricDefinition {
+  revenueStatus: string;
+  summary: string;
+  windowTotalCostUsd: number;
+  costPerEffectiveLearningUsd: number;
+  source: string;
+}
+
+export interface BiDataTrustPayload {
+  status: string;
+  trustModel: string;
+  degradedModules: Array<{ id: string; label: string; status: string; detail: string }>;
+  metricDefinitions: BiMetricDefinition[];
+}
+
 export interface BiOverviewData {
   title: string;
   subtitle: string;
@@ -103,6 +207,14 @@ export interface BiOverviewData {
   highlights: string[];
   entrypoints: BiRankItem[];
   alerts: BiAlertItem[];
+  northStar?: BiNorthStarPayload;
+  growthFunnel?: BiGrowthFunnelPayload;
+  memberHealth?: BiMemberHealthPayload;
+  operatingRhythm?: BiOperatingRhythmPayload;
+  teachingEffect?: BiTeachingEffectPayload;
+  aiQuality?: BiAiQualityPayload;
+  unitEconomics?: BiUnitEconomicsPayload;
+  dataTrust?: BiDataTrustPayload;
 }
 
 export interface BiTrendData {
@@ -176,6 +288,7 @@ export interface BiBossWorkbench {
   kpis: BiBossKpiItem[];
   actionQueue: BiBossActionItem[];
   heroIssue: string;
+  dailyCost?: BiBossDailyCost;
 }
 
 type BiBossCoreModule = "overview" | "active-trend" | "members" | "cost";
@@ -362,6 +475,204 @@ function normalizeAlert(item: unknown, fallbackLabel = ""): BiAlertItem {
   };
 }
 
+function normalizeMetricDefinition(item: unknown, fallbackLabel = ""): BiMetricDefinition {
+  const record = asRecord(item);
+  return {
+    metric_id: toString(record.metric_id ?? record.metricId ?? record.id, ""),
+    label: toString(record.label ?? record.name ?? record.title, fallbackLabel),
+    group: toString(record.group ?? record.category, ""),
+    definition: toString(record.definition ?? record.description ?? record.note, ""),
+    authority: toString(record.authority ?? record.source, ""),
+    trustLevel: toString(record.trust_level ?? record.trustLevel ?? record.trust, ""),
+    owner: toString(record.owner ?? record.responsible, ""),
+    drilldown: toString(record.drilldown ?? record.drill_down ?? record.target, ""),
+    displayHint: toString(record.display_hint ?? record.displayHint ?? record.hint, ""),
+  };
+}
+
+function normalizeNorthStarPayload(raw: unknown): BiNorthStarPayload | undefined {
+  const record = asRecord(firstRecord(raw, ["north_star", "northStar"]));
+  if (!Object.keys(record).length) return undefined;
+  const metric = normalizeMetricDefinition(record, "有效学习成功会员数");
+  return {
+    ...metric,
+    value: toNumber(record.value, 0),
+    windowDays: toNumber(record.window_days ?? record.windowDays, 30),
+    calculation: toString(record.calculation ?? record.formula, ""),
+    inputs: firstArray(record, ["inputs", "drivers", "tree"]).map((item, index) => {
+      const inputRecord = asRecord(item);
+      return {
+        ...normalizeMetricDefinition(item, `输入 ${index + 1}`),
+        value:
+          inputRecord.value === null
+            ? null
+            : typeof inputRecord.value === "number" || typeof inputRecord.value === "string"
+              ? inputRecord.value
+              : undefined,
+      };
+    }),
+  };
+}
+
+function normalizeGrowthFunnelPayload(raw: unknown): BiGrowthFunnelPayload | undefined {
+  const record = asRecord(firstRecord(raw, ["growth_funnel", "growthFunnel"]));
+  if (!Object.keys(record).length) return undefined;
+  return {
+    title: toString(record.title, "增长漏斗"),
+    summary: toString(record.summary ?? record.description, ""),
+    steps: firstArray(record, ["steps", "items", "funnel"]).map((item, index) => {
+      const step = asRecord(item);
+      return {
+        id: toString(step.id ?? step.metric_id ?? step.metricId, `step-${index + 1}`),
+        label: toString(step.label ?? step.name ?? step.title, `步骤 ${index + 1}`),
+        value: toNumber(step.value ?? step.count, 0),
+        conversionRate: toNumber(step.conversion_rate ?? step.conversionRate ?? step.rate, 0),
+        trustLevel: toString(step.trust_level ?? step.trustLevel, ""),
+        authority: toString(step.authority ?? step.source, ""),
+        drilldown: toString(step.drilldown ?? step.target, ""),
+      };
+    }),
+  };
+}
+
+function normalizeMemberHealthPayload(raw: unknown): BiMemberHealthPayload | undefined {
+  const record = asRecord(firstRecord(raw, ["member_health", "memberHealth"]));
+  if (!Object.keys(record).length) return undefined;
+  const scoreRecord = asRecord(record.score);
+  return {
+    score: {
+      ...normalizeMetricDefinition(scoreRecord, "会员健康评分"),
+      value: optionalNumber(scoreRecord.value),
+      note: toString(scoreRecord.note ?? scoreRecord.summary, ""),
+    },
+    distribution: firstArray(record, ["distribution", "buckets"]).map((item, index) => {
+      const bucket = asRecord(item);
+      return {
+        bucket: toString(bucket.bucket ?? bucket.id, `bucket-${index + 1}`),
+        label: toString(bucket.label ?? bucket.name, `分层 ${index + 1}`),
+        count: toNumber(bucket.count ?? bucket.value, 0),
+      };
+    }),
+    reasons: firstArray(record, ["reasons", "recommendations"]).map((item) => toString(item)).filter(Boolean),
+    samples: firstArray(record, ["samples", "members", "items"]).map((item) => {
+      const row = asRecord(item);
+      return {
+        user_id: toString(row.user_id ?? row.id ?? row.key),
+        display_name: toString(row.display_name ?? row.name ?? row.nickname, "未命名用户"),
+        tier: toString(row.tier ?? row.plan ?? row.level, ""),
+        status: toString(row.status ?? row.state, ""),
+        risk_level: toString(row.risk_level ?? row.risk, ""),
+        last_active_at: toString(row.last_active_at ?? row.updated_at ?? row.created_at, ""),
+        detail: toString(row.detail ?? row.subtitle ?? row.note, ""),
+      };
+    }),
+  };
+}
+
+function normalizeOperatingRhythmPayload(raw: unknown): BiOperatingRhythmPayload | undefined {
+  const record = asRecord(firstRecord(raw, ["operating_rhythm", "operatingRhythm"]));
+  if (!Object.keys(record).length) return undefined;
+  return {
+    cadences: firstArray(record, ["cadences", "rhythms"]).map((item, index) => {
+      const cadence = asRecord(item);
+      return {
+        id: toString(cadence.id, `cadence-${index + 1}`),
+        label: toString(cadence.label ?? cadence.name, `节奏 ${index + 1}`),
+        focus: toString(cadence.focus ?? cadence.detail, ""),
+      };
+    }),
+    topActions: firstArray(record, ["top_actions", "topActions", "actions"]).map((item, index) => {
+      const action = asRecord(item);
+      return {
+        title: toString(action.title ?? action.label, `动作 ${index + 1}`),
+        target: toString(action.target ?? action.drilldown, ""),
+        status: toString(action.status ?? action.state, ""),
+        reason: toString(action.reason ?? action.detail, ""),
+      };
+    }),
+  };
+}
+
+function normalizeTeachingEffectPayload(raw: unknown): BiTeachingEffectPayload | undefined {
+  const record = asRecord(firstRecord(raw, ["teaching_effect", "teachingEffect"]));
+  if (!Object.keys(record).length) return undefined;
+  return {
+    status: toString(record.status, ""),
+    summary: toString(record.summary ?? record.description, ""),
+    metrics: firstArray(record, ["metrics", "items"]).map((item, index) => {
+      const metric = asRecord(item);
+      return {
+        ...normalizeMetricDefinition(item, `教学指标 ${index + 1}`),
+        value:
+          metric.value === null
+            ? null
+            : typeof metric.value === "number" || typeof metric.value === "string"
+              ? metric.value
+              : undefined,
+        status: toString(metric.status, ""),
+      };
+    }),
+  };
+}
+
+function normalizeAiQualityPayload(raw: unknown): BiAiQualityPayload | undefined {
+  const record = asRecord(firstRecord(raw, ["ai_quality", "aiQuality"]));
+  if (!Object.keys(record).length) return undefined;
+  return {
+    ...normalizeMetricDefinition(record, "AI 教学质量分"),
+    engineeringSuccessRate: toNumber(record.engineering_success_rate ?? record.engineeringSuccessRate, 0),
+    failedTurns: toNumber(record.failed_turns ?? record.failedTurns, 0),
+    totalTurns: toNumber(record.total_turns ?? record.totalTurns, 0),
+    teachingSuccessStatus: toString(record.teaching_success_status ?? record.teachingSuccessStatus, ""),
+    note: toString(record.note ?? record.summary, ""),
+    samples: firstArray(record, ["samples", "items"]).map((item) => {
+      const sample = asRecord(item);
+      return {
+        turn_id: toString(sample.turn_id ?? sample.turnId ?? sample.id, ""),
+        session_id: toString(sample.session_id ?? sample.sessionId, ""),
+        status: toString(sample.status, ""),
+      };
+    }),
+  };
+}
+
+function normalizeUnitEconomicsPayload(raw: unknown): BiUnitEconomicsPayload | undefined {
+  const record = asRecord(firstRecord(raw, ["unit_economics", "unitEconomics"]));
+  if (!Object.keys(record).length) return undefined;
+  return {
+    ...normalizeMetricDefinition(record, "单有效学习成本"),
+    revenueStatus: toString(record.revenue_status ?? record.revenueStatus, ""),
+    summary: toString(record.summary ?? record.description, ""),
+    windowTotalCostUsd: toNumber(record.window_total_cost_usd ?? record.windowTotalCostUsd, 0),
+    costPerEffectiveLearningUsd: toNumber(
+      record.cost_per_effective_learning_usd ?? record.costPerEffectiveLearningUsd,
+      0,
+    ),
+    source: toString(record.source, ""),
+  };
+}
+
+function normalizeDataTrustPayload(raw: unknown): BiDataTrustPayload | undefined {
+  const record = asRecord(firstRecord(raw, ["data_trust", "dataTrust"]));
+  if (!Object.keys(record).length) return undefined;
+  return {
+    status: toString(record.status, ""),
+    trustModel: toString(record.trust_model ?? record.trustModel, ""),
+    degradedModules: firstArray(record, ["degraded_modules", "degradedModules"]).map((item, index) => {
+      const module = asRecord(item);
+      return {
+        id: toString(module.id, `module-${index + 1}`),
+        label: toString(module.label ?? module.name, `模块 ${index + 1}`),
+        status: toString(module.status, ""),
+        detail: toString(module.detail ?? module.description, ""),
+      };
+    }),
+    metricDefinitions: firstArray(record, ["metric_definitions", "metricDefinitions", "metrics"]).map((item, index) =>
+      normalizeMetricDefinition(item, `指标 ${index + 1}`),
+    ),
+  };
+}
+
 function toBossTone(level: BiAlertItem["level"]): BiMetricCard["tone"] {
   if (level === "critical") return "critical";
   if (level === "warning") return "warning";
@@ -377,7 +688,7 @@ function normalizeBossActionSource(record: Record<string, unknown>): BiBossActio
   if (bucket === "high_risk" || bucket === "expiring_soon") {
     return "members";
   }
-  if (bucket === "cost") {
+  if (bucket === "cost" || bucket === "daily_cost") {
     return "cost";
   }
   return "anomalies";
@@ -411,6 +722,33 @@ function normalizeBossActionItem(item: unknown, fallbackLabel = ""): BiBossActio
   };
 }
 
+function normalizeBossDailyCost(raw: unknown): BiBossDailyCost | undefined {
+  const record = asRecord(firstRecord(raw, ["daily_cost", "dailyCost", "cost_daily"]));
+  const hasDailyCost =
+    Object.keys(record).length > 0 &&
+    ("today_usd" in record || "todayUsd" in record || "window_total_usd" in record || "series" in record);
+  if (!hasDailyCost) {
+    return undefined;
+  }
+  const series = firstArray(record, ["series", "points", "items"]).map((item, index) => {
+    const point = asRecord(item);
+    return {
+      date: toString(point.date ?? point.day ?? point.label, ""),
+      label: toString(point.label ?? point.date ?? point.day, `Day ${index + 1}`),
+      costUsd: toNumber(point.cost_usd ?? point.costUsd ?? point.cost ?? point.amount, 0),
+      tokens: toNumber(point.tokens ?? point.total_tokens ?? point.totalTokens, 0),
+      turns: toNumber(point.turns ?? point.count ?? point.requests, 0),
+    };
+  });
+  return {
+    todayUsd: toNumber(record.today_usd ?? record.todayUsd ?? record.today ?? record.cost_today, 0),
+    windowTotalUsd: toNumber(record.window_total_usd ?? record.windowTotalUsd ?? record.total_usd ?? record.total, 0),
+    averageDailyUsd: toNumber(record.average_daily_usd ?? record.averageDailyUsd ?? record.avg_daily_usd ?? record.average, 0),
+    source: toString(record.source ?? record.provider, ""),
+    series,
+  };
+}
+
 function normalizeBossWorkbench(raw: unknown, fallbackHeroIssue = ""): BiBossWorkbench | undefined {
   const record = asRecord(firstRecord(raw, ["boss_workbench", "boss", "workbench"]));
   const hasBossPayload = Object.keys(record).length > 0 && ("kpis" in record || "risk_queue" in record || "hero_issue" in record);
@@ -424,6 +762,7 @@ function normalizeBossWorkbench(raw: unknown, fallbackHeroIssue = ""): BiBossWor
       normalizeBossActionItem(item, `待办 ${index + 1}`),
     ),
     heroIssue: toString(record.hero_issue ?? record.heroIssue ?? record.issue, fallbackHeroIssue),
+    dailyCost: normalizeBossDailyCost(record),
   };
 }
 
@@ -587,6 +926,24 @@ function buildBossActionQueue(data: BiWorkbenchData): BiBossActionItem[] {
   return queue;
 }
 
+function buildBossDailyCost(data: BiWorkbenchData): BiBossDailyCost {
+  const series = data.trend.points.map((point) => ({
+    date: point.label,
+    label: point.label,
+    costUsd: point.cost,
+    tokens: 0,
+    turns: point.successful,
+  }));
+  const windowTotalUsd = series.reduce((sum, point) => sum + point.costUsd, 0);
+  return {
+    todayUsd: series.length ? series[series.length - 1].costUsd : 0,
+    windowTotalUsd,
+    averageDailyUsd: series.length ? windowTotalUsd / series.length : 0,
+    source: "active_trend_fallback",
+    series,
+  };
+}
+
 function buildBossHeroIssue(missingCoreModules: BiBossCoreModule[]): string {
   if (missingCoreModules.length === 0) {
     return "";
@@ -601,6 +958,7 @@ function buildBiBossWorkbench(data: BiWorkbenchData, missingCoreModules: BiBossC
     kpis: buildBossKpis(data),
     actionQueue: buildBossActionQueue(data),
     heroIssue: buildBossHeroIssue(missingCoreModules),
+    dailyCost: buildBossDailyCost(data),
   };
 }
 
@@ -633,6 +991,14 @@ function parseBiOverviewBundle(raw: unknown): BiOverviewBundle {
     highlights,
     entrypoints,
     alerts,
+    northStar: normalizeNorthStarPayload(raw),
+    growthFunnel: normalizeGrowthFunnelPayload(raw),
+    memberHealth: normalizeMemberHealthPayload(raw),
+    operatingRhythm: normalizeOperatingRhythmPayload(raw),
+    teachingEffect: normalizeTeachingEffectPayload(raw),
+    aiQuality: normalizeAiQualityPayload(raw),
+    unitEconomics: normalizeUnitEconomicsPayload(raw),
+    dataTrust: normalizeDataTrustPayload(raw),
   };
 
   return {
