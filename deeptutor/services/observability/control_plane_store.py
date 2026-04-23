@@ -10,6 +10,8 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_STORE_DIR = PROJECT_ROOT / "tmp" / "observability" / "control_plane"
 _ALLOWED_KINDS = {
+    "benchmark_runs",
+    "daily_trends",
     "om_runs",
     "arr_runs",
     "aae_composite_runs",
