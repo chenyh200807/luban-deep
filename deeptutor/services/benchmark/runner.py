@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import shutil
+import subprocess
 import time
 from collections import Counter
 from pathlib import Path
@@ -295,14 +297,76 @@ async def _run_long_dialog_case_set(
 
 def _run_wx_surface_case_set(case_metadata: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     case_id = str(case_metadata["case_id"])
+    command = ["node", "wx_miniprogram/tests/test_renderer_parity.js"]
+    if shutil.which("node") is None:
+        result = _make_case_result(
+            suite="exploration_lab",
+            case_id=case_id,
+            case_name=case_id,
+            status="SKIP",
+            case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+            evidence={"reason": "missing_node_runtime", "source_fixture": case_metadata.get("source_fixture")},
+            details={"command": command, "surface": case_metadata.get("surface")},
+        )
+        return _summarize_case_results("exploration_lab", [result]), [result]
+
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=str(PROJECT_ROOT),
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=20,
+        )
+    except subprocess.TimeoutExpired as exc:
+        result = _make_case_result(
+            suite="exploration_lab",
+            case_id=case_id,
+            case_name=case_id,
+            status="FAIL",
+            case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+            failure_type="FAIL_TIMEOUT",
+            evidence={
+                "reason": "node_renderer_parity_timeout",
+                "stdout_tail": str(exc.stdout or "")[-1000:],
+                "stderr_tail": str(exc.stderr or "")[-1000:],
+                "source_fixture": case_metadata.get("source_fixture"),
+            },
+            details={"command": command, "surface": case_metadata.get("surface")},
+        )
+        return _summarize_case_results("exploration_lab", [result]), [result]
+    if completed.returncode == 0:
+        result = _make_case_result(
+            suite="exploration_lab",
+            case_id=case_id,
+            case_name=case_id,
+            status="PASS",
+            case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+            evidence={
+                "reason": "node_renderer_parity_passed",
+                "stdout_tail": completed.stdout[-1000:],
+                "source_fixture": case_metadata.get("source_fixture"),
+            },
+            details={"command": command, "surface": case_metadata.get("surface")},
+        )
+        return _summarize_case_results("exploration_lab", [result]), [result]
+
     result = _make_case_result(
         suite="exploration_lab",
         case_id=case_id,
         case_name=case_id,
-        status="SKIP",
+        status="FAIL",
         case_tier=str(case_metadata.get("case_tier") or "exploratory"),
-        evidence={"reason": "unsupported_surface_parity_eval", "source_fixture": case_metadata.get("source_fixture")},
+        failure_type="FAIL_SURFACE_DELIVERY",
+        evidence={
+            "reason": "node_renderer_parity_failed",
+            "stdout_tail": completed.stdout[-1000:],
+            "stderr_tail": completed.stderr[-1000:],
+            "source_fixture": case_metadata.get("source_fixture"),
+        },
         details={
+            "command": command,
             "contract_domain": case_metadata.get("contract_domain"),
             "execution_kind": case_metadata.get("execution_kind"),
             "surface": case_metadata.get("surface"),

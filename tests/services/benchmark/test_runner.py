@@ -149,6 +149,16 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
         "deeptutor.services.observability.arr_runner.run_local_long_dialog_suite",
         fake_run_local_long_dialog_suite,
     )
+    monkeypatch.setattr("deeptutor.services.benchmark.runner.shutil.which", lambda _name: "/usr/bin/node")
+    monkeypatch.setattr(
+        "deeptutor.services.benchmark.runner.subprocess.run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(
+            args=args[0],
+            returncode=0,
+            stdout="PASS test_renderer_parity.js (10 assertions)",
+            stderr="",
+        ),
+    )
 
     payload = await run_benchmark()
 
@@ -166,9 +176,9 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
     ]
     assert payload["run_manifest"]["registry_version"] == "phase1"
     assert payload["release_spine"]
-    assert payload["summary"]["passed"] == 4
+    assert payload["summary"]["passed"] == 5
     assert payload["summary"]["failed"] == 1
-    assert payload["summary"]["skipped"] == 2
+    assert payload["summary"]["skipped"] == 1
     assert payload["failure_taxonomy"] == [{"failure_type": "FAIL_ROUTE_WRONG", "count": 1}]
     assert payload["baseline_diff"] is None
     assert payload["runtime_evidence_links"] == [
@@ -177,10 +187,9 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
     wx_case = next(
         item for item in payload["case_results"] if item["case_id"] == "surface.wx.renderer.parity"
     )
-    assert wx_case["status"] == "SKIP"
-    assert wx_case["evidence"]["reason"] == "unsupported_surface_parity_eval"
-    assert any(item["suite"] == "exploration_lab" for item in payload["blind_spots"])
-    assert any(item["case_id"] == "surface.wx.renderer.parity" for item in payload["blind_spots"])
+    assert wx_case["status"] == "PASS"
+    assert wx_case["evidence"]["reason"] == "node_renderer_parity_passed"
+    assert not any(item["case_id"] == "surface.wx.renderer.parity" for item in payload["blind_spots"])
     assert any(item["case_id"] == "surface.web.ack.smoke" for item in payload["blind_spots"])
     assert all("source_suite" in item for item in payload["case_results"])
     assert payload["legacy"]["suite_summaries"][0]["suite"] == "semantic-router"
