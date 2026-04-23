@@ -1,0 +1,1960 @@
+{
+  "run_manifest": {
+    "run_id": "benchmark-1776910966",
+    "generated_at": "2026-04-23 10:22:46",
+    "registry_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tests/fixtures/benchmark_phase1_registry.json",
+    "registry_version": "phase1",
+    "dataset_id": "benchmark_phase1",
+    "dataset_version": "phase1.0",
+    "requested_suites": [
+      "pr_gate_core",
+      "regression_watch",
+      "incident_replay",
+      "exploration_lab"
+    ],
+    "runner": "canonical-benchmark-runner",
+    "response_mode": "smart",
+    "long_dialog_mode": "full"
+  },
+  "release_spine": {
+    "release_id": "1.0.0+18f712757058+unknown",
+    "service_version": "1.0.0",
+    "git_sha": "18f712757058",
+    "deployment_environment": "unknown",
+    "prompt_version": "unset",
+    "ff_snapshot_hash": "none"
+  },
+  "suite_summaries": [
+    {
+      "suite": "pr_gate_core",
+      "total_cases": 19,
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0,
+      "pass_rate": 1.0,
+      "failure_taxonomy": [],
+      "case_tiers": {
+        "gate_stable": 19
+      }
+    },
+    {
+      "suite": "regression_watch",
+      "total_cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "pass_rate": 1.0,
+      "failure_taxonomy": [],
+      "case_tiers": {
+        "regression_tier": 4
+      }
+    },
+    {
+      "suite": "incident_replay",
+      "total_cases": 11,
+      "passed": 0,
+      "failed": 11,
+      "skipped": 0,
+      "pass_rate": 0.0,
+      "failure_taxonomy": [
+        {
+          "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+          "count": 4
+        },
+        {
+          "failure_type": "FAIL_SURFACE_DELIVERY",
+          "count": 1
+        },
+        {
+          "failure_type": "FAIL_TIMEOUT",
+          "count": 6
+        }
+      ],
+      "case_tiers": {
+        "incident_replay": 11
+      }
+    },
+    {
+      "suite": "exploration_lab",
+      "total_cases": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "pass_rate": 1.0,
+      "failure_taxonomy": [],
+      "case_tiers": {
+        "exploratory": 2
+      }
+    }
+  ],
+  "case_results": [
+    {
+      "suite": "pr_gate_core",
+      "case_id": "answer_active_object",
+      "case_name": "answer_active_object",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_relation": "answer_active_object",
+        "actual_relation": "answer_active_object",
+        "expected_next_action": "route_to_grading",
+        "actual_next_action": "route_to_grading"
+      },
+      "latency_ms": 0.8,
+      "details": {},
+      "source_suite": "semantic-router",
+      "source_case_set": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "revise_active_object",
+      "case_name": "revise_active_object",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_relation": "revise_answer_on_active_object",
+        "actual_relation": "revise_answer_on_active_object",
+        "expected_next_action": "route_to_grading",
+        "actual_next_action": "route_to_grading"
+      },
+      "latency_ms": 0.3,
+      "details": {},
+      "source_suite": "semantic-router",
+      "source_case_set": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "followup_explainer",
+      "case_name": "followup_explainer",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_relation": "ask_about_active_object",
+        "actual_relation": "ask_about_active_object",
+        "expected_next_action": "route_to_followup_explainer",
+        "actual_next_action": "route_to_followup_explainer"
+      },
+      "latency_ms": 0.5,
+      "details": {},
+      "source_suite": "semantic-router",
+      "source_case_set": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "temporary_detour",
+      "case_name": "temporary_detour",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_relation": "temporary_detour",
+        "actual_relation": "temporary_detour",
+        "expected_next_action": "route_to_general_chat",
+        "actual_next_action": "route_to_general_chat"
+      },
+      "latency_ms": 0.8,
+      "details": {},
+      "source_suite": "semantic-router",
+      "source_case_set": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "continue_same_learning_flow",
+      "case_name": "continue_same_learning_flow",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_relation": "continue_same_learning_flow",
+        "actual_relation": "continue_same_learning_flow",
+        "expected_next_action": "route_to_generation",
+        "actual_next_action": "route_to_generation"
+      },
+      "latency_ms": 3.3,
+      "details": {},
+      "source_suite": "semantic-router",
+      "source_case_set": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "fallback_compact_answer",
+      "case_name": "fallback_compact_answer",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_relation": "answer_active_object",
+        "actual_relation": "answer_active_object",
+        "expected_next_action": "route_to_grading",
+        "actual_next_action": "route_to_grading"
+      },
+      "latency_ms": 0.4,
+      "details": {},
+      "source_suite": "semantic-router",
+      "source_case_set": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "guide_page_continuation",
+      "case_name": "guide_page_continuation",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_relation": "continue_same_learning_flow",
+        "actual_relation": "continue_same_learning_flow",
+        "expected_next_action": "route_to_guide",
+        "actual_next_action": "route_to_guide"
+      },
+      "latency_ms": 0.1,
+      "details": {},
+      "source_suite": "semantic-router",
+      "source_case_set": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "open_chat_topic_continuation",
+      "case_name": "open_chat_topic_continuation",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_relation": "continue_same_learning_flow",
+        "actual_relation": "continue_same_learning_flow",
+        "expected_next_action": "route_to_general_chat",
+        "actual_next_action": "route_to_general_chat"
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "semantic-router",
+      "source_case_set": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "ambiguous_compact_answer_across_two_sets",
+      "case_name": "ambiguous_compact_answer_across_two_sets",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_relation": "uncertain",
+        "actual_relation": "uncertain",
+        "expected_next_action": "ask_clarifying_question",
+        "actual_next_action": "ask_clarifying_question"
+      },
+      "latency_ms": 0.2,
+      "details": {},
+      "source_suite": "semantic-router",
+      "source_case_set": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "ordinal_reference_overflow",
+      "case_name": "ordinal_reference_overflow",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_relation": "uncertain",
+        "actual_relation": "uncertain",
+        "expected_next_action": "ask_clarifying_question",
+        "actual_next_action": "ask_clarifying_question"
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "semantic-router",
+      "source_case_set": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "ambiguous_continue_between_question_and_guide",
+      "case_name": "ambiguous_continue_between_question_and_guide",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_relation": "uncertain",
+        "actual_relation": "uncertain",
+        "expected_next_action": "ask_clarifying_question",
+        "actual_next_action": "ask_clarifying_question"
+      },
+      "latency_ms": 0.1,
+      "details": {},
+      "source_suite": "semantic-router",
+      "source_case_set": "routing.semantic_router.case_set",
+      "contract_domain": "routing_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "semantic_routing_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/semantic_router_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "low_signal_social",
+      "case_name": "low_signal_social",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_route": "low_signal_social",
+        "actual_route": "low_signal_social"
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "context-orchestration",
+      "source_case_set": "routing.context_orchestration.case_set",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "context_orchestration_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/context_orchestration_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "active_question_followup",
+      "case_name": "active_question_followup",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_route": "active_question_followup",
+        "actual_route": "active_question_followup"
+      },
+      "latency_ms": 0.3,
+      "details": {},
+      "source_suite": "context-orchestration",
+      "source_case_set": "routing.context_orchestration.case_set",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "context_orchestration_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/context_orchestration_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "guided_plan_continuation",
+      "case_name": "guided_plan_continuation",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_route": "guided_plan_continuation",
+        "actual_route": "guided_plan_continuation"
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "context-orchestration",
+      "source_case_set": "routing.context_orchestration.case_set",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "context_orchestration_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/context_orchestration_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "notebook_followup",
+      "case_name": "notebook_followup",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_route": "notebook_followup",
+        "actual_route": "notebook_followup"
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "context-orchestration",
+      "source_case_set": "routing.context_orchestration.case_set",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "context_orchestration_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/context_orchestration_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "personal_recall",
+      "case_name": "personal_recall",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_route": "personal_recall",
+        "actual_route": "personal_recall"
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "context-orchestration",
+      "source_case_set": "routing.context_orchestration.case_set",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "context_orchestration_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/context_orchestration_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "cross_session_recall",
+      "case_name": "cross_session_recall",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_route": "cross_session_recall",
+        "actual_route": "cross_session_recall"
+      },
+      "latency_ms": 0.1,
+      "details": {},
+      "source_suite": "context-orchestration",
+      "source_case_set": "routing.context_orchestration.case_set",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "context_orchestration_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/context_orchestration_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "user_correction",
+      "case_name": "user_correction",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_route": "general_learning_query",
+        "actual_route": "general_learning_query"
+      },
+      "latency_ms": 0.1,
+      "details": {},
+      "source_suite": "context-orchestration",
+      "source_case_set": "routing.context_orchestration.case_set",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "context_orchestration_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/context_orchestration_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "pr_gate_core",
+      "case_id": "current_override",
+      "case_name": "current_override",
+      "status": "PASS",
+      "case_tier": "gate_stable",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_route": "active_question_followup",
+        "actual_route": "active_question_followup"
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "context-orchestration",
+      "source_case_set": "routing.context_orchestration.case_set",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "context_orchestration_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/context_orchestration_eval_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "regression_watch",
+      "case_id": "exact_authority_full_case_bundle",
+      "case_name": "exact_authority_full_case_bundle",
+      "status": "PASS",
+      "case_tier": "regression_tier",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_force_exact": true,
+        "actual_force_exact": true,
+        "rendered_preview": "1. 项目经理应先核查关键线路。\n\n2. 随后调整资源投入。"
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "rag-grounding",
+      "source_case_set": "grounding.rag.case_set",
+      "contract_domain": "grounding_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "rag_grounding_contract",
+      "origin_type": "incident_replay",
+      "origin_ref": "continuity.long_dialog.focus",
+      "promotion_status": "promoted",
+      "promoted_from_case_id": "continuity.long_dialog.focus"
+    },
+    {
+      "suite": "regression_watch",
+      "case_id": "exact_authority_partial_case_bundle",
+      "case_name": "exact_authority_partial_case_bundle",
+      "status": "PASS",
+      "case_tier": "regression_tier",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_force_exact": false,
+        "actual_force_exact": false,
+        "rendered_preview": ""
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "rag-grounding",
+      "source_case_set": "grounding.rag.case_set",
+      "contract_domain": "grounding_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "rag_grounding_contract",
+      "origin_type": "incident_replay",
+      "origin_ref": "continuity.long_dialog.focus",
+      "promotion_status": "promoted",
+      "promoted_from_case_id": "continuity.long_dialog.focus"
+    },
+    {
+      "suite": "regression_watch",
+      "case_id": "grounded_followup_forces_retrieval_first",
+      "case_name": "grounded_followup_forces_retrieval_first",
+      "status": "PASS",
+      "case_tier": "regression_tier",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "grounded_construction_exam_runtime": true,
+        "should_force_retrieval_first": true
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "rag-grounding",
+      "source_case_set": "grounding.rag.case_set",
+      "contract_domain": "grounding_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "rag_grounding_contract",
+      "origin_type": "incident_replay",
+      "origin_ref": "continuity.long_dialog.focus",
+      "promotion_status": "promoted",
+      "promoted_from_case_id": "continuity.long_dialog.focus"
+    },
+    {
+      "suite": "regression_watch",
+      "case_id": "current_info_query_prefetches_grounded_rag",
+      "case_name": "current_info_query_prefetches_grounded_rag",
+      "status": "PASS",
+      "case_tier": "regression_tier",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "current_info_required": true,
+        "textbook_delta_query": true,
+        "should_prefetch_grounded_rag": true
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "rag-grounding",
+      "source_case_set": "grounding.rag.case_set",
+      "contract_domain": "grounding_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "rag_grounding_contract",
+      "origin_type": "incident_replay",
+      "origin_ref": "continuity.long_dialog.focus",
+      "promotion_status": "promoted",
+      "promoted_from_case_id": "continuity.long_dialog.focus"
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_001",
+      "case_name": "新手理解型：流水施工+横道图+网络计划",
+      "status": "FAIL",
+      "case_tier": "incident_replay",
+      "gate_eligible": true,
+      "repeated_pass_required": true,
+      "failure_type": "FAIL_TIMEOUT",
+      "evidence": {
+        "semantic_score": 100,
+        "satisfaction_score": 95,
+        "hard_errors": 0,
+        "followup_object_mismatch_count": 0,
+        "context_reset_count": 0,
+        "slow_turns": 1
+      },
+      "latency_ms": 26424.4,
+      "details": {
+        "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+      },
+      "source_suite": "long-dialog-full",
+      "source_case_set": "continuity.long_dialog.focus",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "live_ws_replay",
+      "surface": "backend",
+      "expected_contract": "long_dialog_continuity_contract",
+      "origin_type": "legacy_replay",
+      "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_002",
+      "case_name": "刷题纠错型：双代号网络计划+总时差自由时差",
+      "status": "FAIL",
+      "case_tier": "incident_replay",
+      "gate_eligible": true,
+      "repeated_pass_required": true,
+      "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+      "evidence": {
+        "semantic_score": 90,
+        "satisfaction_score": 80,
+        "hard_errors": 0,
+        "followup_object_mismatch_count": 0,
+        "context_reset_count": 0,
+        "slow_turns": 4
+      },
+      "latency_ms": 36678.9,
+      "details": {
+        "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+      },
+      "source_suite": "long-dialog-full",
+      "source_case_set": "continuity.long_dialog.focus",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "live_ws_replay",
+      "surface": "backend",
+      "expected_contract": "long_dialog_continuity_contract",
+      "origin_type": "legacy_replay",
+      "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_003",
+      "case_name": "案例题条件保持型：招投标与合同管理",
+      "status": "FAIL",
+      "case_tier": "incident_replay",
+      "gate_eligible": true,
+      "repeated_pass_required": true,
+      "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+      "evidence": {
+        "semantic_score": 90,
+        "satisfaction_score": 80,
+        "hard_errors": 0,
+        "followup_object_mismatch_count": 0,
+        "context_reset_count": 0,
+        "slow_turns": 4
+      },
+      "latency_ms": 37180.9,
+      "details": {
+        "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+      },
+      "source_suite": "long-dialog-full",
+      "source_case_set": "continuity.long_dialog.focus",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "live_ws_replay",
+      "surface": "backend",
+      "expected_contract": "long_dialog_continuity_contract",
+      "origin_type": "legacy_replay",
+      "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_004",
+      "case_name": "学习规划型：30天冲刺计划",
+      "status": "FAIL",
+      "case_tier": "incident_replay",
+      "gate_eligible": true,
+      "repeated_pass_required": true,
+      "failure_type": "FAIL_TIMEOUT",
+      "evidence": {
+        "semantic_score": 100,
+        "satisfaction_score": 60,
+        "hard_errors": 0,
+        "followup_object_mismatch_count": 0,
+        "context_reset_count": 0,
+        "slow_turns": 8
+      },
+      "latency_ms": 48861.8,
+      "details": {
+        "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+      },
+      "source_suite": "long-dialog-full",
+      "source_case_set": "continuity.long_dialog.focus",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "live_ws_replay",
+      "surface": "backend",
+      "expected_contract": "long_dialog_continuity_contract",
+      "origin_type": "legacy_replay",
+      "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_005",
+      "case_name": "抗干扰型：模板脚手架与安全文明施工",
+      "status": "FAIL",
+      "case_tier": "incident_replay",
+      "gate_eligible": true,
+      "repeated_pass_required": true,
+      "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+      "evidence": {
+        "semantic_score": 90,
+        "satisfaction_score": 70,
+        "hard_errors": 0,
+        "followup_object_mismatch_count": 0,
+        "context_reset_count": 0,
+        "slow_turns": 6
+      },
+      "latency_ms": 36158.2,
+      "details": {
+        "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+      },
+      "source_suite": "long-dialog-full",
+      "source_case_set": "continuity.long_dialog.focus",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "live_ws_replay",
+      "surface": "backend",
+      "expected_contract": "long_dialog_continuity_contract",
+      "origin_type": "legacy_replay",
+      "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_006",
+      "case_name": "错题追踪型：钢筋工程",
+      "status": "FAIL",
+      "case_tier": "incident_replay",
+      "gate_eligible": true,
+      "repeated_pass_required": true,
+      "failure_type": "FAIL_TIMEOUT",
+      "evidence": {
+        "semantic_score": 90,
+        "satisfaction_score": 77,
+        "hard_errors": 0,
+        "followup_object_mismatch_count": 0,
+        "context_reset_count": 0,
+        "slow_turns": 3
+      },
+      "latency_ms": 35450.5,
+      "details": {
+        "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+      },
+      "source_suite": "long-dialog-full",
+      "source_case_set": "continuity.long_dialog.focus",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "live_ws_replay",
+      "surface": "backend",
+      "expected_contract": "long_dialog_continuity_contract",
+      "origin_type": "legacy_replay",
+      "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_007",
+      "case_name": "换表达型：地下防水工程",
+      "status": "FAIL",
+      "case_tier": "incident_replay",
+      "gate_eligible": true,
+      "repeated_pass_required": true,
+      "failure_type": "FAIL_TIMEOUT",
+      "evidence": {
+        "semantic_score": 100,
+        "satisfaction_score": 95,
+        "hard_errors": 0,
+        "followup_object_mismatch_count": 0,
+        "context_reset_count": 0,
+        "slow_turns": 1
+      },
+      "latency_ms": 31122.7,
+      "details": {
+        "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+      },
+      "source_suite": "long-dialog-full",
+      "source_case_set": "continuity.long_dialog.focus",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "live_ws_replay",
+      "surface": "backend",
+      "expected_contract": "long_dialog_continuity_contract",
+      "origin_type": "legacy_replay",
+      "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_008",
+      "case_name": "情绪干扰型：进度管理",
+      "status": "FAIL",
+      "case_tier": "incident_replay",
+      "gate_eligible": true,
+      "repeated_pass_required": true,
+      "failure_type": "FAIL_TIMEOUT",
+      "evidence": {
+        "semantic_score": 100,
+        "satisfaction_score": 95,
+        "hard_errors": 0,
+        "followup_object_mismatch_count": 0,
+        "context_reset_count": 0,
+        "slow_turns": 1
+      },
+      "latency_ms": 30639.3,
+      "details": {
+        "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+      },
+      "source_suite": "long-dialog-full",
+      "source_case_set": "continuity.long_dialog.focus",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "live_ws_replay",
+      "surface": "backend",
+      "expected_contract": "long_dialog_continuity_contract",
+      "origin_type": "legacy_replay",
+      "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_009",
+      "case_name": "条件修改型：基坑工程",
+      "status": "FAIL",
+      "case_tier": "incident_replay",
+      "gate_eligible": true,
+      "repeated_pass_required": true,
+      "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+      "evidence": {
+        "semantic_score": 92,
+        "satisfaction_score": 94,
+        "hard_errors": 0,
+        "followup_object_mismatch_count": 0,
+        "context_reset_count": 0,
+        "slow_turns": 0
+      },
+      "latency_ms": 37292.5,
+      "details": {
+        "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+      },
+      "source_suite": "long-dialog-full",
+      "source_case_set": "continuity.long_dialog.focus",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "live_ws_replay",
+      "surface": "backend",
+      "expected_contract": "long_dialog_continuity_contract",
+      "origin_type": "legacy_replay",
+      "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_010",
+      "case_name": "跨话题型：质量验收 vs 安全管理",
+      "status": "FAIL",
+      "case_tier": "incident_replay",
+      "gate_eligible": true,
+      "repeated_pass_required": true,
+      "failure_type": "FAIL_TIMEOUT",
+      "evidence": {
+        "semantic_score": 100,
+        "satisfaction_score": 85,
+        "hard_errors": 0,
+        "followup_object_mismatch_count": 0,
+        "context_reset_count": 0,
+        "slow_turns": 3
+      },
+      "latency_ms": 42933.7,
+      "details": {
+        "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+      },
+      "source_suite": "long-dialog-full",
+      "source_case_set": "continuity.long_dialog.focus",
+      "contract_domain": "continuity_contract",
+      "execution_kind": "live_ws_replay",
+      "surface": "backend",
+      "expected_contract": "long_dialog_continuity_contract",
+      "origin_type": "legacy_replay",
+      "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "surface.web.ack.smoke",
+      "case_name": "surface.web.ack.smoke",
+      "status": "FAIL",
+      "case_tier": "incident_replay",
+      "gate_eligible": false,
+      "repeated_pass_required": false,
+      "failure_type": "FAIL_SURFACE_DELIVERY",
+      "evidence": {
+        "reason": "surface_ack_smoke_exception",
+        "exception_type": "HTTPStatusError",
+        "exception": "Client error '401 Unauthorized' for url 'http://127.0.0.1:8001/metrics'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401",
+        "source_fixture": "scripts/run_surface_ack_smoke.py"
+      },
+      "latency_ms": null,
+      "details": {
+        "api_base_url": "http://127.0.0.1:8001",
+        "contract_domain": "production_replay_contract",
+        "execution_kind": "live_ws_replay",
+        "surface": "web"
+      },
+      "source_suite": "incident_replay",
+      "source_case_set": "surface.web.ack.smoke",
+      "contract_domain": "production_replay_contract",
+      "execution_kind": "live_ws_replay",
+      "surface": "web",
+      "expected_contract": "surface_ack_delivery_contract",
+      "origin_type": "surface_smoke",
+      "origin_ref": "scripts/run_surface_ack_smoke.py",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "exploration_lab",
+      "case_id": "surface.wx.renderer.parity",
+      "case_name": "surface.wx.renderer.parity",
+      "status": "PASS",
+      "case_tier": "exploratory",
+      "gate_eligible": false,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "reason": "node_renderer_parity_passed",
+        "stdout_tail": "PASS test_renderer_parity.js (9 assertions)\n",
+        "source_fixture": "tests/fixtures/wechat_structured_renderer_cases.json"
+      },
+      "latency_ms": null,
+      "details": {
+        "command": [
+          "node",
+          "wx_miniprogram/tests/test_renderer_parity.js"
+        ],
+        "surface": "wx_miniprogram"
+      },
+      "source_suite": "exploration_lab",
+      "source_case_set": "surface.wx.renderer.parity",
+      "contract_domain": "surface_contract",
+      "execution_kind": "surface_parity_eval",
+      "surface": "wx_miniprogram",
+      "expected_contract": "wechat_structured_renderer_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "tests/fixtures/wechat_structured_renderer_cases.json",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    },
+    {
+      "suite": "exploration_lab",
+      "case_id": "surface.yousenwebview.telemetry.smoke",
+      "case_name": "surface.yousenwebview.telemetry.smoke",
+      "status": "PASS",
+      "case_tier": "exploratory",
+      "gate_eligible": false,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "reason": "node_yousenwebview_surface_telemetry_passed",
+        "stdout_tail": "PASS test_chat_send_surface_telemetry.js (2 assertions)\n",
+        "source_fixture": "yousenwebview/tests/test_chat_send_surface_telemetry.js"
+      },
+      "latency_ms": null,
+      "details": {
+        "command": [
+          "node",
+          "yousenwebview/tests/test_chat_send_surface_telemetry.js"
+        ],
+        "surface": "yousenwebview"
+      },
+      "source_suite": "exploration_lab",
+      "source_case_set": "surface.yousenwebview.telemetry.smoke",
+      "contract_domain": "surface_contract",
+      "execution_kind": "surface_parity_eval",
+      "surface": "yousenwebview",
+      "expected_contract": "yousenwebview_surface_telemetry_contract",
+      "origin_type": "seed_fixture",
+      "origin_ref": "yousenwebview/tests/test_chat_send_surface_telemetry.js",
+      "promotion_status": "seed",
+      "promoted_from_case_id": ""
+    }
+  ],
+  "failure_taxonomy": [
+    {
+      "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+      "count": 4
+    },
+    {
+      "failure_type": "FAIL_SURFACE_DELIVERY",
+      "count": 1
+    },
+    {
+      "failure_type": "FAIL_TIMEOUT",
+      "count": 6
+    }
+  ],
+  "summary": {
+    "total_cases": 36,
+    "executed_cases": 36,
+    "passed": 25,
+    "failed": 11,
+    "skipped": 0,
+    "pass_rate": 0.6944,
+    "case_tiers": {
+      "exploratory": 2,
+      "gate_stable": 19,
+      "incident_replay": 11,
+      "regression_tier": 4
+    },
+    "gate_stable_pass_rate": 1.0,
+    "regression_tier_failed": 0,
+    "failure_taxonomy": [
+      {
+        "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+        "count": 4
+      },
+      {
+        "failure_type": "FAIL_SURFACE_DELIVERY",
+        "count": 1
+      },
+      {
+        "failure_type": "FAIL_TIMEOUT",
+        "count": 6
+      }
+    ]
+  },
+  "baseline_diff": null,
+  "runtime_evidence_links": [
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_001",
+      "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_002",
+      "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_003",
+      "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_004",
+      "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_005",
+      "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_006",
+      "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_007",
+      "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_008",
+      "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_009",
+      "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+    },
+    {
+      "suite": "incident_replay",
+      "case_id": "LD_010",
+      "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+    }
+  ],
+  "blind_spots": [],
+  "legacy": {
+    "run_id": "arr-full-1776910966",
+    "generated_at": "2026-04-23 10:22:46",
+    "mode": "full",
+    "release": {
+      "release_id": "1.0.0+18f712757058+unknown",
+      "service_version": "1.0.0",
+      "git_sha": "18f712757058",
+      "deployment_environment": "unknown",
+      "prompt_version": "unset",
+      "ff_snapshot_hash": "none"
+    },
+    "suite_summaries": [
+      {
+        "suite": "semantic-router",
+        "total_cases": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "pass_rate": 1.0,
+        "failure_taxonomy": [],
+        "case_tiers": {
+          "gate_stable": 11
+        }
+      },
+      {
+        "suite": "context-orchestration",
+        "total_cases": 8,
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "pass_rate": 1.0,
+        "failure_taxonomy": [],
+        "case_tiers": {
+          "gate_stable": 8
+        }
+      },
+      {
+        "suite": "rag-grounding",
+        "total_cases": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "pass_rate": 1.0,
+        "failure_taxonomy": [],
+        "case_tiers": {
+          "gate_stable": 4
+        }
+      },
+      {
+        "suite": "long-dialog-full",
+        "total_cases": 10,
+        "passed": 0,
+        "failed": 10,
+        "skipped": 0,
+        "pass_rate": 0.0,
+        "failure_taxonomy": [
+          {
+            "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+            "count": 4
+          },
+          {
+            "failure_type": "FAIL_TIMEOUT",
+            "count": 6
+          }
+        ],
+        "case_tiers": {
+          "regression_tier": 10
+        }
+      }
+    ],
+    "case_results": [
+      {
+        "suite": "semantic-router",
+        "case_id": "answer_active_object",
+        "case_name": "answer_active_object",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_relation": "answer_active_object",
+          "actual_relation": "answer_active_object",
+          "expected_next_action": "route_to_grading",
+          "actual_next_action": "route_to_grading"
+        },
+        "latency_ms": 0.8,
+        "details": {}
+      },
+      {
+        "suite": "semantic-router",
+        "case_id": "revise_active_object",
+        "case_name": "revise_active_object",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_relation": "revise_answer_on_active_object",
+          "actual_relation": "revise_answer_on_active_object",
+          "expected_next_action": "route_to_grading",
+          "actual_next_action": "route_to_grading"
+        },
+        "latency_ms": 0.3,
+        "details": {}
+      },
+      {
+        "suite": "semantic-router",
+        "case_id": "followup_explainer",
+        "case_name": "followup_explainer",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_relation": "ask_about_active_object",
+          "actual_relation": "ask_about_active_object",
+          "expected_next_action": "route_to_followup_explainer",
+          "actual_next_action": "route_to_followup_explainer"
+        },
+        "latency_ms": 0.5,
+        "details": {}
+      },
+      {
+        "suite": "semantic-router",
+        "case_id": "temporary_detour",
+        "case_name": "temporary_detour",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_relation": "temporary_detour",
+          "actual_relation": "temporary_detour",
+          "expected_next_action": "route_to_general_chat",
+          "actual_next_action": "route_to_general_chat"
+        },
+        "latency_ms": 0.8,
+        "details": {}
+      },
+      {
+        "suite": "semantic-router",
+        "case_id": "continue_same_learning_flow",
+        "case_name": "continue_same_learning_flow",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_relation": "continue_same_learning_flow",
+          "actual_relation": "continue_same_learning_flow",
+          "expected_next_action": "route_to_generation",
+          "actual_next_action": "route_to_generation"
+        },
+        "latency_ms": 3.3,
+        "details": {}
+      },
+      {
+        "suite": "semantic-router",
+        "case_id": "fallback_compact_answer",
+        "case_name": "fallback_compact_answer",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_relation": "answer_active_object",
+          "actual_relation": "answer_active_object",
+          "expected_next_action": "route_to_grading",
+          "actual_next_action": "route_to_grading"
+        },
+        "latency_ms": 0.4,
+        "details": {}
+      },
+      {
+        "suite": "semantic-router",
+        "case_id": "guide_page_continuation",
+        "case_name": "guide_page_continuation",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_relation": "continue_same_learning_flow",
+          "actual_relation": "continue_same_learning_flow",
+          "expected_next_action": "route_to_guide",
+          "actual_next_action": "route_to_guide"
+        },
+        "latency_ms": 0.1,
+        "details": {}
+      },
+      {
+        "suite": "semantic-router",
+        "case_id": "open_chat_topic_continuation",
+        "case_name": "open_chat_topic_continuation",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_relation": "continue_same_learning_flow",
+          "actual_relation": "continue_same_learning_flow",
+          "expected_next_action": "route_to_general_chat",
+          "actual_next_action": "route_to_general_chat"
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "semantic-router",
+        "case_id": "ambiguous_compact_answer_across_two_sets",
+        "case_name": "ambiguous_compact_answer_across_two_sets",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_relation": "uncertain",
+          "actual_relation": "uncertain",
+          "expected_next_action": "ask_clarifying_question",
+          "actual_next_action": "ask_clarifying_question"
+        },
+        "latency_ms": 0.2,
+        "details": {}
+      },
+      {
+        "suite": "semantic-router",
+        "case_id": "ordinal_reference_overflow",
+        "case_name": "ordinal_reference_overflow",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_relation": "uncertain",
+          "actual_relation": "uncertain",
+          "expected_next_action": "ask_clarifying_question",
+          "actual_next_action": "ask_clarifying_question"
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "semantic-router",
+        "case_id": "ambiguous_continue_between_question_and_guide",
+        "case_name": "ambiguous_continue_between_question_and_guide",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_relation": "uncertain",
+          "actual_relation": "uncertain",
+          "expected_next_action": "ask_clarifying_question",
+          "actual_next_action": "ask_clarifying_question"
+        },
+        "latency_ms": 0.1,
+        "details": {}
+      },
+      {
+        "suite": "context-orchestration",
+        "case_id": "low_signal_social",
+        "case_name": "low_signal_social",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_route": "low_signal_social",
+          "actual_route": "low_signal_social"
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "context-orchestration",
+        "case_id": "active_question_followup",
+        "case_name": "active_question_followup",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_route": "active_question_followup",
+          "actual_route": "active_question_followup"
+        },
+        "latency_ms": 0.3,
+        "details": {}
+      },
+      {
+        "suite": "context-orchestration",
+        "case_id": "guided_plan_continuation",
+        "case_name": "guided_plan_continuation",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_route": "guided_plan_continuation",
+          "actual_route": "guided_plan_continuation"
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "context-orchestration",
+        "case_id": "notebook_followup",
+        "case_name": "notebook_followup",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_route": "notebook_followup",
+          "actual_route": "notebook_followup"
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "context-orchestration",
+        "case_id": "personal_recall",
+        "case_name": "personal_recall",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_route": "personal_recall",
+          "actual_route": "personal_recall"
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "context-orchestration",
+        "case_id": "cross_session_recall",
+        "case_name": "cross_session_recall",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_route": "cross_session_recall",
+          "actual_route": "cross_session_recall"
+        },
+        "latency_ms": 0.1,
+        "details": {}
+      },
+      {
+        "suite": "context-orchestration",
+        "case_id": "user_correction",
+        "case_name": "user_correction",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_route": "general_learning_query",
+          "actual_route": "general_learning_query"
+        },
+        "latency_ms": 0.1,
+        "details": {}
+      },
+      {
+        "suite": "context-orchestration",
+        "case_id": "current_override",
+        "case_name": "current_override",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_route": "active_question_followup",
+          "actual_route": "active_question_followup"
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "rag-grounding",
+        "case_id": "exact_authority_full_case_bundle",
+        "case_name": "exact_authority_full_case_bundle",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_force_exact": true,
+          "actual_force_exact": true,
+          "rendered_preview": "1. 项目经理应先核查关键线路。\n\n2. 随后调整资源投入。"
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "rag-grounding",
+        "case_id": "exact_authority_partial_case_bundle",
+        "case_name": "exact_authority_partial_case_bundle",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_force_exact": false,
+          "actual_force_exact": false,
+          "rendered_preview": ""
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "rag-grounding",
+        "case_id": "grounded_followup_forces_retrieval_first",
+        "case_name": "grounded_followup_forces_retrieval_first",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "grounded_construction_exam_runtime": true,
+          "should_force_retrieval_first": true
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "rag-grounding",
+        "case_id": "current_info_query_prefetches_grounded_rag",
+        "case_name": "current_info_query_prefetches_grounded_rag",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "current_info_required": true,
+          "textbook_delta_query": true,
+          "should_prefetch_grounded_rag": true
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "long-dialog-full",
+        "case_id": "LD_001",
+        "case_name": "新手理解型：流水施工+横道图+网络计划",
+        "status": "FAIL",
+        "case_tier": "regression_tier",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": "FAIL_TIMEOUT",
+        "evidence": {
+          "semantic_score": 100,
+          "satisfaction_score": 95,
+          "hard_errors": 0,
+          "followup_object_mismatch_count": 0,
+          "context_reset_count": 0,
+          "slow_turns": 1
+        },
+        "latency_ms": 26424.4,
+        "details": {
+          "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+        }
+      },
+      {
+        "suite": "long-dialog-full",
+        "case_id": "LD_002",
+        "case_name": "刷题纠错型：双代号网络计划+总时差自由时差",
+        "status": "FAIL",
+        "case_tier": "regression_tier",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+        "evidence": {
+          "semantic_score": 90,
+          "satisfaction_score": 80,
+          "hard_errors": 0,
+          "followup_object_mismatch_count": 0,
+          "context_reset_count": 0,
+          "slow_turns": 4
+        },
+        "latency_ms": 36678.9,
+        "details": {
+          "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+        }
+      },
+      {
+        "suite": "long-dialog-full",
+        "case_id": "LD_003",
+        "case_name": "案例题条件保持型：招投标与合同管理",
+        "status": "FAIL",
+        "case_tier": "regression_tier",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+        "evidence": {
+          "semantic_score": 90,
+          "satisfaction_score": 80,
+          "hard_errors": 0,
+          "followup_object_mismatch_count": 0,
+          "context_reset_count": 0,
+          "slow_turns": 4
+        },
+        "latency_ms": 37180.9,
+        "details": {
+          "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+        }
+      },
+      {
+        "suite": "long-dialog-full",
+        "case_id": "LD_004",
+        "case_name": "学习规划型：30天冲刺计划",
+        "status": "FAIL",
+        "case_tier": "regression_tier",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": "FAIL_TIMEOUT",
+        "evidence": {
+          "semantic_score": 100,
+          "satisfaction_score": 60,
+          "hard_errors": 0,
+          "followup_object_mismatch_count": 0,
+          "context_reset_count": 0,
+          "slow_turns": 8
+        },
+        "latency_ms": 48861.8,
+        "details": {
+          "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+        }
+      },
+      {
+        "suite": "long-dialog-full",
+        "case_id": "LD_005",
+        "case_name": "抗干扰型：模板脚手架与安全文明施工",
+        "status": "FAIL",
+        "case_tier": "regression_tier",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+        "evidence": {
+          "semantic_score": 90,
+          "satisfaction_score": 70,
+          "hard_errors": 0,
+          "followup_object_mismatch_count": 0,
+          "context_reset_count": 0,
+          "slow_turns": 6
+        },
+        "latency_ms": 36158.2,
+        "details": {
+          "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+        }
+      },
+      {
+        "suite": "long-dialog-full",
+        "case_id": "LD_006",
+        "case_name": "错题追踪型：钢筋工程",
+        "status": "FAIL",
+        "case_tier": "regression_tier",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": "FAIL_TIMEOUT",
+        "evidence": {
+          "semantic_score": 90,
+          "satisfaction_score": 77,
+          "hard_errors": 0,
+          "followup_object_mismatch_count": 0,
+          "context_reset_count": 0,
+          "slow_turns": 3
+        },
+        "latency_ms": 35450.5,
+        "details": {
+          "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+        }
+      },
+      {
+        "suite": "long-dialog-full",
+        "case_id": "LD_007",
+        "case_name": "换表达型：地下防水工程",
+        "status": "FAIL",
+        "case_tier": "regression_tier",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": "FAIL_TIMEOUT",
+        "evidence": {
+          "semantic_score": 100,
+          "satisfaction_score": 95,
+          "hard_errors": 0,
+          "followup_object_mismatch_count": 0,
+          "context_reset_count": 0,
+          "slow_turns": 1
+        },
+        "latency_ms": 31122.7,
+        "details": {
+          "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+        }
+      },
+      {
+        "suite": "long-dialog-full",
+        "case_id": "LD_008",
+        "case_name": "情绪干扰型：进度管理",
+        "status": "FAIL",
+        "case_tier": "regression_tier",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": "FAIL_TIMEOUT",
+        "evidence": {
+          "semantic_score": 100,
+          "satisfaction_score": 95,
+          "hard_errors": 0,
+          "followup_object_mismatch_count": 0,
+          "context_reset_count": 0,
+          "slow_turns": 1
+        },
+        "latency_ms": 30639.3,
+        "details": {
+          "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+        }
+      },
+      {
+        "suite": "long-dialog-full",
+        "case_id": "LD_009",
+        "case_name": "条件修改型：基坑工程",
+        "status": "FAIL",
+        "case_tier": "regression_tier",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+        "evidence": {
+          "semantic_score": 92,
+          "satisfaction_score": 94,
+          "hard_errors": 0,
+          "followup_object_mismatch_count": 0,
+          "context_reset_count": 0,
+          "slow_turns": 0
+        },
+        "latency_ms": 37292.5,
+        "details": {
+          "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+        }
+      },
+      {
+        "suite": "long-dialog-full",
+        "case_id": "LD_010",
+        "case_name": "跨话题型：质量验收 vs 安全管理",
+        "status": "FAIL",
+        "case_tier": "regression_tier",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": "FAIL_TIMEOUT",
+        "evidence": {
+          "semantic_score": 100,
+          "satisfaction_score": 85,
+          "hard_errors": 0,
+          "followup_object_mismatch_count": 0,
+          "context_reset_count": 0,
+          "slow_turns": 3
+        },
+        "latency_ms": 42933.7,
+        "details": {
+          "artifact_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tmp/benchmark/full-rerun/long_dialog_1776910968/long_dialog_v1_retest_smart_20260423_102249.json"
+        }
+      }
+    ],
+    "summary": {
+      "total_cases": 33,
+      "executed_cases": 33,
+      "passed": 23,
+      "failed": 10,
+      "skipped": 0,
+      "pass_rate": 0.697,
+      "case_tiers": {
+        "gate_stable": 23,
+        "regression_tier": 10
+      },
+      "gate_stable_pass_rate": 1.0,
+      "regression_tier_failed": 10,
+      "failure_taxonomy": [
+        {
+          "failure_type": "FAIL_PRODUCT_BEHAVIOR",
+          "count": 4
+        },
+        {
+          "failure_type": "FAIL_TIMEOUT",
+          "count": 6
+        }
+      ]
+    },
+    "execution_context": {
+      "api_base_url": "http://127.0.0.1:8001",
+      "response_mode": "smart",
+      "suite_execution_modes": {
+        "semantic-router": "static_analysis",
+        "context-orchestration": "static_analysis",
+        "rag-grounding": "static_analysis",
+        "long-dialog-full": "live_ws"
+      }
+    },
+    "baseline_diff": null,
+    "gate_summary": {
+      "bootstrap_mode": true,
+      "gate_stable_pass_rate": 1.0,
+      "regression_tier_failed": 10,
+      "new_regressions": 0
+    }
+  }
+}

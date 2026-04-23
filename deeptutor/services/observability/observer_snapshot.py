@@ -28,6 +28,22 @@ def _safe_latest_payload(
     return payload if isinstance(payload, dict) else None
 
 
+def _safe_latest_run(
+    store: ObservabilityControlPlaneStore,
+    kind: str,
+) -> dict[str, Any] | None:
+    try:
+        record = store.latest_run(kind)
+    except Exception:
+        return None
+    return record if isinstance(record, dict) else None
+
+
+def _payload_from_record(record: dict[str, Any] | None) -> dict[str, Any] | None:
+    payload = (record or {}).get("payload")
+    return payload if isinstance(payload, dict) else None
+
+
 def _release_from_sources(*sources: dict[str, Any] | None) -> dict[str, Any]:
     for source in sources:
         if not isinstance(source, dict):
@@ -88,10 +104,38 @@ def _summarize_turn_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _coverage_layer(name: str, has_data: bool, reason: str = "") -> dict[str, Any]:
+def _source_entry(
+    name: str,
+    *,
+    has_data: bool,
+    source_id: str | None = None,
+    recorded_at: int | float | None = None,
+    sample_count: int | None = None,
+    confidence: str | None = None,
+    reason: str = "",
+    now: int | None = None,
+) -> dict[str, Any]:
+    current = int(now if now is not None else time.time())
+    normalized_recorded_at = int(recorded_at) if isinstance(recorded_at, (int, float)) else None
+    age_seconds = max(current - normalized_recorded_at, 0) if normalized_recorded_at is not None else None
+    if not has_data:
+        freshness = "missing"
+    elif age_seconds is None:
+        freshness = "unknown"
+    elif age_seconds > 24 * 60 * 60:
+        freshness = "stale"
+    else:
+        freshness = "fresh"
+
     entry: dict[str, Any] = {
         "name": name,
         "has_data": bool(has_data),
+        "source_id": source_id or "",
+        "recorded_at": normalized_recorded_at,
+        "age_seconds": age_seconds,
+        "freshness": freshness,
+        "sample_count": max(int(sample_count or 0), 0),
+        "confidence": confidence or ("high" if has_data else "low"),
     }
     if reason and not has_data:
         entry["reason"] = reason
@@ -120,11 +164,16 @@ def build_observer_snapshot(
     control_store = store or get_control_plane_store()
     turn_log = event_log or get_turn_event_log()
 
-    om_payload = _safe_latest_payload(control_store, "om_runs")
-    arr_payload = _safe_latest_payload(control_store, "arr_runs")
-    aae_payload = _safe_latest_payload(control_store, "aae_composite_runs")
-    benchmark_payload = _safe_latest_payload(control_store, "benchmark_runs")
-    daily_trend_payload = _safe_latest_payload(control_store, "daily_trends")
+    om_record = _safe_latest_run(control_store, "om_runs")
+    arr_record = _safe_latest_run(control_store, "arr_runs")
+    aae_record = _safe_latest_run(control_store, "aae_composite_runs")
+    benchmark_record = _safe_latest_run(control_store, "benchmark_runs")
+    daily_trend_record = _safe_latest_run(control_store, "daily_trends")
+    om_payload = _payload_from_record(om_record)
+    arr_payload = _payload_from_record(arr_record)
+    aae_payload = _payload_from_record(aae_record)
+    benchmark_payload = _payload_from_record(benchmark_record)
+    daily_trend_payload = _payload_from_record(daily_trend_record)
     turn_events = turn_log.load_events_range(days=event_days)
     turn_log_stats = turn_log.stats()
     turn_summary = _summarize_turn_events(turn_events)
@@ -143,15 +192,76 @@ def build_observer_snapshot(
         turn_events[0] if turn_events else None,
     )
 
-    layers = [
-        _coverage_layer("turn_event_log", turn_summary["event_count"] > 0, "no turn events in window"),
-        _coverage_layer("om_snapshot", bool(om_payload), "missing OM snapshot"),
-        _coverage_layer("quality_run", has_quality_run, "missing ARR or benchmark run"),
-        _coverage_layer("aae_composite", bool(aae_payload), "missing AAE composite"),
-        _coverage_layer("surface_ack", has_surface_coverage, "missing surface ack coverage"),
-        _coverage_layer("daily_trend", bool(daily_trend_payload), "missing daily trend"),
-        _coverage_layer("live_metrics", has_metrics, "not provided to snapshot builder"),
-    ]
+    now = int(time.time())
+    data_sources = {
+        "turn_event_log": _source_entry(
+            "turn_event_log",
+            has_data=turn_summary["event_count"] > 0,
+            source_id=turn_log_stats.get("file_path"),
+            sample_count=turn_summary["event_count"],
+            confidence="high" if turn_summary["event_count"] > 0 else "low",
+            reason="no turn events in window",
+            now=now,
+        ),
+        "om_snapshot": _source_entry(
+            "om_snapshot",
+            has_data=bool(om_payload),
+            source_id=(om_payload or {}).get("run_id"),
+            recorded_at=(om_record or {}).get("recorded_at"),
+            sample_count=1 if om_payload else 0,
+            reason="missing OM snapshot",
+            now=now,
+        ),
+        "quality_run": _source_entry(
+            "quality_run",
+            has_data=has_quality_run,
+            source_id=(arr_payload or {}).get("run_id")
+            or ((benchmark_payload or {}).get("run_manifest") or {}).get("run_id")
+            or (benchmark_payload or {}).get("run_id"),
+            recorded_at=(arr_record or benchmark_record or {}).get("recorded_at"),
+            sample_count=1 if has_quality_run else 0,
+            reason="missing ARR or benchmark run",
+            now=now,
+        ),
+        "aae_composite": _source_entry(
+            "aae_composite",
+            has_data=bool(aae_payload),
+            source_id=(aae_payload or {}).get("run_id"),
+            recorded_at=(aae_record or {}).get("recorded_at"),
+            sample_count=1 if aae_payload else 0,
+            reason="missing AAE composite",
+            now=now,
+        ),
+        "surface_ack": _source_entry(
+            "surface_ack",
+            has_data=has_surface_coverage,
+            source_id="surface_event_store",
+            sample_count=len(surface_coverage or []),
+            confidence="medium" if has_surface_coverage else "low",
+            reason="missing surface ack coverage",
+            now=now,
+        ),
+        "daily_trend": _source_entry(
+            "daily_trend",
+            has_data=bool(daily_trend_payload),
+            source_id=((daily_trend_payload or {}).get("run_manifest") or {}).get("run_id")
+            or (daily_trend_payload or {}).get("run_id"),
+            recorded_at=(daily_trend_record or {}).get("recorded_at"),
+            sample_count=1 if daily_trend_payload else 0,
+            reason="missing daily trend",
+            now=now,
+        ),
+        "live_metrics": _source_entry(
+            "live_metrics",
+            has_data=has_metrics,
+            source_id="provided_metrics_snapshot" if has_metrics else "",
+            sample_count=1 if has_metrics else 0,
+            confidence="medium" if has_metrics else "low",
+            reason="not provided to snapshot builder",
+            now=now,
+        ),
+    }
+    layers = list(data_sources.values())
     blind_spots: list[dict[str, Any]] = []
     if turn_summary["event_count"] <= 0:
         blind_spots.append({"type": "missing_turn_event_log", "severity": "high"})
@@ -179,6 +289,7 @@ def build_observer_snapshot(
         "release": release,
         "window": {"event_days": max(int(event_days or 1), 1)},
         "data_coverage": _build_data_coverage(layers),
+        "data_sources": data_sources,
         "blind_spots": blind_spots,
         "turn_events": turn_summary,
         "turn_event_log": turn_log_stats,

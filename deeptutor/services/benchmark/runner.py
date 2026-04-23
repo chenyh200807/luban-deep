@@ -433,13 +433,37 @@ async def _run_surface_web_case_set(
 
     from deeptutor.services.observability.surface_ack_smoke import run_surface_ack_smoke
 
-    payload = run_surface_ack_smoke(
-        api_base_url=api_base_url,
-        surface=str(case_metadata.get("surface") or "web"),
-        session_id=f"benchmark-surface-{int(time.time())}",
-        turn_id=f"benchmark-turn-{int(time.time())}",
-        metadata={"source": "benchmark_runner", "case_id": case_id},
-    )
+    try:
+        payload = run_surface_ack_smoke(
+            api_base_url=api_base_url,
+            surface=str(case_metadata.get("surface") or "web"),
+            session_id=f"benchmark-surface-{int(time.time())}",
+            turn_id=f"benchmark-turn-{int(time.time())}",
+            metadata={"source": "benchmark_runner", "case_id": case_id},
+        )
+    except Exception as exc:
+        result = _make_case_result(
+            suite="incident_replay",
+            case_id=case_id,
+            case_name=case_id,
+            status="FAIL",
+            case_tier=str(case_metadata.get("case_tier") or "incident_replay"),
+            failure_type="FAIL_SURFACE_DELIVERY",
+            evidence={
+                "reason": "surface_ack_smoke_exception",
+                "exception_type": type(exc).__name__,
+                "exception": str(exc),
+                "source_fixture": case_metadata.get("source_fixture"),
+            },
+            details={
+                "api_base_url": api_base_url,
+                "contract_domain": case_metadata.get("contract_domain"),
+                "execution_kind": case_metadata.get("execution_kind"),
+                "surface": case_metadata.get("surface"),
+            },
+        )
+        return _summarize_case_results("incident_replay", [result]), [result]
+
     status = "PASS" if payload.get("passed") else "FAIL"
     result = _make_case_result(
         suite="incident_replay",

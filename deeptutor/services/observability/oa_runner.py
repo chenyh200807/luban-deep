@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
+from deeptutor.services.observability.causal_oa import build_causal_candidates
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
 
 
@@ -43,6 +44,7 @@ def build_oa_run(
     arr_payload: dict[str, Any] | None,
     aae_payload: dict[str, Any] | None,
     observer_payload: dict[str, Any] | None = None,
+    change_impact_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if mode not in {"daily", "pre-release", "incident"}:
         raise ValueError(f"Unsupported OA mode: {mode}")
@@ -105,6 +107,44 @@ def build_oa_run(
                     "severity": "high",
                     "evidence": {"coverage_ratio": coverage_ratio},
                 }
+            )
+
+    if change_impact_payload:
+        first_signal = change_impact_payload.get("first_failing_signal") or {}
+        signals.append(
+            {
+                "kind": "change_impact",
+                "payload": {
+                    "run_id": change_impact_payload.get("run_id"),
+                    "risk_level": change_impact_payload.get("risk_level"),
+                    "risk_score": change_impact_payload.get("risk_score"),
+                    "changed_domains": change_impact_payload.get("changed_domains") or [],
+                    "first_failing_signal": first_signal,
+                    "required_gates": change_impact_payload.get("required_gates") or [],
+                },
+            }
+        )
+        if str(change_impact_payload.get("risk_level") or "") == "high":
+            _append_root_cause(
+                root_causes,
+                hypothesis="变更影响风险偏高，优先沿 ChangeImpactRun 的 changed_domains 与 first_failing_signal 定位。",
+                confidence="high",
+                supporting_evidence=[
+                    f"change_impact.risk_score={change_impact_payload.get('risk_score')}",
+                    f"change_impact.first_failing_signal={first_signal.get('type')}",
+                    f"change_impact.domains={[item.get('domain') for item in change_impact_payload.get('changed_domains') or []]}",
+                ],
+                affected_cohorts=[
+                    str(item.get("domain") or "")
+                    for item in change_impact_payload.get("changed_domains") or []
+                    if isinstance(item, dict)
+                ]
+                or ["unknown"],
+                suspected_change_window=str(release.get("release_id") or "unknown"),
+                next_verification_step="先执行 ChangeImpactRun 的 required_gates，再按第一个失败信号回放对应 case。",
+                counterfactual="若 change impact risk 不高且 first_failing_signal 为 none，则本轮更可能是低风险变更或观测盲区。",
+                validation_cmds=list(change_impact_payload.get("next_commands") or []),
+                suggested_fix_type="收权",
             )
 
     if not om_payload:
@@ -240,6 +280,24 @@ def build_oa_run(
             }
         )
 
+    causal_candidates = build_causal_candidates(
+        observer_payload=observer_payload,
+        change_impact_payload=change_impact_payload,
+        om_payload=om_payload,
+        arr_payload=arr_payload,
+        aae_payload=aae_payload,
+    )
+    if causal_candidates:
+        signals.append(
+            {
+                "kind": "causal_oa_v1",
+                "payload": {
+                    "candidate_count": len(causal_candidates),
+                    "top_candidate": causal_candidates[0],
+                },
+            }
+        )
+
     run_id = f"oa-{mode}-{int(time.time())}"
     return {
         "run_id": run_id,
@@ -249,18 +307,15 @@ def build_oa_run(
         "health_summary": (om_payload or {}).get("health_summary") or {},
         "raw_evidence_bundle": {
             "observer_snapshot_run_id": (observer_payload or {}).get("run_id"),
+            "change_impact_run_id": (change_impact_payload or {}).get("run_id"),
             "om_run_id": (om_payload or {}).get("run_id"),
             "arr_run_id": (arr_payload or {}).get("run_id"),
             "aae_run_id": (aae_payload or {}).get("run_id"),
         },
         "blind_spots": blind_spots,
         "root_causes": root_causes,
-        "change_impact": [
-            {
-                "release_id": release.get("release_id"),
-                "impact": "needs_attention" if root_causes or blind_spots else "stable",
-            }
-        ],
+        "causal_candidates": causal_candidates,
+        "change_impact": change_impact_payload,
         "repair_playbooks": playbooks,
         "signals": signals,
         "run_history_entry": {

@@ -1,0 +1,375 @@
+{
+  "kind": "benchmark_runs",
+  "run_id": "benchmark-1776908971",
+  "release_id": "1.0.0+18f712757058+unknown",
+  "recorded_at": 1776908972,
+  "payload": {
+    "run_manifest": {
+      "run_id": "benchmark-1776908971",
+      "generated_at": "2026-04-23 09:49:31",
+      "registry_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tests/fixtures/benchmark_phase1_registry.json",
+      "registry_version": "phase1",
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "requested_suites": [
+        "incident_replay"
+      ],
+      "runner": "canonical-benchmark-runner",
+      "response_mode": "smart",
+      "long_dialog_mode": "lite"
+    },
+    "release_spine": {
+      "release_id": "1.0.0+18f712757058+unknown",
+      "service_version": "1.0.0",
+      "git_sha": "18f712757058",
+      "deployment_environment": "unknown",
+      "prompt_version": "unset",
+      "ff_snapshot_hash": "none"
+    },
+    "suite_summaries": [
+      {
+        "suite": "incident_replay",
+        "total_cases": 4,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 1,
+        "pass_rate": 1.0,
+        "failure_taxonomy": [],
+        "case_tiers": {
+          "incident_replay": 4
+        }
+      }
+    ],
+    "case_results": [
+      {
+        "suite": "incident_replay",
+        "case_id": "question_answer_then_followup_explanation",
+        "case_name": "question_answer_then_followup_explanation",
+        "status": "PASS",
+        "case_tier": "incident_replay",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": null,
+        "evidence": {
+          "step_results": [
+            {
+              "step_index": 1,
+              "kind": "semantic",
+              "expected_relation": "answer_active_object",
+              "actual_relation": "answer_active_object",
+              "expected_next_action": "route_to_grading",
+              "actual_next_action": "route_to_grading"
+            },
+            {
+              "step_index": 2,
+              "kind": "semantic",
+              "expected_relation": "ask_about_active_object",
+              "actual_relation": "ask_about_active_object",
+              "expected_next_action": "route_to_followup_explainer",
+              "actual_next_action": "route_to_followup_explainer"
+            }
+          ]
+        },
+        "latency_ms": 2.3,
+        "details": {},
+        "source_suite": "long-dialog-focus",
+        "source_case_set": "continuity.long_dialog.focus",
+        "contract_domain": "continuity_contract",
+        "execution_kind": "live_ws_replay",
+        "surface": "backend",
+        "expected_contract": "long_dialog_continuity_contract",
+        "origin_type": "legacy_replay",
+        "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+        "promotion_status": "candidate",
+        "promoted_from_case_id": ""
+      },
+      {
+        "suite": "incident_replay",
+        "case_id": "plan_then_active_question_continuity",
+        "case_name": "plan_then_active_question_continuity",
+        "status": "PASS",
+        "case_tier": "incident_replay",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": null,
+        "evidence": {
+          "step_results": [
+            {
+              "step_index": 1,
+              "kind": "context",
+              "expected_route": "guided_plan_continuation",
+              "actual_route": "guided_plan_continuation"
+            },
+            {
+              "step_index": 2,
+              "kind": "context",
+              "expected_route": "active_question_followup",
+              "actual_route": "active_question_followup"
+            }
+          ]
+        },
+        "latency_ms": 0.0,
+        "details": {},
+        "source_suite": "long-dialog-focus",
+        "source_case_set": "continuity.long_dialog.focus",
+        "contract_domain": "continuity_contract",
+        "execution_kind": "live_ws_replay",
+        "surface": "backend",
+        "expected_contract": "long_dialog_continuity_contract",
+        "origin_type": "legacy_replay",
+        "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+        "promotion_status": "candidate",
+        "promoted_from_case_id": ""
+      },
+      {
+        "suite": "incident_replay",
+        "case_id": "compact_batch_answer_then_more_questions",
+        "case_name": "compact_batch_answer_then_more_questions",
+        "status": "PASS",
+        "case_tier": "incident_replay",
+        "gate_eligible": true,
+        "repeated_pass_required": true,
+        "failure_type": null,
+        "evidence": {
+          "step_results": [
+            {
+              "step_index": 1,
+              "kind": "semantic",
+              "expected_relation": "answer_active_object",
+              "actual_relation": "answer_active_object",
+              "expected_next_action": "route_to_grading",
+              "actual_next_action": "route_to_grading"
+            },
+            {
+              "step_index": 2,
+              "kind": "semantic",
+              "expected_relation": "continue_same_learning_flow",
+              "actual_relation": "continue_same_learning_flow",
+              "expected_next_action": "route_to_generation",
+              "actual_next_action": "route_to_generation"
+            }
+          ]
+        },
+        "latency_ms": 2.1,
+        "details": {},
+        "source_suite": "long-dialog-focus",
+        "source_case_set": "continuity.long_dialog.focus",
+        "contract_domain": "continuity_contract",
+        "execution_kind": "live_ws_replay",
+        "surface": "backend",
+        "expected_contract": "long_dialog_continuity_contract",
+        "origin_type": "legacy_replay",
+        "origin_ref": "tests/fixtures/long_dialog_focus_eval_cases.json",
+        "promotion_status": "candidate",
+        "promoted_from_case_id": ""
+      },
+      {
+        "suite": "incident_replay",
+        "case_id": "surface.web.ack.smoke",
+        "case_name": "surface.web.ack.smoke",
+        "status": "SKIP",
+        "case_tier": "incident_replay",
+        "gate_eligible": false,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "reason": "missing_api_base_url",
+          "source_fixture": "scripts/run_surface_ack_smoke.py"
+        },
+        "latency_ms": null,
+        "details": {
+          "contract_domain": "production_replay_contract",
+          "execution_kind": "live_ws_replay",
+          "surface": "web"
+        },
+        "source_suite": "incident_replay",
+        "source_case_set": "surface.web.ack.smoke",
+        "contract_domain": "production_replay_contract",
+        "execution_kind": "live_ws_replay",
+        "surface": "web",
+        "expected_contract": "surface_ack_delivery_contract",
+        "origin_type": "surface_smoke",
+        "origin_ref": "scripts/run_surface_ack_smoke.py",
+        "promotion_status": "candidate",
+        "promoted_from_case_id": ""
+      }
+    ],
+    "failure_taxonomy": [],
+    "summary": {
+      "total_cases": 4,
+      "executed_cases": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 1,
+      "pass_rate": 1.0,
+      "case_tiers": {
+        "incident_replay": 4
+      },
+      "gate_stable_pass_rate": null,
+      "regression_tier_failed": 0,
+      "failure_taxonomy": []
+    },
+    "baseline_diff": null,
+    "runtime_evidence_links": [],
+    "blind_spots": [
+      {
+        "suite": "incident_replay",
+        "case_id": "surface.web.ack.smoke",
+        "case_name": "surface.web.ack.smoke",
+        "reason": "missing_api_base_url"
+      }
+    ],
+    "legacy": {
+      "run_id": "arr-lite-1776908971",
+      "generated_at": "2026-04-23 09:49:31",
+      "mode": "lite",
+      "release": {
+        "release_id": "1.0.0+18f712757058+unknown",
+        "service_version": "1.0.0",
+        "git_sha": "18f712757058",
+        "deployment_environment": "unknown",
+        "prompt_version": "unset",
+        "ff_snapshot_hash": "none"
+      },
+      "suite_summaries": [
+        {
+          "suite": "long-dialog-focus",
+          "total_cases": 3,
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0,
+          "pass_rate": 1.0,
+          "failure_taxonomy": [],
+          "case_tiers": {
+            "regression_tier": 3
+          }
+        }
+      ],
+      "case_results": [
+        {
+          "suite": "long-dialog-focus",
+          "case_id": "question_answer_then_followup_explanation",
+          "case_name": "question_answer_then_followup_explanation",
+          "status": "PASS",
+          "case_tier": "regression_tier",
+          "gate_eligible": true,
+          "repeated_pass_required": true,
+          "failure_type": null,
+          "evidence": {
+            "step_results": [
+              {
+                "step_index": 1,
+                "kind": "semantic",
+                "expected_relation": "answer_active_object",
+                "actual_relation": "answer_active_object",
+                "expected_next_action": "route_to_grading",
+                "actual_next_action": "route_to_grading"
+              },
+              {
+                "step_index": 2,
+                "kind": "semantic",
+                "expected_relation": "ask_about_active_object",
+                "actual_relation": "ask_about_active_object",
+                "expected_next_action": "route_to_followup_explainer",
+                "actual_next_action": "route_to_followup_explainer"
+              }
+            ]
+          },
+          "latency_ms": 2.3,
+          "details": {}
+        },
+        {
+          "suite": "long-dialog-focus",
+          "case_id": "plan_then_active_question_continuity",
+          "case_name": "plan_then_active_question_continuity",
+          "status": "PASS",
+          "case_tier": "regression_tier",
+          "gate_eligible": true,
+          "repeated_pass_required": true,
+          "failure_type": null,
+          "evidence": {
+            "step_results": [
+              {
+                "step_index": 1,
+                "kind": "context",
+                "expected_route": "guided_plan_continuation",
+                "actual_route": "guided_plan_continuation"
+              },
+              {
+                "step_index": 2,
+                "kind": "context",
+                "expected_route": "active_question_followup",
+                "actual_route": "active_question_followup"
+              }
+            ]
+          },
+          "latency_ms": 0.0,
+          "details": {}
+        },
+        {
+          "suite": "long-dialog-focus",
+          "case_id": "compact_batch_answer_then_more_questions",
+          "case_name": "compact_batch_answer_then_more_questions",
+          "status": "PASS",
+          "case_tier": "regression_tier",
+          "gate_eligible": true,
+          "repeated_pass_required": true,
+          "failure_type": null,
+          "evidence": {
+            "step_results": [
+              {
+                "step_index": 1,
+                "kind": "semantic",
+                "expected_relation": "answer_active_object",
+                "actual_relation": "answer_active_object",
+                "expected_next_action": "route_to_grading",
+                "actual_next_action": "route_to_grading"
+              },
+              {
+                "step_index": 2,
+                "kind": "semantic",
+                "expected_relation": "continue_same_learning_flow",
+                "actual_relation": "continue_same_learning_flow",
+                "expected_next_action": "route_to_generation",
+                "actual_next_action": "route_to_generation"
+              }
+            ]
+          },
+          "latency_ms": 2.1,
+          "details": {}
+        }
+      ],
+      "summary": {
+        "total_cases": 3,
+        "executed_cases": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "pass_rate": 1.0,
+        "case_tiers": {
+          "regression_tier": 3
+        },
+        "gate_stable_pass_rate": null,
+        "regression_tier_failed": 0,
+        "failure_taxonomy": []
+      },
+      "execution_context": {
+        "api_base_url": null,
+        "response_mode": "smart",
+        "suite_execution_modes": {
+          "semantic-router": "static_analysis",
+          "context-orchestration": "static_analysis",
+          "rag-grounding": "static_analysis",
+          "long-dialog-focus": "in_process_runtime"
+        }
+      },
+      "baseline_diff": null,
+      "gate_summary": {
+        "bootstrap_mode": true,
+        "gate_stable_pass_rate": null,
+        "regression_tier_failed": 0,
+        "new_regressions": 0
+      }
+    }
+  }
+}

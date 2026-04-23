@@ -1,0 +1,301 @@
+{
+  "run_manifest": {
+    "run_id": "benchmark-1776909770",
+    "generated_at": "2026-04-23 10:02:50",
+    "registry_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/tests/fixtures/benchmark_phase1_registry.json",
+    "registry_version": "phase1",
+    "dataset_id": "benchmark_phase1",
+    "dataset_version": "phase1.0",
+    "requested_suites": [
+      "regression_watch"
+    ],
+    "runner": "canonical-benchmark-runner",
+    "response_mode": "smart",
+    "long_dialog_mode": "lite"
+  },
+  "release_spine": {
+    "release_id": "1.0.0+18f712757058+unknown",
+    "service_version": "1.0.0",
+    "git_sha": "18f712757058",
+    "deployment_environment": "unknown",
+    "prompt_version": "unset",
+    "ff_snapshot_hash": "none"
+  },
+  "suite_summaries": [
+    {
+      "suite": "regression_watch",
+      "total_cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "pass_rate": 1.0,
+      "failure_taxonomy": [],
+      "case_tiers": {
+        "regression_tier": 4
+      }
+    }
+  ],
+  "case_results": [
+    {
+      "suite": "regression_watch",
+      "case_id": "exact_authority_full_case_bundle",
+      "case_name": "exact_authority_full_case_bundle",
+      "status": "PASS",
+      "case_tier": "regression_tier",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_force_exact": true,
+        "actual_force_exact": true,
+        "rendered_preview": "1. 项目经理应先核查关键线路。\n\n2. 随后调整资源投入。"
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "rag-grounding",
+      "source_case_set": "grounding.rag.case_set",
+      "contract_domain": "grounding_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "rag_grounding_contract",
+      "origin_type": "incident_replay",
+      "origin_ref": "continuity.long_dialog.focus",
+      "promotion_status": "promoted",
+      "promoted_from_case_id": "continuity.long_dialog.focus"
+    },
+    {
+      "suite": "regression_watch",
+      "case_id": "exact_authority_partial_case_bundle",
+      "case_name": "exact_authority_partial_case_bundle",
+      "status": "PASS",
+      "case_tier": "regression_tier",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "expected_force_exact": false,
+        "actual_force_exact": false,
+        "rendered_preview": ""
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "rag-grounding",
+      "source_case_set": "grounding.rag.case_set",
+      "contract_domain": "grounding_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "rag_grounding_contract",
+      "origin_type": "incident_replay",
+      "origin_ref": "continuity.long_dialog.focus",
+      "promotion_status": "promoted",
+      "promoted_from_case_id": "continuity.long_dialog.focus"
+    },
+    {
+      "suite": "regression_watch",
+      "case_id": "grounded_followup_forces_retrieval_first",
+      "case_name": "grounded_followup_forces_retrieval_first",
+      "status": "PASS",
+      "case_tier": "regression_tier",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "grounded_construction_exam_runtime": true,
+        "should_force_retrieval_first": true
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "rag-grounding",
+      "source_case_set": "grounding.rag.case_set",
+      "contract_domain": "grounding_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "rag_grounding_contract",
+      "origin_type": "incident_replay",
+      "origin_ref": "continuity.long_dialog.focus",
+      "promotion_status": "promoted",
+      "promoted_from_case_id": "continuity.long_dialog.focus"
+    },
+    {
+      "suite": "regression_watch",
+      "case_id": "current_info_query_prefetches_grounded_rag",
+      "case_name": "current_info_query_prefetches_grounded_rag",
+      "status": "PASS",
+      "case_tier": "regression_tier",
+      "gate_eligible": true,
+      "repeated_pass_required": false,
+      "failure_type": null,
+      "evidence": {
+        "current_info_required": true,
+        "textbook_delta_query": true,
+        "should_prefetch_grounded_rag": true
+      },
+      "latency_ms": 0.0,
+      "details": {},
+      "source_suite": "rag-grounding",
+      "source_case_set": "grounding.rag.case_set",
+      "contract_domain": "grounding_contract",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "rag_grounding_contract",
+      "origin_type": "incident_replay",
+      "origin_ref": "continuity.long_dialog.focus",
+      "promotion_status": "promoted",
+      "promoted_from_case_id": "continuity.long_dialog.focus"
+    }
+  ],
+  "failure_taxonomy": [],
+  "summary": {
+    "total_cases": 4,
+    "executed_cases": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "pass_rate": 1.0,
+    "case_tiers": {
+      "regression_tier": 4
+    },
+    "gate_stable_pass_rate": null,
+    "regression_tier_failed": 0,
+    "failure_taxonomy": []
+  },
+  "baseline_diff": {
+    "baseline_run_id": "benchmark-1776908971",
+    "current_run_id": "benchmark-1776909770",
+    "baseline_pass_rate": 1.0,
+    "current_pass_rate": 1.0,
+    "pass_rate_delta": 0.0,
+    "regressions": [],
+    "new_failures": [],
+    "recovered": []
+  },
+  "runtime_evidence_links": [],
+  "blind_spots": [],
+  "legacy": {
+    "run_id": "arr-lite-1776909770",
+    "generated_at": "2026-04-23 10:02:50",
+    "mode": "lite",
+    "release": {
+      "release_id": "1.0.0+18f712757058+unknown",
+      "service_version": "1.0.0",
+      "git_sha": "18f712757058",
+      "deployment_environment": "unknown",
+      "prompt_version": "unset",
+      "ff_snapshot_hash": "none"
+    },
+    "suite_summaries": [
+      {
+        "suite": "rag-grounding",
+        "total_cases": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "pass_rate": 1.0,
+        "failure_taxonomy": [],
+        "case_tiers": {
+          "gate_stable": 4
+        }
+      }
+    ],
+    "case_results": [
+      {
+        "suite": "rag-grounding",
+        "case_id": "exact_authority_full_case_bundle",
+        "case_name": "exact_authority_full_case_bundle",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_force_exact": true,
+          "actual_force_exact": true,
+          "rendered_preview": "1. 项目经理应先核查关键线路。\n\n2. 随后调整资源投入。"
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "rag-grounding",
+        "case_id": "exact_authority_partial_case_bundle",
+        "case_name": "exact_authority_partial_case_bundle",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "expected_force_exact": false,
+          "actual_force_exact": false,
+          "rendered_preview": ""
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "rag-grounding",
+        "case_id": "grounded_followup_forces_retrieval_first",
+        "case_name": "grounded_followup_forces_retrieval_first",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "grounded_construction_exam_runtime": true,
+          "should_force_retrieval_first": true
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      },
+      {
+        "suite": "rag-grounding",
+        "case_id": "current_info_query_prefetches_grounded_rag",
+        "case_name": "current_info_query_prefetches_grounded_rag",
+        "status": "PASS",
+        "case_tier": "gate_stable",
+        "gate_eligible": true,
+        "repeated_pass_required": false,
+        "failure_type": null,
+        "evidence": {
+          "current_info_required": true,
+          "textbook_delta_query": true,
+          "should_prefetch_grounded_rag": true
+        },
+        "latency_ms": 0.0,
+        "details": {}
+      }
+    ],
+    "summary": {
+      "total_cases": 4,
+      "executed_cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "pass_rate": 1.0,
+      "case_tiers": {
+        "gate_stable": 4
+      },
+      "gate_stable_pass_rate": 1.0,
+      "regression_tier_failed": 0,
+      "failure_taxonomy": []
+    },
+    "execution_context": {
+      "api_base_url": null,
+      "response_mode": "smart",
+      "suite_execution_modes": {
+        "semantic-router": "static_analysis",
+        "context-orchestration": "static_analysis",
+        "rag-grounding": "static_analysis",
+        "long-dialog-focus": "in_process_runtime"
+      }
+    },
+    "baseline_diff": null,
+    "gate_summary": {
+      "bootstrap_mode": true,
+      "gate_stable_pass_rate": 1.0,
+      "regression_tier_failed": 0,
+      "new_regressions": 0
+    }
+  }
+}

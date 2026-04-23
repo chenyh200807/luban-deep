@@ -54,17 +54,20 @@ def main() -> None:
     parser.add_argument("--arr-json")
     parser.add_argument("--aae-json")
     parser.add_argument("--oa-json")
+    parser.add_argument("--change-impact-json")
     args = parser.parse_args()
 
     om_payload = _load_json(args.om_json, expected_kind="om_runs") or _load_store_payload("om_runs")
     arr_payload = _load_json(args.arr_json, expected_kind="arr_runs") or _load_store_payload("arr_runs")
     aae_payload = _load_json(args.aae_json, expected_kind="aae_composite_runs") or _load_store_payload("aae_composite_runs")
     oa_payload = _load_json(args.oa_json, expected_kind="oa_runs") or _load_store_payload("oa_runs")
+    change_impact_payload = _load_json(args.change_impact_json, expected_kind="change_impact_runs") or _load_store_payload("change_impact_runs")
     payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
+        change_impact_payload=change_impact_payload,
     )
     store_paths = get_control_plane_store().write_run(
         kind="release_gate_runs",

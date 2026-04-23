@@ -42,6 +42,7 @@ def build_release_gate_report(
     arr_payload: dict[str, Any] | None,
     aae_payload: dict[str, Any] | None,
     oa_payload: dict[str, Any] | None,
+    change_impact_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     release = (
         (arr_payload or {}).get("release")
@@ -180,6 +181,35 @@ def build_release_gate_report(
         )
     )
 
+    p5_status = _SKIP
+    p5_summary = "未提供 ChangeImpactRun"
+    p5_blockers: list[str] = []
+    if change_impact_payload:
+        risk_level = str(change_impact_payload.get("risk_level") or "unknown")
+        recommendation = str(change_impact_payload.get("blocking_recommendation") or "")
+        p5_status = _PASS
+        p5_summary = "change impact 风险可控"
+        if risk_level == "high" or recommendation == "hold":
+            p5_status = _FAIL
+            p5_summary = "change impact 高风险，必须先定位第一个失败信号"
+            p5_blockers.append("change_impact_high_risk")
+        elif risk_level in {"medium", "unknown"}:
+            p5_status = _WARN
+            p5_summary = "change impact 需要条件性验证"
+    gate_results.append(
+        _gate_entry(
+            gate="P5 Change Impact",
+            status=p5_status,
+            summary=p5_summary,
+            evidence=[
+                f"change_impact_run_id={(change_impact_payload or {}).get('run_id')}",
+                f"risk_level={(change_impact_payload or {}).get('risk_level')}",
+                f"first_failing_signal={((change_impact_payload or {}).get('first_failing_signal') or {}).get('type')}",
+            ],
+            blockers=p5_blockers,
+        )
+    )
+
     blockers = [blocker for gate in gate_results for blocker in gate.get("blockers") or []]
     final_status = _FAIL if any(item["status"] == _FAIL for item in gate_results) else _WARN if any(item["status"] == _WARN for item in gate_results) else _PASS
     recommendation = "hold"
@@ -203,5 +233,6 @@ def build_release_gate_report(
             "arr_run_id": (arr_payload or {}).get("run_id"),
             "aae_run_id": (aae_payload or {}).get("run_id"),
             "oa_run_id": (oa_payload or {}).get("run_id"),
+            "change_impact_run_id": (change_impact_payload or {}).get("run_id"),
         },
     }

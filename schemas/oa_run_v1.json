@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeepTutor OA Run V1",
+  "type": "object",
+  "required": [
+    "run_id",
+    "generated_at",
+    "mode",
+    "release",
+    "health_summary",
+    "raw_evidence_bundle",
+    "blind_spots",
+    "root_causes",
+    "causal_candidates",
+    "change_impact",
+    "repair_playbooks",
+    "signals",
+    "run_history_entry"
+  ],
+  "properties": {
+    "run_id": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "mode": { "type": "string", "enum": ["daily", "pre-release", "incident"] },
+    "release": { "type": "object" },
+    "health_summary": { "type": "object" },
+    "raw_evidence_bundle": { "type": "object" },
+    "blind_spots": { "type": "array", "items": { "type": "object" } },
+    "root_causes": { "type": "array", "items": { "type": "object" } },
+    "causal_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "id",
+          "verdict",
+          "confidence_tier",
+          "score",
+          "evidence_chain",
+          "repair_playbook"
+        ],
+        "properties": {
+          "schema_version": { "type": "string", "const": "causal_oa_v1" },
+          "id": { "type": "string" },
+          "verdict": { "type": "string" },
+          "confidence_tier": { "type": "string" },
+          "score": { "type": "number" },
+          "changed_domains": { "type": "array", "items": { "type": "string" } },
+          "first_failing_signal": { "type": "object" },
+          "evidence_chain": { "type": "object" },
+          "repair_playbook": { "type": "object" },
+          "counterfactual": { "type": "string" }
+        }
+      }
+    },
+    "change_impact": { "type": ["object", "null"] },
+    "repair_playbooks": { "type": "array", "items": { "type": "object" } },
+    "signals": { "type": "array", "items": { "type": "object" } },
+    "run_history_entry": { "type": "object" }
+  }
+}

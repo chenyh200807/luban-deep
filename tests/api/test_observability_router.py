@@ -180,11 +180,107 @@ def test_control_plane_router_returns_latest_and_history() -> None:
     assert len(history.json()["records"]) == 1
 
 
+def test_control_plane_router_returns_latest_and_history_for_change_impact_runs() -> None:
+    app = _build_app(is_admin=True)
+    store = observability_module.get_control_plane_store()
+    store.write_run(
+        kind="change_impact_runs",
+        run_id="change-impact-1",
+        release_id="rel-1",
+        payload={
+            "risk_level": "high",
+            "changed_domains": [{"domain": "turn"}],
+            "first_failing_signal": {"type": "arr_regressions"},
+        },
+    )
+
+    with TestClient(app) as client:
+        latest = client.get("/api/v1/observability/control-plane/change_impact_runs/latest")
+        history = client.get("/api/v1/observability/control-plane/change_impact_runs/history?limit=5")
+
+    assert latest.status_code == 200
+    assert latest.json()["record"]["run_id"] == "change-impact-1"
+    assert latest.json()["record"]["release_id"] == "rel-1"
+    assert latest.json()["record"]["payload"]["risk_level"] == "high"
+    assert history.status_code == 200
+    assert history.json()["records"][0]["run_id"] == "change-impact-1"
+
+
+def test_control_plane_run_history_summarizes_runs_and_filters_by_commit() -> None:
+    app = _build_app(is_admin=True)
+    store = observability_module.get_control_plane_store()
+    store.write_run(
+        kind="change_impact_runs",
+        run_id="change-impact-1",
+        release_id="rel-1",
+        payload={
+            "run_id": "change-impact-1",
+            "release": {"release_id": "rel-1", "git_sha": "abc123"},
+            "risk_level": "high",
+            "risk_score": 0.91,
+            "changed_domains": [{"domain": "turn"}],
+        },
+    )
+    store.write_run(
+        kind="oa_runs",
+        run_id="oa-1",
+        release_id="rel-1",
+        payload={
+            "run_id": "oa-1",
+            "release": {"release_id": "rel-1", "git_sha": "abc123"},
+            "root_causes": [{"hypothesis": "turn continuity regression"}],
+            "blind_spots": [{"type": "missing_surface_coverage"}],
+            "causal_candidates": [{"id": "candidate-1", "verdict": "regression"}],
+        },
+    )
+    store.write_run(
+        kind="release_gate_runs",
+        run_id="release-gate-1",
+        release_id="rel-1",
+        payload={
+            "run_id": "release-gate-1",
+            "release": {"release_id": "rel-1", "git_sha": "abc123"},
+            "final_status": "FAIL",
+            "recommendation": "hold",
+        },
+    )
+    store.write_run(
+        kind="oa_runs",
+        run_id="oa-other",
+        release_id="rel-other",
+        payload={
+            "run_id": "oa-other",
+            "release": {"release_id": "rel-other", "git_sha": "def456"},
+            "root_causes": [],
+            "blind_spots": [],
+        },
+    )
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/observability/control-plane/run-history?limit=10&commit_sha=abc"
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["summary"]["total"] == 3
+    assert body["summary"]["latest_release_gate_status"] == "FAIL"
+    assert body["summary"]["latest_risk_level"] == "high"
+    assert body["summary"]["latest_root_cause_count"] == 1
+    assert {record["kind"] for record in body["records"]} == {
+        "change_impact_runs",
+        "oa_runs",
+        "release_gate_runs",
+    }
+    assert all(record["git_sha"].startswith("abc") for record in body["records"])
+
+
 @pytest.mark.parametrize(
     ("path"),
     (
         "/api/v1/observability/control-plane/arr_runs/latest",
         "/api/v1/observability/control-plane/arr_runs/history?limit=5",
+        "/api/v1/observability/control-plane/run-history?limit=5",
     ),
 )
 def test_control_plane_router_requires_admin(path: str) -> None:

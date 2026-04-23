@@ -1,9 +1,18 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
+from jsonschema import validate
+
 from deeptutor.services.observability.control_plane_store import ObservabilityControlPlaneStore
 from deeptutor.services.observability.observer_snapshot import build_observer_snapshot
+from deeptutor.services.observability.oa_runner import build_oa_run
 from deeptutor.services.observability.turn_event_log import TurnEventLog
 from deeptutor.services.observability.turn_event_log import build_turn_observation_event
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 def test_build_observer_snapshot_collects_store_and_turn_event_evidence(tmp_path) -> None:
@@ -78,6 +87,11 @@ def test_build_observer_snapshot_collects_store_and_turn_event_evidence(tmp_path
     layers = {item["name"]: item for item in payload["data_coverage"]["layers"]}
     assert "reason" not in layers["turn_event_log"]
     assert layers["aae_composite"]["reason"] == "missing AAE composite"
+    assert payload["data_sources"]["om_snapshot"]["source_id"] == "om-1"
+    assert payload["data_sources"]["om_snapshot"]["freshness"] in {"fresh", "stale"}
+    assert isinstance(payload["data_sources"]["om_snapshot"]["age_seconds"], int)
+    assert payload["data_sources"]["turn_event_log"]["sample_count"] == 2
+    assert payload["data_sources"]["turn_event_log"]["confidence"] == "high"
 
 
 def test_build_observer_snapshot_reports_blind_spots_when_sources_missing(tmp_path) -> None:
@@ -107,3 +121,24 @@ def test_build_observer_snapshot_reports_turn_event_log_write_error(tmp_path) ->
     blind_spot_types = {item["type"] for item in payload["blind_spots"]}
     assert "turn_event_log_write_error" in blind_spot_types
     assert "TypeError" in payload["turn_event_log"]["last_write_error"]
+
+
+def test_observer_snapshot_and_oa_payloads_match_public_schemas(tmp_path) -> None:
+    event_log = TurnEventLog(events_dir=tmp_path / "events")
+    event_log.append(build_turn_observation_event(status="completed", turn_id="turn-1"))
+    observer_payload = build_observer_snapshot(
+        store=ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane"),
+        event_log=event_log,
+    )
+    oa_payload = build_oa_run(
+        mode="daily",
+        om_payload=None,
+        arr_payload=None,
+        aae_payload=None,
+        observer_payload=observer_payload,
+    )
+
+    observer_schema = json.loads((PROJECT_ROOT / "schemas" / "observer_snapshot_v1.json").read_text(encoding="utf-8"))
+    oa_schema = json.loads((PROJECT_ROOT / "schemas" / "oa_run_v1.json").read_text(encoding="utf-8"))
+    validate(observer_payload, observer_schema)
+    validate(oa_payload, oa_schema)

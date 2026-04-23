@@ -82,6 +82,10 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
             "providers": {"error_rates": {}},
         },
     )
+    monkeypatch.setattr(
+        "deeptutor.services.observability.prerelease_runner.collect_git_changed_files",
+        lambda: ["docs/zh/guide/observability-control-plane.md"],
+    )
 
     async def fake_run_arr(**kwargs):
         assert kwargs["mode"] == "lite"
@@ -131,8 +135,10 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
 
     def spy_build_oa_run(**kwargs):
         observer_payload = kwargs.get("observer_payload")
+        change_impact_payload = kwargs.get("change_impact_payload")
         assert observer_payload is not built_observer_payload["payload"]
         assert observer_payload == get_control_plane_store().latest_payload("observer_snapshots")
+        assert change_impact_payload == get_control_plane_store().latest_payload("change_impact_runs")
         return original_build_oa_run(**kwargs)
 
     monkeypatch.setattr(
@@ -159,13 +165,19 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
     assert result["runs"]["aae"]["source_arr_run_id"] == "arr-lite-1"
     assert result["runs"]["observer_snapshot"]["run_id"].startswith("observer-snapshot-")
     assert result["runs"]["observer_snapshot"]["source_runs"]["arr_run_id"] == "arr-lite-1"
+    assert result["runs"]["change_impact"]["run_id"].startswith("change-impact-")
+    assert result["runs"]["change_impact"] == get_control_plane_store().latest_payload("change_impact_runs")
     assert result["runs"]["oa"]["mode"] == "pre-release"
     assert result["runs"]["oa"]["raw_evidence_bundle"]["observer_snapshot_run_id"] == result["runs"][
         "observer_snapshot"
     ]["run_id"]
+    assert result["runs"]["oa"]["raw_evidence_bundle"]["change_impact_run_id"] == result["runs"][
+        "change_impact"
+    ]["run_id"]
     assert result["runs"]["release_gate"]["final_status"] in {"PASS", "WARN"}
     assert result["artifacts"]["arr"]["json_path"].endswith("arr.json")
     assert result["artifacts"]["observer_snapshot"]["json_path"].endswith("raw_data_latest.json")
+    assert result["artifacts"]["change_impact"]["json_path"].endswith(".json")
 
 
 def test_load_metrics_snapshot_rejects_non_object_json(tmp_path) -> None:

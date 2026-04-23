@@ -30,6 +30,22 @@ def test_control_plane_store_writes_and_reads_latest_and_history(tmp_path) -> No
     assert history[0]["release_id"] == "rel-1"
 
 
+def test_control_plane_store_accepts_change_impact_runs(tmp_path) -> None:
+    store = ObservabilityControlPlaneStore(base_dir=tmp_path)
+
+    store.write_run(
+        kind="change_impact_runs",
+        run_id="change-impact-1",
+        release_id="rel-1",
+        payload={"risk_level": "high", "changed_domains": [{"domain": "turn"}]},
+    )
+
+    assert store.latest_payload("change_impact_runs") == {
+        "risk_level": "high",
+        "changed_domains": [{"domain": "turn"}],
+    }
+
+
 def test_control_plane_store_rejects_unknown_kind(tmp_path) -> None:
     store = ObservabilityControlPlaneStore(base_dir=tmp_path)
 

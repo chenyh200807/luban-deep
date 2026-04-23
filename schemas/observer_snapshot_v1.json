@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeepTutor Observer Snapshot V1",
+  "type": "object",
+  "required": [
+    "run_id",
+    "generated_at",
+    "release",
+    "window",
+    "data_coverage",
+    "data_sources",
+    "blind_spots",
+    "turn_events",
+    "turn_event_log",
+    "source_runs",
+    "signals"
+  ],
+  "properties": {
+    "run_id": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "release": { "type": "object" },
+    "window": { "type": "object" },
+    "data_coverage": {
+      "type": "object",
+      "required": ["layers_total", "layers_with_data", "coverage_ratio", "layers"],
+      "properties": {
+        "layers_total": { "type": "integer", "minimum": 0 },
+        "layers_with_data": { "type": "integer", "minimum": 0 },
+        "coverage_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+        "layers": { "type": "array", "items": { "$ref": "#/definitions/source" } }
+      }
+    },
+    "data_sources": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/source" }
+    },
+    "blind_spots": { "type": "array", "items": { "type": "object" } },
+    "turn_events": { "type": "object" },
+    "turn_event_log": { "type": "object" },
+    "source_runs": { "type": "object" },
+    "signals": { "type": "object" }
+  },
+  "definitions": {
+    "source": {
+      "type": "object",
+      "required": [
+        "name",
+        "has_data",
+        "source_id",
+        "recorded_at",
+        "age_seconds",
+        "freshness",
+        "sample_count",
+        "confidence"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "has_data": { "type": "boolean" },
+        "source_id": { "type": "string" },
+        "recorded_at": { "type": ["integer", "null"] },
+        "age_seconds": { "type": ["integer", "null"], "minimum": 0 },
+        "freshness": { "type": "string", "enum": ["fresh", "stale", "missing", "unknown"] },
+        "sample_count": { "type": "integer", "minimum": 0 },
+        "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}
