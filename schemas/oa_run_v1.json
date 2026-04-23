@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeepTutor OA Run V1",
+  "type": "object",
+  "required": [
+    "run_id",
+    "generated_at",
+    "mode",
+    "release",
+    "health_summary",
+    "raw_evidence_bundle",
+    "blind_spots",
+    "root_causes",
+    "change_impact",
+    "repair_playbooks",
+    "signals",
+    "run_history_entry"
+  ],
+  "properties": {
+    "run_id": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "mode": { "type": "string", "enum": ["daily", "pre-release", "incident"] },
+    "release": { "type": "object" },
+    "health_summary": { "type": "object" },
+    "raw_evidence_bundle": { "type": "object" },
+    "blind_spots": { "type": "array", "items": { "type": "object" } },
+    "root_causes": { "type": "array", "items": { "type": "object" } },
+    "change_impact": { "type": ["object", "null"] },
+    "repair_playbooks": { "type": "array", "items": { "type": "object" } },
+    "signals": { "type": "array", "items": { "type": "object" } },
+    "run_history_entry": { "type": "object" }
+  }
+}

@@ -235,12 +235,12 @@ Page({
       contentHeight: contentHeight,
       workspaceShellHeight: workspaceShellHeight,
       isDark: helpers.isDark(),
-      enableReason: !!savedToolPrefs.enableReason,
+      enableReason: false,
       enableWebSearch: false,
       entrySource: String(entrySource || "").trim(),
     });
-    if (savedToolPrefs.enableWebSearch) {
-      this._saveToolPrefs(!!savedToolPrefs.enableReason, false);
+    if (savedToolPrefs.enableReason || savedToolPrefs.enableWebSearch) {
+      this._saveToolPrefs(false, false);
     }
 
     // [FIX-SESSION-1] 仅在 5 分钟内恢复 session（处理页面刷新），
@@ -1463,42 +1463,19 @@ Page({
   onMode: function (e) {
     helpers.vibrate("light");
     var nextMode = e.currentTarget.dataset.m;
-    var nextState = {
-      answerMode: nextMode,
-    };
-    if (nextMode !== "DEEP" && this.data.enableReason) {
-      nextState.enableReason = false;
-      this._saveToolPrefs(false, this.data.enableWebSearch);
-      wx.showToast({ title: "非深度模式已关闭推理", icon: "none", duration: 1800 });
-    }
-    this.setData(nextState);
-  },
-
-  onToggleReason: function () {
-    helpers.vibrate("light");
-    var nextReason = !this.data.enableReason;
-    var nextMode = this.data.answerMode;
-    if (nextReason && nextMode !== "DEEP") {
-      nextMode = "DEEP";
-      wx.showToast({ title: "已切换到深度模式", icon: "none", duration: 1800 });
-    }
-    this._saveToolPrefs(nextReason, this.data.enableWebSearch);
-    this.setData({
-      enableReason: nextReason,
-      answerMode: nextMode,
-    });
+    this.setData({ answerMode: nextMode, enableReason: false });
   },
 
   onToggleWebSearch: function () {
     helpers.vibrate("light");
     var nextWebSearch = !this.data.enableWebSearch;
-    this._saveToolPrefs(this.data.enableReason, nextWebSearch);
-    this.setData({ enableWebSearch: nextWebSearch });
+    this._saveToolPrefs(false, nextWebSearch);
+    this.setData({ enableReason: false, enableWebSearch: nextWebSearch });
   },
 
   _saveToolPrefs: function (enableReason, enableWebSearch) {
     wx.setStorageSync(CHAT_TOOL_PREFS_KEY, {
-      enableReason: !!enableReason,
+      enableReason: false,
       enableWebSearch: !!enableWebSearch,
     });
   },
@@ -1514,7 +1491,6 @@ Page({
 
   _getSelectedTools: function (query) {
     var tools = [];
-    if (this.data.enableReason) tools.push("reason");
     if (this.data.enableWebSearch || this._shouldAutoEnableWebSearch(query)) {
       tools.push("web_search");
     }

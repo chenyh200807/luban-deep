@@ -10,6 +10,9 @@ import httpx
 from deeptutor.services.observability import get_control_plane_store
 from deeptutor.services.observability.aae_composite import build_aae_composite_run
 from deeptutor.services.observability.arr_runner import run_arr, write_arr_artifacts
+from deeptutor.services.observability.change_impact import build_change_impact_run
+from deeptutor.services.observability.change_impact import collect_git_changed_files
+from deeptutor.services.observability.change_impact import render_change_impact_markdown
 from deeptutor.services.observability.observer_snapshot import build_observer_snapshot
 from deeptutor.services.observability.observer_snapshot import write_observer_snapshot_artifacts
 from deeptutor.services.observability.oa_runner import build_oa_run
@@ -178,12 +181,32 @@ def run_prerelease_observability(
     if not isinstance(persisted_observer_payload, dict):
         raise RuntimeError("observer snapshot was written but could not be read from control plane latest")
 
+    change_impact_payload = build_change_impact_run(
+        changed_files=collect_git_changed_files(),
+        observer_payload=persisted_observer_payload,
+        om_payload=om_payload,
+        arr_payload=arr_payload,
+        aae_payload=aae_payload,
+    )
+    change_impact_store_paths = get_control_plane_store().write_run(
+        kind="change_impact_runs",
+        run_id=str(change_impact_payload.get("run_id") or ""),
+        release_id=str((change_impact_payload.get("release") or {}).get("release_id") or ""),
+        payload=change_impact_payload,
+    )
+    change_impact_md_path = Path(change_impact_store_paths["json_path"]).with_suffix(".md")
+    change_impact_md_path.write_text(render_change_impact_markdown(change_impact_payload), encoding="utf-8")
+    persisted_change_impact_payload = get_control_plane_store().latest_payload("change_impact_runs")
+    if not isinstance(persisted_change_impact_payload, dict):
+        raise RuntimeError("change impact was written but could not be read from control plane latest")
+
     oa_payload = build_oa_run(
         mode="pre-release",
         om_payload=om_payload,
         arr_payload=arr_payload,
         aae_payload=aae_payload,
         observer_payload=persisted_observer_payload,
+        change_impact_payload=persisted_change_impact_payload,
     )
     oa_artifacts = _write_control_plane_artifact(
         kind="oa_runs",
@@ -202,6 +225,7 @@ def run_prerelease_observability(
         arr_payload=arr_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
+        change_impact_payload=persisted_change_impact_payload,
     )
     release_gate_artifacts = _write_control_plane_artifact(
         kind="release_gate_runs",
@@ -223,6 +247,7 @@ def run_prerelease_observability(
             "arr": arr_payload,
             "aae": aae_payload,
             "observer_snapshot": persisted_observer_payload,
+            "change_impact": persisted_change_impact_payload,
             "oa": oa_payload,
             "release_gate": release_gate_payload,
         },
@@ -240,6 +265,12 @@ def run_prerelease_observability(
                 "store_json_path": observer_store_paths["json_path"],
                 "store_latest_path": observer_store_paths["latest_path"],
                 "store_history_path": observer_store_paths["history_path"],
+            },
+            "change_impact": {
+                "json_path": change_impact_store_paths["json_path"],
+                "latest_path": change_impact_store_paths["latest_path"],
+                "history_path": change_impact_store_paths["history_path"],
+                "md_path": str(change_impact_md_path),
             },
             "oa": oa_artifacts,
             "release_gate": release_gate_artifacts,

@@ -1,7 +1,7 @@
 /* eslint-disable i18n/no-literal-ui-text */
 "use client";
 
-import type { BiTrendData, BiWorkbenchData } from "@/lib/bi-api";
+import type { BiBossDailyCost, BiTrendData, BiWorkbenchData } from "@/lib/bi-api";
 import { formatCurrency, formatNumber, formatPercent, sparkPath, LegendDot, SectionHeader } from "./BiShared";
 
 type BiBossTrendPanelProps = {
@@ -9,10 +9,11 @@ type BiBossTrendPanelProps = {
   days: 7 | 30 | 90;
   trend: BiTrendData;
   overview?: BiWorkbenchData["overview"];
+  dailyCost?: BiBossDailyCost;
   issue?: string;
 };
 
-export function BiBossTrendPanel({ loading, days, trend, overview, issue }: BiBossTrendPanelProps) {
+export function BiBossTrendPanel({ loading, days, trend, overview, dailyCost, issue }: BiBossTrendPanelProps) {
   const points = trend.points;
   const activeSeries = points.map((point) => point.active);
   const costSeries = points.map((point) => point.cost);
@@ -88,6 +89,20 @@ export function BiBossTrendPanel({ loading, days, trend, overview, issue }: BiBo
             <p className="mt-2 text-sm leading-6 text-[var(--secondary-foreground)]">
               这一块只负责老板判断趋势，不把 TutorBot、工具、知识库重新拉回一级叙事。
             </p>
+          </div>
+
+          <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/70 px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs tracking-[0.18em] text-emerald-800/70">今日成本</p>
+              <span className="rounded-full bg-white/80 px-2 py-1 text-[11px] text-emerald-900">
+                {dailyCost?.source === "turn_result_cost_summary" ? "Langfuse usage" : "趋势回退"}
+              </span>
+            </div>
+            <p className="mt-2 text-2xl font-semibold text-emerald-950">{formatCurrency(dailyCost?.todayUsd ?? 0)}</p>
+            <div className="mt-2 grid gap-1 text-sm leading-6 text-emerald-900/80">
+              <span>日均成本 {formatCurrency(dailyCost?.averageDailyUsd ?? 0)}</span>
+              <span>{days} 天合计 {formatCurrency(dailyCost?.windowTotalUsd ?? 0)}</span>
+            </div>
           </div>
 
           <div className="space-y-3">

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 from datetime import datetime, timedelta, timezone
@@ -14,6 +15,7 @@ import pytest
 import deeptutor.services.member_console.service as member_service_module
 from deeptutor.services.member_console.service import MemberConsoleService
 from deeptutor.services.member_console import external_auth as external_auth_module
+from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
 
 
 @pytest.fixture(autouse=True)
@@ -940,6 +942,72 @@ def test_member_360_includes_learner_state_heartbeat_and_bot_overlays(tmp_path: 
     assert payload["bot_overlays"][0]["bot_id"] == "review-bot"
 
 
+def test_member_360_includes_recent_conversation_messages(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+
+    asyncio.run(
+        service._store.create_session(
+            title="地基基础答疑",
+            session_id="tb_student_demo",
+            owner_key=build_user_owner_key("student_demo"),
+            source="wx_miniprogram",
+        )
+    )
+    asyncio.run(service._store.add_message("tb_student_demo", "user", "帮我看看地基基础怎么复习"))
+    asyncio.run(service._store.add_message("tb_student_demo", "assistant", "先按承载力、验槽和防水节点拆开复习。"))
+    asyncio.run(
+        service._store.create_session(
+            title="TutorBot mirror",
+            session_id="tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_student_demo",
+            owner_key=build_user_owner_key("student_demo"),
+            source="wx_miniprogram",
+        )
+    )
+    asyncio.run(
+        service._store.add_message(
+            "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_student_demo",
+            "user",
+            "镜像会话不应该重复展示",
+        )
+    )
+    asyncio.run(
+        service._store.create_session(
+            title="空会话",
+            session_id="tb_empty",
+            owner_key=build_user_owner_key("student_demo"),
+            source="wx_miniprogram",
+        )
+    )
+
+    service._get_learner_state_service = lambda: type(  # type: ignore[method-assign]
+        "LearnerStateService",
+        (),
+        {
+            "read_snapshot": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "list_heartbeat_jobs": lambda *_args, **_kwargs: [],
+            "list_heartbeat_history": lambda *_args, **_kwargs: [],
+            "list_heartbeat_arbitration_history": lambda *_args, **_kwargs: [],
+            "read_profile": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "read_summary": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "read_progress": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "list_memory_events": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+        },
+    )()
+    service._get_overlay_service = lambda: type("OverlayService", (), {"list_user_overlays": lambda *_args, **_kwargs: []})()  # type: ignore[method-assign]
+
+    payload = service.get_member_360("student_demo")
+
+    assert len(payload["recent_conversations"]) == 1
+    assert payload["recent_conversations"][0]["session_id"] == "tb_student_demo"
+    assert payload["recent_conversations"][0]["title"] == "地基基础答疑"
+    assert payload["recent_conversations"][0]["message_count"] == 2
+    assert [message["role"] for message in payload["recent_conversations"][0]["messages"]] == ["user", "assistant"]
+    assert payload["recent_conversations"][0]["messages"][0]["content"] == "帮我看看地基基础怎么复习"
+    assert payload["recent_conversations"][0]["messages"][1]["content"] == "先按承载力、验槽和防水节点拆开复习。"
+
+
 def test_member_360_keeps_learner_state_when_heartbeat_jobs_fail(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
@@ -1595,6 +1663,7 @@ def test_list_members_supports_expiry_window_and_operational_flags(tmp_path: Pat
             {
                 **service._build_default_member("vip_soon"),
                 "display_name": "即将到期会员",
+                "phone": "15558866501",
                 "tier": "vip",
                 "status": "active",
                 "risk_level": "high",
@@ -1605,6 +1674,7 @@ def test_list_members_supports_expiry_window_and_operational_flags(tmp_path: Pat
             {
                 **service._build_default_member("svip_safe"),
                 "display_name": "稳定会员",
+                "phone": "15558866502",
                 "tier": "svip",
                 "status": "active",
                 "risk_level": "low",
@@ -1627,6 +1697,66 @@ def test_list_members_supports_expiry_window_and_operational_flags(tmp_path: Pat
 
     assert [item["user_id"] for item in result["items"]] == ["vip_soon"]
     assert result["filters"]["expire_within_days"] == 7
+
+
+def test_list_members_and_dashboard_use_canonical_phone_backed_members(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"] = [
+            {
+                **service._build_default_member("wx_live_alias"),
+                "display_name": "微信入口会员",
+                "phone": "15558866508",
+                "external_auth_user_id": canonical_uid,
+                "last_active_at": "2026-04-21T09:00:00+08:00",
+                "points_balance": 80,
+            },
+            {
+                **service._build_default_member(canonical_uid),
+                "display_name": "正式注册会员",
+                "phone": "15558866508",
+                "external_auth_user_id": canonical_uid,
+                "last_active_at": "2026-04-22T10:00:00+08:00",
+                "points_balance": 260,
+                "ledger": [{"id": "ledger_live", "created_at": "2026-04-22T10:00:00+08:00"}],
+            },
+            {
+                **service._build_default_member("codex_probe_user"),
+                "display_name": "codex 测试账号",
+                "phone": "16600000001",
+            },
+            {
+                **service._build_default_member("casefix_1776476492"),
+                "display_name": "casefix 内部回归账号",
+                "phone": "13976476492",
+            },
+            {
+                **service._build_default_member("anonymous_no_phone"),
+                "display_name": "未绑手机号账号",
+                "phone": "",
+            },
+            {
+                **service._build_default_member("student_lapsed"),
+                "display_name": "内置演示会员",
+                "phone": "13800000004",
+            },
+        ]
+
+    service._mutate(_seed)
+
+    result = service.list_members(page=1, page_size=20, sort="last_active_at", order="desc")
+    dashboard = service.get_dashboard()
+
+    assert result["total"] == 1
+    assert [item["user_id"] for item in result["items"]] == [canonical_uid]
+    assert result["items"][0]["display_name"] == "正式注册会员"
+    assert result["items"][0]["phone"] == "15558866508"
+    assert result["items"][0]["points_balance"] == 260
+    assert dashboard["total_count"] == 1
+    assert dashboard["active_count"] == 1
 
 
 def test_batch_update_members_returns_success_and_failure_buckets(tmp_path: Path) -> None:

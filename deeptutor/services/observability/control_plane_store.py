@@ -11,6 +11,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_STORE_DIR = PROJECT_ROOT / "tmp" / "observability" / "control_plane"
 _ALLOWED_KINDS = {
     "benchmark_runs",
+    "change_impact_runs",
     "daily_trends",
     "observer_snapshots",
     "om_runs",

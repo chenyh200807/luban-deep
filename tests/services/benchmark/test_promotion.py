@@ -55,6 +55,8 @@ def test_promote_registry_case_payload_enforces_incident_to_regression_flow(tmp_
     assert case.promotion_status == "promoted"
     assert case.promoted_from_case_id == "surface.web.ack.smoke"
     assert case.is_incident_promoted is True
+    assert "surface.web.ack.smoke" in reloaded.suites["regression_watch"].case_ids
+    assert "surface.web.ack.smoke" not in reloaded.suites["incident_replay"].case_ids
 
 
 def test_promote_registry_case_payload_rejects_invalid_transition() -> None:

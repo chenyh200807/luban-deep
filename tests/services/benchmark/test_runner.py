@@ -294,6 +294,50 @@ async def test_run_benchmark_live_lite_defaults_long_dialog_to_one_case(
     assert captured["max_cases"] == 1
 
 
+@pytest.mark.asyncio
+async def test_run_benchmark_records_surface_ack_exception_as_case_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_run_long_dialog_suite(**kwargs):
+        return (
+            {"suite": "long-dialog-focus", "total_cases": 1, "passed": 1, "failed": 0, "skipped": 0, "pass_rate": 1.0},
+            [
+                {
+                    "suite": "long-dialog-focus",
+                    "case_id": "ld_case_a",
+                    "case_name": "ld_case_a",
+                    "status": "PASS",
+                    "case_tier": "regression_tier",
+                    "failure_type": None,
+                    "evidence": {},
+                    "latency_ms": None,
+                    "details": {},
+                }
+            ],
+        )
+
+    def fake_surface_ack_smoke(**kwargs):
+        raise RuntimeError("metrics unavailable")
+
+    monkeypatch.setattr(
+        "deeptutor.services.observability.arr_runner.run_long_dialog_suite",
+        fake_run_long_dialog_suite,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.observability.surface_ack_smoke.run_surface_ack_smoke",
+        fake_surface_ack_smoke,
+    )
+
+    payload = await run_benchmark(suite_names=("incident_replay",), api_base_url="http://example.test")
+
+    surface_case = next(item for item in payload["case_results"] if item["case_id"] == "surface.web.ack.smoke")
+    assert surface_case["status"] == "FAIL"
+    assert surface_case["failure_type"] == "FAIL_SURFACE_DELIVERY"
+    assert surface_case["evidence"]["reason"] == "surface_ack_smoke_exception"
+    assert surface_case["evidence"]["exception_type"] == "RuntimeError"
+    assert payload["summary"]["failed"] == 1
+
+
 def test_write_benchmark_artifacts_writes_json_and_markdown(tmp_path: Path) -> None:
     payload = {
         "run_manifest": {

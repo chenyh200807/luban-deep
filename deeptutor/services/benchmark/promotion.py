@@ -12,6 +12,40 @@ _NEXT_TIER = {
     "regression_tier": "gate_stable",
 }
 
+_TARGET_SUITE_BY_TIER = {
+    "regression_tier": "regression_watch",
+    "gate_stable": "pr_gate_core",
+}
+
+
+def _move_case_to_target_suite(
+    *,
+    registry_payload: dict[str, Any],
+    case_id: str,
+    target_tier: str,
+) -> None:
+    suites = registry_payload.get("suites")
+    if not isinstance(suites, dict):
+        raise TypeError("registry payload must contain suites mapping")
+
+    target_suite_name = _TARGET_SUITE_BY_TIER.get(target_tier)
+    if not target_suite_name:
+        return
+    target_suite = suites.get(target_suite_name)
+    if not isinstance(target_suite, dict):
+        raise ValueError(f"Missing benchmark suite for target_tier: {target_suite_name}")
+
+    for suite_name, suite_payload in suites.items():
+        if not isinstance(suite_payload, dict):
+            raise TypeError(f"benchmark suite must be a mapping: {suite_name}")
+        case_ids = [str(item) for item in (suite_payload.get("case_ids") or [])]
+        suite_payload["case_ids"] = [item for item in case_ids if item != case_id]
+
+    target_case_ids = [str(item) for item in (target_suite.get("case_ids") or [])]
+    if case_id not in target_case_ids:
+        target_case_ids.append(case_id)
+    target_suite["case_ids"] = target_case_ids
+
 
 def promote_registry_case_payload(
     *,
@@ -51,6 +85,11 @@ def promote_registry_case_payload(
     case_payload["promoted_from_case_id"] = str(
         case_payload.get("promoted_from_case_id") or normalized_case_id
     ).strip()
+    _move_case_to_target_suite(
+        registry_payload=next_payload,
+        case_id=normalized_case_id,
+        target_tier=normalized_target_tier,
+    )
     if current_tier == "incident_replay":
         case_payload["origin_type"] = "incident_replay"
         case_payload["origin_ref"] = str(case_payload.get("origin_ref") or normalized_case_id).strip()

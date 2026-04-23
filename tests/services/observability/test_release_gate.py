@@ -110,3 +110,41 @@ def test_release_gate_uses_benchmark_blind_spots_without_oa_payload() -> None:
     p4 = next(item for item in payload["gate_results"] if item["gate"] == "P4 Blind Spot Budget")
     assert p4["status"] == "PASS"
     assert p4["evidence"][0] == "blind_spots=1"
+
+
+def test_release_gate_report_blocks_high_change_impact() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "dev",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+            },
+            "health_summary": {"ready": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload={
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+            "benchmark_case_results": [{"status": "PASS"}],
+            "benchmark_run_manifest": {"run_id": "bench-1"},
+        },
+        aae_payload={
+            "scorecard": {"paid_student_satisfaction_score": {"is_proxy": False}},
+            "composite": {"value": 0.9},
+        },
+        oa_payload={"blind_spots": [], "root_causes": []},
+        change_impact_payload={
+            "run_id": "change-impact-1",
+            "risk_level": "high",
+            "blocking_recommendation": "hold",
+            "changed_domains": [{"domain": "turn"}],
+            "first_failing_signal": {"type": "arr_regressions"},
+        },
+    )
+
+    assert payload["final_status"] == "FAIL"
+    assert "change_impact_high_risk" in payload["blockers"]
+    assert any(item["gate"] == "P5 Change Impact" for item in payload["gate_results"])

@@ -42,11 +42,12 @@ from deeptutor.services.member_console.external_auth import (
     create_external_auth_user,
     ensure_external_auth_user_for_phone,
     get_external_auth_user,
+    load_external_auth_users,
     verify_external_auth_user,
 )
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
-from deeptutor.services.session import get_sqlite_session_store
+from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
 from deeptutor.services.wallet.identity import is_uuid_like
 
 _TZ = timezone(timedelta(hours=8))
@@ -397,6 +398,162 @@ class MemberConsoleService:
             "updated_at": job.updated_at.isoformat() if job.updated_at else None,
         }
 
+    @staticmethod
+    def _session_time_to_iso(value: Any) -> str:
+        try:
+            timestamp = float(value)
+        except (TypeError, ValueError):
+            return str(value or "")
+        return datetime.fromtimestamp(timestamp, _TZ).isoformat()
+
+    @staticmethod
+    def _preview_chat_content(value: Any, *, limit: int = 3000) -> str:
+        content = str(value or "").strip()
+        if len(content) <= limit:
+            return content
+        return f"{content[:limit]}..."
+
+    def _member_session_identity_values(self, member: dict[str, Any], requested_user_id: str) -> list[str]:
+        identities: list[str] = []
+
+        def add(value: Any) -> None:
+            text = str(value or "").strip()
+            if text and text not in identities:
+                identities.append(text)
+
+        add(requested_user_id)
+        for field in (
+            "user_id",
+            "canonical_user_id",
+            "external_auth_user_id",
+            "auth_username",
+            "wx_openid",
+            "wx_unionid",
+            "phone",
+        ):
+            add(member.get(field))
+        for value in member.get("alias_user_ids") or []:
+            add(value)
+        return identities
+
+    @staticmethod
+    def _conversation_group_key(row: dict[str, Any]) -> str:
+        session_id = str(row.get("session_id") or row.get("id") or "").strip()
+        preferences = row.get("preferences")
+        if isinstance(preferences, dict):
+            conversation_id = str(preferences.get("conversation_id") or "").strip()
+            if conversation_id:
+                return conversation_id
+        if ":chat:" in session_id:
+            return session_id.rsplit(":chat:", 1)[-1]
+        return session_id
+
+    @staticmethod
+    def _conversation_row_score(row: dict[str, Any]) -> tuple[int, float, int]:
+        session_id = str(row.get("session_id") or row.get("id") or "").strip()
+        try:
+            updated_at = float(row.get("updated_at") or 0)
+        except (TypeError, ValueError):
+            updated_at = 0.0
+        return (
+            int(row.get("message_count") or 0),
+            updated_at,
+            0 if session_id.startswith("tutorbot:") else 1,
+        )
+
+    def _load_recent_conversations_for_member(
+        self,
+        member: dict[str, Any],
+        requested_user_id: str,
+        *,
+        session_limit: int = 5,
+        message_limit: int = 12,
+    ) -> list[dict[str, Any]]:
+        identity_values = self._member_session_identity_values(member, requested_user_id)
+        if not identity_values:
+            return []
+
+        rows_by_conversation_key: dict[str, dict[str, Any]] = {}
+        for identity in identity_values:
+            owner_key = build_user_owner_key(identity)
+            if not owner_key:
+                continue
+            try:
+                rows = self._store._list_sessions_by_owner_sync(  # noqa: SLF001 - member 360 is sync.
+                    owner_key,
+                    archived=False,
+                    limit=session_limit,
+                )
+            except Exception:
+                logger.warning(
+                    "Failed to load member conversations: user_id=%s owner_key=%s",
+                    requested_user_id,
+                    owner_key,
+                    exc_info=True,
+                )
+                continue
+            for row in rows:
+                session_id = str(row.get("session_id") or row.get("id") or "").strip()
+                if not session_id:
+                    continue
+                conversation_key = self._conversation_group_key(row)
+                current = rows_by_conversation_key.get(conversation_key)
+                if current is None or self._conversation_row_score(row) > self._conversation_row_score(current):
+                    rows_by_conversation_key[conversation_key] = row
+
+        sorted_rows = sorted(
+            rows_by_conversation_key.values(),
+            key=lambda item: float(item.get("updated_at") or 0),
+            reverse=True,
+        )[:session_limit]
+        conversations: list[dict[str, Any]] = []
+        for row in sorted_rows:
+            session_id = str(row.get("session_id") or row.get("id") or "").strip()
+            if not session_id:
+                continue
+            try:
+                raw_messages = self._store._get_messages_sync(session_id)  # noqa: SLF001 - member 360 is sync.
+            except Exception:
+                logger.warning(
+                    "Failed to load member conversation messages: user_id=%s session_id=%s",
+                    requested_user_id,
+                    session_id,
+                    exc_info=True,
+                )
+                raw_messages = []
+
+            visible_messages = [
+                message
+                for message in raw_messages
+                if str(message.get("role") or "").strip() in {"user", "assistant"}
+                and str(message.get("content") or "").strip()
+            ][-message_limit:]
+            messages = [
+                {
+                    "id": str(message.get("id") or ""),
+                    "role": str(message.get("role") or ""),
+                    "content": self._preview_chat_content(message.get("content")),
+                    "created_at": self._session_time_to_iso(message.get("created_at")),
+                    "capability": str(message.get("capability") or ""),
+                }
+                for message in visible_messages
+            ]
+            if not messages:
+                continue
+            conversations.append(
+                {
+                    "session_id": session_id,
+                    "title": str(row.get("title") or "未命名会话"),
+                    "created_at": self._session_time_to_iso(row.get("created_at")),
+                    "updated_at": self._session_time_to_iso(row.get("updated_at")),
+                    "capability": str(row.get("capability") or "chat"),
+                    "message_count": int(row.get("message_count") or len(raw_messages)),
+                    "last_message": self._preview_chat_content(row.get("last_message")),
+                    "messages": messages,
+                }
+            )
+        return conversations
+
     def _seed_data(self) -> dict[str, Any]:
         now = _now()
         members = [
@@ -687,6 +844,167 @@ class MemberConsoleService:
     @staticmethod
     def _is_meaningful_phone(value: Any) -> bool:
         return len(_normalize_phone_input(str(value or ""))) == 11
+
+    @staticmethod
+    def _is_cn_mainland_mobile(value: Any) -> bool:
+        phone = _normalize_phone_input(str(value or ""))
+        return bool(re.fullmatch(r"1[3-9]\d{9}", phone)) and phone not in {
+            "13800000000",
+            "13900000000",
+            "18888888888",
+            "19999999999",
+        } and not re.fullmatch(r"1380000000\d", phone)
+
+    @staticmethod
+    def _looks_like_test_member(member: dict[str, Any]) -> bool:
+        haystack = " ".join(
+            str(member.get(key) or "").lower()
+            for key in (
+                "user_id",
+                "display_name",
+                "auth_username",
+                "external_auth_provider",
+                "wx_openid",
+                "wx_unionid",
+            )
+        )
+        test_markers = (
+            "test",
+            "casefix",
+            "codex",
+            "probe",
+            "audit",
+            "prelaunch",
+            "prelaunchsmoke",
+            "preflight",
+            "smoke",
+            "debug",
+            "mock",
+            "dummy",
+            "fake",
+            "测试",
+        )
+        demo_member_ids = {
+            "student_demo",
+            "student_risk",
+            "student_svip",
+            "student_lapsed",
+        }
+        user_id = str(member.get("user_id") or "").strip().lower()
+        return user_id in demo_member_ids or any(marker in haystack for marker in test_markers)
+
+    def _registered_phone_for_bi(self, member: dict[str, Any]) -> str:
+        phone = _normalize_phone_input(str(member.get("phone") or ""))
+        if self._is_cn_mainland_mobile(phone):
+            return phone
+        external_user_id = str(member.get("external_auth_user_id") or "").strip()
+        if not external_user_id:
+            return ""
+        try:
+            for user_data in load_external_auth_users().values():
+                if str(user_data.get("id") or "").strip() != external_user_id:
+                    continue
+                external_phone = _normalize_phone_input(str(user_data.get("phone") or ""))
+                if self._is_cn_mainland_mobile(external_phone):
+                    return external_phone
+        except Exception:
+            logger.warning("Failed to load external auth users for BI member projection", exc_info=True)
+        return ""
+
+    def _canonical_member_keys_for_bi(self, member: dict[str, Any]) -> list[str]:
+        keys: list[str] = []
+        external_user_id = str(member.get("external_auth_user_id") or "").strip()
+        if is_uuid_like(external_user_id):
+            keys.append(f"external:{external_user_id}")
+        phone = self._registered_phone_for_bi(member)
+        if phone:
+            keys.append(f"phone:{phone}")
+        for field in ("wx_unionid", "wx_openid"):
+            value = str(member.get(field) or "").strip()
+            if value:
+                keys.append(f"{field}:{value}")
+        return keys
+
+    def _is_registered_member_for_bi(self, member: dict[str, Any]) -> bool:
+        return bool(self._registered_phone_for_bi(member)) and not self._looks_like_test_member(member)
+
+    def _is_better_canonical_member_base(self, source: dict[str, Any], target: dict[str, Any]) -> bool:
+        def score(member: dict[str, Any]) -> tuple[int, int, float, int]:
+            user_id = str(member.get("user_id") or "").strip()
+            external_user_id = str(member.get("external_auth_user_id") or "").strip()
+            canonical_identity = 1 if is_uuid_like(user_id) or is_uuid_like(external_user_id) else 0
+            signal_score = self._member_signal_score(member)
+            last_active = _parse_time(member.get("last_active_at")).timestamp()
+            points = int(member.get("points_balance") or 0)
+            return (canonical_identity, signal_score, last_active, points)
+
+        return score(source) > score(target)
+
+    def _merge_canonical_member_for_bi(self, target: dict[str, Any], source: dict[str, Any]) -> dict[str, Any]:
+        alias_user_ids = {
+            str(item).strip()
+            for item in list(target.get("alias_user_ids") or []) + list(source.get("alias_user_ids") or [])
+            if str(item).strip()
+        }
+        for item in (target.get("user_id"), source.get("user_id")):
+            if str(item or "").strip():
+                alias_user_ids.add(str(item).strip())
+
+        if self._is_better_canonical_member_base(source, target):
+            previous = deepcopy(target)
+            target.clear()
+            target.update(deepcopy(source))
+            self._merge_member_identity_view(target, previous)
+        else:
+            self._merge_member_identity_view(target, source)
+
+        target["alias_user_ids"] = sorted(alias_user_ids)
+        phone = self._registered_phone_for_bi(target) or self._registered_phone_for_bi(source)
+        if phone:
+            target["phone"] = phone
+        external_user_id = str(target.get("external_auth_user_id") or source.get("external_auth_user_id") or "").strip()
+        target["canonical_user_id"] = external_user_id if is_uuid_like(external_user_id) else str(target.get("user_id") or "").strip()
+        return target
+
+    def _members_for_bi(self, data: dict[str, Any]) -> list[dict[str, Any]]:
+        members: list[dict[str, Any]] = []
+        key_to_index: dict[str, int] = {}
+
+        for raw_member in data.get("members") or []:
+            if not isinstance(raw_member, dict) or not self._is_registered_member_for_bi(raw_member):
+                continue
+            member = deepcopy(raw_member)
+            keys = self._canonical_member_keys_for_bi(member)
+            if not keys:
+                continue
+            matched_indexes = sorted({key_to_index[key] for key in keys if key in key_to_index})
+            if not matched_indexes:
+                index = len(members)
+                member["alias_user_ids"] = [str(member.get("user_id") or "").strip()]
+                member["canonical_user_id"] = (
+                    str(member.get("external_auth_user_id") or "").strip()
+                    if is_uuid_like(str(member.get("external_auth_user_id") or "").strip())
+                    else str(member.get("user_id") or "").strip()
+                )
+                phone = self._registered_phone_for_bi(member)
+                if phone:
+                    member["phone"] = phone
+                members.append(member)
+            else:
+                index = matched_indexes[0]
+                members[index] = self._merge_canonical_member_for_bi(members[index], member)
+                for duplicate_index in reversed(matched_indexes[1:]):
+                    members[index] = self._merge_canonical_member_for_bi(members[index], members[duplicate_index])
+                    del members[duplicate_index]
+                    key_to_index = {
+                        key: existing_index - 1 if existing_index > duplicate_index else existing_index
+                        for key, existing_index in key_to_index.items()
+                        if existing_index != duplicate_index
+                    }
+            for key in self._canonical_member_keys_for_bi(members[index]):
+                key_to_index[key] = index
+
+        return members
 
     @staticmethod
     def _member_signal_score(member: dict[str, Any]) -> int:
@@ -1663,7 +1981,7 @@ class MemberConsoleService:
 
     def get_dashboard(self, days: int = 30) -> dict[str, Any]:
         data = self._load()
-        members = data["members"]
+        members = self._members_for_bi(data)
         now = _now()
         active_count = sum(1 for item in members if item["status"] == "active")
         expiring_soon_count = sum(
@@ -1743,7 +2061,7 @@ class MemberConsoleService:
         has_overlay_candidates: bool | None = None,
     ) -> dict[str, Any]:
         data = self._load()
-        members = [deepcopy(item) for item in data["members"]]
+        members = self._members_for_bi(data)
         search_text = str(search or "").strip().lower()
         now = _now()
         heartbeat_user_ids: set[str] | None = None
@@ -1827,6 +2145,8 @@ class MemberConsoleService:
                     "last_active_at": item["last_active_at"],
                     "points_balance": item["points_balance"],
                     "review_due": item["review_due"],
+                    "canonical_user_id": item.get("canonical_user_id") or item["user_id"],
+                    "alias_user_ids": item.get("alias_user_ids") or [item["user_id"]],
                 }
             )
         return {
@@ -1911,6 +2231,7 @@ class MemberConsoleService:
         except Exception:
             logger.warning("Failed to load bot overlays for member 360: user_id=%s", user_id, exc_info=True)
             member["bot_overlays"] = []
+        member["recent_conversations"] = self._load_recent_conversations_for_member(member, user_id)
         return member
 
     def get_member_learner_state_panel(self, user_id: str, *, limit: int = 20) -> dict[str, Any]:

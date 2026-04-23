@@ -1,0 +1,73 @@
+{
+  "run_manifest": {
+    "run_id": "daily-trend-1776909771",
+    "generated_at": "2026-04-23 10:02:51",
+    "source_benchmark_run_id": "benchmark-1776909770",
+    "source_requested_suites": [
+      "regression_watch"
+    ],
+    "dataset_id": "benchmark_phase1",
+    "dataset_version": "phase1.0"
+  },
+  "release_spine": {
+    "release_id": "1.0.0+18f712757058+unknown",
+    "service_version": "1.0.0",
+    "git_sha": "18f712757058",
+    "deployment_environment": "unknown",
+    "prompt_version": "unset",
+    "ff_snapshot_hash": "none"
+  },
+  "metrics": {
+    "pass_rate": 1.0,
+    "new_regression_count": 0,
+    "continuity_floor": null,
+    "groundedness_floor": 1.0,
+    "surface_delivery_coverage": null,
+    "blind_spot_count": 0
+  },
+  "failure_taxonomy": [],
+  "failure_bucket_delta": [],
+  "suite_summaries": [
+    {
+      "suite": "regression_watch",
+      "total_cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "pass_rate": 1.0,
+      "failure_taxonomy": [],
+      "case_tiers": {
+        "regression_tier": 4
+      }
+    }
+  ],
+  "baseline_diff": {
+    "baseline_run_id": "benchmark-1776908971",
+    "current_run_id": "benchmark-1776909770",
+    "baseline_pass_rate": 1.0,
+    "current_pass_rate": 1.0,
+    "pass_rate_delta": 0.0,
+    "regressions": [],
+    "new_failures": [],
+    "recovered": []
+  },
+  "blind_spots": [],
+  "trend_points": [
+    {
+      "run_id": "benchmark-1776908971",
+      "generated_at": "2026-04-23 09:49:31",
+      "release_id": "1.0.0+18f712757058+unknown",
+      "pass_rate": 1.0,
+      "new_regression_count": 0,
+      "blind_spot_count": 1
+    },
+    {
+      "run_id": "benchmark-1776909770",
+      "generated_at": "2026-04-23 10:02:50",
+      "release_id": "1.0.0+18f712757058+unknown",
+      "pass_rate": 1.0,
+      "new_regression_count": 0,
+      "blind_spot_count": 0
+    }
+  ]
+}

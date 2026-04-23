@@ -1,0 +1,492 @@
+[
+  {
+    "case_id": "LD_001",
+    "title": "新手理解型：流水施工+横道图+网络计划",
+    "source_session_id": "eval_mt_8b26f0cc88b9",
+    "summary": {
+      "turns": 1,
+      "hard_errors": 1,
+      "followup_object_mismatch_count": 0,
+      "question_count_mismatch_count": 0,
+      "anchor_miss_count": 0,
+      "context_reset_count": 0,
+      "compare_table_miss_count": 0,
+      "stale_replay_count": 0,
+      "slow_turns": 0,
+      "avg_latency_ms": null,
+      "avg_ttft_ms": null,
+      "p50_ttft_ms": null,
+      "p90_ttft_ms": null,
+      "semantic_score": 88,
+      "satisfaction_score": 80,
+      "aborted": true,
+      "abort_reason": "ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "query": "我刚开始学建筑实务，流水施工一直搞不懂。你先别讲太专业，像给小白讲一样告诉我，什么叫流水施工？",
+        "response": "",
+        "ttft_ms": null,
+        "latency_ms": null,
+        "event_types": [],
+        "empty": true,
+        "hard_error": true,
+        "followup": false,
+        "followup_object_mismatch": false,
+        "question_count_mismatch": false,
+        "anchor_miss": false,
+        "context_reset": false,
+        "compare_table_miss": false,
+        "stale_replay": false,
+        "slow_turn": false,
+        "issues": [
+          "exception:ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+        ],
+        "semantic_penalty": 12,
+        "satisfaction_penalty": 20
+      }
+    ]
+  },
+  {
+    "case_id": "LD_002",
+    "title": "刷题纠错型：双代号网络计划+总时差自由时差",
+    "source_session_id": "eval_mt_58e80a642641",
+    "summary": {
+      "turns": 1,
+      "hard_errors": 1,
+      "followup_object_mismatch_count": 0,
+      "question_count_mismatch_count": 0,
+      "anchor_miss_count": 0,
+      "context_reset_count": 0,
+      "compare_table_miss_count": 0,
+      "stale_replay_count": 0,
+      "slow_turns": 0,
+      "avg_latency_ms": null,
+      "avg_ttft_ms": null,
+      "p50_ttft_ms": null,
+      "p90_ttft_ms": null,
+      "semantic_score": 88,
+      "satisfaction_score": 80,
+      "aborted": true,
+      "abort_reason": "ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "query": "我现在学到网络计划了，但我特别容易把总时差和自由时差搞混。你先别长篇讲概念，先给我出3道很短的小题，我做完你再分析。",
+        "response": "",
+        "ttft_ms": null,
+        "latency_ms": null,
+        "event_types": [],
+        "empty": true,
+        "hard_error": true,
+        "followup": false,
+        "followup_object_mismatch": false,
+        "question_count_mismatch": false,
+        "anchor_miss": false,
+        "context_reset": false,
+        "compare_table_miss": false,
+        "stale_replay": false,
+        "slow_turn": false,
+        "issues": [
+          "exception:ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+        ],
+        "semantic_penalty": 12,
+        "satisfaction_penalty": 20
+      }
+    ]
+  },
+  {
+    "case_id": "LD_003",
+    "title": "案例题条件保持型：招投标与合同管理",
+    "source_session_id": "eval_mt_e2f6a991c390",
+    "summary": {
+      "turns": 1,
+      "hard_errors": 1,
+      "followup_object_mismatch_count": 0,
+      "question_count_mismatch_count": 0,
+      "anchor_miss_count": 0,
+      "context_reset_count": 0,
+      "compare_table_miss_count": 0,
+      "stale_replay_count": 0,
+      "slow_turns": 0,
+      "avg_latency_ms": null,
+      "avg_ttft_ms": null,
+      "p50_ttft_ms": null,
+      "p90_ttft_ms": null,
+      "semantic_score": 88,
+      "satisfaction_score": 80,
+      "aborted": true,
+      "abort_reason": "ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "query": "你给我出一道建筑实务案例题，主题是招投标+合同管理，题干不要太长，但要有建设单位、总承包单位、分包单位、监理单位这几个角色。",
+        "response": "",
+        "ttft_ms": null,
+        "latency_ms": null,
+        "event_types": [],
+        "empty": true,
+        "hard_error": true,
+        "followup": false,
+        "followup_object_mismatch": false,
+        "question_count_mismatch": false,
+        "anchor_miss": false,
+        "context_reset": false,
+        "compare_table_miss": false,
+        "stale_replay": false,
+        "slow_turn": false,
+        "issues": [
+          "exception:ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+        ],
+        "semantic_penalty": 12,
+        "satisfaction_penalty": 20
+      }
+    ]
+  },
+  {
+    "case_id": "LD_004",
+    "title": "学习规划型：30天冲刺计划",
+    "source_session_id": "eval_mt_b7bb7c533810",
+    "summary": {
+      "turns": 1,
+      "hard_errors": 1,
+      "followup_object_mismatch_count": 0,
+      "question_count_mismatch_count": 0,
+      "anchor_miss_count": 0,
+      "context_reset_count": 0,
+      "compare_table_miss_count": 0,
+      "stale_replay_count": 0,
+      "slow_turns": 0,
+      "avg_latency_ms": null,
+      "avg_ttft_ms": null,
+      "p50_ttft_ms": null,
+      "p90_ttft_ms": null,
+      "semantic_score": 88,
+      "satisfaction_score": 80,
+      "aborted": true,
+      "abort_reason": "ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "query": "我离一建建筑实务考试还有30天。我平时工作忙，周一到周五每天最多学1.5小时，周末每天4小时。我现在选择题一般，案例题偏弱，尤其是进度管理和索赔。你先帮我做一个30天学习框架，但不要排得太满。",
+        "response": "",
+        "ttft_ms": null,
+        "latency_ms": null,
+        "event_types": [],
+        "empty": true,
+        "hard_error": true,
+        "followup": false,
+        "followup_object_mismatch": false,
+        "question_count_mismatch": false,
+        "anchor_miss": false,
+        "context_reset": false,
+        "compare_table_miss": false,
+        "stale_replay": false,
+        "slow_turn": false,
+        "issues": [
+          "exception:ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+        ],
+        "semantic_penalty": 12,
+        "satisfaction_penalty": 20
+      }
+    ]
+  },
+  {
+    "case_id": "LD_005",
+    "title": "抗干扰型：模板脚手架与安全文明施工",
+    "source_session_id": "eval_mt_0f1552a8043b",
+    "summary": {
+      "turns": 1,
+      "hard_errors": 1,
+      "followup_object_mismatch_count": 0,
+      "question_count_mismatch_count": 0,
+      "anchor_miss_count": 0,
+      "context_reset_count": 0,
+      "compare_table_miss_count": 0,
+      "stale_replay_count": 0,
+      "slow_turns": 0,
+      "avg_latency_ms": null,
+      "avg_ttft_ms": null,
+      "p50_ttft_ms": null,
+      "p90_ttft_ms": null,
+      "semantic_score": 88,
+      "satisfaction_score": 80,
+      "aborted": true,
+      "abort_reason": "ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "query": "我学建筑实务时，模板工程、脚手架、安全文明施工老是混在一起。你先别讲课，先给我出5个判断题，我做完你再说。注意：我最容易混的是安全管理条文。",
+        "response": "",
+        "ttft_ms": null,
+        "latency_ms": null,
+        "event_types": [],
+        "empty": true,
+        "hard_error": true,
+        "followup": false,
+        "followup_object_mismatch": false,
+        "question_count_mismatch": false,
+        "anchor_miss": false,
+        "context_reset": false,
+        "compare_table_miss": false,
+        "stale_replay": false,
+        "slow_turn": false,
+        "issues": [
+          "exception:ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+        ],
+        "semantic_penalty": 12,
+        "satisfaction_penalty": 20
+      }
+    ]
+  },
+  {
+    "case_id": "LD_006",
+    "title": "错题追踪型：钢筋工程",
+    "source_session_id": "eval_mt_6024790baabd",
+    "summary": {
+      "turns": 1,
+      "hard_errors": 1,
+      "followup_object_mismatch_count": 0,
+      "question_count_mismatch_count": 0,
+      "anchor_miss_count": 0,
+      "context_reset_count": 0,
+      "compare_table_miss_count": 0,
+      "stale_replay_count": 0,
+      "slow_turns": 0,
+      "avg_latency_ms": null,
+      "avg_ttft_ms": null,
+      "p50_ttft_ms": null,
+      "p90_ttft_ms": null,
+      "semantic_score": 88,
+      "satisfaction_score": 80,
+      "aborted": true,
+      "abort_reason": "ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "query": "我钢筋工程这块总是搞混搭接长度和锚固长度。你先出3道判断题测测我。",
+        "response": "",
+        "ttft_ms": null,
+        "latency_ms": null,
+        "event_types": [],
+        "empty": true,
+        "hard_error": true,
+        "followup": false,
+        "followup_object_mismatch": false,
+        "question_count_mismatch": false,
+        "anchor_miss": false,
+        "context_reset": false,
+        "compare_table_miss": false,
+        "stale_replay": false,
+        "slow_turn": false,
+        "issues": [
+          "exception:ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+        ],
+        "semantic_penalty": 12,
+        "satisfaction_penalty": 20
+      }
+    ]
+  },
+  {
+    "case_id": "LD_007",
+    "title": "换表达型：地下防水工程",
+    "source_session_id": "eval_mt_7e68df309b2d",
+    "summary": {
+      "turns": 1,
+      "hard_errors": 1,
+      "followup_object_mismatch_count": 0,
+      "question_count_mismatch_count": 0,
+      "anchor_miss_count": 0,
+      "context_reset_count": 0,
+      "compare_table_miss_count": 0,
+      "stale_replay_count": 0,
+      "slow_turns": 0,
+      "avg_latency_ms": null,
+      "avg_ttft_ms": null,
+      "p50_ttft_ms": null,
+      "p90_ttft_ms": null,
+      "semantic_score": 88,
+      "satisfaction_score": 80,
+      "aborted": true,
+      "abort_reason": "ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "query": "地下室防水工程中，防水等级是怎么划分的？",
+        "response": "",
+        "ttft_ms": null,
+        "latency_ms": null,
+        "event_types": [],
+        "empty": true,
+        "hard_error": true,
+        "followup": false,
+        "followup_object_mismatch": false,
+        "question_count_mismatch": false,
+        "anchor_miss": false,
+        "context_reset": false,
+        "compare_table_miss": false,
+        "stale_replay": false,
+        "slow_turn": false,
+        "issues": [
+          "exception:ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+        ],
+        "semantic_penalty": 12,
+        "satisfaction_penalty": 20
+      }
+    ]
+  },
+  {
+    "case_id": "LD_008",
+    "title": "情绪干扰型：进度管理",
+    "source_session_id": "eval_mt_fea950d536d0",
+    "summary": {
+      "turns": 1,
+      "hard_errors": 1,
+      "followup_object_mismatch_count": 0,
+      "question_count_mismatch_count": 0,
+      "anchor_miss_count": 0,
+      "context_reset_count": 0,
+      "compare_table_miss_count": 0,
+      "stale_replay_count": 0,
+      "slow_turns": 0,
+      "avg_latency_ms": null,
+      "avg_ttft_ms": null,
+      "p50_ttft_ms": null,
+      "p90_ttft_ms": null,
+      "semantic_score": 88,
+      "satisfaction_score": 80,
+      "aborted": true,
+      "abort_reason": "ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "query": "我学进度管理快崩溃了，每次算关键线路都算不对，考试还有20天我觉得来不及了。",
+        "response": "",
+        "ttft_ms": null,
+        "latency_ms": null,
+        "event_types": [],
+        "empty": true,
+        "hard_error": true,
+        "followup": false,
+        "followup_object_mismatch": false,
+        "question_count_mismatch": false,
+        "anchor_miss": false,
+        "context_reset": false,
+        "compare_table_miss": false,
+        "stale_replay": false,
+        "slow_turn": false,
+        "issues": [
+          "exception:ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+        ],
+        "semantic_penalty": 12,
+        "satisfaction_penalty": 20
+      }
+    ]
+  },
+  {
+    "case_id": "LD_009",
+    "title": "条件修改型：基坑工程",
+    "source_session_id": "eval_mt_66deef7e87a0",
+    "summary": {
+      "turns": 1,
+      "hard_errors": 1,
+      "followup_object_mismatch_count": 0,
+      "question_count_mismatch_count": 0,
+      "anchor_miss_count": 0,
+      "context_reset_count": 0,
+      "compare_table_miss_count": 0,
+      "stale_replay_count": 0,
+      "slow_turns": 0,
+      "avg_latency_ms": null,
+      "avg_ttft_ms": null,
+      "p50_ttft_ms": null,
+      "p90_ttft_ms": null,
+      "semantic_score": 88,
+      "satisfaction_score": 80,
+      "aborted": true,
+      "abort_reason": "ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "query": "你给我出一道基坑工程安全方案的案例题。要求：基坑深度8m，周边30m内有地铁隧道，采用钢板桩支护。设4个问题。",
+        "response": "",
+        "ttft_ms": null,
+        "latency_ms": null,
+        "event_types": [],
+        "empty": true,
+        "hard_error": true,
+        "followup": false,
+        "followup_object_mismatch": false,
+        "question_count_mismatch": false,
+        "anchor_miss": false,
+        "context_reset": false,
+        "compare_table_miss": false,
+        "stale_replay": false,
+        "slow_turn": false,
+        "issues": [
+          "exception:ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+        ],
+        "semantic_penalty": 12,
+        "satisfaction_penalty": 20
+      }
+    ]
+  },
+  {
+    "case_id": "LD_010",
+    "title": "跨话题型：质量验收 vs 安全管理",
+    "source_session_id": "eval_mt_97b83305b90c",
+    "summary": {
+      "turns": 1,
+      "hard_errors": 1,
+      "followup_object_mismatch_count": 0,
+      "question_count_mismatch_count": 0,
+      "anchor_miss_count": 0,
+      "context_reset_count": 0,
+      "compare_table_miss_count": 0,
+      "stale_replay_count": 0,
+      "slow_turns": 0,
+      "avg_latency_ms": null,
+      "avg_ttft_ms": null,
+      "p50_ttft_ms": null,
+      "p90_ttft_ms": null,
+      "semantic_score": 88,
+      "satisfaction_score": 80,
+      "aborted": true,
+      "abort_reason": "ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "query": "我想先学质量验收，再学安全管理，最后你帮我对比。先从质量验收开始：主体结构验收的基本程序是什么？",
+        "response": "",
+        "ttft_ms": null,
+        "latency_ms": null,
+        "event_types": [],
+        "empty": true,
+        "hard_error": true,
+        "followup": true,
+        "followup_object_mismatch": false,
+        "question_count_mismatch": false,
+        "anchor_miss": false,
+        "context_reset": false,
+        "compare_table_miss": false,
+        "stale_replay": false,
+        "slow_turn": false,
+        "issues": [
+          "exception:ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8001)"
+        ],
+        "semantic_penalty": 12,
+        "satisfaction_penalty": 20
+      }
+    ]
+  }
+]

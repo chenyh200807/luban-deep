@@ -185,8 +185,8 @@ run("bottom bar container should not keep its own bottom gap", function () {
     "chat bottom composer should expose a compact visual variant in WXML",
   );
   assert(
-    /data-m="FAST"><text class="mode-pill-txt">快速<\/text><\/view>\s*<view class="mode-pill \{\{enableReason \? 'on' : ''\}\}" bindtap="onToggleReason"/.test(chatWxml),
-    "reason toggle should sit in the same mode row immediately to the right of the FAST pill",
+    !/onToggleReason|开启推理|关闭推理|<text class="mode-pill-txt">推理<\/text>/.test(chatWxml),
+    "chat composer should not render the reason toggle",
   );
   assert(
     !/tool-row|tool-chip/.test(chatWxml),

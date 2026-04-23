@@ -1,0 +1,53 @@
+{
+  "kind": "incident_ledger",
+  "run_id": "incident-replay-1776908972",
+  "release_id": "1.0.0+18f712757058+unknown",
+  "recorded_at": 1776908972,
+  "payload": {
+    "run_manifest": {
+      "run_id": "incident-replay-1776908972",
+      "generated_at": "2026-04-23 09:49:32",
+      "incident_id": "INC-20260423-001",
+      "source_benchmark_run_id": "benchmark-1776908971",
+      "source_requested_suites": [
+        "incident_replay"
+      ],
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0"
+    },
+    "release_spine": {
+      "release_id": "1.0.0+18f712757058+unknown",
+      "service_version": "1.0.0",
+      "git_sha": "18f712757058",
+      "deployment_environment": "unknown",
+      "prompt_version": "unset",
+      "ff_snapshot_hash": "none"
+    },
+    "classification": {
+      "known_regression_count": 0,
+      "new_failure_count": 0,
+      "current_failure_count": 0,
+      "blind_spot_count": 1
+    },
+    "failure_taxonomy": [],
+    "failures": [],
+    "baseline_diff": null,
+    "blind_spots": [
+      {
+        "suite": "incident_replay",
+        "case_id": "surface.web.ack.smoke",
+        "case_name": "surface.web.ack.smoke",
+        "reason": "missing_api_base_url"
+      }
+    ],
+    "replay_candidates": [
+      {
+        "incident_id": "INC-20260423-001",
+        "case_id": "surface.web.ack.smoke",
+        "suite": "incident_replay",
+        "reason": "missing_api_base_url",
+        "recommended_tier": "incident_replay"
+      }
+    ]
+  }
+}
