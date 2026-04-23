@@ -28,6 +28,14 @@ def _gate_entry(
     }
 
 
+def _benchmark_pass_rate(case_results: list[dict[str, Any]]) -> float | None:
+    executed = [item for item in case_results if item.get("status") != "SKIP"]
+    if not executed:
+        return None
+    passed = len([item for item in executed if item.get("status") == "PASS"])
+    return round(passed / len(executed), 4)
+
+
 def build_release_gate_report(
     *,
     om_payload: dict[str, Any] | None,
@@ -86,31 +94,37 @@ def build_release_gate_report(
         )
     )
 
+    benchmark_case_results = (arr_payload or {}).get("benchmark_case_results") or []
+    benchmark_manifest = (arr_payload or {}).get("benchmark_run_manifest") or {}
+    benchmark_blind_spots = (arr_payload or {}).get("blind_spots") or []
     arr_summary = (arr_payload or {}).get("summary") or {}
     arr_diff = (arr_payload or {}).get("baseline_diff") or {}
-    new_critical_regressions = len(arr_diff.get("regressions") or [])
+    benchmark_pass_rate = _benchmark_pass_rate(benchmark_case_results) if benchmark_case_results else arr_summary.get("pass_rate")
+    new_critical_regressions = len(arr_diff.get("regressions") or []) + len(arr_diff.get("new_failures") or [])
     p2_status = _SKIP
-    p2_summary = "未提供 ARR run"
+    p2_summary = "未提供 benchmark / ARR run"
     p2_blockers: list[str] = []
     if arr_payload:
-        pass_rate = arr_summary.get("pass_rate")
+        pass_rate = benchmark_pass_rate
         has_new_critical = new_critical_regressions > 0
         p2_status = _PASS
-        p2_summary = "ARR canary/lite 当前无新增 critical regression"
+        p2_summary = "benchmark 当前无新增 regression"
         if has_new_critical:
             p2_status = _FAIL
-            p2_summary = "ARR 出现新增 regression"
-            p2_blockers.append("new_arr_regression")
+            p2_summary = "benchmark 出现新增 regression 或 new failure"
+            p2_blockers.append("new_benchmark_regression")
         elif isinstance(pass_rate, (int, float)) and float(pass_rate) < 0.9:
             p2_status = _WARN
-            p2_summary = "ARR pass rate 偏低，但当前没有新增 critical regression"
+            p2_summary = "benchmark pass rate 偏低，但当前没有新增 regression"
     gate_results.append(
         _gate_entry(
-            gate="P2 ARR",
+            gate="P2 Benchmark Regression",
             status=p2_status,
             summary=p2_summary,
             evidence=[
-                f"pass_rate={arr_summary.get('pass_rate')}",
+                f"benchmark_run_id={benchmark_manifest.get('run_id')}",
+                f"requested_suites={benchmark_manifest.get('requested_suites')}",
+                f"pass_rate={benchmark_pass_rate}",
                 f"regressions={new_critical_regressions}",
                 f"new_failures={len(arr_diff.get('new_failures') or [])}",
             ],
@@ -144,19 +158,19 @@ def build_release_gate_report(
         )
     )
 
-    blind_spots = (oa_payload or {}).get("blind_spots") or []
+    blind_spots = [*benchmark_blind_spots, *((oa_payload or {}).get("blind_spots") or [])]
     root_causes = (oa_payload or {}).get("root_causes") or []
     p4_status = _SKIP
-    p4_summary = "未提供 OA run"
-    if oa_payload:
+    p4_summary = "未提供 benchmark blind spots 或 OA run"
+    if benchmark_blind_spots or oa_payload:
         p4_status = _PASS
-        p4_summary = "OA 已产出 blind spots / root causes / playbook"
+        p4_summary = "benchmark / OA 已产出 blind spots / root causes / playbook"
         if len(blind_spots) >= 3:
             p4_status = _WARN
-            p4_summary = "OA blind spots 偏多，发布判断需要保守"
+            p4_summary = "benchmark / OA blind spots 偏多，发布判断需要保守"
     gate_results.append(
         _gate_entry(
-            gate="P4 OA",
+            gate="P4 Blind Spot Budget",
             status=p4_status,
             summary=p4_summary,
             evidence=[
@@ -184,6 +198,7 @@ def build_release_gate_report(
         "blockers": blockers,
         "blind_spots": blind_spots,
         "latest_runs": {
+            "benchmark_run_id": benchmark_manifest.get("run_id"),
             "om_run_id": (om_payload or {}).get("run_id"),
             "arr_run_id": (arr_payload or {}).get("run_id"),
             "aae_run_id": (aae_payload or {}).get("run_id"),
