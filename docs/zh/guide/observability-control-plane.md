@@ -23,6 +23,8 @@
 4. `oa_runs`
 5. `release_gate_runs`
 6. `incident_ledger`
+7. `benchmark_runs`
+8. `daily_trends`
 
 每个 kind 都包含：
 
@@ -95,6 +97,25 @@ python3.11 scripts/run_oa.py --mode incident
 ```bash
 python3.11 scripts/run_release_gate.py
 ```
+
+### 2.5.1 Benchmark 单一主脊梁
+
+canonical benchmark runbook 见：
+
+- [docs/zh/guide/benchmark-spine.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/zh/guide/benchmark-spine.md)
+
+三个固定消费视图：
+
+```bash
+python3.11 scripts/run_benchmark.py pr_gate_core --output-dir tmp/benchmark/pr-gate
+python3.11 scripts/run_daily_benchmark.py --output-dir tmp/benchmark/daily
+python3.11 scripts/run_incident_replay.py --incident-id INC-001 --output-dir tmp/benchmark/incident
+```
+
+控制面新增：
+
+1. `benchmark_runs`
+2. `daily_trends`
 
 ### 2.6 Unified WS Smoke
 
