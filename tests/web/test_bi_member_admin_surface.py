@@ -152,6 +152,9 @@ def test_bi_api_sends_metrics_token_header() -> None:
     assert "withBiApiToken" in source
     assert "BI_API_TOKEN" in source
     assert "X-Metrics-Token" in api_source
+    assert "__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__" in api_source
+    assert '"__NEXT_PUBLIC_BI_API_TOKEN_" + "PLACEHOLDER__"' in api_source
+    assert 'resolvedBiApiToken === BI_API_TOKEN_PLACEHOLDER ? ""' in api_source
 
 
 def test_bi_page_client_exposes_token_read_only_mode() -> None:

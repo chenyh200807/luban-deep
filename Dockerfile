@@ -324,6 +324,8 @@ echo "[Frontend] 🚀 Starting Next.js frontend on port ${FRONTEND_PORT}..."
 find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
     sed -i "s|__NEXT_PUBLIC_API_BASE_PLACEHOLDER__|${API_BASE}|g" {} \; 2>/dev/null || true
 find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
+    sed -i "s|http://localhost:${BACKEND_PORT}|${API_BASE}|g" {} \; 2>/dev/null || true
+find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
     sed -i "s|__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__|${BI_API_TOKEN}|g" {} \; 2>/dev/null || true
 
 # Start Next.js standalone server

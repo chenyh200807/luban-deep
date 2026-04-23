@@ -1,11 +1,16 @@
 // API configuration and utility functions
 
 const CURRENT_ORIGIN_SENTINEL = "__CURRENT_ORIGIN__";
+const BI_API_TOKEN_PLACEHOLDER = "__NEXT_PUBLIC_BI_API_TOKEN_" + "PLACEHOLDER__";
+const INJECTED_BI_API_TOKEN = "__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__";
 
 // Keep the injected API base when it exists. Otherwise, browser surfaces fall back
 // to the current origin so IP and domain entrances can both use same-origin `/api/...`.
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE?.trim() || "";
-export const BI_API_TOKEN = process.env.NEXT_PUBLIC_BI_API_TOKEN?.trim() || "";
+const resolvedBiApiToken =
+  process.env.NEXT_PUBLIC_BI_API_TOKEN?.trim() || INJECTED_BI_API_TOKEN;
+export const BI_API_TOKEN =
+  resolvedBiApiToken === BI_API_TOKEN_PLACEHOLDER ? "" : resolvedBiApiToken;
 const BI_ADMIN_SESSION_STORAGE_KEY = "deeptutor.bi.admin.session";
 
 export type BiAdminSession = {
