@@ -1067,7 +1067,7 @@ async def test_tutorbot_capability_prefers_canonical_chat_mode_over_legacy_hints
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_capability_fast_mode_sets_preferred_model_override(
+async def test_tutorbot_capability_fast_mode_does_not_set_model_override(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, Any] = {}
@@ -1124,7 +1124,7 @@ async def test_tutorbot_capability_fast_mode_sets_preferred_model_override(
     await _collect_events(lambda bus: capability.run(context, bus))
 
     assert captured["mode"] == "fast"
-    assert captured["session_metadata"]["preferred_model"] == "deepseek-v3.2"
+    assert "preferred_model" not in captured["session_metadata"]
 
 
 @pytest.mark.asyncio
@@ -2911,7 +2911,7 @@ async def test_tutorbot_process_direct_limits_tool_schemas_to_default_tools(
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_process_direct_uses_preferred_model_override(
+async def test_tutorbot_process_direct_ignores_preferred_model_metadata(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -2970,7 +2970,7 @@ async def test_tutorbot_process_direct_uses_preferred_model_override(
     )
 
     assert content == "已完成"
-    assert captured["model"] == "deepseek-v3.2"
+    assert captured["model"] == "default-model"
 
 
 @pytest.mark.asyncio
