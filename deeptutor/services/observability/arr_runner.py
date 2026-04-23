@@ -682,56 +682,25 @@ async def run_arr(
     if mode not in {"lite", "full"}:
         raise ValueError(f"Unsupported ARR mode: {mode}")
 
-    suite_summaries: list[dict[str, Any]] = []
-    case_results: list[dict[str, Any]] = []
+    from deeptutor.services.benchmark.runner import run_benchmark
 
-    semantic_summary, semantic_results = await run_semantic_router_suite()
-    suite_summaries.append(semantic_summary)
-    case_results.extend(semantic_results)
-
-    context_summary, context_results = run_context_orchestration_suite()
-    suite_summaries.append(context_summary)
-    case_results.extend(context_results)
-
-    rag_summary, rag_results = run_rag_grounding_suite()
-    suite_summaries.append(rag_summary)
-    case_results.extend(rag_results)
-
-    long_dialog_summary, long_dialog_results = await run_long_dialog_suite(
-        mode=mode,
-        explicit_source_json=explicit_long_dialog_source_json,
-        max_cases=long_dialog_max_cases or (1 if mode == "lite" else None),
+    benchmark_payload = await run_benchmark(
+        suite_names=("pr_gate_core", "regression_watch", "incident_replay"),
+        explicit_long_dialog_source_json=explicit_long_dialog_source_json,
+        long_dialog_max_cases=long_dialog_max_cases or (1 if mode == "lite" else None),
         output_dir=output_dir,
         api_base_url=api_base_url,
         response_mode=response_mode,
+        long_dialog_mode=mode,
     )
-    suite_summaries.append(long_dialog_summary)
-    case_results.extend(long_dialog_results)
-
-    generated_at = time.strftime("%Y-%m-%d %H:%M:%S")
-    release_snapshot = get_release_lineage_snapshot()
-    run_id = f"arr-{mode}-{int(time.time())}"
-    payload = {
-        "run_id": run_id,
-        "generated_at": generated_at,
-        "mode": mode,
-        "release": release_snapshot,
-        "suite_summaries": suite_summaries,
-        "case_results": case_results,
-        "summary": _build_summary(case_results),
-        "execution_context": {
-            "api_base_url": api_base_url.rstrip("/") if api_base_url else None,
-            "response_mode": str(response_mode or "smart"),
-            "suite_execution_modes": {
-                "semantic-router": "static_analysis",
-                "context-orchestration": "static_analysis",
-                "rag-grounding": "static_analysis",
-                "long-dialog-focus" if mode == "lite" else "long-dialog-full": (
-                    "live_ws" if api_base_url else "in_process_runtime"
-                ),
-            },
-        },
-    }
+    payload = dict(benchmark_payload["legacy"])
+    payload["benchmark_run_manifest"] = benchmark_payload["run_manifest"]
+    payload["release_spine"] = benchmark_payload["release_spine"]
+    payload["benchmark_suite_summaries"] = benchmark_payload["suite_summaries"]
+    payload["benchmark_case_results"] = benchmark_payload["case_results"]
+    payload["benchmark_failure_taxonomy"] = benchmark_payload["failure_taxonomy"]
+    payload["runtime_evidence_links"] = benchmark_payload["runtime_evidence_links"]
+    payload["blind_spots"] = benchmark_payload["blind_spots"]
     payload["baseline_diff"] = compute_baseline_diff(
         baseline_payload=baseline_payload,
         current_payload=payload,

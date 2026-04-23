@@ -13,6 +13,7 @@ from deeptutor.services.observability.arr_runner import (
     compute_baseline_diff,
     load_arr_baseline_payload,
     resolve_long_dialog_source_path,
+    run_arr,
     run_local_long_dialog_suite,
     run_context_orchestration_suite,
     run_rag_grounding_suite,
@@ -432,3 +433,119 @@ def test_write_arr_artifacts_writes_html_and_analysis_json(tmp_path) -> None:
     assert analysis_path.exists()
     analysis = json.loads(analysis_path.read_text(encoding="utf-8"))
     assert analysis["run_summary"]["run_id"] == "arr-lite-demo"
+
+
+@pytest.mark.asyncio
+async def test_run_arr_uses_canonical_runner_legacy_view(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    async def fake_run_benchmark(**kwargs):
+        captured.update(kwargs)
+        return {
+            "run_manifest": {
+                "run_id": "benchmark-1",
+                "generated_at": "2026-04-23 12:00:00",
+                "registry_version": "phase1",
+                "dataset_id": "benchmark_phase1",
+                "requested_suites": ["pr_gate_core", "regression_watch", "incident_replay"],
+            },
+            "release_spine": {"release_id": "rel-1"},
+            "suite_summaries": [
+                {
+                    "suite": "pr_gate_core",
+                    "total_cases": 1,
+                    "passed": 1,
+                    "failed": 0,
+                    "skipped": 0,
+                    "pass_rate": 1.0,
+                    "failure_taxonomy": [],
+                    "case_tiers": {"gate_stable": 1},
+                }
+            ],
+            "case_results": [],
+            "failure_taxonomy": [],
+            "summary": {
+                "total_cases": 1,
+                "executed_cases": 1,
+                "passed": 1,
+                "failed": 0,
+                "skipped": 0,
+                "pass_rate": 1.0,
+                "case_tiers": {"gate_stable": 1},
+                "failure_taxonomy": [],
+            },
+            "baseline_diff": None,
+            "runtime_evidence_links": [{"suite": "incident_replay", "case_id": "case_a", "metrics_url": "http://m"}],
+            "blind_spots": [{"suite": "incident_replay", "case_id": "surface.web.ack.smoke", "reason": "missing_api_base_url"}],
+            "legacy": {
+                "run_id": "arr-lite-1",
+                "generated_at": "2026-04-23 12:00:00",
+                "mode": "lite",
+                "release": {"release_id": "rel-1"},
+                "suite_summaries": [
+                    {
+                        "suite": "semantic-router",
+                        "total_cases": 1,
+                        "passed": 1,
+                        "failed": 0,
+                        "skipped": 0,
+                        "pass_rate": 1.0,
+                        "failure_taxonomy": [],
+                        "case_tiers": {"gate_stable": 1},
+                    }
+                ],
+                "case_results": [
+                    {
+                        "suite": "semantic-router",
+                        "case_id": "case_a",
+                        "case_name": "case_a",
+                        "status": "PASS",
+                        "case_tier": "gate_stable",
+                        "failure_type": None,
+                        "evidence": {},
+                        "latency_ms": 1.0,
+                        "details": {},
+                    }
+                ],
+                "summary": {
+                    "total_cases": 1,
+                    "executed_cases": 1,
+                    "passed": 1,
+                    "failed": 0,
+                    "skipped": 0,
+                    "pass_rate": 1.0,
+                    "case_tiers": {"gate_stable": 1},
+                    "gate_stable_pass_rate": 1.0,
+                    "regression_tier_failed": 0,
+                    "failure_taxonomy": [],
+                },
+                "execution_context": {
+                    "api_base_url": None,
+                    "response_mode": "smart",
+                    "suite_execution_modes": {"semantic-router": "static_analysis"},
+                },
+                "baseline_diff": None,
+                "gate_summary": {
+                    "bootstrap_mode": True,
+                    "gate_stable_pass_rate": 1.0,
+                    "regression_tier_failed": 0,
+                    "new_regressions": 0,
+                },
+            },
+        }
+
+    monkeypatch.setattr("deeptutor.services.benchmark.runner.run_benchmark", fake_run_benchmark)
+
+    payload = await run_arr(mode="lite")
+
+    assert captured["suite_names"] == ("pr_gate_core", "regression_watch", "incident_replay")
+    assert captured["long_dialog_max_cases"] == 1
+    assert payload["run_id"] == "arr-lite-1"
+    assert payload["suite_summaries"][0]["suite"] == "semantic-router"
+    assert payload["benchmark_run_manifest"]["run_id"] == "benchmark-1"
+    assert payload["summary"]["passed"] == 1
+    assert payload["gate_summary"]["gate_stable_pass_rate"] == 1.0
+    assert payload["runtime_evidence_links"][0]["metrics_url"] == "http://m"
+    assert payload["blind_spots"][0]["reason"] == "missing_api_base_url"
