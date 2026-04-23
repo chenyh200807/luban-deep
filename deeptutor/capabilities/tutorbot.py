@@ -208,9 +208,12 @@ class TutorBotCapability(BaseCapability):
                 session_metadata=session_metadata,
             )
             final_response = response or "".join(chunks)
-            parsed_result_summary = build_choice_result_summary_from_exact_question(
-                turn_summary["exact_question"]
-            ) or extract_choice_result_summary_from_text(final_response)
+            if turn_summary["authority_applied"]:
+                parsed_result_summary = None
+            else:
+                parsed_result_summary = build_choice_result_summary_from_exact_question(
+                    turn_summary["exact_question"]
+                ) or extract_choice_result_summary_from_text(final_response)
             visible_response = self._build_visible_response(
                 context=context,
                 final_response=final_response,

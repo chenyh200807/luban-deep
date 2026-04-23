@@ -164,6 +164,7 @@ async def test_supabase_search_prioritizes_parallel_exact_question_match(
     monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
 
     pipeline = supabase_module.SupabasePipeline()
+    full_exact_stem = "确定屋面防水工程的防水等级应根据什么，且不得被 card_title 截断"
 
     async def _fake_search_exact_question_text(**kwargs):
         assert kwargs["probe_query"] == "确定屋面防水工程的防水等级应根据什么"
@@ -171,7 +172,11 @@ async def test_supabase_search_prioritizes_parallel_exact_question_match(
             {
                 "id": "q-exact",
                 "chunk_id": "question-q-exact",
-                "card_title": "题目: 确定屋面防水工程的防水等级应根据什么",
+                "card_title": f"题目: {full_exact_stem[:18]}",
+                "stem": full_exact_stem,
+                "options": [{"key": "A", "value": "建筑物类别"}],
+                "correct_answer": "A",
+                "analysis": "以题库原题为准。",
                 "rag_content": "【题目】确定屋面防水工程的防水等级应根据什么\n【答案】建筑物类别",
                 "source_type": "textbook_assessment",
                 "score": 1.0,
@@ -223,6 +228,8 @@ async def test_supabase_search_prioritizes_parallel_exact_question_match(
     assert result["sources"][0]["source_type"] == "textbook_assessment"
     assert result["exact_question"]["chunk_id"] == "question-q-exact"
     assert result["exact_question"]["source_group"] == "question_exact_text"
+    assert result["exact_question"]["stem"] == full_exact_stem
+    assert result["exact_question"]["options"] == [{"key": "A", "value": "建筑物类别"}]
 
 
 @pytest.mark.asyncio

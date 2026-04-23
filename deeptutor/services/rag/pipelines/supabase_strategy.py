@@ -144,6 +144,14 @@ _QUESTION_TYPE_ALIASES: dict[str, set[str]] = {
 }
 
 
+def _strip_exact_question_edge_noise(text: str, *, strip_trailing: bool = True) -> str:
+    clean = str(text or "").strip()
+    clean = re.sub(r"^[^\w\u4e00-\u9fff]+", "", clean, flags=re.UNICODE)
+    if strip_trailing:
+        clean = re.sub(r"[^\w\u4e00-\u9fff]+$", "", clean, flags=re.UNICODE)
+    return clean.strip()
+
+
 @dataclass(slots=True)
 class SourceSelectionPlan:
     search_questions_bank: bool = True
@@ -505,6 +513,7 @@ def prepare_exact_question_probe(query: str) -> ExactQuestionProbe | None:
     stage_query = re.sub(r"^(?:单选题|多选题|选择题|真题|题目)\s*[：:]\s*", "", stage_query).strip()
     cleaned = stage_query.replace("（", "").replace("）", "").split("\n")[0].strip()
     cleaned = re.sub(r"[。？：:]$", "", cleaned)
+    cleaned = _strip_exact_question_edge_noise(cleaned)
     if len(cleaned) < 6:
         cleaned = stage_query
 
@@ -528,6 +537,7 @@ def build_exact_question_text_candidates(query: str, *, max_candidates: int = 6)
         clean = str(value or "").strip()
         clean = re.sub(r"\s+", " ", clean)
         clean = re.sub(r"[。？：:]$", "", clean)
+        clean = _strip_exact_question_edge_noise(clean, strip_trailing=False)
         if clean and clean not in candidates:
             candidates.append(clean)
 
@@ -645,10 +655,15 @@ def validate_exact_question_options(
                 if isinstance(value, str):
                     option_values.append(value)
 
+    required_matches = 2 if len(option_values) >= 3 else 1
+    matches = 0
     for value in option_values:
         clean = _normalize_option_surface(value)
-        if len(clean) >= 4 and clean[:12] in query_lower:
-            return True
+        min_len = 2 if re.search(r"[\u4e00-\u9fff]", clean) else 4
+        if len(clean) >= min_len and clean[:12] in query_lower:
+            matches += 1
+            if matches >= required_matches:
+                return True
     return False
 
 

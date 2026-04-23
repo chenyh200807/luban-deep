@@ -775,6 +775,12 @@ def _build_presentation_payload(message: dict[str, Any]) -> dict[str, Any] | Non
         if not isinstance(event, dict):
             continue
         metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+        if metadata.get("authority_applied") is True:
+            return None
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
         presentation = metadata.get("presentation")
         if isinstance(presentation, dict):
             return presentation

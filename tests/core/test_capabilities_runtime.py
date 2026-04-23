@@ -1348,6 +1348,100 @@ async def test_tutorbot_capability_emits_structured_mcq_summary_for_plain_text_g
     assert len(followup_context["items"]) == 2
 
 
+@pytest.mark.asyncio
+async def test_tutorbot_capability_does_not_turn_exact_authority_answer_into_mcq_presentation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            if on_tool_result is not None:
+                await on_tool_result(
+                    "rag",
+                    "题库命中原题",
+                    {
+                        "authority_applied": True,
+                        "exact_question": {
+                            "answer_kind": "mcq",
+                            "stem": "结构的可靠性包括（　　）",
+                            "question_type": "multi_choice",
+                            "correct_answer": "BCE",
+                            "analysis": "结构的可靠性包括安全性、适用性、耐久性。",
+                            "options": [
+                                {"key": "A", "value": "稳定"},
+                                {"key": "B", "value": "安全性"},
+                                {"key": "C", "value": "耐久性"},
+                                {"key": "D", "value": "经济性"},
+                                {"key": "E", "value": "适用性"},
+                            ],
+                        },
+                    },
+                )
+            return "\n".join(
+                [
+                    "题干：结构的可靠性包括（　　）",
+                    "选项：",
+                    "A. 稳定",
+                    "B. 安全性",
+                    "C. 耐久性",
+                    "D. 经济性",
+                    "E. 适用性",
+                    "标准答案：BCE",
+                    "解析：结构的可靠性包括安全性、适用性、耐久性。",
+                ]
+            )
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-exact-authority",
+        user_message=".结构的可靠性包括（ ）\nA.稳定 B.安全性\nC.耐久性 D.经济性\nE.适用性",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
+        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["authority_applied"] is True
+    assert result_event.metadata["response"].startswith("题干：结构的可靠性包括")
+    assert "presentation" not in result_event.metadata
+    assert "question_followup_context" not in result_event.metadata
+
+
 @pytest.mark.parametrize("chat_mode", ["fast", "deep"])
 @pytest.mark.asyncio
 async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visible_response(
@@ -2624,7 +2718,10 @@ async def test_tutorbot_agent_loop_forces_exact_authority_response(
         allow_exact_authority_override=True,
     )
 
-    assert final_content == "标准答案：D\n解析：这是历史真题的标准答案。"
+    assert "## 📊 阅卷结论" in final_content
+    assert "标准答案：D" in final_content
+    assert "## 🧐 解析" in final_content
+    assert "这是历史真题的标准答案。" in final_content
     assert messages[-1]["content"] == final_content
 
 
@@ -2732,6 +2829,252 @@ async def test_tutorbot_agent_loop_does_not_override_general_chat_with_exact_aut
 
     assert final_content == "建筑构造是建筑物的物质组成和连接方式。"
     assert messages[-1]["content"] == final_content
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_process_direct_uses_canonical_formatter_for_exact_mcq_authority(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class RenderProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            assert tools is None
+            assert "exact_question" in messages[-1]["content"]
+            return LLMResponse(
+                content=(
+                    "## 📊 阅卷结论\n"
+                    "这道题命中题库原题。标准答案：B、C、E。\n\n"
+                    "## 🧐 解析\n"
+                    "结构的可靠性包括安全性、适用性、耐久性。\n\n"
+                    "## ⚠️ 易错点\n"
+                    "| 易错项 | 题库依据 |\n"
+                    "| :--- | :--- |\n"
+                    "| A. 稳定 | 稳定是安全性的一部分，但不是独立可靠性指标 |\n"
+                    "| D. 经济性 | 经济性属于造价控制范畴，非可靠性指标 |\n\n"
+                    "## 🎯 核心要点\n"
+                    "- ✅ 命中：B 安全性、C 耐久性、E 适用性是标准答案。\n"
+                    "- ❌ 遗漏：不要把 A 稳定和 D 经济性并入答案。\n\n"
+                    "## 🚀 下一步建议\n"
+                    "现在把“安全性、适用性、耐久性”抄写 1 遍。\n\n"
+                    "📌 收尾提醒：结构可靠性按安全性、适用性、耐久性判断。"
+                )
+            )
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class ExactMcqTool(Tool):
+        def __init__(self) -> None:
+            self._trace_metadata = {
+                "kb_name": "construction-exam",
+                "sources": [{"chunk_id": "question-12884", "source_type": "REAL_EXAM"}],
+                "authority_applied": False,
+                "exact_question": {
+                    "answer_kind": "mcq",
+                    "stem": "结构的可靠性包括（　　）",
+                    "question_type": "multi_choice",
+                    "correct_answer": "BCE",
+                    "analysis": "结构的可靠性包括安全性、适用性、耐久性。",
+                    "options": [
+                        {"key": "A", "value": "稳定"},
+                        {"key": "B", "value": "安全性"},
+                        {"key": "C", "value": "耐久性"},
+                        {"key": "D", "value": "经济性"},
+                        {"key": "E", "value": "适用性"},
+                    ],
+                },
+            }
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "exact mcq rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}
+
+        async def execute(self, **kwargs: Any) -> str:
+            return "题库命中原题"
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            metadata = dict(self._trace_metadata)
+            self._trace_metadata = {}
+            return metadata
+
+    provider = RenderProvider()
+    captured: dict[str, Any] = {"tool_results": []}
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=provider,
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(ExactMcqTool())
+
+    content = await loop.process_direct(
+        ".结构的可靠性包括（ ）\nA.稳定 B.安全性\nC.耐久性 D.经济性\nE.适用性",
+        metadata={"default_kb": "construction-exam"},
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert provider.calls == 0
+    assert "## 📊 阅卷结论" in content
+    assert "## ⚠️ 易错点" in content
+    assert "标准答案：BCE" in content
+    assert captured["tool_results"][0][2]["authority_applied"] is True
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_process_direct_exact_mcq_renderer_falls_back_when_answer_changes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class WrongRenderProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            return LLMResponse(content="标准答案：A。\nA 稳定性是可靠性指标。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class ExactMcqTool(Tool):
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "exact mcq rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}
+
+        async def execute(self, **kwargs: Any) -> str:
+            return "题库命中原题"
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            return {
+                "kb_name": "construction-exam",
+                "sources": [{"chunk_id": "question-12884", "source_type": "REAL_EXAM"}],
+                "authority_applied": False,
+                "exact_question": {
+                    "answer_kind": "mcq",
+                    "stem": "结构的可靠性包括（　　）",
+                    "question_type": "multi_choice",
+                    "correct_answer": "BCE",
+                    "analysis": "结构的可靠性包括安全性、适用性、耐久性。",
+                    "options": [
+                        {"key": "A", "value": "稳定"},
+                        {"key": "B", "value": "安全性"},
+                        {"key": "C", "value": "耐久性"},
+                        {"key": "D", "value": "经济性"},
+                        {"key": "E", "value": "适用性"},
+                    ],
+                },
+            }
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=WrongRenderProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(ExactMcqTool())
+
+    content = await loop.process_direct(
+        ".结构的可靠性包括（ ）\nA.稳定 B.安全性\nC.耐久性 D.经济性\nE.适用性",
+        metadata={"default_kb": "construction-exam"},
+    )
+
+    assert "标准答案：BCE" in content
+    assert "标准答案：A" not in content
 
 
 @pytest.mark.asyncio

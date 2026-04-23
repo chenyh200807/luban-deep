@@ -224,6 +224,17 @@ def test_prepare_exact_question_probe_extracts_stem_for_mcq_with_options() -> No
     assert probe.option_validation_required is True
 
 
+def test_prepare_exact_question_probe_strips_leading_punctuation_from_mcq_stem() -> None:
+    probe = prepare_exact_question_probe(
+        ".结构的可靠性包括（ ）\nA.稳定 B.安全性\nC.耐久性 D.经济性\nE.适用性"
+    )
+
+    assert probe is not None
+    assert probe.query == "结构的可靠性包括"
+    assert probe.allowed_question_types == ["single", "multi"]
+    assert probe.option_validation_required is True
+
+
 def test_prepare_exact_question_probe_skips_pure_concept_query() -> None:
     assert prepare_exact_question_probe("防水等级和设防层数有什么区别") is None
 
@@ -260,6 +271,12 @@ def test_build_exact_question_text_candidates_normalizes_mcq_surface() -> None:
     assert "确定屋面防水工程的防水等级应根据什么" in candidates
     assert "确定屋面防水工程的防水等级应根据" in candidates
     assert "确定屋面防水工程的防水等级应根据（ ）" in candidates
+
+
+def test_build_exact_question_text_candidates_strips_leading_punctuation() -> None:
+    candidates = build_exact_question_text_candidates(".结构的可靠性包括")
+
+    assert "结构的可靠性包括" in candidates
 
 
 def test_build_exact_question_keyword_terms_prefers_core_tokens() -> None:
@@ -322,13 +339,38 @@ def test_validate_exact_question_options_supports_list_payloads() -> None:
     )
 
 
+def test_validate_exact_question_options_accepts_short_chinese_option_overlap() -> None:
+    assert validate_exact_question_options(
+        original_query=".结构的可靠性包括（ ）\nA.稳定 B.安全性\nC.耐久性 D.经济性\nE.适用性",
+        options=[
+            {"key": "A", "value": "稳定"},
+            {"key": "B", "value": "安全性"},
+            {"key": "C", "value": "耐久性"},
+            {"key": "D", "value": "经济性"},
+            {"key": "E", "value": "适用性"},
+        ],
+        option_validation_required=True,
+    )
+    assert not validate_exact_question_options(
+        original_query=".结构的可靠性包括（ ）\nA.稳定 B.安全性",
+        options=[
+            {"key": "A", "value": "防水"},
+            {"key": "B", "value": "屋面"},
+            {"key": "C", "value": "荷载"},
+        ],
+        option_validation_required=True,
+    )
+
+
 def test_matches_allowed_question_type_uses_alias_table_not_substring_match() -> None:
     assert matches_allowed_question_type("single_choice", ["single"])
     assert not matches_allowed_question_type("case_study_followup", ["case_study"])
 
 
 @pytest.mark.asyncio
-async def test_supabase_search_raises_typed_error_on_primary_failure() -> None:
+async def test_supabase_search_raises_typed_error_on_primary_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from types import SimpleNamespace
 
     from deeptutor.services.rag.exceptions import RAGSearchError
@@ -376,24 +418,25 @@ async def test_supabase_search_raises_typed_error_on_primary_failure() -> None:
     pipeline._load_search_config = lambda **kwargs: config
     pipeline._get_client = _fake_get_client
     pipeline._run_query_plan = _raise_runtime_error
-    supabase_module.rewrite_query = lambda query, max_variants=1: SimpleNamespace(
+    monkeypatch.setattr(supabase_module, "rewrite_query", lambda query, max_variants=1: SimpleNamespace(
         primary_query=query,
+        normalized_query=query,
         query_shape="concept_like",
         standard_codes=[],
         keywords=[],
         reasons=[],
-    )
-    supabase_module.is_question_like_query = lambda query: False
-    supabase_module.select_sources = lambda *args, **kwargs: SimpleNamespace(
+    ))
+    monkeypatch.setattr(supabase_module, "is_question_like_query", lambda query: False)
+    monkeypatch.setattr(supabase_module, "select_sources", lambda *args, **kwargs: SimpleNamespace(
         search_textbook_chunks=True,
         search_standard_chunks=False,
         search_exam_chunks=False,
         search_questions_bank=False,
         to_trace_dict=lambda: {},
         selection_reasons=[],
-    )
-    supabase_module.classify_query_shape = lambda query: "concept_like"
-    supabase_module.expand_query_variants = lambda query, max_variants=1: [query]
+    ))
+    monkeypatch.setattr(supabase_module, "classify_query_shape", lambda query: "concept_like")
+    monkeypatch.setattr(supabase_module, "expand_query_variants", lambda query, max_variants=1: [query])
 
     with pytest.raises(RAGSearchError) as exc_info:
         await pipeline.search(query="防水等级", kb_name="construction-exam")

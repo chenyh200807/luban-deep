@@ -1709,7 +1709,12 @@ class SupabasePipeline:
             return {
                 "id": selected_row.get("id") or "",
                 "chunk_id": selected_row.get("chunk_id") or "",
-                "stem": str(selected_row.get("card_title") or "").replace("题目: ", "", 1).strip(),
+                "stem": str(
+                    selected_row.get("stem")
+                    or selected_row.get("question_stem")
+                    or str(selected_row.get("card_title") or "").replace("题目: ", "", 1)
+                    or ""
+                ).strip(),
                 "question_type": selected_row.get("question_type") or "case_study",
                 "correct_answer": selected_row.get("correct_answer") or "",
                 "analysis": selected_row.get("analysis") or "",
@@ -1734,7 +1739,12 @@ class SupabasePipeline:
         row = dict((selected_plan.get("results") or [None])[0] or {})
         if not row:
             return None
-        stem = str(row.get("card_title") or "").replace("题目: ", "", 1).strip()
+        stem = str(
+            row.get("stem")
+            or row.get("question_stem")
+            or str(row.get("card_title") or "").replace("题目: ", "", 1)
+            or ""
+        ).strip()
         question_type = row.get("question_type") or ""
         correct_answer = row.get("correct_answer") or ""
         analysis = row.get("analysis") or ""

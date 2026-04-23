@@ -636,7 +636,10 @@ class AgentLoop:
             )
 
         if allow_exact_authority_override and exact_authority:
-            exact_response = self._build_exact_authority_response(exact_authority)
+            exact_response = await self._build_exact_authority_response(
+                exact_authority,
+                runtime_metadata=runtime_metadata,
+            )
             if exact_response:
                 final_content = exact_response
                 self._replace_last_assistant_message(messages, exact_response)
@@ -647,8 +650,13 @@ class AgentLoop:
     def _should_force_exact_authority(exact_question: dict[str, Any]) -> bool:
         return should_force_exact_authority(exact_question)
 
-    @staticmethod
-    def _build_exact_authority_response(exact_question: dict[str, Any]) -> str:
+    async def _build_exact_authority_response(
+        self,
+        exact_question: dict[str, Any],
+        *,
+        runtime_metadata: dict[str, Any] | None = None,
+    ) -> str:
+        _ = runtime_metadata
         return build_exact_authority_response(exact_question)
 
     @staticmethod
@@ -888,7 +896,10 @@ class AgentLoop:
         if not exact_candidate or not self._should_force_exact_authority(exact_candidate):
             return None
 
-        exact_response = self._build_exact_authority_response(exact_candidate)
+        exact_response = await self._build_exact_authority_response(
+            exact_candidate,
+            runtime_metadata=runtime_metadata,
+        )
         if not exact_response:
             return None
 
