@@ -15,6 +15,11 @@ import { BiBossKpis } from "./BiBossKpis";
 import { BiBossMemberWatchlist } from "./BiBossMemberWatchlist";
 import { BiBossSnapshotGrid } from "./BiBossSnapshotGrid";
 import { BiBossTrendPanel } from "./BiBossTrendPanel";
+import { BiAiQualityPanel } from "./BiAiQualityPanel";
+import { BiDataTrustPanel } from "./BiDataTrustPanel";
+import { BiGrowthFunnelPanel } from "./BiGrowthFunnelPanel";
+import { BiMemberHealthPanel } from "./BiMemberHealthPanel";
+import { BiNorthStarPanel } from "./BiNorthStarPanel";
 
 type BiBossHomeTabProps = {
   loading: boolean;
@@ -43,11 +48,18 @@ export function BiBossHomeTab({
 }: BiBossHomeTabProps) {
   return (
     <div className="space-y-6">
+      <BiNorthStarPanel payload={overview?.northStar} />
+
       <BiBossKpis
         loading={loading}
         kpis={boss.kpis}
         issue={moduleIssues.overview || moduleIssues.members || moduleIssues.cost}
       />
+
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.8fr)]">
+        <BiGrowthFunnelPanel payload={overview?.growthFunnel} />
+        <BiMemberHealthPanel payload={overview?.memberHealth} />
+      </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.28fr)_minmax(340px,0.72fr)]">
         <BiBossTrendPanel
@@ -55,6 +67,7 @@ export function BiBossHomeTab({
           days={days}
           trend={trend}
           overview={overview}
+          dailyCost={boss.dailyCost}
           issue={moduleIssues.trend}
         />
         <BiBossActionQueue
@@ -63,6 +76,14 @@ export function BiBossHomeTab({
           onNavigate={onNavigateFromBossQueue}
         />
       </section>
+
+      <BiAiQualityPanel
+        aiQuality={overview?.aiQuality}
+        teachingEffect={overview?.teachingEffect}
+        unitEconomics={overview?.unitEconomics}
+      />
+
+      <BiDataTrustPanel dataTrust={overview?.dataTrust} operatingRhythm={overview?.operatingRhythm} />
 
       <BiBossSnapshotGrid
         overview={overview}

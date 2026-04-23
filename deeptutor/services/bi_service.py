@@ -6,11 +6,12 @@ import math
 import sqlite3
 import time
 from collections import Counter, defaultdict
-from dataclasses import dataclass, field
-from datetime import datetime
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta
 import re
 from typing import Any
 
+from deeptutor.services.bi_metrics import BI_METRICS, metric_by_id
 from deeptutor.services.feedback_service import (
     SupabaseFeedbackStore,
     is_deeptutor_feedback_record,
@@ -180,6 +181,9 @@ class BIService:
 
     @staticmethod
     def _resolve_actor_id(session_id: str, preferences: dict[str, Any]) -> str:
+        registered_actor_id = str(preferences.get("_bi_registered_actor_id") or "").strip()
+        if registered_actor_id:
+            return registered_actor_id
         user_id = str(preferences.get("user_id") or "").strip()
         return user_id or f"anon:{session_id}"
 
@@ -248,11 +252,155 @@ class BIService:
             members = self._load_all_members()
         except Exception:
             return {}
-        return {
-            str(item.get("user_id") or "").strip(): str(item.get("tier") or "").strip().lower()
-            for item in members
-            if str(item.get("user_id") or "").strip()
-        }
+        tier_map: dict[str, str] = {}
+        for item in members:
+            tier = str(item.get("tier") or "").strip().lower()
+            for identity in self._member_identity_values(item):
+                tier_map[identity] = tier
+        return tier_map
+
+    @staticmethod
+    def _normalize_member_phone(value: Any) -> str:
+        digits = "".join(ch for ch in str(value or "") if ch.isdigit())
+        if len(digits) < 11:
+            return ""
+        return digits[-11:]
+
+    @classmethod
+    def _normalize_member_identity(cls, value: Any) -> str:
+        raw = str(value or "").strip()
+        if not raw:
+            return ""
+        phone = cls._normalize_member_phone(raw)
+        if phone and (raw == phone or raw.startswith("+86") or raw.startswith("86")):
+            return phone
+        return raw
+
+    @classmethod
+    def _member_identity_values(cls, member: dict[str, Any]) -> set[str]:
+        values: set[str] = set()
+        for key in (
+            "user_id",
+            "canonical_user_id",
+            "external_auth_user_id",
+            "phone",
+            "wx_openid",
+            "wx_unionid",
+        ):
+            normalized = cls._normalize_member_identity(member.get(key))
+            if normalized:
+                values.add(normalized)
+        for alias in list(member.get("alias_user_ids") or []):
+            normalized = cls._normalize_member_identity(alias)
+            if normalized:
+                values.add(normalized)
+        return values
+
+    @classmethod
+    def _session_identity_values(cls, preferences: dict[str, Any]) -> set[str]:
+        values: set[str] = set()
+        for key in (
+            "user_id",
+            "uid",
+            "canonical_uid",
+            "canonical_user_id",
+            "member_id",
+            "phone",
+            "openid",
+            "wx_openid",
+            "unionid",
+            "wx_unionid",
+        ):
+            normalized = cls._normalize_member_identity(preferences.get(key))
+            if normalized:
+                values.add(normalized)
+        return values
+
+    def _registered_member_identity_index(self) -> dict[str, str]:
+        try:
+            members = self._load_all_members()
+        except Exception:
+            logger.warning("Failed to load member identities for BI activity scope", exc_info=True)
+            return {}
+        identity_index: dict[str, str] = {}
+        for member in members:
+            if not self._normalize_member_phone(member.get("phone")):
+                continue
+            canonical = (
+                str(member.get("canonical_user_id") or "").strip()
+                or str(member.get("user_id") or "").strip()
+            )
+            if not canonical:
+                continue
+            for identity in self._member_identity_values(member):
+                identity_index[identity] = canonical
+        return identity_index
+
+    def _resolve_registered_actor_id(
+        self,
+        preferences: dict[str, Any],
+        identity_index: dict[str, str],
+    ) -> str:
+        for identity in self._session_identity_values(preferences):
+            canonical = identity_index.get(identity)
+            if canonical:
+                return canonical
+        return ""
+
+    def _scope_context_to_registered_members(self, context: _BiContext) -> _BiContext:
+        identity_index = self._registered_member_identity_index()
+        if not identity_index:
+            return _BiContext(
+                sessions=[],
+                turns=[],
+                result_events=[],
+                tool_events=[],
+                notebook_entries=[],
+                truncated_collections=context.truncated_collections,
+            )
+
+        sessions: list[dict[str, Any]] = []
+        session_ids: set[str] = set()
+        for session in context.sessions:
+            canonical = self._resolve_registered_actor_id(session.get("preferences") or {}, identity_index)
+            if not canonical:
+                continue
+            payload = dict(session)
+            preferences = dict(payload.get("preferences") or {})
+            preferences["_bi_registered_actor_id"] = canonical
+            payload["preferences"] = preferences
+            sessions.append(payload)
+            session_ids.add(str(payload.get("session_id") or payload.get("id") or ""))
+
+        turn_ids: set[str] = set()
+        turns: list[dict[str, Any]] = []
+        for turn in context.turns:
+            if str(turn.get("session_id") or "") not in session_ids:
+                continue
+            canonical = self._resolve_registered_actor_id(turn.get("preferences") or {}, identity_index)
+            payload = dict(turn)
+            preferences = dict(payload.get("preferences") or {})
+            if canonical:
+                preferences["_bi_registered_actor_id"] = canonical
+            payload["preferences"] = preferences
+            turns.append(payload)
+            turn_ids.add(str(turn.get("id") or ""))
+
+        result_events = [event for event in context.result_events if str(event.get("turn_id") or "") in turn_ids]
+        tool_events = [event for event in context.tool_events if str(event.get("turn_id") or "") in turn_ids]
+        notebook_entries = [
+            entry
+            for entry in context.notebook_entries
+            if str(entry.get("session_id") or "") in session_ids
+        ]
+        return _BiContext(
+            sessions=sessions,
+            turns=turns,
+            result_events=result_events,
+            tool_events=tool_events,
+            notebook_entries=notebook_entries,
+            truncated_collections=context.truncated_collections,
+        )
 
     def _apply_filters(self, context: _BiContext, filters: _BiFilters) -> _BiContext:
         if not filters.capability and not filters.entrypoint and not filters.tier:
@@ -268,8 +416,12 @@ class BIService:
                 if self._resolve_entrypoint(session.get("preferences") or {}) != filters.entrypoint:
                     return False
             if filters.tier:
-                user_id = str((session.get("preferences") or {}).get("user_id") or "").strip()
-                if not user_id or tier_map.get(user_id, "") != filters.tier:
+                preferences = session.get("preferences") or {}
+                identities = self._session_identity_values(preferences)
+                registered_actor_id = self._normalize_member_identity(preferences.get("_bi_registered_actor_id"))
+                if registered_actor_id:
+                    identities.add(registered_actor_id)
+                if not identities or not any(tier_map.get(identity, "") == filters.tier for identity in identities):
                     return False
             return True
 
@@ -299,13 +451,74 @@ class BIService:
         )
 
     @staticmethod
+    def _build_daily_cost_payload(context: _BiContext, *, days: int) -> dict[str, Any]:
+        window_days = max(1, int(days or 1))
+        today = datetime.fromtimestamp(time.time())
+        start_date = today.date() - timedelta(days=window_days - 1)
+        buckets: dict[str, dict[str, Any]] = {}
+        for offset in range(window_days):
+            day = start_date + timedelta(days=offset)
+            key = day.isoformat()
+            buckets[key] = {
+                "date": key,
+                "label": day.strftime("%m-%d"),
+                "cost_usd": 0.0,
+                "tokens": 0,
+                "turns": 0,
+            }
+
+        for event in context.result_events:
+            cost_summary = event.get("cost_summary") or {}
+            cost = _safe_float(cost_summary.get("total_cost_usd"))
+            tokens = _safe_int(cost_summary.get("total_tokens"))
+            if cost <= 0 and tokens <= 0:
+                continue
+            key = _date_bucket(_safe_float(event.get("created_at")))
+            if key not in buckets:
+                continue
+            buckets[key]["cost_usd"] += cost
+            buckets[key]["tokens"] += tokens
+            buckets[key]["turns"] += 1
+
+        series = [
+            {
+                "date": item["date"],
+                "label": item["label"],
+                "cost_usd": _round(item["cost_usd"], 4),
+                "tokens": item["tokens"],
+                "turns": item["turns"],
+            }
+            for item in buckets.values()
+        ]
+        today_key = today.date().isoformat()
+        window_total = sum(item["cost_usd"] for item in series)
+        return {
+            "today_usd": _round(buckets.get(today_key, {}).get("cost_usd", 0.0), 4),
+            "window_total_usd": _round(window_total, 4),
+            "average_daily_usd": _round(window_total / window_days, 4),
+            "series": series,
+            "source": "turn_result_cost_summary",
+        }
+
+    @staticmethod
     def _build_boss_workbench_payload(
         *,
         overview_cards: list[dict[str, Any]],
         member_dashboard: dict[str, Any],
         member_stats: dict[str, Any],
         risk_alerts: list[str],
+        daily_cost: dict[str, Any],
     ) -> dict[str, Any]:
+        average_daily_cost = _safe_float(daily_cost.get("average_daily_usd"))
+        today_cost = _safe_float(daily_cost.get("today_usd"))
+        cost_tone = "warning" if average_daily_cost > 0 and today_cost > average_daily_cost * 1.5 else "neutral"
+        cost_kpi = {
+            "label": "今日成本",
+            "value": _round(today_cost, 4),
+            "hint": f"窗口合计 ${_round(_safe_float(daily_cost.get('window_total_usd')), 4)} · 日均 ${_round(average_daily_cost, 4)}",
+            "tone": cost_tone,
+            "source": "cost",
+        }
         risk_queue = [
             {
                 "bucket": "expiring_soon",
@@ -322,11 +535,300 @@ class BIService:
                 "handoff_filters": {"risk_level": "high"},
             },
         ]
+        if cost_tone == "warning":
+            risk_queue.append(
+                {
+                    "bucket": "daily_cost",
+                    "label": "今日成本偏高",
+                    "count": _round(today_cost, 4),
+                    "detail": "建议查看成本模块，确认 Langfuse usage 采集里的模型与 token 波动。",
+                    "handoff_filters": {},
+                }
+            )
         return {
-            "kpis": overview_cards[:6],
+            "kpis": [cost_kpi, *[card for card in overview_cards if card.get("label") != "今日成本"][:5]],
             "risk_queue": risk_queue,
             "watchlist": list(member_stats.get("samples") or [])[:6],
             "hero_issue": risk_alerts[0] if risk_alerts else "",
+            "daily_cost": daily_cost,
+        }
+
+    @staticmethod
+    def _metric_definition_payload(metric_id: str) -> dict[str, Any]:
+        metric = metric_by_id(metric_id)
+        return asdict(metric)
+
+    def _effective_learning_actor_ids(self, context: _BiContext) -> set[str]:
+        sessions_by_id = {
+            str(session.get("session_id") or session.get("id") or ""): session
+            for session in context.sessions
+        }
+        turn_session_ids = {
+            str(turn.get("id") or ""): str(turn.get("session_id") or "")
+            for turn in context.turns
+        }
+        effective_session_ids = {
+            str(turn.get("session_id") or "")
+            for turn in context.turns
+            if str(turn.get("status") or "").strip().lower() == "completed"
+        }
+        effective_session_ids.update(
+            turn_session_ids.get(str(event.get("turn_id") or ""), "")
+            for event in context.result_events
+        )
+        effective_session_ids.update(
+            str(entry.get("session_id") or "")
+            for entry in context.notebook_entries
+        )
+
+        actor_ids: set[str] = set()
+        for session_id in effective_session_ids:
+            session = sessions_by_id.get(session_id)
+            if not session:
+                continue
+            actor_id = self._resolve_actor_id(session_id, session.get("preferences") or {})
+            if actor_id:
+                actor_ids.add(actor_id)
+        return actor_ids
+
+    @classmethod
+    def _build_north_star_payload(
+        cls,
+        *,
+        summary: dict[str, Any],
+        member_dashboard: dict[str, Any],
+        days: int,
+    ) -> dict[str, Any]:
+        metric = cls._metric_definition_payload("effective_learning_members")
+        value = _safe_int(summary.get("active_learners"))
+        return {
+            **metric,
+            "value": value,
+            "window_days": days,
+            "calculation": "真实手机号会员范围内，窗口内至少产生一次有效学习会话的去重会员数。",
+            "inputs": [
+                {
+                    **cls._metric_definition_payload("registered_members"),
+                    "value": _safe_int(member_dashboard.get("total_count")),
+                },
+                {
+                    **cls._metric_definition_payload("activated_members"),
+                    "value": value,
+                },
+                {
+                    **cls._metric_definition_payload("cost_per_effective_learning"),
+                    "value": None,
+                },
+            ],
+        }
+
+    @classmethod
+    def _build_growth_funnel_payload(
+        cls,
+        *,
+        summary: dict[str, Any],
+        member_dashboard: dict[str, Any],
+    ) -> dict[str, Any]:
+        registered = _safe_int(member_dashboard.get("total_count"))
+        activated = _safe_int(summary.get("active_learners"))
+        effective = activated
+
+        def step(metric_id: str, value: int, previous: int | None, label_override: str | None = None) -> dict[str, Any]:
+            metric = cls._metric_definition_payload(metric_id)
+            denominator = previous if previous is not None else value
+            conversion = _round(value / max(denominator, 1) * 100, 1)
+            return {
+                "id": metric_id,
+                "label": label_override or metric["label"],
+                "value": value,
+                "conversion_rate": conversion,
+                "trust_level": metric["trust_level"],
+                "authority": metric["authority"],
+                "drilldown": metric["drilldown"],
+            }
+
+        return {
+            "title": "增长漏斗",
+            "summary": "第一阶段使用真实会员和有效学习会话做保守漏斗，收入/付费 authority 未确认前不展示利润式转化。",
+            "steps": [
+                step("registered_members", registered, None),
+                step("activated_members", activated, registered),
+                step("effective_learning_members", effective, activated),
+            ],
+            "pending_steps": [
+                {
+                    "id": "paid_or_entitled_members",
+                    "label": "付费/权益会员",
+                    "status": "pending_authority",
+                    "detail": "收入、权益和钱包 authority 未确认前不进入正式漏斗。",
+                }
+            ],
+        }
+
+    @classmethod
+    def _build_member_health_payload(
+        cls,
+        *,
+        member_dashboard: dict[str, Any],
+        member_stats: dict[str, Any],
+    ) -> dict[str, Any]:
+        metric = cls._metric_definition_payload("member_health_score")
+        health_score = _safe_int(member_dashboard.get("health_score"))
+        churn_risk = _safe_int(member_dashboard.get("churn_risk_count"))
+        expiring_soon = _safe_int(member_dashboard.get("expiring_soon_count"))
+        return {
+            "score": {
+                **metric,
+                "value": health_score,
+                "note": "第一阶段为透明规则评分；样本不足时按风险标签和原因解释，不作为黑箱预测。",
+            },
+            "distribution": [
+                {"bucket": "healthy", "label": "健康", "count": _safe_int(member_dashboard.get("active_count"))},
+                {"bucket": "risk", "label": "风险", "count": churn_risk},
+                {"bucket": "critical", "label": "即将到期", "count": expiring_soon},
+            ],
+            "reasons": list(member_dashboard.get("recommendations") or [])[:4],
+            "samples": list(member_stats.get("samples") or [])[:6],
+        }
+
+    @staticmethod
+    def _build_operating_rhythm_payload(risk_alerts: list[str]) -> dict[str, Any]:
+        top_actions: list[dict[str, Any]] = []
+        for text in risk_alerts[:3]:
+            if "到期" in text:
+                target = "member_ops"
+            elif "失败回合" in text:
+                target = "ai_quality"
+            elif "数据" in text:
+                target = "data_trust"
+            else:
+                target = "member_ops"
+            top_actions.append(
+                {
+                    "title": text,
+                    "target": target,
+                    "status": "open",
+                    "reason": "来自 BI 聚合风险队列",
+                }
+            )
+        if not top_actions:
+            top_actions.append(
+                {
+                    "title": "查看真实会员、成本和 AI 质量是否稳定",
+                    "target": "data_trust",
+                    "status": "open",
+                    "reason": "每日晨会默认检查项",
+                }
+            )
+        return {
+            "cadences": [
+                {"id": "daily", "label": "每日晨会", "focus": "新增真实会员、有效学习、成本、失败回合、待办"},
+                {"id": "weekly", "label": "每周复盘", "focus": "漏斗掉点、会员健康、教学效果、AI 质量样本"},
+                {"id": "release", "label": "发布后观察", "focus": "按 release/version 对比成本、失败率、质量、留存"},
+            ],
+            "top_actions": top_actions[:3],
+        }
+
+    @classmethod
+    def _build_teaching_effect_payload(cls, *, summary: dict[str, Any]) -> dict[str, Any]:
+        metric = cls._metric_definition_payload("mastery_improvement")
+        return {
+            "status": "degraded",
+            "summary": "学习成果 authority 尚未完整核验；第一阶段先使用有效学习会话和 Notebook/错题沉淀做保守展示。",
+            "metrics": [
+                {
+                    **metric,
+                    "value": None,
+                    "status": "pending_source_validation",
+                },
+                {
+                    "metric_id": "notebook_saves",
+                    "label": "Notebook 保存",
+                    "value": _safe_int(summary.get("notebook_saves")),
+                    "trust_level": "B",
+                    "authority": "sqlite_session_store",
+                    "drilldown": "student_360",
+                },
+            ],
+        }
+
+    @classmethod
+    def _build_ai_quality_payload(
+        cls,
+        *,
+        summary: dict[str, Any],
+        context: _BiContext,
+    ) -> dict[str, Any]:
+        metric = cls._metric_definition_payload("ai_quality_score")
+        failed_turns = sum(1 for turn in context.turns if turn.get("status") == "failed")
+        return {
+            **metric,
+            "engineering_success_rate": _safe_float(summary.get("success_turn_rate")),
+            "failed_turns": failed_turns,
+            "total_turns": _safe_int(summary.get("total_turns")),
+            "teaching_success_status": "sample_required",
+            "note": "工程成功率不等于教学质量；需要继续接入反馈、纠错和人工抽检样本。",
+            "samples": [
+                {
+                    "turn_id": turn.get("turn_id") or turn.get("id"),
+                    "session_id": turn.get("session_id"),
+                    "status": turn.get("status"),
+                }
+                for turn in context.turns
+                if turn.get("status") == "failed"
+            ][:5],
+        }
+
+    @classmethod
+    def _build_unit_economics_payload(
+        cls,
+        *,
+        summary: dict[str, Any],
+        daily_cost: dict[str, Any],
+    ) -> dict[str, Any]:
+        metric = cls._metric_definition_payload("cost_per_effective_learning")
+        effective_members = _safe_int(summary.get("active_learners"))
+        window_cost = _safe_float(daily_cost.get("window_total_usd"))
+        cost_per_effective = window_cost / effective_members if effective_members else 0.0
+        return {
+            **metric,
+            "revenue_status": "pending",
+            "summary": "收入事实未接入，当前只展示成本侧单位经济模型。",
+            "window_total_cost_usd": _round(window_cost, 4),
+            "cost_per_effective_learning_usd": _round(cost_per_effective, 4),
+            "source": daily_cost.get("source") or "turn_result_cost_summary",
+        }
+
+    @classmethod
+    def _build_data_trust_payload(cls, *, context: _BiContext) -> dict[str, Any]:
+        degraded_modules = [
+            {
+                "id": "revenue",
+                "label": "收入 authority",
+                "status": "pending",
+                "detail": "支付、钱包和手工开通记录尚未确认单一 revenue authority。",
+            },
+            {
+                "id": "learning_outcome",
+                "label": "学习成果 authority",
+                "status": "partial",
+                "detail": "练题、复习、错题和章节掌握度需要继续做样本核验。",
+            },
+        ]
+        if context.truncated_collections:
+            degraded_modules.append(
+                {
+                    "id": "collection_limits",
+                    "label": "BI 聚合行数截断",
+                    "status": "degraded",
+                    "detail": ",".join(context.truncated_collections),
+                }
+            )
+        return {
+            "status": "ready",
+            "trust_model": "A/B 可用于首页决策；C/D 必须降级或待接入展示。",
+            "degraded_modules": degraded_modules,
+            "metric_definitions": [asdict(metric) for metric in BI_METRICS],
         }
 
     @staticmethod
@@ -660,14 +1162,11 @@ class BIService:
         tier: str | None = None,
     ) -> dict[str, Any]:
         context = self._apply_filters(
-            await self._load_context(days),
+            self._scope_context_to_registered_members(await self._load_context(days)),
             self._normalize_filters(capability, entrypoint, tier),
         )
 
-        active_actors = {
-            self._resolve_actor_id(session["session_id"], session["preferences"])
-            for session in context.sessions
-        }
+        active_actors = self._effective_learning_actor_ids(context)
         capability_counter = Counter(
             (session.get("capability") or "chat") for session in context.sessions
         )
@@ -709,6 +1208,7 @@ class BIService:
             tier=tier,
         )
         member_dashboard = member_stats.get("dashboard", {})
+        daily_cost = self._build_daily_cost_payload(context, days=days)
 
         risk_alerts = []
         if member_dashboard.get("expiring_soon_count"):
@@ -780,7 +1280,26 @@ class BIService:
                 member_dashboard=member_dashboard,
                 member_stats=member_stats,
                 risk_alerts=risk_alerts,
+                daily_cost=daily_cost,
             ),
+            "north_star": self._build_north_star_payload(
+                summary=summary,
+                member_dashboard=member_dashboard,
+                days=days,
+            ),
+            "growth_funnel": self._build_growth_funnel_payload(
+                summary=summary,
+                member_dashboard=member_dashboard,
+            ),
+            "member_health": self._build_member_health_payload(
+                member_dashboard=member_dashboard,
+                member_stats=member_stats,
+            ),
+            "operating_rhythm": self._build_operating_rhythm_payload(risk_alerts),
+            "teaching_effect": self._build_teaching_effect_payload(summary=summary),
+            "ai_quality": self._build_ai_quality_payload(summary=summary, context=context),
+            "unit_economics": self._build_unit_economics_payload(summary=summary, daily_cost=daily_cost),
+            "data_trust": self._build_data_trust_payload(context=context),
         }
 
     async def get_active_trend(
@@ -791,7 +1310,7 @@ class BIService:
         tier: str | None = None,
     ) -> dict[str, Any]:
         context = self._apply_filters(
-            await self._load_context(days),
+            self._scope_context_to_registered_members(await self._load_context(days)),
             self._normalize_filters(capability, entrypoint, tier),
         )
         bucket_map: dict[str, dict[str, Any]] = {}
@@ -857,7 +1376,7 @@ class BIService:
         tier: str | None = None,
     ) -> dict[str, Any]:
         context = self._apply_filters(
-            await self._load_context(days),
+            self._scope_context_to_registered_members(await self._load_context(days)),
             self._normalize_filters(capability, entrypoint, tier),
         )
         activity_by_actor: dict[str, set[str]] = defaultdict(set)

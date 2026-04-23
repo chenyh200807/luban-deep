@@ -39,6 +39,18 @@ def test_bi_member_360_panel_exposes_recent_conversations() -> None:
     assert "recentConversations" in source
 
 
+def test_bi_member_360_conversations_are_collapsed_until_clicked() -> None:
+    source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiMember360Panel.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert "expandedConversationId" in source
+    assert "setExpandedConversationId" in source
+    assert "aria-expanded={isExpanded}" in source
+    assert "isExpanded ? (" in source
+    assert "查看全文" in source
+
+
 def test_bi_page_client_mounts_audit_tab() -> None:
     source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
 
@@ -51,6 +63,63 @@ def test_bi_api_prefers_backend_boss_workbench_payload() -> None:
 
     assert "boss_workbench" in source
     assert "handoff_filters" in source
+
+
+def test_bi_api_exposes_top_tier_boss_payload_contract() -> None:
+    source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
+
+    assert "BiNorthStarPayload" in source
+    assert "north_star" in source
+    assert "northStar" in source
+    assert "growth_funnel" in source
+    assert "growthFunnel" in source
+    assert "member_health" in source
+    assert "memberHealth" in source
+    assert "operating_rhythm" in source
+    assert "operatingRhythm" in source
+    assert "data_trust" in source
+    assert "dataTrust" in source
+
+
+def test_boss_workbench_renders_top_tier_content_panels() -> None:
+    source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiBossHomeTab.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert "BiNorthStarPanel" in source
+    assert "BiGrowthFunnelPanel" in source
+    assert "BiMemberHealthPanel" in source
+    assert "BiAiQualityPanel" in source
+    assert "BiDataTrustPanel" in source
+    assert "overview?.northStar" in source
+    assert "overview?.dataTrust" in source
+
+
+def test_member_health_panel_marks_c_level_score_as_degraded() -> None:
+    source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiMemberHealthPanel.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert "isDegraded" in source
+    assert "降级展示" in source
+
+
+def test_bi_api_maps_daily_cost_boss_queue_to_cost_source() -> None:
+    source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
+
+    assert 'bucket === "cost" || bucket === "daily_cost"' in source
+
+
+def test_boss_workbench_exposes_daily_cost_surface() -> None:
+    api_source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
+    trend_source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiBossTrendPanel.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert "daily_cost" in api_source
+    assert "dailyCost" in api_source
+    assert "今日成本" in trend_source
+    assert "日均成本" in trend_source
 
 
 def test_bi_page_client_consumes_handoff_filters_from_boss_queue() -> None:
