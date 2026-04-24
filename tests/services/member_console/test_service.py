@@ -1410,6 +1410,103 @@ def test_member_console_learner_state_panel_and_controls(tmp_path: Path) -> None
     assert dropped["affected_count"] == 1
 
 
+def test_member_console_overlay_promotion_apply_uses_real_services_and_audits_skips(tmp_path: Path) -> None:
+    from deeptutor.services.learner_state.overlay_service import BotLearnerOverlayService
+    from deeptutor.services.learner_state.service import LearnerStateService
+
+    class PathServiceStub:
+        @property
+        def project_root(self):
+            return tmp_path
+
+        def get_user_root(self):
+            return tmp_path
+
+        def get_learner_state_root(self):
+            path = tmp_path / "learner_state"
+            path.mkdir(parents=True, exist_ok=True)
+            return path
+
+        def get_learner_state_outbox_db(self):
+            return tmp_path / "runtime" / "outbox.db"
+
+        def get_guide_dir(self):
+            path = tmp_path / "workspace" / "guide"
+            path.mkdir(parents=True, exist_ok=True)
+            return path
+
+    class MemberServiceStub:
+        def get_profile(self, user_id: str):
+            return {
+                "user_id": user_id,
+                "display_name": "陈同学",
+                "difficulty_preference": "medium",
+                "explanation_style": "detailed",
+                "focus_topic": "案例题",
+                "daily_target": 30,
+            }
+
+        def get_today_progress(self, _user_id: str):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_chapter_progress(self, _user_id: str):
+            return []
+
+    class DisabledCoreStore:
+        is_configured = False
+
+    path_service = PathServiceStub()
+    learner_state_service = LearnerStateService(
+        path_service=path_service,
+        member_service=MemberServiceStub(),
+        core_store=DisabledCoreStore(),
+    )
+    overlay_service = BotLearnerOverlayService(path_service=path_service)
+    valid_candidate = overlay_service.promote_candidate(
+        "review-bot",
+        "student_demo",
+        "possible_weak_point",
+        {"topic": "防火间距", "confidence": 0.92, "promotion_basis": "structured_result"},
+        source_feature="quiz",
+        source_id="quiz_1",
+    )["promotion_candidates"][0]
+    skipped_candidate = overlay_service.promote_candidate(
+        "review-bot",
+        "student_demo",
+        "possible_weak_point",
+        {"topic": "施工缝", "confidence": 0.91},
+        source_feature="chat",
+        source_id="turn_2",
+    )["promotion_candidates"][-1]
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._get_learner_state_service = lambda: learner_state_service  # type: ignore[method-assign]
+    service._get_overlay_service = lambda: overlay_service  # type: ignore[method-assign]
+
+    result = service.apply_member_overlay_promotions(
+        "student_demo",
+        "review-bot",
+        operator="ops_admin",
+        min_confidence=0.7,
+        max_candidates=10,
+    )
+
+    progress = learner_state_service.read_progress("student_demo")
+    weak_points = list((progress.get("knowledge_map") or {}).get("weak_points") or [])
+    remaining_candidates = overlay_service.read_overlay("review-bot", "student_demo")["promotion_candidates"]
+    audit = service.list_audit_log(action="overlay_promotion_apply", page_size=1)["items"][0]
+
+    assert result["acked_ids"] == [valid_candidate["candidate_id"]]
+    assert result["skipped_ids"] == [skipped_candidate["candidate_id"]]
+    assert result["skipped"][0]["reasons"] == ["missing_promotion_basis"]
+    assert weak_points == ["防火间距"]
+    assert [item["candidate_id"] for item in remaining_candidates] == [skipped_candidate["candidate_id"]]
+    assert audit["operator"] == "ops_admin"
+    assert audit["after"]["acked_ids"] == [valid_candidate["candidate_id"]]
+    assert audit["after"]["skipped_ids"] == [skipped_candidate["candidate_id"]]
+    assert audit["after"]["skipped"][0]["reasons"] == ["missing_promotion_basis"]
+
+
 @pytest.mark.asyncio
 async def test_bind_phone_for_wechat_merges_into_existing_phone_user(tmp_path: Path) -> None:
     service = MemberConsoleService()

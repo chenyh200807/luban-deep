@@ -5872,6 +5872,203 @@ async def test_turn_runtime_context_orchestration_loads_bot_overlay_into_context
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_end_to_end_applies_overlay_promotion_and_reads_next_turn(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    from deeptutor.services.learner_state.overlay_service import BotLearnerOverlayService
+    from deeptutor.services.learner_state.service import LearnerStateService
+
+    class PathServiceStub:
+        @property
+        def project_root(self):
+            return tmp_path
+
+        def get_user_root(self):
+            return tmp_path
+
+        def get_learner_state_root(self):
+            path = tmp_path / "learner_state"
+            path.mkdir(parents=True, exist_ok=True)
+            return path
+
+        def get_learner_state_outbox_db(self):
+            return tmp_path / "runtime" / "outbox.db"
+
+        def get_guide_dir(self):
+            path = tmp_path / "workspace" / "guide"
+            path.mkdir(parents=True, exist_ok=True)
+            return path
+
+    class MemberServiceStub:
+        def get_profile(self, user_id: str):
+            return {
+                "user_id": user_id,
+                "display_name": "陈同学",
+                "difficulty_preference": "medium",
+                "explanation_style": "detailed",
+                "focus_topic": "案例题",
+                "daily_target": 30,
+            }
+
+        def get_today_progress(self, _user_id: str):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_chapter_progress(self, _user_id: str):
+            return []
+
+    class DisabledCoreStore:
+        is_configured = False
+
+    async def _no_summary_rewrite(**_kwargs):
+        yield "NO_CHANGE"
+
+    path_service = PathServiceStub()
+    learner_state_service = LearnerStateService(
+        path_service=path_service,
+        member_service=MemberServiceStub(),
+        core_store=DisabledCoreStore(),
+    )
+    overlay_service = BotLearnerOverlayService(path_service=path_service)
+    overlay_service.promote_candidate(
+        "case-study-coach",
+        "student_demo",
+        "possible_weak_point",
+        {
+            "topic": "防火间距",
+            "confidence": 0.93,
+            "promotion_basis": "structured_result",
+        },
+        source_feature="quiz",
+        source_id="quiz_case_1",
+    )
+
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured_contexts: list[dict[str, object]] = []
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        def context_window_tokens(self, _llm_config) -> int:
+            return 8192
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=512,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured_contexts.append(
+                {
+                    "user_message": context.user_message,
+                    "memory_context": context.memory_context,
+                    "metadata": context.metadata,
+                }
+            )
+            reply = "已记录本轮案例题复习。" if len(captured_contexts) == 1 else "已读取你的薄弱点。"
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content=reply,
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", _no_summary_rewrite)
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace(max_tokens=1024))
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: learner_state_service,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_bot_learner_overlay_service",
+        lambda: overlay_service,
+    )
+
+    session, first_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "我刚做完案例题，帮我记录一下。",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "case-study-coach",
+                "billing_context": {
+                    "source": "app",
+                    "user_id": "student_demo",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(first_turn["id"], after_seq=0):
+        pass
+    if runtime._background_tasks:
+        await asyncio.gather(*list(runtime._background_tasks))
+
+    progress = learner_state_service.read_progress("student_demo")
+    weak_points = list((progress.get("knowledge_map") or {}).get("weak_points") or [])
+    assert "防火间距" in weak_points
+    assert overlay_service.read_overlay("case-study-coach", "student_demo")["promotion_candidates"] == []
+    assert any(
+        event.memory_kind == "overlay_promotion"
+        and (event.payload_json.get("payload") or {}).get("topic") == "防火间距"
+        for event in learner_state_service.list_memory_events("student_demo", limit=20)
+    )
+
+    _session, second_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "回顾一下之前记录的防火间距薄弱点。",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "case-study-coach",
+                "billing_context": {
+                    "source": "app",
+                    "user_id": "student_demo",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(second_turn["id"], after_seq=0):
+        pass
+
+    assert len(captured_contexts) >= 2
+    second_context = captured_contexts[-1]
+    assert "防火间距" in str(second_context["user_message"])
+    assert "overlay_promotion" in str(second_context["user_message"])
+    assert "learner_progress" in str(second_context["memory_context"])
+    assert "memory" in dict(second_context["metadata"]).get("candidate_sources", [])
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_injects_tutorbot_default_knowledge_chain(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

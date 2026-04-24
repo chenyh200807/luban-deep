@@ -88,6 +88,31 @@ class CustomEmbedding(BaseEmbedding):
             texts, progress_callback=self._progress_callback
         )
 
+    @staticmethod
+    def _replace_missing_vectors(result: List[Any]) -> List[List[float]]:
+        missing_indices = [
+            i
+            for i, vec in enumerate(result)
+            if vec is None or not isinstance(vec, list) or len(vec) == 0
+        ]
+        if not missing_indices:
+            return result
+
+        dim = next(
+            (
+                len(vec)
+                for vec in result
+                if isinstance(vec, list) and len(vec) > 0
+            ),
+            0,
+        )
+        if dim <= 0:
+            raise ValueError("Embedding provider returned no valid vectors in the batch.")
+
+        for i in missing_indices:
+            result[i] = [0.0] * dim
+        return result
+
     def _get_query_embedding(self, query: str) -> List[float]:
         """Sync version - called by LlamaIndex sync API."""
         return self._run_in_new_loop(self._aget_query_embedding(query))
@@ -100,6 +125,17 @@ class CustomEmbedding(BaseEmbedding):
         """Sync batch version - called by LlamaIndex for bulk embedding."""
         self._logger.info(f"Embedding {len(texts)} text chunks...")
         result = self._run_in_new_loop(self._aget_text_embeddings(texts))
+        missing_count = sum(
+            1
+            for vec in result
+            if vec is None or not isinstance(vec, list) or len(vec) == 0
+        )
+        if missing_count:
+            self._logger.error(
+                f"Embedding returned {missing_count} missing vector(s). "
+                "Replacing them with zero vectors to avoid invalid LlamaIndex storage."
+            )
+            result = self._replace_missing_vectors(result)
         self._logger.info(f"Embedding complete: {len(result)} vectors")
         return result
 

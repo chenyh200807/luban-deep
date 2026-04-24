@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import Any, Literal
 
 
+HeartbeatJobStatus = Literal["active", "paused", "disabled", "failed"]
+
+
 def _coerce_datetime(value: datetime | str | None) -> datetime | None:
     if value is None or value == "":
         return None
@@ -37,6 +40,15 @@ def _copy_json(value: dict[str, Any] | None) -> dict[str, Any]:
     return json.loads(json.dumps(value or {}, ensure_ascii=False))
 
 
+def normalize_heartbeat_job_status(value: str | None) -> HeartbeatJobStatus:
+    normalized = str(value or "").strip() or "active"
+    if normalized == "stopped":
+        return "disabled"
+    if normalized in {"active", "paused", "disabled", "failed"}:
+        return normalized  # type: ignore[return-value]
+    return "active"
+
+
 @dataclass
 class LearnerHeartbeatJob:
     job_id: str
@@ -48,7 +60,7 @@ class LearnerHeartbeatJob:
     last_run_at: datetime | None
     last_result_json: dict[str, Any] | None
     failure_count: int
-    status: Literal["active", "paused", "stopped"]
+    status: HeartbeatJobStatus
     created_at: datetime
     updated_at: datetime
 
@@ -84,7 +96,7 @@ class LearnerHeartbeatJob:
                 else None
             ),
             failure_count=int(payload.get("failure_count") or 0),
-            status=str(payload.get("status") or "active").strip() or "active",
+            status=normalize_heartbeat_job_status(str(payload.get("status") or "active")),
             created_at=_coerce_datetime(payload.get("created_at")) or datetime.now(timezone.utc),
             updated_at=_coerce_datetime(payload.get("updated_at")) or datetime.now(timezone.utc),
         )
@@ -182,7 +194,7 @@ class LearnerHeartbeatJobStore:
         next_run_at: datetime | None,
         last_result_json: dict[str, Any] | None,
         failure_count: int,
-        status: Literal["active", "paused", "stopped"],
+        status: HeartbeatJobStatus,
         updated_at: datetime,
     ) -> LearnerHeartbeatJob | None:
         jobs = self.load()
@@ -216,7 +228,7 @@ class LearnerHeartbeatJobStore:
         job_id: str,
         updated_at: datetime,
         *,
-        status: Literal["active", "paused", "stopped"],
+        status: HeartbeatJobStatus,
     ) -> LearnerHeartbeatJob | None:
         jobs = self.load()
         for index, item in enumerate(jobs):

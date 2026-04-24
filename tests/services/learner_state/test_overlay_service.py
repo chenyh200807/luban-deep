@@ -198,7 +198,7 @@ def test_collect_ack_and_drop_promotions_only_manage_candidates(tmp_path) -> Non
         "bot_alpha",
         "student_demo",
         "stable_goal_signal",
-        {"goal": "case-study"},
+        {"goal": "case-study", "confidence": 0.9, "promotion_basis": "structured_result"},
         source_feature="review",
         source_id="turn_7",
     )["promotion_candidates"][0]
@@ -206,7 +206,7 @@ def test_collect_ack_and_drop_promotions_only_manage_candidates(tmp_path) -> Non
         "bot_alpha",
         "student_demo",
         "possible_weak_point",
-        {"topic": "fire_distance"},
+        {"topic": "fire_distance", "confidence": 0.85, "promotion_basis": "structured_result"},
         source_feature="review",
         source_id="turn_8",
     )["promotion_candidates"][-1]
@@ -236,6 +236,72 @@ def test_collect_ack_and_drop_promotions_only_manage_candidates(tmp_path) -> Non
     assert dropped["affected_count"] == 1
     assert dropped["affected_candidates"][0]["promotion_action"] == "drop"
     assert dropped["promotion_candidates"] == []
+
+
+def test_collect_promotion_candidates_requires_confidence_and_basis(tmp_path) -> None:
+    service = _make_service(tmp_path)
+
+    low_evidence = service.promote_candidate(
+        "bot_alpha",
+        "student_demo",
+        "possible_weak_point",
+        {"topic": "防火间距", "confidence": 0.95},
+        source_feature="chat",
+        source_id="turn_1",
+    )["promotion_candidates"][0]
+    low_confidence = service.promote_candidate(
+        "bot_alpha",
+        "student_demo",
+        "possible_weak_point",
+        {"topic": "施工缝", "confidence": 0.2, "promotion_basis": "structured_result"},
+        source_feature="quiz",
+        source_id="turn_2",
+    )["promotion_candidates"][-1]
+    eligible = service.promote_candidate(
+        "bot_alpha",
+        "student_demo",
+        "possible_weak_point",
+        {"topic": "关键线路", "confidence": 0.9, "promotion_basis": "structured_result"},
+        source_feature="quiz",
+        source_id="turn_3",
+    )["promotion_candidates"][-1]
+
+    candidates = service.collect_promotion_candidates(
+        "bot_alpha",
+        "student_demo",
+        min_confidence=0.7,
+    )
+
+    assert [item["candidate_id"] for item in candidates] == [eligible["candidate_id"]]
+    assert low_evidence["candidate_id"] not in {item["candidate_id"] for item in candidates}
+    assert low_confidence["candidate_id"] not in {item["candidate_id"] for item in candidates}
+
+
+def test_apply_promotions_reports_skipped_candidates_without_global_write(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    learner_state_service = _FakeLearnerStateService()
+    candidate = service.promote_candidate(
+        "bot_alpha",
+        "student_demo",
+        "possible_weak_point",
+        {"topic": "防火间距", "confidence": 0.95},
+        source_feature="chat",
+        source_id="turn_1",
+    )["promotion_candidates"][0]
+
+    result = service.apply_promotions(
+        "bot_alpha",
+        "student_demo",
+        learner_state_service=learner_state_service,
+        min_confidence=0.7,
+    )
+
+    assert result["applied"] == []
+    assert result["dropped"] == []
+    assert result["skipped_ids"] == [candidate["candidate_id"]]
+    assert result["skipped"][0]["reasons"] == ["missing_promotion_basis"]
+    assert learner_state_service.progress["knowledge_map"]["weak_points"] == []
+    assert service.read_overlay("bot_alpha", "student_demo")["promotion_candidates"][0]["candidate_id"] == candidate["candidate_id"]
 
 
 def test_resolve_heartbeat_inputs_returns_override_candidate_only(tmp_path) -> None:
@@ -301,7 +367,13 @@ def test_apply_promotions_updates_global_learner_state_and_acks_candidates(tmp_p
         "bot_alpha",
         "student_demo",
         "stable_goal_signal",
-        {"goal": "完成案例题专项训练", "progress": 10, "deadline": "2026-05-01"},
+        {
+            "goal": "完成案例题专项训练",
+            "progress": 10,
+            "deadline": "2026-05-01",
+            "confidence": 0.92,
+            "promotion_basis": "structured_result",
+        },
         source_feature="review",
         source_id="turn_1",
     )
@@ -309,7 +381,12 @@ def test_apply_promotions_updates_global_learner_state_and_acks_candidates(tmp_p
         "bot_alpha",
         "student_demo",
         "stable_preference",
-        {"difficulty_preference": "hard", "explanation_style": "detailed"},
+        {
+            "difficulty_preference": "hard",
+            "explanation_style": "detailed",
+            "confidence": 0.88,
+            "promotion_basis": "user_confirmed",
+        },
         source_feature="review",
         source_id="turn_2",
     )
@@ -317,7 +394,7 @@ def test_apply_promotions_updates_global_learner_state_and_acks_candidates(tmp_p
         "bot_alpha",
         "student_demo",
         "possible_weak_point",
-        {"topic": "防火间距", "confidence": 0.9},
+        {"topic": "防火间距", "confidence": 0.9, "promotion_basis": "structured_result"},
         source_feature="quiz",
         source_id="turn_3",
     )
@@ -325,7 +402,7 @@ def test_apply_promotions_updates_global_learner_state_and_acks_candidates(tmp_p
         "bot_alpha",
         "student_demo",
         "working_memory_note",
-        {"text": "这类不能晋升"},
+        {"text": "这类不能晋升", "confidence": 0.95, "promotion_basis": "structured_result"},
         source_feature="chat",
         source_id="turn_4",
     )

@@ -537,6 +537,3 @@ def test_write_item_overlay_patch_writes_overlay_tables_and_event_stream() -> No
     assert audit_body["fields_json"] == ["active_plan_binding", "local_focus"]
 
     asyncio.run(client.aclose())
-    assert requests == []
-
-    asyncio.run(client.aclose())

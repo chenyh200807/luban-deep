@@ -2433,6 +2433,8 @@ class MemberConsoleService:
                     "bot_id": bot_id,
                     "acked_ids": list(result.get("acked_ids") or []),
                     "dropped_ids": list(result.get("dropped_ids") or []),
+                    "skipped_ids": list(result.get("skipped_ids") or []),
+                    "skipped": list(result.get("skipped") or []),
                 },
             )
             return result

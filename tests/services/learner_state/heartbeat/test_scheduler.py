@@ -5,11 +5,48 @@ from datetime import datetime, timedelta, timezone
 
 from deeptutor.services.learner_state.heartbeat.scheduler import LearnerHeartbeatScheduler
 from deeptutor.services.learner_state.heartbeat.service import LearnerHeartbeatService
+from deeptutor.services.learner_state.service import LearnerStateService
 
 
 class _PathServiceStub:
     def __init__(self, root):
         self.project_root = root
+
+    def get_user_root(self):
+        return self.project_root
+
+    def get_learner_state_root(self):
+        return self.project_root / "learner_state"
+
+    def get_learner_state_outbox_db(self):
+        return self.project_root / "runtime" / "outbox.db"
+
+    def get_guide_dir(self):
+        path = self.project_root / "workspace" / "guide"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+
+class _MemberServiceStub:
+    def get_profile(self, user_id: str):
+        return {
+            "user_id": user_id,
+            "display_name": "陈同学",
+            "focus_topic": "地基基础",
+            "difficulty_preference": "medium",
+            "explanation_style": "detailed",
+            "daily_target": 30,
+        }
+
+    def get_today_progress(self, _user_id: str):
+        return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+    def get_chapter_progress(self, _user_id: str):
+        return []
+
+
+class _DisabledCoreStore:
+    is_configured = False
 
 
 def _service(tmp_path, current):
@@ -186,3 +223,54 @@ def test_scheduler_run_once_arbitrates_multi_bot_jobs_per_user(tmp_path) -> None
     assert loser_record.next_run_at == current[0] + timedelta(minutes=20)
     assert winner_record.last_result_json["delivery"]["state"] == "sent"
     assert winner_record.last_result_json["arbitration"]["winner_bot_id"] == "bot_beta"
+
+
+def test_scheduler_with_learner_state_service_records_winner_suppression_and_ops_history(tmp_path) -> None:
+    current = datetime(2026, 4, 15, 10, 0, tzinfo=timezone.utc)
+    service = LearnerStateService(
+        path_service=_PathServiceStub(tmp_path),
+        member_service=_MemberServiceStub(),
+        core_store=_DisabledCoreStore(),
+    )
+    loser = service.ensure_default_job(
+        "student_1",
+        bot_id="bot_alpha",
+        channel="heartbeat",
+        policy_json={"enabled": True, "consent": True, "interval_hours": 2},
+        next_run_at=current - timedelta(minutes=2),
+    )
+    winner = service.ensure_default_job(
+        "student_1",
+        bot_id="bot_beta",
+        channel="heartbeat",
+        policy_json={"enabled": True, "consent": True, "interval_hours": 2},
+        next_run_at=current - timedelta(minutes=1),
+    )
+    executed: list[str] = []
+
+    async def _executor(job):
+        executed.append(job.job_id)
+        return {"message": f"sent:{job.bot_id}"}
+
+    scheduler = LearnerHeartbeatScheduler(
+        service=service,
+        executor=_executor,
+        hint_resolver=lambda _user_id, _jobs: {"active_plan_bot_id": "bot_beta"},
+        suppression_cooldown_minutes=20,
+    )
+
+    results = asyncio.run(scheduler.run_once(now=current))
+
+    assert executed == [winner.job_id]
+    assert [item["status"] for item in results] == ["suppressed", "ok"]
+    history = service.list_heartbeat_history("student_1", limit=10)
+    arbitration = service.list_heartbeat_arbitration_history("student_1", limit=10)
+    deliveries = [item for item in history if item["memory_kind"] == "heartbeat_delivery"]
+    assert {item["source_id"] for item in deliveries} >= {winner.job_id, loser.job_id}
+    loser_delivery = next(item for item in deliveries if item["source_id"] == loser.job_id)
+    winner_delivery = next(item for item in deliveries if item["source_id"] == winner.job_id)
+    assert loser_delivery["payload_json"]["delivery"]["state"] == "suppressed"
+    assert winner_delivery["payload_json"]["delivery"]["state"] == "sent"
+    assert arbitration
+    assert arbitration[-1]["payload_json"]["winner_job_id"] == winner.job_id
+    assert arbitration[-1]["payload_json"]["winner_bot_id"] == "bot_beta"

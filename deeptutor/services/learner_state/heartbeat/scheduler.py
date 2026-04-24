@@ -154,6 +154,44 @@ class LearnerHeartbeatScheduler:
             "arbitration": self._serialize_arbitration_result(arbitration_result),
         }
 
+    def _record_suppressed_job(
+        self,
+        *,
+        job: LearnerHeartbeatJob,
+        next_run_at: datetime,
+        last_result_json: dict[str, Any],
+        recorded_at: datetime,
+    ) -> LearnerHeartbeatJob | None:
+        marker = getattr(self._service, "mark_run", None)
+        if callable(marker):
+            return marker(
+                job_id=job.job_id,
+                next_run_at=next_run_at,
+                last_result_json=last_result_json,
+                failure_count=int(job.failure_count),
+                status=job.status,
+                last_run_at=recorded_at,
+            )
+        recorder = getattr(self._service, "record_run_result", None)
+        if callable(recorder):
+            kwargs = {
+                "user_id": job.user_id,
+                "job_id": job.job_id,
+                "success": True,
+                "result_json": last_result_json,
+                "finished_at": recorded_at,
+                "next_run_at": next_run_at,
+            }
+            try:
+                return recorder(
+                    **kwargs,
+                    failure_count=int(job.failure_count),
+                    status=job.status,
+                )
+            except TypeError:
+                return recorder(**kwargs)
+        raise AttributeError("heartbeat service must provide record_run_result or mark_run")
+
     async def run_once(
         self,
         *,
@@ -218,8 +256,8 @@ class LearnerHeartbeatScheduler:
             )
 
             for suppressed_job in suppressed_jobs:
-                deferred = self._service.mark_run(
-                    job_id=suppressed_job.job_id,
+                deferred = self._record_suppressed_job(
+                    job=suppressed_job,
                     next_run_at=current + timedelta(minutes=self._suppression_cooldown_minutes),
                     last_result_json=(
                         self._suppression_payload(
@@ -230,9 +268,7 @@ class LearnerHeartbeatScheduler:
                         if isinstance(arbitration_result, LearnerHeartbeatArbitrationResult)
                         else {}
                     ),
-                    failure_count=int(suppressed_job.failure_count),
-                    status=suppressed_job.status,
-                    last_run_at=current,
+                    recorded_at=current,
                 )
                 results.append(
                     {

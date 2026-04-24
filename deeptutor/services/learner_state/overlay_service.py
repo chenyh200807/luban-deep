@@ -55,6 +55,20 @@ _EPHEMERAL_FIELDS = {
     "engagement_state",
 }
 _DEFAULT_OVERLAY_MAX_AGE_HOURS = 72
+_PROMOTION_BASIS_VALUES = {
+    "structured_result",
+    "user_confirmed",
+    "explicit_user_confirmation",
+    "stable_observation",
+    "stable_repeated_signal",
+}
+_STRUCTURED_PROMOTION_FEATURES = {
+    "guide",
+    "quiz",
+    "review",
+    "notebook",
+    "member_console_overlay",
+}
 
 
 def _iso_now() -> str:
@@ -116,6 +130,71 @@ def _deep_merge(base: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
 def _candidate_id(candidate: dict[str, Any]) -> str:
     raw = str(candidate.get("candidate_id") or "").strip()
     return raw or uuid.uuid4().hex
+
+
+def _candidate_confidence(candidate: dict[str, Any]) -> float:
+    payload = dict(candidate.get("payload") or {}) if isinstance(candidate.get("payload"), dict) else {}
+    for value in (candidate.get("confidence"), payload.get("confidence")):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            continue
+    return 0.0
+
+
+def _candidate_promotion_basis(candidate: dict[str, Any]) -> str:
+    payload = dict(candidate.get("payload") or {}) if isinstance(candidate.get("payload"), dict) else {}
+    for key in ("promotion_basis", "basis", "evidence_type"):
+        value = str(candidate.get(key) or payload.get(key) or "").strip()
+        if value:
+            return value
+    if bool(candidate.get("user_confirmed") or payload.get("user_confirmed")):
+        return "user_confirmed"
+    return ""
+
+
+def _candidate_observation_count(candidate: dict[str, Any]) -> int:
+    payload = dict(candidate.get("payload") or {}) if isinstance(candidate.get("payload"), dict) else {}
+    for key in ("observation_count", "evidence_count", "stable_observations"):
+        try:
+            return int(candidate.get(key) or payload.get(key) or 0)
+        except (TypeError, ValueError):
+            continue
+    return 0
+
+
+def _candidate_has_promotion_basis(candidate: dict[str, Any]) -> bool:
+    kind = str(candidate.get("candidate_kind") or "").strip()
+    source_feature = str(candidate.get("source_feature") or "").strip()
+    basis = _candidate_promotion_basis(candidate)
+    if basis in _PROMOTION_BASIS_VALUES:
+        return True
+    if kind.startswith("explicit_"):
+        return True
+    if _candidate_observation_count(candidate) >= 2:
+        return True
+    if kind.startswith("stable_") and source_feature in _STRUCTURED_PROMOTION_FEATURES:
+        return True
+    return False
+
+
+def _promotion_gate(candidate: dict[str, Any], *, min_confidence: float) -> tuple[bool, dict[str, Any]]:
+    confidence = _candidate_confidence(candidate)
+    basis = _candidate_promotion_basis(candidate)
+    has_basis = _candidate_has_promotion_basis(candidate)
+    reasons: list[str] = []
+    if confidence < min_confidence:
+        reasons.append("confidence_below_threshold")
+    if not has_basis:
+        reasons.append("missing_promotion_basis")
+    return not reasons, {
+        "candidate_id": str(candidate.get("candidate_id") or "").strip(),
+        "candidate_kind": str(candidate.get("candidate_kind") or "").strip(),
+        "confidence": confidence,
+        "promotion_basis": basis,
+        "eligible": not reasons,
+        "reasons": reasons,
+    }
 
 
 class BotLearnerOverlayService:
@@ -542,13 +621,11 @@ class BotLearnerOverlayService:
         for item in candidates:
             if not isinstance(item, dict):
                 continue
-            try:
-                confidence = float(item.get("confidence", 1.0))
-            except Exception:
-                confidence = 1.0
-            if confidence < threshold:
+            candidate = dict(item)
+            is_eligible, _gate = _promotion_gate(candidate, min_confidence=threshold)
+            if not is_eligible:
                 continue
-            eligible.append(dict(item))
+            eligible.append(candidate)
         return eligible
 
     def _rewrite_candidates(
@@ -667,12 +744,38 @@ class BotLearnerOverlayService:
             user_id,
             min_confidence=min_confidence,
         )[: max(0, int(max_candidates or 10))]
+        pending_candidates = [
+            dict(item)
+            for item in list(self.read_overlay(bot_id, user_id).get("promotion_candidates") or [])
+            if isinstance(item, dict)
+        ]
+        eligible_ids = {
+            str(item.get("candidate_id") or "").strip()
+            for item in eligible
+            if str(item.get("candidate_id") or "").strip()
+        }
+        skipped: list[dict[str, Any]] = []
+        for candidate in pending_candidates:
+            candidate_id = str(candidate.get("candidate_id") or "").strip()
+            if candidate_id in eligible_ids:
+                continue
+            _is_eligible, gate = _promotion_gate(
+                candidate,
+                min_confidence=float(min_confidence or 0.0),
+            )
+            skipped.append(gate)
         if not eligible:
             return {
                 "applied": [],
                 "dropped": [],
                 "acked_ids": [],
                 "dropped_ids": [],
+                "skipped": skipped,
+                "skipped_ids": [
+                    str(item.get("candidate_id") or "").strip()
+                    for item in skipped
+                    if str(item.get("candidate_id") or "").strip()
+                ],
             }
 
         ack_ids: list[str] = []
@@ -819,6 +922,12 @@ class BotLearnerOverlayService:
             "dropped": dropped,
             "acked_ids": ack_ids,
             "dropped_ids": drop_ids,
+            "skipped": skipped,
+            "skipped_ids": [
+                str(item.get("candidate_id") or "").strip()
+                for item in skipped
+                if str(item.get("candidate_id") or "").strip()
+            ],
         }
 
     def decay_overlay(

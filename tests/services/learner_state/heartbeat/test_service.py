@@ -213,3 +213,37 @@ def test_list_jobs_and_get_job_expose_current_job_state(tmp_path) -> None:
     assert fetched is not None
     assert fetched.job_id == paused.job_id
     assert fetched.status == "paused"
+
+
+def test_heartbeat_status_uses_contract_vocabulary_and_accepts_legacy_stopped_alias(tmp_path) -> None:
+    current = [datetime(2026, 4, 15, 10, 0, tzinfo=timezone.utc)]
+    service = _service(tmp_path, current)
+
+    job = service.ensure_default_job(
+        "student_1",
+        bot_id="bot_alpha",
+        channel="heartbeat",
+        policy_json={"enabled": True},
+        status="disabled",
+    )
+    assert job.status == "disabled"
+
+    marked = service.mark_run(
+        job_id=job.job_id,
+        next_run_at=current[0] + timedelta(days=1),
+        last_result_json={"status": "disabled"},
+        failure_count=0,
+        status="stopped",
+    )
+
+    assert marked is not None
+    assert marked.status == "disabled"
+
+    failed = service.ensure_default_job(
+        "student_2",
+        bot_id="bot_alpha",
+        channel="heartbeat",
+        policy_json={"enabled": True},
+        status="failed",
+    )
+    assert failed.status == "failed"

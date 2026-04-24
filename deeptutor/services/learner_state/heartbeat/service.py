@@ -8,7 +8,13 @@ from zoneinfo import ZoneInfo
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.services.path_service import PathService, get_path_service
 
-from .store import LearnerHeartbeatJob, LearnerHeartbeatJobStore, _coerce_datetime, new_job_id
+from .store import (
+    LearnerHeartbeatJob,
+    LearnerHeartbeatJobStore,
+    _coerce_datetime,
+    new_job_id,
+    normalize_heartbeat_job_status,
+)
 
 _DEFAULT_BOT_ID = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
 _DEFAULT_CHANNEL = "heartbeat"
@@ -39,6 +45,13 @@ class LearnerHeartbeatService:
     @staticmethod
     def _normalize_text(value: str | None) -> str:
         return str(value or "").strip()
+
+    @staticmethod
+    def _normalize_status(value: str | None) -> str:
+        normalized = str(value or "").strip()
+        if normalized and normalized not in {"active", "paused", "disabled", "failed", "stopped"}:
+            raise ValueError("status must be active, paused, disabled, or failed")
+        return normalize_heartbeat_job_status(normalized)
 
     @staticmethod
     def _copy_policy(policy_json: dict[str, Any] | None) -> dict[str, Any]:
@@ -135,16 +148,14 @@ class LearnerHeartbeatService:
         current = self._now()
         run_at = _coerce_datetime(last_run_at) if last_run_at is not None else current
         next_run_dt = _coerce_datetime(next_run_at) if next_run_at is not None else None
-        normalized_status = self._normalize_text(status) or "active"
-        if normalized_status not in {"active", "paused", "stopped"}:
-            raise ValueError("status must be active, paused, or stopped")
+        normalized_status = self._normalize_status(status)
         return self._store.mark_run(
             job_id=self._normalize_text(job_id),
             last_run_at=run_at or current,
             next_run_at=next_run_dt,
             last_result_json=dict(last_result_json or {}),
             failure_count=int(failure_count),
-            status=normalized_status,  # type: ignore[arg-type]
+            status=normalized_status,
             updated_at=current,
         )
 
@@ -179,7 +190,7 @@ class LearnerHeartbeatService:
                 last_run_at=existing.last_run_at,
                 last_result_json=existing.last_result_json,
                 failure_count=existing.failure_count,
-                status=self._normalize_text(status) or existing.status,
+                status=self._normalize_status(status) if status is not None else existing.status,
                 created_at=existing.created_at,
                 updated_at=current,
             )
@@ -194,7 +205,7 @@ class LearnerHeartbeatService:
                 last_run_at=None,
                 last_result_json=None,
                 failure_count=0,
-                status=self._normalize_text(status) or _DEFAULT_STATUS,
+                status=self._normalize_status(status) if status is not None else _DEFAULT_STATUS,
                 created_at=current,
                 updated_at=current,
             )
@@ -248,7 +259,7 @@ class LearnerHeartbeatService:
         run_at = _coerce_datetime(finished_at) if finished_at is not None else current
         next_run_dt = _coerce_datetime(next_run_at) if next_run_at is not None else None
         failure_count = 0 if success else int(job.failure_count) + 1
-        status = job.status if job.status in {"active", "paused", "stopped"} else "active"
+        status = self._normalize_status(job.status)
         normalized_result_json = _normalize_heartbeat_result_json(
             job=job,
             success=success,
@@ -268,7 +279,7 @@ class LearnerHeartbeatService:
             ),
             last_result_json=normalized_result_json,
             failure_count=failure_count,
-            status=status,  # type: ignore[arg-type]
+            status=status,
             updated_at=current,
         )
         if updated is None:

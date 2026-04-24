@@ -13,6 +13,19 @@ CLI, WebSocket API, and Python SDK.
 - [CONTRACT.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/CONTRACT.md)
 - [contracts/index.yaml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/index.yaml)
 
+## Plan Directory Discipline
+
+凡是要写 PRD、审查 PRD、规划模块改造、判断某条能力是否已经落地，或想理解某个模块未来方向，必须先看：
+
+- [docs/plan/INDEX.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/plan/INDEX.md)
+
+执行规则：
+
+- 先用 `docs/plan/INDEX.md` 确认该模块属于哪条计划主线，再读取具体 PRD / implementation plan / checklist。
+- 新增或修改计划文件后，必须同步更新 `docs/plan/INDEX.md`，否则后续 agent 会失去计划地图。
+- 不要再新增 `doc/plan/` 路径；计划、PRD、runbook、gate checklist 统一放在 `docs/plan/`。
+- 如果新计划只是既有计划的补充，优先挂到既有主线下，不要制造第二套平行规划。
+
 硬约束：
 
 - 只能有一个流式入口：`/api/v1/ws`

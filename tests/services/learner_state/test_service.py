@@ -506,6 +506,20 @@ def test_learner_state_guide_completion_enqueues_outbox_event(tmp_path) -> None:
     assert progress["knowledge_map"]["guided_learning"]["completed_titles"] == ["承载力和沉降控制"]
     assert profile["focus_topic"] == "承载力和沉降控制"
     assert profile["focus_query"] == "继续巩固承载力和沉降控制"
+    summary = service.read_summary("student_demo")
+    assert "最近完成的引导学习" in summary
+    assert "已完成本次引导并收口关键误区。" in summary
+    assert "承载力和沉降控制" in summary
+    compact = service.build_context_candidates(
+        user_id="student_demo",
+        query="下一步怎么复习？",
+        route="default",
+        language="zh",
+    )
+    learner_summary = next(
+        item for item in compact["learner_candidates"] if item["source_tag"] == "learner_summary"
+    )
+    assert "已完成本次引导并收口关键误区。" in learner_summary["content"]
 
 
 def test_learner_state_guide_completion_is_idempotent_by_guide_id(tmp_path) -> None:

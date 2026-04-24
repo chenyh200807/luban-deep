@@ -1,0 +1,29 @@
+# Contract sketch for wx_miniprogram -> yousenwebview/packageDeeptutor sync.
+# Authority: ADR-005-mini-program-surface-renderer-contract.md.
+
+source: wx_miniprogram
+target: yousenwebview/packageDeeptutor
+
+include:
+  - components/exam-classroom/**
+  - pages/exam-classroom/**
+  - services/exam-classroom/**
+
+exclude:
+  - app.ts
+  - app.js
+  - app.json
+  - auth/**
+  - billing/**
+  - tenant-shell/**
+
+host_adapters:
+  auth: yousen_auth_adapter
+  membership: yousen_membership_adapter
+  points: yousen_points_adapter
+  workspace: yousen_workspace_adapter
+
+rules:
+  - packageDeeptutor is not a raw mirror of wx_miniprogram.
+  - Preserve host routing, login, membership, points, and workspace shell.
+  - Never use full-directory overwrite for packageDeeptutor.

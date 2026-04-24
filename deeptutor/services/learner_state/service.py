@@ -1088,6 +1088,16 @@ class LearnerStateService:
                 )
                 if profile_patch:
                     self.merge_profile(normalized, profile_patch)
+            current_summary = self.read_summary(normalized)
+            merged_summary = _merge_guide_completion_summary(
+                current_summary,
+                guide_id=guide_id,
+                notebook_name=notebook_name,
+                summary=str(summary or "").strip(),
+                knowledge_points=normalized_points,
+            )
+            if merged_summary != current_summary:
+                self.write_summary(normalized, merged_summary)
             return self.record_guide_event(
                 user_id=normalized,
                 guide_id=guide_id,
@@ -2122,6 +2132,42 @@ def _deep_merge(base: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
         else:
             merged[key] = value
     return merged
+
+
+def _merge_guide_completion_summary(
+    current: str,
+    *,
+    guide_id: str,
+    notebook_name: str,
+    summary: str,
+    knowledge_points: list[dict[str, Any]],
+) -> str:
+    normalized_guide_id = str(guide_id or "").strip()
+    marker = f"<!-- learner_state:guide_completion:{normalized_guide_id} -->" if normalized_guide_id else ""
+    current_text = str(current or "").strip()
+    if marker and marker in current_text:
+        return current_text
+
+    titles = [
+        str(point.get("knowledge_title") or "").strip()
+        for point in knowledge_points
+        if isinstance(point, dict) and str(point.get("knowledge_title") or "").strip()
+    ]
+    block_lines = ["## 最近完成的引导学习"]
+    if marker:
+        block_lines.append(marker)
+    if notebook_name:
+        block_lines.append(f"- 笔记：{str(notebook_name).strip()}")
+    if summary:
+        block_lines.append(f"- 完成总结：{summary}")
+    if titles:
+        block_lines.append(f"- 已完成知识点：{'、'.join(titles)}")
+    block = "\n".join(block_lines).strip()
+    if not block:
+        return current_text
+    if not current_text:
+        return block
+    return f"{block}\n\n{current_text}"
 
 
 def _timestamp_to_iso(value: Any) -> str | None:
