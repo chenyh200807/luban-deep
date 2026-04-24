@@ -94,6 +94,8 @@ outputs/
 **/outputs/
 tmp/benchmark/
 tmp/observability/
+tmp/arr_*/
+tmp/prelaunch-audit-*/
 
 # Cache directories
 cache/
