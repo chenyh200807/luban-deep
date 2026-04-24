@@ -1,0 +1,64 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - link "鲁班智考 鲁班智考" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "鲁班智考" [ref=e6]
+          - generic [ref=e7]: 鲁班智考
+        - button "Collapse sidebar" [ref=e8] [cursor=pointer]:
+          - img [ref=e9]
+      - navigation [ref=e12]:
+        - generic [ref=e13]:
+          - button "New Chat" [ref=e14] [cursor=pointer]:
+            - img [ref=e15]
+            - generic [ref=e16]: New Chat
+          - link "Chat" [ref=e18] [cursor=pointer]:
+            - /url: /
+            - img [ref=e19]
+            - generic [ref=e21]: Chat
+          - link "BI" [ref=e23] [cursor=pointer]:
+            - /url: /bi
+            - img [ref=e24]
+            - generic [ref=e26]: BI
+    - main [ref=e29]:
+      - generic [ref=e31]:
+        - generic [ref=e33]:
+          - heading "What would you like to learn?" [level=1] [ref=e34]
+          - paragraph [ref=e35]: Ask anything — I'm here to help you understand.
+        - generic [ref=e38]:
+          - textbox "How can I help you today?" [active] [ref=e40]
+          - generic [ref=e42]:
+            - button "Chat" [ref=e43] [cursor=pointer]:
+              - img [ref=e44]
+              - generic [ref=e46]: Chat
+              - img [ref=e47]
+            - generic [ref=e49]:
+              - button "Fast" [ref=e50] [cursor=pointer]:
+                - img [ref=e51]
+                - generic [ref=e53]: Fast
+              - button "Deep" [ref=e54] [cursor=pointer]:
+                - img [ref=e55]
+                - generic [ref=e67]: Deep
+            - generic [ref=e69]:
+              - button "Tools" [ref=e71] [cursor=pointer]:
+                - img [ref=e72]
+                - text: Tools
+                - img [ref=e75]
+              - button "Reference" [ref=e78] [cursor=pointer]:
+                - img [ref=e79]
+                - text: Reference
+                - img [ref=e82]
+            - generic [ref=e84]:
+              - combobox "Enable Knowledge Base source first" [disabled] [ref=e85]:
+                - option "—"
+                - option "construction-exam"
+                - option "construction-exam-coach"
+                - option "construction-exam-tutor"
+                - option "construction-knowledge"
+                - option "construction_exam_tutor"
+                - option "construction_knowledge"
+                - option "supabase-main" [selected]
+              - button "Send" [disabled] [ref=e86]:
+                - img [ref=e87]
+  - alert [ref=e89]
