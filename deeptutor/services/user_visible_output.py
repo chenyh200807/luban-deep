@@ -8,6 +8,11 @@ _REDACTED_PLACEHOLDER = "[INTERNAL_OUTPUT_REDACTED]"
 _SAFE_FALLBACK = "暂时未生成适合直接展示的答案，请重试一次。"
 
 _INTERNAL_OUTPUT_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"```(?:bash|sh|python|py|json)?\s*(?:read_file|toolcall|web_search|python|bash)\b", re.IGNORECASE),
+    re.compile(r"\b(?:read_file|toolcall|web_search)\s+(?:path|query|args)=", re.IGNORECASE),
+    re.compile(r"</?(?:rags|toolcall|tool_call|tool_result|observation)\b", re.IGNORECASE),
+    re.compile(r"(?:InternalError\.Algo\.DataInspectionFailed|DataInspectionFailed|Request timed out)", re.IGNORECASE),
+    re.compile(r"(?:provider error|raw provider|HTTP_?40[04]|HTTP_?50[023])", re.IGNORECASE),
     re.compile(
         r"^(?:现在)?(?:让我|我来)(?:读取|查看|检查|分析|打开|浏览).{0,40}(?:技能文件|references|目录结构|技能系统|参考文件)",
         re.IGNORECASE,

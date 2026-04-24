@@ -2060,8 +2060,8 @@ class SQLiteSessionStore:
         normalized_conversation_id = str(conversation_id or "").strip()
         if not normalized_conversation_id:
             return []
-        conditions = ["s.owner_key = ?", "s.conversation_id = ?"]
-        params: list[Any] = [owner_key, normalized_conversation_id]
+        conditions = ["s.owner_key = ?", "(s.conversation_id = ? OR s.id = ?)"]
+        params: list[Any] = [owner_key, normalized_conversation_id, normalized_conversation_id]
         if source is not None:
             conditions.append("s.source = ?")
             params.append(_normalize_session_source(source))

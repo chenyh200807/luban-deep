@@ -36,7 +36,8 @@ Learner State / Memory / Heartbeat 与 Bot-Learner Overlay 没有达到产品级
 
 - Learner State / Memory / Heartbeat 的生产 outbox 调度、FK 身份、heartbeat upsert 三个 blocker 已修复并在阿里云容器验证。
 - 生产 outbox 从 `sent=41` 推进到 `sent=1284`；`processing` stuck 已恢复；外键 409 已清零；heartbeat `(user_id, bot_id, channel)` 唯一键冲突已清零。
-- Bot-Learner Overlay 的 repo-side contract / migration / service / tests 已完成，但生产 Supabase 仍缺 `bot_learner_overlays`、`bot_learner_overlay_events`、`bot_learner_overlay_audit` 三张表。当前阿里云环境只有 Supabase REST service key，没有 DB_URL / SQL RPC，因此 overlay 生产写入仍被 PGRST205 阻塞，不能宣布生产级全关。
+- Bot-Learner Overlay 的 repo-side contract / migration / service / tests 已完成，生产 Supabase 已创建 `bot_learner_overlays`、`bot_learner_overlay_events`、`bot_learner_overlay_audit` 三张表并启用 RLS。
+- 阿里云生产端到端 overlay 探针已通过：真实 `BotLearnerOverlayService.patch_overlay` 生成 outbox，`LearnerStateSupabaseWriter` 写入 Supabase，`learner_memory_events / bot_learner_overlays / bot_learner_overlay_events / bot_learner_overlay_audit` 均能通过 REST 查到记录，outbox 状态为 `sent`。
 
 ## 3. 单一 authority
 
@@ -149,10 +150,11 @@ Overlay promotion hard gate 验证（2026-04-24）：
 - 生产身份修复证据：
   - 已补 canonical UUID users / aliases。
   - 已把历史 outbox 与 heartbeat jobs 中可证明属于同一人的 legacy user id 迁到 canonical UUID。
-- 仍未通过的生产证据：
-  - `pending_overlay_schema_errors=41`
-  - Supabase REST 返回 `PGRST205`，缺 `public.bot_learner_overlays` 等 overlay 表。
-  - 当前环境无 DB_URL，且 `exec_sql / execute_sql / run_sql / pg_execute` RPC 均不存在，无法通过当前凭据执行 DDL。
+- Overlay 生产端到端验收：
+  - 生产 Supabase overlay 表 REST 可见：`bot_learner_overlays=200`，`bot_learner_overlay_events=200`，`bot_learner_overlay_audit=200`。
+  - 历史 pending overlay outbox 已重放：剩余 `pending_overlay=0`，`pending_overlay_schema_errors=0`，`pending_overlay_fk_errors=0`。
+  - 新增阿里云 e2e 探针结果：`ok=true`，`outbox_status=sent`，写入表为 `learner_memory_events / bot_learner_overlays / bot_learner_overlay_events / bot_learner_overlay_audit`。
+  - 探针 marker：`codex_overlay_e2e_9c540dc63a`。
 
 ## 7. 未完成目标
 
@@ -161,7 +163,7 @@ Overlay promotion hard gate 验证（2026-04-24）：
 | 目标 | 当前状态 | 缺口 |
 | --- | --- | --- |
 | 跨 Chat / Guide / Notebook / TutorBot 的长期记忆共享 | repo hard gate 部分收口 | 已有自动化回归证明 Guide completion summary 会进入下一轮统一聊天上下文；仍缺真实模型回放与线上满意度验收。 |
-| Supabase 作为生产级主存储 | 部分达成 | 有 core store、writer、migration、RLS 测试，但当前本地验证主要是 mocked PostgREST；真实生产实例 migration apply、权限、回滚、数据一致性未验收。 |
+| Supabase 作为生产级主存储 | 主链路已生产验收 | core store、writer、migration、RLS 测试存在；生产 learner-state/outbox/overlay 写入已验收。仍缺正式回滚演练、权限审计报告和规模压测。 |
 | Guided Learning completion 更新 summary/profile/progress | repo hard gate 部分收口 | `record_guide_completion` 会更新 profile/progress/summary，并有 turn runtime 回归证明下一轮读取；仍缺真实模型效果验收。 |
 | Heartbeat 主动学习触达 | repo + production writeback blocker 已收口 | 已有自动化回归证明 due job -> arbitration -> executor -> delivery/arbitration history；生产 outbox/FK/upsert blocker 已修复；仍缺真实 channel delivery、用户频控、退订/负反馈闭环、5 万规模调度验证。 |
 | 运营面治理 | repo hard gate 部分收口 | Member Console service/API 有入口，promotion apply 已用真实服务组合验收并审计 skipped reason；仍缺运营权限矩阵、误操作恢复、线上审计 SOP。 |
@@ -170,7 +172,7 @@ Overlay promotion hard gate 验证（2026-04-24）：
 
 | 目标 | 当前状态 | 缺口 |
 | --- | --- | --- |
-| 多 Bot 局部差异 | repo 达成，生产 schema 未达成 | overlay 字段和上下文注入存在；生产 Supabase overlay 表仍未创建，overlay writeback 仍会 404；缺多 Bot 真实使用流量下的稳定性和污染检测。 |
+| 多 Bot 局部差异 | repo + production writeback 已打通 | overlay 字段和上下文注入存在；生产 Supabase overlay 表已创建，overlay writeback e2e 已通过；仍缺多 Bot 真实使用流量下的稳定性和污染检测。 |
 | promotion 仲裁与晋升治理 | repo hard gate 部分收口 | `apply_promotions` 已增加置信度 + 晋升依据 gate，并返回 skipped reason；Member Console audit 已记录 skipped；仍缺真实候选质量抽检、冲突处理、人工审核 SOP、误操作回滚。 |
 | heartbeat 全局仲裁 | repo hard gate 部分收口 | `LearnerHeartbeatArbitrator` 已实现 winner/suppress，且默认 `LearnerStateService + Scheduler` 组合会把 winner/suppression 写入运营历史；仍缺生产级多 Bot due jobs 回放和触达频控验证。 |
 | 后台治理 | 部分达成 | API/service 有操作入口，但缺 UI 级完整验收、权限分层、审计导出、回滚机制。 |
@@ -179,7 +181,7 @@ Overlay promotion hard gate 验证（2026-04-24）：
 
 这些项目不能只靠本地仓库宣布完成：
 
-1. 真实生产 Supabase migration apply 与回滚演练。
+1. 真实生产 Supabase 回滚演练。
 2. 线上 service role / RLS / admin 权限配置验收。
 3. 5 万会员 heartbeat job 调度、outbox flush、arbitration 的压测报告。
 4. 运营 SOP：promotion apply/ack/drop 的权限、审计、误操作恢复流程。

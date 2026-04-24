@@ -28,6 +28,7 @@ from deeptutor.services.feedback_service import (
     SupabaseFeedbackStore,
     build_mobile_feedback_row,
 )
+from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.session import (
     build_user_owner_key,
     get_sqlite_session_store,
@@ -56,6 +57,12 @@ def _ts_to_iso(timestamp: float | int | None) -> str:
     if not timestamp:
         return ""
     return datetime.fromtimestamp(float(timestamp)).isoformat()
+
+
+def _ts_to_ms(timestamp: float | int | None) -> int:
+    if not timestamp:
+        return 0
+    return int(round(float(timestamp) * 1000))
 
 
 def _resolve_authenticated_user_id(authorization: str | None) -> str:
@@ -388,6 +395,17 @@ def _merge_mobile_conversation_rows(rows: list[dict[str, Any]]) -> list[dict[str
     return result
 
 
+def _serialize_mobile_conversation(row: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(row)
+    created_at = payload.get("created_at")
+    updated_at = payload.get("updated_at")
+    payload["created_at"] = _ts_to_iso(created_at)
+    payload["updated_at"] = _ts_to_iso(updated_at)
+    payload["created_at_ms"] = _ts_to_ms(created_at)
+    payload["updated_at_ms"] = _ts_to_ms(updated_at)
+    return payload
+
+
 async def _load_mobile_conversation_variants(
     conversation_id: str,
     user_id: str,
@@ -396,15 +414,25 @@ async def _load_mobile_conversation_variants(
     if not normalized_conversation_id:
         return []
     owner_key = build_user_owner_key(user_id)
+    matches: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+
+    def add_match(row: dict[str, Any]) -> None:
+        session_id = str(row.get("id") or row.get("session_id") or "").strip()
+        if not session_id or session_id in seen_ids:
+            return
+        seen_ids.add(session_id)
+        matches.append(row)
+
     direct_owner_lookup = getattr(session_store, "get_session_owner_key", None)
     if callable(direct_owner_lookup):
         direct_owner_key = str(await direct_owner_lookup(normalized_conversation_id) or "").strip()
         if direct_owner_key == owner_key:
-            return [{"id": normalized_conversation_id}]
+            add_match({"id": normalized_conversation_id})
 
     exact_lookup = getattr(session_store, "list_sessions_by_owner_and_conversation", None)
     if callable(exact_lookup):
-        return list(
+        for row in list(
             await exact_lookup(
                 owner_key,
                 normalized_conversation_id,
@@ -413,12 +441,18 @@ async def _load_mobile_conversation_variants(
                 limit=50,
             )
             or []
-        )
+        ):
+            if isinstance(row, dict):
+                add_match(row)
+        return matches
 
-    matches: list[dict[str, Any]] = []
+    list_by_owner = getattr(session_store, "list_sessions_by_owner", None)
+    if not callable(list_by_owner):
+        return matches
+
     offset = 0
     while True:
-        rows = await session_store.list_sessions_by_owner(
+        rows = await list_by_owner(
             owner_key,
             source="wx_miniprogram",
             archived=None,
@@ -428,11 +462,9 @@ async def _load_mobile_conversation_variants(
         batch = list(rows or [])
         if not batch:
             break
-        matches.extend(
-            row
-            for row in batch
-            if isinstance(row, dict) and _normalize_mobile_conversation_id(row) == normalized_conversation_id
-        )
+        for row in batch:
+            if isinstance(row, dict) and _normalize_mobile_conversation_id(row) == normalized_conversation_id:
+                add_match(row)
         if len(batch) < _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE:
             break
         offset += _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE
@@ -783,7 +815,17 @@ def _build_presentation_payload(message: dict[str, Any]) -> dict[str, Any] | Non
         metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
         presentation = metadata.get("presentation")
         if isinstance(presentation, dict):
-            return presentation
+            blocks = presentation.get("blocks") if isinstance(presentation.get("blocks"), list) else []
+            review_mode = any(
+                isinstance(block, dict) and bool(block.get("review_mode") or block.get("reviewMode"))
+                for block in blocks
+            )
+            return build_canonical_presentation(
+                content=str(message.get("content") or presentation.get("fallback_text") or ""),
+                blocks=blocks,
+                reveal_answers=bool(metadata.get("reveal_answers") or review_mode),
+                reveal_explanations=bool(metadata.get("reveal_explanations") or review_mode),
+            )
     return None
 
 
@@ -1218,6 +1260,7 @@ async def create_conversation(authorization: str | None = Header(default=None)) 
             "id": session["id"],
             "title": "新对话",
             "created_at": _ts_to_iso(session.get("created_at")),
+            "created_at_ms": _ts_to_ms(session.get("created_at")),
         }
     }
 
@@ -1235,7 +1278,12 @@ async def list_conversations(
         limit=200,
         offset=0,
     )
-    return {"conversations": _merge_mobile_conversation_rows(list(sessions or []))}
+    return {
+        "conversations": [
+            _serialize_mobile_conversation(item)
+            for item in _merge_mobile_conversation_rows(list(sessions or []))
+        ]
+    }
 
 
 @router.get("/conversations/{conversation_id}/messages")

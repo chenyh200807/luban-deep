@@ -67,6 +67,8 @@ _CAPTURED_ASSISTANT_CALL_KINDS = {"llm_final_response", "exact_authority_respons
 _PUBLIC_VISIBILITY = "public"
 _INTERNAL_VISIBILITY = "internal"
 _PLAN_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
+_PUBLIC_CANCELLED_MESSAGE = "本轮生成已取消，请重新发送或换个题目继续。"
+_PUBLIC_FAILED_MESSAGE = "本轮生成失败，后台已记录问题。请稍后重试。"
 
 
 class _ContextOrchestrationStageError(RuntimeError):
@@ -118,6 +120,20 @@ def _clip_text(value: str, limit: int = 4000) -> str:
     if len(text) <= limit:
         return text
     return text[:limit].rstrip() + "\n...[truncated]"
+
+
+def _safe_terminal_assistant_content(
+    assistant_content: str | None,
+    *,
+    status: str,
+) -> str:
+    fallback = _PUBLIC_CANCELLED_MESSAGE if status == "cancelled" else _PUBLIC_FAILED_MESSAGE
+    source = str(assistant_content or "").strip()
+    if not source:
+        return fallback
+    return normalize_markdown_for_tutorbot(
+        coerce_user_visible_answer(source, fallback=fallback)
+    ) or fallback
 
 
 def _build_terminal_turn_observation_event(
@@ -3333,11 +3349,15 @@ class TurnRuntimeManager:
                 }
                 terminal_status = "completed"
         except asyncio.CancelledError:
+            public_assistant_content = _safe_terminal_assistant_content(
+                assistant_content,
+                status="cancelled",
+            )
             usage_summary = observability.get_current_usage_summary()
             assistant_event_summary = _summarize_assistant_events(assistant_events)
             observability.update_observation(
                 turn_observation,
-                output_payload={"assistant_content": assistant_content},
+                output_payload={"assistant_content": public_assistant_content},
                 metadata=_build_final_observation_metadata(
                     usage_summary=usage_summary,
                     terminal_status="cancelled",
@@ -3347,6 +3367,17 @@ class TurnRuntimeManager:
                 usage_source="summary",
                 level="ERROR",
                 status_message="Turn cancelled",
+            )
+            await self._safe_store_call(
+                execution,
+                "add_cancelled_assistant_message",
+                self.store.add_message,
+                session_id=session_id,
+                role="assistant",
+                content=public_assistant_content,
+                capability=capability_name,
+                events=assistant_events,
+                default=None,
             )
             await self._safe_store_call(
                 execution,
@@ -3362,7 +3393,7 @@ class TurnRuntimeManager:
                 StreamEvent(
                     type=StreamEventType.ERROR,
                     source=capability_name,
-                    content="Turn cancelled",
+                    content=public_assistant_content,
                     metadata={"turn_terminal": True, "status": "cancelled"},
                 ),
             )
@@ -3377,11 +3408,15 @@ class TurnRuntimeManager:
             terminal_status = "cancelled"
             raise
         except Exception as exc:
+            public_assistant_content = _safe_terminal_assistant_content(
+                assistant_content,
+                status="failed",
+            )
             usage_summary = observability.get_current_usage_summary()
             assistant_event_summary = _summarize_assistant_events(assistant_events)
             observability.update_observation(
                 turn_observation,
-                output_payload={"assistant_content": assistant_content},
+                output_payload={"assistant_content": public_assistant_content},
                 metadata=_build_final_observation_metadata(
                     usage_summary=usage_summary,
                     terminal_status="failed",
@@ -3393,6 +3428,17 @@ class TurnRuntimeManager:
                 status_message=str(exc),
             )
             logger.error("Turn %s failed: %s", turn_id, exc, exc_info=True)
+            await self._safe_store_call(
+                execution,
+                "add_failed_assistant_message",
+                self.store.add_message,
+                session_id=session_id,
+                role="assistant",
+                content=public_assistant_content,
+                capability=capability_name,
+                events=assistant_events,
+                default=None,
+            )
             await self._safe_store_call(
                 execution,
                 "mark_turn_failed",
@@ -3407,7 +3453,7 @@ class TurnRuntimeManager:
                 StreamEvent(
                     type=StreamEventType.ERROR,
                     source=capability_name,
-                    content=str(exc),
+                    content=public_assistant_content,
                     metadata={"turn_terminal": True, "status": "failed"},
                 ),
             )

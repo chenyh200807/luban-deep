@@ -3346,6 +3346,81 @@ async def test_turn_runtime_cancels_superseded_running_turn_before_new_turn(
     assert cancelled_turn["status"] == "cancelled"
     assert completed_turn is not None
     assert completed_turn["status"] == "completed"
+    messages = await store.get_messages(session["id"])
+    cancelled_assistant = [
+        item for item in messages
+        if item["role"] == "assistant" and "取消" in item["content"]
+    ]
+    assert cancelled_assistant
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_fails_closed_for_provider_raw_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            raise RuntimeError("<400> InternalError.Algo.DataInspectionFailed: raw provider rejection")
+            yield
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "触发 provider error",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    failed_turn = await store.get_turn(turn["id"])
+    messages = await store.get_messages(session["id"])
+    error_events = [item for item in events if item.get("type") == "error"]
+
+    assert failed_turn is not None
+    assert failed_turn["status"] == "failed"
+    assert error_events
+    assert "InternalError" not in error_events[-1]["content"]
+    assert "DataInspectionFailed" not in error_events[-1]["content"]
+    assistant_messages = [item for item in messages if item["role"] == "assistant"]
+    assert assistant_messages
+    assert "InternalError" not in assistant_messages[-1]["content"]
+    assert "DataInspectionFailed" not in assistant_messages[-1]["content"]
 
 
 @pytest.mark.asyncio

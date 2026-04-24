@@ -779,6 +779,92 @@ def test_get_conversation_messages_include_presentation_payload(
     messages = response.json()["messages"]
     assert messages[0]["presentation"]["blocks"][0]["type"] == "mcq"
     assert messages[0]["presentation"]["blocks"][0]["questions"][0]["question_id"] == "q_1"
+    followup = messages[0]["presentation"]["blocks"][0]["questions"][0]["followup_context"]
+    assert followup["correct_answer"] == ""
+    assert followup["explanation"] == ""
+
+
+def test_get_conversation_messages_reveals_answers_only_in_review_mode(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_payload = {
+        "id": "session_review_mcq",
+        "title": "防水工程讲评",
+        "preferences": {
+            "source": "wx_miniprogram",
+            "archived": False,
+        },
+        "messages": [
+            {
+                "id": 1,
+                "role": "assistant",
+                "content": "讲评模式",
+                "created_at": 1_700_000_031.0,
+                "events": [
+                    {
+                        "type": "result",
+                        "metadata": {
+                            "presentation": {
+                                "schema_version": 1,
+                                "blocks": [
+                                    {
+                                        "type": "mcq",
+                                        "questions": [
+                                            {
+                                                "index": 1,
+                                                "question_id": "q_1",
+                                                "stem": "某防水工程题目",
+                                                "question_type": "single_choice",
+                                                "options": [
+                                                    {"key": "A", "text": "方案A"},
+                                                    {"key": "B", "text": "方案B"},
+                                                ],
+                                                "followup_context": {
+                                                    "question_id": "q_1",
+                                                    "question": "某防水工程题目",
+                                                    "question_type": "choice",
+                                                    "options": {"A": "方案A", "B": "方案B"},
+                                                    "correct_answer": "B",
+                                                    "explanation": "B 更符合规范。",
+                                                },
+                                            }
+                                        ],
+                                        "submit_hint": "请选择后提交答案",
+                                        "receipt": "",
+                                        "review_mode": True,
+                                    }
+                                ],
+                                "fallback_text": "讲评模式",
+                            }
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+
+    async def _fake_get_session_with_messages(_conversation_id: str):
+        return session_payload
+
+    async def _fake_list_sessions_by_owner(*_args, **_kwargs):
+        return [session_payload]
+
+    monkeypatch.setattr(mobile_module.session_store, "list_sessions_by_owner", _fake_list_sessions_by_owner)
+    monkeypatch.setattr(mobile_module.session_store, "get_session_with_messages", _fake_get_session_with_messages)
+    monkeypatch.setattr(mobile_module.session_store, "get_session_owner_key", AsyncMock(return_value="user:student_demo"))
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/session_review_mcq/messages")
+
+    assert response.status_code == 200
+    followup = response.json()["messages"][0]["presentation"]["blocks"][0]["questions"][0]["followup_context"]
+    assert followup["correct_answer"] == "B"
+    assert followup["explanation"] == "B 更符合规范。"
 
 
 def test_get_conversation_messages_suppresses_presentation_for_exact_authority(
@@ -2078,3 +2164,97 @@ def test_list_conversations_merges_internal_tutorbot_mirror_sessions(
     assert conversations[0]["message_count"] == 8
     assert conversations[0]["last_message"] == "标准答案：CDE"
     assert conversations[0]["cost_summary"]["total_tokens"] == 88
+
+
+def test_list_conversations_exposes_explicit_time_units(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeSessionStore:
+        async def list_sessions_by_owner(
+            self,
+            owner_key: str,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 200,
+            offset: int = 0,
+        ):
+            return [
+                {
+                    "id": "session_1",
+                    "title": "会话一",
+                    "created_at": 1_700_000_000.25,
+                    "updated_at": 1_700_000_100.5,
+                    "message_count": 1,
+                    "preferences": {"source": "wx_miniprogram"},
+                }
+            ]
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations")
+
+    assert response.status_code == 200
+    conversation = response.json()["conversations"][0]
+    assert conversation["created_at"] == mobile_module._ts_to_iso(1_700_000_000.25)
+    assert conversation["updated_at"] == mobile_module._ts_to_iso(1_700_000_100.5)
+    assert conversation["created_at_ms"] == 1_700_000_000_250
+    assert conversation["updated_at_ms"] == 1_700_000_100_500
+
+
+def test_delete_conversation_deletes_direct_and_mirror_variants(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    deleted: list[str] = []
+
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            if session_id == "tb_123":
+                return "user:student_demo"
+            return ""
+
+        async def list_sessions_by_owner_and_conversation(
+            self,
+            owner_key: str,
+            conversation_id: str,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 50,
+        ):
+            assert owner_key == "user:student_demo"
+            assert conversation_id == "tb_123"
+            return [
+                {
+                    "id": "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123",
+                    "preferences": {
+                        "source": "wx_miniprogram",
+                        "conversation_id": "tb_123",
+                    },
+                }
+            ]
+
+        async def delete_session(self, session_id: str) -> bool:
+            deleted.append(session_id)
+            return True
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.delete("/api/v1/conversations/tb_123")
+
+    assert response.status_code == 200
+    assert response.json() == {"deleted": True}
+    assert deleted == [
+        "tb_123",
+        "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123",
+    ]
