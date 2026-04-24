@@ -26,21 +26,22 @@ def _write_stub(path: Path, content: str) -> None:
 
 
 def _build_stub_env(
-    tmp_path: Path, *, execute_release_injection: bool = False
+    tmp_path: Path, *, execute_release_injection: bool = False, execute_remote_python: bool = False
 ) -> tuple[dict[str, str], Path]:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
     call_log = tmp_path / "calls.log"
 
-    if execute_release_injection:
+    if execute_release_injection or execute_remote_python:
         ssh_stub = """\
             #!/usr/bin/env bash
             printf 'ssh:%s\n' "$*" >> "${CALLS_LOG}"
             remote_host="$1"
             shift
             command="$*"
-            if [[ "${command}" == *"RELEASE_GIT_SHA="* ]]; then
+            if [[ "${command}" == *"RELEASE_GIT_SHA="* || "${EXECUTE_REMOTE_PYTHON:-0}" == "1" ]]; then
               eval "${command}"
+              exit $?
             fi
             exit 0
             """
@@ -65,6 +66,8 @@ def _build_stub_env(
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}:{env['PATH']}"
     env["CALLS_LOG"] = str(call_log)
+    if execute_remote_python:
+        env["EXECUTE_REMOTE_PYTHON"] = "1"
     return env, call_log
 
 
@@ -134,6 +137,15 @@ def _setup_wrapper_repo(tmp_path: Path, wrapper_name: str) -> Path:
             """
         ),
     )
+    return repo_root
+
+
+def _setup_script_repo(tmp_path: Path, script_name: str) -> Path:
+    repo_root = tmp_path / "repo"
+    scripts_dir = repo_root / "scripts"
+    scripts_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(SOURCE_SCRIPTS / script_name, scripts_dir / script_name)
+    _make_executable(scripts_dir / script_name)
     return repo_root
 
 
@@ -212,7 +224,7 @@ def test_sync_injects_release_lineage_into_remote_env(tmp_path: Path) -> None:
     remote_dir = tmp_path / "remote"
     remote_dir.mkdir()
     (remote_dir / ".env").write_text(
-        "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\n",
+        "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\nFF_WORKER_CAPACITY_ISOLATION_V1=true\n",
         encoding="utf-8",
     )
     env, _ = _build_stub_env(tmp_path, execute_release_injection=True)
@@ -228,6 +240,68 @@ def test_sync_injects_release_lineage_into_remote_env(tmp_path: Path) -> None:
     assert f"DEEPTUTOR_GIT_SHA={git_sha}\n" in env_content
     assert "DEEPTUTOR_ENV=production\n" in env_content
     assert f"DEEPTUTOR_RELEASE_ID=2.3.4+{git_sha}+production\n" in env_content
+    assert f"DEEPTUTOR_PROMPT_VERSION=git-{git_sha[:12]}\n" in env_content
+    assert "DEEPTUTOR_FF_SNAPSHOT_HASH=" in env_content
+    assert "DEEPTUTOR_FF_SNAPSHOT_HASH=none\n" not in env_content
+
+
+def test_validate_release_env_requires_ff_snapshot_hash(tmp_path: Path) -> None:
+    repo_root = _setup_script_repo(tmp_path, "validate_aliyun_release_env.sh")
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text(
+        textwrap.dedent(
+            """\
+            SERVICE_ENV=production
+            APP_ENV=production
+            DEEPTUTOR_AUTH_SECRET=secret
+            DEEPTUTOR_ADMIN_USER_IDS=user_1
+            DEEPTUTOR_RELEASE_ID=1.0.0+abc+production
+            DEEPTUTOR_GIT_SHA=abc
+            DEEPTUTOR_PROMPT_VERSION=git-abc
+            """
+        ),
+        encoding="utf-8",
+    )
+    env, _ = _build_stub_env(tmp_path, execute_remote_python=True)
+    env["REMOTE_HOST"] = "fake-host"
+    env["REMOTE_DIR"] = str(remote_dir)
+
+    result = _run(["bash", "scripts/validate_aliyun_release_env.sh"], cwd=repo_root, env=env)
+
+    combined = f"{result.stdout}\n{result.stderr}"
+    assert result.returncode != 0
+    assert "DEEPTUTOR_FF_SNAPSHOT_HASH" in combined
+
+
+def test_validate_release_env_accepts_complete_lineage(tmp_path: Path) -> None:
+    repo_root = _setup_script_repo(tmp_path, "validate_aliyun_release_env.sh")
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text(
+        textwrap.dedent(
+            """\
+            SERVICE_ENV=production
+            APP_ENV=production
+            DEEPTUTOR_AUTH_SECRET=secret
+            DEEPTUTOR_ADMIN_USER_IDS=user_1
+            DEEPTUTOR_RELEASE_ID=1.0.0+abc+production
+            DEEPTUTOR_GIT_SHA=abc
+            DEEPTUTOR_PROMPT_VERSION=git-abc
+            DEEPTUTOR_FF_SNAPSHOT_HASH=ffaa00112233
+            """
+        ),
+        encoding="utf-8",
+    )
+    env, _ = _build_stub_env(tmp_path, execute_remote_python=True)
+    env["REMOTE_HOST"] = "fake-host"
+    env["REMOTE_DIR"] = str(remote_dir)
+
+    result = _run(["bash", "scripts/validate_aliyun_release_env.sh"], cwd=repo_root, env=env)
+
+    assert result.returncode == 0, result.stderr
+    assert "远端发布环境校验通过" in result.stdout
+    assert "DEEPTUTOR_FF_SNAPSHOT_HASH=ffaa00112233" in result.stdout
 
 
 def test_deploy_runs_remote_backup_before_bootstrap(tmp_path: Path) -> None:

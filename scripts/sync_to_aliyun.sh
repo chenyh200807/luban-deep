@@ -117,6 +117,8 @@ inject_remote_release_lineage() {
     ssh "${resolved_host}" \
         "PYTHONIOENCODING='utf-8' REMOTE_DIR='${REMOTE_DIR}' RELEASE_GIT_SHA='${git_sha}' RELEASE_SERVICE_VERSION='${service_version}' python3 - <<'PY'
 from pathlib import Path
+import hashlib
+import json
 import os
 import re
 
@@ -145,12 +147,60 @@ deployment_environment = (
 git_sha = os.environ['RELEASE_GIT_SHA'].strip()
 service_version = os.environ['RELEASE_SERVICE_VERSION'].strip() or '1.0.0'
 release_id = f'{service_version}+{git_sha}+{deployment_environment}'
+prompt_version = (
+    values.get('DEEPTUTOR_PROMPT_VERSION')
+    or values.get('PROMPT_VERSION')
+    or values.get('NEXT_PUBLIC_PROMPT_VERSION')
+    or ''
+).strip()
+if not prompt_version or prompt_version.lower() in {'unknown', 'unset', 'none'}:
+    prompt_version = f'git-{git_sha[:12]}'
+
+explicit_ff_snapshot_hash = (
+    values.get('DEEPTUTOR_FF_SNAPSHOT_HASH')
+    or values.get('FF_SNAPSHOT_HASH')
+    or ''
+).strip()
+
+def should_capture_flag(key: str) -> bool:
+    if key in {'DEEPTUTOR_FF_SNAPSHOT_HASH', 'FF_SNAPSHOT_HASH'}:
+        return False
+    if key.startswith('FF_'):
+        return True
+    if not key.startswith('DEEPTUTOR_'):
+        return False
+    return key.endswith('_ENABLED') or key.endswith('_MODE') or '_SHADOW_' in key or key.endswith('_STRICT')
+
+def normalize_flag_value(value: str) -> str:
+    lowered = str(value or '').strip().lower()
+    if lowered in {'1', 'true', 'yes', 'on'}:
+        return 'true'
+    if lowered in {'0', 'false', 'no', 'off'}:
+        return 'false'
+    return str(value or '').strip()
+
+if explicit_ff_snapshot_hash and explicit_ff_snapshot_hash.lower() not in {'unknown', 'unset', 'none'}:
+    ff_snapshot_hash = explicit_ff_snapshot_hash
+else:
+    flag_snapshot = {
+        key: normalize_flag_value(value)
+        for key, value in sorted(values.items(), key=lambda item: item[0])
+        if should_capture_flag(key)
+    }
+    if flag_snapshot:
+        ff_snapshot_hash = hashlib.sha256(
+            json.dumps(flag_snapshot, ensure_ascii=True, sort_keys=True, separators=(',', ':')).encode('utf-8')
+        ).hexdigest()[:12]
+    else:
+        ff_snapshot_hash = f'git-{git_sha[:12]}'
 
 managed = {
     'DEEPTUTOR_SERVICE_VERSION': service_version,
     'DEEPTUTOR_GIT_SHA': git_sha,
     'DEEPTUTOR_ENV': deployment_environment,
     'DEEPTUTOR_RELEASE_ID': release_id,
+    'DEEPTUTOR_PROMPT_VERSION': prompt_version,
+    'DEEPTUTOR_FF_SNAPSHOT_HASH': ff_snapshot_hash,
 }
 
 updated = []
@@ -180,6 +230,8 @@ env_path.write_text('\n'.join(updated).rstrip() + '\n', encoding='utf-8')
 print('远端 release lineage 已注入。')
 print('DEEPTUTOR_RELEASE_ID=' + release_id)
 print('DEEPTUTOR_GIT_SHA=' + git_sha)
+print('DEEPTUTOR_PROMPT_VERSION=' + prompt_version)
+print('DEEPTUTOR_FF_SNAPSHOT_HASH=' + ff_snapshot_hash)
 PY"
 }
 

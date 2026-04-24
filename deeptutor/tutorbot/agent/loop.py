@@ -23,6 +23,11 @@ from deeptutor.services.rag.exact_authority import (
     should_force_exact_authority,
 )
 from deeptutor.services.rag.pipelines.supabase_strategy import prepare_exact_question_probe
+from deeptutor.services.security.tutorbot_guardrails import (
+    classify_tutorbot_user_input,
+    guard_tutorbot_output,
+    sanitize_untrusted_context,
+)
 from deeptutor.tutorbot.agent.context import ContextBuilder
 from deeptutor.tutorbot.agent.memory import MemoryConsolidator
 from deeptutor.tutorbot.agent.team import TeamManager
@@ -608,6 +613,13 @@ class AgentLoop:
                             tool_trace_metadata["rag_saturation"] = dict(saturation)
                     elif rag_saturation and isinstance(tool_trace_metadata, dict):
                         tool_trace_metadata["rag_saturation"] = dict(rag_saturation)
+                    guarded_tool_result = sanitize_untrusted_context(result, source=tool_call.name)
+                    if guarded_tool_result.signals:
+                        result = str(guarded_tool_result.content or "")
+                        if not isinstance(tool_trace_metadata, dict):
+                            tool_trace_metadata = {}
+                        tool_trace_metadata["guardrail_sanitized"] = True
+                        tool_trace_metadata["guardrail_signals"] = list(guarded_tool_result.signals)
                     if on_tool_result:
                         await on_tool_result(tool_call.name, result, tool_trace_metadata)
                     messages = self.context.add_tool_result(
@@ -759,6 +771,10 @@ class AgentLoop:
         result_text = str(result or "").strip()
         if not result_text:
             return initial_messages
+        guarded_context = sanitize_untrusted_context(result_text, source="rag")
+        result_text = str(guarded_context.content or "").strip()
+        if not result_text:
+            return initial_messages
 
         tool_trace_metadata: dict[str, Any] | None = None
         try:
@@ -770,6 +786,9 @@ class AgentLoop:
             tool_trace_metadata=tool_trace_metadata if isinstance(tool_trace_metadata, dict) else None,
             rag_rounds=[],
         )
+        if guarded_context.signals:
+            merged_metadata["guardrail_sanitized"] = True
+            merged_metadata["guardrail_signals"] = list(guarded_context.signals)
 
         if on_tool_call:
             await on_tool_call("rag", preview_args)
@@ -1270,6 +1289,34 @@ class AgentLoop:
                     ),
                 )
 
+        guard = classify_tutorbot_user_input(current_message)
+        if guard.blocked:
+            refusal = guard.content or ""
+            session.add_message(
+                "user",
+                current_message,
+                guardrail_blocked=True,
+                guardrail_signals=list(guard.signals),
+            )
+            session.add_message(
+                "assistant",
+                refusal,
+                guardrail_blocked=True,
+                guardrail_signals=list(guard.signals),
+            )
+            self.sessions.save(session)
+            return OutboundMessage(
+                channel=msg.channel,
+                chat_id=msg.chat_id,
+                content=refusal,
+                metadata={
+                    **(msg.metadata or {}),
+                    "guardrail_blocked": True,
+                    "guardrail_level": guard.level,
+                    "guardrail_signals": list(guard.signals),
+                },
+            )
+
         await self.memory_consolidator.maybe_consolidate_by_tokens(session)
 
         runtime_metadata = dict(session.metadata or {})
@@ -1330,6 +1377,8 @@ class AgentLoop:
                 user_message=current_message,
                 response=final_content,
             ) or final_content
+            guarded_output = guard_tutorbot_output(final_content)
+            final_content = guarded_output.content or final_content
             if all_msgs:
                 all_msgs[-1]["content"] = final_content
             self._save_turn(session, all_msgs, 1 + len(history))
@@ -1373,6 +1422,8 @@ class AgentLoop:
                 user_message=current_message,
                 response=final_content,
             ) or final_content
+            guarded_output = guard_tutorbot_output(final_content)
+            final_content = guarded_output.content or final_content
             if all_msgs:
                 all_msgs[-1]["content"] = final_content
             self._save_turn(session, all_msgs, 1 + len(history))
@@ -1412,6 +1463,8 @@ class AgentLoop:
             user_message=current_message,
             response=final_content,
         ) or final_content
+        guarded_output = guard_tutorbot_output(final_content)
+        final_content = guarded_output.content or final_content
         if all_msgs:
             all_msgs[-1]["content"] = final_content
 
