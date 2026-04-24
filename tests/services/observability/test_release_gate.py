@@ -85,6 +85,30 @@ def test_release_gate_report_fails_when_unified_ws_smoke_failed() -> None:
     assert "ws_main_path_unhealthy" in payload["blockers"]
 
 
+def test_release_gate_rejects_placeholder_release_lineage() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "1.0.0+unknown+production",
+                "git_sha": "unknown",
+                "deployment_environment": "production",
+                "prompt_version": "unset",
+                "ff_snapshot_hash": "none",
+            },
+            "health_summary": {"ready": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
+    assert p0["status"] == "FAIL"
+    assert "runtime_or_release_lineage_incomplete" in payload["blockers"]
+
+
 def test_release_gate_uses_benchmark_blind_spots_without_oa_payload() -> None:
     payload = build_release_gate_report(
         om_payload=None,

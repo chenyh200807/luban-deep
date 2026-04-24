@@ -33,9 +33,6 @@ function flushPromises() {
 function createAuthMock() {
   return {
     setToken: function () {},
-    extractUserIdFromAuthPayload: function () {
-      return "user_1";
-    },
   };
 }
 

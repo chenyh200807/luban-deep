@@ -9,6 +9,7 @@ _PASS = "PASS"
 _FAIL = "FAIL"
 _WARN = "WARN"
 _SKIP = "SKIP"
+_INCOMPLETE_RELEASE_VALUES = {"", "unknown", "unset", "none"}
 
 
 def _gate_entry(
@@ -36,6 +37,15 @@ def _benchmark_pass_rate(case_results: list[dict[str, Any]]) -> float | None:
     return round(passed / len(executed), 4)
 
 
+def _has_release_value(release: dict[str, Any], key: str) -> bool:
+    value = str(release.get(key) or "").strip().lower()
+    if value in _INCOMPLETE_RELEASE_VALUES:
+        return False
+    if key in {"release_id", "git_sha"} and "unknown" in value:
+        return False
+    return True
+
+
 def build_release_gate_report(
     *,
     om_payload: dict[str, Any] | None,
@@ -54,7 +64,7 @@ def build_release_gate_report(
 
     om_health = (om_payload or {}).get("health_summary") or {}
     release_complete = all(
-        str(release.get(key) or "").strip()
+        _has_release_value(release, key)
         for key in ("release_id", "git_sha", "deployment_environment", "prompt_version", "ff_snapshot_hash")
     )
     unified_ws_smoke_ok = om_health.get("unified_ws_smoke_ok")
