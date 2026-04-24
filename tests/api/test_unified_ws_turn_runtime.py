@@ -1074,15 +1074,18 @@ async def test_turn_runtime_wraps_selector_llm_calls_in_parent_turn_trace(
             self.active_observations: list[str] = []
             self.scope_active = False
             self.started: list[dict[str, object]] = []
+            self.scopes: list[SimpleNamespace] = []
             self.updated: list[dict[str, object]] = []
 
-        def usage_scope(self, **_kwargs):
+        def usage_scope(self, **kwargs):
             outer = self
 
             class _UsageScope:
                 def __enter__(self):
                     outer.scope_active = True
-                    return SimpleNamespace(capability="")
+                    scope = SimpleNamespace(**kwargs)
+                    outer.scopes.append(scope)
+                    return scope
 
                 def __exit__(self, *_args):
                     outer.scope_active = False
@@ -1170,16 +1173,25 @@ async def test_turn_runtime_wraps_selector_llm_calls_in_parent_turn_trace(
             )
             yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
 
+    class FakeMemoryService:
+        def build_memory_context(self):
+            return ""
+
+        async def refresh_from_turn(self, **_kwargs):
+            with fake_observability.start_observation(
+                name="llm.stream",
+                as_type="generation",
+                metadata={"call_site": "post_turn_memory"},
+            ):
+                pass
+
     monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
     monkeypatch.setattr("deeptutor.services.session.turn_runtime.observability", fake_observability)
     monkeypatch.setattr(
         "deeptutor.services.memory.get_memory_service",
-        lambda: SimpleNamespace(
-            build_memory_context=lambda: "",
-            refresh_from_turn=_noop_refresh,
-        ),
+        lambda: FakeMemoryService(),
     )
 
     _session, turn = await runtime.start_turn(
@@ -1210,6 +1222,7 @@ async def test_turn_runtime_wraps_selector_llm_calls_in_parent_turn_trace(
     selector_llm = next(item for item in fake_observability.started if item["name"] == "llm.complete")
     assert selector_llm["parent"] == "turn.runtime"
     assert selector_llm["scope_active"] is True
+    assert fake_observability.scopes[0].capability == "deep_question"
     context_llm = next(
         item
         for item in fake_observability.started
@@ -1217,6 +1230,216 @@ async def test_turn_runtime_wraps_selector_llm_calls_in_parent_turn_trace(
     )
     assert context_llm["parent"] == "turn.runtime"
     assert context_llm["scope_active"] is True
+    if runtime._background_tasks:
+        await asyncio.gather(*list(runtime._background_tasks))
+    memory_llm = next(
+        item
+        for item in fake_observability.started
+        if item["name"] == "llm.stream" and item["metadata"].get("call_site") == "post_turn_memory"
+    )
+    assert memory_llm["parent"] == "memory.consolidation"
+    assert memory_llm["scope_active"] is True
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_wraps_learner_state_refresh_llm_in_parent_trace(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeObservability:
+        def __init__(self) -> None:
+            self.active_observations: list[str] = []
+            self.scope_active = False
+            self.started: list[dict[str, object]] = []
+            self.scopes: list[SimpleNamespace] = []
+
+        def usage_scope(self, **kwargs):
+            outer = self
+
+            class _UsageScope:
+                def __enter__(self):
+                    outer.scope_active = True
+                    scope = SimpleNamespace(**kwargs)
+                    outer.scopes.append(scope)
+                    return scope
+
+                def __exit__(self, *_args):
+                    outer.scope_active = False
+                    return False
+
+            return _UsageScope()
+
+        def start_observation(self, **kwargs):
+            outer = self
+            name = str(kwargs.get("name") or "")
+            parent = outer.active_observations[-1] if outer.active_observations else None
+
+            class _Observation:
+                def __enter__(self):
+                    outer.started.append(
+                        {
+                            "name": name,
+                            "parent": parent,
+                            "scope_active": outer.scope_active,
+                            "metadata": dict(kwargs.get("metadata") or {}),
+                        }
+                    )
+                    outer.active_observations.append(name)
+                    return SimpleNamespace(name=name)
+
+                def __exit__(self, *_args):
+                    outer.active_observations.pop()
+                    return False
+
+            return _Observation()
+
+        def update_observation(self, _observation, **_kwargs):
+            return None
+
+        def get_current_usage_summary(self):
+            return {}
+
+        def summary_metadata(self, _summary):
+            return {}
+
+        def usage_details_from_summary(self, _summary):
+            return None
+
+        def cost_details_from_summary(self, _summary):
+            return None
+
+    fake_observability = FakeObservability()
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="ok",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    class FakeLearnerStateService:
+        def build_context(self, **_kwargs):
+            return ""
+
+        async def refresh_from_turn(self, **_kwargs):
+            with fake_observability.start_observation(
+                name="llm.stream",
+                as_type="generation",
+                metadata={"call_site": "post_turn_learner"},
+            ):
+                pass
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr("deeptutor.services.session.turn_runtime.observability", fake_observability)
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: FakeLearnerStateService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "wechat",
+                    "user_id": "learner-1",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+    if runtime._background_tasks:
+        await asyncio.gather(*list(runtime._background_tasks))
+
+    learner_llm = next(
+        item
+        for item in fake_observability.started
+        if item["name"] == "llm.stream" and item["metadata"].get("call_site") == "post_turn_learner"
+    )
+    assert learner_llm["parent"] == "learner_state.refresh"
+    assert learner_llm["scope_active"] is True
+    assert fake_observability.scopes[-1].scope_id == f"{turn['id']}:post_turn_refresh"
+    assert fake_observability.scopes[-1].turn_id == turn["id"]
+    assert fake_observability.scopes[-1].capability == "chat"
+
+
+@pytest.mark.asyncio
+async def test_post_turn_refresh_continues_when_observability_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    refreshed = {"value": False}
+
+    class FailingObservability:
+        def usage_scope(self, **_kwargs):
+            raise RuntimeError("usage scope unavailable")
+
+        def start_observation(self, **_kwargs):
+            raise RuntimeError("observation unavailable")
+
+    class FakeMemoryService:
+        async def refresh_from_turn(self, **_kwargs):
+            refreshed["value"] = True
+
+    monkeypatch.setattr("deeptutor.services.session.turn_runtime.observability", FailingObservability())
+
+    runtime._schedule_post_turn_refresh(
+        turn_id="turn_observability_fail",
+        user_id="",
+        raw_user_content="hello",
+        assistant_content="ok",
+        session_id="session_observability_fail",
+        capability_name="chat",
+        language="zh",
+        source_bot_id="",
+        context_route="",
+        task_anchor_type="",
+        learner_state_service=SimpleNamespace(),
+        memory_service=FakeMemoryService(),
+    )
+    await asyncio.gather(*list(runtime._background_tasks))
+
+    assert refreshed["value"] is True
 
 
 @pytest.mark.asyncio
@@ -5322,6 +5545,165 @@ async def test_turn_runtime_uses_user_scoped_learner_state_when_user_id_is_avail
     assert refresh_calls[0]["user_id"] == "student_demo"
     assert refresh_calls[0]["assistant_message"] == "User scoped reply"
     assert refresh_calls[0]["source_bot_id"] == "construction-exam-coach"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_uses_guide_completion_summary_from_real_learner_state(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    from deeptutor.services.learner_state.service import LearnerStateService
+
+    class PathServiceStub:
+        @property
+        def project_root(self):
+            return tmp_path
+
+        def get_user_root(self):
+            return tmp_path
+
+        def get_learner_state_root(self):
+            return tmp_path / "learner_state"
+
+        def get_learner_state_outbox_db(self):
+            return tmp_path / "runtime" / "outbox.db"
+
+        def get_guide_dir(self):
+            path = tmp_path / "workspace" / "guide"
+            path.mkdir(parents=True, exist_ok=True)
+            return path
+
+    class MemberServiceStub:
+        def get_profile(self, user_id: str):
+            return {
+                "user_id": user_id,
+                "display_name": "陈同学",
+                "difficulty_preference": "medium",
+                "explanation_style": "detailed",
+                "focus_topic": "地基基础",
+                "daily_target": 30,
+            }
+
+        def get_today_progress(self, _user_id: str):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_chapter_progress(self, _user_id: str):
+            return []
+
+    class DisabledCoreStore:
+        is_configured = False
+
+    async def _no_summary_rewrite(**_kwargs):
+        yield "NO_CHANGE"
+
+    learner_state_service = LearnerStateService(
+        path_service=PathServiceStub(),
+        member_service=MemberServiceStub(),
+        core_store=DisabledCoreStore(),
+    )
+    await learner_state_service.record_guide_completion(
+        user_id="student_demo",
+        guide_id="guide_foundation_1",
+        notebook_name="地基基础",
+        summary="已完成地基承载力与沉降控制的引导学习，下一步应做案例题巩固。",
+        knowledge_points=[
+            {
+                "knowledge_title": "地基承载力验算",
+                "knowledge_summary": "先明确承载力修正与基础埋深。",
+                "user_difficulty": "hard",
+            }
+        ],
+        source_bot_id="construction-exam-coach",
+    )
+
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {"global_memory_called": False}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["memory_context"] = context.memory_context
+            captured["metadata"] = context.metadata
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="下一步做案例题巩固。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    class FakeOverlayService:
+        def read_overlay(self, _bot_id: str, _user_id: str):
+            return {"effective_overlay": {}, "promotion_candidates": [], "heartbeat_override_candidate": {}}
+
+        def patch_overlay(self, *_args, **_kwargs):
+            return {"effective_overlay": {}}
+
+        def apply_promotions(self, *_args, **_kwargs):
+            return {"applied": [], "dropped": [], "acked_ids": [], "dropped_ids": []}
+
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", _no_summary_rewrite)
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: captured.__setitem__("global_memory_called", True) or "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: learner_state_service,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_bot_learner_overlay_service",
+        lambda: FakeOverlayService(),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "我下一步应该怎么复习？",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "billing_context": {
+                    "source": "app",
+                    "user_id": "student_demo",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    memory_context = str(captured["memory_context"])
+    assert captured["global_memory_called"] is False
+    assert "最近完成的引导学习" in memory_context
+    assert "已完成地基承载力与沉降控制的引导学习" in memory_context
+    assert "地基承载力验算" in memory_context
 
 
 @pytest.mark.asyncio

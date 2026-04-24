@@ -1185,6 +1185,7 @@ class TurnRuntimeManager:
     def _schedule_post_turn_refresh(
         self,
         *,
+        turn_id: str,
         user_id: str,
         raw_user_content: str,
         assistant_content: str,
@@ -1199,76 +1200,111 @@ class TurnRuntimeManager:
     ) -> None:
         async def _run() -> None:
             try:
-                if user_id:
-                    await learner_state_service.refresh_from_turn(
-                        user_id=user_id,
+                refresh_trace_name = "learner_state.refresh" if user_id else "memory.consolidation"
+                with contextlib.ExitStack() as stack:
+                    with contextlib.suppress(Exception):
+                        stack.enter_context(
+                            observability.usage_scope(
+                                scope_id=f"{turn_id}:post_turn_refresh",
+                                session_id=session_id,
+                                turn_id=turn_id,
+                                capability=capability_name or "chat",
+                            )
+                        )
+                    with contextlib.suppress(Exception):
+                        stack.enter_context(
+                            observability.start_observation(
+                                name=refresh_trace_name,
+                                as_type="chain",
+                                input_payload={"content": raw_user_content},
+                                metadata={
+                                    "session_id": session_id,
+                                    "turn_id": turn_id,
+                                    "capability": capability_name or "chat",
+                                    "bot_id": source_bot_id,
+                                    "background_task": "post_turn_refresh",
+                                },
+                            )
+                        )
+                    if user_id:
+                        await learner_state_service.refresh_from_turn(
+                            user_id=user_id,
+                            user_message=raw_user_content,
+                            assistant_message=assistant_content,
+                            session_id=session_id,
+                            capability=capability_name or "chat",
+                            language=language,
+                            source_bot_id=source_bot_id or None,
+                        )
+                        if source_bot_id and assistant_content.strip():
+                            try:
+                                from deeptutor.services.learner_state import get_bot_learner_overlay_service
+
+                                operations: list[dict[str, Any]] = [
+                                    {
+                                        "op": "set",
+                                        "field": "working_memory_projection",
+                                        "value": assistant_content.strip()[:500],
+                                    },
+                                    {
+                                        "op": "merge",
+                                        "field": "engagement_state",
+                                        "value": {
+                                            "last_interaction_at": datetime.now().astimezone().isoformat(),
+                                            "last_context_route": str(context_route or "").strip(),
+                                            "last_capability": str(capability_name or "chat").strip(),
+                                        },
+                                    },
+                                ]
+                                if task_anchor_type and task_anchor_type != "none":
+                                    operations.append(
+                                        {
+                                            "op": "merge",
+                                            "field": "local_focus",
+                                            "value": {
+                                                "task_anchor_type": task_anchor_type,
+                                                "last_user_question": raw_user_content.strip()[:160],
+                                            },
+                                        }
+                                    )
+                                get_bot_learner_overlay_service().patch_overlay(
+                                    source_bot_id,
+                                    user_id,
+                                    {"operations": operations},
+                                    source_feature="turn",
+                                    source_id=session_id,
+                                )
+                                overlay_service = get_bot_learner_overlay_service()
+                                if hasattr(overlay_service, "apply_promotions"):
+                                    overlay_service.apply_promotions(
+                                        source_bot_id,
+                                        user_id,
+                                        learner_state_service=learner_state_service,
+                                    )
+                            except Exception:
+                                logger.debug("Failed to patch bot learner overlay from turn runtime", exc_info=True)
+                        return
+
+                    await memory_service.refresh_from_turn(
                         user_message=raw_user_content,
                         assistant_message=assistant_content,
                         session_id=session_id,
                         capability=capability_name or "chat",
                         language=language,
-                        source_bot_id=source_bot_id or None,
                     )
-                    if source_bot_id and assistant_content.strip():
-                        try:
-                            from deeptutor.services.learner_state import get_bot_learner_overlay_service
-
-                            operations: list[dict[str, Any]] = [
-                                {
-                                    "op": "set",
-                                    "field": "working_memory_projection",
-                                    "value": assistant_content.strip()[:500],
-                                },
-                                {
-                                    "op": "merge",
-                                    "field": "engagement_state",
-                                    "value": {
-                                        "last_interaction_at": datetime.now().astimezone().isoformat(),
-                                        "last_context_route": str(context_route or "").strip(),
-                                        "last_capability": str(capability_name or "chat").strip(),
-                                    },
-                                },
-                            ]
-                            if task_anchor_type and task_anchor_type != "none":
-                                operations.append(
-                                    {
-                                        "op": "merge",
-                                        "field": "local_focus",
-                                        "value": {
-                                            "task_anchor_type": task_anchor_type,
-                                            "last_user_question": raw_user_content.strip()[:160],
-                                        },
-                                    }
-                                )
-                            get_bot_learner_overlay_service().patch_overlay(
-                                source_bot_id,
-                                user_id,
-                                {"operations": operations},
-                                source_feature="turn",
-                                source_id=session_id,
-                            )
-                            overlay_service = get_bot_learner_overlay_service()
-                            if hasattr(overlay_service, "apply_promotions"):
-                                overlay_service.apply_promotions(
-                                    source_bot_id,
-                                    user_id,
-                                    learner_state_service=learner_state_service,
-                                )
-                        except Exception:
-                            logger.debug("Failed to patch bot learner overlay from turn runtime", exc_info=True)
-                    return
-
-                await memory_service.refresh_from_turn(
-                    user_message=raw_user_content,
-                    assistant_message=assistant_content,
-                    session_id=session_id,
-                    capability=capability_name or "chat",
-                    language=language,
-                )
             except Exception:
-                logger.debug("Failed to refresh lightweight tutor memory", exc_info=True)
+                logger.debug("Failed to refresh post-turn memory or learner state", exc_info=True)
 
         self._track_background_task(asyncio.create_task(_run()))
+
+    @staticmethod
+    def _initial_turn_trace_name(
+        *,
+        capability_name: str,
+    ) -> str:
+        if capability_name:
+            return f"turn.{capability_name}"
+        return "turn.runtime"
 
     async def _resolve_billing_context(
         self,
@@ -2449,6 +2485,7 @@ class TurnRuntimeManager:
         turn_observation_cm: Any | None = None
         usage_scope_cm: Any | None = None
         usage_scope_state: Any | None = None
+        post_turn_refresh_kwargs: dict[str, Any] | None = None
         terminal_status = "failed"
         turn_started_at = time.perf_counter()
         surface_event_store = get_surface_event_store()
@@ -2742,7 +2779,9 @@ class TurnRuntimeManager:
                 )
                 usage_scope_state = usage_scope_cm.__enter__()
                 turn_observation_cm = observability.start_observation(
-                    name=f"turn.{capability_name}" if capability_name else "turn.runtime",
+                    name=self._initial_turn_trace_name(
+                        capability_name=capability_name,
+                    ),
                     as_type="chain",
                     input_payload={"content": raw_user_content},
                     metadata=trace_metadata,
@@ -3278,19 +3317,20 @@ class TurnRuntimeManager:
                     cost_details=observability.cost_details_from_summary(usage_summary),
                     usage_source="summary",
                 )
-                self._schedule_post_turn_refresh(
-                    user_id=user_id,
-                    raw_user_content=raw_user_content,
-                    assistant_content=assistant_content,
-                    session_id=session_id,
-                    capability_name=capability_name or "chat",
-                    language=str(payload.get("language", "en") or "en"),
-                    source_bot_id=source_bot_id,
-                    context_route=context_route,
-                    task_anchor_type=task_anchor_type,
-                    learner_state_service=learner_state_service,
-                    memory_service=memory_service,
-                )
+                post_turn_refresh_kwargs = {
+                    "turn_id": turn_id,
+                    "user_id": user_id,
+                    "raw_user_content": raw_user_content,
+                    "assistant_content": assistant_content,
+                    "session_id": session_id,
+                    "capability_name": capability_name or "chat",
+                    "language": str(payload.get("language", "en") or "en"),
+                    "source_bot_id": source_bot_id,
+                    "context_route": context_route,
+                    "task_anchor_type": task_anchor_type,
+                    "learner_state_service": learner_state_service,
+                    "memory_service": memory_service,
+                }
                 terminal_status = "completed"
         except asyncio.CancelledError:
             usage_summary = observability.get_current_usage_summary()
@@ -3387,6 +3427,8 @@ class TurnRuntimeManager:
             if usage_scope_cm is not None:
                 with contextlib.suppress(Exception):
                     usage_scope_cm.__exit__(None, None, None)
+            if terminal_status == "completed" and post_turn_refresh_kwargs is not None:
+                self._schedule_post_turn_refresh(**post_turn_refresh_kwargs)
             turn_duration_ms = (time.perf_counter() - turn_started_at) * 1000.0
             get_turn_runtime_metrics().record_turn_finished(
                 status=terminal_status,
