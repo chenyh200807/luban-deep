@@ -5,6 +5,7 @@ var vm = require("vm");
 var pass = 0;
 var fail = 0;
 var errors = [];
+var repoRoot = path.resolve(__dirname, "..", "..");
 
 function assert(condition, message) {
   if (condition) {
@@ -134,22 +135,22 @@ function createSandbox(sourcePath, apiMock, extras) {
 (async function main() {
   var cases = [
     {
-      path: "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview/packageDeeptutor/pages/login/login.js",
+      path: path.join(repoRoot, "yousenwebview/packageDeeptutor/pages/login/login.js"),
       normalHandler: "handleWechatLogin",
       explicitHandler: "handleWechatPhoneNumber",
     },
     {
-      path: "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview/packageDeeptutor/pages/register/register.js",
+      path: path.join(repoRoot, "yousenwebview/packageDeeptutor/pages/register/register.js"),
       normalHandler: "handleWechatRegister",
       explicitHandler: "handleWechatPhoneNumber",
     },
     {
-      path: "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/wx_miniprogram/pages/login/login.js",
+      path: path.join(repoRoot, "wx_miniprogram/pages/login/login.js"),
       normalHandler: "handleWechatLogin",
       explicitHandler: "handleWechatPhoneNumber",
     },
     {
-      path: "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/wx_miniprogram/pages/register/register.js",
+      path: path.join(repoRoot, "wx_miniprogram/pages/register/register.js"),
       normalHandler: "handleWechatRegister",
       explicitHandler: "handleWechatPhoneNumber",
     },

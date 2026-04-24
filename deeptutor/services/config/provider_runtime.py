@@ -7,6 +7,7 @@ import json
 from typing import Any
 from urllib.parse import urlparse
 
+from deeptutor.config.defaults import DEFAULT_LLM_MODEL
 from deeptutor.services.provider_registry import (
     NANOBOT_LLM_PROVIDERS,
     PROVIDERS,
@@ -324,7 +325,7 @@ def resolve_llm_runtime_config(
         (model or {}).get("model"),
     )
     if not resolved_model:
-        resolved_model = "gpt-4o-mini"
+        resolved_model = DEFAULT_LLM_MODEL
 
     binding_hint_raw = _prefer_env_value(
         env_values,

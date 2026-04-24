@@ -12,7 +12,7 @@ Usage:
 
     # After each LLM call:
     stats.add_call(
-        model="gpt-4o-mini",
+        model="deepseek-v4-flash",
         prompt_tokens=100,
         completion_tokens=50
     )
@@ -30,6 +30,8 @@ if TYPE_CHECKING:
 
 # Model pricing per 1K tokens (USD)
 MODEL_PRICING = {
+    # DeepSeek official cache-miss pricing, USD per 1K tokens.
+    "deepseek-v4-flash": {"input": 0.00014, "output": 0.00028},
     "gpt-4o": {"input": 0.0025, "output": 0.010},
     "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
     "gpt-4-turbo": {"input": 0.01, "output": 0.03},
@@ -48,7 +50,7 @@ def get_pricing(model: str) -> dict[str, float]:
     for key, pricing in MODEL_PRICING.items():
         if key in model_lower or model_lower in key:
             return pricing
-    return MODEL_PRICING.get("gpt-4o-mini", {"input": 0.00015, "output": 0.0006})
+    return MODEL_PRICING.get("deepseek-v4-flash", {"input": 0.00014, "output": 0.00028})
 
 
 def estimate_tokens(text: str) -> int:

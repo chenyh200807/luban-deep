@@ -68,6 +68,12 @@ _DEFAULT_MODEL_PRICING = {
         "currency": "USD",
         "source": "anthropic-default",
     },
+    "deepseek-v4-flash": {
+        "input_per_1m": 0.14,
+        "output_per_1m": 0.28,
+        "currency": "USD",
+        "source": "deepseek-official-cache-miss",
+    },
     "deepseek-v3.2": {
         "input_per_1m": 2.0,
         "output_per_1m": 3.0,
@@ -88,6 +94,7 @@ _DEFAULT_MODEL_PRICING = {
     },
 }
 _MODEL_PRICE_ALIASES = {
+    "DeepSeek-V4-Flash": "deepseek-v4-flash",
     "deepseek-chat": "deepseek-v3.2",
     "deepseek-v3.2-exp": "deepseek-v3.2",
     "gte-rerank": "gte-rerank-v2",

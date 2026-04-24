@@ -25,7 +25,7 @@ def _build_catalog(
         "api_key": "",
         "api_version": "",
         "extra_headers": {},
-        "models": [{"id": "llm-m", "name": "m", "model": "gpt-4o-mini"}],
+        "models": [{"id": "llm-m", "name": "m", "model": "deepseek-v4-flash"}],
     }
     llm_model = llm_model or llm_profile["models"][0]
     search_profile = search_profile or {

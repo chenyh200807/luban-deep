@@ -7,6 +7,8 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
+from deeptutor.config.defaults import DEFAULT_LLM_MODEL
+
 
 class Base(BaseModel):
     """Base model that accepts both camelCase and snake_case keys."""
@@ -31,7 +33,7 @@ class AgentDefaults(Base):
     """Default agent configuration."""
 
     workspace: str = "~/.deeptutor/tutorbot/workspace"
-    model: str = "anthropic/claude-opus-4-5"
+    model: str = DEFAULT_LLM_MODEL
     provider: str = (
         "auto"  # Provider name (e.g. "anthropic", "openrouter") or "auto" for auto-detection
     )
@@ -151,4 +153,3 @@ class ToolsConfig(Base):
     exec: ExecToolConfig = Field(default_factory=ExecToolConfig)
     restrict_to_workspace: bool = False  # If true, restrict all tool access to workspace directory
     mcp_servers: dict[str, MCPServerConfig] = Field(default_factory=dict)
-

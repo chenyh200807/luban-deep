@@ -758,7 +758,7 @@ API_PROVIDER_PRESETS: dict[str, ApiProviderPreset] = {
         "name": "DeepSeek",
         "base_url": "https://api.deepseek.com",
         "requires_key": True,
-        "models": ["deepseek-chat", "deepseek-reasoner"],
+        "models": ["deepseek-v4-flash", "deepseek-chat", "deepseek-reasoner"],
     },
     "openrouter": {
         "name": "OpenRouter",

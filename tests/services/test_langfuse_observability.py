@@ -547,6 +547,22 @@ def test_estimate_cost_details_supports_gte_rerank_alias() -> None:
     }
 
 
+def test_deepseek_v4_flash_pricing_uses_official_cache_miss_units(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("LANGFUSE_MODEL_PRICING_JSON", raising=False)
+    adapter = LangfuseObservability()
+
+    assert adapter.estimate_cost_details(
+        model="deepseek-v4-flash",
+        usage_details={"input": 1_000_000.0, "output": 1_000_000.0, "total": 2_000_000.0},
+    ) == {
+        "input": 0.14,
+        "output": 0.28,
+        "total": 0.42,
+    }
+
+
 def test_start_observation_preserves_body_exception() -> None:
     adapter = LangfuseObservability()
     client = _FakeClient()

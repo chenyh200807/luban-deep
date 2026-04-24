@@ -22,6 +22,8 @@ LITELLM_AVAILABLE = False
 
 # Model pricing table (USD per 1K tokens)
 MODEL_PRICING = {
+    # DeepSeek official cache-miss pricing, USD per 1K tokens.
+    "deepseek-v4-flash": {"input": 0.00014, "output": 0.00028},
     "gpt-4o": {"input": 0.0025, "output": 0.010},
     "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
     "gpt-4-turbo": {"input": 0.01, "output": 0.03},
@@ -74,7 +76,7 @@ def get_model_pricing(model_name: str) -> dict[str, float]:
     for key, val in MODEL_PRICING.items():
         if key in lower or lower in key:
             return val
-    return MODEL_PRICING["gpt-4o-mini"]
+    return MODEL_PRICING["deepseek-v4-flash"]
 
 
 def calculate_cost(model_name: str, prompt_tokens: int, completion_tokens: int) -> float:
