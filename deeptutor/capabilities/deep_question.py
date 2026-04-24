@@ -953,19 +953,21 @@ class DeepQuestionCapability(BaseCapability):
         presentation = build_canonical_presentation(
             content=content or "",
             result_summary=result,
+            reveal_answers=reveal_answers,
+            reveal_explanations=reveal_explanations,
         )
         result_payload: dict[str, Any] = {
             "response": content or "No questions generated.",
             "mode": mode,
             "question_followup_context": (
-                build_question_followup_context_from_presentation(
-                    presentation,
+                build_question_followup_context_from_result_summary(
+                    result,
                     content or "",
                     reveal_answers=reveal_answers,
                     reveal_explanations=reveal_explanations,
                 )
-                or build_question_followup_context_from_result_summary(
-                    result,
+                or build_question_followup_context_from_presentation(
+                    presentation,
                     content or "",
                     reveal_answers=reveal_answers,
                     reveal_explanations=reveal_explanations,

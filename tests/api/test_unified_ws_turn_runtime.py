@@ -482,7 +482,7 @@ async def test_turn_runtime_routes_construction_exam_bot_to_tutorbot_capability(
 
 
 @pytest.mark.asyncio
-async def test_turn_runtime_leaves_tutorbot_practice_generation_for_orchestrator_autoroute(
+async def test_turn_runtime_pins_tutorbot_practice_generation_to_tutorbot_runtime(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -511,12 +511,12 @@ async def test_turn_runtime_leaves_tutorbot_practice_generation_for_orchestrator
             captured["config_overrides"] = dict(context.config_overrides)
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
-                source="deep_question",
-                stage="generation",
+                source="tutorbot",
+                stage="responding",
                 content="第1题",
                 metadata={"call_kind": "llm_final_response"},
             )
-            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+            yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
 
     monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
@@ -561,18 +561,18 @@ async def test_turn_runtime_leaves_tutorbot_practice_generation_for_orchestrator
     async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
         pass
 
-    assert turn["capability"] == "deep_question"
-    assert captured["active_capability"] is None
+    assert turn["capability"] == "tutorbot"
+    assert captured["active_capability"] == "tutorbot"
     assert captured["user_message"] == "我想练习施工管理，请给我来5道选择题"
     assert captured["config_overrides"]["bot_id"] == "construction-exam-coach"
 
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
-    assert detail["preferences"]["capability"] == "deep_question"
+    assert detail["preferences"]["capability"] == "tutorbot"
     assert detail["messages"][-1]["content"] == "第1题"
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
-    assert persisted_turn["capability"] == "deep_question"
+    assert persisted_turn["capability"] == "tutorbot"
 
 
 @pytest.mark.asyncio
@@ -1059,6 +1059,164 @@ async def test_turn_runtime_records_aae_scores_in_observation_metadata(
     assert metadata["aae_scores"]["latency_class"]["value"] in {"fast", "acceptable", "slow"}
     assert metadata["aae_composite"]["input_count"] >= 2
     assert metadata["aae_composite"]["is_proxy"] is True
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_wraps_selector_llm_calls_in_parent_turn_trace(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeObservability:
+        def __init__(self) -> None:
+            self.active_observations: list[str] = []
+            self.scope_active = False
+            self.started: list[dict[str, object]] = []
+            self.updated: list[dict[str, object]] = []
+
+        def usage_scope(self, **_kwargs):
+            outer = self
+
+            class _UsageScope:
+                def __enter__(self):
+                    outer.scope_active = True
+                    return SimpleNamespace(capability="")
+
+                def __exit__(self, *_args):
+                    outer.scope_active = False
+                    return False
+
+            return _UsageScope()
+
+        def start_observation(self, **kwargs):
+            outer = self
+            name = str(kwargs.get("name") or "")
+            parent = outer.active_observations[-1] if outer.active_observations else None
+
+            class _Observation:
+                def __enter__(self):
+                    outer.started.append(
+                        {
+                            "name": name,
+                            "parent": parent,
+                            "scope_active": outer.scope_active,
+                            "metadata": dict(kwargs.get("metadata") or {}),
+                        }
+                    )
+                    outer.active_observations.append(name)
+                    return SimpleNamespace(name=name)
+
+                def __exit__(self, *_args):
+                    outer.active_observations.pop()
+                    return False
+
+            return _Observation()
+
+        def update_observation(self, _observation, **kwargs):
+            self.updated.append(kwargs)
+
+        def get_current_usage_summary(self):
+            return {}
+
+        def summary_metadata(self, _summary):
+            return {}
+
+        def usage_details_from_summary(self, _summary):
+            return None
+
+        def cost_details_from_summary(self, _summary):
+            return None
+
+    fake_observability = FakeObservability()
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            with fake_observability.start_observation(
+                name="llm.stream",
+                as_type="generation",
+                metadata={"call_site": "context_builder"},
+            ):
+                pass
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def _select_capability(self, _context):
+            with fake_observability.start_observation(
+                name="llm.complete",
+                as_type="generation",
+                metadata={"call_site": "selector"},
+            ):
+                return "deep_question"
+
+        async def handle(self, context):
+            assert context.active_capability == "deep_question"
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="deep_question",
+                stage="generation",
+                content="第1题",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr("deeptutor.services.session.turn_runtime.observability", fake_observability)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "我选A",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "followup_question_context": {
+                    "question_id": "q_1",
+                    "question": "关于单层钢结构吊装顺序的说法，正确的有（ ）。",
+                    "question_type": "choice",
+                    "options": {"A": "单跨构宜从跨端一侧向另一侧吊装"},
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    selector_llm = next(item for item in fake_observability.started if item["name"] == "llm.complete")
+    assert selector_llm["parent"] == "turn.runtime"
+    assert selector_llm["scope_active"] is True
+    context_llm = next(
+        item
+        for item in fake_observability.started
+        if item["name"] == "llm.stream" and item["metadata"].get("call_site") == "context_builder"
+    )
+    assert context_llm["parent"] == "turn.runtime"
+    assert context_llm["scope_active"] is True
 
 
 @pytest.mark.asyncio

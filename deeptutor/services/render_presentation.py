@@ -60,6 +60,8 @@ def _build_choice_followup_context(
     *,
     index: int,
     option_map: dict[str, str],
+    reveal_answers: bool = False,
+    reveal_explanations: bool = False,
 ) -> dict[str, Any]:
     metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
     return {
@@ -67,8 +69,8 @@ def _build_choice_followup_context(
         "question": _coerce_text(qa_pair.get("question") or ""),
         "question_type": "choice",
         "options": option_map,
-        "correct_answer": _coerce_text(qa_pair.get("correct_answer") or ""),
-        "explanation": _coerce_text(qa_pair.get("explanation") or ""),
+        "correct_answer": _coerce_text(qa_pair.get("correct_answer") or "") if reveal_answers else "",
+        "explanation": _coerce_text(qa_pair.get("explanation") or "") if reveal_explanations else "",
         "difficulty": _coerce_text(qa_pair.get("difficulty") or ""),
         "concentration": _coerce_text(
             qa_pair.get("concentration")
@@ -77,16 +79,23 @@ def _build_choice_followup_context(
             or ""
         ),
         "knowledge_context": _coerce_text(
-            qa_pair.get("knowledge_context")
-            or metadata.get("knowledge_context")
-            or qa_pair.get("explanation")
-            or ""
+            (
+                qa_pair.get("knowledge_context")
+                or metadata.get("knowledge_context")
+                or qa_pair.get("explanation")
+                or ""
+            )
+            if reveal_explanations
+            else ""
         ),
     }
 
 
 def build_mcq_block_from_result_summary(
     result_summary: dict[str, Any] | None,
+    *,
+    reveal_answers: bool = False,
+    reveal_explanations: bool = False,
 ) -> dict[str, Any] | None:
     # "result_summary" here means legacy per-message result metadata, not session compressed_summary.
     if not isinstance(result_summary, dict):
@@ -111,6 +120,8 @@ def build_mcq_block_from_result_summary(
             qa_pair,
             index=index,
             option_map=option_map,
+            reveal_answers=reveal_answers,
+            reveal_explanations=reveal_explanations,
         )
         correct_answer = _coerce_text(qa_pair.get("correct_answer")).upper()
         multi_select = qa_pair.get("multi_select") is True or len(correct_answer) > 1
@@ -157,12 +168,42 @@ def _normalize_mcq_option(raw_option: Any) -> dict[str, Any] | None:
     }
 
 
-def _normalize_mcq_question(raw_question: Any, fallback_index: int) -> dict[str, Any] | None:
+def _redact_mcq_followup_context(
+    followup_context: dict[str, Any] | None,
+    *,
+    reveal_answers: bool = False,
+    reveal_explanations: bool = False,
+) -> dict[str, Any] | None:
+    if not isinstance(followup_context, dict):
+        return None
+    normalized = dict(followup_context)
+    if not reveal_answers:
+        normalized["correct_answer"] = ""
+        normalized.pop("correctAnswer", None)
+    if not reveal_explanations:
+        normalized["explanation"] = ""
+        normalized["knowledge_context"] = ""
+        normalized.pop("knowledgeContext", None)
+    return normalized
+
+
+def _normalize_mcq_question(
+    raw_question: Any,
+    fallback_index: int,
+    *,
+    reveal_answers: bool = False,
+    reveal_explanations: bool = False,
+) -> dict[str, Any] | None:
     if not isinstance(raw_question, dict):
         return None
     followup_context = raw_question.get("followup_context") or raw_question.get("followupContext")
     if not isinstance(followup_context, dict):
         followup_context = None
+    followup_context = _redact_mcq_followup_context(
+        followup_context,
+        reveal_answers=reveal_answers,
+        reveal_explanations=reveal_explanations,
+    )
     options_source = raw_question.get("options")
     options: list[dict[str, Any]] = []
     if isinstance(options_source, dict):
@@ -210,14 +251,24 @@ def _normalize_mcq_question(raw_question: Any, fallback_index: int) -> dict[str,
     }
 
 
-def _normalize_mcq_block(raw_block: Any) -> dict[str, Any] | None:
+def _normalize_mcq_block(
+    raw_block: Any,
+    *,
+    reveal_answers: bool = False,
+    reveal_explanations: bool = False,
+) -> dict[str, Any] | None:
     block = raw_block if isinstance(raw_block, dict) else {}
     raw_questions = block.get("questions")
     if not isinstance(raw_questions, list):
         return None
     questions: list[dict[str, Any]] = []
     for index, raw_question in enumerate(raw_questions, start=1):
-        question = _normalize_mcq_question(raw_question, index)
+        question = _normalize_mcq_question(
+            raw_question,
+            index,
+            reveal_answers=reveal_answers,
+            reveal_explanations=reveal_explanations,
+        )
         if not question:
             continue
         questions.append(question)
@@ -544,14 +595,23 @@ def _normalize_recap_block(raw_block: Any) -> dict[str, Any] | None:
     return normalized
 
 
-def _normalize_raw_block(raw_block: Any) -> dict[str, Any] | None:
+def _normalize_raw_block(
+    raw_block: Any,
+    *,
+    reveal_answers: bool = False,
+    reveal_explanations: bool = False,
+) -> dict[str, Any] | None:
     if not isinstance(raw_block, dict):
         return None
     block_type = _coerce_text(raw_block.get("type")).lower()
     if not block_type:
         return None
     if block_type == "mcq":
-        return _normalize_mcq_block(raw_block)
+        return _normalize_mcq_block(
+            raw_block,
+            reveal_answers=reveal_answers,
+            reveal_explanations=reveal_explanations,
+        )
     if block_type == "table":
         return _normalize_table_block(raw_block)
     if block_type == "steps":
@@ -596,14 +656,24 @@ def build_canonical_presentation(
     content: str,
     result_summary: dict[str, Any] | None = None,
     blocks: list[dict[str, Any]] | None = None,
+    reveal_answers: bool = False,
+    reveal_explanations: bool = False,
 ) -> dict[str, Any] | None:
     normalized_blocks: list[dict[str, Any]] = []
     if isinstance(blocks, list):
         for item in blocks:
-            block = _normalize_raw_block(item)
+            block = _normalize_raw_block(
+                item,
+                reveal_answers=reveal_answers,
+                reveal_explanations=reveal_explanations,
+            )
             if block:
                 normalized_blocks.append(block)
-    mcq_block = build_mcq_block_from_result_summary(result_summary)
+    mcq_block = build_mcq_block_from_result_summary(
+        result_summary,
+        reveal_answers=reveal_answers,
+        reveal_explanations=reveal_explanations,
+    )
     if mcq_block and not _contains_block_type(normalized_blocks, "mcq"):
         normalized_blocks.append(mcq_block)
     if not normalized_blocks:

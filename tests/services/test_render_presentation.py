@@ -34,10 +34,23 @@ def test_build_mcq_block_from_result_summary_returns_structured_questions() -> N
     assert block["type"] == "mcq"
     assert block["questions"][0]["question_id"] == "q_1"
     assert block["questions"][0]["options"][1]["key"] == "B"
+    assert block["questions"][0]["followup_context"]["correct_answer"] == ""
+    assert block["questions"][0]["followup_context"]["explanation"] == ""
+
+
+def test_build_mcq_block_from_result_summary_reveals_answers_when_requested() -> None:
+    block = build_mcq_block_from_result_summary(
+        _choice_summary(),
+        reveal_answers=True,
+        reveal_explanations=True,
+    )
+
+    assert block is not None
     assert block["questions"][0]["followup_context"]["correct_answer"] == "B"
+    assert block["questions"][0]["followup_context"]["explanation"] == "B 更符合规范。"
 
 
-def test_build_mcq_block_from_result_summary_uses_metadata_knowledge_context_when_explanation_omitted() -> None:
+def test_build_mcq_block_from_result_summary_hides_metadata_knowledge_context_by_default() -> None:
     summary = _choice_summary()
     summary["results"][0]["qa_pair"]["explanation"] = ""
     summary["results"][0]["qa_pair"]["metadata"] = {"knowledge_context": "网络计划里自由时差只看不影响紧后最早开始的余量。"}
@@ -45,10 +58,18 @@ def test_build_mcq_block_from_result_summary_uses_metadata_knowledge_context_whe
     block = build_mcq_block_from_result_summary(summary)
 
     assert block is not None
-    assert (
-        block["questions"][0]["followup_context"]["knowledge_context"]
-        == "网络计划里自由时差只看不影响紧后最早开始的余量。"
-    )
+    assert block["questions"][0]["followup_context"]["knowledge_context"] == ""
+
+
+def test_build_mcq_block_from_result_summary_reveals_metadata_knowledge_context_when_requested() -> None:
+    summary = _choice_summary()
+    summary["results"][0]["qa_pair"]["explanation"] = ""
+    summary["results"][0]["qa_pair"]["metadata"] = {"knowledge_context": "网络计划里自由时差只看不影响紧后最早开始的余量。"}
+
+    block = build_mcq_block_from_result_summary(summary, reveal_explanations=True)
+
+    assert block is not None
+    assert block["questions"][0]["followup_context"]["knowledge_context"] == "网络计划里自由时差只看不影响紧后最早开始的余量。"
 
 
 def test_build_canonical_presentation_wraps_blocks_and_fallback_text() -> None:
@@ -60,6 +81,83 @@ def test_build_canonical_presentation_wraps_blocks_and_fallback_text() -> None:
     assert presentation["blocks"][0]["type"] == "mcq"
     assert presentation["fallback_text"].startswith("### Question 1")
     assert presentation["meta"]["streamingMode"] == "block_finalized"
+    assert presentation["blocks"][0]["questions"][0]["followup_context"]["correct_answer"] == ""
+
+
+def test_build_canonical_presentation_can_reveal_answer_context_when_requested() -> None:
+    presentation = build_canonical_presentation(
+        content="### Question 1\n某防水工程题目\n\n**Answer:** B",
+        result_summary=_choice_summary(),
+        reveal_answers=True,
+        reveal_explanations=True,
+    )
+
+    assert presentation is not None
+    context = presentation["blocks"][0]["questions"][0]["followup_context"]
+    assert context["correct_answer"] == "B"
+    assert context["explanation"] == "B 更符合规范。"
+
+
+def test_build_canonical_presentation_redacts_raw_mcq_blocks_by_default() -> None:
+    presentation = build_canonical_presentation(
+        content="第1题",
+        blocks=[
+            {
+                "type": "mcq",
+                "questions": [
+                    {
+                        "stem": "某防水工程题目",
+                        "options": [{"key": "A", "text": "方案A"}, {"key": "B", "text": "方案B"}],
+                        "followup_context": {
+                            "question": "某防水工程题目",
+                            "options": {"A": "方案A", "B": "方案B"},
+                            "correct_answer": "B",
+                            "explanation": "B 更符合规范。",
+                            "knowledge_context": "B 是因为规范要求。",
+                        },
+                    }
+                ],
+            }
+        ],
+    )
+
+    assert presentation is not None
+    context = presentation["blocks"][0]["questions"][0]["followup_context"]
+    assert context["correct_answer"] == ""
+    assert context["explanation"] == ""
+    assert context["knowledge_context"] == ""
+
+
+def test_build_canonical_presentation_reveals_raw_mcq_blocks_when_requested() -> None:
+    presentation = build_canonical_presentation(
+        content="第1题",
+        blocks=[
+            {
+                "type": "mcq",
+                "questions": [
+                    {
+                        "stem": "某防水工程题目",
+                        "options": [{"key": "A", "text": "方案A"}, {"key": "B", "text": "方案B"}],
+                        "followup_context": {
+                            "question": "某防水工程题目",
+                            "options": {"A": "方案A", "B": "方案B"},
+                            "correct_answer": "B",
+                            "explanation": "B 更符合规范。",
+                            "knowledge_context": "B 是因为规范要求。",
+                        },
+                    }
+                ],
+            }
+        ],
+        reveal_answers=True,
+        reveal_explanations=True,
+    )
+
+    assert presentation is not None
+    context = presentation["blocks"][0]["questions"][0]["followup_context"]
+    assert context["correct_answer"] == "B"
+    assert context["explanation"] == "B 更符合规范。"
+    assert context["knowledge_context"] == "B 是因为规范要求。"
 
 
 def test_build_canonical_presentation_normalizes_structured_blocks_and_filters_invalid_blocks() -> None:

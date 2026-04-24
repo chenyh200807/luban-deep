@@ -214,10 +214,13 @@ class TutorBotCapability(BaseCapability):
                 parsed_result_summary = build_choice_result_summary_from_exact_question(
                     turn_summary["exact_question"]
                 ) or extract_choice_result_summary_from_text(final_response)
+            reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
             visible_response = self._build_visible_response(
                 context=context,
                 final_response=final_response,
                 parsed_result_summary=parsed_result_summary,
+                reveal_answers=reveal_answers,
+                reveal_explanations=reveal_explanations,
             )
             streamed_visible_response = "".join(streamed_chunks)
             final_visible_delta = visible_response
@@ -256,19 +259,21 @@ class TutorBotCapability(BaseCapability):
                 presentation = build_canonical_presentation(
                     content=visible_response,
                     result_summary=parsed_result_summary,
+                    reveal_answers=reveal_answers,
+                    reveal_explanations=reveal_explanations,
                 )
                 result_payload["question_followup_context"] = (
-                    build_question_followup_context_from_presentation(
-                        presentation,
-                        final_response,
-                        reveal_answers=False,
-                        reveal_explanations=False,
-                    )
-                    or build_question_followup_context_from_result_summary(
+                    build_question_followup_context_from_result_summary(
                         parsed_result_summary,
                         final_response,
-                        reveal_answers=False,
-                        reveal_explanations=False,
+                        reveal_answers=reveal_answers,
+                        reveal_explanations=reveal_explanations,
+                    )
+                    or build_question_followup_context_from_presentation(
+                        presentation,
+                        final_response,
+                        reveal_answers=reveal_answers,
+                        reveal_explanations=reveal_explanations,
                     )
                 )
                 if presentation:
@@ -386,12 +391,28 @@ class TutorBotCapability(BaseCapability):
         explicit_preference = detect_answer_reveal_preference(context.user_message)
         if explicit_preference is False:
             return True
+        if explicit_preference is True:
+            return False
         hints = context.metadata.get("interaction_hints", {}) if isinstance(context.metadata, dict) else {}
         if isinstance(hints, dict) and "suppress_answer_reveal_on_generate" in hints:
             return bool(hints.get("suppress_answer_reveal_on_generate"))
         return self._billing_source(context) == "wx_miniprogram"
 
+    @staticmethod
+    def _reveal_reference_flags(context: UnifiedContext) -> tuple[bool, bool]:
+        overrides = context.config_overrides if isinstance(context.config_overrides, dict) else {}
+        explicit_preference = detect_answer_reveal_preference(context.user_message)
+        reveal_answers = bool(overrides.get("reveal_answers", False)) or explicit_preference is True
+        if "reveal_explanations" in overrides:
+            reveal_explanations = bool(overrides.get("reveal_explanations"))
+        else:
+            reveal_explanations = reveal_answers
+        return reveal_answers, reveal_explanations
+
     def _should_hide_generated_answers(self, context: UnifiedContext) -> bool:
+        reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
+        if reveal_answers or reveal_explanations:
+            return False
         if not self._suppress_answer_reveal_on_generate(context):
             return False
         return looks_like_practice_generation_request(context.user_message)
@@ -402,7 +423,22 @@ class TutorBotCapability(BaseCapability):
         context: UnifiedContext,
         final_response: str,
         parsed_result_summary: dict[str, Any] | None,
+        reveal_answers: bool = False,
+        reveal_explanations: bool = False,
     ) -> str:
+        if reveal_answers or reveal_explanations:
+            if parsed_result_summary:
+                return (
+                    self._render_question_response(
+                        parsed_result_summary,
+                        reveal_answers=reveal_answers,
+                        reveal_explanations=reveal_explanations,
+                    )
+                    or final_response
+                )
+            if reveal_answers and reveal_explanations:
+                return final_response
+            return self._strip_reference_sections(final_response) or final_response
         if not self._should_hide_generated_answers(context):
             return final_response
         if parsed_result_summary:
@@ -428,6 +464,19 @@ class TutorBotCapability(BaseCapability):
 
     @staticmethod
     def _render_question_only_response(summary: dict[str, Any]) -> str:
+        return TutorBotCapability._render_question_response(
+            summary,
+            reveal_answers=False,
+            reveal_explanations=False,
+        )
+
+    @staticmethod
+    def _render_question_response(
+        summary: dict[str, Any],
+        *,
+        reveal_answers: bool = False,
+        reveal_explanations: bool = False,
+    ) -> str:
         results = summary.get("results", []) if isinstance(summary, dict) else []
         if not isinstance(results, list) or not results:
             return ""
@@ -447,6 +496,16 @@ class TutorBotCapability(BaseCapability):
                     option_text = str(value or "").strip()
                     if option_key and option_text:
                         lines.append(f"{option_key}. {option_text}")
+            answer = str(qa_pair.get("correct_answer", "") or "").strip()
+            explanation = str(
+                qa_pair.get("explanation")
+                or qa_pair.get("knowledge_context")
+                or ""
+            ).strip()
+            if reveal_answers and answer:
+                lines.append(f"**答案**：{answer}")
+            if reveal_explanations and explanation:
+                lines.append(f"**解析**：{explanation}")
             lines.append("")
         return "\n".join(lines).strip()
 

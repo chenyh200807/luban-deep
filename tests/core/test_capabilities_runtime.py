@@ -276,6 +276,7 @@ async def test_deep_question_capability_uses_user_message_as_topic(
                     {
                         "qa_pair": {
                             "question": "What is a matrix?",
+                            "question_type": "choice",
                             "options": {"A": "A table", "B": "A scalar"},
                             "correct_answer": "A",
                             "explanation": "A matrix is a table.",
@@ -307,6 +308,13 @@ async def test_deep_question_capability_uses_user_message_as_topic(
     assert any(event.type == StreamEventType.PROGRESS and event.stage == "ideation" for event in events)
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert "Question 1" in result_event.metadata["response"]
+    assert "**Answer:**" not in result_event.metadata["response"]
+    assert "**Explanation:**" not in result_event.metadata["response"]
+    question = result_event.metadata["presentation"]["blocks"][0]["questions"][0]
+    assert question["followup_context"]["correct_answer"] == ""
+    assert question["followup_context"]["explanation"] == ""
+    assert result_event.metadata["question_followup_context"]["correct_answer"] == "A"
+    assert result_event.metadata["question_followup_context"]["explanation"] == "A matrix is a table."
 
 
 @pytest.mark.asyncio
@@ -1530,6 +1538,102 @@ async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visi
     assert "踩分点" not in result_event.metadata["response"]
     assert result_event.metadata["question_followup_context"]["correct_answer"] == "C"
     assert isinstance(result_event.metadata.get("presentation"), dict)
+    question = result_event.metadata["presentation"]["blocks"][0]["questions"][0]
+    assert question["followup_context"]["correct_answer"] == ""
+    assert question["followup_context"]["explanation"] == ""
+
+
+@pytest.mark.parametrize(
+    ("user_message", "extra_overrides", "answer_visible"),
+    [
+        ("给我一道题并带答案解析", {}, True),
+        ("给我一道题测试一下这个知识点", {"reveal_answers": True, "reveal_explanations": True}, True),
+        ("给我一道题测试一下这个知识点", {"reveal_answers": False, "reveal_explanations": True}, False),
+    ],
+)
+@pytest.mark.asyncio
+async def test_tutorbot_capability_reveals_answers_for_explicit_practice_generation_request(
+    monkeypatch: pytest.MonkeyPatch,
+    user_message: str,
+    extra_overrides: dict[str, Any],
+    answer_visible: bool,
+) -> None:
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            return "\n".join(
+                [
+                    "**题目**：关于混凝土养护开始时间，下列哪项说法是正确的？",
+                    "A. 混凝土应在初凝前开始养护",
+                    "B. 混凝土应在终凝后开始养护",
+                    "C. 混凝土应在终凝前开始养护",
+                    "D. 混凝土应在浇筑后立即开始养护",
+                    "",
+                    "**答案**：C",
+                    "",
+                    "**解析**：正确选项是“终凝前开始养护”。",
+                ]
+            )
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-practice-reveal-1",
+        user_message=user_message,
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "fast",
+            **extra_overrides,
+        },
+        metadata={
+            "billing_context": {"user_id": "u1", "source": "wx_miniprogram"},
+            "interaction_hints": {"suppress_answer_reveal_on_generate": True},
+        },
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert ("答案" in result_event.metadata["response"]) is answer_visible
+    assert "解析" in result_event.metadata["response"]
+    question = result_event.metadata["presentation"]["blocks"][0]["questions"][0]
+    expected_answer = "C" if answer_visible else ""
+    assert question["followup_context"]["correct_answer"] == expected_answer
+    assert result_event.metadata["question_followup_context"]["reveal_answers"] is answer_visible
+    assert result_event.metadata["question_followup_context"]["reveal_explanations"] is True
 
 
 @pytest.mark.asyncio

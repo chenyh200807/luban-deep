@@ -345,12 +345,15 @@ def _should_pin_tutorbot_capability(
     followup_question_context: dict[str, Any] | None,
     followup_action: dict[str, Any] | None = None,
 ) -> bool:
-    if followup_action_route(followup_action) in {"submission", "followup", "practice_generation"}:
+    route = followup_action_route(followup_action)
+    if route in {"submission", "followup"}:
         return False
+    if route == "practice_generation":
+        return True
+    if looks_like_practice_generation_request(user_message):
+        return True
     normalized_followup = normalize_question_followup_context(followup_question_context)
     if normalized_followup and looks_like_question_followup(user_message, normalized_followup):
-        return False
-    if looks_like_practice_generation_request(user_message):
         return False
     return True
 
@@ -2445,6 +2448,7 @@ class TurnRuntimeManager:
         turn_observation: Any | None = None
         turn_observation_cm: Any | None = None
         usage_scope_cm: Any | None = None
+        usage_scope_state: Any | None = None
         terminal_status = "failed"
         turn_started_at = time.perf_counter()
         surface_event_store = get_surface_event_store()
@@ -2729,7 +2733,33 @@ class TurnRuntimeManager:
             user_id = str((billing_context or {}).get("user_id", "") or "").strip()
             if user_id:
                 trace_metadata["user_id"] = user_id
-            with contextlib.nullcontext(None) as turn_observation:
+            try:
+                usage_scope_cm = observability.usage_scope(
+                    scope_id=turn_id,
+                    session_id=session_id,
+                    turn_id=turn_id,
+                    capability=capability_name,
+                )
+                usage_scope_state = usage_scope_cm.__enter__()
+                turn_observation_cm = observability.start_observation(
+                    name=f"turn.{capability_name}" if capability_name else "turn.runtime",
+                    as_type="chain",
+                    input_payload={"content": raw_user_content},
+                    metadata=trace_metadata,
+                )
+                turn_observation = turn_observation_cm.__enter__()
+            except Exception:
+                if turn_observation_cm is not None:
+                    with contextlib.suppress(Exception):
+                        turn_observation_cm.__exit__(None, None, None)
+                    turn_observation_cm = None
+                if usage_scope_cm is not None:
+                    with contextlib.suppress(Exception):
+                        usage_scope_cm.__exit__(None, None, None)
+                    usage_scope_cm = None
+                raise
+
+            with contextlib.nullcontext():
 
                 for item in payload.get("attachments", []):
                     record = {
@@ -3096,6 +3126,9 @@ class TurnRuntimeManager:
                     trace_metadata["execution_engine"] = (
                         "tutorbot_runtime" if capability_name == "tutorbot" else "capability"
                     )
+                    if usage_scope_state is not None:
+                        with contextlib.suppress(Exception):
+                            usage_scope_state.capability = capability_name
                     context.active_capability = capability_name
 
                 log_context_tokens = bind_log_context(
@@ -3103,31 +3136,6 @@ class TurnRuntimeManager:
                     session_id=session_id,
                     turn_id=turn_id,
                 )
-                try:
-                    usage_scope_cm = observability.usage_scope(
-                        scope_id=turn_id,
-                        session_id=session_id,
-                        turn_id=turn_id,
-                        capability=capability_name,
-                    )
-                    usage_scope_cm.__enter__()
-                    turn_observation_cm = observability.start_observation(
-                        name=f"turn.{capability_name}" if capability_name else "turn.runtime",
-                        as_type="chain",
-                        input_payload={"content": raw_user_content},
-                        metadata=trace_metadata,
-                    )
-                    turn_observation = turn_observation_cm.__enter__()
-                except Exception:
-                    if turn_observation_cm is not None:
-                        with contextlib.suppress(Exception):
-                            turn_observation_cm.__exit__(None, None, None)
-                        turn_observation_cm = None
-                    if usage_scope_cm is not None:
-                        with contextlib.suppress(Exception):
-                            usage_scope_cm.__exit__(None, None, None)
-                        usage_scope_cm = None
-                    raise
 
                 if persist_user_message:
                     await self._safe_store_call(
@@ -3163,6 +3171,9 @@ class TurnRuntimeManager:
                             trace_metadata["execution_engine"] = (
                                 "tutorbot_runtime" if capability_name == "tutorbot" else "capability"
                             )
+                            if usage_scope_state is not None:
+                                with contextlib.suppress(Exception):
+                                    usage_scope_state.capability = capability_name
                             context.active_capability = capability_name
                     payload_event = await self._persist_and_publish(execution, event)
                     if (
