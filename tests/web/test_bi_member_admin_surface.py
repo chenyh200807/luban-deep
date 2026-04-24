@@ -185,6 +185,22 @@ def test_bi_member_360_exposes_ops_action_result_loop() -> None:
     assert "await refreshAudit()" in client_source
 
 
+def test_bi_page_client_refreshes_audit_after_note_and_runtime_admin_actions() -> None:
+    source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+
+    note_section = source.split("const handleAddNote")[1].split("const handleRecordOpsAction")[0]
+    heartbeat_section = source.split("const handleHeartbeatJobAction")[1].split("const handleApplyOverlayPromotions")[0]
+    overlay_section = source.split("const handleApplyOverlayPromotions")[1].split("const handleAdminLogin")[0]
+
+    assert "createMemberNote" in note_section
+    assert "await refreshAudit()" in note_section
+    assert "pauseHeartbeatJob" in heartbeat_section
+    assert "resumeHeartbeatJob" in heartbeat_section
+    assert "await refreshAudit()" in heartbeat_section
+    assert "applyOverlayPromotions" in overlay_section
+    assert "await refreshAudit()" in overlay_section
+
+
 def test_member_api_exposes_conversation_view_audit() -> None:
     source = (REPO_ROOT / "web" / "lib" / "member-api.ts").read_text(encoding="utf-8")
     client_source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")

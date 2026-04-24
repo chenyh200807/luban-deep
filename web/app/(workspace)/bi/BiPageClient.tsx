@@ -494,6 +494,7 @@ export default function BiPageClient() {
       try {
         setActionLoading(true);
         await createMemberNote(selectedUserId, { content, pinned: false, channel: "manual" });
+        await refreshAudit();
         await refreshSelectedMember();
         await refreshMembers();
       } catch (error) {
@@ -502,7 +503,7 @@ export default function BiPageClient() {
         setActionLoading(false);
       }
     },
-    [refreshMembers, refreshSelectedMember, selectedUserId],
+    [refreshAudit, refreshMembers, refreshSelectedMember, selectedUserId],
   );
 
   const handleRecordOpsAction = useCallback(
@@ -550,6 +551,7 @@ export default function BiPageClient() {
         } else {
           await resumeHeartbeatJob(selectedUserId, job.job_id);
         }
+        await refreshAudit();
         await refreshSelectedMember();
       } catch (error) {
         setDetailError(error instanceof Error ? error.message : "Heartbeat job 操作失败");
@@ -557,7 +559,7 @@ export default function BiPageClient() {
         setActionLoading(false);
       }
     },
-    [refreshSelectedMember, selectedUserId],
+    [refreshAudit, refreshSelectedMember, selectedUserId],
   );
 
   const handleApplyOverlayPromotions = useCallback(
@@ -566,6 +568,7 @@ export default function BiPageClient() {
       try {
         setActionLoading(true);
         await applyOverlayPromotions(selectedUserId, overlay.bot_id, { min_confidence: 0.7, max_candidates: 10 });
+        await refreshAudit();
         await refreshSelectedMember();
       } catch (error) {
         setDetailError(error instanceof Error ? error.message : "Overlay promotion 执行失败");
@@ -573,7 +576,7 @@ export default function BiPageClient() {
         setActionLoading(false);
       }
     },
-    [refreshSelectedMember, selectedUserId],
+    [refreshAudit, refreshSelectedMember, selectedUserId],
   );
 
   const handleAdminLogin = useCallback(async () => {
