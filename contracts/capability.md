@@ -26,6 +26,8 @@
 7. adapter 如果需要把 token claims、wallet identity 或旧字段 alias 归一到 canonical 用户上下文，也只能服务于统一 request config 装配；不能把 capability 选择下沉到 adapter 本身。
 8. 响应风格公开字段只能使用 `requested_response_mode`；`teaching_mode` 若仍被旧入口传入，只能在 adapter 层归一化并删除，不能继续作为 capability config 或路由决策字段存在。
 9. 请求里的 `capability` 只允许作为 hint；最终写入 turn/session 的 capability 必须是 orchestrator runtime-resolved canonical capability，不能把 request hint 当成持久化真相。
+10. adapter 可以做 presentation / timestamp / conversation read-model 装配，但不得在装配层重新决定 capability、改写 canonical final answer、或把 presentation blocks 当作 capability 执行结果的新 authority；adapter 输出必须来自 runtime-resolved turn/session/message 真相。
+11. `exam_track` 这类领域上下文只能作为 request config / interaction_hints / metadata 的 scoped input 进入 orchestrator 和 capability；它不得改变 capability 选择权威，也不得被 adapter 用来创建平行 capability。
 
 ## Schema
 

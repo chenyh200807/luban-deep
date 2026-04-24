@@ -32,6 +32,8 @@
 11. 当案例题 full exact 命中且已完整覆盖全部小问时，`exact_question` 必须拥有高于 `answer_type`、teaching contract 和通用 LLM responding 的优先级，可直接短路为 authoritative answer。
 12. `answer/content` 只是兼容性的展示文本；结构化 retrieval 真相必须进入统一 `evidence_bundle`，上层不得再把 `content` 当作唯一 authority。
 13. source selection 不能只靠 query surface；若上游已有 `intent/question_type/routing_metadata`，必须优先进入统一 source plan。
+14. `routing_metadata.exam_track` 可以作为统一 source plan 的 scoped metadata，用来区分一建 / 二建 / 一造 / 二造等考试方向；它不能变成新的知识召回入口，也不能绕过 `RAGService`。
+15. provider 出现 typed retrieval failure 时，RAG 工具必须 fail closed：对用户返回可理解的降级语义，对 trace 暴露 `retrieval_degraded / retrieval_status / provider / stage / retryable`，不得泄露 provider raw error 或把异常抹平成无语义失败。
 
 ## 当前统一语义
 
@@ -45,6 +47,8 @@
 - `knowledge_bases`
 - `exact_authority_response`
 - `evidence_bundle`
+- `retrieval_degraded`
+- `retrieval_status`
 
 ## 必测项
 

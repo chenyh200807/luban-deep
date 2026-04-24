@@ -65,11 +65,21 @@ def build_release_gate_report(
     om_health = (om_payload or {}).get("health_summary") or {}
     release_complete = all(
         _has_release_value(release, key)
-        for key in ("release_id", "git_sha", "deployment_environment", "prompt_version", "ff_snapshot_hash")
+        for key in (
+            "release_id",
+            "git_sha",
+            "deployment_environment",
+            "prompt_version",
+            "ff_snapshot_hash",
+            "git_dirty",
+            "deploy_manifest_hash",
+        )
     )
+    git_dirty_value = str(release.get("git_dirty") or "").strip().lower()
+    release_dirty = git_dirty_value in {"1", "true", "yes", "on"}
     unified_ws_smoke_ok = om_health.get("unified_ws_smoke_ok")
     ws_main_path_healthy = unified_ws_smoke_ok is not False
-    p0_ready = om_health.get("ready") is True and release_complete and ws_main_path_healthy
+    p0_ready = om_health.get("ready") is True and release_complete and not release_dirty and ws_main_path_healthy
     gate_results.append(
         _gate_entry(
             gate="P0 Runtime",
@@ -80,10 +90,12 @@ def build_release_gate_report(
             evidence=[
                 f"ready={om_health.get('ready')}",
                 f"release_complete={release_complete}",
+                f"git_dirty={release.get('git_dirty')}",
                 f"unified_ws_smoke_ok={unified_ws_smoke_ok}",
             ],
             blockers=[] if p0_ready else [
                 *([] if om_health.get("ready") is True and release_complete else ["runtime_or_release_lineage_incomplete"]),
+                *(["runtime_release_dirty"] if release_dirty else []),
                 *(["ws_main_path_unhealthy"] if ws_main_path_healthy is False else []),
             ],
         )

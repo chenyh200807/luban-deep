@@ -25,17 +25,18 @@ EXCLUDES=(
     ".ruff_cache"
     ".next"
     ".DS_Store"
-    ".env"
+    ".env*"
+    ".secrets*"
+    "playwright-report"
+    "playwright-report*"
+    "test-results"
+    "coverage"
     "data"
     "tmp"
     "*.log"
 )
 
 require_git_release_hygiene() {
-    if [ "${ALLOW_DIRTY_DEPLOY}" = "1" ]; then
-        return 0
-    fi
-
     if ! git -C "${REPO_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         echo "发布脚本必须从 Git 工作区执行。" >&2
         exit 1
@@ -56,6 +57,11 @@ require_git_release_hygiene() {
     local status
     status="$(git -C "${REPO_ROOT}" status --short --untracked-files=all)"
     if [ -n "${status}" ]; then
+        if [ "${ALLOW_DIRTY_DEPLOY}" = "1" ]; then
+            echo "警告：ALLOW_DIRTY_DEPLOY=1 只跳过 dirty tree 检查；仍要求 Git 分支和远端目标通过发布护栏。" >&2
+            echo "${status}" >&2
+            return 0
+        fi
         echo "工作区不干净，禁止发布。请先提交/清理改动，或显式设置 ALLOW_DIRTY_DEPLOY=1。" >&2
         echo "${status}" >&2
         exit 1
@@ -92,6 +98,77 @@ build_release_id() {
     echo "${timestamp}_${branch}_${commit}"
 }
 
+build_deploy_manifest_hash() {
+    python3 - "${REPO_ROOT}" <<'PY'
+from pathlib import Path
+import fnmatch
+import hashlib
+import os
+import sys
+
+root = Path(sys.argv[1]).resolve()
+excluded_names = {
+    ".git",
+    ".github",
+    ".venv",
+    "node_modules",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".next",
+    ".DS_Store",
+    "playwright-report",
+    "test-results",
+    "coverage",
+    "data",
+    "tmp",
+}
+excluded_patterns = (
+    ".env*",
+    ".secrets*",
+    "playwright-report*",
+    "*.log",
+)
+
+
+def skip_file(path: Path) -> bool:
+    rel = path.relative_to(root)
+    if any(part in excluded_names for part in rel.parts):
+        return True
+    return any(fnmatch.fnmatch(path.name, pattern) for pattern in excluded_patterns)
+
+
+digest = hashlib.sha256()
+for dirpath, dirnames, filenames in os.walk(root):
+    current = Path(dirpath)
+    dirnames[:] = sorted([
+        dirname
+        for dirname in dirnames
+        if dirname not in excluded_names
+        and not any(fnmatch.fnmatch(dirname, pattern) for pattern in excluded_patterns)
+    ])
+    for filename in sorted(filenames):
+        path = current / filename
+        if skip_file(path):
+            continue
+        rel = path.relative_to(root).as_posix()
+        digest.update(rel.encode("utf-8"))
+        digest.update(b"\0")
+        if path.is_symlink():
+            digest.update(b"symlink\0")
+            digest.update(os.readlink(path).encode("utf-8"))
+        else:
+            digest.update(b"file\0")
+            with path.open("rb") as handle:
+                for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                    digest.update(chunk)
+        digest.update(b"\0")
+
+print(digest.hexdigest()[:16])
+PY
+}
+
 resolve_service_version() {
     python3 - "${REPO_ROOT}/pyproject.toml" <<'PY'
 from pathlib import Path
@@ -109,13 +186,19 @@ PY
 }
 
 inject_remote_release_lineage() {
-    local resolved_host git_sha service_version
+    local resolved_host git_sha service_version git_dirty deploy_manifest_hash
     resolved_host="$(resolve_remote_host)"
     git_sha="$(git -C "${REPO_ROOT}" rev-parse HEAD)"
     service_version="$(resolve_service_version)"
+    deploy_manifest_hash="$(build_deploy_manifest_hash)"
+    if [ -n "$(git -C "${REPO_ROOT}" status --short --untracked-files=all)" ]; then
+        git_dirty="true"
+    else
+        git_dirty="false"
+    fi
 
     ssh "${resolved_host}" \
-        "PYTHONIOENCODING='utf-8' REMOTE_DIR='${REMOTE_DIR}' RELEASE_GIT_SHA='${git_sha}' RELEASE_SERVICE_VERSION='${service_version}' python3 - <<'PY'
+        "PYTHONIOENCODING='utf-8' REMOTE_DIR='${REMOTE_DIR}' RELEASE_GIT_SHA='${git_sha}' RELEASE_SERVICE_VERSION='${service_version}' RELEASE_GIT_DIRTY='${git_dirty}' RELEASE_DEPLOY_MANIFEST_HASH='${deploy_manifest_hash}' python3 - <<'PY'
 from pathlib import Path
 import hashlib
 import json
@@ -146,6 +229,8 @@ deployment_environment = (
 ).strip()
 git_sha = os.environ['RELEASE_GIT_SHA'].strip()
 service_version = os.environ['RELEASE_SERVICE_VERSION'].strip() or '1.0.0'
+git_dirty = os.environ.get('RELEASE_GIT_DIRTY', 'false').strip().lower()
+deploy_manifest_hash = os.environ.get('RELEASE_DEPLOY_MANIFEST_HASH', '').strip()
 release_id = f'{service_version}+{git_sha}+{deployment_environment}'
 prompt_version = (
     values.get('DEEPTUTOR_PROMPT_VERSION')
@@ -201,6 +286,8 @@ managed = {
     'DEEPTUTOR_RELEASE_ID': release_id,
     'DEEPTUTOR_PROMPT_VERSION': prompt_version,
     'DEEPTUTOR_FF_SNAPSHOT_HASH': ff_snapshot_hash,
+    'DEEPTUTOR_GIT_DIRTY': 'true' if git_dirty == 'true' else 'false',
+    'DEEPTUTOR_DEPLOY_MANIFEST_HASH': deploy_manifest_hash,
 }
 
 updated = []
@@ -232,18 +319,27 @@ print('DEEPTUTOR_RELEASE_ID=' + release_id)
 print('DEEPTUTOR_GIT_SHA=' + git_sha)
 print('DEEPTUTOR_PROMPT_VERSION=' + prompt_version)
 print('DEEPTUTOR_FF_SNAPSHOT_HASH=' + ff_snapshot_hash)
+print('DEEPTUTOR_GIT_DIRTY=' + managed['DEEPTUTOR_GIT_DIRTY'])
+print('DEEPTUTOR_DEPLOY_MANIFEST_HASH=' + deploy_manifest_hash)
 PY"
 }
 
 snapshot_remote_release() {
-    local resolved_host release_id branch commit
+    local resolved_host release_id branch commit excludes_json
     resolved_host="$(resolve_remote_host)"
     release_id="$(build_release_id)"
     branch="$(git -C "${REPO_ROOT}" branch --show-current)"
     commit="$(git -C "${REPO_ROOT}" rev-parse HEAD)"
+    excludes_json="$(python3 - "${EXCLUDES[@]}" <<'PY'
+import json
+import sys
+
+print(json.dumps(sys.argv[1:], ensure_ascii=True))
+PY
+)"
 
     ssh "${resolved_host}" \
-        "PYTHONIOENCODING='utf-8' REMOTE_DIR='${REMOTE_DIR}' RELEASE_ID='${release_id}' RELEASE_BRANCH='${branch}' RELEASE_COMMIT='${commit}' RELEASE_KEEP='${RELEASE_KEEP}' python3 - <<'PY'
+        "PYTHONIOENCODING='utf-8' REMOTE_DIR='${REMOTE_DIR}' RELEASE_ID='${release_id}' RELEASE_BRANCH='${branch}' RELEASE_COMMIT='${commit}' RELEASE_KEEP='${RELEASE_KEEP}' RELEASE_EXCLUDES_JSON='${excludes_json}' python3 - <<'PY'
 import json
 import os
 import subprocess
@@ -263,24 +359,10 @@ release_dir.mkdir(parents=True, exist_ok=True)
 release_id = os.environ['RELEASE_ID']
 snapshot_path = release_dir / f'{release_id}.tar.gz'
 manifest_path = release_dir / f'{release_id}.json'
+exclude_patterns = json.loads(os.environ.get('RELEASE_EXCLUDES_JSON') or '[]')
 
 tar_cmd = ['tar', '-czf', str(snapshot_path)]
-for pattern in (
-    '.git',
-    '.github',
-    '.venv',
-    'node_modules',
-    '__pycache__',
-    '.pytest_cache',
-    '.mypy_cache',
-    '.ruff_cache',
-    '.next',
-    '.DS_Store',
-    '.env',
-    'data',
-    'tmp',
-    '*.log',
-):
+for pattern in exclude_patterns:
     tar_cmd.append(f'--exclude={pattern}')
 tar_cmd.extend(['-C', str(remote_dir), '.'])
 subprocess.run(tar_cmd, check=True)

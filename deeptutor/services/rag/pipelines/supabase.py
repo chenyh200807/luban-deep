@@ -805,7 +805,12 @@ class SupabasePipeline:
             "provider": "supabase",
             "kb_name": kb_name,
             "evidence_bundle": evidence_bundle,
+            "retrieval_degraded": bool(retrieval_warnings),
+            "retrieval_status": "partial" if retrieval_warnings else "ok",
         }
+        payload["evidence_bundle"]["retrieval_degraded"] = bool(retrieval_warnings)
+        payload["evidence_bundle"]["retrieval_status"] = str(payload["retrieval_status"])
+        payload["evidence_bundle"]["warning_count"] = len(retrieval_warnings)
         if retrieval_warnings:
             payload["warnings"] = list(retrieval_warnings)
             payload["evidence_bundle"]["warnings"] = list(retrieval_warnings)
@@ -850,6 +855,9 @@ class SupabasePipeline:
                     ],
                 },
                 "exact_question": exact_question or {},
+                "retrieval_degraded": bool(retrieval_warnings),
+                "retrieval_status": str(payload["retrieval_status"]),
+                "warning_count": len(retrieval_warnings),
             },
         )
         return payload

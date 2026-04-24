@@ -3514,6 +3514,106 @@ async def test_turn_runtime_bootstraps_interaction_hints_as_soft_system_guidance
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_persists_exam_track_as_scoped_runtime_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    async def _noop_run(_execution):
+        return None
+
+    monkeypatch.setattr(runtime, "_run_turn", _noop_run)
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "不是一建，是一造案例题，按一级造价工程师口径回答",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "interaction_hints": {
+                    "profile": "tutorbot",
+                    "subject_domain": "construction_exam",
+                },
+            },
+        }
+    )
+
+    execution = runtime._executions[turn["id"]]
+    config = execution.payload["config"]
+    detail = await store.get_session(session["id"])
+
+    assert config["exam_track"] == "first_cost"
+    assert config["interaction_hints"]["exam_track"] == "first_cost"
+    assert detail is not None
+    assert detail["preferences"]["exam_track"] == "first_cost"
+    assert detail["preferences"]["interaction_hints"]["exam_track"] == "first_cost"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_clears_stored_exam_track_when_user_denies_it(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    session = await store.ensure_session(None)
+    await store.update_session_preferences(
+        session["id"],
+        {
+            "exam_track": "first_cost",
+            "interaction_hints": {
+                "profile": "tutorbot",
+                "subject_domain": "construction_exam",
+                "exam_track": "first_cost",
+            },
+        },
+    )
+
+    async def _noop_run(_execution):
+        return None
+
+    monkeypatch.setattr(runtime, "_run_turn", _noop_run)
+
+    _, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "不是一造，这里先按普通建筑实务问题讲",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "interaction_hints": {
+                    "profile": "tutorbot",
+                    "subject_domain": "construction_exam",
+                },
+            },
+        }
+    )
+
+    execution = runtime._executions[turn["id"]]
+    detail = await store.get_session(session["id"])
+
+    assert "exam_track" not in execution.payload["config"]
+    assert execution.payload["config"]["interaction_hints"]["profile"] == "tutorbot"
+    assert "exam_track" not in execution.payload["config"]["interaction_hints"]
+    assert detail is not None
+    assert detail["preferences"].get("exam_track") == ""
+    assert "exam_track" not in detail["preferences"]["interaction_hints"]
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_normalizes_legacy_mini_tutor_profile_to_tutorbot(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

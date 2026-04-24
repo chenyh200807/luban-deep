@@ -56,6 +56,11 @@ class BrainstormTool(_PromptHintsMixin, BaseTool):
 
 
 class RAGTool(_PromptHintsMixin, BaseTool):
+    _DEGRADED_CONTENT = (
+        "知识库检索暂时不可用，请基于已有上下文谨慎回答；涉及规范数值、题库答案或引用出处时，"
+        "必须明确说明当前证据不足。"
+    )
+
     @staticmethod
     def _summarize_metadata(result: dict[str, Any], *, query: str, kb_name: str | None) -> dict[str, Any]:
         exact_question = result.get("exact_question") if isinstance(result.get("exact_question"), dict) else {}
@@ -71,6 +76,12 @@ class RAGTool(_PromptHintsMixin, BaseTool):
             "tool_source_count": len(sources),
             "exact_question": exact_question,
         }
+        if "retrieval_degraded" in result:
+            summary["retrieval_degraded"] = bool(result.get("retrieval_degraded"))
+        if result.get("retrieval_status"):
+            summary["retrieval_status"] = str(result.get("retrieval_status") or "").strip()
+        if isinstance(result.get("warnings"), list):
+            summary["warning_count"] = len(result.get("warnings") or [])
         if evidence_bundle:
             content_blocks = (
                 evidence_bundle.get("content_blocks")
@@ -82,7 +93,7 @@ class RAGTool(_PromptHintsMixin, BaseTool):
                 if isinstance(evidence_bundle.get("sources"), list)
                 else []
             )
-            summary["evidence_bundle_summary"] = {
+            bundle_summary = {
                 "bundle_id": str(evidence_bundle.get("bundle_id") or "").strip(),
                 "kb_name": str(evidence_bundle.get("kb_name") or "").strip(),
                 "provider": str(evidence_bundle.get("provider") or "").strip(),
@@ -92,7 +103,34 @@ class RAGTool(_PromptHintsMixin, BaseTool):
                 "content_block_count": len(content_blocks),
                 "exact_question": bool(evidence_bundle.get("exact_question")),
             }
+            if "retrieval_degraded" in evidence_bundle:
+                bundle_summary["retrieval_degraded"] = bool(
+                    evidence_bundle.get("retrieval_degraded")
+                )
+            if "retrieval_status" in evidence_bundle:
+                bundle_summary["retrieval_status"] = str(
+                    evidence_bundle.get("retrieval_status") or ""
+                ).strip()
+            if "warning_count" in evidence_bundle:
+                bundle_summary["warning_count"] = int(evidence_bundle.get("warning_count") or 0)
+            summary["evidence_bundle_summary"] = bundle_summary
         return summary
+
+    @staticmethod
+    def _degraded_metadata(exc: Exception, *, query: str, kb_name: str | None) -> dict[str, Any]:
+        return {
+            "query": query,
+            "provider": str(getattr(exc, "provider", "") or "").strip(),
+            "kb_name": str(getattr(exc, "kb_name", "") or kb_name or "").strip(),
+            "sources": [],
+            "tool_source_count": 0,
+            "exact_question": {},
+            "retrieval_degraded": True,
+            "retrieval_status": "failed",
+            "error_type": type(exc).__name__,
+            "stage": str(getattr(exc, "stage", "") or "").strip(),
+            "retryable": bool(getattr(exc, "retryable", False)),
+        }
 
     def get_definition(self) -> ToolDefinition:
         return ToolDefinition(
@@ -124,12 +162,40 @@ class RAGTool(_PromptHintsMixin, BaseTool):
             if key not in {"query", "kb_name", "event_sink"}
         }
 
-        result = await rag_search(
-            query=query,
-            kb_name=kb_name,
-            event_sink=event_sink,
-            **extra_kwargs,
-        )
+        try:
+            result = await rag_search(
+                query=query,
+                kb_name=kb_name,
+                event_sink=event_sink,
+                **extra_kwargs,
+            )
+        except Exception as exc:
+            from deeptutor.services.rag.exceptions import RAGError
+
+            if not isinstance(exc, RAGError):
+                raise
+            logger.warning(
+                "RAG retrieval degraded in built-in tool",
+                extra={
+                    "provider": getattr(exc, "provider", ""),
+                    "kb_name": getattr(exc, "kb_name", kb_name),
+                    "stage": getattr(exc, "stage", ""),
+                    "retryable": getattr(exc, "retryable", False),
+                },
+            )
+            metadata = self._degraded_metadata(exc, query=query, kb_name=kb_name)
+            if event_sink is not None:
+                await event_sink(
+                    "status",
+                    "知识库检索暂时降级，系统将基于已有上下文继续回答。",
+                    metadata={**metadata, "visibility": "public"},
+                )
+            return ToolResult(
+                content=self._DEGRADED_CONTENT,
+                success=False,
+                sources=[{"type": "rag", "query": query, "kb_name": kb_name}],
+                metadata=metadata,
+            )
         content = result.get("answer") or result.get("content", "")
         return ToolResult(
             content=content,

@@ -13,6 +13,8 @@ def test_release_lineage_uses_env_inputs_and_builds_stable_release_id(
     monkeypatch.setenv("DEEPTUTOR_GIT_SHA", "abc123def456")
     monkeypatch.setenv("DEEPTUTOR_ENV", "prod")
     monkeypatch.setenv("DEEPTUTOR_PROMPT_VERSION", "prompt-v7")
+    monkeypatch.setenv("DEEPTUTOR_GIT_DIRTY", "false")
+    monkeypatch.setenv("DEEPTUTOR_DEPLOY_MANIFEST_HASH", "manifest123")
     monkeypatch.setenv("DEEPTUTOR_CONTEXT_ORCHESTRATION_ENABLED", "true")
     monkeypatch.setenv("DEEPTUTOR_SEMANTIC_ROUTER_SHADOW_MODE", "false")
     reset_release_lineage_cache()
@@ -25,6 +27,8 @@ def test_release_lineage_uses_env_inputs_and_builds_stable_release_id(
     assert snapshot["prompt_version"] == "prompt-v7"
     assert snapshot["release_id"] == "1.2.3+abc123def456+prod"
     assert snapshot["ff_snapshot_hash"] != "none"
+    assert snapshot["git_dirty"] == "false"
+    assert snapshot["deploy_manifest_hash"] == "manifest123"
 
 
 def test_release_lineage_respects_explicit_release_id_override(monkeypatch) -> None:
@@ -36,3 +40,14 @@ def test_release_lineage_respects_explicit_release_id_override(monkeypatch) -> N
     snapshot = get_release_lineage_snapshot()
 
     assert snapshot["release_id"] == "release-demo-2026-04-19"
+
+
+def test_release_lineage_exposes_dirty_tree_marker(monkeypatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_GIT_DIRTY", "true")
+    monkeypatch.setenv("DEEPTUTOR_DEPLOY_MANIFEST_HASH", "dirtyhash")
+    reset_release_lineage_cache()
+
+    snapshot = get_release_lineage_snapshot()
+
+    assert snapshot["git_dirty"] == "true"
+    assert snapshot["deploy_manifest_hash"] == "dirtyhash"

@@ -341,6 +341,8 @@ def render_prometheus_metrics(
             "deployment_environment": release_snapshot.get("deployment_environment", ""),
             "prompt_version": release_snapshot.get("prompt_version", ""),
             "ff_snapshot_hash": release_snapshot.get("ff_snapshot_hash", ""),
+            "git_dirty": release_snapshot.get("git_dirty", ""),
+            "deploy_manifest_hash": release_snapshot.get("deploy_manifest_hash", ""),
         },
     )
 

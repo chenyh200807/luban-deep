@@ -38,6 +38,7 @@ from deeptutor.services.llm import (
     supports_tools,
 )
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.exam_track import exam_track_label
 from deeptutor.services.query_intent import (
     build_grounding_decision,
     has_grounded_construction_exam_kb,
@@ -642,7 +643,7 @@ class AgenticChatPipeline:
                     user_prompt += "\n\n" + self._knowledge_response_contract(required_elements)
                 messages = self._build_messages(
                     context=context,
-                    system_prompt=self._responding_system_prompt(enabled_tools),
+                    system_prompt=self._responding_system_prompt(enabled_tools, context),
                     user_content=user_prompt,
                 )
 
@@ -767,7 +768,7 @@ class AgenticChatPipeline:
                     user_prompt += "\n\n" + self._knowledge_response_contract(required_elements)
                 messages = self._build_messages(
                     context=context,
-                    system_prompt=self._responding_system_prompt([]),
+                    system_prompt=self._responding_system_prompt([], context),
                     user_content=user_prompt,
                 )
 
@@ -902,7 +903,7 @@ class AgenticChatPipeline:
                     user_prompt += "\n\n" + self._knowledge_response_contract(required_elements)
                 messages = self._build_messages(
                     context=context,
-                    system_prompt=self._responding_system_prompt([]),
+                    system_prompt=self._responding_system_prompt([], context),
                     user_content=user_prompt,
                 )
 
@@ -1785,6 +1786,11 @@ class AgenticChatPipeline:
                 "profile": str(interaction_hints.get("profile") or "").strip(),
                 "entry_role": str(interaction_hints.get("entry_role") or "").strip(),
                 "subject_domain": str(interaction_hints.get("subject_domain") or "").strip(),
+                "exam_track": str(
+                    interaction_hints.get("exam_track")
+                    or context.metadata.get("exam_track")
+                    or ""
+                ).strip(),
             }
             if any(routing_metadata.values()):
                 kwargs.setdefault("routing_metadata", routing_metadata)
@@ -1937,18 +1943,29 @@ class AgenticChatPipeline:
             ),
         )
 
-    def _responding_system_prompt(self, enabled_tools: list[str]) -> str:
+    def _responding_system_prompt(self, enabled_tools: list[str], context: UnifiedContext | None = None) -> str:
         tool_list = self.registry.build_prompt_text(
             enabled_tools,
             format="list",
             language=self.language,
         )
+        context_metadata = context.metadata if context is not None else {}
+        track_label = exam_track_label(context_metadata.get("exam_track"))
+        track_instruction = (
+            (
+                f"\n5. 当前考试方向是{track_label}。回答、举例、题型判断和知识检索结论必须优先按该考试方向；"
+                "不得自动切回其他考试方向，除非用户明确改口。\n"
+            )
+            if track_label
+            else ""
+        )
         if is_luban_chat_style_enabled():
-            return build_luban_responding_prompt(
+            prompt = build_luban_responding_prompt(
                 language=self.language,
                 brand_name=BRAND_NAME,
                 tool_list=tool_list or "",
             )
+            return f"{prompt}\n{track_instruction}" if track_instruction else prompt
         return self._text(
             zh=(
                 f"你是 {BRAND_NAME} 的最终回答阶段。请根据 observation 和工具结果，"
@@ -1959,6 +1976,7 @@ class AgenticChatPipeline:
                 "3. 若工具结果提供了证据或限制，请自然融入答案。\n"
                 "4. 如果用户当前问题里给了具体案例锚点或对象原词（如楼层数、建筑类型、工程对象、题目设定），"
                 "默认沿用该原词，不要自行缩写、泛化或换称呼。\n\n"
+                f"{track_instruction}"
                 f"本轮工具背景：\n{tool_list or '- 无'}"
             ),
             en=(
@@ -1970,6 +1988,7 @@ class AgenticChatPipeline:
                 "3. Naturally integrate evidence or limits surfaced by the tools.\n"
                 "4. If the current user request includes a concrete case anchor or exact object wording such as floor count, "
                 "building type, project object, or problem setup, preserve that wording instead of shortening or renaming it.\n\n"
+                f"{track_instruction}"
                 f"Tool context for this turn:\n{tool_list or '- none'}"
             ),
         )

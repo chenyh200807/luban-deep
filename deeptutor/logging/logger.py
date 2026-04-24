@@ -13,7 +13,7 @@ Example outputs:
     [ERROR]    [EmbeddingClient]  Embedding request failed
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 import json
 import logging
@@ -27,6 +27,34 @@ from deeptutor.logging.context import get_log_context, get_request_id
 
 # Note: path_service is imported lazily inside Logger.__init__ to avoid
 # circular import: logging -> services -> services/config -> logging
+
+LOG_RETENTION_DAYS = 90
+
+
+def _prune_legacy_text_logs(
+    log_dir: Path,
+    *,
+    now: datetime | None = None,
+    retention_days: int = LOG_RETENTION_DAYS,
+) -> list[Path]:
+    """Remove DeepTutor daily text logs older than the retention window."""
+    current = now or datetime.now()
+    cutoff = current.date() - timedelta(days=max(0, int(retention_days)))
+    removed: list[Path] = []
+    for path in sorted(Path(log_dir).glob("deeptutor_*.log")):
+        stem_date = path.stem.removeprefix("deeptutor_")
+        try:
+            log_date = datetime.strptime(stem_date, "%Y%m%d").date()
+        except ValueError:
+            continue
+        if log_date >= cutoff:
+            continue
+        try:
+            path.unlink()
+            removed.append(path)
+        except OSError:
+            continue
+    return removed
 
 
 class LogLevel(Enum):
@@ -286,6 +314,8 @@ class Logger:
 
         log_dir_path.mkdir(parents=True, exist_ok=True)
         self.log_dir = log_dir_path
+        if file_output:
+            _prune_legacy_text_logs(log_dir_path)
 
         # Console handler
         if console_output:

@@ -33,6 +33,12 @@ from deeptutor.services.observability import (
 from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
 from deeptutor.services.observability.turn_event_log import build_turn_observation_event
 from deeptutor.services.path_service import get_path_service
+from deeptutor.services.exam_track import (
+    exam_track_label,
+    infer_denied_exam_tracks_from_text,
+    infer_exam_track_from_text,
+    normalize_exam_track,
+)
 from deeptutor.services.question_followup import (
     build_question_followup_context_from_presentation,
     followup_action_route,
@@ -339,17 +345,21 @@ async def _resolve_question_followup_context_and_action(
         normalized_candidate = normalize_question_followup_context(candidate)
         if normalized_candidate is None:
             continue
+        deterministic_followup = looks_like_question_followup(user_message, normalized_candidate)
         candidate_action = await interpret_question_followup_action(
             user_message,
             normalized_candidate,
         )
-        if followup_action_route(candidate_action) in {
-            "submission",
-            "followup",
-            "practice_generation",
-        }:
+        candidate_route = followup_action_route(candidate_action)
+        if candidate_route == "submission":
             return normalized_candidate, candidate_action
-        if looks_like_question_followup(user_message, normalized_candidate):
+        if candidate_route == "practice_generation" and looks_like_practice_generation_request(
+            user_message
+        ):
+            return normalized_candidate, candidate_action
+        if candidate_route == "followup" and deterministic_followup:
+            return normalized_candidate, candidate_action
+        if deterministic_followup:
             return normalized_candidate, None
 
     return None, None
@@ -762,6 +772,7 @@ def _extract_interaction_hints(
         if effective_response_mode in {"fast", "deep"}
         else ""
     )
+    exam_track = normalize_exam_track(raw.get("exam_track"))
 
     hints = {
         "profile": profile,
@@ -779,6 +790,8 @@ def _extract_interaction_hints(
         "allow_general_chat_fallback": raw.get("allow_general_chat_fallback", True) is not False,
         "priorities": normalized_priorities,
     }
+    if exam_track:
+        hints["exam_track"] = exam_track
     if "suppress_answer_reveal_on_generate" in raw:
         hints["suppress_answer_reveal_on_generate"] = bool(
             raw.get("suppress_answer_reveal_on_generate")
@@ -808,6 +821,7 @@ def _extract_interaction_hints(
             hints.get("suppress_answer_reveal_on_generate"),
             hints.get("prefer_question_context_grading"),
             hints.get("prefer_concept_teaching_slots"),
+            hints.get("exam_track"),
             hints["allow_general_chat_fallback"] is False,
         ]
     )
@@ -2158,6 +2172,7 @@ class TurnRuntimeManager:
             "plan_id",
             "guide_session_id",
             "learning_plan_id",
+            "exam_track",
         )
         runtime_only_config = {
             key: raw_config.pop(key)
@@ -2167,6 +2182,20 @@ class TurnRuntimeManager:
         runtime_interaction_hints = _extract_interaction_hints(
             {"interaction_hints": runtime_only_config.get("interaction_hints")}
         )
+        explicit_exam_track = (
+            normalize_exam_track(runtime_only_config.get("exam_track"))
+            or normalize_exam_track((runtime_interaction_hints or {}).get("exam_track"))
+            or infer_exam_track_from_text(raw_user_content)
+        )
+        denied_exam_tracks = infer_denied_exam_tracks_from_text(raw_user_content)
+        clear_stored_exam_track = False
+        if explicit_exam_track:
+            runtime_only_config["exam_track"] = explicit_exam_track
+            runtime_interaction_hints = {
+                **dict(runtime_interaction_hints or {}),
+                "exam_track": explicit_exam_track,
+            }
+            runtime_only_config["interaction_hints"] = runtime_interaction_hints
         runtime_followup_question_context = normalize_question_followup_context(
             runtime_only_config.get("followup_question_context")
         )
@@ -2299,25 +2328,80 @@ class TurnRuntimeManager:
             payload.get("session_id"),
             owner_key=build_user_owner_key(billing_context.get("user_id")),
         )
+        session_preferences = session.get("preferences") if isinstance(session, dict) else {}
+        if not explicit_exam_track:
+            stored_exam_track = normalize_exam_track(
+                session_preferences.get("exam_track") if isinstance(session_preferences, dict) else ""
+            )
+            if stored_exam_track and stored_exam_track in denied_exam_tracks:
+                clear_stored_exam_track = True
+                stored_hints = (
+                    session_preferences.get("interaction_hints")
+                    if isinstance(session_preferences, dict)
+                    and isinstance(session_preferences.get("interaction_hints"), dict)
+                    else {}
+                )
+                cleaned_interaction_hints = {
+                    **dict(stored_hints),
+                    **dict(runtime_interaction_hints or {}),
+                }
+                cleaned_interaction_hints.pop("exam_track", None)
+                runtime_interaction_hints = _extract_interaction_hints(
+                    {"interaction_hints": cleaned_interaction_hints}
+                )
+                runtime_only_config.pop("exam_track", None)
+                if runtime_interaction_hints:
+                    runtime_only_config["interaction_hints"] = runtime_interaction_hints
+                else:
+                    runtime_only_config.pop("interaction_hints", None)
+                payload["config"] = {
+                    key: value
+                    for key, value in dict(payload.get("config", {}) or {}).items()
+                    if key != "exam_track"
+                }
+                if runtime_interaction_hints:
+                    payload["config"]["interaction_hints"] = runtime_interaction_hints
+                else:
+                    payload["config"].pop("interaction_hints", None)
+            elif stored_exam_track:
+                explicit_exam_track = stored_exam_track
+                runtime_only_config["exam_track"] = explicit_exam_track
+                runtime_interaction_hints = {
+                    **dict(runtime_interaction_hints or {}),
+                    "exam_track": explicit_exam_track,
+                }
+                payload["config"] = {
+                    **dict(payload.get("config", {}) or {}),
+                    "exam_track": explicit_exam_track,
+                    "interaction_hints": runtime_interaction_hints,
+                }
+        preference_updates = {
+            "chat_mode": (payload.get("config", {}) or {}).get(
+                "chat_mode",
+                validated_public_config.get("chat_mode", get_default_chat_mode()),
+            ),
+            "tools": list(payload.get("tools") or []),
+            "knowledge_bases": list(payload.get("knowledge_bases") or []),
+            "language": str(payload.get("language") or "en"),
+            **(
+                {"bot_id": str(validated_public_config.get("bot_id") or "").strip()}
+                if str(validated_public_config.get("bot_id") or "").strip()
+                else {}
+            ),
+            **({"capability": capability} if capability else {}),
+            **(billing_context or {}),
+        }
+        if explicit_exam_track:
+            preference_updates["exam_track"] = explicit_exam_track
+        elif clear_stored_exam_track:
+            preference_updates["exam_track"] = ""
+        if runtime_interaction_hints:
+            preference_updates["interaction_hints"] = runtime_interaction_hints
+        elif clear_stored_exam_track:
+            preference_updates["interaction_hints"] = {}
         await self.store.update_session_preferences(
             session["id"],
-            {
-                "chat_mode": (payload.get("config", {}) or {}).get(
-                    "chat_mode",
-                    validated_public_config.get("chat_mode", get_default_chat_mode()),
-                ),
-                "tools": list(payload.get("tools") or []),
-                "knowledge_bases": list(payload.get("knowledge_bases") or []),
-                "language": str(payload.get("language") or "en"),
-                **(
-                    {"bot_id": str(validated_public_config.get("bot_id") or "").strip()}
-                    if str(validated_public_config.get("bot_id") or "").strip()
-                    else {}
-                ),
-                **({"capability": capability} if capability else {}),
-                **({"interaction_hints": runtime_interaction_hints} if runtime_interaction_hints else {}),
-                **(billing_context or {}),
-            },
+            preference_updates,
         )
         await self._recover_orphaned_running_turns(
             session["id"],
@@ -2767,6 +2851,13 @@ class TurnRuntimeManager:
             trace_metadata["requested_response_mode"] = requested_response_mode
             trace_metadata["effective_response_mode"] = effective_response_mode
             trace_metadata["selected_mode"] = selected_mode
+            exam_track = normalize_exam_track(
+                request_config.get("exam_track")
+                or (interaction_hints or {}).get("exam_track")
+            )
+            if exam_track:
+                trace_metadata["exam_track"] = exam_track
+                trace_metadata["exam_track_label"] = exam_track_label(exam_track)
             trace_metadata["response_mode_degrade_reason"] = str(
                 (interaction_hints or {}).get("response_mode_degrade_reason") or ""
             ).strip()
@@ -3135,6 +3226,14 @@ class TurnRuntimeManager:
                         "suspended_object_stack": stored_suspended_object_stack,
                         "turn_semantic_decision": turn_semantic_decision or {},
                         "interaction_hints": interaction_hints or {},
+                        **(
+                            {
+                                "exam_track": exam_track,
+                                "exam_track_label": exam_track_label(exam_track),
+                            }
+                            if exam_track
+                            else {}
+                        ),
                         "notebook_references": notebook_references,
                         "history_references": history_references,
                         "memory_context": memory_context,

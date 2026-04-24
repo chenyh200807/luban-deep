@@ -175,6 +175,35 @@ def test_sync_blocks_dirty_tree_release(tmp_path: Path) -> None:
     assert not call_log.exists()
 
 
+def test_sync_dirty_override_does_not_bypass_main_branch_guard(tmp_path: Path) -> None:
+    repo_root = _setup_sync_repo(tmp_path, branch="main")
+    (repo_root / "untracked.txt").write_text("dirty\n", encoding="utf-8")
+    env, call_log = _build_stub_env(tmp_path)
+    env["ALLOW_DIRTY_DEPLOY"] = "1"
+
+    result = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
+
+    combined = f"{result.stdout}\n{result.stderr}"
+    assert result.returncode != 0
+    assert "禁止直接从 main 发布" in combined
+    assert not call_log.exists()
+
+
+def test_sync_dirty_override_does_not_bypass_canonical_target_guard(tmp_path: Path) -> None:
+    repo_root = _setup_sync_repo(tmp_path, branch="release/candidate")
+    (repo_root / "untracked.txt").write_text("dirty\n", encoding="utf-8")
+    env, call_log = _build_stub_env(tmp_path)
+    env["ALLOW_DIRTY_DEPLOY"] = "1"
+    env["REMOTE_HOST"] = "Aliyun-ECS"
+
+    result = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
+
+    combined = f"{result.stdout}\n{result.stderr}"
+    assert result.returncode != 0
+    assert "REMOTE_HOST 必须固定为 Aliyun-ECS-2" in combined
+    assert not call_log.exists()
+
+
 def test_sync_requires_canonical_remote_target(tmp_path: Path) -> None:
     repo_root = _setup_sync_repo(tmp_path, branch="release/candidate")
     env, call_log = _build_stub_env(tmp_path)
@@ -227,7 +256,7 @@ def test_sync_injects_release_lineage_into_remote_env(tmp_path: Path) -> None:
         "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\nFF_WORKER_CAPACITY_ISOLATION_V1=true\n",
         encoding="utf-8",
     )
-    env, _ = _build_stub_env(tmp_path, execute_release_injection=True)
+    env, call_log = _build_stub_env(tmp_path, execute_release_injection=True)
     env["ALLOW_NON_CANONICAL_DEPLOY"] = "1"
     env["REMOTE_HOST"] = "fake-host"
     env["REMOTE_DIR"] = str(remote_dir)
@@ -243,6 +272,94 @@ def test_sync_injects_release_lineage_into_remote_env(tmp_path: Path) -> None:
     assert f"DEEPTUTOR_PROMPT_VERSION=git-{git_sha[:12]}\n" in env_content
     assert "DEEPTUTOR_FF_SNAPSHOT_HASH=" in env_content
     assert "DEEPTUTOR_FF_SNAPSHOT_HASH=none\n" not in env_content
+    assert "DEEPTUTOR_GIT_DIRTY=false\n" in env_content
+    assert "DEEPTUTOR_DEPLOY_MANIFEST_HASH=" in env_content
+
+
+def test_sync_marks_dirty_release_lineage_when_dirty_override_is_used(tmp_path: Path) -> None:
+    repo_root = _setup_sync_repo(tmp_path, branch="release/candidate")
+    (repo_root / "untracked.txt").write_text("dirty\n", encoding="utf-8")
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text(
+        "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\n",
+        encoding="utf-8",
+    )
+    env, call_log = _build_stub_env(tmp_path, execute_release_injection=True)
+    env["ALLOW_DIRTY_DEPLOY"] = "1"
+    env["ALLOW_NON_CANONICAL_DEPLOY"] = "1"
+    env["REMOTE_HOST"] = "fake-host"
+    env["REMOTE_DIR"] = str(remote_dir)
+
+    result = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
+
+    assert result.returncode == 0, result.stderr
+    env_content = (remote_dir / ".env").read_text(encoding="utf-8")
+    assert "DEEPTUTOR_GIT_DIRTY=true\n" in env_content
+    assert "DEEPTUTOR_DEPLOY_MANIFEST_HASH=" in env_content
+    assert "untracked.txt" in result.stderr
+
+
+def test_sync_deploy_manifest_hash_excludes_env_and_report_artifacts(tmp_path: Path) -> None:
+    repo_root = _setup_sync_repo(tmp_path, branch="release/candidate")
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text(
+        "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\n",
+        encoding="utf-8",
+    )
+    env, call_log = _build_stub_env(tmp_path, execute_release_injection=True)
+    env["ALLOW_DIRTY_DEPLOY"] = "1"
+    env["ALLOW_NON_CANONICAL_DEPLOY"] = "1"
+    env["REMOTE_HOST"] = "fake-host"
+    env["REMOTE_DIR"] = str(remote_dir)
+
+    first = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
+    assert first.returncode == 0, first.stderr
+    first_env = (remote_dir / ".env").read_text(encoding="utf-8")
+    first_hash = next(
+        line.split("=", 1)[1]
+        for line in first_env.splitlines()
+        if line.startswith("DEEPTUTOR_DEPLOY_MANIFEST_HASH=")
+    )
+
+    (repo_root / "web").mkdir()
+    (repo_root / "web" / ".env.local").write_text("SECRET=value\n", encoding="utf-8")
+    (repo_root / ".secrets.baseline").write_text("{}\n", encoding="utf-8")
+    report_dir = repo_root / "web" / "playwright-report"
+    report_dir.mkdir()
+    (report_dir / "index.html").write_text("<html>report</html>\n", encoding="utf-8")
+    test_results_dir = repo_root / "test-results"
+    test_results_dir.mkdir()
+    (test_results_dir / "trace.zip").write_text("trace\n", encoding="utf-8")
+
+    second = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
+    assert second.returncode == 0, second.stderr
+    second_env = (remote_dir / ".env").read_text(encoding="utf-8")
+    second_hash = next(
+        line.split("=", 1)[1]
+        for line in second_env.splitlines()
+        if line.startswith("DEEPTUTOR_DEPLOY_MANIFEST_HASH=")
+    )
+    assert second_hash == first_hash
+    log = call_log.read_text(encoding="utf-8")
+    assert "RELEASE_EXCLUDES_JSON=" in log
+    assert ".env*" in log
+    assert ".secrets*" in log
+    assert "playwright-report*" in log
+    assert "test-results" in log
+    assert "coverage" in log
+
+    (repo_root / "included_runtime_file.txt").write_text("runtime\n", encoding="utf-8")
+    third = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
+    assert third.returncode == 0, third.stderr
+    third_env = (remote_dir / ".env").read_text(encoding="utf-8")
+    third_hash = next(
+        line.split("=", 1)[1]
+        for line in third_env.splitlines()
+        if line.startswith("DEEPTUTOR_DEPLOY_MANIFEST_HASH=")
+    )
+    assert third_hash != first_hash
 
 
 def test_validate_release_env_requires_ff_snapshot_hash(tmp_path: Path) -> None:

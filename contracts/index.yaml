@@ -15,6 +15,7 @@ domains:
       - deeptutor/api/routers/mobile.py
       - deeptutor/api/routers/system.py
       - deeptutor/services/session/*.py
+      - deeptutor/services/exam_track.py
       - deeptutor/contracts/unified_turn.py
       - web/lib/unified-ws.ts
       - web/context/UnifiedChatContext.tsx
@@ -23,6 +24,7 @@ domains:
       - deeptutor/api/routers/mobile.py
       - deeptutor/api/routers/system.py
       - deeptutor/services/session/turn_runtime.py
+      - deeptutor/services/exam_track.py
       - deeptutor/contracts/unified_turn.py
       - web/lib/unified-ws.ts
       - web/context/UnifiedChatContext.tsx
@@ -45,12 +47,14 @@ domains:
       - deeptutor/runtime/orchestrator.py
       - deeptutor/runtime/registry/capability_registry.py
       - deeptutor/capabilities/request_contracts.py
+      - deeptutor/services/exam_track.py
       - deeptutor/api/routers/chat.py
       - deeptutor/api/routers/mobile.py
       - deeptutor/api/routers/unified_ws.py
     sensitive_patterns:
       - deeptutor/runtime/orchestrator.py
       - deeptutor/capabilities/request_contracts.py
+      - deeptutor/services/exam_track.py
       - deeptutor/api/routers/unified_ws.py
       - deeptutor/api/routers/mobile.py
     test_files:
@@ -72,11 +76,13 @@ domains:
       - deeptutor/services/rag/**/*.py
       - deeptutor/tools/rag_tool.py
       - deeptutor/agents/chat/agentic_pipeline.py
+      - deeptutor/services/exam_track.py
     sensitive_patterns:
       - deeptutor/services/rag/service.py
       - deeptutor/services/rag/pipelines/*.py
       - deeptutor/services/rag/pipelines/**/*.py
       - deeptutor/agents/chat/agentic_pipeline.py
+      - deeptutor/services/exam_track.py
     test_files:
       - tests/services/rag/test_rag_pipelines.py
       - tests/services/rag/test_supabase_strategy.py

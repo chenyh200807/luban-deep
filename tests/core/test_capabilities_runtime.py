@@ -2085,6 +2085,63 @@ async def test_rag_adapter_tool_coerces_none_answer_to_empty_string(
 
 
 @pytest.mark.asyncio
+async def test_rag_adapter_tool_forwards_exam_track_and_degrades_typed_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.services.rag.exceptions import RAGSearchError
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+    captured: dict[str, Any] = {}
+
+    async def _fake_rag_search(**kwargs: Any) -> dict[str, Any]:
+        captured.update(kwargs)
+        raise RAGSearchError(
+            "Supabase retrieval failed: raw timeout detail",
+            provider="supabase",
+            kb_name="construction-exam",
+            query=str(kwargs.get("query") or ""),
+            stage="pipeline.search",
+            retryable=True,
+        )
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(
+        metadata={
+            "default_kb": "construction-exam",
+            "exam_track": "first_cost",
+            "interaction_hints": {
+                "profile": "tutorbot",
+                "subject_domain": "construction_exam",
+                "exam_track": "first_cost",
+            },
+        }
+    )
+
+    result = await tool.execute(query="一造计价索赔怎么答")
+
+    assert "raw timeout detail" not in result
+    assert captured["routing_metadata"]["exam_track"] == "first_cost"
+    metadata = tool.consume_trace_metadata()
+    assert metadata["retrieval_degraded"] is True
+    assert metadata["retrieval_status"] == "failed"
+    assert metadata["stage"] == "pipeline.search"
+    assert metadata["retryable"] is True
+
+
+@pytest.mark.asyncio
 async def test_rag_adapter_tool_emits_only_evidence_bundle_summary_in_trace_metadata(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

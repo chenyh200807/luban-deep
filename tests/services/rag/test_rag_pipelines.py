@@ -124,6 +124,49 @@ async def test_builtin_rag_tool_emits_summary_metadata_only(
 
 
 @pytest.mark.asyncio
+async def test_builtin_rag_tool_degrades_typed_retrieval_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.exceptions import RAGSearchError
+    from deeptutor.tools.builtin import RAGTool
+    import deeptutor.tools.rag_tool as rag_tool_module
+
+    async def _broken_rag_search(**_kwargs):
+        raise RAGSearchError(
+            "Supabase retrieval failed: timeout detail",
+            provider="supabase",
+            kb_name="construction-exam",
+            query="防水等级",
+            stage="pipeline.search",
+            retryable=True,
+        )
+
+    events: list[tuple[str, str, dict[str, object]]] = []
+
+    async def _event_sink(event_type: str, content: str, metadata=None):
+        events.append((event_type, content, dict(metadata or {})))
+
+    monkeypatch.setattr(rag_tool_module, "rag_search", _broken_rag_search)
+
+    result = await RAGTool().execute(
+        query="防水等级",
+        kb_name="construction-exam",
+        event_sink=_event_sink,
+    )
+
+    assert result.success is False
+    assert "timeout detail" not in result.content
+    assert result.metadata["retrieval_degraded"] is True
+    assert result.metadata["retrieval_status"] == "failed"
+    assert result.metadata["provider"] == "supabase"
+    assert result.metadata["kb_name"] == "construction-exam"
+    assert result.metadata["stage"] == "pipeline.search"
+    assert result.metadata["retryable"] is True
+    assert events[-1][0] == "status"
+    assert events[-1][2]["retrieval_degraded"] is True
+
+
+@pytest.mark.asyncio
 async def test_rag_search_invalid_provider_falls_back_to_kb_provider(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

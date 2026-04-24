@@ -91,6 +91,8 @@ def test_render_prometheus_metrics_includes_release_and_turn_runtime_metrics() -
             "deployment_environment": "prod",
             "prompt_version": "prompt-v9",
             "ff_snapshot_hash": "ffaa00112233",
+            "git_dirty": "false",
+            "deploy_manifest_hash": "manifest123",
         },
     )
 
@@ -105,6 +107,6 @@ def test_render_prometheus_metrics_includes_release_and_turn_runtime_metrics() -
     assert 'deeptutor_surface_first_render_coverage_ratio{surface="web"} 0.8' in body
     assert 'deeptutor_surface_done_render_coverage_ratio{surface="web"} 0.6' in body
     assert (
-        'deeptutor_release_info{deployment_environment="prod",ff_snapshot_hash="ffaa00112233",git_sha="abc123",prompt_version="prompt-v9",release_id="1.0.0+abc123+prod",service_version="1.0.0"} 1'
+        'deeptutor_release_info{deploy_manifest_hash="manifest123",deployment_environment="prod",ff_snapshot_hash="ffaa00112233",git_dirty="false",git_sha="abc123",prompt_version="prompt-v9",release_id="1.0.0+abc123+prod",service_version="1.0.0"} 1'
         in body
     )

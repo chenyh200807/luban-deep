@@ -236,6 +236,8 @@ class RAGService:
         }
         if provider_name == DEFAULT_PROVIDER:
             names.add("deeptutor.LlamaIndexPipeline")
+        if provider_name == "supabase":
+            names.add("deeptutor.SupabasePipeline")
         return [logging.getLogger(name) for name in sorted(names)]
 
     def _get_provider_for_kb(self, kb_name: str) -> str:

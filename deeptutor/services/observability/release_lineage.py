@@ -25,6 +25,8 @@ class ReleaseLineage:
     deployment_environment: str
     prompt_version: str
     ff_snapshot_hash: str
+    git_dirty: str
+    deploy_manifest_hash: str
 
     def to_dict(self) -> dict[str, str]:
         return {key: str(value) for key, value in asdict(self).items()}
@@ -121,12 +123,27 @@ def _resolve_ff_snapshot_hash() -> str:
     return digest[:12]
 
 
+def _resolve_git_dirty() -> str:
+    value = _env_value("DEEPTUTOR_GIT_DIRTY", "GIT_DIRTY").lower()
+    if value in {"1", "true", "yes", "on"}:
+        return "true"
+    if value in {"0", "false", "no", "off"}:
+        return "false"
+    return "unknown"
+
+
+def _resolve_deploy_manifest_hash() -> str:
+    return _env_value("DEEPTUTOR_DEPLOY_MANIFEST_HASH", "DEPLOY_MANIFEST_HASH") or "unset"
+
+
 def _build_release_lineage() -> ReleaseLineage:
     service_version = _resolve_service_version()
     git_sha = _resolve_git_sha()
     deployment_environment = _resolve_environment()
     prompt_version = _resolve_prompt_version()
     ff_snapshot_hash = _resolve_ff_snapshot_hash()
+    git_dirty = _resolve_git_dirty()
+    deploy_manifest_hash = _resolve_deploy_manifest_hash()
     release_id = _env_value("DEEPTUTOR_RELEASE_ID", "RELEASE_ID")
     if not release_id:
         release_id = f"{service_version}+{git_sha}+{deployment_environment}"
@@ -137,6 +154,8 @@ def _build_release_lineage() -> ReleaseLineage:
         deployment_environment=deployment_environment,
         prompt_version=prompt_version,
         ff_snapshot_hash=ff_snapshot_hash,
+        git_dirty=git_dirty,
+        deploy_manifest_hash=deploy_manifest_hash,
     )
 
 

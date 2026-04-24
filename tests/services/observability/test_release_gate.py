@@ -13,6 +13,8 @@ def test_release_gate_report_marks_fail_and_warn_correctly() -> None:
                 "deployment_environment": "prod",
                 "prompt_version": "p1",
                 "ff_snapshot_hash": "ff1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
             },
             "health_summary": {"ready": True},
             "metrics_snapshot": {"surface_events": {"coverage": []}},
@@ -33,6 +35,8 @@ def test_release_gate_report_marks_fail_and_warn_correctly() -> None:
                 "deployment_environment": "prod",
                 "prompt_version": "p1",
                 "ff_snapshot_hash": "ff1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
             },
             "summary": {"pass_rate": 1.0},
             "baseline_diff": {"regressions": [{"case_key": "semantic-router::critical"}], "new_failures": []},
@@ -66,6 +70,8 @@ def test_release_gate_report_fails_when_unified_ws_smoke_failed() -> None:
                 "deployment_environment": "prod",
                 "prompt_version": "p1",
                 "ff_snapshot_hash": "ff1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
             },
             "health_summary": {
                 "ready": True,
@@ -95,6 +101,85 @@ def test_release_gate_rejects_placeholder_release_lineage() -> None:
                 "deployment_environment": "production",
                 "prompt_version": "unset",
                 "ff_snapshot_hash": "none",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "unset",
+            },
+            "health_summary": {"ready": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
+    assert p0["status"] == "FAIL"
+    assert "runtime_or_release_lineage_incomplete" in payload["blockers"]
+
+
+def test_release_gate_rejects_dirty_release_lineage() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "prompt",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "true",
+                "deploy_manifest_hash": "dirtyhash",
+            },
+            "health_summary": {"ready": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
+    assert p0["status"] == "FAIL"
+    assert "runtime_release_dirty" in payload["blockers"]
+
+
+def test_release_gate_rejects_missing_dirty_release_lineage() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "prompt",
+                "ff_snapshot_hash": "ff",
+                "deploy_manifest_hash": "manifest",
+            },
+            "health_summary": {"ready": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
+    assert p0["status"] == "FAIL"
+    assert "runtime_or_release_lineage_incomplete" in payload["blockers"]
+
+
+def test_release_gate_rejects_unknown_dirty_release_lineage() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "prompt",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "unknown",
+                "deploy_manifest_hash": "manifest",
             },
             "health_summary": {"ready": True},
             "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
@@ -145,6 +230,8 @@ def test_release_gate_report_blocks_high_change_impact() -> None:
                 "deployment_environment": "dev",
                 "prompt_version": "p",
                 "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
             },
             "health_summary": {"ready": True},
             "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},

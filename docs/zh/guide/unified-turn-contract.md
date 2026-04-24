@@ -36,6 +36,14 @@
 
 但它们只能做 bootstrap，不得定义第二套流式协议。
 
+移动端 HTTP adapter 可以返回面向客户端渲染的 read-model，例如：
+
+- `created_at_ms / updated_at_ms`
+- canonical `presentation`
+- 合并后的用户可见 conversation id
+
+这些字段只是 `TurnRuntimeManager + SQLiteSessionStore` 真相的投影。它们不能成为新的 turn/session authority，也不能参与 capability 路由决策。
+
 ### 单一 schema
 
 统一 schema 在：
@@ -68,6 +76,8 @@ turn 合法状态只允许：
 - `failed`
 - `cancelled`
 
+`failed` / `cancelled` 也是 terminal truth。它们可以产生用户可见的 assistant terminal message，但该内容必须先经过 user-visible output 清洗并落到统一 session/message store；provider raw error、工具命令、RAG XML、内部 reasoning 或未清洗中间输出不能直接进入用户历史、stream error 正文或 outer trace 的 `assistant_content`。
+
 ### 单一 trace 字段规范
 
 统一 trace 字段在：
@@ -78,10 +88,16 @@ turn 合法状态只允许：
 
 - `session_id`
 - `turn_id`
+- `release_id`
+- `git_sha`
+- `git_dirty`
+- `deploy_manifest_hash`
 - `capability`
 - `bot_id`
 - `source`
 - `interaction_profile`
+- `exam_track`
+- `exam_track_label`
 - `chat_mode`
 - `active_object`
 - `suspended_object_stack`
@@ -131,6 +147,7 @@ TutorBot 现在是业务身份，不是 transport。
 - 通用对话域的 continuity 也允许落到 session-scoped `open_chat_topic`，它复用 session 自身 authority，不新增独立语义 topic runtime。
 - `question_followup_context / question_followup_action / active_question_context` 只保留 question-domain 兼容和 presentation/result adapter 角色；真正的主链判断必须落在 `active_object + turn_semantic_decision`，不能让旧字段继续并列抢权。
 - semantic router 灰度必须可审计：`semantic_router_mode` 表示 `primary / shadow / disabled`，`semantic_router_mode_reason` 表示当前为何进入该模式，`semantic_router_scope / semantic_router_scope_match` 表示灰度范围是否命中当前对象域，`semantic_router_shadow_*` 只记录并行比较结果，真正执行权威仍以 `semantic_router_selected_capability` 和主链结果为准。
+- `exam_track` 是同一 TutorBot 下的考试方向上下文，用来约束 RAG/source plan 与最终回答口径；它不是新的 TutorBot 身份，也不是新的 capability route。入口、session preferences、trace 和 RAG routing metadata 只能复用这一份字段。
 
 ## 工作流
 

@@ -1,6 +1,6 @@
 # 鲁班智考反馈 Top10 根因修复计划
 
-Status: Draft
+Status: Draft (Batch 1-3 implemented; Batch 4 pending)
 Date: 2026-04-24
 Scope: TutorBot / unified turn / mobile history / observability logs
 
@@ -143,6 +143,67 @@ Status: Implemented locally and verified on Aliyun
 2. 后台文本日志每日落盘，启动时自动清理 90 天以前的 `deeptutor_YYYYMMDD.log`。
 3. exam track 进入 TutorBot runtime canonical config，不再由 prompt 猜。
 4. retention 有单元测试，不依赖人工清理。
+
+## Batch 3 实施记录
+
+Status: Implemented locally and verified on Aliyun
+
+代码入口：
+
+- `deeptutor/tools/builtin/__init__.py`
+- `deeptutor/tutorbot/agent/tools/deeptutor_tools.py`
+- `deeptutor/services/rag/pipelines/supabase.py`
+- `deeptutor/services/rag/service.py`
+- `deeptutor/logging/logger.py`
+- `deeptutor/services/exam_track.py`
+- `deeptutor/services/session/turn_runtime.py`
+- `deeptutor/tutorbot/agent/loop.py`
+- `deeptutor/agents/chat/agentic_pipeline.py`
+
+修复内容：
+
+1. RAG 低层 contract 仍保留 typed `RAGError`；用户可见工具层统一转为 `retrieval_degraded=true` / `retrieval_status=failed`，并返回安全降级提示，不泄露 Supabase timeout 原文。
+2. Supabase partial retrieval warning 进入 payload、evidence bundle 与 observability metadata；`RAGService` raw log capture 覆盖 `deeptutor.SupabasePipeline`。
+3. 文本日志 authority 固定为 `data/user/logs/deeptutor_YYYYMMDD.log`，`Logger` 初始化时按文件日期自动删除 90 天以前的 DeepTutor 日志文件，忽略 malformed / unrelated logs。
+4. 新增 canonical `exam_track` normalizer，支持 `first_construction / second_construction / first_cost / second_cost`；`一造` 等显式用户输入进入 runtime config、session preferences、trace metadata、TutorBot prompt instruction 和 RAG routing metadata。
+5. review 后补充多考试方向防误持久化：比较/选择类问题如“一建和一造有什么区别”不会写入单一 `exam_track`；只有否定后剩余唯一方向或单方向明确请求才持久化。
+
+本地验证：
+
+- `pytest tests/services/rag/test_rag_failure_contract.py tests/services/rag/test_rag_pipelines.py -q`
+- `pytest tests/core/test_capabilities_runtime.py -q -k "rag_adapter_tool"`
+- `pytest tests/core/test_chat_capability_mode_selection.py -q`
+- `pytest tests/logging/test_log_retention.py tests/logging/test_json_file_logging.py tests/logging/test_request_context.py -q`
+- `pytest tests/services/test_exam_track.py tests/api/test_unified_ws_turn_runtime.py::test_turn_runtime_bootstraps_interaction_hints_as_soft_system_guidance tests/api/test_unified_ws_turn_runtime.py::test_turn_runtime_persists_exam_track_as_scoped_runtime_metadata -q`
+- `pytest tests/services/test_exam_track.py tests/api/test_unified_ws_turn_runtime.py::test_turn_runtime_persists_exam_track_as_scoped_runtime_metadata -q`
+- `python -m compileall deeptutor/services/exam_track.py deeptutor/services/session/turn_runtime.py deeptutor/tools/builtin/__init__.py deeptutor/tutorbot/agent/tools/deeptutor_tools.py deeptutor/tutorbot/agent/loop.py deeptutor/agents/chat/agentic_pipeline.py deeptutor/services/rag/pipelines/supabase.py deeptutor/logging/logger.py`
+
+阿里云验证：
+
+- deploy: selective sync to `/root/deeptutor`, rebuild image with `bash scripts/server_restart_aliyun.sh`, container `deeptutor` healthy.
+- readiness: `http://127.0.0.1:8001/readyz` and `https://test2.yousenjiaoyu.com/readyz` both returned `ready=true`.
+- public auth/chat/history smoke:
+  - run_id: `mobile-login-smoke-1777039129`
+  - result: `passed=true`
+  - conversation_id: `tb_bb93952b64f34e519fbb6da1`
+  - first assistant: `一级造价方向已确认。`
+  - second assistant: `仍按一级造价。`
+- SQLite runtime authority check before cleanup:
+  - raw conversation row stored `exam_track=first_cost` and `interaction_hints.exam_track=first_cost`.
+  - smoke cleanup removed both raw and TutorBot mirror rows; remaining `sessions=0`, `messages=0`.
+- Langfuse ClickHouse evidence:
+  - trace `8a384b4892dc61552d73af4735bdc56e` for `tb_bb93952b64f34e519fbb6da1` stored `metadata['exam_track']='first_cost'` and output `一级造价方向已确认。`
+  - trace `1d2560133cdd24093b821e30810aca8d` stored `metadata['exam_track']='first_cost'` and output `仍按一级造价。`
+- retention simulation in live container:
+  - `_prune_legacy_text_logs(..., retention_days=90)` removed only `deeptutor_20251231.log`; kept boundary `deeptutor_20260124.log`, malformed log, and unrelated log.
+- RAG degradation simulation in live container:
+  - forced typed `RAGSearchError(stage='pipeline.search', retryable=True)`.
+  - `RAGTool` returned `success=false`, `retrieval_degraded=true`, `retrieval_status=failed`, and public status event without raw timeout text.
+- real RAG probe in live container:
+  - `rag_search('一造工程计价索赔处理原则', kb_name='construction-exam', routing_metadata.exam_track='first_cost')`
+  - provider `supabase`, `source_count=6`, `retrieval_status=ok`, `retrieval_degraded=false`.
+- text log evidence:
+  - `/app/data/user/logs/deeptutor_20260424.log` exists and contains restart, Langfuse, and RAGService entries after deployment.
 
 ## Batch 4 验收标准
 

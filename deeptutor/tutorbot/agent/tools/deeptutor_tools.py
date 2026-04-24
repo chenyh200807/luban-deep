@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from deeptutor.tutorbot.agent.tools.base import Tool
+
+logger = logging.getLogger(__name__)
 
 
 class BrainstormAdapterTool(Tool):
@@ -44,6 +47,11 @@ class BrainstormAdapterTool(Tool):
 
 
 class RAGAdapterTool(Tool):
+    _DEGRADED_CONTENT = (
+        "知识库检索暂时不可用，请基于已有上下文谨慎回答；涉及规范数值、题库答案或引用出处时，"
+        "必须明确说明当前证据不足。"
+    )
+
     def __init__(self) -> None:
         self._runtime_context: dict[str, Any] = {}
         self._last_trace_metadata: dict[str, Any] = {}
@@ -91,6 +99,11 @@ class RAGAdapterTool(Tool):
             "profile": str(interaction_hints.get("profile") or "").strip(),
             "entry_role": str(interaction_hints.get("entry_role") or "").strip(),
             "subject_domain": str(interaction_hints.get("subject_domain") or "").strip(),
+            "exam_track": str(
+                interaction_hints.get("exam_track")
+                or self._runtime_context.get("exam_track")
+                or ""
+            ).strip(),
         }
         search_kwargs: dict[str, Any] = {
             "query": kwargs.get("query", ""),
@@ -112,7 +125,36 @@ class RAGAdapterTool(Tool):
             search_kwargs["question_type"] = question_type
         if any(routing_metadata.values()):
             search_kwargs["routing_metadata"] = routing_metadata
-        result = await rag_search(**search_kwargs)
+        try:
+            result = await rag_search(**search_kwargs)
+        except Exception as exc:
+            from deeptutor.services.rag.exceptions import RAGError
+
+            if not isinstance(exc, RAGError):
+                raise
+            logger.warning(
+                "RAG retrieval degraded in TutorBot adapter",
+                extra={
+                    "provider": getattr(exc, "provider", ""),
+                    "kb_name": getattr(exc, "kb_name", kb_name),
+                    "stage": getattr(exc, "stage", ""),
+                    "retryable": getattr(exc, "retryable", False),
+                },
+            )
+            self._last_trace_metadata = {
+                "kb_name": kb_name or "",
+                "sources": [],
+                "tool_source_count": 0,
+                "exact_question": {},
+                "authority_applied": False,
+                "retrieval_degraded": True,
+                "retrieval_status": "failed",
+                "provider": str(getattr(exc, "provider", "") or "").strip(),
+                "error_type": type(exc).__name__,
+                "stage": str(getattr(exc, "stage", "") or "").strip(),
+                "retryable": bool(getattr(exc, "retryable", False)),
+            }
+            return self._DEGRADED_CONTENT
         exact_question = result.get("exact_question") if isinstance(result.get("exact_question"), dict) else None
         sources = result.get("sources") if isinstance(result.get("sources"), list) else []
         evidence_bundle = (
@@ -125,6 +167,12 @@ class RAGAdapterTool(Tool):
             "exact_question": exact_question or {},
             "authority_applied": False,
         }
+        if result.get("retrieval_degraded"):
+            self._last_trace_metadata["retrieval_degraded"] = True
+        if result.get("retrieval_status"):
+            self._last_trace_metadata["retrieval_status"] = str(
+                result.get("retrieval_status") or ""
+            ).strip()
         if evidence_bundle:
             self._last_trace_metadata["evidence_bundle_summary"] = self._summarize_evidence_bundle(
                 evidence_bundle
@@ -184,7 +232,7 @@ class RAGAdapterTool(Tool):
         content_blocks = (
             bundle.get("content_blocks") if isinstance(bundle.get("content_blocks"), list) else []
         )
-        return {
+        summary = {
             "bundle_id": str(bundle.get("bundle_id") or "").strip(),
             "kb_name": str(bundle.get("kb_name") or "").strip(),
             "provider": str(bundle.get("provider") or "").strip(),
@@ -194,6 +242,13 @@ class RAGAdapterTool(Tool):
             "content_block_count": len(content_blocks),
             "exact_question": bool(bundle.get("exact_question")),
         }
+        if "retrieval_degraded" in bundle:
+            summary["retrieval_degraded"] = bool(bundle.get("retrieval_degraded"))
+        if "retrieval_status" in bundle:
+            summary["retrieval_status"] = str(bundle.get("retrieval_status") or "").strip()
+        if "warning_count" in bundle:
+            summary["warning_count"] = int(bundle.get("warning_count") or 0)
+        return summary
 
 
 class CodeExecutionAdapterTool(Tool):

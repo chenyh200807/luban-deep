@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 from loguru import logger
 
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.exam_track import exam_track_label
 from deeptutor.services.query_intent import (
     build_grounding_decision_from_metadata,
 )
@@ -737,6 +738,11 @@ class AgentLoop:
             "profile": str(interaction_hints.get("profile") or "").strip(),
             "entry_role": str(interaction_hints.get("entry_role") or "").strip(),
             "subject_domain": str(interaction_hints.get("subject_domain") or "").strip(),
+            "exam_track": str(
+                interaction_hints.get("exam_track")
+                or metadata.get("exam_track")
+                or ""
+            ).strip(),
         }
         if any(routing_metadata.values()):
             preview_args["routing_metadata"] = routing_metadata
@@ -1337,8 +1343,15 @@ class AgentLoop:
             runtime_metadata.get("effective_response_mode")
             or runtime_metadata.get("requested_response_mode")
         )
+        track_label = exam_track_label(runtime_metadata.get("exam_track"))
         runtime_instruction_parts = [
             get_teaching_mode_instruction(response_mode),
+            (
+                f"当前考试方向：{track_label}。回答、举例、题型判断和知识检索必须优先按该考试方向；"
+                "不得自动切回其他考试方向，除非用户明确改口。"
+                if track_label
+                else ""
+            ),
             get_anchor_preservation_instruction(current_message),
             build_continuity_anchor_instruction(
                 current_message,
