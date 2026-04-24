@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
-import uuid
 
 from deeptutor.services.path_service import PathService, get_path_service
 
 _DEFAULT_RELATIVE_DB_PATH = Path("data") / "runtime" / "outbox.db"
+_PROCESSING_LEASE_SECONDS = 600
 
 
 @dataclass(frozen=True)
@@ -24,6 +25,7 @@ class LearnerStateOutboxItem:
     retry_count: int
     created_at: str
     last_error: str | None
+    next_attempt_at: str | None = None
 
 
 class LearnerStateOutbox:
@@ -83,7 +85,7 @@ class LearnerStateOutbox:
             row = conn.execute(
                 """
                 select id, user_id, event_type, payload_json, dedupe_key,
-                       status, retry_count, created_at, last_error
+                       status, retry_count, created_at, last_error, next_attempt_at
                 from learner_state_outbox
                 where dedupe_key = ?
                 """,
@@ -97,32 +99,46 @@ class LearnerStateOutbox:
 
         with self._connect() as conn:
             conn.execute("begin immediate")
+            now = _iso_now()
+            conn.execute(
+                """
+                update learner_state_outbox
+                set status = 'pending',
+                    next_attempt_at = null
+                where status = 'processing'
+                  and (next_attempt_at is null or next_attempt_at <= ?)
+                """,
+                (now,),
+            )
             rows = conn.execute(
                 """
                 select id
                 from learner_state_outbox
                 where status = 'pending'
+                  and (next_attempt_at is null or next_attempt_at <= ?)
                 order by created_at asc, id asc
                 limit ?
                 """,
-                (int(limit),),
+                (now, int(limit)),
             ).fetchall()
             ids = [str(row["id"]) for row in rows]
             if not ids:
                 conn.commit()
                 return []
+            lease_expires_at = _processing_lease_expires_at()
             conn.executemany(
                 """
                 update learner_state_outbox
-                set status = 'processing'
+                set status = 'processing',
+                    next_attempt_at = ?
                 where id = ?
                 """,
-                [(item_id,) for item_id in ids],
+                [(lease_expires_at, item_id) for item_id in ids],
             )
             claimed_rows = conn.execute(
                 f"""
                 select id, user_id, event_type, payload_json, dedupe_key,
-                       status, retry_count, created_at, last_error
+                       status, retry_count, created_at, last_error, next_attempt_at
                 from learner_state_outbox
                 where id in ({",".join("?" for _ in ids)})
                 order by created_at asc, id asc
@@ -139,7 +155,7 @@ class LearnerStateOutbox:
     ) -> list[LearnerStateOutboxItem]:
         query = """
             select id, user_id, event_type, payload_json, dedupe_key,
-                   status, retry_count, created_at, last_error
+                   status, retry_count, created_at, last_error, next_attempt_at
             from learner_state_outbox
             where status = 'pending'
         """
@@ -162,7 +178,8 @@ class LearnerStateOutbox:
                 """
                 update learner_state_outbox
                 set status = 'sent',
-                    last_error = null
+                    last_error = null,
+                    next_attempt_at = null
                 where id = ?
                 """,
                 (normalized_id,),
@@ -170,7 +187,7 @@ class LearnerStateOutbox:
             row = conn.execute(
                 """
                 select id, user_id, event_type, payload_json, dedupe_key,
-                       status, retry_count, created_at, last_error
+                       status, retry_count, created_at, last_error, next_attempt_at
                 from learner_state_outbox
                 where id = ?
                 """,
@@ -182,20 +199,31 @@ class LearnerStateOutbox:
         normalized_id = _normalize_text(id, "id")
         normalized_error = str(last_error or "").strip() or None
         with self._connect() as conn:
+            row = conn.execute(
+                """
+                select retry_count
+                from learner_state_outbox
+                where id = ?
+                """,
+                (normalized_id,),
+            ).fetchone()
+            retry_count = int(row["retry_count"] or 0) if row else 0
+            next_attempt_at = _next_attempt_at(retry_count + 1)
             conn.execute(
                 """
                 update learner_state_outbox
                 set status = 'pending',
                     retry_count = retry_count + 1,
-                    last_error = ?
+                    last_error = ?,
+                    next_attempt_at = ?
                 where id = ?
                 """,
-                (normalized_error, normalized_id),
+                (normalized_error, next_attempt_at, normalized_id),
             )
             row = conn.execute(
                 """
                 select id, user_id, event_type, payload_json, dedupe_key,
-                       status, retry_count, created_at, last_error
+                       status, retry_count, created_at, last_error, next_attempt_at
                 from learner_state_outbox
                 where id = ?
                 """,
@@ -216,10 +244,17 @@ class LearnerStateOutbox:
                     status text not null default 'pending',
                     retry_count integer not null default 0,
                     created_at text not null,
-                    last_error text
+                    last_error text,
+                    next_attempt_at text
                 )
                 """
             )
+            columns = {
+                str(row["name"])
+                for row in conn.execute("pragma table_info(learner_state_outbox)").fetchall()
+            }
+            if "next_attempt_at" not in columns:
+                conn.execute("alter table learner_state_outbox add column next_attempt_at text")
             conn.execute(
                 """
                 create unique index if not exists idx_learner_state_outbox_dedupe
@@ -267,6 +302,11 @@ class LearnerStateOutbox:
             retry_count=int(row["retry_count"] or 0),
             created_at=str(row["created_at"]),
             last_error=(str(row["last_error"]) if row["last_error"] is not None else None),
+            next_attempt_at=(
+                str(row["next_attempt_at"])
+                if "next_attempt_at" in row.keys() and row["next_attempt_at"] is not None
+                else None
+            ),
         )
 
 
@@ -283,6 +323,17 @@ def _dump_json(payload_json: dict[str, Any]) -> str:
 
 def _iso_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _next_attempt_at(retry_count: int) -> str:
+    # Keep poison messages from monopolizing the FIFO queue while preserving
+    # durable retry semantics for temporary Supabase or network failures.
+    delay_seconds = min(3600, 30 * (2 ** max(0, min(int(retry_count), 7) - 1)))
+    return (datetime.now(timezone.utc) + timedelta(seconds=delay_seconds)).isoformat()
+
+
+def _processing_lease_expires_at() -> str:
+    return (datetime.now(timezone.utc) + timedelta(seconds=_PROCESSING_LEASE_SECONDS)).isoformat()
 
 
 def _generate_id() -> str:

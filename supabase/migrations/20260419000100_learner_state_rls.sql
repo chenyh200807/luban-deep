@@ -62,21 +62,21 @@ create policy "bot_learner_overlays_self_access"
 on public.bot_learner_overlays
 for all
 to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+using (auth.uid()::text = user_id)
+with check (auth.uid()::text = user_id);
 
 create policy "bot_learner_overlay_events_self_access"
 on public.bot_learner_overlay_events
 for all
 to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+using (auth.uid()::text = user_id)
+with check (auth.uid()::text = user_id);
 
 create policy "bot_learner_overlay_audit_self_access"
 on public.bot_learner_overlay_audit
 for all
 to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+using (auth.uid()::text = user_id)
+with check (auth.uid()::text = user_id);
 
 commit;

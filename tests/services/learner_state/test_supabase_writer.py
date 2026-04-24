@@ -331,7 +331,7 @@ def test_write_item_heartbeat_job_writes_heartbeat_jobs_only(tmp_path) -> None:
     assert len(requests) == 1
     request = requests[0]
     assert request["path"] == "/rest/v1/heartbeat_jobs"
-    assert request["params"]["on_conflict"] == "job_id"
+    assert request["params"]["on_conflict"] == "user_id,bot_id,channel"
     body = request["json"][0]
     assert body["job_id"] == job.job_id
     assert body["user_id"] == "student_demo"

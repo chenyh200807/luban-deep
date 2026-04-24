@@ -35,3 +35,19 @@ def test_learner_state_rls_migration_enables_rls_and_self_scoped_policies() -> N
         "bot_learner_overlay_audit_self_access",
     ):
         assert f'create policy "{policy_name}"' in sql
+
+    assert "auth.uid()::text = user_id" in sql
+    assert "auth.uid() = user_id" not in sql
+
+
+def test_bot_learner_overlay_migration_uses_text_user_id_like_core_tables() -> None:
+    migration_path = (
+        Path(__file__).resolve().parents[2]
+        / "supabase"
+        / "migrations"
+        / "20260415000200_bot_learner_overlay.sql"
+    )
+    sql = migration_path.read_text(encoding="utf-8").lower()
+
+    assert "user_id text not null references public.users(id) on delete cascade" in sql
+    assert "user_id uuid not null references public.users(id) on delete cascade" not in sql

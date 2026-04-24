@@ -209,7 +209,7 @@ class LearnerStateSupabaseWriter:
                     client,
                     table="heartbeat_jobs",
                     rows=[heartbeat_job_row],
-                    on_conflict="job_id",
+                    on_conflict="user_id,bot_id,channel",
                 )
                 written_tables.append("heartbeat_jobs")
 

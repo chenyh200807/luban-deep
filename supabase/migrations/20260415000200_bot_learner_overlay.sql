@@ -6,7 +6,7 @@ begin;
 
 create table if not exists public.bot_learner_overlays (
   bot_id text not null,
-  user_id uuid not null references public.users(id) on delete cascade,
+  user_id text not null references public.users(id) on delete cascade,
   local_focus_json jsonb not null default '{}'::jsonb,
   active_plan_id text,
   teaching_policy_override_json jsonb not null default '{}'::jsonb,
@@ -38,7 +38,7 @@ create index if not exists idx_bot_learner_overlays_active_plan
 create table if not exists public.bot_learner_overlay_events (
   event_id uuid primary key,
   bot_id text not null,
-  user_id uuid not null references public.users(id) on delete cascade,
+  user_id text not null references public.users(id) on delete cascade,
   source_feature text not null,
   source_id text not null,
   patch_kind text not null,
@@ -60,7 +60,7 @@ create index if not exists idx_bot_learner_overlay_events_user_created
 create table if not exists public.bot_learner_overlay_audit (
   audit_id uuid primary key,
   bot_id text not null,
-  user_id uuid not null references public.users(id) on delete cascade,
+  user_id text not null references public.users(id) on delete cascade,
   actor text,
   action text not null,
   fields_json jsonb not null default '[]'::jsonb,
