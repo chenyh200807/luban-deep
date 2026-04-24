@@ -202,11 +202,11 @@ function SpotlightOverlay({
 
   useEffect(() => {
     if (!guideStep) return;
-    const el = document.querySelector(`[data-tour="${guideStep.target}"]`);
-    if (el) {
-      const r = el.getBoundingClientRect();
-      setRect(r);
-    }
+    const frame = window.requestAnimationFrame(() => {
+      const el = document.querySelector(`[data-tour="${guideStep.target}"]`);
+      setRect(el ? el.getBoundingClientRect() : null);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [guideStep]);
 
   if (!guideStep || !rect) return null;
@@ -1280,12 +1280,11 @@ export default function SettingsPage() {
       />
     );
   }
-  const { t } = useTranslation();
   return (
     <Suspense
       fallback={
         <div className="min-h-[50vh] flex items-center justify-center text-[13px] text-[var(--muted-foreground)]">
-          {t("Loading settings...")}
+          Loading settings...
         </div>
       }
     >

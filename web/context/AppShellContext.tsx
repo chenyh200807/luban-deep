@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
 import {
   getStoredTheme,
@@ -49,6 +50,29 @@ export function writeStoredLanguage(language: AppLanguage): void {
   } catch {
     // localStorage may be unavailable
   }
+}
+
+function subscribeToLanguageChanges(onStoreChange: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === LANGUAGE_STORAGE_KEY) {
+      onStoreChange();
+    }
+  };
+  const onLanguage = () => onStoreChange();
+
+  window.addEventListener("storage", onStorage);
+  window.addEventListener(LANGUAGE_EVENT, onLanguage);
+
+  return () => {
+    window.removeEventListener("storage", onStorage);
+    window.removeEventListener(LANGUAGE_EVENT, onLanguage);
+  };
+}
+
+function readDefaultLanguage(): AppLanguage {
+  return "en";
 }
 
 export function readStoredActiveSessionId(): string | null {
@@ -97,15 +121,14 @@ export function AppShellProvider({
   const [theme, setThemeState] = useState<Theme>(() => {
     return getStoredTheme() ?? getSystemTheme();
   });
-  // Always start with "en" to match SSR; hydrate from localStorage after mount
-  const [language, setLanguageState] = useState<AppLanguage>("en");
+  const language = useSyncExternalStore(
+    subscribeToLanguageChanges,
+    readStoredLanguage,
+    readDefaultLanguage,
+  );
   const [activeSessionId, setActiveSessionIdState] = useState<string | null>(() =>
     readStoredActiveSessionId(),
   );
-
-  useEffect(() => {
-    setLanguageState(readStoredLanguage());
-  }, []);
 
   useEffect(() => {
     return subscribeToThemeChanges((nextTheme) => {
@@ -117,17 +140,9 @@ export function AppShellProvider({
     if (typeof window === "undefined") return;
 
     const onStorage = (event: StorageEvent) => {
-      if (event.key === LANGUAGE_STORAGE_KEY) {
-        setLanguageState(normalizeLanguage(event.newValue));
-      }
       if (event.key === ACTIVE_SESSION_STORAGE_KEY) {
         setActiveSessionIdState(event.newValue);
       }
-    };
-
-    const onLanguage = (event: Event) => {
-      const detail = (event as CustomEvent<{ language?: AppLanguage }>).detail;
-      setLanguageState(normalizeLanguage(detail?.language));
     };
 
     const onActiveSession = (event: Event) => {
@@ -136,12 +151,10 @@ export function AppShellProvider({
     };
 
     window.addEventListener("storage", onStorage);
-    window.addEventListener(LANGUAGE_EVENT, onLanguage);
     window.addEventListener(ACTIVE_SESSION_EVENT, onActiveSession);
 
     return () => {
       window.removeEventListener("storage", onStorage);
-      window.removeEventListener(LANGUAGE_EVENT, onLanguage);
       window.removeEventListener(ACTIVE_SESSION_EVENT, onActiveSession);
     };
   }, []);
@@ -153,7 +166,6 @@ export function AppShellProvider({
 
   const setLanguage = useCallback((nextLanguage: AppLanguage) => {
     writeStoredLanguage(nextLanguage);
-    setLanguageState(nextLanguage);
   }, []);
 
   const setActiveSessionId = useCallback((sessionId: string | null) => {

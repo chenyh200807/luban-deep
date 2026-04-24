@@ -41,10 +41,20 @@ missing = [
     for key in ('DEEPTUTOR_AUTH_SECRET', 'DEEPTUTOR_ADMIN_USER_IDS')
     if not str(values.get(key) or '').strip()
 ]
+missing.extend(
+    key
+    for key in ('DEEPTUTOR_RELEASE_ID', 'DEEPTUTOR_GIT_SHA')
+    if not str(values.get(key) or '').strip()
+)
 if missing:
     raise SystemExit(
         'production 环境缺少必填项: ' + ', '.join(missing)
     )
+
+for key in ('DEEPTUTOR_RELEASE_ID', 'DEEPTUTOR_GIT_SHA'):
+    current = str(values.get(key) or '').strip().lower()
+    if 'unknown' in current:
+        raise SystemExit(f'{key} 不允许为 unknown: {values.get(key)}')
 
 for key in ('DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE', 'DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE'):
     current = str(values.get(key) or '').strip()
@@ -54,5 +64,7 @@ for key in ('DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE', 'DEEPTUTOR_EXTERNAL_AUTH_SESSI
 print('远端发布环境校验通过。')
 print('SERVICE_ENV=' + str(values.get('SERVICE_ENV') or values.get('DEEPTUTOR_ENV') or ''))
 print('APP_ENV=' + str(values.get('APP_ENV') or ''))
+print('DEEPTUTOR_RELEASE_ID=' + str(values.get('DEEPTUTOR_RELEASE_ID') or ''))
+print('DEEPTUTOR_GIT_SHA=' + str(values.get('DEEPTUTOR_GIT_SHA') or ''))
 print('DEEPTUTOR_ADMIN_USER_IDS=' + str(values.get('DEEPTUTOR_ADMIN_USER_IDS') or ''))
 PY"

@@ -25,9 +25,7 @@ function relativeTime(iso: string): string {
   return `${days}d`;
 }
 
-export function TutorBotRecent({ collapsed = false }: { collapsed?: boolean }) {
-  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) return null;
-
+function TutorBotRecentContent({ collapsed = false }: { collapsed?: boolean }) {
   const [bots, setBots] = useState<RecentBot[]>([]);
 
   useEffect(() => {
@@ -92,4 +90,10 @@ export function TutorBotRecent({ collapsed = false }: { collapsed?: boolean }) {
       ))}
     </div>
   );
+}
+
+export function TutorBotRecent({ collapsed = false }: { collapsed?: boolean }) {
+  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) return null;
+
+  return <TutorBotRecentContent collapsed={collapsed} />;
 }

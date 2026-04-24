@@ -92,6 +92,97 @@ build_release_id() {
     echo "${timestamp}_${branch}_${commit}"
 }
 
+resolve_service_version() {
+    python3 - "${REPO_ROOT}/pyproject.toml" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+pyproject = Path(sys.argv[1])
+if not pyproject.exists():
+    print("1.0.0")
+    raise SystemExit(0)
+content = pyproject.read_text(encoding="utf-8")
+match = re.search(r'(?m)^version\s*=\s*"([^"]+)"\s*$', content)
+print(match.group(1) if match else "1.0.0")
+PY
+}
+
+inject_remote_release_lineage() {
+    local resolved_host git_sha service_version
+    resolved_host="$(resolve_remote_host)"
+    git_sha="$(git -C "${REPO_ROOT}" rev-parse HEAD)"
+    service_version="$(resolve_service_version)"
+
+    ssh "${resolved_host}" \
+        "PYTHONIOENCODING='utf-8' REMOTE_DIR='${REMOTE_DIR}' RELEASE_GIT_SHA='${git_sha}' RELEASE_SERVICE_VERSION='${service_version}' python3 - <<'PY'
+from pathlib import Path
+import os
+import re
+
+remote_dir = Path(os.environ['REMOTE_DIR'])
+env_path = remote_dir / '.env'
+if not env_path.exists():
+    raise SystemExit(f'远端缺少 .env，无法注入 release lineage: {env_path}')
+
+lines = env_path.read_text(encoding='utf-8').splitlines()
+values = {}
+key_pattern = re.compile(r'^([A-Za-z_][A-Za-z0-9_]*)=')
+for raw_line in lines:
+    match = key_pattern.match(raw_line.strip())
+    if match:
+        key, value = raw_line.split('=', 1)
+        values[key.strip()] = value.strip()
+
+deployment_environment = (
+    values.get('DEEPTUTOR_ENV')
+    or values.get('APP_ENV')
+    or values.get('ENVIRONMENT')
+    or values.get('ENV')
+    or values.get('SERVICE_ENV')
+    or 'production'
+).strip()
+git_sha = os.environ['RELEASE_GIT_SHA'].strip()
+service_version = os.environ['RELEASE_SERVICE_VERSION'].strip() or '1.0.0'
+release_id = f'{service_version}+{git_sha}+{deployment_environment}'
+
+managed = {
+    'DEEPTUTOR_SERVICE_VERSION': service_version,
+    'DEEPTUTOR_GIT_SHA': git_sha,
+    'DEEPTUTOR_ENV': deployment_environment,
+    'DEEPTUTOR_RELEASE_ID': release_id,
+}
+
+updated = []
+seen = set()
+for raw_line in lines:
+    stripped = raw_line.strip()
+    match = key_pattern.match(stripped)
+    if not match:
+        updated.append(raw_line)
+        continue
+    key = match.group(1)
+    if key in managed:
+        updated.append(f'{key}={managed[key]}')
+        seen.add(key)
+    else:
+        updated.append(raw_line)
+
+missing = [key for key in managed if key not in seen]
+if missing:
+    if updated and updated[-1].strip():
+        updated.append('')
+    updated.append('# Release lineage, managed by scripts/sync_to_aliyun.sh')
+    for key in missing:
+        updated.append(f'{key}={managed[key]}')
+
+env_path.write_text('\n'.join(updated).rstrip() + '\n', encoding='utf-8')
+print('远端 release lineage 已注入。')
+print('DEEPTUTOR_RELEASE_ID=' + release_id)
+print('DEEPTUTOR_GIT_SHA=' + git_sha)
+PY"
+}
+
 snapshot_remote_release() {
     local resolved_host release_id branch commit
     resolved_host="$(resolve_remote_host)"
@@ -187,6 +278,7 @@ sync_once() {
     rsync -avz --delete --stats --no-owner --no-group \
         "${exclude_args[@]}" \
         "${REPO_ROOT}/" "${resolved_host}:${REMOTE_DIR}/"
+    inject_remote_release_lineage
 }
 
 check_fswatch() {

@@ -28,15 +28,7 @@ import { useGuideSession, useGuideHistory } from "./hooks";
 import { useTranslation } from "react-i18next";
 import { allowsLegacyWebSurfaces, requiresWebAuth } from "@/lib/web-access";
 
-export default function GuidePage() {
-  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) {
-    return (
-      <RestrictedSurface
-        title="Guide unavailable"
-        message="当前 Web 端未接入登录态，或 legacy Guide 页面未显式开启，因此已默认关闭。请使用已鉴权入口访问。"
-      />
-    );
-  }
+function GuidePageContent() {
   const { t } = useTranslation();
 
   const {
@@ -427,4 +419,17 @@ export default function GuidePage() {
       />
     </div>
   );
+}
+
+export default function GuidePage() {
+  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) {
+    return (
+      <RestrictedSurface
+        title="Guide unavailable"
+        message="当前 Web 端未接入登录态，或 legacy Guide 页面未显式开启，因此已默认关闭。请使用已鉴权入口访问。"
+      />
+    );
+  }
+
+  return <GuidePageContent />;
 }

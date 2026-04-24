@@ -23,15 +23,7 @@ interface ChatMsg {
   thinking?: string[];
 }
 
-export default function BotChatPage() {
-  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) {
-    return (
-      <RestrictedSurface
-        title="TutorBot chat unavailable"
-        message="当前 Web 端未接入登录态，或 legacy TutorBot 聊天页面未显式开启，因此已默认关闭。请使用已鉴权入口访问。"
-      />
-    );
-  }
+function BotChatPageContent() {
   const { botId } = useParams<{ botId: string }>();
   const router = useRouter();
   const { t } = useTranslation();
@@ -383,4 +375,17 @@ export default function BotChatPage() {
       </div>
     </div>
   );
+}
+
+export default function BotChatPage() {
+  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) {
+    return (
+      <RestrictedSurface
+        title="TutorBot chat unavailable"
+        message="当前 Web 端未接入登录态，或 legacy TutorBot 聊天页面未显式开启，因此已默认关闭。请使用已鉴权入口访问。"
+      />
+    );
+  }
+
+  return <BotChatPageContent />;
 }
