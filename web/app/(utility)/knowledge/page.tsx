@@ -147,15 +147,6 @@ const kbIsUploadable = (kb: KnowledgeBase): boolean =>
 type TabKey = "knowledge" | "notebooks" | "questions";
 
 function KnowledgePageContent() {
-  if (!requiresWebAuth()) {
-    return (
-      <RestrictedSurface
-        title="Knowledge workspace unavailable"
-        message="当前 Web 端未接入登录态，知识库与题本管理已默认关闭。请使用已鉴权入口访问。"
-      />
-    );
-  }
-
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation();

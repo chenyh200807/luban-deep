@@ -84,6 +84,13 @@ services:
       - NEXT_PUBLIC_API_BASE_EXTERNAL=${NEXT_PUBLIC_API_BASE_EXTERNAL:-}
       # Alternative: Direct API base URL (same priority as NEXT_PUBLIC_API_BASE_EXTERNAL)
       - NEXT_PUBLIC_API_BASE=${NEXT_PUBLIC_API_BASE:-}
+      # Release lineage injected by scripts/sync_to_aliyun.sh during Aliyun deploys.
+      - DEEPTUTOR_RELEASE_ID=${DEEPTUTOR_RELEASE_ID:-}
+      - DEEPTUTOR_GIT_SHA=${DEEPTUTOR_GIT_SHA:-}
+      - DEEPTUTOR_SERVICE_VERSION=${DEEPTUTOR_SERVICE_VERSION:-}
+      - DEEPTUTOR_ENV=${DEEPTUTOR_ENV:-production}
+      - DEEPTUTOR_PROMPT_VERSION=${DEEPTUTOR_PROMPT_VERSION:-unset}
+      - DEEPTUTOR_FF_SNAPSHOT_HASH=${DEEPTUTOR_FF_SNAPSHOT_HASH:-}
 
     volumes:
       # Mount local data directory for persistence (read-write)

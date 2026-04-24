@@ -53,15 +53,7 @@ function formatUpdatedAt(value: string | null): string {
   return date.toLocaleString();
 }
 
-export default function MemoryPage() {
-  if (!requiresWebAuth()) {
-    return (
-      <RestrictedSurface
-        title="Memory workspace unavailable"
-        message="当前 Web 端未接入登录态，Memory 工作台已默认关闭。请使用已鉴权入口访问。"
-      />
-    );
-  }
+function MemoryPageContent() {
   const { t } = useTranslation();
   const { activeSessionId, language } = useAppShell();
   const [data, setData] = useState<MemoryData>(EMPTY);
@@ -293,4 +285,17 @@ export default function MemoryPage() {
       </div>
     </div>
   );
+}
+
+export default function MemoryPage() {
+  if (!requiresWebAuth()) {
+    return (
+      <RestrictedSurface
+        title="Memory workspace unavailable"
+        message="当前 Web 端未接入登录态，Memory 工作台已默认关闭。请使用已鉴权入口访问。"
+      />
+    );
+  }
+
+  return <MemoryPageContent />;
 }

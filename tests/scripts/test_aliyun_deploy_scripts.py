@@ -25,21 +25,32 @@ def _write_stub(path: Path, content: str) -> None:
     _make_executable(path)
 
 
-def _build_stub_env(tmp_path: Path) -> tuple[dict[str, str], Path]:
+def _build_stub_env(
+    tmp_path: Path, *, execute_release_injection: bool = False
+) -> tuple[dict[str, str], Path]:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
     call_log = tmp_path / "calls.log"
 
-    _write_stub(
-        bin_dir / "ssh",
-        textwrap.dedent(
-            """\
+    if execute_release_injection:
+        ssh_stub = """\
+            #!/usr/bin/env bash
+            printf 'ssh:%s\n' "$*" >> "${CALLS_LOG}"
+            remote_host="$1"
+            shift
+            command="$*"
+            if [[ "${command}" == *"RELEASE_GIT_SHA="* ]]; then
+              eval "${command}"
+            fi
+            exit 0
+            """
+    else:
+        ssh_stub = """\
             #!/usr/bin/env bash
             printf 'ssh:%s\n' "$*" >> "${CALLS_LOG}"
             exit 0
             """
-        ),
-    )
+    _write_stub(bin_dir / "ssh", textwrap.dedent(ssh_stub))
     _write_stub(
         bin_dir / "rsync",
         textwrap.dedent(
@@ -89,6 +100,26 @@ def _setup_wrapper_repo(tmp_path: Path, wrapper_name: str) -> Path:
             """\
             #!/usr/bin/env bash
             printf 'verify-public:%s\n' "$*" >> "${CALLS_LOG}"
+            exit 0
+            """
+        ),
+    )
+    _write_stub(
+        scripts_dir / "verify_aliyun_observability.sh",
+        textwrap.dedent(
+            """\
+            #!/usr/bin/env bash
+            printf 'verify-observability:%s\n' "$*" >> "${CALLS_LOG}"
+            exit 0
+            """
+        ),
+    )
+    _write_stub(
+        scripts_dir / "validate_aliyun_release_env.sh",
+        textwrap.dedent(
+            """\
+            #!/usr/bin/env bash
+            printf 'validate-release-env:%s\n' "$*" >> "${CALLS_LOG}"
             exit 0
             """
         ),
@@ -148,6 +179,7 @@ def test_sync_requires_canonical_remote_target(tmp_path: Path) -> None:
 def test_sync_runs_against_canonical_target_when_release_candidate_is_clean(tmp_path: Path) -> None:
     repo_root = _setup_sync_repo(tmp_path, branch="release/candidate")
     env, call_log = _build_stub_env(tmp_path)
+    git_sha = _run(["git", "rev-parse", "HEAD"], cwd=repo_root).stdout.strip()
 
     result = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
 
@@ -157,6 +189,45 @@ def test_sync_runs_against_canonical_target_when_release_candidate_is_clean(tmp_
     assert "ssh:Aliyun-ECS-2 mkdir -p '/root/deeptutor'" in log
     assert "rsync:-avz --delete --stats --no-owner --no-group" in log
     assert "Aliyun-ECS-2:/root/deeptutor/" in log
+    assert f"RELEASE_GIT_SHA='{git_sha}'" in log
+    assert "DEEPTUTOR_RELEASE_ID=" in log
+    assert "DEEPTUTOR_GIT_SHA=" in log
+
+
+def test_sync_injects_release_lineage_into_remote_env(tmp_path: Path) -> None:
+    repo_root = _setup_sync_repo(tmp_path, branch="release/candidate")
+    (repo_root / "pyproject.toml").write_text(
+        textwrap.dedent(
+            """\
+            [project]
+            name = "deeptutor"
+            version = "2.3.4"
+            """
+        ),
+        encoding="utf-8",
+    )
+    _run(["git", "add", "pyproject.toml"], cwd=repo_root)
+    _run(["git", "commit", "-m", "add pyproject"], cwd=repo_root)
+    git_sha = _run(["git", "rev-parse", "HEAD"], cwd=repo_root).stdout.strip()
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text(
+        "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\n",
+        encoding="utf-8",
+    )
+    env, _ = _build_stub_env(tmp_path, execute_release_injection=True)
+    env["ALLOW_NON_CANONICAL_DEPLOY"] = "1"
+    env["REMOTE_HOST"] = "fake-host"
+    env["REMOTE_DIR"] = str(remote_dir)
+
+    result = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
+
+    assert result.returncode == 0, result.stderr
+    env_content = (remote_dir / ".env").read_text(encoding="utf-8")
+    assert f"DEEPTUTOR_SERVICE_VERSION=2.3.4\n" in env_content
+    assert f"DEEPTUTOR_GIT_SHA={git_sha}\n" in env_content
+    assert "DEEPTUTOR_ENV=production\n" in env_content
+    assert f"DEEPTUTOR_RELEASE_ID=2.3.4+{git_sha}+production\n" in env_content
 
 
 def test_deploy_runs_remote_backup_before_bootstrap(tmp_path: Path) -> None:
@@ -168,9 +239,11 @@ def test_deploy_runs_remote_backup_before_bootstrap(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     log_lines = call_log.read_text(encoding="utf-8").splitlines()
     assert log_lines[0] == "sync:once"
-    assert "python3 scripts/backup_data.py --project-root '/root/deeptutor' --keep '2'" in log_lines[1]
-    assert "bash scripts/server_bootstrap_aliyun.sh" in log_lines[2]
-    assert log_lines[3] == "verify-public:"
+    assert log_lines[1] == "validate-release-env:"
+    assert "python3 scripts/backup_data.py --project-root '/root/deeptutor' --keep '2'" in log_lines[2]
+    assert "bash scripts/server_bootstrap_aliyun.sh" in log_lines[3]
+    assert log_lines[4] == "verify-public:"
+    assert log_lines[5] == "verify-observability:"
 
 
 def test_fast_redeploy_runs_remote_backup_before_reload(tmp_path: Path) -> None:
@@ -182,6 +255,8 @@ def test_fast_redeploy_runs_remote_backup_before_reload(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     log_lines = call_log.read_text(encoding="utf-8").splitlines()
     assert log_lines[0] == "sync:once"
-    assert "python3 scripts/backup_data.py --project-root '/root/deeptutor' --keep '2'" in log_lines[1]
-    assert "bash scripts/server_fast_reload_aliyun.sh" in log_lines[2]
-    assert log_lines[3] == "verify-public:"
+    assert log_lines[1] == "validate-release-env:"
+    assert "python3 scripts/backup_data.py --project-root '/root/deeptutor' --keep '2'" in log_lines[2]
+    assert "bash scripts/server_fast_reload_aliyun.sh" in log_lines[3]
+    assert log_lines[4] == "verify-public:"
+    assert log_lines[5] == "verify-observability:"

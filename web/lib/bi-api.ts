@@ -680,12 +680,12 @@ function normalizeDataTrustPayload(raw: unknown): BiDataTrustPayload | undefined
     status: toString(record.status, ""),
     trustModel: toString(record.trust_model ?? record.trustModel, ""),
     degradedModules: firstArray(record, ["degraded_modules", "degradedModules"]).map((item, index) => {
-      const module = asRecord(item);
+      const degradedModule = asRecord(item);
       return {
-        id: toString(module.id, `module-${index + 1}`),
-        label: toString(module.label ?? module.name, `模块 ${index + 1}`),
-        status: toString(module.status, ""),
-        detail: toString(module.detail ?? module.description, ""),
+        id: toString(degradedModule.id, `module-${index + 1}`),
+        label: toString(degradedModule.label ?? degradedModule.name, `模块 ${index + 1}`),
+        status: toString(degradedModule.status, ""),
+        detail: toString(degradedModule.detail ?? degradedModule.description, ""),
       };
     }),
     metricDefinitions: firstArray(record, ["metric_definitions", "metricDefinitions", "metrics"]).map((item, index) =>

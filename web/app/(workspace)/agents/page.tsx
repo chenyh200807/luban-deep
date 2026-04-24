@@ -52,15 +52,7 @@ type BotFile = (typeof BOT_FILES)[number];
 
 /* ── Main Page ──────────────────────────────────────────── */
 
-export default function AgentsPage() {
-  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) {
-    return (
-      <RestrictedSurface
-        title="TutorBot agents unavailable"
-        message="当前 Web 端未开放 legacy TutorBot 管理页面。请使用已鉴权且显式开启的内部入口访问。"
-      />
-    );
-  }
+function AgentsPageContent() {
   const router = useRouter();
   const { t } = useTranslation();
   const [bots, setBots] = useState<BotInfo[]>([]);
@@ -154,6 +146,19 @@ export default function AgentsPage() {
       </div>
     </div>
   );
+}
+
+export default function AgentsPage() {
+  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) {
+    return (
+      <RestrictedSurface
+        title="TutorBot agents unavailable"
+        message="当前 Web 端未开放 legacy TutorBot 管理页面。请使用已鉴权且显式开启的内部入口访问。"
+      />
+    );
+  }
+
+  return <AgentsPageContent />;
 }
 
 /* ── Bots Tab ───────────────────────────────────────────── */

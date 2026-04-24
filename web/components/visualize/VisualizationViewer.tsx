@@ -71,16 +71,19 @@ function ChartJsRenderer({ config }: { config: string }) {
 
 function SvgRenderer({ svg }: { svg: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  const sanitizedSvg = useMemo(() => {
+  const { sanitizedSvg, error } = useMemo(() => {
     const trimmed = svg.trim();
     if (!trimmed.startsWith("<svg")) {
-      setError("Invalid SVG: does not start with <svg");
-      return "";
+      return {
+        sanitizedSvg: "",
+        error: "Invalid SVG: does not start with <svg",
+      };
     }
-    setError(null);
-    return trimmed;
+    return {
+      sanitizedSvg: trimmed,
+      error: null,
+    };
   }, [svg]);
 
   if (error) {

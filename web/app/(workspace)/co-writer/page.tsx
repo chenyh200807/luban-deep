@@ -143,15 +143,7 @@ interface StreamEditResult {
   edited_text?: string;
 }
 
-export default function CoWriterPage() {
-  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) {
-    return (
-      <RestrictedSurface
-        title="Co-writer unavailable"
-        message="当前 Web 端未接入登录态，或 legacy Co-writer 页面未显式开启，因此已默认关闭。请使用已鉴权入口访问。"
-      />
-    );
-  }
+function CoWriterPageContent() {
   const { t } = useTranslation();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const selectionPopoverRef = useRef<HTMLDivElement>(null);
@@ -1449,6 +1441,19 @@ export default function CoWriterPage() {
       />
     </div>
   );
+}
+
+export default function CoWriterPage() {
+  if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) {
+    return (
+      <RestrictedSurface
+        title="Co-writer unavailable"
+        message="当前 Web 端未接入登录态，或 legacy Co-writer 页面未显式开启，因此已默认关闭。请使用已鉴权入口访问。"
+      />
+    );
+  }
+
+  return <CoWriterPageContent />;
 }
 
 function ToolbarIconBtn({
