@@ -1905,12 +1905,200 @@ Page({
     this.setData({ billingShow: false });
   },
 
+  _copyTextForMessage: function (msg) {
+    if (!msg) return "";
+    if (msg.role === "user") return String(msg.content || "").trim();
+
+    var mcqText = this._copyTextFromMcqCards(msg.mcqCards || []);
+    if (mcqText) return mcqText;
+
+    var blockText = this._copyTextFromBlocks(msg.blocks || []);
+    if (blockText) return blockText;
+
+    return String(msg.renderableContent || msg.content || "").trim();
+  },
+
+  _copyTextFromMcqCards: function (cards) {
+    if (!Array.isArray(cards) || !cards.length) return "";
+    var parts = [];
+    for (var i = 0; i < cards.length; i++) {
+      var card = cards[i] || {};
+      var cardParts = [];
+      var index = card.index || i + 1;
+      var stem = String(card.stem || "").trim();
+      if (stem) cardParts.push("第" + index + "题 " + stem);
+      var options = Array.isArray(card.options) ? card.options : [];
+      for (var j = 0; j < options.length; j++) {
+        var option = options[j] || {};
+        var key = String(option.key || "").trim();
+        var text = String(option.text || "").trim();
+        if (key || text) cardParts.push((key ? key + ". " : "") + text);
+      }
+      var cardText = this._joinCopyParts(cardParts);
+      if (cardText) parts.push(cardText);
+    }
+    return this._joinCopyParts(parts);
+  },
+
+  _copyTextFromBlocks: function (blocks) {
+    if (!Array.isArray(blocks) || !blocks.length) return "";
+    var parts = [];
+    for (var i = 0; i < blocks.length; i++) {
+      var text = this._copyTextFromBlock(blocks[i]);
+      if (text) parts.push(text);
+    }
+    return this._joinCopyParts(parts);
+  },
+
+  _copyTextFromBlock: function (block) {
+    if (!block || typeof block !== "object") return "";
+    var type = String(block.type || "").trim();
+    if (type === "table") {
+      var lines = [];
+      var self = this;
+      if (block.caption) lines.push(String(block.caption).trim());
+      var headers = Array.isArray(block.headers) ? block.headers : [];
+      if (headers.length) {
+        lines.push(
+          headers
+            .map(function (cell) {
+              return self._copyCellText(cell);
+            })
+            .join(" | "),
+        );
+      }
+      var rows = Array.isArray(block.rows) ? block.rows : [];
+      for (var r = 0; r < rows.length; r++) {
+        var row = Array.isArray(rows[r]) ? rows[r] : [];
+        if (row.length) {
+          lines.push(
+            row
+              .map(function (cell) {
+                return self._copyCellText(cell);
+              })
+              .join(" | "),
+          );
+        }
+      }
+      return this._joinCopyParts(lines, "\n");
+    }
+    if (type === "steps") {
+      var stepParts = [];
+      if (block.title) stepParts.push(String(block.title).trim());
+      var steps = Array.isArray(block.steps) ? block.steps : [];
+      for (var s = 0; s < steps.length; s++) {
+        var step = steps[s] || {};
+        var line = [
+          step.index || s + 1,
+          String(step.title || step.text || "").trim(),
+          String(step.detail || "").trim(),
+        ]
+          .filter(function (item) {
+            return String(item || "").trim();
+          })
+          .join(". ");
+        if (line) stepParts.push(line);
+      }
+      return this._joinCopyParts(stepParts, "\n");
+    }
+    if (type === "recap") {
+      var recapParts = [];
+      if (block.title) recapParts.push(String(block.title).trim());
+      if (block.summary) recapParts.push(String(block.summary).trim());
+      var bullets = Array.isArray(block.bullets) ? block.bullets : [];
+      for (var b = 0; b < bullets.length; b++) {
+        var bullet = String(bullets[b] || "").trim();
+        if (bullet) recapParts.push("- " + bullet);
+      }
+      return this._joinCopyParts(recapParts, "\n");
+    }
+    if (type === "chart") {
+      var chartParts = [];
+      if (block.title) chartParts.push(String(block.title).trim());
+      if (block.summary) chartParts.push(String(block.summary).trim());
+      var series = Array.isArray(block.series) ? block.series : [];
+      for (var c = 0; c < series.length; c++) {
+        var item = series[c] || {};
+        var name = String(item.name || "").trim();
+        var value = String(item.summary || item.value || "").trim();
+        if (name || value) chartParts.push((name ? name + ": " : "") + value);
+      }
+      var tableText = this._copyTextFromChartTable(block.fallbackTable);
+      if (tableText) chartParts.push(tableText);
+      if (block.caption) chartParts.push(String(block.caption).trim());
+      return this._joinCopyParts(chartParts, "\n");
+    }
+    if (type === "formula_block" || type === "formula_inline") {
+      return String(block.copyText || block.displayText || block.latex || "").trim();
+    }
+    return String(
+      block.text || block.content || block.summary || block.title || "",
+    ).trim();
+  },
+
+  _copyTextFromChartTable: function (table) {
+    if (!table || typeof table !== "object") return "";
+    return this._copyTextFromBlock({
+      type: "table",
+      caption: table.caption || "",
+      headers: table.headers || [],
+      rows: table.rows || [],
+    });
+  },
+
+  _copyCellText: function (cell) {
+    if (cell && typeof cell === "object") {
+      return String(
+        cell.text ||
+          cell.value ||
+          this._copyInlineNodesText(cell.content || cell.nodes || cell.children || []),
+      ).trim();
+    }
+    return String(cell || "").trim();
+  },
+
+  _copyInlineNodesText: function (nodes) {
+    if (!Array.isArray(nodes) || !nodes.length) return "";
+    var parts = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i] || {};
+      if (typeof node === "string") {
+        parts.push(node);
+        continue;
+      }
+      if (node.text) parts.push(String(node.text));
+      if (node.value) parts.push(String(node.value));
+      var childText = this._copyInlineNodesText(
+        node.content || node.nodes || node.children || [],
+      );
+      if (childText) parts.push(childText);
+    }
+    return parts.join("").trim();
+  },
+
+  _joinCopyParts: function (parts, separator) {
+    return (parts || [])
+      .map(function (item) {
+        return String(item || "").trim();
+      })
+      .filter(function (item) {
+        return !!item;
+      })
+      .join(separator || "\n\n")
+      .trim();
+  },
+
   onCopy: function (e) {
     helpers.vibrate("light");
     var msg = this.data.messages.find(function (m) {
       return m.id === e.currentTarget.dataset.msgid;
     });
-    if (msg) wx.setClipboardData({ data: msg.content });
+    var text = this._copyTextForMessage(msg);
+    if (!text) {
+      wx.showToast({ title: "暂无可复制内容", icon: "none" });
+      return;
+    }
+    wx.setClipboardData({ data: text });
   },
 
   onToggleWorkflowTrace: function (e) {

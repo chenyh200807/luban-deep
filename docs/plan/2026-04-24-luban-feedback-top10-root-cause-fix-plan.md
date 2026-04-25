@@ -1,6 +1,6 @@
 # 鲁班智考反馈 Top10 根因修复计划
 
-Status: Draft (Batch 1-3 implemented; Batch 4 pending)
+Status: Draft (Batch 1-4 implemented; Batch 4 DevTools copy loop verified; history display/cache follow-up patched)
 Date: 2026-04-24
 Scope: TutorBot / unified turn / mobile history / observability logs
 
@@ -209,3 +209,87 @@ Status: Implemented locally and verified on Aliyun
 
 1. 小程序关键交互完成 DevTools 或真机回归清单。
 2. Top10 文档状态更新为 Implemented / Remaining Risk。
+
+## Batch 4 实施记录
+
+Status: Implemented locally and synced to Aliyun source; automated wx/yousenwebview tests passed; DevTools Computer Use Chinese copy loop verified
+
+Root-cause gate:
+
+- 一等业务事实：小程序操作按钮必须执行用户当下看到的动作；复制复制可见内容，返回返回可用入口，不能依赖 raw message 或页面栈刚好存在。
+- 单一 authority：复制以当前 message 的可见渲染状态为 authority；充值页返回以微信页面栈为优先 authority，失败时回到 chat entry。
+- Competing authorities：`msg.content`、`renderableContent`、structured `blocks`、`mcqCards` 曾同时表达“回答正文”；`navigateBack` 曾假设页面栈一定存在。
+
+代码入口：
+
+- `wx_miniprogram/pages/chat/chat.js`
+- `wx_miniprogram/pages/billing/billing.js`
+- `wx_miniprogram/tests/test_chat_copy_authority.js`
+- `wx_miniprogram/tests/test_billing_navigation.js`
+- `yousenwebview/packageDeeptutor/pages/chat/chat.js`
+- `yousenwebview/tests/test_package_chat_copy_authority.js`
+
+修复内容：
+
+1. `onCopy` 不再直接复制 `msg.content`；AI 消息优先按可见题卡、结构化 block、再到 `renderableContent/content` 生成剪贴板文本。
+2. 结构化表格、公式、步骤、总结、图表 fallback table、MCQ 题卡都有稳定文本序列化，避免用户点“复制回答”得到空内容或 raw fallback。
+3. 根包充值页 `goBack` 先走 `wx.navigateBack`；如果页面是外部直达或没有上一页，自动 `switchTab` 回 `/pages/chat/chat`。
+4. 当前微信开发者工具实际运行的是 `yousenwebview/packageDeeptutor`，因此把复制 authority 修复移植到分包 chat；分包 billing 已有 `navigateBack -> reLaunch(route.chat())` 兜底，不重复加分支。
+5. DevTools 真实表格复制暴露出本地 fixture 过窄：真实 markdown parser 的 table cell 不是 `{text: ...}`，而是 `content / nodes / children` inline tree；补充 `_copyInlineNodesText` 后，复制 authority 能递归读取真实渲染节点文本。
+6. 原始反馈中的历史页残留继续收口：`capability=tutorbot` 是内部 runtime 身份，历史页用户可见标签统一显示为“智能对话”；历史预览清理 markdown table separator 行和旧缓存里已经压平的 `------ ------`，避免列表继续显示内部身份或 markdown 分隔符。
+7. 历史页缓存读取时不再直接相信 60 秒内的展示态缓存，会先重新清洗 `preview / capabilityLabel / searchText`，避免旧缓存把已修复问题短时间内继续带回 UI。
+
+本地验证：
+
+- `node wx_miniprogram/tests/test_chat_copy_authority.js`
+- `node wx_miniprogram/tests/test_billing_navigation.js`
+- `node wx_miniprogram/tests/test_history_display_authority.js`
+- `node wx_miniprogram/tests/test_chat_layout.js`
+- `node wx_miniprogram/tests/test_ai_message_state.js`
+- `for f in wx_miniprogram/tests/test_*.js; do node "$f"; done`
+- `node yousenwebview/tests/test_package_chat_copy_authority.js`
+- `node yousenwebview/tests/test_history_display_authority.js`
+- `node yousenwebview/tests/test_billing_packages.js`
+- `node yousenwebview/tests/test_chat_workspace_shell_layout.js`
+
+阿里云源码验证：
+
+- selective sync to `/root/deeptutor`:
+  - `wx_miniprogram/pages/chat/chat.js`
+  - `wx_miniprogram/pages/billing/billing.js`
+  - `wx_miniprogram/tests/test_chat_copy_authority.js`
+  - `wx_miniprogram/tests/test_billing_navigation.js`
+  - `wx_miniprogram/tests/test_history_display_authority.js`
+  - `yousenwebview/packageDeeptutor/pages/chat/chat.js`
+  - `yousenwebview/packageDeeptutor/pages/history/history.js`
+  - `yousenwebview/tests/test_package_chat_copy_authority.js`
+  - `yousenwebview/tests/test_history_display_authority.js`
+  - this plan document
+- 远端宿主机没有 `node`，因此通过 Docker Node runtime 挂载 `/root/deeptutor` 运行：
+  - `node wx_miniprogram/tests/test_chat_copy_authority.js`
+  - `node wx_miniprogram/tests/test_billing_navigation.js`
+  - `node wx_miniprogram/tests/test_chat_layout.js`
+  - `node wx_miniprogram/tests/test_ai_message_state.js`
+  - `node yousenwebview/tests/test_package_chat_copy_authority.js`
+  - `node yousenwebview/tests/test_billing_packages.js`
+  - `node yousenwebview/tests/test_chat_workspace_shell_layout.js`
+- 结果全部通过。
+
+DevTools / 真机状态：
+
+- Computer Use 找到正在运行的 `微信开发者工具 Stable v2.01.2510290`，项目为 `/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview`。
+- 模拟器从 `pages/freeCourse/freeCourse` 点击“开始答疑”，进入 `packageDeeptutor/pages/login/login`，用户授权后点击“微信一键登录”，真实路由进入 `packageDeeptutor/pages/chat/chat`，显示用户 `chenyh2008` 与余额 `997646`，调试器面板 `Errors: 0`。
+- 先用英文表格问题做 smoke 时发现旧修复仍不完整：页面 toast 显示“内容已复制”，但系统剪贴板只有多行 `|`，说明不能只看 toast，必须核对 `pbpaste`。
+- 根因证据：DevTools Console 读取当前 message 后确认真实表格 cell 结构为 `content / nodes / children` inline tree，旧 `_copyCellText` 只读 `text / value`，因此真实 parser 表格复制成空 cell。
+- 修复后用中文真实问题验证：`请用一个两列表格回答：防火门考点和分值。不要超过20字。`
+- 页面生成中文表格：`考点 / 分值`，含 `安装牢固、启闭灵活`、`密封条安装质量`、`开启方向`、`标识`、`常闭门自动关闭`、`常开门联动控制`。
+- 点击“复制回答”后，`pbpaste` 返回：
+  - `考点 | 分值`
+  - `安装牢固、启闭灵活 | 0.5`
+  - `密封条安装质量 | 0.5`
+  - `开启方向 | 1`
+  - `标识 | 0.5`
+  - `常闭门自动关闭 | 0.5`
+  - `常开门联动控制 | 1`
+- 2026-04-25 继续用 Computer Use 验证历史页：从 `pages/freeCourse/freeCourse` 点击“开始答疑”，进入 `packageDeeptutor/pages/chat/chat`，再点击底部“历史”；真实页面路径为 `packageDeeptutor/pages/history/history`。
+- 历史页真实列表显示 `18 条对话`、`18 近 7 天`；第一条防火门表格会话显示用户可见标签“智能对话”，预览为 `考点 分值 安装牢固、启闭灵活...`，未再出现内部 `TutorBot` 标签或 markdown 分隔符 `------ ------`。

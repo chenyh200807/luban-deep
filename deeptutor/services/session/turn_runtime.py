@@ -35,6 +35,7 @@ from deeptutor.services.observability.turn_event_log import build_turn_observati
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.exam_track import (
     exam_track_label,
+    has_multiple_exam_track_mentions,
     infer_denied_exam_tracks_from_text,
     infer_exam_track_from_text,
     normalize_exam_track,
@@ -2187,6 +2188,7 @@ class TurnRuntimeManager:
             or normalize_exam_track((runtime_interaction_hints or {}).get("exam_track"))
             or infer_exam_track_from_text(raw_user_content)
         )
+        multiple_exam_track_mentions = has_multiple_exam_track_mentions(raw_user_content)
         denied_exam_tracks = infer_denied_exam_tracks_from_text(raw_user_content)
         clear_stored_exam_track = False
         if explicit_exam_track:
@@ -2363,7 +2365,7 @@ class TurnRuntimeManager:
                     payload["config"]["interaction_hints"] = runtime_interaction_hints
                 else:
                     payload["config"].pop("interaction_hints", None)
-            elif stored_exam_track:
+            elif stored_exam_track and not multiple_exam_track_mentions:
                 explicit_exam_track = stored_exam_track
                 runtime_only_config["exam_track"] = explicit_exam_track
                 runtime_interaction_hints = {

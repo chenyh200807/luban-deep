@@ -30,7 +30,7 @@
 | 生产部署 | [2026-04-19-deeptutor-50000-member-deployment-prd.md](2026-04-19-deeptutor-50000-member-deployment-prd.md) | 5 万会员部署、扩容、上线稳健性 |
 | Observability 与 release gate | [2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md](2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md) | OM/ARR/AAE/OA、trace、surface ACK、release gate |
 | 鲁班智考个性化教学 | [2026-04-20-luban-adaptive-teaching-intelligence-prd.md](2026-04-20-luban-adaptive-teaching-intelligence-prd.md) | 因材施教、Learner Core、Teaching Policy、显性诊断 |
-| 鲁班智考反馈 Top10 修复 | [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | 运营反馈、Langfuse/后台证据、Top10 root-cause 分批修复 |
+| 鲁班智考反馈 Top10 修复 | [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md) / [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | 运营反馈问题注册表、Langfuse/后台证据、Top10 root-cause 分批修复 |
 | Benchmark 主脊梁 | [2026-04-23-deeptutor-benchmark-single-spine-prd.md](2026-04-23-deeptutor-benchmark-single-spine-prd.md) | benchmark、daily/gate/incident、质量单一主脊梁 |
 | 建筑实务 AI 互动课堂 | [../openmaic/建筑实务AI互动课堂_架构与实施收口_v1.2.md](../openmaic/建筑实务AI互动课堂_架构与实施收口_v1.2.md) | OpenMAIC 体验对标、Lesson IR、微信小程序主表面、互动课堂生成、审核、导出、质量工厂 |
 
@@ -101,7 +101,8 @@
 | --- | --- | --- | --- |
 | [2026-04-20-luban-adaptive-teaching-intelligence-prd.md](2026-04-20-luban-adaptive-teaching-intelligence-prd.md) | PRD | 未标注 | 因材施教智能体、显性个性化导师、Teaching Policy。 |
 | [2026-04-20-teaching-methods-matrix-prd.md](2026-04-20-teaching-methods-matrix-prd.md) | PRD | Draft v1 | Teaching Methods Matrix，定义“施教层”的方法选择。 |
-| [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | Root-cause fix plan | Draft | 运营反馈与线上证据汇总出的 Top10 问题；Batch 1-3 已实施，Batch 4 待交互 QA gate。 |
+| [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md) | Issue register | Draft | 从 DOCX/PPTX 原始使用反馈合并出的 Top10 问题域，用作后续三项一组修复的用户反馈 authority。 |
+| [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | Root-cause fix plan | Draft | 运营反馈与线上证据汇总出的 Top10 问题；Batch 1-4 已实施并补充历史显示/cache 验证，仍有交互矩阵待关。 |
 
 ### 9. 建筑实务 AI 互动课堂 / OpenMAIC 对标
 
@@ -157,6 +158,7 @@
 
 - [2026-04-19-deeptutor-observability-original-intent-mapping-audit.md](2026-04-19-deeptutor-observability-original-intent-mapping-audit.md)
 - [2026-04-24-learner-state-overlay-completion-evidence.md](2026-04-24-learner-state-overlay-completion-evidence.md)
+- [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md)
 - [2026-04-16-wechat-structured-renderer-devtools-runbook.md](2026-04-16-wechat-structured-renderer-devtools-runbook.md)
 - [2026-04-16-wechat-structured-renderer-p2-gate-checklist.md](2026-04-16-wechat-structured-renderer-p2-gate-checklist.md)
 - [2026-04-16-wechat-structured-renderer-p3-gate-checklist.md](2026-04-16-wechat-structured-renderer-p3-gate-checklist.md)

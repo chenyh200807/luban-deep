@@ -867,6 +867,91 @@ def test_get_conversation_messages_reveals_answers_only_in_review_mode(
     assert followup["explanation"] == "B 更符合规范。"
 
 
+def test_get_conversation_messages_preserves_explicit_reveal_flags_from_history(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_payload = {
+        "id": "session_explicit_reveal_mcq",
+        "title": "带答案练题",
+        "preferences": {
+            "source": "wx_miniprogram",
+            "archived": False,
+        },
+        "messages": [
+            {
+                "id": 1,
+                "role": "assistant",
+                "content": "讲评模式",
+                "created_at": 1_700_000_032.0,
+                "events": [
+                    {
+                        "type": "result",
+                        "metadata": {
+                            "reveal_answers": True,
+                            "reveal_explanations": True,
+                            "presentation": {
+                                "schema_version": 1,
+                                "blocks": [
+                                    {
+                                        "type": "mcq",
+                                        "questions": [
+                                            {
+                                                "index": 1,
+                                                "question_id": "q_1",
+                                                "stem": "某防水工程题目",
+                                                "question_type": "single_choice",
+                                                "options": [
+                                                    {"key": "A", "text": "方案A"},
+                                                    {"key": "B", "text": "方案B"},
+                                                ],
+                                                "followup_context": {
+                                                    "question_id": "q_1",
+                                                    "question": "某防水工程题目",
+                                                    "question_type": "choice",
+                                                    "options": {"A": "方案A", "B": "方案B"},
+                                                    "correct_answer": "B",
+                                                    "explanation": "B 更符合规范。",
+                                                },
+                                            }
+                                        ],
+                                        "submit_hint": "请选择后提交答案",
+                                        "receipt": "",
+                                        "review_mode": False,
+                                    }
+                                ],
+                                "fallback_text": "讲评模式",
+                            },
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+
+    async def _fake_get_session_with_messages(_conversation_id: str):
+        return session_payload
+
+    async def _fake_list_sessions_by_owner(*_args, **_kwargs):
+        return [session_payload]
+
+    monkeypatch.setattr(mobile_module.session_store, "list_sessions_by_owner", _fake_list_sessions_by_owner)
+    monkeypatch.setattr(mobile_module.session_store, "get_session_with_messages", _fake_get_session_with_messages)
+    monkeypatch.setattr(mobile_module.session_store, "get_session_owner_key", AsyncMock(return_value="user:student_demo"))
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/session_explicit_reveal_mcq/messages")
+
+    assert response.status_code == 200
+    followup = response.json()["messages"][0]["presentation"]["blocks"][0]["questions"][0]["followup_context"]
+    assert followup["correct_answer"] == "B"
+    assert followup["explanation"] == "B 更符合规范。"
+
+
 def test_get_conversation_messages_suppresses_presentation_for_exact_authority(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

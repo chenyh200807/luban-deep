@@ -114,7 +114,12 @@ Page({
   },
 
   goBack() {
-    wx.navigateBack({ delta: 1 });
+    wx.navigateBack({
+      delta: 1,
+      fail: function () {
+        wx.switchTab({ url: "/pages/chat/chat" });
+      },
+    });
   },
 
   goHome() {

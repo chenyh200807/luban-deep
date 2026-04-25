@@ -21,6 +21,8 @@ function _normalizePreview(raw) {
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/`([^`]+)`/g, "$1")
     .replace(/^#{1,6}\s*/gm, "")
+    .replace(/^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/gm, " ")
+    .replace(/-{3,}/g, " ")
     .replace(/^\s*[-*+]\s+/gm, "")
     .replace(/^\s*\d+\.\s+/gm, "")
     .replace(/\|/g, " ")
@@ -41,8 +43,7 @@ function _deriveConversationTitle(rawTitle, preview) {
 
 function _capabilityLabel(capability) {
   var key = String(capability || "").trim().toLowerCase();
-  if (!key || key === "chat") return "智能对话";
-  if (key === "tutorbot") return "TutorBot";
+  if (!key || key === "chat" || key === "tutorbot") return "智能对话";
   if (key === "solve" || key === "deep_solve") return "深度解题";
   if (key === "question" || key === "deep_question") return "组题训练";
   if (key === "research" || key === "deep_research") return "深度研究";
@@ -120,6 +121,33 @@ function _buildConversationItem(c) {
       messageCount > 0 ? messageCount + " 条消息" : "",
     ]),
   };
+}
+
+function _normalizeCachedConversationItem(item) {
+  var normalized = Object.assign({}, item || {});
+  var preview = _normalizePreview(normalized.preview || normalized.last_message || "");
+  var cachedLabel = String(normalized.capabilityLabel || "").trim();
+  var cachedLabelKey = cachedLabel.toLowerCase();
+
+  normalized.preview = _clipText(preview, 72);
+  normalized.title = _deriveConversationTitle(normalized.title, preview);
+  if (normalized.capability) {
+    normalized.capabilityLabel = _capabilityLabel(normalized.capability);
+  } else if (!cachedLabel || cachedLabelKey === "tutorbot" || cachedLabelKey === "chat") {
+    normalized.capabilityLabel = "智能对话";
+  }
+  normalized.searchText = _joinSearchText([
+    normalized.title,
+    normalized.preview,
+    normalized.sourceLabel,
+    normalized.capabilityLabel,
+    normalized.metaLine,
+  ]);
+  return normalized;
+}
+
+function _normalizeCachedConversations(convs) {
+  return (Array.isArray(convs) ? convs : []).map(_normalizeCachedConversationItem);
 }
 
 function _flattenGroups(groups) {
@@ -258,12 +286,12 @@ Page({
     var now = Date.now();
 
     if (cached && cached.groups && cached.ts && now - cached.ts < CACHE_TTL) {
-      this._applyConversationState(cached.conversations || _flattenGroups(cached.groups), false);
+      this._applyConversationState(_normalizeCachedConversations(cached.conversations || _flattenGroups(cached.groups)), false);
       return;
     }
 
     if (cached && cached.groups) {
-      this._applyConversationState(cached.conversations || _flattenGroups(cached.groups), false);
+      this._applyConversationState(_normalizeCachedConversations(cached.conversations || _flattenGroups(cached.groups)), false);
       this._fetchFromServer(true);
     } else {
       this.setData({ loading: true });

@@ -254,6 +254,8 @@ class TutorBotCapability(BaseCapability):
                 or ("tutorbot_fast_policy" if policy.selected_mode == "fast" else "tutorbot_deep_policy"),
                 "exact_fast_path_hit": bool(session_metadata.get("exact_fast_path_hit", False)),
                 "actual_tool_rounds": int(session_metadata.get("actual_tool_rounds") or 0),
+                "reveal_answers": reveal_answers,
+                "reveal_explanations": reveal_explanations,
             }
             if parsed_result_summary:
                 presentation = build_canonical_presentation(

@@ -34,9 +34,12 @@ def test_infer_exam_track_from_user_text_ignores_negated_track_mentions() -> Non
 
 
 def test_infer_exam_track_from_user_text_does_not_persist_comparison_queries() -> None:
-    from deeptutor.services.exam_track import infer_exam_track_from_text
+    from deeptutor.services.exam_track import has_multiple_exam_track_mentions, infer_exam_track_from_text
 
     assert infer_exam_track_from_text("一建和一造有什么区别") == ""
     assert infer_exam_track_from_text("一造和一建有什么区别") == ""
     assert infer_exam_track_from_text("我该考一建还是一造") == ""
     assert infer_exam_track_from_text("一级建造师和一级造价工程师哪个更适合我") == ""
+    assert has_multiple_exam_track_mentions("一建和一造有什么区别") is True
+    assert has_multiple_exam_track_mentions("我该考一建还是一造") is True
+    assert has_multiple_exam_track_mentions("不是一建，是一造案例题") is False

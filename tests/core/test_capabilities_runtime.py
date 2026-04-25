@@ -1629,6 +1629,8 @@ async def test_tutorbot_capability_reveals_answers_for_explicit_practice_generat
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert ("答案" in result_event.metadata["response"]) is answer_visible
     assert "解析" in result_event.metadata["response"]
+    assert result_event.metadata["reveal_answers"] is answer_visible
+    assert result_event.metadata["reveal_explanations"] is True
     question = result_event.metadata["presentation"]["blocks"][0]["questions"][0]
     expected_answer = "C" if answer_visible else ""
     assert question["followup_context"]["correct_answer"] == expected_answer

@@ -72,16 +72,7 @@ def infer_exam_track_from_text(text: str) -> str:
     if not content:
         return ""
 
-    matches: list[tuple[int, str]] = []
-    for needle, track in _TRACK_MENTIONS:
-        start = 0
-        while True:
-            index = content.find(needle, start)
-            if index < 0:
-                break
-            if not _is_negated_exam_track_mention(content, index):
-                matches.append((index, track))
-            start = index + len(needle)
+    matches = _positive_exam_track_mentions(content)
 
     if not matches:
         return ""
@@ -107,6 +98,29 @@ def infer_denied_exam_tracks_from_text(text: str) -> set[str]:
                 denied.add(track)
             start = index + len(needle)
     return denied
+
+
+def has_multiple_exam_track_mentions(text: str) -> bool:
+    """Return whether user text explicitly mentions multiple non-negated exam tracks."""
+    content = str(text or "").strip()
+    if not content:
+        return False
+    matches = _positive_exam_track_mentions(content)
+    return len({track for _, track in matches}) > 1
+
+
+def _positive_exam_track_mentions(content: str) -> list[tuple[int, str]]:
+    matches: list[tuple[int, str]] = []
+    for needle, track in _TRACK_MENTIONS:
+        start = 0
+        while True:
+            index = content.find(needle, start)
+            if index < 0:
+                break
+            if not _is_negated_exam_track_mention(content, index):
+                matches.append((index, track))
+            start = index + len(needle)
+    return matches
 
 
 def _is_negated_exam_track_mention(content: str, mention_index: int) -> bool:
