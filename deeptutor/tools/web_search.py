@@ -14,7 +14,7 @@ Usage:
     result = web_search("What is AI?", provider="tavily")
 
 Environment Variables:
-    - SEARCH_PROVIDER: Default search provider (default: tavily)
+    - SEARCH_PROVIDER: Search provider used only when web_search is explicitly enabled
     - SEARCH_API_KEY: Unified API key for all providers
 
 Available Providers:
@@ -22,7 +22,7 @@ Available Providers:
     - tavily: Research-focused with optional answers
     - jina: SERP with full content extraction
     - searxng: Self-hosted SearXNG endpoint
-    - duckduckgo: Zero-config search
+    - duckduckgo: Search provider when explicitly selected
     - perplexity: AI-powered search with answers
 """
 

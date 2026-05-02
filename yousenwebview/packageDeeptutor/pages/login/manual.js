@@ -11,6 +11,11 @@ function showSmsSentFeedback(message) {
   });
 }
 
+function canShowDebugCode() {
+  var cfg = typeof __wxConfig !== "undefined" ? __wxConfig : {};
+  return cfg.platform === "devtools" || cfg.envVersion === "develop" || cfg.envVersion === "trial";
+}
+
 Page({
   data: {
     statusBarHeight: 44,
@@ -152,11 +157,12 @@ Page({
           var successMsg =
             (dataObj && dataObj.message) || inner.message || resp.message || "验证码发送成功";
           var nextData = { codeCountdown: retryAfter, loading: false };
-          if (debugCode) nextData.phoneCode = debugCode;
+          var showDebugCode = debugCode && canShowDebugCode();
+          if (showDebugCode) nextData.phoneCode = debugCode;
           self.setData(nextData);
           self._startCountdown(retryAfter);
           showSmsSentFeedback(successMsg);
-          if (debugCode) {
+          if (showDebugCode) {
             wx.showModal({
               title: "测试验证码",
               content: "当前环境未接短信服务，验证码：" + debugCode,

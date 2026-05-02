@@ -40,6 +40,9 @@ _PROVIDER_KEY_ENV = {
 }
 
 
+_SEARCH_API_KEY_PROVIDERS = {"brave", "tavily", "jina", "perplexity"}
+
+
 def _get_web_search_config() -> dict[str, Any]:
     try:
         config = load_config_with_main("main.yaml", PROJECT_ROOT)
@@ -96,7 +99,7 @@ def web_search(
     upgrade from template formatting to LLM synthesis.
     """
     config = _get_web_search_config()
-    if not config.get("enabled", True):
+    if not config.get("enabled", False):
         _logger.warning("Web search is disabled in config")
         return {
             "timestamp": datetime.now().isoformat(),
@@ -109,27 +112,20 @@ def web_search(
 
     resolved = resolve_search_runtime_config()
     provider_name = (provider or resolved.provider).strip().lower()
+    if not provider_name:
+        raise ValueError("web_search is enabled but no search provider is configured.")
     _assert_provider_supported(provider_name)
 
-    if provider_name in {"brave", "tavily", "jina"}:
+    if provider_name in _SEARCH_API_KEY_PROVIDERS:
         api_key = _resolve_provider_key(provider_name, resolved.api_key)
         if not api_key:
-            _logger.warning(f"{provider_name} missing API key, falling back to duckduckgo.")
-            provider_name = "duckduckgo"
-        else:
-            provider_kwargs.setdefault("api_key", api_key)
-    elif provider_name == "perplexity":
-        api_key = _resolve_provider_key(provider_name, resolved.api_key)
-        if not api_key:
-            raise ValueError("perplexity requires api_key (profile.api_key or PERPLEXITY_API_KEY).")
+            raise ValueError(f"{provider_name} requires api_key (profile.api_key or provider environment key).")
         provider_kwargs.setdefault("api_key", api_key)
     elif provider_name == "searxng":
         base_url = provider_kwargs.get("base_url") or resolved.base_url
         if not base_url:
-            _logger.warning("searxng missing base_url, falling back to duckduckgo.")
-            provider_name = "duckduckgo"
-        else:
-            provider_kwargs.setdefault("base_url", base_url)
+            raise ValueError("searxng requires base_url (profile.base_url or SEARXNG_BASE_URL).")
+        provider_kwargs.setdefault("base_url", base_url)
 
     provider_kwargs.setdefault("max_results", resolved.max_results)
     if resolved.proxy and "proxy" not in provider_kwargs:
@@ -177,7 +173,7 @@ def get_current_config() -> dict[str, Any]:
     config = _get_web_search_config()
     resolved = resolve_search_runtime_config()
     return {
-        "enabled": config.get("enabled", True),
+        "enabled": config.get("enabled", False),
         "provider": resolved.provider,
         "requested_provider": resolved.requested_provider,
         "provider_status": resolved.status,
@@ -194,11 +190,18 @@ def get_current_config() -> dict[str, Any]:
     }
 
 
+def is_web_search_runtime_available() -> bool:
+    """Return whether web_search should be exposed to agents at runtime."""
+    current = get_current_config()
+    return bool(current.get("enabled")) and current.get("provider_status") == "ok"
+
+
 SearchProvider = BaseSearchProvider
 
 __all__ = [
     "web_search",
     "get_current_config",
+    "is_web_search_runtime_available",
     "get_provider",
     "list_providers",
     "get_available_providers",

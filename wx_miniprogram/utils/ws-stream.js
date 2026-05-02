@@ -15,6 +15,35 @@ function buildPresentationEvent(resultMetadata) {
   return presentation;
 }
 
+function normalizeErrorMessage(err) {
+  var raw = "";
+  if (typeof err === "string") {
+    raw = err;
+  } else if (err) {
+    raw = err.errMsg || err.message || err.reason || "";
+  }
+  raw = String(raw || "").trim();
+  if (!raw) return "连接失败，请重试";
+  if (raw === "AUTH_EXPIRED") return "登录已失效，请重新登录";
+  if (raw === "REQUEST_ABORTED") return "本轮已取消";
+  if (/timeout|timed out|超时/i.test(raw)) return "请求超时，请稍后重试";
+  if (/^NETWORK_ERROR:/i.test(raw)) return "连接服务器失败，请检查网络后重试";
+  var http = raw.match(/^HTTP_(\d+):/i);
+  if (http) {
+    var status = parseInt(http[1], 10) || 0;
+    if (status === 401) return "登录已失效，请重新登录";
+    if (status === 429) return "操作过于频繁，请稍后再试";
+    if (status >= 500) return "服务暂时不可用，请稍后重试";
+    return "请求失败，请稍后重试";
+  }
+  if (
+    /Internal Server Error|provider error|raw provider|DataInspectionFailed|Authentication Fails|api key|read_file|write_file|list_dir|HEARTBEAT|traceback|stack trace|workspace/i.test(raw)
+  ) {
+    return "服务暂时不可用，请稍后重试";
+  }
+  return raw;
+}
+
 function resolveEventVisibility(event) {
   if (!event || typeof event !== "object") return "public";
   var direct = String(event.visibility || "").trim().toLowerCase();
@@ -236,12 +265,6 @@ function streamChat(opts, callbacks) {
     }, slowResponseMs);
   }
 
-  function normalizeErrorMessage(err) {
-    if (!err) return "连接失败，请重试";
-    if (typeof err === "string") return err;
-    return err.errMsg || err.message || "连接失败，请重试";
-  }
-
   function failStream(err) {
     if (aborted || doneReceived) return;
     aborted = true;
@@ -368,7 +391,7 @@ function streamChat(opts, callbacks) {
         failStream(String(event.content || "服务异常"));
         return;
       }
-      if (cb.onError) cb.onError(String(event.content || "服务异常"));
+      if (cb.onError) cb.onError(normalizeErrorMessage(String(event.content || "服务异常")));
       return;
     }
 
@@ -578,4 +601,5 @@ module.exports = {
   buildTurnSocketPayload: buildTurnSocketPayload,
   computeReconnectDelayMs: computeReconnectDelayMs,
   inferConversationTitle: inferConversationTitle,
+  normalizeErrorMessage: normalizeErrorMessage,
 };

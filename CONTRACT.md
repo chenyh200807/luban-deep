@@ -32,6 +32,7 @@ DeepTutor 必须优先保证：
 - transport / schema / 状态来源 / trace 词汇表不能长第二套
 - provider / pipeline / strategy / prompt / 内部算法可以演进
 - 身份 / 工具 / 知识库绑定 / 表现风格不能混成多套平行概念
+- 联网搜索工具必须由 config runtime 统一判定可用性；未配置时关闭，不得由入口、capability 或 provider fallback 各自决定。
 
 ## 当前必须单点治理的控制面
 

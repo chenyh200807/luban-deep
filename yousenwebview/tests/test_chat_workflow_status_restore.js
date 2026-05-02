@@ -198,11 +198,28 @@ run("workflow trace should accept stage and tool events from ws stream", functio
 
   assert(stagePayload.seq === 11, "stage payload should keep server seq");
   assert(stageEntry.title === "正在整理最终回答", "stage_start should restore responding stage wording");
-  assert(toolCallEntry.title === "已启动 知识库检索", "tool_call should appear as workflow progress");
-  assert(toolResultEntry.title === "知识库检索 已返回结果", "tool_result should appear as workflow progress");
+  assert(toolCallEntry.title === "正在进行知识库检索", "tool_call should appear as workflow progress");
+  assert(toolResultEntry.title === "知识库检索 已完成", "tool_result should appear as workflow progress");
   assert(!toolCallEntry.rawText, "tool_call should not expose JSON args in user-visible workflow");
   assert(!toolResultEntry.rawText, "tool_result should not expose raw backend returns in user-visible workflow");
   assert(JSON.stringify(toolCallEntry).indexOf('"query"') === -1, "workflow entry should omit raw arg keys");
+
+  var internalEntry = workflowStatus.buildWorkflowEntry({
+    eventType: "tool_call",
+    content: "read_file",
+    seq: 14,
+    metadata: { visibility: "internal", tool: "read_file", args: { path: "/app/data/HEARTBEAT.md" } },
+  });
+  var internalSurface = JSON.stringify(internalEntry);
+  assert(internalSurface.indexOf("read_file") === -1, "workflow should hide internal tool names");
+  assert(internalSurface.indexOf("HEARTBEAT") === -1, "workflow should hide internal file names");
+
+  var internalStatus = workflowStatus.normalizeWorkflowStatus(
+    'HTTP_500: {"detail":"Internal Server Error","path":"/app/data/HEARTBEAT.md"}',
+  );
+  var internalStatusSurface = JSON.stringify(internalStatus);
+  assert(internalStatusSurface.indexOf("HTTP_500") === -1, "workflow should hide raw HTTP errors");
+  assert(internalStatusSurface.indexOf("HEARTBEAT") === -1, "workflow should hide internal file paths in status");
 });
 
 run("workflow summary should use active analysis wording by default", function () {

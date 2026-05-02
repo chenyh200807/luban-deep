@@ -44,8 +44,8 @@ function loadHistoryPage(rawConversations, initialStorage) {
       }
       if (request === "../../utils/helpers") {
         return {
-          formatTime: function () {
-            return "刚刚";
+          formatTime: function (value) {
+            return "fmt:" + value;
           },
           getWindowInfo: function () {
             return { statusBarHeight: 20 };
@@ -120,6 +120,7 @@ function loadHistoryPage(rawConversations, initialStorage) {
 
 (async function () {
   var nowMs = Date.now();
+  var legacySeconds = Math.floor((nowMs - 2 * 86400000) / 1000);
   var page = loadHistoryPage([
     {
       id: "tb_history_1",
@@ -165,7 +166,7 @@ function loadHistoryPage(rawConversations, initialStorage) {
       source: "wx_miniprogram",
       status: "completed",
       message_count: 2,
-      updated_at: Math.floor((nowMs - 2 * 86400000) / 1000),
+      updated_at: legacySeconds,
       created_at: Math.floor((nowMs - 2 * 86400000 - 1000) / 1000),
       last_message: "两天前的问题",
     },
@@ -187,6 +188,13 @@ function loadHistoryPage(rawConversations, initialStorage) {
   })[0];
   assert(smartFallbackItem.modeLabel === "快速", "smart/auto history without selected mode should fall back to a fast/deep label");
   assert(page.data.stats.weekCount >= 2, "history stats should count today and recent conversations from canonical timestamps");
+  var legacySecondsItem = page.data.conversations.filter(function (conv) {
+    return conv.id === "legacy_seconds_authority";
+  })[0];
+  assert(
+    legacySecondsItem.time === "fmt:" + legacySeconds * 1000,
+    "legacy seconds timestamps should be converted before formatting card time",
+  );
   assert(
     page.data.groups.some(function (group) {
       return group.label === "今天" && group.items.some(function (conv) {
@@ -205,12 +213,13 @@ function loadHistoryPage(rawConversations, initialStorage) {
           title: "New conversation",
           preview: "考点 分值 ------ ------ 安装牢固、启闭灵活 0.5",
           capabilityLabel: "TutorBot",
+          time: "1/21 21:36",
           preferences: {
             interaction_hints: {
               effective_response_mode: "fast",
             },
           },
-          rawTime: new Date(nowMs).toISOString(),
+          rawTime: Math.floor(nowMs / 1000),
         },
       ],
       groups: [{ label: "今天", items: [] }],
@@ -224,6 +233,8 @@ function loadHistoryPage(rawConversations, initialStorage) {
   assert(cachedItem.capabilityLabel === "智能对话", "cached TutorBot identity should be migrated away from visible labels");
   assert(cachedItem.preview.indexOf("------") < 0, "cached preview should be cleaned before display");
   assert(cachedPage.data.stats.weekCount === 1, "cached rawTime should be migrated into the week count");
+  assert(cachedItem.time !== "1/21 21:36", "cached stale card time should be recomputed from canonical rawTime");
+  assert(cachedItem.time === "fmt:" + Math.floor(nowMs / 1000) * 1000, "cached seconds rawTime should be formatted as milliseconds");
 
   if (fail) {
     console.error(errors.join("\n"));

@@ -168,6 +168,8 @@ class ResolvedSearchConfig:
 
     @property
     def status(self) -> str:
+        if not self.provider and not self.requested_provider:
+            return "not_configured"
         if self.unsupported_provider:
             return "unsupported"
         if self.deprecated_provider:
@@ -625,7 +627,7 @@ def resolve_search_runtime_config(
     env_store: EnvStore | None = None,
     service: ModelCatalogService | None = None,
 ) -> ResolvedSearchConfig:
-    """Resolve active web-search config with TutorBot-style fallback behavior."""
+    """Resolve active web-search config without implicit network fallbacks."""
     env = env_store or get_env_store()
     catalog_service = service or get_model_catalog_service()
     loaded = _load_catalog(catalog)
@@ -636,7 +638,6 @@ def resolve_search_runtime_config(
         _as_str(profile.get("provider"))
         or _as_str(summary.get("provider"))
         or env.get("SEARCH_PROVIDER", "").strip()
-        or "tavily"
     ).lower()
     provider = requested_provider
     api_key = _as_str(profile.get("api_key")) or _as_str(summary.get("api_key"))
@@ -646,7 +647,6 @@ def resolve_search_runtime_config(
 
     deprecated = provider in DEPRECATED_SEARCH_PROVIDERS
     unsupported = provider not in SUPPORTED_SEARCH_PROVIDERS
-    fallback_reason: str | None = None
     missing_credentials = False
 
     if provider == "searxng" and not base_url:
@@ -655,7 +655,23 @@ def resolve_search_runtime_config(
     if provider in SEARCH_ENV_FALLBACK and not api_key:
         api_key = _provider_env_key(provider, env)
 
-    if provider == "perplexity" and not api_key:
+    if not provider:
+        return ResolvedSearchConfig(
+            provider="",
+            requested_provider=requested_provider,
+            api_key=api_key,
+            base_url=base_url,
+            max_results=max_results,
+            proxy=proxy,
+            unsupported_provider=False,
+            deprecated_provider=False,
+            missing_credentials=False,
+            fallback_reason=None,
+        )
+
+    if provider in {"brave", "tavily", "jina", "perplexity"} and not api_key:
+        missing_credentials = True
+    elif provider == "searxng" and not base_url:
         missing_credentials = True
 
     if unsupported:
@@ -671,13 +687,6 @@ def resolve_search_runtime_config(
             missing_credentials=missing_credentials,
         )
 
-    if provider in {"brave", "tavily", "jina"} and not api_key:
-        fallback_reason = f"{provider} requires api_key, falling back to duckduckgo"
-        provider = "duckduckgo"
-    elif provider == "searxng" and not base_url:
-        fallback_reason = "searxng requires base_url, falling back to duckduckgo"
-        provider = "duckduckgo"
-
     return ResolvedSearchConfig(
         provider=provider,
         requested_provider=requested_provider,
@@ -688,7 +697,7 @@ def resolve_search_runtime_config(
         unsupported_provider=False,
         deprecated_provider=deprecated,
         missing_credentials=missing_credentials,
-        fallback_reason=fallback_reason,
+        fallback_reason=None,
     )
 
 

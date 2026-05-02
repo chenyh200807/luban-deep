@@ -4,7 +4,10 @@ from deeptutor.services.observability.control_plane_store import ObservabilityCo
 from deeptutor.services.observability.observer_snapshot import build_observer_snapshot
 from deeptutor.services.observability.oa_runner import build_oa_run
 from deeptutor.services.observability.turn_event_log import TurnEventLog
-from deeptutor.services.session.turn_runtime import _build_terminal_turn_observation_event
+from deeptutor.services.session.turn_runtime import (
+    _append_trace_link_event,
+    _build_terminal_turn_observation_event,
+)
 
 
 _RELEASE = {
@@ -29,6 +32,7 @@ def test_terminal_turn_observation_event_keeps_turn_identity_and_usage() -> None
             "context_route": "question_followup",
             "source": "authenticated_ws",
             "user_id": "user-1",
+            "trace_id": "trace-1",
             "assistant_content_source": "final_content",
         },
         usage_summary={
@@ -42,6 +46,7 @@ def test_terminal_turn_observation_event_keeps_turn_identity_and_usage() -> None
     assert event["type"] == "turn_observation"
     assert event["session_id"] == "session-1"
     assert event["turn_id"] == "turn-1"
+    assert event["trace_id"] == "trace-1"
     assert event["status"] == "completed"
     assert event["capability"] == "tutorbot"
     assert event["route"] == "question_followup"
@@ -51,6 +56,35 @@ def test_terminal_turn_observation_event_keeps_turn_identity_and_usage() -> None
     assert event["token_total"] == 15
     assert event["metadata"]["source"] == "turn_runtime_terminal"
     assert event["metadata"]["total_calls"] == 2
+
+
+def test_trace_link_event_persists_turn_trace_identity_for_feedback() -> None:
+    events: list[dict] = []
+
+    _append_trace_link_event(
+        events,
+        session_id="session-1",
+        turn_id="turn-1",
+        trace_id="trace-1",
+    )
+
+    assert events == [
+        {
+            "type": "trace_link",
+            "source": "turn_runtime",
+            "stage": "observability",
+            "content": "",
+            "metadata": {
+                "session_id": "session-1",
+                "turn_id": "turn-1",
+                "trace_id": "trace-1",
+            },
+            "session_id": "session-1",
+            "turn_id": "turn-1",
+            "trace_id": "trace-1",
+            "visibility": "internal",
+        }
+    ]
 
 
 def test_terminal_turn_event_flows_to_snapshot_and_oa_via_persisted_latest(tmp_path) -> None:

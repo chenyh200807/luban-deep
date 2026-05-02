@@ -30,6 +30,7 @@ from deeptutor.services.feedback_service import (
 )
 from deeptutor.logging.context import get_request_id
 from deeptutor.services.render_presentation import build_canonical_presentation
+from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.services.session import (
     build_user_owner_key,
     get_sqlite_session_store,
@@ -896,7 +897,12 @@ def _build_mobile_turn_payload(
     wallet_user_id: str,
     query: str,
 ) -> dict[str, Any]:
-    requested_tools = [str(item).strip() for item in (body.tools or []) if str(item).strip()]
+    web_search_available = is_web_search_runtime_available()
+    requested_tools = [
+        str(item).strip()
+        for item in (body.tools or [])
+        if str(item).strip() and (str(item).strip() != "web_search" or web_search_available)
+    ]
     grounding_decision = build_grounding_decision(
         query=query,
         knowledge_bases=body.knowledge_bases,
@@ -904,7 +910,7 @@ def _build_mobile_turn_payload(
         tutorbot_context=True,
     )
     current_info_required = grounding_decision.current_info_required or grounding_decision.textbook_delta_query
-    if current_info_required and "web_search" not in requested_tools:
+    if current_info_required and web_search_available and "web_search" not in requested_tools:
         requested_tools.append("web_search")
 
     interaction_profile = str(body.interaction_profile or "tutorbot").strip() or "tutorbot"

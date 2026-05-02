@@ -158,6 +158,13 @@ function _conversationTimestamp(c) {
   );
 }
 
+function _conversationDisplayTime(c) {
+  var ts = _conversationTimestamp(c);
+  if (ts) return helpers.formatTime(ts);
+  c = c || {};
+  return helpers.formatTime(c.updated_at || c.created_at || c.rawTime || "");
+}
+
 function _joinSearchText(parts) {
   return parts
     .map(function (part) {
@@ -181,7 +188,7 @@ function _buildConversationItem(c) {
     id: c.id,
     title: _deriveConversationTitle(c.title, preview),
     preview: _clipText(preview, 72),
-    time: helpers.formatTime(updatedAt),
+    time: _conversationDisplayTime(c),
     rawTime: updatedAt,
     ts: _conversationTimestamp(c),
     archived: !!c.archived,
@@ -213,6 +220,7 @@ function _normalizeCachedConversationItem(item) {
   normalized.preview = _clipText(preview, 72);
   normalized.title = _deriveConversationTitle(normalized.title, preview);
   normalized.ts = _conversationTimestamp(normalized);
+  normalized.time = _conversationDisplayTime(normalized);
   normalized.modeLabel = _conversationModeLabel(normalized);
   if (normalized.capability) {
     normalized.capabilityLabel = _capabilityLabel(normalized.capability);

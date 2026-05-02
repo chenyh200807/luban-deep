@@ -84,6 +84,22 @@ var api = require("../utils/api");
 var endpoints = require("../utils/endpoints");
 var wsStream = require("../utils/ws-stream");
 
+assert(
+  wsStream.normalizeErrorMessage('HTTP_500: {"detail":"Internal Server Error"}') ===
+    "服务暂时不可用，请稍后重试",
+  "HTTP 500 details should not be exposed to users",
+);
+assert(
+  wsStream.normalizeErrorMessage("read_file path=\"/app/data/HEARTBEAT.md\"") ===
+    "服务暂时不可用，请稍后重试",
+  "internal file operation errors should not be exposed to users",
+);
+assert(
+  wsStream.normalizeErrorMessage("NETWORK_ERROR: request:fail timeout") ===
+    "请求超时，请稍后重试",
+  "network timeout should map to a user-facing message",
+);
+
 auth.getToken = function () {
   return "";
 };

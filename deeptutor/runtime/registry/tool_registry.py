@@ -70,10 +70,24 @@ class ToolRegistry:
 
     def get(self, name: str) -> BaseTool | None:
         resolved_name, _ = self._resolve_request(name)
-        return self._tools.get(resolved_name)
+        tool = self._tools.get(resolved_name)
+        if tool is None or not self._is_runtime_available(tool):
+            return None
+        return tool
 
     def list_tools(self) -> list[str]:
-        return list(self._tools.keys())
+        return [tool.name for tool in self._tools.values() if self._is_runtime_available(tool)]
+
+    def _is_runtime_available(self, tool: BaseTool) -> bool:
+        if tool.name != "web_search":
+            return True
+        try:
+            from deeptutor.services.search import is_web_search_runtime_available
+
+            return is_web_search_runtime_available()
+        except Exception:
+            logger.warning("Failed to resolve web_search runtime availability", exc_info=True)
+            return False
 
     def get_enabled(self, names: list[str]) -> list[BaseTool]:
         """Return tool instances for the given names (skipping unknown)."""
@@ -89,7 +103,11 @@ class ToolRegistry:
 
     def get_definitions(self, names: list[str] | None = None) -> list[ToolDefinition]:
         """Return definitions for *names* (or all if None)."""
-        tools = self._tools.values() if names is None else self.get_enabled(names)
+        tools = (
+            [tool for tool in self._tools.values() if self._is_runtime_available(tool)]
+            if names is None
+            else self.get_enabled(names)
+        )
         return [t.get_definition() for t in tools]
 
     def get_prompt_hints(
@@ -134,7 +152,7 @@ class ToolRegistry:
         """Resolve aliases, execute the tool, and return its ToolResult."""
         resolved_name, resolved_kwargs = self._resolve_request(name, kwargs)
         tool = self._tools.get(resolved_name)
-        if tool is None:
+        if tool is None or not self._is_runtime_available(tool):
             raise KeyError(f"Unknown tool: {name}")
         with observability.start_observation(
             name=f"tool.{resolved_name}",

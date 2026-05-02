@@ -14,7 +14,8 @@ from deeptutor.services.observability.langfuse_adapter import (
 
 
 class _FakeObservation:
-    def __init__(self) -> None:
+    def __init__(self, trace_id: str = "") -> None:
+        self.trace_id = trace_id
         self.updates: list[dict] = []
 
     def update(self, **kwargs) -> None:
@@ -110,6 +111,21 @@ class _FakeUsageLedger:
 
     def record_usage_event(self, **kwargs) -> None:
         self.calls.append(kwargs)
+
+
+def test_observation_trace_id_reads_langfuse_observation_identity() -> None:
+    adapter = LangfuseObservability()
+
+    assert adapter.observation_trace_id(_FakeObservation(trace_id="trace-direct-1")) == (
+        "trace-direct-1"
+    )
+
+
+def test_observation_trace_id_ignores_missing_or_noop_observation() -> None:
+    adapter = LangfuseObservability()
+
+    assert adapter.observation_trace_id(None) == ""
+    assert adapter.observation_trace_id(_FakeObservation()) == ""
 
 
 @contextmanager

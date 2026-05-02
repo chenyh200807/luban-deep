@@ -41,8 +41,8 @@ assert(
   "active summary should not expose backend record counts",
 );
 assert(
-  activeSummary.meta === "用到 知识库检索 · 深度推演",
-  "active summary meta should describe capabilities without backend wording",
+  activeSummary.meta === "",
+  "active summary meta should not expose tool or capability lists",
 );
 
 var completedSummary = workflowStatus.summarizeWorkflow(entries, false);
@@ -51,12 +51,52 @@ assert(
   "completed summary should not expose backend record counts",
 );
 assert(
-  completedSummary.meta === "用到 知识库检索 · 深度推演",
-  "completed summary meta should describe capabilities without backend wording",
+  completedSummary.meta === "",
+  "completed summary meta should not expose tool or capability lists",
 );
 assert(
   completedSummary.toggleText === "查看处理摘要",
   "completed summary should invite users to inspect a readable processing summary",
+);
+
+var internalToolEntry = workflowStatus.buildWorkflowEntry({
+  eventType: "tool_call",
+  content: "read_file",
+  seq: 3,
+  metadata: {
+    tool: "read_file",
+    args: { path: "/app/data/HEARTBEAT.md" },
+  },
+});
+var internalResultEntry = workflowStatus.buildWorkflowEntry({
+  eventType: "tool_result",
+  content: "exec",
+  seq: 4,
+  metadata: { tool: "exec" },
+});
+var internalSummary = workflowStatus.summarizeWorkflow(
+  [internalToolEntry, internalResultEntry],
+  false,
+);
+var internalSurface = JSON.stringify([internalToolEntry, internalResultEntry, internalSummary]);
+assert(
+  internalSurface.indexOf("read_file") === -1 && internalSurface.indexOf("exec") === -1,
+  "workflow entries should never expose internal tool names",
+);
+assert(
+  internalSurface.indexOf("HEARTBEAT") === -1 && internalSurface.indexOf("/app/data") === -1,
+  "workflow entries should never expose file paths or internal plan files",
+);
+
+var internalStatus = workflowStatus.normalizeWorkflowStatus(
+  'HTTP_500: {"detail":"Internal Server Error","path":"/app/data/HEARTBEAT.md"}',
+);
+var internalStatusSurface = JSON.stringify(internalStatus);
+assert(
+  internalStatusSurface.indexOf("HTTP_500") === -1 &&
+    internalStatusSurface.indexOf("Internal Server Error") === -1 &&
+    internalStatusSurface.indexOf("HEARTBEAT") === -1,
+  "workflow status should sanitize raw terminal/internal error strings",
 );
 
 if (fail) {

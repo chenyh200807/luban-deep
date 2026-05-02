@@ -5758,6 +5758,134 @@ async def test_turn_runtime_recovers_guided_plan_active_object_without_repassing
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_recovers_latest_user_plan_for_plan_request(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        def context_window_tokens(self, _llm_config) -> int:
+            return 8192
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=512,
+            )
+
+    class FakeLearningPlanService:
+        def list_plans(self):
+            return [
+                {
+                    "session_id": "other_user_plan",
+                    "user_id": "other_user",
+                    "status": "in_progress",
+                    "updated_at": 2000.0,
+                },
+                {
+                    "session_id": "plan_user_latest",
+                    "user_id": "student_demo",
+                    "status": "in_progress",
+                    "updated_at": 1000.0,
+                },
+            ]
+
+        def read_guided_session_view(self, plan_id: str):
+            if plan_id != "plan_user_latest":
+                return None
+            return {
+                "session_id": "plan_user_latest",
+                "user_id": "student_demo",
+                "status": "in_progress",
+                "current_index": 0,
+                "summary": "继续推进建筑构造专项训练。",
+                "notebook_id": "nb_demo",
+                "notebook_name": "建筑构造",
+                "progress": 30,
+                "ready_count": 1,
+                "page_count": 3,
+                "pages": [
+                    {
+                        "page_index": 0,
+                        "knowledge_title": "建筑构造专项训练",
+                        "knowledge_summary": "今天继续巩固建筑构造核心考点。",
+                        "user_difficulty": "medium",
+                    },
+                ],
+            }
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["user_message"] = context.user_message
+            captured["metadata"] = context.metadata
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="这是你的学习计划。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace(max_tokens=1024))
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.learning_plan.get_learning_plan_service",
+        lambda: FakeLearningPlanService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.context_sources.get_learning_plan_service",
+        lambda: FakeLearningPlanService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "继续我的学习计划",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "wx_miniprogram",
+                    "user_id": "student_demo",
+                }
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    metadata = captured["metadata"]
+    assert metadata["context_route"] == "guided_plan_continuation"
+    assert metadata["active_object"]["state_snapshot"]["plan_id"] == "plan_user_latest"
+    assert "active_plan" in metadata["loaded_sources"]
+    assert "建筑构造专项训练" in captured["user_message"]
+    assert "other_user_plan" not in str(captured["user_message"])
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_uses_user_scoped_learner_state_when_user_id_is_available(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

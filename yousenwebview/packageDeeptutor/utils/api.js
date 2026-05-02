@@ -32,7 +32,7 @@ function unwrapResponse(raw) {
 }
 
 function parseHttpError(message) {
-  var match = /^HTTP_(\d+):\s*(.*)$/.exec(String(message || ""));
+  var match = /^HTTP_(\d+)(?::\s*(.*))?$/.exec(String(message || ""));
   if (!match) {
     return { status: 0, payload: null, detailText: "" };
   }
@@ -52,6 +52,13 @@ function parseHttpError(message) {
     payload: payload,
     detailText: detailText,
   };
+}
+
+function createHttpError(statusCode) {
+  var status = Number(statusCode) || 0;
+  var err = new Error("HTTP_" + status);
+  err.statusCode = status;
+  return err;
 }
 
 function inspectRequestError(err) {
@@ -309,9 +316,7 @@ function rawRequest(opts) {
 
         if (res.statusCode === 401) {
           if (noAuth) {
-            reject(
-              new Error("HTTP_401: " + JSON.stringify(res.data)),
-            );
+            reject(createHttpError(401));
             return;
           }
           if (opts.skipAuthRefresh) {
@@ -361,9 +366,7 @@ function rawRequest(opts) {
           return;
         }
 
-        reject(
-          new Error("HTTP_" + res.statusCode + ": " + JSON.stringify(res.data)),
-        );
+        reject(createHttpError(res.statusCode));
       },
       fail: function (err) {
         if (err.errMsg && err.errMsg.includes("abort")) {

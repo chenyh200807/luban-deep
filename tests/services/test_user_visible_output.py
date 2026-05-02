@@ -41,6 +41,15 @@ def test_coerce_user_visible_answer_blocks_tool_command_leakage() -> None:
     assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
 
 
+def test_coerce_user_visible_answer_blocks_learning_plan_file_leakage() -> None:
+    text = (
+        "我来帮你查看当前的学习计划。首先让我检查一下是否有HEARTBEAT.md文件，"
+        "然后读取 workspace 里的计划配置。"
+    )
+    assert looks_like_internal_output(text) is True
+    assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
 def test_coerce_user_visible_answer_blocks_rag_xml_and_provider_errors() -> None:
     rag_text = "<rags>{\"query\":\"防水等级\",\"results\":[]}</rags>"
     provider_error = "{'error': {'code': 'InternalError.Algo.DataInspectionFailed'}}"

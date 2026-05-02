@@ -35,6 +35,12 @@ function _looksEnglishStatus(text) {
   return /[A-Za-z]/.test(source) && !_hasChinese(source);
 }
 
+function _looksInternalStatus(text) {
+  return /HTTP_?\d+|Internal Server Error|provider error|raw provider|DataInspectionFailed|Authentication Fails|api key|read_file|write_file|list_dir|HEARTBEAT|traceback|stack trace|workspace/i.test(
+    _safeString(text),
+  );
+}
+
 function _truncate(text, limit) {
   var source = _safeString(text);
   var max = Number(limit || 0) || 0;
@@ -59,12 +65,13 @@ function _dedupe(items) {
   return next;
 }
 
-function _humanizeToolName(name) {
+function _safeToolLabel(name) {
   var toolName = _safeString(name);
-  var mapped = TOOL_LABELS[toolName];
-  if (mapped) return mapped;
-  if (!toolName) return "后台能力";
-  return toolName.replace(/_/g, " ");
+  return TOOL_LABELS[toolName] || "";
+}
+
+function _displayToolLabel(name) {
+  return _safeToolLabel(name) || "资料整理";
 }
 
 function _pickArgPreview(args) {
@@ -406,6 +413,14 @@ function _translateEnglishStatus(text) {
 
 function _normalizeUnknownHeader(raw) {
   var text = String(raw || "");
+  if (_looksInternalStatus(text)) {
+    return {
+      badge: "AI 正在处理",
+      headline: STAGE_COPY._default.headline,
+      subline: STAGE_COPY._default.subline,
+      tone: "analyze",
+    };
+  }
   var translated = _translateEnglishStatus(text);
   if (translated) {
     return {
@@ -486,7 +501,7 @@ function normalizeWorkflowStatus(payload) {
     var copy = TOOL_COPY[toolName] || TOOL_COPY._default;
     return {
       badge: copy.badge,
-      headline: _humanizeToolName(toolName) + " 已返回",
+      headline: _displayToolLabel(toolName) + " 已完成",
       subline: "结果已经拿到，正在吸收进最终回答。",
       tone: copy.tone,
     };
@@ -522,24 +537,25 @@ function buildWorkflowEntry(payload) {
     _extractToolName(statusText);
   var normalized = normalizeWorkflowStatus(source);
   var preview = _pickArgPreview(args);
-  var toolLabel = toolName ? _humanizeToolName(toolName) : "";
+  var toolLabel = toolName ? _safeToolLabel(toolName) : "";
+  var displayToolLabel = toolName ? _displayToolLabel(toolName) : "";
   var title = normalized.headline;
   var detail = normalized.subline;
 
   if (source.data === "slow_response") {
     detail = "复杂问题需要更多推理时间，马上就好。";
   } else if (eventType === "tool_call") {
-    title = "已启动 " + (toolLabel || "后台能力");
+    title = "正在进行" + (displayToolLabel || "资料整理");
     detail = preview
       ? "本轮关注点：" + preview
       : "正在补这一环所需的证据、推导或外部信息。";
   } else if (eventType === "tool_result") {
-    title = (toolLabel || "后台能力") + " 已返回结果";
+    title = (displayToolLabel || "资料整理") + " 已完成";
     detail = "这一环的结果已经进入答案整理阶段。";
   }
 
   return {
-    id: "wf_" + (seq || Date.now()) + "_" + eventType + "_" + (toolName || source.stage || "step"),
+    id: "wf_" + (seq || Date.now()) + "_" + eventType + "_" + (toolLabel || source.stage || "step"),
     seq: seq,
     eventType: eventType,
     badge: normalized.badge,
@@ -607,15 +623,12 @@ function summarizeWorkflow(entries, active) {
     : toolLabels.length
       ? "已完成证据检索、推导校验和答案组织，可查看简要摘要。"
       : "处理已经完成，可查看简要摘要。";
-  var metaParts = [];
-  if (toolLabels.length) metaParts.push("用到 " + toolLabels.slice(0, 3).join(" · "));
-
   return {
     badge: active ? latest.badge : "处理摘要",
     headline: summaryHeadline,
     subline: summarySubline,
     tone: active ? latest.tone : latest.tone || "compose",
-    meta: metaParts.join("  "),
+    meta: "",
     countText: "",
     toggleText: "查看处理摘要",
     active: !!active,

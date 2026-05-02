@@ -462,6 +462,37 @@ class LangfuseObservability:
         self._init_error_logged = False
         self._usage_ledger = get_usage_ledger()
 
+    @staticmethod
+    def observation_trace_id(observation: Any) -> str:
+        if observation is None or isinstance(observation, _NoopObservation):
+            return ""
+
+        for attr in ("trace_id", "traceId"):
+            value = getattr(observation, attr, "")
+            if callable(value):
+                try:
+                    value = value()
+                except Exception:
+                    value = ""
+            trace_id = str(value or "").strip()
+            if trace_id:
+                return trace_id
+
+        trace_context = getattr(observation, "trace_context", None)
+        if isinstance(trace_context, dict):
+            trace_id = str(
+                trace_context.get("trace_id") or trace_context.get("traceId") or ""
+            ).strip()
+            if trace_id:
+                return trace_id
+        elif trace_context is not None:
+            for attr in ("trace_id", "traceId"):
+                trace_id = str(getattr(trace_context, attr, "") or "").strip()
+                if trace_id:
+                    return trace_id
+
+        return ""
+
     def is_enabled(self) -> bool:
         return _env_flag("LANGFUSE_ENABLED", False)
 

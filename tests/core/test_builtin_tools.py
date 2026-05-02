@@ -190,6 +190,18 @@ def test_code_execution_tool_strips_markdown_fences() -> None:
     assert CodeExecutionTool._strip_markdown_fences(fenced) == "print(7)"
 
 
+def test_tool_registry_filters_disabled_web_search(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.services.search.get_current_config",
+        lambda: {"enabled": False, "provider_status": "disabled"},
+    )
+    registry = ToolRegistry()
+    registry.register(WebSearchTool())
+
+    assert registry.get_enabled(["web_search"]) == []
+    assert registry.build_openai_schemas(["web_search"]) == []
+
+
 @pytest.mark.asyncio
 async def test_reason_tool_passes_llm_arguments(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, Any] = {}

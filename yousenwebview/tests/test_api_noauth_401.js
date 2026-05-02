@@ -23,7 +23,7 @@ function flushPromises() {
 
 function loadApiModule() {
   var source = fs.readFileSync(
-    path.join(__dirname, "../utils/api.js"),
+    path.join(__dirname, "../packageDeeptutor/utils/api.js"),
     "utf8",
   );
   var clearCount = 0;
@@ -38,11 +38,6 @@ function loadApiModule() {
     setTimeout: setTimeout,
     clearTimeout: clearTimeout,
     Promise: Promise,
-    getApp: function () {
-      return {
-        globalData: {},
-      };
-    },
     require: function (request) {
       if (request === "./auth") {
         return {
@@ -65,14 +60,18 @@ function loadApiModule() {
           rememberWorkingBaseUrl: function () {},
         };
       }
+      if (request === "./runtime") {
+        return {
+          redirectToLogin: function () {
+            relaunchCount++;
+          },
+        };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {
       request: function (options) {
         requestOptions = options;
-      },
-      reLaunch: function () {
-        relaunchCount++;
       },
     },
     module: { exports: {} },
@@ -80,7 +79,7 @@ function loadApiModule() {
   };
 
   vm.runInNewContext(source, sandbox, {
-    filename: "utils/api.js",
+    filename: "packageDeeptutor/utils/api.js",
   });
 
   return {

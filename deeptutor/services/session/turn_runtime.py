@@ -9,6 +9,7 @@ import contextlib
 import json
 import logging
 import os
+import re
 import sqlite3
 import time
 from collections.abc import AsyncIterator
@@ -143,6 +144,41 @@ def _safe_terminal_assistant_content(
     ) or fallback
 
 
+def _looks_like_learning_plan_request(text: str | None) -> bool:
+    source = re.sub(r"\s+", "", str(text or "").strip().lower())
+    if not source:
+        return False
+    if any(marker in source for marker in ("学习计划", "继续学习", "按计划", "学习进度")):
+        return True
+    return "计划" in source and any(marker in source for marker in ("我的", "学习", "继续", "查看", "看看"))
+
+
+def _resolve_latest_user_learning_plan_id(user_id: str) -> str:
+    normalized_user_id = str(user_id or "").strip()
+    if not normalized_user_id:
+        return ""
+    try:
+        from deeptutor.services.learning_plan import get_learning_plan_service
+
+        plans = get_learning_plan_service().list_plans()
+    except Exception:
+        logger.debug("Failed to list learning plans for active plan recovery", exc_info=True)
+        return ""
+    for plan in plans:
+        if not isinstance(plan, dict):
+            continue
+        plan_user_id = str(plan.get("user_id") or "").strip()
+        if plan_user_id != normalized_user_id:
+            continue
+        status = str(plan.get("status") or "").strip().lower()
+        if status in {"deleted", "archived"}:
+            continue
+        plan_id = str(plan.get("session_id") or "").strip()
+        if plan_id:
+            return plan_id
+    return ""
+
+
 def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]) -> dict[str, Any]:
     if _event_visibility(event) != _PUBLIC_VISIBILITY:
         return metadata
@@ -200,12 +236,42 @@ def _build_terminal_turn_observation_event(
         status=status,
         capability=capability_name or "chat",
         route=metadata["context_route"] or metadata["execution_engine"],
+        trace_id=str(trace_metadata.get("trace_id") or "").strip(),
         surface=str(trace_metadata.get("source") or "").strip(),
         user_id=str(trace_metadata.get("user_id") or "").strip(),
         latency_ms=duration_ms,
         token_total=int(usage.get("total_tokens") or 0),
         error_type=status if status not in {"completed", "unknown"} else "",
         metadata=metadata,
+    )
+
+
+def _append_trace_link_event(
+    assistant_events: list[dict[str, Any]],
+    *,
+    session_id: str,
+    turn_id: str,
+    trace_id: str,
+) -> None:
+    normalized_trace_id = str(trace_id or "").strip()
+    if not normalized_trace_id:
+        return
+    assistant_events.append(
+        {
+            "type": "trace_link",
+            "source": "turn_runtime",
+            "stage": "observability",
+            "content": "",
+            "metadata": {
+                "session_id": session_id,
+                "turn_id": turn_id,
+                "trace_id": normalized_trace_id,
+            },
+            "session_id": session_id,
+            "turn_id": turn_id,
+            "trace_id": normalized_trace_id,
+            "visibility": _INTERNAL_VISIBILITY,
+        }
     )
 
 
@@ -2778,11 +2844,14 @@ class TurnRuntimeManager:
                 )
                 stored_active_object = None
                 stored_object_type = ""
+            resolved_user_id = str((billing_context or {}).get("user_id", "") or "").strip()
             active_plan_id = (
                 self._resolve_active_plan_id(request_config, notebook_references)
                 or _active_object_plan_id(stored_active_object)
                 or _suspended_stack_plan_id(stored_suspended_object_stack)
             )
+            if not active_plan_id and _looks_like_learning_plan_request(raw_user_content):
+                active_plan_id = _resolve_latest_user_learning_plan_id(resolved_user_id)
             plan_active_object = None
             if active_plan_id:
                 try:
@@ -2987,6 +3056,20 @@ class TurnRuntimeManager:
                     metadata=trace_metadata,
                 )
                 turn_observation = turn_observation_cm.__enter__()
+                observation_trace_id = ""
+                trace_id_reader = getattr(observability, "observation_trace_id", None)
+                if callable(trace_id_reader):
+                    observation_trace_id = str(
+                        trace_id_reader(turn_observation) or ""
+                    ).strip()
+                if observation_trace_id:
+                    trace_metadata["trace_id"] = observation_trace_id
+                    _append_trace_link_event(
+                        assistant_events,
+                        session_id=session_id,
+                        turn_id=turn_id,
+                        trace_id=observation_trace_id,
+                    )
             except Exception:
                 if turn_observation_cm is not None:
                     with contextlib.suppress(Exception):

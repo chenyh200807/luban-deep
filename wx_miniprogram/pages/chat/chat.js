@@ -24,16 +24,10 @@ var HERO_VIBRATE_THRESHOLD_PX = 40; // Hero 拖拽震动阈值
 var SCROLL_TOGGLE_COOLDOWN_MS = 300; // 滚动切换 tab bar 冷却
 var VIEWPORT_MARGIN_PX = 600; // IntersectionObserver 上下扩展边距
 var CHAT_TOOL_PREFS_KEY = "chat_tool_prefs";
+var WEB_SEARCH_AVAILABLE = false;
 var NAVBAR_INNER_HEIGHT_RPX = 88;
 var _IS_DEVTOOLS =
   typeof __wxConfig !== "undefined" && __wxConfig.platform === "devtools";
-var AUTO_WEB_SEARCH_PATTERNS = [
-  /(最新|最近|当前|现行|今年|本月|本周|今天|近期)/,
-  /(新规|新版|新政策|政策调整|政策变化|新通知|新公告|新文件)/,
-  /(政策|通知|公告|通告|发文|实施时间|什么时候实施|何时实施)/,
-  /(住建部|住房和城乡建设部|建标|国标|地标|规范更新|标准更新)/,
-  /(202[4-9]|20[3-9]\d).{0,12}(政策|规范|标准|通知|公告|文件|变化|更新)?/,
-];
 
 function hasAssessmentSignal(raw) {
   var assessment = unwrap(raw) || raw || {};
@@ -1343,9 +1337,9 @@ Page({
 
   onToggleWebSearch: function () {
     helpers.vibrate("light");
-    var nextWebSearch = !this.data.enableWebSearch;
-    this._saveToolPrefs(this.data.enableReason, nextWebSearch);
-    this.setData({ enableWebSearch: nextWebSearch });
+    this._saveToolPrefs(this.data.enableReason, false);
+    this.setData({ enableWebSearch: false });
+    wx.showToast({ title: "联网搜索暂未开放", icon: "none", duration: 1800 });
   },
 
   _saveToolPrefs: function (enableReason, enableWebSearch) {
@@ -1356,18 +1350,13 @@ Page({
   },
 
   _shouldAutoEnableWebSearch: function (query) {
-    var text = String(query || "").trim();
-    if (!text) return false;
-    for (var i = 0; i < AUTO_WEB_SEARCH_PATTERNS.length; i++) {
-      if (AUTO_WEB_SEARCH_PATTERNS[i].test(text)) return true;
-    }
     return false;
   },
 
   _getSelectedTools: function (query) {
     var tools = [];
     if (this.data.enableReason) tools.push("reason");
-    if (this.data.enableWebSearch || this._shouldAutoEnableWebSearch(query)) {
+    if (WEB_SEARCH_AVAILABLE && (this.data.enableWebSearch || this._shouldAutoEnableWebSearch(query))) {
       tools.push("web_search");
     }
     return tools;
@@ -1510,7 +1499,8 @@ Page({
 
   _doSend: function (query, extraOpts) {
     var self = this;
-    var autoWebSearch = !self.data.enableWebSearch && self._shouldAutoEnableWebSearch(query);
+    var autoWebSearch =
+      WEB_SEARCH_AVAILABLE && !self.data.enableWebSearch && self._shouldAutoEnableWebSearch(query);
     var selectedTools = self._getSelectedTools(query);
 
     if (!self._sid && self._convId) {
@@ -1586,13 +1576,6 @@ Page({
       scrollToId: "msg-bottom",
       chatScrollWithAnimation: false,
     });
-    if (autoWebSearch) {
-      wx.showToast({
-        title: "检测到时效性问题，已自动联网",
-        icon: "none",
-        duration: 1800,
-      });
-    }
     // 建立 IntersectionObserver 懒解析（延迟一帧确保 DOM 已渲染）
     var setupSelf = self;
     setTimeout(function () {

@@ -70,17 +70,6 @@ function loadPage(relativePath, overrides) {
           },
         };
       }
-      if (request === "../../utils/route") {
-        return {
-          chat: function () {
-            return "/packageDeeptutor/pages/chat/chat";
-          },
-          resolveInternalUrl: function (_value, fallback) {
-            return fallback;
-          },
-        };
-      }
-      if (request === "../../utils/analytics") return { track: function () {} };
       throw new Error("unexpected require: " + request);
     },
     wx: {
@@ -91,7 +80,9 @@ function loadPage(relativePath, overrides) {
         modalCalls.push(options || {});
       },
       navigateTo: function () {},
-      reLaunch: function () {},
+      navigateBack: function () {},
+      switchTab: function () {},
+      redirectTo: function () {},
     },
     Page: function (def) {
       pageDef = def;
@@ -120,10 +111,7 @@ function loadPage(relativePath, overrides) {
 }
 
 (async function main() {
-  var pageFiles = [
-    "packageDeeptutor/pages/login/login.js",
-    "packageDeeptutor/pages/login/manual.js",
-  ];
+  var pageFiles = ["pages/login/login.js", "pages/login/manual.js"];
 
   await run("sms send success should show immediate success feedback", async function () {
     for (var i = 0; i < pageFiles.length; i++) {

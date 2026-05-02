@@ -110,7 +110,7 @@ module.exports = {
 	          <text class="tool-chip-icon">◎</text>
 	          <text class="tool-chip-txt">推理</text>
 	        </view>
-	        <text class="tool-hint">知识库检索默认自动开启，时效性问题会自动联网</text>
+	        <text class="tool-hint">知识库检索默认自动开启，联网搜索暂未开放</text>
 	      </view>
 	    </view>
 
@@ -576,7 +576,7 @@ module.exports = {
 	          <text class="tool-chip-icon">◎</text>
 	          <text class="tool-chip-txt">推理</text>
 	        </view>
-	        <text class="tool-hint">知识库检索默认自动开启，时效性问题会自动联网</text>
+	        <text class="tool-hint">知识库检索默认自动开启，联网搜索暂未开放</text>
 	      </view>
 	    </view>
 	  </view>

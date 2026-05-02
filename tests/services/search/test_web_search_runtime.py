@@ -25,6 +25,19 @@ class _FakeProvider:
         )
 
 
+def test_web_search_disabled_by_default(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.services.search._get_web_search_config",
+        lambda: {},
+    )
+
+    result = web_search("hello")
+
+    assert result["provider"] == "disabled"
+    assert result["citations"] == []
+    assert result["search_results"] == []
+
+
 def test_web_search_rejects_deprecated_provider(monkeypatch) -> None:
     monkeypatch.setattr(
         "deeptutor.services.search._get_web_search_config",
@@ -63,14 +76,7 @@ def test_web_search_perplexity_missing_key_hard_fails(monkeypatch) -> None:
         web_search("hello")
 
 
-def test_web_search_missing_key_falls_back_to_duckduckgo(monkeypatch) -> None:
-    captured: dict[str, object] = {}
-
-    def _fake_get_provider(name: str, **kwargs):
-        captured["provider"] = name
-        captured["kwargs"] = kwargs
-        return _FakeProvider(name)
-
+def test_web_search_missing_key_hard_fails_without_duckduckgo_fallback(monkeypatch) -> None:
     monkeypatch.setattr(
         "deeptutor.services.search._get_web_search_config",
         lambda: {"enabled": True},
@@ -87,13 +93,9 @@ def test_web_search_missing_key_falls_back_to_duckduckgo(monkeypatch) -> None:
         ),
     )
     monkeypatch.setattr("deeptutor.services.search._resolve_provider_key", lambda _p, _k: "")
-    monkeypatch.setattr("deeptutor.services.search.get_provider", _fake_get_provider)
-    result = web_search("hello")
-    assert captured["provider"] == "duckduckgo"
-    assert result["provider"] == "duckduckgo"
-    kwargs = captured["kwargs"]
-    assert kwargs["proxy"] == "http://127.0.0.1:7890"
-    assert kwargs["max_results"] == 3
+
+    with pytest.raises(ValueError, match="brave requires api_key"):
+        web_search("hello")
 
 
 def test_web_search_searxng_uses_base_url(monkeypatch) -> None:

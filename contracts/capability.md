@@ -28,6 +28,7 @@
 9. 请求里的 `capability` 只允许作为 hint；最终写入 turn/session 的 capability 必须是 orchestrator runtime-resolved canonical capability，不能把 request hint 当成持久化真相。
 10. adapter 可以做 presentation / timestamp / conversation read-model 装配，但不得在装配层重新决定 capability、改写 canonical final answer、或把 presentation blocks 当作 capability 执行结果的新 authority；adapter 输出必须来自 runtime-resolved turn/session/message 真相。
 11. `exam_track` 这类领域上下文只能作为 request config / interaction_hints / metadata 的 scoped input 进入 orchestrator 和 capability；它不得改变 capability 选择权威，也不得被 adapter 用来创建平行 capability。
+12. capability 只能看到 runtime 当前可用的工具；`web_search` 关闭或未配置时，registry 必须把它从 schema、prompt hints 和 enabled tools 中过滤掉。
 
 ## Schema
 

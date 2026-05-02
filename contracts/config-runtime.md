@@ -22,6 +22,8 @@
 3. “空值”“未设置”“显式禁用”三种语义必须统一解释。
 4. 新增 provider 或配置源时，必须写清优先级和回退规则。
 5. 线上与本地的配置行为必须由同一套 runtime 代码解释。
+6. `tools.web_search.enabled` 是联网搜索的唯一总开关；未显式开启时必须 fail-closed。
+7. `web_search` provider 未配置、缺少 API key 或缺少 `base_url` 时，不得隐式 fallback 到其他联网 provider。
 
 ## 必测项
 
