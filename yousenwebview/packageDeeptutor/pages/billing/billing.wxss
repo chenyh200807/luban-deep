@@ -35,10 +35,23 @@
   flex-shrink: 1;
 }
 
-.nav-logo {
-  height: 76rpx;
-  display: block;
+.nav-logo-shell {
+  width: 58rpx;
+  height: 58rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #0b1224, #13233d);
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10rpx 22rpx rgba(0, 0, 0, 0.22);
   flex-shrink: 0;
+}
+
+.nav-logo {
+  width: 36rpx;
+  height: 36rpx;
+  display: block;
 }
 
 .nav-brand-copy {
@@ -575,8 +588,10 @@
   color: #334155;
 }
 
-.billing-page.light .nav-logo {
-  filter: brightness(0);
+.billing-page.light .nav-logo-shell {
+  background: linear-gradient(145deg, #111827, #263248);
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10rpx 24rpx rgba(30, 41, 59, 0.16);
 }
 
 .billing-page.light .hero-shell {

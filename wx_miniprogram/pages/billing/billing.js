@@ -24,24 +24,30 @@ Page({
     packages: [
       {
         id: "trial",
+        label: "轻量体验",
         points: 100,
         price: "9",
         per: "约 10 次标准问答",
         badge: "尝鲜",
+        desc: "适合先体验答疑、解析和日常提问",
       },
       {
         id: "advance",
+        label: "进阶主力",
         points: 1200,
         price: "99",
         per: "约 120 次标准问答",
         badge: "推荐",
+        desc: "适合大多数备考阶段，高频问答和复盘更从容",
       },
       {
         id: "sprint",
+        label: "冲刺强化",
         points: 2600,
         price: "199",
         per: "约 260 次标准问答",
         badge: "冲刺",
+        desc: "适合考前冲刺、密集刷题和深度推理",
       },
     ],
   },
@@ -178,10 +184,12 @@ function _normalizePackages(packages) {
     .map(function (item) {
       return {
         id: String(item.id),
+        label: item.label || item.name || _packageLabel(item.id, item.points),
         points: Number(item.points) || 0,
         price: String(item.price),
         per: item.per || "",
         badge: item.badge || "",
+        desc: item.desc || item.per || "智力点可用于 AI 答疑、解析与学习规划",
       };
     });
 }
@@ -190,6 +198,16 @@ function _hasPackage(packages, id) {
   return packages.some(function (item) {
     return item.id === id;
   });
+}
+
+function _packageLabel(id, points) {
+  var map = {
+    starter: "轻量体验",
+    standard: "标准套餐",
+    pro: "进阶主力",
+    ultimate: "冲刺强化",
+  };
+  return map[id] || points + " 点套餐";
 }
 
 function _formatTime(isoStr) {
