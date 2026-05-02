@@ -56,20 +56,29 @@ Component({
       this.refreshState(payload);
     },
     switchTab(e) {
-      var idx = e.currentTarget.dataset.index;
+      var idx = Number(e.currentTarget.dataset.index);
       if (idx === this.data.selected) return;
       var item = this.data.list[idx];
       if (!item || !item.pagePath) return;
       var current = this.data.list[this.data.selected];
+      var previousSelected = this.data.selected;
+      this.setData({ selected: idx });
       if (current && current.pagePath) {
         runtime.setWorkspaceBack(current.pagePath, current.text);
       } else {
         runtime.clearWorkspaceBack();
       }
-      wx.reLaunch({
+      var self = this;
+      wx.redirectTo({
         url: item.pagePath,
         fail: function () {
-          console.warn("[TabBar] relaunch failed:", item.pagePath);
+          wx.reLaunch({
+            url: item.pagePath,
+            fail: function () {
+              self.setData({ selected: previousSelected });
+              console.warn("[TabBar] navigation failed:", item.pagePath);
+            },
+          });
         },
       });
     },

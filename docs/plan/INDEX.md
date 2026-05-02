@@ -29,7 +29,7 @@
 | 钱包与会员 authority | [2026-04-19-supabase-wallet-single-authority-prd.md](2026-04-19-supabase-wallet-single-authority-prd.md) | Supabase wallet、积分、会员、支付状态、身份归一化 |
 | 生产部署 | [2026-04-19-deeptutor-50000-member-deployment-prd.md](2026-04-19-deeptutor-50000-member-deployment-prd.md) | 5 万会员部署、扩容、上线稳健性 |
 | Observability 与 release gate | [2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md](2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md) | OM/ARR/AAE/OA、trace、surface ACK、release gate |
-| 鲁班智考个性化教学 | [2026-04-20-luban-adaptive-teaching-intelligence-prd.md](2026-04-20-luban-adaptive-teaching-intelligence-prd.md) | 因材施教、Learner Core、Teaching Policy、显性诊断 |
+| 鲁班智考个性化教学 | [2026-04-20-luban-adaptive-teaching-intelligence-prd.md](2026-04-20-luban-adaptive-teaching-intelligence-prd.md) / [2026-05-02-luban-assessment-blueprint-prd.md](2026-05-02-luban-assessment-blueprint-prd.md) | 因材施教、Learner Core、Teaching Policy、显性诊断、摸底测评蓝图 |
 | 鲁班智考反馈 Top10 修复 | [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md) / [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | 运营反馈问题注册表、Langfuse/后台证据、Top10 root-cause 分批修复 |
 | Benchmark 主脊梁 | [2026-04-23-deeptutor-benchmark-single-spine-prd.md](2026-04-23-deeptutor-benchmark-single-spine-prd.md) | benchmark、daily/gate/incident、质量单一主脊梁 |
 | 建筑实务 AI 互动课堂 | [../openmaic/建筑实务AI互动课堂_架构与实施收口_v1.2.md](../openmaic/建筑实务AI互动课堂_架构与实施收口_v1.2.md) | OpenMAIC 体验对标、Lesson IR、微信小程序主表面、互动课堂生成、审核、导出、质量工厂 |
@@ -101,6 +101,7 @@
 | --- | --- | --- | --- |
 | [2026-04-20-luban-adaptive-teaching-intelligence-prd.md](2026-04-20-luban-adaptive-teaching-intelligence-prd.md) | PRD | 未标注 | 因材施教智能体、显性个性化导师、Teaching Policy。 |
 | [2026-04-20-teaching-methods-matrix-prd.md](2026-04-20-teaching-methods-matrix-prd.md) | PRD | Draft v1 | Teaching Methods Matrix，定义“施教层”的方法选择。 |
+| [2026-05-02-luban-assessment-blueprint-prd.md](2026-05-02-luban-assessment-blueprint-prd.md) | PRD | Proposed v1 | Assessment Blueprint，定义 Supabase 题库抽样、心理/学习习惯/教学偏好 probes、计分分层与 release gate。 |
 | [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md) | Issue register | Draft | 从 DOCX/PPTX 原始使用反馈合并出的 Top10 问题域，用作后续分组修复的用户反馈 authority。 |
 | [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | Root-cause fix plan | Draft | 运营反馈与线上证据汇总出的 Top10 问题；Batch 1-4、2026-04-25 Batch A-H 已实施，继续收口练题结构化 config、SMS 真实送达、干净 DevTools/真机慢请求取消和移动端交互矩阵。 |
 
@@ -139,6 +140,7 @@
 - [2026-04-20-teaching-methods-matrix-prd.md](2026-04-20-teaching-methods-matrix-prd.md)
 - [2026-04-23-deeptutor-benchmark-single-spine-prd.md](2026-04-23-deeptutor-benchmark-single-spine-prd.md)
 - [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md)
+- [2026-05-02-luban-assessment-blueprint-prd.md](2026-05-02-luban-assessment-blueprint-prd.md)
 
 ### Service Design / Schema Appendix
 

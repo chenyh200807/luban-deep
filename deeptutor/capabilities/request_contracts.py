@@ -15,7 +15,11 @@ from deeptutor.agents.research.request_config import (
 )
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 
-_RUNTIME_ONLY_KEYS = {"_persist_user_message", "followup_question_context"}
+_RUNTIME_ONLY_KEYS = {
+    "_persist_user_message",
+    "client_turn_id",
+    "followup_question_context",
+}
 
 
 class ChatRequestConfig(BaseModel):

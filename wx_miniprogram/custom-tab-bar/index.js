@@ -32,12 +32,17 @@ Component({
   },
   methods: {
     switchTab(e) {
-      var idx = e.currentTarget.dataset.index;
+      var idx = Number(e.currentTarget.dataset.index);
+      if (idx === this.data.selected) return;
       var item = this.data.list[idx];
       if (!item || !item.pagePath) return;
+      var previousSelected = this.data.selected;
+      this.setData({ selected: idx });
+      var self = this;
       wx.switchTab({
         url: item.pagePath,
         fail: function () {
+          self.setData({ selected: previousSelected });
           console.warn("[TabBar] switchTab failed:", item.pagePath);
         },
       });
