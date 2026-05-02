@@ -89,6 +89,7 @@ function loadHistoryPage(rawConversations, initialStorage) {
     if (key === "data") return;
     page[key] = pageDef[key];
   });
+  page._testStorage = storage;
   return page;
 }
 
@@ -209,6 +210,50 @@ function loadHistoryPage(rawConversations, initialStorage) {
   assert(cachedPage.data.stats.weekCount === 1, "cached rawTime should be migrated into the week count");
   assert(cachedItem.time !== "1/21 21:36", "cached stale card time should be recomputed from canonical rawTime");
   assert(cachedItem.time === "fmt:" + Math.floor(nowMs / 1000) * 1000, "cached seconds rawTime should be formatted as milliseconds");
+
+  var deletedPage = loadHistoryPage(
+    [
+      {
+        id: "deleted_after_ack",
+        title: "已删除但服务端旧列表仍返回",
+        capability: "chat",
+        source: "wx_miniprogram",
+        status: "completed",
+        message_count: 1,
+        updated_at_ms: nowMs,
+        last_message: "这条不应重新出现",
+      },
+      {
+        id: "visible_after_refresh",
+        title: "保留对话",
+        capability: "chat",
+        source: "wx_miniprogram",
+        status: "completed",
+        message_count: 1,
+        updated_at_ms: nowMs,
+        last_message: "这条应该保留",
+      },
+    ],
+    {
+      history_deleted_conversation_ids: {
+        deleted_after_ack: nowMs,
+      },
+    },
+  );
+
+  await deletedPage._fetchFromServer(false);
+  await Promise.resolve();
+
+  assert(
+    deletedPage.data.conversations.length === 1 &&
+      deletedPage.data.conversations[0].id === "visible_after_refresh",
+    "history refresh should not resurrect a conversation after delete was acknowledged",
+  );
+  assert(
+    deletedPage._testStorage.history_cache.conversations.length === 1 &&
+      deletedPage._testStorage.history_cache.conversations[0].id === "visible_after_refresh",
+    "history cache should also exclude deleted tombstone conversations",
+  );
 
   if (fail) {
     console.error(errors.join("\n"));

@@ -74,6 +74,8 @@ function _displayToolLabel(name) {
   return _safeToolLabel(name) || "资料整理";
 }
 
+var MAX_VISIBLE_WORKFLOW_STEPS = 5;
+
 function _pickArgPreview(args) {
   var source = args && typeof args === "object" ? args : {};
   var keys = [
@@ -226,9 +228,9 @@ var TOOL_COPY = {
     tone: "search",
   },
   web_search: {
-    badge: "联网扩展",
-    headline: "正在补充最新外部信息",
-    subline: "用来核对时效性信息、政策变化和外部事实。",
+    badge: "资料核对",
+    headline: "正在核对外部资料线索",
+    subline: "只在需要时核对时效性事实、政策变化和外部资料。",
     tone: "search",
   },
   reason: {
@@ -247,38 +249,38 @@ var TOOL_COPY = {
 
 var STAGE_COPY = {
   analyze: {
-    badge: "理解问题",
+    badge: "识别题型",
     headline: "正在识别题型和关键条件",
-    subline: "先判断你真正要问的点，再选择合适的解答路径。",
+    subline: "先判断考点、题型和已知条件，再选择合适的解题路径。",
     tone: "analyze",
   },
   thinking: {
-    badge: "理解问题",
+    badge: "识别题型",
     headline: "正在识别题型和关键条件",
-    subline: "先判断你真正要问的点，再选择合适的解答路径。",
+    subline: "先判断考点、题型和已知条件，再选择合适的解题路径。",
     tone: "analyze",
   },
   plan: {
-    badge: "拆解步骤",
-    headline: "正在梳理解题顺序和关键判断点",
-    subline: "会先搭好回答骨架，避免遗漏条件和边界。",
+    badge: "搭建框架",
+    headline: "正在搭建考试作答结构",
+    subline: "先把解题顺序、关键判断点和得分表达搭起来。",
     tone: "plan",
   },
   acting: {
-    badge: "调取能力",
-    headline: "正在调用更合适的能力链路",
-    subline: "后台会补证据、做核对，再把结果送回答案组织阶段。",
+    badge: "核对依据",
+    headline: "正在核对教材、规范和必要依据",
+    subline: "把关键依据补齐后，再继续整理成可得分的回答。",
     tone: "plan",
   },
   observing: {
-    badge: "综合判断",
-    headline: "正在整合证据并排除冲突",
-    subline: "把检索结果、条件边界和中间结论合并起来再判断。",
+    badge: "复核结论",
+    headline: "正在复核条件边界和易错点",
+    subline: "把依据、条件和中间结论合在一起，排除明显冲突。",
     tone: "compose",
   },
   responding: {
-    badge: "组织答案",
-    headline: "正在整理最终回答",
+    badge: "组织作答",
+    headline: "正在整理成考试作答结构",
     subline: "把结论、依据和记忆点压缩成更好吸收的表达。",
     tone: "compose",
   },
@@ -290,13 +292,13 @@ var STAGE_COPY = {
   },
   tool: TOOL_COPY._default,
   generate: {
-    badge: "深度推演",
-    headline: "正在逐步推导和验证",
-    subline: "会多角度交叉验证，确保结论站得住脚。",
+    badge: "推导核验",
+    headline: "正在逐步推导和检查易错点",
+    subline: "会复核条件、单位、边界和结论可靠性。",
     tone: "compose",
   },
   agent: {
-    badge: "综合判断",
+    badge: "形成判断",
     headline: "正在整合线索并形成判断",
     subline: "会顺手复核条件冲突、易混点和作答边界。",
     tone: "compose",
@@ -308,9 +310,9 @@ var STAGE_COPY = {
     tone: "review",
   },
   synthesize: {
-    badge: "收尾整合",
+    badge: "收束表达",
     headline: "正在整合已有分析内容",
-    subline: "把已完成的部分组织好，确保结论完整。",
+    subline: "把已完成的部分组织好，确保结论完整、表达清楚。",
     tone: "compose",
   },
   retry: {
@@ -327,14 +329,14 @@ var STAGE_COPY = {
   },
   complete: {
     badge: "完成",
-    headline: "处理完成",
+    headline: "学习处理已完成",
     subline: "",
     tone: "compose",
   },
   _default: {
     badge: "AI 正在分析",
     headline: "正在分析你的问题",
-    subline: "先抓住核心条件，再调取依据并组织回答。",
+    subline: "先抓住核心条件，再核对依据并组织回答。",
     tone: "analyze",
   },
 };
@@ -372,12 +374,12 @@ var EN_STATUS_COPY = [
   },
   {
     re: /tool|function\s+call|calling/i,
-    headline: "正在调用后台能力补充证据",
+    headline: "正在补充关键依据",
     detail: "先把必要依据补齐，再继续组织最终回答。",
   },
   {
     re: /synthesi(?:s|zing)|summari(?:s|z)(?:e|ing)|organi(?:s|z)(?:e|ing)|draft(?:ing)?|respond(?:ing)?|writ(?:e|ing)/i,
-    headline: "正在整理最终回答",
+    headline: "正在整理成考试作答结构",
     detail: "把结论、依据和记忆点压缩成更好吸收的表达。",
   },
   {
@@ -392,7 +394,7 @@ var EN_STATUS_COPY = [
   },
   {
     re: /complete(?:d)?|done|finish(?:ed|ing)?/i,
-    headline: "后台处理已完成",
+    headline: "学习处理已完成",
     detail: "必要证据和推导已经补齐，正在准备给你最终结果。",
   },
 ];
@@ -575,7 +577,7 @@ function appendWorkflowEntry(existingEntries, payload) {
     for (var i = 0; i < entries.length; i++) {
       if (Number(entries[i].seq || 0) === nextSeq) {
         entries[i] = nextEntry;
-        return entries;
+        return _compactWorkflowEntries(entries);
       }
     }
   }
@@ -587,11 +589,19 @@ function appendWorkflowEntry(existingEntries, payload) {
     entries[entries.length - 1].detail === nextEntry.detail
   ) {
     entries[entries.length - 1] = nextEntry;
-    return entries;
+    return _compactWorkflowEntries(entries);
   }
 
   entries.push(nextEntry);
-  return entries;
+  return _compactWorkflowEntries(entries);
+}
+
+function _compactWorkflowEntries(entries) {
+  var list = Array.isArray(entries) ? entries.slice() : [];
+  if (list.length <= MAX_VISIBLE_WORKFLOW_STEPS) return list;
+  var first = list[0];
+  var tail = list.slice(list.length - (MAX_VISIBLE_WORKFLOW_STEPS - 1));
+  return [first].concat(tail);
 }
 
 function summarizeWorkflow(entries, active) {
@@ -621,15 +631,15 @@ function summarizeWorkflow(entries, active) {
   var summarySubline = active
     ? latest.detail
     : toolLabels.length
-      ? "已完成证据检索、推导校验和答案组织，可查看简要摘要。"
-      : "处理已经完成，可查看简要摘要。";
+      ? "已完成题型识别、依据核对、推导校验和作答整理。"
+      : "已完成题型识别和答案组织，可查看简要摘要。";
   return {
     badge: active ? latest.badge : "处理摘要",
     headline: summaryHeadline,
     subline: summarySubline,
     tone: active ? latest.tone : latest.tone || "compose",
     meta: "",
-    countText: "",
+    countText: !active && toolLabels.length ? "已核对：" + toolLabels.slice(0, 3).join("、") : "",
     toggleText: "查看处理摘要",
     active: !!active,
   };

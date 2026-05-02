@@ -1029,7 +1029,7 @@ class MemberConsoleService:
                 "study_days": 91,
                 "review_due": 1,
                 "focus_topic": "施工组织设计",
-                "focus_query": "继续我的学习计划",
+                "focus_query": "请根据我的学习记录和最近进度，围绕施工组织设计安排下一步学习推进：先判断我当前更适合知识讲解、例题带练、错因复盘还是少量自测，再用建筑实务考试口径展开；不要默认生成整套训练题，也不要提前假设我的阶段层级。",
                 "exam_date": "2026-11-08",
                 "daily_target": 50,
                 "difficulty_preference": "hard",
@@ -3536,6 +3536,7 @@ class MemberConsoleService:
             "due_today": 1 if member["review_due"] else 0,
         }
         snapshot = self._read_learner_snapshot(user_id, event_limit=20)
+        heartbeat_context = self._read_home_heartbeat_context(user_id)
         study_plan = self._build_home_study_plan(
             member,
             weak_nodes=weak_nodes,
@@ -3549,6 +3550,7 @@ class MemberConsoleService:
             review=review,
             snapshot=snapshot,
             study_plan=study_plan,
+            heartbeat_context=heartbeat_context,
         )
         return {
             "review": review,
@@ -3576,6 +3578,59 @@ class MemberConsoleService:
             )
             return None
 
+    def _read_home_heartbeat_context(self, user_id: str) -> dict[str, Any]:
+        context: dict[str, Any] = {"jobs": [], "history": [], "workspace_tasks": []}
+        try:
+            learner_state_service = self._get_learner_state_service()
+            context["jobs"] = [
+                self._serialize_heartbeat_job(job)
+                for job in list(learner_state_service.list_heartbeat_jobs(user_id) or [])
+            ]
+            context["history"] = list(learner_state_service.list_heartbeat_history(user_id, limit=3) or [])
+        except Exception:
+            logger.warning("Failed to load heartbeat context for home dashboard: user_id=%s", user_id, exc_info=True)
+        context["workspace_tasks"] = self._read_home_heartbeat_workspace_tasks()
+        return context
+
+    def _read_home_heartbeat_workspace_tasks(self) -> list[str]:
+        default_bot_id = (list(CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids or []) or ["construction-exam-coach"])[0]
+        heartbeat_path = (
+            get_path_service().project_root
+            / "data"
+            / "tutorbot"
+            / default_bot_id
+            / "workspace"
+            / "HEARTBEAT.md"
+        )
+        if not heartbeat_path.exists():
+            return []
+        try:
+            return self._extract_heartbeat_active_tasks(heartbeat_path.read_text(encoding="utf-8"))
+        except Exception:
+            logger.warning("Failed to read workspace HEARTBEAT.md tasks: path=%s", heartbeat_path, exc_info=True)
+            return []
+
+    @staticmethod
+    def _extract_heartbeat_active_tasks(content: str) -> list[str]:
+        tasks: list[str] = []
+        in_active = False
+        in_comment = False
+        for raw_line in str(content or "").splitlines():
+            line = raw_line.strip()
+            if "<!--" in line:
+                in_comment = True
+            if line.startswith("## "):
+                in_active = line == "## Active Tasks"
+                if line == "## Completed":
+                    break
+            if in_active and not in_comment and line.startswith("- "):
+                task = line[2:].strip()
+                if task:
+                    tasks.append(task)
+            if "-->" in line:
+                in_comment = False
+        return tasks
+
     def _build_home_today_focus(
         self,
         member: dict[str, Any],
@@ -3584,28 +3639,48 @@ class MemberConsoleService:
         review: dict[str, Any],
         snapshot: Any | None = None,
         study_plan: dict[str, Any] | None = None,
+        heartbeat_context: dict[str, Any] | None = None,
     ) -> dict[str, str]:
         plan = dict(study_plan or {})
         profile = dict(getattr(snapshot, "profile", {}) or {}) if snapshot is not None else {}
-        focus_topic = str(
-            plan.get("focus_topic") or profile.get("focus_topic") or member.get("focus_topic") or ""
-        ).strip()
+        progress = dict(getattr(snapshot, "progress", {}) or {}) if snapshot is not None else {}
+        focus_topic = self._pick_home_focus_topic(
+            plan=plan,
+            profile=profile,
+            progress=progress,
+            summary=str(getattr(snapshot, "summary", "") or "") if snapshot is not None else "",
+            member=member,
+            weak_nodes=weak_nodes,
+        )
         focus_query = str(profile.get("focus_query") or member.get("focus_query") or "").strip()
+        if self._is_generic_focus_query(focus_query):
+            focus_query = ""
         priority_task = str(plan.get("priority_task") or "").strip()
         time_budget = str(plan.get("time_budget") or "").strip()
         overdue = max(0, int(review.get("overdue") or 0))
         due_today = max(0, int(review.get("due_today") or 0))
+        heartbeat_context = dict(heartbeat_context or {})
+        heartbeat_signal = self._has_home_heartbeat_signal(heartbeat_context)
         source = "learner_state.study_plan" if snapshot is not None else "member_console.study_plan"
+        if heartbeat_signal:
+            source = f"{source}+heartbeat"
 
         if overdue > 0:
             meta = f"{overdue} 个知识点 · 今天先过一遍"
             if time_budget:
                 meta = f"{meta} · {time_budget}"
+            if heartbeat_signal:
+                meta = f"{meta} · 结合复习节奏"
             return {
                 "label": "今日焦点",
                 "title": "优先处理逾期复习",
                 "meta": meta,
-                "query": "帮我复习逾期的知识点",
+                "query": self._build_adaptive_focus_query(
+                    focus_topic,
+                    reason="review_due",
+                    heartbeat_context=heartbeat_context,
+                ),
+                "topic": focus_topic,
                 "tone": "review",
                 "reason": "review_due",
                 "source": source,
@@ -3624,16 +3699,25 @@ class MemberConsoleService:
                     str(item or "").strip()
                     for item in list(knowledge_map.get("weak_points") or [])
                     if str(item or "").strip()
-                )
+            )
             tone = "practice" if focus_topic in weak_names else "plan"
             if not focus_query:
-                focus_query = f"我想练习{focus_topic}相关的题目"
-            meta = priority_task or time_budget or "按当前学习计划继续"
+                focus_query = self._build_adaptive_focus_query(
+                    focus_topic,
+                    reason="learner_state_focus",
+                    heartbeat_context=heartbeat_context,
+                )
+            meta = self._build_adaptive_focus_meta(
+                priority_task=priority_task,
+                time_budget=time_budget,
+                heartbeat_context=heartbeat_context,
+            )
             return {
                 "label": "今日焦点",
-                "title": f"继续推进{focus_topic}专项训练",
+                "title": f"推进{focus_topic}下一步学习",
                 "meta": meta,
                 "query": focus_query,
+                "topic": focus_topic,
                 "tone": tone,
                 "reason": "learner_state_focus",
                 "source": source,
@@ -3643,8 +3727,13 @@ class MemberConsoleService:
             return {
                 "label": "今日焦点",
                 "title": "先完成今天的复习任务",
-                "meta": "清掉今日待复习内容，再继续练题",
-                "query": "帮我复习今天需要回看的知识点",
+                "meta": "结合复习任务，动态选择讲解/例题/复盘/自测",
+                "query": self._build_adaptive_focus_query(
+                    focus_topic,
+                    reason="review_due_today",
+                    heartbeat_context=heartbeat_context,
+                ),
+                "topic": focus_topic,
                 "tone": "review",
                 "reason": "review_due_today",
                 "source": source,
@@ -3652,13 +3741,164 @@ class MemberConsoleService:
 
         return {
             "label": "今日焦点",
-            "title": "保持节奏，继续推进学习计划",
-            "meta": time_budget or "按当前进度继续",
-            "query": "继续我的学习计划",
+            "title": "按当前状态推进建筑实务",
+            "meta": "根据学习记录，动态选择讲解/例题/复盘/自测",
+            "query": self._build_adaptive_focus_query("", reason="fallback"),
+            "topic": "建筑实务",
             "tone": "plan",
-            "reason": "fallback_plan",
+            "reason": "fallback_adaptive",
             "source": source,
         }
+
+    @staticmethod
+    def _normalize_home_focus_topic(value: Any) -> str:
+        topic = str(value or "").strip().strip("。；;，,")
+        if not topic:
+            return ""
+        generic_topics = {
+            "今天先稳住基础节奏",
+            "保持节奏，继续推进",
+            "建筑实务入门导学",
+            "建筑实务入门诊断",
+            "入门摸底",
+        }
+        return "" if topic in generic_topics else topic
+
+    def _pick_home_focus_topic(
+        self,
+        *,
+        plan: dict[str, Any],
+        profile: dict[str, Any],
+        progress: dict[str, Any],
+        summary: str,
+        member: dict[str, Any],
+        weak_nodes: list[dict[str, Any]],
+    ) -> str:
+        candidates: list[Any] = [
+            plan.get("focus_topic"),
+            profile.get("focus_topic"),
+            self._extract_focus_topic_from_progress(progress),
+            self._extract_focus_topic_from_summary(summary),
+            member.get("focus_topic"),
+        ]
+        candidates.extend(item.get("name") for item in weak_nodes[:1])
+        for candidate in candidates:
+            topic = self._normalize_home_focus_topic(candidate)
+            if topic:
+                return topic
+        return ""
+
+    @staticmethod
+    def _extract_focus_topic_from_progress(progress: dict[str, Any]) -> str:
+        knowledge_map = dict(progress.get("knowledge_map") or {})
+        weak_points = list(knowledge_map.get("weak_points") or [])
+        for item in weak_points:
+            topic = str(item or "").strip()
+            if topic:
+                return topic
+        chapters = list(knowledge_map.get("chapters") or progress.get("chapters") or [])
+        chapter_candidates: list[tuple[float, str]] = []
+        for item in chapters:
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get("chapter_name") or item.get("name") or "").strip()
+            if not name:
+                continue
+            total = float(item.get("total") or 0)
+            done = float(item.get("done") or 0)
+            ratio = done / total if total > 0 else 1.0
+            chapter_candidates.append((ratio, name))
+        if chapter_candidates:
+            chapter_candidates.sort(key=lambda item: item[0])
+            return chapter_candidates[0][1]
+        return ""
+
+    @staticmethod
+    def _extract_focus_topic_from_summary(summary: str) -> str:
+        text = str(summary or "")
+        patterns = (
+            r"当前聚焦[:：]\s*([^\n。；;]+)",
+            r"上次建议复习[:：]\s*([^\n。；;]+)",
+            r"优先复习[“\"]?([^”\"\n。；;]+)",
+        )
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if not match:
+                continue
+            topic = match.group(1).strip().strip("“”\"'。；;，,")
+            if topic:
+                return topic
+        return ""
+
+    @staticmethod
+    def _has_home_heartbeat_signal(heartbeat_context: dict[str, Any]) -> bool:
+        jobs = [item for item in list(heartbeat_context.get("jobs") or []) if str(item.get("status") or "") == "active"]
+        history = list(heartbeat_context.get("history") or [])
+        workspace_tasks = list(heartbeat_context.get("workspace_tasks") or [])
+        return bool(jobs or history or workspace_tasks)
+
+    def _build_adaptive_focus_meta(
+        self,
+        *,
+        priority_task: str,
+        time_budget: str,
+        heartbeat_context: dict[str, Any],
+    ) -> str:
+        base = time_budget or "按当前学习记录推进"
+        if self._has_home_heartbeat_signal(heartbeat_context):
+            return f"{base} · 结合复习节奏动态选择方式"
+        if priority_task:
+            return "结合当前进度动态选择讲解/例题/复盘/自测"
+        return f"{base} · 动态选择讲解/例题/复盘/自测"
+
+    @staticmethod
+    def _is_generic_focus_query(value: str | None) -> bool:
+        normalized = re.sub(r"\s+", "", str(value or "").strip())
+        if not normalized:
+            return True
+        if "学习计划" in normalized:
+            return True
+        if normalized.startswith("继续巩固"):
+            return True
+        if (
+            "安排5道" in normalized
+            or "专项训练题" in normalized
+            or "相关题目" in normalized
+            or "知识点梳理" in normalized
+        ):
+            return True
+        return normalized in {"继续我的计划", "继续计划", "继续学习", "按计划继续", "帮我做一次入门摸底测试"}
+
+    @staticmethod
+    def _build_adaptive_focus_query(
+        topic: str,
+        *,
+        reason: str = "learner_state_focus",
+        heartbeat_context: dict[str, Any] | None = None,
+    ) -> str:
+        focus = str(topic or "").strip()
+        context_hint = "请根据我的学习记录、最近进度"
+        heartbeat_context = dict(heartbeat_context or {})
+        if (
+            list(heartbeat_context.get("jobs") or [])
+            or list(heartbeat_context.get("history") or [])
+            or list(heartbeat_context.get("workspace_tasks") or [])
+        ):
+            context_hint += "和周期复习节奏"
+        if reason in {"review_due", "review_due_today"}:
+            return (
+                f"{context_hint}，帮我处理今天该复习的建筑实务内容：先判断我更适合知识讲解、例题带练、"
+                "错因复盘还是少量自测，再用考试口径推进；不要默认生成整套训练题，也不要提前假设我的阶段层级。"
+            )
+        if not focus:
+            return (
+                f"{context_hint}，帮我判断今天最该推进哪一块建筑实务内容：可以在知识讲解、例题带练、"
+                "错因复盘、少量自测中选择最合适方式；不要默认出整套题，也不要提前假设我的阶段层级。"
+            )
+        return (
+            f"{context_hint}，围绕{focus}安排下一步学习推进：先判断我当前更适合知识讲解、例题带练、"
+            "错因复盘还是少量自测，再用建筑实务考试口径展开；不要默认生成整套训练题，也不要提前假设我的阶段层级。"
+        )
 
     def _build_home_study_plan(
         self,
@@ -3671,7 +3911,7 @@ class MemberConsoleService:
     ) -> dict[str, str]:
         learning = learning or self._ensure_learning_profile(member)
         focus_topic = str(member.get("focus_topic") or "").strip()
-        focus_hint = f"继续推进 {focus_topic} 的专项训练" if focus_topic else ""
+        focus_hint = f"讲清 {focus_topic} 的核心考点" if focus_topic else ""
         today_done = int(learning["daily_counts"].get(_date_key()) or 0)
         daily_target = int(member.get("daily_target") or 0)
         weak_names = [item.get("name") for item in weak_nodes[:3] if str(item.get("name") or "").strip()]

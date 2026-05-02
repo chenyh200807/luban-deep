@@ -28,6 +28,30 @@ var WEB_SEARCH_AVAILABLE = false;
 var NAVBAR_INNER_HEIGHT_RPX = 88;
 var _IS_DEVTOOLS =
   typeof __wxConfig !== "undefined" && __wxConfig.platform === "devtools";
+var HISTORY_CACHE_KEY = "history_cache";
+var HISTORY_CACHE_KEY_ARCHIVED = "history_cache_archived";
+var HISTORY_DELETED_IDS_KEY = "history_deleted_conversation_ids";
+
+function rememberDeletedConversationIds(ids) {
+  try {
+    var existing = wx.getStorageSync(HISTORY_DELETED_IDS_KEY) || [];
+    var map = {};
+    existing.forEach(function (id) {
+      if (id) map[id] = true;
+    });
+    ids.forEach(function (id) {
+      if (id) map[id] = true;
+    });
+    wx.setStorageSync(HISTORY_DELETED_IDS_KEY, Object.keys(map));
+  } catch (_) {}
+}
+
+function clearConversationHistoryCaches() {
+  try {
+    wx.removeStorageSync(HISTORY_CACHE_KEY);
+    wx.removeStorageSync(HISTORY_CACHE_KEY_ARCHIVED);
+  } catch (_) {}
+}
 
 function hasAssessmentSignal(raw) {
   var assessment = unwrap(raw) || raw || {};
@@ -36,6 +60,43 @@ function hasAssessmentSignal(raw) {
   if (level) return true;
   if (!chapterMastery || typeof chapterMastery !== "object") return false;
   return Object.keys(chapterMastery).length > 0;
+}
+
+function isGenericFocusQuery(query) {
+  var normalized = String(query || "").replace(/\s+/g, "");
+  if (!normalized) return true;
+  if (normalized.indexOf("学习计划") >= 0) return true;
+  if (normalized.indexOf("继续巩固") === 0) return true;
+  return ["继续我的计划", "继续计划", "继续学习", "按计划继续"].indexOf(normalized) >= 0;
+}
+
+function extractFocusTopic(title) {
+  var text = String(title || "").replace(/^今日焦点[:：]\s*/, "").trim();
+  text = text
+    .replace(/^推进\s*/, "")
+    .replace(/^讲清\s*/, "")
+    .replace(/^梳理\s*/, "")
+    .replace(/^继续推进\s*/, "")
+    .replace(/\s*下一步学习$/, "")
+    .replace(/\s*核心考点$/, "")
+    .replace(/\s*的?专项训练$/, "")
+    .replace(/^先做\s*/, "")
+    .replace(/\s+/g, "");
+  if (!text || text === "保持节奏，继续推进" || text === "按当前状态推进建筑实务") return "建筑实务";
+  return text;
+}
+
+function buildFocusQuery(focus, title) {
+  var payload = focus && typeof focus === "object" ? focus : {};
+  var query = String(payload.query || "");
+  if (!isGenericFocusQuery(query)) return query;
+  var topic = String(payload.topic || payload.focus_topic || "").trim() || extractFocusTopic(title);
+  if (!topic) topic = "建筑实务";
+  return (
+    "请根据我的学习记录和最近进度，围绕" +
+    topic +
+    "安排下一步学习推进：先判断我当前更适合知识讲解、例题带练、错因复盘还是少量自测，再用建筑实务考试口径展开；不要默认生成整套训练题，也不要提前假设我的阶段层级。"
+  );
 }
 
 Page({
@@ -1221,11 +1282,11 @@ Page({
         update.focusLabel = String(focus.label || "今日焦点");
         update.focusTone = String(focus.tone || "plan");
         update.focusTitle = String(
-          focus.title || today.hint || "保持节奏，继续推进学习计划",
+          focus.title || today.hint || "按当前状态推进建筑实务",
         ).replace(/^今日焦点[:：]\s*/, "");
-        update.focusMeta = String(focus.meta || "按当前进度继续");
+        update.focusMeta = String(focus.meta || "根据学习记录，动态选择讲解/例题/复盘/自测");
         update.focusText = update.focusTitle;
-        update.focusQuery = String(focus.query || "继续我的学习计划");
+        update.focusQuery = buildFocusQuery(focus, update.focusTitle);
 
         self.setData(update);
       })
@@ -1234,10 +1295,11 @@ Page({
         // 降级：仍显示默认焦点条
         self.setData({
           focusTone: "plan",
-          focusTitle: "保持节奏，继续推进学习计划",
-          focusMeta: "按当前进度继续",
-          focusText: "保持节奏，继续推进学习计划",
-          focusQuery: "继续我的学习计划",
+          focusTitle: "按当前状态推进建筑实务",
+          focusMeta: "根据学习记录，动态选择讲解/例题/复盘/自测",
+          focusText: "按当前状态推进建筑实务",
+          focusQuery:
+            "请根据我的学习记录和最近进度，帮我判断今天最该推进哪一块建筑实务内容：可以在知识讲解、例题带练、错因复盘、少量自测中选择最合适方式；不要默认出整套题，也不要提前假设我的阶段层级。",
         });
       });
   },
@@ -1522,7 +1584,7 @@ Page({
       mcqHint: "",
       mcqReceipt: "",
       mcqInteractiveReady: false,
-      thinkingStatus: "AI 正在准备...",
+      thinkingStatus: "正在分析你的问题...",
       thinkingBadge: "",
       thinkingSub: "",
       thinkingTone: "",
@@ -1845,6 +1907,90 @@ Page({
   onNavBackTap: function () {
     helpers.vibrate("light");
     this.goHome();
+  },
+
+  _currentConversationIdForManage: function () {
+    if (this.data.isStreaming) {
+      wx.showToast({ title: "回答中暂不能操作", icon: "none" });
+      return "";
+    }
+    var convId = String(this._convId || "").trim();
+    if (!convId) {
+      wx.showToast({ title: "当前对话尚未保存", icon: "none" });
+      return "";
+    }
+    return convId;
+  },
+
+  onChatMoreActions: function () {
+    var self = this;
+    helpers.vibrate("light");
+    if (!this._currentConversationIdForManage()) return;
+    wx.showActionSheet({
+      itemList: ["归档对话", "删除对话"],
+      success: function (res) {
+        if (res.tapIndex === 0) {
+          self.archiveCurrentConversation();
+        } else if (res.tapIndex === 1) {
+          self.deleteCurrentConversation();
+        }
+      },
+    });
+  },
+
+  archiveCurrentConversation: function () {
+    var convId = this._currentConversationIdForManage();
+    if (!convId) return;
+    var self = this;
+    wx.showModal({
+      title: "归档对话",
+      content: "归档后可在「历史-已归档」中查看和恢复。",
+      confirmText: "归档",
+      success: function (res) {
+        if (!res.confirm) return;
+        wx.showLoading({ title: "归档中..." });
+        api
+          .batchConversations("archive", [convId])
+          .then(function () {
+            wx.hideLoading();
+            clearConversationHistoryCaches();
+            wx.showToast({ title: "已归档", icon: "success" });
+            self.goHome();
+          })
+          .catch(function () {
+            wx.hideLoading();
+            wx.showToast({ title: "归档失败", icon: "none" });
+          });
+      },
+    });
+  },
+
+  deleteCurrentConversation: function () {
+    var convId = this._currentConversationIdForManage();
+    if (!convId) return;
+    var self = this;
+    wx.showModal({
+      title: "删除对话",
+      content: "确定要删除这条对话记录吗？删除后不可恢复。",
+      confirmColor: "#ef4444",
+      success: function (res) {
+        if (!res.confirm) return;
+        wx.showLoading({ title: "删除中..." });
+        api
+          .deleteConversation(convId)
+          .then(function () {
+            wx.hideLoading();
+            rememberDeletedConversationIds([convId]);
+            clearConversationHistoryCaches();
+            wx.showToast({ title: "已删除", icon: "success" });
+            self.goHome();
+          })
+          .catch(function () {
+            wx.hideLoading();
+            wx.showToast({ title: "删除失败", icon: "none" });
+          });
+      },
+    });
   },
 
   goProfile: function () {

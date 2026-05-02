@@ -104,6 +104,13 @@ function loadChatSource() {
   );
 }
 
+function loadWorkflowSource() {
+  return fs.readFileSync(
+    path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"),
+    "utf8",
+  );
+}
+
 function loadWsStream() {
   var source = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/utils/ws-stream.js"),
@@ -144,6 +151,19 @@ run("chat page should label workflow as processing summary", function () {
   assert(source.indexOf("收起后台过程") === -1, "chat page should not mention collapsing backend process");
 });
 
+run("workflow copy should use student-facing learning progress wording", function () {
+  var chatSource = loadChatSource();
+  var workflowSource = loadWorkflowSource();
+  var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
+  var summary = workflowStatus.summarizeWorkflow([], true);
+
+  assert(chatSource.indexOf("AI 正在准备") === -1, "chat page should not seed preparation wording");
+  assert(chatSource.indexOf("AI 正在分析你的问题...") !== -1, "chat page should seed active analysis wording");
+  assert(workflowSource.indexOf("后台") === -1, "workflow copy should not expose backend wording");
+  assert(summary.badge === "AI 正在分析", "default workflow badge should feel already in progress");
+  assert(summary.headline === "正在分析你的问题", "default workflow headline should be learner-facing");
+});
+
 run("internal thinking status should be sanitized before entering workflow trace", function () {
   var wsStream = loadWsStream();
   var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
@@ -159,7 +179,7 @@ run("internal thinking status should be sanitized before entering workflow trace
 
   assert(payload.content === "", "internal thinking payload content should be stripped");
   assert(payload.data === "responding", "internal thinking payload should fall back to stage name");
-  assert(entry.title === "正在整理最终回答", "workflow entry should use safe stage summary");
+  assert(entry.title === "正在整理成考试作答结构", "workflow entry should use safe stage summary");
   assert(!entry.rawText, "workflow entry should not expose raw internal thinking text");
 });
 
@@ -197,7 +217,7 @@ run("workflow trace should accept stage and tool events from ws stream", functio
   var toolResultEntry = workflowStatus.buildWorkflowEntry(toolResultPayload);
 
   assert(stagePayload.seq === 11, "stage payload should keep server seq");
-  assert(stageEntry.title === "正在整理最终回答", "stage_start should restore responding stage wording");
+  assert(stageEntry.title === "正在整理成考试作答结构", "stage_start should restore responding stage wording");
   assert(toolCallEntry.title === "正在进行知识库检索", "tool_call should appear as workflow progress");
   assert(toolResultEntry.title === "知识库检索 已完成", "tool_result should appear as workflow progress");
   assert(!toolCallEntry.rawText, "tool_call should not expose JSON args in user-visible workflow");
@@ -220,6 +240,24 @@ run("workflow trace should accept stage and tool events from ws stream", functio
   var internalStatusSurface = JSON.stringify(internalStatus);
   assert(internalStatusSurface.indexOf("HTTP_500") === -1, "workflow should hide raw HTTP errors");
   assert(internalStatusSurface.indexOf("HEARTBEAT") === -1, "workflow should hide internal file paths in status");
+});
+
+run("workflow trace should stay compact and show reliability summary", function () {
+  var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
+  var entries = [];
+  for (var i = 0; i < 8; i++) {
+    entries = workflowStatus.appendWorkflowEntry(entries, {
+      eventType: i % 2 ? "tool_result" : "tool_call",
+      toolName: i % 2 ? "grade_answer" : "rag",
+      seq: i + 1,
+      metadata: { args: { query: "建筑实务案例题第" + i + "步" } },
+    });
+  }
+  var summary = workflowStatus.summarizeWorkflow(entries, false);
+
+  assert(entries.length <= 5, "workflow trace should compact to at most five visible learning steps");
+  assert(summary.subline.indexOf("题型识别") >= 0, "completed summary should explain learning progress");
+  assert(summary.countText.indexOf("已核对：") === 0, "completed summary should include a reliability cue");
 });
 
 run("workflow summary should use active analysis wording by default", function () {

@@ -47,8 +47,8 @@ assert(
 
 var completedSummary = workflowStatus.summarizeWorkflow(entries, false);
 assert(
-  completedSummary.countText === "",
-  "completed summary should not expose backend record counts",
+  completedSummary.countText === "已核对：知识库检索、深度推演",
+  "completed summary should expose a learner-facing reliability cue",
 );
 assert(
   completedSummary.meta === "",

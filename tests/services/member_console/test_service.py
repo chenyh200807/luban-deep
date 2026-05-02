@@ -590,15 +590,139 @@ def test_home_dashboard_today_focus_uses_learner_state_focus_as_single_projectio
 
     dashboard = service.get_home_dashboard("focus_user")
 
+    expected_query = "请根据我的学习记录、最近进度，围绕建筑构造安排下一步学习推进：先判断我当前更适合知识讲解、例题带练、错因复盘还是少量自测，再用建筑实务考试口径展开；不要默认生成整套训练题，也不要提前假设我的阶段层级。"
     assert dashboard["today_focus"] == {
         "label": "今日焦点",
-        "title": "继续推进建筑构造专项训练",
-        "meta": dashboard["study_plan"]["priority_task"],
-        "query": "继续巩固建筑构造",
+        "title": "推进建筑构造下一步学习",
+        "meta": "结合当前进度动态选择讲解/例题/复盘/自测",
+        "query": expected_query,
+        "topic": "建筑构造",
         "tone": "practice",
         "reason": "learner_state_focus",
         "source": "learner_state.study_plan",
     }
+    assert "学习计划" not in dashboard["today_focus"]["query"]
+    assert "专项训练题" not in dashboard["today_focus"]["query"]
+    assert "5道" not in dashboard["today_focus"]["query"]
+    assert "入门" not in dashboard["today_focus"]["query"]
+
+
+def test_home_dashboard_today_focus_never_uses_generic_learning_plan_query(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("generic_focus_user")
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "generic_focus_user"
+            return type(
+                "Snapshot",
+                (),
+                {
+                    "profile": {
+                        "focus_topic": "建筑构造",
+                        "focus_query": "继续我的学习计划",
+                    },
+                    "progress": {
+                        "today": {"today_done": 0, "daily_target": 5},
+                        "knowledge_map": {
+                            "weak_points": ["建筑构造"],
+                        },
+                    },
+                    "memory_events": [],
+                },
+            )()
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    dashboard = service.get_home_dashboard("generic_focus_user")
+
+    assert dashboard["today_focus"]["title"] == "推进建筑构造下一步学习"
+    assert dashboard["today_focus"]["query"] == "请根据我的学习记录、最近进度，围绕建筑构造安排下一步学习推进：先判断我当前更适合知识讲解、例题带练、错因复盘还是少量自测，再用建筑实务考试口径展开；不要默认生成整套训练题，也不要提前假设我的阶段层级。"
+    assert "学习计划" not in dashboard["today_focus"]["query"]
+    assert "专项训练题" not in dashboard["today_focus"]["query"]
+    assert "5道" not in dashboard["today_focus"]["query"]
+    assert "入门" not in dashboard["today_focus"]["query"]
+
+
+def test_home_dashboard_today_focus_incorporates_heartbeat_without_making_it_authority(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("heartbeat_focus_user")
+
+    def _apply(data: dict[str, object]) -> None:
+        for member in data["members"]:
+            if member["user_id"] != "heartbeat_focus_user":
+                continue
+            member["focus_topic"] = ""
+            member["focus_query"] = "继续我的学习计划"
+            member["review_due"] = 0
+            break
+
+    service._mutate(_apply)
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "heartbeat_focus_user"
+            return type(
+                "Snapshot",
+                (),
+                {
+                    "profile": {},
+                    "summary": "## 当前学习概览\n- 当前聚焦：防水工程\n",
+                    "progress": {
+                        "today": {"today_done": 2, "daily_target": 8},
+                        "knowledge_map": {"weak_points": ["防水工程"]},
+                    },
+                    "memory_events": [],
+                },
+            )()
+
+        def list_heartbeat_jobs(self, user_id: str):
+            assert user_id == "heartbeat_focus_user"
+            now = datetime(2026, 5, 2, 15, 0, tzinfo=timezone(timedelta(hours=8)))
+            return [
+                SimpleNamespace(
+                    job_id="hb-1",
+                    user_id=user_id,
+                    bot_id="construction-exam-coach",
+                    channel="heartbeat",
+                    policy_json={"cadence": "daily"},
+                    next_run_at=now + timedelta(days=1),
+                    last_run_at=now - timedelta(days=1),
+                    last_result_json={},
+                    failure_count=0,
+                    status="active",
+                    created_at=now - timedelta(days=10),
+                    updated_at=now,
+                )
+            ]
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 3):
+            assert user_id == "heartbeat_focus_user"
+            return [
+                {
+                    "memory_kind": "heartbeat_delivery",
+                    "payload_json": {"delivery": {"message": "本周继续跟进防水工程易错点"}},
+                }
+            ]
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    dashboard = service.get_home_dashboard("heartbeat_focus_user")
+
+    assert dashboard["today_focus"]["title"] == "推进防水工程下一步学习"
+    assert dashboard["today_focus"]["topic"] == "防水工程"
+    assert dashboard["today_focus"]["source"] == "learner_state.study_plan+heartbeat"
+    assert "周期复习节奏" in dashboard["today_focus"]["query"]
+    assert "整套训练题" in dashboard["today_focus"]["query"]
+    assert "阶段层级" in dashboard["today_focus"]["query"]
 
 
 @pytest.mark.asyncio

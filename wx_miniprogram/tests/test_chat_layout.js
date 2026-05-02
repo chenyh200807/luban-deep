@@ -72,13 +72,30 @@ assert(
   "chat.wxml should enable a compact logo in chat mode",
 );
 assert(
+  chatWxml.indexOf("class=\"nav-logo {{hasMessages ? 'nav-logo-chat' : ''}}\"") <
+    chatWxml.indexOf("class=\"nav-back-pill\""),
+  "chat navbar should place the logo before the back-home pill",
+);
+assert(
   /showInternalStatus:\s*true/.test(chatJs),
   "chat.js should default workflow status panels to visible during streaming",
 );
 assert(
-  chatWxml.indexOf("nav-points-pill") >= 0 &&
+  chatWxml.indexOf('class="nav-points-pill" wx:if="{{!hasMessages}}"') >= 0 &&
     chatWxml.indexOf("{{userPoints}}") >= 0,
-  "chat navbar should keep showing the current points balance",
+  "chat navbar should show points only before entering the message scene",
+);
+assert(
+  chatWxml.indexOf('class="nav-chat-actions" wx:if="{{hasMessages}}"') >= 0 &&
+    chatWxml.indexOf('bindtap="clearMessages" aria-role="button" aria-label="新建对话"') >= 0 &&
+    chatWxml.indexOf('bindtap="onChatMoreActions" aria-role="button" aria-label="更多对话操作"') >= 0,
+  "chat scene should expose a ChatGPT-like new-chat and more-actions pair",
+);
+assert(
+  chatJs.indexOf('itemList: ["归档对话", "删除对话"]') >= 0 &&
+    chatJs.indexOf('.batchConversations("archive", [convId])') >= 0 &&
+    chatJs.indexOf(".deleteConversation(convId)") >= 0,
+  "chat more menu should reuse existing archive and delete conversation APIs",
 );
 assert(
   (chatWxml.match(/class="nav-points-num">\{\{userPoints\}\}/g) || []).length === 1 &&
@@ -101,8 +118,14 @@ assert(
 );
 assert(
   chatJs.indexOf("d.today_focus || today.focus") >= 0 &&
-    chatJs.indexOf("var weakNodes = mastery.weak_nodes") < 0,
-  "chat home should render backend today_focus instead of deciding focus priority on the client",
+    chatJs.indexOf("var weakNodes = mastery.weak_nodes") < 0 &&
+    chatJs.indexOf("buildFocusQuery(focus, update.focusTitle)") >= 0 &&
+    chatJs.indexOf("继续我的学习计划") < 0 &&
+    chatJs.indexOf("给我安排5道高价值专项训练题") < 0 &&
+    chatJs.indexOf("5题快速摸底") < 0 &&
+    chatJs.indexOf("入门导学") < 0 &&
+    chatJs.indexOf("下一步学习推进") >= 0,
+  "chat home should render backend today_focus and keep fallback focused on knowledge explanation",
 );
 assert(
   chatWxml.indexOf("class=\"hero-more-btn\"") >= 0 &&

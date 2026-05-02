@@ -33,12 +33,17 @@ module.exports = {
         </view>
       </view>
       <view style="flex:1"></view>
-      <view class="nav-points-pill" bindtap="goBilling" aria-role="button" aria-label="积分明细: {{userPoints}} 点">
+      <view class="nav-points-pill" wx:if="{{!hasMessages && !workspaceBackVisible}}" bindtap="goBilling" aria-role="button" aria-label="积分明细: {{userPoints}} 点">
         <text class="nav-points-star">★</text>
         <text class="nav-points-num">{{userPoints}}</text>
       </view>
-      <view class="nav-icon-btn nav-new-chat" wx:if="{{hasMessages}}" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
-        <text class="nav-new-icon">+</text>
+      <view class="nav-chat-actions" wx:if="{{hasMessages}}">
+        <view class="nav-icon-btn nav-new-chat" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
+          <text class="nav-compose-icon">✎</text>
+        </view>
+        <view class="nav-icon-btn nav-more-chat" bindtap="onChatMoreActions" aria-role="button" aria-label="更多对话操作">
+          <text class="nav-more-icon">•••</text>
+        </view>
       </view>
     </view>
   </view>

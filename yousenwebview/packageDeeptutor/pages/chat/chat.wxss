@@ -85,10 +85,10 @@
 }
 .nav-brand-stack {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8rpx;
-  padding-left: 10rpx;
+  flex-direction: row;
+  align-items: center;
+  gap: 16rpx;
+  padding-left: 24rpx;
   flex-shrink: 0;
 }
 .nav-back-pill {
@@ -1281,8 +1281,11 @@
 .points-pill:active { transform: scale(0.95); }
 
 /* ── 新建对话 — 复用 nav-icon-btn ──────────────── */
-.nav-new-chat { border-radius: 14rpx; }
-.nav-new-icon { font-size: 32rpx; color: #fff; font-weight: 300; }
+.nav-chat-actions { display: flex; align-items: center; gap: 12rpx; flex-shrink: 0; }
+.nav-new-chat,
+.nav-more-chat { border-radius: 18rpx; }
+.nav-compose-icon { font-size: 34rpx; color: #fff; font-weight: 500; line-height: 1; }
+.nav-more-icon { font-size: 26rpx; color: #fff; font-weight: 700; letter-spacing: 1rpx; line-height: 1; }
 
 /* ── 积分明细半屏弹窗 ─────────────────────────── */
 .billing-mask {

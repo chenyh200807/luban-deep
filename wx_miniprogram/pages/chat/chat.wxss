@@ -78,7 +78,7 @@
 .content { z-index: 1; }
 .navbar-inner { height: 88rpx; display: flex; align-items: center; padding: 0 24rpx 0 0; gap: 16rpx; }
 .nav-back-pill {
-  margin-left: 24rpx;
+  margin-left: 0;
   padding: 10rpx 20rpx 10rpx 16rpx;
   border-radius: 999rpx;
   display: flex;
@@ -99,7 +99,7 @@
   color: rgba(255,255,255,0.78);
 }
 .nav-logo { height: 78rpx; margin-left: 24rpx; display: block; flex-shrink: 0; }
-.nav-logo-chat { height: 70rpx; margin-left: 20rpx; }
+.nav-logo-chat { height: 70rpx; margin-left: 24rpx; }
 .nav-icon-btn {
   width: 60rpx; height: 60rpx; border-radius: 50%;
   background: rgba(255,255,255,0.08);
@@ -1268,8 +1268,11 @@
 .points-pill:active { transform: scale(0.95); }
 
 /* ── 新建对话 — 复用 nav-icon-btn ──────────────── */
-.nav-new-chat { border-radius: 14rpx; }
-.nav-new-icon { font-size: 32rpx; color: #fff; font-weight: 300; }
+.nav-chat-actions { display: flex; align-items: center; gap: 12rpx; flex-shrink: 0; }
+.nav-new-chat,
+.nav-more-chat { border-radius: 18rpx; }
+.nav-compose-icon { font-size: 34rpx; color: #fff; font-weight: 500; line-height: 1; }
+.nav-more-icon { font-size: 26rpx; color: #fff; font-weight: 700; letter-spacing: 1rpx; line-height: 1; }
 
 /* ── 积分明细半屏弹窗 ─────────────────────────── */
 .billing-mask {

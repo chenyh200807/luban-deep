@@ -8,6 +8,7 @@ var flags = require("../../utils/flags");
 
 var CACHE_KEY = "history_cache";
 var CACHE_KEY_ARCHIVED = "history_cache_archived";
+var CACHE_KEY_DELETED = "history_deleted_conversation_ids";
 var CACHE_TTL = 60 * 1000; // 60s 内直接用缓存
 
 function _clipText(value, limit) {
@@ -252,6 +253,28 @@ function _flattenGroups(groups) {
   return items;
 }
 
+function _readDeletedConversationIds() {
+  var raw = wx.getStorageSync(CACHE_KEY_DELETED);
+  if (!raw || typeof raw !== "object") return {};
+  return raw;
+}
+
+function _rememberDeletedConversationIds(ids) {
+  var tombstones = _readDeletedConversationIds();
+  (ids || []).forEach(function (id) {
+    var key = String(id || "").trim();
+    if (key) tombstones[key] = Date.now();
+  });
+  wx.setStorageSync(CACHE_KEY_DELETED, tombstones);
+}
+
+function _filterDeletedConversations(convs) {
+  var tombstones = _readDeletedConversationIds();
+  return (Array.isArray(convs) ? convs : []).filter(function (item) {
+    return !tombstones[String((item && item.id) || "").trim()];
+  });
+}
+
 function _monthLabel(ts) {
   var d = new Date(ts);
   return d.getFullYear() + "年" + (d.getMonth() + 1) + "月";
@@ -418,10 +441,11 @@ Page({
         self._applyConversationState(convs, true);
 
         var cacheKey = isArchived ? CACHE_KEY_ARCHIVED : CACHE_KEY;
+        var visibleConvs = _filterDeletedConversations(convs);
         wx.setStorageSync(cacheKey, {
-          conversations: convs,
-          groups: _groupByDate(convs),
-          totalCount: convs.length,
+          conversations: visibleConvs,
+          groups: _groupByDate(visibleConvs),
+          totalCount: visibleConvs.length,
           ts: Date.now(),
         });
         self._lastFetch = Date.now();
@@ -434,7 +458,7 @@ Page({
   },
 
   _applyConversationState: function (convs, fromFetch) {
-    var list = Array.isArray(convs) ? convs : [];
+    var list = _filterDeletedConversations(convs);
     var groups = this._buildVisibleGroups(list, this.data.query);
     this.setData({
       conversations: list,
@@ -533,7 +557,10 @@ Page({
     api
       .deleteConversation(convId)
       .then(function () {
+        _rememberDeletedConversationIds([convId]);
         self._removeFromGroups([convId]);
+        wx.removeStorageSync(CACHE_KEY);
+        wx.removeStorageSync(CACHE_KEY_ARCHIVED);
         wx.showToast({ title: "已删除", icon: "success" });
       })
       .catch(function () {
@@ -689,6 +716,9 @@ Page({
       .batchConversations(action, ids)
       .then(function (res) {
         wx.hideLoading();
+        if (action === "delete") {
+          _rememberDeletedConversationIds(ids);
+        }
         self._removeFromGroups(ids);
         self._exitEditMode();
         // 清除两个缓存使数据刷新
