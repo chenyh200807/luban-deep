@@ -80,6 +80,17 @@ assert(
     chatWxml.indexOf("{{userPoints}}") >= 0,
   "chat navbar should keep showing the current points balance",
 );
+assert(
+  chatWxml.indexOf("class=\"hero-more-btn\"") >= 0 &&
+    chatJs.indexOf("onHeroMoreActions") >= 0,
+  "hero secondary actions should be consolidated behind a more menu",
+);
+assert(
+  chatWxml.indexOf("class=\"row-icon-btn\" bindtap=\"onToggleTheme\"") < 0 &&
+    chatWxml.indexOf("class=\"row-icon-btn\" bindtap=\"goRecharge\"") < 0 &&
+    chatWxml.indexOf("class=\"avatar\" bindtap=\"goProfile\"") < 0,
+  "hero should not expose ambiguous icon-only shortcuts beside the points pill",
+);
 
 var navInnerHeight = getRpxValue(navInnerRule, "height");
 var navLogoHeight = getRpxValue(navLogoRule, "height");

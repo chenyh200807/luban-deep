@@ -135,6 +135,15 @@ run("chat page should show workflow status by default", function () {
   assert(pageDef && pageDef.data && pageDef.data.showInternalStatus === true, "showInternalStatus should default to true");
 });
 
+run("chat page should label workflow as processing summary", function () {
+  var source = loadChatSource();
+
+  assert(source.indexOf("查看处理摘要") !== -1, "chat page should use processing summary wording");
+  assert(source.indexOf("查看完整后台过程") === -1, "chat page should not mention full backend process");
+  assert(source.indexOf("展开后台过程") === -1, "chat page should not mention expanding backend process");
+  assert(source.indexOf("收起后台过程") === -1, "chat page should not mention collapsing backend process");
+});
+
 run("internal thinking status should be sanitized before entering workflow trace", function () {
   var wsStream = loadWsStream();
   var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
@@ -151,7 +160,7 @@ run("internal thinking status should be sanitized before entering workflow trace
   assert(payload.content === "", "internal thinking payload content should be stripped");
   assert(payload.data === "responding", "internal thinking payload should fall back to stage name");
   assert(entry.title === "正在整理最终回答", "workflow entry should use safe stage summary");
-  assert(entry.rawText === "正在整理最终回答", "workflow raw text should stay on safe summarized wording");
+  assert(!entry.rawText, "workflow entry should not expose raw internal thinking text");
 });
 
 run("workflow trace should accept stage and tool events from ws stream", function () {
@@ -191,6 +200,9 @@ run("workflow trace should accept stage and tool events from ws stream", functio
   assert(stageEntry.title === "正在整理最终回答", "stage_start should restore responding stage wording");
   assert(toolCallEntry.title === "已启动 知识库检索", "tool_call should appear as workflow progress");
   assert(toolResultEntry.title === "知识库检索 已返回结果", "tool_result should appear as workflow progress");
+  assert(!toolCallEntry.rawText, "tool_call should not expose JSON args in user-visible workflow");
+  assert(!toolResultEntry.rawText, "tool_result should not expose raw backend returns in user-visible workflow");
+  assert(JSON.stringify(toolCallEntry).indexOf('"query"') === -1, "workflow entry should omit raw arg keys");
 });
 
 run("workflow summary should use active analysis wording by default", function () {

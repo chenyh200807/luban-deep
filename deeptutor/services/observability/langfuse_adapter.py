@@ -25,6 +25,14 @@ _PII_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"[\w\.-]+@[\w\.-]+\.\w+"), "[EMAIL]"),
     (re.compile(r"(?i)(sk-|pk-|api[_-]?key)[A-Za-z0-9_\-]{8,}"), "[API_KEY]"),
 )
+_TRACE_IDENTITY_KEYS = {
+    "session_id",
+    "turn_id",
+    "trace_id",
+    "request_id",
+    "source_turn_id",
+    "source_session_id",
+}
 _DEFAULT_MODEL_PRICING = {
     "gpt-4o": {
         "input_per_1m": 2.5,
@@ -427,9 +435,10 @@ def _sanitize_value(
         for index, (key, item) in enumerate(value.items()):
             if index >= dict_limit:
                 break
+            key_text = str(key)
             sanitized[str(key)] = _sanitize_value(
                 item,
-                mask_pii=mask_pii,
+                mask_pii=mask_pii and key_text not in _TRACE_IDENTITY_KEYS,
                 text_limit=text_limit,
                 list_limit=list_limit,
                 dict_limit=dict_limit,

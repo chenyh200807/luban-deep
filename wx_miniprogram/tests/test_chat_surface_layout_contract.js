@@ -58,6 +58,12 @@ assert(
     /navActionRowHeight/.test(historyJs),
   "history management actions should sit below the system capsule row",
 );
+assert(
+  chatWxml.indexOf("workflow-step-raw") === -1 &&
+    chatWxml.indexOf("后台过程") === -1 &&
+    chatWxml.indexOf("完整后台") === -1,
+  "chat workflow summary should not render raw backend trace containers or wording",
+);
 
 if (fail) {
   console.error(errors.join("\n"));

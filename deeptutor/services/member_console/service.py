@@ -173,6 +173,186 @@ _ASSESSMENT_BANK: list[_AssessmentTemplate] = [
         },
         answer="B",
     ),
+    _AssessmentTemplate(
+        id="q_material_1",
+        chapter="建筑材料",
+        question="水泥进场复验时，最应重点核查哪组指标？",
+        options={
+            "A": "包装颜色、运输距离、堆放高度",
+            "B": "强度、安定性、凝结时间",
+            "C": "厂家宣传资料、采购折扣",
+            "D": "砂浆试块编号、抹灰厚度",
+        },
+        answer="B",
+    ),
+    _AssessmentTemplate(
+        id="q_survey_1",
+        chapter="施工测量",
+        question="建筑物定位放线完成后，下一步最关键的控制工作是？",
+        options={
+            "A": "直接组织装饰施工",
+            "B": "复核轴线、标高和控制点",
+            "C": "优先采购成品家具",
+            "D": "只记录天气情况",
+        },
+        answer="B",
+    ),
+    _AssessmentTemplate(
+        id="q_formwork_1",
+        chapter="模板脚手架",
+        question="模板支架搭设完成后，浇筑混凝土前必须重点完成哪项工作？",
+        options={
+            "A": "验收支架承载、构造和稳定性",
+            "B": "提前拆除剪刀撑方便通行",
+            "C": "只检查混凝土颜色",
+            "D": "把验收留到拆模后再做",
+        },
+        answer="A",
+    ),
+    _AssessmentTemplate(
+        id="q_decoration_1",
+        chapter="装饰装修",
+        question="抹灰工程大面积施工前，最能降低返工风险的做法是？",
+        options={
+            "A": "跳过基层处理直接施工",
+            "B": "先做样板并验收基层质量",
+            "C": "只增加面层涂料遍数",
+            "D": "等竣工验收时统一修补",
+        },
+        answer="B",
+    ),
+    _AssessmentTemplate(
+        id="q_mep_1",
+        chapter="机电安装",
+        question="管线综合排布中，最应优先协调的是？",
+        options={
+            "A": "各专业管线标高、交叉和检修空间",
+            "B": "办公室座椅颜色",
+            "C": "材料采购付款方式",
+            "D": "竣工宣传照片角度",
+        },
+        answer="A",
+    ),
+    _AssessmentTemplate(
+        id="q_safety_1",
+        chapter="安全管理",
+        question="高处作业安全管理的底线要求是？",
+        options={
+            "A": "只要工人经验丰富即可不设防护",
+            "B": "先施工，发现危险再补措施",
+            "C": "落实临边洞口防护和安全带等措施",
+            "D": "用口头提醒代替安全交底",
+        },
+        answer="C",
+    ),
+    _AssessmentTemplate(
+        id="q_quality_1",
+        chapter="质量验收",
+        question="隐蔽工程在被后续工序覆盖前，应完成哪项程序？",
+        options={
+            "A": "隐蔽验收并形成记录",
+            "B": "直接覆盖以节省工期",
+            "C": "只由班组口头确认",
+            "D": "竣工后再补拍照片",
+        },
+        answer="A",
+    ),
+    _AssessmentTemplate(
+        id="q_claim_1",
+        chapter="合同索赔",
+        question="工期索赔是否成立，除责任归属外还必须判断什么？",
+        options={
+            "A": "事件是否影响关键线路或总工期",
+            "B": "施工单位是否更换了项目经理",
+            "C": "材料品牌是否更高端",
+            "D": "会议纪要页数是否足够",
+        },
+        answer="A",
+    ),
+    _AssessmentTemplate(
+        id="q_green_1",
+        chapter="绿色施工",
+        question="绿色施工中控制扬尘最直接有效的现场措施是？",
+        options={
+            "A": "裸土覆盖、道路硬化和洒水降尘",
+            "B": "只在围挡外张贴标语",
+            "C": "夜间集中清运不做覆盖",
+            "D": "减少质量检查频次",
+        },
+        answer="A",
+    ),
+    _AssessmentTemplate(
+        id="q_structure_2",
+        chapter="主体结构",
+        question="钢筋隐蔽验收时，最应核对的是？",
+        options={
+            "A": "钢筋品种、规格、数量、位置和连接锚固",
+            "B": "模板外侧广告画面",
+            "C": "混凝土运输车辆颜色",
+            "D": "施工日志字体大小",
+        },
+        answer="A",
+    ),
+    _AssessmentTemplate(
+        id="q_foundation_3",
+        chapter="地基基础",
+        question="基坑开挖过程中发现实际土质与勘察报告明显不符时，应优先采取哪项措施？",
+        options={
+            "A": "继续按原方案施工避免停工",
+            "B": "立即反馈并组织复核、必要时调整方案",
+            "C": "只增加现场照明",
+            "D": "等基础施工完成后再记录",
+        },
+        answer="B",
+    ),
+    _AssessmentTemplate(
+        id="q_waterproof_2",
+        chapter="防水工程",
+        question="地下防水工程质量控制中，施工缝和后浇带最需要关注的是？",
+        options={
+            "A": "节点构造和止水措施是否可靠",
+            "B": "表面颜色是否一致",
+            "C": "运输路线是否最短",
+            "D": "材料包装是否美观",
+        },
+        answer="A",
+    ),
+    _AssessmentTemplate(
+        id="q_schedule_1",
+        chapter="施工管理",
+        question="网络计划中，判断某项工作延误是否影响总工期，关键看什么？",
+        options={
+            "A": "该工作的总时差和关键线路关系",
+            "B": "该工作名称是否较长",
+            "C": "施工队人数是否为偶数",
+            "D": "计划表颜色是否醒目",
+        },
+        answer="A",
+    ),
+    _AssessmentTemplate(
+        id="q_material_2",
+        chapter="建筑材料",
+        question="混凝土试件强度评定的基本目的是什么？",
+        options={
+            "A": "判断混凝土是否达到设计和验收要求",
+            "B": "统计运输车辆数量",
+            "C": "确认模板周转次数",
+            "D": "决定装饰风格",
+        },
+        answer="A",
+    ),
+    _AssessmentTemplate(
+        id="q_safety_2",
+        chapter="安全管理",
+        question="专项施工方案需要专家论证时，项目管理上最正确的做法是？",
+        options={
+            "A": "先按经验施工，资料以后补齐",
+            "B": "完成编审和专家论证后按批准方案实施",
+            "C": "只让班组长口头同意",
+            "D": "把方案拆成多个小文件规避论证",
+        },
+        answer="B",
+    ),
 ]
 
 
@@ -273,6 +453,7 @@ class MemberConsoleService:
             "review_reminder": True,
             "earned_badge_ids": [],
             "chapter_mastery": _default_chapter_mastery(),
+            "last_assessment": {},
             "notes": [],
             "ledger": [],
             "daily_practice_counts": {},
@@ -3174,8 +3355,9 @@ class MemberConsoleService:
 
     def _report_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
         mastery_items = self._chapter_mastery_items(member)
-        if any(int(item.get("mastery") or 0) > 0 for item in mastery_items):
-            return mastery_items
+        positive_items = [item for item in mastery_items if int(item.get("mastery") or 0) > 0]
+        if positive_items:
+            return positive_items
         return self._build_provisional_mastery_items(member)
 
     def get_chapter_progress(self, user_id: str) -> list[dict[str, Any]]:
@@ -3424,7 +3606,23 @@ class MemberConsoleService:
 
     def get_assessment_profile(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
-        mastery_items = self._report_mastery_items(member)
+        last_assessment = member.get("last_assessment") if isinstance(member.get("last_assessment"), dict) else {}
+        last_mastery = (
+            last_assessment.get("chapter_mastery")
+            if isinstance(last_assessment.get("chapter_mastery"), dict)
+            else {}
+        )
+        mastery_items = (
+            [
+                {
+                    "name": (value.get("name") if isinstance(value, dict) else "") or key,
+                    "mastery": int((value.get("mastery") if isinstance(value, dict) else value) or 0),
+                }
+                for key, value in last_mastery.items()
+            ]
+            if last_mastery
+            else self._report_mastery_items(member)
+        )
         chapter_mastery = {
             item["name"]: {"name": item["name"], "mastery": item["mastery"]}
             for item in mastery_items
@@ -3461,9 +3659,14 @@ class MemberConsoleService:
                 },
             }
 
-        avg_mastery = round(
-            sum(int(item.get("mastery") or 0) for item in chapter_mastery.values())
-            / max(len(chapter_mastery), 1)
+        stored_score = last_assessment.get("score") if last_mastery else None
+        avg_mastery = (
+            round(float(stored_score))
+            if stored_score is not None
+            else round(
+                sum(int(item.get("mastery") or 0) for item in chapter_mastery.values())
+                / max(len(chapter_mastery), 1)
+            )
         )
         level = "advanced" if avg_mastery >= 75 else "intermediate" if avg_mastery >= 50 else "beginner"
         return {
@@ -3606,6 +3809,14 @@ class MemberConsoleService:
             }
             member = self._ensure_member(data, user_id)
             member["chapter_mastery"].update(chapter_mastery)
+            member["last_assessment"] = {
+                "quiz_id": quiz_id,
+                "score": score_pct,
+                "level": level,
+                "chapter_mastery": chapter_mastery,
+                "question_count": len(questions),
+                "completed_at": _iso(),
+            }
             learning = self._ensure_learning_profile(member)
             today = _date_key()
             learning["daily_counts"][today] = int(learning["daily_counts"].get(today) or 0) + len(questions)

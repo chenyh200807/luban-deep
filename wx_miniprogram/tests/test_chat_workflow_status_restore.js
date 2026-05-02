@@ -98,6 +98,13 @@ function loadChatPage() {
   return pageDef;
 }
 
+function loadChatSource() {
+  return fs.readFileSync(
+    path.join(__dirname, "../pages/chat/chat.js"),
+    "utf8",
+  );
+}
+
 function loadWsStream() {
   var source = fs.readFileSync(
     path.join(__dirname, "../utils/ws-stream.js"),
@@ -129,6 +136,15 @@ run("wx chat page should show workflow status by default", function () {
   assert(pageDef && pageDef.data && pageDef.data.showInternalStatus === true, "wx chat should default showInternalStatus to true");
 });
 
+run("wx chat page should label workflow as processing summary", function () {
+  var source = loadChatSource();
+
+  assert(source.indexOf("查看处理摘要") !== -1, "wx chat should use processing summary wording");
+  assert(source.indexOf("查看完整后台过程") === -1, "wx chat should not mention full backend process");
+  assert(source.indexOf("展开后台过程") === -1, "wx chat should not mention expanding backend process");
+  assert(source.indexOf("收起后台过程") === -1, "wx chat should not mention collapsing backend process");
+});
+
 run("wx internal thinking status should be sanitized before entering workflow trace", function () {
   var wsStream = loadWsStream();
   var workflowStatus = require(path.join(__dirname, "../utils/workflow-status.js"));
@@ -144,7 +160,7 @@ run("wx internal thinking status should be sanitized before entering workflow tr
 
   assert(payload.content === "", "wx internal thinking payload content should be stripped");
   assert(entry.title === "正在整理最终回答", "wx workflow entry should use safe stage summary");
-  assert(entry.rawText === "正在整理最终回答", "wx workflow raw text should stay on safe summarized wording");
+  assert(!entry.rawText, "wx workflow entry should not expose raw internal thinking text");
 });
 
 run("wx workflow trace should accept stage and tool events from ws stream", function () {
@@ -184,6 +200,9 @@ run("wx workflow trace should accept stage and tool events from ws stream", func
   assert(stageEntry.title === "正在整理最终回答", "wx stage_start should restore responding stage wording");
   assert(toolCallEntry.title === "已启动 知识库检索", "wx tool_call should appear as workflow progress");
   assert(toolResultEntry.title === "知识库检索 已返回结果", "wx tool_result should appear as workflow progress");
+  assert(!toolCallEntry.rawText, "wx tool_call should not expose JSON args in user-visible workflow");
+  assert(!toolResultEntry.rawText, "wx tool_result should not expose raw backend returns in user-visible workflow");
+  assert(JSON.stringify(toolCallEntry).indexOf('"query"') === -1, "wx workflow entry should omit raw arg keys");
 });
 
 if (fail) {

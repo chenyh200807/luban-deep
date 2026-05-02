@@ -37,22 +37,26 @@ var entries = [
 
 var activeSummary = workflowStatus.summarizeWorkflow(entries, true);
 assert(
-  activeSummary.countText === "共 2 条后台记录",
-  "active summary should keep the count in countText",
+  activeSummary.countText === "",
+  "active summary should not expose backend record counts",
 );
 assert(
-  activeSummary.meta === "调用了 知识库检索 · 深度推演",
-  "active summary meta should only carry tool labels instead of duplicating count",
+  activeSummary.meta === "用到 知识库检索 · 深度推演",
+  "active summary meta should describe capabilities without backend wording",
 );
 
 var completedSummary = workflowStatus.summarizeWorkflow(entries, false);
 assert(
-  completedSummary.countText === "共 2 条后台记录",
-  "completed summary should keep the count in countText",
+  completedSummary.countText === "",
+  "completed summary should not expose backend record counts",
 );
 assert(
-  completedSummary.meta === "调用了 知识库检索 · 深度推演",
-  "completed summary meta should only carry tool labels instead of duplicating count",
+  completedSummary.meta === "用到 知识库检索 · 深度推演",
+  "completed summary meta should describe capabilities without backend wording",
+);
+assert(
+  completedSummary.toggleText === "查看处理摘要",
+  "completed summary should invite users to inspect a readable processing summary",
 );
 
 if (fail) {

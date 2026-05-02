@@ -148,6 +148,20 @@
 }
 .points-star { color: #f59e0b; font-size: 22rpx; }
 .points-num { color: #f59e0b; font-size: 24rpx; font-weight: 600; }
+.hero-more-btn {
+  width: 56rpx; height: 56rpx; border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1rpx solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+}
+.hero-more-btn:active { background: rgba(255,255,255,0.16); }
+.hero-more-dot {
+  color: rgba(255,255,255,0.74);
+  font-size: 24rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+  transform: translateY(-3rpx);
+}
 .avatar {
   width: 64rpx; height: 64rpx; border-radius: 50%;
   background: linear-gradient(135deg, #374151, #1f2937);
@@ -654,27 +668,6 @@
   font-size: 22rpx;
   line-height: 1.6;
   color: rgba(191,219,254,0.82);
-}
-.workflow-step-raw {
-  margin-top: 12rpx;
-  padding-top: 12rpx;
-  border-top: 1rpx solid rgba(148,163,184,0.10);
-}
-.workflow-step-raw-label {
-  display: block;
-  font-size: 18rpx;
-  letter-spacing: 1rpx;
-  color: rgba(148,163,184,0.74);
-}
-.workflow-step-raw-text {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 20rpx;
-  line-height: 1.65;
-  color: rgba(226,232,240,0.82);
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: monospace;
 }
 .workflow-card {
   margin-top: 18rpx;
@@ -1357,6 +1350,12 @@
   border-color: #f7cf8c;
   box-shadow: 0 10rpx 24rpx rgba(245,158,11,0.16);
 }
+.page.light .hero-more-btn {
+  background: rgba(255,255,255,0.72);
+  border-color: rgba(176,193,224,0.52);
+  box-shadow: 0 10rpx 24rpx rgba(117,139,180,0.10);
+}
+.page.light .hero-more-dot { color: #64748b; }
 
 /* ── 头像 ──────────────────────────────────── */
 .page.light .avatar {
@@ -1676,11 +1675,6 @@
 }
 .page.light .workflow-step-title { color: #1f2d45; }
 .page.light .workflow-step-detail { color: #47668f; }
-.page.light .workflow-step-raw {
-  border-top-color: #e5edf8;
-}
-.page.light .workflow-step-raw-label { color: #7b8aa2; }
-.page.light .workflow-step-raw-text { color: #42536c; }
 .page.light .workflow-card {
   background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(244,248,255,0.96) 100%);
   border-color: #d8e5fb;

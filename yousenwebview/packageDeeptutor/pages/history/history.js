@@ -51,6 +51,51 @@ function _capabilityLabel(capability) {
   return "专题对话";
 }
 
+function _normalizeModeKey(value) {
+  var key = String(value || "").trim().toLowerCase();
+  if (!key) return "";
+  if (key === "fast" || key === "quick" || key === "快速" || key === "快答") return "fast";
+  if (key === "deep" || key === "detailed" || key === "深度" || key === "精讲") return "deep";
+  return "";
+}
+
+function _modeLabel(mode) {
+  var key = _normalizeModeKey(mode);
+  if (key === "deep") return "深度";
+  return "快速";
+}
+
+function _conversationModeLabel(c) {
+  c = c || {};
+  var preferences = c.preferences && typeof c.preferences === "object" ? c.preferences : {};
+  var hints =
+    preferences.interaction_hints && typeof preferences.interaction_hints === "object"
+      ? preferences.interaction_hints
+      : {};
+  var candidates = [
+    c.effective_response_mode,
+    c.selected_mode,
+    hints.effective_response_mode,
+    hints.selected_mode,
+    c.requested_response_mode,
+    c.chat_mode,
+    c.answer_mode,
+    c.mode,
+    c.response_mode,
+    c.teaching_mode,
+    preferences.chat_mode,
+    hints.requested_response_mode,
+    hints.teaching_mode,
+    c.modeLabel,
+    c.capabilityLabel,
+  ];
+  for (var i = 0; i < candidates.length; i++) {
+    var key = _normalizeModeKey(candidates[i]);
+    if (key) return _modeLabel(key);
+  }
+  return "快速";
+}
+
 function _statusMeta(status) {
   var key = String(status || "").trim().toLowerCase();
   if (key === "running") {
@@ -129,6 +174,7 @@ function _buildConversationItem(c) {
   var status = _statusMeta(c.status);
   var source = _sourceMeta(c.source);
   var capabilityLabel = _capabilityLabel(c.capability);
+  var modeLabel = _conversationModeLabel(c);
   var messageCount = Number(c.message_count || 0);
 
   return {
@@ -143,6 +189,7 @@ function _buildConversationItem(c) {
     statusTone: status.tone,
     sourceLabel: source.label,
     sourceTone: source.tone,
+    modeLabel: modeLabel,
     capabilityLabel: capabilityLabel,
     messageCount: messageCount,
     metaLine: _joinMeta([messageCount > 0 ? messageCount + " 条消息" : ""]),
@@ -150,6 +197,7 @@ function _buildConversationItem(c) {
       c.title,
       preview,
       source.label,
+      modeLabel,
       capabilityLabel,
       messageCount > 0 ? messageCount + " 条消息" : "",
     ]),
@@ -165,6 +213,7 @@ function _normalizeCachedConversationItem(item) {
   normalized.preview = _clipText(preview, 72);
   normalized.title = _deriveConversationTitle(normalized.title, preview);
   normalized.ts = _conversationTimestamp(normalized);
+  normalized.modeLabel = _conversationModeLabel(normalized);
   if (normalized.capability) {
     normalized.capabilityLabel = _capabilityLabel(normalized.capability);
   } else if (!cachedLabel || cachedLabelKey === "tutorbot" || cachedLabelKey === "chat") {
@@ -174,6 +223,7 @@ function _normalizeCachedConversationItem(item) {
     normalized.title,
     normalized.preview,
     normalized.sourceLabel,
+    normalized.modeLabel,
     normalized.capabilityLabel,
     normalized.metaLine,
   ]);

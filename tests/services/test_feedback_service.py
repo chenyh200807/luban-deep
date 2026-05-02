@@ -31,6 +31,11 @@ def test_build_mobile_feedback_row_moves_non_uuid_ids_into_metadata() -> None:
 def test_build_mobile_feedback_row_keeps_answer_mode_and_response_mode_metadata() -> None:
     row = build_mobile_feedback_row(
         user_id="student_demo",
+        message_id="5342",
+        surface_message_id="a3",
+        turn_id="turn_feedback_1",
+        trace_id="trace_feedback_1",
+        request_id="req_feedback_1",
         answer_mode="smart",
         requested_response_mode="deep",
         effective_response_mode="fast",
@@ -43,6 +48,11 @@ def test_build_mobile_feedback_row_keeps_answer_mode_and_response_mode_metadata(
     assert row["metadata"]["effective_response_mode"] == "FAST"
     assert row["metadata"]["response_mode_degrade_reason"] == "token_budget"
     assert row["metadata"]["actual_tool_rounds"] == 2
+    assert row["metadata"]["deeptutor_message_id"] == "5342"
+    assert row["metadata"]["surface_message_id"] == "a3"
+    assert row["metadata"]["turn_id"] == "turn_feedback_1"
+    assert row["metadata"]["trace_id"] == "trace_feedback_1"
+    assert row["metadata"]["request_id"] == "req_feedback_1"
 
 
 def test_normalize_feedback_record_prefers_top_level_ids_then_metadata_fallback() -> None:
@@ -61,6 +71,10 @@ def test_normalize_feedback_record_prefers_top_level_ids_then_metadata_fallback(
                 "deeptutor_session_id": "session_1",
                 "deeptutor_message_id": "101",
                 "answer_mode": "FAST",
+                "turn_id": "turn_1",
+                "trace_id": "trace_1",
+                "request_id": "req_1",
+                "surface_message_id": "a1",
                 "feedback_source": "wx_miniprogram_message_actions",
                 "surface": "wx_miniprogram",
                 "platform": "wechat_miniprogram",
@@ -72,6 +86,10 @@ def test_normalize_feedback_record_prefers_top_level_ids_then_metadata_fallback(
     assert record["user_id"] == "u1"
     assert record["session_id"] == "session_1"
     assert record["message_id"] == "101"
+    assert record["turn_id"] == "turn_1"
+    assert record["trace_id"] == "trace_1"
+    assert record["request_id"] == "req_1"
+    assert record["surface_message_id"] == "a1"
     assert record["rating"] == 1
     assert record["reason_tags"] == ["逻辑不通"]
     assert record["feedback_source"] == "wx_miniprogram_message_actions"

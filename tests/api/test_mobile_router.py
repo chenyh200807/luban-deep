@@ -497,6 +497,7 @@ def test_mobile_chat_feedback_persists_structured_row(
             captured["closed"] = True
 
     monkeypatch.setattr(mobile_module, "MobileFeedbackSupabaseClient", FakeFeedbackClient)
+    monkeypatch.setattr(mobile_module, "get_request_id", lambda: "req_feedback_1")
     monkeypatch.setattr(
         mobile_module,
         "_resolve_authenticated_user_id",
@@ -556,6 +557,7 @@ def test_mobile_chat_feedback_legacy_alias_reuses_same_persistence_path(
             captured["closed"] = True
 
     monkeypatch.setattr(mobile_module, "MobileFeedbackSupabaseClient", FakeFeedbackClient)
+    monkeypatch.setattr(mobile_module, "get_request_id", lambda: "req_feedback_1")
     monkeypatch.setattr(
         mobile_module,
         "_resolve_authenticated_user_id",
@@ -664,6 +666,94 @@ def test_mobile_chat_feedback_infers_response_mode_metadata_from_session_history
     assert row["metadata"]["effective_response_mode"] == "FAST"
     assert row["metadata"]["response_mode_degrade_reason"] == "tool_budget"
     assert row["metadata"]["actual_tool_rounds"] == 2
+    assert captured["closed"] is True
+
+
+def test_mobile_chat_feedback_persists_canonical_turn_and_message_context(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeFeedbackClient:
+        def __init__(self, *args, **kwargs) -> None:
+            self.is_configured = True
+
+        async def insert_feedback(self, row):
+            captured["row"] = dict(row)
+            return dict(row)
+
+        async def aclose(self) -> None:
+            captured["closed"] = True
+
+    monkeypatch.setattr(mobile_module, "MobileFeedbackSupabaseClient", FakeFeedbackClient)
+    monkeypatch.setattr(mobile_module, "get_request_id", lambda: "req_feedback_1")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "session_store",
+        SimpleNamespace(
+            get_session_owner_key=AsyncMock(return_value="user:student_demo"),
+            get_session_with_messages=AsyncMock(
+                return_value={
+                    "id": "session_feedback_trace",
+                    "preferences": {
+                        "interaction_hints": {
+                            "requested_response_mode": "smart",
+                        },
+                    },
+                    "messages": [
+                        {
+                            "id": 99,
+                            "role": "assistant",
+                            "content": "答案",
+                            "events": [
+                                {
+                                    "type": "result",
+                                    "turn_id": "turn_feedback_1",
+                                    "metadata": {"trace_id": "trace_feedback_1"},
+                                },
+                                {
+                                    "type": "tool_call",
+                                    "turn_id": "turn_feedback_1",
+                                    "metadata": {"tool_name": "rag"},
+                                },
+                            ],
+                        }
+                    ],
+                }
+            ),
+        ),
+    )
+
+    with caplog.at_level("INFO", logger=mobile_module.__name__):
+        with TestClient(_build_app()) as client:
+            response = client.post(
+                "/api/v1/sessions/session_feedback_trace/messages/a3/feedback",
+                headers={"X-Request-ID": "req_feedback_1"},
+                json={
+                    "turn_id": "turn_feedback_1",
+                    "rating": -1,
+                    "reason_tags": ["逻辑不通"],
+                    "comment": "这次推理跳步",
+                },
+            )
+
+    assert response.status_code == 200
+    row = captured["row"]
+    assert row["metadata"]["deeptutor_message_id"] == "99"
+    assert row["metadata"]["surface_message_id"] == "a3"
+    assert row["metadata"]["turn_id"] == "turn_feedback_1"
+    assert row["metadata"]["trace_id"] == "trace_feedback_1"
+    assert row["metadata"]["request_id"] == "req_feedback_1"
+    assert row["metadata"]["actual_tool_rounds"] == 1
+    assert "Mobile feedback persisted" in caplog.text
+    assert "turn_id=turn_fee...ck_1" in caplog.text
+    assert "trace_id=trace_fe...ck_1" in caplog.text
     assert captured["closed"] is True
 
 
@@ -2229,6 +2319,11 @@ def test_list_conversations_merges_internal_tutorbot_mirror_sessions(
                     "preferences": {
                         "source": "wx_miniprogram",
                         "bot_id": "construction-exam-coach",
+                        "chat_mode": "deep",
+                        "interaction_hints": {
+                            "requested_response_mode": "deep",
+                            "selected_mode": "deep",
+                        },
                     },
                 },
             ]
@@ -2251,6 +2346,9 @@ def test_list_conversations_merges_internal_tutorbot_mirror_sessions(
     assert conversations[0]["message_count"] == 8
     assert conversations[0]["last_message"] == "标准答案：CDE"
     assert conversations[0]["cost_summary"]["total_tokens"] == 88
+    assert conversations[0]["preferences"]["chat_mode"] == "deep"
+    assert conversations[0]["preferences"]["interaction_hints"]["requested_response_mode"] == "deep"
+    assert conversations[0]["preferences"]["interaction_hints"]["selected_mode"] == "deep"
 
 
 def test_list_conversations_exposes_explicit_time_units(

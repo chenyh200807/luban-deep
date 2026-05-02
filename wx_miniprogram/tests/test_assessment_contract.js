@@ -199,6 +199,22 @@ function loadPage(relativePath) {
     );
   });
 
+  await run("assessment should submit after all delivered questions are answered despite requested shortfall", async function () {
+    var loaded = loadPage("pages/assessment/assessment.js");
+    loaded.page.onStart();
+    await flushPromises();
+
+    loaded.page.setData({
+      selectedKeys: { q_1: "A", q_2: "A", q_3: "A" },
+      answeredCount: 3,
+      unansweredCount: 0,
+    });
+    loaded.page.onSubmit();
+
+    assert(loaded.modalCalls.length === 0, "fully answered delivered set should not show unanswered modal");
+    assert(loaded.page.data.stage === "loading", "fully answered delivered set should proceed to submit");
+  });
+
   if (fail) {
     console.error(errors.join("\n"));
     process.exit(1);

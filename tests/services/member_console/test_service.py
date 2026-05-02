@@ -900,29 +900,29 @@ def test_create_assessment_uses_unique_question_ids_per_quiz(tmp_path: Path) -> 
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
-    payload = service.create_assessment("student_demo", count=10)
+    payload = service.create_assessment("student_demo", count=20)
     question_ids = [item["question_id"] for item in payload["questions"]]
     source_ids = [item["source_question_id"] for item in payload["questions"]]
 
-    assert payload["requested_count"] == 10
-    assert payload["delivered_count"] == 5
-    assert payload["available_count"] == 5
-    assert payload["question_bank_size"] == 5
-    assert payload["unique_source_question_count"] == 5
-    assert payload["shortfall_count"] == 5
-    assert len(question_ids) == 5
-    assert len(set(question_ids)) == 5
+    assert payload["requested_count"] == 20
+    assert payload["delivered_count"] == 20
+    assert payload["available_count"] >= 20
+    assert payload["question_bank_size"] >= 20
+    assert payload["unique_source_question_count"] == 20
+    assert payload["shortfall_count"] == 0
+    assert len(question_ids) == 20
+    assert len(set(question_ids)) == 20
     assert len(source_ids) == len(set(source_ids))
 
     stored_session = service._load()["assessment_sessions"][payload["quiz_id"]]
     stored = stored_session["questions"]
     stored_ids = [item["question_id"] for item in stored]
     assert stored_ids == question_ids
-    assert stored_session["requested_count"] == 10
-    assert stored_session["delivered_count"] == 5
-    assert stored_session["question_bank_size"] == 5
-    assert stored_session["unique_source_question_count"] == 5
-    assert stored_session["shortfall_count"] == 5
+    assert stored_session["requested_count"] == 20
+    assert stored_session["delivered_count"] == 20
+    assert stored_session["question_bank_size"] >= 20
+    assert stored_session["unique_source_question_count"] == 20
+    assert stored_session["shortfall_count"] == 0
 
 
 def test_member_360_includes_learner_state_heartbeat_and_bot_overlays(tmp_path: Path) -> None:
@@ -1597,6 +1597,23 @@ def test_submit_assessment_updates_today_progress_and_chapter_practice(tmp_path:
 
     assert today["today_done"] >= 5
     assert any(item["done"] >= 1 for item in chapters)
+
+
+def test_submit_assessment_persists_measured_profile_including_zero_mastery(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    payload = service.create_assessment("student_demo", count=5)
+    stored = service._load()["assessment_sessions"][payload["quiz_id"]]["questions"]
+    answers = {stored[0]["question_id"]: stored[0]["answer"]}
+
+    service.submit_assessment("student_demo", payload["quiz_id"], answers, time_spent_seconds=60)
+    profile = service.get_assessment_profile("student_demo")
+
+    assert profile["score"] == 20
+    assert len(profile["chapter_mastery"]) == 5
+    assert profile["chapter_mastery"][stored[0]["chapter"]]["mastery"] == 100
+    assert any(item["mastery"] == 0 for item in profile["chapter_mastery"].values())
 
 
 def test_chapter_progress_keeps_actual_attempts_separate_from_daily_target(tmp_path: Path) -> None:

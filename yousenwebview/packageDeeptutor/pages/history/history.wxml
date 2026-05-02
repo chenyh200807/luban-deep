@@ -141,13 +141,13 @@
                   <text class="conv-title">{{conv.title}}</text>
                   <view class="conv-tags">
                     <text wx:if="{{conv.statusLabel}}" class="conv-tag tag-{{conv.statusTone}}">{{conv.statusLabel}}</text>
-                    <text wx:if="{{!conv.statusLabel && conv.capabilityLabel}}" class="conv-tag tag-indigo">{{conv.capabilityLabel}}</text>
+                    <text wx:if="{{!conv.statusLabel && conv.modeLabel}}" class="conv-tag tag-indigo">{{conv.modeLabel}}</text>
                   </view>
                 </view>
                 <text class="conv-preview" wx:if="{{conv.preview}}">{{conv.preview}}</text>
                 <view class="conv-meta-row">
                   <text wx:if="{{conv.sourceLabel}}" class="conv-tag tag-{{conv.sourceTone}}">{{conv.sourceLabel}}</text>
-                  <text wx:if="{{conv.statusLabel && conv.capabilityLabel}}" class="conv-meta">{{conv.capabilityLabel}}</text>
+                  <text wx:if="{{conv.statusLabel && conv.modeLabel}}" class="conv-meta">{{conv.modeLabel}}</text>
                   <text wx:if="{{conv.metaLine}}" class="conv-meta">{{conv.metaLine}}</text>
                 </view>
               </view>

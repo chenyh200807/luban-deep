@@ -102,6 +102,13 @@ function loadHistoryPage(rawConversations, initialStorage) {
       source: "wx_miniprogram",
       status: "completed",
       message_count: 4,
+      preferences: {
+        chat_mode: "deep",
+        interaction_hints: {
+          requested_response_mode: "deep",
+          selected_mode: "deep",
+        },
+      },
       updated_at: "2026-04-24T10:00:00.000Z",
       created_at: "2026-04-24T09:59:00.000Z",
       last_message:
@@ -114,6 +121,12 @@ function loadHistoryPage(rawConversations, initialStorage) {
       source: "wx_miniprogram",
       status: "completed",
       message_count: 2,
+      preferences: {
+        chat_mode: "smart",
+        interaction_hints: {
+          requested_response_mode: "smart",
+        },
+      },
       updated_at: "not-parseable-by-client",
       updated_at_ms: nowMs,
       created_at_ms: nowMs - 1000,
@@ -138,9 +151,15 @@ function loadHistoryPage(rawConversations, initialStorage) {
   var item = page.data.conversations.filter(function (conv) {
     return conv.id === "tb_history_1";
   })[0];
-  assert(item.capabilityLabel === "智能对话", "TutorBot runtime label should not leak into history UI");
+  assert(item.modeLabel === "深度", "history card should display response mode instead of TutorBot runtime identity");
+  assert(item.capabilityLabel === "智能对话", "capability identity may remain internal but should not drive the visible tag");
+  assert(item.modeLabel !== "智能", "history mode label should never display smart/auto as a final mode");
   assert(item.preview.indexOf("------") < 0, "history preview should remove markdown table separator rows");
   assert(item.preview.indexOf("安装牢固、启闭灵活") >= 0, "history preview should keep visible table content");
+  var smartFallbackItem = page.data.conversations.filter(function (conv) {
+    return conv.id === "today_ms_authority";
+  })[0];
+  assert(smartFallbackItem.modeLabel === "快速", "smart/auto history without selected mode should fall back to a fast/deep label");
   assert(page.data.stats.weekCount >= 2, "history stats should count today and recent conversations from canonical timestamps");
   assert(
     page.data.groups.some(function (group) {
@@ -160,6 +179,11 @@ function loadHistoryPage(rawConversations, initialStorage) {
           title: "New conversation",
           preview: "考点 分值 ------ ------ 安装牢固、启闭灵活 0.5",
           capabilityLabel: "TutorBot",
+          preferences: {
+            interaction_hints: {
+              effective_response_mode: "fast",
+            },
+          },
           rawTime: new Date(nowMs).toISOString(),
         },
       ],
@@ -170,7 +194,8 @@ function loadHistoryPage(rawConversations, initialStorage) {
   cachedPage._loadWithCache();
 
   var cachedItem = cachedPage.data.conversations[0];
-  assert(cachedItem.capabilityLabel === "智能对话", "cached TutorBot label should be migrated before display");
+  assert(cachedItem.modeLabel === "快速", "cached TutorBot label should be replaced by response mode before display");
+  assert(cachedItem.capabilityLabel === "智能对话", "cached TutorBot identity should be migrated away from visible labels");
   assert(cachedItem.preview.indexOf("------") < 0, "cached preview should be cleaned before display");
   assert(cachedPage.data.stats.weekCount === 1, "cached rawTime should be migrated into the week count");
 

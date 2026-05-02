@@ -89,15 +89,6 @@ function _pickArgPreview(args) {
   return "";
 }
 
-function _stringifyArgs(args) {
-  if (!args || typeof args !== "object") return "";
-  try {
-    return JSON.stringify(args, null, 2);
-  } catch (_) {
-    return String(args);
-  }
-}
-
 var TOOL_LABELS = {
   rag: "知识库检索",
   web_search: "联网扩展",
@@ -474,11 +465,11 @@ function _normalizeUnknownHeader(raw) {
 
 function normalizeWorkflowStatus(payload) {
   var source = typeof payload === "string" ? { message: payload } : payload || {};
-  var rawText = source.message || source.text || source.data || source.content || "";
+  var statusText = source.message || source.text || source.data || source.content || "";
   var stage = _safeString(source.stage);
   var metadata = source.metadata || {};
   var toolName =
-    source.toolName || metadata.tool_name || metadata.tool || _extractToolName(rawText);
+    source.toolName || metadata.tool_name || metadata.tool || _extractToolName(statusText);
 
   if (source.data === "slow_response") {
     return {
@@ -507,14 +498,14 @@ function normalizeWorkflowStatus(payload) {
     if (stage === "retry" || stage === "fallback") {
       return {
         badge: STAGE_COPY[stage].badge,
-        headline: _headline(rawText, STAGE_COPY[stage].headline),
+        headline: _headline(statusText, STAGE_COPY[stage].headline),
         subline: STAGE_COPY[stage].subline,
         tone: STAGE_COPY[stage].tone,
       };
     }
     return STAGE_COPY[stage];
   }
-  return _normalizeUnknownHeader(rawText);
+  return _normalizeUnknownHeader(statusText);
 }
 
 function buildWorkflowEntry(payload) {
@@ -523,54 +514,28 @@ function buildWorkflowEntry(payload) {
   var args = metadata.args && typeof metadata.args === "object" ? metadata.args : {};
   var eventType = _safeString(source.eventType || source.type || "status");
   var seq = Number(source.seq || 0);
-  var visibility = _safeString(source.visibility || metadata.visibility).toLowerCase();
-  var isInternal = visibility === "internal";
-  var rawText = _safeString(source.content || source.message || source.text || source.data);
+  var statusText = _safeString(source.content || source.message || source.text || source.data);
   var toolName =
     source.toolName ||
     metadata.tool_name ||
     metadata.tool ||
-    _extractToolName(rawText);
+    _extractToolName(statusText);
   var normalized = normalizeWorkflowStatus(source);
   var preview = _pickArgPreview(args);
   var toolLabel = toolName ? _humanizeToolName(toolName) : "";
   var title = normalized.headline;
   var detail = normalized.subline;
-  var rawLabel = "后台过程";
-  var rawBody = rawText;
-  var translatedRaw = _translateEnglishStatus(rawText);
 
   if (source.data === "slow_response") {
-    rawBody = "slow_response";
-    rawLabel = "系统信号";
+    detail = "复杂问题需要更多推理时间，马上就好。";
   } else if (eventType === "tool_call") {
     title = "已启动 " + (toolLabel || "后台能力");
     detail = preview
       ? "本轮关注点：" + preview
       : "正在补这一环所需的证据、推导或外部信息。";
-    rawLabel = "调用参数";
-    rawBody = _stringifyArgs(args) || toolName;
   } else if (eventType === "tool_result") {
     title = (toolLabel || "后台能力") + " 已返回结果";
-    detail = rawText
-      ? "已拿到结果，可展开查看完整后台返回。"
-      : "这一环的返回结果已经进入答案整理阶段。";
-    rawLabel = "后台返回";
-    rawBody = rawText || toolLabel;
-  } else if (eventType === "stage_start") {
-    rawLabel = "阶段原文";
-    rawBody = rawText || source.stage || "";
-  } else if (eventType === "thinking" || eventType === "progress" || eventType === "observation") {
-    rawLabel = "后台过程";
-    rawBody = rawText || source.stage || "";
-  }
-
-  if (isInternal && (eventType === "thinking" || eventType === "observation")) {
-    rawBody = _safeString(source.stage || eventType);
-  }
-
-  if (translatedRaw && _looksEnglishStatus(rawBody)) {
-    rawBody = translatedRaw.headline;
+    detail = "这一环的结果已经进入答案整理阶段。";
   }
 
   return {
@@ -581,8 +546,6 @@ function buildWorkflowEntry(payload) {
     title: title,
     detail: detail,
     tone: normalized.tone,
-    rawLabel: rawLabel,
-    rawText: rawBody,
     toolLabel: toolLabel,
   };
 }
@@ -605,7 +568,7 @@ function appendWorkflowEntry(existingEntries, payload) {
     entries.length &&
     !nextSeq &&
     entries[entries.length - 1].title === nextEntry.title &&
-    entries[entries.length - 1].rawText === nextEntry.rawText
+    entries[entries.length - 1].detail === nextEntry.detail
   ) {
     entries[entries.length - 1] = nextEntry;
     return entries;
@@ -633,28 +596,28 @@ function summarizeWorkflow(entries, active) {
       tone: STAGE_COPY._default.tone,
       meta: "",
       countText: "",
-      toggleText: "展开后台过程",
+      toggleText: "查看处理摘要",
       active: !!active,
     };
   }
 
-  var summaryHeadline = active ? latest.title : "本轮推演已完成";
+  var summaryHeadline = active ? latest.title : "本轮处理已完成";
   var summarySubline = active
     ? latest.detail
     : toolLabels.length
-      ? "后台已完成证据检索、推导校验和答案组织，可展开查看完整过程。"
-      : "后台处理已经完成，可展开回看完整过程。";
+      ? "已完成证据检索、推导校验和答案组织，可查看简要摘要。"
+      : "处理已经完成，可查看简要摘要。";
   var metaParts = [];
-  if (toolLabels.length) metaParts.push("调用了 " + toolLabels.slice(0, 3).join(" · "));
+  if (toolLabels.length) metaParts.push("用到 " + toolLabels.slice(0, 3).join(" · "));
 
   return {
-    badge: active ? latest.badge : "本轮推演",
+    badge: active ? latest.badge : "处理摘要",
     headline: summaryHeadline,
     subline: summarySubline,
     tone: active ? latest.tone : latest.tone || "compose",
     meta: metaParts.join("  "),
-    countText: count ? "共 " + count + " 条后台记录" : "",
-    toggleText: active ? "展开后台过程" : "查看完整后台过程",
+    countText: "",
+    toggleText: "查看处理摘要",
     active: !!active,
   };
 }

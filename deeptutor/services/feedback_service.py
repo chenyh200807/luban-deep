@@ -62,6 +62,10 @@ def build_mobile_feedback_row(
     user_id: str,
     session_id: str | None = None,
     message_id: str | None = None,
+    surface_message_id: str | None = None,
+    turn_id: str | None = None,
+    trace_id: str | None = None,
+    request_id: str | None = None,
     rating: int = 0,
     reason_tags: list[str] | None = None,
     comment: str = "",
@@ -73,6 +77,10 @@ def build_mobile_feedback_row(
 ) -> dict[str, Any]:
     normalized_conversation_id = str(session_id or "").strip()
     normalized_message_id = str(message_id or "").strip()
+    normalized_surface_message_id = str(surface_message_id or "").strip()
+    normalized_turn_id = str(turn_id or "").strip()
+    normalized_trace_id = str(trace_id or "").strip()
+    normalized_request_id = str(request_id or "").strip()
     normalized_tags = normalize_feedback_reason_tags(reason_tags)
     normalized_rating = normalize_feedback_rating(rating)
     normalized_answer_mode = str(answer_mode or "AUTO").strip().upper() or "AUTO"
@@ -100,6 +108,14 @@ def build_mobile_feedback_row(
         metadata["deeptutor_session_id"] = normalized_conversation_id
     if normalized_message_id and normalized_message_uuid != normalized_message_id:
         metadata["deeptutor_message_id"] = normalized_message_id
+    if normalized_surface_message_id and normalized_surface_message_id != normalized_message_id:
+        metadata["surface_message_id"] = normalized_surface_message_id
+    if normalized_turn_id:
+        metadata["turn_id"] = normalized_turn_id
+    if normalized_trace_id:
+        metadata["trace_id"] = normalized_trace_id
+    if normalized_request_id:
+        metadata["request_id"] = normalized_request_id
     return {
         "id": str(uuid4()),
         "created_at": datetime.now().astimezone().isoformat(),
@@ -146,6 +162,10 @@ def normalize_feedback_record(row: Mapping[str, Any]) -> dict[str, Any]:
             normalized_metadata, "response_mode_degrade_reason"
         ),
         "actual_tool_rounds": _metadata_int(normalized_metadata, "actual_tool_rounds"),
+        "turn_id": _metadata_str(normalized_metadata, "turn_id"),
+        "trace_id": _metadata_str(normalized_metadata, "trace_id"),
+        "request_id": _metadata_str(normalized_metadata, "request_id"),
+        "surface_message_id": _metadata_str(normalized_metadata, "surface_message_id"),
         "feedback_source": _metadata_str(normalized_metadata, "feedback_source"),
         "surface": _metadata_str(normalized_metadata, "surface"),
         "platform": _metadata_str(normalized_metadata, "platform"),

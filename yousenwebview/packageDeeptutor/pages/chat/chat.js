@@ -472,13 +472,13 @@ Page({
         workflowSub: "",
         workflowMeta: "",
         workflowCountText: "",
-        workflowToggleText: "查看完整后台过程",
+        workflowToggleText: "查看处理摘要",
         workflowTone: "compose",
         workflowActive: false,
         citations: null,
         engine: "",
         engineSessionId: "",
-        engineTurnId: "",
+        engineTurnId: String(m.engine_turn_id || m.turn_id || ""),
         billing: null,
         feedback: "",
       };
@@ -556,7 +556,7 @@ Page({
       workflowSub: "",
       workflowMeta: "",
       workflowCountText: "",
-      workflowToggleText: "查看完整后台过程",
+      workflowToggleText: "查看处理摘要",
       workflowTone: "compose",
       workflowActive: false,
       citations: null,
@@ -1170,7 +1170,7 @@ Page({
     updates["messages[" + idx + "].workflowSub"] = summary.subline || "";
     updates["messages[" + idx + "].workflowMeta"] = summary.meta || "";
     updates["messages[" + idx + "].workflowCountText"] = summary.countText || "";
-    updates["messages[" + idx + "].workflowToggleText"] = summary.toggleText || "展开后台过程";
+    updates["messages[" + idx + "].workflowToggleText"] = summary.toggleText || "查看处理摘要";
     updates["messages[" + idx + "].workflowTone"] = summary.tone || "analyze";
     updates["messages[" + idx + "].workflowActive"] = !!summary.active;
 
@@ -1728,7 +1728,7 @@ Page({
       workflowSub: "",
       workflowMeta: "",
       workflowCountText: "",
-      workflowToggleText: "展开后台过程",
+      workflowToggleText: "查看处理摘要",
       workflowTone: "analyze",
       workflowActive: true,
       citations: null,
@@ -2257,6 +2257,50 @@ Page({
     wx.navigateTo({ url: route.billing() });
   },
 
+  onHeroMoreActions: function () {
+    var self = this;
+    var actions = [
+      {
+        label: "返回佑森首页",
+        run: function () {
+          self.goYousenHome();
+        },
+      },
+      {
+        label: this.data.isDark ? "切换浅色模式" : "切换深色模式",
+        run: function () {
+          self.onToggleTheme();
+        },
+      },
+      {
+        label: "充值中心",
+        run: function () {
+          self.goRecharge();
+        },
+      },
+    ];
+    if (this.data.profileEnabled) {
+      actions.push({
+        label: "个人中心",
+        run: function () {
+          self.goProfile();
+        },
+      });
+    }
+    helpers.vibrate("light");
+    wx.showActionSheet({
+      itemList: actions.map(function (action) {
+        return action.label;
+      }),
+      success: function (res) {
+        var action = actions[res.tapIndex];
+        if (action && typeof action.run === "function") {
+          action.run();
+        }
+      },
+    });
+  },
+
   onSwitchAccount: function () {
     wx.showModal({
       title: "切换账号",
@@ -2748,9 +2792,11 @@ Page({
   },
 
   _sendFeedback: function (msgid, rating, tags, comment) {
+    var msg = this._getMessageById(msgid);
     return api.submitFeedback({
       message_id: msgid,
       conversation_id: this._convId || "",
+      turn_id: (msg && msg.engineTurnId) || "",
       rating: rating,
       reason_tags: tags || [],
       comment: comment || "",

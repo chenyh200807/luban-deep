@@ -28,6 +28,7 @@ from deeptutor.services.feedback_service import (
     SupabaseFeedbackStore,
     build_mobile_feedback_row,
 )
+from deeptutor.logging.context import get_request_id
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.session import (
     build_user_owner_key,
@@ -51,6 +52,13 @@ _MOBILE_TUTORBOT_DESCRIPTION = "微信小程序主聊天默认建筑实务 Tutor
 _MOBILE_PLACEHOLDER_TITLES = {"", "new conversation", "新对话"}
 _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE = 500
 MobileFeedbackSupabaseClient = SupabaseFeedbackStore
+
+
+def _log_safe_id(value: Any) -> str:
+    text = str(value or "").strip()
+    if len(text) <= 14:
+        return text
+    return f"{text[:8]}...{text[-4:]}"
 
 
 def _ts_to_iso(timestamp: float | int | None) -> str:
@@ -348,6 +356,43 @@ def _normalize_mobile_conversation_id(session: dict[str, Any]) -> str:
     return session_id
 
 
+def _merge_mobile_conversation_preferences(
+    current_preferences: dict[str, Any],
+    row_preferences: dict[str, Any],
+    *,
+    prefer_row: bool,
+) -> dict[str, Any]:
+    merged = dict(current_preferences or {})
+    row_prefs = dict(row_preferences or {})
+
+    for key, value in row_prefs.items():
+        if key == "interaction_hints" or value in (None, ""):
+            continue
+        if prefer_row or key not in merged or merged.get(key) in (None, ""):
+            merged[key] = value
+
+    current_hints = (
+        merged.get("interaction_hints")
+        if isinstance(merged.get("interaction_hints"), dict)
+        else {}
+    )
+    row_hints = (
+        row_prefs.get("interaction_hints")
+        if isinstance(row_prefs.get("interaction_hints"), dict)
+        else {}
+    )
+    if row_hints:
+        merged_hints = dict(current_hints)
+        for key, value in row_hints.items():
+            if value in (None, ""):
+                continue
+            if prefer_row or key not in merged_hints or merged_hints.get(key) in (None, ""):
+                merged_hints[key] = value
+        merged["interaction_hints"] = merged_hints
+
+    return merged
+
+
 def _is_placeholder_mobile_title(value: Any) -> bool:
     normalized = str(value or "").strip().lower()
     return normalized in _MOBILE_PLACEHOLDER_TITLES
@@ -373,6 +418,7 @@ def _merge_mobile_conversation_rows(rows: list[dict[str, Any]]) -> list[dict[str
         else:
             current_updated = float(current.get("updated_at") or 0.0)
             row_updated = float(row.get("updated_at") or 0.0)
+            prefer_row = row_updated > current_updated
             if row_updated > current_updated:
                 for key in ("updated_at", "created_at", "status", "active_turn_id", "capability", "cost_summary"):
                     if key in row:
@@ -387,8 +433,11 @@ def _merge_mobile_conversation_rows(rows: list[dict[str, Any]]) -> list[dict[str
                 current["last_message"] = row.get("last_message")
             current_prefs = current.get("preferences") if isinstance(current.get("preferences"), dict) else {}
             row_prefs = row.get("preferences") if isinstance(row.get("preferences"), dict) else {}
-            if not current_prefs.get("conversation_id") and row_prefs.get("conversation_id"):
-                current["preferences"] = dict(row_prefs)
+            current["preferences"] = _merge_mobile_conversation_preferences(
+                current_prefs,
+                row_prefs,
+                prefer_row=prefer_row,
+            )
 
     result = [merged[item_id] for item_id in order]
     result.sort(key=lambda item: float(item.get("updated_at") or 0.0), reverse=True)
@@ -517,36 +566,47 @@ async def _persist_mobile_feedback(
     normalized_message_id = str(message_id or body.message_id or "").strip()
     if normalized_session_id:
         await _assert_mobile_conversation_access(normalized_session_id, user_id)
-    response_mode_metadata = await _load_feedback_response_mode_metadata(
+    feedback_context = await _load_feedback_response_mode_metadata(
         session_id=normalized_session_id,
         message_id=normalized_message_id,
+        turn_id=str(body.turn_id or "").strip(),
     )
 
     writer = MobileFeedbackSupabaseClient()
     if not writer.is_configured:
         raise HTTPException(status_code=503, detail="Feedback storage unavailable")
 
+    canonical_message_id = str(
+        feedback_context.get("canonical_message_id") or normalized_message_id
+    ).strip()
+    resolved_turn_id = str(feedback_context.get("turn_id") or body.turn_id or "").strip()
+    resolved_trace_id = str(feedback_context.get("trace_id") or body.trace_id or "").strip()
+    request_id = get_request_id()
     row = build_mobile_feedback_row(
         user_id=user_id,
         session_id=normalized_session_id,
-        message_id=normalized_message_id,
+        message_id=canonical_message_id,
+        surface_message_id=normalized_message_id,
+        turn_id=resolved_turn_id,
+        trace_id=resolved_trace_id,
+        request_id=request_id,
         rating=body.rating,
         reason_tags=body.reason_tags,
         comment=body.comment,
         answer_mode=body.answer_mode,
-        requested_response_mode=str(response_mode_metadata.get("requested_response_mode") or ""),
-        effective_response_mode=str(response_mode_metadata.get("effective_response_mode") or ""),
+        requested_response_mode=str(feedback_context.get("requested_response_mode") or ""),
+        effective_response_mode=str(feedback_context.get("effective_response_mode") or ""),
         response_mode_degrade_reason=str(
-            response_mode_metadata.get("response_mode_degrade_reason") or ""
+            feedback_context.get("response_mode_degrade_reason") or ""
         ),
         actual_tool_rounds=(
-            int(response_mode_metadata.get("actual_tool_rounds"))
-            if response_mode_metadata.get("actual_tool_rounds") is not None
+            int(feedback_context.get("actual_tool_rounds"))
+            if feedback_context.get("actual_tool_rounds") is not None
             else None
         ),
     )
     try:
-        await writer.insert_feedback(row)
+        persisted = await writer.insert_feedback(row)
     except httpx.HTTPStatusError as exc:
         logger.warning("Mobile feedback write failed: status=%s body=%s", exc.response.status_code, exc.response.text)
         raise HTTPException(status_code=502, detail="Failed to persist feedback") from exc
@@ -558,6 +618,20 @@ async def _persist_mobile_feedback(
     finally:
         await writer.aclose()
 
+    logger.warning(
+        "Mobile feedback persisted: feedback_id=%s request_id=%s user_id=%s session_id=%s "
+        "message_id=%s surface_message_id=%s turn_id=%s trace_id=%s rating=%s tags=%s",
+        _log_safe_id((persisted or row).get("id")),
+        _log_safe_id(request_id),
+        _log_safe_id(user_id),
+        _log_safe_id(normalized_session_id),
+        _log_safe_id(canonical_message_id),
+        _log_safe_id(normalized_message_id),
+        _log_safe_id(resolved_turn_id),
+        _log_safe_id(resolved_trace_id),
+        row.get("rating"),
+        ",".join(row.get("reason_tags") or []),
+    )
     return {"ok": True}
 
 
@@ -600,10 +674,77 @@ def _assistant_message_by_id(
     return assistant_messages[-1] if assistant_messages else None
 
 
+def _message_events(message: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not isinstance(message, dict):
+        return []
+    events = message.get("events")
+    return [item for item in (events or []) if isinstance(item, dict)] if isinstance(events, list) else []
+
+
+def _event_metadata(event: dict[str, Any]) -> dict[str, Any]:
+    metadata = event.get("metadata")
+    return metadata if isinstance(metadata, dict) else {}
+
+
+def _event_identity(event: dict[str, Any], key: str) -> str:
+    direct = str(event.get(key) or "").strip()
+    if direct:
+        return direct
+    metadata = _event_metadata(event)
+    value = str(metadata.get(key) or "").strip()
+    if value:
+        return value
+    nested = metadata.get("metadata")
+    if isinstance(nested, dict):
+        return str(nested.get(key) or "").strip()
+    return ""
+
+
+def _assistant_message_turn_id(message: dict[str, Any] | None) -> str:
+    for event in reversed(_message_events(message)):
+        turn_id = _event_identity(event, "turn_id")
+        if turn_id:
+            return turn_id
+    return ""
+
+
+def _assistant_message_trace_id(message: dict[str, Any] | None) -> str:
+    for event in reversed(_message_events(message)):
+        for key in ("trace_id", "langfuse_trace_id"):
+            trace_id = _event_identity(event, key)
+            if trace_id:
+                return trace_id
+    return ""
+
+
+def _assistant_message_matches_turn(message: dict[str, Any], turn_id: str) -> bool:
+    normalized_turn_id = str(turn_id or "").strip()
+    if not normalized_turn_id:
+        return False
+    return _assistant_message_turn_id(message) == normalized_turn_id
+
+
+def _assistant_message_by_turn_id(
+    messages: list[dict[str, Any]] | None,
+    *,
+    turn_id: str,
+) -> dict[str, Any] | None:
+    assistant_messages = [
+        item
+        for item in (messages or [])
+        if isinstance(item, dict) and str(item.get("role") or "").strip() == "assistant"
+    ]
+    for item in reversed(assistant_messages):
+        if _assistant_message_matches_turn(item, turn_id):
+            return item
+    return None
+
+
 async def _load_feedback_response_mode_metadata(
     *,
     session_id: str,
     message_id: str,
+    turn_id: str = "",
 ) -> dict[str, Any]:
     normalized_session_id = str(session_id or "").strip()
     if not normalized_session_id:
@@ -636,9 +777,10 @@ async def _load_feedback_response_mode_metadata(
             or ""
         ).strip()
     )
-    assistant_message = _assistant_message_by_id(
-        session.get("messages") if isinstance(session.get("messages"), list) else [],
-        message_id=message_id,
+    messages = session.get("messages") if isinstance(session.get("messages"), list) else []
+    assistant_message = (
+        _assistant_message_by_turn_id(messages, turn_id=turn_id)
+        or _assistant_message_by_id(messages, message_id=message_id)
     )
     events = assistant_message.get("events") if isinstance(assistant_message, dict) else []
     actual_tool_rounds = sum(
@@ -647,6 +789,11 @@ async def _load_feedback_response_mode_metadata(
         if isinstance(item, dict) and str(item.get("type") or "").strip() == "tool_call"
     )
     return {
+        "canonical_message_id": str(
+            assistant_message.get("id") if isinstance(assistant_message, dict) else ""
+        ).strip(),
+        "turn_id": str(turn_id or _assistant_message_turn_id(assistant_message)).strip(),
+        "trace_id": _assistant_message_trace_id(assistant_message),
         "requested_response_mode": requested_response_mode,
         "effective_response_mode": effective_response_mode,
         "response_mode_degrade_reason": str(
@@ -835,9 +982,11 @@ def _build_presentation_payload(message: dict[str, Any]) -> dict[str, Any] | Non
 def _serialize_mobile_message(message: dict[str, Any]) -> dict[str, Any]:
     presentation = _build_presentation_payload(message)
     return {
+        "id": str(message.get("id") or ""),
         "role": str(message.get("role") or ""),
         "content": str(message.get("content") or ""),
         "created_at": _ts_to_iso(message.get("created_at")),
+        "engine_turn_id": _assistant_message_turn_id(message),
         "presentation": presentation,
     }
 
@@ -915,6 +1064,8 @@ class MobileStartTurnRequest(BaseModel):
 class ChatFeedbackRequest(BaseModel):
     message_id: str = ""
     conversation_id: str = ""
+    turn_id: str = ""
+    trace_id: str = ""
     rating: int = 0
     reason_tags: list[str] = Field(default_factory=list)
     comment: str = ""

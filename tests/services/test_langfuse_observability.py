@@ -235,6 +235,29 @@ def test_sanitize_output_redacts_internal_assistant_content(monkeypatch: pytest.
     assert sanitized == {"assistant_content": "[INTERNAL_OUTPUT_REDACTED]"}
 
 
+def test_sanitize_metadata_preserves_trace_identity_fields_when_pii_masking(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LANGFUSE_MASK_PII", "1")
+    adapter = LangfuseObservability()
+
+    sanitized = adapter.sanitize_metadata(
+        {
+            "session_id": "tb_af037a7ee6f847c5b6b4d72d",
+            "turn_id": "turn_1777698668043_1c9a67b18b",
+            "trace_id": "7500df48ad329927093d5c1d6aa0fca8",
+            "request_id": "codex-feedback-log-smoke",
+            "user_phone": "13800001234",
+        }
+    )
+
+    assert sanitized["session_id"] == "tb_af037a7ee6f847c5b6b4d72d"
+    assert sanitized["turn_id"] == "turn_1777698668043_1c9a67b18b"
+    assert sanitized["trace_id"] == "7500df48ad329927093d5c1d6aa0fca8"
+    assert sanitized["request_id"] == "codex-feedback-log-smoke"
+    assert sanitized["user_phone"] == "[PHONE]"
+
+
 def test_start_observation_uses_module_level_propagation_when_client_lacks_it(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

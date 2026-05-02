@@ -50,17 +50,8 @@ module.exports = {
         <text class="points-star">★</text>
         <text class="points-num">{{userPoints}}</text>
       </view>
-      <view class="home-entry-btn" bindtap="goYousenHome" aria-role="button" aria-label="返回佑森首页">
-        <text class="home-entry-glyph">佑</text>
-      </view>
-      <view class="row-icon-btn" bindtap="onToggleTheme" aria-role="button" aria-label="{{isDark ? '切换浅色模式' : '切换深色模式'}}">
-        <view class="ico ico-theme-{{isDark?'sun':'moon'}}"></view>
-      </view>
-      <view class="row-icon-btn" bindtap="goRecharge" aria-role="button" aria-label="充值">
-        <view class="ico ico-dollar"></view>
-      </view>
-      <view class="avatar" wx:if="{{profileEnabled}}" bindtap="goProfile" aria-role="button" aria-label="个人中心">
-        <text class="avatar-char">{{avatarChar}}</text>
+      <view class="hero-more-btn" bindtap="onHeroMoreActions" aria-role="button" aria-label="更多操作">
+        <text class="hero-more-dot">•••</text>
       </view>
     </view>
     <!-- 撑开空间，把内容推到中下部 -->
@@ -200,31 +191,27 @@ module.exports = {
                   <text class="thinking-badge-text">{{item.thinkingBadge ? item.thinkingBadge : 'AI 正在分析'}}</text>
                 </view>
                 <view class="thinking-scan thinking-scan-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}"></view>
-	              </view>
-	              <text class="thinking-label">{{item.thinkingStatus}}</text>
-	              <text class="thinking-sub">{{item.thinkingSub}}</text>
-	              <view class="workflow-bar" wx:if="{{item.workflowMeta || item.workflowEntries.length}}">
-	                <text class="workflow-meta-text" wx:if="{{item.workflowMeta}}">{{item.workflowMeta}}</text>
-	                <view class="workflow-toggle" bindtap="onToggleWorkflowTrace" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.workflowExpanded ? '收起后台过程' : '展开后台过程'}}">
-	                  <text class="workflow-toggle-text">{{item.workflowExpanded ? '收起过程' : (item.workflowToggleText || '展开后台过程')}}</text>
-	                  <text class="workflow-toggle-arrow">{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
-	                </view>
-	              </view>
-	              <view class="workflow-trace" wx:if="{{item.workflowExpanded && item.workflowEntries.length}}">
-	                <view class="workflow-step" wx:for="{{item.workflowEntries}}" wx:key="id" wx:for-item="wf">
-	                  <view class="workflow-step-head">
-	                    <text class="workflow-step-badge workflow-step-badge-{{wf.tone}}">{{wf.badge}}</text>
-	                    <text class="workflow-step-title">{{wf.title}}</text>
-	                  </view>
-	                  <text class="workflow-step-detail" wx:if="{{wf.detail}}">{{wf.detail}}</text>
-	                  <view class="workflow-step-raw" wx:if="{{wf.rawText}}">
-	                    <text class="workflow-step-raw-label">{{wf.rawLabel}}</text>
-	                    <text class="workflow-step-raw-text" selectable>{{wf.rawText}}</text>
-	                  </view>
-	                </view>
-	              </view>
-	            </view>
-	          </view>
+              </view>
+              <text class="thinking-label">{{item.thinkingStatus}}</text>
+              <text class="thinking-sub">{{item.thinkingSub}}</text>
+              <view class="workflow-bar" wx:if="{{item.workflowMeta || item.workflowEntries.length}}">
+                <text class="workflow-meta-text" wx:if="{{item.workflowMeta}}">{{item.workflowMeta}}</text>
+                <view class="workflow-toggle" bindtap="onToggleWorkflowTrace" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.workflowExpanded ? '收起处理摘要' : '查看处理摘要'}}">
+                  <text class="workflow-toggle-text">{{item.workflowExpanded ? '收起摘要' : (item.workflowToggleText || '查看处理摘要')}}</text>
+                  <text class="workflow-toggle-arrow">{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
+                </view>
+              </view>
+              <view class="workflow-trace" wx:if="{{item.workflowExpanded && item.workflowEntries.length}}">
+                <view class="workflow-step" wx:for="{{item.workflowEntries}}" wx:key="id" wx:for-item="wf">
+                  <view class="workflow-step-head">
+                    <text class="workflow-step-badge workflow-step-badge-{{wf.tone}}">{{wf.badge}}</text>
+                    <text class="workflow-step-title">{{wf.title}}</text>
+                  </view>
+                  <text class="workflow-step-detail" wx:if="{{wf.detail}}">{{wf.detail}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
 
           <!-- 思考中：生成阶段维持轻量提示 -->
           <view class="thinking thinking-inline" wx:elif="{{showInternalStatus && item.thinkingStatus && !(item.mcqCards && item.mcqCards.length) && !(item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length)))}}">
@@ -236,10 +223,10 @@ module.exports = {
             <view class="workflow-card-head">
               <view class="workflow-card-title">
                 <text class="workflow-card-badge">{{item.workflowBadge || '本轮推演'}}</text>
-                <text class="workflow-card-label">{{item.workflowTitle || '后台过程已完成'}}</text>
+                <text class="workflow-card-label">{{item.workflowTitle || '处理摘要已完成'}}</text>
               </view>
-              <view class="workflow-toggle workflow-toggle-inline" bindtap="onToggleWorkflowTrace" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.workflowExpanded ? '收起后台过程' : '展开后台过程'}}">
-                <text class="workflow-toggle-text">{{item.workflowExpanded ? '收起过程' : (item.workflowToggleText || '查看完整后台过程')}}</text>
+              <view class="workflow-toggle workflow-toggle-inline" bindtap="onToggleWorkflowTrace" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.workflowExpanded ? '收起处理摘要' : '查看处理摘要'}}">
+                <text class="workflow-toggle-text">{{item.workflowExpanded ? '收起摘要' : (item.workflowToggleText || '查看处理摘要')}}</text>
                 <text class="workflow-toggle-arrow">{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
               </view>
             </view>
@@ -253,10 +240,6 @@ module.exports = {
                   <text class="workflow-step-title">{{wf.title}}</text>
                 </view>
                 <text class="workflow-step-detail" wx:if="{{wf.detail}}">{{wf.detail}}</text>
-                <view class="workflow-step-raw" wx:if="{{wf.rawText}}">
-                  <text class="workflow-step-raw-label">{{wf.rawLabel}}</text>
-                  <text class="workflow-step-raw-text" selectable>{{wf.rawText}}</text>
-                </view>
               </view>
             </view>
           </view>

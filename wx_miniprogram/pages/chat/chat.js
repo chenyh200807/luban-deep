@@ -466,13 +466,13 @@ Page({
         workflowSub: "",
         workflowMeta: "",
         workflowCountText: "",
-        workflowToggleText: "查看完整后台过程",
+        workflowToggleText: "查看处理摘要",
         workflowTone: "compose",
         workflowActive: false,
         citations: null,
         engine: "",
         engineSessionId: "",
-        engineTurnId: "",
+        engineTurnId: String(m.engine_turn_id || m.turn_id || ""),
         billing: null,
         feedback: "",
       };
@@ -548,7 +548,7 @@ Page({
       workflowSub: "",
       workflowMeta: "",
       workflowCountText: "",
-      workflowToggleText: "查看完整后台过程",
+      workflowToggleText: "查看处理摘要",
       workflowTone: "compose",
       workflowActive: false,
       citations: null,
@@ -989,7 +989,7 @@ Page({
     updates["messages[" + idx + "].workflowSub"] = summary.subline || "";
     updates["messages[" + idx + "].workflowMeta"] = summary.meta || "";
     updates["messages[" + idx + "].workflowCountText"] = summary.countText || "";
-    updates["messages[" + idx + "].workflowToggleText"] = summary.toggleText || "展开后台过程";
+    updates["messages[" + idx + "].workflowToggleText"] = summary.toggleText || "查看处理摘要";
     updates["messages[" + idx + "].workflowTone"] = summary.tone || "analyze";
     updates["messages[" + idx + "].workflowActive"] = !!summary.active;
 
@@ -1552,7 +1552,7 @@ Page({
       workflowSub: "",
       workflowMeta: "",
       workflowCountText: "",
-      workflowToggleText: "展开后台过程",
+      workflowToggleText: "查看处理摘要",
       workflowTone: "analyze",
       workflowActive: true,
       citations: null,
@@ -1898,6 +1898,27 @@ Page({
 
   goRecharge: function () {
     wx.navigateTo({ url: "/pages/billing/billing" });
+  },
+
+  onHeroMoreActions: function () {
+    var self = this;
+    helpers.vibrate("light");
+    wx.showActionSheet({
+      itemList: [
+        this.data.isDark ? "切换浅色模式" : "切换深色模式",
+        "充值中心",
+        "个人中心",
+      ],
+      success: function (res) {
+        if (res.tapIndex === 0) {
+          self.onToggleTheme();
+        } else if (res.tapIndex === 1) {
+          self.goRecharge();
+        } else if (res.tapIndex === 2) {
+          self.goProfile();
+        }
+      },
+    });
   },
 
   onToggleTheme: function () {
@@ -2385,9 +2406,13 @@ Page({
   },
 
   _sendFeedback: function (msgid, rating, tags, comment) {
+    var msg = this.data.messages.find(function (item) {
+      return item.id === msgid;
+    });
     return api.submitFeedback({
       message_id: msgid,
       conversation_id: this._convId || "",
+      turn_id: (msg && msg.engineTurnId) || "",
       rating: rating,
       reason_tags: tags || [],
       comment: comment || "",

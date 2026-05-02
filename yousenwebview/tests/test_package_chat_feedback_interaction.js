@@ -182,7 +182,7 @@ async function run() {
   });
   loaded.page._convId = "tb_feedback";
   loaded.page.setData({
-    messages: [{ id: "m1", role: "ai", feedback: "" }],
+    messages: [{ id: "m1", role: "ai", feedback: "", engineTurnId: "turn_feedback_1" }],
     feedbackTags: [],
     feedbackComment: "",
     answerMode: "AUTO",
@@ -204,6 +204,7 @@ async function run() {
   await flush();
 
   assertEqual(calls.length, 1, "submit should call feedback API once");
+  assertEqual(calls[0].turn_id, "turn_feedback_1", "submit should persist canonical engine turn id when available");
   assertEqual(calls[0].reason_tags, ["事实错误", "格式混乱"], "submit should persist selected tags");
   assertEqual(calls[0].comment, "答案引用范围不对", "submit should persist optional comment");
   assert(loaded.page.data.feedbackMsgId === "", "successful submit should close popover");
