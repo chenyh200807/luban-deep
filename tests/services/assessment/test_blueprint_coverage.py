@@ -1,4 +1,10 @@
 from deeptutor.services.assessment.blueprint import get_assessment_blueprint
+from deeptutor.services.assessment.blueprint_service import (
+    AssessmentBlueprintService,
+    AssessmentBlueprintUnavailable,
+    QuestionCandidate,
+    StaticAssessmentQuestionProvider,
+)
 from deeptutor.services.assessment.coverage import evaluate_blueprint_coverage
 
 
@@ -111,3 +117,52 @@ def test_sparse_calculation_uses_structured_judgment_warning_not_blocker() -> No
 
     assert report["status"] == "pass"
     assert any(issue["code"] == "calculation_fallback_used" for issue in report["issues"])
+
+
+def _candidate(index: int, *, question_type: str = "single_choice") -> QuestionCandidate:
+    return QuestionCandidate(
+        source_question_id=f"q_{index}",
+        question_stem=f"题干 {index}",
+        question_type=question_type,
+        chapter="建筑实务",
+        options=(("A", "选项 A"), ("B", "选项 B"), ("C", "选项 C"), ("D", "选项 D")),
+        answer="A",
+        source_type="REAL_EXAM",
+    )
+
+
+def test_blueprint_service_creates_20_units_with_profile_probes() -> None:
+    candidates = [_candidate(index) for index in range(1, 40)] + [
+        _candidate(100 + index, question_type="case_study") for index in range(1, 10)
+    ]
+    service = AssessmentBlueprintService(
+        provider=StaticAssessmentQuestionProvider(candidates),
+        allow_dev_fallback=False,
+    )
+
+    payload = service.create_session(user_id="student_demo", count=20)
+
+    assert payload["blueprint_version"] == "diagnostic_v1"
+    assert payload["requested_count"] == 20
+    assert payload["delivered_count"] == 20
+    assert payload["scored_count"] == 16
+    assert payload["profile_count"] == 4
+    assert payload["shortfall_count"] == 0
+    assert sum(1 for item in payload["session_questions"] if item["scored"]) == 16
+    assert sum(1 for item in payload["session_questions"] if not item["scored"]) == 4
+    assert all(item["provenance"]["question_id"] for item in payload["session_questions"])
+    assert payload["sections"][0]["section_id"] == "foundation_deep_foundation"
+
+
+def test_blueprint_service_fails_closed_when_scored_candidates_are_short() -> None:
+    service = AssessmentBlueprintService(
+        provider=StaticAssessmentQuestionProvider([_candidate(1), _candidate(2)]),
+        allow_dev_fallback=False,
+    )
+
+    try:
+        service.create_session(user_id="student_demo", count=20)
+    except AssessmentBlueprintUnavailable as exc:
+        assert "requires" in str(exc)
+    else:  # pragma: no cover - assertion guard
+        raise AssertionError("Expected blueprint service to fail closed")

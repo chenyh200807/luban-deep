@@ -30,6 +30,15 @@ try:
 except ImportError:  # pragma: no cover - non-Unix fallback
     fcntl = None
 
+from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
+from deeptutor.services.assessment import (
+    AssessmentBlueprintService,
+    AssessmentBlueprintUnavailable,
+    QuestionCandidate,
+    StaticAssessmentQuestionProvider,
+    SupabaseAssessmentQuestionProvider,
+)
+from deeptutor.services.assessment.teaching_policy import build_teaching_policy_seed
 from deeptutor.services.learner_state.progress_feedback import (
     build_progress_feedback,
     build_progress_feedback_from_learner_snapshot,
@@ -356,6 +365,71 @@ _ASSESSMENT_BANK: list[_AssessmentTemplate] = [
 ]
 
 
+def _assessment_bank_candidates() -> list[QuestionCandidate]:
+    return [
+        QuestionCandidate(
+            source_question_id=item.id,
+            question_stem=item.question,
+            question_type="single_choice",
+            chapter=item.chapter,
+            options=tuple((key, value) for key, value in item.options.items()),
+            answer=item.answer,
+            source_type="DEV_FALLBACK",
+        )
+        for item in _ASSESSMENT_BANK
+    ]
+
+
+def _provenance_summary(questions: list[dict[str, Any]]) -> dict[str, Any]:
+    scored = [item for item in questions if item.get("scored", True)]
+    with_question_id = sum(1 for item in scored if dict(item.get("provenance") or {}).get("question_id"))
+    with_source_chunk_id = sum(1 for item in scored if dict(item.get("provenance") or {}).get("source_chunk_id"))
+    source_tables = sorted({str(dict(item.get("provenance") or {}).get("source_table") or "") for item in questions})
+    return {
+        "scored_count": len(scored),
+        "with_question_id": with_question_id,
+        "with_source_chunk_id": with_source_chunk_id,
+        "source_tables": [item for item in source_tables if item],
+    }
+
+
+def _section_empty_counts(session: dict[str, Any], answers: dict[str, str]) -> dict[str, int]:
+    questions_by_id = {item.get("question_id"): item for item in list(session.get("questions") or [])}
+    empty: dict[str, int] = {}
+    for section in list(session.get("sections") or []):
+        section_id = str(section.get("section_id") or "")
+        count = 0
+        for question_id in list(section.get("question_ids") or []):
+            question = questions_by_id.get(question_id)
+            if question and not str(answers.get(question_id, "")).strip():
+                count += 1
+        if section_id:
+            empty[section_id] = count
+    return empty
+
+
+def _profile_traits_from_seed(seed: dict[str, Any]) -> list[str]:
+    traits = ["按测评结果动态调整"]
+    if seed.get("pace") in {"pace_recovery", "slow_down_checkpoints"}:
+        traits.append("需要节奏支持")
+    if seed.get("scaffold_level") in {"high", "stepwise"}:
+        traits.append("适合分步提示")
+    if seed.get("review_rhythm"):
+        traits.append("适合固定复盘节奏")
+    return traits
+
+
+def _study_tip_from_seed(seed: dict[str, Any]) -> str:
+    action = str(seed.get("recommended_action") or "")
+    if action == "worked_example":
+        return "建议先看一道同类例题，再做薄弱章节微练。"
+    if action == "minimal_scaffold":
+        return "建议把题目拆成步骤，每一步确认后再推进。"
+    if action == "pace_recovery":
+        return "建议先降低节奏，用短复盘恢复稳定作答。"
+    return "建议先补最弱章节，再做一次短组针对训练。"
+
+
 class MemberConsoleService:
     def __init__(self) -> None:
         self._lock = threading.RLock()
@@ -380,6 +454,69 @@ class MemberConsoleService:
         from deeptutor.services.wallet.service import get_wallet_service
 
         return get_wallet_service()
+
+    def _build_assessment_blueprint_service(self) -> AssessmentBlueprintService:
+        allow_dev_fallback = (not is_production_environment()) or env_flag(
+            "ASSESSMENT_ALLOW_DEV_FALLBACK",
+            default=False,
+        )
+        fallback_provider = StaticAssessmentQuestionProvider(_assessment_bank_candidates())
+        use_supabase = is_production_environment() or env_flag(
+            "ASSESSMENT_USE_SUPABASE",
+            default=False,
+        )
+        return AssessmentBlueprintService(
+            provider=SupabaseAssessmentQuestionProvider() if use_supabase else fallback_provider,
+            fallback_provider=fallback_provider,
+            allow_dev_fallback=allow_dev_fallback,
+        )
+
+    def _write_assessment_learning_signals(
+        self,
+        user_id: str,
+        quiz_id: str,
+        result: dict[str, Any],
+    ) -> None:
+        seed = dict(result.get("teaching_policy_seed") or {})
+        payload = {
+            "quiz_id": quiz_id,
+            "blueprint_version": result.get("blueprint_version"),
+            "knowledge_score": result.get("knowledge_score"),
+            "measurement_confidence": result.get("measurement_confidence"),
+            "teaching_policy_seed": seed,
+            "assessment_observability": dict(result.get("assessment_observability") or {}),
+        }
+        bot_id = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
+        try:
+            self._get_learner_state_service().append_memory_event(
+                user_id,
+                source_feature="assessment",
+                source_id=quiz_id,
+                source_bot_id=bot_id,
+                memory_kind="assessment",
+                payload_json=payload,
+                dedupe_key=f"assessment:{user_id}:{quiz_id}",
+            )
+        except Exception:
+            logger.warning("Failed to write assessment learner-state event: user_id=%s quiz_id=%s", user_id, quiz_id, exc_info=True)
+        try:
+            self._get_overlay_service().patch_overlay(
+                bot_id,
+                user_id,
+                {
+                    "operations": [
+                        {
+                            "op": "merge",
+                            "field": "teaching_policy_override",
+                            "value": seed,
+                        }
+                    ]
+                },
+                source_feature="assessment",
+                source_id=quiz_id,
+            )
+        except Exception:
+            logger.warning("Failed to write assessment teaching-policy overlay: user_id=%s quiz_id=%s", user_id, quiz_id, exc_info=True)
 
     @staticmethod
     def _default_packages() -> list[dict[str, Any]]:
@@ -3669,6 +3806,34 @@ class MemberConsoleService:
             )
         )
         level = "advanced" if avg_mastery >= 75 else "intermediate" if avg_mastery >= 50 else "beginner"
+        stored_feedback = (
+            last_assessment.get("diagnostic_feedback")
+            if isinstance(last_assessment.get("diagnostic_feedback"), dict)
+            else None
+        )
+        if stored_feedback:
+            return {
+                "score": avg_mastery,
+                "knowledge_score": int(last_assessment.get("knowledge_score") or avg_mastery),
+                "level": str(last_assessment.get("level") or level),
+                "blueprint_version": str(last_assessment.get("blueprint_version") or ""),
+                "measurement_confidence": str(last_assessment.get("measurement_confidence") or ""),
+                "teaching_policy_seed": dict(last_assessment.get("teaching_policy_seed") or {}),
+                "assessment_observability": dict(last_assessment.get("assessment_observability") or {}),
+                "chapter_mastery": chapter_mastery,
+                "diagnostic_profile": {
+                    "learner_archetype": str(
+                        dict(stored_feedback.get("learner_profile") or {}).get("archetype") or ""
+                    ),
+                    "response_profile": str(
+                        dict(stored_feedback.get("cognitive_insight") or {}).get("response_profile") or ""
+                    ),
+                    "calibration_label": str(
+                        dict(stored_feedback.get("cognitive_insight") or {}).get("calibration_label") or ""
+                    ),
+                },
+                "diagnostic_feedback": stored_feedback,
+            }
         return {
             "score": avg_mastery,
             "level": level,
@@ -3708,55 +3873,59 @@ class MemberConsoleService:
 
     def create_assessment(self, user_id: str, count: int = 20) -> dict[str, Any]:
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
-            requested_count = max(1, int(count or 20))
-            available_count = len(_ASSESSMENT_BANK)
-            selected_bank = _ASSESSMENT_BANK[: min(requested_count, available_count)]
-            questions = []
-            session_questions = []
-            for index, item in enumerate(selected_bank, start=1):
-                question_id = f"{item.id}__{index:02d}_{uuid.uuid4().hex[:6]}"
-                questions.append(
-                    {
-                        "question_id": question_id,
-                        "source_question_id": item.id,
-                        "question_stem": item.question,
-                        "question_type": "single_choice",
-                        "difficulty": "medium",
-                        "chapter": item.chapter,
-                        "options": [{"key": key, "text": value} for key, value in item.options.items()],
-                    }
+            try:
+                payload = self._build_assessment_blueprint_service().create_session(
+                    user_id=user_id,
+                    count=count,
                 )
-                session_questions.append(
-                    {
-                        "question_id": question_id,
-                        "source_question_id": item.id,
-                        "answer": item.answer,
-                        "chapter": item.chapter,
-                    }
-                )
-            delivered_count = len(questions)
-            shortfall_count = max(0, requested_count - delivered_count)
+            except AssessmentBlueprintUnavailable:
+                logger.warning("Assessment blueprint unavailable: user_id=%s count=%s", user_id, count, exc_info=True)
+                raise
             quiz_id = f"quiz_{uuid.uuid4().hex[:10]}"
+            payload["quiz_id"] = quiz_id
+            questions = list(payload["questions"])
+            session_questions = list(payload["session_questions"])
+            now = _iso()
             data.setdefault("assessment_sessions", {})[quiz_id] = {
                 "user_id": user_id,
                 "questions": session_questions,
-                "requested_count": requested_count,
-                "delivered_count": delivered_count,
-                "available_count": available_count,
-                "question_bank_size": available_count,
-                "unique_source_question_count": delivered_count,
-                "shortfall_count": shortfall_count,
-                "created_at": _iso(),
+                "blueprint_version": payload["blueprint_version"],
+                "sections": list(payload["sections"]),
+                "requested_count": payload["requested_count"],
+                "delivered_count": payload["delivered_count"],
+                "scored_count": payload["scored_count"],
+                "profile_count": payload["profile_count"],
+                "available_count": payload["available_count"],
+                "question_bank_size": payload["question_bank_size"],
+                "unique_source_question_count": payload["unique_source_question_count"],
+                "shortfall_count": payload["shortfall_count"],
+                "fallback_used": bool(payload.get("fallback_used")),
+                "created_at": now,
+                "observability": {
+                    "started_at": now,
+                    "first_answer_at": "",
+                    "submitted_at": "",
+                    "requested_count": payload["requested_count"],
+                    "delivered_count": payload["delivered_count"],
+                    "scored_count": payload["scored_count"],
+                    "profile_count": payload["profile_count"],
+                    "completion_rate": 0,
+                },
             }
             return {
                 "quiz_id": quiz_id,
                 "questions": questions,
-                "requested_count": requested_count,
-                "delivered_count": delivered_count,
-                "available_count": available_count,
-                "question_bank_size": available_count,
-                "unique_source_question_count": delivered_count,
-                "shortfall_count": shortfall_count,
+                "blueprint_version": payload["blueprint_version"],
+                "sections": payload["sections"],
+                "requested_count": payload["requested_count"],
+                "delivered_count": payload["delivered_count"],
+                "scored_count": payload["scored_count"],
+                "profile_count": payload["profile_count"],
+                "available_count": payload["available_count"],
+                "question_bank_size": payload["question_bank_size"],
+                "unique_source_question_count": payload["unique_source_question_count"],
+                "shortfall_count": payload["shortfall_count"],
+                "fallback_used": bool(payload.get("fallback_used")),
             }
 
         return self._mutate(_apply)
@@ -3767,20 +3936,47 @@ class MemberConsoleService:
             if not session:
                 raise KeyError(f"Unknown quiz: {quiz_id}")
             questions = session.get("questions", [])
+            scored_questions = [question for question in questions if question.get("scored", True)]
+            profile_questions = [question for question in questions if not question.get("scored", True)]
             correct = 0
             chapter_hits: dict[str, list[int]] = {}
-            for question in questions:
+            for question in scored_questions:
                 chapter = question["chapter"]
                 chapter_hits.setdefault(chapter, [])
                 is_correct = str(answers.get(question["question_id"], "")).upper() == question["answer"]
                 chapter_hits[chapter].append(1 if is_correct else 0)
                 correct += 1 if is_correct else 0
-            score_pct = round((correct / max(len(questions), 1)) * 100)
+            score_pct = round((correct / max(len(scored_questions), 1)) * 100)
             chapter_mastery = {
                 chapter: {"name": chapter, "mastery": round(sum(values) / max(len(values), 1) * 100)}
                 for chapter, values in chapter_hits.items()
             }
             level = "advanced" if score_pct >= 75 else "intermediate" if score_pct >= 50 else "beginner"
+            priority_chapters = [
+                {"name": chapter}
+                for chapter, _ in sorted(
+                    chapter_mastery.items(),
+                    key=lambda item: int(item[1].get("mastery") or 0),
+                )[:5]
+            ]
+            score_report = {
+                "score_pct": score_pct,
+                "priority_chapters": priority_chapters,
+            }
+            teaching_policy_seed = build_teaching_policy_seed(
+                session={**session, "quiz_id": quiz_id},
+                answers=answers,
+                score_report=score_report,
+                time_spent_seconds=time_spent_seconds,
+            )
+            profile_answered_count = sum(
+                1 for question in profile_questions if str(answers.get(question.get("question_id"), "")).strip()
+            )
+            answered_count = sum(1 for question in questions if str(answers.get(question.get("question_id"), "")).strip())
+            submitted_at = _iso()
+            completion_rate = round(answered_count / max(len(questions), 1), 4)
+            section_empty_counts = _section_empty_counts(session, answers)
+            measurement_confidence = teaching_policy_seed["measurement_confidence"]
             feedback = {
                 "ability_overview": {
                     "score_pct": score_pct,
@@ -3792,39 +3988,71 @@ class MemberConsoleService:
                     "calibration_label": "accurate",
                 },
                 "learner_profile": {
-                    "archetype": "strategist" if score_pct >= 70 else "builder",
-                    "traits": ["目标导向", "有复盘意识", "能持续投入"],
-                    "study_tip": "建议把错题重新按章节回看一遍，再用 AI 追问不会的步骤。",
+                    "archetype": "policy_seeded",
+                    "traits": _profile_traits_from_seed(teaching_policy_seed),
+                    "study_tip": _study_tip_from_seed(teaching_policy_seed),
+                    "profile_projection": {
+                        "source": "assessment_profile_probes",
+                        "non_clinical": True,
+                        "profile_probe_count": len(profile_questions),
+                        "profile_answered_count": profile_answered_count,
+                    },
                 },
                 "action_plan": {
-                    "priority_chapters": [
-                        {"name": chapter}
-                        for chapter, _ in sorted(
-                            chapter_mastery.items(),
-                            key=lambda item: int(item[1].get("mastery") or 0),
-                        )[:5]
-                    ],
+                    "priority_chapters": priority_chapters,
                     "plan_strategy": "先补最弱章节，再做一次 10 题针对训练。",
                 },
+                "teaching_policy_seed": teaching_policy_seed,
             }
             member = self._ensure_member(data, user_id)
             member["chapter_mastery"].update(chapter_mastery)
+            provenance_summary = _provenance_summary(questions)
+            observability = {
+                **dict(session.get("observability") or {}),
+                "submitted_at": submitted_at,
+                "time_spent_seconds": int(time_spent_seconds or 0),
+                "answered_count": answered_count,
+                "scored_answered_count": sum(
+                    1 for question in scored_questions if str(answers.get(question.get("question_id"), "")).strip()
+                ),
+                "profile_answered_count": profile_answered_count,
+                "completion_rate": completion_rate,
+                "section_empty_counts": section_empty_counts,
+                "measurement_confidence": measurement_confidence,
+                "low_confidence_reasons": list(teaching_policy_seed.get("low_confidence_reasons") or []),
+                "policy_seed_status": "created",
+            }
+            session["observability"] = observability
+            session["submitted_at"] = submitted_at
+            session["teaching_policy_seed"] = teaching_policy_seed
             member["last_assessment"] = {
                 "quiz_id": quiz_id,
+                "blueprint_version": session.get("blueprint_version") or "diagnostic_v1",
                 "score": score_pct,
+                "knowledge_score": score_pct,
                 "level": level,
                 "chapter_mastery": chapter_mastery,
                 "question_count": len(questions),
-                "completed_at": _iso(),
+                "scored_count": len(scored_questions),
+                "profile_count": len(profile_questions),
+                "profile_probe_count": len(profile_questions),
+                "profile_answered_count": profile_answered_count,
+                "sections": list(session.get("sections") or []),
+                "provenance_summary": provenance_summary,
+                "measurement_confidence": measurement_confidence,
+                "teaching_policy_seed": teaching_policy_seed,
+                "assessment_observability": observability,
+                "diagnostic_feedback": feedback,
+                "completed_at": submitted_at,
             }
             learning = self._ensure_learning_profile(member)
             today = _date_key()
-            learning["daily_counts"][today] = int(learning["daily_counts"].get(today) or 0) + len(questions)
+            learning["daily_counts"][today] = int(learning["daily_counts"].get(today) or 0) + len(scored_questions)
             if member.get("last_study_date") != today:
                 member["study_days"] = int(member.get("study_days") or 0) + 1
                 member["last_study_date"] = today
-            member["last_active_at"] = _iso()
-            member["last_practice_at"] = _iso()
+            member["last_active_at"] = submitted_at
+            member["last_practice_at"] = submitted_at
             for chapter, values in chapter_hits.items():
                 chapter_name = chapter_mastery[chapter]["name"]
                 stats = learning["chapter_stats"].setdefault(
@@ -3836,8 +4064,15 @@ class MemberConsoleService:
                 stats["last_activity_at"] = _iso()
             return {
                 "score": score_pct,
+                "knowledge_score": score_pct,
                 "level": level,
                 "chapter_mastery": chapter_mastery,
+                "blueprint_version": member["last_assessment"]["blueprint_version"],
+                "measurement_confidence": measurement_confidence,
+                "profile_probe_count": len(profile_questions),
+                "profile_answered_count": profile_answered_count,
+                "teaching_policy_seed": teaching_policy_seed,
+                "assessment_observability": observability,
                 "diagnostic_feedback": feedback,
                 "diagnostic_profile": {
                     "learner_archetype": feedback["learner_profile"]["archetype"],
@@ -3846,7 +4081,9 @@ class MemberConsoleService:
                 },
             }
 
-        return self._mutate(_apply)
+        result = self._mutate(_apply)
+        self._write_assessment_learning_signals(user_id, quiz_id, result)
+        return result
 
     def _find_member_by_external_auth(
         self,

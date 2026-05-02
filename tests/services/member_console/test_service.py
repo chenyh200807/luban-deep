@@ -906,6 +906,9 @@ def test_create_assessment_uses_unique_question_ids_per_quiz(tmp_path: Path) -> 
 
     assert payload["requested_count"] == 20
     assert payload["delivered_count"] == 20
+    assert payload["blueprint_version"] == "diagnostic_v1"
+    assert payload["scored_count"] == 16
+    assert payload["profile_count"] == 4
     assert payload["available_count"] >= 20
     assert payload["question_bank_size"] >= 20
     assert payload["unique_source_question_count"] == 20
@@ -920,6 +923,10 @@ def test_create_assessment_uses_unique_question_ids_per_quiz(tmp_path: Path) -> 
     assert stored_ids == question_ids
     assert stored_session["requested_count"] == 20
     assert stored_session["delivered_count"] == 20
+    assert stored_session["blueprint_version"] == "diagnostic_v1"
+    assert stored_session["scored_count"] == 16
+    assert stored_session["profile_count"] == 4
+    assert all(item["provenance"]["question_id"] for item in stored)
     assert stored_session["question_bank_size"] >= 20
     assert stored_session["unique_source_question_count"] == 20
     assert stored_session["shortfall_count"] == 0
@@ -1610,10 +1617,63 @@ def test_submit_assessment_persists_measured_profile_including_zero_mastery(tmp_
     service.submit_assessment("student_demo", payload["quiz_id"], answers, time_spent_seconds=60)
     profile = service.get_assessment_profile("student_demo")
 
-    assert profile["score"] == 20
-    assert len(profile["chapter_mastery"]) == 5
+    assert profile["score"] == 6
+    assert profile["blueprint_version"] == "diagnostic_v1"
+    assert profile["measurement_confidence"] in {"high", "medium", "low"}
+    assert service._load()["members"][0]["last_assessment"]["scored_count"] == 16
     assert profile["chapter_mastery"][stored[0]["chapter"]]["mastery"] == 100
     assert any(item["mastery"] == 0 for item in profile["chapter_mastery"].values())
+
+
+def test_submit_assessment_writes_teaching_policy_and_learner_event(monkeypatch, tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    learner_events = []
+    overlay_patches = []
+
+    class FakeLearnerStateService:
+        def append_memory_event(self, user_id: str, **kwargs):
+            learner_events.append({"user_id": user_id, **kwargs})
+            return type("Event", (), {"event_id": "evt_assessment"})()
+
+    class FakeOverlayService:
+        def patch_overlay(self, bot_id: str, user_id: str, patch: dict, **kwargs):
+            overlay_patches.append({"bot_id": bot_id, "user_id": user_id, "patch": patch, **kwargs})
+            return {"version": 2}
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: FakeLearnerStateService())
+    monkeypatch.setattr(service, "_get_overlay_service", lambda: FakeOverlayService())
+
+    payload = service.create_assessment("student_demo", count=20)
+    stored = service._load()["assessment_sessions"][payload["quiz_id"]]["questions"]
+    answers = {item["question_id"]: item.get("answer") or "A" for item in stored}
+
+    result = service.submit_assessment("student_demo", payload["quiz_id"], answers, time_spent_seconds=180)
+
+    assert result["teaching_policy_seed"]["version"] == "assessment_seed_v1"
+    assert learner_events[0]["memory_kind"] == "assessment"
+    assert learner_events[0]["source_feature"] == "assessment"
+    assert learner_events[0]["payload_json"]["teaching_policy_seed"]["source_assessment"]["quiz_id"] == payload["quiz_id"]
+    assert overlay_patches[0]["bot_id"] == "construction-exam-coach"
+    assert overlay_patches[0]["patch"]["operations"][0]["field"] == "teaching_policy_override"
+
+
+def test_assessment_profile_exposes_observability_and_seed(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    payload = service.create_assessment("student_demo", count=20)
+    stored = service._load()["assessment_sessions"][payload["quiz_id"]]["questions"]
+    answers = {item["question_id"]: item.get("answer") or "A" for item in stored}
+    service.submit_assessment("student_demo", payload["quiz_id"], answers, time_spent_seconds=2)
+
+    profile = service.get_assessment_profile("student_demo")
+
+    assert profile["blueprint_version"] == "diagnostic_v1"
+    assert profile["measurement_confidence"] == "low"
+    assert profile["teaching_policy_seed"]["measurement_confidence"] == "low"
+    assert profile["assessment_observability"]["completion_rate"] == 1
+    assert profile["assessment_observability"]["policy_seed_status"] == "created"
 
 
 def test_chapter_progress_keeps_actual_attempts_separate_from_daily_target(tmp_path: Path) -> None:

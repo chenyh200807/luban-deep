@@ -5,7 +5,7 @@
 - 文档名称：鲁班智考 Assessment Blueprint PRD
 - 文档路径：`docs/plan/2026-05-02-luban-assessment-blueprint-prd.md`
 - 创建日期：2026-05-02
-- 状态：Phase 0 implemented（coverage audit 已落地；生产 create/submit 链路尚未改造）
+- 状态：Implemented locally（P0-P3 代码与定向验证已完成；尚未 push / 部署到线上）
 - 适用范围：微信小程序 assessment / report / profile、Supabase `questions_bank`、Learner State、Teaching Policy Layer、TutorBot 个性化教学
 - 关联文档：
   - [2026-04-15-learner-state-memory-guided-learning-prd.md](2026-04-15-learner-state-memory-guided-learning-prd.md)
@@ -671,6 +671,39 @@ Phase 0 审计边界：
 - 当前报告按 `question_type/source_type/source_chunk_id` 做聚合覆盖，只证明“题型与来源资产量足够支撑 P0 蓝图”。
 - 当前报告尚未证明 `node_code -> chapter/topic` 的精确章节分桶质量；这必须进入 Phase 1 前置 gate。
 - 当前报告将 `questions_bank.id` 作为 P0 provenance 硬门槛，`source_chunk_id` 继续作为增强证据和后续回填任务。
+
+2026-05-02 P1-P3 实施证据：
+
+- P1 服务端蓝图 authority：
+  - `deeptutor/services/assessment/blueprint_service.py`
+  - `deeptutor/services/member_console/service.py:create_assessment`
+  - create session 固定返回 `blueprint_version / sections / requested_count / delivered_count / scored_count / profile_count / provenance`
+  - 本地 dev fallback 仅在非生产或显式开关下启用；生产/Supabase 正式路径不可用时 fail-closed
+- P2 profile probes 与 Teaching Policy seed：
+  - `deeptutor/services/assessment/profile_probes.py`
+  - `deeptutor/services/assessment/teaching_policy.py`
+  - submit 只用 16 道 scored items 计算知识分，4 道 profile probes 不进入分母
+  - submit 写 Learner State `memory_kind=assessment` event，并 patch `construction-exam-coach` 的 `teaching_policy_override`
+- P3 观测与效果回流：
+  - `last_assessment.assessment_observability` 持久化 start/submit/count/answered/time/confidence/section empty/policy seed 状态
+  - `get_assessment_profile` 读取同一份 stored assessment projection，不再另起一套画像推断
+  - 小程序两套表面保存 `blueprint_version / scored_count / profile_count`，题卡按实际 `profile_probe` 展示“学习画像”
+
+2026-05-02 P1-P3 验证结果：
+
+| 验证项 | 结果 |
+| --- | --- |
+| Python targeted | `15 passed, 56 deselected` |
+| `wx_miniprogram` assessment contract | `PASS test_assessment_contract.js (14 assertions)` |
+| `yousenwebview` package assessment contract | `PASS test_package_assessment_contract.js (10 assertions)` |
+| Supabase coverage audit | `diagnostic_v1 pass`，20 / 16 / 4，issues = 0 |
+| Supabase create smoke | delivered 20，scored 16，profile 4，fallback_used=false，unique_source_question_count=20 |
+
+仍需上线前验证：
+
+- 微信开发者工具或真机完整走一遍开始、20 题作答、提交、报告页、回到 TutorBot 首轮对话。
+- 云上环境需确认 `ASSESSMENT_USE_SUPABASE=1` 或生产环境判定生效，且 Supabase service key 可用。
+- `node_code -> chapter/topic` 精准分桶仍是下一轮质量增强；当前正式路径优先保证 20 单元、provenance、计分/画像分离和 fail-closed。
 
 若审计发现某个 section 候选题不足：
 

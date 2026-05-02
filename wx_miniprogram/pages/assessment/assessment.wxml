@@ -108,7 +108,7 @@
       <!-- 题目卡片 -->
       <view class="question-card">
         <view class="q-header">
-          <text class="q-type">{{currentQ.question_type === 'multi_choice' ? '多选题' : '单选题'}}</text>
+          <text class="q-type">{{currentQ.question_type === 'profile_probe' ? '学习画像' : currentQ.question_type === 'multi_choice' ? '多选题' : '单选题'}}</text>
           <text class="q-diff" wx:if="{{currentQ.difficulty}}">{{currentQ.difficulty === 'hard' ? '难' : currentQ.difficulty === 'medium' ? '中' : '易'}}</text>
         </view>
         <text class="q-stem">{{currentQ.question_stem}}</text>
