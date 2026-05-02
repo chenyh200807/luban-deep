@@ -88,6 +88,7 @@ auth.getToken = function () {
   return "";
 };
 api.startChatTurn = function () {
+  api.lastStartTurnPayload = arguments[0] || {};
   return Promise.resolve({
     stream: {
       url: "/api/v1/ws",
@@ -184,6 +185,172 @@ Promise.resolve(
     assert(errorCount === 0, "cancelled turn should not surface as an error");
   }),
 )
+  .then(function () {
+    return run("cancel requested before socket opens still reaches the authoritative turn", async function () {
+      socketState.sent = [];
+      socketState.closed = [];
+      socketState.handlers = {};
+      api.lastStartTurnPayload = null;
+
+      var statuses = [];
+      var abort = wsStream.streamChat(
+        {
+          query: "请系统分析一套完整提分方案",
+          sessionId: "session_1",
+          mode: "AUTO",
+          clientTurnId: "client_turn_1",
+        },
+        {
+          onStatus: function (payload) {
+            statuses.push(payload);
+          },
+        },
+      );
+
+      abort({ cancelTurn: true });
+      await flush();
+      if (socketState.handlers.open) {
+        socketState.handlers.open();
+      }
+
+      assert(
+        api.lastStartTurnPayload && api.lastStartTurnPayload.client_turn_id === "client_turn_1",
+        "start-turn payload should preserve the surface client turn id",
+      );
+      assertEqual(socketState.sent[0], {
+        type: "subscribe_turn",
+        turn_id: "turn_1",
+        after_seq: 0,
+      }, "early cancel should still subscribe to the created authoritative turn");
+      assertEqual(socketState.sent[1], {
+        type: "cancel_turn",
+        turn_id: "turn_1",
+      }, "early cancel should be sent after the authoritative turn id is known");
+      assert(
+        statuses.some(function (item) { return item.data === "cancelling"; }),
+        "early cancel should expose a visible stopping status",
+      );
+      emitMessage({
+        type: "error",
+        content: "Turn cancelled",
+        metadata: { turn_terminal: true, status: "cancelled" },
+        turn_id: "turn_1",
+        session_id: "session_1",
+      });
+      await flush();
+    });
+  })
+  .then(function () {
+    return run("idle timeout should cancel the authoritative turn before surfacing timeout", async function () {
+      socketState.sent = [];
+      socketState.closed = [];
+      socketState.handlers = {};
+
+      var statuses = [];
+      wsStream.streamChat(
+        {
+          query: "请分析一套完整的复习方案",
+          sessionId: "session_1",
+          mode: "AUTO",
+          idleTimeoutMs: 20,
+        },
+        {
+          onStatus: function (payload) {
+            statuses.push(payload);
+          },
+          onError: function () {},
+          onDone: function () {},
+        },
+      );
+
+      await flush();
+      if (socketState.handlers.open) {
+        socketState.handlers.open();
+      }
+      await new Promise(function (resolve) {
+        setTimeout(resolve, 25);
+      });
+
+      assertEqual(socketState.sent[0], {
+        type: "subscribe_turn",
+        turn_id: "turn_1",
+        after_seq: 0,
+      }, "idle timeout test should subscribe before cancellation");
+      assertEqual(socketState.sent[1], {
+        type: "cancel_turn",
+        turn_id: "turn_1",
+      }, "idle timeout should request server-side cancellation for the active turn");
+      assert(
+        statuses.some(function (item) {
+          return item.data === "cancelling" && item.metadata && item.metadata.reason === "idle_timeout";
+        }),
+        "idle timeout should expose visible cancelling status instead of silently closing",
+      );
+      emitMessage({
+        type: "done",
+        metadata: { status: "cancelled" },
+        turn_id: "turn_1",
+        session_id: "session_1",
+      });
+      await flush();
+    });
+  })
+  .then(function () {
+    return run("idle timeout waits for terminal outcome after sending cancel_turn", async function () {
+      socketState.sent = [];
+      socketState.closed = [];
+      socketState.handlers = {};
+
+      var statuses = [];
+      var errors = [];
+      wsStream.streamChat(
+        {
+          query: "请分析一套完整的复习方案",
+          sessionId: "session_1",
+          mode: "AUTO",
+          idleTimeoutMs: 5,
+          maxTerminalWaitTicksAfterCancel: 8,
+        },
+        {
+          onStatus: function (payload) {
+            statuses.push(payload);
+          },
+          onError: function (message) {
+            errors.push(message);
+          },
+          onDone: function () {},
+        },
+      );
+
+      await flush();
+      if (socketState.handlers.open) {
+        socketState.handlers.open();
+      }
+      await new Promise(function (resolve) {
+        setTimeout(resolve, 30);
+      });
+
+      assertEqual(socketState.sent[1], {
+        type: "cancel_turn",
+        turn_id: "turn_1",
+      }, "idle timeout should send one authoritative cancel request");
+      assert(errors.length === 0, "second idle tick after cancel should not become a page-level timeout");
+      assert(
+        statuses.some(function (item) {
+          return item.data === "awaiting_terminal";
+        }),
+        "second idle tick should keep waiting for the canonical terminal outcome",
+      );
+      emitMessage({
+        type: "error",
+        content: "本轮生成已取消，请重新发送或换个题目继续。",
+        metadata: { turn_terminal: true, status: "cancelled" },
+        turn_id: "turn_1",
+        session_id: "session_1",
+      });
+      await flush();
+    });
+  })
   .then(function () {
     return run("duplicate seq content events are ignored during reconnect replay", async function () {
       socketState.sent = [];
@@ -413,4 +580,5 @@ Promise.resolve(
       process.exit(1);
     }
     console.log("PASS test_ws_stream.js (" + pass + " assertions)");
+    process.exit(0);
   });

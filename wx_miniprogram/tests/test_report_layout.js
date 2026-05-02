@@ -12,6 +12,10 @@ var reportWxml = fs.readFileSync(
   path.join(__dirname, "../pages/report/report.wxml"),
   "utf8",
 );
+var reportWxss = fs.readFileSync(
+  path.join(__dirname, "../pages/report/report.wxss"),
+  "utf8",
+);
 
 function assert(condition, message) {
   if (condition) {
@@ -33,6 +37,14 @@ assert(
 assert(
   reportWxml.indexOf('<view class="insight-strip glass-card" wx:if="{{focusHint}}">') >= 0,
   "report page should keep the dedicated focusHint insight strip",
+);
+assert(
+  reportWxml.indexOf('wx:for="{{dimList}}"') >= 0,
+  "report page should render every diagnosis dimension, not only the radar summary",
+);
+assert(
+  reportWxss.indexOf("width: 280px") < 0 && reportWxss.indexOf("height: 280px") < 0,
+  "report radar should not use a fixed px size that can clip on small screens",
 );
 
 if (fail) {

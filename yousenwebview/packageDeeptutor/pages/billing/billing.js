@@ -18,6 +18,11 @@ Page({
     pageSize: 15,
     hasMore: false,
     selectedPkg: "advance",
+    paymentAvailability: {
+      enabled: false,
+      label: "暂未开放",
+      reason: "充值通道正在接入微信支付，请联系运营开通或稍后再试",
+    },
     packages: [
       {
         id: "trial",
@@ -69,7 +74,15 @@ Page({
   async _loadWallet() {
     try {
       var data = await api.getWallet();
-      this.setData({ balance: data.balance || 0 });
+      var update = { balance: data.balance || 0 };
+      var packages = _normalizePackages(data.packages);
+      if (packages.length) {
+        update.packages = packages;
+        if (!_hasPackage(packages, this.data.selectedPkg)) {
+          update.selectedPkg = packages[0].id;
+        }
+      }
+      this.setData(update);
     } catch (_) {}
   },
 
@@ -117,7 +130,17 @@ Page({
 
   onRecharge: function () {
     if (!this.data.selectedPkg) return;
-    wx.showToast({ title: "充值功能即将上线", icon: "none" });
+    var availability = this.data.paymentAvailability || {};
+    if (!availability.enabled) {
+      wx.showModal({
+        title: availability.label || "暂未开放",
+        content: availability.reason || "充值通道暂未开放，请稍后再试",
+        showCancel: false,
+        confirmText: "知道了",
+      });
+      return;
+    }
+    wx.showToast({ title: "支付通道未配置", icon: "none" });
   },
 
   retry() {
@@ -152,6 +175,41 @@ function _friendlyReason(reason) {
     signup_bonus: "注册奖励",
   };
   return map[reason] || reason;
+}
+
+function _normalizePackages(packages) {
+  if (!Array.isArray(packages)) return [];
+  return packages
+    .filter(function (item) {
+      return item && item.id && item.points && item.price;
+    })
+    .map(function (item) {
+      return {
+        id: String(item.id),
+        label: item.label || item.name || _packageLabel(item.id, item.points),
+        points: Number(item.points) || 0,
+        price: String(item.price),
+        per: item.per || "",
+        badge: item.badge || "",
+        desc: item.desc || item.per || "智力点可用于 AI 答疑、解析与学习规划",
+      };
+    });
+}
+
+function _hasPackage(packages, id) {
+  return packages.some(function (item) {
+    return item.id === id;
+  });
+}
+
+function _packageLabel(id, points) {
+  var map = {
+    starter: "轻量体验",
+    standard: "标准套餐",
+    pro: "进阶主力",
+    ultimate: "冲刺强化",
+  };
+  return map[id] || points + " 点套餐";
 }
 
 function _formatTime(isoStr) {

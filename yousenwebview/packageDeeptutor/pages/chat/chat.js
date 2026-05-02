@@ -87,6 +87,8 @@ Page({
     contentHeight: 0,
     workspaceShellHeight: 0,
     workspaceShellHidden: false,
+    keyboardHeight: 0,
+    inputCursorSpacing: 24,
     heroBottomSpacer: 64,
     chatBottomSpacer: 220,
     bottomBarCompact: false,
@@ -104,6 +106,7 @@ Page({
     feedbackMsgId: "",
     feedbackTags: [],
     feedbackComment: "",
+    feedbackSubmitting: false,
     isDark: true,
     showInternalStatus: true,
     // 性能分级：控制 WXML 中动效开关
@@ -283,6 +286,8 @@ Page({
     var pendingConvId = runtime.consumePendingConversationId();
     if (pendingConvId) {
       self._restoreConversation(pendingConvId);
+    } else if (!this.data.hasMessages && this._convId && this._sid) {
+      self._restoreConversation(this._convId);
     }
     self
       ._ensureChatReady()
@@ -777,6 +782,15 @@ Page({
           turnId: this._surfaceTurnId || "",
         },
       );
+      var streamIdx = this._streamId === null ? -1 : this._find(this._streamId);
+      if (streamIdx >= 0) {
+        this.setData({
+          ["messages[" + streamIdx + "].thinkingStatus"]: "正在停止本轮分析…",
+          ["messages[" + streamIdx + "].thinkingBadge"]: "停止中",
+          ["messages[" + streamIdx + "].thinkingSub"]: "收到停止指令，正在同步本轮状态",
+          ["messages[" + streamIdx + "].thinkingTone"]: "retry",
+        });
+      }
     }
     if (this._abort) {
       try {
@@ -2121,6 +2135,15 @@ Page({
     runMeasure();
   },
 
+  onKeyboardFocus: function (e) {
+    var detail = (e && e.detail) || {};
+    this._syncWorkspaceChrome({ keyboardHeight: detail.height || 0 });
+  },
+
+  onKeyboardBlur: function () {
+    this._syncWorkspaceChrome({ keyboardHeight: 0 });
+  },
+
   _syncWorkspaceChrome: function (options) {
     var next = options && typeof options === "object" ? options : {};
     var previousHasMessages = !!this.data.hasMessages;
@@ -2129,6 +2152,10 @@ Page({
       next.hidden !== undefined ? !!next.hidden : !!this.data.workspaceShellHidden;
     var hasMessages =
       next.hasMessages !== undefined ? !!next.hasMessages : !!this.data.hasMessages;
+    var keyboardHeight =
+      next.keyboardHeight !== undefined
+        ? Math.max(0, Number(next.keyboardHeight) || 0)
+        : Math.max(0, Number(this.data.keyboardHeight) || 0);
     var viewportWidth = this.data.viewportWidth || 375;
     var safeBottom = this.data.safeBottom || 0;
     var shellHeight =
@@ -2138,14 +2165,16 @@ Page({
     var unit = function (rpx) {
       return Math.round((viewportWidth * rpx) / 750);
     };
-    var bottomBarBottom = shellVisible ? shellHeight : 0;
-    var bottomBarPaddingBottom = shellVisible ? 0 : safeBottom + unit(12);
+    var bottomBarBottom = keyboardHeight > 0 ? keyboardHeight : shellVisible ? shellHeight : 0;
+    var bottomBarPaddingBottom = keyboardHeight > 0 ? unit(12) : shellVisible ? 0 : safeBottom + unit(12);
     var heroBottomSpacer = shellVisible ? shellHeight + unit(32) : unit(120);
     var chatBottomSpacer =
       unit(236) + bottomBarBottom + bottomBarPaddingBottom + unit(48);
 
     var nextState = {
       workspaceShellHidden: hidden,
+      keyboardHeight: keyboardHeight,
+      inputCursorSpacing: keyboardHeight > 0 ? unit(24) : Math.max(unit(24), safeBottom + unit(24)),
       heroBottomSpacer: heroBottomSpacer,
       chatBottomSpacer: chatBottomSpacer,
       bottomBarCompact: shellVisible,
@@ -2421,8 +2450,29 @@ Page({
     if (type === "formula_block" || type === "formula_inline") {
       return String(block.copyText || block.displayText || block.latex || "").trim();
     }
-    return String(
-      block.text || block.content || block.summary || block.title || "",
+    if (type === "ul" || type === "ol") {
+      var itemParts = [];
+      var items = Array.isArray(block.items) ? block.items : [];
+      for (var i = 0; i < items.length; i++) {
+        var item = items[i] || {};
+        var prefix = type === "ol" ? String(item.index || i + 1) + ". " : "- ";
+        var itemText = this._copyLooseText(
+          item.nodes || item.content || item.children || item.raw || item.text || "",
+        );
+        if (itemText) itemParts.push(prefix + itemText);
+      }
+      return this._joinCopyParts(itemParts, "\n");
+    }
+    return this._copyLooseText(
+      block.text ||
+        block.raw ||
+        block.content ||
+        block.nodes ||
+        block.children ||
+        block.lineNodes ||
+        block.summary ||
+        block.title ||
+        "",
     ).trim();
   },
 
@@ -2437,14 +2487,7 @@ Page({
   },
 
   _copyCellText: function (cell) {
-    if (cell && typeof cell === "object") {
-      return String(
-        cell.text ||
-          cell.value ||
-          this._copyInlineNodesText(cell.content || cell.nodes || cell.children || []),
-      ).trim();
-    }
-    return String(cell || "").trim();
+    return this._copyLooseText(cell).trim();
   },
 
   _copyInlineNodesText: function (nodes) {
@@ -2466,10 +2509,39 @@ Page({
     return parts.join("").trim();
   },
 
+  _copyLooseText: function (value) {
+    if (value === null || typeof value === "undefined") return "";
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      return String(value);
+    }
+    if (Array.isArray(value)) {
+      var arrayParts = [];
+      for (var i = 0; i < value.length; i++) {
+        var itemText = this._copyLooseText(value[i]);
+        if (itemText) arrayParts.push(itemText);
+      }
+      return arrayParts.join("");
+    }
+    if (typeof value === "object") {
+      if (value.text || value.value || value.raw) {
+        return String(value.text || value.value || value.raw);
+      }
+      var nested = this._copyLooseText(
+        value.content || value.nodes || value.children || value.lineNodes || "",
+      );
+      if (nested) return nested;
+      return String(
+        value.copyText || value.displayText || value.latex || value.summary || value.title || value.detail || "",
+      );
+    }
+    return "";
+  },
+
   _joinCopyParts: function (parts, separator) {
+    var self = this;
     return (parts || [])
       .map(function (item) {
-        return String(item || "").trim();
+        return self._copyLooseText(item).trim();
       })
       .filter(function (item) {
         return !!item;
@@ -2505,6 +2577,10 @@ Page({
     if (msg) {
       this._inputText = msg.content;
       this.setData({ inputText: msg.content });
+      if (this.data.isStreaming) {
+        wx.showToast({ title: "已停止本轮，可修改后重发", icon: "none", duration: 1800 });
+        this._stop({ cancelTurn: true });
+      }
     }
   },
 
@@ -2564,11 +2640,15 @@ Page({
       feedbackMsgId: isUndo ? "" : msgid,
       feedbackTags: [],
       feedbackComment: "",
+      scrollToId: isUndo ? this.data.scrollToId : "msg-bottom",
+      chatScrollWithAnimation: !isUndo,
     });
   },
 
   onFeedbackTag: function (e) {
-    var tag = e.currentTarget.dataset.tag;
+    if (this.data.feedbackSubmitting) return;
+    var tag = String((e.currentTarget.dataset || {}).tag || "").trim();
+    if (!tag) return;
     var tags = this.data.feedbackTags.slice();
     var i = tags.indexOf(tag);
     if (i >= 0) {
@@ -2580,23 +2660,44 @@ Page({
   },
 
   onFeedbackInput: function (e) {
+    if (this.data.feedbackSubmitting) return;
     this.setData({ feedbackComment: e.detail.value });
   },
 
   onFeedbackSubmit: function () {
+    if (this.data.feedbackSubmitting) return;
     var msgid = this.data.feedbackMsgId;
     if (!msgid) return;
-    this._sendFeedback(
+    var self = this;
+    this.setData({ feedbackSubmitting: true });
+    var request = this._sendFeedback(
       msgid,
       -1,
       this.data.feedbackTags,
       this.data.feedbackComment,
     );
-    wx.showToast({ title: "感谢反馈", icon: "success", duration: 1500 });
-    this.setData({ feedbackMsgId: "", feedbackTags: [], feedbackComment: "" });
+    var finishSuccess = function () {
+      wx.showToast({ title: "感谢反馈", icon: "success", duration: 1500 });
+      self.setData({
+        feedbackMsgId: "",
+        feedbackTags: [],
+        feedbackComment: "",
+        feedbackSubmitting: false,
+      });
+    };
+    var finishFailure = function () {
+      wx.showToast({ title: "提交失败，请稍后重试", icon: "none", duration: 1800 });
+      self.setData({ feedbackSubmitting: false });
+    };
+    if (request && typeof request.then === "function") {
+      request.then(finishSuccess).catch(finishFailure);
+    } else {
+      finishSuccess();
+    }
   },
 
   onFeedbackClose: function () {
+    if (this.data.feedbackSubmitting) return;
     this.setData({ feedbackMsgId: "", feedbackTags: [], feedbackComment: "" });
   },
 
@@ -2626,7 +2727,7 @@ Page({
   },
 
   _sendFeedback: function (msgid, rating, tags, comment) {
-    api.submitFeedback({
+    return api.submitFeedback({
       message_id: msgid,
       conversation_id: this._convId || "",
       rating: rating,

@@ -299,13 +299,15 @@
 }
 
 .radar-canvas {
-  width: 280px;
-  height: 280px;
+  width: 560rpx;
+  height: 560rpx;
+  max-width: 100%;
 }
 
 .radar-image {
-  width: 280px;
-  height: 280px;
+  width: 560rpx;
+  height: 560rpx;
+  max-width: 100%;
 }
 
 /* ── 雷达统计 ────────────────────────────────────── */
@@ -343,6 +345,71 @@
 .stat-label {
   font-size: 22rpx;
   color: var(--text-muted);
+}
+
+/* ── 维度列表 ────────────────────────────────────── */
+.dim-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.dim-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+}
+
+.dim-rank {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rank-strong { background: rgba(52, 211, 153, 0.15); }
+.rank-normal { background: rgba(251, 191, 36, 0.15); }
+.rank-weak   { background: rgba(248, 113, 113, 0.15); }
+
+.dim-rank-txt {
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.rank-strong .dim-rank-txt { color: #34d399; }
+.rank-normal .dim-rank-txt { color: #fbbf24; }
+.rank-weak   .dim-rank-txt { color: #f87171; }
+
+.dim-name {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--text-primary);
+}
+
+.dim-bar {
+  width: 120rpx;
+  height: 10rpx;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 5rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.dim-bar-fill {
+  height: 100%;
+  border-radius: 5rpx;
+  transition: width 0.6s ease;
+}
+
+.dim-pct {
+  font-size: 26rpx;
+  font-weight: 600;
+  min-width: 64rpx;
+  text-align: right;
 }
 
 /* ── 掌握度大数字 ────────────────────────────────── */

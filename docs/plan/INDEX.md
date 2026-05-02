@@ -101,8 +101,8 @@
 | --- | --- | --- | --- |
 | [2026-04-20-luban-adaptive-teaching-intelligence-prd.md](2026-04-20-luban-adaptive-teaching-intelligence-prd.md) | PRD | 未标注 | 因材施教智能体、显性个性化导师、Teaching Policy。 |
 | [2026-04-20-teaching-methods-matrix-prd.md](2026-04-20-teaching-methods-matrix-prd.md) | PRD | Draft v1 | Teaching Methods Matrix，定义“施教层”的方法选择。 |
-| [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md) | Issue register | Draft | 从 DOCX/PPTX 原始使用反馈合并出的 Top10 问题域，用作后续三项一组修复的用户反馈 authority。 |
-| [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | Root-cause fix plan | Draft | 运营反馈与线上证据汇总出的 Top10 问题；Batch 1-4 已实施并补充历史显示/cache 验证，仍有交互矩阵待关。 |
+| [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md) | Issue register | Draft | 从 DOCX/PPTX 原始使用反馈合并出的 Top10 问题域，用作后续分组修复的用户反馈 authority。 |
+| [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | Root-cause fix plan | Draft | 运营反馈与线上证据汇总出的 Top10 问题；Batch 1-4、2026-04-25 Batch A-H 已实施，继续收口练题结构化 config、SMS 真实送达、干净 DevTools/真机慢请求取消和移动端交互矩阵。 |
 
 ### 9. 建筑实务 AI 互动课堂 / OpenMAIC 对标
 

@@ -31,3 +31,24 @@ def test_normalize_markdown_for_tutorbot_rewrites_labelled_items_and_flattens_ne
     assert "- 屋面二级防水 → **2道**" in normalized
     assert "\n\n\n" not in normalized
     assert "  - fenced block stays untouched" in normalized
+
+
+def test_normalize_markdown_for_tutorbot_rewrites_chinese_single_quotes_only_in_prose() -> None:
+    raw = (
+        "解析：‘强梁弱柱’是抗震设计中的关键原则，而 '一级防水' 不等于一道防水层。\n"
+        'JSON 示例：{"term": "强梁弱柱"}\n'
+        "```json\n"
+        "{'term': '强梁弱柱'}\n"
+        "```\n"
+        "行内代码保持：`'强梁弱柱'`\n"
+        "URL 保持：https://example.com?q='abc'\n"
+    )
+
+    normalized = normalize_markdown_for_tutorbot(raw)
+
+    assert "“强梁弱柱”是抗震设计中的关键原则" in normalized
+    assert "“一级防水”不等于一道防水层" in normalized
+    assert '{"term": "强梁弱柱"}' in normalized
+    assert "{'term': '强梁弱柱'}" in normalized
+    assert "`'强梁弱柱'`" in normalized
+    assert "https://example.com?q='abc'" in normalized

@@ -116,6 +116,30 @@
             <text class="stat-label">薄弱</text>
           </view>
         </view>
+
+        <view class="section-header sub-header">
+          <text class="section-title-sm">各维度详情</text>
+        </view>
+
+        <view class="dim-list">
+          <view
+            class="dim-item glass-card"
+            wx:for="{{dimList}}"
+            wx:key="rank"
+          >
+            <view class="dim-rank rank-{{item.cls}}">
+              <text class="dim-rank-txt">{{item.rank}}</text>
+            </view>
+            <text class="dim-name">{{item.name}}</text>
+            <view class="dim-bar">
+              <view
+                class="dim-bar-fill"
+                style="width: {{item.pct}}%; background: {{item.color}}"
+              ></view>
+            </view>
+            <text class="dim-pct" style="color: {{item.color}}">{{item.pct}}%</text>
+          </view>
+        </view>
       </view>
 
       <view class="section-header">

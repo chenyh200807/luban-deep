@@ -22,6 +22,7 @@ function loadBillingPage() {
   );
   var pageDef = null;
   var toastCalls = [];
+  var modalCalls = [];
   var sandbox = {
     console: console,
     setTimeout: setTimeout,
@@ -32,6 +33,9 @@ function loadBillingPage() {
     wx: {
       showToast: function (payload) {
         toastCalls.push(payload);
+      },
+      showModal: function (payload) {
+        modalCalls.push(payload);
       },
       navigateBack: function () {},
       reLaunch: function () {},
@@ -92,7 +96,7 @@ function loadBillingPage() {
     page[key] = pageDef[key];
   });
 
-  return { page: page, toastCalls: toastCalls };
+  return { page: page, toastCalls: toastCalls, modalCalls: modalCalls };
 }
 
 (function main() {
@@ -117,10 +121,12 @@ function loadBillingPage() {
     assert(page.data.selectedPkg === "sprint", "billing page should update selection from tap dataset");
 
     page.onRecharge();
-    assert(loaded.toastCalls.length === 1, "billing recharge should show demo toast");
+    assert(loaded.toastCalls.length === 0, "billing recharge should not pretend a payment flow exists");
     assert(
-      loaded.toastCalls[0] && loaded.toastCalls[0].title === "充值功能即将上线",
-      "billing recharge toast title should stay stable",
+      loaded.modalCalls.length === 1 &&
+        loaded.modalCalls[0].title === "暂未开放" &&
+        loaded.modalCalls[0].content.indexOf("微信支付") >= 0,
+      "billing recharge should explain unavailable payment authority",
     );
   } catch (err) {
     fail++;

@@ -1,0 +1,10 @@
+yousenwebview/packageDeeptutor/pages/report/report.wxss:232:.section-title-sm {
+wx_miniprogram/pages/report/report.wxss:220:.section-title-sm {
+wx_miniprogram/pages/report/report.wxss:338:.dim-item {
+wx_miniprogram/pages/report/report.wxml:83:        <text class="empty-desc">完成一定量的练习后，系统会自动分析你的各维度能力</text>
+wx_miniprogram/pages/report/report.wxml:117:        <!-- 各维度详情 -->
+wx_miniprogram/pages/report/report.wxml:119:          <text class="section-title-sm">各维度详情</text>
+wx_miniprogram/pages/report/report.wxml:124:            class="dim-item glass-card"
+wx_miniprogram/pages/report/report.wxml:125:            wx:for="{{dimList}}"
+yousenwebview/packageDeeptutor/pages/report/report.wxml:81:        <text class="empty-desc">完成一定量的练习后，系统会自动分析你的各维度能力</text>
+yousenwebview/packageDeeptutor/pages/report/report.wxml:90:          <text class="section-title-sm">诊断维度</text>

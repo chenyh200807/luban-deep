@@ -14,6 +14,10 @@ _INTERNAL_OUTPUT_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"(?:InternalError\.Algo\.DataInspectionFailed|DataInspectionFailed|Request timed out)", re.IGNORECASE),
     re.compile(r"(?:provider error|raw provider|HTTP_?40[04]|HTTP_?50[023])", re.IGNORECASE),
     re.compile(
+        r"(?:Authentication Fails|authentication_error|invalid_request_error|api key.{0,40}invalid|Error code:\s*401)",
+        re.IGNORECASE,
+    ),
+    re.compile(
         r"^(?:现在)?(?:让我|我来)(?:读取|查看|检查|分析|打开|浏览).{0,40}(?:技能文件|references|目录结构|技能系统|参考文件)",
         re.IGNORECASE,
     ),

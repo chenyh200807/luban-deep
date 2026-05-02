@@ -211,6 +211,7 @@ def test_mobile_chat_start_turn_writes_requested_response_mode_and_legacy_alias(
             json={
                 "query": "请详细讲一下流水步距",
                 "conversation_id": "session_mode_1",
+                "client_turn_id": "surface_turn_1",
                 "mode": "DEEP",
             },
         )
@@ -218,6 +219,7 @@ def test_mobile_chat_start_turn_writes_requested_response_mode_and_legacy_alias(
     assert response.status_code == 200
     config = captured["payload"]["config"]
     assert config["chat_mode"] == "deep"
+    assert config["client_turn_id"] == "surface_turn_1"
     assert config["interaction_hints"]["requested_response_mode"] == "deep"
     assert "teaching_mode" not in config["interaction_hints"]
 

@@ -114,7 +114,13 @@ const auth = {
   },
 
   isLoggedIn() {
-    return !!this.getToken();
+    if (!this.getToken()) return false;
+    var expiresAt = this.getTokenExpiry();
+    if (expiresAt && expiresAt <= Math.floor(Date.now() / 1000)) {
+      this.clearToken();
+      return false;
+    }
+    return true;
   },
 };
 

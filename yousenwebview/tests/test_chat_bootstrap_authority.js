@@ -50,6 +50,7 @@ function loadChatPage(overrides) {
   var apiState = {
     getUserInfoCalls: 0,
     createConversationCalls: 0,
+    getConversationMessagesCalls: [],
   };
   var apiMock = Object.assign(
     {
@@ -72,6 +73,10 @@ function loadChatPage(overrides) {
       createConversation: function () {
         apiState.createConversationCalls += 1;
         return Promise.resolve({ conversation: { id: "conv_001" } });
+      },
+      getConversationMessages: function (id) {
+        apiState.getConversationMessagesCalls.push(id);
+        return Promise.resolve({ messages: [{ id: "u1", role: "user", content: "上一轮" }] });
       },
     },
     (overrides && overrides.api) || {},
@@ -233,7 +238,9 @@ function loadChatPage(overrides) {
   page._syncWorkspaceChrome = function () {};
   page._loadDashboard = function () {};
   page._checkDiagnostic = function () {};
-  page._restoreConversation = function () {};
+  page._applyHydratedConversationMessages = function (messages) {
+    this.setData({ messages: messages || [], hasMessages: !!(messages && messages.length) });
+  };
   page._setupObserver = function () {};
   page._stop = function () {};
   page._scheduleSessionPersist = function () {};
@@ -315,6 +322,30 @@ function loadChatPage(overrides) {
     await flushPromises();
 
     assert(sendCount === 0, "pending auto-send should stay blocked when auth bootstrap is not authoritative");
+  });
+
+  await run("chat page should hydrate the current session when returning from workspace shell", async function () {
+    var loaded = loadChatPage({
+      storage: {
+        current_session_id: "conv_return",
+        current_session_ts: Date.now(),
+      },
+    });
+
+    loaded.page.onLoad({});
+    loaded.page.onShow();
+    await flushPromises();
+    await flushPromises();
+
+    assert(
+      loaded.apiState.getConversationMessagesCalls.length === 1 &&
+        loaded.apiState.getConversationMessagesCalls[0] === "conv_return",
+      "returning to chat with a current session should hydrate that conversation",
+    );
+    assert(
+      loaded.page.data.hasMessages === true,
+      "hydrated current session should restore the visible chat, not an empty hero",
+    );
   });
 
   await run("chat page should not race past a failing bootstrap promise on manual send", async function () {

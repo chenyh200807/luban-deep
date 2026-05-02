@@ -273,6 +273,69 @@ function createPageInstance(pageDef) {
     );
   });
 
+  await run("empty snapshot branches should not suppress authoritative fallback reads", async function () {
+    var counters = {
+      mastery: 0,
+      assessment: 0,
+    };
+    var pageDef = loadReportPage({
+      api: {
+        unwrapResponse: function (raw) {
+          return raw;
+        },
+        getMasteryDashboard: async function () {
+          counters.mastery += 1;
+          return {
+            overall_mastery: 70,
+            groups: [
+              {
+                name: "基本掌握",
+                avg_mastery: 61,
+                chapters: [{ name: "地基基础", mastery: 58 }],
+              },
+            ],
+            hotspots: [{ name: "地基基础", mastery: 58 }],
+            review_summary: { total_due: 3, overdue_count: 2 },
+          };
+        },
+        getAssessmentProfile: async function () {
+          counters.assessment += 1;
+          return {
+            chapter_mastery: {
+              地基基础: { name: "地基基础", mastery: 58 },
+              建筑构造: { name: "建筑构造", mastery: 82 },
+            },
+          };
+        },
+        getRadarData: async function () {
+          return { dimensions: [] };
+        },
+      },
+      auth: {},
+      helpers: {
+        getWindowInfo: function () {
+          return { statusBarHeight: 20, pixelRatio: 2 };
+        },
+      },
+      runtime: {},
+      route: {},
+      flags: {},
+    });
+    var page = createPageInstance(pageDef);
+
+    await page._loadMastery({ mastery: {}, assessment: {} });
+    await page._loadRadar({ assessment: {} });
+
+    assert(counters.mastery === 1, "empty mastery snapshot should fall back to mastery dashboard API");
+    assert(counters.assessment === 1, "empty assessment snapshot should fall back to assessment profile API");
+    assert(page.data.overallMastery === 70, "fallback mastery dashboard should hydrate overall mastery");
+    assert(
+      Array.isArray(page.data.masteryGroups) && page.data.masteryGroups.length === 1,
+      "fallback mastery dashboard should hydrate mastery groups",
+    );
+    assert(page.data.avgScore === 70, "fallback assessment profile should hydrate radar average");
+  });
+
   if (fail) {
     console.error(errors.join("\n"));
     process.exit(1);

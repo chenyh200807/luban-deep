@@ -34,6 +34,7 @@ function loadPage(relativePath, overrides) {
   var source = fs.readFileSync(path.join(__dirname, "..", relativePath), "utf8");
   var pageDef = null;
   var clearCount = 0;
+  var switchTabCalls = [];
   var apiMock = Object.assign(
     {
       getUserInfo: function () {
@@ -77,7 +78,9 @@ function loadPage(relativePath, overrides) {
     },
     wx: {
       reLaunch: function () {},
-      switchTab: function () {},
+      switchTab: function (options) {
+        switchTabCalls.push(options);
+      },
       navigateTo: function () {},
       showModal: function () {},
       showToast: function () {},
@@ -106,50 +109,74 @@ function loadPage(relativePath, overrides) {
     getClearCount: function () {
       return clearCount;
     },
+    switchTabCalls: switchTabCalls,
   };
 }
 
 (async function main() {
-  var pageFiles = [
-    "pages/login/login.js",
-    "pages/login/manual.js",
-    "pages/register/register.js",
-  ];
+  var bootstrapPages = ["pages/login/manual.js", "pages/register/register.js"];
 
-  await run("non-auth bootstrap failure should not clear token", async function () {
-    for (var i = 0; i < pageFiles.length; i++) {
-      var setup = loadPage(pageFiles[i], {
+  await run("manual/register pages with local token should skip visible profile gate", async function () {
+    for (var i = 0; i < bootstrapPages.length; i++) {
+      var profileCalls = 0;
+      var setup = loadPage(bootstrapPages[i], {
         api: {
           getUserInfo: function () {
+            profileCalls++;
             return Promise.reject(new Error("profile unavailable"));
           },
         },
       });
       setup.page.onLoad({});
       await flushPromises();
+      assert(profileCalls === 0, bootstrapPages[i] + " should not block redirect on profile bootstrap");
       assert(
         setup.getClearCount() === 0,
-        pageFiles[i] + " should preserve token on non-auth bootstrap failure",
+        bootstrapPages[i] + " should leave token cleanup to the target page",
+      );
+      assert(
+        setup.switchTabCalls.length === 1 &&
+          setup.switchTabCalls[0].url === "/pages/chat/chat",
+        bootstrapPages[i] + " should enter chat immediately when a local token exists",
       );
     }
   });
 
-  await run("auth expired bootstrap failure should clear token", async function () {
-    for (var i = 0; i < pageFiles.length; i++) {
-      var setup = loadPage(pageFiles[i], {
-        api: {
-          getUserInfo: function () {
-            return Promise.reject(new Error("AUTH_EXPIRED"));
+  await run("manual/register pages without a valid token should stay on auth form", async function () {
+    for (var i = 0; i < bootstrapPages.length; i++) {
+      var setup = loadPage(bootstrapPages[i], {
+        auth: {
+          isLoggedIn: function () {
+            return false;
           },
         },
       });
       setup.page.onLoad({});
       await flushPromises();
-      assert(
-        setup.getClearCount() === 1,
-        pageFiles[i] + " should clear token only when auth really expired",
-      );
+      assert(setup.getClearCount() === 0, bootstrapPages[i] + " should not clear token without one");
+      assert(setup.switchTabCalls.length === 0, bootstrapPages[i] + " should stay visible for login");
     }
+  });
+
+  await run("login page with local token should skip visible profile gate", async function () {
+    var profileCalls = 0;
+    var setup = loadPage("pages/login/login.js", {
+      api: {
+        getUserInfo: function () {
+          profileCalls++;
+          return Promise.reject(new Error("AUTH_EXPIRED"));
+        },
+      },
+    });
+    setup.page.onLoad({});
+    await flushPromises();
+    assert(profileCalls === 0, "login page should not block redirect on profile bootstrap");
+    assert(setup.getClearCount() === 0, "login page should leave token cleanup to the target page");
+    assert(
+      setup.switchTabCalls.length === 1 &&
+        setup.switchTabCalls[0].url === "/pages/chat/chat",
+      "login page should enter chat immediately when a local token exists",
+    );
   });
 
   if (fail) {

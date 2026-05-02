@@ -1,5 +1,6 @@
 // app.js
 const TOKEN_KEY = "auth_token";
+const TOKEN_EXP_KEY = "auth_token_exp";
 const USER_ID_KEY = "auth_user_id";
 const DEEPTUTOR_ENTRY_KEY = "deeptutor_entry_enabled";
 const DEEPTUTOR_ENTRY_CONFIG_KEY = "deeptutor_entry_config";
@@ -50,8 +51,21 @@ function getStoredToken() {
   return wx.getStorageSync(TOKEN_KEY) || null;
 }
 
+function hasLikelyValidStoredToken() {
+  const token = getStoredToken();
+  if (!token) {
+    return false;
+  }
+  const expiresAt = Number(wx.getStorageSync(TOKEN_EXP_KEY) || 0);
+  if (!expiresAt) {
+    return true;
+  }
+  return expiresAt > Math.floor(Date.now() / 1000);
+}
+
 function clearStoredToken() {
   wx.removeStorageSync(TOKEN_KEY);
+  wx.removeStorageSync(TOKEN_EXP_KEY);
   wx.removeStorageSync(USER_ID_KEY);
 }
 
@@ -88,12 +102,14 @@ function buildDeeptutorLoginUrl(entrySource, returnTo) {
   );
 }
 
-function buildDeeptutorEntryBridgeUrl(entrySource, returnTo) {
+function buildDeeptutorEntryBridgeUrl(entrySource, returnTo, authenticated) {
   return (
     "/pages/deeptutorEntry/deeptutorEntry?entrySource=" +
     encodeURIComponent(String(entrySource || "").trim()) +
     "&returnTo=" +
-    encodeURIComponent(String(returnTo || "").trim())
+    encodeURIComponent(String(returnTo || "").trim()) +
+    "&authenticated=" +
+    (authenticated ? "1" : "0")
   );
 }
 
@@ -645,7 +661,11 @@ App({
     if (!tryLockCrossHomeNav(opts.lockMs)) {
       return false;
     }
-    const targetUrl = buildDeeptutorEntryBridgeUrl(entrySource, returnTo);
+    const targetUrl = buildDeeptutorEntryBridgeUrl(
+      entrySource,
+      returnTo,
+      hasLikelyValidStoredToken()
+    );
     const handleFinalFailure = (err) => {
       clearCrossHomeNavLock();
       console.error("[deeptutor.nav] unable to open login page", err);

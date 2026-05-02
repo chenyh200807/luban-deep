@@ -61,7 +61,7 @@ Component({
       var item = this.data.list[idx];
       if (!item || !item.pagePath) return;
       var current = this.data.list[this.data.selected];
-      if (idx === 0 && current && current.pagePath) {
+      if (current && current.pagePath) {
         runtime.setWorkspaceBack(current.pagePath, current.text);
       } else {
         runtime.clearWorkspaceBack();

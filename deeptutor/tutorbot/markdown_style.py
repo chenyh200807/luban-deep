@@ -11,6 +11,10 @@ _LABELLED_ORDERED_ONLY_RE = re.compile(r"^\s*(\d+)\.\s+\*\*([^*\n]+?)\*\*([：:]
 _LABELLED_BULLET_ONLY_RE = re.compile(r"^\s*([-*+])\s+\*\*([^*\n]+?)\*\*([：:])\s*$")
 _LABELLED_PARAGRAPH_ONLY_RE = re.compile(r"^\s*\*\*([^*\n]+?)\*\*([：:])\s*$")
 _INDENTED_LIST_RE = re.compile(r"^\s{2,}((?:[-*+])|\d+\.)\s+")
+_CHINESE_SINGLE_QUOTED_TEXT_RE = re.compile(
+    r"(?<![A-Za-z0-9])['‘]([^'‘’\n]{0,80}[\u3400-\u9fff][^'‘’\n]{0,80})['’](?![A-Za-z0-9])"
+)
+_CHINESE_DOUBLE_QUOTE_SPACING_RE = re.compile(r"“\s*([^“”\n]*[\u3400-\u9fff][^“”\n]*)\s*”")
 
 _MARKDOWN_STYLE_INSTRUCTION = """
 输出排版必须遵守以下 Markdown 样式约束：
@@ -65,10 +69,38 @@ def normalize_markdown_for_tutorbot(text: str | None) -> str:
         previous_blank = False
         line = _INDENTED_LIST_RE.sub(r"\1 ", line)
         line = re.sub(r"\s*→\s*", " → ", line)
+        line = _normalize_chinese_quotes(line)
         line = _normalize_labelled_item(line)
         out.append(line.rstrip())
 
     return "\n".join(out).strip()
+
+
+def _normalize_chinese_quotes(line: str) -> str:
+    """Normalize quoted Chinese terms in prose while leaving code fences untouched."""
+    stripped = line.strip()
+    if stripped.startswith(("{", "[")) and ":" in stripped:
+        return line
+
+    def normalize_segment(segment: str) -> str:
+        segment = _CHINESE_SINGLE_QUOTED_TEXT_RE.sub(
+            lambda match: f"“{match.group(1).strip()}”",
+            segment,
+        )
+        segment = _CHINESE_DOUBLE_QUOTE_SPACING_RE.sub(
+            lambda match: f"“{match.group(1).strip()}”",
+            segment,
+        )
+        segment = re.sub(r"([\u3400-\u9fff])\s+“", r"\1“", segment)
+        return re.sub(r"”\s+([\u3400-\u9fff])", r"”\1", segment)
+
+    if "`" not in line:
+        return normalize_segment(line)
+
+    parts = line.split("`")
+    for idx in range(0, len(parts), 2):
+        parts[idx] = normalize_segment(parts[idx])
+    return "`".join(parts)
 
 
 def _normalize_labelled_item(line: str) -> str:

@@ -784,6 +784,9 @@ def _build_mobile_turn_payload(
     }
     if body.followup_question_context:
         config["followup_question_context"] = dict(body.followup_question_context)
+    client_turn_id = str(body.client_turn_id or "").strip()
+    if client_turn_id:
+        config["client_turn_id"] = client_turn_id
 
     capability = str(body.capability or "").strip() or None
     if capability == "tutorbot":
@@ -897,6 +900,7 @@ class WechatBindPhoneRequest(BaseModel):
 class MobileStartTurnRequest(BaseModel):
     query: str
     conversation_id: str = ""
+    client_turn_id: str = ""
     capability: str = ""
     mode: str = "AUTO"
     language: str = "zh"

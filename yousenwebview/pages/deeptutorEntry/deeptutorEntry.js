@@ -19,6 +19,30 @@ function buildDeeptutorLoginUrl(entrySource, returnTo) {
   );
 }
 
+function isTruthyParam(value) {
+  var normalized = String(value || "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes";
+}
+
+function sanitizePackageUrl(value) {
+  var url = String(value || "").trim();
+  if (url.indexOf("/packageDeeptutor/") !== 0) {
+    return "";
+  }
+  return url;
+}
+
+function buildDeeptutorTargetUrl(entrySource, returnTo, authenticated) {
+  if (authenticated) {
+    return (
+      sanitizePackageUrl(returnTo) ||
+      "/packageDeeptutor/pages/chat/chat?entry_source=" +
+        encodeURIComponent(String(entrySource || "").trim())
+    );
+  }
+  return buildDeeptutorLoginUrl(entrySource, returnTo);
+}
+
 function scheduleAfterReady(task) {
   if (typeof task !== "function") return;
   if (typeof wx.nextTick === "function") {
@@ -39,6 +63,7 @@ Page({
       options && (options.entrySource || options.entry_source || options.source)
     );
     this._returnTo = decodeParam(options && options.returnTo);
+    this._authenticated = isTruthyParam(options && options.authenticated);
   },
 
   onReady() {
@@ -54,7 +79,11 @@ Page({
       loading: true,
       errorMsg: "",
     });
-    const targetUrl = buildDeeptutorLoginUrl(this._entrySource, this._returnTo);
+    const targetUrl = buildDeeptutorTargetUrl(
+      this._entrySource,
+      this._returnTo,
+      this._authenticated,
+    );
     const handleFailure = (err) => {
       this._opening = false;
       console.error("[deeptutor.bridge] unable to open login page", err);

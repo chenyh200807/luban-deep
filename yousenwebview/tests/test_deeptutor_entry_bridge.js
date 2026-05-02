@@ -102,7 +102,7 @@ function loadBridgePage() {
 var tests = [];
 
 tests.push(function () {
-  return run("bridge loads subpackage before redirecting to login", async function () {
+  return run("bridge loads subpackage before redirecting to login when unauthenticated", async function () {
     var setup = loadBridgePage();
 
     setup.page.onLoad({
@@ -118,6 +118,49 @@ tests.push(function () {
       setup.redirectCalls[0] &&
         setup.redirectCalls[0].url.indexOf("/packageDeeptutor/pages/login/login?entrySource=") === 0,
       "bridge should target deeptutor login page",
+    );
+  });
+});
+
+tests.push(function () {
+  return run("bridge redirects authenticated users directly to returnTo", async function () {
+    var setup = loadBridgePage();
+
+    setup.page.onLoad({
+      entrySource: "free_course_inline_entry",
+      returnTo: "/packageDeeptutor/pages/chat/chat?entry_source=free_course_inline_entry",
+      authenticated: "1",
+    });
+    setup.page.onReady();
+    await waitForTick();
+
+    assert(setup.loadSubpackageCalls.length === 1, "bridge should still load the deeptutor subpackage first");
+    assert(setup.redirectCalls.length === 1, "bridge should redirect after subpackage load");
+    assert(
+      setup.redirectCalls[0] &&
+        setup.redirectCalls[0].url ===
+          "/packageDeeptutor/pages/chat/chat?entry_source=free_course_inline_entry",
+      "authenticated bridge should skip visible login page and target returnTo",
+    );
+  });
+});
+
+tests.push(function () {
+  return run("bridge refuses authenticated returnTo outside deeptutor package", async function () {
+    var setup = loadBridgePage();
+
+    setup.page.onLoad({
+      entrySource: "free_course_inline_entry",
+      returnTo: "/pages/freeCourse/freeCourse",
+      authenticated: "1",
+    });
+    setup.page.onReady();
+    await waitForTick();
+
+    assert(
+      setup.redirectCalls[0] &&
+        setup.redirectCalls[0].url.indexOf("/packageDeeptutor/pages/chat/chat?entry_source=") === 0,
+      "authenticated bridge should sanitize returnTo and fallback to deeptutor chat",
     );
   });
 });

@@ -59,16 +59,8 @@ Page({
       this._initSubtitleScene(info);
     } catch (_) {}
     if (auth.isLoggedIn()) {
-      api
-        .getUserInfo()
-        .then(function () {
-          wx.switchTab({ url: "/pages/chat/chat" });
-        })
-        .catch(function (err) {
-          if (String((err && err.message) || "") === "AUTH_EXPIRED") {
-            auth.clearToken();
-          }
-        });
+      wx.switchTab({ url: "/pages/chat/chat" });
+      return;
     }
   },
   onShow: function () {

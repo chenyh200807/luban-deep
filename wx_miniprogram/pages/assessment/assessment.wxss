@@ -119,6 +119,27 @@
   transition: width 0.3s ease;
 }
 
+.answer-card {
+  margin-bottom: 22rpx; padding: 20rpx;
+  border-radius: 16rpx;
+  background: rgba(18,24,42,0.68); border: 1rpx solid rgba(255,255,255,0.07);
+}
+.answer-card-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
+.answer-card-title { font-size: 26rpx; font-weight: 700; color: rgba(255,255,255,0.86); }
+.answer-card-count { font-size: 24rpx; color: rgba(255,255,255,0.5); font-variant-numeric: tabular-nums; }
+.answer-card-notice { display: block; margin: -4rpx 0 16rpx; font-size: 24rpx; line-height: 1.45; color: #fbbf24; }
+.answer-grid { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.answer-chip {
+  width: 56rpx; height: 56rpx; border-radius: 14rpx;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.05); border: 1rpx solid rgba(255,255,255,0.1);
+}
+.answer-chip.answered { background: rgba(34,197,94,0.18); border-color: rgba(34,197,94,0.38); }
+.answer-chip.current { background: #2563eb; border-color: #60a5fa; }
+.answer-chip:active { opacity: 0.82; }
+.answer-chip-txt { font-size: 24rpx; font-weight: 700; color: rgba(255,255,255,0.78); }
+.answer-chip.current .answer-chip-txt { color: #fff; }
+
 .question-card {
   padding: 28rpx; border-radius: 20rpx;
   background: rgba(18,24,42,0.8); border: 1rpx solid rgba(255,255,255,0.07);

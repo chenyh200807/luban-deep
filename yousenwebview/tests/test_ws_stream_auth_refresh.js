@@ -38,6 +38,8 @@ function loadWsStream(config) {
   var timers = [];
   var connects = [];
   var tasks = [];
+  var sent = [];
+  var startPayloads = [];
   var ensureTokenCalls = 0;
   var tokenQueue = (config.tokens || []).slice();
 
@@ -97,7 +99,8 @@ function loadWsStream(config) {
           unwrapResponse: function (raw) {
             return raw;
           },
-          startChatTurn: function () {
+          startChatTurn: function (payload) {
+            startPayloads.push(payload || {});
             return Promise.resolve({
               stream: {
                 url: "/api/v1/ws",
@@ -147,7 +150,9 @@ function loadWsStream(config) {
           onMessage: function (fn) {
             handlers.message = fn;
           },
-          send: function () {},
+          send: function (payload) {
+            sent.push(JSON.parse(payload.data));
+          },
           close: function () {},
           _open: function () {
             if (handlers.open) handlers.open();
@@ -173,6 +178,8 @@ function loadWsStream(config) {
     wsStream: sandbox.module.exports,
     connects: connects,
     tasks: tasks,
+    sent: sent,
+    startPayloads: startPayloads,
     runTimers: runTimers,
     getEnsureTokenCalls: function () {
       return ensureTokenCalls;
@@ -225,6 +232,110 @@ function loadWsStream(config) {
     assert(
       loaded.connects[1].header.Authorization === "Bearer fresh-token-2",
       "reconnect should use the newest token instead of the startup snapshot",
+    );
+  });
+
+  await run("early cancel should wait for the created turn and send cancel_turn", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+
+    var statuses = [];
+    var abort = loaded.wsStream.streamChat(
+      { query: "请系统分析一套完整提分方案", sessionId: "conv_1", clientTurnId: "client_turn_1" },
+      {
+        onStatus: function (payload) {
+          statuses.push(payload);
+        },
+      },
+    );
+
+    abort({ cancelTurn: true });
+    await flushPromises();
+    await flushPromises();
+    loaded.tasks[0]._open();
+
+    assert(
+      loaded.startPayloads[0] && loaded.startPayloads[0].client_turn_id === "client_turn_1",
+      "start-turn payload should preserve the surface client turn id",
+    );
+    assert(loaded.sent[0].type === "subscribe_turn", "early cancel should subscribe to the created turn first");
+    assert(loaded.sent[1].type === "cancel_turn", "early cancel should then cancel the authoritative turn");
+    assert(
+      statuses.some(function (item) { return item.data === "cancelling"; }),
+      "early cancel should expose a visible stopping status",
+    );
+  });
+
+  await run("idle timeout should cancel the authoritative turn before surfacing timeout", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var statuses = [];
+
+    loaded.wsStream.streamChat(
+      { query: "请分析一套完整的复习方案", sessionId: "conv_1", idleTimeoutMs: 5 },
+      {
+        onStatus: function (payload) {
+          statuses.push(payload);
+        },
+        onError: function () {},
+        onDone: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+    loaded.tasks[0]._open();
+    loaded.runTimers(5);
+
+    assert(loaded.sent[0].type === "subscribe_turn", "idle timeout should subscribe first");
+    assert(loaded.sent[1].type === "cancel_turn", "idle timeout should cancel the active turn");
+    assert(
+      statuses.some(function (item) {
+        return item.data === "cancelling" && item.metadata && item.metadata.reason === "idle_timeout";
+      }),
+      "idle timeout should expose a visible cancelling status",
+    );
+  });
+
+  await run("idle timeout should wait for terminal outcome after cancelling", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var statuses = [];
+    var errors = [];
+
+    loaded.wsStream.streamChat(
+      {
+        query: "请分析一套完整的复习方案",
+        sessionId: "conv_1",
+        idleTimeoutMs: 5,
+        maxTerminalWaitTicksAfterCancel: 2,
+      },
+      {
+        onStatus: function (payload) {
+          statuses.push(payload);
+        },
+        onError: function (message) {
+          errors.push(message);
+        },
+        onDone: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+    loaded.tasks[0]._open();
+    loaded.runTimers(5);
+    loaded.runTimers(5);
+
+    assert(loaded.sent[0].type === "subscribe_turn", "idle timeout should subscribe first");
+    assert(loaded.sent[1].type === "cancel_turn", "idle timeout should send cancel once");
+    assert(errors.length === 0, "second idle tick after cancel should not surface page-level timeout");
+    assert(
+      statuses.some(function (item) { return item.data === "awaiting_terminal"; }),
+      "second idle tick should wait for the canonical terminal event",
     );
   });
 

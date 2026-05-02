@@ -193,6 +193,33 @@ loaded.page.setData({
         },
       ],
     },
+    {
+      id: "a3",
+      role: "ai",
+      content: "",
+      renderableContent: "",
+      blocks: [
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "后台处理已经完成，" },
+            { type: "strong", children: [{ type: "text", text: "可复制可见文本" }] },
+          ],
+        },
+        {
+          type: "ul",
+          items: [
+            {
+              nodes: [
+                { type: "text", text: "不要复制 " },
+                { type: "code", children: [{ type: "text", text: "[object Object]" }] },
+              ],
+            },
+          ],
+        },
+      ],
+      mcqCards: null,
+    },
   ],
 });
 
@@ -210,6 +237,14 @@ assert(
     loaded.clipboard[1].indexOf("A. 耐火极限符合要求") >= 0 &&
     loaded.clipboard[1].indexOf("raw fallback should not win") < 0,
   "copy should prefer visible MCQ cards over raw fallback text",
+);
+
+loaded.page.onCopy({ currentTarget: { dataset: { msgid: "a3" } } });
+assert(
+  loaded.clipboard[2].indexOf("后台处理已经完成，可复制可见文本") >= 0 &&
+    loaded.clipboard[2].indexOf("- 不要复制 [object Object]") >= 0 &&
+    loaded.clipboard[2] !== "[object Object],[object Object]",
+  "copy should serialize markdown rich-text node arrays instead of object placeholders",
 );
 
 assertEqual(loaded.toasts.length, 0, "copying visible content should not show an empty toast");

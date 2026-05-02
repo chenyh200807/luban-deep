@@ -97,9 +97,14 @@
   transition: background 0.2s;
 }
 .recharge-btn.on { background: #2563eb; }
+.recharge-btn.disabled {
+  background: rgba(255,255,255,0.04);
+  border: 1rpx solid rgba(255,255,255,0.08);
+}
 .recharge-btn:active { opacity: 0.85; }
 .recharge-btn-txt { font-size: 30rpx; font-weight: 700; color: rgba(255,255,255,0.3); }
 .recharge-btn.on .recharge-btn-txt { color: #fff; }
+.recharge-btn.disabled .recharge-btn-txt { color: rgba(255,255,255,0.46); }
 
 /* ── 骨架屏 ────────────────────────────── */
 .loading-wrap { display: flex; flex-direction: column; gap: 12rpx; }
@@ -249,6 +254,11 @@
 .billing-page.light .recharge-btn-txt { color: #7b8da8; }
 .billing-page.light .recharge-btn.on { background: #2f6bff; border-color: #2f6bff; }
 .billing-page.light .recharge-btn.on .recharge-btn-txt { color: #fff; }
+.billing-page.light .recharge-btn.disabled {
+  background: #f1f5f9;
+  border-color: #dbe6f5;
+}
+.billing-page.light .recharge-btn.disabled .recharge-btn-txt { color: #64748b; }
 
 /* ── 骨架屏 ────────────────────────────── */
 .billing-page.light .skel-item {

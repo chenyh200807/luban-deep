@@ -385,6 +385,22 @@ function _normalizeProgressFeedback(raw) {
   };
 }
 
+function _hasSnapshotData(value) {
+  if (!value || typeof value !== "object") return false;
+  if (Array.isArray(value)) return value.length > 0;
+  return Object.keys(value).length > 0;
+}
+
+function _snapshotValue(snapshot, key) {
+  var value = snapshot && snapshot[key];
+  return _hasSnapshotData(value) ? value : null;
+}
+
+function _unwrapSnapshotItem(raw) {
+  var value = api.unwrapResponse(raw);
+  return _hasSnapshotData(value) ? value : null;
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -496,11 +512,11 @@ Page({
     ];
     const result = await Promise.all(tasks);
     return {
-      progress: api.unwrapResponse(result[0]) || {},
-      home: api.unwrapResponse(result[1]) || {},
-      assessment: api.unwrapResponse(result[2]) || {},
-      mastery: api.unwrapResponse(result[3]) || {},
-      wallet: api.unwrapResponse(result[4]) || {},
+      progress: _unwrapSnapshotItem(result[0]),
+      home: _unwrapSnapshotItem(result[1]),
+      assessment: _unwrapSnapshotItem(result[2]),
+      mastery: _unwrapSnapshotItem(result[3]),
+      wallet: _unwrapSnapshotItem(result[4]),
     };
   },
 
@@ -519,8 +535,8 @@ Page({
   async _loadPoints(snapshot) {
     try {
       const data =
-        snapshot && snapshot.wallet
-          ? snapshot.wallet
+        _snapshotValue(snapshot, "wallet")
+          ? _snapshotValue(snapshot, "wallet")
           : api.unwrapResponse(await api.getWallet()) || {};
       this.setData({ userPoints: data.balance || 0 });
     } catch (_) {}
@@ -559,16 +575,16 @@ Page({
   async _loadOverview(snapshot) {
     try {
       const progress =
-        snapshot && snapshot.progress
-          ? snapshot.progress
+        _snapshotValue(snapshot, "progress")
+          ? _snapshotValue(snapshot, "progress")
           : api.unwrapResponse(await api.getTodayProgress()) || {};
       const home =
-        snapshot && snapshot.home
-          ? snapshot.home
+        _snapshotValue(snapshot, "home")
+          ? _snapshotValue(snapshot, "home")
           : api.unwrapResponse(await api.getHomeDashboard()) || {};
       const assessment =
-        snapshot && snapshot.assessment
-          ? snapshot.assessment
+        _snapshotValue(snapshot, "assessment")
+          ? _snapshotValue(snapshot, "assessment")
           : api.unwrapResponse(await api.getAssessmentProfile()) || {};
 
       const weakNodes = ((home.mastery || {}).weak_nodes || []).filter(Boolean);
@@ -599,8 +615,8 @@ Page({
     try {
       var dims = [];
       var assessmentData =
-        snapshot && snapshot.assessment
-          ? snapshot.assessment
+        _snapshotValue(snapshot, "assessment")
+          ? _snapshotValue(snapshot, "assessment")
           : api.unwrapResponse(await api.getAssessmentProfile()) || {};
       dims = _buildRadarDimensionsFromAssessment(assessmentData);
 
@@ -675,8 +691,8 @@ Page({
   async _loadMastery(snapshot) {
     try {
       var data =
-        snapshot && snapshot.mastery
-          ? snapshot.mastery
+        _snapshotValue(snapshot, "mastery")
+          ? _snapshotValue(snapshot, "mastery")
           : api.unwrapResponse(await api.getMasteryDashboard()) || {};
       var groups = (data.groups || []).map(function (group) {
         var chapters = (group.chapters || []).map(function (chapter) {
@@ -712,8 +728,8 @@ Page({
 
       if (!groups.length && !overall) {
         var fallbackData =
-          snapshot && snapshot.assessment
-            ? snapshot.assessment
+          _snapshotValue(snapshot, "assessment")
+            ? _snapshotValue(snapshot, "assessment")
             : api.unwrapResponse(await api.getAssessmentProfile()) || {};
         var cm = fallbackData.chapter_mastery || {};
         var weakChapters = [];
@@ -870,6 +886,23 @@ Page({
           const name = d.name || "";
           return name.length > 5 ? name.slice(0, 5) + "…" : name;
         });
+        const palette = this.data.isDark
+          ? {
+              grid: "rgba(255,255,255,0.12)",
+              axis: "rgba(255,255,255,0.08)",
+              fill: "rgba(99,102,241,0.18)",
+              line: "rgba(129,140,248,0.78)",
+              point: "rgba(129,140,248,0.95)",
+              label: "rgba(255,255,255,0.72)",
+            }
+          : {
+              grid: "rgba(51,65,85,0.18)",
+              axis: "rgba(51,65,85,0.12)",
+              fill: "rgba(47,107,255,0.14)",
+              line: "rgba(37,99,235,0.76)",
+              point: "rgba(37,99,235,0.92)",
+              label: "rgba(15,23,42,0.76)",
+            };
 
         ctx.clearRect(0, 0, width, height);
 
@@ -885,7 +918,7 @@ Page({
             else ctx.lineTo(x, y);
           }
           ctx.closePath();
-          ctx.strokeStyle = "rgba(255,255,255,0.06)";
+          ctx.strokeStyle = palette.grid;
           ctx.lineWidth = 1;
           ctx.stroke();
         }
@@ -896,7 +929,7 @@ Page({
           ctx.beginPath();
           ctx.moveTo(cx, cy);
           ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
-          ctx.strokeStyle = "rgba(255,255,255,0.04)";
+          ctx.strokeStyle = palette.axis;
           ctx.stroke();
         }
 
@@ -912,9 +945,9 @@ Page({
           else ctx.lineTo(x, y);
         }
         ctx.closePath();
-        ctx.fillStyle = "rgba(99,102,241,0.15)";
+        ctx.fillStyle = palette.fill;
         ctx.fill();
-        ctx.strokeStyle = "rgba(99,102,241,0.6)";
+        ctx.strokeStyle = palette.line;
         ctx.lineWidth = 2;
         ctx.stroke();
 
@@ -929,7 +962,7 @@ Page({
 
           ctx.beginPath();
           ctx.arc(x, y, 3, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(99,102,241,0.9)";
+          ctx.fillStyle = palette.point;
           ctx.fill();
 
           const cosA = Math.cos(angle);
@@ -959,7 +992,7 @@ Page({
           if (ly < pad + 10) ly = pad + 10;
           if (ly > height - pad) ly = height - pad;
 
-          ctx.fillStyle = "rgba(255,255,255,0.5)";
+          ctx.fillStyle = palette.label;
           ctx.fillText(labels[i], lx, ly);
         }
 

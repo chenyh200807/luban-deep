@@ -82,21 +82,23 @@ function _isAuthRedirecting() {
   return !!getRuntimeStore()._authRedirecting;
 }
 
-function redirectToLogin() {
+function redirectToLogin(returnTo) {
   var store = getRuntimeStore();
   if (store._authRedirecting) return false;
   store._authRedirecting = true;
-  _reLaunch(route.login());
+  var target = returnTo ? route.login({ returnTo: returnTo }) : route.login();
+  _reLaunch(target);
   return true;
 }
 
 function checkAuth(callback) {
   var token = auth.getToken();
   if (!token) {
-    if (_getCurrentRoute() === route.login().replace(/^\//, "")) {
+    var currentRoute = _getCurrentRoute();
+    if (currentRoute === route.login().replace(/^\//, "")) {
       return false;
     }
-    return redirectToLogin();
+    return redirectToLogin(currentRoute ? "/" + currentRoute : "");
   }
   if (callback) callback(token);
   return true;

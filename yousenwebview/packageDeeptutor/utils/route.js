@@ -1,4 +1,17 @@
 var ROOT = "/packageDeeptutor";
+var KNOWN_PACKAGE_PATHS = {
+  "pages/assessment/assessment": true,
+  "pages/billing/billing": true,
+  "pages/chat/chat": true,
+  "pages/history/history": true,
+  "pages/legal/terms": true,
+  "pages/login/login": true,
+  "pages/login/manual": true,
+  "pages/practice/practice": true,
+  "pages/profile/profile": true,
+  "pages/register/register": true,
+  "pages/report/report": true,
+};
 
 function _trimPath(path) {
   return String(path || "")
@@ -43,10 +56,14 @@ function resolveInternalUrl(target, fallback) {
   if (/^https?:\/\//i.test(raw)) {
     return fallback || resolve("pages/chat/chat");
   }
-  if (raw.indexOf(ROOT + "/") === 0) return raw;
-  if (raw.indexOf("/packageDeeptutor/") === 0) return raw;
-  if (raw.indexOf("/") === 0) return raw;
-  return resolve(raw);
+  var queryIndex = raw.indexOf("?");
+  var pathOnly = queryIndex >= 0 ? raw.slice(0, queryIndex) : raw;
+  var query = queryIndex >= 0 ? raw.slice(queryIndex) : "";
+  var clean = _trimPath(pathOnly);
+  if (!KNOWN_PACKAGE_PATHS[clean]) {
+    return fallback || resolve("pages/chat/chat");
+  }
+  return resolve(clean) + query;
 }
 
 module.exports = {

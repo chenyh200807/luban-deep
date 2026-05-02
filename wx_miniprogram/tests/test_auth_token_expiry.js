@@ -59,6 +59,7 @@ function loadAuthModule(stored) {
   auth.setToken("fresh-token", 1_800_000_000);
   assert(stored.auth_token === "fresh-token", "setToken should persist auth_token");
   assert(stored.auth_token_exp === 1_800_000_000, "setToken should persist numeric auth_token_exp");
+  assert(auth.isLoggedIn() === true, "isLoggedIn should accept a non-expired token");
 
   auth.clearToken();
   assert(!("auth_token" in stored), "clearToken should remove auth_token");
@@ -72,6 +73,9 @@ function loadAuthModule(stored) {
     auth.shouldRefreshToken(60 * 60 * 24 * 365) === true,
     "shouldRefreshToken should treat near-expiry token as refreshable",
   );
+  stored.auth_token_exp = 1;
+  assert(auth.isLoggedIn() === false, "isLoggedIn should reject expired stored tokens");
+  assert(!("auth_token" in stored), "expired token should be cleared when checked");
 
   if (fail) {
     console.error(errors.join("\n"));

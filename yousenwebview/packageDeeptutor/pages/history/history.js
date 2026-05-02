@@ -80,6 +80,39 @@ function _joinMeta(parts) {
   return parts.filter(Boolean).join(" · ");
 }
 
+function _coerceTimestampMs(value) {
+  if (value === undefined || value === null || value === "") return 0;
+  if (typeof value === "number") {
+    if (!isFinite(value) || value <= 0) return 0;
+    return value < 100000000000 ? Math.round(value * 1000) : Math.round(value);
+  }
+
+  var raw = String(value || "").trim();
+  if (!raw) return 0;
+  if (/^\d+(\.\d+)?$/.test(raw)) {
+    return _coerceTimestampMs(Number(raw));
+  }
+
+  var normalized = raw.replace(
+    /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2}(?:\.\d+)?)$/,
+    "$1T$2",
+  );
+  var ts = new Date(normalized).getTime();
+  return isNaN(ts) ? 0 : ts;
+}
+
+function _conversationTimestamp(c) {
+  c = c || {};
+  return (
+    _coerceTimestampMs(c.updated_at_ms) ||
+    _coerceTimestampMs(c.updated_at) ||
+    _coerceTimestampMs(c.rawTime) ||
+    _coerceTimestampMs(c.created_at_ms) ||
+    _coerceTimestampMs(c.created_at) ||
+    _coerceTimestampMs(c.ts)
+  );
+}
+
 function _joinSearchText(parts) {
   return parts
     .map(function (part) {
@@ -104,7 +137,7 @@ function _buildConversationItem(c) {
     preview: _clipText(preview, 72),
     time: helpers.formatTime(updatedAt),
     rawTime: updatedAt,
-    ts: updatedAt ? new Date(updatedAt).getTime() : 0,
+    ts: _conversationTimestamp(c),
     archived: !!c.archived,
     statusLabel: status.label,
     statusTone: status.tone,
@@ -131,6 +164,7 @@ function _normalizeCachedConversationItem(item) {
 
   normalized.preview = _clipText(preview, 72);
   normalized.title = _deriveConversationTitle(normalized.title, preview);
+  normalized.ts = _conversationTimestamp(normalized);
   if (normalized.capability) {
     normalized.capabilityLabel = _capabilityLabel(normalized.capability);
   } else if (!cachedLabel || cachedLabelKey === "tutorbot" || cachedLabelKey === "chat") {
@@ -215,6 +249,7 @@ Page({
   data: {
     statusBarHeight: 0,
     navHeight: 0,
+    navRightInset: 24,
     loading: true,
     refreshing: false,
     error: false,
@@ -250,12 +285,15 @@ Page({
       var rect = wx.getMenuButtonBoundingClientRect();
       navContentPaddingTop = rect.top - statusBarHeight;
       navContentHeight = rect.height + navContentPaddingTop * 2;
+      var windowWidth = info.windowWidth || info.screenWidth || 375;
+      var rightInset = Math.max(24, windowWidth - rect.left + 8);
     }
     this.setData({
       statusBarHeight: statusBarHeight,
       navHeight: statusBarHeight + navContentHeight,
       navContentHeight: navContentHeight,
       navContentPaddingTop: navContentPaddingTop,
+      navRightInset: rightInset || 24,
     });
   },
 

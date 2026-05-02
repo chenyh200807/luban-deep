@@ -44,6 +44,11 @@ def test_coerce_user_visible_answer_blocks_tool_command_leakage() -> None:
 def test_coerce_user_visible_answer_blocks_rag_xml_and_provider_errors() -> None:
     rag_text = "<rags>{\"query\":\"防水等级\",\"results\":[]}</rags>"
     provider_error = "{'error': {'code': 'InternalError.Algo.DataInspectionFailed'}}"
+    auth_error = (
+        "Error: {'message': 'Authentication Fails, Your api key: ****486e is invalid', "
+        "'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}"
+    )
 
     assert coerce_user_visible_answer(rag_text) == "暂时未生成适合直接展示的答案，请重试一次。"
     assert coerce_user_visible_answer(provider_error) == "暂时未生成适合直接展示的答案，请重试一次。"
+    assert coerce_user_visible_answer(auth_error) == "暂时未生成适合直接展示的答案，请重试一次。"

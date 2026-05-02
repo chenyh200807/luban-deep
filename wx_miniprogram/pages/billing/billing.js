@@ -15,23 +15,33 @@ Page({
     page: 1,
     pageSize: 15,
     hasMore: false,
-    selectedPkg: "standard",
+    selectedPkg: "advance",
+    paymentAvailability: {
+      enabled: false,
+      label: "暂未开放",
+      reason: "充值通道正在接入微信支付，请联系运营开通或稍后再试",
+    },
     packages: [
-      { id: "starter", points: 100, price: "9.9", per: "", badge: "" },
       {
-        id: "standard",
-        points: 500,
-        price: "39",
-        per: "¥0.078/点",
-        badge: "热门",
+        id: "trial",
+        points: 100,
+        price: "9",
+        per: "约 10 次标准问答",
+        badge: "尝鲜",
       },
-      { id: "pro", points: 1200, price: "79", per: "¥0.066/点", badge: "" },
       {
-        id: "ultimate",
-        points: 3000,
-        price: "169",
-        per: "¥0.056/点",
-        badge: "VIP",
+        id: "advance",
+        points: 1200,
+        price: "99",
+        per: "约 120 次标准问答",
+        badge: "推荐",
+      },
+      {
+        id: "sprint",
+        points: 2600,
+        price: "199",
+        per: "约 260 次标准问答",
+        badge: "冲刺",
       },
     ],
   },
@@ -56,7 +66,15 @@ Page({
   async _loadWallet() {
     try {
       var data = await api.getWallet();
-      this.setData({ balance: data.balance || 0 });
+      var update = { balance: data.balance || 0 };
+      var packages = _normalizePackages(data.packages);
+      if (packages.length) {
+        update.packages = packages;
+        if (!_hasPackage(packages, this.data.selectedPkg)) {
+          update.selectedPkg = packages[0].id;
+        }
+      }
+      this.setData(update);
     } catch (_) {}
   },
 
@@ -104,7 +122,17 @@ Page({
 
   onRecharge: function () {
     if (!this.data.selectedPkg) return;
-    wx.showToast({ title: "充值功能即将上线", icon: "none" });
+    var availability = this.data.paymentAvailability || {};
+    if (!availability.enabled) {
+      wx.showModal({
+        title: availability.label || "暂未开放",
+        content: availability.reason || "充值通道暂未开放，请稍后再试",
+        showCancel: false,
+        confirmText: "知道了",
+      });
+      return;
+    }
+    wx.showToast({ title: "支付通道未配置", icon: "none" });
   },
 
   retry() {
@@ -139,6 +167,29 @@ function _friendlyReason(reason) {
     signup_bonus: "注册奖励",
   };
   return map[reason] || reason;
+}
+
+function _normalizePackages(packages) {
+  if (!Array.isArray(packages)) return [];
+  return packages
+    .filter(function (item) {
+      return item && item.id && item.points && item.price;
+    })
+    .map(function (item) {
+      return {
+        id: String(item.id),
+        points: Number(item.points) || 0,
+        price: String(item.price),
+        per: item.per || "",
+        badge: item.badge || "",
+      };
+    });
+}
+
+function _hasPackage(packages, id) {
+  return packages.some(function (item) {
+    return item.id === id;
+  });
 }
 
 function _formatTime(isoStr) {

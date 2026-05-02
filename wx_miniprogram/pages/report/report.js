@@ -381,6 +381,23 @@ Page({
           const name = d.name || "";
           return name.length > 5 ? name.slice(0, 5) + "…" : name;
         });
+        const palette = this.data.isDark
+          ? {
+              grid: "rgba(255,255,255,0.12)",
+              axis: "rgba(255,255,255,0.08)",
+              fill: "rgba(99,102,241,0.18)",
+              line: "rgba(129,140,248,0.78)",
+              point: "rgba(129,140,248,0.95)",
+              label: "rgba(255,255,255,0.72)",
+            }
+          : {
+              grid: "rgba(51,65,85,0.18)",
+              axis: "rgba(51,65,85,0.12)",
+              fill: "rgba(47,107,255,0.14)",
+              line: "rgba(37,99,235,0.76)",
+              point: "rgba(37,99,235,0.92)",
+              label: "rgba(15,23,42,0.76)",
+            };
 
         ctx.clearRect(0, 0, width, height);
 
@@ -396,7 +413,7 @@ Page({
             else ctx.lineTo(x, y);
           }
           ctx.closePath();
-          ctx.strokeStyle = "rgba(255,255,255,0.06)";
+          ctx.strokeStyle = palette.grid;
           ctx.lineWidth = 1;
           ctx.stroke();
         }
@@ -407,7 +424,7 @@ Page({
           ctx.beginPath();
           ctx.moveTo(cx, cy);
           ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
-          ctx.strokeStyle = "rgba(255,255,255,0.04)";
+          ctx.strokeStyle = palette.axis;
           ctx.stroke();
         }
 
@@ -423,9 +440,9 @@ Page({
           else ctx.lineTo(x, y);
         }
         ctx.closePath();
-        ctx.fillStyle = "rgba(99,102,241,0.15)";
+        ctx.fillStyle = palette.fill;
         ctx.fill();
-        ctx.strokeStyle = "rgba(99,102,241,0.6)";
+        ctx.strokeStyle = palette.line;
         ctx.lineWidth = 2;
         ctx.stroke();
 
@@ -440,7 +457,7 @@ Page({
 
           ctx.beginPath();
           ctx.arc(x, y, 3, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(99,102,241,0.9)";
+          ctx.fillStyle = palette.point;
           ctx.fill();
 
           const cosA = Math.cos(angle);
@@ -470,7 +487,7 @@ Page({
           if (ly < pad + 10) ly = pad + 10;
           if (ly > height - pad) ly = height - pad;
 
-          ctx.fillStyle = "rgba(255,255,255,0.5)";
+          ctx.fillStyle = palette.label;
           ctx.fillText(labels[i], lx, ly);
         }
 

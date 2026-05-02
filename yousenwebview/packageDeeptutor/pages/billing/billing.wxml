@@ -32,7 +32,7 @@
           <text class="balance-star">✦</text>
           <text class="balance-num">{{balance}}</text>
         </view>
-        <text class="demo-txt balance-demo">演示模式 · 充值功能即将上线</text>
+        <text class="demo-txt balance-demo">{{paymentAvailability.reason}}</text>
       </view>
 
       <!-- 套餐选择 -->
@@ -71,8 +71,8 @@
       </view>
 
       <!-- 充值按钮 -->
-      <view class="recharge-btn {{selectedPkg ? 'on' : ''}}" bindtap="onRecharge">
-        <text class="recharge-btn-txt">立即充值</text>
+      <view class="recharge-btn {{paymentAvailability.enabled && selectedPkg ? 'on' : 'disabled'}}" bindtap="onRecharge">
+        <text class="recharge-btn-txt">{{paymentAvailability.enabled ? '立即充值' : paymentAvailability.label}}</text>
       </view>
 
       <text class="usage-inline">普通问答通常消耗 8-10 点，复杂任务会消耗更多点数。</text>

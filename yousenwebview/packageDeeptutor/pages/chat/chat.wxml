@@ -1,4 +1,16 @@
 <!-- chat.wxml — 1:1 复刻 Web 手机端 -->
+<wxs module="feedbackTag">
+function has(tags, tag) {
+  if (!tags || !tag) return false;
+  for (var i = 0; i < tags.length; i++) {
+    if (tags[i] === tag) return true;
+  }
+  return false;
+}
+module.exports = {
+  has: has
+};
+</wxs>
 <view class="page {{isDark?'':'light'}}">
 
   <!-- 呼吸极光背景（低端设备跳过以节省 GPU） -->
@@ -84,6 +96,9 @@
         confirm-type="send"
         show-confirm-bar="{{false}}"
         adjust-position="{{true}}"
+        cursor-spacing="{{inputCursorSpacing}}"
+        bindfocus="onKeyboardFocus"
+        bindblur="onKeyboardBlur"
       />
 		      <view class="input-bottom">
 			        <view class="mode-row">
@@ -510,22 +525,22 @@
             </view>
           </view>
           <view class="fb-tags">
-            <view class="fb-tag {{feedbackTags.indexOf('事实错误')>=0?'on':''}}" bindtap="onFeedbackTag" data-tag="事实错误">
+            <view class="fb-tag {{feedbackTag.has(feedbackTags, '事实错误')?'on':''}}" catchtap="onFeedbackTag" data-tag="事实错误" aria-role="button" aria-label="反馈：事实错误">
               <text class="fb-tag-txt">❌ 事实错误</text>
             </view>
-            <view class="fb-tag {{feedbackTags.indexOf('产生幻觉')>=0?'on':''}}" bindtap="onFeedbackTag" data-tag="产生幻觉">
+            <view class="fb-tag {{feedbackTag.has(feedbackTags, '产生幻觉')?'on':''}}" catchtap="onFeedbackTag" data-tag="产生幻觉" aria-role="button" aria-label="反馈：产生幻觉">
               <text class="fb-tag-txt">🤥 产生幻觉</text>
             </view>
-            <view class="fb-tag {{feedbackTags.indexOf('逻辑不通')>=0?'on':''}}" bindtap="onFeedbackTag" data-tag="逻辑不通">
+            <view class="fb-tag {{feedbackTag.has(feedbackTags, '逻辑不通')?'on':''}}" catchtap="onFeedbackTag" data-tag="逻辑不通" aria-role="button" aria-label="反馈：逻辑不通">
               <text class="fb-tag-txt">📉 逻辑不通</text>
             </view>
-            <view class="fb-tag {{feedbackTags.indexOf('格式混乱')>=0?'on':''}}" bindtap="onFeedbackTag" data-tag="格式混乱">
+            <view class="fb-tag {{feedbackTag.has(feedbackTags, '格式混乱')?'on':''}}" catchtap="onFeedbackTag" data-tag="格式混乱" aria-role="button" aria-label="反馈：格式混乱">
               <text class="fb-tag-txt">📝 格式混乱</text>
             </view>
           </view>
           <input class="fb-input" placeholder="更多细节（可选）..." value="{{feedbackComment}}" bindinput="onFeedbackInput" maxlength="500" />
-          <view class="fb-submit" bindtap="onFeedbackSubmit" aria-role="button" aria-label="提交反馈">
-            <text class="fb-submit-txt">提交反馈</text>
+          <view class="fb-submit {{feedbackSubmitting ? 'fb-submit-disabled' : ''}}" catchtap="onFeedbackSubmit" aria-role="button" aria-label="提交反馈">
+            <text class="fb-submit-txt">{{feedbackSubmitting ? '提交中...' : '提交反馈'}}</text>
           </view>
         </view>
       </view>
@@ -548,6 +563,9 @@
         confirm-type="send"
         show-confirm-bar="{{false}}"
         adjust-position="{{true}}"
+        cursor-spacing="{{inputCursorSpacing}}"
+        bindfocus="onKeyboardFocus"
+        bindblur="onKeyboardBlur"
       />
 		      <view class="input-bottom {{bottomBarCompact ? 'input-bottom-compact' : ''}}">
 			        <view class="mode-row {{bottomBarCompact ? 'mode-row-compact' : ''}}">

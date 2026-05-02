@@ -9,6 +9,32 @@ var flags = require("../../utils/flags");
 // [W5-3] Debounce timer for settings save
 var _saveTimer = null;
 var SAVE_DEBOUNCE_MS = 500;
+var BADGE_DESC_BY_ID = {
+  1: "完成首次练习或摸底测试",
+  2: "连续多题答对，保持稳定正确率",
+  3: "覆盖多个章节并形成学习记录",
+  4: "连续学习多天，形成复习节奏",
+  5: "完成高质量解析或错题复盘",
+  6: "在阶段测评中达到优秀表现",
+  7: "在限定时间内完成练习任务",
+  8: "持续完成学习目标并保持高掌握度",
+};
+
+function _normalizeBadges(remoteBadges, fallbackEarnedIds, currentBadges) {
+  var earned = new Set(fallbackEarnedIds || []);
+  var hasRemote = Array.isArray(remoteBadges) && remoteBadges.length;
+  var source = hasRemote ? remoteBadges : currentBadges;
+  return (source || []).map(function (badge) {
+    var id = Number(badge.id);
+    return {
+      id: id,
+      icon: badge.icon,
+      name: badge.name,
+      desc: badge.desc || BADGE_DESC_BY_ID[id] || "完成对应学习目标后自动点亮",
+      earned: hasRemote && typeof badge.earned === "boolean" ? badge.earned : earned.has(id),
+    };
+  });
+}
 
 function toFiniteNumber(value) {
   var num = Number(value);
@@ -46,6 +72,7 @@ function buildLinkItems(workspaceFlags) {
     items.push({ id: "diagnostic", icon: "🔍", title: "摸底报告" });
   }
   items.push({ id: "membership", icon: "👑", title: "会员充值" });
+  items.push({ id: "feedback", icon: "💬", title: "意见反馈", nativeOpenType: "feedback" });
   items.push({ id: "terms", icon: "📄", title: "服务条款" });
   return items;
 }
@@ -82,14 +109,20 @@ Page({
     navBackLabel: "对话",
 
     badges: [
-      { id: 1, icon: "🏆", name: "首战告捷", earned: false },
-      { id: 2, icon: "🎯", name: "连胜达人", earned: false },
-      { id: 3, icon: "📚", name: "博览群书", earned: false },
-      { id: 4, icon: "🔥", name: "坚持之星", earned: false },
-      { id: 5, icon: "💡", name: "解题高手", earned: false },
-      { id: 6, icon: "🌟", name: "满分王者", earned: false },
-      { id: 7, icon: "⚡", name: "速战速决", earned: false },
-      { id: 8, icon: "🎖️", name: "精英学员", earned: false },
+      { id: 1, icon: "🏆", name: "首战告捷", desc: "完成首次练习或摸底测试", earned: false },
+      { id: 2, icon: "🎯", name: "连胜达人", desc: "连续多题答对，保持稳定正确率", earned: false },
+      { id: 3, icon: "📚", name: "博览群书", desc: "覆盖多个章节并形成学习记录", earned: false },
+      { id: 4, icon: "🔥", name: "坚持之星", desc: "连续学习多天，形成复习节奏", earned: false },
+      { id: 5, icon: "💡", name: "解题高手", desc: "完成高质量解析或错题复盘", earned: false },
+      { id: 6, icon: "🌟", name: "满分王者", desc: "在阶段测评中达到优秀表现", earned: false },
+      { id: 7, icon: "⚡", name: "速战速决", desc: "在限定时间内完成练习任务", earned: false },
+      { id: 8, icon: "🎖️", name: "精英学员", desc: "持续完成学习目标并保持高掌握度", earned: false },
+    ],
+
+    capabilityItems: [
+      { id: "web_search", icon: "🌐", title: "联网搜索", status: "未开放", desc: "当前小程序答疑以建筑实务知识库和题库为主，联网搜索入口尚未接入。" },
+      { id: "file_analysis", icon: "📎", title: "图片/文档分析", status: "未开放", desc: "当前仅支持文本提问，图片和文档上传分析需要单独的上传、审核和解析链路。" },
+      { id: "mind_map", icon: "🧠", title: "思维导图", status: "未开放", desc: "思维导图生成需要结构化知识点输出和小程序渲染合同，尚未开放给用户。" },
     ],
 
     // 隐藏了"学习计划"（后期开发）
@@ -185,20 +218,56 @@ Page({
         }
         self.setData(update);
 
-        var earned = new Set(info.earned_badge_ids || []);
-        var badges = self.data.badges.map(function (b) {
-          return {
-            id: b.id,
-            icon: b.icon,
-            name: b.name,
-            earned: earned.has(b.id),
-          };
-        });
-        self.setData({ badges: badges });
+        self._loadBadges(info.earned_badge_ids || []);
       })
       .catch(function () {
         // getUserInfo 失败，保持默认值
       });
+  },
+
+  _loadBadges: function (fallbackEarnedIds) {
+    var self = this;
+    api
+      .getBadges()
+      .then(function (raw) {
+        var data = api.unwrapResponse ? api.unwrapResponse(raw) || raw || {} : raw || {};
+        self.setData({
+          badges: _normalizeBadges(data.badges, fallbackEarnedIds, self.data.badges),
+        });
+      })
+      .catch(function () {
+        self.setData({
+          badges: _normalizeBadges(null, fallbackEarnedIds, self.data.badges),
+        });
+      });
+  },
+
+  onBadgeTap: function (e) {
+    var id = Number(e.currentTarget.dataset.id);
+    var badge = this.data.badges.find(function (item) {
+      return item.id === id;
+    });
+    if (!badge) return;
+    wx.showModal({
+      title: badge.name,
+      content: (badge.earned ? "已获得：" : "未获得：") + badge.desc,
+      showCancel: false,
+      confirmText: "知道了",
+    });
+  },
+
+  onCapabilityTap: function (e) {
+    var id = e.currentTarget.dataset.id;
+    var item = this.data.capabilityItems.find(function (capability) {
+      return capability.id === id;
+    });
+    if (!item) return;
+    wx.showModal({
+      title: item.title + " · " + item.status,
+      content: item.desc,
+      showCancel: false,
+      confirmText: "知道了",
+    });
   },
 
   // ── 修改昵称 ──────────────────────────────────

@@ -340,6 +340,12 @@
   box-shadow: 0 12rpx 26rpx rgba(37, 99, 235, 0.2);
 }
 
+.recharge-btn.disabled {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
 .recharge-btn:active {
   opacity: 0.88;
 }
@@ -352,6 +358,10 @@
 
 .recharge-btn.on .recharge-btn-txt {
   color: #ffffff;
+}
+
+.recharge-btn.disabled .recharge-btn-txt {
+  color: rgba(255, 255, 255, 0.48);
 }
 
 .loading-wrap {
@@ -673,6 +683,15 @@
 
 .billing-page.light .recharge-btn.on .recharge-btn-txt {
   color: #ffffff;
+}
+
+.billing-page.light .recharge-btn.disabled {
+  background: #f1f5f9;
+  border-color: #dbe6f5;
+}
+
+.billing-page.light .recharge-btn.disabled .recharge-btn-txt {
+  color: #64748b;
 }
 
 .billing-page.light .skel-item,

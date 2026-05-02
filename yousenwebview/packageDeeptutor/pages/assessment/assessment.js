@@ -77,6 +77,29 @@ var ARCHETYPE_TIPS = {
 
 var helpers = require("../../utils/helpers");
 
+function buildAnswerState(questions, selectedKeys, currentIndex) {
+  var sheet = [];
+  var answeredCount = 0;
+  var keys = selectedKeys || {};
+  for (var i = 0; i < questions.length; i++) {
+    var q = questions[i];
+    var answered = !!keys[q.id];
+    if (answered) answeredCount += 1;
+    sheet.push({
+      id: q.id,
+      index: i,
+      number: i + 1,
+      answered: answered,
+      current: i === currentIndex,
+    });
+  }
+  return {
+    answerSheet: sheet,
+    answeredCount: answeredCount,
+    unansweredCount: questions.length - answeredCount,
+  };
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -88,6 +111,14 @@ Page({
     currentQ: null,
     selMap: {}, // { "qId_A": true, "qId_C": true } — WXML 渲染用
     selectedKeys: {}, // { qId: "A" or "AC" } — 提交用
+    answerSheet: [],
+    answeredCount: 0,
+    unansweredCount: 0,
+    requestedCount: 0,
+    deliveredCount: 0,
+    availableCount: 0,
+    shortfallCount: 0,
+    assessmentNotice: "",
     resultScore: 0,
     resultLevel: "beginner",
     resultLevelName: "入门",
@@ -148,7 +179,7 @@ Page({
           return;
         }
         // 标准化字段名
-        questions = questions.map(function (q) {
+        questions = questions.map(function (q, idx) {
           var opts = q.options || [];
           // 数组格式 [{key, value}] → [{key, text}]
           if (Array.isArray(opts)) {
@@ -164,7 +195,7 @@ Page({
               });
           }
           return {
-            id: q.question_id || q.id,
+            id: q.question_id || q.id || "q_" + (idx + 1),
             question_stem:
               q.text || q.question_stem || q.stem || q.content || "",
             options: opts,
@@ -172,6 +203,11 @@ Page({
             difficulty: q.difficulty || "",
           };
         });
+        var answerState = buildAnswerState(questions, {}, 0);
+        var requestedCount = Number(payload.requested_count || questions.length) || questions.length;
+        var deliveredCount = Number(payload.delivered_count || questions.length) || questions.length;
+        var availableCount = Number(payload.available_count || deliveredCount) || deliveredCount;
+        var shortfallCount = Math.max(0, Number(payload.shortfall_count || 0) || 0);
         self._quizId = payload.quiz_id;
         self._startTime = Date.now();
         self.setData({
@@ -182,6 +218,17 @@ Page({
           currentQ: questions[0],
           selMap: {},
           selectedKeys: {},
+          answerSheet: answerState.answerSheet,
+          answeredCount: answerState.answeredCount,
+          unansweredCount: answerState.unansweredCount,
+          requestedCount: requestedCount,
+          deliveredCount: deliveredCount,
+          availableCount: availableCount,
+          shortfallCount: shortfallCount,
+          assessmentNotice:
+            shortfallCount > 0
+              ? "题库当前可用 " + availableCount + " 题，本次先完成 " + deliveredCount + " 题。"
+              : "",
         });
       })
       .catch(function (e) {
@@ -233,7 +280,18 @@ Page({
     }
     newKeys[qId] = answerStr;
 
-    this.setData({ selMap: newMap, selectedKeys: newKeys });
+    var answerState = buildAnswerState(
+      this.data.questions,
+      newKeys,
+      this.data.currentIndex,
+    );
+    this.setData({
+      selMap: newMap,
+      selectedKeys: newKeys,
+      answerSheet: answerState.answerSheet,
+      answeredCount: answerState.answeredCount,
+      unansweredCount: answerState.unansweredCount,
+    });
 
     // 单选自动跳下一题 (300ms 延迟)
     if (
@@ -251,29 +309,74 @@ Page({
   onPrev: function () {
     if (this.data.currentIndex <= 0) return;
     var idx = this.data.currentIndex - 1;
-    this.setData({ currentIndex: idx, currentQ: this.data.questions[idx] });
+    var answerState = buildAnswerState(
+      this.data.questions,
+      this.data.selectedKeys,
+      idx,
+    );
+    this.setData({
+      currentIndex: idx,
+      currentQ: this.data.questions[idx],
+      answerSheet: answerState.answerSheet,
+      answeredCount: answerState.answeredCount,
+      unansweredCount: answerState.unansweredCount,
+    });
   },
 
   onNext: function () {
     if (this.data.currentIndex >= this.data.questions.length - 1) return;
     var idx = this.data.currentIndex + 1;
-    this.setData({ currentIndex: idx, currentQ: this.data.questions[idx] });
+    var answerState = buildAnswerState(
+      this.data.questions,
+      this.data.selectedKeys,
+      idx,
+    );
+    this.setData({
+      currentIndex: idx,
+      currentQ: this.data.questions[idx],
+      answerSheet: answerState.answerSheet,
+      answeredCount: answerState.answeredCount,
+      unansweredCount: answerState.unansweredCount,
+    });
+  },
+
+  onJumpQuestion: function (e) {
+    var idx = Number(e.currentTarget.dataset.index);
+    if (isNaN(idx) || idx < 0 || idx >= this.data.questions.length) return;
+    var answerState = buildAnswerState(
+      this.data.questions,
+      this.data.selectedKeys,
+      idx,
+    );
+    this.setData({
+      currentIndex: idx,
+      currentQ: this.data.questions[idx],
+      answerSheet: answerState.answerSheet,
+      answeredCount: answerState.answeredCount,
+      unansweredCount: answerState.unansweredCount,
+    });
   },
 
   // ── 提交 ──────────────────────────────────────
   onSubmit: function () {
     if (this.data.submitting) return;
     var self = this;
-    var answers = self.data.selectedKeys;
     var total = self.data.questions.length;
-    var answered = Object.keys(answers).filter(function (k) {
-      return answers[k];
-    }).length;
+    var answered = self.data.answeredCount;
 
     if (answered < total) {
+      var blank = answered === 0;
       wx.showModal({
-        title: "还有未答题目",
-        content: "你已完成 " + answered + "/" + total + " 题，确定提交吗？",
+        title: blank ? "尚未作答" : "还有未答题目",
+        content: blank
+          ? "你尚未作答。建议先完成题目，再提交诊断。"
+          : "还有 " +
+            (total - answered) +
+            " 题未答，你已完成 " +
+            answered +
+            "/" +
+            total +
+            " 题，确定提交吗？",
         confirmText: "提交",
         success: function (res) {
           if (res.confirm) self._doSubmit();
@@ -436,6 +539,9 @@ Page({
       questions: [],
       selMap: {},
       selectedKeys: {},
+      answerSheet: [],
+      answeredCount: 0,
+      unansweredCount: 0,
       currentIndex: 0,
     });
   },

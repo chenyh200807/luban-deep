@@ -18,6 +18,7 @@ from deeptutor.services.session.turn_runtime import (
     TurnRuntimeManager,
     _LiveSubscriber,
     _TurnExecution,
+    _resolve_question_followup_context_and_action,
 )
 
 unified_ws_module = importlib.import_module("deeptutor.api.routers.unified_ws")
@@ -25,6 +26,38 @@ unified_ws_module = importlib.import_module("deeptutor.api.routers.unified_ws")
 
 async def _noop_refresh(**_kwargs):
     return None
+
+
+@pytest.mark.asyncio
+async def test_redacted_public_followup_context_does_not_override_grading_authority() -> None:
+    public_context = {
+        "question_id": "q_1",
+        "question": "屋面防水卷材施工前，基层应满足哪项要求？",
+        "question_type": "choice",
+        "options": {"A": "含水率适宜且表面平整", "B": "可带明水直接铺贴"},
+        "correct_answer": "",
+        "explanation": "",
+        "user_answer": "A",
+    }
+    stored_context = {
+        **public_context,
+        "correct_answer": "A",
+        "explanation": "基层应平整、干净、含水率符合要求。",
+        "user_answer": "",
+    }
+
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="我选 A",
+        explicit_context=public_context,
+        explicit_action={"intent": "answer_questions", "answers": [{"index": 1, "user_answer": "A"}]},
+        candidate_contexts=[stored_context],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["correct_answer"] == "A"
+    assert resolved_context["explanation"] == "基层应平整、干净、含水率符合要求。"
+    assert resolved_context["user_answer"] == "A"
+    assert resolved_action is not None
 
 
 @pytest.mark.asyncio
@@ -694,6 +727,15 @@ async def test_turn_runtime_injects_usage_summary_into_result_events(
 
     class FakeOrchestrator:
         async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                content=(
+                    "Error: {'message': 'Authentication Fails, Your api key: ****486e is invalid', "
+                    "'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}"
+                ),
+                metadata={"call_kind": "llm_final_response"},
+            )
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
@@ -3421,6 +3463,82 @@ async def test_turn_runtime_fails_closed_for_provider_raw_error(
     assert assistant_messages
     assert "InternalError" not in assistant_messages[-1]["content"]
     assert "DataInspectionFailed" not in assistant_messages[-1]["content"]
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_coerces_provider_auth_error_returned_as_result(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={
+                    "response": (
+                        "Error: {'message': 'Authentication Fails, Your api key: ****486e is invalid', "
+                        "'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}"
+                    )
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "触发 provider auth error",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    messages = await store.get_messages(session["id"])
+    assistant_messages = [item for item in messages if item["role"] == "assistant"]
+    result_events = [item for item in events if item.get("type") == "result"]
+    assert result_events
+    assert result_events[-1]["metadata"]["response"] == "暂时未生成适合直接展示的答案，请重试一次。"
+    assert "Authentication Fails" not in result_events[-1]["metadata"]["response"]
+    assert "invalid_request_error" not in result_events[-1]["metadata"]["response"]
+    assert assistant_messages
+    assert assistant_messages[-1]["content"] == "暂时未生成适合直接展示的答案，请重试一次。"
+    assert "Authentication Fails" not in assistant_messages[-1]["content"]
+    assert "invalid_request_error" not in assistant_messages[-1]["content"]
 
 
 @pytest.mark.asyncio

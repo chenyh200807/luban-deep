@@ -99,6 +99,7 @@ function streamChat(opts, callbacks) {
   var query = String((opts && opts.query) || "").trim();
   var sessionId = String((opts && opts.sessionId) || "").trim();
   var mode = String((opts && opts.mode) || "AUTO").trim().toUpperCase();
+  var clientTurnId = String((opts && opts.clientTurnId) || "").trim();
 
   if (!query) {
     if (cb.onError) cb.onError("query is required");
@@ -120,7 +121,7 @@ function streamChat(opts, callbacks) {
   var slowTimer = null;
   var reconnectTimer = null;
   var socketTask = null;
-  var idleTimeoutMs = 60000;
+  var idleTimeoutMs = Number((opts && opts.idleTimeoutMs) || 60000) || 60000;
   var slowResponseMs = 15000;
   var botId = "";
   var chatId = sessionId;
@@ -130,6 +131,9 @@ function streamChat(opts, callbacks) {
   var reconnectAttempts = 0;
   var socketOpen = false;
   var cancelRequested = false;
+  var timeoutCancelRequested = false;
+  var terminalWaitTicksAfterCancel = 0;
+  var maxTerminalWaitTicksAfterCancel = Number((opts && opts.maxTerminalWaitTicksAfterCancel) || 3) || 3;
   var resumeAttempted = false;
   var resumeSucceeded = false;
 
@@ -150,16 +154,61 @@ function streamChat(opts, callbacks) {
     }
   }
 
+  function sendCancelTurn(reason) {
+    if (!socketOpen || !socketTask || !turnId) return false;
+    try {
+      socketTask.send({
+        data: JSON.stringify({
+          type: "cancel_turn",
+          turn_id: turnId,
+        }),
+      });
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function resetIdleTimer() {
     clearIdleTimer();
     idleTimer = setTimeout(function () {
       if (!aborted && !doneReceived) {
-        if (cb.onError) cb.onError("响应超时，请重试");
-        if (cb.onDone) cb.onDone();
-        aborted = true;
-        try {
-          if (socketTask) socketTask.close({ code: 1000, reason: "idle_timeout" });
-        } catch (_) {}
+        if (cancelRequested || timeoutCancelRequested) {
+          terminalWaitTicksAfterCancel += 1;
+          if (terminalWaitTicksAfterCancel <= maxTerminalWaitTicksAfterCancel) {
+            if (cb.onStatus) {
+              cb.onStatus({
+                type: "status",
+                data: "awaiting_terminal",
+                content: "已发送停止请求，正在等待本轮结束…",
+                eventType: "awaiting_terminal",
+                metadata: { visibility: "public", reason: timeoutCancelRequested ? "idle_timeout" : "user_cancel" },
+              });
+            }
+            resetIdleTimer();
+            return;
+          }
+          failStream("已发送停止请求，服务端暂未返回终态，请稍后在历史记录查看结果");
+          return;
+        }
+        if (!timeoutCancelRequested && sendCancelTurn("idle_timeout")) {
+          timeoutCancelRequested = true;
+          cancelRequested = true;
+          terminalWaitTicksAfterCancel = 0;
+          clearSlowTimer();
+          if (cb.onStatus) {
+            cb.onStatus({
+              type: "status",
+              data: "cancelling",
+              content: "响应超时，正在停止本轮分析…",
+              eventType: "cancelling",
+              metadata: { visibility: "public", reason: "idle_timeout" },
+            });
+          }
+          resetIdleTimer();
+          return;
+        }
+        failStream("响应超时，请重试");
       }
     }, idleTimeoutMs);
   }
@@ -304,6 +353,15 @@ function streamChat(opts, callbacks) {
 
     if (eventType === "error") {
       if (eventMetadata && eventMetadata.status === "cancelled") {
+        doneReceived = true;
+        clearIdleTimer();
+        clearSlowTimer();
+        clearReconnectTimer();
+        if (cb.onStatusEnd) cb.onStatusEnd();
+        if (cb.onDone) cb.onDone();
+        try {
+          if (socketTask) socketTask.close({ code: 1000, reason: "cancelled" });
+        } catch (_) {}
         return;
       }
       if (eventMetadata && eventMetadata.turn_terminal) {
@@ -379,12 +437,7 @@ function streamChat(opts, callbacks) {
         data: JSON.stringify(payload),
       });
       if (cancelRequested && turnId) {
-        socketTask.send({
-          data: JSON.stringify({
-            type: "cancel_turn",
-            turn_id: turnId,
-          }),
-        });
+        sendCancelTurn("user_cancel");
       }
     });
 
@@ -421,6 +474,9 @@ function streamChat(opts, callbacks) {
     conversation_id: sessionId,
     mode: mode,
   };
+  if (clientTurnId) {
+    startTurnPayload.client_turn_id = clientTurnId;
+  }
   if (Array.isArray(opts && opts.tools) && opts.tools.length) {
     startTurnPayload.tools = opts.tools.slice();
   }
@@ -474,6 +530,10 @@ function streamChat(opts, callbacks) {
       clearIdleTimer();
       clearSlowTimer();
       if (aborted) return;
+      if (cancelRequested) {
+        if (cb.onDone) cb.onDone();
+        return;
+      }
       if (cb.onError) cb.onError(normalizeErrorMessage(err));
       if (cb.onDone) cb.onDone();
     });
@@ -482,19 +542,24 @@ function streamChat(opts, callbacks) {
     var shouldCancel = arguments[0] && arguments[0].cancelTurn;
     if (shouldCancel && !doneReceived) {
       cancelRequested = true;
+      terminalWaitTicksAfterCancel = 0;
       clearSlowTimer();
+      if (cb.onStatus) {
+        cb.onStatus({
+          type: "status",
+          data: "cancelling",
+          content: "正在停止本轮分析…",
+          eventType: "cancelling",
+          metadata: { visibility: "public" },
+        });
+      }
       if (socketOpen && socketTask && turnId) {
         resetIdleTimer();
-        try {
-          socketTask.send({
-            data: JSON.stringify({
-              type: "cancel_turn",
-              turn_id: turnId,
-            }),
-          });
+        if (sendCancelTurn("user_cancel")) {
           return;
-        } catch (_) {}
+        }
       }
+      return;
     }
     aborted = true;
     clearIdleTimer();

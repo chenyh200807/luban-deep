@@ -143,6 +143,35 @@ def _safe_terminal_assistant_content(
     ) or fallback
 
 
+def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]) -> dict[str, Any]:
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return metadata
+    if event.type == StreamEventType.CONTENT and _should_capture_assistant_content(event):
+        event.content = normalize_markdown_for_tutorbot(
+            coerce_user_visible_answer(event.content)
+        )
+        return metadata
+    if event.type != StreamEventType.RESULT:
+        return metadata
+
+    response = metadata.get("response")
+    if isinstance(response, str):
+        metadata["response"] = normalize_markdown_for_tutorbot(
+            coerce_user_visible_answer(response)
+        )
+
+    nested = metadata.get("metadata")
+    if isinstance(nested, dict):
+        nested_metadata = dict(nested)
+        nested_response = nested_metadata.get("response")
+        if isinstance(nested_response, str):
+            nested_metadata["response"] = normalize_markdown_for_tutorbot(
+                coerce_user_visible_answer(nested_response)
+            )
+        metadata["metadata"] = nested_metadata
+    return metadata
+
+
 def _build_terminal_turn_observation_event(
     *,
     session_id: str,
@@ -324,6 +353,60 @@ def _build_turn_semantic_decision(
     return decision
 
 
+def _context_has_reference_answer(context: dict[str, Any] | None) -> bool:
+    normalized = normalize_question_followup_context(context)
+    if normalized is None:
+        return False
+    if str(normalized.get("correct_answer") or "").strip():
+        return True
+    return any(str(item.get("correct_answer") or "").strip() for item in normalized.get("items") or [])
+
+
+def _merge_public_submission_with_authoritative_context(
+    explicit_context: dict[str, Any] | None,
+    candidate_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    explicit = normalize_question_followup_context(explicit_context)
+    candidate = normalize_question_followup_context(candidate_context)
+    if explicit is None or candidate is None:
+        return None
+    if _context_has_reference_answer(explicit) or not _context_has_reference_answer(candidate):
+        return None
+
+    explicit_items = explicit.get("items") or []
+    candidate_items = candidate.get("items") or []
+    if explicit_items and candidate_items:
+        merged_items = [dict(item) for item in candidate_items]
+        candidate_by_id = {
+            str(item.get("question_id") or "").strip(): index
+            for index, item in enumerate(candidate_items)
+            if str(item.get("question_id") or "").strip()
+        }
+        for index, item in enumerate(explicit_items):
+            target_index = candidate_by_id.get(str(item.get("question_id") or "").strip(), index)
+            if target_index < 0 or target_index >= len(merged_items):
+                continue
+            user_answer = str(item.get("user_answer") or "").strip()
+            if user_answer:
+                merged_items[target_index]["user_answer"] = user_answer
+        merged = dict(candidate)
+        merged["items"] = merged_items
+        merged_user_answer = str(explicit.get("user_answer") or "").strip()
+        if merged_user_answer:
+            merged["user_answer"] = merged_user_answer
+        return normalize_question_followup_context(merged)
+
+    explicit_question_id = str(explicit.get("question_id") or "").strip()
+    candidate_question_id = str(candidate.get("question_id") or "").strip()
+    if explicit_question_id and candidate_question_id and explicit_question_id != candidate_question_id:
+        return None
+    merged = dict(candidate)
+    user_answer = str(explicit.get("user_answer") or "").strip()
+    if user_answer:
+        merged["user_answer"] = user_answer
+    return normalize_question_followup_context(merged)
+
+
 async def _resolve_question_followup_context_and_action(
     *,
     user_message: str,
@@ -335,6 +418,14 @@ async def _resolve_question_followup_context_and_action(
     normalized_action = _normalize_question_followup_action(explicit_action)
 
     if normalized_explicit is not None:
+        for candidate in candidate_contexts:
+            merged = _merge_public_submission_with_authoritative_context(
+                normalized_explicit,
+                candidate,
+            )
+            if merged is not None:
+                normalized_explicit = merged
+                break
         if normalized_action is None:
             normalized_action = await interpret_question_followup_action(
                 user_message,
@@ -3618,6 +3709,7 @@ class TurnRuntimeManager:
         event: StreamEvent,
     ) -> dict[str, Any]:
         metadata = dict(event.metadata or {})
+        metadata = _sanitize_public_terminal_event(event, metadata)
         if event.type == StreamEventType.DONE and not metadata.get("status"):
             metadata["status"] = "completed"
         if event.type == StreamEventType.RESULT:

@@ -85,6 +85,26 @@
         <view class="progress-fill" style="width:{{(currentIndex + 1) / questions.length * 100}}%"></view>
       </view>
 
+      <!-- 答题卡 -->
+      <view class="answer-card">
+        <view class="answer-card-meta">
+          <text class="answer-card-title">答题卡</text>
+          <text class="answer-card-count">已答 {{answeredCount}} / {{questions.length}}</text>
+        </view>
+        <text class="answer-card-notice" wx:if="{{assessmentNotice}}">{{assessmentNotice}}</text>
+        <view class="answer-grid">
+          <view
+            class="answer-chip {{item.answered ? 'answered' : ''}} {{item.current ? 'current' : ''}}"
+            wx:for="{{answerSheet}}"
+            wx:key="id"
+            bindtap="onJumpQuestion"
+            data-index="{{item.index}}"
+          >
+            <text class="answer-chip-txt">{{item.number}}</text>
+          </view>
+        </view>
+      </view>
+
       <!-- 题目卡片 -->
       <view class="question-card">
         <view class="q-header">

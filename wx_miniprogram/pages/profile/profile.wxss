@@ -265,6 +265,8 @@
   flex-direction: column;
   align-items: center;
   gap: 8rpx;
+  min-height: 118rpx;
+  justify-content: center;
 }
 
 .badge-icon { font-size: 48rpx; }
@@ -280,6 +282,46 @@
   filter: grayscale(1);
 }
 
+.capability-card {
+  padding: 8rpx 0;
+}
+
+.capability-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26rpx 32rpx;
+}
+
+.capability-row:active {
+  background: rgba(255,255,255,0.04);
+}
+
+.capability-left {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  min-width: 0;
+}
+
+.capability-icon {
+  font-size: 34rpx;
+}
+
+.capability-title {
+  font-size: 28rpx;
+  color: var(--text-primary);
+}
+
+.capability-status {
+  flex-shrink: 0;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(148,163,184,0.14);
+  color: var(--text-muted);
+  font-size: 22rpx;
+}
+
 /* ── 链接列表 ─────────────────────────────────── */
 .links-card {
   padding: 8rpx 0;
@@ -292,6 +334,19 @@
   padding: 28rpx 32rpx;
   cursor: pointer;
 }
+
+.link-row-button {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: normal;
+}
+
+.link-row-button::after { border: 0; }
 
 .link-row:active {
   background: rgba(255,255,255,0.04);
@@ -401,6 +456,11 @@
 
 /* ── 交互 ──────────────────────────────────── */
 .profile-page.light .link-row:active { background: #eef4ff; }
+.profile-page.light .capability-row:active { background: #eef4ff; }
+.profile-page.light .capability-status {
+  background: #eef2f7;
+  color: #64748b;
+}
 .profile-page.light .logout-btn {
   background: rgba(239,68,68,0.06);
   border-color: rgba(239,68,68,0.18);

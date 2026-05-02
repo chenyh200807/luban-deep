@@ -362,11 +362,50 @@ def test_production_bootstrap_starts_without_demo_members(
     assert data["members"] == []
     assert data["audit_log"] == []
     assert {package["id"] for package in data["packages"]} == {
-        "starter",
-        "standard",
-        "pro",
-        "ultimate",
+        "trial",
+        "advance",
+        "sprint",
     }
+    assert [package["price"] for package in data["packages"]] == ["9", "99", "199"]
+    assert [package["points"] for package in data["packages"]] == [100, 1200, 2600]
+
+
+def test_load_replaces_stale_persisted_packages_with_canonical_three_packages(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._data_path.write_text(
+        json.dumps(
+            {
+                "members": [
+                    {
+                        "user_id": "student_demo",
+                        "display_name": "student_demo",
+                        "tier": "trial",
+                        "status": "active",
+                        "expire_at": "2026-07-01T00:00:00+08:00",
+                        "points_balance": 100,
+                    }
+                ],
+                "packages": [
+                    {"id": "starter", "label": "轻量体验", "points": 100, "price": "9.9"},
+                    {"id": "standard", "label": "标准套餐", "points": 500, "price": "39"},
+                    {"id": "pro", "label": "进阶主力", "points": 1200, "price": "79"},
+                    {"id": "ultimate", "label": "冲刺强化", "points": 3000, "price": "169"},
+                ],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    data = service._load()
+    wallet = service.get_wallet("student_demo")
+
+    assert [package["id"] for package in data["packages"]] == ["trial", "advance", "sprint"]
+    assert [package["price"] for package in wallet["packages"]] == ["9", "99", "199"]
+    assert [package["points"] for package in wallet["packages"]] == [100, 1200, 2600]
 
 
 def test_non_production_bootstrap_defaults_to_empty_members_without_demo_seed_flag(
@@ -668,7 +707,8 @@ def test_canonical_member_snapshot_merges_legacy_external_auth_learning_state(
     assert canonical_member["focus_topic"] == "地基基础"
     assert canonical_member["study_days"] == 3
     assert foundation_progress["done"] == 2
-    assert foundation_progress["total"] == 30
+    assert foundation_progress["total"] == 2
+    assert foundation_progress["daily_target"] == 30
 
 
 def test_register_with_external_auth_creates_external_user_and_member(
@@ -862,13 +902,27 @@ def test_create_assessment_uses_unique_question_ids_per_quiz(tmp_path: Path) -> 
 
     payload = service.create_assessment("student_demo", count=10)
     question_ids = [item["question_id"] for item in payload["questions"]]
+    source_ids = [item["source_question_id"] for item in payload["questions"]]
 
-    assert len(question_ids) == 10
-    assert len(set(question_ids)) == 10
+    assert payload["requested_count"] == 10
+    assert payload["delivered_count"] == 5
+    assert payload["available_count"] == 5
+    assert payload["question_bank_size"] == 5
+    assert payload["unique_source_question_count"] == 5
+    assert payload["shortfall_count"] == 5
+    assert len(question_ids) == 5
+    assert len(set(question_ids)) == 5
+    assert len(source_ids) == len(set(source_ids))
 
-    stored = service._load()["assessment_sessions"][payload["quiz_id"]]["questions"]
+    stored_session = service._load()["assessment_sessions"][payload["quiz_id"]]
+    stored = stored_session["questions"]
     stored_ids = [item["question_id"] for item in stored]
     assert stored_ids == question_ids
+    assert stored_session["requested_count"] == 10
+    assert stored_session["delivered_count"] == 5
+    assert stored_session["question_bank_size"] == 5
+    assert stored_session["unique_source_question_count"] == 5
+    assert stored_session["shortfall_count"] == 5
 
 
 def test_member_360_includes_learner_state_heartbeat_and_bot_overlays(tmp_path: Path) -> None:
@@ -1545,6 +1599,28 @@ def test_submit_assessment_updates_today_progress_and_chapter_practice(tmp_path:
     assert any(item["done"] >= 1 for item in chapters)
 
 
+def test_chapter_progress_keeps_actual_attempts_separate_from_daily_target(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    service.record_learning_activity(
+        "blank_user",
+        count=8,
+        chapter="地基基础",
+        source="practice",
+    )
+
+    today = service.get_today_progress("blank_user")
+    chapters = service.get_chapter_progress("blank_user")
+    foundation = next(item for item in chapters if item["chapter_name"] == "地基基础")
+
+    assert today["today_done"] == 8
+    assert today["daily_target"] == 30
+    assert foundation["done"] == 8
+    assert foundation["total"] == 8
+    assert foundation["daily_target"] == 30
+
+
 def test_report_analytics_stay_empty_before_any_assessment_or_practice(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
@@ -1561,7 +1637,7 @@ def test_report_analytics_stay_empty_before_any_assessment_or_practice(tmp_path:
     assert profile["chapter_mastery"] == {}
 
 
-def test_chat_learning_builds_provisional_report_analytics_without_assessment(tmp_path: Path) -> None:
+def test_explicit_learning_activity_builds_provisional_report_analytics_without_assessment(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
@@ -1569,7 +1645,7 @@ def test_chat_learning_builds_provisional_report_analytics_without_assessment(tm
         "blank_user",
         count=12,
         chapter="建筑构造",
-        source="chat",
+        source="practice",
     )
 
     radar = service.get_radar_data("blank_user")
@@ -1585,6 +1661,88 @@ def test_chat_learning_builds_provisional_report_analytics_without_assessment(tm
     )
     assert profile["score"] > 0
     assert profile["chapter_mastery"]["建筑构造"]["mastery"] > 0
+
+
+def test_chat_learning_does_not_count_generated_questions_as_completed(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    generated_questions = "\n".join(
+        "第" + str(index) + "题：建筑构造练习题"
+        for index in range(1, 31)
+    )
+
+    result = service.record_chat_learning(
+        "blank_user",
+        query="帮我出30道建筑构造题",
+        assistant_content=generated_questions,
+    )
+
+    today = service.get_today_progress("blank_user")
+    dashboard = service.get_home_dashboard("blank_user")
+    progress_card = next(
+        item
+        for item in dashboard["progress_feedback"]["cards"]
+        if item["label"] == "近 3 天完成"
+    )
+
+    assert result["recorded"] is False
+    assert result["reason"] == "chat_turn_is_not_completion_authority"
+    assert today["today_done"] == 0
+    assert progress_card["value"] == "0题"
+
+
+def test_legacy_chat_learning_counts_are_removed_from_report_progress(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    today = member_service_module._date_key()
+    member = service._build_default_member("blank_user")
+    member["daily_practice_counts"] = {today: 30}
+    member["chapter_practice_stats"] = {
+        "建筑构造": {"done": 30, "correct": 0, "last_activity_at": "2026-04-21T10:00:00+08:00"}
+    }
+    service._data_path.write_text(
+        json.dumps(
+            {
+                "members": [member],
+                "packages": service._default_packages(),
+                "audit_log": [
+                    {
+                        "id": "audit_chat_generated_30",
+                        "operator": "chat",
+                        "action": "learning_activity",
+                        "target_user": "blank_user",
+                        "created_at": today + "T10:00:00+08:00",
+                        "after": {
+                            "count": 30,
+                            "correct": 0,
+                            "chapter": "建筑构造",
+                            "metadata": {"query": "帮我出30道建筑构造题"},
+                        },
+                    }
+                ],
+                "assessment_sessions": {},
+                "phone_codes": {},
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    today_progress = service.get_today_progress("blank_user")
+    dashboard = service.get_home_dashboard("blank_user")
+    progress_card = next(
+        item
+        for item in dashboard["progress_feedback"]["cards"]
+        if item["label"] == "近 3 天完成"
+    )
+
+    assert today_progress["today_done"] == 0
+    assert progress_card["value"] == "0题"
+    migrated = json.loads(service._data_path.read_text(encoding="utf-8"))
+    assert migrated["audit_log"] == []
+    assert migrated["migrations"]["chat_learning_counts_removed_v1"] is True
+    assert migrated["migrations"]["chat_learning_audit_removed_v2"] is True
 
 
 def test_verify_phone_code_bootstraps_clean_new_member_state(
@@ -1644,6 +1802,33 @@ def test_send_phone_code_fails_closed_in_production_without_sms(
 
     with pytest.raises(RuntimeError, match="短信服务未配置，生产环境已禁止调试验证码"):
         service.send_phone_code("13955556666")
+
+
+def test_send_phone_code_does_not_call_sms_provider_during_cooldown(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("MEMBER_CONSOLE_USE_REAL_SMS", "1")
+    monkeypatch.setenv("ALIYUN_SMS_ACCESS_KEY_ID", "ak")
+    monkeypatch.setenv("ALIYUN_SMS_ACCESS_KEY_SECRET", "sk")
+    calls: list[tuple[str, str]] = []
+
+    def _fake_send_sms(phone: str, code: str) -> dict[str, str]:
+        calls.append((phone, code))
+        return {"Code": "OK", "Message": "OK"}
+
+    monkeypatch.setattr(service, "_send_sms", _fake_send_sms)
+
+    first = service.send_phone_code("13955556666")
+    second = service.send_phone_code("13955556666")
+
+    assert first["sent"] is True
+    assert first["delivery"] == "sms"
+    assert second["sent"] is False
+    assert second["retry_after"] <= 60
+    assert len(calls) == 1
 
 
 def test_auth_secret_rejects_wechat_secret_fallback_in_production(

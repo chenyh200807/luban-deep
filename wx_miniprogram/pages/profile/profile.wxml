@@ -144,27 +144,66 @@
           class="badge-item {{item.earned ? '' : 'badge-locked'}}"
           wx:for="{{badges}}"
           wx:key="id"
+          bindtap="onBadgeTap"
+          data-id="{{item.id}}"
         >
           <text class="badge-icon">{{item.icon}}</text>
           <text class="badge-name">{{item.name}}</text>
         </view>
       </view>
 
-      <!-- ── 链接列表 ───────────────────────────────── -->
-      <view class="links-card glass-card">
+      <!-- ── 扩展能力 ───────────────────────────────── -->
+      <view class="section-header">
+        <text class="section-title">扩展能力</text>
+      </view>
+
+      <view class="capability-card glass-card">
         <view
-          class="link-row"
-          wx:for="{{linkItems}}"
+          class="capability-row"
+          wx:for="{{capabilityItems}}"
           wx:key="id"
-          bindtap="openLink"
+          bindtap="onCapabilityTap"
           data-id="{{item.id}}"
         >
-          <view class="link-left">
-            <text class="link-icon">{{item.icon}}</text>
-            <text class="link-title">{{item.title}}</text>
+          <view class="capability-left">
+            <text class="capability-icon">{{item.icon}}</text>
+            <text class="capability-title">{{item.title}}</text>
           </view>
-          <text class="link-arrow">›</text>
+          <text class="capability-status">{{item.status}}</text>
         </view>
+      </view>
+
+      <!-- ── 链接列表 ───────────────────────────────── -->
+      <view class="links-card glass-card">
+        <block
+          wx:for="{{linkItems}}"
+          wx:key="id"
+        >
+          <button
+            wx:if="{{item.nativeOpenType}}"
+            class="link-row link-row-button"
+            open-type="{{item.nativeOpenType}}"
+            hover-class="none"
+          >
+            <view class="link-left">
+              <text class="link-icon">{{item.icon}}</text>
+              <text class="link-title">{{item.title}}</text>
+            </view>
+            <text class="link-arrow">›</text>
+          </button>
+          <view
+            wx:else
+            class="link-row"
+            bindtap="openLink"
+            data-id="{{item.id}}"
+          >
+            <view class="link-left">
+              <text class="link-icon">{{item.icon}}</text>
+              <text class="link-title">{{item.title}}</text>
+            </view>
+            <text class="link-arrow">›</text>
+          </view>
+        </block>
       </view>
 
       <!-- 退出登录 -->

@@ -93,6 +93,7 @@ function loadHistoryPage(rawConversations, initialStorage) {
 }
 
 (async function () {
+  var nowMs = Date.now();
   var page = loadHistoryPage([
     {
       id: "tb_history_1",
@@ -106,15 +107,49 @@ function loadHistoryPage(rawConversations, initialStorage) {
       last_message:
         "| 考点 | 分值 |\n| ------ | ------ |\n| 安装牢固、启闭灵活 | 0.5 |",
     },
+    {
+      id: "today_ms_authority",
+      title: "今天提问",
+      capability: "chat",
+      source: "wx_miniprogram",
+      status: "completed",
+      message_count: 2,
+      updated_at: "not-parseable-by-client",
+      updated_at_ms: nowMs,
+      created_at_ms: nowMs - 1000,
+      last_message: "今天刚问的问题",
+    },
+    {
+      id: "legacy_seconds_authority",
+      title: "秒级时间戳",
+      capability: "chat",
+      source: "wx_miniprogram",
+      status: "completed",
+      message_count: 2,
+      updated_at: Math.floor((nowMs - 2 * 86400000) / 1000),
+      created_at: Math.floor((nowMs - 2 * 86400000 - 1000) / 1000),
+      last_message: "两天前的问题",
+    },
   ]);
 
   await page._fetchFromServer(false);
   await Promise.resolve();
 
-  var item = page.data.conversations[0];
+  var item = page.data.conversations.filter(function (conv) {
+    return conv.id === "tb_history_1";
+  })[0];
   assert(item.capabilityLabel === "智能对话", "TutorBot runtime label should not leak into history UI");
   assert(item.preview.indexOf("------") < 0, "history preview should remove markdown table separator rows");
   assert(item.preview.indexOf("安装牢固、启闭灵活") >= 0, "history preview should keep visible table content");
+  assert(page.data.stats.weekCount >= 2, "history stats should count today and recent conversations from canonical timestamps");
+  assert(
+    page.data.groups.some(function (group) {
+      return group.label === "今天" && group.items.some(function (conv) {
+        return conv.id === "today_ms_authority";
+      });
+    }),
+    "today conversation should be grouped under 今天 when updated_at_ms is present",
+  );
 
   var cachedPage = loadHistoryPage([], {
     history_cache: {
@@ -125,7 +160,7 @@ function loadHistoryPage(rawConversations, initialStorage) {
           title: "New conversation",
           preview: "考点 分值 ------ ------ 安装牢固、启闭灵活 0.5",
           capabilityLabel: "TutorBot",
-          ts: Date.now(),
+          rawTime: new Date(nowMs).toISOString(),
         },
       ],
       groups: [{ label: "今天", items: [] }],
@@ -137,6 +172,7 @@ function loadHistoryPage(rawConversations, initialStorage) {
   var cachedItem = cachedPage.data.conversations[0];
   assert(cachedItem.capabilityLabel === "智能对话", "cached TutorBot label should be migrated before display");
   assert(cachedItem.preview.indexOf("------") < 0, "cached preview should be cleaned before display");
+  assert(cachedPage.data.stats.weekCount === 1, "cached rawTime should be migrated into the week count");
 
   if (fail) {
     console.error(errors.join("\n"));

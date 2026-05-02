@@ -87,6 +87,10 @@ def _date_key(value: datetime | None = None) -> str:
     return (value or _now()).strftime("%Y-%m-%d")
 
 
+def _date_key_from_iso(value: str | None) -> str:
+    return _parse_time(value).strftime("%Y-%m-%d")
+
+
 def _default_chapter_mastery() -> dict[str, dict[str, Any]]:
     chapters = []
     seen = set()
@@ -200,10 +204,33 @@ class MemberConsoleService:
     @staticmethod
     def _default_packages() -> list[dict[str, Any]]:
         return [
-            {"id": "starter", "points": 100, "price": "9.9", "badge": "", "per": ""},
-            {"id": "standard", "points": 500, "price": "39", "badge": "热门", "per": "¥0.078/点"},
-            {"id": "pro", "points": 1200, "price": "79", "badge": "", "per": "¥0.066/点"},
-            {"id": "ultimate", "points": 3000, "price": "169", "badge": "SVIP", "per": "¥0.056/点"},
+            {
+                "id": "trial",
+                "label": "轻量体验",
+                "points": 100,
+                "price": "9",
+                "badge": "尝鲜",
+                "per": "约 10 次标准问答",
+                "desc": "适合先体验答疑、解析和日常提问",
+            },
+            {
+                "id": "advance",
+                "label": "进阶主力",
+                "points": 1200,
+                "price": "99",
+                "badge": "推荐",
+                "per": "约 120 次标准问答",
+                "desc": "适合大多数备考阶段，高频问答和复盘更从容",
+            },
+            {
+                "id": "sprint",
+                "label": "冲刺强化",
+                "points": 2600,
+                "price": "199",
+                "badge": "冲刺",
+                "per": "约 260 次标准问答",
+                "desc": "适合考前冲刺、密集刷题和深度推理",
+            },
         ]
 
     @staticmethod
@@ -805,10 +832,12 @@ class MemberConsoleService:
             return data
         data = json.loads(self._data_path.read_text(encoding="utf-8"))
         data.setdefault("members", [])
-        data.setdefault("packages", self._default_packages())
+        data["packages"] = self._default_packages()
         data.setdefault("audit_log", [])
         data.setdefault("assessment_sessions", {})
         data.setdefault("phone_codes", {})
+        if self._apply_legacy_chat_learning_migration(data):
+            self._save_unlocked(data)
         return data
 
     def _save_unlocked(self, data: dict[str, Any]) -> None:
@@ -1385,6 +1414,80 @@ class MemberConsoleService:
             "chapter_stats": chapter_stats,
         }
 
+    def _apply_legacy_chat_learning_migration(self, data: dict[str, Any]) -> bool:
+        migrations = data.setdefault("migrations", {})
+        counts_removed = bool(migrations.get("chat_learning_counts_removed_v1"))
+        audit_removed = bool(migrations.get("chat_learning_audit_removed_v2"))
+        if counts_removed and audit_removed:
+            return False
+
+        by_user: dict[str, dict[str, Any]] = {}
+        kept_audit: list[dict[str, Any]] = []
+        removed_audit_count = 0
+        for entry in list(data.get("audit_log") or []):
+            if str(entry.get("action") or "").strip() != "learning_activity":
+                kept_audit.append(entry)
+                continue
+            if str(entry.get("operator") or "").strip().lower() != "chat":
+                kept_audit.append(entry)
+                continue
+            removed_audit_count += 1
+            if counts_removed:
+                continue
+            user_id = str(entry.get("target_user") or "").strip()
+            if not user_id:
+                continue
+            after = dict(entry.get("after") or {})
+            count = max(0, int(after.get("count") or 0))
+            if count <= 0:
+                continue
+            date_key = _date_key_from_iso(str(entry.get("created_at") or ""))
+            chapter = str(after.get("chapter") or "").strip()
+            bucket = by_user.setdefault(user_id, {"daily": {}, "chapters": {}})
+            bucket["daily"][date_key] = int(bucket["daily"].get(date_key) or 0) + count
+            if chapter:
+                bucket["chapters"][chapter] = int(bucket["chapters"].get(chapter) or 0) + count
+
+        changed = False
+        if not audit_removed and removed_audit_count:
+            data["audit_log"] = kept_audit
+            migrations["chat_learning_audit_removed_v2"] = True
+            changed = True
+        elif not audit_removed:
+            migrations["chat_learning_audit_removed_v2"] = True
+            changed = True
+
+        if counts_removed:
+            return changed
+
+        if not by_user:
+            migrations["chat_learning_counts_removed_v1"] = True
+            return True
+
+        for member in list(data.get("members") or []):
+            user_id = str(member.get("user_id") or "").strip()
+            adjustments = by_user.get(user_id)
+            if not adjustments:
+                continue
+            learning = self._ensure_learning_profile(member)
+            for date_key, count in adjustments["daily"].items():
+                current = int(learning["daily_counts"].get(date_key) or 0)
+                next_value = max(0, current - int(count or 0))
+                if next_value > 0:
+                    learning["daily_counts"][date_key] = next_value
+                else:
+                    learning["daily_counts"].pop(date_key, None)
+            for chapter, count in adjustments["chapters"].items():
+                stats = learning["chapter_stats"].get(chapter)
+                if not isinstance(stats, dict):
+                    continue
+                stats["done"] = max(0, int(stats.get("done") or 0) - int(count or 0))
+                stats["correct"] = min(int(stats.get("correct") or 0), int(stats.get("done") or 0))
+                if int(stats.get("done") or 0) <= 0:
+                    stats["last_activity_at"] = ""
+        migrations["chat_learning_counts_removed_v1"] = True
+        return True
+
     @staticmethod
     def _b64url_encode(raw: bytes) -> str:
         return base64.urlsafe_b64encode(raw).decode("utf-8").rstrip("=")
@@ -1762,19 +1865,6 @@ class MemberConsoleService:
         except Exception as exc:
             return {"Code": "SendError", "Message": str(exc)}
 
-    def _detect_question_count(self, text: str) -> int:
-        raw = str(text or "")
-        if not raw.strip():
-            return 0
-        patterns = [
-            r"第\s*\d+\s*题",
-            r"例题\s*\d+",
-            r"题目\s*\d+",
-        ]
-        counts = [len(re.findall(pattern, raw, flags=re.IGNORECASE)) for pattern in patterns]
-        count = max(counts) if counts else 0
-        return max(1, count)
-
     def _guess_activity_chapter(
         self,
         member: dict[str, Any],
@@ -1809,6 +1899,18 @@ class MemberConsoleService:
         source: str = "practice",
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        if str(source or "").strip().lower() == "chat":
+            data = self._load()
+            member = self._ensure_member(data, user_id)
+            learning = self._ensure_learning_profile(member)
+            today = _date_key()
+            return {
+                "today_done": int(learning["daily_counts"].get(today) or 0),
+                "chapter": str(chapter or "").strip(),
+                "recorded": False,
+                "reason": "chat_turn_is_not_completion_authority",
+            }
+
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             member = self._ensure_member(data, user_id)
             learning = self._ensure_learning_profile(member)
@@ -1870,17 +1972,14 @@ class MemberConsoleService:
         data = self._load()
         member = self._ensure_member(data, user_id)
         chapter = self._guess_activity_chapter(member, query, assistant_content)
-        count = self._detect_question_count(assistant_content if assistant_content else query)
-        if count <= 0:
-            count = 1
-        return self.record_learning_activity(
-            user_id,
-            count=count,
-            chapter=chapter,
-            correct=0,
-            source="chat",
-            metadata={"query": str(query or "")[:120]},
-        )
+        learning = self._ensure_learning_profile(member)
+        today = _date_key()
+        return {
+            "today_done": int(learning["daily_counts"].get(today) or 0),
+            "chapter": chapter,
+            "recorded": False,
+            "reason": "chat_turn_is_not_completion_authority",
+        }
 
     def resolve_user_id(self, auth_header: str | None = None, user_id: str | None = None) -> str:
         token = self._extract_access_token(auth_header)
@@ -3062,12 +3161,12 @@ class MemberConsoleService:
         learning = self._ensure_learning_profile(member)
         items: list[dict[str, Any]] = []
         has_signal = False
+        daily_target = max(1, int(member.get("daily_target") or 30))
         for key, value in (member.get("chapter_mastery") or {}).items():
             chapter_name = value.get("name") or key
             stats = learning["chapter_stats"].get(chapter_name) or {}
             done = int(stats.get("done") or 0)
-            total = max(30, done, 1)
-            mastery = round((done / total) * 100) if done > 0 else 0
+            mastery = round((done / daily_target) * 100) if done > 0 else 0
             if mastery > 0:
                 has_signal = True
             items.append({"name": chapter_name, "mastery": mastery})
@@ -3082,21 +3181,23 @@ class MemberConsoleService:
     def get_chapter_progress(self, user_id: str) -> list[dict[str, Any]]:
         member = self._load_member_snapshot(user_id)["member"]
         learning = self._ensure_learning_profile(member)
+        daily_target = max(1, int(member.get("daily_target") or 30))
         items = []
         for index, (key, value) in enumerate(member["chapter_mastery"].items(), start=1):
             mastery = int(value.get("mastery") or 0)
             chapter_name = value.get("name") or key
             stats = learning["chapter_stats"].get(chapter_name) or {}
-            total = max(30, int(stats.get("done") or 0), 1)
             done = int(stats.get("done") or 0)
-            if done <= 0:
-                done = round((mastery / 100) * total)
+            total = max(done, 1)
             items.append(
                 {
                     "chapter_id": f"ch_{index}",
                     "chapter_name": chapter_name,
                     "done": done,
                     "total": total,
+                    "target": daily_target,
+                    "daily_target": daily_target,
+                    "mastery": mastery,
                 }
             )
         return items
@@ -3404,14 +3505,17 @@ class MemberConsoleService:
 
     def create_assessment(self, user_id: str, count: int = 20) -> dict[str, Any]:
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            requested_count = max(1, int(count or 20))
+            available_count = len(_ASSESSMENT_BANK)
+            selected_bank = _ASSESSMENT_BANK[: min(requested_count, available_count)]
             questions = []
-            bank = _ASSESSMENT_BANK * max(1, (count + len(_ASSESSMENT_BANK) - 1) // len(_ASSESSMENT_BANK))
             session_questions = []
-            for index, item in enumerate(bank[:count], start=1):
+            for index, item in enumerate(selected_bank, start=1):
                 question_id = f"{item.id}__{index:02d}_{uuid.uuid4().hex[:6]}"
                 questions.append(
                     {
                         "question_id": question_id,
+                        "source_question_id": item.id,
                         "question_stem": item.question,
                         "question_type": "single_choice",
                         "difficulty": "medium",
@@ -3427,13 +3531,30 @@ class MemberConsoleService:
                         "chapter": item.chapter,
                     }
                 )
+            delivered_count = len(questions)
+            shortfall_count = max(0, requested_count - delivered_count)
             quiz_id = f"quiz_{uuid.uuid4().hex[:10]}"
             data.setdefault("assessment_sessions", {})[quiz_id] = {
                 "user_id": user_id,
                 "questions": session_questions,
+                "requested_count": requested_count,
+                "delivered_count": delivered_count,
+                "available_count": available_count,
+                "question_bank_size": available_count,
+                "unique_source_question_count": delivered_count,
+                "shortfall_count": shortfall_count,
                 "created_at": _iso(),
             }
-            return {"quiz_id": quiz_id, "questions": questions}
+            return {
+                "quiz_id": quiz_id,
+                "questions": questions,
+                "requested_count": requested_count,
+                "delivered_count": delivered_count,
+                "available_count": available_count,
+                "question_bank_size": available_count,
+                "unique_source_question_count": delivered_count,
+                "shortfall_count": shortfall_count,
+            }
 
         return self._mutate(_apply)
 
@@ -3759,9 +3880,23 @@ class MemberConsoleService:
         retry_after = 60
         delivery = "debug"
         message = "当前环境未接入短信服务，已生成测试验证码。"
+        use_real_sms = self._should_use_real_sms()
+        production = is_production_environment()
+
+        existing = (self._load().get("phone_codes") or {}).get(normalized) or {}
+        created_at = _parse_time(existing.get("created_at"))
+        elapsed = max(0, int((now - created_at).total_seconds()))
+        if existing and elapsed < retry_after:
+            return {
+                "sent": False,
+                "retry_after": retry_after - elapsed,
+                "phone": normalized,
+                "message": f"请等待{retry_after - elapsed}秒后再试",
+            }
+
         debug_code = self._generate_sms_code()
 
-        if self._should_use_real_sms():
+        if use_real_sms:
             sms_result = self._send_sms(normalized, debug_code)
             sms_code = str(sms_result.get("Code") or "").strip()
             sms_msg = str(sms_result.get("Message") or "").strip()
@@ -3787,7 +3922,7 @@ class MemberConsoleService:
                 }
             delivery = "sms"
             message = "验证码发送成功"
-        elif is_production_environment():
+        elif production:
             raise RuntimeError("短信服务未配置，生产环境已禁止调试验证码")
 
         expires_at = now + timedelta(minutes=10)

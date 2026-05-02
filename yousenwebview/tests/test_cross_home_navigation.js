@@ -27,11 +27,12 @@ function run(name, fn) {
   }
 }
 
-function loadAppDefinition() {
+function loadAppDefinition(storage) {
   var source = fs.readFileSync(path.join(__dirname, "../app.js"), "utf8");
   var reLaunchCalls = [];
   var navigateCalls = [];
   var appDef = null;
+  var store = storage || {};
   var sandbox = {
     console: console,
     Date: Date,
@@ -47,8 +48,8 @@ function loadAppDefinition() {
       throw new Error("unexpected require: " + request);
     },
     wx: {
-      getStorageSync: function () {
-        return "";
+      getStorageSync: function (key) {
+        return store[key] || "";
       },
       setStorageSync: function () {},
       removeStorageSync: function () {},
@@ -117,6 +118,51 @@ run("openDeeptutorLogin suppresses repeated navigateTo during active lock", func
     loaded.navigateCalls[0] &&
       loaded.navigateCalls[0].url.indexOf("/pages/deeptutorEntry/deeptutorEntry?entrySource=") === 0,
     "deeptutor flow should target the main-package bridge url",
+  );
+});
+
+run("openDeeptutorLogin passes authenticated hint when token is locally valid", function () {
+  var loaded = loadAppDefinition({
+    auth_token: "token",
+    auth_token_exp: Math.floor(Date.now() / 1000) + 3600,
+  });
+  loaded.app._resetCrossHomeNavigationLock();
+
+  assert(
+    loaded.app.openDeeptutorLogin(
+      "free_course_inline_entry",
+      "/packageDeeptutor/pages/chat/chat?entry_source=free_course_inline_entry",
+      {},
+    ) === true,
+    "authenticated deeptutor navigation should start",
+  );
+  assert(loaded.navigateCalls.length === 1, "authenticated flow should issue one navigateTo call");
+  assert(
+    loaded.navigateCalls[0] &&
+      loaded.navigateCalls[0].url.indexOf("authenticated=1") !== -1,
+    "authenticated flow should tell the bridge to skip the visible login gate",
+  );
+});
+
+run("openDeeptutorLogin does not pass authenticated hint for expired token", function () {
+  var loaded = loadAppDefinition({
+    auth_token: "token",
+    auth_token_exp: Math.floor(Date.now() / 1000) - 1,
+  });
+  loaded.app._resetCrossHomeNavigationLock();
+
+  assert(
+    loaded.app.openDeeptutorLogin(
+      "free_course_inline_entry",
+      "/packageDeeptutor/pages/chat/chat?entry_source=free_course_inline_entry",
+      {},
+    ) === true,
+    "expired deeptutor navigation should still start",
+  );
+  assert(
+    loaded.navigateCalls[0] &&
+      loaded.navigateCalls[0].url.indexOf("authenticated=0") !== -1,
+    "expired token should not skip the login gate",
   );
 });
 

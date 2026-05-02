@@ -34,6 +34,7 @@ function loadPage(relativePath, overrides) {
   var source = fs.readFileSync(path.join(__dirname, "..", relativePath), "utf8");
   var pageDef = null;
   var clearCount = 0;
+  var reLaunchCalls = [];
   var apiMock = Object.assign(
     {
       getUserInfo: function () {
@@ -87,7 +88,9 @@ function loadPage(relativePath, overrides) {
       throw new Error("unexpected require: " + request);
     },
     wx: {
-      reLaunch: function () {},
+      reLaunch: function (options) {
+        reLaunchCalls.push(options);
+      },
       navigateTo: function () {},
       showModal: function () {},
       showToast: function () {},
@@ -116,50 +119,77 @@ function loadPage(relativePath, overrides) {
     getClearCount: function () {
       return clearCount;
     },
+    reLaunchCalls: reLaunchCalls,
   };
 }
 
 (async function main() {
-  var pageFiles = [
-    "packageDeeptutor/pages/login/login.js",
+  var bootstrapPages = [
     "packageDeeptutor/pages/login/manual.js",
     "packageDeeptutor/pages/register/register.js",
   ];
 
-  await run("non-auth bootstrap failure should not clear token", async function () {
-    for (var i = 0; i < pageFiles.length; i++) {
-      var setup = loadPage(pageFiles[i], {
+  await run("manual/register pages with local token should skip visible profile gate", async function () {
+    for (var i = 0; i < bootstrapPages.length; i++) {
+      var profileCalls = 0;
+      var setup = loadPage(bootstrapPages[i], {
         api: {
           getUserInfo: function () {
+            profileCalls++;
             return Promise.reject(new Error("profile unavailable"));
           },
         },
       });
       setup.page.onLoad({});
       await flushPromises();
+      assert(profileCalls === 0, bootstrapPages[i] + " should not block redirect on profile bootstrap");
       assert(
         setup.getClearCount() === 0,
-        pageFiles[i] + " should preserve token on non-auth bootstrap failure",
+        bootstrapPages[i] + " should leave token cleanup to the target page",
+      );
+      assert(
+        setup.reLaunchCalls.length === 1 &&
+          setup.reLaunchCalls[0].url === "/packageDeeptutor/pages/chat/chat",
+        bootstrapPages[i] + " should enter returnTo/chat immediately when a local token exists",
       );
     }
   });
 
-  await run("auth expired bootstrap failure should clear token", async function () {
-    for (var i = 0; i < pageFiles.length; i++) {
-      var setup = loadPage(pageFiles[i], {
-        api: {
-          getUserInfo: function () {
-            return Promise.reject(new Error("AUTH_EXPIRED"));
+  await run("manual/register pages without a valid token should stay on auth form", async function () {
+    for (var i = 0; i < bootstrapPages.length; i++) {
+      var setup = loadPage(bootstrapPages[i], {
+        auth: {
+          isLoggedIn: function () {
+            return false;
           },
         },
       });
       setup.page.onLoad({});
       await flushPromises();
-      assert(
-        setup.getClearCount() === 1,
-        pageFiles[i] + " should clear token when auth really expired",
-      );
+      assert(setup.getClearCount() === 0, bootstrapPages[i] + " should not clear token without one");
+      assert(setup.reLaunchCalls.length === 0, bootstrapPages[i] + " should stay visible for login");
     }
+  });
+
+  await run("login page with local token should skip visible profile gate", async function () {
+    var profileCalls = 0;
+    var setup = loadPage("packageDeeptutor/pages/login/login.js", {
+      api: {
+        getUserInfo: function () {
+          profileCalls++;
+          return Promise.reject(new Error("AUTH_EXPIRED"));
+        },
+      },
+    });
+    setup.page.onLoad({});
+    await flushPromises();
+    assert(profileCalls === 0, "login page should not block redirect on profile bootstrap");
+    assert(setup.getClearCount() === 0, "login page should leave token cleanup to the target page");
+    assert(
+      setup.reLaunchCalls.length === 1 &&
+        setup.reLaunchCalls[0].url === "/packageDeeptutor/pages/chat/chat",
+      "login page should enter returnTo/chat immediately when a local token exists",
+    );
   });
 
   if (fail) {

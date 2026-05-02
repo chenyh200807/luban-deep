@@ -3,7 +3,7 @@
 
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
-    <view class="nav-content" style="height: {{navContentHeight}}px; padding-top: {{navContentPaddingTop}}px">
+    <view class="nav-content" style="height: {{navContentHeight}}px; padding-top: {{navContentPaddingTop}}px; padding-right: {{navRightInset}}px">
       <view class="nav-back" bindtap="goHome">
         <text class="nav-back-arrow">‹</text>
         <text class="nav-back-txt">对话</text>

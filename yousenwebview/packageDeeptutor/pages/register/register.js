@@ -56,17 +56,8 @@ Page({
     } catch (_) {}
     this._captureEntryContext(options);
     if (auth.isLoggedIn()) {
-      var self = this;
-      api
-        .getUserInfo()
-        .then(function () {
-          self._reLaunchAfterAuth();
-        })
-        .catch(function (err) {
-          if (String((err && err.message) || "") === "AUTH_EXPIRED") {
-            auth.clearToken();
-          }
-        });
+      this._reLaunchAfterAuth();
+      return;
     }
   },
   onUsernameInput: function (e) {

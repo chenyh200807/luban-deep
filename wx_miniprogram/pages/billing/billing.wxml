@@ -16,9 +16,9 @@
   <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px; bottom: 0">
     <view class="page-inner">
 
-      <!-- Demo 提示 -->
+      <!-- 支付状态提示 -->
       <view class="demo-banner">
-        <text class="demo-txt">演示模式 · 充值功能即将上线</text>
+        <text class="demo-txt">{{paymentAvailability.reason}}</text>
       </view>
 
       <!-- 余额卡片 -->
@@ -53,8 +53,8 @@
       </view>
 
       <!-- 充值按钮 -->
-      <view class="recharge-btn {{selectedPkg ? 'on' : ''}}" bindtap="onRecharge">
-        <text class="recharge-btn-txt">立即充值</text>
+      <view class="recharge-btn {{paymentAvailability.enabled && selectedPkg ? 'on' : 'disabled'}}" bindtap="onRecharge">
+        <text class="recharge-btn-txt">{{paymentAvailability.enabled ? '立即充值' : paymentAvailability.label}}</text>
       </view>
 
       <!-- 充值记录 -->
