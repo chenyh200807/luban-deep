@@ -16,6 +16,7 @@ from deeptutor.api.dependencies import enforce_websocket_rate_limit, require_adm
 from deeptutor.logging import get_logger
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
 from deeptutor.services.llm.config import get_llm_config
+from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.services.settings.interface_settings import get_ui_language
 
 # Initialize logger
@@ -129,7 +130,10 @@ async def websocket_chat(websocket: WebSocket):
             explicit_history = data.get("history")  # Optional override
             kb_name = data.get("kb_name", "")
             enable_rag = data.get("enable_rag", False)
-            enable_web_search = data.get("enable_web_search", False)
+            enable_web_search = (
+                bool(data.get("enable_web_search", False))
+                and is_web_search_runtime_available()
+            )
 
             if not message:
                 await websocket.send_json({"type": "error", "message": "Message is required"})

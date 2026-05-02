@@ -213,9 +213,13 @@ class ConfigTestRunner:
             )
 
     def _test_search(self, run: TestRun, catalog: dict[str, Any]) -> None:
-        from deeptutor.services.search import web_search
+        from deeptutor.services.search import is_web_search_runtime_available, web_search
 
         resolved = resolve_search_runtime_config(catalog=catalog)
+        if not is_web_search_runtime_available():
+            run.status = "completed"
+            run.emit("completed", "Search skipped because web_search is disabled or not configured.")
+            return
         if not resolved.requested_provider:
             run.status = "completed"
             run.emit("completed", "Search skipped because no active provider is configured.")

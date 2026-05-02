@@ -459,7 +459,7 @@ class Generator(BaseAgent):
         keys = aliases.get(tool_name, [tool_name])
         present = [key for key in keys if key in self.tool_flags]
         if not present:
-            return True
+            return tool_name != "web_search"
         return any(bool(self.tool_flags.get(key)) for key in present)
 
     def _enabled_tool_names(self) -> list[str]:

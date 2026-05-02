@@ -43,6 +43,10 @@ assert(
   "report page should render every diagnosis dimension, not only the radar summary",
 );
 assert(
+  reportWxml.indexOf('class="metric-chip metric-chip-progress" bindtap="goPractice"') >= 0,
+  "report today's progress metric should open the practice page",
+);
+assert(
   reportWxss.indexOf("width: 280px") < 0 && reportWxss.indexOf("height: 280px") < 0,
   "report radar should not use a fixed px size that can clip on small screens",
 );

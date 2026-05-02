@@ -81,6 +81,30 @@ assert(
   "chat navbar should keep showing the current points balance",
 );
 assert(
+  (chatWxml.match(/class="nav-points-num">\{\{userPoints\}\}/g) || []).length === 1 &&
+    chatWxml.indexOf("class=\"points-pill\"") < 0 &&
+    chatWxml.indexOf("class=\"points-num\"") < 0,
+  "chat home should render the points balance once, using the navbar as the single visible entry",
+);
+assert(
+  chatWxml.indexOf("focus-label") >= 0 &&
+    chatWxml.indexOf("focus-title") >= 0 &&
+    chatWxml.indexOf("focus-meta") >= 0 &&
+    /focusTitle:\s*""/.test(chatJs) &&
+    /focusMeta:\s*""/.test(chatJs),
+  "today focus should be structured into label, title, and meta instead of one crowded text string",
+);
+assert(
+  chatJs.indexOf('focusText: "今日焦点') < 0 &&
+    chatJs.indexOf('update.focusText = "今日焦点') < 0,
+  "today focus copy should not bake the section label into the action title",
+);
+assert(
+  chatJs.indexOf("d.today_focus || today.focus") >= 0 &&
+    chatJs.indexOf("var weakNodes = mastery.weak_nodes") < 0,
+  "chat home should render backend today_focus instead of deciding focus priority on the client",
+);
+assert(
   chatWxml.indexOf("class=\"hero-more-btn\"") >= 0 &&
     chatJs.indexOf("onHeroMoreActions") >= 0,
   "hero secondary actions should be consolidated behind a more menu",
@@ -89,7 +113,7 @@ assert(
   chatWxml.indexOf("class=\"row-icon-btn\" bindtap=\"onToggleTheme\"") < 0 &&
     chatWxml.indexOf("class=\"row-icon-btn\" bindtap=\"goRecharge\"") < 0 &&
     chatWxml.indexOf("class=\"avatar\" bindtap=\"goProfile\"") < 0,
-  "hero should not expose ambiguous icon-only shortcuts beside the points pill",
+  "hero should not expose ambiguous icon-only shortcuts beside the more menu",
 );
 
 var navInnerHeight = getRpxValue(navInnerRule, "height");

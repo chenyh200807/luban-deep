@@ -24,6 +24,7 @@ from deeptutor.logging import Logger, get_logger
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
+from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tools.question.pdf_parser import parse_pdf_with_mineru
 from deeptutor.tools.question.question_extractor import extract_questions_from_paper
@@ -63,8 +64,10 @@ class AgentCoordinator:
         generation_cfg = question_cfg.get("generation", {})
         default_tool_flags = generation_cfg.get(
             "tools",
-            {"web_search": True, "rag": True, "code_execution": True},
+            {"web_search": False, "rag": True, "code_execution": True},
         )
+        if isinstance(default_tool_flags, dict) and not is_web_search_runtime_available():
+            default_tool_flags = {**default_tool_flags, "web_search": False}
         self.tool_flags = (
             tool_flags_override
             if isinstance(tool_flags_override, dict)

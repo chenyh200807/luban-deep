@@ -75,7 +75,7 @@ class ResearchAgent(BaseAgent):
         # Web search: global switch (tools.web_search.enabled) has higher priority
         # Only enabled when both global switch and module switch are True
         tools_web_search_enabled = (
-            config.get("tools", {}).get("web_search", {}).get("enabled", True)
+            config.get("tools", {}).get("web_search", {}).get("enabled", False)
         )
         research_web_search_enabled = self.researching_config.get("enable_web_search", False)
         self.enable_web_search = tools_web_search_enabled and research_web_search_enabled

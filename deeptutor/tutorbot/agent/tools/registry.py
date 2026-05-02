@@ -99,6 +99,7 @@ def build_base_tools(
     restrict_to_workspace: bool = False,
 ) -> ToolRegistry:
     """Build a ToolRegistry pre-loaded with filesystem, shell, and web tools."""
+    from deeptutor.services.search import is_web_search_runtime_available
     from deeptutor.tutorbot.agent.tools.filesystem import EditFileTool, ListDirTool, ReadFileTool, WriteFileTool
     from deeptutor.tutorbot.agent.tools.shell import ExecTool
     from deeptutor.tutorbot.agent.tools.web import WebFetchTool, WebSearchTool
@@ -113,6 +114,7 @@ def build_base_tools(
         restrict_to_workspace=restrict_to_workspace,
         path_append=exec_config.path_append,
     ))
-    tools.register(WebSearchTool(config=web_search_config, proxy=web_proxy))
+    if is_web_search_runtime_available():
+        tools.register(WebSearchTool(config=web_search_config, proxy=web_proxy))
     tools.register(WebFetchTool(proxy=web_proxy))
     return tools

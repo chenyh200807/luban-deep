@@ -489,6 +489,7 @@ def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from
                 {
                     "profile": {
                         "focus_topic": "防水工程",
+                        "focus_query": "继续巩固防水工程",
                     },
                     "progress": {
                         "today": {"today_done": 4, "daily_target": 8},
@@ -525,6 +526,10 @@ def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from
 
     dashboard = service.get_home_dashboard("student_plan")
 
+    assert dashboard["today_focus"]["source"] == "learner_state.study_plan"
+    assert dashboard["today_focus"]["title"] == "优先处理逾期复习"
+    assert dashboard["today_focus"]["reason"] == "review_due"
+    assert dashboard["today"]["focus"] == dashboard["today_focus"]
     assert dashboard["study_plan"]["focus_topic"] == "防水工程"
     assert "待复习点" in dashboard["study_plan"]["priority_task"]
     assert dashboard["study_plan"]["study_method"].startswith("先看“防水工程”")
@@ -539,6 +544,61 @@ def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from
         "heartbeat" in item["detail"]
         for item in dashboard["progress_feedback"]["milestones"]
     )
+
+
+def test_home_dashboard_today_focus_uses_learner_state_focus_as_single_projection(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("focus_user")
+
+    def _apply(data: dict[str, object]) -> None:
+        for member in data["members"]:
+            if member["user_id"] != "focus_user":
+                continue
+            member["focus_topic"] = "施工管理"
+            member["focus_query"] = "旧的施工管理问题"
+            member["review_due"] = 0
+            break
+
+    service._mutate(_apply)
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "focus_user"
+            return type(
+                "Snapshot",
+                (),
+                {
+                    "profile": {
+                        "focus_topic": "建筑构造",
+                        "focus_query": "继续巩固建筑构造",
+                    },
+                    "progress": {
+                        "today": {"today_done": 1, "daily_target": 5},
+                        "knowledge_map": {
+                            "weak_points": ["建筑构造"],
+                        },
+                    },
+                    "memory_events": [],
+                },
+            )()
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    dashboard = service.get_home_dashboard("focus_user")
+
+    assert dashboard["today_focus"] == {
+        "label": "今日焦点",
+        "title": "继续推进建筑构造专项训练",
+        "meta": dashboard["study_plan"]["priority_task"],
+        "query": "继续巩固建筑构造",
+        "tone": "practice",
+        "reason": "learner_state_focus",
+        "source": "learner_state.study_plan",
+    }
 
 
 @pytest.mark.asyncio
@@ -1604,6 +1664,25 @@ def test_submit_assessment_updates_today_progress_and_chapter_practice(tmp_path:
 
     assert today["today_done"] >= 5
     assert any(item["done"] >= 1 for item in chapters)
+
+
+def test_submit_assessment_counts_only_answered_questions_as_progress(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    payload = service.create_assessment("blank_user", count=6)
+    stored = service._load()["assessment_sessions"][payload["quiz_id"]]["questions"]
+    answers = {item["question_id"]: item["answer"] for item in stored[:5]}
+    before_today = service.get_today_progress("blank_user")["today_done"]
+    before_chapters = sum(item["done"] for item in service.get_chapter_progress("blank_user"))
+
+    service.submit_assessment("blank_user", payload["quiz_id"], answers, time_spent_seconds=60)
+
+    today = service.get_today_progress("blank_user")
+    chapters = service.get_chapter_progress("blank_user")
+
+    assert today["today_done"] - before_today == 5
+    assert sum(item["done"] for item in chapters) - before_chapters == 5
 
 
 def test_submit_assessment_persists_measured_profile_including_zero_mastery(tmp_path: Path) -> None:

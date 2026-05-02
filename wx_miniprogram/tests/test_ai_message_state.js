@@ -95,6 +95,29 @@ run("plain text without mcq strips receipt but keeps body", function () {
   assertEqual(state.mcqInteractiveReady, false, "plain text should not become interactive");
 });
 
+run("internal DSML tool calls are not rendered as user-visible content", function () {
+  var text = [
+    "让我先查一下你的学习记录。",
+    '< | DSML | toolcalls>< | DSML | invoke name="readfile">< | DSML | parameter name="filepath" string="true">/app/data/tutorbot/construction-exam-coach/workspace/skills/memory/PROFILE.md</ | DSML | parameter></ | DSML | invoke></ | DSML | toolcalls>',
+  ].join("\n\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    parseBlocks: false,
+  });
+
+  assertEqual(
+    state.renderableContent,
+    "暂时未生成适合直接展示的答案，请重试一次。",
+    "DSML tool calls should fail closed before rendering",
+  );
+  assert(
+    state.renderableContent.indexOf("DSML") < 0 &&
+      state.renderableContent.indexOf("PROFILE.md") < 0,
+    "internal tool payload should not survive in renderable content",
+  );
+});
+
 run("service presentation block becomes the primary mcq source", function () {
   var state = aiMessageState.deriveAiMessageRenderState({
     content: "### Question 1\n某防水工程题目",

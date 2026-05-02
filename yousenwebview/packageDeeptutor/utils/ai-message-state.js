@@ -4,6 +4,28 @@ var mcqDetect = require("./mcq-detect");
 var markdownNormalize = require("./markdown-normalize");
 var renderSchema = require("./render-schema");
 
+var INTERNAL_FALLBACK = "暂时未生成适合直接展示的答案，请重试一次。";
+var INTERNAL_PATTERNS = [
+  /<\s*\|?\s*DSML\s*\|?/i,
+  /\bDSML\b[\s\S]{0,80}\b(?:toolcalls?|invoke|parameter)\b/i,
+  /\binvoke\s+name=["']?(?:readfile|read_file|writefile|write_file|listdir|list_dir)/i,
+  /\bparameter\s+name=["']?filepath["']?/i,
+  /\/app\/data\/tutorbot\/[\s\S]{0,240}\/workspace\/skills\/(?:memory|references)\//i,
+  /\b(?:read_file|readfile|toolcall|web_search)\s+(?:path|query|args)=/i,
+];
+
+function coerceUserVisibleContent(text) {
+  var source = String(text || "").trim();
+  if (!source) return "";
+  var normalized = source.replace(/\s+/g, " ");
+  for (var i = 0; i < INTERNAL_PATTERNS.length; i++) {
+    if (INTERNAL_PATTERNS[i].test(normalized)) {
+      return INTERNAL_FALLBACK;
+    }
+  }
+  return source;
+}
+
 function toInlineContent(text) {
   return [{ type: "text", text: String(text || "") }];
 }
@@ -201,7 +223,7 @@ function shouldRenderStructuredFallback(presentationState) {
 }
 
 function deriveAiMessageRenderState(input) {
-  var content = String((input && input.content) || "");
+  var content = coerceUserVisibleContent((input && input.content) || "");
   var presentation =
     input && input.presentation && typeof input.presentation === "object"
       ? input.presentation
@@ -255,4 +277,5 @@ function deriveAiMessageRenderState(input) {
 
 module.exports = {
   deriveAiMessageRenderState: deriveAiMessageRenderState,
+  coerceUserVisibleContent: coerceUserVisibleContent,
 };

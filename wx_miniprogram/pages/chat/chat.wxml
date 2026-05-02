@@ -46,12 +46,8 @@ module.exports = {
     bindtouchstart="_onHeroDragStart" bindtouchmove="_onHeroDragMove" bindtouchend="_onHeroDragEnd" bindtouchcancel="_onHeroDragEnd">
     <view class="hero-inner" style="transform:translateY({{_heroDragY}}px);transition:{{_heroDragTransition}}">
 
-    <!-- 用户信息行（积分 + 主题 + 充值 + 头像） -->
+    <!-- 用户信息行 -->
     <view class="user-row">
-      <view class="points-pill" bindtap="goBilling" aria-role="button" aria-label="积分明细: {{userPoints}} 点">
-        <text class="points-star">★</text>
-        <text class="points-num">{{userPoints}}</text>
-      </view>
       <view class="hero-more-btn" bindtap="onHeroMoreActions" aria-role="button" aria-label="更多操作">
         <text class="hero-more-dot">•••</text>
       </view>
@@ -68,9 +64,15 @@ module.exports = {
     <text class="greeting-sub">{{reviewCount > 0 ? '今天有 ' + reviewCount + ' 个逾期复习，TutorBot 已准备好带你过一遍' : '你的 TutorBot 已上线，随时开始今天的备考'}}</text>
 
     <!-- 今日焦点 -->
-    <view class="focus-bar {{enableFocusPulse?'':'no-pulse'}}" wx:if="{{focusText}}" bindtap="onFocusTap">
-      <text class="focus-icon">⚡</text>
-      <text class="focus-text">{{focusText}}</text>
+    <view class="focus-bar focus-bar-{{focusTone}} {{enableFocusPulse?'':'no-pulse'}}" wx:if="{{focusTitle || focusText}}" bindtap="onFocusTap">
+      <view class="focus-icon-wrap">
+        <text class="focus-icon">⚡</text>
+      </view>
+      <view class="focus-copy">
+        <text class="focus-label">{{focusLabel}}</text>
+        <text class="focus-title">{{focusTitle ? focusTitle : focusText}}</text>
+        <text class="focus-meta" wx:if="{{focusMeta}}">{{focusMeta}}</text>
+      </view>
       <view class="focus-next" catchtap="onFocusTap">
         <text class="focus-arrow">›</text>
       </view>

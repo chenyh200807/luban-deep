@@ -169,6 +169,14 @@
   border-color: rgba(248, 113, 113, 0.12);
 }
 
+.metric-chip-progress {
+  border-color: rgba(56, 189, 248, 0.18);
+}
+
+.metric-chip-hover {
+  opacity: 0.82;
+}
+
 .metric-num {
   font-size: 34rpx;
   font-weight: 700;

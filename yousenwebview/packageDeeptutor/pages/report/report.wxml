@@ -43,7 +43,7 @@
             <text class="metric-num">{{overallMastery || diagnosticScore}}%</text>
             <text class="metric-label">总体掌握</text>
           </view>
-          <view class="metric-chip">
+          <view class="metric-chip metric-chip-progress" bindtap="goPractice" hover-class="metric-chip-hover">
             <text class="metric-num">{{todayDone}} / {{dailyTarget || 0}}</text>
             <text class="metric-label">今日进度</text>
           </view>

@@ -24,6 +24,7 @@ from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.logging import get_logger
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
+from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.services.settings.interface_settings import get_ui_language
 
 router = APIRouter()
@@ -99,11 +100,12 @@ def _normalize_react_edit_tools(tools: list[str] | None) -> list[str]:
     allowed = {
         "brainstorm",
         "rag",
-        "web_search",
         "code_execution",
         "reason",
         "paper_search",
     }
+    if is_web_search_runtime_available():
+        allowed.add("web_search")
     normalized: list[str] = []
     for name in tools or []:
         tool = str(name or "").strip()
@@ -502,4 +504,3 @@ async def export_markdown(content: dict):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-

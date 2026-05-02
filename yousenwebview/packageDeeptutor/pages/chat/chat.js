@@ -121,6 +121,10 @@ Page({
     userPoints: 0,
     avatarChar: "U",
     reviewCount: 0,
+    focusLabel: "今日焦点",
+    focusTitle: "",
+    focusMeta: "",
+    focusTone: "plan",
     focusText: "",
     focusQuery: "",
     entrySource: "",
@@ -1387,38 +1391,22 @@ Page({
       .then(function (resp) {
         var d = unwrap(resp) || {};
         var review = d.review || {};
-        var mastery = d.mastery || {};
         var today = d.today || {};
         var overdue = review.overdue || 0;
         var dueToday = review.due_today || 0;
+        var focus = d.today_focus || today.focus || {};
 
         var update = {};
         update.reviewCount = overdue + dueToday;
 
-        // 构建今日焦点：优先薄弱点速练，其次 hint
-        var weakNodes = mastery.weak_nodes || [];
-        if (weakNodes.length > 0) {
-          var node = weakNodes[0];
-          var name =
-            (node.name || "").length > 8
-              ? node.name.substring(0, 8)
-              : node.name || "";
-          update.focusText = "今日焦点：薄弱点速练：5 题 · " + name;
-          update.focusQuery =
-            "我想练习" +
-            (node.name || "") +
-            "，请给我来5道高价值选择题，不要提前给答案和解析。";
-        } else if (overdue > 0) {
-          update.focusText = "今日焦点：" + overdue + " 个逾期复习待处理";
-          update.focusQuery = "帮我复习逾期的知识点";
-        } else if (today.hint) {
-          update.focusText = "今日焦点：" + today.hint;
-          update.focusQuery = "继续我的学习计划";
-        } else {
-          // 降级：始终显示焦点条
-          update.focusText = "今日焦点：保持节奏，继续推进学习计划";
-          update.focusQuery = "继续我的学习计划";
-        }
+        update.focusLabel = String(focus.label || "今日焦点");
+        update.focusTone = String(focus.tone || "plan");
+        update.focusTitle = String(
+          focus.title || today.hint || "保持节奏，继续推进学习计划",
+        ).replace(/^今日焦点[:：]\s*/, "");
+        update.focusMeta = String(focus.meta || "按当前进度继续");
+        update.focusText = update.focusTitle;
+        update.focusQuery = String(focus.query || "继续我的学习计划");
 
         self.setData(update);
       })
@@ -1426,7 +1414,10 @@ Page({
         log.warn("Dashboard", "API failed: " + ((err && err.message) || err));
         // 降级：仍显示默认焦点条
         self.setData({
-          focusText: "今日焦点：保持节奏，继续推进学习计划",
+          focusTone: "plan",
+          focusTitle: "保持节奏，继续推进学习计划",
+          focusMeta: "按当前进度继续",
+          focusText: "保持节奏，继续推进学习计划",
           focusQuery: "继续我的学习计划",
         });
       });

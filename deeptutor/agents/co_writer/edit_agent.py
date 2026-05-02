@@ -12,6 +12,7 @@ import uuid
 from deeptutor.agents.base_agent import BaseAgent
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
 from deeptutor.services.path_service import get_path_service
+from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tools.web_search import web_search
 
@@ -82,7 +83,12 @@ class EditAgent(BaseAgent):
             language=language,
             **kwargs,
         )
-        self.enabled_tools = enabled_tools or ["rag", "web_search"]
+        if enabled_tools is not None:
+            self.enabled_tools = list(enabled_tools)
+        else:
+            self.enabled_tools = ["rag"]
+            if is_web_search_runtime_available():
+                self.enabled_tools.append("web_search")
         self._tool_registry = get_tool_registry()
 
     async def process(

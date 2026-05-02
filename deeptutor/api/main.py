@@ -175,6 +175,11 @@ def validate_tool_consistency():
         referenced_tools = set()
         for manifest in capability_registry.get_manifests():
             referenced_tools.update(manifest.get("tools_used", []) or [])
+        if "web_search" in referenced_tools:
+            from deeptutor.services.search import is_web_search_runtime_available
+
+            if not is_web_search_runtime_available():
+                referenced_tools.discard("web_search")
 
         drift = referenced_tools - available_tools
         if drift:

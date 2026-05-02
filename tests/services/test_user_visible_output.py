@@ -41,6 +41,18 @@ def test_coerce_user_visible_answer_blocks_tool_command_leakage() -> None:
     assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
 
 
+def test_coerce_user_visible_answer_blocks_dsml_tool_leakage() -> None:
+    text = (
+        "让我先查一下你的学习记录。\n\n"
+        '< | DSML | toolcalls>< | DSML | invoke name="readfile">< | DSML | parameter '
+        'name="filepath" string="true">/app/data/tutorbot/construction-exam-coach/'
+        "workspace/skills/memory/PROFILE.md</ | DSML | parameter></ | DSML | invoke>"
+    )
+
+    assert looks_like_internal_output(text) is True
+    assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
 def test_coerce_user_visible_answer_blocks_learning_plan_file_leakage() -> None:
     text = (
         "我来帮你查看当前的学习计划。首先让我检查一下是否有HEARTBEAT.md文件，"

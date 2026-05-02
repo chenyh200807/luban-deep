@@ -31,6 +31,10 @@ assert(
   "host report page should render every diagnosis dimension below the radar summary",
 );
 assert(
+  reportWxml.indexOf('class="metric-chip metric-chip-progress" bindtap="goPractice"') >= 0,
+  "host report today's progress metric should open the practice page",
+);
+assert(
   reportWxss.indexOf(".dim-list") >= 0 && reportWxss.indexOf(".dim-bar") >= 0,
   "host report page should include styles for the diagnosis dimension list",
 );

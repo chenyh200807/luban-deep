@@ -49,7 +49,7 @@ DEFAULT_MAIN_SETTINGS = {
             "allowed_roots": ["./data/user"],
         },
         "web_search": {
-            "enabled": True,
+            "enabled": False,
         },
     },
     "capabilities": {

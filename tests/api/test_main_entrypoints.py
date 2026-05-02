@@ -434,6 +434,39 @@ def test_readyz_reflects_readiness_state(
     assert degraded_payload["ready"] is False
 
 
+def test_tool_consistency_ignores_disabled_web_search_manifest_reference(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "APP_ENV": None,
+            "ENV": None,
+            "ENVIRONMENT": None,
+        },
+        tmp_path=tmp_path,
+    )
+
+    class _FakeCapabilityRegistry:
+        def get_manifests(self):
+            return [{"name": "chat", "tools_used": ["web_search"]}]
+
+    class _FakeToolRegistry:
+        def list_tools(self):
+            return []
+
+    capability_module = importlib.import_module("deeptutor.runtime.registry.capability_registry")
+    tool_module = importlib.import_module("deeptutor.runtime.registry.tool_registry")
+    search_module = importlib.import_module("deeptutor.services.search")
+    monkeypatch.setattr(capability_module, "get_capability_registry", lambda: _FakeCapabilityRegistry())
+    monkeypatch.setattr(tool_module, "get_tool_registry", lambda: _FakeToolRegistry())
+    monkeypatch.setattr(search_module, "is_web_search_runtime_available", lambda: False)
+
+    module.validate_tool_consistency()
+
+
 def test_production_startup_fails_fast_when_critical_dependency_is_missing(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

@@ -3536,17 +3536,26 @@ class MemberConsoleService:
             "due_today": 1 if member["review_due"] else 0,
         }
         snapshot = self._read_learner_snapshot(user_id, event_limit=20)
+        study_plan = self._build_home_study_plan(
+            member,
+            weak_nodes=weak_nodes,
+            review=review,
+            snapshot=snapshot,
+            learning=learning,
+        )
+        today_focus = self._build_home_today_focus(
+            member,
+            weak_nodes=weak_nodes,
+            review=review,
+            snapshot=snapshot,
+            study_plan=study_plan,
+        )
         return {
             "review": review,
             "mastery": {"weak_nodes": weak_nodes[:3]},
-            "today": {"hint": f"继续推进 {member['focus_topic']} 的专项训练"},
-            "study_plan": self._build_home_study_plan(
-                member,
-                weak_nodes=weak_nodes,
-                review=review,
-                snapshot=snapshot,
-                learning=learning,
-            ),
+            "today": {"hint": today_focus["title"], "focus": today_focus},
+            "today_focus": today_focus,
+            "study_plan": study_plan,
             "progress_feedback": self._build_home_progress_feedback(
                 member,
                 weak_nodes=weak_nodes,
@@ -3566,6 +3575,90 @@ class MemberConsoleService:
                 exc_info=True,
             )
             return None
+
+    def _build_home_today_focus(
+        self,
+        member: dict[str, Any],
+        *,
+        weak_nodes: list[dict[str, Any]],
+        review: dict[str, Any],
+        snapshot: Any | None = None,
+        study_plan: dict[str, Any] | None = None,
+    ) -> dict[str, str]:
+        plan = dict(study_plan or {})
+        profile = dict(getattr(snapshot, "profile", {}) or {}) if snapshot is not None else {}
+        focus_topic = str(
+            plan.get("focus_topic") or profile.get("focus_topic") or member.get("focus_topic") or ""
+        ).strip()
+        focus_query = str(profile.get("focus_query") or member.get("focus_query") or "").strip()
+        priority_task = str(plan.get("priority_task") or "").strip()
+        time_budget = str(plan.get("time_budget") or "").strip()
+        overdue = max(0, int(review.get("overdue") or 0))
+        due_today = max(0, int(review.get("due_today") or 0))
+        source = "learner_state.study_plan" if snapshot is not None else "member_console.study_plan"
+
+        if overdue > 0:
+            meta = f"{overdue} 个知识点 · 今天先过一遍"
+            if time_budget:
+                meta = f"{meta} · {time_budget}"
+            return {
+                "label": "今日焦点",
+                "title": "优先处理逾期复习",
+                "meta": meta,
+                "query": "帮我复习逾期的知识点",
+                "tone": "review",
+                "reason": "review_due",
+                "source": source,
+            }
+
+        if focus_topic:
+            weak_names = {
+                str(item.get("name") or "").strip()
+                for item in weak_nodes
+                if str(item.get("name") or "").strip()
+            }
+            if snapshot is not None:
+                progress = dict(getattr(snapshot, "progress", {}) or {})
+                knowledge_map = dict(progress.get("knowledge_map") or {})
+                weak_names.update(
+                    str(item or "").strip()
+                    for item in list(knowledge_map.get("weak_points") or [])
+                    if str(item or "").strip()
+                )
+            tone = "practice" if focus_topic in weak_names else "plan"
+            if not focus_query:
+                focus_query = f"我想练习{focus_topic}相关的题目"
+            meta = priority_task or time_budget or "按当前学习计划继续"
+            return {
+                "label": "今日焦点",
+                "title": f"继续推进{focus_topic}专项训练",
+                "meta": meta,
+                "query": focus_query,
+                "tone": tone,
+                "reason": "learner_state_focus",
+                "source": source,
+            }
+
+        if due_today > 0:
+            return {
+                "label": "今日焦点",
+                "title": "先完成今天的复习任务",
+                "meta": "清掉今日待复习内容，再继续练题",
+                "query": "帮我复习今天需要回看的知识点",
+                "tone": "review",
+                "reason": "review_due_today",
+                "source": source,
+            }
+
+        return {
+            "label": "今日焦点",
+            "title": "保持节奏，继续推进学习计划",
+            "meta": time_budget or "按当前进度继续",
+            "query": "继续我的学习计划",
+            "tone": "plan",
+            "reason": "fallback_plan",
+            "source": source,
+        }
 
     def _build_home_study_plan(
         self,
@@ -3940,10 +4033,14 @@ class MemberConsoleService:
             profile_questions = [question for question in questions if not question.get("scored", True)]
             correct = 0
             chapter_hits: dict[str, list[int]] = {}
+            chapter_attempts: dict[str, int] = {}
             for question in scored_questions:
                 chapter = question["chapter"]
                 chapter_hits.setdefault(chapter, [])
-                is_correct = str(answers.get(question["question_id"], "")).upper() == question["answer"]
+                answer = str(answers.get(question["question_id"], "")).strip()
+                if answer:
+                    chapter_attempts[chapter] = int(chapter_attempts.get(chapter) or 0) + 1
+                is_correct = answer.upper() == question["answer"]
                 chapter_hits[chapter].append(1 if is_correct else 0)
                 correct += 1 if is_correct else 0
             score_pct = round((correct / max(len(scored_questions), 1)) * 100)
@@ -4012,9 +4109,7 @@ class MemberConsoleService:
                 "submitted_at": submitted_at,
                 "time_spent_seconds": int(time_spent_seconds or 0),
                 "answered_count": answered_count,
-                "scored_answered_count": sum(
-                    1 for question in scored_questions if str(answers.get(question.get("question_id"), "")).strip()
-                ),
+                "scored_answered_count": sum(chapter_attempts.values()),
                 "profile_answered_count": profile_answered_count,
                 "completion_rate": completion_rate,
                 "section_empty_counts": section_empty_counts,
@@ -4047,7 +4142,7 @@ class MemberConsoleService:
             }
             learning = self._ensure_learning_profile(member)
             today = _date_key()
-            learning["daily_counts"][today] = int(learning["daily_counts"].get(today) or 0) + len(scored_questions)
+            learning["daily_counts"][today] = int(learning["daily_counts"].get(today) or 0) + sum(chapter_attempts.values())
             if member.get("last_study_date") != today:
                 member["study_days"] = int(member.get("study_days") or 0) + 1
                 member["last_study_date"] = today
@@ -4055,11 +4150,14 @@ class MemberConsoleService:
             member["last_practice_at"] = submitted_at
             for chapter, values in chapter_hits.items():
                 chapter_name = chapter_mastery[chapter]["name"]
+                attempted = int(chapter_attempts.get(chapter) or 0)
+                if attempted <= 0:
+                    continue
                 stats = learning["chapter_stats"].setdefault(
                     chapter_name,
                     {"done": 0, "correct": 0, "last_activity_at": ""},
                 )
-                stats["done"] = int(stats.get("done") or 0) + len(values)
+                stats["done"] = int(stats.get("done") or 0) + attempted
                 stats["correct"] = int(stats.get("correct") or 0) + sum(values)
                 stats["last_activity_at"] = _iso()
             return {

@@ -31,7 +31,7 @@
         </view>
         <text class="overview-tip" wx:if="{{studyTip}}">{{studyTip}}</text>
         <view class="overview-metrics">
-          <view class="metric-chip">
+          <view class="metric-chip metric-chip-progress" bindtap="goPractice" hover-class="metric-chip-hover">
             <text class="metric-num">{{todayDone}} / {{dailyTarget || 0}}</text>
             <text class="metric-label">今日进度</text>
           </view>

@@ -31,9 +31,33 @@ var chatWxss = fs.readFileSync(
 );
 
 assert(
-  chatWxml.indexOf("class=\"points-pill\"") >= 0 &&
+  chatWxml.indexOf("class=\"nav-points-pill\"") >= 0 &&
     chatWxml.indexOf("{{userPoints}}") >= 0,
-  "hero should keep the points balance visible as the only always-on status shortcut",
+  "navbar should keep the points balance visible as the only always-on status shortcut",
+);
+assert(
+  (chatWxml.match(/class="nav-points-num">\{\{userPoints\}\}/g) || []).length === 1 &&
+    chatWxml.indexOf("class=\"points-pill\"") < 0 &&
+    chatWxml.indexOf("class=\"points-num\"") < 0,
+  "package chat home should render the points balance once, using the navbar as the single visible entry",
+);
+assert(
+  chatWxml.indexOf("focus-label") >= 0 &&
+    chatWxml.indexOf("focus-title") >= 0 &&
+    chatWxml.indexOf("focus-meta") >= 0 &&
+    /focusTitle:\s*""/.test(chatJs) &&
+    /focusMeta:\s*""/.test(chatJs),
+  "today focus should be structured into label, title, and meta instead of one crowded text string",
+);
+assert(
+  chatJs.indexOf('focusText: "今日焦点') < 0 &&
+    chatJs.indexOf('update.focusText = "今日焦点') < 0,
+  "today focus copy should not bake the section label into the action title",
+);
+assert(
+  chatJs.indexOf("d.today_focus || today.focus") >= 0 &&
+    chatJs.indexOf("var weakNodes = mastery.weak_nodes") < 0,
+  "package chat home should render backend today_focus instead of deciding focus priority on the client",
 );
 assert(
   chatWxml.indexOf("class=\"hero-more-btn\"") >= 0 &&

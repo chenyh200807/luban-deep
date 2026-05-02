@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import asyncio
 from types import SimpleNamespace
 
 import pytest
@@ -96,6 +97,18 @@ def test_contracts_index_endpoint_exposes_domain_map() -> None:
     assert "learner_state" in body["domains"]
     assert "deeptutor/api/routers/unified_ws.py" in body["domains"]["turn"]["protected_patterns"]
     assert "deeptutor/contracts/learner_state.py" in body["domains"]["learner_state"]["schema_files"]
+
+
+def test_search_connection_skips_when_web_search_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(system_module, "is_web_search_runtime_available", lambda: False)
+
+    response = asyncio.run(system_module.test_search_connection())
+
+    assert response.success is False
+    assert response.message == "Search disabled or not configured"
+    assert response.error == "web_search unavailable"
 
 
 def test_learner_state_contract_endpoint_exposes_user_id_scoped_state() -> None:

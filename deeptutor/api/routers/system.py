@@ -19,7 +19,7 @@ from deeptutor.services.config import resolve_search_runtime_config
 from deeptutor.services.embedding import get_embedding_client, get_embedding_config
 from deeptutor.services.llm import complete as llm_complete
 from deeptutor.services.llm import get_llm_config, get_token_limit_kwargs
-from deeptutor.services.search import web_search
+from deeptutor.services.search import is_web_search_runtime_available, web_search
 
 router = APIRouter()
 _ADMIN_ONLY = [Depends(require_admin)]
@@ -323,6 +323,12 @@ async def test_search_connection():
     start_time = time.time()
 
     try:
+        if not is_web_search_runtime_available():
+            return TestResponse(
+                success=False,
+                message="Search disabled or not configured",
+                error="web_search unavailable",
+            )
         search_config = resolve_search_runtime_config()
         if not search_config.requested_provider:
             return TestResponse(

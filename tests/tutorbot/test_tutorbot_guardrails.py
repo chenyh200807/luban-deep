@@ -9,8 +9,9 @@ from deeptutor.services.security.tutorbot_guardrails import (
 )
 from deeptutor.tutorbot.agent.loop import AgentLoop
 from deeptutor.tutorbot.agent.tools.base import Tool
-from deeptutor.tutorbot.agent.tools.registry import ToolRegistry
+from deeptutor.tutorbot.agent.tools.registry import ToolRegistry, build_base_tools
 from deeptutor.tutorbot.bus.queue import MessageBus
+from deeptutor.tutorbot.config.schema import ExecToolConfig
 from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
 
 
@@ -68,6 +69,21 @@ def test_guardrail_refusal_does_not_explain_security_policy() -> None:
     assert "guardrail" not in content.lower()
     assert "prompt injection" not in content.lower()
     assert "三层防护" not in content
+
+
+def test_tutorbot_base_tools_do_not_register_disabled_web_search(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.services.search.is_web_search_runtime_available",
+        lambda: False,
+    )
+
+    tools = build_base_tools(tmp_path, ExecToolConfig())
+
+    assert "web_search" not in tools.tool_names
+    assert "web_fetch" in tools.tool_names
 
 
 @pytest.mark.asyncio

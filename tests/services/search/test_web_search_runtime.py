@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import pytest
 
+from deeptutor.services.setup.init import DEFAULT_MAIN_SETTINGS
 from deeptutor.services.config.provider_runtime import ResolvedSearchConfig
-from deeptutor.services.search import web_search
+from deeptutor.services.search import is_web_search_runtime_available, web_search
 from deeptutor.services.search.exceptions import SearchError, SearchTimeoutError
 from deeptutor.services.search.types import WebSearchResponse
 
@@ -36,6 +37,23 @@ def test_web_search_disabled_by_default(monkeypatch) -> None:
     assert result["provider"] == "disabled"
     assert result["citations"] == []
     assert result["search_results"] == []
+
+
+def test_setup_defaults_keep_web_search_fail_closed() -> None:
+    assert DEFAULT_MAIN_SETTINGS["tools"]["web_search"]["enabled"] is False
+
+
+def test_web_search_runtime_unavailable_without_explicit_enabled_provider(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.services.search._get_web_search_config",
+        lambda: {"enabled": False},
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.search.resolve_search_runtime_config",
+        lambda: ResolvedSearchConfig(provider="brave", requested_provider="brave", api_key="secret"),
+    )
+
+    assert is_web_search_runtime_available() is False
 
 
 def test_web_search_rejects_deprecated_provider(monkeypatch) -> None:

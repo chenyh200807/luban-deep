@@ -31,6 +31,12 @@ class PromptCapturingGenerator(Generator):
         )
 
 
+def test_generator_tool_names_fail_closed_for_web_search_when_absent() -> None:
+    generator = PromptCapturingGenerator()
+
+    assert generator._enabled_tool_names() == ["rag", "code_execution"]
+
+
 @pytest.mark.asyncio
 async def test_generator_repairs_coding_question_that_looks_like_multiple_choice() -> None:
     generator = StubGenerator(
