@@ -430,6 +430,12 @@
   border: 1rpx solid rgba(255,255,255,0.07);
   border-radius: 6rpx 20rpx 20rpx 20rpx;
 }
+.bubble-ai,
+.bubble-ai text,
+.bubble-ai rich-text {
+  user-select: text;
+  -webkit-user-select: text;
+}
 .bubble-ai-thinking {
   max-width: 84%;
   padding: 0;

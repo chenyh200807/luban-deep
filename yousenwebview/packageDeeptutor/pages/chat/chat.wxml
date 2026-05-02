@@ -258,7 +258,7 @@
 
               <!-- 标题 -->
               <view class="md-h{{b.level}}" wx:if="{{b.type==='heading'}}">
-                <rich-text class="md-richtext" nodes="{{b.nodes}}"></rich-text>
+                <rich-text class="md-richtext" user-select nodes="{{b.nodes}}"></rich-text>
               </view>
 
               <!-- 代码块 -->
@@ -276,10 +276,10 @@
                 <text class="md-table-strategy" wx:if="{{b.mobileStrategy}}">手机端策略：{{b.mobileStrategy==='compact_cards' ? '紧凑卡片' : '横向滚动'}}</text>
                 <view wx:if="{{b.mobileStrategy==='compact_cards'}}">
                   <view class="md-table-card" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row" wx:for-index="rowIndex">
-                    <text class="md-table-card-title">第{{rowIndex + 1}}行</text>
+                    <text class="md-table-card-title" user-select>第{{rowIndex + 1}}行</text>
                     <view class="md-table-card-row" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
-                      <text class="md-table-card-key">{{h.text}}</text>
-                      <text class="md-table-card-val">{{row[colIndex] ? row[colIndex].text : ''}}</text>
+                      <text class="md-table-card-key" user-select>{{h.text}}</text>
+                      <text class="md-table-card-val" user-select>{{row[colIndex] ? row[colIndex].text : ''}}</text>
                     </view>
                   </view>
                 </view>
@@ -304,12 +304,12 @@
                 <view class="md-table">
                   <view class="md-thead">
                   <view class="md-th" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h">
-                      <rich-text class="md-richtext" nodes="{{h.nodes}}"></rich-text>
+                      <rich-text class="md-richtext" user-select nodes="{{h.nodes}}"></rich-text>
                     </view>
                   </view>
                   <view class="md-tr" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row">
                     <view class="md-td" wx:for="{{row}}" wx:key="index" wx:for-item="cell">
-                      <rich-text class="md-richtext" nodes="{{cell.nodes}}"></rich-text>
+                      <rich-text class="md-richtext" user-select nodes="{{cell.nodes}}"></rich-text>
                     </view>
                   </view>
                 </view>
@@ -317,13 +317,13 @@
 
               <!-- 引用块 -->
               <view class="md-blockquote" wx:elif="{{b.type==='blockquote'}}">
-                <rich-text class="bq-line md-richtext" wx:for="{{b.lineNodes}}" wx:key="index" wx:for-item="lineNodes" nodes="{{lineNodes}}"></rich-text>
+                <rich-text class="bq-line md-richtext" user-select wx:for="{{b.lineNodes}}" wx:key="index" wx:for-item="lineNodes" nodes="{{lineNodes}}"></rich-text>
               </view>
 
               <!-- 核心结论/注意/要点高亮 -->
               <view class="md-callout md-callout-{{b.variant}}" wx:elif="{{b.type==='callout'}}">
-                <text class="callout-tag callout-tag-{{b.variant}}">{{b.label}}</text>
-                <rich-text class="callout-body md-richtext" wx:if="{{b.content.length}}" nodes="{{b.nodes}}"></rich-text>
+                <text class="callout-tag callout-tag-{{b.variant}}" user-select>{{b.label}}</text>
+                <rich-text class="callout-body md-richtext" user-select wx:if="{{b.content.length}}" nodes="{{b.nodes}}"></rich-text>
               </view>
 
               <!-- 结构化公式 -->
@@ -336,19 +336,19 @@
 
               <!-- 教学步骤 -->
               <view class="md-steps" wx:elif="{{b.type==='steps' && b.isStructured}}">
-                <text class="md-steps-title" wx:if="{{b.title}}">{{b.title}}</text>
+                <text class="md-steps-title" user-select wx:if="{{b.title}}">{{b.title}}</text>
                 <view class="md-step" wx:for="{{b.steps}}" wx:key="index" wx:for-item="step">
-                  <text class="md-step-index">{{step.index}}.</text>
+                  <text class="md-step-index" user-select>{{step.index}}.</text>
                   <view class="md-step-body">
-                    <text class="md-step-name">{{step.title}}</text>
-                    <text class="md-step-detail" wx:if="{{step.detail}}">{{step.detail}}</text>
+                    <text class="md-step-name" user-select>{{step.title}}</text>
+                    <text class="md-step-detail" user-select wx:if="{{step.detail}}">{{step.detail}}</text>
                   </view>
                 </view>
               </view>
 
               <!-- 教学总结 -->
               <view class="md-recap" wx:elif="{{b.type==='recap' && b.isStructured}}">
-                <text class="md-recap-title">{{b.title || '教学总结'}}</text>
+                <text class="md-recap-title" user-select>{{b.title || '教学总结'}}</text>
                 <text class="md-recap-summary" wx:if="{{b.summary}}" selectable>{{b.summary}}</text>
                 <view wx:if="{{b.bullets && b.bullets.length}}">
                   <view class="md-recap-bullet" wx:for="{{b.bullets}}" wx:key="index" wx:for-item="bullet">
@@ -362,7 +362,7 @@
               <view class="md-chart" wx:elif="{{b.type==='chart' && b.isStructured}}">
                 <view class="md-chart-head">
                   <text class="md-chart-type">{{b.chartType}}</text>
-                  <text class="md-chart-title" wx:if="{{b.title}}">{{b.title}}</text>
+                  <text class="md-chart-title" user-select wx:if="{{b.title}}">{{b.title}}</text>
                 </view>
                 <text class="md-chart-summary" wx:if="{{b.summary}}" selectable>{{b.summary}}</text>
                 <view class="md-chart-series" wx:if="{{b.series && b.series.length}}">
@@ -372,8 +372,8 @@
                   </view>
                 </view>
                 <view class="md-chart-axes" wx:if="{{b.axes && (b.axes.x || b.axes.y)}}">
-                  <text class="md-chart-axis" wx:if="{{b.axes.x}}">横轴：{{b.axes.x}}</text>
-                  <text class="md-chart-axis" wx:if="{{b.axes.y}}">纵轴：{{b.axes.y}}</text>
+                  <text class="md-chart-axis" user-select wx:if="{{b.axes.x}}">横轴：{{b.axes.x}}</text>
+                  <text class="md-chart-axis" user-select wx:if="{{b.axes.y}}">纵轴：{{b.axes.y}}</text>
                 </view>
                 <text class="md-chart-caption" wx:if="{{b.caption}}" selectable>{{b.caption}}</text>
                 <view wx:if="{{b.fallbackTable && b.fallbackTable.headers && b.fallbackTable.headers.length}}">
@@ -381,10 +381,10 @@
                   <text class="md-chart-strategy">图形不可用时回退为数据表</text>
                   <view wx:if="{{b.fallbackTable.mobileStrategy==='compact_cards'}}">
                     <view class="md-table-card" wx:for="{{b.fallbackTable.rows}}" wx:key="index" wx:for-item="row" wx:for-index="rowIndex">
-                      <text class="md-table-card-title">第{{rowIndex + 1}}行</text>
+                      <text class="md-table-card-title" user-select>第{{rowIndex + 1}}行</text>
                       <view class="md-table-card-row" wx:for="{{b.fallbackTable.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
-                        <text class="md-table-card-key">{{h.text}}</text>
-                        <text class="md-table-card-val">{{row[colIndex] ? row[colIndex].text : ''}}</text>
+                        <text class="md-table-card-key" user-select>{{h.text}}</text>
+                        <text class="md-table-card-val" user-select>{{row[colIndex] ? row[colIndex].text : ''}}</text>
                       </view>
                     </view>
                   </view>
@@ -410,7 +410,7 @@
                 <view class="md-li" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
                   <text class="bullet">·</text>
                   <view class="li-body">
-                    <rich-text class="md-richtext md-richtext-inline" nodes="{{li.nodes}}"></rich-text>
+                    <rich-text class="md-richtext md-richtext-inline" user-select nodes="{{li.nodes}}"></rich-text>
                   </view>
                 </view>
               </view>
@@ -420,7 +420,7 @@
                 <view class="md-li" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
                   <text class="ol-idx">{{li.index}}.</text>
                   <view class="li-body">
-                    <rich-text class="md-richtext md-richtext-inline" nodes="{{li.nodes}}"></rich-text>
+                    <rich-text class="md-richtext md-richtext-inline" user-select nodes="{{li.nodes}}"></rich-text>
                   </view>
                 </view>
               </view>
@@ -434,7 +434,7 @@
                   <text user-select>{{b.text}}</text>
                 </block>
                 <block wx:else>
-                  <rich-text class="md-richtext" nodes="{{b.nodes}}"></rich-text>
+                  <rich-text class="md-richtext" user-select nodes="{{b.nodes}}"></rich-text>
                 </block>
               </view>
 
@@ -446,24 +446,24 @@
           <!-- MCQ -->
           <view class="mcq" wx:if="{{item.mcqCards && item.mcqCards.length && (!item.streaming || (!item.renderableContent && !item.blocks.length))}}">
             <view class="mcq-head">
-              <text class="mcq-head-title">{{item.mcqInteractiveReady ? '交互式作答' : '题目回看'}}</text>
-              <text class="mcq-head-hint">{{item.mcqHint ? item.mcqHint : '点击选项后提交答案'}}</text>
+              <text class="mcq-head-title" user-select>{{item.mcqInteractiveReady ? '交互式作答' : '题目回看'}}</text>
+              <text class="mcq-head-hint" user-select>{{item.mcqHint ? item.mcqHint : '点击选项后提交答案'}}</text>
             </view>
             <view class="mcq-card" wx:for="{{item.mcqCards}}" wx:key="index" wx:for-item="card">
               <view class="mcq-card-bar">
-                <text class="mcq-card-index">第{{card.index}}题</text>
-                <text class="mcq-card-type">{{card.questionType==='multi_choice' ? '多选题' : '单选题'}}</text>
+                <text class="mcq-card-index" user-select>第{{card.index}}题</text>
+                <text class="mcq-card-type" user-select>{{card.questionType==='multi_choice' ? '多选题' : '单选题'}}</text>
               </view>
-              <text class="mcq-stem">{{card.stem}}</text>
-              <text class="mcq-hint" wx:if="{{card.hint}}">提示：{{card.hint}}</text>
+              <text class="mcq-stem" user-select>{{card.stem}}</text>
+              <text class="mcq-hint" user-select wx:if="{{card.hint}}">提示：{{card.hint}}</text>
               <view
                 class="mcq-opt {{o.selected?'sel':''}} {{!item.mcqInteractiveReady?'ro':''}}"
                 wx:for="{{card.options}}" wx:key="key" wx:for-item="o"
                 bindtap="onMcqTap" data-msgid="{{item.id}}" data-qindex="{{card.index}}" data-key="{{o.key}}"
                 aria-role="button" aria-label="选项 {{o.key}}: {{o.text}}" aria-checked="{{o.selected}}"
               >
-                <text class="mcq-key">{{o.key}}</text>
-                <text class="mcq-val">{{o.text}}</text>
+                <text class="mcq-key" user-select>{{o.key}}</text>
+                <text class="mcq-val" user-select>{{o.text}}</text>
               </view>
             </view>
             <view wx:if="{{item.mcqInteractiveReady}}" class="mcq-submit" bindtap="onMcqSubmit" data-msgid="{{item.id}}" aria-role="button" aria-label="提交答案">
