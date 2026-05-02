@@ -5,7 +5,7 @@
 - 文档名称：鲁班智考 Assessment Blueprint PRD
 - 文档路径：`docs/plan/2026-05-02-luban-assessment-blueprint-prd.md`
 - 创建日期：2026-05-02
-- 状态：Proposed v1
+- 状态：Phase 0 implemented（coverage audit 已落地；生产 create/submit 链路尚未改造）
 - 适用范围：微信小程序 assessment / report / profile、Supabase `questions_bank`、Learner State、Teaching Policy Layer、TutorBot 个性化教学
 - 关联文档：
   - [2026-04-15-learner-state-memory-guided-learning-prd.md](2026-04-15-learner-state-memory-guided-learning-prd.md)
@@ -645,6 +645,32 @@ P0 必须支持：
 - `scripts/audit_assessment_blueprint_coverage.py`
 - `tmp/assessment_blueprint_coverage_<date>.json`
 - `docs/plan` 中记录 coverage 摘要和未决缺口
+
+2026-05-02 Phase 0 实施证据：
+
+- 已新增版本化蓝图代码：`deeptutor/services/assessment/blueprint.py`
+- 已新增纯覆盖审计：`deeptutor/services/assessment/coverage.py`
+- 已新增只读审计脚本：`scripts/audit_assessment_blueprint_coverage.py`
+- 已生成真实 Supabase 聚合报告：`tmp/assessment_blueprint_coverage_diagnostic_v1.json`
+- 定向测试：`tests/services/assessment/test_blueprint_coverage.py`、`tests/scripts/test_audit_assessment_blueprint_coverage.py`
+
+真实审计结果摘要：
+
+| 指标 | 结果 |
+| --- | --- |
+| blueprint version | `diagnostic_v1` |
+| requested / scored / profile | 20 / 16 / 4 |
+| audit status | `pass` |
+| blocker issues | 0 |
+| scored section 最低 required candidates | 6 |
+| scored section 当前最低 candidate_count | 1203（综合案例 / 计算） |
+| profile probes | Phase 0 以内置版本化题库计入，不依赖 Supabase |
+
+Phase 0 审计边界：
+
+- 当前报告按 `question_type/source_type/source_chunk_id` 做聚合覆盖，只证明“题型与来源资产量足够支撑 P0 蓝图”。
+- 当前报告尚未证明 `node_code -> chapter/topic` 的精确章节分桶质量；这必须进入 Phase 1 前置 gate。
+- 当前报告将 `questions_bank.id` 作为 P0 provenance 硬门槛，`source_chunk_id` 继续作为增强证据和后续回填任务。
 
 若审计发现某个 section 候选题不足：
 
