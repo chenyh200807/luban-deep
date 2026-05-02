@@ -226,6 +226,11 @@ Overlay 必须支持：
 允许写入：
 
 - 统一 writeback pipeline
+- 摸底测评等结构化测评结果可以通过统一 learner state service 写入
+  `source_feature="assessment"` 的 memory event；payload 只能承载测评
+  `quiz_id`、blueprint version、知识分、置信度、教学策略 seed 与可审计
+  observability 摘要，不能绕过 learner state service 直接改 profile / summary /
+  progress 主真相。
 
 禁止写入：
 
@@ -240,6 +245,9 @@ Overlay 必须支持：
 5. `TutorBot workspace memory` 只能作为运行时辅助，不得反向成为 learner truth。
 6. 第二阶段引入 overlay 后，`user_id` 级 learner core 仍然高于 overlay。
 7. Overlay 只能影响当前 Bot 的运行时，不得直接影响其他 Bot。
+8. 摸底测评生成的 `teaching_policy_override` 属于 Bot 局部教学节奏建议，只能写入
+   overlay 的允许字段；它不能成为第二套 learner profile / progress / summary，也不能
+   跨 Bot 覆盖全局学习事实。
 
 ## 运行时装配顺序
 
@@ -290,5 +298,7 @@ TutorBot / Guide 运行时上下文装配顺序必须固定：
 - 新注册学员自动建 learner state
 - `user_profiles / user_stats / user_goals` 真正进入 TutorBot / Guide / Heartbeat 读写链
 - Guided Learning completion 写回 `learner_summaries / user_stats`
+- 摸底测评结果写回 learner memory event 与 Bot overlay 时，保持 `user_id`
+  learner core 为单一主真相，并具备幂等键
 - heartbeat 按 `user_id` 粒度运行
 - 同一学员并发写回无覆盖丢失

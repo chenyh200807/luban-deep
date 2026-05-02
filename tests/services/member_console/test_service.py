@@ -2049,6 +2049,7 @@ async def test_bind_phone_for_wechat_fails_closed_in_production_even_for_dev_pre
 def test_list_members_supports_expiry_window_and_operational_flags(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    now = member_service_module._now()
 
     def _seed(data: dict[str, object]) -> None:
         data["members"] = [
@@ -2059,8 +2060,8 @@ def test_list_members_supports_expiry_window_and_operational_flags(tmp_path: Pat
                 "tier": "vip",
                 "status": "active",
                 "risk_level": "high",
-                "expire_at": "2026-04-25T00:00:00+08:00",
-                "last_active_at": "2026-04-20T10:00:00+08:00",
+                "expire_at": (now + timedelta(days=4)).isoformat(),
+                "last_active_at": (now - timedelta(days=1)).isoformat(),
                 "auto_renew": False,
             },
             {
@@ -2070,8 +2071,8 @@ def test_list_members_supports_expiry_window_and_operational_flags(tmp_path: Pat
                 "tier": "svip",
                 "status": "active",
                 "risk_level": "low",
-                "expire_at": "2026-08-01T00:00:00+08:00",
-                "last_active_at": "2026-04-22T09:00:00+08:00",
+                "expire_at": (now + timedelta(days=90)).isoformat(),
+                "last_active_at": now.isoformat(),
                 "auto_renew": True,
             },
         ]
