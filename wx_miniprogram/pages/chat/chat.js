@@ -164,6 +164,9 @@ Page({
   onLoad: function () {
     var info = helpers.getWindowInfo();
     var savedToolPrefs = wx.getStorageSync(CHAT_TOOL_PREFS_KEY) || {};
+    var app = getApp();
+    var pendingInitialConversationId =
+      app && app.globalData && app.globalData.pendingConversationId;
     var statusBarHeight = info.statusBarHeight || 44;
     var windowWidth = info.windowWidth || info.screenWidth || 375;
     var navInnerHeight = Math.round(
@@ -187,6 +190,7 @@ Page({
       inputCursorSpacing: Math.max(24, safeBottom + 24),
       chatBottomSpacer: this._computeChatBottomSpacer(0, safeBottom),
       bottomBarStyle: initialBottomBarStyle,
+      hasMessages: !!pendingInitialConversationId,
       isDark: helpers.isDark(),
       enableReason: !!savedToolPrefs.enableReason,
       enableWebSearch: false,
@@ -244,9 +248,20 @@ Page({
   onShow: function () {
     var self = this;
     var dark = helpers.isDark();
-    this.setData({ isDark: dark });
-    helpers.syncTabBar(this, 0, { hidden: this.data.hasMessages });
     var app = getApp();
+    var pendingConversationId =
+      app && app.globalData && app.globalData.pendingConversationId;
+    if (pendingConversationId && !this.data.hasMessages) {
+      this.setData({
+        hasMessages: true,
+        isStreaming: false,
+        chatScrollWithAnimation: false,
+      });
+    }
+    this.setData({ isDark: dark });
+    helpers.syncTabBar(this, 0, {
+      hidden: this.data.hasMessages || !!pendingConversationId,
+    });
     // 从其他页面点 logo 回来，清消息回到 Hero 主页
     if (app.globalData.goHomeFlag) {
       app.globalData.goHomeFlag = false;
@@ -1710,6 +1725,9 @@ Page({
         self._applyHydratedConversationMessages(data.messages || data || []);
       })
       .catch(function () {
+        if (!self.data.messages.length) {
+          self.setData({ hasMessages: false });
+        }
         wx.showToast({ title: "加载对话失败", icon: "none" });
       });
   },

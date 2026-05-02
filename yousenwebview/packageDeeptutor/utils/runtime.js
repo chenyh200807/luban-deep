@@ -133,6 +133,10 @@ function setPendingConversationId(id) {
   getRuntimeStore().pendingConversationId = id || "";
 }
 
+function peekPendingConversationId() {
+  return getRuntimeStore().pendingConversationId || "";
+}
+
 function consumePendingConversationId() {
   var store = getRuntimeStore();
   var id = store.pendingConversationId || "";
@@ -225,6 +229,7 @@ module.exports = {
   markGoHome: markGoHome,
   consumeGoHomeFlag: consumeGoHomeFlag,
   setPendingConversationId: setPendingConversationId,
+  peekPendingConversationId: peekPendingConversationId,
   consumePendingConversationId: consumePendingConversationId,
   setPendingChatIntent: setPendingChatIntent,
   consumePendingChatIntent: consumePendingChatIntent,

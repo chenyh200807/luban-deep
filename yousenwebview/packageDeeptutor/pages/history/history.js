@@ -280,13 +280,16 @@ Page({
     var statusBarHeight = info.statusBarHeight;
     var navContentHeight = 44;
     var navContentPaddingTop = 0;
+    var navActionRowHeight = 36;
     // 用胶囊按钮精确计算，避免与小程序右上角控制按钮重叠
     if (wx.getMenuButtonBoundingClientRect) {
       var rect = wx.getMenuButtonBoundingClientRect();
       navContentPaddingTop = rect.top - statusBarHeight;
-      navContentHeight = rect.height + navContentPaddingTop * 2;
+      navContentHeight = rect.height + navContentPaddingTop * 2 + navActionRowHeight;
       var windowWidth = info.windowWidth || info.screenWidth || 375;
       var rightInset = Math.max(24, windowWidth - rect.left + 8);
+    } else {
+      navContentHeight += navActionRowHeight;
     }
     this.setData({
       statusBarHeight: statusBarHeight,

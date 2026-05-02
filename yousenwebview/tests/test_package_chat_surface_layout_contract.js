@@ -24,6 +24,7 @@ function read(rel) {
 var chatWxml = read("pages/chat/chat.wxml");
 var chatJs = read("pages/chat/chat.js");
 var historyWxml = read("pages/history/history.wxml");
+var historyWxss = read("pages/history/history.wxss");
 var historyJs = read("pages/history/history.js");
 
 assert(
@@ -50,6 +51,12 @@ assert(
   /padding-right:\s*\{\{navRightInset\}\}px/.test(historyWxml) &&
     /navRightInset/.test(historyJs),
   "history nav actions should reserve system capsule width",
+);
+assert(
+  /class="nav-action-row"/.test(historyWxml) &&
+    /\.nav-action-row/.test(historyWxss) &&
+    /navActionRowHeight/.test(historyJs),
+  "history management actions should sit below the system capsule row",
 );
 
 if (fail) {

@@ -3,20 +3,23 @@
 
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
-    <view class="nav-content" style="height: {{navContentHeight}}px; padding-top: {{navContentPaddingTop}}px; padding-right: {{navRightInset}}px">
-      <view class="nav-back" bindtap="goHome">
-        <text class="nav-back-arrow">‹</text>
-        <text class="nav-back-txt">对话</text>
+    <view class="nav-content" style="height: {{navContentHeight}}px; padding-top: {{navContentPaddingTop}}px">
+      <view class="nav-main-row" style="padding-right: {{navRightInset}}px">
+        <view class="nav-back" bindtap="goHome">
+          <text class="nav-back-arrow">‹</text>
+          <text class="nav-back-txt">对话</text>
+        </view>
       </view>
-      <view style="flex:1"></view>
-      <text class="nav-count" wx:if="{{totalCount > 0 && !editMode}}">{{totalCount}} 条对话</text>
-      <text class="nav-count" wx:if="{{editMode && selectedCount > 0}}">已选 {{selectedCount}} 条</text>
-      <!-- 管理 / 完成 按钮 -->
-      <view wx:if="{{!editMode && totalCount > 0}}" class="nav-btn" bindtap="enterEditMode">
-        <text class="nav-btn-txt">管理</text>
-      </view>
-      <view wx:if="{{editMode}}" class="nav-btn" bindtap="exitEditMode">
-        <text class="nav-btn-txt done">完成</text>
+      <view class="nav-action-row">
+        <text class="nav-count" wx:if="{{totalCount > 0 && !editMode}}">{{totalCount}} 条对话</text>
+        <text class="nav-count" wx:if="{{editMode && selectedCount > 0}}">已选 {{selectedCount}} 条</text>
+        <!-- 管理 / 完成 按钮 -->
+        <view wx:if="{{!editMode && totalCount > 0}}" class="nav-btn" bindtap="enterEditMode">
+          <text class="nav-btn-txt">管理</text>
+        </view>
+        <view wx:if="{{editMode}}" class="nav-btn" bindtap="exitEditMode">
+          <text class="nav-btn-txt done">完成</text>
+        </view>
       </view>
     </view>
   </view>

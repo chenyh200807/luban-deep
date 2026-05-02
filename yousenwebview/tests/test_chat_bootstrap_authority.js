@@ -99,6 +99,9 @@ function loadChatPage(overrides) {
       consumePendingConversationId: function () {
         return "";
       },
+      peekPendingConversationId: function () {
+        return "";
+      },
       consumePendingChatIntent: function () {
         return {};
       },
@@ -345,6 +348,42 @@ function loadChatPage(overrides) {
     assert(
       loaded.page.data.hasMessages === true,
       "hydrated current session should restore the visible chat, not an empty hero",
+    );
+  });
+
+  await run("history entry should suppress hero before pending conversation hydration", async function () {
+    var pendingConversationId = "conv_history_direct";
+    var loaded = loadChatPage({
+      runtime: {
+        peekPendingConversationId: function () {
+          return pendingConversationId;
+        },
+        consumePendingConversationId: function () {
+          var id = pendingConversationId;
+          pendingConversationId = "";
+          return id;
+        },
+      },
+    });
+
+    loaded.page.onLoad({});
+    assert(
+      loaded.page.data.hasMessages === true,
+      "pending history entry should enter chat chrome before the first hydration response",
+    );
+
+    loaded.page.onShow();
+    await flushPromises();
+    await flushPromises();
+
+    assert(
+      loaded.apiState.getConversationMessagesCalls.length === 1 &&
+        loaded.apiState.getConversationMessagesCalls[0] === "conv_history_direct",
+      "pending history entry should hydrate the selected conversation directly",
+    );
+    assert(
+      loaded.page.data.hasMessages === true,
+      "hydrated history entry should remain on the chat surface",
     );
   });
 

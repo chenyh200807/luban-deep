@@ -210,6 +210,10 @@ Page({
   onLoad: function (options) {
     var info = helpers.getWindowInfo();
     var savedToolPrefs = wx.getStorageSync(CHAT_TOOL_PREFS_KEY) || {};
+    var pendingInitialConversationId =
+      typeof runtime.peekPendingConversationId === "function"
+        ? runtime.peekPendingConversationId()
+        : "";
     var entrySource =
       (options && (options.entrySource || options.entry_source || options.source)) ||
       "";
@@ -237,6 +241,7 @@ Page({
       viewportHeight: viewportHeight,
       contentHeight: contentHeight,
       workspaceShellHeight: workspaceShellHeight,
+      hasMessages: !!pendingInitialConversationId,
       isDark: helpers.isDark(),
       enableReason: false,
       enableWebSearch: false,
@@ -265,13 +270,25 @@ Page({
     runtime.initNetworkMonitor();
     this._syncWorkspaceChrome({
       hidden: !flags.shouldShowWorkspaceShell(),
-      hasMessages: false,
+      hasMessages: !!pendingInitialConversationId,
     });
   },
 
   onShow: function () {
     var self = this;
     var dark = helpers.isDark();
+    var pendingConversationId =
+      typeof runtime.peekPendingConversationId === "function"
+        ? runtime.peekPendingConversationId()
+        : "";
+    if (pendingConversationId && !this.data.hasMessages) {
+      this.setData({
+        hasMessages: true,
+        isStreaming: false,
+        chatScrollWithAnimation: false,
+      });
+      this._syncWorkspaceChrome({ hasMessages: true });
+    }
     this.setData({ isDark: dark });
     this._syncWorkspaceBack();
     this.setData({
@@ -1873,6 +1890,10 @@ Page({
         self._applyHydratedConversationMessages(data.messages || data || []);
       })
       .catch(function () {
+        if (!self.data.messages.length) {
+          self.setData({ hasMessages: false });
+          self._syncWorkspaceChrome({ hasMessages: false });
+        }
         wx.showToast({ title: "加载对话失败", icon: "none" });
       });
   },

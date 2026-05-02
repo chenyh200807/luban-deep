@@ -82,6 +82,10 @@ run("runtime state reads and writes app globalData when app is available", funct
   runtime.setNetworkAvailable(false);
   runtime.setAuthRedirecting(true);
 
+  assert(
+    runtime.peekPendingConversationId() === "conv_42",
+    "pending conversation id should be readable before consume",
+  );
   assert(app.globalData.goHomeFlag === true, "goHomeFlag should sync into app globalData");
   assert(
     app.globalData.pendingConversationId === "conv_42",
@@ -215,6 +219,10 @@ run("runtime pending conversation and intent still work without app fallback", f
   runtime.setPendingConversationId("conv_42");
   runtime.setPendingChatIntent("继续上次的问题", "DEEP");
 
+  assert(
+    runtime.peekPendingConversationId() === "conv_42",
+    "pending conversation id should be readable from fallback store before consume",
+  );
   assert(
     runtime.consumePendingConversationId() === "conv_42",
     "pending conversation id should be returned on first consume",
