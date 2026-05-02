@@ -1,0 +1,130 @@
+{
+  "blueprint_version": "diagnostic_v1",
+  "issues": [],
+  "profile_count": 4,
+  "requested_count": 20,
+  "scored_count": 16,
+  "sections": [
+    {
+      "calculation_count": 15,
+      "candidate_count": 3313,
+      "label": "地基基础 / 深基坑",
+      "renderable_count": 3313,
+      "required_candidates": 6,
+      "required_units": 2,
+      "section_id": "foundation_deep_foundation",
+      "structured_judgment_count": 1188,
+      "with_question_id": 3313,
+      "with_source_chunk_id": 1035
+    },
+    {
+      "calculation_count": 15,
+      "candidate_count": 3313,
+      "label": "主体结构 / 混凝土 / 钢筋",
+      "renderable_count": 3313,
+      "required_candidates": 9,
+      "required_units": 3,
+      "section_id": "main_structure",
+      "structured_judgment_count": 1188,
+      "with_question_id": 3313,
+      "with_source_chunk_id": 1035
+    },
+    {
+      "calculation_count": 15,
+      "candidate_count": 3313,
+      "label": "防水 / 装饰 / 机电",
+      "renderable_count": 3313,
+      "required_candidates": 9,
+      "required_units": 3,
+      "section_id": "waterproof_decoration_mep",
+      "structured_judgment_count": 1188,
+      "with_question_id": 3313,
+      "with_source_chunk_id": 1035
+    },
+    {
+      "calculation_count": 15,
+      "candidate_count": 3313,
+      "label": "模板脚手架 / 安全管理",
+      "renderable_count": 3313,
+      "required_candidates": 6,
+      "required_units": 2,
+      "section_id": "formwork_safety",
+      "structured_judgment_count": 1188,
+      "with_question_id": 3313,
+      "with_source_chunk_id": 1035
+    },
+    {
+      "calculation_count": 15,
+      "candidate_count": 3313,
+      "label": "施工组织 / 网络计划",
+      "renderable_count": 3313,
+      "required_candidates": 6,
+      "required_units": 2,
+      "section_id": "planning_schedule",
+      "structured_judgment_count": 1188,
+      "with_question_id": 3313,
+      "with_source_chunk_id": 1035
+    },
+    {
+      "calculation_count": 15,
+      "candidate_count": 3313,
+      "label": "合同索赔 / 质量验收",
+      "renderable_count": 3313,
+      "required_candidates": 6,
+      "required_units": 2,
+      "section_id": "claim_quality_acceptance",
+      "structured_judgment_count": 1188,
+      "with_question_id": 3313,
+      "with_source_chunk_id": 1035
+    },
+    {
+      "calculation_count": 15,
+      "candidate_count": 1203,
+      "label": "综合案例 / 计算",
+      "renderable_count": 1203,
+      "required_candidates": 6,
+      "required_units": 2,
+      "section_id": "comprehensive_application",
+      "structured_judgment_count": 1188,
+      "with_question_id": 1203,
+      "with_source_chunk_id": 773
+    },
+    {
+      "calculation_count": 0,
+      "candidate_count": 6,
+      "label": "学习习惯",
+      "renderable_count": 6,
+      "required_candidates": 6,
+      "required_units": 2,
+      "section_id": "learning_habits",
+      "structured_judgment_count": 6,
+      "with_question_id": 6,
+      "with_source_chunk_id": 6
+    },
+    {
+      "calculation_count": 0,
+      "candidate_count": 3,
+      "label": "心理/状态",
+      "renderable_count": 3,
+      "required_candidates": 3,
+      "required_units": 1,
+      "section_id": "pressure_state",
+      "structured_judgment_count": 3,
+      "with_question_id": 3,
+      "with_source_chunk_id": 3
+    },
+    {
+      "calculation_count": 0,
+      "candidate_count": 3,
+      "label": "教学偏好",
+      "renderable_count": 3,
+      "required_candidates": 3,
+      "required_units": 1,
+      "section_id": "teaching_preferences",
+      "structured_judgment_count": 3,
+      "with_question_id": 3,
+      "with_source_chunk_id": 3
+    }
+  ],
+  "status": "pass"
+}
