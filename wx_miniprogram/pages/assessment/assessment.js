@@ -115,6 +115,9 @@ Page({
     unansweredCount: 0,
     requestedCount: 0,
     deliveredCount: 0,
+    scoredCount: 0,
+    profileCount: 0,
+    blueprintVersion: "",
     availableCount: 0,
     shortfallCount: 0,
     assessmentNotice: "",
@@ -200,11 +203,16 @@ Page({
             options: opts,
             question_type: q.question_type || "single_choice",
             difficulty: q.difficulty || "",
+            section_id: q.section_id || "",
+            section_label: q.section_label || "",
+            scored: q.scored !== false,
           };
         });
         var answerState = buildAnswerState(questions, {}, 0);
         var requestedCount = Number(payload.requested_count || questions.length) || questions.length;
         var deliveredCount = Number(payload.delivered_count || questions.length) || questions.length;
+        var scoredCount = Number(payload.scored_count || 0) || 0;
+        var profileCount = Number(payload.profile_count || 0) || 0;
         var availableCount = Number(payload.available_count || deliveredCount) || deliveredCount;
         var shortfallCount = Math.max(0, Number(payload.shortfall_count || 0) || 0);
         self._quizId = payload.quiz_id;
@@ -222,11 +230,16 @@ Page({
           unansweredCount: answerState.unansweredCount,
           requestedCount: requestedCount,
           deliveredCount: deliveredCount,
+          scoredCount: scoredCount,
+          profileCount: profileCount,
+          blueprintVersion: payload.blueprint_version || "",
           availableCount: availableCount,
           shortfallCount: shortfallCount,
           assessmentNotice:
             shortfallCount > 0
               ? "题库当前可用 " + availableCount + " 题，本次先完成 " + deliveredCount + " 题。"
+              : scoredCount && profileCount
+              ? "本次 " + scoredCount + " 道知识题 + " + profileCount + " 道学习画像题。"
               : "",
         });
       })

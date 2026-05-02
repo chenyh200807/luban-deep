@@ -44,8 +44,11 @@ function loadPage() {
     createAssessment: function () {
       return Promise.resolve({
         quiz_id: "quiz_1",
+        blueprint_version: "diagnostic_v1",
         requested_count: 20,
         delivered_count: 3,
+        scored_count: 2,
+        profile_count: 1,
         available_count: 3,
         shortfall_count: 17,
         questions: [
@@ -135,6 +138,12 @@ function loadPage() {
         loaded.page.data.deliveredCount === 3 &&
         loaded.page.data.shortfallCount === 17,
       "package assessment should preserve requested/delivered count authority",
+    );
+    assert(
+      loaded.page.data.blueprintVersion === "diagnostic_v1" &&
+        loaded.page.data.scoredCount === 2 &&
+        loaded.page.data.profileCount === 1,
+      "package assessment should preserve blueprint/scored/profile authority",
     );
     assert(
       loaded.page.data.assessmentNotice.indexOf("本次先完成 3 题") >= 0,
