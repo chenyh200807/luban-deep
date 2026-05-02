@@ -3579,7 +3579,7 @@ class MemberConsoleService:
             return None
 
     def _read_home_heartbeat_context(self, user_id: str) -> dict[str, Any]:
-        context: dict[str, Any] = {"jobs": [], "history": [], "workspace_tasks": []}
+        context: dict[str, Any] = {"jobs": [], "history": []}
         try:
             learner_state_service = self._get_learner_state_service()
             context["jobs"] = [
@@ -3589,47 +3589,7 @@ class MemberConsoleService:
             context["history"] = list(learner_state_service.list_heartbeat_history(user_id, limit=3) or [])
         except Exception:
             logger.warning("Failed to load heartbeat context for home dashboard: user_id=%s", user_id, exc_info=True)
-        context["workspace_tasks"] = self._read_home_heartbeat_workspace_tasks()
         return context
-
-    def _read_home_heartbeat_workspace_tasks(self) -> list[str]:
-        default_bot_id = (list(CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids or []) or ["construction-exam-coach"])[0]
-        heartbeat_path = (
-            get_path_service().project_root
-            / "data"
-            / "tutorbot"
-            / default_bot_id
-            / "workspace"
-            / "HEARTBEAT.md"
-        )
-        if not heartbeat_path.exists():
-            return []
-        try:
-            return self._extract_heartbeat_active_tasks(heartbeat_path.read_text(encoding="utf-8"))
-        except Exception:
-            logger.warning("Failed to read workspace HEARTBEAT.md tasks: path=%s", heartbeat_path, exc_info=True)
-            return []
-
-    @staticmethod
-    def _extract_heartbeat_active_tasks(content: str) -> list[str]:
-        tasks: list[str] = []
-        in_active = False
-        in_comment = False
-        for raw_line in str(content or "").splitlines():
-            line = raw_line.strip()
-            if "<!--" in line:
-                in_comment = True
-            if line.startswith("## "):
-                in_active = line == "## Active Tasks"
-                if line == "## Completed":
-                    break
-            if in_active and not in_comment and line.startswith("- "):
-                task = line[2:].strip()
-                if task:
-                    tasks.append(task)
-            if "-->" in line:
-                in_comment = False
-        return tasks
 
     def _build_home_today_focus(
         self,
@@ -3834,8 +3794,7 @@ class MemberConsoleService:
     def _has_home_heartbeat_signal(heartbeat_context: dict[str, Any]) -> bool:
         jobs = [item for item in list(heartbeat_context.get("jobs") or []) if str(item.get("status") or "") == "active"]
         history = list(heartbeat_context.get("history") or [])
-        workspace_tasks = list(heartbeat_context.get("workspace_tasks") or [])
-        return bool(jobs or history or workspace_tasks)
+        return bool(jobs or history)
 
     def _build_adaptive_focus_meta(
         self,
@@ -3882,7 +3841,6 @@ class MemberConsoleService:
         if (
             list(heartbeat_context.get("jobs") or [])
             or list(heartbeat_context.get("history") or [])
-            or list(heartbeat_context.get("workspace_tasks") or [])
         ):
             context_hint += "和周期复习节奏"
         if reason in {"review_due", "review_due_today"}:

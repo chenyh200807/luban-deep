@@ -1457,6 +1457,7 @@ async def get_conversation_messages(
     if not sessions:
         raise HTTPException(status_code=404, detail="Conversation not found")
     merged_messages: list[dict[str, Any]] = []
+    found_mobile_session = False
     for session_row in sessions:
         session = await session_store.get_session_with_messages(str(session_row.get("id") or ""))
         if session is None:
@@ -1464,8 +1465,9 @@ async def get_conversation_messages(
         preferences = session.get("preferences") if isinstance(session.get("preferences"), dict) else {}
         if preferences.get("source") != "wx_miniprogram":
             continue
+        found_mobile_session = True
         merged_messages.extend(list(session.get("messages") or []))
-    if not merged_messages:
+    if not found_mobile_session:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return {
         "messages": [

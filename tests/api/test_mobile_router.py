@@ -1338,6 +1338,66 @@ def test_get_conversation_messages_pages_past_first_500_sessions(
     assert response.json()["messages"][0]["content"] == "命中了第 501 条之后的会话。"
 
 
+def test_get_conversation_messages_returns_empty_for_existing_mobile_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            assert session_id == "session_empty"
+            return "user:student_demo"
+
+        async def get_session_with_messages(self, session_id: str):
+            assert session_id == "session_empty"
+            return {
+                "id": "session_empty",
+                "preferences": {"source": "wx_miniprogram", "archived": False},
+                "messages": [],
+            }
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/session_empty/messages")
+
+    assert response.status_code == 200
+    assert response.json() == {"messages": []}
+
+
+def test_get_conversation_messages_rejects_existing_non_mobile_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            assert session_id == "session_web"
+            return "user:student_demo"
+
+        async def get_session_with_messages(self, session_id: str):
+            assert session_id == "session_web"
+            return {
+                "id": "session_web",
+                "preferences": {"source": "web", "archived": False},
+                "messages": [],
+            }
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/session_web/messages")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Conversation not found"
+
+
 def test_wechat_login_route_maps_service_errors(monkeypatch: pytest.MonkeyPatch) -> None:
     async def _failing_login(_code: str):
         raise RuntimeError("WeChat code2Session failed")

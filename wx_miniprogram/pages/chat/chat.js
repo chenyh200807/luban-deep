@@ -10,6 +10,7 @@ var log = require("../../utils/logger");
 var workflowStatus = require("../../utils/workflow-status");
 var citationFormat = require("../../utils/citation-format");
 var chatTurnRecovery = require("../../utils/chat-turn-recovery");
+var historyTombstone = require("../../utils/history-tombstone");
 var markdownFixtures = require("../../utils/devtools-markdown-fixtures");
 
 // ── 常量（部分由性能分级动态覆盖）──────────────
@@ -30,20 +31,42 @@ var _IS_DEVTOOLS =
   typeof __wxConfig !== "undefined" && __wxConfig.platform === "devtools";
 var HISTORY_CACHE_KEY = "history_cache";
 var HISTORY_CACHE_KEY_ARCHIVED = "history_cache_archived";
-var HISTORY_DELETED_IDS_KEY = "history_deleted_conversation_ids";
+var CHAT_PENDING_TURN_KEY = "chat_pending_turn_v1";
+var PENDING_TURN_MAX_AGE_MS = 30 * 60 * 1000;
+var PENDING_TURN_POLL_MAX_ATTEMPTS = 1200;
+var PENDING_TURN_POLL_DELAY_MS = 1500;
+
+function normalizePendingTurn(raw) {
+  var source = raw && typeof raw === "object" ? raw : {};
+  var conversationId = String(source.conversationId || "").trim();
+  if (!conversationId) return null;
+  var createdAt = Number(source.createdAt) || Date.now();
+  if (Date.now() - createdAt > PENDING_TURN_MAX_AGE_MS) return null;
+  return {
+    conversationId: conversationId,
+    baselineCount: Math.max(0, Number(source.baselineCount) || 0),
+    query: String(source.query || ""),
+    clientTurnId: String(source.clientTurnId || ""),
+    turnId: String(source.turnId || ""),
+    createdAt: createdAt,
+  };
+}
+
+function getNavRightInset(info) {
+  try {
+    if (wx && typeof wx.getMenuButtonBoundingClientRect === "function") {
+      var rect = wx.getMenuButtonBoundingClientRect();
+      var width = info.windowWidth || info.screenWidth || 375;
+      if (rect && rect.left && width > rect.left) {
+        return Math.ceil(width - rect.left + 8);
+      }
+    }
+  } catch (_) {}
+  return 24;
+}
 
 function rememberDeletedConversationIds(ids) {
-  try {
-    var existing = wx.getStorageSync(HISTORY_DELETED_IDS_KEY) || [];
-    var map = {};
-    existing.forEach(function (id) {
-      if (id) map[id] = true;
-    });
-    ids.forEach(function (id) {
-      if (id) map[id] = true;
-    });
-    wx.setStorageSync(HISTORY_DELETED_IDS_KEY, Object.keys(map));
-  } catch (_) {}
+  historyTombstone.rememberDeletedConversationIds(ids);
 }
 
 function clearConversationHistoryCaches() {
@@ -103,6 +126,7 @@ Page({
   data: {
     statusBarHeight: 0,
     navHeight: 0,
+    navRightInset: 24,
     safeBottom: 0,
     viewportHeight: 0,
     contentHeight: 0,
@@ -211,6 +235,7 @@ Page({
   _convId: null,
   _pendingTurn: null,
   _recoveringTurn: false,
+  _pendingRecoveryActive: false,
   _surfaceTurnId: "",
   _firstVisibleAckSent: false,
   _doneRenderedAckSent: false,
@@ -228,6 +253,7 @@ Page({
       app && app.globalData && app.globalData.pendingConversationId;
     var statusBarHeight = info.statusBarHeight || 44;
     var windowWidth = info.windowWidth || info.screenWidth || 375;
+    var navRightInset = getNavRightInset(info);
     var navInnerHeight = Math.round(
       (NAVBAR_INNER_HEIGHT_RPX * windowWidth) / 750,
     );
@@ -243,6 +269,7 @@ Page({
     this.setData({
       statusBarHeight: statusBarHeight,
       navHeight: navHeight,
+      navRightInset: navRightInset,
       safeBottom: safeBottom,
       viewportHeight: viewportHeight,
       contentHeight: contentHeight,
@@ -272,6 +299,17 @@ Page({
       this._convId = null;
       wx.removeStorageSync("current_session_id");
       wx.removeStorageSync("current_session_ts");
+    }
+    var pendingTurn = this._loadPendingTurn();
+    if (pendingTurn) {
+      this._sid = pendingTurn.conversationId;
+      this._convId = pendingTurn.conversationId;
+      wx.setStorageSync("current_session_id", pendingTurn.conversationId);
+      wx.setStorageSync("current_session_ts", Date.now());
+      this.setData({
+        hasMessages: true,
+        isStreaming: true,
+      });
     }
   },
 
@@ -333,6 +371,16 @@ Page({
       self._restoreConversation(convId);
     } else if (!this.data.hasMessages && this._convId && this._sid) {
       self._restoreConversation(this._convId);
+    }
+    if (this._loadPendingTurn() && !this._pendingRecoveryActive) {
+      this._pendingRecoveryActive = true;
+      this.setData({ hasMessages: true, isStreaming: true });
+      this._recoverTurnFromHistory({ longPoll: true }).then(function (recovered) {
+        self._pendingRecoveryActive = false;
+        if (!recovered) {
+          self._recoveringTurn = false;
+        }
+      });
     }
     app.checkAuth(function () {
       self.setData({ timeGreeting: helpers.getTimeGreeting() });
@@ -489,12 +537,53 @@ Page({
       this._timer = null;
     }
     this._buf = "";
-    this._pendingTurn = null;
-    this._recoveringTurn = false;
+    if (options && options.cancelTurn) {
+      this._clearPendingTurn();
+      this._recoveringTurn = false;
+    } else if (this._pendingTurn) {
+      this._persistPendingTurn(this._pendingTurn);
+    }
+  },
+
+  _loadPendingTurn: function () {
+    var pending = null;
+    try {
+      pending = normalizePendingTurn(wx.getStorageSync(CHAT_PENDING_TURN_KEY));
+    } catch (_) {
+      pending = null;
+    }
+    if (!pending) {
+      try {
+        wx.removeStorageSync(CHAT_PENDING_TURN_KEY);
+      } catch (_) {}
+      return null;
+    }
+    this._pendingTurn = pending;
+    return pending;
+  },
+
+  _persistPendingTurn: function (pending) {
+    var normalized = normalizePendingTurn(pending);
+    if (!normalized) return null;
+    this._pendingTurn = normalized;
+    try {
+      wx.setStorageSync(CHAT_PENDING_TURN_KEY, normalized);
+    } catch (_) {}
+    return normalized;
+  },
+
+  _updatePendingTurn: function (patch) {
+    var current = this._pendingTurn || this._loadPendingTurn();
+    if (!current) return null;
+    return this._persistPendingTurn(Object.assign({}, current, patch || {}));
   },
 
   _clearPendingTurn: function () {
     this._pendingTurn = null;
+    this._pendingRecoveryActive = false;
+    try {
+      wx.removeStorageSync(CHAT_PENDING_TURN_KEY);
+    } catch (_) {}
   },
 
   _hydrateConversationMessages: function (rawMsgs) {
@@ -575,6 +664,21 @@ Page({
     setTimeout(function () {
       self._setupObserver();
     }, 50);
+  },
+
+  _finishPendingTurnRecovery: function (serverMessages) {
+    var hasServerMessages = Array.isArray(serverMessages);
+    this._recoveringTurn = false;
+    this._clearPendingTurn();
+    if (hasServerMessages) {
+      this._applyHydratedConversationMessages(serverMessages);
+      return;
+    }
+    this.setData({
+      hasMessages: !!(this.data.messages && this.data.messages.length),
+      isStreaming: false,
+      chatScrollWithAnimation: false,
+    });
   },
 
   debugReplaceMessagesWithStructuredSample: function (sample) {
@@ -664,9 +768,10 @@ Page({
     return this.debugReplaceMessagesWithStructuredSample(sample);
   },
 
-  _recoverTurnFromHistory: function () {
+  _recoverTurnFromHistory: function (options) {
     var self = this;
-    var pending = self._pendingTurn;
+    var opts = options || {};
+    var pending = self._pendingTurn || self._loadPendingTurn();
     if (
       !pending ||
       !pending.conversationId ||
@@ -676,7 +781,7 @@ Page({
       return Promise.resolve(false);
     }
 
-    var maxAttempts = 3;
+    var maxAttempts = opts.longPoll ? PENDING_TURN_POLL_MAX_ATTEMPTS : 3;
     var attempt = 0;
 
     function tryFetch() {
@@ -685,21 +790,26 @@ Page({
         .getConversationMessages(pending.conversationId)
         .then(function (raw) {
           var data = api.unwrapResponse(raw) || {};
-          var serverMessages = data.messages || data || [];
+          var serverMessages = [];
+          if (Array.isArray(data.messages)) {
+            serverMessages = data.messages;
+          } else if (Array.isArray(data)) {
+            serverMessages = data;
+          }
           if (
             !chatTurnRecovery.hasRecoveredAssistant(
               serverMessages,
-              pending.baselineCount,
-              pending.query,
+              pending,
             )
           ) {
             if (attempt < maxAttempts) {
               return new Promise(function (resolve) {
                 setTimeout(function () {
                   resolve(tryFetch());
-                }, attempt * 700);
+                }, opts.longPoll ? PENDING_TURN_POLL_DELAY_MS : attempt * 700);
               });
             }
+            self._finishPendingTurnRecovery(opts.longPoll ? serverMessages : null);
             return false;
           }
 
@@ -713,9 +823,10 @@ Page({
             return new Promise(function (resolve) {
               setTimeout(function () {
                 resolve(tryFetch());
-              }, attempt * 700);
+              }, opts.longPoll ? PENDING_TURN_POLL_DELAY_MS : attempt * 700);
             });
           }
+          self._finishPendingTurnRecovery();
           return false;
         });
     }
@@ -920,6 +1031,10 @@ Page({
           false,
         );
         self._setWorkflowState(failedIdx, failedState, false);
+        self.setData({
+          ["messages[" + failedIdx + "].streaming"]: false,
+          isStreaming: false,
+        });
       }
       self._clearPendingTurn();
       surfaceTelemetry.trackOnce(
@@ -992,6 +1107,7 @@ Page({
       if (d.engine_turn_id) {
         updates["messages[" + idx + "].engineTurnId"] = d.engine_turn_id;
         this._surfaceTurnId = d.engine_turn_id;
+        this._updatePendingTurn({ turnId: d.engine_turn_id });
       }
       if (d.billing && typeof d.billing === "object") {
         updates["messages[" + idx + "].billing"] = d.billing;
@@ -1616,11 +1732,20 @@ Page({
       existing = existing.slice(existing.length - (MAX_MESSAGES - 2));
     }
     var msgs = existing.concat([userMsg, aiMsg]);
-    self._pendingTurn = {
+    // 同一轮消息在网络重连时复用同一个客户端侧标识。
+    var _turnId =
+      self._sid +
+      "_" +
+      Date.now().toString(36) +
+      "_" +
+      Math.random().toString(36).substr(2, 4);
+    self._persistPendingTurn({
       conversationId: self._sid,
       baselineCount: existing.length,
       query: query,
-    };
+      clientTurnId: _turnId,
+      createdAt: Date.now(),
+    });
 
     self.setData({
       messages: msgs,
@@ -1638,15 +1763,6 @@ Page({
     if (typeof self.getTabBar === "function" && self.getTabBar()) {
       self.getTabBar().setData({ hidden: true });
     }
-
-    // [Client Turn Idempotency] Generate stable turn ID for this message.
-    // 同一轮消息在网络重连时复用同一个客户端侧标识。
-    var _turnId =
-      self._sid +
-      "_" +
-      Date.now().toString(36) +
-      "_" +
-      Math.random().toString(36).substr(2, 4);
 
     var tutorInteraction = self._buildTutorInteraction();
     self._surfaceTurnId = "";
@@ -1701,6 +1817,7 @@ Page({
           if (!event || !event.eventName) return;
           if (event.turnId) {
             self._surfaceTurnId = event.turnId;
+            self._updatePendingTurn({ turnId: event.turnId });
           }
           if (event.eventName === "resume_succeeded") {
             surfaceTelemetry.trackOnce(

@@ -109,6 +109,56 @@ run("ignores identical historical query before the current baseline", function (
   );
 });
 
+run("prefers server turn identity over query and local baseline", function () {
+  var messages = [
+    { role: "user", content: "模板起拱高度是多少？" },
+    { role: "assistant", content: "历史回答", engine_turn_id: "turn_old" },
+    { role: "user", content: "模板起拱高度是多少？" },
+    { role: "assistant", content: "当前回答", engine_turn_id: "turn_current" },
+  ];
+
+  var found = recovery.findRecoveredAssistant(messages, {
+    baselineCount: 100,
+    query: "模板起拱高度是多少？",
+    turnId: "turn_current",
+  });
+
+  assert(!!found, "turn id should recover even when local baseline was truncated");
+  assertEqual(found.assistantMessage.content, "当前回答", "turn id should select the current answer");
+});
+
+run("does not fall back to an older identical query when turn id is known", function () {
+  var messages = [
+    { role: "user", content: "模板起拱高度是多少？" },
+    { role: "assistant", content: "历史回答", engine_turn_id: "turn_old" },
+  ];
+
+  assert(
+    !recovery.hasRecoveredAssistant(messages, {
+      baselineCount: 0,
+      query: "模板起拱高度是多少？",
+      turnId: "turn_current",
+    }),
+    "known turn id should prevent query fallback from recovering an older repeated answer",
+  );
+});
+
+run("can recover by client turn id before server turn id is known", function () {
+  var messages = [
+    { role: "user", content: "模板起拱高度是多少？", client_turn_id: "client_1" },
+    { role: "assistant", content: "当前回答" },
+  ];
+
+  var found = recovery.findRecoveredAssistant(messages, {
+    baselineCount: 100,
+    query: "模板起拱高度是多少？",
+    clientTurnId: "client_1",
+  });
+
+  assert(!!found, "client turn id should recover even before engine turn id is available");
+  assertEqual(found.assistantIndex, 1, "client turn id should bind to the assistant after that user turn");
+});
+
 if (fail) {
   console.error(errors.join("\n"));
   process.exit(1);

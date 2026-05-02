@@ -92,6 +92,19 @@ assert(
   "chat scene should expose a ChatGPT-like new-chat and more-actions pair",
 );
 assert(
+  chatWxml.indexOf('<view class="nav-compose-icon"></view>') >= 0 &&
+    chatWxml.indexOf("✎") < 0 &&
+    chatWxss.indexOf("background-image: url(\"data:image/svg+xml") >= 0 &&
+    chatWxss.indexOf("M18.375 2.625") >= 0,
+  "chat new-conversation button should use a ChatGPT-like square-pen SVG instead of a text glyph",
+);
+assert(
+  chatWxml.indexOf('class="navbar-inner" style="padding-right:{{navRightInset}}px"') >= 0 &&
+    chatJs.indexOf("wx.getMenuButtonBoundingClientRect") >= 0 &&
+    chatJs.indexOf("navRightInset: navRightInset") >= 0,
+  "chat navbar actions should reserve the WeChat system capsule area",
+);
+assert(
   chatJs.indexOf('itemList: ["归档对话", "删除对话"]') >= 0 &&
     chatJs.indexOf('.batchConversations("archive", [convId])') >= 0 &&
     chatJs.indexOf(".deleteConversation(convId)") >= 0,
@@ -131,6 +144,20 @@ assert(
   chatWxml.indexOf("class=\"hero-more-btn\"") >= 0 &&
     chatJs.indexOf("onHeroMoreActions") >= 0,
   "hero secondary actions should be consolidated behind a more menu",
+);
+assert(
+  chatWxml.indexOf('class="example-scroll" wx:if="{{enableMarquee}}" scroll-x') >= 0 &&
+    chatWxml.indexOf('class="example-scroll-track"') >= 0 &&
+    chatWxml.indexOf('class="example-scroll-group"') >= 0 &&
+    chatWxss.indexOf(".example-scroll") >= 0 &&
+    chatWxss.indexOf(".example-scroll-track") >= 0 &&
+    chatWxss.indexOf("@keyframes exampleMarquee") >= 0,
+  "example suggestions should keep marquee motion inside a native horizontal scroll-view",
+);
+assert(
+  chatWxss.indexOf(".example-scroll:active .example-scroll-track") >= 0 &&
+    chatWxss.indexOf("animation-play-state: paused") >= 0,
+  "example suggestions should pause marquee motion during touch so users can drag directly",
 );
 assert(
   chatWxml.indexOf("class=\"row-icon-btn\" bindtap=\"onToggleTheme\"") < 0 &&

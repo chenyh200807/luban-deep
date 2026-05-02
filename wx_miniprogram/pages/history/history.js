@@ -2,10 +2,10 @@
 
 var api = require("../../utils/api");
 var helpers = require("../../utils/helpers");
+var historyTombstone = require("../../utils/history-tombstone");
 
 var CACHE_KEY = "history_cache";
 var CACHE_KEY_ARCHIVED = "history_cache_archived";
-var CACHE_KEY_DELETED = "history_deleted_conversation_ids";
 var CACHE_TTL = 60 * 1000; // 60s 内直接用缓存
 
 function _clipText(value, limit) {
@@ -225,25 +225,15 @@ function _flattenGroups(groups) {
 }
 
 function _readDeletedConversationIds() {
-  var raw = wx.getStorageSync(CACHE_KEY_DELETED);
-  if (!raw || typeof raw !== "object") return {};
-  return raw;
+  return historyTombstone.readDeletedConversationIds();
 }
 
 function _rememberDeletedConversationIds(ids) {
-  var tombstones = _readDeletedConversationIds();
-  (ids || []).forEach(function (id) {
-    var key = String(id || "").trim();
-    if (key) tombstones[key] = Date.now();
-  });
-  wx.setStorageSync(CACHE_KEY_DELETED, tombstones);
+  historyTombstone.rememberDeletedConversationIds(ids);
 }
 
 function _filterDeletedConversations(convs) {
-  var tombstones = _readDeletedConversationIds();
-  return (Array.isArray(convs) ? convs : []).filter(function (item) {
-    return !tombstones[String((item && item.id) || "").trim()];
-  });
+  return historyTombstone.filterDeletedConversations(convs);
 }
 
 function _monthLabel(ts) {

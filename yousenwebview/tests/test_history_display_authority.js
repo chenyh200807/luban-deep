@@ -57,6 +57,39 @@ function loadHistoryPage(rawConversations, initialStorage) {
           syncTabBar: function () {},
         };
       }
+      if (request === "../../utils/history-tombstone") {
+        function normalize(raw) {
+          var tombstones = {};
+          if (Array.isArray(raw)) {
+            raw.forEach(function (id) {
+              if (id) tombstones[id] = Date.now();
+            });
+            return tombstones;
+          }
+          return raw && typeof raw === "object" ? raw : {};
+        }
+        return {
+          readDeletedConversationIds: function () {
+            var raw = storage.history_deleted_conversation_ids;
+            var tombstones = normalize(raw);
+            if (Array.isArray(raw)) storage.history_deleted_conversation_ids = tombstones;
+            return tombstones;
+          },
+          rememberDeletedConversationIds: function (ids) {
+            var tombstones = normalize(storage.history_deleted_conversation_ids);
+            (ids || []).forEach(function (id) {
+              if (id) tombstones[id] = Date.now();
+            });
+            storage.history_deleted_conversation_ids = tombstones;
+          },
+          filterDeletedConversations: function (convs) {
+            var tombstones = this.readDeletedConversationIds();
+            return (convs || []).filter(function (item) {
+              return !tombstones[item.id];
+            });
+          },
+        };
+      }
       if (request === "../../utils/runtime") {
         return {
           setWorkspaceBack: function () {},
@@ -279,6 +312,48 @@ function loadHistoryPage(rawConversations, initialStorage) {
     deletedPage._testStorage.history_cache.conversations.length === 1 &&
       deletedPage._testStorage.history_cache.conversations[0].id === "visible_after_refresh",
     "history cache should also exclude deleted tombstone conversations",
+  );
+
+  var legacyDeletedPage = loadHistoryPage(
+    [
+      {
+        id: "legacy_array_deleted",
+        title: "旧数组删除标记",
+        capability: "chat",
+        source: "wx_miniprogram",
+        status: "completed",
+        message_count: 1,
+        updated_at_ms: nowMs,
+        last_message: "这条也不应重新出现",
+      },
+      {
+        id: "legacy_array_visible",
+        title: "旧数组保留对话",
+        capability: "chat",
+        source: "wx_miniprogram",
+        status: "completed",
+        message_count: 1,
+        updated_at_ms: nowMs,
+        last_message: "这条应该保留",
+      },
+    ],
+    {
+      history_deleted_conversation_ids: ["legacy_array_deleted"],
+    },
+  );
+
+  await legacyDeletedPage._fetchFromServer(false);
+  await Promise.resolve();
+
+  assert(
+    legacyDeletedPage.data.conversations.length === 1 &&
+      legacyDeletedPage.data.conversations[0].id === "legacy_array_visible",
+    "package history should migrate legacy array tombstones and still filter deleted conversations",
+  );
+  assert(
+    !Array.isArray(legacyDeletedPage._testStorage.history_deleted_conversation_ids) &&
+      legacyDeletedPage._testStorage.history_deleted_conversation_ids.legacy_array_deleted,
+    "package legacy array tombstones should be rewritten into the canonical object map",
   );
 
   if (fail) {

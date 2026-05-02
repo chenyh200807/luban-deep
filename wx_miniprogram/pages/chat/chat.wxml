@@ -24,7 +24,7 @@ module.exports = {
 
   <!-- 顶栏 — 仅 logo + 新对话 -->
   <view class="navbar {{hasMessages ? 'navbar-chat' : ''}}" style="padding-top:{{statusBarHeight}}px">
-    <view class="navbar-inner">
+    <view class="navbar-inner" style="padding-right:{{navRightInset}}px">
       <image class="nav-logo {{hasMessages ? 'nav-logo-chat' : ''}}" src="/images/logo-white.png" mode="heightFix" bindtap="goHome" aria-role="button" aria-label="回到首页" />
       <view class="nav-back-pill" wx:if="{{hasMessages}}" bindtap="onNavBackTap" aria-role="button" aria-label="返回首页">
         <text class="nav-back-arrow">‹</text>
@@ -37,7 +37,7 @@ module.exports = {
       </view>
       <view class="nav-chat-actions" wx:if="{{hasMessages}}">
         <view class="nav-icon-btn nav-new-chat" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
-          <text class="nav-compose-icon">✎</text>
+          <view class="nav-compose-icon"></view>
         </view>
         <view class="nav-icon-btn nav-more-chat" bindtap="onChatMoreActions" aria-role="button" aria-label="更多对话操作">
           <text class="nav-more-icon">•••</text>
@@ -123,31 +123,34 @@ module.exports = {
 
     <!-- 示例 -->
     <text class="example-label">试试这样问</text>
-    <!-- 高/中端：跑马灯动画 -->
-    <view class="marquee-wrap" wx:if="{{enableMarquee}}">
-      <view class="marquee-track">
-        <view class="example-card" wx:for="{{examples}}" wx:key="title" bindtap="sendExample" data-text="{{item.query}}">
-          <view class="example-icon" style="background:{{isDark ? item.bgDark : item.bgLight}};color:{{isDark ? item.fgDark : item.fgLight}}">
-            <text class="example-icon-txt">{{item.icon}}</text>
-          </view>
-          <view class="example-body">
-            <text class="example-title">{{item.title}}</text>
-            <text class="example-desc">{{item.desc}}</text>
+    <!-- 高/中端：空闲自动巡航，触摸时可手动拖动 -->
+    <scroll-view class="example-scroll" wx:if="{{enableMarquee}}" scroll-x enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}">
+      <view class="example-scroll-track">
+        <view class="example-scroll-group">
+          <view class="example-card" wx:for="{{examples}}" wx:key="title" bindtap="sendExample" data-text="{{item.query}}">
+            <view class="example-icon" style="background:{{isDark ? item.bgDark : item.bgLight}};color:{{isDark ? item.fgDark : item.fgLight}}">
+              <text class="example-icon-txt">{{item.icon}}</text>
+            </view>
+            <view class="example-body">
+              <text class="example-title">{{item.title}}</text>
+              <text class="example-desc">{{item.desc}}</text>
+            </view>
           </view>
         </view>
-        <!-- 重复一份实现无缝循环 -->
-        <view class="example-card" wx:for="{{examples}}" wx:key="title" bindtap="sendExample" data-text="{{item.query}}">
-          <view class="example-icon" style="background:{{isDark ? item.bgDark : item.bgLight}};color:{{isDark ? item.fgDark : item.fgLight}}">
-            <text class="example-icon-txt">{{item.icon}}</text>
-          </view>
-          <view class="example-body">
-            <text class="example-title">{{item.title}}</text>
-            <text class="example-desc">{{item.desc}}</text>
+        <view class="example-scroll-group">
+          <view class="example-card" wx:for="{{examples}}" wx:key="title" bindtap="sendExample" data-text="{{item.query}}">
+            <view class="example-icon" style="background:{{isDark ? item.bgDark : item.bgLight}};color:{{isDark ? item.fgDark : item.fgLight}}">
+              <text class="example-icon-txt">{{item.icon}}</text>
+            </view>
+            <view class="example-body">
+              <text class="example-title">{{item.title}}</text>
+              <text class="example-desc">{{item.desc}}</text>
+            </view>
           </view>
         </view>
       </view>
-    </view>
-    <!-- 低端：静态网格（无跑马灯动画） -->
+    </scroll-view>
+    <!-- 低端：静态网格 -->
     <view class="example-grid" wx:else>
       <view class="example-card" wx:for="{{examples}}" wx:key="title" bindtap="sendExample" data-text="{{item.query}}">
         <view class="example-icon" style="background:{{isDark ? item.bgDark : item.bgLight}};color:{{isDark ? item.fgDark : item.fgLight}}">

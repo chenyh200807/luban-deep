@@ -725,6 +725,55 @@ def test_home_dashboard_today_focus_incorporates_heartbeat_without_making_it_aut
     assert "阶段层级" in dashboard["today_focus"]["query"]
 
 
+def test_home_dashboard_ignores_global_workspace_heartbeat_as_user_focus_authority(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("no_user_heartbeat")
+
+    def _apply(data: dict[str, object]) -> None:
+        for member in data["members"]:
+            if member["user_id"] != "no_user_heartbeat":
+                continue
+            member["focus_topic"] = "施工管理"
+            member["focus_query"] = "继续我的学习计划"
+            member["review_due"] = 0
+            break
+
+    service._mutate(_apply)
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "no_user_heartbeat"
+            return type(
+                "Snapshot",
+                (),
+                {
+                    "profile": {},
+                    "summary": "",
+                    "progress": {},
+                    "memory_events": [],
+                },
+            )()
+
+        def list_heartbeat_jobs(self, user_id: str):
+            assert user_id == "no_user_heartbeat"
+            return []
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 3):
+            assert user_id == "no_user_heartbeat"
+            return []
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    dashboard = service.get_home_dashboard("no_user_heartbeat")
+
+    assert dashboard["today_focus"]["source"] == "learner_state.study_plan"
+    assert "周期复习节奏" not in dashboard["today_focus"]["query"]
+
+
 @pytest.mark.asyncio
 async def test_production_bootstrap_persists_first_wechat_user_without_demo_seed(
     monkeypatch: pytest.MonkeyPatch,
