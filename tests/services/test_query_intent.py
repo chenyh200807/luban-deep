@@ -52,3 +52,14 @@ def test_build_grounding_decision_from_metadata_prefetches_current_info_query() 
     assert decision.current_info_required is True
     assert decision.textbook_delta_query is True
     assert decision.should_prefetch_grounded_rag is True
+
+
+def test_build_grounding_decision_marks_exam_schedule_queries_current_info() -> None:
+    decision = build_grounding_decision(
+        query="2026一建考试时间",
+        rag_enabled=True,
+        tutorbot_context=True,
+    )
+
+    assert decision.current_info_required is True
+    assert "current_info_required" in decision.reasons

@@ -18,6 +18,35 @@ _CURRENT_INFO_KEYWORDS = (
     "变化",
 )
 
+_CURRENT_EXAM_SCHEDULE_MARKERS = (
+    "考试时间",
+    "考试日期",
+    "考试安排",
+    "考试计划",
+    "考务安排",
+    "报名时间",
+    "报考时间",
+    "准考证",
+    "成绩查询",
+    "成绩公布",
+    "什么时候考",
+    "哪天考",
+    "几号考",
+)
+
+_CURRENT_EXAM_NAME_MARKERS = (
+    "一建",
+    "一级建造师",
+    "二建",
+    "二级建造师",
+    "建造师",
+    "造价工程师",
+    "监理工程师",
+    "注册安全工程师",
+    "注安",
+    "建筑师",
+)
+
 _TEXTBOOK_DELTA_MARKERS = (
     "变化",
     "变动",
@@ -61,7 +90,11 @@ def normalize_query_text(query: str) -> str:
 
 def query_requires_current_info(query: str) -> bool:
     text = normalize_query_text(query)
-    return any(keyword in text for keyword in _CURRENT_INFO_KEYWORDS)
+    if any(keyword in text for keyword in _CURRENT_INFO_KEYWORDS):
+        return True
+    return any(marker in text for marker in _CURRENT_EXAM_SCHEDULE_MARKERS) and any(
+        marker in text for marker in _CURRENT_EXAM_NAME_MARKERS
+    )
 
 
 def looks_like_textbook_delta_query(query: str) -> bool:

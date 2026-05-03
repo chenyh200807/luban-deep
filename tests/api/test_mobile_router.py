@@ -381,7 +381,7 @@ def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
     assert config["interaction_hints"]["allow_general_chat_fallback"] is False
 
 
-def test_mobile_chat_start_turn_enables_web_search_for_current_info_policy_queries(
+def test_mobile_chat_start_turn_enables_web_search_for_current_info_queries(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, object] = {}
@@ -414,7 +414,7 @@ def test_mobile_chat_start_turn_enables_web_search_for_current_info_policy_queri
         response = client.post(
             "/api/v1/chat/start-turn",
             json={
-                "query": "2025年住建部最新政策有什么变化？",
+                "query": "2026一建考试时间",
                 "mode": "AUTO",
                 "language": "zh",
             },
