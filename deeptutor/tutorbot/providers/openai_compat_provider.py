@@ -232,7 +232,15 @@ class OpenAICompatProvider(LLMProvider):
             "messages": self._sanitize_messages(self._sanitize_empty_content(messages)),
         }
 
-        if self._supports_temperature(model_name, reasoning_effort):
+        provider_reasoning_effort = reasoning_effort
+        if (
+            spec
+            and spec.name == "dashscope"
+            and str(reasoning_effort or "").strip().lower() == "minimal"
+        ):
+            provider_reasoning_effort = None
+
+        if self._supports_temperature(model_name, provider_reasoning_effort):
             kwargs["temperature"] = temperature
 
         if spec and getattr(spec, "supports_max_completion_tokens", False):
@@ -247,8 +255,8 @@ class OpenAICompatProvider(LLMProvider):
                     kwargs.update(overrides)
                     break
 
-        if reasoning_effort:
-            kwargs["reasoning_effort"] = reasoning_effort
+        if provider_reasoning_effort:
+            kwargs["reasoning_effort"] = provider_reasoning_effort
 
         if spec and reasoning_effort is not None:
             thinking_enabled = reasoning_effort.lower() != "minimal"

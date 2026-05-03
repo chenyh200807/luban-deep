@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -68,6 +69,24 @@ _READINESS_CHECK_NAMES = (
     "tutorbots_ready",
     "learner_state_runtime_ready",
 )
+
+
+def _assessment_form_prewarm_enabled() -> bool:
+    return (
+        is_production_environment()
+        or env_flag("ASSESSMENT_USE_SUPABASE", default=False)
+        or env_flag("ASSESSMENT_PREWARM_FORMS", default=False)
+    )
+
+
+def _prewarm_assessment_forms_sync() -> None:
+    try:
+        from deeptutor.services.member_console import get_member_console_service
+
+        result = get_member_console_service().prewarm_assessment_forms()
+        logger.info("Assessment forms prewarmed: %s", result)
+    except Exception as exc:
+        logger.warning("Failed to prewarm assessment forms: %s", exc, exc_info=True)
 
 
 class SafeOutputStaticFiles(StaticFiles):
@@ -272,6 +291,12 @@ async def lifespan(app: FastAPI):
             raise RuntimeError(
                 "Critical startup dependencies failed: " + "; ".join(startup_failures)
             )
+
+    if _assessment_form_prewarm_enabled():
+        app.state.assessment_form_prewarm_task = asyncio.create_task(
+            asyncio.to_thread(_prewarm_assessment_forms_sync)
+        )
+        logger.info("Assessment form prewarm scheduled")
     yield
 
     # Execute on shutdown

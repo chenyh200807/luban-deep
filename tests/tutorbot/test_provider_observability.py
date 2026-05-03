@@ -44,6 +44,34 @@ class _FakeObservability:
         self.updated.append(kwargs)
 
 
+def test_dashscope_minimal_reasoning_disables_thinking_without_invalid_reasoning_effort() -> None:
+    provider = OpenAICompatProvider.__new__(OpenAICompatProvider)
+    LLMProvider.__init__(provider, api_key="sk-test", api_base="https://dashscope.aliyuncs.com/compatible-mode/v1")
+    provider.default_model = "deepseek-v4-flash"
+    provider.extra_headers = {}
+    provider._spec = SimpleNamespace(
+        name="dashscope",
+        supports_prompt_caching=False,
+        strip_model_prefix=False,
+        supports_max_completion_tokens=False,
+        model_overrides=(),
+    )
+    provider._provider_name = "dashscope"
+
+    kwargs = provider._build_kwargs(
+        messages=[{"role": "user", "content": "hi"}],
+        tools=None,
+        model="deepseek-v4-flash",
+        max_tokens=256,
+        temperature=0.7,
+        reasoning_effort="minimal",
+        tool_choice=None,
+    )
+
+    assert kwargs["extra_body"] == {"enable_thinking": False}
+    assert "reasoning_effort" not in kwargs
+
+
 @pytest.mark.asyncio
 async def test_openai_compat_provider_records_provider_usage(monkeypatch: pytest.MonkeyPatch) -> None:
     fake_observability = _FakeObservability()

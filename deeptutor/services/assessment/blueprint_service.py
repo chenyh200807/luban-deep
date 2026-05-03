@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import hashlib
 import os
 from pathlib import Path
+import threading
 from typing import Any, Protocol
 from urllib import error, parse, request
 import json
@@ -30,6 +31,9 @@ _CHAPTER_CODE_LABELS = {
     "1A431": "建筑工程法规",
     "1A432": "建筑工程技术标准",
 }
+_ASSESSMENT_FORM_COUNT = 5
+_FORM_CACHE_LOCK = threading.RLock()
+_FORM_CACHE: dict[str, "_AssessmentFormBank"] = {}
 
 
 class AssessmentBlueprintUnavailable(RuntimeError):
@@ -49,6 +53,27 @@ class QuestionCandidate:
     source_chunk_id: str = ""
     node_code: str = ""
     source_meta: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True)
+class _AssessmentFormUnit:
+    section_id: str
+    scored: bool
+    item: QuestionCandidate | ProfileProbe
+
+
+@dataclass(frozen=True)
+class _AssessmentForm:
+    form_id: str
+    form_index: int
+    units: tuple[_AssessmentFormUnit, ...]
+    fallback_used: bool
+
+
+@dataclass(frozen=True)
+class _AssessmentFormBank:
+    forms: tuple[_AssessmentForm, ...]
+    question_bank_size: int
 
 
 class AssessmentQuestionProvider(Protocol):
@@ -304,6 +329,10 @@ class SupabaseAssessmentQuestionProvider:
         except ValueError:
             return 0
 
+    def form_cache_key(self, blueprint_version: str) -> str:
+        base_url, _api_key = self._supabase_config()
+        return f"supabase_questions_bank:{base_url}:{blueprint_version}:assessment_forms_v2"
+
 
 class AssessmentBlueprintService:
     def __init__(
@@ -318,27 +347,156 @@ class AssessmentBlueprintService:
         self._provider = provider
         self._fallback_provider = fallback_provider
         self._allow_dev_fallback = allow_dev_fallback
+        self._local_form_bank: _AssessmentFormBank | None = None
 
     @property
     def blueprint(self) -> AssessmentBlueprint:
         return self._blueprint
+
+    def prewarm_forms(self) -> dict[str, Any]:
+        form_bank = self._get_or_build_form_bank()
+        return {
+            "blueprint_version": self._blueprint.version,
+            "form_count": len(form_bank.forms),
+            "form_ids": [form.form_id for form in form_bank.forms],
+            "question_bank_size": form_bank.question_bank_size,
+            "fallback_used": any(form.fallback_used for form in form_bank.forms),
+        }
 
     def create_session(self, *, user_id: str, count: int = 20) -> dict[str, Any]:
         requested_count = max(1, int(count or self._blueprint.requested_count))
         if requested_count != self._blueprint.requested_count:
             requested_count = self._blueprint.requested_count
 
+        form_bank = self._get_or_build_form_bank()
+        form = _choose_assessment_form(form_bank.forms)
         client_questions: list[dict[str, Any]] = []
         session_questions: list[dict[str, Any]] = []
         sections: list[dict[str, Any]] = []
+        for section in self._blueprint.sections:
+            section_question_ids: list[str] = []
+            section_units = [unit for unit in form.units if unit.section_id == section.id]
+            if len(section_units) != section.count:
+                raise AssessmentBlueprintUnavailable(
+                    f"Assessment form {form.form_id} section {section.id} expected {section.count} units, "
+                    f"found {len(section_units)}"
+                )
+            for unit in section_units:
+                if unit.scored:
+                    candidate = unit.item
+                    if not isinstance(candidate, QuestionCandidate):
+                        raise AssessmentBlueprintUnavailable(f"Assessment form {form.form_id} has invalid scored unit")
+                    question_id = _make_question_id(candidate.source_question_id, len(client_questions) + 1)
+                    section_question_ids.append(question_id)
+                    client, stored = _build_scored_question(question_id, section, candidate)
+                    client_questions.append(client)
+                    session_questions.append(stored)
+                else:
+                    probe = unit.item
+                    if not isinstance(probe, ProfileProbe):
+                        raise AssessmentBlueprintUnavailable(f"Assessment form {form.form_id} has invalid profile unit")
+                    question_id = _make_question_id(probe.id, len(client_questions) + 1)
+                    section_question_ids.append(question_id)
+                    client, stored = _build_profile_probe_question(question_id, section, probe)
+                    client_questions.append(client)
+                    session_questions.append(stored)
+
+            sections.append(
+                {
+                    "section_id": section.id,
+                    "label": section.label,
+                    "count": section.count,
+                    "scored": section.scored,
+                    "question_ids": section_question_ids,
+                }
+            )
+
+        delivered_count = len(client_questions)
+        if delivered_count != self._blueprint.requested_count:
+            raise AssessmentBlueprintUnavailable(
+                f"Assessment blueprint {self._blueprint.version} delivered {delivered_count}, "
+                f"expected {self._blueprint.requested_count}"
+            )
+        quiz_id = f"quiz_{uuid.uuid4().hex[:10]}"
+        question_bank_size = max(form_bank.question_bank_size, delivered_count)
+        return {
+            "quiz_id": quiz_id,
+            "user_id": user_id,
+            "questions": client_questions,
+            "session_questions": session_questions,
+            "blueprint_version": self._blueprint.version,
+            "sections": sections,
+            "requested_count": requested_count,
+            "delivered_count": delivered_count,
+            "scored_count": self._blueprint.scored_count,
+            "profile_count": self._blueprint.profile_count,
+            "available_count": question_bank_size,
+            "question_bank_size": question_bank_size,
+            "unique_source_question_count": len({item["source_question_id"] for item in session_questions}),
+            "shortfall_count": 0,
+            "fallback_used": form.fallback_used,
+            "form_id": form.form_id,
+            "form_index": form.form_index,
+            "form_count": len(form_bank.forms),
+        }
+
+    def _get_or_build_form_bank(self) -> _AssessmentFormBank:
+        if self._local_form_bank is not None:
+            return self._local_form_bank
+        cache_key = self._form_cache_key()
+        if cache_key:
+            with _FORM_CACHE_LOCK:
+                cached = _FORM_CACHE.get(cache_key)
+                if cached is not None:
+                    self._local_form_bank = cached
+                    return cached
+        form_bank = self._build_form_bank()
+        if cache_key:
+            with _FORM_CACHE_LOCK:
+                _FORM_CACHE.setdefault(cache_key, form_bank)
+                form_bank = _FORM_CACHE[cache_key]
+        self._local_form_bank = form_bank
+        return form_bank
+
+    def _form_cache_key(self) -> str:
+        getter = getattr(self._provider, "form_cache_key", None)
+        if not callable(getter):
+            return ""
+        try:
+            return str(getter(self._blueprint.version) or "")
+        except Exception:
+            return ""
+
+    def _build_form_bank(self) -> _AssessmentFormBank:
+        forms: list[_AssessmentForm] = []
+        for form_index in range(1, _ASSESSMENT_FORM_COUNT + 1):
+            units, fallback_used = self._build_form_units(form_index)
+            if len(units) != self._blueprint.requested_count:
+                raise AssessmentBlueprintUnavailable(
+                    f"Assessment form {form_index} delivered {len(units)}, expected {self._blueprint.requested_count}"
+                )
+            forms.append(
+                _AssessmentForm(
+                    form_id=f"{self._blueprint.version}_form_{form_index}",
+                    form_index=form_index,
+                    units=tuple(units),
+                    fallback_used=fallback_used,
+                )
+            )
+        question_bank_size = _provider_question_bank_size(self._provider)
+        if any(form.fallback_used for form in forms) and self._fallback_provider:
+            question_bank_size = max(question_bank_size, _provider_question_bank_size(self._fallback_provider))
+        return _AssessmentFormBank(forms=tuple(forms), question_bank_size=question_bank_size)
+
+    def _build_form_units(self, form_index: int) -> tuple[list[_AssessmentFormUnit], bool]:
+        units: list[_AssessmentFormUnit] = []
         exclude_source_ids: set[str] = set()
         avoid_scored_chapters: set[str] = set()
         profile_probe_iter = iter(get_profile_probes())
         fallback_used = False
-        selection_seed = f"{user_id}:{uuid.uuid4().hex}"
+        selection_seed = f"{self._blueprint.version}:assessment_form:{form_index}"
 
         for section in self._blueprint.sections:
-            section_question_ids: list[str] = []
             if section.scored:
                 try:
                     candidates = self._provider.get_candidates(
@@ -370,66 +528,27 @@ class AssessmentBlueprintService:
                 for candidate in candidates[: section.count]:
                     exclude_source_ids.add(candidate.source_question_id)
                     avoid_scored_chapters.add(_chapter_key(candidate.chapter))
-                    question_id = _make_question_id(candidate.source_question_id, len(client_questions) + 1)
-                    section_question_ids.append(question_id)
-                    client, stored = _build_scored_question(question_id, section, candidate)
-                    client_questions.append(client)
-                    session_questions.append(stored)
+                    units.append(_AssessmentFormUnit(section_id=section.id, scored=True, item=candidate))
             else:
                 for _ in range(section.count):
                     try:
                         probe = next(profile_probe_iter)
                     except StopIteration as exc:
                         raise AssessmentBlueprintUnavailable("Not enough built-in profile probes") from exc
-                    question_id = _make_question_id(probe.id, len(client_questions) + 1)
-                    section_question_ids.append(question_id)
-                    client, stored = _build_profile_probe_question(question_id, section, probe)
-                    client_questions.append(client)
-                    session_questions.append(stored)
-
-            sections.append(
-                {
-                    "section_id": section.id,
-                    "label": section.label,
-                    "count": section.count,
-                    "scored": section.scored,
-                    "question_ids": section_question_ids,
-                }
-            )
-
-        delivered_count = len(client_questions)
-        if delivered_count != self._blueprint.requested_count:
-            raise AssessmentBlueprintUnavailable(
-                f"Assessment blueprint {self._blueprint.version} delivered {delivered_count}, "
-                f"expected {self._blueprint.requested_count}"
-            )
-        quiz_id = f"quiz_{uuid.uuid4().hex[:10]}"
-        question_bank_size = _provider_question_bank_size(self._provider)
-        if fallback_used and self._fallback_provider:
-            question_bank_size = max(question_bank_size, _provider_question_bank_size(self._fallback_provider))
-        question_bank_size = max(question_bank_size, delivered_count)
-        return {
-            "quiz_id": quiz_id,
-            "user_id": user_id,
-            "questions": client_questions,
-            "session_questions": session_questions,
-            "blueprint_version": self._blueprint.version,
-            "sections": sections,
-            "requested_count": requested_count,
-            "delivered_count": delivered_count,
-            "scored_count": self._blueprint.scored_count,
-            "profile_count": self._blueprint.profile_count,
-            "available_count": question_bank_size,
-            "question_bank_size": question_bank_size,
-            "unique_source_question_count": len({item["source_question_id"] for item in session_questions}),
-            "shortfall_count": 0,
-            "fallback_used": fallback_used,
-        }
+                    units.append(_AssessmentFormUnit(section_id=section.id, scored=False, item=probe))
+        return units, fallback_used
 
 
 def _make_question_id(source_id: str, index: int) -> str:
     normalized = "".join(ch if ch.isalnum() else "_" for ch in str(source_id or "q"))[:40].strip("_") or "q"
     return f"{normalized}__{index:02d}_{uuid.uuid4().hex[:6]}"
+
+
+def _choose_assessment_form(forms: tuple[_AssessmentForm, ...]) -> _AssessmentForm:
+    if not forms:
+        raise AssessmentBlueprintUnavailable("Assessment form bank is empty")
+    index = int(uuid.uuid4().hex[:8], 16) % len(forms)
+    return forms[index]
 
 
 def _build_scored_question(

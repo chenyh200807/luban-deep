@@ -28,6 +28,7 @@
 | Active Object 与语义路由 | [2026-04-18-llm-native-active-object-semantic-router-prd.md](2026-04-18-llm-native-active-object-semantic-router-prd.md) | follow-up、当前题、当前对象、多对象切换、语义 route |
 | 钱包与会员 authority | [2026-04-19-supabase-wallet-single-authority-prd.md](2026-04-19-supabase-wallet-single-authority-prd.md) | Supabase wallet、积分、会员、支付状态、身份归一化 |
 | 生产部署 | [2026-04-19-deeptutor-50000-member-deployment-prd.md](2026-04-19-deeptutor-50000-member-deployment-prd.md) | 5 万会员部署、扩容、上线稳健性 |
+| 联网搜索能力 | [2026-05-03-deeptutor-web-search-stack-prd.md](2026-05-03-deeptutor-web-search-stack-prd.md) / [2026-05-03-deeptutor-web-search-stack-implementation-plan.md](2026-05-03-deeptutor-web-search-stack-implementation-plan.md) | SearXNG、`web_search` fail-closed enablement、搜索 provider/runtime 验收 |
 | Observability 与 release gate | [2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md](2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md) | OM/ARR/AAE/OA、trace、surface ACK、release gate |
 | 鲁班智考个性化教学 | [2026-04-20-luban-adaptive-teaching-intelligence-prd.md](2026-04-20-luban-adaptive-teaching-intelligence-prd.md) / [2026-05-02-luban-assessment-blueprint-prd.md](2026-05-02-luban-assessment-blueprint-prd.md) | 因材施教、Learner Core、Teaching Policy、显性诊断、摸底测评蓝图 |
 | 鲁班智考反馈 Top10 修复 | [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md) / [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | 运营反馈问题注册表、Langfuse/后台证据、Top10 root-cause 分批修复 |
@@ -95,7 +96,14 @@
 | --- | --- | --- | --- |
 | [2026-04-19-deeptutor-50000-member-deployment-prd.md](2026-04-19-deeptutor-50000-member-deployment-prd.md) | PRD | 未标注 | 5 万会员规模下的部署、容量、稳健性设计。 |
 
-### 8. 鲁班智考 / 因材施教
+### 8. Web Search / 联网能力
+
+| 文件 | 类型 | 状态 | 说明 |
+| --- | --- | --- | --- |
+| [2026-05-03-deeptutor-web-search-stack-prd.md](2026-05-03-deeptutor-web-search-stack-prd.md) | PRD | Proposed v1 | 自部署 SearXNG + DeepTutor `web_search` 显式启用、fail-closed provider/runtime authority、UI/turn 验收。 |
+| [2026-05-03-deeptutor-web-search-stack-implementation-plan.md](2026-05-03-deeptutor-web-search-stack-implementation-plan.md) | Implementation Plan | Proposed v1 | `/opt/deeptutor-stack` Compose、SearXNG JSON、DeepTutor runtime enablement、acceptance script、备份升级与故障排查。 |
+
+### 9. 鲁班智考 / 因材施教
 
 | 文件 | 类型 | 状态 | 说明 |
 | --- | --- | --- | --- |
@@ -105,7 +113,7 @@
 | [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md) | Issue register | Draft | 从 DOCX/PPTX 原始使用反馈合并出的 Top10 问题域，用作后续分组修复的用户反馈 authority。 |
 | [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | Root-cause fix plan | Draft | 运营反馈与线上证据汇总出的 Top10 问题；Batch 1-4、2026-04-25 Batch A-H 已实施，继续收口练题结构化 config、SMS 真实送达、干净 DevTools/真机慢请求取消和移动端交互矩阵。 |
 
-### 9. 建筑实务 AI 互动课堂 / OpenMAIC 对标
+### 10. 建筑实务 AI 互动课堂 / OpenMAIC 对标
 
 | 文件 | 类型 | 状态 | 说明 |
 | --- | --- | --- | --- |
@@ -141,6 +149,7 @@
 - [2026-04-23-deeptutor-benchmark-single-spine-prd.md](2026-04-23-deeptutor-benchmark-single-spine-prd.md)
 - [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md)
 - [2026-05-02-luban-assessment-blueprint-prd.md](2026-05-02-luban-assessment-blueprint-prd.md)
+- [2026-05-03-deeptutor-web-search-stack-prd.md](2026-05-03-deeptutor-web-search-stack-prd.md)
 
 ### Service Design / Schema Appendix
 
@@ -154,6 +163,7 @@
 - [2026-04-19-deeptutor-observability-m0-m1-implementation-plan.md](2026-04-19-deeptutor-observability-m0-m1-implementation-plan.md)
 - [2026-04-19-deeptutor-observability-surface-ack-implementation-plan.md](2026-04-19-deeptutor-observability-surface-ack-implementation-plan.md)
 - [2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md](2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md)
+- [2026-05-03-deeptutor-web-search-stack-implementation-plan.md](2026-05-03-deeptutor-web-search-stack-implementation-plan.md)
 - [../openmaic/建筑实务AI互动课堂_Implementation_Plan_v1.2.md](../openmaic/建筑实务AI互动课堂_Implementation_Plan_v1.2.md)
 
 ### Audit / Runbook / Checklist

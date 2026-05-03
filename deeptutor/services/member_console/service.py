@@ -471,6 +471,9 @@ class MemberConsoleService:
             allow_dev_fallback=allow_dev_fallback,
         )
 
+    def prewarm_assessment_forms(self) -> dict[str, Any]:
+        return self._build_assessment_blueprint_service().prewarm_forms()
+
     def _write_assessment_learning_signals(
         self,
         user_id: str,
@@ -4195,6 +4198,9 @@ class MemberConsoleService:
                 "unique_source_question_count": payload["unique_source_question_count"],
                 "shortfall_count": payload["shortfall_count"],
                 "fallback_used": bool(payload.get("fallback_used")),
+                "form_id": payload.get("form_id") or "",
+                "form_index": int(payload.get("form_index") or 0),
+                "form_count": int(payload.get("form_count") or 0),
                 "created_at": now,
                 "observability": {
                     "started_at": now,
@@ -4221,6 +4227,9 @@ class MemberConsoleService:
                 "unique_source_question_count": payload["unique_source_question_count"],
                 "shortfall_count": payload["shortfall_count"],
                 "fallback_used": bool(payload.get("fallback_used")),
+                "form_id": payload.get("form_id") or "",
+                "form_index": int(payload.get("form_index") or 0),
+                "form_count": int(payload.get("form_count") or 0),
             }
 
         return self._mutate(_apply)

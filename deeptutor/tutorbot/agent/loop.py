@@ -844,17 +844,50 @@ class AgentLoop:
     ) -> tuple[str | None, list[dict[str, Any]]]:
         runtime_metadata = dict(runtime_metadata or {})
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
+        streamed_parts: list[str] = []
+
+        async def _capture_content_delta(text: str) -> None:
+            if not text:
+                return
+            streamed_parts.append(text)
+            if on_content_delta is not None:
+                await on_content_delta(text)
+
+        reasoning_effort = self._fast_policy_reasoning_effort()
         response = await self.provider.chat_with_retry(
             messages=initial_messages,
             tools=None,
             model=effective_model,
-            on_content_delta=on_content_delta,
+            reasoning_effort=reasoning_effort,
+            on_content_delta=_capture_content_delta,
         )
         clean = self._strip_think(response.content)
         if response.finish_reason == "error":
             final_content = clean or "Sorry, I encountered an error calling the AI model."
         else:
-            final_content = clean
+            final_content = clean or "".join(streamed_parts).strip()
+            if not final_content:
+                retry_messages = list(initial_messages)
+                retry_messages.append(
+                    {
+                        "role": "system",
+                        "content": (
+                            "上一轮模型调用没有返回用户可见正文。请直接用中文给出最终答案，"
+                            "不要输出思考过程、后台过程或占位说明。"
+                        ),
+                    }
+                )
+                response = await self.provider.chat_with_retry(
+                    messages=retry_messages,
+                    tools=None,
+                    model=effective_model,
+                    reasoning_effort=reasoning_effort,
+                    on_content_delta=_capture_content_delta,
+                )
+                retry_clean = self._strip_think(response.content)
+                final_content = retry_clean or "".join(streamed_parts).strip()
+                if response.finish_reason == "error" and not final_content:
+                    final_content = "Sorry, I encountered an error calling the AI model."
         messages = self.context.add_assistant_message(
             initial_messages,
             final_content,
@@ -862,6 +895,14 @@ class AgentLoop:
             thinking_blocks=response.thinking_blocks,
         )
         return final_content, messages
+
+    def _fast_policy_reasoning_effort(self) -> str | None:
+        spec = getattr(self.provider, "_spec", None)
+        provider_name = str(getattr(self.provider, "_provider_name", "") or "").strip().lower()
+        spec_name = str(getattr(spec, "name", "") or "").strip().lower()
+        if provider_name == "dashscope" or spec_name == "dashscope":
+            return "minimal"
+        return None
 
     async def _maybe_run_exact_rag_fast_path(
         self,

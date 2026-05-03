@@ -139,6 +139,16 @@ def _candidate(
     )
 
 
+class CountingStaticAssessmentQuestionProvider(StaticAssessmentQuestionProvider):
+    def __init__(self, candidates: list[QuestionCandidate]) -> None:
+        super().__init__(candidates)
+        self.call_count = 0
+
+    def get_candidates(self, *args, **kwargs):
+        self.call_count += 1
+        return super().get_candidates(*args, **kwargs)
+
+
 def test_blueprint_service_creates_20_units_with_profile_probes() -> None:
     candidates = [_candidate(index) for index in range(1, 40)] + [
         _candidate(100 + index, question_type="case_study") for index in range(1, 10)
@@ -155,11 +165,40 @@ def test_blueprint_service_creates_20_units_with_profile_probes() -> None:
     assert payload["delivered_count"] == 20
     assert payload["scored_count"] == 16
     assert payload["profile_count"] == 4
+    assert payload["form_count"] == 5
+    assert 1 <= payload["form_index"] <= 5
+    assert payload["form_id"].startswith("diagnostic_v1_form_")
     assert payload["shortfall_count"] == 0
     assert sum(1 for item in payload["session_questions"] if item["scored"]) == 16
     assert sum(1 for item in payload["session_questions"] if not item["scored"]) == 4
     assert all(item["provenance"]["question_id"] for item in payload["session_questions"])
     assert payload["sections"][0]["section_id"] == "foundation_deep_foundation"
+
+
+def test_blueprint_service_reuses_prebuilt_five_form_bank_between_sessions() -> None:
+    candidates = [
+        _candidate(
+            index,
+            question_type="case_study",
+            chapter=f"诊断章节 {index}",
+            difficulty=("easy", "medium", "hard")[index % 3],
+        )
+        for index in range(1, 80)
+    ]
+    provider = CountingStaticAssessmentQuestionProvider(candidates)
+    service = AssessmentBlueprintService(
+        provider=provider,
+        allow_dev_fallback=False,
+    )
+
+    first = service.create_session(user_id="student_demo", count=20)
+    call_count_after_first = provider.call_count
+    second = service.create_session(user_id="student_demo", count=20)
+
+    assert first["form_count"] == 5
+    assert second["form_count"] == 5
+    assert provider.call_count == call_count_after_first
+    assert call_count_after_first == 5 * sum(1 for section in service.blueprint.sections if section.scored)
 
 
 def test_blueprint_service_spreads_scored_questions_across_chapters_and_difficulties() -> None:
