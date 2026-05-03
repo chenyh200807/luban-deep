@@ -3708,6 +3708,170 @@ async def test_tutorbot_fast_mode_retries_when_provider_returns_no_visible_conte
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_fast_mode_retries_process_only_repair_output(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class EmptyProcessThenAnswerProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+            self.prompts: list[str] = []
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            del tools, model, max_tokens, temperature, reasoning_effort, tool_choice
+            self.calls += 1
+            self.prompts.append(str(messages[-1].get("content") or ""))
+            if self.calls == 1:
+                return LLMResponse(content=None, reasoning_content="internal reasoning only")
+            if self.calls == 2:
+                if on_content_delta is not None:
+                    await on_content_delta("好的，先看看你的学习记录，再给你做微课。")
+                return LLMResponse(content="好的，先看看你的学习记录，再给你做微课。")
+            if on_content_delta is not None:
+                await on_content_delta("核心考点：防水验收要抓住闭水时间和蓄水高度。")
+            return LLMResponse(content="核心考点：防水验收要抓住闭水时间和蓄水高度。")
+
+        def get_default_model(self) -> str:
+            return "default-model"
+
+    provider = EmptyProcessThenAnswerProvider()
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=provider,
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+
+    async def _no_fast_path(*_args, **_kwargs):
+        return None
+
+    async def _no_prefetch(*, initial_messages, **_kwargs):
+        return initial_messages
+
+    async def _fail_agent_loop(*_args, **_kwargs):
+        raise AssertionError("fast mode should not enter the generic multi-step agent loop")
+
+    monkeypatch.setattr(loop, "_maybe_run_exact_rag_fast_path", _no_fast_path)
+    monkeypatch.setattr(loop, "_maybe_prefetch_grounded_rag", _no_prefetch)
+    monkeypatch.setattr(loop, "_run_agent_loop", _fail_agent_loop)
+
+    streamed: list[str] = []
+    content = await loop.process_direct(
+        "请直接回答",
+        metadata={"effective_response_mode": "fast"},
+        on_content_delta=lambda text: _capture_async(streamed, text),
+    )
+
+    assert content == "核心考点：防水验收要抓住闭水时间和蓄水高度。"
+    assert streamed == ["核心考点：防水验收要抓住闭水时间和蓄水高度。"]
+    assert provider.calls == 3
+    assert "过程承诺" in provider.prompts[-1]
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_agent_loop_retries_when_final_response_has_no_visible_content(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class EmptyThenAnswerProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            del tools, model, max_tokens, temperature, reasoning_effort, tool_choice
+            self.calls += 1
+            if self.calls == 1:
+                return LLMResponse(content=None, reasoning_content="internal reasoning only")
+            assert messages[-1]["role"] == "system"
+            return LLMResponse(content="最终答案")
+
+        def get_default_model(self) -> str:
+            return "default-model"
+
+    provider = EmptyThenAnswerProvider()
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=provider,
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+
+    final_content, _tools_used, messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "请回答"}],
+    )
+
+    assert final_content == "最终答案"
+    assert messages[-1]["content"] == "最终答案"
+    assert provider.calls == 2
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_process_direct_prefetches_grounded_rag_for_current_info_query(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

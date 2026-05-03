@@ -232,11 +232,12 @@ class OpenAICompatProvider(LLMProvider):
             "messages": self._sanitize_messages(self._sanitize_empty_content(messages)),
         }
 
+        requested_reasoning_effort = str(reasoning_effort or "").strip().lower()
         provider_reasoning_effort = reasoning_effort
         if (
             spec
             and spec.name == "dashscope"
-            and str(reasoning_effort or "").strip().lower() == "minimal"
+            and requested_reasoning_effort == "minimal"
         ):
             provider_reasoning_effort = None
 
@@ -258,8 +259,11 @@ class OpenAICompatProvider(LLMProvider):
         if provider_reasoning_effort:
             kwargs["reasoning_effort"] = provider_reasoning_effort
 
-        if spec and reasoning_effort is not None:
-            thinking_enabled = reasoning_effort.lower() != "minimal"
+        if spec and (reasoning_effort is not None or spec.name == "dashscope"):
+            thinking_enabled = bool(
+                requested_reasoning_effort
+                and requested_reasoning_effort not in {"minimal", "none"}
+            )
             extra: dict[str, Any] | None = None
             if spec.name == "dashscope":
                 extra = {"enable_thinking": thinking_enabled}

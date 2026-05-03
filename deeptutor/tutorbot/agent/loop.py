@@ -74,6 +74,13 @@ class AgentLoop:
     _TOOL_RESULT_MAX_CHARS = 16_000
     _RAG_STOP_QUERY_SIMILARITY_THRESHOLD = 0.85
     _RAG_STOP_SOURCE_OVERLAP_THRESHOLD = 0.6
+    _USER_VISIBLE_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
+    _VISIBLE_ANSWER_REPAIR_PROMPTS = (
+        "上一轮模型调用没有返回用户可见正文。请直接用中文给出最终答案，"
+        "不要输出思考过程、后台过程或占位说明。",
+        "刚才输出的是过程承诺，不是最终答案。请现在直接给出可展示给学员的中文答案；"
+        "不要说“我先查看”“我会检索”“再给你”等过程话术。",
+    )
 
     def __init__(
         self,
@@ -243,6 +250,30 @@ class AgentLoop:
         if not text:
             return None
         return re.sub(r"<think>[\s\S]*?</think>", "", text).strip() or None
+
+    @classmethod
+    def _looks_like_process_only_answer(cls, text: str | None) -> bool:
+        source = re.sub(r"[\s，,。.!！?？：:；;]+", "", str(text or "").strip())
+        if not source or len(source) > 180:
+            return False
+        if any(marker in source for marker in ("踩分点", "易错点", "核心考点", "自查", "答案", "判断")):
+            return False
+        return bool(
+            re.match(r"^(好的|好|可以)?(我)?先(看|看看|查看|检索|查询|结合|梳理|分析)", source)
+            or re.match(r"^(好的|好|可以)?我(先|来)(看|查看|检索|查询|结合|梳理|分析)", source)
+        )
+
+    @classmethod
+    def _is_user_visible_final_answer(cls, text: str | None) -> bool:
+        clean = cls._strip_think(text)
+        if not clean:
+            return False
+        return not cls._looks_like_process_only_answer(clean)
+
+    @classmethod
+    def _visible_answer_repair_prompt(cls, attempt_index: int) -> str:
+        index = min(max(attempt_index, 0), len(cls._VISIBLE_ANSWER_REPAIR_PROMPTS) - 1)
+        return cls._VISIBLE_ANSWER_REPAIR_PROMPTS[index]
 
     @staticmethod
     def _tool_hint(tool_calls: list) -> str:
@@ -632,7 +663,46 @@ class AgentLoop:
                 # poison the context and cause permanent 400 loops (#1303).
                 if response.finish_reason == "error":
                     logger.error("LLM returned error: {}", (clean or "")[:200])
-                    final_content = clean or "Sorry, I encountered an error calling the AI model."
+                    final_content = clean or "模型调用失败，请稍后重试。"
+                    break
+                if not self._is_user_visible_final_answer(clean):
+                    retry_messages = list(messages)
+                    retry_messages.append(
+                        {
+                            "role": "system",
+                            "content": self._visible_answer_repair_prompt(0),
+                        }
+                    )
+                    retry_parts: list[str] = []
+
+                    async def _capture_retry_delta(text: str) -> None:
+                        if text:
+                            retry_parts.append(text)
+
+                    response = await self.provider.chat_with_retry(
+                        messages=retry_messages,
+                        tools=None,
+                        model=effective_model,
+                        on_content_delta=_capture_retry_delta,
+                    )
+                    clean = self._strip_think(response.content) or "".join(retry_parts).strip() or None
+                    if response.finish_reason == "error":
+                        logger.error("LLM retry returned error: {}", (clean or "")[:200])
+                        final_content = clean or "模型调用失败，请稍后重试。"
+                        break
+                    if not self._is_user_visible_final_answer(clean):
+                        logger.error("LLM returned no user-visible final answer after retry")
+                        final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
+                    else:
+                        final_content = clean
+                        if on_content_delta and final_content:
+                            await on_content_delta(final_content)
+                    messages = self.context.add_assistant_message(
+                        messages,
+                        final_content,
+                        reasoning_content=response.reasoning_content,
+                        thinking_blocks=response.thinking_blocks,
+                    )
                     break
                 messages = self.context.add_assistant_message(
                     messages, clean, reasoning_content=response.reasoning_content,
@@ -844,55 +914,50 @@ class AgentLoop:
     ) -> tuple[str | None, list[dict[str, Any]]]:
         runtime_metadata = dict(runtime_metadata or {})
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
-        streamed_parts: list[str] = []
-
-        async def _capture_content_delta(text: str) -> None:
-            if not text:
-                return
-            streamed_parts.append(text)
-            if on_content_delta is not None:
-                await on_content_delta(text)
-
         reasoning_effort = self._fast_policy_reasoning_effort()
-        response = await self.provider.chat_with_retry(
-            messages=initial_messages,
-            tools=None,
-            model=effective_model,
-            reasoning_effort=reasoning_effort,
-            on_content_delta=_capture_content_delta,
-        )
-        clean = self._strip_think(response.content)
-        if response.finish_reason == "error":
-            final_content = clean or "Sorry, I encountered an error calling the AI model."
-        else:
-            final_content = clean or "".join(streamed_parts).strip()
-            if not final_content:
-                retry_messages = list(initial_messages)
-                retry_messages.append(
-                    {
-                        "role": "system",
-                        "content": (
-                            "上一轮模型调用没有返回用户可见正文。请直接用中文给出最终答案，"
-                            "不要输出思考过程、后台过程或占位说明。"
-                        ),
-                    }
-                )
-                response = await self.provider.chat_with_retry(
-                    messages=retry_messages,
-                    tools=None,
-                    model=effective_model,
-                    reasoning_effort=reasoning_effort,
-                    on_content_delta=_capture_content_delta,
-                )
-                retry_clean = self._strip_think(response.content)
-                final_content = retry_clean or "".join(streamed_parts).strip()
-                if response.finish_reason == "error" and not final_content:
-                    final_content = "Sorry, I encountered an error calling the AI model."
+        call_messages = list(initial_messages)
+        final_content: str | None = None
+        response = None
+
+        for attempt in range(3):
+            streamed_parts: list[str] = []
+
+            async def _capture_content_delta(text: str) -> None:
+                if text:
+                    streamed_parts.append(text)
+
+            response = await self.provider.chat_with_retry(
+                messages=call_messages,
+                tools=None,
+                model=effective_model,
+                reasoning_effort=reasoning_effort,
+                on_content_delta=_capture_content_delta,
+            )
+            clean = self._strip_think(response.content)
+            candidate = clean or "".join(streamed_parts).strip()
+            if response.finish_reason == "error":
+                final_content = clean or "模型调用失败，请稍后重试。"
+                break
+            if self._is_user_visible_final_answer(candidate):
+                final_content = candidate
+                if on_content_delta is not None:
+                    await on_content_delta(final_content)
+                break
+            call_messages = list(call_messages)
+            call_messages.append(
+                {
+                    "role": "system",
+                    "content": self._visible_answer_repair_prompt(attempt),
+                }
+            )
+
+        if final_content is None:
+            final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
         messages = self.context.add_assistant_message(
             initial_messages,
             final_content,
-            reasoning_content=response.reasoning_content,
-            thinking_blocks=response.thinking_blocks,
+            reasoning_content=response.reasoning_content if response is not None else None,
+            thinking_blocks=response.thinking_blocks if response is not None else None,
         )
         return final_content, messages
 
@@ -1471,7 +1536,7 @@ class AgentLoop:
                 on_content_delta=on_content_delta,
             )
             if final_content is None:
-                final_content = "I've completed processing but have no response to give."
+                final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
             final_content = normalize_anchor_terms_in_response(
                 user_message=current_message,
                 response=final_content,
@@ -1512,7 +1577,7 @@ class AgentLoop:
         )
 
         if final_content is None:
-            final_content = "I've completed processing but have no response to give."
+            final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
         final_content = normalize_anchor_terms_in_response(
             user_message=current_message,
             response=final_content,
