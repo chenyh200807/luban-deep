@@ -64,6 +64,18 @@ def _format_results(query: str, items: list[dict[str, Any]], n: int) -> str:
     return "\n".join(lines)
 
 
+def _format_service_response(query: str, result: dict[str, Any], n: int) -> str:
+    provider = str(result.get("provider") or "").strip() or "unknown"
+    items = result.get("search_results")
+    if not isinstance(items, list):
+        items = []
+    lines = [f"Provider: {provider}", _format_results(query, items, n)]
+    answer = _normalize(_strip_tags(str(result.get("answer") or "")))
+    if answer and answer != "Web search is disabled.":
+        lines.append(f"\nSummary:\n{answer}")
+    return "\n".join(line for line in lines if line)
+
+
 class WebSearchTool(Tool):
     """Search the web using configured provider."""
 
@@ -83,23 +95,34 @@ class WebSearchTool(Tool):
 
         self.config = config if config is not None else WebSearchConfig()
         self.proxy = proxy
+        self._last_trace_metadata: dict[str, Any] | None = None
 
     async def execute(self, query: str, count: int | None = None, **kwargs: Any) -> str:
-        provider = self.config.provider.strip().lower() or "tavily"
         n = min(max(count or self.config.max_results, 1), 10)
+        self._last_trace_metadata = None
+        try:
+            from deeptutor.services.search import web_search
 
-        if provider == "duckduckgo":
-            return await self._search_duckduckgo(query, n)
-        elif provider == "tavily":
-            return await self._search_tavily(query, n)
-        elif provider == "searxng":
-            return await self._search_searxng(query, n)
-        elif provider == "jina":
-            return await self._search_jina(query, n)
-        elif provider == "brave":
-            return await self._search_brave(query, n)
-        else:
-            return f"Error: unknown search provider '{provider}'"
+            result = await asyncio.to_thread(web_search, query, max_results=n)
+        except Exception as exc:
+            logger.warning("Configured web_search provider failed: {}", exc)
+            return f"Error: web_search failed ({exc})"
+
+        citations = result.get("citations") if isinstance(result.get("citations"), list) else []
+        search_results = (
+            result.get("search_results") if isinstance(result.get("search_results"), list) else []
+        )
+        self._last_trace_metadata = {
+            "provider": str(result.get("provider") or "").strip(),
+            "citations": len(citations),
+            "search_results": len(search_results),
+        }
+        return _format_service_response(query, result, n)
+
+    def consume_trace_metadata(self) -> dict[str, Any] | None:
+        metadata = self._last_trace_metadata
+        self._last_trace_metadata = None
+        return metadata
 
     async def _search_brave(self, query: str, n: int) -> str:
         api_key = self.config.api_key or os.environ.get("BRAVE_API_KEY", "")
