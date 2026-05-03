@@ -31,10 +31,6 @@ module.exports = {
         <text class="nav-back-label">返回首页</text>
       </view>
       <view style="flex:1"></view>
-      <view class="nav-points-pill" wx:if="{{!hasMessages}}" bindtap="goBilling" aria-role="button" aria-label="积分明细: {{userPoints}} 点">
-        <text class="nav-points-star">★</text>
-        <text class="nav-points-num">{{userPoints}}</text>
-      </view>
       <view class="nav-chat-actions" wx:if="{{hasMessages}}">
         <view class="nav-icon-btn nav-new-chat" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
           <view class="nav-compose-icon"></view>
@@ -74,7 +70,7 @@ module.exports = {
         <text class="focus-icon">⚡</text>
       </view>
       <view class="focus-copy">
-        <text class="focus-label">{{focusLabel}}</text>
+        <text class="focus-label">{{focusLabel}}：</text>
         <text class="focus-title">{{focusTitle ? focusTitle : focusText}}</text>
         <text class="focus-meta" wx:if="{{focusMeta}}">{{focusMeta}}</text>
       </view>
@@ -117,7 +113,7 @@ module.exports = {
 	          <text class="tool-chip-icon">◎</text>
 	          <text class="tool-chip-txt">推理</text>
 	        </view>
-	        <text class="tool-hint">知识库检索默认自动开启，联网搜索暂未开放</text>
+	        <text class="tool-hint">知识库检索默认自动开启</text>
 	      </view>
 	    </view>
 
@@ -586,46 +582,9 @@ module.exports = {
 	          <text class="tool-chip-icon">◎</text>
 	          <text class="tool-chip-txt">推理</text>
 	        </view>
-	        <text class="tool-hint">知识库检索默认自动开启，联网搜索暂未开放</text>
+	        <text class="tool-hint">知识库检索默认自动开启</text>
 	      </view>
 	    </view>
 	  </view>
-
-  <!-- ★ 积分明细半屏弹窗 -->
-  <view class="billing-mask {{billingShow ? 'show' : ''}}" bindtap="closeBilling"></view>
-  <view class="billing-drawer {{billingShow ? 'show' : ''}}">
-    <view class="billing-header">
-      <text class="billing-title">积分明细</text>
-      <view class="billing-close" bindtap="closeBilling" aria-role="button" aria-label="关闭">
-        <text class="billing-close-icon">×</text>
-      </view>
-    </view>
-    <!-- 余额 -->
-    <view class="billing-balance">
-      <text class="billing-bal-star">✦</text>
-      <text class="billing-bal-num">{{billingBalance}}</text>
-      <text class="billing-bal-label">当前余额</text>
-    </view>
-    <!-- 流水 -->
-    <scroll-view class="billing-list" scroll-y>
-      <view wx:if="{{billingLoading}}" class="billing-empty">
-        <text class="billing-empty-txt">加载中...</text>
-      </view>
-      <view wx:elif="{{billingEntries.length === 0}}" class="billing-empty">
-        <text class="billing-empty-txt">暂无消费记录</text>
-      </view>
-      <view wx:else>
-        <view class="billing-item" wx:for="{{billingEntries}}" wx:key="id">
-          <view class="billing-item-left">
-            <text class="billing-item-reason">{{item.reason}}</text>
-            <text class="billing-item-time">{{item.time}}</text>
-          </view>
-          <view class="billing-item-right">
-            <text class="billing-item-delta {{item.isDebit ? 'debit' : 'credit'}}">{{item.isDebit ? '' : '+'}}{{item.delta}}</text>
-          </view>
-        </view>
-      </view>
-    </scroll-view>
-  </view>
 
 </view>

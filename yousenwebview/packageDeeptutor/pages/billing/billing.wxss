@@ -1,4 +1,4 @@
-/* pages/billing/billing.wxss — 积分充值 */
+/* pages/billing/billing.wxss — 使用情况与充值 */
 
 .billing-page {
   height: 100vh;
@@ -160,13 +160,8 @@
   gap: 10rpx;
 }
 
-.balance-star {
-  font-size: 38rpx;
-  color: #f5a623;
-}
-
 .balance-num {
-  font-size: 68rpx;
+  font-size: 58rpx;
   font-weight: 800;
   line-height: 1;
   color: #ffffff;
@@ -175,6 +170,59 @@
 
 .balance-demo {
   margin-top: 4rpx;
+}
+
+.usage-quota-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  margin-top: 4rpx;
+}
+
+.usage-quota-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.usage-quota-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22rpx;
+}
+
+.usage-quota-title {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.usage-quota-reset {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 21rpx;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.usage-quota-percent {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.usage-meter {
+  height: 12rpx;
+  border-radius: 999rpx;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.usage-meter-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: #ffffff;
 }
 
 .section-head {
@@ -637,6 +685,26 @@
 
 .billing-page.light .balance-num {
   color: #0f172a;
+}
+
+.billing-page.light .usage-quota-title {
+  color: #1e293b;
+}
+
+.billing-page.light .usage-quota-reset {
+  color: #7b8da8;
+}
+
+.billing-page.light .usage-quota-percent {
+  color: #5f6f84;
+}
+
+.billing-page.light .usage-meter {
+  background: #e5e7eb;
+}
+
+.billing-page.light .usage-meter-fill {
+  background: #111827;
 }
 
 .billing-page.light .section-title {

@@ -34,6 +34,53 @@ function _normalizeBadges(remoteBadges, fallbackEarnedIds, currentBadges) {
   });
 }
 
+function _formatUsageReset(resetAt) {
+  if (!resetAt) return "";
+  var date = new Date(resetAt);
+  if (isNaN(date.getTime())) return "";
+  var now = new Date();
+  var sameDay = date.toDateString() === now.toDateString();
+  var hh = String(date.getHours()).padStart(2, "0");
+  var mm = String(date.getMinutes()).padStart(2, "0");
+  return sameDay ? hh + ":" + mm + " 重置" : date.getMonth() + 1 + " 月 " + date.getDate() + " 日重置";
+}
+
+function _usageLabel(row) {
+  var key = String(row.key || "");
+  if (key === "five_hour") return "5 小时限额";
+  if (key === "weekly") return "每周限额";
+  return String(row.label || "使用限额").replace("使用限额", "限额");
+}
+
+function _normalizeUsage(raw) {
+  var data = api.unwrapResponse ? api.unwrapResponse(raw) || raw || {} : raw || {};
+  var display = data.display || {};
+  var quota = data.quota || {};
+  var sourceRows = display.rows || quota.rows || data.rows || [];
+  var rows = sourceRows.map(function (row) {
+    var remaining = Math.max(0, Math.min(100, Math.round(Number(row.remaining_percent) || 0)));
+    var resetLabel = _formatUsageReset(row.reset_at);
+    var remainingLabel = "剩余 " + remaining + "%";
+    return {
+      key: row.key || "",
+      label: _usageLabel(row),
+      remainingLabel: remainingLabel,
+      remainingPercent: remaining,
+      resetLabel: resetLabel,
+      detailLabel: remainingLabel + (resetLabel ? "，" + resetLabel : ""),
+      barStyle: "width:" + remaining + "%",
+    };
+  });
+  var primary = rows[0] || {};
+  var primaryPercent = Math.max(0, Math.min(100, Math.round(Number(display.primary_remaining_percent || display.primary_percent || primary.remainingPercent || 0))));
+  return {
+    usagePrimaryLabel: display.primary_label || "剩余 " + primaryPercent + "%",
+    usageRows: rows,
+    usageDetailShow: false,
+    usageLoading: false,
+  };
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -43,9 +90,11 @@ Page({
     avatarUrl: "",
     level: 1,
     xp: 0,
-    userPoints: 0,
-    points: 0,
     isDark: true,
+    usageLoading: true,
+    usagePrimaryLabel: "剩余 --",
+    usageRows: [],
+    usageDetailShow: false,
 
     examDate: "",
     dailyTarget: 30,
@@ -76,7 +125,6 @@ Page({
     ],
 
     capabilityItems: [
-      { id: "web_search", icon: "🌐", title: "联网搜索", status: "未开放", desc: "当前小程序答疑以建筑实务知识库和题库为主，联网搜索入口尚未接入。" },
       { id: "file_analysis", icon: "📎", title: "图片/文档分析", status: "未开放", desc: "当前仅支持文本提问，图片和文档上传分析需要单独的上传、审核和解析链路。" },
       { id: "mind_map", icon: "🧠", title: "思维导图", status: "未开放", desc: "思维导图生成需要结构化知识点输出和小程序渲染合同，尚未开放给用户。" },
     ],
@@ -86,7 +134,7 @@ Page({
       { id: "assessment", icon: "📊", title: "摸底测试" },
       { id: "diagnostic", icon: "🔍", title: "摸底报告" },
       { id: "membership", icon: "👑", title: "会员充值" },
-      { id: "feedback", icon: "💬", title: "意见反馈", nativeOpenType: "feedback" },
+      { id: "feedback", icon: "💬", title: "意见反馈" },
       { id: "terms", icon: "📄", title: "服务条款" },
     ],
   },
@@ -110,18 +158,30 @@ Page({
     var self = this;
     getApp().checkAuth(function () {
       self._loadUserInfo();
-      self._loadPoints();
+      self._loadUsage();
     });
   },
 
-  _loadPoints: function () {
+  _loadUsage: function () {
     var self = this;
+    self.setData({ usageLoading: true });
     api
-      .getWallet()
-      .then(function (data) {
-        self.setData({ userPoints: data.balance || 0 });
+      .getUsage()
+      .then(function (raw) {
+        self.setData(_normalizeUsage(raw));
       })
-      .catch(function () {});
+      .catch(function () {
+        self.setData({ usageLoading: false, usageRows: [], usageDetailShow: false });
+      });
+  },
+
+  openUsageDetail: function () {
+    if (!this.data.usageRows.length) return;
+    this.setData({ usageDetailShow: true });
+  },
+
+  closeUsageDetail: function () {
+    this.setData({ usageDetailShow: false });
   },
 
   _loadUserInfo: function () {
@@ -135,7 +195,6 @@ Page({
           avatarChar: name.charAt(0).toUpperCase(),
           level: info.level || 1,
           xp: info.xp || 0,
-          points: info.points || 0,
           examDate: info.exam_date || "",
           dailyTarget: info.daily_target || 30,
           difficultyPref: info.difficulty_preference || "medium",
@@ -324,6 +383,38 @@ Page({
     wx.navigateTo({ url: "/pages/billing/billing" });
   },
 
+  submitProductFeedback: function () {
+    helpers.vibrate("light");
+    wx.showModal({
+      title: "意见反馈",
+      editable: true,
+      placeholderText: "请描述你遇到的问题或建议",
+      confirmText: "提交",
+      success: function (res) {
+        if (!res.confirm) return;
+        var comment = String(res.content || "").trim();
+        if (!comment) {
+          wx.showToast({ title: "请先填写反馈内容", icon: "none" });
+          return;
+        }
+        api
+          .submitFeedback({
+            rating: -1,
+            reason_tags: ["产品反馈"],
+            comment: comment,
+            answer_mode: "AUTO",
+            feedback_source: "wx_miniprogram_profile_feedback",
+          })
+          .then(function () {
+            wx.showToast({ title: "感谢反馈", icon: "success" });
+          })
+          .catch(function () {
+            wx.showToast({ title: "提交失败，请稍后重试", icon: "none" });
+          });
+      },
+    });
+  },
+
   openLink: function (e) {
     var id = e.currentTarget.dataset.id;
     helpers.vibrate("light");
@@ -333,6 +424,8 @@ Page({
       wx.switchTab({ url: "/pages/report/report" });
     } else if (id === "membership") {
       wx.navigateTo({ url: "/pages/billing/billing" });
+    } else if (id === "feedback") {
+      this.submitProductFeedback();
     } else if (id === "terms") {
       wx.navigateTo({ url: "/pages/legal/terms" });
     }

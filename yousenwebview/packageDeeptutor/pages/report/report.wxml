@@ -9,10 +9,6 @@
         <text class="nav-back-txt">{{navBackLabel}}</text>
       </view>
       <text class="nav-title">学情</text>
-      <view class="nav-points-pill" bindtap="goBilling">
-        <text class="nav-points-star">✦</text>
-        <text class="nav-points-num">{{userPoints}}</text>
-      </view>
     </view>
   </view>
 

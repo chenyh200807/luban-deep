@@ -1,4 +1,4 @@
-// pages/billing/billing.js — 积分充值
+// pages/billing/billing.js — 使用情况与充值
 
 const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
@@ -11,6 +11,9 @@ Page({
     loading: true,
     error: false,
     balance: 0,
+    usagePrimaryLabel: "剩余 --",
+    usagePrimaryPercent: 100,
+    usageRows: [],
     entries: [],
     page: 1,
     pageSize: 15,
@@ -25,6 +28,7 @@ Page({
       {
         id: "trial",
         label: "轻量体验",
+        usageLabel: "轻量使用额度",
         points: 100,
         price: "9",
         per: "约 10 次标准问答",
@@ -34,6 +38,7 @@ Page({
       {
         id: "advance",
         label: "进阶主力",
+        usageLabel: "高频使用额度",
         points: 1200,
         price: "99",
         per: "约 120 次标准问答",
@@ -43,6 +48,7 @@ Page({
       {
         id: "sprint",
         label: "冲刺强化",
+        usageLabel: "冲刺使用额度",
         points: 2600,
         price: "199",
         per: "约 260 次标准问答",
@@ -65,6 +71,7 @@ Page({
     this.setData({ isDark: helpers.isDark() });
     getApp().checkAuth(() => {
       this._loadWallet();
+      this._loadUsage();
       this._loadLedger();
     });
   },
@@ -81,6 +88,13 @@ Page({
         }
       }
       this.setData(update);
+    } catch (_) {}
+  },
+
+  async _loadUsage() {
+    try {
+      var data = await api.getUsage();
+      this.setData(_normalizeUsage(data));
     } catch (_) {}
   },
 
@@ -163,7 +177,7 @@ Page({
 });
 
 function _friendlyReason(reason) {
-  if (!reason) return "智力点变动";
+  if (!reason) return "使用量变动";
   var map = {
     capture: "对话消耗",
     grant: "每日赠送",
@@ -185,11 +199,12 @@ function _normalizePackages(packages) {
       return {
         id: String(item.id),
         label: item.label || item.name || _packageLabel(item.id, item.points),
+        usageLabel: item.usageLabel || item.usage_label || "标准使用额度",
         points: Number(item.points) || 0,
         price: String(item.price),
         per: item.per || "",
         badge: item.badge || "",
-        desc: item.desc || item.per || "智力点可用于 AI 答疑、解析与学习规划",
+        desc: item.desc || item.per || "可用于 AI 答疑、解析与学习规划",
       };
     });
 }
@@ -207,7 +222,47 @@ function _packageLabel(id, points) {
     pro: "进阶主力",
     ultimate: "冲刺强化",
   };
-  return map[id] || points + " 点套餐";
+  return map[id] || "标准使用套餐";
+}
+
+function _normalizeUsage(raw) {
+  var data = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};
+  var display = data.display || {};
+  var rows = Array.isArray(display.rows) ? display.rows : [];
+  var primaryPercent = Number(display.primary_remaining_percent);
+  if (isNaN(primaryPercent)) primaryPercent = 100;
+  return {
+    usagePrimaryLabel: display.primary_label || "剩余 " + primaryPercent + "%",
+    usagePrimaryPercent: Math.max(0, Math.min(100, Math.round(primaryPercent))),
+    usageRows: rows.map(function (row) {
+      var percent = Number(row.remaining_percent);
+      if (isNaN(percent)) percent = 100;
+      percent = Math.max(0, Math.min(100, Math.round(percent)));
+      return {
+        key: row.key || "",
+        label: row.label || "使用限额",
+        remainingLabel: "剩余 " + percent + "%",
+        resetLabel: _formatUsageReset(row.reset_at),
+        barStyle: "width:" + percent + "%",
+      };
+    }),
+  };
+}
+
+function _formatUsageReset(resetAt) {
+  var text = String(resetAt || "").trim();
+  if (!text) return "";
+  var d = new Date(text);
+  if (isNaN(d)) return "";
+  var now = new Date();
+  var sameDay =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+  var minutes = d.getMinutes();
+  var time = d.getHours() + ":" + (minutes < 10 ? "0" : "") + minutes;
+  if (sameDay) return time;
+  return d.getMonth() + 1 + "月" + d.getDate() + "日";
 }
 
 function _formatTime(isoStr) {

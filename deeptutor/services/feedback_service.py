@@ -70,6 +70,7 @@ def build_mobile_feedback_row(
     reason_tags: list[str] | None = None,
     comment: str = "",
     answer_mode: str = "AUTO",
+    feedback_source: str = "wx_miniprogram_message_actions",
     requested_response_mode: str = "",
     effective_response_mode: str = "",
     response_mode_degrade_reason: str = "",
@@ -84,6 +85,7 @@ def build_mobile_feedback_row(
     normalized_tags = normalize_feedback_reason_tags(reason_tags)
     normalized_rating = normalize_feedback_rating(rating)
     normalized_answer_mode = str(answer_mode or "AUTO").strip().upper() or "AUTO"
+    normalized_feedback_source = str(feedback_source or "").strip() or "wx_miniprogram_message_actions"
     normalized_user_uuid = normalize_uuid_or_none(user_id)
     normalized_conversation_uuid = normalize_uuid_or_none(normalized_conversation_id)
     normalized_message_uuid = normalize_uuid_or_none(normalized_message_id)
@@ -92,7 +94,7 @@ def build_mobile_feedback_row(
         "requested_response_mode": str(requested_response_mode or "").strip().upper(),
         "effective_response_mode": str(effective_response_mode or "").strip().upper(),
         "response_mode_degrade_reason": str(response_mode_degrade_reason or "").strip(),
-        "feedback_source": "wx_miniprogram_message_actions",
+        "feedback_source": normalized_feedback_source[:80],
         "surface": "wx_miniprogram",
         "platform": "wechat_miniprogram",
         "source": "wx_miniprogram",

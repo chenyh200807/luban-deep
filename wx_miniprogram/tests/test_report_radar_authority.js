@@ -41,7 +41,7 @@ async function run() {
     getAssessmentProfile: async function () {
       return {
         chapter_mastery: {
-          建筑构造: { name: "建筑构造", mastery: 100 },
+          "1A412030": { name: "1A412030", mastery: 100 },
           地基基础: { name: "地基基础", mastery: 100 },
           防水工程: { name: "防水工程", mastery: 0 },
           主体结构: { name: "主体结构", mastery: 100 },
@@ -84,15 +84,15 @@ async function run() {
   assert.strictEqual(ctx.data.weakCount, 1, "weak count should come from assessment profile");
   assert.deepStrictEqual(
     ctx.data.dimList.map((item) => [item.name, item.pct]),
-    [
-      ["防水工程", 0],
-      ["建筑构造", 100],
-      ["地基基础", 100],
-      ["主体结构", 100],
-      ["施工管理", 100],
-    ],
-    "report detail list should not be overwritten by zero radar response",
-  );
+      [
+        ["防水工程", 0],
+        ["结构设计与建筑材料", 100],
+        ["地基基础", 100],
+        ["主体结构", 100],
+        ["施工管理", 100],
+      ],
+      "report detail list should use Chinese chapter labels and not be overwritten by zero radar response",
+    );
 
   console.log("PASS test_report_radar_authority.js (4 assertions)");
 }

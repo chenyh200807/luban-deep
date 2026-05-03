@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -238,6 +240,86 @@ def test_billing_points_and_ledger_use_wallet_service(monkeypatch: pytest.Monkey
     assert captured["ledger_user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     assert captured["ledger_limit"] == 3
     assert captured["ledger_offset"] == 0
+
+
+def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatch) -> None:
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    now = datetime.now(ZoneInfo("Asia/Shanghai"))
+
+    monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", "100")
+    monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", "200")
+    monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: canonical_uid)
+    monkeypatch.setattr(mobile_module, "_load_legacy_wallet_ledger_entries", lambda *args, **kwargs: [])
+
+    class _FakeWalletService:
+        is_configured = True
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            assert user_id == canonical_uid
+            assert offset == 0
+            assert limit == mobile_module._BILLING_USAGE_LEDGER_WINDOW
+            return [
+                _FakeLedgerEntry(
+                    id="usage_recent_1",
+                    user_id=user_id,
+                    event_type="debit",
+                    delta_micros=-20_000_000,
+                    balance_after_micros=180_000_000,
+                    reference_type="ai_usage",
+                    reference_id="turn_recent_1",
+                    idempotency_key="capture:recent_1",
+                    created_at=(now - timedelta(hours=1)).isoformat(),
+                ),
+                _FakeLedgerEntry(
+                    id="usage_recent_2",
+                    user_id=user_id,
+                    event_type="debit",
+                    delta_micros=-30_000_000,
+                    balance_after_micros=150_000_000,
+                    reference_type="ai_usage",
+                    reference_id="turn_recent_2",
+                    idempotency_key="capture:recent_2",
+                    created_at=(now - timedelta(hours=2)).isoformat(),
+                ),
+                _FakeLedgerEntry(
+                    id="usage_weekly_only",
+                    user_id=user_id,
+                    event_type="debit",
+                    delta_micros=-10_000_000,
+                    balance_after_micros=140_000_000,
+                    reference_type="ai_usage",
+                    reference_id="turn_weekly",
+                    idempotency_key="capture:weekly",
+                    created_at=(now - timedelta(hours=6)).isoformat(),
+                ),
+                _FakeLedgerEntry(
+                    id="grant_ignored",
+                    user_id=user_id,
+                    event_type="grant",
+                    delta_micros=500_000_000,
+                    balance_after_micros=640_000_000,
+                    reference_type="order",
+                    reference_id="order_1",
+                    idempotency_key="grant:order_1",
+                    created_at=(now - timedelta(hours=3)).isoformat(),
+                ),
+            ]
+
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/billing/usage", headers={"Authorization": "Bearer test-token"})
+
+    assert response.status_code == 200
+    body = response.json()
+    rows = {item["key"]: item for item in body["quota"]["rows"]}
+    assert body["display"]["primary_label"] == "剩余 50%"
+    assert body["display"]["limited_by"] == "five_hour"
+    assert rows["five_hour"]["remaining_percent"] == 50
+    assert rows["weekly"]["remaining_percent"] == 70
+    assert rows["five_hour"]["reset_at"]
+    assert "limit_points" not in rows["five_hour"]
 
 
 def test_billing_ledger_merges_legacy_capture_history(monkeypatch: pytest.MonkeyPatch) -> None:

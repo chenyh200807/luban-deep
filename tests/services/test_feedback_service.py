@@ -55,6 +55,24 @@ def test_build_mobile_feedback_row_keeps_answer_mode_and_response_mode_metadata(
     assert row["metadata"]["request_id"] == "req_feedback_1"
 
 
+def test_build_mobile_feedback_row_accepts_profile_feedback_source() -> None:
+    row = build_mobile_feedback_row(
+        user_id="student_demo",
+        rating=-1,
+        reason_tags=["产品反馈"],
+        comment="意见反馈入口排版不齐",
+        feedback_source="wx_miniprogram_profile_feedback",
+    )
+
+    assert row["conversation_id"] is None
+    assert row["message_id"] is None
+    assert row["rating"] == -1
+    assert row["reason_tags"] == ["产品反馈"]
+    assert row["comment"] == "意见反馈入口排版不齐"
+    assert row["metadata"]["feedback_source"] == "wx_miniprogram_profile_feedback"
+    assert row["metadata"]["source"] == "wx_miniprogram"
+
+
 def test_normalize_feedback_record_prefers_top_level_ids_then_metadata_fallback() -> None:
     record = normalize_feedback_record(
         {

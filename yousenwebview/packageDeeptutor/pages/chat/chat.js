@@ -80,35 +80,6 @@ function clearConversationHistoryCaches() {
   } catch (_) {}
 }
 
-function toFiniteNumber(value) {
-  var num = Number(value);
-  return isNaN(num) ? null : num;
-}
-
-function extractPointsValue(raw) {
-  var source = unwrap(raw) || raw || {};
-  var candidates = [
-    source.balance,
-    source.points,
-    source.points_balance,
-    source.wallet_balance,
-    source.walletBalance,
-    source.wallet && source.wallet.balance,
-    source.wallet && source.wallet.points,
-    source.data && source.data.balance,
-    source.data && source.data.points,
-    source.data && source.data.points_balance,
-    source.billing && source.billing.balance_after,
-  ];
-  for (var i = 0; i < candidates.length; i++) {
-    var parsed = toFiniteNumber(candidates[i]);
-    if (parsed !== null) {
-      return parsed;
-    }
-  }
-  return null;
-}
-
 function hasAssessmentSignal(raw) {
   var assessment = unwrap(raw) || raw || {};
   var level = String(assessment.level || "").trim();
@@ -122,6 +93,8 @@ function isGenericFocusQuery(query) {
   var normalized = String(query || "").replace(/\s+/g, "");
   if (!normalized) return true;
   if (normalized.indexOf("学习计划") >= 0) return true;
+  if (normalized.indexOf("下一步学习推进") >= 0) return true;
+  if (normalized.indexOf("先判断我当前更适合") >= 0) return true;
   if (normalized.indexOf("继续巩固") === 0) return true;
   return ["继续我的计划", "继续计划", "继续学习", "按计划继续"].indexOf(normalized) >= 0;
 }
@@ -142,6 +115,19 @@ function extractFocusTopic(title) {
   return text;
 }
 
+function buildFocusDisplayTitle(focus, title) {
+  var payload = focus && typeof focus === "object" ? focus : {};
+  var topic = String(payload.topic || payload.focus_topic || "").trim() || extractFocusTopic(title);
+  if (topic && topic !== "建筑实务") return topic;
+  var text = extractFocusTopic(title);
+  if (!text || text === "建筑实务") return "今日推进";
+  return text.length > 10 ? text.slice(0, 10) : text;
+}
+
+function buildFocusDisplayMeta(focus, meta) {
+  return "";
+}
+
 function buildFocusQuery(focus, title) {
   var payload = focus && typeof focus === "object" ? focus : {};
   var query = String(payload.query || "");
@@ -151,7 +137,7 @@ function buildFocusQuery(focus, title) {
   return (
     "请根据我的学习记录和最近进度，围绕" +
     topic +
-    "安排下一步学习推进：先判断我当前更适合知识讲解、例题带练、错因复盘还是少量自测，再用建筑实务考试口径展开；不要默认生成整套训练题，也不要提前假设我的阶段层级。"
+    "做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
   );
 }
 
@@ -194,16 +180,9 @@ Page({
     enableMsgAnim: _animCfg.enableMsgAnimation,
     enableFocusPulse: _animCfg.enableFocusPulse,
 
-    // 积分弹窗
-    billingShow: false,
-    billingBalance: 0,
-    billingLoading: false,
-    billingEntries: [],
-
     // Hero
     userName: "用户",
     timeGreeting: helpers.getTimeGreeting(),
-    userPoints: 0,
     avatarChar: "U",
     reviewCount: 0,
     focusLabel: "今日焦点",
@@ -426,9 +405,6 @@ Page({
       })
       .catch(function (e) {
         log.warn("Chat", "chat bootstrap blocked: " + ((e && e.message) || e));
-        if (String((e && e.message) || "") !== "AUTH_EXPIRED") {
-          self._refreshPoints();
-        }
       });
     // [FIX] 从后台切回时重建 observer（onHide 中已 teardown）
     if (this.data.hasMessages) {
@@ -452,15 +428,10 @@ Page({
   _applyAuthProfile: function (raw) {
     var info = api.unwrapResponse(raw);
     var name = info.username || info.display_name || "用户";
-    var nextPoints = extractPointsValue(info);
     var nextState = {
       userName: name,
       avatarChar: name.charAt(0).toUpperCase(),
     };
-    if (nextPoints !== null) {
-      nextState.userPoints = nextPoints;
-      nextState.billingBalance = nextPoints;
-    }
     this.setData(nextState);
   },
 
@@ -1280,10 +1251,6 @@ Page({
       }
       if (d.billing && typeof d.billing === "object") {
         updates["messages[" + idx + "].billing"] = d.billing;
-        if (typeof d.billing.balance_after === "number") {
-          updates.billingBalance = d.billing.balance_after;
-          updates.userPoints = d.billing.balance_after;
-        }
       }
       if (Object.keys(updates).length) {
         this.setData(updates);
@@ -1576,12 +1543,14 @@ Page({
 
         update.focusLabel = String(focus.label || "今日焦点");
         update.focusTone = String(focus.tone || "plan");
-        update.focusTitle = String(
+        var rawFocusTitle = String(
           focus.title || today.hint || "按当前状态推进建筑实务",
         ).replace(/^今日焦点[:：]\s*/, "");
-        update.focusMeta = String(focus.meta || "根据学习记录，动态选择讲解/例题/复盘/自测");
+        var rawFocusMeta = String(focus.meta || "");
+        update.focusTitle = buildFocusDisplayTitle(focus, rawFocusTitle);
+        update.focusMeta = buildFocusDisplayMeta(focus, rawFocusMeta);
         update.focusText = update.focusTitle;
-        update.focusQuery = buildFocusQuery(focus, update.focusTitle);
+        update.focusQuery = buildFocusQuery(focus, rawFocusTitle);
 
         self.setData(update);
       })
@@ -1590,11 +1559,11 @@ Page({
         // 降级：仍显示默认焦点条
         self.setData({
           focusTone: "plan",
-          focusTitle: "按当前状态推进建筑实务",
-          focusMeta: "根据学习记录，动态选择讲解/例题/复盘/自测",
-          focusText: "按当前状态推进建筑实务",
+          focusTitle: "今日推进",
+          focusMeta: "",
+          focusText: "今日推进",
           focusQuery:
-            "请根据我的学习记录和最近进度，帮我判断今天最该推进哪一块建筑实务内容：可以在知识讲解、例题带练、错因复盘、少量自测中选择最合适方式；不要默认出整套题，也不要提前假设我的阶段层级。",
+            "请根据我的学习记录和最近进度，先选出今天最值得补的一块建筑实务内容，然后用微课方式讲清：一个核心考点、一个考试场景例子、一个自查问题；不要展开成长期安排，也不要直接生成整套训练题。",
         });
       });
   },
@@ -1662,7 +1631,7 @@ Page({
     helpers.vibrate("light");
     this._saveToolPrefs(false, false);
     this.setData({ enableReason: false, enableWebSearch: false });
-    wx.showToast({ title: "联网搜索暂未开放", icon: "none", duration: 1800 });
+    wx.showToast({ title: "该能力暂未开放", icon: "none", duration: 1800 });
   },
 
   _saveToolPrefs: function (enableReason, enableWebSearch) {
@@ -2225,10 +2194,6 @@ Page({
   },
 
   onNavBackTap: function () {
-    if (this.data.workspaceBackVisible) {
-      this.goWorkspaceBack();
-      return;
-    }
     helpers.vibrate("light");
     this.goHome();
   },
@@ -2455,39 +2420,6 @@ Page({
     }
   },
 
-  _refreshPoints: function () {
-    var self = this;
-    var applyPoints = function (points) {
-      if (points !== null) {
-        self.setData({
-          userPoints: points,
-          billingBalance: points,
-        });
-      }
-    };
-    api
-      .getWallet()
-      .then(function (raw) {
-        var points = extractPointsValue(raw);
-        if (points !== null) {
-          applyPoints(points);
-          return;
-        }
-        return api.getPoints().then(function (fallbackRaw) {
-          applyPoints(extractPointsValue(fallbackRaw));
-        });
-      })
-      .catch(function (walletErr) {
-        log.warn("Chat", "getWallet failed: " + ((walletErr && walletErr.message) || walletErr));
-        return api.getPoints().then(function (fallbackRaw) {
-          applyPoints(extractPointsValue(fallbackRaw));
-        });
-      })
-      .catch(function (err) {
-        log.warn("Chat", "getPoints failed: " + ((err && err.message) || err));
-      });
-  },
-
   goRecharge: function () {
     wx.navigateTo({ url: route.billing() });
   },
@@ -2561,67 +2493,6 @@ Page({
       icon: "none",
       duration: 1000,
     });
-  },
-
-  goBilling: function () {
-    var self = this;
-    self.setData({ billingShow: true, billingLoading: true });
-    // 并行加载余额和流水
-    var reasonMap = {
-      capture: "对话消耗",
-      grant: "每日赠送",
-      refund: "退回",
-      purchase: "充值",
-      admin_grant: "系统赠送",
-      signup_bonus: "注册奖励",
-    };
-    api
-      .getWallet()
-      .then(function (data) {
-        var points = extractPointsValue(data);
-        if (points !== null) {
-          self.setData({ billingBalance: points, userPoints: points });
-        }
-      })
-      .catch(function (err) {
-        log.warn("Chat", "getWallet failed: " + ((err && err.message) || err));
-      });
-    api
-      .getLedger(30)
-      .then(function (raw) {
-        var data = api.unwrapResponse(raw);
-        var entries = (data.entries || []).map(function (e) {
-          var d = new Date(e.created_at || "");
-          var time = isNaN(d)
-            ? ""
-            : d.getMonth() +
-              1 +
-              "/" +
-              d.getDate() +
-              " " +
-              (d.getHours() < 10 ? "0" : "") +
-              d.getHours() +
-              ":" +
-              (d.getMinutes() < 10 ? "0" : "") +
-              d.getMinutes();
-          return {
-            id: e.id,
-            delta: e.delta,
-            reason: reasonMap[e.reason] || e.reason || "智力点变动",
-            time: time,
-            isDebit: e.delta < 0,
-          };
-        });
-        self.setData({ billingEntries: entries, billingLoading: false });
-      })
-      .catch(function (err) {
-        log.warn("Chat", "getLedger failed: " + ((err && err.message) || err));
-        self.setData({ billingLoading: false });
-      });
-  },
-
-  closeBilling: function () {
-    this.setData({ billingShow: false });
   },
 
   _copyTextForMessage: function (msg) {

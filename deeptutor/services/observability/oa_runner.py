@@ -60,6 +60,7 @@ def build_oa_run(
     benchmark_payload: dict[str, Any] | None = None,
     observer_payload: dict[str, Any] | None = None,
     change_impact_payload: dict[str, Any] | None = None,
+    feedback_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if mode not in {"daily", "pre-release", "incident"}:
         raise ValueError(f"Unsupported OA mode: {mode}")
@@ -77,6 +78,66 @@ def build_oa_run(
     root_causes: list[dict[str, Any]] = []
     playbooks: list[dict[str, Any]] = []
     signals: list[dict[str, Any]] = []
+
+    if feedback_payload:
+        feedback_summary = feedback_payload.get("summary") or {}
+        recent_feedback = [
+            item
+            for item in feedback_payload.get("recent") or []
+            if isinstance(item, dict)
+        ]
+        top_reason_tags = [
+            item
+            for item in feedback_payload.get("top_reason_tags") or []
+            if isinstance(item, dict)
+        ]
+        signals.append(
+            {
+                "kind": "user_feedback",
+                "payload": {
+                    "storage_status": feedback_payload.get("storage_status"),
+                    "window_days": feedback_payload.get("window_days"),
+                    "summary": feedback_summary,
+                    "top_reason_tags": top_reason_tags[:5],
+                    "recent": recent_feedback[:5],
+                },
+            }
+        )
+        if feedback_payload.get("storage_status") not in {"ok", None}:
+            blind_spots.append(
+                {
+                    "type": "feedback_storage_unavailable",
+                    "severity": "medium",
+                    "evidence": {"storage_status": feedback_payload.get("storage_status")},
+                }
+            )
+        negative_count = int(feedback_summary.get("thumbs_down") or 0)
+        product_feedback_count = sum(
+            int(item.get("count") or 0)
+            for item in top_reason_tags
+            if str(item.get("tag") or "") == "产品反馈"
+        )
+        if negative_count > 0 or product_feedback_count > 0:
+            _append_root_cause(
+                root_causes,
+                hypothesis="近期用户反馈已经进入 Supabase 反馈事实表，OA 应优先按 feedback_source、reason_tags 和 recent 样本分流处理。",
+                confidence="high",
+                supporting_evidence=[
+                    f"feedback.thumbs_down={negative_count}",
+                    f"feedback.product_feedback={product_feedback_count}",
+                    f"feedback.top_reason_tags={top_reason_tags[:5]}",
+                ],
+                affected_cohorts=["wechat_miniprogram_users", "profile_feedback", "message_feedback"],
+                suspected_change_window=str(release.get("release_id") or "unknown"),
+                next_verification_step="先查 `/api/v1/bi/feedback` 的 recent 样本，再按 feedback_source 回放用户路径。",
+                counterfactual="若 Supabase 近期无负反馈或产品反馈，则当前问题更可能来自内部评测而非真实用户输入。",
+                validation_cmds=[
+                    "curl -fsS 'http://127.0.0.1:8001/api/v1/bi/feedback?days=7&limit=20' | jq",
+                    "python3.11 scripts/run_oa.py --mode incident",
+                ],
+                suggested_fix_type="回放",
+                owner="product+observability",
+            )
 
     if observer_payload:
         observer_coverage = observer_payload.get("data_coverage") or {}
@@ -449,6 +510,8 @@ def build_oa_run(
             "benchmark_run_id": ((benchmark_payload or {}).get("run_manifest") or {}).get("run_id")
             or (benchmark_payload or {}).get("run_id"),
             "aae_run_id": (aae_payload or {}).get("run_id"),
+            "feedback_storage_status": (feedback_payload or {}).get("storage_status"),
+            "feedback_total": ((feedback_payload or {}).get("summary") or {}).get("total_feedback"),
         },
         "blind_spots": deduped_blind_spots,
         "root_causes": root_causes,

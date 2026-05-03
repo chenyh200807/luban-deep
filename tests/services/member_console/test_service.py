@@ -590,7 +590,7 @@ def test_home_dashboard_today_focus_uses_learner_state_focus_as_single_projectio
 
     dashboard = service.get_home_dashboard("focus_user")
 
-    expected_query = "请根据我的学习记录、最近进度，围绕建筑构造安排下一步学习推进：先判断我当前更适合知识讲解、例题带练、错因复盘还是少量自测，再用建筑实务考试口径展开；不要默认生成整套训练题，也不要提前假设我的阶段层级。"
+    expected_query = "请根据我的学习记录、最近进度，围绕建筑构造做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
     assert dashboard["today_focus"] == {
         "label": "今日焦点",
         "title": "推进建筑构造下一步学习",
@@ -602,9 +602,13 @@ def test_home_dashboard_today_focus_uses_learner_state_focus_as_single_projectio
         "source": "learner_state.study_plan",
     }
     assert "学习计划" not in dashboard["today_focus"]["query"]
+    assert "下一步学习推进" not in dashboard["today_focus"]["query"]
+    assert "先判断我当前更适合" not in dashboard["today_focus"]["query"]
     assert "专项训练题" not in dashboard["today_focus"]["query"]
     assert "5道" not in dashboard["today_focus"]["query"]
     assert "入门" not in dashboard["today_focus"]["query"]
+    assert "建筑实务微课" in dashboard["today_focus"]["query"]
+    assert "考试场景例子" in dashboard["today_focus"]["query"]
 
 
 def test_home_dashboard_today_focus_never_uses_generic_learning_plan_query(
@@ -624,7 +628,7 @@ def test_home_dashboard_today_focus_never_uses_generic_learning_plan_query(
                 {
                     "profile": {
                         "focus_topic": "建筑构造",
-                        "focus_query": "继续我的学习计划",
+                        "focus_query": "请根据我的学习记录、最近进度，围绕建筑构造安排下一步学习推进：先判断我当前更适合知识讲解、例题带练、错因复盘还是少量自测，再用建筑实务考试口径展开；不要默认生成整套训练题，也不要提前假设我的阶段层级。",
                     },
                     "progress": {
                         "today": {"today_done": 0, "daily_target": 5},
@@ -641,11 +645,14 @@ def test_home_dashboard_today_focus_never_uses_generic_learning_plan_query(
     dashboard = service.get_home_dashboard("generic_focus_user")
 
     assert dashboard["today_focus"]["title"] == "推进建筑构造下一步学习"
-    assert dashboard["today_focus"]["query"] == "请根据我的学习记录、最近进度，围绕建筑构造安排下一步学习推进：先判断我当前更适合知识讲解、例题带练、错因复盘还是少量自测，再用建筑实务考试口径展开；不要默认生成整套训练题，也不要提前假设我的阶段层级。"
+    assert dashboard["today_focus"]["query"] == "请根据我的学习记录、最近进度，围绕建筑构造做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
     assert "学习计划" not in dashboard["today_focus"]["query"]
+    assert "下一步学习推进" not in dashboard["today_focus"]["query"]
+    assert "先判断我当前更适合" not in dashboard["today_focus"]["query"]
     assert "专项训练题" not in dashboard["today_focus"]["query"]
     assert "5道" not in dashboard["today_focus"]["query"]
     assert "入门" not in dashboard["today_focus"]["query"]
+    assert "建筑实务微课" in dashboard["today_focus"]["query"]
 
 
 def test_home_dashboard_today_focus_incorporates_heartbeat_without_making_it_authority(
@@ -721,8 +728,13 @@ def test_home_dashboard_today_focus_incorporates_heartbeat_without_making_it_aut
     assert dashboard["today_focus"]["topic"] == "防水工程"
     assert dashboard["today_focus"]["source"] == "learner_state.study_plan+heartbeat"
     assert "周期复习节奏" in dashboard["today_focus"]["query"]
+    assert "建筑实务微课" in dashboard["today_focus"]["query"]
+    assert "考试场景例子" in dashboard["today_focus"]["query"]
+    assert "学习计划" not in dashboard["today_focus"]["query"]
+    assert "下一步学习推进" not in dashboard["today_focus"]["query"]
+    assert "先判断我当前更适合" not in dashboard["today_focus"]["query"]
     assert "整套训练题" in dashboard["today_focus"]["query"]
-    assert "阶段层级" in dashboard["today_focus"]["query"]
+    assert "阶段层级" not in dashboard["today_focus"]["query"]
 
 
 def test_home_dashboard_ignores_global_workspace_heartbeat_as_user_focus_authority(
@@ -1903,6 +1915,7 @@ def test_submit_assessment_writes_teaching_policy_and_learner_event(monkeypatch,
     result = service.submit_assessment("student_demo", payload["quiz_id"], answers, time_spent_seconds=180)
 
     assert result["teaching_policy_seed"]["version"] == "assessment_seed_v1"
+    assert result["diagnostic_feedback"]["learner_profile"]["archetype_name"] == "动态调节型学员"
     assert learner_events[0]["memory_kind"] == "assessment"
     assert learner_events[0]["source_feature"] == "assessment"
     assert learner_events[0]["payload_json"]["teaching_policy_seed"]["source_assessment"]["quiz_id"] == payload["quiz_id"]

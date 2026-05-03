@@ -4,6 +4,41 @@ const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
 
 const RADAR_SELF_SUBJECT = "self";
+const LEVEL_NAMES = {
+  beginner: "入门",
+  intermediate: "中级",
+  advanced: "进阶",
+  expert: "精通",
+};
+const CHAPTER_CODE_LABELS = {
+  "1A411": "建筑设计与构造",
+  "1A412": "结构设计与建筑材料",
+  "1A413": "装配式建筑",
+  "1A414": "建筑工程材料",
+  "1A415": "建筑工程施工技术",
+  "1A421": "项目组织管理",
+  "1A422": "施工进度管理",
+  "1A423": "施工质量管理",
+  "1A424": "施工安全管理",
+  "1A425": "合同与招投标管理",
+  "1A426": "施工成本管理",
+  "1A427": "资源与现场管理",
+  "1A431": "建筑工程法规",
+  "1A432": "建筑工程技术标准",
+};
+
+function displayLevelName(value) {
+  var key = String(value || "").trim();
+  return LEVEL_NAMES[key] || key || "";
+}
+
+function displayChapterName(value) {
+  var text = String(value || "").trim();
+  if (/^1A\d{6}$/i.test(text)) {
+    return CHAPTER_CODE_LABELS[text.slice(0, 5).toUpperCase()] || "综合能力";
+  }
+  return text || "综合能力";
+}
 
 function buildRadarDimensionsFromAssessment(data) {
   var mastery = (data && data.chapter_mastery) || {};
@@ -11,7 +46,7 @@ function buildRadarDimensionsFromAssessment(data) {
     var item = mastery[key];
     var score = (typeof item === "object" ? item.mastery : item) || 0;
     return {
-      name: (typeof item === "object" ? item.name : key) || key,
+      name: displayChapterName((typeof item === "object" ? item.name : key) || key),
       value: Number(score || 0) / 100,
     };
   });
@@ -33,7 +68,7 @@ function normalizeRadarDimensions(radarData) {
         ? score / 100
         : 0;
     return {
-      name: item.label || item.name || item.key || "",
+      name: displayChapterName(item.label || item.name || item.key || ""),
       value: value || 0,
     };
   });
@@ -75,7 +110,6 @@ Page({
     masteryGroups: [],
     hotspots: [],
     reviewSummary: { total_due: 0, overdue_count: 0 },
-    userPoints: 0,
     todayDone: 0,
     dailyTarget: 0,
     streakDays: 0,
@@ -103,19 +137,7 @@ Page({
       this._loadOverview();
       this._loadRadar();
       this._loadMastery();
-      this._loadPoints();
     });
-  },
-
-  async _loadPoints() {
-    try {
-      const data = await api.getWallet();
-      this.setData({ userPoints: data.balance || 0 });
-    } catch (_) {}
-  },
-
-  goBilling() {
-    wx.navigateTo({ url: "/pages/billing/billing" });
   },
 
   onReady() {
@@ -160,7 +182,7 @@ Page({
         dueTodayCount: ((home.review || {}).due_today || 0),
         weakNodeCount: weakNodes.length,
         focusHint: ((home.today || {}).hint || ""),
-        learnerLevel: assessment.level || "",
+        learnerLevel: displayLevelName(assessment.level || ""),
         studyTip: learnerProfile.study_tip || "",
       });
     } catch (_) {}
@@ -258,7 +280,7 @@ Page({
           chapters: (group.chapters || []).map(function (chapter) {
             var mastery = Math.round(chapter.mastery || 0);
             return {
-              name: chapter.name || "",
+              name: displayChapterName(chapter.name || ""),
               mastery: mastery,
               color:
                 mastery >= 70 ? "#34d399" : mastery >= 40 ? "#fbbf24" : "#f87171",
@@ -270,7 +292,7 @@ Page({
       var hotspots = (data.hotspots || []).map(function (item) {
         var mastery = Math.round(item.mastery || 0);
         return {
-          name: item.name || "",
+          name: displayChapterName(item.name || ""),
           mastery: mastery,
           rateText: mastery + "%",
         };
@@ -288,7 +310,7 @@ Page({
         var strongChapters = [];
         Object.keys(cm).forEach(function (k) {
           var v = cm[k];
-          var name = (typeof v === "object" ? v.name : k) || k;
+          var name = displayChapterName((typeof v === "object" ? v.name : k) || k);
           var mastery = (typeof v === "object" ? v.mastery : v) || 0;
           var item = {
             name: name,

@@ -456,7 +456,7 @@ class MemberConsoleService:
         return get_wallet_service()
 
     def _build_assessment_blueprint_service(self) -> AssessmentBlueprintService:
-        allow_dev_fallback = (not is_production_environment()) or env_flag(
+        allow_dev_fallback = env_flag(
             "ASSESSMENT_ALLOW_DEV_FALLBACK",
             default=False,
         )
@@ -3817,6 +3817,10 @@ class MemberConsoleService:
             return True
         if "学习计划" in normalized:
             return True
+        if "下一步学习推进" in normalized:
+            return True
+        if "先判断我当前更适合" in normalized:
+            return True
         if normalized.startswith("继续巩固"):
             return True
         if (
@@ -3845,17 +3849,17 @@ class MemberConsoleService:
             context_hint += "和周期复习节奏"
         if reason in {"review_due", "review_due_today"}:
             return (
-                f"{context_hint}，帮我处理今天该复习的建筑实务内容：先判断我更适合知识讲解、例题带练、"
-                "错因复盘还是少量自测，再用考试口径推进；不要默认生成整套训练题，也不要提前假设我的阶段层级。"
+                f"{context_hint}，带我复习今天该回看的建筑实务内容：先讲清一个最容易遗忘的核心考点，"
+                "再用一个考试场景帮我复盘易错判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
             )
         if not focus:
             return (
-                f"{context_hint}，帮我判断今天最该推进哪一块建筑实务内容：可以在知识讲解、例题带练、"
-                "错因复盘、少量自测中选择最合适方式；不要默认出整套题，也不要提前假设我的阶段层级。"
+                f"{context_hint}，先选出今天最值得补的一块建筑实务内容，然后用微课方式讲清："
+                "一个核心考点、一个考试场景例子、一个自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
             )
         return (
-            f"{context_hint}，围绕{focus}安排下一步学习推进：先判断我当前更适合知识讲解、例题带练、"
-            "错因复盘还是少量自测，再用建筑实务考试口径展开；不要默认生成整套训练题，也不要提前假设我的阶段层级。"
+            f"{context_hint}，围绕{focus}做一次建筑实务微课：先讲清一个最容易失分的核心考点，"
+            "再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
         )
 
     def _build_home_study_plan(
@@ -4284,6 +4288,8 @@ class MemberConsoleService:
                 },
                 "learner_profile": {
                     "archetype": "policy_seeded",
+                    "archetype_name": "动态调节型学员",
+                    "description": "系统会根据你的知识得分、学习习惯和作答节奏动态调整讲解、练习与复盘方式。",
                     "traits": _profile_traits_from_seed(teaching_policy_seed),
                     "study_tip": _study_tip_from_seed(teaching_policy_seed),
                     "profile_projection": {

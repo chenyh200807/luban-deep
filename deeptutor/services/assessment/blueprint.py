@@ -11,7 +11,7 @@ class AssessmentSection:
     scored: bool
     question_types: tuple[str, ...]
     fallback_question_types: tuple[str, ...] = ()
-    source_types: tuple[str, ...] = ("REAL_EXAM", "TEXTBOOK_ASSESSMENT", "TEXTBOOK")
+    source_types: tuple[str, ...] = ("REAL_EXAM", "TEXTBOOK_ASSESSMENT", "TEXTBOOK", "textbook_exercise")
     topics: tuple[str, ...] = ()
     minimum_multiplier: int = 3
     hard_require_calculation: bool = False

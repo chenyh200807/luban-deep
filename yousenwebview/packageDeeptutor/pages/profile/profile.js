@@ -36,30 +36,51 @@ function _normalizeBadges(remoteBadges, fallbackEarnedIds, currentBadges) {
   });
 }
 
-function toFiniteNumber(value) {
-  var num = Number(value);
-  return isNaN(num) ? null : num;
+function _formatUsageReset(resetAt) {
+  if (!resetAt) return "";
+  var date = new Date(resetAt);
+  if (isNaN(date.getTime())) return "";
+  var now = new Date();
+  var sameDay = date.toDateString() === now.toDateString();
+  var hh = String(date.getHours()).padStart(2, "0");
+  var mm = String(date.getMinutes()).padStart(2, "0");
+  return sameDay ? hh + ":" + mm + " 重置" : date.getMonth() + 1 + " 月 " + date.getDate() + " 日重置";
 }
 
-function extractPointsValue(raw) {
-  var source = api.unwrapResponse(raw) || raw || {};
-  var candidates = [
-    source.points,
-    source.balance,
-    source.points_balance,
-    source.wallet_balance,
-    source.walletBalance,
-    source.wallet && source.wallet.balance,
-    source.wallet && source.wallet.points,
-    source.data && source.data.balance,
-    source.data && source.data.points,
-    source.data && source.data.points_balance,
-  ];
-  for (var i = 0; i < candidates.length; i++) {
-    var parsed = toFiniteNumber(candidates[i]);
-    if (parsed !== null) return parsed;
-  }
-  return null;
+function _usageLabel(row) {
+  var key = String(row.key || "");
+  if (key === "five_hour") return "5 小时限额";
+  if (key === "weekly") return "每周限额";
+  return String(row.label || "使用限额").replace("使用限额", "限额");
+}
+
+function _normalizeUsage(raw) {
+  var data = api.unwrapResponse ? api.unwrapResponse(raw) || raw || {} : raw || {};
+  var display = data.display || {};
+  var quota = data.quota || {};
+  var sourceRows = display.rows || quota.rows || data.rows || [];
+  var rows = sourceRows.map(function (row) {
+    var remaining = Math.max(0, Math.min(100, Math.round(Number(row.remaining_percent) || 0)));
+    var resetLabel = _formatUsageReset(row.reset_at);
+    var remainingLabel = "剩余 " + remaining + "%";
+    return {
+      key: row.key || "",
+      label: _usageLabel(row),
+      remainingLabel: remainingLabel,
+      remainingPercent: remaining,
+      resetLabel: resetLabel,
+      detailLabel: remainingLabel + (resetLabel ? "，" + resetLabel : ""),
+      barStyle: "width:" + remaining + "%",
+    };
+  });
+  var primary = rows[0] || {};
+  var primaryPercent = Math.max(0, Math.min(100, Math.round(Number(display.primary_remaining_percent || display.primary_percent || primary.remainingPercent || 0))));
+  return {
+    usagePrimaryLabel: display.primary_label || "剩余 " + primaryPercent + "%",
+    usageRows: rows,
+    usageDetailShow: false,
+    usageLoading: false,
+  };
 }
 
 function buildLinkItems(workspaceFlags) {
@@ -72,7 +93,7 @@ function buildLinkItems(workspaceFlags) {
     items.push({ id: "diagnostic", icon: "🔍", title: "摸底报告" });
   }
   items.push({ id: "membership", icon: "👑", title: "会员充值" });
-  items.push({ id: "feedback", icon: "💬", title: "意见反馈", nativeOpenType: "feedback" });
+  items.push({ id: "feedback", icon: "💬", title: "意见反馈" });
   items.push({ id: "terms", icon: "📄", title: "服务条款" });
   return items;
 }
@@ -86,9 +107,11 @@ Page({
     avatarUrl: "",
     level: 1,
     xp: 0,
-    userPoints: 0,
-    points: 0,
     isDark: true,
+    usageLoading: true,
+    usagePrimaryLabel: "剩余 --",
+    usageRows: [],
+    usageDetailShow: false,
 
     examDate: "",
     dailyTarget: 30,
@@ -120,7 +143,6 @@ Page({
     ],
 
     capabilityItems: [
-      { id: "web_search", icon: "🌐", title: "联网搜索", status: "未开放", desc: "当前小程序答疑以建筑实务知识库和题库为主，联网搜索入口尚未接入。" },
       { id: "file_analysis", icon: "📎", title: "图片/文档分析", status: "未开放", desc: "当前仅支持文本提问，图片和文档上传分析需要单独的上传、审核和解析链路。" },
       { id: "mind_map", icon: "🧠", title: "思维导图", status: "未开放", desc: "思维导图生成需要结构化知识点输出和小程序渲染合同，尚未开放给用户。" },
     ],
@@ -158,36 +180,30 @@ Page({
     var self = this;
     runtime.checkAuth(function () {
       self._loadUserInfo();
-      self._loadPoints();
+      self._loadUsage();
     });
   },
 
-  _loadPoints: function () {
+  _loadUsage: function () {
     var self = this;
+    self.setData({ usageLoading: true });
     api
-      .getWallet()
-      .then(function (data) {
-        var points = extractPointsValue(data);
-        if (points !== null) {
-          self.setData({ userPoints: points, points: points });
-          return;
-        }
-        return api.getPoints().then(function (fallbackRaw) {
-          var fallbackPoints = extractPointsValue(fallbackRaw);
-          if (fallbackPoints !== null) {
-            self.setData({ userPoints: fallbackPoints, points: fallbackPoints });
-          }
-        });
+      .getUsage()
+      .then(function (raw) {
+        self.setData(_normalizeUsage(raw));
       })
       .catch(function () {
-        return api.getPoints().then(function (fallbackRaw) {
-          var fallbackPoints = extractPointsValue(fallbackRaw);
-          if (fallbackPoints !== null) {
-            self.setData({ userPoints: fallbackPoints, points: fallbackPoints });
-          }
-        });
-      })
-      .catch(function () {});
+        self.setData({ usageLoading: false, usageRows: [], usageDetailShow: false });
+      });
+  },
+
+  openUsageDetail: function () {
+    if (!this.data.usageRows.length) return;
+    this.setData({ usageDetailShow: true });
+  },
+
+  closeUsageDetail: function () {
+    this.setData({ usageDetailShow: false });
   },
 
   _loadUserInfo: function () {
@@ -196,7 +212,6 @@ Page({
       .getUserInfo()
       .then(function (info) {
         var name = info.display_name || info.username || "用户";
-        var nextPoints = extractPointsValue(info);
         var update = {
           username: name,
           avatarChar: name.charAt(0).toUpperCase(),
@@ -208,10 +223,6 @@ Page({
           explainStyle: info.explanation_style || "detailed",
           reviewReminder: info.review_reminder || false,
         };
-        if (nextPoints !== null) {
-          update.points = nextPoints;
-          update.userPoints = nextPoints;
-        }
         // 本地头像只作为当前设备 UI cache；没有本地头像时才回落到服务端值
         if (!self._localAvatarPath && info.avatar_url) {
           update.avatarUrl = info.avatar_url;
@@ -400,6 +411,38 @@ Page({
     wx.navigateTo({ url: route.billing() });
   },
 
+  submitProductFeedback: function () {
+    helpers.vibrate("light");
+    wx.showModal({
+      title: "意见反馈",
+      editable: true,
+      placeholderText: "请描述你遇到的问题或建议",
+      confirmText: "提交",
+      success: function (res) {
+        if (!res.confirm) return;
+        var comment = String(res.content || "").trim();
+        if (!comment) {
+          wx.showToast({ title: "请先填写反馈内容", icon: "none" });
+          return;
+        }
+        api
+          .submitFeedback({
+            rating: -1,
+            reason_tags: ["产品反馈"],
+            comment: comment,
+            answer_mode: "AUTO",
+            feedback_source: "yousenwebview_profile_feedback",
+          })
+          .then(function () {
+            wx.showToast({ title: "感谢反馈", icon: "success" });
+          })
+          .catch(function () {
+            wx.showToast({ title: "提交失败，请稍后重试", icon: "none" });
+          });
+      },
+    });
+  },
+
   openLink: function (e) {
     var id = e.currentTarget.dataset.id;
     helpers.vibrate("light");
@@ -412,6 +455,8 @@ Page({
       wx.navigateTo({ url: route.report() });
     } else if (id === "membership") {
       wx.navigateTo({ url: route.billing() });
+    } else if (id === "feedback") {
+      this.submitProductFeedback();
     } else if (id === "terms") {
       wx.navigateTo({ url: route.terms() });
     }

@@ -179,6 +179,7 @@ function buildPresentationState(presentation) {
   var canonical = renderSchema.createCanonicalMessage(presentation);
   var blocks = Array.isArray(canonical.blocks) ? canonical.blocks : [];
   var mcqBlock = null;
+  var renderBlocks = buildStructuredRenderableBlocks(canonical);
 
   for (var i = 0; i < blocks.length; i++) {
     var block = blocks[i];
@@ -190,21 +191,65 @@ function buildPresentationState(presentation) {
 
   return {
     canonical: canonical,
-    renderBlocks: buildStructuredRenderableBlocks(canonical),
+    renderBlocks: renderBlocks,
     cards: mcqBlock ? mcqBlock.questions : null,
     hint: mcqBlock ? mcqBlock.submitHint || "请选择后提交答案" : "",
     receipt: mcqBlock ? mcqBlock.receipt || "" : "",
     interactiveReady: mcqBlock ? mcqBlock.reviewMode !== true : false,
     hasStructuredContent: blocks.length > 0,
+    hasNonMcqStructuredContent: renderBlocks.length > 0,
+    hasOnlyMcqContent: !!mcqBlock && renderBlocks.length === 0,
   };
 }
 
-function shouldRenderStructuredFallback(presentationState) {
+function normalizeProjectionSignature(text) {
+  return String(text || "")
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/\*\*/g, "")
+    .replace(/\s+/g, "")
+    .replace(/[，。；：、,.!！?？()[\]（）【】《》"'“”‘’_\-—]/g, "")
+    .toLowerCase();
+}
+
+function buildMcqProjectionSignature(cards) {
+  var items = Array.isArray(cards) ? cards : [];
+  var parts = [];
+  for (var i = 0; i < items.length; i++) {
+    var card = items[i] || {};
+    parts.push(card.stem || "");
+    var options = Array.isArray(card.options) ? card.options : [];
+    for (var j = 0; j < options.length; j++) {
+      parts.push(options[j] && options[j].key ? options[j].key : "");
+      parts.push(options[j] && options[j].text ? options[j].text : "");
+    }
+  }
+  return normalizeProjectionSignature(parts.join("\n"));
+}
+
+function hasMeaningfulFallbackOutsideMcq(fallbackText, cards) {
+  var fallback = String(fallbackText || "").trim();
+  if (!fallback) return false;
+  var fallbackSignature = normalizeProjectionSignature(fallback);
+  var mcqSignature = buildMcqProjectionSignature(cards);
+  if (!fallbackSignature) return false;
+  if (!mcqSignature) return true;
+  if (fallbackSignature === mcqSignature || mcqSignature.indexOf(fallbackSignature) >= 0) {
+    return false;
+  }
+  if (fallbackSignature.length > mcqSignature.length + 80) return true;
+  return /结论|判断依据|核心考点|考试场景|踩分点|易错点|解析|自查问题/.test(fallback);
+}
+
+function shouldRenderStructuredFallback(presentationState, fallbackText) {
   if (!presentationState || !presentationState.canonical) return true;
   var blocks = Array.isArray(presentationState.canonical.blocks)
     ? presentationState.canonical.blocks
     : [];
   if (!blocks.length) return true;
+  if (presentationState.hasOnlyMcqContent) {
+    return hasMeaningfulFallbackOutsideMcq(fallbackText, presentationState.cards);
+  }
 
   for (var i = 0; i < blocks.length; i++) {
     var block = blocks[i];
@@ -230,17 +275,22 @@ function deriveAiMessageRenderState(input) {
       : null;
   var parseBlocks = !!(input && input.parseBlocks);
   var presentationState = buildPresentationState(presentation);
-  var renderStructuredFallback = shouldRenderStructuredFallback(presentationState);
+  var fallbackContent =
+    presentationState && presentationState.canonical
+      ? presentationState.canonical.fallbackText || mcqDetect.stripReceipt(content)
+      : mcqDetect.stripReceipt(content);
+  var renderStructuredFallback = shouldRenderStructuredFallback(
+    presentationState,
+    fallbackContent,
+  );
   var renderableContent = presentationState && presentationState.canonical
-    ? String(
-        renderStructuredFallback
-          ? presentationState.canonical.fallbackText ||
-              mcqDetect.stripReceipt(content)
-          : "",
-      )
+    ? String(renderStructuredFallback ? fallbackContent : "")
     : mcqDetect.stripReceipt(content);
   renderableContent = markdownNormalize.normalizeMarkdownForWechat(
     renderableContent || "",
+  );
+  var useStructuredBlocks = !!(
+    presentationState && presentationState.hasNonMcqStructuredContent
   );
   var canonicalMessage =
     presentationState && presentationState.canonical
@@ -253,13 +303,13 @@ function deriveAiMessageRenderState(input) {
           },
         });
   var markdownBlocks =
-    parseBlocks && !(presentationState && presentationState.hasStructuredContent)
+    parseBlocks && !useStructuredBlocks
       ? md.parseWithIds(renderableContent || "")
       : null;
 
   return renderSchema.createRenderModel({
     renderableContent: renderableContent,
-    blocks: presentationState && presentationState.hasStructuredContent
+    blocks: useStructuredBlocks
       ? presentationState.renderBlocks
       : markdownBlocks,
     mcqCards: presentationState ? presentationState.cards : null,
@@ -270,7 +320,7 @@ function deriveAiMessageRenderState(input) {
       : false,
     visibleBlocks: canonicalMessage.blocks,
     plainTextFallback: renderableContent,
-    hasStructuredContent: !!canonicalMessage.blocks.length,
+    hasStructuredContent: useStructuredBlocks,
     streamPhase: "complete",
   });
 }

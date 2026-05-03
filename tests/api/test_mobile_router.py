@@ -519,6 +519,7 @@ def test_mobile_chat_feedback_persists_structured_row(
                 "reason_tags": ["事实错误", "逻辑不通", "事实错误"],
                 "comment": "这里的规范引用不对",
                 "answer_mode": "fast",
+                "feedback_source": "wx_miniprogram_profile_feedback",
             },
         )
 
@@ -532,7 +533,7 @@ def test_mobile_chat_feedback_persists_structured_row(
     assert row["reason_tags"] == ["事实错误", "逻辑不通"]
     assert row["comment"] == "这里的规范引用不对"
     assert row["metadata"]["answer_mode"] == "FAST"
-    assert row["metadata"]["feedback_source"] == "wx_miniprogram_message_actions"
+    assert row["metadata"]["feedback_source"] == "wx_miniprogram_profile_feedback"
     assert row["metadata"]["surface"] == "wx_miniprogram"
     assert row["metadata"]["deeptutor_user_id"] == "student_demo"
     assert row["metadata"]["deeptutor_session_id"] == "session_feedback_1"

@@ -81,9 +81,9 @@ assert(
   "chat.js should default workflow status panels to visible during streaming",
 );
 assert(
-  chatWxml.indexOf('class="nav-points-pill" wx:if="{{!hasMessages}}"') >= 0 &&
-    chatWxml.indexOf("{{userPoints}}") >= 0,
-  "chat navbar should show points only before entering the message scene",
+  chatWxml.indexOf('class="nav-usage-pill"') < 0 &&
+    chatWxml.indexOf("{{usagePrimaryLabel}}") < 0,
+  "chat navbar should not show usage percentage; usage belongs on the profile page",
 );
 assert(
   chatWxml.indexOf('class="nav-chat-actions" wx:if="{{hasMessages}}"') >= 0 &&
@@ -111,18 +111,20 @@ assert(
   "chat more menu should reuse existing archive and delete conversation APIs",
 );
 assert(
-  (chatWxml.match(/class="nav-points-num">\{\{userPoints\}\}/g) || []).length === 1 &&
+  chatWxml.indexOf("{{userPoints}}") < 0 &&
     chatWxml.indexOf("class=\"points-pill\"") < 0 &&
-    chatWxml.indexOf("class=\"points-num\"") < 0,
-  "chat home should render the points balance once, using the navbar as the single visible entry",
+    chatWxml.indexOf("class=\"points-num\"") < 0 &&
+    chatWxml.indexOf("class=\"billing-drawer\"") < 0,
+  "chat home should not render balances, usage percentages, or billing drawers",
 );
 assert(
   chatWxml.indexOf("focus-label") >= 0 &&
+    chatWxml.indexOf("{{focusLabel}}：") >= 0 &&
     chatWxml.indexOf("focus-title") >= 0 &&
     chatWxml.indexOf("focus-meta") >= 0 &&
     /focusTitle:\s*""/.test(chatJs) &&
     /focusMeta:\s*""/.test(chatJs),
-  "today focus should be structured into label, title, and meta instead of one crowded text string",
+  "today focus should keep separate label, title, and meta nodes for stable styling",
 );
 assert(
   chatJs.indexOf('focusText: "今日焦点') < 0 &&
@@ -132,13 +134,29 @@ assert(
 assert(
   chatJs.indexOf("d.today_focus || today.focus") >= 0 &&
     chatJs.indexOf("var weakNodes = mastery.weak_nodes") < 0 &&
-    chatJs.indexOf("buildFocusQuery(focus, update.focusTitle)") >= 0 &&
+    chatJs.indexOf("buildFocusQuery(focus, rawFocusTitle)") >= 0 &&
+    chatJs.indexOf("buildFocusDisplayTitle(focus, rawFocusTitle)") >= 0 &&
+    chatJs.indexOf("buildFocusDisplayMeta(focus, rawFocusMeta)") >= 0 &&
     chatJs.indexOf("继续我的学习计划") < 0 &&
     chatJs.indexOf("给我安排5道高价值专项训练题") < 0 &&
     chatJs.indexOf("5题快速摸底") < 0 &&
     chatJs.indexOf("入门导学") < 0 &&
-    chatJs.indexOf("下一步学习推进") >= 0,
-  "chat home should render backend today_focus and keep fallback focused on knowledge explanation",
+    chatJs.indexOf("安排下一步学习推进：") < 0 &&
+    chatJs.indexOf("先判断我当前更适合知识讲解") < 0 &&
+    chatJs.indexOf("建筑实务微课") >= 0 &&
+    chatJs.indexOf("考试场景例子") >= 0,
+  "chat home should render backend today_focus and keep fallback focused on micro-lesson explanation",
+);
+assert(
+  chatJs.indexOf('function buildFocusDisplayMeta(focus, meta)') >= 0 &&
+    chatJs.indexOf('return "";') >= 0 &&
+    chatWxss.indexOf(".focus-copy {\n  flex: 1; min-width: 0; display: flex; align-items: center; gap: 0;") >= 0 &&
+    chatWxss.indexOf("font-size: 26rpx; color: rgba(251,191,36,0.92);") >= 0 &&
+    chatWxss.indexOf("font-size: 26rpx; line-height: 1.2;") >= 0 &&
+    chatWxss.indexOf("flex: 1; min-width: 0;") >= 0 &&
+    chatWxss.indexOf("color: #fbbf24") >= 0 &&
+    chatWxss.indexOf("rgba(251,191,36,0.92)") >= 0,
+  "today focus card should read as one sentence with consistent yellow typography",
 );
 assert(
   chatWxml.indexOf("class=\"hero-more-btn\"") >= 0 &&

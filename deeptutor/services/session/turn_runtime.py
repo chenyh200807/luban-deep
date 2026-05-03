@@ -3742,14 +3742,14 @@ class TurnRuntimeManager:
             )
         finally:
             terminal_usage_summary = observability.get_current_usage_summary()
+            if terminal_status == "completed" and post_turn_refresh_kwargs is not None:
+                self._schedule_post_turn_refresh(**post_turn_refresh_kwargs)
             if turn_observation_cm is not None:
                 with contextlib.suppress(Exception):
                     turn_observation_cm.__exit__(None, None, None)
             if usage_scope_cm is not None:
                 with contextlib.suppress(Exception):
                     usage_scope_cm.__exit__(None, None, None)
-            if terminal_status == "completed" and post_turn_refresh_kwargs is not None:
-                self._schedule_post_turn_refresh(**post_turn_refresh_kwargs)
             turn_duration_ms = (time.perf_counter() - turn_started_at) * 1000.0
             get_turn_runtime_metrics().record_turn_finished(
                 status=terminal_status,

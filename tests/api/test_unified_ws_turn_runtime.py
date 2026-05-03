@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import sqlite3
 import importlib
+from contextvars import ContextVar
 from types import SimpleNamespace
 
 import pytest
@@ -1293,8 +1294,14 @@ async def test_turn_runtime_wraps_learner_state_refresh_llm_in_parent_trace(
 
     class FakeObservability:
         def __init__(self) -> None:
-            self.active_observations: list[str] = []
-            self.scope_active = False
+            self.active_observation: ContextVar[str | None] = ContextVar(
+                "active_observation",
+                default=None,
+            )
+            self.scope_active: ContextVar[bool] = ContextVar(
+                "scope_active",
+                default=False,
+            )
             self.started: list[dict[str, object]] = []
             self.scopes: list[SimpleNamespace] = []
 
@@ -1303,13 +1310,13 @@ async def test_turn_runtime_wraps_learner_state_refresh_llm_in_parent_trace(
 
             class _UsageScope:
                 def __enter__(self):
-                    outer.scope_active = True
+                    self._token = outer.scope_active.set(True)
                     scope = SimpleNamespace(**kwargs)
                     outer.scopes.append(scope)
                     return scope
 
                 def __exit__(self, *_args):
-                    outer.scope_active = False
+                    outer.scope_active.reset(self._token)
                     return False
 
             return _UsageScope()
@@ -1317,7 +1324,7 @@ async def test_turn_runtime_wraps_learner_state_refresh_llm_in_parent_trace(
         def start_observation(self, **kwargs):
             outer = self
             name = str(kwargs.get("name") or "")
-            parent = outer.active_observations[-1] if outer.active_observations else None
+            parent = outer.active_observation.get()
 
             class _Observation:
                 def __enter__(self):
@@ -1325,15 +1332,15 @@ async def test_turn_runtime_wraps_learner_state_refresh_llm_in_parent_trace(
                         {
                             "name": name,
                             "parent": parent,
-                            "scope_active": outer.scope_active,
+                            "scope_active": outer.scope_active.get(),
                             "metadata": dict(kwargs.get("metadata") or {}),
                         }
                     )
-                    outer.active_observations.append(name)
+                    self._token = outer.active_observation.set(name)
                     return SimpleNamespace(name=name)
 
                 def __exit__(self, *_args):
-                    outer.active_observations.pop()
+                    outer.active_observation.reset(self._token)
                     return False
 
             return _Observation()
@@ -1431,6 +1438,9 @@ async def test_turn_runtime_wraps_learner_state_refresh_llm_in_parent_trace(
     if runtime._background_tasks:
         await asyncio.gather(*list(runtime._background_tasks))
 
+    refresh = next(item for item in fake_observability.started if item["name"] == "learner_state.refresh")
+    assert refresh["parent"] == "turn.chat"
+    assert refresh["scope_active"] is True
     learner_llm = next(
         item
         for item in fake_observability.started

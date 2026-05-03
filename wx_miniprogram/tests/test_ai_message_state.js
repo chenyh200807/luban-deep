@@ -153,6 +153,73 @@ run("service presentation block becomes the primary mcq source", function () {
   assertEqual(state.mcqCards[0].questionId, "q_1", "question id should come from service presentation");
   assertEqual(state.mcqInteractiveReady, true, "presentation block should remain interactive");
   assertEqual(state.mcqReceipt, "", "presentation path should not be polluted by text-detect receipts");
+  assertEqual(state.renderableContent, "", "pure mcq presentation should not duplicate the card text");
+  assertEqual(state.hasStructuredContent, false, "mcq-only presentation should not suppress markdown fallback paths");
+});
+
+run("mcq presentation keeps mixed teaching content visible", function () {
+  var content = [
+    "好的，我们直接进入防水工程最容易失分的一个核心考点。",
+    "",
+    "## 结论",
+    "",
+    "防水工程最容易失分的是 **钢板止水带搭接参数**：焊接搭接长度不应小于 50mm，并采用双面焊。",
+    "",
+    "## 判断依据",
+    "",
+    "- 焊接搭接：50mm + 双面焊",
+    "- 冷搭接：20mm + 单面焊或铆接",
+    "",
+    "## 考试场景判断",
+    "",
+    "题目：地下防水工程中，关于钢板止水带施工的说法，正确的是：",
+    "",
+    "A. 焊接搭接长度不应小于20mm，采用单面焊",
+    "B. 焊接搭接长度不应小于50mm，采用双面焊",
+    "",
+    "## 踩分点",
+    "",
+    "- 两个参数必须成对匹配。",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: content,
+    presentation: {
+      blocks: [
+        {
+          type: "mcq",
+          questions: [
+            {
+              index: 1,
+              stem: "地下防水工程中，关于钢板止水带施工的说法，正确的是：",
+              question_type: "single_choice",
+              options: [
+                { key: "A", text: "焊接搭接长度不应小于20mm，采用单面焊" },
+                { key: "B", text: "焊接搭接长度不应小于50mm，采用双面焊" },
+              ],
+              followup_context: {
+                question_id: "q_waterproof_1",
+                correct_answer: "B",
+              },
+            },
+          ],
+          submit_hint: "请选择后提交答案",
+        },
+      ],
+      fallback_text: content,
+      meta: { streamingMode: "block_finalized" },
+    },
+    parseBlocks: true,
+  });
+
+  assert(state.mcqCards && state.mcqCards.length === 1, "mcq card should still render");
+  assert(
+    state.renderableContent.indexOf("## 结论") >= 0 &&
+      state.renderableContent.indexOf("## 踩分点") >= 0,
+    "teaching prose around the mcq should remain visible",
+  );
+  assert(state.blocks && state.blocks.length > 0, "mixed fallback should stay in markdown flow");
+  assertEqual(state.hasStructuredContent, false, "mcq-only projection should not take over body rendering");
 });
 
 run("structured table and formula blocks become the render source", function () {

@@ -14,12 +14,14 @@ var ARCHETYPE_ICONS = {
   explorer: "E",
   sprinter: "F",
   builder: "B",
+  policy_seeded: "智",
 };
 var ARCHETYPE_COLORS = {
   strategist: "#3b82f6",
   explorer: "#8b5cf6",
   sprinter: "#f59e0b",
   builder: "#22c55e",
+  policy_seeded: "#3b82f6",
 };
 var RESPONSE_LABELS = {
   fluent: "流畅型",
@@ -46,6 +48,7 @@ var ARCHETYPE_NAMES = {
   explorer: "探索型学员",
   sprinter: "冲刺型学员",
   builder: "基础型学员",
+  policy_seeded: "动态调节型学员",
 };
 var ARCHETYPE_DESCS = {
   strategist:
@@ -56,12 +59,15 @@ var ARCHETYPE_DESCS = {
     "你目标明确、执行力强，擅长在压力下高效产出。你喜欢集中火力攻克重点，在冲刺阶段爆发力惊人。",
   builder:
     "你做事扎实稳健，喜欢循序渐进地构建知识体系。你相信万丈高楼平地起，基础打牢了后面的学习自然水到渠成。",
+  policy_seeded:
+    "系统会根据你的知识得分、学习习惯和作答节奏动态调整讲解、练习与复盘方式。",
 };
 var ARCHETYPE_TRAITS = {
   strategist: ["目标导向", "高效执行", "数据驱动", "善于规划"],
   explorer: ["求知欲强", "深度学习", "融会贯通", "知识整合"],
   sprinter: ["执行力强", "重点突破", "抗压力好", "目标明确"],
   builder: ["扎实稳健", "循序渐进", "基础牢固", "持之以恒"],
+  policy_seeded: ["动态调节", "节奏适配", "分步推进", "复盘巩固"],
 };
 var ARCHETYPE_TIPS = {
   strategist:
@@ -72,6 +78,24 @@ var ARCHETYPE_TIPS = {
     "建议聚焦高权重章节和历年高频考点，通过大量刷题建立题感。考前一个月进入模拟考试密集训练。",
   builder:
     "建议从基础章节开始，确保每个概念理解透彻后再进入下一个。用工地实际场景帮助记忆，让知识落地。",
+  policy_seeded: "建议按当前诊断结果先补薄弱章节，再用短组练习和固定复盘巩固。",
+};
+
+var CHAPTER_CODE_LABELS = {
+  "1A411": "建筑设计与构造",
+  "1A412": "结构设计与建筑材料",
+  "1A413": "装配式建筑",
+  "1A414": "建筑工程材料",
+  "1A415": "建筑工程施工技术",
+  "1A421": "项目组织管理",
+  "1A422": "施工进度管理",
+  "1A423": "施工质量管理",
+  "1A424": "施工安全管理",
+  "1A425": "合同与招投标管理",
+  "1A426": "施工成本管理",
+  "1A427": "资源与现场管理",
+  "1A431": "建筑工程法规",
+  "1A432": "建筑工程技术标准",
 };
 
 var helpers = require("../../utils/helpers");
@@ -97,6 +121,84 @@ function buildAnswerState(questions, selectedKeys, currentIndex) {
     answeredCount: answeredCount,
     unansweredCount: questions.length - answeredCount,
   };
+}
+
+function normalizeOptionText(value) {
+  return String(value || "")
+    .replace(/\s+/g, "")
+    .toLowerCase();
+}
+
+function isInlineOptionLine(line, options) {
+  var match = /^([A-Z])\s*[\.．、\)]\s*(.+)$/i.exec(String(line || "").trim());
+  if (!match) return false;
+  var key = String(match[1] || "").toUpperCase();
+  var body = normalizeOptionText(match[2]);
+  for (var i = 0; i < options.length; i++) {
+    var opt = options[i] || {};
+    if (String(opt.key || "").toUpperCase() !== key) continue;
+    return (
+      body === normalizeOptionText(opt.text) ||
+      body === normalizeOptionText(opt.value)
+    );
+  }
+  return false;
+}
+
+function stripInlineOptionsFromStem(stem, options) {
+  var text = String(stem || "").trim();
+  var opts = options || [];
+  if (!text || !opts.length) return text;
+
+  var keptLines = text
+    .split(/\r?\n/)
+    .filter(function (line) {
+      return !isInlineOptionLine(line, opts);
+    });
+  text = keptLines.join("\n").trim();
+
+  var markerCount = 0;
+  var firstMarker = -1;
+  opts.forEach(function (opt) {
+    var key = String((opt || {}).key || "").toUpperCase();
+    if (!key) return;
+    var marker = new RegExp("(^|\\s)" + key + "\\s*[\\.．、\\)]\\s+", "i");
+    var match = marker.exec(text);
+    if (!match) return;
+    markerCount += 1;
+    var index = match.index + (match[1] ? match[1].length : 0);
+    if (firstMarker < 0 || index < firstMarker) firstMarker = index;
+  });
+  if (markerCount >= 2 && firstMarker > 0) {
+    text = text.slice(0, firstMarker).trim();
+  }
+  return text;
+}
+
+function normalizeAssessmentOptions(rawOptions) {
+  var opts = rawOptions || [];
+  if (Array.isArray(opts)) {
+    return opts.map(function (o) {
+      return {
+        key: String((o || {}).key || ""),
+        text: String((o || {}).text || (o || {}).label || (o || {}).value || ""),
+        value: String((o || {}).value || ""),
+      };
+    });
+  }
+  return Object.keys(opts)
+    .sort()
+    .map(function (k) {
+      return { key: k, text: String(opts[k] || ""), value: "" };
+    });
+}
+
+function displayChapterName(value) {
+  var text = String(value || "").trim();
+  if (/^1A\d{6}$/i.test(text)) {
+    return CHAPTER_CODE_LABELS[text.slice(0, 5).toUpperCase()] || "综合能力";
+  }
+  return text || "综合能力";
 }
 
 Page({
@@ -182,24 +284,11 @@ Page({
         }
         // 标准化字段名
         questions = questions.map(function (q, idx) {
-          var opts = q.options || [];
-          // 数组格式 [{key, value}] → [{key, text}]
-          if (Array.isArray(opts)) {
-            opts = opts.map(function (o) {
-              return { key: o.key, text: o.value || o.text || "" };
-            });
-          } else {
-            // 对象格式 {A: "text"} → [{key, text}]
-            opts = Object.keys(opts)
-              .sort()
-              .map(function (k) {
-                return { key: k, text: opts[k] };
-              });
-          }
+          var opts = normalizeAssessmentOptions(q.options || []);
+          var stem = q.question_stem || q.stem || q.text || q.content || "";
           return {
             id: q.question_id || q.id || "q_" + (idx + 1),
-            question_stem:
-              q.text || q.question_stem || q.stem || q.content || "",
+            question_stem: stripInlineOptionsFromStem(stem, opts),
             options: opts,
             question_type: q.question_type || "single_choice",
             difficulty: q.difficulty || "",
@@ -436,7 +525,7 @@ Page({
               typeof v === "object"
                 ? Math.round(v.mastery || v.pct || 0)
                 : Math.round(v * 100);
-            return { name: name, pct: pct };
+            return { name: displayChapterName(name), pct: pct };
           })
           .sort(function (a, b) {
             return b.pct - a.pct;
@@ -497,7 +586,7 @@ Page({
 
         // 优先攻克：掌握度最低的 5 个章节
         var priority = (ap.priority_chapters || []).map(function (c) {
-          return typeof c === "object" ? c.name || c.code || "" : c;
+          return displayChapterName(typeof c === "object" ? c.name || c.code || "" : c);
         });
         if (!priority.length && chapterList.length) {
           priority = chapterList
@@ -519,17 +608,17 @@ Page({
           resultLevelName: LEVEL_NAMES[level] || level,
           chapterList: chapterList,
           archetype: archetype,
-          archetypeName: archetypeName,
+          archetypeName: archetypeName || "动态调节型学员",
           archetypeDesc: archetypeDesc,
           archetypeTraits: archetypeTraits,
           archetypeTip: archetypeTip,
           archetypeColor: ARCHETYPE_COLORS[archetype] || "#3b82f6",
           archetypeIcon: ARCHETYPE_ICONS[archetype] || "?",
-          responseLabel: RESPONSE_LABELS[rp] || rp,
+          responseLabel: RESPONSE_LABELS[rp] || "待继续观察",
           responseDesc: RESPONSE_DESCS[rp] || "",
-          calibrationLabel: CALIBRATION_LABELS[cal] || cal || "",
+          calibrationLabel: CALIBRATION_LABELS[cal] || (cal ? "待继续观察" : ""),
           errorPattern: ep,
-          errorPatternName: epNames[ep] || ep,
+          errorPatternName: epNames[ep] || "待继续观察",
           priorityChapters: priority.slice(0, 5),
           planStrategy: ap.plan_strategy || "",
         });

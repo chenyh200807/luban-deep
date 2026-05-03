@@ -36,5 +36,13 @@ assert(
   !/时效性问题会自动联网/.test(chatWxml),
   "package chat copy should not promise automatic web search while disabled",
 );
+assert(
+  !/联网搜索/.test(chatWxml),
+  "package chat tool copy should not surface web search when it is closed",
+);
+assert(
+  !/联网搜索/.test(chatJs),
+  "package chat runtime copy should not surface web search when it is closed",
+);
 
 console.log("PASS test_package_chat_web_search_disabled_contract.js");

@@ -41,11 +41,34 @@
             <view class="stat-chip">
               <text class="stat-val">{{xp}} XP</text>
             </view>
-            <view class="stat-chip stat-points">
-              <text class="stat-icon">✦</text>
-              <text class="stat-val">{{points}}</text>
-            </view>
           </view>
+        </view>
+      </view>
+
+      <!-- ── 使用情况 ───────────────────────────────── -->
+      <view class="usage-card glass-card" bindtap="openUsageDetail" aria-role="button" aria-label="查看使用限额详情">
+        <view class="usage-head">
+          <view>
+            <text class="usage-kicker">使用情况</text>
+            <text class="usage-title">{{usagePrimaryLabel}}</text>
+          </view>
+          <view class="usage-action" catchtap="goBilling" aria-role="button" aria-label="打开充值中心">
+            <text class="usage-action-txt">充值</text>
+          </view>
+        </view>
+        <text class="usage-note">按模型、上下文长度和任务复杂度动态计量</text>
+        <view class="usage-summary-list" wx:if="{{usageRows.length}}">
+          <view class="usage-summary-row" wx:for="{{usageRows}}" wx:key="key">
+            <text class="usage-summary-label">{{item.label}}</text>
+            <text class="usage-summary-detail">{{item.detailLabel}}</text>
+          </view>
+          <view class="usage-more-row">
+            <text class="usage-more-text">查看详情</text>
+            <text class="usage-more-arrow">›</text>
+          </view>
+        </view>
+        <view class="usage-empty" wx:elif="{{!usageLoading}}">
+          <text class="usage-empty-txt">暂无使用数据</text>
         </view>
       </view>
 
@@ -179,20 +202,7 @@
           wx:for="{{linkItems}}"
           wx:key="id"
         >
-          <button
-            wx:if="{{item.nativeOpenType}}"
-            class="link-row link-row-button"
-            open-type="{{item.nativeOpenType}}"
-            hover-class="none"
-          >
-            <view class="link-left">
-              <text class="link-icon">{{item.icon}}</text>
-              <text class="link-title">{{item.title}}</text>
-            </view>
-            <text class="link-arrow">›</text>
-          </button>
           <view
-            wx:else
             class="link-row"
             bindtap="openLink"
             data-id="{{item.id}}"
@@ -214,5 +224,29 @@
       <view style="height: 200rpx"></view>
     </view>
   </scroll-view>
+
+  <view class="usage-detail-mask {{usageDetailShow ? 'show' : ''}}" bindtap="closeUsageDetail"></view>
+  <view class="usage-detail-sheet {{usageDetailShow ? 'show' : ''}}">
+    <view class="usage-detail-head">
+      <text class="usage-detail-title">使用限额详情</text>
+      <view class="usage-detail-close" bindtap="closeUsageDetail" aria-role="button" aria-label="关闭使用限额详情">
+        <text class="usage-detail-close-txt">×</text>
+      </view>
+    </view>
+    <view class="usage-list">
+      <view class="usage-row" wx:for="{{usageRows}}" wx:key="key">
+        <view class="usage-row-head">
+          <view>
+            <text class="usage-row-title">{{item.label}}</text>
+            <text class="usage-row-reset" wx:if="{{item.resetLabel}}">{{item.resetLabel}}</text>
+          </view>
+          <text class="usage-row-percent">{{item.remainingLabel}}</text>
+        </view>
+        <view class="usage-meter">
+          <view class="usage-meter-fill" style="{{item.barStyle}}"></view>
+        </view>
+      </view>
+    </view>
+  </view>
 
 </view>

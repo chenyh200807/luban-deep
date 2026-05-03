@@ -1,8 +1,9 @@
-// test_package_profile_feedback_entry_contract.js — package profile should expose native product feedback entry
+// test_package_profile_feedback_entry_contract.js — package profile feedback should use DeepTutor feedback pipeline
 // Run: node yousenwebview/tests/test_package_profile_feedback_entry_contract.js
 
 var fs = require("fs");
 var path = require("path");
+var vm = require("vm");
 
 var profileJs = fs.readFileSync(
   path.join(__dirname, "../packageDeeptutor/pages/profile/profile.js"),
@@ -24,23 +25,167 @@ function assert(condition, message) {
   }
 }
 
+function flush() {
+  return Promise.resolve().then(function () {
+    return Promise.resolve();
+  });
+}
+
+function loadProfilePage(submitFeedback) {
+  var pageDef = null;
+  var toasts = [];
+  var modals = [];
+  var sandbox = {
+    console: console,
+    Set: Set,
+    setTimeout: setTimeout,
+    clearTimeout: clearTimeout,
+    require: function (request) {
+      if (request === "../../utils/api") {
+        return {
+          submitFeedback: submitFeedback,
+          updateSettings: function () {
+            return Promise.resolve({});
+          },
+          unwrapResponse: function (raw) {
+            return raw;
+          },
+        };
+      }
+      if (request === "../../utils/helpers") {
+        return {
+          vibrate: function () {},
+          getWindowInfo: function () {
+            return { statusBarHeight: 20 };
+          },
+          isDark: function () {
+            return true;
+          },
+          syncTabBar: function () {},
+        };
+      }
+      if (request === "../../utils/runtime") {
+        return {
+          checkAuth: function (cb) {
+            cb();
+          },
+          getWorkspaceBack: function () {
+            return null;
+          },
+          setWorkspaceBack: function () {},
+          markGoHome: function () {},
+          logout: function () {},
+        };
+      }
+      if (request === "../../utils/route") {
+        return {
+          profile: function () {
+            return "/packageDeeptutor/pages/profile/profile";
+          },
+          chat: function () {
+            return "/packageDeeptutor/pages/chat/chat";
+          },
+          assessment: function () {
+            return "/packageDeeptutor/pages/assessment/assessment";
+          },
+          report: function () {
+            return "/packageDeeptutor/pages/report/report";
+          },
+          billing: function () {
+            return "/packageDeeptutor/pages/billing/billing";
+          },
+          terms: function () {
+            return "/packageDeeptutor/pages/legal/terms";
+          },
+        };
+      }
+      if (request === "../../utils/flags") {
+        return {
+          getWorkspaceFlags: function () {
+            return {};
+          },
+          ensureFeatureEnabled: function () {
+            return true;
+          },
+          shouldShowWorkspaceShell: function () {
+            return true;
+          },
+        };
+      }
+      throw new Error("unexpected require: " + request);
+    },
+    wx: {
+      showModal: function (payload) {
+        modals.push(payload);
+        payload.success({ confirm: true, content: "  意见反馈入口排版不齐  " });
+      },
+      showToast: function (payload) {
+        toasts.push(payload);
+      },
+      navigateTo: function () {},
+      reLaunch: function () {},
+      getStorageSync: function () {
+        return "";
+      },
+    },
+    Page: function (def) {
+      pageDef = def;
+    },
+  };
+  vm.runInNewContext(profileJs, sandbox, {
+    filename: "yousenwebview/packageDeeptutor/pages/profile/profile.js",
+  });
+  var page = {
+    data: Object.assign({}, (pageDef && pageDef.data) || {}),
+    setData: function (next) {
+      this.data = Object.assign({}, this.data, next || {});
+    },
+  };
+  Object.keys(pageDef || {}).forEach(function (key) {
+    if (key !== "data") page[key] = pageDef[key];
+  });
+  return { page: page, toasts: toasts, modals: modals };
+}
+
 assert(
-  /id:\s*["']feedback["'][\s\S]*title:\s*["']意见反馈["'][\s\S]*nativeOpenType:\s*["']feedback["']/.test(
-    profileJs,
-  ),
-  "package profile linkItems should include a native feedback item",
+  /id:\s*["']feedback["'][\s\S]*title:\s*["']意见反馈["']/.test(profileJs) &&
+    profileJs.indexOf("nativeOpenType") < 0,
+  "package profile feedback item should be a first-party row, not native WeChat feedback",
 );
 assert(
-  /open-type="{{item\.nativeOpenType}}"/.test(profileWxml),
-  "package profile feedback item should use native open-type binding",
+  profileWxml.indexOf('bindtap="openLink"') >= 0 &&
+    profileWxml.indexOf('open-type="{{item.nativeOpenType}}"') < 0 &&
+    profileWxml.indexOf("link-row-button") < 0,
+  "package profile feedback row should use the same left-aligned link-row layout as other rows",
 );
 assert(
-  /wx:else[\s\S]*bindtap="openLink"/.test(profileWxml),
-  "package non-native profile links should keep existing openLink routing",
+  profileWxss.indexOf(".link-row-button") < 0,
+  "package profile should not keep native button styles that shift feedback alignment",
 );
 assert(
-  /\.link-row-button::after\s*\{\s*border:\s*0;\s*\}/.test(profileWxss),
-  "package native feedback button should reset default button border",
+  profileJs.indexOf("submitProductFeedback") >= 0 &&
+    profileJs.indexOf('feedback_source: "yousenwebview_profile_feedback"') >= 0,
+  "package profile feedback should submit to the DeepTutor feedback pipeline with a distinct source",
 );
 
-console.log("PASS test_package_profile_feedback_entry_contract.js");
+(async function run() {
+  var calls = [];
+  var loaded = loadProfilePage(function (payload) {
+    calls.push(payload);
+    return Promise.resolve({ ok: true });
+  });
+  loaded.page.openLink({ currentTarget: { dataset: { id: "feedback" } } });
+  await flush();
+
+  assert(loaded.modals.length === 1, "package feedback row should open an editable feedback modal");
+  assert(calls.length === 1, "package feedback row should submit once");
+  assert(calls[0].rating === -1, "package profile feedback should be actionable negative feedback");
+  assert(calls[0].reason_tags[0] === "产品反馈", "package profile feedback should carry product feedback reason tag");
+  assert(calls[0].comment === "意见反馈入口排版不齐", "package profile feedback should trim submitted content");
+  assert(
+    calls[0].feedback_source === "yousenwebview_profile_feedback",
+    "package profile feedback should be identifiable for BI/OA scans",
+  );
+  assert(loaded.toasts[0].title === "感谢反馈", "successful package profile feedback should acknowledge submission");
+  console.log("PASS test_package_profile_feedback_entry_contract.js");
+})();

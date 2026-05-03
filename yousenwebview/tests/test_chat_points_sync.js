@@ -1,9 +1,10 @@
-// test_chat_points_sync.js — chat hero points should follow wallet balance
+// test_chat_points_sync.js — package usage display belongs on profile, not chat
+// Run: node yousenwebview/tests/test_chat_points_sync.js
 
 var fs = require("fs");
 var path = require("path");
-var vm = require("vm");
 
+var root = path.join(__dirname, "..");
 var pass = 0;
 var fail = 0;
 var errors = [];
@@ -17,387 +18,55 @@ function assert(condition, message) {
   errors.push("FAIL: " + message);
 }
 
-async function run(name, fn) {
-  try {
-    await fn();
-  } catch (err) {
-    fail++;
-    errors.push("ERROR: " + name + " -> " + (err && err.stack ? err.stack : err));
-  }
+function read(relPath) {
+  return fs.readFileSync(path.join(root, relPath), "utf8");
 }
 
-function flushPromises() {
-  return new Promise(function (resolve) {
-    setTimeout(resolve, 0);
-  });
+var chatJs = read("packageDeeptutor/pages/chat/chat.js");
+var chatWxml = read("packageDeeptutor/pages/chat/chat.wxml");
+var profileJs = read("packageDeeptutor/pages/profile/profile.js");
+var profileWxml = read("packageDeeptutor/pages/profile/profile.wxml");
+var profileWxss = read("packageDeeptutor/pages/profile/profile.wxss");
+
+assert(
+  chatWxml.indexOf('class="nav-usage-pill"') < 0 &&
+    chatWxml.indexOf("{{usagePrimaryLabel}}") < 0 &&
+    chatWxml.indexOf('class="billing-drawer"') < 0,
+  "chat should not render usage percentage or a usage drawer",
+);
+assert(
+  chatJs.indexOf(".getUsage()") < 0,
+  "chat should not fetch usage on bootstrap or stream completion",
+);
+assert(
+  profileJs.indexOf(".getUsage()") >= 0 &&
+    profileJs.indexOf("usagePrimaryLabel") >= 0 &&
+    profileJs.indexOf("usageRows") >= 0 &&
+    profileJs.indexOf("quota.rows") >= 0,
+  "profile should own the usage endpoint and state",
+);
+assert(
+  profileWxml.indexOf('class="usage-card glass-card"') >= 0 &&
+    profileWxml.indexOf("{{usagePrimaryLabel}}") >= 0 &&
+    profileWxml.indexOf('class="usage-summary-row"') >= 0 &&
+    profileWxml.indexOf('class="usage-detail-sheet') >= 0 &&
+    profileWxml.indexOf('wx:for="{{usageRows}}"') >= 0,
+  "profile should render remaining usage summary rows and detail sheet",
+);
+assert(
+  profileWxss.indexOf(".usage-meter-fill") >= 0 &&
+    profileWxss.indexOf(".usage-action") >= 0,
+  "profile should style usage meters and the recharge action",
+);
+assert(
+  profileWxml.indexOf("{{points}}") < 0 &&
+    profileWxml.indexOf("{{userPoints}}") < 0,
+  "profile should not show raw point balances",
+);
+
+if (fail) {
+  console.error(errors.join("\n"));
+  process.exit(1);
 }
 
-function loadChatPage(overrides) {
-  var source = fs.readFileSync(
-    path.join(__dirname, "../packageDeeptutor/pages/chat/chat.js"),
-    "utf8",
-  );
-  var pageDef = null;
-  var storage = Object.assign({}, (overrides && overrides.storage) || {});
-  var apiMock = Object.assign(
-    {
-      unwrapResponse: function (raw) {
-        if (raw && typeof raw === "object" && raw.data && typeof raw.data === "object") {
-          return raw.data;
-        }
-        return raw;
-      },
-      getUserInfo: function () {
-        return Promise.resolve({ username: "chenyh2008", points: 0 });
-      },
-      getWallet: function () {
-        return Promise.resolve({ balance: 88 });
-      },
-      getLedger: function () {
-        return Promise.resolve({
-          entries: [],
-          has_more: false,
-        });
-      },
-      getPoints: function () {
-        return Promise.resolve({ points: 0 });
-      },
-    },
-    (overrides && overrides.api) || {},
-  );
-  var authMock = {
-    getToken: function () {
-      return "token";
-    },
-    setToken: function () {},
-  };
-  var helpersMock = {
-    getAnimConfig: function () {
-      return {
-        flushThrottleMs: 16,
-        mdParseInterval: 3,
-        enableBreathingOrbs: false,
-        enableMarquee: false,
-        enableMsgAnimation: false,
-        enableFocusPulse: false,
-      };
-    },
-    getWindowInfo: function () {
-      return {
-        statusBarHeight: 20,
-        windowWidth: 375,
-        screenWidth: 375,
-        windowHeight: 812,
-        screenHeight: 812,
-        safeArea: { bottom: 778 },
-      };
-    },
-    isDark: function () {
-      return true;
-    },
-    getTimeGreeting: function () {
-      return "上午好";
-    },
-    vibrate: function () {},
-    setTheme: function () {},
-  };
-  var runtimeMock = {
-    initNetworkMonitor: function () {},
-    checkAuth: function (cb) {
-      cb();
-    },
-    consumeGoHomeFlag: function () {
-      return false;
-    },
-    consumePendingConversationId: function () {
-      return "";
-    },
-    consumePendingChatIntent: function () {
-      return {};
-    },
-    clearWorkspaceBack: function () {},
-    logout: function () {},
-  };
-  Object.assign(runtimeMock, (overrides && overrides.runtime) || {});
-  var flagsMock = {
-    shouldShowWorkspaceShell: function () {
-      return false;
-    },
-    isFeatureEnabled: function () {
-      return true;
-    },
-  };
-  var sandbox = {
-    console: console,
-    Date: Date,
-    setTimeout: setTimeout,
-    clearTimeout: clearTimeout,
-    require: function (request) {
-      if (request === "../../utils/auth") return authMock;
-      if (request === "../../utils/api") return apiMock;
-      if (request === "../../utils/ai-message-state") return {};
-      if (request === "../../utils/ws-stream") return {};
-      if (request === "../../utils/helpers") return helpersMock;
-      if (request === "../../utils/logger") return { warn: function () {} };
-      if (request === "../../utils/workflow-status") return {};
-      if (request === "../../utils/citation-format") return {};
-      if (request === "../../utils/chat-turn-recovery") return {};
-      if (request === "../../utils/devtools-markdown-fixtures") return {};
-      if (request === "../../utils/surface-telemetry") {
-        return { track: function () {}, trackOnce: function () {} };
-      }
-      if (request === "../../utils/runtime") return runtimeMock;
-      if (request === "../../utils/route") return { billing: function () { return "/billing"; } };
-      if (request === "../../utils/flags") return flagsMock;
-      if (request === "../../utils/analytics") return { track: function () {} };
-      throw new Error("unexpected require: " + request);
-    },
-    wx: {
-      getStorageSync: function (key) {
-        return storage[key] || "";
-      },
-      setStorageSync: function (key, value) {
-        storage[key] = value;
-      },
-      removeStorageSync: function (key) {
-        delete storage[key];
-      },
-      showModal: function () {},
-      showToast: function () {},
-      navigateTo: function () {},
-      reLaunch: function () {},
-    },
-    Page: function (def) {
-      pageDef = def;
-    },
-  };
-
-  vm.runInNewContext(source, sandbox, {
-    filename: "packageDeeptutor/pages/chat/chat.js",
-  });
-
-  var page = {
-    data: Object.assign({}, (pageDef && pageDef.data) || {}),
-    setData: function (next) {
-      this.data = Object.assign({}, this.data, next || {});
-    },
-  };
-
-  Object.keys(pageDef || {}).forEach(function (key) {
-    if (key === "data") return;
-    page[key] = pageDef[key];
-  });
-
-  page._syncWorkspaceChrome = function () {};
-  page._syncWorkspaceBack = function () {};
-  page._setWorkspaceShellHidden = function () {};
-  page._shouldShowWorkspaceShell = function () {
-    return false;
-  };
-  page._loadDashboard = function () {};
-  page._checkDiagnostic = function () {};
-  page._setupObserver = function () {};
-  page._restoreConversation = function () {};
-  page.clearMessages = function () {};
-  page._send = function () {};
-
-  return { page: page, wx: sandbox.wx };
-}
-
-(async function main() {
-  await run("chat hero should reuse auth profile balance without redundant wallet refresh", async function () {
-    var walletCount = 0;
-    var loaded = loadChatPage({
-      api: {
-        getUserInfo: function () {
-          return Promise.resolve({ username: "chenyh2008", balance: 128 });
-        },
-        getWallet: function () {
-          walletCount += 1;
-          return Promise.resolve({ balance: 128 });
-        },
-      },
-    });
-
-    loaded.page.onLoad({});
-    loaded.page.onShow();
-    await flushPromises();
-    await flushPromises();
-
-    assert(loaded.page.data.userPoints === 128, "chat hero should hydrate points from auth profile wallet payload");
-    assert(loaded.page.data.billingBalance === 128, "billing balance should stay in sync with auth profile wallet payload");
-    assert(walletCount === 0, "chat bootstrap should not issue a second wallet request after auth profile succeeds");
-  });
-
-  await run("chat hero points refresh should fallback to legacy points api when wallet fails", async function () {
-    var loaded = loadChatPage({
-      api: {
-        getUserInfo: function () {
-          return Promise.resolve({ username: "chenyh2008", points: 0 });
-        },
-        getWallet: function () {
-          return Promise.reject(new Error("wallet unavailable"));
-        },
-        getPoints: function () {
-          return Promise.resolve({ points: 36 });
-        },
-      },
-    });
-
-    loaded.page._refreshPoints();
-    await flushPromises();
-    await flushPromises();
-
-    assert(loaded.page.data.userPoints === 36, "chat points refresh should fallback to points api");
-    assert(loaded.page.data.billingBalance === 36, "fallback points should sync billing balance too");
-  });
-
-  await run("chat hero switch account should logout after confirmation", async function () {
-    var logoutCount = 0;
-    var loaded = loadChatPage({
-      runtime: {
-        logout: function () {
-          logoutCount++;
-        },
-      },
-    });
-
-    loaded.wx.showModal = function (options) {
-      if (options && typeof options.success === "function") {
-        options.success({ confirm: true, cancel: false });
-      }
-    };
-
-    loaded.page.onSwitchAccount();
-
-    assert(logoutCount === 1, "switch account should call runtime.logout after user confirmation");
-  });
-
-  await run("chat hero points pill should open billing drawer and load consumption records", async function () {
-    var navigateCount = 0;
-    var ledgerCount = 0;
-    var loaded = loadChatPage({
-      api: {
-        getWallet: function () {
-          return Promise.resolve({ balance: 66 });
-        },
-        getLedger: function () {
-          ledgerCount += 1;
-          return Promise.resolve({
-            entries: [
-              {
-                id: "entry-1",
-                delta: -10,
-                reason: "capture",
-                created_at: "2026-04-21T10:00:00+08:00",
-              },
-            ],
-            has_more: false,
-          });
-        },
-      },
-    });
-
-    loaded.wx.navigateTo = function () {
-      navigateCount += 1;
-    };
-
-    loaded.page.goBilling();
-    await flushPromises();
-    await flushPromises();
-
-    assert(loaded.page.data.billingShow === true, "points pill should open billing drawer");
-    assert(loaded.page.data.billingLoading === false, "billing drawer should finish loading ledger");
-    assert(loaded.page.data.billingBalance === 66, "billing drawer should sync latest wallet balance");
-    assert(loaded.page.data.billingEntries.length === 1, "billing drawer should render consumption records");
-    assert(loaded.page.data.billingEntries[0].reason === "对话消耗", "billing drawer should map ledger reasons for display");
-    assert(ledgerCount === 1, "points pill should request ledger records once");
-    assert(navigateCount === 0, "points pill should not navigate to recharge page");
-  });
-
-  await run("chat page should not auto bootstrap dashboard or pending send after auth expired", async function () {
-    var sendCount = 0;
-    var dashboardCount = 0;
-    var diagnosticCount = 0;
-    var walletCount = 0;
-    var pointsCount = 0;
-    var loaded = loadChatPage({
-      api: {
-        getUserInfo: function () {
-          return Promise.reject(new Error("AUTH_EXPIRED"));
-        },
-        getWallet: function () {
-          walletCount += 1;
-          return Promise.resolve({ balance: 99 });
-        },
-        getPoints: function () {
-          pointsCount += 1;
-          return Promise.resolve({ points: 99 });
-        },
-      },
-      runtime: {
-        consumePendingChatIntent: function () {
-          return { query: "帮我分析这道题", mode: "AUTO" };
-        },
-      },
-    });
-
-    loaded.page._send = function () {
-      sendCount += 1;
-    };
-    loaded.page._loadDashboard = function () {
-      dashboardCount += 1;
-    };
-    loaded.page._checkDiagnostic = function () {
-      diagnosticCount += 1;
-    };
-
-    loaded.page.onLoad({});
-    loaded.page.onShow();
-    await flushPromises();
-    await flushPromises();
-
-    assert(sendCount === 0, "expired auth should block pending auto send on chat page");
-    assert(dashboardCount === 0, "expired auth should not load dashboard");
-    assert(diagnosticCount === 0, "expired auth should not run diagnostic bootstrap");
-    assert(walletCount === 0, "expired auth should not refresh wallet balance");
-    assert(pointsCount === 0, "expired auth should not fallback to legacy points api");
-  });
-
-  await run("chat bootstrap should refresh points when auth profile temporarily fails", async function () {
-    var walletCount = 0;
-    var pointsCount = 0;
-    var loaded = loadChatPage({
-      api: {
-        getUserInfo: function () {
-          return Promise.reject(new Error("profile temporarily unavailable"));
-        },
-        getWallet: function () {
-          walletCount += 1;
-          return Promise.resolve({ balance: 52 });
-        },
-        getPoints: function () {
-          pointsCount += 1;
-          return Promise.resolve({ points: 52 });
-        },
-      },
-    });
-
-    loaded.page.onLoad({});
-    loaded.page.onShow();
-    await flushPromises();
-    await flushPromises();
-
-    assert(walletCount === 1, "non-auth bootstrap failure should still refresh wallet balance");
-    assert(pointsCount === 0, "wallet refresh should satisfy fallback before points api");
-    assert(loaded.page.data.userPoints === 52, "bootstrap fallback should hydrate points from wallet");
-    assert(loaded.page.data.billingBalance === 52, "bootstrap fallback should keep billing balance in sync");
-  });
-
-  if (fail) {
-    console.error(errors.join("\n"));
-    process.exit(1);
-  }
-
-  console.log("PASS test_chat_points_sync.js (" + pass + " assertions)");
-})();
+console.log("PASS test_chat_points_sync.js (" + pass + " assertions)");

@@ -483,6 +483,11 @@ function getPoints() {
   return requestStateGet("/api/v1/billing/points");
 }
 
+/** 获取使用限额 */
+function getUsage() {
+  return requestStateGet("/api/v1/billing/usage");
+}
+
 /** 更新用户设置 */
 function updateSettings(settings) {
   return request({
@@ -627,6 +632,7 @@ module.exports = {
   getTodayProgress: getTodayProgress,
   getChapterProgress: getChapterProgress,
   getPoints: getPoints,
+  getUsage: getUsage,
   updateSettings: updateSettings,
   getBadges: getBadges,
   getDailyQuestion: getDailyQuestion,

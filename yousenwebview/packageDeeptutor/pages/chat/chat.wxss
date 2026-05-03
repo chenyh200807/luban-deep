@@ -125,14 +125,6 @@
 .nav-icon-btn:active { background: rgba(255,255,255,0.16); }
 .nav-icon-btn .ico { opacity: 0.6; }
 .nav-icon-btn:active .ico { opacity: 1; }
-.nav-points-pill {
-  display: flex; align-items: center; gap: 6rpx;
-  padding: 8rpx 20rpx; border-radius: 999rpx;
-  background: rgba(245,158,11,0.15); border: 1rpx solid rgba(245,158,11,0.3);
-}
-.nav-points-star { font-size: 24rpx; color: #f59e0b; }
-.nav-points-num { font-size: 24rpx; font-weight: 700; color: #f59e0b; }
-
 /* 主题切换图标 — 太阳 */
 .ico-theme-sun {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='5'/%3E%3Cline x1='12' y1='1' x2='12' y2='3'/%3E%3Cline x1='12' y1='21' x2='12' y2='23'/%3E%3Cline x1='4.22' y1='4.22' x2='5.64' y2='5.64'/%3E%3Cline x1='18.36' y1='18.36' x2='19.78' y2='19.78'/%3E%3Cline x1='1' y1='12' x2='3' y2='12'/%3E%3Cline x1='21' y1='12' x2='23' y2='12'/%3E%3Cline x1='4.22' y1='19.78' x2='5.64' y2='18.36'/%3E%3Cline x1='18.36' y1='5.64' x2='19.78' y2='4.22'/%3E%3C/svg%3E");
@@ -169,14 +161,6 @@
 .row-icon-btn .ico { opacity: 0.55; }
 .row-icon-btn:active .ico { opacity: 1; }
 .hero-spacer { height: 15vh; }
-.points-pill {
-  min-height: 56rpx;
-  display: flex; align-items: center; justify-content: center; gap: 8rpx;
-  background: rgba(245,158,11,0.12); border: 1rpx solid rgba(245,158,11,0.3);
-  border-radius: 999rpx; padding: 0 18rpx;
-}
-.points-star { color: #f59e0b; font-size: 22rpx; }
-.points-num { color: #f59e0b; font-size: 24rpx; font-weight: 600; }
 .hero-more-btn {
   width: 56rpx; height: 56rpx; border-radius: 50%;
   background: rgba(255,255,255,0.06);
@@ -223,18 +207,23 @@
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .focus-icon { font-size: 28rpx; color: #f59e0b; }
-.focus-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
+.focus-copy {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 0;
+  overflow: hidden;
+}
 .focus-label {
-  font-size: 20rpx; color: rgba(147,197,253,0.84); font-weight: 600;
-  line-height: 1.15;
+  font-size: 26rpx; color: rgba(251,191,36,0.92); font-weight: 700;
+  line-height: 1.2; flex-shrink: 0; white-space: nowrap;
 }
 .focus-title {
-  display: block; font-size: 27rpx; line-height: 1.3; font-weight: 700;
-  color: #f8fafc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: block; font-size: 26rpx; line-height: 1.2; font-weight: 700;
+  color: #fbbf24; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 1; min-width: 0;
 }
 .focus-meta {
-  display: block; font-size: 21rpx; line-height: 1.25;
-  color: rgba(226,232,240,0.58); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: block; font-size: 20rpx; line-height: 1.2;
+  color: rgba(251,191,36,0.68); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 1; min-width: 0;
 }
 .focus-next {
   width: 44rpx; height: 44rpx; border-radius: 50%;
@@ -1281,7 +1270,6 @@
 .avatar:active { transform: scale(0.92); }
 .focus-bar:active { transform: scale(0.98); }
 .ua-btn { transition: transform 0.1s, opacity 0.15s; }
-.points-pill:active { transform: scale(0.95); }
 
 /* ── 新建对话 — 复用 nav-icon-btn ──────────────── */
 .nav-chat-actions { display: flex; align-items: center; gap: 12rpx; flex-shrink: 0; }
@@ -1297,7 +1285,7 @@
 }
 .nav-more-icon { font-size: 26rpx; color: #fff; font-weight: 700; letter-spacing: 1rpx; line-height: 1; }
 
-/* ── 积分明细半屏弹窗 ─────────────────────────── */
+/* ── 使用情况半屏弹窗 ─────────────────────────── */
 .billing-mask {
   position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 1200;
   background: rgba(0,0,0,0.5);
@@ -1329,36 +1317,42 @@
 }
 .billing-close-icon { font-size: 36rpx; color: rgba(255,255,255,0.5); }
 
-.billing-balance {
-  display: flex; align-items: center; justify-content: center;
-  gap: 12rpx; padding: 24rpx 0 28rpx; flex-shrink: 0;
-}
-.billing-bal-star { font-size: 40rpx; color: #f59e0b; }
-.billing-bal-num { font-size: 64rpx; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
-.billing-bal-label { font-size: 24rpx; color: rgba(255,255,255,0.4); align-self: flex-end; margin-bottom: 8rpx; }
-
 .billing-list {
   flex: 1; overflow-y: auto;
   border-top: 1rpx solid rgba(255,255,255,0.06);
 }
+.usage-list { padding: 8rpx 0 24rpx; box-sizing: border-box; }
 
 .billing-empty {
   padding: 80rpx 0; text-align: center;
 }
 .billing-empty-txt { font-size: 26rpx; color: rgba(255,255,255,0.4); }
 
-.billing-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 24rpx 32rpx;
+.usage-row {
+  padding: 28rpx 32rpx;
   border-bottom: 1rpx solid rgba(255,255,255,0.04);
 }
-.billing-item-left { display: flex; flex-direction: column; gap: 4rpx; }
-.billing-item-reason { font-size: 28rpx; color: #fff; }
-.billing-item-time { font-size: 22rpx; color: rgba(255,255,255,0.35); }
-.billing-item-right { flex-shrink: 0; }
-.billing-item-delta { font-size: 32rpx; font-weight: 700; font-variant-numeric: tabular-nums; }
-.billing-item-delta.debit { color: #f87171; }
-.billing-item-delta.credit { color: #34d399; }
+.usage-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28rpx;
+}
+.usage-row-title { display: block; font-size: 28rpx; font-weight: 700; color: #fff; }
+.usage-row-reset { display: block; margin-top: 8rpx; font-size: 24rpx; color: rgba(255,255,255,0.42); }
+.usage-row-percent { flex-shrink: 0; font-size: 28rpx; color: rgba(255,255,255,0.72); }
+.usage-meter {
+  height: 14rpx;
+  margin-top: 22rpx;
+  border-radius: 999rpx;
+  overflow: hidden;
+  background: rgba(255,255,255,0.1);
+}
+.usage-meter-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: #ffffff;
+}
 
 /* ═══════════════════════════════════════════════
    ★ 浅色模式 — 冷白底 + 学习蓝强调
@@ -1395,12 +1389,6 @@
 .page.light .row-icon-btn .ico { filter: invert(1); opacity: 0.62; }
 .page.light .home-entry-glyph { color: #334155; }
 
-/* ── 积分 ──────────────────────────────────── */
-.page.light .points-pill {
-  background: #fff4e0;
-  border-color: #f7cf8c;
-  box-shadow: 0 10rpx 24rpx rgba(245,158,11,0.16);
-}
 .page.light .hero-more-btn {
   background: rgba(255,255,255,0.72);
   border-color: rgba(176,193,224,0.52);
@@ -1753,20 +1741,21 @@
   color: rgba(15, 23, 42, 0.72);
 }
 
-/* ── 积分明细弹窗 ──────────────────────────── */
+/* ── 使用情况弹窗 ──────────────────────────── */
 .page.light .billing-drawer {
   background: #f9fbff; border-color: #dbe6f5;
 }
 .page.light .billing-title { color: #111827; }
 .page.light .billing-close { background: #eef4ff; }
 .page.light .billing-close-icon { color: #7b8da8; }
-.page.light .billing-bal-num { color: #111827; }
-.page.light .billing-bal-label { color: #8b98ad; }
 .page.light .billing-list { border-color: #e6edf8; }
 .page.light .billing-empty-txt { color: #8b98ad; }
-.page.light .billing-item { border-color: #edf2fb; }
-.page.light .billing-item-reason { color: #334155; }
-.page.light .billing-item-time { color: #8b98ad; }
+.page.light .usage-row { border-color: #edf2fb; }
+.page.light .usage-row-title { color: #111827; }
+.page.light .usage-row-reset { color: #66758a; }
+.page.light .usage-row-percent { color: #5f6f84; }
+.page.light .usage-meter { background: #e5e7eb; }
+.page.light .usage-meter-fill { background: #111827; }
 
 /* ═══════════════════════════════════════════════
    ★ 低端设备降级 — 关闭动画、减少 GPU 负载

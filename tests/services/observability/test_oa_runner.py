@@ -82,6 +82,37 @@ def test_build_oa_run_uses_benchmark_when_arr_is_missing() -> None:
     assert payload["release"]["release_id"] == "rel-benchmark"
 
 
+def test_build_oa_run_scans_recent_user_feedback() -> None:
+    payload = build_oa_run(
+        mode="incident",
+        om_payload=None,
+        arr_payload=None,
+        aae_payload=None,
+        feedback_payload={
+            "window_days": 7,
+            "storage_status": "ok",
+            "summary": {
+                "total_feedback": 2,
+                "thumbs_down": 1,
+                "thumbs_up": 0,
+                "neutral": 1,
+            },
+            "top_reason_tags": [{"tag": "产品反馈", "count": 1}],
+            "recent": [
+                {
+                    "feedback_source": "wx_miniprogram_profile_feedback",
+                    "comment": "意见反馈入口排版不齐",
+                }
+            ],
+        },
+    )
+
+    assert payload["raw_evidence_bundle"]["feedback_storage_status"] == "ok"
+    assert payload["raw_evidence_bundle"]["feedback_total"] == 2
+    assert any(item["kind"] == "user_feedback" for item in payload["signals"])
+    assert any("用户反馈已经进入 Supabase" in item["hypothesis"] for item in payload["root_causes"])
+
+
 def test_build_oa_run_consumes_observer_snapshot_blind_spots_and_turn_failures() -> None:
     payload = build_oa_run(
         mode="daily",

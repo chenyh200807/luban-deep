@@ -45,7 +45,7 @@
           <text class="stat-label">精选题目</text>
         </view>
         <view class="stat-card">
-          <text class="stat-num">~8</text>
+          <text class="stat-num">8</text>
           <text class="stat-label">分钟</text>
         </view>
         <view class="stat-card">

@@ -67,7 +67,7 @@ async function run() {
         profileCalls++;
         return {
           chapter_mastery: {
-            建筑构造: { name: "建筑构造", mastery: 100 },
+            "1A412030": { name: "1A412030", mastery: 100 },
             地基基础: { name: "地基基础", mastery: 100 },
             防水工程: { name: "防水工程", mastery: 0 },
             主体结构: { name: "主体结构", mastery: 100 },
@@ -124,15 +124,15 @@ async function run() {
     JSON.stringify(page.data.dimList.map(function (item) {
       return [item.name, item.pct];
     })) ===
-      JSON.stringify([
-        ["防水工程", 0],
-        ["建筑构造", 100],
-        ["地基基础", 100],
-        ["主体结构", 100],
-        ["施工管理", 100],
-      ]),
-    "zero radar response should not overwrite assessment mastery details",
-  );
+	      JSON.stringify([
+	        ["防水工程", 0],
+	        ["结构设计与建筑材料", 100],
+	        ["地基基础", 100],
+	        ["主体结构", 100],
+	        ["施工管理", 100],
+	      ]),
+	    "zero radar response should not overwrite assessment mastery details or expose chapter codes",
+	  );
 
   if (fail) {
     console.error(errors.join("\n"));

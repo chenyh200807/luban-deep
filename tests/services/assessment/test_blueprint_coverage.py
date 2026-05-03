@@ -4,6 +4,7 @@ from deeptutor.services.assessment.blueprint_service import (
     AssessmentBlueprintUnavailable,
     QuestionCandidate,
     StaticAssessmentQuestionProvider,
+    SupabaseAssessmentQuestionProvider,
 )
 from deeptutor.services.assessment.coverage import evaluate_blueprint_coverage
 
@@ -119,14 +120,21 @@ def test_sparse_calculation_uses_structured_judgment_warning_not_blocker() -> No
     assert any(issue["code"] == "calculation_fallback_used" for issue in report["issues"])
 
 
-def _candidate(index: int, *, question_type: str = "single_choice") -> QuestionCandidate:
+def _candidate(
+    index: int,
+    *,
+    question_type: str = "single_choice",
+    chapter: str = "建筑实务",
+    difficulty: str = "medium",
+) -> QuestionCandidate:
     return QuestionCandidate(
         source_question_id=f"q_{index}",
         question_stem=f"题干 {index}",
         question_type=question_type,
-        chapter="建筑实务",
+        chapter=chapter,
         options=(("A", "选项 A"), ("B", "选项 B"), ("C", "选项 C"), ("D", "选项 D")),
         answer="A",
+        difficulty=difficulty,
         source_type="REAL_EXAM",
     )
 
@@ -152,6 +160,84 @@ def test_blueprint_service_creates_20_units_with_profile_probes() -> None:
     assert sum(1 for item in payload["session_questions"] if not item["scored"]) == 4
     assert all(item["provenance"]["question_id"] for item in payload["session_questions"])
     assert payload["sections"][0]["section_id"] == "foundation_deep_foundation"
+
+
+def test_blueprint_service_spreads_scored_questions_across_chapters_and_difficulties() -> None:
+    difficulties = ("easy", "medium", "hard")
+    candidates = [
+        _candidate(
+            index,
+            question_type="case_study",
+            chapter=f"诊断章节 {index}",
+            difficulty=difficulties[index % len(difficulties)],
+        )
+        for index in range(1, 50)
+    ]
+    service = AssessmentBlueprintService(
+        provider=StaticAssessmentQuestionProvider(candidates),
+        allow_dev_fallback=False,
+    )
+
+    payload = service.create_session(user_id="student_demo", count=20)
+    scored = [item for item in payload["session_questions"] if item["scored"]]
+
+    assert len(scored) == 16
+    assert len({item["chapter"] for item in scored}) == 16
+    assert {item["difficulty"] for item in scored} == {"easy", "medium", "hard"}
+
+
+def test_static_provider_prefers_section_topics_when_available() -> None:
+    section = get_assessment_blueprint("diagnostic_v1").sections[0]
+    candidates = [
+        _candidate(1, question_type="case_study", chapter="主体结构"),
+        _candidate(2, question_type="case_study", chapter="地基基础"),
+        _candidate(3, question_type="case_study", chapter="深基坑支护"),
+        _candidate(4, question_type="case_study", chapter="施工组织"),
+    ]
+    provider = StaticAssessmentQuestionProvider(candidates)
+
+    selected = provider.get_candidates(section, limit=2, exclude_source_ids=set(), selection_seed="topic-test")
+
+    assert {item.chapter for item in selected} == {"地基基础", "深基坑支护"}
+
+
+def test_supabase_candidate_rows_use_chinese_chapter_labels_for_node_codes() -> None:
+    section = get_assessment_blueprint("diagnostic_v1").sections[1]
+
+    tagged_candidate = SupabaseAssessmentQuestionProvider._candidate_from_row(
+        {
+            "id": "122",
+            "question_stem": "题干",
+            "question_type": "multi_choice",
+            "source_type": "REAL_EXAM",
+            "node_code": "1A411002",
+            "tags": {"node_name": "建筑构造设计要求"},
+            "difficulty": "0.3",
+            "options": {"A": "选项 A", "B": "选项 B"},
+            "correct_answer": "A",
+        },
+        section,
+    )
+    candidate = SupabaseAssessmentQuestionProvider._candidate_from_row(
+        {
+            "id": "123",
+            "question_stem": "题干",
+            "question_type": "single_choice",
+            "source_type": "REAL_EXAM",
+            "node_code": "1A412030",
+            "difficulty": "16.2",
+            "options": {"A": "选项 A", "B": "选项 B"},
+            "correct_answer": "A",
+        },
+        section,
+    )
+
+    assert tagged_candidate is not None
+    assert tagged_candidate.chapter == "建筑构造设计要求"
+    assert tagged_candidate.difficulty == "medium"
+    assert candidate is not None
+    assert candidate.chapter == "结构设计与建筑材料"
+    assert candidate.difficulty == "hard"
 
 
 def test_blueprint_service_fails_closed_when_scored_candidates_are_short() -> None:

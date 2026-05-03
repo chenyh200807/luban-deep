@@ -46,6 +46,18 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath) {
     label + " billing packages should be a selectable list with names, descriptions, and selection affordance",
   );
   assert(
+    wxml.indexOf("{{item.usageLabel}}") >= 0 &&
+      wxml.indexOf("{{item.points}} 智力点") < 0 &&
+      wxml.indexOf("当前余额") < 0 &&
+      wxml.indexOf("充值额度") < 0,
+    label + " billing should describe packages as usage allowance rather than raw points or recharge quota",
+  );
+  assert(
+    wxml.indexOf('class="usage-quota-list"') >= 0 &&
+      wxss.indexOf(".usage-meter-fill") >= 0,
+    label + " billing should show usage-limit percentages with reset meters",
+  );
+  assert(
     wxss.indexOf(".nav-logo-shell") >= 0 &&
       wxss.indexOf(".pkg-grid") >= 0 &&
       wxss.indexOf("flex-direction: column") >= 0,

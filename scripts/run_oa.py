@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 import sys
 from pathlib import Path
@@ -15,6 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
 from deeptutor.services.observability.control_plane_store import load_payload_json  # noqa: E402
 from deeptutor.services.observability.oa_runner import build_oa_run  # noqa: E402
+from deeptutor.services.bi_service import get_bi_service  # noqa: E402
 
 
 def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict | None:
@@ -23,6 +25,20 @@ def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict | 
 
 def _load_store_payload(kind: str) -> dict | None:
     return get_control_plane_store().latest_payload(kind)
+
+
+async def _load_live_feedback(days: int = 7, limit: int = 50) -> dict:
+    try:
+        return await get_bi_service().get_feedback(days=days, limit=limit)
+    except Exception as exc:
+        return {
+            "window_days": days,
+            "storage_status": "error",
+            "summary": {"total_feedback": 0, "thumbs_down": 0, "thumbs_up": 0},
+            "top_reason_tags": [],
+            "recent": [],
+            "error": str(exc),
+        }
 
 
 def _render_markdown(payload: dict) -> str:
@@ -61,6 +77,8 @@ def main() -> None:
     parser.add_argument("--aae-json")
     parser.add_argument("--observer-json")
     parser.add_argument("--change-impact-json")
+    parser.add_argument("--feedback-json")
+    parser.add_argument("--no-live-feedback", action="store_true")
     args = parser.parse_args()
 
     observer_payload = _load_json(args.observer_json, expected_kind="observer_snapshots") or _load_store_payload("observer_snapshots")
@@ -69,6 +87,9 @@ def main() -> None:
     arr_payload = _load_json(args.arr_json, expected_kind="arr_runs") or _load_store_payload("arr_runs")
     benchmark_payload = _load_json(args.benchmark_json, expected_kind="benchmark_runs") or _load_store_payload("benchmark_runs")
     aae_payload = _load_json(args.aae_json, expected_kind="aae_composite_runs") or _load_store_payload("aae_composite_runs")
+    feedback_payload = _load_json(args.feedback_json) if args.feedback_json else None
+    if feedback_payload is None and not args.no_live_feedback:
+        feedback_payload = asyncio.run(_load_live_feedback())
     payload = build_oa_run(
         mode=args.mode,
         om_payload=om_payload,
@@ -77,6 +98,7 @@ def main() -> None:
         benchmark_payload=benchmark_payload,
         observer_payload=observer_payload,
         change_impact_payload=change_impact_payload,
+        feedback_payload=feedback_payload,
     )
     store_paths = get_control_plane_store().write_run(
         kind="oa_runs",

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
+import os
+from datetime import datetime, timedelta
 from typing import Any
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
@@ -30,7 +32,6 @@ from deeptutor.services.feedback_service import (
 )
 from deeptutor.logging.context import get_request_id
 from deeptutor.services.render_presentation import build_canonical_presentation
-from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.services.session import (
     build_user_owner_key,
     get_sqlite_session_store,
@@ -53,6 +54,11 @@ _MOBILE_TUTORBOT_DESCRIPTION = "微信小程序主聊天默认建筑实务 Tutor
 _MOBILE_PLACEHOLDER_TITLES = {"", "new conversation", "新对话"}
 _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE = 500
 MobileFeedbackSupabaseClient = SupabaseFeedbackStore
+
+_BILLING_USAGE_TZ = ZoneInfo("Asia/Shanghai")
+_BILLING_USAGE_LEDGER_WINDOW = 500
+_BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS"
+_BILLING_USAGE_WEEKLY_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS"
 
 
 def _log_safe_id(value: Any) -> str:
@@ -213,6 +219,109 @@ def _serialize_wallet_ledger_entry(entry: WalletLedgerEntry) -> dict[str, Any]:
         "idempotency_key": entry.idempotency_key,
         "metadata": dict(entry.metadata or {}),
         "created_at": entry.created_at,
+    }
+
+
+def _billing_usage_limit_points(env_name: str, default: int) -> int:
+    try:
+        return max(1, int(os.getenv(env_name, str(default)) or default))
+    except (TypeError, ValueError):
+        return default
+
+
+def _parse_ledger_datetime(value: str) -> datetime | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=_BILLING_USAGE_TZ)
+    return parsed.astimezone(_BILLING_USAGE_TZ)
+
+
+def _is_ai_usage_debit(entry: WalletLedgerEntry) -> bool:
+    if int(entry.delta_micros or 0) >= 0:
+        return False
+    reason = _ledger_reason(entry)
+    return entry.event_type == "debit" or entry.reference_type == "ai_usage" or reason == "capture"
+
+
+def _usage_window_payload(
+    *,
+    key: str,
+    label: str,
+    limit_points: int,
+    used_micros: int,
+    reset_at: datetime | None,
+) -> dict[str, Any]:
+    limit_micros = max(1, int(limit_points)) * 1_000_000
+    used = max(0, int(used_micros or 0))
+    remaining = max(0, limit_micros - used)
+    percent = int(round((remaining / limit_micros) * 100))
+    percent = max(0, min(100, percent))
+    return {
+        "key": key,
+        "label": label,
+        "remaining_percent": percent,
+        "used_percent": max(0, min(100, 100 - percent)),
+        "reset_at": reset_at.isoformat() if reset_at else "",
+    }
+
+
+def _build_billing_usage_payload(entries: list[WalletLedgerEntry], *, now: datetime | None = None) -> dict[str, Any]:
+    current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
+    five_hour_start = current - timedelta(hours=5)
+    week_start = (current - timedelta(days=current.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+    week_reset = week_start + timedelta(days=7)
+
+    five_hour_used = 0
+    weekly_used = 0
+    five_hour_times: list[datetime] = []
+
+    for entry in entries:
+        if not _is_ai_usage_debit(entry):
+            continue
+        created_at = _parse_ledger_datetime(entry.created_at)
+        if created_at is None:
+            continue
+        amount = abs(int(entry.delta_micros or 0))
+        if created_at >= five_hour_start:
+            five_hour_used += amount
+            five_hour_times.append(created_at)
+        if created_at >= week_start:
+            weekly_used += amount
+
+    five_hour_reset = min(five_hour_times) + timedelta(hours=5) if five_hour_times else None
+    rows = [
+        _usage_window_payload(
+            key="five_hour",
+            label="5 小时使用限额",
+            limit_points=_billing_usage_limit_points(_BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS, 1200),
+            used_micros=five_hour_used,
+            reset_at=five_hour_reset,
+        ),
+        _usage_window_payload(
+            key="weekly",
+            label="每周使用限额",
+            limit_points=_billing_usage_limit_points(_BILLING_USAGE_WEEKLY_LIMIT_POINTS, 2600),
+            used_micros=weekly_used,
+            reset_at=week_reset,
+        ),
+    ]
+    primary = min(rows, key=lambda row: int(row.get("remaining_percent") or 0))
+    return {
+        "status": "ok",
+        "display": {
+            "primary_label": f"剩余 {int(primary['remaining_percent'])}%",
+            "primary_percent": int(primary["remaining_percent"]),
+            "limited_by": primary["key"],
+        },
+        "quota": {
+            "rows": rows,
+        },
     }
 
 
@@ -595,6 +704,7 @@ async def _persist_mobile_feedback(
         reason_tags=body.reason_tags,
         comment=body.comment,
         answer_mode=body.answer_mode,
+        feedback_source=body.feedback_source,
         requested_response_mode=str(feedback_context.get("requested_response_mode") or ""),
         effective_response_mode=str(feedback_context.get("effective_response_mode") or ""),
         response_mode_degrade_reason=str(
@@ -897,11 +1007,10 @@ def _build_mobile_turn_payload(
     wallet_user_id: str,
     query: str,
 ) -> dict[str, Any]:
-    web_search_available = is_web_search_runtime_available()
     requested_tools = [
         str(item).strip()
         for item in (body.tools or [])
-        if str(item).strip() and (str(item).strip() != "web_search" or web_search_available)
+        if str(item).strip() and str(item).strip() != "web_search"
     ]
     grounding_decision = build_grounding_decision(
         query=query,
@@ -910,9 +1019,6 @@ def _build_mobile_turn_payload(
         tutorbot_context=True,
     )
     current_info_required = grounding_decision.current_info_required or grounding_decision.textbook_delta_query
-    if current_info_required and web_search_available and "web_search" not in requested_tools:
-        requested_tools.append("web_search")
-
     interaction_profile = str(body.interaction_profile or "tutorbot").strip() or "tutorbot"
     interaction_hints = _merge_interaction_hints(
         interaction_profile,
@@ -1076,6 +1182,7 @@ class ChatFeedbackRequest(BaseModel):
     reason_tags: list[str] = Field(default_factory=list)
     comment: str = ""
     answer_mode: str = "AUTO"
+    feedback_source: str = "wx_miniprogram_message_actions"
 
 
 class AssessmentCreateRequest(BaseModel):
@@ -1311,6 +1418,26 @@ async def billing_wallet(authorization: str | None = Header(default=None)) -> di
     if wallet_user_id:
         _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_wallet")
     return wallet_payload
+
+
+@router.get("/billing/usage")
+async def billing_usage(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
+    if not getattr(wallet_service, "is_configured", False):
+        raise HTTPException(status_code=503, detail="Wallet service unavailable")
+    if not str(wallet_user_id or "").strip():
+        return _build_billing_usage_payload([])
+    wallet_rows = wallet_service.list_wallet_ledger(
+        wallet_user_id,
+        limit=_BILLING_USAGE_LEDGER_WINDOW,
+        offset=0,
+    )
+    legacy_rows = _load_legacy_wallet_ledger_entries(
+        authorization,
+        wallet_user_id=wallet_user_id,
+        limit=_BILLING_USAGE_LEDGER_WINDOW,
+    )
+    return _build_billing_usage_payload(_merge_wallet_ledger_entries(wallet_rows, legacy_rows))
 
 
 @router.get("/billing/ledger")
