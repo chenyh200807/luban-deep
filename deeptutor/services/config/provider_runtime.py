@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import json
+import os
 from typing import Any
 from urllib.parse import urlparse
 
@@ -129,6 +130,15 @@ class ResolvedLLMConfig:
     api_version: str | None = None
     extra_headers: dict[str, str] = field(default_factory=dict)
     reasoning_effort: str | None = None
+    fallback_model: str = ""
+    fallback_provider_name: str = ""
+    fallback_provider_mode: str = ""
+    fallback_binding: str = ""
+    fallback_api_key: str = ""
+    fallback_base_url: str | None = None
+    fallback_effective_url: str | None = None
+    fallback_api_version: str | None = None
+    fallback_extra_headers: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -305,6 +315,73 @@ def _choose_resolved_provider(
     return find_by_name("openai") or PROVIDERS[0]
 
 
+def _provider_env_api_key(
+    spec: ProviderSpec,
+    env_values: dict[str, str],
+) -> str:
+    if not spec.env_key:
+        return ""
+    return _as_str(env_values.get(spec.env_key) or os.getenv(spec.env_key, ""))
+
+
+def _resolve_llm_fallback_config(
+    *,
+    env_values: dict[str, str],
+    provider_pool: dict[str, NormalizedProviderConfig],
+    primary_spec: ProviderSpec,
+    primary_api_key: str,
+    primary_api_base: str,
+) -> dict[str, Any]:
+    fallback_model = _as_str(env_values.get("LLM_FALLBACK_MODEL"))
+    if not fallback_model:
+        return {}
+
+    fallback_binding_hint = canonical_provider_name(
+        _as_str(env_values.get("LLM_FALLBACK_BINDING"))
+    )
+    fallback_api_key = _as_str(env_values.get("LLM_FALLBACK_API_KEY"))
+    fallback_api_base = _as_str(env_values.get("LLM_FALLBACK_HOST"))
+    fallback_api_version = _as_str(env_values.get("LLM_FALLBACK_API_VERSION"))
+
+    fallback_spec = _choose_resolved_provider(
+        hint=fallback_binding_hint,
+        model=fallback_model,
+        api_key=fallback_api_key,
+        api_base=fallback_api_base or None,
+        provider_pool=provider_pool,
+    )
+    mapped = provider_pool.get(fallback_spec.name)
+    if not fallback_api_key:
+        if fallback_spec.name == primary_spec.name and primary_api_key:
+            fallback_api_key = primary_api_key
+        elif mapped and mapped.api_key:
+            fallback_api_key = mapped.api_key
+        else:
+            fallback_api_key = _provider_env_api_key(fallback_spec, env_values)
+    if not fallback_api_base:
+        if fallback_spec.name == primary_spec.name and primary_api_base:
+            fallback_api_base = primary_api_base
+        elif mapped and mapped.api_base:
+            fallback_api_base = mapped.api_base
+        elif fallback_spec.default_api_base:
+            fallback_api_base = fallback_spec.default_api_base
+    if not fallback_api_version and mapped and mapped.api_version:
+        fallback_api_version = mapped.api_version
+
+    fallback_extra_headers = (mapped.extra_headers or {}) if mapped else {}
+    return {
+        "fallback_model": fallback_model,
+        "fallback_provider_name": fallback_spec.name,
+        "fallback_provider_mode": fallback_spec.mode,
+        "fallback_binding": fallback_spec.name,
+        "fallback_api_key": fallback_api_key,
+        "fallback_base_url": fallback_api_base or None,
+        "fallback_effective_url": fallback_api_base or None,
+        "fallback_api_version": fallback_api_version or None,
+        "fallback_extra_headers": fallback_extra_headers,
+    }
+
+
 def resolve_llm_runtime_config(
     catalog: dict[str, Any] | None = None,
     *,
@@ -376,6 +453,13 @@ def resolve_llm_runtime_config(
     if not api_key and spec.is_local:
         api_key = "sk-no-key-required"
     extra_headers = active_extra_headers or ((mapped.extra_headers or {}) if mapped else {})
+    fallback_config = _resolve_llm_fallback_config(
+        env_values=env_values,
+        provider_pool=provider_pool,
+        primary_spec=spec,
+        primary_api_key=api_key,
+        primary_api_base=api_base,
+    )
 
     return ResolvedLLMConfig(
         model=resolved_model,
@@ -389,6 +473,7 @@ def resolve_llm_runtime_config(
         api_version=api_version or None,
         extra_headers=extra_headers,
         reasoning_effort=reasoning_effort,
+        **fallback_config,
     )
 
 

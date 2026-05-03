@@ -85,6 +85,12 @@ def _empty_env(tmp_path: Path) -> EnvStore:
     return EnvStore(path=env_path)
 
 
+def _env_with_lines(tmp_path: Path, lines: list[str]) -> EnvStore:
+    env_path = tmp_path / ".env"
+    env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return EnvStore(path=env_path)
+
+
 def test_search_without_provider_is_not_configured(tmp_path: Path) -> None:
     catalog = _build_catalog(
         search_profile={
@@ -121,6 +127,43 @@ def test_llm_explicit_binding_and_headers(tmp_path: Path) -> None:
     assert resolved.provider_mode == "standard"
     assert resolved.effective_url == "https://dashscope.aliyuncs.com/compatible-mode/v1"
     assert resolved.extra_headers == {"APP-Code": "abc"}
+
+
+def test_llm_resolves_dashscope_fallback_model_from_env(tmp_path: Path) -> None:
+    catalog = _build_catalog(
+        llm_profile={
+            "id": "llm-p",
+            "name": "LLM",
+            "binding": "dashscope",
+            "base_url": "",
+            "api_key": "",
+            "api_version": "",
+            "extra_headers": {},
+            "models": [{"id": "llm-m", "name": "d", "model": "deepseek-v4-flash"}],
+        }
+    )
+    env = _env_with_lines(
+        tmp_path,
+        [
+            "LLM_BINDING=dashscope",
+            "LLM_MODEL=deepseek-v4-flash",
+            "LLM_API_KEY=primary-key",
+            "LLM_HOST=https://dashscope.aliyuncs.com/compatible-mode/v1",
+            "LLM_FALLBACK_BINDING=dashscope",
+            "LLM_FALLBACK_MODEL=qwen3.6-flash",
+            "LLM_FALLBACK_API_KEY=",
+            "LLM_FALLBACK_HOST=",
+        ],
+    )
+
+    resolved = resolve_llm_runtime_config(catalog=catalog, env_store=env)
+
+    assert resolved.provider_name == "dashscope"
+    assert resolved.model == "deepseek-v4-flash"
+    assert resolved.fallback_provider_name == "dashscope"
+    assert resolved.fallback_model == "qwen3.6-flash"
+    assert resolved.fallback_api_key == "primary-key"
+    assert resolved.fallback_effective_url == "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
 
 def test_llm_api_key_prefix_gateway(tmp_path: Path) -> None:

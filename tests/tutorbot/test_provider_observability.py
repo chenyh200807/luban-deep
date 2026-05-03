@@ -16,7 +16,8 @@ if "json_repair" not in sys.modules:
     sys.modules["json_repair"] = module
 
 from deeptutor.tutorbot.providers.anthropic_provider import AnthropicProvider
-from deeptutor.tutorbot.providers.base import LLMProvider
+from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+from deeptutor.tutorbot.providers.failover import FailoverProvider
 from deeptutor.tutorbot.providers.openai_compat_provider import OpenAICompatProvider
 
 
@@ -98,6 +99,73 @@ def test_dashscope_default_chat_disables_thinking_for_visible_answers() -> None:
 
     assert kwargs["extra_body"] == {"enable_thinking": False}
     assert "reasoning_effort" not in kwargs
+
+
+@pytest.mark.asyncio
+async def test_failover_provider_uses_backup_model_when_primary_has_no_visible_content() -> None:
+    class PrimaryProvider(LLMProvider):
+        async def chat(self, **_kwargs):
+            return LLMResponse(content=None, reasoning_content="internal only")
+
+        def get_default_model(self) -> str:
+            return "deepseek-v4-flash"
+
+    class BackupProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.model = ""
+
+        async def chat(self, **kwargs):
+            self.model = str(kwargs.get("model") or "")
+            return LLMResponse(content="备用答案")
+
+        def get_default_model(self) -> str:
+            return "qwen3.6-flash"
+
+    backup = BackupProvider()
+    provider = FailoverProvider(
+        primary=PrimaryProvider(),
+        fallback=backup,
+        fallback_model="qwen3.6-flash",
+    )
+
+    response = await provider.chat(messages=[{"role": "user", "content": "hi"}])
+
+    assert response.content == "备用答案"
+    assert backup.model == "qwen3.6-flash"
+
+
+@pytest.mark.asyncio
+async def test_failover_provider_keeps_primary_tool_calls_without_backup() -> None:
+    class PrimaryProvider(LLMProvider):
+        async def chat(self, **_kwargs):
+            return LLMResponse(
+                content=None,
+                tool_calls=[
+                    ToolCallRequest(id="call-1", name="rag", arguments={"query": "防水"})
+                ],
+            )
+
+        def get_default_model(self) -> str:
+            return "deepseek-v4-flash"
+
+    class BackupProvider(LLMProvider):
+        async def chat(self, **_kwargs):
+            raise AssertionError("tool calls are valid primary output")
+
+        def get_default_model(self) -> str:
+            return "qwen3.6-flash"
+
+    provider = FailoverProvider(
+        primary=PrimaryProvider(),
+        fallback=BackupProvider(),
+        fallback_model="qwen3.6-flash",
+    )
+
+    response = await provider.chat(messages=[{"role": "user", "content": "hi"}])
+
+    assert response.has_tool_calls
+    assert response.tool_calls[0].name == "rag"
 
 
 @pytest.mark.asyncio
