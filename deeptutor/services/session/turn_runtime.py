@@ -916,6 +916,11 @@ def _extract_interaction_hints(
     preferred_question_type = str(raw.get("preferred_question_type", "") or "").strip().lower()
     if preferred_question_type not in {"choice", "written", "coding"}:
         preferred_question_type = ""
+    grounding_reasons = [
+        str(item or "").strip()
+        for item in (raw.get("grounding_reasons") if isinstance(raw.get("grounding_reasons"), list) else [])
+        if str(item or "").strip()
+    ]
     requested_response_mode = normalize_requested_response_mode(
         raw.get("requested_response_mode")
     )
@@ -948,6 +953,12 @@ def _extract_interaction_hints(
         "allow_general_chat_fallback": raw.get("allow_general_chat_fallback", True) is not False,
         "priorities": normalized_priorities,
     }
+    if raw.get("current_info_required") is True:
+        hints["current_info_required"] = True
+    if raw.get("textbook_delta_query") is True:
+        hints["textbook_delta_query"] = True
+    if grounding_reasons:
+        hints["grounding_reasons"] = grounding_reasons
     if exam_track:
         hints["exam_track"] = exam_track
     if "suppress_answer_reveal_on_generate" in raw:
@@ -976,6 +987,9 @@ def _extract_interaction_hints(
             hints.get("effective_response_mode"),
             hints.get("selected_mode"),
             hints.get("response_mode_selection_reason"),
+            hints.get("current_info_required"),
+            hints.get("textbook_delta_query"),
+            hints.get("grounding_reasons"),
             hints.get("suppress_answer_reveal_on_generate"),
             hints.get("prefer_question_context_grading"),
             hints.get("prefer_concept_teaching_slots"),
@@ -2340,6 +2354,10 @@ class TurnRuntimeManager:
         runtime_interaction_hints = _extract_interaction_hints(
             {"interaction_hints": runtime_only_config.get("interaction_hints")}
         )
+        if runtime_interaction_hints:
+            runtime_only_config["interaction_hints"] = runtime_interaction_hints
+        else:
+            runtime_only_config.pop("interaction_hints", None)
         explicit_exam_track = (
             normalize_exam_track(runtime_only_config.get("exam_track"))
             or normalize_exam_track((runtime_interaction_hints or {}).get("exam_track"))
@@ -2446,6 +2464,7 @@ class TurnRuntimeManager:
                 "selected_mode": selected_chat_mode,
                 "response_mode_selection_reason": selection_reason,
             }
+            runtime_only_config["interaction_hints"] = runtime_interaction_hints
             effective_chat_mode_explicit = True
         knowledge_chain_defaults = _resolve_bot_runtime_defaults(
             bot_id=bot_id,

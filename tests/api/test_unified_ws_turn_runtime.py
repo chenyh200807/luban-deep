@@ -3642,6 +3642,90 @@ async def test_turn_runtime_bootstraps_interaction_hints_as_soft_system_guidance
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_preserves_current_info_hint_for_mode_selection(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["metadata"] = context.metadata
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="2026 年一级建造师考试时间需要联网核验。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "请联网搜索2026一建考试时间，并给出来源链接。",
+            "session_id": None,
+            "capability": None,
+            "tools": ["web_search"],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "chat_mode": "smart",
+                "interaction_hints": {
+                    "profile": "tutorbot",
+                    "current_info_required": True,
+                    "grounding_reasons": ["current_info_required"],
+                },
+                "bot_id": "construction-exam-coach",
+            },
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    hints = detail["preferences"]["interaction_hints"]
+    metadata = captured["metadata"]
+
+    assert hints["current_info_required"] is True
+    assert hints["grounding_reasons"] == ["current_info_required"]
+    assert metadata["interaction_hints"]["current_info_required"] is True
+    assert metadata["selected_mode"] == "deep"
+    assert metadata["response_mode_selection_reason"] == "current_info_required"
+    assert [event["type"] for event in events] == ["session", "content", "done"]
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_persists_exam_track_as_scoped_runtime_metadata(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
