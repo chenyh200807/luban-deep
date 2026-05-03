@@ -34,6 +34,14 @@ It covers:
 5. Backup and upgrade runbook.
 6. Failure diagnosis.
 
+Aliyun execution note from 2026-05-03:
+
+1. The live target was CentOS 7 with an existing `/root/deeptutor` stack, not a fresh Ubuntu host under `/opt/deeptutor-stack`.
+2. In that case, do not start a second DeepTutor stack on the same ports. Merge SearXNG and Valkey into the existing `/root/deeptutor/docker-compose.yml`, preserving current LLM/embedding/env settings.
+3. The target host reached Bing and GitHub, but DuckDuckGo, Wikipedia, Brave and Startpage timed out; Baidu triggered CAPTCHA. The stable zero-API baseline for this ECS was therefore SearXNG with `bing` enabled and the failing engines disabled.
+4. CentOS 7 may not have `jq`; acceptance must support Python JSON validation fallback.
+5. Treat the repo file `scripts/acceptance_searxng.sh` as the canonical executable acceptance script.
+
 It does not cover:
 
 1. Public SearXNG portal.
@@ -49,7 +57,7 @@ Before executing, fill this section for the target environment.
 ```markdown
 - Target server:
 - OS version:
-- Deployment path: /opt/deeptutor-stack
+- Deployment path: /opt/deeptutor-stack, or existing production path such as /root/deeptutor
 - DeepTutor image tag:
 - SearXNG image tag:
 - Public frontend URL:
@@ -600,8 +608,8 @@ url: non-empty
 
 ```bash
 cd /opt/deeptutor-stack
-docker compose exec -T deeptutor python - <<'PY'
-from deeptutor.services.search import get_current_config, is_web_search_runtime_available
+docker compose exec -T -e PYTHONIOENCODING=utf-8 deeptutor python - <<'PY'
+from deeptutor.services.search import get_current_config
 
 cfg = get_current_config()
 print("current_config:")
@@ -617,7 +625,15 @@ for key in [
     "proxy",
 ]:
     print(f"{key}: {cfg.get(key)}")
-print("available:", is_web_search_runtime_available())
+
+available = (
+    cfg.get("enabled") is True
+    and cfg.get("provider") == "searxng"
+    and cfg.get("provider_status") == "ok"
+    and cfg.get("base_url") == "http://searxng:8080"
+    and not cfg.get("missing_credentials")
+)
+print("available:", available)
 
 if cfg.get("enabled") is not True:
     raise SystemExit("web_search is not enabled")
@@ -627,7 +643,7 @@ if cfg.get("provider_status") != "ok":
     raise SystemExit("provider_status is not ok")
 if cfg.get("base_url") != "http://searxng:8080":
     raise SystemExit("base_url is not http://searxng:8080")
-if not is_web_search_runtime_available():
+if not available:
     raise SystemExit("web_search runtime unavailable")
 PY
 ```
@@ -694,7 +710,8 @@ set -euo pipefail
 
 BASE="${SEARXNG_LOCAL_URL:-http://127.0.0.1:8080}"
 INTERNAL="${SEARXNG_INTERNAL_URL:-http://searxng:8080}"
-QUERY="${1:-DeepTutor}"
+QUERY="${1:-DeepTutor HKUDS GitHub}"
+export PYTHONIOENCODING="${PYTHONIOENCODING:-utf-8}"
 
 pass() {
   echo "PASS: $*"
@@ -710,8 +727,56 @@ need() {
 }
 
 need curl
-need jq
 need docker
+
+PYTHON_BIN=""
+if command -v jq >/dev/null 2>&1; then
+  JSON_READER="jq"
+elif command -v python3 >/dev/null 2>&1; then
+  JSON_READER="python"
+  PYTHON_BIN="python3"
+elif command -v python >/dev/null 2>&1; then
+  JSON_READER="python"
+  PYTHON_BIN="python"
+else
+  fail "missing command: jq or python3/python"
+fi
+
+assert_json_results() {
+  local file="$1"
+  if [[ "$JSON_READER" == "jq" ]]; then
+    jq -e '.results and (.results | length >= 1)' "$file" >/dev/null \
+      || fail "SearXNG JSON API returned no results"
+    jq -e '.results[0].title and .results[0].url' "$file" >/dev/null \
+      || fail "First result missing title or url"
+    jq '.results[0] | {title, url, engine, content}' "$file"
+    return
+  fi
+
+  "$PYTHON_BIN" - "$file" <<'PY' || fail "SearXNG JSON API validation failed"
+import json
+import sys
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as fh:
+    data = json.load(fh)
+
+results = data.get("results", [])
+if not isinstance(results, list) or not results:
+    raise SystemExit("SearXNG JSON API returned no results")
+
+first = results[0]
+if not first.get("title") or not first.get("url"):
+    raise SystemExit("First result missing title or url")
+
+print(json.dumps({
+    "title": first.get("title"),
+    "url": first.get("url"),
+    "engine": first.get("engine"),
+    "content": first.get("content"),
+}, ensure_ascii=True, indent=2))
+PY
+}
 
 echo "== 1. Check SearXNG root =="
 status="$(curl -sS -o /tmp/searxng_root.html -w "%{http_code}" "$BASE/")"
@@ -729,17 +794,13 @@ if [[ "$status" != "200" ]]; then
   echo
   fail "SearXNG JSON API HTTP status=$status. If status=403, enable search.formats json in settings.yml."
 fi
-jq -e '.results and (.results | length >= 1)' /tmp/searxng_json.json >/dev/null \
-  || fail "SearXNG JSON API returned no results"
-jq -e '.results[0].title and .results[0].url' /tmp/searxng_json.json >/dev/null \
-  || fail "First result missing title or url"
 echo "First result:"
-jq '.results[0] | {title, url, engine, content}' /tmp/searxng_json.json
+assert_json_results /tmp/searxng_json.json
 pass "SearXNG JSON API works"
 
 echo "== 3. Check DeepTutor container can reach SearXNG =="
 if docker compose ps --services --status running | grep -q '^deeptutor$'; then
-  docker compose exec -T deeptutor python - <<PY
+  docker compose exec -T -e PYTHONIOENCODING=utf-8 deeptutor python - <<PY
 import requests
 url = "${INTERNAL}/search"
 params = {"q": "${QUERY}", "format": "json"}
@@ -766,8 +827,8 @@ fi
 
 echo "== 4. Check DeepTutor runtime config =="
 if docker compose ps --services --status running | grep -q '^deeptutor$'; then
-  docker compose exec -T deeptutor python - <<'PY'
-from deeptutor.services.search import get_current_config, is_web_search_runtime_available
+  docker compose exec -T -e PYTHONIOENCODING=utf-8 deeptutor python - <<'PY'
+from deeptutor.services.search import get_current_config
 
 cfg = get_current_config()
 keys = [
@@ -783,7 +844,13 @@ keys = [
 ]
 for key in keys:
     print(f"{key}: {cfg.get(key)}")
-available = is_web_search_runtime_available()
+available = (
+    cfg.get("enabled") is True
+    and cfg.get("provider") == "searxng"
+    and cfg.get("provider_status") == "ok"
+    and cfg.get("base_url") == "http://searxng:8080"
+    and not cfg.get("missing_credentials")
+)
 print("available:", available)
 if cfg.get("enabled") is not True:
     raise SystemExit("web_search is not enabled")
@@ -803,7 +870,7 @@ fi
 
 echo "== 5. Check DeepTutor web_search provider =="
 if docker compose ps --services --status running | grep -q '^deeptutor$'; then
-  docker compose exec -T deeptutor python - <<PY
+  docker compose exec -T -e PYTHONIOENCODING=utf-8 deeptutor python - <<PY
 from deeptutor.services.search import web_search
 
 res = web_search(
@@ -1165,7 +1232,7 @@ Go only if all P0 items pass:
 - [ ] DeepTutor runtime enabled
 - [ ] provider is `searxng`
 - [ ] `provider_status=ok`
-- [ ] `is_web_search_runtime_available=True`
+- [ ] runtime availability expression resolves `True`
 - [ ] DeepTutor provider returns citations/search_results
 - [ ] UI or turn returns source links
 - [ ] SearXNG not publicly exposed

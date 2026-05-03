@@ -60,6 +60,8 @@ services:
       - SEARCH_PROVIDER=${SEARCH_PROVIDER:-}
       - SEARCH_API_KEY=${SEARCH_API_KEY:-}
       - SEARCH_BASE_URL=${SEARCH_BASE_URL:-}
+      - SEARXNG_BASE_URL=${SEARXNG_BASE_URL:-}
+      - SEARCH_PROXY=${SEARCH_PROXY:-}
       # ============================================
       # Service Ports Configuration
       # ============================================
@@ -105,6 +107,41 @@ services:
       retries: 3
       start_period: 60s
 
+    depends_on:
+      - searxng
+
+    networks:
+      - deeptutor-network
+
+  # ============================================
+  # Private SearXNG Web Search Service
+  # ============================================
+  searxng:
+    image: docker.io/searxng/searxng:latest
+    container_name: deeptutor-searxng
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      - SEARXNG_SECRET=${SEARXNG_SECRET}
+      - SEARXNG_PORT=8080
+      - SEARXNG_BIND_ADDRESS=0.0.0.0
+      - SEARXNG_BASE_URL=http://127.0.0.1:8080/
+    volumes:
+      - ./deployment/searxng:/etc/searxng:rw
+      - searxng-cache:/var/cache/searxng
+    depends_on:
+      - valkey
+    networks:
+      - deeptutor-network
+
+  valkey:
+    image: docker.io/valkey/valkey:9-alpine
+    container_name: deeptutor-valkey
+    command: valkey-server --save 30 1 --loglevel warning
+    restart: unless-stopped
+    volumes:
+      - valkey-data:/data
     networks:
       - deeptutor-network
 
@@ -114,3 +151,7 @@ services:
 networks:
   deeptutor-network:
     driver: bridge
+
+volumes:
+  searxng-cache:
+  valkey-data:
