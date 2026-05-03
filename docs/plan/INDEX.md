@@ -100,8 +100,8 @@
 
 | 文件 | 类型 | 状态 | 说明 |
 | --- | --- | --- | --- |
-| [2026-05-03-deeptutor-web-search-stack-prd.md](2026-05-03-deeptutor-web-search-stack-prd.md) | PRD | Proposed v1 | 自部署 SearXNG + DeepTutor `web_search` 显式启用、fail-closed provider/runtime authority、UI/turn 验收。 |
-| [2026-05-03-deeptutor-web-search-stack-implementation-plan.md](2026-05-03-deeptutor-web-search-stack-implementation-plan.md) | Implementation Plan | Proposed v1 | `/opt/deeptutor-stack` Compose、SearXNG JSON、DeepTutor runtime enablement、acceptance script、备份升级与故障排查。 |
+| [2026-05-03-deeptutor-web-search-stack-prd.md](2026-05-03-deeptutor-web-search-stack-prd.md) | PRD | Aliyun validated v1 | 自部署 SearXNG + DeepTutor `web_search` 显式启用、fail-closed provider/runtime authority、UI/turn 验收。 |
+| [2026-05-03-deeptutor-web-search-stack-implementation-plan.md](2026-05-03-deeptutor-web-search-stack-implementation-plan.md) | Implementation Plan | Aliyun validated v1 | `/opt/deeptutor-stack` 或既有 `/root/deeptutor` Compose、SearXNG JSON、DeepTutor runtime enablement、acceptance script、备份升级与故障排查。 |
 
 ### 9. 鲁班智考 / 因材施教
 

@@ -1,0 +1,56 @@
+use_default_settings: true
+
+general:
+  instance_name: "deeptutor-search"
+  debug: false
+  enable_metrics: true
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "auto"
+  formats:
+    - html
+    - json
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: "change-this-secret-is-overridden-by-env"
+  limiter: false
+  public_instance: false
+  image_proxy: false
+  method: "GET"
+
+valkey:
+  url: valkey://valkey:6379/0
+
+outgoing:
+  request_timeout: 6.0
+  max_request_timeout: 15.0
+  pool_connections: 100
+  pool_maxsize: 20
+  enable_http2: true
+
+# Aliyun mainland egress baseline:
+# keep engines that are reachable from the target host, and demote engines that
+# consistently time out, trigger CAPTCHA, or return access-denied responses.
+engines:
+  - name: bing
+    disabled: false
+  - name: baidu
+    disabled: true
+  - name: brave
+    disabled: true
+  - name: duckduckgo
+    disabled: true
+  - name: google
+    disabled: true
+  - name: karmasearch
+    disabled: true
+  - name: karmasearch videos
+    disabled: true
+  - name: startpage
+    disabled: true
+  - name: wikipedia
+    disabled: true
