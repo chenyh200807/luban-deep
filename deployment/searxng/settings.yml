@@ -39,7 +39,7 @@ engines:
   - name: bing
     disabled: false
   - name: baidu
-    disabled: true
+    disabled: false
   - name: brave
     disabled: true
   - name: duckduckgo
