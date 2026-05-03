@@ -26,6 +26,7 @@ from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.query_intent import (
     build_grounding_decision,
 )
+from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.services.feedback_service import (
     SupabaseFeedbackStore,
     build_mobile_feedback_row,
@@ -1019,6 +1020,8 @@ def _build_mobile_turn_payload(
         tutorbot_context=True,
     )
     current_info_required = grounding_decision.current_info_required or grounding_decision.textbook_delta_query
+    if current_info_required and is_web_search_runtime_available():
+        requested_tools.append("web_search")
     interaction_profile = str(body.interaction_profile or "tutorbot").strip() or "tutorbot"
     interaction_hints = _merge_interaction_hints(
         interaction_profile,

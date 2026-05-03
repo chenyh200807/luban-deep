@@ -381,7 +381,7 @@ def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
     assert config["interaction_hints"]["allow_general_chat_fallback"] is False
 
 
-def test_mobile_chat_start_turn_marks_current_info_without_disabled_web_search_for_policy_queries(
+def test_mobile_chat_start_turn_enables_web_search_for_current_info_policy_queries(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, object] = {}
@@ -408,6 +408,7 @@ def test_mobile_chat_start_turn_marks_current_info_without_disabled_web_search_f
         "_resolve_authenticated_user_id",
         lambda *_args, **_kwargs: "student_demo",
     )
+    monkeypatch.setattr(mobile_module, "is_web_search_runtime_available", lambda: True)
 
     with TestClient(_build_app()) as client:
         response = client.post(
@@ -420,11 +421,11 @@ def test_mobile_chat_start_turn_marks_current_info_without_disabled_web_search_f
         )
 
     assert response.status_code == 200
-    assert "web_search" not in captured["payload"]["tools"]
+    assert "web_search" in captured["payload"]["tools"]
     assert captured["payload"]["config"]["interaction_hints"]["current_info_required"] is True
 
 
-def test_mobile_chat_start_turn_marks_current_info_without_disabled_web_search_for_textbook_delta_queries(
+def test_mobile_chat_start_turn_marks_current_info_without_disabled_web_search_when_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, object] = {}
@@ -451,6 +452,7 @@ def test_mobile_chat_start_turn_marks_current_info_without_disabled_web_search_f
         "_resolve_authenticated_user_id",
         lambda *_args, **_kwargs: "student_demo",
     )
+    monkeypatch.setattr(mobile_module, "is_web_search_runtime_available", lambda: False)
 
     with TestClient(_build_app()) as client:
         response = client.post(
