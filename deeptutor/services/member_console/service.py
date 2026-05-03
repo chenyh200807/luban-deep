@@ -474,6 +474,9 @@ class MemberConsoleService:
     def prewarm_assessment_forms(self) -> dict[str, Any]:
         return self._build_assessment_blueprint_service().prewarm_forms()
 
+    def generate_and_persist_assessment_forms(self) -> dict[str, Any]:
+        return self._build_assessment_blueprint_service().generate_and_persist_forms()
+
     def _write_assessment_learning_signals(
         self,
         user_id: str,

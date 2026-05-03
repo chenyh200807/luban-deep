@@ -231,9 +231,18 @@ class SupabaseAssessmentQuestionProvider:
         return _stable_shuffle_candidates(candidates, selection_seed)
 
     def _query(self, base_url: str, api_key: str, filters: dict[str, str]) -> list[dict[str, Any]]:
+        return self._rest_get(base_url, api_key, "questions_bank", filters)
+
+    def _rest_get(
+        self,
+        base_url: str,
+        api_key: str,
+        table: str,
+        filters: dict[str, str],
+    ) -> list[dict[str, Any]]:
         encoded = parse.urlencode(filters)
         req = request.Request(
-            f"{base_url}/rest/v1/questions_bank?{encoded}",
+            f"{base_url}/rest/v1/{table}?{encoded}",
             headers={
                 "apikey": api_key,
                 "Authorization": f"Bearer {api_key}",
@@ -245,8 +254,36 @@ class SupabaseAssessmentQuestionProvider:
                 payload = response.read().decode("utf-8")
         except error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
-            raise AssessmentBlueprintUnavailable(f"Supabase questions_bank query failed: HTTP {exc.code} {body}") from exc
+            raise AssessmentBlueprintUnavailable(f"Supabase {table} query failed: HTTP {exc.code} {body}") from exc
         return list(json.loads(payload or "[]"))
+
+    def _rest_upsert(
+        self,
+        base_url: str,
+        api_key: str,
+        table: str,
+        rows: list[dict[str, Any]],
+        *,
+        on_conflict: str,
+    ) -> None:
+        encoded = parse.urlencode({"on_conflict": on_conflict})
+        req = request.Request(
+            f"{base_url}/rest/v1/{table}?{encoded}",
+            data=json.dumps(rows, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "apikey": api_key,
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates,return=minimal",
+            },
+            method="POST",
+        )
+        try:
+            with request.urlopen(req, timeout=30):
+                return
+        except error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            raise AssessmentBlueprintUnavailable(f"Supabase {table} upsert failed: HTTP {exc.code} {body}") from exc
 
     def _supabase_config(self) -> tuple[str, str]:
         env_file = self._read_env_file(self._env_file)
@@ -333,6 +370,36 @@ class SupabaseAssessmentQuestionProvider:
         base_url, _api_key = self._supabase_config()
         return f"supabase_questions_bank:{base_url}:{blueprint_version}:assessment_forms_v2"
 
+    def load_persisted_form_bank(self, blueprint: AssessmentBlueprint) -> _AssessmentFormBank:
+        base_url, api_key = self._supabase_config()
+        rows = self._rest_get(
+            base_url,
+            api_key,
+            "assessment_forms",
+            {
+                "select": "form_id,form_index,items_json,question_bank_size,fallback_used",
+                "blueprint_version": f"eq.{blueprint.version}",
+                "status": "eq.active",
+                "order": "form_index.asc",
+                "limit": str(_ASSESSMENT_FORM_COUNT),
+            },
+        )
+        forms = tuple(_form_from_persisted_row(row, blueprint) for row in rows)
+        if len(forms) < _ASSESSMENT_FORM_COUNT:
+            raise AssessmentBlueprintUnavailable(
+                f"Persisted assessment forms missing: expected {_ASSESSMENT_FORM_COUNT}, found {len(forms)}"
+            )
+        question_bank_size = max(int(row.get("question_bank_size") or 0) for row in rows)
+        return _AssessmentFormBank(forms=forms, question_bank_size=question_bank_size)
+
+    def save_form_bank(self, blueprint: AssessmentBlueprint, form_bank: _AssessmentFormBank) -> None:
+        base_url, api_key = self._supabase_config()
+        rows = [
+            _form_to_persisted_row(blueprint.version, form, question_bank_size=form_bank.question_bank_size)
+            for form in form_bank.forms
+        ]
+        self._rest_upsert(base_url, api_key, "assessment_forms", rows, on_conflict="form_id")
+
 
 class AssessmentBlueprintService:
     def __init__(
@@ -361,6 +428,26 @@ class AssessmentBlueprintService:
             "form_ids": [form.form_id for form in form_bank.forms],
             "question_bank_size": form_bank.question_bank_size,
             "fallback_used": any(form.fallback_used for form in form_bank.forms),
+        }
+
+    def generate_and_persist_forms(self) -> dict[str, Any]:
+        form_bank = self._build_form_bank()
+        saver = getattr(self._provider, "save_form_bank", None)
+        if not callable(saver):
+            raise AssessmentBlueprintUnavailable("Assessment provider cannot persist form bank")
+        saver(self._blueprint, form_bank)
+        cache_key = self._form_cache_key()
+        if cache_key:
+            with _FORM_CACHE_LOCK:
+                _FORM_CACHE[cache_key] = form_bank
+        self._local_form_bank = form_bank
+        return {
+            "blueprint_version": self._blueprint.version,
+            "form_count": len(form_bank.forms),
+            "form_ids": [form.form_id for form in form_bank.forms],
+            "question_bank_size": form_bank.question_bank_size,
+            "fallback_used": any(form.fallback_used for form in form_bank.forms),
+            "persisted": True,
         }
 
     def create_session(self, *, user_id: str, count: int = 20) -> dict[str, Any]:
@@ -450,6 +537,14 @@ class AssessmentBlueprintService:
                 if cached is not None:
                     self._local_form_bank = cached
                     return cached
+        persisted_loader = getattr(self._provider, "load_persisted_form_bank", None)
+        if callable(persisted_loader):
+            form_bank = persisted_loader(self._blueprint)
+            if cache_key:
+                with _FORM_CACHE_LOCK:
+                    _FORM_CACHE[cache_key] = form_bank
+            self._local_form_bank = form_bank
+            return form_bank
         form_bank = self._build_form_bank()
         if cache_key:
             with _FORM_CACHE_LOCK:
@@ -549,6 +644,144 @@ def _choose_assessment_form(forms: tuple[_AssessmentForm, ...]) -> _AssessmentFo
         raise AssessmentBlueprintUnavailable("Assessment form bank is empty")
     index = int(uuid.uuid4().hex[:8], 16) % len(forms)
     return forms[index]
+
+
+def _form_to_persisted_row(
+    blueprint_version: str,
+    form: _AssessmentForm,
+    *,
+    question_bank_size: int,
+) -> dict[str, Any]:
+    scored_units = [unit for unit in form.units if unit.scored and isinstance(unit.item, QuestionCandidate)]
+    return {
+        "form_id": form.form_id,
+        "blueprint_version": blueprint_version,
+        "form_index": form.form_index,
+        "status": "active",
+        "question_bank_size": question_bank_size,
+        "fallback_used": form.fallback_used,
+        "items_json": [_form_unit_to_json(unit) for unit in form.units],
+        "quality_json": {
+            "scored_count": len(scored_units),
+            "unique_chapter_count": len({_chapter_key(unit.item.chapter) for unit in scored_units}),
+            "difficulties": sorted({_difficulty_key(unit.item.difficulty) for unit in scored_units}),
+            "question_types": sorted({unit.item.question_type for unit in scored_units}),
+        },
+    }
+
+
+def _form_unit_to_json(unit: _AssessmentFormUnit) -> dict[str, Any]:
+    if unit.scored:
+        item = unit.item
+        if not isinstance(item, QuestionCandidate):
+            raise AssessmentBlueprintUnavailable("Invalid scored assessment form unit")
+        return {
+            "section_id": unit.section_id,
+            "scored": True,
+            "source_question_id": item.source_question_id,
+            "question_stem": item.question_stem,
+            "question_type": item.question_type,
+            "chapter": item.chapter,
+            "options": [{"key": key, "text": text} for key, text in item.options],
+            "answer": item.answer,
+            "difficulty": item.difficulty,
+            "source_type": item.source_type,
+            "source_chunk_id": item.source_chunk_id,
+            "node_code": item.node_code,
+            "source_meta": dict(item.source_meta or {}),
+        }
+    item = unit.item
+    if not isinstance(item, ProfileProbe):
+        raise AssessmentBlueprintUnavailable("Invalid profile assessment form unit")
+    return {
+        "section_id": unit.section_id,
+        "scored": False,
+        "probe_id": item.id,
+        "topic": item.topic,
+        "question_stem": item.question_stem,
+        "options": [{"key": key, "text": text, "value": value} for key, text, value in item.options],
+    }
+
+
+def _form_from_persisted_row(row: dict[str, Any], blueprint: AssessmentBlueprint) -> _AssessmentForm:
+    raw_items = row.get("items_json")
+    if isinstance(raw_items, str):
+        raw_items = json.loads(raw_items)
+    if not isinstance(raw_items, list):
+        raise AssessmentBlueprintUnavailable(f"Assessment form {row.get('form_id')} has invalid items_json")
+    units = tuple(_form_unit_from_json(item) for item in raw_items)
+    _validate_form_units(str(row.get("form_id") or ""), units, blueprint)
+    return _AssessmentForm(
+        form_id=str(row.get("form_id") or ""),
+        form_index=int(row.get("form_index") or 0),
+        units=units,
+        fallback_used=bool(row.get("fallback_used")),
+    )
+
+
+def _form_unit_from_json(item: dict[str, Any]) -> _AssessmentFormUnit:
+    if not isinstance(item, dict):
+        raise AssessmentBlueprintUnavailable("Invalid assessment form item")
+    section_id = str(item.get("section_id") or "").strip()
+    scored = bool(item.get("scored"))
+    if scored:
+        options = item.get("options") or []
+        return _AssessmentFormUnit(
+            section_id=section_id,
+            scored=True,
+            item=QuestionCandidate(
+                source_question_id=str(item.get("source_question_id") or "").strip(),
+                question_stem=str(item.get("question_stem") or "").strip(),
+                question_type=str(item.get("question_type") or "single_choice").strip() or "single_choice",
+                chapter=str(item.get("chapter") or "").strip(),
+                options=tuple(
+                    (str(option.get("key") or "").strip(), str(option.get("text") or "").strip())
+                    for option in options
+                    if isinstance(option, dict) and str(option.get("key") or "").strip()
+                ),
+                answer=str(item.get("answer") or "").strip(),
+                difficulty=str(item.get("difficulty") or "medium").strip() or "medium",
+                source_type=str(item.get("source_type") or "").strip(),
+                source_chunk_id=str(item.get("source_chunk_id") or "").strip(),
+                node_code=str(item.get("node_code") or "").strip(),
+                source_meta=dict(item.get("source_meta") or {}) if isinstance(item.get("source_meta"), dict) else {},
+            ),
+        )
+    options = item.get("options") or []
+    return _AssessmentFormUnit(
+        section_id=section_id,
+        scored=False,
+        item=ProfileProbe(
+            id=str(item.get("probe_id") or "").strip(),
+            section_id=section_id,
+            topic=str(item.get("topic") or "").strip(),
+            question_stem=str(item.get("question_stem") or "").strip(),
+            options=tuple(
+                (
+                    str(option.get("key") or "").strip(),
+                    str(option.get("text") or "").strip(),
+                    str(option.get("value") or "").strip(),
+                )
+                for option in options
+                if isinstance(option, dict) and str(option.get("key") or "").strip()
+            ),
+        ),
+    )
+
+
+def _validate_form_units(form_id: str, units: tuple[_AssessmentFormUnit, ...], blueprint: AssessmentBlueprint) -> None:
+    if len(units) != blueprint.requested_count:
+        raise AssessmentBlueprintUnavailable(
+            f"Assessment form {form_id} delivered {len(units)}, expected {blueprint.requested_count}"
+        )
+    for section in blueprint.sections:
+        section_units = [unit for unit in units if unit.section_id == section.id]
+        if len(section_units) != section.count:
+            raise AssessmentBlueprintUnavailable(
+                f"Assessment form {form_id} section {section.id} expected {section.count}, found {len(section_units)}"
+            )
+        if any(unit.scored != section.scored for unit in section_units):
+            raise AssessmentBlueprintUnavailable(f"Assessment form {form_id} section {section.id} scored mismatch")
 
 
 def _build_scored_question(

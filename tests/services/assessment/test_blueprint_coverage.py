@@ -2,11 +2,17 @@ from deeptutor.services.assessment.blueprint import get_assessment_blueprint
 from deeptutor.services.assessment.blueprint_service import (
     AssessmentBlueprintService,
     AssessmentBlueprintUnavailable,
+    _AssessmentForm,
+    _AssessmentFormBank,
+    _AssessmentFormUnit,
     QuestionCandidate,
     StaticAssessmentQuestionProvider,
     SupabaseAssessmentQuestionProvider,
+    _form_from_persisted_row,
+    _form_to_persisted_row,
 )
 from deeptutor.services.assessment.coverage import evaluate_blueprint_coverage
+from deeptutor.services.assessment.profile_probes import get_profile_probes
 
 
 def test_diagnostic_v1_has_20_units_with_16_scored_and_4_profile() -> None:
@@ -149,6 +155,66 @@ class CountingStaticAssessmentQuestionProvider(StaticAssessmentQuestionProvider)
         return super().get_candidates(*args, **kwargs)
 
 
+class PersistedOnlyAssessmentProvider:
+    def __init__(self, form_bank: _AssessmentFormBank) -> None:
+        self.form_bank = form_bank
+        self.get_candidate_calls = 0
+
+    def get_candidates(self, *args, **kwargs):
+        self.get_candidate_calls += 1
+        raise AssertionError("create_session should not generate candidates when persisted forms exist")
+
+    def load_persisted_form_bank(self, blueprint):
+        return self.form_bank
+
+    def question_bank_size(self) -> int:
+        return self.form_bank.question_bank_size
+
+
+def _persisted_form_bank_for_blueprint() -> _AssessmentFormBank:
+    blueprint = get_assessment_blueprint("diagnostic_v1")
+    profile_probes = list(get_profile_probes())
+    forms = []
+    for form_index in range(1, 6):
+        units = []
+        candidate_index = form_index * 100
+        profile_index = 0
+        for section in blueprint.sections:
+            for _ in range(section.count):
+                if section.scored:
+                    candidate_index += 1
+                    units.append(
+                        _AssessmentFormUnit(
+                            section_id=section.id,
+                            scored=True,
+                            item=_candidate(
+                                candidate_index,
+                                question_type="case_study",
+                                chapter=f"持久化章节 {candidate_index}",
+                                difficulty=("easy", "medium", "hard")[candidate_index % 3],
+                            ),
+                        )
+                    )
+                else:
+                    units.append(
+                        _AssessmentFormUnit(
+                            section_id=section.id,
+                            scored=False,
+                            item=profile_probes[profile_index],
+                        )
+                    )
+                    profile_index += 1
+        forms.append(
+            _AssessmentForm(
+                form_id=f"diagnostic_v1_form_{form_index}",
+                form_index=form_index,
+                units=tuple(units),
+                fallback_used=False,
+            )
+        )
+    return _AssessmentFormBank(forms=tuple(forms), question_bank_size=500)
+
+
 def test_blueprint_service_creates_20_units_with_profile_probes() -> None:
     candidates = [_candidate(index) for index in range(1, 40)] + [
         _candidate(100 + index, question_type="case_study") for index in range(1, 10)
@@ -199,6 +265,48 @@ def test_blueprint_service_reuses_prebuilt_five_form_bank_between_sessions() -> 
     assert second["form_count"] == 5
     assert provider.call_count == call_count_after_first
     assert call_count_after_first == 5 * sum(1 for section in service.blueprint.sections if section.scored)
+
+
+def test_assessment_form_serializes_for_database_persistence() -> None:
+    candidates = [
+        _candidate(
+            index,
+            question_type="case_study",
+            chapter=f"诊断章节 {index}",
+            difficulty=("easy", "medium", "hard")[index % 3],
+        )
+        for index in range(1, 80)
+    ]
+    service = AssessmentBlueprintService(
+        provider=StaticAssessmentQuestionProvider(candidates),
+        allow_dev_fallback=False,
+    )
+    form_bank = service._build_form_bank()
+    form = form_bank.forms[0]
+
+    row = _form_to_persisted_row(service.blueprint.version, form, question_bank_size=form_bank.question_bank_size)
+    restored = _form_from_persisted_row(row, service.blueprint)
+
+    assert row["status"] == "active"
+    assert row["form_id"] == "diagnostic_v1_form_1"
+    assert row["quality_json"]["scored_count"] == 16
+    assert len(row["items_json"]) == 20
+    assert restored.form_id == form.form_id
+    assert restored.form_index == form.form_index
+    assert len(restored.units) == 20
+
+
+def test_blueprint_service_uses_persisted_forms_without_candidate_generation() -> None:
+    provider = PersistedOnlyAssessmentProvider(_persisted_form_bank_for_blueprint())
+    service = AssessmentBlueprintService(provider=provider, allow_dev_fallback=False)
+
+    payload = service.create_session(user_id="student_demo", count=20)
+
+    assert provider.get_candidate_calls == 0
+    assert payload["form_count"] == 5
+    assert payload["question_bank_size"] == 500
+    assert payload["fallback_used"] is False
+    assert len(payload["questions"]) == 20
 
 
 def test_blueprint_service_spreads_scored_questions_across_chapters_and_difficulties() -> None:
