@@ -71,6 +71,7 @@ class UnifiedTurnStartMessage(BaseModel):
     tools: list[str] = Field(default_factory=list)
     knowledge_bases: list[str] = Field(default_factory=list)
     attachments: list[dict[str, Any]] = Field(default_factory=list)
+    llm_selection: dict[str, str] | None = None
     language: str = "en"
     config: dict[str, Any] = Field(default_factory=dict)
     notebook_references: list[dict[str, Any]] = Field(default_factory=list)

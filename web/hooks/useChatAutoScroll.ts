@@ -86,6 +86,7 @@ export function useChatAutoScroll({
   // scroll to bottom so the user can see the full result.
   useEffect(() => {
     if (isStreaming) return;
+    if (!hasMessages) return;
 
     const container = containerRef.current;
     if (!container) return;
@@ -112,7 +113,7 @@ export function useChatAutoScroll({
       mo.disconnect();
       if (rafId) cancelAnimationFrame(rafId);
     };
-  }, [isStreaming, scrollToBottom]);
+  }, [hasMessages, isStreaming, scrollToBottom]);
 
   const handleScroll = useCallback(() => {
     const container = containerRef.current;

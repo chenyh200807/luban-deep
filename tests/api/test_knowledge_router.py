@@ -193,6 +193,7 @@ def test_create_kb_does_not_require_llm_precheck(monkeypatch, tmp_path: Path) ->
         ("delete", "/api/v1/knowledge/demo", {}),
         ("get", "/api/v1/knowledge/tasks/task-1/stream", {}),
         ("post", "/api/v1/knowledge/demo/upload", {"files": _upload_payload()}),
+        ("post", "/api/v1/knowledge/demo/reindex", {}),
         ("post", "/api/v1/knowledge/demo/progress/clear", {}),
         ("post", "/api/v1/knowledge/demo/link-folder", {"json": {"folder_path": "/tmp/demo"}}),
         ("get", "/api/v1/knowledge/demo/linked-folders", {}),
@@ -315,6 +316,107 @@ def test_upload_returns_409_when_kb_needs_reindex(monkeypatch, tmp_path: Path) -
 
     assert response.status_code == 409
     assert "needs reindex" in response.json()["detail"].lower()
+
+
+def test_reindex_legacy_kb_returns_task_id(monkeypatch, tmp_path: Path) -> None:
+    manager = _FakeKBManager(tmp_path / "knowledge_bases")
+    manager.config["knowledge_bases"]["legacy-kb"] = {
+        "path": "legacy-kb",
+        "rag_provider": "llamaindex",
+        "needs_reindex": True,
+        "status": "needs_reindex",
+    }
+    raw_dir = manager.get_knowledge_base_path("legacy-kb") / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    (raw_dir / "lesson.txt").write_text("source document", encoding="utf-8")
+
+    started: list[dict] = []
+
+    async def _noop_reindex_task(**kwargs):
+        started.append(kwargs)
+
+    monkeypatch.setattr(knowledge_router_module, "get_kb_manager", lambda: manager)
+    monkeypatch.setattr(knowledge_router_module, "_kb_base_dir", tmp_path / "knowledge_bases")
+    monkeypatch.setattr(knowledge_router_module, "run_reindex_task", _noop_reindex_task)
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/knowledge/legacy-kb/reindex")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert isinstance(body.get("task_id"), str) and body["task_id"]
+    assert body["noop"] is False
+    assert manager.config["knowledge_bases"]["legacy-kb"]["status"] == "initializing"
+    assert manager.config["knowledge_bases"]["legacy-kb"]["progress"]["stage"] == "starting"
+    assert started and started[0]["kb_name"] == "legacy-kb"
+
+
+def test_reindex_rejects_kb_without_raw_documents(monkeypatch, tmp_path: Path) -> None:
+    manager = _FakeKBManager(tmp_path / "knowledge_bases")
+    manager.config["knowledge_bases"]["empty-kb"] = {
+        "path": "empty-kb",
+        "rag_provider": "llamaindex",
+        "needs_reindex": True,
+        "status": "needs_reindex",
+    }
+    (manager.get_knowledge_base_path("empty-kb") / "raw").mkdir(parents=True)
+    monkeypatch.setattr(knowledge_router_module, "get_kb_manager", lambda: manager)
+    monkeypatch.setattr(knowledge_router_module, "_kb_base_dir", tmp_path / "knowledge_bases")
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/knowledge/empty-kb/reindex")
+
+    assert response.status_code == 409
+    assert "no source documents" in response.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_run_reindex_task_rebuilds_storage_and_clears_legacy_flags(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    manager = _FakeKBManager(tmp_path / "knowledge_bases")
+    kb_dir = manager.get_knowledge_base_path("legacy-kb")
+    raw_dir = kb_dir / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    (raw_dir / "lesson.txt").write_text("source document", encoding="utf-8")
+    stale_storage = kb_dir / "llamaindex_storage"
+    stale_storage.mkdir(parents=True)
+    (stale_storage / "old.json").write_text("stale", encoding="utf-8")
+    manager.config["knowledge_bases"]["legacy-kb"] = {
+        "path": "legacy-kb",
+        "rag_provider": "llamaindex",
+        "needs_reindex": True,
+        "embedding_mismatch": True,
+        "status": "needs_reindex",
+    }
+
+    class _FakeRAGService:
+        def __init__(self, kb_base_dir: str, provider: str) -> None:
+            self.kb_base_dir = kb_base_dir
+            self.provider = provider
+
+        async def initialize(self, kb_name: str, file_paths: list[str], **_kwargs) -> bool:
+            assert kb_name == "legacy-kb"
+            assert file_paths == [str(raw_dir / "lesson.txt")]
+            assert not (stale_storage / "old.json").exists()
+            (stale_storage / "docstore.json").write_text("fresh", encoding="utf-8")
+            return True
+
+    rag_service_module = importlib.import_module("deeptutor.services.rag.service")
+    monkeypatch.setattr(knowledge_router_module, "get_kb_manager", lambda: manager)
+    monkeypatch.setattr(rag_service_module, "RAGService", _FakeRAGService)
+
+    await knowledge_router_module.run_reindex_task(
+        kb_name="legacy-kb",
+        base_dir=str(tmp_path / "knowledge_bases"),
+        task_id="task-reindex",
+    )
+
+    entry = manager.config["knowledge_bases"]["legacy-kb"]
+    assert entry["status"] == "ready"
+    assert entry["needs_reindex"] is False
+    assert "embedding_mismatch" not in entry
+    assert (stale_storage / "docstore.json").read_text(encoding="utf-8") == "fresh"
 
 
 def test_upload_ready_kb_returns_task_id(monkeypatch, tmp_path: Path) -> None:

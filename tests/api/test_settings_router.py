@@ -218,6 +218,32 @@ def _reset_runtime_state() -> None:
 
 
 @pytest.mark.asyncio
+async def test_get_llm_options_returns_redacted_catalog_options(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    catalog = _build_catalog(
+        llm_model="gpt-4o-mini",
+        llm_base_url="https://llm.example/v1",
+        llm_api_key="secret-key",
+        embedding_model="text-embedding-3-small",
+        embedding_base_url="https://embedding.example/v1",
+        embedding_api_key="embedding-key",
+    )
+    service = _FakeCatalogService(catalog)
+    monkeypatch.setattr(settings_router, "get_model_catalog_service", lambda: service)
+
+    response = await settings_router.get_llm_options()
+
+    assert response["active"] == {
+        "profile_id": "llm-profile-default",
+        "model_id": "llm-model-default",
+    }
+    assert response["options"][0]["model"] == "gpt-4o-mini"
+    assert "api_key" not in response["options"][0]
+    assert "base_url" not in response["options"][0]
+
+
+@pytest.mark.asyncio
 async def test_update_catalog_invalidates_runtime_caches(monkeypatch: pytest.MonkeyPatch) -> None:
     initial_catalog = _build_catalog(
         llm_model="gpt-old",

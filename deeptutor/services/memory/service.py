@@ -16,6 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
+from deeptutor.services.llm import clean_thinking_tags
 from deeptutor.services.llm import stream as llm_stream
 from deeptutor.services.path_service import PathService, get_path_service
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, get_sqlite_session_store
@@ -97,7 +98,17 @@ class MemoryService:
         if not path.exists():
             return ""
         try:
-            return path.read_text(encoding="utf-8").strip()
+            raw = path.read_text(encoding="utf-8").strip()
+            cleaned = _clean_memory_content(raw)
+            if cleaned != raw:
+                try:
+                    if cleaned:
+                        path.write_text(cleaned, encoding="utf-8")
+                    else:
+                        path.unlink()
+                except Exception:
+                    pass
+            return cleaned
         except Exception:
             return ""
 
@@ -127,7 +138,7 @@ class MemoryService:
     # ── Write ─────────────────────────────────────────────────────────
 
     def write_file(self, which: MemoryFile, content: str) -> MemorySnapshot:
-        normalized = str(content or "").strip()
+        normalized = _clean_memory_content(str(content or ""))
         path = self._path(which)
         path.parent.mkdir(parents=True, exist_ok=True)
         if not normalized:
@@ -288,11 +299,14 @@ class MemoryService:
         ):
             chunks.append(c)
 
-        raw = _strip_code_fence("".join(chunks)).strip()
+        raw = _clean_memory_content("".join(chunks))
         if not raw or raw == _NO_CHANGE:
             return False
 
         if raw == current:
+            return False
+
+        if not _is_valid_memory_rewrite(which, raw):
             return False
 
         self.write_file(which, raw)
@@ -372,6 +386,22 @@ def _strip_code_fence(content: str) -> str:
         cleaned = re.sub(r"^```[a-zA-Z0-9_-]*\n?", "", cleaned)
         cleaned = re.sub(r"\n?```$", "", cleaned)
     return cleaned.strip()
+
+
+def _clean_memory_content(content: str) -> str:
+    return clean_thinking_tags(_strip_code_fence(content)).strip()
+
+
+def _is_valid_memory_rewrite(which: MemoryFile, content: str) -> bool:
+    heading_pattern = re.compile(r"(?m)^##\s+(.+?)\s*$")
+    headings = {match.group(1).strip().lower() for match in heading_pattern.finditer(content)}
+    if not headings:
+        return False
+    if which == "profile":
+        allowed = {"identity", "learning style", "knowledge level", "preferences"}
+    else:
+        allowed = {"current focus", "accomplishments", "open questions"}
+    return bool(headings & allowed)
 
 
 _memory_service: MemoryService | None = None

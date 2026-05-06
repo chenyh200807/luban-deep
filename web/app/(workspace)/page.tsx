@@ -25,7 +25,7 @@ import ChatComposer from "@/components/chat/home/ChatComposer";
 import { ChatMessageList } from "@/components/chat/home/ChatMessages";
 import { apiUrl } from "@/lib/api";
 import { useUnifiedChat, type MessageRequestSnapshot } from "@/context/UnifiedChatContext";
-import type { StreamEvent } from "@/lib/unified-ws";
+import type { LLMSelection, StreamEvent } from "@/lib/unified-ws";
 import { extractBase64FromDataUrl, readFileAsDataUrl } from "@/lib/file-attachments";
 import { useChatAutoScroll } from "@/hooks/useChatAutoScroll";
 import { useMeasuredHeight } from "@/hooks/useMeasuredHeight";
@@ -58,6 +58,7 @@ import {
   type ResearchSource,
 } from "@/lib/research-types";
 import { listKnowledgeBases } from "@/lib/knowledge-api";
+import { listLLMOptions, type LLMOption } from "@/lib/llm-options";
 
 const NotebookRecordPicker = dynamic(() => import("@/components/notebook/NotebookRecordPicker"), {
   ssr: false,
@@ -216,6 +217,11 @@ export default function HomePage() {
   } = useUnifiedChat();
   const [input, setInput] = useState("");
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
+  const [llmOptions, setLLMOptions] = useState<LLMOption[]>([]);
+  const [activeDefaultLLM, setActiveDefaultLLM] = useState<LLMSelection | null>(null);
+  const [selectedLLMSelection, setSelectedLLMSelection] = useState<LLMSelection | null>(null);
+  const [llmOptionsLoading, setLLMOptionsLoading] = useState(false);
+  const [llmOptionsError, setLLMOptionsError] = useState(false);
   const [capabilityConfigs, setCapabilityConfigs] = useState<CapabilityPlaygroundConfigMap>({});
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
   const [dragging, setDragging] = useState(false);
@@ -491,6 +497,30 @@ export default function HomePage() {
   }, [setKBs, state.knowledgeBases.length]);
 
   useEffect(() => {
+    let cancelled = false;
+    setLLMOptionsLoading(true);
+    listLLMOptions()
+      .then((payload) => {
+        if (cancelled) return;
+        setLLMOptions(payload.options);
+        setActiveDefaultLLM(payload.active);
+        setLLMOptionsError(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLLMOptions([]);
+        setActiveDefaultLLM(null);
+        setLLMOptionsError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLLMOptionsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     setCapabilityConfigs(loadCapabilityPlaygroundConfigs());
   }, []);
 
@@ -736,6 +766,9 @@ export default function HomePage() {
         config,
         notebookReferencesPayload,
         historyReferencesPayload,
+        {
+          llmSelection: selectedLLMSelection,
+        },
       );
       markOutgoingActionStreaming();
       shouldAutoScrollRef.current = true;
@@ -862,6 +895,11 @@ export default function HomePage() {
           showChatModeToggle={isPlainChatMode}
           ragActive={ragActive}
           knowledgeBases={knowledgeBases}
+          llmOptions={llmOptions}
+          activeDefaultLLM={activeDefaultLLM}
+          selectedLLMSelection={selectedLLMSelection}
+          llmOptionsLoading={llmOptionsLoading}
+          llmOptionsError={llmOptionsError}
           selectedNotebookRecords={selectedNotebookRecords}
           selectedHistorySessions={selectedHistorySessions}
           notebookReferenceGroups={notebookReferenceGroups}
@@ -890,6 +928,7 @@ export default function HomePage() {
             setShowAtPopup(shouldOpenAtPopup(nextValue, cursorPos));
           }}
           onSetKB={(kb) => setKBs(kb ? [kb] : [])}
+          onSetLLMSelection={setSelectedLLMSelection}
           onSelectNotebookPicker={() => setShowNotebookPicker(true)}
           onSelectHistoryPicker={() => setShowHistoryPicker(true)}
           onToggleTool={toggleTool}
@@ -919,7 +958,8 @@ export default function HomePage() {
             );
           }}
           onTextareaKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
+            const isImeComposing = event.nativeEvent.isComposing || event.keyCode === 229;
+            if (event.key === "Enter" && !event.shiftKey && !isImeComposing) {
               event.preventDefault();
               void handleSend();
             } else if (event.key === "Escape") {

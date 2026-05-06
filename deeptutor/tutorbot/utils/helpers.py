@@ -83,7 +83,16 @@ def normalize_message_content(content: Any) -> str:
         return ""
     if isinstance(content, str):
         return content
-    if isinstance(content, (dict, list)):
+    if isinstance(content, list):
+        parts = [normalize_message_content(item) for item in content]
+        return " ".join(part for part in parts if part)
+    if isinstance(content, dict):
+        for key in ("text", "content", "message", "alt"):
+            value = content.get(key)
+            if isinstance(value, str) and value:
+                return value
+        if content.get("type") in {"image", "image_url", "input_image"}:
+            return "[image]"
         try:
             return json.dumps(content, ensure_ascii=False)
         except Exception:

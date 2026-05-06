@@ -389,6 +389,7 @@ else:
 # Some router modules load YAML settings at import time.
 from deeptutor.api.routers import (
     agent_config,
+    attachments,
     bi,
     chat,
     co_writer,
@@ -440,6 +441,7 @@ app.include_router(tutor_state.router, prefix="/api/v1/tutor-state", tags=["tuto
 app.include_router(observability.router, prefix="/api/v1/observability", tags=["observability"])
 app.include_router(vision_solver.router, prefix="/api/v1", tags=["vision-solver"])
 app.include_router(mobile.router, prefix="/api/v1", tags=["mobile"])
+app.include_router(attachments.router, prefix="/api/attachments", tags=["attachments"])
 
 # Unified WebSocket endpoint
 app.include_router(unified_ws.router, prefix="/api/v1", tags=["unified-ws"])

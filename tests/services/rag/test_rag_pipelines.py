@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import sys
 from types import SimpleNamespace
@@ -76,6 +77,43 @@ def test_get_pipeline_invalid_raises() -> None:
 
 
 @pytest.mark.asyncio
+async def test_llamaindex_search_rejects_invalid_persisted_embeddings(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from deeptutor.services.rag.pipelines import llamaindex as llamaindex_module
+    from deeptutor.services.rag.exceptions import RAGSearchError
+
+    storage_dir = tmp_path / "demo" / "llamaindex_storage"
+    storage_dir.mkdir(parents=True)
+    (storage_dir / "docstore.json").write_text("{}", encoding="utf-8")
+
+    class _RetrieverShouldNotRun:
+        def retrieve(self, _query: str):  # pragma: no cover - assertion helper
+            raise AssertionError("retriever should not run for invalid vectors")
+
+    fake_index = SimpleNamespace(
+        vector_store=SimpleNamespace(
+            data=SimpleNamespace(embedding_dict={"bad-node": [0.1, math.nan, 0.3]})
+        ),
+        as_retriever=lambda similarity_top_k=5: _RetrieverShouldNotRun(),
+    )
+
+    monkeypatch.setattr(
+        llamaindex_module.StorageContext,
+        "from_defaults",
+        lambda persist_dir: object(),
+    )
+    monkeypatch.setattr(llamaindex_module, "load_index_from_storage", lambda _ctx: fake_index)
+
+    pipeline = llamaindex_module.LlamaIndexPipeline(kb_base_dir=str(tmp_path))
+    with pytest.raises(RAGSearchError) as exc_info:
+        await pipeline.search(query="what is this?", kb_name="demo")
+
+    assert "invalid embedding vectors" in str(exc_info.value)
+    assert exc_info.value.stage == "pipeline.search"
+
+
+@pytest.mark.asyncio
 async def test_builtin_rag_tool_emits_summary_metadata_only(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -121,6 +159,50 @@ async def test_builtin_rag_tool_emits_summary_metadata_only(
         "exact_question": True,
     }
     assert "evidence_bundle" not in result.metadata
+
+
+@pytest.mark.asyncio
+async def test_builtin_rag_tool_rejects_empty_query_before_service_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.tools.builtin import RAGTool
+    import deeptutor.tools.rag_tool as rag_tool_module
+
+    called = False
+
+    async def _unexpected_rag_search(**_kwargs):
+        nonlocal called
+        called = True
+        return {"answer": "should not run"}
+
+    monkeypatch.setattr(rag_tool_module, "rag_search", _unexpected_rag_search)
+
+    with pytest.raises(ValueError, match="non-empty"):
+        await RAGTool().execute(query="   ", kb_name="construction-exam")
+
+    assert called is False
+
+
+@pytest.mark.asyncio
+async def test_rag_search_rejects_empty_query_before_service_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag import service as rag_service_module
+    from deeptutor.tools.rag_tool import rag_search
+
+    called = False
+
+    async def _unexpected_search(self, **_kwargs):
+        nonlocal called
+        called = True
+        return {"answer": "should not run"}
+
+    monkeypatch.setattr(rag_service_module.RAGService, "search", _unexpected_search)
+
+    with pytest.raises(ValueError, match="non-empty"):
+        await rag_search(query="\n\t", kb_name="construction-exam")
+
+    assert called is False
 
 
 @pytest.mark.asyncio

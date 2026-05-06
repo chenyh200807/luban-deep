@@ -21,6 +21,7 @@ from deeptutor.services.provider_registry import (
 from .env_store import EnvStore, get_env_store
 from .loader import load_config_with_main
 from .model_catalog import ModelCatalogService, get_model_catalog_service
+from deeptutor.services.model_selection import apply_llm_selection_to_catalog
 
 SUPPORTED_SEARCH_PROVIDERS = {"brave", "tavily", "jina", "searxng", "duckduckgo", "perplexity"}
 DEPRECATED_SEARCH_PROVIDERS = {"exa", "serper", "baidu", "openrouter"}
@@ -310,50 +311,31 @@ def resolve_llm_runtime_config(
     *,
     env_store: EnvStore | None = None,
     service: ModelCatalogService | None = None,
+    llm_selection: Any = None,
 ) -> ResolvedLLMConfig:
     """Resolve active LLM config with TutorBot-style provider matching."""
     env = env_store or get_env_store()
     catalog_service = service or get_model_catalog_service()
-    loaded = _load_catalog(catalog)
+    loaded = apply_llm_selection_to_catalog(_load_catalog(catalog), llm_selection)
 
     profile, model = _active_profile_and_model(loaded, catalog_service, "llm")
     summary = env.as_summary()
     env_values = env.load()
 
-    resolved_model = _prefer_env_value(
-        env_values,
-        "LLM_MODEL",
-        summary.llm.get("model", ""),
-        (model or {}).get("model"),
-    )
+    resolved_model = _as_str((model or {}).get("model")) or summary.llm.get("model", "").strip()
     if not resolved_model:
         resolved_model = DEFAULT_LLM_MODEL
 
-    binding_hint_raw = _prefer_env_value(
-        env_values,
-        "LLM_BINDING",
-        summary.llm.get("binding", ""),
-        (profile or {}).get("binding"),
-    )
+    binding_hint_raw = _as_str((profile or {}).get("binding"))
+    if not binding_hint_raw and "LLM_BINDING" in env_values:
+        binding_hint_raw = _as_str(summary.llm.get("binding", ""))
     binding_hint = canonical_provider_name(binding_hint_raw)
 
-    active_api_key = _prefer_env_value(
-        env_values,
-        "LLM_API_KEY",
-        summary.llm.get("api_key", ""),
-        (profile or {}).get("api_key"),
-    )
-    active_api_base = _prefer_env_value(
-        env_values,
-        "LLM_HOST",
-        summary.llm.get("host", ""),
-        (profile or {}).get("base_url"),
-    )
-    active_api_version = _prefer_env_value(
-        env_values,
-        "LLM_API_VERSION",
-        summary.llm.get("api_version", ""),
-        (profile or {}).get("api_version"),
+    active_api_key = _as_str((profile or {}).get("api_key")) or summary.llm.get("api_key", "")
+    active_api_base = _as_str((profile or {}).get("base_url")) or summary.llm.get("host", "")
+    active_api_version = _as_str((profile or {}).get("api_version")) or summary.llm.get(
+        "api_version",
+        "",
     )
     active_extra_headers = _to_headers((profile or {}).get("extra_headers"))
     reasoning_effort = _as_str((model or {}).get("reasoning_effort")) or None

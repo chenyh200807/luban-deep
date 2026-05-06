@@ -6,6 +6,9 @@ True LlamaIndex integration using official llama-index library.
 """
 
 import asyncio
+import math
+from collections.abc import Sequence
+from numbers import Real
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -75,18 +78,19 @@ class CustomEmbedding(BaseEmbedding):
     async def _aget_query_embedding(self, query: str) -> List[float]:
         """Get embedding for a query."""
         embeddings = await self._client.embed([query])
-        return embeddings[0]
+        return self._normalize_embedding_batch(embeddings)[0]
 
     async def _aget_text_embedding(self, text: str) -> List[float]:
         """Get embedding for a text."""
         embeddings = await self._client.embed([text])
-        return embeddings[0]
+        return self._normalize_embedding_batch(embeddings)[0]
 
     async def _aget_text_embeddings(self, texts: List[str]) -> List[List[float]]:
         """Get embeddings for multiple texts."""
-        return await self._client.embed(
+        embeddings = await self._client.embed(
             texts, progress_callback=self._progress_callback
         )
+        return self._normalize_embedding_batch(embeddings)
 
     @staticmethod
     def _replace_missing_vectors(result: List[Any]) -> List[List[float]]:
@@ -112,6 +116,57 @@ class CustomEmbedding(BaseEmbedding):
         for i in missing_indices:
             result[i] = [0.0] * dim
         return result
+
+    @staticmethod
+    def _validate_dense_vectors(result: List[Any]) -> List[List[float]]:
+        normalized: list[list[float]] = []
+        dims: set[int] = set()
+
+        for item_index, vector in enumerate(result):
+            if isinstance(vector, (str, bytes)) or not isinstance(vector, Sequence):
+                raise ValueError(
+                    "Embedding provider returned invalid vector "
+                    f"at item {item_index}: expected a numeric sequence."
+                )
+            if len(vector) == 0:
+                raise ValueError(
+                    "Embedding provider returned invalid vector "
+                    f"at item {item_index}: vector is empty."
+                )
+
+            normalized_vector: list[float] = []
+            for dim_index, value in enumerate(vector):
+                if value is None:
+                    raise ValueError(
+                        "Embedding provider returned invalid vector "
+                        f"at item {item_index}: dimension {dim_index} is null."
+                    )
+                if isinstance(value, bool) or not isinstance(value, Real):
+                    raise ValueError(
+                        "Embedding provider returned invalid vector "
+                        f"at item {item_index}: dimension {dim_index} is not numeric."
+                    )
+                numeric = float(value)
+                if not math.isfinite(numeric):
+                    raise ValueError(
+                        "Embedding provider returned invalid vector "
+                        f"at item {item_index}: dimension {dim_index} is not finite."
+                    )
+                normalized_vector.append(numeric)
+
+            dims.add(len(normalized_vector))
+            normalized.append(normalized_vector)
+
+        if len(dims) > 1:
+            raise ValueError(
+                "Embedding provider returned inconsistent vector dimensions: "
+                f"{sorted(dims)}."
+            )
+        return normalized
+
+    @classmethod
+    def _normalize_embedding_batch(cls, result: List[Any]) -> List[List[float]]:
+        return cls._validate_dense_vectors(cls._replace_missing_vectors(result))
 
     def _get_query_embedding(self, query: str) -> List[float]:
         """Sync version - called by LlamaIndex sync API."""
@@ -314,6 +369,37 @@ class LlamaIndexPipeline:
             self.logger.error(f"Failed to extract PDF text: {e}")
             return ""
 
+    @staticmethod
+    def _iter_embedding_dicts(index: Any) -> list[dict]:
+        stores = []
+        vector_store = getattr(index, "vector_store", None)
+        if vector_store is not None:
+            stores.append(vector_store)
+
+        storage_context = getattr(index, "storage_context", None)
+        vector_stores = getattr(storage_context, "vector_stores", None)
+        if isinstance(vector_stores, dict):
+            stores.extend(vector_stores.values())
+
+        embedding_dicts: list[dict] = []
+        for store in stores:
+            data = getattr(store, "data", None)
+            embedding_dict = getattr(data, "embedding_dict", None)
+            if isinstance(embedding_dict, dict):
+                embedding_dicts.append(embedding_dict)
+        return embedding_dicts
+
+    @classmethod
+    def _validate_persisted_embedding_vectors(cls, index: Any) -> None:
+        for embedding_dict in cls._iter_embedding_dicts(index):
+            try:
+                CustomEmbedding._validate_dense_vectors(list(embedding_dict.values()))
+            except ValueError as exc:
+                raise ValueError(
+                    "RAG index contains invalid embedding vectors. "
+                    "Re-index the knowledge base from raw source documents."
+                ) from exc
+
     async def search(
         self,
         query: str,
@@ -373,6 +459,7 @@ class LlamaIndexPipeline:
             def load_and_retrieve():
                 storage_context = StorageContext.from_defaults(persist_dir=str(storage_dir))
                 index = load_index_from_storage(storage_context)
+                self._validate_persisted_embedding_vectors(index)
                 top_k = kwargs.get("top_k", 5)
 
                 # Use retriever instead of query_engine to avoid LLM requirement

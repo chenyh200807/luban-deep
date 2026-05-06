@@ -58,6 +58,13 @@ def test_clean_thinking_tags() -> None:
     assert clean_thinking_tags("Hello <think>ignore</think> World") == "Hello  World"
 
 
+def test_clean_thinking_tags_handles_aliases_attributes_and_unclosed_blocks() -> None:
+    """Thinking cleanup should handle common reasoning-tag variants."""
+    assert clean_thinking_tags("A <thinking data-x='1'>secret</thinking> B") == "A  B"
+    assert clean_thinking_tags("Visible <think>private") == "Visible"
+    assert clean_thinking_tags("Visible </thinking> tail") == "Visible  tail"
+
+
 def test_extract_response_content() -> None:
     """Response content extraction should handle mapping payloads."""
     payload = {"content": [{"text": "Hello"}, {"text": "World"}]}

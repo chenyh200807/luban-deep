@@ -130,6 +130,47 @@ def _clip_text(value: str, limit: int = 4000) -> str:
     return text[:limit].rstrip() + "\n...[truncated]"
 
 
+def _string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str) and item]
+
+
+def _request_snapshot_metadata(
+    *,
+    payload: dict[str, Any],
+    content: str,
+    capability: str,
+    config: dict[str, Any],
+    attachments: list[dict[str, Any]],
+    notebook_references: list[Any],
+    history_references: list[Any],
+) -> dict[str, Any]:
+    """Persist a request read-model; learner state remains owned by learner services."""
+    snapshot: dict[str, Any] = {
+        "content": content,
+        "capability": capability,
+        "enabledTools": _string_list(payload.get("tools")),
+        "knowledgeBases": _string_list(payload.get("knowledge_bases")),
+        "language": str(payload.get("language", "en") or "en"),
+    }
+    if attachments:
+        snapshot["attachments"] = attachments
+    if config:
+        snapshot["config"] = dict(config)
+    if notebook_references:
+        snapshot["notebookReferences"] = notebook_references
+    if history_references:
+        snapshot["historyReferences"] = history_references
+    llm_selection = payload.get("llm_selection")
+    if isinstance(llm_selection, dict) and llm_selection:
+        snapshot["llm_selection"] = {
+            "profile_id": str(llm_selection.get("profile_id") or "").strip(),
+            "model_id": str(llm_selection.get("model_id") or "").strip(),
+        }
+    return {"request_snapshot": snapshot}
+
+
 def _safe_terminal_assistant_content(
     assistant_content: str | None,
     *,
@@ -2403,8 +2444,17 @@ class TurnRuntimeManager:
             runtime_only_config["_question_followup_action"] = dict(runtime_followup_action)
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
+            from deeptutor.services.config import get_model_catalog_service
+            from deeptutor.services.model_selection import LLMSelection, apply_llm_selection_to_catalog
 
             validated_public_config = validate_capability_config(config_capability, raw_config)
+            llm_selection = LLMSelection.from_payload(payload.get("llm_selection"))
+            if llm_selection is not None:
+                apply_llm_selection_to_catalog(
+                    get_model_catalog_service().load(),
+                    llm_selection,
+                )
+                payload = {**payload, "llm_selection": llm_selection.to_dict()}
         except ValueError as exc:
             raise RuntimeError(str(exc)) from exc
         bot_id = str(validated_public_config.get("bot_id") or "").strip()
@@ -2548,6 +2598,7 @@ class TurnRuntimeManager:
                 else {}
             ),
             **({"capability": capability} if capability else {}),
+            **({"llm_selection": payload.get("llm_selection")} if payload.get("llm_selection") else {}),
             **(billing_context or {}),
         }
         if explicit_exam_track:
@@ -2736,6 +2787,8 @@ class TurnRuntimeManager:
         turn_id = execution.turn_id
         attachments = []
         attachment_records = []
+        document_texts: list[str] = []
+        persisted_attachment_records: list[dict[str, Any]] = []
         assistant_events: list[dict[str, Any]] = []
         assistant_content = ""
         authoritative_assistant_content = ""
@@ -2746,6 +2799,7 @@ class TurnRuntimeManager:
         usage_scope_state: Any | None = None
         post_turn_refresh_kwargs: dict[str, Any] | None = None
         terminal_status = "failed"
+        llm_selection_token = None
         turn_started_at = time.perf_counter()
         surface_event_store = get_surface_event_store()
         trace_metadata = {
@@ -2790,8 +2844,10 @@ class TurnRuntimeManager:
             from deeptutor.agents.notebook import NotebookAnalysisAgent
             from deeptutor.services.learner_state import get_learner_state_service
             from deeptutor.services.memory import get_memory_service
+            from deeptutor.services.model_selection.runtime import (
+                activate_llm_selection,
+            )
             from deeptutor.services.notebook import notebook_manager
-            from deeptutor.services.llm.config import get_llm_config
             from deeptutor.services.session.context_builder import ContextBuilder
 
             request_config = dict(payload.get("config", {}) or {})
@@ -3083,8 +3139,12 @@ class TurnRuntimeManager:
 
             with contextlib.nullcontext():
 
+                import base64 as _base64
+                import uuid as _uuid
+
                 for item in payload.get("attachments", []):
                     record = {
+                        "id": str(item.get("id") or _uuid.uuid4().hex),
                         "type": item.get("type", "file"),
                         "url": item.get("url", ""),
                         "base64": item.get("base64", ""),
@@ -3092,7 +3152,66 @@ class TurnRuntimeManager:
                         "mime_type": item.get("mime_type", ""),
                     }
                     attachment_records.append(record)
-                    attachments.append(Attachment(**record))
+
+                try:
+                    from deeptutor.services.storage import get_attachment_store
+
+                    attachment_store = get_attachment_store()
+                    for record in attachment_records:
+                        if record.get("url"):
+                            continue
+                        b64 = record.get("base64") or ""
+                        if not b64:
+                            continue
+                        try:
+                            raw_bytes = _base64.b64decode(b64, validate=False)
+                        except Exception:
+                            logger.debug(
+                                "Skipping attachment persistence for invalid base64: %s",
+                                record.get("filename"),
+                                exc_info=True,
+                            )
+                            continue
+                        try:
+                            record["url"] = await attachment_store.put(
+                                session_id=session_id,
+                                attachment_id=record["id"],
+                                filename=record.get("filename", "") or "file",
+                                data=raw_bytes,
+                                mime_type=record.get("mime_type", "") or "",
+                            )
+                        except Exception:
+                            logger.warning(
+                                "Failed to persist attachment %s",
+                                record.get("filename"),
+                                exc_info=True,
+                            )
+                except Exception:
+                    logger.debug("Attachment store unavailable", exc_info=True)
+
+                try:
+                    from deeptutor.utils.document_extractor import extract_documents_from_records
+
+                    document_texts, attachment_records = extract_documents_from_records(
+                        attachment_records
+                    )
+                except Exception:
+                    logger.warning("Document attachment extraction failed", exc_info=True)
+
+                attachments = [
+                    Attachment(
+                        type=record.get("type", "file"),
+                        url=record.get("url", ""),
+                        base64=record.get("base64", ""),
+                        filename=record.get("filename", ""),
+                        mime_type=record.get("mime_type", ""),
+                    )
+                    for record in attachment_records
+                ]
+                persisted_attachment_records = [
+                    {**record, "base64": ""} if record.get("url") else dict(record)
+                    for record in attachment_records
+                ]
 
                 if followup_question_context:
                     existing_messages = await self._safe_store_call(
@@ -3117,7 +3236,14 @@ class TurnRuntimeManager:
                             default=None,
                         )
 
-                llm_config = get_llm_config()
+                llm_selection = payload.get("llm_selection")
+                llm_config, llm_selection_token = activate_llm_selection(llm_selection)
+                if isinstance(llm_selection, dict) and llm_selection:
+                    trace_metadata["llm_selection"] = dict(llm_selection)
+                trace_metadata["llm_model"] = str(getattr(llm_config, "model", "") or "")
+                trace_metadata["llm_provider"] = str(
+                    getattr(llm_config, "provider_name", "") or ""
+                )
                 builder = ContextBuilder(self.store)
                 memory_service = get_memory_service()
                 learner_state_service = get_learner_state_service()
@@ -3331,6 +3457,8 @@ class TurnRuntimeManager:
                                 history_context = "\n\n".join(parts)
 
                     context_parts: list[str] = []
+                    if document_texts:
+                        context_parts.append("[Attached Documents]\n" + "\n\n".join(document_texts))
                     if notebook_context:
                         context_parts.append(f"[Notebook Context]\n{notebook_context}")
                     if history_context:
@@ -3338,6 +3466,13 @@ class TurnRuntimeManager:
                     if context_parts:
                         context_parts.append(f"[User Question]\n{raw_user_content}")
                         effective_user_message = "\n\n".join(context_parts)
+
+                if document_texts and "[Attached Documents]" not in effective_user_message:
+                    effective_user_message = (
+                        "[Attached Documents]\n"
+                        + "\n\n".join(document_texts)
+                        + f"\n\n[User Question]\n{effective_user_message}"
+                    )
 
                 conversation_history = list(history_result.conversation_history)
                 conversation_context_text = history_result.context_text
@@ -3413,6 +3548,17 @@ class TurnRuntimeManager:
                         "notebook_references": notebook_references,
                         "history_references": history_references,
                         "memory_context": memory_context,
+                        **(
+                            {
+                                "llm_selection": dict(llm_selection),
+                                "llm_model": str(getattr(llm_config, "model", "") or ""),
+                                "llm_provider": str(
+                                    getattr(llm_config, "provider_name", "") or ""
+                                ),
+                            }
+                            if isinstance(llm_selection, dict) and llm_selection
+                            else {}
+                        ),
                         "context_route": context_route,
                         "task_anchor_type": task_anchor_type,
                         "escalation_level": context_trace.get("escalation_level"),
@@ -3476,7 +3622,16 @@ class TurnRuntimeManager:
                         role="user",
                         content=raw_user_content,
                         capability=capability_name,
-                        attachments=attachment_records,
+                        attachments=persisted_attachment_records,
+                        metadata=_request_snapshot_metadata(
+                            payload=payload,
+                            content=raw_user_content,
+                            capability=capability_name,
+                            config=request_config,
+                            attachments=persisted_attachment_records,
+                            notebook_references=notebook_references,
+                            history_references=history_references,
+                        ),
                         default=None,
                     )
 
@@ -3741,6 +3896,11 @@ class TurnRuntimeManager:
                 ),
             )
         finally:
+            if llm_selection_token is not None:
+                with contextlib.suppress(Exception):
+                    from deeptutor.services.model_selection.runtime import reset_llm_selection
+
+                    reset_llm_selection(llm_selection_token)
             terminal_usage_summary = observability.get_current_usage_summary()
             if terminal_status == "completed" and post_turn_refresh_kwargs is not None:
                 self._schedule_post_turn_refresh(**post_turn_refresh_kwargs)

@@ -78,6 +78,11 @@ def _get_embedding_fingerprint() -> tuple[str, int] | None:
         return None
 
 
+def _is_ready_storage_dir(storage_dir: Path) -> bool:
+    """Return whether a LlamaIndex storage directory contains persisted data."""
+    return storage_dir.is_dir() and any(storage_dir.iterdir())
+
+
 def _reconcile_embedding_flags(knowledge_bases: dict) -> bool:
     """Flag KBs whose stored embedding fingerprint differs from the active config.
 
@@ -567,14 +572,30 @@ class KnowledgeBaseManager:
 
         # KB might not have a directory yet if still initializing
         dir_exists = kb_dir.exists()
+        llamaindex_storage_ready = (
+            _is_ready_storage_dir(kb_dir / "llamaindex_storage") if dir_exists else False
+        )
 
         # For old KBs without status field, determine status from rag_storage
         if needs_reindex:
             status = "needs_reindex"
+        elif (
+            status in {"processing", "initializing"}
+            and llamaindex_storage_ready
+            and (progress or {}).get("stage") != "error"
+        ):
+            status = "ready"
+            progress = None
+            if kb_config.get("status") != "ready" or "progress" in kb_config:
+                kb_config["status"] = "ready"
+                kb_config.pop("progress", None)
+                kb_config["updated_at"] = datetime.now().isoformat()
+                updated_at = kb_config["updated_at"]
+                self._save_config()
         elif not status and dir_exists:
             rag_storage_dir = kb_dir / "rag_storage"
             llamaindex_storage_dir = kb_dir / "llamaindex_storage"
-            if llamaindex_storage_dir.exists() and any(llamaindex_storage_dir.iterdir()):
+            if _is_ready_storage_dir(llamaindex_storage_dir):
                 status = "ready"
             elif rag_storage_dir.exists() and any(rag_storage_dir.iterdir()):
                 status = "needs_reindex"
@@ -649,7 +670,9 @@ class KnowledgeBaseManager:
 
         # Check rag_initialized (llamaindex storage only)
         rag_initialized = (
-            (dir_exists and llamaindex_storage_dir and llamaindex_storage_dir.exists() and llamaindex_storage_dir.is_dir())
+            dir_exists
+            and llamaindex_storage_dir is not None
+            and _is_ready_storage_dir(llamaindex_storage_dir)
         )
         if remote_backend == "supabase":
             rag_initialized = True

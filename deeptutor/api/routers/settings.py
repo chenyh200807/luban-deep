@@ -21,6 +21,7 @@ from deeptutor.services.config import get_config_test_runner, get_model_catalog_
 from deeptutor.services.embedding.client import reset_embedding_client
 from deeptutor.services.llm.client import reset_llm_client
 from deeptutor.services.llm.config import clear_llm_config_cache
+from deeptutor.services.model_selection import list_llm_options
 from deeptutor.services.path_service import get_path_service
 
 router = APIRouter(dependencies=[Depends(require_admin)])
@@ -130,6 +131,12 @@ async def get_settings():
 async def get_catalog():
     catalog = get_model_catalog_service().load()
     return {"catalog": get_model_catalog_service().sanitize(catalog)}
+
+
+@router.get("/llm-options")
+async def get_llm_options():
+    catalog = get_model_catalog_service().load()
+    return list_llm_options(catalog)
 
 
 @router.put("/catalog")

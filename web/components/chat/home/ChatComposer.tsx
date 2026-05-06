@@ -22,6 +22,9 @@ import type { SelectedHistorySession } from "@/components/chat/HistorySessionPic
 import AtMentionPopup from "@/components/chat/AtMentionPopup";
 import type { SelectedRecord } from "@/app/(workspace)/guide/types";
 import type { ChatMode } from "@/context/UnifiedChatContext";
+import ModelSelector from "@/components/chat/home/ModelSelector";
+import type { LLMSelection } from "@/lib/unified-ws";
+import type { LLMOption } from "@/lib/llm-options";
 import type { DeepQuestionFormConfig } from "@/lib/quiz-types";
 import type { MathAnimatorFormConfig } from "@/lib/math-animator-types";
 import type { VisualizeFormConfig } from "@/lib/visualize-types";
@@ -100,6 +103,11 @@ export default function ChatComposer({
   showChatModeToggle,
   ragActive,
   knowledgeBases,
+  llmOptions,
+  activeDefaultLLM,
+  selectedLLMSelection,
+  llmOptionsLoading,
+  llmOptionsError,
   selectedNotebookRecords,
   selectedHistorySessions,
   notebookReferenceGroups,
@@ -125,6 +133,7 @@ export default function ChatComposer({
   onSetShowAtPopup,
   onInputChange,
   onSetKB,
+  onSetLLMSelection,
   onSelectNotebookPicker,
   onSelectHistoryPicker,
   onToggleTool,
@@ -173,6 +182,11 @@ export default function ChatComposer({
   showChatModeToggle: boolean;
   ragActive: boolean;
   knowledgeBases: KnowledgeBase[];
+  llmOptions: LLMOption[];
+  activeDefaultLLM: LLMSelection | null;
+  selectedLLMSelection: LLMSelection | null;
+  llmOptionsLoading: boolean;
+  llmOptionsError: boolean;
   selectedNotebookRecords: SelectedRecord[];
   selectedHistorySessions: SelectedHistorySession[];
   notebookReferenceGroups: Array<{ notebookId: string; notebookName: string; count: number }>;
@@ -198,6 +212,7 @@ export default function ChatComposer({
   onSetShowAtPopup: (open: boolean) => void;
   onInputChange: (value: string, cursorPos: number) => void;
   onSetKB: (kb: string) => void;
+  onSetLLMSelection: (selection: LLMSelection | null) => void;
   onSelectNotebookPicker: () => void;
   onSelectHistoryPicker: () => void;
   onToggleTool: (tool: ToolDef["name"]) => void;
@@ -534,6 +549,15 @@ export default function ChatComposer({
               </div>
 
               <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                <ModelSelector
+                  options={llmOptions}
+                  activeDefault={activeDefaultLLM}
+                  value={selectedLLMSelection}
+                  loading={llmOptionsLoading}
+                  error={llmOptionsError}
+                  onChange={onSetLLMSelection}
+                />
+
                 <select
                   value={stateKnowledgeBase}
                   onChange={(e) => onSetKB(e.target.value)}

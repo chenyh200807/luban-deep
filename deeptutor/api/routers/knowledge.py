@@ -9,6 +9,7 @@ import asyncio
 from datetime import datetime
 import os
 from pathlib import Path
+import shutil
 import traceback
 from uuid import uuid4
 
@@ -272,6 +273,20 @@ def _assert_kb_writable_or_409(kb_name: str, kb_entry: dict) -> None:
         )
 
 
+def _collect_supported_raw_documents(raw_dir: Path, provider: str) -> list[str]:
+    """Return supported source documents from a KB's canonical raw directory."""
+    if not raw_dir.is_dir():
+        return []
+
+    supported_extensions = FileTypeRouter.get_extensions_for_provider(provider)
+    files = [
+        path
+        for path in raw_dir.rglob("*")
+        if path.is_file() and path.suffix.lower() in supported_extensions
+    ]
+    return [str(path) for path in sorted(files)]
+
+
 async def run_initialization_task(initializer: KnowledgeBaseInitializer, task_id: str):
     """Background task for knowledge base initialization"""
     task_manager = TaskIDManager.get_instance()
@@ -342,6 +357,97 @@ async def run_initialization_task(initializer: KnowledgeBaseInitializer, task_id
 
             if initializer.progress_tracker:
                 initializer.progress_tracker.update(ProgressStage.ERROR, error_msg, error=error_msg)
+            task_stream_manager.emit_failed(task_id, error_msg)
+
+
+async def run_reindex_task(
+    kb_name: str,
+    base_dir: str,
+    task_id: str,
+    rag_provider: str = DEFAULT_PROVIDER,
+) -> None:
+    """Rebuild the canonical local LlamaIndex storage from raw source documents."""
+    task_manager = TaskIDManager.get_instance()
+    task_stream_manager = get_task_stream_manager()
+    task_stream_manager.ensure_task(task_id)
+
+    base_path = Path(base_dir)
+    progress_tracker = ProgressTracker(kb_name, base_path)
+    progress_tracker.task_id = task_id
+
+    with capture_task_logs(task_id):
+        try:
+            kb_dir = base_path / kb_name
+            raw_dir = kb_dir / "raw"
+            file_paths = _collect_supported_raw_documents(raw_dir, rag_provider)
+            if not file_paths:
+                raise ValueError(
+                    f"Knowledge base '{kb_name}' has no source documents in raw/ to reindex."
+                )
+
+            _task_log(task_id, f"Re-indexing '{kb_name}' from {len(file_paths)} source file(s)")
+            progress_tracker.update(
+                ProgressStage.PROCESSING_DOCUMENTS,
+                f"Re-indexing {len(file_paths)} document(s)...",
+                current=0,
+                total=len(file_paths),
+            )
+
+            storage_dir = kb_dir / "llamaindex_storage"
+            if storage_dir.exists():
+                shutil.rmtree(storage_dir)
+            storage_dir.mkdir(parents=True, exist_ok=True)
+
+            from deeptutor.services.rag.service import RAGService
+
+            rag_service = RAGService(kb_base_dir=str(base_path), provider=rag_provider)
+
+            def _on_progress(batch_num: int, total_batches: int) -> None:
+                progress_tracker.update(
+                    ProgressStage.PROCESSING_DOCUMENTS,
+                    f"Embedding batches: {batch_num}/{total_batches}",
+                    current=batch_num,
+                    total=total_batches,
+                )
+
+            success = await rag_service.initialize(
+                kb_name=kb_name,
+                file_paths=file_paths,
+                progress_callback=_on_progress,
+            )
+            if not success:
+                raise RuntimeError(f"Re-index found no valid documents in '{kb_name}'.")
+
+            manager = get_kb_manager()
+            manager.update_kb_status(
+                name=kb_name,
+                status="ready",
+                progress={
+                    "stage": "completed",
+                    "message": "Re-index complete",
+                    "percent": 100,
+                    "current": len(file_paths),
+                    "total": len(file_paths),
+                    "task_id": task_id,
+                    "timestamp": datetime.now().isoformat(),
+                },
+            )
+
+            manager.config = manager._load_config()
+            kb_entry = manager.config.get("knowledge_bases", {}).get(kb_name) or {}
+            kb_entry["needs_reindex"] = False
+            kb_entry.pop("embedding_mismatch", None)
+            manager._save_config()
+
+            _task_log(task_id, f"Re-index of '{kb_name}' complete", level="success")
+            task_manager.update_task_status(task_id, "completed")
+            task_stream_manager.emit_complete(task_id, f"Re-index of '{kb_name}' complete")
+        except Exception:
+            logger.exception(f"Re-index failed for KB '{kb_name}'")
+            error_msg = _public_failure_message(f"re-index knowledge base '{kb_name}'")
+            _task_log(task_id, error_msg, level="error")
+            task_manager.update_task_status(task_id, "error", error=error_msg)
+            progress_tracker.update(ProgressStage.ERROR, error_msg, error=error_msg)
             task_stream_manager.emit_failed(task_id, error_msg)
 
 
@@ -754,6 +860,75 @@ async def upload_files(
         raise HTTPException(status_code=404, detail=f"Knowledge base '{kb_name}' not found")
     except Exception:
         _raise_internal_error(f"upload files to knowledge base '{kb_name}'")
+
+
+@router.post("/{kb_name}/reindex", dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES)
+async def reindex_knowledge_base(kb_name: str, background_tasks: BackgroundTasks):
+    """Rebuild a local KB index from its canonical raw source documents."""
+    try:
+        manager = get_kb_manager()
+        kb_entry = _load_kb_entry_or_404(manager, kb_name)
+        if bool(kb_entry.get("remote_read_only", False)):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"Knowledge base '{kb_name}' is a read-only remote knowledge base. "
+                    "Local re-index is disabled for this provider."
+                ),
+            )
+
+        kb_provider = _validate_registered_provider(kb_entry.get("rag_provider") or DEFAULT_PROVIDER)
+        if kb_provider != DEFAULT_PROVIDER:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Re-index is only available for local '{DEFAULT_PROVIDER}' knowledge bases.",
+            )
+
+        kb_dir = manager.get_knowledge_base_path(kb_name)
+        file_paths = _collect_supported_raw_documents(kb_dir / "raw", kb_provider)
+        if not file_paths:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Knowledge base '{kb_name}' has no source documents in raw/ to reindex.",
+            )
+
+        task_id = _build_unique_task_id("kb_reindex", kb_name)
+        get_task_stream_manager().ensure_task(task_id)
+
+        manager.update_kb_status(
+            name=kb_name,
+            status="initializing",
+            progress={
+                "stage": "starting",
+                "message": "Queueing re-index...",
+                "percent": 0,
+                "current": 0,
+                "total": len(file_paths),
+                "task_id": task_id,
+                "timestamp": datetime.now().isoformat(),
+            },
+        )
+
+        background_tasks.add_task(
+            run_reindex_task,
+            kb_name=kb_name,
+            base_dir=str(_kb_base_dir),
+            task_id=task_id,
+            rag_provider=kb_provider,
+        )
+
+        return {
+            "message": f"Re-indexing '{kb_name}' in the background.",
+            "task_id": task_id,
+            "file_count": len(file_paths),
+            "noop": False,
+        }
+    except HTTPException:
+        raise
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"Knowledge base '{kb_name}' not found")
+    except Exception:
+        _raise_internal_error(f"start re-index for knowledge base '{kb_name}'")
 
 
 @router.post("/create", dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES)
