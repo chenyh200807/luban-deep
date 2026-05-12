@@ -69,7 +69,12 @@ def test_coerce_user_visible_answer_blocks_rag_xml_and_provider_errors() -> None
         "Error: {'message': 'Authentication Fails, Your api key: ****486e is invalid', "
         "'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}"
     )
+    html_error = (
+        '<!doctype html><html lang="en"><head><title>Example Domain</title></head>'
+        "<body><h1>Example Domain</h1></body></html>"
+    )
 
     assert coerce_user_visible_answer(rag_text) == "暂时未生成适合直接展示的答案，请重试一次。"
     assert coerce_user_visible_answer(provider_error) == "暂时未生成适合直接展示的答案，请重试一次。"
     assert coerce_user_visible_answer(auth_error) == "暂时未生成适合直接展示的答案，请重试一次。"
+    assert coerce_user_visible_answer(html_error) == "暂时未生成适合直接展示的答案，请重试一次。"

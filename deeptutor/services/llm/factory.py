@@ -235,6 +235,7 @@ async def complete(
     provider_mode = "standard"
     extra_headers: dict[str, str] = {}
     reasoning_effort = kwargs.pop("reasoning_effort", None)
+    explicit_extra_headers = kwargs.pop("extra_headers", None)
 
     if not model or not base_url or api_key is None or not binding:
         config = get_llm_config()
@@ -255,6 +256,9 @@ async def complete(
         spec = find_by_name(provider_name)
         if spec is not None:
             provider_mode = spec.mode
+
+    if isinstance(explicit_extra_headers, Mapping):
+        extra_headers = {str(key): str(value) for key, value in explicit_extra_headers.items()}
 
     use_local_fallback = _should_use_local(base_url)
 
@@ -476,6 +480,7 @@ async def stream(
     provider_mode = "standard"
     extra_headers: dict[str, str] = {}
     reasoning_effort = kwargs.pop("reasoning_effort", None)
+    explicit_extra_headers = kwargs.pop("extra_headers", None)
 
     if not model or not base_url or api_key is None or not binding:
         config = get_llm_config()
@@ -496,6 +501,9 @@ async def stream(
         spec = find_by_name(provider_name)
         if spec is not None:
             provider_mode = spec.mode
+
+    if isinstance(explicit_extra_headers, Mapping):
+        extra_headers = {str(key): str(value) for key, value in explicit_extra_headers.items()}
 
     use_local_fallback = _should_use_local(base_url)
     extra_kwargs: CallKwargs = dict(kwargs)

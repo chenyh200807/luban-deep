@@ -310,6 +310,11 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
             coerce_user_visible_answer(event.content)
         )
         return metadata
+    if event.type == StreamEventType.ERROR:
+        event.content = normalize_markdown_for_tutorbot(
+            coerce_user_visible_answer(event.content, fallback=_PUBLIC_FAILED_MESSAGE)
+        )
+        return metadata
     if event.type != StreamEventType.RESULT:
         return metadata
 

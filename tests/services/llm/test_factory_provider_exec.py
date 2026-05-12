@@ -35,6 +35,31 @@ async def test_factory_complete_uses_litellm(monkeypatch) -> None:
 
 
 @pytest.mark.asyncio
+async def test_factory_complete_passes_explicit_extra_headers_once(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    async def _fake_litellm_complete(**kwargs):
+        captured.update(kwargs)
+        return "ok"
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.litellm_available", lambda: True)
+    monkeypatch.setattr("deeptutor.services.llm.factory.litellm_complete", _fake_litellm_complete)
+
+    result = await complete(
+        "hello",
+        model="deepseek-chat",
+        api_key="deep-key",
+        base_url="https://api.deepseek.com/v1",
+        binding="deepseek",
+        extra_headers={"APP-Code": "abc"},
+        max_retries=0,
+    )
+
+    assert result == "ok"
+    assert captured["extra_headers"] == {"APP-Code": "abc"}
+
+
+@pytest.mark.asyncio
 async def test_factory_complete_uses_direct_azure(monkeypatch) -> None:
     cfg = LLMConfig(
         model="gpt-4o-mini",
@@ -101,3 +126,30 @@ async def test_factory_stream_uses_litellm(monkeypatch) -> None:
     async for item in stream("hello"):
         chunks.append(item)
     assert "".join(chunks) == "ab"
+
+
+@pytest.mark.asyncio
+async def test_factory_stream_passes_explicit_extra_headers_once(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    async def _fake_litellm_stream(**kwargs):
+        captured.update(kwargs)
+        yield "ok"
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.litellm_available", lambda: True)
+    monkeypatch.setattr("deeptutor.services.llm.factory.litellm_stream", _fake_litellm_stream)
+
+    chunks = []
+    async for item in stream(
+        "hello",
+        model="deepseek-chat",
+        api_key="deep-key",
+        base_url="https://api.deepseek.com/v1",
+        binding="deepseek",
+        extra_headers={"APP-Code": "abc"},
+        max_retries=0,
+    ):
+        chunks.append(item)
+
+    assert "".join(chunks) == "ok"
+    assert captured["extra_headers"] == {"APP-Code": "abc"}

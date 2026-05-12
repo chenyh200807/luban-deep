@@ -17,6 +17,7 @@ _INTERNAL_OUTPUT_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"\b(?:read_file|readfile|toolcall|web_search)\s+(?:path|query|args)=", re.IGNORECASE),
     re.compile(r"(?:HEARTBEAT\.md|\bread_file\b|\bwrite_file\b|\blist_dir\b)", re.IGNORECASE),
     re.compile(r"</?(?:rags|toolcall|tool_call|tool_result|observation)\b", re.IGNORECASE),
+    re.compile(r"<!doctype\s+html\b|<html\b[^>]*>.*?</html>", re.IGNORECASE | re.DOTALL),
     re.compile(r"(?:InternalError\.Algo\.DataInspectionFailed|DataInspectionFailed|Request timed out)", re.IGNORECASE),
     re.compile(r"(?:provider error|raw provider|HTTP_?40[04]|HTTP_?50[023])", re.IGNORECASE),
     re.compile(

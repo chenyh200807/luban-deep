@@ -3580,6 +3580,78 @@ async def test_turn_runtime_fails_closed_for_provider_raw_error(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_fails_closed_for_provider_html_error_event(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.ERROR,
+                source="chat",
+                content=(
+                    '<!doctype html><html lang="en"><head><title>Example Domain</title></head>'
+                    "<body><h1>Example Domain</h1></body></html>"
+                ),
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "触发 provider html error",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    messages = await store.get_messages(session["id"])
+    error_events = [item for item in events if item.get("type") == "error"]
+
+    assert error_events
+    assert "Example Domain" not in error_events[-1]["content"]
+    assert "<!doctype html>" not in error_events[-1]["content"]
+    assistant_messages = [item for item in messages if item["role"] == "assistant"]
+    assert assistant_messages
+    assert "Example Domain" not in assistant_messages[-1]["content"]
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_coerces_provider_auth_error_returned_as_result(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
