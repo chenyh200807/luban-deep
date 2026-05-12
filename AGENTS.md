@@ -110,6 +110,15 @@ CLI, WebSocket API, and Python SDK.
 - 如果当前工作区有未提交改动，禁止为了切分支而强行 stash、reset、checkout 或移动用户改动；必须先说明冲突文件，并让用户决定如何处理。
 - 只有在用户明确要求提交时才提交；提交时必须保持 scope narrow，只 stage 本次任务直接相关文件，不把并行任务、生成产物或无关脏改动混进同一个 commit。
 
+### 3.7 Aliyun SSH Write Boundary
+
+- 铁律：DeepTutor 在阿里云 SSH 上只能修改 `/root/deeptutor` 目录内的文件内容；其他路径一概不允许修改。
+- 任何 `ssh Aliyun-ECS-2`、远端脚本、`rsync`、`scp`、`docker cp`、热修、备份、回滚、部署验证，只要会写远端宿主机文件，目标路径必须先证明落在 `/root/deeptutor` 内。
+- `/root/luban`、`/etc`、`/usr`、`/var`、`/opt`、`/home`、nginx 系统配置、系统服务、全局 cron、宿主机 Docker 配置等非 `/root/deeptutor` 路径全部视为只读观察面；不得创建、编辑、删除、移动、覆盖。
+- 需要查看非 `/root/deeptutor` 路径时，只允许执行只读命令，如 `ls`、`cat`、`sed -n`、`grep/rg`、`docker ps`、`docker logs`；不得带重定向、`tee`、`rm`、`mv`、`cp`、`chmod`、`chown`、包管理安装或任何会改变宿主机状态的动作。
+- 如果某个修复看似必须改 `/root/deeptutor` 之外的文件，必须停止执行，先向用户说明原因、目标路径、风险和替代方案；未获得用户新的明确授权前，一律不改。
+- 所有阿里云发布脚本和运维 runbook 必须把 `/root/deeptutor` 作为唯一写入根目录；不要通过临时目录绕开这条边界。
+
 ### 4. Goal-Driven Execution
 
 - 开始前先把任务改写成可验证目标，而不是“差不多能用”。

@@ -4,6 +4,10 @@
 
 ## 发布硬护栏
 
+- SSH 写入铁律：DeepTutor 在阿里云上只允许修改 `Aliyun-ECS-2:/root/deeptutor` 目录内的文件内容，其他路径一概不允许修改。
+- 任何远端写操作，包括 `ssh` 内命令、`rsync`、`scp`、`docker cp`、热修、备份、回滚、部署脚本、临时验证产物，目标路径都必须落在 `/root/deeptutor` 内；不得用 `/tmp`、`/root`、`/root/luban` 或系统目录做绕行写入。
+- `/root/luban`、`/etc`、`/usr`、`/var`、`/opt`、`/home`、nginx 系统配置、systemd、全局 cron、宿主机 Docker 配置等非 `/root/deeptutor` 路径全部视为只读观察面；只能读，不能创建、编辑、删除、移动、覆盖、改权限或安装依赖。
+- 如果一次修复确实需要 `/root/deeptutor` 之外的宿主机改动，必须停止发布流程，先单独向用户说明目标路径、必要性、风险和替代方案；未获得新的明确授权前，一律不改。
 - 默认只允许从干净候选分支发布；`main` 或 dirty tree 会被 [scripts/sync_to_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/sync_to_aliyun.sh) 直接拒绝。
 - 默认只允许发往 `Aliyun-ECS-2:/root/deeptutor`；如果要改主机或目录，必须显式设置 `ALLOW_NON_CANONICAL_DEPLOY=1`。
 - [scripts/sync_to_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/sync_to_aliyun.sh) 每次覆盖远端前都会先生成代码快照 `data/releases/code/<release_id>.tar.gz`。
