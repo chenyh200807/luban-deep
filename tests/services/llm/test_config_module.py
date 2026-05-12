@@ -152,3 +152,39 @@ def test_resolver_missing_model_raises(monkeypatch, tmp_path: Path) -> None:
 
     with pytest.raises(LLMConfigError):
         config_module.get_llm_config()
+
+
+def test_scoped_llm_config_takes_precedence_over_cached_global(monkeypatch) -> None:
+    _reset_config_cache()
+
+    monkeypatch.setattr(
+        config_module,
+        "resolve_llm_runtime_config",
+        lambda: ResolvedLLMConfig(
+            model="global-model",
+            provider_name="openai",
+            provider_mode="standard",
+            binding_hint="openai",
+            binding="openai",
+            api_key="global-key",
+            base_url="https://global.example/v1",
+            effective_url="https://global.example/v1",
+            api_version=None,
+            extra_headers={},
+            reasoning_effort=None,
+        ),
+    )
+    global_config = config_module.get_llm_config()
+    scoped_config = LLMConfig(
+        model="scoped-model",
+        api_key="scoped-key",
+        base_url="https://scoped.example/v1",
+    )
+
+    token = config_module.set_scoped_llm_config(scoped_config)
+    try:
+        assert config_module.get_llm_config() is scoped_config
+    finally:
+        config_module.reset_scoped_llm_config(token)
+
+    assert config_module.get_llm_config() is global_config

@@ -43,6 +43,10 @@ async def rag_search(
                 "provider": str
             }
     """
+    query = str(query or "").strip()
+    if not query:
+        raise ValueError("RAG query must be a non-empty string.")
+
     service = RAGService(kb_base_dir=kb_base_dir, provider=provider)
 
     try:

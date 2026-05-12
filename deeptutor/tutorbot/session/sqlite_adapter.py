@@ -88,6 +88,8 @@ class SQLiteSessionAdapter:
             if isinstance(raw_message, dict):
                 normalized = dict(raw_message)
                 normalized["content"] = normalize_message_content(normalized.get("content"))
+                normalized.pop("reasoning_content", None)
+                normalized.pop("thinking_blocks", None)
                 messages.append(normalized)
                 continue
             messages.append(
@@ -189,6 +191,8 @@ class SQLiteSessionAdapter:
             if isinstance(raw_message, dict):
                 normalized = dict(raw_message)
                 normalized["content"] = normalize_message_content(normalized.get("content"))
+                normalized.pop("reasoning_content", None)
+                normalized.pop("thinking_blocks", None)
                 messages.append(normalized)
                 continue
             messages.append(

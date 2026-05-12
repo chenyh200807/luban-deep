@@ -84,6 +84,11 @@ def _get_embedding_fingerprint() -> tuple[str, int] | None:
         return None
 
 
+def _is_ready_storage_dir(storage_dir: Path) -> bool:
+    """Return whether a LlamaIndex storage directory contains persisted data."""
+    return storage_dir.is_dir() and any(storage_dir.iterdir())
+
+
 def _reconcile_embedding_flags(knowledge_bases: dict) -> bool:
     """Flag KBs whose stored embedding fingerprint differs from the active config.
 
@@ -587,16 +592,32 @@ class KnowledgeBaseManager:
         dir_exists = kb_dir.exists()
         index_versions = list_kb_versions(kb_dir) if dir_exists else []
         has_versioned_index = any(bool(version.get("ready")) for version in index_versions)
+        llamaindex_storage_ready = (
+            _is_ready_storage_dir(kb_dir / "llamaindex_storage") if dir_exists else False
+        )
 
         # For old KBs without status field, determine status from rag_storage
         if needs_reindex:
             status = "needs_reindex"
+        elif (
+            status in {"processing", "initializing"}
+            and (has_versioned_index or llamaindex_storage_ready)
+            and (progress or {}).get("stage") != "error"
+        ):
+            status = "ready"
+            progress = None
+            if kb_config.get("status") != "ready" or "progress" in kb_config:
+                kb_config["status"] = "ready"
+                kb_config.pop("progress", None)
+                kb_config["updated_at"] = datetime.now().isoformat()
+                updated_at = kb_config["updated_at"]
+                self._save_config()
         elif not status and dir_exists:
             rag_storage_dir = kb_dir / "rag_storage"
             llamaindex_storage_dir = kb_dir / "llamaindex_storage"
             if has_versioned_index:
                 status = "ready"
-            elif llamaindex_storage_dir.exists() and any(llamaindex_storage_dir.iterdir()):
+            elif _is_ready_storage_dir(llamaindex_storage_dir):
                 status = "ready"
             elif rag_storage_dir.exists() and any(rag_storage_dir.iterdir()):
                 status = "needs_reindex"
@@ -673,8 +694,7 @@ class KnowledgeBaseManager:
         rag_initialized = has_versioned_index or (
             dir_exists
             and llamaindex_storage_dir
-            and llamaindex_storage_dir.exists()
-            and llamaindex_storage_dir.is_dir()
+            and _is_ready_storage_dir(llamaindex_storage_dir)
         )
         if remote_backend == "supabase":
             rag_initialized = True

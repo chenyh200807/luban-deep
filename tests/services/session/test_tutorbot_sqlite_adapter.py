@@ -238,6 +238,55 @@ def test_tutorbot_sqlite_adapter_normalizes_none_content_from_stored_tutorbot_me
     assert restored.messages[1]["content"] == ""
 
 
+def test_tutorbot_sqlite_adapter_normalizes_multimodal_content_and_drops_reasoning(
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+    adapter = SQLiteSessionAdapter(store)
+    key = "bot:construction-exam-coach:user:u1:chat:c1"
+    session_id = f"tutorbot:{key}"
+
+    asyncio.run(
+        store.create_session(
+            title="案例题会话",
+            session_id=session_id,
+            owner_key=build_user_owner_key("u1"),
+            source="wx_miniprogram",
+            archived=False,
+        )
+    )
+    asyncio.run(
+        store.add_message(
+            session_id=session_id,
+            role="assistant",
+            content="",
+            capability="tutorbot",
+            events=[
+                {
+                    "_tutorbot_message": {
+                        "role": "assistant",
+                        "content": [
+                            {"type": "text", "text": "看这张图"},
+                            {"type": "image_url", "image_url": {"url": "https://example.test/a.png"}},
+                            {"content": "再判断防水等级"},
+                        ],
+                        "reasoning_content": "private chain of thought",
+                    }
+                }
+            ],
+        )
+    )
+
+    restored = adapter.get_or_create(key)
+
+    assert restored.messages == [
+        {
+            "role": "assistant",
+            "content": "看这张图 [image] 再判断防水等级",
+        }
+    ]
+
+
 def test_tutorbot_manager_reads_conversations_from_sqlite(tmp_path) -> None:
     store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
 

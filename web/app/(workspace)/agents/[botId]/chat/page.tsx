@@ -48,9 +48,9 @@ function BotChatPageContent() {
 
   const storageKey = `tutorbot-session:${botIdString}`;
 
-  const scrollToBottom = useCallback(() => {
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
     requestAnimationFrame(() => {
-      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior });
     });
   }, []);
 
@@ -100,8 +100,11 @@ function BotChatPageContent() {
       .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
     if (restored.length) {
       setMessages(restored);
+      requestAnimationFrame(() => scrollToBottom("instant"));
+      window.setTimeout(() => scrollToBottom("instant"), 80);
+      window.setTimeout(() => scrollToBottom("instant"), 250);
     }
-  }, []);
+  }, [scrollToBottom]);
 
   useEffect(() => {
     let cancelled = false;
@@ -378,11 +381,13 @@ function BotChatPageContent() {
 }
 
 export default function BotChatPage() {
+  const { t } = useTranslation();
+
   if (!requiresWebAuth() || !allowsLegacyWebSurfaces()) {
     return (
       <RestrictedSurface
-        title="TutorBot chat unavailable"
-        message="当前 Web 端未接入登录态，或 legacy TutorBot 聊天页面未显式开启，因此已默认关闭。请使用已鉴权入口访问。"
+        title={t("TutorBot chat unavailable")}
+        message={t("当前 Web 端未接入登录态，或 legacy TutorBot 聊天页面未显式开启，因此已默认关闭。请使用已鉴权入口访问。")}
       />
     );
   }

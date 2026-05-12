@@ -75,6 +75,37 @@ def validate_storage_embeddings(storage_dir: Path) -> None:
                 ) from exc
 
 
+def _loaded_embedding_dict(index: Any) -> Any:
+    vector_store = getattr(index, "vector_store", None)
+    data = getattr(vector_store, "data", None)
+    if isinstance(data, dict):
+        return _embedding_dict_from_payload(data)
+    embedding_dict = getattr(data, "embedding_dict", None)
+    if isinstance(embedding_dict, dict):
+        return embedding_dict
+    return None
+
+
+def validate_loaded_index_embeddings(index: Any) -> None:
+    """Fail before retrieval when a loaded LlamaIndex vector store has bad vectors."""
+    embedding_dict = _loaded_embedding_dict(index)
+    if not isinstance(embedding_dict, dict):
+        return
+    try:
+        validate_embedding_batch(
+            list(embedding_dict.values()),
+            expected_count=len(embedding_dict),
+            binding="llamaindex",
+            model="loaded-index",
+        )
+    except ValueError as exc:
+        raise ValueError(
+            "RAG index contains invalid embedding vectors. Re-index the "
+            "knowledge base with the current embedding provider/model before "
+            f"querying it again. Details: {exc}"
+        ) from exc
+
+
 class CustomEmbedding(BaseEmbedding):
     """
     Custom embedding adapter for OpenAI-compatible APIs.
@@ -173,6 +204,15 @@ class CustomEmbedding(BaseEmbedding):
         for i in missing_indices:
             result[i] = [0.0] * dim
         return result
+
+    @staticmethod
+    def _validate_dense_vectors(result: List[Any]) -> List[List[float]]:
+        return validate_embedding_batch(
+            result,
+            expected_count=len(result),
+            binding="llamaindex",
+            model="custom_embedding",
+        )
 
     def _get_query_embedding(self, query: str) -> List[float]:
         """Sync version - called by LlamaIndex sync API."""
@@ -429,6 +469,7 @@ class LlamaIndexPipeline:
                 validate_storage_embeddings(storage_dir)
                 storage_context = StorageContext.from_defaults(persist_dir=str(storage_dir))
                 index = load_index_from_storage(storage_context)
+                validate_loaded_index_embeddings(index)
                 top_k = kwargs.get("top_k", 5)
 
                 # Use retriever instead of query_engine to avoid LLM requirement

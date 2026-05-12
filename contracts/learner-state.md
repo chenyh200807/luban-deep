@@ -210,6 +210,16 @@ Overlay 必须支持：
 
 - 任何模块直接整份覆盖 summary
 
+### Durable Memory Hygiene
+
+`SUMMARY.md`、`PROFILE.md` 以及后续接入 `learner_summaries` 的长期记忆写入必须先经过
+统一清理与形状校验：
+
+1. 模型输出中的 `<think>` / `<thinking>` / provider reasoning scratchpad 不得持久化。
+2. 读取旧 memory projection 时，如果发现 reasoning 标签，必须自修复或删除空文件。
+3. LLM rewrite 结果必须匹配目标 memory 文档形状；模型随口回答、解释过程、内部草稿不得写入长期记忆。
+4. 这条规则适用于手动写入、session refresh、turn refresh 和后续 learner state writeback pipeline。
+
 ### Learner Progress
 
 允许写入：

@@ -15,7 +15,7 @@ import {
   writeStoredActiveSessionId,
 } from "@/context/AppShellContext";
 import { trackWebSurfaceEvent, trackWebSurfaceEventOnce } from "@/lib/surface-telemetry";
-import type { StreamEvent, ChatMessage } from "@/lib/unified-ws";
+import type { StreamEvent, ChatMessage, LLMSelection } from "@/lib/unified-ws";
 import { primeUnifiedTurnContractCheck, UnifiedWSClient } from "@/lib/unified-ws";
 import { getSession, type SessionMessage } from "@/lib/session-api";
 import { normalizeMarkdownForDisplay } from "@/lib/markdown-display";
@@ -50,6 +50,7 @@ export interface SendMessageOptions {
   displayUserMessage?: boolean;
   persistUserMessage?: boolean;
   requestSnapshotOverride?: MessageRequestSnapshot;
+  llmSelection?: LLMSelection | null;
 }
 
 export interface ChatState {
@@ -89,6 +90,7 @@ export interface MessageRequestSnapshot {
   config?: Record<string, unknown>;
   notebookReferences?: NotebookReferencePayload[];
   historyReferences?: HistoryReferencePayload;
+  llmSelection?: LLMSelection | null;
 }
 
 export interface MessageItem {
@@ -810,6 +812,8 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
       const effectiveTools = replaySnapshot?.enabledTools ?? session.enabledTools;
       const effectiveKnowledgeBases = replaySnapshot?.knowledgeBases ?? session.knowledgeBases;
       const effectiveLanguage = replaySnapshot?.language ?? session.language;
+      const effectiveLLMSelection =
+        replaySnapshot?.llmSelection ?? options?.llmSelection ?? null;
       const requestConfig: Record<string, unknown> = {
         ...(config || {}),
         ...(effectiveCapability === null ? { chat_mode: effectiveChatMode } : {}),
@@ -830,6 +834,7 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
         ...(Object.keys(requestConfig).length > 0 ? { config: requestConfig } : {}),
         ...(notebookReferences?.length ? { notebookReferences } : {}),
         ...(historyReferences?.length ? { historyReferences: [...historyReferences] } : {}),
+        ...(effectiveLLMSelection ? { llmSelection: effectiveLLMSelection } : {}),
       };
       if (options?.displayUserMessage !== false) {
         dispatch({
@@ -872,6 +877,7 @@ export function UnifiedChatProvider({ children }: { children: React.ReactNode })
         ...(effectiveConfig && Object.keys(effectiveConfig).length > 0
           ? { config: effectiveConfig }
           : {}),
+        ...(effectiveLLMSelection ? { llm_selection: effectiveLLMSelection } : {}),
       });
     },
     [makeDraftKey, sendThroughRunner],

@@ -9,6 +9,7 @@ import asyncio
 from datetime import datetime
 import os
 from pathlib import Path
+import shutil
 import traceback
 from uuid import uuid4
 
@@ -853,7 +854,7 @@ async def create_knowledge_base(
         _raise_internal_error(f"create knowledge base '{name}'")
 
 
-async def run_reindex_task(kb_name: str, base_dir: str, task_id: str, signature_hash: str) -> None:
+async def run_reindex_task(kb_name: str, base_dir: str, task_id: str, signature_hash: str = "") -> None:
     """Re-index a KB's raw documents against the currently-active embedding config."""
     task_manager = TaskIDManager.get_instance()
     task_stream_manager = get_task_stream_manager()
@@ -873,9 +874,10 @@ async def run_reindex_task(kb_name: str, base_dir: str, task_id: str, signature_
             if not file_paths:
                 raise ValueError(f"KB '{kb_name}' has no source files in raw/ to reindex")
 
+            active_signature = str(signature_hash or "active embedding config")
             _task_log(
                 task_id,
-                f"Re-indexing '{kb_name}' ({len(file_paths)} files) against {signature_hash}",
+                f"Re-indexing '{kb_name}' ({len(file_paths)} files) against {active_signature}",
             )
             manager = get_kb_manager()
             manager.update_kb_status(
@@ -890,10 +892,15 @@ async def run_reindex_task(kb_name: str, base_dir: str, task_id: str, signature_
                 },
             )
 
-            from deeptutor.services.rag.pipelines.llamaindex import LlamaIndexPipeline
+            storage_dir = kb_dir / "llamaindex_storage"
+            if storage_dir.exists():
+                shutil.rmtree(storage_dir)
+            storage_dir.mkdir(parents=True, exist_ok=True)
 
-            pipeline = LlamaIndexPipeline(kb_base_dir=base_dir)
-            success = await pipeline.initialize(kb_name, file_paths)
+            from deeptutor.services.rag.service import RAGService
+
+            rag_service = RAGService(kb_base_dir=base_dir, provider=DEFAULT_PROVIDER)
+            success = await rag_service.initialize(kb_name=kb_name, file_paths=file_paths)
             if not success:
                 raise RuntimeError("LlamaIndex re-indexing failed")
 
@@ -957,20 +964,37 @@ async def reindex_knowledge_base(kb_name: str, background_tasks: BackgroundTasks
                 status_code=409,
                 detail=f"Knowledge base '{kb_name}' is read-only and cannot be re-indexed.",
             )
+        kb_provider = _validate_registered_provider(kb_entry.get("rag_provider") or DEFAULT_PROVIDER)
+        if kb_provider != DEFAULT_PROVIDER:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Re-index is only available for local '{DEFAULT_PROVIDER}' knowledge bases.",
+            )
 
-        from deeptutor.services.rag.embedding_signature import signature_from_embedding_config
+        raw_dir = _kb_base_dir / kb_name / "raw"
+        if not raw_dir.is_dir():
+            raise HTTPException(status_code=409, detail="Knowledge base has no raw/ directory.")
+        if not list(FileTypeRouter.collect_supported_files(raw_dir)):
+            raise HTTPException(
+                status_code=409,
+                detail="Knowledge base has no source documents in raw/.",
+            )
+
+        force_reindex = bool(kb_entry.get("needs_reindex")) or kb_entry.get("status") == "error"
+
+        from deeptutor.services.rag import embedding_signature as embedding_signature_module
         from deeptutor.services.rag.index_versioning import find_matching_version
         from deeptutor.services.rag.pipelines.llamaindex import validate_storage_embeddings
 
-        signature = signature_from_embedding_config()
-        if signature is None:
+        kb_dir = _kb_base_dir / kb_name
+        signature = embedding_signature_module.signature_from_embedding_config()
+        if signature is None and not force_reindex:
             raise HTTPException(
                 status_code=409,
                 detail="No embedding model is configured. Set up embeddings before re-indexing.",
             )
 
-        kb_dir = _kb_base_dir / kb_name
-        matching_version = find_matching_version(kb_dir, signature)
+        matching_version = find_matching_version(kb_dir, signature) if signature is not None else None
         matching_valid = False
         if matching_version:
             try:
@@ -979,7 +1003,6 @@ async def reindex_knowledge_base(kb_name: str, background_tasks: BackgroundTasks
             except Exception as exc:
                 logger.warning("Matching index for KB '%s' is invalid: %s", kb_name, exc)
 
-        force_reindex = bool(kb_entry.get("needs_reindex")) or kb_entry.get("status") == "error"
         if matching_version and matching_valid and not force_reindex:
             return {
                 "message": "Knowledge base already has a valid index for active embeddings.",
@@ -988,12 +1011,6 @@ async def reindex_knowledge_base(kb_name: str, background_tasks: BackgroundTasks
                 "noop": True,
                 "queued": False,
             }
-
-        raw_dir = kb_dir / "raw"
-        if not raw_dir.is_dir():
-            raise HTTPException(status_code=409, detail="Knowledge base has no raw/ directory.")
-        if not list(FileTypeRouter.collect_supported_files(raw_dir)):
-            raise HTTPException(status_code=409, detail="Knowledge base has no source files in raw/.")
 
         task_id = _build_unique_task_id("kb_reindex", kb_name)
         get_task_stream_manager().ensure_task(task_id)
@@ -1014,12 +1031,13 @@ async def reindex_knowledge_base(kb_name: str, background_tasks: BackgroundTasks
             kb_name=kb_name,
             base_dir=str(_kb_base_dir),
             task_id=task_id,
-            signature_hash=signature.hash(),
+            signature_hash=signature.hash() if signature is not None else "",
         )
         return {
             "message": "Re-index queued.",
             "task_id": task_id,
-            "signature": signature.hash(),
+            "signature": signature.hash() if signature is not None else None,
+            "noop": False,
             "queued": True,
         }
     except HTTPException:

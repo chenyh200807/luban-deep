@@ -1,13 +1,16 @@
-"""Document text extraction for uploaded bytes and local files."""
+"""Document text extraction for chat attachments."""
 
 from __future__ import annotations
 
+import base64
+from collections.abc import Iterable
 import io
+import logging
 from pathlib import Path, PurePosixPath
 import re
 from typing import Any
+import xml.etree.ElementTree as ElementTree
 import zipfile
-from xml.etree import ElementTree
 
 from deeptutor.services.rag.components.routing import FileTypeRouter
 
@@ -16,15 +19,21 @@ try:
 except ImportError:  # pragma: no cover
     fitz = None
 
+logger = logging.getLogger(__name__)
+
 TEXT_LIKE_EXTENSIONS: frozenset[str] = frozenset(FileTypeRouter.TEXT_EXTENSIONS)
-OFFICE_EXTENSIONS: frozenset[str] = frozenset(FileTypeRouter.PARSER_EXTENSIONS) | {".docx"}
-SUPPORTED_DOC_EXTENSIONS: frozenset[str] = OFFICE_EXTENSIONS | TEXT_LIKE_EXTENSIONS
+OFFICE_EXTENSIONS: frozenset[str] = frozenset({".pdf", ".docx", ".xlsx", ".pptx"})
+SUPPORTED_DOC_EXTENSIONS: frozenset[str] = TEXT_LIKE_EXTENSIONS | OFFICE_EXTENSIONS
 
 MAX_DOC_BYTES = 10 * 1024 * 1024
+MAX_TOTAL_DOC_BYTES = 25 * 1024 * 1024
 MAX_EXTRACTED_CHARS_PER_DOC = 200_000
+MAX_EXTRACTED_CHARS_TOTAL = 150_000
 
 
 class DocumentExtractionError(Exception):
+    """Base class for user-readable extraction failures."""
+
     def __init__(self, message: str, filename: str = "") -> None:
         super().__init__(message)
         self.filename = filename
@@ -60,6 +69,15 @@ def _truncate(text: str, max_length: int) -> str:
     return text[:max_length] + f"... (truncated, {len(text)} chars total)"
 
 
+def _decode_text(data: bytes) -> str:
+    for encoding in ("utf-8", "utf-8-sig", "gbk", "gb2312", "gb18030", "latin-1", "cp1252"):
+        try:
+            return data.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return data.decode("utf-8", errors="replace")
+
+
 def extract_text_from_bytes(
     filename: str,
     data: bytes,
@@ -78,16 +96,19 @@ def extract_text_from_bytes(
     ext = _ext(filename)
     if ext not in SUPPORTED_DOC_EXTENSIONS:
         raise UnsupportedDocumentError(
-            f"{filename} has unsupported extension '{ext}'",
-            filename=filename,
+            f"{filename} has unsupported extension '{ext}'", filename=filename
         )
 
     if ext == ".pdf":
         text = _extract_pdf(data, filename)
     elif ext == ".docx":
         text = _extract_docx_ooxml(data, filename)
+    elif ext == ".xlsx":
+        text = _extract_xlsx_ooxml(data, filename)
+    elif ext == ".pptx":
+        text = _extract_pptx_ooxml(data, filename)
     else:
-        text = _extract_text_like(data)
+        text = _decode_text(data)
 
     if not text.strip():
         raise EmptyDocumentError(f"{filename}: no extractable text", filename=filename)
@@ -110,86 +131,219 @@ def extract_text_from_path(
 
 
 def _extract_pdf(data: bytes, filename: str) -> str:
+    if not data.startswith(b"%PDF-"):
+        raise CorruptDocumentError(f"{filename} does not look like a PDF", filename=filename)
     if fitz is None:
         raise CorruptDocumentError(
-            f"{filename}: no PDF reader available",
+            f"{filename}: no PDF reader available (install PyMuPDF)",
             filename=filename,
         )
     try:
         with fitz.open(stream=data, filetype="pdf") as doc:
             if doc.is_encrypted and not doc.authenticate(""):
                 raise CorruptDocumentError(
-                    f"{filename} is encrypted and cannot be read",
-                    filename=filename,
+                    f"{filename} is encrypted and cannot be read", filename=filename
                 )
             return "\n\n".join(
-                f"--- Page {i} ---\n{page.get_text() or ''}" for i, page in enumerate(doc, 1)
+                f"--- Page {i} ---\n{page.get_text() or ''}"
+                for i, page in enumerate(doc, 1)
             )
-    except CorruptDocumentError:
+    except DocumentExtractionError:
         raise
     except Exception as exc:
         raise CorruptDocumentError(
-            f"{filename}: failed to read PDF ({exc})",
-            filename=filename,
+            f"{filename}: failed to read PDF ({exc})", filename=filename
         ) from exc
+
+
+def _open_ooxml(data: bytes, filename: str) -> zipfile.ZipFile:
+    if not data.startswith(b"PK\x03\x04"):
+        raise CorruptDocumentError(
+            f"{filename} does not look like a valid Office file", filename=filename
+        )
+    try:
+        return zipfile.ZipFile(io.BytesIO(data))
+    except zipfile.BadZipFile as exc:
+        raise CorruptDocumentError(
+            f"{filename}: failed to open Office ZIP package ({exc})", filename=filename
+        ) from exc
+
+
+def _local_name(tag: str) -> str:
+    return tag.rsplit("}", 1)[-1] if "}" in tag else tag
+
+
+def _parse_xml_member(zf: zipfile.ZipFile, member: str, filename: str) -> Any | None:
+    try:
+        raw = zf.read(member)
+    except KeyError:
+        return None
+    try:
+        return ElementTree.fromstring(raw)
+    except ElementTree.ParseError as exc:
+        raise CorruptDocumentError(
+            f"{filename}: failed to parse {member} ({exc})", filename=filename
+        ) from exc
+
+
+def _collect_ooxml_text(node: Any) -> str:
+    parts: list[str] = []
+    for child in node.iter():
+        name = _local_name(child.tag)
+        if name == "t" and child.text:
+            parts.append(child.text)
+        elif name == "tab":
+            parts.append("\t")
+        elif name in {"br", "cr"}:
+            parts.append("\n")
+    return "".join(parts).strip()
+
+
+def _extract_paragraph_text(root: Any) -> list[str]:
+    paragraphs: list[str] = []
+    for node in root.iter():
+        if _local_name(node.tag) == "p":
+            text = _collect_ooxml_text(node)
+            if text:
+                paragraphs.append(text)
+    if paragraphs:
+        return paragraphs
+    text = _collect_ooxml_text(root)
+    return [text] if text else []
 
 
 def _extract_docx_ooxml(data: bytes, filename: str) -> str:
-    try:
-        with zipfile.ZipFile(io.BytesIO(data)) as archive:
-            xml_bytes = archive.read("word/document.xml")
-    except Exception as exc:
-        raise CorruptDocumentError(
-            f"{filename} does not look like a valid docx file",
-            filename=filename,
-        ) from exc
-
-    try:
-        root = ElementTree.fromstring(xml_bytes)
-    except ElementTree.ParseError as exc:
-        raise CorruptDocumentError(
-            f"{filename}: failed to parse docx XML",
-            filename=filename,
-        ) from exc
-
-    paragraphs: list[str] = []
-    for paragraph in root.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p"):
-        text = "".join(
-            node.text or ""
-            for node in paragraph.iter(
-                "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}t"
+    with _open_ooxml(data, filename) as zf:
+        members = ["word/document.xml"]
+        members.extend(
+            sorted(
+                name
+                for name in zf.namelist()
+                if re.match(r"word/(header|footer|footnotes|endnotes|comments)\d*\.xml$", name)
             )
         )
-        if text.strip():
-            paragraphs.append(text)
-    if paragraphs:
-        return "\n\n".join(paragraphs)
-
-    # Some minimal OOXML fixtures omit namespaces; keep a small fallback.
-    text_chunks = re.findall(rb"<w:t[^>]*>(.*?)</w:t>", xml_bytes, flags=re.DOTALL)
-    return "\n".join(chunk.decode("utf-8", errors="replace") for chunk in text_chunks)
+        chunks: list[str] = []
+        for member in members:
+            root = _parse_xml_member(zf, member, filename)
+            if root is not None:
+                chunks.extend(_extract_paragraph_text(root))
+        return "\n\n".join(chunks)
 
 
-def _extract_text_like(data: bytes) -> str:
-    for encoding in ("utf-8", "utf-8-sig", "gbk", "gb2312", "gb18030", "latin-1", "cp1252"):
+def _extract_xlsx_ooxml(data: bytes, filename: str) -> str:
+    with _open_ooxml(data, filename) as zf:
+        sheet_members = sorted(
+            name for name in zf.namelist() if re.match(r"xl/worksheets/sheet\d+\.xml$", name)
+        )
+        sheets: list[str] = []
+        for index, member in enumerate(sheet_members, 1):
+            root = _parse_xml_member(zf, member, filename)
+            if root is None:
+                continue
+            rows: list[str] = []
+            for row in root.iter():
+                if _local_name(row.tag) != "row":
+                    continue
+                cells = [
+                    _collect_ooxml_text(cell)
+                    for cell in row
+                    if _local_name(cell.tag) in {"c", "is"}
+                ]
+                row_text = "\t".join(cell for cell in cells if cell)
+                if row_text:
+                    rows.append(row_text)
+            if rows:
+                sheets.append(f"--- Sheet {index} ---\n" + "\n".join(rows))
+        return "\n\n".join(sheets)
+
+
+def _extract_pptx_ooxml(data: bytes, filename: str) -> str:
+    with _open_ooxml(data, filename) as zf:
+        slide_members = sorted(
+            name for name in zf.namelist() if re.match(r"ppt/slides/slide\d+\.xml$", name)
+        )
+        slides: list[str] = []
+        for index, member in enumerate(slide_members, 1):
+            root = _parse_xml_member(zf, member, filename)
+            if root is None:
+                continue
+            paragraphs = _extract_paragraph_text(root)
+            if paragraphs:
+                slides.append(f"--- Slide {index} ---\n" + "\n".join(paragraphs))
+        return "\n\n".join(slides)
+
+
+def extract_documents_from_records(
+    records: Iterable[dict],
+) -> tuple[list[str], list[dict]]:
+    doc_texts: list[str] = []
+    updated: list[dict] = []
+    total_bytes = 0
+    total_chars = 0
+    over_quota = False
+
+    for raw in records:
+        record = dict(raw)
+        filename = str(record.get("filename") or "")
+        if not is_document_extension(filename):
+            updated.append(record)
+            continue
+
+        b64 = record.get("base64") or ""
+        if not b64:
+            updated.append(record)
+            continue
+
+        if over_quota:
+            doc_texts.append(f"[File: {filename} - skipped: total attachment quota exceeded]")
+            record["base64"] = ""
+            record["extracted_chars"] = 0
+            updated.append(record)
+            continue
+
         try:
-            return data.decode(encoding)
-        except UnicodeDecodeError:
+            data = base64.b64decode(b64, validate=False)
+        except Exception as exc:
+            doc_texts.append(f"[File: {filename} - could not be read: invalid base64 ({exc})]")
+            record["base64"] = ""
+            record["extracted_chars"] = 0
+            updated.append(record)
             continue
-    return data.decode("utf-8", errors="replace")
 
-
-def extract_documents_from_records(records: list[dict[str, Any]]) -> list[dict[str, str]]:
-    """Extract text from attachment-like records containing filename and bytes/base64 data."""
-    extracted: list[dict[str, str]] = []
-    for record in records:
-        filename = str(record.get("filename") or record.get("name") or "")
-        raw = record.get("bytes")
-        if raw is None:
-            raw = record.get("data")
-        if isinstance(raw, str):
-            raw = raw.encode("utf-8")
-        if not isinstance(raw, bytes) or not is_document_extension(filename):
+        if total_bytes + len(data) > MAX_TOTAL_DOC_BYTES:
+            over_quota = True
+            doc_texts.append(f"[File: {filename} - skipped: total attachment quota exceeded]")
+            record["base64"] = ""
+            record["extracted_chars"] = 0
+            updated.append(record)
             continue
-        extracted.append({"filename": filename, "text": extract_text_from_bytes(filename, raw)})
-    return extracted
+        total_bytes += len(data)
+
+        try:
+            text = extract_text_from_bytes(filename, data)
+        except DocumentExtractionError as exc:
+            logger.info("Document extraction failed for %s: %s", filename, exc)
+            doc_texts.append(f"[File: {filename} - could not be read: {exc}]")
+            record["base64"] = ""
+            record["extracted_chars"] = 0
+            updated.append(record)
+            continue
+
+        remaining_budget = MAX_EXTRACTED_CHARS_TOTAL - total_chars
+        if remaining_budget <= 0:
+            doc_texts.append(f"[File: {filename} - skipped: total extracted-text quota exceeded]")
+            record["base64"] = ""
+            record["extracted_chars"] = 0
+            updated.append(record)
+            continue
+        if len(text) > remaining_budget:
+            text = text[:remaining_budget] + f"... (truncated, {len(text)} chars total; turn quota hit)"
+
+        total_chars += len(text)
+        doc_texts.append(f"[File: {filename}]\n{text}")
+        record["base64"] = ""
+        record["extracted_chars"] = len(text)
+        record["extracted_text"] = text
+        updated.append(record)
+
+    return doc_texts, updated

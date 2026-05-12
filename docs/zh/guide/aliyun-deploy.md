@@ -408,6 +408,56 @@ bash scripts/verify_aliyun_observability.sh
 - 远端服务健康只说明后端/API 可用；它不能证明真实手机 UI 已更新。
 - 公网探针短暂失败不等于发布失败；以最终脚本完成状态和具体 endpoint 结果为准。
 
+### 8. 2026-05-06 完整部署排障记录
+
+这次从本地同步 `codex/upstream-absorb-v135` 到阿里云并重启时，没有先看到业务代码启动失败；主要现象是完整镜像重建耗时明显。
+
+已确认的发布链路事实：
+
+- 本地提交：`2065e86a112a61360b5ed8a40d1bc19f2fc15e77`
+- 远端目标：`Aliyun-ECS-2:/root/deeptutor`
+- 发布命令：`PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/deploy_aliyun.sh`
+- 远端发布环境校验通过，`SERVICE_ENV=production`、`APP_ENV=production`、`DEEPTUTOR_GIT_DIRTY=false`
+- 重建前 runtime 数据备份成功，备份目录为 `/root/deeptutor/data/backups/`
+- 自动检测到共享 Langfuse 网络 `luban_jgzk-network`
+
+本次遇到的信号和判断：
+
+| 信号 | 是否阻断 | 判断 | 下次处理 |
+| --- | --- | --- | --- |
+| `rsync` 提示 `cannot delete non-empty directory: web-deploy` | 否，除非后续构建或静态资源校验失败 | 远端遗留 `web-deploy` 目录非空，`rsync --delete` 没删掉该目录，但源码同步继续完成 | 如果公网前端静态资源异常，再 SSH 执行 `rm -rf /root/deeptutor/web-deploy` 后重跑部署；不要在无症状时把它当发布失败 |
+| 前端构建出现 `npm audit` 漏洞数量提示 | 否 | 这是依赖安全审计提示，不等于 Next.js 构建失败；本次 Next production build 已继续执行 | 单独安排依赖审计，不要在发布窗口中临时升级大批前端依赖 |
+| Docker build 长时间停在 `pip install -r requirements.txt` | 否，除非最终超时或 pip 报错退出 | 完整部署会重新安装 Python 依赖，且大包如 PyMuPDF、numpy、LLM/agent 依赖下载耗时明显 | 先继续等待；如果 10 分钟以上无输出，再看 Docker build 日志、网络、磁盘；不要误判为服务已挂 |
+| `docker compose` 提示 orphan containers: `deeptutor-searxng`、`deeptutor-valkey` | 否 | 这些是当前 compose 项目下仍在运行但本次 compose 文件未直接管理的旧服务；本次 `deeptutor` 容器已正常重建 | 只有确认这些服务已无依赖时，才执行 `docker compose up -d --remove-orphans`；不要在发布窗口里顺手清理 |
+| 公网前端探针前几次返回 502 | 否，若后续重试通过 | 新容器刚启动时 health 仍是 `starting`，Nginx/上游短时间不可用是可接受启动窗口 | 以脚本 20 次重试的最终结果为准；若持续 502，再看 `docker compose ps deeptutor`、`docker compose logs --tail=200 deeptutor` 和宿主 Nginx upstream |
+
+排查时按这个顺序收敛：
+
+```bash
+# 1. 看发布脚本是否还在输出，先不要中断仍在下载依赖的 build
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/deploy_aliyun.sh
+
+# 2. 如果脚本失败，再看容器状态
+ssh Aliyun-ECS-2 "cd /root/deeptutor && docker compose ps && docker compose logs --tail=200 deeptutor"
+
+# 3. 如果只是 web-deploy 遗留目录影响静态资源，再清理后重跑完整部署
+ssh Aliyun-ECS-2 "rm -rf /root/deeptutor/web-deploy"
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/deploy_aliyun.sh
+
+# 4. 如果代码未改依赖、Dockerfile、前端构建，优先走快速发布，避免整镜像重建
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/redeploy_aliyun_fast.sh
+```
+
+完成判断不能只看 `docker compose up -d` 返回。必须同时满足：
+
+```bash
+ssh Aliyun-ECS-2 "cd /root/deeptutor && docker compose ps deeptutor"
+curl -fsS https://test2.yousenjiaoyu.com/
+curl -fsS https://test2.yousenjiaoyu.com/healthz
+curl -fsS https://test2.yousenjiaoyu.com/readyz
+bash scripts/verify_aliyun_observability.sh
+```
+
 ## 回滚步骤
 
 如果发布后出现问题，先判断是“代码/镜像问题”还是“运行态数据问题”。

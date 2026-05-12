@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import sqlite3
 import importlib
 from contextvars import ContextVar
@@ -12,6 +13,7 @@ from pydantic import ValidationError
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.contracts.unified_turn import UnifiedTurnStartMessage
 from deeptutor.core.stream import StreamEvent, StreamEventType
+from deeptutor.services.config.provider_runtime import ResolvedLLMConfig
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
     build_active_object_from_session,
@@ -24,6 +26,7 @@ from deeptutor.services.session.turn_runtime import (
     _request_snapshot_metadata,
     _resolve_question_followup_context_and_action,
 )
+from deeptutor.contracts.unified_turn import UnifiedTurnStartMessage
 
 unified_ws_module = importlib.import_module("deeptutor.api.routers.unified_ws")
 
@@ -253,6 +256,242 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["status"] == "completed"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_extracts_document_attachments_into_context(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured_contexts = []
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured_contexts.append(context)
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="read the file",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    from deeptutor.services.storage import LocalDiskAttachmentStore
+
+    attachment_store = LocalDiskAttachmentStore(root=tmp_path / "attachments")
+    monkeypatch.setattr("deeptutor.services.storage.get_attachment_store", lambda: attachment_store)
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    encoded = base64.b64encode("attachment lesson text".encode("utf-8")).decode("ascii")
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "summarize this",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [
+                {
+                    "type": "file",
+                    "filename": "lesson.txt",
+                    "mime_type": "text/plain",
+                    "base64": encoded,
+                }
+            ],
+            "language": "en",
+            "config": {},
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert captured_contexts
+    assert "[Attached Documents]" in captured_contexts[0].user_message
+    assert "attachment lesson text" in captured_contexts[0].user_message
+    assert captured_contexts[0].attachments[0].base64 == ""
+    assert captured_contexts[0].attachments[0].url.startswith("/api/attachments/")
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    user_attachments = detail["messages"][0]["attachments"]
+    assert user_attachments[0]["base64"] == ""
+    assert user_attachments[0]["extracted_text"] == "attachment lesson text"
+    assert user_attachments[0]["url"].startswith("/api/attachments/")
+    snapshot = detail["messages"][0]["metadata"]["request_snapshot"]
+    assert snapshot["content"] == "summarize this"
+    assert snapshot["enabledTools"] == []
+    assert snapshot["knowledgeBases"] == []
+    assert snapshot["attachments"][0]["extracted_text"] == "attachment lesson text"
+    assert "learner_state" not in snapshot
+    assert "memory_context" not in snapshot
+
+
+def test_unified_turn_start_accepts_llm_selection_ids_only() -> None:
+    message = UnifiedTurnStartMessage(
+        type="start_turn",
+        content="hello",
+        llm_selection={"profile_id": "p1", "model_id": "m1"},
+    )
+
+    assert message.llm_selection == {"profile_id": "p1", "model_id": "m1"}
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_applies_request_scoped_llm_selection(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    selection = {"profile_id": "llm-p2", "model_id": "llm-m2"}
+    captured: dict[str, object] = {}
+
+    class FakeCatalogService:
+        def load(self):
+            return {
+                "version": 1,
+                "services": {
+                    "llm": {
+                        "active_profile_id": "llm-p1",
+                        "active_model_id": "llm-m1",
+                        "profiles": [
+                            {
+                                "id": "llm-p1",
+                                "name": "Default",
+                                "binding": "openai",
+                                "base_url": "https://default.example/v1",
+                                "api_key": "default-key",
+                                "api_version": "",
+                                "extra_headers": {},
+                                "models": [{"id": "llm-m1", "name": "Default", "model": "gpt-default"}],
+                            },
+                            {
+                                "id": "llm-p2",
+                                "name": "Selected",
+                                "binding": "dashscope",
+                                "base_url": "",
+                                "api_key": "selected-key",
+                                "api_version": "",
+                                "extra_headers": {},
+                                "models": [{"id": "llm-m2", "name": "Selected", "model": "qwen-selected"}],
+                            },
+                        ],
+                    },
+                    "embedding": {"active_profile_id": None, "active_model_id": None, "profiles": []},
+                    "search": {"active_profile_id": None, "profiles": []},
+                },
+            }
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            from deeptutor.services.llm.config import get_llm_config
+
+            captured["scoped_model"] = get_llm_config().model
+            captured["context_metadata"] = dict(context.metadata)
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="selected model response",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    def _resolve_llm_runtime_config(*_args, **kwargs):
+        assert kwargs["llm_selection"] == selection
+        return ResolvedLLMConfig(
+            model="qwen-selected",
+            provider_name="dashscope",
+            provider_mode="standard",
+            binding_hint="dashscope",
+            binding="dashscope",
+            api_key="selected-key",
+            base_url="https://dashscope.example/v1",
+            effective_url="https://dashscope.example/v1",
+            api_version=None,
+            extra_headers={},
+            reasoning_effort=None,
+        )
+
+    monkeypatch.setattr("deeptutor.services.config.get_model_catalog_service", lambda: FakeCatalogService())
+    monkeypatch.setattr(
+        "deeptutor.services.model_selection.runtime.resolve_llm_runtime_config",
+        _resolve_llm_runtime_config,
+    )
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello with selected model",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "llm_selection": selection,
+            "language": "en",
+            "config": {},
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert captured["scoped_model"] == "qwen-selected"
+    assert captured["context_metadata"]["llm_selection"] == selection
+    assert detail["preferences"]["llm_selection"] == selection
+    assert detail["messages"][0]["metadata"]["request_snapshot"]["llm_selection"] == selection
 
 
 @pytest.mark.asyncio

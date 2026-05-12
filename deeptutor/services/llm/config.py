@@ -8,6 +8,7 @@ Simplified version - loads from unified config service or falls back to .env.
 
 from __future__ import annotations
 
+from contextvars import ContextVar, Token
 from dataclasses import dataclass, replace
 import logging
 import os
@@ -123,6 +124,10 @@ class LLMConfig:
 
 
 _LLM_CONFIG_CACHE: LLMConfig | None = None
+_SCOPED_LLM_CONFIG: ContextVar[LLMConfig | None] = ContextVar(
+    "deeptutor_scoped_llm_config",
+    default=None,
+)
 
 
 def initialize_environment() -> None:
@@ -219,6 +224,10 @@ def get_llm_config() -> LLMConfig:
     """
     global _LLM_CONFIG_CACHE
 
+    scoped_config = _SCOPED_LLM_CONFIG.get()
+    if scoped_config is not None:
+        return scoped_config
+
     if _LLM_CONFIG_CACHE is not None:
         return _LLM_CONFIG_CACHE
 
@@ -250,6 +259,16 @@ def clear_llm_config_cache() -> None:
     global _LLM_CONFIG_CACHE
 
     _LLM_CONFIG_CACHE = None
+
+
+def set_scoped_llm_config(config: LLMConfig) -> Token[LLMConfig | None]:
+    """Install a request-local LLM config for the current async context."""
+    return _SCOPED_LLM_CONFIG.set(config)
+
+
+def reset_scoped_llm_config(token: Token[LLMConfig | None]) -> None:
+    """Reset the request-local LLM config set by set_scoped_llm_config."""
+    _SCOPED_LLM_CONFIG.reset(token)
 
 
 def reload_config() -> LLMConfig:
@@ -313,6 +332,8 @@ __all__ = [
     "get_llm_config_async",
     "clear_llm_config_cache",
     "reload_config",
+    "set_scoped_llm_config",
+    "reset_scoped_llm_config",
     "uses_max_completion_tokens",
     "get_token_limit_kwargs",
 ]

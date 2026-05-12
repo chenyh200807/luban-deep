@@ -25,6 +25,9 @@ async def test_local_attachment_store_persists_with_safe_public_url(tmp_path: Pa
     assert target.read_bytes() == b"pdf-bytes"
     assert target.resolve().is_relative_to(tmp_path.resolve())
 
+    await store.delete_session("../session")
+    assert not target.exists()
+
 
 def test_local_attachment_store_refuses_unknown_file(tmp_path: Path) -> None:
     store = LocalDiskAttachmentStore(root=tmp_path)

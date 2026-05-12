@@ -35,6 +35,8 @@
 | 鲁班智考反馈 Top10 修复 | [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md) / [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | 运营反馈问题注册表、Langfuse/后台证据、Top10 root-cause 分批修复 |
 | Benchmark 主脊梁 | [2026-04-23-deeptutor-benchmark-single-spine-prd.md](2026-04-23-deeptutor-benchmark-single-spine-prd.md) | benchmark、daily/gate/incident、质量单一主脊梁 |
 | 建筑实务 AI 互动课堂 | [../openmaic/建筑实务AI互动课堂_架构与实施收口_v1.2.md](../openmaic/建筑实务AI互动课堂_架构与实施收口_v1.2.md) | OpenMAIC 体验对标、Lesson IR、微信小程序主表面、互动课堂生成、审核、导出、质量工厂 |
+| 上游能力吸收 | [2026-05-03-upstream-absorption-status.md](2026-05-03-upstream-absorption-status.md) | HKUDS/DeepTutor 能力吸收状态、适用/不适用判断、验证证据 |
+| 上游产品表面评审 | [2026-05-03-upstream-product-surface-review-intake.md](2026-05-03-upstream-product-surface-review-intake.md) | Book / Space / Co-writer / TutorBot channels 先做产品评审，不直接进入工程吸收队列 |
 
 ## 按领域索引
 
@@ -48,6 +50,8 @@
 | [2026-05-12-upstream-p0-absorption-status.md](2026-05-12-upstream-p0-absorption-status.md) | Evidence | Implemented locally | HKUDS/DeepTutor v1.3.7-v1.3.10 第一批 runtime/stability 能力吸收状态与跳过项。 |
 | [2026-05-12-upstream-p1-knowledge-absorption-status.md](2026-05-12-upstream-p1-knowledge-absorption-status.md) | Evidence | Implemented locally | HKUDS/DeepTutor 第二批 knowledge/RAG 后端能力吸收状态与跳过项。 |
 | [2026-05-12-upstream-p2-request-snapshot-contract.md](2026-05-12-upstream-p2-request-snapshot-contract.md) | Contract comparison | Draft / implementation target | 第三批 request snapshot / `metadata_json` 吸收边界，明确只归属 turn/session read model，不写 learner state。 |
+| [2026-05-03-upstream-absorption-status.md](2026-05-03-upstream-absorption-status.md) | Evidence | Implemented | 上游 v1.3.5/v1.3.6 可用能力吸收状态、单一 authority 判断与验证证据。 |
+| [2026-05-03-upstream-product-surface-review-intake.md](2026-05-03-upstream-product-surface-review-intake.md) | Intake | Proposed | 上游 Book / Space / Co-writer / TutorBot channels 进入产品评审，不直接搬代码。 |
 
 ### 2. Learner State / Memory / Overlay
 
@@ -179,6 +183,8 @@
 - [2026-04-16-wechat-structured-renderer-devtools-runbook.md](2026-04-16-wechat-structured-renderer-devtools-runbook.md)
 - [2026-04-16-wechat-structured-renderer-p2-gate-checklist.md](2026-04-16-wechat-structured-renderer-p2-gate-checklist.md)
 - [2026-04-16-wechat-structured-renderer-p3-gate-checklist.md](2026-04-16-wechat-structured-renderer-p3-gate-checklist.md)
+- [2026-05-03-upstream-absorption-status.md](2026-05-03-upstream-absorption-status.md)
+- [2026-05-03-upstream-product-surface-review-intake.md](2026-05-03-upstream-product-surface-review-intake.md)
 
 ## 计划修改工作流
 

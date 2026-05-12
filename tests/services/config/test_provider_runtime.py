@@ -88,6 +88,29 @@ def _empty_env(tmp_path: Path) -> EnvStore:
 def _env_with_lines(tmp_path: Path, lines: list[str]) -> EnvStore:
     env_path = tmp_path / ".env"
     env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    return EnvStore(path=env_path)
+
+
+def _env_with_llm_defaults(tmp_path: Path) -> EnvStore:
+    env_path = tmp_path / ".env"
+    env_path.write_text(
+        "\n".join(
+            [
+                "LLM_BINDING=openai",
+                "LLM_MODEL=gpt-env-default",
+                "LLM_API_KEY=env-key",
+                "LLM_HOST=https://env.example/v1",
+                "LLM_API_VERSION=",
+                "SEARCH_PROVIDER=",
+                "SEARCH_API_KEY=",
+                "SEARCH_BASE_URL=",
+                "SEARCH_PROXY=",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     return EnvStore(path=env_path)
 
 
@@ -222,6 +245,45 @@ def test_llm_local_fallback(tmp_path: Path) -> None:
     assert resolved.provider_name == "ollama"
     assert resolved.provider_mode == "local"
     assert resolved.api_key == "sk-no-key-required"
+
+
+def test_llm_selection_overrides_active_model_without_mutating_catalog(tmp_path: Path) -> None:
+    catalog = _build_catalog(
+        llm_profile={
+            "id": "llm-p1",
+            "name": "LLM A",
+            "binding": "openai",
+            "base_url": "https://api.openai.com/v1",
+            "api_key": "key-a",
+            "api_version": "",
+            "extra_headers": {},
+            "models": [{"id": "llm-m1", "name": "a", "model": "gpt-4o-mini"}],
+        }
+    )
+    catalog["services"]["llm"]["profiles"].append(
+        {
+            "id": "llm-p2",
+            "name": "LLM B",
+            "binding": "dashscope",
+            "base_url": "",
+            "api_key": "key-b",
+            "api_version": "",
+            "extra_headers": {},
+            "models": [{"id": "llm-m2", "name": "b", "model": "qwen-max"}],
+        }
+    )
+
+    resolved = resolve_llm_runtime_config(
+        catalog=catalog,
+        env_store=_env_with_llm_defaults(tmp_path),
+        llm_selection={"profile_id": "llm-p2", "model_id": "llm-m2"},
+    )
+
+    assert resolved.model == "qwen-max"
+    assert resolved.provider_name == "dashscope"
+    assert resolved.api_key == "key-b"
+    assert catalog["services"]["llm"]["active_profile_id"] == "llm-p1"
+    assert catalog["services"]["llm"]["active_model_id"] == "llm-m1"
 
 
 def test_search_missing_key_does_not_fallback_to_duckduckgo(tmp_path: Path) -> None:
