@@ -57,7 +57,7 @@ function applyAuthPayload(payload) {
   if (!body || typeof body !== "object" || !body.token) {
     return null;
   }
-  auth.setToken(body.token, body.expires_at);
+  auth.setToken(body.token, body.expires_at, body);
   return body.token;
 }
 

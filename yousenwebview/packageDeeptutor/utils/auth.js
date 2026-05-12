@@ -1,11 +1,58 @@
 // utils/auth.js — Token 管理
 const TOKEN_KEY = "auth_token";
 const TOKEN_EXP_KEY = "auth_token_exp";
-const LEGACY_USER_ID_KEY = "auth_user_id";
+const USER_ID_KEY = "auth_user_id";
 
 function normalizeExpiry(value) {
+  if (typeof value === "string" && !/^\d+$/.test(value.trim())) {
+    return 0;
+  }
   var parsed = parseInt(value, 10);
   return parsed > 0 ? parsed : 0;
+}
+
+function normalizeText(value) {
+  if (value === undefined || value === null) return "";
+  return String(value).trim();
+}
+
+function isUuidLike(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    normalizeText(value),
+  );
+}
+
+function collectCandidates(source, canonical, fallback) {
+  if (!source) return;
+  if (typeof source === "string" || typeof source === "number") {
+    var text = normalizeText(source);
+    if (text) fallback.push(text);
+    return;
+  }
+  if (typeof source !== "object") return;
+  [
+    source.canonical_uid,
+    source.canonicalUid,
+    source.canonicalUserId,
+  ].forEach(function (value) {
+    var text = normalizeText(value);
+    if (text) canonical.push(text);
+  });
+  [
+    source.user_id,
+    source.userId,
+    source.id,
+    source.uid,
+    source.sub,
+    source.external_auth_user_id,
+    source.externalAuthUserId,
+  ].forEach(function (value) {
+    var text = normalizeText(value);
+    if (text) fallback.push(text);
+  });
+  if (source.user && typeof source.user === "object") {
+    collectCandidates(source.user, canonical, fallback);
+  }
 }
 
 function decodeBase64UrlToUtf8(value) {
@@ -75,15 +122,51 @@ const auth = {
     return wx.getStorageSync(TOKEN_KEY) || null;
   },
 
-  setToken(token, expiresAt) {
+  selectUserId() {
+    var canonical = [];
+    var fallback = [];
+    for (var i = 0; i < arguments.length; i += 1) {
+      collectCandidates(arguments[i], canonical, fallback);
+    }
+    for (var j = 0; j < canonical.length; j += 1) {
+      if (isUuidLike(canonical[j])) return canonical[j];
+    }
+    for (var k = 0; k < fallback.length; k += 1) {
+      if (isUuidLike(fallback[k])) return fallback[k];
+    }
+    return canonical[0] || fallback[0] || null;
+  },
+
+  setToken(token, expiresAt, userSource) {
     wx.setStorageSync(TOKEN_KEY, token);
+    var selectedUserId = null;
     var normalizedExpiry = normalizeExpiry(expiresAt);
+    if (typeof expiresAt === "object" && expiresAt !== null) {
+      userSource = expiresAt;
+      normalizedExpiry = normalizeExpiry(expiresAt.expires_at || expiresAt.expiresAt || expiresAt.exp);
+    }
     if (normalizedExpiry) {
       wx.setStorageSync(TOKEN_EXP_KEY, normalizedExpiry);
     } else {
       wx.removeStorageSync(TOKEN_EXP_KEY);
     }
-    wx.removeStorageSync(LEGACY_USER_ID_KEY);
+    selectedUserId = this.selectUserId(userSource);
+    if (!selectedUserId && !normalizedExpiry) {
+      selectedUserId = this.selectUserId(expiresAt);
+    }
+    var existingUserId = normalizeText(wx.getStorageSync(USER_ID_KEY));
+    if (isUuidLike(existingUserId) && !isUuidLike(selectedUserId)) {
+      selectedUserId = existingUserId;
+    }
+    if (selectedUserId) {
+      wx.setStorageSync(USER_ID_KEY, selectedUserId);
+    } else {
+      wx.removeStorageSync(USER_ID_KEY);
+    }
+  },
+
+  getUserId() {
+    return wx.getStorageSync(USER_ID_KEY) || null;
   },
 
   getTokenExpiry() {
@@ -110,7 +193,7 @@ const auth = {
   clearToken() {
     wx.removeStorageSync(TOKEN_KEY);
     wx.removeStorageSync(TOKEN_EXP_KEY);
-    wx.removeStorageSync(LEGACY_USER_ID_KEY);
+    wx.removeStorageSync(USER_ID_KEY);
   },
 
   isLoggedIn() {

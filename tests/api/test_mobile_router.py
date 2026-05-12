@@ -1723,6 +1723,8 @@ def test_auth_profile_settings_syncs_learner_profile_and_goals(
             "display_name": "旧昵称",
             "difficulty_preference": "medium",
             "review_reminder": True,
+            "points": 360,
+            "balance_micros": 360_000_000,
         },
     )
     monkeypatch.setattr(
@@ -1733,6 +1735,8 @@ def test_auth_profile_settings_syncs_learner_profile_and_goals(
             "display_name": "小陈",
             "difficulty_preference": patch.get("difficulty_preference", "medium"),
             "review_reminder": patch.get("review_reminder", True),
+            "points": 520,
+            "balance_micros": 520_000_000,
         },
     )
     monkeypatch.setattr(
@@ -1783,6 +1787,8 @@ def test_auth_profile_settings_syncs_learner_profile_and_goals(
     assert calls[0][2]["difficulty_preference"] == "hard"
     assert calls[0][2]["heartbeat_preferences"]["enabled"] is True
     assert calls[0][2]["consent"]["heartbeat"] is True
+    assert "points" not in calls[0][2]
+    assert "balance_micros" not in calls[0][2]
     assert calls[1] == (
         "goal",
         "student_demo",

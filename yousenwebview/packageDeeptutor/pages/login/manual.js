@@ -220,7 +220,7 @@ Page({
         var inner = resp.data || resp;
         var token = inner.token;
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
-        auth.setToken(token, inner.expires_at);
+        auth.setToken(token, inner.expires_at, inner);
         self._trackLoginSuccess("phone_code");
         self._reLaunchAfterAuth();
       })
@@ -269,7 +269,7 @@ Page({
         var user = inner.user || resp.user || {};
         var token = inner.token || inner._token || resp.token || resp._token || user._token;
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
-        auth.setToken(token, inner.expires_at);
+        auth.setToken(token, inner.expires_at, inner);
         self._trackLoginSuccess("password");
         self._reLaunchAfterAuth();
       })

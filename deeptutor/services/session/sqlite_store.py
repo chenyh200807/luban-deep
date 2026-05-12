@@ -12,7 +12,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
@@ -489,6 +489,25 @@ def normalize_suspended_object_stack(raw: Any) -> list[dict[str, Any]]:
 def build_user_owner_key(user_id: str | None) -> str:
     resolved = str(user_id or "").strip()
     return f"user:{resolved}" if resolved else ""
+
+
+def _rewrite_owner_identity_in_preferences(
+    preferences: dict[str, Any] | None,
+    *,
+    old_user_id: str,
+    new_user_id: str,
+) -> tuple[dict[str, Any], bool]:
+    normalized = dict(preferences or {}) if isinstance(preferences, dict) else {}
+    changed = False
+    old_owner_key = build_user_owner_key(old_user_id)
+    new_owner_key = build_user_owner_key(new_user_id)
+    if str(normalized.get("user_id") or "").strip() == old_user_id:
+        normalized["user_id"] = new_user_id
+        changed = True
+    if str(normalized.get("owner_key") or "").strip() == old_owner_key:
+        normalized["owner_key"] = new_owner_key
+        changed = True
+    return normalized, changed
 
 
 def _normalize_session_source(value: Any) -> str:
@@ -2121,6 +2140,134 @@ class SQLiteSessionStore:
 
     async def get_session_owner_key(self, session_id: str) -> str:
         return await self._run(self._get_session_owner_key_sync, session_id)
+
+    def _rewrite_owner_keys_sync(self, user_id_mapping: Mapping[str, str]) -> dict[str, int]:
+        summary = {
+            "pairs_applied": 0,
+            "sessions_updated": 0,
+            "entries_updated": 0,
+            "categories_updated": 0,
+            "categories_merged": 0,
+            "category_links_repointed": 0,
+        }
+        normalized_pairs: list[tuple[str, str, str, str]] = []
+        for raw_old_user_id, raw_new_user_id in dict(user_id_mapping or {}).items():
+            old_user_id = str(raw_old_user_id or "").strip()
+            new_user_id = str(raw_new_user_id or "").strip()
+            if not old_user_id or not new_user_id or old_user_id == new_user_id:
+                continue
+            old_owner_key = build_user_owner_key(old_user_id)
+            new_owner_key = build_user_owner_key(new_user_id)
+            if not old_owner_key or not new_owner_key or old_owner_key == new_owner_key:
+                continue
+            normalized_pairs.append((old_user_id, new_user_id, old_owner_key, new_owner_key))
+        if not normalized_pairs:
+            return summary
+
+        with self._connect() as conn:
+            for old_user_id, new_user_id, old_owner_key, new_owner_key in normalized_pairs:
+                session_rows = conn.execute(
+                    "SELECT id, owner_key, preferences_json FROM sessions",
+                ).fetchall()
+                for row in session_rows:
+                    preferences = _json_loads(row["preferences_json"], {})
+                    effective_owner_key = _resolve_effective_owner_key(
+                        row["owner_key"],
+                        _derive_owner_key_from_preferences(preferences),
+                    )
+                    if effective_owner_key != old_owner_key:
+                        continue
+                    rewritten_preferences, _ = _rewrite_owner_identity_in_preferences(
+                        preferences,
+                        old_user_id=old_user_id,
+                        new_user_id=new_user_id,
+                    )
+                    cur = conn.execute(
+                        """
+                        UPDATE sessions
+                        SET owner_key = ?, preferences_json = ?, updated_at = ?
+                        WHERE id = ?
+                        """,
+                        (
+                            new_owner_key,
+                            _json_dumps(rewritten_preferences),
+                            time.time(),
+                            row["id"],
+                        ),
+                    )
+                    summary["sessions_updated"] += max(0, int(cur.rowcount or 0))
+
+                entry_cur = conn.execute(
+                    """
+                    UPDATE notebook_entries
+                    SET owner_key = ?
+                    WHERE owner_key = ?
+                    """,
+                    (new_owner_key, old_owner_key),
+                )
+                summary["entries_updated"] += max(0, int(entry_cur.rowcount or 0))
+
+                category_rows = conn.execute(
+                    """
+                    SELECT id, name
+                    FROM notebook_categories
+                    WHERE owner_key = ?
+                    ORDER BY id ASC
+                    """,
+                    (old_owner_key,),
+                ).fetchall()
+                for row in category_rows:
+                    target = conn.execute(
+                        """
+                        SELECT id
+                        FROM notebook_categories
+                        WHERE owner_key = ? AND name = ?
+                        """,
+                        (new_owner_key, row["name"]),
+                    ).fetchone()
+                    if target is None:
+                        cur = conn.execute(
+                            """
+                            UPDATE notebook_categories
+                            SET owner_key = ?
+                            WHERE id = ?
+                            """,
+                            (new_owner_key, row["id"]),
+                        )
+                        summary["categories_updated"] += max(0, int(cur.rowcount or 0))
+                        continue
+
+                    entry_ids = conn.execute(
+                        """
+                        SELECT entry_id
+                        FROM notebook_entry_categories
+                        WHERE category_id = ?
+                        """,
+                        (row["id"],),
+                    ).fetchall()
+                    if entry_ids:
+                        changes_before = conn.total_changes
+                        conn.executemany(
+                            """
+                            INSERT OR IGNORE INTO notebook_entry_categories (entry_id, category_id)
+                            VALUES (?, ?)
+                            """,
+                            [(entry_row["entry_id"], target["id"]) for entry_row in entry_ids],
+                        )
+                        summary["category_links_repointed"] += conn.total_changes - changes_before
+                    conn.execute(
+                        "DELETE FROM notebook_entry_categories WHERE category_id = ?",
+                        (row["id"],),
+                    )
+                    conn.execute("DELETE FROM notebook_categories WHERE id = ?", (row["id"],))
+                    summary["categories_merged"] += 1
+
+                summary["pairs_applied"] += 1
+            conn.commit()
+        return summary
+
+    async def rewrite_owner_keys(self, user_id_mapping: Mapping[str, str]) -> dict[str, int]:
+        return await self._run(self._rewrite_owner_keys_sync, user_id_mapping)
 
     def _update_summary_sync(self, session_id: str, summary: str, up_to_msg_id: int) -> bool:
         with self._connect() as conn:

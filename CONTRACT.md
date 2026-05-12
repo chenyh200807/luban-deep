@@ -33,6 +33,7 @@ DeepTutor 必须优先保证：
 - provider / pipeline / strategy / prompt / 内部算法可以演进
 - 身份 / 工具 / 知识库绑定 / 表现风格不能混成多套平行概念
 - 联网搜索工具必须由 config runtime 统一判定可用性；未配置时关闭，不得由入口、capability 或 provider fallback 各自决定。
+- 账户事实与学习事实必须分权：钱包余额、点数、冻结余额、会员账户 projection 只能由 wallet / member authority 输出，不能写入 learner profile、turn runtime 或 capability payload 作为第二份真相。
 
 ## 当前必须单点治理的控制面
 

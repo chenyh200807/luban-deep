@@ -15,8 +15,7 @@ function assert(condition, message) {
   errors.push("FAIL: " + message);
 }
 
-var writes = [];
-var removes = [];
+var storage = { auth_token: "saved_token" };
 var source = fs.readFileSync(
   path.join(__dirname, "../packageDeeptutor/utils/auth.js"),
   "utf8",
@@ -24,13 +23,13 @@ var source = fs.readFileSync(
 var sandbox = {
   wx: {
     getStorageSync: function (key) {
-      return key === "auth_token" ? "saved_token" : "";
+      return storage[key] || "";
     },
     setStorageSync: function (key, value) {
-      writes.push({ key: key, value: value });
+      storage[key] = value;
     },
     removeStorageSync: function (key) {
-      removes.push(key);
+      delete storage[key];
     },
   },
   module: { exports: {} },
@@ -45,7 +44,10 @@ vm.runInNewContext(source, sandbox, {
 });
 
 var moduleExports = sandbox.module.exports;
-moduleExports.setToken("fresh_token", "ignored_user_id");
+moduleExports.setToken("fresh_token", {
+  canonical_uid: "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+  user_id: "user_2008",
+});
 
 assert(
   typeof moduleExports.extractUserIdFromAuthPayload === "undefined",
@@ -53,24 +55,23 @@ assert(
 );
 
 assert(
-  typeof moduleExports.getUserId === "undefined",
-  "auth helper should no longer expose local auth_user_id reads",
+  moduleExports.getUserId() === "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+  "auth helper should persist canonical auth_user_id",
 );
 
 assert(
-  writes.length === 1 &&
-    writes[0].key === "auth_token" &&
-    writes[0].value === "fresh_token",
-  "auth helper should only persist auth_token",
+  storage.auth_token === "fresh_token",
+  "auth helper should persist auth_token",
+);
+
+moduleExports.setToken("fresh_token_2", "user_2008");
+assert(
+  moduleExports.getUserId() === "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+  "auth helper should not downgrade uuid to legacy id",
 );
 
 assert(
-  removes.indexOf("auth_user_id") !== -1,
-  "auth helper should clear legacy auth_user_id cache when setting token",
-);
-
-assert(
-  moduleExports.getToken() === "saved_token",
+  moduleExports.getToken() === "fresh_token_2",
   "auth helper should keep token reads unchanged",
 );
 

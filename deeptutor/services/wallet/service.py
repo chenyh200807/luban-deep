@@ -52,6 +52,29 @@ class WalletCaptureResult:
     entry: WalletLedgerEntry | None
 
 
+@dataclass(frozen=True, slots=True)
+class WalletMutationResult:
+    ledger_event_id: str
+    user_id: str
+    event_type: str
+    delta_micros: int
+    balance_micros: int
+    frozen_micros: int
+    version: int
+    idempotency_key: str
+    reference_type: str
+    reference_id: str
+    created_at: str
+
+
+class WalletServiceError(RuntimeError):
+    """Raised when a wallet mutation request fails."""
+
+
+class WalletInsufficientBalanceError(WalletServiceError):
+    """Raised when a debit would overdraw the available wallet balance."""
+
+
 class SupabaseWalletService:
     def __init__(
         self,
@@ -348,6 +371,159 @@ class SupabaseWalletService:
 
         raise RuntimeError(f"Wallet capture concurrency conflict for user {normalized_user_id}")
 
+    def debit_points(
+        self,
+        *,
+        user_id: str,
+        amount_micros: int,
+        reference_type: str,
+        reference_id: str,
+        idempotency_key: str,
+        reason: str = "capture",
+        metadata: dict[str, Any] | None = None,
+        operator_type: str = "system",
+        operator_id: str | None = None,
+    ) -> WalletMutationResult:
+        return self._mutate_points(
+            user_id=user_id,
+            event_type="debit",
+            delta_micros=-abs(_coerce_int(amount_micros)),
+            reference_type=reference_type,
+            reference_id=reference_id,
+            idempotency_key=idempotency_key,
+            reason=reason,
+            metadata=metadata,
+            operator_type=operator_type,
+            operator_id=operator_id,
+        )
+
+    def grant_points(
+        self,
+        *,
+        user_id: str,
+        amount_micros: int,
+        reference_type: str,
+        reference_id: str,
+        idempotency_key: str,
+        reason: str = "grant",
+        metadata: dict[str, Any] | None = None,
+        operator_type: str = "system",
+        operator_id: str | None = None,
+    ) -> WalletMutationResult:
+        return self._mutate_points(
+            user_id=user_id,
+            event_type="grant",
+            delta_micros=abs(_coerce_int(amount_micros)),
+            reference_type=reference_type,
+            reference_id=reference_id,
+            idempotency_key=idempotency_key,
+            reason=reason,
+            metadata=metadata,
+            operator_type=operator_type,
+            operator_id=operator_id,
+        )
+
+    def refund_points(
+        self,
+        *,
+        user_id: str,
+        amount_micros: int,
+        reference_type: str,
+        reference_id: str,
+        idempotency_key: str,
+        reason: str = "refund",
+        metadata: dict[str, Any] | None = None,
+        operator_type: str = "system",
+        operator_id: str | None = None,
+    ) -> WalletMutationResult:
+        return self._mutate_points(
+            user_id=user_id,
+            event_type="refund",
+            delta_micros=abs(_coerce_int(amount_micros)),
+            reference_type=reference_type,
+            reference_id=reference_id,
+            idempotency_key=idempotency_key,
+            reason=reason,
+            metadata=metadata,
+            operator_type=operator_type,
+            operator_id=operator_id,
+        )
+
+    def admin_adjust_points(
+        self,
+        *,
+        user_id: str,
+        delta_micros: int,
+        reference_id: str,
+        idempotency_key: str,
+        reason: str = "admin_adjust",
+        metadata: dict[str, Any] | None = None,
+        operator_type: str = "admin",
+        operator_id: str | None = None,
+    ) -> WalletMutationResult:
+        return self._mutate_points(
+            user_id=user_id,
+            event_type="admin_adjust",
+            delta_micros=_coerce_int(delta_micros),
+            reference_type="ticket",
+            reference_id=reference_id,
+            idempotency_key=idempotency_key,
+            reason=reason,
+            metadata=metadata,
+            operator_type=operator_type,
+            operator_id=operator_id,
+        )
+
+    def _mutate_points(
+        self,
+        *,
+        user_id: str,
+        event_type: str,
+        delta_micros: int,
+        reference_type: str,
+        reference_id: str,
+        idempotency_key: str,
+        reason: str,
+        metadata: dict[str, Any] | None = None,
+        operator_type: str = "system",
+        operator_id: str | None = None,
+    ) -> WalletMutationResult:
+        if not self.is_configured:
+            raise RuntimeError("Wallet service is not configured")
+
+        normalized_delta = _coerce_int(delta_micros)
+        if normalized_delta == 0:
+            raise ValueError("delta_micros must be non-zero")
+
+        row = self._rpc_row(
+            function_name="apply_wallet_mutation",
+            payload={
+                "p_user_id": _normalize_text(user_id),
+                "p_event_type": _normalize_text(event_type),
+                "p_delta_micros": normalized_delta,
+                "p_reference_type": _normalize_text(reference_type),
+                "p_reference_id": _normalize_text(reference_id),
+                "p_reason": _normalize_text(reason) or _normalize_text(event_type),
+                "p_idempotency_key": _normalize_text(idempotency_key),
+                "p_operator_type": _normalize_text(operator_type) or "system",
+                "p_operator_id": _normalize_text(operator_id),
+                "p_metadata": dict(metadata or {}),
+            },
+        )
+        return WalletMutationResult(
+            ledger_event_id=_normalize_text(row.get("ledger_event_id")),
+            user_id=_normalize_text(row.get("user_id")),
+            event_type=_normalize_text(row.get("event_type")),
+            delta_micros=_coerce_int(row.get("delta_micros")),
+            balance_micros=_coerce_int(row.get("balance_micros")),
+            frozen_micros=_coerce_int(row.get("frozen_micros")),
+            version=_coerce_int(row.get("version")),
+            idempotency_key=_normalize_text(row.get("idempotency_key")),
+            reference_type=_normalize_text(row.get("reference_type")),
+            reference_id=_normalize_text(row.get("reference_id")),
+            created_at=_normalize_text(row.get("created_at")),
+        )
+
     def _build_ledger_entry(self, row: dict[str, Any]) -> WalletLedgerEntry:
         return WalletLedgerEntry(
             id=_normalize_text(row.get("id")),
@@ -436,6 +612,49 @@ class SupabaseWalletService:
         finally:
             if self._owns_client and self._client is None:
                 client.close()
+
+    def _rpc_row(self, *, function_name: str, payload: dict[str, Any]) -> dict[str, Any]:
+        client = self._client or httpx.Client(timeout=5.0)
+        try:
+            response = client.post(
+                f"{self._base_url.rstrip('/')}/rest/v1/rpc/{function_name}",
+                headers={
+                    "apikey": self._service_key,
+                    "Authorization": f"Bearer {self._service_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+            if response.is_error:
+                self._raise_wallet_error(response)
+            body = response.json()
+            if isinstance(body, list):
+                for item in body:
+                    if isinstance(item, dict):
+                        return dict(item)
+                return {}
+            if isinstance(body, dict):
+                return dict(body)
+            return {}
+        finally:
+            if self._owns_client and self._client is None:
+                client.close()
+
+    @staticmethod
+    def _raise_wallet_error(response: httpx.Response) -> None:
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = {}
+        message = _normalize_text(payload.get("message")) if isinstance(payload, dict) else ""
+        details = _normalize_text(payload.get("details")) if isinstance(payload, dict) else ""
+        code = _normalize_text(payload.get("code")) if isinstance(payload, dict) else ""
+        if not message:
+            message = _normalize_text(response.text) or "Wallet mutation failed."
+        detail_suffix = f" ({details})" if details else ""
+        if code == "P0001" and "insufficient" in message.lower():
+            raise WalletInsufficientBalanceError(f"{message}{detail_suffix}")
+        raise WalletServiceError(f"{message}{detail_suffix}")
 
     def _post_rows(self, *, table: str, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if not self.is_configured:

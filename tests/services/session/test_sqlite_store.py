@@ -453,6 +453,68 @@ def test_sqlite_store_backfills_session_source_archived_columns(tmp_path: Path) 
     assert row["conversation_id"] == "session_mobile"
 
 
+def test_sqlite_store_rewrite_owner_keys_merges_duplicate_categories_and_preferences(tmp_path: Path) -> None:
+    db_path = tmp_path / "owner-key-rewrite.db"
+    store = SQLiteSessionStore(db_path=db_path)
+    old_owner_key = build_user_owner_key("user_2008")
+    new_owner_key = build_user_owner_key("2d9eac15-5d26-4e93-941b-9ec6345ce6d9")
+
+    asyncio.run(store.create_session(title="旧会话", session_id="legacy_session", owner_key=old_owner_key))
+    asyncio.run(
+        store.update_session_preferences(
+            "legacy_session",
+            {
+                "user_id": "user_2008",
+                "owner_key": old_owner_key,
+                "source": "wx",
+            },
+        )
+    )
+    asyncio.run(
+        store.upsert_notebook_entries(
+            "legacy_session",
+            [
+                {
+                    "question_id": "q_1",
+                    "question": "地基承载力怎么判断？",
+                    "question_type": "single_choice",
+                }
+            ],
+        )
+    )
+    old_category = asyncio.run(store.create_category("错题", owner_key=old_owner_key))
+    new_category = asyncio.run(store.create_category("错题", owner_key=new_owner_key))
+    legacy_entry = asyncio.run(store.find_notebook_entry("legacy_session", "q_1", owner_key=old_owner_key))
+    assert legacy_entry is not None
+    asyncio.run(store.add_entry_to_category(int(legacy_entry["id"]), int(old_category["id"]), owner_key=old_owner_key))
+
+    summary = asyncio.run(
+        store.rewrite_owner_keys(
+            {
+                "user_2008": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+            }
+        )
+    )
+
+    assert summary["sessions_updated"] == 1
+    assert summary["entries_updated"] == 1
+    assert summary["categories_updated"] == 0
+    assert summary["category_links_repointed"] == 1
+    assert summary["categories_merged"] == 1
+
+    sessions = asyncio.run(store.list_sessions_by_owner(new_owner_key, limit=10))
+    assert [item["session_id"] for item in sessions] == ["legacy_session"]
+    session = asyncio.run(store.get_session("legacy_session"))
+    assert session is not None
+    assert session["preferences"]["user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    assert session["preferences"]["owner_key"] == new_owner_key
+
+    categories = asyncio.run(store.list_categories(owner_key=new_owner_key))
+    assert [item["id"] for item in categories] == [new_category["id"]]
+    linked_categories = asyncio.run(store.get_entry_categories(int(legacy_entry["id"]), owner_key=new_owner_key))
+    assert [item["id"] for item in linked_categories] == [new_category["id"]]
+
+
 @pytest.fixture
 def store(tmp_path: Path) -> SQLiteSessionStore:
     return SQLiteSessionStore(db_path=tmp_path / "test.db")

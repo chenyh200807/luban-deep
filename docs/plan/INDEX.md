@@ -82,6 +82,7 @@
 | --- | --- | --- | --- |
 | [2026-04-19-supabase-wallet-single-authority-prd.md](2026-04-19-supabase-wallet-single-authority-prd.md) | PRD | Draft v3 | Supabase 钱包唯一权威体系。 |
 | [2026-04-19-supabase-wallet-single-authority-implementation-plan.md](2026-04-19-supabase-wallet-single-authority-implementation-plan.md) | Implementation Plan | Draft v1 | WP1-WP4 钱包实施计划。 |
+| [2026-04-19-supabase-wallet-rls-appendix.md](2026-04-19-supabase-wallet-rls-appendix.md) | Appendix | Draft | 钱包 RLS / RPC / migration 审查补充。 |
 
 ### 6. Observability / Benchmark / Release Gate
 

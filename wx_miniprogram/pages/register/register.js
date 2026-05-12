@@ -104,7 +104,7 @@ Page({
         var user = inner.user || resp.user || {};
         var token = inner.token || inner._token || resp.token || resp._token || user._token;
         if (!token) throw new Error("服务端未返回凭证");
-        auth.setToken(token, inner.expires_at);
+        auth.setToken(token, inner.expires_at, inner);
         wx.switchTab({ url: "/pages/chat/chat" });
       })
       .catch(function (err) {
@@ -135,7 +135,7 @@ Page({
     var inner = payload && (payload.data || payload);
     var token = inner && inner.token;
     if (!token) throw new Error("服务端未返回凭证");
-    auth.setToken(token, inner.expires_at);
+    auth.setToken(token, inner.expires_at, inner);
   },
   handleWechatRegister: function () {
     var self = this;
@@ -201,7 +201,7 @@ Page({
           .then(function (resp) {
             var inner = resp.data || resp;
             if (inner && inner.token) {
-              auth.setToken(inner.token, inner.expires_at);
+              auth.setToken(inner.token, inner.expires_at, inner);
             }
             wx.switchTab({ url: "/pages/chat/chat" });
           })

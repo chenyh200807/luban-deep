@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import httpx
+import pytest
 
-from deeptutor.services.wallet.service import SupabaseWalletService
+from deeptutor.services.wallet.service import (
+    SupabaseWalletService,
+    WalletInsufficientBalanceError,
+)
 
 
 class _FakeResponse:
@@ -321,3 +325,136 @@ def test_ensure_wallet_seeded_backfills_missing_opening_ledger_for_existing_wall
     assert client.ledger[0]["idempotency_key"] == (
         "signup_bonus:2d9eac15-5d26-4e93-941b-9ec6345ce6d9:member_console_bootstrap"
     )
+
+
+def test_debit_points_posts_rpc_and_normalizes_mutation_result() -> None:
+    def _handler(request: httpx.Request) -> httpx.Response:
+        assert request.method == "POST"
+        assert request.url.path.endswith("/rest/v1/rpc/apply_wallet_mutation")
+        payload = request.read().decode("utf-8")
+        assert '"p_user_id":"2d9eac15-5d26-4e93-941b-9ec6345ce6d9"' in payload
+        assert '"p_event_type":"debit"' in payload
+        assert '"p_delta_micros":-20000000' in payload
+        assert '"p_reference_type":"ai_usage"' in payload
+        assert '"p_reference_id":"turn_123"' in payload
+        assert '"p_idempotency_key":"capture:turn_123"' in payload
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "ledger_event_id": "evt_capture_123",
+                    "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                    "event_type": "debit",
+                    "delta_micros": -20000000,
+                    "balance_micros": 580000000,
+                    "frozen_micros": 0,
+                    "version": 13,
+                    "idempotency_key": "capture:turn_123",
+                    "reference_type": "ai_usage",
+                    "reference_id": "turn_123",
+                    "created_at": "2026-04-19T12:10:00+08:00",
+                }
+            ],
+            request=request,
+        )
+
+    service = SupabaseWalletService(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=httpx.Client(transport=httpx.MockTransport(_handler)),
+    )
+
+    result = service.debit_points(
+        user_id="2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+        amount_micros=20_000_000,
+        reference_type="ai_usage",
+        reference_id="turn_123",
+        idempotency_key="capture:turn_123",
+        reason="capture",
+        operator_type="system",
+        operator_id="turn_runtime",
+        metadata={"source": "wx_miniprogram"},
+    )
+
+    assert result.ledger_event_id == "evt_capture_123"
+    assert result.user_id == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    assert result.balance_micros == 580000000
+    assert result.version == 13
+
+
+def test_debit_points_maps_supabase_insufficient_balance_error() -> None:
+    def _handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            400,
+            json={
+                "message": "Insufficient wallet balance.",
+                "details": "available_micros=1000000 requested_delta_micros=-20000000",
+                "code": "P0001",
+            },
+            request=request,
+        )
+
+    service = SupabaseWalletService(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=httpx.Client(transport=httpx.MockTransport(_handler)),
+    )
+
+    with pytest.raises(WalletInsufficientBalanceError, match="Insufficient wallet balance"):
+        service.debit_points(
+            user_id="2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+            amount_micros=20_000_000,
+            reference_type="ai_usage",
+            reference_id="turn_123",
+            idempotency_key="capture:turn_123",
+        )
+
+
+def test_grant_points_posts_positive_grant_mutation() -> None:
+    def _handler(request: httpx.Request) -> httpx.Response:
+        assert request.method == "POST"
+        assert request.url.path.endswith("/rest/v1/rpc/apply_wallet_mutation")
+        payload = request.read().decode("utf-8")
+        assert '"p_event_type":"grant"' in payload
+        assert '"p_delta_micros":600000000' in payload
+        assert '"p_reference_type":"order"' in payload
+        assert '"p_reference_id":"order_123"' in payload
+        assert '"p_reason":"purchase_grant"' in payload
+        return httpx.Response(
+            200,
+            json={
+                "ledger_event_id": "evt_grant_123",
+                "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                "event_type": "grant",
+                "delta_micros": 600000000,
+                "balance_micros": 1200000000,
+                "frozen_micros": 0,
+                "version": 16,
+                "idempotency_key": "grant:order_123",
+                "reference_type": "order",
+                "reference_id": "order_123",
+                "created_at": "2026-04-19T12:20:00+08:00",
+            },
+            request=request,
+        )
+
+    service = SupabaseWalletService(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=httpx.Client(transport=httpx.MockTransport(_handler)),
+    )
+
+    result = service.grant_points(
+        user_id="2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+        amount_micros=600_000_000,
+        reference_type="order",
+        reference_id="order_123",
+        idempotency_key="grant:order_123",
+        reason="purchase_grant",
+        metadata={"channel": "wechat_pay"},
+    )
+
+    assert result.ledger_event_id == "evt_grant_123"
+    assert result.event_type == "grant"
+    assert result.delta_micros == 600000000
+    assert result.balance_micros == 1200000000

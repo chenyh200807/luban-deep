@@ -31,6 +31,15 @@ class WalletIdentityResolution:
     needs_lookup: bool
 
 
+@dataclass(frozen=True, slots=True)
+class IdentityInventoryRow:
+    alias_type: str
+    alias_value: str
+    member_user_id: str
+    canonical_user_id: str
+    source: str
+
+
 class WalletIdentitySupabaseStore:
     def __init__(
         self,
@@ -116,6 +125,55 @@ def resolve_wallet_identity(*, raw_user_id: str, claims: dict[str, Any] | None =
         source="unresolved",
         needs_lookup=bool(normalized_raw),
     )
+
+
+def _append_inventory_row(
+    rows: list[IdentityInventoryRow],
+    *,
+    alias_type: str,
+    alias_value: Any,
+    member_user_id: Any,
+    source: str = "member_console",
+) -> None:
+    normalized_alias = _normalize_text(alias_value)
+    normalized_member = _normalize_text(member_user_id)
+    if not normalized_alias or not normalized_member:
+        return
+    canonical_user_id = normalized_alias if alias_type == "external_auth_user_id" and is_uuid_like(normalized_alias) else ""
+    rows.append(
+        IdentityInventoryRow(
+            alias_type=alias_type,
+            alias_value=normalized_alias,
+            member_user_id=normalized_member,
+            canonical_user_id=canonical_user_id,
+            source=source,
+        )
+    )
+
+
+def collect_identity_inventory_rows(*, members: list[dict[str, Any]]) -> list[IdentityInventoryRow]:
+    rows: list[IdentityInventoryRow] = []
+    for member in members or []:
+        if not isinstance(member, dict):
+            continue
+        member_user_id = member.get("user_id")
+        _append_inventory_row(rows, alias_type="legacy_user_id", alias_value=member_user_id, member_user_id=member_user_id)
+        _append_inventory_row(
+            rows,
+            alias_type="auth_username",
+            alias_value=member.get("auth_username"),
+            member_user_id=member_user_id,
+        )
+        _append_inventory_row(
+            rows,
+            alias_type="external_auth_user_id",
+            alias_value=member.get("external_auth_user_id"),
+            member_user_id=member_user_id,
+        )
+        _append_inventory_row(rows, alias_type="wx_openid", alias_value=member.get("wx_openid"), member_user_id=member_user_id)
+        _append_inventory_row(rows, alias_type="wx_unionid", alias_value=member.get("wx_unionid"), member_user_id=member_user_id)
+        _append_inventory_row(rows, alias_type="phone", alias_value=member.get("phone"), member_user_id=member_user_id)
+    return rows
 
 
 _identity_store: WalletIdentitySupabaseStore | None = None

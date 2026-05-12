@@ -196,6 +196,7 @@ Overlay 必须支持：
 
 - 任意普通聊天直接覆盖 profile
 - TutorBot workspace memory 直接覆盖 profile
+- 钱包、会员余额、点数、冻结余额、`wallet` projection 等账户事实写入 learner profile；这些事实只属于 wallet / member authority，learner state 只能在读取时忽略或剥离它们。
 
 ### Learner Summary
 

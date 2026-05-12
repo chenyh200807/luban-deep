@@ -941,6 +941,16 @@ def _extract_goal_patches(patch: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _build_learner_profile_payload(profile: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
     merged = dict(profile or {})
+    for key in (
+        "points",
+        "balance",
+        "display_balance",
+        "balance_micros",
+        "frozen",
+        "frozen_micros",
+        "wallet",
+    ):
+        merged.pop(key, None)
     passthrough_fields = {
         "timezone",
         "source",

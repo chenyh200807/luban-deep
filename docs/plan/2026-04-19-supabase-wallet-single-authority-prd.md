@@ -1,5 +1,9 @@
 # PRD：Supabase 钱包唯一权威体系
 
+> 2026-04-19 实施注记：
+> 线上真实库中 `public.users.id` 是 legacy `text`，不是 UUID；当前稳定可用的 authority 主键实际落在 `public.wallets.user_id` 这条 UUID 链上。
+> 因此本文所有“`users.id` UUID”在实施层均解释为“canonical wallet user UUID”，不得再机械外键到 `public.users.id`。
+
 ## 1. 文档信息
 
 - 文档名称：Supabase 钱包唯一权威体系 PRD
