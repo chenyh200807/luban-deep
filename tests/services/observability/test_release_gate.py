@@ -387,6 +387,48 @@ def test_release_gate_report_blocks_high_change_impact() -> None:
     assert any(item["gate"] == "P5 Change Impact" for item in payload["gate_results"])
 
 
+def test_release_gate_allows_prelaunch_aae_proxy_when_composite_is_healthy() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload={
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+            "benchmark_case_results": [{"suite": "semantic-router", "status": "PASS", "case_tier": "gate_stable"}],
+            "benchmark_run_manifest": {"run_id": "bench-1"},
+            "blind_spots": [],
+        },
+        aae_payload={
+            "scorecard": {"paid_student_satisfaction_score": {"is_proxy": True}},
+            "composite": {"value": 1.0, "coverage_ratio": 1.0},
+        },
+        oa_payload={"blind_spots": [], "root_causes": []},
+        change_impact_payload={
+            "run_id": "change-impact-1",
+            "risk_level": "low",
+            "blocking_recommendation": "canary",
+            "first_failing_signal": {"type": "none"},
+        },
+    )
+
+    assert payload["final_status"] == "PASS"
+    assert payload["recommendation"] == "canary"
+    p3 = next(item for item in payload["gate_results"] if item["gate"] == "P3 AAE")
+    assert p3["status"] == "PASS"
+    assert "proxy" in p3["summary"]
+
+
 def test_release_gate_fails_existing_gate_failure_without_baseline_diff() -> None:
     payload = build_release_gate_report(
         om_payload={
