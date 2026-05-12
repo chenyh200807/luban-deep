@@ -15,6 +15,7 @@ domains:
       - deeptutor/api/routers/mobile.py
       - deeptutor/api/routers/system.py
       - deeptutor/services/session/*.py
+      - deeptutor/services/exam_track.py
       - deeptutor/contracts/unified_turn.py
       - web/lib/unified-ws.ts
       - web/context/UnifiedChatContext.tsx
@@ -23,6 +24,7 @@ domains:
       - deeptutor/api/routers/mobile.py
       - deeptutor/api/routers/system.py
       - deeptutor/services/session/turn_runtime.py
+      - deeptutor/services/exam_track.py
       - deeptutor/contracts/unified_turn.py
       - web/lib/unified-ws.ts
       - web/context/UnifiedChatContext.tsx
@@ -45,12 +47,14 @@ domains:
       - deeptutor/runtime/orchestrator.py
       - deeptutor/runtime/registry/capability_registry.py
       - deeptutor/capabilities/request_contracts.py
+      - deeptutor/services/exam_track.py
       - deeptutor/api/routers/chat.py
       - deeptutor/api/routers/mobile.py
       - deeptutor/api/routers/unified_ws.py
     sensitive_patterns:
       - deeptutor/runtime/orchestrator.py
       - deeptutor/capabilities/request_contracts.py
+      - deeptutor/services/exam_track.py
       - deeptutor/api/routers/unified_ws.py
       - deeptutor/api/routers/mobile.py
     test_files:
@@ -72,11 +76,13 @@ domains:
       - deeptutor/services/rag/**/*.py
       - deeptutor/tools/rag_tool.py
       - deeptutor/agents/chat/agentic_pipeline.py
+      - deeptutor/services/exam_track.py
     sensitive_patterns:
       - deeptutor/services/rag/service.py
       - deeptutor/services/rag/pipelines/*.py
       - deeptutor/services/rag/pipelines/**/*.py
       - deeptutor/agents/chat/agentic_pipeline.py
+      - deeptutor/services/exam_track.py
     test_files:
       - tests/services/rag/test_rag_pipelines.py
       - tests/services/rag/test_supabase_strategy.py
@@ -105,6 +111,8 @@ domains:
       - tests/services/config/test_provider_runtime.py
       - tests/services/config/test_embedding_runtime.py
       - tests/services/config/test_knowledge_base_config.py
+      - tests/services/search/test_web_search_runtime.py
+      - tests/services/search/test_search_provider_resilience.py
     schema_files: []
 
   learner_state:
@@ -112,10 +120,17 @@ domains:
     contract_files:
       - CONTRACT.md
       - contracts/learner-state.md
-      - doc/plan/2026-04-15-learner-state-memory-guided-learning-prd.md
+      - docs/plan/2026-04-15-learner-state-memory-guided-learning-prd.md
+      - docs/plan/2026-04-15-bot-learner-overlay-prd.md
+      - docs/plan/2026-04-24-learner-state-overlay-completion-evidence.md
       - deeptutor/contracts/learner_state.py
       - contracts/index.yaml
     protected_patterns:
+      - deeptutor/services/learner_state/*.py
+      - deeptutor/services/learner_state/**/*.py
+      - deeptutor/services/member_console/*.py
+      - supabase/migrations/*learner_state*.sql
+      - supabase/migrations/*bot_learner_overlay*.sql
       - deeptutor/services/memory/*.py
       - deeptutor/services/tutor_state/*.py
       - deeptutor/services/tutor_state/**/*.py
@@ -130,6 +145,14 @@ domains:
       - deeptutor/api/routers/memory.py
       - deeptutor/contracts/learner_state.py
     sensitive_patterns:
+      - deeptutor/services/learner_state/service.py
+      - deeptutor/services/learner_state/overlay_service.py
+      - deeptutor/services/learner_state/runtime.py
+      - deeptutor/services/learner_state/supabase_writer.py
+      - deeptutor/services/learner_state/heartbeat/service.py
+      - deeptutor/services/learner_state/heartbeat/scheduler.py
+      - deeptutor/services/learner_state/heartbeat/arbitration.py
+      - deeptutor/services/member_console/service.py
       - deeptutor/services/memory/service.py
       - deeptutor/services/tutor_state/service.py
       - deeptutor/tutorbot/agent/memory.py
@@ -138,5 +161,23 @@ domains:
       - deeptutor/contracts/learner_state.py
     test_files:
       - tests/api/test_system_router.py
+      - tests/api/test_unified_ws_turn_runtime.py
+      - tests/services/learner_state/test_service.py
+      - tests/services/learner_state/test_overlay_service.py
+      - tests/services/learner_state/test_supabase_store.py
+      - tests/services/learner_state/test_supabase_writer.py
+      - tests/services/learner_state/test_outbox.py
+      - tests/services/learner_state/test_flusher.py
+      - tests/services/learner_state/test_runtime.py
+      - tests/services/learner_state/test_heartbeat_service.py
+      - tests/services/learner_state/heartbeat/test_service.py
+      - tests/services/learner_state/heartbeat/test_scheduler.py
+      - tests/services/learner_state/heartbeat/test_arbitration.py
+      - tests/services/member_console/test_service.py
+      - tests/web/test_bi_member_admin_surface.py
+      - tests/supabase/test_learner_state_rls_migration.py
     schema_files:
       - deeptutor/contracts/learner_state.py
+      - supabase/migrations/20260415000100_learner_state_core.sql
+      - supabase/migrations/20260415000200_bot_learner_overlay.sql
+      - supabase/migrations/20260419000100_learner_state_rls.sql

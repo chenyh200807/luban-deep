@@ -174,11 +174,21 @@ async def test_rag_search_invalid_provider_falls_back_to_kb_provider(
     from deeptutor.services.rag import service as rag_service_module
     from deeptutor.tools.rag_tool import rag_search
 
+    class _FakePipeline:
+        async def search(self, **kwargs):
+            return {
+                "query": kwargs["query"],
+                "answer": "ok",
+                "content": "ok",
+                "provider": "llamaindex",
+            }
+
     monkeypatch.setattr(
         rag_service_module.RAGService,
         "_get_provider_for_kb",
         lambda self, kb_name: "llamaindex",
     )
+    monkeypatch.setattr(rag_service_module, "get_pipeline", lambda *args, **kwargs: _FakePipeline())
 
     result = await rag_search(
         query="hello",

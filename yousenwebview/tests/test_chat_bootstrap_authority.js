@@ -191,6 +191,7 @@ function loadChatPage(overrides) {
       if (request === "../../utils/analytics") {
         return { track: function () {} };
       }
+      if (request === "../../utils/history-tombstone") return { rememberDeletedConversationIds: function () {} };
       throw new Error("unexpected require: " + request);
     },
     wx: {

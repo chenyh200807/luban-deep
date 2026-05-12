@@ -58,6 +58,9 @@ function loadProfilePage(overrides) {
       getPoints: function () {
         return Promise.resolve({ points: 0 });
       },
+      getUsage: function () {
+        return Promise.resolve({ windows: [] });
+      },
       updateSettings: function (patch) {
         updateSettingsCalls.push(patch);
         return Promise.resolve({});

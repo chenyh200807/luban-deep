@@ -46,6 +46,7 @@ from deeptutor.services.session.turn_runtime import (
     _should_pin_tutorbot_capability,
 )
 from deeptutor.tutorbot.teaching_modes import (
+    looks_like_practice_generation_request,
     normalize_anchor_terms_in_response,
 )
 
@@ -448,7 +449,8 @@ async def _run_single_turn(
     )
     selected_capability = (
         "tutorbot"
-        if _should_pin_tutorbot_capability(
+        if not looks_like_practice_generation_request(query)
+        and _should_pin_tutorbot_capability(
             user_message=query,
             followup_question_context=followup_question_context,
             followup_action=followup_action,

@@ -34,6 +34,7 @@ function loadProfilePage(apiOverrides) {
     getUserInfo: function () { return Promise.resolve({ username: "chenyh2008", earned_badge_ids: [2] }); },
     getWallet: function () { return Promise.resolve({ balance: 0 }); },
     getPoints: function () { return Promise.resolve({ points: 0 }); },
+    getUsage: function () { return Promise.resolve({ windows: [] }); },
     getBadges: function () {
       getBadgesCalls += 1;
       return Promise.resolve({

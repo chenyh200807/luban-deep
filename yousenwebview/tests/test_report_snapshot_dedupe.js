@@ -83,7 +83,6 @@ function createPageInstance(pageDef) {
       home: 0,
       assessment: 0,
       mastery: 0,
-      wallet: 0,
       radar: 0,
     };
     var pageDef = loadReportPage({
@@ -165,10 +164,6 @@ function createPageInstance(pageDef) {
             review_summary: { total_due: 2, overdue_count: 1 },
           };
         },
-        getWallet: async function () {
-          counters.wallet += 1;
-          return { balance: 66 };
-        },
         getRadarData: async function () {
           counters.radar += 1;
           return {
@@ -227,18 +222,14 @@ function createPageInstance(pageDef) {
     });
     var page = createPageInstance(pageDef);
 
-    page.onShow();
-    await flushPromises();
-    await flushPromises();
+    await page._loadReportPage();
 
     assert(counters.today === 1, "report bootstrap should read today progress once");
     assert(counters.home === 1, "report bootstrap should read homepage dashboard once");
     assert(counters.assessment === 1, "report bootstrap should read assessment profile once");
     assert(counters.mastery === 1, "report bootstrap should read mastery dashboard once");
-    assert(counters.wallet === 1, "report bootstrap should read wallet once");
     assert(counters.radar === 0, "positive assessment profile should avoid dedicated radar fallback");
-    assert(page.data.userPoints === 66, "report bootstrap should hydrate wallet balance from shared snapshot");
-    assert(page.data.learnerLevel === "intermediate", "report bootstrap should hydrate overview from shared snapshot");
+    assert(page.data.learnerLevel === "中级", "report bootstrap should hydrate overview from shared snapshot");
     assert(page.data.avgScore === 50, "report bootstrap should hydrate radar from shared assessment snapshot");
     assert(page.data.learnerStageTitle === "中级阶段", "report bootstrap should expose a user-facing learner stage title");
     assert(

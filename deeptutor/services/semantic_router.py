@@ -905,15 +905,6 @@ def _decision_from_fallback(
                 reason="deterministic fallback 命中答题解析，作为语义降级保底。",
                 active_object=active_object,
             )
-        if looks_like_question_followup(user_message, question_context):
-            return build_turn_semantic_decision(
-                relation_to_active_object="ask_about_active_object",
-                next_action="route_to_followup_explainer",
-                allowed_patch="no_state_change",
-                confidence=0.55,
-                reason="deterministic fallback 命中题目追问特征，作为语义降级保底。",
-                active_object=active_object,
-            )
         if looks_like_practice_generation_request(user_message):
             return build_turn_semantic_decision(
                 relation_to_active_object="continue_same_learning_flow",
@@ -923,6 +914,15 @@ def _decision_from_fallback(
                 reason="deterministic fallback 命中继续练题请求，作为语义降级保底。",
                 target_object_ref=build_target_object_ref(active_object)
                 or {"object_type": "question_set", "object_id": ""},
+                active_object=active_object,
+            )
+        if looks_like_question_followup(user_message, question_context):
+            return build_turn_semantic_decision(
+                relation_to_active_object="ask_about_active_object",
+                next_action="route_to_followup_explainer",
+                allowed_patch="no_state_change",
+                confidence=0.55,
+                reason="deterministic fallback 命中题目追问特征，作为语义降级保底。",
                 active_object=active_object,
             )
         return build_turn_semantic_decision(

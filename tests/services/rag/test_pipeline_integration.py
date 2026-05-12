@@ -25,6 +25,7 @@ import shutil
 import tempfile
 
 from dotenv import load_dotenv
+import pytest
 
 project_root = Path(__file__).resolve().parents[3]
 load_dotenv(project_root / ".env", override=False)
@@ -410,6 +411,13 @@ class TestPipelineIntegration:
     def test_pipeline(request):
         """Test the specified pipeline"""
         pipeline_name = request.config.getoption("--pipeline")
+        if pipeline_name == "llamaindex":
+            from deeptutor.services.embedding.config import get_embedding_config
+
+            try:
+                get_embedding_config()
+            except ValueError as exc:
+                pytest.skip(f"LlamaIndex embedding runtime not configured: {exc}")
 
         async def _run():
             if pipeline_name.lower() == "all":

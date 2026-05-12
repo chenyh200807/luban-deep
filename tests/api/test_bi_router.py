@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
 import importlib
 from pathlib import Path
+import sqlite3
 
 import pytest
 
@@ -290,6 +292,13 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
             },
         )
     )
+    billing_event_ts = datetime.fromisoformat("2026-04-15T10:00:00+08:00").timestamp()
+    with sqlite3.connect(store.db_path) as conn:
+        conn.execute(
+            "UPDATE turn_events SET created_at = ?, timestamp = ? WHERE turn_id = ? AND type = 'result'",
+            (billing_event_ts, billing_event_ts, turn["id"]),
+        )
+        conn.commit()
     asyncio.run(store.update_turn_status(turn["id"], "completed"))
     asyncio.run(
         store.upsert_notebook_entries(

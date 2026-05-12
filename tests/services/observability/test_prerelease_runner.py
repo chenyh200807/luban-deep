@@ -57,6 +57,8 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
                 "deployment_environment": "dev",
                 "prompt_version": "prompt-v1",
                 "ff_snapshot_hash": "ff-1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest-1",
             },
             "readiness": {"ready": True},
             "turn_runtime": {
@@ -99,6 +101,8 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
                 "deployment_environment": "dev",
                 "prompt_version": "prompt-v1",
                 "ff_snapshot_hash": "ff-1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest-1",
             },
             "suite_summaries": [],
             "case_results": [],

@@ -70,6 +70,9 @@ function loadTabBar(selected) {
       throw new Error("unexpected require: " + request);
     },
     wx: {
+      redirectTo: function (payload) {
+        calls.reLaunch.push(payload || {});
+      },
       reLaunch: function (payload) {
         calls.reLaunch.push(payload || {});
       },

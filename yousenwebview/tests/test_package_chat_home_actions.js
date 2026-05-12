@@ -109,9 +109,10 @@ assert(
     chatJs.indexOf("入门导学") < 0 &&
     chatJs.indexOf("安排下一步学习推进：") < 0 &&
     chatJs.indexOf("先判断我当前更适合知识讲解") < 0 &&
-    chatJs.indexOf("建筑实务微课") >= 0 &&
-    chatJs.indexOf("考试场景例子") >= 0,
-  "package chat home should render backend today_focus and keep fallback focused on micro-lesson explanation",
+    chatJs.indexOf("请给我来5道高价值选择题") >= 0 &&
+    chatJs.indexOf("不要提前给答案和解析") >= 0 &&
+    chatJs.indexOf("只输出题目和选项") >= 0,
+  "package chat home should render backend today_focus and keep fallback focused on practice generation",
 );
 assert(
   chatJs.indexOf('function buildFocusDisplayMeta(focus, meta)') >= 0 &&

@@ -55,6 +55,9 @@ function loadProfilePage(overrides) {
       getPoints: function () {
         return Promise.resolve({ points: 0 });
       },
+      getUsage: function () {
+        return Promise.resolve({ windows: [] });
+      },
       updateSettings: function () {
         return Promise.resolve({});
       },
@@ -169,14 +172,17 @@ function loadProfilePage(overrides) {
 }
 
 (async function main() {
-  await run("profile should update displayed points from wallet balance", async function () {
+  await run("profile should hydrate usage quota from profile-owned usage API", async function () {
     var loaded = loadProfilePage({
       api: {
         getUserInfo: function () {
-          return Promise.resolve({ username: "chenyh2008", points: 0 });
+          return Promise.resolve({ username: "chenyh2008" });
         },
-        getWallet: function () {
-          return Promise.resolve({ balance: 144 });
+        getUsage: function () {
+          return Promise.resolve({
+            display: { primary_remaining_percent: 88 },
+            rows: [{ key: "weekly", remaining_percent: 88 }],
+          });
         },
       },
     });
@@ -186,21 +192,27 @@ function loadProfilePage(overrides) {
     await flushPromises();
     await flushPromises();
 
-    assert(loaded.page.data.points === 144, "profile points should sync from wallet balance");
-    assert(loaded.page.data.userPoints === 144, "profile userPoints should stay aligned with points");
+    assert(loaded.page.data.usageRows.length === 1, "profile should render usage quota rows");
+    assert(loaded.page.data.usagePrimaryLabel === "剩余 88%", "profile should hydrate primary usage quota");
   });
 
-  await run("profile should fallback to points api when wallet is unavailable", async function () {
+  await run("profile should degrade usage quota without touching legacy points APIs", async function () {
+    var pointsCalls = 0;
     var loaded = loadProfilePage({
       api: {
         getUserInfo: function () {
-          return Promise.resolve({ username: "chenyh2008", points: 0 });
+          return Promise.resolve({ username: "chenyh2008" });
         },
         getWallet: function () {
-          return Promise.reject(new Error("wallet unavailable"));
+          pointsCalls += 1;
+          return Promise.resolve({ balance: 144 });
         },
         getPoints: function () {
+          pointsCalls += 1;
           return Promise.resolve({ points: 52 });
+        },
+        getUsage: function () {
+          return Promise.reject(new Error("usage unavailable"));
         },
       },
     });
@@ -210,8 +222,9 @@ function loadProfilePage(overrides) {
     await flushPromises();
     await flushPromises();
 
-    assert(loaded.page.data.points === 52, "profile should fallback to legacy points api");
-    assert(loaded.page.data.userPoints === 52, "profile fallback should keep both point fields aligned");
+    assert(pointsCalls === 0, "profile should not read legacy point balances");
+    assert(loaded.page.data.usageRows.length === 0, "profile should clear usage rows on usage failure");
+    assert(loaded.page.data.usageLoading === false, "profile should stop usage loading on usage failure");
   });
 
   if (fail) {

@@ -1756,6 +1756,8 @@ def test_auth_profile_exposes_is_admin_flag(
         "resolve_wallet_user_id",
         lambda *_args, **_kwargs: "admin_demo",
     )
+    monkeypatch.setattr(mobile_module.wallet_service, "_base_url", "https://example.supabase.co")
+    monkeypatch.setattr(mobile_module.wallet_service, "_service_key", "test-service-key")
     monkeypatch.setattr(
         mobile_module.wallet_service,
         "get_wallet",

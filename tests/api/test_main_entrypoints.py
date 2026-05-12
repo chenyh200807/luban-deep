@@ -4,6 +4,7 @@ import asyncio
 import importlib
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from deeptutor.api.dependencies.auth import AuthContext
@@ -501,6 +502,42 @@ def test_local_startup_keeps_process_alive_when_fail_fast_disabled(
     )
     monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
     _install_failing_startup_dependencies(monkeypatch, llm_error="llm boom")
+
+    with TestClient(module.app) as client:
+        response = client.get("/readyz")
+
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["checks"]["llm_client_ready"] is False
+    assert payload["checks"]["learner_state_runtime_ready"] is True
+
+
+def test_startup_marks_placeholder_llm_endpoint_not_ready(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "DEEPTUTOR_STARTUP_FAIL_FAST": "0",
+        },
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_fake_startup_dependencies(monkeypatch)
+    llm_module = importlib.import_module("deeptutor.services.llm")
+    monkeypatch.setattr(
+        llm_module,
+        "get_llm_client",
+        lambda: SimpleNamespace(
+            config=SimpleNamespace(
+                model="gpt-worktree",
+                base_url="https://example.com/v1",
+                effective_url="https://example.com/v1",
+            )
+        ),
+    )
 
     with TestClient(module.app) as client:
         response = client.get("/readyz")

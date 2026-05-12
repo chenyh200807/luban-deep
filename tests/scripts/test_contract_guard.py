@@ -4,7 +4,7 @@ from scripts.check_contract_guard import evaluate_changed_files
 
 
 def test_guard_allows_non_protected_changes() -> None:
-    ok, message = evaluate_changed_files(["deeptutor/services/member_console/service.py"])
+    ok, message = evaluate_changed_files(["README.md"])
     assert ok is True
     assert "no protected contract domains changed" in message
 

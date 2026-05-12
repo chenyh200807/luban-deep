@@ -3,6 +3,7 @@ import logging
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlparse
 
 from fastapi import Depends
 from fastapi import FastAPI
@@ -178,6 +179,29 @@ def get_readyz_payload(app: FastAPI | None = None) -> tuple[int, dict[str, objec
     return (200 if ready else 503, payload)
 
 
+def _is_placeholder_llm_endpoint(base_url: str | None) -> bool:
+    raw = str(base_url or "").strip()
+    if not raw:
+        return False
+    try:
+        parsed = urlparse(raw if "://" in raw else f"https://{raw}")
+    except Exception:
+        return False
+    host = (parsed.hostname or "").lower()
+    return host in {"example.com", "www.example.com"} or host.endswith(".example")
+
+
+def _validate_startup_llm_client(llm_client: object) -> None:
+    config = getattr(llm_client, "config", None)
+    endpoint = None
+    if config is not None:
+        endpoint = getattr(config, "effective_url", None) or getattr(config, "base_url", None)
+    if _is_placeholder_llm_endpoint(endpoint):
+        raise RuntimeError(
+            "LLM endpoint points to a placeholder host; configure a real provider endpoint before startup"
+        )
+
+
 def validate_tool_consistency():
     """
     Validate that capability manifests only reference tools that are actually
@@ -246,6 +270,7 @@ async def lifespan(app: FastAPI):
         from deeptutor.services.llm import get_llm_client
 
         llm_client = get_llm_client()
+        _validate_startup_llm_client(llm_client)
         logger.info(f"LLM client initialized: model={llm_client.config.model}")
         _set_readiness_check(app, "llm_client_ready", True)
     except Exception as e:

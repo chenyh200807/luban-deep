@@ -131,9 +131,9 @@ function buildFocusQuery(focus, title) {
   var topic = String(payload.topic || payload.focus_topic || "").trim() || extractFocusTopic(title);
   if (!topic) topic = "建筑实务";
   return (
-    "请根据我的学习记录和最近进度，围绕" +
+    "请给我来5道高价值选择题，不要提前给答案和解析。请围绕" +
     topic +
-    "做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
+    "，只输出题目和选项。"
   );
 }
 
