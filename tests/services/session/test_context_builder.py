@@ -86,6 +86,10 @@ async def test_summarize_does_not_stream_internal_summary_to_users(
         "deeptutor.services.session.context_builder._ContextSummaryAgent.stream_llm",
         fake_stream_llm,
     )
+    monkeypatch.setattr(
+        "deeptutor.services.session.context_builder._ContextSummaryAgent.__init__",
+        lambda self, language="en": None,
+    )
 
     summary, events = await builder._summarize(
         session_id="session-1",
@@ -123,7 +127,25 @@ def test_context_builder_uses_safe_minimum_context_window(tmp_path: Path) -> Non
 
     llm_config = type("FakeConfig", (), {"max_tokens": 4096})()
 
-    assert builder._history_budget(llm_config) == int(8192 * builder.history_budget_ratio)
+    assert builder._history_budget(llm_config) == int(16384 * builder.history_budget_ratio)
+
+
+def test_context_builder_uses_large_model_default_when_context_missing(tmp_path: Path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    builder = ContextBuilder(store)
+
+    llm_config = type("FakeConfig", (), {"model": "qwen3.6-flash", "max_tokens": 4096})()
+
+    assert builder._history_budget(llm_config) == int(65536 * builder.history_budget_ratio)
+
+
+def test_context_builder_caps_explicit_large_context_window(tmp_path: Path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    builder = ContextBuilder(store)
+
+    llm_config = type("FakeConfig", (), {"model": "deepseek-v4-flash", "context_window_tokens": 2_000_000})()
+
+    assert builder.context_window_tokens(llm_config) == 1_000_000
 
 
 @pytest.mark.asyncio

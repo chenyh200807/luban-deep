@@ -15,9 +15,15 @@ import shutil
 import sys
 
 from deeptutor.logging import get_logger
+from deeptutor.services.rag import embedding_signature as embedding_signature_module
 from deeptutor.services.rag.components.routing import FileTypeRouter
 
 from deeptutor.services.rag.factory import DEFAULT_PROVIDER, LEGACY_PROVIDER_ALIASES, normalize_provider_name
+from deeptutor.services.rag.index_versioning import (
+    find_matching_version,
+    list_kb_versions,
+    resolve_storage_dir_for_read,
+)
 
 logger = get_logger("KnowledgeBaseManager")
 
@@ -320,10 +326,14 @@ class KnowledgeBaseManager:
                 if item.name in kb_list:
                     continue
                     
-                # Check if this is a valid KB directory (legacy rag_storage or llamaindex_storage)
+                # Check if this is a valid KB directory (versioned llamaindex or legacy storage)
                 rag_storage = item / "rag_storage"
                 llamaindex_storage = item / "llamaindex_storage"
+                has_versioned_index = any(
+                    bool(version.get("ready")) for version in list_kb_versions(item)
+                )
                 is_valid_kb = (
+                    has_versioned_index or
                     (rag_storage.exists() and rag_storage.is_dir()) or
                     (llamaindex_storage.exists() and llamaindex_storage.is_dir())
                 )
@@ -380,7 +390,9 @@ class KnowledgeBaseManager:
         if "rag_provider" not in kb_entry:
             rag_storage = kb_dir / "rag_storage"
             llamaindex_storage = kb_dir / "llamaindex_storage"
-            if llamaindex_storage.exists():
+            if any(bool(version.get("ready")) for version in list_kb_versions(kb_dir)):
+                kb_entry["rag_provider"] = DEFAULT_PROVIDER
+            elif llamaindex_storage.exists():
                 kb_entry["rag_provider"] = DEFAULT_PROVIDER
             elif rag_storage.exists():
                 kb_entry["rag_provider"] = DEFAULT_PROVIDER
@@ -426,6 +438,12 @@ class KnowledgeBaseManager:
     def get_rag_storage_path(self, name: str | None = None) -> Path:
         """Get active index storage path for a knowledge base."""
         kb_dir = self.get_knowledge_base_path(name)
+        versioned_storage = resolve_storage_dir_for_read(
+            kb_dir,
+            embedding_signature_module.signature_from_embedding_config(),
+        )
+        if versioned_storage is not None:
+            return versioned_storage
         llamaindex_storage = kb_dir / "llamaindex_storage"
         legacy_storage = kb_dir / "rag_storage"
         if llamaindex_storage.exists():
@@ -567,6 +585,8 @@ class KnowledgeBaseManager:
 
         # KB might not have a directory yet if still initializing
         dir_exists = kb_dir.exists()
+        index_versions = list_kb_versions(kb_dir) if dir_exists else []
+        has_versioned_index = any(bool(version.get("ready")) for version in index_versions)
 
         # For old KBs without status field, determine status from rag_storage
         if needs_reindex:
@@ -574,7 +594,9 @@ class KnowledgeBaseManager:
         elif not status and dir_exists:
             rag_storage_dir = kb_dir / "rag_storage"
             llamaindex_storage_dir = kb_dir / "llamaindex_storage"
-            if llamaindex_storage_dir.exists() and any(llamaindex_storage_dir.iterdir()):
+            if has_versioned_index:
+                status = "ready"
+            elif llamaindex_storage_dir.exists() and any(llamaindex_storage_dir.iterdir()):
                 status = "ready"
             elif rag_storage_dir.exists() and any(rag_storage_dir.iterdir()):
                 status = "needs_reindex"
@@ -647,12 +669,22 @@ class KnowledgeBaseManager:
             except Exception:
                 pass
 
-        # Check rag_initialized (llamaindex storage only)
-        rag_initialized = (
-            (dir_exists and llamaindex_storage_dir and llamaindex_storage_dir.exists() and llamaindex_storage_dir.is_dir())
+        # Check rag_initialized (versioned or legacy llamaindex storage)
+        rag_initialized = has_versioned_index or (
+            dir_exists
+            and llamaindex_storage_dir
+            and llamaindex_storage_dir.exists()
+            and llamaindex_storage_dir.is_dir()
         )
         if remote_backend == "supabase":
             rag_initialized = True
+
+        active_signature = embedding_signature_module.signature_from_embedding_config()
+        active_match = (
+            find_matching_version(kb_dir, active_signature) is not None
+            if active_signature is not None
+            else False
+        )
 
         info["statistics"] = {
             "raw_documents": raw_count,
@@ -661,6 +693,9 @@ class KnowledgeBaseManager:
             "rag_initialized": rag_initialized,
             "rag_provider": rag_provider,
             "needs_reindex": needs_reindex,
+            "index_versions": index_versions,
+            "active_signature": active_signature.hash() if active_signature else None,
+            "active_match": active_match,
             "remote_backend": remote_backend,
             "remote_read_only": remote_read_only,
             # Include status and progress in statistics for backward compatibility

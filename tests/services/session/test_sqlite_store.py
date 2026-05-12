@@ -83,6 +83,108 @@ def test_sqlite_store_falls_back_to_legacy_db_when_move_fails(
         service._user_data_dir = original_user_dir
 
 
+def test_sqlite_store_persists_message_metadata(tmp_path: Path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = asyncio.run(store.create_session(title="Demo", session_id="session-demo"))
+
+    asyncio.run(
+        store.add_message(
+            session_id=session["id"],
+            role="user",
+            content="请分析这道题",
+            capability="chat",
+            metadata={
+                "request_snapshot": {
+                    "content": "请分析这道题",
+                    "enabledTools": ["rag"],
+                    "knowledgeBases": ["construction-exam"],
+                }
+            },
+        )
+    )
+
+    detail = asyncio.run(store.get_session_with_messages(session["id"]))
+
+    assert detail is not None
+    assert detail["messages"][0]["metadata"] == {
+        "request_snapshot": {
+            "content": "请分析这道题",
+            "enabledTools": ["rag"],
+            "knowledgeBases": ["construction-exam"],
+        }
+    }
+
+
+def test_sqlite_store_migrates_legacy_messages_metadata_column(tmp_path: Path) -> None:
+    db_path = tmp_path / "legacy-messages.db"
+    now = time.time()
+    with sqlite3.connect(db_path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE sessions (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL DEFAULT 'New conversation',
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL,
+                compressed_summary TEXT DEFAULT '',
+                summary_up_to_msg_id INTEGER DEFAULT 0,
+                preferences_json TEXT DEFAULT '{}',
+                source TEXT DEFAULT '',
+                archived INTEGER DEFAULT 0,
+                owner_key TEXT DEFAULT '',
+                conversation_id TEXT DEFAULT ''
+            );
+
+            CREATE TABLE messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL DEFAULT '',
+                capability TEXT DEFAULT '',
+                events_json TEXT DEFAULT '',
+                attachments_json TEXT DEFAULT '',
+                created_at REAL NOT NULL
+            );
+            """
+        )
+        conn.execute(
+            """
+            INSERT INTO sessions (id, title, created_at, updated_at)
+            VALUES ('legacy-session', 'Legacy', ?, ?)
+            """,
+            (now, now),
+        )
+        conn.execute(
+            """
+            INSERT INTO messages (
+                session_id, role, content, capability, events_json, attachments_json, created_at
+            ) VALUES ('legacy-session', 'user', 'legacy message', 'chat', '[]', '[]', ?)
+            """,
+            (now,),
+        )
+        conn.commit()
+
+    store = SQLiteSessionStore(db_path)
+    detail = asyncio.run(store.get_session_with_messages("legacy-session"))
+
+    assert detail is not None
+    assert detail["messages"][0]["metadata"] == {}
+
+    asyncio.run(
+        store.add_message(
+            session_id="legacy-session",
+            role="user",
+            content="new message",
+            metadata={"request_snapshot": {"content": "new message"}},
+        )
+    )
+    updated = asyncio.run(store.get_session_with_messages("legacy-session"))
+    assert updated is not None
+    assert updated["messages"][1]["metadata"] == {
+        "request_snapshot": {"content": "new message"}
+    }
+
+
 def test_sqlite_store_migrates_legacy_notebook_owner_columns(tmp_path: Path) -> None:
     db_path = tmp_path / "legacy-notebook.db"
     with sqlite3.connect(db_path) as conn:

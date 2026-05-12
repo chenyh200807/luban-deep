@@ -1,9 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  escapeUnknownHtmlTagsForDisplay,
   hasVisibleMarkdownContent,
   normalizeMarkdownForDisplay,
-} from "../lib/markdown-display";
+} from "../lib/markdown-display.ts";
 
 test("normalizeMarkdownForDisplay removes empty details blocks", () => {
   const input = "Before\n\n<details><summary></summary></details>\n\nAfter";
@@ -52,5 +53,23 @@ test("hasVisibleMarkdownContent keeps meaningful markdown", () => {
   assert.equal(
     hasVisibleMarkdownContent("这是一个正常回复。\n\n- 第一条"),
     true,
+  );
+});
+
+test("escapeUnknownHtmlTagsForDisplay protects pseudo tags outside code spans", () => {
+  const input = "先说明 <think>内部计划</think>，再保留 <table><tr><td>证据</td></tr></table>。";
+
+  assert.equal(
+    escapeUnknownHtmlTagsForDisplay(input),
+    "先说明 `<think>`内部计划`</think>`，再保留 <table><tr><td>证据</td></tr></table>。",
+  );
+});
+
+test("escapeUnknownHtmlTagsForDisplay does not double-wrap code spans or fences", () => {
+  const input = "代码 `<tool_call>`\n\n```xml\n<mem>private</mem>\n```\n\n正文 <mem>private</mem>";
+
+  assert.equal(
+    escapeUnknownHtmlTagsForDisplay(input),
+    "代码 `<tool_call>`\n\n```xml\n<mem>private</mem>\n```\n\n正文 `<mem>`private`</mem>`",
   );
 });

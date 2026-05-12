@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 MODEL_PRICING = {
     # DeepSeek official cache-miss pricing, USD per 1K tokens.
     "deepseek-v4-flash": {"input": 0.00014, "output": 0.00028},
+    "deepseek-v4-pro": {"input": 0.000435, "output": 0.00087},
     "gpt-4o": {"input": 0.0025, "output": 0.010},
     "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
     "gpt-4-turbo": {"input": 0.01, "output": 0.03},

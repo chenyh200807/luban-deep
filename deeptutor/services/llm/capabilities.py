@@ -161,6 +161,7 @@ MODEL_OVERRIDES: dict[str, dict[str, object]] = {
     },
     "qwen": {
         "has_thinking_tags": True,
+        "supports_vision": True,
     },
     "qwq": {
         "has_thinking_tags": True,

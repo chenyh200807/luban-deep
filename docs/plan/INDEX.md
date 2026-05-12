@@ -20,6 +20,7 @@
 | 主线 | 先读文件 | 适用场景 |
 | --- | --- | --- |
 | TutorBot 与统一聊天入口 | [2026-04-15-unified-ws-full-tutorbot-prd.md](2026-04-15-unified-ws-full-tutorbot-prd.md) | `/api/v1/ws`、TutorBot 完整 runtime、轻量 TutorBot 歧义清理 |
+| 上游能力吸收 | [2026-05-12-upstream-p0-absorption-status.md](2026-05-12-upstream-p0-absorption-status.md) / [2026-05-12-upstream-p1-knowledge-absorption-status.md](2026-05-12-upstream-p1-knowledge-absorption-status.md) / [2026-05-12-upstream-p2-request-snapshot-contract.md](2026-05-12-upstream-p2-request-snapshot-contract.md) | HKUDS/DeepTutor v1.3.7-v1.3.10 runtime/stability、knowledge/RAG、request snapshot 能力选择性吸收 |
 | 学员长期状态 | [2026-04-15-learner-state-memory-guided-learning-prd.md](2026-04-15-learner-state-memory-guided-learning-prd.md) | learner state、summary/profile/memory、Guided Learning、Heartbeat |
 | Bot-Learner Overlay | [2026-04-15-bot-learner-overlay-prd.md](2026-04-15-bot-learner-overlay-prd.md) | 多 Bot 对同一学员的局部状态、promotion、仲裁 |
 | 佑森小程序融合 | [2026-04-15-yousen-deeptutor-fusion-prd.md](2026-04-15-yousen-deeptutor-fusion-prd.md) | Yousen 原生入口、workspace shell、包内路由与页面体验 |
@@ -44,6 +45,9 @@
 | [2026-04-15-unified-ws-full-tutorbot-prd.md](2026-04-15-unified-ws-full-tutorbot-prd.md) | PRD | Done v1 | 统一 `/api/v1/ws` 接入完整 TutorBot，清理轻量 TutorBot 歧义。 |
 | [2026-04-16-tutorbot-context-orchestration-prd.md](2026-04-16-tutorbot-context-orchestration-prd.md) | PRD | Draft v1 | 每轮最小必要上下文包、预算、选择性加载与上下文编排。 |
 | [2026-04-19-tutorbot-mode-policy-unified-authority-prd.md](2026-04-19-tutorbot-mode-policy-unified-authority-prd.md) | PRD | 未标注 | 三种回答模式统一挂载 TutorBot authority，模式只决定表达策略。 |
+| [2026-05-12-upstream-p0-absorption-status.md](2026-05-12-upstream-p0-absorption-status.md) | Evidence | Implemented locally | HKUDS/DeepTutor v1.3.7-v1.3.10 第一批 runtime/stability 能力吸收状态与跳过项。 |
+| [2026-05-12-upstream-p1-knowledge-absorption-status.md](2026-05-12-upstream-p1-knowledge-absorption-status.md) | Evidence | Implemented locally | HKUDS/DeepTutor 第二批 knowledge/RAG 后端能力吸收状态与跳过项。 |
+| [2026-05-12-upstream-p2-request-snapshot-contract.md](2026-05-12-upstream-p2-request-snapshot-contract.md) | Contract comparison | Draft / implementation target | 第三批 request snapshot / `metadata_json` 吸收边界，明确只归属 turn/session read model，不写 learner state。 |
 
 ### 2. Learner State / Memory / Overlay
 

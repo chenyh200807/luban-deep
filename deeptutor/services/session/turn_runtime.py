@@ -5,6 +5,7 @@ Turn-level runtime manager for unified chat streaming.
 from __future__ import annotations
 
 import asyncio
+import base64
 import contextlib
 import json
 import logging
@@ -12,7 +13,7 @@ import os
 import re
 import sqlite3
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from types import SimpleNamespace
@@ -77,6 +78,21 @@ _INTERNAL_VISIBILITY = "internal"
 _PLAN_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 _PUBLIC_CANCELLED_MESSAGE = "本轮生成已取消，请重新发送或换个题目继续。"
 _PUBLIC_FAILED_MESSAGE = "本轮生成失败，后台已记录问题。请稍后重试。"
+_REQUEST_SNAPSHOT_REDACTED = "[redacted]"
+_REQUEST_SNAPSHOT_MAX_TEXT = 4000
+_REQUEST_SNAPSHOT_MAX_TOTAL_BYTES = 24000
+_REQUEST_SNAPSHOT_SENSITIVE_KEY_PARTS = (
+    "api_key",
+    "apikey",
+    "authorization",
+    "auth_token",
+    "base64",
+    "bearer",
+    "data",
+    "password",
+    "secret",
+    "token",
+)
 
 
 class _ContextOrchestrationStageError(RuntimeError):
@@ -128,6 +144,113 @@ def _clip_text(value: str, limit: int = 4000) -> str:
     if len(text) <= limit:
         return text
     return text[:limit].rstrip() + "\n...[truncated]"
+
+
+def _string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str) and item]
+
+
+def _is_sensitive_snapshot_key(key: Any) -> bool:
+    normalized = str(key or "").strip().lower().replace("-", "_")
+    return any(part in normalized for part in _REQUEST_SNAPSHOT_SENSITIVE_KEY_PARTS)
+
+
+def _sanitize_request_snapshot_value(value: Any, *, depth: int = 0) -> Any:
+    if depth > 6:
+        return _REQUEST_SNAPSHOT_REDACTED
+    if value is None or isinstance(value, bool | int | float):
+        return value
+    if isinstance(value, str):
+        return _clip_text(value, _REQUEST_SNAPSHOT_MAX_TEXT)
+    if isinstance(value, dict):
+        sanitized: dict[str, Any] = {}
+        for key, item in value.items():
+            key_text = str(key)
+            if _is_sensitive_snapshot_key(key_text):
+                sanitized[key_text] = _REQUEST_SNAPSHOT_REDACTED
+                continue
+            sanitized[key_text] = _sanitize_request_snapshot_value(item, depth=depth + 1)
+        return sanitized
+    if isinstance(value, list | tuple):
+        return [
+            _sanitize_request_snapshot_value(item, depth=depth + 1)
+            for item in value[:100]
+        ]
+    return _clip_text(str(value), _REQUEST_SNAPSHOT_MAX_TEXT)
+
+
+def _clean_request_snapshot_attachments(
+    attachments: Sequence[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    cleaned: list[dict[str, Any]] = []
+    for item in attachments:
+        if not isinstance(item, dict):
+            continue
+        record = {
+            key: item.get(key)
+            for key in ("type", "url", "filename", "mime_type")
+            if item.get(key) not in (None, "")
+        }
+        if record:
+            cleaned.append(record)
+    return cleaned
+
+
+def _request_snapshot_metadata(
+    *,
+    payload: dict[str, Any],
+    content: str,
+    capability: str,
+    config: dict[str, Any],
+    attachments: Sequence[dict[str, Any]],
+    notebook_references: Sequence[Any],
+    history_references: Sequence[Any],
+    question_notebook_references: Sequence[Any],
+    book_references: Sequence[Any],
+    requested_skills: Sequence[str],
+    memory_references: Sequence[str],
+    llm_selection: dict[str, Any] | None,
+) -> dict[str, Any]:
+    snapshot: dict[str, Any] = {
+        "content": content,
+        "capability": capability,
+        "enabledTools": _string_list(payload.get("tools")),
+        "knowledgeBases": _string_list(payload.get("knowledge_bases")),
+        "language": str(payload.get("language", "en") or "en"),
+    }
+    cleaned_attachments = _clean_request_snapshot_attachments(attachments)
+    if cleaned_attachments:
+        snapshot["attachments"] = _sanitize_request_snapshot_value(cleaned_attachments)
+    if config:
+        snapshot["config"] = _sanitize_request_snapshot_value(dict(config))
+    if notebook_references:
+        snapshot["notebookReferences"] = _sanitize_request_snapshot_value(list(notebook_references))
+    if history_references:
+        snapshot["historyReferences"] = _sanitize_request_snapshot_value(list(history_references))
+    if question_notebook_references:
+        snapshot["questionNotebookReferences"] = _sanitize_request_snapshot_value(
+            list(question_notebook_references)
+        )
+    if book_references:
+        snapshot["bookReferences"] = _sanitize_request_snapshot_value(list(book_references))
+    if requested_skills:
+        snapshot["skills"] = list(requested_skills)
+    if memory_references:
+        snapshot["memoryReferences"] = list(memory_references)
+    if llm_selection:
+        snapshot["llmSelection"] = _sanitize_request_snapshot_value(dict(llm_selection))
+    try:
+        encoded = json.dumps(snapshot, ensure_ascii=False)
+    except TypeError:
+        snapshot = _sanitize_request_snapshot_value(snapshot)
+        encoded = json.dumps(snapshot, ensure_ascii=False)
+    if len(encoded.encode("utf-8")) > _REQUEST_SNAPSHOT_MAX_TOTAL_BYTES:
+        snapshot["content"] = _clip_text(str(snapshot.get("content") or ""), 1000)
+        snapshot.pop("config", None)
+        snapshot["_truncated"] = True
+    return {"request_snapshot": snapshot}
 
 
 def _safe_terminal_assistant_content(
@@ -2755,6 +2878,7 @@ class TurnRuntimeManager:
         turn_id = execution.turn_id
         attachments = []
         attachment_records = []
+        attachment_text_sections: list[str] = []
         assistant_events: list[dict[str, Any]] = []
         assistant_content = ""
         authoritative_assistant_content = ""
@@ -2851,6 +2975,10 @@ class TurnRuntimeManager:
                 stored_object_type = str((stored_active_object or {}).get("object_type") or "").strip()
             notebook_references = payload.get("notebook_references", []) or []
             history_references = payload.get("history_references", []) or []
+            question_notebook_references = payload.get("question_notebook_references", []) or []
+            book_references = payload.get("book_references", []) or []
+            requested_skills = _string_list(payload.get("skills"))
+            memory_references = _string_list(payload.get("memory_references"))
             if (
                 stored_active_object is not None
                 and extract_question_context_from_active_object(stored_active_object) is not None
@@ -3103,15 +3231,68 @@ class TurnRuntimeManager:
             with contextlib.nullcontext():
 
                 for item in payload.get("attachments", []):
+                    filename = str(item.get("filename", "") or "")
+                    mime_type = str(item.get("mime_type", "") or "")
+                    raw_b64 = str(item.get("base64", "") or "")
+                    stored_url = str(item.get("url", "") or "")
+                    attachment_id = str(
+                        item.get("id")
+                        or item.get("attachment_id")
+                        or f"att-{len(attachment_records) + 1}"
+                    )
+                    raw_bytes: bytes | None = None
+                    if raw_b64:
+                        try:
+                            b64_payload = raw_b64.split(",", 1)[1] if "," in raw_b64 else raw_b64
+                            raw_bytes = base64.b64decode(b64_payload, validate=False)
+                        except Exception:
+                            raw_bytes = None
+                    if raw_bytes:
+                        try:
+                            from deeptutor.services.storage import get_attachment_store
+
+                            stored_url = await get_attachment_store().put(
+                                session_id=session_id,
+                                attachment_id=attachment_id,
+                                filename=filename or "attachment",
+                                data=raw_bytes,
+                                mime_type=mime_type,
+                            )
+                        except Exception:
+                            logger.warning("Failed to persist chat attachment", exc_info=True)
+
+                        try:
+                            from deeptutor.utils.document_extractor import (
+                                DocumentExtractionError,
+                                extract_text_from_bytes,
+                                is_document_extension,
+                            )
+
+                            if filename and is_document_extension(filename):
+                                extracted = extract_text_from_bytes(filename, raw_bytes)
+                                attachment_text_sections.append(
+                                    f"[Attachment: {filename}]\n{extracted}"
+                                )
+                        except DocumentExtractionError as exc:
+                            attachment_text_sections.append(
+                                f"[Attachment: {filename}]\nUnable to extract text: {exc}"
+                            )
+                        except Exception:
+                            logger.debug("Skipping attachment text extraction", exc_info=True)
+
                     record = {
                         "type": item.get("type", "file"),
-                        "url": item.get("url", ""),
-                        "base64": item.get("base64", ""),
-                        "filename": item.get("filename", ""),
-                        "mime_type": item.get("mime_type", ""),
+                        "url": stored_url,
+                        "base64": "" if stored_url and raw_bytes else raw_b64,
+                        "filename": filename,
+                        "mime_type": mime_type,
+                    }
+                    runtime_record = {
+                        **record,
+                        "base64": raw_b64,
                     }
                     attachment_records.append(record)
-                    attachments.append(Attachment(**record))
+                    attachments.append(Attachment(**runtime_record))
 
                 if followup_question_context:
                     existing_messages = await self._safe_store_call(
@@ -3374,9 +3555,14 @@ class TurnRuntimeManager:
                         "token_budget_by_source": dict(context_trace.get("token_budget_by_source", {}) or {}),
                         "compression_applied": context_trace.get("compression_applied"),
                         "history_search_applied": context_trace.get("history_search_applied"),
-                        "fallback_path": context_trace.get("fallback_path", ""),
-                    }
+                            "fallback_path": context_trace.get("fallback_path", ""),
+                        }
                 )
+
+                if attachment_text_sections:
+                    effective_user_message = "\n\n".join(
+                        [effective_user_message, "[Uploaded Attachments]", *attachment_text_sections]
+                    )
 
                 context = UnifiedContext(
                     session_id=session_id,
@@ -3496,6 +3682,24 @@ class TurnRuntimeManager:
                         content=raw_user_content,
                         capability=capability_name,
                         attachments=attachment_records,
+                        metadata=_request_snapshot_metadata(
+                            payload=payload,
+                            content=raw_user_content,
+                            capability=capability_name,
+                            config=request_config,
+                            attachments=attachment_records,
+                            notebook_references=notebook_references,
+                            history_references=history_references,
+                            question_notebook_references=question_notebook_references,
+                            book_references=book_references,
+                            requested_skills=requested_skills,
+                            memory_references=memory_references,
+                            llm_selection=(
+                                payload.get("llm_selection")
+                                if isinstance(payload.get("llm_selection"), dict)
+                                else None
+                            ),
+                        ),
                         default=None,
                     )
 

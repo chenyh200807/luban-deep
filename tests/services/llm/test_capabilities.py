@@ -5,6 +5,7 @@ from deeptutor.services.llm.capabilities import (
     get_effective_temperature,
     has_thinking_tags,
     supports_response_format,
+    supports_vision,
 )
 
 
@@ -21,6 +22,10 @@ def test_gemma_response_format_disabled() -> None:
     assert supports_response_format("lm_studio", "gemma-2-9b") is False
     assert supports_response_format("lm_studio", "mistral-7b") is True
     assert supports_response_format("lm_studio", "llama-3") is True
+
+
+def test_qwen_model_family_supports_vision() -> None:
+    assert supports_vision("dashscope", "qwen-vl-plus") is True
 
 
 def test_capability_fallback_default() -> None:

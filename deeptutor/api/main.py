@@ -133,11 +133,20 @@ def _public_outputs_enabled() -> bool:
 def get_cors_allow_origins() -> list[str]:
     """Return the effective CORS origin allowlist used by the API app."""
     raw_allowlist = get_env_store().get("DEEPTUTOR_CORS_ALLOW_ORIGINS", "").strip()
+    if not raw_allowlist:
+        raw_allowlist = ",".join(
+            value
+            for value in (
+                get_env_store().get("CORS_ORIGIN", "").strip(),
+                get_env_store().get("CORS_ORIGINS", "").strip(),
+            )
+            if value
+        )
     if raw_allowlist:
         origins: list[str] = []
         seen: set[str] = set()
-        for origin in raw_allowlist.split(","):
-            candidate = origin.strip()
+        for origin in raw_allowlist.replace("\n", ",").split(","):
+            candidate = origin.strip().rstrip("/")
             if not candidate or candidate == "*":
                 continue
             if candidate in seen:
@@ -442,6 +451,7 @@ else:
 # Some router modules load YAML settings at import time.
 from deeptutor.api.routers import (
     agent_config,
+    attachments,
     bi,
     chat,
     co_writer,
@@ -493,6 +503,7 @@ app.include_router(tutor_state.router, prefix="/api/v1/tutor-state", tags=["tuto
 app.include_router(observability.router, prefix="/api/v1/observability", tags=["observability"])
 app.include_router(vision_solver.router, prefix="/api/v1", tags=["vision-solver"])
 app.include_router(mobile.router, prefix="/api/v1", tags=["mobile"])
+app.include_router(attachments.router, prefix="/api/attachments", tags=["attachments"])
 
 # Unified WebSocket endpoint
 app.include_router(unified_ws.router, prefix="/api/v1", tags=["unified-ws"])
