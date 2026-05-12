@@ -101,8 +101,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
             -e "s|https://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
             /etc/apt/sources.list; \
     fi; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
+    apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update; \
+    apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y --no-install-recommends \
         curl \
         git \
         build-essential \
@@ -174,8 +174,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
             -e "s|https://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
             /etc/apt/sources.list; \
     fi; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
+    apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update; \
+    apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y --no-install-recommends \
         curl \
         ca-certificates \
         bash \
@@ -430,8 +430,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
             -e "s|https://deb.debian.org/debian-security|${SECURITY_MIRROR}|g" \
             /etc/apt/sources.list; \
     fi; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
+    apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update; \
+    apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y --no-install-recommends \
         vim \
         git
 
