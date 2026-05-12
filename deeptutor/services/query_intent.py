@@ -18,6 +18,15 @@ _CURRENT_INFO_KEYWORDS = (
     "变化",
 )
 
+_EXPLICIT_WEB_SEARCH_MARKERS = (
+    "联网查询",
+    "联网搜索",
+    "联网查",
+    "上网查询",
+    "上网搜索",
+    "上网查",
+)
+
 _CURRENT_EXAM_SCHEDULE_MARKERS = (
     "考试时间",
     "考试日期",
@@ -90,6 +99,8 @@ def normalize_query_text(query: str) -> str:
 
 def query_requires_current_info(query: str) -> bool:
     text = normalize_query_text(query)
+    if any(marker in text for marker in _EXPLICIT_WEB_SEARCH_MARKERS):
+        return True
     if any(keyword in text for keyword in _CURRENT_INFO_KEYWORDS):
         return True
     return any(marker in text for marker in _CURRENT_EXAM_SCHEDULE_MARKERS) and any(

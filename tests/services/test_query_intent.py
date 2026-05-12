@@ -63,3 +63,14 @@ def test_build_grounding_decision_marks_exam_schedule_queries_current_info() -> 
 
     assert decision.current_info_required is True
     assert "current_info_required" in decision.reasons
+
+
+def test_build_grounding_decision_marks_explicit_web_search_command_current_info() -> None:
+    decision = build_grounding_decision(
+        query="你不是能联网的吗，联网查询",
+        rag_enabled=True,
+        tutorbot_context=True,
+    )
+
+    assert decision.current_info_required is True
+    assert "current_info_required" in decision.reasons

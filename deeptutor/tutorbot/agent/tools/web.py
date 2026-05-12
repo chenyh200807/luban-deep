@@ -116,6 +116,8 @@ class WebSearchTool(Tool):
             "provider": str(result.get("provider") or "").strip(),
             "citations": len(citations),
             "search_results": len(search_results),
+            "sources": search_results[:8],
+            "web_search_sources": search_results[:8],
         }
         return _format_service_response(query, result, n)
 

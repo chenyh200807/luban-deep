@@ -38,6 +38,32 @@ _BUILTIN_TEMPLATES_DIR = _PACKAGE_TUTORBOT / "templates"
 _RESERVED_NAMES = {"workspace", "media", "cron", "logs", "sessions", "_souls"}
 
 
+def _append_web_search_sources_if_missing(response: str, sources: Any) -> str:
+    content = str(response or "").rstrip()
+    if not isinstance(sources, list) or not sources:
+        return content
+
+    seen: set[str] = set()
+    lines: list[str] = []
+    for item in sources:
+        if not isinstance(item, dict):
+            continue
+        url = str(item.get("url") or "").strip()
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        title = str(item.get("title") or "").strip() or url
+        if url in content:
+            return content
+        lines.append(f"- {title}: {url}")
+        if len(lines) >= 5:
+            break
+
+    if not lines:
+        return content
+    return content + "\n\n### 联网来源\n" + "\n".join(lines)
+
+
 @dataclass
 class BotConfig:
     """Configuration for a single TutorBot instance."""
@@ -783,6 +809,7 @@ class TutorBotManager:
         tool_trace_summary: dict[str, Any] = {
             "tool_calls": [],
             "sources": [],
+            "web_search_sources": [],
             "authority_applied": False,
             "exact_question": {},
             "rag_rounds": [],
@@ -845,6 +872,9 @@ class TutorBotManager:
             sources = metadata.get("sources")
             if isinstance(sources, list) and sources:
                 tool_trace_summary["sources"] = sources[:8]
+            web_search_sources = metadata.get("web_search_sources")
+            if isinstance(web_search_sources, list) and web_search_sources:
+                tool_trace_summary["web_search_sources"] = web_search_sources[:8]
             rag_rounds = metadata.get("rag_rounds")
             if isinstance(rag_rounds, list) and rag_rounds:
                 tool_trace_summary["rag_rounds"] = [
@@ -917,6 +947,15 @@ class TutorBotManager:
                         on_tool_result=_tool_result,
                         metadata=runtime_metadata,
                     )
+                    if any(
+                        item.get("name") == "web_search"
+                        for item in tool_trace_summary["tool_calls"]
+                        if isinstance(item, dict)
+                    ):
+                        response = _append_web_search_sources_if_missing(
+                            response,
+                            tool_trace_summary.get("web_search_sources"),
+                        )
                     loop_session = instance.agent_loop.sessions.get_or_create(effective_session_key)
                     loop_metadata = dict(getattr(loop_session, "metadata", {}) or {})
                     exact_fast_path_hit = bool(loop_metadata.get("last_exact_fast_path", False))
