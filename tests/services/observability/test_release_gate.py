@@ -194,6 +194,48 @@ def test_release_gate_rejects_unknown_dirty_release_lineage() -> None:
     assert "runtime_or_release_lineage_incomplete" in payload["blockers"]
 
 
+def test_release_gate_prefers_complete_release_lineage_over_incomplete_arr() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "1.0.0+abcdef+production",
+                "git_sha": "abcdef",
+                "deployment_environment": "production",
+                "prompt_version": "prompt",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload={
+            "run_id": "arr-1",
+            "release": {
+                "release_id": "1.0.0+abc+unknown",
+                "git_sha": "abc",
+                "deployment_environment": "unknown",
+                "prompt_version": "unset",
+                "ff_snapshot_hash": "none",
+                "git_dirty": "unknown",
+                "deploy_manifest_hash": "unset",
+            },
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+            "benchmark_case_results": [{"status": "PASS"}],
+            "benchmark_run_manifest": {"run_id": "bench-1"},
+        },
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
+    assert payload["release"]["release_id"] == "1.0.0+abcdef+production"
+    assert p0["status"] == "PASS"
+    assert "runtime_or_release_lineage_incomplete" not in payload["blockers"]
+
+
 def test_release_gate_uses_benchmark_blind_spots_without_oa_payload() -> None:
     payload = build_release_gate_report(
         om_payload=None,

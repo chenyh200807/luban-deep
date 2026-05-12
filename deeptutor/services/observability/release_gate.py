@@ -46,24 +46,8 @@ def _has_release_value(release: dict[str, Any], key: str) -> bool:
     return True
 
 
-def build_release_gate_report(
-    *,
-    om_payload: dict[str, Any] | None,
-    arr_payload: dict[str, Any] | None,
-    aae_payload: dict[str, Any] | None,
-    oa_payload: dict[str, Any] | None,
-    change_impact_payload: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    release = (
-        (arr_payload or {}).get("release")
-        or (om_payload or {}).get("release")
-        or (aae_payload or {}).get("release")
-        or get_release_lineage_snapshot()
-    )
-    gate_results: list[dict[str, Any]] = []
-
-    om_health = (om_payload or {}).get("health_summary") or {}
-    release_complete = all(
+def _is_complete_release_lineage(release: dict[str, Any]) -> bool:
+    return all(
         _has_release_value(release, key)
         for key in (
             "release_id",
@@ -75,6 +59,34 @@ def build_release_gate_report(
             "deploy_manifest_hash",
         )
     )
+
+
+def _select_release_lineage(*payloads: dict[str, Any] | None) -> dict[str, Any]:
+    candidates = [
+        release
+        for payload in payloads
+        for release in [(payload or {}).get("release")]
+        if isinstance(release, dict) and release
+    ]
+    for release in candidates:
+        if _is_complete_release_lineage(release):
+            return release
+    return candidates[0] if candidates else get_release_lineage_snapshot()
+
+
+def build_release_gate_report(
+    *,
+    om_payload: dict[str, Any] | None,
+    arr_payload: dict[str, Any] | None,
+    aae_payload: dict[str, Any] | None,
+    oa_payload: dict[str, Any] | None,
+    change_impact_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    release = _select_release_lineage(arr_payload, om_payload, aae_payload, oa_payload)
+    gate_results: list[dict[str, Any]] = []
+
+    om_health = (om_payload or {}).get("health_summary") or {}
+    release_complete = _is_complete_release_lineage(release)
     git_dirty_value = str(release.get("git_dirty") or "").strip().lower()
     release_dirty = git_dirty_value in {"1", "true", "yes", "on"}
     unified_ws_smoke_ok = om_health.get("unified_ws_smoke_ok")
