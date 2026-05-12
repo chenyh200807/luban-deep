@@ -435,6 +435,30 @@ def test_readyz_reflects_readiness_state(
     assert degraded_payload["ready"] is False
 
 
+def test_placeholder_llm_endpoint_detection_uses_reserved_domain_boundaries(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "APP_ENV": None,
+            "ENV": None,
+            "ENVIRONMENT": None,
+        },
+        tmp_path=tmp_path,
+    )
+
+    assert module._is_placeholder_llm_endpoint("https://example.com/v1") is True
+    assert module._is_placeholder_llm_endpoint("https://api.example.com/v1") is True
+    assert module._is_placeholder_llm_endpoint("https://foo.example.org/v1") is True
+    assert module._is_placeholder_llm_endpoint("https://bar.example.net/v1") is True
+    assert module._is_placeholder_llm_endpoint("https://service.internal.example/v1") is True
+    assert module._is_placeholder_llm_endpoint("https://realexample.com/v1") is False
+    assert module._is_placeholder_llm_endpoint("https://example.com.evil.test/v1") is False
+
+
 def test_tool_consistency_ignores_disabled_web_search_manifest_reference(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

@@ -188,7 +188,10 @@ def _is_placeholder_llm_endpoint(base_url: str | None) -> bool:
     except Exception:
         return False
     host = (parsed.hostname or "").lower()
-    return host in {"example.com", "www.example.com"} or host.endswith(".example")
+    placeholder_domains = ("example.com", "example.net", "example.org")
+    return host.endswith(".example") or any(
+        host == domain or host.endswith(f".{domain}") for domain in placeholder_domains
+    )
 
 
 def _validate_startup_llm_client(llm_client: object) -> None:

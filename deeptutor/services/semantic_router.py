@@ -59,6 +59,27 @@ _LOW_SIGNAL_CONTINUATION_MARKERS = {
     "那个",
     "这个",
 }
+_EXPLICIT_PRACTICE_GENERATION_MARKERS = (
+    "出题",
+    "出一道",
+    "来一道",
+    "来一题",
+    "考我",
+    "刷题",
+    "测我",
+    "继续出",
+    "继续来一道",
+    "再来一道",
+    "再出一道",
+    "quiz me",
+    "test me",
+    "give me a question",
+    "give me one question",
+)
+_EXPLICIT_PRACTICE_GENERATION_PATTERNS = (
+    r"(给我|帮我|来|出)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道)?(?:题|单选题|多选题|案例题|选择题|判断题)",
+    r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
+)
 _ORDINAL_INDEX_MAP = {
     "一": 1,
     "二": 2,
@@ -880,6 +901,15 @@ async def _resolve_from_suspended_stack(
     return None
 
 
+def _has_explicit_practice_generation_intent(user_message: str | None) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    if any(marker in text for marker in _EXPLICIT_PRACTICE_GENERATION_MARKERS):
+        return True
+    return any(re.search(pattern, text) for pattern in _EXPLICIT_PRACTICE_GENERATION_PATTERNS)
+
+
 def _decision_from_fallback(
     *,
     user_message: str,
@@ -905,7 +935,11 @@ def _decision_from_fallback(
                 reason="deterministic fallback 命中答题解析，作为语义降级保底。",
                 active_object=active_object,
             )
-        if looks_like_practice_generation_request(user_message):
+        practice_request = looks_like_practice_generation_request(user_message)
+        followup_request = looks_like_question_followup(user_message, question_context)
+        if practice_request and (
+            not followup_request or _has_explicit_practice_generation_intent(user_message)
+        ):
             return build_turn_semantic_decision(
                 relation_to_active_object="continue_same_learning_flow",
                 next_action="route_to_generation",
@@ -916,7 +950,7 @@ def _decision_from_fallback(
                 or {"object_type": "question_set", "object_id": ""},
                 active_object=active_object,
             )
-        if looks_like_question_followup(user_message, question_context):
+        if followup_request:
             return build_turn_semantic_decision(
                 relation_to_active_object="ask_about_active_object",
                 next_action="route_to_followup_explainer",

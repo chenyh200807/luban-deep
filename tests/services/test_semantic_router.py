@@ -146,6 +146,56 @@ async def test_resolve_turn_semantic_decision_uses_deterministic_submission_fall
 
 
 @pytest.mark.asyncio
+async def test_resolve_turn_semantic_decision_keeps_next_question_explanation_as_followup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_interpret(_message: str, _context: dict[str, object], *, history_context: str = ""):
+        return None
+
+    monkeypatch.setattr(semantic_router, "interpret_question_followup_action", fake_interpret)
+    active_object = semantic_router.build_active_object_from_question_context(
+        _question_context(),
+        source_turn_id="turn-next-explain",
+    )
+
+    decision, action = await semantic_router.resolve_turn_semantic_decision(
+        "下一题解析一下",
+        active_object,
+    )
+
+    assert action is None
+    assert decision is not None
+    assert decision["relation_to_active_object"] == "ask_about_active_object"
+    assert decision["next_action"] == "route_to_followup_explainer"
+    assert decision["allowed_patch"] == ["no_state_change"]
+
+
+@pytest.mark.asyncio
+async def test_resolve_turn_semantic_decision_routes_explicit_continue_practice_generation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_interpret(_message: str, _context: dict[str, object], *, history_context: str = ""):
+        return None
+
+    monkeypatch.setattr(semantic_router, "interpret_question_followup_action", fake_interpret)
+    active_object = semantic_router.build_active_object_from_question_context(
+        _question_context(),
+        source_turn_id="turn-more-practice",
+    )
+
+    decision, action = await semantic_router.resolve_turn_semantic_decision(
+        "继续出5道类似的",
+        active_object,
+    )
+
+    assert action is None
+    assert decision is not None
+    assert decision["relation_to_active_object"] == "continue_same_learning_flow"
+    assert decision["next_action"] == "route_to_generation"
+    assert decision["allowed_patch"] == ["set_active_object"]
+
+
+@pytest.mark.asyncio
 async def test_resolve_turn_semantic_decision_allows_temporary_detour(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
