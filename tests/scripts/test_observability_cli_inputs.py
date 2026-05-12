@@ -246,6 +246,7 @@ def test_run_prerelease_observability_cli_fails_closed_without_canary(monkeypatc
             ws_smoke_message=None,
             surface_smoke=None,
             metrics_json=None,
+            metrics_token=None,
             output_dir=str(tmp_path),
             long_dialog_source_json=None,
             long_dialog_max_cases=None,

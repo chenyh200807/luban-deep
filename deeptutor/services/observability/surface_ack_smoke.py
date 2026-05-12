@@ -52,6 +52,7 @@ def run_surface_ack_smoke(
     session_id: str,
     turn_id: str,
     metadata: dict[str, Any] | None = None,
+    metrics_token: str | None = None,
     timeout_seconds: float = 3.0,
     poll_interval_seconds: float = 0.2,
     transport: httpx.BaseTransport | None = None,
@@ -85,7 +86,8 @@ def run_surface_ack_smoke(
             )
 
         while time.time() <= deadline:
-            response = client.get(metrics_url)
+            headers = {"X-Metrics-Token": metrics_token.strip()} if metrics_token and metrics_token.strip() else None
+            response = client.get(metrics_url, headers=headers)
             response.raise_for_status()
             metrics_payload = response.json()
             coverage = _find_surface_coverage(metrics_payload, surface)
@@ -116,4 +118,3 @@ def run_surface_ack_smoke(
         "passed": not missing_requirements,
         "missing_requirements": missing_requirements,
     }
-

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import httpx
 import pytest
 
 from deeptutor.services.observability import reset_control_plane_store, reset_turn_event_log
@@ -39,50 +40,58 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
     )
     monkeypatch.setattr(
         "deeptutor.services.observability.prerelease_runner.run_surface_ack_smoke",
-        lambda **kwargs: {
-            "run_id": "surface-smoke-1",
-            "passed": True,
-            "surface": kwargs["surface"],
-            "coverage": {"first_render_coverage_ratio": 1.0, "done_render_coverage_ratio": 1.0},
-            "posted_events": [],
-            "missing_requirements": [],
-        },
+        lambda **kwargs: (
+            {
+                "run_id": "surface-smoke-1",
+                "passed": True,
+                "surface": kwargs["surface"],
+                "coverage": {"first_render_coverage_ratio": 1.0, "done_render_coverage_ratio": 1.0},
+                "posted_events": [],
+                "missing_requirements": [],
+            }
+            if kwargs.get("metrics_token") == "metrics-secret"
+            else pytest.fail("surface smoke did not receive metrics token")
+        ),
     )
     monkeypatch.setattr(
         "deeptutor.services.observability.prerelease_runner.load_metrics_snapshot",
-        lambda **kwargs: {
-            "release": {
-                "release_id": "rel-1",
-                "git_sha": "abc123",
-                "deployment_environment": "dev",
-                "prompt_version": "prompt-v1",
-                "ff_snapshot_hash": "ff-1",
-                "git_dirty": "false",
-                "deploy_manifest_hash": "manifest-1",
-            },
-            "readiness": {"ready": True},
-            "turn_runtime": {
-                "turns_started_total": 1,
-                "turns_completed_total": 1,
-                "turns_failed_total": 0,
-                "turns_cancelled_total": 0,
-                "turn_avg_latency_ms": 1200.0,
-            },
-            "surface_events": {
-                "coverage": [
-                    {
-                        "surface": "web",
-                        "start_turn_sent": 1,
-                        "first_visible_content_rendered": 1,
-                        "done_rendered": 1,
-                        "surface_render_failed": 0,
-                        "first_render_coverage_ratio": 1.0,
-                        "done_render_coverage_ratio": 1.0,
-                    }
-                ]
-            },
-            "providers": {"error_rates": {}},
-        },
+        lambda **kwargs: (
+            {
+                "release": {
+                    "release_id": "rel-1",
+                    "git_sha": "abc123",
+                    "deployment_environment": "dev",
+                    "prompt_version": "prompt-v1",
+                    "ff_snapshot_hash": "ff-1",
+                    "git_dirty": "false",
+                    "deploy_manifest_hash": "manifest-1",
+                },
+                "readiness": {"ready": True},
+                "turn_runtime": {
+                    "turns_started_total": 1,
+                    "turns_completed_total": 1,
+                    "turns_failed_total": 0,
+                    "turns_cancelled_total": 0,
+                    "turn_avg_latency_ms": 1200.0,
+                },
+                "surface_events": {
+                    "coverage": [
+                        {
+                            "surface": "web",
+                            "start_turn_sent": 1,
+                            "first_visible_content_rendered": 1,
+                            "done_rendered": 1,
+                            "surface_render_failed": 0,
+                            "first_render_coverage_ratio": 1.0,
+                            "done_render_coverage_ratio": 1.0,
+                        }
+                    ]
+                },
+                "providers": {"error_rates": {}},
+            }
+            if kwargs.get("metrics_token") == "metrics-secret"
+            else pytest.fail("metrics snapshot did not receive metrics token")
+        ),
     )
     monkeypatch.setattr(
         "deeptutor.services.observability.prerelease_runner.collect_git_changed_files",
@@ -159,6 +168,7 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
         arr_mode="lite",
         ws_smoke_message="请回复 ok",
         surface_smoke="web",
+        metrics_token="metrics-secret",
         output_dir=tmp_path / "artifacts",
     )
 
@@ -190,3 +200,23 @@ def test_load_metrics_snapshot_rejects_non_object_json(tmp_path) -> None:
 
     with pytest.raises(TypeError, match="Metrics snapshot must be a JSON object"):
         load_metrics_snapshot(api_base_url="http://127.0.0.1:8001", metrics_json=str(target))
+
+
+def test_load_metrics_snapshot_sends_metrics_token(monkeypatch) -> None:
+    seen_token = None
+    original_client = httpx.Client
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal seen_token
+        seen_token = request.headers.get("X-Metrics-Token")
+        return httpx.Response(200, json={"readiness": {"ready": True}})
+
+    monkeypatch.setattr(httpx, "Client", lambda **_kwargs: original_client(transport=httpx.MockTransport(handler)))
+
+    payload = load_metrics_snapshot(
+        api_base_url="http://127.0.0.1:8001",
+        metrics_token="metrics-secret",
+    )
+
+    assert payload["readiness"]["ready"] is True
+    assert seen_token == "metrics-secret"

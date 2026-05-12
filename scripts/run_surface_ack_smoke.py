@@ -22,6 +22,7 @@ def main() -> None:
     parser.add_argument("--surface", default="web")
     parser.add_argument("--session-id")
     parser.add_argument("--turn-id")
+    parser.add_argument("--metrics-token", help="可选 metrics token；默认不发送")
     args = parser.parse_args()
 
     session_id = args.session_id or f"surface-smoke-session-{int(time.time())}"
@@ -32,6 +33,7 @@ def main() -> None:
         session_id=session_id,
         turn_id=turn_id,
         metadata={"source": "run_surface_ack_smoke.py"},
+        metrics_token=args.metrics_token,
     )
 
     print(f"Surface ACK smoke completed: {payload['run_id']}")
@@ -42,4 +44,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

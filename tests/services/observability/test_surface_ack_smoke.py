@@ -6,12 +6,12 @@ from deeptutor.services.observability.surface_ack_smoke import run_surface_ack_s
 
 
 def test_run_surface_ack_smoke_posts_events_and_verifies_coverage() -> None:
-    requests_seen: list[tuple[str, str, dict]] = []
+    requests_seen: list[tuple[str, str, dict, str | None]] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         if request.method == "POST":
             payload = __import__("json").loads(request.content.decode("utf-8"))
-            requests_seen.append((request.method, str(request.url), payload))
+            requests_seen.append((request.method, str(request.url), payload, request.headers.get("X-Metrics-Token")))
             return httpx.Response(
                 202,
                 json={
@@ -24,7 +24,7 @@ def test_run_surface_ack_smoke_posts_events_and_verifies_coverage() -> None:
                 },
             )
 
-        requests_seen.append((request.method, str(request.url), {}))
+        requests_seen.append((request.method, str(request.url), {}, request.headers.get("X-Metrics-Token")))
         return httpx.Response(
             200,
             json={
@@ -49,6 +49,7 @@ def test_run_surface_ack_smoke_posts_events_and_verifies_coverage() -> None:
         surface="web",
         session_id="session-smoke-1",
         turn_id="turn-smoke-1",
+        metrics_token="metrics-secret",
         transport=httpx.MockTransport(handler),
     )
 
@@ -63,4 +64,4 @@ def test_run_surface_ack_smoke_posts_events_and_verifies_coverage() -> None:
         "done_rendered",
     ]
     assert [item[0] for item in requests_seen] == ["POST", "POST", "POST", "GET"]
-
+    assert [item[3] for item in requests_seen] == [None, None, None, "metrics-secret"]

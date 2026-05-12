@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -47,7 +48,12 @@ def _write_control_plane_artifact(
     }
 
 
-def load_metrics_snapshot(*, api_base_url: str, metrics_json: str | None = None) -> dict[str, Any]:
+def load_metrics_snapshot(
+    *,
+    api_base_url: str,
+    metrics_json: str | None = None,
+    metrics_token: str | None = None,
+) -> dict[str, Any]:
     if metrics_json:
         target = Path(metrics_json).expanduser().resolve()
         if not target.exists():
@@ -58,8 +64,9 @@ def load_metrics_snapshot(*, api_base_url: str, metrics_json: str | None = None)
         return payload
 
     url = f"{api_base_url.rstrip('/')}/metrics"
+    headers = {"X-Metrics-Token": metrics_token.strip()} if metrics_token and metrics_token.strip() else None
     with httpx.Client(timeout=5.0, trust_env=False) as client:
-        response = client.get(url)
+        response = client.get(url, headers=headers)
         response.raise_for_status()
         payload = response.json()
         if not isinstance(payload, dict):
@@ -74,6 +81,7 @@ def run_prerelease_observability(
     ws_smoke_message: str | None = None,
     surface_smoke: str | None = None,
     metrics_json: str | None = None,
+    metrics_token: str | None = None,
     output_dir: Path | None = None,
     explicit_long_dialog_source_json: str | None = None,
     long_dialog_max_cases: int | None = None,
@@ -83,6 +91,7 @@ def run_prerelease_observability(
 
     target_output_dir = (output_dir or (Path.cwd() / "tmp" / "observability" / "prerelease")).expanduser().resolve()
     target_output_dir.mkdir(parents=True, exist_ok=True)
+    effective_metrics_token = metrics_token if metrics_token is not None else os.environ.get("DEEPTUTOR_METRICS_TOKEN")
 
     ws_smoke_payload = None
     if ws_smoke_message:
@@ -101,9 +110,14 @@ def run_prerelease_observability(
             session_id=f"surface-smoke-session-{arr_mode}",
             turn_id=f"surface-smoke-turn-{arr_mode}",
             metadata={"source": "run_prerelease_observability"},
+            metrics_token=effective_metrics_token,
         )
 
-    metrics_snapshot = load_metrics_snapshot(api_base_url=api_base_url, metrics_json=metrics_json)
+    metrics_snapshot = load_metrics_snapshot(
+        api_base_url=api_base_url,
+        metrics_json=metrics_json,
+        metrics_token=effective_metrics_token,
+    )
     smoke_checks: list[dict[str, Any]] = []
     if ws_smoke_payload is not None:
         terminal_event = ws_smoke_payload.get("terminal_event") or {}

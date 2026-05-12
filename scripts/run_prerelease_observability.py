@@ -22,6 +22,7 @@ def main() -> None:
     parser.add_argument("--ws-smoke-message", help="可选，直接通过 /api/v1/ws 发起一次真实 turn smoke")
     parser.add_argument("--surface-smoke", help="可选，触发一次 live surface ack smoke，例如 web")
     parser.add_argument("--metrics-json", help="离线 metrics JSON 文件；提供后不走 live /metrics")
+    parser.add_argument("--metrics-token", help="可选 metrics token；默认读取 DEEPTUTOR_METRICS_TOKEN")
     parser.add_argument("--output-dir")
     parser.add_argument("--long-dialog-source-json")
     parser.add_argument("--long-dialog-max-cases", type=int)
@@ -38,6 +39,7 @@ def main() -> None:
         ws_smoke_message=args.ws_smoke_message,
         surface_smoke=args.surface_smoke,
         metrics_json=args.metrics_json,
+        metrics_token=args.metrics_token,
         output_dir=Path(args.output_dir).expanduser().resolve() if args.output_dir else None,
         explicit_long_dialog_source_json=args.long_dialog_source_json,
         long_dialog_max_cases=args.long_dialog_max_cases,
