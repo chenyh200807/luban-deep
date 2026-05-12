@@ -425,6 +425,60 @@ def test_mobile_chat_start_turn_enables_web_search_for_current_info_queries(
     assert captured["payload"]["config"]["interaction_hints"]["current_info_required"] is True
 
 
+def test_mobile_chat_start_turn_honors_explicit_web_search_tool(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": "session_4a",
+                    "title": "联网查询",
+                    "created_at": 1_700_000_040.5,
+                },
+                {
+                    "id": "turn_4a",
+                    "status": "running",
+                    "capability": "chat",
+                },
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(mobile_module, "is_web_search_runtime_available", lambda: True)
+    monkeypatch.setattr(
+        mobile_module,
+        "build_grounding_decision",
+        lambda **_kwargs: SimpleNamespace(
+            current_info_required=False,
+            textbook_delta_query=False,
+            reasons=[],
+        ),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "查一下今年一建报名入口",
+                "mode": "AUTO",
+                "language": "zh",
+                "tools": ["web_search"],
+            },
+        )
+
+    assert response.status_code == 200
+    assert "web_search" in captured["payload"]["tools"]
+    assert captured["payload"]["config"]["interaction_hints"]["current_info_required"] is True
+
+
 def test_mobile_chat_start_turn_marks_current_info_without_disabled_web_search_when_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

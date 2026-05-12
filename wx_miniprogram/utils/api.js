@@ -434,6 +434,14 @@ function startChatTurn(payload) {
   });
 }
 
+/** 获取公开运行时能力 */
+function getRuntimeCapabilities() {
+  return request({
+    url: "/api/v1/system/public-capabilities",
+    method: "GET",
+  });
+}
+
 /** 获取对话消息 */
 function getConversationMessages(convId) {
   return request({
@@ -538,6 +546,7 @@ module.exports = {
   getConversations: getConversations,
   createConversation: createConversation,
   startChatTurn: startChatTurn,
+  getRuntimeCapabilities: getRuntimeCapabilities,
   getConversationMessages: getConversationMessages,
   deleteConversation: deleteConversation,
   batchConversations: batchConversations,

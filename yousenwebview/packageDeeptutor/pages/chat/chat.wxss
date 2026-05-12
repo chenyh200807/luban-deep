@@ -254,6 +254,42 @@
 .mode-pill-txt { font-size: 22rpx; color: rgba(255,255,255,0.45); }
 .mode-pill.on { background: #2563eb; border-color: #2563eb; }
 .mode-pill.on .mode-pill-txt { color: #fff; font-weight: 500; }
+.web-pill {
+  height: 54rpx;
+  padding: 0 16rpx 0 14rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(125,211,252,0.18);
+  background: rgba(15,23,42,0.42);
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+.web-pill.on {
+  border-color: rgba(56,189,248,0.72);
+  background: linear-gradient(135deg, rgba(14,165,233,0.26), rgba(37,99,235,0.28));
+  box-shadow: 0 0 22rpx rgba(56,189,248,0.20), inset 0 0 0 1rpx rgba(255,255,255,0.08);
+}
+.web-pill-icon {
+  width: 22rpx;
+  height: 22rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(125,211,252,0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.web-pill-ring {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: rgba(125,211,252,0.44);
+}
+.web-pill.on .web-pill-icon { border-color: #67e8f9; }
+.web-pill.on .web-pill-ring { background: #67e8f9; box-shadow: 0 0 12rpx rgba(103,232,249,0.74); }
+.web-pill-txt { font-size: 22rpx; color: rgba(186,230,253,0.66); font-weight: 600; }
+.web-pill.on .web-pill-txt { color: #e0faff; }
 .send-btn {
   width: 72rpx; height: 72rpx; border-radius: 18rpx;
   background: rgba(255,255,255,0.08);
@@ -1176,6 +1212,10 @@
 .mode-row-compact .mode-pill {
   padding: 6rpx 16rpx;
 }
+.mode-row-compact .web-pill {
+  height: 48rpx;
+  padding: 0 14rpx 0 12rpx;
+}
 .mode-row-compact .mode-pill-txt {
   font-size: 20rpx;
 }
@@ -1439,6 +1479,21 @@
 .page.light .mode-pill-txt { color: #64748b; }
 .page.light .mode-pill.on { background: #2f6bff; border-color: #2f6bff; }
 .page.light .mode-pill.on .mode-pill-txt { color: #fff; }
+.page.light .web-pill {
+  background: rgba(239,246,255,0.92);
+  border-color: rgba(14,165,233,0.22);
+}
+.page.light .web-pill-txt { color: #256b94; }
+.page.light .web-pill-icon { border-color: rgba(14,165,233,0.42); }
+.page.light .web-pill-ring { background: rgba(14,165,233,0.50); }
+.page.light .web-pill.on {
+  background: linear-gradient(135deg, rgba(14,165,233,0.92), rgba(37,99,235,0.92));
+  border-color: rgba(14,165,233,0.96);
+  box-shadow: 0 10rpx 24rpx rgba(14,165,233,0.22);
+}
+.page.light .web-pill.on .web-pill-txt { color: #fff; }
+.page.light .web-pill.on .web-pill-icon { border-color: rgba(255,255,255,0.9); }
+.page.light .web-pill.on .web-pill-ring { background: #fff; box-shadow: none; }
 .page.light .send-btn {
   background: #e8efff;
   border: 1rpx solid #d4e1fa;

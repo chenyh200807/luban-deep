@@ -111,6 +111,22 @@ def test_search_connection_skips_when_web_search_unavailable(
     assert response.error == "web_search unavailable"
 
 
+def test_public_capabilities_exposes_web_search_runtime_authority(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(system_module, "is_web_search_runtime_available", lambda: True)
+
+    with TestClient(_build_app(is_admin=False)) as client:
+        response = client.get("/api/v1/public-capabilities")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["tools"]["web_search"] == {
+        "available": True,
+        "authority": "config_runtime",
+    }
+
+
 def test_learner_state_contract_endpoint_exposes_user_id_scoped_state() -> None:
     with TestClient(_build_app()) as client:
         response = client.get("/api/v1/learner-state-contract")

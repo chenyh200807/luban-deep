@@ -33,6 +33,18 @@ class TestResponse(BaseModel):
     error: str | None = None
 
 
+@router.get("/public-capabilities")
+async def get_public_capabilities():
+    return {
+        "tools": {
+            "web_search": {
+                "available": bool(is_web_search_runtime_available()),
+                "authority": "config_runtime",
+            }
+        }
+    }
+
+
 @router.get("/runtime-topology", dependencies=_ADMIN_ONLY)
 async def get_runtime_topology():
     """

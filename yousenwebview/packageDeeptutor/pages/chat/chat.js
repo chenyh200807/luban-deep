@@ -29,7 +29,7 @@ var HERO_VIBRATE_THRESHOLD_PX = 40; // Hero 拖拽震动阈值
 var SCROLL_TOGGLE_COOLDOWN_MS = 300; // 滚动切换 tab bar 冷却
 var VIEWPORT_MARGIN_PX = 600; // IntersectionObserver 上下扩展边距
 var CHAT_TOOL_PREFS_KEY = "chat_tool_prefs";
-var WEB_SEARCH_AVAILABLE = false;
+var DEFAULT_WEB_SEARCH_AVAILABLE = false;
 var NAVBAR_INNER_HEIGHT_RPX = 128;
 var _IS_DEVTOOLS =
   typeof __wxConfig !== "undefined" && __wxConfig.platform === "devtools";
@@ -168,6 +168,7 @@ Page({
     answerMode: "AUTO",
     enableReason: false,
     enableWebSearch: false,
+    webSearchAvailable: DEFAULT_WEB_SEARCH_AVAILABLE,
     feedbackMsgId: "",
     feedbackTags: [],
     feedbackComment: "",
@@ -309,12 +310,14 @@ Page({
       hasMessages: !!pendingInitialConversationId,
       isDark: helpers.isDark(),
       enableReason: false,
-      enableWebSearch: false,
+      webSearchAvailable: DEFAULT_WEB_SEARCH_AVAILABLE,
+      enableWebSearch: DEFAULT_WEB_SEARCH_AVAILABLE && !!savedToolPrefs.enableWebSearch,
       entrySource: String(entrySource || "").trim(),
     });
-    if (savedToolPrefs.enableReason || savedToolPrefs.enableWebSearch) {
-      this._saveToolPrefs(false, false);
+    if (savedToolPrefs.enableReason) {
+      this._saveToolPrefs(false, DEFAULT_WEB_SEARCH_AVAILABLE && !!savedToolPrefs.enableWebSearch);
     }
+    this._loadToolRuntimeCapabilities(savedToolPrefs);
 
     // [FIX-SESSION-1] 仅在 5 分钟内恢复 session（处理页面刷新），
     // 超时则开启新对话，防止所有问题堆积在同一个历史记录中
@@ -1629,16 +1632,59 @@ Page({
 
   onToggleWebSearch: function () {
     helpers.vibrate("light");
-    this._saveToolPrefs(false, false);
-    this.setData({ enableReason: false, enableWebSearch: false });
-    wx.showToast({ title: "该能力暂未开放", icon: "none", duration: 1800 });
+    if (!this._isWebSearchAvailable()) {
+      this._saveToolPrefs(false, false);
+      this.setData({ enableReason: false, enableWebSearch: false });
+      wx.showToast({ title: "联网暂不可用", icon: "none", duration: 1800 });
+      return;
+    }
+    var nextWebSearch = !this.data.enableWebSearch;
+    this._saveToolPrefs(false, nextWebSearch);
+    this.setData({ enableReason: false, enableWebSearch: nextWebSearch });
+    wx.showToast({
+      title: nextWebSearch ? "本轮可联网" : "已关闭联网",
+      icon: "none",
+      duration: 1400,
+    });
   },
 
   _saveToolPrefs: function (enableReason, enableWebSearch) {
     wx.setStorageSync(CHAT_TOOL_PREFS_KEY, {
       enableReason: false,
-      enableWebSearch: !!enableWebSearch,
+      enableWebSearch: this._isWebSearchAvailable() && !!enableWebSearch,
     });
+  },
+
+  _isWebSearchAvailable: function () {
+    return this.data.webSearchAvailable === true;
+  },
+
+  _loadToolRuntimeCapabilities: function (savedToolPrefs) {
+    var self = this;
+    if (!api || typeof api.getRuntimeCapabilities !== "function") return;
+    api
+      .getRuntimeCapabilities()
+      .then(function (res) {
+        var body = unwrap(res) || {};
+        var tools = body.tools && typeof body.tools === "object" ? body.tools : {};
+        var webSearch = tools.web_search || {};
+        var available = webSearch.available === true;
+        self.setData({
+          webSearchAvailable: available,
+          enableWebSearch: available && !!(savedToolPrefs && savedToolPrefs.enableWebSearch),
+        });
+        if (available && savedToolPrefs && savedToolPrefs.enableWebSearch) {
+          self._saveToolPrefs(false, true);
+        } else if (!available && savedToolPrefs && savedToolPrefs.enableWebSearch) {
+          self._saveToolPrefs(false, false);
+        }
+      })
+      .catch(function () {
+        self.setData({
+          webSearchAvailable: DEFAULT_WEB_SEARCH_AVAILABLE,
+          enableWebSearch: false,
+        });
+      });
   },
 
   _shouldAutoEnableWebSearch: function (query) {
@@ -1647,7 +1693,7 @@ Page({
 
   _getSelectedTools: function (query) {
     var tools = [];
-    if (WEB_SEARCH_AVAILABLE && (this.data.enableWebSearch || this._shouldAutoEnableWebSearch(query))) {
+    if (this._isWebSearchAvailable() && (this.data.enableWebSearch || this._shouldAutoEnableWebSearch(query))) {
       tools.push("web_search");
     }
     return tools;
@@ -1665,6 +1711,14 @@ Page({
           mode === "FAST" ? "fast" : mode === "DEEP" ? "deep" : "smart",
       },
     };
+  },
+
+  _applySelectedToolHints: function (interaction, tools) {
+    if (tools.indexOf("web_search") === -1) return interaction;
+    interaction.hints = Object.assign({}, interaction.hints || {}, {
+      current_info_required: true,
+    });
+    return interaction;
   },
 
   // ── 对话滚动：上滑显示 tab bar，下滑隐藏 ─────
@@ -1812,7 +1866,7 @@ Page({
   _doSend: function (query, extraOpts) {
     var self = this;
     var autoWebSearch =
-      WEB_SEARCH_AVAILABLE && !self.data.enableWebSearch && self._shouldAutoEnableWebSearch(query);
+      self._isWebSearchAvailable() && !self.data.enableWebSearch && self._shouldAutoEnableWebSearch(query);
     var selectedTools = self._getSelectedTools(query);
 
     if (!self._sid && self._convId) {
@@ -1912,7 +1966,7 @@ Page({
     setTimeout(function () {
       setupSelf._setupObserver();
     }, 50);
-    var tutorInteraction = self._buildTutorInteraction();
+    var tutorInteraction = self._applySelectedToolHints(self._buildTutorInteraction(), selectedTools);
     self._surfaceTurnId = "";
     self._firstVisibleAckSent = false;
     self._doneRenderedAckSent = false;
