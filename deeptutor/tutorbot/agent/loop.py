@@ -773,6 +773,27 @@ class AgentLoop:
         return decision.should_prefetch_grounded_rag
 
     @staticmethod
+    def _runtime_current_info_required(runtime_metadata: dict[str, Any] | None) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        if metadata.get("current_info_required") is True:
+            return True
+        hints = metadata.get("interaction_hints") if isinstance(metadata.get("interaction_hints"), dict) else {}
+        return hints.get("current_info_required") is True
+
+    @classmethod
+    def _should_prefetch_web_search(
+        cls,
+        *,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        default_tools = {
+            str(item or "").strip()
+            for item in (metadata.get("default_tools") if isinstance(metadata.get("default_tools"), list) else [])
+        }
+        return cls._runtime_current_info_required(metadata) and "web_search" in default_tools
+
+    @staticmethod
     def _build_rag_preview_args(
         current_message: str,
         runtime_metadata: dict[str, Any] | None,
@@ -817,6 +838,10 @@ class AgentLoop:
         if any(routing_metadata.values()):
             preview_args["routing_metadata"] = routing_metadata
         return preview_args
+
+    @staticmethod
+    def _build_web_search_preview_args(current_message: str) -> dict[str, Any]:
+        return {"query": current_message, "count": 5}
 
     async def _maybe_prefetch_grounded_rag(
         self,
@@ -900,6 +925,85 @@ class AgentLoop:
                     "首轮知识召回已完成。请直接基于现有证据回答学员，"
                     "不要复述“我去搜索/我正在查找”这类过程话术；"
                     "只有当前证据仍明显不足时，才继续调用其他工具。"
+                ),
+            }
+        )
+        return prefetch_messages
+
+    async def _maybe_prefetch_web_search(
+        self,
+        *,
+        initial_messages: list[dict[str, Any]],
+        current_message: str,
+        runtime_metadata: dict[str, Any] | None,
+        on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
+        on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
+    ) -> list[dict[str, Any]]:
+        if not self._should_prefetch_web_search(runtime_metadata=runtime_metadata):
+            return initial_messages
+
+        web_search_tool = self.tools.get("web_search")
+        if web_search_tool is None:
+            return initial_messages
+
+        preview_args = self._build_web_search_preview_args(current_message)
+        try:
+            preview_args = web_search_tool.preview_args(preview_args)
+        except Exception:
+            preview_args = dict(preview_args)
+
+        result = await self.tools.execute("web_search", preview_args)
+        result_text = str(result or "").strip()
+        if not result_text:
+            return initial_messages
+        guarded_context = sanitize_untrusted_context(result_text, source="web_search")
+        result_text = str(guarded_context.content or "").strip()
+        if not result_text:
+            return initial_messages
+
+        tool_trace_metadata: dict[str, Any] | None = None
+        try:
+            tool_trace_metadata = web_search_tool.consume_trace_metadata()
+        except Exception:
+            tool_trace_metadata = None
+        merged_metadata = dict(tool_trace_metadata or {})
+        if guarded_context.signals:
+            merged_metadata["guardrail_sanitized"] = True
+            merged_metadata["guardrail_signals"] = list(guarded_context.signals)
+
+        if on_tool_call:
+            await on_tool_call("web_search", preview_args)
+        if on_tool_result:
+            await on_tool_result("web_search", result_text, merged_metadata)
+
+        prefetch_messages = list(initial_messages)
+        tool_call_id = "prefetch-web-search-1"
+        prefetch_messages = self.context.add_assistant_message(
+            prefetch_messages,
+            None,
+            tool_calls=[
+                {
+                    "id": tool_call_id,
+                    "type": "function",
+                    "function": {
+                        "name": "web_search",
+                        "arguments": json.dumps(preview_args, ensure_ascii=False),
+                    },
+                }
+            ],
+        )
+        prefetch_messages = self.context.add_tool_result(
+            prefetch_messages,
+            tool_call_id,
+            "web_search",
+            result_text,
+        )
+        prefetch_messages.append(
+            {
+                "role": "system",
+                "content": (
+                    "联网搜索已完成。请优先基于 web_search 结果回答，并在答案中保留关键来源链接；"
+                    "如果搜索结果不足或互相冲突，请明确说明不确定性。"
                 ),
             }
         )
@@ -1479,17 +1583,19 @@ class AgentLoop:
         runtime_instruction = "\n\n".join(
             part for part in runtime_instruction_parts if str(part or "").strip()
         )
-        fast_path = await self._maybe_run_exact_rag_fast_path(
-            current_message=current_message,
-            history=history,
-            media=msg.media if msg.media else None,
-            channel=msg.channel,
-            chat_id=msg.chat_id,
-            runtime_instruction=runtime_instruction,
-            runtime_metadata=runtime_metadata,
-            on_tool_call=on_tool_call,
-            on_tool_result=on_tool_result,
-        )
+        fast_path = None
+        if not self._should_prefetch_web_search(runtime_metadata=runtime_metadata):
+            fast_path = await self._maybe_run_exact_rag_fast_path(
+                current_message=current_message,
+                history=history,
+                media=msg.media if msg.media else None,
+                channel=msg.channel,
+                chat_id=msg.chat_id,
+                runtime_instruction=runtime_instruction,
+                runtime_metadata=runtime_metadata,
+                on_tool_call=on_tool_call,
+                on_tool_result=on_tool_result,
+            )
         if fast_path is not None:
             final_content, all_msgs, fast_path_metadata = fast_path
             final_content = normalize_anchor_terms_in_response(
@@ -1523,6 +1629,13 @@ class AgentLoop:
             runtime_instruction=runtime_instruction,
         )
         initial_messages = await self._maybe_prefetch_grounded_rag(
+            initial_messages=initial_messages,
+            current_message=current_message,
+            runtime_metadata=runtime_metadata,
+            on_tool_call=on_tool_call,
+            on_tool_result=on_tool_result,
+        )
+        initial_messages = await self._maybe_prefetch_web_search(
             initial_messages=initial_messages,
             current_message=current_message,
             runtime_metadata=runtime_metadata,

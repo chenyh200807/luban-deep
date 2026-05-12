@@ -36,6 +36,7 @@ from deeptutor.services.llm import (
     supports_response_format,
     supports_tools,
 )
+from deeptutor.services.llm.exceptions import LLMConfigError
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.exam_track import exam_track_label
 from deeptutor.services.query_intent import (
@@ -1517,7 +1518,10 @@ class AgenticChatPipeline:
         return repaired or draft
 
     def _build_openai_client(self):
-        client_kwargs = openai_client_kwargs()
+        try:
+            client_kwargs = openai_client_kwargs()
+        except LLMConfigError as exc:
+            raise RuntimeError(str(exc)) from exc
         if self.extra_headers:
             client_kwargs["default_headers"] = self.extra_headers
         if self.binding == "azure_openai" or (self.binding == "openai" and self.api_version):

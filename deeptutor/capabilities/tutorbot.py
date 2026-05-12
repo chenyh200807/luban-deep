@@ -365,9 +365,15 @@ class TutorBotCapability(BaseCapability):
 
     @staticmethod
     def _session_default_tools(context: UnifiedContext, *, response_mode: str) -> list[str]:
+        enabled_tools = list(context.enabled_tools or [])
         if response_mode == "fast":
-            return ["rag"] if ("rag" in (context.enabled_tools or []) or context.knowledge_bases) else []
-        return list(context.enabled_tools or [])
+            tools: list[str] = []
+            if "rag" in enabled_tools or context.knowledge_bases:
+                tools.append("rag")
+            if "web_search" in enabled_tools:
+                tools.append("web_search")
+            return tools
+        return enabled_tools
 
     @staticmethod
     def _current_info_required(context: UnifiedContext) -> bool:

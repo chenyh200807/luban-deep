@@ -44,6 +44,19 @@ def _install_module(monkeypatch: pytest.MonkeyPatch, fullname: str, **attrs: Any
     return module
 
 
+def test_tutorbot_fast_mode_preserves_explicit_web_search_tool() -> None:
+    context = UnifiedContext(
+        user_message="联网查询2026一建考试时间",
+        enabled_tools=["rag", "web_search"],
+        knowledge_bases=["construction-exam"],
+    )
+
+    assert TutorBotCapability._session_default_tools(context, response_mode="fast") == [
+        "rag",
+        "web_search",
+    ]
+
+
 async def _collect_events(run_coro) -> list[StreamEvent]:
     bus = StreamBus()
     events: list[StreamEvent] = []
@@ -4002,6 +4015,157 @@ async def test_tutorbot_process_direct_prefetches_grounded_rag_for_current_info_
         "source_overlap_to_prev": None,
         "shared_source_count_with_prev": 0,
     }
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_process_direct_prefetches_web_search_when_user_enabled_tool(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {"tool_calls": [], "tool_results": []}
+
+    class WebPrefetchProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            tool_messages = [item for item in messages if item.get("role") == "tool"]
+            assert any(
+                item.get("name") == "web_search"
+                and "2026年度专业技术人员职业资格考试工作计划" in str(item.get("content") or "")
+                for item in tool_messages
+            )
+            assert any(
+                item.get("role") == "system"
+                and "联网搜索已完成" in str(item.get("content") or "")
+                for item in messages
+            )
+            if on_content_delta is not None:
+                await on_content_delta("联网结果显示，2026年一建考试时间为9月12日、13日。")
+            return LLMResponse(content="联网结果显示，2026年一建考试时间为9月12日、13日。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class PrefetchWebSearchTool(Tool):
+        def __init__(self) -> None:
+            self._trace_metadata = {
+                "provider": "searxng",
+                "citations": 1,
+                "search_results": 1,
+                "sources": [
+                    {
+                        "title": "2026年度专业技术人员职业资格考试工作计划",
+                        "url": "https://example.gov/plan.pdf",
+                    }
+                ],
+                "web_search_sources": [
+                    {
+                        "title": "2026年度专业技术人员职业资格考试工作计划",
+                        "url": "https://example.gov/plan.pdf",
+                    }
+                ],
+            }
+
+        @property
+        def name(self) -> str:
+            return "web_search"
+
+        @property
+        def description(self) -> str:
+            return "web search"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "count": {"type": "integer"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            assert kwargs["query"] == "2026一建考试时间"
+            assert kwargs["count"] == 5
+            return (
+                "Provider: searxng\n"
+                "Results for: 2026一建考试时间\n"
+                "1. 2026年度专业技术人员职业资格考试工作计划\n"
+                "   https://example.gov/plan.pdf\n"
+                "   建造师（一级）：9月12日、13日"
+            )
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            metadata = dict(self._trace_metadata)
+            self._trace_metadata = {}
+            return metadata
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=WebPrefetchProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(PrefetchWebSearchTool())
+
+    content = await loop.process_direct(
+        "2026一建考试时间",
+        metadata={
+            "current_info_required": True,
+            "default_tools": ["web_search"],
+            "effective_response_mode": "fast",
+        },
+        on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert "9月12日、13日" in content
+    assert captured["tool_calls"] == [
+        ("web_search", {"query": "2026一建考试时间", "count": 5})
+    ]
+    assert captured["tool_results"][0][2]["provider"] == "searxng"
+    assert captured["tool_results"][0][2]["web_search_sources"] == [
+        {
+            "title": "2026年度专业技术人员职业资格考试工作计划",
+            "url": "https://example.gov/plan.pdf",
+        }
+    ]
 
 
 @pytest.mark.asyncio

@@ -32,6 +32,7 @@ domains:
       - tests/api/test_system_router.py
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/api/test_mobile_router.py
+      - tests/services/session/test_context_builder.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py
@@ -85,6 +86,7 @@ domains:
       - deeptutor/services/exam_track.py
     test_files:
       - tests/services/rag/test_rag_pipelines.py
+      - tests/services/rag/test_index_versioning.py
       - tests/services/rag/test_supabase_strategy.py
       - tests/agents/chat/test_agentic_parallel_tools.py
     schema_files:
@@ -111,6 +113,7 @@ domains:
       - tests/services/config/test_provider_runtime.py
       - tests/services/config/test_embedding_runtime.py
       - tests/services/config/test_knowledge_base_config.py
+      - tests/services/embedding/test_validation.py
       - tests/services/search/test_web_search_runtime.py
       - tests/services/search/test_search_provider_resilience.py
     schema_files: []
