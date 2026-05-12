@@ -479,6 +479,50 @@ def test_mobile_chat_start_turn_honors_explicit_web_search_tool(
     assert captured["payload"]["config"]["interaction_hints"]["current_info_required"] is True
 
 
+def test_mobile_chat_start_turn_treats_explicit_web_search_command_as_current_info(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": "session_4c",
+                    "title": "联网查询",
+                    "created_at": 1_700_000_040.8,
+                },
+                {
+                    "id": "turn_4c",
+                    "status": "running",
+                    "capability": "chat",
+                },
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(mobile_module, "is_web_search_runtime_available", lambda: True)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "你不是能联网的吗，联网查询",
+                "mode": "AUTO",
+                "language": "zh",
+            },
+        )
+
+    assert response.status_code == 200
+    assert "web_search" in captured["payload"]["tools"]
+    assert captured["payload"]["config"]["interaction_hints"]["current_info_required"] is True
+
+
 def test_mobile_chat_start_turn_marks_current_info_without_disabled_web_search_when_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

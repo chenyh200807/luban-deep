@@ -35,7 +35,25 @@ async def test_tutorbot_web_search_tool_uses_central_search_runtime(monkeypatch)
     assert captured["kwargs"] == {"max_results": 3}
     assert "Provider: searxng" in result
     assert "9月12日、13日" in result
-    assert trace == {"provider": "searxng", "citations": 1, "search_results": 1}
+    assert trace == {
+        "provider": "searxng",
+        "citations": 1,
+        "search_results": 1,
+        "sources": [
+            {
+                "title": "2026年度专业技术人员职业资格考试工作计划",
+                "url": "https://example.gov/plan.pdf",
+                "content": "建造师（一级）：9月12日、13日",
+            }
+        ],
+        "web_search_sources": [
+            {
+                "title": "2026年度专业技术人员职业资格考试工作计划",
+                "url": "https://example.gov/plan.pdf",
+                "content": "建造师（一级）：9月12日、13日",
+            }
+        ],
+    }
 
 
 @pytest.mark.asyncio
