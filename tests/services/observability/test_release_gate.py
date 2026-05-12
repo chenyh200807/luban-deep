@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from deeptutor.services.observability import release_gate as release_gate_module
 from deeptutor.services.observability.release_gate import build_release_gate_report
 
 
@@ -234,6 +235,88 @@ def test_release_gate_prefers_complete_release_lineage_over_incomplete_arr() -> 
     assert payload["release"]["release_id"] == "1.0.0+abcdef+production"
     assert p0["status"] == "PASS"
     assert "runtime_or_release_lineage_incomplete" not in payload["blockers"]
+
+
+def test_release_gate_uses_complete_fallback_after_incomplete_payloads(monkeypatch) -> None:
+    monkeypatch.setattr(
+        release_gate_module,
+        "get_release_lineage_snapshot",
+        lambda: {
+            "release_id": "1.0.0+fallback+production",
+            "git_sha": "fallback",
+            "deployment_environment": "production",
+            "prompt_version": "prompt",
+            "ff_snapshot_hash": "ff",
+            "git_dirty": "false",
+            "deploy_manifest_hash": "manifest",
+        },
+    )
+
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "1.0.0+unknown+production",
+                "git_sha": "unknown",
+                "deployment_environment": "production",
+                "prompt_version": "unset",
+                "ff_snapshot_hash": "none",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "unset",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
+    assert payload["release"]["release_id"] == "1.0.0+fallback+production"
+    assert p0["status"] == "PASS"
+    assert not payload["blockers"]
+
+
+def test_release_gate_preserves_first_incomplete_lineage_when_fallback_incomplete(monkeypatch) -> None:
+    monkeypatch.setattr(
+        release_gate_module,
+        "get_release_lineage_snapshot",
+        lambda: {
+            "release_id": "1.0.0+fallback+unknown",
+            "git_sha": "fallback",
+            "deployment_environment": "unknown",
+            "prompt_version": "unset",
+            "ff_snapshot_hash": "none",
+            "git_dirty": "unknown",
+            "deploy_manifest_hash": "unset",
+        },
+    )
+
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "1.0.0+payload+unknown",
+                "git_sha": "payload",
+                "deployment_environment": "unknown",
+                "prompt_version": "unset",
+                "ff_snapshot_hash": "none",
+                "git_dirty": "unknown",
+                "deploy_manifest_hash": "unset",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
+    assert payload["release"]["release_id"] == "1.0.0+payload+unknown"
+    assert p0["status"] == "FAIL"
+    assert "runtime_or_release_lineage_incomplete" in payload["blockers"]
 
 
 def test_release_gate_uses_benchmark_blind_spots_without_oa_payload() -> None:

@@ -68,6 +68,9 @@ def _select_release_lineage(*payloads: dict[str, Any] | None) -> dict[str, Any]:
         for release in [(payload or {}).get("release")]
         if isinstance(release, dict) and release
     ]
+    fallback = get_release_lineage_snapshot()
+    if isinstance(fallback, dict) and fallback:
+        candidates.append(fallback)
     for release in candidates:
         if _is_complete_release_lineage(release):
             return release
