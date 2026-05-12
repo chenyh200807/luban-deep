@@ -81,6 +81,15 @@ def test_collect_git_changed_files_defaults_to_previous_commit(monkeypatch) -> N
     assert calls[0] == ["git", "diff", "--name-only", "HEAD~1"]
 
 
+def test_collect_git_changed_files_returns_empty_without_git(monkeypatch) -> None:
+    def fake_run(*_args, **_kwargs):  # noqa: ANN202
+        raise FileNotFoundError("git")
+
+    monkeypatch.setattr("deeptutor.services.observability.change_impact.subprocess.run", fake_run)
+
+    assert collect_git_changed_files() == []
+
+
 def test_build_change_impact_run_maps_bi_backend_to_bi_domain_and_gates() -> None:
     payload = build_change_impact_run(
         changed_files=[

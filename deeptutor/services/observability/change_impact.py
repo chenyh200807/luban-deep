@@ -147,26 +147,33 @@ def collect_git_changed_files(
     include_worktree: bool = True,
 ) -> list[str]:
     """Collect git changed files; callers can pass explicit files to scope a run."""
-    diff = subprocess.run(
-        ["git", "diff", "--name-only", base_ref],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    files: set[str] = set()
-    if diff.returncode == 0:
-        files.update(line.strip() for line in diff.stdout.splitlines() if line.strip())
-    if include_worktree:
-        status = subprocess.run(
-            ["git", "status", "--short"],
+    try:
+        diff = subprocess.run(
+            ["git", "diff", "--name-only", base_ref],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
             check=False,
         )
-        if status.returncode == 0:
-            files.update(parse_git_status_changed_files(status.stdout))
+    except FileNotFoundError:
+        return []
+    files: set[str] = set()
+    if diff.returncode == 0:
+        files.update(line.strip() for line in diff.stdout.splitlines() if line.strip())
+    if include_worktree:
+        try:
+            status = subprocess.run(
+                ["git", "status", "--short"],
+                cwd=PROJECT_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except FileNotFoundError:
+            status = None
+        if status is not None:
+            if status.returncode == 0:
+                files.update(parse_git_status_changed_files(status.stdout))
     return sorted(files)
 
 
