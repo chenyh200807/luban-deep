@@ -589,6 +589,11 @@ class LangfuseObservability:
     def is_measured_usage_source(cls, source: str | None) -> bool:
         return cls.normalize_usage_source(source) in {"provider", "measured", "actual"}
 
+    @classmethod
+    def should_export_usage_to_langfuse(cls, source: str | None) -> bool:
+        source_key = cls.normalize_usage_source(source)
+        return source_key not in {"summary", "rollup", "scope"}
+
     def get_current_usage_summary(self) -> dict[str, Any] | None:
         scope = _current_usage_scope.get()
         if scope is None:
@@ -599,9 +604,17 @@ class LangfuseObservability:
     def usage_details_from_summary(summary: dict[str, Any] | None) -> dict[str, float] | None:
         if not isinstance(summary, dict):
             return None
-        input_tokens = float(summary.get("total_input_tokens") or 0.0)
-        output_tokens = float(summary.get("total_output_tokens") or 0.0)
-        total_tokens = float(summary.get("total_tokens") or (input_tokens + output_tokens))
+        input_tokens = float(summary.get("total_input_tokens") or 0.0) + float(
+            summary.get("estimated_input_tokens") or 0.0
+        )
+        output_tokens = float(summary.get("total_output_tokens") or 0.0) + float(
+            summary.get("estimated_output_tokens") or 0.0
+        )
+        total_tokens = float(summary.get("total_tokens") or 0.0) + float(
+            summary.get("estimated_total_tokens") or 0.0
+        )
+        if total_tokens <= 0:
+            total_tokens = input_tokens + output_tokens
         if total_tokens <= 0:
             return None
         return {
@@ -614,7 +627,9 @@ class LangfuseObservability:
     def cost_details_from_summary(summary: dict[str, Any] | None) -> dict[str, float] | None:
         if not isinstance(summary, dict):
             return None
-        total_cost = float(summary.get("total_cost_usd") or 0.0)
+        total_cost = float(summary.get("total_cost_usd") or 0.0) + float(
+            summary.get("estimated_total_cost_usd") or 0.0
+        )
         if total_cost <= 0:
             return None
         return {
@@ -629,8 +644,10 @@ class LangfuseObservability:
             return {}
 
         metadata: dict[str, Any] = {}
-        total_tokens = summary.get("total_tokens")
-        total_cost = summary.get("total_cost_usd")
+        usage_details = LangfuseObservability.usage_details_from_summary(summary)
+        cost_details = LangfuseObservability.cost_details_from_summary(summary)
+        total_tokens = usage_details.get("total") if usage_details else None
+        total_cost = cost_details.get("total") if cost_details else None
         usage_accuracy = summary.get("usage_accuracy")
         rollup_parts: list[str] = []
         if isinstance(total_tokens, (int, float)) and float(total_tokens) > 0:
@@ -661,8 +678,9 @@ class LangfuseObservability:
                 continue
             metadata[target_key] = value
 
-        if isinstance(total_cost, (int, float)) and float(total_cost) > 0:
-            metadata["usage_total_cost"] = round(float(total_cost), 8)
+        measured_total_cost = summary.get("total_cost_usd")
+        if isinstance(measured_total_cost, (int, float)) and float(measured_total_cost) > 0:
+            metadata["usage_total_cost"] = round(float(measured_total_cost), 8)
         estimated_total_cost = summary.get("estimated_total_cost_usd")
         if isinstance(estimated_total_cost, (int, float)) and float(estimated_total_cost) > 0:
             metadata["usage_estimated_total_cost"] = round(float(estimated_total_cost), 8)
@@ -910,6 +928,7 @@ class LangfuseObservability:
             yield _NoopObservation()
             return
         try:
+            export_usage = self.should_export_usage_to_langfuse(source_key)
             start_kwargs = self._filter_supported_kwargs(
                 start_method,
                 {
@@ -919,8 +938,8 @@ class LangfuseObservability:
                     "metadata": safe_metadata,
                     "model": model,
                     "model_parameters": model_parameters,
-                    "usage_details": usage_details if self.is_measured_usage_source(source_key) else None,
-                    "cost_details": cost_details if self.is_measured_usage_source(source_key) else None,
+                    "usage_details": usage_details if export_usage else None,
+                    "cost_details": cost_details if export_usage else None,
                     "session_id": trace_attributes.get("session_id"),
                     "user_id": trace_attributes.get("user_id"),
                     "trace_name": trace_attributes.get("trace_name"),
@@ -971,6 +990,7 @@ class LangfuseObservability:
         if observation is None or isinstance(observation, _NoopObservation):
             return
         try:
+            export_usage = self.should_export_usage_to_langfuse(source_key)
             merged_metadata = dict(metadata or {})
             merged_metadata.update(
                 self._build_usage_metadata(
@@ -982,8 +1002,8 @@ class LangfuseObservability:
             observation.update(
                 output=self.sanitize_output(output_payload),
                 metadata=self.sanitize_metadata(merged_metadata),
-                usage_details=usage_details if self.is_measured_usage_source(source_key) else None,
-                cost_details=cost_details if self.is_measured_usage_source(source_key) else None,
+                usage_details=usage_details if export_usage else None,
+                cost_details=cost_details if export_usage else None,
                 level=level,
                 status_message=status_message,
             )

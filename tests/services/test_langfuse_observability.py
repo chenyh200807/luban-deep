@@ -406,18 +406,22 @@ def test_usage_details_and_cost_details_from_summary() -> None:
         "total_input_tokens": 128,
         "total_output_tokens": 32,
         "total_tokens": 160,
+        "estimated_input_tokens": 12,
+        "estimated_output_tokens": 0,
+        "estimated_total_tokens": 12,
         "total_cost_usd": 0.0016,
+        "estimated_total_cost_usd": 0.00001,
     }
 
     assert adapter.usage_details_from_summary(summary) == {
-        "input": 128.0,
+        "input": 140.0,
         "output": 32.0,
-        "total": 160.0,
+        "total": 172.0,
     }
     assert adapter.cost_details_from_summary(summary) == {
         "input": 0.0,
         "output": 0.0,
-        "total": 0.0016,
+        "total": 0.00161,
     }
 
 
@@ -442,7 +446,7 @@ def test_summary_metadata_flattens_usage_summary() -> None:
     }
 
     assert adapter.summary_metadata(summary) == {
-        "usage_rollup": "tokens=160; cost=0.0016; accuracy=mixed",
+        "usage_rollup": "tokens=172; cost=0.00161; accuracy=mixed",
         "usage_scope_id": "turn_123",
         "usage_total_input_tokens": 128,
         "usage_total_output_tokens": 32,
@@ -461,7 +465,7 @@ def test_summary_metadata_flattens_usage_summary() -> None:
     }
 
 
-def test_estimated_usage_is_metadata_only_in_langfuse_payload() -> None:
+def test_estimated_usage_is_exported_to_langfuse_payload() -> None:
     adapter = LangfuseObservability()
     client = _FakeClient()
     adapter._client = client
@@ -482,8 +486,16 @@ def test_estimated_usage_is_metadata_only_in_langfuse_payload() -> None:
             usage_source="tiktoken",
         )
 
-    assert client.start_calls[-1]["usage_details"] is None
-    assert client.start_calls[-1]["cost_details"] is None
+    assert client.start_calls[-1]["usage_details"] == {
+        "input": 50.0,
+        "output": 10.0,
+        "total": 60.0,
+    }
+    assert client.start_calls[-1]["cost_details"] == {
+        "input": 0.001,
+        "output": 0.002,
+        "total": 0.003,
+    }
     assert client.start_calls[-1]["metadata"]["usage_source"] == "tiktoken"
     assert client.start_calls[-1]["metadata"]["estimated_usage_details"] == {
         "input": 50.0,
@@ -496,8 +508,16 @@ def test_estimated_usage_is_metadata_only_in_langfuse_payload() -> None:
         "total": 0.003,
     }
 
-    assert client.observation.updates[-1]["usage_details"] is None
-    assert client.observation.updates[-1]["cost_details"] is None
+    assert client.observation.updates[-1]["usage_details"] == {
+        "input": 50.0,
+        "output": 10.0,
+        "total": 60.0,
+    }
+    assert client.observation.updates[-1]["cost_details"] == {
+        "input": 0.001,
+        "output": 0.002,
+        "total": 0.003,
+    }
     assert client.observation.updates[-1]["metadata"]["usage_source"] == "tiktoken"
     assert client.observation.updates[-1]["metadata"]["estimated_usage_details"] == {
         "input": 50.0,

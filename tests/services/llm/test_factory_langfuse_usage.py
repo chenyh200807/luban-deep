@@ -4,6 +4,7 @@ from contextlib import contextmanager
 
 import pytest
 
+from deeptutor.services.llm.executors import sdk_stream
 from deeptutor.services.llm.factory import complete, stream
 from deeptutor.services.llm.types import TutorResponse, TutorStreamChunk
 
@@ -95,4 +96,88 @@ async def test_factory_stream_prefers_provider_usage_for_langfuse(monkeypatch) -
         "input": 30.0,
         "output": 6.0,
         "total": 36.0,
+    }
+
+
+@pytest.mark.asyncio
+async def test_sdk_stream_requests_usage_chunk_for_dashscope(monkeypatch) -> None:
+    captured_payloads: list[dict[str, object]] = []
+
+    class _FakeStream:
+        def __aiter__(self):
+            async def _iterate():
+                if False:
+                    yield None
+            return _iterate()
+
+    class _FakeCompletions:
+        async def create(self, **payload):
+            captured_payloads.append(payload)
+            return _FakeStream()
+
+    class _FakeChat:
+        def __init__(self) -> None:
+            self.completions = _FakeCompletions()
+
+    class _FakeAsyncOpenAI:
+        def __init__(self, **_kwargs) -> None:
+            self.chat = _FakeChat()
+
+    monkeypatch.setattr("deeptutor.services.llm.executors.AsyncOpenAI", _FakeAsyncOpenAI)
+
+    async for _ in sdk_stream(
+        prompt="hello",
+        system_prompt="You are helpful.",
+        provider_name="dashscope",
+        model="deepseek-v3.2",
+        api_key="sk-test",
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        return_stream_chunks=True,
+    ):
+        pass
+
+    assert captured_payloads[-1]["stream_options"] == {"include_usage": True}
+
+
+@pytest.mark.asyncio
+async def test_sdk_stream_preserves_explicit_stream_options(monkeypatch) -> None:
+    captured_payloads: list[dict[str, object]] = []
+
+    class _FakeStream:
+        def __aiter__(self):
+            async def _iterate():
+                if False:
+                    yield None
+            return _iterate()
+
+    class _FakeCompletions:
+        async def create(self, **payload):
+            captured_payloads.append(payload)
+            return _FakeStream()
+
+    class _FakeChat:
+        def __init__(self) -> None:
+            self.completions = _FakeCompletions()
+
+    class _FakeAsyncOpenAI:
+        def __init__(self, **_kwargs) -> None:
+            self.chat = _FakeChat()
+
+    monkeypatch.setattr("deeptutor.services.llm.executors.AsyncOpenAI", _FakeAsyncOpenAI)
+
+    async for _ in sdk_stream(
+        prompt="hello",
+        system_prompt="You are helpful.",
+        provider_name="dashscope",
+        model="deepseek-v3.2",
+        api_key="sk-test",
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        return_stream_chunks=True,
+        stream_options={"include_usage": False, "custom_flag": True},
+    ):
+        pass
+
+    assert captured_payloads[-1]["stream_options"] == {
+        "include_usage": False,
+        "custom_flag": True,
     }
