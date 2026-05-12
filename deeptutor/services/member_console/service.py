@@ -768,6 +768,7 @@ class MemberConsoleService:
         self,
         *,
         user_id: str,
+        canonical_uid: str = "",
         openid: str = "",
         unionid: str = "",
         ttl_seconds: int = 60 * 60 * 24 * 30,
@@ -783,6 +784,8 @@ class MemberConsoleService:
             "iat": now,
             "exp": now + max(300, int(ttl_seconds)),
         }
+        if canonical_uid:
+            payload["canonical_uid"] = canonical_uid
         payload_bytes = json.dumps(
             payload,
             ensure_ascii=False,
@@ -1171,6 +1174,7 @@ class MemberConsoleService:
         *,
         user_id: str,
         token: str,
+        canonical_uid: str = "",
         openid: str = "",
         unionid: str = "",
     ) -> dict[str, Any]:
@@ -1180,11 +1184,26 @@ class MemberConsoleService:
             "token_type": "Bearer",
             "user": self.get_profile(user_id),
         }
+        if canonical_uid:
+            payload["canonical_uid"] = canonical_uid
         if openid:
             payload["openid"] = openid
         if unionid:
             payload["unionid"] = unionid
         return payload
+
+    @staticmethod
+    def _canonical_user_id_from_member(member: dict[str, Any] | None) -> str:
+        candidate = str((member or {}).get("external_auth_user_id") or "").strip()
+        try:
+            uuid.UUID(candidate)
+        except (ValueError, TypeError, AttributeError):
+            candidate = str((member or {}).get("user_id") or "").strip()
+            try:
+                uuid.UUID(candidate)
+            except (ValueError, TypeError, AttributeError):
+                return ""
+        return candidate
 
     def _append_audit(
         self,
@@ -2336,14 +2355,16 @@ class MemberConsoleService:
         if verified_external_user is None:
             raise ValueError("用户名或密码错误")
         member = self._ensure_member_for_external_auth(username, verified_external_user)
-        token = self._issue_access_token(user_id=member["user_id"])
-        return self._build_auth_response(user_id=member["user_id"], token=token)
+        canonical_uid = self._canonical_user_id_from_member(member)
+        token = self._issue_access_token(user_id=member["user_id"], canonical_uid=canonical_uid)
+        return self._build_auth_response(user_id=member["user_id"], token=token, canonical_uid=canonical_uid)
 
     def register_with_external_auth(self, username: str, password: str, phone: str) -> dict[str, Any]:
         external_user = create_external_auth_user(username, password, phone=phone)
         member = self._ensure_member_for_external_auth(username, external_user)
-        token = self._issue_access_token(user_id=member["user_id"])
-        return self._build_auth_response(user_id=member["user_id"], token=token)
+        canonical_uid = self._canonical_user_id_from_member(member)
+        token = self._issue_access_token(user_id=member["user_id"], canonical_uid=canonical_uid)
+        return self._build_auth_response(user_id=member["user_id"], token=token, canonical_uid=canonical_uid)
 
     async def login_with_wechat_code(self, code: str) -> dict[str, Any]:
         normalized = str(code or "").strip()
@@ -2377,14 +2398,18 @@ class MemberConsoleService:
             return str(target["user_id"])
 
         target_user_id = self._mutate(_apply)
+        target_member = self._load_member_snapshot(target_user_id)["member"]
+        canonical_uid = self._canonical_user_id_from_member(target_member)
         token = self._issue_access_token(
             user_id=target_user_id,
+            canonical_uid=canonical_uid,
             openid=openid,
             unionid=unionid,
         )
         return self._build_auth_response(
             user_id=target_user_id,
             token=token,
+            canonical_uid=canonical_uid,
             openid=openid,
             unionid=unionid,
         )
@@ -2460,14 +2485,18 @@ class MemberConsoleService:
             }
 
         result = self._mutate(_apply)
+        target_member = self._load_member_snapshot(result["user_id"])["member"]
+        canonical_uid = self._canonical_user_id_from_member(target_member)
         token = self._issue_access_token(
             user_id=result["user_id"],
+            canonical_uid=canonical_uid,
             openid=result["openid"],
             unionid=result["unionid"],
         )
         payload = self._build_auth_response(
             user_id=result["user_id"],
             token=token,
+            canonical_uid=canonical_uid,
             openid=result["openid"],
             unionid=result["unionid"],
         )
@@ -2575,8 +2604,9 @@ class MemberConsoleService:
         external_user = ensure_external_auth_user_for_phone(verified_phone)
         external_username = str(external_user.get("username") or "").strip()
         member = self._ensure_member_for_external_auth(external_username, external_user)
-        token = self._issue_access_token(user_id=member["user_id"])
-        return self._build_auth_response(user_id=member["user_id"], token=token)
+        canonical_uid = self._canonical_user_id_from_member(member)
+        token = self._issue_access_token(user_id=member["user_id"], canonical_uid=canonical_uid)
+        return self._build_auth_response(user_id=member["user_id"], token=token, canonical_uid=canonical_uid)
 
     def create_demo_token(self, user_id: str) -> str:
         return f"demo-token-{user_id}-{secrets.token_hex(4)}"

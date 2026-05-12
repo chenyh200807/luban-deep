@@ -182,6 +182,7 @@ async def test_production_bootstrap_persists_first_wechat_user_without_demo_seed
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
     monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("DEEPTUTOR_AUTH_SECRET", "test-production-auth-secret")
 
     async def _fake_exchange(_code: str) -> dict[str, str]:
         return {
@@ -238,11 +239,15 @@ def test_login_with_password_accepts_external_fastapi_auth_store(
     )
 
     result = service.login_with_password("chenyh2008", "Chen9028")
+    claims = service.verify_access_token(result["token"])
 
     assert result["token"].startswith("dtm.")
     assert result["user_id"] == "user_2008"
     assert result["user"]["user_id"] == "user_2008"
     assert result["user"]["username"] == "chenyh2008"
+    assert claims is not None
+    assert claims["uid"] == "user_2008"
+    assert claims["canonical_uid"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
 
 
 def test_login_with_password_rejects_unknown_or_invalid_external_password(

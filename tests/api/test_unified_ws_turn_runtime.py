@@ -2701,13 +2701,34 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
             )
             yield StreamEvent(type=StreamEventType.DONE, source="chat")
 
-    class FakeMemberService:
-        def capture_points(self, user_id: str, amount: int = 20, reason: str = "capture"):
-            captured["user_id"] = user_id
-            captured["amount"] = amount
-            captured["reason"] = reason
-            return {"captured": amount}
+    class FakeWalletService:
+        is_configured = True
 
+        def debit_points(
+            self,
+            *,
+            user_id: str,
+            amount_micros: int,
+            reference_type: str,
+            reference_id: str,
+            idempotency_key: str,
+            reason: str = "capture",
+            metadata: dict[str, object] | None = None,
+            operator_type: str = "system",
+            operator_id: str | None = None,
+        ):
+            captured["user_id"] = user_id
+            captured["amount_micros"] = amount_micros
+            captured["reason"] = reason
+            captured["reference_type"] = reference_type
+            captured["reference_id"] = reference_id
+            captured["idempotency_key"] = idempotency_key
+            captured["metadata"] = dict(metadata or {})
+            captured["operator_type"] = operator_type
+            captured["operator_id"] = operator_id
+            return {"ledger_event_id": "evt_capture_1", "balance_micros": 580000000}
+
+    class FakeMemberService:
         def record_chat_learning(self, user_id: str, *, query: str, assistant_content: str):
             captured["learning_user_id"] = user_id
             captured["learning_query"] = query
@@ -2723,6 +2744,10 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
             build_memory_context=lambda: "",
             refresh_from_turn=_noop_refresh,
         ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: FakeWalletService(),
     )
     monkeypatch.setattr(
         "deeptutor.services.member_console.get_member_console_service",
@@ -2755,8 +2780,14 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
     assert [event["type"] for event in events] == ["session", "content", "done"]
     assert captured == {
         "user_id": "student_demo",
-        "amount": 20,
+        "amount_micros": 20_000_000,
         "reason": "capture",
+        "reference_type": "ai_usage",
+        "reference_id": turn["id"],
+        "idempotency_key": f"capture:{turn['id']}",
+        "metadata": {"source": "wx_miniprogram"},
+        "operator_type": "system",
+        "operator_id": "turn_runtime",
         "learning_user_id": "student_demo",
         "learning_query": "考我一道题",
         "learning_content": "这是一次会扣分的回复。",

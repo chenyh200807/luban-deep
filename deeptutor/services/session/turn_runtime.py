@@ -49,6 +49,8 @@ from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_req
 logger = logging.getLogger(__name__)
 observability = get_langfuse_observability()
 _MINI_PROGRAM_CAPTURE_COST = 20
+_POINT_MICROS = 1_000_000
+_MINI_PROGRAM_CAPTURE_COST_MICROS = _MINI_PROGRAM_CAPTURE_COST * _POINT_MICROS
 _CAPTURED_ASSISTANT_CALL_KINDS = {"llm_final_response", "exact_authority_response"}
 _PUBLIC_VISIBILITY = "public"
 _INTERNAL_VISIBILITY = "internal"
@@ -1119,22 +1121,31 @@ class TurnRuntimeManager:
         self,
         billing_context: dict[str, str] | None,
         assistant_content: str,
+        *,
+        turn_id: str,
     ) -> None:
         if not billing_context:
             return
         if billing_context.get("source") != "wx_miniprogram":
             return
         user_id = str(billing_context.get("user_id", "") or "").strip()
-        if not user_id or not str(assistant_content or "").strip():
+        turn_id = str(turn_id or "").strip()
+        if not user_id or not turn_id or not str(assistant_content or "").strip():
             return
         try:
-            from deeptutor.services.member_console import get_member_console_service
+            from deeptutor.services.wallet import get_wallet_service
 
-            member_service = get_member_console_service()
-            member_service.capture_points(
+            wallet_service = get_wallet_service()
+            wallet_service.debit_points(
                 user_id=user_id,
-                amount=_MINI_PROGRAM_CAPTURE_COST,
+                amount_micros=_MINI_PROGRAM_CAPTURE_COST_MICROS,
+                reference_type="ai_usage",
+                reference_id=turn_id,
+                idempotency_key=f"capture:{turn_id}",
                 reason="capture",
+                metadata={"source": str(billing_context.get("source") or "").strip() or "wx_miniprogram"},
+                operator_type="system",
+                operator_id="turn_runtime",
             )
         except Exception:
             logger.warning("Failed to capture points for user %s", user_id, exc_info=True)
@@ -2750,7 +2761,11 @@ class TurnRuntimeManager:
                     events=assistant_events,
                     default=None,
                 )
-                self._capture_mobile_points(billing_context, assistant_content)
+                self._capture_mobile_points(
+                    billing_context,
+                    assistant_content,
+                    turn_id=execution.turn_id,
+                )
                 self._record_mobile_learning(
                     billing_context,
                     raw_user_content,

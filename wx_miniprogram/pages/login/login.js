@@ -107,7 +107,7 @@ Page({
           resp.token ||
           resp._token ||
           user._token;
-        var userId = user.id || inner.id || resp.id;
+        var userId = auth.selectUserId(inner, user, resp);
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
         auth.setToken(token, userId);
         wx.switchTab({ url: "/pages/chat/chat" });
@@ -229,7 +229,7 @@ Page({
         var inner = resp.data || resp;
         var user = inner.user || {};
         var token = inner.token;
-        var userId = user.id || inner.id;
+        var userId = auth.selectUserId(inner, user, resp);
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
         auth.setToken(token, userId);
         wx.switchTab({ url: "/pages/chat/chat" });
@@ -263,7 +263,7 @@ Page({
     var inner = payload && (payload.data || payload);
     var user = (inner && inner.user) || {};
     var token = inner && inner.token;
-    var userId = user.id || user.user_id || inner.id;
+    var userId = auth.selectUserId(inner, user);
     if (!token) throw new Error("服务端未返回凭证");
     auth.setToken(token, userId);
     return { token: token, userId: userId };
@@ -277,7 +277,7 @@ Page({
         var inner = resp.data || resp;
         if (inner && inner.token) {
           var user = inner.user || {};
-          auth.setToken(inner.token, user.id || user.user_id);
+          auth.setToken(inner.token, auth.selectUserId(inner, user));
         }
       });
   },
@@ -350,7 +350,7 @@ Page({
             var inner = resp.data || resp;
             if (inner && inner.token) {
               var user = inner.user || {};
-              auth.setToken(inner.token, user.id || user.user_id);
+              auth.setToken(inner.token, auth.selectUserId(inner, user));
             }
             wx.switchTab({ url: "/pages/chat/chat" });
           })

@@ -10,7 +10,7 @@ import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from deeptutor.api.dependencies import AuthContext, require_self_or_admin, route_rate_limit
+from deeptutor.api.dependencies import AuthContext, require_self_or_admin, resolve_wallet_user_id, route_rate_limit
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.learner_state import LearnerStateService
@@ -27,6 +27,7 @@ from deeptutor.services.session import (
     get_sqlite_session_store,
     get_turn_runtime_manager,
 )
+from deeptutor.services.wallet import WalletLedgerEntry, WalletSnapshot, get_wallet_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -34,6 +35,7 @@ member_service = get_member_console_service()
 learner_state_service = LearnerStateService()
 turn_runtime = get_turn_runtime_manager()
 session_store = get_sqlite_session_store()
+wallet_service = get_wallet_service()
 
 _MOBILE_TUTORBOT_ID = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
 _MOBILE_TUTORBOT_NAME = "Construction Exam Coach"
@@ -50,10 +52,126 @@ def _ts_to_iso(timestamp: float | int | None) -> str:
 
 
 def _resolve_user_id(authorization: str | None, user_id: str | None = None) -> str:
-    resolved = member_service.resolve_user_id(authorization, user_id=user_id)
+    resolved = str(user_id or "").strip() or resolve_wallet_user_id(authorization)
     if not str(resolved or "").strip():
         raise HTTPException(status_code=401, detail="Authentication required")
     return resolved
+
+
+def _resolve_wallet_principal(authorization: str | None) -> str:
+    resolved = resolve_wallet_user_id(authorization)
+    if not str(resolved or "").strip():
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return resolved
+
+
+def _micros_to_points(value: int | float | None) -> int:
+    try:
+        micros = int(value or 0)
+    except (TypeError, ValueError):
+        micros = 0
+    return int(round(micros / 1_000_000))
+
+
+def _wallet_packages() -> list[dict[str, Any]]:
+    getter = getattr(member_service, "_default_packages", None)
+    if callable(getter):
+        try:
+            return list(getter() or [])
+        except Exception:
+            return []
+    return []
+
+
+def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: str) -> None:
+    try:
+        legacy_wallet = member_service.get_wallet(user_id)
+    except Exception:
+        return
+    legacy_balance = int((legacy_wallet or {}).get("balance") or 0)
+    if legacy_balance != int(balance_points):
+        logger.warning(
+            "wallet shadow diff detected: source=%s user_id=%s legacy_balance=%s wallet_balance=%s",
+            source,
+            user_id,
+            legacy_balance,
+            balance_points,
+        )
+
+
+def _wallet_snapshot_or_zero(user_id: str) -> WalletSnapshot:
+    if not getattr(wallet_service, "is_configured", False):
+        raise HTTPException(status_code=503, detail="Wallet service unavailable")
+    snapshot = wallet_service.get_wallet(user_id)
+    if snapshot is not None:
+        return snapshot
+    return WalletSnapshot(
+        user_id=user_id,
+        balance_micros=0,
+        frozen_micros=0,
+        plan_id="",
+        version=0,
+        created_at="",
+    )
+
+
+def _serialize_wallet_snapshot(snapshot: WalletSnapshot) -> dict[str, Any]:
+    balance_points = _micros_to_points(snapshot.balance_micros)
+    frozen_points = _micros_to_points(snapshot.frozen_micros)
+    return {
+        "user_id": snapshot.user_id,
+        "balance": balance_points,
+        "points": balance_points,
+        "display_balance": balance_points,
+        "balance_micros": int(snapshot.balance_micros),
+        "frozen": frozen_points,
+        "frozen_micros": int(snapshot.frozen_micros),
+        "plan_id": snapshot.plan_id,
+        "tier": snapshot.plan_id or "",
+        "version": int(snapshot.version),
+        "created_at": snapshot.created_at,
+        "packages": _wallet_packages(),
+    }
+
+
+def _ledger_reason(entry: WalletLedgerEntry) -> str:
+    metadata = entry.metadata if isinstance(entry.metadata, dict) else {}
+    explicit_reason = str(metadata.get("reason") or "").strip()
+    if explicit_reason:
+        return explicit_reason
+    if entry.event_type == "debit" and entry.reference_type == "ai_usage":
+        return "capture"
+    if entry.event_type == "grant" and entry.reference_type == "order":
+        return "purchase"
+    if entry.event_type == "grant" and entry.reference_type in {"signup", "signup_bonus"}:
+        return "signup_bonus"
+    if entry.event_type == "admin_adjust" and entry.delta_micros >= 0:
+        return "admin_grant"
+    if entry.event_type == "refund":
+        return "refund"
+    return entry.event_type
+
+
+def _serialize_wallet_ledger_entry(entry: WalletLedgerEntry) -> dict[str, Any]:
+    delta_points = _micros_to_points(entry.delta_micros)
+    balance_after_points = _micros_to_points(entry.balance_after_micros)
+    return {
+        "id": entry.id,
+        "user_id": entry.user_id,
+        "event_type": entry.event_type,
+        "reason": _ledger_reason(entry),
+        "delta": delta_points,
+        "delta_micros": int(entry.delta_micros),
+        "balance_after": balance_after_points,
+        "balance_after_micros": int(entry.balance_after_micros),
+        "frozen_after_micros": int(entry.frozen_after_micros),
+        "frozen_delta_micros": int(entry.frozen_after_micros),
+        "reference_type": entry.reference_type,
+        "reference_id": entry.reference_id,
+        "idempotency_key": entry.idempotency_key,
+        "metadata": dict(entry.metadata or {}),
+        "created_at": entry.created_at,
+    }
 
 
 async def _assert_mobile_conversation_access(conversation_id: str, user_id: str) -> None:
@@ -289,7 +407,11 @@ def _extract_goal_patches(patch: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _build_learner_profile_payload(profile: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
-    merged = dict(profile or {})
+    merged = {
+        key: value
+        for key, value in dict(profile or {}).items()
+        if key not in {"points", "balance", "display_balance", "balance_micros", "frozen", "frozen_micros", "wallet"}
+    }
     passthrough_fields = {
         "timezone",
         "source",
@@ -586,7 +708,17 @@ async def auth_verify_code(body: VerifyCodeRequest) -> dict[str, Any]:
 
 @router.get("/auth/profile")
 async def auth_profile(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_profile(_resolve_user_id(authorization))
+    user_id = _resolve_user_id(authorization)
+    profile = member_service.get_profile(user_id)
+    snapshot = _wallet_snapshot_or_zero(user_id)
+    wallet_payload = _serialize_wallet_snapshot(snapshot)
+    profile["points"] = wallet_payload["points"]
+    profile["balance"] = wallet_payload["balance"]
+    profile["balance_micros"] = wallet_payload["balance_micros"]
+    profile["frozen_micros"] = wallet_payload["frozen_micros"]
+    profile["wallet"] = wallet_payload
+    _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="auth_profile")
+    return profile
 
 
 @router.patch("/auth/profile/settings")
@@ -675,13 +807,27 @@ async def practice_daily_question(authorization: str | None = Header(default=Non
 
 @router.get("/billing/points")
 async def billing_points(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    wallet = member_service.get_wallet(_resolve_user_id(authorization))
-    return {"points": wallet["balance"]}
+    user_id = _resolve_wallet_principal(authorization)
+    snapshot = _wallet_snapshot_or_zero(user_id)
+    wallet_payload = _serialize_wallet_snapshot(snapshot)
+    _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_points")
+    return {
+        "user_id": user_id,
+        "points": wallet_payload["points"],
+        "balance": wallet_payload["balance"],
+        "display_balance": wallet_payload["display_balance"],
+        "balance_micros": wallet_payload["balance_micros"],
+        "frozen_micros": wallet_payload["frozen_micros"],
+    }
 
 
 @router.get("/billing/wallet")
 async def billing_wallet(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_wallet(_resolve_user_id(authorization))
+    user_id = _resolve_wallet_principal(authorization)
+    snapshot = _wallet_snapshot_or_zero(user_id)
+    wallet_payload = _serialize_wallet_snapshot(snapshot)
+    _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_wallet")
+    return wallet_payload
 
 
 @router.get("/billing/ledger")
@@ -690,7 +836,17 @@ async def billing_ledger(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> dict[str, Any]:
-    return member_service.get_ledger(_resolve_user_id(authorization), limit=limit, offset=offset)
+    user_id = _resolve_wallet_principal(authorization)
+    if not getattr(wallet_service, "is_configured", False):
+        raise HTTPException(status_code=503, detail="Wallet service unavailable")
+    rows = wallet_service.list_wallet_ledger(user_id, limit=limit + 1, offset=offset)
+    has_more = len(rows) > limit
+    page = rows[:limit]
+    return {
+        "entries": [_serialize_wallet_ledger_entry(item) for item in page],
+        "has_more": has_more,
+        "total": offset + len(page) + (1 if has_more else 0),
+    }
 
 
 @router.get("/homepage/dashboard")

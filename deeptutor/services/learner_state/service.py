@@ -206,7 +206,7 @@ class LearnerStateService:
 
     def _safe_member_profile(self, user_id: str) -> dict[str, Any]:
         try:
-            profile = dict(self._member_service.get_profile(user_id) or {})
+            profile = _strip_non_learner_profile_fields(self._member_service.get_profile(user_id) or {})
         except Exception:
             profile = {"user_id": user_id, "display_name": user_id}
         profile.setdefault("user_id", user_id)
@@ -1825,7 +1825,6 @@ class LearnerStateService:
             "## 当前学习判断" if str(language).lower().startswith("zh") else "## Learning Snapshot",
             f"- 当前等级：{_display(profile.get('level'))}" if str(language).lower().startswith("zh") else f"- Current level: {_display(profile.get('level'))}",
             f"- 基础判断：{level_hint}" if str(language).lower().startswith("zh") else f"- Level hint: {level_hint}",
-            f"- 积分余额：{_display(profile.get('points'))}" if str(language).lower().startswith("zh") else f"- Points balance: {_display(profile.get('points'))}",
             (
                 "- 当前支持重点：先稳住节奏，再围绕当前聚焦专题持续推进。"
                 if str(language).lower().startswith("zh")
@@ -1989,6 +1988,21 @@ def _normalize_user_id(user_id: str) -> str:
     if not cleaned:
         raise ValueError("user_id is required")
     return cleaned[:120]
+
+
+def _strip_non_learner_profile_fields(profile: dict[str, Any] | None) -> dict[str, Any]:
+    normalized = dict(profile or {}) if isinstance(profile, dict) else {}
+    for key in (
+        "points",
+        "balance",
+        "display_balance",
+        "balance_micros",
+        "frozen",
+        "frozen_micros",
+        "wallet",
+    ):
+        normalized.pop(key, None)
+    return normalized
 
 
 def _should_skip_turn_writeback(

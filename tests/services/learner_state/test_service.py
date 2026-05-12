@@ -133,8 +133,10 @@ def test_learner_state_build_context_seeds_profile_summary_progress(tmp_path) ->
     summary = summary_path.read_text(encoding="utf-8")
 
     assert profile["display_name"] == "陈同学"
+    assert "points" not in profile
     assert progress["today"]["today_done"] == 6
     assert "当前学习概览" in summary
+    assert "积分余额" not in context
 
 
 def test_learner_state_build_compact_context_returns_learner_facts_only(tmp_path) -> None:
