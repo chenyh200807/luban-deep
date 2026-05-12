@@ -7,8 +7,10 @@ from contextvars import ContextVar
 from types import SimpleNamespace
 
 import pytest
+from pydantic import ValidationError
 
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
+from deeptutor.contracts.unified_turn import UnifiedTurnStartMessage
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
@@ -19,6 +21,7 @@ from deeptutor.services.session.turn_runtime import (
     TurnRuntimeManager,
     _LiveSubscriber,
     _TurnExecution,
+    _request_snapshot_metadata,
     _resolve_question_followup_context_and_action,
 )
 
@@ -27,6 +30,79 @@ unified_ws_module = importlib.import_module("deeptutor.api.routers.unified_ws")
 
 async def _noop_refresh(**_kwargs):
     return None
+
+
+def test_unified_turn_start_schema_rejects_internal_snapshot_fields() -> None:
+    with pytest.raises(ValidationError):
+        UnifiedTurnStartMessage.model_validate(
+            {
+                "type": "start_turn",
+                "content": "hello",
+                "skills": ["proof-checker"],
+                "memory_references": ["summary"],
+            }
+        )
+
+
+def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
+    metadata = _request_snapshot_metadata(
+        payload={
+            "tools": ["rag"],
+            "knowledge_bases": ["construction-exam"],
+            "language": "zh",
+            "llm_selection": {
+                "provider": "openai",
+                "api_key": "sk-secret",
+                "headers": {"Authorization": "Bearer secret-token"},
+            },
+        },
+        content="请分析这道题",
+        capability="chat",
+        config={
+            "bot_id": "construction-exam-coach",
+            "api_key": "config-secret",
+            "nested": {"token": "nested-secret", "safe": "ok"},
+        },
+        attachments=[
+            {
+                "type": "file",
+                "url": "store://session/att-1",
+                "filename": "photo.png",
+                "mime_type": "image/png",
+                "base64": "aGVsbG8=",
+            }
+        ],
+        notebook_references=[],
+        history_references=[],
+        question_notebook_references=[],
+        book_references=[],
+        requested_skills=[],
+        memory_references=[],
+        llm_selection={
+            "provider": "openai",
+            "api_key": "sk-secret",
+            "headers": {"Authorization": "Bearer secret-token"},
+        },
+    )
+
+    snapshot_text = str(metadata)
+    assert "sk-secret" not in snapshot_text
+    assert "config-secret" not in snapshot_text
+    assert "nested-secret" not in snapshot_text
+    assert "secret-token" not in snapshot_text
+    snapshot = metadata["request_snapshot"]
+    assert snapshot["config"]["api_key"] == "[redacted]"
+    assert snapshot["config"]["nested"]["token"] == "[redacted]"
+    assert snapshot["llmSelection"]["api_key"] == "[redacted]"
+    assert snapshot["llmSelection"]["headers"]["Authorization"] == "[redacted]"
+    assert snapshot["attachments"] == [
+        {
+            "type": "file",
+            "url": "store://session/att-1",
+            "filename": "photo.png",
+            "mime_type": "image/png",
+        }
+    ]
 
 
 @pytest.mark.asyncio
@@ -113,6 +189,13 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
             refresh_from_turn=_noop_refresh,
         ),
     )
+    async def _fake_put(**kwargs):
+        return f"store://{kwargs['session_id']}/{kwargs['attachment_id']}"
+
+    monkeypatch.setattr(
+        "deeptutor.services.storage.get_attachment_store",
+        lambda: SimpleNamespace(put=_fake_put),
+    )
 
     session, turn = await runtime.start_turn(
         {
@@ -120,10 +203,17 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
             "content": "hello, i'm frank",
             "session_id": None,
             "capability": None,
-            "tools": [],
-            "knowledge_bases": [],
-            "attachments": [],
-            "language": "en",
+            "tools": ["rag"],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [
+                {
+                    "type": "file",
+                    "filename": "photo.png",
+                    "mime_type": "image/png",
+                    "base64": "aGVsbG8=",
+                }
+            ],
+            "language": "zh",
             "config": {},
         }
     )
@@ -138,13 +228,27 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
     assert [message["role"] for message in detail["messages"]] == ["user", "assistant"]
+    snapshot = detail["messages"][0]["metadata"]["request_snapshot"]
+    assert snapshot["content"] == "hello, i'm frank"
+    assert snapshot["capability"] == "chat"
+    assert snapshot["enabledTools"] == ["rag"]
+    assert snapshot["knowledgeBases"] == ["construction-exam"]
+    assert snapshot["language"] == "zh"
+    assert snapshot["attachments"] == [
+        {
+            "type": "file",
+            "url": f"store://{session['id']}/att-1",
+            "filename": "photo.png",
+            "mime_type": "image/png",
+        }
+    ]
     assert detail["messages"][1]["content"] == "Hello Frank"
     assert detail["preferences"]["archived"] is False
     assert detail["preferences"]["capability"] == "chat"
     assert detail["preferences"]["chat_mode"] == get_default_chat_mode()
-    assert detail["preferences"]["tools"] == []
-    assert detail["preferences"]["knowledge_bases"] == []
-    assert detail["preferences"]["language"] == "en"
+    assert detail["preferences"]["tools"] == ["rag"]
+    assert detail["preferences"]["knowledge_bases"] == ["construction-exam"]
+    assert detail["preferences"]["language"] == "zh"
 
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
