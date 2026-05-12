@@ -68,6 +68,14 @@ def test_tutorbot_current_info_required_infers_explicit_web_search_query() -> No
     assert TutorBotCapability._current_info_required(context) is True
 
 
+def test_tutorbot_web_search_prefetch_strips_command_wrappers() -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    assert AgentLoop._build_web_search_preview_args(
+        "联网查询2026年一级建造师考试时间，请用一句话回答并保留来源链接。"
+    ) == {"query": "2026年一级建造师考试时间", "count": 5}
+
+
 async def _collect_events(run_coro) -> list[StreamEvent]:
     bus = StreamBus()
     events: list[StreamEvent] = []

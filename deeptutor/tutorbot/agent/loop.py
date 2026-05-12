@@ -841,7 +841,27 @@ class AgentLoop:
 
     @staticmethod
     def _build_web_search_preview_args(current_message: str) -> dict[str, Any]:
-        return {"query": current_message, "count": 5}
+        return {"query": AgentLoop._normalize_web_search_query(current_message), "count": 5}
+
+    @staticmethod
+    def _normalize_web_search_query(current_message: str) -> str:
+        query = str(current_message or "").strip()
+        if not query:
+            return query
+        query = re.sub(
+            r"^(?:请|帮我|麻烦)?\s*(?:联网查询|联网搜索|联网查|上网查询|上网搜索|上网查)\s*(?:一下|下)?\s*",
+            "",
+            query,
+        ).strip()
+        parts = [part.strip() for part in re.split(r"[，,。；;]\s*", query) if part.strip()]
+        if parts:
+            query = parts[0]
+        query = re.sub(
+            r"\s*(?:请)?(?:用一句话|一句话|简要|简单)?(?:回答|说明|总结).*$",
+            "",
+            query,
+        ).strip()
+        return query.strip(" ：:，,。；;") or str(current_message or "").strip()
 
     async def _maybe_prefetch_grounded_rag(
         self,
