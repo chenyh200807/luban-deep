@@ -130,6 +130,24 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
         }
 
     monkeypatch.setattr("deeptutor.services.observability.prerelease_runner.run_arr", fake_run_arr)
+    async def fake_load_live_feedback():
+        return {
+            "window_days": 7,
+            "storage_status": "ok",
+            "summary": {
+                "total_feedback": 2,
+                "thumbs_up": 1,
+                "neutral": 0,
+                "thumbs_down": 1,
+            },
+            "top_reason_tags": [],
+            "recent": [],
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.services.observability.prerelease_runner._load_live_feedback",
+        fake_load_live_feedback,
+    )
     monkeypatch.setattr(
         "deeptutor.services.observability.prerelease_runner.write_arr_artifacts",
         lambda payload, output_dir=None: {
@@ -178,6 +196,9 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
     assert result["runs"]["om"]["run_id"].startswith("om-")
     assert result["runs"]["arr"]["run_id"] == "arr-lite-1"
     assert result["runs"]["aae"]["source_arr_run_id"] == "arr-lite-1"
+    assert result["runs"]["aae"]["scorecard"]["paid_student_satisfaction_score"]["source"] == "supabase_ai_feedback"
+    assert result["runs"]["aae"]["scorecard"]["paid_student_satisfaction_score"]["is_proxy"] is False
+    assert result["runs"]["feedback"]["summary"]["total_feedback"] == 2
     assert result["runs"]["observer_snapshot"]["run_id"].startswith("observer-snapshot-")
     assert result["runs"]["observer_snapshot"]["source_runs"]["arr_run_id"] == "arr-lite-1"
     assert result["runs"]["change_impact"]["run_id"].startswith("change-impact-")

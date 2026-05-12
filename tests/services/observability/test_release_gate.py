@@ -429,6 +429,94 @@ def test_release_gate_allows_prelaunch_aae_proxy_when_composite_is_healthy() -> 
     assert "proxy" in p3["summary"]
 
 
+def test_release_gate_marks_real_feedback_aae_as_pass() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload={
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+            "benchmark_case_results": [{"suite": "semantic-router", "status": "PASS", "case_tier": "gate_stable"}],
+            "benchmark_run_manifest": {"run_id": "bench-1"},
+            "blind_spots": [],
+        },
+        aae_payload={
+            "scorecard": {
+                "paid_student_satisfaction_score": {
+                    "value": 0.9,
+                    "source": "supabase_ai_feedback",
+                    "is_proxy": False,
+                }
+            },
+            "composite": {"value": 0.9, "coverage_ratio": 1.0},
+            "coverage_summary": {"feedback_storage_status": "ok", "feedback_total": 10},
+        },
+        oa_payload={"blind_spots": [], "root_causes": []},
+        change_impact_payload={
+            "run_id": "change-impact-1",
+            "risk_level": "low",
+            "blocking_recommendation": "canary",
+            "first_failing_signal": {"type": "none"},
+        },
+    )
+
+    p3 = next(item for item in payload["gate_results"] if item["gate"] == "P3 AAE")
+    assert p3["status"] == "PASS"
+    assert "真实满意度" in p3["summary"]
+
+
+def test_release_gate_warns_when_real_feedback_path_has_no_samples() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload={
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+            "benchmark_case_results": [{"suite": "semantic-router", "status": "PASS", "case_tier": "gate_stable"}],
+            "benchmark_run_manifest": {"run_id": "bench-1"},
+            "blind_spots": [],
+        },
+        aae_payload={
+            "scorecard": {"correctness_score": {"value": 1.0}},
+            "composite": {"value": 1.0, "coverage_ratio": 0.5},
+            "coverage_summary": {"feedback_storage_status": "ok", "feedback_total": 0},
+        },
+        oa_payload={"blind_spots": [], "root_causes": []},
+        change_impact_payload={
+            "run_id": "change-impact-1",
+            "risk_level": "low",
+            "blocking_recommendation": "canary",
+            "first_failing_signal": {"type": "none"},
+        },
+    )
+
+    p3 = next(item for item in payload["gate_results"] if item["gate"] == "P3 AAE")
+    assert p3["status"] == "WARN"
+    assert "无样本" in p3["summary"]
+
+
 def test_release_gate_fails_existing_gate_failure_without_baseline_diff() -> None:
     payload = build_release_gate_report(
         om_payload={

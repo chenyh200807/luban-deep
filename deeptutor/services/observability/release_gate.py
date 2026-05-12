@@ -228,14 +228,27 @@ def build_release_gate_report(
 
     aae_scorecard = (aae_payload or {}).get("scorecard") or {}
     aae_composite = (aae_payload or {}).get("composite") or {}
+    aae_coverage = (aae_payload or {}).get("coverage_summary") or {}
     p3_status = _SKIP
     p3_summary = "未提供 AAE run"
     if aae_payload:
-        proxy_heavy = bool(((aae_scorecard.get("paid_student_satisfaction_score") or {}).get("is_proxy")))
+        satisfaction_score = aae_scorecard.get("paid_student_satisfaction_score") or {}
+        proxy_heavy = bool(satisfaction_score.get("is_proxy"))
+        satisfaction_available = "paid_student_satisfaction_score" in aae_scorecard
+        feedback_total = int(aae_coverage.get("feedback_total") or 0)
+        feedback_status = str(aae_coverage.get("feedback_storage_status") or "").strip()
         composite_value = aae_composite.get("value")
         p3_status = _PASS
         p3_summary = "AAE 关键分数可用"
-        if proxy_heavy:
+        if satisfaction_available and not proxy_heavy:
+            p3_summary = "AAE 已接入真实满意度反馈"
+        elif feedback_status and feedback_status != "ok":
+            p3_status = _WARN
+            p3_summary = "AAE 真实满意度反馈通道不可用"
+        elif feedback_status == "ok" and feedback_total <= 0:
+            p3_status = _WARN
+            p3_summary = "AAE 已接入真实满意度反馈通道，但当前窗口无样本"
+        elif proxy_heavy:
             p3_summary = "AAE pre-launch proxy 已覆盖；真实满意度作为上线后观测项"
         if isinstance(composite_value, (int, float)) and composite_value < 0.75:
             p3_status = _FAIL
@@ -249,6 +262,8 @@ def build_release_gate_report(
                 f"composite={aae_composite.get('value')}",
                 f"coverage_ratio={aae_composite.get('coverage_ratio')}",
                 f"proxy_paid_satisfaction={((aae_scorecard.get('paid_student_satisfaction_score') or {}).get('is_proxy'))}",
+                f"feedback_storage_status={aae_coverage.get('feedback_storage_status')}",
+                f"feedback_total={aae_coverage.get('feedback_total')}",
             ],
             blockers=["aae_composite_below_floor"] if p3_status == _FAIL else [],
         )

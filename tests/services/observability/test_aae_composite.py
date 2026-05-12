@@ -39,3 +39,58 @@ def test_build_aae_composite_run_uses_arr_and_om_inputs() -> None:
     assert payload["scorecard"]["latency_class"]["value"] == "fast"
     assert payload["scorecard"]["om_slo_compliance_score"]["value"] == 0.75
     assert payload["composite"]["input_count"] >= 4
+
+
+def test_build_aae_composite_run_uses_real_feedback_for_paid_satisfaction() -> None:
+    payload = build_aae_composite_run(
+        arr_payload={
+            "run_id": "arr-lite-1",
+            "release": {"release_id": "rel-1"},
+            "summary": {"pass_rate": 1.0, "total_cases": 3},
+            "suite_summaries": [],
+            "case_results": [],
+        },
+        feedback_payload={
+            "window_days": 7,
+            "storage_status": "ok",
+            "summary": {
+                "total_feedback": 4,
+                "thumbs_up": 2,
+                "neutral": 1,
+                "thumbs_down": 1,
+            },
+        },
+    )
+
+    score = payload["scorecard"]["paid_student_satisfaction_score"]
+    assert score["value"] == 0.625
+    assert score["source"] == "supabase_ai_feedback"
+    assert score["is_proxy"] is False
+    assert payload["coverage_summary"]["feedback_storage_status"] == "ok"
+    assert payload["coverage_summary"]["feedback_total"] == 4
+
+
+def test_build_aae_composite_run_does_not_proxy_paid_satisfaction_when_feedback_is_empty() -> None:
+    payload = build_aae_composite_run(
+        arr_payload={
+            "run_id": "arr-lite-1",
+            "release": {"release_id": "rel-1"},
+            "summary": {"pass_rate": 1.0, "total_cases": 3},
+            "suite_summaries": [],
+            "case_results": [],
+        },
+        feedback_payload={
+            "window_days": 7,
+            "storage_status": "ok",
+            "summary": {
+                "total_feedback": 0,
+                "thumbs_up": 0,
+                "neutral": 0,
+                "thumbs_down": 0,
+            },
+        },
+    )
+
+    assert "paid_student_satisfaction_score" not in payload["scorecard"]
+    assert payload["coverage_summary"]["paid_student_satisfaction_available"] is False
+    assert "没有真实满意度反馈样本" in payload["review_note"]

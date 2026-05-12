@@ -94,10 +94,39 @@ def _latency_class_from_om(om_payload: dict[str, Any] | None) -> str | None:
     return "slow"
 
 
+def _satisfaction_score_from_feedback(
+    feedback_payload: dict[str, Any] | None,
+) -> tuple[float | None, str | None, str | None]:
+    if feedback_payload is None:
+        return None, None, None
+    storage_status = str(feedback_payload.get("storage_status") or "").strip()
+    if storage_status and storage_status != "ok":
+        return None, storage_status, f"真实满意度反馈存储不可用：{storage_status}。"
+    summary = feedback_payload.get("summary") if isinstance(feedback_payload, dict) else None
+    if not isinstance(summary, dict):
+        return None, storage_status or None, "真实满意度反馈 payload 缺少 summary。"
+    total = int(summary.get("total_feedback") or 0)
+    if total <= 0:
+        return None, storage_status or None, "当前窗口内没有真实满意度反馈样本。"
+    thumbs_up = int(summary.get("thumbs_up") or 0)
+    thumbs_down = int(summary.get("thumbs_down") or 0)
+    neutral = int(summary.get("neutral") or 0)
+    scored_total = thumbs_up + thumbs_down + neutral
+    if scored_total <= 0:
+        return None, storage_status or None, "真实满意度反馈样本没有可评分 rating。"
+    score = (thumbs_up + neutral * 0.5) / scored_total
+    note = (
+        f"真实满意度来自 ai_feedback：window_days={feedback_payload.get('window_days')} "
+        f"total={total} thumbs_up={thumbs_up} neutral={neutral} thumbs_down={thumbs_down}。"
+    )
+    return score, storage_status or "ok", note
+
+
 def build_aae_composite_run(
     *,
     arr_payload: dict[str, Any],
     om_payload: dict[str, Any] | None = None,
+    feedback_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     arr_summary = arr_payload.get("summary") or {}
     release = arr_payload.get("release") or get_release_lineage_snapshot()
@@ -170,12 +199,26 @@ def build_aae_composite_run(
             source="om_turn_avg_latency",
         )
 
+    satisfaction_value, feedback_status, satisfaction_note = _satisfaction_score_from_feedback(
+        feedback_payload
+    )
+    if satisfaction_value is not None:
+        scores["paid_student_satisfaction_score"] = _numeric_score(
+            value=satisfaction_value,
+            source="supabase_ai_feedback",
+            is_proxy=False,
+            coverage="partial",
+            note=satisfaction_note,
+        )
+    elif satisfaction_note:
+        notes.append(satisfaction_note)
+
     numeric_inputs = [
         float(item["value"])
         for item in scores.values()
         if isinstance(item, dict) and isinstance(item.get("value"), (int, float))
     ]
-    if numeric_inputs:
+    if numeric_inputs and feedback_payload is None:
         scores["paid_student_satisfaction_score"] = _numeric_score(
             value=sum(numeric_inputs) / len(numeric_inputs),
             source="proxy_composite",
@@ -204,7 +247,11 @@ def build_aae_composite_run(
             "value": round(sum(composite_inputs) / len(composite_inputs), 4),
             "coverage_ratio": round(len(composite_inputs) / 6.0, 4),
             "input_count": len(composite_inputs),
-            "is_proxy": True,
+            "is_proxy": any(
+                bool(item.get("is_proxy"))
+                for item in scores.values()
+                if isinstance(item, dict) and isinstance(item.get("value"), (int, float))
+            ),
         }
 
     run_id = f"aae-{int(time.time())}"
@@ -220,6 +267,9 @@ def build_aae_composite_run(
             "arr_case_count": int(arr_summary.get("total_cases") or 0),
             "surface_coverage_available": "surface_render_score" in scores,
             "om_slo_available": "om_slo_compliance_score" in scores,
+            "feedback_storage_status": feedback_status,
+            "feedback_total": int(((feedback_payload or {}).get("summary") or {}).get("total_feedback") or 0),
+            "paid_student_satisfaction_available": "paid_student_satisfaction_score" in scores,
         },
         "review_note": " ".join(notes).strip(),
     }

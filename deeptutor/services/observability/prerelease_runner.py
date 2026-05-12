@@ -21,6 +21,7 @@ from deeptutor.services.observability.om_snapshot import build_om_run
 from deeptutor.services.observability.release_gate import build_release_gate_report
 from deeptutor.services.observability.surface_ack_smoke import run_surface_ack_smoke
 from deeptutor.services.observability.unified_ws_smoke import run_unified_ws_smoke
+from deeptutor.services.bi_service import get_bi_service
 
 
 def _write_markdown(path: Path, lines: list[str]) -> str:
@@ -72,6 +73,20 @@ def load_metrics_snapshot(
         if not isinstance(payload, dict):
             raise TypeError("Metrics snapshot must be a JSON object")
         return payload
+
+
+async def _load_live_feedback(days: int = 7, limit: int = 50) -> dict[str, Any]:
+    try:
+        return await get_bi_service().get_feedback(days=days, limit=limit)
+    except Exception as exc:
+        return {
+            "window_days": days,
+            "storage_status": "error",
+            "summary": {"total_feedback": 0, "thumbs_down": 0, "thumbs_up": 0, "neutral": 0},
+            "top_reason_tags": [],
+            "recent": [],
+            "error": str(exc),
+        }
 
 
 def run_prerelease_observability(
@@ -164,7 +179,12 @@ def run_prerelease_observability(
         payload=arr_payload,
     )
 
-    aae_payload = build_aae_composite_run(arr_payload=arr_payload, om_payload=om_payload)
+    feedback_payload = asyncio.run(_load_live_feedback())
+    aae_payload = build_aae_composite_run(
+        arr_payload=arr_payload,
+        om_payload=om_payload,
+        feedback_payload=feedback_payload,
+    )
     aae_artifacts = _write_control_plane_artifact(
         kind="aae_composite_runs",
         payload=aae_payload,
@@ -222,6 +242,7 @@ def run_prerelease_observability(
         aae_payload=aae_payload,
         observer_payload=persisted_observer_payload,
         change_impact_payload=persisted_change_impact_payload,
+        feedback_payload=feedback_payload,
     )
     oa_artifacts = _write_control_plane_artifact(
         kind="oa_runs",
@@ -261,6 +282,7 @@ def run_prerelease_observability(
             "om": om_payload,
             "arr": arr_payload,
             "aae": aae_payload,
+            "feedback": feedback_payload,
             "observer_snapshot": persisted_observer_payload,
             "change_impact": persisted_change_impact_payload,
             "oa": oa_payload,
