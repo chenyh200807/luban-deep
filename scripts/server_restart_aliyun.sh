@@ -51,7 +51,8 @@ for _ in $(seq 1 30); do
     sleep 2
 done
 
-curl -fsS "http://127.0.0.1:${backend_port}/" >/dev/null
+curl -fsS "http://127.0.0.1:${backend_port}/healthz" >/dev/null
+curl -fsS "http://127.0.0.1:${backend_port}/readyz" >/dev/null
 curl -fsS "http://127.0.0.1:${frontend_port}/" >/dev/null
 
 cat <<EOF

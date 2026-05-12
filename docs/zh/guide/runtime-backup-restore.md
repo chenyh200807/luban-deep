@@ -104,7 +104,7 @@ python scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYmm
 
 ```bash
 tar -tzf data/backups/deeptutor-data-user-YYYYmmdd-HHMMSSZ.tar.gz | head
-python scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYmmdd-HHMMSSZ.tar.gz --project-root /tmp/deeptutor-drill --replace
+python scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYmmdd-HHMMSSZ.tar.gz --project-root data/drills/deeptutor-drill --replace
 ```
 
 推荐检查点：
@@ -115,7 +115,8 @@ python scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYmm
 
 ## 演练步骤
 
-建议每次发版前在测试机或临时目录做一次恢复演练。
+建议每次发版前在测试机或仓库内 `data/drills/...` 演练目录做一次恢复演练。
+在阿里云生产主机上不要把演练目录放到 `/tmp`、`/root/luban` 或 `/root/deeptutor` 之外；所有写入仍必须落在 `/root/deeptutor` 内。
 
 1. 准备一个干净的演练目录。
 2. 先执行备份脚本，生成一份新归档。
@@ -142,8 +143,8 @@ python3 scripts/backup_data.py --project-root /root/deeptutor --keep 2
 最小演练命令示例：
 
 ```bash
-python3 scripts/backup_data.py --project-root /tmp/deeptutor-drill
-python3 scripts/restore_data.py --project-root /tmp/deeptutor-drill --replace
+python3 scripts/backup_data.py --project-root data/drills/deeptutor-drill
+python3 scripts/restore_data.py --project-root data/drills/deeptutor-drill --replace
 ```
 
 ## 保留策略建议
@@ -175,7 +176,12 @@ python3 scripts/restore_data.py --archive data/backups/deeptutor-data-user-YYYYm
 docker compose restart deeptutor
 curl -sS http://127.0.0.1:8001/healthz
 curl -sS http://127.0.0.1:8001/readyz
+exit
+bash scripts/verify_aliyun_public_endpoints.sh
+bash scripts/verify_aliyun_observability.sh
 ```
+
+远端 `127.0.0.1` 只能证明容器内部恢复；公网入口和可观测性仍必须由本地发布机再执行一次验证，不能把内部 health/ready 当成“公网已恢复”。
 
 ## 结论
 

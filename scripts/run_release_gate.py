@@ -55,6 +55,11 @@ def main() -> None:
     parser.add_argument("--aae-json")
     parser.add_argument("--oa-json")
     parser.add_argument("--change-impact-json")
+    parser.add_argument(
+        "--report-only",
+        action="store_true",
+        help="只生成报告，不用退出码作为上线 gate；默认 recommendation 非 canary 时非 0 退出",
+    )
     args = parser.parse_args()
 
     om_payload = _load_json(args.om_json, expected_kind="om_runs") or _load_store_payload("om_runs")
@@ -83,6 +88,8 @@ def main() -> None:
     print(f"Recommendation: {payload['recommendation']}")
     print(f"JSON: {store_paths['json_path']}")
     print(f"MD:   {md_path}")
+    if not args.report_only and payload.get("recommendation") != "canary":
+        raise SystemExit(f"release_gate_failed: recommendation={payload.get('recommendation')}")
 
 
 if __name__ == "__main__":

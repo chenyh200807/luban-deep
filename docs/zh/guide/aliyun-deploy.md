@@ -9,7 +9,7 @@
 - `/root/luban`、`/etc`、`/usr`、`/var`、`/opt`、`/home`、nginx 系统配置、systemd、全局 cron、宿主机 Docker 配置等非 `/root/deeptutor` 路径全部视为只读观察面；只能读，不能创建、编辑、删除、移动、覆盖、改权限或安装依赖。
 - 如果一次修复确实需要 `/root/deeptutor` 之外的宿主机改动，必须停止发布流程，先单独向用户说明目标路径、必要性、风险和替代方案；未获得新的明确授权前，一律不改。
 - 默认只允许从干净候选分支发布；`main` 或 dirty tree 会被 [scripts/sync_to_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/sync_to_aliyun.sh) 直接拒绝。
-- 默认只允许发往 `Aliyun-ECS-2:/root/deeptutor`；如果要改主机或目录，必须显式设置 `ALLOW_NON_CANONICAL_DEPLOY=1`。
+- 只允许发往 `Aliyun-ECS-2:/root/deeptutor`；发布脚本不提供非 canonical 主机或目录绕过开关。
 - [scripts/sync_to_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/sync_to_aliyun.sh) 每次覆盖远端前都会先生成代码快照 `data/releases/code/<release_id>.tar.gz`。
 - [scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh) 和 [scripts/redeploy_aliyun_fast.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/redeploy_aliyun_fast.sh) 在远端重启前都会先执行 `python3 scripts/backup_data.py`，自动生成本次发布的 runtime rollback 基线。
 - 发布完成的唯一公网验收口径是：本地发起端对 `https://test2.yousenjiaoyu.com` 的 `front page`、`/healthz`、`/readyz` 探针全部通过；`docker compose ps` 或远端 `127.0.0.1` 只能算内部就绪，不能直接当成“已上线”。
@@ -17,7 +17,7 @@
 - 紧急绕过护栏必须显式设置：
   - `ALLOW_DIRTY_DEPLOY=1`
   - `ALLOW_MAIN_BRANCH_DEPLOY=1`
-  - `ALLOW_NON_CANONICAL_DEPLOY=1`
+  - 但远端写入根仍必须固定为 `Aliyun-ECS-2:/root/deeptutor`
 
 建议发布前固定执行：
 
@@ -211,10 +211,9 @@ bash scripts/verify_aliyun_observability.sh
   - 覆盖前先自动生成远端代码快照
   - 再执行远端发布环境校验
   - 再先执行一次远端 `python3 scripts/backup_data.py --project-root /root/deeptutor`
-  - 再把 `deeptutor/` 等后端代码 `docker cp` 到正在运行的容器
-  - 最后重启容器
+  - 再基于 `/root/deeptutor` 中的候选代码重建并重启 `deeptutor` 容器
   - 重启完成后，会先做一次公网域名探针验收，再做一次 observability 内网验收
-  - 适合 Python 后端、Prompt、YAML、路由等无需重装依赖的改动
+  - 适合不需要完整前端/依赖重建排障的后端候选；不再做 `docker cp` 容器热补丁
 - `deploy_aliyun.sh`
   - 先同步，再执行 `docker compose up -d --build`
   - 覆盖前同样会先生成远端代码快照并校验远端发布环境

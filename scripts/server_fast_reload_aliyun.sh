@@ -31,27 +31,17 @@ if [ -f "${LANGFUSE_OVERRIDE_FILE}" ] && docker network inspect "${SHARED_LANGFU
     compose_args+=(-f "${LANGFUSE_OVERRIDE_FILE}")
 fi
 
+docker compose --progress plain "${compose_args[@]}" build deeptutor
 docker compose "${compose_args[@]}" up -d --no-deps --force-recreate deeptutor
 docker compose "${compose_args[@]}" ps deeptutor
 
+backend_port="$(read_env_default BACKEND_PORT 8001)"
+frontend_port="$(read_env_default FRONTEND_PORT 3782)"
 container_id="$(docker compose "${compose_args[@]}" ps -q deeptutor)"
 if [ -z "${container_id}" ]; then
     echo "deeptutor 容器未运行，无法执行快速发布。请先完整部署。" >&2
     exit 1
 fi
-
-echo "同步后端代码到新容器 ${container_id} ..."
-docker cp deeptutor/. "${container_id}:/app/deeptutor/"
-docker cp deeptutor_cli/. "${container_id}:/app/deeptutor_cli/"
-docker cp scripts/. "${container_id}:/app/scripts/"
-docker cp pyproject.toml "${container_id}:/app/pyproject.toml"
-docker cp requirements.txt "${container_id}:/app/requirements.txt"
-docker cp requirements/. "${container_id}:/app/requirements/"
-
-docker restart "${container_id}" >/dev/null
-
-backend_port="$(read_env_default BACKEND_PORT 8001)"
-frontend_port="$(read_env_default FRONTEND_PORT 3782)"
 
 for _ in $(seq 1 30); do
     health="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "${container_id}" 2>/dev/null || true)"
@@ -61,12 +51,13 @@ for _ in $(seq 1 30); do
     sleep 2
 done
 
-curl -fsS "http://127.0.0.1:${backend_port}/" >/dev/null
+curl -fsS "http://127.0.0.1:${backend_port}/healthz" >/dev/null
+curl -fsS "http://127.0.0.1:${backend_port}/readyz" >/dev/null
 curl -fsS "http://127.0.0.1:${frontend_port}/" >/dev/null
 
 cat <<EOF
 DeepTutor 已完成远端快速重载，等待公网验收。
-适用范围: Python 后端 / Prompt / YAML / 路由等无需重新安装依赖的改动。
+适用范围: 已同步到 /root/deeptutor 的候选代码；本脚本会重建并重启 deeptutor 容器，不做 docker cp 热补丁。
 前端: http://${PUBLIC_HOST}:${frontend_port}
 后端: http://${PUBLIC_HOST}:${backend_port}
 EOF

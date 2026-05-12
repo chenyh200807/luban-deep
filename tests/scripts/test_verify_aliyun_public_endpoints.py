@@ -20,7 +20,7 @@ def _write_stub(path: Path, content: str) -> None:
     path.chmod(path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 
-def test_public_probe_checks_frontend_healthz_and_readyz_via_single_public_base_url(tmp_path: Path) -> None:
+def test_public_probe_rejects_noncanonical_public_base_url(tmp_path: Path) -> None:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
     calls_log = tmp_path / "calls.log"
@@ -49,11 +49,9 @@ def test_public_probe_checks_frontend_healthz_and_readyz_via_single_public_base_
 
     result = _run(["bash", str(SCRIPT_PATH)], cwd=REPO_ROOT, env=env)
 
-    assert result.returncode == 0, result.stderr
-    log_lines = calls_log.read_text(encoding="utf-8").splitlines()
-    assert any("https://release.example.com/" in line for line in log_lines)
-    assert any("https://release.example.com/healthz" in line for line in log_lines)
-    assert any("https://release.example.com/readyz" in line for line in log_lines)
+    assert result.returncode != 0
+    assert "PUBLIC_BASE_URL 必须固定为 https://test2.yousenjiaoyu.com" in result.stderr
+    assert not calls_log.exists()
 
 
 def test_public_probe_uses_public_base_url_when_configured(tmp_path: Path) -> None:

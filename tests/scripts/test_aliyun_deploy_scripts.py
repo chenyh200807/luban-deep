@@ -39,6 +39,18 @@ def _build_stub_env(
             remote_host="$1"
             shift
             command="$*"
+            if [[ -n "${SSH_STUB_REMOTE_DIR_OVERRIDE:-}" ]]; then
+              command="$(STUB_COMMAND="${command}" python3 - <<'PY'
+import os
+
+command = os.environ["STUB_COMMAND"]
+override = os.environ["SSH_STUB_REMOTE_DIR_OVERRIDE"]
+command = command.replace("REMOTE_DIR='/root/deeptutor'", f"REMOTE_DIR='{override}'")
+command = command.replace("cd '/root/deeptutor'", f"cd '{override}'")
+print(command)
+PY
+)"
+            fi
             if [[ "${command}" == *"RELEASE_GIT_SHA="* || "${EXECUTE_REMOTE_PYTHON:-0}" == "1" ]]; then
               eval "${command}"
               exit $?
@@ -217,6 +229,21 @@ def test_sync_requires_canonical_remote_target(tmp_path: Path) -> None:
     assert not call_log.exists()
 
 
+def test_sync_noncanonical_override_is_not_supported(tmp_path: Path) -> None:
+    repo_root = _setup_sync_repo(tmp_path, branch="release/candidate")
+    env, call_log = _build_stub_env(tmp_path)
+    env["ALLOW_NON_CANONICAL_DEPLOY"] = "1"
+    env["REMOTE_DIR"] = "/root/luban"
+
+    result = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
+
+    combined = f"{result.stdout}\n{result.stderr}"
+    assert result.returncode != 0
+    assert "REMOTE_DIR 必须固定为 /root/deeptutor" in combined
+    assert "禁止通过非 canonical 目录绕开 /root/deeptutor 写入边界" in combined
+    assert not call_log.exists()
+
+
 def test_sync_runs_against_canonical_target_when_release_candidate_is_clean(tmp_path: Path) -> None:
     repo_root = _setup_sync_repo(tmp_path, branch="release/candidate")
     env, call_log = _build_stub_env(tmp_path)
@@ -257,9 +284,7 @@ def test_sync_injects_release_lineage_into_remote_env(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     env, call_log = _build_stub_env(tmp_path, execute_release_injection=True)
-    env["ALLOW_NON_CANONICAL_DEPLOY"] = "1"
-    env["REMOTE_HOST"] = "fake-host"
-    env["REMOTE_DIR"] = str(remote_dir)
+    env["SSH_STUB_REMOTE_DIR_OVERRIDE"] = str(remote_dir)
 
     result = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
 
@@ -287,9 +312,7 @@ def test_sync_marks_dirty_release_lineage_when_dirty_override_is_used(tmp_path: 
     )
     env, call_log = _build_stub_env(tmp_path, execute_release_injection=True)
     env["ALLOW_DIRTY_DEPLOY"] = "1"
-    env["ALLOW_NON_CANONICAL_DEPLOY"] = "1"
-    env["REMOTE_HOST"] = "fake-host"
-    env["REMOTE_DIR"] = str(remote_dir)
+    env["SSH_STUB_REMOTE_DIR_OVERRIDE"] = str(remote_dir)
 
     result = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
 
@@ -310,9 +333,7 @@ def test_sync_deploy_manifest_hash_excludes_env_and_report_artifacts(tmp_path: P
     )
     env, call_log = _build_stub_env(tmp_path, execute_release_injection=True)
     env["ALLOW_DIRTY_DEPLOY"] = "1"
-    env["ALLOW_NON_CANONICAL_DEPLOY"] = "1"
-    env["REMOTE_HOST"] = "fake-host"
-    env["REMOTE_DIR"] = str(remote_dir)
+    env["SSH_STUB_REMOTE_DIR_OVERRIDE"] = str(remote_dir)
 
     first = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
     assert first.returncode == 0, first.stderr
@@ -451,3 +472,65 @@ def test_fast_redeploy_runs_remote_backup_before_reload(tmp_path: Path) -> None:
     assert "bash scripts/server_fast_reload_aliyun.sh" in log_lines[3]
     assert log_lines[4] == "verify-public:"
     assert log_lines[5] == "verify-observability:"
+
+
+def test_isolated_long_dialog_defaults_to_fail_closed_gate(tmp_path: Path) -> None:
+    repo_root = _setup_script_repo(tmp_path, "server_run_long_dialog_v1_aliyun_isolated.sh")
+    source_json = tmp_path / "source.json"
+    source_json.write_text("{}", encoding="utf-8")
+    host_output_dir = tmp_path / "ld-output"
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    call_log = tmp_path / "calls.log"
+    _write_stub(
+        bin_dir / "docker",
+        textwrap.dedent(
+            """\
+            #!/usr/bin/env bash
+            printf 'docker:%s\n' "$*" >> "${CALLS_LOG}"
+            exit 0
+            """
+        ),
+    )
+    _write_stub(
+        bin_dir / "logger",
+        textwrap.dedent(
+            """\
+            #!/usr/bin/env bash
+            printf 'logger:%s\n' "$*" >> "${CALLS_LOG}"
+            exit 0
+            """
+        ),
+    )
+    env = os.environ.copy()
+    env["PATH"] = f"{bin_dir}:{env['PATH']}"
+    env["CALLS_LOG"] = str(call_log)
+    env["SOURCE_JSON_HOST"] = str(source_json)
+    env["HOST_OUTPUT_DIR"] = str(host_output_dir)
+
+    result = _run(
+        ["bash", "scripts/server_run_long_dialog_v1_aliyun_isolated.sh", "--turn-mode", "focus"],
+        cwd=repo_root,
+        env=env,
+    )
+
+    assert result.returncode == 0, result.stderr
+    log = call_log.read_text(encoding="utf-8")
+    assert "--fail-on-hard-errors" in log
+    assert "--turn-mode focus" in log
+
+
+def test_remote_reload_scripts_probe_health_and_readiness() -> None:
+    for script_name in ("server_fast_reload_aliyun.sh", "server_restart_aliyun.sh"):
+        content = (SOURCE_SCRIPTS / script_name).read_text(encoding="utf-8")
+        assert "/healthz" in content
+        assert "/readyz" in content
+        assert 'http://127.0.0.1:${backend_port}/"' not in content
+
+
+def test_fast_reload_does_not_use_container_hot_patch() -> None:
+    content = (SOURCE_SCRIPTS / "server_fast_reload_aliyun.sh").read_text(encoding="utf-8")
+
+    assert "\ndocker cp " not in content
+    assert "build deeptutor" in content
+    assert "force-recreate deeptutor" in content

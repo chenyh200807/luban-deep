@@ -73,6 +73,8 @@ PY
 
 如果这里拿不到模型、URL 或 API key，不要启动复测。
 
+脚本本身也会做一层轻量预检：本进程复测会打印 `binding/model/base_url/api_key` 摘要；如果发现 `example.com` 这类占位 endpoint，或没有 API key，会在跑 case 前直接失败。只有测试或外层已经通过 `/readyz` 完成检查时，才允许使用 `--skip-llm-preflight`。
+
 ## 4. 常用启动命令
 
 ### 4.1 跑单条链做冒烟
@@ -113,7 +115,19 @@ python3.11 scripts/run_long_dialog_v1_retest.py
 python3.11 scripts/run_long_dialog_v1_retest.py --max-cases 3
 ```
 
-### 4.5 手工指定历史数据源
+### 4.5 上线门禁模式
+
+默认模式只生成报告，便于 ARR runner 继续读取 JSON 并归类失败。上线前人工或脚本门禁应显式开启 fail-closed：
+
+```bash
+python3.11 scripts/run_long_dialog_v1_retest.py \
+  --turn-mode focus \
+  --fail-on-hard-errors
+```
+
+如果出现空回复、provider 原始错误、临时兜底答复等硬错误，命令会生成报告后以非 0 退出。
+
+### 4.6 手工指定历史数据源
 
 ```bash
 python3.11 scripts/run_long_dialog_v1_retest.py \

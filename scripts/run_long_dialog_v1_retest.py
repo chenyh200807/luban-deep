@@ -87,6 +87,16 @@ TEMP_ERROR_MARKERS = (
     "临时异常",
     "稍后重试",
     "请求处理遇到临时异常",
+    "暂时未生成适合直接展示的答案",
+)
+RAW_PROVIDER_ERROR_MARKERS = (
+    "<!doctype html",
+    "<html",
+    "example domain",
+    "error calling llm",
+    "llm returned error",
+    "connection error",
+    "request timed out",
 )
 CASE_FOCUS_TURNS = {
     "LD_003": [1, 2, 4, 8, 9],
@@ -127,6 +137,55 @@ def _build_ws_url(api_base_url: str) -> str:
     scheme = "wss" if parsed.scheme == "https" else "ws"
     path = parsed.path.rstrip("/") + "/api/v1/ws"
     return urlunparse((scheme, parsed.netloc, path, "", "", ""))
+
+
+def _is_placeholder_endpoint(base_url: str | None) -> bool:
+    if not base_url:
+        return False
+    parsed = urlparse(str(base_url).strip())
+    host = (parsed.hostname or "").strip().lower().rstrip(".")
+    return any(
+        host == domain or host.endswith(f".{domain}")
+        for domain in ("example.com", "example.net", "example.org")
+    )
+
+
+def _mask_secret(value: str | None) -> str:
+    text = str(value or "")
+    if not text:
+        return "(empty)"
+    if len(text) <= 10:
+        return "*" * len(text)
+    return f"{text[:4]}...{text[-4:]}"
+
+
+def _resolve_llm_config_for_preflight() -> Any:
+    from deeptutor.services.llm.config import clear_llm_config_cache, get_llm_config
+
+    clear_llm_config_cache()
+    return get_llm_config()
+
+
+def _run_llm_preflight(*, api_base_url: str | None) -> None:
+    if api_base_url:
+        print(f"[LLM preflight] live api_base_url={api_base_url.rstrip('/')}", flush=True)
+        return
+
+    cfg = _resolve_llm_config_for_preflight()
+    base_url = str(getattr(cfg, "base_url", "") or "")
+    api_key = str(getattr(cfg, "api_key", "") or "")
+    print(
+        "[LLM preflight] "
+        f"binding={getattr(cfg, 'binding', '')} "
+        f"model={getattr(cfg, 'model', '')} "
+        f"base_url={base_url or '(empty)'} "
+        f"api_key={_mask_secret(api_key)}",
+        flush=True,
+    )
+    if _is_placeholder_endpoint(base_url):
+        raise SystemExit("llm_preflight_failed: placeholder_endpoint")
+    if not api_key:
+        raise SystemExit("llm_preflight_failed: missing_api_key")
 
 
 def _resolve_source_path(cli_value: str | None) -> Path:
@@ -246,7 +305,15 @@ def _classify_turn(
     )
 
     empty = not response_text.strip()
-    hard_error = empty or any(marker in response_text for marker in TEMP_ERROR_MARKERS)
+    lowered_response_text = response_text.lower()
+    raw_provider_error = response_text.strip().startswith("Error:") or any(
+        marker in lowered_response_text for marker in RAW_PROVIDER_ERROR_MARKERS
+    )
+    hard_error = (
+        empty
+        or any(marker in response_text for marker in TEMP_ERROR_MARKERS)
+        or raw_provider_error
+    )
     followup = bool(FOLLOWUP_PATTERN.search(query or ""))
     followup_object_mismatch = followup and any(
         marker in response_text for marker in FOLLOWUP_OBJECT_MISMATCH_MARKERS
@@ -305,6 +372,8 @@ def _classify_turn(
 
     if hard_error:
         issues.append("hard_error_or_empty")
+    if raw_provider_error:
+        issues.append("raw_provider_error")
     if followup_object_mismatch:
         issues.append("followup_object_mismatch")
     if slow_turn:
@@ -331,6 +400,7 @@ def _classify_turn(
     return {
         "empty": empty,
         "hard_error": hard_error,
+        "raw_provider_error": raw_provider_error,
         "followup": followup,
         "followup_object_mismatch": followup_object_mismatch,
         "question_count_mismatch": question_count_mismatch,
@@ -417,9 +487,11 @@ def _turn_metric_summary(results: list[dict[str, Any]], field: str) -> tuple[flo
 def _build_run_summary(results: list[dict[str, Any]]) -> dict[str, Any]:
     avg_ttft, p50_ttft, p90_ttft = _turn_metric_summary(results, "ttft_ms")
     avg_latency, p50_latency, p90_latency = _turn_metric_summary(results, "latency_ms")
+    hard_errors = sum(item["summary"]["hard_errors"] for item in results)
     return {
         "cases": len(results),
         "total_turns": sum(item["summary"]["turns"] for item in results),
+        "hard_errors": hard_errors,
         "avg_semantic": mean(item["summary"]["semantic_score"] for item in results) if results else 0.0,
         "avg_satisfaction": (
             mean(item["summary"]["satisfaction_score"] for item in results) if results else 0.0
@@ -789,7 +861,7 @@ def _render_markdown(
         f"- 平均延迟: {run_summary['avg_latency_ms']:.1f}ms",
         f"- P50 延迟: {(run_summary['p50_latency_ms'] or 0.0):.1f}ms",
         f"- P90 延迟: {(run_summary['p90_latency_ms'] or 0.0):.1f}ms",
-        f"- 硬错误/空回复: {sum(item['summary']['hard_errors'] for item in results)}",
+        f"- 硬错误/空回复: {run_summary['hard_errors']}",
         f"- 跟题/批改断裂: {sum(item['summary']['followup_object_mismatch_count'] for item in results)}",
         f"- 出题契约失配: {sum(item['summary']['question_count_mismatch_count'] for item in results)}",
         f"- 显式锚点遗漏: {sum(item['summary']['anchor_miss_count'] for item in results)}",
@@ -871,11 +943,24 @@ async def main() -> None:
         "--api-base-url",
         help="提供后，经真实 /api/v1/ws 执行每一轮；不提供则使用本进程 TurnRuntimeManager",
     )
+    parser.add_argument(
+        "--fail-on-hard-errors",
+        action="store_true",
+        help="若复测出现硬错误/空回复，则以非 0 退出；用于上线 gate，默认只生成报告",
+    )
+    parser.add_argument(
+        "--skip-llm-preflight",
+        action="store_true",
+        help="跳过本进程 LLM 配置预检；仅用于测试或已由外层 readyz 完成检查的场景",
+    )
     args = parser.parse_args()
 
     source_json = _resolve_source_path(args.source_json)
     output_dir = Path(args.output_dir).expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    if not args.skip_llm_preflight:
+        _run_llm_preflight(api_base_url=args.api_base_url)
 
     payload = json.loads(source_json.read_text(encoding="utf-8"))
     cases = _build_cases(payload)
@@ -927,9 +1012,14 @@ async def main() -> None:
     print(f"平均延迟: {run_summary['avg_latency_ms']:.1f}ms")
     print(f"P50 延迟: {(run_summary['p50_latency_ms'] or 0.0):.1f}ms")
     print(f"P90 延迟: {(run_summary['p90_latency_ms'] or 0.0):.1f}ms")
+    print(f"硬错误/空回复: {run_summary['hard_errors']}")
     print(f"JSON: {json_path}")
     print(f"MD:   {md_path}")
     print("=" * 60)
+    if args.fail_on_hard_errors and run_summary["hard_errors"]:
+        raise SystemExit(
+            f"long_dialog_gate_failed: hard_errors={run_summary['hard_errors']}"
+        )
 
 
 if __name__ == "__main__":

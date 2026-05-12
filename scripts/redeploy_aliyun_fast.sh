@@ -10,7 +10,7 @@ PUBLIC_HOST="${PUBLIC_HOST:-8.135.42.145}"
 PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-https://test2.yousenjiaoyu.com}"
 BACKUP_KEEP="${BACKUP_KEEP:-2}"
 
-echo "执行阿里云快速发布: sync + docker cp + restart"
+echo "执行阿里云快速发布: sync + build + restart"
 echo "适合 Python 后端 / Prompt / YAML 改动；若改了 Dockerfile、requirements、前端构建产物，请改用 deploy_aliyun.sh"
 
 "${SCRIPT_DIR}/sync_to_aliyun.sh" once

@@ -12,7 +12,6 @@ REMOTE_DIR="${REMOTE_DIR:-${CANONICAL_REMOTE_DIR}}"
 RELEASE_KEEP="${RELEASE_KEEP:-5}"
 ALLOW_DIRTY_DEPLOY="${ALLOW_DIRTY_DEPLOY:-0}"
 ALLOW_MAIN_BRANCH_DEPLOY="${ALLOW_MAIN_BRANCH_DEPLOY:-0}"
-ALLOW_NON_CANONICAL_DEPLOY="${ALLOW_NON_CANONICAL_DEPLOY:-0}"
 
 EXCLUDES=(
     ".git"
@@ -69,19 +68,15 @@ require_git_release_hygiene() {
 }
 
 require_canonical_target() {
-    if [ "${ALLOW_NON_CANONICAL_DEPLOY}" = "1" ]; then
-        return 0
-    fi
-
     if [ "${REMOTE_HOST}" != "${CANONICAL_REMOTE_HOST}" ]; then
         echo "REMOTE_HOST 必须固定为 ${CANONICAL_REMOTE_HOST}；当前为 ${REMOTE_HOST}。" >&2
-        echo "若确需临时发往其他主机，请显式设置 ALLOW_NON_CANONICAL_DEPLOY=1。" >&2
+        echo "DeepTutor 阿里云发布只允许写入 ${CANONICAL_REMOTE_HOST}:${CANONICAL_REMOTE_DIR}。" >&2
         exit 1
     fi
 
     if [ "${REMOTE_DIR}" != "${CANONICAL_REMOTE_DIR}" ]; then
         echo "REMOTE_DIR 必须固定为 ${CANONICAL_REMOTE_DIR}；当前为 ${REMOTE_DIR}。" >&2
-        echo "若确需临时发往其他目录，请显式设置 ALLOW_NON_CANONICAL_DEPLOY=1。" >&2
+        echo "禁止通过非 canonical 目录绕开 /root/deeptutor 写入边界。" >&2
         exit 1
     fi
 }

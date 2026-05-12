@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+from types import SimpleNamespace
 from pathlib import Path
 
 import pytest
@@ -267,6 +268,66 @@ def test_classify_turn_normalizes_explicit_case_anchor_before_anchor_check() -> 
     assert "anchor_miss:6层住宅楼" not in result["issues"]
 
 
+def test_classify_turn_flags_raw_provider_html_as_hard_error() -> None:
+    result = MODULE._classify_turn(
+        query="什么叫流水施工？",
+        response="Error: <!doctype html><html><head><title>Example Domain</title></head></html>",
+        latency_ms=1_000.0,
+        prev_response="",
+    )
+
+    assert result["hard_error"] is True
+    assert result["raw_provider_error"] is True
+    assert "hard_error_or_empty" in result["issues"]
+    assert "raw_provider_error" in result["issues"]
+    assert result["satisfaction_penalty"] > 0
+
+
+def test_classify_turn_flags_safe_retry_fallback_as_hard_error() -> None:
+    result = MODULE._classify_turn(
+        query="什么叫流水施工？",
+        response="暂时未生成适合直接展示的答案，请重试一次。",
+        latency_ms=1_000.0,
+        prev_response="",
+    )
+
+    assert result["hard_error"] is True
+    assert "hard_error_or_empty" in result["issues"]
+    assert result["satisfaction_penalty"] > 0
+
+
+def test_llm_preflight_rejects_placeholder_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        MODULE,
+        "_resolve_llm_config_for_preflight",
+        lambda: SimpleNamespace(
+            binding="openai",
+            model="gpt-worktree",
+            base_url="https://example.com/v1",
+            api_key="secret-key",
+        ),
+    )
+
+    with pytest.raises(SystemExit, match="llm_preflight_failed: placeholder_endpoint"):
+        MODULE._run_llm_preflight(api_base_url=None)
+
+
+def test_llm_preflight_rejects_missing_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        MODULE,
+        "_resolve_llm_config_for_preflight",
+        lambda: SimpleNamespace(
+            binding="openai",
+            model="gpt-real",
+            base_url="https://api.vendor.test/v1",
+            api_key="",
+        ),
+    )
+
+    with pytest.raises(SystemExit, match="llm_preflight_failed: missing_api_key"):
+        MODULE._run_llm_preflight(api_base_url=None)
+
+
 @pytest.mark.asyncio
 async def test_main_prints_ttft_summary_to_stdout(
     monkeypatch: pytest.MonkeyPatch,
@@ -326,6 +387,8 @@ async def test_main_prints_ttft_summary_to_stdout(
             legacy_teaching_mode=None,
             per_turn_timeout=5.0,
             api_base_url=None,
+            fail_on_hard_errors=False,
+            skip_llm_preflight=True,
         ),
     )
 
@@ -336,6 +399,79 @@ async def test_main_prints_ttft_summary_to_stdout(
     assert "P50 TTFT: 1500.0ms" in captured.out
     assert "P90 TTFT: 1900.0ms" in captured.out
     assert "平均延迟: 2000.0ms" in captured.out
+
+
+@pytest.mark.asyncio
+async def test_main_can_fail_closed_when_hard_errors_are_present(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    source_json = tmp_path / "source.json"
+    source_json.write_text("[]", encoding="utf-8")
+
+    monkeypatch.setattr(MODULE, "_resolve_source_path", lambda _value: source_json)
+    monkeypatch.setattr(
+        MODULE,
+        "_build_cases",
+        lambda _payload: [{"case_id": "LD_TEST", "title": "stdout", "source_session_id": "src-1", "turns": []}],
+    )
+
+    async def _fake_run_case(*_args, **_kwargs):
+        return {
+            "case_id": "LD_TEST",
+            "title": "stdout",
+            "source_session_id": "src-1",
+            "summary": {
+                "turns": 1,
+                "hard_errors": 1,
+                "followup_object_mismatch_count": 0,
+                "question_count_mismatch_count": 0,
+                "anchor_miss_count": 0,
+                "context_reset_count": 0,
+                "compare_table_miss_count": 0,
+                "stale_replay_count": 0,
+                "slow_turns": 0,
+                "avg_latency_ms": 2000.0,
+                "avg_ttft_ms": 1500.0,
+                "p50_ttft_ms": 1500.0,
+                "p90_ttft_ms": 1500.0,
+                "semantic_score": 92,
+                "satisfaction_score": 82,
+                "aborted": False,
+                "abort_reason": "",
+            },
+            "turns": [
+                {
+                    "turn": 1,
+                    "query": "q1",
+                    "response": "暂时未生成适合直接展示的答案，请重试一次。",
+                    "ttft_ms": 1500.0,
+                    "latency_ms": 2000.0,
+                    "issues": ["hard_error_or_empty"],
+                },
+            ],
+        }
+
+    monkeypatch.setattr(MODULE, "_run_case", _fake_run_case)
+    monkeypatch.setattr(
+        "argparse.ArgumentParser.parse_args",
+        lambda _self: MODULE.argparse.Namespace(
+            source_json=str(source_json),
+            output_dir=str(tmp_path),
+            cases=None,
+            max_cases=None,
+            turn_mode="full",
+            response_mode="smart",
+            legacy_teaching_mode=None,
+            per_turn_timeout=5.0,
+            api_base_url=None,
+            fail_on_hard_errors=True,
+            skip_llm_preflight=True,
+        ),
+    )
+
+    with pytest.raises(SystemExit, match="long_dialog_gate_failed: hard_errors=1"):
+        await MODULE.main()
 
 
 @pytest.mark.asyncio

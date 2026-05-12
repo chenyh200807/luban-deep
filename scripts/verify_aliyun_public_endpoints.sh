@@ -3,24 +3,20 @@
 set -Eeuo pipefail
 
 CANONICAL_PUBLIC_BASE_URL="https://test2.yousenjiaoyu.com"
-PUBLIC_HOST="${PUBLIC_HOST:-8.135.42.145}"
-BACKEND_PORT="${BACKEND_PORT:-8001}"
-FRONTEND_PORT="${FRONTEND_PORT:-3782}"
 PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-${CANONICAL_PUBLIC_BASE_URL}}"
 PROBE_RETRIES="${PROBE_RETRIES:-20}"
 PROBE_INTERVAL_SECONDS="${PROBE_INTERVAL_SECONDS:-3}"
 PROBE_TIMEOUT_SECONDS="${PROBE_TIMEOUT_SECONDS:-5}"
 
-if [[ -n "${PUBLIC_BASE_URL}" ]]; then
-    public_base="${PUBLIC_BASE_URL%/}"
-    frontend_url="${public_base}/"
-    healthz_url="${public_base}/healthz"
-    readyz_url="${public_base}/readyz"
-else
-    frontend_url="http://${PUBLIC_HOST}:${FRONTEND_PORT}/"
-    healthz_url="http://${PUBLIC_HOST}:${BACKEND_PORT}/healthz"
-    readyz_url="http://${PUBLIC_HOST}:${BACKEND_PORT}/readyz"
+public_base="${PUBLIC_BASE_URL%/}"
+if [[ "${public_base}" != "${CANONICAL_PUBLIC_BASE_URL}" ]]; then
+    echo "PUBLIC_BASE_URL 必须固定为 ${CANONICAL_PUBLIC_BASE_URL}；当前为 ${public_base}。" >&2
+    echo "禁止用裸 IP/端口或非 canonical 域名替代公网 GO 验收。" >&2
+    exit 1
 fi
+frontend_url="${public_base}/"
+healthz_url="${public_base}/healthz"
+readyz_url="${public_base}/readyz"
 
 probe_url() {
     local label="$1"
@@ -50,7 +46,7 @@ probe_url() {
 }
 
 echo "执行公网发布验收..."
-echo "验收口径: ${PUBLIC_BASE_URL:-http://${PUBLIC_HOST}:${FRONTEND_PORT}}"
+echo "验收口径: ${public_base}"
 probe_url "frontend" "${frontend_url}"
 probe_url "healthz" "${healthz_url}" '"alive":true'
 probe_url "readyz" "${readyz_url}" '"ready":true'

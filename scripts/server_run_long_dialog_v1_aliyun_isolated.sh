@@ -12,6 +12,7 @@ RUN_NAME="${RUN_NAME:-deeptutor-ldv1-${STAMP}}"
 HOST_OUTPUT_DIR="${HOST_OUTPUT_DIR:-${REPO_ROOT}/tmp/aliyun_isolated_ldv1/${STAMP}}"
 CONTAINER_SOURCE_JSON="/tmp/long_dialog_round7_full_detail_20260328.json"
 CONTAINER_OUTPUT_DIR="/app/tmp/aliyun_isolated_ldv1/${STAMP}"
+FAIL_ON_HARD_ERRORS="${FAIL_ON_HARD_ERRORS:-1}"
 
 cd "${REPO_ROOT}"
 
@@ -33,6 +34,11 @@ echo "host output: ${HOST_OUTPUT_DIR}"
 
 logger -t deeptutor-eval "start isolated long-dialog eval run_name=${RUN_NAME} output=${HOST_OUTPUT_DIR}"
 
+gate_args=()
+if [ "${FAIL_ON_HARD_ERRORS}" = "1" ]; then
+    gate_args+=(--fail-on-hard-errors)
+fi
+
 docker run --rm \
     --name "${RUN_NAME}" \
     --env-file "${REPO_ROOT}/.env" \
@@ -46,6 +52,7 @@ docker run --rm \
     scripts/run_long_dialog_v1_retest.py \
     --source-json "${CONTAINER_SOURCE_JSON}" \
     --output-dir "${CONTAINER_OUTPUT_DIR}" \
+    "${gate_args[@]}" \
     "$@"
 
 logger -t deeptutor-eval "finish isolated long-dialog eval run_name=${RUN_NAME} output=${HOST_OUTPUT_DIR}"

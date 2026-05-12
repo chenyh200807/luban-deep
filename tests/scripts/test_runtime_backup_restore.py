@@ -10,6 +10,9 @@ from deeptutor.services.path_service import PathService
 from scripts.backup_data import create_backup_archive, prune_backup_archives, resolve_backup_dir
 from scripts.restore_data import find_latest_backup, restore_backup_archive
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RUNTIME_BACKUP_RESTORE_DOC = REPO_ROOT / "docs" / "zh" / "guide" / "runtime-backup-restore.md"
+
 
 def _use_project_root(tmp_path: Path) -> tuple[PathService, Path, Path]:
     service = PathService.get_instance()
@@ -213,3 +216,12 @@ def test_prune_backup_archives_keeps_newest_requested_count(tmp_path: Path) -> N
         assert prune_backup_archives(backup_dir, keep=5) == []
     finally:
         _restore_project_root(service, original_root, original_user_dir)
+
+
+def test_runtime_backup_restore_doc_keeps_aliyun_drills_inside_project_root() -> None:
+    content = RUNTIME_BACKUP_RESTORE_DOC.read_text(encoding="utf-8")
+
+    assert "/tmp/deeptutor-drill" not in content
+    assert "data/drills/deeptutor-drill" in content
+    assert "verify_aliyun_public_endpoints.sh" in content
+    assert "verify_aliyun_observability.sh" in content

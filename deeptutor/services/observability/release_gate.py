@@ -37,6 +37,33 @@ def _benchmark_pass_rate(case_results: list[dict[str, Any]]) -> float | None:
     return round(passed / len(executed), 4)
 
 
+def _gate_relevant_case(item: dict[str, Any]) -> bool:
+    tier = str(item.get("case_tier") or "").strip()
+    return bool(item.get("gate_eligible")) or tier in {"gate_stable", "regression_tier"}
+
+
+def _long_dialog_requires_live_ws(case_results: list[dict[str, Any]]) -> bool:
+    return any(str(item.get("suite") or "").startswith("long-dialog") for item in case_results)
+
+
+def _long_dialog_live_ws_ready(
+    *,
+    case_results: list[dict[str, Any]],
+    execution_context: dict[str, Any],
+) -> bool:
+    if not _long_dialog_requires_live_ws(case_results):
+        return True
+    api_base_url = str(execution_context.get("api_base_url") or "").strip()
+    suite_modes = execution_context.get("suite_execution_modes") or {}
+    if not api_base_url:
+        return False
+    return all(
+        mode == "live_ws"
+        for suite, mode in suite_modes.items()
+        if str(suite).startswith("long-dialog")
+    )
+
+
 def _has_release_value(release: dict[str, Any], key: str) -> bool:
     value = str(release.get(key) or "").strip().lower()
     if value in _INCOMPLETE_RELEASE_VALUES:
@@ -137,21 +164,47 @@ def build_release_gate_report(
     benchmark_blind_spots = (arr_payload or {}).get("blind_spots") or []
     arr_summary = (arr_payload or {}).get("summary") or {}
     arr_diff = (arr_payload or {}).get("baseline_diff") or {}
+    execution_context = (arr_payload or {}).get("execution_context") or {}
     benchmark_pass_rate = _benchmark_pass_rate(benchmark_case_results) if benchmark_case_results else arr_summary.get("pass_rate")
     new_critical_regressions = len(arr_diff.get("regressions") or []) + len(arr_diff.get("new_failures") or [])
-    p2_status = _SKIP
+    gate_failures = [
+        item for item in benchmark_case_results
+        if str(item.get("status") or "").upper() == _FAIL and _gate_relevant_case(item)
+    ]
+    gate_skips = [
+        item for item in benchmark_case_results
+        if str(item.get("status") or "").upper() == _SKIP and _gate_relevant_case(item)
+    ]
+    live_ws_ready = _long_dialog_live_ws_ready(
+        case_results=benchmark_case_results,
+        execution_context=execution_context,
+    )
+    p2_status = _FAIL
     p2_summary = "未提供 benchmark / ARR run"
-    p2_blockers: list[str] = []
+    p2_blockers: list[str] = ["missing_benchmark_arr"]
     if arr_payload:
         pass_rate = benchmark_pass_rate
         has_new_critical = new_critical_regressions > 0
+        p2_blockers = []
         p2_status = _PASS
         p2_summary = "benchmark 当前无新增 regression"
+        if gate_failures:
+            p2_status = _FAIL
+            p2_summary = "benchmark gate/regression tier 存在失败"
+            p2_blockers.append("benchmark_gate_failure")
+        if gate_skips:
+            p2_status = _FAIL
+            p2_summary = "benchmark gate/regression tier 存在 SKIP"
+            p2_blockers.append("benchmark_gate_skip")
+        if not live_ws_ready:
+            p2_status = _FAIL
+            p2_summary = "long-dialog 未通过真实 /api/v1/ws 执行"
+            p2_blockers.append("long_dialog_not_live_ws")
         if has_new_critical:
             p2_status = _FAIL
             p2_summary = "benchmark 出现新增 regression 或 new failure"
             p2_blockers.append("new_benchmark_regression")
-        elif isinstance(pass_rate, (int, float)) and float(pass_rate) < 0.9:
+        elif p2_status != _FAIL and isinstance(pass_rate, (int, float)) and float(pass_rate) < 0.9:
             p2_status = _WARN
             p2_summary = "benchmark pass rate 偏低，但当前没有新增 regression"
     gate_results.append(
@@ -165,6 +218,9 @@ def build_release_gate_report(
                 f"pass_rate={benchmark_pass_rate}",
                 f"regressions={new_critical_regressions}",
                 f"new_failures={len(arr_diff.get('new_failures') or [])}",
+                f"gate_failures={len(gate_failures)}",
+                f"gate_skips={len(gate_skips)}",
+                f"long_dialog_live_ws={live_ws_ready}",
             ],
             blockers=p2_blockers,
         )

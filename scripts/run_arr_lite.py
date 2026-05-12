@@ -58,6 +58,11 @@ async def main() -> None:
         default="smart",
         help="long-dialog 复测使用的响应模式，默认 smart",
     )
+    parser.add_argument(
+        "--report-only",
+        action="store_true",
+        help="只生成报告，不用退出码作为上线 gate；默认 FAIL/SKIP 非 0 退出",
+    )
     args = parser.parse_args()
 
     baseline_payload = load_arr_baseline_payload(args.baseline)
@@ -135,6 +140,10 @@ async def main() -> None:
     print(f"Analysis JSON: {artifact_paths['analysis_json_path']}")
     print(f"Control plane JSON: {control_plane_paths['json_path']}")
     print("=" * 60)
+    if not args.report_only and (int(summary.get("failed") or 0) > 0 or int(summary.get("skipped") or 0) > 0):
+        raise SystemExit(
+            f"arr_gate_failed: failed={summary.get('failed')} skipped={summary.get('skipped')}"
+        )
 
 
 if __name__ == "__main__":

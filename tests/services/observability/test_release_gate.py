@@ -275,7 +275,8 @@ def test_release_gate_uses_complete_fallback_after_incomplete_payloads(monkeypat
     p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
     assert payload["release"]["release_id"] == "1.0.0+fallback+production"
     assert p0["status"] == "PASS"
-    assert not payload["blockers"]
+    assert "runtime_or_release_lineage_incomplete" not in payload["blockers"]
+    assert "missing_benchmark_arr" in payload["blockers"]
 
 
 def test_release_gate_preserves_first_incomplete_lineage_when_fallback_incomplete(monkeypatch) -> None:
@@ -384,3 +385,124 @@ def test_release_gate_report_blocks_high_change_impact() -> None:
     assert payload["final_status"] == "FAIL"
     assert "change_impact_high_risk" in payload["blockers"]
     assert any(item["gate"] == "P5 Change Impact" for item in payload["gate_results"])
+
+
+def test_release_gate_fails_existing_gate_failure_without_baseline_diff() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload={
+            "summary": {"pass_rate": 0.95},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+            "benchmark_case_results": [
+                {
+                    "suite": "semantic-router",
+                    "case_id": "critical",
+                    "status": "FAIL",
+                    "gate_eligible": True,
+                    "case_tier": "gate_stable",
+                }
+            ],
+            "benchmark_run_manifest": {"run_id": "bench-1"},
+        },
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p2 = next(item for item in payload["gate_results"] if item["gate"] == "P2 Benchmark Regression")
+    assert p2["status"] == "FAIL"
+    assert "benchmark_gate_failure" in payload["blockers"]
+
+
+def test_release_gate_fails_gate_skip() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload={
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+            "benchmark_case_results": [
+                {
+                    "suite": "long-dialog-full",
+                    "case_id": "long-dialog-full",
+                    "status": "SKIP",
+                    "gate_eligible": True,
+                    "case_tier": "regression_tier",
+                }
+            ],
+            "benchmark_run_manifest": {"run_id": "bench-1"},
+            "execution_context": {
+                "api_base_url": "https://test2.yousenjiaoyu.com",
+                "suite_execution_modes": {"long-dialog-full": "live_ws"},
+            },
+        },
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p2 = next(item for item in payload["gate_results"] if item["gate"] == "P2 Benchmark Regression")
+    assert p2["status"] == "FAIL"
+    assert "benchmark_gate_skip" in payload["blockers"]
+
+
+def test_release_gate_requires_long_dialog_live_ws() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload={
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+            "benchmark_case_results": [
+                {
+                    "suite": "long-dialog-full",
+                    "case_id": "LD_001",
+                    "status": "PASS",
+                    "gate_eligible": True,
+                    "case_tier": "regression_tier",
+                }
+            ],
+            "benchmark_run_manifest": {"run_id": "bench-1"},
+            "execution_context": {
+                "suite_execution_modes": {"long-dialog-full": "in_process_runtime"},
+            },
+        },
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p2 = next(item for item in payload["gate_results"] if item["gate"] == "P2 Benchmark Regression")
+    assert p2["status"] == "FAIL"
+    assert "long_dialog_not_live_ws" in payload["blockers"]

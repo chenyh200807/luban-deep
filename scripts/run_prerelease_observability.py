@@ -25,6 +25,11 @@ def main() -> None:
     parser.add_argument("--output-dir")
     parser.add_argument("--long-dialog-source-json")
     parser.add_argument("--long-dialog-max-cases", type=int)
+    parser.add_argument(
+        "--report-only",
+        action="store_true",
+        help="只生成报告，不用退出码作为上线 gate；默认 recommendation 非 canary 时非 0 退出",
+    )
     args = parser.parse_args()
 
     result = run_prerelease_observability(
@@ -43,6 +48,8 @@ def main() -> None:
     print(f"Final status: {gate['final_status']}")
     print(f"Recommendation: {gate['recommendation']}")
     print(json.dumps(result["artifacts"], ensure_ascii=False, indent=2))
+    if not args.report_only and gate.get("recommendation") != "canary":
+        raise SystemExit(f"prerelease_gate_failed: recommendation={gate.get('recommendation')}")
 
 
 if __name__ == "__main__":

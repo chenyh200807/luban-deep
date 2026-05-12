@@ -25,6 +25,8 @@ def _load_script_module(script_name: str):
 AAE_MODULE = _load_script_module("run_aae_snapshot.py")
 OA_MODULE = _load_script_module("run_oa.py")
 RELEASE_GATE_MODULE = _load_script_module("run_release_gate.py")
+ARR_LITE_MODULE = _load_script_module("run_arr_lite.py")
+PRERELEASE_MODULE = _load_script_module("run_prerelease_observability.py")
 OBSERVER_SNAPSHOT_MODULE = _load_script_module("run_observer_snapshot.py")
 CHANGE_IMPACT_MODULE = _load_script_module("run_change_impact.py")
 DAILY_OBSERVABILITY_MODULE = _load_script_module("run_observability_daily.py")
@@ -138,6 +140,135 @@ def test_run_release_gate_store_fallback_skips_malformed_latest_wrapper(tmp_path
         "run_id": "oa-good",
         "root_causes": [],
     }
+
+
+def test_run_release_gate_cli_fails_closed_without_canary(monkeypatch, tmp_path) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    monkeypatch.setattr(
+        RELEASE_GATE_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: RELEASE_GATE_MODULE.argparse.Namespace(
+            om_json=None,
+            arr_json=None,
+            aae_json=None,
+            oa_json=None,
+            change_impact_json=None,
+            report_only=False,
+        ),
+    )
+    monkeypatch.setattr(RELEASE_GATE_MODULE, "_load_json", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(RELEASE_GATE_MODULE, "_load_store_payload", lambda _kind: None)
+    monkeypatch.setattr(
+        RELEASE_GATE_MODULE,
+        "build_release_gate_report",
+        lambda **_kwargs: {
+            "run_id": "release-gate-fail",
+            "release": {"release_id": "rel-1"},
+            "final_status": "FAIL",
+            "recommendation": "hold",
+            "gate_results": [],
+            "blockers": ["benchmark_gate_failure"],
+        },
+    )
+
+    with pytest.raises(SystemExit, match="release_gate_failed: recommendation=hold"):
+        RELEASE_GATE_MODULE.main()
+
+
+@pytest.mark.asyncio
+async def test_run_arr_lite_cli_fails_closed_on_fail_or_skip(monkeypatch, tmp_path) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    monkeypatch.setattr(
+        ARR_LITE_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: ARR_LITE_MODULE.argparse.Namespace(
+            mode="lite",
+            output_dir=str(tmp_path / "arr"),
+            baseline=None,
+            long_dialog_source_json=None,
+            max_long_dialog_cases=None,
+            api_base_url="https://test2.yousenjiaoyu.com",
+            response_mode="smart",
+            report_only=False,
+        ),
+    )
+    monkeypatch.setattr(ARR_LITE_MODULE, "load_arr_baseline_payload", lambda _path: None)
+
+    async def _fake_run_arr(**_kwargs):
+        return {
+            "run_id": "arr-fail",
+            "release": {"release_id": "rel-1"},
+            "summary": {
+                "passed": 1,
+                "failed": 1,
+                "skipped": 1,
+                "pass_rate": 0.5,
+                "gate_stable_pass_rate": 0.5,
+                "regression_tier_failed": 1,
+            },
+            "baseline_diff": {},
+        }
+
+    monkeypatch.setattr(ARR_LITE_MODULE, "run_arr", _fake_run_arr)
+    monkeypatch.setattr(
+        ARR_LITE_MODULE,
+        "write_arr_artifacts",
+        lambda _payload, output_dir: {
+            "json_path": str(output_dir / "arr.json"),
+            "md_path": str(output_dir / "arr.md"),
+            "html_path": str(output_dir / "arr.html"),
+            "analysis_json_path": str(output_dir / "analysis.json"),
+        },
+    )
+    monkeypatch.setattr(
+        ARR_LITE_MODULE,
+        "build_arr_report_payload",
+        lambda _payload: {
+            "latency_summary": {},
+            "case_tier_distribution": [],
+            "failure_type_distribution": [],
+            "failures": [],
+            "execution_context": {},
+        },
+    )
+
+    with pytest.raises(SystemExit, match="arr_gate_failed: failed=1 skipped=1"):
+        await ARR_LITE_MODULE.main()
+
+
+def test_run_prerelease_observability_cli_fails_closed_without_canary(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(
+        PRERELEASE_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: PRERELEASE_MODULE.argparse.Namespace(
+            api_base_url="https://test2.yousenjiaoyu.com",
+            arr_mode="lite",
+            ws_smoke_message=None,
+            surface_smoke=None,
+            metrics_json=None,
+            output_dir=str(tmp_path),
+            long_dialog_source_json=None,
+            long_dialog_max_cases=None,
+            report_only=False,
+        ),
+    )
+    monkeypatch.setattr(
+        PRERELEASE_MODULE,
+        "run_prerelease_observability",
+        lambda **_kwargs: {
+            "runs": {
+                "release_gate": {
+                    "run_id": "release-gate-fail",
+                    "final_status": "FAIL",
+                    "recommendation": "hold",
+                }
+            },
+            "artifacts": {},
+        },
+    )
+
+    with pytest.raises(SystemExit, match="prerelease_gate_failed: recommendation=hold"):
+        PRERELEASE_MODULE.main()
 
 
 def test_run_observer_snapshot_load_json_accepts_metrics_raw_payload(tmp_path) -> None:
