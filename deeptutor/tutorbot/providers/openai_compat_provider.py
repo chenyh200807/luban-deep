@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any
 import json_repair
 from openai import AsyncOpenAI
 
+from deeptutor.services.llm.openai_http_client import openai_client_kwargs
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
 
@@ -103,6 +104,7 @@ class OpenAICompatProvider(LLMProvider):
             base_url=effective_base,
             default_headers=default_headers,
             max_retries=0,
+            **openai_client_kwargs(),
         )
 
     def _setup_env(self, api_key: str, api_base: str | None) -> None:

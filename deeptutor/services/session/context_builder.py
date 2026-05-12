@@ -13,6 +13,7 @@ from deeptutor.agents.base_agent import BaseAgent
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.trace import build_trace_metadata, merge_trace_metadata, new_call_id
 from deeptutor.services.llm.config import LLMConfig
+from deeptutor.services.llm.context_window import resolve_effective_context_window
 
 from .sqlite_store import SQLiteSessionStore
 
@@ -172,18 +173,27 @@ class ContextBuilder:
         return parsed if parsed > 0 else None
 
     def _context_window_tokens(self, llm_config: LLMConfig) -> int:
+        configured_context_window: int | None = None
         for attr in ("context_window_tokens", "context_window", "max_context_tokens", "max_input_tokens"):
             parsed = self._positive_int(getattr(llm_config, attr, None))
             if parsed is not None:
-                return parsed
+                configured_context_window = parsed
+                break
 
         for env_name in _CONTEXT_WINDOW_ENV_KEYS:
             parsed = self._positive_int(os.getenv(env_name))
             if parsed is not None:
-                return parsed
+                configured_context_window = parsed
+                break
 
-        configured_output_budget = self._positive_int(getattr(llm_config, "max_tokens", None)) or 4096
-        return max(_MIN_CONTEXT_WINDOW_TOKENS, configured_output_budget)
+        return max(
+            _MIN_CONTEXT_WINDOW_TOKENS,
+            resolve_effective_context_window(
+                context_window=configured_context_window,
+                model=str(getattr(llm_config, "model", "") or ""),
+                max_tokens=getattr(llm_config, "max_tokens", None),
+            ),
+        )
 
     def context_window_tokens(self, llm_config: LLMConfig) -> int:
         return self._context_window_tokens(llm_config)

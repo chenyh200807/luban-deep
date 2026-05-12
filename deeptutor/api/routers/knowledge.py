@@ -43,7 +43,10 @@ from deeptutor.logging import get_logger
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
 
 # Initialize logger with config
-config = load_config_with_main("main.yaml", PROJECT_ROOT)
+try:
+    config = load_config_with_main("main.yaml", PROJECT_ROOT)
+except FileNotFoundError:
+    config = {}
 log_dir = config.get("paths", {}).get("user_log_dir") or config.get("logging", {}).get("log_dir")
 logger = get_logger("Knowledge", level="INFO", log_dir=log_dir)
 
@@ -848,6 +851,182 @@ async def create_knowledge_base(
         raise
     except Exception:
         _raise_internal_error(f"create knowledge base '{name}'")
+
+
+async def run_reindex_task(kb_name: str, base_dir: str, task_id: str, signature_hash: str) -> None:
+    """Re-index a KB's raw documents against the currently-active embedding config."""
+    task_manager = TaskIDManager.get_instance()
+    task_stream_manager = get_task_stream_manager()
+    task_stream_manager.ensure_task(task_id)
+
+    with capture_task_logs(task_id):
+        try:
+            task_manager.update_task_status(task_id, "running")
+
+            base_path = Path(base_dir)
+            kb_dir = base_path / kb_name
+            raw_dir = kb_dir / "raw"
+            if not raw_dir.is_dir():
+                raise FileNotFoundError(f"KB '{kb_name}' has no raw directory")
+
+            file_paths = [str(path) for path in FileTypeRouter.collect_supported_files(raw_dir)]
+            if not file_paths:
+                raise ValueError(f"KB '{kb_name}' has no source files in raw/ to reindex")
+
+            _task_log(
+                task_id,
+                f"Re-indexing '{kb_name}' ({len(file_paths)} files) against {signature_hash}",
+            )
+            manager = get_kb_manager()
+            manager.update_kb_status(
+                name=kb_name,
+                status="processing",
+                progress={
+                    "stage": "processing_documents",
+                    "message": "Re-indexing documents...",
+                    "percent": 10,
+                    "task_id": task_id,
+                    "timestamp": datetime.now().isoformat(),
+                },
+            )
+
+            from deeptutor.services.rag.pipelines.llamaindex import LlamaIndexPipeline
+
+            pipeline = LlamaIndexPipeline(kb_base_dir=base_dir)
+            success = await pipeline.initialize(kb_name, file_paths)
+            if not success:
+                raise RuntimeError("LlamaIndex re-indexing failed")
+
+            completed_at = datetime.now().isoformat()
+            manager.config = manager._load_config()
+            kb_entry = manager.config.setdefault("knowledge_bases", {}).setdefault(
+                kb_name,
+                {"path": kb_name},
+            )
+            kb_entry["needs_reindex"] = False
+            kb_entry.pop("embedding_mismatch", None)
+            kb_entry["last_indexed_at"] = completed_at
+            kb_entry["last_indexed_count"] = len(file_paths)
+            kb_entry["last_indexed_action"] = "reindex"
+            manager._save_config()
+
+            manager.update_kb_status(
+                name=kb_name,
+                status="ready",
+                progress={
+                    "stage": "completed",
+                    "message": "Knowledge base re-index complete.",
+                    "percent": 100,
+                    "current": len(file_paths),
+                    "total": len(file_paths),
+                    "task_id": task_id,
+                    "timestamp": completed_at,
+                    "index_action": "reindex",
+                },
+            )
+            task_manager.update_task_status(task_id, "completed")
+            task_stream_manager.emit_complete(task_id)
+            _task_log(task_id, "Re-index complete")
+        except Exception as exc:
+            error_msg = _public_failure_message(f"re-index knowledge base '{kb_name}'")
+            logger.exception("Re-index task failed for KB '%s': %s", kb_name, exc)
+            task_manager.update_task_status(task_id, "error", error=format_exception_message(exc))
+            manager = get_kb_manager()
+            manager.update_kb_status(
+                name=kb_name,
+                status="error",
+                progress={
+                    "stage": "error",
+                    "message": error_msg,
+                    "error": format_exception_message(exc),
+                    "task_id": task_id,
+                    "timestamp": datetime.now().isoformat(),
+                },
+            )
+            task_stream_manager.emit_failed(task_id, error_msg)
+
+
+@router.post("/{kb_name}/reindex", dependencies=_KNOWLEDGE_ADMIN_DEPENDENCIES)
+async def reindex_knowledge_base(kb_name: str, background_tasks: BackgroundTasks):
+    """Queue a full re-index against the active embedding configuration."""
+    try:
+        manager = get_kb_manager()
+        kb_entry = _load_kb_entry_or_404(manager, kb_name)
+        if bool(kb_entry.get("remote_read_only", False)):
+            raise HTTPException(
+                status_code=409,
+                detail=f"Knowledge base '{kb_name}' is read-only and cannot be re-indexed.",
+            )
+
+        from deeptutor.services.rag.embedding_signature import signature_from_embedding_config
+        from deeptutor.services.rag.index_versioning import find_matching_version
+        from deeptutor.services.rag.pipelines.llamaindex import validate_storage_embeddings
+
+        signature = signature_from_embedding_config()
+        if signature is None:
+            raise HTTPException(
+                status_code=409,
+                detail="No embedding model is configured. Set up embeddings before re-indexing.",
+            )
+
+        kb_dir = _kb_base_dir / kb_name
+        matching_version = find_matching_version(kb_dir, signature)
+        matching_valid = False
+        if matching_version:
+            try:
+                validate_storage_embeddings(Path(str(matching_version["storage_path"])))
+                matching_valid = True
+            except Exception as exc:
+                logger.warning("Matching index for KB '%s' is invalid: %s", kb_name, exc)
+
+        force_reindex = bool(kb_entry.get("needs_reindex")) or kb_entry.get("status") == "error"
+        if matching_version and matching_valid and not force_reindex:
+            return {
+                "message": "Knowledge base already has a valid index for active embeddings.",
+                "task_id": None,
+                "signature": signature.hash(),
+                "noop": True,
+                "queued": False,
+            }
+
+        raw_dir = kb_dir / "raw"
+        if not raw_dir.is_dir():
+            raise HTTPException(status_code=409, detail="Knowledge base has no raw/ directory.")
+        if not list(FileTypeRouter.collect_supported_files(raw_dir)):
+            raise HTTPException(status_code=409, detail="Knowledge base has no source files in raw/.")
+
+        task_id = _build_unique_task_id("kb_reindex", kb_name)
+        get_task_stream_manager().ensure_task(task_id)
+        manager.update_kb_status(
+            name=kb_name,
+            status="initializing",
+            progress={
+                "stage": "starting",
+                "message": "Queueing re-index...",
+                "percent": 0,
+                "task_id": task_id,
+                "timestamp": datetime.now().isoformat(),
+            },
+        )
+
+        background_tasks.add_task(
+            run_reindex_task,
+            kb_name=kb_name,
+            base_dir=str(_kb_base_dir),
+            task_id=task_id,
+            signature_hash=signature.hash(),
+        )
+        return {
+            "message": "Re-index queued.",
+            "task_id": task_id,
+            "signature": signature.hash(),
+            "queued": True,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Failed to start re-index for '%s': %s", kb_name, exc)
+        raise HTTPException(status_code=500, detail=format_exception_message(exc))
 
 
 @router.get("/{kb_name}/progress")

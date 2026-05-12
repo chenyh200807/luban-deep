@@ -306,3 +306,15 @@ class FileTypeRouter:
         """
         extensions = cls.get_extensions_for_provider(provider)
         return [f"*{ext}" for ext in sorted(extensions)]
+
+    @classmethod
+    def collect_supported_files(cls, root: Path, provider: str = "llamaindex") -> list[Path]:
+        """Collect supported files under a root directory in deterministic order."""
+        if not root.exists() or not root.is_dir():
+            return []
+        extensions = cls.get_extensions_for_provider(provider)
+        return sorted(
+            path
+            for path in root.rglob("*")
+            if path.is_file() and path.suffix.lower() in extensions
+        )

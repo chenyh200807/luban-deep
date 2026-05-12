@@ -19,6 +19,142 @@ function stripInvisibleCharacters(value: string): string {
   return value.replace(ZERO_WIDTH_REGEX, "");
 }
 
+const ALLOWED_HTML_TAGS = new Set<string>([
+  "a",
+  "abbr",
+  "address",
+  "area",
+  "article",
+  "aside",
+  "audio",
+  "b",
+  "bdi",
+  "bdo",
+  "blockquote",
+  "br",
+  "button",
+  "canvas",
+  "caption",
+  "cite",
+  "code",
+  "col",
+  "colgroup",
+  "data",
+  "datalist",
+  "dd",
+  "del",
+  "details",
+  "dfn",
+  "div",
+  "dl",
+  "dt",
+  "em",
+  "fieldset",
+  "figcaption",
+  "figure",
+  "footer",
+  "form",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "header",
+  "hr",
+  "i",
+  "iframe",
+  "img",
+  "input",
+  "ins",
+  "kbd",
+  "label",
+  "legend",
+  "li",
+  "main",
+  "mark",
+  "math",
+  "meter",
+  "mi",
+  "mn",
+  "mo",
+  "mrow",
+  "ms",
+  "mspace",
+  "msqrt",
+  "msub",
+  "msubsup",
+  "msup",
+  "mtable",
+  "mtd",
+  "mtext",
+  "mtr",
+  "nav",
+  "ol",
+  "option",
+  "output",
+  "p",
+  "pre",
+  "progress",
+  "q",
+  "s",
+  "samp",
+  "section",
+  "select",
+  "small",
+  "source",
+  "span",
+  "strong",
+  "sub",
+  "summary",
+  "sup",
+  "svg",
+  "table",
+  "tbody",
+  "td",
+  "textarea",
+  "tfoot",
+  "th",
+  "thead",
+  "time",
+  "tr",
+  "u",
+  "ul",
+  "var",
+  "video",
+  "wbr",
+]);
+const HTML_LIKE_TAG_REGEX = /<\/?([A-Za-z][A-Za-z0-9_-]*)\b[^<>]*?\/?>/g;
+const FENCED_CODE_BLOCK_REGEX = /```[\s\S]*?```/g;
+const INLINE_CODE_SPAN_REGEX = /`[^`\n]*`/g;
+const PROTECTED_SPAN_REGEX = /```[\s\S]*?```|`[^`\n]*`/g;
+const PROTECTED_PLACEHOLDER_REGEX = /\u0000PROTECTED_(\d+)\u0000/g;
+
+function escapeUnknownHtmlTags(content: string): string {
+  if (!content || (!content.includes("<") && !content.includes(">"))) {
+    return content;
+  }
+  const protectedSpans: string[] = [];
+  const masked = content.replace(PROTECTED_SPAN_REGEX, (match) => {
+    protectedSpans.push(match);
+    return `\u0000PROTECTED_${protectedSpans.length - 1}\u0000`;
+  });
+  const escaped = masked.replace(HTML_LIKE_TAG_REGEX, (match, name: string) => {
+    return ALLOWED_HTML_TAGS.has(String(name).toLowerCase()) ? match : `\`${match}\``;
+  });
+  return escaped.replace(
+    PROTECTED_PLACEHOLDER_REGEX,
+    (_match, idx: string) => protectedSpans[Number(idx)] ?? "",
+  );
+}
+
+export function escapeUnknownHtmlTagsForDisplay(content: string): string {
+  if (!content) return "";
+  return escapeUnknownHtmlTags(
+    stripInvisibleCharacters(String(content)).replace(/\r\n/g, "\n"),
+  );
+}
+
 function stripDisplaySyntax(value: string): string {
   return stripInvisibleCharacters(String(value))
     .replace(/&nbsp;/gi, " ")
@@ -123,6 +259,27 @@ function unwrapBacktickedCitations(content: string): string {
   );
 }
 
+function maskProtectedSpans(
+  content: string,
+  regex: RegExp,
+  label: string,
+): { masked: string; restore: (value: string) => string } {
+  const protectedSpans: string[] = [];
+  const masked = content.replace(regex, (match) => {
+    protectedSpans.push(match);
+    return `\u0000${label}_${protectedSpans.length - 1}\u0000`;
+  });
+  const placeholderRegex = new RegExp(`\\u0000${label}_(\\d+)\\u0000`, "g");
+  return {
+    masked,
+    restore: (value: string) =>
+      value.replace(
+        placeholderRegex,
+        (_match, idx: string) => protectedSpans[Number(idx)] ?? "",
+      ),
+  };
+}
+
 function linkifyCitations(content: string): string {
   const refSectionIdx = content.search(/^##\s+(References|参考文献)/m);
   const body = refSectionIdx >= 0 ? content.slice(0, refSectionIdx) : content;
@@ -156,6 +313,13 @@ function linkifyCitations(content: string): string {
   return linked + tail;
 }
 
+function linkifyCitationsOutsideCode(content: string): string {
+  const fenced = maskProtectedSpans(content, FENCED_CODE_BLOCK_REGEX, "FENCED_CODE");
+  const unwrapped = unwrapBacktickedCitations(fenced.masked);
+  const inline = maskProtectedSpans(unwrapped, INLINE_CODE_SPAN_REGEX, "INLINE_CODE");
+  return fenced.restore(inline.restore(linkifyCitations(inline.masked)));
+}
+
 export function normalizeMarkdownForDisplay(content: string): string {
   if (!content) return "";
 
@@ -171,7 +335,7 @@ export function normalizeMarkdownForDisplay(content: string): string {
     .replace(/^\n+|\n+$/g, "");
 
   const cleaned = removeEmptyMarkdownTables(removeEmptyHtmlTables(normalized)).replace(/\n{3,}/g, "\n\n");
-  return linkifyCitations(unwrapBacktickedCitations(cleaned));
+  return linkifyCitationsOutsideCode(escapeUnknownHtmlTagsForDisplay(cleaned));
 }
 
 export function hasVisibleMarkdownContent(content: string): boolean {

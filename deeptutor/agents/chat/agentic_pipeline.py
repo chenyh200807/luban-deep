@@ -9,7 +9,6 @@ import logging
 import re
 from typing import Any
 
-import httpx
 from openai import AsyncAzureOpenAI, AsyncOpenAI
 
 from deeptutor.core.context import UnifiedContext
@@ -49,7 +48,7 @@ from deeptutor.services.rag.exact_authority import (
     render_case_exact_authority_response,
     resolve_exact_authority_response_from_authority,
 )
-from deeptutor.services.runtime_env import env_flag, is_production_environment
+from deeptutor.services.llm.openai_http_client import openai_client_kwargs
 from deeptutor.tutorbot.teaching_modes import (
     detect_construction_exam_scene,
     get_construction_exam_skill_instruction,
@@ -145,6 +144,7 @@ class AgenticChatPipeline:
         self.api_key = getattr(self.llm_config, "api_key", None)
         self.base_url = getattr(self.llm_config, "base_url", None)
         self.api_version = getattr(self.llm_config, "api_version", None)
+        self.extra_headers = getattr(self.llm_config, "extra_headers", None) or {}
         self.registry = get_tool_registry()
         self._usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0}
 
@@ -1237,6 +1237,7 @@ class AgenticChatPipeline:
             base_url=self.base_url,
             api_version=self.api_version,
             binding=self.binding,
+            extra_headers=self.extra_headers or None,
             response_format={"type": "json_object"}
             if supports_response_format(self.binding, self.model)
             else None,
@@ -1440,6 +1441,7 @@ class AgenticChatPipeline:
             api_version=self.api_version,
             binding=self.binding,
             messages=messages,
+            extra_headers=self.extra_headers or None,
             **self._completion_kwargs(max_tokens=max_tokens),
         ):
             output_chunks.append(chunk)
@@ -1469,6 +1471,7 @@ class AgenticChatPipeline:
             api_version=self.api_version,
             binding=self.binding,
             messages=messages,
+            extra_headers=self.extra_headers or None,
             **self._completion_kwargs(max_tokens=max_tokens),
         )
         usage_details = observability.estimate_usage_details(
@@ -1514,23 +1517,20 @@ class AgenticChatPipeline:
         return repaired or draft
 
     def _build_openai_client(self):
-        http_client = None
-        if env_flag("DISABLE_SSL_VERIFY", default=False):
-            if is_production_environment():
-                raise RuntimeError("DISABLE_SSL_VERIFY is not allowed in production")
-            http_client = httpx.AsyncClient(verify=False)  # nosec B501
-
+        client_kwargs = openai_client_kwargs()
+        if self.extra_headers:
+            client_kwargs["default_headers"] = self.extra_headers
         if self.binding == "azure_openai" or (self.binding == "openai" and self.api_version):
             return AsyncAzureOpenAI(
                 api_key=self.api_key or "sk-no-key-required",
                 azure_endpoint=self.base_url,
                 api_version=self.api_version,
-                http_client=http_client,
+                **client_kwargs,
             )
         return AsyncOpenAI(
             api_key=self.api_key or "sk-no-key-required",
             base_url=self.base_url or None,
-            http_client=http_client,
+            **client_kwargs,
         )
 
     def _completion_kwargs(self, max_tokens: int) -> dict[str, Any]:

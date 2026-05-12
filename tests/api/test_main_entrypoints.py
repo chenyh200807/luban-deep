@@ -175,6 +175,9 @@ def _reload_main(
     tmp_path: Path,
 ) -> object:
     fake_path_service = _FakePathService(tmp_path)
+    settings_dir = tmp_path / "settings"
+    settings_dir.mkdir(parents=True, exist_ok=True)
+    (settings_dir / "main.yaml").write_text("{}\n", encoding="utf-8")
     path_service_module = importlib.import_module("deeptutor.services.path_service")
     setup_module = importlib.import_module("deeptutor.services.setup")
     sqlite_store_module = importlib.import_module("deeptutor.services.session.sqlite_store")
@@ -186,6 +189,7 @@ def _reload_main(
             monkeypatch.delenv(key, raising=False)
         else:
             monkeypatch.setenv(key, value)
+    monkeypatch.setenv("DEEPTUTOR_USER_DATA_DIR", str(tmp_path))
     module = importlib.import_module("deeptutor.api.main")
     return importlib.reload(module)
 
@@ -324,6 +328,29 @@ def test_cors_uses_env_allowlist_and_ignores_wildcard(
     assert options["allow_origins"] == [
         "https://admin.example.com",
         "https://app.example.com",
+    ]
+
+
+def test_cors_accepts_upstream_origin_aliases_without_wildcard(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_CORS_ALLOW_ORIGINS": None,
+            "CORS_ORIGIN": "https://single.example.com/",
+            "CORS_ORIGINS": "https://admin.example.com,\nhttps://single.example.com",
+        },
+        tmp_path=tmp_path,
+    )
+
+    options = _cors_middleware_options(module.app)
+    assert options["allow_credentials"] is True
+    assert options["allow_origins"] == [
+        "https://single.example.com",
+        "https://admin.example.com",
     ]
 
 

@@ -193,6 +193,7 @@ def test_create_kb_does_not_require_llm_precheck(monkeypatch, tmp_path: Path) ->
         ("delete", "/api/v1/knowledge/demo", {}),
         ("get", "/api/v1/knowledge/tasks/task-1/stream", {}),
         ("post", "/api/v1/knowledge/demo/upload", {"files": _upload_payload()}),
+        ("post", "/api/v1/knowledge/demo/reindex", {}),
         ("post", "/api/v1/knowledge/demo/progress/clear", {}),
         ("post", "/api/v1/knowledge/demo/link-folder", {"json": {"folder_path": "/tmp/demo"}}),
         ("get", "/api/v1/knowledge/demo/linked-folders", {}),
@@ -339,6 +340,50 @@ def test_upload_ready_kb_returns_task_id(monkeypatch, tmp_path: Path) -> None:
     assert response.status_code == 200
     body = response.json()
     assert isinstance(body.get("task_id"), str) and body["task_id"]
+
+
+def test_reindex_kb_queues_background_task(monkeypatch, tmp_path: Path) -> None:
+    from deeptutor.services.rag.index_versioning import EmbeddingSignature
+
+    manager = _FakeKBManager(tmp_path / "knowledge_bases")
+    manager.config["knowledge_bases"]["legacy-kb"] = {
+        "path": "legacy-kb",
+        "rag_provider": "llamaindex",
+        "needs_reindex": True,
+        "status": "needs_reindex",
+    }
+    raw_dir = manager.get_knowledge_base_path("legacy-kb") / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    (raw_dir / "source.txt").write_text("hello", encoding="utf-8")
+
+    signature = EmbeddingSignature(
+        binding="openai",
+        model="embed-a",
+        dimension=1024,
+        base_url="https://example.test/v1",
+        api_version="",
+    )
+    queued: list[tuple[str, str]] = []
+
+    async def _noop_reindex_task(*, kb_name: str, task_id: str, **_kwargs) -> None:
+        queued.append((kb_name, task_id))
+
+    monkeypatch.setattr(knowledge_router_module, "get_kb_manager", lambda: manager)
+    monkeypatch.setattr(knowledge_router_module, "_kb_base_dir", manager.base_dir)
+    monkeypatch.setattr(knowledge_router_module, "run_reindex_task", _noop_reindex_task, raising=False)
+
+    signature_module = importlib.import_module("deeptutor.services.rag.embedding_signature")
+    monkeypatch.setattr(signature_module, "signature_from_embedding_config", lambda: signature)
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/knowledge/legacy-kb/reindex")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["queued"] is True
+    assert body["signature"] == signature.hash()
+    assert isinstance(body.get("task_id"), str) and body["task_id"]
+    assert queued and queued[0][0] == "legacy-kb"
 
 
 def test_delete_kb_requires_admin_but_authorized_delete_still_succeeds(

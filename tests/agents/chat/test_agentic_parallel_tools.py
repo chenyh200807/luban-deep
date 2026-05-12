@@ -189,6 +189,25 @@ async def test_native_tool_loop_executes_parallel_tool_calls(monkeypatch: pytest
     assert acting_thinking_events == []
 
 
+def test_agentic_pipeline_keeps_runtime_extra_headers(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(
+            binding="openai",
+            model="gpt-test",
+            api_key="k",
+            base_url="https://example.com",
+            api_version=None,
+            extra_headers={"APP-Code": "abc"},
+        ),
+    )
+    monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: object())
+
+    pipeline = AgenticChatPipeline(language="en")
+
+    assert pipeline.extra_headers == {"APP-Code": "abc"}
+
+
 @pytest.mark.asyncio
 async def test_execute_tool_call_streams_retrieve_progress_for_rag(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(

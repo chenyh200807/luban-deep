@@ -6,6 +6,7 @@ True LlamaIndex integration using official llama-index library.
 """
 
 import asyncio
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -21,13 +22,57 @@ from llama_index.core.bridge.pydantic import PrivateAttr
 
 from deeptutor.logging import get_logger
 from deeptutor.services.embedding import get_embedding_client, get_embedding_config
+from deeptutor.services.embedding.validation import validate_embedding_batch
 from deeptutor.services.rag.exceptions import RAGSearchError
 from deeptutor.services.rag.components.routing import FileTypeRouter
+from deeptutor.services.rag.embedding_signature import signature_from_embedding_config
+from deeptutor.services.rag.index_versioning import (
+    find_matching_version,
+    resolve_storage_dir_for_read,
+    resolve_storage_dir_for_rebuild,
+    resolve_storage_dir_for_write,
+    write_version_meta,
+)
 
 # Default knowledge base directory
 DEFAULT_KB_BASE_DIR = str(
     Path(__file__).resolve().parent.parent.parent.parent.parent / "data" / "knowledge_bases"
 )
+
+
+def _embedding_dict_from_payload(payload: Any) -> Any:
+    if not isinstance(payload, dict):
+        return None
+    if isinstance(payload.get("embedding_dict"), dict):
+        return payload["embedding_dict"]
+    data = payload.get("data")
+    if isinstance(data, dict) and isinstance(data.get("embedding_dict"), dict):
+        return data["embedding_dict"]
+    return None
+
+
+def validate_storage_embeddings(storage_dir: Path) -> None:
+    """Fail early when persisted vector-store JSON contains invalid vectors."""
+    for path in sorted(storage_dir.glob("*vector_store.json")):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        embedding_dict = _embedding_dict_from_payload(payload)
+        if isinstance(embedding_dict, dict):
+            try:
+                validate_embedding_batch(
+                    list(embedding_dict.values()),
+                    expected_count=len(embedding_dict),
+                    binding="llamaindex",
+                    model=f"persisted-index:{path.name}",
+                )
+            except ValueError as exc:
+                raise ValueError(
+                    "RAG index contains invalid embedding vectors. Re-index the "
+                    "knowledge base with the current embedding provider/model before "
+                    f"querying it again. Details: {exc}"
+                ) from exc
 
 
 class CustomEmbedding(BaseEmbedding):
@@ -75,17 +120,33 @@ class CustomEmbedding(BaseEmbedding):
     async def _aget_query_embedding(self, query: str) -> List[float]:
         """Get embedding for a query."""
         embeddings = await self._client.embed([query])
-        return embeddings[0]
+        return validate_embedding_batch(
+            embeddings,
+            expected_count=1,
+            binding=getattr(getattr(self._client, "config", None), "binding", None),
+            model=getattr(getattr(self._client, "config", None), "model", None),
+        )[0]
 
     async def _aget_text_embedding(self, text: str) -> List[float]:
         """Get embedding for a text."""
         embeddings = await self._client.embed([text])
-        return embeddings[0]
+        return validate_embedding_batch(
+            embeddings,
+            expected_count=1,
+            binding=getattr(getattr(self._client, "config", None), "binding", None),
+            model=getattr(getattr(self._client, "config", None), "model", None),
+        )[0]
 
     async def _aget_text_embeddings(self, texts: List[str]) -> List[List[float]]:
         """Get embeddings for multiple texts."""
-        return await self._client.embed(
+        embeddings = await self._client.embed(
             texts, progress_callback=self._progress_callback
+        )
+        return validate_embedding_batch(
+            embeddings,
+            expected_count=len(texts),
+            binding=getattr(getattr(self._client, "config", None), "binding", None),
+            model=getattr(getattr(self._client, "config", None), "model", None),
         )
 
     @staticmethod
@@ -125,17 +186,6 @@ class CustomEmbedding(BaseEmbedding):
         """Sync batch version - called by LlamaIndex for bulk embedding."""
         self._logger.info(f"Embedding {len(texts)} text chunks...")
         result = self._run_in_new_loop(self._aget_text_embeddings(texts))
-        missing_count = sum(
-            1
-            for vec in result
-            if vec is None or not isinstance(vec, list) or len(vec) == 0
-        )
-        if missing_count:
-            self._logger.error(
-                f"Embedding returned {missing_count} missing vector(s). "
-                "Replacing them with zero vectors to avoid invalid LlamaIndex storage."
-            )
-            result = self._replace_missing_vectors(result)
         self._logger.info(f"Embedding complete: {len(result)} vectors")
         return result
 
@@ -161,6 +211,7 @@ class LlamaIndexPipeline:
         self.logger = get_logger("LlamaIndexPipeline")
         self.kb_base_dir = kb_base_dir or DEFAULT_KB_BASE_DIR
         self._configure_settings()
+        self._signature_provider = signature_from_embedding_config
 
     def _configure_settings(self):
         """Configure LlamaIndex global settings."""
@@ -211,7 +262,8 @@ class LlamaIndexPipeline:
         )
 
         kb_dir = Path(self.kb_base_dir) / kb_name
-        storage_dir = kb_dir / "llamaindex_storage"
+        signature = self._signature_provider()
+        storage_dir = resolve_storage_dir_for_rebuild(kb_dir, signature)
         storage_dir.mkdir(parents=True, exist_ok=True)
 
         try:
@@ -281,6 +333,8 @@ class LlamaIndexPipeline:
 
             # Persist index
             index.storage_context.persist(persist_dir=str(storage_dir))
+            if signature is not None:
+                write_version_meta(kb_dir, signature, storage_dir=storage_dir)
             self.logger.info(f"Index persisted to {storage_dir}")
 
             self.logger.info(f"KB '{kb_name}' initialized successfully with LlamaIndex")
@@ -335,10 +389,11 @@ class LlamaIndexPipeline:
         self.logger.info(f"Searching KB '{kb_name}' with query: {query[:50]}...")
 
         kb_dir = Path(self.kb_base_dir) / kb_name
-        storage_dir = kb_dir / "llamaindex_storage"
+        signature = self._signature_provider()
+        storage_dir = resolve_storage_dir_for_read(kb_dir, signature)
 
-        docstore_path = storage_dir / "docstore.json"
-        if not storage_dir.exists() or not docstore_path.exists():
+        docstore_path = storage_dir / "docstore.json" if storage_dir is not None else None
+        if storage_dir is None or not storage_dir.exists() or not docstore_path.exists():
             self.logger.warning(f"No LlamaIndex storage found at {storage_dir}")
             return {
                 "query": query,
@@ -371,6 +426,7 @@ class LlamaIndexPipeline:
             loop = asyncio.get_event_loop()
 
             def load_and_retrieve():
+                validate_storage_embeddings(storage_dir)
                 storage_context = StorageContext.from_defaults(persist_dir=str(storage_dir))
                 index = load_index_from_storage(storage_context)
                 top_k = kwargs.get("top_k", 5)
@@ -443,7 +499,16 @@ class LlamaIndexPipeline:
         self.logger.info(f"Adding {len(file_paths)} documents to KB '{kb_name}' using LlamaIndex")
 
         kb_dir = Path(self.kb_base_dir) / kb_name
-        storage_dir = kb_dir / "llamaindex_storage"
+        signature = self._signature_provider()
+        matching_version = find_matching_version(kb_dir, signature)
+        existing_storage = (
+            Path(str(matching_version["storage_path"])) if matching_version else None
+        )
+        storage_dir = (
+            existing_storage
+            if existing_storage is not None and existing_storage.parent == kb_dir
+            else resolve_storage_dir_for_write(kb_dir, signature)
+        )
 
         try:
             await self._verify_embedding_connectivity()
@@ -500,11 +565,11 @@ class LlamaIndexPipeline:
 
             loop = asyncio.get_event_loop()
 
-            if storage_dir.exists():
-                self.logger.info(f"Loading existing index from {storage_dir}...")
+            if existing_storage is not None and existing_storage.exists():
+                self.logger.info(f"Loading existing index from {existing_storage}...")
 
                 def load_and_insert():
-                    storage_context = StorageContext.from_defaults(persist_dir=str(storage_dir))
+                    storage_context = StorageContext.from_defaults(persist_dir=str(existing_storage))
                     index = load_index_from_storage(storage_context)
 
                     for i, doc in enumerate(documents, 1):
@@ -515,6 +580,8 @@ class LlamaIndexPipeline:
                         index.insert(doc)
 
                     index.storage_context.persist(persist_dir=str(storage_dir))
+                    if signature is not None:
+                        write_version_meta(kb_dir, signature, storage_dir=storage_dir)
                     return len(documents)
 
                 num_added = await loop.run_in_executor(None, load_and_insert)
@@ -526,6 +593,8 @@ class LlamaIndexPipeline:
                 def create_index():
                     index = VectorStoreIndex.from_documents(documents, show_progress=True)
                     index.storage_context.persist(persist_dir=str(storage_dir))
+                    if signature is not None:
+                        write_version_meta(kb_dir, signature, storage_dir=storage_dir)
                     return len(documents)
 
                 num_added = await loop.run_in_executor(None, create_index)

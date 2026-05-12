@@ -5,6 +5,7 @@ Turn-level runtime manager for unified chat streaming.
 from __future__ import annotations
 
 import asyncio
+import base64
 import contextlib
 import json
 import logging
@@ -2755,6 +2756,7 @@ class TurnRuntimeManager:
         turn_id = execution.turn_id
         attachments = []
         attachment_records = []
+        attachment_text_sections: list[str] = []
         assistant_events: list[dict[str, Any]] = []
         assistant_content = ""
         authoritative_assistant_content = ""
@@ -3103,15 +3105,68 @@ class TurnRuntimeManager:
             with contextlib.nullcontext():
 
                 for item in payload.get("attachments", []):
+                    filename = str(item.get("filename", "") or "")
+                    mime_type = str(item.get("mime_type", "") or "")
+                    raw_b64 = str(item.get("base64", "") or "")
+                    stored_url = str(item.get("url", "") or "")
+                    attachment_id = str(
+                        item.get("id")
+                        or item.get("attachment_id")
+                        or f"att-{len(attachment_records) + 1}"
+                    )
+                    raw_bytes: bytes | None = None
+                    if raw_b64:
+                        try:
+                            b64_payload = raw_b64.split(",", 1)[1] if "," in raw_b64 else raw_b64
+                            raw_bytes = base64.b64decode(b64_payload, validate=False)
+                        except Exception:
+                            raw_bytes = None
+                    if raw_bytes:
+                        try:
+                            from deeptutor.services.storage import get_attachment_store
+
+                            stored_url = await get_attachment_store().put(
+                                session_id=session_id,
+                                attachment_id=attachment_id,
+                                filename=filename or "attachment",
+                                data=raw_bytes,
+                                mime_type=mime_type,
+                            )
+                        except Exception:
+                            logger.warning("Failed to persist chat attachment", exc_info=True)
+
+                        try:
+                            from deeptutor.utils.document_extractor import (
+                                DocumentExtractionError,
+                                extract_text_from_bytes,
+                                is_document_extension,
+                            )
+
+                            if filename and is_document_extension(filename):
+                                extracted = extract_text_from_bytes(filename, raw_bytes)
+                                attachment_text_sections.append(
+                                    f"[Attachment: {filename}]\n{extracted}"
+                                )
+                        except DocumentExtractionError as exc:
+                            attachment_text_sections.append(
+                                f"[Attachment: {filename}]\nUnable to extract text: {exc}"
+                            )
+                        except Exception:
+                            logger.debug("Skipping attachment text extraction", exc_info=True)
+
                     record = {
                         "type": item.get("type", "file"),
-                        "url": item.get("url", ""),
-                        "base64": item.get("base64", ""),
-                        "filename": item.get("filename", ""),
-                        "mime_type": item.get("mime_type", ""),
+                        "url": stored_url,
+                        "base64": "" if stored_url and raw_bytes else raw_b64,
+                        "filename": filename,
+                        "mime_type": mime_type,
+                    }
+                    runtime_record = {
+                        **record,
+                        "base64": raw_b64,
                     }
                     attachment_records.append(record)
-                    attachments.append(Attachment(**record))
+                    attachments.append(Attachment(**runtime_record))
 
                 if followup_question_context:
                     existing_messages = await self._safe_store_call(
@@ -3374,9 +3429,14 @@ class TurnRuntimeManager:
                         "token_budget_by_source": dict(context_trace.get("token_budget_by_source", {}) or {}),
                         "compression_applied": context_trace.get("compression_applied"),
                         "history_search_applied": context_trace.get("history_search_applied"),
-                        "fallback_path": context_trace.get("fallback_path", ""),
-                    }
+                            "fallback_path": context_trace.get("fallback_path", ""),
+                        }
                 )
+
+                if attachment_text_sections:
+                    effective_user_message = "\n\n".join(
+                        [effective_user_message, "[Uploaded Attachments]", *attachment_text_sections]
+                    )
 
                 context = UnifiedContext(
                     session_id=session_id,
