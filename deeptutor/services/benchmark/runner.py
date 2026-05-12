@@ -14,7 +14,7 @@ from deeptutor.services.benchmark import BenchmarkRegistry, load_benchmark_regis
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_REGISTRY_PATH = PROJECT_ROOT / "tests" / "fixtures" / "benchmark_phase1_registry.json"
+DEFAULT_REGISTRY_PATH = Path(__file__).resolve().parent / "fixtures" / "benchmark_phase1_registry.json"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "tmp" / "benchmark"
 
 

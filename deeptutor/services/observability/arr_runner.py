@@ -31,10 +31,11 @@ from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_req
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "tmp" / "arr"
-SEMANTIC_FIXTURE_PATH = PROJECT_ROOT / "tests" / "fixtures" / "semantic_router_eval_cases.json"
-CONTEXT_FIXTURE_PATH = PROJECT_ROOT / "tests" / "fixtures" / "context_orchestration_eval_cases.json"
-RAG_GROUNDING_FIXTURE_PATH = PROJECT_ROOT / "tests" / "fixtures" / "rag_grounding_eval_cases.json"
-LONG_DIALOG_FOCUS_FIXTURE_PATH = PROJECT_ROOT / "tests" / "fixtures" / "long_dialog_focus_eval_cases.json"
+BENCHMARK_FIXTURE_DIR = PROJECT_ROOT / "deeptutor" / "services" / "benchmark" / "fixtures"
+SEMANTIC_FIXTURE_PATH = BENCHMARK_FIXTURE_DIR / "semantic_router_eval_cases.json"
+CONTEXT_FIXTURE_PATH = BENCHMARK_FIXTURE_DIR / "context_orchestration_eval_cases.json"
+RAG_GROUNDING_FIXTURE_PATH = BENCHMARK_FIXTURE_DIR / "rag_grounding_eval_cases.json"
+LONG_DIALOG_FOCUS_FIXTURE_PATH = BENCHMARK_FIXTURE_DIR / "long_dialog_focus_eval_cases.json"
 LONG_DIALOG_SCRIPT_PATH = PROJECT_ROOT / "scripts" / "run_long_dialog_v1_retest.py"
 
 

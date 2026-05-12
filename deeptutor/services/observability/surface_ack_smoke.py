@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import time
 import uuid
 from typing import Any
@@ -60,6 +61,7 @@ def run_surface_ack_smoke(
     normalized_base_url = api_base_url.rstrip("/")
     ingest_url = f"{normalized_base_url}/api/v1/observability/surface-events"
     metrics_url = f"{normalized_base_url}/metrics"
+    effective_metrics_token = metrics_token if metrics_token is not None else os.environ.get("DEEPTUTOR_METRICS_TOKEN")
     posted_events: list[dict[str, Any]] = []
     coverage: dict[str, Any] | None = None
     missing_requirements: list[str] = []
@@ -86,7 +88,11 @@ def run_surface_ack_smoke(
             )
 
         while time.time() <= deadline:
-            headers = {"X-Metrics-Token": metrics_token.strip()} if metrics_token and metrics_token.strip() else None
+            headers = (
+                {"X-Metrics-Token": effective_metrics_token.strip()}
+                if effective_metrics_token and effective_metrics_token.strip()
+                else None
+            )
             response = client.get(metrics_url, headers=headers)
             response.raise_for_status()
             metrics_payload = response.json()
