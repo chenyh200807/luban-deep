@@ -540,7 +540,7 @@ function startChatTurn(payload) {
 
 /** 获取公开运行时能力 */
 function getRuntimeCapabilities() {
-  return requestStateGet("/api/v1/system/public-capabilities");
+  return requestStateGet("/api/v1/system/public-capabilities", { noAuth: true });
 }
 
 /** 获取对话消息 */

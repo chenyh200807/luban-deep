@@ -364,9 +364,11 @@ bash scripts/verify_aliyun_observability.sh
 
 如果只是小程序 UI 改动，阿里云重启不是让真实手机 UI 更新的充分条件。只有当该 UI 调用了新的后端能力时，阿里云后端重启才是必要步骤。
 
-### 7. 2026-05-12 联网按钮发布排障记录
+### 7. 2026-05-12 联网按钮历史排障记录
 
-本次现象：
+以下是一次历史排障记录，用来说明发布边界，不代表当前线上一定已经运行最新 commit。每次上线仍必须重新核对容器 `DEEPTUTOR_GIT_SHA`、公网 endpoint 和微信预览/发布包。
+
+当时现象：
 
 - 本地微信开发者工具里能看到聊天首页“联网”按钮。
 - 真实手机看不到该按钮。
@@ -379,12 +381,12 @@ bash scripts/verify_aliyun_observability.sh
 - 阿里云 `/root/deeptutor` 当时仍是旧源码：`WEB_SEARCH_AVAILABLE=false`，且 WXML 中没有 `web-pill`。
 - 前一轮只完成了本地改动和 DevTools 验证，没有同步到阿里云，也没有重启服务。
 
-本次实际处理：
+当时处理：
 
 1. 远端只读核对 `/root/deeptutor`，确认旧代码仍存在。
 2. 在 `/root/deeptutor/data/backups/` 下备份本次相关 8 个小程序文件。
 3. 定向 `rsync` 覆盖到 `/root/deeptutor`，只写入 `/root/deeptutor` 内。
-4. 远端核对 `WEB_SEARCH_AVAILABLE=true` 与 `web-pill` 已存在。
+4. 远端核对小程序源码中的联网按钮实现已存在。
 5. 执行完整 Docker build + recreate + restart。
 6. 远端 `docker compose ps` 显示 `deeptutor` healthy。
 7. `https://test2.yousenjiaoyu.com/`、`/healthz`、`/readyz` 公网验收最终通过。

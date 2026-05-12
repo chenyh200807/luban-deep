@@ -24,6 +24,10 @@ assert(
   "chat api should expose backend runtime capabilities",
 );
 assert(
+  /getRuntimeCapabilities[\s\S]*noAuth:\s*true/.test(apiJs),
+  "chat api should read public runtime capabilities without auth side effects",
+);
+assert(
   /webSearchAvailable:\s*DEFAULT_WEB_SEARCH_AVAILABLE/.test(chatJs),
   "chat page should default web search to unavailable until backend confirms it",
 );

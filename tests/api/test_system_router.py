@@ -26,6 +26,16 @@ def _build_app(*, is_admin: bool = True) -> FastAPI:
     return app
 
 
+def _build_system_prefixed_app(*, is_admin: bool = True) -> FastAPI:
+    app = FastAPI()
+    app.include_router(router, prefix="/api/v1/system")
+    app.dependency_overrides[get_current_user] = lambda: _ctx(
+        "admin_demo" if is_admin else "student_demo",
+        is_admin=is_admin,
+    )
+    return app
+
+
 @pytest.fixture(autouse=True)
 def _clear_rate_limit_state() -> None:
     rate_limit_module.clear_rate_limit_state()
@@ -125,6 +135,18 @@ def test_public_capabilities_exposes_web_search_runtime_authority(
         "available": True,
         "authority": "config_runtime",
     }
+
+
+def test_public_capabilities_matches_production_mount_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(system_module, "is_web_search_runtime_available", lambda: True)
+
+    with TestClient(_build_system_prefixed_app(is_admin=False)) as client:
+        response = client.get("/api/v1/system/public-capabilities")
+
+    assert response.status_code == 200
+    assert response.json()["tools"]["web_search"]["available"] is True
 
 
 def test_learner_state_contract_endpoint_exposes_user_id_scoped_state() -> None:

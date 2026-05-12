@@ -439,6 +439,7 @@ function getRuntimeCapabilities() {
   return request({
     url: "/api/v1/system/public-capabilities",
     method: "GET",
+    noAuth: true,
   });
 }
 
