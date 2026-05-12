@@ -250,6 +250,7 @@ def test_run_prerelease_observability_cli_fails_closed_without_canary(monkeypatc
             output_dir=str(tmp_path),
             long_dialog_source_json=None,
             long_dialog_max_cases=None,
+            changed_files=None,
             report_only=False,
         ),
     )

@@ -85,6 +85,7 @@ def run_prerelease_observability(
     output_dir: Path | None = None,
     explicit_long_dialog_source_json: str | None = None,
     long_dialog_max_cases: int | None = None,
+    changed_files: list[str] | tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     if arr_mode not in {"lite", "full"}:
         raise ValueError(f"Unsupported arr_mode: {arr_mode}")
@@ -196,7 +197,7 @@ def run_prerelease_observability(
         raise RuntimeError("observer snapshot was written but could not be read from control plane latest")
 
     change_impact_payload = build_change_impact_run(
-        changed_files=collect_git_changed_files(),
+        changed_files=list(changed_files) if changed_files is not None else collect_git_changed_files(),
         observer_payload=persisted_observer_payload,
         om_payload=om_payload,
         arr_payload=arr_payload,

@@ -27,6 +27,12 @@ def main() -> None:
     parser.add_argument("--long-dialog-source-json")
     parser.add_argument("--long-dialog-max-cases", type=int)
     parser.add_argument(
+        "--changed-file",
+        action="append",
+        dest="changed_files",
+        help="显式注入本次候选变更文件；可重复传入。生产镜像无 git 时用于 change-impact。",
+    )
+    parser.add_argument(
         "--report-only",
         action="store_true",
         help="只生成报告，不用退出码作为上线 gate；默认 recommendation 非 canary 时非 0 退出",
@@ -43,6 +49,7 @@ def main() -> None:
         output_dir=Path(args.output_dir).expanduser().resolve() if args.output_dir else None,
         explicit_long_dialog_source_json=args.long_dialog_source_json,
         long_dialog_max_cases=args.long_dialog_max_cases,
+        changed_files=args.changed_files,
     )
     gate = result["runs"]["release_gate"]
 

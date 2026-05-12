@@ -95,7 +95,7 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
     )
     monkeypatch.setattr(
         "deeptutor.services.observability.prerelease_runner.collect_git_changed_files",
-        lambda: ["docs/zh/guide/observability-control-plane.md"],
+        lambda: pytest.fail("explicit changed_files should bypass git collection"),
     )
 
     async def fake_run_arr(**kwargs):
@@ -170,6 +170,7 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
         surface_smoke="web",
         metrics_token="metrics-secret",
         output_dir=tmp_path / "artifacts",
+        changed_files=["docs/zh/guide/observability-control-plane.md"],
     )
 
     assert result["ws_smoke"]["passed"] is True
