@@ -328,8 +328,83 @@ LANGFUSE_TRACING_ENVIRONMENT=production
 - Dockerfile 需要重新执行 `apt-get update/install`
 - 需要重新安装 Python 依赖
 - 阿里云服务器访问 Debian 官方源较慢
+- 前端构建会重新执行 `npm ci` 和 `next build`
+- 如果 Docker build cache 命中不充分，`python-base` 与 `production` 两个镜像层会分别下载系统依赖，看起来像“重复安装”
 
 现在仓库已经补了阿里云默认镜像源和缓存挂载，但完整部署仍然会比“快速发布”慢很多。
+
+不要把这些耗时误判为发布失败。判断发布是否完成，以最终事实为准：
+
+```bash
+ssh Aliyun-ECS-2 'cd /root/deeptutor && docker compose ps'
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public_endpoints.sh
+bash scripts/verify_aliyun_observability.sh
+```
+
+### 5. 小程序 UI 改动不能只重启阿里云
+
+`wx_miniprogram` 和 `yousenwebview/packageDeeptutor` 是微信小程序代码包，不是 DeepTutor Docker 容器运行时的一部分。阿里云重启只能更新后端/API、Web 前端和服务器上的仓库副本；真实手机里看到的小程序 UI 取决于微信开发者工具预览包或微信后台发布包。
+
+因此如果修改的是小程序 WXML/WXSS/JS，例如聊天首页按钮、tab、输入框、卡片样式，必须按下面顺序验收：
+
+1. 本地跑对应 Node contract 测试。
+2. 用微信开发者工具打开 `yousenwebview`，进入 `packageDeeptutor/pages/chat/chat`，确认模拟器可见。
+3. 如需真实手机立即看到，使用开发者工具重新生成真机预览码，或走微信上传/发版流程。
+4. 如果小程序同时依赖后端新能力，再同步并重启阿里云后端。
+
+不要把“阿里云仓库副本已有小程序代码”误报成“真实手机小程序 UI 已更新”。真实手机 UI 的 authority 是微信预览/发布包，不是 `/root/deeptutor` 里的源码。
+
+### 6. 前端/小程序相关发布路径怎么选
+
+发布脚本的适用范围必须先判断清楚：
+
+- 只改 Python 后端、Prompt、YAML、路由，并且不涉及依赖：可以用 `redeploy_aliyun_fast.sh`。
+- 改 Dockerfile、requirements、Web 前端构建产物、Node 依赖：必须用 `deploy_aliyun.sh` 或远端 `server_restart_aliyun.sh` 做完整镜像重建。
+- 改 `wx_miniprogram` 或 `yousenwebview/packageDeeptutor`：阿里云同步只更新服务器源码副本；真实手机还必须重新预览或上传微信小程序包。
+
+如果只是小程序 UI 改动，阿里云重启不是让真实手机 UI 更新的充分条件。只有当该 UI 调用了新的后端能力时，阿里云后端重启才是必要步骤。
+
+### 7. 2026-05-12 联网按钮发布排障记录
+
+本次现象：
+
+- 本地微信开发者工具里能看到聊天首页“联网”按钮。
+- 真实手机看不到该按钮。
+- 用户追问是否同步到阿里云并重启服务。
+
+根因：
+
+- 本地 DevTools 使用本机源码。
+- 真实手机使用微信预览/发布包。
+- 阿里云 `/root/deeptutor` 当时仍是旧源码：`WEB_SEARCH_AVAILABLE=false`，且 WXML 中没有 `web-pill`。
+- 前一轮只完成了本地改动和 DevTools 验证，没有同步到阿里云，也没有重启服务。
+
+本次实际处理：
+
+1. 远端只读核对 `/root/deeptutor`，确认旧代码仍存在。
+2. 在 `/root/deeptutor/data/backups/` 下备份本次相关 8 个小程序文件。
+3. 定向 `rsync` 覆盖到 `/root/deeptutor`，只写入 `/root/deeptutor` 内。
+4. 远端核对 `WEB_SEARCH_AVAILABLE=true` 与 `web-pill` 已存在。
+5. 执行完整 Docker build + recreate + restart。
+6. 远端 `docker compose ps` 显示 `deeptutor` healthy。
+7. `https://test2.yousenjiaoyu.com/`、`/healthz`、`/readyz` 公网验收最终通过。
+8. 复测 `web_search("2026一建考试时间 官方通知")`，provider 为 `searxng`，能返回结果。
+
+耗时原因：
+
+- 为了符合写入边界，先备份再定向同步。
+- 远端宿主机没有 `node`，不能直接跑小程序 Node 测试，只能用本地测试 + 远端文件内容校验替代。
+- 小程序相关改动不是 Python fast reload 范畴，按运维手册应走完整镜像重建。
+- 本次 Docker build cache 命中不充分，重新下载/安装 Debian、Rust、Python、Node 依赖。
+- 公网域名探针前 18 次出现 DNS/连接/HTTP2 瞬时失败，最终第 19 次 frontend 通过，随后 `healthz/readyz` 通过。
+
+经验教训：
+
+- 汇报“已上线”前必须区分四个事实：本地源码、阿里云源码副本、阿里云容器运行态、微信小程序真实包。
+- 小程序 UI 变更的终端验收不能用阿里云重启替代；必须重新预览或上传微信包。
+- 同步阿里云前先读 `docs/zh/guide/aliyun-deploy.md`，确认该改动应走 fast reload、完整 deploy，还是微信小程序预览/上传。
+- 远端服务健康只说明后端/API 可用；它不能证明真实手机 UI 已更新。
+- 公网探针短暂失败不等于发布失败；以最终脚本完成状态和具体 endpoint 结果为准。
 
 ## 回滚步骤
 
