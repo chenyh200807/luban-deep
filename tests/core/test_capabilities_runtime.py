@@ -57,6 +57,17 @@ def test_tutorbot_fast_mode_preserves_explicit_web_search_tool() -> None:
     ]
 
 
+def test_tutorbot_current_info_required_infers_explicit_web_search_query() -> None:
+    context = UnifiedContext(
+        user_message="联网查询2026年一级建造师考试时间",
+        enabled_tools=["web_search"],
+        knowledge_bases=["construction-exam"],
+        metadata={"interaction_hints": {}},
+    )
+
+    assert TutorBotCapability._current_info_required(context) is True
+
+
 async def _collect_events(run_coro) -> list[StreamEvent]:
     bus = StreamBus()
     events: list[StreamEvent] = []
@@ -3395,6 +3406,168 @@ async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_explicit_web_search_preserves_full_exact_authority(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FailIfCalledProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            raise AssertionError("LLM should not be called when full exact authority applies.")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class ExactCaseTool(Tool):
+        def __init__(self) -> None:
+            self._trace_metadata = {
+                "kb_name": "construction-exam",
+                "sources": [{"chunk_id": "question-9717", "source_type": "real_exam"}],
+                "authority_applied": False,
+                "exact_question": {
+                    "answer_kind": "case_study",
+                    "coverage_state": "multi_subquestion_exact",
+                    "coverage_ratio": 1.0,
+                    "missing_subquestions": [],
+                    "covered_subquestions": [
+                        {
+                            "display_index": "4",
+                            "authoritative_answer": "（1）12.10-0.72-1.10=10.28 亿元。",
+                            "analysis": "",
+                        },
+                        {
+                            "display_index": "5",
+                            "authoritative_answer": "造价：3335.40 万元。",
+                            "analysis": "",
+                        },
+                    ],
+                },
+            }
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "exact case rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "kb_name": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            assert kwargs["kb_name"] == "construction-exam"
+            return "知识库命中整题标准答案"
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            metadata = dict(self._trace_metadata)
+            self._trace_metadata = {}
+            return metadata
+
+    class PrefetchWebSearchTool(Tool):
+        @property
+        def name(self) -> str:
+            return "web_search"
+
+        @property
+        def description(self) -> str:
+            return "web search"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "count": {"type": "integer"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            assert kwargs["count"] == 5
+            return "Provider: searxng\n1. 官方补充来源\n   https://example.gov/plan.pdf"
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            return {
+                "provider": "searxng",
+                "web_search_sources": [{"title": "官方补充来源", "url": "https://example.gov/plan.pdf"}],
+            }
+
+    captured: dict[str, Any] = {"tool_calls": [], "tool_results": []}
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=FailIfCalledProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(ExactCaseTool())
+    loop.tools.register(PrefetchWebSearchTool())
+
+    content = await loop.process_direct(
+        "背景资料：某旧城改造工程。问题：4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？",
+        metadata={
+            "current_info_required": True,
+            "default_tools": ["rag", "web_search"],
+            "default_kb": "construction-exam",
+            "effective_response_mode": "fast",
+        },
+        on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert "10.28 亿元" in content
+    assert "3335.40 万元" in content
+    assert [name for name, _args in captured["tool_calls"]] == ["rag", "web_search"]
+    assert captured["tool_results"][0][2]["authority_applied"] is True
+    assert captured["tool_results"][1][2]["provider"] == "searxng"
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_process_direct_limits_tool_schemas_to_default_tools(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -4166,6 +4339,83 @@ async def test_tutorbot_process_direct_prefetches_web_search_when_user_enabled_t
             "url": "https://example.gov/plan.pdf",
         }
     ]
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_web_search_prefetch_fails_closed_when_tool_unregistered(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {"tool_calls": [], "tool_results": [], "saw_web_tool_result": False}
+
+    class CapturingProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            captured["saw_web_tool_result"] = any(
+                item.get("role") == "tool" and item.get("name") == "web_search"
+                for item in messages
+            )
+            return LLMResponse(content="未执行联网搜索。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=CapturingProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+
+    await loop.process_direct(
+        "2026一建考试时间",
+        metadata={
+            "current_info_required": True,
+            "default_tools": ["web_search"],
+            "effective_response_mode": "fast",
+        },
+        on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert captured["tool_calls"] == []
+    assert captured["tool_results"] == []
+    assert captured["saw_web_tool_result"] is False
 
 
 @pytest.mark.asyncio

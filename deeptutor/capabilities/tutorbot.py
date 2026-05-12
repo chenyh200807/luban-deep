@@ -18,6 +18,7 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     resolve_submission_attempt,
 )
+from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
@@ -381,7 +382,13 @@ class TutorBotCapability(BaseCapability):
         if bool(metadata.get("current_info_required")):
             return True
         hints = metadata.get("interaction_hints") if isinstance(metadata.get("interaction_hints"), dict) else {}
-        return bool(hints.get("current_info_required"))
+        if bool(hints.get("current_info_required")):
+            return True
+        enabled_tools = {
+            str(tool or "").strip()
+            for tool in (context.enabled_tools or [])
+        }
+        return "web_search" in enabled_tools and query_requires_current_info(context.user_message)
 
     @staticmethod
     def _billing_user_id(context: UnifiedContext) -> str:

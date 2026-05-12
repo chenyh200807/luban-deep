@@ -1583,20 +1583,25 @@ class AgentLoop:
         runtime_instruction = "\n\n".join(
             part for part in runtime_instruction_parts if str(part or "").strip()
         )
-        fast_path = None
-        if not self._should_prefetch_web_search(runtime_metadata=runtime_metadata):
-            fast_path = await self._maybe_run_exact_rag_fast_path(
+        fast_path = await self._maybe_run_exact_rag_fast_path(
+            current_message=current_message,
+            history=history,
+            media=msg.media if msg.media else None,
+            channel=msg.channel,
+            chat_id=msg.chat_id,
+            runtime_instruction=runtime_instruction,
+            runtime_metadata=runtime_metadata,
+            on_tool_call=on_tool_call,
+            on_tool_result=on_tool_result,
+        )
+        if fast_path is not None:
+            await self._maybe_prefetch_web_search(
+                initial_messages=[],
                 current_message=current_message,
-                history=history,
-                media=msg.media if msg.media else None,
-                channel=msg.channel,
-                chat_id=msg.chat_id,
-                runtime_instruction=runtime_instruction,
                 runtime_metadata=runtime_metadata,
                 on_tool_call=on_tool_call,
                 on_tool_result=on_tool_result,
             )
-        if fast_path is not None:
             final_content, all_msgs, fast_path_metadata = fast_path
             final_content = normalize_anchor_terms_in_response(
                 user_message=current_message,
