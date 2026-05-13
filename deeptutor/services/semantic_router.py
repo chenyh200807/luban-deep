@@ -9,6 +9,7 @@ from deeptutor.services.question_followup import (
     interpret_question_followup_action,
     looks_like_question_followup,
     normalize_question_followup_context,
+    reset_question_submission_state,
     resolve_submission_attempt,
 )
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
@@ -64,6 +65,12 @@ _EXPLICIT_PRACTICE_GENERATION_MARKERS = (
     "出一道",
     "来一道",
     "来一题",
+    "选择题",
+    "单选题",
+    "多选题",
+    "判断题",
+    "案例题",
+    "简答题",
     "考我",
     "刷题",
     "测我",
@@ -77,8 +84,18 @@ _EXPLICIT_PRACTICE_GENERATION_MARKERS = (
     "give me one question",
 )
 _EXPLICIT_PRACTICE_GENERATION_PATTERNS = (
-    r"(给我|帮我|来|出)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道)?(?:题|单选题|多选题|案例题|选择题|判断题)",
+    r"(给我|帮我|来|出)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道)?(?:题|单选题|多选题|案例题|简答题|选择题|判断题)",
     r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
+)
+_QUESTION_EXPLAINER_MARKERS = (
+    "为什么",
+    "为啥",
+    "解析",
+    "讲解",
+    "解释",
+    "错在哪",
+    "哪里错",
+    "怎么错",
 )
 _ORDINAL_INDEX_MAP = {
     "一": 1,
@@ -613,6 +630,48 @@ async def resolve_question_semantic_routing(
     cached_action = normalized_metadata.get("question_followup_action")
     followup_action = cached_action if isinstance(cached_action, dict) and cached_action else None
 
+    if (
+        question_context is not None
+        and looks_like_practice_generation_request(user_message)
+        and _has_explicit_practice_generation_intent(user_message)
+    ):
+        _target_context, submission = resolve_submission_attempt(user_message, question_context)
+        if submission is None:
+            reset_question_context = (
+                reset_question_submission_state(question_context) or question_context
+            )
+            reset_active_object = active_object
+            if active_object is not None:
+                reset_active_object = dict(active_object)
+                reset_active_object["state_snapshot"] = reset_question_context
+            practice_action = {
+                "intent": "generate_more_questions",
+                "confidence": 0.86,
+                "answers": [],
+                "reason": "用户明确要求出选择题/练题，应生成新题而不是批改当前 active question。",
+            }
+            practice_decision = build_turn_semantic_decision(
+                relation_to_active_object=(
+                    "continue_same_learning_flow"
+                    if reset_active_object is not None
+                    else "switch_to_new_object"
+                ),
+                next_action="route_to_generation",
+                allowed_patch="set_active_object",
+                confidence=0.86,
+                reason=practice_action["reason"],
+                target_object_ref=build_target_object_ref(reset_active_object)
+                or {"object_type": "question_set", "object_id": ""},
+                active_object=reset_active_object,
+            )
+            return SemanticRoutingResult(
+                active_object=reset_active_object,
+                suspended_object_stack=suspended_stack,
+                turn_semantic_decision=practice_decision,
+                question_context=reset_question_context,
+                followup_action=practice_action,
+            )
+
     llm_action: dict[str, Any] | None = followup_action
     if question_context is not None and llm_action is None:
         llm_action = await interpret_followup_action(user_message, question_context)
@@ -905,9 +964,22 @@ def _has_explicit_practice_generation_intent(user_message: str | None) -> bool:
     text = str(user_message or "").strip().lower()
     if not text:
         return False
+    if _has_question_explainer_intent(text):
+        return False
     if any(marker in text for marker in _EXPLICIT_PRACTICE_GENERATION_MARKERS):
         return True
     return any(re.search(pattern, text) for pattern in _EXPLICIT_PRACTICE_GENERATION_PATTERNS)
+
+
+def has_explicit_practice_generation_intent(user_message: str | None) -> bool:
+    return _has_explicit_practice_generation_intent(user_message)
+
+
+def _has_question_explainer_intent(user_message: str | None) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(marker in text for marker in _QUESTION_EXPLAINER_MARKERS)
 
 
 def _decision_from_fallback(

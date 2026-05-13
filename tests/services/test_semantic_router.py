@@ -188,7 +188,50 @@ async def test_resolve_turn_semantic_decision_routes_explicit_continue_practice_
         active_object,
     )
 
-    assert action is None
+    assert action is not None
+    assert action["intent"] == "generate_more_questions"
+    assert action["answers"] == []
+    assert decision is not None
+    assert decision["relation_to_active_object"] == "continue_same_learning_flow"
+    assert decision["next_action"] == "route_to_generation"
+    assert decision["allowed_patch"] == ["set_active_object"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "message",
+    [
+        "选择题",
+        "给我出简答题",
+        "我想练习防水工程相关简答题",
+    ],
+)
+async def test_resolve_turn_semantic_decision_prefers_explicit_generation_over_llm_submission(
+    monkeypatch: pytest.MonkeyPatch,
+    message: str,
+) -> None:
+    async def fake_interpret(_message: str, _context: dict[str, object], *, history_context: str = ""):
+        return {
+            "intent": "answer_questions",
+            "confidence": 0.91,
+            "answers": [{"index": 1, "question_id": "q_1", "user_answer": "A"}],
+            "reason": "模拟 LLM 将“选择题”误判为上一题答案。",
+        }
+
+    monkeypatch.setattr(semantic_router, "interpret_question_followup_action", fake_interpret)
+    active_object = semantic_router.build_active_object_from_question_context(
+        _question_context(),
+        source_turn_id="turn-choice-request",
+    )
+
+    decision, action = await semantic_router.resolve_turn_semantic_decision(
+        message,
+        active_object,
+    )
+
+    assert action is not None
+    assert action["intent"] == "generate_more_questions"
+    assert action["answers"] == []
     assert decision is not None
     assert decision["relation_to_active_object"] == "continue_same_learning_flow"
     assert decision["next_action"] == "route_to_generation"

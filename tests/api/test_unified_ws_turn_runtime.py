@@ -11,7 +11,6 @@ import pytest
 from pydantic import ValidationError
 
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
-from deeptutor.contracts.unified_turn import UnifiedTurnStartMessage
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.services.config.provider_runtime import ResolvedLLMConfig
 from deeptutor.services.session.sqlite_store import (
@@ -26,6 +25,7 @@ from deeptutor.services.session.turn_runtime import (
     _request_snapshot_metadata,
     _resolve_question_followup_context_and_action,
 )
+from deeptutor.services.semantic_router import build_active_object_from_question_context
 from deeptutor.contracts.unified_turn import UnifiedTurnStartMessage
 
 unified_ws_module = importlib.import_module("deeptutor.api.routers.unified_ws")
@@ -138,6 +138,194 @@ async def test_redacted_public_followup_context_does_not_override_grading_author
     assert resolved_context["explanation"] == "基层应平整、干净、含水率符合要求。"
     assert resolved_context["user_answer"] == "A"
     assert resolved_action is not None
+
+
+@pytest.mark.asyncio
+async def test_resolve_question_followup_does_not_treat_next_question_explainer_as_generation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _fake_interpret(_message, _question_context, **_kwargs):
+        return {
+            "intent": "ask_followup",
+            "confidence": 0.9,
+            "answers": [],
+            "reason": "用户是在追问下一题为什么错。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        _fake_interpret,
+    )
+
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="下一题为什么错",
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "q_1",
+                "question": "第1题：楼梯平台净高最低多少？",
+                "question_type": "choice",
+                "options": {"A": "2.0m", "B": "2.2m"},
+                "correct_answer": "B",
+            }
+        ],
+    )
+
+    assert resolved_context is not None
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
+
+
+@pytest.mark.asyncio
+async def test_resolve_question_followup_does_not_treat_question_type_explainer_as_generation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _fake_interpret(_message, _question_context, **_kwargs):
+        return {
+            "intent": "ask_followup",
+            "confidence": 0.9,
+            "answers": [],
+            "reason": "用户是在追问下一道选择题为什么错。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        _fake_interpret,
+    )
+
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="下一道选择题为什么错",
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "q_1",
+                "question": "第1题：楼梯平台净高最低多少？",
+                "question_type": "choice",
+                "options": {"A": "2.0m", "B": "2.2m"},
+                "correct_answer": "B",
+            }
+        ],
+    )
+
+    assert resolved_context is not None
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
+
+
+@pytest.mark.asyncio
+async def test_start_turn_merges_redacted_public_submission_with_stored_active_question(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["capability"] = context.active_capability
+            captured["question_followup_context"] = dict(
+                context.metadata.get("question_followup_context", {}) or {}
+            )
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="deep_question",
+                metadata={"response": "第2题正确。", "mode": "grading"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session = await store.create_session(session_id="session_redacted_mcq", title="题组")
+    authoritative_context = {
+        "question_id": "question_set",
+        "question": "相关五道题",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "《建筑法》属于（ ）。",
+                "question_type": "choice",
+                "options": {"A": "法律", "B": "行政法规"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "《建设工程安全生产管理条例》属于（ ）。",
+                "question_type": "choice",
+                "options": {"A": "法律", "B": "行政法规", "C": "部门规章", "D": "地方性法规"},
+                "correct_answer": "B",
+                "explanation": "条例由国务院制定，属于行政法规。",
+            },
+        ],
+    }
+    active_object = build_active_object_from_question_context(authoritative_context)
+    assert active_object is not None
+    await store.set_active_object(session["id"], active_object)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "我选B",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "followup_question_context": {
+                    "question_id": "q_2",
+                    "question": "《建设工程安全生产管理条例》属于（ ）。",
+                    "question_type": "choice",
+                    "options": {
+                        "A": "法律",
+                        "B": "行政法规",
+                        "C": "部门规章",
+                        "D": "地方性法规",
+                    },
+                    "correct_answer": "",
+                    "explanation": "",
+                    "user_answer": "B",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    resolved = captured["question_followup_context"]
+    assert captured["capability"] is None
+    assert resolved["question_id"] == "q_2"
+    assert resolved["correct_answer"] == "B"
+    assert resolved["user_answer"] == "B"
+    assert "行政法规" in resolved["explanation"]
 
 
 @pytest.mark.asyncio
@@ -2763,6 +2951,245 @@ async def test_turn_runtime_does_not_pin_tutorbot_when_llm_identifies_followup_t
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_treats_choice_type_as_generation_with_stored_active_question(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, session_store, *_args, **_kwargs) -> None:
+            self.store = session_store
+
+        async def build(self, **kwargs):
+            messages = await self.store.get_messages_for_context(kwargs["session_id"])
+            return SimpleNamespace(
+                conversation_history=[
+                    {"role": item["role"], "content": item["content"]}
+                    for item in messages
+                ],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["active_capability"] = context.active_capability
+            captured["metadata"] = dict(context.metadata or {})
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source=context.active_capability or "tutorbot",
+                stage="generation",
+                content="这里应该继续出一道选择题。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source=context.active_capability or "tutorbot")
+
+    async def _misleading_interpret(_message, question_context, **_kwargs):
+        if str((question_context or {}).get("question_id") or "") != "q_choice_saved":
+            return None
+        return {
+            "intent": "answer_questions",
+            "confidence": 0.93,
+            "answers": [{"index": 1, "question_id": "q_choice_saved", "user_answer": "A"}],
+            "reason": "模拟 LLM 把“选择题”误判成上一题答案。",
+        }
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        _misleading_interpret,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime._resolve_bot_runtime_defaults",
+        lambda **_kwargs: {
+            "execution_engine": "tutorbot_runtime",
+            "tools": ["rag"],
+            "knowledge_bases": ["construction-exam"],
+            "defaults_source": "bot_runtime_defaults",
+        },
+    )
+
+    session = await store.create_session(session_id="session_choice_type_generation")
+    await store.set_active_question_context(
+        session["id"],
+        {
+            "question_id": "q_choice_saved",
+            "question": "楼梯平台净高的最低要求是多少？",
+            "question_type": "choice",
+            "options": {
+                "A": "1.8m",
+                "B": "2.0m",
+                "C": "2.2m",
+                "D": "2.4m",
+            },
+            "correct_answer": "C",
+            "reveal_answers": False,
+            "reveal_explanations": False,
+        },
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "选择题",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+            },
+        }
+    )
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    metadata = captured["metadata"]
+    followup_action = metadata["question_followup_action"]
+    followup_context = metadata["question_followup_context"]
+    assert followup_action["intent"] == "generate_more_questions"
+    assert followup_action["answers"] == []
+    assert followup_context["question_id"] == "q_choice_saved"
+    assert followup_context.get("user_answer", "") == ""
+    assert followup_context.get("is_correct") is None
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_treats_written_question_type_request_as_generation_with_stored_active_question(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, session_store, *_args, **_kwargs) -> None:
+            self.store = session_store
+
+        async def build(self, **kwargs):
+            messages = await self.store.get_messages_for_context(kwargs["session_id"])
+            return SimpleNamespace(
+                conversation_history=[
+                    {"role": item["role"], "content": item["content"]}
+                    for item in messages
+                ],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["metadata"] = dict(context.metadata or {})
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source=context.active_capability or "tutorbot",
+                stage="generation",
+                content="这里应该继续出一道简答题。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source=context.active_capability or "tutorbot")
+
+    async def _misleading_interpret(_message, question_context, **_kwargs):
+        if str((question_context or {}).get("question_id") or "") != "q_written_saved":
+            return None
+        return {
+            "intent": "answer_questions",
+            "confidence": 0.9,
+            "answers": [
+                {
+                    "index": 1,
+                    "question_id": "q_written_saved",
+                    "user_answer": "给我出简答题",
+                }
+            ],
+            "reason": "模拟 LLM 把简答题请求误判成上一道主观题答案。",
+        }
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        _misleading_interpret,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime._resolve_bot_runtime_defaults",
+        lambda **_kwargs: {
+            "execution_engine": "tutorbot_runtime",
+            "tools": ["rag"],
+            "knowledge_bases": ["construction-exam"],
+            "defaults_source": "bot_runtime_defaults",
+        },
+    )
+
+    session = await store.create_session(session_id="session_written_type_generation")
+    await store.set_active_question_context(
+        session["id"],
+        {
+            "question_id": "q_written_saved",
+            "question": "指出该防水施工做法中的不妥之处。",
+            "question_type": "written",
+            "correct_answer": "应指出不妥并写出正确做法。",
+            "reveal_answers": False,
+            "reveal_explanations": False,
+        },
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "给我出简答题",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+            },
+        }
+    )
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    metadata = captured["metadata"]
+    followup_action = metadata["question_followup_action"]
+    followup_context = metadata["question_followup_context"]
+    assert followup_action["intent"] == "generate_more_questions"
+    assert followup_action["answers"] == []
+    assert followup_context["question_id"] == "q_written_saved"
+    assert followup_context.get("user_answer", "") == ""
+    assert followup_context.get("is_correct") is None
 
 
 @pytest.mark.asyncio

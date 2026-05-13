@@ -102,7 +102,15 @@ _FOLLOWUP_MARKERS = (
 _JUDGMENT_TRUE_TOKENS = {"对", "正确", "是", "true", "yes", "√", "t"}
 _JUDGMENT_FALSE_TOKENS = {"错", "错误", "否", "false", "no", "×", "x", "f"}
 _LEADING_SUBMISSION_PREFIX = re.compile(
-    r"^(?:我答(?:案)?(?:是)?|我的(?:答案)?(?:是)?|答案(?:是)?|我选|我觉得选|选|就是|应该是|option|answer)[:：]?",
+    r"^(?:我答(?:案)?(?:是)?|我的(?:答案)?(?:是)?|答案(?:是)?|我选|我觉得选|选(?!择)|就是|应该是|option|answer)[:：]?",
+    re.IGNORECASE,
+)
+_SUBJECTIVE_QUESTION_TYPES = {"case", "written", "subjective", "short_answer", "essay"}
+_TRAILING_GRADING_REQUEST_RE = re.compile(
+    r"(?:[。.!！?；;，,、 ]*)"
+    r"(?:请)?(?:按[^。.!！?；;]{0,40})?"
+    r"(?:批改|判分|打分|阅卷)"
+    r"(?:一下|下)?(?:[。.!！?；;，,、 ]*)$",
     re.IGNORECASE,
 )
 _NUMBERED_SUBMISSION_RE = re.compile(
@@ -223,7 +231,29 @@ def normalize_question_followup_context(raw: dict[str, Any] | None) -> dict[str,
         "reveal_explanations": bool(raw.get("reveal_explanations", False)),
         "items": items,
     }
+    grading_result = raw.get("construction_grading_result")
+    if isinstance(grading_result, dict) and grading_result:
+        normalized["construction_grading_result"] = grading_result
     return normalized
+
+
+def reset_question_submission_state(question_context: dict[str, Any] | None) -> dict[str, Any] | None:
+    normalized = normalize_question_followup_context(question_context)
+    if normalized is None:
+        return None
+    reset_context = dict(normalized)
+    reset_context["user_answer"] = ""
+    reset_context["is_correct"] = None
+    reset_items: list[dict[str, Any]] = []
+    for item in reset_context.get("items") or []:
+        if not isinstance(item, dict):
+            continue
+        reset_item = dict(item)
+        reset_item["user_answer"] = ""
+        reset_item["is_correct"] = None
+        reset_items.append(reset_item)
+    reset_context["items"] = reset_items
+    return reset_context
 
 
 def detect_requested_question_type(message: str) -> tuple[str, bool]:
@@ -711,6 +741,10 @@ def _extract_single_submission(message: str, question_context: dict[str, Any]) -
     if option_answer is not None:
         return option_answer
 
+    subjective_answer = _extract_subjective_submission(text, question_context)
+    if subjective_answer is not None:
+        return subjective_answer
+
     stripped = _LEADING_SUBMISSION_PREFIX.sub("", text).strip().strip("。.!！?，,：:")
     judgment = _normalize_judgment_token(stripped)
     if judgment is None:
@@ -731,6 +765,99 @@ def _extract_single_submission(message: str, question_context: dict[str, Any]) -
         return correct_answer
 
     return judgment
+
+
+def _extract_subjective_submission(message: str, question_context: dict[str, Any]) -> str | None:
+    question_type = str(question_context.get("question_type") or "").strip().lower()
+    if question_type not in _SUBJECTIVE_QUESTION_TYPES:
+        return None
+
+    text = str(message or "").strip()
+    if not text:
+        return None
+    explicit_answer = bool(_LEADING_SUBMISSION_PREFIX.match(text))
+    prestrip_lowered = text.lower()
+    prestrip_question_markers = (
+        "答案是什么",
+        "我的答案是什么",
+        "为什么",
+        "解析",
+        "讲解",
+        "思路",
+        "标准答案",
+        "参考答案",
+        "正确答案",
+        "是什么",
+        "什么是",
+        "讲讲",
+        "讲一下",
+        "说说",
+        "介绍一下",
+        "怎么",
+        "如何",
+        "怎样",
+        "能不能",
+        "是否",
+    )
+    if not explicit_answer and (
+        any(marker in prestrip_lowered for marker in prestrip_question_markers)
+        or ("？" in text or "?" in text)
+    ):
+        return None
+    stripped = _strip_submission_prefix(text)
+    stripped = _TRAILING_GRADING_REQUEST_RE.sub("", stripped).strip()
+    stripped = stripped.strip("。.!！?；;，,：:、 ")
+    if not stripped:
+        return None
+    if explicit_answer and "答案" in prestrip_lowered and stripped in {"什么", "啥"}:
+        return None
+
+    lowered = stripped.lower()
+    explanation_markers = (
+        "为什么",
+        "解析",
+        "讲解",
+        "思路",
+        "标准答案",
+        "参考答案",
+        "正确答案",
+        "答案是什么",
+        "是什么",
+        "什么是",
+        "讲讲",
+        "讲一下",
+        "说说",
+        "介绍一下",
+        "怎么",
+        "如何",
+        "怎样",
+        "能不能",
+        "是否",
+        "怎么写",
+        "怎么做",
+    )
+    if not explicit_answer and any(marker in lowered for marker in explanation_markers):
+        return None
+    generation_markers = (
+        "出题",
+        "出一道",
+        "来一道",
+        "来一题",
+        "选择题",
+        "单选题",
+        "多选题",
+        "判断题",
+        "案例题",
+        "简答题",
+        "刷题",
+        "练题",
+        "练习",
+    )
+    if not explicit_answer and any(marker in lowered for marker in generation_markers):
+        return None
+    if not explicit_answer and len(stripped) < 6:
+        return None
+    return stripped
 
 
 def _parse_numbered_submission(message: str) -> tuple[int, str] | None:

@@ -58,6 +58,11 @@ def test_resolve_requested_response_mode_prefers_new_hint_over_legacy_teaching_m
 def test_looks_like_practice_generation_request_accepts_natural_one_question_phrasing():
     assert looks_like_practice_generation_request("给我一道题测试一下这个知识点") is True
     assert looks_like_practice_generation_request("给我5道题练练") is True
+    assert looks_like_practice_generation_request("选择题") is True
+    assert looks_like_practice_generation_request("给我出选择题") is True
+    assert looks_like_practice_generation_request("给我出简答题") is True
+    assert looks_like_practice_generation_request("我想练习建筑构造相关的题目") is True
+    assert looks_like_practice_generation_request("我想练习防水工程相关简答题") is True
 
 
 def test_looks_like_practice_generation_request_rejects_learning_strategy_phrasing():

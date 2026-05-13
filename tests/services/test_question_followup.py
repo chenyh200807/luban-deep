@@ -14,6 +14,7 @@ from deeptutor.services.question_followup import (
     resolve_submission,
     resolve_submission_attempt,
 )
+from deeptutor.services.render_presentation import build_canonical_presentation
 
 
 def test_detect_requested_question_type_prefers_explicit_written_case() -> None:
@@ -44,6 +45,95 @@ def test_resolve_submission_maps_judgment_text_to_option_key() -> None:
 
     assert target is not None
     assert answer == "B"
+
+
+def test_resolve_submission_attempt_accepts_subjective_case_answer() -> None:
+    target, submission = resolve_submission_attempt(
+        "我的答案：共用一个开关箱不妥，应采用专用开关箱。请按案例题阅卷标准批改。",
+        {
+            "question_id": "case_1",
+            "question": "指出临时用电管理中的不妥之处。",
+            "question_type": "case",
+            "correct_answer": "共用一个开关箱不妥，应采用专用开关箱。",
+        },
+    )
+
+    assert target is not None
+    assert submission is not None
+    assert submission["kind"] == "single"
+    assert submission["question_id"] == "case_1"
+    assert submission["answer"] == "共用一个开关箱不妥，应采用专用开关箱"
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "我的答案是：防水工程施工前应检查基层是否平整。",
+        "我的答案是：应说明如何进行蓄水试验。",
+    ],
+)
+def test_resolve_submission_attempt_keeps_explicit_subjective_answer_with_question_words(
+    message: str,
+) -> None:
+    target, submission = resolve_submission_attempt(
+        message,
+        {
+            "question_id": "case_1",
+            "question": "指出防水施工前应检查的内容。",
+            "question_type": "case",
+            "correct_answer": "防水工程施工前应检查基层是否平整。",
+        },
+    )
+
+    assert target is not None
+    assert submission is not None
+    assert submission["kind"] == "single"
+    assert submission["question_id"] == "case_1"
+
+
+def test_resolve_submission_attempt_keeps_subjective_explanation_as_followup() -> None:
+    target, submission = resolve_submission_attempt(
+        "为什么这道题要写专用开关箱？",
+        {
+            "question_id": "case_1",
+            "question": "指出临时用电管理中的不妥之处。",
+            "question_type": "case",
+            "correct_answer": "共用一个开关箱不妥，应采用专用开关箱。",
+        },
+    )
+
+    assert target is not None
+    assert submission is None
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "选择题",
+        "给我出单选题",
+        "给我出简答题",
+        "我想练习防水工程相关简答题",
+        "讲讲防水工程",
+        "答案是什么",
+        "我的答案是什么",
+        "防水工程怎么施工",
+    ],
+)
+def test_resolve_submission_attempt_does_not_treat_generation_or_explainer_as_subjective_answer(
+    message: str,
+) -> None:
+    target, submission = resolve_submission_attempt(
+        message,
+        {
+            "question_id": "case_1",
+            "question": "指出临时用电管理中的不妥之处。",
+            "question_type": "case",
+            "correct_answer": "共用一个开关箱不妥，应采用专用开关箱。",
+        },
+    )
+
+    assert target is not None
+    assert submission is None
 
 
 def test_resolve_submission_attempt_supports_numbered_batch_submission() -> None:
@@ -538,6 +628,92 @@ def test_build_question_followup_context_from_presentation_keeps_all_items() -> 
     assert len(context["items"]) == 2
     assert context["question"].startswith("### Question 1")
     assert context["correct_answer"] == ""
+
+
+def test_canonical_presentation_keeps_choice_aliases_as_interactive_cards() -> None:
+    presentation = build_canonical_presentation(
+        content="### Question 1\n...\n### Question 2\n...",
+        result_summary={
+            "results": [
+                {
+                    "qa_pair": {
+                        "question_id": "q_1",
+                        "question_type": "single_choice",
+                        "question": "《建筑法》属于（ ）。",
+                        "options": {"A": "法律", "B": "行政法规"},
+                        "correct_answer": "A",
+                    }
+                },
+                {
+                    "qa_pair": {
+                        "question_id": "q_2",
+                        "question_type": "multi_choice",
+                        "question": "正确的说法有（ ）。",
+                        "options": {"A": "说法A", "B": "说法B", "C": "说法C"},
+                        "correct_answer": "AB",
+                    }
+                },
+            ]
+        },
+        reveal_answers=False,
+        reveal_explanations=False,
+    )
+
+    assert presentation is not None
+    mcq_block = presentation["blocks"][0]
+    assert len(mcq_block["questions"]) == 2
+    assert mcq_block["questions"][0]["question_type"] == "single_choice"
+    assert mcq_block["questions"][1]["question_type"] == "multi_choice"
+    assert mcq_block["questions"][0]["followup_context"]["correct_answer"] == ""
+    assert mcq_block["questions"][1]["followup_context"]["correct_answer"] == ""
+
+
+def test_merge_redacted_single_submission_with_authoritative_question_set() -> None:
+    from deeptutor.services.session.turn_runtime import (
+        _merge_public_submission_with_authoritative_context,
+    )
+
+    public_context = {
+        "question_id": "q_2",
+        "question": "《建设工程安全生产管理条例》属于（ ）。",
+        "question_type": "choice",
+        "options": {"A": "法律", "B": "行政法规", "C": "部门规章", "D": "地方性法规"},
+        "correct_answer": "",
+        "user_answer": "B",
+    }
+    authoritative_context = {
+        "question_id": "question_set",
+        "question": "相关五道题",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "《建筑法》属于（ ）。",
+                "question_type": "choice",
+                "options": {"A": "法律", "B": "行政法规"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "《建设工程安全生产管理条例》属于（ ）。",
+                "question_type": "choice",
+                "options": {"A": "法律", "B": "行政法规", "C": "部门规章", "D": "地方性法规"},
+                "correct_answer": "B",
+                "explanation": "条例由国务院制定，属于行政法规。",
+            },
+        ],
+    }
+
+    merged = _merge_public_submission_with_authoritative_context(
+        public_context,
+        authoritative_context,
+    )
+
+    assert merged is not None
+    assert merged["question_id"] == "q_2"
+    assert merged["correct_answer"] == "B"
+    assert merged["user_answer"] == "B"
+    assert "国务院" in merged["explanation"]
 
 
 def test_extract_choice_result_summary_from_text_supports_chinese_numbered_titles() -> None:

@@ -652,6 +652,103 @@ async def test_orchestrator_treats_continue_issue_as_new_practice_request() -> N
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_treats_explicit_choice_type_as_generation_with_active_question(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _misleading_interpret(*_args, **_kwargs):
+        return {
+            "intent": "answer_questions",
+            "confidence": 0.91,
+            "answers": [{"index": 1, "question_id": "q_prev", "user_answer": "A"}],
+            "reason": "模拟 LLM 把“选择题”误判成上一题答案。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.interpret_question_followup_action",
+        _misleading_interpret,
+    )
+
+    context = UnifiedContext(
+        session_id="s-choice-type-generation",
+        user_message="选择题",
+        config_overrides={},
+        metadata={
+            "question_followup_context": {
+                "question_id": "q_prev",
+                "question": "上一道题：楼梯平台净高下限是多少？",
+                "question_type": "choice",
+                "options": {"A": "2.0m", "B": "2.2m", "C": "2.4m", "D": "2.6m"},
+                "correct_answer": "B",
+            }
+        },
+        language="zh",
+    )
+
+    events = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["question_type"] == "choice"
+    assert context.metadata["question_followup_context"]["user_answer"] == ""
+    assert context.metadata["question_followup_context"]["is_correct"] is None
+    assert context.metadata["question_followup_action"]["intent"] == "generate_more_questions"
+    assert context.metadata["turn_semantic_decision"]["next_action"] == "route_to_generation"
+    result = next(event for event in events if event.type.value == "result")
+    assert result.metadata["question_type"] == "choice"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_clears_previous_answer_when_explicit_generation_reuses_active_question(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _misleading_interpret(*_args, **_kwargs):
+        return {
+            "intent": "answer_questions",
+            "confidence": 0.91,
+            "answers": [{"index": 1, "question_id": "q_prev", "user_answer": "A"}],
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.interpret_question_followup_action",
+        _misleading_interpret,
+    )
+
+    context = UnifiedContext(
+        session_id="s-choice-type-generation-after-answer",
+        user_message="选择题",
+        config_overrides={},
+        metadata={
+            "question_followup_context": {
+                "question_id": "q_prev",
+                "question": "上一道题：楼梯平台净高下限是多少？",
+                "question_type": "choice",
+                "options": {"A": "2.0m", "B": "2.2m", "C": "2.4m", "D": "2.6m"},
+                "correct_answer": "B",
+                "user_answer": "A",
+                "is_correct": False,
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert context.metadata["question_followup_action"]["intent"] == "generate_more_questions"
+    assert context.metadata["question_followup_context"]["user_answer"] == ""
+    assert context.metadata["question_followup_context"]["is_correct"] is None
+    assert context.metadata["active_object"]["state_snapshot"]["user_answer"] == ""
+    assert context.metadata["active_object"]["state_snapshot"]["is_correct"] is None
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_only_enables_lightweight_generation_for_explicit_question_only_request() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
@@ -734,3 +831,41 @@ async def test_orchestrator_preselected_deep_question_still_prepares_lightweight
     assert context.config_overrides["reveal_answers"] is False
     assert context.config_overrides["reveal_explanations"] is False
     assert context.config_overrides["lightweight_generation"] is True
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_preselected_deep_question_overrides_schema_defaults_from_user_message() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-preselected-five",
+        user_message="围绕安全生产管理条例给我5道建筑实务单选题。只出题，不要给答案，等我作答后再批改。",
+        config_overrides={
+            "mode": "custom",
+            "topic": "",
+            "num_questions": 1,
+            "question_type": "",
+            "reveal_answers": False,
+            "reveal_explanations": False,
+        },
+        metadata={
+            "raw_user_message": "围绕安全生产管理条例给我5道建筑实务单选题。只出题，不要给答案，等我作答后再批改。",
+            "interaction_hints": {
+                "preferred_question_type": "choice",
+                "suppress_answer_reveal_on_generate": True,
+            },
+        },
+        language="zh",
+        active_capability="deep_question",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["topic"] == context.user_message
+    assert context.config_overrides["num_questions"] == 5
+    assert context.config_overrides["question_type"] == "choice"
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["lightweight_generation"] is False

@@ -258,6 +258,17 @@ def looks_like_practice_generation_request(user_message: str | None) -> bool:
     if any(marker in text for marker in negative_markers):
         return False
 
+    question_type_only = {
+        "选择题",
+        "单选题",
+        "多选题",
+        "判断题",
+        "案例题",
+        "简答题",
+    }
+    if text in question_type_only:
+        return True
+
     positive_markers = (
         "出题",
         "出一道",
@@ -281,8 +292,9 @@ def looks_like_practice_generation_request(user_message: str | None) -> bool:
         return True
     request_patterns = (
         r"(给我|帮我|来|出)\s*(?:\d{0,2}|[一二两三四五六七八九十]?)\s*(?:道题|题|道)",
-        r"(给我|帮我)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道)?(?:单选题|多选题|案例题|选择题|判断题)",
-        r"(我想|想)\s*(?:来|做|练)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道题|题|道)",
+        r"(给我|帮我|来|出)\s*(?:出|来)?\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道)?(?:单选题|多选题|案例题|简答题|选择题|判断题)",
+        r"(我想|想)\s*(?:来|做|练|练习)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道题|题|道)",
+        r"(我想|想).{0,24}(?:练习|刷|做).{0,24}(?:题|题目|单选题|多选题|案例题|简答题|选择题|判断题)",
         r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
     )
     return any(re.search(pattern, text) for pattern in request_patterns)

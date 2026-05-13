@@ -48,7 +48,10 @@ from deeptutor.services.question_followup import (
     interpret_question_followup_action,
     looks_like_question_followup,
     normalize_question_followup_context,
+    reset_question_submission_state,
+    resolve_submission_attempt,
 )
+from deeptutor.services.semantic_router import has_explicit_practice_generation_intent
 from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
@@ -592,6 +595,23 @@ def _merge_public_submission_with_authoritative_context(
             merged["user_answer"] = merged_user_answer
         return normalize_question_followup_context(merged)
 
+    if candidate_items:
+        explicit_question_id = str(explicit.get("question_id") or "").strip()
+        target_index: int | None = None
+        if explicit_question_id:
+            for index, item in enumerate(candidate_items):
+                if str(item.get("question_id") or "").strip() == explicit_question_id:
+                    target_index = index
+                    break
+        elif len(candidate_items) == 1:
+            target_index = 0
+        if target_index is not None and 0 <= target_index < len(candidate_items):
+            merged = dict(candidate_items[target_index])
+            user_answer = str(explicit.get("user_answer") or "").strip()
+            if user_answer:
+                merged["user_answer"] = user_answer
+            return normalize_question_followup_context(merged)
+
     explicit_question_id = str(explicit.get("question_id") or "").strip()
     candidate_question_id = str(candidate.get("question_id") or "").strip()
     if explicit_question_id and candidate_question_id and explicit_question_id != candidate_question_id:
@@ -601,6 +621,28 @@ def _merge_public_submission_with_authoritative_context(
     if user_answer:
         merged["user_answer"] = user_answer
     return normalize_question_followup_context(merged)
+
+
+def _practice_generation_action_for_explicit_request(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if not looks_like_practice_generation_request(user_message):
+        return None
+    if not has_explicit_practice_generation_intent(user_message):
+        return None
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return None
+    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
+    if submission is not None:
+        return None
+    return {
+        "intent": "generate_more_questions",
+        "confidence": 0.86,
+        "answers": [],
+        "reason": "用户明确要求出题/选择题，应生成新题而不是批改当前题目。",
+    }
 
 
 async def _resolve_question_followup_context_and_action(
@@ -623,16 +665,36 @@ async def _resolve_question_followup_context_and_action(
                 normalized_explicit = merged
                 break
         if normalized_action is None:
-            normalized_action = await interpret_question_followup_action(
+            practice_action = _practice_generation_action_for_explicit_request(
                 user_message,
                 normalized_explicit,
             )
+            if practice_action is not None:
+                normalized_explicit = (
+                    reset_question_submission_state(normalized_explicit)
+                    or normalized_explicit
+                )
+                normalized_action = practice_action
+            else:
+                normalized_action = await interpret_question_followup_action(
+                    user_message,
+                    normalized_explicit,
+                )
         return normalized_explicit, normalized_action
 
     for candidate in candidate_contexts:
         normalized_candidate = normalize_question_followup_context(candidate)
         if normalized_candidate is None:
             continue
+        practice_action = _practice_generation_action_for_explicit_request(
+            user_message,
+            normalized_candidate,
+        )
+        if practice_action is not None:
+            return (
+                reset_question_submission_state(normalized_candidate) or normalized_candidate,
+                practice_action,
+            )
         deterministic_followup = looks_like_question_followup(user_message, normalized_candidate)
         candidate_action = await interpret_question_followup_action(
             user_message,
@@ -2511,7 +2573,7 @@ class TurnRuntimeManager:
         )
         stored_active_object = None
         candidate_followup_contexts: list[dict[str, Any] | None] = []
-        if not runtime_followup_question_context and session_id:
+        if session_id:
             stored_active_object = await self._safe_store_call(
                 None,
                 "get_active_object_for_start_turn",
@@ -3042,10 +3104,10 @@ class TurnRuntimeManager:
                             previous_active_object=plan_previous_active_object,
                             source_turn_id=turn_id,
                         )
-            if not followup_question_context:
-                stored_followup_question_context = extract_question_context_from_active_object(
-                    stored_active_object
-                )
+            stored_followup_question_context = extract_question_context_from_active_object(
+                stored_active_object
+            )
+            if session_id:
                 volatile_followup_question_context = self._volatile_question_contexts.get(session_id)
             session_active_object = None
             if (
