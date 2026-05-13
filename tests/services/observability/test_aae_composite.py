@@ -70,7 +70,7 @@ def test_build_aae_composite_run_uses_real_feedback_for_paid_satisfaction() -> N
     assert payload["coverage_summary"]["feedback_total"] == 4
 
 
-def test_build_aae_composite_run_does_not_proxy_paid_satisfaction_when_feedback_is_empty() -> None:
+def test_build_aae_composite_run_falls_back_to_proxy_when_feedback_is_empty() -> None:
     payload = build_aae_composite_run(
         arr_payload={
             "run_id": "arr-lite-1",
@@ -91,6 +91,39 @@ def test_build_aae_composite_run_does_not_proxy_paid_satisfaction_when_feedback_
         },
     )
 
-    assert "paid_student_satisfaction_score" not in payload["scorecard"]
-    assert payload["coverage_summary"]["paid_student_satisfaction_available"] is False
+    score = payload["scorecard"]["paid_student_satisfaction_score"]
+    assert score["value"] == 1.0
+    assert score["source"] == "proxy_composite"
+    assert score["is_proxy"] is True
+    assert payload["coverage_summary"]["paid_student_satisfaction_available"] is True
     assert "没有真实满意度反馈样本" in payload["review_note"]
+    assert "paid_student_satisfaction_score 当前仍是 proxy。" in payload["review_note"]
+
+
+def test_build_aae_composite_run_falls_back_to_proxy_when_feedback_storage_errors() -> None:
+    payload = build_aae_composite_run(
+        arr_payload={
+            "run_id": "arr-lite-1",
+            "release": {"release_id": "rel-1"},
+            "summary": {"pass_rate": 0.8, "total_cases": 5},
+            "suite_summaries": [],
+            "case_results": [],
+        },
+        feedback_payload={
+            "window_days": 7,
+            "storage_status": "error",
+            "summary": {
+                "total_feedback": 0,
+                "thumbs_up": 0,
+                "neutral": 0,
+                "thumbs_down": 0,
+            },
+        },
+    )
+
+    score = payload["scorecard"]["paid_student_satisfaction_score"]
+    assert score["value"] == 0.9
+    assert score["source"] == "proxy_composite"
+    assert score["is_proxy"] is True
+    assert payload["coverage_summary"]["feedback_storage_status"] == "error"
+    assert "真实满意度反馈存储不可用" in payload["review_note"]

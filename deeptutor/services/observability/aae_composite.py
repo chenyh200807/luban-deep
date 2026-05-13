@@ -122,6 +122,23 @@ def _satisfaction_score_from_feedback(
     return score, storage_status or "ok", note
 
 
+def _should_use_proxy_paid_satisfaction(
+    *,
+    feedback_payload: dict[str, Any] | None,
+    satisfaction_value: float | None,
+) -> bool:
+    if satisfaction_value is not None:
+        return False
+    if feedback_payload is None:
+        return True
+    summary = feedback_payload.get("summary") if isinstance(feedback_payload, dict) else None
+    if not isinstance(summary, dict):
+        return True
+    if int(summary.get("total_feedback") or 0) <= 0:
+        return True
+    return False
+
+
 def build_aae_composite_run(
     *,
     arr_payload: dict[str, Any],
@@ -218,7 +235,10 @@ def build_aae_composite_run(
         for item in scores.values()
         if isinstance(item, dict) and isinstance(item.get("value"), (int, float))
     ]
-    if numeric_inputs and feedback_payload is None:
+    if numeric_inputs and _should_use_proxy_paid_satisfaction(
+        feedback_payload=feedback_payload,
+        satisfaction_value=satisfaction_value,
+    ):
         scores["paid_student_satisfaction_score"] = _numeric_score(
             value=sum(numeric_inputs) / len(numeric_inputs),
             source="proxy_composite",
