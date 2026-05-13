@@ -9,7 +9,7 @@ var log = require("../../utils/logger");
 var workflowStatus = require("../../utils/workflow-status");
 var citationFormat = require("../../utils/citation-format");
 var chatTurnRecovery = require("../../utils/chat-turn-recovery");
-var markdownFixtures = require("../../utils/devtools-markdown-fixtures");
+var markdownFixtures = null;
 var surfaceTelemetry = require("../../utils/surface-telemetry");
 var runtime = require("../../utils/runtime");
 var historyTombstone = require("../../utils/history-tombstone");
@@ -30,6 +30,13 @@ var SCROLL_TOGGLE_COOLDOWN_MS = 300; // 滚动切换 tab bar 冷却
 var VIEWPORT_MARGIN_PX = 600; // IntersectionObserver 上下扩展边距
 var CHAT_TOOL_PREFS_KEY = "chat_tool_prefs";
 var DEFAULT_WEB_SEARCH_AVAILABLE = false;
+
+function getMarkdownFixtures() {
+  if (!markdownFixtures) {
+    markdownFixtures = require("../../utils/devtools-markdown-fixtures");
+  }
+  return markdownFixtures;
+}
 var NAVBAR_INNER_HEIGHT_RPX = 128;
 var _IS_DEVTOOLS =
   typeof __wxConfig !== "undefined" && __wxConfig.platform === "devtools";
@@ -318,6 +325,15 @@ Page({
       this._saveToolPrefs(false, DEFAULT_WEB_SEARCH_AVAILABLE && !!savedToolPrefs.enableWebSearch);
     }
     this._loadToolRuntimeCapabilities(savedToolPrefs);
+    var debugMarkdownSample =
+      _IS_DEVTOOLS && options && options.debugMarkdownSample
+        ? String(options.debugMarkdownSample)
+        : "";
+    this._debugMarkdownSampleActive = !!debugMarkdownSample;
+    if (debugMarkdownSample) {
+      this.debugLoadMarkdownRegressionSample(debugMarkdownSample);
+      return;
+    }
 
     // [FIX-SESSION-1] 仅在 5 分钟内恢复 session（处理页面刷新），
     // 超时则开启新对话，防止所有问题堆积在同一个历史记录中
@@ -373,6 +389,12 @@ Page({
       profileEnabled: flags.isFeatureEnabled("profile"),
     });
     this._setWorkspaceShellHidden(!this._shouldShowWorkspaceShell());
+    if (this._debugMarkdownSampleActive) {
+      if (this.data.hasMessages) {
+        this._setupObserver();
+      }
+      return;
+    }
     // 从其他页面点 logo 回来，清消息回到 Hero 主页
     if (runtime.consumeGoHomeFlag()) {
       this.clearMessages();
@@ -604,7 +626,7 @@ Page({
         var derived = aiMessageState.deriveAiMessageRenderState({
           content: m.content,
           presentation: msg.presentation,
-          parseBlocks: counter >= rawMsgs.length - 4,
+          parseBlocks: true,
         });
         msg.renderableContent = derived.renderableContent;
         msg.blocks = derived.blocks || [];
@@ -732,7 +754,7 @@ Page({
       log.warn("Chat", "debugListMarkdownRegressionSamples is devtools-only");
       return [];
     }
-    return markdownFixtures.listMarkdownRegressionSamples();
+    return getMarkdownFixtures().listMarkdownRegressionSamples();
   },
 
   debugLoadMarkdownRegressionSample: function (name) {
@@ -740,7 +762,7 @@ Page({
       log.warn("Chat", "debugLoadMarkdownRegressionSample is devtools-only");
       return false;
     }
-    var sample = markdownFixtures.getMarkdownRegressionSample(String(name || ""));
+    var sample = getMarkdownFixtures().getMarkdownRegressionSample(String(name || ""));
     if (!sample) {
       log.warn("Chat", "unknown markdown regression sample: " + name);
       return false;

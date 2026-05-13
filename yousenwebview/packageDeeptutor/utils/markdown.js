@@ -41,6 +41,7 @@ var CALLOUT_VARIANTS = {
     "考点提示",
     "知识点",
     "踩分点",
+    "拉分关键",
   ],
   tip: ["小技巧", "记忆口诀", "速记", "助记", "口诀"],
 };
@@ -54,16 +55,19 @@ _allCalloutKeywords.sort(function (a, b) {
   return b.length - a.length;
 });
 var CALLOUT_KEYWORD_SOURCE = _allCalloutKeywords.join("|");
+var CALLOUT_QUALIFIER_SOURCE = "((?:\\s*[-—–]\\s*[^：:\\n]{1,18})?)";
 var BOLD_CALLOUT_RE = new RegExp(
   "^\\*\\*\\s*(" +
     CALLOUT_KEYWORD_SOURCE +
-    ")\\s*[：:]?\\s*\\*\\*\\s*[：:]?\\s*(.*)",
+    ")" +
+    CALLOUT_QUALIFIER_SOURCE +
+    "\\s*[：:]?\\s*\\*\\*\\s*[：:]?\\s*(.*)",
 );
 var PLAIN_CALLOUT_RE = new RegExp(
-  "^\\s*(" + CALLOUT_KEYWORD_SOURCE + ")\\s*[：:]\\s*(.*)$",
+  "^\\s*(" + CALLOUT_KEYWORD_SOURCE + ")" + CALLOUT_QUALIFIER_SOURCE + "\\s*[：:]\\s*(.*)$",
 );
 var STANDALONE_CALLOUT_RE = new RegExp(
-  "^\\s*(" + CALLOUT_KEYWORD_SOURCE + ")\\s*$",
+  "^\\s*(" + CALLOUT_KEYWORD_SOURCE + ")" + CALLOUT_QUALIFIER_SOURCE + "\\s*$",
 );
 
 function _findCalloutVariant(keyword) {
@@ -404,13 +408,14 @@ function _detectCallouts(blocks) {
     }
 
     var keyword = m[1];
-    var bodyText = (m[2] || "").trim();
+    var qualifier = (m[2] || "").replace(/\s*([-—–])\s*/g, "$1").trim();
+    var bodyText = (m[3] || "").trim();
     var variant = _findCalloutVariant(keyword);
 
     result.push({
       type: "callout",
       variant: variant,
-      label: keyword,
+      label: keyword + qualifier,
       content: bodyText ? parseInline(bodyText) : [],
       raw: block.raw,
     });

@@ -109,6 +109,38 @@ assert(
 );
 assert(bulletCount >= 5, "construction fixture should split compact dash bullets into bullet blocks");
 
+var chineseMarkerBlocks = deriveBlocks("chinese_ordered_markers");
+var chineseOrderedIndexes = [];
+var chineseBulletTexts = [];
+var chineseCalloutLabels = [];
+for (var k = 0; k < chineseMarkerBlocks.length; k++) {
+  if (chineseMarkerBlocks[k].type === "ol") {
+    for (var l = 0; l < chineseMarkerBlocks[k].items.length; l++) {
+      chineseOrderedIndexes.push(chineseMarkerBlocks[k].items[l].index);
+    }
+  }
+  if (chineseMarkerBlocks[k].type === "ul") {
+    for (var m = 0; m < chineseMarkerBlocks[k].items.length; m++) {
+      chineseBulletTexts.push(chineseMarkerBlocks[k].items[m].raw);
+    }
+  }
+  if (chineseMarkerBlocks[k].type === "callout") {
+    chineseCalloutLabels.push(chineseMarkerBlocks[k].label);
+  }
+}
+assert(
+  JSON.stringify(chineseOrderedIndexes) === JSON.stringify([1, 2, 3]),
+  "Chinese marker fixture should normalize 1）/2、/（3） into ordered items",
+);
+assert(
+  chineseBulletTexts.length === 3,
+  "Chinese marker fixture should split punctuation-separated inline bullets",
+);
+assert(
+  chineseCalloutLabels.indexOf("踩分点-案例题") >= 0,
+  "Chinese marker fixture should keep qualified callout labels styled as callouts",
+);
+
 if (fail) {
   console.error(errors.join("\n"));
   process.exit(1);

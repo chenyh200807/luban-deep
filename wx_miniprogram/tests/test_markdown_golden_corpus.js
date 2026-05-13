@@ -14,6 +14,10 @@ var REQUIRED_COVERAGE = [
   "compactHeading",
   "compactDashBullet",
   "examCalloutLabels",
+  "adjacentOrderedSections",
+  "altOrderedMarkers",
+  "qualifiedCalloutLabels",
+  "punctuatedInlineBullets",
   "nonSequentialIndexes",
   "mixedOrderedBullet",
 ];

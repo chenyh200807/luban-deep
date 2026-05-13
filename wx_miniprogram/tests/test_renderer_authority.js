@@ -70,6 +70,10 @@ function rel(fullPath) {
       source.indexOf('require("../../utils/markdown-normalize")') < 0,
     file + " should not bypass ai-message-state with direct markdown parsing",
   );
+  assert(
+    source.indexOf("rawMsgs.length - 4") < 0,
+    file + " should not hydrate history with a partial parse window",
+  );
 });
 
 [

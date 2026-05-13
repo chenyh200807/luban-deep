@@ -9,9 +9,13 @@ var LABELLED_BULLET_ONLY_RE = /^\s*([-*+])\s+\*\*([^*\n]+?)\*\*([：:])\s*$/;
 var LABELLED_PARAGRAPH_ONLY_RE = /^\s*\*\*([^*\n]+?)\*\*([：:])\s*$/;
 var INDENTED_LIST_RE = /^\s{2,}((?:[-*+])|\d+\.)\s+/;
 var ADJACENT_HEADING_RE = /([^\n\sA-Za-z0-9#])((?:#{1,6})(?!#)(?=[\u4e00-\u9fff\d]))/g;
+var ADJACENT_ORDERED_RE = /([^\n\sA-Za-z0-9#])(\d+)\.(?!\d)(?=\s*(?:\*\*)?[\u4e00-\u9fffA-Za-z])/g;
+var ADJACENT_ALT_ORDERED_RE = /([^\n\sA-Za-z0-9#])(?:（\s*(\d{1,2})\s*）|(\d{1,2})[)、）)])(?=\s*(?:\*\*)?[\u4e00-\u9fffA-Za-z])/g;
+var ADJACENT_PUNCT_BULLET_RE = /([：:；;。])\s*([-*+])(?![-*+])(?=\s*(?:\*\*)?[\u4e00-\u9fffA-Za-z])/g;
 var COMPACT_HEADING_RE = /^(\s*)(#{1,6})(?!#)(?=\S)/;
 var COMPACT_HEADING_ORDERED_RE = /^(\s*#{1,6}\s+)(\d+)\.(?!\d)(?=\S)/;
 var COMPACT_ORDERED_LIST_RE = /^(\s*)(\d+)\.(?!\d)(?=\S)/;
+var COMPACT_ALT_ORDERED_LIST_RE = /^(\s*)(?:（\s*(\d{1,2})\s*）|(\d{1,2})[)、）)])(?=\s*(?:\*\*)?\S)/;
 var COMPACT_DASH_BULLET_RE = /^(\s*)-(?!-)(?=\S)/;
 
 function normalizeMarkdownForWechat(text) {
@@ -52,6 +56,9 @@ function normalizeMarkdownForWechat(text) {
     line = line.replace(INDENTED_LIST_RE, "$1 ");
     line = line.replace(COMPACT_HEADING_RE, "$1$2 ");
     line = line.replace(COMPACT_HEADING_ORDERED_RE, "$1$2. ");
+    line = line.replace(COMPACT_ALT_ORDERED_LIST_RE, function (_match, indent, fullWidthIndex, simpleIndex) {
+      return indent + (fullWidthIndex || simpleIndex) + ". ";
+    });
     line = line.replace(COMPACT_ORDERED_LIST_RE, "$1$2. ");
     line = line.replace(COMPACT_DASH_BULLET_RE, "$1- ");
     line = line.replace(/\s*→\s*/g, " → ");
@@ -77,12 +84,28 @@ function expandNonFenceLines(lines) {
       out.push(line);
       continue;
     }
-    var expanded = line.replace(ADJACENT_HEADING_RE, "$1\n$2").split("\n");
+    var expanded = line
+      .replace(ADJACENT_HEADING_RE, "$1\n$2")
+      .replace(ADJACENT_ORDERED_RE, function (_match, prefix, index, offset, source) {
+        if (!shouldSplitAdjacentListMarker(source, offset, prefix)) return _match;
+        return prefix + "\n" + index + ".";
+      })
+      .replace(ADJACENT_ALT_ORDERED_RE, function (_match, prefix, fullWidthIndex, simpleIndex, offset, source) {
+        if (!shouldSplitAdjacentListMarker(source, offset, prefix)) return _match;
+        return prefix + "\n" + (fullWidthIndex || simpleIndex) + ".";
+      })
+      .replace(ADJACENT_PUNCT_BULLET_RE, "$1\n$2")
+      .split("\n");
     for (var j = 0; j < expanded.length; j++) {
       out.push(expanded[j]);
     }
   }
   return out;
+}
+
+function shouldSplitAdjacentListMarker(source, offset, prefix) {
+  var text = String(source || "").slice(0, (Number(offset) || 0) + String(prefix || "").length);
+  return /(?:[：:；;。，,]|拉分关键|拿分要点|关键要点|核心考点|必考章节|易错点|踩分点|如下)\s*$/.test(text);
 }
 
 function normalizeLabelledItem(line) {

@@ -11,7 +11,7 @@ var workflowStatus = require("../../utils/workflow-status");
 var citationFormat = require("../../utils/citation-format");
 var chatTurnRecovery = require("../../utils/chat-turn-recovery");
 var historyTombstone = require("../../utils/history-tombstone");
-var markdownFixtures = require("../../utils/devtools-markdown-fixtures");
+var markdownFixtures = null;
 
 // ── 常量（部分由性能分级动态覆盖）──────────────
 var _animCfg = helpers.getAnimConfig();
@@ -26,6 +26,13 @@ var SCROLL_TOGGLE_COOLDOWN_MS = 300; // 滚动切换 tab bar 冷却
 var VIEWPORT_MARGIN_PX = 600; // IntersectionObserver 上下扩展边距
 var CHAT_TOOL_PREFS_KEY = "chat_tool_prefs";
 var DEFAULT_WEB_SEARCH_AVAILABLE = false;
+
+function getMarkdownFixtures() {
+  if (!markdownFixtures) {
+    markdownFixtures = require("../../utils/devtools-markdown-fixtures");
+  }
+  return markdownFixtures;
+}
 var NAVBAR_INNER_HEIGHT_RPX = 88;
 var _IS_DEVTOOLS =
   typeof __wxConfig !== "undefined" && __wxConfig.platform === "devtools";
@@ -254,7 +261,7 @@ Page({
 
   // ── 生命周期 ──────────────────────────────────
 
-  onLoad: function () {
+  onLoad: function (options) {
     var info = helpers.getWindowInfo();
     var savedToolPrefs = wx.getStorageSync(CHAT_TOOL_PREFS_KEY) || {};
     var app = getApp();
@@ -292,6 +299,15 @@ Page({
       enableWebSearch: DEFAULT_WEB_SEARCH_AVAILABLE && !!savedToolPrefs.enableWebSearch,
     });
     this._loadToolRuntimeCapabilities(savedToolPrefs);
+    var debugMarkdownSample =
+      _IS_DEVTOOLS && options && options.debugMarkdownSample
+        ? String(options.debugMarkdownSample)
+        : "";
+    this._debugMarkdownSampleActive = !!debugMarkdownSample;
+    if (debugMarkdownSample) {
+      this.debugLoadMarkdownRegressionSample(debugMarkdownSample);
+      return;
+    }
 
     // [FIX-SESSION-1] 仅在 5 分钟内恢复 session（处理页面刷新），
     // 超时则开启新对话，防止所有问题堆积在同一个历史记录中
@@ -367,6 +383,10 @@ Page({
     helpers.syncTabBar(this, 0, {
       hidden: this.data.hasMessages || !!pendingConversationId,
     });
+    if (this._debugMarkdownSampleActive) {
+      self.setData({ timeGreeting: helpers.getTimeGreeting() });
+      return;
+    }
     // 从其他页面点 logo 回来，清消息回到 Hero 主页
     if (app.globalData.goHomeFlag) {
       app.globalData.goHomeFlag = false;
@@ -632,7 +652,7 @@ Page({
         var derived = aiMessageState.deriveAiMessageRenderState({
           content: m.content,
           presentation: msg.presentation,
-          parseBlocks: counter >= rawMsgs.length - 4,
+          parseBlocks: true,
         });
         msg.renderableContent = derived.renderableContent;
         msg.blocks = derived.blocks || [];
@@ -756,7 +776,7 @@ Page({
       log.warn("Chat", "debugListMarkdownRegressionSamples is devtools-only");
       return [];
     }
-    return markdownFixtures.listMarkdownRegressionSamples();
+    return getMarkdownFixtures().listMarkdownRegressionSamples();
   },
 
   debugLoadMarkdownRegressionSample: function (name) {
@@ -764,7 +784,7 @@ Page({
       log.warn("Chat", "debugLoadMarkdownRegressionSample is devtools-only");
       return false;
     }
-    var sample = markdownFixtures.getMarkdownRegressionSample(String(name || ""));
+    var sample = getMarkdownFixtures().getMarkdownRegressionSample(String(name || ""));
     if (!sample) {
       log.warn("Chat", "unknown markdown regression sample: " + name);
       return false;
