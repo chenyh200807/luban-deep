@@ -8,6 +8,9 @@ var LABELLED_ORDERED_ONLY_RE = /^\s*(\d+)\.\s+\*\*([^*\n]+?)\*\*([：:])\s*$/;
 var LABELLED_BULLET_ONLY_RE = /^\s*([-*+])\s+\*\*([^*\n]+?)\*\*([：:])\s*$/;
 var LABELLED_PARAGRAPH_ONLY_RE = /^\s*\*\*([^*\n]+?)\*\*([：:])\s*$/;
 var INDENTED_LIST_RE = /^\s{2,}((?:[-*+])|\d+\.)\s+/;
+var ADJACENT_HEADING_RE = /([^\n\sA-Za-z0-9#])((?:#{1,6})(?!#)(?=[\u4e00-\u9fff\d]))/g;
+var COMPACT_HEADING_RE = /^(\s*)(#{1,6})(?!#)(?=\S)/;
+var COMPACT_HEADING_ORDERED_RE = /^(\s*#{1,6}\s+)(\d+)\.(?!\d)(?=\S)/;
 var COMPACT_ORDERED_LIST_RE = /^(\s*)(\d+)\.(?!\d)(?=\S)/;
 var COMPACT_DASH_BULLET_RE = /^(\s*)-(?!-)(?=\S)/;
 
@@ -15,7 +18,7 @@ function normalizeMarkdownForWechat(text) {
   var normalized = String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   if (!normalized.trim()) return "";
 
-  var lines = normalized.split("\n");
+  var lines = expandNonFenceLines(normalized.split("\n"));
   var out = [];
   var inFence = false;
   var previousBlank = false;
@@ -47,6 +50,8 @@ function normalizeMarkdownForWechat(text) {
 
     previousBlank = false;
     line = line.replace(INDENTED_LIST_RE, "$1 ");
+    line = line.replace(COMPACT_HEADING_RE, "$1$2 ");
+    line = line.replace(COMPACT_HEADING_ORDERED_RE, "$1$2. ");
     line = line.replace(COMPACT_ORDERED_LIST_RE, "$1$2. ");
     line = line.replace(COMPACT_DASH_BULLET_RE, "$1- ");
     line = line.replace(/\s*→\s*/g, " → ");
@@ -55,6 +60,29 @@ function normalizeMarkdownForWechat(text) {
   }
 
   return out.join("\n").trim();
+}
+
+function expandNonFenceLines(lines) {
+  var out = [];
+  var inFence = false;
+  for (var i = 0; i < lines.length; i++) {
+    var line = String(lines[i] || "");
+    var stripped = line.replace(/^\s+/, "");
+    if (/^```/.test(stripped)) {
+      out.push(line);
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) {
+      out.push(line);
+      continue;
+    }
+    var expanded = line.replace(ADJACENT_HEADING_RE, "$1\n$2").split("\n");
+    for (var j = 0; j < expanded.length; j++) {
+      out.push(expanded[j]);
+    }
+  }
+  return out;
 }
 
 function normalizeLabelledItem(line) {

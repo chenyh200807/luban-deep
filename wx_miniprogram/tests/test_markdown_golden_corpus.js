@@ -11,6 +11,7 @@ var cases = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
 var REQUIRED_COVERAGE = [
   "blankSeparatedOrdered",
   "compactOrdered",
+  "compactHeading",
   "compactDashBullet",
   "nonSequentialIndexes",
   "mixedOrderedBullet",

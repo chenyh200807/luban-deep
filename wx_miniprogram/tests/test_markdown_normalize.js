@@ -69,6 +69,24 @@ assert(
   "compact dash bullets should gain a stable marker space",
 );
 
+var compactHeadingNormalized = normalize(
+  "---#一建建筑实务高频考点梳理##一、技术篇###1.结构设计与荷载\n-极限状态设计\n###3.地基与基础工程\n-基坑支护",
+);
+
+assert(
+  compactHeadingNormalized.indexOf("---\n# 一建建筑实务高频考点梳理\n## 一、技术篇\n### 1. 结构设计与荷载") >= 0,
+  "adjacent compact headings should split into stable heading blocks",
+);
+assert(
+  compactHeadingNormalized.indexOf("### 3. 地基与基础工程") >= 0,
+  "compact numbered headings should keep their visible section number",
+);
+assert(
+  compactHeadingNormalized.indexOf("- 极限状态设计") >= 0 &&
+    compactHeadingNormalized.indexOf("- 基坑支护") >= 0,
+  "compact bullets after compact headings should remain bullet blocks",
+);
+
 if (fail) {
   console.error(errors.join("\n"));
   process.exit(1);

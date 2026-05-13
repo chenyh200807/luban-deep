@@ -38,5 +38,20 @@
       "质量事故分级、处理程序。"
     ],
     "mustContain": ["1. 进度管理", "- 双代号网络计划", "2. 质量管理"]
+  },
+  {
+    "name": "compact_heading_markers_from_live_chat",
+    "description": "Live model output can omit spaces after heading markers and join a horizontal rule to the first heading.",
+    "covers": ["compactHeading", "compactDashBullet"],
+    "content": "---#一建建筑实务高频考点梳理##一、技术篇###1.结构设计与荷载\n-极限状态设计\n###3.地基与基础工程\n-基坑支护",
+    "expectedOrderedIndexes": [],
+    "expectedBulletTexts": ["极限状态设计", "基坑支护"],
+    "mustContain": [
+      "一建建筑实务高频考点梳理",
+      "一、技术篇",
+      "1. 结构设计与荷载",
+      "3. 地基与基础工程",
+      "- 极限状态设计"
+    ]
   }
 ]
