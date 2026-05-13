@@ -523,6 +523,9 @@ function streamChat(opts, callbacks) {
   ) {
     startTurnPayload.followup_question_context = opts.followupQuestionContext;
   }
+  if (opts && opts.persistUserMessage === false) {
+    startTurnPayload.persist_user_message = false;
+  }
 
   api
     .startChatTurn(startTurnPayload)

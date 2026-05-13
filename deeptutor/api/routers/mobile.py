@@ -1063,6 +1063,8 @@ def _build_mobile_turn_payload(
     }
     if body.followup_question_context:
         config["followup_question_context"] = dict(body.followup_question_context)
+    if body.persist_user_message is False:
+        config["_persist_user_message"] = False
     client_turn_id = str(body.client_turn_id or "").strip()
     if client_turn_id:
         config["client_turn_id"] = client_turn_id
@@ -1191,6 +1193,7 @@ class MobileStartTurnRequest(BaseModel):
     knowledge_bases: list[str] = Field(default_factory=list)
     attachments: list[dict[str, Any]] = Field(default_factory=list)
     followup_question_context: dict[str, Any] | None = None
+    persist_user_message: bool = True
 
 
 class ChatFeedbackRequest(BaseModel):

@@ -1887,6 +1887,8 @@ Page({
 
   _doSend: function (query, extraOpts) {
     var self = this;
+    var sendOptions = extraOpts && typeof extraOpts === "object" ? extraOpts : {};
+    var reuseUserMessage = !!sendOptions.reuseUserMessage;
     var autoWebSearch =
       self._isWebSearchAvailable() && !self.data.enableWebSearch && self._shouldAutoEnableWebSearch(query);
     var selectedTools = self._getSelectedTools(query);
@@ -1947,10 +1949,11 @@ Page({
 
     var existing = self.data.messages;
     var inferTitleOnStart = existing.length === 0;
-    if (existing.length > MAX_MESSAGES - 2) {
-      existing = existing.slice(existing.length - (MAX_MESSAGES - 2));
+    var messageReserve = reuseUserMessage ? 1 : 2;
+    if (existing.length > MAX_MESSAGES - messageReserve) {
+      existing = existing.slice(existing.length - (MAX_MESSAGES - messageReserve));
     }
-    var msgs = existing.concat([userMsg, aiMsg]);
+    var msgs = reuseUserMessage ? existing.concat([aiMsg]) : existing.concat([userMsg, aiMsg]);
     // 同一轮消息在网络重连时复用同一个客户端侧标识。
     var _turnId =
       self._sid +
@@ -2010,6 +2013,7 @@ Page({
         clientTurnId: _turnId,
         structuredSubmitContext: extraOpts && extraOpts.structuredSubmitContext,
         followupQuestionContext: extraOpts && extraOpts.followupQuestionContext,
+        persistUserMessage: sendOptions.persistUserMessage,
         inferTitleOnStart: inferTitleOnStart,
       },
       {
@@ -2851,7 +2855,10 @@ Page({
     var newMsgs = msgs.slice(0, aiIdx);
     this._syncMessageIndexMap(newMsgs);
     this.setData({ messages: newMsgs });
-    this._send(userMsg.content);
+    this._send(userMsg.content, {
+      reuseUserMessage: true,
+      persistUserMessage: false,
+    });
   },
 
   onThumbUp: function (e) {

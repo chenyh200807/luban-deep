@@ -170,6 +170,69 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
     assert config["interaction_hints"]["profile"] == "tutorbot"
 
 
+def test_mobile_chat_start_turn_can_regenerate_without_repersisting_user_message(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": "session_retry_1",
+                    "title": "监理考试时间",
+                    "created_at": 1_700_000_020.0,
+                },
+                {
+                    "id": "turn_retry_2",
+                    "status": "running",
+                    "capability": "chat",
+                },
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "session_store",
+        SimpleNamespace(
+            get_session_owner_key=AsyncMock(return_value="user:student_demo")
+        ),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "2026年监理工程师考试时间是什么时候",
+                "conversation_id": "session_retry_1",
+                "mode": "AUTO",
+                "persist_user_message": False,
+            },
+        )
+
+    assert response.status_code == 200
+    config = captured["payload"]["config"]
+    assert captured["payload"]["content"] == "2026年监理工程师考试时间是什么时候"
+    assert config["_persist_user_message"] is False
+    assert config["billing_context"] == {
+        "source": "wx_miniprogram",
+        "user_id": "student_demo",
+        "wallet_user_id": "wallet_demo",
+        "learning_user_id": "student_demo",
+    }
+
+
 def test_mobile_chat_start_turn_writes_requested_response_mode_and_legacy_alias(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

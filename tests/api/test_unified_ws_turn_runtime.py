@@ -5048,9 +5048,11 @@ def test_bind_authenticated_user_promotes_legacy_response_mode_hints() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("persist_user_message", [True, False])
 async def test_turn_runtime_captures_points_for_mini_program_turns(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
+    persist_user_message: bool,
 ) -> None:
     store = SQLiteSessionStore(tmp_path / "chat_history.db")
     runtime = TurnRuntimeManager(store)
@@ -5129,6 +5131,17 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
         lambda: FakeWalletService(),
     )
 
+    runtime_config = {
+        "billing_context": {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "learner_demo",
+        }
+    }
+    if not persist_user_message:
+        runtime_config["_persist_user_message"] = False
+
     session, turn = await runtime.start_turn(
         {
             "type": "start_turn",
@@ -5139,14 +5152,7 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
             "knowledge_bases": [],
             "attachments": [],
             "language": "zh",
-            "config": {
-                "billing_context": {
-                    "source": "wx_miniprogram",
-                    "user_id": "student_demo",
-                    "wallet_user_id": "wallet_demo",
-                    "learning_user_id": "learner_demo",
-                }
-            },
+            "config": runtime_config,
         }
     )
 
@@ -5171,6 +5177,9 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
         "learning_query": "考我一道题",
         "learning_content": "这是一次会扣分的回复。",
     }
+    stored_messages = await store.get_messages_for_context(session["id"])
+    stored_roles = [message["role"] for message in stored_messages]
+    assert stored_roles == (["user", "assistant"] if persist_user_message else ["assistant"])
 
 
 @pytest.mark.asyncio
