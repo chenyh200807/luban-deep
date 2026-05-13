@@ -14,8 +14,50 @@ function _clipText(value, limit) {
   return text.length > limit ? text.slice(0, limit) + "..." : text;
 }
 
+function _looksLikeInternalHistoryText(value) {
+  var text = String(value || "").trim();
+  if (!text) return false;
+  return (
+    text.indexOf("[Question Follow-up Context]") >= 0 ||
+    text.indexOf("不得覆盖当前用户问题") >= 0 ||
+    /^##\s*(参考证据|Supporting Evidence)/.test(text) ||
+    /^\[(Attached Documents|Notebook Context|History Context)\]/.test(text)
+  );
+}
+
+function _extractVisibleHistoryQuestion(value) {
+  var text = String(value || "");
+  var markers = ["## 当前用户问题", "## Current User Question", "[User Question]"];
+  for (var i = 0; i < markers.length; i++) {
+    var marker = markers[i];
+    var idx = text.indexOf(marker);
+    if (idx < 0) continue;
+    var rest = text.slice(idx + marker.length).replace(/^\n/, "");
+    var stops = [
+      "\n## 参考证据",
+      "\n## Supporting Evidence",
+      "\n[Question Follow-up Context]",
+      "\n[Attached Documents]",
+      "\n[Notebook Context]",
+      "\n[History Context]",
+    ];
+    var cut = rest.length;
+    stops.forEach(function (stop) {
+      var stopIdx = rest.indexOf(stop);
+      if (stopIdx >= 0) cut = Math.min(cut, stopIdx);
+    });
+    var candidate = rest.slice(0, cut).trim();
+    if (candidate && !_looksLikeInternalHistoryText(candidate)) return candidate;
+  }
+  return "";
+}
+
 function _normalizePreview(raw) {
-  return String(raw || "")
+  var text = String(raw || "");
+  if (_looksLikeInternalHistoryText(text)) {
+    text = _extractVisibleHistoryQuestion(text);
+  }
+  return text
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/`([^`]+)`/g, "$1")
     .replace(/^#{1,6}\s*/gm, "")
@@ -32,6 +74,9 @@ function _normalizePreview(raw) {
 function _deriveConversationTitle(rawTitle, preview) {
   var title = String(rawTitle || "").trim();
   var snippet = _normalizePreview(preview);
+  if (_looksLikeInternalHistoryText(title)) {
+    title = _extractVisibleHistoryQuestion(title);
+  }
   if (title && title !== "New conversation" && title !== "新对话") {
     return title;
   }

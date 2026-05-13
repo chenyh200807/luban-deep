@@ -3,8 +3,9 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Iterable
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -557,6 +558,11 @@ def _merge_mobile_conversation_rows(rows: list[dict[str, Any]]) -> list[dict[str
 
 def _serialize_mobile_conversation(row: dict[str, Any]) -> dict[str, Any]:
     payload = dict(row)
+    if _looks_like_internal_mobile_user_content(str(payload.get("title") or "")):
+        payload["title"] = _extract_mobile_user_question_section(str(payload.get("title") or "")) or "新对话"
+    for key in ("last_message", "preview"):
+        if _looks_like_internal_mobile_user_content(str(payload.get(key) or "")):
+            payload[key] = _extract_mobile_user_question_section(str(payload.get(key) or ""))
     created_at = payload.get("created_at")
     updated_at = payload.get("updated_at")
     payload["created_at"] = _ts_to_iso(created_at)
@@ -631,9 +637,235 @@ async def _load_mobile_conversation_variants(
     return matches
 
 
+_INTERNAL_MOBILE_USER_MARKERS = (
+    "## 参考证据",
+    "## Supporting Evidence",
+    "以下内容是辅助证据",
+    "[Question Follow-up Context]",
+    "[Attached Documents]",
+    "[Notebook Context]",
+    "[History Context]",
+)
+
+_MOBILE_USER_QUESTION_SECTION_MARKERS = (
+    "## 当前用户问题",
+    "## Current User Question",
+    "[User Question]",
+)
+
+
+def _looks_like_internal_mobile_user_content(content: str) -> bool:
+    text = str(content or "").strip()
+    if not text:
+        return False
+    if "[Question Follow-up Context]" in text:
+        return True
+    if "不得覆盖当前用户问题" in text:
+        return True
+    if any(text.startswith(marker) for marker in _INTERNAL_MOBILE_USER_MARKERS):
+        return True
+    return any(marker in text for marker in _MOBILE_USER_QUESTION_SECTION_MARKERS) and any(
+        marker in text for marker in _INTERNAL_MOBILE_USER_MARKERS
+    )
+
+
+def _iter_mobile_message_metadata(message: dict[str, Any]) -> Iterable[dict[str, Any]]:
+    metadata = message.get("metadata")
+    if isinstance(metadata, dict):
+        yield metadata
+        request_snapshot = metadata.get("request_snapshot")
+        if isinstance(request_snapshot, dict):
+            yield request_snapshot
+        nested_metadata = metadata.get("metadata")
+        if isinstance(nested_metadata, dict):
+            yield nested_metadata
+    events = message.get("events") if isinstance(message.get("events"), list) else []
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        event_metadata = event.get("metadata")
+        if isinstance(event_metadata, dict):
+            yield event_metadata
+            nested_event_metadata = event_metadata.get("metadata")
+            if isinstance(nested_event_metadata, dict):
+                yield nested_event_metadata
+
+
+def _trim_mobile_internal_user_section_tail(content: str) -> str:
+    text = str(content or "").strip()
+    if not text:
+        return ""
+    stop_markers = (
+        "\n## 参考证据",
+        "\n## Supporting Evidence",
+        "\n[Question Follow-up Context]",
+        "\n[Attached Documents]",
+        "\n[Notebook Context]",
+        "\n[History Context]",
+    )
+    cut_at = len(text)
+    for marker in stop_markers:
+        index = text.find(marker)
+        if index >= 0:
+            cut_at = min(cut_at, index)
+    return text[:cut_at].strip()
+
+
+def _extract_mobile_user_question_section(content: str) -> str:
+    text = str(content or "")
+    for marker in _MOBILE_USER_QUESTION_SECTION_MARKERS:
+        index = text.find(marker)
+        if index < 0:
+            continue
+        remainder = text[index + len(marker) :]
+        if remainder.startswith("\n"):
+            remainder = remainder[1:]
+        candidate = _trim_mobile_internal_user_section_tail(remainder)
+        if candidate and not _looks_like_internal_mobile_user_content(candidate):
+            return candidate
+    return ""
+
+
+def _resolve_mobile_user_visible_content(message: dict[str, Any]) -> str:
+    content = str(message.get("content") or "").strip()
+    if not _looks_like_internal_mobile_user_content(content):
+        return content
+
+    candidate_keys = (
+        "user_visible_content",
+        "user_visible_query",
+        "surface_content",
+        "surface_query",
+        "original_query",
+        "original_content",
+        "query",
+        "content",
+    )
+    for metadata in _iter_mobile_message_metadata(message):
+        for key in candidate_keys:
+            candidate = str(metadata.get(key) or "").strip()
+            if candidate and not _looks_like_internal_mobile_user_content(candidate):
+                return candidate
+
+    return _extract_mobile_user_question_section(content)
+
+
+def _normalize_mobile_history_message_row(message: dict[str, Any]) -> dict[str, Any] | None:
+    if not isinstance(message, dict):
+        return None
+    if str(message.get("role") or "") != "user":
+        return message
+    visible_content = _resolve_mobile_user_visible_content(message)
+    if not visible_content:
+        return None
+    if visible_content == str(message.get("content") or ""):
+        return message
+    normalized = dict(message)
+    normalized["content"] = visible_content
+    normalized["_history_content_normalized"] = True
+    return normalized
+
+
+def _mobile_history_rows_have_mirror_provenance(
+    candidate: dict[str, Any],
+    current: dict[str, Any],
+) -> bool:
+    candidate_session_id = str(
+        candidate.get("_history_session_id") or candidate.get("session_id") or ""
+    ).strip()
+    current_session_id = str(
+        current.get("_history_session_id") or current.get("session_id") or ""
+    ).strip()
+    if not candidate_session_id or not current_session_id:
+        return False
+    if candidate_session_id == current_session_id:
+        return False
+    return candidate_session_id.startswith("tutorbot:") or current_session_id.startswith("tutorbot:")
+
+
+def _normalize_mobile_question_projection_text(content: str) -> str:
+    text = re.sub(r"\s+", "", str(content or ""))
+    if not text:
+        return ""
+    text = re.sub(r"^\*\*第[0-9一二两三四五六七八九十]+题\*\*", "", text)
+    text = re.sub(r"^第[0-9一二两三四五六七八九十]+题", "", text)
+    return text
+
+
+def _mobile_option_lines(content: str) -> set[str]:
+    options: set[str] = set()
+    for line in str(content or "").splitlines():
+        match = re.match(r"\s*([A-E])\s*[.、:：]\s*(.+?)\s*$", line, re.IGNORECASE)
+        if not match:
+            continue
+        option_text = re.sub(r"\s+", "", match.group(2))
+        if option_text:
+            options.add(f"{match.group(1).upper()}:{option_text}")
+    return options
+
+
+def _strip_mobile_answer_sections(content: str) -> str:
+    raw = str(content or "").strip()
+    if not raw:
+        return ""
+    marker_re = re.compile(
+        r"^\s*(?:\*\*)?(?:answer|explanation|标准答案|参考答案|正确答案|答案|解析)(?:\*\*)?\s*[:：]",
+        re.IGNORECASE,
+    )
+    kept: list[str] = []
+    for line in raw.splitlines():
+        if marker_re.match(line):
+            break
+        kept.append(line)
+    return "\n".join(kept).rstrip()
+
+
+def _select_richer_mobile_assistant_projection(
+    candidate: dict[str, Any],
+    current: dict[str, Any],
+) -> dict[str, Any] | None:
+    if str(candidate.get("role") or "") != "assistant" or str(current.get("role") or "") != "assistant":
+        return None
+    if not _mobile_history_rows_have_mirror_provenance(candidate, current):
+        return None
+    candidate_content = _strip_mobile_answer_sections(candidate.get("content") or "")
+    current_content = _strip_mobile_answer_sections(current.get("content") or "")
+    if len(candidate_content) <= len(current_content):
+        return None
+    if len(candidate_content) < len(current_content) + 40:
+        return None
+
+    candidate_normalized = _normalize_mobile_question_projection_text(candidate_content)
+    current_normalized = _normalize_mobile_question_projection_text(current_content)
+    if not current_normalized or current_normalized not in candidate_normalized:
+        return None
+
+    candidate_options = _mobile_option_lines(candidate_content)
+    current_options = _mobile_option_lines(current_content)
+    if current_options and not current_options.issubset(candidate_options):
+        return None
+
+    selected = dict(candidate)
+    selected["content"] = candidate_content
+    return selected
+
+
+def _is_richer_mobile_assistant_projection(
+    candidate: dict[str, Any],
+    current: dict[str, Any],
+) -> bool:
+    return _select_richer_mobile_assistant_projection(candidate, current) is not None
+
+
 def _merge_mobile_message_rows(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ordered = sorted(
-        [item for item in messages if isinstance(item, dict)],
+        [
+            normalized
+            for item in messages
+            if isinstance(item, dict)
+            for normalized in [_normalize_mobile_history_message_row(item)]
+            if normalized is not None
+        ],
         key=lambda item: (
             float(item.get("created_at") or 0.0),
             int(item.get("id") or 0),
@@ -659,8 +891,23 @@ def _merge_mobile_message_rows(messages: list[dict[str, Any]]) -> list[dict[str,
                 else "",
             )
             previous_created_at = float(previous.get("created_at") or 0.0)
-            if signature == previous_signature and abs(created_at - previous_created_at) <= 2.0:
+            normalized_user_pair = bool(
+                item.get("_history_content_normalized")
+                or previous.get("_history_content_normalized")
+            )
+            if signature == previous_signature and (
+                normalized_user_pair or abs(created_at - previous_created_at) <= 2.0
+            ):
                 continue
+            if abs(created_at - previous_created_at) <= 2.0:
+                selected_previous = _select_richer_mobile_assistant_projection(previous, item)
+                if selected_previous is not None:
+                    merged[-1] = selected_previous
+                    continue
+                selected_item = _select_richer_mobile_assistant_projection(item, previous)
+                if selected_item is not None:
+                    merged[-1] = selected_item
+                    continue
         merged.append(item)
     return merged
 
@@ -1050,8 +1297,10 @@ def _build_mobile_turn_payload(
     interaction_hints.pop("teaching_mode", None)
     if grounding_decision.reasons:
         interaction_hints["grounding_reasons"] = list(grounding_decision.reasons)
+    capability = str(body.capability or "").strip() or None
+    if capability == "tutorbot":
+        capability = None
     config: dict[str, Any] = {
-        "chat_mode": requested_response_mode,
         "interaction_hints": interaction_hints,
         "billing_context": {
             "source": "wx_miniprogram",
@@ -1061,6 +1310,9 @@ def _build_mobile_turn_payload(
         },
         "interaction_profile": interaction_profile,
     }
+    if capability in (None, "chat"):
+        config["chat_mode"] = requested_response_mode
+        config["bot_id"] = _MOBILE_TUTORBOT_ID
     if body.followup_question_context:
         config["followup_question_context"] = dict(body.followup_question_context)
     if body.persist_user_message is False:
@@ -1069,10 +1321,6 @@ def _build_mobile_turn_payload(
     if client_turn_id:
         config["client_turn_id"] = client_turn_id
 
-    capability = str(body.capability or "").strip() or None
-    if capability == "tutorbot":
-        capability = None
-    config["bot_id"] = _MOBILE_TUTORBOT_ID
     return {
         "session_id": str(body.conversation_id or "").strip() or None,
         "content": query,
@@ -1607,6 +1855,7 @@ async def get_conversation_messages(
     if not sessions:
         raise HTTPException(status_code=404, detail="Conversation not found")
     merged_messages: list[dict[str, Any]] = []
+    hydrated_rows: list[dict[str, Any]] = []
     found_mobile_session = False
     for session_row in sessions:
         session = await session_store.get_session_with_messages(str(session_row.get("id") or ""))
@@ -1616,10 +1865,41 @@ async def get_conversation_messages(
         if preferences.get("source") != "wx_miniprogram":
             continue
         found_mobile_session = True
-        merged_messages.extend(list(session.get("messages") or []))
+        row_preferences = (
+            session_row.get("preferences") if isinstance(session_row.get("preferences"), dict) else {}
+        )
+        merged_preferences = _merge_mobile_conversation_preferences(
+            row_preferences,
+            preferences,
+            prefer_row=True,
+        )
+        hydrated_row = dict(session_row or {})
+        hydrated_row.update(
+            {
+                "id": session.get("id") or session_row.get("id"),
+                "session_id": session.get("id") or session_row.get("session_id"),
+                "preferences": merged_preferences,
+                "created_at": session.get("created_at", session_row.get("created_at")),
+                "updated_at": session.get("updated_at", session_row.get("updated_at")),
+                "title": session.get("title", session_row.get("title")),
+                "status": session.get("status", session_row.get("status")),
+                "capability": session.get("capability", session_row.get("capability")),
+                "message_count": len(session.get("messages") or []),
+            }
+        )
+        hydrated_rows.append(hydrated_row)
+        for message in list(session.get("messages") or []):
+            if not isinstance(message, dict):
+                continue
+            message_with_provenance = dict(message)
+            message_with_provenance["_history_session_id"] = str(session.get("id") or session_row.get("id") or "")
+            merged_messages.append(message_with_provenance)
     if not found_mobile_session:
         raise HTTPException(status_code=404, detail="Conversation not found")
+    conversation_rows = _merge_mobile_conversation_rows(hydrated_rows)
+    conversation = conversation_rows[0] if conversation_rows else {"id": conversation_id}
     return {
+        "conversation": _serialize_mobile_conversation(conversation),
         "messages": [
             _serialize_mobile_message(item)
             for item in _merge_mobile_message_rows(merged_messages)

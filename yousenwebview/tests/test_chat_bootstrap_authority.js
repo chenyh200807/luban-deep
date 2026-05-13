@@ -354,6 +354,8 @@ function loadChatPage(overrides) {
 
   await run("history entry should suppress hero before pending conversation hydration", async function () {
     var pendingConversationId = "conv_history_direct";
+    var pendingChatIntentConsumed = false;
+    var sendCount = 0;
     var loaded = loadChatPage({
       runtime: {
         peekPendingConversationId: function () {
@@ -364,8 +366,15 @@ function loadChatPage(overrides) {
           pendingConversationId = "";
           return id;
         },
+        consumePendingChatIntent: function () {
+          pendingChatIntentConsumed = true;
+          return { query: "我想练习建筑构造相关的题目", mode: "DEEP" };
+        },
       },
     });
+    loaded.page._send = function () {
+      sendCount += 1;
+    };
 
     loaded.page.onLoad({});
     assert(
@@ -385,6 +394,10 @@ function loadChatPage(overrides) {
     assert(
       loaded.page.data.hasMessages === true,
       "hydrated history entry should remain on the chat surface",
+    );
+    assert(
+      pendingChatIntentConsumed === true && sendCount === 0,
+      "history restore should consume but not replay stale pending chat intent",
     );
   });
 

@@ -34,6 +34,8 @@ function loadChatPage() {
   var app = {
     globalData: {
       pendingConversationId: "conv_history_direct",
+      pendingChatQuery: "",
+      pendingChatMode: "AUTO",
       goHomeFlag: false,
     },
     checkAuth: function (cb) {
@@ -161,6 +163,10 @@ function loadChatPage() {
 
 (async function main() {
   var loaded = loadChatPage();
+  var sendCount = 0;
+  loaded.page._send = function () {
+    sendCount += 1;
+  };
 
   loaded.page.onLoad();
   assert(
@@ -184,6 +190,46 @@ function loadChatPage() {
   assert(
     loaded.page.data.hasMessages === true && loaded.page.data.messages.length === 1,
     "history entry should stay on the chat surface after hydration",
+  );
+  assert(sendCount === 0, "history entry should not send a stale pending chat query");
+
+  loaded = loadChatPage();
+  loaded.app.globalData.pendingChatQuery = "我想练习建筑构造相关的题目";
+  loaded.app.globalData.pendingChatMode = "DEEP";
+  sendCount = 0;
+  loaded.page._send = function () {
+    sendCount += 1;
+  };
+
+  loaded.page.onLoad();
+  loaded.page.onShow();
+  await flushPromises();
+  await flushPromises();
+
+  assert(
+    sendCount === 0,
+    "pending chat intent must be discarded when the canonical intent is opening history",
+  );
+  assert(
+    loaded.app.globalData.pendingChatQuery === "" &&
+      loaded.app.globalData.pendingChatMode === "AUTO",
+    "history restore should consume stale pending chat intent instead of replaying it",
+  );
+
+  loaded.page._applyHydratedConversationMessages(
+    [{ id: "u1", role: "user", content: "历史问题" }],
+    {
+      preferences: {
+        chat_mode: "deep",
+        interaction_hints: {
+          requested_response_mode: "deep",
+        },
+      },
+    },
+  );
+  assert(
+    loaded.page.data.answerMode === "DEEP",
+    "history hydration should restore the selected answer mode from conversation preferences",
   );
 
   if (fail) {

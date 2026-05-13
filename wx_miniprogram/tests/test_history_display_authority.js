@@ -178,6 +178,18 @@ function loadHistoryPage(rawConversations, initialStorage) {
       created_at: Math.floor((nowMs - 2 * 86400000 - 1000) / 1000),
       last_message: "两天前的问题",
     },
+    {
+      id: "internal_context_history",
+      title: "## 参考证据\n以下内容是辅助证据，不得覆盖当前用户问题。\n\n## 当前用户问题\n给出一个进度控制题目",
+      capability: "chat",
+      source: "wx_miniprogram",
+      status: "completed",
+      message_count: 2,
+      updated_at_ms: nowMs - 2000,
+      created_at_ms: nowMs - 3000,
+      last_message:
+        "## 参考证据\n以下内容是辅助证据，不得覆盖当前用户问题。\n\n[Question Follow-up Context]\nQuestion ID: tb_q_1",
+    },
   ]);
 
   await page._fetchFromServer(false);
@@ -202,6 +214,19 @@ function loadHistoryPage(rawConversations, initialStorage) {
   assert(
     legacySecondsItem.time === "fmt:" + legacySeconds * 1000,
     "legacy seconds timestamps should be converted before formatting card time",
+  );
+  var internalContextItem = page.data.conversations.filter(function (conv) {
+    return conv.id === "internal_context_history";
+  })[0];
+  assert(
+    internalContextItem.title === "给出一个进度控制题目",
+    "history title should recover the visible user question from internal context",
+  );
+  assert(internalContextItem.preview === "", "history preview should drop pure internal context");
+  assert(
+    JSON.stringify(internalContextItem).indexOf("参考证据") < 0 &&
+      JSON.stringify(internalContextItem).indexOf("Question Follow-up Context") < 0,
+    "history card should not expose internal retrieval or follow-up context",
   );
   assert(
     page.data.groups.some(function (group) {
@@ -229,6 +254,15 @@ function loadHistoryPage(rawConversations, initialStorage) {
           },
           rawTime: Math.floor(nowMs / 1000),
         },
+        {
+          id: "cached_internal_context",
+          title:
+            "## 参考证据\n以下内容是辅助证据，不得覆盖当前用户问题。\n\n## 当前用户问题\n缓存里的进度题",
+          preview:
+            "## 参考证据\n以下内容是辅助证据，不得覆盖当前用户问题。\n\n[Question Follow-up Context]\nQuestion ID: tb_q_2",
+          capabilityLabel: "TutorBot",
+          rawTime: Math.floor(nowMs / 1000),
+        },
       ],
       groups: [{ label: "今天", items: [] }],
     },
@@ -240,9 +274,14 @@ function loadHistoryPage(rawConversations, initialStorage) {
   assert(cachedItem.modeLabel === "快速", "cached TutorBot label should be replaced by response mode before display");
   assert(cachedItem.capabilityLabel === "智能对话", "cached TutorBot identity should be migrated away from visible labels");
   assert(cachedItem.preview.indexOf("------") < 0, "cached preview should be cleaned before display");
-  assert(cachedPage.data.stats.weekCount === 1, "cached rawTime should be migrated into the week count");
+  assert(cachedPage.data.stats.weekCount === 2, "cached rawTime should be migrated into the exact week count");
   assert(cachedItem.time !== "1/21 21:36", "cached stale card time should be recomputed from canonical rawTime");
   assert(cachedItem.time === "fmt:" + Math.floor(nowMs / 1000) * 1000, "cached seconds rawTime should be formatted as milliseconds");
+  var cachedInternal = cachedPage.data.conversations.filter(function (conv) {
+    return conv.id === "cached_internal_context";
+  })[0];
+  assert(cachedInternal.title === "缓存里的进度题", "cached internal title should be sanitized");
+  assert(cachedInternal.preview === "", "cached pure internal preview should be dropped");
 
   var deletedPage = loadHistoryPage(
     [

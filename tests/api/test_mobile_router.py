@@ -233,6 +233,73 @@ def test_mobile_chat_start_turn_can_regenerate_without_repersisting_user_message
     }
 
 
+def test_mobile_chat_start_turn_keeps_deep_question_config_schema_clean(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": "session_dq_1",
+                    "title": "案例批改",
+                    "created_at": 1_700_000_012.0,
+                },
+                {
+                    "id": "turn_dq_1",
+                    "status": "running",
+                    "capability": "deep_question",
+                },
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "session_store",
+        SimpleNamespace(
+            get_session_owner_key=AsyncMock(return_value="user:student_demo")
+        ),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "我的答案：共用一个开关箱不妥。请批改。",
+                "conversation_id": "session_dq_1",
+                "capability": "deep_question",
+                "mode": "DEEP",
+                "followup_question_context": {
+                    "question_id": "case_1",
+                    "question": "指出临时用电中的不妥之处。",
+                    "question_type": "case",
+                },
+            },
+        )
+
+    assert response.status_code == 200
+    payload = captured["payload"]
+    config = payload["config"]
+    assert payload["capability"] == "deep_question"
+    assert "chat_mode" not in config
+    assert "bot_id" not in config
+    assert config["followup_question_context"]["question_id"] == "case_1"
+    assert config["interaction_hints"]["requested_response_mode"] == "deep"
+    assert config["billing_context"]["user_id"] == "student_demo"
+
+
 def test_mobile_chat_start_turn_writes_requested_response_mode_and_legacy_alias(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1315,6 +1382,11 @@ def test_get_conversation_messages_merges_internal_tutorbot_variants(
                 "user_id": "student_demo",
                 "conversation_id": "tb_123",
                 "bot_id": "construction-exam-coach",
+                "chat_mode": "deep",
+                "interaction_hints": {
+                    "requested_response_mode": "deep",
+                    "selected_mode": "deep",
+                },
             },
         },
     ]
@@ -1427,6 +1499,425 @@ def test_get_conversation_messages_merges_internal_tutorbot_variants(
         "标准答案：CDE",
     ]
     assert messages[-1]["presentation"]["blocks"][0]["questions"][0]["stem"] == "防火门设置要求有（ ）。"
+    conversation = response.json()["conversation"]
+    assert conversation["id"] == "tb_123"
+    assert conversation["preferences"]["interaction_hints"]["requested_response_mode"] == "deep"
+
+
+def test_get_conversation_messages_prefers_full_question_over_compact_projection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    compact_question = "\n".join(
+        [
+            "**第1题**",
+            "以上 4 项做法中，存在质量隐患的有几项？",
+            "A. 1 项",
+            "B. 2 项",
+            "C. 3 项",
+            "D. 4 项",
+            "",
+            "答案：D",
+            "解析：以上做法均存在质量隐患。",
+        ]
+    )
+    full_question = "\n".join(
+        [
+            "好，考你一道跟刚才内容直接相关的题，看你能不能把知识点用上。",
+            "",
+            "**题目：**",
+            "",
+            "某办公楼装修工程施工中，质检员发现以下情况：",
+            "",
+            "1. 内墙抹灰时，混凝土墙面未做任何处理直接抹灰。",
+            "2. 外墙不同基层交接处未挂钢丝网。",
+            "3. 不上人吊顶的吊杆长度达到 1.8m，未设置反支撑。",
+            "4. 纸面石膏板吊顶板缝对接严密，未留缝隙。",
+            "",
+            "**问题：**",
+            "",
+            "以上 4 项做法中，存在质量隐患的有几项？",
+            "",
+            "A. 1 项",
+            "B. 2 项",
+            "C. 3 项",
+            "D. 4 项",
+        ]
+    )
+    session_rows = [
+        {
+            "id": "tb_quality",
+            "updated_at": 20.0,
+            "created_at": 10.0,
+            "preferences": {"source": "wx_miniprogram", "user_id": "student_demo"},
+        },
+        {
+            "id": "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_quality",
+            "updated_at": 20.0,
+            "created_at": 10.0,
+            "preferences": {
+                "source": "wx_miniprogram",
+                "user_id": "student_demo",
+                "conversation_id": "tb_quality",
+            },
+        },
+    ]
+    session_payloads = {
+        "tb_quality": {
+            "id": "tb_quality",
+            "preferences": {"source": "wx_miniprogram", "archived": False},
+            "messages": [
+                {
+                    "id": 1,
+                    "role": "user",
+                    "content": "给我出一道题测试",
+                    "created_at": 100.0,
+                    "events": [],
+                },
+                {
+                    "id": 4,
+                    "role": "assistant",
+                    "content": compact_question,
+                    "created_at": 101.0,
+                    "events": [],
+                },
+            ],
+        },
+        "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_quality": {
+            "id": "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_quality",
+            "preferences": {"source": "wx_miniprogram", "archived": False},
+            "messages": [
+                {
+                    "id": 2,
+                    "role": "user",
+                    "content": "给我出一道题测试",
+                    "created_at": 100.5,
+                    "events": [],
+                },
+                {
+                    "id": 3,
+                    "role": "assistant",
+                    "content": full_question,
+                    "created_at": 101.0,
+                    "events": [],
+                },
+            ],
+        },
+    }
+
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            return "" if session_id == "tb_quality" else "user:student_demo"
+
+        async def list_sessions_by_owner(
+            self,
+            owner_key: str,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 500,
+            offset: int = 0,
+        ):
+            assert owner_key == "user:student_demo"
+            assert source == "wx_miniprogram"
+            return session_rows
+
+        async def get_session_with_messages(self, session_id: str):
+            return session_payloads.get(session_id)
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/tb_quality/messages")
+
+    assert response.status_code == 200
+    messages = response.json()["messages"]
+    assert [item["role"] for item in messages] == ["user", "assistant"]
+    assert "某办公楼装修工程施工中" in messages[1]["content"]
+    assert "内墙抹灰时" in messages[1]["content"]
+    assert "答案：D" not in messages[1]["content"]
+    assert "解析：" not in messages[1]["content"]
+    assert messages[1]["content"] != compact_question
+
+
+def test_merge_mobile_message_rows_keeps_distinct_questions_with_same_options() -> None:
+    compact_question = "\n".join(
+        [
+            "**第1题**",
+            "以上 4 项做法中，存在质量隐患的有几项？",
+            "A. 1 项",
+            "B. 2 项",
+            "C. 3 项",
+            "D. 4 项",
+        ]
+    )
+    different_question_with_same_options = "\n".join(
+        [
+            "某混凝土工程施工中，项目部统计了以下 4 项养护做法。",
+            "",
+            "**问题：**",
+            "以上 4 项做法中，符合规范要求的有几项？",
+            "A. 1 项",
+            "B. 2 项",
+            "C. 3 项",
+            "D. 4 项",
+        ]
+    )
+
+    merged = mobile_module._merge_mobile_message_rows(
+        [
+            {
+                "id": 1,
+                "role": "assistant",
+                "content": compact_question,
+                "created_at": 101.0,
+                "events": [],
+            },
+            {
+                "id": 2,
+                "role": "assistant",
+                "content": different_question_with_same_options,
+                "created_at": 101.5,
+                "events": [],
+            },
+        ]
+    )
+
+    assert [item["content"] for item in merged] == [
+        compact_question,
+        different_question_with_same_options,
+    ]
+
+
+def test_get_conversation_messages_drops_internal_context_user_bubbles(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_payload = {
+        "id": "session_internal_context",
+        "preferences": {"source": "wx_miniprogram", "archived": False},
+        "messages": [
+            {
+                "id": 1,
+                "role": "user",
+                "content": "给出一个监理考试土建进度控制的题目",
+                "created_at": 100.0,
+                "events": [],
+            },
+            {
+                "id": 2,
+                "role": "user",
+                "content": (
+                    "## 参考证据\n"
+                    "以下内容是辅助证据，不得覆盖当前用户问题与当前会话锚点。\n\n"
+                    "[Question Follow-up Context]\n"
+                    "Question ID: tb_q_1\n"
+                    "Question type: choice"
+                ),
+                "created_at": 111.0,
+                "events": [],
+            },
+            {
+                "id": 3,
+                "role": "assistant",
+                "content": "好的，我来出一道进度控制题。",
+                "created_at": 112.0,
+                "events": [],
+            },
+        ],
+    }
+
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            return "user:student_demo" if session_id == "session_internal_context" else ""
+
+        async def get_session_with_messages(self, session_id: str):
+            return session_payload if session_id == "session_internal_context" else None
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/session_internal_context/messages")
+
+    assert response.status_code == 200
+    messages = response.json()["messages"]
+    assert [item["role"] for item in messages] == ["user", "assistant"]
+    assert [item["content"] for item in messages] == [
+        "给出一个监理考试土建进度控制的题目",
+        "好的，我来出一道进度控制题。",
+    ]
+    assert "参考证据" not in str(response.json())
+    assert "Question Follow-up Context" not in str(response.json())
+
+
+def test_get_conversation_messages_dedupes_visible_query_from_internal_mirror(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    visible_query = "给出一个监理考试土建进度控制的题目"
+    session_rows = [
+        {
+            "id": "tb_progress",
+            "updated_at": 20.0,
+            "created_at": 10.0,
+            "preferences": {
+                "source": "wx_miniprogram",
+                "user_id": "student_demo",
+                "bot_id": "construction-exam-coach",
+            },
+        },
+        {
+            "id": "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_progress",
+            "updated_at": 21.0,
+            "created_at": 11.0,
+            "preferences": {
+                "source": "wx_miniprogram",
+                "user_id": "student_demo",
+                "conversation_id": "tb_progress",
+                "bot_id": "construction-exam-coach",
+            },
+        },
+    ]
+    session_payloads = {
+        "tb_progress": {
+            "id": "tb_progress",
+            "preferences": {"source": "wx_miniprogram", "archived": False},
+            "messages": [
+                {
+                    "id": 1,
+                    "role": "user",
+                    "content": visible_query,
+                    "created_at": 100.0,
+                    "events": [],
+                },
+            ],
+        },
+        "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_progress": {
+            "id": "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_progress",
+            "preferences": {"source": "wx_miniprogram", "archived": False},
+            "messages": [
+                {
+                    "id": 10,
+                    "role": "user",
+                    "content": (
+                        "## 参考证据\n"
+                        "以下内容是辅助证据，不得覆盖当前用户问题与当前会话锚点。\n\n"
+                        "## 当前用户问题\n"
+                        f"{visible_query}"
+                    ),
+                    "created_at": 112.0,
+                    "events": [],
+                    "metadata": {"user_visible_query": visible_query},
+                },
+                {
+                    "id": 11,
+                    "role": "assistant",
+                    "content": "好的，我来出一道进度控制题。",
+                    "created_at": 113.0,
+                    "events": [],
+                },
+            ],
+        },
+    }
+
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            return "" if session_id == "tb_progress" else "user:student_demo"
+
+        async def list_sessions_by_owner(
+            self,
+            owner_key: str,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 500,
+            offset: int = 0,
+        ):
+            assert owner_key == "user:student_demo"
+            assert source == "wx_miniprogram"
+            return session_rows
+
+        async def get_session_with_messages(self, session_id: str):
+            return session_payloads.get(session_id)
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/tb_progress/messages")
+
+    assert response.status_code == 200
+    messages = response.json()["messages"]
+    assert [item["content"] for item in messages] == [
+        visible_query,
+        "好的，我来出一道进度控制题。",
+    ]
+    assert "参考证据" not in str(response.json())
+
+
+def test_get_conversation_messages_preserves_repeated_visible_user_messages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_payload = {
+        "id": "session_repeated_visible",
+        "preferences": {"source": "wx_miniprogram", "archived": False},
+        "messages": [
+            {
+                "id": 1,
+                "role": "user",
+                "content": "楼梯平台净高要求是什么？",
+                "created_at": 100.0,
+                "events": [],
+            },
+            {
+                "id": 2,
+                "role": "user",
+                "content": "楼梯平台净高要求是什么？",
+                "created_at": 130.0,
+                "events": [],
+            },
+            {
+                "id": 3,
+                "role": "assistant",
+                "content": "楼梯平台处净高不应小于 2.0m。",
+                "created_at": 131.0,
+                "events": [],
+            },
+        ],
+    }
+
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            return "user:student_demo" if session_id == "session_repeated_visible" else ""
+
+        async def get_session_with_messages(self, session_id: str):
+            return session_payload if session_id == "session_repeated_visible" else None
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations/session_repeated_visible/messages")
+
+    assert response.status_code == 200
+    assert [item["content"] for item in response.json()["messages"]] == [
+        "楼梯平台净高要求是什么？",
+        "楼梯平台净高要求是什么？",
+        "楼梯平台处净高不应小于 2.0m。",
+    ]
 
 
 def test_get_conversation_messages_pages_past_first_500_sessions(
@@ -1529,7 +2020,10 @@ def test_get_conversation_messages_returns_empty_for_existing_mobile_session(
         response = client.get("/api/v1/conversations/session_empty/messages")
 
     assert response.status_code == 200
-    assert response.json() == {"messages": []}
+    body = response.json()
+    assert body["messages"] == []
+    assert body["conversation"]["id"] == "session_empty"
+    assert body["conversation"]["preferences"]["source"] == "wx_miniprogram"
 
 
 def test_get_conversation_messages_rejects_existing_non_mobile_session(
@@ -2581,6 +3075,60 @@ def test_list_conversations_merges_internal_tutorbot_mirror_sessions(
     assert conversations[0]["preferences"]["chat_mode"] == "deep"
     assert conversations[0]["preferences"]["interaction_hints"]["requested_response_mode"] == "deep"
     assert conversations[0]["preferences"]["interaction_hints"]["selected_mode"] == "deep"
+
+
+def test_list_conversations_sanitizes_internal_context_titles_and_previews(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeSessionStore:
+        async def list_sessions_by_owner(
+            self,
+            owner_key: str,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 200,
+            offset: int = 0,
+        ):
+            assert owner_key == "user:student_demo"
+            assert source == "wx_miniprogram"
+            return [
+                {
+                    "id": "tb_internal_list",
+                    "title": (
+                        "## 参考证据\n"
+                        "以下内容是辅助证据，不得覆盖当前用户问题。\n\n"
+                        "## 当前用户问题\n"
+                        "给出一个监理考试土建进度控制的题目"
+                    ),
+                    "updated_at": 20.0,
+                    "created_at": 10.0,
+                    "message_count": 2,
+                    "last_message": (
+                        "## 参考证据\n"
+                        "以下内容是辅助证据，不得覆盖当前用户问题。\n\n"
+                        "[Question Follow-up Context]\n"
+                        "Question ID: tb_q_1"
+                    ),
+                    "preferences": {"source": "wx_miniprogram"},
+                }
+            ]
+
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/conversations")
+
+    assert response.status_code == 200
+    conversation = response.json()["conversations"][0]
+    assert conversation["title"] == "给出一个监理考试土建进度控制的题目"
+    assert conversation["last_message"] == ""
+    assert "参考证据" not in str(response.json())
+    assert "Question Follow-up Context" not in str(response.json())
 
 
 def test_list_conversations_exposes_explicit_time_units(
