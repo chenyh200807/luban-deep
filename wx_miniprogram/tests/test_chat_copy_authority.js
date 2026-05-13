@@ -4,6 +4,7 @@
 var fs = require("fs");
 var path = require("path");
 var vm = require("vm");
+var aiMessageState = require("../utils/ai-message-state");
 
 var pass = 0;
 var fail = 0;
@@ -144,6 +145,17 @@ function loadChatPage() {
 }
 
 var loaded = loadChatPage();
+var orderedCopyState = aiMessageState.deriveAiMessageRenderState({
+  content: [
+    "7. 现场管理：",
+    "",
+    "8. 安全管理：",
+    "-危险源辨识、应急预案。",
+    "",
+    "9. 合同与成本管理：",
+  ].join("\n"),
+  parseBlocks: true,
+});
 loaded.page.setData({
   messages: [
     {
@@ -225,6 +237,14 @@ loaded.page.setData({
       ],
       mcqCards: null,
     },
+    {
+      id: "a4",
+      role: "ai",
+      content: "",
+      renderableContent: orderedCopyState.renderableContent,
+      blocks: orderedCopyState.blocks,
+      mcqCards: null,
+    },
   ],
 });
 
@@ -250,6 +270,15 @@ assert(
     loaded.clipboard[2].indexOf("- 不要复制 [object Object]") >= 0 &&
     loaded.clipboard[2] !== "[object Object],[object Object]",
   "copy should serialize markdown rich-text node arrays instead of object placeholders",
+);
+
+loaded.page.onCopy({ currentTarget: { dataset: { msgid: "a4" } } });
+assert(
+  loaded.clipboard[3].indexOf("7. 现场管理：") >= 0 &&
+    loaded.clipboard[3].indexOf("8. 安全管理：") >= 0 &&
+    loaded.clipboard[3].indexOf("9. 合同与成本管理：") >= 0 &&
+    loaded.clipboard[3].indexOf("- 危险源辨识、应急预案。") >= 0,
+  "copy should preserve visible ordered-list indexes produced by the renderer",
 );
 
 assertEqual(loaded.toasts.length, 0, "copying visible content should not show an empty toast");

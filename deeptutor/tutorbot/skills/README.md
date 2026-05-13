@@ -23,3 +23,5 @@ The skill format and metadata structure follow OpenClaw's conventions to maintai
 | `tmux` | Remote-control tmux sessions |
 | `clawhub` | Search and install skills from ClawHub registry |
 | `skill-creator` | Create new skills |
+| `construction-mcq-grading` | Grade and diagnose 建筑实务 single-choice and multi-choice answers |
+| `construction-case-grading` | Grade and diagnose 建筑实务 case-study written answers |

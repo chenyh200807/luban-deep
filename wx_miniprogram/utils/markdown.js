@@ -6,6 +6,10 @@
 var CIRCLED_RE = /[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳]/g;
 var CIRCLED_SPLIT_RE = /(?=[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳])/;
 var CIRCLED_PREFIX_RE = /^[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳]\s*/;
+var ORDERED_PREFIX_RE = /^(\d+)\.\s+(.+)$/;
+var COMPACT_ORDERED_PREFIX_RE = /^(\d+)\.(?!\d)\s*(.+)$/;
+var BULLET_PREFIX_RE = /^[-*+]\s+(.+)$/;
+var COMPACT_DASH_BULLET_RE = /^-(?!-)\s*(\S.*)$/;
 
 // 核心高亮关键词映射
 var CALLOUT_VARIANTS = {
@@ -142,10 +146,11 @@ function parse(text) {
     }
 
     // ── 无序列表 ──────────────────────────────────────
-    if (/^[-*+]\s+/.test(line)) {
+    if (_matchBulletItem(line)) {
       var items = [];
-      while (i < lines.length && /^[-*+]\s+/.test(lines[i])) {
-        var itemText = lines[i].replace(/^[-*+]\s+/, "");
+      while (i < lines.length && _matchBulletItem(lines[i])) {
+        var bulletMatch = _matchBulletItem(lines[i]);
+        var itemText = bulletMatch ? bulletMatch[1] : "";
         items.push({
           content: parseInline(itemText),
           raw: itemText,
@@ -157,16 +162,19 @@ function parse(text) {
     }
 
     // ── 有序列表 ──────────────────────────────────────
-    if (/^\d+\.\s+/.test(line)) {
+    if (_matchOrderedItem(line)) {
       var olItems = [];
       var order = 1;
-      while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
-        var olText = lines[i].replace(/^\d+\.\s+/, "");
+      while (i < lines.length && _matchOrderedItem(lines[i])) {
+        var orderedMatch = _matchOrderedItem(lines[i]);
+        var explicitIndex = parseInt(orderedMatch ? orderedMatch[1] : "", 10);
+        var olText = orderedMatch ? orderedMatch[2] : "";
         olItems.push({
-          index: order++,
+          index: isNaN(explicitIndex) ? order : explicitIndex,
           content: parseInline(olText),
           raw: olText,
         });
+        order = isNaN(explicitIndex) ? order + 1 : explicitIndex + 1;
         i++;
       }
       blocks.push({ type: "ol", items: olItems });
@@ -232,10 +240,20 @@ function _startsNewBlock(line) {
   if (/^---+$/.test(line) || /^\*\*\*+$/.test(line)) return true;
   if (line.trim().indexOf("|") !== -1 && _looksLikeTableRow(line)) return true;
   if (line.startsWith("> ") || line === ">") return true;
-  if (/^[-*+]\s+/.test(line)) return true;
-  if (/^\d+\.\s+/.test(line)) return true;
+  if (_matchBulletItem(line)) return true;
+  if (_matchOrderedItem(line)) return true;
   if (CIRCLED_PREFIX_RE.test(line)) return true;
   return false;
+}
+
+function _matchOrderedItem(line) {
+  if (typeof line !== "string") return null;
+  return line.match(ORDERED_PREFIX_RE) || line.match(COMPACT_ORDERED_PREFIX_RE);
+}
+
+function _matchBulletItem(line) {
+  if (typeof line !== "string") return null;
+  return line.match(BULLET_PREFIX_RE) || line.match(COMPACT_DASH_BULLET_RE);
 }
 
 function _joinParagraphLines(lines) {

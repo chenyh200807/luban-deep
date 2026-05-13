@@ -22,7 +22,9 @@ always: false
 
 - 概念讲解：读 `references/concept-explainer.md`
 - 选择题讲解：读 `references/mcq-review.md`
+- 选择题阅卷/批改/判分：使用 `construction-mcq-grading` skill
 - 案例题讲解：读 `references/case-analysis.md`
+- 案例题阅卷/批改/判分/估分：使用 `construction-case-grading` skill
 - 错题复盘：读 `references/error-review.md`
 
 ## 场景优先级
@@ -30,9 +32,11 @@ always: false
 若同一轮同时命中多个场景，按以下顺序裁决：
 
 1. 错题复盘
-2. 案例题讲解
-3. 选择题讲解
-4. 概念讲解
+2. 案例题阅卷/批改/判分
+3. 选择题阅卷/批改/判分
+4. 案例题讲解
+5. 选择题讲解
+6. 概念讲解
 
 ## 总则
 

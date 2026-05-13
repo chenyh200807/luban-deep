@@ -1,0 +1,56 @@
+{
+  "status": "pass",
+  "mcq": {
+    "question_id": "12233",
+    "user_answer": "AE",
+    "correct_answer": "ABCD",
+    "evidence_fields": [
+      "correct_answer",
+      "options",
+      "option_reasoning",
+      "analysis",
+      "trap_type",
+      "testing_focus",
+      "grading_keywords",
+      "source_meta",
+      "node_code"
+    ],
+    "error_codes": [
+      "M07",
+      "M06",
+      "M06",
+      "M06"
+    ]
+  },
+  "case": {
+    "question_id": "8243",
+    "grading_mode": "projected_rubric",
+    "score_awarded": 0.0,
+    "max_score": 7.0,
+    "evidence_sources": [
+      "kb_chunks",
+      "questions_bank"
+    ],
+    "evidence_fields": [
+      "correct_answer",
+      "analysis",
+      "grading_keywords",
+      "structured_rules",
+      "source_meta",
+      "node_code",
+      "metadata",
+      "metadata",
+      "metadata"
+    ],
+    "error_codes": [
+      "E02",
+      "E02",
+      "E02",
+      "E02",
+      "E02",
+      "E02",
+      "E02",
+      "E04"
+    ]
+  }
+}

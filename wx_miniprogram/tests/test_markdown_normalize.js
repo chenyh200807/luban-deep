@@ -54,6 +54,21 @@ assert(
   "fenced block content should remain untouched",
 );
 
+var compactNormalized = normalize([
+  "3.地基与基础工程",
+  "-基坑支护、降水方法",
+  "4.主体结构工程",
+].join("\n"));
+
+assert(
+  compactNormalized.indexOf("3. 地基与基础工程") >= 0,
+  "compact ordered markers should gain a stable marker space",
+);
+assert(
+  compactNormalized.indexOf("- 基坑支护、降水方法") >= 0,
+  "compact dash bullets should gain a stable marker space",
+);
+
 if (fail) {
   console.error(errors.join("\n"));
   process.exit(1);

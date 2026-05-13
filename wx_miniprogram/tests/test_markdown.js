@@ -307,11 +307,12 @@ function testOrderedLists() {
     assertEqual(blocks[0].items[2].index, 3, "OL third item index");
     assertEqual(blocks[0].items[0].raw, "first", "OL first item raw");
 
-    // Non-sequential numbering (parser assigns sequential)
+    // Non-sequential numbering keeps the explicit source index because mobile
+    // may split long AI answers into multiple OL blocks.
     blocks = md.parse("1. a\n5. b\n10. c");
-    assertEqual(blocks[0].items[0].index, 1, "OL sequential index 1");
-    assertEqual(blocks[0].items[1].index, 2, "OL sequential index 2");
-    assertEqual(blocks[0].items[2].index, 3, "OL sequential index 3");
+    assertEqual(blocks[0].items[0].index, 1, "OL explicit index 1");
+    assertEqual(blocks[0].items[1].index, 5, "OL explicit index 5");
+    assertEqual(blocks[0].items[2].index, 10, "OL explicit index 10");
 
     // OL with formatting
     blocks = md.parse("1. **important**\n2. normal");
@@ -1062,6 +1063,38 @@ function testEdgeCases() {
     });
     assertEqual(olBlocks.length, 1, "OL then UL: has OL");
     assertEqual(ulBlocks.length, 1, "OL then UL: has UL");
+
+    // Blank-separated ordered items should keep their explicit source numbers
+    // instead of each single-item OL restarting at 1.
+    blocks = md.parse("7. 机械设备管理\n\n8. 绿色施工管理\n\n9. 劳务与分包管理");
+    olBlocks = blocks.filter(function (b) {
+      return b.type === "ol";
+    });
+    assertEqual(olBlocks.length, 3, "Blank-separated OL items stay separate blocks");
+    assertEqual(olBlocks[0].items[0].index, 7, "First blank-separated item keeps index 7");
+    assertEqual(olBlocks[1].items[0].index, 8, "Second blank-separated item keeps index 8");
+    assertEqual(olBlocks[2].items[0].index, 9, "Third blank-separated item keeps index 9");
+
+    // Model output often omits the space after the list marker.
+    blocks = md.parse("3.地基与基础工程\n4.主体结构工程\n5.防水工程");
+    olBlocks = blocks.filter(function (b) {
+      return b.type === "ol";
+    });
+    assertEqual(olBlocks.length, 1, "Compact ordered markers form one OL");
+    assertEqual(olBlocks[0].items[0].index, 3, "Compact OL starts at explicit index 3");
+    assertEqual(olBlocks[0].items[1].raw, "主体结构工程", "Compact OL keeps item text");
+
+    // Compact dash bullets should still segment subpoints clearly on mobile.
+    blocks = md.parse("1. 进度管理：\n-双代号网络计划\n2. 质量管理：\n-验收程序");
+    olBlocks = blocks.filter(function (b) {
+      return b.type === "ol";
+    });
+    ulBlocks = blocks.filter(function (b) {
+      return b.type === "ul";
+    });
+    assertEqual(olBlocks[0].items[0].index, 1, "First heading keeps index 1");
+    assertEqual(olBlocks[1].items[0].index, 2, "Second heading keeps index 2 after bullet");
+    assertEqual(ulBlocks[0].items[0].raw, "双代号网络计划", "Compact dash bullet is parsed");
   });
 }
 

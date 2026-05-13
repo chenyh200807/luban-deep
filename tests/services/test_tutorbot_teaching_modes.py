@@ -121,6 +121,22 @@ def test_detect_construction_exam_scene_routes_to_expected_variants():
     assert detect_construction_exam_scene("什么是流水施工？", answer_type="knowledge_explainer") == "concept"
     assert detect_construction_exam_scene("这道单选题选什么？A. B. C. D.", answer_type="problem_solving") == "mcq"
     assert detect_construction_exam_scene("请分析这道案例题的答题思路") == "case"
+    assert detect_construction_exam_scene("请批改这道案例题答案，看看能得几分") == "case_grading"
+    assert detect_construction_exam_scene("这道单选题我选A，对吗？") == "mcq_grading"
+    assert (
+        detect_construction_exam_scene(
+            "我选ACD，帮我判分",
+            followup_context={"question_type": "multi_choice", "user_answer": ["A", "C", "D"]},
+        )
+        == "mcq_grading"
+    )
+    assert (
+        detect_construction_exam_scene(
+            "帮我判分，漏了哪些采分点",
+            followup_context={"question_type": "case_study", "user_answer": "应加强管理"},
+        )
+        == "case_grading"
+    )
     assert detect_construction_exam_scene(
         "我为什么又做错了",
         followup_context={"user_answer": "A", "correct_answer": "B", "is_correct": False},
@@ -130,11 +146,25 @@ def test_detect_construction_exam_scene_routes_to_expected_variants():
 def test_get_construction_exam_skill_instruction_uses_progressive_scene_loading():
     mcq_instruction = get_construction_exam_skill_instruction("mcq")
     concept_instruction = get_construction_exam_skill_instruction("concept")
+    mcq_grading_instruction = get_construction_exam_skill_instruction("mcq_grading")
+    case_grading_instruction = get_construction_exam_skill_instruction("case_grading")
 
     assert "渐进式加载" in mcq_instruction
     assert "# 选择题讲解" in mcq_instruction
     assert "# 概念讲解" in concept_instruction
     assert "# 选择题讲解" not in concept_instruction
+    assert "# Construction MCQ Grading" in mcq_grading_instruction
+    assert "确定性优先" in mcq_grading_instruction
+    assert "选择题判分协议" in mcq_grading_instruction
+    assert "线上 Supabase 对账结论" in mcq_grading_instruction
+    assert "option_reasoning" in mcq_grading_instruction
+    assert "# 选择题讲解" not in mcq_grading_instruction
+    assert "# Construction Case Grading" in case_grading_instruction
+    assert "三档阅卷模式" in case_grading_instruction
+    assert "案例题阅卷资料利用手册" in case_grading_instruction
+    assert "kb_chunks.metadata" in case_grading_instruction
+    assert "standard_articles" in case_grading_instruction
+    assert "# 案例题讲解" not in case_grading_instruction
 
 
 def test_lecture_skill_instruction_routes_by_topic():

@@ -9,20 +9,26 @@ from typing import Any, Literal
 from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
 
 TutorBotTeachingMode = Literal["smart", "fast", "deep"]
-ConstructionExamScene = Literal["general", "concept", "mcq", "case", "error_review"]
+ConstructionExamScene = Literal["general", "concept", "mcq", "mcq_grading", "case", "case_grading", "error_review"]
 
 _SMART: TutorBotTeachingMode = "smart"
 _FAST: TutorBotTeachingMode = "fast"
 _DEEP: TutorBotTeachingMode = "deep"
 _SKILL_DIR = Path(__file__).resolve().parent / "skills" / "construction-exam-tutor"
 _SKILL_FILE = _SKILL_DIR / "SKILL.md"
+_MCQ_GRADING_SKILL_DIR = Path(__file__).resolve().parent / "skills" / "construction-mcq-grading"
+_MCQ_GRADING_SKILL_FILE = _MCQ_GRADING_SKILL_DIR / "SKILL.md"
+_CASE_GRADING_SKILL_DIR = Path(__file__).resolve().parent / "skills" / "construction-case-grading"
+_CASE_GRADING_SKILL_FILE = _CASE_GRADING_SKILL_DIR / "SKILL.md"
 _LECTURE_SKILL_DIR = Path(__file__).resolve().parent / "skills" / "lecture-waterproof-energy-decoration"
 _LECTURE_SKILL_FILE = _LECTURE_SKILL_DIR / "SKILL.md"
 _SCENE_REFERENCES: dict[ConstructionExamScene, str | None] = {
     "general": None,
     "concept": "references/concept-explainer.md",
     "mcq": "references/mcq-review.md",
+    "mcq_grading": None,
     "case": "references/case-analysis.md",
+    "case_grading": None,
     "error_review": "references/error-review.md",
 }
 _LECTURE_TOPIC_REFERENCES = {
@@ -30,6 +36,17 @@ _LECTURE_TOPIC_REFERENCES = {
     "energy_saving": "references/energy-saving.md",
     "decoration": "references/decoration.md",
 }
+_MCQ_GRADING_REFERENCES = (
+    "references/mcq-grading-protocol.md",
+    "references/mcq-error-taxonomy.md",
+    "references/mcq-source-grounding.md",
+)
+_CASE_GRADING_REFERENCES = (
+    "references/data-authority.md",
+    "references/source-grounding.md",
+    "references/grading-protocol.md",
+    "references/error-taxonomy.md",
+)
 _BUILDING_ANCHOR_RE = re.compile(
     r"([0-9一二两三四五六七八九十百]+层(?:住宅楼|办公楼|教学楼|厂房|宿舍楼|综合楼|商住楼|楼))",
     flags=re.IGNORECASE,
@@ -302,17 +319,86 @@ def detect_construction_exam_scene(
     if any(marker in text for marker in general_markers):
         return "general"
 
+    grading_markers = (
+        "批改",
+        "判分",
+        "打分",
+        "估分",
+        "评分",
+        "阅卷",
+        "能得几分",
+        "拿几分",
+        "得几分",
+        "几分",
+        "漏分",
+        "漏点",
+        "漏了哪些",
+        "采分点",
+        "得分表达",
+        "改成得分答案",
+        "答案怎么改",
+    )
+    case_like_question_type = str(followup.get("question_type") or answer_type or "").strip().lower() in {
+        "case",
+        "case_study",
+        "written",
+        "short_answer",
+        "open_ended",
+        "essay",
+    }
+    mcq_like_question_type = str(followup.get("question_type") or answer_type or "").strip().lower() in {
+        "single_choice",
+        "single",
+        "multi_choice",
+        "multiple_choice",
+        "multiple",
+        "true_false",
+        "judgement",
+        "judgment",
+    }
+    case_markers = ("案例", "案例题", "实务题", "简答题", "背景资料", "按问点", "现场管理")
+    mcq_markers = ("单选", "多选", "判断题", "选择题", "选项", "正确答案", "答案是")
+    if any(marker in text for marker in grading_markers) and (
+        case_like_question_type
+        or any(marker in text for marker in case_markers)
+        or ("答案" in text and not any(marker in text for marker in mcq_markers))
+    ):
+        return "case_grading"
+
+    mcq_grading_markers = (
+        "我选",
+        "选了",
+        "选的是",
+        "对吗",
+        "对不对",
+        "批改",
+        "判分",
+        "打分",
+        "评分",
+        "答案对不对",
+        "为什么不对",
+        "为什么错",
+    )
+    if any(marker in text for marker in mcq_grading_markers) and (
+        mcq_like_question_type
+        or any(marker in text for marker in mcq_markers)
+        or re.search(r"(?:我选|选)\s*[A-DＡ-Ｄ]+", user_message or "", flags=re.IGNORECASE)
+    ):
+        return "mcq_grading"
+
     if followup.get("user_answer") or followup.get("correct_answer") or followup.get("is_correct") is False:
+        if case_like_question_type and any(marker in text for marker in grading_markers):
+            return "case_grading"
+        if mcq_like_question_type:
+            return "mcq_grading"
         return "error_review"
 
     if any(marker in text for marker in ("错题", "复盘", "为什么错", "又错了", "我选错", "帮我复盘")):
         return "error_review"
 
-    case_markers = ("案例", "案例题", "实务题", "简答题", "背景资料", "按问点", "现场管理")
     if any(marker in text for marker in case_markers):
         return "case"
 
-    mcq_markers = ("单选", "多选", "判断题", "选择题", "选项", "正确答案", "答案是")
     if any(marker in text for marker in mcq_markers):
         return "mcq"
     if re.search(r"[A-DＡ-Ｄ][\.、:\s]", user_message or ""):
@@ -335,6 +421,24 @@ def get_construction_exam_skill_instruction(scene: ConstructionExamScene | str =
         reference_body = _read_skill_file(_SKILL_DIR / reference_path)
         if reference_body:
             parts.append(reference_body)
+
+    if str(scene) == "mcq_grading":
+        mcq_grading_skill_body = _read_skill_file(_MCQ_GRADING_SKILL_FILE)
+        if mcq_grading_skill_body:
+            parts.append(mcq_grading_skill_body)
+        for reference_path in _MCQ_GRADING_REFERENCES:
+            reference_body = _read_skill_file(_MCQ_GRADING_SKILL_DIR / reference_path)
+            if reference_body:
+                parts.append(reference_body)
+
+    if str(scene) == "case_grading":
+        grading_skill_body = _read_skill_file(_CASE_GRADING_SKILL_FILE)
+        if grading_skill_body:
+            parts.append(grading_skill_body)
+        for reference_path in _CASE_GRADING_REFERENCES:
+            reference_body = _read_skill_file(_CASE_GRADING_SKILL_DIR / reference_path)
+            if reference_body:
+                parts.append(reference_body)
 
     return "\n\n".join(part for part in parts if part).strip()
 

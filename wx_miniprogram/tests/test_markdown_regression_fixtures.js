@@ -2,6 +2,7 @@
 // Run: node wx_miniprogram/tests/test_markdown_regression_fixtures.js
 
 var fixtures = require("../utils/devtools-markdown-fixtures");
+var normalize = require("../utils/markdown-normalize");
 var aiMessageState = require("../utils/ai-message-state");
 
 var pass = 0;
@@ -37,7 +38,7 @@ function findBlock(blocks, predicate) {
 }
 
 var samples = fixtures.listMarkdownRegressionSamples();
-assert(samples.length >= 3, "should expose at least 3 markdown regression samples");
+assert(samples.length >= 4, "should expose at least 4 markdown regression samples");
 
 var boltBlocks = deriveBlocks("bolt_points_colon_wrap");
 var boltList = findBlock(boltBlocks, function (block) {
@@ -79,6 +80,34 @@ assert(
   expertBlocks[0].nodes[0].text.indexOf("第一题的答案：") === 0,
   "expert fixture should keep the leading answer label visible",
 );
+
+var constructionSample = fixtures.getMarkdownRegressionSample("construction_case_numbered_sections");
+var constructionNormalized = normalize.normalizeMarkdownForWechat(
+  constructionSample && constructionSample.content,
+);
+assert(
+  constructionNormalized.indexOf("1. 进度管理") >= 0 &&
+    constructionNormalized.indexOf("- 双代号网络计划") >= 0,
+  "construction fixture should normalize compact numbered and bullet markers before parsing",
+);
+var constructionBlocks = deriveBlocks("construction_case_numbered_sections");
+var orderedIndexes = [];
+var bulletCount = 0;
+for (var i = 0; i < constructionBlocks.length; i++) {
+  if (constructionBlocks[i].type === "ol") {
+    for (var j = 0; j < constructionBlocks[i].items.length; j++) {
+      orderedIndexes.push(constructionBlocks[i].items[j].index);
+    }
+  }
+  if (constructionBlocks[i].type === "ul") {
+    bulletCount += constructionBlocks[i].items.length;
+  }
+}
+assert(
+  JSON.stringify(orderedIndexes) === JSON.stringify([1, 2, 7, 8, 9, 10, 11]),
+  "construction fixture should preserve explicit visible numbering across blank-separated OL blocks",
+);
+assert(bulletCount >= 5, "construction fixture should split compact dash bullets into bullet blocks");
 
 if (fail) {
   console.error(errors.join("\n"));

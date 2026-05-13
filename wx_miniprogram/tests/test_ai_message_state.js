@@ -479,6 +479,36 @@ run("markdown normalization flattens nested lists into the supported mobile subs
   );
 });
 
+run("blank-separated and compact ordered markers keep visible numbering", function () {
+  var text = [
+    "## 管理篇",
+    "",
+    "7. 机械设备与临时设施管理",
+    "",
+    "8.绿色施工与环境保护",
+    "",
+    "9.劳务与分包管理",
+    "-实名制、分包资质审查",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    parseBlocks: true,
+  });
+
+  var olBlocks = state.blocks.filter(function (block) {
+    return block.type === "ol";
+  });
+  var ulBlocks = state.blocks.filter(function (block) {
+    return block.type === "ul";
+  });
+
+  assertEqual(olBlocks[0].items[0].index, 7, "first separated ordered item keeps index 7");
+  assertEqual(olBlocks[1].items[0].index, 8, "compact separated ordered item keeps index 8");
+  assertEqual(olBlocks[2].items[0].index, 9, "third separated ordered item keeps index 9");
+  assertEqual(ulBlocks[0].items[0].raw, "实名制、分包资质审查", "compact bullet stays segmented");
+});
+
 if (fail) {
   console.error(errors.join("\n"));
   process.exit(1);

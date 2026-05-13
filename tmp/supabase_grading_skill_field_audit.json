@@ -1,0 +1,213 @@
+{
+  "generated_at": "2026-05-13T04:42:14.409787+00:00",
+  "audit_mode": "read_only_meaningful_fill_empty_json_excluded",
+  "questions_bank": {
+    "exists": true,
+    "count_total": 4638,
+    "field_fill_all": {
+      "total": 4638,
+      "correct_answer__filled": 4627,
+      "analysis__filled": 4005,
+      "grading_rubric__filled": 0,
+      "grading_keywords__filled": 1225,
+      "option_reasoning__filled": 80,
+      "trap_type__filled": 443,
+      "testing_focus__filled": 476,
+      "source_meta__filled": 2351,
+      "structured_rules__filled": 902,
+      "node_code__filled": 4533,
+      "options__filled": 2656,
+      "source_type__filled": 4638,
+      "exam_year__filled": 1306,
+      "difficulty__filled": 4231,
+      "stem__filled": 4533,
+      "question_stem__filled": 4215,
+      "original_id__filled": 3596,
+      "source_chunk_id__filled": 1318
+    },
+    "field_fill_mcq": {
+      "total": 2659,
+      "correct_answer__filled": 2659,
+      "analysis__filled": 2655,
+      "grading_rubric__filled": 0,
+      "grading_keywords__filled": 247,
+      "option_reasoning__filled": 80,
+      "trap_type__filled": 264,
+      "testing_focus__filled": 297,
+      "source_meta__filled": 1317,
+      "structured_rules__filled": 241,
+      "node_code__filled": 2599,
+      "options__filled": 2655,
+      "source_type__filled": 2659,
+      "exam_year__filled": 635,
+      "difficulty__filled": 2424,
+      "stem__filled": 2599,
+      "question_stem__filled": 2236,
+      "original_id__filled": 2132,
+      "source_chunk_id__filled": 284
+    },
+    "field_fill_case": {
+      "total": 1961,
+      "correct_answer__filled": 1950,
+      "analysis__filled": 1332,
+      "grading_rubric__filled": 0,
+      "grading_keywords__filled": 960,
+      "option_reasoning__filled": 0,
+      "trap_type__filled": 179,
+      "testing_focus__filled": 179,
+      "source_meta__filled": 1016,
+      "structured_rules__filled": 661,
+      "node_code__filled": 1916,
+      "options__filled": 1,
+      "source_type__filled": 1961,
+      "exam_year__filled": 671,
+      "difficulty__filled": 1789,
+      "stem__filled": 1916,
+      "question_stem__filled": 1961,
+      "original_id__filled": 1446,
+      "source_chunk_id__filled": 1016
+    },
+    "count_by_type": [
+      {
+        "question_type": "case_study",
+        "n": 1961
+      },
+      {
+        "question_type": "single_choice",
+        "n": 1674
+      },
+      {
+        "question_type": "multi_choice",
+        "n": 978
+      },
+      {
+        "question_type": "calculation",
+        "n": 15
+      },
+      {
+        "question_type": "judgment",
+        "n": 7
+      },
+      {
+        "question_type": "diagram_interpretation",
+        "n": 1
+      },
+      {
+        "question_type": "recall",
+        "n": 1
+      },
+      {
+        "question_type": "fill_in_blank",
+        "n": 1
+      }
+    ]
+  },
+  "online_evidence_tables": {
+    "kb_chunks": {
+      "exists": true,
+      "count_total": 15432,
+      "source_types": [
+        {
+          "source_type": "standard",
+          "n": 13912
+        },
+        {
+          "source_type": "textbook",
+          "n": 1199
+        },
+        {
+          "source_type": "exam",
+          "n": 312
+        },
+        {
+          "source_type": "gap",
+          "n": 9
+        }
+      ],
+      "metadata_key_fill": {
+        "exam_matrix": 1192,
+        "structured_rules": 884,
+        "logic_chains": 1074,
+        "key_parameters": 677,
+        "pitfalls": 240,
+        "source_meta": 650,
+        "taxonomy": 0
+      }
+    },
+    "standard_articles": {
+      "exists": true,
+      "count_total": 3319,
+      "field_fill": {
+        "total": 3319,
+        "content__filled": 3319,
+        "logic_constraints__filled": 908,
+        "common_violations__filled": 0,
+        "synthetic_qa__filled": 0,
+        "standard_code__filled": 3319,
+        "article_code__filled": 3319,
+        "key_parameters__filled": 0,
+        "taxonomy_node_codes__filled": 0
+      }
+    },
+    "standard_chunks": {
+      "exists": true,
+      "count_total": 3319
+    },
+    "syllabus_tree": {
+      "exists": true,
+      "count_total": 1284,
+      "field_fill": {
+        "total": 1284,
+        "node_code__filled": 1284,
+        "keywords__filled": 780,
+        "level__filled": 1277,
+        "parent_code__filled": 1257,
+        "cognitive_type__filled": 0,
+        "category__filled": 0
+      }
+    },
+    "question_intelligence": {
+      "exists": true,
+      "count_total": 43
+    },
+    "question_summaries": {
+      "exists": true,
+      "count_total": 35266
+    },
+    "teaching_cards": {
+      "exists": true,
+      "count_total": 12
+    },
+    "knowledge_graph_edges": {
+      "exists": true,
+      "count_total": 1351
+    },
+    "knowledge_cards": {
+      "exists": false
+    }
+  },
+  "evaluation": {
+    "status": "pass",
+    "ready_modes": [
+      "mcq_deterministic_ready",
+      "projected_rubric_ready",
+      "source_grounding_ready"
+    ],
+    "issues": [
+      {
+        "severity": "warning",
+        "code": "curated_rubric_empty",
+        "message": "questions_bank.grading_rubric exists but has no meaningful rows; use projected_rubric/open_skill first."
+      }
+    ],
+    "summary": {
+      "questions_total": 4638,
+      "mcq_total": 2659,
+      "case_total": 1961,
+      "case_grading_rubric_filled": 0,
+      "case_grading_keywords_filled": 960,
+      "case_structured_rules_filled": 661,
+      "kb_chunks_total": 15432
+    }
+  }
+}

@@ -8,6 +8,8 @@ var LABELLED_ORDERED_ONLY_RE = /^\s*(\d+)\.\s+\*\*([^*\n]+?)\*\*([：:])\s*$/;
 var LABELLED_BULLET_ONLY_RE = /^\s*([-*+])\s+\*\*([^*\n]+?)\*\*([：:])\s*$/;
 var LABELLED_PARAGRAPH_ONLY_RE = /^\s*\*\*([^*\n]+?)\*\*([：:])\s*$/;
 var INDENTED_LIST_RE = /^\s{2,}((?:[-*+])|\d+\.)\s+/;
+var COMPACT_ORDERED_LIST_RE = /^(\s*)(\d+)\.(?!\d)(?=\S)/;
+var COMPACT_DASH_BULLET_RE = /^(\s*)-(?!-)(?=\S)/;
 
 function normalizeMarkdownForWechat(text) {
   var normalized = String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -45,6 +47,8 @@ function normalizeMarkdownForWechat(text) {
 
     previousBlank = false;
     line = line.replace(INDENTED_LIST_RE, "$1 ");
+    line = line.replace(COMPACT_ORDERED_LIST_RE, "$1$2. ");
+    line = line.replace(COMPACT_DASH_BULLET_RE, "$1- ");
     line = line.replace(/\s*→\s*/g, " → ");
     line = normalizeLabelledItem(line);
     out.push(line.replace(/\s+$/, ""));

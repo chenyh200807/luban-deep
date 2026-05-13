@@ -1,10 +1,14 @@
 # Luban Case Grading Error Map Implementation Plan
 
+Status: Draft v1.7 (2026-05-13)
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the first shippable loop for 建筑实务案例题 AI 阅卷 + 错因图谱 + 个性化下一题推荐, while reusing Supabase `questions_bank`, `deep_question`, `LearnerStateService`, and assessment policy foundations.
+**Goal:** Build the first shippable loop for 建筑实务题目阅卷 + 错因图谱 + 个性化下一题推荐, using a grading Skill family: `construction-mcq-grading` for single/multi-choice deterministic grading and `construction-case-grading` for subjective case grading, while reusing Supabase `questions_bank`, `deep_question`, `LearnerStateService`, and assessment policy foundations.
 
-**Architecture:** Add a narrow `case_grading` internal service that owns subjective case grading only. It reads case assets from `questions_bank`, builds runtime Rubric projections, matches learner answer spans to rubric items, aggregates score deterministically, emits error events, and hands next-task signals back to existing learner state and assessment teaching policy. It does not create a second question bank, a second learner state system, or a new chat WebSocket.
+**Architecture:** Add a narrow `case_grading` internal service and `CaseGradingSkillKernel` that own subjective case grading only. The kernel selects one of three modes: `curated_rubric` for standard rubric scoring, `projected_rubric` for AI-generated rubric projection from existing assets, and `open_skill` for open diagnostic grading when rubric assets are insufficient. It emits structured score/diagnosis results, internal quality signals, error events, and next-task signals. It does not create a second question bank, a second learner state system, or a new chat WebSocket.
+
+**v1.7 decision:** the grading Skill family must be source-grounded and live-audited. Supabase currently has enough material for `projected_rubric` and `open_skill` grading, but not enough for `curated_rubric` as the default because `questions_bank.grading_rubric` is empty. `construction-mcq-grading` consumes `correct_answer / analysis / option_reasoning / trap_type / testing_focus`; `construction-case-grading` consumes case answers, analysis, score, `grading_keywords`, `structured_rules`, `source_meta`, plus `kb_chunks.metadata / standard_articles.logic_constraints / syllabus_tree` evidence. The production case service remains the LLM-backed `CaseGradingSkillKernel`; curated Rubric is a calibration asset, not the only way the system works. Deterministic matching exists only as a test seam, offline fallback, and cheap regression oracle. Do not ship a keyword-only case grader as the product authority.
 
 **Tech Stack:** Python dataclasses, existing DeepTutor service layout, Supabase PostgREST read-only access, existing LLM `complete` seam, existing `deep_question` capability, existing `LearnerStateService`, pytest, Node tests for mini-program smoke when UI work begins.
 
@@ -14,9 +18,9 @@
 
 This implementation plan covers P0 and the minimum P1 bridge:
 
-1. Case rubric readiness audit.
-2. 20-question L2 rubric golden set support.
-3. `CaseGradingService` internal kernel.
+1. Case grading readiness audit with L2/L3 standard scoring, L1 projected scoring, and L0 open diagnostic buckets.
+2. Mixed-mode golden set support.
+3. `CaseGradingSkillKernel` + `CaseGradingService` internal kernel.
 4. Error event writeback through existing learner state.
 5. Next-task recommendation that prefers existing `questions_bank`.
 6. `deep_question` grading route integration for written/case submissions.
@@ -32,9 +36,11 @@ This plan does not implement:
 
 Stop rules:
 
-1. If the readiness audit cannot find 20 viable L2 case candidates, stop product integration and curate 5 concepts x 3-4 questions first.
-2. If AI-human score agreement misses the PRD target, expose "AI 初评区间 + 漏点诊断" and do not present a hard final score.
+1. If the readiness audit cannot find 20 viable L2/L3 case candidates, do not block P0; ship `projected_rubric` / `open_skill` diagnostic flow while curating 5 concepts x 3-4 L2/L3 examples for golden eval.
+2. If AI-human score agreement misses the PRD target, do not expose raw confidence. Switch those assets to `score_band` or `diagnostic_only` presentation and keep standard scoring limited to passing L2/L3 assets.
 3. If generated variants fail validator quality, keep next-task recommendation retrieval-only.
+4. If Supabase lacks fields that exist in the local source data, do not fork a new question bank. Record the parity gap, use local golden fixtures for evaluation, and plan a controlled补录/overlay path back to `questions_bank`.
+5. If the LLM structured matcher is unavailable in the current environment, deterministic matcher may satisfy unit tests only. Mark production grading as blocked until an LLM-backed path or recorded fixture harness is available.
 
 ## 1. Current Authority Map
 
@@ -63,22 +69,39 @@ Create:
 - `deeptutor/services/case_grading/schema.py`
 - `deeptutor/services/case_grading/assets.py`
 - `deeptutor/services/case_grading/readiness.py`
+- `deeptutor/services/case_grading/mode_selector.py`
+- `deeptutor/services/case_grading/skill_kernel.py`
 - `deeptutor/services/case_grading/rubric_normalizer.py`
 - `deeptutor/services/case_grading/error_taxonomy.py`
+- `deeptutor/services/case_grading/quality_gate.py`
+- `deeptutor/services/case_grading/llm_matcher.py`
 - `deeptutor/services/case_grading/matcher.py`
 - `deeptutor/services/case_grading/score_aggregator.py`
 - `deeptutor/services/case_grading/feedback.py`
 - `deeptutor/services/case_grading/service.py`
 - `deeptutor/services/case_grading/learner_writeback.py`
 - `deeptutor/services/case_grading/recommendation.py`
+- `deeptutor/tutorbot/skills/construction-mcq-grading/SKILL.md` already created as the choice-question grading Skill
+- `deeptutor/tutorbot/skills/construction-mcq-grading/references/mcq-grading-protocol.md` already created for choice-question grading protocol
+- `deeptutor/tutorbot/skills/construction-mcq-grading/references/mcq-error-taxonomy.md` already created for choice-question error taxonomy
+- `deeptutor/tutorbot/skills/construction-mcq-grading/references/mcq-source-grounding.md` already created for choice-question source usage
+- `deeptutor/tutorbot/skills/construction-case-grading/SKILL.md` already created as the prompt/workflow authority for the Skill-first product surface
+- `deeptutor/tutorbot/skills/construction-case-grading/references/data-authority.md` already created for source-data and Supabase parity guidance
+- `deeptutor/tutorbot/skills/construction-case-grading/references/source-grounding.md` already created for 2026 教材/讲义/标准/taxonomy source usage
+- `deeptutor/tutorbot/skills/construction-case-grading/references/grading-protocol.md` already created for grading protocol
+- `deeptutor/tutorbot/skills/construction-case-grading/references/error-taxonomy.md` already created for error taxonomy
 - `scripts/audit_case_rubric_readiness.py`
+- `scripts/audit_case_source_supabase_parity.py` optional, only if local source rows can be parsed safely
 - `tests/fixtures/case_grading/sample_questions_bank_rows.json`
 - `tests/fixtures/case_grading/sample_submissions.json`
 - `tests/services/case_grading/test_schema.py`
 - `tests/services/case_grading/test_assets.py`
 - `tests/services/case_grading/test_readiness.py`
+- `tests/services/case_grading/test_mode_selector.py`
 - `tests/services/case_grading/test_rubric_normalizer.py`
 - `tests/services/case_grading/test_error_taxonomy.py`
+- `tests/services/case_grading/test_quality_gate.py`
+- `tests/services/case_grading/test_llm_matcher.py`
 - `tests/services/case_grading/test_matcher.py`
 - `tests/services/case_grading/test_score_aggregator.py`
 - `tests/services/case_grading/test_service.py`
@@ -88,7 +111,12 @@ Create:
 Modify:
 
 - `deeptutor/capabilities/deep_question.py`
+- `deeptutor/tutorbot/teaching_modes.py`
+- `deeptutor/tutorbot/skills/construction-exam-tutor/SKILL.md`
+- `deeptutor/tutorbot/skills/construction-exam-tutor/references/case-analysis.md`
+- `deeptutor/tutorbot/skills/construction-exam-tutor/references/error-review.md`
 - `tests/core/test_deep_question_submission_grading.py`
+- `tests/services/test_tutorbot_teaching_modes.py`
 - `docs/plan/INDEX.md`
 - `docs/plan/2026-05-13-luban-case-grading-error-map-prd.md` only if implementation evidence is appended after completion
 
@@ -166,10 +194,13 @@ def test_case_grading_result_total_score_is_data_not_markdown() -> None:
         grading_run_id="run_1",
         question_id="123",
         submission_text="施工单位未编制专项方案。",
+        grading_mode="curated_rubric",
+        score_presentation="point_score",
         total_score=0.5,
         max_score=1.0,
-        confidence=0.8,
-        status="ai_final",
+        internal_quality_score=0.8,
+        writeback_eligible=True,
+        status="scored",
         rubric_results=[
             RubricMatchResult(
                 rubric_item_id="r1",
@@ -181,7 +212,7 @@ def test_case_grading_result_total_score_is_data_not_markdown() -> None:
                 missing_meaning="未写出专家论证",
                 reason="识别到专项方案问题，但漏专家论证",
                 error_tags=("E02", "E03"),
-                confidence=0.8,
+                internal_quality_score=0.8,
             )
         ],
         major_problems=("漏程序性采分点",),
@@ -191,7 +222,7 @@ def test_case_grading_result_total_score_is_data_not_markdown() -> None:
 
     assert result.total_score == 0.5
     assert result.rubric_results[0].evidence_text
-    assert result.status == "ai_final"
+    assert result.status == "scored"
 ```
 
 - [ ] **Step 2: Run the tests and confirm they fail**
@@ -218,8 +249,10 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 RubricLevel = Literal["L0", "L1", "L2", "L3"]
+GradingMode = Literal["curated_rubric", "projected_rubric", "open_skill"]
+ScorePresentation = Literal["point_score", "score_band", "diagnostic_only"]
 RubricMatchStatus = Literal["full", "partial", "miss", "wrong", "irrelevant"]
-GradingStatus = Literal["ai_draft", "ai_final", "needs_review", "teacher_corrected", "discarded"]
+GradingStatus = Literal["diagnostic_only", "score_band", "scored", "needs_review", "teacher_corrected", "discarded"]
 
 
 @dataclass(frozen=True)
@@ -283,7 +316,7 @@ class RubricMatchResult:
     missing_meaning: str | None
     reason: str
     error_tags: tuple[str, ...] = ()
-    confidence: float = 0.0
+    internal_quality_score: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -302,9 +335,12 @@ class CaseGradingResult:
     grading_run_id: str
     question_id: str
     submission_text: str
+    grading_mode: GradingMode
+    score_presentation: ScorePresentation
     total_score: float
     max_score: float
-    confidence: float
+    internal_quality_score: float
+    writeback_eligible: bool
     status: GradingStatus
     rubric_results: list[RubricMatchResult]
     major_problems: tuple[str, ...] = ()
@@ -321,7 +357,9 @@ from deeptutor.services.case_grading.schema import (
     CaseQuestionAsset,
     CaseRubricItem,
     CaseRubricProjection,
+    GradingMode,
     RubricMatchResult,
+    ScorePresentation,
 )
 
 __all__ = [
@@ -331,7 +369,9 @@ __all__ = [
     "CaseQuestionAsset",
     "CaseRubricItem",
     "CaseRubricProjection",
+    "GradingMode",
     "RubricMatchResult",
+    "ScorePresentation",
 ]
 ```
 
@@ -607,6 +647,8 @@ def classify_case_asset_readiness(asset: CaseQuestionAsset) -> str:
         return "needs_ai_split"
     if asset.correct_answer and asset.analysis:
         return "needs_human_review"
+    if asset.stem or asset.question_text:
+        return "diagnostic_only"
     return "not_ready"
 
 
@@ -635,7 +677,10 @@ def evaluate_case_rubric_readiness(assets: list[CaseQuestionAsset]) -> dict[str,
             }
         )
     return {
-        "status": "pass" if counter["ready_structured"] + counter["needs_ai_split"] >= 20 else "warn",
+        "status": "pass" if counter["ready_structured"] + counter["needs_ai_split"] + counter["diagnostic_only"] >= 20 else "warn",
+        "standard_scoring_ready": counter["ready_structured"],
+        "projected_scoring_ready": counter["needs_ai_split"],
+        "diagnostic_ready": counter["diagnostic_only"],
         "total_case_assets": len(assets),
         "ready_counts": dict(counter),
         "items": items,
@@ -734,17 +779,196 @@ Run:
 pytest tests/services/case_grading/test_readiness.py -q
 python scripts/audit_case_rubric_readiness.py \
   --fixture tests/fixtures/case_grading/sample_questions_bank_rows.json \
-  --output tmp/case_rubric_readiness_fixture_report.json
+  --output tmp/case_grading_readiness_fixture_report.json
 ```
 
 Expected:
 
 ```text
 1 passed
-tmp/case_rubric_readiness_fixture_report.json
+tmp/case_grading_readiness_fixture_report.json
 ```
 
 - [ ] **Step 6: Checkpoint scope**
+
+Do not commit automatically. Record changed files and verification output; commit only if the user explicitly asks, and then stage only the files from this task.
+
+### Task 3.0: Compare Local Source Data With Supabase Readiness
+
+**Files:**
+
+- Optional create: `scripts/audit_case_source_supabase_parity.py`
+- Optional fixture/output: `tmp/case_source_supabase_parity_report.json`
+
+This task exists because the local source directory may contain richer fields than the currently loaded Supabase rows. Do it before promising that existing Supabase data is enough for standard scoring.
+
+- [ ] **Step 1: Identify parseable local source files**
+
+Inspect only the source directory the user provided, for example:
+
+```bash
+rg --files /Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库
+```
+
+Record which formats are actually parseable in this repo session: markdown, json, csv, xlsx, docx, pdf, or images. Do not write migration code until the format is proven.
+
+- [ ] **Step 2: Compare field completeness**
+
+For the same exam/year/topic where possible, compare:
+
+1. question stem/background
+2. question text
+3. standard answer
+4. analysis/explanation
+5. total score
+6. grading keywords
+7. existing grading rubric
+8. exam year/source metadata
+9. node_code/tags/concept identifiers
+
+- [ ] **Step 3: Classify action**
+
+Each gap must fall into one of four actions:
+
+| Gap | Action |
+| --- | --- |
+| Supabase has enough fields | Use Supabase row directly |
+| Supabase missing optional scoring hints | Use `projected_rubric`, schedule enrichment later |
+| Supabase missing standard answer/score | Use local fixture for golden eval; do not market as standard scoring |
+| Source and Supabase conflict | Treat `questions_bank` as production authority, but create a补录 review item |
+
+- [ ] **Step 4: Do not create a second authority**
+
+If local data is richer, it can seed golden fixtures and补录 tasks. It cannot become a parallel runtime question bank unless a separate data migration plan explicitly moves that content back into `questions_bank`.
+
+### Task 3A: Add Three-Mode Grading Selector
+
+**Files:**
+
+- Create: `deeptutor/services/case_grading/mode_selector.py`
+- Test: `tests/services/case_grading/test_mode_selector.py`
+
+- [ ] **Step 1: Write failing mode selector tests**
+
+```python
+from deeptutor.services.case_grading.schema import CaseQuestionAsset
+from deeptutor.services.case_grading.mode_selector import select_grading_mode
+
+
+def _asset(**overrides) -> CaseQuestionAsset:
+    data = {
+        "question_id": "case_001",
+        "question_type": "case_study",
+        "stem": "背景资料",
+        "question_text": "指出不妥之处。",
+        "correct_answer": "",
+    }
+    data.update(overrides)
+    return CaseQuestionAsset(**data)
+
+
+def test_selects_curated_rubric_when_structured_rubric_exists() -> None:
+    asset = _asset(
+        grading_rubric=[
+            {"criterion": "应编制专项施工方案", "score": 1},
+            {"criterion": "应组织专家论证", "score": 1},
+        ],
+    )
+
+    decision = select_grading_mode(asset)
+
+    assert decision.grading_mode == "curated_rubric"
+    assert decision.score_presentation == "point_score"
+
+
+def test_selects_projected_rubric_when_answer_assets_exist() -> None:
+    asset = _asset(
+        correct_answer="应编制专项施工方案并组织专家论证。",
+        grading_keywords=("专项施工方案", "专家论证"),
+    )
+
+    decision = select_grading_mode(asset)
+
+    assert decision.grading_mode == "projected_rubric"
+    assert decision.score_presentation in {"point_score", "score_band"}
+
+
+def test_selects_open_skill_when_rubric_assets_are_sparse() -> None:
+    decision = select_grading_mode(_asset(correct_answer=""))
+
+    assert decision.grading_mode == "open_skill"
+    assert decision.score_presentation == "diagnostic_only"
+```
+
+- [ ] **Step 2: Implement selector**
+
+```python
+# deeptutor/services/case_grading/mode_selector.py
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from deeptutor.services.case_grading.schema import CaseQuestionAsset, GradingMode, ScorePresentation
+
+
+@dataclass(frozen=True)
+class GradingModeDecision:
+    grading_mode: GradingMode
+    score_presentation: ScorePresentation
+    reason: str
+
+
+def _has_structured_rubric(asset: CaseQuestionAsset) -> bool:
+    rubric = asset.grading_rubric
+    if isinstance(rubric, list):
+        return len(rubric) >= 2
+    if isinstance(rubric, dict):
+        items = rubric.get("items") or rubric.get("rubric_items")
+        return isinstance(items, list) and len(items) >= 2
+    return False
+
+
+def _has_projection_assets(asset: CaseQuestionAsset) -> bool:
+    if asset.grading_keywords and asset.correct_answer:
+        return True
+    if asset.correct_answer and (asset.analysis or asset.total_score > 0):
+        return True
+    return False
+
+
+def select_grading_mode(asset: CaseQuestionAsset) -> GradingModeDecision:
+    if _has_structured_rubric(asset):
+        return GradingModeDecision(
+            grading_mode="curated_rubric",
+            score_presentation="point_score",
+            reason="structured_rubric_available",
+        )
+    if _has_projection_assets(asset):
+        return GradingModeDecision(
+            grading_mode="projected_rubric",
+            score_presentation="score_band",
+            reason="answer_assets_available_for_projection",
+        )
+    return GradingModeDecision(
+        grading_mode="open_skill",
+        score_presentation="diagnostic_only",
+        reason="rubric_assets_sparse",
+    )
+```
+
+- [ ] **Step 3: Run mode selector tests**
+
+```bash
+pytest tests/services/case_grading/test_mode_selector.py -q
+```
+
+Expected:
+
+```text
+passed
+```
+
+- [ ] **Step 4: Checkpoint scope**
 
 Do not commit automatically. Record changed files and verification output; commit only if the user explicitly asks, and then stage only the files from this task.
 
@@ -1014,7 +1238,7 @@ def test_aggregate_score_clamps_scores_and_requires_evidence_for_full() -> None:
                 missing_meaning=None,
                 reason="模型误给满分",
                 error_tags=("E03",),
-                confidence=0.9,
+                internal_quality_score=0.9,
             )
         ],
         max_score=1.0,
@@ -1022,6 +1246,7 @@ def test_aggregate_score_clamps_scores_and_requires_evidence_for_full() -> None:
 
     assert result.total_score == 0.0
     assert result.status == "needs_review"
+    assert result.score_presentation == "diagnostic_only"
     assert result.rubric_results[0].awarded_score == 0.0
 ```
 
@@ -1110,7 +1335,7 @@ def _normalize_match(match: RubricMatchResult) -> RubricMatchResult:
         missing_meaning=match.missing_meaning,
         reason=match.reason,
         error_tags=match.error_tags,
-        confidence=max(0.0, min(float(match.confidence or 0.0), 1.0)),
+        internal_quality_score=max(0.0, min(float(match.internal_quality_score or 0.0), 1.0)),
     )
 
 
@@ -1123,10 +1348,11 @@ def aggregate_score(
 ) -> CaseGradingResult:
     normalized = [_normalize_match(match) for match in matches]
     total = min(sum(match.awarded_score for match in normalized), float(max_score or 0.0))
-    confidence = min((match.confidence for match in normalized), default=0.0)
-    status = "ai_final" if confidence >= 0.75 and all(
+    internal_quality = min((match.internal_quality_score for match in normalized), default=0.0)
+    status = "scored" if internal_quality >= 0.75 and all(
         match.status != "full" or match.evidence_text for match in normalized
     ) else "needs_review"
+    score_presentation = "point_score" if status == "scored" else "diagnostic_only"
     major_problems = tuple(
         match.reason for match in normalized if match.status in {"miss", "partial", "wrong"} and match.reason
     )[:3]
@@ -1134,9 +1360,12 @@ def aggregate_score(
         grading_run_id=f"case_grade_{uuid.uuid4().hex[:12]}",
         question_id=question_id,
         submission_text=submission_text,
+        grading_mode="curated_rubric",
+        score_presentation=score_presentation,
         total_score=round(total, 2),
         max_score=float(max_score or 0.0),
-        confidence=round(confidence, 3),
+        internal_quality_score=round(internal_quality, 3),
+        writeback_eligible=status == "scored",
         status=status,
         rubric_results=normalized,
         major_problems=major_problems,
@@ -1156,6 +1385,150 @@ Expected:
 
 ```text
 3 passed
+```
+
+- [ ] **Step 5: Checkpoint scope**
+
+Do not commit automatically. Record changed files and verification output; commit only if the user explicitly asks, and then stage only the files from this task.
+
+### Task 5A: Add Internal Quality Gate
+
+**Files:**
+
+- Create: `deeptutor/services/case_grading/quality_gate.py`
+- Test: `tests/services/case_grading/test_quality_gate.py`
+
+- [ ] **Step 1: Write failing quality gate tests**
+
+```python
+from deeptutor.services.case_grading.quality_gate import decide_score_presentation
+
+
+def test_quality_gate_hides_raw_confidence_and_returns_product_presentation() -> None:
+    decision = decide_score_presentation(
+        grading_mode="projected_rubric",
+        internal_quality_score=0.62,
+        has_evidence=True,
+        has_structured_rubric=False,
+    )
+
+    assert decision.score_presentation == "score_band"
+    assert decision.user_facing_label == "采分点推演阅卷"
+    assert "置信" not in decision.user_facing_label
+```
+
+- [ ] **Step 2: Implement quality gate**
+
+```python
+# deeptutor/services/case_grading/quality_gate.py
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from deeptutor.services.case_grading.schema import GradingMode, ScorePresentation
+
+
+@dataclass(frozen=True)
+class ScorePresentationDecision:
+    score_presentation: ScorePresentation
+    user_facing_label: str
+    writeback_eligible: bool
+
+
+def decide_score_presentation(
+    *,
+    grading_mode: GradingMode,
+    internal_quality_score: float,
+    has_evidence: bool,
+    has_structured_rubric: bool,
+) -> ScorePresentationDecision:
+    if (
+        grading_mode == "curated_rubric"
+        and has_structured_rubric
+        and has_evidence
+        and internal_quality_score >= 0.75
+    ):
+        return ScorePresentationDecision(
+            score_presentation="point_score",
+            user_facing_label="标准采分点评分",
+            writeback_eligible=True,
+        )
+    if grading_mode == "projected_rubric" and has_evidence:
+        return ScorePresentationDecision(
+            score_presentation="score_band",
+            user_facing_label="采分点推演阅卷",
+            writeback_eligible=False,
+        )
+    return ScorePresentationDecision(
+        score_presentation="diagnostic_only",
+        user_facing_label="提分诊断",
+        writeback_eligible=False,
+    )
+```
+
+- [ ] **Step 3: Run quality gate tests**
+
+```bash
+pytest tests/services/case_grading/test_quality_gate.py -q
+```
+
+Expected:
+
+```text
+passed
+```
+
+- [ ] **Step 4: Checkpoint scope**
+
+Do not commit automatically. Record changed files and verification output; commit only if the user explicitly asks, and then stage only the files from this task.
+
+### Task 5B: Add LLM Structured Matcher Seam
+
+**Files:**
+
+- Create: `deeptutor/services/case_grading/llm_matcher.py`
+- Test: `tests/services/case_grading/test_llm_matcher.py`
+
+This is the production capability seam. It can use a fake LLM in tests, but the interface must be designed so the real model can execute the four grading actions with structured output.
+
+- [ ] **Step 1: Write failing LLM matcher tests**
+
+The test should inject a fake LLM client returning JSON and assert:
+
+1. Markdown is not accepted as the canonical output.
+2. Unknown fields are ignored or rejected according to schema rules.
+3. `curated_rubric` cannot award full score without `evidence_text`.
+4. `projected_rubric` can return a score band and projected items.
+5. `open_skill` can return diagnostic-only feedback without hard total score.
+
+- [ ] **Step 2: Implement the minimal seam**
+
+`llm_matcher.py` should expose a small function/class, for example:
+
+```python
+class LLMStructuredMatcher:
+    async def match(
+        self,
+        *,
+        grading_mode: GradingMode,
+        asset: CaseQuestionAsset | None,
+        projection: CaseRubricProjection | None,
+        submission_text: str,
+    ) -> list[RubricMatchResult]:
+        ...
+```
+
+The first implementation may accept an injected callable instead of binding directly to a provider. The important part is that the caller receives typed `RubricMatchResult` objects, not markdown.
+
+- [ ] **Step 3: Keep deterministic matcher demoted**
+
+`matcher.py` remains useful for unit tests, cheap keyword sanity checks, and offline regression. It must not become the only production scoring authority. If an environment lacks LLM credentials, production case grading should report blocked/degraded internally, while user-facing flows can still use fixture-backed demos or `open_skill` only where configured.
+
+- [ ] **Step 4: Run tests**
+
+```bash
+pytest tests/services/case_grading/test_llm_matcher.py \
+  tests/services/case_grading/test_quality_gate.py -q
 ```
 
 - [ ] **Step 5: Checkpoint scope**
@@ -1239,7 +1612,7 @@ def deterministic_keyword_match(item: CaseRubricItem, submission_text: str) -> R
             missing_meaning=None,
             reason="命中全部关键词",
             error_tags=(),
-            confidence=0.8,
+            internal_quality_score=0.8,
         )
     if hit_keywords:
         return RubricMatchResult(
@@ -1252,7 +1625,7 @@ def deterministic_keyword_match(item: CaseRubricItem, submission_text: str) -> R
             missing_meaning="缺少：" + "、".join(keyword for keyword in keywords if keyword not in hit_keywords),
             reason="只命中部分关键词",
             error_tags=tuple(dict.fromkeys((*item.error_tags, "E03"))),
-            confidence=0.72,
+            internal_quality_score=0.72,
         )
     return RubricMatchResult(
         rubric_item_id=item.item_id,
@@ -1264,7 +1637,7 @@ def deterministic_keyword_match(item: CaseRubricItem, submission_text: str) -> R
         missing_meaning=item.required_meaning,
         reason="未找到可给分证据" + ("，且出现口号化表达" if has_non_credit else ""),
         error_tags=tuple(dict.fromkeys((*item.error_tags, "E04" if has_non_credit else "E02"))),
-        confidence=0.7,
+        internal_quality_score=0.7,
     )
 
 
@@ -1294,10 +1667,11 @@ Expected:
 
 Do not commit automatically. Record changed files and verification output; commit only if the user explicitly asks, and then stage only the files from this task.
 
-### Task 7: Compose CaseGradingService And Feedback
+### Task 7: Compose CaseGradingSkillKernel, CaseGradingService, And Feedback
 
 **Files:**
 
+- Create: `deeptutor/services/case_grading/skill_kernel.py`
 - Create: `deeptutor/services/case_grading/feedback.py`
 - Create: `deeptutor/services/case_grading/service.py`
 - Test: `tests/services/case_grading/test_service.py`
@@ -1376,7 +1750,56 @@ def build_next_training_suggestion(result: CaseGradingResult) -> dict[str, objec
     }
 ```
 
-- [ ] **Step 4: Implement service**
+- [ ] **Step 4: Implement skill kernel and service**
+
+```python
+# deeptutor/services/case_grading/skill_kernel.py
+from __future__ import annotations
+
+from typing import Protocol
+
+from deeptutor.services.case_grading.matcher import match_rubric_items_deterministic
+from deeptutor.services.case_grading.schema import (
+    CaseQuestionAsset,
+    CaseRubricProjection,
+    GradingMode,
+    RubricMatchResult,
+)
+
+
+class StructuredMatcher(Protocol):
+    def match(
+        self,
+        *,
+        grading_mode: GradingMode,
+        asset: CaseQuestionAsset | None,
+        projection: CaseRubricProjection,
+        submission_text: str,
+    ) -> list[RubricMatchResult]:
+        ...
+
+
+class CaseGradingSkillKernel:
+    def __init__(self, matcher: StructuredMatcher | None = None) -> None:
+        self._matcher = matcher
+
+    def match(
+        self,
+        *,
+        grading_mode: GradingMode,
+        asset: CaseQuestionAsset,
+        projection: CaseRubricProjection,
+        submission_text: str,
+    ) -> list[RubricMatchResult]:
+        if self._matcher is not None:
+            return self._matcher.match(
+                grading_mode=grading_mode,
+                asset=asset,
+                projection=projection,
+                submission_text=submission_text,
+            )
+        return match_rubric_items_deterministic(items=projection.items, submission_text=submission_text)
+```
 
 ```python
 # deeptutor/services/case_grading/service.py
@@ -1386,17 +1809,25 @@ from deeptutor.services.case_grading.feedback import (
     build_next_training_suggestion,
     build_rewrite_answer,
 )
-from deeptutor.services.case_grading.matcher import match_rubric_items_deterministic
+from deeptutor.services.case_grading.mode_selector import select_grading_mode
+from deeptutor.services.case_grading.quality_gate import decide_score_presentation
 from deeptutor.services.case_grading.rubric_normalizer import build_rubric_projection
 from deeptutor.services.case_grading.schema import CaseGradingResult, CaseQuestionAsset
 from deeptutor.services.case_grading.score_aggregator import aggregate_score
+from deeptutor.services.case_grading.skill_kernel import CaseGradingSkillKernel
 
 
 class CaseGradingService:
+    def __init__(self, *, kernel: CaseGradingSkillKernel | None = None) -> None:
+        self._kernel = kernel or CaseGradingSkillKernel()
+
     def grade(self, *, asset: CaseQuestionAsset, submission_text: str) -> CaseGradingResult:
+        mode = select_grading_mode(asset)
         projection = build_rubric_projection(asset)
-        matches = match_rubric_items_deterministic(
-            items=projection.items,
+        matches = self._kernel.match(
+            grading_mode=mode.grading_mode,
+            asset=asset,
+            projection=projection,
             submission_text=submission_text,
         )
         result = aggregate_score(
@@ -1405,20 +1836,36 @@ class CaseGradingService:
             matches=matches,
             max_score=projection.total_score,
         )
+        presentation = decide_score_presentation(
+            grading_mode=mode.grading_mode,
+            internal_quality_score=result.internal_quality_score,
+            has_evidence=any(match.evidence_text for match in result.rubric_results),
+            has_structured_rubric=projection.rubric_level in {"L2", "L3"},
+        )
         return CaseGradingResult(
             grading_run_id=result.grading_run_id,
             question_id=result.question_id,
             submission_text=result.submission_text,
+            grading_mode=mode.grading_mode,
+            score_presentation=presentation.score_presentation,
             total_score=result.total_score,
             max_score=result.max_score,
-            confidence=result.confidence,
-            status=result.status if projection.rubric_level in {"L2", "L3"} else "ai_draft",
+            internal_quality_score=result.internal_quality_score,
+            writeback_eligible=presentation.writeback_eligible,
+            status=result.status if presentation.score_presentation == "point_score" else presentation.score_presentation,
             rubric_results=result.rubric_results,
             major_problems=result.major_problems,
             rewrite_answer=build_rewrite_answer(projection),
             next_training_suggestion=build_next_training_suggestion(result),
         )
 ```
+
+`skill_kernel.py` should contain the production decision point:
+
+1. Prefer injected `LLMStructuredMatcher` when configured.
+2. Use deterministic matcher only for tests, offline fixtures, and explicit fallback.
+3. Preserve `grading_mode` so `open_skill` and `projected_rubric` do not masquerade as standard point-score grading.
+4. Keep all user-facing confidence wording out of this layer.
 
 - [ ] **Step 5: Run service tests**
 
@@ -1468,10 +1915,13 @@ def test_write_case_grading_events_uses_existing_learner_state_service() -> None
         grading_run_id="run_1",
         question_id="case_001",
         submission_text="加强管理",
+        grading_mode="open_skill",
+        score_presentation="diagnostic_only",
         total_score=0.0,
         max_score=6.0,
-        confidence=0.7,
-        status="ai_draft",
+        internal_quality_score=0.7,
+        writeback_eligible=False,
+        status="diagnostic_only",
         rubric_results=[
             RubricMatchResult(
                 rubric_item_id="r1",
@@ -1483,7 +1933,7 @@ def test_write_case_grading_events_uses_existing_learner_state_service() -> None
                 missing_meaning="专家论证",
                 reason="口号化表达",
                 error_tags=("E04",),
-                confidence=0.7,
+                internal_quality_score=0.7,
             )
         ],
     )
@@ -1536,7 +1986,7 @@ def _rubric_result_payload(result: CaseGradingResult) -> list[dict[str, Any]]:
             "evidence_text": item.evidence_text,
             "missing_meaning": item.missing_meaning,
             "error_tags": list(item.error_tags),
-            "confidence": item.confidence,
+            "internal_quality_score": item.internal_quality_score,
         }
         for item in result.rubric_results
     ]
@@ -1560,9 +2010,12 @@ def write_case_grading_events(
         payload_json={
             "grading_run_id": result.grading_run_id,
             "question_id": result.question_id,
+            "grading_mode": result.grading_mode,
+            "score_presentation": result.score_presentation,
             "total_score": result.total_score,
             "max_score": result.max_score,
-            "confidence": result.confidence,
+            "internal_quality_score": result.internal_quality_score,
+            "writeback_eligible": result.writeback_eligible,
             "status": result.status,
             "rubric_results": _rubric_result_payload(result),
             "major_problems": list(result.major_problems),
@@ -1610,6 +2063,8 @@ Do not commit automatically. Record changed files and verification output; commi
 
 - Create: `deeptutor/services/case_grading/recommendation.py`
 - Test: `tests/services/case_grading/test_recommendation.py`
+
+This is a thin candidate selector, not a new teaching policy engine. It takes focus concepts/error tags from the case grading result and returns an explainable `questions_bank` candidate. The broader decision about pacing, scaffold level, and training rhythm stays with `assessment.teaching_policy` / learner state projections.
 
 - [ ] **Step 1: Write failing recommendation test**
 
@@ -1823,10 +2278,13 @@ async def test_deep_question_routes_written_case_submission_to_case_grading(
                 grading_run_id="run_case",
                 question_id=asset.question_id,
                 submission_text=submission_text,
+                grading_mode="curated_rubric",
+                score_presentation="point_score",
                 total_score=3.0,
                 max_score=6.0,
-                confidence=0.82,
-                status="ai_final",
+                internal_quality_score=0.82,
+                writeback_eligible=True,
+                status="scored",
                 rubric_results=[],
                 major_problems=("漏专家论证",),
                 rewrite_answer="应编制专项施工方案并组织专家论证。",
@@ -1869,6 +2327,9 @@ async def test_deep_question_routes_written_case_submission_to_case_grading(
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "case_grading"
     assert result_event.metadata["case_grading_result"]["total_score"] == 3.0
+    assert result_event.metadata["case_grading_result"]["grading_mode"] == "curated_rubric"
+    assert "confidence" not in result_event.metadata["case_grading_result"]
+    assert "internal_quality_score" not in result_event.metadata["case_grading_result"]
     assert "应编制专项施工方案" in result_event.metadata["response"]
 ```
 
@@ -1897,6 +2358,22 @@ def _is_case_grading_context(question_context: dict[str, Any] | None) -> bool:
     normalized = normalize_question_followup_context(question_context) or {}
     question_type = str(normalized.get("question_type") or "").strip().lower()
     return question_type in {"case_study", "written", "short_answer", "essay"}
+
+
+def _case_grading_label(score_presentation: str) -> str:
+    return {
+        "point_score": "标准采分点评分",
+        "score_band": "采分点推演阅卷",
+        "diagnostic_only": "提分诊断",
+    }.get(str(score_presentation or ""), "提分诊断")
+
+
+def _case_grading_score_line(case_result) -> str:
+    if case_result.score_presentation == "diagnostic_only":
+        return "本题先看漏点诊断和得分表达改写。"
+    if case_result.score_presentation == "score_band":
+        return f"预计得分约：{case_result.total_score:g}-{min(case_result.total_score + 1, case_result.max_score):g}/{case_result.max_score:g}"
+    return f"预计得分：{case_result.total_score:g}/{case_result.max_score:g}"
 ```
 
 Add an import inside the case branch instead of a top-level import:
@@ -1935,7 +2412,8 @@ if _is_case_grading_context(action_context):
         )
         answer = (
             "## 阅卷结论\n"
-            f"预计得分：{case_result.total_score:g}/{case_result.max_score:g}\n\n"
+            f"评分口径：{_case_grading_label(case_result.score_presentation)}\n"
+            f"{_case_grading_score_line(case_result)}\n\n"
             "## 主要问题\n"
             + "\n".join(f"- {item}" for item in case_result.major_problems)
             + "\n\n## 得分表达改写\n"
@@ -1952,9 +2430,10 @@ if _is_case_grading_context(action_context):
                 "case_grading_result": {
                     "grading_run_id": case_result.grading_run_id,
                     "question_id": case_result.question_id,
+                    "grading_mode": case_result.grading_mode,
+                    "score_presentation": case_result.score_presentation,
                     "total_score": case_result.total_score,
                     "max_score": case_result.max_score,
-                    "confidence": case_result.confidence,
                     "status": case_result.status,
                     "major_problems": list(case_result.major_problems),
                     "rewrite_answer": case_result.rewrite_answer,
@@ -2178,13 +2657,13 @@ If the guard reports that `deep_question.py` is not indexed under a contract dom
 ```bash
 python scripts/audit_case_rubric_readiness.py \
   --fixture tests/fixtures/case_grading/sample_questions_bank_rows.json \
-  --output tmp/case_rubric_readiness_fixture_report.json
+  --output tmp/case_grading_readiness_fixture_report.json
 ```
 
 Expected:
 
 ```text
-tmp/case_rubric_readiness_fixture_report.json
+tmp/case_grading_readiness_fixture_report.json
 ```
 
 - [ ] **Step 6: Run live Supabase readiness report when credentials are present**
@@ -2193,13 +2672,13 @@ tmp/case_rubric_readiness_fixture_report.json
 python scripts/audit_case_rubric_readiness.py \
   --env-file .env \
   --limit 200 \
-  --output tmp/case_rubric_readiness_report.json
+  --output tmp/case_grading_readiness_report.json
 ```
 
 Expected when credentials exist:
 
 ```text
-tmp/case_rubric_readiness_report.json
+tmp/case_grading_readiness_report.json
 ```
 
 Expected when credentials are missing:
@@ -2222,12 +2701,23 @@ P0 can be called implemented locally only when all are true:
 2. `pytest tests/core/test_deep_question_submission_grading.py tests/services/test_question_followup.py -q` passes.
 3. `python scripts/audit_case_rubric_readiness.py --fixture ...` writes a report.
 4. Live Supabase readiness has either run successfully or is explicitly blocked by missing local credentials.
-5. No new route was added.
-6. No new Supabase schema migration was added.
-7. `CaseGradingService` is the only score authority for written/case submissions.
-8. Learner writeback goes through `LearnerStateService`, not a new store.
+5. Local source vs Supabase parity has either run successfully or is explicitly blocked by unparseable local source format.
+6. No new route was added.
+7. No new Supabase schema migration was added.
+8. `CaseGradingSkillKernel` / `CaseGradingService` is the only score or diagnostic authority for written/case submissions.
+9. Production design has an LLM structured matcher seam; deterministic matcher is not the only grading path.
+10. Learner writeback goes through `LearnerStateService`, not a new store.
+11. User-facing response contains no raw confidence percentage or "低置信度" wording.
+12. Mixed-mode golden checks cover at least these scenarios:
+    - active question + answer only
+    - full pasted question + answer
+    - answer without enough题干
+    - slogan-like short answer
+    - long unfocused answer
+    - 二次改写 answer
+    - calculation/progress-plan question that must not rely on LLM-only final math
 
-P1 can start only after P0 gate passes and at least 20 L2 rubric candidates are identified.
+P1 can start after P0 gate passes and at least 20 mixed-mode golden samples are identified. L2/L3 coverage controls how broadly standard point-score grading can be marketed; it does not block L1/L0 diagnostic experience.
 
 ## 5. Follow-up Plans After P0
 

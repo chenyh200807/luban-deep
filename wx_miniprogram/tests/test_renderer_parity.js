@@ -4,9 +4,13 @@
 var wxAiState = require("../utils/ai-message-state");
 var wxMcq = require("../utils/mcq-detect");
 var wxRenderSchema = require("../utils/render-schema");
+var wxMarkdown = require("../utils/markdown");
+var wxMarkdownNormalize = require("../utils/markdown-normalize");
 var webAiState = require("../../yousenwebview/packageDeeptutor/utils/ai-message-state");
 var webMcq = require("../../yousenwebview/packageDeeptutor/utils/mcq-detect");
 var webRenderSchema = require("../../yousenwebview/packageDeeptutor/utils/render-schema");
+var webMarkdown = require("../../yousenwebview/packageDeeptutor/utils/markdown");
+var webMarkdownNormalize = require("../../yousenwebview/packageDeeptutor/utils/markdown-normalize");
 var fs = require("fs");
 var path = require("path");
 
@@ -241,6 +245,28 @@ run("renderer sample set keeps wx and webview parity", function () {
       sample.name + " should keep wx/webview parity",
     );
   });
+});
+
+run("markdown parser and normalizer parity for blank-separated ordered sections", function () {
+  var content = [
+    "## 管理篇 - 案例题主力",
+    "",
+    "1. 进度管理：",
+    "-双代号网络计划 → 关键线路、总时差、工期索赔判定。",
+    "",
+    "8. 安全管理：",
+    "-危险源辨识、应急预案。",
+    "",
+    "9. 合同与成本管理：",
+  ].join("\n");
+  var wxNormalized = wxMarkdownNormalize.normalizeMarkdownForWechat(content);
+  var webNormalized = webMarkdownNormalize.normalizeMarkdownForWechat(content);
+  assertEqual(wxNormalized, webNormalized, "markdown normalizer should match across wx/webview");
+  assertEqual(
+    wxMarkdown.parse(wxNormalized),
+    webMarkdown.parse(webNormalized),
+    "markdown parser should match across wx/webview",
+  );
 });
 
 if (fail) {

@@ -5,7 +5,7 @@
 - 文档名称：鲁班智考案例题 AI 阅卷与错因变式训练闭环 PRD
 - 文档路径：`docs/plan/2026-05-13-luban-case-grading-error-map-prd.md`
 - 创建日期：2026-05-13
-- 状态：Proposed v1.1（2026-05-13 复审强化：明确复用现有 assessment / learner state / deep_question / questions_bank 基础，不另起炉灶）
+- 状态：Proposed v1.7（2026-05-13 Live-audited Skill 版：已只读核验 Supabase `questions_bank / kb_chunks / standard_articles / syllabus_tree` 字段覆盖，并把线上真实证据链写入 grading Skill）
 - 适用范围：鲁班智考建筑实务案例题训练、AI 主观题阅卷、错因图谱、个性化变式训练、Learner State、Teaching Policy、Supabase `questions_bank`
 - 关联文档：
   - [CONTRACT.md](../../CONTRACT.md)
@@ -15,20 +15,23 @@
   - [2026-04-20-teaching-methods-matrix-prd.md](2026-04-20-teaching-methods-matrix-prd.md)
   - [2026-05-02-luban-assessment-blueprint-prd.md](2026-05-02-luban-assessment-blueprint-prd.md)
   - [2026-05-13-luban-case-grading-error-map-implementation-plan.md](2026-05-13-luban-case-grading-error-map-implementation-plan.md)
+  - [../../deeptutor/tutorbot/skills/construction-mcq-grading/SKILL.md](../../deeptutor/tutorbot/skills/construction-mcq-grading/SKILL.md)
+  - [../../deeptutor/tutorbot/skills/construction-case-grading/SKILL.md](../../deeptutor/tutorbot/skills/construction-case-grading/SKILL.md)
   - [../openmaic/ADR-006-supabase-knowledge-base-reuse.md](../openmaic/ADR-006-supabase-knowledge-base-reuse.md)
 
 ## 2. 一句话结论
 
 鲁班智考下一阶段不要做“建筑实务版 ChatGPT”，而要做：
 
-> 建筑实务案例题 AI 阅卷官：基于现有题库与采分点投影，逐项判断用户答案能拿多少分、为什么丢分、下一题该练什么。
+> 建筑实务案例题 AI 阅卷官：以建筑实务阅卷 Skill 为核心，结合现有题库与 Rubric 校准锚点，判断用户答案怎么拿分、为什么丢分、下一题该练什么。
 
 本 PRD 吸收前面讨论里的两个最高价值方向：
 
 1. `AI 主观题阅卷系统`
-   - 不是让 LLM 凭感觉打总分，而是用 Rubric 驱动的结构化判卷。
-   - 每个给分都必须有用户答案原文证据。
-   - 没有证据句，不给分。
+   - 不是把产品做成“有 Rubric 才能批”的题库依赖系统。
+   - 核心能力是 `construction-case-grading` Skill 与后续 `CaseGradingSkillKernel`：识别题型、抽取题干有效信息、推断考点、生成采分点投影、匹配答案证据、输出错因和得分表达。
+   - Rubric 是校准锚点和高置信评分资产，不是唯一能力来源。
+   - 每个给分都必须有用户答案原文证据；没有证据句，不给 full。
 
 2. `错因图谱 + 个性化变式训练`
    - 不只告诉用户“错了”，而是记录为什么错、错在哪个能力环节、下一步练哪类题。
@@ -36,7 +39,41 @@
 
 最重要的取舍：
 
-> P0 不新建第二套 Rubric 题库。先复用 Supabase `questions_bank` 作为唯一题目资产 authority，从已有 `correct_answer / analysis / grading_keywords / grading_rubric / source_meta` 生成“Rubric 投影”。只有当人工校准证明字段表达力不够时，再增加 `question_rubric_items` 子表或人工覆盖层。
+> Skill-first，Rubric-calibrated。P0 不新建第二套 Rubric 题库，也不把系统能力锁死在少量 L2 Rubric 上。系统必须支持 L2 标准采分点评分、L1 采分点推演阅卷、L0 开放提分诊断三档模式；Rubric 越完整，分数越硬，Rubric 不完整时仍能给出高价值错因诊断、得分表达改写和下一题建议。
+
+全题型 Skill 家族：
+
+| 题型 | 阅卷 Skill | 复杂度原则 |
+| --- | --- | --- |
+| 单选/多选/判断题 | `construction-mcq-grading` | 标准答案确定性判分优先，充分利用 `option_reasoning / trap_type / testing_focus`，不额外重建评分内核 |
+| 案例题/主观题/简答题 | `construction-case-grading` | Skill-first + Rubric-calibrated，充分利用题库答案、解析、分值、教材/讲义/标准/taxonomy 补证据，后续工程化为 `CaseGradingSkillKernel` |
+| 普通讲解 | `construction-exam-tutor` | 不承担结构化阅卷，只负责讲解、答题思路和复盘表达 |
+
+用户可见口径：
+
+| 模式 | 内部名 | 输入条件 | 用户看到什么 | 用户不看到什么 |
+| --- | --- | --- | --- | --- |
+| 标准采分点评分 | `curated_rubric` | 有结构化或人工校准 Rubric | 明确分数、逐采分点命中、漏点、改写 | 不显示置信度百分比 |
+| 采分点推演阅卷 | `projected_rubric` | 有题干、标准答案、解析、关键词，但无人工校准 Rubric | 得分区间或预计分、推演采分点、漏点、改写 | 不说“低置信度” |
+| 开放提分诊断 | `open_skill` | 用户粘贴题干和答案，或题目资产不足 | 主要问题、可能漏点、得分表达改写、建议补充信息/下一题 | 不强装正式分数 |
+
+内部可以保留 `quality_signal / review_gate / writeback_eligible` 等质量字段，用于测试、老师复核、learner state 写回和 observability；但前端不展示“AI 置信度 62%”这类削弱信任的内容。
+
+### 2.1 v1.6 再复审后的产品铁律
+
+这次计划必须防止两个相反错误：
+
+1. 过度 Rubric 化。
+   - 错误形态：只有少量人工 Rubric 题能批，题库覆盖变窄，产品能力看起来退化。
+   - 修正：`CaseGradingSkillKernel` 必须能在 L0/L1/L2 三档下工作。Rubric 越好，分数越硬；Rubric 不足，仍给用户提分诊断、漏点推演、表达改写和下一题建议。
+
+2. 过度 ChatGPT 化。
+   - 错误形态：LLM 自由打分，报告好看但每一分不可追溯，后期无法校准。
+   - 修正：LLM 负责建筑实务阅卷动作，动作必须结构化：识题型、抽有效信息、推采分框架、找证据句、判错因、给改写、推荐下一题。
+
+因此，P0 的真实目标不是“做一套完整 Rubric 题库”，也不是“接一个批改 prompt”，而是：
+
+> 用现有题库和练题链路，先落一个可被 TutorBot 调用的 `construction-case-grading` Skill，再把它工程化为可评测、可校准、可沉淀错因的主观题阅卷 Skill Kernel。
 
 ## 3. 背景与判断
 
@@ -76,7 +113,11 @@
 1. 快速启动：用现有题干、答案、解析、关键词先跑通 AI 阅卷。
 2. 保持简单：避免在 Supabase 里再建一套并行题库，造成题目来源、版本、上下线状态漂移。
 
-### 3.3 为什么不能直接让 LLM 打分
+### 3.3 为什么要利用 LLM 理解能力，但不能让它自由打分
+
+LLM 当下的理解能力是本产品必须利用的核心能力。建筑实务案例题里，题干背景、隐含风险、程序链条、同义表达、用户答案的大白话转考试表达，都不是简单关键词表能完全覆盖的。
+
+因此，错误方向不是“用 LLM”，而是“让 LLM 没有阅卷动作约束地凭感觉打总分”。
 
 直接 prompt：“请给这个答案打分”，短期看起来可用，长期一定不稳定：
 
@@ -86,9 +127,11 @@
 - 用户无法追溯每一分来自哪里。
 - 老师无法校准和复用评分规则。
 
-所以本系统的核心不是“LLM 打分”，而是：
+所以本系统的核心不是“LLM 自由打分”，而是：
 
-> 题目 -> Rubric 投影 -> 答案证据 -> 逐项评分 -> 错因事件 -> 下一题策略。
+> 题目资产 / 用户粘贴题目 -> CaseGradingSkillKernel -> 三档阅卷模式选择 -> 采分点投影或开放诊断 -> 答案证据 -> 评分/区间/诊断 -> 错因事件 -> 下一题策略。
+
+`CaseGradingSkillKernel` 是能力源；`Rubric` 是校准锚点。Rubric 小时，系统不应失效；Rubric 大时，系统应更准、更可复核、更能沉淀数据。
 
 ### 3.4 复审结论：这不是另起炉灶，而是在现有基础上补主观题内核
 
@@ -100,6 +143,8 @@
 | `AssessmentBlueprintService` | 已负责正式测评抽样、题量、来源、session 交付与 fail-closed | 复用其“蓝图 + provider + coverage audit”的思想；新增 case readiness audit 时沿用同一风格 | 不把主观题训练硬塞进现有 20 题摸底蓝图 |
 | `scripts/audit_assessment_blueprint_coverage.py` / `assessment.coverage` | 已有 Supabase 只读覆盖审计模式 | 扩展出 `case_rubric_readiness` 审计，检查 case 题是否有可拆 rubric 的答案、关键词、分值、来源 | 不靠人工感觉判断题库是否够用 |
 | `deep_question` / `question_followup` | 已有练题生成、题目上下文、答题解析、批量题提交、active object 连续性 | 主观案例题沿用 question context / active object 绑定；在 grading route 中遇到 `case_study / written` 时转入 `CaseGradingService` | 不新增专用聊天 WebSocket，不绕开 `/api/v1/ws` |
+| `tutorbot/skills/construction-exam-tutor` | 已有建筑实务教学 Skill 和场景化 reference | 新增 `construction-mcq-grading` 与 `construction-case-grading`，分别通过 `mcq_grading` / `case_grading` 场景在判分批改时加载 | 不把普通讲解和结构化阅卷混成一个大 prompt |
+| 2026 本地清洗资料 | 含题库、教材、讲义、标准文件、taxonomy；字段包括 `option_reasoning / exam_matrix / structured_rules / logic_chains / pitfalls / mnemonics / logic_constraints` | 作为 Skill 的 source-grounding 协议输入：选择题吃选项解释，案例题吃标准答案/解析/分值，教材讲义标准补证据 | 不把 RAG 当普通背景长文，也不绕开 `questions_bank` 建第二套生产库 |
 | `SubmissionGraderAgent` | 当前更偏选择题/批量题反馈，能保留题目锚点并生成讲解 | 可复用其反馈表达经验，但不能作为主观题分数 authority | 不继续用“讲解 agent”承担结构化评分 |
 | `LearnerStateService` | 已有 profile/progress/memory events/outbox/Supabase sync | 错因事件以 `case_grading_result / case_error_event` 等 memory/progress evidence 写入，聚合后再影响长期画像 | 不新建一套 learner 错因数据库 |
 | `assessment.teaching_policy` | 已能把摸底结果转成节奏、支架、复习建议 | 增加 case 错因输入后，输出下一题、支架强度、复习节奏 | 不新建第二个 Teaching Policy 引擎 |
@@ -133,6 +178,27 @@
 5. `questions_bank` 是否已完整保留本地源数据，目前仍需 live 只读对账。
    - 本地源数据看起来足够做 P0。
    - Supabase 当前环境字段完整度必须用 audit 证明，不能口头假设。
+
+### 3.6 真正护城河：不是一次批改，而是五个数据飞轮
+
+如果只做“上传答案 -> AI 批改”，大平台很容易复制。鲁班智考要形成护城河，必须把每次批改转成可复用的数据资产。P0 代码可以很轻，但数据设计必须从第一天就对准这五个飞轮。
+
+| 数据飞轮 | 用户侧价值 | 系统沉淀 | 复用现有模块 |
+| --- | --- | --- | --- |
+| 阅卷 Skill 飞轮 | 批改越来越像建筑实务老师，而不是泛 AI 评论 | 题型识别、采分框架、证据句、扣分原因、改写样例 | `CaseGradingSkillKernel` + existing LLM seam |
+| Rubric 校准飞轮 | 高频真题逐步形成更硬的标准评分 | L2/L3 Rubric、老师修正、AI/人工差异、few-shot 示例 | `questions_bank.grading_rubric` / `source_meta` |
+| 错因图谱飞轮 | 用户知道自己到底为什么丢分 | E-code、concept、severity、evidence、重复发生频率 | `LearnerStateService` / Teaching Policy |
+| 变式有效性飞轮 | 下一题不是随机刷，而是真能补短板 | 推荐原因、训练完成、二次得分提升、迁移失败记录 | existing `deep_question` / question generator |
+| 老师校准飞轮 | 机构老师省批改时间，还能生成讲评 | 老师复核差异、班级热力图、典型低分答案 | 后续 teacher workspace，不进 P0 主路径 |
+
+这五个飞轮决定了产品的长期价值。第一版不需要把它们全做成后台，但每次评分结果必须保留足够字段，让后续可以追溯：
+
+1. 这次答案绑定了哪道题或哪段用户题干。
+2. 系统采用哪档模式：`curated_rubric / projected_rubric / open_skill`。
+3. 每个扣分点有没有用户原文证据。
+4. 产生了哪些错因事件，是否允许写入长期画像。
+5. 下一题推荐基于什么 concept 和 error_code。
+6. 用户二次改写后，新增命中了哪些采分点。
 
 ## 4. 产品目标
 
@@ -207,12 +273,13 @@ P2 必须交付：
 | 业务事实 | 唯一 authority |
 | --- | --- |
 | 题目资产、题干、答案、来源 | Supabase `questions_bank` |
+| 三档模式选择与阅卷动作 | `CaseGradingSkillKernel` |
 | Rubric 投影生成口径 | `CaseRubricNormalizer` |
-| 一次判卷结果 | `CaseGradingService` |
+| 一次判卷结果 | `CaseGradingService` / `CaseGradingSkillKernel` 输出 schema |
 | 逐采分点得分 | `ScoreAggregator` 基于 matcher 结果确定 |
 | 错因 taxonomy | `CaseErrorTaxonomy` |
 | 学员长期薄弱点 | Learner State / Teaching Policy 的 learner projection |
-| 下一题选择 | `CaseTrainingPolicy` |
+| 下一题选择 | `assessment.teaching_policy` 的 case next-task projection；`recommendation.py` 只是薄选择器 |
 | AI 生成变式题质量门槛 | `VariantValidator` |
 | 用户聊天入口 | 统一 `/api/v1/ws`，不新增专用聊天 WS |
 
@@ -232,16 +299,23 @@ P2 必须交付：
 ```mermaid
 flowchart TD
   A["用户提交案例题答案"] --> B["绑定 questions_bank.id"]
-  B --> C["CaseRubricNormalizer 生成 Rubric 投影"]
-  C --> D["AnswerSpanExtractor 切分答案证据"]
-  D --> E["RubricMatcher 逐采分点匹配"]
-  E --> F["ScoreAggregator 汇总分数与置信度"]
-  F --> G["CaseErrorDiagnoser 生成错因事件"]
-  G --> H["FeedbackBuilder 生成批改报告与得分表达改写"]
-  H --> I["Learner State 写入薄弱点与掌握度变化"]
-  I --> J["CaseTrainingPolicy 推荐下一题"]
-  J --> K["检索相似题或生成变式题"]
-  K --> L["VariantValidator 校验后进入训练任务"]
+  A --> B2["或用户粘贴完整题干"]
+  B --> C["CaseGradingSkillKernel 选择阅卷模式"]
+  B2 --> C
+  C --> D1["L2 curated_rubric: 标准采分点评分"]
+  C --> D2["L1 projected_rubric: 采分点推演阅卷"]
+  C --> D3["L0 open_skill: 开放提分诊断"]
+  D1 --> E["AnswerSpanExtractor 切分答案证据"]
+  D2 --> E
+  D3 --> E
+  E --> F["Matcher/Reasoner 匹配证据与采分含义"]
+  F --> G["ScoreAggregator 或 DiagnosticBuilder 生成结果"]
+  G --> H["QualityGate 决定展示口径与写回资格"]
+  H --> I["FeedbackBuilder 生成批改报告与得分表达改写"]
+  I --> J["Learner State 写入合格错因 evidence"]
+  J --> K["Teaching Policy case projection 推荐下一题"]
+  K --> L["检索相似题或生成变式题"]
+  L --> M["VariantValidator 校验后进入训练任务"]
 ```
 
 ### 6.5 Delete Or Demote
@@ -271,7 +345,7 @@ P0 必须降级或禁止：
 
 | 场景 | 容易犯的设计错误 | 当前最稳方案 |
 | --- | --- | --- |
-| 用户在聊天里直接贴答案：“帮我批改这道案例题” | 没有绑定题目就强行评分 | 若 active object 中有当前题，绑定该题；否则先要求用户选择题目或粘贴完整题干，不能生成正式分数 |
+| 用户在聊天里直接贴答案：“帮我批改这道案例题” | 没有绑定题目就强行假装正式评分 | 若 active object 中有当前题，绑定该题；若用户同时贴出完整题干和答案，进入 `open_skill` 诊断；若缺题干，先要求补充题干 |
 | 用户在练题页提交今日案例题 | 练题页自己拼 prompt 批改 | 练题页只提交 `question_id + submission_text`，评分统一走 `CaseGradingService` |
 | 用户提交很短答案：“加强管理，严格检查” | 模型为了鼓励用户乱给分 | 只能命中泛化表达，最高 partial，并标注 E04 口号化表达 |
 | 用户答案很长但没有关键词 | 把长答案误认为高质量 | 逐采分点找证据句，没有证据句不给 full |
@@ -279,21 +353,76 @@ P0 必须降级或禁止：
 | 用户要求“再来一道类似的” | AI 随机生成一道看起来相似的题 | 先根据错因和 concept 从 `questions_bank` 检索；检索不足才生成变式并 validator |
 | 变式题由 AI 生成 | 直接写入正式题库 | 只进入 `training_task` pending/approved 流，不进入正式 `questions_bank` |
 | 老师修正 AI 分数 | 只改页面展示，不沉淀 | 写入 calibration event，后续更新 rubric few-shot 或人工覆盖层 |
-| 用户连续乱答或秒交 | 错误写入长期画像 | 标记 low confidence，只给临时反馈，不更新稳定 mastery |
-| Supabase 字段缺 rubric | 宣布不能做 | 从 `correct_answer / analysis / grading_keywords` 生成 L1 draft；人工确认后升级 L2 |
+| 用户连续乱答或秒交 | 错误写入长期画像 | 内部 `QualityGate` 标记为不合格作答，只给当前报告，不更新稳定 mastery |
+| Supabase 字段缺 rubric | 宣布不能做 | 先走 `projected_rubric` 或 `open_skill`；人工确认后升级为 `curated_rubric` |
 | 题目是进度/费用计算 | 让 LLM 直接算关键线路或费用 | P0 标记 `needs_review` 或走确定性计算插件；不把 LLM 结果当最终分 |
 | 小程序移动端输入不便 | 一开始上 OCR / 拍照识别 | P0 先文本输入和粘贴；OCR 作为 P2 体验增强 |
 | 老师/机构想要班级报告 | 先做大后台 | P2 先用错因聚合表和导出报告，不先做完整 SaaS |
 
+还要额外覆盖以下容易被忽视的真实输入形态：
+
+| 输入形态 | 阅卷模式 | 产品处理 |
+| --- | --- | --- |
+| 用户只贴“我的答案”，上下文里有 active question | 优先绑定 active object | 直接批当前题，并在报告顶部显示题目摘要，防止批错题 |
+| 用户贴完整题干 + 自己答案，但不是题库题 | `open_skill` 或 `projected_rubric` | 给提分诊断和得分表达；不写入标准题库；只在质量合格时写轻量错因 event |
+| 用户只问“这样写能得几分吗”，没有题干 | 不进入正式批改 | 先要求补题干/题目截图文字；可以解释需要题干才能判断采分点 |
+| 用户追问“为什么这句不给分” | 沿用同一 grading_run | 回到对应 rubric item / projected item，解释缺失含义和可得分写法 |
+| 用户要求“把我的答案改成满分答案” | 仍绑定原评分结果 | 输出得分表达改写，并标注“新增采分点”；不伪装成用户原答案得分 |
+| 用户做的是索赔/进度计算题 | `curated_rubric` + deterministic 或 `needs_review` | P0 不让 LLM 单独承担计算 authority；没有算法或标准解时给过程诊断 |
+| 用户提交图片/OCR 文本不完整 | `open_skill` | 提示缺失信息，先给可见部分诊断；不写稳定 mastery |
+| 用户连续提交低努力答案 | 当前报告可出 | `QualityGate` 禁止污染长期画像，推荐先练答题骨架 |
+| 机构批量导入一班答案 | P2 | P0 只保证单用户单题链路；批量报告等 P0 评分质量跑通后再做 |
+
 这些场景反推后的产品口径是：
 
-> P0 不是“万能批改器”，而是“绑定题目后的主观题结构化批改器”。绑定题目、Rubric 投影和证据句是三条硬门槛。
+> P0 不是“万能官方阅卷器”，而是“建筑实务案例题提分批改器”。有高质量 Rubric 时给标准采分点评分；没有高质量 Rubric 时仍能利用 LLM 阅卷 Skill 给出漏点诊断、得分表达改写和下一题建议。证据句是硬门槛，Rubric 是增强项，不是系统能否工作的唯一前提。
 
 ## 8. 核心功能设计
 
-### 8.1 功能一：Rubric 投影生成
+### 8.0 CaseGradingSkillKernel 的四段式动作
 
-Rubric 投影不是新题库，而是从 `questions_bank` 中生成的评分结构。
+`CaseGradingSkillKernel` 不是“大 prompt 包装器”，而是主观题阅卷的单一能力内核。它必须稳定执行四段动作：
+
+1. 读题。
+   - 识别题型：不妥纠偏、程序补全、原因分析、计算、索赔、验收、质量、安全、进度等。
+   - 抽取背景有效信息：工程对象、数字、时间、责任主体、工序、隐含风险点。
+
+2. 建框架。
+   - 有 L2/L3 Rubric 时读取标准采分点。
+   - 无人工 Rubric 时，从标准答案、解析、关键词、RAG 片段或题干自行投影临时采分框架。
+   - 无足够题目资产时，只进入开放提分诊断，不硬打标准分。
+
+3. 找证据。
+   - 将用户答案切成 answer spans。
+   - 每个采分点必须找到原文证据或明确标为 miss。
+   - 不允许因为“看起来懂了”而给 full。
+
+4. 教下一步。
+   - 生成扣分原因、得分表达改写、错因事件。
+   - 给出下一题推荐理由：为什么现在练这类题，而不是随机刷题。
+
+这四段动作要比“关键词匹配”更强，也要比“自由聊天打分”更可控。实现上可以先用少量 deterministic seam 做测试，但生产路径必须保留 LLM structured matcher / projector 的能力位置。
+
+### 8.1 功能一：三档阅卷模式选择
+
+系统先判断本次批改应进入哪一档，不让 Rubric 覆盖范围决定产品是否可用。
+
+| 优先级 | 模式 | 触发条件 | 内部做法 | 用户承诺 |
+| --- | --- | --- | --- | --- |
+| 1 | `curated_rubric` | `grading_rubric` 结构化质量高，或有人工校准 Rubric | 按标准采分点逐项评分，ScoreAggregator 汇总 | 明确分数、逐项命中、漏点和改写 |
+| 2 | `projected_rubric` | 有题干、标准答案、解析、关键词，但无人工校准 Rubric | LLM 从答案/解析/关键词生成临时采分点，再证据匹配 | 预计分或得分区间、推演采分点、漏点和改写 |
+| 3 | `open_skill` | 用户粘贴题干和答案，或题库资产不足 | LLM 按建筑实务阅卷 Skill 做题型识别、考点推断、漏点诊断 | 提分诊断、得分表达改写、建议补充信息或下一题 |
+
+模式选择原则：
+
+1. 不把 L0/L1 称为“低置信度批改”，而称为“提分诊断”或“采分点推演阅卷”。
+2. 不对 L0 强行展示硬分数；确需分数时展示“预计得分区间”，并把重点放在漏点和改写。
+3. L2 是标准采分点评分，但也不能绕过证据句规则。
+4. 模式和内部质量信号必须写入 metadata，便于评测和老师复核；前端默认不展示置信度。
+
+### 8.2 功能二：Rubric 投影生成
+
+Rubric 投影不是新题库，而是从 `questions_bank` 或用户粘贴题干中生成的评分结构。
 
 输入字段优先级：
 
@@ -334,16 +463,16 @@ Rubric 投影不是新题库，而是从 `questions_bank` 中生成的评分结�
 
 Rubric 投影等级：
 
-| 等级 | 来源 | 是否可用于正式评分 | 用途 |
+| 等级 | 来源 | 对应模式 | 用途 |
 | --- | --- | --- | --- |
-| L0 | 只有标准答案文本 | 否 | 可用于讲解，不用于正式估分 |
-| L1 | AI 从标准答案拆出的 draft rubric | 可用于灰度体验 | 需要标记低置信度 |
-| L2 | 人工确认过的 rubric | 是 | P0 正式训练主力 |
-| L3 | 有真实答案与老师校准数据 | 是 | 高可信评分与机构版 |
+| L0 | 用户粘贴题干、标准答案缺失或题库资产不足 | `open_skill` | 提分诊断、漏点提示、得分表达改写 |
+| L1 | AI 从标准答案、解析、关键词拆出的 draft rubric | `projected_rubric` | 预计分/区间、采分点推演、错因事件候选 |
+| L2 | 人工确认过的 rubric | `curated_rubric` | 标准采分点评分、正式训练主力 |
+| L3 | 有真实答案与老师校准数据 | `curated_rubric` + teacher calibration | 高可信评分、机构版和评测基准 |
 
-P0 只需要 20-50 道 L2 题即可上线验证，不追求全库覆盖。
+P0 不再要求“只有 20-50 道 L2 才能上线体验”。P0 要求至少有一批 L2/L3 golden set 用于评测和校准，同时允许 L1/L0 承担更广覆盖的提分诊断。
 
-### 8.2 功能二：AI 主观题阅卷
+### 8.3 功能三：AI 主观题阅卷
 
 评分流程分为四步。
 
@@ -380,7 +509,7 @@ P0 只需要 20-50 道 L2 题即可上线验证，不追求全库覆盖。
   "missing_meaning": "未写出专家论证要求",
   "reason": "识别到专项方案问题，但没有表达超过一定规模危大工程应组织专家论证",
   "error_tags": ["E02", "E03"],
-  "confidence": 0.82
+  "internal_quality_score": 0.82
 }
 ```
 
@@ -393,7 +522,7 @@ P0 只需要 20-50 道 L2 题即可上线验证，不追求全库覆盖。
 1. `awarded_score` 不能超过 rubric item 分值。
 2. 没有 `evidence_text` 的 item 不能给 full。
 3. 只有泛化表达时最高 partial。
-4. 低置信度评分进入“AI 初评，建议复核”状态。
+4. 内部质量未达标时，不写入稳定 mastery；用户侧切换为“提分诊断”或“得分区间”口径。
 5. 计算题进入确定性算法或人工复核，不能只靠 LLM。
 
 第四步：反馈生成。
@@ -401,13 +530,20 @@ P0 只需要 20-50 道 L2 题即可上线验证，不追求全库覆盖。
 用户看到的报告不是 JSON，而是产品化解释：
 
 - 预计得分：`3.5 / 6`
+- 或得分区间：`约 3-4 / 6`
 - 命中的采分点
 - 漏掉的采分点
 - 哪些句子是“管理口号”而不是采分表达
 - 得分表达改写
 - 下一题训练建议
 
-### 8.3 功能三：错因图谱
+用户不看到 `internal_quality_score`、`confidence`、`低置信度` 这类字段。系统用产品语言表达能力边界：
+
+- 标准采分点评分
+- 采分点推演阅卷
+- 提分诊断
+
+### 8.4 功能四：错因图谱
 
 第一版错因 taxonomy：
 
@@ -447,7 +583,7 @@ P0 只需要 20-50 道 L2 题即可上线验证，不追求全库覆盖。
 
 > 你在“危大工程专项方案流程”相关题中最近 5 次平均得分率为 42%。主要丢分不是不会安全管理，而是漏写“专家论证、审批程序、安全技术交底”这些程序性采分点。下一阶段不建议泛刷安全题，建议连续训练 3 道“危大工程流程类”变式题。
 
-### 8.4 功能四：得分表达改写
+### 8.5 功能五：得分表达改写
 
 用户提交原答案后，系统给出得分版改写。
 
@@ -469,7 +605,7 @@ P0 只需要 20-50 道 L2 题即可上线验证，不追求全库覆盖。
 
 > 该做法不妥。施工单位应针对该分部分项工程编制专项施工方案，并按规定履行审核、审批程序；若属于超过一定规模的危大工程，还应组织专家论证。方案实施前应进行安全技术交底，实施过程中应按方案施工，并进行检查、验收和整改闭环。
 
-### 8.5 功能五：个性化变式训练
+### 8.6 功能六：个性化变式训练
 
 变式训练遵循“检索优先，生成其次，校验必经”的原则。
 
@@ -516,7 +652,7 @@ P0 先支持 5 个高频考点：
 5. 输出题干、标准答案、rubric、陷阱说明、来源依据。
 6. 未通过 validator 的题不能推给用户。
 
-### 8.6 功能六：老师校准闭环
+### 8.7 功能七：老师校准闭环
 
 老师工作台不是 P0 必需，但它是长期准确度护城河。
 
@@ -526,7 +662,7 @@ P2 功能：
    - 编辑采分点、分值、关键词、同义表达、不给分表达、常见错因。
 
 2. AI 批改复核
-   - 展示用户答案、AI 给分、证据句、漏点、置信度。
+   - 展示用户答案、AI 给分、证据句、漏点、内部质量门控原因。
    - 老师只修正错误项。
 
 3. 班级错因热力图
@@ -549,7 +685,7 @@ P0 可以先用：
 - `questions_bank` 读取题目资产。
 - 本地/服务内 `CaseRubricProjection` schema 生成评分投影。
 - 评分结果作为应用事件或现有 learner state evidence 写入。
-- golden fixtures 保存 20-50 道 L2 rubric。
+- golden fixtures 保存 20-50 道覆盖 L0/L1/L2/L3 的评测样本，其中 L2/L3 用作高可信校准锚点。
 
 只有当 P0 验证通过并需要规模化维护时，再加子表。
 
@@ -592,11 +728,17 @@ CREATE TABLE question_rubric_items (
   "user_id": "u1",
   "question_id": "q1",
   "submission_text": "用户答案",
+  "grading_mode": "projected_rubric",
   "rubric_version": "projection_v1:L2",
   "total_score": 3.5,
   "max_score": 6,
-  "confidence": 0.82,
-  "status": "ai_final",
+  "score_presentation": "point_score",
+  "internal_quality": {
+    "score": 0.82,
+    "review_gate": "pass",
+    "writeback_eligible": true
+  },
+  "status": "scored",
   "rubric_results": [],
   "major_problems": [],
   "rewrite_answer": "得分表达改写",
@@ -608,8 +750,9 @@ CREATE TABLE question_rubric_items (
 
 | 状态 | 含义 |
 | --- | --- |
-| `ai_draft` | AI 初评，置信度不足或 rubric 等级低 |
-| `ai_final` | AI 可直接展示的评分 |
+| `diagnostic_only` | 开放提分诊断，不展示硬分数 |
+| `score_band` | 采分点推演阅卷，展示得分区间或预计分 |
+| `scored` | 标准采分点评分，可展示明确分数 |
 | `needs_review` | 需要老师复核 |
 | `teacher_corrected` | 老师已修正 |
 | `discarded` | 判卷无效，不写入长期画像 |
@@ -661,9 +804,11 @@ P0 支持粘贴文本。拍照 OCR 后续再做。
 展示结构：
 
 1. 总分卡片
-   - `预计得分 3.5 / 6`
-   - `AI 置信度 82%`
-   - `评分状态：AI 可展示 / 建议老师复核`
+   - `预计得分 3.5 / 6`，适用于标准采分点评分。
+   - 或 `预计得分约 3-4 / 6`，适用于采分点推演阅卷。
+   - 或 `本题先看提分诊断`，适用于开放提分诊断。
+   - `评分口径：标准采分点评分 / 采分点推演阅卷 / 提分诊断`。
+   - 不展示 `AI 置信度 82%`、`低置信度`、`模型不确定` 等削弱信任的字样。
 
 2. 采分点表
    - 采分点
@@ -707,26 +852,37 @@ P0 支持粘贴文本。拍照 OCR 后续再做。
 
 ```text
 deeptutor/services/case_grading/
+  assets.py
+  readiness.py
   schema.py
+  mode_selector.py
+  skill_kernel.py
   rubric_normalizer.py
   answer_span_extractor.py
-  rubric_matcher.py
+  llm_matcher.py
+  matcher.py
   score_aggregator.py
+  quality_gate.py
   error_taxonomy.py
   error_diagnoser.py
-  feedback_builder.py
-  variant_recommender.py
+  feedback.py
+  learner_writeback.py
+  recommendation.py
   variant_validator.py
 ```
 
 原则：
 
-1. `rubric_normalizer.py` 只负责从 `questions_bank` 和人工覆盖层生成 Rubric 投影。
-2. `rubric_matcher.py` 可以调用 LLM，但必须输出结构化结果。
-3. `score_aggregator.py` 尽量 deterministic。
-4. `error_diagnoser.py` 只消费 rubric result，不重新判卷。
-5. `variant_recommender.py` 优先检索现有题。
-6. `variant_validator.py` 是变式题进入训练流的硬 gate。
+1. `assets.py` 只负责把 `questions_bank` 行转成案例题资产，不制造第二套题库。
+2. `readiness.py` 负责判断 L0/L1/L2/L3 能力覆盖，先审计再承诺。
+3. `mode_selector.py` 负责三档模式选择，不让前端或 prompt 自己决定评分口径。
+4. `skill_kernel.py` 是唯一主观题阅卷内核，编排读题、建框架、找证据、教下一步。
+5. `rubric_normalizer.py` 只负责从 `questions_bank`、人工覆盖层或标准答案生成 Rubric 投影。
+6. `llm_matcher.py` 是生产路径的结构化 LLM 阅卷器；`matcher.py` 可保留 deterministic seam 供测试、离线回归和低成本兜底。
+7. `score_aggregator.py` 尽量 deterministic，只汇总 matcher 结果，不自由创造分数。
+8. `quality_gate.py` 只决定内部写回资格和用户展示口径，不向用户暴露置信度。
+9. `error_diagnoser.py` 只消费 rubric result，不重新判卷。
+10. `recommendation.py` 只是 next-task 薄选择器：优先检索现有题，把推荐理由和候选题交回 Teaching Policy / 练题链路；生成变式必须经过 `variant_validator.py`。
 
 ### 11.2 结构化输出
 
@@ -736,9 +892,11 @@ deeptutor/services/case_grading/
 {
   "submission_id": "string",
   "question_id": "string",
+  "grading_mode": "curated_rubric | projected_rubric | open_skill",
+  "score_presentation": "point_score | score_band | diagnostic_only",
   "total_score": 3.5,
   "max_score": 6,
-  "confidence": 0.82,
+  "internal_quality_score": 0.82,
   "rubric_results": [
     {
       "rubric_item_id": "string",
@@ -750,7 +908,7 @@ deeptutor/services/case_grading/
       "missing_meaning": "string",
       "reason": "string",
       "error_tags": ["E02"],
-      "confidence": 0.82
+      "internal_quality_score": 0.82
     }
   ],
   "major_problems": ["string"],
@@ -765,7 +923,9 @@ deeptutor/services/case_grading/
 
 ### 11.3 Prompt 原则
 
-System prompt 核心规则：
+Prompt 不能只有一版。不同模式必须有不同约束，否则会把 L0/L1/L2 混成一套不稳定评分。
+
+`curated_rubric` 的核心规则：
 
 ```text
 你是一级/二级建造师建筑实务案例题阅卷助手。
@@ -780,13 +940,39 @@ System prompt 核心规则：
 7. 输出必须符合指定 JSON schema。
 ```
 
-User prompt 必须包含：
+`projected_rubric` 的核心规则：
+
+```text
+你是一级/二级建造师建筑实务案例题阅卷助手。
+本题没有人工校准 Rubric。你需要先基于题干、标准答案、解析、关键词和来源信息，投影一组临时采分点，再逐项匹配学生答案。
+规则：
+1. 临时采分点必须来自题目资产或可溯源知识，不得凭空加入超纲要求。
+2. 分数使用预计分或得分区间，重点解释漏点和改写。
+3. 每个已判定命中的采分点必须有学生原文证据。
+4. 输出必须符合指定 JSON schema，且 grading_mode 必须为 projected_rubric。
+```
+
+`open_skill` 的核心规则：
+
+```text
+你是建筑实务案例题提分教练。
+当前题目资产不足，不能假装正式阅卷。
+你需要识别题型、推断可能考点、指出答案最大提分问题、给出得分表达改写，并说明还需要用户补充哪些题目信息才能做标准采分点评分。
+规则：
+1. 不输出硬性总分；如必须量化，只能输出区间或诊断等级。
+2. 不把猜测当作标准答案。
+3. 不写“低置信度”，用“本次按提分诊断处理”等产品口径。
+4. 输出必须符合指定 JSON schema，且 grading_mode 必须为 open_skill。
+```
+
+User prompt 根据模式至少包含：
 
 - 题目背景
 - 问题
-- 总分
-- Rubric 投影 JSON
+- 总分或估计分值
+- Rubric 投影 JSON；`open_skill` 可为空
 - 学生答案
+- 可用来源：标准答案、解析、关键词、RAG 片段、`questions_bank.id`
 
 ### 11.4 与 TutorBot 的关系
 
@@ -810,8 +996,8 @@ AI 判卷结果不能直接覆盖长期画像。
 
 写入规则：
 
-1. `ai_final` 且置信度达到阈值，才能写入稳定 mastery projection。
-2. `ai_draft / needs_review` 只能写入候选 evidence。
+1. `scored` 且内部 `writeback_eligible=true`，才能写入稳定 mastery projection。
+2. `diagnostic_only / score_band / needs_review` 只能写入候选 evidence 或当前报告。
 3. 老师修正后，以老师修正结果为更高权重 evidence。
 4. 低质量作答、空答、明显乱答不写入长期画像。
 
@@ -820,28 +1006,29 @@ AI 判卷结果不能直接覆盖长期画像。
 ### 12.1 数据验收
 
 1. 从 Supabase `questions_bank` 中筛出至少 50 道 case study 候选题。
-2. 完成至少 20 道 L2 Rubric 投影。
-3. 每道 L2 题必须包含：
+2. 完成覆盖 L0/L1/L2/L3 的三档模式样本集，其中至少 20 道作为 golden eval 样本。
+3. 每道 L2/L3 题必须包含：
    - `questions_bank.id`
    - 题干
    - 标准答案
    - 总分
    - 3 个以上 rubric items，或证明该题低于 3 个采分点
    - 每个 item 的分值、核心含义、关键词、错因标签
-4. 输出 Rubric readiness audit：
+4. 输出 Case grading readiness audit：
    - 可直接用
-   - 需 AI 拆解
+   - 可采分点推演
+   - 可开放诊断
    - 需人工精修
    - 暂不可用于主观题评分
 
 ### 12.2 判卷质量验收
 
-1. 20 道 L2 题的结构化评分全部通过 schema 校验。
+1. 三档模式样本全部通过 schema 校验。
 2. 所有给分项必须有 `evidence_text` 或明确 partial 解释。
-3. AI 评分与人工老师评分在试点样本中达到：
+3. L2/L3 模式下 AI 评分与人工老师评分在试点样本中达到：
    - 总分误差平均不超过该题满分的 15%，或
    - 逐采分点 weighted agreement 达到 0.75 以上。
-4. 低置信度样本能进入 `needs_review`，不得伪装成最终评分。
+4. 内部质量不达标样本能切换为 `score_band / diagnostic_only / needs_review`，不得伪装成标准采分点评分。
 5. 用户二次改写后，系统能指出提分来自哪些采分点。
 
 ### 12.3 错因图谱验收
@@ -881,6 +1068,25 @@ AI 判卷结果不能直接覆盖长期画像。
 
 如果用户只觉得“这是一个讲解工具”，说明产品失败；如果用户觉得“这像老师在批我的卷子”，P0 成立。
 
+### 12.6 护城河数据验收
+
+P0 不能只验“能批改”，还要验“能沉淀”。每次有效批改必须至少沉淀以下非用户可见字段：
+
+1. `grading_mode`：本次是标准采分点评分、采分点推演阅卷，还是提分诊断。
+2. `source_question_id` 或用户题干 fingerprint。
+3. `rubric_projection_level`：L0/L1/L2/L3。
+4. `rubric_results[*].evidence_text`：每个命中点的用户原文证据。
+5. `error_events[*].error_code / concept_tag / severity`。
+6. `writeback_eligible`：是否允许进入长期画像。
+7. `next_training_suggestion.reason`：推荐下一题的可解释原因。
+8. `rewrite_delta`：二次改写新增或修正了哪些采分点。
+
+这些字段不是为了炫技，而是为了以后能回答三个商业问题：
+
+1. 哪些题最能区分真实水平。
+2. 哪些错因最常导致不过线。
+3. 哪种训练最能让用户二次作答提分。
+
 ## 13. 指标体系
 
 ### 13.1 产品有效性指标
@@ -901,7 +1107,7 @@ AI 判卷结果不能直接覆盖长期画像。
 | AI/人工总分误差 | 平均不超过满分 15% |
 | 采分点证据覆盖率 | >= 95% |
 | 无证据给分率 | 0 |
-| 低置信度正确拦截率 | 持续监控 |
+| 内部质量门控正确率 | 持续监控 |
 | 老师修正率 | 越低越好，但 P0 重点看错误类型 |
 
 ### 13.3 学习闭环指标
@@ -913,9 +1119,21 @@ AI 判卷结果不能直接覆盖长期画像。
 | 高频错因复发率 | 随训练下降 |
 | 7 天陪练完成率 | >= 35% |
 
+### 13.4 护城河指标
+
+| 指标 | 为什么重要 | P0 目标 |
+| --- | --- | --- |
+| mixed-mode golden 样本数 | 评测 Skill 和 Rubric 的共同基准 | 20-50 |
+| L2/L3 人工校准题数 | 标准采分点评分资产 | >= 20 起步，不够不阻塞 L0/L1 |
+| 真实/模拟学生答案样本数 | 阅卷准确度的长期壁垒 | 每题 3-5 份起步 |
+| 老师修正差异可归因率 | 校准数据是否能反哺系统 | >= 80% 修正能标出原因 |
+| 错因事件可聚合率 | 错因图谱是否有用 | >= 90% 有 concept + error_code |
+| 下一题推荐可解释率 | 个性化是否可信 | 100% 推荐必须有原因 |
+| 变式题 validator 通过率 | 决定能否开放生成变式 | 先观察，不设强目标 |
+
 ## 14. 分阶段路线图
 
-### Phase 0：数据核验与 Rubric readiness audit（1 周）
+### Phase 0：数据核验与三档 readiness audit（1 周）
 
 目标：
 
@@ -926,28 +1144,36 @@ AI 判卷结果不能直接覆盖长期画像。
 
 产出：
 
-- `case_rubric_readiness_report.json`
-- 20 道优先 L2 精修名单
+- `case_grading_readiness_report.json`
+- L2/L3 标准评分候选、L1 推演阅卷候选、L0 开放诊断候选
 - 字段缺失清单
 - `questions_bank` 字段完整度与本地源数据差异清单
 
-### Phase 1：AI 阅卷 P0（2 周）
+### Phase 1：AI 阅卷 Skill Kernel P0（2 周）
 
 目标：
 
-- 完成 20 道 L2 Rubric。
-- 跑通提交答案 -> 逐采分点评分 -> 报告展示。
+- 完成三档阅卷模式选择。
+- 跑通提交答案 -> 标准评分/推演阅卷/提分诊断 -> 报告展示。
 - 接入现有 `deep_question` grading route 和练题页面 submission flow，不新增聊天入口。
 
 产出：
 
+- `CaseGradingSkillKernel`
 - `CaseRubricNormalizer`
-- `RubricMatcher`
+- `LLMStructuredMatcher` + deterministic test seam
 - `ScoreAggregator`
 - `FeedbackBuilder`
-- 20 道 golden fixtures
+- 20-50 道 mixed-mode golden fixtures
 - 评分报告 UI 原型
 - `case_grading` 结构化结果 schema
+
+Phase 1 的硬约束：
+
+1. deterministic matcher 只能作为测试缝和离线兜底，不能成为生产主能力。
+2. LLM 输出必须结构化，不能靠 markdown 解析批改报告。
+3. `open_skill` 不硬打标准分；`projected_rubric` 不冒充人工校准 Rubric。
+4. 用户可见报告不出现 `confidence / low confidence / 低置信度`。
 
 ### Phase 2：错因图谱与 learner writeback（2 周）
 
@@ -976,7 +1202,7 @@ AI 判卷结果不能直接覆盖长期画像。
 
 产出：
 
-- `CaseTrainingPolicy`
+- Teaching Policy case next-task projection
 - `VariantTemplate`
 - `VariantValidator`
 - 5 个考点的变式模板
@@ -1016,10 +1242,10 @@ AI 判卷结果不能直接覆盖长期画像。
 
 | 发现 | 不做什么 | 降级方案 |
 | --- | --- | --- |
-| Supabase 中 `grading_rubric` 覆盖不足 | 不急着改生产 schema | 从本地源数据和 `correct_answer` 生成 L1 draft，人工确认 20 道 L2 |
-| 20 道 L2 人工精修速度慢 | 不做全库拆解 | 先做 5 个高频考点各 3-4 道题 |
+| Supabase 中 `grading_rubric` 覆盖不足 | 不急着改生产 schema，也不暂停产品体验 | 走 `projected_rubric / open_skill`，同时沉淀人工校准样本 |
+| L2/L3 人工精修速度慢 | 不做全库拆解，也不阻断 L0/L1 上线 | 先做 5 个高频考点各 3-4 道 L2/L3 作为 golden eval，其余走 Skill 阅卷 |
 | 主观题移动端输入完成率低 | 不先做 OCR 大工程 | 先在聊天/网页端跑种子用户；小程序只做粘贴输入 |
-| AI/人工一致性不达标 | 不上线“正式分数” | 展示“AI 初评区间 + 漏点诊断”，分数标记试算 |
+| AI/人工一致性不达标 | 不上线“标准采分点评分”口径 | 切到“采分点推演阅卷”或“提分诊断”，重点给漏点、改写和下一题 |
 | 变式生成质量不稳 | 不开放生成题给用户 | 只做 `questions_bank` 检索推荐 |
 | learner writeback 争议大 | 不写稳定画像 | 只写 memory event，等 5 次以上稳定证据再更新 mastery |
 
@@ -1039,7 +1265,7 @@ AI 判卷结果不能直接覆盖长期画像。
 
 1. 二次改写再评分。
 2. Rubric readiness audit。
-3. 低置信度复核队列。
+3. 内部质量门控与复核队列。
 4. 个人错因报告。
 5. 5 个高频考点变式模板。
 
@@ -1070,7 +1296,7 @@ AI 判卷结果不能直接覆盖长期画像。
 | 结构化判卷 | `deeptutor/services/case_grading/grader.py` | 统一返回 schema；LLM 只做匹配，汇总分 deterministic |
 | 错因 taxonomy | `deeptutor/services/case_grading/error_taxonomy.py` | 对接 Teaching Methods Matrix 的错因族，不另设教学法 |
 | learner 写回 | 现有 `LearnerStateService` | 使用 memory/progress event；稳定聚合后再写 progress |
-| 下一题策略 | 扩展 `deeptutor/services/assessment/teaching_policy.py` 或新增同目录 case policy | 复用 assessment seed 思路，避免第二个策略引擎 |
+| 下一题策略 | 优先扩展 `deeptutor/services/assessment/teaching_policy.py`；如需 `case_grading/recommendation.py`，只能做薄候选选择器 | 复用 assessment seed 思路，避免第二个策略引擎 |
 | 变式生成 | 复用 `AgentCoordinator`，外加 case validator | 生成只是候选，不是正式题库资产 |
 | 聊天接入 | 现有 `deep_question` grading route | `case_study/written` 分支调 `CaseGradingService` |
 | 小程序接入 | 现有 practice / assessment 页面模式 | 先加提交入口，不重做练题表面 |
@@ -1094,9 +1320,10 @@ AI 判卷结果不能直接覆盖长期画像。
 
 | 风险 | 影响 | 缓解 |
 | --- | --- | --- |
-| 源题库答案能讲解但不能直接评分 | AI 阅卷不稳定 | P0 只选 L2 精修题；建立 readiness audit |
+| 过度依赖少量 Rubric | 覆盖面小，用户觉得“很多题不能批” | 三档架构：L2/L3 做标准评分，L1 做采分点推演，L0 做开放提分诊断 |
+| 源题库答案能讲解但不能直接评分 | AI 阅卷不稳定 | 不强行标准评分；用 Skill 阅卷给漏点、改写、下一题，逐步沉淀校准样本 |
 | Supabase 字段不如本地源数据完整 | Rubric 投影缺字段 | 先做只读对账；缺失字段走补录或人工覆盖层 |
-| 模型给分过宽 | 用户误信分数 | 无证据不给分；低置信度复核；人工 golden eval |
+| 模型给分过宽 | 用户误信分数 | 无证据不给分；内部 QualityGate；不展示置信度，改用评分口径切换和人工 golden eval |
 | 变式题生成不严谨 | 用户练错题 | Validator 硬 gate；未通过不展示 |
 | 错因 taxonomy 过细 | 用户看不懂 | 对用户展示自然语言，对系统保留 code |
 | P0 做太大 | 上线慢 | 只做 20-50 道精品案例题，不追求全库覆盖 |
@@ -1108,11 +1335,14 @@ AI 判卷结果不能直接覆盖长期画像。
 | --- | --- | --- | --- |
 | Supabase 是否完整保留本地源数据中的案例题答案、解析、分值、rubric 字段 | 直接决定 P0 能否从线上题库生成 Rubric 投影 | 执行只读 `case_rubric_readiness` audit，对比本地源数据与 `questions_bank` | 若字段缺失，先用本地源数据生成 L2 golden set，再补录回 `questions_bank` 或人工覆盖层 |
 | `questions_bank.grading_rubric` 的结构是否稳定 | 决定 normalizer 能否通用 | 抽样 100 条 case 题，统计字段类型、可拆采分点数、分值一致性 | Normalizer 支持多来源优先级：`grading_rubric -> grading_keywords -> correct_answer -> analysis` |
-| AI/人工评分一致性能否达标 | 决定能否展示明确分数 | 20 道题 x 每题 3-5 份真实/模拟答案，老师给分后算误差 | 不达标时只展示“AI 初评区间 + 漏点诊断”，分数弱化 |
+| AI/人工评分一致性能否达标 | 决定哪些题能进入“标准采分点评分”口径 | 20 道题 x 每题 3-5 份真实/模拟答案，老师给分后算误差 | 不达标时切到“采分点推演阅卷”或“提分诊断”，不展示置信度失败感 |
 | 用户是否愿意长文本作答 | 决定小程序体验策略 | 7 天种子用户测试：提交率、平均字数、二次改写率 | 先做半题/小问/粘贴输入，不急做完整大案例 |
 | 变式生成质量是否稳定 | 决定是否开放 AI 生成题 | Validator + 老师抽检 50 道生成题 | P0 只做题库检索推荐，不开放生成 |
-| learner writeback 会不会污染长期画像 | 决定错因是否进入稳定 profile | 先只写 memory event，观察 5 次以上同类错因再聚合 | 低置信度只做当前报告，不写长期 mastery |
+| learner writeback 会不会污染长期画像 | 决定错因是否进入稳定 profile | 先只写 memory event，观察 5 次以上同类错因再聚合 | 仅内部质量合格样本进入稳定 mastery，其余只做当前报告 |
 | 老师是否愿意校准 | 决定 B2B 工作台优先级 | 找 3-5 位老师试用复核列表，记录每份节省时间 | 先找高分学员做校准，老师只抽检 |
+| LLM 批改成本和延迟是否可接受 | 决定是否能做每日高频训练 | 记录单次批改 token、耗时、失败率；分 L0/L1/L2 统计 | L2 题复用 rubric 和 few-shot 缓存；长题先摘要题干；低价值乱答走轻量诊断 |
+| 最新教材/规范变化是否影响答案 | 决定标准答案可信度 | 对 `source_type/exam_year/source_meta` 做版本标记，抽查高频规范题 | 对版本不明题只做诊断，不给“标准采分点”营销口径 |
+| 用户答案数据能否合规沉淀 | 决定长期语料壁垒是否可用 | 设计匿名化样本、删除用户身份字段、区分产品日志与训练样本 | P0 先做内部评测样本，不直接用于模型训练 |
 
 ## 17. 为什么这不会把简单事情做复杂
 
@@ -1123,26 +1353,26 @@ AI 判卷结果不能直接覆盖长期画像。
    - Rubric 只是投影和校准层。
 
 2. 不一次性全库结构化。
-   - 先做 20-50 道 L2 精品题。
-   - 验证用户愿不愿意反复提交答案。
+   - 先做 20-50 道 mixed-mode golden eval。
+   - L2/L3 用来校准，L1/L0 用来扩大覆盖和验证用户价值。
 
 3. 不让所有模块同时上线。
    - P0 只做“提交答案 -> AI 阅卷 -> 错因 -> 下一题建议”。
    - 变式生成、老师工作台、多模态都后置。
 
-真正复杂的是“没有 Rubric 却让 AI 自由打分”，因为后期会出现评分飘、用户不信、老师无法校准、系统无法学习。Rubric 投影不是为了炫技，而是为了让每一分可解释、可复核、可积累。
+真正复杂的是两个极端：一端是“没有 Rubric 却让 AI 自由打分”，会评分飘；另一端是“只有 Rubric 才能工作”，会覆盖面太小。三档架构把两者拆开：Skill 保证覆盖和提分体验，Rubric 保证高价值题的确定性和可校准。
 
 ## 18. 第一批实施建议
 
 第一批只做 3 个可交付：
 
-1. `Rubric readiness audit`
+1. `Case grading readiness audit`
    - 对 Supabase case study 题做字段完整性分析。
-   - 输出 50 道候选题。
+   - 输出 L2/L3 可标准评分题、L1 可推演题、L0 可诊断题和需人工精修题。
 
-2. `20 道 L2 Rubric golden set`
-   - 由现有答案、解析、关键词自动拆解。
-   - 人工快速校准。
+2. `三档阅卷 Skill Kernel + golden eval`
+   - 先定义 `curated_rubric / projected_rubric / open_skill` 三档输出 schema。
+   - 用 20-50 个样本验证模式选择、证据匹配、错因和改写质量。
 
 3. `AI 阅卷报告 MVP`
    - 用户提交答案。
@@ -1163,12 +1393,12 @@ AI 判卷结果不能直接覆盖长期画像。
    - `Teaching Methods Matrix` 是错因纠正和教学方法基础。
 
 2. 再明确真正缺口只有一个主轴：
-   - 建筑实务主观案例题缺少 Rubric 驱动的结构化评分内核。
+   - 建筑实务主观案例题缺少 Skill-first / Rubric-calibrated 的结构化阅卷内核。
 
 3. 第一批只补这条主轴的最短闭环：
    - 只读对账 `questions_bank`
-   - 选 20 道 L2 case rubric
-   - 做 `CaseGradingService`
+   - 建三档阅卷模式：`curated_rubric / projected_rubric / open_skill`
+   - 做 `CaseGradingSkillKernel` 和 `CaseGradingService`
    - 接入已有 grading route
    - 写入 learner memory/progress event
    - 用现有题库推荐下一题
@@ -1179,8 +1409,8 @@ AI 判卷结果不能直接覆盖长期画像。
    - 它是否可以先作为 adapter/projection，而不是新数据库、新路由、新平台？
 
 5. Go / No-Go 门槛：
-   - 若 20 道 L2 rubric 无法在 1 周内整理出来，先不要做完整产品页。
-   - 若 AI/人工评分一致性不达标，先上线漏点诊断和得分表达改写，不展示确定分数。
+   - 若 L2/L3 rubric 很少，不阻断 L0/L1 提分诊断上线，但不能宣传“标准采分点评分全覆盖”。
+   - 若 AI/人工评分一致性不达标，切到“采分点推演阅卷”或“提分诊断”，不展示用户可见置信度。
    - 若用户 7 天内提交不足 3 次，先优化训练节奏和题目粒度，不扩老师工作台。
    - 若 next-task 推荐不能解释“为什么推荐这题”，不开放个性化变式训练。
 
