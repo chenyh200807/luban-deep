@@ -24,7 +24,7 @@
 | 学员长期状态 | [2026-04-15-learner-state-memory-guided-learning-prd.md](2026-04-15-learner-state-memory-guided-learning-prd.md) | learner state、summary/profile/memory、Guided Learning、Heartbeat |
 | Bot-Learner Overlay | [2026-04-15-bot-learner-overlay-prd.md](2026-04-15-bot-learner-overlay-prd.md) | 多 Bot 对同一学员的局部状态、promotion、仲裁 |
 | 佑森小程序融合 | [2026-04-15-yousen-deeptutor-fusion-prd.md](2026-04-15-yousen-deeptutor-fusion-prd.md) | Yousen 原生入口、workspace shell、包内路由与页面体验 |
-| 微信结构化渲染 | [2026-04-16-wechat-structured-teaching-renderer-prd.md](2026-04-16-wechat-structured-teaching-renderer-prd.md) | 小程序题卡、表格、公式、图表、教学 block 渲染 |
+| 微信结构化渲染 | [2026-04-16-wechat-structured-teaching-renderer-prd.md](2026-04-16-wechat-structured-teaching-renderer-prd.md) / [2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md](2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md) | 小程序题卡、表格、公式、图表、教学 block 渲染、Markdown fallback 单一 authority 与 golden corpus |
 | 上下文与语义连续性 | [2026-04-16-tutorbot-context-orchestration-prd.md](2026-04-16-tutorbot-context-orchestration-prd.md) | 每轮上下文包、预算、选择性加载、route 稳定性 |
 | Active Object 与语义路由 | [2026-04-18-llm-native-active-object-semantic-router-prd.md](2026-04-18-llm-native-active-object-semantic-router-prd.md) | follow-up、当前题、当前对象、多对象切换、语义 route |
 | 钱包与会员 authority | [2026-04-19-supabase-wallet-single-authority-prd.md](2026-04-19-supabase-wallet-single-authority-prd.md) | Supabase wallet、积分、会员、支付状态、身份归一化 |
@@ -70,6 +70,8 @@
 | --- | --- | --- | --- |
 | [2026-04-15-yousen-deeptutor-fusion-prd.md](2026-04-15-yousen-deeptutor-fusion-prd.md) | PRD | Draft v1 | 佑森小程序与 DeepTutor 原生融合，包含已完成/未完成状态。 |
 | [2026-04-16-wechat-structured-teaching-renderer-prd.md](2026-04-16-wechat-structured-teaching-renderer-prd.md) | PRD | Draft v3 | 微信结构化教学渲染体系升级，P0-P3 计划与 gate。 |
+| [2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md](2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md) | Implementation Plan | Implemented locally for P0-P1 / Proposed for P2-P3 | 将 Markdown fallback 从单点修补升级为 renderer contract、single authority gate、wx/WebView parity、golden corpus 与后续 CommonMark/GFM parser 评估。 |
+| [2026-05-13-wechat-markdown-parser-evaluation.md](2026-05-13-wechat-markdown-parser-evaluation.md) | Evaluation | Decision accepted locally | 对 `micromark` / `markdown-it` / 当前自研 parser 做包体与 golden corpus 行为评估，结论是本批不替换 parser，保留当前单一 Markdown fallback authority。 |
 | [2026-04-16-wechat-structured-renderer-devtools-runbook.md](2026-04-16-wechat-structured-renderer-devtools-runbook.md) | Runbook | 执行清单 | 微信开发者工具验证流程。 |
 | [2026-04-16-wechat-structured-renderer-p2-gate-checklist.md](2026-04-16-wechat-structured-renderer-p2-gate-checklist.md) | Gate checklist | 执行清单 | P2 真机 gate 清单。 |
 | [2026-04-16-wechat-structured-renderer-p3-gate-checklist.md](2026-04-16-wechat-structured-renderer-p3-gate-checklist.md) | Gate checklist | 执行清单 | P3 真机 gate 清单。 |
@@ -177,7 +179,12 @@
 - [2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md](2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md)
 - [2026-05-03-deeptutor-web-search-stack-implementation-plan.md](2026-05-03-deeptutor-web-search-stack-implementation-plan.md)
 - [2026-05-13-luban-case-grading-error-map-implementation-plan.md](2026-05-13-luban-case-grading-error-map-implementation-plan.md)
+- [2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md](2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md)
 - [../openmaic/建筑实务AI互动课堂_Implementation_Plan_v1.2.md](../openmaic/建筑实务AI互动课堂_Implementation_Plan_v1.2.md)
+
+### Evaluation
+
+- [2026-05-13-wechat-markdown-parser-evaluation.md](2026-05-13-wechat-markdown-parser-evaluation.md)
 
 ### Audit / Runbook / Checklist
 

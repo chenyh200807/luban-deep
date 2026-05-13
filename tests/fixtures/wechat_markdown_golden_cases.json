@@ -1,0 +1,42 @@
+[
+  {
+    "name": "blank_separated_management_sections",
+    "description": "Ordered section labels separated by blank lines must keep source numbering.",
+    "covers": ["blankSeparatedOrdered", "compactDashBullet"],
+    "content": "## 管理篇 - 案例题主力\n\n7. 现场管理：\n\n8. 安全管理：\n-危险源辨识、应急预案。\n\n9. 合同与成本管理：\n-合同类型、索赔成立条件。\n\n10. 环境保护：\n\n11. 临时用电：",
+    "expectedOrderedIndexes": [7, 8, 9, 10, 11],
+    "expectedBulletTexts": ["危险源辨识、应急预案。", "合同类型、索赔成立条件。"],
+    "mustContain": ["7. 现场管理", "8. 安全管理", "- 危险源辨识"]
+  },
+  {
+    "name": "compact_technical_sections",
+    "description": "Compact ordered markers from model output must be segmented as ordered items.",
+    "covers": ["compactOrdered"],
+    "content": "## 技术篇\n\n3.地基与基础工程：基坑支护、降水方法。\n4.主体结构工程：模板、钢筋、混凝土。\n5.防水工程：屋面、地下室、厨卫防水。\n6.装饰装修工程：幕墙、吊顶、饰面砖。",
+    "expectedOrderedIndexes": [3, 4, 5, 6],
+    "expectedBulletTexts": [],
+    "mustContain": ["3. 地基与基础工程", "6. 装饰装修工程"]
+  },
+  {
+    "name": "non_sequential_exam_focus",
+    "description": "Non-sequential source indexes should not be re-numbered by the renderer.",
+    "covers": ["nonSequentialIndexes"],
+    "content": "1. 材料性能与选用\n5. 防水节点构造\n10. 绿色施工与环境保护",
+    "expectedOrderedIndexes": [1, 5, 10],
+    "expectedBulletTexts": [],
+    "mustContain": ["1. 材料性能", "5. 防水节点", "10. 绿色施工"]
+  },
+  {
+    "name": "mixed_ordered_and_compact_bullets",
+    "description": "Ordered headings and compact dash subpoints should remain separate visible blocks.",
+    "covers": ["mixedOrderedBullet", "compactDashBullet"],
+    "content": "1. 进度管理：\n-双代号网络计划 → 关键线路、总时差、工期索赔判定。\n\n2. 质量管理：\n-验收程序（检验批 → 分项 → 分部 → 单位工程）。\n-质量事故分级、处理程序。",
+    "expectedOrderedIndexes": [1, 2],
+    "expectedBulletTexts": [
+      "双代号网络计划 → 关键线路、总时差、工期索赔判定。",
+      "验收程序（检验批 → 分项 → 分部 → 单位工程）。",
+      "质量事故分级、处理程序。"
+    ],
+    "mustContain": ["1. 进度管理", "- 双代号网络计划", "2. 质量管理"]
+  }
+]
