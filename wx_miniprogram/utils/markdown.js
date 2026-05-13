@@ -13,9 +13,27 @@ var COMPACT_DASH_BULLET_RE = /^-(?!-)\s*(\S.*)$/;
 
 // 核心高亮关键词映射
 var CALLOUT_VARIANTS = {
-  conclusion: ["核心结论", "最终答案", "答案", "结论", "心得"],
-  warning: ["注意", "注意事项", "易错点", "陷阱", "警告", "易混淆"],
+  conclusion: ["核心结论", "最终答案", "答案", "结论", "判断依据", "心得"],
+  warning: [
+    "易错点提醒",
+    "易错提醒",
+    "注意事项",
+    "注意",
+    "易错点",
+    "陷阱",
+    "警告",
+    "易混淆",
+    "失分点",
+    "扣分点",
+  ],
   highlight: [
+    "考试踩分点",
+    "拿分要点",
+    "得分点",
+    "评分点",
+    "采分点",
+    "核心考点",
+    "关键考点",
     "关键要点",
     "重点",
     "考点",
@@ -35,10 +53,17 @@ Object.keys(CALLOUT_VARIANTS).forEach(function (v) {
 _allCalloutKeywords.sort(function (a, b) {
   return b.length - a.length;
 });
-var CALLOUT_RE = new RegExp(
+var CALLOUT_KEYWORD_SOURCE = _allCalloutKeywords.join("|");
+var BOLD_CALLOUT_RE = new RegExp(
   "^\\*\\*\\s*(" +
-    _allCalloutKeywords.join("|") +
+    CALLOUT_KEYWORD_SOURCE +
     ")\\s*[：:]?\\s*\\*\\*\\s*[：:]?\\s*(.*)",
+);
+var PLAIN_CALLOUT_RE = new RegExp(
+  "^\\s*(" + CALLOUT_KEYWORD_SOURCE + ")\\s*[：:]\\s*(.*)$",
+);
+var STANDALONE_CALLOUT_RE = new RegExp(
+  "^\\s*(" + CALLOUT_KEYWORD_SOURCE + ")\\s*$",
 );
 
 function _findCalloutVariant(keyword) {
@@ -369,14 +394,17 @@ function _detectCallouts(blocks) {
       continue;
     }
 
-    var m = block.raw.match(CALLOUT_RE);
+    var m =
+      block.raw.match(BOLD_CALLOUT_RE) ||
+      block.raw.match(PLAIN_CALLOUT_RE) ||
+      block.raw.match(STANDALONE_CALLOUT_RE);
     if (!m) {
       result.push(block);
       continue;
     }
 
     var keyword = m[1];
-    var bodyText = m[2].trim();
+    var bodyText = (m[2] || "").trim();
     var variant = _findCalloutVariant(keyword);
 
     result.push({

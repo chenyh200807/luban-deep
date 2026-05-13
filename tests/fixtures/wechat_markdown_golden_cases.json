@@ -53,5 +53,26 @@
       "3. 地基与基础工程",
       "- 极限状态设计"
     ]
+  },
+  {
+    "name": "exam_semantic_callouts",
+    "description": "Exam-oriented labels should render as semantic callouts even when the model does not bold them.",
+    "covers": ["examCalloutLabels"],
+    "content": "核心考点：屋面防水等级与设防层数要对应。\n\n踩分点：写出等级、设防道数、适用部位。\n\n易错点提醒：不要把屋面和地下工程混在一起。\n\n拿分要点\n\n- 先判断部位\n- 再写设防层数",
+    "expectedOrderedIndexes": [],
+    "expectedBulletTexts": ["先判断部位", "再写设防层数"],
+    "expectedCallouts": [
+      { "label": "核心考点", "variant": "highlight" },
+      { "label": "踩分点", "variant": "highlight" },
+      { "label": "易错点提醒", "variant": "warning" },
+      { "label": "拿分要点", "variant": "highlight" }
+    ],
+    "mustContain": [
+      "核心考点",
+      "踩分点",
+      "易错点提醒",
+      "拿分要点",
+      "- 先判断部位"
+    ]
   }
 ]

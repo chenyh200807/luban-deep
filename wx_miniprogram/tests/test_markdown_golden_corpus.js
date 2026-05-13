@@ -13,6 +13,7 @@ var REQUIRED_COVERAGE = [
   "compactOrdered",
   "compactHeading",
   "compactDashBullet",
+  "examCalloutLabels",
   "nonSequentialIndexes",
   "mixedOrderedBullet",
 ];
@@ -67,6 +68,15 @@ function collectBulletTexts(blocks) {
   return texts;
 }
 
+function collectCallouts(blocks) {
+  var callouts = [];
+  (blocks || []).forEach(function (block) {
+    if (!block || block.type !== "callout") return;
+    callouts.push({ label: block.label, variant: block.variant });
+  });
+  return callouts;
+}
+
 function nodesToText(nodes) {
   if (nodes == null) return "";
   if (typeof nodes === "string" || typeof nodes === "number") return String(nodes);
@@ -95,8 +105,12 @@ function nodesToText(nodes) {
 
 function blockVisibleText(block) {
   if (!block) return "";
-  if (block.type === "heading" || block.type === "paragraph" || block.type === "callout") {
+  if (block.type === "heading" || block.type === "paragraph") {
     return nodesToText(block.nodes).trim();
+  }
+  if (block.type === "callout") {
+    var calloutBody = nodesToText(block.nodes).trim();
+    return [block.label, calloutBody].filter(Boolean).join(" ");
   }
   if (block.type === "blockquote") {
     return (block.lineNodes || block.lines || [])
@@ -214,6 +228,13 @@ cases.forEach(function (item) {
     item.expectedBulletTexts,
     label + "bullet texts should stay segmented",
   );
+  if (item.expectedCallouts) {
+    assertEqual(
+      collectCallouts(wxState.blocks),
+      item.expectedCallouts,
+      label + "semantic callouts should match",
+    );
+  }
 
   var visible = serializeVisibleBlocks(wxState.blocks);
   (item.mustContain || []).forEach(function (needle) {

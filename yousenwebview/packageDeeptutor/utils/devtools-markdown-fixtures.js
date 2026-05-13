@@ -96,6 +96,21 @@ var SAMPLES = {
       "11. 临时用电：",
     ].join("\n"),
   },
+  exam_semantic_callouts: {
+    title: "踩分点/易错点视觉样例",
+    content: [
+      "核心考点：屋面防水等级与设防层数要对应。",
+      "",
+      "踩分点：写出等级、设防道数、适用部位。",
+      "",
+      "易错点提醒：不要把屋面和地下工程混在一起。",
+      "",
+      "拿分要点",
+      "",
+      "- 先判断部位",
+      "- 再写设防层数",
+    ].join("\n"),
+  },
 };
 
 function getMarkdownRegressionSample(name) {

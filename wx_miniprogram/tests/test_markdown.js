@@ -468,16 +468,41 @@ function testCallouts() {
     assertEqual(blocks[0].type, "callout", "Callout with no body");
     assertEqual(blocks[0].content.length, 0, "Callout no body content empty");
 
+    blocks = md.parse("踩分点：必须写出判断依据");
+    assertEqual(blocks[0].type, "callout", "Plain exam score label detected");
+    assertEqual(blocks[0].variant, "highlight", "Plain score label uses highlight variant");
+    assertEqual(blocks[0].label, "踩分点", "Plain score label kept");
+
+    blocks = md.parse("易错点提醒：不要漏写验收程序");
+    assertEqual(blocks[0].type, "callout", "Plain warning label with suffix detected");
+    assertEqual(blocks[0].variant, "warning", "Plain warning label uses warning variant");
+
+    blocks = md.parse("考试踩分点");
+    assertEqual(blocks[0].type, "callout", "Standalone exam label detected");
+    assertEqual(blocks[0].variant, "highlight", "Standalone exam label uses highlight variant");
+
     // Various callout keywords
     var keywordTests = [
       { kw: "最终答案", variant: "conclusion" },
       { kw: "答案", variant: "conclusion" },
       { kw: "结论", variant: "conclusion" },
+      { kw: "判断依据", variant: "conclusion" },
       { kw: "心得", variant: "conclusion" },
+      { kw: "易错点提醒", variant: "warning" },
+      { kw: "易错提醒", variant: "warning" },
       { kw: "易错点", variant: "warning" },
       { kw: "陷阱", variant: "warning" },
       { kw: "警告", variant: "warning" },
       { kw: "易混淆", variant: "warning" },
+      { kw: "失分点", variant: "warning" },
+      { kw: "扣分点", variant: "warning" },
+      { kw: "考试踩分点", variant: "highlight" },
+      { kw: "拿分要点", variant: "highlight" },
+      { kw: "得分点", variant: "highlight" },
+      { kw: "评分点", variant: "highlight" },
+      { kw: "采分点", variant: "highlight" },
+      { kw: "核心考点", variant: "highlight" },
+      { kw: "关键考点", variant: "highlight" },
       { kw: "考点", variant: "highlight" },
       { kw: "要点", variant: "highlight" },
       { kw: "考点提示", variant: "highlight" },
