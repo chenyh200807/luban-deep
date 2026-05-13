@@ -1366,11 +1366,53 @@ def _is_mcq_question_marker_line(line: str) -> bool:
     return bool(_MCQ_QUESTION_LINE_RE.match(normalized))
 
 
+def _is_mcq_problem_submarker_line(line: str) -> bool:
+    normalized = _normalize_mcq_line(line)
+    return bool(
+        re.match(
+            r"^问题(?:\s*[一二两三四五六七八九十百零\d]+)?"
+            r"(?:\s*[（(][^()（）]{0,40}[)）])?\s*(?:[:：]\s*.*)?$",
+            normalized,
+        )
+    )
+
+
+def _is_mcq_context_submarker_line(line: str) -> bool:
+    normalized = _normalize_mcq_line(line).strip("【】[]")
+    return bool(
+        re.match(
+            r"^(?:题目|题干|材料题|材料|案例背景|案例|背景资料|背景|情境|场景)"
+            r"(?:\s*[一二两三四五六七八九十百零\d]+)?\s*(?:[:：]\s*.*)?$",
+            normalized,
+        )
+    )
+
+
+def _has_open_choice_context_before_problem(lines: list[str], problem_index: int) -> bool:
+    for previous_index in range(problem_index - 1, -1, -1):
+        previous_line = lines[previous_index]
+        if _MCQ_OPTION_RE.match(previous_line):
+            return False
+        if _is_mcq_context_submarker_line(previous_line):
+            return True
+    return False
+
+
 def _find_choice_question_starts(lines: list[str]) -> list[int]:
     starts: list[int] = []
     for index, line in enumerate(lines):
         if not _is_mcq_question_marker_line(line):
             continue
+        if _is_mcq_problem_submarker_line(line) and _has_open_choice_context_before_problem(lines, index):
+            continue
+        if starts and _is_mcq_problem_submarker_line(line):
+            previous_start = starts[-1]
+            has_options_before_problem = any(
+                _MCQ_OPTION_RE.match(candidate)
+                for candidate in lines[previous_start + 1 : index]
+            )
+            if not has_options_before_problem:
+                continue
         normalized = _normalize_mcq_line(line)
         if _MCQ_GENERIC_NUMBERED_RE.match(normalized):
             option_hits = 0
@@ -1484,6 +1526,8 @@ def _extract_choice_qa_pair(block: str, index: int) -> dict[str, Any] | None:
     for line_index, line in enumerate(prefix_lines):
         normalized_line = _normalize_mcq_line(line)
         if _MCQ_STEM_MARKER_RE.match(normalized_line) or _MCQ_STEM_INLINE_MARKER_RE.match(normalized_line):
+            if _is_mcq_problem_submarker_line(line) and _has_open_choice_context_before_problem(prefix_lines, line_index):
+                continue
             stem_lines = prefix_lines[line_index:]
     stem = _strip_choice_stem_marker("\n".join(stem_lines)).strip() or "请选择正确选项"
     stem_parts = [part.strip() for part in stem.split("\n") if part.strip()]

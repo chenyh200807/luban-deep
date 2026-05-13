@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from deeptutor.services.question_followup import (
     apply_followup_action_to_context,
     build_choice_result_summary_from_exact_question,
@@ -597,6 +599,85 @@ def test_extract_choice_result_summary_from_text_keeps_explanation_outside_bare_
     first = result_summary["results"][0]["qa_pair"]
     assert first["question"] == "关于室内防水工程，下列做法正确的是："
     assert first["options"]["B"] == "淋浴区墙面防水层高度应不小于1.8m"
+
+
+def test_extract_choice_result_summary_from_text_keeps_scenario_before_problem_marker() -> None:
+    result_summary = extract_choice_result_summary_from_text(
+        "\n".join(
+            [
+                "好，考你一道跟刚才内容直接相关的题，看你能不能把知识点用上。",
+                "",
+                "---",
+                "",
+                "**题目：**",
+                "",
+                "某办公楼装修工程施工中，质检员发现以下情况：",
+                "",
+                "1. 内墙抹灰时，混凝土墙面未做任何处理直接抹灰。",
+                "2. 外墙不同基层（混凝土柱与砌体墙）交接处未挂钢丝网。",
+                "3. 吊顶工程中，不上人吊顶的吊杆采用直径 6mm 镀锌钢筋，部分吊杆长度达到 1.8m，未设置反支撑。",
+                "4. 纸面石膏板吊顶板缝对接严密，未留缝隙。",
+                "",
+                "**问题：**",
+                "",
+                "以上 4 项做法中，存在质量隐患的有几项？",
+                "",
+                "A. 1 项",
+                "B. 2 项",
+                "C. 3 项",
+                "D. 4 项",
+            ]
+        )
+    )
+
+    assert result_summary is not None
+    first = result_summary["results"][0]["qa_pair"]
+    assert "某办公楼装修工程施工中" in first["question"]
+    assert "内墙抹灰时" in first["question"]
+    assert "以上 4 项做法中，存在质量隐患的有几项" in first["question"]
+    assert first["options"]["D"] == "4 项"
+
+
+@pytest.mark.parametrize(
+    ("heading", "context_line", "problem_line", "expected_problem"),
+    [
+        ("材料：", "某办公楼装修工程施工中，项目部发现以下做法：", "问题：", "以上做法中存在质量隐患的有几项"),
+        ("【背景资料】", "某办公楼装修工程施工中，项目部发现以下做法：", "问题：以上做法中存在质量隐患的有几项？", "以上做法中存在质量隐患的有几项"),
+        ("案例：", "某施工现场模板支撑高度较大，项目部未进行专项方案论证。", "问题：", "以上做法中存在质量隐患的有几项"),
+        ("题干：", "某工程屋面防水施工完成后进行蓄水试验。", "问题：下列说法正确的是哪一项？", "下列说法正确的是哪一项"),
+    ],
+)
+def test_extract_choice_result_summary_from_text_keeps_context_before_problem_marker(
+    heading: str,
+    context_line: str,
+    problem_line: str,
+    expected_problem: str,
+) -> None:
+    result_summary = extract_choice_result_summary_from_text(
+        "\n".join(
+            [
+                heading,
+                context_line,
+                "1. 未做基层处理。",
+                "2. 未挂钢丝网。",
+                "",
+                problem_line,
+                "" if problem_line.endswith("：") else " ",
+                "以上做法中存在质量隐患的有几项？" if problem_line.endswith("：") else "",
+                "A. 1 项",
+                "B. 2 项",
+                "C. 3 项",
+                "D. 4 项",
+            ]
+        )
+    )
+
+    assert result_summary is not None
+    first = result_summary["results"][0]["qa_pair"]
+    assert context_line in first["question"]
+    assert "未做基层处理" in first["question"]
+    assert expected_problem in first["question"]
+    assert first["options"]["D"] == "4 项"
 
 
 def test_extract_choice_result_summary_from_text_supports_bold_answer_markers() -> None:
