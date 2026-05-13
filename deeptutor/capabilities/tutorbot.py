@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import re
 from typing import Any
 
@@ -31,11 +30,6 @@ from deeptutor.tutorbot.response_mode import (
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 
-def _stream_public_deltas_enabled() -> bool:
-    raw = str(os.getenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "1") or "").strip().lower()
-    return raw in {"1", "true", "yes", "on"}
-
-
 class TutorBotCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="tutorbot",
@@ -60,7 +54,6 @@ class TutorBotCapability(BaseCapability):
         await manager.ensure_bot_running(bot_id, config=self._default_bot_config(context))
 
         chunks: list[str] = []
-        streamed_chunks: list[str] = []
         turn_summary: dict[str, Any] = {
             "authority_applied": False,
             "exact_question": {},
@@ -136,19 +129,9 @@ class TutorBotCapability(BaseCapability):
         async def _on_content_delta(text: str) -> None:
             if not text:
                 return
+            # TutorBot deltas are raw model output. Buffer them until the final
+            # user-visible answer gate has accepted the response.
             chunks.append(text)
-            if hide_generated_answers or not _stream_public_deltas_enabled():
-                return
-            streamed_chunks.append(text)
-            await stream.content(
-                text,
-                source=self.name,
-                stage="responding",
-                metadata={
-                    "execution_engine": "tutorbot_runtime",
-                    "call_kind": "llm_stream_delta",
-                },
-            )
 
         async def _on_tool_call(tool_name: str, args: dict[str, Any]) -> None:
             await stream.tool_call(
@@ -223,13 +206,7 @@ class TutorBotCapability(BaseCapability):
                 reveal_answers=reveal_answers,
                 reveal_explanations=reveal_explanations,
             )
-            streamed_visible_response = "".join(streamed_chunks)
             final_visible_delta = visible_response
-            if streamed_visible_response:
-                if visible_response.startswith(streamed_visible_response):
-                    final_visible_delta = visible_response[len(streamed_visible_response):]
-                else:
-                    final_visible_delta = ""
             if final_visible_delta:
                 await stream.content(
                     final_visible_delta,

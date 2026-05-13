@@ -34,6 +34,7 @@ _CHAPTER_CODE_LABELS = {
 _ASSESSMENT_FORM_COUNT = 5
 _FORM_CACHE_LOCK = threading.RLock()
 _FORM_CACHE: dict[str, "_AssessmentFormBank"] = {}
+_MULTI_PROMPT_STEM_RE = re.compile(r"(?:^|\n)\s*(?:【?\s*问题\s*】?\s*)?\d+\s*[\.．、:：]")
 
 
 class AssessmentBlueprintUnavailable(RuntimeError):
@@ -74,6 +75,7 @@ class _AssessmentForm:
 class _AssessmentFormBank:
     forms: tuple[_AssessmentForm, ...]
     question_bank_size: int
+    form_source: str = ""
 
 
 class AssessmentQuestionProvider(Protocol):
@@ -325,11 +327,11 @@ class SupabaseAssessmentQuestionProvider:
         source_id = str(row.get("id") or "").strip()
         stem = str(row.get("question_stem") or row.get("stem") or "").strip()
         options = _normalize_options(row.get("options"))
-        answer = _normalize_answer(row.get("correct_answer"))
+        answer = _normalize_answer_for_options(row.get("correct_answer"), options)
         if not source_id or not stem or not options or not answer:
             return None
         question_type = str(row.get("question_type") or "single_choice").strip() or "single_choice"
-        return QuestionCandidate(
+        candidate = QuestionCandidate(
             source_question_id=source_id,
             question_stem=stem,
             question_type=question_type,
@@ -342,6 +344,9 @@ class SupabaseAssessmentQuestionProvider:
             node_code=str(row.get("node_code") or "").strip(),
             source_meta=dict(row.get("source_meta") or {}) if isinstance(row.get("source_meta"), dict) else {},
         )
+        if not _is_supported_click_assessment_candidate(candidate):
+            return None
+        return candidate
 
     def question_bank_size(self) -> int:
         base_url, api_key = self._supabase_config()
@@ -368,7 +373,7 @@ class SupabaseAssessmentQuestionProvider:
 
     def form_cache_key(self, blueprint_version: str) -> str:
         base_url, _api_key = self._supabase_config()
-        return f"supabase_questions_bank:{base_url}:{blueprint_version}:assessment_forms_v2"
+        return f"supabase_questions_bank:{base_url}:{blueprint_version}:assessment_forms_v3"
 
     def load_persisted_form_bank(self, blueprint: AssessmentBlueprint) -> _AssessmentFormBank:
         base_url, api_key = self._supabase_config()
@@ -390,7 +395,11 @@ class SupabaseAssessmentQuestionProvider:
                 f"Persisted assessment forms missing: expected {_ASSESSMENT_FORM_COUNT}, found {len(forms)}"
             )
         question_bank_size = max(int(row.get("question_bank_size") or 0) for row in rows)
-        return _AssessmentFormBank(forms=forms, question_bank_size=question_bank_size)
+        return _AssessmentFormBank(
+            forms=forms,
+            question_bank_size=question_bank_size,
+            form_source="supabase_persisted",
+        )
 
     def save_form_bank(self, blueprint: AssessmentBlueprint, form_bank: _AssessmentFormBank) -> None:
         base_url, api_key = self._supabase_config()
@@ -426,6 +435,7 @@ class AssessmentBlueprintService:
             "blueprint_version": self._blueprint.version,
             "form_count": len(form_bank.forms),
             "form_ids": [form.form_id for form in form_bank.forms],
+            "form_source": form_bank.form_source or "unknown",
             "question_bank_size": form_bank.question_bank_size,
             "fallback_used": any(form.fallback_used for form in form_bank.forms),
         }
@@ -436,6 +446,7 @@ class AssessmentBlueprintService:
         if not callable(saver):
             raise AssessmentBlueprintUnavailable("Assessment provider cannot persist form bank")
         saver(self._blueprint, form_bank)
+        form_bank = _with_form_source(form_bank, "generated_and_persisted")
         cache_key = self._form_cache_key()
         if cache_key:
             with _FORM_CACHE_LOCK:
@@ -445,6 +456,7 @@ class AssessmentBlueprintService:
             "blueprint_version": self._blueprint.version,
             "form_count": len(form_bank.forms),
             "form_ids": [form.form_id for form in form_bank.forms],
+            "form_source": form_bank.form_source or "unknown",
             "question_bank_size": form_bank.question_bank_size,
             "fallback_used": any(form.fallback_used for form in form_bank.forms),
             "persisted": True,
@@ -522,6 +534,7 @@ class AssessmentBlueprintService:
             "unique_source_question_count": len({item["source_question_id"] for item in session_questions}),
             "shortfall_count": 0,
             "fallback_used": form.fallback_used,
+            "form_source": form_bank.form_source or "unknown",
             "form_id": form.form_id,
             "form_index": form.form_index,
             "form_count": len(form_bank.forms),
@@ -539,12 +552,22 @@ class AssessmentBlueprintService:
                     return cached
         persisted_loader = getattr(self._provider, "load_persisted_form_bank", None)
         if callable(persisted_loader):
-            form_bank = persisted_loader(self._blueprint)
-            if cache_key:
-                with _FORM_CACHE_LOCK:
-                    _FORM_CACHE[cache_key] = form_bank
-            self._local_form_bank = form_bank
-            return form_bank
+            try:
+                form_bank = persisted_loader(self._blueprint)
+            except AssessmentBlueprintUnavailable:
+                form_bank = None
+            if form_bank is not None:
+                fallback_source = (
+                    "supabase_persisted"
+                    if isinstance(self._provider, SupabaseAssessmentQuestionProvider)
+                    else "persisted"
+                )
+                form_bank = _with_form_source(form_bank, form_bank.form_source or fallback_source)
+                if cache_key:
+                    with _FORM_CACHE_LOCK:
+                        _FORM_CACHE[cache_key] = form_bank
+                self._local_form_bank = form_bank
+                return form_bank
         form_bank = self._build_form_bank()
         if cache_key:
             with _FORM_CACHE_LOCK:
@@ -564,8 +587,10 @@ class AssessmentBlueprintService:
 
     def _build_form_bank(self) -> _AssessmentFormBank:
         forms: list[_AssessmentForm] = []
+        bank_fallback_used = False
         for form_index in range(1, _ASSESSMENT_FORM_COUNT + 1):
             units, fallback_used = self._build_form_units(form_index)
+            bank_fallback_used = bank_fallback_used or fallback_used
             if len(units) != self._blueprint.requested_count:
                 raise AssessmentBlueprintUnavailable(
                     f"Assessment form {form_index} delivered {len(units)}, expected {self._blueprint.requested_count}"
@@ -581,7 +606,14 @@ class AssessmentBlueprintService:
         question_bank_size = _provider_question_bank_size(self._provider)
         if any(form.fallback_used for form in forms) and self._fallback_provider:
             question_bank_size = max(question_bank_size, _provider_question_bank_size(self._fallback_provider))
-        return _AssessmentFormBank(forms=tuple(forms), question_bank_size=question_bank_size)
+        form_source = _built_form_source(self._provider)
+        if bank_fallback_used and self._fallback_provider is not None:
+            form_source = _built_form_source(self._fallback_provider)
+        return _AssessmentFormBank(
+            forms=tuple(forms),
+            question_bank_size=question_bank_size,
+            form_source=form_source,
+        )
 
     def _build_form_units(self, form_index: int) -> tuple[list[_AssessmentFormUnit], bool]:
         units: list[_AssessmentFormUnit] = []
@@ -605,6 +637,7 @@ class AssessmentBlueprintService:
                     if not self._allow_dev_fallback:
                         raise
                     candidates = []
+                candidates = _supported_click_assessment_candidates(candidates)
                 if len(candidates) < section.count and self._allow_dev_fallback and self._fallback_provider:
                     fallback_candidates = self._fallback_provider.get_candidates(
                         section,
@@ -613,6 +646,7 @@ class AssessmentBlueprintService:
                         selection_seed=selection_seed,
                         avoid_chapters=avoid_scored_chapters,
                     )
+                    fallback_candidates = _supported_click_assessment_candidates(fallback_candidates)
                     candidates.extend(fallback_candidates)
                     fallback_used = True
                 if len(candidates) < section.count:
@@ -644,6 +678,25 @@ def _choose_assessment_form(forms: tuple[_AssessmentForm, ...]) -> _AssessmentFo
         raise AssessmentBlueprintUnavailable("Assessment form bank is empty")
     index = int(uuid.uuid4().hex[:8], 16) % len(forms)
     return forms[index]
+
+
+def _built_form_source(provider: AssessmentQuestionProvider) -> str:
+    if isinstance(provider, SupabaseAssessmentQuestionProvider):
+        return "supabase_questions_bank"
+    if isinstance(provider, StaticAssessmentQuestionProvider):
+        return "local_static_fallback"
+    return "generated"
+
+
+def _with_form_source(form_bank: _AssessmentFormBank, form_source: str) -> _AssessmentFormBank:
+    normalized = str(form_source or "").strip()
+    if not normalized or form_bank.form_source == normalized:
+        return form_bank
+    return _AssessmentFormBank(
+        forms=form_bank.forms,
+        question_bank_size=form_bank.question_bank_size,
+        form_source=normalized,
+    )
 
 
 def _form_to_persisted_row(
@@ -726,26 +779,32 @@ def _form_unit_from_json(item: dict[str, Any]) -> _AssessmentFormUnit:
     scored = bool(item.get("scored"))
     if scored:
         options = item.get("options") or []
+        normalized_options = tuple(
+            (str(option.get("key") or "").strip(), str(option.get("text") or "").strip())
+            for option in options
+            if isinstance(option, dict) and str(option.get("key") or "").strip()
+        )
+        candidate = QuestionCandidate(
+            source_question_id=str(item.get("source_question_id") or "").strip(),
+            question_stem=str(item.get("question_stem") or "").strip(),
+            question_type=str(item.get("question_type") or "single_choice").strip() or "single_choice",
+            chapter=str(item.get("chapter") or "").strip(),
+            options=normalized_options,
+            answer=_normalize_answer_for_options(item.get("answer"), normalized_options),
+            difficulty=str(item.get("difficulty") or "medium").strip() or "medium",
+            source_type=str(item.get("source_type") or "").strip(),
+            source_chunk_id=str(item.get("source_chunk_id") or "").strip(),
+            node_code=str(item.get("node_code") or "").strip(),
+            source_meta=dict(item.get("source_meta") or {}) if isinstance(item.get("source_meta"), dict) else {},
+        )
+        if not _is_supported_click_assessment_candidate(candidate):
+            raise AssessmentBlueprintUnavailable(
+                f"Assessment form item {candidate.source_question_id} is not a supported click assessment candidate"
+            )
         return _AssessmentFormUnit(
             section_id=section_id,
             scored=True,
-            item=QuestionCandidate(
-                source_question_id=str(item.get("source_question_id") or "").strip(),
-                question_stem=str(item.get("question_stem") or "").strip(),
-                question_type=str(item.get("question_type") or "single_choice").strip() or "single_choice",
-                chapter=str(item.get("chapter") or "").strip(),
-                options=tuple(
-                    (str(option.get("key") or "").strip(), str(option.get("text") or "").strip())
-                    for option in options
-                    if isinstance(option, dict) and str(option.get("key") or "").strip()
-                ),
-                answer=str(item.get("answer") or "").strip(),
-                difficulty=str(item.get("difficulty") or "medium").strip() or "medium",
-                source_type=str(item.get("source_type") or "").strip(),
-                source_chunk_id=str(item.get("source_chunk_id") or "").strip(),
-                node_code=str(item.get("node_code") or "").strip(),
-                source_meta=dict(item.get("source_meta") or {}) if isinstance(item.get("source_meta"), dict) else {},
-            ),
+            item=candidate,
         )
     options = item.get("options") or []
     return _AssessmentFormUnit(
@@ -883,6 +942,44 @@ def _normalize_answer(value: Any) -> str:
             if value.get(key):
                 return _normalize_answer(value.get(key))
     return str(value or "").strip().upper()
+
+
+def _normalize_answer_for_options(value: Any, options: list[tuple[str, str]] | tuple[tuple[str, str], ...]) -> str:
+    raw = _normalize_answer(value)
+    option_keys = [str(key or "").strip().upper() for key, _text in options if str(key or "").strip()]
+    option_key_set = set(option_keys)
+    if not raw or not option_keys:
+        return ""
+    if raw in option_key_set:
+        return raw
+    letters = [ch for ch in raw if ch in option_key_set]
+    non_letters = re.sub(r"[A-Z]", "", raw)
+    non_letters = re.sub(r"[\s,，、;；/|+&]+", "", non_letters)
+    if letters and not non_letters:
+        selected = set(letters)
+        return "".join(key for key in option_keys if key in selected)
+    normalized_raw = _normalize_match_text(raw)
+    for key, text in options:
+        if normalized_raw and normalized_raw == _normalize_match_text(text):
+            return str(key or "").strip().upper()
+    return ""
+
+
+def _has_multiple_prompt_stem(stem: str) -> bool:
+    return len(_MULTI_PROMPT_STEM_RE.findall(str(stem or ""))) >= 2
+
+
+def _is_supported_click_assessment_candidate(candidate: QuestionCandidate) -> bool:
+    if len(candidate.options) < 2 or not candidate.answer:
+        return False
+    qtype = str(candidate.question_type or "").strip().lower()
+    if qtype in {"case_study", "calculation"} and _has_multiple_prompt_stem(candidate.question_stem):
+        return False
+    return True
+
+
+def _supported_click_assessment_candidates(candidates: list[QuestionCandidate]) -> list[QuestionCandidate]:
+    return [candidate for candidate in candidates if _is_supported_click_assessment_candidate(candidate)]
 
 
 def _normalize_difficulty(value: Any) -> str:

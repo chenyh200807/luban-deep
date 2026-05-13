@@ -132,6 +132,7 @@ def _candidate(
     question_type: str = "single_choice",
     chapter: str = "建筑实务",
     difficulty: str = "medium",
+    source_type: str = "REAL_EXAM",
 ) -> QuestionCandidate:
     return QuestionCandidate(
         source_question_id=f"q_{index}",
@@ -141,7 +142,7 @@ def _candidate(
         options=(("A", "选项 A"), ("B", "选项 B"), ("C", "选项 C"), ("D", "选项 D")),
         answer="A",
         difficulty=difficulty,
-        source_type="REAL_EXAM",
+        source_type=source_type,
     )
 
 
@@ -169,6 +170,40 @@ class PersistedOnlyAssessmentProvider:
 
     def question_bank_size(self) -> int:
         return self.form_bank.question_bank_size
+
+
+class UnavailableSupabaseAssessmentProvider(SupabaseAssessmentQuestionProvider):
+    def form_cache_key(self, blueprint_version: str) -> str:
+        return ""
+
+    def load_persisted_form_bank(self, blueprint):
+        raise AssessmentBlueprintUnavailable("persisted forms unavailable")
+
+    def get_candidates(self, *args, **kwargs):
+        raise AssessmentBlueprintUnavailable("questions_bank unavailable")
+
+    def question_bank_size(self) -> int:
+        return 4638
+
+
+class InvalidClickAssessmentProvider:
+    def get_candidates(self, section, *, limit, exclude_source_ids, **kwargs):
+        return [
+            QuestionCandidate(
+                source_question_id=f"invalid_{section.id}_{index}",
+                question_stem="某工程背景资料。\n【问题】1. 第一问？\n2. 第二问？",
+                question_type="case_study",
+                chapter="无效章节",
+                options=(("A", "选项 A"),),
+                answer="A",
+                difficulty="medium",
+                source_type="REAL_EXAM",
+            )
+            for index in range(limit)
+        ]
+
+    def question_bank_size(self) -> int:
+        return 100
 
 
 def _persisted_form_bank_for_blueprint() -> _AssessmentFormBank:
@@ -232,6 +267,7 @@ def test_blueprint_service_creates_20_units_with_profile_probes() -> None:
     assert payload["scored_count"] == 16
     assert payload["profile_count"] == 4
     assert payload["form_count"] == 5
+    assert payload["form_source"] == "local_static_fallback"
     assert 1 <= payload["form_index"] <= 5
     assert payload["form_id"].startswith("diagnostic_v1_form_")
     assert payload["shortfall_count"] == 0
@@ -304,9 +340,40 @@ def test_blueprint_service_uses_persisted_forms_without_candidate_generation() -
 
     assert provider.get_candidate_calls == 0
     assert payload["form_count"] == 5
+    assert payload["form_source"] == "persisted"
     assert payload["question_bank_size"] == 500
     assert payload["fallback_used"] is False
     assert len(payload["questions"]) == 20
+
+
+def test_blueprint_service_reports_static_form_source_when_supabase_falls_back() -> None:
+    service = AssessmentBlueprintService(
+        provider=UnavailableSupabaseAssessmentProvider(),
+        fallback_provider=StaticAssessmentQuestionProvider(
+            [_candidate(index, source_type="DEV_FALLBACK") for index in range(1, 80)]
+        ),
+        allow_dev_fallback=True,
+    )
+
+    payload = service.create_session(user_id="student_demo", count=20)
+
+    assert payload["fallback_used"] is True
+    assert payload["form_source"] == "local_static_fallback"
+    assert payload["question_bank_size"] == 4638
+
+
+def test_blueprint_service_rejects_invalid_candidates_from_any_provider() -> None:
+    service = AssessmentBlueprintService(
+        provider=InvalidClickAssessmentProvider(),
+        allow_dev_fallback=False,
+    )
+
+    try:
+        service.create_session(user_id="student_demo", count=20)
+    except AssessmentBlueprintUnavailable:
+        pass
+    else:
+        raise AssertionError("invalid click assessment candidates should fail closed")
 
 
 def test_blueprint_service_spreads_scored_questions_across_chapters_and_difficulties() -> None:
@@ -385,6 +452,31 @@ def test_supabase_candidate_rows_use_chinese_chapter_labels_for_node_codes() -> 
     assert candidate is not None
     assert candidate.chapter == "结构设计与建筑材料"
     assert candidate.difficulty == "hard"
+
+
+def test_supabase_candidate_rejects_multi_prompt_case_stem_for_click_assessment() -> None:
+    section = get_assessment_blueprint("diagnostic_v1").sections[6]
+
+    candidate = SupabaseAssessmentQuestionProvider._candidate_from_row(
+        {
+            "id": "case-contains-six-prompts",
+            "question_stem": (
+                "某工程背景资料。\n"
+                "【问题】1. 施工总承包通常包括哪些工程内容？\n"
+                "2. 该工程预付备料款和起扣点分别是多少万元？\n"
+                "3. 项目资金管理原则有哪些内容？"
+            ),
+            "question_type": "case_study",
+            "source_type": "REAL_EXAM",
+            "node_code": "1A426001",
+            "difficulty": "0.9",
+            "options": {"A": "装饰装修、给排水", "B": "仅限土建和电气"},
+            "correct_answer": "B",
+        },
+        section,
+    )
+
+    assert candidate is None
 
 
 def test_blueprint_service_fails_closed_when_scored_candidates_are_short() -> None:

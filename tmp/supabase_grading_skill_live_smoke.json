@@ -26,7 +26,7 @@
     "question_id": "8243",
     "grading_mode": "projected_rubric",
     "score_awarded": 0.0,
-    "max_score": 7.0,
+    "max_score": 6.0,
     "evidence_sources": [
       "kb_chunks",
       "questions_bank"
@@ -43,7 +43,6 @@
       "metadata"
     ],
     "error_codes": [
-      "E02",
       "E02",
       "E02",
       "E02",

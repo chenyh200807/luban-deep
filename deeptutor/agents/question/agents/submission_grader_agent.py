@@ -5,6 +5,7 @@ Single-call grading feedback agent for quiz answer submissions.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from deeptutor.agents.base_agent import BaseAgent
@@ -162,4 +163,19 @@ class SubmissionGraderAgent(BaseAgent):
         knowledge_context = str(question_context.get("knowledge_context", "") or "").strip()
         if knowledge_context:
             lines.extend(["", "Knowledge context:", knowledge_context])
+        grading_result = question_context.get("construction_grading_result")
+        if isinstance(grading_result, dict) and grading_result:
+            lines.extend(
+                [
+                    "",
+                    "Authoritative construction grading result:",
+                    json.dumps(grading_result, ensure_ascii=False, indent=2, sort_keys=True),
+                    "",
+                    (
+                        "Use this grading result as final authority. Do not recalculate, "
+                        "revise, or override score_awarded, max_score, correctness, rubric "
+                        "matches, missed options, or error events. Explain them to the learner."
+                    ),
+                ]
+            )
         return "\n".join(lines)

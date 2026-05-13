@@ -157,6 +157,50 @@ run("service presentation block becomes the primary mcq source", function () {
   assertEqual(state.hasStructuredContent, false, "mcq-only presentation should not suppress markdown fallback paths");
 });
 
+run("mcq presentation supports multiple generated choice aliases", function () {
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: "",
+    presentation: {
+      blocks: [
+        {
+          type: "mcq",
+          questions: [
+            {
+              index: 1,
+              stem: "《建筑法》属于（ ）。",
+              question_type: "single_choice",
+              options: [
+                { key: "A", text: "法律" },
+                { key: "B", text: "行政法规" },
+              ],
+              followup_context: { question_id: "q_1" },
+            },
+            {
+              index: 2,
+              stem: "正确的说法有（ ）。",
+              question_type: "multi_choice",
+              options: [
+                { key: "A", text: "说法A" },
+                { key: "B", text: "说法B" },
+              ],
+              followup_context: { question_id: "q_2" },
+            },
+          ],
+          submit_hint: "多题作答，先分别点选，再提交答案。",
+        },
+      ],
+      fallback_text: "",
+      meta: { streamingMode: "block_finalized" },
+    },
+    parseBlocks: false,
+  });
+
+  assert(state.mcqCards && state.mcqCards.length === 2, "all generated questions should become cards");
+  assertEqual(state.mcqCards[0].questionType, "single_choice", "single choice alias should stay interactive");
+  assertEqual(state.mcqCards[1].questionType, "multi_choice", "multi choice alias should stay interactive");
+  assertEqual(state.mcqInteractiveReady, true, "whole question set should be interactive");
+});
+
 run("mcq presentation keeps mixed teaching content visible", function () {
   var content = [
     "好的，我们直接进入防水工程最容易失分的一个核心考点。",

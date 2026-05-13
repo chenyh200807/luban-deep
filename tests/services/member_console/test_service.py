@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import threading
@@ -1141,10 +1142,11 @@ def test_capture_points_updates_balance_and_prepends_ledger(tmp_path: Path) -> N
     assert ledger["entries"][0]["delta"] == -20
 
 
-def test_create_assessment_uses_unique_question_ids_per_quiz(tmp_path: Path) -> None:
+def test_create_assessment_uses_unique_question_ids_per_quiz(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
+    caplog.set_level(logging.INFO, logger="deeptutor.services.member_console.service")
     payload = service.create_assessment("student_demo", count=20)
     question_ids = [item["question_id"] for item in payload["questions"]]
     source_ids = [item["source_question_id"] for item in payload["questions"]]
@@ -1158,6 +1160,7 @@ def test_create_assessment_uses_unique_question_ids_per_quiz(tmp_path: Path) -> 
     assert payload["question_bank_size"] >= 20
     assert payload["unique_source_question_count"] == 20
     assert payload["shortfall_count"] == 0
+    assert payload["form_source"] == "local_static_fallback"
     assert len(question_ids) == 20
     assert len(set(question_ids)) == 20
     assert len(source_ids) == len(set(source_ids))
@@ -1171,10 +1174,14 @@ def test_create_assessment_uses_unique_question_ids_per_quiz(tmp_path: Path) -> 
     assert stored_session["blueprint_version"] == "diagnostic_v1"
     assert stored_session["scored_count"] == 16
     assert stored_session["profile_count"] == 4
+    assert stored_session["form_source"] == payload["form_source"]
+    assert stored_session["observability"]["form_source"] == payload["form_source"]
     assert all(item["provenance"]["question_id"] for item in stored)
     assert stored_session["question_bank_size"] >= 20
     assert stored_session["unique_source_question_count"] == 20
     assert stored_session["shortfall_count"] == 0
+    assert "Assessment session created" in caplog.text
+    assert "form_source=local_static_fallback" in caplog.text
 
 
 def test_member_360_includes_learner_state_heartbeat_and_bot_overlays(tmp_path: Path) -> None:
@@ -1880,13 +1887,25 @@ def test_submit_assessment_persists_measured_profile_including_zero_mastery(tmp_
 
     service.submit_assessment("student_demo", payload["quiz_id"], answers, time_spent_seconds=60)
     profile = service.get_assessment_profile("student_demo")
+    dashboard = service.get_mastery_dashboard("student_demo")
 
     assert profile["score"] == 6
+    expected_overall = round(
+        sum(item["mastery"] for item in profile["chapter_mastery"].values())
+        / max(len(profile["chapter_mastery"]), 1)
+    )
+    assert dashboard["overall_mastery"] == expected_overall
+    assert dashboard["overall_mastery"] < 100
     assert profile["blueprint_version"] == "diagnostic_v1"
     assert profile["measurement_confidence"] in {"high", "medium", "low"}
     assert service._load()["members"][0]["last_assessment"]["scored_count"] == 16
     assert profile["chapter_mastery"][stored[0]["chapter"]]["mastery"] == 100
     assert any(item["mastery"] == 0 for item in profile["chapter_mastery"].values())
+    assert any(
+        chapter["mastery"] == 0
+        for group in dashboard["groups"]
+        for chapter in group["chapters"]
+    )
 
 
 def test_submit_assessment_writes_teaching_policy_and_learner_event(monkeypatch, tmp_path: Path) -> None:

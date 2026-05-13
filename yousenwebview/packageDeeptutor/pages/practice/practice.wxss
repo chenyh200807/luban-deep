@@ -315,7 +315,7 @@
 }
 .practice-page.light .report-title { color: #0f172a; }
 .practice-page.light .report-sub { color: #666; }
-.practice-page.light .link-arrow { color: #999; }
+.practice-page.light .link-arrow { color: #64748b; }
 
 /* ── 骨架屏 ──────────────────────────────── */
 .practice-page.light .skel-row {

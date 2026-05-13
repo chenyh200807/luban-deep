@@ -141,6 +141,39 @@ async def test_redacted_public_followup_context_does_not_override_grading_author
 
 
 @pytest.mark.asyncio
+async def test_answered_active_question_can_generate_related_questions_without_regrading() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="再给我相关的五道题，不要给答案，等我作答后再批改",
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "q_2",
+                "question": "《建设工程安全生产管理条例》属于（ ）。",
+                "question_type": "choice",
+                "options": {"A": "法律", "B": "行政法规", "C": "部门规章", "D": "地方性法规"},
+                "correct_answer": "B",
+                "explanation": "条例由国务院制定，属于行政法规。",
+                "user_answer": "B",
+                "is_correct": True,
+                "construction_grading_result": {
+                    "authority": "construction_grading",
+                    "score_awarded": 1.0,
+                    "max_score": 1.0,
+                },
+            }
+        ],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["user_answer"] == ""
+    assert resolved_context["is_correct"] is None
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "generate_more_questions"
+    assert resolved_action["answers"] == []
+
+
+@pytest.mark.asyncio
 async def test_resolve_question_followup_does_not_treat_next_question_explainer_as_generation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

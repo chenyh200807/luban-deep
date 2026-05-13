@@ -254,13 +254,19 @@ class AgentLoop:
     @classmethod
     def _looks_like_process_only_answer(cls, text: str | None) -> bool:
         source = re.sub(r"[\s，,。.!！?？：:；;]+", "", str(text or "").strip())
+        lower_source = source.lower()
         if not source or len(source) > 180:
             return False
         if any(marker in source for marker in ("踩分点", "易错点", "核心考点", "自查", "答案", "判断")):
             return False
+        if (
+            any(marker in lower_source for marker in ("skill", "reference"))
+            and re.search(r"(先|我先|我来|正在|准备)(读取|加载|查看|展开|调取)", source)
+        ):
+            return True
         return bool(
-            re.match(r"^(好的|好|可以)?(我)?先(看|看看|查看|检索|查询|结合|梳理|分析)", source)
-            or re.match(r"^(好的|好|可以)?我(先|来)(看|查看|检索|查询|结合|梳理|分析)", source)
+            re.match(r"^(好的|好|可以)?(我)?先(看|看看|查看|检索|查询|结合|梳理|分析|加载|读取|调取)", source)
+            or re.match(r"^(好的|好|可以)?我(先|来)(看|查看|检索|查询|结合|梳理|分析|加载|读取|调取)", source)
         )
 
     @classmethod

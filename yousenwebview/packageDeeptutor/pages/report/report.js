@@ -58,10 +58,10 @@ function _buildRadarDimensionsFromAssessment(data) {
   var chapterMastery = profile.chapter_mastery || {};
   return Object.keys(chapterMastery).map(function (key) {
     var item = chapterMastery[key];
-    var mastery = Number(typeof item === "object" ? item.mastery : item) || 0;
+    var mastery = Number(typeof item === "object" ? item.mastery : item);
     return {
       name: _displayChapterName((typeof item === "object" ? item.name : key) || key),
-      value: mastery / 100,
+      value: (Number.isFinite(mastery) ? mastery : 0) / 100,
     };
   });
 }
@@ -631,7 +631,7 @@ Page({
           : api.unwrapResponse(await api.getAssessmentProfile()) || {};
       dims = _buildRadarDimensionsFromAssessment(assessmentData);
 
-      if (!dims.length || !_hasPositiveRadarSignal(dims)) {
+      if (!dims.length) {
         try {
           var radarResult = await api.getRadarData(RADAR_SELF_SUBJECT);
           var radarData = api.unwrapResponse(radarResult) || {};
@@ -806,7 +806,10 @@ Page({
   },
 
   _syncExperienceSections() {
-    var diagnosticScore = this.data.overallMastery || this.data.avgScore || 0;
+    var hasMastery = this.data.masteryGroups && this.data.masteryGroups.length;
+    var diagnosticScore = hasMastery || !this.data.radarDimensions.length
+      ? this.data.overallMastery
+      : this.data.avgScore || 0;
     var sharedInput = {
       masteryGroups: this.data.masteryGroups,
       hotspots: this.data.hotspots,

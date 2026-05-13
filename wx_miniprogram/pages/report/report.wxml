@@ -21,7 +21,7 @@
             <text class="overview-sub">{{learnerLevel ? learnerLevel : '待评估'}}</text>
           </view>
           <view class="overview-score-wrap">
-            <text class="overview-score">{{avgScore || overallMastery}}</text>
+            <text class="overview-score">{{overviewScore}}</text>
             <text class="overview-score-unit">%</text>
           </view>
         </view>

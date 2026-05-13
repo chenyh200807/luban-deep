@@ -76,6 +76,20 @@ def test_tutorbot_web_search_prefetch_strips_command_wrappers() -> None:
     ) == {"query": "2026年一级建造师考试时间", "count": 5}
 
 
+def test_tutorbot_visible_answer_gate_rejects_skill_reference_process_leak() -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    leaked_process_text = (
+        "好的，我来加载建筑构造相关的专题内容，帮你出题练习。\n\n"
+        "先读取 skill 总则和选择题讲解 reference。"
+    )
+
+    assert AgentLoop._is_user_visible_final_answer(leaked_process_text) is False
+    assert AgentLoop._is_user_visible_final_answer(
+        "**第1题**\n建筑构造中，基础的主要作用是什么？\nA. 承重\nB. 装饰"
+    ) is True
+
+
 async def _collect_events(run_coro) -> list[StreamEvent]:
     bus = StreamBus()
     events: list[StreamEvent] = []
@@ -1229,7 +1243,7 @@ async def test_tutorbot_capability_deep_mode_does_not_override_config_model(
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_capability_streams_intermediate_deltas_without_duplicate_final_content(
+async def test_tutorbot_capability_buffers_deltas_until_visible_final_content(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "1")
@@ -1288,22 +1302,78 @@ async def test_tutorbot_capability_streams_intermediate_deltas_without_duplicate
 
     content_events = [event for event in events if event.type == StreamEventType.CONTENT]
     assert [event.content for event in content_events] == [
-        "最终答案：",
-        "防水等级是设计标准，设防层数是施工构造。",
+        "最终答案：防水等级是设计标准，设防层数是施工构造。",
     ]
-    assert all(event.metadata["call_kind"] == "llm_stream_delta" for event in content_events)
+    assert all(event.metadata["call_kind"] == "llm_final_response" for event in content_events)
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["response"] == "最终答案：防水等级是设计标准，设防层数是施工构造。"
 
 
-def test_tutorbot_stream_public_deltas_enabled_by_default(
+@pytest.mark.asyncio
+async def test_tutorbot_capability_does_not_emit_internal_process_deltas(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.delenv("TUTORBOT_STREAM_PUBLIC_DELTAS", raising=False)
+    monkeypatch.setenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "1")
 
-    from deeptutor.capabilities.tutorbot import _stream_public_deltas_enabled
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None):
+            return SimpleNamespace(running=True)
 
-    assert _stream_public_deltas_enabled() is True
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            if on_content_delta is not None:
+                await on_content_delta(
+                    "好的，我来加载建筑构造相关的专题内容，先读取 skill 总则和选择题讲解 reference。"
+                )
+            return "第1题：建筑构造中，基础的主要作用是什么？"
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-process-delta",
+        user_message="我想练习建筑构造相关的题目",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
+        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    content_events = [event for event in events if event.type == StreamEventType.CONTENT]
+    assert [event.content for event in content_events] == [
+        "第1题：建筑构造中，基础的主要作用是什么？"
+    ]
+    assert all("skill" not in event.content.lower() for event in content_events)
+    assert all("reference" not in event.content.lower() for event in content_events)
 
 
 @pytest.mark.asyncio

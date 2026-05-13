@@ -94,7 +94,43 @@ async function run() {
       "report detail list should use Chinese chapter labels and not be overwritten by zero radar response",
     );
 
-  console.log("PASS test_report_radar_authority.js (4 assertions)");
+  let zeroProfileCalls = 0;
+  let zeroRadarCalls = 0;
+  mockApi.getAssessmentProfile = async function () {
+    zeroProfileCalls++;
+    return {
+      chapter_mastery: {
+        建筑构造: { name: "建筑构造", mastery: 0 },
+        地基基础: { name: "地基基础", mastery: 0 },
+      },
+    };
+  };
+  mockApi.getRadarData = async function () {
+    zeroRadarCalls++;
+    return {
+      dimensions: [
+        { label: "建筑构造", score: 80, value: 0.8 },
+        { label: "地基基础", score: 60, value: 0.6 },
+      ],
+    };
+  };
+
+  const zeroCtx = {
+    data: {},
+    _canvasReady: false,
+    setData: function (patch) {
+      this.data = Object.assign({}, this.data, patch);
+    },
+  };
+
+  await pageDef._loadRadar.call(zeroCtx);
+
+  assert.strictEqual(zeroProfileCalls, 1, "all-zero assessment profile should still be read");
+  assert.strictEqual(zeroRadarCalls, 0, "all-zero assessment profile should not be overwritten by radar fallback");
+  assert.strictEqual(zeroCtx.data.avgScore, 0, "all-zero assessment profile should keep avgScore at 0");
+  assert.strictEqual(zeroCtx.data.weakCount, 2, "all-zero assessment profile should preserve weak dimensions");
+
+  console.log("PASS test_report_radar_authority.js (8 assertions)");
 }
 
 run().catch(function (error) {

@@ -43,10 +43,7 @@ async function run() {
     },
     getAssessmentProfile: async function () {
       return {
-        chapter_mastery: {
-          建筑构造: { name: "建筑构造", mastery: 0 },
-          地基基础: { name: "地基基础", mastery: 0 },
-        },
+        chapter_mastery: {},
       };
     },
     getRadarData: async function (userId) {

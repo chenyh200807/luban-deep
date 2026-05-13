@@ -134,6 +134,55 @@ async function run() {
 	    "zero radar response should not overwrite assessment mastery details or expose chapter codes",
 	  );
 
+  radarCalls = 0;
+  profileCalls = 0;
+  pageDef = loadReportPage({
+    api: {
+      getAssessmentProfile: async function () {
+        profileCalls++;
+        return {
+          chapter_mastery: {
+            建筑构造: { name: "建筑构造", mastery: 0 },
+            地基基础: { name: "地基基础", mastery: 0 },
+          },
+        };
+      },
+      getRadarData: async function () {
+        radarCalls++;
+        return {
+          dimensions: [
+            { label: "建筑构造", score: 80, value: 0.8 },
+            { label: "地基基础", score: 60, value: 0.6 },
+          ],
+        };
+      },
+      unwrapResponse: function (raw) {
+        return raw;
+      },
+    },
+    auth: {},
+    helpers: {
+      getWindowInfo: function () {
+        return { pixelRatio: 2 };
+      },
+    },
+    runtime: {},
+    route: {},
+    flags: {},
+  });
+  page = createPageInstance(pageDef, {
+    radarLoading: true,
+    radarError: false,
+  });
+  page._ensureRadarRendered = function () {};
+
+  await page._loadRadar();
+
+  assert(profileCalls === 1, "all-zero assessment profile should still be read");
+  assert(radarCalls === 0, "all-zero assessment profile should not be overwritten by radar fallback");
+  assert(page.data.avgScore === 0, "all-zero assessment profile should keep avgScore at 0");
+  assert(page.data.weakCount === 2, "all-zero assessment profile should preserve weak dimensions");
+
   if (fail) {
     console.error(errors.join("\n"));
     process.exit(1);

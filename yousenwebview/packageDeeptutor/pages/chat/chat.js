@@ -148,6 +148,51 @@ function buildFocusQuery(focus, title) {
   );
 }
 
+function normalizeAnswerMode(value) {
+  var key = String(value || "").trim().toLowerCase();
+  if (key === "deep" || key === "detailed" || key === "深度" || key === "精讲") return "DEEP";
+  if (key === "fast" || key === "quick" || key === "快速" || key === "快答") return "FAST";
+  if (key === "auto" || key === "smart" || key === "智能") return "AUTO";
+  return "";
+}
+
+function resolveConversationAnswerMode(meta) {
+  var payload = meta && typeof meta === "object" && !Array.isArray(meta) ? meta : {};
+  var preferences =
+    payload.preferences && typeof payload.preferences === "object" ? payload.preferences : {};
+  var hints =
+    preferences.interaction_hints && typeof preferences.interaction_hints === "object"
+      ? preferences.interaction_hints
+      : {};
+  var candidates = [
+    payload.effective_response_mode,
+    payload.selected_mode,
+    hints.effective_response_mode,
+    hints.selected_mode,
+    payload.requested_response_mode,
+    payload.answer_mode,
+    payload.mode,
+    payload.response_mode,
+    payload.teaching_mode,
+    preferences.chat_mode,
+    hints.requested_response_mode,
+    hints.teaching_mode,
+  ];
+  for (var i = 0; i < candidates.length; i++) {
+    var mode = normalizeAnswerMode(candidates[i]);
+    if (mode) return mode;
+  }
+  return "";
+}
+
+function isDeletedConversationId(id) {
+  var key = String(id || "").trim();
+  if (!key) return false;
+  if (!historyTombstone || typeof historyTombstone.readDeletedConversationIds !== "function") return false;
+  var tombstones = historyTombstone.readDeletedConversationIds();
+  return !!(tombstones && tombstones[key]);
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -399,11 +444,17 @@ Page({
     if (runtime.consumeGoHomeFlag()) {
       this.clearMessages();
     }
+    if (isDeletedConversationId(this._convId || this._sid || wx.getStorageSync("current_session_id"))) {
+      this.clearMessages();
+    }
     self.setData({ timeGreeting: helpers.getTimeGreeting() });
     var pendingConvId = runtime.consumePendingConversationId();
+    var restoringConversation = false;
     if (pendingConvId) {
+      restoringConversation = true;
       self._restoreConversation(pendingConvId);
     } else if (!this.data.hasMessages && this._convId && this._sid) {
+      restoringConversation = true;
       self._restoreConversation(this._convId);
     }
     if (this._loadPendingTurn() && !this._pendingRecoveryActive) {
@@ -422,6 +473,10 @@ Page({
       .then(function () {
         self._loadDashboard();
         self._checkDiagnostic();
+        if (restoringConversation) {
+          runtime.consumePendingChatIntent();
+          return;
+        }
         var pendingIntent = runtime.consumePendingChatIntent();
         if (pendingIntent.query && !self.data.isStreaming) {
           self.setData({ answerMode: pendingIntent.mode || "AUTO" });
@@ -644,19 +699,25 @@ Page({
     };
   },
 
-  _applyHydratedConversationMessages: function (rawMsgs) {
+  _applyHydratedConversationMessages: function (rawMsgs, conversationMeta) {
     var self = this;
     var hydrated = this._hydrateConversationMessages(rawMsgs || []);
-    this._teardownObserver();
-    this._counter = hydrated.counter;
-    this._syncMessageIndexMap(hydrated.messages);
-    this.setData({
+    var restoredMode = resolveConversationAnswerMode(conversationMeta);
+    var update = {
       messages: hydrated.messages,
       hasMessages: hydrated.messages.length > 0,
       isStreaming: false,
       scrollToId: "msg-bottom",
       chatScrollWithAnimation: false,
-    });
+    };
+    if (restoredMode) {
+      update.answerMode = restoredMode;
+      if (restoredMode !== "DEEP") update.enableReason = false;
+    }
+    this._teardownObserver();
+    this._counter = hydrated.counter;
+    this._syncMessageIndexMap(hydrated.messages);
+    this.setData(update);
     this._syncWorkspaceChrome({ hasMessages: hydrated.messages.length > 0 });
     setTimeout(function () {
       self._releaseBottomAnchor();
@@ -815,7 +876,7 @@ Page({
             return false;
           }
 
-          self._applyHydratedConversationMessages(serverMessages);
+          self._applyHydratedConversationMessages(serverMessages, data.conversation || data);
           self._recoveringTurn = false;
           self._clearPendingTurn();
           return true;
@@ -2087,7 +2148,10 @@ Page({
       .getConversationMessages(convId)
       .then(function (raw) {
         var data = api.unwrapResponse(raw);
-        self._applyHydratedConversationMessages(data.messages || data || []);
+        self._applyHydratedConversationMessages(
+          data.messages || data || [],
+          data.conversation || data,
+        );
       })
       .catch(function () {
         if (!self.data.messages.length) {

@@ -716,6 +716,52 @@ def test_merge_redacted_single_submission_with_authoritative_question_set() -> N
     assert "国务院" in merged["explanation"]
 
 
+def test_merge_redacted_batch_submission_restores_all_authoritative_items_by_id() -> None:
+    from deeptutor.services.session.turn_runtime import (
+        _merge_public_submission_with_authoritative_context,
+    )
+
+    public_context = {
+        "question_id": "question_set",
+        "question": "相关五道题",
+        "question_type": "choice",
+        "items": [
+            {"question_id": "q_5", "question": "题5", "question_type": "single_choice", "correct_answer": "", "user_answer": "D"},
+            {"question_id": "q_1", "question": "题1", "question_type": "single_choice", "correct_answer": "", "user_answer": "A"},
+            {"question_id": "q_2", "question": "题2", "question_type": "single_choice", "correct_answer": "", "user_answer": "B"},
+        ],
+    }
+    authoritative_context = {
+        "question_id": "question_set",
+        "question": "相关五道题",
+        "question_type": "choice",
+        "items": [
+            {"question_id": "q_1", "question": "题1", "question_type": "single_choice", "correct_answer": "A", "explanation": "第1题解析"},
+            {"question_id": "q_2", "question": "题2", "question_type": "single_choice", "correct_answer": "B", "explanation": "第2题解析"},
+            {"question_id": "q_3", "question": "题3", "question_type": "single_choice", "correct_answer": "C", "explanation": "第3题解析"},
+            {"question_id": "q_4", "question": "题4", "question_type": "single_choice", "correct_answer": "A", "explanation": "第4题解析"},
+            {"question_id": "q_5", "question": "题5", "question_type": "single_choice", "correct_answer": "D", "explanation": "第5题解析"},
+        ],
+    }
+
+    merged = _merge_public_submission_with_authoritative_context(
+        public_context,
+        authoritative_context,
+    )
+
+    assert merged is not None
+    merged_items = {item["question_id"]: item for item in merged["items"]}
+    assert list(merged_items) == ["q_1", "q_2", "q_3", "q_4", "q_5"]
+    assert merged_items["q_1"]["correct_answer"] == "A"
+    assert merged_items["q_1"]["user_answer"] == "A"
+    assert merged_items["q_2"]["correct_answer"] == "B"
+    assert merged_items["q_2"]["user_answer"] == "B"
+    assert merged_items["q_5"]["correct_answer"] == "D"
+    assert merged_items["q_5"]["user_answer"] == "D"
+    assert merged_items["q_3"]["user_answer"] == ""
+    assert "第5题解析" in merged_items["q_5"]["explanation"]
+
+
 def test_extract_choice_result_summary_from_text_supports_chinese_numbered_titles() -> None:
     result_summary = extract_choice_result_summary_from_text(
         "\n".join(

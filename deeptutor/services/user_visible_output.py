@@ -29,6 +29,10 @@ _INTERNAL_OUTPUT_PATTERNS: tuple[re.Pattern[str], ...] = (
         re.IGNORECASE,
     ),
     re.compile(
+        r"^(?:好的|好|可以)?(?:，|,)?(?:我来|我先|先|正在|准备).{0,80}(?:读取|加载|查看|展开|调取).{0,80}\b(?:skill|reference)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
         r"^(?:现在)?(?:让我|我来)(?:读取|查看|检查|分析|打开|浏览).{0,60}(?:文件|目录|路径|workspace|HEARTBEAT)",
         re.IGNORECASE,
     ),

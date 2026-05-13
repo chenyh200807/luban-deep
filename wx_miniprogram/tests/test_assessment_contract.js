@@ -33,11 +33,11 @@ function flushPromises() {
   });
 }
 
-function loadPage(relativePath) {
+function loadPage(relativePath, apiOverrides) {
   var source = fs.readFileSync(path.join(__dirname, "..", relativePath), "utf8");
   var pageDef = null;
   var modalCalls = [];
-  var apiMock = {
+  var apiMock = Object.assign({
     createAssessment: function () {
       return Promise.resolve({
         quiz_id: "quiz_1",
@@ -104,7 +104,7 @@ function loadPage(relativePath) {
         },
       });
     },
-  };
+  }, apiOverrides || {});
   var sandbox = {
     console: console,
     Date: Date,
@@ -289,6 +289,43 @@ function loadPage(relativePath) {
       loaded.page.data.chapterList[0].name.indexOf("1A") < 0 &&
         loaded.page.data.priorityChapters[0].indexOf("1A") < 0,
       "result should translate textbook chapter codes into user-facing Chinese labels",
+    );
+  });
+
+  await run("assessment result should preserve explicit zero scores from backend", async function () {
+    var loaded = loadPage("pages/assessment/assessment.js", {
+      submitAssessment: function () {
+        return Promise.resolve({
+          score: 88,
+          level: "advanced",
+          diagnostic_feedback: {
+            ability_overview: {
+              score_pct: 0,
+              chapter_mastery: {
+                地基基础: { name: "地基基础", mastery: 0, pct: 55 },
+              },
+              error_pattern: "gap_dominant",
+            },
+          },
+        });
+      },
+    });
+    loaded.page.onStart();
+    await flushPromises();
+
+    loaded.page.setData({
+      selectedKeys: { q_1: "B", q_2: "B", q_3: "A" },
+      answeredCount: 3,
+      unansweredCount: 0,
+    });
+
+    loaded.page.onSubmit();
+    await flushPromises();
+
+    assert(loaded.page.data.resultScore === 0, "explicit zero score_pct should not fall back to data.score");
+    assert(
+      loaded.page.data.chapterList[0] && loaded.page.data.chapterList[0].pct === 0,
+      "explicit zero chapter mastery should not fall back to pct",
     );
   });
 

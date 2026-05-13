@@ -201,6 +201,16 @@ function displayChapterName(value) {
   return text || "综合能力";
 }
 
+function hasExplicitValue(value) {
+  return value !== undefined && value !== null && value !== "";
+}
+
+function pickNumber(primary, fallback) {
+  var value = hasExplicitValue(primary) ? primary : fallback;
+  var parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -512,7 +522,7 @@ Page({
         var ap = fb.action_plan || {};
         var diag = data.diagnostic || data.diagnostic_profile || {};
 
-        var score = ao.score_pct || data.score || 0;
+        var score = pickNumber(ao.score_pct, data.score);
         var level = data.suggested_level || data.level || "beginner";
 
         // 章节掌握度
@@ -523,7 +533,7 @@ Page({
             var name = typeof v === "object" ? v.name || ch : ch;
             var pct =
               typeof v === "object"
-                ? Math.round(v.mastery || v.pct || 0)
+                ? Math.round(pickNumber(v.mastery, v.pct))
                 : Math.round(v * 100);
             return { name: displayChapterName(name), pct: pct };
           })

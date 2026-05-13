@@ -837,7 +837,7 @@
 /* ── 入口卡片文字 ──────────────────────────── */
 .report-page.light .assess-entry-title { color: #0f172a; }
 .report-page.light .assess-entry-sub { color: #7b8799; }
-.report-page.light .assess-entry-arrow { color: #97a5b8; }
+.report-page.light .assess-entry-arrow { color: #64748b; }
 .report-page.light .assess-entry-icon {
   background: linear-gradient(135deg, #eef4ff, #f8fbff);
   border-color: #cfe0ff;

@@ -85,6 +85,7 @@ _EXPLICIT_PRACTICE_GENERATION_MARKERS = (
 )
 _EXPLICIT_PRACTICE_GENERATION_PATTERNS = (
     r"(给我|帮我|来|出)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道)?(?:题|单选题|多选题|案例题|简答题|选择题|判断题)",
+    r"(给我|帮我|来|出).{0,16}(?:\d{1,2}|[一二两三四五六七八九十几]+)\s*(?:道题|题|道)",
     r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
 )
 _QUESTION_EXPLAINER_MARKERS = (

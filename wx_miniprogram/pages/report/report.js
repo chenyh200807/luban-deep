@@ -44,10 +44,10 @@ function buildRadarDimensionsFromAssessment(data) {
   var mastery = (data && data.chapter_mastery) || {};
   return Object.keys(mastery).map(function (key) {
     var item = mastery[key];
-    var score = (typeof item === "object" ? item.mastery : item) || 0;
+    var score = Number(typeof item === "object" ? item.mastery : item);
     return {
       name: displayChapterName((typeof item === "object" ? item.name : key) || key),
-      value: Number(score || 0) / 100,
+      value: (Number.isFinite(score) ? score : 0) / 100,
     };
   });
 }
@@ -98,6 +98,7 @@ Page({
     normalCount: 0,
     weakCount: 0,
     avgScore: 0,
+    overviewScore: 0,
 
     // 维度详情列表（按 value 升序 = 薄弱优先）
     dimList: [],
@@ -201,7 +202,7 @@ Page({
       var data = api.unwrapResponse(result) || {};
       dims = buildRadarDimensionsFromAssessment(data);
 
-      if (!dims.length || !hasPositiveRadarSignal(dims)) {
+      if (!dims.length) {
         try {
           var radarResult = await api.getRadarData(RADAR_SELF_SUBJECT);
           var radarData = api.unwrapResponse(radarResult) || {};
@@ -255,6 +256,7 @@ Page({
         normalCount: normal,
         weakCount: weak,
         avgScore: avg,
+        overviewScore: avg,
         dimList: dimList,
         radarLoading: false,
       });
@@ -353,6 +355,7 @@ Page({
 
       this.setData({
         overallMastery: overall,
+        overviewScore: this.data.radarDimensions.length ? this.data.avgScore : overall,
         masteryGroups: groups,
         hotspots: hotspots,
         reviewSummary: reviewSummary,

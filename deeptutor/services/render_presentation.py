@@ -55,6 +55,15 @@ def _normalize_option_map(raw_options: Any) -> tuple[list[dict[str, str]], dict[
     return options, option_map
 
 
+def _normalize_choice_question_type(value: Any) -> str:
+    raw = _coerce_text(value).lower()
+    if raw in {"multi_choice", "multiple_choice", "multiple", "multi"}:
+        return "multi_choice"
+    if raw in {"choice", "single_choice", "single", "judge", "judgment", "true_false"}:
+        return "single_choice"
+    return ""
+
+
 def _build_choice_followup_context(
     qa_pair: dict[str, Any],
     *,
@@ -109,8 +118,8 @@ def build_mcq_block_from_result_summary(
         qa_pair = item.get("qa_pair") if isinstance(item, dict) else None
         if not isinstance(qa_pair, dict):
             continue
-        question_type = _coerce_text(qa_pair.get("question_type")).lower()
-        if question_type != "choice":
+        question_type = _normalize_choice_question_type(qa_pair.get("question_type"))
+        if not question_type:
             continue
         options, option_map = _normalize_option_map(qa_pair.get("options"))
         if len(options) < 2:
@@ -124,7 +133,11 @@ def build_mcq_block_from_result_summary(
             reveal_explanations=reveal_explanations,
         )
         correct_answer = _coerce_text(qa_pair.get("correct_answer")).upper()
-        multi_select = qa_pair.get("multi_select") is True or len(correct_answer) > 1
+        multi_select = (
+            qa_pair.get("multi_select") is True
+            or question_type == "multi_choice"
+            or len(correct_answer) > 1
+        )
         questions.append(
             {
                 "index": index,

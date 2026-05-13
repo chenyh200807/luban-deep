@@ -162,7 +162,11 @@ def _build_rubric_specs(row: dict[str, Any]) -> tuple[list[dict[str, Any]], Case
 
 def _project_specs_from_existing_fields(row: dict[str, Any]) -> list[dict[str, Any]]:
     specs: list[dict[str, Any]] = []
-    for keyword in normalize_keyword_list(row.get("grading_keywords")):
+    reference_specs = _reference_answer_specs(row.get("correct_answer"))
+    if reference_specs:
+        return reference_specs
+
+    for keyword in _trusted_grading_keywords(row):
         _append_spec(
             specs,
             criterion=keyword,
@@ -185,12 +189,74 @@ def _project_specs_from_existing_fields(row: dict[str, Any]) -> list[dict[str, A
                     source_field="structured_rules",
                 )
 
-    if not specs:
-        for line in _answer_lines(row.get("correct_answer")):
-            keywords = _keywords_from_text(line)
-            if line and keywords:
-                _append_spec(specs, criterion=line, keywords=keywords, source_field="correct_answer")
     return specs
+
+
+def _trusted_grading_keywords(row: dict[str, Any]) -> list[str]:
+    """Use generated keywords only when they agree with answer-side authority."""
+    keywords = normalize_keyword_list(row.get("grading_keywords"))
+    if not keywords:
+        return []
+    authority_text = compact_text(
+        " ".join(
+            str(coerce_jsonish(row.get(field)) or "")
+            for field in ("correct_answer", "analysis", "testing_focus")
+        )
+    )
+    if not authority_text:
+        return keywords
+    return [keyword for keyword in keywords if compact_text(keyword) in authority_text]
+
+
+def _reference_answer_specs(value: Any) -> list[dict[str, Any]]:
+    text = str(coerce_jsonish(value) or "")
+    improper_text, correct_text = _split_reference_sections(text)
+    improper_points = _split_numbered_points(improper_text)
+    correct_points = _split_numbered_points(correct_text)
+    specs: list[dict[str, Any]] = []
+    if improper_points or correct_points:
+        count = max(len(improper_points), len(correct_points))
+        for index in range(count):
+            improper = improper_points[index] if index < len(improper_points) else ""
+            correct = correct_points[index] if index < len(correct_points) else ""
+            criterion = "；".join(part for part in (improper, correct) if part)
+            keywords = _keywords_from_text("；".join(part for part in (improper, correct) if part))
+            if criterion and keywords:
+                _append_spec(
+                    specs,
+                    criterion=criterion,
+                    keywords=keywords,
+                    source_field="correct_answer",
+                )
+        if specs:
+            return specs
+
+    for line in _answer_lines(value):
+        keywords = _keywords_from_text(line)
+        if line and keywords:
+            _append_spec(specs, criterion=line, keywords=keywords, source_field="correct_answer")
+    return specs
+
+
+def _split_reference_sections(text: str) -> tuple[str, str]:
+    compact = str(text or "")
+    if "正确做法" not in compact:
+        return compact, ""
+    before, after = compact.split("正确做法", 1)
+    before = re.sub(r"^.*?不妥之处[:：]?", "", before, flags=re.S)
+    after = re.sub(r"^[:：]?", "", after.strip())
+    return before, after
+
+
+def _split_numbered_points(text: str) -> list[str]:
+    raw = str(text or "").strip()
+    if not raw:
+        return []
+    parts = re.split(r"(?:^|[；;\n。]\s*)(?:[①②③④⑤⑥⑦⑧⑨]|\(?[1-9]\)|[1-9][、.．])\s*", raw)
+    points = [compact_text(part) for part in parts if compact_text(part)]
+    if len(points) > 1:
+        return points
+    return [compact_text(part) for part in re.split(r"[；;\n。]+", raw) if compact_text(part)]
 
 
 def _open_skill_specs(row: dict[str, Any]) -> list[dict[str, Any]]:
@@ -243,13 +309,25 @@ def _keywords_from_text(text: Any) -> list[str]:
         return []
     quoted = re.findall(r"[“\"'‘]([^“\"'’]{2,24})[”\"'’]", compact)
     keywords = normalize_keyword_list(quoted)
+    for pattern in (
+        r"单项施工用电方案",
+        r"临时用电施工组织设计",
+        r"共用一个开关箱",
+        r"专用的?开关箱",
+        r"插座插头",
+        r"插头和插座",
+        r"活动连接",
+    ):
+        for match in re.findall(pattern, compact):
+            if match and match not in keywords:
+                keywords.append(match)
     if keywords:
         return keywords[:5]
     candidates = re.findall(r"[\u4e00-\u9fffA-Za-z0-9]{2,18}", compact)
     stopwords = {"条件", "结果", "符合", "规范", "要求", "判定", "应进行", "应按规定"}
     result: list[str] = []
     for candidate in candidates:
-        if candidate in stopwords or candidate.isdigit():
+        if candidate in stopwords or candidate.isdigit() or len(candidate) < 3:
             continue
         if candidate not in result:
             result.append(candidate)

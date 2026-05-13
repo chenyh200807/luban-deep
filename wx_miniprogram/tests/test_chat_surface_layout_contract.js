@@ -22,10 +22,15 @@ function read(rel) {
 }
 
 var chatWxml = read("pages/chat/chat.wxml");
+var chatWxss = read("pages/chat/chat.wxss");
 var chatJs = read("pages/chat/chat.js");
 var historyWxml = read("pages/history/history.wxml");
 var historyWxss = read("pages/history/history.wxss");
 var historyJs = read("pages/history/history.js");
+var profileWxss = read("pages/profile/profile.wxss");
+var practiceWxss = read("pages/practice/practice.wxss");
+var reportWxml = read("pages/report/report.wxml");
+var reportWxss = read("pages/report/report.wxss");
 
 assert(
   (chatWxml.match(/bindfocus="onKeyboardFocus"/g) || []).length >= 2,
@@ -48,6 +53,11 @@ assert(
   "fixed bottom input should be positioned from keyboard height",
 );
 assert(
+  /\.page\.light \.nav-compose-icon[\s\S]*stroke='%23334155'/.test(chatWxss) &&
+    /\.page\.light \.nav-more-icon\s*\{\s*color:\s*#334155;/.test(chatWxss),
+  "light chat nav action glyphs should be dark enough on white buttons",
+);
+assert(
   /padding-right:\s*\{\{navRightInset\}\}px/.test(historyWxml) &&
     /navRightInset/.test(historyJs),
   "history nav actions should reserve system capsule width",
@@ -57,6 +67,24 @@ assert(
     /\.nav-action-row/.test(historyWxss) &&
     /navActionRowHeight/.test(historyJs),
   "history management actions should sit below the system capsule row",
+);
+assert(
+  /\.history-page\.light \.conv-action-btn\s*\{\s*opacity:\s*1;[\s\S]*background:\s*#eef4ff;/.test(historyWxss) &&
+    /\.history-page\.light \.archive-lid\s*\{\s*background:\s*#475569;/.test(historyWxss) &&
+    /\.history-page\.light \.conv-del-icon\s*\{\s*color:\s*#475569;/.test(historyWxss),
+  "light history row archive/delete glyphs should remain visible on white cards",
+);
+assert(
+  /\.profile-page\.light \.user-name-edit\s*\{\s*color:\s*#64748b;/.test(profileWxss) &&
+    /\.practice-page\.light \.link-arrow\s*\{\s*color:\s*#64748b;/.test(practiceWxss) &&
+    /\.report-page\.light \.report-entry-arrow\s*\{\s*color:\s*#64748b;/.test(reportWxss) &&
+    /\.report-page\.light \.assess-entry-arrow\s*\{\s*color:\s*#64748b;/.test(reportWxss),
+  "light secondary action arrows should keep enough contrast on white cards",
+);
+assert(
+  /overviewScore/.test(reportWxml) &&
+    reportWxml.indexOf("avgScore || overallMastery") === -1,
+  "report overview should not hide a real zero mastery value behind a truthy fallback",
 );
 assert(
   chatWxml.indexOf("workflow-step-raw") === -1 &&

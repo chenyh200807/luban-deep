@@ -467,18 +467,23 @@ class ChatOrchestrator:
             message
         )
         reveal_preference = detect_answer_reveal_preference(message)
-        context.config_overrides.setdefault("mode", "custom")
-        context.config_overrides.setdefault("topic", message)
-        context.config_overrides.setdefault(
-            "num_questions",
-            self._infer_question_count(message),
-        )
-        context.config_overrides.setdefault(
-            "question_type",
+        inferred_question_count = self._infer_question_count(message)
+        resolved_question_type = (
             explicit_question_type
             if is_explicit_type
-            else preferred_question_type or explicit_question_type,
+            else preferred_question_type or explicit_question_type
         )
+        if not str(context.config_overrides.get("mode") or "").strip():
+            context.config_overrides["mode"] = "custom"
+        if not str(context.config_overrides.get("topic") or "").strip():
+            context.config_overrides["topic"] = message
+        current_question_count = int(context.config_overrides.get("num_questions") or 1)
+        if current_question_count == 1 and inferred_question_count != 1:
+            context.config_overrides["num_questions"] = inferred_question_count
+        else:
+            context.config_overrides.setdefault("num_questions", inferred_question_count)
+        if resolved_question_type and not str(context.config_overrides.get("question_type") or "").strip():
+            context.config_overrides["question_type"] = resolved_question_type
         context.config_overrides["force_generate_questions"] = True
         suppress_answer_reveal = True
         if isinstance(interaction_hints, dict):
@@ -491,7 +496,8 @@ class ChatOrchestrator:
         context.config_overrides.setdefault("reveal_explanations", not suppress_answer_reveal)
         context.config_overrides.setdefault(
             "lightweight_generation",
-            _should_use_lightweight_generation(message, reveal_preference),
+            inferred_question_count <= 3
+            and _should_use_lightweight_generation(message, reveal_preference),
         )
 
     async def _publish_completion(self, context: UnifiedContext, cap_name: str) -> None:

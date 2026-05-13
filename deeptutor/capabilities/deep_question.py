@@ -18,6 +18,9 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.core.trace import merge_trace_metadata
+from deeptutor.services.construction_grading.deep_question_adapter import (
+    attach_deep_question_grading_result,
+)
 from deeptutor.services.question_followup import (
     apply_followup_action_to_context,
     answers_match,
@@ -468,6 +471,9 @@ class DeepQuestionCapability(BaseCapability):
         selected_mode = str(context.metadata.get("selected_mode") or "").strip().lower()
         allow_legacy_followup_fallback = semantic_router_mode != "primary"
         next_action = str(turn_semantic_decision.get("next_action") or "").strip()
+        raw_user_message = str(
+            context.metadata.get("raw_user_message") or context.user_message or ""
+        ).strip()
         if (
             not force_generate_questions
             and isinstance(followup_question_context, dict)
@@ -476,6 +482,28 @@ class DeepQuestionCapability(BaseCapability):
             )
             and next_action != "route_to_generation"
         ):
+            target_context, submission = resolve_submission_attempt(
+                raw_user_message,
+                followup_question_context,
+            )
+            if target_context and submission:
+                followup_question_context = target_context
+                if submission.get("kind") == "batch":
+                    followup_action = {
+                        "intent": "answer_questions",
+                        "answers": submission.get("answers") or [],
+                    }
+                else:
+                    followup_action = {
+                        "intent": "answer_questions",
+                        "answers": [
+                            {
+                                "question_id": submission.get("question_id", ""),
+                                "answer": str(submission.get("answer") or "").strip(),
+                            }
+                        ],
+                    }
+                next_action = "route_to_grading"
             action_context = None
             if next_action == "route_to_grading":
                 action_context = apply_followup_action_to_context(
@@ -496,7 +524,7 @@ class DeepQuestionCapability(BaseCapability):
                     graded_context = self._build_submission_context(
                         action_context,
                         str(action_context.get("user_answer") or "").strip(),
-                        raw_submission=context.user_message,
+                        raw_submission=raw_user_message,
                     )
                 async with stream.stage("generation", source=self.name):
                     if _should_use_deterministic_grading_feedback(
@@ -513,7 +541,7 @@ class DeepQuestionCapability(BaseCapability):
                         )
                         agent.set_trace_callback(self._build_trace_bridge(stream))
                         answer = await agent.process(
-                            user_message=context.user_message,
+                            user_message=raw_user_message,
                             question_context=graded_context,
                             history_context=str(
                                 context.metadata.get("conversation_context_text", "") or ""
@@ -543,12 +571,15 @@ class DeepQuestionCapability(BaseCapability):
                             next_action="route_to_grading",
                             active_object=result_active_object or active_object,
                             question_context=graded_context,
-                            user_message=context.user_message,
+                            user_message=raw_user_message,
                         ),
                     }
                     cost_meta = self._collect_cost_summary("question")
                     if cost_meta:
                         result_payload["metadata"] = {"cost_summary": cost_meta}
+                    grading_result = graded_context.get("construction_grading_result")
+                    if isinstance(grading_result, dict) and grading_result:
+                        result_payload["construction_grading_result"] = grading_result
                     await stream.result(result_payload, source=self.name)
                 return
 
@@ -656,7 +687,7 @@ class DeepQuestionCapability(BaseCapability):
 
             if allow_legacy_followup_fallback:
                 target_context, submission = resolve_submission_attempt(
-                    context.user_message,
+                    raw_user_message,
                     followup_question_context,
                 )
                 if target_context and submission:
@@ -674,7 +705,7 @@ class DeepQuestionCapability(BaseCapability):
                         graded_context = self._build_submission_context(
                             target_context,
                             user_answer,
-                            raw_submission=context.user_message,
+                            raw_submission=raw_user_message,
                         )
                     async with stream.stage("generation", source=self.name):
                         if _should_use_deterministic_grading_feedback(
@@ -691,7 +722,7 @@ class DeepQuestionCapability(BaseCapability):
                             )
                             agent.set_trace_callback(self._build_trace_bridge(stream))
                             answer = await agent.process(
-                                user_message=context.user_message,
+                                user_message=raw_user_message,
                                 question_context=graded_context,
                                 history_context=str(
                                     context.metadata.get("conversation_context_text", "") or ""
@@ -721,12 +752,15 @@ class DeepQuestionCapability(BaseCapability):
                                 next_action="route_to_grading",
                                 active_object=result_active_object or active_object,
                                 question_context=graded_context,
-                                user_message=context.user_message,
+                                user_message=raw_user_message,
                             ),
                         }
                         cost_meta = self._collect_cost_summary("question")
                         if cost_meta:
                             result_payload["metadata"] = {"cost_summary": cost_meta}
+                        grading_result = graded_context.get("construction_grading_result")
+                        if isinstance(grading_result, dict) and grading_result:
+                            result_payload["construction_grading_result"] = grading_result
                         await stream.result(result_payload, source=self.name)
                     return
 
@@ -1094,7 +1128,7 @@ class DeepQuestionCapability(BaseCapability):
             user_answer=user_answer,
             raw_submission=raw_submission,
         )
-        return graded_context
+        return attach_deep_question_grading_result(graded_context)
 
     @staticmethod
     def _build_batch_submission_context(
@@ -1121,7 +1155,7 @@ class DeepQuestionCapability(BaseCapability):
             graded_context["diagnosis"] = "PARTIAL"
         else:
             graded_context["diagnosis"] = "CONFUSION"
-        return graded_context
+        return attach_deep_question_grading_result(graded_context)
 
     @staticmethod
     def _diagnose_choice_submission(

@@ -36,7 +36,7 @@
         <text class="overview-tip" wx:if="{{studyTip}}">{{studyTip}}</text>
         <view class="overview-metrics">
           <view class="metric-chip">
-            <text class="metric-num">{{overallMastery || diagnosticScore}}%</text>
+            <text class="metric-num">{{overallMastery}}%</text>
             <text class="metric-label">总体掌握</text>
           </view>
           <view class="metric-chip metric-chip-progress" bindtap="goPractice" hover-class="metric-chip-hover">

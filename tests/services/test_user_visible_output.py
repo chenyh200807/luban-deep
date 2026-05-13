@@ -15,6 +15,15 @@ def test_detects_internal_skill_loading_output() -> None:
     assert looks_like_internal_output(text) is True
 
 
+def test_detects_soft_skill_reference_process_output() -> None:
+    text = (
+        "好的，我来加载建筑构造相关的专题内容，帮你出题练习。\n\n"
+        "先读取 skill 总则和选择题讲解 reference。"
+    )
+    assert looks_like_internal_output(text) is True
+    assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
 def test_coerce_user_visible_answer_fails_closed_for_internal_output() -> None:
     text = "你是鲁班智考的 thinking 阶段。这里输出的是 tutor 的内部思路，不是最终回复。"
     assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"

@@ -3481,6 +3481,22 @@ class MemberConsoleService:
             for key, value in (member.get("chapter_mastery") or {}).items()
         ]
 
+    @staticmethod
+    def _last_assessment_mastery_items(member: dict[str, Any]) -> list[dict[str, Any]]:
+        last_assessment = member.get("last_assessment") if isinstance(member.get("last_assessment"), dict) else {}
+        chapter_mastery = (
+            last_assessment.get("chapter_mastery")
+            if isinstance(last_assessment.get("chapter_mastery"), dict)
+            else {}
+        )
+        return [
+            {
+                "name": (value.get("name") if isinstance(value, dict) else "") or key,
+                "mastery": int((value.get("mastery") if isinstance(value, dict) else value) or 0),
+            }
+            for key, value in chapter_mastery.items()
+        ]
+
     def _build_provisional_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
         learning = self._ensure_learning_profile(member)
         items: list[dict[str, Any]] = []
@@ -3497,6 +3513,9 @@ class MemberConsoleService:
         return items if has_signal else []
 
     def _report_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
+        last_assessment_items = self._last_assessment_mastery_items(member)
+        if last_assessment_items:
+            return last_assessment_items
         mastery_items = self._chapter_mastery_items(member)
         positive_items = [item for item in mastery_items if int(item.get("mastery") or 0) > 0]
         if positive_items:
@@ -4201,6 +4220,7 @@ class MemberConsoleService:
                 "unique_source_question_count": payload["unique_source_question_count"],
                 "shortfall_count": payload["shortfall_count"],
                 "fallback_used": bool(payload.get("fallback_used")),
+                "form_source": str(payload.get("form_source") or "unknown"),
                 "form_id": payload.get("form_id") or "",
                 "form_index": int(payload.get("form_index") or 0),
                 "form_count": int(payload.get("form_count") or 0),
@@ -4213,9 +4233,23 @@ class MemberConsoleService:
                     "delivered_count": payload["delivered_count"],
                     "scored_count": payload["scored_count"],
                     "profile_count": payload["profile_count"],
+                    "form_source": str(payload.get("form_source") or "unknown"),
                     "completion_rate": 0,
                 },
             }
+            logger.info(
+                "Assessment session created: user_id=%s quiz_id=%s blueprint_version=%s form_source=%s form_id=%s "
+                "form_index=%s form_count=%s fallback_used=%s question_bank_size=%s",
+                user_id,
+                quiz_id,
+                payload["blueprint_version"],
+                str(payload.get("form_source") or "unknown"),
+                payload.get("form_id") or "",
+                int(payload.get("form_index") or 0),
+                int(payload.get("form_count") or 0),
+                bool(payload.get("fallback_used")),
+                payload["question_bank_size"],
+            )
             return {
                 "quiz_id": quiz_id,
                 "questions": questions,
@@ -4230,6 +4264,7 @@ class MemberConsoleService:
                 "unique_source_question_count": payload["unique_source_question_count"],
                 "shortfall_count": payload["shortfall_count"],
                 "fallback_used": bool(payload.get("fallback_used")),
+                "form_source": str(payload.get("form_source") or "unknown"),
                 "form_id": payload.get("form_id") or "",
                 "form_index": int(payload.get("form_index") or 0),
                 "form_count": int(payload.get("form_count") or 0),

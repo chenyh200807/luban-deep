@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 
 from deeptutor.capabilities.deep_question import DeepQuestionCapability
+from deeptutor.agents.question.agents.submission_grader_agent import SubmissionGraderAgent
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.stream_bus import StreamBus
@@ -75,6 +76,7 @@ async def test_deep_question_routes_choice_submission_to_grading_agent(
             assert kwargs["question_context"]["user_answer"] == "B"
             assert kwargs["question_context"]["is_correct"] is True
             assert kwargs["question_context"]["diagnosis"] == "CORRECT"
+            assert kwargs["question_context"]["construction_grading_result"]["authority"] == "construction_grading"
             return "## 🧐 解析\n你这题选对了。\n\n## ⚠️ 易错点\n不要混淆步距和节拍。\n\n## 🎯 记忆锦囊\n队与队之间看步距。\n\n## 🚀 下一步建议\n再做 1 道同类题巩固。"
 
     _install_module(
@@ -118,6 +120,11 @@ async def test_deep_question_routes_choice_submission_to_grading_agent(
     assert result_event.metadata["user_answer"] == "B"
     assert result_event.metadata["is_correct"] is True
     assert result_event.metadata["question_followup_context"]["user_answer"] == "B"
+    assert (
+        result_event.metadata["question_followup_context"]["construction_grading_result"]["authority"]
+        == "construction_grading"
+    )
+    assert result_event.metadata["construction_grading_result"]["authority"] == "construction_grading"
 
 
 @pytest.mark.asyncio
@@ -206,6 +213,96 @@ async def test_deep_question_routes_batch_submission_to_grading_agent(
     assert result_event.metadata["is_correct"] is False
     assert result_event.metadata["question_followup_context"]["items"][0]["user_answer"] == "C"
     assert result_event.metadata["question_followup_context"]["items"][2]["is_correct"] is False
+
+
+@pytest.mark.asyncio
+async def test_deep_question_routes_subjective_case_submission_to_grading_agent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+            self._trace_callback = None
+
+        def set_trace_callback(self, callback) -> None:
+            self._trace_callback = callback
+
+        async def process(self, **kwargs: Any) -> str:
+            captured["process"] = kwargs
+            grading_result = kwargs["question_context"]["construction_grading_result"]
+            assert kwargs["user_message"] == raw_answer
+            assert kwargs["question_context"]["user_answer"] == (
+                "共用一个开关箱不妥，应采用专用开关箱"
+            )
+            assert grading_result["authority"] == "construction_grading"
+            assert grading_result["type"] == "case"
+            assert grading_result["score_awarded"] == 1.0
+            assert grading_result["max_score"] == 3.0
+            return "得分：1分（满分3分）。漏写临时用电施工组织设计和插座插头活动连接。"
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    raw_answer = "我的答案：共用一个开关箱不妥，应采用专用开关箱。请按案例题阅卷标准批改。"
+    context = UnifiedContext(
+        user_message=f"[History Context]\nUser selected E earlier.\n\n[User Question]\n{raw_answer}",
+        language="zh",
+        metadata={
+            "raw_user_message": raw_answer,
+            "conversation_context_text": "用户刚做完一道建筑实务案例题。",
+            "turn_semantic_decision": {
+                "next_action": "route_to_grading",
+            },
+            "question_followup_action": {
+                "intent": "answer_questions",
+                "answers": [
+                    {
+                        "question_id": "case-9006",
+                        "answer": "E",
+                    }
+                ],
+            },
+            "question_followup_context": {
+                "question_id": "case-9006",
+                "question": "指出事件二中临时用电管理的不妥之处。",
+                "question_type": "case",
+                "correct_answer": (
+                    "不妥之处：1.未编制临时用电施工组织设计；2.共用一个开关箱；"
+                    "3.插座插头活动连接。正确做法：1.应编制单项施工用电方案；"
+                    "2.应采用专用开关箱；3.插头和插座应配套使用，不得活动连接。"
+                ),
+                "concentration": "临时用电",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["user_answer"] == "共用一个开关箱不妥，应采用专用开关箱"
+    assert result_event.metadata["construction_grading_result"]["score_awarded"] == 1.0
+    assert result_event.metadata["construction_grading_result"]["max_score"] == 3.0
 
 
 @pytest.mark.asyncio
@@ -351,3 +448,108 @@ def test_build_submission_context_accepts_judgment_style_submission() -> None:
 
     assert context["is_correct"] is True
     assert context["diagnosis"] == "CORRECT"
+
+
+def test_build_submission_context_attaches_authoritative_mcq_grading_result() -> None:
+    capability = DeepQuestionCapability()
+
+    context = capability._build_submission_context(
+        {
+            "question_id": "supabase-12233",
+            "question": "某多选题",
+            "question_type": "multi_choice",
+            "options": {"A": "正确项", "B": "正确项", "C": "正确项", "D": "正确项", "E": "干扰项"},
+            "correct_answer": "ABCD",
+            "explanation": "E 不符合题意。",
+            "concentration": "建筑实务",
+        },
+        "AE",
+    )
+
+    result = context["construction_grading_result"]
+    assert result["type"] == "mcq"
+    assert result["authority"] == "construction_grading"
+    assert result["score_awarded"] == 0.0
+    assert result["max_score"] == 1.0
+    assert result["correct_answer"] == "ABCD"
+    assert result["extra_options"] == ["E"]
+    assert result["missed_options"] == ["B", "C", "D"]
+
+
+def test_build_submission_context_attaches_authoritative_case_grading_result() -> None:
+    capability = DeepQuestionCapability()
+
+    context = capability._build_submission_context(
+        {
+            "question_id": "case-9006",
+            "question": "指出事件二中临时用电管理的不妥之处。",
+            "question_type": "case",
+            "correct_answer": (
+                "不妥之处：1.未编制临时用电施工组织设计；2.共用一个开关箱；"
+                "3.插座插头活动连接。正确做法：1.应编制单项施工用电方案；"
+                "2.应采用专用开关箱；3.插头和插座应配套使用，不得活动连接。"
+            ),
+            "concentration": "临时用电",
+        },
+        "共用一个开关箱不妥，应采用专用开关箱。",
+    )
+
+    result = context["construction_grading_result"]
+    assert result["type"] == "case"
+    assert result["authority"] == "construction_grading"
+    assert result["score_awarded"] == 1.0
+    assert result["max_score"] == 3.0
+    assert result["grading_mode"] == "projected_rubric"
+    assert context["diagnosis"] == "PARTIAL"
+
+
+def test_build_submission_context_does_not_attach_case_grading_to_coding_question() -> None:
+    capability = DeepQuestionCapability()
+
+    context = capability._build_submission_context(
+        {
+            "question_id": "coding-1",
+            "question": "写一段 Python 代码输出 hello。",
+            "question_type": "coding",
+            "correct_answer": "print('hello')",
+        },
+        "print('hello')",
+    )
+
+    assert "construction_grading_result" not in context
+
+
+def test_submission_grader_renders_authoritative_grading_result() -> None:
+    rendered = SubmissionGraderAgent._render_question_context(
+        {
+            "question_id": "case-9006",
+            "question": "指出事件二中的不妥之处。",
+            "question_type": "case",
+            "user_answer": "共用一个开关箱不妥。",
+            "construction_grading_result": {
+                "type": "case",
+                "authority": "construction_grading",
+                "score_awarded": 1.0,
+                "max_score": 3.0,
+                "grading_mode": "projected_rubric",
+                "rubric_items": [
+                    {
+                        "criterion": "共用一个开关箱不妥；应采用专用开关箱",
+                        "max_score": 1.0,
+                        "awarded_score": 1.0,
+                        "status": "full",
+                        "keywords": ["共用一个开关箱"],
+                        "evidence_text": "共用一个开关箱",
+                        "source_fields": ["correct_answer"],
+                    }
+                ],
+                "error_events": [],
+                "rewrite_answer": "共用一个开关箱不妥；应采用专用开关箱。",
+            },
+        }
+    )
+
+    assert "Authoritative construction grading result" in rendered
+    assert '"authority": "construction_grading"' in rendered
+    assert '"score_awarded": 1.0' in rendered
+    assert '"max_score": 3.0' in rendered

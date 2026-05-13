@@ -629,7 +629,7 @@
   border-color: #f7faff;
   background: #2f6bff;
 }
-.profile-page.light .user-name-edit { color: #97a5b8; }
+.profile-page.light .user-name-edit { color: #64748b; }
 .profile-page.light .stat-chip {
   background: #f4f8ff;
   border: 1rpx solid #dbe6f5;
