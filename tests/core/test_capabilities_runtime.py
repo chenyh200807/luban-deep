@@ -86,8 +86,90 @@ def test_tutorbot_visible_answer_gate_rejects_skill_reference_process_leak() -> 
 
     assert AgentLoop._is_user_visible_final_answer(leaked_process_text) is False
     assert AgentLoop._is_user_visible_final_answer(
+        "好的，我先查一下。<｜｜DSML｜｜tool_calls><｜｜DSML｜｜invokename=\"rag\">"
+    ) is False
+    assert AgentLoop._is_user_visible_final_answer(
         "**第1题**\n建筑构造中，基础的主要作用是什么？\nA. 承重\nB. 装饰"
     ) is True
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_fast_policy_forwards_safe_provider_deltas(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FakeProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            if on_content_delta is not None:
+                await on_content_delta("最终答案：防水等级")
+                await on_content_delta("是设计标准。")
+            return LLMResponse(content="最终答案：防水等级是设计标准。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
+    deltas: list[str] = []
+
+    final_content, _messages = await loop._run_fast_policy_once(
+        [{"role": "user", "content": "防水等级是什么？"}],
+        runtime_metadata={"effective_response_mode": "fast"},
+        on_content_delta=lambda value: _capture_async(deltas, value),
+    )
+
+    assert final_content == "最终答案：防水等级是设计标准。"
+    assert deltas == []
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_fast_policy_chunks_nonstream_provider_answer(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    answer = "最终答案：防水等级是设计标准，设防层数是施工构造要求，两者不能混为同一个验收指标。"
+
+    class FakeProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            del messages, tools, model, max_tokens, temperature, reasoning_effort, tool_choice
+            assert on_content_delta is not None
+            return LLMResponse(content=answer)
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
+    deltas: list[str] = []
+
+    final_content, _messages = await loop._run_fast_policy_once(
+        [{"role": "user", "content": "防水等级和设防层数是什么关系？"}],
+        runtime_metadata={"effective_response_mode": "fast"},
+        on_content_delta=lambda value: _capture_async(deltas, value),
+    )
+
+    assert final_content == answer
+    assert deltas == []
 
 
 async def _collect_events(run_coro) -> list[StreamEvent]:
@@ -1243,7 +1325,7 @@ async def test_tutorbot_capability_deep_mode_does_not_override_config_model(
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_capability_buffers_deltas_until_visible_final_content(
+async def test_tutorbot_capability_streams_safe_public_deltas_without_final_duplicate(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "1")
@@ -1278,8 +1360,8 @@ async def test_tutorbot_capability_buffers_deltas_until_visible_final_content(
             session_metadata: dict[str, Any] | None = None,
         ) -> str:
             if on_content_delta is not None:
-                await on_content_delta("最终答案：")
-                await on_content_delta("防水等级是设计标准，设防层数是施工构造。")
+                await on_content_delta("最终答案：防水等级")
+                await on_content_delta("是设计标准，设防层数是施工构造。")
             return "最终答案：防水等级是设计标准，设防层数是施工构造。"
 
     monkeypatch.setattr(
@@ -1302,9 +1384,11 @@ async def test_tutorbot_capability_buffers_deltas_until_visible_final_content(
 
     content_events = [event for event in events if event.type == StreamEventType.CONTENT]
     assert [event.content for event in content_events] == [
-        "最终答案：防水等级是设计标准，设防层数是施工构造。",
+        "最终答案：防水等级",
+        "是设计标准，设防层数是施工构造。",
     ]
     assert all(event.metadata["call_kind"] == "llm_final_response" for event in content_events)
+    assert all(event.metadata["streaming_delta"] is True for event in content_events)
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["response"] == "最终答案：防水等级是设计标准，设防层数是施工构造。"
 
@@ -3529,7 +3613,7 @@ async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
             self._trace_metadata = {}
             return metadata
 
-    captured: dict[str, Any] = {"tool_calls": [], "tool_results": []}
+    captured: dict[str, Any] = {"tool_calls": [], "tool_results": [], "deltas": []}
 
     loop = AgentLoop(
         bus=MessageBus(),
@@ -3551,6 +3635,7 @@ async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
     content = await loop.process_direct(
         "背景资料：某旧城改造工程。问题：1. 通常进行资格预审的工程有哪些特点？2. 管理策划内容还有哪些？4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？",
         metadata={"default_kb": "construction-exam"},
+        on_content_delta=lambda value: _capture_async(captured["deltas"], value),
         on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
         on_tool_result=lambda name, result, metadata: _capture_async(
             captured["tool_results"], (name, result, metadata)
@@ -3559,6 +3644,8 @@ async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
 
     assert "10.28 亿元" in content
     assert "3335.40 万元" in content
+    assert len(captured["deltas"]) > 1
+    assert "".join(captured["deltas"]) == content
     assert captured["tool_calls"] == [("rag", {"query": "背景资料：某旧城改造工程。问题：1. 通常进行资格预审的工程有哪些特点？2. 管理策划内容还有哪些？4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？", "kb_name": "construction-exam"})]
     assert captured["tool_results"][0][2]["authority_applied"] is True
     assert captured["tool_results"][0][2]["rag_round"] == {

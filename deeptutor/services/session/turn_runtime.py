@@ -1475,11 +1475,14 @@ class _TurnExecution:
     turn_view: dict[str, Any] | None = None
     task: asyncio.Task[None] | None = None
     subscribers: list[_LiveSubscriber] = field(default_factory=list)
+    first_subscriber_attached: asyncio.Event = field(default_factory=asyncio.Event)
     persistence_degraded: bool = False
 
 
 class TurnRuntimeManager:
     """Run one turn in the background and multiplex persisted/live events."""
+
+    _DEFAULT_FIRST_SUBSCRIBER_GRACE_SECONDS = 2.0
 
     def __init__(self, store: SQLiteSessionStore | None = None) -> None:
         self.store = store or get_sqlite_session_store()
@@ -1575,6 +1578,30 @@ class TurnRuntimeManager:
                 logger.debug("Background turn task failed: %s", exc, exc_info=True)
 
         task.add_done_callback(_discard)
+
+    @classmethod
+    def _first_subscriber_grace_seconds(cls) -> float:
+        raw = str(os.getenv("TURN_RUNTIME_FIRST_SUBSCRIBER_GRACE_SECONDS", "") or "").strip()
+        if not raw:
+            return cls._DEFAULT_FIRST_SUBSCRIBER_GRACE_SECONDS
+        try:
+            value = float(raw)
+        except ValueError:
+            return cls._DEFAULT_FIRST_SUBSCRIBER_GRACE_SECONDS
+        return max(0.0, min(10.0, value))
+
+    async def _wait_for_first_subscriber(self, execution: _TurnExecution) -> None:
+        grace_seconds = self._first_subscriber_grace_seconds()
+        if grace_seconds <= 0 or execution.first_subscriber_attached.is_set():
+            return
+        try:
+            await asyncio.wait_for(execution.first_subscriber_attached.wait(), timeout=grace_seconds)
+        except asyncio.TimeoutError:
+            logger.debug(
+                "Turn %s started without live subscriber after %.2fs grace window",
+                execution.turn_id,
+                grace_seconds,
+            )
 
     def _schedule_post_turn_refresh(
         self,
@@ -2883,6 +2910,7 @@ class TurnRuntimeManager:
             execution = self._executions.get(turn_id)
             if execution is not None:
                 execution.subscribers.append(subscriber)
+                execution.first_subscriber_attached.set()
 
         catchup = await self._safe_store_call(
             None,
@@ -2951,6 +2979,7 @@ class TurnRuntimeManager:
             yield item
 
     async def _run_turn(self, execution: _TurnExecution) -> None:
+        await self._wait_for_first_subscriber(execution)
         payload = execution.payload
         session_id = execution.session_id
         capability_name = str(execution.capability or "").strip()

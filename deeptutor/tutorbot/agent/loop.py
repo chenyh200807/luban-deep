@@ -44,6 +44,8 @@ from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
     build_continuity_anchor_instruction,
+    correct_construction_exam_boundary_fact_response,
+    get_construction_exam_boundary_fact_instruction,
     get_anchor_preservation_instruction,
     get_practice_generation_instruction,
     get_teaching_mode_instruction,
@@ -255,7 +257,11 @@ class AgentLoop:
     def _looks_like_process_only_answer(cls, text: str | None) -> bool:
         source = re.sub(r"[\s，,。.!！?？：:；;]+", "", str(text or "").strip())
         lower_source = source.lower()
-        if not source or len(source) > 180:
+        if not source:
+            return False
+        if any(marker in lower_source for marker in ("dsml", "tool_calls", "function_call")):
+            return True
+        if len(source) > 180:
             return False
         if any(marker in source for marker in ("踩分点", "易错点", "核心考点", "自查", "答案", "判断")):
             return False
@@ -280,6 +286,42 @@ class AgentLoop:
     def _visible_answer_repair_prompt(cls, attempt_index: int) -> str:
         index = min(max(attempt_index, 0), len(cls._VISIBLE_ANSWER_REPAIR_PROMPTS) - 1)
         return cls._VISIBLE_ANSWER_REPAIR_PROMPTS[index]
+
+    @staticmethod
+    def _chunk_visible_text_for_stream(text: str, *, target_size: int = 14) -> list[str]:
+        clean = str(text or "")
+        if not clean:
+            return []
+        chunks: list[str] = []
+        current: list[str] = []
+        for char in clean:
+            current.append(char)
+            if char in "\n。！？；;，,、" or len(current) >= target_size:
+                chunks.append("".join(current))
+                current = []
+        if current:
+            chunks.append("".join(current))
+        return [chunk for chunk in chunks if chunk]
+
+    @classmethod
+    async def _emit_visible_text_deltas(
+        cls,
+        text: str | None,
+        on_content_delta: Callable[[str], Awaitable[None]] | None,
+    ) -> None:
+        if on_content_delta is None:
+            return
+        guarded_output = guard_tutorbot_output(text)
+        if guarded_output.blocked:
+            return
+        visible_text = str(guarded_output.content or text or "")
+        if not visible_text:
+            return
+        chunks = cls._chunk_visible_text_for_stream(visible_text)
+        for index, chunk in enumerate(chunks):
+            if index:
+                await asyncio.sleep(0.04)
+            await on_content_delta(chunk)
 
     @staticmethod
     def _tool_hint(tool_calls: list) -> str:
@@ -1070,8 +1112,6 @@ class AgentLoop:
                 break
             if self._is_user_visible_final_answer(candidate):
                 final_content = candidate
-                if on_content_delta is not None:
-                    await on_content_delta(final_content)
                 break
             call_messages = list(call_messages)
             call_messages.append(
@@ -1582,6 +1622,10 @@ class AgentLoop:
         track_label = exam_track_label(runtime_metadata.get("exam_track"))
         runtime_instruction_parts = [
             get_teaching_mode_instruction(response_mode),
+            get_construction_exam_boundary_fact_instruction(
+                current_message,
+                str(runtime_metadata.get("conversation_context_text") or "").strip(),
+            ),
             (
                 f"当前考试方向：{track_label}。回答、举例、题型判断和知识检索必须优先按该考试方向；"
                 "不得自动切回其他考试方向，除非用户明确改口。"
@@ -1633,10 +1677,15 @@ class AgentLoop:
                 user_message=current_message,
                 response=final_content,
             ) or final_content
+            final_content = correct_construction_exam_boundary_fact_response(
+                user_message=current_message,
+                response=final_content,
+            ) or final_content
             guarded_output = guard_tutorbot_output(final_content)
             final_content = guarded_output.content or final_content
             if all_msgs:
                 all_msgs[-1]["content"] = final_content
+            await self._emit_visible_text_deltas(final_content, on_content_delta)
             self._save_turn(session, all_msgs, 1 + len(history))
             session.metadata["last_exact_fast_path"] = bool(
                 fast_path_metadata and fast_path_metadata.get("authority_applied")
@@ -1685,10 +1734,15 @@ class AgentLoop:
                 user_message=current_message,
                 response=final_content,
             ) or final_content
+            final_content = correct_construction_exam_boundary_fact_response(
+                user_message=current_message,
+                response=final_content,
+            ) or final_content
             guarded_output = guard_tutorbot_output(final_content)
             final_content = guarded_output.content or final_content
             if all_msgs:
                 all_msgs[-1]["content"] = final_content
+            await self._emit_visible_text_deltas(final_content, on_content_delta)
             self._save_turn(session, all_msgs, 1 + len(history))
             session.metadata["last_exact_fast_path"] = False
             self.sessions.save(session)
@@ -1723,6 +1777,10 @@ class AgentLoop:
         if final_content is None:
             final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
         final_content = normalize_anchor_terms_in_response(
+            user_message=current_message,
+            response=final_content,
+        ) or final_content
+        final_content = correct_construction_exam_boundary_fact_response(
             user_message=current_message,
             response=final_content,
         ) or final_content

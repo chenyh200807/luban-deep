@@ -1080,6 +1080,81 @@ async def test_turn_runtime_routes_construction_exam_bot_to_tutorbot_capability(
 
 
 @pytest.mark.asyncio
+async def test_start_turn_waits_for_first_subscriber_before_running(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("TURN_RUNTIME_FIRST_SUBSCRIBER_GRACE_SECONDS", "0.3")
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    started = asyncio.Event()
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            started.set()
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="streamed reply",
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "你好",
+            "session_id": None,
+            "capability": "chat",
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    await asyncio.sleep(0.05)
+    assert not started.is_set()
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+        if event["type"] == "done":
+            break
+
+    assert started.is_set()
+    assert [event["type"] for event in events if event["type"] in {"content", "done"}] == [
+        "content",
+        "done",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_pins_tutorbot_practice_generation_to_tutorbot_runtime(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

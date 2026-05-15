@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from typing import Any
 
@@ -19,6 +20,7 @@ from deeptutor.services.question_followup import (
 )
 from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.render_presentation import build_canonical_presentation
+from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 from deeptutor.tutorbot.response_mode import (
@@ -60,6 +62,11 @@ class TutorBotCapability(BaseCapability):
             "rag_rounds": [],
             "rag_saturation": {},
         }
+        stream_public_deltas = self._stream_public_deltas_enabled() and not hide_generated_answers
+        public_stream_buffer = ""
+        streamed_public_text = ""
+        public_stream_started = False
+        public_stream_disabled = False
         user_id = self._billing_user_id(context)
         conversation_id = str(context.session_id or "").strip() or "web"
         session_key = manager.build_chat_session_key(
@@ -127,11 +134,37 @@ class TutorBotCapability(BaseCapability):
             )
 
         async def _on_content_delta(text: str) -> None:
+            nonlocal public_stream_buffer
+            nonlocal streamed_public_text
+            nonlocal public_stream_started
+            nonlocal public_stream_disabled
             if not text:
                 return
-            # TutorBot deltas are raw model output. Buffer them until the final
-            # user-visible answer gate has accepted the response.
             chunks.append(text)
+            if not stream_public_deltas or public_stream_disabled:
+                return
+            public_stream_buffer += text
+            if self._should_block_public_delta_stream(public_stream_buffer):
+                public_stream_disabled = True
+                return
+            if not public_stream_started:
+                if not self._should_start_public_delta_stream(public_stream_buffer):
+                    return
+                public_stream_started = True
+            delta = public_stream_buffer[len(streamed_public_text):]
+            if not delta:
+                return
+            streamed_public_text += delta
+            await stream.content(
+                delta,
+                source=self.name,
+                stage="responding",
+                metadata={
+                    "execution_engine": "tutorbot_runtime",
+                    "call_kind": "llm_final_response",
+                    "streaming_delta": True,
+                },
+            )
 
         async def _on_tool_call(tool_name: str, args: dict[str, Any]) -> None:
             await stream.tool_call(
@@ -207,6 +240,11 @@ class TutorBotCapability(BaseCapability):
                 reveal_explanations=reveal_explanations,
             )
             final_visible_delta = visible_response
+            if streamed_public_text:
+                if visible_response.startswith(streamed_public_text):
+                    final_visible_delta = visible_response[len(streamed_public_text):]
+                else:
+                    final_visible_delta = ""
             if final_visible_delta:
                 await stream.content(
                     final_visible_delta,
@@ -259,6 +297,50 @@ class TutorBotCapability(BaseCapability):
                 if presentation:
                     result_payload["presentation"] = presentation
             await stream.result(result_payload, source=self.name)
+
+    @staticmethod
+    def _stream_public_deltas_enabled() -> bool:
+        raw = str(os.getenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "1") or "1").strip().lower()
+        return raw not in {"0", "false", "no", "off"}
+
+    @staticmethod
+    def _should_block_public_delta_stream(text: str) -> bool:
+        source = str(text or "").strip()
+        if not source:
+            return False
+        if guard_tutorbot_output(source).blocked:
+            return True
+        return TutorBotCapability._looks_like_internal_process_delta(source)
+
+    @staticmethod
+    def _should_start_public_delta_stream(text: str) -> bool:
+        source = str(text or "").strip()
+        if not source:
+            return False
+        if TutorBotCapability._should_block_public_delta_stream(source):
+            return False
+        compact = re.sub(r"\s+", "", source)
+        if len(compact) >= 8:
+            return True
+        return "\n" in source or bool(
+            re.match(r"^(?:#{1,6}\s*)?(?:最终答案|结论|第\s*[0-9一二两三四五六七八九十]+题)", source)
+        )
+
+    @staticmethod
+    def _looks_like_internal_process_delta(text: str) -> bool:
+        compact = re.sub(r"[\s，,。.!！?？：:；;]+", "", str(text or "").strip())
+        lower = compact.lower()
+        if not compact or len(compact) > 220:
+            return False
+        if any(marker in compact for marker in ("踩分点", "易错点", "核心考点", "自查", "答案", "判断", "第1题", "第2题")):
+            return False
+        if any(marker in lower for marker in ("skill", "reference", "agents.md", "soul.md")):
+            return True
+        return bool(
+            re.match(r"^(好的|好|可以)?(我)?先(看|看看|查看|检索|查询|结合|梳理|分析|加载|读取|调取)", compact)
+            or re.match(r"^(好的|好|可以)?我(先|来)(看|查看|检索|查询|结合|梳理|分析|加载|读取|调取)", compact)
+            or re.match(r"^正在(查看|检索|查询|加载|读取|调取|分析)", compact)
+        )
 
     @staticmethod
     def _bot_id(context: UnifiedContext) -> str:

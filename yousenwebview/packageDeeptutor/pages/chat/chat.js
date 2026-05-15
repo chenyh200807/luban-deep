@@ -1059,6 +1059,9 @@ Page({
 
   _onToken: function (t) {
     this._buf += t;
+    if (this._flushCount === 0) {
+      this._flush();
+    }
     if (!this._timer) {
       var self = this;
       this._timer = setInterval(function () {
