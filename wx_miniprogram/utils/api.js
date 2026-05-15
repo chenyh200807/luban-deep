@@ -236,6 +236,31 @@ function rawRequest(opts) {
           return;
         }
 
+        if (
+          !opts.url.startsWith("http") &&
+          res.statusCode >= 500 &&
+          baseIndex + 1 < baseCandidates.length
+        ) {
+          var nextBaseOnServerError = baseCandidates[baseIndex + 1];
+          console.warn(
+            "[API] " +
+              res.statusCode +
+              " on " +
+              fullUrl +
+              ", fallback to " +
+              nextBaseOnServerError,
+          );
+          request(
+            Object.assign({}, opts, {
+              _baseCandidates: baseCandidates,
+              _baseIndex: baseIndex + 1,
+            }),
+          )
+            .then(resolve)
+            .catch(reject);
+          return;
+        }
+
         if (res.statusCode === 503) {
           var e503 = new Error("FEATURE_DISABLED");
           e503.code = "FEATURE_DISABLED";

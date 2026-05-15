@@ -1,5 +1,5 @@
 <!-- login.wxml — Zentra 风格登录 -->
-<view class="scene {{isDark?'':'light'}}">
+<view class="scene">
   <view class="sky-wash" style="{{skyWashStyle}}"></view>
   <view class="orb o1" style="{{orbStyle1}}"></view>
   <view class="orb o2" style="{{orbStyle2}}"></view>

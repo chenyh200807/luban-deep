@@ -859,6 +859,57 @@ def test_login_with_password_accepts_external_fastapi_auth_store(
     assert result["user"]["username"] == "chenyh2008"
 
 
+def test_login_with_password_does_not_fail_when_wallet_bootstrap_is_unavailable(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    username = "wallet_quota_user"
+    password = "SyntheticPass123"
+    password_hash = bcrypt.hashpw(
+        hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8"),
+        bcrypt.gensalt(),
+    ).decode("utf-8")
+    users_file.write_text(
+        json.dumps(
+            {
+                username: {
+                    "id": canonical_uid,
+                    "username": username,
+                    "password_hash": password_hash,
+                }
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("DEEPTUTOR_AUTH_SECRET", "prod_auth_secret")
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    class _FailingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def ensure_wallet_seeded(**_kwargs):
+            raise RuntimeError("wallet quota unavailable")
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: _FailingWalletService())
+
+    result = service.login_with_password(username, password)
+    claims = service.verify_access_token(result["token"])
+
+    assert result["token"].startswith("dtm.")
+    assert result["user_id"]
+    assert claims is not None
+    assert claims["canonical_uid"] == canonical_uid
+
+
 def test_login_with_password_rejects_unknown_or_invalid_external_password(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

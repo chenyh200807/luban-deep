@@ -53,6 +53,18 @@ def _coerce_flag(value: Any) -> bool | None:
     return raw not in {"0", "false", "no", "off"}
 
 
+def _coerce_positive_int(value: Any, *, default: int) -> int:
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, int):
+        return value if value > 0 else default
+    raw = str(value or "").strip()
+    if not raw or not re.fullmatch(r"\d+", raw):
+        return default
+    parsed = int(raw)
+    return parsed if parsed > 0 else default
+
+
 def _should_use_lightweight_generation(
     message: str,
     reveal_preference: bool | None,
@@ -477,7 +489,10 @@ class ChatOrchestrator:
             context.config_overrides["mode"] = "custom"
         if not str(context.config_overrides.get("topic") or "").strip():
             context.config_overrides["topic"] = message
-        current_question_count = int(context.config_overrides.get("num_questions") or 1)
+        current_question_count = _coerce_positive_int(
+            context.config_overrides.get("num_questions"),
+            default=1,
+        )
         if current_question_count == 1 and inferred_question_count != 1:
             context.config_overrides["num_questions"] = inferred_question_count
         else:

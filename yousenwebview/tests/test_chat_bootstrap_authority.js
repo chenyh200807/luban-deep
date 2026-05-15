@@ -70,6 +70,12 @@ function loadChatPage(overrides) {
       getPoints: function () {
         return Promise.resolve({ points: 18 });
       },
+      getHomeDashboard: function () {
+        return Promise.resolve({
+          today_focus: { title: "今日焦点：建筑实务案例题" },
+          review: { overdue: 0, due_today: 0 },
+        });
+      },
       createConversation: function () {
         apiState.createConversationCalls += 1;
         return Promise.resolve({ conversation: { id: "conv_001" } });
@@ -240,7 +246,9 @@ function loadChatPage(overrides) {
     return false;
   };
   page._syncWorkspaceChrome = function () {};
-  page._loadDashboard = function () {};
+  if (!(overrides && overrides.preserveLoadDashboard)) {
+    page._loadDashboard = function () {};
+  }
   page._checkDiagnostic = function () {};
   page._applyHydratedConversationMessages = function (messages) {
     this.setData({ messages: messages || [], hasMessages: !!(messages && messages.length) });
@@ -302,6 +310,7 @@ function loadChatPage(overrides) {
 
   await run("chat page should block pending auto-send when bootstrap auth validation fails", async function () {
     var sendCount = 0;
+    var dashboardCount = 0;
     var loaded = loadChatPage({
       api: {
         getUserInfo: function () {
@@ -319,6 +328,9 @@ function loadChatPage(overrides) {
     loaded.page._send = function () {
       sendCount += 1;
     };
+    loaded.page._loadDashboard = function () {
+      dashboardCount += 1;
+    };
 
     loaded.page.onLoad({});
     loaded.page.onShow();
@@ -326,6 +338,24 @@ function loadChatPage(overrides) {
     await flushPromises();
 
     assert(sendCount === 0, "pending auto-send should stay blocked when auth bootstrap is not authoritative");
+    assert(dashboardCount === 1, "dashboard should still load so today focus can render when profile is degraded");
+  });
+
+  await run("chat page should keep a default today focus when dashboard request fails", async function () {
+    var loaded = loadChatPage({
+      preserveLoadDashboard: true,
+      api: {
+        getHomeDashboard: function () {
+          return Promise.reject(new Error("NETWORK_ERROR"));
+        },
+      },
+    });
+
+    loaded.page._loadDashboard();
+    await flushPromises();
+
+    assert(loaded.page.data.focusTitle === "今日推进", "dashboard failure should still set default focus title");
+    assert(loaded.page.data.focusText === "今日推进", "dashboard failure should still make focus bar renderable");
   });
 
   await run("chat page should hydrate the current session when returning from workspace shell", async function () {

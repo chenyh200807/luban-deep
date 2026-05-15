@@ -206,6 +206,27 @@ async def test_orchestrator_infers_question_count_from_user_message() -> None:
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_ignores_invalid_num_questions_override_for_practice_autoroute() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-count-invalid",
+        user_message="围绕地基基础给我来3道选择题",
+        config_overrides={"num_questions": "abc"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["num_questions"] == 3
+    assert context.config_overrides["question_type"] == "choice"
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_autoroutes_choice_submission_to_deep_question() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()

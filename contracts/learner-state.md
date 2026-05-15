@@ -247,6 +247,24 @@ Overlay 必须支持：
 
 - 各模块私自绕过入口写长期 memory
 
+### Assessment Session Read Model
+
+摸底测评创建出的 session 是 learner-state 的结构化测评 read model，不是新的
+profile / progress 主真相。它必须满足：
+
+1. `create_assessment` 返回给客户端的 payload 必须暴露 `form_source`、`form_id`、
+   `form_index`、`form_count`，用于判断题组来自 Supabase 持久化 set、生成后持久化
+   set，还是本地静态 fallback。
+2. assessment session 的持久化记录和 `observability` 摘要必须保存同一个
+   `form_source`，日志也必须打印该字段；不能只在内存 payload 中短暂存在。
+3. 如果 Supabase 正式题组不可用，服务可以 fail closed 或走明确的 fallback，但必须
+   通过 `form_source` 暴露真实来源，不能伪装成 Supabase 持久化题组。
+4. 掌握度看板读取时，最近一次真实摸底测评的 `last_assessment.chapter_mastery`
+   优先于 provisional / 空 profile 推断；没有真实测评信号时才允许展示保守的
+   provisional 视图。不能在任意低分或未答完情况下默认给出 `overall_mastery=100`。
+5. `overall_mastery` 必须从实际章节 mastery 聚合得出；0 分章节必须保留为 0，
+   不能被展示层过滤成全满分。
+
 ## 写回与冲突规则
 
 1. 明确设置优先于模型推断。

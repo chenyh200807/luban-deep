@@ -222,9 +222,11 @@
   padding: 0;
   border-radius: 34rpx;
   background: linear-gradient(90deg, rgba(40, 114, 255, 0.96) 0%, rgba(92, 152, 255, 0.96) 52%, rgba(157, 193, 255, 0.92) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.16);
   box-shadow:
     0 20rpx 42rpx rgba(37, 99, 235, 0.24),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.08);
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.28),
+    inset 0 -10rpx 22rpx rgba(20, 67, 170, 0.16);
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -238,7 +240,7 @@
   margin: 0;
   padding: 0;
   border: none;
-  background: transparent;
+  background: transparent !important;
   box-shadow: none;
   align-items: center;
   justify-content: center;
@@ -287,51 +289,4 @@
   box-shadow: none;
   margin: 0 auto;
   transform: none;
-}
-
-.scene.light {
-  background: linear-gradient(180deg, #eef4ff 0%, #edf3fb 40%, #ffffff 100%);
-}
-
-.scene.light .sky-wash {
-  opacity: 0.9;
-}
-
-.scene.light .orb {
-  mix-blend-mode: normal;
-  opacity: 0.24;
-}
-
-.scene.light .brand-mark {
-  filter: brightness(0);
-}
-
-.scene.light .brand-name,
-.scene.light .hero-line-main-inline {
-  color: #0f172a;
-}
-
-.scene.light .hero-kicker {
-  color: rgba(37, 99, 235, 0.5);
-}
-
-.scene.light .hero-line-accent-inline {
-  color: #2563eb;
-}
-
-.scene.light .hero-desc {
-  color: #64748b;
-}
-
-.scene.light .pager-dot-idle {
-  background: rgba(100, 116, 139, 0.28);
-}
-
-.scene.light .btn-wechat-primary {
-  background: linear-gradient(90deg, #2563eb 0%, #4d8fff 52%, #9dc1ff 100%);
-  box-shadow: 0 14rpx 30rpx rgba(37, 99, 235, 0.16);
-}
-
-.scene.light .manual-link {
-  color: #475569;
 }

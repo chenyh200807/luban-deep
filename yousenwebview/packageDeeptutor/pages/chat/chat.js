@@ -485,6 +485,10 @@ Page({
       })
       .catch(function (e) {
         log.warn("Chat", "chat bootstrap blocked: " + ((e && e.message) || e));
+        if (((e && e.message) || e) !== "AUTH_EXPIRED") {
+          self._loadDashboard();
+          self._checkDiagnostic();
+        }
       });
     // [FIX] 从后台切回时重建 observer（onHide 中已 teardown）
     if (this.data.hasMessages) {

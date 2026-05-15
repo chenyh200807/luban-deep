@@ -26,7 +26,6 @@ Page({
     loginMode: "phone_code",
     phoneCode: "",
     codeCountdown: 0,
-    isDark: true,
   },
 
   onLoad: function () {
@@ -36,7 +35,6 @@ Page({
       this.setData({
         statusBarHeight: info.statusBarHeight || 44,
         safeBottom: sb,
-        isDark: helpers.isDark(),
       });
     } catch (_) {}
     if (auth.isLoggedIn()) {

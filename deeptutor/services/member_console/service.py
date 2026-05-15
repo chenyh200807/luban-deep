@@ -1698,8 +1698,6 @@ class MemberConsoleService:
                         canonical_uid,
                         exc,
                     )
-                    if is_production_environment():
-                        raise RuntimeError("Wallet bootstrap failed") from exc
                 else:
                     if snapshot is not None:
                         balance_points = int(round(int(snapshot.balance_micros) / 1_000_000))

@@ -1,0 +1,289 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "跳到主要内容" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "DeepTutor 项目介绍首页" [ref=e6] [cursor=pointer]:
+          - /url: /intro
+          - img "DeepTutor" [ref=e7]
+          - generic [ref=e8]: DeepTutor
+        - navigation "页面导航" [ref=e9]:
+          - link "架构" [ref=e10] [cursor=pointer]:
+            - /url: "#architecture"
+          - link "能力" [ref=e11] [cursor=pointer]:
+            - /url: "#capabilities"
+          - link "场景" [ref=e12] [cursor=pointer]:
+            - /url: "#scenario"
+          - link "验证" [ref=e13] [cursor=pointer]:
+            - /url: "#evidence"
+        - link "进入体验" [ref=e14] [cursor=pointer]:
+          - /url: /
+          - text: 进入体验
+          - img [ref=e15]
+    - main [ref=e17]:
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - heading "面向建筑考试的 Agent-Native 智能学习伙伴" [level=1] [ref=e20]
+          - paragraph [ref=e21]: DeepTutor 把统一对话、知识检索、作答评测、学习状态和可观测 trace 收到一条主链路里，服务鲁班智考这类需要长期陪练和证据闭环的学习场景。
+          - generic [ref=e22]:
+            - link "查看架构" [ref=e23] [cursor=pointer]:
+              - /url: "#architecture"
+              - text: 查看架构
+              - img [ref=e24]
+            - link "进入体验" [ref=e29] [cursor=pointer]:
+              - /url: /
+              - text: 进入体验
+              - img [ref=e30]
+          - generic [ref=e32]:
+            - generic [ref=e33]:
+              - img [ref=e34]
+              - generic [ref=e37]: 覆盖一建/二建/造价
+            - generic [ref=e38]:
+              - img [ref=e39]
+              - generic [ref=e42]: 仅做题库与教材知识
+            - generic [ref=e43]:
+              - img [ref=e44]
+              - generic [ref=e47]: 企业级安全与可观测
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - img [ref=e53]
+              - generic [ref=e56]:
+                - paragraph [ref=e57]: DeepTutor
+                - paragraph [ref=e58]: Agent runtime 在线
+            - generic [ref=e59]: TutorBot
+          - generic [ref=e61]:
+            - complementary [ref=e62]:
+              - generic [ref=e63]:
+                - img [ref=e64]
+                - text: 新建对话
+              - generic [ref=e66]:
+                - paragraph [ref=e67]: 钢筋混凝土受弯构件
+                - paragraph [ref=e68]: 10:24
+              - generic [ref=e69]:
+                - paragraph [ref=e70]: 施工组织设计要点
+                - paragraph [ref=e71]: 10:31
+              - generic [ref=e72]:
+                - paragraph [ref=e73]: 进度计划网络图
+                - paragraph [ref=e74]: 10:38
+            - main [ref=e75]:
+              - generic [ref=e76]:
+                - paragraph [ref=e77]: ChatOrchestrator
+                - generic [ref=e78]: 请把施工安全专项方案的评分标准拆成可训练任务。
+                - generic [ref=e79]:
+                  - paragraph [ref=e80]:
+                    - strong [ref=e81]: TutorBot：
+                    - text: 先从知识库召回评分依据，再按“方案完整性、危险源识别、交底闭环”拆分训练路径。
+                  - generic [ref=e82]:
+                    - generic [ref=e83]:
+                      - img [ref=e84]
+                      - text: 知识召回 RAG
+                    - paragraph [ref=e89]: 建筑施工安全检查标准、专项方案编制要求、历年案例题扣分点。
+                  - generic [ref=e90]:
+                    - generic [ref=e91]:
+                      - img [ref=e92]
+                      - text: 作答评测
+                    - paragraph [ref=e96]: 当前答案缺少“验收责任人”和“整改闭环”两个核心得分点。
+            - complementary [ref=e97]:
+              - paragraph [ref=e98]: 可观测 Trace
+              - generic [ref=e99]:
+                - generic [ref=e100]:
+                  - generic [ref=e101]:
+                    - img [ref=e102]
+                    - generic [ref=e105]: 意图识别
+                  - generic [ref=e106]: 0.18s
+                - generic [ref=e107]:
+                  - generic [ref=e108]:
+                    - img [ref=e109]
+                    - generic [ref=e112]: RAG 检索
+                  - generic [ref=e113]: 0.74s
+                - generic [ref=e114]:
+                  - generic [ref=e115]:
+                    - img [ref=e116]
+                    - generic [ref=e119]: 评测打分
+                  - generic [ref=e120]: 0.42s
+                - generic [ref=e121]:
+                  - generic [ref=e122]:
+                    - img [ref=e123]
+                    - generic [ref=e126]: 结果生成
+                  - generic [ref=e127]: 1.16s
+      - generic [ref=e129]:
+        - generic [ref=e130]:
+          - img [ref=e131]
+          - heading "统一对话" [level=2] [ref=e133]
+          - paragraph [ref=e134]: CLI、WebSocket、SDK 复用同一条编排链。
+        - generic [ref=e135]:
+          - img [ref=e136]
+          - heading "知识检索" [level=2] [ref=e140]
+          - paragraph [ref=e141]: 以 RAG 连接题库、课程和学员错因。
+        - generic [ref=e142]:
+          - img [ref=e143]
+          - heading "作答评测" [level=2] [ref=e147]
+          - paragraph [ref=e148]: 把案例题作答拆成得分点和缺口。
+        - generic [ref=e149]:
+          - img [ref=e150]
+          - heading "学习状态" [level=2] [ref=e152]
+          - paragraph [ref=e153]: 保留连续学习中的目标、历史和进度。
+        - generic [ref=e154]:
+          - img [ref=e155]
+          - heading "可观测性" [level=2] [ref=e158]
+          - paragraph [ref=e159]: 用 trace 和日志证明每次回答的证据链。
+      - generic [ref=e161]:
+        - generic [ref=e162]:
+          - heading "架构：代理原生，开放连接" [level=2] [ref=e163]
+          - paragraph [ref=e164]: 入口可以不同，但聊天、能力选择、工具调度和状态恢复必须回到同一个 ChatOrchestrator。
+        - generic [ref=e165]:
+          - generic [ref=e166]:
+            - generic [ref=e167]:
+              - img [ref=e168]
+              - paragraph [ref=e171]: CLI
+              - paragraph [ref=e172]: 命令行终端
+            - generic [ref=e173]:
+              - img [ref=e174]
+              - paragraph [ref=e181]: WebSocket
+              - paragraph [ref=e182]: 实时长连接
+            - generic [ref=e183]:
+              - img [ref=e184]
+              - paragraph [ref=e188]: Python SDK
+              - paragraph [ref=e189]: 开发者集成
+          - generic [ref=e190]:
+            - img [ref=e191]
+            - heading "ChatOrchestrator" [level=3] [ref=e195]
+            - generic [ref=e196]:
+              - generic [ref=e197]: 会话管理
+              - generic [ref=e198]: 意图识别
+              - generic [ref=e199]: 工具调度
+              - generic [ref=e200]: 跟踪执行
+              - generic [ref=e201]: 记忆管理
+              - generic [ref=e202]: 安全与隔离
+          - generic [ref=e203]:
+            - heading "能力层" [level=3] [ref=e204]
+            - generic [ref=e205]:
+              - generic [ref=e206]: TutorBot 持续陪伴
+              - generic [ref=e207]: RAG 知识检索
+              - generic [ref=e208]: Web Search
+              - generic [ref=e209]: 深度出题与批改
+              - generic [ref=e210]: 可观测 Trace
+          - generic [ref=e211]:
+            - heading "数据与知识层" [level=3] [ref=e212]
+            - generic [ref=e213]:
+              - generic [ref=e214]: 向量库
+              - generic [ref=e215]: 题库与课程
+              - generic [ref=e216]: 教材与规范
+              - generic [ref=e217]: 用户学习数据
+              - generic [ref=e218]: 日志与指标
+      - generic [ref=e220]:
+        - generic [ref=e221]:
+          - heading "能力：更懂考试的智能体能力" [level=2] [ref=e222]
+          - paragraph [ref=e223]: 轻量工具负责单次调用，深度能力负责多步骤任务；这让系统能在简单答疑和复杂训练之间自然切换。
+        - generic [ref=e224]:
+          - article [ref=e225]:
+            - img [ref=e226]
+            - paragraph [ref=e230]: rag
+            - heading "知识检索增强" [level=3] [ref=e231]
+            - paragraph [ref=e232]: 检索建筑实务题库、课程材料、错因样本和标准依据。
+          - article [ref=e233]:
+            - img [ref=e234]
+            - paragraph [ref=e239]: web_search
+            - heading "全网信息增强" [level=3] [ref=e240]
+            - paragraph [ref=e241]: 处理时效性政策、考试动态和需要外部证据的问题。
+          - article [ref=e242]:
+            - img [ref=e243]
+            - paragraph [ref=e255]: reason
+            - heading "深度推理" [level=3] [ref=e256]
+            - paragraph [ref=e257]: 用于多步骤推导、方案比较和复杂学习路径判断。
+          - article [ref=e258]:
+            - img [ref=e259]
+            - paragraph [ref=e262]: deep_question
+            - heading "深度出题" [level=3] [ref=e263]
+            - paragraph [ref=e264]: 围绕知识点、难度和解析质量生成可验证练习题。
+      - generic [ref=e266]:
+        - generic [ref=e267]:
+          - heading "场景：鲁班智考一站式备考解决方案" [level=2] [ref=e268]
+          - paragraph [ref=e269]: 面向建筑实务学员，系统不是只回答一次问题，而是把学、练、评、追踪连接成持续提升的路径。
+          - generic [ref=e270]:
+            - generic [ref=e271]:
+              - img [ref=e272]
+              - paragraph [ref=e275]: 从课程与题库中召回建筑实务知识点。
+            - generic [ref=e276]:
+              - img [ref=e277]
+              - paragraph [ref=e280]: 把学员案例题作答映射到得分点与扣分点。
+            - generic [ref=e281]:
+              - img [ref=e282]
+              - paragraph [ref=e285]: 用错因图谱生成下一步复习任务。
+            - generic [ref=e286]:
+              - img [ref=e287]
+              - paragraph [ref=e290]: 把对话、练习、评测和 trace 串成同一条证据链。
+        - generic [ref=e291]:
+          - generic [ref=e292]:
+            - generic [ref=e293]:
+              - heading "鲁班智考" [level=3] [ref=e294]
+              - paragraph [ref=e295]: 一建 · 建筑工程
+            - generic [ref=e296]: 学习中心
+          - generic [ref=e297]:
+            - generic [ref=e298]:
+              - paragraph [ref=e299]: 学习进度
+              - paragraph [ref=e300]: 63%
+            - generic [ref=e301]:
+              - paragraph [ref=e302]: 累计题量
+              - paragraph [ref=e303]: 1,236
+            - generic [ref=e304]:
+              - paragraph [ref=e305]: 模考成绩
+              - paragraph [ref=e306]: "82"
+            - generic [ref=e307]:
+              - paragraph [ref=e308]: 正确率
+              - paragraph [ref=e309]: 68%
+          - generic [ref=e310]:
+            - generic [ref=e311]:
+              - paragraph [ref=e313]: 混凝土结构设计原理
+              - generic [ref=e316]: 78%
+            - generic [ref=e317]:
+              - paragraph [ref=e319]: 施工组织设计
+              - generic [ref=e322]: 55%
+            - generic [ref=e323]:
+              - paragraph [ref=e325]: 工程法规
+              - generic [ref=e328]: 32%
+      - generic [ref=e330]:
+        - generic [ref=e331]:
+          - heading "验证：真实效果，可信赖" [level=2] [ref=e332]
+          - paragraph [ref=e333]: DeepTutor 的交付判断不靠单个页面截图，而是把合同、测试、trace、云上健康和真实端体验放在同一条证据链里。
+        - generic [ref=e334]:
+          - article [ref=e335]:
+            - paragraph [ref=e336]: "1"
+            - heading "统一流式入口" [level=3] [ref=e337]
+            - paragraph [ref=e338]: /api/v1/ws 承担聊天、续聊和能力切换。
+          - article [ref=e339]:
+            - paragraph [ref=e340]: "2"
+            - heading "两层能力模型" [level=3] [ref=e341]
+            - paragraph [ref=e342]: Tools 处理轻量调用，Capabilities 接管多步骤任务。
+          - article [ref=e343]:
+            - paragraph [ref=e344]: "3"
+            - heading "证据优先回归" [level=3] [ref=e345]
+            - paragraph [ref=e346]: 合同、状态源、trace 与真实端验证共同收口。
+        - generic [ref=e347]:
+          - generic [ref=e348]:
+            - img [ref=e349]
+            - generic [ref=e352]: 权限与审计
+          - generic [ref=e353]:
+            - img [ref=e354]
+            - generic [ref=e358]: 数据安全
+          - generic [ref=e359]:
+            - img [ref=e360]
+            - generic [ref=e362]: 高可用监控
+          - generic [ref=e363]:
+            - img [ref=e364]
+            - generic [ref=e367]: 合规经营
+    - contentinfo [ref=e368]:
+      - generic [ref=e369]:
+        - generic [ref=e370]:
+          - paragraph [ref=e371]: DeepTutor
+          - paragraph [ref=e372]: Agent-native intelligent learning companion.
+        - generic [ref=e373]:
+          - link "查看架构" [ref=e374] [cursor=pointer]:
+            - /url: "#architecture"
+          - link "进入体验" [ref=e375] [cursor=pointer]:
+            - /url: /
+  - button "Open Next.js Dev Tools" [ref=e381] [cursor=pointer]:
+    - img [ref=e382]
+  - alert [ref=e385]

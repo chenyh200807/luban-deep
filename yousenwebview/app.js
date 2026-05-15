@@ -471,6 +471,37 @@ function resolveBaseUrl() {
   return PROD_API;
 }
 
+function isLocalBaseUrl(url) {
+  return /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(
+    String(url || "").trim()
+  );
+}
+
+function uniqBaseUrls(list) {
+  const seen = {};
+  const out = [];
+  for (let i = 0; i < list.length; i++) {
+    const item = String(list[i] || "").trim();
+    if (!item || seen[item]) continue;
+    seen[item] = true;
+    out.push(item);
+  }
+  return out;
+}
+
+function buildDeeptutorBaseCandidates(baseUrl) {
+  const normalizedBase = String(baseUrl || "").trim();
+  if (!isLocalBaseUrl(normalizedBase)) {
+    return normalizedBase ? [normalizedBase] : [];
+  }
+  const localFallbacks = [LOCAL_BASE_URL, "http://127.0.0.1:8001", "http://127.0.0.1:8012"];
+  const remoteFallbacks = [NGROK_URL, PROD_API].filter((item) => {
+    const normalized = String(item || "").trim();
+    return normalized && /^https?:\/\//.test(normalized) && !isLocalBaseUrl(normalized);
+  });
+  return uniqBaseUrls([normalizedBase].concat(localFallbacks, remoteFallbacks));
+}
+
 function requestHostSysInfo() {
   return new Promise((resolve, reject) => {
     wx.request({
@@ -504,11 +535,12 @@ App({
     const hostLayout = resolveHostLayout();
     const storedHostSysInfo = readStoredHostSysInfo();
     const baseUrl = resolveBaseUrl();
+    const baseCandidates = buildDeeptutorBaseCandidates(baseUrl);
     this.globalData.theme = wx.getStorageSync("theme") || "dark";
     this.globalData.apiUrl = baseUrl;
     this.globalData.gatewayUrl = baseUrl;
-    this.globalData.apiCandidates = [baseUrl];
-    this.globalData.gatewayCandidates = [baseUrl];
+    this.globalData.apiCandidates = baseCandidates;
+    this.globalData.gatewayCandidates = baseCandidates;
     this.globalData.navHeight = hostLayout.navHeight;
     this.globalData.titleHeight = hostLayout.titleHeight;
     this.globalData.fontSizeSetting = hostLayout.fontSizeSetting;

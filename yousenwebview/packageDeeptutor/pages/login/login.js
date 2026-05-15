@@ -29,7 +29,6 @@ Page({
     loginMode: "phone_code",
     phoneCode: "",
     codeCountdown: 0,
-    isDark: true,
     orbStyle1: "",
     orbStyle2: "",
     orbStyle3: "",
@@ -62,7 +61,6 @@ Page({
       this.setData({
         statusBarHeight: info.statusBarHeight || 44,
         safeBottom: sb,
-        isDark: helpers.isDark(),
       });
       this._initOrbScene(info);
       this._initSubtitleScene(info);

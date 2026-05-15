@@ -27,28 +27,19 @@ function isLocalBase(url) {
 
 function getConfiguredBases(useGateway) {
   var config = hostRuntime.getRuntimeBaseConfig(!!useGateway);
-  if (!config.primary && !config.candidates.length) {
-    return IS_DEVELOP ? DEFAULT_LOCAL_BASES.slice() : DEFAULT_REMOTE_BASES.slice();
+  if (config.primary || config.candidates.length) {
+    return uniq([config.primary].concat(config.candidates || []));
   }
-  var primary = config.primary;
-  var extras = config.candidates;
-  var list = [primary];
-  if (Array.isArray(extras)) list = list.concat(extras);
-  if (isLocalBase(primary) && IS_DEVELOP) list = list.concat(DEFAULT_LOCAL_BASES);
-  if (!primary) {
-    list = list.concat(IS_DEVELOP ? DEFAULT_LOCAL_BASES : DEFAULT_REMOTE_BASES);
+  if (IS_DEVELOP) {
+    return uniq(DEFAULT_LOCAL_BASES.concat(DEFAULT_REMOTE_BASES));
   }
-  return uniq(list);
+  return DEFAULT_REMOTE_BASES.slice();
 }
 
 function getBaseUrlCandidates(useGateway, preferredBase) {
   var list = [];
   if (preferredBase) list.push(preferredBase);
-  var configured = getConfiguredBases(!!useGateway);
-  list = list.concat(configured);
-  if (IS_DEVELOP || isLocalBase(preferredBase)) {
-    list = list.concat(DEFAULT_LOCAL_BASES);
-  }
+  list = list.concat(getConfiguredBases(!!useGateway));
   return uniq(list);
 }
 

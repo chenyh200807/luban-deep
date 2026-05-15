@@ -32,6 +32,7 @@ function loadAppModule(options) {
     },
     __USE_LOCAL_DEVTOOLS__: settings.useLocalDevtools,
     __NGROK_URL__: settings.ngrokUrl,
+    __LOCAL_BASE_URL__: settings.localBaseUrl,
     __PROD_API__: settings.prodApi,
     __PROD_GATEWAY__: settings.prodGateway,
     require: function (request) {
@@ -108,9 +109,24 @@ function loadAppModule(options) {
     "explicit local-devtools true should use localhost API",
   );
   assert(
-    explicitLocal.globalData.apiCandidates.length === 1 &&
-      explicitLocal.globalData.apiCandidates[0] === "http://127.0.0.1:8001",
-    "explicit local mode should use only the configured localhost candidate",
+    explicitLocal.globalData.apiCandidates[0] === "http://127.0.0.1:8001" &&
+      explicitLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") >= 0,
+    "explicit local mode should keep localhost first and retain remote fallback",
+  );
+
+  var explicitAltLocal = loadAppModule({
+    wxConfig: { envVersion: "develop", platform: "devtools" },
+    useLocalDevtools: true,
+    localBaseUrl: "http://127.0.0.1:8012",
+  });
+  assert(
+    explicitAltLocal.globalData.apiUrl === "http://127.0.0.1:8012",
+    "explicit local base should support the alternate localhost port",
+  );
+  assert(
+    explicitAltLocal.globalData.apiCandidates[0] === "http://127.0.0.1:8012" &&
+      explicitAltLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") >= 0,
+    "alternate localhost candidate list should still retain remote fallback",
   );
 
   if (fail) {

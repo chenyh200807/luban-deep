@@ -1,4 +1,4 @@
-<view class="manual-page {{isDark?'':'light'}}">
+<view class="manual-page">
   <view class="sky-wash"></view>
 
   <view class="page-shell">
@@ -52,7 +52,7 @@
           <view class="code-row">
             <view class="inp-group code-input">
               <view class="inp-icon">
-                <text class="inp-icon-shield">🔐</text>
+                <text class="inp-icon-txt">OTP</text>
               </view>
               <input class="inp inp-code" type="number" value="{{phoneCode}}" bindinput="onPhoneCodeInput"
                 placeholder="输入验证码" placeholder-class="ph" maxlength="6" />
@@ -74,7 +74,7 @@
               placeholder="用户名" placeholder-class="ph" maxlength="50" />
           </view>
           <view class="inp-group">
-            <view class="inp-icon"><text class="inp-icon-shield">🔑</text></view>
+            <view class="inp-icon"><text class="inp-icon-txt">KEY</text></view>
             <input class="inp" style="flex:1;" value="{{password}}" bindinput="onPasswordInput"
               placeholder="密码" placeholder-class="ph" password="{{!showPassword}}" maxlength="128" />
             <view class="eye" bindtap="togglePassword">

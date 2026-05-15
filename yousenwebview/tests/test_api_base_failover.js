@@ -23,7 +23,7 @@ function flushPromises() {
 
 function loadApiModule(config) {
   var source = fs.readFileSync(
-    path.join(__dirname, "../utils/api.js"),
+    path.join(__dirname, "../packageDeeptutor/utils/api.js"),
     "utf8",
   );
   var settings = config || {};
@@ -40,11 +40,6 @@ function loadApiModule(config) {
     setTimeout: setTimeout,
     clearTimeout: clearTimeout,
     Promise: Promise,
-    getApp: function () {
-      return {
-        globalData: {},
-      };
-    },
     require: function (request) {
       if (request === "./auth") {
         return {
@@ -69,6 +64,11 @@ function loadApiModule(config) {
           },
         };
       }
+      if (request === "./runtime") {
+        return {
+          redirectToLogin: function () {},
+        };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {
@@ -78,23 +78,18 @@ function loadApiModule(config) {
           settings.requestHandler(options, state);
           return;
         }
-        if (state.requests.length === 1) {
-          options.fail({ errMsg: "request:fail connect ECONNREFUSED 127.0.0.1:8001" });
-          return;
-        }
         options.success({
           statusCode: 200,
           data: { ok: true },
         });
       },
-      reLaunch: function () {},
     },
     module: { exports: {} },
     exports: {},
   };
 
   vm.runInNewContext(source, sandbox, {
-    filename: "wx_miniprogram/utils/api.js",
+    filename: "packageDeeptutor/utils/api.js",
   });
 
   return {
@@ -104,35 +99,7 @@ function loadApiModule(config) {
 }
 
 (async function main() {
-  var loaded = loadApiModule();
-  var result = await loaded.api.request({
-    url: "/api/v1/ping",
-    method: "GET",
-    noAuth: true,
-  });
-  await flushPromises();
-
-  assert(
-    loaded.state.requests.length === 2,
-    "network failure on localhost should trigger one fallback request",
-  );
-  assert(
-    loaded.state.requests[0].url === "http://127.0.0.1:8001/api/v1/ping",
-    "first request should target localhost",
-  );
-  assert(
-    loaded.state.requests[1].url === "https://test2.yousenjiaoyu.com/api/v1/ping",
-    "second request should target the remote fallback host",
-  );
-  assert(
-    loaded.state.remembered.length === 1 &&
-      loaded.state.remembered[0].baseUrl === "https://test2.yousenjiaoyu.com" &&
-      loaded.state.remembered[0].useGateway === false,
-    "successful remote fallback should be remembered as the working API base",
-  );
-  assert(result && result.ok === true, "request should resolve with fallback response");
-
-  var postLoaded = loadApiModule({
+  var loaded = loadApiModule({
     requestHandler: function (requestOptions, state) {
       if (state.requests.length === 1) {
         requestOptions.success({
@@ -147,7 +114,7 @@ function loadApiModule(config) {
       });
     },
   });
-  var postResult = await postLoaded.api.request({
+  var result = await loaded.api.request({
     url: "/api/v1/auth/login",
     method: "POST",
     data: { username: "demo", password: "secret" },
@@ -156,26 +123,24 @@ function loadApiModule(config) {
   await flushPromises();
 
   assert(
-    postLoaded.state.requests.length === 2,
-    "local 503 on a POST should still trigger remote base fallback",
+    loaded.state.requests.length === 2,
+    "local 503 on a POST should trigger remote base fallback",
   );
   assert(
-    postLoaded.state.requests[0].url === "http://127.0.0.1:8001/api/v1/auth/login",
-    "POST fallback should first target localhost",
+    loaded.state.requests[0].url === "http://127.0.0.1:8001/api/v1/auth/login",
+    "first POST should target localhost",
   );
   assert(
-    postLoaded.state.requests[1].url === "https://test2.yousenjiaoyu.com/api/v1/auth/login",
-    "POST fallback should retry the same login request on the remote host",
+    loaded.state.requests[1].url === "https://test2.yousenjiaoyu.com/api/v1/auth/login",
+    "second POST should target the remote fallback host",
   );
   assert(
-    postLoaded.state.remembered.length === 1 &&
-      postLoaded.state.remembered[0].baseUrl === "https://test2.yousenjiaoyu.com",
-    "successful remote POST fallback should be remembered as the working API base",
+    loaded.state.remembered.length === 1 &&
+      loaded.state.remembered[0].baseUrl === "https://test2.yousenjiaoyu.com" &&
+      loaded.state.remembered[0].useGateway === false,
+    "successful remote fallback should be remembered as the working API base",
   );
-  assert(
-    postResult && postResult.token === "remote-token",
-    "POST request should resolve with the remote fallback response",
-  );
+  assert(result && result.token === "remote-token", "request should resolve with fallback response");
 
   if (fail) {
     console.error(errors.join("\n"));

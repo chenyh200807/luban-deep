@@ -28,7 +28,6 @@ Page({
     loginMode: "phone_code",
     phoneCode: "",
     codeCountdown: 0,
-    isDark: true,
     entrySource: "",
     returnTo: "",
   },
@@ -40,7 +39,6 @@ Page({
       this.setData({
         statusBarHeight: info.statusBarHeight || 44,
         safeBottom: sb,
-        isDark: helpers.isDark(),
       });
     } catch (_) {}
     this._captureEntryContext(options);
