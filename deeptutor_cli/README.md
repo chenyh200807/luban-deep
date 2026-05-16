@@ -1,6 +1,10 @@
 # DeepTutor CLI
 
-Agent-first 的命令行界面。两条核心路径：
+Agent-first 的命令行界面，也是鲁班智考/DeepTutor 当前工程链路里的自动化入口。Web 和小程序负责真实学员体验，CLI 负责让工程师、评测脚本和外部 agent 稳定调用同一套 capability、知识库、会话、TutorBot 与配置。
+
+当前产品主线是建筑实务 AI 陪考：案例题批改、选择题错因诊断、学习记忆、下一题训练、RAG 证据和观测回归。CLI 不另起一套业务语义，只复用统一 runtime 与 `/api/v1/ws` 背后的 contract。
+
+两条核心路径：
 
 - **`run`** — 单次执行任意 capability（为 agent 调用设计）
 - **`chat`** — 交互式 REPL（为人类设计）

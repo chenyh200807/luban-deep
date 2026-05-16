@@ -16,13 +16,31 @@
 [![Feishu](https://img.shields.io/badge/Feishu-Group-00D4AA?style=flat-square&logo=feishu&logoColor=white)](../../Communication.md)
 [![WeChat](https://img.shields.io/badge/WeChat-Group-07C160?style=flat-square&logo=wechat&logoColor=white)](https://github.com/HKUDS/DeepTutor/issues/78)
 
-[核心亮点](#key-features) · [快速开始](#get-started) · [探索 DeepTutor](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [路线图](#roadmap) · [社区](#community)
+[产品定位](#product-focus) · [核心亮点](#key-features) · [快速开始](#get-started) · [探索 DeepTutor](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [路线图](#roadmap) · [社区](#community)
 
 [🇬🇧 English](../../README.md) · [🇯🇵 日本語](README_JA.md) · [🇪🇸 Español](README_ES.md) · [🇫🇷 Français](README_FR.md) · [🇸🇦 العربية](README_AR.md) · [🇷🇺 Русский](README_RU.md) · [🇮🇳 हिन्दी](README_HI.md) · [🇵🇹 Português](README_PT.md)
 
 </div>
 
 ---
+<a id="product-focus"></a>
+## 🎯 产品定位
+
+DeepTutor 是 **鲁班智考** 背后的智能体原生学习引擎。当前产品不是普通 AI 聊天，也不是只会出题的题库，而是面向建筑实务考试的移动端 AI 陪考教练：把每一次练习转成“批改作答、诊断错因、沉淀画像、推荐下一步训练”的闭环。
+
+本仓库保留 DeepTutor 的开放架构，同时把当前主产品表面收敛到建筑实务备考：
+
+| 层次 | 当前职责 |
+|:---|:---|
+| **学员端表面** | 微信小程序与佑森宿主包，承载日常练题、案例题批改、错题复盘和陪考对话。 |
+| **统一聊天入口** | `/api/v1/ws` 是 Web、小程序、TutorBot、历史回放与续接的唯一稳定流式入口。 |
+| **导师身份** | `TutorBot` 是唯一业务身份；入口 hint、模式别名和历史兼容字段必须在进入 runtime 前归一化。 |
+| **知识依据** | `rag` 是唯一知识召回工具，结合考试知识库、题库证据、规范条文和按需启用的联网搜索。 |
+| **学习记忆** | Learner State、Bot-Learner Overlay、Notebook、Heartbeat 共同让后续讲解和推荐更贴近真实薄弱点。 |
+| **质量控制** | Langfuse trace、benchmark、observer、ARR/AAE/OA 与 release gate 都是产品基础设施，不是可选调试工具。 |
+
+当前最重要的对外卖点是：**案例题批改 + 错因图谱 + 个性化下一题训练**。Co-Writer、引导式学习、深度研究、数学动画、CLI 等通用能力仍然存在，但项目介绍应优先围绕这个陪考闭环来理解。
+
 ### 📰 动态
 
 > **[2026.4.4]** 好久不见！✨ DeepTutor v1.0.0 终于到来 —— 在 Apache-2.0 许可下的智能体原生演进：自底向上架构重写、TutorBot、灵活模式切换。新篇章开启，故事继续！
@@ -59,12 +77,14 @@
 <a id="key-features"></a>
 ## ✨ 核心亮点
 
-- **统一聊天工作区** — 五种模式，同一条对话线。聊天、深度解题、测验生成、深度研究与数学动画共享上下文：从闲聊到多智能体解题、出题、再深入调研，消息不丢。
-- **个人 TutorBot** — 不是聊天机器人，而是自主导师。每个 TutorBot 拥有独立工作区、记忆、人格与技能；可提醒、可学新能力、随你成长。由 [nanobot](https://github.com/HKUDS/nanobot) 驱动。
-- **AI Co-Writer** — Markdown 编辑器中 AI 是一等协作者。划选文本即可改写、扩写或缩写，可结合知识库与网络；内容可沉淀到笔记本，反哺学习闭环。
-- **引导式学习** — 把资料变成结构化、可视化的学习路径：多步计划、每步交互页面、步步可讨论。
-- **知识中枢** — 上传 PDF、Markdown、纯文本构建 RAG 知识库；用彩色笔记本跨会话整理洞见。文档主动参与每次对话。
-- **持久记忆** — 持续勾勒你的学习画像：学过什么、如何学习、目标何在。全功能与 TutorBot 共享，越用越准。
+- **建筑实务陪考闭环** — 练习不止停在“对/错”。DeepTutor 会按采分点批改案例题，诊断丢分原因，并把结果转成下一步训练建议。
+- **案例题阅卷与选择题错因诊断** — 主观题拆成命中点、漏点和表达问题；选择题把错误归因到干扰项、概念混淆、审题失误或关键词漏看。
+- **统一聊天工作区** — 聊天、深度解题、测验生成、深度研究与数学动画仍共享同一上下文，但所有稳定聊天流量都受 `/api/v1/ws` 单一 contract 约束。
+- **个人 TutorBot** — TutorBot 是持久导师身份：工作区、记忆、工具、技能、心跳和教学风格都归到同一个 runtime，不再按入口拆出多套身份。
+- **知识与题库依据** — RAG、题库证据、规范条文、考纲树和按需联网搜索在一个知识 authority 下组合，避免泛泛聊天式回答。
+- **学习记忆与 Overlay** — 系统记录学习摘要、画像、进度、目标、memory event 和 bot-specific overlay，让后续讲解真正利用学员的薄弱点。
+- **移动端优先交付** — 微信小程序和佑森包是鲁班智考一线产品表面；Web 和 CLI 主要承担管理、测试、自动化和 agent workflow。
+- **可观测与发布门禁** — Langfuse trace、benchmark、observer、ARR/AAE/OA、release scripts 是系统 contract 的一部分，因为教学质量必须能用真实会话验证。
 - **智能体原生 CLI** — 能力、知识库、会话、TutorBot 一条命令可达；终端 Rich 输出给人看，JSON 给智能体与流水线。将根目录 [`SKILL.md`](../../SKILL.md) 交给智能体即可自主操作。
 
 ---
@@ -595,10 +615,12 @@ deeptutor session open <id>
 
 | 状态 | 里程碑 |
 |:---:|:---|
-| 🔜 | **身份认证与登录** — 面向公网部署的可选登录页与多用户支持 |
-| 🔜 | **主题与外观** — 多种主题与可定制界面 |
-| 🔜 | **LightRAG 集成** — 将 [LightRAG](https://github.com/HKUDS/LightRAG) 作为高阶知识库引擎接入 |
-| 🔜 | **文档站点** — 含指南、API 参考与教程的完整文档站 |
+| Active P0 | **Skill-first 阅卷薄外壳** — 复用现有 `deep_question`、结构化 grading result、learner memory event 和题库优先推荐，先闭合案例题批改、错因诊断和下一题训练，不新增平行阅卷中台。 |
+| Active P0 | **小程序渲染一致性** — 保持首次流式、历史 hydrate、Markdown fallback、题卡、公式和结构化教学块在 `wx_miniprogram` 与 `yousenwebview/packageDeeptutor` 间一致。 |
+| Active P0 | **发布与观测门禁** — `/api/v1/ws`、TutorBot、RAG、learner-state、wallet/member、search 的改动必须绑定 contract guard、trace 证据、benchmark 和生产 smoke。 |
+| Next | **Learner State 产品收口** — 从 repo foundation 走向真实产品闭环：画像、memory event、heartbeat、overlay promotion 与推荐行为必须能在真实辅导会话中看见。 |
+| Next | **建筑实务 AI 互动课堂** — 复用现有 conversation、RAG、小程序 renderer 和质量 gate，围绕 Lesson IR 做互动课堂，不新增第二套聊天 transport。 |
+| Later | **文档站治理** — 将用户文档、运维 runbook、API contract、产品 PRD、release gate 拆成更清晰的文档表面。 |
 
 > 若 DeepTutor 对你有帮助，欢迎 [点亮 Star](https://github.com/HKUDS/DeepTutor/stargazers)，这对我们是很大的鼓励！
 

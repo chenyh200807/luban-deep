@@ -16,13 +16,30 @@
 [![Feishu](https://img.shields.io/badge/Feishu-Group-00D4AA?style=flat-square&logo=feishu&logoColor=white)](./Communication.md)
 [![WeChat](https://img.shields.io/badge/WeChat-Group-07C160?style=flat-square&logo=wechat&logoColor=white)](https://github.com/HKUDS/DeepTutor/issues/78)
 
-[Features](#-key-features) · [Get Started](#-get-started) · [Explore](#-explore-deeptutor) · [TutorBot](#-tutorbot--persistent-autonomous-ai-tutors) · [CLI](#%EF%B8%8F-deeptutor-cli--agent-native-interface) · [Community](#-community--ecosystem)
+[Product Focus](#-product-focus) · [Features](#-key-features) · [Get Started](#-get-started) · [Explore](#-explore-deeptutor) · [TutorBot](#-tutorbot--persistent-autonomous-ai-tutors) · [CLI](#%EF%B8%8F-deeptutor-cli--agent-native-interface) · [Community](#-community--ecosystem)
 
 [🇨🇳 中文](assets/README/README_CN.md) · [🇯🇵 日本語](assets/README/README_JA.md) · [🇪🇸 Español](assets/README/README_ES.md) · [🇫🇷 Français](assets/README/README_FR.md) · [🇸🇦 العربية](assets/README/README_AR.md) · [🇷🇺 Русский](assets/README/README_RU.md) · [🇮🇳 हिन्दी](assets/README/README_HI.md) · [🇵🇹 Português](assets/README/README_PT.md)
 
 </div>
 
 ---
+
+## 🎯 Product Focus
+
+DeepTutor is the agent-native learning engine behind **鲁班智考**, a mobile-first AI coach for China's construction practice exams. The product goal is not to be another generic chatbot or question bank. It turns every practice interaction into a closed learning loop: grade the answer, diagnose the real error, preserve the learner signal, and recommend the next training step.
+
+This repository keeps the open DeepTutor architecture while grounding the current product surface in construction-exam tutoring:
+
+| Layer | Current Responsibility |
+|:---|:---|
+| **Student surface** | WeChat mini program and Yousen embedded package for daily practice, case-question grading, review, and guided coaching. |
+| **Unified conversation entry** | `/api/v1/ws` remains the only stable streaming/chat transport for web, mini program, TutorBot, replay, and resume. |
+| **Tutor identity** | `TutorBot` is the single business identity for persistent tutors; lightweight entry hints and mode aliases are normalized before runtime decisions. |
+| **Grounding** | `rag` is the single knowledge retrieval tool, backed by exam knowledge, question-bank evidence, standards, and selected web search when explicitly enabled. |
+| **Learning memory** | Learner state, bot-learner overlay, notebooks, and heartbeat signals are used to make each later explanation and recommendation more specific. |
+| **Quality control** | Observability, benchmark suites, release gates, and trace metadata are treated as product infrastructure, not optional debugging aids. |
+
+The most important commercial loop today is **case grading + error map + personalized next-question training**. Generic capabilities such as Co-Writer, Guided Learning, Deep Research, Math Animator, and CLI remain available, but the product narrative should be read through this exam-coach loop first.
 
 ### 📦 Releases
 
@@ -70,13 +87,15 @@
 
 ## ✨ Key Features
 
-- **Unified Chat Workspace** — Five modes, one thread. Chat, Deep Solve, Quiz Generation, Deep Research, and Math Animator share the same context — start a conversation, escalate to multi-agent problem solving, generate quizzes, then deep-dive into research, all without losing a single message.
-- **Personal TutorBots** — Not chatbots — autonomous tutors. Each TutorBot lives in its own workspace with its own memory, personality, and skill set. They set reminders, learn new abilities, and evolve as you grow. Powered by [nanobot](https://github.com/HKUDS/nanobot).
-- **AI Co-Writer** — A Markdown editor where AI is a first-class collaborator. Select text, rewrite, expand, or summarize — drawing from your knowledge base and the web. Every piece feeds back into your learning ecosystem.
-- **Guided Learning** — Turn your materials into structured, visual learning journeys. DeepTutor designs multi-step plans, generates interactive pages for each knowledge point, and lets you discuss alongside each step.
-- **Knowledge Hub** — Upload PDFs, Markdown, and text files to build RAG-ready knowledge bases. Organize insights across sessions in color-coded notebooks. Your documents don't just sit there — they actively power every conversation.
-- **Persistent Memory** — DeepTutor builds a living profile of you: what you've studied, how you learn, and where you're heading. Shared across all features and TutorBots, it gets sharper with every interaction.
-- **Agent-Native CLI** — Every capability, knowledge base, session, and TutorBot is one command away. Rich terminal output for humans, structured JSON for AI agents and pipelines. Hand DeepTutor a [`SKILL.md`](SKILL.md) and your agents can operate it autonomously.
+- **Construction Exam Coaching Loop** — Practice does not end at "right or wrong." DeepTutor grades case answers against scoring points, diagnoses why a learner missed them, and turns the result into a concrete next training step.
+- **Case Grading & MCQ Error Diagnosis** — Subjective answers are broken into hit points, missing points, and weak expressions; multiple-choice mistakes are mapped to distractors, concept confusion, or question-reading errors.
+- **Unified Chat Workspace** — Chat, Deep Solve, Quiz Generation, Deep Research, and Math Animator still share one thread and one context model, but all stable chat traffic is governed by the single `/api/v1/ws` contract.
+- **Personal TutorBots** — TutorBot is the persistent tutor identity: workspace, memory, tools, skills, heartbeat, and teaching style live under one runtime instead of fragmented entry-specific agents.
+- **Knowledge & Question-Bank Grounding** — RAG, question-bank evidence, standards, syllabus trees, and selected web search are composed under one retrieval authority, so answers can cite real learning material instead of drifting into generic advice.
+- **Learner Memory & Overlay** — DeepTutor records learning summaries, profiles, progress, goals, memory events, and bot-specific overlay signals so later explanations can react to the learner's actual weaknesses.
+- **Mobile-First Delivery** — The WeChat mini program and Yousen package are first-class product surfaces for 鲁班智考; web and CLI remain operational surfaces for admin, testing, automation, and agent workflows.
+- **Observability & Release Gates** — Langfuse traces, benchmark runs, observer snapshots, ARR/AAE/OA gates, and release scripts are part of the system contract, because tutoring quality must be verified with real sessions.
+- **Agent-Native CLI** — Every capability, knowledge base, session, and TutorBot is one command away. Rich terminal output is for humans; structured JSON is for AI agents and pipelines. Hand DeepTutor a [`SKILL.md`](SKILL.md) and agents can operate it autonomously.
 
 ---
 
@@ -604,12 +623,12 @@ deeptutor session open <id>                         # Resume in REPL
 
 | Status | Milestone |
 |:---:|:---|
-| 🎯 | **Authentication & Login** — Optional login page for public deployments with multi-user support |
-| 🎯 | **Themes & Appearance** — Diverse theme options and customizable UI appearance |
-| 🎯 | **Interaction Improvement** — optimize icon design and interaction details |
-| 🔜 | **Better Memories** — integrating better memory management |
-| 🔜 | **LightRAG Integration** — Integrate [LightRAG](https://github.com/HKUDS/LightRAG) as an advanced knowledge base engine |
-| 🔜 | **Documentation Site** — Comprehensive docs page with guides, API reference, and tutorials |
+| Active P0 | **Skill-first grading thin shell** — Use the existing `deep_question`, grading result, learner memory event, and question-bank recommendation path to close case grading, error diagnosis, and next-question training without adding a parallel grading platform. |
+| Active P0 | **Mini-program rendering parity** — Keep first-stream rendering, historical hydration, Markdown fallback, question cards, formulas, and structured teaching blocks consistent between `wx_miniprogram` and `yousenwebview/packageDeeptutor`. |
+| Active P0 | **Release and observability gates** — Keep `/api/v1/ws`, TutorBot, RAG, learner-state, wallet/member, and search changes tied to contract guard, trace evidence, benchmark runs, and production smoke tests. |
+| Next | **Learner-state completion** — Move from repository foundation to product closure: learner profile, memory events, heartbeat, overlay promotion, and recommendation behavior must all be visible in real tutoring sessions. |
+| Next | **Construction interactive classroom** — Reuse the current conversation, RAG, mini-program renderer, and quality-gate foundations to build a Lesson IR based 建筑实务 AI 互动课堂 without creating a second chat transport. |
+| Later | **Documentation site** — Split public user docs, operator runbooks, API contracts, product PRDs, and release gates into a cleaner documentation surface. |
 
 > If you find DeepTutor useful, [give us a star](https://github.com/HKUDS/DeepTutor/stargazers) — it helps us keep going!
 
