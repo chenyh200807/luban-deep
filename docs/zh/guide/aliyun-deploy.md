@@ -14,6 +14,7 @@
 - [scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh) 和 [scripts/redeploy_aliyun_fast.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/redeploy_aliyun_fast.sh) 在远端重启前都会先执行 `python3 scripts/backup_data.py`，自动生成本次发布的 runtime rollback 基线。
 - 发布完成的唯一公网验收口径是：本地发起端对 `https://test2.yousenjiaoyu.com` 的 `front page`、`/healthz`、`/readyz` 探针全部通过；`docker compose ps` 或远端 `127.0.0.1` 只能算内部就绪，不能直接当成“已上线”。
 - Observability 默认不走公网暴露；阿里云生产环境统一通过 SSH/localhost 抓取 `/metrics` 与 `/metrics/prometheus`。
+- 发布前必须先判断改动类型。只改 Python 后端、Prompt、YAML、路由且不涉及依赖时，优先走 `redeploy_aliyun_fast.sh`；不要手工在远端直接跑 `docker compose up -d --build deeptutor`。
 - 紧急绕过护栏必须显式设置：
   - `ALLOW_DIRTY_DEPLOY=1`
   - `ALLOW_MAIN_BRANCH_DEPLOY=1`
@@ -363,7 +364,47 @@ bash scripts/verify_aliyun_observability.sh
 
 如果只是小程序 UI 改动，阿里云重启不是让真实手机 UI 更新的充分条件。只有当该 UI 调用了新的后端能力时，阿里云后端重启才是必要步骤。
 
-### 7. 2026-05-12 联网按钮历史排障记录
+### 7. 后端小改动误走完整 build 怎么止损
+
+如果一次 Python 后端小改动误触发了远端完整镜像重建，先不要继续叠加新的发布动作。按下面顺序收敛：
+
+1. 确认旧线上容器是否仍然 healthy：
+
+```bash
+ssh Aliyun-ECS-2 'cd /root/deeptutor && docker ps --format "{{.Names}} {{.Status}}" | grep deeptutor || true'
+```
+
+2. 确认是否还有后台 build / pip / rustup 进程：
+
+```bash
+ssh Aliyun-ECS-2 'ps -ef | grep -E "docker compose up -d --build deeptutor|pip install -r requirements.txt|rustup|apt-get" | grep -v grep || true'
+```
+
+3. 如果确认只是误选发布路径，且旧容器仍 healthy，可以停止这次未完成 build：
+
+```bash
+ssh Aliyun-ECS-2 'kill <docker-compose-pid> <child-pid> 2>/dev/null || true'
+```
+
+4. 停止后重新核对旧容器健康，不要把中断 build 误判为线上失败：
+
+```bash
+ssh Aliyun-ECS-2 'cd /root/deeptutor && docker ps --format "{{.Names}} {{.Status}}" | grep deeptutor || true'
+```
+
+5. 回到本地，按正式快速发布脚本重新发布：
+
+```bash
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/redeploy_aliyun_fast.sh
+```
+
+注意三条判断：
+
+- 远端 `/root/deeptutor` 源码已经同步，只能说明服务器源码副本更新；不能说明运行中容器已经加载新代码。
+- 容器里的 `/app/...` 代码来自镜像层，不是 `/root/deeptutor` 的 bind mount；只有发布脚本完成重建/重载并通过公网验收，才能说已上线。
+- 不要用 `docker cp` 热补丁当常规发布路径；只有明确紧急权衡时才可临时使用，并且最终仍要回到发布脚本收敛镜像内容。
+
+### 8. 2026-05-12 联网按钮历史排障记录
 
 以下是一次历史排障记录，用来说明发布边界，不代表当前线上一定已经运行最新 commit。每次上线仍必须重新核对容器 `DEEPTUTOR_GIT_SHA`、公网 endpoint 和微信预览/发布包。
 
