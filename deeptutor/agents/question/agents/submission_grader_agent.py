@@ -94,6 +94,8 @@ class SubmissionGraderAgent(BaseAgent):
                 if str(value or "").strip():
                     option_lines.append(f"{key}. {value}")
 
+        grading_result = question_context.get("construction_grading_result")
+        has_authoritative_grading = isinstance(grading_result, dict) and bool(grading_result)
         correctness = question_context.get("is_correct")
         diagnosis = str(question_context.get("diagnosis", "") or "").strip() or (
             "CORRECT"
@@ -102,7 +104,6 @@ class SubmissionGraderAgent(BaseAgent):
             if correctness is False
             else "INVALID"
         )
-        score = 100 if correctness is True else 0 if correctness is False else 0
 
         lines = [
             f"Question ID: {question_context.get('question_id') or '(none)'}",
@@ -110,11 +111,13 @@ class SubmissionGraderAgent(BaseAgent):
             f"Difficulty: {question_context.get('difficulty') or '(none)'}",
             f"Concentration: {question_context.get('concentration') or '(none)'}",
             f"Diagnosis: {diagnosis}",
-            f"Score: {score}",
             "",
             "Question:",
             str(question_context.get("question", "") or "(none)"),
         ]
+        if not has_authoritative_grading:
+            score = 100 if correctness is True else 0 if correctness is False else 0
+            lines.insert(5, f"Score: {score}")
         if option_lines:
             lines.extend(["", "Options:", *option_lines])
         lines.extend(
@@ -163,8 +166,7 @@ class SubmissionGraderAgent(BaseAgent):
         knowledge_context = str(question_context.get("knowledge_context", "") or "").strip()
         if knowledge_context:
             lines.extend(["", "Knowledge context:", knowledge_context])
-        grading_result = question_context.get("construction_grading_result")
-        if isinstance(grading_result, dict) and grading_result:
+        if has_authoritative_grading:
             lines.extend(
                 [
                     "",

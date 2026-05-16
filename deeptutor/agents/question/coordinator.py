@@ -800,6 +800,16 @@ class AgentCoordinator:
         question = str(item.get("question") or "").strip()
         explanation = str(item.get("explanation") or "").strip()
         knowledge_context = str(item.get("knowledge_context") or "").strip()
+        grading_result = (
+            item.get("construction_grading_result")
+            if isinstance(item.get("construction_grading_result"), dict)
+            else {}
+        )
+        next_training_signal = (
+            grading_result.get("next_training_signal")
+            if isinstance(grading_result, dict)
+            else {}
+        )
         if concentration:
             sections.append(f"当前知识点：{concentration}")
         if question:
@@ -808,6 +818,29 @@ class AgentCoordinator:
             sections.append(f"参考解析：{explanation}")
         if knowledge_context and knowledge_context not in explanation:
             sections.append(f"补充知识：{knowledge_context}")
+        if isinstance(next_training_signal, dict) and next_training_signal:
+            signal_parts = [
+                f"{key}={value}"
+                for key, value in (
+                    ("concept", next_training_signal.get("concept")),
+                    ("focus", next_training_signal.get("focus")),
+                    ("mode", next_training_signal.get("mode")),
+                )
+                if str(value or "").strip()
+            ]
+            error_codes = [
+                str(error.get("error_code") or "").strip()
+                for error in list(grading_result.get("error_events") or [])
+                if isinstance(error, dict) and str(error.get("error_code") or "").strip()
+            ]
+            if error_codes:
+                signal_parts.append(f"error_codes={','.join(error_codes[:4])}")
+            if signal_parts:
+                sections.append(
+                    "下一题训练信号："
+                    + "；".join(signal_parts)
+                    + "。优先从现有题库选择同考点、同错因的相似题，不要泄露答案。"
+                )
         return "\n".join(sections)
 
     async def _parse_exam_to_templates(

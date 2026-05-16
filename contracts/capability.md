@@ -32,7 +32,7 @@
 13. 练题 / 出题类 follow-up 的公开请求配置仍由 orchestrator 归一化：入口可以传入题量、题型、topic 等 hint，但 orchestrator 必须保留显式 config，不得用重新推断覆盖已有非空值。
 14. orchestrator 从自然语言推断出的 `num_questions`、`question_type`、`lightweight_generation` 只属于本次 capability request config；它们不得成为 session / learner state 的第二份长期真相。
 15. 批量出题请求不能因为上一题已经作答或已批改而退回 grading path；生成更多题目的 intent 必须收敛到 capability routing / request config，而不是 adapter 或 presentation 层重复判定。
-16. `mobile` adapter 的 billing / wallet 端点只能做认证身份、wallet identity 和展示 read-model 装配；不得把钱包、旧会员流水或展示层状态升级为 capability routing / request config authority。旧会员流水只能通过显式迁移/对账开关参与展示，默认 authority 必须是 wallet ledger。
+16. `mobile` adapter 的 billing / wallet 端点只能做认证身份、wallet identity、额度 fail-closed 和展示 read-model 装配；不得把钱包、旧会员流水或展示层状态升级为 capability routing / request config authority。旧会员流水只能通过显式迁移/对账开关参与展示，默认 authority 必须是 wallet ledger。
 
 ## Schema
 

@@ -55,6 +55,8 @@ def build_deep_question_grading_result(
         ).to_dict()
         result["type"] = "case"
         result["authority"] = "construction_grading"
+        result["question_type"] = question_type or "case"
+        result["user_answer"] = answer
         return result
     return None
 

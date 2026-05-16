@@ -335,6 +335,61 @@ def _build_billing_usage_payload(entries: list[WalletLedgerEntry], *, now: datet
     }
 
 
+def _load_billing_usage_entries(
+    authorization: str | None,
+    *,
+    wallet_user_id: str,
+    limit: int,
+) -> list[WalletLedgerEntry]:
+    wallet_rows = wallet_service.list_wallet_ledger(
+        wallet_user_id,
+        limit=limit,
+        offset=0,
+    )
+    legacy_rows = (
+        _load_legacy_wallet_ledger_entries(
+            authorization,
+            wallet_user_id=wallet_user_id,
+            limit=limit,
+        )
+        if _env_flag_enabled(_BILLING_INCLUDE_LEGACY_LEDGER)
+        else []
+    )
+    return _merge_wallet_ledger_entries(wallet_rows, legacy_rows)
+
+
+def _assert_billing_quota_available(authorization: str | None, *, wallet_user_id: str) -> None:
+    normalized_user_id = str(wallet_user_id or "").strip()
+    if not normalized_user_id or not getattr(wallet_service, "is_configured", False):
+        return
+    usage_payload = _build_billing_usage_payload(
+        _load_billing_usage_entries(
+            authorization,
+            wallet_user_id=normalized_user_id,
+            limit=_BILLING_USAGE_LEDGER_WINDOW,
+        )
+    )
+    rows = ((usage_payload.get("quota") or {}).get("rows") or []) if isinstance(usage_payload, dict) else []
+    exhausted = [
+        row
+        for row in rows
+        if isinstance(row, dict) and int(row.get("remaining_percent") or 0) <= 0
+    ]
+    if not exhausted:
+        return
+    primary = min(exhausted, key=lambda row: int(row.get("remaining_percent") or 0))
+    raise HTTPException(
+        status_code=429,
+        detail={
+            "code": "billing_quota_exceeded",
+            "message": "Usage quota exceeded.",
+            "limited_by": str(primary.get("key") or ""),
+            "reset_at": str(primary.get("reset_at") or ""),
+            "quota": rows,
+        },
+    )
+
+
 def _legacy_ledger_event_type(reason: str, delta_points: int) -> str:
     normalized_reason = str(reason or "").strip().lower()
     if normalized_reason == "refund":
@@ -1706,21 +1761,13 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
     if not str(wallet_user_id or "").strip():
         return _build_billing_usage_payload([])
-    wallet_rows = wallet_service.list_wallet_ledger(
-        wallet_user_id,
-        limit=_BILLING_USAGE_LEDGER_WINDOW,
-        offset=0,
-    )
-    legacy_rows = (
-        _load_legacy_wallet_ledger_entries(
+    return _build_billing_usage_payload(
+        _load_billing_usage_entries(
             authorization,
             wallet_user_id=wallet_user_id,
             limit=_BILLING_USAGE_LEDGER_WINDOW,
         )
-        if _env_flag_enabled(_BILLING_INCLUDE_LEGACY_LEDGER)
-        else []
     )
-    return _build_billing_usage_payload(_merge_wallet_ledger_entries(wallet_rows, legacy_rows))
 
 
 @router.get("/billing/ledger")
@@ -2001,6 +2048,7 @@ async def mobile_chat_start_turn(
 
     resolved_user_id = _resolve_authenticated_user_id(authorization)
     resolved_wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
+    _assert_billing_quota_available(authorization, wallet_user_id=resolved_wallet_user_id)
     await _assert_mobile_conversation_access(body.conversation_id, resolved_user_id)
     payload = _build_mobile_turn_payload(
         body=body,

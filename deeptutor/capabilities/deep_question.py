@@ -21,6 +21,7 @@ from deeptutor.core.trace import merge_trace_metadata
 from deeptutor.services.construction_grading.deep_question_adapter import (
     attach_deep_question_grading_result,
 )
+from deeptutor.services.construction_grading.writeback import write_grading_error_events
 from deeptutor.services.question_followup import (
     apply_followup_action_to_context,
     answers_match,
@@ -50,6 +51,7 @@ _GENERATION_TOPIC_ANCHOR_MARKERS = (
     "这个概念",
     "几个概念",
     "类似",
+    "相关",
     "同类",
     "继续",
     "再来",
@@ -129,6 +131,30 @@ def _append_unique(parts: list[str], candidate: Any) -> None:
     parts.append(text)
 
 
+def _training_signal_text_from_context(question_context: dict[str, Any]) -> str:
+    grading_result = (
+        question_context.get("construction_grading_result")
+        if isinstance(question_context.get("construction_grading_result"), dict)
+        else {}
+    )
+    signal = grading_result.get("next_training_signal") if isinstance(grading_result, dict) else {}
+    if not isinstance(signal, dict) or not signal:
+        return ""
+    parts: list[str] = []
+    for key in ("concept", "focus", "mode"):
+        value = _compact_text(signal.get(key))
+        if value:
+            parts.append(f"{key}={value}")
+    error_codes = [
+        _compact_text(error.get("error_code"))
+        for error in list(grading_result.get("error_events") or [])
+        if isinstance(error, dict) and _compact_text(error.get("error_code"))
+    ]
+    if error_codes:
+        parts.append(f"error_codes={','.join(error_codes[:4])}")
+    return "；".join(parts)
+
+
 def _question_context_generation_anchor(question_context: dict[str, Any] | None) -> str:
     normalized = normalize_question_followup_context(question_context)
     if not normalized:
@@ -144,6 +170,12 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
         _append_unique(concentrations, item.get("concentration"))
         _append_unique(knowledge_parts, _clip_text(item.get("knowledge_context"), limit=220))
         _append_unique(question_parts, _clip_text(item.get("question"), limit=160))
+        training_signal = _training_signal_text_from_context(item)
+        if training_signal:
+            _append_unique(
+                knowledge_parts,
+                f"上一轮错因训练信号：{training_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
+            )
 
     anchor_lines: list[str] = []
     if concentrations:
@@ -434,6 +466,50 @@ def _render_deterministic_grading_feedback(question_context: dict[str, Any] | No
     return "\n".join(lines).strip()
 
 
+def _learner_user_id_from_context(context: UnifiedContext) -> str:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
+    return str(
+        metadata.get("user_id")
+        or billing_context.get("user_id")
+        or context.config_overrides.get("user_id")
+        or ""
+    ).strip()
+
+
+def _source_bot_id_from_context(context: UnifiedContext) -> str:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return str(
+        metadata.get("bot_id")
+        or context.config_overrides.get("bot_id")
+        or ""
+    ).strip()
+
+
+def _write_grading_error_events_for_context(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    source_id: str,
+) -> int:
+    user_id = _learner_user_id_from_context(context)
+    grading_result = graded_context.get("construction_grading_result")
+    if not user_id or not isinstance(grading_result, dict) or not grading_result:
+        return 0
+    try:
+        from deeptutor.services.learner_state import get_learner_state_service
+
+        return write_grading_error_events(
+            learner_state_service=get_learner_state_service(),
+            user_id=user_id,
+            grading_result=grading_result,
+            source_id=source_id,
+            source_bot_id=_source_bot_id_from_context(context) or None,
+        )
+    except Exception:
+        return 0
+
+
 class DeepQuestionCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="deep_question",
@@ -593,6 +669,11 @@ class DeepQuestionCapability(BaseCapability):
                         result_payload["metadata"] = {"cost_summary": cost_meta}
                     grading_result = graded_context.get("construction_grading_result")
                     if isinstance(grading_result, dict) and grading_result:
+                        _write_grading_error_events_for_context(
+                            context=context,
+                            graded_context=graded_context,
+                            source_id=f"{turn_id}:{graded_context.get('question_id') or 'grading'}",
+                        )
                         result_payload["construction_grading_result"] = grading_result
                     await stream.result(result_payload, source=self.name)
                 return
@@ -774,6 +855,11 @@ class DeepQuestionCapability(BaseCapability):
                             result_payload["metadata"] = {"cost_summary": cost_meta}
                         grading_result = graded_context.get("construction_grading_result")
                         if isinstance(grading_result, dict) and grading_result:
+                            _write_grading_error_events_for_context(
+                                context=context,
+                                graded_context=graded_context,
+                                source_id=f"{turn_id}:{graded_context.get('question_id') or 'grading'}",
+                            )
                             result_payload["construction_grading_result"] = grading_result
                         await stream.result(result_payload, source=self.name)
                     return

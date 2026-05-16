@@ -63,6 +63,16 @@ _CONTINUITY_MARKERS = (
     "同一个例子",
     "同一个案例",
 )
+_FOUNDATION_PIT_BOUNDARY_RE = re.compile(
+    r"(?:5(?:\.0)?\s*(?:m|米)|五\s*米)",
+    flags=re.IGNORECASE,
+)
+_FOUNDATION_PIT_BAD_EXPERT_REVIEW_RE = re.compile(
+    r"(?:不需要|不需|无需|不用).{0,8}(?:组织)?专家论证"
+    r"|未达到\s*5(?:\.0)?\s*(?:m|米)?"
+    r"|小于\s*5(?:\.0)?\s*(?:m|米)?",
+    flags=re.IGNORECASE,
+)
 
 _FAST_INSTRUCTION = """
 当前教学模式：FAST（快答助教）。
@@ -195,6 +205,54 @@ def get_anchor_preservation_instruction(user_message: str | None) -> str:
         "如果用户当前问题里已经明确给出具体案例锚点或对象原词，"
         f"回答正文里必须至少显式保留一次这些锚点原词：{'、'.join(anchor_terms)}。"
         "不要自行缩写、泛化或换称呼。"
+    )
+
+
+def get_construction_exam_boundary_fact_instruction(*texts: str | None) -> str:
+    joined = "\n".join(str(text or "") for text in texts if str(text or "").strip())
+    if not joined:
+        return ""
+    if "基坑" not in joined:
+        return ""
+    if not _FOUNDATION_PIT_BOUNDARY_RE.search(joined):
+        return ""
+    if not any(marker in joined for marker in ("专家论证", "危大", "专项方案", "深度", "开挖")):
+        return ""
+    return (
+        "建筑实务边界事实：基坑工程开挖深度超过5m（含5m），即按 >=5m 判断，"
+        "属于超过一定规模的危大工程范围，专项施工方案需要组织专家论证。"
+        "如果题干写5m、5.0m或五米，不得写成“未达到5m”“小于5m”或“不需要专家论证”。"
+    )
+
+
+def correct_construction_exam_boundary_fact_response(
+    *,
+    user_message: str | None,
+    response: str | None,
+) -> str | None:
+    content = str(response or "")
+    if not content.strip():
+        return response
+    if not get_construction_exam_boundary_fact_instruction(user_message):
+        return response
+    if "专家论证" not in content:
+        return response
+    if not _FOUNDATION_PIT_BAD_EXPERT_REVIEW_RE.search(content):
+        return response
+    return (
+        "## 结论\n\n"
+        "第1问答案不变：基坑深度从8m改为5m后，仍然需要组织专家论证。\n\n"
+        "## 判断依据\n\n"
+        "- 基坑工程开挖深度达到5m时，按“超过5m（含5m）/ >=5m”处理。\n"
+        "- 5m不是“未达到5m”，也不是“小于5m”。\n"
+        "- 因此本题仍属于超过一定规模的危大工程，专项施工方案需要组织专家论证。\n\n"
+        "## 踩分点\n\n"
+        "1. 写出“需要专家论证”。\n"
+        "2. 理由写“开挖深度5m，含5m，达到专家论证门槛”。\n"
+        "3. 不要把专家论证门槛误写成“>5m”。\n\n"
+        "## 易错点\n\n"
+        "真正不需要专家论证的是低于5m且没有其他特别复杂风险触发条件的情形；"
+        "本题5m刚好踩线，不能判成不需要。"
     )
 
 

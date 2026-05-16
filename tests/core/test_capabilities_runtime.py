@@ -175,6 +175,55 @@ def test_tutorbot_fast_uses_tool_skill_boundary_without_loading_tool_steps(tmp_p
     assert "curl -s" not in instruction
 
 
+def test_tutorbot_fast_boundaries_practice_generation_without_cli_steps(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FakeProvider(LLMProvider):
+        async def chat(self, *args: Any, **kwargs: Any) -> LLMResponse:
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
+
+    instruction = loop._build_progressive_skill_instruction(
+        "给我出一道建筑构造选择题",
+        runtime_metadata={"effective_response_mode": "fast"},
+    )
+
+    assert "练题生成类能力" in instruction
+    assert "fast 策略不会进入完整工具循环" in instruction
+    assert "### Skill: deep-question" not in instruction
+    assert "deeptutor run deep_question" not in instruction
+
+
+def test_tutorbot_deep_reports_unavailable_tool_skill_dependency(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FakeProvider(LLMProvider):
+        async def chat(self, *args: Any, **kwargs: Any) -> LLMResponse:
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
+
+    instruction = loop._build_progressive_skill_instruction(
+        "summarize this article",
+        runtime_metadata={"effective_response_mode": "deep"},
+    )
+
+    assert "当前环境不可用" in instruction
+    assert "CLI: summarize" in instruction
+    assert "### Skill: summarize" not in instruction
+
+
 def test_tutorbot_skills_summary_omits_internal_locations_by_default(tmp_path) -> None:
     from deeptutor.tutorbot.agent.context import ContextBuilder
 

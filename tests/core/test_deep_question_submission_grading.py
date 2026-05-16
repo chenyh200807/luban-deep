@@ -8,6 +8,7 @@ from typing import Any
 
 import pytest
 
+from deeptutor.capabilities import deep_question as deep_question_module
 from deeptutor.capabilities.deep_question import DeepQuestionCapability
 from deeptutor.agents.question.agents.submission_grader_agent import SubmissionGraderAgent
 from deeptutor.core.context import UnifiedContext
@@ -528,3 +529,104 @@ def test_submission_grader_renders_authoritative_grading_result() -> None:
     assert '"authority": "construction_grading"' in rendered
     assert '"score_awarded": 1.0' in rendered
     assert '"max_score": 3.0' in rendered
+    assert "Score: 0" not in rendered
+    assert "Score: 100" not in rendered
+
+
+@pytest.mark.asyncio
+async def test_deep_question_writes_grading_errors_to_learner_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeLearnerStateService:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, Any]] = []
+
+        def append_memory_event(self, user_id: str, **kwargs: Any) -> object:
+            self.calls.append({"user_id": user_id, **kwargs})
+            return object()
+
+    fake_learner_state = FakeLearnerStateService()
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: fake_learner_state,
+    )
+
+    context = UnifiedContext(
+        user_message="我选A",
+        language="zh",
+        metadata={
+            "turn_id": "turn-grading-1",
+            "bot_id": "construction-exam-coach",
+            "billing_context": {"user_id": "student-1"},
+            "question_followup_context": {
+                "question_id": "q-law",
+                "question": "《建设工程安全生产管理条例》属于（ ）。",
+                "question_type": "choice",
+                "options": {"A": "法律", "B": "行政法规", "C": "部门规章", "D": "地方性法规"},
+                "correct_answer": "B",
+                "explanation": "条例由国务院制定，属于行政法规。",
+                "concentration": "法规层级",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["construction_grading_result"]["authority"] == "construction_grading"
+    assert len(fake_learner_state.calls) == 1
+    call = fake_learner_state.calls[0]
+    assert call["user_id"] == "student-1"
+    assert call["source_feature"] == "construction_grading"
+    assert call["source_bot_id"] == "construction-exam-coach"
+    assert call["memory_kind"] == "mcq_error_event"
+    assert call["payload_json"]["event_type"] == "construction_grading_error"
+    assert call["payload_json"]["question_id"] == "q-law"
+    assert call["payload_json"]["next_training_signal"]["focus"] == "法规层级"
+    assert call["dedupe_key"]
+
+
+def test_related_generation_anchor_uses_next_training_signal() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再给我相关题",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context={
+            "question_id": "q-law",
+            "question": "《建设工程安全生产管理条例》属于（ ）。",
+            "question_type": "choice",
+            "concentration": "法规层级",
+            "construction_grading_result": {
+                "type": "mcq",
+                "authority": "construction_grading",
+                "score_awarded": 0.0,
+                "max_score": 1.0,
+                "error_events": [{"error_code": "M02", "diagnosis": "层级混淆"}],
+                "next_training_signal": {
+                    "concept": "法规层级",
+                    "focus": "行政法规与部门规章辨析",
+                },
+            },
+        },
+        conversation_context_text="",
+    )
+
+    assert "上一轮错因训练信号" in topic
+    assert "行政法规与部门规章辨析" in topic
+    assert "优先从现有题库" in topic

@@ -94,5 +94,64 @@ def test_writeback_uses_existing_learner_memory_events() -> None:
     assert call["source_feature"] == "construction_grading"
     assert call["memory_kind"] == "case_error_event"
     assert call["source_bot_id"] == "construction-exam"
+    assert call["dedupe_key"]
+    assert call["payload_json"]["event_type"] == "construction_grading_error"
     assert call["payload_json"]["question_id"] == "case-1"
+    assert call["payload_json"]["error_events"][0]["error_code"] in {"E02", "E03", "E04"}
     assert call["payload_json"]["errors"][0]["error_code"] in {"E02", "E03", "E04"}
+
+
+def test_writeback_accepts_runtime_batch_dict_result() -> None:
+    service = _FakeLearnerStateService()
+
+    count = write_grading_error_events(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-1",
+        source_bot_id="construction-exam",
+        grading_result={
+            "type": "batch",
+            "authority": "construction_grading",
+            "items": [
+                {
+                    "type": "mcq",
+                    "question_id": "q-1",
+                    "question_type": "choice",
+                    "user_answer": "A",
+                    "score_awarded": 0.0,
+                    "max_score": 1.0,
+                    "error_events": [
+                        {
+                            "error_code": "M02",
+                            "severity": 0.7,
+                            "concept_tag": "法规层级",
+                            "evidence": "A",
+                            "diagnosis": "作答与标准答案不一致。",
+                        }
+                    ],
+                    "next_training_signal": {
+                        "concept": "法规层级",
+                        "focus": "行政法规与部门规章辨析",
+                    },
+                },
+                {
+                    "type": "mcq",
+                    "question_id": "q-2",
+                    "question_type": "choice",
+                    "user_answer": "B",
+                    "score_awarded": 1.0,
+                    "max_score": 1.0,
+                    "error_events": [],
+                    "next_training_signal": {},
+                },
+            ],
+        },
+    )
+
+    assert count == 1
+    assert len(service.calls) == 1
+    call = service.calls[0]
+    assert call["source_id"] == "turn-1:q-1"
+    assert call["memory_kind"] == "mcq_error_event"
+    assert call["payload_json"]["question_id"] == "q-1"
+    assert call["payload_json"]["next_training_signal"]["focus"] == "行政法规与部门规章辨析"

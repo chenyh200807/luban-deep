@@ -710,6 +710,72 @@ def test_mobile_chat_start_turn_requires_authentication() -> None:
     assert response.json()["detail"] == "Authentication required"
 
 
+def test_mobile_chat_start_turn_blocks_when_usage_quota_exhausted(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, _payload):
+            captured["started"] = True
+            return {}, {}
+
+    class FakeWalletService:
+        is_configured = True
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            captured["wallet_user_id"] = user_id
+            captured["limit"] = limit
+            captured["offset"] = offset
+            return [
+                mobile_module.WalletLedgerEntry(
+                    id="evt_quota_1",
+                    user_id=user_id,
+                    event_type="debit",
+                    delta_micros=-20_000_000,
+                    balance_after_micros=80_000_000,
+                    frozen_after_micros=0,
+                    reference_type="ai_usage",
+                    reference_id="turn_quota_1",
+                    idempotency_key="capture:turn_quota_1",
+                    metadata={"reason": "capture"},
+                    created_at=mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ).isoformat(),
+                )
+            ]
+
+    monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", "20")
+    monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", "20")
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(mobile_module, "wallet_service", FakeWalletService())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "继续讲这道题"},
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 429
+    detail = response.json()["detail"]
+    assert detail["code"] == "billing_quota_exceeded"
+    assert detail["message"] == "Usage quota exceeded."
+    assert detail["limited_by"] in {"five_hour", "weekly"}
+    assert isinstance(detail["quota"], list)
+    assert captured["wallet_user_id"] == "wallet_demo"
+    assert captured["limit"] == mobile_module._BILLING_USAGE_LEDGER_WINDOW
+    assert captured["offset"] == 0
+    assert "started" not in captured
+
+
 def test_mobile_chat_feedback_persists_structured_row(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

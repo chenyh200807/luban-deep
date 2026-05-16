@@ -167,7 +167,7 @@ class AgentLoop:
             "skill-creator",
         ),
     }
-    _FAST_LIMITED_TOOL_SKILLS = frozenset(_PROGRESSIVE_SKILL_TRIGGERS)
+    _FAST_LIMITED_TOOL_SKILLS = frozenset((*_PROGRESSIVE_SKILL_TRIGGERS, "deep-question"))
 
     def __init__(
         self,
@@ -1319,7 +1319,7 @@ class AgentLoop:
                 followup[key] = metadata.get(key)
         return followup
 
-    def _select_available_progressive_skill_names(self, current_message: str) -> list[str]:
+    def _select_progressive_skill_names(self, current_message: str) -> list[str]:
         text = f" {str(current_message or '').strip().lower()} "
         selected: list[str] = []
         if looks_like_practice_generation_request(current_message):
@@ -1330,13 +1330,25 @@ class AgentLoop:
             if any(marker in text for marker in markers):
                 selected.append(skill_name)
 
-        if not selected:
-            return []
+        return selected
+
+    def _available_skill_names(self, skill_names: list[str]) -> set[str]:
+        if not skill_names:
+            return set()
         available = {
             str(item.get("name") or "")
             for item in self.context.skills.list_skills(filter_unavailable=True)
         }
-        return [name for name in selected if name in available]
+        return {name for name in skill_names if name in available}
+
+    def _missing_skill_requirements(self, skill_names: list[str]) -> dict[str, str]:
+        missing: dict[str, str] = {}
+        for name in skill_names:
+            meta = self.context.skills._get_skill_meta(name)
+            if not self.context.skills._check_requirements(meta):
+                requirement = self.context.skills._get_missing_requirements(meta)
+                missing[name] = requirement or "dependency unavailable"
+        return missing
 
     @staticmethod
     def _format_fast_limited_skill_instructions(skill_names: list[str]) -> str:
@@ -1403,12 +1415,17 @@ class AgentLoop:
         if lecture_instruction:
             parts.append(lecture_instruction)
 
-        selected_skill_names = self._select_available_progressive_skill_names(current_message)
+        selected_skill_names = self._select_progressive_skill_names(current_message)
         if selected_skill_names:
+            available_skill_names = self._available_skill_names(selected_skill_names)
+            unavailable_skill_names = [
+                name for name in selected_skill_names
+                if name not in available_skill_names
+            ]
             if response_mode == "fast":
                 full_skill_names = [
                     name for name in selected_skill_names
-                    if name not in self._FAST_LIMITED_TOOL_SKILLS
+                    if name in available_skill_names and name not in self._FAST_LIMITED_TOOL_SKILLS
                 ]
                 limited_skill_names = [
                     name for name in selected_skill_names
@@ -1419,7 +1436,20 @@ class AgentLoop:
                 if limited_instruction:
                     parts.append(limited_instruction)
             else:
-                selected_skills = self.context.skills.load_skills_for_context(selected_skill_names)
+                selected_skills = self.context.skills.load_skills_for_context(
+                    [name for name in selected_skill_names if name in available_skill_names]
+                )
+                if unavailable_skill_names:
+                    missing = self._missing_skill_requirements(unavailable_skill_names)
+                    labels = ", ".join(
+                        f"{name}: {reason}"
+                        for name, reason in missing.items()
+                    )
+                    if labels:
+                        parts.append(
+                            "本轮命中的部分工具型能力在当前环境不可用，不能假装已经执行："
+                            f"{labels}"
+                        )
             if selected_skills:
                 parts.append(selected_skills)
 
