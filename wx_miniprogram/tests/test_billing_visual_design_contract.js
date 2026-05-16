@@ -36,7 +36,7 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath) {
   );
   assert(
     wxml.indexOf('class="nav-brand-copy"') >= 0 &&
-      wxml.indexOf("充值中心") >= 0,
+      wxml.indexOf("额度中心") >= 0,
     label + " billing should pair the mark with explicit brand copy",
   );
   assert(

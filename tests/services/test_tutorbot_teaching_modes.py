@@ -11,7 +11,10 @@ from deeptutor.tutorbot.teaching_modes import (
     normalize_anchor_terms_in_response,
     normalize_teaching_mode,
 )
-from deeptutor.tutorbot.response_mode import resolve_requested_response_mode
+from deeptutor.tutorbot.response_mode import (
+    build_mode_execution_policy,
+    resolve_requested_response_mode,
+)
 
 
 def test_normalize_teaching_mode_defaults_to_smart():
@@ -53,6 +56,26 @@ def test_resolve_requested_response_mode_prefers_new_hint_over_legacy_teaching_m
             "teaching_mode": "fast",
         },
     ) == "deep"
+
+
+def test_mode_execution_policy_separates_fast_and_deep_workflows():
+    fast = build_mode_execution_policy("fast", selected_mode="fast")
+    deep = build_mode_execution_policy("deep", selected_mode="deep")
+
+    assert fast.knowledge_strategy == "kb_first"
+    assert fast.workflow == "single_shot_with_prefetch"
+    assert fast.model_fallback_allowed is True
+    assert fast.web_search_allowed is True
+    assert fast.execution_path == "tutorbot_kb_first_fast_policy"
+    assert fast.max_tool_rounds < deep.max_tool_rounds
+    assert fast.allow_deep_stage is False
+
+    assert deep.knowledge_strategy == "kb_first"
+    assert deep.workflow == "full_agent_loop"
+    assert deep.model_fallback_allowed is True
+    assert deep.web_search_allowed is True
+    assert deep.execution_path == "tutorbot_kb_first_full_agent_policy"
+    assert deep.allow_deep_stage is True
 
 
 def test_looks_like_practice_generation_request_accepts_natural_one_question_phrasing():

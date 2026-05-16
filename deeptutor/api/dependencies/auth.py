@@ -52,9 +52,13 @@ def _has_metrics_token_access(
     return any(candidate and compare_digest(candidate, configured) for candidate in candidates)
 
 
-def _resolve_authoritative_user_id(claims: dict[str, Any]) -> str:
+def _resolve_authoritative_user_id_from_claims(
+    claims: dict[str, Any],
+    *,
+    allow_plain_canonical_uid: bool,
+) -> str:
     canonical_uid = str((claims or {}).get("canonical_uid") or "").strip()
-    if canonical_uid:
+    if allow_plain_canonical_uid and canonical_uid:
         return canonical_uid
 
     raw_user_id = str((claims or {}).get("uid") or (claims or {}).get("sub") or "").strip()
@@ -129,78 +133,18 @@ def _resolve_authoritative_user_id(claims: dict[str, Any]) -> str:
     return resolution.raw_user_id
 
 
+def _resolve_authoritative_user_id(claims: dict[str, Any]) -> str:
+    return _resolve_authoritative_user_id_from_claims(
+        claims,
+        allow_plain_canonical_uid=True,
+    )
+
+
 def _resolve_wallet_authoritative_user_id(claims: dict[str, Any]) -> str:
-    claim_map = dict(claims or {})
-    raw_user_id = str(claim_map.get("uid") or claim_map.get("sub") or "").strip()
-    resolution = resolve_wallet_identity(raw_user_id=raw_user_id, claims=claim_map)
-    if resolution.canonical_user_id:
-        return resolution.canonical_user_id
-    if resolution.needs_lookup and resolution.raw_user_id:
-        service = get_member_console_service()
-        store = get_wallet_identity_store()
-        if getattr(store, "is_configured", False):
-            candidates: list[str] = []
-
-            def _append_candidate(alias_type: str, alias_value: str) -> None:
-                row = store.resolve_alias(alias_type=alias_type, alias_value=alias_value)
-                if not isinstance(row, dict):
-                    return
-                alias_user_id = str(row.get("user_id") or "").strip()
-                if alias_user_id and alias_user_id not in candidates:
-                    candidates.append(alias_user_id)
-
-            for alias_type in ("legacy_user_id", "auth_username", "phone", "wx_openid", "wx_unionid"):
-                _append_candidate(alias_type, resolution.raw_user_id)
-
-            if not candidates:
-                member: dict[str, Any] = {}
-                snapshot_loader = getattr(service, "_load_member_snapshot", None)
-                if callable(snapshot_loader):
-                    try:
-                        snapshot = snapshot_loader(resolution.raw_user_id)
-                    except Exception:
-                        snapshot = {}
-                    maybe_member = snapshot.get("member") if isinstance(snapshot, dict) else {}
-                    if isinstance(maybe_member, dict):
-                        member = maybe_member
-                if not member:
-                    raw_loader = getattr(service, "_load", None)
-                    if callable(raw_loader):
-                        try:
-                            data = raw_loader()
-                        except Exception:
-                            data = {}
-                        rows = data.get("members") if isinstance(data, dict) else []
-                        if isinstance(rows, list):
-                            for row in rows:
-                                if not isinstance(row, dict):
-                                    continue
-                                if str(row.get("user_id") or "").strip() == resolution.raw_user_id:
-                                    member = row
-                                    break
-                if isinstance(member, dict) and member:
-                    for alias_type, key in (
-                        ("auth_username", "auth_username"),
-                        ("phone", "phone"),
-                        ("wx_openid", "wx_openid"),
-                        ("wx_unionid", "wx_unionid"),
-                    ):
-                        alias_value = str(member.get(key) or "").strip()
-                        if alias_value:
-                            _append_candidate(alias_type, alias_value)
-                    external_auth_user_id = str(member.get("external_auth_user_id") or "").strip()
-                    if external_auth_user_id:
-                        external_resolution = resolve_wallet_identity(
-                            raw_user_id=external_auth_user_id,
-                            claims={"external_auth_user_id": external_auth_user_id},
-                        )
-                        if external_resolution.canonical_user_id:
-                            return external_resolution.canonical_user_id
-            if len(candidates) == 1:
-                return candidates[0]
-            if len(candidates) > 1:
-                return ""
-    return resolution.raw_user_id
+    return _resolve_authoritative_user_id_from_claims(
+        claims,
+        allow_plain_canonical_uid=False,
+    )
 
 
 def resolve_auth_context(authorization: str | None) -> AuthContext | None:

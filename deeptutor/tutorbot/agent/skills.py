@@ -21,7 +21,7 @@ class SkillsLoader:
     def __init__(self, workspace: Path, builtin_skills_dir: Path | None = None):
         self.workspace = workspace
         self.workspace_skills = workspace / "skills"
-        self.builtin_skills = builtin_skills_dir
+        self.builtin_skills = builtin_skills_dir or BUILTIN_SKILLS_DIR
 
     def list_skills(self, filter_unavailable: bool = True) -> list[dict[str, str]]:
         """
@@ -98,12 +98,12 @@ class SkillsLoader:
 
         return "\n\n---\n\n".join(parts) if parts else ""
 
-    def build_skills_summary(self) -> str:
+    def build_skills_summary(self, *, include_locations: bool = False) -> str:
         """
-        Build a summary of all skills (name, description, path, availability).
+        Build a summary of all skills (name, description, availability).
 
-        This is used for progressive loading - the agent can read the full
-        skill content using read_file when needed.
+        This is used for progressive discovery. Locations are omitted by
+        default so prompt summaries do not expose internal filesystem paths.
 
         Returns:
             XML-formatted skills summary.
@@ -118,7 +118,6 @@ class SkillsLoader:
         lines = ["<skills>"]
         for s in all_skills:
             name = escape_xml(s["name"])
-            path = s["path"]
             desc = escape_xml(self._get_skill_description(s["name"]))
             skill_meta = self._get_skill_meta(s["name"])
             available = self._check_requirements(skill_meta)
@@ -126,7 +125,8 @@ class SkillsLoader:
             lines.append(f"  <skill available=\"{str(available).lower()}\">")
             lines.append(f"    <name>{name}</name>")
             lines.append(f"    <description>{desc}</description>")
-            lines.append(f"    <location>{path}</location>")
+            if include_locations:
+                lines.append(f"    <location>{escape_xml(s['path'])}</location>")
 
             # Show missing requirements for unavailable skills
             if not available:

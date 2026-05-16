@@ -28,6 +28,9 @@ def build_om_run(
     turns_completed = float(turn_runtime.get("turns_completed_total") or 0.0)
     turns_failed = float(turn_runtime.get("turns_failed_total") or 0.0)
     turns_cancelled = float(turn_runtime.get("turns_cancelled_total") or 0.0)
+    turns_in_flight = int(turn_runtime.get("turns_in_flight") or 0)
+    ws_active_connections = int(turn_runtime.get("ws_active_connections") or 0)
+    orphaned_turns = turns_in_flight if turns_in_flight > 0 and ws_active_connections == 0 else 0
     readyz_ratio = 1.0 if readiness.get("ready") is True else 0.0
     turn_success_ratio = _ratio(turns_completed, max(turns_started, 1.0))
 
@@ -97,6 +100,9 @@ def build_om_run(
         "turns_completed_total": int(turns_completed),
         "turns_failed_total": int(turns_failed),
         "turns_cancelled_total": int(turns_cancelled),
+        "turns_in_flight": turns_in_flight,
+        "ws_active_connections": ws_active_connections,
+        "orphaned_turns": orphaned_turns,
         "turn_success_ratio": turn_success_ratio,
         "turn_first_render_ratio": turn_first_render_ratio,
         "provider_error_ratio": provider_error_ratio,
@@ -126,6 +132,18 @@ def build_om_run(
                 }
                 for _ in [0]
                 if readiness.get("ready") is not True
+            ],
+            *[
+                {
+                    "title": "turn_in_flight_without_ws_subscriber",
+                    "severity": "critical",
+                    "evidence": [
+                        f"turns_in_flight={turns_in_flight}",
+                        f"ws_active_connections={ws_active_connections}",
+                    ],
+                }
+                for _ in [0]
+                if orphaned_turns > 0
             ],
             *[
                 {

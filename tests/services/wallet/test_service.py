@@ -165,11 +165,39 @@ class _SeedWalletRestClient:
 
 
 def test_capture_points_writes_wallet_and_ledger() -> None:
-    client = _FakeWalletRestClient()
+    def _handler(request: httpx.Request) -> httpx.Response:
+        assert request.method == "POST"
+        assert request.url.path.endswith("/rest/v1/rpc/apply_wallet_mutation")
+        payload = request.read().decode("utf-8")
+        assert '"p_event_type":"debit"' in payload
+        assert '"p_delta_micros":-20000000' in payload
+        assert '"p_idempotency_key":"mini_program_capture:turn_1"' in payload
+        assert '"p_reference_type":"ai_usage"' in payload
+        assert '"p_operator_id":"turn_1"' in payload
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "ledger_event_id": "evt_capture_1",
+                    "user_id": "wallet_user_1",
+                    "event_type": "debit",
+                    "delta_micros": -20_000_000,
+                    "balance_micros": 80_000_000,
+                    "frozen_micros": 0,
+                    "version": 3,
+                    "idempotency_key": "mini_program_capture:turn_1",
+                    "reference_type": "ai_usage",
+                    "reference_id": "turn_1",
+                    "created_at": "2026-04-21T10:01:00+08:00",
+                }
+            ],
+            request=request,
+        )
+
     service = SupabaseWalletService(
         base_url="https://example.supabase.co",
         service_key="service-role-key",
-        client=client,
+        client=httpx.Client(transport=httpx.MockTransport(_handler)),
     )
 
     result = service.capture_points(
@@ -184,43 +212,45 @@ def test_capture_points_writes_wallet_and_ledger() -> None:
     assert result.requested_micros == 20_000_000
     assert result.balance_after_micros == 80_000_000
     assert result.entry is not None
+    assert result.entry.id == "evt_capture_1"
     assert result.entry.event_type == "debit"
     assert result.entry.reference_type == "ai_usage"
     assert result.entry.reference_id == "turn_1"
     assert result.entry.metadata["reason"] == "capture"
     assert result.entry.metadata["source"] == "wx_miniprogram"
-    assert result.entry.id
-    assert client.wallet["balance_micros"] == 80_000_000
-    assert client.wallet["version"] == 3
-    assert len(client.ledger) == 1
-    assert client.ledger[0]["id"]
-    assert client.ledger[0]["reason"] == "capture"
-    assert client.ledger[0]["operator_type"] == "system"
-    assert client.ledger[0]["operator_id"] == "wx_miniprogram"
 
 
 def test_capture_points_is_idempotent_by_ledger_key() -> None:
-    client = _FakeWalletRestClient()
-    client.wallet["balance_micros"] = 80_000_000
-    client.ledger.append(
-        {
-            "id": "evt_existing",
-            "user_id": "wallet_user_1",
-            "event_type": "debit",
-            "delta_micros": -20_000_000,
-            "balance_after_micros": 80_000_000,
-            "frozen_after_micros": 0,
-            "reference_type": "ai_usage",
-            "reference_id": "turn_1",
-            "idempotency_key": "mini_program_capture:turn_1",
-            "metadata": {"reason": "capture", "source": "wx_miniprogram"},
-            "created_at": "2026-04-21T10:01:00+08:00",
-        }
-    )
+    calls = {"rpc": 0}
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        calls["rpc"] += 1
+        assert request.method == "POST"
+        assert request.url.path.endswith("/rest/v1/rpc/apply_wallet_mutation")
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "ledger_event_id": "evt_existing",
+                    "user_id": "wallet_user_1",
+                    "event_type": "debit",
+                    "delta_micros": -20_000_000,
+                    "balance_micros": 80_000_000,
+                    "frozen_micros": 0,
+                    "version": 3,
+                    "idempotency_key": "mini_program_capture:turn_1",
+                    "reference_type": "ai_usage",
+                    "reference_id": "turn_1",
+                    "created_at": "2026-04-21T10:01:00+08:00",
+                }
+            ],
+            request=request,
+        )
+
     service = SupabaseWalletService(
         base_url="https://example.supabase.co",
         service_key="service-role-key",
-        client=client,
+        client=httpx.Client(transport=httpx.MockTransport(_handler)),
     )
 
     result = service.capture_points(
@@ -234,8 +264,7 @@ def test_capture_points_is_idempotent_by_ledger_key() -> None:
     assert result.captured_micros == 20_000_000
     assert result.entry is not None
     assert result.entry.id == "evt_existing"
-    assert client.patch_calls == 0
-    assert client.post_calls == 0
+    assert calls["rpc"] == 1
 
 
 def test_get_wallet_returns_none_for_invalid_uuid_identity_query() -> None:

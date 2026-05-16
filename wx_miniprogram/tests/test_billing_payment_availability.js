@@ -18,7 +18,7 @@ function assert(condition, message) {
   errors.push("FAIL: " + message);
 }
 
-function loadBillingPage(walletPayload) {
+function loadBillingPage(usagePayload) {
   var source = fs.readFileSync(
     path.join(__dirname, "../pages/billing/billing.js"),
     "utf8",
@@ -39,7 +39,17 @@ function loadBillingPage(walletPayload) {
     require: function (request) {
       if (request === "../../utils/api") {
         return {
-          getWallet: function () { return Promise.resolve(walletPayload || { balance: 0 }); },
+          getUsage: function () {
+            return Promise.resolve(usagePayload || {
+              display: { primary_label: "剩余 75%", primary_percent: 75 },
+              quota: {
+                rows: [
+                  { key: "five_hour", label: "5 小时使用限额", remaining_percent: 75 },
+                  { key: "weekly", label: "每周使用限额", remaining_percent: 88 },
+                ],
+              },
+            });
+          },
           getLedger: function () { return Promise.resolve({ entries: [], has_more: false }); },
         };
       }
@@ -65,20 +75,13 @@ function loadBillingPage(walletPayload) {
 }
 
 (async function main() {
-  var loaded = loadBillingPage({
-    balance: 42,
-    packages: [
-      { id: "trial", label: "轻量体验", points: 100, price: "9" },
-      { id: "advance", label: "进阶主力", points: 1200, price: "99" },
-      { id: "sprint", label: "冲刺强化", points: 2600, price: "199" },
-    ],
-  });
-  await loaded.page._loadWallet();
+  var loaded = loadBillingPage();
+  await loaded.page._loadUsage();
 
-  assert(loaded.page.data.balance === 42, "billing should hydrate wallet balance");
+  assert(loaded.page.data.usagePrimaryLabel === "剩余 75%", "billing should hydrate percent usage label");
   assert(
-    loaded.page.data.packages.map(function (item) { return item.id; }).join(",") === "trial,advance,sprint",
-    "billing should hydrate packages from wallet authority",
+    loaded.page.data.usageRows.map(function (item) { return item.key; }).join(",") === "five_hour,weekly",
+    "billing should hydrate quota rows from usage authority",
   );
   assert(loaded.page.data.selectedPkg === "advance", "billing should keep approved default package");
 

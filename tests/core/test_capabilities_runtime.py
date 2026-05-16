@@ -93,6 +93,242 @@ def test_tutorbot_visible_answer_gate_rejects_skill_reference_process_leak() -> 
     ) is True
 
 
+def test_tutorbot_progressive_skills_load_construction_scene_for_fast_and_deep(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FakeProvider(LLMProvider):
+        async def chat(self, *args: Any, **kwargs: Any) -> LLMResponse:
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
+
+    for response_mode in ("fast", "deep"):
+        instruction = loop._build_progressive_skill_instruction(
+            "建筑构造是什么？",
+            runtime_metadata={
+                "bot_id": "construction-exam-coach",
+                "default_kb": "construction-exam",
+                "effective_response_mode": response_mode,
+            },
+        )
+
+        assert "# Construction Exam Tutor" in instruction
+        assert "# 概念讲解" in instruction
+        assert "# 选择题讲解" not in instruction
+        assert "本轮内部行为约束" in instruction
+
+
+def test_tutorbot_progressive_skills_load_builtin_utility_skill_for_deep(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FakeProvider(LLMProvider):
+        async def chat(self, *args: Any, **kwargs: Any) -> LLMResponse:
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
+
+    instruction = loop._build_progressive_skill_instruction(
+        "今天上海天气怎么样？",
+        runtime_metadata={"effective_response_mode": "deep"},
+    )
+
+    assert "### Skill: weather" in instruction
+    assert "# Weather" in instruction
+    assert "### Skill: github" not in instruction
+
+
+def test_tutorbot_fast_uses_tool_skill_boundary_without_loading_tool_steps(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FakeProvider(LLMProvider):
+        async def chat(self, *args: Any, **kwargs: Any) -> LLMResponse:
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
+
+    instruction = loop._build_progressive_skill_instruction(
+        "今天上海天气怎么样？",
+        runtime_metadata={"effective_response_mode": "fast"},
+    )
+
+    assert "实时查询类能力" in instruction
+    assert "fast 策略不会进入完整工具循环" in instruction
+    assert "不要声称已经执行" in instruction
+    assert "skill" not in instruction.lower()
+    assert "weather" not in instruction.lower()
+    assert "### Skill: weather" not in instruction
+    assert "curl -s" not in instruction
+
+
+def test_tutorbot_skills_summary_omits_internal_locations_by_default(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.context import ContextBuilder
+
+    system_prompt = ContextBuilder(tmp_path).build_system_prompt()
+
+    assert "<skills>" in system_prompt
+    assert "<location>" not in system_prompt
+    assert "deeptutor/tutorbot/skills" not in system_prompt
+    assert "/SKILL.md" not in system_prompt
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_fast_runtime_prompt_includes_progressive_skill_instruction(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {}
+
+    class CapturingProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            captured["messages"] = [dict(message) for message in messages]
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=CapturingProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+
+    content = await loop.process_direct(
+        "建筑构造是什么？",
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "default_kb": "construction-exam",
+            "effective_response_mode": "fast",
+        },
+    )
+
+    user_message = str(captured["messages"][-1]["content"])
+    assert content == "已完成"
+    assert "本轮内部行为约束" in user_message
+    assert "# Construction Exam Tutor" in user_message
+    assert "# 概念讲解" in user_message
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_deep_runtime_prompt_includes_progressive_skill_instruction(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {}
+
+    class CapturingProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            captured["messages"] = [dict(message) for message in messages]
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=CapturingProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+
+    content = await loop.process_direct(
+        "建筑构造是什么？",
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "default_kb": "construction-exam",
+            "effective_response_mode": "deep",
+        },
+    )
+
+    user_message = str(captured["messages"][-1]["content"])
+    assert content == "已完成"
+    assert "本轮内部行为约束" in user_message
+    assert "# Construction Exam Tutor" in user_message
+    assert "# 概念讲解" in user_message
+
 @pytest.mark.asyncio
 async def test_tutorbot_fast_policy_forwards_safe_provider_deltas(tmp_path) -> None:
     from deeptutor.tutorbot.agent.loop import AgentLoop
@@ -122,14 +358,15 @@ async def test_tutorbot_fast_policy_forwards_safe_provider_deltas(tmp_path) -> N
     loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
     deltas: list[str] = []
 
-    final_content, _messages = await loop._run_fast_policy_once(
+    final_content, _messages, streamed_text = await loop._run_fast_policy_once(
         [{"role": "user", "content": "防水等级是什么？"}],
         runtime_metadata={"effective_response_mode": "fast"},
         on_content_delta=lambda value: _capture_async(deltas, value),
     )
 
     assert final_content == "最终答案：防水等级是设计标准。"
-    assert deltas == []
+    assert deltas == ["最终答案：防水等级", "是设计标准。"]
+    assert streamed_text == "最终答案：防水等级是设计标准。"
 
 
 @pytest.mark.asyncio
@@ -162,7 +399,7 @@ async def test_tutorbot_fast_policy_chunks_nonstream_provider_answer(tmp_path) -
     loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
     deltas: list[str] = []
 
-    final_content, _messages = await loop._run_fast_policy_once(
+    final_content, _messages, streamed_text = await loop._run_fast_policy_once(
         [{"role": "user", "content": "防水等级和设防层数是什么关系？"}],
         runtime_metadata={"effective_response_mode": "fast"},
         on_content_delta=lambda value: _capture_async(deltas, value),
@@ -170,6 +407,7 @@ async def test_tutorbot_fast_policy_chunks_nonstream_provider_answer(tmp_path) -
 
     assert final_content == answer
     assert deltas == []
+    assert streamed_text == ""
 
 
 async def _collect_events(run_coro) -> list[StreamEvent]:
@@ -1117,6 +1355,18 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     assert captured["send"]["session_metadata"]["requested_response_mode"] == "smart"
     assert captured["send"]["session_metadata"]["selected_mode"] == "fast"
     assert captured["send"]["session_metadata"]["effective_response_mode"] == "fast"
+    assert captured["send"]["session_metadata"]["execution_path"] == "tutorbot_kb_first_fast_policy"
+    assert captured["send"]["session_metadata"]["mode_execution_policy"] == {
+        "max_tool_rounds": 1,
+        "allow_deep_stage": False,
+        "response_density": "short",
+        "latency_budget_ms": 6000,
+        "knowledge_strategy": "kb_first",
+        "workflow": "single_shot_with_prefetch",
+        "model_fallback_allowed": True,
+        "web_search_allowed": True,
+        "execution_path": "tutorbot_kb_first_fast_policy",
+    }
     assert "construction-knowledge" in captured["send"]["session_metadata"]["kb_aliases"]
     assert "construction-exam-tutor" in captured["send"]["session_metadata"]["kb_aliases"]
     assert captured["send"]["session_metadata"]["active_object"]["object_type"] == "open_chat_topic"
@@ -1132,7 +1382,7 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     assert result_event.metadata["response"] == "TutorBot"
     assert result_event.metadata["execution_engine"] == "tutorbot_runtime"
     assert result_event.metadata["selected_mode"] == "fast"
-    assert result_event.metadata["execution_path"] == "tutorbot_fast_policy"
+    assert result_event.metadata["execution_path"] == "tutorbot_kb_first_fast_policy"
 
 
 @pytest.mark.asyncio
@@ -1322,6 +1572,10 @@ async def test_tutorbot_capability_deep_mode_does_not_override_config_model(
 
     assert captured["mode"] == "deep"
     assert "preferred_model" not in captured["session_metadata"]
+    assert captured["session_metadata"]["execution_path"] == "tutorbot_kb_first_full_agent_policy"
+    assert captured["session_metadata"]["mode_execution_policy"]["workflow"] == "full_agent_loop"
+    assert captured["session_metadata"]["mode_execution_policy"]["allow_deep_stage"] is True
+    assert captured["session_metadata"]["mode_execution_policy"]["max_tool_rounds"] == 4
 
 
 @pytest.mark.asyncio
@@ -4237,7 +4491,8 @@ async def test_tutorbot_fast_mode_retries_process_only_repair_output(
     )
 
     assert content == "核心考点：防水验收要抓住闭水时间和蓄水高度。"
-    assert streamed == ["核心考点：防水验收要抓住闭水时间和蓄水高度。"]
+    assert streamed
+    assert "".join(streamed) == "核心考点：防水验收要抓住闭水时间和蓄水高度。"
     assert provider.calls == 3
     assert "过程承诺" in provider.prompts[-1]
 
@@ -4844,28 +5099,16 @@ async def test_deep_question_capability_skips_followup_agent_for_forced_generati
 
 
 @pytest.mark.asyncio
-async def test_deep_question_capability_uses_submission_grader_for_choice_submission(
+async def test_deep_question_capability_uses_deterministic_feedback_for_choice_submission(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    captured: dict[str, Any] = {}
-
     class FakeCoordinator:
         def __init__(self, **_kwargs: Any) -> None:
             raise AssertionError("Coordinator should not be constructed for grading mode")
 
     class FakeSubmissionGraderAgent:
-        def __init__(self, **kwargs: Any) -> None:
-            captured["init"] = kwargs
-            self._trace_callback = None
-
-        def set_trace_callback(self, callback) -> None:
-            self._trace_callback = callback
-
-        async def process(self, **kwargs: Any) -> str:
-            captured["process"] = kwargs
-            assert kwargs["question_context"]["user_answer"] == "B"
-            assert kwargs["question_context"]["is_correct"] is True
-            return "## 🧐 解析\n你这题选对了。\n\n## ⚠️ 易错点\n不要把步距和节拍混淆。\n\n## 🎯 记忆锦囊\n队与队之间看步距。\n\n## 🚀 下一步建议\n再做 1 道同类题巩固。"
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("objective grading should not instantiate SubmissionGraderAgent")
 
     _install_module(
         monkeypatch,
@@ -4901,11 +5144,11 @@ async def test_deep_question_capability_uses_submission_grader_for_choice_submis
     capability = DeepQuestionCapability()
     events = await _collect_events(lambda bus: capability.run(context, bus))
 
-    assert captured["process"]["question_context"]["diagnosis"] == "CORRECT"
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "grading"
     assert result_event.metadata["user_answer"] == "B"
     assert result_event.metadata["is_correct"] is True
+    assert "阅卷结论" in result_event.metadata["response"]
 
 
 def test_deep_question_capability_humanizes_question_progress_labels() -> None:

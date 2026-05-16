@@ -61,6 +61,8 @@ _BILLING_USAGE_TZ = ZoneInfo("Asia/Shanghai")
 _BILLING_USAGE_LEDGER_WINDOW = 500
 _BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS"
 _BILLING_USAGE_WEEKLY_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS"
+_BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
+_BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
 
 
 def _log_safe_id(value: Any) -> str:
@@ -119,7 +121,13 @@ def _wallet_packages() -> list[dict[str, Any]]:
     return []
 
 
+def _env_flag_enabled(name: str) -> bool:
+    return str(os.getenv(name, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: str) -> None:
+    if not _env_flag_enabled(_BILLING_SHADOW_COMPARE_LEGACY_WALLET):
+        return
     try:
         legacy_wallet = member_service.get_wallet(user_id)
     except Exception:
@@ -1703,10 +1711,14 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
         limit=_BILLING_USAGE_LEDGER_WINDOW,
         offset=0,
     )
-    legacy_rows = _load_legacy_wallet_ledger_entries(
-        authorization,
-        wallet_user_id=wallet_user_id,
-        limit=_BILLING_USAGE_LEDGER_WINDOW,
+    legacy_rows = (
+        _load_legacy_wallet_ledger_entries(
+            authorization,
+            wallet_user_id=wallet_user_id,
+            limit=_BILLING_USAGE_LEDGER_WINDOW,
+        )
+        if _env_flag_enabled(_BILLING_INCLUDE_LEGACY_LEDGER)
+        else []
     )
     return _build_billing_usage_payload(_merge_wallet_ledger_entries(wallet_rows, legacy_rows))
 
@@ -1728,10 +1740,14 @@ async def billing_ledger(
         }
     merge_window = offset + limit + 1
     wallet_rows = wallet_service.list_wallet_ledger(wallet_user_id, limit=merge_window, offset=0)
-    legacy_rows = _load_legacy_wallet_ledger_entries(
-        authorization,
-        wallet_user_id=wallet_user_id,
-        limit=merge_window,
+    legacy_rows = (
+        _load_legacy_wallet_ledger_entries(
+            authorization,
+            wallet_user_id=wallet_user_id,
+            limit=merge_window,
+        )
+        if _env_flag_enabled(_BILLING_INCLUDE_LEGACY_LEDGER)
+        else []
     )
     merged_rows = _merge_wallet_ledger_entries(wallet_rows, legacy_rows)
     page = merged_rows[offset : offset + limit]

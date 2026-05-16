@@ -284,92 +284,43 @@ class SupabaseWalletService:
         if not self.is_configured:
             raise RuntimeError("Supabase wallet service is not configured")
 
-        existing_entry = self.find_wallet_ledger_by_idempotency_key(
-            normalized_user_id,
+        mutation = self.debit_points(
+            user_id=normalized_user_id,
+            amount_micros=requested_micros,
+            reference_type=_normalize_text(reference_type) or "ai_usage",
+            reference_id=_normalize_text(reference_id),
             idempotency_key=normalized_idempotency_key,
-        )
-        if existing_entry is not None:
-            return WalletCaptureResult(
-                captured_micros=abs(existing_entry.delta_micros),
-                requested_micros=requested_micros,
-                balance_after_micros=existing_entry.balance_after_micros,
-                entry=existing_entry,
-            )
-
-        for _ in range(3):
-            snapshot = self.get_wallet(normalized_user_id)
-            if snapshot is None:
-                return WalletCaptureResult(
-                    captured_micros=0,
-                    requested_micros=requested_micros,
-                    balance_after_micros=0,
-                    entry=None,
-                )
-            debit_micros = min(max(0, snapshot.balance_micros), requested_micros)
-            if debit_micros <= 0:
-                return WalletCaptureResult(
-                    captured_micros=0,
-                    requested_micros=requested_micros,
-                    balance_after_micros=max(0, snapshot.balance_micros),
-                    entry=None,
-                )
-            next_balance_micros = max(0, snapshot.balance_micros - debit_micros)
-            updated_rows = self._patch_rows(
-                table="wallets",
-                params={
-                    "user_id": f"eq.{normalized_user_id}",
-                    "version": f"eq.{snapshot.version}",
-                    "select": "user_id,balance_micros,frozen_micros,plan_id,version,created_at",
-                },
-                payload={
-                    "balance_micros": next_balance_micros,
-                    "version": snapshot.version + 1,
-                },
-            )
-            if not updated_rows:
-                existing_entry = self.find_wallet_ledger_by_idempotency_key(
-                    normalized_user_id,
-                    idempotency_key=normalized_idempotency_key,
-                )
-                if existing_entry is not None:
-                    return WalletCaptureResult(
-                        captured_micros=abs(existing_entry.delta_micros),
-                        requested_micros=requested_micros,
-                        balance_after_micros=existing_entry.balance_after_micros,
-                        entry=existing_entry,
-                    )
-                continue
-
-            payload_metadata = {
+            reason=_normalize_text(reason) or "capture",
+            metadata={
                 "reason": _normalize_text(reason) or "capture",
                 **(dict(metadata or {}) if isinstance(metadata, dict) else {}),
-            }
-            entry = self._insert_wallet_ledger(
-                {
-                    "user_id": normalized_user_id,
-                    "event_type": "debit",
-                    "delta_micros": -debit_micros,
-                    "balance_after_micros": next_balance_micros,
-                    "frozen_after_micros": snapshot.frozen_micros,
-                    "reference_type": _normalize_text(reference_type) or "ai_usage",
-                    "reference_id": _normalize_text(reference_id),
-                    "idempotency_key": normalized_idempotency_key,
-                    "metadata": payload_metadata,
-                }
-            )
-            if entry is None:
-                entry = self.find_wallet_ledger_by_idempotency_key(
-                    normalized_user_id,
-                    idempotency_key=normalized_idempotency_key,
-                )
-            return WalletCaptureResult(
-                captured_micros=debit_micros,
-                requested_micros=requested_micros,
-                balance_after_micros=next_balance_micros,
-                entry=entry,
-            )
-
-        raise RuntimeError(f"Wallet capture concurrency conflict for user {normalized_user_id}")
+            },
+            operator_type="system",
+            operator_id=_normalize_text(reference_id) or "turn_runtime",
+        )
+        metadata_payload = {
+            "reason": _normalize_text(reason) or "capture",
+            **(dict(metadata or {}) if isinstance(metadata, dict) else {}),
+        }
+        entry = WalletLedgerEntry(
+            id=mutation.ledger_event_id,
+            user_id=mutation.user_id,
+            event_type=mutation.event_type,
+            delta_micros=mutation.delta_micros,
+            balance_after_micros=mutation.balance_micros,
+            frozen_after_micros=mutation.frozen_micros,
+            reference_type=mutation.reference_type,
+            reference_id=mutation.reference_id,
+            idempotency_key=mutation.idempotency_key,
+            metadata=metadata_payload,
+            created_at=mutation.created_at,
+        )
+        return WalletCaptureResult(
+            captured_micros=abs(mutation.delta_micros),
+            requested_micros=requested_micros,
+            balance_after_micros=mutation.balance_micros,
+            entry=entry,
+        )
 
     def debit_points(
         self,

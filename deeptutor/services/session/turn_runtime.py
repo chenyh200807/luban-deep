@@ -1052,9 +1052,9 @@ def _result_execution_path(
 
     if capability == "tutorbot":
         if selected_mode == "fast":
-            return "tutorbot_fast_policy"
+            return "tutorbot_kb_first_fast_policy"
         if selected_mode == "deep":
-            return "tutorbot_deep_policy"
+            return "tutorbot_kb_first_full_agent_policy"
         return "tutorbot_runtime"
 
     if capability == "deep_question":
@@ -1476,13 +1476,17 @@ class _TurnExecution:
     task: asyncio.Task[None] | None = None
     subscribers: list[_LiveSubscriber] = field(default_factory=list)
     first_subscriber_attached: asyncio.Event = field(default_factory=asyncio.Event)
+    deadline_exceeded: bool = False
     persistence_degraded: bool = False
 
 
 class TurnRuntimeManager:
     """Run one turn in the background and multiplex persisted/live events."""
 
-    _DEFAULT_FIRST_SUBSCRIBER_GRACE_SECONDS = 2.0
+    _DEFAULT_FIRST_SUBSCRIBER_GRACE_SECONDS = 0.2
+    _DEFAULT_FAST_TURN_TIMEOUT_SECONDS = 75.0
+    _DEFAULT_TURN_TIMEOUT_SECONDS = 180.0
+    _DEFAULT_DEEP_TURN_TIMEOUT_SECONDS = 300.0
 
     def __init__(self, store: SQLiteSessionStore | None = None) -> None:
         self.store = store or get_sqlite_session_store()
@@ -1602,6 +1606,60 @@ class TurnRuntimeManager:
                 execution.turn_id,
                 grace_seconds,
             )
+
+    @classmethod
+    def _turn_timeout_seconds(cls, payload: dict[str, Any]) -> float:
+        config = payload.get("config") if isinstance(payload.get("config"), dict) else {}
+        hints = config.get("interaction_hints") if isinstance(config.get("interaction_hints"), dict) else {}
+        mode = str(
+            config.get("chat_mode")
+            or hints.get("selected_mode")
+            or hints.get("effective_response_mode")
+            or hints.get("requested_response_mode")
+            or ""
+        ).strip().lower()
+        env_key = (
+            "TURN_RUNTIME_FAST_TURN_TIMEOUT_SECONDS"
+            if mode == "fast"
+            else "TURN_RUNTIME_DEEP_TURN_TIMEOUT_SECONDS"
+            if mode == "deep"
+            else "TURN_RUNTIME_TURN_TIMEOUT_SECONDS"
+        )
+        default = (
+            cls._DEFAULT_FAST_TURN_TIMEOUT_SECONDS
+            if mode == "fast"
+            else cls._DEFAULT_DEEP_TURN_TIMEOUT_SECONDS
+            if mode == "deep"
+            else cls._DEFAULT_TURN_TIMEOUT_SECONDS
+        )
+        raw = str(os.getenv(env_key) or os.getenv("TURN_RUNTIME_TURN_TIMEOUT_SECONDS") or "").strip()
+        if not raw:
+            return default
+        try:
+            value = float(raw)
+        except ValueError:
+            return default
+        return max(0.0, min(3600.0, value))
+
+    def _schedule_turn_deadline(self, execution: _TurnExecution) -> asyncio.Task[None] | None:
+        timeout_seconds = self._turn_timeout_seconds(execution.payload)
+        if timeout_seconds <= 0:
+            return None
+
+        async def _watchdog() -> None:
+            await asyncio.sleep(timeout_seconds)
+            task = execution.task
+            if task is None or task.done():
+                return
+            execution.deadline_exceeded = True
+            logger.warning(
+                "Turn %s exceeded %.1fs runtime deadline; cancelling for terminal recovery",
+                execution.turn_id,
+                timeout_seconds,
+            )
+            task.cancel()
+
+        return asyncio.create_task(_watchdog())
 
     def _schedule_post_turn_refresh(
         self,
@@ -1854,26 +1912,27 @@ class TurnRuntimeManager:
         *,
         session_id: str = "",
         turn_id: str = "",
-    ) -> None:
+    ) -> dict[str, Any] | None:
         if not billing_context:
-            return
+            return None
         if billing_context.get("source") != "wx_miniprogram":
-            return
+            return None
         user_id = str(billing_context.get("wallet_user_id") or "").strip()
         if not user_id or not str(assistant_content or "").strip():
-            return
+            return None
+        idempotency_key = (
+            f"mini_program_capture:{turn_id}"
+            if str(turn_id or "").strip()
+            else f"mini_program_capture:{session_id}"
+        )
         try:
-            from deeptutor.services.wallet import get_wallet_service
+            from deeptutor.services.wallet import WalletInsufficientBalanceError, get_wallet_service
 
             wallet_service = get_wallet_service()
-            wallet_service.capture_points(
+            result = wallet_service.capture_points(
                 user_id=user_id,
                 amount_points=_MINI_PROGRAM_CAPTURE_COST,
-                idempotency_key=(
-                    f"mini_program_capture:{turn_id}"
-                    if str(turn_id or "").strip()
-                    else f"mini_program_capture:{session_id}"
-                ),
+                idempotency_key=idempotency_key,
                 reference_id=str(turn_id or session_id or "").strip(),
                 reason="capture",
                 metadata={
@@ -1882,8 +1941,30 @@ class TurnRuntimeManager:
                     "session_id": str(session_id or "").strip(),
                 },
             )
-        except Exception:
-            logger.warning("Failed to capture points for user %s", user_id, exc_info=True)
+            return {
+                "status": "captured",
+                "wallet_user_id": user_id,
+                "idempotency_key": idempotency_key,
+                "captured_micros": int(getattr(result, "captured_micros", 0) or 0),
+                "requested_micros": int(getattr(result, "requested_micros", 0) or 0),
+                "balance_after_micros": int(getattr(result, "balance_after_micros", 0) or 0),
+            }
+        except WalletInsufficientBalanceError as exc:
+            logger.warning("Insufficient wallet balance for user %s: %s", user_id, exc)
+            return {
+                "status": "failed",
+                "reason": "insufficient_balance",
+                "wallet_user_id": user_id,
+                "idempotency_key": idempotency_key,
+            }
+        except Exception as exc:
+            logger.warning("Failed to capture points for user %s: %s", user_id, exc, exc_info=True)
+            return {
+                "status": "failed",
+                "reason": "capture_error",
+                "wallet_user_id": user_id,
+                "idempotency_key": idempotency_key,
+            }
 
     def _record_mobile_learning(
         self,
@@ -3000,6 +3081,7 @@ class TurnRuntimeManager:
         terminal_status = "failed"
         llm_selection_token = None
         turn_started_at = time.perf_counter()
+        deadline_task = self._schedule_turn_deadline(execution)
         surface_event_store = get_surface_event_store()
         trace_metadata = {
             "session_id": session_id,
@@ -3934,12 +4016,14 @@ class TurnRuntimeManager:
                     events=assistant_events,
                     default=None,
                 )
-                self._capture_mobile_points(
+                billing_capture = self._capture_mobile_points(
                     billing_context,
                     assistant_content,
                     session_id=session_id,
                     turn_id=turn_id,
                 )
+                if billing_capture:
+                    trace_metadata["billing_capture"] = billing_capture
                 self._record_mobile_learning(
                     billing_context,
                     raw_user_content,
@@ -3982,9 +4066,16 @@ class TurnRuntimeManager:
                 }
                 terminal_status = "completed"
         except asyncio.CancelledError:
+            timed_out = bool(execution.deadline_exceeded)
+            cancelled_status = "failed" if timed_out else "cancelled"
+            cancelled_message = (
+                f"Turn exceeded runtime deadline after {self._turn_timeout_seconds(execution.payload):.1f}s"
+                if timed_out
+                else "Turn cancelled"
+            )
             public_assistant_content = _safe_terminal_assistant_content(
                 assistant_content,
-                status="cancelled",
+                status=cancelled_status,
             )
             usage_summary = observability.get_current_usage_summary()
             assistant_event_summary = _summarize_assistant_events(assistant_events)
@@ -3993,17 +4084,17 @@ class TurnRuntimeManager:
                 output_payload={"assistant_content": public_assistant_content},
                 metadata=_build_final_observation_metadata(
                     usage_summary=usage_summary,
-                    terminal_status="cancelled",
+                    terminal_status=cancelled_status,
                 ),
                 usage_details=observability.usage_details_from_summary(usage_summary),
                 cost_details=observability.cost_details_from_summary(usage_summary),
                 usage_source="summary",
                 level="ERROR",
-                status_message="Turn cancelled",
+                status_message=cancelled_message,
             )
             await self._safe_store_call(
                 execution,
-                "add_cancelled_assistant_message",
+                "add_failed_assistant_message" if timed_out else "add_cancelled_assistant_message",
                 self.store.add_message,
                 session_id=session_id,
                 role="assistant",
@@ -4014,11 +4105,11 @@ class TurnRuntimeManager:
             )
             await self._safe_store_call(
                 execution,
-                "mark_turn_cancelled",
+                "mark_turn_failed" if timed_out else "mark_turn_cancelled",
                 self.store.update_turn_status,
                 turn_id,
-                "cancelled",
-                "Turn cancelled",
+                cancelled_status,
+                cancelled_message,
                 default=False,
             )
             await self._persist_and_publish(
@@ -4027,7 +4118,7 @@ class TurnRuntimeManager:
                     type=StreamEventType.ERROR,
                     source=capability_name,
                     content=public_assistant_content,
-                    metadata={"turn_terminal": True, "status": "cancelled"},
+                    metadata={"turn_terminal": True, "status": cancelled_status},
                 ),
             )
             await self._persist_and_publish(
@@ -4035,11 +4126,12 @@ class TurnRuntimeManager:
                 StreamEvent(
                     type=StreamEventType.DONE,
                     source=capability_name,
-                    metadata={"status": "cancelled"},
+                    metadata={"status": cancelled_status},
                 ),
             )
-            terminal_status = "cancelled"
-            raise
+            terminal_status = cancelled_status
+            if not timed_out:
+                raise
         except Exception as exc:
             public_assistant_content = _safe_terminal_assistant_content(
                 assistant_content,
@@ -4099,6 +4191,10 @@ class TurnRuntimeManager:
                 ),
             )
         finally:
+            if deadline_task is not None:
+                deadline_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await deadline_task
             if llm_selection_token is not None:
                 with contextlib.suppress(Exception):
                     from deeptutor.services.model_selection.runtime import reset_llm_selection

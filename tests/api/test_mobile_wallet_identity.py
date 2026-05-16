@@ -326,6 +326,7 @@ def test_billing_ledger_merges_legacy_capture_history(monkeypatch: pytest.Monkey
     captured: dict[str, object] = {"legacy_profile_calls": [], "legacy_ledger_calls": []}
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
 
+    monkeypatch.setenv("DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER", "1")
     monkeypatch.setattr(
         mobile_module,
         "resolve_auth_context",
@@ -403,6 +404,59 @@ def test_billing_ledger_merges_legacy_capture_history(monkeypatch: pytest.Monkey
     assert captured["wallet_offset"] == 0
     assert captured["legacy_profile_calls"] == [canonical_uid, "legacy_user_2008"]
     assert captured["legacy_ledger_calls"] == [("legacy_user_2008", 6, 0)]
+
+
+def test_billing_ledger_defaults_to_wallet_ledger_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {"legacy_profile_called": False}
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    monkeypatch.delenv("DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER", raising=False)
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_auth_context",
+        lambda _authorization: mobile_module.AuthContext(
+            user_id=canonical_uid,
+            provider="local",
+            token="test-token",
+            claims={"uid": "legacy_user_2008", "canonical_uid": canonical_uid},
+        ),
+    )
+    monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: canonical_uid)
+
+    class _FakeWalletService:
+        is_configured = True
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            assert user_id == canonical_uid
+            return [
+                _FakeLedgerEntry(
+                    id="evt_wallet_1",
+                    user_id=user_id,
+                    event_type="debit",
+                    delta_micros=-20_000_000,
+                    balance_after_micros=80_000_000,
+                    reference_type="ai_usage",
+                    reference_id="turn_1",
+                    idempotency_key="capture:turn_1",
+                    created_at="2026-04-21T12:00:00+08:00",
+                )
+            ]
+
+    def _fake_get_profile(_user_id: str) -> dict[str, object]:
+        captured["legacy_profile_called"] = True
+        return {}
+
+    monkeypatch.setattr(mobile_module.member_service, "get_profile", _fake_get_profile)
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/billing/ledger", headers={"Authorization": "Bearer test-token"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert [item["id"] for item in body["entries"]] == ["evt_wallet_1"]
+    assert captured["legacy_profile_called"] is False
 
 
 def test_homepage_dashboard_uses_single_canonical_identity(

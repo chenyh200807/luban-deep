@@ -106,6 +106,24 @@ def test_resolve_submission_attempt_keeps_subjective_explanation_as_followup() -
     assert submission is None
 
 
+def test_resolve_submission_attempt_keeps_english_written_explanation_as_followup() -> None:
+    target, submission = resolve_submission_attempt(
+        "Why was my answer wrong?",
+        {
+            "question_id": "q_3",
+            "question": "What does density mean in win-rate comparison?",
+            "question_type": "written",
+            "user_answer": "coverage",
+            "correct_answer": "relevant information without redundancy",
+            "is_correct": False,
+            "explanation": "Density is about relevant content without redundancy.",
+        },
+    )
+
+    assert target is not None
+    assert submission is None
+
+
 @pytest.mark.parametrize(
     "message",
     [

@@ -10,7 +10,7 @@
         </view>
         <view class="nav-brand-copy">
           <text class="nav-kicker">鲁班智考</text>
-          <text class="nav-title">充值中心</text>
+          <text class="nav-title">额度中心</text>
         </view>
       </view>
       <view style="flex:1"></view>
@@ -51,7 +51,7 @@
 
       <!-- 套餐选择 -->
       <view class="section-head">
-        <text class="section-title">选择套餐</text>
+        <text class="section-title">选择额度方案</text>
         <text class="section-sub">仅保留 3 档主套餐。</text>
       </view>
       <view class="pkg-grid">
@@ -93,7 +93,7 @@
 
       <!-- 充值记录 -->
       <view class="section-head section-head-records">
-        <text class="section-title">充值记录</text>
+        <text class="section-title">额度记录</text>
         <text class="section-sub">最近流水</text>
       </view>
 

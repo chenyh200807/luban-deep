@@ -87,11 +87,17 @@ class TutorBotCapability(BaseCapability):
             "effective_response_mode": policy.effective_mode,
             "response_mode_degrade_reason": policy.response_mode_degrade_reason,
             "response_mode_selection_reason": policy.selection_reason,
+            "execution_path": policy.execution_path,
             "mode_execution_policy": {
                 "max_tool_rounds": policy.max_tool_rounds,
                 "allow_deep_stage": policy.allow_deep_stage,
                 "response_density": policy.response_density,
                 "latency_budget_ms": policy.latency_budget_ms,
+                "knowledge_strategy": policy.knowledge_strategy,
+                "workflow": policy.workflow,
+                "model_fallback_allowed": policy.model_fallback_allowed,
+                "web_search_allowed": policy.web_search_allowed,
+                "execution_path": policy.execution_path,
             },
         }
         if policy.preferred_model:
@@ -267,7 +273,7 @@ class TutorBotCapability(BaseCapability):
                 "selected_mode": policy.selected_mode,
                 "effective_response_mode": policy.effective_mode,
                 "execution_path": str(session_metadata.get("execution_path") or "").strip()
-                or ("tutorbot_fast_policy" if policy.selected_mode == "fast" else "tutorbot_deep_policy"),
+                or policy.execution_path,
                 "exact_fast_path_hit": bool(session_metadata.get("exact_fast_path_hit", False)),
                 "actual_tool_rounds": int(session_metadata.get("actual_tool_rounds") or 0),
                 "reveal_answers": reveal_answers,

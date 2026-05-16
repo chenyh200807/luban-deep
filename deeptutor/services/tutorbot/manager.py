@@ -815,6 +815,11 @@ class TutorBotManager:
             "rag_rounds": [],
             "rag_saturation": {},
         }
+        mode_execution_policy = (
+            dict(merged_metadata.get("mode_execution_policy"))
+            if isinstance(merged_metadata.get("mode_execution_policy"), dict)
+            else {}
+        )
         trace_metadata = {
             "trace_name": trace_name,
             "session_id": trace_session_id,
@@ -838,7 +843,12 @@ class TutorBotManager:
             "response_mode_degrade_reason": str(
                 merged_metadata.get("response_mode_degrade_reason") or ""
             ).strip(),
-            "execution_path": "",
+            "execution_path": str(
+                mode_execution_policy.get("execution_path")
+                or merged_metadata.get("execution_path")
+                or ""
+            ).strip(),
+            "mode_execution_policy": mode_execution_policy,
             "exact_fast_path_hit": False,
             "actual_tool_rounds": len(tool_trace_summary["tool_calls"]),
             "source": source,
@@ -966,10 +976,21 @@ class TutorBotManager:
                         or runtime_metadata.get("effective_response_mode")
                         or mode
                     ).strip() or mode
+                    policy_execution_path = str(
+                        mode_execution_policy.get("execution_path")
+                        or runtime_metadata.get("execution_path")
+                        or ""
+                    ).strip()
+                    if not policy_execution_path:
+                        policy_execution_path = (
+                            "tutorbot_kb_first_fast_policy"
+                            if selected_mode == "fast"
+                            else "tutorbot_kb_first_full_agent_policy"
+                        )
                     execution_path = (
                         "tutorbot_exact_fast_path"
                         if exact_fast_path_hit
-                        else ("tutorbot_fast_policy" if selected_mode == "fast" else "tutorbot_deep_policy")
+                        else policy_execution_path
                     )
                     trace_metadata["selected_mode"] = selected_mode
                     trace_metadata["effective_response_mode"] = selected_mode

@@ -10,7 +10,6 @@ Page({
     isDark: true,
     loading: true,
     error: false,
-    balance: 0,
     usagePrimaryLabel: "剩余 --",
     usagePrimaryPercent: 100,
     usageRows: [],
@@ -70,25 +69,9 @@ Page({
   onShow() {
     this.setData({ isDark: helpers.isDark() });
     getApp().checkAuth(() => {
-      this._loadWallet();
       this._loadUsage();
       this._loadLedger();
     });
-  },
-
-  async _loadWallet() {
-    try {
-      var data = await api.getWallet();
-      var update = { balance: data.balance || 0 };
-      var packages = _normalizePackages(data.packages);
-      if (packages.length) {
-        update.packages = packages;
-        if (!_hasPackage(packages, this.data.selectedPkg)) {
-          update.selectedPkg = packages[0].id;
-        }
-      }
-      this.setData(update);
-    } catch (_) {}
   },
 
   async _loadUsage() {
@@ -157,7 +140,7 @@ Page({
 
   retry() {
     this.setData({ page: 1 });
-    this._loadWallet();
+    this._loadUsage();
     this._loadLedger();
   },
 
@@ -189,47 +172,18 @@ function _friendlyReason(reason) {
   return map[reason] || reason;
 }
 
-function _normalizePackages(packages) {
-  if (!Array.isArray(packages)) return [];
-  return packages
-    .filter(function (item) {
-      return item && item.id && item.points && item.price;
-    })
-    .map(function (item) {
-      return {
-        id: String(item.id),
-        label: item.label || item.name || _packageLabel(item.id, item.points),
-        usageLabel: item.usageLabel || item.usage_label || "标准使用额度",
-        points: Number(item.points) || 0,
-        price: String(item.price),
-        per: item.per || "",
-        badge: item.badge || "",
-        desc: item.desc || item.per || "可用于 AI 答疑、解析与学习规划",
-      };
-    });
-}
-
-function _hasPackage(packages, id) {
-  return packages.some(function (item) {
-    return item.id === id;
-  });
-}
-
-function _packageLabel(id, points) {
-  var map = {
-    starter: "轻量体验",
-    standard: "标准套餐",
-    pro: "进阶主力",
-    ultimate: "冲刺强化",
-  };
-  return map[id] || "标准使用套餐";
-}
-
 function _normalizeUsage(raw) {
   var data = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};
   var display = data.display || {};
-  var rows = Array.isArray(display.rows) ? display.rows : [];
-  var primaryPercent = Number(display.primary_remaining_percent);
+  var quota = data.quota || {};
+  var rows = Array.isArray(quota.rows)
+    ? quota.rows
+    : Array.isArray(display.rows)
+    ? display.rows
+    : [];
+  var primaryPercent = Number(
+    display.primary_percent || display.primary_remaining_percent
+  );
   if (isNaN(primaryPercent)) primaryPercent = 100;
   return {
     usagePrimaryLabel: display.primary_label || "剩余 " + primaryPercent + "%",

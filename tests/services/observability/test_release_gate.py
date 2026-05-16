@@ -118,6 +118,36 @@ def test_release_gate_rejects_placeholder_release_lineage() -> None:
     assert "runtime_or_release_lineage_incomplete" in payload["blockers"]
 
 
+def test_release_gate_fails_when_turn_is_in_flight_without_ws_subscriber() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "prod",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {
+                "ready": True,
+                "unified_ws_smoke_ok": True,
+                "orphaned_turns": 1,
+            },
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
+    assert p0["status"] == "FAIL"
+    assert "turn_in_flight_without_ws_subscriber" in payload["blockers"]
+
+
 def test_release_gate_rejects_dirty_release_lineage() -> None:
     payload = build_release_gate_report(
         om_payload={

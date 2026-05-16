@@ -31,7 +31,7 @@ async def test_run_case_records_ttft_metrics(
                 ["content", "result"],
                 {
                     "selected_mode": "deep",
-                    "execution_path": "tutorbot_deep_policy",
+                    "execution_path": "tutorbot_kb_first_full_agent_policy",
                     "exact_fast_path_hit": False,
                     "actual_tool_rounds": 2,
                 },
@@ -44,7 +44,7 @@ async def test_run_case_records_ttft_metrics(
             ["content", "result"],
             {
                 "selected_mode": "fast",
-                "execution_path": "tutorbot_fast_policy",
+                "execution_path": "tutorbot_kb_first_fast_policy",
                 "exact_fast_path_hit": True,
                 "actual_tool_rounds": 0,
             },
@@ -72,7 +72,7 @@ async def test_run_case_records_ttft_metrics(
     assert result["turns"][0]["ttft_ms"] == 12_000.0
     assert result["turns"][1]["ttft_ms"] == 8_000.0
     assert result["turns"][0]["selected_mode"] == "deep"
-    assert result["turns"][1]["execution_path"] == "tutorbot_fast_policy"
+    assert result["turns"][1]["execution_path"] == "tutorbot_kb_first_fast_policy"
     assert result["turns"][1]["exact_fast_path_hit"] is True
     assert result["summary"]["avg_ttft_ms"] == 10_000.0
     assert result["summary"]["p50_ttft_ms"] == 10_000.0

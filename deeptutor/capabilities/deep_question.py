@@ -364,14 +364,23 @@ def _should_use_deterministic_grading_feedback(
     selected_mode: str,
     question_context: dict[str, Any] | None,
 ) -> bool:
-    if str(selected_mode or "").strip().lower() != "fast":
-        return False
+    # selected_mode is a presentation choice. Objective grading authority lives
+    # in the normalized question context and should not depend on renderer mode.
+    _ = selected_mode
     items = _grading_items(question_context)
     if not items:
         return False
     for item in items:
         question_type = str(item.get("question_type") or "").strip().lower()
-        if question_type not in {"choice", "judge", "judgment"}:
+        if question_type not in {
+            "choice",
+            "single_choice",
+            "multiple_choice",
+            "multi_choice",
+            "mcq",
+            "judge",
+            "judgment",
+        }:
             return False
         if item.get("is_correct") is None:
             return False
@@ -482,28 +491,33 @@ class DeepQuestionCapability(BaseCapability):
             )
             and next_action != "route_to_generation"
         ):
-            target_context, submission = resolve_submission_attempt(
-                raw_user_message,
-                followup_question_context,
+            should_resolve_submission = (
+                (next_action == "route_to_grading" and followup_action is None)
+                or (not next_action and allow_legacy_followup_fallback)
             )
-            if target_context and submission:
-                followup_question_context = target_context
-                if submission.get("kind") == "batch":
-                    followup_action = {
-                        "intent": "answer_questions",
-                        "answers": submission.get("answers") or [],
-                    }
-                else:
-                    followup_action = {
-                        "intent": "answer_questions",
-                        "answers": [
-                            {
-                                "question_id": submission.get("question_id", ""),
-                                "answer": str(submission.get("answer") or "").strip(),
-                            }
-                        ],
-                    }
-                next_action = "route_to_grading"
+            if should_resolve_submission:
+                target_context, submission = resolve_submission_attempt(
+                    raw_user_message,
+                    followup_question_context,
+                )
+                if target_context and submission:
+                    followup_question_context = target_context
+                    if submission.get("kind") == "batch":
+                        followup_action = {
+                            "intent": "answer_questions",
+                            "answers": submission.get("answers") or [],
+                        }
+                    else:
+                        followup_action = {
+                            "intent": "answer_questions",
+                            "answers": [
+                                {
+                                    "question_id": submission.get("question_id", ""),
+                                    "answer": str(submission.get("answer") or "").strip(),
+                                }
+                            ],
+                        }
+                    next_action = "route_to_grading"
             action_context = None
             if next_action == "route_to_grading":
                 action_context = apply_followup_action_to_context(

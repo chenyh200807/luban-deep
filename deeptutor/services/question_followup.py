@@ -1049,6 +1049,16 @@ def _extract_option_submission(message: str, question_context: dict[str, Any]) -
     text = str(message or "").strip()
     if not text:
         return None
+    options = question_context.get("options") if isinstance(question_context, dict) else None
+    question_type = str(question_context.get("question_type") or "").strip().lower()
+    if not options and question_type not in {
+        "choice",
+        "single_choice",
+        "multiple_choice",
+        "multi_choice",
+        "mcq",
+    }:
+        return None
 
     option_keys = _available_option_keys(question_context)
     compact_upper = re.sub(r"\s+", "", text).upper().rstrip("。.!！?")

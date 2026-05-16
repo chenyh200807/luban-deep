@@ -60,8 +60,8 @@ class ContextBuilder:
         if skills_summary:
             parts.append(f"""# Skills
 
-The following skills extend your capabilities. To use a skill, read its SKILL.md file using the read_file tool.
-Skills with available="false" need dependencies installed first - you can try installing them with apt/brew.
+The following skills extend your capabilities. Runtime may load the relevant skill details for the current request.
+Skills with available="false" need dependencies installed first.
 
 {skills_summary}""")
 
@@ -104,7 +104,7 @@ Skills with available="false" need dependencies installed first - you can try in
 
 ## Workspace
 Your workspace is at: {workspace_path}
-- Custom skills: {workspace_path}/skills/{{skill-name}}/SKILL.md
+- Custom skills may be available in the workspace and are loaded by the runtime when relevant.
 
 {platform_policy}
 

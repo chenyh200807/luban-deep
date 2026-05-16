@@ -6,6 +6,8 @@ from typing import Any, Literal
 
 TutorBotResponseMode = Literal["smart", "fast", "deep"]
 ResponseDensity = Literal["short", "balanced", "detailed"]
+KnowledgeStrategy = Literal["kb_first"]
+ModeWorkflow = Literal["single_shot_with_prefetch", "full_agent_loop"]
 
 
 @dataclass(frozen=True)
@@ -17,6 +19,11 @@ class ModeExecutionPolicy:
     allow_deep_stage: bool
     response_density: ResponseDensity
     latency_budget_ms: int
+    knowledge_strategy: KnowledgeStrategy
+    workflow: ModeWorkflow
+    model_fallback_allowed: bool
+    web_search_allowed: bool
+    execution_path: str
     preferred_model: str = ""
     response_mode_degrade_reason: str = ""
     selection_reason: str = ""
@@ -178,6 +185,11 @@ def build_mode_execution_policy(
             allow_deep_stage=False,
             response_density="short",
             latency_budget_ms=6000,
+            knowledge_strategy="kb_first",
+            workflow="single_shot_with_prefetch",
+            model_fallback_allowed=True,
+            web_search_allowed=True,
+            execution_path="tutorbot_kb_first_fast_policy",
             selection_reason=selection_reason,
         )
 
@@ -189,5 +201,10 @@ def build_mode_execution_policy(
         allow_deep_stage=True,
         response_density="detailed",
         latency_budget_ms=20000,
+        knowledge_strategy="kb_first",
+        workflow="full_agent_loop",
+        model_fallback_allowed=True,
+        web_search_allowed=True,
+        execution_path="tutorbot_kb_first_full_agent_policy",
         selection_reason=selection_reason,
     )

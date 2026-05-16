@@ -2591,7 +2591,7 @@ Page({
         },
       },
       {
-        label: "充值中心",
+        label: "额度中心",
         run: function () {
           self.goRecharge();
         },

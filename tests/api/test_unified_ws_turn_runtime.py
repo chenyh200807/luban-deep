@@ -2255,6 +2255,88 @@ async def test_turn_runtime_metrics_track_completed_and_failed_turns(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_deadline_marks_stuck_turn_failed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    from deeptutor.api.runtime_metrics import get_turn_runtime_metrics, reset_turn_runtime_metrics
+
+    reset_turn_runtime_metrics()
+    monkeypatch.setenv("TURN_RUNTIME_FAST_TURN_TIMEOUT_SECONDS", "0.3")
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    started = asyncio.Event()
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class StuckOrchestrator:
+        async def handle(self, _context):
+            started.set()
+            yield StreamEvent(
+                type=StreamEventType.PROGRESS,
+                source="deep_question",
+                stage="generation",
+                content="Grade q_1",
+                metadata={"call_state": "running"},
+            )
+            await asyncio.Event().wait()
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", StuckOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "第1题选B，请批改",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {"chat_mode": "fast"},
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+        if event["type"] == "done":
+            break
+
+    assert started.is_set()
+    assert [event["type"] for event in events[-2:]] == ["error", "done"]
+    assert events[-1]["metadata"]["status"] == "failed"
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["status"] == "failed"
+    assert "runtime deadline" in persisted_turn["error"]
+    snapshot = get_turn_runtime_metrics().snapshot()
+    assert snapshot["turns_started_total"] == 1
+    assert snapshot["turns_failed_total"] == 1
+    assert snapshot["turns_in_flight"] == 0
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_records_semantic_router_rollout_metadata(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -3450,7 +3532,7 @@ async def test_turn_runtime_suspends_active_question_before_smart_mode_selection
                 metadata={
                     "response": "先回答这个新问题。",
                     "selected_mode": "fast",
-                    "execution_path": "tutorbot_fast_policy",
+                    "execution_path": "tutorbot_kb_first_fast_policy",
                     "exact_fast_path_hit": False,
                     "actual_tool_rounds": 0,
                 },
@@ -5304,7 +5386,7 @@ async def test_turn_runtime_trace_requested_response_mode_records_selected_mode_
                     "response": "smart mode from chat_mode",
                     "metadata": {},
                     "selected_mode": "fast",
-                    "execution_path": "tutorbot_fast_policy",
+                    "execution_path": "tutorbot_kb_first_fast_policy",
                     "exact_fast_path_hit": False,
                 },
             )
@@ -5395,7 +5477,7 @@ async def test_turn_runtime_open_chat_active_object_does_not_force_deep_mode_for
                 metadata={
                     "response": "简短回答",
                     "selected_mode": "fast",
-                    "execution_path": "tutorbot_fast_policy",
+                    "execution_path": "tutorbot_kb_first_fast_policy",
                     "exact_fast_path_hit": False,
                     "actual_tool_rounds": 0,
                 },
@@ -5460,7 +5542,7 @@ async def test_turn_runtime_open_chat_active_object_does_not_force_deep_mode_for
     assert metadata["requested_response_mode"] == "smart"
     assert metadata["effective_response_mode"] == "fast"
     assert metadata["selected_mode"] == "fast"
-    assert metadata["execution_path"] == "tutorbot_fast_policy"
+    assert metadata["execution_path"] == "tutorbot_kb_first_fast_policy"
 
 
 @pytest.mark.asyncio
@@ -5495,7 +5577,7 @@ async def test_turn_runtime_separates_requested_smart_from_selected_fast_in_trac
                 metadata={
                     "response": "简短回答",
                     "selected_mode": "fast",
-                    "execution_path": "tutorbot_fast_policy",
+                    "execution_path": "tutorbot_kb_first_fast_policy",
                     "exact_fast_path_hit": False,
                     "actual_tool_rounds": 0,
                 },
@@ -5554,7 +5636,7 @@ async def test_turn_runtime_separates_requested_smart_from_selected_fast_in_trac
     assert metadata["requested_response_mode"] == "smart"
     assert metadata["effective_response_mode"] == "fast"
     assert metadata["selected_mode"] == "fast"
-    assert metadata["execution_path"] == "tutorbot_fast_policy"
+    assert metadata["execution_path"] == "tutorbot_kb_first_fast_policy"
     assert metadata["exact_fast_path_hit"] is False
 
 

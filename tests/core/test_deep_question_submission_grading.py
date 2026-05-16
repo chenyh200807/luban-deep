@@ -54,30 +54,16 @@ async def _collect_events(run_coro) -> list[StreamEvent]:
 
 
 @pytest.mark.asyncio
-async def test_deep_question_routes_choice_submission_to_grading_agent(
+async def test_deep_question_uses_deterministic_feedback_for_choice_submission(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    captured: dict[str, Any] = {}
-
     class FakeCoordinator:
         def __init__(self, **_kwargs: Any) -> None:
             raise AssertionError("Coordinator should not be constructed for grading mode")
 
     class FakeSubmissionGraderAgent:
-        def __init__(self, **kwargs: Any) -> None:
-            captured["init"] = kwargs
-            self._trace_callback = None
-
-        def set_trace_callback(self, callback) -> None:
-            self._trace_callback = callback
-
-        async def process(self, **kwargs: Any) -> str:
-            captured["process"] = kwargs
-            assert kwargs["question_context"]["user_answer"] == "B"
-            assert kwargs["question_context"]["is_correct"] is True
-            assert kwargs["question_context"]["diagnosis"] == "CORRECT"
-            assert kwargs["question_context"]["construction_grading_result"]["authority"] == "construction_grading"
-            return "## 🧐 解析\n你这题选对了。\n\n## ⚠️ 易错点\n不要混淆步距和节拍。\n\n## 🎯 记忆锦囊\n队与队之间看步距。\n\n## 🚀 下一步建议\n再做 1 道同类题巩固。"
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("objective grading should not instantiate SubmissionGraderAgent")
 
     _install_module(
         monkeypatch,
@@ -114,7 +100,6 @@ async def test_deep_question_routes_choice_submission_to_grading_agent(
     capability = DeepQuestionCapability()
     events = await _collect_events(lambda bus: capability.run(context, bus))
 
-    assert captured["process"]["history_context"] == "用户刚做完一道选择题。"
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "grading"
     assert result_event.metadata["user_answer"] == "B"
@@ -125,32 +110,21 @@ async def test_deep_question_routes_choice_submission_to_grading_agent(
         == "construction_grading"
     )
     assert result_event.metadata["construction_grading_result"]["authority"] == "construction_grading"
+    assert "阅卷结论" in result_event.metadata["response"]
+    assert "正确答案：** B" in result_event.metadata["response"]
 
 
 @pytest.mark.asyncio
-async def test_deep_question_routes_batch_submission_to_grading_agent(
+async def test_deep_question_uses_deterministic_feedback_for_batch_choice_submission(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    captured: dict[str, Any] = {}
-
     class FakeCoordinator:
         def __init__(self, **_kwargs: Any) -> None:
             raise AssertionError("Coordinator should not be constructed for grading mode")
 
     class FakeSubmissionGraderAgent:
-        def __init__(self, **kwargs: Any) -> None:
-            captured["init"] = kwargs
-            self._trace_callback = None
-
-        def set_trace_callback(self, callback) -> None:
-            self._trace_callback = callback
-
-        async def process(self, **kwargs: Any) -> str:
-            captured["process"] = kwargs
-            items = kwargs["question_context"]["items"]
-            assert [item["user_answer"] for item in items] == ["C", "A", "B"]
-            assert [item["is_correct"] for item in items] == [True, True, False]
-            return "第1题和第2题正确，第3题需要回看防水等级与设防道数。"
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("objective batch grading should not instantiate SubmissionGraderAgent")
 
     _install_module(
         monkeypatch,
@@ -207,12 +181,13 @@ async def test_deep_question_routes_batch_submission_to_grading_agent(
     capability = DeepQuestionCapability()
     events = await _collect_events(lambda bus: capability.run(context, bus))
 
-    assert captured["process"]["history_context"] == "用户刚完成一组建筑构造选择题。"
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "grading"
     assert result_event.metadata["is_correct"] is False
     assert result_event.metadata["question_followup_context"]["items"][0]["user_answer"] == "C"
     assert result_event.metadata["question_followup_context"]["items"][2]["is_correct"] is False
+    assert "得分：** 2/3题" in result_event.metadata["response"]
+    assert "第3题：错误" in result_event.metadata["response"]
 
 
 @pytest.mark.asyncio
