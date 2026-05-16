@@ -225,6 +225,12 @@ assert(
     chatJs.indexOf("onToggleOriginalContent") >= 0,
   "chat state should carry collapsed original text and a toggle handler",
 );
+assert(
+  chatWxml.indexOf('class="mcq" wx:if="{{item.mcqCards') >= 0 &&
+    chatWxml.indexOf('class="mcq" wx:if="{{item.mcqCards') <
+      chatWxml.indexOf('wx:for="{{item.blocks}}"'),
+  "structured MCQ cards should render before markdown blocks so interactive answering is the first visible surface",
+);
 
 if (fail) {
   console.error(errors.join("\n"));
