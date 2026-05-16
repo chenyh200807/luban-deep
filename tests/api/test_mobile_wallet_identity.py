@@ -255,6 +255,18 @@ def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatc
         is_configured = True
 
         @staticmethod
+        def get_wallet(user_id: str):
+            assert user_id == canonical_uid
+            return mobile_module.WalletSnapshot(
+                user_id=user_id,
+                balance_micros=200_000_000,
+                frozen_micros=0,
+                plan_id="advance",
+                version=1,
+                created_at=now.isoformat(),
+            )
+
+        @staticmethod
         def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
             assert user_id == canonical_uid
             assert offset == 0
@@ -263,9 +275,9 @@ def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatc
                 _FakeLedgerEntry(
                     id="usage_recent_1",
                     user_id=user_id,
-                    event_type="debit",
+                    event_type="usage",
                     delta_micros=-20_000_000,
-                    balance_after_micros=180_000_000,
+                    balance_after_micros=200_000_000,
                     reference_type="ai_usage",
                     reference_id="turn_recent_1",
                     idempotency_key="capture:recent_1",
@@ -274,9 +286,9 @@ def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatc
                 _FakeLedgerEntry(
                     id="usage_recent_2",
                     user_id=user_id,
-                    event_type="debit",
+                    event_type="usage",
                     delta_micros=-30_000_000,
-                    balance_after_micros=150_000_000,
+                    balance_after_micros=200_000_000,
                     reference_type="ai_usage",
                     reference_id="turn_recent_2",
                     idempotency_key="capture:recent_2",
@@ -285,9 +297,9 @@ def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatc
                 _FakeLedgerEntry(
                     id="usage_weekly_only",
                     user_id=user_id,
-                    event_type="debit",
+                    event_type="usage",
                     delta_micros=-10_000_000,
-                    balance_after_micros=140_000_000,
+                    balance_after_micros=200_000_000,
                     reference_type="ai_usage",
                     reference_id="turn_weekly",
                     idempotency_key="capture:weekly",
@@ -314,8 +326,8 @@ def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatc
     assert response.status_code == 200
     body = response.json()
     rows = {item["key"]: item for item in body["quota"]["rows"]}
-    assert body["display"]["primary_label"] == "剩余 50%"
-    assert body["display"]["limited_by"] == "five_hour"
+    assert body["display"]["primary_label"] == "剩余 70%"
+    assert body["display"]["limited_by"] == "weekly"
     assert rows["five_hour"]["remaining_percent"] == 50
     assert rows["weekly"]["remaining_percent"] == 70
     assert rows["five_hour"]["reset_at"]

@@ -267,6 +267,39 @@ def test_capture_points_is_idempotent_by_ledger_key() -> None:
     assert calls["rpc"] == 1
 
 
+def test_record_usage_points_writes_usage_ledger_without_wallet_balance() -> None:
+    client = _FakeWalletRestClient()
+    client.wallet["balance_micros"] = 0
+    service = SupabaseWalletService(
+        base_url="https://example.supabase.co",
+        service_key="service-role-key",
+        client=client,
+    )
+
+    result = service.record_usage_points(
+        user_id="wallet_user_1",
+        amount_points=20,
+        idempotency_key="mini_program_capture:turn_usage_1",
+        reference_id="turn_usage_1",
+        metadata={"source": "wx_miniprogram"},
+    )
+
+    assert result.captured_micros == 20_000_000
+    assert result.requested_micros == 20_000_000
+    assert result.balance_after_micros == 0
+    assert client.wallet["balance_micros"] == 0
+    assert len(client.ledger) == 1
+    row = client.ledger[0]
+    assert row["event_type"] == "usage"
+    assert row["delta_micros"] == -20_000_000
+    assert row["balance_after_micros"] == 0
+    assert row["reference_type"] == "ai_usage"
+    assert row["reference_id"] == "turn_usage_1"
+    assert row["idempotency_key"] == "mini_program_capture:turn_usage_1"
+    assert row["metadata"]["reason"] == "capture"
+    assert row["metadata"]["source"] == "wx_miniprogram"
+
+
 def test_get_wallet_returns_none_for_invalid_uuid_identity_query() -> None:
     service = SupabaseWalletService(
         base_url="https://example.supabase.co",

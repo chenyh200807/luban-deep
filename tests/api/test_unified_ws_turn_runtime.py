@@ -22,6 +22,7 @@ from deeptutor.services.session.turn_runtime import (
     TurnRuntimeManager,
     _LiveSubscriber,
     _TurnExecution,
+    _billing_capture_amount_from_usage_summary,
     _request_snapshot_metadata,
     _resolve_question_followup_context_and_action,
 )
@@ -45,6 +46,71 @@ def test_unified_turn_start_schema_rejects_internal_snapshot_fields() -> None:
                 "memory_references": ["summary"],
             }
         )
+
+
+def test_billing_capture_amount_prefers_measured_cost_summary() -> None:
+    amount, metadata = _billing_capture_amount_from_usage_summary(
+        {
+            "total_cost_usd": 0.0351,
+            "estimated_total_cost_usd": 0.0,
+            "total_input_tokens": 1000,
+            "total_output_tokens": 250,
+            "total_tokens": 1250,
+            "usage_accuracy": "measured",
+            "usage_sources": {"provider": 1},
+            "models": {"deepseek-v4-flash": 1},
+        }
+    )
+
+    assert amount == 36
+    assert metadata["billing_amount_source"] == "measured_cost"
+    assert metadata["billing_cost_source"] == "measured_cost"
+    assert metadata["billing_billable_cost"] == 0.0351
+    assert metadata["billing_cost_points"] == 36
+    assert metadata["usage_total_tokens"] == 1250
+    assert metadata["usage_sources"] == {"provider": 1}
+    assert metadata["usage_models"] == {"deepseek-v4-flash": 1}
+
+
+def test_billing_capture_amount_uses_estimated_cost_when_measured_missing() -> None:
+    amount, metadata = _billing_capture_amount_from_usage_summary(
+        {
+            "total_cost_usd": 0.0,
+            "estimated_total_cost_usd": 0.057,
+            "estimated_total_tokens": 3000,
+            "usage_accuracy": "estimated",
+            "usage_sources": {"estimated": 1},
+        }
+    )
+
+    assert amount == 57
+    assert metadata["billing_amount_source"] == "estimated_cost"
+    assert metadata["billing_cost_source"] == "estimated_cost"
+    assert metadata["usage_estimated_total_tokens"] == 3000
+
+
+def test_billing_capture_amount_falls_back_to_minimum_when_cost_missing_or_tiny() -> None:
+    missing_amount, missing_metadata = _billing_capture_amount_from_usage_summary(
+        {
+            "total_cost_usd": 0.0,
+            "estimated_total_cost_usd": 0.0,
+            "total_tokens": 800,
+            "usage_accuracy": "unknown",
+        }
+    )
+    tiny_amount, tiny_metadata = _billing_capture_amount_from_usage_summary(
+        {"total_cost_usd": 0.001, "usage_accuracy": "measured"}
+    )
+    no_summary_amount, no_summary_metadata = _billing_capture_amount_from_usage_summary(None)
+
+    assert missing_amount == 20
+    assert missing_metadata["billing_amount_source"] == "fallback_minimum"
+    assert missing_metadata["billing_cost_source"] == "missing_cost"
+    assert tiny_amount == 20
+    assert tiny_metadata["billing_amount_source"] == "fallback_minimum"
+    assert tiny_metadata["billing_cost_source"] == "measured_cost"
+    assert no_summary_amount == 20
+    assert no_summary_metadata["billing_cost_source"] == "missing_usage_summary"
 
 
 def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
@@ -5737,7 +5803,7 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
     class FakeWalletService:
         is_configured = True
 
-        def capture_points(
+        def record_usage_points(
             self,
             *,
             user_id: str,
@@ -5775,6 +5841,19 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
         "deeptutor.services.wallet.get_wallet_service",
         lambda: FakeWalletService(),
     )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.get_current_usage_summary",
+        lambda: {
+            "total_cost_usd": 0.0351,
+            "estimated_total_cost_usd": 0.0,
+            "total_input_tokens": 1000,
+            "total_output_tokens": 250,
+            "total_tokens": 1250,
+            "usage_accuracy": "measured",
+            "usage_sources": {"provider": 1},
+            "models": {"deepseek-v4-flash": 1},
+        },
+    )
 
     runtime_config = {
         "billing_context": {
@@ -5808,7 +5887,7 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
     assert [event["type"] for event in events] == ["session", "content", "done"]
     assert captured == {
         "wallet_user_id": "wallet_demo",
-        "amount_points": 20,
+        "amount_points": 36,
         "idempotency_key": f"mini_program_capture:{turn['id']}",
         "reference_id": turn["id"],
         "reason": "capture",
@@ -5817,6 +5896,23 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
             "source": "wx_miniprogram",
             "turn_id": turn["id"],
             "session_id": session["id"],
+            "billing_amount_source": "measured_cost",
+            "billing_cost_source": "measured_cost",
+            "billing_cost_point_scale": 1000,
+            "billing_minimum_points": 20,
+            "billing_measured_cost": 0.0351,
+            "billing_estimated_cost": 0.0,
+            "billing_billable_cost": 0.0351,
+            "billing_cost_points": 36,
+            "usage_accuracy": "measured",
+            "usage_total_input_tokens": 1000,
+            "usage_total_output_tokens": 250,
+            "usage_total_tokens": 1250,
+            "usage_estimated_input_tokens": 0,
+            "usage_estimated_output_tokens": 0,
+            "usage_estimated_total_tokens": 0,
+            "usage_sources": {"provider": 1},
+            "usage_models": {"deepseek-v4-flash": 1},
         },
         "learning_user_id": "learner_demo",
         "learning_query": "考我一道题",
@@ -5870,7 +5966,7 @@ async def test_turn_runtime_skips_mini_program_capture_without_wallet_authority(
     class FakeWalletService:
         is_configured = True
 
-        def capture_points(self, **_kwargs):
+        def record_usage_points(self, **_kwargs):
             captured["wallet_capture_called"] = True
             return {"captured": 20}
 

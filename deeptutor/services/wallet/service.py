@@ -322,6 +322,76 @@ class SupabaseWalletService:
             entry=entry,
         )
 
+    def record_usage_points(
+        self,
+        *,
+        user_id: str,
+        amount_points: int,
+        idempotency_key: str,
+        reference_id: str,
+        reason: str = "capture",
+        reference_type: str = "ai_usage",
+        metadata: dict[str, Any] | None = None,
+    ) -> WalletCaptureResult:
+        normalized_user_id = _normalize_text(user_id)
+        normalized_idempotency_key = _normalize_text(idempotency_key)
+        requested_points = max(0, _coerce_int(amount_points))
+        requested_micros = requested_points * 1_000_000
+        if not normalized_user_id or not normalized_idempotency_key or requested_micros <= 0:
+            return WalletCaptureResult(
+                captured_micros=0,
+                requested_micros=requested_micros,
+                balance_after_micros=0,
+                entry=None,
+            )
+        if not self.is_configured:
+            raise RuntimeError("Supabase wallet service is not configured")
+
+        existing_entry = self.find_wallet_ledger_by_idempotency_key(
+            normalized_user_id,
+            idempotency_key=normalized_idempotency_key,
+        )
+        if existing_entry is not None:
+            return WalletCaptureResult(
+                captured_micros=abs(_coerce_int(existing_entry.delta_micros)),
+                requested_micros=requested_micros,
+                balance_after_micros=_coerce_int(existing_entry.balance_after_micros),
+                entry=existing_entry,
+            )
+
+        snapshot = self.get_wallet(normalized_user_id)
+        balance_after_micros = _coerce_int(getattr(snapshot, "balance_micros", 0))
+        frozen_after_micros = _coerce_int(getattr(snapshot, "frozen_micros", 0))
+        metadata_payload = {
+            "reason": _normalize_text(reason) or "capture",
+            **(dict(metadata or {}) if isinstance(metadata, dict) else {}),
+        }
+        entry = self._insert_wallet_ledger(
+            {
+                "user_id": normalized_user_id,
+                "event_type": "usage",
+                "delta_micros": -abs(requested_micros),
+                "balance_after_micros": balance_after_micros,
+                "frozen_after_micros": frozen_after_micros,
+                "reference_type": _normalize_text(reference_type) or "ai_usage",
+                "reference_id": _normalize_text(reference_id),
+                "reason": _normalize_text(reason) or "capture",
+                "idempotency_key": normalized_idempotency_key,
+                "metadata": metadata_payload,
+            }
+        )
+        if entry is None:
+            entry = self.find_wallet_ledger_by_idempotency_key(
+                normalized_user_id,
+                idempotency_key=normalized_idempotency_key,
+            )
+        return WalletCaptureResult(
+            captured_micros=requested_micros if entry is not None else 0,
+            requested_micros=requested_micros,
+            balance_after_micros=balance_after_micros,
+            entry=entry,
+        )
+
     def debit_points(
         self,
         *,

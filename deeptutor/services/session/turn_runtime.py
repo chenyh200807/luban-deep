@@ -9,6 +9,7 @@ import base64
 import contextlib
 import json
 import logging
+import math
 import os
 import re
 import sqlite3
@@ -75,6 +76,7 @@ from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_req
 logger = logging.getLogger(__name__)
 observability = get_langfuse_observability()
 _MINI_PROGRAM_CAPTURE_COST = 20
+_MINI_PROGRAM_CAPTURE_COST_POINT_SCALE = 1000
 _CAPTURED_ASSISTANT_CALL_KINDS = {"llm_final_response", "exact_authority_response"}
 _PUBLIC_VISIBILITY = "public"
 _INTERNAL_VISIBILITY = "internal"
@@ -377,6 +379,71 @@ def _build_terminal_turn_observation_event(
         error_type=status if status not in {"completed", "unknown"} else "",
         metadata=metadata,
     )
+
+
+def _usage_summary_float(summary: dict[str, Any], key: str) -> float:
+    value = summary.get(key)
+    if not isinstance(value, (int, float)):
+        return 0.0
+    return max(float(value), 0.0)
+
+
+def _billing_capture_amount_from_usage_summary(
+    usage_summary: dict[str, Any] | None,
+) -> tuple[int, dict[str, Any]]:
+    if not isinstance(usage_summary, dict):
+        return _MINI_PROGRAM_CAPTURE_COST, {
+            "billing_amount_source": "fallback_minimum",
+            "billing_cost_source": "missing_usage_summary",
+            "billing_cost_point_scale": _MINI_PROGRAM_CAPTURE_COST_POINT_SCALE,
+            "billing_minimum_points": _MINI_PROGRAM_CAPTURE_COST,
+        }
+
+    measured_cost = _usage_summary_float(usage_summary, "total_cost_usd")
+    estimated_cost = _usage_summary_float(usage_summary, "estimated_total_cost_usd")
+    billable_cost = measured_cost + estimated_cost
+    cost_points = (
+        int(math.ceil(billable_cost * _MINI_PROGRAM_CAPTURE_COST_POINT_SCALE))
+        if billable_cost > 0
+        else 0
+    )
+    amount_points = max(_MINI_PROGRAM_CAPTURE_COST, cost_points)
+
+    if measured_cost > 0 and estimated_cost > 0:
+        cost_source = "mixed_cost"
+    elif measured_cost > 0:
+        cost_source = "measured_cost"
+    elif estimated_cost > 0:
+        cost_source = "estimated_cost"
+    else:
+        cost_source = "missing_cost"
+
+    metadata: dict[str, Any] = {
+        "billing_amount_source": (
+            cost_source if cost_points >= _MINI_PROGRAM_CAPTURE_COST else "fallback_minimum"
+        ),
+        "billing_cost_source": cost_source,
+        "billing_cost_point_scale": _MINI_PROGRAM_CAPTURE_COST_POINT_SCALE,
+        "billing_minimum_points": _MINI_PROGRAM_CAPTURE_COST,
+        "billing_measured_cost": round(measured_cost, 8),
+        "billing_estimated_cost": round(estimated_cost, 8),
+        "billing_billable_cost": round(billable_cost, 8),
+        "billing_cost_points": int(cost_points),
+        "usage_accuracy": str(usage_summary.get("usage_accuracy") or "").strip(),
+        "usage_total_input_tokens": int(usage_summary.get("total_input_tokens") or 0),
+        "usage_total_output_tokens": int(usage_summary.get("total_output_tokens") or 0),
+        "usage_total_tokens": int(usage_summary.get("total_tokens") or 0),
+        "usage_estimated_input_tokens": int(usage_summary.get("estimated_input_tokens") or 0),
+        "usage_estimated_output_tokens": int(usage_summary.get("estimated_output_tokens") or 0),
+        "usage_estimated_total_tokens": int(usage_summary.get("estimated_total_tokens") or 0),
+    }
+    usage_sources = usage_summary.get("usage_sources")
+    if isinstance(usage_sources, dict) and usage_sources:
+        metadata["usage_sources"] = dict(usage_sources)
+    models = usage_summary.get("models")
+    if isinstance(models, dict) and models:
+        metadata["usage_models"] = dict(models)
+    return amount_points, metadata
 
 
 def _append_trace_link_event(
@@ -1983,6 +2050,7 @@ class TurnRuntimeManager:
         *,
         session_id: str = "",
         turn_id: str = "",
+        usage_summary: dict[str, Any] | None = None,
     ) -> dict[str, Any] | None:
         if not billing_context:
             return None
@@ -1996,13 +2064,14 @@ class TurnRuntimeManager:
             if str(turn_id or "").strip()
             else f"mini_program_capture:{session_id}"
         )
+        amount_points, billing_metadata = _billing_capture_amount_from_usage_summary(usage_summary)
         try:
             from deeptutor.services.wallet import WalletInsufficientBalanceError, get_wallet_service
 
             wallet_service = get_wallet_service()
-            result = wallet_service.capture_points(
+            result = wallet_service.record_usage_points(
                 user_id=user_id,
-                amount_points=_MINI_PROGRAM_CAPTURE_COST,
+                amount_points=amount_points,
                 idempotency_key=idempotency_key,
                 reference_id=str(turn_id or session_id or "").strip(),
                 reason="capture",
@@ -2010,12 +2079,16 @@ class TurnRuntimeManager:
                     "source": "wx_miniprogram",
                     "turn_id": str(turn_id or "").strip(),
                     "session_id": str(session_id or "").strip(),
+                    **billing_metadata,
                 },
             )
             return {
                 "status": "captured",
                 "wallet_user_id": user_id,
                 "idempotency_key": idempotency_key,
+                "amount_points": amount_points,
+                "billing_amount_source": billing_metadata.get("billing_amount_source"),
+                "billing_cost_source": billing_metadata.get("billing_cost_source"),
                 "captured_micros": int(getattr(result, "captured_micros", 0) or 0),
                 "requested_micros": int(getattr(result, "requested_micros", 0) or 0),
                 "balance_after_micros": int(getattr(result, "balance_after_micros", 0) or 0),
@@ -4087,11 +4160,13 @@ class TurnRuntimeManager:
                     events=assistant_events,
                     default=None,
                 )
+                usage_summary = observability.get_current_usage_summary()
                 billing_capture = self._capture_mobile_points(
                     billing_context,
                     assistant_content,
                     session_id=session_id,
                     turn_id=turn_id,
+                    usage_summary=usage_summary,
                 )
                 if billing_capture:
                     trace_metadata["billing_capture"] = billing_capture
@@ -4108,7 +4183,6 @@ class TurnRuntimeManager:
                     "completed",
                     default=False,
                 )
-                usage_summary = observability.get_current_usage_summary()
                 assistant_event_summary = _summarize_assistant_events(assistant_events)
                 observability.update_observation(
                     turn_observation,
