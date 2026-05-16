@@ -8,7 +8,27 @@ import os
 import sys
 from types import SimpleNamespace
 
+import httpx
 import pytest
+
+
+@pytest.fixture(autouse=True)
+def _clear_supabase_availability_cache():
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    supabase_module._SUPABASE_AVAILABILITY_CACHE.clear()
+    yield
+    supabase_module._SUPABASE_AVAILABILITY_CACHE.clear()
+
+
+def _disable_supabase_availability_gate(
+    monkeypatch: pytest.MonkeyPatch,
+    pipeline,
+) -> None:
+    async def _available(**kwargs):
+        _ = kwargs
+
+    monkeypatch.setattr(pipeline, "_assert_data_api_available", _available)
 
 
 def test_list_available_providers() -> None:
@@ -259,6 +279,159 @@ async def test_builtin_rag_tool_degrades_typed_retrieval_failure(
 
 
 @pytest.mark.asyncio
+async def test_supabase_search_fail_closes_on_data_api_402_before_fanout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.exceptions import RAGSearchError
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    pipeline = supabase_module.SupabasePipeline()
+    config = supabase_module.SupabaseSearchConfig(
+        url="https://example.supabase.co",
+        service_key="test-key",
+        timeout_s=5.0,
+        sources=["textbook", "standard"],
+        include_questions=True,
+        top_k=3,
+        fetch_count=6,
+        match_threshold=0.5,
+        vector_weight=1.0,
+        text_weight=1.0,
+        source_weights={"textbook": 1.0, "standard": 1.0},
+        question_weights={"questions_bank": 1.0},
+        max_per_document=2,
+        query_expansion_enabled=False,
+        max_query_variants=1,
+        second_pass_enabled=False,
+        second_pass_max_queries=0,
+        second_pass_min_hits=0,
+        second_pass_max_dup_ratio=1.0,
+        rerank_enabled=False,
+        rerank_window=3,
+        rerank_timeout_s=2.0,
+        exact_question_enabled=False,
+        exact_question_text_first=False,
+        exact_question_min_similarity=0.9,
+        exact_question_max_text_len=128,
+        exact_question_text_rpc_enabled=False,
+    )
+
+    class _RestrictedClient:
+        calls = 0
+
+        async def get(self, url, *, headers=None, params=None):
+            self.calls += 1
+            request = httpx.Request("GET", url, headers=headers, params=params)
+            return httpx.Response(
+                402,
+                json={"code": "exceeded_db_size_quota"},
+                request=request,
+            )
+
+    client = _RestrictedClient()
+    supabase_module._SUPABASE_AVAILABILITY_CACHE.clear()
+    monkeypatch.setattr(pipeline, "_load_search_config", lambda **kwargs: config)
+
+    async def _fake_get_client(*_args, **_kwargs):
+        return client
+
+    monkeypatch.setattr(pipeline, "_get_client", _fake_get_client)
+
+    async def _unexpected_query_plan(*args, **kwargs):
+        _ = (args, kwargs)
+        raise AssertionError("query fanout should not run after a project-level 402")
+
+    monkeypatch.setattr(pipeline, "_run_query_plan", _unexpected_query_plan)
+
+    with pytest.raises(RAGSearchError) as exc_info:
+        await pipeline.search(query="防水等级", kb_name="construction-exam")
+
+    err = exc_info.value
+    assert err.provider == "supabase"
+    assert err.stage == "pipeline.data_api_healthcheck"
+    assert err.retryable is False
+    assert "HTTP 402" in str(err)
+    assert "exceeded_db_size_quota" in str(err)
+    assert "example.supabase.co" not in str(err)
+    assert client.calls == 1
+
+
+@pytest.mark.asyncio
+async def test_supabase_run_query_plan_propagates_project_level_402(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.exceptions import RAGSearchError
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    pipeline = supabase_module.SupabasePipeline()
+    config = supabase_module.SupabaseSearchConfig(
+        url="https://example.supabase.co",
+        service_key="test-key",
+        timeout_s=5.0,
+        sources=["textbook"],
+        include_questions=False,
+        top_k=3,
+        fetch_count=6,
+        match_threshold=0.5,
+        vector_weight=1.0,
+        text_weight=1.0,
+        source_weights={"textbook": 1.0},
+        question_weights={"questions_bank": 1.0},
+        max_per_document=2,
+        query_expansion_enabled=False,
+        max_query_variants=1,
+        second_pass_enabled=False,
+        second_pass_max_queries=0,
+        second_pass_min_hits=0,
+        second_pass_max_dup_ratio=1.0,
+        rerank_enabled=False,
+        rerank_window=3,
+        rerank_timeout_s=2.0,
+        exact_question_enabled=False,
+        exact_question_text_first=False,
+        exact_question_min_similarity=0.9,
+        exact_question_max_text_len=128,
+        exact_question_text_rpc_enabled=False,
+    )
+
+    async def _embed_query(query: str) -> list[float]:
+        _ = query
+        return [0.1, 0.2]
+
+    async def _restricted_source(**kwargs):
+        _ = kwargs
+        raise RAGSearchError(
+            "supabase retrieval failed: Supabase Data API service restricted (HTTP 402)",
+            provider="supabase",
+            stage="pipeline.rpc.search_unified",
+            retryable=False,
+        )
+
+    monkeypatch.setattr(pipeline, "_embed_query", _embed_query)
+    monkeypatch.setattr(pipeline, "_search_source", _restricted_source)
+
+    with pytest.raises(RAGSearchError) as exc_info:
+        await pipeline._run_query_plan(
+            client=object(),
+            queries=["防水等级"],
+            question_like=False,
+            source_plan=SimpleNamespace(
+                search_textbook_chunks=True,
+                search_standard_chunks=False,
+                search_exam_chunks=False,
+                search_questions_bank=False,
+            ),
+            standard_codes=[],
+            precision_node_code=None,
+            exact_probe=None,
+            original_query="防水等级",
+            config=config,
+        )
+
+    assert exc_info.value.stage == "pipeline.rpc.search_unified"
+
+
+@pytest.mark.asyncio
 async def test_rag_search_invalid_provider_falls_back_to_kb_provider(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -310,6 +483,7 @@ async def test_supabase_search_prioritizes_parallel_exact_question_match(
     monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
 
     pipeline = supabase_module.SupabasePipeline()
+    _disable_supabase_availability_gate(monkeypatch, pipeline)
     full_exact_stem = "确定屋面防水工程的防水等级应根据什么，且不得被 card_title 截断"
 
     async def _fake_search_exact_question_text(**kwargs):
@@ -397,6 +571,7 @@ async def test_supabase_search_promotes_option_matched_real_exam_question(
     monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
 
     pipeline = supabase_module.SupabasePipeline()
+    _disable_supabase_availability_gate(monkeypatch, pipeline)
     options = [
         {"key": "A", "value": "单跨构件宜从跨端一侧向另一侧吊装"},
         {"key": "B", "value": "单跨结构可从跨中间向两端吊装"},
@@ -485,6 +660,7 @@ async def test_supabase_search_emits_evidence_bundle_and_respects_routing_metada
     monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
 
     pipeline = supabase_module.SupabasePipeline()
+    _disable_supabase_availability_gate(monkeypatch, pipeline)
 
     async def _fake_run_query_plan(**kwargs):
         source_plan = kwargs["source_plan"]
@@ -643,6 +819,7 @@ async def test_supabase_search_builds_partial_case_authority_bundle(
     monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
 
     pipeline = supabase_module.SupabasePipeline()
+    _disable_supabase_availability_gate(monkeypatch, pipeline)
     captured_queries: list[str] = []
 
     async def _fake_search_exact_question_text(**kwargs):
@@ -815,6 +992,7 @@ async def test_supabase_search_dedupes_duplicate_rendered_content_and_sources(
     monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
 
     pipeline = supabase_module.SupabasePipeline()
+    _disable_supabase_availability_gate(monkeypatch, pipeline)
 
     async def _fake_run_query_plan(**kwargs):
         _ = kwargs

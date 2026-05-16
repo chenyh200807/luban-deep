@@ -25,6 +25,7 @@ from deeptutor.services.question_followup import (
     apply_followup_action_to_context,
     detect_answer_reveal_preference,
     detect_requested_question_type,
+    followup_action_route,
     interpret_question_followup_action,
     looks_like_question_followup,
     resolve_submission_attempt,
@@ -225,12 +226,15 @@ class ChatOrchestrator:
         capability = str(context.active_capability or "").strip().lower()
         if capability != "deep_question":
             return
+        action = context.metadata.get("question_followup_action")
+        if (
+            followup_action_route(action) == "submission"
+            or self._looks_like_question_submission(context, message)
+        ):
+            self._prepare_question_submission_context(context, action)
+            return
         if looks_like_practice_generation_request(message):
             self._prepare_practice_request_context(context, message)
-            return
-        action = context.metadata.get("question_followup_action")
-        if action or self._looks_like_question_submission(context, message):
-            self._prepare_question_submission_context(context, action)
 
     @staticmethod
     def _semantic_router_enabled(context: UnifiedContext) -> bool:
@@ -318,12 +322,12 @@ class ChatOrchestrator:
         )
 
     def _select_legacy_capability(self, context: UnifiedContext, message: str) -> str:
-        if looks_like_practice_generation_request(message):
-            self._prepare_practice_request_context(context, message)
-            return "deep_question"
-
         if self._looks_like_question_submission(context, message):
             self._prepare_question_submission_context(context)
+            return "deep_question"
+
+        if looks_like_practice_generation_request(message):
+            self._prepare_practice_request_context(context, message)
             return "deep_question"
 
         if self._looks_like_question_followup(context, message):

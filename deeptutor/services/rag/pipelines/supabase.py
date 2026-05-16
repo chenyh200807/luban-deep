@@ -19,7 +19,7 @@ from deeptutor.logging import get_logger
 from deeptutor.services.config import get_kb_config_service
 from deeptutor.services.embedding import get_embedding_client
 from deeptutor.services.observability import get_langfuse_observability
-from deeptutor.services.rag.exceptions import wrap_rag_error
+from deeptutor.services.rag.exceptions import RAGError, RAGSearchError, wrap_rag_error
 from .supabase_strategy import (
     build_exact_question_keyword_terms,
     build_exact_question_text_candidates,
@@ -52,6 +52,80 @@ _QUESTION_SELECT = (
 )
 
 _EMBEDDING_CACHE: OrderedDict[str, tuple[list[float], float]] = OrderedDict()
+_SUPABASE_AVAILABILITY_CACHE: dict[str, tuple[bool, float]] = {}
+_SUPABASE_AVAILABILITY_TTL_S = 60.0
+
+
+def _safe_response_text(response: httpx.Response | None) -> str:
+    if response is None:
+        return ""
+    try:
+        return str(response.text or "").strip()[:500]
+    except Exception:
+        return ""
+
+
+def _extract_supabase_restriction_code(response: httpx.Response | None) -> str:
+    if response is None:
+        return ""
+    try:
+        payload = response.json()
+    except Exception:
+        payload = None
+    candidates: list[Any] = []
+    if isinstance(payload, dict):
+        candidates.extend(
+            [
+                payload.get("code"),
+                payload.get("error"),
+                payload.get("message"),
+                payload.get("msg"),
+                payload.get("description"),
+            ]
+        )
+        details = payload.get("details")
+        if isinstance(details, dict):
+            candidates.extend(details.values())
+        elif isinstance(details, list):
+            candidates.extend(details)
+    candidates.append(_safe_response_text(response))
+    for candidate in candidates:
+        text = str(candidate or "").strip()
+        if not text:
+            continue
+        match = re.search(r"(exceeded_[a-z0-9_]+|exceed_[a-z0-9_]+|overdue_payment)", text)
+        if match:
+            return match.group(1)
+    return ""
+
+
+def _wrap_supabase_http_status(exc: httpx.HTTPStatusError, *, stage: str) -> RAGSearchError:
+    status_code = exc.response.status_code if exc.response is not None else 0
+    if status_code == 402:
+        restriction_code = _extract_supabase_restriction_code(exc.response)
+        suffix = f": {restriction_code}" if restriction_code else ""
+        return RAGSearchError(
+            f"supabase retrieval failed: Supabase Data API service restricted (HTTP 402{suffix})",
+            provider="supabase",
+            stage=stage,
+            retryable=False,
+        )
+    retryable = status_code in {408, 429} or status_code >= 500
+    return RAGSearchError(
+        f"supabase retrieval failed: Supabase Data API returned HTTP {status_code}",
+        provider="supabase",
+        stage=stage,
+        retryable=retryable,
+    )
+
+
+def _is_supabase_service_restriction(exc: BaseException) -> bool:
+    return (
+        isinstance(exc, RAGSearchError)
+        and exc.provider == "supabase"
+        and exc.retryable is False
+        and "HTTP 402" in str(exc)
+    )
 
 
 def _coerce_options_payload(options: Any) -> Any:
@@ -601,6 +675,7 @@ class SupabasePipeline:
 
             try:
                 client = await self._get_client(config.timeout_s)
+                await self._assert_data_api_available(client=client, config=config)
                 exact_text_task: asyncio.Task[list[dict[str, Any]]] | None = None
                 if (
                     exact_probe
@@ -955,6 +1030,8 @@ class SupabasePipeline:
             raw_results = await asyncio.gather(*tasks, return_exceptions=True)
             for group_name, result in zip(task_groups, raw_results):
                 if isinstance(result, Exception):
+                    if _is_supabase_service_restriction(result):
+                        raise result
                     if failure_sink is not None:
                         failure_sink.append(
                             _rag_warning_payload(
@@ -1463,6 +1540,8 @@ class SupabasePipeline:
                 },
             )
         except Exception as exc:
+            if isinstance(exc, RAGError):
+                raise
             self.logger.debug(f"Supabase questions text RPC unavailable: {exc}")
             return []
 
@@ -1996,6 +2075,72 @@ class SupabasePipeline:
             enriched.append(item)
         return enriched
 
+    async def _assert_data_api_available(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        config: SupabaseSearchConfig,
+    ) -> None:
+        # Some tests use lightweight client doubles that only exercise plan logic.
+        if not hasattr(client, "get"):
+            return
+        cache_key = config.url.rstrip("/")
+        now = time.monotonic()
+        cached = _SUPABASE_AVAILABILITY_CACHE.get(cache_key)
+        if cached is not None:
+            is_available, checked_at = cached
+            if now - checked_at < _SUPABASE_AVAILABILITY_TTL_S:
+                if is_available:
+                    return
+                raise RAGSearchError(
+                    "supabase retrieval failed: Supabase Data API service restricted (HTTP 402)",
+                    provider="supabase",
+                    stage="pipeline.data_api_healthcheck",
+                    retryable=False,
+                )
+
+        url = f"{cache_key}/rest/v1/kb_chunks"
+        headers = {
+            "apikey": config.service_key,
+            "Authorization": f"Bearer {config.service_key}",
+        }
+        with observability.start_observation(
+            name="supabase.data_api.health",
+            as_type="retriever",
+            input_payload={"table": "kb_chunks", "select": "chunk_id", "limit": 1},
+            metadata={"table": "kb_chunks", "purpose": "availability_gate"},
+        ) as observation:
+            try:
+                response = await client.get(
+                    url,
+                    headers=headers,
+                    params={"select": "chunk_id", "limit": "1"},
+                )
+                response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                _SUPABASE_AVAILABILITY_CACHE[cache_key] = (False, now)
+                rag_error = _wrap_supabase_http_status(
+                    exc,
+                    stage="pipeline.data_api_healthcheck",
+                )
+                observability.update_observation(
+                    observation,
+                    level="ERROR",
+                    status_message=str(rag_error),
+                    metadata={
+                        "table": "kb_chunks",
+                        "purpose": "availability_gate",
+                        "retryable": rag_error.retryable,
+                    },
+                )
+                raise rag_error from exc
+            _SUPABASE_AVAILABILITY_CACHE[cache_key] = (True, now)
+            observability.update_observation(
+                observation,
+                output_payload={"available": True},
+                metadata={"table": "kb_chunks", "purpose": "availability_gate"},
+            )
+
     async def _rpc(
         self,
         client: httpx.AsyncClient,
@@ -2011,7 +2156,20 @@ class SupabasePipeline:
             metadata={"function_name": function_name},
         ) as observation:
             response = await client.post(url, headers=headers, json=payload)
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                rag_error = _wrap_supabase_http_status(exc, stage=f"pipeline.rpc.{function_name}")
+                observability.update_observation(
+                    observation,
+                    metadata={
+                        "function_name": function_name,
+                        "retryable": rag_error.retryable,
+                    },
+                    level="ERROR",
+                    status_message=str(rag_error),
+                )
+                raise rag_error from exc
             data = response.json()
             rows = data if isinstance(data, list) else []
             observability.update_observation(
@@ -2042,7 +2200,17 @@ class SupabasePipeline:
             metadata={"table": table},
         ) as observation:
             response = await client.get(url, headers=headers, params={"select": select, **query})
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                rag_error = _wrap_supabase_http_status(exc, stage=f"pipeline.select.{table}")
+                observability.update_observation(
+                    observation,
+                    metadata={"table": table, "retryable": rag_error.retryable},
+                    level="ERROR",
+                    status_message=str(rag_error),
+                )
+                raise rag_error from exc
             data = response.json()
             rows = data if isinstance(data, list) else []
             observability.update_observation(

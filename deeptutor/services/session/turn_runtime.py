@@ -645,6 +645,53 @@ def _practice_generation_action_for_explicit_request(
     }
 
 
+def _looks_like_batch_correction_reference(user_message: str) -> bool:
+    return bool(
+        re.search(r"第\s*[0-9一二两三四五六七八九十]+\s*[题问]?", user_message)
+        and ("不动" in user_message or "不变" in user_message or "不改" in user_message)
+    )
+
+
+def _submission_action_for_user_message(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return None, None
+    items = normalized_context.get("items") or []
+    if not items and _looks_like_batch_correction_reference(user_message):
+        return normalized_context, None
+    target_context, submission = resolve_submission_attempt(user_message, normalized_context)
+    if (
+        items
+        and _looks_like_batch_correction_reference(user_message)
+        and isinstance(submission, dict)
+        and submission.get("kind") != "batch"
+    ):
+        return normalized_context, None
+    if not target_context or not submission:
+        return normalized_context, None
+    if submission.get("kind") == "batch":
+        return target_context, {
+            "intent": "answer_questions",
+            "confidence": 0.92,
+            "answers": submission.get("answers") or [],
+            "reason": "用户消息包含当前题组的可解析答案，优先进入批改。",
+        }
+    return target_context, {
+        "intent": "answer_questions",
+        "confidence": 0.92,
+        "answers": [
+            {
+                "question_id": submission.get("question_id", ""),
+                "answer": str(submission.get("answer") or "").strip(),
+            }
+        ],
+        "reason": "用户消息包含当前题目的可解析答案，优先进入批改。",
+    }
+
+
 async def _resolve_question_followup_context_and_action(
     *,
     user_message: str,
@@ -654,6 +701,13 @@ async def _resolve_question_followup_context_and_action(
 ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     normalized_explicit = normalize_question_followup_context(explicit_context)
     normalized_action = _normalize_question_followup_action(explicit_action)
+    if (
+        normalized_explicit is not None
+        and not (normalized_explicit.get("items") or [])
+        and _looks_like_batch_correction_reference(user_message)
+    ):
+        normalized_explicit = None
+        normalized_action = None
 
     if normalized_explicit is not None:
         for candidate in candidate_contexts:
@@ -664,6 +718,12 @@ async def _resolve_question_followup_context_and_action(
             if merged is not None:
                 normalized_explicit = merged
                 break
+        submission_context, submission_action = _submission_action_for_user_message(
+            user_message,
+            normalized_explicit,
+        )
+        if submission_action is not None:
+            return submission_context or normalized_explicit, submission_action
         if normalized_action is None:
             practice_action = _practice_generation_action_for_explicit_request(
                 user_message,
@@ -686,6 +746,17 @@ async def _resolve_question_followup_context_and_action(
         normalized_candidate = normalize_question_followup_context(candidate)
         if normalized_candidate is None:
             continue
+        if (
+            not (normalized_candidate.get("items") or [])
+            and _looks_like_batch_correction_reference(user_message)
+        ):
+            continue
+        submission_context, submission_action = _submission_action_for_user_message(
+            user_message,
+            normalized_candidate,
+        )
+        if submission_action is not None:
+            return submission_context or normalized_candidate, submission_action
         practice_action = _practice_generation_action_for_explicit_request(
             user_message,
             normalized_candidate,

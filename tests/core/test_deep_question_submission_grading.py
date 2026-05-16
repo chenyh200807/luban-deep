@@ -566,7 +566,7 @@ async def test_deep_question_writes_grading_errors_to_learner_state(
     )
 
     context = UnifiedContext(
-        user_message="我选A",
+        user_message="我选A，请按建筑实务选择题帮我批改，并告诉我下一题该练什么",
         language="zh",
         metadata={
             "turn_id": "turn-grading-1",

@@ -82,6 +82,38 @@ async def test_orchestrator_autoroutes_natural_one_question_phrase_to_deep_quest
 
 
 @pytest.mark.asyncio
+async def test_preselected_deep_question_grades_submission_before_practice_generation() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-preselected-grading",
+        active_capability="deep_question",
+        user_message="我选A，请按建筑实务选择题帮我批改，并告诉我下一题该练什么",
+        config_overrides={},
+        metadata={
+            "question_followup_context": {
+                "question_id": "q_regulation_level",
+                "question": "《建设工程安全生产管理条例》属于（ ）。",
+                "question_type": "choice",
+                "options": {"A": "法律", "B": "行政法规", "C": "部门规章", "D": "地方性法规"},
+                "correct_answer": "B",
+            }
+        },
+        language="zh",
+    )
+
+    events = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert "topic" not in context.config_overrides
+    result = next(event for event in events if event.type.value == "result")
+    assert result.metadata["user_answer"] == "A"
+    assert result.metadata["is_correct"] is False
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_keeps_learning_strategy_request_in_chat_even_if_effective_message_contains_practice_words() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()

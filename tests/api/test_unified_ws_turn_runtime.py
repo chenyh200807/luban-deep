@@ -174,6 +174,34 @@ async def test_answered_active_question_can_generate_related_questions_without_r
 
 
 @pytest.mark.asyncio
+async def test_submission_with_next_training_request_routes_to_grading() -> None:
+    active_question = {
+        "question_id": "q_regulation_level",
+        "question": "《建设工程安全生产管理条例》属于（ ）。",
+        "question_type": "choice",
+        "options": {"A": "法律", "B": "行政法规", "C": "部门规章", "D": "地方性法规"},
+        "correct_answer": "B",
+        "explanation": "条例由国务院制定，属于行政法规。",
+        "concentration": "法规层级",
+    }
+
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="我选A，请按建筑实务选择题帮我批改，并告诉我下一题该练什么",
+        explicit_context=active_question,
+        explicit_action={"intent": "generate_more_questions", "answers": []},
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "q_regulation_level"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+    assert resolved_action["answers"] == [
+        {"question_id": "q_regulation_level", "answer": "A"}
+    ]
+
+
+@pytest.mark.asyncio
 async def test_resolve_question_followup_does_not_treat_next_question_explainer_as_generation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
