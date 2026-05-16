@@ -113,6 +113,395 @@ async def test_deep_question_uses_deterministic_feedback_for_choice_submission(
     assert result_event.metadata["construction_grading_result"]["authority"] == "construction_grading"
     assert "阅卷结论" in result_event.metadata["response"]
     assert "正确答案：** B" in result_event.metadata["response"]
+    assert result_event.metadata["grading_kernel"] == "mcq"
+    assert result_event.metadata["correct_answer_present"] is True
+    assert result_event.metadata["question_authority_source"] == "active_object"
+
+
+@pytest.mark.asyncio
+async def test_deep_question_fail_closed_when_choice_answer_authority_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("missing MCQ authority must not fall back to LLM grading")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="我选B",
+        language="zh",
+        metadata={
+            "conversation_context_text": "用户刚做完一道选择题。",
+            "question_followup_context": {
+                "question_id": "tb_q_1",
+                "question": "主体结构施工中，模板拆除应优先满足哪项要求？",
+                "question_type": "choice",
+                "options": {"A": "进度计划", "B": "混凝土强度", "C": "材料周转", "D": "现场人数"},
+                "correct_answer": "",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["grading_blocked"] is True
+    assert result_event.metadata["is_correct"] is None
+    assert result_event.metadata["grading_kernel"] == "mcq"
+    assert result_event.metadata["correct_answer_present"] is False
+    assert result_event.metadata["question_authority_source"] == "missing"
+    assert "缺少标准答案" in result_event.metadata["response"]
+    assert "construction_grading_result" not in result_event.metadata
+
+
+@pytest.mark.asyncio
+async def test_deep_question_recovers_missing_choice_answer_from_questions_bank_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("recovered objective grading should not instantiate SubmissionGraderAgent")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="我选B",
+        language="zh",
+        metadata={
+            "exact_question": {
+                "id": "tb_q_1",
+                "answer_kind": "mcq",
+                "stem": "主体结构施工中，模板拆除应优先满足哪项要求？",
+                "options": [
+                    {"key": "A", "value": "进度计划"},
+                    {"key": "B", "value": "混凝土强度"},
+                    {"key": "C", "value": "材料周转"},
+                    {"key": "D", "value": "现场人数"},
+                ],
+                "correct_answer": "B",
+                "analysis": "模板拆除必须满足混凝土强度及安全要求。",
+            },
+            "question_followup_context": {
+                "question_id": "tb_q_1",
+                "question": "主体结构施工中，模板拆除应优先满足哪项要求？",
+                "question_type": "choice",
+                "options": {"A": "进度计划", "B": "混凝土强度", "C": "材料周转", "D": "现场人数"},
+                "correct_answer": "",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["is_correct"] is True
+    assert result_event.metadata["grading_kernel"] == "mcq"
+    assert result_event.metadata["correct_answer_present"] is True
+    assert result_event.metadata["question_authority_source"] == "questions_bank"
+    assert result_event.metadata["question_followup_context"]["correct_answer"] == "B"
+
+
+@pytest.mark.asyncio
+async def test_deep_question_recomputes_batch_after_recovering_missing_choice_answers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("recovered objective batch grading should not instantiate SubmissionGraderAgent")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="第1题：B；第2题：C",
+        language="zh",
+        metadata={
+            "exact_question": [
+                {
+                    "id": "tb_q_1",
+                    "answer_kind": "mcq",
+                    "stem": "模板拆除应优先满足哪项要求？",
+                    "options": [
+                        {"key": "A", "value": "进度计划"},
+                        {"key": "B", "value": "混凝土强度"},
+                    ],
+                    "correct_answer": "B",
+                },
+                {
+                    "id": "tb_q_2",
+                    "answer_kind": "mcq",
+                    "stem": "钢筋进场复验应重点核查什么？",
+                    "options": [
+                        {"key": "A", "value": "颜色"},
+                        {"key": "C", "value": "力学性能"},
+                    ],
+                    "correct_answer": "C",
+                },
+            ],
+            "question_followup_context": {
+                "question_id": "quiz_recover_batch",
+                "question": "第1题...\n第2题...",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "tb_q_1",
+                        "question": "模板拆除应优先满足哪项要求？",
+                        "question_type": "choice",
+                        "options": {"A": "进度计划", "B": "混凝土强度"},
+                        "correct_answer": "",
+                    },
+                    {
+                        "question_id": "tb_q_2",
+                        "question": "钢筋进场复验应重点核查什么？",
+                        "question_type": "choice",
+                        "options": {"A": "颜色", "C": "力学性能"},
+                        "correct_answer": "",
+                    },
+                ],
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["is_correct"] is True
+    assert result_event.metadata["grading_kernel"] == "mcq"
+    assert result_event.metadata["correct_answer_present"] is True
+    assert result_event.metadata["question_authority_source"] == "questions_bank"
+    assert result_event.metadata["construction_grading_result"]["score_awarded"] == 2.0
+    assert [item["is_correct"] for item in result_event.metadata["question_followup_context"]["items"]] == [
+        True,
+        True,
+    ]
+
+
+@pytest.mark.asyncio
+async def test_deep_question_clears_stale_item_flags_when_recovering_batch_answers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("recovered objective batch grading should not instantiate SubmissionGraderAgent")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="第1题：B；第2题：C",
+        language="zh",
+        metadata={
+            "exact_question": [
+                {
+                    "id": "tb_q_1",
+                    "answer_kind": "mcq",
+                    "stem": "模板拆除应优先满足哪项要求？",
+                    "options": [{"key": "B", "value": "混凝土强度"}],
+                    "correct_answer": "B",
+                },
+                {
+                    "id": "tb_q_2",
+                    "answer_kind": "mcq",
+                    "stem": "钢筋进场复验应重点核查什么？",
+                    "options": [{"key": "C", "value": "力学性能"}],
+                    "correct_answer": "C",
+                },
+            ],
+            "question_followup_context": {
+                "question_id": "quiz_stale_batch",
+                "question": "第1题...\n第2题...",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "tb_q_1",
+                        "question": "模板拆除应优先满足哪项要求？",
+                        "question_type": "choice",
+                        "options": {"A": "进度计划", "B": "混凝土强度"},
+                        "correct_answer": "",
+                        "user_answer": "B",
+                        "is_correct": False,
+                    },
+                    {
+                        "question_id": "tb_q_2",
+                        "question": "钢筋进场复验应重点核查什么？",
+                        "question_type": "choice",
+                        "options": {"A": "颜色", "C": "力学性能"},
+                        "correct_answer": "",
+                        "user_answer": "C",
+                        "is_correct": False,
+                    },
+                ],
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["is_correct"] is True
+    assert result_event.metadata["construction_grading_result"]["score_awarded"] == 2.0
+    assert [item["is_correct"] for item in result_event.metadata["question_followup_context"]["items"]] == [
+        True,
+        True,
+    ]
+
+
+@pytest.mark.asyncio
+async def test_deep_question_fail_closed_when_batch_choice_recovery_is_partial(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("partial MCQ recovery must not fall back to LLM grading")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="第1题：B；第2题：C",
+        language="zh",
+        metadata={
+            "exact_question": [
+                {
+                    "id": "tb_q_1",
+                    "answer_kind": "mcq",
+                    "stem": "模板拆除应优先满足哪项要求？",
+                    "options": [{"key": "B", "value": "混凝土强度"}],
+                    "correct_answer": "B",
+                }
+            ],
+            "question_followup_context": {
+                "question_id": "quiz_partial_recover",
+                "question": "第1题...\n第2题...",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "tb_q_1",
+                        "question": "模板拆除应优先满足哪项要求？",
+                        "question_type": "choice",
+                        "options": {"A": "进度计划", "B": "混凝土强度"},
+                        "correct_answer": "",
+                    },
+                    {
+                        "question_id": "tb_q_2",
+                        "question": "钢筋进场复验应重点核查什么？",
+                        "question_type": "choice",
+                        "options": {"A": "颜色", "C": "力学性能"},
+                        "correct_answer": "",
+                    },
+                ],
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["grading_blocked"] is True
+    assert result_event.metadata["is_correct"] is None
+    assert result_event.metadata["correct_answer_present"] is False
+    assert result_event.metadata["question_authority_source"] == "missing"
+    assert "construction_grading_result" not in result_event.metadata
+    assert [
+        item.get("is_correct")
+        for item in result_event.metadata["question_followup_context"]["items"]
+    ] == [None, None]
 
 
 @pytest.mark.asyncio

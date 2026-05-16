@@ -247,12 +247,7 @@ function shouldRenderStructuredFallback(presentationState, fallbackText) {
     ? presentationState.canonical.blocks
     : [];
   if (!blocks.length) return true;
-  if (presentationState.hasOnlyMcqContent) {
-    return (
-      hasMeaningfulFallbackOutsideMcq(fallbackText, presentationState.cards) &&
-      hasTeachingSemanticFallback(fallbackText)
-    );
-  }
+  if (presentationState.hasOnlyMcqContent) return false;
 
   for (var i = 0; i < blocks.length; i++) {
     var block = blocks[i];
@@ -271,9 +266,69 @@ function shouldRenderStructuredFallback(presentationState, fallbackText) {
 }
 
 function hasTeachingSemanticFallback(text) {
-  return /(?:^|\n)\s*(?:#{1,6}\s*)?(?:核心结论|考试踩分点|拿分要点|得分点|评分点|采分点|踩分点|拉分关键|易错点提醒|易错提醒|易错点|失分点|扣分点|记忆口诀|小技巧|速记|助记|口诀|下一步建议|下一步学习|下一步|学习建议|复习建议|训练建议|行动建议|后续建议|建议下一步)(?:\s*[-—–]\s*[^：:\n]{1,18})?\s*(?:[：:]|\n|$)/.test(
+  return /(?:^|\n)\s*(?:#{1,6}\s*)?(?:核心结论|结论|判断依据|考试踩分点|拿分要点|得分点|评分点|采分点|踩分点|拉分关键|易错点提醒|易错提醒|易错点|失分点|扣分点|记忆口诀|小技巧|速记|助记|口诀|下一步建议|下一步学习|下一步|学习建议|复习建议|训练建议|行动建议|后续建议|建议下一步)(?:\s*[-—–]\s*[^：:\n]{1,18})?\s*(?:[：:]|\n|$)/.test(
     String(text || ""),
   );
+}
+
+function parseTeachingFallbackBlocks(text) {
+  var blocks = md.parseWithIds(String(text || ""));
+  var out = [];
+  for (var i = 0; i < blocks.length; i++) {
+    var block = blocks[i];
+    if (!block || block.type !== "callout") continue;
+    var callout = Object.assign({}, block);
+    var bodyParts = callout.content && callout.content.length
+      ? [_inlineSpansToText(callout.content)]
+      : [];
+    var j = i + 1;
+    while (j < blocks.length) {
+      var next = blocks[j];
+      if (!next || next.type === "heading" || next.type === "callout") break;
+      if (next.type === "blank") {
+        if (bodyParts.length && bodyParts[bodyParts.length - 1] !== "") bodyParts.push("");
+        j++;
+        continue;
+      }
+      var nextText = stringifyTeachingBodyBlock(next);
+      if (!nextText) break;
+      bodyParts.push(nextText);
+      j++;
+    }
+    var bodyText = bodyParts.join("\n").trim();
+    if (bodyText) {
+      callout.content = md.parseInline(bodyText);
+      callout.nodes = md.spansToRichTextNodes(callout.content);
+    }
+    out.push(callout);
+  }
+  return out;
+}
+
+function stringifyTeachingBodyBlock(block) {
+  if (!block || typeof block !== "object") return "";
+  if (block.type === "paragraph") return String(block.raw || block.text || "").trim();
+  if ((block.type === "ul" || block.type === "ol") && Array.isArray(block.items)) {
+    return block.items
+      .map(function (item, idx) {
+        var text = String((item && item.raw) || "").trim();
+        if (!text) return "";
+        if (block.type === "ol") return String((item && item.index) || idx + 1) + ". " + text;
+        return "- " + text;
+      })
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+  }
+  return "";
+}
+
+function _inlineSpansToText(spans) {
+  return (Array.isArray(spans) ? spans : [])
+    .map(function (span) {
+      return String((span && span.text) || "");
+    })
+    .join("");
 }
 
 function deriveAiMessageRenderState(input) {
@@ -306,10 +361,31 @@ function deriveAiMessageRenderState(input) {
   );
   var shouldAppendTeachingFallbackBlocks = !!(
     parseBlocks &&
-    useStructuredBlocks &&
+    presentationState &&
+    presentationState.canonical &&
+    presentationState.cards &&
+    presentationState.cards.length &&
     normalizedFallbackContent &&
     hasTeachingSemanticFallback(normalizedFallbackContent)
   );
+  var teachingFallbackBlocks = shouldAppendTeachingFallbackBlocks
+    ? parseTeachingFallbackBlocks(normalizedFallbackContent)
+    : null;
+  shouldAppendTeachingFallbackBlocks = !!(
+    teachingFallbackBlocks && teachingFallbackBlocks.length
+  );
+  var shouldAppendFullFallbackBlocks = !!(
+    parseBlocks &&
+    presentationState &&
+    presentationState.canonical &&
+    !renderStructuredFallback &&
+    !shouldAppendTeachingFallbackBlocks &&
+    normalizedFallbackContent &&
+    hasTeachingSemanticFallback(normalizedFallbackContent)
+  );
+  var fullFallbackBlocks = shouldAppendFullFallbackBlocks
+    ? md.parseWithIds(normalizedFallbackContent)
+    : null;
   var canonicalMessage =
     presentationState && presentationState.canonical
       ? presentationState.canonical
@@ -321,18 +397,19 @@ function deriveAiMessageRenderState(input) {
           },
         });
   var markdownBlocks =
-    parseBlocks && !useStructuredBlocks
-      ? md.parseWithIds(renderableContent || "")
-      : shouldAppendTeachingFallbackBlocks
-        ? md.parseWithIds(normalizedFallbackContent || "")
+    shouldAppendTeachingFallbackBlocks
+        ? teachingFallbackBlocks
+      : shouldAppendFullFallbackBlocks
+        ? fullFallbackBlocks
+      : parseBlocks && !useStructuredBlocks
+        ? md.parseWithIds(renderableContent || "")
       : null;
   var shouldFoldOriginal = !!(
     presentationState &&
     presentationState.cards &&
     presentationState.cards.length &&
     normalizedFallbackContent &&
-    !renderableContent &&
-    !shouldAppendTeachingFallbackBlocks
+    !renderableContent
   );
 
   return renderSchema.createRenderModel({

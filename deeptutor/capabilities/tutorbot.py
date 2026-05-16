@@ -21,6 +21,7 @@ from deeptutor.services.question_followup import (
 from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
+from deeptutor.services.semantic_router import build_active_object_from_question_context
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 from deeptutor.tutorbot.response_mode import (
@@ -300,6 +301,15 @@ class TutorBotCapability(BaseCapability):
                         reveal_explanations=reveal_explanations,
                     )
                 )
+                if result_payload["question_followup_context"]:
+                    result_payload["active_object"] = (
+                        build_active_object_from_question_context(
+                            result_payload["question_followup_context"],
+                            source_turn_id=turn_id,
+                            previous_active_object=active_object,
+                        )
+                        or {}
+                    )
                 if presentation:
                     result_payload["presentation"] = presentation
             await stream.result(result_payload, source=self.name)

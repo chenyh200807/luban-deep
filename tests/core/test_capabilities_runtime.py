@@ -1843,6 +1843,10 @@ async def test_tutorbot_capability_emits_structured_mcq_summary_for_plain_text_g
     followup_context = result_event.metadata.get("question_followup_context")
     assert isinstance(followup_context, dict)
     assert len(followup_context["items"]) == 2
+    active_object = result_event.metadata.get("active_object")
+    assert isinstance(active_object, dict)
+    assert active_object["object_type"] == "question_set"
+    assert len(active_object["state_snapshot"]["items"]) == 2
 
 
 @pytest.mark.asyncio
@@ -2026,6 +2030,8 @@ async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visi
     assert "答案" not in result_event.metadata["response"]
     assert "踩分点" not in result_event.metadata["response"]
     assert result_event.metadata["question_followup_context"]["correct_answer"] == "C"
+    assert result_event.metadata["active_object"]["object_type"] == "single_question"
+    assert result_event.metadata["active_object"]["state_snapshot"]["correct_answer"] == "C"
     assert isinstance(result_event.metadata.get("presentation"), dict)
     question = result_event.metadata["presentation"]["blocks"][0]["questions"][0]
     assert question["followup_context"]["correct_answer"] == ""

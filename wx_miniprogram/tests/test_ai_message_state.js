@@ -257,11 +257,15 @@ run("mcq presentation keeps mixed teaching content visible", function () {
   });
 
   assert(state.mcqCards && state.mcqCards.length === 1, "mcq card should still render");
+  var calloutLabels = (state.blocks || []).map(function (block) {
+    return block.label || "";
+  });
   assert(
-    state.renderableContent.indexOf("## 结论") >= 0 &&
-      state.renderableContent.indexOf("## 踩分点") >= 0,
-    "teaching prose around the mcq should remain visible",
+    calloutLabels.indexOf("结论") >= 0 && calloutLabels.indexOf("踩分点") >= 0,
+    "teaching prose around the mcq should remain visible as callouts",
   );
+  assertEqual(state.renderableContent, "", "mixed mcq fallback should not render duplicate plain text");
+  assert(state.originalContent.indexOf("## 结论") >= 0, "full original stays behind the toggle");
   assert(state.blocks && state.blocks.length > 0, "mixed fallback should stay in markdown flow");
   assertEqual(state.hasStructuredContent, false, "mcq-only projection should not take over body rendering");
 });
@@ -592,15 +596,47 @@ run("structured presentation keeps teaching fallback callouts renderable", funct
     "structured teaching block should still render",
   );
   assert(
-    blockTypes.indexOf("callout:踩分点") >= 0 &&
-      blockTypes.indexOf("callout:易错点") >= 0,
-    "teaching fallback sections should not be swallowed by structured blocks",
+    JSON.stringify(state.blocks).indexOf("先判断责任边界") >= 0 &&
+      JSON.stringify(state.blocks).indexOf("不要把合同责任和现场责任混在一起") >= 0,
+    "non-mcq teaching fallback should remain available as full markdown blocks",
   );
-  assertEqual(
-    state.renderableContent,
+  assertEqual(state.renderableContent, "", "non-mcq fallback appended as blocks should not duplicate plain text");
+});
+
+run("non-mcq structured presentation keeps full teaching fallback prose", function () {
+  var text = [
+    "先给你一个结论前的必要前提。",
     "",
-    "teaching fallback should render through blocks instead of plain ai-text",
-  );
+    "## 结论",
+    "",
+    "横道图适合看持续时间，网络图更适合分析关键线路。",
+    "",
+    "## 踩分点",
+    "",
+    "- 写出关键线路应看网络逻辑关系。",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    presentation: {
+      blocks: [
+        {
+          type: "table",
+          title: "对比表",
+          columns: ["工具", "适用点"],
+          rows: [["网络图", "关键线路"]],
+        },
+      ],
+      fallback_text: text,
+      meta: { streamingMode: "block_finalized" },
+    },
+    parseBlocks: true,
+  });
+
+  assertEqual(state.renderableContent.indexOf("先给你一个结论前的必要前提。") >= 0, true, "non-mcq fallback should keep prose before teaching callouts");
+  assertEqual(state.renderableContent.indexOf("横道图适合看持续时间") >= 0, true, "non-mcq fallback should keep normal conclusion prose");
+  assert(state.blocks && state.blocks.length === 1, "canonical table should remain the only structured block");
+  assertEqual(state.blocks[0].type, "table", "non-mcq canonical block should stay canonical");
 });
 
 run("structured presentation keeps mnemonic and next-step fallback callouts renderable", function () {
@@ -638,10 +674,11 @@ run("structured presentation keeps mnemonic and next-step fallback callouts rend
     "structured block should still render with mnemonic fallback",
   );
   assert(
-    blockTypes.indexOf("callout:记忆口诀") >= 0 &&
-      blockTypes.indexOf("callout:下一步建议") >= 0,
-    "mnemonic and next-step fallback sections should not be swallowed by structured blocks",
+    JSON.stringify(state.blocks).indexOf("先判责，再找法") >= 0 &&
+      JSON.stringify(state.blocks).indexOf("案例题检验") >= 0,
+    "non-mcq mnemonic fallback should remain available as full markdown blocks",
   );
+  assertEqual(state.renderableContent, "", "non-mcq mnemonic fallback appended as blocks should not duplicate plain text");
 });
 
 run("mcq presentation folds duplicate original text behind a toggle", function () {
@@ -690,6 +727,79 @@ run("mcq presentation folds duplicate original text behind a toggle", function (
   assertEqual(state.blocks.length, 0, "duplicate original mcq text should not stay in markdown blocks");
   assertEqual(state.originalContent, text, "original text should still be available behind the toggle");
   assertEqual(state.originalCollapsed, true, "original text should be collapsed by default");
+});
+
+run("mcq presentation keeps teaching fallback without repeating question text", function () {
+  var text = [
+    "关于民用建筑构造要求的说法，正确的是（ ）。",
+    "A. 楼梯平台上部及下部过道处的净高不应小于2.20m",
+    "B. 住宅建筑室内净高不应低于2.40m",
+    "C. 临空高度在24m以下时，阳台栏杆净高不应低于1.10m",
+    "D. 屋面面层均应采用不燃材料",
+    "",
+    "## 踩分点",
+    "",
+    "- 抓住“临空高度24m以下”对应的栏杆净高。",
+    "",
+    "## 易错点",
+    "",
+    "- 不要把住宅室内净高和栏杆净高混在一起。",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    presentation: {
+      blocks: [
+        {
+          type: "mcq",
+          questions: [
+            {
+              index: 1,
+              stem: "关于民用建筑构造要求的说法，正确的是（ ）。",
+              question_type: "single_choice",
+              options: [
+                { key: "A", text: "楼梯平台上部及下部过道处的净高不应小于2.20m" },
+                { key: "B", text: "住宅建筑室内净高不应低于2.40m" },
+                { key: "C", text: "临空高度在24m以下时，阳台栏杆净高不应低于1.10m" },
+                { key: "D", text: "屋面面层均应采用不燃材料" },
+              ],
+              followup_context: {
+                question_id: "q_building_1",
+                correct_answer: "C",
+              },
+            },
+          ],
+          submit_hint: "请选择后提交答案",
+        },
+      ],
+      fallback_text: text,
+      meta: { streamingMode: "block_finalized" },
+    },
+    parseBlocks: true,
+  });
+
+  var rendered = JSON.stringify(state.blocks || []);
+  var callouts = (state.blocks || []).filter(function (block) {
+    return block.type === "callout";
+  });
+  assertEqual(state.renderableContent, "", "mcq plus teaching fallback should not render plain text above the card");
+  assertEqual(state.originalContent, text, "full original should stay available behind the toggle");
+  assert(
+    rendered.indexOf("楼梯平台上部") < 0 &&
+      rendered.indexOf("住宅建筑室内净高") < 0,
+    "render blocks should not repeat original options",
+  );
+  assertEqual(
+    callouts.map(function (block) {
+      return block.label + ":" + block.variant;
+    }),
+    ["踩分点:highlight", "易错点:warning"],
+    "teaching fallback should still render as dedicated callouts",
+  );
+  assert(
+    JSON.stringify(callouts[0].nodes).indexOf("临空高度24m以下") >= 0,
+    "teaching callout should retain its bullet body",
+  );
 });
 
 run("markdown normalization flattens nested lists into the supported mobile subset", function () {

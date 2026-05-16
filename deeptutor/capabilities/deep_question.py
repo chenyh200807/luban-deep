@@ -25,6 +25,7 @@ from deeptutor.services.construction_grading.writeback import write_grading_erro
 from deeptutor.services.question_followup import (
     apply_followup_action_to_context,
     answers_match,
+    build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
     normalize_question_followup_context,
@@ -110,6 +111,23 @@ _CURRENT_QUESTION_ANCHOR_MARKERS = (
     "按这题",
     "围绕这题",
     "照着这题",
+)
+_MCQ_QUESTION_TYPES = {
+    "choice",
+    "single_choice",
+    "multiple_choice",
+    "multi_choice",
+    "mcq",
+    "judge",
+    "judgment",
+}
+_QUESTION_BANK_METADATA_KEYS = (
+    "exact_question",
+    "questions_bank",
+    "question_bank_row",
+    "question_row",
+    "source_question",
+    "recovered_question_context",
 )
 
 
@@ -394,6 +412,270 @@ def _grading_items(question_context: dict[str, Any] | None) -> list[dict[str, An
     return items or ([normalized] if normalized else [])
 
 
+def _is_mcq_grading_context(question_context: dict[str, Any] | None) -> bool:
+    items = _grading_items(question_context)
+    if not items:
+        return False
+    for item in items:
+        question_type = str(item.get("question_type") or "").strip().lower()
+        if question_type in _MCQ_QUESTION_TYPES:
+            continue
+        options = item.get("options")
+        if isinstance(options, dict) and options:
+            continue
+        return False
+    return True
+
+
+def _mcq_correct_answer_present(question_context: dict[str, Any] | None) -> bool:
+    items = _grading_items(question_context)
+    return bool(items) and all(str(item.get("correct_answer") or "").strip() for item in items)
+
+
+def _question_identity(value: Any) -> str:
+    text = _compact_text(value).lower()
+    return re.sub(r"[\s。！？!?，,、：:；;（）()\[\]【】\"'“”‘’]+", "", text)
+
+
+def _question_bank_context_candidates(metadata: dict[str, Any] | None) -> list[dict[str, Any]]:
+    containers: list[dict[str, Any]] = []
+    raw_metadata = metadata if isinstance(metadata, dict) else {}
+    containers.append(raw_metadata)
+    nested = raw_metadata.get("metadata")
+    if isinstance(nested, dict):
+        containers.append(nested)
+
+    candidates: list[dict[str, Any]] = []
+    for container in containers:
+        for key in _QUESTION_BANK_METADATA_KEYS:
+            value = container.get(key)
+            if isinstance(value, dict):
+                candidates.extend(_coerce_question_bank_contexts(value))
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        candidates.extend(_coerce_question_bank_contexts(item))
+    return candidates
+
+
+def _coerce_question_bank_contexts(value: dict[str, Any]) -> list[dict[str, Any]]:
+    normalized = normalize_question_followup_context(value)
+    if normalized:
+        return [normalized]
+
+    exact_summary = build_choice_result_summary_from_exact_question(value)
+    if exact_summary:
+        exact_context = build_question_followup_context_from_result_summary(
+            exact_summary,
+            "",
+            reveal_answers=True,
+            reveal_explanations=True,
+        )
+        if exact_context:
+            return [exact_context]
+
+    question = str(
+        value.get("question")
+        or value.get("stem")
+        or value.get("question_stem")
+        or value.get("question_text")
+        or ""
+    ).strip()
+    correct_answer = str(value.get("correct_answer") or value.get("answer") or "").strip()
+    options = _coerce_mcq_options(value.get("options"))
+    if not question or not correct_answer:
+        return []
+    row = {
+        "question_id": str(value.get("question_id") or value.get("id") or value.get("chunk_id") or "").strip(),
+        "question": question,
+        "question_type": "choice",
+        "options": options,
+        "correct_answer": correct_answer,
+        "explanation": str(value.get("explanation") or value.get("analysis") or "").strip(),
+        "difficulty": str(value.get("difficulty") or "").strip(),
+        "concentration": str(value.get("concentration") or value.get("testing_focus") or "").strip(),
+        "knowledge_context": str(value.get("knowledge_context") or "").strip(),
+        "multi_select": bool(len(re.findall(r"[A-E]", correct_answer.upper())) > 1),
+    }
+    normalized_row = normalize_question_followup_context(row)
+    return [normalized_row] if normalized_row else []
+
+
+def _coerce_mcq_options(raw: Any) -> dict[str, str] | None:
+    if isinstance(raw, dict):
+        options = {
+            str(key).strip().upper()[:1]: str(value or "").strip()
+            for key, value in raw.items()
+            if str(key).strip() and str(value or "").strip()
+        }
+        return options or None
+    if isinstance(raw, list):
+        options: dict[str, str] = {}
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            key = str(item.get("key") or item.get("label") or "").strip().upper()[:1]
+            value = str(item.get("text") or item.get("value") or item.get("content") or "").strip()
+            if key and value and key not in options:
+                options[key] = value
+        return options or None
+    return None
+
+
+def _candidate_question_items(candidate_context: dict[str, Any]) -> list[dict[str, Any]]:
+    items = candidate_context.get("items") if isinstance(candidate_context.get("items"), list) else []
+    normalized_items = [
+        item
+        for item in (
+            normalize_question_followup_context(candidate)
+            for candidate in items
+            if isinstance(candidate, dict)
+        )
+        if item
+    ]
+    return normalized_items or ([candidate_context] if candidate_context else [])
+
+
+def _match_question_bank_item(
+    target: dict[str, Any],
+    candidate_contexts: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    target_id = str(target.get("question_id") or target.get("id") or "").strip()
+    target_question = _question_identity(
+        target.get("question") or target.get("stem") or target.get("question_text")
+    )
+    for candidate_context in candidate_contexts:
+        for candidate in _candidate_question_items(candidate_context):
+            if not str(candidate.get("correct_answer") or "").strip():
+                continue
+            candidate_id = str(candidate.get("question_id") or candidate.get("id") or "").strip()
+            if target_id and candidate_id and target_id == candidate_id:
+                return candidate
+            candidate_question = _question_identity(
+                candidate.get("question") or candidate.get("stem") or candidate.get("question_text")
+            )
+            if target_question and candidate_question and target_question == candidate_question:
+                return candidate
+    return None
+
+
+def _fill_missing_mcq_authority(target: dict[str, Any], source: dict[str, Any]) -> dict[str, Any]:
+    filled = dict(target)
+    had_correct_answer = bool(str(filled.get("correct_answer") or "").strip())
+    recovered_correct_answer = False
+    for key in (
+        "correct_answer",
+        "explanation",
+        "options",
+        "question_type",
+        "multi_select",
+        "difficulty",
+        "concentration",
+        "knowledge_context",
+    ):
+        if key == "correct_answer" or not filled.get(key):
+            value = source.get(key)
+            if value not in (None, "", {}):
+                filled[key] = value
+                if key == "correct_answer" and not had_correct_answer:
+                    recovered_correct_answer = True
+    if recovered_correct_answer:
+        filled["is_correct"] = None
+        filled.pop("score", None)
+        filled.pop("construction_grading_result", None)
+    return filled
+
+
+def _recover_missing_mcq_authority(
+    question_context: dict[str, Any],
+    metadata: dict[str, Any] | None,
+) -> tuple[dict[str, Any], str, bool]:
+    normalized = normalize_question_followup_context(question_context) or dict(question_context or {})
+    if not _is_mcq_grading_context(normalized):
+        return normalized, "", True
+    if _mcq_correct_answer_present(normalized):
+        return normalized, "active_object", True
+
+    candidates = _question_bank_context_candidates(metadata)
+    if not candidates:
+        return normalized, "missing", False
+
+    items = normalized.get("items") if isinstance(normalized.get("items"), list) else []
+    if items:
+        recovered_items: list[dict[str, Any]] = []
+        changed = False
+        for item in items:
+            normalized_item = normalize_question_followup_context(item) if isinstance(item, dict) else None
+            if not normalized_item:
+                continue
+            if str(normalized_item.get("correct_answer") or "").strip():
+                recovered_items.append(normalized_item)
+                continue
+            source_item = _match_question_bank_item(normalized_item, candidates)
+            if source_item is None:
+                recovered_items.append(normalized_item)
+                continue
+            recovered_items.append(_fill_missing_mcq_authority(normalized_item, source_item))
+            changed = True
+        if changed:
+            recovered = dict(normalized)
+            recovered["items"] = recovered_items
+            return recovered, "questions_bank", _mcq_correct_answer_present(recovered)
+        return normalized, "missing", False
+
+    source_item = _match_question_bank_item(normalized, candidates)
+    if source_item is None:
+        return normalized, "missing", False
+    recovered = _fill_missing_mcq_authority(normalized, source_item)
+    return recovered, "questions_bank", _mcq_correct_answer_present(recovered)
+
+
+def _mcq_trace_fields(
+    question_context: dict[str, Any] | None,
+    *,
+    authority_source: str,
+    correct_answer_present: bool,
+) -> dict[str, Any]:
+    if not _is_mcq_grading_context(question_context):
+        return {}
+    source = str(authority_source or "").strip() or (
+        "active_object" if correct_answer_present else "missing"
+    )
+    return {
+        "grading_kernel": "mcq",
+        "correct_answer_present": bool(correct_answer_present),
+        "question_authority_source": source,
+    }
+
+
+def _render_missing_mcq_authority_feedback() -> str:
+    return (
+        "当前选择题缺少标准答案，不能稳定判分；我不会让模型猜答案。\n\n"
+        "请重新生成题目，或提交带标准答案的题卡后再批改。"
+    )
+
+
+def _clear_blocked_grading_state(question_context: dict[str, Any]) -> dict[str, Any]:
+    cleared = dict(question_context or {})
+    cleared["is_correct"] = None
+    cleared.pop("construction_grading_result", None)
+    cleared.pop("score", None)
+    cleared["diagnosis"] = "AUTHORITY_MISSING"
+    items = cleared.get("items") if isinstance(cleared.get("items"), list) else []
+    if items:
+        cleared_items: list[dict[str, Any]] = []
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            cleared_item = dict(item)
+            cleared_item["is_correct"] = None
+            cleared_item.pop("construction_grading_result", None)
+            cleared_item.pop("score", None)
+            cleared_items.append(cleared_item)
+        cleared["items"] = cleared_items
+    return cleared
+
+
 def _should_use_deterministic_grading_feedback(
     *,
     selected_mode: str,
@@ -604,6 +886,27 @@ class DeepQuestionCapability(BaseCapability):
                     followup_action,
                 )
             if action_context is not None:
+                authority_source = ""
+                correct_answer_present = True
+                if _is_mcq_grading_context(action_context):
+                    (
+                        action_context,
+                        authority_source,
+                        correct_answer_present,
+                    ) = _recover_missing_mcq_authority(action_context, context.metadata)
+                    if not correct_answer_present:
+                        blocked_context = _clear_blocked_grading_state(action_context)
+                        await self._emit_missing_mcq_authority_result(
+                            stream=stream,
+                            blocked_context=blocked_context,
+                            turn_id=turn_id,
+                            active_object=active_object,
+                            suspended_object_stack=suspended_object_stack,
+                            turn_semantic_decision=turn_semantic_decision,
+                            user_message=raw_user_message,
+                        )
+                        return
+
                 from deeptutor.agents.question.agents.submission_grader_agent import (
                     SubmissionGraderAgent,
                 )
@@ -665,6 +968,11 @@ class DeepQuestionCapability(BaseCapability):
                             active_object=result_active_object or active_object,
                             question_context=graded_context,
                             user_message=raw_user_message,
+                        ),
+                        **_mcq_trace_fields(
+                            graded_context,
+                            authority_source=authority_source,
+                            correct_answer_present=correct_answer_present,
                         ),
                     }
                     cost_meta = self._collect_cost_summary("question")
@@ -789,22 +1097,55 @@ class DeepQuestionCapability(BaseCapability):
                     followup_question_context,
                 )
                 if target_context and submission:
-                    from deeptutor.agents.question.agents.submission_grader_agent import (
-                        SubmissionGraderAgent,
-                    )
-
                     if submission.get("kind") == "batch":
-                        graded_context = self._build_batch_submission_context(
+                        action_context = self._build_batch_submission_context(
                             target_context,
                             submission.get("answers"),
                         )
                     else:
                         user_answer = str(submission.get("answer") or "").strip()
-                        graded_context = self._build_submission_context(
+                        action_context = self._build_submission_context(
                             target_context,
                             user_answer,
                             raw_submission=raw_user_message,
                         )
+                    authority_source = ""
+                    correct_answer_present = True
+                    if _is_mcq_grading_context(action_context):
+                        (
+                            recovered_context,
+                            authority_source,
+                            correct_answer_present,
+                        ) = _recover_missing_mcq_authority(action_context, context.metadata)
+                        if not correct_answer_present:
+                            blocked_context = _clear_blocked_grading_state(recovered_context)
+                            await self._emit_missing_mcq_authority_result(
+                                stream=stream,
+                                blocked_context=blocked_context,
+                                turn_id=turn_id,
+                                active_object=active_object,
+                                suspended_object_stack=suspended_object_stack,
+                                turn_semantic_decision=turn_semantic_decision,
+                                user_message=raw_user_message,
+                            )
+                            return
+                        if submission.get("kind") == "batch":
+                            graded_context = self._build_batch_submission_context(
+                                recovered_context,
+                                None,
+                            )
+                        else:
+                            graded_context = self._build_submission_context(
+                                recovered_context,
+                                str(recovered_context.get("user_answer") or "").strip(),
+                                raw_submission=raw_user_message,
+                            )
+                    else:
+                        graded_context = action_context
+
+                    from deeptutor.agents.question.agents.submission_grader_agent import (
+                        SubmissionGraderAgent,
+                    )
                     async with stream.stage("generation", source=self.name):
                         if _should_use_deterministic_grading_feedback(
                             selected_mode=selected_mode,
@@ -851,6 +1192,11 @@ class DeepQuestionCapability(BaseCapability):
                                 active_object=result_active_object or active_object,
                                 question_context=graded_context,
                                 user_message=raw_user_message,
+                            ),
+                            **_mcq_trace_fields(
+                                graded_context,
+                                authority_source=authority_source,
+                                correct_answer_present=correct_answer_present,
                             ),
                         }
                         cost_meta = self._collect_cost_summary("question")
@@ -1145,6 +1491,52 @@ class DeepQuestionCapability(BaseCapability):
         if cost_meta:
             result_payload["metadata"] = {"cost_summary": cost_meta}
         await stream.result(result_payload, source=self.name)
+
+    async def _emit_missing_mcq_authority_result(
+        self,
+        *,
+        stream: StreamBus,
+        blocked_context: dict[str, Any],
+        turn_id: str,
+        active_object: dict[str, Any] | None,
+        suspended_object_stack: list[dict[str, Any]] | None,
+        turn_semantic_decision: dict[str, Any] | None,
+        user_message: str,
+    ) -> None:
+        answer = _render_missing_mcq_authority_feedback()
+        await stream.content(answer, source=self.name, stage="generation")
+        result_active_object = build_active_object_from_question_context(
+            blocked_context,
+            source_turn_id=turn_id,
+            previous_active_object=active_object,
+        )
+        await stream.result(
+            {
+                "response": answer,
+                "mode": "grading",
+                "grading_blocked": True,
+                "question_id": blocked_context.get("question_id", ""),
+                "user_answer": blocked_context.get("user_answer", ""),
+                "is_correct": None,
+                "question_followup_context": normalize_question_followup_context(blocked_context)
+                or {},
+                "active_object": result_active_object or {},
+                "suspended_object_stack": suspended_object_stack,
+                "turn_semantic_decision": turn_semantic_decision
+                or self._default_turn_semantic_decision(
+                    next_action="route_to_grading",
+                    active_object=result_active_object or active_object,
+                    question_context=blocked_context,
+                    user_message=user_message,
+                ),
+                **_mcq_trace_fields(
+                    blocked_context,
+                    authority_source="missing",
+                    correct_answer_present=False,
+                ),
+            },
+            source=self.name,
+        )
 
     @staticmethod
     def _default_turn_semantic_decision(
