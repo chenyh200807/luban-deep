@@ -349,6 +349,106 @@ def _dedupe_source_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return deduped
 
 
+def _metadata_list(value: Any, *, max_items: int = 8) -> list[str]:
+    if value in (None, ""):
+        return []
+    if isinstance(value, str):
+        candidates = [value]
+    elif isinstance(value, (list, tuple, set)):
+        candidates = list(value)
+    elif isinstance(value, dict):
+        candidates = [f"{key}: {item}" for key, item in value.items()]
+    else:
+        candidates = [value]
+
+    items: list[str] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        text = str(candidate or "").strip()
+        if not text:
+            continue
+        signature = _normalized_text_signature(text, limit=200)
+        if not signature or signature in seen:
+            continue
+        seen.add(signature)
+        items.append(text)
+        if len(items) >= max_items:
+            break
+    return items
+
+
+def _format_metadata_section(title: str, values: list[str]) -> str:
+    if not values:
+        return ""
+    if len(values) == 1:
+        return f"## {title}\n{values[0]}"
+    return "## " + title + "\n" + "\n".join(f"- {item}" for item in values)
+
+
+def _build_teaching_metadata_block(metadata: Any) -> str:
+    if not isinstance(metadata, dict):
+        return ""
+
+    exam_matrix = metadata.get("exam_matrix")
+    if not isinstance(exam_matrix, dict):
+        exam_matrix = {}
+
+    sections = [
+        _format_metadata_section(
+            "记忆口诀",
+            _metadata_list(exam_matrix.get("mnemonics") or metadata.get("mnemonics"), max_items=4),
+        ),
+        _format_metadata_section(
+            "踩分点",
+            _metadata_list(
+                exam_matrix.get("grading_keywords") or metadata.get("grading_keywords"),
+                max_items=10,
+            ),
+        ),
+        _format_metadata_section(
+            "易错点",
+            [
+                *_metadata_list(exam_matrix.get("trap_alert"), max_items=4),
+                *_metadata_list(metadata.get("pitfalls"), max_items=6),
+            ],
+        ),
+        _format_metadata_section(
+            "思维链",
+            _metadata_list(
+                metadata.get("logic_chains") or metadata.get("logic_chain"),
+                max_items=6,
+            ),
+        ),
+        _format_metadata_section(
+            "扣分红线",
+            _metadata_list(exam_matrix.get("red_lines") or metadata.get("red_lines"), max_items=6),
+        ),
+        _format_metadata_section(
+            "关键参数",
+            _metadata_list(metadata.get("key_parameters") or metadata.get("key_numbers"), max_items=8),
+        ),
+    ]
+    return "\n\n".join(section for section in sections if section)
+
+
+def _project_teaching_metadata(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    projected: list[dict[str, Any]] = []
+    for item in results:
+        doc = dict(item)
+        teaching_block = _build_teaching_metadata_block(doc.get("metadata"))
+        if teaching_block:
+            raw_content = str(doc.get("rag_content") or "").strip()
+            if "_raw_rag_content" not in doc:
+                doc["_raw_rag_content"] = raw_content
+            if teaching_block not in raw_content:
+                doc["rag_content"] = "\n\n".join(
+                    block for block in [raw_content, teaching_block] if block
+                )
+            doc["_teaching_metadata_projected"] = True
+        projected.append(doc)
+    return projected
+
+
 def _build_evidence_bundle(
     *,
     query: str,
@@ -833,6 +933,7 @@ class SupabasePipeline:
         fused = dedupe_ranked_results(fused, max_items=config.fetch_count * 2)
         enriched = await self._hydrate_sources(fused[: config.fetch_count], config=config)
         enriched = self._filter_partial_case_results(enriched, exact_question=exact_question)
+        enriched = _project_teaching_metadata(enriched)
         enriched = _enforce_doc_diversity(enriched, max_per_document=config.max_per_document)
         reranked = await self._rerank_results(
             query=query,

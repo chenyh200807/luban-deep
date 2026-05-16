@@ -1063,6 +1063,100 @@ async def test_supabase_search_dedupes_duplicate_rendered_content_and_sources(
 
 
 @pytest.mark.asyncio
+async def test_supabase_search_projects_teaching_metadata_into_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-key")
+    monkeypatch.setenv("SUPABASE_RAG_ENABLE_RERANK", "false")
+    monkeypatch.setenv("SUPABASE_RAG_SECOND_PASS", "false")
+
+    class _FakeKbConfigService:
+        def get_kb_config(self, kb_name: str) -> dict[str, object]:
+            _ = kb_name
+            return {}
+
+    monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
+
+    pipeline = supabase_module.SupabasePipeline()
+    _disable_supabase_availability_gate(monkeypatch, pipeline)
+
+    async def _fake_run_query_plan(**kwargs):
+        _ = kwargs
+        return [
+            {
+                "phase": "primary",
+                "group_name": "textbook",
+                "query": "模板安装 起拱要求",
+                "query_index": 0,
+                "query_weight": 1.0,
+                "results": [
+                    {
+                        "id": "LEC_1A413040_P0005_002",
+                        "chunk_id": "LEC_1A413040_P0005_002",
+                        "card_title": "模板安装",
+                        "rag_content": "### 模板安装核心要求\n对跨度≥4m的梁、板应按设计要求起拱。",
+                        "source_type": "textbook",
+                        "score": 0.98,
+                        "_source_group": "textbook",
+                        "_source_table": "kb_chunks",
+                    }
+                ],
+            }
+        ]
+
+    async def _hydrate_sources(results, **kwargs):
+        _ = kwargs
+        enriched = []
+        for item in results:
+            row = dict(item)
+            row["metadata"] = {
+                "logic_chains": [
+                    "跨度≥4m且设计无要求 -> 起拱高度为跨度的1/1000~3/1000 -> 防止构件下挠"
+                ],
+                "exam_matrix": {
+                    "mnemonics": "四米起拱千一三",
+                    "grading_keywords": ["起拱", "1/1000~3/1000", "独立设置"],
+                    "trap_alert": "注意起拱的起算跨度是4m，不是2m或8m。",
+                    "red_lines": ["支架立柱不得混用"],
+                },
+            }
+            enriched.append(row)
+        return enriched
+
+    async def _identity(results, **kwargs):
+        _ = kwargs
+        return results
+
+    async def _empty_exact_text(**kwargs):
+        _ = kwargs
+        return []
+
+    monkeypatch.setattr(pipeline, "_search_exact_question_text", _empty_exact_text)
+    monkeypatch.setattr(pipeline, "_run_query_plan", _fake_run_query_plan)
+    monkeypatch.setattr(pipeline, "_hydrate_sources", _hydrate_sources)
+    monkeypatch.setattr(pipeline, "_rerank_results", _identity)
+
+    result = await pipeline.search(
+        query="模板安装 起拱要求",
+        kb_name="construction-exam",
+    )
+
+    assert "## 记忆口诀" in result["answer"]
+    assert "四米起拱千一三" in result["answer"]
+    assert "## 踩分点" in result["answer"]
+    assert "1/1000~3/1000" in result["answer"]
+    assert "## 易错点" in result["answer"]
+    assert "起算跨度是4m" in result["answer"]
+    assert "## 思维链" in result["answer"]
+    assert "防止构件下挠" in result["answer"]
+    assert "## 扣分红线" in result["answer"]
+    assert "支架立柱不得混用" in result["answer"]
+
+
+@pytest.mark.asyncio
 async def test_supabase_pipeline_embedding_cache_reuses_same_query_embedding(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
