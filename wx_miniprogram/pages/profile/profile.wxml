@@ -52,11 +52,11 @@
             <text class="usage-kicker">使用情况</text>
             <text class="usage-title">{{usagePrimaryLabel}}</text>
           </view>
-          <view class="usage-action" catchtap="goBilling" aria-role="button" aria-label="打开充值中心">
-            <text class="usage-action-txt">充值</text>
+          <view class="usage-action" catchtap="goBilling" aria-role="button" aria-label="打开额度中心">
+            <text class="usage-action-txt">额度</text>
           </view>
         </view>
-        <text class="usage-note">按模型、上下文长度和任务复杂度动态计量</text>
+        <text class="usage-note">按备考强度展示本周剩余额度</text>
         <view class="usage-summary-list" wx:if="{{usageRows.length}}">
           <view class="usage-summary-row" wx:for="{{usageRows}}" wx:key="key">
             <text class="usage-summary-label">{{item.label}}</text>

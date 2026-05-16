@@ -63,6 +63,31 @@ _BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS
 _BILLING_USAGE_WEEKLY_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS"
 _BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
 _BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
+_BILLING_PLAN_QUOTA_POINTS = {
+    "advance": {"five_hour": 1600, "weekly": 4400},
+    "sprint": {"five_hour": 3200, "weekly": 9000},
+}
+_BILLING_PLAN_ALIASES = {
+    "": "advance",
+    "standard": "advance",
+    "starter": "advance",
+    "trial": "advance",
+    "precision": "advance",
+    "jingxue": "advance",
+    "advance": "advance",
+    "pro": "sprint",
+    "pass": "sprint",
+    "tongguan": "sprint",
+    "sprint": "sprint",
+    "ultimate": "sprint",
+}
+_BILLING_PAYMENT_CHANNELS = {"wechat", "alipay"}
+_BILLING_PAYMENT_GATEWAY_URL = "DEEPTUTOR_PAYMENT_GATEWAY_URL"
+
+
+class BillingCheckoutRequest(BaseModel):
+    package_id: str = Field(min_length=1, max_length=64)
+    channel: str = Field(default="wechat", min_length=1, max_length=32)
 
 
 def _log_safe_id(value: Any) -> str:
@@ -119,6 +144,30 @@ def _wallet_packages() -> list[dict[str, Any]]:
         except Exception:
             return []
     return []
+
+
+def _billing_package_by_id(package_id: str) -> dict[str, Any] | None:
+    normalized_package_id = str(package_id or "").strip()
+    if not normalized_package_id:
+        return None
+    for package in _wallet_packages():
+        if str(package.get("id") or "").strip() == normalized_package_id:
+            return dict(package)
+    return None
+
+
+def _price_to_fen(value: Any) -> int:
+    text = str(value or "").strip()
+    if not text:
+        return 0
+    try:
+        return int(round(float(text) * 100))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _payment_gateway_url() -> str:
+    return str(os.getenv(_BILLING_PAYMENT_GATEWAY_URL, "") or "").strip().rstrip("/")
 
 
 def _env_flag_enabled(name: str) -> bool:
@@ -239,6 +288,19 @@ def _billing_usage_limit_points(env_name: str, default: int) -> int:
         return default
 
 
+def _normalize_billing_plan_id(plan_id: str | None) -> str:
+    raw = str(plan_id or "").strip().lower()
+    return _BILLING_PLAN_ALIASES.get(raw, "advance")
+
+
+def _billing_usage_limit_for_plan(plan_id: str | None, window: str) -> int:
+    normalized = _normalize_billing_plan_id(plan_id)
+    defaults = _BILLING_PLAN_QUOTA_POINTS.get(normalized) or _BILLING_PLAN_QUOTA_POINTS["advance"]
+    default = int(defaults.get(window) or _BILLING_PLAN_QUOTA_POINTS["advance"][window])
+    env_name = _BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS if window == "five_hour" else _BILLING_USAGE_WEEKLY_LIMIT_POINTS
+    return _billing_usage_limit_points(env_name, default)
+
+
 def _parse_ledger_datetime(value: str) -> datetime | None:
     text = str(value or "").strip()
     if not text:
@@ -281,7 +343,12 @@ def _usage_window_payload(
     }
 
 
-def _build_billing_usage_payload(entries: list[WalletLedgerEntry], *, now: datetime | None = None) -> dict[str, Any]:
+def _build_billing_usage_payload(
+    entries: list[WalletLedgerEntry],
+    *,
+    now: datetime | None = None,
+    plan_id: str | None = None,
+) -> dict[str, Any]:
     current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
     five_hour_start = current - timedelta(hours=5)
     week_start = (current - timedelta(days=current.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -308,26 +375,27 @@ def _build_billing_usage_payload(entries: list[WalletLedgerEntry], *, now: datet
     rows = [
         _usage_window_payload(
             key="five_hour",
-            label="5 小时使用限额",
-            limit_points=_billing_usage_limit_points(_BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS, 1200),
+            label="5 小时保护额度",
+            limit_points=_billing_usage_limit_for_plan(plan_id, "five_hour"),
             used_micros=five_hour_used,
             reset_at=five_hour_reset,
         ),
         _usage_window_payload(
             key="weekly",
-            label="每周使用限额",
-            limit_points=_billing_usage_limit_points(_BILLING_USAGE_WEEKLY_LIMIT_POINTS, 2600),
+            label="本周额度",
+            limit_points=_billing_usage_limit_for_plan(plan_id, "weekly"),
             used_micros=weekly_used,
             reset_at=week_reset,
         ),
     ]
-    primary = min(rows, key=lambda row: int(row.get("remaining_percent") or 0))
+    primary = next((row for row in rows if row.get("key") == "weekly"), rows[-1])
     return {
         "status": "ok",
         "display": {
             "primary_label": f"剩余 {int(primary['remaining_percent'])}%",
             "primary_percent": int(primary["remaining_percent"]),
             "limited_by": primary["key"],
+            "plan_id": _normalize_billing_plan_id(plan_id),
         },
         "quota": {
             "rows": rows,
@@ -358,17 +426,108 @@ def _load_billing_usage_entries(
     return _merge_wallet_ledger_entries(wallet_rows, legacy_rows)
 
 
+def _billing_storage_unavailable(exc: Exception, *, source: str) -> HTTPException:
+    status_code = getattr(getattr(exc, "response", None), "status_code", None)
+    logger.warning("billing storage unavailable: source=%s status=%s error=%s", source, status_code, exc)
+    return HTTPException(status_code=503, detail="Billing storage unavailable")
+
+
+def _degraded_billing_usage_payload(*, plan_id: str | None = None) -> dict[str, Any]:
+    return {
+        "status": "degraded",
+        "reason": "billing_storage_unavailable",
+        "display": {
+            "primary_label": "额度同步中",
+            "primary_percent": 100,
+            "limited_by": "weekly",
+            "plan_id": _normalize_billing_plan_id(plan_id),
+        },
+        "quota": {
+            "rows": [],
+        },
+    }
+
+
+def _build_local_checkout_payload(
+    *,
+    user_id: str,
+    wallet_user_id: str,
+    package: dict[str, Any],
+    channel: str,
+) -> dict[str, Any]:
+    package_id = str(package.get("id") or "").strip()
+    price = str(package.get("price") or "").strip()
+    amount_fen = _price_to_fen(price)
+    order_id = f"dt_{channel}_{uuid4().hex}"
+    payment_type = "wechat_mp" if channel == "wechat" else "alipay_qr"
+    return {
+        "status": "payment_config_missing",
+        "order_id": order_id,
+        "channel": channel,
+        "user_id": user_id,
+        "wallet_user_id": wallet_user_id,
+        "package": {
+            "id": package_id,
+            "label": str(package.get("label") or ""),
+            "price": price,
+            "points": int(package.get("points") or 0),
+        },
+        "amount_fen": amount_fen,
+        "currency": "CNY",
+        "payment": {
+            "type": payment_type,
+            "params": None,
+            "qr_code_url": "",
+        },
+        "message": (
+            "Missing payment gateway config. Set DEEPTUTOR_PAYMENT_GATEWAY_URL "
+            "or connect WeChat Pay / Alipay provider credentials."
+        ),
+    }
+
+
+def _create_payment_gateway_order(payload: dict[str, Any]) -> dict[str, Any] | None:
+    gateway_url = _payment_gateway_url()
+    if not gateway_url:
+        return None
+    try:
+        response = httpx.post(
+            f"{gateway_url}/orders",
+            json=payload,
+            timeout=8.0,
+        )
+        response.raise_for_status()
+        data = response.json()
+    except Exception as exc:
+        logger.warning("payment gateway order creation failed: %s", exc)
+        raise HTTPException(status_code=502, detail="Payment gateway unavailable") from exc
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=502, detail="Payment gateway returned invalid payload")
+    return data
+
+
 def _assert_billing_quota_available(authorization: str | None, *, wallet_user_id: str) -> None:
     normalized_user_id = str(wallet_user_id or "").strip()
     if not normalized_user_id or not getattr(wallet_service, "is_configured", False):
         return
-    usage_payload = _build_billing_usage_payload(
-        _load_billing_usage_entries(
-            authorization,
-            wallet_user_id=normalized_user_id,
-            limit=_BILLING_USAGE_LEDGER_WINDOW,
+    try:
+        usage_payload = _build_billing_usage_payload(
+            _load_billing_usage_entries(
+                authorization,
+                wallet_user_id=normalized_user_id,
+                limit=_BILLING_USAGE_LEDGER_WINDOW,
+            ),
+            plan_id=_wallet_snapshot_or_zero(normalized_user_id).plan_id,
         )
-    )
+    except Exception as exc:
+        status_code = getattr(getattr(exc, "response", None), "status_code", None)
+        logger.warning(
+            "billing quota gate skipped: wallet_user_id=%s status=%s error=%s",
+            _log_safe_id(normalized_user_id),
+            status_code,
+            exc,
+        )
+        return
     rows = ((usage_payload.get("quota") or {}).get("rows") or []) if isinstance(usage_payload, dict) else []
     exhausted = [
         row
@@ -1761,13 +1920,19 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
     if not str(wallet_user_id or "").strip():
         return _build_billing_usage_payload([])
-    return _build_billing_usage_payload(
-        _load_billing_usage_entries(
-            authorization,
-            wallet_user_id=wallet_user_id,
-            limit=_BILLING_USAGE_LEDGER_WINDOW,
+    try:
+        snapshot = _wallet_snapshot_or_zero(wallet_user_id)
+        return _build_billing_usage_payload(
+            _load_billing_usage_entries(
+                authorization,
+                wallet_user_id=wallet_user_id,
+                limit=_BILLING_USAGE_LEDGER_WINDOW,
+            ),
+            plan_id=snapshot.plan_id,
         )
-    )
+    except Exception as exc:
+        _billing_storage_unavailable(exc, source="billing_usage")
+        return _degraded_billing_usage_payload()
 
 
 @router.get("/billing/ledger")
@@ -1786,16 +1951,26 @@ async def billing_ledger(
             "total": 0,
         }
     merge_window = offset + limit + 1
-    wallet_rows = wallet_service.list_wallet_ledger(wallet_user_id, limit=merge_window, offset=0)
-    legacy_rows = (
-        _load_legacy_wallet_ledger_entries(
-            authorization,
-            wallet_user_id=wallet_user_id,
-            limit=merge_window,
+    try:
+        wallet_rows = wallet_service.list_wallet_ledger(wallet_user_id, limit=merge_window, offset=0)
+        legacy_rows = (
+            _load_legacy_wallet_ledger_entries(
+                authorization,
+                wallet_user_id=wallet_user_id,
+                limit=merge_window,
+            )
+            if _env_flag_enabled(_BILLING_INCLUDE_LEGACY_LEDGER)
+            else []
         )
-        if _env_flag_enabled(_BILLING_INCLUDE_LEGACY_LEDGER)
-        else []
-    )
+    except Exception as exc:
+        _billing_storage_unavailable(exc, source="billing_ledger")
+        return {
+            "entries": [],
+            "has_more": False,
+            "total": 0,
+            "degraded": True,
+            "reason": "billing_storage_unavailable",
+        }
     merged_rows = _merge_wallet_ledger_entries(wallet_rows, legacy_rows)
     page = merged_rows[offset : offset + limit]
     has_more = offset + limit < len(merged_rows)
@@ -1804,6 +1979,31 @@ async def billing_ledger(
         "has_more": has_more,
         "total": len(merged_rows),
     }
+
+
+@router.post("/billing/checkout")
+async def billing_checkout(
+    payload: BillingCheckoutRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    wallet_user_id = _resolve_wallet_lookup_user_id(authorization) or user_id
+    channel = str(payload.channel or "").strip().lower()
+    if channel not in _BILLING_PAYMENT_CHANNELS:
+        raise HTTPException(status_code=400, detail="Unsupported payment channel")
+    package = _billing_package_by_id(payload.package_id)
+    if package is None:
+        raise HTTPException(status_code=404, detail="Billing package not found")
+    checkout_payload = _build_local_checkout_payload(
+        user_id=user_id,
+        wallet_user_id=wallet_user_id,
+        package=package,
+        channel=channel,
+    )
+    gateway_payload = _create_payment_gateway_order(checkout_payload)
+    if gateway_payload is not None:
+        return gateway_payload
+    return checkout_payload
 
 
 @router.get("/homepage/dashboard")

@@ -1,4 +1,4 @@
-<!-- pages/billing/billing.wxml — 使用情况与充值 -->
+<!-- pages/billing/billing.wxml — 使用情况与额度 -->
 <view class="billing-page {{isDark?'':'light'}}">
 
   <!-- 自定义导航栏 -->
@@ -26,12 +26,20 @@
 
       <!-- 使用情况 -->
       <view class="balance-card">
-        <view class="balance-topline">
-          <text class="balance-label">使用情况</text>
-          <text class="balance-note">按模型与复杂度动态计量</text>
+        <view class="balance-copy">
+          <view class="balance-topline">
+            <text class="balance-label">本周额度</text>
+            <text class="balance-note">按周更新</text>
+          </view>
+          <view class="balance-core">
+            <text class="balance-num">{{usagePrimaryLabel}}</text>
+          </view>
         </view>
-        <view class="balance-core">
-          <text class="balance-num">{{usagePrimaryLabel}}</text>
+        <view class="balance-gauge" aria-hidden="true">
+          <view class="balance-gauge-ring">
+            <text class="balance-gauge-num">{{usagePrimaryPercent}}</text>
+            <text class="balance-gauge-unit">%</text>
+          </view>
         </view>
         <view class="usage-quota-list">
           <view class="usage-quota-row" wx:for="{{usageRows}}" wx:key="key">
@@ -51,8 +59,8 @@
 
       <!-- 套餐选择 -->
       <view class="section-head">
-        <text class="section-title">选择额度方案</text>
-        <text class="section-sub">仅保留 3 档主套餐。</text>
+        <text class="section-title">选择备考强度</text>
+        <text class="section-sub">按学习强度开通，每周自动更新。</text>
       </view>
       <view class="pkg-grid">
         <view
@@ -69,6 +77,7 @@
                 <text class="pkg-badge" wx:if="{{item.badge}}">{{item.badge}}</text>
               </view>
               <text class="pkg-points">{{item.usageLabel}}</text>
+              <text class="pkg-per">{{item.rhythm}}</text>
               <text class="pkg-desc">{{item.desc}}</text>
             </view>
             <view class="pkg-price-block">
@@ -84,14 +93,22 @@
         </view>
       </view>
 
-      <!-- 充值按钮 -->
-      <view class="recharge-btn {{paymentAvailability.enabled && selectedPkg ? 'on' : 'disabled'}}" bindtap="onRecharge">
-        <text class="recharge-btn-txt">{{paymentAvailability.enabled ? '立即充值' : paymentAvailability.label}}</text>
+      <!-- 开通按钮 -->
+      <view class="pay-dock">
+        <view class="pay-dock-copy">
+          <text class="pay-dock-label">{{selectedPkgLabel}}</text>
+          <text class="pay-dock-meta">{{selectedPkgUsage}}</text>
+        </view>
+        <view class="pay-dock-action" bindtap="onRecharge">
+          <text class="pay-dock-yen">¥</text>
+          <text class="pay-dock-price">{{selectedPkgPrice}}</text>
+          <text class="pay-dock-cta">开通</text>
+        </view>
       </view>
 
-      <text class="usage-inline">实际消耗会随模型、上下文长度和任务复杂度动态变化。</text>
+      <text class="usage-inline">实际消耗会随上下文长度、案例批改和整卷复盘复杂度动态变化。</text>
 
-      <!-- 充值记录 -->
+      <!-- 额度记录 -->
       <view class="section-head section-head-records">
         <text class="section-title">额度记录</text>
         <text class="section-sub">最近流水</text>
@@ -105,7 +122,7 @@
       </view>
 
       <view wx:elif="{{error}}" class="empty-card">
-        <text class="empty-title">加载失败</text>
+        <text class="empty-title">{{errorTitle}}</text>
         <view class="retry-btn" bindtap="retry"><text class="retry-btn-txt">重试</text></view>
       </view>
 
@@ -141,5 +158,47 @@
       <view style="height: 60rpx"></view>
     </view>
   </scroll-view>
+
+  <view wx:if="{{checkoutVisible}}" class="checkout-mask" bindtap="closeCheckout">
+    <view class="checkout-sheet" catchtap="noop">
+      <view class="checkout-handle"></view>
+      <view class="checkout-head">
+        <view>
+          <text class="checkout-kicker">确认开通</text>
+          <text class="checkout-title">{{selectedPkgLabel}}</text>
+        </view>
+        <text class="checkout-close" bindtap="closeCheckout">×</text>
+      </view>
+      <view class="checkout-summary">
+        <view>
+          <text class="checkout-summary-main">{{selectedPkgUsage}}</text>
+          <text class="checkout-summary-sub">{{selectedPkgDesc}}</text>
+        </view>
+        <view class="checkout-price">
+          <text class="checkout-yen">¥</text>
+          <text class="checkout-amount">{{selectedPkgPrice}}</text>
+        </view>
+      </view>
+      <view class="pay-channel-list">
+        <view
+          class="pay-channel {{selectedPayChannel === item.id ? 'active' : ''}}"
+          wx:for="{{payChannels}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onSelectPayChannel"
+        >
+          <view class="pay-channel-mark {{item.id}}"></view>
+          <view class="pay-channel-copy">
+            <text class="pay-channel-title">{{item.label}}</text>
+            <text class="pay-channel-desc">{{item.desc}}</text>
+          </view>
+          <view class="pay-channel-check"></view>
+        </view>
+      </view>
+      <view class="checkout-submit {{paying ? 'loading' : ''}}" bindtap="onConfirmPay">
+        <text class="checkout-submit-text">{{paying ? '正在拉起支付' : '确认支付 ¥' + selectedPkgPrice}}</text>
+      </view>
+    </view>
+  </view>
 
 </view>

@@ -87,7 +87,7 @@ module.exports = {
         value="{{inputText}}"
         bindinput="onInput"
         bindconfirm="sendMessage"
-        placeholder="考点梳理、真题分析、规范查询、错题复盘，随问随答"
+        placeholder="直接问：考点、真题、规范、错题"
         placeholder-class="input-ph"
         auto-height
         maxlength="2000"
@@ -459,7 +459,16 @@ module.exports = {
           <view class="mcq" wx:if="{{item.mcqCards && item.mcqCards.length && (!item.streaming || (!item.renderableContent && !item.blocks.length))}}">
             <view class="mcq-head">
               <text class="mcq-head-title" user-select>{{item.mcqInteractiveReady ? '交互式作答' : '题目回看'}}</text>
-              <text class="mcq-head-hint" user-select>{{item.mcqHint ? item.mcqHint : '点击选项后提交答案'}}</text>
+              <view class="mcq-head-side">
+                <text class="mcq-head-hint" user-select>{{item.mcqHint ? item.mcqHint : '点击选项后提交答案'}}</text>
+                <view class="original-toggle" wx:if="{{item.originalContent}}" bindtap="onToggleOriginalContent" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.originalExpanded ? '收起原文' : '查看原文'}}">
+                  <text class="original-toggle-text">{{item.originalExpanded ? '收起原文' : '查看原文'}}</text>
+                  <text class="original-toggle-arrow">{{item.originalExpanded ? '⌃' : '⌄'}}</text>
+                </view>
+              </view>
+            </view>
+            <view class="original-panel" wx:if="{{item.originalContent && item.originalExpanded}}">
+              <text class="original-panel-text" user-select>{{item.originalContent}}</text>
             </view>
             <view class="mcq-card" wx:for="{{item.mcqCards}}" wx:key="index" wx:for-item="card">
               <view class="mcq-card-bar">

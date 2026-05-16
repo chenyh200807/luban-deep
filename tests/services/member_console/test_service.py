@@ -363,15 +363,14 @@ def test_production_bootstrap_starts_without_demo_members(
     assert data["members"] == []
     assert data["audit_log"] == []
     assert {package["id"] for package in data["packages"]} == {
-        "trial",
         "advance",
         "sprint",
     }
-    assert [package["price"] for package in data["packages"]] == ["9", "99", "199"]
-    assert [package["points"] for package in data["packages"]] == [100, 1200, 2600]
+    assert [package["price"] for package in data["packages"]] == ["99", "199"]
+    assert [package["points"] for package in data["packages"]] == [4400, 9000]
 
 
-def test_load_replaces_stale_persisted_packages_with_canonical_three_packages(
+def test_load_replaces_stale_persisted_packages_with_canonical_two_packages(
     tmp_path: Path,
 ) -> None:
     service = MemberConsoleService()
@@ -404,9 +403,9 @@ def test_load_replaces_stale_persisted_packages_with_canonical_three_packages(
     data = service._load()
     wallet = service.get_wallet("student_demo")
 
-    assert [package["id"] for package in data["packages"]] == ["trial", "advance", "sprint"]
-    assert [package["price"] for package in wallet["packages"]] == ["9", "99", "199"]
-    assert [package["points"] for package in wallet["packages"]] == [100, 1200, 2600]
+    assert [package["id"] for package in data["packages"]] == ["advance", "sprint"]
+    assert [package["price"] for package in wallet["packages"]] == ["99", "199"]
+    assert [package["points"] for package in wallet["packages"]] == [4400, 9000]
 
 
 def test_non_production_bootstrap_defaults_to_empty_members_without_demo_seed_flag(

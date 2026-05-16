@@ -23,6 +23,8 @@ function loadBillingPage() {
   var pageDef = null;
   var toastCalls = [];
   var modalCalls = [];
+  var paymentCalls = [];
+  var checkoutCalls = [];
   var sandbox = {
     console: console,
     setTimeout: setTimeout,
@@ -37,6 +39,11 @@ function loadBillingPage() {
       showModal: function (payload) {
         modalCalls.push(payload);
       },
+      requestPayment: function (payload) {
+        paymentCalls.push(payload);
+        if (payload && typeof payload.success === "function") payload.success({});
+      },
+      previewImage: function () {},
       navigateBack: function () {},
       reLaunch: function () {},
     },
@@ -49,6 +56,23 @@ function loadBillingPage() {
           getLedger: function () {
             return Promise.resolve({ entries: [], has_more: false });
           },
+          createBillingCheckout: function (payload) {
+            checkoutCalls.push(payload);
+            return Promise.resolve({
+              status: "pending_payment",
+              payment: {
+                type: "wechat_mp",
+                params: {
+                  timeStamp: "1770000000",
+                  nonceStr: "nonce",
+                  package: "prepay_id=wx123",
+                  signType: "RSA",
+                  paySign: "sign",
+                },
+              },
+            });
+          },
+          unwrapResponse: function (raw) { return raw; },
         };
       }
       if (request === "../../utils/helpers") {
@@ -96,38 +120,42 @@ function loadBillingPage() {
     page[key] = pageDef[key];
   });
 
-  return { page: page, toastCalls: toastCalls, modalCalls: modalCalls };
+  return {
+    page: page,
+    toastCalls: toastCalls,
+    modalCalls: modalCalls,
+    paymentCalls: paymentCalls,
+    checkoutCalls: checkoutCalls,
+  };
 }
 
-(function main() {
+(async function main() {
   try {
     var loaded = loadBillingPage();
     var page = loaded.page;
     var packages = page.data.packages;
 
     assert(Array.isArray(packages), "billing packages should be an array");
-    assert(packages.length === 3, "billing page should expose exactly three packages");
+    assert(packages.length === 2, "billing page should expose exactly two packages");
     assert(
-      packages.map(function (item) { return item.price; }).join(",") === "9,99,199",
-      "billing page should keep the 9,99,199 package prices",
+      packages.map(function (item) { return item.price; }).join(",") === "99,199",
+      "billing page should keep the 99,199 package prices",
     );
     assert(
-      packages.map(function (item) { return item.points; }).join(",") === "100,1200,2600",
-      "billing page should keep the approved 100,1200,2600 point mapping",
+      packages.map(function (item) { return item.points; }).join(",") === "4400,9000",
+      "billing page should keep the approved weekly allowance mapping",
     );
-    assert(page.data.selectedPkg === "advance", "billing page should default to the 99 yuan package");
+    assert(page.data.selectedPkg === "sprint", "billing page should default to the recommended pass package");
 
-    page.onSelectPkg({ currentTarget: { dataset: { id: "sprint" } } });
-    assert(page.data.selectedPkg === "sprint", "billing page should update selection from tap dataset");
+    page.onSelectPkg({ currentTarget: { dataset: { id: "advance" } } });
+    assert(page.data.selectedPkg === "advance", "billing page should update selection from tap dataset");
 
     page.onRecharge();
-    assert(loaded.toastCalls.length === 0, "billing recharge should not pretend a payment flow exists");
-    assert(
-      loaded.modalCalls.length === 1 &&
-        loaded.modalCalls[0].title === "暂未开放" &&
-        loaded.modalCalls[0].content.indexOf("微信支付") >= 0,
-      "billing recharge should explain unavailable payment authority",
-    );
+    assert(page.data.checkoutVisible === true, "billing recharge should open checkout sheet");
+    await page.onConfirmPay();
+    assert(loaded.checkoutCalls.length === 1, "billing should create checkout order");
+    assert(loaded.paymentCalls.length === 1, "billing should invoke WeChat payment request");
+    assert(loaded.modalCalls.length === 0, "billing should not show unavailable payment copy");
   } catch (err) {
     fail++;
     errors.push("ERROR: " + (err && err.stack ? err.stack : err));
@@ -139,4 +167,7 @@ function loadBillingPage() {
   }
 
   console.log("PASS test_billing_packages.js (" + pass + " assertions)");
-})();
+})().catch(function (err) {
+  console.error(err && err.stack ? err.stack : String(err));
+  process.exit(1);
+});

@@ -49,8 +49,7 @@ function _formatUsageReset(resetAt) {
 
 function _usageLabel(row) {
   var key = String(row.key || "");
-  if (key === "five_hour") return "5 小时限额";
-  if (key === "weekly") return "每周限额";
+  if (key === "weekly") return "本周额度";
   return String(row.label || "使用限额").replace("使用限额", "限额");
 }
 
@@ -59,7 +58,9 @@ function _normalizeUsage(raw) {
   var display = data.display || {};
   var quota = data.quota || {};
   var sourceRows = display.rows || quota.rows || data.rows || [];
-  var rows = sourceRows.map(function (row) {
+  var rows = sourceRows.filter(function (row) {
+    return String(row.key || "") !== "five_hour";
+  }).map(function (row) {
     var remaining = Math.max(0, Math.min(100, Math.round(Number(row.remaining_percent) || 0)));
     var resetLabel = _formatUsageReset(row.reset_at);
     var remainingLabel = "剩余 " + remaining + "%";
@@ -92,7 +93,7 @@ function buildLinkItems(workspaceFlags) {
   if (flagsValue.reportEnabled !== false) {
     items.push({ id: "diagnostic", icon: "🔍", title: "摸底报告" });
   }
-  items.push({ id: "membership", icon: "👑", title: "会员充值" });
+  items.push({ id: "membership", icon: "👑", title: "会员额度" });
   items.push({ id: "feedback", icon: "💬", title: "意见反馈" });
   items.push({ id: "terms", icon: "📄", title: "服务条款" });
   return items;

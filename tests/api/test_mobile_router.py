@@ -722,6 +722,17 @@ def test_mobile_chat_start_turn_blocks_when_usage_quota_exhausted(monkeypatch: p
         is_configured = True
 
         @staticmethod
+        def get_wallet(user_id: str):
+            return mobile_module.WalletSnapshot(
+                user_id=user_id,
+                balance_micros=100_000_000,
+                frozen_micros=0,
+                plan_id="advance",
+                version=1,
+                created_at=mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ).isoformat(),
+            )
+
+        @staticmethod
         def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
             captured["wallet_user_id"] = user_id
             captured["limit"] = limit
@@ -774,6 +785,189 @@ def test_mobile_chat_start_turn_blocks_when_usage_quota_exhausted(monkeypatch: p
     assert captured["limit"] == mobile_module._BILLING_USAGE_LEDGER_WINDOW
     assert captured["offset"] == 0
     assert "started" not in captured
+
+
+def test_billing_usage_defaults_follow_two_plan_quota(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", raising=False)
+    monkeypatch.delenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", raising=False)
+
+    advance = mobile_module._build_billing_usage_payload([], plan_id="advance")
+    sprint = mobile_module._build_billing_usage_payload([], plan_id="sprint")
+
+    assert advance["display"]["plan_id"] == "advance"
+    assert sprint["display"]["plan_id"] == "sprint"
+    assert [row["label"] for row in advance["quota"]["rows"]] == ["5 小时保护额度", "本周额度"]
+
+    advance_rows = {row["key"]: row for row in advance["quota"]["rows"]}
+    sprint_rows = {row["key"]: row for row in sprint["quota"]["rows"]}
+    assert advance_rows["five_hour"]["remaining_percent"] == 100
+    assert sprint_rows["five_hour"]["remaining_percent"] == 100
+    assert mobile_module._billing_usage_limit_for_plan("advance", "weekly") == 4400
+    assert mobile_module._billing_usage_limit_for_plan("sprint", "weekly") == 9000
+
+
+def test_mobile_chat_start_turn_skips_quota_gate_when_billing_storage_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {"id": "session_quota_degraded", "title": "New conversation", "created_at": 1_700_000_030.0},
+                {"id": "turn_quota_degraded", "status": "running", "capability": ""},
+            )
+
+    class FailingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            raise RuntimeError("supabase payment required")
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "继续讲这道题"},
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["turn"]["id"] == "turn_quota_degraded"
+    assert captured["payload"]["config"]["billing_context"]["wallet_user_id"] == "wallet_demo"
+
+
+def test_billing_usage_returns_degraded_payload_when_billing_storage_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FailingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return mobile_module.WalletSnapshot(
+                user_id=user_id,
+                balance_micros=100_000_000,
+                frozen_micros=0,
+                plan_id="advance",
+                version=1,
+                created_at=mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ).isoformat(),
+            )
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            raise RuntimeError("supabase payment required")
+
+    monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get(
+            "/api/v1/billing/usage",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "degraded"
+    assert body["display"]["primary_label"] == "额度同步中"
+    assert body["quota"]["rows"] == []
+
+
+def test_billing_ledger_returns_degraded_empty_page_when_billing_storage_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FailingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            raise RuntimeError("supabase payment required")
+
+    monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get(
+            "/api/v1/billing/ledger?limit=15",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["entries"] == []
+    assert body["degraded"] is True
+
+
+def test_billing_checkout_creates_wechat_order_shell_without_gateway(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("DEEPTUTOR_PAYMENT_GATEWAY_URL", raising=False)
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/billing/checkout",
+            json={"package_id": "sprint", "channel": "wechat"},
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "payment_config_missing"
+    assert body["channel"] == "wechat"
+    assert body["wallet_user_id"] == "wallet_demo"
+    assert body["package"]["id"] == "sprint"
+    assert body["amount_fen"] == 19900
+    assert body["payment"]["type"] == "wechat_mp"
+
+
+def test_billing_checkout_rejects_unknown_channel(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/billing/checkout",
+            json={"package_id": "sprint", "channel": "bank_card"},
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 400
 
 
 def test_mobile_chat_feedback_persists_structured_row(

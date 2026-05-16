@@ -493,6 +493,205 @@ run("markdown blocks expose rich-text nodes for inline emphasis and punctuation"
   );
 });
 
+run("teaching markdown headings render as semantic callouts", function () {
+  var text = [
+    "## 核心结论",
+    "",
+    "先判断责任边界。",
+    "",
+    "## 踩分点",
+    "",
+    "- 写清判断结论。",
+    "",
+    "## 易错点",
+    "",
+    "- 不要把合同责任和现场责任混在一起。",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    parseBlocks: true,
+  });
+
+  var callouts = (state.blocks || []).filter(function (block) {
+    return block.type === "callout";
+  });
+  assertEqual(
+    callouts.map(function (block) {
+      return block.label + ":" + block.variant;
+    }),
+    ["核心结论:conclusion", "踩分点:highlight", "易错点:warning"],
+    "mandatory teaching headings should use the dedicated callout renderer",
+  );
+});
+
+run("mnemonic and next-step headings render as semantic callouts", function () {
+  var text = [
+    "## 记忆口诀",
+    "",
+    "先判责，再找法，最后写做法。",
+    "",
+    "## 下一步建议",
+    "",
+    "- 先用一道案例题检验这个判断顺序。",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    parseBlocks: true,
+  });
+
+  var callouts = (state.blocks || []).filter(function (block) {
+    return block.type === "callout";
+  });
+  assertEqual(
+    callouts.map(function (block) {
+      return block.label + ":" + block.variant;
+    }),
+    ["记忆口诀:tip", "下一步建议:tip"],
+    "mnemonic and next-step advice headings should use the dedicated callout renderer",
+  );
+});
+
+run("structured presentation keeps teaching fallback callouts renderable", function () {
+  var text = [
+    "## 核心结论",
+    "",
+    "先判断责任边界。",
+    "",
+    "## 踩分点",
+    "",
+    "- 写清判断结论。",
+    "",
+    "## 易错点",
+    "",
+    "- 不要把合同责任和现场责任混在一起。",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    presentation: {
+      blocks: [
+        {
+          type: "steps",
+          title: "解题步骤",
+          steps: [{ index: 1, title: "审题", detail: "先找责任主体。" }],
+        },
+      ],
+      fallback_text: text,
+      meta: { streamingMode: "block_finalized" },
+    },
+    parseBlocks: true,
+  });
+
+  var blockTypes = (state.blocks || []).map(function (block) {
+    return block.type + ":" + (block.label || block.title || "");
+  });
+  assert(
+    blockTypes.indexOf("steps:解题步骤") >= 0,
+    "structured teaching block should still render",
+  );
+  assert(
+    blockTypes.indexOf("callout:踩分点") >= 0 &&
+      blockTypes.indexOf("callout:易错点") >= 0,
+    "teaching fallback sections should not be swallowed by structured blocks",
+  );
+  assertEqual(
+    state.renderableContent,
+    "",
+    "teaching fallback should render through blocks instead of plain ai-text",
+  );
+});
+
+run("structured presentation keeps mnemonic and next-step fallback callouts renderable", function () {
+  var text = [
+    "## 记忆口诀",
+    "",
+    "先判责，再找法，最后写做法。",
+    "",
+    "## 下一步建议",
+    "",
+    "- 先用一道案例题检验这个判断顺序。",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    presentation: {
+      blocks: [
+        {
+          type: "steps",
+          title: "练习安排",
+          steps: [{ index: 1, title: "做题", detail: "先做一道同类题。" }],
+        },
+      ],
+      fallback_text: text,
+      meta: { streamingMode: "block_finalized" },
+    },
+    parseBlocks: true,
+  });
+
+  var blockTypes = (state.blocks || []).map(function (block) {
+    return block.type + ":" + (block.label || block.title || "");
+  });
+  assert(
+    blockTypes.indexOf("steps:练习安排") >= 0,
+    "structured block should still render with mnemonic fallback",
+  );
+  assert(
+    blockTypes.indexOf("callout:记忆口诀") >= 0 &&
+      blockTypes.indexOf("callout:下一步建议") >= 0,
+    "mnemonic and next-step fallback sections should not be swallowed by structured blocks",
+  );
+});
+
+run("mcq presentation folds duplicate original text behind a toggle", function () {
+  var text = [
+    "关于民用建筑构造要求的说法，正确的是（ ）。",
+    "A. 楼梯平台上部及下部过道处的净高不应小于2.20m",
+    "B. 住宅建筑室内净高不应低于2.40m",
+    "C. 临空高度在24m以下时，阳台栏杆净高不应低于1.10m",
+    "D. 屋面面层均应采用不燃材料",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    presentation: {
+      blocks: [
+        {
+          type: "mcq",
+          questions: [
+            {
+              index: 1,
+              stem: "关于民用建筑构造要求的说法，正确的是（ ）。",
+              question_type: "single_choice",
+              options: [
+                { key: "A", text: "楼梯平台上部及下部过道处的净高不应小于2.20m" },
+                { key: "B", text: "住宅建筑室内净高不应低于2.40m" },
+                { key: "C", text: "临空高度在24m以下时，阳台栏杆净高不应低于1.10m" },
+                { key: "D", text: "屋面面层均应采用不燃材料" },
+              ],
+              followup_context: {
+                question_id: "q_building_1",
+                correct_answer: "C",
+              },
+            },
+          ],
+          submit_hint: "请选择后提交答案",
+        },
+      ],
+      fallback_text: text,
+      meta: { streamingMode: "block_finalized" },
+    },
+    parseBlocks: true,
+  });
+
+  assert(state.mcqCards && state.mcqCards.length === 1, "mcq card should render");
+  assertEqual(state.renderableContent, "", "duplicate original mcq text should not render above the card");
+  assertEqual(state.blocks.length, 0, "duplicate original mcq text should not stay in markdown blocks");
+  assertEqual(state.originalContent, text, "original text should still be available behind the toggle");
+  assertEqual(state.originalCollapsed, true, "original text should be collapsed by default");
+});
+
 run("markdown normalization flattens nested lists into the supported mobile subset", function () {
   var text = [
     "## 2.设防层数（定量要求）",

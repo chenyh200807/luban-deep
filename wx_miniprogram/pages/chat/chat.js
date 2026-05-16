@@ -683,6 +683,8 @@ Page({
         mcqHint: "",
         mcqReceipt: "",
         mcqInteractiveReady: false,
+        originalContent: "",
+        originalExpanded: false,
         thinkingStatus: "",
         thinkingBadge: "",
         thinkingSub: "",
@@ -717,6 +719,8 @@ Page({
         msg.mcqHint = derived.mcqHint;
         msg.mcqReceipt = derived.mcqReceipt;
         msg.mcqInteractiveReady = derived.mcqInteractiveReady;
+        msg.originalContent = derived.originalContent || "";
+        msg.originalExpanded = derived.originalCollapsed === false;
       }
       return msg;
     });
@@ -787,6 +791,8 @@ Page({
       mcqHint: "",
       mcqReceipt: "",
       mcqInteractiveReady: false,
+      originalContent: "",
+      originalExpanded: false,
       thinkingStatus: "",
       thinkingBadge: "",
       thinkingSub: "",
@@ -1288,6 +1294,8 @@ Page({
     updates["messages[" + idx + "].mcqHint"] = state.mcqHint;
     updates["messages[" + idx + "].mcqReceipt"] = state.mcqReceipt;
     updates["messages[" + idx + "].mcqInteractiveReady"] = state.mcqInteractiveReady;
+    updates["messages[" + idx + "].originalContent"] = state.originalContent || "";
+    updates["messages[" + idx + "].originalExpanded"] = state.originalCollapsed === false;
     updates["messages[" + idx + "].hasStructuredContent"] = !!state.hasStructuredContent;
     if (options.parseBlocks || state.hasStructuredContent) {
       updates["messages[" + idx + "].blocks"] = state.blocks || [];
@@ -1841,6 +1849,8 @@ Page({
       mcqHint: "",
       mcqReceipt: "",
       mcqInteractiveReady: false,
+      originalContent: "",
+      originalExpanded: false,
       thinkingStatus: "正在分析你的问题...",
       thinkingBadge: "",
       thinkingSub: "",
@@ -2545,6 +2555,17 @@ Page({
     var current = !!this.data.messages[idx].workflowExpanded;
     this.setData({
       ["messages[" + idx + "].workflowExpanded"]: !current,
+    });
+  },
+
+  onToggleOriginalContent: function (e) {
+    helpers.vibrate("light");
+    var idx = this._find(e.currentTarget.dataset.msgid);
+    if (idx === -1) return;
+    var msg = this.data.messages[idx] || {};
+    if (!msg.originalContent) return;
+    this.setData({
+      ["messages[" + idx + "].originalExpanded"]: !msg.originalExpanded,
     });
   },
 

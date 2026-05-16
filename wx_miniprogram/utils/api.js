@@ -505,6 +505,15 @@ function getLedger(limit, offset) {
   });
 }
 
+/** 创建会员开通支付订单 */
+function createBillingCheckout(payload) {
+  return request({
+    url: "/api/v1/billing/checkout",
+    method: "POST",
+    data: payload || {},
+  });
+}
+
 /** 提交消息反馈（点赞/点踩） */
 function submitFeedback(data) {
   var sessionId = String((data && data.conversation_id) || "").trim();
@@ -578,6 +587,7 @@ module.exports = {
   batchConversations: batchConversations,
   getWallet: getWallet,
   getLedger: getLedger,
+  createBillingCheckout: createBillingCheckout,
   submitFeedback: submitFeedback,
   getHomeDashboard: getHomeDashboard,
   getAssessmentProfile: getAssessmentProfile,

@@ -24,7 +24,8 @@ assert(/usagePrimaryLabel/.test(profileJs) && /usageRows/.test(profileJs), "prof
 assert(/quota\.rows/.test(profileJs), "profile should read canonical quota rows from billing usage payload");
 assert(/openUsageDetail/.test(profileJs) && /closeUsageDetail/.test(profileJs), "profile should expose usage detail interactions");
 assert(/class="usage-card glass-card"/.test(profileWxml), "profile should render the usage card");
-assert(/class="usage-summary-row"/.test(profileWxml), "profile should render compact five-hour and weekly usage rows");
+assert(/class="usage-summary-row"/.test(profileWxml), "profile should render compact visible usage rows");
+assert(/five_hour/.test(profileJs) && /!== "five_hour"/.test(profileJs), "profile should keep five-hour quota as backend-only protection");
 assert(/class="usage-detail-sheet/.test(profileWxml), "profile should render a usage detail sheet");
 assert(!/\{\{points\}\}/.test(profileWxml) && !/\{\{userPoints\}\}/.test(profileWxml), "profile should not render raw point balances");
 

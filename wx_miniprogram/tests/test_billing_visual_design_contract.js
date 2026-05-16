@@ -25,6 +25,7 @@ function read(relPath) {
 function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath) {
   var wxml = read(wxmlPath);
   var wxss = read(wxssPath);
+  var js = read(wxmlPath.replace(/\.wxml$/, ".js"));
 
   assert(
     wxml.indexOf('class="nav-logo-shell"') >= 0,
@@ -47,15 +48,38 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath) {
   );
   assert(
     wxml.indexOf("{{item.usageLabel}}") >= 0 &&
+      wxml.indexOf("{{item.rhythm}}") >= 0 &&
       wxml.indexOf("{{item.points}} 智力点") < 0 &&
       wxml.indexOf("当前余额") < 0 &&
       wxml.indexOf("充值额度") < 0,
     label + " billing should describe packages as usage allowance rather than raw points or recharge quota",
   );
   assert(
+    wxml.indexOf("选择备考强度") >= 0 &&
+      wxml.indexOf("每周自动更新") >= 0 &&
+      wxml.indexOf("仅保留 3 档主套餐") < 0,
+    label + " billing should use the two-plan learning-intensity positioning",
+  );
+  assert(
     wxml.indexOf('class="usage-quota-list"') >= 0 &&
       wxss.indexOf(".usage-meter-fill") >= 0,
     label + " billing should show usage-limit percentages with reset meters",
+  );
+  assert(
+    wxml.indexOf('class="balance-gauge"') >= 0 &&
+      wxss.indexOf(".balance-gauge-ring") >= 0 &&
+      wxss.indexOf(".pay-dock-action") >= 0,
+    label + " billing should use a stronger quota dashboard and payment dock",
+  );
+  assert(
+    js.indexOf("微信支付") >= 0 &&
+      js.indexOf("支付宝") >= 0 &&
+      wxml.indexOf('class="checkout-sheet"') >= 0 &&
+      js.indexOf("暂未开放") < 0 &&
+      js.indexOf("暂未开发") < 0 &&
+      wxml.indexOf("暂未开放") < 0 &&
+      wxml.indexOf("暂未开发") < 0,
+    label + " billing should include checkout channels without unavailable copy",
   );
   assert(
     wxss.indexOf(".nav-logo-shell") >= 0 &&

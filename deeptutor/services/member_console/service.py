@@ -528,31 +528,22 @@ class MemberConsoleService:
     def _default_packages() -> list[dict[str, Any]]:
         return [
             {
-                "id": "trial",
-                "label": "轻量体验",
-                "points": 100,
-                "price": "9",
-                "badge": "尝鲜",
-                "per": "约 10 次标准问答",
-                "desc": "适合先体验答疑、解析和日常提问",
-            },
-            {
                 "id": "advance",
-                "label": "进阶主力",
-                "points": 1200,
+                "label": "精学版",
+                "points": 4400,
                 "price": "99",
-                "badge": "推荐",
-                "per": "约 120 次标准问答",
-                "desc": "适合大多数备考阶段，高频问答和复盘更从容",
+                "badge": "",
+                "per": "每周稳定学习额度",
+                "desc": "适合日常学习、错题讲解、章节复盘",
             },
             {
                 "id": "sprint",
-                "label": "冲刺强化",
-                "points": 2600,
+                "label": "通关版",
+                "points": 9000,
                 "price": "199",
-                "badge": "冲刺",
-                "per": "约 260 次标准问答",
-                "desc": "适合考前冲刺、密集刷题和深度推理",
+                "badge": "适合考前冲刺",
+                "per": "高频冲刺备考额度",
+                "desc": "适合案例批改、整卷复盘、冲刺提分",
             },
         ]
 

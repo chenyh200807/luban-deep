@@ -437,6 +437,8 @@ function createRenderModel(rawModel) {
     mcqHint: _asString(model.mcqHint || ""),
     mcqReceipt: _asString(model.mcqReceipt || ""),
     mcqInteractiveReady: !!model.mcqInteractiveReady,
+    originalContent: _asString(model.originalContent || model.original_content || ""),
+    originalCollapsed: model.originalCollapsed !== false,
     visibleBlocks: visibleBlocks,
     plainTextFallback: plainTextFallback,
     hasStructuredContent:

@@ -1,4 +1,4 @@
-// pages/billing/billing.js — 使用情况与充值
+// pages/billing/billing.js — 使用情况与额度
 
 const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
@@ -12,49 +12,56 @@ Page({
     isDark: true,
     loading: true,
     error: false,
-    usagePrimaryLabel: "剩余 --",
+    errorTitle: "加载失败",
+    usagePrimaryLabel: "额度同步中",
     usagePrimaryPercent: 100,
     usageRows: [],
     entries: [],
     page: 1,
     pageSize: 15,
     hasMore: false,
-    selectedPkg: "advance",
-    paymentAvailability: {
-      enabled: false,
-      label: "暂未开放",
-      reason: "充值通道正在接入微信支付，请联系运营开通或稍后再试",
-    },
-    packages: [
+    selectedPkg: "sprint",
+    selectedPkgLabel: "通关版",
+    selectedPkgPrice: "199",
+    selectedPkgUsage: "高频冲刺备考",
+    selectedPkgDesc: "案例批改、整卷复盘、高频追问和薄弱点诊断",
+    checkoutVisible: false,
+    selectedPayChannel: "wechat",
+    paying: false,
+    payChannels: [
       {
-        id: "trial",
-        label: "轻量体验",
-        usageLabel: "轻量使用额度",
-        points: 100,
-        price: "9",
-        per: "约 10 次标准问答",
-        badge: "尝鲜",
-        desc: "适合先体验答疑、解析和日常提问",
+        id: "wechat",
+        label: "微信支付",
+        desc: "小程序内完成支付",
       },
       {
+        id: "alipay",
+        label: "支付宝",
+        desc: "生成支付宝订单",
+      },
+    ],
+    packages: [
+      {
         id: "advance",
-        label: "进阶主力",
-        usageLabel: "高频使用额度",
-        points: 1200,
+        label: "精学版",
+        usageLabel: "每周稳定学习",
+        points: 4400,
         price: "99",
-        per: "约 120 次标准问答",
-        badge: "推荐",
-        desc: "适合大多数备考阶段，高频问答和复盘更从容",
+        per: "适合每周稳定学习",
+        badge: "",
+        desc: "错题讲解、章节复盘、1-2 套卷深度复盘",
+        rhythm: "适合每周 1-2 套卷",
       },
       {
         id: "sprint",
-        label: "冲刺强化",
-        usageLabel: "冲刺使用额度",
-        points: 2600,
+        label: "通关版",
+        usageLabel: "高频冲刺备考",
+        points: 9000,
         price: "199",
-        per: "约 260 次标准问答",
-        badge: "冲刺",
-        desc: "适合考前冲刺、密集刷题和深度推理",
+        per: "适合考前 3-6 个月",
+        badge: "适合考前冲刺",
+        desc: "案例批改、整卷复盘、高频追问和薄弱点诊断",
+        rhythm: "适合高强度冲刺",
       },
     ],
   },
@@ -80,7 +87,9 @@ Page({
     try {
       var data = await api.getUsage();
       this.setData(_normalizeUsage(data));
-    } catch (_) {}
+    } catch (_) {
+      this.setData(_degradedUsageState());
+    }
   },
 
   async _loadLedger() {
@@ -102,10 +111,12 @@ Page({
       this.setData({
         entries: entries,
         hasMore: !!data.has_more,
+        error: !!data.degraded,
+        errorTitle: data.degraded ? "额度记录同步中" : "加载失败",
         loading: false,
       });
     } catch (_) {
-      this.setData({ loading: false, error: true });
+      this.setData({ loading: false, error: true, errorTitle: "额度记录同步中" });
     }
   },
 
@@ -122,22 +133,62 @@ Page({
   },
 
   onSelectPkg: function (e) {
-    this.setData({ selectedPkg: e.currentTarget.dataset.id });
+    var selectedPkg = e.currentTarget.dataset.id;
+    var pkg = _selectedPackage(this.data.packages, selectedPkg);
+    this.setData({
+      selectedPkg: selectedPkg,
+      selectedPkgLabel: pkg.label,
+      selectedPkgPrice: pkg.price,
+      selectedPkgUsage: pkg.usageLabel,
+      selectedPkgDesc: pkg.desc,
+    });
   },
 
   onRecharge: function () {
     if (!this.data.selectedPkg) return;
-    var availability = this.data.paymentAvailability || {};
-    if (!availability.enabled) {
+    this.setData({ checkoutVisible: true });
+  },
+
+  closeCheckout: function () {
+    if (this.data.paying) return;
+    this.setData({ checkoutVisible: false });
+  },
+
+  noop: function () {},
+
+  onSelectPayChannel: function (e) {
+    this.setData({ selectedPayChannel: e.currentTarget.dataset.id });
+  },
+
+  onConfirmPay: async function () {
+    if (this.data.paying) return;
+    var pkg = _selectedPackage(this.data.packages, this.data.selectedPkg);
+    if (!pkg || !pkg.id) return;
+    this.setData({ paying: true });
+    try {
+      var rawOrder = await api.createBillingCheckout({
+        package_id: pkg.id,
+        channel: this.data.selectedPayChannel,
+      });
+      var order = api.unwrapResponse ? api.unwrapResponse(rawOrder) : rawOrder;
+      var payResult = await _runPayment(order);
+      wx.showToast({
+        title: payResult && payResult.pending ? "订单已生成" : "支付完成",
+        icon: payResult && payResult.pending ? "none" : "success",
+      });
+      this.setData({ checkoutVisible: false });
+      this._loadUsage();
+      this._loadLedger();
+    } catch (err) {
       wx.showModal({
-        title: availability.label || "暂未开放",
-        content: availability.reason || "充值通道暂未开放，请稍后再试",
+        title: "支付未完成",
+        content: _paymentErrorMessage(err),
         showCancel: false,
         confirmText: "知道了",
       });
-      return;
+    } finally {
+      this.setData({ paying: false });
     }
-    wx.showToast({ title: "支付通道未配置", icon: "none" });
   },
 
   retry() {
@@ -161,13 +212,59 @@ Page({
   },
 });
 
+function _selectedPackage(packages, selectedPkg) {
+  var items = Array.isArray(packages) ? packages : [];
+  for (var i = 0; i < items.length; i++) {
+    if (String(items[i].id || "") === String(selectedPkg || "")) return items[i];
+  }
+  return items[0] || {};
+}
+
+function _runPayment(order) {
+  var payload = order && order.payment ? order.payment : {};
+  if (payload.type === "wechat_mp" && payload.params) {
+    return new Promise(function (resolve, reject) {
+      wx.requestPayment(
+        Object.assign({}, payload.params, {
+          success: resolve,
+          fail: reject,
+        })
+      );
+    });
+  }
+  if (payload.type === "alipay_qr" && payload.qr_code_url) {
+    return new Promise(function (resolve, reject) {
+      wx.previewImage({
+        current: payload.qr_code_url,
+        urls: [payload.qr_code_url],
+        success: function () { resolve({ pending: true }); },
+        fail: reject,
+      });
+    });
+  }
+  var err = new Error(order && order.status ? order.status : "PAYMENT_ORDER_NOT_READY");
+  err.order = order;
+  throw err;
+}
+
+function _paymentErrorMessage(err) {
+  var order = err && err.order ? err.order : {};
+  if (order.status === "payment_config_missing") {
+    return "支付订单已创建，但商户支付参数缺失。请先配置微信支付商户号/API v3 密钥或支付宝应用私钥。";
+  }
+  if (err && err.errMsg && err.errMsg.indexOf("cancel") >= 0) {
+    return "你已取消本次支付，套餐没有变更。";
+  }
+  return "订单没有完成扣款，套餐不会变更。请稍后重试。";
+}
+
 function _friendlyReason(reason) {
   if (!reason) return "使用量变动";
   var map = {
     capture: "对话消耗",
     grant: "每日赠送",
     refund: "退回",
-    purchase: "充值",
+    purchase: "会员开通",
     admin_grant: "系统赠送",
     signup_bonus: "注册奖励",
   };
@@ -176,6 +273,9 @@ function _friendlyReason(reason) {
 
 function _normalizeUsage(raw) {
   var data = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};
+  if (data && data.status === "degraded") {
+    return _degradedUsageState();
+  }
   var display = data.display || {};
   var quota = data.quota || {};
   var rows = Array.isArray(quota.rows)
@@ -190,7 +290,9 @@ function _normalizeUsage(raw) {
   return {
     usagePrimaryLabel: display.primary_label || "剩余 " + primaryPercent + "%",
     usagePrimaryPercent: Math.max(0, Math.min(100, Math.round(primaryPercent))),
-    usageRows: rows.map(function (row) {
+    usageRows: rows.filter(function (row) {
+      return String(row.key || "") !== "five_hour";
+    }).map(function (row) {
       var percent = Number(row.remaining_percent);
       if (isNaN(percent)) percent = 100;
       percent = Math.max(0, Math.min(100, Math.round(percent)));
@@ -202,6 +304,14 @@ function _normalizeUsage(raw) {
         barStyle: "width:" + percent + "%",
       };
     }),
+  };
+}
+
+function _degradedUsageState() {
+  return {
+    usagePrimaryLabel: "额度同步中",
+    usagePrimaryPercent: 100,
+    usageRows: [],
   };
 }
 

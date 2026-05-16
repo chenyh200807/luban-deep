@@ -214,6 +214,17 @@ assert(
   chatWxml.indexOf("workflow-card workflow-card-{{item.workflowTone ? item.workflowTone : 'compose'}}\" wx:if=\"{{showInternalStatus && item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}\"") >= 0,
   "workflow card should stay behind the internal-status visibility gate",
 );
+assert(
+  chatWxml.indexOf('class="original-toggle"') >= 0 &&
+    chatWxml.indexOf('bindtap="onToggleOriginalContent"') >= 0 &&
+    chatWxml.indexOf("{{item.originalExpanded ? '收起原文' : '查看原文'}}") >= 0,
+  "mcq messages should expose a compact original-text toggle instead of rendering duplicate question text",
+);
+assert(
+  chatJs.indexOf("originalContent") >= 0 &&
+    chatJs.indexOf("onToggleOriginalContent") >= 0,
+  "chat state should carry collapsed original text and a toggle handler",
+);
 
 if (fail) {
   console.error(errors.join("\n"));

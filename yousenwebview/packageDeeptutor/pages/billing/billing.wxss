@@ -1,4 +1,4 @@
-/* pages/billing/billing.wxss — 使用情况与充值 */
+/* pages/billing/billing.wxss — 使用情况与额度 */
 
 .billing-page {
   height: 100vh;
@@ -320,6 +320,12 @@
   font-weight: 800;
   color: #ffffff;
   font-variant-numeric: tabular-nums;
+}
+
+.pkg-per {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .pkg-desc {
@@ -731,6 +737,10 @@
   color: #0f172a;
 }
 
+.billing-page.light .pkg-per {
+  color: #334155;
+}
+
 .billing-page.light .pkg-desc {
   color: #7b8da8;
 }
@@ -860,3 +870,236 @@
   background: #eef4ff;
   border-color: #d5e1fb;
 }
+
+/* ══ Premium Billing Surface ══════════════════════════════ */
+.billing-page {
+  background: linear-gradient(180deg, #07101b 0%, #0b111d 48%, #090d15 100%);
+}
+.page-inner { padding: 24rpx 28rpx 132rpx; gap: 24rpx; }
+.balance-card {
+  position: relative;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  padding: 30rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, rgba(17, 27, 44, 0.98), rgba(10, 17, 29, 0.94));
+  border: 1rpx solid rgba(198, 218, 255, 0.12);
+  box-shadow: 0 24rpx 70rpx rgba(0, 0, 0, 0.28);
+}
+.balance-card::after {
+  content: "";
+  position: absolute;
+  left: 30rpx;
+  right: 30rpx;
+  bottom: 0;
+  height: 2rpx;
+  background: linear-gradient(90deg, #38bdf8, #f6c04f, #34d399);
+  opacity: 0.72;
+}
+.balance-copy { min-width: 0; flex: 1; }
+.balance-topline { margin-bottom: 16rpx; }
+.balance-label { font-size: 24rpx; color: rgba(255, 255, 255, 0.52); }
+.balance-note { color: rgba(255, 255, 255, 0.42); }
+.balance-num { font-size: 62rpx; letter-spacing: 0; }
+.balance-gauge {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  padding: 8rpx;
+  background: linear-gradient(135deg, #34d399, #38bdf8);
+  flex-shrink: 0;
+}
+.balance-gauge-ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #0c1422;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  padding-top: 38rpx;
+  box-sizing: border-box;
+}
+.balance-gauge-num { font-size: 34rpx; line-height: 1; font-weight: 800; color: #fff; }
+.balance-gauge-unit { font-size: 18rpx; font-weight: 700; color: rgba(255,255,255,0.62); }
+.usage-quota-list { width: 100%; margin-top: 0; }
+.usage-meter { height: 10rpx; background: rgba(255,255,255,0.12); }
+.usage-meter-fill {
+  background: linear-gradient(90deg, #34d399, #38bdf8);
+  transition: width 0.28s ease;
+}
+.section-head { padding: 0 4rpx; }
+.section-title { font-size: 30rpx; }
+.section-sub { font-size: 22rpx; }
+.pkg-grid { gap: 16rpx; }
+.pkg-card {
+  position: relative;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: rgba(255,255,255,0.035);
+  border-color: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+.pkg-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 24rpx;
+  bottom: 24rpx;
+  width: 4rpx;
+  border-radius: 999rpx;
+  background: rgba(255,255,255,0.16);
+}
+.pkg-card.sel {
+  background: linear-gradient(135deg, rgba(18, 46, 75, 0.95), rgba(14, 34, 58, 0.92));
+  border-color: rgba(56, 189, 248, 0.72);
+  box-shadow: 0 22rpx 60rpx rgba(8, 145, 178, 0.16);
+}
+.pkg-card.sel::before { background: linear-gradient(180deg, #38bdf8, #34d399); }
+.pkg-points { margin-top: 4rpx; }
+.pkg-price, .pkg-yen { color: #f6c04f; }
+.pkg-check.on { border-color: rgba(52, 211, 153, 0.68); background: rgba(52, 211, 153, 0.14); }
+.pkg-check.on .pkg-check-dot { background: #34d399; }
+.pay-dock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 18rpx 20rpx 18rpx 24rpx;
+  border-radius: 24rpx;
+  background: rgba(255,255,255,0.06);
+  border: 1rpx solid rgba(255,255,255,0.1);
+}
+.pay-dock-copy { display: flex; flex-direction: column; gap: 4rpx; min-width: 0; }
+.pay-dock-label { font-size: 26rpx; font-weight: 800; color: #fff; }
+.pay-dock-meta { font-size: 20rpx; color: rgba(255,255,255,0.46); }
+.pay-dock-action {
+  min-width: 210rpx;
+  height: 72rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4rpx;
+  background: linear-gradient(135deg, #f6c04f, #f59e0b);
+  box-shadow: 0 16rpx 36rpx rgba(245, 158, 11, 0.24);
+}
+.pay-dock-action:active { transform: scale(0.985); }
+.pay-dock-yen { font-size: 20rpx; font-weight: 800; color: #141414; }
+.pay-dock-price { font-size: 34rpx; line-height: 1; font-weight: 900; color: #141414; }
+.pay-dock-cta { margin-left: 8rpx; font-size: 24rpx; font-weight: 800; color: #141414; }
+.checkout-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(0,0,0,0.52);
+}
+.checkout-sheet {
+  width: 100%;
+  padding: 16rpx 28rpx 44rpx;
+  border-radius: 34rpx 34rpx 0 0;
+  background: #0d1522;
+  border-top: 1rpx solid rgba(255,255,255,0.12);
+  box-shadow: 0 -24rpx 80rpx rgba(0,0,0,0.36);
+}
+.checkout-handle {
+  width: 72rpx;
+  height: 8rpx;
+  border-radius: 999rpx;
+  margin: 0 auto 26rpx;
+  background: rgba(255,255,255,0.18);
+}
+.checkout-head, .checkout-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+.checkout-kicker, .checkout-summary-sub {
+  display: block;
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.46);
+}
+.checkout-title {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 38rpx;
+  line-height: 1.15;
+  font-weight: 900;
+  color: #fff;
+}
+.checkout-close {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.72);
+  font-size: 40rpx;
+  background: rgba(255,255,255,0.08);
+}
+.checkout-summary {
+  margin-top: 28rpx;
+  padding: 24rpx 0;
+  border-top: 1rpx solid rgba(255,255,255,0.08);
+  border-bottom: 1rpx solid rgba(255,255,255,0.08);
+}
+.checkout-summary-main { display: block; font-size: 28rpx; font-weight: 800; color: #fff; }
+.checkout-summary-sub { margin-top: 8rpx; }
+.checkout-price { display: flex; align-items: baseline; flex-shrink: 0; }
+.checkout-yen { font-size: 24rpx; font-weight: 800; color: #f6c04f; }
+.checkout-amount { font-size: 52rpx; line-height: 1; font-weight: 900; color: #f6c04f; }
+.pay-channel-list { display: flex; flex-direction: column; gap: 14rpx; margin-top: 24rpx; }
+.pay-channel {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 20rpx;
+  border-radius: 22rpx;
+  background: rgba(255,255,255,0.045);
+  border: 1rpx solid rgba(255,255,255,0.08);
+}
+.pay-channel.active { border-color: rgba(52,211,153,0.58); background: rgba(52,211,153,0.1); }
+.pay-channel-mark { width: 48rpx; height: 48rpx; border-radius: 16rpx; flex-shrink: 0; }
+.pay-channel-mark.wechat { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.pay-channel-mark.alipay { background: linear-gradient(135deg, #38bdf8, #2563eb); }
+.pay-channel-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
+.pay-channel-title { font-size: 26rpx; font-weight: 800; color: #fff; }
+.pay-channel-desc { font-size: 20rpx; color: rgba(255,255,255,0.44); }
+.pay-channel-check { width: 28rpx; height: 28rpx; border-radius: 50%; border: 2rpx solid rgba(255,255,255,0.2); }
+.pay-channel.active .pay-channel-check { border-color: #34d399; background: #34d399; }
+.checkout-submit {
+  height: 88rpx;
+  margin-top: 26rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f6c04f, #f59e0b);
+}
+.checkout-submit.loading { opacity: 0.7; }
+.checkout-submit-text { font-size: 30rpx; font-weight: 900; color: #111827; }
+.billing-page.light .balance-card, .billing-page.light .checkout-sheet { background: #fff; }
+.billing-page.light .balance-gauge-ring { background: #fff; }
+.billing-page.light .balance-gauge-num,
+.billing-page.light .checkout-title,
+.billing-page.light .checkout-summary-main,
+.billing-page.light .pay-channel-title,
+.billing-page.light .pay-dock-label { color: #0f172a; }
+.billing-page.light .pay-dock { background: rgba(255,255,255,0.92); border-color: #dbe6f5; }
+.billing-page.light .pay-dock-meta,
+.billing-page.light .checkout-kicker,
+.billing-page.light .checkout-summary-sub,
+.billing-page.light .pay-channel-desc { color: #64748b; }
+.billing-page.light .pay-channel { background: #f8fbff; border-color: #dbe6f5; }
+.billing-page.light .pay-channel.active { background: #ecfdf5; border-color: #86efac; }
+.billing-page.light .checkout-close { background: #eef2f7; color: #334155; }

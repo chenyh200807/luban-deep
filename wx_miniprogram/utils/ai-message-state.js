@@ -248,7 +248,10 @@ function shouldRenderStructuredFallback(presentationState, fallbackText) {
     : [];
   if (!blocks.length) return true;
   if (presentationState.hasOnlyMcqContent) {
-    return hasMeaningfulFallbackOutsideMcq(fallbackText, presentationState.cards);
+    return (
+      hasMeaningfulFallbackOutsideMcq(fallbackText, presentationState.cards) &&
+      hasTeachingSemanticFallback(fallbackText)
+    );
   }
 
   for (var i = 0; i < blocks.length; i++) {
@@ -265,6 +268,12 @@ function shouldRenderStructuredFallback(presentationState, fallbackText) {
     return false;
   }
   return true;
+}
+
+function hasTeachingSemanticFallback(text) {
+  return /(?:^|\n)\s*(?:#{1,6}\s*)?(?:核心结论|考试踩分点|拿分要点|得分点|评分点|采分点|踩分点|拉分关键|易错点提醒|易错提醒|易错点|失分点|扣分点|记忆口诀|小技巧|速记|助记|口诀|下一步建议|下一步学习|下一步|学习建议|复习建议|训练建议|行动建议|后续建议|建议下一步)(?:\s*[-—–]\s*[^：:\n]{1,18})?\s*(?:[：:]|\n|$)/.test(
+    String(text || ""),
+  );
 }
 
 function deriveAiMessageRenderState(input) {
@@ -289,8 +298,17 @@ function deriveAiMessageRenderState(input) {
   renderableContent = markdownNormalize.normalizeMarkdownForWechat(
     renderableContent || "",
   );
+  var normalizedFallbackContent = markdownNormalize.normalizeMarkdownForWechat(
+    fallbackContent || "",
+  );
   var useStructuredBlocks = !!(
     presentationState && presentationState.hasNonMcqStructuredContent
+  );
+  var shouldAppendTeachingFallbackBlocks = !!(
+    parseBlocks &&
+    useStructuredBlocks &&
+    normalizedFallbackContent &&
+    hasTeachingSemanticFallback(normalizedFallbackContent)
   );
   var canonicalMessage =
     presentationState && presentationState.canonical
@@ -305,12 +323,22 @@ function deriveAiMessageRenderState(input) {
   var markdownBlocks =
     parseBlocks && !useStructuredBlocks
       ? md.parseWithIds(renderableContent || "")
+      : shouldAppendTeachingFallbackBlocks
+        ? md.parseWithIds(normalizedFallbackContent || "")
       : null;
+  var shouldFoldOriginal = !!(
+    presentationState &&
+    presentationState.cards &&
+    presentationState.cards.length &&
+    normalizedFallbackContent &&
+    !renderableContent &&
+    !shouldAppendTeachingFallbackBlocks
+  );
 
   return renderSchema.createRenderModel({
-    renderableContent: renderableContent,
+    renderableContent: shouldAppendTeachingFallbackBlocks ? "" : renderableContent,
     blocks: useStructuredBlocks
-      ? presentationState.renderBlocks
+      ? presentationState.renderBlocks.concat(markdownBlocks || [])
       : markdownBlocks,
     mcqCards: presentationState ? presentationState.cards : null,
     mcqHint: presentationState ? presentationState.hint : "",
@@ -318,6 +346,8 @@ function deriveAiMessageRenderState(input) {
     mcqInteractiveReady: presentationState
       ? presentationState.interactiveReady
       : false,
+    originalContent: shouldFoldOriginal ? normalizedFallbackContent : "",
+    originalCollapsed: true,
     visibleBlocks: canonicalMessage.blocks,
     plainTextFallback: renderableContent,
     hasStructuredContent: useStructuredBlocks,

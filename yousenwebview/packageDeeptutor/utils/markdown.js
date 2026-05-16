@@ -43,7 +43,22 @@ var CALLOUT_VARIANTS = {
     "踩分点",
     "拉分关键",
   ],
-  tip: ["小技巧", "记忆口诀", "速记", "助记", "口诀"],
+  tip: [
+    "小技巧",
+    "记忆口诀",
+    "速记",
+    "助记",
+    "口诀",
+    "下一步建议",
+    "下一步学习",
+    "下一步",
+    "学习建议",
+    "复习建议",
+    "训练建议",
+    "行动建议",
+    "后续建议",
+    "建议下一步",
+  ],
 };
 var _allCalloutKeywords = [];
 Object.keys(CALLOUT_VARIANTS).forEach(function (v) {
@@ -393,7 +408,10 @@ function _detectCallouts(blocks) {
   var result = [];
   for (var j = 0; j < blocks.length; j++) {
     var block = blocks[j];
-    if (block.type !== "paragraph" || !block.raw) {
+    if (
+      (block.type !== "paragraph" && block.type !== "heading") ||
+      !block.raw
+    ) {
       result.push(block);
       continue;
     }
