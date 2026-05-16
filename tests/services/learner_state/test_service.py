@@ -139,6 +139,50 @@ def test_learner_state_build_context_seeds_profile_summary_progress(tmp_path) ->
     assert "积分余额" not in context
 
 
+def test_learner_state_context_renders_construction_grading_error_events(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn-1:q-law",
+        source_bot_id="construction-exam-coach",
+        memory_kind="mcq_error_event",
+        payload_json={
+            "event_type": "construction_grading_error",
+            "question_type": "mcq",
+            "question_id": "q-law",
+            "score_awarded": 0.0,
+            "max_score": 1.0,
+            "error_events": [
+                {
+                    "error_code": "M02",
+                    "diagnosis": "把行政法规与部门规章层级混淆。",
+                }
+            ],
+            "next_training_signal": {
+                "concept": "法规层级",
+                "focus": "行政法规与部门规章辨析",
+            },
+        },
+    )
+
+    context = service.build_context("student_demo", language="zh")
+    candidates = service.build_context_candidates(
+        user_id="student_demo",
+        query="继续练刚才薄弱的点",
+        route="recall",
+        language="zh",
+    )
+
+    assert "建筑实务批改错因" in context
+    assert "把行政法规与部门规章层级混淆" in context
+    assert "行政法规与部门规章辨析" in context
+    assert any(
+        "行政法规与部门规章辨析" in str(candidate.get("content") or "")
+        for candidate in candidates.get("candidates", [])
+    )
+
+
 def test_learner_state_build_compact_context_returns_learner_facts_only(tmp_path) -> None:
     core_store = _CoreStoreStub()
     core_store.goals = [

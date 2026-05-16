@@ -212,6 +212,12 @@ COPY pyproject.toml ./
 COPY requirements/ ./requirements/
 COPY requirements.txt ./
 
+RUN cat > /usr/local/bin/deeptutor <<'EOF'
+#!/bin/sh
+exec python -m deeptutor_cli.main "$@"
+EOF
+RUN chmod +x /usr/local/bin/deeptutor
+
 # Create necessary directories (these will be overwritten by volume mounts)
 RUN mkdir -p \
     data/user/settings \

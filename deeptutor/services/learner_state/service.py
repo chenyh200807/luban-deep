@@ -1601,6 +1601,9 @@ class LearnerStateService:
 
     def _memory_event_text(self, event: LearnerStateEvent, *, language: str) -> str:
         payload = dict(event.payload_json or {})
+        grading_text = self._grading_memory_event_text(event, language=language)
+        if grading_text:
+            return grading_text
         if event.memory_kind == "turn":
             user_message = str(payload.get("user_message") or "").strip()
             assistant_message = str(payload.get("assistant_message") or "").strip()
@@ -1640,6 +1643,53 @@ class LearnerStateService:
                 if part
             ).strip()
         return str(payload.get("summary") or payload.get("text") or "").strip() or _json_dump(payload)
+
+    @staticmethod
+    def _grading_memory_event_text(event: LearnerStateEvent, *, language: str) -> str:
+        if event.source_feature != "construction_grading" and event.memory_kind not in {
+            "case_error_event",
+            "mcq_error_event",
+        }:
+            return ""
+        payload = dict(event.payload_json or {})
+        question_id = str(payload.get("question_id") or "").strip()
+        question_type = str(payload.get("question_type") or "").strip()
+        score_awarded = payload.get("score_awarded")
+        max_score = payload.get("max_score")
+        signal = payload.get("next_training_signal") if isinstance(payload.get("next_training_signal"), dict) else {}
+        errors = payload.get("error_events") or payload.get("errors") or []
+        diagnoses = [
+            str(error.get("diagnosis") or error.get("error_code") or "").strip()
+            for error in errors
+            if isinstance(error, dict) and str(error.get("diagnosis") or error.get("error_code") or "").strip()
+        ]
+        concept = str(signal.get("concept") or "").strip()
+        focus = str(signal.get("focus") or "").strip()
+        if str(language).lower().startswith("zh"):
+            parts = ["建筑实务批改错因"]
+            if question_id:
+                parts.append(f"题目：{question_id}")
+            if question_type:
+                parts.append(f"题型：{question_type}")
+            if score_awarded is not None and max_score is not None:
+                parts.append(f"得分：{score_awarded}/{max_score}")
+            if diagnoses:
+                parts.append(f"错因：{'；'.join(diagnoses[:3])}")
+            if concept or focus:
+                parts.append(f"下一题训练重点：{focus or concept}")
+            return "\n".join(parts).strip()
+        parts = ["Construction grading error"]
+        if question_id:
+            parts.append(f"Question: {question_id}")
+        if question_type:
+            parts.append(f"Type: {question_type}")
+        if score_awarded is not None and max_score is not None:
+            parts.append(f"Score: {score_awarded}/{max_score}")
+        if diagnoses:
+            parts.append(f"Errors: {'; '.join(diagnoses[:3])}")
+        if concept or focus:
+            parts.append(f"Next training focus: {focus or concept}")
+        return "\n".join(parts).strip()
 
     def _score_memory_event(self, query_terms: list[str], text: str, *, rank: int) -> float:
         if not text:
@@ -1890,6 +1940,11 @@ class LearnerStateService:
             kind = event.memory_kind or "manual"
             source = event.source_feature or "unknown"
             source_id = event.source_id or "unknown"
+            grading_text = LearnerStateService._grading_memory_event_text(event, language=language)
+            if grading_text:
+                compact = "；".join(part.strip() for part in grading_text.splitlines() if part.strip())
+                lines.append(f"- {compact}")
+                continue
             lines.append(
                 (
                     f"- {kind} / {source} / {source_id}"

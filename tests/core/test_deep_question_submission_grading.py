@@ -630,3 +630,71 @@ def test_related_generation_anchor_uses_next_training_signal() -> None:
     assert "上一轮错因训练信号" in topic
     assert "行政法规与部门规章辨析" in topic
     assert "优先从现有题库" in topic
+
+
+def test_related_generation_anchor_can_use_learner_memory_context_without_active_question() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="继续给我练刚才薄弱的点",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context=None,
+        conversation_context_text=(
+            "## 学员级长期状态\n"
+            "### Recent Memory Events\n"
+            "- 建筑实务批改错因；题目：q-law；题型：mcq；得分：0.0/1.0；"
+            "错因：把行政法规与部门规章层级混淆。；下一题训练重点：行政法规与部门规章辨析"
+        ),
+    )
+
+    assert "最近对话摘要" in topic
+    assert "行政法规与部门规章辨析" in topic
+
+
+def test_related_generation_anchor_prioritizes_batch_error_training_signal() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再给我相关题",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context={
+            "question_id": "quiz_batch",
+            "question": "批量题",
+            "question_type": "choice",
+            "items": [
+                {
+                    "question_id": "q_1",
+                    "question": "题1",
+                    "question_type": "choice",
+                    "concentration": "考点1",
+                    "knowledge_context": "普通知识锚点1",
+                },
+                {
+                    "question_id": "q_2",
+                    "question": "题2",
+                    "question_type": "choice",
+                    "concentration": "考点2",
+                    "knowledge_context": "普通知识锚点2",
+                },
+                {
+                    "question_id": "q_5",
+                    "question": "题5",
+                    "question_type": "choice",
+                    "concentration": "法规层级",
+                    "construction_grading_result": {
+                        "type": "mcq",
+                        "authority": "construction_grading",
+                        "score_awarded": 0.0,
+                        "max_score": 1.0,
+                        "error_events": [{"error_code": "M02", "diagnosis": "层级混淆"}],
+                        "next_training_signal": {
+                            "concept": "法规层级",
+                            "focus": "行政法规与部门规章辨析",
+                        },
+                    },
+                },
+            ],
+        },
+        conversation_context_text="",
+    )
+
+    assert "行政法规与部门规章辨析" in topic
+    assert topic.index("上一轮错因训练信号") < topic.index("当前知识锚点")

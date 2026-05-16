@@ -165,6 +165,7 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
     concentrations: list[str] = []
     knowledge_parts: list[str] = []
     question_parts: list[str] = []
+    training_parts: list[str] = []
 
     for item in contexts:
         _append_unique(concentrations, item.get("concentration"))
@@ -173,13 +174,15 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
         training_signal = _training_signal_text_from_context(item)
         if training_signal:
             _append_unique(
-                knowledge_parts,
+                training_parts,
                 f"上一轮错因训练信号：{training_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
             )
 
     anchor_lines: list[str] = []
     if concentrations:
         anchor_lines.append(f"当前考点：{'；'.join(concentrations[:4])}")
+    if training_parts:
+        anchor_lines.append("；".join(training_parts[:3]))
     if knowledge_parts:
         anchor_lines.append(f"当前知识锚点：{'；'.join(knowledge_parts[:2])}")
     elif question_parts:
@@ -921,9 +924,14 @@ class DeepQuestionCapability(BaseCapability):
             followup_question_context=(
                 followup_question_context if isinstance(followup_question_context, dict) else None
             ),
-            conversation_context_text=str(
-                context.metadata.get("conversation_context_text", "") or ""
-            ).strip(),
+            conversation_context_text="\n\n".join(
+                part
+                for part in [
+                    str(context.metadata.get("conversation_context_text", "") or "").strip(),
+                    str(context.memory_context or "").strip(),
+                ]
+                if part
+            ),
         )
         num_questions = int(overrides.get("num_questions", 1) or 1)
         difficulty = str(overrides.get("difficulty", "") or "")

@@ -237,6 +237,11 @@ Overlay 必须支持：
 允许写入：
 
 - 统一 writeback pipeline
+- 建筑实务批改的结构化错因事件可以通过统一 learner state service 写入
+  `source_feature="construction_grading"` 的 memory event；payload 只能承载题目
+  id、题型、得分、错因事件、用户答案和 next training signal。它可以参与后续召回
+  和相似题训练锚点，但不得绕过 `LearnerStateService` 直接改 profile / summary /
+  progress 主真相。
 - 摸底测评等结构化测评结果可以通过统一 learner state service 写入
   `source_feature="assessment"` 的 memory event；payload 只能承载测评
   `quiz_id`、blueprint version、知识分、置信度、教学策略 seed 与可审计
