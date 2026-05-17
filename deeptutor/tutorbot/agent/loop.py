@@ -647,6 +647,56 @@ class AgentLoop:
         }
 
     @staticmethod
+    def _case_exact_required_numbers(exact_question: dict[str, Any]) -> list[str]:
+        if str(exact_question.get("answer_kind") or "").strip().lower() != "case_study":
+            return []
+        covered = exact_question.get("covered_subquestions")
+        if not isinstance(covered, list) or not covered:
+            return []
+        numbers: list[str] = []
+        for item in covered:
+            if not isinstance(item, dict):
+                continue
+            answer = normalize_exact_authority_display_text(item.get("authoritative_answer"))
+            matches = list(re.finditer(r"(\d+(?:\.\d+)?)\s*(?:亿元|万元|元|%)", answer))
+            if not matches:
+                matches = list(re.finditer(r"\d+\.\d+", answer))
+            for match in matches:
+                value = match.group(1) if match.lastindex else match.group(0)
+                if value and value not in numbers:
+                    numbers.append(value)
+        return numbers
+
+    def _case_exact_authority_fallback(
+        self,
+        final_content: str | None,
+        *,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> str:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        exact_question = metadata.get("_prefetched_exact_question")
+        if not isinstance(exact_question, dict):
+            return ""
+        if str(exact_question.get("answer_kind") or "").strip().lower() != "case_study":
+            return ""
+        missing = exact_question.get("missing_subquestions") or []
+        coverage_ratio = float(exact_question.get("coverage_ratio") or 0.0)
+        covered = exact_question.get("covered_subquestions") or []
+        if not covered or (missing and coverage_ratio < 0.999):
+            return ""
+        required_numbers = self._case_exact_required_numbers(exact_question)
+        if not required_numbers:
+            return ""
+        compact_response = str(final_content or "").replace(" ", "")
+        if all(number in compact_response for number in required_numbers):
+            return ""
+        return self._build_exact_authority_response_sync(exact_question)
+
+    @staticmethod
+    def _build_exact_authority_response_sync(exact_question: dict[str, Any]) -> str:
+        return build_exact_authority_response(exact_question)
+
+    @staticmethod
     def _filter_out_tool_definitions(
         tool_defs: list[dict[str, Any]],
         *,
@@ -765,6 +815,11 @@ class AgentLoop:
                             else None
                         )
                         if (
+                            exact_candidate
+                            and str(exact_candidate.get("answer_kind") or "").strip().lower() == "case_study"
+                        ):
+                            runtime_metadata["_prefetched_exact_question"] = exact_candidate
+                        if (
                             allow_exact_authority_override
                             and exact_candidate
                             and self._should_force_exact_authority(exact_candidate)
@@ -878,6 +933,11 @@ class AgentLoop:
             if exact_response:
                 final_content = exact_response
                 self._replace_last_assistant_message(messages, exact_response)
+
+        case_fallback = self._case_exact_authority_fallback(final_content, runtime_metadata=runtime_metadata)
+        if case_fallback:
+            final_content = case_fallback
+            self._replace_last_assistant_message(messages, case_fallback)
 
         return final_content, tools_used, messages
 
@@ -1095,6 +1155,8 @@ class AgentLoop:
             if isinstance(merged_metadata.get("exact_question"), dict)
             else None
         )
+        if isinstance(exact_candidate, dict):
+            runtime_metadata["_prefetched_exact_question"] = exact_candidate
         exact_kind = str((exact_candidate or {}).get("answer_kind") or "").strip().lower()
         case_exact_instruction = (
             "本轮已命中案例题题库原题。题库答案是事实依据，但最终回答必须重新组织成适合手机阅读的讲解："
@@ -2037,6 +2099,10 @@ class AgentLoop:
                 user_message=current_message,
                 response=final_content,
             ) or final_content
+            final_content = self._case_exact_authority_fallback(
+                final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
             guarded_output = guard_tutorbot_output(final_content)
             final_content = guarded_output.content or final_content
             if all_msgs:
@@ -2094,6 +2160,10 @@ class AgentLoop:
                 user_message=current_message,
                 response=final_content,
             ) or final_content
+            final_content = self._case_exact_authority_fallback(
+                final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
             guarded_output = guard_tutorbot_output(final_content)
             final_content = guarded_output.content or final_content
             if all_msgs:
@@ -2142,6 +2212,10 @@ class AgentLoop:
         final_content = correct_construction_exam_boundary_fact_response(
             user_message=current_message,
             response=final_content,
+        ) or final_content
+        final_content = self._case_exact_authority_fallback(
+            final_content,
+            runtime_metadata=runtime_metadata,
         ) or final_content
         guarded_output = guard_tutorbot_output(final_content)
         final_content = guarded_output.content or final_content

@@ -334,19 +334,25 @@ def build_exact_authority_response(exact_question: dict[str, Any]) -> str:
         covered = exact_question.get("covered_subquestions")
         if not isinstance(covered, list) or not covered:
             return ""
-        lines: list[str] = []
+        sections: list[str] = ["## 标准作答"]
         for item in covered:
             if not isinstance(item, dict):
                 continue
             display_index = str(item.get("display_index") or "").strip()
+            prompt = normalize_exact_authority_display_text(item.get("prompt"))
             answer = normalize_exact_authority_display_text(item.get("authoritative_answer"))
-            analysis = normalize_exact_authority_display_text(item.get("analysis"))
-            prefix = f"{display_index}. " if display_index else ""
+            analysis = _clean_exact_analysis_for_display(item.get("analysis"))
+            heading = f"### 第{display_index}问" if display_index else "### 作答"
+            block: list[str] = [heading]
+            if prompt:
+                block.append(f"**题目：** {prompt}")
             if answer:
-                lines.append(f"{prefix}{answer}")
+                block.append(f"**答案：** {answer}")
             if analysis:
-                lines.append(f"解析：{analysis}")
-        return "\n".join(lines).strip()
+                block.append(f"**依据：** {analysis}")
+            if len(block) > 1:
+                sections.append("\n\n".join(block))
+        return "\n\n".join(sections).strip()
     return ""
 
 

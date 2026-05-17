@@ -125,6 +125,28 @@ def test_normalize_exact_authority_display_text_unescapes_literal_newlines() -> 
     assert normalize_exact_authority_display_text("结论。\\n理由：按题库解析。") == "结论。\n理由：按题库解析。"
 
 
+def test_build_exact_authority_response_renders_case_as_markdown() -> None:
+    response = build_exact_authority_response(
+        {
+            "answer_kind": "case_study",
+            "covered_subquestions": [
+                {
+                    "display_index": "5",
+                    "prompt": "分步骤列式计算钢结构装饰架的造价是多少万元？",
+                    "authoritative_answer": "造价：3335.40 万元。\\n按清单计价汇总。",
+                    "analysis": "【解析】注意税金基数包含规费。",
+                }
+            ],
+        }
+    )
+
+    assert response.startswith("## 标准作答")
+    assert "### 第5问" in response
+    assert "3335.40 万元" in response
+    assert "【解析】" not in response
+    assert "\\n" not in response
+
+
 def test_exact_authority_response_matches_requires_authoritative_answer_and_values() -> None:
     exact_question = {
         "answer_kind": "mcq",
