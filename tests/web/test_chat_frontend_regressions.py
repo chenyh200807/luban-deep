@@ -65,6 +65,26 @@ def test_next_dev_proxies_same_origin_api_routes_to_backend() -> None:
     assert not (ROOT / "web/app/api/v1/[...path]/route.ts").exists()
 
 
+def test_docker_frontend_default_uses_direct_backend_api_base() -> None:
+    source = _read("Dockerfile")
+
+    assert 'API_BASE="http://localhost:${BACKEND_PORT}"' in source
+    assert 'API_BASE="__CURRENT_ORIGIN__"' not in source
+
+
+def test_production_client_does_not_silently_use_same_origin_api_base() -> None:
+    source = _read("web/lib/api.ts")
+
+    assert 'process.env.NODE_ENV !== "production"' in source
+    assert "NEXT_PUBLIC_API_BASE is not configured" in source
+
+
+def test_invite_test_jsonl_fallback_stays_out_of_git() -> None:
+    source = _read(".gitignore")
+
+    assert "web/tmp/" in source
+
+
 def test_workspace_shell_hides_fixed_sidebar_on_mobile() -> None:
     source = _read("web/app/(workspace)/layout.tsx")
 

@@ -41,7 +41,11 @@ function resolveApiBaseUrl(): string {
     return API_BASE_URL;
   }
 
-  if (typeof window !== "undefined" && window.location.origin) {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    typeof window !== "undefined" &&
+    window.location.origin
+  ) {
     return window.location.origin;
   }
 

@@ -304,7 +304,7 @@ BACKEND_PORT=${BACKEND_PORT:-8001}
 FRONTEND_PORT=${FRONTEND_PORT:-3782}
 
 # Determine the API base URL with multiple fallback options
-# Priority: NEXT_PUBLIC_API_BASE_EXTERNAL > NEXT_PUBLIC_API_BASE > current-origin sentinel
+# Priority: NEXT_PUBLIC_API_BASE_EXTERNAL > NEXT_PUBLIC_API_BASE > localhost backend
 if [ -n "$NEXT_PUBLIC_API_BASE_EXTERNAL" ]; then
     # Explicit external URL for cloud deployments
     API_BASE="$NEXT_PUBLIC_API_BASE_EXTERNAL"
@@ -314,9 +314,10 @@ elif [ -n "$NEXT_PUBLIC_API_BASE" ]; then
     API_BASE="$NEXT_PUBLIC_API_BASE"
     echo "[Frontend] 📌 Using custom API URL: ${API_BASE}"
 else
-    # Let browser clients derive same-origin API routes at runtime.
-    API_BASE="__CURRENT_ORIGIN__"
-    echo "[Frontend] 📌 Using runtime same-origin API URL"
+    # Local Docker default: browsers on the same machine can reach the mapped backend port.
+    # Remote deployments must set NEXT_PUBLIC_API_BASE_EXTERNAL to the public backend URL.
+    API_BASE="http://localhost:${BACKEND_PORT}"
+    echo "[Frontend] 📌 Using local backend API URL: ${API_BASE}"
 fi
 
 BI_API_TOKEN="${NEXT_PUBLIC_BI_API_TOKEN:-}"
