@@ -298,7 +298,14 @@ export default function IntroPage() {
             className="flex min-w-0 items-center gap-3 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#007f78]"
             aria-label="鲁班智考首页"
           >
-            <Image src="/logo.png" alt="鲁班智考" width={36} height={36} priority />
+            <Image
+              src="/logo.png"
+              alt="鲁班智考"
+              width={491}
+              height={346}
+              priority
+              style={{ width: "auto", height: 36 }}
+            />
             <span className="truncate text-xl font-black tracking-normal">鲁班智考</span>
           </Link>
           <nav className="hidden items-center gap-7 md:flex" aria-label="页面导航">

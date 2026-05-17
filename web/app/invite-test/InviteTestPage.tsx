@@ -90,10 +90,10 @@ export default function InviteTestPage() {
             <Image
               src="/images/logo-white.png"
               alt="鲁班智考"
-              width={124}
-              height={40}
+              width={135}
+              height={151}
               priority
-              className="h-9 w-auto"
+              style={{ width: "auto", height: 36 }}
             />
           </Link>
           <div className="hidden items-center gap-8 text-sm font-semibold text-white/[0.62] md:flex">

@@ -166,7 +166,13 @@ export function SidebarShell({
       {/* Header: logo + collapse toggle */}
       <div className="flex h-12 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo-ver2.png" alt={brandName} width={20} height={20} />
+          <Image
+            src="/logo-ver2.png"
+            alt={brandName}
+            width={491}
+            height={346}
+            style={{ width: "auto", height: 20 }}
+          />
           <span className="text-[15px] font-semibold tracking-tight text-[var(--foreground)]">
             {brandName}
           </span>

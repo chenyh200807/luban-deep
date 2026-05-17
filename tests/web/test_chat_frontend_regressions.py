@@ -65,6 +65,24 @@ def test_next_dev_proxies_same_origin_api_routes_to_backend() -> None:
     assert not (ROOT / "web/app/api/v1/[...path]/route.ts").exists()
 
 
+def test_logo_images_preserve_intrinsic_aspect_ratio_when_scaled() -> None:
+    sidebar_source = _read("web/components/sidebar/SidebarShell.tsx")
+    workspace_layout_source = _read("web/app/(workspace)/layout.tsx")
+    intro_source = _read("web/app/intro/page.tsx")
+    invite_apply_source = _read("web/app/invite-test/apply/page.tsx")
+    invite_landing_source = _read("web/app/invite-test/InviteTestPage.tsx")
+
+    for source in [sidebar_source, workspace_layout_source, intro_source]:
+        assert "width={491}" in source
+        assert "height={346}" in source
+        assert 'style={{ width: "auto", height:' in source
+
+    for source in [invite_apply_source, invite_landing_source]:
+        assert "width={135}" in source
+        assert "height={151}" in source
+        assert 'style={{ width: "auto", height: 36 }}' in source
+
+
 def test_docker_frontend_default_uses_direct_backend_api_base() -> None:
     source = _read("Dockerfile")
 

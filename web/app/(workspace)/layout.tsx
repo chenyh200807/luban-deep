@@ -20,7 +20,13 @@ export default function WorkspaceLayout({
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="flex h-12 shrink-0 items-center justify-between border-b border-[var(--border)]/70 bg-[var(--secondary)] px-4 md:hidden">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/logo-ver2.png" alt={brandName} width={20} height={20} style={{ width: 20, height: 20 }} />
+              <Image
+                src="/logo-ver2.png"
+                alt={brandName}
+                width={491}
+                height={346}
+                style={{ width: "auto", height: 20 }}
+              />
               <span className="text-[15px] font-semibold tracking-tight text-[var(--foreground)]">
                 {brandName}
               </span>
