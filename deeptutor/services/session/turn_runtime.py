@@ -3263,6 +3263,90 @@ class TurnRuntimeManager:
                 ),
             }
 
+        async def _complete_security_guardrail_turn(
+            *,
+            security_decision: Any,
+            public_source: str,
+        ) -> None:
+            nonlocal assistant_content, assistant_content_source, terminal_status
+            assistant_content = normalize_markdown_for_tutorbot(
+                coerce_user_visible_answer(security_decision.content or "")
+            )
+            assistant_content_source = "security_guardrail"
+            security_metadata = {
+                "response": assistant_content,
+                "guardrail": "tutorbot_security_skill",
+                "guardrail_level": security_decision.level,
+                "guardrail_signals": list(security_decision.signals),
+            }
+            for security_event in (
+                StreamEvent(
+                    type=StreamEventType.STAGE_START,
+                    source=public_source,
+                    stage="responding",
+                    metadata={
+                        "stage": "responding",
+                        "guardrail": "tutorbot_security_skill",
+                    },
+                ),
+                StreamEvent(
+                    type=StreamEventType.CONTENT,
+                    source=public_source,
+                    stage="responding",
+                    content=assistant_content,
+                    metadata={
+                        "call_kind": "security_guardrail_response",
+                        "guardrail": "tutorbot_security_skill",
+                    },
+                ),
+                StreamEvent(
+                    type=StreamEventType.RESULT,
+                    source=public_source,
+                    stage="responding",
+                    metadata=security_metadata,
+                ),
+                StreamEvent(
+                    type=StreamEventType.STAGE_END,
+                    source=public_source,
+                    stage="responding",
+                    metadata={
+                        "stage": "responding",
+                        "guardrail": "tutorbot_security_skill",
+                    },
+                ),
+                StreamEvent(
+                    type=StreamEventType.DONE,
+                    source=public_source,
+                    metadata={"status": "completed"},
+                ),
+            ):
+                payload_event = await self._persist_and_publish(execution, security_event)
+                if (
+                    payload_event.get("type") not in {"done", "session"}
+                    and _event_visibility(payload_event) == _PUBLIC_VISIBILITY
+                ):
+                    assistant_events.append(payload_event)
+            await self._safe_store_call(
+                execution,
+                "add_security_guardrail_assistant_message",
+                self.store.add_message,
+                session_id=session_id,
+                role="assistant",
+                content=assistant_content,
+                capability=public_source,
+                events=assistant_events,
+                default=None,
+            )
+            await self._safe_store_call(
+                execution,
+                "mark_security_guardrail_turn_completed",
+                self.store.update_turn_status,
+                turn_id,
+                "completed",
+                default=False,
+            )
+            terminal_status = "completed"
+
         try:
             from deeptutor.core.context import Attachment, UnifiedContext
             from deeptutor.runtime.orchestrator import ChatOrchestrator
@@ -3276,6 +3360,12 @@ class TurnRuntimeManager:
 
             request_config = dict(payload.get("config", {}) or {})
             raw_user_content = str(payload.get("content", "") or "")
+            notebook_references = payload.get("notebook_references", []) or []
+            history_references = payload.get("history_references", []) or []
+            question_notebook_references = payload.get("question_notebook_references", []) or []
+            book_references = payload.get("book_references", []) or []
+            requested_skills = _string_list(payload.get("skills"))
+            memory_references = _string_list(payload.get("memory_references"))
             followup_question_context = _extract_followup_question_context(request_config)
             followup_question_action = _normalize_question_followup_action(
                 request_config.pop("_question_followup_action", None)
@@ -3287,6 +3377,44 @@ class TurnRuntimeManager:
             )
             persist_user_message = _extract_persist_user_message(request_config)
             billing_context = await self._resolve_billing_context(session_id, request_config)
+            security_decision = classify_tutorbot_user_input(raw_user_content)
+            if security_decision.blocked:
+                public_source = capability_name or "chat"
+                if persist_user_message:
+                    await self._safe_store_call(
+                        execution,
+                        "add_security_guardrail_user_message",
+                        self.store.add_message,
+                        session_id=session_id,
+                        role="user",
+                        content=raw_user_content,
+                        capability=public_source,
+                        attachments=[],
+                        metadata=_request_snapshot_metadata(
+                            payload=payload,
+                            content=raw_user_content,
+                            capability=public_source,
+                            config=request_config,
+                            attachments=[],
+                            notebook_references=notebook_references,
+                            history_references=history_references,
+                            question_notebook_references=question_notebook_references,
+                            book_references=book_references,
+                            requested_skills=requested_skills,
+                            memory_references=memory_references,
+                            llm_selection=(
+                                payload.get("llm_selection")
+                                if isinstance(payload.get("llm_selection"), dict)
+                                else None
+                            ),
+                        ),
+                        default=None,
+                    )
+                await _complete_security_guardrail_turn(
+                    security_decision=security_decision,
+                    public_source=public_source,
+                )
+                return
             stored_active_object = None
             stored_suspended_object_stack: list[dict[str, Any]] = []
             stored_followup_question_context = None
@@ -3310,12 +3438,6 @@ class TurnRuntimeManager:
                 )
                 original_stored_suspended_object_stack = list(stored_suspended_object_stack)
                 stored_object_type = str((stored_active_object or {}).get("object_type") or "").strip()
-            notebook_references = payload.get("notebook_references", []) or []
-            history_references = payload.get("history_references", []) or []
-            question_notebook_references = payload.get("question_notebook_references", []) or []
-            book_references = payload.get("book_references", []) or []
-            requested_skills = _string_list(payload.get("skills"))
-            memory_references = _string_list(payload.get("memory_references"))
             if (
                 stored_active_object is not None
                 and extract_question_context_from_active_object(stored_active_object) is not None
@@ -4064,88 +4186,6 @@ class TurnRuntimeManager:
                         ),
                         default=None,
                     )
-
-                security_decision = classify_tutorbot_user_input(raw_user_content)
-                if security_decision.blocked:
-                    assistant_content = normalize_markdown_for_tutorbot(
-                        coerce_user_visible_answer(security_decision.content or "")
-                    )
-                    assistant_content_source = "security_guardrail"
-                    public_source = capability_name or "chat"
-                    security_metadata = {
-                        "response": assistant_content,
-                        "guardrail": "tutorbot_security_skill",
-                        "guardrail_level": security_decision.level,
-                        "guardrail_signals": list(security_decision.signals),
-                    }
-                    for security_event in (
-                        StreamEvent(
-                            type=StreamEventType.STAGE_START,
-                            source=public_source,
-                            stage="responding",
-                            metadata={
-                                "stage": "responding",
-                                "guardrail": "tutorbot_security_skill",
-                            },
-                        ),
-                        StreamEvent(
-                            type=StreamEventType.CONTENT,
-                            source=public_source,
-                            stage="responding",
-                            content=assistant_content,
-                            metadata={
-                                "call_kind": "security_guardrail_response",
-                                "guardrail": "tutorbot_security_skill",
-                            },
-                        ),
-                        StreamEvent(
-                            type=StreamEventType.RESULT,
-                            source=public_source,
-                            stage="responding",
-                            metadata=security_metadata,
-                        ),
-                        StreamEvent(
-                            type=StreamEventType.STAGE_END,
-                            source=public_source,
-                            stage="responding",
-                            metadata={
-                                "stage": "responding",
-                                "guardrail": "tutorbot_security_skill",
-                            },
-                        ),
-                        StreamEvent(
-                            type=StreamEventType.DONE,
-                            source=public_source,
-                            metadata={"status": "completed"},
-                        ),
-                    ):
-                        payload_event = await self._persist_and_publish(execution, security_event)
-                        if (
-                            payload_event.get("type") not in {"done", "session"}
-                            and _event_visibility(payload_event) == _PUBLIC_VISIBILITY
-                        ):
-                            assistant_events.append(payload_event)
-                    await self._safe_store_call(
-                        execution,
-                        "add_security_guardrail_assistant_message",
-                        self.store.add_message,
-                        session_id=session_id,
-                        role="assistant",
-                        content=assistant_content,
-                        capability=public_source,
-                        events=assistant_events,
-                        default=None,
-                    )
-                    await self._safe_store_call(
-                        execution,
-                        "mark_security_guardrail_turn_completed",
-                        self.store.update_turn_status,
-                        turn_id,
-                        "completed",
-                        default=False,
-                    )
-                    terminal_status = "completed"
-                    return
 
                 orch = selector_orchestrator
                 async for event in orch.handle(context):

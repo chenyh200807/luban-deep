@@ -312,9 +312,14 @@ async def test_unified_turn_redteam_short_circuits_default_web_chat_before_orche
         async def handle(self, _context: Any):
             raise AssertionError("security guardrail should short-circuit before orchestrator")
 
+    class FailingNotebookAnalysisAgent:
+        def __init__(self, *_args: Any, **_kwargs: Any) -> None:
+            raise AssertionError("security guardrail should short-circuit before notebook analysis")
+
     monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FailingOrchestrator)
+    monkeypatch.setattr("deeptutor.agents.notebook.NotebookAnalysisAgent", FailingNotebookAnalysisAgent)
 
     _session, turn = await runtime.start_turn(
         {
@@ -327,6 +332,8 @@ async def test_unified_turn_redteam_short_circuits_default_web_chat_before_orche
             "attachments": [],
             "language": "zh",
             "config": {},
+            "notebook_references": [{"id": "note-1"}],
+            "history_references": ["history-1"],
         }
     )
 
