@@ -1,6 +1,7 @@
 """Skills loader for agent capabilities."""
 
 import json
+import logging
 import os
 import re
 import shutil
@@ -8,6 +9,7 @@ from pathlib import Path
 
 # Default builtin skills directory (relative to this file)
 BUILTIN_SKILLS_DIR = Path(__file__).parent.parent / "skills"
+logger = logging.getLogger(__name__)
 
 
 class SkillsLoader:
@@ -40,7 +42,7 @@ class SkillsLoader:
             for skill_dir in self.workspace_skills.iterdir():
                 if skill_dir.is_dir():
                     skill_file = skill_dir / "SKILL.md"
-                    if skill_file.exists():
+                    if skill_file.exists() and self._read_skill_file(skill_file) is not None:
                         skills.append({"name": skill_dir.name, "path": str(skill_file), "source": "workspace"})
 
         # Built-in skills
@@ -48,7 +50,11 @@ class SkillsLoader:
             for skill_dir in self.builtin_skills.iterdir():
                 if skill_dir.is_dir():
                     skill_file = skill_dir / "SKILL.md"
-                    if skill_file.exists() and not any(s["name"] == skill_dir.name for s in skills):
+                    if (
+                        skill_file.exists()
+                        and self._read_skill_file(skill_file) is not None
+                        and not any(s["name"] == skill_dir.name for s in skills)
+                    ):
                         skills.append({"name": skill_dir.name, "path": str(skill_file), "source": "builtin"})
 
         # Filter by requirements
@@ -69,15 +75,25 @@ class SkillsLoader:
         # Check workspace first
         workspace_skill = self.workspace_skills / name / "SKILL.md"
         if workspace_skill.exists():
-            return workspace_skill.read_text(encoding="utf-8")
+            content = self._read_skill_file(workspace_skill)
+            if content is not None:
+                return content
 
         # Check built-in
         if self.builtin_skills:
             builtin_skill = self.builtin_skills / name / "SKILL.md"
             if builtin_skill.exists():
-                return builtin_skill.read_text(encoding="utf-8")
+                return self._read_skill_file(builtin_skill)
 
         return None
+
+    @staticmethod
+    def _read_skill_file(path: Path) -> str | None:
+        try:
+            return path.read_text(encoding="utf-8")
+        except OSError as exc:
+            logger.warning("Skipping unreadable TutorBot skill file %s: %s", path, exc)
+            return None
 
     def load_skills_for_context(self, skill_names: list[str]) -> str:
         """

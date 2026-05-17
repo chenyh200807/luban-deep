@@ -361,6 +361,12 @@ class TutorBotManager:
         for skill_dir in _BUILTIN_SKILLS_DIR.iterdir():
             if not skill_dir.is_dir():
                 continue
+            skill_file = skill_dir / "SKILL.md"
+            try:
+                skill_file.read_text(encoding="utf-8")
+            except OSError as exc:
+                logger.warning("Skipping unreadable builtin skill '%s' for bot '%s': %s", skill_dir.name, bot_id, exc)
+                continue
             target = dst / skill_dir.name
             if not target.exists():
                 try:
@@ -368,6 +374,8 @@ class TutorBotManager:
                     copied += 1
                 except Exception:
                     logger.exception("Failed to copy skill '%s' for bot '%s'", skill_dir.name, bot_id)
+                    if target.exists():
+                        shutil.rmtree(target, ignore_errors=True)
         if copied:
             logger.info("Seeded %d skills for bot '%s' from %s", copied, bot_id, _BUILTIN_SKILLS_DIR)
 

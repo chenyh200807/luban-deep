@@ -215,6 +215,9 @@ COPY pyproject.toml ./
 COPY requirements/ ./requirements/
 COPY requirements.txt ./
 
+RUN chmod -R a+rX /app/deeptutor /app/deeptutor_cli /app/scripts /app/requirements \
+    && chmod a+r /app/pyproject.toml /app/requirements.txt
+
 RUN cat > /usr/local/bin/deeptutor <<'EOF'
 #!/bin/sh
 exec python -m deeptutor_cli.main "$@"

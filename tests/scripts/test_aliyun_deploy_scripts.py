@@ -255,7 +255,7 @@ def test_sync_runs_against_canonical_target_when_release_candidate_is_clean(tmp_
     assert "同步到 Aliyun-ECS-2:/root/deeptutor" in result.stdout
     log = call_log.read_text(encoding="utf-8")
     assert "ssh:Aliyun-ECS-2 mkdir -p '/root/deeptutor'" in log
-    assert "rsync:-avz --delete --stats --no-owner --no-group" in log
+    assert "rsync:-avz --delete --stats --no-owner --no-group --chmod=ugo+rX" in log
     assert "Aliyun-ECS-2:/root/deeptutor/" in log
     assert f"RELEASE_GIT_SHA='{git_sha}'" in log
     assert "DEEPTUTOR_RELEASE_ID=" in log

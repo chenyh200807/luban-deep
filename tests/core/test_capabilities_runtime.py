@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib
+from pathlib import Path
 import sys
 import types
 from types import SimpleNamespace
@@ -233,6 +234,40 @@ def test_tutorbot_skills_summary_omits_internal_locations_by_default(tmp_path) -
     assert "<location>" not in system_prompt
     assert "deeptutor/tutorbot/skills" not in system_prompt
     assert "/SKILL.md" not in system_prompt
+
+
+def test_tutorbot_skills_loader_skips_unreadable_optional_skill(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    from deeptutor.tutorbot.agent.skills import SkillsLoader
+
+    builtin_skills = tmp_path / "builtin"
+    good_dir = builtin_skills / "weather"
+    bad_dir = builtin_skills / "github"
+    good_dir.mkdir(parents=True)
+    bad_dir.mkdir(parents=True)
+    good_file = good_dir / "SKILL.md"
+    bad_file = bad_dir / "SKILL.md"
+    good_file.write_text("---\ndescription: Weather lookup\n---\n# Weather\n", encoding="utf-8")
+    bad_file.write_text("---\ndescription: GitHub operations\n---\n# GitHub\n", encoding="utf-8")
+
+    original_read_text = Path.read_text
+
+    def fake_read_text(path: Path, *args: Any, **kwargs: Any) -> str:
+        if path == bad_file:
+            raise PermissionError(f"Permission denied: '{path}'")
+        return original_read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read_text)
+
+    loader = SkillsLoader(tmp_path / "workspace", builtin_skills_dir=builtin_skills)
+
+    assert loader.load_skill("github") is None
+    summary = loader.build_skills_summary()
+    assert "<name>weather</name>" in summary
+    assert "Weather lookup" in summary
+    assert "<name>github</name>" not in summary
 
 
 @pytest.mark.asyncio
