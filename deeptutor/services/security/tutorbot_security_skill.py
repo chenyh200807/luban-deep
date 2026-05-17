@@ -102,6 +102,62 @@ class TutorBotSecuritySkill:
         ),
     )
 
+    # Derived from FINAL_CLEANED_TAXONOMY2026.json. These terms are normal
+    # construction-exam concepts that overlap with security vocabulary.
+    _CONSTRUCTION_TAXONOMY_CONTEXT_TERMS = (
+        "建筑内部装饰装修防火施工要求",
+        "建筑内部装饰装修防火施工与验收有关规定",
+        "内部设排水措施",
+        "内部管理体系",
+        "项目管理信息系统",
+        "项目管理信息系统子系统",
+        "施工现场监管信息系统",
+        "项目办公自动化系统",
+        "项目施工管理信息化系统应用",
+        "绿色施工信息化系统应用",
+        "业务应用子系统",
+        "建筑设计",
+        "施工图设计",
+        "专项设计",
+        "施工组织设计",
+        "临时用电组织设计",
+        "施工总平面布置图设计",
+        "混凝土配合比设计",
+        "基坑支护设计原则",
+        "监测项目",
+        "项目部管理",
+        "项目质量计划",
+        "施工项目管理机构",
+        "项目对外宣传网站",
+        "巡视检查工具",
+        "检测工具",
+        "特殊工具",
+        "工具式栏板",
+        "工具式定型化临时设施技术",
+        "流水施工参数",
+        "井点管参数",
+        "搭设参数",
+        "技术参数",
+        "参数控制",
+        "施工机械设备的配置",
+        "灭火器配置",
+        "消防器材配置标准",
+        "劳动力配置计划",
+        "抗压强度计算规则",
+        "应急响应机制",
+        "考核与评估机制",
+        "机制砂",
+        "撤离指令",
+    )
+
+    _CONSTRUCTION_TAXONOMY_SAFE_SIGNALS = frozenset({"internal_design", "toolchain"})
+
+    _META_SYSTEM_INTENT_PATTERNS = (
+        r"(你的|你们的|你们|tutorbot|agent|模型|大模型).{0,24}(内部|工具|tool|function|函数|rag|检索|调用|链路|参数|schema|配置|机制|规则|设计)",
+        r"(系统提示词|developer message|system prompt|提示词|开发者消息|内部指令|源码|guardrails?)",
+        r"(\.env|api[_ -]?key|secret|password|token|密钥|密码|凭证|环境变量)",
+    )
+
     _PRODUCT_IDENTITY_GROUP = SecurityPatternGroup(
         "product_identity",
         (
@@ -205,6 +261,20 @@ class TutorBotSecuritySkill:
         return any(re.search(pattern, text, flags=re.IGNORECASE) for pattern in group.patterns)
 
     @classmethod
+    def _has_construction_taxonomy_context(cls, text: str) -> bool:
+        return any(term.lower() in text for term in cls._CONSTRUCTION_TAXONOMY_CONTEXT_TERMS)
+
+    @classmethod
+    def _has_meta_system_intent(cls, text: str) -> bool:
+        return any(re.search(pattern, text, flags=re.IGNORECASE) for pattern in cls._META_SYSTEM_INTENT_PATTERNS)
+
+    @classmethod
+    def _taxonomy_context_can_clear_medium_signals(cls, text: str, signals: tuple[str, ...]) -> bool:
+        if not signals or not set(signals).issubset(cls._CONSTRUCTION_TAXONOMY_SAFE_SIGNALS):
+            return False
+        return cls._has_construction_taxonomy_context(text) and not cls._has_meta_system_intent(text)
+
+    @classmethod
     def classify_user_input(cls, text: str | None) -> TutorBotSecurityDecision:
         normalized = cls.normalize_text(text)
         if not normalized:
@@ -226,6 +296,9 @@ class TutorBotSecuritySkill:
             return TutorBotSecurityDecision(blocked=False, level="safe")
 
         unique_signals = tuple(dict.fromkeys(signals))
+        if cls._taxonomy_context_can_clear_medium_signals(normalized, unique_signals):
+            return TutorBotSecurityDecision(blocked=False, level="safe")
+
         high_signals = {"secret_exfiltration", "prompt_extraction"}
         return TutorBotSecurityDecision(
             blocked=True,
