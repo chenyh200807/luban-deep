@@ -80,6 +80,20 @@ test("sanitizeSvgMarkup removes script, foreignObject, event handlers, and dange
   assert.match(result.sanitizedSvg, /safe/);
 });
 
+test("sanitizeSvgMarkup removes style elements with external imports", () => {
+  const result = sanitizeSvgMarkup(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80">
+      <style>@import url("https://example.com/unsafe.css"); text { fill: red; }</style>
+      <text x="10" y="20">safe</text>
+    </svg>
+  `);
+
+  assert.equal(result.error, null);
+  assert.doesNotMatch(result.sanitizedSvg, /<\s*style/i);
+  assert.doesNotMatch(result.sanitizedSvg, /@import/i);
+  assert.match(result.sanitizedSvg, /safe/);
+});
+
 test("sanitizeSvgMarkup rejects non-SVG roots", () => {
   const result = sanitizeSvgMarkup(`<div onload="alert(1)">not svg</div>`);
 

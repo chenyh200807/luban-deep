@@ -57,8 +57,14 @@ def test_next_dev_proxies_same_origin_api_routes_to_backend() -> None:
 
     assert "NEXT_API_PROXY_TARGET" in source
     assert "http://localhost:8001" in source
-    assert 'source: "/api/:path*"' in source
-    assert "destination: `${normalizedApiProxyTarget}/api/:path*`" in source
+    assert 'source: "/api/v1/:path*"' in source
+    assert "destination: `${normalizedApiProxyTarget}/api/v1/:path*`" in source
+    assert 'source: "/api/attachments/:path*"' in source
+    assert "destination: `${normalizedApiProxyTarget}/api/attachments/:path*`" in source
+
+    runtime_proxy = _read("web/app/api/v1/[...path]/route.ts")
+    assert "BACKEND_PORT" in runtime_proxy
+    assert "API backend is unavailable." in runtime_proxy
 
 
 def test_workspace_shell_hides_fixed_sidebar_on_mobile() -> None:

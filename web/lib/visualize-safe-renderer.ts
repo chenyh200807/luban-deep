@@ -33,6 +33,7 @@ const DANGEROUS_SVG_ELEMENTS = [
   "link",
   "meta",
   "base",
+  "style",
 ];
 
 const DANGEROUS_ELEMENT_PATTERN = DANGEROUS_SVG_ELEMENTS.join("|");

@@ -123,17 +123,17 @@ export default function InviteTestPage() {
 
       <main>
         <section className="relative min-h-[920px] overflow-hidden pt-16 sm:min-h-[960px] lg:min-h-[900px]">
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,#080c18_0%,#0e1828_48%,#080c18_100%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,#080c18_0%,#0e1828_48%,#080c18_100%)]" />
           <Image
             src="/images/bg_horizon.jpg"
             alt=""
             fill
             priority
             sizes="100vw"
-            className="absolute inset-0 object-cover object-bottom opacity-90"
+            className="pointer-events-none absolute inset-0 object-cover object-bottom opacity-90"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,12,24,0.68)_0%,rgba(8,12,24,0.12)_45%,rgba(8,12,24,0.9)_100%)]" />
-          <div className="absolute inset-x-0 top-20 h-[34rem] bg-[radial-gradient(ellipse_at_center,rgba(47,143,255,0.23)_0%,rgba(47,143,255,0.1)_34%,transparent_70%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(8,12,24,0.68)_0%,rgba(8,12,24,0.12)_45%,rgba(8,12,24,0.9)_100%)]" />
+          <div className="pointer-events-none absolute inset-x-0 top-20 h-[34rem] bg-[radial-gradient(ellipse_at_center,rgba(47,143,255,0.23)_0%,rgba(47,143,255,0.1)_34%,transparent_70%)]" />
 
           <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-5 pb-20 pt-16 text-center sm:px-8 sm:pt-20">
             <div className="inline-flex items-center gap-3 rounded-full border border-white/[0.18] bg-white/[0.08] px-4 py-2 text-sm font-semibold text-white/[0.86] shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] backdrop-blur-md">

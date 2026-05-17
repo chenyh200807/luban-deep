@@ -27,8 +27,12 @@ const nextConfig = {
 
     return [
       {
-        source: "/api/:path*",
-        destination: `${normalizedApiProxyTarget}/api/:path*`,
+        source: "/api/v1/:path*",
+        destination: `${normalizedApiProxyTarget}/api/v1/:path*`,
+      },
+      {
+        source: "/api/attachments/:path*",
+        destination: `${normalizedApiProxyTarget}/api/attachments/:path*`,
       },
     ];
   },

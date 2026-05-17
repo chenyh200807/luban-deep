@@ -184,7 +184,25 @@ function validatePayload(payload: InviteApplicationPayload) {
     status: "submitted",
     operatorNote: "",
     submitCount: 1,
-    rawPayload: payload,
+    rawPayload: {
+      name: cleanString(payload.name, MAX_LENGTHS.name),
+      phone: cleanString(payload.phone, MAX_LENGTHS.phone).replace(/\s+/g, ""),
+      email: cleanString(payload.email, MAX_LENGTHS.email).toLowerCase(),
+      wechatId: cleanString(payload.wechatId, MAX_LENGTHS.wechatId),
+      examType: cleanString(payload.examType, MAX_LENGTHS.examType),
+      examStage: cleanString(payload.examStage, MAX_LENGTHS.examStage),
+      painPoint: cleanString(payload.painPoint, MAX_LENGTHS.painPoint),
+      weeklyTime: cleanString(payload.weeklyTime, MAX_LENGTHS.weeklyTime),
+      currentMethod: cleanString(payload.currentMethod, MAX_LENGTHS.currentMethod),
+      latestWrongQuestion: cleanString(payload.latestWrongQuestion, MAX_LENGTHS.latestWrongQuestion),
+      isYousenMember: cleanString(payload.isYousenMember, MAX_LENGTHS.isYousenMember),
+      examDate: cleanString(payload.examDate, MAX_LENGTHS.examDate),
+      acceptInterview: payload.acceptInterview === true,
+      consent: payload.consent === true,
+      sourcePage: cleanString(payload.sourcePage, MAX_LENGTHS.sourcePage),
+      utmSource: cleanString(payload.utmSource, MAX_LENGTHS.utmSource),
+      utmCampaign: cleanString(payload.utmCampaign, MAX_LENGTHS.utmCampaign),
+    },
   };
 
   const missingField = REQUIRED_FIELDS.find((field) => !record[field]);
