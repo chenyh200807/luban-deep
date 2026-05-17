@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import {
+  BI_API_TOKEN,
   apiUrl,
   clearStoredBiAdminSession,
   getStoredBiAdminSession,
@@ -129,6 +130,12 @@ export default function BiPageClient() {
   const refreshBi = useCallback(async () => {
     setRefreshing(true);
     try {
+      if (!BI_API_TOKEN && !getStoredBiAdminSession()?.token) {
+        setWorkbench(null);
+        setIssues(["401 BI 数据 API 尚未授权：请配置只读凭证或登录管理员后台。"]);
+        setLastUpdatedAt(null);
+        return;
+      }
       const result = await loadBiWorkbench({
         days,
         capability: filters.capability || undefined,
@@ -670,6 +677,7 @@ export default function BiPageClient() {
         onChange={(event) => setAdminUsername(event.target.value)}
         placeholder="管理员用户名"
         autoComplete="username"
+        suppressHydrationWarning
         className="rounded-2xl border bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--primary)]"
       />
       <input
@@ -678,6 +686,7 @@ export default function BiPageClient() {
         placeholder="管理员密码"
         type="password"
         autoComplete="current-password"
+        suppressHydrationWarning
         className="rounded-2xl border bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--primary)]"
       />
       <button
