@@ -187,9 +187,8 @@ def build_grounding_decision(
 
     should_prefetch_grounded_rag = (
         grounded_runtime
-        and not exact_question_candidate
         and not practice_generation_request
-        and (current_info_required or textbook_delta)
+        and (exact_question_candidate or current_info_required or textbook_delta)
     )
     if should_prefetch_grounded_rag:
         reasons.append("prefetch_grounded_rag")

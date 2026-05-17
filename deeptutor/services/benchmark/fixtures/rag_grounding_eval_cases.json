@@ -26,11 +26,8 @@
         }
       }
     },
-    "expected_force_exact": true,
-    "expected_response_contains": [
-      "1. 项目经理应先核查关键线路。",
-      "2. 随后调整资源投入。"
-    ]
+    "expected_force_exact": false,
+    "expected_response_contains": []
   },
   {
     "name": "exact_authority_partial_case_bundle",

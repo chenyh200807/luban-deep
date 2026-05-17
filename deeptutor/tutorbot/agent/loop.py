@@ -21,6 +21,7 @@ from deeptutor.services.query_intent import (
 )
 from deeptutor.services.rag.exact_authority import (
     build_exact_authority_response,
+    normalize_exact_authority_display_text,
     should_force_exact_authority,
 )
 from deeptutor.services.rag.pipelines.supabase_strategy import prepare_exact_question_probe
@@ -801,6 +802,8 @@ class AgentLoop:
                             tool_trace_metadata = {}
                         tool_trace_metadata["guardrail_sanitized"] = True
                         tool_trace_metadata["guardrail_signals"] = list(guarded_tool_result.signals)
+                    if tool_call.name == "rag":
+                        result = normalize_exact_authority_display_text(result)
                     if on_tool_result:
                         await on_tool_result(tool_call.name, result, tool_trace_metadata)
                     messages = self.context.add_tool_result(
@@ -1042,7 +1045,7 @@ class AgentLoop:
         if not result_text:
             return initial_messages
         guarded_context = sanitize_untrusted_context(result_text, source="rag")
-        result_text = str(guarded_context.content or "").strip()
+        result_text = normalize_exact_authority_display_text(guarded_context.content)
         if not result_text:
             return initial_messages
 
@@ -1087,6 +1090,19 @@ class AgentLoop:
             "rag",
             result_text,
         )
+        exact_candidate = (
+            merged_metadata.get("exact_question")
+            if isinstance(merged_metadata.get("exact_question"), dict)
+            else None
+        )
+        exact_kind = str((exact_candidate or {}).get("answer_kind") or "").strip().lower()
+        case_exact_instruction = (
+            "本轮已命中案例题题库原题。题库答案是事实依据，但最终回答必须重新组织成适合手机阅读的讲解："
+            "按小问分段，使用短段落、列表或必要表格；不要整段复述召回原文，"
+            "不要输出【解析】、【选项分析】等题库内部标签，也不要输出字面量 \\n。"
+            if exact_kind == "case_study"
+            else ""
+        )
         prefetch_messages.append(
             {
                 "role": "system",
@@ -1094,6 +1110,7 @@ class AgentLoop:
                     "首轮知识召回已完成。请直接基于现有证据回答学员，"
                     "不要复述“我去搜索/我正在查找”这类过程话术；"
                     "只有当前证据仍明显不足时，才继续调用其他工具。"
+                    + (f"\n{case_exact_instruction}" if case_exact_instruction else "")
                 ),
             }
         )
@@ -1503,6 +1520,12 @@ class AgentLoop:
         ):
             return None
         if exact_probe is None:
+            return None
+        allowed_types = {
+            str(item or "").strip().lower()
+            for item in getattr(exact_probe, "allowed_question_types", []) or []
+        }
+        if not (allowed_types & {"single", "multi"}):
             return None
 
         preview_args = self._build_rag_preview_args(current_message, runtime_metadata)

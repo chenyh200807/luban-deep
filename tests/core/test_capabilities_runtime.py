@@ -3861,7 +3861,7 @@ async def test_tutorbot_process_direct_exact_mcq_renderer_falls_back_when_answer
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
+async def test_tutorbot_process_direct_synthesizes_full_case_exact_evidence(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -3881,7 +3881,7 @@ async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
     from deeptutor.tutorbot.bus.queue import MessageBus
     from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
 
-    class FailIfCalledProvider(LLMProvider):
+    class SynthesizingProvider(LLMProvider):
         async def chat(
             self,
             messages: list[dict[str, Any]],
@@ -3893,7 +3893,19 @@ async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
             tool_choice: str | dict[str, Any] | None = None,
             on_content_delta=None,
         ) -> LLMResponse:
-            raise AssertionError("LLM should not be called after full exact fast path.")
+            content = (
+                "## 标准作答\n\n"
+                "### 第1问\n"
+                "管理策划内容包括计划、组织、协调方案。\n\n"
+                "### 第4问\n"
+                "完全成本法计算为 10.28 亿元。\n\n"
+                "### 第5问\n"
+                "钢结构装饰架造价为 3335.40 万元。"
+            )
+            if on_content_delta:
+                await on_content_delta(content[:20])
+                await on_content_delta(content[20:])
+            return LLMResponse(content=content)
 
         def get_default_model(self) -> str:
             return "fake-model"
@@ -3961,7 +3973,7 @@ async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
 
     loop = AgentLoop(
         bus=MessageBus(),
-        provider=FailIfCalledProvider(),
+        provider=SynthesizingProvider(),
         workspace=tmp_path,
         session_manager=SimpleNamespace(
             get_or_create=lambda key: SimpleNamespace(
@@ -3991,7 +4003,7 @@ async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
     assert len(captured["deltas"]) > 1
     assert "".join(captured["deltas"]) == content
     assert captured["tool_calls"] == [("rag", {"query": "背景资料：某旧城改造工程。问题：1. 通常进行资格预审的工程有哪些特点？2. 管理策划内容还有哪些？4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？", "kb_name": "construction-exam"})]
-    assert captured["tool_results"][0][2]["authority_applied"] is True
+    assert captured["tool_results"][0][2]["authority_applied"] is False
     assert captured["tool_results"][0][2]["rag_round"] == {
         "round_index": 1,
         "query": "背景资料：某旧城改造工程。问题：1. 通常进行资格预审的工程有哪些特点？2. 管理策划内容还有哪些？4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？",
@@ -4005,7 +4017,7 @@ async def test_tutorbot_process_direct_short_circuits_full_case_exact_fast_path(
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_explicit_web_search_preserves_full_exact_authority(
+async def test_tutorbot_explicit_web_search_preserves_full_exact_evidence(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -4025,7 +4037,7 @@ async def test_tutorbot_explicit_web_search_preserves_full_exact_authority(
     from deeptutor.tutorbot.bus.queue import MessageBus
     from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
 
-    class FailIfCalledProvider(LLMProvider):
+    class SynthesizingProvider(LLMProvider):
         async def chat(
             self,
             messages: list[dict[str, Any]],
@@ -4037,7 +4049,16 @@ async def test_tutorbot_explicit_web_search_preserves_full_exact_authority(
             tool_choice: str | dict[str, Any] | None = None,
             on_content_delta=None,
         ) -> LLMResponse:
-            raise AssertionError("LLM should not be called when full exact authority applies.")
+            content = (
+                "## 标准作答\n\n"
+                "### 第4问\n"
+                "完全成本法计算为 10.28 亿元。\n\n"
+                "### 第5问\n"
+                "钢结构装饰架造价为 3335.40 万元。"
+            )
+            if on_content_delta:
+                await on_content_delta(content)
+            return LLMResponse(content=content)
 
         def get_default_model(self) -> str:
             return "fake-model"
@@ -4129,7 +4150,7 @@ async def test_tutorbot_explicit_web_search_preserves_full_exact_authority(
     captured: dict[str, Any] = {"tool_calls": [], "tool_results": []}
     loop = AgentLoop(
         bus=MessageBus(),
-        provider=FailIfCalledProvider(),
+        provider=SynthesizingProvider(),
         workspace=tmp_path,
         session_manager=SimpleNamespace(
             get_or_create=lambda key: SimpleNamespace(
@@ -4162,7 +4183,7 @@ async def test_tutorbot_explicit_web_search_preserves_full_exact_authority(
     assert "10.28 亿元" in content
     assert "3335.40 万元" in content
     assert [name for name, _args in captured["tool_calls"]] == ["rag", "web_search"]
-    assert captured["tool_results"][0][2]["authority_applied"] is True
+    assert captured["tool_results"][0][2]["authority_applied"] is False
     assert captured["tool_results"][1][2]["provider"] == "searxng"
 
 

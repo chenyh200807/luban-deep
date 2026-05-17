@@ -845,7 +845,7 @@ async def test_apply_case_exact_question_authority_rewrites_whole_answer(
 
 
 @pytest.mark.asyncio
-async def test_apply_case_exact_question_authority_renders_full_exact_bundle_without_llm(
+async def test_apply_case_exact_question_authority_rewrites_full_exact_bundle(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
@@ -888,10 +888,20 @@ async def test_apply_case_exact_question_authority_renders_full_exact_bundle_wit
         },
     )
 
-    async def _unexpected_rewrite(**_kwargs):
-        raise AssertionError("full exact case bundle should not call llm rewrite")
+    async def _fake_rewrite(**kwargs):
+        authority = kwargs["authority"]
+        assert authority["authority_kind"] == "case_study"
+        return (
+            "## 标准作答\n\n"
+            "### 第1问\n"
+            "- 工程特点：潜在投标人数量较多；大型、技术复杂。\n"
+            "- 资格预审方法：合格制、有限数量制。\n\n"
+            "### 第4问\n"
+            "- 完全成本法计算结果：12.10-0.72-1.10=10.28 亿元。\n"
+            "- 阶段：工程投标、施工准备、施工过程、竣工验收。"
+        )
 
-    monkeypatch.setattr(pipeline, "_rewrite_exact_question_response", _unexpected_rewrite)
+    monkeypatch.setattr(pipeline, "_rewrite_exact_question_response", _fake_rewrite)
 
     corrected = await pipeline._apply_exact_question_authority(
         context=context,
@@ -901,10 +911,10 @@ async def test_apply_case_exact_question_authority_renders_full_exact_bundle_wit
         max_tokens=800,
     )
 
-    assert corrected == (
-        "1. ①潜在投标人数量较多的项目；②大型、技术复杂的项目。①合格制；②有限数量制。\n\n"
-        "4. 12.10-0.72-1.10=10.28 亿元。工程投标、施工准备、施工过程、竣工验收。"
-    )
+    assert "## 标准作答" in corrected
+    assert "有限数量制" in corrected
+    assert "10.28 亿元" in corrected
+    assert "10.07" not in corrected
 
 
 @pytest.mark.asyncio
@@ -951,10 +961,17 @@ async def test_apply_case_exact_question_authority_ignores_answer_type_gate(
         },
     )
 
-    async def _unexpected_rewrite(**_kwargs):
-        raise AssertionError("full exact case bundle should not call llm rewrite")
+    async def _fake_rewrite(**kwargs):
+        assert kwargs["authority"]["authority_kind"] == "case_study"
+        return (
+            "## 标准作答\n\n"
+            "### 第2问\n"
+            "管理策划内容包括计划、组织、协调方案。\n\n"
+            "### 第4问\n"
+            "完全成本法计算为 12.10-0.72-1.10=10.28 亿元。"
+        )
 
-    monkeypatch.setattr(pipeline, "_rewrite_exact_question_response", _unexpected_rewrite)
+    monkeypatch.setattr(pipeline, "_rewrite_exact_question_response", _fake_rewrite)
 
     corrected = await pipeline._apply_exact_question_authority(
         context=context,
@@ -964,11 +981,13 @@ async def test_apply_case_exact_question_authority_ignores_answer_type_gate(
         max_tokens=800,
     )
 
-    assert corrected == "2. （1）计划、组织、协调方案。\n\n4. （1）12.10-0.72-1.10=10.28 亿元。"
+    assert "计划、组织、协调方案" in corrected
+    assert "10.28 亿元" in corrected
+    assert "10.07" not in corrected
 
 
 @pytest.mark.asyncio
-async def test_run_short_circuits_to_exact_case_authority_before_observing(
+async def test_run_uses_responding_for_full_exact_case_authority(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
@@ -1011,22 +1030,30 @@ async def test_run_short_circuits_to_exact_case_authority_before_observing(
         return [trace]
 
     async def _unexpected_thinking(*_args, **_kwargs):
-        raise AssertionError("full exact case authority should short-circuit before thinking")
+        raise AssertionError("retrieval-first exact case authority should skip thinking")
 
     async def _unexpected_acting(*_args, **_kwargs):
-        raise AssertionError("full exact case authority should short-circuit before acting")
+        raise AssertionError("retrieval-first exact case authority should skip acting")
 
-    async def _unexpected_observing(*_args, **_kwargs):
-        raise AssertionError("full exact case authority should short-circuit before observing")
+    async def _fake_observing(*_args, **_kwargs):
+        return "已整理题库原题证据。"
 
-    async def _unexpected_responding(*_args, **_kwargs):
-        raise AssertionError("full exact case authority should short-circuit before llm responding")
+    async def _fake_responding(*_args, **kwargs):
+        assert kwargs["tool_traces"] == [trace]
+        return (
+            "## 标准作答\n\n"
+            "### 第1问\n"
+            "特点包括潜在投标人数量较多、大型且技术复杂；方法包括合格制和有限数量制。\n\n"
+            "### 第4问\n"
+            "完全成本法计算结果为 10.28 亿元。",
+            {"label": "Final response", "trace_kind": "stage"},
+        )
 
     monkeypatch.setattr(pipeline, "_stage_retrieval_first", _fake_retrieval_first)
     monkeypatch.setattr(pipeline, "_stage_thinking", _unexpected_thinking)
     monkeypatch.setattr(pipeline, "_stage_acting", _unexpected_acting)
-    monkeypatch.setattr(pipeline, "_stage_observing", _unexpected_observing)
-    monkeypatch.setattr(pipeline, "_stage_responding", _unexpected_responding)
+    monkeypatch.setattr(pipeline, "_stage_observing", _fake_observing)
+    monkeypatch.setattr(pipeline, "_stage_responding", _fake_responding)
 
     bus = StreamBus()
     events, consumer = await _collect_bus_events(bus)
@@ -1051,9 +1078,8 @@ async def test_run_short_circuits_to_exact_case_authority_before_observing(
     assert "10.28 亿元" in response
     assert "合格制" in response
     assert "10.07" not in response
-    assert result_events[0].metadata["observation"] == ""
-    stage_starts = [event.stage for event in events if event.type == StreamEventType.STAGE_START]
-    assert stage_starts == ["responding"]
+    assert result_events[0].metadata["observation"] == "已整理题库原题证据。"
+    assert "exact_authority" not in str(result_events[0].metadata)
 
 
 @pytest.mark.asyncio

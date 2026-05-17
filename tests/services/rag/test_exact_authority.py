@@ -4,6 +4,7 @@ from deeptutor.services.rag.exact_authority import (
     build_exact_authority_response,
     exact_authority_response_matches,
     extract_exact_question_authority_from_metadata,
+    normalize_exact_authority_display_text,
     resolve_exact_authority_response_from_authority,
     should_force_exact_authority,
 )
@@ -54,7 +55,7 @@ def test_should_force_exact_authority_requires_full_case_coverage() -> None:
             "coverage_ratio": 1.0,
             "coverage_state": "multi_subquestion_exact",
         }
-    ) is True
+    ) is False
     assert should_force_exact_authority(
         {
             "answer_kind": "case_study",
@@ -68,6 +69,7 @@ def test_should_force_exact_authority_requires_full_case_coverage() -> None:
             "query_subquestion_count": 5,
         }
     ) is False
+    assert should_force_exact_authority({"answer_kind": "mcq", "correct_answer": "A"}) is True
 
 
 def test_build_exact_authority_response_renders_mcq_as_learning_report() -> None:
@@ -119,6 +121,10 @@ def test_build_exact_authority_response_strips_internal_analysis_markers() -> No
     assert "| A. 稳定 | 稳定是安全性的一部分 |" in response
 
 
+def test_normalize_exact_authority_display_text_unescapes_literal_newlines() -> None:
+    assert normalize_exact_authority_display_text("结论。\\n理由：按题库解析。") == "结论。\n理由：按题库解析。"
+
+
 def test_exact_authority_response_matches_requires_authoritative_answer_and_values() -> None:
     exact_question = {
         "answer_kind": "mcq",
@@ -167,7 +173,7 @@ def test_exact_authority_response_matches_requires_authoritative_answer_and_valu
     )
 
 
-def test_resolve_exact_authority_response_returns_full_case_only() -> None:
+def test_resolve_exact_authority_response_does_not_terminal_render_case() -> None:
     assert (
         resolve_exact_authority_response_from_authority(
             {
@@ -180,7 +186,7 @@ def test_resolve_exact_authority_response_returns_full_case_only() -> None:
                 "coverage_ratio": 1.0,
             }
         )
-        == "1. A1\n\n2. A2"
+        is None
     )
     assert (
         resolve_exact_authority_response_from_authority(

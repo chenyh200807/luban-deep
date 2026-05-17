@@ -144,22 +144,26 @@ def should_force_exact_authority(exact_question: dict[str, Any]) -> bool:
     if answer_kind in {"mcq", "free_text"}:
         return True
     if answer_kind == "case_study":
-        coverage_ratio = float(exact_question.get("coverage_ratio") or 0.0)
-        missing_subquestions = exact_question.get("missing_subquestions")
-        if coverage_ratio >= 0.999:
-            return True
-        if isinstance(missing_subquestions, list):
-            return not missing_subquestions
-        if (
-            str(exact_question.get("coverage_state") or "").strip() == "multi_subquestion_exact"
-            and not exact_question.get("query_subquestion_count")
-        ):
-            return True
+        # Case-study exact hits are content authority, not presentation authority.
+        # The final responding layer must synthesize them into a user-facing answer.
+        return False
     return False
 
 
+def normalize_exact_authority_display_text(text: Any) -> str:
+    value = str(text or "")
+    value = value.replace("\\r\\n", "\n").replace("\\n", "\n").replace("\\t", " ")
+    value = value.replace("\r\n", "\n").replace("\r", "\n")
+    value = re.sub(r"\n{3,}", "\n\n", value)
+    return value.strip()
+
+
 def _strip_internal_markers(text: Any) -> str:
-    return re.sub(r"\s*\[[A-Za-z_][A-Za-z0-9_-]*\]", "", str(text or "")).strip()
+    return re.sub(
+        r"\s*\[[A-Za-z_][A-Za-z0-9_-]*\]",
+        "",
+        normalize_exact_authority_display_text(text),
+    ).strip()
 
 
 def _clean_exact_analysis_for_display(text: Any) -> str:
@@ -323,8 +327,8 @@ def build_exact_authority_response(exact_question: dict[str, Any]) -> str:
         ]
         return "\n".join(sections).strip()
     if answer_kind == "free_text":
-        answer = str(exact_question.get("correct_answer") or "").strip()
-        analysis = str(exact_question.get("analysis") or "").strip()
+        answer = normalize_exact_authority_display_text(exact_question.get("correct_answer"))
+        analysis = normalize_exact_authority_display_text(exact_question.get("analysis"))
         return "\n\n".join([item for item in [answer, analysis] if item]).strip()
     if answer_kind == "case_study":
         covered = exact_question.get("covered_subquestions")
@@ -335,8 +339,8 @@ def build_exact_authority_response(exact_question: dict[str, Any]) -> str:
             if not isinstance(item, dict):
                 continue
             display_index = str(item.get("display_index") or "").strip()
-            answer = str(item.get("authoritative_answer") or "").strip()
-            analysis = str(item.get("analysis") or "").strip()
+            answer = normalize_exact_authority_display_text(item.get("authoritative_answer"))
+            analysis = normalize_exact_authority_display_text(item.get("analysis"))
             prefix = f"{display_index}. " if display_index else ""
             if answer:
                 lines.append(f"{prefix}{answer}")
@@ -353,7 +357,7 @@ def render_case_exact_authority_response(authority: dict[str, Any]) -> str:
         if not isinstance(item, dict):
             continue
         display_index = str(item.get("display_index") or "").strip() or "?"
-        answer = str(item.get("authoritative_answer") or "").strip()
+        answer = normalize_exact_authority_display_text(item.get("authoritative_answer"))
         if not answer:
             continue
         lines.append(f"{display_index}. {answer}")
@@ -368,12 +372,4 @@ def resolve_exact_authority_response_from_authority(
     authority_kind = str(authority.get("authority_kind") or "").strip().lower()
     if authority_kind != "case_study":
         return None
-    missing = authority.get("missing_subquestions") or []
-    coverage_ratio = float(authority.get("coverage_ratio") or 0.0)
-    covered = authority.get("covered_subquestions") or []
-    if not covered:
-        return None
-    if missing and coverage_ratio < 0.999:
-        return None
-    rendered = render_case_exact_authority_response(authority)
-    return rendered or None
+    return None

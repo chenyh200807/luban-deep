@@ -54,6 +54,20 @@ def test_build_grounding_decision_from_metadata_prefetches_current_info_query() 
     assert decision.should_prefetch_grounded_rag is True
 
 
+def test_build_grounding_decision_prefetches_exact_question_candidate() -> None:
+    decision = build_grounding_decision(
+        query="背景资料：某旧城改造工程。问题：4. 计算项目成本。",
+        default_kb="construction-exam",
+        knowledge_bases=["construction-exam"],
+        rag_enabled=True,
+        tutorbot_context=True,
+        exact_question_candidate=True,
+    )
+
+    assert decision.should_prefetch_grounded_rag is True
+    assert "prefetch_grounded_rag" in decision.reasons
+
+
 def test_build_grounding_decision_marks_exam_schedule_queries_current_info() -> None:
     decision = build_grounding_decision(
         query="2026一建考试时间",

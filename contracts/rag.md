@@ -32,7 +32,7 @@
 8. `exact_question` 不能再默认等同于选择题；案例题必须带 `answer_kind/case_bundle/coverage_state` 这类题型感知字段。
 9. 当案例题 exact hit 只覆盖部分小问时，系统必须显式标记 partial coverage，并继续做补充检索；不能因为命中 exact 就直接跳过第二轮检索。
 10. 对注册过默认 grounding 的 TutorBot，允许执行 `retrieval-first / exact-first` fast path；但 fast path 仍必须复用统一 `rag` 语义、统一 trace 和统一 `RAGService`。
-11. 当案例题 full exact 命中且已完整覆盖全部小问时，`exact_question` 必须拥有高于 `answer_type`、teaching contract 和通用 LLM responding 的优先级，可直接短路为 authoritative answer。
+11. 当案例题 full exact 命中且已完整覆盖全部小问时，`exact_question` 必须作为内容事实拥有高于 `answer_type` 和通用推断的优先级；但不得直接把召回文本短路成最终回答，最终表达必须交给 responding 层组织成用户可读讲解。
 12. `answer/content` 只是兼容性的展示文本；结构化 retrieval 真相必须进入统一 `evidence_bundle`，上层不得再把 `content` 当作唯一 authority。
 13. source selection 不能只靠 query surface；若上游已有 `intent/question_type/routing_metadata`，必须优先进入统一 source plan。
 14. `routing_metadata.exam_track` 可以作为统一 source plan 的 scoped metadata，用来区分一建 / 二建 / 一造 / 二造等考试方向；它不能变成新的知识召回入口，也不能绕过 `RAGService`。

@@ -46,8 +46,7 @@ from deeptutor.services.query_intent import (
 )
 from deeptutor.services.rag.exact_authority import (
     extract_exact_question_authority_from_metadata,
-    render_case_exact_authority_response,
-    resolve_exact_authority_response_from_authority,
+    normalize_exact_authority_display_text,
 )
 from deeptutor.services.llm.openai_http_client import openai_client_kwargs
 from deeptutor.tutorbot.teaching_modes import (
@@ -272,21 +271,6 @@ class AgenticChatPipeline:
                 context=context,
                 stream=stream,
             )
-            exact_authority_response = self._resolve_exact_authority_response(retrieval_first_traces)
-            if exact_authority_response:
-                final_response, responding_trace = await self._stage_exact_authority_responding(
-                    response=exact_authority_response,
-                    stream=stream,
-                )
-                await self._emit_sources_and_result(
-                    stream=stream,
-                    responding_trace=responding_trace,
-                    tool_traces=retrieval_first_traces,
-                    final_response=final_response,
-                    observation="",
-                    source_trace_label=responding_trace.get("label", "Exact authority response"),
-                )
-                return
             if self._has_grounded_retrieval_evidence(retrieval_first_traces):
                 observation = ""
                 if not self._should_skip_independent_observing_stage(context):
@@ -324,21 +308,6 @@ class AgenticChatPipeline:
             thinking_text=thinking_text,
             stream=stream,
         )
-        exact_authority_response = self._resolve_exact_authority_response(tool_traces)
-        if exact_authority_response:
-            final_response, responding_trace = await self._stage_exact_authority_responding(
-                response=exact_authority_response,
-                stream=stream,
-            )
-            await self._emit_sources_and_result(
-                stream=stream,
-                responding_trace=responding_trace,
-                tool_traces=tool_traces,
-                final_response=final_response,
-                observation="",
-                source_trace_label=responding_trace.get("label", "Exact authority response"),
-            )
-            return
         observation = ""
         if not self._should_skip_independent_observing_stage(context):
             observation = await self._stage_observing(
@@ -2118,15 +2087,15 @@ class AgenticChatPipeline:
             covered_lines = [
                 (
                     f"- 第{item.get('display_index') or '?'}问："
-                    f"{str(item.get('prompt') or '').strip() or '(unknown)'}\n"
-                    f"  标准答案：{str(item.get('authoritative_answer') or '').strip() or '(none)'}\n"
-                    f"  解析：{str(item.get('analysis') or '').strip() or '(none)'}"
+                    f"{normalize_exact_authority_display_text(item.get('prompt')) or '(unknown)'}\n"
+                    f"  标准答案：{normalize_exact_authority_display_text(item.get('authoritative_answer')) or '(none)'}\n"
+                    f"  解析：{normalize_exact_authority_display_text(item.get('analysis')) or '(none)'}"
                 )
                 for item in covered
                 if isinstance(item, dict)
             ]
             missing_lines = [
-                f"- 第{item.get('display_index') or '?'}问：{str(item.get('prompt') or '').strip() or '(unknown)'}"
+                f"- 第{item.get('display_index') or '?'}问：{normalize_exact_authority_display_text(item.get('prompt')) or '(unknown)'}"
                 for item in missing
                 if isinstance(item, dict)
             ]
@@ -2136,7 +2105,7 @@ class AgenticChatPipeline:
                 else "已命中题库案例原题，但当前权威答案只覆盖部分小问。以下信息具有最高优先级，必须严格服从：\n"
             )
             zh_rule_2 = (
-                "2. 当前已完整覆盖，最终答案应直接按第1问、第2问……输出标准答案，不再自行补充推断。\n"
+                "2. 当前已完整覆盖，最终答案必须以题库标准答案为事实依据，但要重新组织成移动端可读的 Markdown 讲解，不要整段照搬召回文本。\n"
                 if is_full_coverage
                 else "2. 未覆盖小问只能根据已召回资料和明确计算推导作答；如果证据不足，必须谨慎表达，不能假装题库已覆盖。\n"
             )
@@ -2146,7 +2115,7 @@ class AgenticChatPipeline:
                 else "An exact case-study match was found, but the authoritative answer only covers part of the subquestions.\n"
             )
             en_rule_2 = (
-                "2. Because coverage is complete, output the authoritative subquestion answers directly rather than adding extra inference.\n"
+                "2. Because coverage is complete, use the authoritative answers as facts, but synthesize them into readable Markdown instead of dumping retrieved text.\n"
                 if is_full_coverage
                 else "2. Missing subquestions may only be answered from grounded evidence or explicit calculation.\n"
             )
@@ -2160,7 +2129,8 @@ class AgenticChatPipeline:
                 + "1. 已覆盖小问必须严格按题库标准答案作答，不得改写事实结论。\n"
                 + zh_rule_2
                 + "3. 最终输出仍需完整按第1问、第2问……组织，不能只回答已覆盖部分。\n"
-                + "4. 不要提到内部纠偏、命中原题或覆盖率。"
+                + "4. 优先使用短段落、列表或表格；去掉题库内部标签如【解析】、【选项分析】，不要输出字面量 \\n。\n"
+                + "5. 不要提到内部纠偏、命中原题或覆盖率。"
             )
             en_body = (
                 en_intro
@@ -2172,7 +2142,8 @@ class AgenticChatPipeline:
                 + "1. Covered subquestions must follow the authoritative answers exactly.\n"
                 + en_rule_2
                 + "3. Keep the final answer structured by subquestion.\n"
-                + "4. Do not mention internal correction or exact-match coverage."
+                + "4. Prefer short paragraphs, bullets, or tables; remove internal labels such as 【解析】 and 【选项分析】, and never print literal \\n.\n"
+                + "5. Do not mention internal correction or exact-match coverage."
             )
             return self._text(
                 zh=zh_body,
@@ -2208,70 +2179,6 @@ class AgenticChatPipeline:
                 "3. Do not mention internal correction or exact-match mechanics."
             ),
         )
-
-    @staticmethod
-    def _render_case_exact_authority_response(authority: dict[str, Any]) -> str:
-        return render_case_exact_authority_response(authority)
-
-    def _resolve_exact_authority_response(
-        self,
-        tool_traces: list[ToolTrace] | None = None,
-    ) -> str | None:
-        authority = self._extract_exact_question_authority(tool_traces)
-        return resolve_exact_authority_response_from_authority(authority)
-
-    async def _stage_exact_authority_responding(
-        self,
-        *,
-        response: str,
-        stream: StreamBus,
-    ) -> tuple[str, dict[str, Any]]:
-        trace_meta = build_trace_metadata(
-            call_id=new_call_id("chat-exact-authority"),
-            phase="responding",
-            label=self._text(zh="Exact authority response", en="Exact authority response"),
-            call_kind="exact_authority_response",
-            trace_id="chat-exact-authority",
-            trace_role="response",
-            trace_group="stage",
-        )
-        with observability.start_observation(
-            name="chat.stage.exact_authority_responding",
-            as_type="span",
-            input_payload={"response_length": len(response)},
-            metadata=trace_meta,
-        ) as stage_observation:
-            async with stream.stage("responding", source="chat", metadata=trace_meta):
-                await stream.progress(
-                    trace_meta["label"],
-                    source="chat",
-                    stage="responding",
-                    metadata=merge_trace_metadata(
-                        trace_meta,
-                        {"trace_kind": "call_status", "call_state": "running"},
-                    ),
-                )
-                await stream.content(
-                    response,
-                    source="chat",
-                    stage="responding",
-                    metadata=merge_trace_metadata(trace_meta, {"trace_kind": "exact_authority"}),
-                )
-                await stream.progress(
-                    "",
-                    source="chat",
-                    stage="responding",
-                    metadata=merge_trace_metadata(
-                        trace_meta,
-                        {"trace_kind": "call_status", "call_state": "complete"},
-                    ),
-                )
-                observability.update_observation(
-                    stage_observation,
-                    output_payload=response,
-                    metadata=trace_meta,
-                )
-                return response, trace_meta
 
     async def _emit_sources_and_result(
         self,
@@ -2324,9 +2231,6 @@ class AgenticChatPipeline:
 
         authority_kind = str(authority.get("authority_kind") or "").strip().lower()
         if authority_kind != "mcq":
-            rendered = self._resolve_exact_authority_response(tool_traces)
-            if rendered:
-                return rendered
             rewritten = await self._rewrite_exact_question_response(
                 context=context,
                 content=content,
