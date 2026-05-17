@@ -62,9 +62,7 @@ def test_next_dev_proxies_same_origin_api_routes_to_backend() -> None:
     assert 'source: "/api/attachments/:path*"' in source
     assert "destination: `${normalizedApiProxyTarget}/api/attachments/:path*`" in source
 
-    runtime_proxy = _read("web/app/api/v1/[...path]/route.ts")
-    assert "BACKEND_PORT" in runtime_proxy
-    assert "API backend is unavailable." in runtime_proxy
+    assert not (ROOT / "web/app/api/v1/[...path]/route.ts").exists()
 
 
 def test_workspace_shell_hides_fixed_sidebar_on_mobile() -> None:
