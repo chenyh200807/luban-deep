@@ -1,4 +1,4 @@
-import { appendFile, mkdir, readFile } from "node:fs/promises";
+import { appendFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
 import { Pool } from "pg";
@@ -98,28 +98,8 @@ function isRateLimited(ip: string) {
   return current.count > RATE_LIMIT_MAX;
 }
 
-async function readExternalEnvDatabaseUrl() {
-  const envPath = process.env.INVITE_TEST_ENV_PATH || "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/.env";
-  try {
-    const content = await readFile(envPath, "utf8");
-    for (const line of content.split(/\r?\n/)) {
-      const match = line.match(/^\s*(INVITE_TEST_DATABASE_URL|SUPABASE_DB_URL|DB_URL)\s*=\s*(.+?)\s*$/);
-      if (!match) continue;
-      return match[2].replace(/^['"]|['"]$/g, "");
-    }
-  } catch {
-    return "";
-  }
-  return "";
-}
-
 async function getDatabaseUrl() {
-  return (
-    process.env.INVITE_TEST_DATABASE_URL ||
-    process.env.SUPABASE_DB_URL ||
-    process.env.DB_URL ||
-    (await readExternalEnvDatabaseUrl())
-  );
+  return process.env.INVITE_TEST_DATABASE_URL || process.env.SUPABASE_DB_URL || process.env.DB_URL || "";
 }
 
 function isProductionRuntime() {
@@ -296,11 +276,19 @@ async function saveToDatabase(record: InviteApplicationRecord) {
   return true;
 }
 
+function getJsonlFallbackPath() {
+  const configured = process.env.INVITE_TEST_APPLICATIONS_PATH;
+  if (configured) return configured;
+  if (isProductionRuntime()) return "";
+  return path.join(process.cwd(), "tmp", "invite-test-applications.jsonl");
+}
+
 async function saveToJsonl(record: InviteApplicationRecord) {
-  const filePath =
-    process.env.INVITE_TEST_APPLICATIONS_PATH || path.join(process.cwd(), "tmp", "invite-test-applications.jsonl");
+  const filePath = getJsonlFallbackPath();
+  if (!filePath) return false;
   await mkdir(path.dirname(filePath), { recursive: true });
   await appendFile(filePath, `${JSON.stringify(record)}\n`, "utf8");
+  return true;
 }
 
 export async function POST(request: NextRequest) {
@@ -323,8 +311,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const wroteToDatabase = await saveToDatabase(validation.record);
-    if (!wroteToDatabase) {
-      await saveToJsonl(validation.record);
+    if (!wroteToDatabase && !(await saveToJsonl(validation.record))) {
+      return NextResponse.json({ error: "申请提交通道未配置，请稍后再试。" }, { status: 503 });
     }
   } catch (error) {
     console.error("Failed to save invite test application", error);
