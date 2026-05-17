@@ -3,6 +3,7 @@ from __future__ import annotations
 from deeptutor.services.user_visible_output import (
     coerce_user_visible_answer,
     looks_like_internal_output,
+    looks_like_unsafe_visible_output,
     redact_internal_output,
 )
 
@@ -87,3 +88,16 @@ def test_coerce_user_visible_answer_blocks_rag_xml_and_provider_errors() -> None
     assert coerce_user_visible_answer(provider_error) == "暂时未生成适合直接展示的答案，请重试一次。"
     assert coerce_user_visible_answer(auth_error) == "暂时未生成适合直接展示的答案，请重试一次。"
     assert coerce_user_visible_answer(html_error) == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
+def test_coerce_user_visible_answer_blocks_malformed_multilingual_model_output() -> None:
+    text = (
+        "我是鲁班铎学法发芽鹤 minimumimericussyactivationayan.Man轉 재 "
+        "MedievalGeneration吞ienna单据_counter年轻的 Nash喔ufficient impactfuledsAg "
+        "превра就是把CU就是个even流水构件手势ポ_ac HAVEStates稍微 Highland "
+        "مرض习Bearer Experts皖二战 pathway Binghamoo Hoffmanncloud教育学 "
+        " بیت心率 transformed怒气 extraordinary многие suppressor"
+    )
+
+    assert looks_like_unsafe_visible_output(text) is True
+    assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"

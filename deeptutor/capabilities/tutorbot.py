@@ -336,7 +336,7 @@ class TutorBotCapability(BaseCapability):
         if TutorBotCapability._should_block_public_delta_stream(source):
             return False
         compact = re.sub(r"\s+", "", source)
-        if len(compact) >= 8:
+        if len(compact) >= 80:
             return True
         return "\n" in source or bool(
             re.match(r"^(?:#{1,6}\s*)?(?:最终答案|结论|第\s*[0-9一二两三四五六七八九十]+题)", source)
@@ -348,7 +348,7 @@ class TutorBotCapability(BaseCapability):
         lower = compact.lower()
         if not compact or len(compact) > 220:
             return False
-        if any(marker in compact for marker in ("踩分点", "易错点", "核心考点", "自查", "答案", "判断", "第1题", "第2题")):
+        if any(marker in compact for marker in ("采分点", "易错点", "核心考点", "自查", "答案", "判断", "第1题", "第2题")):
             return False
         if any(marker in lower for marker in ("skill", "reference", "agents.md", "soul.md")):
             return True

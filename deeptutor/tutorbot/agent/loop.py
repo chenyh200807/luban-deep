@@ -348,7 +348,7 @@ class AgentLoop:
             return True
         if len(source) > 180:
             return False
-        if any(marker in source for marker in ("踩分点", "易错点", "核心考点", "自查", "答案", "判断")):
+        if any(marker in source for marker in ("采分点", "易错点", "核心考点", "自查", "答案", "判断")):
             return False
         if (
             any(marker in lower_source for marker in ("skill", "reference"))
@@ -418,7 +418,11 @@ class AgentLoop:
         if cls._looks_like_process_only_answer(visible_text):
             return False
         compact = re.sub(r"\s+", "", visible_text)
-        return len(compact) >= 8
+        if len(compact) >= 80:
+            return True
+        return "\n" in visible_text or bool(
+            re.match(r"^(?:#{1,6}\s*)?(?:最终答案|结论|第\s*[0-9一二两三四五六七八九十]+题)", visible_text)
+        )
 
     @staticmethod
     def _tool_hint(tool_calls: list) -> str:

@@ -164,6 +164,7 @@ jobs:
             tests/services/test_path_service.py \
             tests/services/memory \
             tests/services/session \
+            tests/security \
             tests/tools
         env:
           PYTHONPATH: ${{ github.workspace }}

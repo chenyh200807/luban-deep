@@ -55,7 +55,23 @@ CLI, WebSocket API, and Python SDK.
 
 以下规则用于约束 agent 的执行方式；它们补充项目规则，但不替代 contract 约束。
 
-### 0. First Principles
+### 0. Thin Wrappers, Fat Skills
+
+这是本项目当前最高优先级原则，排在 First Principles 和 Less Is More 之前。
+
+- 默认架构形态必须是 `thin wrappers and fat skills`：入口、router、adapter、compat wrapper、API wrapper 只负责归一化、鉴权、转发、错误语义和观测，不承载业务理解、策略判断或长期状态真相。
+- 真正的业务能力、教学策略、安全策略、评分协议、上下文解释、输出约束，必须沉到明确命名的 Skill / Kernel / Service authority 中，形成可测试、可复用、可审查的胖能力内核。
+- wrapper 不能成为第二套 policy engine。任何 wrapper 中出现不断增长的 regex、fallback、特殊 case、prompt 拼接、状态推断或路由判断，都默认是架构异味，必须优先下沉到对应 fat skill 或删除重复逻辑。
+- fat skill 不是“堆大文件”。它必须代表单一业务事实的唯一 authority：谁写、谁读、谁校验、谁输出、谁被测试，都要清楚。
+- 新增 wrapper / classifier / interpreter / fallback 前，必须先证明四件事：
+  1. 现有 fat skill / authority 不能承担这个职责
+  2. 这个 wrapper 不会制造第二套业务真相
+  3. 它只做边界适配，不做语义理解和策略决策
+  4. 它有明确删除条件或长期稳定边界
+- 修 bug 时，默认先问：这个补丁是不是应该进 fat skill，而不是进 wrapper。若答案不清楚，不允许开始编码。
+- 测试也必须跟着这个原则走：wrapper 测委托关系和边界行为；fat skill 测完整策略矩阵；端到端测试证明 wrapper 没有绕开 fat skill。
+
+### 0.5 First Principles
 
 - 先回到问题本质，再决定实现方式。不要直接沿用现有代码路径、历史补丁或表面症状作为默认前提。
 - 先分清楚：用户真正要解决的是什么问题，系统当前为什么会这样，约束来自业务、contract、兼容性，还是只是历史实现。
@@ -150,6 +166,7 @@ CLI, WebSocket API, and Python SDK.
 - 优先用 first principles 重述问题，而不是沿用现有模块名、历史补丁名、前人解释。模块名只是实现，业务事实才是本体。
 - 遇到看起来很多样的症状，先找它们共同的失败形状，不要急着按场景拆分。很多问题表面是 A 场景、B 场景、C 输入，根上其实都是同一个 state continuity、authority drift、terminal truth 或 object continuity 问题。
 - 默认先问“为什么系统会需要这么多补丁”。如果一个问题只能靠越来越多特例维持，优先怀疑：概念重复、authority 不唯一、路由重复决策、状态流转断裂、边界没有收紧。
+- Thin wrappers, fat skills 是最高优先级的结构门槛；first principles 用来确认业务事实，less is more 用来减少概念和状态，但实现落点必须先遵守“薄 wrapper、胖 skill”。
 - Less is more 的真正含义不是“代码少一点”，而是：
   1. 概念更少
   2. authority 更单一
@@ -172,20 +189,22 @@ CLI, WebSocket API, and Python SDK.
 
 ### 5.6 Why Teams Repeat The Same Mistakes
 
-- 光写“first principles”“less is more”“不要打补丁”还不够。团队和 agent 之所以反复犯老错误，通常不是因为不知道这些口号，而是因为没有把它们变成设计前的强制门槛。
+- 光写“thin wrappers, fat skills”“first principles”“less is more”“不要打补丁”还不够。团队和 agent 之所以反复犯老错误，通常不是因为不知道这些口号，而是因为没有把它们变成设计前的强制门槛。
 - 常见复发机制有五种：
   1. 把原则当价值观，而不是当设计约束
   2. 把当前症状当问题本体，跳过业务事实抽象
   3. 把“快速可过”误当成“正确方向”
   4. 习惯沿现有字段、模块、补丁名继续思考，而不是回到一等事实
   5. 文档只说“不要这样”，却没有规定“如果想这样做，必须先证明什么”
-- 以后凡是涉及状态、路由、上下文承接、follow-up、router、interpreter、fallback 的设计，开始前必须先写出五件事：
-  1. `一等业务事实`：系统真正要维护的唯一事实是什么
-  2. `单一 authority`：这个事实由谁唯一写、存、恢复、读
-  3. `概念收敛`：这次准备删除、降级或归一化哪些旧概念
-  4. `加法理由`：如果要新增字段 / router / wrapper / state，为什么删不掉旧层
-  5. `LLM vs deterministic`：为什么这件事应该由主 LLM 判断，或者为什么必须 deterministic
-- 如果这五件事写不出来，不允许开始设计，更不允许开始编码。
+- 以后凡是涉及状态、路由、上下文承接、follow-up、router、interpreter、fallback、wrapper、skill、kernel 的设计，开始前必须先写出六件事：
+  1. `thin wrapper / fat skill split`：哪些代码只是边界薄适配，哪个 skill / kernel / service 是胖能力 authority
+  2. `一等业务事实`：系统真正要维护的唯一事实是什么
+  3. `单一 authority`：这个事实由谁唯一写、存、恢复、读
+  4. `概念收敛`：这次准备删除、降级或归一化哪些旧概念
+  5. `加法理由`：如果要新增字段 / router / wrapper / state，为什么删不掉旧层
+  6. `LLM vs deterministic`：为什么这件事应该由主 LLM 判断，或者为什么必须 deterministic
+- 如果这六件事写不出来，不允许开始设计，更不允许开始编码。
+- 旧版五件事仍然可以作为检查清单，但不得跳过 thin wrapper / fat skill split。
 - 对任何新增的 router / classifier / interpreter / fallback / special-case state，一律默认先做“有罪推定”：
   1. 它是不是在制造第二套 authority？
   2. 它是不是在把语义问题错误降级成规则问题？
