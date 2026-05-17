@@ -523,4 +523,3 @@ Phase 1C:
 - gateway restart 后 `resume_from` 仍可用。
 - 阿里云公网入口 `https://test2.yousenjiaoyu.com/api/v1/ws` 验证通过。
 - 明确标注：同机 Phase 1 不是机器级高可用。
-

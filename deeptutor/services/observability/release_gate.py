@@ -330,9 +330,9 @@ def build_release_gate_report(
         )
     )
 
-    p6_status = _SKIP
+    p6_status = _FAIL
     p6_summary = "未提供 PlanCompletionAudit"
-    p6_blockers: list[str] = []
+    p6_blockers: list[str] = ["plan_completion_audit_missing"]
     plan_summary = (plan_completion_payload or {}).get("summary") or {}
     if plan_completion_payload:
         audit_status = str(plan_completion_payload.get("status") or "").strip().upper()

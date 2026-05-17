@@ -181,6 +181,67 @@ def test_release_gate_blocks_plan_completion_failures() -> None:
     assert "plan_item_not_done" in payload["blockers"]
 
 
+def test_release_gate_blocks_missing_plan_completion_audit() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "prod",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload={
+            "run_id": "arr-1",
+            "benchmark_run_manifest": {
+                "run_id": "benchmark-1",
+                "requested_suites": ["pr_gate_core"],
+            },
+            "benchmark_case_results": [
+                {"suite": "pr_gate_core", "case_id": "case_a", "status": "PASS"}
+            ],
+            "blind_spots": [],
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "prod",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+        },
+        aae_payload={
+            "run_id": "aae-1",
+            "composite": {"value": 0.92, "coverage_ratio": 1.0},
+            "scorecard": {},
+        },
+        oa_payload={
+            "run_id": "oa-1",
+            "blind_spots": [],
+            "root_causes": [{"hypothesis": "ok"}],
+        },
+        change_impact_payload={
+            "run_id": "change-impact-1",
+            "risk_level": "low",
+            "blocking_recommendation": "canary",
+        },
+        plan_completion_payload=None,
+    )
+
+    assert payload["final_status"] == "FAIL"
+    assert any(item["gate"] == "P6 Plan Completion" and item["status"] == "FAIL" for item in payload["gate_results"])
+    assert "plan_completion_audit_missing" in payload["blockers"]
+
+
 def test_release_gate_rejects_dirty_release_lineage() -> None:
     payload = build_release_gate_report(
         om_payload={
@@ -482,6 +543,11 @@ def test_release_gate_allows_prelaunch_aae_proxy_when_composite_is_healthy() -> 
             "risk_level": "low",
             "blocking_recommendation": "canary",
             "first_failing_signal": {"type": "none"},
+        },
+        plan_completion_payload={
+            "run_id": "plan-completion-1",
+            "status": "PASS",
+            "summary": {"total": 1, "done": 1, "not_done": 0, "partial": 0, "unverifiable": 0},
         },
     )
 
