@@ -125,12 +125,50 @@ def test_public_capabilities_exposes_web_search_runtime_authority(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(system_module, "is_web_search_runtime_available", lambda: True)
+    monkeypatch.setattr(
+        system_module,
+        "get_model_catalog_service",
+        lambda: SimpleNamespace(
+            load=lambda: {
+                "services": {
+                    "llm": {
+                        "active_profile_id": "default-profile",
+                        "active_model_id": "fast-model",
+                        "profiles": [
+                            {
+                                "id": "default-profile",
+                                "name": "Default",
+                                "binding": "openai-compatible",
+                                "api_key": "secret",
+                                "base_url": "https://llm.example/v1",
+                                "models": [
+                                    {
+                                        "id": "fast-model",
+                                        "name": "Fast Model",
+                                        "model": "fast-model-v1",
+                                        "context_window": 128000,
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                }
+            }
+        ),
+    )
 
     with TestClient(_build_app(is_admin=False)) as client:
         response = client.get("/api/v1/public-capabilities")
 
     assert response.status_code == 200
     body = response.json()
+    assert body["llm"]["active"] == {
+        "profile_id": "default-profile",
+        "model_id": "fast-model",
+    }
+    assert body["llm"]["options"][0]["model"] == "fast-model-v1"
+    assert "api_key" not in body["llm"]["options"][0]
+    assert "base_url" not in body["llm"]["options"][0]
     assert body["tools"]["web_search"] == {
         "available": True,
         "authority": "config_runtime",
@@ -141,6 +179,11 @@ def test_public_capabilities_matches_production_mount_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(system_module, "is_web_search_runtime_available", lambda: True)
+    monkeypatch.setattr(
+        system_module,
+        "get_model_catalog_service",
+        lambda: SimpleNamespace(load=lambda: {"services": {"llm": {}}}),
+    )
 
     with TestClient(_build_system_prefixed_app(is_admin=False)) as client:
         response = client.get("/api/v1/system/public-capabilities")

@@ -807,13 +807,13 @@ export default function HomePage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-[var(--background)]">
-      <div className="mx-auto flex w-full max-w-[960px] flex-1 min-h-0 flex-col overflow-hidden px-6">
+      <div className="mx-auto flex w-full max-w-[960px] flex-1 min-h-0 flex-col overflow-hidden px-4 sm:px-6">
 
         {/* ===== Welcome / Messages ===== */}
         {!hasMessages ? (
           <div className="flex flex-1 min-h-0 flex-col items-center justify-center animate-fade-in">
             <div className="text-center">
-              <h1 className="font-serif text-[36px] font-medium tracking-[-0.01em] text-[var(--foreground)]">
+              <h1 className="font-serif text-[34px] font-medium text-[var(--foreground)] sm:text-[36px]">
                 {t("What would you like to learn?")}
               </h1>
               <p className="mt-4 text-[15px] text-[var(--muted-foreground)]">

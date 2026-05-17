@@ -15,6 +15,14 @@ export interface LLMOptionsResponse {
   options: LLMOption[];
 }
 
+function resolveLLMOptionsPayload(payload: unknown): LLMOptionsResponse {
+  if (payload && typeof payload === "object" && "llm" in payload) {
+    const maybePublicPayload = payload as { llm?: LLMOptionsResponse };
+    return maybePublicPayload.llm ?? { active: null, options: [] };
+  }
+  return payload as LLMOptionsResponse;
+}
+
 export function llmSelectionKey(selection: LLMSelection | null | undefined) {
   if (!selection?.profile_id || !selection.model_id) return "";
   return `${selection.profile_id}:${selection.model_id}`;
@@ -28,13 +36,13 @@ export function sameLLMSelection(
 }
 
 export async function listLLMOptions(): Promise<LLMOptionsResponse> {
-  const response = await fetch(apiUrl("/api/v1/settings/llm-options"), {
+  const response = await fetch(apiUrl("/api/v1/system/public-capabilities"), {
     cache: "no-store",
   });
   if (!response.ok) {
     throw new Error(`Failed to load LLM options: ${response.status}`);
   }
-  const data = (await response.json()) as LLMOptionsResponse;
+  const data = resolveLLMOptionsPayload(await response.json());
   return {
     active: data.active ?? null,
     options: Array.isArray(data.options) ? data.options : [],

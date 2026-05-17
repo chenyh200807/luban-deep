@@ -74,7 +74,7 @@ ANSWER_TYPE_GENERAL = "general_chat"
 ANSWER_TYPE_KNOWLEDGE = "knowledge_explainer"
 ANSWER_TYPE_PROBLEM = "problem_solving"
 TEACHING_ELEMENT_CORE = "核心结论"
-TEACHING_ELEMENT_SCORING = "踩分点"
+TEACHING_ELEMENT_SCORING = "采分点"
 TEACHING_ELEMENT_PITFALL = "易错点"
 TEACHING_ELEMENT_MNEMONIC = "记忆口诀"
 TEACHING_ELEMENT_TAKEAWAY = "心得"
@@ -2060,7 +2060,7 @@ class AgenticChatPipeline:
                 "1. 除了开头可先用 1 句做“开场定位”，后文必须严格使用以下 Markdown 二级标题，顺序也要保持一致：\n"
                 f"{heading_lines_zh}\n"
                 "2. 标题必须原样出现，禁止替换成“记忆抓手”“考试策略”等其他词。\n"
-                "3. “踩分点”必须写成学员可直接拿去判断、作答、拿分的表达，不要只列空泛名词。\n"
+                "3. “采分点”必须写成学员可直接拿去判断、作答、拿分的表达，不要只列空泛名词。\n"
                 "4. “易错点”必须写出最容易混淆、误判、丢分的地方，优先使用对比式表达。\n"
                 f"{zh_tail}"
             ),
@@ -2571,7 +2571,7 @@ class AgenticChatPipeline:
 
         checks = {
             TEACHING_ELEMENT_CORE: (r"(?m)^##+\s*核心结论\s*$", r"(?m)^##+\s*core conclusion\s*$"),
-            TEACHING_ELEMENT_SCORING: (r"(?m)^##+\s*踩分点\s*$", r"(?m)^##+\s*scoring points\s*$"),
+            TEACHING_ELEMENT_SCORING: (r"(?m)^##+\s*采分点\s*$", r"(?m)^##+\s*scoring points\s*$"),
             TEACHING_ELEMENT_PITFALL: (r"(?m)^##+\s*易错点\s*$", r"(?m)^##+\s*pitfalls\s*$"),
             TEACHING_ELEMENT_MNEMONIC: (r"(?m)^##+\s*记忆口诀\s*$", r"(?m)^##+\s*mnemonic\s*$"),
             TEACHING_ELEMENT_TAKEAWAY: (r"(?m)^##+\s*心得\s*$", r"(?m)^##+\s*exam takeaway\s*$"),
@@ -3000,7 +3000,7 @@ class AgenticChatPipeline:
     def _required_heading_block(self, required_elements: list[str], english: bool = False) -> str:
         mapping = {
             TEACHING_ELEMENT_CORE: "## Core Conclusion" if english else "## 核心结论",
-            TEACHING_ELEMENT_SCORING: "## Scoring Points" if english else "## 踩分点",
+            TEACHING_ELEMENT_SCORING: "## Scoring Points" if english else "## 采分点",
             TEACHING_ELEMENT_PITFALL: "## Pitfalls" if english else "## 易错点",
             TEACHING_ELEMENT_MNEMONIC: "## Mnemonic" if english else "## 记忆口诀",
             TEACHING_ELEMENT_TAKEAWAY: "## Exam Takeaway" if english else "## 心得",

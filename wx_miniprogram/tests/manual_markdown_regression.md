@@ -27,7 +27,7 @@ chat.debugLoadMarkdownRegressionSample("bolt_points_colon_wrap");
 
 - 顶部必须先看到 `第一题的答案：`，不能只剩题目或后半段。
 - `需要专家论证。` 与后面的 `判断依据：` 必须完整显示。
-- `踩分点` 下的 5 条有序列表必须全部可见，不能截断。
+- `采分点` 下的 5 条有序列表必须全部可见，不能截断。
 
 ### 2. `waterproof_layers_mixed_inline`
 

@@ -124,6 +124,7 @@ export default function BiPageClient() {
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditError, setAuditError] = useState("");
   const isProtectedTab = activeTab === "member-ops" || activeTab === "learner-360" || activeTab === "audit";
+  const readAccessDenied = issues.some((issue) => /(^|\s)401(\s|$)|Authentication required/i.test(issue));
 
   const refreshBi = useCallback(async () => {
     setRefreshing(true);
@@ -727,10 +728,12 @@ export default function BiPageClient() {
               <div>
                 <p className="text-xs font-medium tracking-[0.18em] text-[var(--muted-foreground)]">ACCESS STATUS</p>
                 <p className="mt-1 text-sm text-[var(--foreground)]">
-                  当前状态：老板工作台可读，会员运营后台已锁定。
+                  当前状态：{readAccessDenied ? "老板工作台未解锁，会员运营后台已锁定。" : "老板工作台可读，会员运营后台已锁定。"}
                 </p>
                 <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
-                  BI API Token 已由系统配置，无需手动填写；进入 {activeTabLabel} 只需要管理员用户名和密码。
+                  {readAccessDenied
+                    ? `当前没有可用的只读凭证；进入 ${activeTabLabel} 请先使用管理员用户名和密码登录。`
+                    : `BI 只读凭证已由系统配置；进入 ${activeTabLabel} 只需要管理员用户名和密码。`}
                 </p>
               </div>
               {isProtectedTab ? (
@@ -775,10 +778,12 @@ export default function BiPageClient() {
                 <p className="text-xs font-medium tracking-[0.2em] text-[var(--muted-foreground)]">ADMIN ACCESS</p>
                 <h2 className="mt-2 text-xl font-semibold tracking-tight text-[var(--foreground)]">管理员登录</h2>
                 <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-                  老板工作台默认只读开放；如果你接下来要进入会员运营、学员 360 或经营审计，请在这里先解锁会员后台。
+                  {readAccessDenied
+                    ? "老板工作台当前未拿到只读数据权限；请登录管理员后台后继续查看。"
+                    : "老板工作台默认只读开放；如果你接下来要进入会员运营、学员 360 或经营审计，请在这里先解锁会员后台。"}
                 </p>
                 <p className="mt-2 text-xs leading-5 text-[var(--muted-foreground)]">
-                  BI API Token 已由系统配置，无需手动填写。
+                  {readAccessDenied ? "当前页面 shell 可访问，但 BI 数据 API 尚未授权。" : "BI 只读凭证已由系统配置，无需手动填写。"}
                 </p>
               </div>
               {adminLoginForm}

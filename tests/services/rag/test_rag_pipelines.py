@@ -1146,7 +1146,7 @@ async def test_supabase_search_projects_teaching_metadata_into_answer(
 
     assert "## 记忆口诀" in result["answer"]
     assert "四米起拱千一三" in result["answer"]
-    assert "## 踩分点" in result["answer"]
+    assert "## 采分点" in result["answer"]
     assert "1/1000~3/1000" in result["answer"]
     assert "## 易错点" in result["answer"]
     assert "起算跨度是4m" in result["answer"]

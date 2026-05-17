@@ -1,0 +1,51 @@
+- complementary:
+  - link "鲁班智考 鲁班智考":
+    - /url: /
+    - img "鲁班智考"
+    - generic: 鲁班智考
+  - button "Collapse sidebar":
+  - navigation:
+    - button "New Chat":
+      - generic: New Chat
+    - link "Chat":
+      - /url: /
+      - generic: Chat
+    - link "BI":
+      - /url: /bi
+      - generic: BI
+- main:
+  - generic: Chat
+  - button "Save to Notebook"
+  - button "New chat"
+  - generic: Chat
+  - generic: 防潮层怎么考？用三句话讲清楚
+  - paragraph:
+    - text: 防潮层的考点通常围绕以下三点展开，记住这三句话就能抓住核心：1.
+    - strong: 设置位置
+    - text: ：防潮层一般设在室内地面以下60mm处（或与地面混凝土层平齐），目的是阻断土壤中的毛细水上升，保护墙体不受潮。2.
+    - strong: 材料与构造
+    - text: ：常用防水砂浆（20mm厚1:2水泥砂浆加3%-5%防水剂）或卷材防潮层，要求连续封闭、与地面防潮层搭接形成整体。3.
+    - strong: 特殊处理
+    - text: ：当室内地面有高差时，应在不同标高分别设置防潮层，并在高差处垂直连接，确保防潮层连续不间断。
+  - button "Copy":
+    - generic: Copy
+  - button "Retry":
+    - generic: Retry
+  - textbox "How can I help you today?"
+  - button "Chat":
+    - generic: Chat
+  - button "Fast":
+    - generic: Fast
+  - button "Deep":
+    - generic: Deep
+  - button "Tools":
+    - text: Tools
+  - button "Reference":
+    - text: Reference
+  - button "Select model" [disabled]:
+    - generic: Models unavailable
+  - combobox "Enable Knowledge Base source first" [disabled]:
+    - option "—" [selected]
+  - button "Send" [disabled]:
+- button "Open Next.js Dev Tools":
+- alert

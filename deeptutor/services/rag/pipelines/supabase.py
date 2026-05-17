@@ -399,7 +399,7 @@ def _build_teaching_metadata_block(metadata: Any) -> str:
             _metadata_list(exam_matrix.get("mnemonics") or metadata.get("mnemonics"), max_items=4),
         ),
         _format_metadata_section(
-            "踩分点",
+            "采分点",
             _metadata_list(
                 exam_matrix.get("grading_keywords") or metadata.get("grading_keywords"),
                 max_items=10,

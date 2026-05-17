@@ -1992,7 +1992,7 @@ async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visi
                     "",
                     "**答案**：C",
                     "",
-                    "**踩分点**",
+                    "**采分点**",
                     "- 正确选项是“终凝前开始养护”。",
                 ]
             )
@@ -2022,13 +2022,13 @@ async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visi
     assert "关于混凝土养护开始时间" in content_event.content
     assert "A. 混凝土应在初凝前开始养护" in content_event.content
     assert "答案" not in content_event.content
-    assert "踩分点" not in content_event.content
+    assert "采分点" not in content_event.content
 
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert captured["mode"] == chat_mode
     assert captured["session_metadata"]["default_tools"] == ["rag"]
     assert "答案" not in result_event.metadata["response"]
-    assert "踩分点" not in result_event.metadata["response"]
+    assert "采分点" not in result_event.metadata["response"]
     assert result_event.metadata["question_followup_context"]["correct_answer"] == "C"
     assert result_event.metadata["active_object"]["object_type"] == "single_question"
     assert result_event.metadata["active_object"]["state_snapshot"]["correct_answer"] == "C"

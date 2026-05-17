@@ -58,18 +58,18 @@
     "name": "exam_semantic_callouts",
     "description": "Exam-oriented labels should render as semantic callouts even when the model does not bold them.",
     "covers": ["examCalloutLabels"],
-    "content": "核心考点：屋面防水等级与设防层数要对应。\n\n踩分点：写出等级、设防道数、适用部位。\n\n易错点提醒：不要把屋面和地下工程混在一起。\n\n拿分要点\n\n- 先判断部位\n- 再写设防层数",
+    "content": "核心考点：屋面防水等级与设防层数要对应。\n\n采分点：写出等级、设防道数、适用部位。\n\n易错点提醒：不要把屋面和地下工程混在一起。\n\n拿分要点\n\n- 先判断部位\n- 再写设防层数",
     "expectedOrderedIndexes": [],
     "expectedBulletTexts": ["先判断部位", "再写设防层数"],
     "expectedCallouts": [
       { "label": "核心考点", "variant": "highlight" },
-      { "label": "踩分点", "variant": "highlight" },
+      { "label": "采分点", "variant": "highlight" },
       { "label": "易错点提醒", "variant": "warning" },
       { "label": "拿分要点", "variant": "highlight" }
     ],
     "mustContain": [
       "核心考点",
-      "踩分点",
+      "采分点",
       "易错点提醒",
       "拿分要点",
       "- 先判断部位"
@@ -79,30 +79,30 @@
     "name": "adjacent_ordered_sections_from_history",
     "description": "History/live answers can join several numbered sections into one line; renderer must split them without renumbering.",
     "covers": ["adjacentOrderedSections"],
-    "content": "专业融合题 -- 拉分关键1.技术+进度：给定工序时间，画网络图，判定工期是否满足合同要求。3.技术+安全：描述现场工况，判定危险源等级，补充安全措施。4.技术+合同：某工序返工，判定索赔是否成立（技术规范理解+合同依据）。\n\n踩分点-案例题：先判断对错 → 再写依据 → 最后写正确做法或整改措施。",
+    "content": "专业融合题 -- 拉分关键1.技术+进度：给定工序时间，画网络图，判定工期是否满足合同要求。3.技术+安全：描述现场工况，判定危险源等级，补充安全措施。4.技术+合同：某工序返工，判定索赔是否成立（技术规范理解+合同依据）。\n\n采分点-案例题：先判断对错 → 再写依据 → 最后写正确做法或整改措施。",
     "expectedOrderedIndexes": [1, 3, 4],
     "expectedBulletTexts": [],
     "expectedCallouts": [
-      { "label": "踩分点-案例题", "variant": "highlight" }
+      { "label": "采分点-案例题", "variant": "highlight" }
     ],
     "mustContain": [
       "专业融合题 -- 拉分关键",
       "1. 技术+进度",
       "3. 技术+安全",
       "4. 技术+合同",
-      "踩分点-案例题"
+      "采分点-案例题"
     ]
   },
   {
     "name": "chinese_ordered_markers_from_model",
     "description": "Chinese model output often uses 1）/2、/（3） markers; renderer should normalize them to the same ordered list contract.",
     "covers": ["altOrderedMarkers", "qualifiedCalloutLabels", "punctuatedInlineBullets"],
-    "content": "拉分关键1）技术+进度：先画网络图。2、技术+质量：写验收程序。（3）技术+安全：补充安全措施。\n\n踩分点-案例题：先判断对错 → 再写依据 → 最后写正确做法。\n\n易错点：- 先写判断；- 再写依据；- 最后写整改。",
+    "content": "拉分关键1）技术+进度：先画网络图。2、技术+质量：写验收程序。（3）技术+安全：补充安全措施。\n\n采分点-案例题：先判断对错 → 再写依据 → 最后写正确做法。\n\n易错点：- 先写判断；- 再写依据；- 最后写整改。",
     "expectedOrderedIndexes": [1, 2, 3],
     "expectedBulletTexts": ["先写判断；", "再写依据；", "最后写整改。"],
     "expectedCallouts": [
       { "label": "拉分关键", "variant": "highlight" },
-      { "label": "踩分点-案例题", "variant": "highlight" },
+      { "label": "采分点-案例题", "variant": "highlight" },
       { "label": "易错点", "variant": "warning" }
     ],
     "mustContain": [
@@ -110,7 +110,7 @@
       "1. 技术+进度",
       "2. 技术+质量",
       "3. 技术+安全",
-      "踩分点-案例题",
+      "采分点-案例题",
       "- 先写判断；",
       "- 再写依据；"
     ]

@@ -18,6 +18,7 @@ _ALLOWED_KINDS = {
     "arr_runs",
     "aae_composite_runs",
     "oa_runs",
+    "plan_completion_audits",
     "release_gate_runs",
     "incident_ledger",
 }

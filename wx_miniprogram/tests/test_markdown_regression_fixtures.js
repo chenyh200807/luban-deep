@@ -137,7 +137,7 @@ assert(
   "Chinese marker fixture should split punctuation-separated inline bullets",
 );
 assert(
-  chineseCalloutLabels.indexOf("踩分点-案例题") >= 0,
+  chineseCalloutLabels.indexOf("采分点-案例题") >= 0,
   "Chinese marker fixture should keep qualified callout labels styled as callouts",
 );
 

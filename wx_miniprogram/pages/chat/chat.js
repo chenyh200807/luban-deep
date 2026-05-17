@@ -1671,7 +1671,7 @@ Page({
   },
 
   _getModeHintText: function (mode) {
-    if (mode === "FAST") return "TutorBot 快答 · 踩分点优先";
+    if (mode === "FAST") return "TutorBot 快答 · 采分点优先";
     if (mode === "DEEP") return "TutorBot 精讲 · 讲透拿分逻辑";
     return "TutorBot 陪学 · 智能调度";
   },

@@ -468,16 +468,16 @@ function testCallouts() {
     assertEqual(blocks[0].type, "callout", "Callout with no body");
     assertEqual(blocks[0].content.length, 0, "Callout no body content empty");
 
-    blocks = md.parse("踩分点：必须写出判断依据");
+    blocks = md.parse("采分点：必须写出判断依据");
     assertEqual(blocks[0].type, "callout", "Plain exam score label detected");
     assertEqual(blocks[0].variant, "highlight", "Plain score label uses highlight variant");
-    assertEqual(blocks[0].label, "踩分点", "Plain score label kept");
+    assertEqual(blocks[0].label, "采分点", "Plain score label kept");
 
     blocks = md.parse("易错点提醒：不要漏写验收程序");
     assertEqual(blocks[0].type, "callout", "Plain warning label with suffix detected");
     assertEqual(blocks[0].variant, "warning", "Plain warning label uses warning variant");
 
-    blocks = md.parse("考试踩分点");
+    blocks = md.parse("考试采分点");
     assertEqual(blocks[0].type, "callout", "Standalone exam label detected");
     assertEqual(blocks[0].variant, "highlight", "Standalone exam label uses highlight variant");
 
@@ -496,7 +496,7 @@ function testCallouts() {
       { kw: "易混淆", variant: "warning" },
       { kw: "失分点", variant: "warning" },
       { kw: "扣分点", variant: "warning" },
-      { kw: "考试踩分点", variant: "highlight" },
+      { kw: "考试采分点", variant: "highlight" },
       { kw: "拿分要点", variant: "highlight" },
       { kw: "得分点", variant: "highlight" },
       { kw: "评分点", variant: "highlight" },
@@ -507,7 +507,7 @@ function testCallouts() {
       { kw: "要点", variant: "highlight" },
       { kw: "考点提示", variant: "highlight" },
       { kw: "知识点", variant: "highlight" },
-      { kw: "踩分点", variant: "highlight" },
+      { kw: "采分点", variant: "highlight" },
       { kw: "记忆口诀", variant: "tip" },
       { kw: "速记", variant: "tip" },
       { kw: "助记", variant: "tip" },

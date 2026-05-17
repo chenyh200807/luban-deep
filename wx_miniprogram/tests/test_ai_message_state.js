@@ -221,7 +221,7 @@ run("mcq presentation keeps mixed teaching content visible", function () {
     "A. 焊接搭接长度不应小于20mm，采用单面焊",
     "B. 焊接搭接长度不应小于50mm，采用双面焊",
     "",
-    "## 踩分点",
+    "## 采分点",
     "",
     "- 两个参数必须成对匹配。",
   ].join("\n");
@@ -261,7 +261,7 @@ run("mcq presentation keeps mixed teaching content visible", function () {
     return block.label || "";
   });
   assert(
-    calloutLabels.indexOf("结论") >= 0 && calloutLabels.indexOf("踩分点") >= 0,
+    calloutLabels.indexOf("结论") >= 0 && calloutLabels.indexOf("采分点") >= 0,
     "teaching prose around the mcq should remain visible as callouts",
   );
   assertEqual(state.renderableContent, "", "mixed mcq fallback should not render duplicate plain text");
@@ -503,7 +503,7 @@ run("teaching markdown headings render as semantic callouts", function () {
     "",
     "先判断责任边界。",
     "",
-    "## 踩分点",
+    "## 采分点",
     "",
     "- 写清判断结论。",
     "",
@@ -524,7 +524,7 @@ run("teaching markdown headings render as semantic callouts", function () {
     callouts.map(function (block) {
       return block.label + ":" + block.variant;
     }),
-    ["核心结论:conclusion", "踩分点:highlight", "易错点:warning"],
+    ["核心结论:conclusion", "采分点:highlight", "易错点:warning"],
     "mandatory teaching headings should use the dedicated callout renderer",
   );
 });
@@ -563,7 +563,7 @@ run("structured presentation keeps teaching fallback callouts renderable", funct
     "",
     "先判断责任边界。",
     "",
-    "## 踩分点",
+    "## 采分点",
     "",
     "- 写清判断结论。",
     "",
@@ -611,7 +611,7 @@ run("non-mcq structured presentation keeps full teaching fallback prose", functi
     "",
     "横道图适合看持续时间，网络图更适合分析关键线路。",
     "",
-    "## 踩分点",
+    "## 采分点",
     "",
     "- 写出关键线路应看网络逻辑关系。",
   ].join("\n");
@@ -737,7 +737,7 @@ run("mcq presentation keeps teaching fallback without repeating question text", 
     "C. 临空高度在24m以下时，阳台栏杆净高不应低于1.10m",
     "D. 屋面面层均应采用不燃材料",
     "",
-    "## 踩分点",
+    "## 采分点",
     "",
     "- 抓住“临空高度24m以下”对应的栏杆净高。",
     "",
@@ -793,7 +793,7 @@ run("mcq presentation keeps teaching fallback without repeating question text", 
     callouts.map(function (block) {
       return block.label + ":" + block.variant;
     }),
-    ["踩分点:highlight", "易错点:warning"],
+    ["采分点:highlight", "易错点:warning"],
     "teaching fallback should still render as dedicated callouts",
   );
   assert(

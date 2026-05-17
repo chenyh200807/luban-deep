@@ -83,7 +83,7 @@ export default function ModelSelector({
         title={detail}
         aria-label={t("Select model")}
         aria-expanded={open}
-        className={`inline-flex h-[28px] max-w-[150px] shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-colors sm:max-w-[210px] ${
+          className={`inline-flex h-[28px] max-w-[132px] shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-colors sm:max-w-[210px] ${
           disabled
             ? "cursor-not-allowed border-[var(--border)]/25 text-[var(--border)]"
             : open

@@ -148,6 +148,39 @@ def test_release_gate_fails_when_turn_is_in_flight_without_ws_subscriber() -> No
     assert "turn_in_flight_without_ws_subscriber" in payload["blockers"]
 
 
+def test_release_gate_blocks_plan_completion_failures() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "prod",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+        plan_completion_payload={
+            "run_id": "plan-completion-1",
+            "status": "FAIL",
+            "summary": {"total": 2, "done": 1, "not_done": 1, "partial": 0, "unverifiable": 0},
+            "blockers": ["plan_item_not_done"],
+        },
+    )
+
+    assert payload["final_status"] == "FAIL"
+    assert payload["latest_runs"]["plan_completion_run_id"] == "plan-completion-1"
+    assert any(item["gate"] == "P6 Plan Completion" and item["status"] == "FAIL" for item in payload["gate_results"])
+    assert "plan_item_not_done" in payload["blockers"]
+
+
 def test_release_gate_rejects_dirty_release_lineage() -> None:
     payload = build_release_gate_report(
         om_payload={

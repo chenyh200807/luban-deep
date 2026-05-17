@@ -22,15 +22,15 @@ def test_workspace_enter_key_does_not_send_while_ime_is_composing() -> None:
 
     assert "event.nativeEvent.isComposing" in source
     assert "event.keyCode === 229" in source
-    assert "if (event.key === \"Enter\" && !event.shiftKey && !isImeComposing)" in source
+    assert 'if (event.key === "Enter" && !event.shiftKey && !isImeComposing)' in source
 
 
 def test_tutorbot_chat_restored_history_resnaps_to_bottom() -> None:
     source = _read("web/app/(workspace)/agents/[botId]/chat/page.tsx")
 
-    assert "behavior: ScrollBehavior = \"smooth\"" in source
-    assert "scrollToBottom(\"instant\")" in source
-    assert "window.setTimeout(() => scrollToBottom(\"instant\"), 250)" in source
+    assert 'behavior: ScrollBehavior = "smooth"' in source
+    assert 'scrollToBottom("instant")' in source
+    assert 'window.setTimeout(() => scrollToBottom("instant"), 250)' in source
 
 
 def test_workspace_sends_request_scoped_llm_selection() -> None:
@@ -43,3 +43,27 @@ def test_workspace_sends_request_scoped_llm_selection() -> None:
     assert "listLLMOptions()" in page_source
     assert "llmSelection: selectedLLMSelection" in page_source
     assert "ModelSelector" in composer_source
+
+
+def test_chat_model_options_use_public_projection_not_admin_settings() -> None:
+    source = _read("web/lib/llm-options.ts")
+
+    assert "/api/v1/system/public-capabilities" in source
+    assert "/api/v1/settings/llm-options" not in source
+
+
+def test_workspace_shell_hides_fixed_sidebar_on_mobile() -> None:
+    source = _read("web/app/(workspace)/layout.tsx")
+
+    assert 'className="hidden md:block"' in source
+    assert 'className="min-w-0 flex-1 overflow-hidden bg-[var(--background)]"' in source
+    assert "md:hidden" in source
+
+
+def test_chat_composer_can_wrap_toolbar_on_narrow_viewports() -> None:
+    source = _read("web/components/chat/home/ChatComposer.tsx")
+
+    assert "flex flex-wrap items-center gap-2" in source
+    assert "flex min-w-0 flex-1 flex-wrap items-center gap-1" in source
+    assert "basis-full" in source
+    assert "max-w-[132px]" in source

@@ -55,6 +55,7 @@ def main() -> None:
     parser.add_argument("--aae-json")
     parser.add_argument("--oa-json")
     parser.add_argument("--change-impact-json")
+    parser.add_argument("--plan-completion-json")
     parser.add_argument(
         "--report-only",
         action="store_true",
@@ -67,12 +68,14 @@ def main() -> None:
     aae_payload = _load_json(args.aae_json, expected_kind="aae_composite_runs") or _load_store_payload("aae_composite_runs")
     oa_payload = _load_json(args.oa_json, expected_kind="oa_runs") or _load_store_payload("oa_runs")
     change_impact_payload = _load_json(args.change_impact_json, expected_kind="change_impact_runs") or _load_store_payload("change_impact_runs")
+    plan_completion_payload = _load_json(args.plan_completion_json, expected_kind="plan_completion_audits") or _load_store_payload("plan_completion_audits")
     payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
         change_impact_payload=change_impact_payload,
+        plan_completion_payload=plan_completion_payload,
     )
     store_paths = get_control_plane_store().write_run(
         kind="release_gate_runs",

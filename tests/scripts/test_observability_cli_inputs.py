@@ -30,6 +30,7 @@ PRERELEASE_MODULE = _load_script_module("run_prerelease_observability.py")
 OBSERVER_SNAPSHOT_MODULE = _load_script_module("run_observer_snapshot.py")
 CHANGE_IMPACT_MODULE = _load_script_module("run_change_impact.py")
 DAILY_OBSERVABILITY_MODULE = _load_script_module("run_observability_daily.py")
+PLAN_COMPLETION_MODULE = _load_script_module("run_plan_completion_audit.py")
 
 
 def test_run_aae_snapshot_load_json_accepts_control_plane_wrapper(tmp_path) -> None:
@@ -83,6 +84,21 @@ def test_run_release_gate_load_json_accepts_control_plane_wrapper(tmp_path) -> N
     target.write_text(json.dumps(wrapper, ensure_ascii=False), encoding="utf-8")
 
     assert RELEASE_GATE_MODULE._load_json(str(target), expected_kind="oa_runs") == payload
+
+
+def test_run_release_gate_load_json_accepts_plan_completion_wrapper(tmp_path) -> None:
+    payload = {"run_id": "plan-completion-1", "status": "FAIL", "summary": {"not_done": 1}}
+    wrapper = {
+        "kind": "plan_completion_audits",
+        "run_id": "plan-completion-1",
+        "release_id": "rel-1",
+        "recorded_at": 123,
+        "payload": payload,
+    }
+    target = tmp_path / "plan-completion.json"
+    target.write_text(json.dumps(wrapper, ensure_ascii=False), encoding="utf-8")
+
+    assert RELEASE_GATE_MODULE._load_json(str(target), expected_kind="plan_completion_audits") == payload
 
 
 def test_run_release_gate_store_fallback_rejects_malformed_latest_wrapper(tmp_path) -> None:
@@ -153,6 +169,7 @@ def test_run_release_gate_cli_fails_closed_without_canary(monkeypatch, tmp_path)
             aae_json=None,
             oa_json=None,
             change_impact_json=None,
+            plan_completion_json=None,
             report_only=False,
         ),
     )
@@ -173,6 +190,38 @@ def test_run_release_gate_cli_fails_closed_without_canary(monkeypatch, tmp_path)
 
     with pytest.raises(SystemExit, match="release_gate_failed: recommendation=hold"):
         RELEASE_GATE_MODULE.main()
+
+
+def test_run_plan_completion_audit_cli_writes_control_plane_latest(tmp_path) -> None:
+    plan = tmp_path / "docs" / "plan" / "sample.md"
+    store_dir = tmp_path / "control_plane"
+    plan.parent.mkdir(parents=True)
+    plan.write_text("- [ ] Create: `scripts/run_ws_capacity_probe.py`\n", encoding="utf-8")
+    env = {
+        **os.environ,
+        "DEEPTUTOR_OBSERVABILITY_STORE_DIR": str(store_dir),
+    }
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(Path(__file__).resolve().parents[2] / "scripts" / "run_plan_completion_audit.py"),
+            "--plan",
+            str(plan),
+            "--changed-file",
+            "scripts/run_ws_capacity_probe.py",
+            "--report-only",
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    latest = json.loads((store_dir / "plan_completion_audits" / "latest.json").read_text(encoding="utf-8"))
+    assert latest["kind"] == "plan_completion_audits"
+    assert latest["payload"]["status"] == "PASS"
 
 
 @pytest.mark.asyncio

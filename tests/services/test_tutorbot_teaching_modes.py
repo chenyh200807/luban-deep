@@ -100,7 +100,7 @@ def test_get_teaching_mode_instruction_matches_expected_density():
     deep = get_teaching_mode_instruction("deep")
     smart = get_teaching_mode_instruction("smart")
 
-    assert "踩分点" in fast
+    assert "采分点" in fast
     assert "易错点" in fast
     assert "400 字左右" in fast
 

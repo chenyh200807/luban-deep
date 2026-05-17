@@ -105,7 +105,7 @@ function expandNonFenceLines(lines) {
 
 function shouldSplitAdjacentListMarker(source, offset, prefix) {
   var text = String(source || "").slice(0, (Number(offset) || 0) + String(prefix || "").length);
-  return /(?:[：:；;。，,]|拉分关键|拿分要点|关键要点|核心考点|必考章节|易错点|踩分点|如下)\s*$/.test(text);
+  return /(?:[：:；;。，,]|拉分关键|拿分要点|关键要点|核心考点|必考章节|易错点|采分点|如下)\s*$/.test(text);
 }
 
 function normalizeLabelledItem(line) {

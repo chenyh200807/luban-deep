@@ -111,8 +111,9 @@ def build_release_gate_report(
     aae_payload: dict[str, Any] | None,
     oa_payload: dict[str, Any] | None,
     change_impact_payload: dict[str, Any] | None = None,
+    plan_completion_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    release = _select_release_lineage(arr_payload, om_payload, aae_payload, oa_payload)
+    release = _select_release_lineage(arr_payload, om_payload, aae_payload, oa_payload, plan_completion_payload)
     gate_results: list[dict[str, Any]] = []
 
     om_health = (om_payload or {}).get("health_summary") or {}
@@ -329,6 +330,46 @@ def build_release_gate_report(
         )
     )
 
+    p6_status = _SKIP
+    p6_summary = "未提供 PlanCompletionAudit"
+    p6_blockers: list[str] = []
+    plan_summary = (plan_completion_payload or {}).get("summary") or {}
+    if plan_completion_payload:
+        audit_status = str(plan_completion_payload.get("status") or "").strip().upper()
+        p6_status = _PASS
+        p6_summary = "plan items 已对照 diff / evidence"
+        if audit_status == _FAIL:
+            p6_status = _FAIL
+            p6_summary = "plan items 存在未完成项"
+            p6_blockers = list(plan_completion_payload.get("blockers") or ["plan_item_not_done"])
+        elif audit_status in {_WARN, "PARTIAL", "UNVERIFIABLE"}:
+            p6_status = _WARN
+            p6_summary = "plan items 存在部分完成或无法本地核验证据"
+        elif audit_status != _PASS:
+            p6_status = _WARN
+            p6_summary = "PlanCompletionAudit 状态未知，需要人工复核"
+    gate_results.append(
+        _gate_entry(
+            gate="P6 Plan Completion",
+            status=p6_status,
+            summary=p6_summary,
+            evidence=[
+                f"plan_completion_run_id={(plan_completion_payload or {}).get('run_id')}",
+                f"scope_mode={(plan_completion_payload or {}).get('scope_mode')}",
+                f"plans={plan_summary.get('plan_count')}",
+                f"total={plan_summary.get('total')}",
+                f"scoped={plan_summary.get('scoped')}",
+                f"done={plan_summary.get('done')}",
+                f"partial={plan_summary.get('partial')}",
+                f"not_done={plan_summary.get('not_done')}",
+                f"unverifiable={plan_summary.get('unverifiable')}",
+                f"out_of_scope={plan_summary.get('out_of_scope')}",
+                f"warnings={(plan_completion_payload or {}).get('warnings')}",
+            ],
+            blockers=p6_blockers,
+        )
+    )
+
     blockers = [blocker for gate in gate_results for blocker in gate.get("blockers") or []]
     final_status = _FAIL if any(item["status"] == _FAIL for item in gate_results) else _WARN if any(item["status"] == _WARN for item in gate_results) else _PASS
     recommendation = "hold"
@@ -353,5 +394,6 @@ def build_release_gate_report(
             "aae_run_id": (aae_payload or {}).get("run_id"),
             "oa_run_id": (oa_payload or {}).get("run_id"),
             "change_impact_run_id": (change_impact_payload or {}).get("run_id"),
+            "plan_completion_run_id": (plan_completion_payload or {}).get("run_id"),
         },
     }

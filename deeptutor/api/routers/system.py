@@ -15,10 +15,11 @@ from deeptutor.contracts import (
     export_learner_state_contract,
     export_unified_turn_contract,
 )
-from deeptutor.services.config import resolve_search_runtime_config
+from deeptutor.services.config import get_model_catalog_service, resolve_search_runtime_config
 from deeptutor.services.embedding import get_embedding_client, get_embedding_config
 from deeptutor.services.llm import complete as llm_complete
 from deeptutor.services.llm import get_llm_config, get_token_limit_kwargs
+from deeptutor.services.model_selection import list_llm_options
 from deeptutor.services.search import is_web_search_runtime_available, web_search
 
 router = APIRouter()
@@ -36,6 +37,7 @@ class TestResponse(BaseModel):
 @router.get("/public-capabilities")
 async def get_public_capabilities():
     return {
+        "llm": list_llm_options(get_model_catalog_service().load()),
         "tools": {
             "web_search": {
                 "available": bool(is_web_search_runtime_available()),

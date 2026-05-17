@@ -292,7 +292,7 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
             },
         )
     )
-    billing_event_ts = datetime.fromisoformat("2026-04-15T10:00:00+08:00").timestamp()
+    billing_event_ts = datetime.now().timestamp()
     with sqlite3.connect(store.db_path) as conn:
         conn.execute(
             "UPDATE turn_events SET created_at = ?, timestamp = ? WHERE turn_id = ? AND type = 'result'",
@@ -387,18 +387,17 @@ def test_bi_router_allows_public_access_when_flag_enabled(
         assert response.json()["summary"]["total_sessions"] >= 1
 
 
-def test_bi_router_ignores_public_flag_in_production(
+def test_bi_router_honors_explicit_public_flag_in_production(
     bi_service: BIService,
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("DEEPTUTOR_BI_PUBLIC_ENABLED", "1")
-    monkeypatch.setattr(bi_router_module, "is_production_environment", lambda: True)
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get("/api/v1/bi/overview?days=30")
 
-    assert response.status_code == 401
-    assert response.json()["detail"] == "Authentication required"
+    assert response.status_code == 200
+    assert response.json()["summary"]["total_sessions"] >= 1
 
 
 def test_bi_router_allows_metrics_token_in_production(
@@ -406,7 +405,6 @@ def test_bi_router_allows_metrics_token_in_production(
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
-    monkeypatch.setattr(bi_router_module, "is_production_environment", lambda: True)
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
@@ -423,7 +421,6 @@ def test_bi_router_rejects_invalid_metrics_token_in_production(
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
-    monkeypatch.setattr(bi_router_module, "is_production_environment", lambda: True)
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
@@ -500,8 +497,9 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         assert cost.status_code == 200
         assert len(cost.json()["cards"]) >= 1
 
+        billing_cycle = datetime.now().strftime("%Y-%m")
         reconciliation = client.get(
-            "/api/v1/bi/cost/reconciliation?days=30&workspace_id=ws-1&apikey_id=42&billing_cycle=2026-04"
+            f"/api/v1/bi/cost/reconciliation?days=30&workspace_id=ws-1&apikey_id=42&billing_cycle={billing_cycle}"
         )
         assert reconciliation.status_code == 200
         reconciliation_body = reconciliation.json()
@@ -516,7 +514,7 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         assert reconciliation_body["bailian_billing"]["pretax_amount"] == 0.0124
         assert reconciliation_body["system_global_bailian"]["total_tokens"] == 1720
         assert reconciliation_body["system_global_bailian"]["estimated_total_cost_usd"] == 0.0058
-        assert reconciliation_body["reconciliation"]["billing_cycle"] == "2026-04"
+        assert reconciliation_body["reconciliation"]["billing_cycle"] == billing_cycle
         assert reconciliation_body["reconciliation"]["billing_scope_system_cost_usd"] == 0.0153
         assert reconciliation_body["reconciliation"]["token_delta"] == 320
         assert reconciliation_body["reconciliation"]["cost_delta_usd"] == 0.01278

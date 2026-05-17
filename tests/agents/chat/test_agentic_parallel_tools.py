@@ -589,7 +589,7 @@ def test_missing_teaching_elements_requires_exact_zh_section_titles(monkeypatch:
 ## 核心结论
 先看组织节奏。
 
-## 踩分点
+## 采分点
 - 写清相邻专业队投入间隔。
 
 ## 易错点
@@ -627,7 +627,7 @@ def test_missing_teaching_elements_requires_explicit_section_headings(monkeypatc
 """
     assert pipeline._missing_teaching_elements(content) == [
         "核心结论",
-        "踩分点",
+        "采分点",
         "易错点",
         "记忆口诀",
         "心得",

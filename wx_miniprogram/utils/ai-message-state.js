@@ -238,7 +238,7 @@ function hasMeaningfulFallbackOutsideMcq(fallbackText, cards) {
     return false;
   }
   if (fallbackSignature.length > mcqSignature.length + 80) return true;
-  return /结论|判断依据|核心考点|考试场景|踩分点|易错点|解析|自查问题/.test(fallback);
+  return /结论|判断依据|核心考点|考试场景|采分点|易错点|解析|自查问题/.test(fallback);
 }
 
 function shouldRenderStructuredFallback(presentationState, fallbackText) {
@@ -266,7 +266,7 @@ function shouldRenderStructuredFallback(presentationState, fallbackText) {
 }
 
 function hasTeachingSemanticFallback(text) {
-  return /(?:^|\n)\s*(?:#{1,6}\s*)?(?:核心结论|结论|判断依据|考试踩分点|拿分要点|得分点|评分点|采分点|踩分点|拉分关键|易错点提醒|易错提醒|易错点|失分点|扣分点|记忆口诀|小技巧|速记|助记|口诀|下一步建议|下一步学习|下一步|学习建议|复习建议|训练建议|行动建议|后续建议|建议下一步)(?:\s*[-—–]\s*[^：:\n]{1,18})?\s*(?:[：:]|\n|$)/.test(
+  return /(?:^|\n)\s*(?:#{1,6}\s*)?(?:核心结论|结论|判断依据|考试采分点|拿分要点|得分点|评分点|采分点|拉分关键|易错点提醒|易错提醒|易错点|失分点|扣分点|记忆口诀|小技巧|速记|助记|口诀|下一步建议|下一步学习|下一步|学习建议|复习建议|训练建议|行动建议|后续建议|建议下一步)(?:\s*[-—–]\s*[^：:\n]{1,18})?\s*(?:[：:]|\n|$)/.test(
     String(text || ""),
   );
 }

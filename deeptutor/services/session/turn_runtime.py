@@ -1567,7 +1567,7 @@ def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> st
         if hints.get("prefer_question_context_grading"):
             lines.append("- 若已有题目上下文，短答案如 A/B/C/D、我选B，应优先结合题目上下文理解为作答提交。")
         if hints.get("prefer_concept_teaching_slots"):
-            lines.append("- 遇到知识讲解且本轮用了知识召回时，优先覆盖核心结论、踩分点、易错点；记忆口诀和心得仅在确有帮助时补充。")
+            lines.append("- 遇到知识讲解且本轮用了知识召回时，优先覆盖核心结论、采分点、易错点；记忆口诀和心得仅在确有帮助时补充。")
         lines.append("- 回答排版优先使用少量稳定标题和单层列表；避免多级缩进列表，以及“加粗标签 + 冒号 + 长正文 + 子列表”混搭。")
         if hints.get("allow_general_chat_fallback"):
             lines.append("- 如果用户明显转入闲聊、产品问答或开放问题，正常切回通用智能助理模式。")
@@ -3271,6 +3271,7 @@ class TurnRuntimeManager:
             from deeptutor.services.memory import get_memory_service
             from deeptutor.services.notebook import notebook_manager
             from deeptutor.services.model_selection.runtime import activate_llm_selection
+            from deeptutor.services.security.tutorbot_guardrails import classify_tutorbot_user_input
             from deeptutor.services.session.context_builder import ContextBuilder
 
             request_config = dict(payload.get("config", {}) or {})
@@ -4063,6 +4064,88 @@ class TurnRuntimeManager:
                         ),
                         default=None,
                     )
+
+                security_decision = classify_tutorbot_user_input(raw_user_content)
+                if security_decision.blocked:
+                    assistant_content = normalize_markdown_for_tutorbot(
+                        coerce_user_visible_answer(security_decision.content or "")
+                    )
+                    assistant_content_source = "security_guardrail"
+                    public_source = capability_name or "chat"
+                    security_metadata = {
+                        "response": assistant_content,
+                        "guardrail": "tutorbot_security_skill",
+                        "guardrail_level": security_decision.level,
+                        "guardrail_signals": list(security_decision.signals),
+                    }
+                    for security_event in (
+                        StreamEvent(
+                            type=StreamEventType.STAGE_START,
+                            source=public_source,
+                            stage="responding",
+                            metadata={
+                                "stage": "responding",
+                                "guardrail": "tutorbot_security_skill",
+                            },
+                        ),
+                        StreamEvent(
+                            type=StreamEventType.CONTENT,
+                            source=public_source,
+                            stage="responding",
+                            content=assistant_content,
+                            metadata={
+                                "call_kind": "security_guardrail_response",
+                                "guardrail": "tutorbot_security_skill",
+                            },
+                        ),
+                        StreamEvent(
+                            type=StreamEventType.RESULT,
+                            source=public_source,
+                            stage="responding",
+                            metadata=security_metadata,
+                        ),
+                        StreamEvent(
+                            type=StreamEventType.STAGE_END,
+                            source=public_source,
+                            stage="responding",
+                            metadata={
+                                "stage": "responding",
+                                "guardrail": "tutorbot_security_skill",
+                            },
+                        ),
+                        StreamEvent(
+                            type=StreamEventType.DONE,
+                            source=public_source,
+                            metadata={"status": "completed"},
+                        ),
+                    ):
+                        payload_event = await self._persist_and_publish(execution, security_event)
+                        if (
+                            payload_event.get("type") not in {"done", "session"}
+                            and _event_visibility(payload_event) == _PUBLIC_VISIBILITY
+                        ):
+                            assistant_events.append(payload_event)
+                    await self._safe_store_call(
+                        execution,
+                        "add_security_guardrail_assistant_message",
+                        self.store.add_message,
+                        session_id=session_id,
+                        role="assistant",
+                        content=assistant_content,
+                        capability=public_source,
+                        events=assistant_events,
+                        default=None,
+                    )
+                    await self._safe_store_call(
+                        execution,
+                        "mark_security_guardrail_turn_completed",
+                        self.store.update_turn_status,
+                        turn_id,
+                        "completed",
+                        default=False,
+                    )
+                    terminal_status = "completed"
+                    return
 
                 orch = selector_orchestrator
                 async for event in orch.handle(context):

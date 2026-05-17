@@ -226,7 +226,7 @@ def test_bi_page_client_exposes_token_read_only_mode() -> None:
     source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
 
     assert "biReadOnly" in source
-    assert "BI API Token" in source
+    assert "readAccessDenied" in source
     assert 'const heroIssueTitle = issues[0] ? "当前数据已降级展示" : "经营提醒";' in source
 
 
@@ -258,7 +258,7 @@ def test_bi_page_client_exposes_admin_login_entry() -> None:
 def test_bi_page_client_explains_token_is_server_managed() -> None:
     source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
 
-    assert "BI API Token 已由系统配置" in source
+    assert "BI 只读凭证已由系统配置" in source
     assert "无需手动填写" in source
 
 

@@ -296,7 +296,7 @@ run("standalone answer explanation with option-like lines should not become mcq"
     "C. 施工总荷载 10kN/m² 及以上",
     "D. 集中线荷载 15kN/m 及以上",
     "",
-    "**踩分点：**",
+    "**采分点：**",
     "1. 直接判断需要专家论证",
     "2. 明确依据是住建部令第 37 号附件一",
   ].join("\n");

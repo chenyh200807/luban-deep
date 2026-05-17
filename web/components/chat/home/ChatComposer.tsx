@@ -381,7 +381,7 @@ export default function ChatComposer({
           )}
 
           <div className="border-t border-[var(--border)]/35 px-3 py-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 ref={capBtnRef}
                 onClick={() => onSetCapMenuOpen((v) => !v)}
@@ -427,7 +427,7 @@ export default function ChatComposer({
 
               <div className="h-3.5 w-px bg-[var(--border)]/30" />
 
-              <div className="flex min-w-0 flex-1 items-center gap-1">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
                 {isResearchMode ? (
                   researchSources.map((source) => {
                     const active = researchConfig.sources.includes(source.name);
@@ -548,7 +548,7 @@ export default function ChatComposer({
                 </div>
               </div>
 
-              <div className="ml-auto flex shrink-0 items-center gap-1.5">
+              <div className="flex basis-full shrink-0 items-center justify-end gap-1.5 sm:ml-auto sm:basis-auto">
                 <ModelSelector
                   options={llmOptions}
                   activeDefault={activeDefaultLLM}
@@ -563,7 +563,7 @@ export default function ChatComposer({
                   onChange={(e) => onSetKB(e.target.value)}
                   disabled={!ragActive}
                   title={ragActive ? t("Select Knowledge Base") : t("Enable Knowledge Base source first")}
-                  className={`h-[28px] appearance-none rounded-full border bg-transparent py-0 pl-2.5 pr-5 text-[11px] outline-none transition-colors ${
+                  className={`h-[28px] max-w-[132px] appearance-none truncate rounded-full border bg-transparent py-0 pl-2.5 pr-5 text-[11px] outline-none transition-colors sm:max-w-[180px] ${
                     ragActive
                       ? "cursor-pointer border-[var(--border)]/40 text-[var(--muted-foreground)] hover:border-[var(--border)] hover:text-[var(--foreground)]"
                       : "cursor-not-allowed border-transparent text-[var(--border)]"
