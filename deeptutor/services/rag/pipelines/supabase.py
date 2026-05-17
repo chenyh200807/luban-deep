@@ -2091,6 +2091,9 @@ class SupabasePipeline:
             return []
 
         query_shape = classify_query_shape(query_surface)
+        if exact_probe is None and query_shape != "case_like":
+            return []
+
         candidates: list[tuple[str, float, dict[str, Any]]] = []
         for plan in plans:
             if str(plan.get("group_name") or "") != "questions_bank":

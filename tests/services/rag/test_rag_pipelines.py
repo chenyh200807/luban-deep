@@ -901,7 +901,7 @@ async def test_supabase_search_builds_partial_case_authority_bundle(
 
 
 @pytest.mark.asyncio
-async def test_supabase_search_promotes_high_confidence_case_question_bank_match(
+async def test_supabase_search_promotes_high_confidence_case_question_bank_match_from_case_query(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from deeptutor.services.rag.pipelines import supabase as supabase_module
@@ -967,7 +967,13 @@ async def test_supabase_search_promotes_high_confidence_case_question_bank_match
     monkeypatch.setattr(pipeline, "_rerank_results", _identity)
 
     result = await pipeline.search(
-        query="钢结构装饰架造价计算 分部分项工程费 措施费 总承包管理费 计日工 规费 增值税",
+        query=(
+            "背景资料：某旧城改造工程，应甲方要求，在相关单位工程顶部新增钢结构装饰架。"
+            "分部分项工程工程量 2200t，措施费为分部分项工程费的 10%，"
+            "总承包管理费 70 万元，计日工 26 万元，规费费率 2%，增值税税率 9%。"
+            "问题：\n1. 通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？\n"
+            "5. 分步骤列式计算钢结构装饰架的造价是多少万元？"
+        ),
         kb_name="construction-exam",
     )
 
@@ -976,6 +982,78 @@ async def test_supabase_search_promotes_high_confidence_case_question_bank_match
     assert result["exact_question"]["answer_kind"] == "case_study"
     assert result["exact_question"]["covered_subquestions"][0]["display_index"] == "5"
     assert result["exact_question"]["covered_subquestions"][0]["authoritative_answer"] == "3335.40 万元。"
+
+
+@pytest.mark.asyncio
+async def test_supabase_search_does_not_promote_case_match_from_keyword_only_query(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-key")
+    monkeypatch.setenv("SUPABASE_RAG_ENABLE_RERANK", "false")
+    monkeypatch.setenv("SUPABASE_RAG_SECOND_PASS", "false")
+
+    class _FakeKbConfigService:
+        def get_kb_config(self, kb_name: str) -> dict[str, object]:
+            _ = kb_name
+            return {}
+
+    monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
+
+    pipeline = supabase_module.SupabasePipeline()
+    _disable_supabase_availability_gate(monkeypatch, pipeline)
+
+    async def _fake_run_query_plan(**kwargs):
+        return [
+            {
+                "phase": kwargs.get("phase", "primary"),
+                "group_name": "questions_bank",
+                "query": kwargs["queries"][0],
+                "query_index": 0,
+                "query_weight": kwargs.get("query_weight", 1.0),
+                "results": [
+                    {
+                        "id": 17468,
+                        "chunk_id": "question-17468",
+                        "card_title": "题目: 某旧城改造工程钢结构装饰架造价",
+                        "stem": (
+                            "【背景资料】某旧城改造工程，应甲方要求，在相关单位工程顶部新增钢结构装饰架。"
+                            "分部分项工程工程量 2200t，措施费为分部分项工程费的 10%，"
+                            "总承包管理费 70 万元，计日工 26 万元，规费费率 2%，增值税税率 9%。"
+                            "【问题】5. 分步列式计算钢结构装饰架的造价是多少万元？"
+                        ),
+                        "rag_content": "【题目】5. 钢结构装饰架造价\n【答案】3335.40 万元。",
+                        "source_type": "REAL_EXAM",
+                        "score": 0.7361,
+                        "similarity": 0.7361,
+                        "question_type": "case_study",
+                        "correct_answer": "3335.40 万元。",
+                        "analysis": "第5问标准答案。",
+                        "options": "",
+                        "_source_group": "questions_bank",
+                        "_source_table": "questions_bank",
+                    }
+                ],
+            }
+        ]
+
+    async def _identity(results, **kwargs):
+        _ = kwargs
+        return results
+
+    monkeypatch.setattr(pipeline, "_run_query_plan", _fake_run_query_plan)
+    monkeypatch.setattr(pipeline, "_hydrate_sources", _identity)
+    monkeypatch.setattr(pipeline, "_rerank_results", _identity)
+
+    result = await pipeline.search(
+        query="钢结构装饰架造价计算 分部分项工程费 措施费 总承包管理费 计日工 规费 增值税",
+        kb_name="construction-exam",
+    )
+
+    assert result.get("exact_question") is None
+    assert result["evidence_bundle"]["exact_question"] == {}
 
 
 @pytest.mark.asyncio
