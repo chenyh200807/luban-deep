@@ -52,6 +52,15 @@ def test_chat_model_options_use_public_projection_not_admin_settings() -> None:
     assert "/api/v1/settings/llm-options" not in source
 
 
+def test_next_dev_proxies_same_origin_api_routes_to_backend() -> None:
+    source = _read("web/next.config.js")
+
+    assert "NEXT_API_PROXY_TARGET" in source
+    assert "http://localhost:8001" in source
+    assert 'source: "/api/:path*"' in source
+    assert "destination: `${normalizedApiProxyTarget}/api/:path*`" in source
+
+
 def test_workspace_shell_hides_fixed_sidebar_on_mobile() -> None:
     source = _read("web/app/(workspace)/layout.tsx")
 

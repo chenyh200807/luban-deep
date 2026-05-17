@@ -1,5 +1,12 @@
 /** @type {import('next').NextConfig} */
 
+const apiProxyTarget =
+  process.env.NEXT_API_PROXY_TARGET ||
+  process.env.API_PROXY_TARGET ||
+  (process.env.NODE_ENV === "development" ? "http://localhost:8001" : "");
+
+const normalizedApiProxyTarget = apiProxyTarget.replace(/\/$/, "");
+
 const nextConfig = {
   // Standalone output: self-contained server.js + minimal node_modules
   // This eliminates the need to copy the full node_modules into Docker production images
@@ -12,6 +19,19 @@ const nextConfig = {
 
   // Transpile mermaid and related packages for proper ESM handling
   transpilePackages: ["mermaid"],
+
+  async rewrites() {
+    if (!normalizedApiProxyTarget) {
+      return [];
+    }
+
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${normalizedApiProxyTarget}/api/:path*`,
+      },
+    ];
+  },
 
   // Turbopack configuration (used when running `npm run dev:turbo`)
   turbopack: {
