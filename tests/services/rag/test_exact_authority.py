@@ -55,6 +55,19 @@ def test_should_force_exact_authority_requires_full_case_coverage() -> None:
             "coverage_state": "multi_subquestion_exact",
         }
     ) is True
+    assert should_force_exact_authority(
+        {
+            "answer_kind": "case_study",
+            "covered_subquestions": [
+                {"display_index": "2", "authoritative_answer": "A2"},
+                {"display_index": "5", "authoritative_answer": "A5"},
+            ],
+            "missing_subquestions": [{"display_index": "1", "prompt": "Q1"}],
+            "coverage_ratio": 0.4,
+            "coverage_state": "multi_subquestion_exact",
+            "query_subquestion_count": 5,
+        }
+    ) is False
 
 
 def test_build_exact_authority_response_renders_mcq_as_learning_report() -> None:

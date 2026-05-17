@@ -1885,7 +1885,11 @@ class SupabasePipeline:
         original_query: str = "",
         exact_probe: Any = None,
     ) -> dict[str, Any] | None:
-        priority = {"question_exact_text": 0, "question_exact_vector": 1}
+        priority = {
+            "question_exact_text": 0,
+            "question_exact_vector": 1,
+            "question_bank_case_match": 2,
+        }
         candidates = sorted(
             [
                 plan
@@ -1902,18 +1906,56 @@ class SupabasePipeline:
                 original_query=original_query,
                 exact_probe=exact_probe,
             )
-            if promoted_row is None:
-                return None
-            candidates = [
-                {
-                    "phase": promoted_row.get("_query_phase") or "primary",
-                    "group_name": "question_bank_option_match",
-                    "query": promoted_row.get("_query_variant") or original_query,
-                    "query_index": 0,
-                    "query_weight": 1.0,
-                    "results": [promoted_row],
-                }
-            ]
+            if promoted_row is not None:
+                candidates = [
+                    {
+                        "phase": promoted_row.get("_query_phase") or "primary",
+                        "group_name": "question_bank_option_match",
+                        "query": promoted_row.get("_query_variant") or original_query,
+                        "query_index": 0,
+                        "query_weight": 1.0,
+                        "results": [promoted_row],
+                    }
+                ]
+            else:
+                promoted_case_rows = self._select_case_matched_question_bank_rows(
+                    plans,
+                    original_query=original_query,
+                    exact_probe=exact_probe,
+                )
+                if not promoted_case_rows:
+                    return None
+                candidates = [
+                    {
+                        "phase": promoted_case_rows[0].get("_query_phase") or "primary",
+                        "group_name": "question_bank_case_match",
+                        "query": promoted_case_rows[0].get("_query_variant") or original_query,
+                        "query_index": 0,
+                        "query_weight": 1.0,
+                        "results": promoted_case_rows,
+                    }
+                ]
+        elif any(
+            "case" in str((item or {}).get("question_type") or "").strip().lower()
+            for plan in candidates
+            for item in (plan.get("results") or [])
+        ):
+            promoted_case_rows = self._select_case_matched_question_bank_rows(
+                plans,
+                original_query=original_query,
+                exact_probe=exact_probe,
+            )
+            if promoted_case_rows:
+                candidates.append(
+                    {
+                        "phase": promoted_case_rows[0].get("_query_phase") or "primary",
+                        "group_name": "question_bank_case_match",
+                        "query": promoted_case_rows[0].get("_query_variant") or original_query,
+                        "query_index": len(candidates),
+                        "query_weight": 0.9,
+                        "results": promoted_case_rows,
+                    }
+                )
 
         case_rows: list[dict[str, Any]] = []
         for plan in candidates:
@@ -1976,7 +2018,11 @@ class SupabasePipeline:
                 "analysis": selected_row.get("analysis") or "",
                 "options": selected_row.get("options") or "",
                 "source_type": selected_row.get("source_type") or "",
-                "source_group": "question_exact_text",
+                "source_group": str(
+                    selected_row.get("_source_group")
+                    or selected_row.get("source_group")
+                    or "question_exact_text"
+                ),
                 "confidence": max(float(row.get("similarity") or row.get("score") or 0.0) for row in ordered_rows),
                 "answer_kind": "case_study",
                 "matched_question_ids": [row.get("id") for row in ordered_rows if row.get("id") is not None],
@@ -2032,6 +2078,105 @@ class SupabasePipeline:
             payload["coverage_state"] = case_bundle.get("coverage_state") or ""
             payload["covered_indexes"] = case_bundle.get("covered_indexes") or []
         return payload
+
+    def _select_case_matched_question_bank_rows(
+        self,
+        plans: list[dict[str, Any]],
+        *,
+        original_query: str,
+        exact_probe: Any = None,
+    ) -> list[dict[str, Any]]:
+        query_surface = str(original_query or "").strip()
+        if not query_surface and not exact_probe:
+            return []
+
+        query_shape = classify_query_shape(query_surface)
+        candidates: list[tuple[str, float, dict[str, Any]]] = []
+        for plan in plans:
+            if str(plan.get("group_name") or "") != "questions_bank":
+                continue
+            plan_query = str(plan.get("query") or "").strip()
+            match_query = " ".join(item for item in [query_surface, plan_query] if item).strip()
+            for item in plan.get("results") or []:
+                row = dict(item or {})
+                if str(row.get("_source_table") or "").strip() != "questions_bank":
+                    continue
+                if "case" not in str(row.get("question_type") or "").strip().lower():
+                    continue
+                if not row.get("correct_answer"):
+                    continue
+                source_type = str(row.get("source_type") or "").strip().lower()
+                if source_type and "exam" not in source_type:
+                    continue
+                score = float(row.get("similarity") or row.get("score") or 0.0)
+                if score < 0.70:
+                    continue
+                if not self._case_question_row_matches_query(
+                    row,
+                    query=match_query,
+                    query_shape=query_shape,
+                    exact_probe=exact_probe,
+                ):
+                    continue
+                row["_source_group"] = "question_bank_case_match"
+                row["_query_phase"] = plan.get("phase") or "primary"
+                row["_query_variant"] = plan_query or query_surface
+                prompt_surface = str(row.get("stem") or row.get("question_stem") or row.get("card_title") or "")
+                sub_items = extract_case_subquestion_items(prompt_surface, max_items=2)
+                display_index = str((sub_items[0] if sub_items else {}).get("display_index") or "").strip()
+                if display_index:
+                    row["_display_index"] = display_index
+                key = display_index or str(row.get("id") or row.get("chunk_id") or "")
+                candidates.append((key, score, row))
+
+        if not candidates:
+            return []
+
+        best_by_key: dict[str, tuple[float, dict[str, Any]]] = {}
+        for key, score, row in candidates:
+            existing = best_by_key.get(key)
+            if existing is None or score >= existing[0]:
+                best_by_key[key] = (score, row)
+
+        return [
+            row
+            for _, row in sorted(
+                best_by_key.values(),
+                key=lambda item: (
+                    int(str(item[1].get("_display_index") or "9999"))
+                    if str(item[1].get("_display_index") or "").isdigit()
+                    else 9999,
+                    -item[0],
+                ),
+            )
+        ]
+
+    def _case_question_row_matches_query(
+        self,
+        row: dict[str, Any],
+        *,
+        query: str,
+        query_shape: str,
+        exact_probe: Any = None,
+    ) -> bool:
+        if exact_probe is not None or query_shape == "case_like":
+            return True
+        tokens = self._case_support_tokens(query)
+        if not tokens:
+            return False
+        haystack = " ".join(
+            [
+                str(row.get("stem") or ""),
+                str(row.get("question_stem") or ""),
+                str(row.get("card_title") or ""),
+                str(row.get("rag_content") or ""),
+            ]
+        ).lower()
+        overlap = 0
+        for token in tokens[:10]:
+            if token.lower() in haystack:
+                overlap += 1
+        return overlap >= min(3, max(2, len(tokens)))
 
     def _select_option_matched_question_bank_row(
         self,
@@ -2117,11 +2262,24 @@ class SupabasePipeline:
             len(covered_indexes) / max(len(query_items), 1),
             4,
         )
+        if exact_question["missing_subquestions"]:
+            exact_question["coverage_state"] = (
+                "single_subquestion_only"
+                if len(covered_indexes) <= 1
+                else "partial_multi_subquestion_exact"
+            )
+        else:
+            exact_question["coverage_state"] = (
+                "multi_subquestion_exact"
+                if len(covered_indexes) > 1
+                else "single_subquestion_only"
+            )
         if isinstance(exact_question.get("case_bundle"), dict):
             exact_question["case_bundle"]["query_subquestions"] = query_items
             exact_question["case_bundle"]["missing_subquestions"] = exact_question["missing_subquestions"]
             exact_question["case_bundle"]["query_subquestion_count"] = len(query_items)
             exact_question["case_bundle"]["coverage_ratio"] = exact_question["coverage_ratio"]
+            exact_question["case_bundle"]["coverage_state"] = exact_question["coverage_state"]
         return exact_question
 
     async def _hydrate_sources(

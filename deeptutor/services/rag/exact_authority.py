@@ -148,9 +148,12 @@ def should_force_exact_authority(exact_question: dict[str, Any]) -> bool:
         missing_subquestions = exact_question.get("missing_subquestions")
         if coverage_ratio >= 0.999:
             return True
-        if isinstance(missing_subquestions, list) and not missing_subquestions:
-            return True
-        if str(exact_question.get("coverage_state") or "").strip() == "multi_subquestion_exact":
+        if isinstance(missing_subquestions, list):
+            return not missing_subquestions
+        if (
+            str(exact_question.get("coverage_state") or "").strip() == "multi_subquestion_exact"
+            and not exact_question.get("query_subquestion_count")
+        ):
             return True
     return False
 
