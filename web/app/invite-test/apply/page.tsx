@@ -53,13 +53,13 @@ export default function InviteTestApplyPage() {
         </nav>
       </header>
 
-      <main className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[0.74fr_1.26fr] lg:py-24">
+      <main className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:px-8 lg:grid-cols-[0.74fr_1.26fr] lg:gap-10 lg:py-24">
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="inline-flex items-center gap-3 rounded-full border border-white/[0.12] bg-white/[0.06] px-4 py-2 text-sm font-bold text-white/[0.72]">
             <ClipboardCheck className="h-4 w-4 text-[#66b6ff]" aria-hidden="true" />
             内测申请表
           </div>
-          <h1 className="mt-8 text-balance text-5xl font-black leading-tight tracking-normal text-white sm:text-6xl">
+          <h1 className="mt-6 text-balance text-4xl font-black leading-tight tracking-normal text-white sm:text-6xl lg:mt-8">
             申请加入
             <span className="block text-[#66b6ff]">AI 陪考教练内测</span>
           </h1>
@@ -67,7 +67,7 @@ export default function InviteTestApplyPage() {
             这里单独收集内测筛选信息。我们会根据备考阶段、真实痛点、可测试时间和回访意愿，邀请更适合首批体验的学员。
           </p>
 
-          <div className="mt-10 grid gap-5">
+          <div className="mt-10 hidden gap-5 lg:grid">
             <div className="rounded-[1.35rem] border border-white/10 bg-white/[0.055] p-5">
               <Mail className="h-6 w-6 text-[#66b6ff]" aria-hidden="true" />
               <h2 className="mt-5 text-2xl font-black tracking-normal text-white">邮箱为必填</h2>
