@@ -4054,7 +4054,7 @@ async def test_tutorbot_explicit_web_search_preserves_full_exact_evidence(
                 "### 第4问\n"
                 "完全成本法计算为 10.28 亿元。\n\n"
                 "### 第5问\n"
-                "钢结构装饰架造价为 3281.54 万元。"
+                "钢结构装饰架造价为 3335.40.00 万元。"
             )
             if on_content_delta:
                 await on_content_delta(content)
@@ -4182,7 +4182,7 @@ async def test_tutorbot_explicit_web_search_preserves_full_exact_evidence(
 
     assert "10.28 亿元" in content
     assert "3335.40 万元" in content
-    assert "3281.54" not in content
+    assert "3335.40.00" not in content
     assert "## 标准作答" in content
     assert [name for name, _args in captured["tool_calls"]] == ["rag", "web_search"]
     assert captured["tool_results"][0][2]["authority_applied"] is False

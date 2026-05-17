@@ -688,6 +688,8 @@ class AgentLoop:
         if not required_numbers:
             return ""
         compact_response = str(final_content or "").replace(" ", "")
+        if any("." in number and f"{number}.00" in compact_response for number in required_numbers):
+            return self._build_exact_authority_response_sync(exact_question)
         if all(number in compact_response for number in required_numbers):
             return ""
         return self._build_exact_authority_response_sync(exact_question)
