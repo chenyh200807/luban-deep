@@ -4,8 +4,8 @@ const CURRENT_ORIGIN_SENTINEL = "__CURRENT_ORIGIN__";
 const BI_API_TOKEN_PLACEHOLDER = "__NEXT_PUBLIC_BI_API_TOKEN_" + "PLACEHOLDER__";
 const INJECTED_BI_API_TOKEN = "__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__";
 
-// Keep the injected API base when it exists. Otherwise, browser surfaces fall back
-// to the current origin so IP and domain entrances can both use same-origin `/api/...`.
+// Keep the injected API base when it exists. Local development can still fall
+// back to the current origin; production must receive an explicit API base.
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE?.trim() || "";
 const resolvedBiApiToken =
   process.env.NEXT_PUBLIC_BI_API_TOKEN?.trim() || INJECTED_BI_API_TOKEN;
