@@ -814,7 +814,9 @@ export default function BiPageClient() {
                   你当前打开的是 {activeTabLabel}，这个分区属于管理员后台，不会再要求你手动填写 API Token。
                 </p>
                 <p className="mt-2 text-sm leading-6 text-white/75">
-                  BI API Token 已由系统配置，无需手动填写；只需要输入管理员用户名和密码即可解锁会员管理能力。
+                  {readAccessDenied
+                    ? "当前没有可用的只读凭证；请输入管理员用户名和密码解锁会员管理能力。"
+                    : "BI API Token 已由系统配置，无需手动填写；只需要输入管理员用户名和密码即可解锁会员管理能力。"}
                 </p>
                 <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white/80">
                   登录后将直接解锁：会员筛选与批量操作、学员 360、Heartbeat / Overlay 操作、经营审计记录。
