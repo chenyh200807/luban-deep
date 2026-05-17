@@ -4,18 +4,25 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Code2, Copy, Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Mermaid } from "@/components/Mermaid";
+import {
+  parseSafeChartConfig,
+  sanitizeSvgMarkup,
+} from "@/lib/visualize-safe-renderer";
 import type { VisualizeResult } from "@/lib/visualize-types";
 
 function ChartJsRenderer({ config }: { config: string }) {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<unknown>(null);
   const [error, setError] = useState<string | null>(null);
+  const parsedConfig = useMemo(() => parseSafeChartConfig(config), [config]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function render() {
-      if (!canvasRef.current) return;
+      if (!canvasRef.current || !parsedConfig.config) return;
+      const safeConfig = parsedConfig.config;
 
       try {
         const ChartModule = await import("chart.js/auto");
@@ -26,12 +33,9 @@ function ChartJsRenderer({ config }: { config: string }) {
           chartRef.current = null;
         }
 
-        // eslint-disable-next-line no-new-func
-        const parsedConfig = new Function(`"use strict"; return (${config});`)();
-
         if (cancelled) return;
 
-        chartRef.current = new Chart(canvasRef.current, parsedConfig);
+        chartRef.current = new Chart(canvasRef.current, safeConfig);
         setError(null);
       } catch (err) {
         if (!cancelled) {
@@ -49,15 +53,17 @@ function ChartJsRenderer({ config }: { config: string }) {
         chartRef.current = null;
       }
     };
-  }, [config]);
+  }, [parsedConfig]);
 
-  if (error) {
+  const renderError = parsedConfig.error ?? error;
+
+  if (renderError) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/30">
         <p className="text-sm font-medium text-red-600 dark:text-red-400">
-          Chart rendering error
+          {t("Chart rendering error")}
         </p>
-        <pre className="mt-2 whitespace-pre-wrap text-xs text-red-500">{error}</pre>
+        <pre className="mt-2 whitespace-pre-wrap text-xs text-red-500">{renderError}</pre>
       </div>
     );
   }
@@ -70,27 +76,18 @@ function ChartJsRenderer({ config }: { config: string }) {
 }
 
 function SvgRenderer({ svg }: { svg: string }) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { sanitizedSvg, error } = useMemo(() => {
-    const trimmed = svg.trim();
-    if (!trimmed.startsWith("<svg")) {
-      return {
-        sanitizedSvg: "",
-        error: "Invalid SVG: does not start with <svg",
-      };
-    }
-    return {
-      sanitizedSvg: trimmed,
-      error: null,
-    };
+    return sanitizeSvgMarkup(svg);
   }, [svg]);
 
   if (error) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/30">
         <p className="text-sm font-medium text-red-600 dark:text-red-400">
-          SVG rendering error
+          {t("SVG rendering error")}
         </p>
         <pre className="mt-2 whitespace-pre-wrap text-xs text-red-500">{error}</pre>
       </div>

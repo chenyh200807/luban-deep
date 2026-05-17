@@ -41,6 +41,8 @@ const navItems = [
   { label: "Demo", href: "#demo" },
 ];
 
+const inviteTestHref = "/invite-test/apply?utm_source=intro&utm_campaign=landing_page";
+
 const painItems = [
   "看解析时觉得懂了，换一道题还是错。",
   "案例题写了一大段，不知道哪些话能得分。",
@@ -311,7 +313,7 @@ export default function IntroPage() {
             ))}
           </nav>
           <Link
-            href="/invite-test"
+            href={inviteTestHref}
             className="inline-flex shrink-0 items-center gap-2 rounded-md bg-[#007f78] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors duration-150 hover:bg-[#00665f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#007f78]"
           >
             申请内测体验
@@ -341,7 +343,7 @@ export default function IntroPage() {
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/invite-test"
+                href={inviteTestHref}
                 className="inline-flex items-center justify-center gap-2 rounded-md bg-[#007f78] px-6 py-3.5 text-base font-black text-white shadow-sm transition-colors duration-150 hover:bg-[#00665f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#007f78]"
               >
                 申请内测体验
@@ -543,7 +545,7 @@ export default function IntroPage() {
               </p>
             </div>
             <Link
-              href="/invite-test"
+              href={inviteTestHref}
               className="inline-flex items-center justify-center gap-2 rounded-md bg-white px-6 py-3.5 text-base font-black text-[#0c2d2a] transition-colors duration-150 hover:bg-[#eef8f6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
               申请内测体验
@@ -569,7 +571,7 @@ export default function IntroPage() {
               查看批改 Demo
             </a>
             <Link
-              href="/invite-test"
+              href={inviteTestHref}
               className="rounded-md bg-[#007f78] px-4 py-2.5 text-sm font-bold text-white transition-colors duration-150 hover:bg-[#00665f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#007f78]"
             >
               申请内测体验

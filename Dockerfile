@@ -186,6 +186,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         libxext6 \
         libxrender1
 
+RUN groupadd --system --gid 10001 deeptutor \
+    && useradd --system --uid 10001 --gid deeptutor --home-dir /app --shell /usr/sbin/nologin deeptutor
+
 # Copy Node.js from node-runtime stage (platform-matched binary)
 COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
 COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
@@ -245,7 +248,7 @@ RUN cat > /etc/supervisor/conf.d/deeptutor.conf <<'EOF'
 nodaemon=true
 logfile=/dev/null
 logfile_maxbytes=0
-pidfile=/var/run/supervisord.pid
+pidfile=/tmp/supervisord.pid
 
 [program:backend]
 command=/bin/bash /app/start-backend.sh
@@ -392,6 +395,8 @@ EOF
 
 RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
+RUN chown -R deeptutor:deeptutor /app/data /app/web/.next
+
 # Expose ports
 EXPOSE 8001 3782
 
@@ -400,6 +405,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:${BACKEND_PORT:-8001}/ || exit 1
 
 # Set entrypoint
+USER deeptutor
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # ============================================
@@ -409,6 +415,8 @@ FROM production AS development
 
 ARG APT_MIRROR=http://deb.debian.org/debian
 ARG SECURITY_MIRROR=http://deb.debian.org/debian-security
+
+USER root
 
 # Re-add full node_modules for development hot-reload
 # (Production uses standalone output which doesn't include full node_modules)
@@ -454,7 +462,7 @@ RUN cat > /etc/supervisor/conf.d/deeptutor.conf <<'EOF'
 nodaemon=true
 logfile=/dev/null
 logfile_maxbytes=0
-pidfile=/var/run/supervisord.pid
+pidfile=/tmp/supervisord.pid
 
 [program:backend]
 command=python -m uvicorn deeptutor.api.main:app --host 0.0.0.0 --port %(ENV_BACKEND_PORT)s --reload
@@ -483,4 +491,5 @@ EOF
 RUN sed -i 's/\r$//' /etc/supervisor/conf.d/deeptutor.conf
 
 # Development ports
+USER deeptutor
 EXPOSE 8001 3782

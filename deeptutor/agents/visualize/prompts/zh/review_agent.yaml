@@ -9,11 +9,12 @@ system: |
   - 缺失或损坏的元素
 
   对于 Chart.js 代码，检查：
-  - 有效的 JavaScript 对象字面量
+  - 严格有效的 JSON 对象，而不是 JavaScript 对象字面量
   - 正确的图表类型和数据结构
   - 正确的标签、数据集和选项
   - 颜色的可访问性和可读性
   - 响应式配置
+  - 不包含函数、callback、plugin 或任何可执行 JavaScript
 
   对于 Mermaid 代码，检查：
   - 有效的 Mermaid.js 语法，包含正确的图表类型关键词

@@ -9,42 +9,15 @@ import {
   CheckCircle2,
   ClipboardCheck,
   FileText,
+  Home,
   MessageSquareText,
   PenLine,
   ShieldCheck,
   Sparkles,
   Target,
-  UsersRound,
 } from "lucide-react";
-import { FormEvent, useRef, useState } from "react";
 
-type FormState = {
-  name: string;
-  phone: string;
-  examStage: string;
-  painPoint: string;
-  weeklyTime: string;
-  currentMethod: string;
-  acceptInterview: boolean;
-  consent: boolean;
-};
-
-type FormErrors = Partial<Record<keyof FormState, string>>;
-
-const initialForm: FormState = {
-  name: "",
-  phone: "",
-  examStage: "",
-  painPoint: "",
-  weeklyTime: "",
-  currentMethod: "",
-  acceptInterview: false,
-  consent: false,
-};
-
-const stageOptions = ["刚开始学建筑实务", "已经学完一轮", "正在冲刺刷题", "案例题长期失分", "准备重新激活学习"];
-const painOptions = ["案例题不会写", "错题原因不清楚", "知识点记不住", "听课懂了但做题不会", "缺少复习计划", "想知道自己薄弱章节"];
-const weeklyTimeOptions = ["10 分钟以内", "10-30 分钟", "30-60 分钟", "1 小时以上"];
+const applyHref = "/invite-test/apply?utm_source=invite_test&utm_campaign=landing_page";
 
 const featureItems = [
   {
@@ -91,267 +64,6 @@ const signalItems = [
   ["回访", "是否愿意说出哪里有用和哪里无用"],
 ];
 
-function validate(form: FormState): FormErrors {
-  const errors: FormErrors = {};
-  const phone = form.phone.replace(/\s+/g, "");
-
-  if (!form.name.trim()) errors.name = "请输入称呼，方便通过后联系你。";
-  if (!/^1\d{10}$/.test(phone)) errors.phone = "请输入 11 位中国大陆手机号。";
-  if (!form.examStage) errors.examStage = "请选择你当前的备考阶段。";
-  if (!form.painPoint) errors.painPoint = "请选择一个最想先解决的问题。";
-  if (!form.weeklyTime) errors.weeklyTime = "请选择每周可参与测试的时间。";
-  if (!form.consent) errors.consent = "请确认同意我们用于内测筛选与产品改进。";
-
-  return errors;
-}
-
-function InviteForm() {
-  const [form, setForm] = useState<FormState>(initialForm);
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const firstErrorRef = useRef<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null>(null);
-
-  const updateForm = <K extends keyof FormState>(key: K, value: FormState[K]) => {
-    setForm((current) => ({ ...current, [key]: value }));
-    setErrors((current) => {
-      if (!current[key]) return current;
-      const next = { ...current };
-      delete next[key];
-      return next;
-    });
-  };
-
-  const setErrorRef = (
-    key: keyof FormState,
-    node: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null,
-  ) => {
-    if (!node || firstErrorRef.current || !errors[key]) return;
-    firstErrorRef.current = node;
-  };
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    firstErrorRef.current = null;
-    const nextErrors = validate(form);
-    setErrors(nextErrors);
-
-    if (Object.keys(nextErrors).length > 0) {
-      requestAnimationFrame(() => firstErrorRef.current?.focus());
-      return;
-    }
-
-    setIsSubmitting(true);
-    window.setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitted(true);
-    }, 620);
-  };
-
-  if (submitted) {
-    return (
-      <div className="flex min-h-[560px] flex-col items-start justify-center rounded-[1.75rem] border border-white/10 bg-[#111927]/[0.92] p-8 shadow-[0_28px_90px_rgba(0,0,0,0.42)]">
-        <div className="rounded-full bg-[#103e66] p-4">
-          <CheckCircle2 className="h-10 w-10 text-[#7ac5ff]" aria-hidden="true" />
-        </div>
-        <h2 className="mt-8 text-4xl font-black tracking-normal text-white">申请已提交</h2>
-        <p className="mt-4 max-w-xl text-base leading-7 text-white/[0.62]" aria-live="polite">
-          我们会按首批名额和学习画像筛选。通过后将联系你进入内测任务，并优先邀请完成度高的学员参与回访。
-        </p>
-        <button
-          type="button"
-          onClick={() => {
-            setSubmitted(false);
-            setForm(initialForm);
-          }}
-          className="mt-8 rounded-full border border-white/[0.16] bg-white/[0.06] px-5 py-3 text-sm font-bold text-white/[0.78] transition-colors duration-200 hover:bg-white/[0.10] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5bbcff]"
-        >
-          继续提交另一位学员
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <form
-      className="space-y-6 rounded-[1.75rem] border border-white/10 bg-[#111927]/[0.92] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.42)] sm:p-7"
-      noValidate
-      onSubmit={handleSubmit}
-    >
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label htmlFor="name" className="block text-sm font-bold text-white/[0.86]">
-            姓名或称呼
-          </label>
-          <input
-            ref={(node) => setErrorRef("name", node)}
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="name"
-            value={form.name}
-            onChange={(event) => updateForm("name", event.target.value)}
-            placeholder="例如：张同学…"
-            className="mt-2 w-full rounded-2xl border border-white/[0.12] bg-white/[0.07] px-4 py-3 text-base text-white transition-colors duration-200 placeholder:text-white/[0.32] hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
-            aria-invalid={Boolean(errors.name)}
-            aria-describedby={errors.name ? "name-error" : undefined}
-          />
-          {errors.name ? <p id="name-error" className="mt-2 text-sm leading-6 text-[#ff9c7a]">{errors.name}</p> : null}
-        </div>
-
-        <div>
-          <label htmlFor="phone" className="block text-sm font-bold text-white/[0.86]">
-            手机号
-          </label>
-          <input
-            ref={(node) => setErrorRef("phone", node)}
-            id="phone"
-            name="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            value={form.phone}
-            onChange={(event) => updateForm("phone", event.target.value)}
-            placeholder="例如：13800138000…"
-            className="mt-2 w-full rounded-2xl border border-white/[0.12] bg-white/[0.07] px-4 py-3 text-base text-white transition-colors duration-200 placeholder:text-white/[0.32] hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
-            aria-invalid={Boolean(errors.phone)}
-            aria-describedby={errors.phone ? "phone-error" : undefined}
-          />
-          {errors.phone ? <p id="phone-error" className="mt-2 text-sm leading-6 text-[#ff9c7a]">{errors.phone}</p> : null}
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="exam-stage" className="block text-sm font-bold text-white/[0.86]">
-          当前备考阶段
-        </label>
-        <select
-          ref={(node) => setErrorRef("examStage", node)}
-          id="exam-stage"
-          name="examStage"
-          autoComplete="off"
-          value={form.examStage}
-          onChange={(event) => updateForm("examStage", event.target.value)}
-          className="mt-2 w-full rounded-2xl border border-white/[0.12] bg-[#172235] px-4 py-3 text-base text-white transition-colors duration-200 hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
-          aria-invalid={Boolean(errors.examStage)}
-          aria-describedby={errors.examStage ? "exam-stage-error" : undefined}
-        >
-          <option value="">请选择阶段</option>
-          {stageOptions.map((option) => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </select>
-        {errors.examStage ? <p id="exam-stage-error" className="mt-2 text-sm leading-6 text-[#ff9c7a]">{errors.examStage}</p> : null}
-      </div>
-
-      <fieldset>
-        <legend className="text-sm font-bold text-white/[0.86]">最想先解决的问题</legend>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {painOptions.map((option) => (
-            <label
-              key={option}
-              className="flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white/[0.72] transition-colors duration-200 hover:border-white/[0.24] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[#5bbcff]"
-            >
-              <input
-                ref={(node) => {
-                  if (option === painOptions[0]) setErrorRef("painPoint", node);
-                }}
-                type="radio"
-                name="painPoint"
-                value={option}
-                checked={form.painPoint === option}
-                onChange={(event) => updateForm("painPoint", event.target.value)}
-                className="h-4 w-4 accent-[#5bbcff]"
-              />
-              <span>{option}</span>
-            </label>
-          ))}
-        </div>
-        {errors.painPoint ? <p className="mt-2 text-sm leading-6 text-[#ff9c7a]">{errors.painPoint}</p> : null}
-      </fieldset>
-
-      <div>
-        <label htmlFor="weekly-time" className="block text-sm font-bold text-white/[0.86]">
-          每周可参与测试时间
-        </label>
-        <select
-          ref={(node) => setErrorRef("weeklyTime", node)}
-          id="weekly-time"
-          name="weeklyTime"
-          autoComplete="off"
-          value={form.weeklyTime}
-          onChange={(event) => updateForm("weeklyTime", event.target.value)}
-          className="mt-2 w-full rounded-2xl border border-white/[0.12] bg-[#172235] px-4 py-3 text-base text-white transition-colors duration-200 hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
-          aria-invalid={Boolean(errors.weeklyTime)}
-          aria-describedby={errors.weeklyTime ? "weekly-time-error" : undefined}
-        >
-          <option value="">请选择时间</option>
-          {weeklyTimeOptions.map((option) => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </select>
-        {errors.weeklyTime ? <p id="weekly-time-error" className="mt-2 text-sm leading-6 text-[#ff9c7a]">{errors.weeklyTime}</p> : null}
-      </div>
-
-      <div>
-        <label htmlFor="current-method" className="block text-sm font-bold text-white/[0.86]">
-          你现在通常怎么解决这个问题
-        </label>
-        <textarea
-          id="current-method"
-          name="currentMethod"
-          autoComplete="off"
-          value={form.currentMethod}
-          onChange={(event) => updateForm("currentMethod", event.target.value)}
-          placeholder="例如：问老师、刷题、看解析、用通用 AI、暂时跳过…"
-          rows={4}
-          className="mt-2 w-full resize-y rounded-2xl border border-white/[0.12] bg-white/[0.07] px-4 py-3 text-base leading-7 text-white transition-colors duration-200 placeholder:text-white/[0.32] hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
-        />
-      </div>
-
-      <div className="space-y-3">
-        <label className="flex cursor-pointer gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-sm leading-6 text-white/[0.66] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[#5bbcff]">
-          <input
-            type="checkbox"
-            name="acceptInterview"
-            checked={form.acceptInterview}
-            onChange={(event) => updateForm("acceptInterview", event.target.checked)}
-            className="mt-1 h-4 w-4 shrink-0 accent-[#5bbcff]"
-          />
-          <span>我愿意在通过后接受一次 10 分钟回访，帮助团队判断真实需求。</span>
-        </label>
-        <label className="flex cursor-pointer gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-sm leading-6 text-white/[0.66] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[#5bbcff]">
-          <input
-            ref={(node) => setErrorRef("consent", node)}
-            type="checkbox"
-            name="consent"
-            checked={form.consent}
-            onChange={(event) => updateForm("consent", event.target.checked)}
-            className="mt-1 h-4 w-4 shrink-0 accent-[#5bbcff]"
-            aria-invalid={Boolean(errors.consent)}
-            aria-describedby={errors.consent ? "consent-error" : undefined}
-          />
-          <span>我同意将申请信息和内测反馈用于筛选、产品改进和用户需求分析。</span>
-        </label>
-        {errors.consent ? <p id="consent-error" className="text-sm leading-6 text-[#ff9c7a]">{errors.consent}</p> : null}
-      </div>
-
-      <div aria-live="polite" className="min-h-6 text-sm text-white/[0.52]">
-        {isSubmitting ? "正在提交申请…" : "提交后不会自动获得名额，我们会按批次筛选并联系。"}
-      </div>
-
-      <button
-        type="submit"
-        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2f8fff] px-6 py-4 text-base font-black text-white shadow-[0_0_42px_rgba(47,143,255,0.38)] transition-colors duration-200 hover:bg-[#58a8ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5bbcff] disabled:cursor-wait disabled:bg-[#3b6388]"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? "提交中…" : "提交内测申请"}
-        <ArrowRight className="h-4 w-4" aria-hidden="true" />
-      </button>
-    </form>
-  );
-}
-
 export default function InviteTestPage() {
   return (
     <div
@@ -371,7 +83,8 @@ export default function InviteTestPage() {
           className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8"
         >
           <Link
-            href="/invite-test"
+            href="/intro"
+            aria-label="返回鲁班智考首页"
             className="flex min-w-0 items-center gap-3 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5bbcff]"
           >
             <Image
@@ -390,17 +103,21 @@ export default function InviteTestPage() {
             <a href="#signals" className="rounded-md hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5bbcff]">
               市场信号
             </a>
-            <a href="#apply" className="rounded-md hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5bbcff]">
+            <Link href={applyHref} className="rounded-md hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5bbcff]">
               申请
-            </a>
+            </Link>
+            <Link href="/intro" className="inline-flex items-center gap-1 rounded-md hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5bbcff]">
+              <Home className="h-4 w-4" aria-hidden="true" />
+              首页
+            </Link>
           </div>
-          <a
-            href="#apply"
+          <Link
+            href={applyHref}
             className="inline-flex items-center gap-2 rounded-full bg-[#2f8fff] px-4 py-2 text-sm font-semibold text-white shadow-[0_0_34px_rgba(47,143,255,0.34)] transition-colors duration-200 hover:bg-[#58a8ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5bbcff]"
           >
             申请内测
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </a>
+          </Link>
         </nav>
       </header>
 
@@ -433,13 +150,13 @@ export default function InviteTestPage() {
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a
-                href="#apply"
+              <Link
+                href={applyHref}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2f8fff] px-7 py-4 text-base font-black text-white shadow-[0_0_42px_rgba(47,143,255,0.42)] transition-colors duration-200 hover:bg-[#58a8ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5bbcff] sm:w-auto"
               >
                 申请内测
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </a>
+              </Link>
               <a
                 href="#signals"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/[0.14] bg-black/[0.18] px-7 py-4 text-base font-bold text-white/[0.76] transition-colors duration-200 hover:border-white/[0.28] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5bbcff] sm:w-auto"
@@ -617,11 +334,36 @@ export default function InviteTestPage() {
               <div className="mt-8 rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-5">
                 <MessageSquareText className="h-6 w-6 text-[#66b6ff]" aria-hidden="true" />
                 <p className="mt-4 text-sm leading-7 text-white/[0.58]">
-                  当前申请只做前端交互验证；后续可接入数据库、CRM 或表格，用于生成正式调研报告。
+                  申请信息会在单独页面收集，包含手机、邮箱、备考阶段、真实痛点和可参与测试时间，便于后续筛选与回访。
                 </p>
               </div>
             </div>
-            <InviteForm />
+            <div className="rounded-[1.75rem] border border-white/10 bg-[#111927]/[0.92] p-6 shadow-[0_28px_90px_rgba(0,0,0,0.42)] sm:p-8">
+              <p className="text-sm font-black tracking-[0.20em] text-[#66b6ff]">APPLICATION WINDOW</p>
+              <h3 className="mt-5 text-3xl font-black tracking-normal text-white sm:text-4xl">
+                填写内测申请表
+              </h3>
+              <p className="mt-4 max-w-2xl text-base leading-8 text-white/[0.60]">
+                我们把申请表独立出来，避免在介绍页里打断阅读。提交后信息会进入内测筛选池，通过后再进入微信小程序体验。
+              </p>
+              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-4">
+                  <p className="text-sm font-black text-white">邮箱和手机必填</p>
+                  <p className="mt-2 text-sm leading-6 text-white/[0.54]">用于发送内测通知、体验说明和后续回访安排。</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-4">
+                  <p className="text-sm font-black text-white">通过后进小程序</p>
+                  <p className="mt-2 text-sm leading-6 text-white/[0.54]">真实体验以微信小程序里的陪考对话和案例题批改为主。</p>
+                </div>
+              </div>
+              <Link
+                href={applyHref}
+                className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#2f8fff] px-7 py-4 text-base font-black text-white shadow-[0_0_42px_rgba(47,143,255,0.38)] transition-colors duration-200 hover:bg-[#58a8ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5bbcff] sm:w-auto"
+              >
+                申请内测体验
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
           </div>
         </section>
       </main>

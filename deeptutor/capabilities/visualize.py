@@ -115,7 +115,7 @@ class VisualizeCapability(BaseCapability):
         elif analysis.render_type == "mermaid":
             lang_tag = "mermaid"
         else:
-            lang_tag = "javascript"
+            lang_tag = "json"
         content_md = f"```{lang_tag}\n{final_code}\n```"
         await stream.content(content_md, source=self.name, stage="reviewing")
 

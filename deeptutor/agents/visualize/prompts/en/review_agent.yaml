@@ -10,11 +10,12 @@ system: |
   - Missing or broken elements
 
   For Chart.js code, check:
-  - Valid JavaScript object literal
+  - Strictly valid JSON object, not a JavaScript object literal
   - Correct chart type and data structure
   - Proper labels, datasets, and options
   - Color accessibility and readability
   - Responsive configuration
+  - No functions, callbacks, plugins, or executable JavaScript
 
   For Mermaid code, check:
   - Valid Mermaid.js syntax with correct diagram type keyword
