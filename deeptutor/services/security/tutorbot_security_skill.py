@@ -60,8 +60,9 @@ class TutorBotSecuritySkill:
         SecurityPatternGroup(
             "internal_design",
             (
-                r"(内部|internal).{0,12}(设计|机制|架构|链路|实现|规则|配置|design|architecture|mechanism|rules?)",
-                r"(项目|project).{0,12}(prompt|提示词|设计|内部|源码|配置|机制)",
+                r"(你|你们|系统|产品|平台|模型|agent|tutorbot|鲁班ai智考).{0,16}(内部|internal).{0,12}(设计|机制|架构|链路|实现|规则|配置|design|architecture|mechanism|rules?)",
+                r"(内部|internal).{0,12}(prompt|system prompt|developer message|源码|配置|guardrails?)",
+                r"(项目|project).{0,12}(prompt|提示词|system prompt|developer message|源码|配置|内部(?:设计|机制|架构|实现|规则)|guardrails?)",
                 r"(三层|多层).{0,8}(防护|保护|安全|guardrail|guardrails?)",
                 r"(guardrail|guardrails?|安全策略|防护规则|防护机制).{0,16}(规则|机制|配置|列出来|说明|解释|show|print|display|dump)",
             ),
@@ -69,14 +70,18 @@ class TutorBotSecuritySkill:
         SecurityPatternGroup(
             "toolchain",
             (
-                r"(工具|tool|function|函数|rag|检索|调用).{0,12}(链路|参数|schema|清单|列表|配置|内部|调用过程)",
-                r"(列出|展示|输出|show|list|dump).{0,12}(工具|tool|function|函数)",
+                r"(你的|你们|系统|内部).{0,20}(工具|tool|function|函数|rag|检索|调用).{0,12}(链路|参数|schema|清单|列表|配置|内部|调用过程)",
+                r"(rag|tool|function).{0,16}(参数|schema|配置|调用过程)",
+                r"(列出|展示|输出).{0,12}(你的|你们的|系统|内部|所有).{0,12}(工具|tool|function|函数)",
+                r"(show|list|dump).{0,12}(tools?|functions?)",
             ),
         ),
         SecurityPatternGroup(
             "secret_exfiltration",
             (
-                r"(\.env|api[_ -]?key|secret|password|token|密钥|密码|凭证|环境变量)",
+                r"(\.env|api[_ -]?key|secret)",
+                r"(show|print|display|dump|reveal|输出|展示|打印|给我|泄露|读取|列出).{0,20}(password|token|密钥|密码|凭证|环境变量)",
+                r"(password|token|密钥|密码|凭证|环境变量).{0,20}(show|print|display|dump|reveal|输出|展示|打印|给我|泄露|读取|列出|secret|api)",
             ),
         ),
         SecurityPatternGroup(
