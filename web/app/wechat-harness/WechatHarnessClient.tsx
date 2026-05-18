@@ -56,6 +56,33 @@ type LearningBrainResponse = {
     evidence_level?: string;
     supporting_event_ids?: string[];
   }>;
+  compiled_objects?: Record<
+    string,
+    {
+      object_id?: string;
+      object_type?: string;
+      current_truth?: string;
+      evidence_level?: string;
+      supporting_event_ids?: string[];
+      conflicting_event_ids?: string[];
+      timeline_refs?: Array<{ event_id?: string; observed_at?: string }>;
+      superseded_by?: string;
+    }
+  >;
+  typed_graph_edges?: Array<{
+    edge_type?: string;
+    from?: { id?: string; type?: string };
+    to?: { id?: string; type?: string };
+    evidence_event_id?: string;
+    observed_at?: string;
+    confidence?: number;
+  }>;
+  typed_graph_readiness_gaps?: Array<{
+    code?: string;
+    evidence_event_id?: string;
+    edge_type?: string;
+    severity?: string;
+  }>;
   typed_graph_edge_count: number;
 };
 
@@ -339,6 +366,85 @@ function McqCards({
   );
 }
 
+function CompactEvidenceIds({ ids }: { ids?: string[] }) {
+  const visible = (ids || []).filter(Boolean).slice(0, 3);
+  if (!visible.length) return <span className={styles.mutedInline}>无 evidence</span>;
+  return (
+    <span className={styles.evidenceRefs}>
+      {visible.map((id, index) => (
+        <code key={`${id}-${index}`}>{id.slice(0, 8)}</code>
+      ))}
+    </span>
+  );
+}
+
+function LearningBrainEvidenceChain({ result }: { result: LearningBrainResponse }) {
+  const compiledObjects = Object.entries(result.compiled_objects || {});
+  const graphEdges = result.typed_graph_edges || [];
+  const readinessGaps = result.typed_graph_readiness_gaps || [];
+
+  return (
+    <div className={styles.qaEvidenceChain} data-testid="learning-brain-visible-chain">
+      <section>
+        <h3>Compiled truth + timeline</h3>
+        <div className={styles.compiledObjectList}>
+          {compiledObjects.map(([key, object]) => (
+            <article className={styles.compiledObjectCard} key={key}>
+              <div>
+                <strong>{key}</strong>
+                <span>{object.evidence_level || "unclassified"}</span>
+              </div>
+              <p>{object.current_truth || object.object_id || "暂无当前结论"}</p>
+              <small>
+                evidence <CompactEvidenceIds ids={object.supporting_event_ids} />
+              </small>
+              {object.timeline_refs?.length ? (
+                <small>
+                  timeline{" "}
+                  <CompactEvidenceIds
+                    ids={object.timeline_refs.map((item) => item.event_id || "").filter(Boolean)}
+                  />
+                </small>
+              ) : null}
+              {object.superseded_by ? <small>superseded by {object.superseded_by}</small> : null}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h3>Typed graph chain</h3>
+        <ol className={styles.graphEdgeList}>
+          {graphEdges.map((edge, index) => (
+            <li key={`${edge.edge_type || "edge"}-${index}`}>
+              <span>{edge.edge_type || "unknown_edge"}</span>
+              <strong>
+                {edge.from?.id || "--"} → {edge.to?.id || "--"}
+              </strong>
+              <small>
+                evidence <CompactEvidenceIds ids={edge.evidence_event_id ? [edge.evidence_event_id] : []} />
+              </small>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {readinessGaps.length ? (
+        <section>
+          <h3>Readiness gaps</h3>
+          <ul className={styles.readinessGapList}>
+            {readinessGaps.map((gap, index) => (
+              <li key={`${gap.code || "gap"}-${index}`}>
+                {gap.code || "unknown_gap"} / {gap.severity || "warning"}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
 function LearningBrainQaPanel() {
   const [userId, setUserId] = useState("wechat_harness_learning_brain");
   const [answer, setAnswer] = useState("应加强现场管理，落实责任，严格检查。");
@@ -438,6 +544,7 @@ function LearningBrainQaPanel() {
               2,
             )}
           </pre>
+          <LearningBrainEvidenceChain result={result} />
         </div>
       ) : null}
     </section>

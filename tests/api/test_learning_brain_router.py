@@ -47,6 +47,9 @@ def test_learning_brain_harness_case_grading_runs_visible_chain(
     assert payload["event_count"] == 2
     assert payload["created_claim_count"] >= 1
     assert payload["typed_graph_edge_count"] > 0
+    assert payload["typed_graph_edges"]
+    assert payload["compiled_objects"]
+    assert any(edge["edge_type"] == "question_tests_concept" for edge in payload["typed_graph_edges"])
     assert payload["grading_results"][0]["score_label"] == "0/1"
     assert payload["grading_results"][0]["missed_points"]
     assert payload["grading_results"][0]["rewrite"]

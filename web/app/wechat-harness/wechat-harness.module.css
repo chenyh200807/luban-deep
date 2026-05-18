@@ -844,6 +844,105 @@
   line-height: 1.55;
 }
 
+.qaEvidenceChain {
+  display: grid;
+  gap: 10px;
+}
+
+.qaEvidenceChain h3 {
+  margin: 0 0 7px;
+  color: #3b3028;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.compiledObjectList,
+.graphEdgeList,
+.readinessGapList {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+}
+
+.compiledObjectCard,
+.graphEdgeList li,
+.readinessGapList li {
+  border: 1px solid #eadfce;
+  border-radius: 7px;
+  background: #fffdf9;
+  list-style: none;
+  padding: 8px;
+}
+
+.compiledObjectCard {
+  display: grid;
+  gap: 5px;
+}
+
+.compiledObjectCard div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.compiledObjectCard strong,
+.graphEdgeList strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #302720;
+  font-size: 12px;
+}
+
+.compiledObjectCard span,
+.graphEdgeList span {
+  color: #9d4c27;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.compiledObjectCard p {
+  margin: 0;
+  color: #5b5047;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.compiledObjectCard small,
+.graphEdgeList small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #83766b;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.graphEdgeList li {
+  display: grid;
+  gap: 5px;
+}
+
+.evidenceRefs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.evidenceRefs code {
+  border-radius: 5px;
+  background: #f1e7de;
+  color: #7b3f23;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  padding: 2px 4px;
+}
+
+.mutedInline {
+  color: #9b8f84;
+}
+
 @media (max-width: 980px) {
   .root {
     grid-template-columns: 1fr;

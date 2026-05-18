@@ -72,6 +72,31 @@ test("wechat harness displays learning brain grading and synthesis result", asyn
             supporting_event_ids: ["evt1", "evt2"],
           },
         ],
+        compiled_objects: {
+          "concept:1A432000": {
+            object_id: "1A432000",
+            object_type: "concept",
+            current_truth: "1A432000 上出现 E02 错因观察",
+            evidence_level: "L1_repeated",
+            supporting_event_ids: ["evt1", "evt2"],
+            timeline_refs: [{ event_id: "evt1", observed_at: "2026-05-18T00:00:00Z" }],
+          },
+        },
+        typed_graph_edges: [
+          {
+            edge_type: "question_tests_concept",
+            from: { id: "wechat-harness-case-001", type: "question" },
+            to: { id: "1A432000", type: "concept" },
+            evidence_event_id: "evt1",
+          },
+          {
+            edge_type: "error_points_to_training",
+            from: { id: "E02", type: "error" },
+            to: { id: "1A432000:training", type: "training" },
+            evidence_event_id: "evt2",
+          },
+        ],
+        typed_graph_readiness_gaps: [],
         typed_graph_edge_count: 7,
       },
     });
@@ -83,4 +108,8 @@ test("wechat harness displays learning brain grading and synthesis result", asyn
   await expect(page.getByTestId("learning-brain-result")).toContainText("0/1");
   await expect(page.getByTestId("learning-brain-result")).toContainText("应组织专家论证");
   await expect(page.getByTestId("learning-brain-result")).toContainText("construction_exam_learning_truth");
+  await expect(page.getByTestId("learning-brain-visible-chain")).toContainText("Compiled truth + timeline");
+  await expect(page.getByTestId("learning-brain-visible-chain")).toContainText("Typed graph chain");
+  await expect(page.getByTestId("learning-brain-visible-chain")).toContainText("concept:1A432000");
+  await expect(page.getByTestId("learning-brain-visible-chain")).toContainText("question_tests_concept");
 });

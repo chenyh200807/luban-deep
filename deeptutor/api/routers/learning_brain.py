@@ -104,6 +104,8 @@ async def run_learning_brain_harness_case_grading(
     )
     projection = dict(synthesis.get("projection") or {})
     run = dict(projection.get("synthesis_run") or {})
+    typed_graph = dict(projection.get("typed_graph") or {})
+    typed_graph_edges = list(typed_graph.get("edges") or [])
     return {
         "ok": True,
         "user_id": user_id,
@@ -114,5 +116,7 @@ async def run_learning_brain_harness_case_grading(
         "projection_subject": str(projection.get("subject") or ""),
         "weak_points": list(projection.get("weak_points") or []),
         "compiled_objects": dict(projection.get("compiled_objects") or {}),
-        "typed_graph_edge_count": len(dict(projection.get("typed_graph") or {}).get("edges") or []),
+        "typed_graph_edges": typed_graph_edges,
+        "typed_graph_readiness_gaps": list(typed_graph.get("readiness_gaps") or []),
+        "typed_graph_edge_count": len(typed_graph_edges),
     }
