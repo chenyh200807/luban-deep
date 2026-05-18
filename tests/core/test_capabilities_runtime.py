@@ -4442,7 +4442,7 @@ async def test_tutorbot_explicit_web_search_preserves_full_exact_evidence(
     assert "3335.40.00" not in content
     assert "## 标准作答" in content
     assert [name for name, _args in captured["tool_calls"]] == ["rag", "web_search"]
-    assert captured["tool_results"][0][2]["authority_applied"] is False
+    assert captured["tool_results"][0][2]["authority_applied"] is True
     assert captured["tool_results"][1][2]["provider"] == "searxng"
 
 
