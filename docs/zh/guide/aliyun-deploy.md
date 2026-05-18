@@ -4,6 +4,7 @@
 
 ## 发布硬护栏
 
+- 每次执行阿里云 rebuild、redeploy、restart、hot patch 前，必须先重新阅读本 runbook；不要只凭上一次记忆、发布脚本名或远端当前状态操作。
 - SSH 写入铁律：DeepTutor 在阿里云上只允许修改 `Aliyun-ECS-2:/root/deeptutor` 目录内的文件内容，其他路径一概不允许修改。
 - 任何远端写操作，包括 `ssh` 内命令、`rsync`、`scp`、`docker cp`、热修、备份、回滚、部署脚本、临时验证产物，目标路径都必须落在 `/root/deeptutor` 内；不得用 `/tmp`、`/root`、`/root/luban` 或系统目录做绕行写入。
 - `/root/luban`、`/etc`、`/usr`、`/var`、`/opt`、`/home`、nginx 系统配置、systemd、全局 cron、宿主机 Docker 配置等非 `/root/deeptutor` 路径全部视为只读观察面；只能读，不能创建、编辑、删除、移动、覆盖、改权限或安装依赖。
@@ -15,6 +16,7 @@
 - 发布完成的唯一公网验收口径是：本地发起端对 `https://test2.yousenjiaoyu.com` 的 `front page`、`/healthz`、`/readyz` 探针全部通过；`docker compose ps` 或远端 `127.0.0.1` 只能算内部就绪，不能直接当成“已上线”。
 - Observability 默认不走公网暴露；阿里云生产环境统一通过 SSH/localhost 抓取 `/metrics` 与 `/metrics/prometheus`。
 - 发布前必须先判断改动类型。只改 Python 后端、Prompt、YAML、路由且不涉及依赖时，优先走 `redeploy_aliyun_fast.sh`；不要手工在远端直接跑 `docker compose up -d --build deeptutor`。
+- 如果本地当前工作区很脏，但要发布的是已经提交并 push 的特定 commit，先从目标 commit 创建干净临时 worktree，再从该 worktree 执行同步/发布；不要在脏 `main` 上靠 `ALLOW_DIRTY_DEPLOY=1` 把无关文件一起带上阿里云。
 - 紧急绕过护栏必须显式设置：
   - `ALLOW_DIRTY_DEPLOY=1`
   - `ALLOW_MAIN_BRANCH_DEPLOY=1`
@@ -170,7 +172,7 @@ cd /root/deeptutor
 docker compose ps
 docker compose logs -f
 docker compose restart
-docker compose up -d --build
+docker compose up -d --build  # 仅在确认需要完整镜像重建时使用
 docker compose down
 ```
 
@@ -368,6 +370,8 @@ bash scripts/verify_aliyun_observability.sh
 
 如果一次 Python 后端小改动误触发了远端完整镜像重建，先不要继续叠加新的发布动作。按下面顺序收敛：
 
+2026-05-18 的一次真实教训是：只改 Python/RAG 合成逻辑时，没有先读本 runbook，而是只看了脚本和 `docker compose`，于是手工触发了完整 build。阿里云侧 Debian 下载很慢，`apt-get` 阶段长时间卡住，最后只能停止 build，再用更窄的同步和容器重启路径恢复验证。以后遇到同类后端小改动，默认先走 `redeploy_aliyun_fast.sh`；只有依赖、Dockerfile、Web 前端构建或 Node 依赖变化时，才启动完整 build。
+
 1. 确认旧线上容器是否仍然 healthy：
 
 ```bash
@@ -403,6 +407,7 @@ PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/redeploy_aliyun_fast
 - 远端 `/root/deeptutor` 源码已经同步，只能说明服务器源码副本更新；不能说明运行中容器已经加载新代码。
 - 容器里的 `/app/...` 代码来自镜像层，不是 `/root/deeptutor` 的 bind mount；只有发布脚本完成重建/重载并通过公网验收，才能说已上线。
 - 不要用 `docker cp` 热补丁当常规发布路径；只有明确紧急权衡时才可临时使用，并且最终仍要回到发布脚本收敛镜像内容。
+- 如果看似必须用 `docker cp` 直接修改运行中容器，先停止发布流程，向用户说明为什么发布脚本无法解决、目标容器路径、风险和回收计划；未获得新的明确授权前不要执行。即使获得授权，也必须把它汇报为临时止血路径，并在事后回到 `/root/deeptutor` 下的正式发布脚本收敛镜像内容。
 
 ### 8. 2026-05-12 联网按钮历史排障记录
 
