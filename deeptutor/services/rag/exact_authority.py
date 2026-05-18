@@ -175,6 +175,37 @@ def _clean_exact_analysis_for_display(text: Any) -> str:
     return clean.strip()
 
 
+def _clean_case_answer_for_display(text: Any) -> str:
+    clean = normalize_exact_authority_display_text(text)
+    if clean.startswith("[") and clean.endswith("]"):
+        clean = re.sub(r"^\[\s*['\"]?", "", clean)
+        clean = re.sub(r"['\"]?\s*\]$", "", clean)
+        clean = clean.replace("', '", "\n").replace('", "', "\n")
+    return clean.strip()
+
+
+def _clean_case_analysis_for_display(text: Any) -> str:
+    clean = _clean_exact_analysis_for_display(text)
+    clean = re.split(r"\n\s*选项分析\s*[：:]", clean, maxsplit=1)[0].strip()
+    clean = re.sub(r"(?m)^\s*[A-E][\.、．\)]\s*本题为.*(?:无选项|无ABCD选项).*$", "", clean)
+    return re.sub(r"\n{3,}", "\n\n", clean).strip()
+
+
+def _case_score_point_hint(answer: str) -> str:
+    if re.search(r"\d", answer):
+        return "列式、代入数据、最终数值和单位都要完整。"
+    return "关键词、判断结论和依据要同时写全。"
+
+
+def _case_pitfall_hint(answer: str, analysis: str) -> str:
+    source = f"{answer}\n{analysis}"
+    if re.search(r"\d", source):
+        return "不要漏写计价基数、税费/规费口径或最终单位。"
+    if any(word in source for word in ("正确", "不正确", "不得", "禁止", "不妥")):
+        return "不要只写对错，要补上对应理由。"
+    return "不要照抄材料，必须落到题目要求的关键词。"
+
+
 def _mcq_option_value_map(options: Any) -> dict[str, str]:
     option_values: dict[str, str] = {}
     if isinstance(options, dict):
@@ -340,18 +371,22 @@ def build_exact_authority_response(exact_question: dict[str, Any]) -> str:
                 continue
             display_index = str(item.get("display_index") or "").strip()
             prompt = normalize_exact_authority_display_text(item.get("prompt"))
-            answer = normalize_exact_authority_display_text(item.get("authoritative_answer"))
-            analysis = _clean_exact_analysis_for_display(item.get("analysis"))
+            answer = _clean_case_answer_for_display(item.get("authoritative_answer"))
+            analysis = _clean_case_analysis_for_display(item.get("analysis"))
             heading = f"### 第{display_index}问" if display_index else "### 作答"
             block: list[str] = [heading]
             if prompt:
                 block.append(f"**题目：** {prompt}")
             if answer:
-                block.append(f"**答案：** {answer}")
+                block.append(f"**结论：** {answer}")
             if analysis:
-                block.append(f"**依据：** {analysis}")
+                block.append(f"**判断依据：** {analysis}")
+            if answer:
+                block.append(f"**采分点：** {_case_score_point_hint(answer)}")
+                block.append(f"**易错点：** {_case_pitfall_hint(answer, analysis)}")
             if len(block) > 1:
                 sections.append("\n\n".join(block))
+        sections.append("## 记忆口诀\n\n先判对错，再写依据；计算题先列式，再代数，最后带单位。")
         return "\n\n".join(sections).strip()
     return ""
 

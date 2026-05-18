@@ -4111,7 +4111,7 @@ async def test_tutorbot_process_direct_synthesizes_full_case_exact_evidence(
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_complete_case_exact_evidence_disables_followup_rag(tmp_path) -> None:
+async def test_tutorbot_answerable_case_exact_evidence_disables_followup_rag(tmp_path) -> None:
     from deeptutor.tutorbot.agent.loop import AgentLoop
     from deeptutor.tutorbot.agent.tools.base import Tool
     from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
@@ -4174,7 +4174,7 @@ async def test_tutorbot_complete_case_exact_evidence_disables_followup_rag(tmp_p
             "_prefetched_exact_question": {
                 "answer_kind": "case_study",
                 "coverage_ratio": 1.0,
-                "missing_subquestions": [],
+                "missing_subquestions": ["legacy-empty-marker"],
                 "covered_subquestions": [
                     {"display_index": "1", "authoritative_answer": "计划、组织、协调方案。"}
                 ],

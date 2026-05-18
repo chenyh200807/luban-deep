@@ -143,6 +143,9 @@ def test_build_exact_authority_response_renders_case_as_markdown() -> None:
     assert response.startswith("## 标准作答")
     assert "### 第5问" in response
     assert "3335.40 万元" in response
+    assert "**采分点：**" in response
+    assert "**易错点：**" in response
+    assert "## 记忆口诀" in response
     assert "【解析】" not in response
     assert "\\n" not in response
 

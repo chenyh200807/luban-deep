@@ -12,6 +12,18 @@ var chatJs = fs.readFileSync(
   path.join(__dirname, "../pages/chat/chat.js"),
   "utf8",
 );
+var packageChatJs = fs.readFileSync(
+  path.join(__dirname, "../../yousenwebview/packageDeeptutor/pages/chat/chat.js"),
+  "utf8",
+);
+var packageWsStream = fs.readFileSync(
+  path.join(__dirname, "../../yousenwebview/packageDeeptutor/utils/ws-stream.js"),
+  "utf8",
+);
+var wxWsStream = fs.readFileSync(
+  path.join(__dirname, "../utils/ws-stream.js"),
+  "utf8",
+);
 var chatWxml = fs.readFileSync(
   path.join(__dirname, "../pages/chat/chat.wxml"),
   "utf8",
@@ -45,6 +57,21 @@ assert(
 assert(
   /debugLoadMarkdownRegressionSample\s*:\s*function/.test(chatJs),
   "chat.js should expose a devtools markdown sample loader",
+);
+assert(
+  chatJs.indexOf('typeof d.response === "string"') >= 0 &&
+    chatJs.indexOf("parseBlocks: true") >= 0,
+  "chat.js should let terminal result.response replace provisional streaming text",
+);
+assert(
+  packageChatJs.indexOf('typeof d.response === "string"') >= 0 &&
+    packageChatJs.indexOf("parseBlocks: true") >= 0,
+  "packageDeeptutor chat.js should mirror terminal result.response replacement",
+);
+assert(
+  wxWsStream.indexOf("buildFinalResponseEvent") >= 0 &&
+    packageWsStream.indexOf("buildFinalResponseEvent") >= 0,
+  "both ws-stream surfaces should forward public result.response to onFinal",
 );
 assert(
   chatWxml.indexOf("b.type==='steps' && b.isStructured") >= 0,

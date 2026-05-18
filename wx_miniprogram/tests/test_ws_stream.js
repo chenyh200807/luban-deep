@@ -504,6 +504,71 @@ Promise.resolve(
     });
   })
   .then(function () {
+    return run("public result response is emitted as the terminal final answer", async function () {
+      socketState.sent = [];
+      socketState.closed = [];
+      socketState.handlers = {};
+
+      var tokens = [];
+      var finals = [];
+      wsStream.streamChat(
+        {
+          query: "讲解这道案例题",
+          sessionId: "session_1",
+          mode: "DEEP",
+        },
+        {
+          onToken: function (token) {
+            tokens.push(token);
+          },
+          onFinal: function (payload) {
+            finals.push(payload);
+          },
+          onDone: function () {},
+        },
+      );
+
+      await flush();
+      if (socketState.handlers.open) {
+        socketState.handlers.open();
+      }
+
+      emitMessage({
+        type: "content",
+        seq: 20,
+        content: "##问题2：中间稿",
+        visibility: "public",
+        turn_id: "turn_1",
+        session_id: "session_1",
+      });
+      emitMessage({
+        type: "result",
+        seq: 21,
+        visibility: "public",
+        metadata: {
+          response: "## 结论\n\n以题库标准答案为准。",
+        },
+        turn_id: "turn_1",
+        session_id: "session_1",
+      });
+      emitMessage({
+        type: "done",
+        seq: 22,
+        turn_id: "turn_1",
+        session_id: "session_1",
+      });
+      await flush();
+
+      assertEqual(tokens, ["##问题2：中间稿"], "streaming content should still arrive as provisional text");
+      assert(
+        finals.some(function (item) {
+          return item.response === "## 结论\n\n以题库标准答案为准。";
+        }),
+        "terminal result response should be exposed so the surface can replace provisional text",
+      );
+    });
+  })
+  .then(function () {
     return run("internal visibility events never enter user token or presentation callbacks", async function () {
       socketState.sent = [];
       socketState.closed = [];

@@ -15,6 +15,20 @@ function buildPresentationEvent(resultMetadata) {
   return presentation;
 }
 
+function buildFinalResponseEvent(resultMetadata) {
+  if (!resultMetadata || typeof resultMetadata !== "object") return null;
+  var response = resultMetadata.response;
+  if (typeof response !== "string" && resultMetadata.metadata && typeof resultMetadata.metadata === "object") {
+    response = resultMetadata.metadata.response;
+  }
+  if (typeof response !== "string" || !response.trim()) return null;
+  return {
+    type: "final",
+    engine: "tutorbot",
+    response: response,
+  };
+}
+
 function normalizeErrorMessage(err) {
   var raw = "";
   if (typeof err === "string") {
@@ -369,7 +383,13 @@ function streamChat(opts, callbacks) {
       var presentationEvent = buildPresentationEvent(eventMetadata);
       if (presentationEvent && cb.onPresentation) {
         cb.onPresentation(presentationEvent);
-        return;
+      }
+      var finalResponseEvent = buildFinalResponseEvent(eventMetadata);
+      if (finalResponseEvent && cb.onFinal) {
+        finalResponseEvent.engine_session_id = chatId || sessionId;
+        finalResponseEvent.engine_turn_id = turnId;
+        finalResponseEvent.bot_id = botId;
+        cb.onFinal(finalResponseEvent);
       }
       return;
     }

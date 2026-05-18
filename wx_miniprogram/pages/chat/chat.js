@@ -1189,7 +1189,17 @@ Page({
     if (!d) return;
     var idx = this._find(this._streamId);
     if (idx !== -1) {
+      if (this._buf) this._flush();
       var updates = {};
+      if (typeof d.response === "string" && d.response.trim()) {
+        var normalized = this._buildAiMessageUpdates(idx, {
+          content: d.response,
+          parseBlocks: true,
+        });
+        if (normalized) {
+          Object.assign(updates, normalized.updates);
+        }
+      }
       if (d.citations) {
         updates["messages[" + idx + "].citations"] =
           citationFormat.formatCitations(d.citations);

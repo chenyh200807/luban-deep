@@ -1159,6 +1159,11 @@ async def test_supabase_search_merges_case_exact_text_with_question_bank_case_ma
     assert result["exact_question"]["coverage_state"] == "partial_multi_subquestion_exact"
     assert result["exact_question"]["coverage_ratio"] == pytest.approx(2 / 3, rel=1e-4)
     assert any("完全成本法" in item["prompt"] for item in result["exact_question"]["missing_subquestions"])
+    from deeptutor.services.rag.exact_authority import build_exact_authority_response
+
+    rendered = build_exact_authority_response(result["exact_question"])
+    assert "**采分点：**" in rendered
+    assert "## 记忆口诀" in rendered
 
 
 @pytest.mark.asyncio

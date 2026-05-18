@@ -695,7 +695,7 @@ class AgentLoop:
         return self._build_exact_authority_response_sync(exact_question)
 
     @staticmethod
-    def _prefetched_case_exact_question_is_complete(runtime_metadata: dict[str, Any] | None) -> bool:
+    def _prefetched_case_exact_question_can_answer(runtime_metadata: dict[str, Any] | None) -> bool:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
         exact_question = metadata.get("_prefetched_exact_question")
         if not isinstance(exact_question, dict):
@@ -706,13 +706,11 @@ class AgentLoop:
         if not isinstance(covered, list) or not covered:
             return False
         missing = exact_question.get("missing_subquestions")
-        if isinstance(missing, list) and missing:
-            return False
         try:
             coverage_ratio = float(exact_question.get("coverage_ratio"))
         except (TypeError, ValueError):
             coverage_ratio = 0.0
-        return coverage_ratio >= 0.999
+        return not (isinstance(missing, list) and missing and coverage_ratio < 0.999)
 
     @staticmethod
     def _build_exact_authority_response_sync(exact_question: dict[str, Any]) -> str:
@@ -783,7 +781,7 @@ class AgentLoop:
             iteration += 1
 
             tool_defs = self._resolve_tool_definitions(runtime_metadata)
-            if self._prefetched_case_exact_question_is_complete(runtime_metadata):
+            if self._prefetched_case_exact_question_can_answer(runtime_metadata):
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
             elif rag_saturation:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})

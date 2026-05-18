@@ -34,15 +34,20 @@ function textFromNodes(nodes: unknown): string {
   return nodes
     .map((node) => {
       if (!node || typeof node !== "object") return "";
-      return String((node as { text?: unknown }).text || "");
+      const typedNode = node as { children?: unknown; text?: unknown };
+      const text = typedNode.text;
+      if (text) return String(text);
+      return textFromNodes(typedNode.children);
     })
     .join("");
 }
 
 function blockText(block: Record<string, unknown>): string {
-  const direct = block.text || block.raw || block.title || block.summary || block.detail;
+  const richText = textFromNodes(block.nodes || block.content || block.children);
+  if (richText) return richText;
+  const direct = block.text || block.title || block.summary || block.detail || block.raw;
   if (direct) return String(direct);
-  return textFromNodes(block.content || block.nodes);
+  return "";
 }
 
 function asBlocks(value: unknown): Array<Record<string, unknown>> {
