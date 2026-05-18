@@ -24,6 +24,49 @@
   z-index: 1;
 }
 
+.skipLink {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 80;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skipLink:focus {
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  border-radius: 0.45rem;
+  background: #101820;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 900;
+  padding: 0.6rem 0.85rem;
+  outline: 2px solid #007f78;
+  outline-offset: 3px;
+}
+
+.headerLogoTile {
+  display: grid;
+  width: 2.7rem;
+  height: 2.7rem;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 0.45rem;
+  background: #080c18;
+  box-shadow: 0 10px 24px rgba(8, 12, 24, 0.14);
+}
+
+.headerLogoTile img {
+  width: 2.05rem;
+  height: auto;
+}
+
 .page::before {
   top: 7rem;
   right: -7rem;
@@ -130,6 +173,15 @@
   animation: riseIn 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.heroBrand {
+  margin: 0 0 0.4rem;
+  color: #07100f;
+  font-size: clamp(3.1rem, 7.6vw, 7.6rem);
+  font-weight: 950;
+  line-height: 0.92;
+  letter-spacing: 0;
+}
+
 .heroKicker {
   display: inline-flex;
   align-items: center;
@@ -213,6 +265,26 @@
   color: #007f78;
   font-size: 0.68rem;
   font-variant-numeric: tabular-nums;
+}
+
+.heroProofs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.35rem;
+}
+
+.heroProofs div {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid #d7e3df;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #40514e;
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.55rem 0.78rem;
 }
 
 .phoneScene {
@@ -728,6 +800,309 @@
   color: #60a5fa;
 }
 
+.realMiniTopbar,
+.realMiniScroll,
+.realMiniComposer,
+.realMiniTabbar {
+  position: relative;
+  z-index: 1;
+}
+
+.realMiniTopbar {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 2.55rem 0.9rem 0.9rem;
+  background: linear-gradient(180deg, rgba(5, 8, 22, 0.98), rgba(10, 16, 35, 0.82), transparent);
+}
+
+.realMiniBrand {
+  display: grid;
+  width: 2.25rem;
+  justify-items: center;
+}
+
+.realMiniBrand img {
+  width: 1.85rem;
+  height: auto;
+  filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.34));
+}
+
+.realBackPill {
+  display: inline-flex;
+  min-height: 1.85rem;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 0 0.68rem;
+}
+
+.realMiniActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.34rem;
+}
+
+.realMiniActions > span {
+  display: grid;
+  min-width: 1.88rem;
+  height: 1.88rem;
+  place-items: center;
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+.realMiniActions .realWechatCapsule {
+  display: inline-flex;
+  min-width: 4.45rem;
+  align-items: center;
+  gap: 0.55rem;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #050816;
+}
+
+.realWechatCapsule i {
+  font-style: normal;
+  line-height: 1;
+}
+
+.realWechatCapsule i:last-child {
+  width: 0.72rem;
+  height: 0.72rem;
+  border: 2px solid #050816;
+  border-radius: 999px;
+}
+
+.realMiniScroll {
+  height: 30.2rem;
+  overflow: hidden;
+  padding: 0.8rem 0.92rem 7.7rem;
+}
+
+.realMiniArticle {
+  border-left: 1px solid rgba(96, 165, 250, 0.12);
+  border-right: 1px solid rgba(96, 165, 250, 0.10);
+  background: rgba(13, 20, 36, 0.82);
+  color: rgba(226, 232, 240, 0.88);
+  font-size: 0.73rem;
+  line-height: 1.68;
+  padding: 0.86rem 0.78rem 1.2rem;
+  transform: translateY(-0.2rem);
+}
+
+.realMiniLead {
+  margin: 0 0 0.88rem;
+  color: rgba(226, 232, 240, 0.78);
+}
+
+.realMiniArticle h3,
+.realMiniArticle h4 {
+  margin: 0.9rem 0 0.58rem;
+  color: rgba(241, 245, 249, 0.94);
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.realMiniArticle h3 {
+  font-size: 0.88rem;
+}
+
+.realMiniArticle h4 {
+  font-size: 0.82rem;
+}
+
+.realMiniArticle ul {
+  margin: 0.35rem 0 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.realMiniArticle li {
+  position: relative;
+  padding-left: 0.72rem;
+}
+
+.realMiniArticle li::before {
+  position: absolute;
+  left: 0;
+  color: #60a5fa;
+  content: "·";
+}
+
+.realMiniTable {
+  display: grid;
+  grid-template-columns: 0.72fr 2.15fr 0.86fr;
+  overflow: hidden;
+  border: 1px solid rgba(126, 160, 222, 0.18);
+  border-radius: 0.36rem;
+  background: rgba(18, 28, 48, 0.78);
+}
+
+.realMiniTable div {
+  min-width: 0;
+  border-right: 1px solid rgba(126, 160, 222, 0.13);
+  border-bottom: 1px solid rgba(126, 160, 222, 0.13);
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 1.45;
+  padding: 0.42rem 0.38rem;
+}
+
+.realMiniTable div:nth-child(-n + 3) {
+  background: rgba(96, 165, 250, 0.09);
+  color: rgba(241, 245, 249, 0.86);
+  font-weight: 950;
+}
+
+.realMiniTable div:nth-child(3n) {
+  border-right: 0;
+}
+
+.realMiniTable div:nth-last-child(-n + 3) {
+  border-bottom: 0;
+}
+
+.realMiniCalloutError,
+.realMiniCalloutScore {
+  margin-top: 0.9rem;
+  border: 1px solid rgba(126, 160, 222, 0.18);
+  border-radius: 0.56rem;
+  background: rgba(18, 28, 48, 0.84);
+  padding: 0.62rem 0.72rem;
+}
+
+.realMiniCalloutError {
+  border-left: 0.24rem solid #fb7185;
+  background: linear-gradient(90deg, rgba(251, 113, 133, 0.16), rgba(18, 28, 48, 0.84));
+}
+
+.realMiniCalloutScore {
+  border-left: 0.24rem solid #60a5fa;
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0.18), rgba(18, 28, 48, 0.84));
+}
+
+.realMiniCalloutError span,
+.realMiniCalloutScore span {
+  display: inline-flex;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 950;
+  padding: 0.18rem 0.5rem;
+}
+
+.realMiniCalloutError span {
+  background: rgba(251, 113, 133, 0.20);
+  color: #fda4af;
+}
+
+.realMiniCalloutScore span {
+  background: rgba(96, 165, 250, 0.18);
+  color: #93c5fd;
+}
+
+.realMiniCalloutError p,
+.realMiniCalloutScore p {
+  margin: 0.42rem 0 0;
+  color: rgba(226, 232, 240, 0.80);
+}
+
+.realMiniComposer {
+  position: absolute;
+  right: 0.82rem;
+  bottom: 3.55rem;
+  left: 0.82rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.62rem;
+  border: 1px solid rgba(126, 160, 222, 0.22);
+  border-radius: 0.92rem;
+  background: rgba(9, 15, 29, 0.94);
+  box-shadow: 0 -18px 45px rgba(0, 0, 0, 0.34);
+  padding: 0.8rem;
+}
+
+.realMiniComposer > span {
+  grid-column: 1 / -1;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.realMiniModes {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 0.36rem;
+}
+
+.realMiniModes em {
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 999px;
+  color: rgba(226, 232, 240, 0.58);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 950;
+  padding: 0.26rem 0.55rem;
+}
+
+.realMiniModes em:nth-child(3) {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: white;
+}
+
+.realMiniModes em:nth-child(4) {
+  border-color: rgba(96, 165, 250, 0.34);
+  color: #93c5fd;
+}
+
+.realMiniComposer b {
+  display: grid;
+  width: 2.05rem;
+  height: 2.05rem;
+  place-items: center;
+  align-self: end;
+  border-radius: 0.62rem;
+  background: rgba(255, 255, 255, 0.11);
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 0.7rem;
+}
+
+.realMiniTabbar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid rgba(126, 160, 222, 0.12);
+  background: rgba(5, 10, 22, 0.94);
+  padding: 0.62rem 0.65rem 0.78rem;
+}
+
+.realMiniTabbar span {
+  color: rgba(226, 232, 240, 0.62);
+  font-size: 0.66rem;
+  font-weight: 950;
+  text-align: center;
+}
+
+.realMiniTabbar span:first-child {
+  color: #60a5fa;
+}
+
 .phoneCaption {
   position: absolute;
   right: 1.25rem;
@@ -1147,6 +1522,490 @@
   animation: tagPop 3s ease-in-out infinite;
 }
 
+.journeyTrack {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 3rem;
+  border-top: 1px solid #cfe0dc;
+  border-bottom: 1px solid #cfe0dc;
+}
+
+.journeyTrack::before {
+  position: absolute;
+  left: 0;
+  top: -1px;
+  width: 25%;
+  height: 3px;
+  content: "";
+  background: #007f78;
+  animation: journeySweep 4.8s ease-in-out infinite;
+}
+
+.journeyItem {
+  position: relative;
+  min-height: 18rem;
+  padding: 2rem 1.55rem;
+  background: rgba(255, 255, 255, 0.62);
+  overflow: hidden;
+}
+
+.journeyItem + .journeyItem {
+  border-left: 1px solid #dfe8e5;
+}
+
+.journeyItem::after {
+  position: absolute;
+  right: -2.25rem;
+  bottom: -2.25rem;
+  width: 7rem;
+  height: 7rem;
+  content: "";
+  border: 1px solid rgba(0, 127, 120, 0.14);
+  transform: rotate(18deg);
+}
+
+.journeyItem span {
+  display: inline-flex;
+  width: 2.5rem;
+  height: 1.7rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #b6ddd8;
+  border-radius: 0.4rem;
+  color: #007f78;
+  font-size: 0.72rem;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+}
+
+.journeyItem p {
+  margin: 1.45rem 0 0;
+  color: #007f78;
+  font-size: 0.78rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.journeyItem h3 {
+  max-width: 11rem;
+  margin: 0.7rem 0 0;
+  color: #101820;
+  font-size: 1.55rem;
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.journeyItem small {
+  display: block;
+  max-width: 14rem;
+  margin-top: 1rem;
+  color: #52625f;
+  font-size: 0.92rem;
+  line-height: 1.75;
+}
+
+.chatProof {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background:
+    radial-gradient(circle at 78% 16%, rgba(37, 99, 235, 0.22), transparent 32%),
+    radial-gradient(circle at 12% 84%, rgba(245, 158, 11, 0.14), transparent 34%),
+    #080c18;
+  color: white;
+  box-shadow: 0 34px 92px rgba(8, 12, 24, 0.24);
+}
+
+.chatProof::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(90deg, black, transparent 82%);
+}
+
+.chatProofHeader,
+.chatProofBody {
+  position: relative;
+  z-index: 1;
+}
+
+.chatProofHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  padding: 1.3rem 1.5rem;
+}
+
+.chatProofHeader span {
+  color: #60a5fa;
+  font-size: 0.78rem;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+}
+
+.chatProofHeader strong {
+  max-width: 32rem;
+  color: white;
+  font-size: clamp(1.45rem, 3vw, 2.7rem);
+  font-weight: 950;
+  line-height: 1.08;
+  text-align: right;
+}
+
+.chatProofBody {
+  display: grid;
+  grid-template-columns: 0.88fr 1.12fr;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.proofBubbleUser,
+.proofBubbleAi,
+.proofBubbleRewrite,
+.proofNextTask {
+  border: 1px solid rgba(126, 160, 222, 0.18);
+  border-radius: 1rem;
+  background: rgba(14, 20, 34, 0.90);
+  padding: 1.15rem;
+}
+
+.proofBubbleUser {
+  align-self: start;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.proofBubbleAi,
+.proofBubbleRewrite,
+.proofNextTask {
+  grid-column: 2;
+}
+
+.proofBubbleRewrite {
+  background: rgba(16, 185, 129, 0.10);
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+.proofNextTask {
+  border-left: 0.35rem solid #10b981;
+  background: rgba(16, 185, 129, 0.14);
+}
+
+.proofBubbleUser span,
+.proofBubbleAi span,
+.proofBubbleRewrite span,
+.proofNextTask span {
+  display: block;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.proofBubbleUser p,
+.proofBubbleAi p,
+.proofBubbleRewrite p {
+  margin: 0.7rem 0 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.proofBubbleRewrite p {
+  color: rgba(209, 250, 229, 0.9);
+}
+
+.proofTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.proofTags span {
+  border: 1px solid rgba(245, 158, 11, 0.34);
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  font-size: 0.72rem;
+  padding: 0.38rem 0.7rem;
+}
+
+.proofNextTask strong {
+  display: block;
+  margin-top: 0.5rem;
+  color: #d1fae5;
+  font-size: 1.15rem;
+  line-height: 1.55;
+}
+
+.proofMiniPhone,
+.proofCoachPanel {
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(126, 160, 222, 0.18);
+  border-radius: 1rem;
+  background: rgba(9, 15, 29, 0.90);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.20);
+}
+
+.proofMiniPhone {
+  overflow: hidden;
+  min-height: 33rem;
+}
+
+.proofMiniPhone::before {
+  position: absolute;
+  inset: auto -20% 0;
+  height: 42%;
+  content: "";
+  background:
+    radial-gradient(ellipse at center, rgba(59, 130, 246, 0.32), transparent 58%),
+    linear-gradient(180deg, transparent, rgba(5, 10, 22, 0.94));
+  pointer-events: none;
+}
+
+.proofMiniBar,
+.proofMiniContent,
+.proofMiniComposer {
+  position: relative;
+  z-index: 1;
+}
+
+.proofMiniBar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(126, 160, 222, 0.12);
+  padding: 1rem 1.1rem;
+}
+
+.proofMiniBar span,
+.proofMiniBar em {
+  color: rgba(226, 232, 240, 0.70);
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.proofMiniBar strong {
+  color: white;
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+.proofMiniBar em {
+  justify-self: end;
+}
+
+.proofMiniContent {
+  height: 27rem;
+  overflow: hidden;
+  padding: 1.25rem 1.35rem 5.4rem;
+}
+
+.proofMiniContent p,
+.proofMiniContent li {
+  color: rgba(226, 232, 240, 0.82);
+  font-size: 0.95rem;
+  line-height: 1.78;
+}
+
+.proofMiniContent p {
+  margin: 0;
+}
+
+.proofMiniContent h3 {
+  margin: 1.1rem 0 0.75rem;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 950;
+}
+
+.proofMiniContent ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.proofErrorCard,
+.proofScoreCard {
+  margin-top: 1rem;
+  border: 1px solid rgba(126, 160, 222, 0.18);
+  border-radius: 0.78rem;
+  padding: 0.85rem 0.95rem;
+}
+
+.proofErrorCard {
+  border-left: 0.28rem solid #fb7185;
+  background: linear-gradient(90deg, rgba(251, 113, 133, 0.16), rgba(18, 28, 48, 0.74));
+}
+
+.proofScoreCard {
+  border-left: 0.28rem solid #60a5fa;
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0.18), rgba(18, 28, 48, 0.74));
+}
+
+.proofErrorCard span,
+.proofScoreCard span {
+  display: inline-flex;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 950;
+  padding: 0.22rem 0.6rem;
+}
+
+.proofErrorCard span {
+  background: rgba(251, 113, 133, 0.18);
+  color: #fda4af;
+}
+
+.proofScoreCard span {
+  background: rgba(96, 165, 250, 0.18);
+  color: #93c5fd;
+}
+
+.proofErrorCard p,
+.proofScoreCard p {
+  margin-top: 0.55rem;
+}
+
+.proofMiniComposer {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  left: 1rem;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid rgba(126, 160, 222, 0.22);
+  border-radius: 0.9rem;
+  background: rgba(9, 15, 29, 0.94);
+  padding: 0.78rem;
+}
+
+.proofMiniComposer span {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.proofMiniComposer em {
+  border-radius: 999px;
+  background: #2563eb;
+  color: white;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 950;
+  padding: 0.34rem 0.7rem;
+}
+
+.proofMiniComposer b {
+  display: grid;
+  width: 2.15rem;
+  height: 2.15rem;
+  place-items: center;
+  border-radius: 0.62rem;
+  background: rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.72rem;
+}
+
+.proofCoachPanel {
+  display: flex;
+  min-height: 33rem;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1.35rem, 3vw, 2.6rem);
+}
+
+.proofCoachPanel > span {
+  color: #60a5fa;
+  font-size: 0.78rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+}
+
+.proofCoachPanel h3 {
+  max-width: 32rem;
+  margin: 0.8rem 0 0;
+  color: white;
+  font-size: clamp(1.75rem, 3.2vw, 3.25rem);
+  font-weight: 950;
+  line-height: 1.08;
+}
+
+.proofCoachPanel p {
+  max-width: 35rem;
+  margin: 1rem 0 0;
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 1rem;
+  line-height: 1.9;
+}
+
+.proofCoachGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 1.4rem;
+}
+
+.proofCoachGrid div {
+  border: 1px solid rgba(126, 160, 222, 0.18);
+  border-radius: 0.78rem;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.9rem;
+}
+
+.proofCoachGrid b {
+  display: block;
+  color: #60a5fa;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 950;
+}
+
+.proofCoachGrid strong {
+  display: block;
+  margin-top: 0.36rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.proofApplyLink {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.6rem;
+  border-radius: 0.45rem;
+  background: white;
+  color: #0c2d2a;
+  font-size: 0.92rem;
+  font-weight: 950;
+  padding: 0.78rem 1rem;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+.proofApplyLink:hover {
+  background: #eef8f6;
+  transform: translateY(-1px);
+}
+
+.proofApplyLink:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 4px;
+}
+
 .finalCta::before {
   position: absolute;
   inset: 0;
@@ -1325,6 +2184,16 @@
   }
 }
 
+@keyframes journeySweep {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(300%);
+  }
+}
+
 @media (min-width: 1180px) {
   .verticalMark {
     display: block;
@@ -1342,6 +2211,10 @@
 
   .heroSignalRail {
     display: none;
+  }
+
+  .heroBrand {
+    font-size: clamp(3rem, 18vw, 4.8rem);
   }
 
   .heroFlow,
@@ -1363,12 +2236,84 @@
     display: none;
   }
 
+  .heroProofs div {
+    font-size: 0.76rem;
+  }
+
+  .journeyTrack {
+    grid-template-columns: 1fr;
+  }
+
+  .journeyTrack::before {
+    width: 3px;
+    height: 25%;
+    animation: none;
+  }
+
+  .journeyItem {
+    min-height: auto;
+    padding: 1.35rem 1.25rem;
+  }
+
+  .journeyItem + .journeyItem {
+    border-left: 0;
+    border-top: 1px solid #dfe8e5;
+  }
+
+  .chatProofHeader {
+    display: block;
+  }
+
+  .chatProofHeader strong {
+    display: block;
+    margin-top: 0.7rem;
+    text-align: left;
+  }
+
+  .chatProofBody {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .proofBubbleAi,
+  .proofBubbleRewrite,
+  .proofNextTask {
+    grid-column: auto;
+  }
+
+  .proofMiniPhone,
+  .proofCoachPanel {
+    min-height: auto;
+  }
+
+  .proofMiniContent {
+    height: 24rem;
+    padding: 1rem 1rem 5.2rem;
+  }
+
+  .proofCoachGrid {
+    grid-template-columns: 1fr;
+  }
+
   .phoneScene {
     min-height: 38rem;
   }
 
   .phoneFrame {
     width: min(21rem, 94vw);
+  }
+
+  .realMiniTopbar {
+    grid-template-columns: auto 1fr;
+  }
+
+  .realMiniActions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .realMiniScroll {
+    height: 27.5rem;
   }
 
   .phoneCaption {
@@ -1389,8 +2334,10 @@
   .phoneHalo,
   .phoneAurora span,
   .heroFlow::before,
+  .journeyTrack::before,
   .scanBeam,
   .gradingStep::after,
+  .miniThinking span,
   .rewriteCard,
   .liveDot,
   .scoreTape span,

@@ -5,32 +5,19 @@ import Link from "next/link";
 import styles from "./intro.module.css";
 import {
   ArrowRight,
-  BookOpenCheck,
-  Bot,
   CheckCircle2,
   ClipboardCheck,
-  FileText,
   GraduationCap,
   Lightbulb,
-  ListChecks,
   PenLine,
-  RefreshCcw,
   Route,
   Sparkles,
   Target,
-  UserRound,
-  type LucideIcon,
 } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "鲁班智考 AI 实务教练",
   description: "鲁班智考是越用越懂你的专属个性化 AI 陪考教练，帮你批改作答、拆解采分点、诊断错因，并规划下一步训练。",
-};
-
-type IconItem = {
-  icon: LucideIcon;
-  title: string;
-  text: string;
 };
 
 const navItems = [
@@ -41,8 +28,6 @@ const navItems = [
   { label: "Demo", href: "#demo" },
 ];
 
-const inviteTestHref = "/invite-test/apply?utm_source=intro&utm_campaign=landing_page";
-
 const painItems = [
   "看解析时觉得懂了，换一道题还是错。",
   "案例题写了一大段，不知道哪些话能得分。",
@@ -51,9 +36,7 @@ const painItems = [
   "每天都在刷题，但没人告诉你下一步到底该练什么。",
 ];
 
-const heroSignals = ["专属陪考", "采分点批改", "错因画像", "训练计划"];
-
-const heroFlow = ["你的作答", "错因画像", "陪考记忆", "下一题"];
+const heroSignals = ["案例批改", "错因画像", "专属训练"];
 
 const coachSteps = [
   { icon: ClipboardCheck, title: "批改作答", text: "按采分点拆命中、漏点和表达问题。" },
@@ -62,36 +45,26 @@ const coachSteps = [
   { icon: Route, title: "陪你规划", text: "根据你的错因画像，把每次错题转化成下一步训练方向。" },
 ];
 
-const featureItems: IconItem[] = [
+const gradingJourney = [
   {
-    icon: FileText,
-    title: "案例题 AI 阅卷",
-    text: "把你的案例题答案交给鲁班智考，它会按采分点拆解作答，指出命中点、漏分点和表达问题。",
+    label: "你的作答",
+    title: "先看真实答案",
+    text: "不看你有没有背会术语，先看你实际写出来的句子。",
   },
   {
-    icon: ListChecks,
-    title: "选择题错因诊断",
-    text: "不只是告诉你正确答案，还会分析你为什么选错，哪个选项在干扰你，下次怎么判断。",
+    label: "AI 批改",
+    title: "逐条对照采分点",
+    text: "标出命中、漏点、部分得分和表达过泛的位置。",
   },
   {
-    icon: PenLine,
-    title: "得分表达改写",
-    text: "把“加强管理、做好检查”这类泛泛表达，改写成更容易拿分的程序性采分点表达。",
+    label: "陪考画像",
+    title: "沉淀你的错因",
+    text: "记录你常漏的程序、概念混淆和案例题表达习惯。",
   },
   {
-    icon: RefreshCcw,
-    title: "错题复盘",
-    text: "每一道错题都会沉淀成错因标签、薄弱考点和下一步训练建议，而不是只进入错题本。",
-  },
-  {
-    icon: UserRound,
-    title: "越用越懂你的陪考记忆",
-    text: "持续记录你的常错考点、答题习惯、案例题表达问题和复盘轨迹，让后续讲解和推荐越来越像专属陪考专家。",
-  },
-  {
-    icon: BookOpenCheck,
-    title: "建筑实务专用知识库",
-    text: "针对规范数字、程序边界、采分点和易错概念，优先结合题库、教材和检索证据回答。",
+    label: "下一题",
+    title: "生成专属训练方向",
+    text: "把这次错题变成下一轮更精准的练习计划。",
   },
 ];
 
@@ -112,6 +85,8 @@ const audienceItems = [
   "上班备考，时间有限，希望每次练习更有效的人。",
   "临近考试，需要快速找到丢分原因和答题模板的人。",
 ];
+
+const inviteTestHref = "/invite-test/apply?utm_source=intro&utm_campaign=landing_page";
 
 function SectionHeading({
   title,
@@ -145,136 +120,153 @@ function MiniProgramPreview() {
             <span />
             <span />
           </div>
-          <div className={styles.miniChatNav}>
-            <span>‹ 返回首页</span>
-            <strong>鲁班智考</strong>
-            <em>＋</em>
-          </div>
-          <div className={styles.miniChatScroll}>
-            <div className={styles.miniDateTag}>今天 11:02</div>
-            <div className={styles.miniAiBubble}>
-              <div className={styles.miniThinking}>
-                <span />
-                专属陪考教练已接入
-              </div>
-              <p>把你刚写的案例题答案发给我，我会按采分点批改，并记住你这次的丢分原因。</p>
+          <div className={styles.realMiniTopbar}>
+            <div className={styles.realMiniBrand}>
+              <Image src="/images/logo-white.png" alt="" width={135} height={151} aria-hidden="true" />
             </div>
-            <div className={styles.miniUserBubble}>
-              施工单位应该加强现场安全管理，做好检查，发现问题及时整改。
-            </div>
-            <div className={styles.miniAiBubble}>
-              <div className={styles.miniThinking}>
-                <span />
-                AI 正在按采分点批改
-              </div>
-              <div className={styles.miniWorkflow}>
-                {["识别作答", "匹配采分点", "沉淀错因"].map((item, index) => (
-                  <div key={item}>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    {item}
-                  </div>
-                ))}
-              </div>
-              <div className={styles.miniScoreGrid}>
-                <span>命中 2</span>
-                <span>漏点 3</span>
-                <span>表达泛</span>
-              </div>
-              <p>方向对，但表达过泛。缺少“专项施工方案、审核审批、专家论证、安全技术交底、检查验收、整改闭环”等程序性采分点。</p>
-              <div className={styles.miniCoachNote}>
-                已记录到你的陪考画像：程序性采分点表达不完整。下一题优先练“危大工程专项施工方案”。
-              </div>
+            <span className={styles.realBackPill}>‹ 返回首页</span>
+            <div className={styles.realMiniActions} aria-hidden="true">
+              <span>✎</span>
+              <span>•••</span>
+              <span className={styles.realWechatCapsule}>
+                <i>•••</i>
+                <i />
+              </span>
             </div>
           </div>
-          <div className={styles.miniComposer} aria-hidden="true">
-            <span>继续追问这道题...</span>
-            <div>
+
+          <div className={styles.realMiniScroll}>
+            <article className={styles.realMiniArticle}>
+              <p className={styles.realMiniLead}>
+                好，我直接给你一建建筑实务核心考点框架，按章节模块、高频题型和拿分策略来排。
+              </p>
+              <h3>核心考点框架</h3>
+              <section>
+                <h4>3. 施工技术（案例题主力）</h4>
+                <div className={styles.realMiniTable} role="presentation">
+                  <div>模块</div>
+                  <div>核心考点</div>
+                  <div>题型</div>
+                  <div>测量</div>
+                  <div>施工测量方法、轴线投测、标高传递</div>
+                  <div>选择题</div>
+                  <div>土方</div>
+                  <div>基坑支护、降水方法、验槽程序、回填要求</div>
+                  <div>案例题</div>
+                  <div>地基与基础</div>
+                  <div>桩基施工、大体积混凝土裂缝控制</div>
+                  <div>案例题高频</div>
+                </div>
+              </section>
+
+              <div className={styles.realMiniCalloutError}>
+                <span>易错点</span>
+                <p>危大工程与超过一定规模危大工程的论证程序容易混；网络计划中总时差计算容易漏。</p>
+              </div>
+
+              <section>
+                <h4>5. 法规与标准（选择题 + 案例题补充）</h4>
+                <ul>
+                  <li>危险性较大的分部分项工程安全管理规定</li>
+                  <li>建设工程质量管理条例</li>
+                  <li>绿色建筑评价标准、节能验收标准</li>
+                </ul>
+              </section>
+
+              <div className={styles.realMiniCalloutScore}>
+                <span>踩分点</span>
+                <p>法规题考程序性规定：谁审批、谁论证、多少天，不考条文全文。</p>
+              </div>
+            </article>
+          </div>
+
+          <div className={styles.realMiniComposer} aria-hidden="true">
+            <span>继续追问...</span>
+            <div className={styles.realMiniModes}>
               <em>智能</em>
-              <button type="button" aria-label="发送">▶</button>
+              <em>深度</em>
+              <em>快速</em>
+              <em>◎ 联网</em>
             </div>
+            <b>▶</b>
+          </div>
+          <div className={styles.realMiniTabbar} aria-hidden="true">
+            {["对话", "历史", "学情", "我的"].map((item) => (
+              <span key={item}>{item}</span>
+            ))}
           </div>
         </div>
       </div>
       <div className={styles.phoneCaption}>
-        <span>微信小程序对话页</span>
-        <strong>真实使用以手机端陪考对话为主</strong>
+        <span>微信小程序真实对话页</span>
+        <strong>长文回答、表格、易错点和踩分点</strong>
       </div>
     </div>
   );
 }
 
-function HeroDemo() {
+function ChatProof() {
   return (
-    <div className={`${styles.demoShell} rounded-lg border border-[#d7e3df] bg-white shadow-[0_24px_80px_rgba(15,45,42,0.10)]`}>
-      <div className={styles.scanBeam} aria-hidden="true" />
-      <div className="flex items-center justify-between gap-4 border-b border-[#e4ece9] px-4 py-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#007f78] text-white">
-            <Bot className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-black text-[#101820]">鲁班智考</p>
-            <p className="truncate text-xs text-[#60706c]">AI 实务教练正在批改</p>
-          </div>
-        </div>
-        <div className="hidden items-center gap-2 rounded-md bg-[#eef8f6] px-3 py-1.5 text-xs font-black text-[#007f78] sm:flex">
-          <span className={styles.liveDot} aria-hidden="true" />
-          案例题阅卷
-        </div>
+    <div className={styles.chatProof}>
+      <div className={styles.chatProofHeader}>
+        <span>微信小程序真实对话截面</span>
+        <strong>不是一条 AI 解析，而是一位越用越懂你的陪考教练</strong>
       </div>
-
-      <div className={styles.gradingRail} aria-hidden="true">
-        {["作答识别", "采分匹配", "错因诊断", "表达改写"].map((item, index) => (
-          <div key={item} className={styles.gradingStep}>
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            {item}
+      <div className={styles.chatProofBody}>
+        <div className={styles.proofMiniPhone}>
+          <div className={styles.proofMiniBar}>
+            <span>‹ 返回首页</span>
+            <strong>鲁班智考</strong>
+            <em>•••</em>
           </div>
-        ))}
-      </div>
-
-      <div className="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="border-b border-[#e4ece9] p-5 lg:border-b-0 lg:border-r">
-          <p className="text-xs font-black text-[#60706c]">你的答案</p>
-          <div className={`${styles.answerCard} mt-4 rounded-lg border border-[#dfe8e5] bg-[#fbfdfc] p-4 text-sm leading-7 text-[#30433f]`}>
-            施工单位应该加强现场安全管理，做好检查，发现问题及时整改。
+          <div className={styles.proofMiniContent}>
+            <p>好，我直接按“章节模块 + 高频题型 + 拿分策略”给你梳理。</p>
+            <h3>4. 项目管理实务（案例题主力）</h3>
+            <ul>
+              <li>进度管理：网络计划、总时差、关键线路</li>
+              <li>安全管理：危大工程、专项施工方案、技术交底</li>
+              <li>现场管理：施工平面布置、消防、环保、文明施工</li>
+            </ul>
+            <div className={styles.proofErrorCard}>
+              <span>易错点</span>
+              <p>危大工程与超过一定规模危大工程的论证程序容易混；索赔事件的责任归属判断不清晰。</p>
+            </div>
+            <div className={styles.proofScoreCard}>
+              <span>踩分点</span>
+              <p>案例题要写程序性采分点：谁编制、谁审批、是否专家论证、交底和验收如何闭环。</p>
+            </div>
           </div>
-          <div className={styles.scoreTape} aria-hidden="true">
-            <span>表达过泛</span>
-            <span>漏程序</span>
-            <span>可部分得分</span>
-          </div>
-          <div className={`${styles.warningCard} mt-4 rounded-lg border border-[#f0dfba] bg-[#fff8e7] p-4`}>
-            <p className="text-xs font-black text-[#a86500]">主要问题</p>
-            <p className="mt-2 text-sm leading-7 text-[#6d5a35]">
-              方向对，但表达过泛，不能替代“专项施工方案、审核审批、专家论证、安全技术交底、检查验收、整改闭环”等程序性采分点。
-            </p>
+          <div className={styles.proofMiniComposer}>
+            <span>继续追问...</span>
+            <em>快速</em>
+            <b>▶</b>
           </div>
         </div>
 
-        <div className="p-5">
-          <p className="text-xs font-black text-[#007f78]">改写成得分表达</p>
-          <div className={`${styles.rewriteCard} mt-4 rounded-lg border border-[#b6ddd8] bg-[#f3fbfa] p-4 text-sm leading-7 text-[#17322f]`}>
-            该做法不妥。施工单位应编制专项施工方案，并按规定履行审核、审批程序；超过一定规模的危大工程应组织专家论证。方案实施前应进行安全技术交底，实施过程中应按方案施工并检查验收，发现问题及时整改闭环。
+        <div className={styles.proofCoachPanel}>
+          <span>陪考教练价值</span>
+          <h3>它会把这次对话沉淀成你的个人学习画像</h3>
+          <p>
+            不是用完即走的问答，而是持续记录你常混的程序、容易漏写的采分点和案例题表达习惯，让下一次讲解、批改和推荐更贴近你。
+          </p>
+          <div className={styles.proofCoachGrid}>
+            <div>
+              <b>01</b>
+              <strong>识别薄弱考点</strong>
+            </div>
+            <div>
+              <b>02</b>
+              <strong>记录错因画像</strong>
+            </div>
+            <div>
+              <b>03</b>
+              <strong>推荐下一题</strong>
+            </div>
           </div>
-          <div className={styles.markerStack} aria-hidden="true">
-            <span>专项施工方案</span>
-            <span>专家论证</span>
-            <span>技术交底</span>
-            <span>整改闭环</span>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            {["命中少", "表达泛", "漏程序"].map((label) => (
-              <div key={label} className={`${styles.signalChip} rounded-md border border-[#e4ece9] bg-white px-3 py-2 text-center text-xs font-black text-[#40514e]`}>
-                {label}
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 rounded-lg border border-[#dfe8e5] bg-white p-4">
-            <p className="text-xs font-black text-[#60706c]">下一题建议</p>
-            <p className="mt-2 text-sm leading-7 text-[#40514e]">
-              继续训练“危大工程专项施工方案”类案例题，重点练习程序性采分点的完整表达。
-            </p>
-          </div>
+          <Link href={inviteTestHref} className={styles.proofApplyLink}>
+            申请内测体验
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
       </div>
     </div>
@@ -286,7 +278,7 @@ export default function IntroPage() {
     <div className={`${styles.page} h-screen overflow-y-auto overflow-x-hidden bg-[#f7faf9] text-[#101820] [color-scheme:light] [-webkit-tap-highlight-color:transparent]`}>
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[#101820] focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
+        className={styles.skipLink}
       >
         跳到主要内容
       </a>
@@ -298,14 +290,9 @@ export default function IntroPage() {
             className="flex min-w-0 items-center gap-3 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#007f78]"
             aria-label="鲁班智考首页"
           >
-            <Image
-              src="/logo.png"
-              alt="鲁班智考"
-              width={491}
-              height={346}
-              priority
-              style={{ width: "auto", height: 36 }}
-            />
+            <span className={styles.headerLogoTile}>
+              <Image src="/images/logo-white.png" alt="" width={135} height={151} priority />
+            </span>
             <span className="truncate text-xl font-black tracking-normal">鲁班智考</span>
           </Link>
           <nav className="hidden items-center gap-7 md:flex" aria-label="页面导航">
@@ -337,6 +324,7 @@ export default function IntroPage() {
             <span />
           </div>
           <div className={styles.heroCopy}>
+            <p className={styles.heroBrand}>鲁班智考</p>
             <p className={styles.heroKicker}>AI PRACTICAL COACH / CASE GRADING</p>
             <div className={styles.verticalMark} aria-hidden="true">实务教练</div>
             <h1 className={`${styles.heroTitle} text-4xl font-black leading-[1.05] tracking-normal text-pretty text-[#07100f] sm:text-6xl lg:text-7xl`}>
@@ -346,7 +334,7 @@ export default function IntroPage() {
               你缺的不是更多题，而是有人告诉你为什么丢分。
             </p>
             <p className="mt-5 max-w-2xl text-base leading-8 text-[#52625f] sm:text-lg">
-              鲁班智考是一建建筑实务专属个性化 AI 陪考教练。它不只是给你答案，而是持续记住你的作答习惯、薄弱考点和丢分原因，越用越懂你，并告诉你下一题该练什么。
+              专为一建建筑实务打造的个性化 AI 陪考教练。它会持续记住你的作答习惯、薄弱考点和丢分原因，越用越懂你。
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -357,38 +345,18 @@ export default function IntroPage() {
                 <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
               </Link>
               <a
-                href="#coach"
+                href="#demo"
                 className="inline-flex items-center justify-center gap-2 rounded-md border border-[#007f78] bg-white px-6 py-3.5 text-base font-black text-[#007f78] transition-colors duration-150 hover:bg-[#eef8f6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#007f78]"
               >
-                看看陪考教练怎么懂你
+                看一次 AI 批改
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </a>
             </div>
-            <div className="mt-7 grid gap-3 text-sm font-semibold text-[#52625f] sm:grid-cols-3">
-              {[
-                "案例题：按采分点批改，指出你的漏分原因",
-                "选择题：分析干扰项，沉淀你的错因画像",
-                "错题复盘：把每次错误变成专属训练计划",
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-2">
+            <div className={styles.heroProofs}>
+              {heroSignals.map((item) => (
+                <div key={item}>
                   <CheckCircle2 className="h-4 w-4 text-[#007f78]" aria-hidden="true" />
                   <span>{item}</span>
-                </div>
-              ))}
-            </div>
-            <div className={styles.heroSignalRail} aria-hidden="true">
-              {heroSignals.map((item, index) => (
-                <span key={item}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  {item}
-                </span>
-              ))}
-            </div>
-            <div className={styles.heroFlow} aria-hidden="true">
-              {heroFlow.map((item, index) => (
-                <div key={item}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  {item}
                 </div>
               ))}
             </div>
@@ -421,22 +389,18 @@ export default function IntroPage() {
           <div className="mx-auto max-w-7xl">
             <SectionHeading
               index="02"
-              title="不只是 AI 解析，而是专属 AI 陪考教练"
-              text="普通题库把 AI 放在解析后面。鲁班智考围绕你的真实作答持续工作：批改、诊断、改写、复盘、记住你的薄弱点，再推荐下一题。"
+              title="一道错题，怎么变成下一步训练？"
+              text="鲁班智考不是继续塞题，而是把你的真实作答转成可执行的提分动作。"
             />
-            <div className={`${styles.featureGrid} mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3`}>
-              {featureItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <article key={item.title} className={`${styles.featureCard} rounded-lg border border-[#dfe8e5] bg-white p-6`}>
-                    <div className={styles.iconBox}>
-                      <Icon className="h-6 w-6 text-[#007f78]" aria-hidden="true" />
-                    </div>
-                    <h3 className="mt-5 text-xl font-black text-[#17322f]">{item.title}</h3>
-                    <p className="mt-4 text-sm leading-7 text-[#52625f]">{item.text}</p>
-                  </article>
-                );
-              })}
+            <div className={styles.journeyTrack}>
+              {gradingJourney.map((item, index) => (
+                <article key={item.title} className={styles.journeyItem}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <p>{item.label}</p>
+                  <h3>{item.title}</h3>
+                  <small>{item.text}</small>
+                </article>
+              ))}
             </div>
           </div>
         </section>
@@ -510,12 +474,12 @@ export default function IntroPage() {
           <div className="mx-auto max-w-7xl">
             <SectionHeading
               index="05"
-              title="看一次批改，你就知道差别"
-              text="学员最有感知的不是“AI 很聪明”，而是看到自己原来写的不是答案，只是口号。"
+              title="看一次对话批改，你就知道差别"
+              text="真正有说服力的不是功能列表，而是你看到自己的答案如何被拆成得分点、漏分点和下一题。"
               align="center"
             />
             <div className="mt-10">
-              <HeroDemo />
+              <ChatProof />
             </div>
           </div>
         </section>
@@ -534,6 +498,38 @@ export default function IntroPage() {
                   <p className="text-sm font-bold leading-7 text-[#40514e]">{item}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-y border-[#dfe8e5] bg-white px-5 py-16 sm:px-8">
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
+            <div>
+              <p className={styles.sectionIndex}>07</p>
+              <h2 className="text-3xl font-black tracking-normal text-[#0a1110] text-pretty sm:text-4xl">
+                现在申请内测，让 AI 陪考教练先认识你
+              </h2>
+              <p className="mt-4 max-w-2xl text-base leading-8 text-[#52625f]">
+                首批内测不是公开注册。我们会优先邀请正在备考建筑实务、愿意提交真实错题和反馈体验的学员。
+              </p>
+            </div>
+            <div className="rounded-lg border border-[#dfe8e5] bg-[#f7faf9] p-6">
+              <p className="text-sm font-black text-[#17322f]">申请信息会用来判断三件事</p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {["你卡在哪", "是否适合首批体验", "下一步优先打磨什么"].map((item, index) => (
+                  <div key={item} className="rounded-md border border-[#d7e3df] bg-white p-4">
+                    <span className="text-xs font-black text-[#007f78]">{String(index + 1).padStart(2, "0")}</span>
+                    <p className="mt-3 text-sm font-bold leading-6 text-[#30433f]">{item}</p>
+                  </div>
+                ))}
+              </div>
+              <Link
+                href={inviteTestHref}
+                className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-[#007f78] px-5 py-3 text-sm font-black text-white transition-colors duration-150 hover:bg-[#00665f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#007f78]"
+              >
+                申请内测体验
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
             </div>
           </div>
         </section>

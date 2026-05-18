@@ -353,6 +353,7 @@ def test_bi_router_requires_admin_for_sensitive_endpoints(bi_service: BIService)
         "/api/v1/bi/cost/reconciliation?days=30&workspace_id=ws-1&apikey_id=42&billing_cycle=2026-04",
         "/api/v1/bi/feedback?days=30&limit=10",
         "/api/v1/bi/invite-test/applications?days=365&limit=10",
+        "/api/v1/bi/invite-test/stats?days=365",
     ]
 
     with TestClient(_build_app(bi_service)) as client:
@@ -401,6 +402,19 @@ def test_bi_router_public_flag_does_not_expose_invite_test_applications(
     assert response.json()["detail"] == "Admin access required"
 
 
+def test_bi_router_public_flag_does_not_expose_invite_test_stats(
+    bi_service: BIService,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BI_PUBLIC_ENABLED", "1")
+
+    with TestClient(_build_app(bi_service)) as client:
+        response = client.get("/api/v1/bi/invite-test/stats?days=365")
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Admin access required"
+
+
 def test_bi_router_honors_explicit_public_flag_in_production(
     bi_service: BIService,
     monkeypatch,
@@ -439,6 +453,22 @@ def test_bi_router_metrics_token_does_not_expose_invite_test_applications(
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
             "/api/v1/bi/invite-test/applications?days=365&limit=10",
+            headers={"X-Metrics-Token": "bi-read-token"},
+        )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Admin access required"
+
+
+def test_bi_router_metrics_token_does_not_expose_invite_test_stats(
+    bi_service: BIService,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+
+    with TestClient(_build_app(bi_service)) as client:
+        response = client.get(
+            "/api/v1/bi/invite-test/stats?days=365",
             headers={"X-Metrics-Token": "bi-read-token"},
         )
 

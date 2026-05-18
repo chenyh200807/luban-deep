@@ -214,5 +214,8 @@ async def bi_invite_test_applications(
 
 
 @router.get("/invite-test/stats")
-async def bi_invite_test_stats(days: int = Query(365, ge=1, le=3650)):
+async def bi_invite_test_stats(
+    days: int = Query(365, ge=1, le=3650),
+    _auth: AuthContext = Depends(require_bi_admin),
+):
     return await get_bi_service().get_invite_test_stats(days=days)

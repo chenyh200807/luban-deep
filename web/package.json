@@ -16,7 +16,10 @@
     "i18n:check": "npm run i18n:parity && npm run i18n:audit",
     "audit": "playwright test --project=ui-audit",
     "audit:ui": "playwright test --ui --project=ui-audit",
-    "audit:report": "playwright show-report"
+    "audit:report": "playwright show-report",
+    "test:wechat-harness:data": "node --test tests/wechat-harness-data.test.ts",
+    "test:wechat-harness:e2e": "PW_START_WEB_SERVER=1 playwright test --project=wechat-harness --reporter=list",
+    "test:wechat-harness": "npm run test:wechat-harness:data && npm run test:wechat-harness:e2e"
   },
   "dependencies": {
     "@types/pg": "^8.20.0",
