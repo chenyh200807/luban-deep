@@ -18,6 +18,7 @@ from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.exam_track import exam_track_label
 from deeptutor.services.query_intent import (
     build_grounding_decision_from_metadata,
+    query_requires_current_info,
 )
 from deeptutor.services.rag.exact_authority import (
     build_exact_authority_response,
@@ -1097,6 +1098,7 @@ class AgentLoop:
     def _should_prefetch_web_search(
         cls,
         *,
+        current_message: str,
         runtime_metadata: dict[str, Any] | None,
     ) -> bool:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
@@ -1104,7 +1106,11 @@ class AgentLoop:
             str(item or "").strip()
             for item in (metadata.get("default_tools") if isinstance(metadata.get("default_tools"), list) else [])
         }
-        return cls._runtime_current_info_required(metadata) and "web_search" in default_tools
+        return (
+            cls._runtime_current_info_required(metadata)
+            and query_requires_current_info(current_message)
+            and "web_search" in default_tools
+        )
 
     @staticmethod
     def _build_rag_preview_args(
@@ -1293,7 +1299,10 @@ class AgentLoop:
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
     ) -> list[dict[str, Any]]:
-        if not self._should_prefetch_web_search(runtime_metadata=runtime_metadata):
+        if not self._should_prefetch_web_search(
+            current_message=current_message,
+            runtime_metadata=runtime_metadata,
+        ):
             return initial_messages
 
         web_search_tool = self.tools.get("web_search")

@@ -1487,9 +1487,6 @@ def _build_mobile_turn_payload(
     wallet_user_id: str,
     query: str,
 ) -> dict[str, Any]:
-    explicit_web_search_requested = any(
-        str(item).strip() == "web_search" for item in (body.tools or [])
-    )
     requested_tools = [
         str(item).strip()
         for item in (body.tools or [])
@@ -1504,7 +1501,6 @@ def _build_mobile_turn_payload(
     current_info_required = (
         grounding_decision.current_info_required
         or grounding_decision.textbook_delta_query
-        or explicit_web_search_requested
     )
     if current_info_required and is_web_search_runtime_available():
         requested_tools.append("web_search")

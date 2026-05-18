@@ -555,7 +555,7 @@ def test_mobile_chat_start_turn_enables_web_search_for_current_info_queries(
     assert captured["payload"]["config"]["interaction_hints"]["current_info_required"] is True
 
 
-def test_mobile_chat_start_turn_honors_explicit_web_search_tool(
+def test_mobile_chat_start_turn_does_not_treat_web_search_tool_as_current_info(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, object] = {}
@@ -597,7 +597,7 @@ def test_mobile_chat_start_turn_honors_explicit_web_search_tool(
         response = client.post(
             "/api/v1/chat/start-turn",
             json={
-                "query": "查一下今年一建报名入口",
+                "query": "帮我批改这道建筑实务题的作答",
                 "mode": "AUTO",
                 "language": "zh",
                 "tools": ["web_search"],
@@ -605,8 +605,8 @@ def test_mobile_chat_start_turn_honors_explicit_web_search_tool(
         )
 
     assert response.status_code == 200
-    assert "web_search" in captured["payload"]["tools"]
-    assert captured["payload"]["config"]["interaction_hints"]["current_info_required"] is True
+    assert "web_search" not in captured["payload"]["tools"]
+    assert "current_info_required" not in captured["payload"]["config"]["interaction_hints"]
 
 
 def test_mobile_chat_start_turn_treats_explicit_web_search_command_as_current_info(

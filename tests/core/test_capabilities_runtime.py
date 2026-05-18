@@ -77,6 +77,39 @@ def test_tutorbot_web_search_prefetch_strips_command_wrappers() -> None:
     ) == {"query": "2026年一级建造师考试时间", "count": 5}
 
 
+def test_tutorbot_web_search_prefetch_requires_current_info_query() -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    answer_submission = (
+        "1.（本小题 4.0 分）\n"
+        "（1）①潜在投标人数量较多的项目；\n"
+        "（2）①合格制；②有限数量制。\n"
+        "2.（本小题 8.0 分）\n"
+        "（1）计划、组织、协调方案。"
+    )
+
+    assert (
+        AgentLoop._should_prefetch_web_search(
+            current_message=answer_submission,
+            runtime_metadata={
+                "current_info_required": True,
+                "default_tools": ["web_search"],
+            },
+        )
+        is False
+    )
+    assert (
+        AgentLoop._should_prefetch_web_search(
+            current_message="2026一建考试时间",
+            runtime_metadata={
+                "current_info_required": True,
+                "default_tools": ["web_search"],
+            },
+        )
+        is True
+    )
+
+
 def test_tutorbot_visible_answer_gate_rejects_skill_reference_process_leak() -> None:
     from deeptutor.tutorbot.agent.loop import AgentLoop
 
