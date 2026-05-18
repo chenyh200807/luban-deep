@@ -31,6 +31,7 @@ OBSERVER_SNAPSHOT_MODULE = _load_script_module("run_observer_snapshot.py")
 CHANGE_IMPACT_MODULE = _load_script_module("run_change_impact.py")
 DAILY_OBSERVABILITY_MODULE = _load_script_module("run_observability_daily.py")
 PLAN_COMPLETION_MODULE = _load_script_module("run_plan_completion_audit.py")
+READINESS_CHECK_MODULE = _load_script_module("run_readiness_check.py")
 
 
 def test_run_aae_snapshot_load_json_accepts_control_plane_wrapper(tmp_path) -> None:
@@ -222,6 +223,47 @@ def test_run_plan_completion_audit_cli_writes_control_plane_latest(tmp_path) -> 
     latest = json.loads((store_dir / "plan_completion_audits" / "latest.json").read_text(encoding="utf-8"))
     assert latest["kind"] == "plan_completion_audits"
     assert latest["payload"]["status"] == "PASS"
+
+
+def test_run_readiness_check_cli_records_command_result(tmp_path) -> None:
+    store_dir = tmp_path / "control_plane"
+    env = {
+        **os.environ,
+        "DEEPTUTOR_OBSERVABILITY_STORE_DIR": str(store_dir),
+    }
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(Path(__file__).resolve().parents[2] / "scripts" / "run_readiness_check.py"),
+            "--check-id",
+            "playwright",
+            "--summary",
+            "playwright smoke passed",
+            "--command",
+            sys.executable,
+            "-c",
+            "print('ok')",
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    latest = json.loads((store_dir / "readiness_checks" / "latest.json").read_text(encoding="utf-8"))
+    assert latest["kind"] == "readiness_checks"
+    assert latest["payload"]["check_id"] == "playwright"
+    assert latest["payload"]["status"] == "PASS"
+    assert "playwright smoke passed" in latest["payload"]["summary"]
+    assert any("exit_code=0" in item for item in latest["payload"]["evidence"])
+
+
+def test_run_readiness_check_default_contract_guard_command() -> None:
+    command = READINESS_CHECK_MODULE._default_command("contract_guard", ["docs/plan/INDEX.md"])
+
+    assert command[-2:] == [str(Path(__file__).resolve().parents[2] / "scripts" / "check_contract_guard.py"), "docs/plan/INDEX.md"]
 
 
 @pytest.mark.asyncio

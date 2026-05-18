@@ -210,7 +210,9 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
     assert result["runs"]["oa"]["raw_evidence_bundle"]["change_impact_run_id"] == result["runs"][
         "change_impact"
     ]["run_id"]
-    assert result["runs"]["release_gate"]["final_status"] in {"PASS", "WARN"}
+    assert result["runs"]["release_gate"]["final_status"] == "FAIL"
+    assert "plan_completion_audit_missing" in result["runs"]["release_gate"]["blockers"]
+    assert get_control_plane_store().latest_payload("plan_completion_audits") is None
     assert result["artifacts"]["arr"]["json_path"].endswith("arr.json")
     assert result["artifacts"]["observer_snapshot"]["json_path"].endswith("raw_data_latest.json")
     assert result["artifacts"]["change_impact"]["json_path"].endswith(".json")

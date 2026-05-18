@@ -169,6 +169,14 @@ def test_release_gate_blocks_plan_completion_failures() -> None:
         oa_payload=None,
         plan_completion_payload={
             "run_id": "plan-completion-1",
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "prod",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "deploy_manifest_hash": "manifest1",
+            },
             "status": "FAIL",
             "summary": {"total": 2, "done": 1, "not_done": 1, "partial": 0, "unverifiable": 0},
             "blockers": ["plan_item_not_done"],
@@ -240,6 +248,88 @@ def test_release_gate_blocks_missing_plan_completion_audit() -> None:
     assert payload["final_status"] == "FAIL"
     assert any(item["gate"] == "P6 Plan Completion" and item["status"] == "FAIL" for item in payload["gate_results"])
     assert "plan_completion_audit_missing" in payload["blockers"]
+
+
+def test_release_gate_treats_prerelease_plan_placeholder_as_missing() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "prod",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+        plan_completion_payload={
+            "run_id": "plan-completion-prerelease-1",
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "prod",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "scope_mode": "prerelease_unscoped",
+            "status": "WARN",
+            "summary": {"total": 0, "done": 0},
+            "warnings": ["plan_completion_audit_not_configured_for_prerelease"],
+        },
+    )
+
+    p6 = next(item for item in payload["gate_results"] if item["gate"] == "P6 Plan Completion")
+    assert p6["status"] == "FAIL"
+    assert p6["summary"] == "未提供 PlanCompletionAudit"
+    assert "plan_completion_audit_missing" in payload["blockers"]
+
+
+def test_release_gate_rejects_stale_plan_completion_audit() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "rel-2",
+                "git_sha": "abc",
+                "deployment_environment": "prod",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest-current",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+        plan_completion_payload={
+            "run_id": "plan-completion-old",
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "prod",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "deploy_manifest_hash": "manifest-old",
+            },
+            "status": "PASS",
+            "summary": {"total": 1, "done": 1, "not_done": 0},
+        },
+    )
+
+    p6 = next(item for item in payload["gate_results"] if item["gate"] == "P6 Plan Completion")
+    assert p6["status"] == "FAIL"
+    assert p6["summary"] == "PlanCompletionAudit 不属于当前 release spine"
+    assert "plan_completion_audit_stale_release" in payload["blockers"]
 
 
 def test_release_gate_rejects_dirty_release_lineage() -> None:
@@ -546,6 +636,14 @@ def test_release_gate_allows_prelaunch_aae_proxy_when_composite_is_healthy() -> 
         },
         plan_completion_payload={
             "run_id": "plan-completion-1",
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "deploy_manifest_hash": "manifest1",
+            },
             "status": "PASS",
             "summary": {"total": 1, "done": 1, "not_done": 0, "partial": 0, "unverifiable": 0},
         },
@@ -553,6 +651,7 @@ def test_release_gate_allows_prelaunch_aae_proxy_when_composite_is_healthy() -> 
 
     assert payload["final_status"] == "PASS"
     assert payload["recommendation"] == "canary"
+    assert "plan_completion_audit_missing" not in payload["blockers"]
     p3 = next(item for item in payload["gate_results"] if item["gate"] == "P3 AAE")
     assert p3["status"] == "PASS"
     assert "proxy" in p3["summary"]

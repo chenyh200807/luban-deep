@@ -30,7 +30,7 @@
 | 钱包与会员 authority | [2026-04-19-supabase-wallet-single-authority-prd.md](2026-04-19-supabase-wallet-single-authority-prd.md) | Supabase wallet、积分、会员、支付状态、身份归一化 |
 | 生产部署 | [2026-04-19-deeptutor-50000-member-deployment-prd.md](2026-04-19-deeptutor-50000-member-deployment-prd.md) / [2026-05-17-deeptutor-active-turn-capacity-implementation-plan.md](2026-05-17-deeptutor-active-turn-capacity-implementation-plan.md) | 5 万会员部署、50-120 active turn Phase 1 扩容、上线稳健性 |
 | 联网搜索能力 | [2026-05-03-deeptutor-web-search-stack-prd.md](2026-05-03-deeptutor-web-search-stack-prd.md) / [2026-05-03-deeptutor-web-search-stack-implementation-plan.md](2026-05-03-deeptutor-web-search-stack-implementation-plan.md) | SearXNG、`web_search` fail-closed enablement、搜索 provider/runtime 验收 |
-| Observability 与 release gate | [2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md](2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md) | OM/ARR/AAE/OA、trace、surface ACK、release gate |
+| Observability 与 release gate | [2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md](2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md) / [2026-05-18-deeptutor-launch-readiness-dashboard-implementation-plan.md](2026-05-18-deeptutor-launch-readiness-dashboard-implementation-plan.md) | OM/ARR/AAE/OA、trace、surface ACK、release gate、上线 readiness 面板 |
 | 鲁班智考个性化教学 | [2026-04-20-luban-adaptive-teaching-intelligence-prd.md](2026-04-20-luban-adaptive-teaching-intelligence-prd.md) / [2026-05-02-luban-assessment-blueprint-prd.md](2026-05-02-luban-assessment-blueprint-prd.md) / [2026-05-13-luban-case-grading-error-map-prd.md](2026-05-13-luban-case-grading-error-map-prd.md) / [2026-05-13-luban-case-grading-error-map-implementation-plan.md](2026-05-13-luban-case-grading-error-map-implementation-plan.md) / [2026-05-14-luban-skill-first-grading-thin-shell-execution-plan.md](2026-05-14-luban-skill-first-grading-thin-shell-execution-plan.md) | 因材施教、Learner Core、Teaching Policy、显性诊断、摸底测评蓝图、案例题 AI 阅卷与错因变式训练；P0 执行优先读 Skill-first 薄外壳计划 |
 | 鲁班智考反馈 Top10 修复 | [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md) / [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | 运营反馈问题注册表、Langfuse/后台证据、Top10 root-cause 分批修复 |
 | Benchmark 主脊梁 | [2026-04-23-deeptutor-benchmark-single-spine-prd.md](2026-04-23-deeptutor-benchmark-single-spine-prd.md) | benchmark、daily/gate/incident、质量单一主脊梁 |
@@ -100,6 +100,7 @@
 | [2026-04-19-deeptutor-observability-surface-ack-implementation-plan.md](2026-04-19-deeptutor-observability-surface-ack-implementation-plan.md) | Implementation Plan | 未标注 | Phase 2 Surface ACK 最小可交付实施计划。 |
 | [2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md](2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md) | Implementation Plan | 未标注 | Phase 3 ARR Lite 实施计划。 |
 | [2026-04-23-deeptutor-benchmark-single-spine-prd.md](2026-04-23-deeptutor-benchmark-single-spine-prd.md) | PRD | Proposed | Benchmark 作为 daily/gate/incident 的单一质量主脊梁。 |
+| [2026-05-18-deeptutor-launch-readiness-dashboard-implementation-plan.md](2026-05-18-deeptutor-launch-readiness-dashboard-implementation-plan.md) | Implementation Plan | Implemented locally P0-P2 | 借鉴 gstack review readiness dashboard，把 contract guard、benchmark、OA/ARR/AAE、Playwright、微信 DevTools、Langfuse 汇总成单一“能不能发”读模型。 |
 
 ### 7. 部署 / 规模化
 
@@ -181,6 +182,7 @@
 - [2026-04-19-deeptutor-observability-surface-ack-implementation-plan.md](2026-04-19-deeptutor-observability-surface-ack-implementation-plan.md)
 - [2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md](2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md)
 - [2026-05-03-deeptutor-web-search-stack-implementation-plan.md](2026-05-03-deeptutor-web-search-stack-implementation-plan.md)
+- [2026-05-18-deeptutor-launch-readiness-dashboard-implementation-plan.md](2026-05-18-deeptutor-launch-readiness-dashboard-implementation-plan.md)
 - [2026-05-13-luban-case-grading-error-map-implementation-plan.md](2026-05-13-luban-case-grading-error-map-implementation-plan.md)
 - [2026-05-14-luban-skill-first-grading-thin-shell-execution-plan.md](2026-05-14-luban-skill-first-grading-thin-shell-execution-plan.md)
 - [2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md](2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md)

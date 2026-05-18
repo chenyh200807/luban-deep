@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from scripts.check_contract_guard import evaluate_changed_files
+import subprocess
+
+from scripts.check_contract_guard import evaluate_changed_files, resolve_changed_files
 
 
 def test_guard_allows_non_protected_changes() -> None:
@@ -48,3 +50,46 @@ def test_guard_accepts_config_runtime_change_with_contract_and_tests() -> None:
     )
     assert ok is True
     assert "[config_runtime] passed" in message
+
+
+def test_resolve_changed_files_defaults_to_current_candidate(monkeypatch) -> None:
+    commands: list[tuple[str, ...]] = []
+
+    def fake_run(command, **_kwargs):
+        commands.append(tuple(command))
+        stdout_by_command = {
+            ("git", "diff", "--name-only", "--cached"): "staged.py\nshared.py\n",
+            ("git", "diff", "--name-only"): "unstaged.py\nshared.py\n",
+            ("git", "ls-files", "--others", "--exclude-standard"): "untracked.py\n",
+        }
+        return subprocess.CompletedProcess(command, 0, stdout=stdout_by_command[tuple(command)], stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    assert resolve_changed_files([], base=None, head=None) == [
+        "shared.py",
+        "staged.py",
+        "unstaged.py",
+        "untracked.py",
+    ]
+    assert commands == [
+        ("git", "diff", "--name-only", "--cached"),
+        ("git", "diff", "--name-only"),
+        ("git", "ls-files", "--others", "--exclude-standard"),
+    ]
+
+
+def test_resolve_changed_files_keeps_explicit_refs_authoritative(monkeypatch) -> None:
+    def fake_run(command, **_kwargs):
+        assert command == ["git", "diff", "--name-only", "origin/main...HEAD"]
+        return subprocess.CompletedProcess(command, 0, stdout="from-ref.py\n", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    assert resolve_changed_files([], base="origin/main", head="HEAD") == ["from-ref.py"]
+
+
+def test_resolve_changed_files_keeps_explicit_files_authoritative(monkeypatch) -> None:
+    monkeypatch.setattr(subprocess, "run", lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("git not expected")))
+
+    assert resolve_changed_files([" explicit.py ", ""], base=None, head=None) == [" explicit.py "]

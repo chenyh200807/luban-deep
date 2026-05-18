@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from deeptutor.api.dependencies import require_admin, resolve_auth_context
 from deeptutor.services.observability import get_control_plane_store, get_surface_event_store
+from deeptutor.services.observability.launch_readiness import build_launch_readiness_dashboard
 from deeptutor.services.observability.run_history import build_observability_run_history
 
 router = APIRouter()
@@ -59,6 +60,14 @@ async def get_observability_run_history(
             limit=max(1, min(limit, 100)),
             commit_sha=commit_sha,
         ),
+    }
+
+
+@router.get("/launch-readiness", dependencies=[Depends(require_admin)])
+async def get_launch_readiness_dashboard() -> dict[str, Any]:
+    return {
+        "ok": True,
+        **build_launch_readiness_dashboard(store=get_control_plane_store()),
     }
 
 

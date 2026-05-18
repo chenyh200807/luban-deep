@@ -256,12 +256,15 @@ def run_prerelease_observability(
         ],
     )
 
+    plan_completion_payload = get_control_plane_store().latest_payload("plan_completion_audits")
+
     release_gate_payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
         change_impact_payload=persisted_change_impact_payload,
+        plan_completion_payload=plan_completion_payload,
     )
     release_gate_artifacts = _write_control_plane_artifact(
         kind="release_gate_runs",

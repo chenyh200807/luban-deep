@@ -10,6 +10,14 @@ _FAIL = "FAIL"
 _WARN = "WARN"
 _SKIP = "SKIP"
 _INCOMPLETE_RELEASE_VALUES = {"", "unknown", "unset", "none"}
+_RELEASE_SPINE_KEYS = (
+    "release_id",
+    "git_sha",
+    "deployment_environment",
+    "prompt_version",
+    "ff_snapshot_hash",
+    "deploy_manifest_hash",
+)
 
 
 def _gate_entry(
@@ -104,6 +112,41 @@ def _select_release_lineage(*payloads: dict[str, Any] | None) -> dict[str, Any]:
     return candidates[0] if candidates else get_release_lineage_snapshot()
 
 
+def _is_prerelease_plan_placeholder(payload: dict[str, Any] | None) -> bool:
+    if not payload:
+        return False
+    warnings = {str(item) for item in payload.get("warnings") or []}
+    return (
+        str(payload.get("scope_mode") or "") == "prerelease_unscoped"
+        and "plan_completion_audit_not_configured_for_prerelease" in warnings
+    )
+
+
+def _payload_release(payload: dict[str, Any] | None) -> dict[str, Any]:
+    release = (payload or {}).get("release")
+    return release if isinstance(release, dict) else {}
+
+
+def _same_release_spine(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
+    expected_values = {
+        key: str(expected.get(key) or "").strip()
+        for key in _RELEASE_SPINE_KEYS
+        if str(expected.get(key) or "").strip()
+    }
+    if not expected_values:
+        return True
+    return all(str(actual.get(key) or "").strip() == value for key, value in expected_values.items())
+
+
+def _release_spine_label(release: dict[str, Any]) -> str:
+    values = [
+        str(release.get(key) or "").strip()
+        for key in ("release_id", "git_sha", "deploy_manifest_hash", "ff_snapshot_hash")
+        if str(release.get(key) or "").strip()
+    ]
+    return "|".join(values) or "unknown"
+
+
 def build_release_gate_report(
     *,
     om_payload: dict[str, Any] | None,
@@ -113,7 +156,9 @@ def build_release_gate_report(
     change_impact_payload: dict[str, Any] | None = None,
     plan_completion_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    release = _select_release_lineage(arr_payload, om_payload, aae_payload, oa_payload, plan_completion_payload)
+    if _is_prerelease_plan_placeholder(plan_completion_payload):
+        plan_completion_payload = None
+    release = _select_release_lineage(arr_payload, om_payload, aae_payload, oa_payload)
     gate_results: list[dict[str, Any]] = []
 
     om_health = (om_payload or {}).get("health_summary") or {}
@@ -335,10 +380,14 @@ def build_release_gate_report(
     p6_blockers: list[str] = ["plan_completion_audit_missing"]
     plan_summary = (plan_completion_payload or {}).get("summary") or {}
     if plan_completion_payload:
+        plan_release = _payload_release(plan_completion_payload)
+        p6_blockers = []
         audit_status = str(plan_completion_payload.get("status") or "").strip().upper()
-        p6_status = _PASS
-        p6_summary = "plan items 已对照 diff / evidence"
-        if audit_status == _FAIL:
+        if not _same_release_spine(release, plan_release):
+            p6_status = _FAIL
+            p6_summary = "PlanCompletionAudit 不属于当前 release spine"
+            p6_blockers = ["plan_completion_audit_stale_release"]
+        elif audit_status == _FAIL:
             p6_status = _FAIL
             p6_summary = "plan items 存在未完成项"
             p6_blockers = list(plan_completion_payload.get("blockers") or ["plan_item_not_done"])
@@ -348,6 +397,9 @@ def build_release_gate_report(
         elif audit_status != _PASS:
             p6_status = _WARN
             p6_summary = "PlanCompletionAudit 状态未知，需要人工复核"
+        else:
+            p6_status = _PASS
+            p6_summary = "plan items 已对照 diff / evidence"
     gate_results.append(
         _gate_entry(
             gate="P6 Plan Completion",
@@ -365,6 +417,8 @@ def build_release_gate_report(
                 f"unverifiable={plan_summary.get('unverifiable')}",
                 f"out_of_scope={plan_summary.get('out_of_scope')}",
                 f"warnings={(plan_completion_payload or {}).get('warnings')}",
+                f"expected_release={_release_spine_label(release)}",
+                f"plan_release={_release_spine_label(_payload_release(plan_completion_payload))}",
             ],
             blockers=p6_blockers,
         )

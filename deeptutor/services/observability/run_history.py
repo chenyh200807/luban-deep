@@ -14,6 +14,7 @@ RUN_HISTORY_KINDS: tuple[str, ...] = (
     "om_runs",
     "arr_runs",
     "aae_composite_runs",
+    "readiness_checks",
     "daily_trends",
     "incident_ledger",
 )
@@ -65,6 +66,11 @@ def _record_summary(kind: str, payload: dict[str, Any]) -> dict[str, Any]:
         return {
             "final_status": payload.get("final_status"),
             "recommendation": payload.get("recommendation"),
+        }
+    if kind == "readiness_checks":
+        return {
+            "check_id": payload.get("check_id"),
+            "status": payload.get("status"),
         }
     if kind == "observer_snapshots":
         return {

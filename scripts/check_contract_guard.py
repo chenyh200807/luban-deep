@@ -36,18 +36,29 @@ def _git_diff_name_only(base: str, head: str) -> list[str]:
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
+def _git_current_candidate_files() -> list[str]:
+    files: set[str] = set()
+    for command in (
+        ["git", "diff", "--name-only", "--cached"],
+        ["git", "diff", "--name-only"],
+        ["git", "ls-files", "--others", "--exclude-standard"],
+    ):
+        result = subprocess.run(
+            command,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        files.update(line.strip() for line in result.stdout.splitlines() if line.strip())
+    return sorted(files)
+
+
 def resolve_changed_files(files: list[str], *, base: str | None, head: str | None) -> list[str]:
     if files:
         return [item for item in files if item.strip()]
     if base and head:
         return _git_diff_name_only(base, head)
-    result = subprocess.run(
-        ["git", "diff", "--name-only", "HEAD~1", "HEAD"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    return _git_current_candidate_files()
 
 
 def evaluate_changed_files(changed_files: list[str]) -> tuple[bool, str]:

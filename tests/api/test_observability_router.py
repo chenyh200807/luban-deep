@@ -206,6 +206,32 @@ def test_control_plane_router_returns_latest_and_history_for_change_impact_runs(
     assert history.json()["records"][0]["run_id"] == "change-impact-1"
 
 
+def test_launch_readiness_router_returns_dashboard_rows() -> None:
+    app = _build_app(is_admin=True)
+    store = observability_module.get_control_plane_store()
+    store.write_run(
+        kind="readiness_checks",
+        run_id="contract-guard-1",
+        release_id="rel-1",
+        payload={
+            "run_id": "contract-guard-1",
+            "check_id": "contract_guard",
+            "status": "PASS",
+            "summary": "contract guard passed",
+        },
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/observability/launch-readiness")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    assert body["final_status"] == "FAIL"
+    assert any(row["check_id"] == "contract_guard" and row["status"] == "PASS" for row in body["rows"])
+    assert any(row["check_id"] == "playwright" and row["status"] == "NOT_RUN" for row in body["rows"])
+
+
 def test_control_plane_run_history_summarizes_runs_and_filters_by_commit() -> None:
     app = _build_app(is_admin=True)
     store = observability_module.get_control_plane_store()
