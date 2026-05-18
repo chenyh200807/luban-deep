@@ -1223,6 +1223,15 @@ class AgentLoop:
         if guarded_context.signals:
             merged_metadata["guardrail_sanitized"] = True
             merged_metadata["guardrail_signals"] = list(guarded_context.signals)
+        exact_candidate = (
+            merged_metadata.get("exact_question")
+            if isinstance(merged_metadata.get("exact_question"), dict)
+            else None
+        )
+        if isinstance(exact_candidate, dict):
+            runtime_metadata["_prefetched_exact_question"] = exact_candidate
+            if self._prefetched_case_exact_question_can_answer(runtime_metadata):
+                merged_metadata["authority_applied"] = True
 
         if on_tool_call:
             await on_tool_call("rag", preview_args)
@@ -1251,15 +1260,6 @@ class AgentLoop:
             "rag",
             result_text,
         )
-        exact_candidate = (
-            merged_metadata.get("exact_question")
-            if isinstance(merged_metadata.get("exact_question"), dict)
-            else None
-        )
-        if isinstance(exact_candidate, dict):
-            runtime_metadata["_prefetched_exact_question"] = exact_candidate
-            if self._prefetched_case_exact_question_can_answer(runtime_metadata):
-                merged_metadata["authority_applied"] = True
         exact_kind = str((exact_candidate or {}).get("answer_kind") or "").strip().lower()
         case_exact_instruction = (
             "本轮已命中案例题题库原题。题库答案是事实依据，但最终回答必须重新组织成适合手机阅读的讲解："
