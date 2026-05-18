@@ -13,7 +13,13 @@ import {
 } from "@/lib/api";
 import { loginBiAdmin, restoreBiAdminSession } from "@/lib/bi-admin-auth";
 import {
+  getBiInviteTestApplications,
+  getBiInviteTestStats,
+  getBiLaunchReadiness,
   loadBiWorkbench,
+  type BiInviteTestApplication,
+  type BiInviteTestStats,
+  type BiLaunchReadinessDashboard,
   type BiBossActionItem,
 } from "@/lib/bi-api";
 import {
@@ -42,6 +48,8 @@ import {
 import { BiBossHeader } from "./_components/BiBossHeader";
 import { BiCommandDeckTabs } from "./_components/BiCommandDeckTabs";
 import { BiAuditTab } from "./_components/BiAuditTab";
+import { BiInviteTestTab, type InviteTestFilterState } from "./_components/BiInviteTestTab";
+import { BiLaunchReadinessTab } from "./_components/BiLaunchReadinessTab";
 import { BiMember360Panel } from "./_components/BiMember360Panel";
 import { BiMemberOpsTab } from "./_components/BiMemberOpsTab";
 import { BiOverviewTab } from "./_components/BiOverviewTab";
@@ -85,6 +93,13 @@ const DEFAULT_AUDIT_FILTERS: AuditFilterState = {
   action: "all",
 };
 
+const DEFAULT_INVITE_TEST_FILTERS: InviteTestFilterState = {
+  q: "",
+  status: "",
+  source_page: "",
+};
+const INVITE_TEST_WINDOW_DAYS = 365;
+
 export default function BiPageClient() {
   const searchParams = useSearchParams();
   const loginPanelRef = useRef<HTMLDivElement | null>(null);
@@ -124,7 +139,21 @@ export default function BiPageClient() {
   const [auditFilters, setAuditFilters] = useState<AuditFilterState>(DEFAULT_AUDIT_FILTERS);
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditError, setAuditError] = useState("");
-  const isProtectedTab = activeTab === "member-ops" || activeTab === "learner-360" || activeTab === "audit";
+  const [inviteTestFilters, setInviteTestFilters] = useState<InviteTestFilterState>(DEFAULT_INVITE_TEST_FILTERS);
+  const [inviteTestStats, setInviteTestStats] = useState<BiInviteTestStats | null>(null);
+  const [inviteTestItems, setInviteTestItems] = useState<BiInviteTestApplication[]>([]);
+  const [inviteTestTotal, setInviteTestTotal] = useState(0);
+  const [inviteTestLoading, setInviteTestLoading] = useState(false);
+  const [inviteTestError, setInviteTestError] = useState("");
+  const [launchReadiness, setLaunchReadiness] = useState<BiLaunchReadinessDashboard | null>(null);
+  const [launchReadinessLoading, setLaunchReadinessLoading] = useState(false);
+  const [launchReadinessError, setLaunchReadinessError] = useState("");
+  const isProtectedTab =
+    activeTab === "member-ops" ||
+    activeTab === "launch-readiness" ||
+    activeTab === "invite-test" ||
+    activeTab === "learner-360" ||
+    activeTab === "audit";
   const readAccessDenied = issues.some((issue) => /(^|\s)401(\s|$)|Authentication required/i.test(issue));
 
   const refreshBi = useCallback(async () => {
@@ -253,6 +282,56 @@ export default function BiPageClient() {
     }
   }, [auditFilters.action, auditFilters.operator, auditFilters.target_user, biReadOnly]);
 
+  const refreshInviteTest = useCallback(async () => {
+    if (biReadOnly) {
+      setInviteTestLoading(false);
+      setInviteTestError("");
+      setInviteTestStats(null);
+      setInviteTestItems([]);
+      setInviteTestTotal(0);
+      return;
+    }
+    try {
+      setInviteTestLoading(true);
+      setInviteTestError("");
+      const [stats, list] = await Promise.all([
+        getBiInviteTestStats({ days: INVITE_TEST_WINDOW_DAYS }),
+        getBiInviteTestApplications({
+          days: INVITE_TEST_WINDOW_DAYS,
+          limit: 100,
+          q: inviteTestFilters.q.trim() || undefined,
+          status: inviteTestFilters.status || undefined,
+          source_page: inviteTestFilters.source_page.trim() || undefined,
+        }),
+      ]);
+      setInviteTestStats(stats);
+      setInviteTestItems(list.items);
+      setInviteTestTotal(list.total);
+    } catch (error) {
+      setInviteTestError(error instanceof Error ? error.message : "内测申请后台加载失败");
+    } finally {
+      setInviteTestLoading(false);
+    }
+  }, [biReadOnly, inviteTestFilters.q, inviteTestFilters.source_page, inviteTestFilters.status]);
+
+  const refreshLaunchReadiness = useCallback(async () => {
+    if (biReadOnly) {
+      setLaunchReadinessLoading(false);
+      setLaunchReadinessError("");
+      setLaunchReadiness(null);
+      return;
+    }
+    try {
+      setLaunchReadinessLoading(true);
+      setLaunchReadinessError("");
+      setLaunchReadiness(await getBiLaunchReadiness());
+    } catch (error) {
+      setLaunchReadinessError(error instanceof Error ? error.message : "上线面板加载失败");
+    } finally {
+      setLaunchReadinessLoading(false);
+    }
+  }, [biReadOnly]);
+
   const refreshSelectedMember = useCallback(async () => {
     if (biReadOnly) {
       setDetailLoading(false);
@@ -290,6 +369,16 @@ export default function BiPageClient() {
     if (!authReady) return;
     void refreshAudit();
   }, [authReady, refreshAudit]);
+
+  useEffect(() => {
+    if (!authReady) return;
+    void refreshInviteTest();
+  }, [authReady, refreshInviteTest]);
+
+  useEffect(() => {
+    if (!authReady) return;
+    void refreshLaunchReadiness();
+  }, [authReady, refreshLaunchReadiness]);
 
   useEffect(() => {
     setActiveTab(normalizeBiPrimaryTab(searchParams.get("tab")));
@@ -365,6 +454,10 @@ export default function BiPageClient() {
     setAuditFilters((current) => ({ ...current, [field]: value }));
   }, []);
 
+  const updateInviteTestFilter = useCallback((field: keyof InviteTestFilterState, value: string) => {
+    setInviteTestFilters((current) => ({ ...current, [field]: value }));
+  }, []);
+
   const navigateFromBossQueue = useCallback(
     (action?: BiBossActionItem) => {
       const handoffFilters = action?.handoffFilters;
@@ -417,8 +510,15 @@ export default function BiPageClient() {
       await refreshBi();
       return;
     }
-    await Promise.all([refreshBi(), refreshMembers(), refreshAudit(), refreshSelectedMember()]);
-  }, [biReadOnly, refreshAudit, refreshBi, refreshMembers, refreshSelectedMember]);
+    await Promise.all([
+      refreshBi(),
+      refreshMembers(),
+      refreshAudit(),
+      refreshInviteTest(),
+      refreshLaunchReadiness(),
+      refreshSelectedMember(),
+    ]);
+  }, [biReadOnly, refreshAudit, refreshBi, refreshInviteTest, refreshLaunchReadiness, refreshMembers, refreshSelectedMember]);
 
   const handleBatchAction = useCallback(
     async (action: "grant" | "revoke") => {
@@ -930,6 +1030,28 @@ export default function BiPageClient() {
             onRecordConversationView={handleRecordConversationView}
             onToggleHeartbeat={(job) => void handleHeartbeatJobAction(job)}
             onApplyOverlay={(overlay) => void handleApplyOverlayPromotions(overlay)}
+          />
+          )
+        ) : activeTab === "launch-readiness" ? (
+          biReadOnly ? null : (
+          <BiLaunchReadinessTab
+            dashboard={launchReadiness}
+            loading={launchReadinessLoading}
+            error={launchReadinessError}
+            onRefresh={() => void refreshLaunchReadiness()}
+          />
+          )
+        ) : activeTab === "invite-test" ? (
+          biReadOnly ? null : (
+          <BiInviteTestTab
+            stats={inviteTestStats}
+            applications={inviteTestItems}
+            total={inviteTestTotal}
+            loading={inviteTestLoading}
+            error={inviteTestError}
+            filters={inviteTestFilters}
+            onFilterChange={updateInviteTestFilter}
+            onRefresh={() => void refreshInviteTest()}
           />
           )
         ) : activeTab === "learner-360" ? (

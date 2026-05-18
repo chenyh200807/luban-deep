@@ -277,6 +277,90 @@ export interface BiAnomalyData {
   items: BiAlertItem[];
 }
 
+export interface BiInviteTestApplication {
+  id: string;
+  created_at: string;
+  source_page: string;
+  utm_source: string;
+  utm_campaign: string;
+  name: string;
+  phone: string;
+  email: string;
+  wechat_id: string;
+  exam_type: string;
+  exam_stage: string;
+  pain_point: string;
+  weekly_time: string;
+  current_method: string;
+  latest_wrong_question: string;
+  is_yousen_member: string;
+  exam_date: string;
+  accept_interview: boolean;
+  consent: boolean;
+  status: string;
+  operator_note: string;
+  submit_count: number;
+  contact_revealed: boolean;
+}
+
+export interface BiInviteTestStats {
+  window_days: number;
+  storage_status: string;
+  summary: {
+    total_applications: number;
+    unique_contacts: number;
+    accept_interview_count: number;
+    accept_interview_rate: number;
+    with_wrong_question_count: number;
+    with_wrong_question_rate: number;
+    consented_count: number;
+  };
+  status_breakdown: Array<{ status: string; count: number }>;
+  source_breakdown: Array<{ source_page: string; count: number }>;
+  exam_type_breakdown: Array<{ exam_type: string; count: number }>;
+  exam_stage_breakdown: Array<{ exam_stage: string; count: number }>;
+  pain_point_breakdown: Array<{ pain_point: string; count: number }>;
+  weekly_time_breakdown: Array<{ weekly_time: string; count: number }>;
+}
+
+export interface BiInviteTestApplicationsResponse {
+  window_days: number;
+  storage_status: string;
+  total: number;
+  contact_revealed: boolean;
+  items: BiInviteTestApplication[];
+}
+
+export type BiLaunchReadinessStatus = "PASS" | "WARN" | "FAIL" | "SKIP" | "NOT_RUN" | string;
+
+export interface BiLaunchReadinessRow {
+  check_id: string;
+  label: string;
+  status: BiLaunchReadinessStatus;
+  required: boolean;
+  summary: string;
+  evidence: string[];
+  run_id: string;
+  recorded_at?: number | null;
+  source_kind: string;
+  blockers: string[];
+}
+
+export interface BiLaunchReadinessDashboard {
+  run_id: string;
+  generated_at: string;
+  final_status: BiLaunchReadinessStatus;
+  recommendation: string;
+  release: {
+    release_id: string;
+    git_sha: string;
+    deployment_environment: string;
+  };
+  rows: BiLaunchReadinessRow[];
+  blockers: string[];
+  source_runs: Record<string, string | undefined>;
+}
+
 export interface BiBossKpiItem {
   label: string;
   value: number | string;
@@ -483,6 +567,61 @@ function normalizeAlert(item: unknown, fallbackLabel = ""): BiAlertItem {
     title: toString(record.title ?? record.label ?? record.name, fallbackLabel),
     detail: toString(record.detail ?? record.description ?? record.note ?? record.subtitle, ""),
   };
+}
+
+function normalizeInviteTestApplication(item: unknown): BiInviteTestApplication {
+  const record = asRecord(item);
+  return {
+    id: toString(record.id, ""),
+    created_at: toString(record.created_at ?? record.createdAt, ""),
+    source_page: toString(record.source_page ?? record.sourcePage, ""),
+    utm_source: toString(record.utm_source ?? record.utmSource, ""),
+    utm_campaign: toString(record.utm_campaign ?? record.utmCampaign, ""),
+    name: toString(record.name, "未命名"),
+    phone: toString(record.phone, ""),
+    email: toString(record.email, ""),
+    wechat_id: toString(record.wechat_id ?? record.wechatId, ""),
+    exam_type: toString(record.exam_type ?? record.examType, ""),
+    exam_stage: toString(record.exam_stage ?? record.examStage, ""),
+    pain_point: toString(record.pain_point ?? record.painPoint, ""),
+    weekly_time: toString(record.weekly_time ?? record.weeklyTime, ""),
+    current_method: toString(record.current_method ?? record.currentMethod, ""),
+    latest_wrong_question: toString(record.latest_wrong_question ?? record.latestWrongQuestion, ""),
+    is_yousen_member: toString(record.is_yousen_member ?? record.isYousenMember, ""),
+    exam_date: toString(record.exam_date ?? record.examDate, ""),
+    accept_interview: record.accept_interview === true || record.acceptInterview === true,
+    consent: record.consent === true,
+    status: toString(record.status, "submitted"),
+    operator_note: toString(record.operator_note ?? record.operatorNote, ""),
+    submit_count: toNumber(record.submit_count ?? record.submitCount, 1),
+    contact_revealed: record.contact_revealed === true || record.contactRevealed === true,
+  };
+}
+
+function normalizeLaunchReadinessRow(item: unknown): BiLaunchReadinessRow {
+  const record = asRecord(item);
+  return {
+    check_id: toString(record.check_id ?? record.checkId, ""),
+    label: toString(record.label ?? record.name, ""),
+    status: toString(record.status, "NOT_RUN"),
+    required: record.required !== false,
+    summary: toString(record.summary ?? record.detail, ""),
+    evidence: toArray(record.evidence).map((value) => toString(value)).filter(Boolean),
+    run_id: toString(record.run_id ?? record.runId, ""),
+    recorded_at: record.recorded_at === null ? null : optionalNumber(record.recorded_at ?? record.recordedAt),
+    source_kind: toString(record.source_kind ?? record.sourceKind, ""),
+    blockers: toArray(record.blockers).map((value) => toString(value)).filter(Boolean),
+  };
+}
+
+function normalizeCountRows(raw: unknown, keys: string[], labelKey: string): Array<Record<string, string | number>> {
+  return firstArray(raw, keys).map((item) => {
+    const record = asRecord(item);
+    return {
+      [labelKey]: toString(record[labelKey] ?? record.label ?? record.name ?? record.key, ""),
+      count: toNumber(record.count ?? record.value ?? record.total, 0),
+    };
+  });
 }
 
 function normalizeMetricDefinition(item: unknown, fallbackLabel = ""): BiMetricDefinition {
@@ -1238,6 +1377,80 @@ export async function getBiAnomalies(options: BiFetchOptions = {}): Promise<BiAn
   return {
     items: firstArray(raw, ["items", "alerts", "warnings", "anomalies"]).map((item, index) =>
       normalizeAlert(item, `异常 ${index + 1}`),
+    ),
+  };
+}
+
+export async function getBiInviteTestStats(options: Pick<BiFetchOptions, "days"> = {}): Promise<BiInviteTestStats> {
+  const raw = unwrapPayload(await fetchBiJson("/api/v1/bi/invite-test/stats", { days: options.days }));
+  const record = asRecord(raw);
+  const summary = asRecord(record.summary);
+  return {
+    window_days: toNumber(record.window_days ?? record.windowDays, options.days ?? 365),
+    storage_status: toString(record.storage_status ?? record.storageStatus, ""),
+    summary: {
+      total_applications: toNumber(summary.total_applications ?? summary.totalApplications, 0),
+      unique_contacts: toNumber(summary.unique_contacts ?? summary.uniqueContacts, 0),
+      accept_interview_count: toNumber(summary.accept_interview_count ?? summary.acceptInterviewCount, 0),
+      accept_interview_rate: toNumber(summary.accept_interview_rate ?? summary.acceptInterviewRate, 0),
+      with_wrong_question_count: toNumber(summary.with_wrong_question_count ?? summary.withWrongQuestionCount, 0),
+      with_wrong_question_rate: toNumber(summary.with_wrong_question_rate ?? summary.withWrongQuestionRate, 0),
+      consented_count: toNumber(summary.consented_count ?? summary.consentedCount, 0),
+    },
+    status_breakdown: normalizeCountRows(raw, ["status_breakdown", "statusBreakdown"], "status") as BiInviteTestStats["status_breakdown"],
+    source_breakdown: normalizeCountRows(raw, ["source_breakdown", "sourceBreakdown"], "source_page") as BiInviteTestStats["source_breakdown"],
+    exam_type_breakdown: normalizeCountRows(raw, ["exam_type_breakdown", "examTypeBreakdown"], "exam_type") as BiInviteTestStats["exam_type_breakdown"],
+    exam_stage_breakdown: normalizeCountRows(raw, ["exam_stage_breakdown", "examStageBreakdown"], "exam_stage") as BiInviteTestStats["exam_stage_breakdown"],
+    pain_point_breakdown: normalizeCountRows(raw, ["pain_point_breakdown", "painPointBreakdown"], "pain_point") as BiInviteTestStats["pain_point_breakdown"],
+    weekly_time_breakdown: normalizeCountRows(raw, ["weekly_time_breakdown", "weeklyTimeBreakdown"], "weekly_time") as BiInviteTestStats["weekly_time_breakdown"],
+  };
+}
+
+export async function getBiInviteTestApplications(options: {
+  days?: number;
+  limit?: number;
+  status?: string;
+  source_page?: string;
+  q?: string;
+} = {}): Promise<BiInviteTestApplicationsResponse> {
+  const raw = unwrapPayload(
+    await fetchBiJson("/api/v1/bi/invite-test/applications", {
+      days: options.days,
+      limit: options.limit,
+      status: options.status,
+      source_page: options.source_page,
+      q: options.q,
+    }),
+  );
+  const record = asRecord(raw);
+  return {
+    window_days: toNumber(record.window_days ?? record.windowDays, options.days ?? 365),
+    storage_status: toString(record.storage_status ?? record.storageStatus, ""),
+    total: toNumber(record.total, 0),
+    contact_revealed: record.contact_revealed === true || record.contactRevealed === true,
+    items: firstArray(raw, ["items", "applications", "rows", "list"]).map((item) => normalizeInviteTestApplication(item)),
+  };
+}
+
+export async function getBiLaunchReadiness(): Promise<BiLaunchReadinessDashboard> {
+  const raw = unwrapPayload(await fetchBiJson("/api/v1/observability/launch-readiness"));
+  const record = asRecord(raw);
+  const release = asRecord(record.release);
+  const sourceRuns = asRecord(record.source_runs ?? record.sourceRuns);
+  return {
+    run_id: toString(record.run_id ?? record.runId, ""),
+    generated_at: toString(record.generated_at ?? record.generatedAt, ""),
+    final_status: toString(record.final_status ?? record.finalStatus, "NOT_RUN"),
+    recommendation: toString(record.recommendation, "hold"),
+    release: {
+      release_id: toString(release.release_id ?? release.releaseId, ""),
+      git_sha: toString(release.git_sha ?? release.gitSha, ""),
+      deployment_environment: toString(release.deployment_environment ?? release.deploymentEnvironment, ""),
+    },
+    rows: firstArray(raw, ["rows", "checks", "items"]).map((item) => normalizeLaunchReadinessRow(item)),
+    blockers: toArray(record.blockers).map((value) => toString(value)).filter(Boolean),
+    source_runs: Object.fromEntries(
+      Object.entries(sourceRuns).map(([key, value]) => [key, value === undefined ? undefined : toString(value)]),
     ),
   };
 }

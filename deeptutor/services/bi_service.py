@@ -17,6 +17,7 @@ from deeptutor.services.feedback_service import (
     is_deeptutor_feedback_record,
     normalize_feedback_record,
 )
+from deeptutor.services.invite_test_applications import InviteTestApplicationStore
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.observability import (
     get_bailian_billing_client,
@@ -111,6 +112,7 @@ class BIService:
         session_store=None,
         member_service=None,
         feedback_store=None,
+        invite_test_store=None,
         bailian_telemetry_client=None,
         bailian_billing_client=None,
         usage_ledger=None,
@@ -118,6 +120,7 @@ class BIService:
         self._store = session_store or get_sqlite_session_store()
         self._member_service = member_service or get_member_console_service()
         self._feedback_store = feedback_store or SupabaseFeedbackStore()
+        self._invite_test_store = invite_test_store or InviteTestApplicationStore()
         self._bailian_telemetry_client = bailian_telemetry_client or get_bailian_telemetry_client()
         self._bailian_billing_client = bailian_billing_client or get_bailian_billing_client()
         self._usage_ledger = usage_ledger or get_usage_ledger()
@@ -2735,6 +2738,28 @@ class BIService:
             ],
             "recent": records[: max(1, min(limit, 100))],
         }
+
+    async def get_invite_test_applications(
+        self,
+        *,
+        days: int = 365,
+        limit: int = 100,
+        status: str | None = None,
+        source_page: str | None = None,
+        q: str | None = None,
+        reveal_contact: bool = False,
+    ) -> dict[str, Any]:
+        return await self._invite_test_store.list_applications(
+            days=days,
+            limit=limit,
+            status=status,
+            source_page=source_page,
+            q=q,
+            reveal_contact=reveal_contact,
+        )
+
+    async def get_invite_test_stats(self, *, days: int = 365) -> dict[str, Any]:
+        return await self._invite_test_store.get_stats(days=days)
 
 
 _bi_service: BIService | None = None

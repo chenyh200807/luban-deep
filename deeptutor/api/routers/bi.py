@@ -34,6 +34,15 @@ def require_bi_access(
     )
 
 
+def require_bi_admin(auth: AuthContext | None = Depends(require_bi_access)) -> AuthContext:
+    if auth is not None and auth.is_admin:
+        return auth
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Admin access required",
+    )
+
+
 router = APIRouter(dependencies=[Depends(require_bi_access)])
 
 
@@ -183,3 +192,27 @@ async def bi_feedback(
     limit: int = Query(20, ge=1, le=100),
 ):
     return await get_bi_service().get_feedback(days=days, limit=limit)
+
+
+@router.get("/invite-test/applications")
+async def bi_invite_test_applications(
+    days: int = Query(365, ge=1, le=3650),
+    limit: int = Query(100, ge=1, le=500),
+    status_filter: str | None = Query(None, alias="status"),
+    source_page: str | None = Query(None),
+    q: str | None = Query(None, max_length=120),
+    auth: AuthContext = Depends(require_bi_admin),
+):
+    return await get_bi_service().get_invite_test_applications(
+        days=days,
+        limit=limit,
+        status=status_filter,
+        source_page=source_page,
+        q=q,
+        reveal_contact=auth.is_admin,
+    )
+
+
+@router.get("/invite-test/stats")
+async def bi_invite_test_stats(days: int = Query(365, ge=1, le=3650)):
+    return await get_bi_service().get_invite_test_stats(days=days)

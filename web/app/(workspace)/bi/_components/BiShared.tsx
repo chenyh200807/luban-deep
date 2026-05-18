@@ -29,6 +29,16 @@ export const BI_PRIMARY_TABS = [
     summary: "聚焦会员筛选、批量动作和学员运营执行。",
   },
   {
+    key: "launch-readiness",
+    label: "上线面板",
+    summary: "汇总 release gate、contract guard、benchmark、OA/AAE、Playwright、微信 DevTools 和 Langfuse。",
+  },
+  {
+    key: "invite-test",
+    label: "内测申请",
+    summary: "查看内测申请名单、联系方式和首批体验学员筛选统计。",
+  },
+  {
     key: "learner-360",
     label: "学员 360",
     summary: "下钻单个会员的学习画像、Heartbeat、Overlay 和备注。",
@@ -91,7 +101,13 @@ const currencyFormatter = new Intl.NumberFormat("zh-CN", {
 });
 
 export function normalizeBiPrimaryTab(value: string | null | undefined): BiPrimaryTab {
-  if (value === "member-ops" || value === "learner-360" || value === "audit") {
+  if (
+    value === "member-ops" ||
+    value === "launch-readiness" ||
+    value === "invite-test" ||
+    value === "learner-360" ||
+    value === "audit"
+  ) {
     return value;
   }
   return "boss-workbench";

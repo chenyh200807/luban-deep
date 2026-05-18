@@ -11,6 +11,8 @@ def test_bi_page_client_exposes_four_admin_tabs() -> None:
 
     assert '"boss-workbench"' in source
     assert '"member-ops"' in source
+    assert '"launch-readiness"' in source
+    assert '"invite-test"' in source
     assert '"learner-360"' in source
     assert '"audit"' in source
 
@@ -267,3 +269,38 @@ def test_bi_page_client_turns_protected_tabs_into_unlock_flow() -> None:
 
     assert "解锁会员后台" in source
     assert "scrollIntoView" in source
+
+
+def test_bi_invite_test_admin_surface_is_protected_and_mounted() -> None:
+    client_source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+    shared_source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiShared.tsx").read_text(encoding="utf-8")
+    tab_source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiInviteTestTab.tsx"
+    ).read_text(encoding="utf-8")
+    api_source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
+
+    assert '"invite-test"' in shared_source
+    assert "activeTab === \"invite-test\"" in client_source
+    assert "getBiInviteTestApplications" in client_source
+    assert "getBiInviteTestStats" in client_source
+    assert "INVITE_TEST_WINDOW_DAYS = 365" in client_source
+    assert "内测申请池" in tab_source
+    assert "/api/v1/bi/invite-test/applications" in api_source
+    assert "/api/v1/bi/invite-test/stats" in api_source
+
+
+def test_bi_launch_readiness_surface_consumes_single_backend_authority() -> None:
+    client_source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+    shared_source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiShared.tsx").read_text(encoding="utf-8")
+    tab_source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiLaunchReadinessTab.tsx"
+    ).read_text(encoding="utf-8")
+    api_source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
+
+    assert '"launch-readiness"' in shared_source
+    assert "getBiLaunchReadiness" in client_source
+    assert "BiLaunchReadinessTab" in client_source
+    assert "/api/v1/observability/launch-readiness" in api_source
+    assert "上线 readiness" in tab_source
+    assert "final_status" in api_source
+    assert "readiness_checks" not in tab_source
