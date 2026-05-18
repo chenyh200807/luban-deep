@@ -7,10 +7,12 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Mapping
+from uuid import uuid4
 
 import httpx
 
 from deeptutor.services.feedback_service import _supabase_rest_headers, _supabase_service_key
+from deeptutor.services.runtime_env import is_production_environment
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -24,10 +26,53 @@ _SELECT_COLUMNS = (
     "is_yousen_member,exam_date,accept_interview,consent,status,operator_note,"
     "submit_count,raw_payload"
 )
+_REQUIRED_FIELDS = ("name", "phone", "email", "exam_type", "exam_stage", "pain_point", "weekly_time")
+_MAX_LENGTHS = {
+    "name": 80,
+    "phone": 24,
+    "email": 160,
+    "exam_type": 80,
+    "exam_stage": 80,
+    "pain_point": 80,
+    "weekly_time": 80,
+    "current_method": 800,
+    "wechat_id": 120,
+    "is_yousen_member": 80,
+    "exam_date": 80,
+    "latest_wrong_question": 1400,
+    "source_page": 120,
+    "utm_source": 120,
+    "utm_campaign": 120,
+}
+_CAMEL_KEYS = {
+    "source_page": "sourcePage",
+    "utm_source": "utmSource",
+    "utm_campaign": "utmCampaign",
+    "wechat_id": "wechatId",
+    "exam_type": "examType",
+    "exam_stage": "examStage",
+    "pain_point": "painPoint",
+    "weekly_time": "weeklyTime",
+    "current_method": "currentMethod",
+    "latest_wrong_question": "latestWrongQuestion",
+    "is_yousen_member": "isYousenMember",
+    "exam_date": "examDate",
+    "accept_interview": "acceptInterview",
+}
+
+
+class InviteTestApplicationValidationError(ValueError):
+    """Raised when a public invite-test application payload is invalid."""
 
 
 def _text(value: Any) -> str:
     return str(value or "").strip()
+
+
+def _clean_string(value: Any, max_length: int) -> str:
+    if not isinstance(value, str):
+        return ""
+    return " ".join(value.split()).strip()[:max_length]
 
 
 def _bool(value: Any) -> bool:
@@ -49,6 +94,78 @@ def _field(row: Mapping[str, Any], snake_key: str, camel_key: str | None = None)
     if camel_key and camel_key in row:
         return row.get(camel_key)
     return None
+
+
+def _payload_value(payload: Mapping[str, Any], snake_key: str) -> Any:
+    return _field(payload, snake_key, _CAMEL_KEYS.get(snake_key))
+
+
+def build_invite_test_application_record(payload: Mapping[str, Any]) -> dict[str, Any]:
+    record = {
+        "id": str(uuid4()),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "source_page": _clean_string(_payload_value(payload, "source_page"), _MAX_LENGTHS["source_page"]),
+        "utm_source": _clean_string(_payload_value(payload, "utm_source"), _MAX_LENGTHS["utm_source"]),
+        "utm_campaign": _clean_string(_payload_value(payload, "utm_campaign"), _MAX_LENGTHS["utm_campaign"]),
+        "name": _clean_string(_payload_value(payload, "name"), _MAX_LENGTHS["name"]),
+        "phone": _clean_string(_payload_value(payload, "phone"), _MAX_LENGTHS["phone"]).replace(" ", ""),
+        "email": _clean_string(_payload_value(payload, "email"), _MAX_LENGTHS["email"]).lower(),
+        "wechat_id": _clean_string(_payload_value(payload, "wechat_id"), _MAX_LENGTHS["wechat_id"]),
+        "exam_type": _clean_string(_payload_value(payload, "exam_type"), _MAX_LENGTHS["exam_type"]),
+        "exam_stage": _clean_string(_payload_value(payload, "exam_stage"), _MAX_LENGTHS["exam_stage"]),
+        "pain_point": _clean_string(_payload_value(payload, "pain_point"), _MAX_LENGTHS["pain_point"]),
+        "weekly_time": _clean_string(_payload_value(payload, "weekly_time"), _MAX_LENGTHS["weekly_time"]),
+        "current_method": _clean_string(_payload_value(payload, "current_method"), _MAX_LENGTHS["current_method"]),
+        "latest_wrong_question": _clean_string(
+            _payload_value(payload, "latest_wrong_question"),
+            _MAX_LENGTHS["latest_wrong_question"],
+        ),
+        "is_yousen_member": _clean_string(
+            _payload_value(payload, "is_yousen_member"),
+            _MAX_LENGTHS["is_yousen_member"],
+        ),
+        "exam_date": _clean_string(_payload_value(payload, "exam_date"), _MAX_LENGTHS["exam_date"]),
+        "accept_interview": _bool(_payload_value(payload, "accept_interview")),
+        "consent": _bool(_payload_value(payload, "consent")),
+        "status": "submitted",
+        "operator_note": "",
+        "submit_count": 1,
+    }
+    record["raw_payload"] = {
+        _CAMEL_KEYS.get(key, key): value
+        for key, value in record.items()
+        if key
+        in {
+            "source_page",
+            "utm_source",
+            "utm_campaign",
+            "name",
+            "phone",
+            "email",
+            "wechat_id",
+            "exam_type",
+            "exam_stage",
+            "pain_point",
+            "weekly_time",
+            "current_method",
+            "latest_wrong_question",
+            "is_yousen_member",
+            "exam_date",
+            "accept_interview",
+            "consent",
+        }
+    }
+
+    missing_field = next((field for field in _REQUIRED_FIELDS if not record[field]), "")
+    if missing_field:
+        raise InviteTestApplicationValidationError(f"缺少必填字段：{_CAMEL_KEYS.get(missing_field, missing_field)}")
+    if not record["phone"].isdigit() or len(record["phone"]) != 11 or not record["phone"].startswith("1"):
+        raise InviteTestApplicationValidationError("手机号格式不正确。")
+    if "@" not in record["email"] or "." not in record["email"].rsplit("@", 1)[-1]:
+        raise InviteTestApplicationValidationError("邮箱格式不正确。")
+    if not record["consent"]:
+        raise InviteTestApplicationValidationError("请先同意内测筛选与产品改进用途。")
+    return record
 
 
 def _parse_created_at(value: Any) -> datetime | None:
@@ -220,6 +337,18 @@ class InviteTestApplicationStore:
             "weekly_time_breakdown": self._counter_rows(weekly_time_counter, key="weekly_time"),
         }
 
+    async def submit_application(self, payload: Mapping[str, Any]) -> dict[str, Any]:
+        record = build_invite_test_application_record(payload)
+        if self.is_database_configured:
+            await self._save_database_record(record)
+            return {"ok": True, "id": record["id"], "storage_status": "database"}
+        if self.is_supabase_configured:
+            await self._save_supabase_record(record)
+            return {"ok": True, "id": record["id"], "storage_status": "supabase"}
+        if self._save_jsonl_record(record):
+            return {"ok": True, "id": record["id"], "storage_status": "jsonl_fallback"}
+        raise RuntimeError("申请提交通道未配置，请稍后再试。")
+
     async def _load_rows(self, *, days: int) -> tuple[str, list[dict[str, Any]]]:
         safe_days = max(1, min(int(days or 365), 3650))
         if self.is_supabase_configured:
@@ -270,9 +399,33 @@ class InviteTestApplicationStore:
             return []
         return [dict(item) for item in payload if isinstance(item, dict)]
 
+    async def _save_supabase_record(self, record: dict[str, Any]) -> None:
+        record["submit_count"] = await self._count_supabase_submissions_by_phone(record["phone"]) + 1
+        client = await self._get_client()
+        response = await client.post(
+            f"{self._base_url.rstrip('/')}/rest/v1/invite_test_applications",
+            headers=_supabase_rest_headers(self._service_key, prefer="return=representation"),
+            json=record,
+        )
+        response.raise_for_status()
+
+    async def _count_supabase_submissions_by_phone(self, phone: str) -> int:
+        client = await self._get_client()
+        response = await client.get(
+            f"{self._base_url.rstrip('/')}/rest/v1/invite_test_applications",
+            headers=_supabase_rest_headers(self._service_key),
+            params={"select": "id", "phone": f"eq.{phone}", "limit": "10000"},
+        )
+        response.raise_for_status()
+        payload = response.json()
+        return len(payload) if isinstance(payload, list) else 0
+
     async def _load_database_rows(self, *, days: int) -> list[dict[str, Any]]:
         created_after = datetime.now(timezone.utc) - timedelta(days=days)
         return await asyncio.to_thread(self._load_database_rows_sync, created_after)
+
+    async def _save_database_record(self, record: dict[str, Any]) -> None:
+        await asyncio.to_thread(self._save_database_record_sync, record)
 
     def _load_database_rows_sync(self, created_after: datetime) -> list[dict[str, Any]]:
         try:
@@ -323,6 +476,86 @@ class InviteTestApplicationStore:
         finally:
             conn.close()
 
+    def _save_database_record_sync(self, record: dict[str, Any]) -> None:
+        try:
+            import psycopg
+        except ImportError:
+            return self._save_database_record_sync_psycopg2(record)
+
+        with psycopg.connect(self._database_url, connect_timeout=max(1, int(self._timeout_s))) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "select count(*)::int from public.invite_test_applications where phone = %s",
+                    (record["phone"],),
+                )
+                row = cursor.fetchone()
+                record["submit_count"] = int(row[0] if row else 0) + 1
+                cursor.execute(self._insert_sql(), self._insert_values(record))
+            conn.commit()
+
+    def _save_database_record_sync_psycopg2(self, record: dict[str, Any]) -> None:
+        try:
+            import psycopg2
+        except ImportError as exc:
+            raise RuntimeError("psycopg is required for invite-test DB URL writes") from exc
+
+        conn = psycopg2.connect(self._database_url, connect_timeout=max(1, int(self._timeout_s)))
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "select count(*)::int from public.invite_test_applications where phone = %s",
+                    (record["phone"],),
+                )
+                row = cursor.fetchone()
+                record["submit_count"] = int(row[0] if row else 0) + 1
+                cursor.execute(self._insert_sql(), self._insert_values(record))
+            conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def _insert_sql() -> str:
+        return """
+            insert into public.invite_test_applications (
+                id, created_at, source_page, utm_source, utm_campaign, name, phone,
+                email, wechat_id, exam_type, exam_stage, pain_point, weekly_time,
+                current_method, latest_wrong_question, is_yousen_member, exam_date,
+                accept_interview, consent, status, operator_note, submit_count, raw_payload
+            )
+            values (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb
+            )
+        """
+
+    @staticmethod
+    def _insert_values(record: Mapping[str, Any]) -> tuple[Any, ...]:
+        return (
+            record["id"],
+            record["created_at"],
+            record["source_page"],
+            record["utm_source"],
+            record["utm_campaign"],
+            record["name"],
+            record["phone"],
+            record["email"],
+            record["wechat_id"],
+            record["exam_type"],
+            record["exam_stage"],
+            record["pain_point"],
+            record["weekly_time"],
+            record["current_method"],
+            record["latest_wrong_question"],
+            record["is_yousen_member"],
+            record["exam_date"],
+            record["accept_interview"],
+            record["consent"],
+            record["status"],
+            record["operator_note"],
+            record["submit_count"],
+            json.dumps(record["raw_payload"], ensure_ascii=False),
+        )
+
     def _load_jsonl_rows(self, *, days: int) -> list[dict[str, Any]]:
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         rows: list[dict[str, Any]] = []
@@ -342,6 +575,15 @@ class InviteTestApplicationStore:
                 rows.append(item)
         rows.sort(key=lambda item: _text(_field(item, "created_at", "createdAt")), reverse=True)
         return rows
+
+    def _save_jsonl_record(self, record: Mapping[str, Any]) -> bool:
+        if is_production_environment() and not self._jsonl_path:
+            return False
+        path = self._candidate_jsonl_paths()[0]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+        return True
 
     def _candidate_jsonl_paths(self) -> list[Path]:
         if self._jsonl_path:

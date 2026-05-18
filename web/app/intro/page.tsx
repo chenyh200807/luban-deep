@@ -331,7 +331,7 @@ export default function IntroPage() {
               题刷了很多，分数却不涨？
             </h1>
             <p className={`${styles.heroLead} mt-5 max-w-2xl text-2xl font-black leading-tight text-[#0f1f1d] text-pretty sm:text-3xl`}>
-              你缺的不是更多题，而是有人告诉你为什么丢分。
+              你缺的不是更多题，而是没人告诉你为什么丢分。
             </p>
             <p className="mt-5 max-w-2xl text-base leading-8 text-[#52625f] sm:text-lg">
               专为一建建筑实务打造的个性化 AI 陪考教练。它会持续记住你的作答习惯、薄弱考点和丢分原因，越用越懂你。

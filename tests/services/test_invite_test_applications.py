@@ -7,6 +7,8 @@ import pytest
 
 from deeptutor.services.invite_test_applications import (
     InviteTestApplicationStore,
+    InviteTestApplicationValidationError,
+    build_invite_test_application_record,
     normalize_invite_test_application,
 )
 
@@ -134,3 +136,70 @@ async def test_invite_test_store_falls_back_to_database_when_supabase_rest_fails
     assert listing["total"] == 1
     assert listing["items"][0]["name"] == "数据库学员"
     assert listing["items"][0]["phone"] == "13800138000"
+
+
+def test_build_invite_test_application_record_validates_public_payload() -> None:
+    record = build_invite_test_application_record(
+        {
+            "name": "张同学",
+            "phone": " 13800138000 ",
+            "email": "QA@EXAMPLE.COM",
+            "examType": "二建建筑实务",
+            "examStage": "正在冲刺刷题",
+            "painPoint": "错题原因不清楚",
+            "weeklyTime": "10-30 分钟",
+            "consent": True,
+            "acceptInterview": True,
+            "sourcePage": "invite-test",
+        }
+    )
+
+    assert record["phone"] == "13800138000"
+    assert record["email"] == "qa@example.com"
+    assert record["exam_type"] == "二建建筑实务"
+    assert record["accept_interview"] is True
+    assert record["status"] == "submitted"
+    assert record["raw_payload"]["examType"] == "二建建筑实务"
+
+
+def test_build_invite_test_application_record_rejects_bad_phone() -> None:
+    with pytest.raises(InviteTestApplicationValidationError, match="手机号格式不正确"):
+        build_invite_test_application_record(
+            {
+                "name": "张同学",
+                "phone": "123",
+                "email": "qa@example.com",
+                "examType": "二建建筑实务",
+                "examStage": "正在冲刺刷题",
+                "painPoint": "错题原因不清楚",
+                "weeklyTime": "10-30 分钟",
+                "consent": True,
+            }
+        )
+
+
+@pytest.mark.asyncio
+async def test_invite_test_store_submits_to_jsonl_fallback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    jsonl_path = tmp_path / "submitted.jsonl"
+    store = InviteTestApplicationStore(jsonl_path=str(jsonl_path))
+
+    result = await store.submit_application(
+        {
+            "name": "张同学",
+            "phone": "13800138000",
+            "email": "qa@example.com",
+            "examType": "二建建筑实务",
+            "examStage": "正在冲刺刷题",
+            "painPoint": "错题原因不清楚",
+            "weeklyTime": "10-30 分钟",
+            "consent": True,
+            "sourcePage": "invite-test",
+        }
+    )
+
+    assert result["ok"] is True
+    assert result["storage_status"] == "jsonl_fallback"
+    rows = [json.loads(line) for line in jsonl_path.read_text(encoding="utf-8").splitlines()]
+    assert rows[0]["phone"] == "13800138000"
+    assert rows[0]["source_page"] == "invite-test"

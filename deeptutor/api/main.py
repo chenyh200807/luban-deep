@@ -457,6 +457,7 @@ from deeptutor.api.routers import (
     co_writer,
     dashboard,
     guide,
+    invite_test,
     knowledge,
     member,
     memory,
@@ -491,6 +492,7 @@ else:
         "Legacy routers disabled; production contract remains on /api/v1/ws and authenticated REST APIs"
     )
 app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledge"])
+app.include_router(invite_test.router, prefix="/api/v1/invite-test", tags=["invite-test"])
 app.include_router(member.router, prefix="/api/v1/member", tags=["member"])
 app.include_router(bi.router, prefix="/api/v1/bi", tags=["bi"])
 app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])

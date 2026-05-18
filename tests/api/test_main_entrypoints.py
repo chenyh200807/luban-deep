@@ -370,6 +370,7 @@ def test_production_disables_legacy_router_mounts_by_default(
     paths = _route_paths(module.app)
     assert "/api/v1/ws" in paths
     assert "/api/v1/sessions" in paths
+    assert "/api/v1/invite-test/applications" in paths
     assert "/api/outputs" not in paths
     assert "/api/v1/solve" not in paths
     assert "/api/v1/chat" not in paths
