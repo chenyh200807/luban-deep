@@ -95,6 +95,26 @@ run("plain text without mcq strips receipt but keeps body", function () {
   assertEqual(state.mcqInteractiveReady, false, "plain text should not become interactive");
 });
 
+run("long markdown tables use compact cards on mobile", function () {
+  var text = [
+    "| 序号 | 安排内容 | 判断 | 理由 |",
+    "|------|----------|------|------|",
+    "| （1） | 工程设计总承包由集团工程设计部承担 | 不正确 | 工程设计部是内部管理部门，不属于具备资质的设计单位。 |",
+    "| （2） | 主体设计分包给集团设计公司 | 不正确 | 主体设计不得分包。 |",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    parseBlocks: true,
+  });
+
+  assert(state.blocks && state.blocks.length === 1, "markdown table should remain one render block");
+  assertEqual(state.blocks[0].type, "table", "markdown table should parse as table");
+  assertEqual(state.blocks[0].mobileStrategy, "compact_cards", "long markdown table should use compact cards");
+  assertEqual(state.blocks[0].headers.length, 4, "table headers should be preserved");
+  assertEqual(state.blocks[0].rows.length, 2, "table rows should be preserved");
+});
+
 run("internal DSML tool calls are not rendered as user-visible content", function () {
   var text = [
     "让我先查一下你的学习记录。",

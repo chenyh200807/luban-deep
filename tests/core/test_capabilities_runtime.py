@@ -4111,6 +4111,83 @@ async def test_tutorbot_process_direct_synthesizes_full_case_exact_evidence(
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_complete_case_exact_evidence_disables_followup_rag(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    observed_tool_names: list[list[str]] = []
+
+    class CapturingProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            observed_tool_names.append(
+                [
+                    str(item.get("function", {}).get("name"))
+                    for item in (tools or [])
+                    if isinstance(item, dict)
+                ]
+            )
+            return LLMResponse(content="## 结论\n\n已基于原题证据完成讲解。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class RagTool(Tool):
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {"type": "object", "properties": {"query": {"type": "string"}}}
+
+        async def execute(self, **kwargs: Any) -> str:
+            raise AssertionError("complete exact case evidence should not call rag again")
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=CapturingProvider(),
+        workspace=tmp_path,
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(RagTool())
+
+    final_content, tools_used, _messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "讲解这道案例题"}],
+        runtime_metadata={
+            "_prefetched_exact_question": {
+                "answer_kind": "case_study",
+                "coverage_ratio": 1.0,
+                "missing_subquestions": [],
+                "covered_subquestions": [
+                    {"display_index": "1", "authoritative_answer": "计划、组织、协调方案。"}
+                ],
+            }
+        },
+    )
+
+    assert final_content == "## 结论\n\n已基于原题证据完成讲解。"
+    assert tools_used == []
+    assert observed_tool_names == [[]]
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_explicit_web_search_preserves_full_exact_evidence(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

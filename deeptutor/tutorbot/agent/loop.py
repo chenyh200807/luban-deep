@@ -695,6 +695,26 @@ class AgentLoop:
         return self._build_exact_authority_response_sync(exact_question)
 
     @staticmethod
+    def _prefetched_case_exact_question_is_complete(runtime_metadata: dict[str, Any] | None) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        exact_question = metadata.get("_prefetched_exact_question")
+        if not isinstance(exact_question, dict):
+            return False
+        if str(exact_question.get("answer_kind") or "").strip().lower() != "case_study":
+            return False
+        covered = exact_question.get("covered_subquestions")
+        if not isinstance(covered, list) or not covered:
+            return False
+        missing = exact_question.get("missing_subquestions")
+        if isinstance(missing, list) and missing:
+            return False
+        try:
+            coverage_ratio = float(exact_question.get("coverage_ratio"))
+        except (TypeError, ValueError):
+            coverage_ratio = 0.0
+        return coverage_ratio >= 0.999
+
+    @staticmethod
     def _build_exact_authority_response_sync(exact_question: dict[str, Any]) -> str:
         return build_exact_authority_response(exact_question)
 
@@ -763,7 +783,9 @@ class AgentLoop:
             iteration += 1
 
             tool_defs = self._resolve_tool_definitions(runtime_metadata)
-            if rag_saturation:
+            if self._prefetched_case_exact_question_is_complete(runtime_metadata):
+                tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+            elif rag_saturation:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
 
             response = await self.provider.chat_with_retry(
@@ -1213,7 +1235,10 @@ class AgentLoop:
         exact_kind = str((exact_candidate or {}).get("answer_kind") or "").strip().lower()
         case_exact_instruction = (
             "本轮已命中案例题题库原题。题库答案是事实依据，但最终回答必须重新组织成适合手机阅读的讲解："
-            "按小问分段，使用短段落、列表或必要表格；不要整段复述召回原文，"
+            "按小问分段，优先沿用“结论、判断依据、注意、采分点、易错点、记忆口诀”的卡片式讲解块；"
+            "每个相关小问都要给出采分点和易错点，最后给一条简短记忆口诀。"
+            "移动端不要输出四列以上 Markdown 管道表格；需要逐项对照时改用短列表或卡片式条目。"
+            "不要整段复述召回原文，"
             "不要输出【解析】、【选项分析】等题库内部标签，也不要输出字面量 \\n。"
             if exact_kind == "case_study"
             else ""

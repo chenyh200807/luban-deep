@@ -398,7 +398,21 @@ function _parseTable(lines) {
     headers: headers,
     rows: dataRows,
     colCount: headers.length,
+    mobileStrategy: _tableNeedsCompactCards(headerRow, rows.slice(dataStart)) ? "compact_cards" : "scroll",
   };
+}
+
+function _tableNeedsCompactCards(headers, rows) {
+  var headerCount = Array.isArray(headers) ? headers.length : 0;
+  var dataRows = Array.isArray(rows) ? rows : [];
+  if (headerCount >= 4) return true;
+  for (var r = 0; r < dataRows.length; r++) {
+    var row = Array.isArray(dataRows[r]) ? dataRows[r] : [];
+    for (var c = 0; c < row.length; c++) {
+      if (String(row[c] || "").length >= 18) return true;
+    }
+  }
+  return false;
 }
 
 // ── 核心结论高亮检测 ──────────────────────────────────────

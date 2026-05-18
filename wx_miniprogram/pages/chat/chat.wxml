@@ -358,20 +358,31 @@ module.exports = {
               </view>
 
               <!-- Markdown 表格兜底 -->
-              <scroll-view scroll-x wx:elif="{{b.type==='table'}}" class="md-table-scroll">
-                <view class="md-table">
-                  <view class="md-thead">
-                  <view class="md-th" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h">
-                      <rich-text class="md-richtext" user-select nodes="{{h.nodes}}"></rich-text>
-                    </view>
-                  </view>
-                  <view class="md-tr" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row">
-                    <view class="md-td" wx:for="{{row}}" wx:key="index" wx:for-item="cell">
-                      <rich-text class="md-richtext" user-select nodes="{{cell.nodes}}"></rich-text>
+              <view wx:elif="{{b.type==='table'}}">
+                <view wx:if="{{b.mobileStrategy==='compact_cards'}}">
+                  <view class="md-table-card" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row" wx:for-index="rowIndex">
+                    <text class="md-table-card-title" user-select>第{{rowIndex + 1}}行</text>
+                    <view class="md-table-card-row" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
+                      <rich-text class="md-table-card-key md-richtext" user-select nodes="{{h.nodes}}"></rich-text>
+                      <rich-text class="md-table-card-val md-richtext" user-select nodes="{{row[colIndex] ? row[colIndex].nodes : []}}"></rich-text>
                     </view>
                   </view>
                 </view>
-              </scroll-view>
+                <scroll-view wx:else scroll-x class="md-table-scroll">
+                  <view class="md-table">
+                    <view class="md-thead">
+                      <view class="md-th" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h">
+                        <rich-text class="md-richtext" user-select nodes="{{h.nodes}}"></rich-text>
+                      </view>
+                    </view>
+                    <view class="md-tr" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row">
+                      <view class="md-td" wx:for="{{row}}" wx:key="index" wx:for-item="cell">
+                        <rich-text class="md-richtext" user-select nodes="{{cell.nodes}}"></rich-text>
+                      </view>
+                    </view>
+                  </view>
+                </scroll-view>
+              </view>
 
               <!-- 引用块 -->
               <view class="md-blockquote" wx:elif="{{b.type==='blockquote'}}">

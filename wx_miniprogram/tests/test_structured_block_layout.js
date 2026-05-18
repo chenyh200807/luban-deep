@@ -70,6 +70,11 @@ assert(
   chatWxml.indexOf("b.fallbackTable.mobileStrategy==='compact_cards'") >= 0,
   "chart fallback table should support compact cards strategy",
 );
+assert(
+  chatWxml.indexOf("b.mobileStrategy==='compact_cards'") >= 0 &&
+    chatWxml.indexOf("row[colIndex] ? row[colIndex].nodes : []") >= 0,
+  "markdown tables should support compact cards strategy",
+);
 assert(hasSelector(".md-steps"), "wxss should style steps cards");
 assert(hasSelector(".md-step"), "wxss should style step rows");
 assert(hasSelector(".md-recap"), "wxss should style recap cards");
