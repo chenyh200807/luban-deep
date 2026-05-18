@@ -984,8 +984,9 @@ async def test_deep_question_writes_grading_errors_to_learner_state(
     assert call["user_id"] == "student-1"
     assert call["source_feature"] == "construction_grading"
     assert call["source_bot_id"] == "construction-exam-coach"
-    assert call["memory_kind"] == "mcq_error_event"
-    assert call["payload_json"]["event_type"] == "construction_grading_error"
+    assert call["memory_kind"] == "learning_evidence"
+    assert call["payload_json"]["event_type"] == "learning_evidence"
+    assert call["payload_json"]["legacy_event_type"] == "construction_grading_error"
     assert call["payload_json"]["question_id"] == "q-law"
     assert call["payload_json"]["next_training_signal"]["focus"] == "法规层级"
     assert call["dedupe_key"]
@@ -1019,6 +1020,124 @@ def test_related_generation_anchor_uses_next_training_signal() -> None:
     assert "上一轮错因训练信号" in topic
     assert "行政法规与部门规章辨析" in topic
     assert "优先从现有题库" in topic
+
+
+def test_related_generation_anchor_accepts_compiled_learning_truth_signal() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再给我相关题",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context={
+            "question_id": "q-case",
+            "question": "某危大工程专项方案应如何组织论证？",
+            "question_type": "case",
+            "concentration": "危大工程专项方案",
+            "compiled_learning_truth": {
+                "weak_points": [
+                    {
+                        "concept_id": "1A432000",
+                        "error_code": "E02",
+                        "evidence_level": "L1_repeated",
+                        "recommended_training": {
+                            "concept": "1A432000",
+                            "focus": "专家论证程序",
+                            "mode": "case_repair",
+                        },
+                    }
+                ]
+            },
+        },
+        conversation_context_text="",
+    )
+
+    assert "长期错因训练信号" in topic
+    assert "1A432000" in topic
+    assert "专家论证程序" in topic
+    assert "E02" in topic
+    assert "evidence_level=L1_repeated" in topic
+    assert "policy_action=diagnostic_hint" in topic
+
+
+def test_related_generation_anchor_uses_l2_compiled_truth_for_stable_personalization() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再给我相关题",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context={
+            "question_id": "q-case",
+            "question": "某危大工程专项方案应如何组织论证？",
+            "question_type": "case",
+            "compiled_learning_truth": {
+                "weak_points": [
+                    {
+                        "concept_id": "1A432000",
+                        "error_code": "E02",
+                        "evidence_level": "L2_confirmed",
+                        "recommended_training": {
+                            "focus": "专家论证程序",
+                            "mode": "case_repair",
+                        },
+                    }
+                ]
+            },
+        },
+        conversation_context_text="",
+    )
+
+    assert "policy_action=stable_personalization" in topic
+    assert "evidence_level=L2_confirmed" in topic
+
+
+def test_related_generation_anchor_ignores_l0_compiled_truth_signal() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再给我相关题",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context={
+            "question_id": "q-case",
+            "question_type": "case",
+            "compiled_learning_truth": {
+                "weak_points": [
+                    {
+                        "concept_id": "1A432000",
+                        "error_code": "E02",
+                        "evidence_level": "L0_observed",
+                        "recommended_training": {"focus": "专家论证程序"},
+                    }
+                ]
+            },
+        },
+        conversation_context_text="",
+    )
+
+    assert "长期错因训练信号" not in topic
+
+
+def test_related_generation_anchor_ignores_superseded_compiled_truth_signal() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再给我相关题",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context={
+            "question_id": "q-case",
+            "question_type": "case",
+            "compiled_learning_truth": {
+                "weak_points": [
+                    {
+                        "concept_id": "1A432000",
+                        "error_code": "E02",
+                        "evidence_level": "L1_repeated",
+                        "decay_state": "superseded",
+                        "superseded_by_event_ids": ["fix1"],
+                        "recommended_training": {"focus": "专家论证程序"},
+                    }
+                ]
+            },
+        },
+        conversation_context_text="",
+    )
+
+    assert "长期错因训练信号" not in topic
 
 
 def test_related_generation_anchor_can_use_learner_memory_context_without_active_question() -> None:

@@ -182,25 +182,36 @@ class LearnerStateService:
         source_feature: str,
         source_id: str,
         source_bot_id: str | None = None,
+        summary_structured_json: dict[str, Any] | None = None,
     ) -> LearnerStateOutboxItem:
+        structured = dict(summary_structured_json or {}) if summary_structured_json is not None else None
+        dedupe_payload = {"summary_md": summary_md}
+        if structured is not None:
+            dedupe_payload["summary_structured_json_hash"] = (
+                dict(structured.get("synthesis_run") or {}).get("output_projection_hash")
+                or _json_dump(structured)
+            )
         dedupe_key = self._default_dedupe_key(
             user_id,
             source_feature=source_feature,
             source_id=source_id,
             memory_kind="summary_refresh",
-            payload_json={"summary_md": summary_md},
+            payload_json=dedupe_payload,
         )
+        payload = {
+            "user_id": user_id,
+            "summary_md": str(summary_md or "").strip(),
+            "source_feature": str(source_feature or "").strip() or "manual",
+            "source_id": str(source_id or "").strip() or "unknown",
+            "source_bot_id": str(source_bot_id or "").strip() or None,
+            "updated_at": _iso_now(),
+        }
+        if structured is not None:
+            payload["summary_structured_json"] = structured
         return self._outbox_service.enqueue(
             user_id=user_id,
             event_type="summary_refresh",
-            payload_json={
-                "user_id": user_id,
-                "summary_md": str(summary_md or "").strip(),
-                "source_feature": str(source_feature or "").strip() or "manual",
-                "source_id": str(source_id or "").strip() or "unknown",
-                "source_bot_id": str(source_bot_id or "").strip() or None,
-                "updated_at": _iso_now(),
-            },
+            payload_json=payload,
             dedupe_key=dedupe_key,
         )
 
@@ -588,6 +599,34 @@ class LearnerStateService:
             created_at=event.created_at,
         )
         return event
+
+    def synthesize_learning_truth(
+        self,
+        user_id: str,
+        *,
+        dry_run: bool = True,
+        event_limit: int | None = None,
+    ) -> dict[str, Any]:
+        from deeptutor.services.learner_state.learning_synthesis import (
+            render_learning_truth_summary_md,
+            synthesize_learning_truth,
+        )
+
+        normalized = _normalize_user_id(user_id)
+        events = self.list_memory_events(normalized, limit=event_limit)
+        projection = synthesize_learning_truth(events)
+        summary_md = render_learning_truth_summary_md(projection)
+        if dry_run:
+            return {"projection": projection, "summary_md": summary_md, "outbox_item": None}
+        outbox_item = self._enqueue_summary_refresh(
+            user_id=normalized,
+            summary_md=summary_md,
+            source_feature="learning_synthesis",
+            source_id="nightly_synthesis",
+            source_bot_id=None,
+            summary_structured_json=projection,
+        )
+        return {"projection": projection, "summary_md": summary_md, "outbox_item": outbox_item}
 
     def record_turn_event(
         self,
@@ -1649,6 +1688,7 @@ class LearnerStateService:
         if event.source_feature != "construction_grading" and event.memory_kind not in {
             "case_error_event",
             "mcq_error_event",
+            "learning_evidence",
         }:
             return ""
         payload = dict(event.payload_json or {})

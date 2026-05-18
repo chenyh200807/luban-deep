@@ -1,0 +1,852 @@
+from __future__ import annotations
+
+import hashlib
+import json
+from collections import defaultdict
+from typing import Any, Iterable
+
+from deeptutor.services.learner_state.service import LearnerStateEvent
+
+_ALLOWED_EDGE_TYPES = {
+    "question_tests_concept",
+    "submission_answered_question",
+    "question_has_rubric_item",
+    "submission_missed_rubric_item",
+    "rubric_item_maps_to_error",
+    "submission_triggered_error",
+    "error_points_to_training",
+    "training_uses_question",
+    "training_improved_error",
+}
+
+
+def synthesize_learning_truth(
+    events: Iterable[LearnerStateEvent],
+    *,
+    previous_projection: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    ordered_events = sorted(list(events), key=lambda event: (str(event.created_at or ""), str(event.event_id or "")))
+    learning_items = [
+        item
+        for event in ordered_events
+        if _is_learning_evidence(event)
+        for item in _learning_items(event)
+    ]
+    learning_items = [item for item in learning_items if item is not None]
+    manual_events = [_manual_correction(event) for event in ordered_events if _is_manual_correction(event)]
+    manual_events = [item for item in manual_events if item is not None]
+    grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    observed_candidates: list[dict[str, Any]] = []
+    improvements: list[dict[str, Any]] = []
+    conflict_count = 0
+
+    for item in learning_items:
+        conflict_count += len(item["conflicting_event_ids"])
+        if item["is_improvement"]:
+            improvements.append({
+                "concept_id": item["concept_id"],
+                "event_id": item["event_id"],
+                "observed_at": item["observed_at"],
+            })
+            continue
+        if (
+            not item["concept_id"]
+            or not item["error_code"]
+            or not item["question_id"]
+            or _blocks_stable_learning_truth(item["evidence_cap_reasons"])
+        ):
+            observed_candidates.append(_candidate(item, evidence_level="L0_observed"))
+            continue
+        grouped[(item["concept_id"], item["error_code"])].append(item)
+
+    raw_weak_points: list[dict[str, Any]] = []
+    for (concept_id, error_code), items in sorted(grouped.items()):
+        candidate = _candidate_from_items(concept_id, error_code, items)
+        if len(items) >= 2:
+            raw_weak_points.append({**candidate, "evidence_level": "L1_repeated"})
+        else:
+            observed_candidates.append({**candidate, "evidence_level": "L0_observed"})
+
+    improved_concepts = {item["concept_id"] for item in improvements if item.get("concept_id")}
+    weak_points = _active_weak_points(
+        raw_weak_points=raw_weak_points,
+        observed_candidates=observed_candidates,
+        manual_events=manual_events,
+        improved_concepts=improved_concepts,
+    )
+    stale_claims = [
+        {
+            "concept_id": weak["concept_id"],
+            "error_code": weak["error_code"],
+            "reason": "later_training_improved",
+            "supporting_event_ids": list(weak.get("supporting_event_ids") or []),
+        }
+        for weak in raw_weak_points
+        if weak.get("concept_id") in improved_concepts
+    ]
+    compiled_objects = _build_compiled_objects(
+        grouped=grouped,
+        observed_candidates=observed_candidates,
+        weak_points=raw_weak_points,
+        improvements=improvements,
+        manual_events=manual_events,
+    )
+    projection: dict[str, Any] = {
+        "schema_version": 2,
+        "generated_by": "nightly_synthesis",
+        "subject": "construction_exam_learning_truth",
+        "compiled_objects": compiled_objects,
+        "weak_points": weak_points,
+        "observed_candidates": observed_candidates,
+        "improvement_signals": improvements,
+        "stale_claims": stale_claims,
+        "typed_graph": project_learning_graph(ordered_events),
+    }
+    projection["synthesis_run"] = _synthesis_run(
+        events=ordered_events,
+        projection=projection,
+        previous_projection=previous_projection or {},
+        created_claim_count=len(weak_points),
+        decayed_claim_count=len(stale_claims),
+        conflict_count=conflict_count,
+        manual_override_count=len(manual_events),
+    )
+    return projection
+
+
+def project_learning_graph(events: Iterable[LearnerStateEvent]) -> dict[str, Any]:
+    edges: list[dict[str, Any]] = []
+    readiness_gaps: list[dict[str, Any]] = []
+    for event in events:
+        if not _is_learning_evidence(event):
+            continue
+        payload = dict(event.payload_json or {})
+        event_edges: list[dict[str, Any]] = []
+        for raw_edge in list(payload.get("typed_edges") or []):
+            if not isinstance(raw_edge, dict):
+                continue
+            edge = dict(raw_edge)
+            edge["evidence_event_id"] = event.event_id
+            edge["observed_at"] = event.created_at
+            if _valid_edge(edge):
+                event_edges.append(edge)
+            else:
+                readiness_gaps.append({
+                    "code": "invalid_graph_edge",
+                    "evidence_event_id": event.event_id,
+                    "edge_type": _clean_text(edge.get("edge_type")),
+                    "severity": "warning",
+                })
+        edges.extend(event_edges)
+        readiness_gaps.extend(_graph_readiness_gaps(event, payload, event_edges))
+    return {"schema_version": 1, "edges": edges, "readiness_gaps": readiness_gaps}
+
+
+def find_next_training_targets(
+    projection: dict[str, Any],
+    *,
+    concept_id: str,
+    error_code: str,
+) -> list[dict[str, Any]]:
+    concept = _clean_text(concept_id)
+    code = _clean_text(error_code)
+    targets: list[dict[str, Any]] = []
+    for weak in list(projection.get("weak_points") or []):
+        if not isinstance(weak, dict):
+            continue
+        if _clean_text(weak.get("concept_id")) != concept or _clean_text(weak.get("error_code")) != code:
+            continue
+        training = weak.get("recommended_training") if isinstance(weak.get("recommended_training"), dict) else {}
+        targets.append({
+            "concept_id": concept,
+            "error_code": code,
+            "training": dict(training),
+            "reason_event_ids": list(weak.get("supporting_event_ids") or []),
+        })
+    return targets
+
+
+def find_question_graph_context(projection: dict[str, Any], *, question_id: str) -> dict[str, Any]:
+    """Return concept/rubric/error/training graph context for a question."""
+
+    target = _clean_text(question_id)
+    graph = projection.get("typed_graph") if isinstance(projection.get("typed_graph"), dict) else {}
+    compiled = projection.get("compiled_objects") if isinstance(projection.get("compiled_objects"), dict) else {}
+    concepts: list[str] = []
+    rubric_items: list[str] = []
+    errors: list[str] = []
+    training_targets: list[str] = []
+    evidence_event_ids: list[str] = []
+    rubric_seen: set[str] = set()
+    error_seen: set[str] = set()
+
+    for edge in _graph_edges(graph):
+        from_node = edge.get("from") if isinstance(edge.get("from"), dict) else {}
+        to_node = edge.get("to") if isinstance(edge.get("to"), dict) else {}
+        edge_type = _clean_text(edge.get("edge_type"))
+        if edge_type == "question_tests_concept" and _clean_text(from_node.get("id")) == target:
+            _append_unique_text(concepts, to_node.get("id"))
+            _append_unique_text(evidence_event_ids, edge.get("evidence_event_id"))
+        if edge_type == "question_has_rubric_item" and _clean_text(from_node.get("id")) == target:
+            rubric_id = _clean_text(to_node.get("id"))
+            _append_unique_text(rubric_items, rubric_id)
+            if rubric_id:
+                rubric_seen.add(rubric_id)
+            _append_unique_text(evidence_event_ids, edge.get("evidence_event_id"))
+
+    for object_key, object_value in compiled.items():
+        if not isinstance(object_value, dict):
+            continue
+        if not str(object_key).startswith(f"rubric_item:{target}:"):
+            continue
+        rubric_id = _clean_text(object_value.get("object_id"))
+        _append_unique_text(rubric_items, rubric_id)
+        if rubric_id:
+            rubric_seen.add(rubric_id)
+        for event_id in list(object_value.get("supporting_event_ids") or []):
+            _append_unique_text(evidence_event_ids, event_id)
+
+    evidence_set = set(evidence_event_ids)
+    for object_key, object_value in compiled.items():
+        if not isinstance(object_value, dict) or not str(object_key).startswith("error:"):
+            continue
+        supporting_ids = {_clean_text(item) for item in list(object_value.get("supporting_event_ids") or [])}
+        if not evidence_set.intersection(supporting_ids):
+            continue
+        error_id = _clean_text(object_value.get("object_id"))
+        _append_unique_text(errors, error_id)
+        if error_id:
+            error_seen.add(error_id)
+
+    for edge in _graph_edges(graph):
+        from_node = edge.get("from") if isinstance(edge.get("from"), dict) else {}
+        to_node = edge.get("to") if isinstance(edge.get("to"), dict) else {}
+        edge_type = _clean_text(edge.get("edge_type"))
+        if edge_type == "rubric_item_maps_to_error" and _clean_text(from_node.get("id")) in rubric_seen:
+            error_id = _clean_text(to_node.get("id"))
+            _append_unique_text(errors, error_id)
+            if error_id:
+                error_seen.add(error_id)
+            _append_unique_text(evidence_event_ids, edge.get("evidence_event_id"))
+        if (
+            edge_type == "error_points_to_training"
+            and _clean_text(from_node.get("id")) in error_seen
+            and _clean_text(edge.get("evidence_event_id")) in evidence_set
+        ):
+            _append_unique_text(training_targets, to_node.get("id"))
+            _append_unique_text(evidence_event_ids, edge.get("evidence_event_id"))
+
+    return {
+        "question_id": target,
+        "concept_ids": concepts,
+        "rubric_item_ids": rubric_items,
+        "error_ids": errors,
+        "training_target_ids": training_targets,
+        "evidence_event_ids": evidence_event_ids,
+    }
+
+
+def find_concept_evidence(projection: dict[str, Any], *, concept_id: str) -> dict[str, Any]:
+    key = f"concept:{_clean_text(concept_id)}"
+    compiled = projection.get("compiled_objects") if isinstance(projection.get("compiled_objects"), dict) else {}
+    concept = dict(compiled.get(key) or {})
+    return {
+        "concept_id": _clean_text(concept_id),
+        "current_truth": concept.get("current_truth", ""),
+        "evidence_level": concept.get("evidence_level", ""),
+        "supporting_event_ids": list(concept.get("supporting_event_ids") or []),
+        "conflicting_event_ids": list(concept.get("conflicting_event_ids") or []),
+        "timeline_refs": list(concept.get("timeline_refs") or []),
+    }
+
+
+def trace_training_recommendation(
+    projection: dict[str, Any],
+    *,
+    training_id: str,
+) -> dict[str, Any]:
+    target = _clean_text(training_id)
+    graph = projection.get("typed_graph") if isinstance(projection.get("typed_graph"), dict) else {}
+    error_ids: list[str] = []
+    reason_event_ids: list[str] = []
+    for edge in _graph_edges(graph):
+        to_node = edge.get("to") if isinstance(edge.get("to"), dict) else {}
+        if edge.get("edge_type") != "error_points_to_training" or _clean_text(to_node.get("id")) != target:
+            continue
+        from_node = edge.get("from") if isinstance(edge.get("from"), dict) else {}
+        _append_unique_text(error_ids, from_node.get("id"))
+        _append_unique_text(reason_event_ids, edge.get("evidence_event_id"))
+    return {
+        "training_id": target,
+        "error_ids": error_ids,
+        "reason_event_ids": reason_event_ids,
+    }
+
+
+def render_learning_truth_summary_md(projection: dict[str, Any]) -> str:
+    lines = ["## 学习事实编译", ""]
+    weak_points = list(projection.get("weak_points") or [])
+    if not weak_points:
+        lines.append("- 暂无达到长期画像阈值的稳定薄弱点。")
+        return "\n".join(lines).strip()
+    for item in weak_points:
+        lines.append(
+            "- "
+            + f"{item.get('concept_id')}: {item.get('error_code')} "
+            + f"({item.get('evidence_level')}, evidence={','.join(item.get('supporting_event_ids') or [])})"
+        )
+    return "\n".join(lines).strip()
+
+
+def _is_learning_evidence(event: LearnerStateEvent) -> bool:
+    return event.source_feature == "construction_grading" and event.memory_kind == "learning_evidence"
+
+
+def _is_manual_correction(event: LearnerStateEvent) -> bool:
+    payload = dict(event.payload_json or {})
+    return (
+        event.source_feature == "manual_correction"
+        or event.memory_kind == "learning_correction"
+        or payload.get("event_type") == "manual_correction"
+    )
+
+
+def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
+    payload = dict(event.payload_json or {})
+    errors = [error for error in list(payload.get("error_events") or payload.get("errors") or []) if isinstance(error, dict)]
+    signal = payload.get("next_training_signal") if isinstance(payload.get("next_training_signal"), dict) else {}
+    question_id = _clean_text(payload.get("question_id"))
+    turn_id = _clean_text(payload.get("turn_id")) or _clean_text(event.source_id)
+    quality = payload.get("quality") if isinstance(payload.get("quality"), dict) else {}
+    conflicting_event_ids = [
+        _clean_text(item)
+        for item in list(quality.get("conflicting_event_ids") or payload.get("conflicting_event_ids") or [])
+        if _clean_text(item)
+    ]
+    if not errors and _is_improvement(payload):
+        concept = _clean_text(signal.get("concept"))
+        if not concept:
+            return []
+        return [{
+            "event_id": event.event_id,
+            "observed_at": event.created_at,
+            "question_id": question_id,
+            "turn_id": turn_id,
+            "concept_id": concept,
+            "error_code": "",
+            "rubric_item_id": "",
+            "diagnosis": "",
+            "recommended_training": dict(signal),
+            "conflicting_event_ids": conflicting_event_ids,
+            "evidence_cap_reasons": _evidence_cap_reasons(quality),
+            "is_improvement": True,
+        }]
+    if not errors:
+        return []
+
+    items: list[dict[str, Any]] = []
+    fallback_rubric_id = _rubric_from_edges(payload)
+    for error in errors:
+        concept = _clean_text(error.get("concept_tag") or signal.get("concept"))
+        error_code = _clean_text(error.get("error_code"))
+        rubric_item_id = _clean_text(error.get("rubric_item_id")) or fallback_rubric_id
+        items.append({
+            "event_id": event.event_id,
+            "observed_at": event.created_at,
+            "question_id": question_id,
+            "turn_id": turn_id,
+            "concept_id": concept,
+            "error_code": error_code,
+            "rubric_item_id": rubric_item_id,
+            "diagnosis": _clean_text(error.get("diagnosis") or error.get("evidence")),
+            "recommended_training": dict(signal),
+            "conflicting_event_ids": conflicting_event_ids,
+            "evidence_cap_reasons": _evidence_cap_reasons(quality),
+            "is_improvement": False,
+        })
+    return items
+
+
+def _evidence_cap_reasons(quality: dict[str, Any]) -> list[str]:
+    return [
+        _clean_text(item)
+        for item in list(quality.get("evidence_cap_reasons") or [])
+        if _clean_text(item)
+    ]
+
+
+def _blocks_stable_learning_truth(cap_reasons: list[str]) -> bool:
+    blocking_caps = {
+        "missing_question_id",
+        "rag_degraded",
+        "missing_rag_evidence",
+    }
+    return bool(blocking_caps.intersection({_clean_text(item) for item in cap_reasons}))
+
+
+def _active_weak_points(
+    *,
+    raw_weak_points: list[dict[str, Any]],
+    observed_candidates: list[dict[str, Any]],
+    manual_events: list[dict[str, Any]],
+    improved_concepts: set[str],
+) -> list[dict[str, Any]]:
+    manual_by_key: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for manual_event in manual_events:
+        manual_by_key[(manual_event["concept_id"], manual_event["error_code"])].append(manual_event)
+
+    active: list[dict[str, Any]] = []
+    seen_keys: set[tuple[str, str]] = set()
+    for weak in raw_weak_points:
+        key = (_clean_text(weak.get("concept_id")), _clean_text(weak.get("error_code")))
+        seen_keys.add(key)
+        if key[0] in improved_concepts:
+            continue
+        manual_for_key = manual_by_key.get(key, [])
+        if _has_manual_supersede(manual_for_key):
+            continue
+        item = dict(weak)
+        confirmations = _manual_confirmations(manual_for_key)
+        if confirmations:
+            item["evidence_level"] = "L2_confirmed"
+            item["supporting_event_ids"] = _dedupe([
+                *list(item.get("supporting_event_ids") or []),
+                *[confirmation["event_id"] for confirmation in confirmations],
+            ])
+        active.append(item)
+
+    for observed in observed_candidates:
+        key = (_clean_text(observed.get("concept_id")), _clean_text(observed.get("error_code")))
+        if not key[0] or not key[1] or key in seen_keys or key[0] in improved_concepts:
+            continue
+        if _blocks_stable_learning_truth(list(observed.get("evidence_cap_reasons") or [])):
+            continue
+        confirmations = _manual_confirmations(manual_by_key.get(key, []))
+        if not confirmations:
+            continue
+        item = dict(observed)
+        item["evidence_level"] = "L2_confirmed"
+        item["supporting_event_ids"] = _dedupe([
+            *list(item.get("supporting_event_ids") or []),
+            *[confirmation["event_id"] for confirmation in confirmations],
+        ])
+        active.append(item)
+    return active
+
+
+def _manual_confirmations(manual_events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [item for item in manual_events if item.get("action") in {"confirm", "confirmed"}]
+
+
+def _has_manual_supersede(manual_events: list[dict[str, Any]]) -> bool:
+    return any(item.get("action") not in {"confirm", "confirmed"} for item in manual_events)
+
+
+def _manual_correction(event: LearnerStateEvent) -> dict[str, Any] | None:
+    payload = dict(event.payload_json or {})
+    concept = _clean_text(payload.get("concept_id"))
+    error_code = _clean_text(payload.get("error_code"))
+    if not concept or not error_code:
+        return None
+    return {
+        "event_id": event.event_id,
+        "observed_at": event.created_at,
+        "concept_id": concept,
+        "error_code": error_code,
+        "action": _clean_text(payload.get("action") or payload.get("correction_type") or "supersede"),
+        "correction": _clean_text(payload.get("correction")),
+        "supersedes_event_ids": [
+            _clean_text(item)
+            for item in list(payload.get("supersedes_event_ids") or [])
+            if _clean_text(item)
+        ],
+    }
+
+
+def _candidate(item: dict[str, Any], *, evidence_level: str) -> dict[str, Any]:
+    return {
+        "concept_id": item.get("concept_id", ""),
+        "error_code": item.get("error_code", ""),
+        "claim": _claim_text(item.get("concept_id", ""), item.get("error_code", "")),
+        "supporting_event_ids": [item["event_id"]],
+        "last_observed_at": item["observed_at"],
+        "recommended_training": dict(item.get("recommended_training") or {}),
+        "evidence_level": evidence_level,
+        "evidence_cap_reasons": list(item.get("evidence_cap_reasons") or []),
+    }
+
+
+def _candidate_from_items(concept_id: str, error_code: str, items: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "concept_id": concept_id,
+        "error_code": error_code,
+        "claim": _claim_text(concept_id, error_code),
+        "supporting_event_ids": [item["event_id"] for item in items],
+        "last_observed_at": items[-1]["observed_at"],
+        "recommended_training": _first_training_signal(items),
+    }
+
+
+def _build_compiled_objects(
+    *,
+    grouped: dict[tuple[str, str], list[dict[str, Any]]],
+    observed_candidates: list[dict[str, Any]],
+    weak_points: list[dict[str, Any]],
+    improvements: list[dict[str, Any]],
+    manual_events: list[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    objects: dict[str, dict[str, Any]] = {}
+    weak_keys = {(weak["concept_id"], weak["error_code"]) for weak in weak_points}
+    improving_concepts = {item["concept_id"] for item in improvements if item.get("concept_id")}
+    manual_by_key: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for manual_event in manual_events:
+        manual_by_key[(manual_event["concept_id"], manual_event["error_code"])].append(manual_event)
+
+    for key, items in grouped.items():
+        concept_id, error_code = key
+        evidence_level = "L1_repeated" if key in weak_keys else "L0_observed"
+        decay_state = "improving" if concept_id in improving_concepts else "active"
+        manual_for_key = manual_by_key.get(key, [])
+        confirmations_for_key = [item for item in manual_for_key if item.get("action") in {"confirm", "confirmed"}]
+        supersedes_for_key = [item for item in manual_for_key if item.get("action") not in {"confirm", "confirmed"}]
+        if confirmations_for_key:
+            evidence_level = "L2_confirmed"
+            decay_state = "active"
+        if supersedes_for_key:
+            decay_state = "superseded"
+        supporting_event_ids = [item["event_id"] for item in items]
+        timeline = [_timeline_ref(item) for item in items]
+        conflicting_ids = sorted({conflict for item in items for conflict in item.get("conflicting_event_ids", [])})
+        superseded_ids = [item["event_id"] for item in supersedes_for_key]
+        confirmation_timeline = [_manual_timeline_ref(item) for item in confirmations_for_key]
+        object_timeline = [*timeline, *confirmation_timeline]
+        object_supporting_ids = [*supporting_event_ids, *[item["event_id"] for item in confirmations_for_key]]
+        _put_object(
+            objects,
+            object_type="concept",
+            object_id=concept_id,
+            current_truth=_concept_claim_text(concept_id, grouped=grouped),
+            evidence_level=evidence_level,
+            supporting_event_ids=object_supporting_ids,
+            conflicting_event_ids=conflicting_ids,
+            superseded_by_event_ids=superseded_ids,
+            timeline_refs=object_timeline,
+            decay_state=decay_state,
+        )
+        _put_object(
+            objects,
+            object_type="error",
+            object_id=f"{concept_id}:{error_code}",
+            current_truth=_claim_text(concept_id, error_code),
+            evidence_level=evidence_level,
+            supporting_event_ids=object_supporting_ids,
+            conflicting_event_ids=conflicting_ids,
+            superseded_by_event_ids=superseded_ids,
+            timeline_refs=object_timeline,
+            decay_state=decay_state,
+        )
+        for item in items:
+            if item.get("question_id"):
+                _put_object(
+                    objects,
+                    object_type="question",
+                    object_id=item["question_id"],
+                    current_truth=f"题目 {item['question_id']} 触发了 {error_code} 相关错因观察。",
+                    evidence_level="L0_observed",
+                    supporting_event_ids=[item["event_id"]],
+                    conflicting_event_ids=[],
+                    superseded_by_event_ids=[],
+                    timeline_refs=[_timeline_ref(item)],
+                    decay_state="active",
+                )
+            if item.get("question_id") and item.get("rubric_item_id"):
+                _put_object(
+                    objects,
+                    object_type="rubric_item",
+                    object_id=f"{item['question_id']}:{item['rubric_item_id']}",
+                    current_truth=f"采分点 {item['rubric_item_id']} 在本次作答中未命中。",
+                    evidence_level="L0_observed",
+                    supporting_event_ids=[item["event_id"]],
+                    conflicting_event_ids=[],
+                    superseded_by_event_ids=[],
+                    timeline_refs=[_timeline_ref(item)],
+                    decay_state="active",
+                )
+            if item.get("turn_id"):
+                _put_object(
+                    objects,
+                    object_type="submission",
+                    object_id=item["turn_id"],
+                    current_truth=f"作答 {item['turn_id']} 产生了结构化阅卷证据。",
+                    evidence_level="L0_observed",
+                    supporting_event_ids=[item["event_id"]],
+                    conflicting_event_ids=[],
+                    superseded_by_event_ids=[],
+                    timeline_refs=[_timeline_ref(item)],
+                    decay_state="active",
+                )
+    for observed in observed_candidates:
+        if observed.get("concept_id") and observed.get("error_code") and observed.get("supporting_event_ids"):
+            event_id = observed["supporting_event_ids"][0]
+            _put_object(
+                objects,
+                object_type="error",
+                object_id=f"{observed['concept_id']}:{observed['error_code']}",
+                current_truth=observed["claim"],
+                evidence_level="L0_observed",
+                supporting_event_ids=[event_id],
+                conflicting_event_ids=[],
+                superseded_by_event_ids=[],
+                timeline_refs=[{"event_id": event_id, "event_type": "learning_evidence"}],
+                decay_state="active",
+            )
+    return objects
+
+
+def _put_object(
+    objects: dict[str, dict[str, Any]],
+    *,
+    object_type: str,
+    object_id: str,
+    current_truth: str,
+    evidence_level: str,
+    supporting_event_ids: list[str],
+    conflicting_event_ids: list[str],
+    superseded_by_event_ids: list[str],
+    timeline_refs: list[dict[str, Any]],
+    decay_state: str,
+) -> None:
+    object_id = _clean_text(object_id)
+    if not object_id:
+        return
+    key = f"{object_type}:{object_id}"
+    previous = objects.get(key)
+    if previous:
+        supporting_event_ids = _dedupe([*previous.get("supporting_event_ids", []), *supporting_event_ids])
+        conflicting_event_ids = _dedupe([*previous.get("conflicting_event_ids", []), *conflicting_event_ids])
+        superseded_by_event_ids = _dedupe([
+            *previous.get("superseded_by_event_ids", []),
+            *superseded_by_event_ids,
+        ])
+        timeline_refs = [*previous.get("timeline_refs", []), *timeline_refs]
+    objects[key] = {
+        "object_type": object_type,
+        "object_id": object_id,
+        "current_truth": current_truth,
+        "evidence_level": _max_level(previous.get("evidence_level") if previous else "", evidence_level),
+        "confidence": _confidence_for_level(evidence_level),
+        "supporting_event_ids": _dedupe(supporting_event_ids),
+        "conflicting_event_ids": _dedupe(conflicting_event_ids),
+        "superseded_by_event_ids": _dedupe(superseded_by_event_ids),
+        "valid_since": _first_observed(timeline_refs),
+        "last_observed_at": _last_observed(timeline_refs),
+        "decay_state": decay_state if decay_state != "active" else (previous or {}).get("decay_state", "active"),
+        "timeline_refs": timeline_refs,
+    }
+
+
+def _synthesis_run(
+    *,
+    events: list[LearnerStateEvent],
+    projection: dict[str, Any],
+    previous_projection: dict[str, Any],
+    created_claim_count: int,
+    decayed_claim_count: int,
+    conflict_count: int,
+    manual_override_count: int,
+) -> dict[str, Any]:
+    output_body = {key: value for key, value in projection.items() if key != "synthesis_run"}
+    input_hash = _hash_json([
+        {
+            "event_id": event.event_id,
+            "created_at": event.created_at,
+            "memory_kind": event.memory_kind,
+            "source_feature": event.source_feature,
+            "payload_json": event.payload_json,
+        }
+        for event in events
+    ])
+    output_hash = _hash_json(output_body)
+    return {
+        "synthesis_run_id": f"syn_{input_hash.removeprefix('sha256:')[:16]}",
+        "input_event_count": len(events),
+        "input_event_ids_hash": input_hash,
+        "previous_projection_hash": _hash_json(previous_projection),
+        "output_projection_hash": output_hash,
+        "created_claim_count": created_claim_count,
+        "updated_claim_count": 0,
+        "decayed_claim_count": decayed_claim_count,
+        "conflict_count": conflict_count,
+        "manual_override_count": manual_override_count,
+        "status": "dry_run_ok",
+    }
+
+
+def _valid_edge(edge: dict[str, Any]) -> bool:
+    edge_type = _clean_text(edge.get("edge_type"))
+    if edge_type not in _ALLOWED_EDGE_TYPES:
+        return False
+    from_node = edge.get("from") if isinstance(edge.get("from"), dict) else {}
+    to_node = edge.get("to") if isinstance(edge.get("to"), dict) else {}
+    if not (
+        _clean_text(from_node.get("type"))
+        and _clean_text(from_node.get("id"))
+        and _clean_text(to_node.get("type"))
+        and _clean_text(to_node.get("id"))
+        and _clean_text(edge.get("evidence_event_id"))
+        and _clean_text(edge.get("source_feature"))
+        and _clean_text(edge.get("observed_at"))
+    ):
+        return False
+    try:
+        confidence = float(edge.get("confidence"))
+    except (TypeError, ValueError):
+        return False
+    return 0 <= confidence <= 1
+
+
+def _graph_readiness_gaps(
+    event: LearnerStateEvent,
+    payload: dict[str, Any],
+    edges: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    question_id = _clean_text(payload.get("question_id"))
+    if not question_id:
+        return [{
+            "code": "missing_question_id",
+            "evidence_event_id": event.event_id,
+            "severity": "blocker",
+        }]
+    has_concept_edge = any(
+        edge.get("edge_type") == "question_tests_concept"
+        and isinstance(edge.get("from"), dict)
+        and _clean_text(edge["from"].get("id")) == question_id
+        for edge in edges
+    )
+    if has_concept_edge:
+        return []
+    return [{
+        "code": "missing_concept_edge",
+        "question_id": question_id,
+        "evidence_event_id": event.event_id,
+        "severity": "warning",
+    }]
+
+
+def _graph_edges(graph: dict[str, Any]) -> list[dict[str, Any]]:
+    return [edge for edge in list(graph.get("edges") or []) if isinstance(edge, dict)]
+
+
+def _append_unique_text(values: list[str], value: Any) -> None:
+    text = _clean_text(value)
+    if text and text not in values:
+        values.append(text)
+
+
+def _is_improvement(payload: dict[str, Any]) -> bool:
+    try:
+        max_score = float(payload.get("max_score") or 0)
+        score = float(payload.get("score_awarded") or 0)
+        return max_score > 0 and score >= max_score and not payload.get("error_events")
+    except (TypeError, ValueError):
+        return False
+
+
+def _rubric_from_edges(payload: dict[str, Any]) -> str:
+    for edge in list(payload.get("typed_edges") or []):
+        if not isinstance(edge, dict):
+            continue
+        if edge.get("edge_type") != "submission_missed_rubric_item":
+            continue
+        target = edge.get("to") if isinstance(edge.get("to"), dict) else {}
+        target_id = _clean_text(target.get("id"))
+        if ":" in target_id:
+            return target_id.rsplit(":", 1)[-1]
+        if target_id:
+            return target_id
+    return ""
+
+
+def _timeline_ref(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "event_id": item["event_id"],
+        "event_type": "learning_evidence",
+        "observed_at": item["observed_at"],
+        "summary": item.get("diagnosis", ""),
+    }
+
+
+def _manual_timeline_ref(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "event_id": item["event_id"],
+        "event_type": "manual_correction",
+        "observed_at": item["observed_at"],
+        "summary": item.get("correction", ""),
+    }
+
+
+def _claim_text(concept_id: Any, error_code: Any) -> str:
+    concept = _clean_text(concept_id) or "unknown_concept"
+    code = _clean_text(error_code) or "unknown_error"
+    return f"{concept} 上出现 {code} 错因观察"
+
+
+def _concept_claim_text(
+    concept_id: Any,
+    *,
+    grouped: dict[tuple[str, str], list[dict[str, Any]]],
+) -> str:
+    concept = _clean_text(concept_id) or "unknown_concept"
+    error_codes = [
+        _clean_text(error_code)
+        for group_concept, error_code in sorted(grouped)
+        if _clean_text(group_concept) == concept and _clean_text(error_code)
+    ]
+    if not error_codes:
+        return f"{concept} 上出现错因观察"
+    return f"{concept} 上出现 {', '.join(_dedupe(error_codes))} 等错因观察"
+
+
+def _first_training_signal(items: list[dict[str, Any]]) -> dict[str, Any]:
+    for item in items:
+        signal = item.get("recommended_training")
+        if isinstance(signal, dict) and signal:
+            return dict(signal)
+    return {}
+
+
+def _max_level(previous: str, current: str) -> str:
+    order = {"": 0, "L0_observed": 1, "L1_repeated": 2, "L2_confirmed": 3}
+    return previous if order.get(previous, 0) >= order.get(current, 0) else current
+
+
+def _confidence_for_level(level: str) -> float:
+    return {"L2_confirmed": 0.9, "L1_repeated": 0.72, "L0_observed": 0.45}.get(level, 0.3)
+
+
+def _first_observed(timeline_refs: list[dict[str, Any]]) -> str:
+    values = [_clean_text(item.get("observed_at")) for item in timeline_refs if _clean_text(item.get("observed_at"))]
+    return min(values) if values else ""
+
+
+def _last_observed(timeline_refs: list[dict[str, Any]]) -> str:
+    values = [_clean_text(item.get("observed_at")) for item in timeline_refs if _clean_text(item.get("observed_at"))]
+    return max(values) if values else ""
+
+
+def _dedupe(values: list[Any]) -> list[Any]:
+    result: list[Any] = []
+    for value in values:
+        if value in result:
+            continue
+        result.append(value)
+    return result
+
+
+def _hash_json(value: Any) -> str:
+    raw = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
+    return "sha256:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _clean_text(value: Any) -> str:
+    return str(value or "").strip()

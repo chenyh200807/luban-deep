@@ -421,6 +421,41 @@ def test_write_item_summary_refresh_writes_summary_only() -> None:
     assert request["json"][0]["summary_md"].startswith("## 当前学习概览")
     assert request["json"][0]["last_refreshed_from_feature"] == "chat"
     assert request["json"][0]["last_refreshed_from_turn_id"] == "session_1"
+    assert "summary_structured_json" not in request["json"][0]
+
+    asyncio.run(client.aclose())
+
+
+def test_write_item_summary_refresh_preserves_structured_learning_truth() -> None:
+    requests: list[dict[str, object]] = []
+    client = _make_client(requests)
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+    item = _make_item(
+        event_type="summary_refresh",
+        dedupe_key="summary:learning-synthesis",
+        payload_json={
+            "user_id": "student_demo",
+            "summary_md": "## 学习事实编译",
+            "source_feature": "learning_synthesis",
+            "source_id": "nightly_synthesis",
+            "summary_structured_json": {
+                "subject": "construction_exam_learning_truth",
+                "weak_points": [{"concept_id": "1A432000"}],
+            },
+        },
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    request = requests[-1]
+    assert request["path"] == "/rest/v1/learner_summaries"
+    assert request["json"][0]["summary_structured_json"]["subject"] == "construction_exam_learning_truth"
+    assert request["json"][0]["summary_structured_json"]["weak_points"][0]["concept_id"] == "1A432000"
 
     asyncio.run(client.aclose())
 

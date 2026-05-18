@@ -183,6 +183,165 @@ def test_learner_state_context_renders_construction_grading_error_events(tmp_pat
     )
 
 
+def test_learner_state_context_renders_learning_evidence_events(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn-1:q-law",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_type": "mcq",
+            "question_id": "q-law",
+            "score_awarded": 0.0,
+            "max_score": 1.0,
+            "error_events": [
+                {
+                    "error_code": "M02",
+                    "diagnosis": "把行政法规与部门规章层级混淆。",
+                }
+            ],
+            "next_training_signal": {
+                "concept": "法规层级",
+                "focus": "行政法规与部门规章辨析",
+            },
+        },
+    )
+
+    context = service.build_context("student_demo", language="zh")
+    candidates = service.build_context_candidates(
+        user_id="student_demo",
+        query="继续练刚才薄弱的点",
+        route="recall",
+        language="zh",
+    )
+
+    assert "建筑实务批改错因" in context
+    assert "把行政法规与部门规章层级混淆" in context
+    assert "行政法规与部门规章辨析" in context
+    assert any(
+        "行政法规与部门规章辨析" in str(candidate.get("content") or "")
+        for candidate in candidates.get("candidates", [])
+    )
+
+
+def test_learner_state_synthesize_learning_truth_dry_run_does_not_enqueue(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    for index in range(2):
+        service.append_memory_event(
+            "student_demo",
+            source_feature="construction_grading",
+            source_id=f"turn-{index}",
+            source_bot_id="construction-exam",
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "learning_evidence",
+                "turn_id": f"turn-{index}",
+                "question_id": f"q-{index}",
+                "question_type": "case",
+                "score_awarded": 0,
+                "max_score": 1,
+                "error_events": [
+                    {"error_code": "E02", "concept_tag": "1A432000", "diagnosis": "漏专家论证。"}
+                ],
+                "next_training_signal": {"concept": "1A432000", "focus": "专家论证程序"},
+                "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+            },
+        )
+
+    result = service.synthesize_learning_truth("student_demo", dry_run=True)
+
+    assert result["projection"]["weak_points"][0]["evidence_level"] == "L1_repeated"
+    assert result["outbox_item"] is None
+    assert [
+        item for item in service.outbox_service.list_pending("student_demo")
+        if item.event_type == "summary_refresh"
+    ] == []
+
+
+def test_learner_state_synthesize_learning_truth_enqueues_summary_refresh(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    for index in range(2):
+        service.append_memory_event(
+            "student_demo",
+            source_feature="construction_grading",
+            source_id=f"turn-{index}",
+            source_bot_id="construction-exam",
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "learning_evidence",
+                "turn_id": f"turn-{index}",
+                "question_id": f"q-{index}",
+                "question_type": "case",
+                "score_awarded": 0,
+                "max_score": 1,
+                "error_events": [
+                    {"error_code": "E02", "concept_tag": "1A432000", "diagnosis": "漏专家论证。"}
+                ],
+                "next_training_signal": {"concept": "1A432000", "focus": "专家论证程序"},
+                "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+            },
+        )
+
+    result = service.synthesize_learning_truth("student_demo", dry_run=False)
+
+    pending = [
+        item for item in service.outbox_service.list_pending("student_demo")
+        if item.event_type == "summary_refresh"
+    ]
+    assert result["outbox_item"] is not None
+    assert pending[0].event_type == "summary_refresh"
+    assert pending[0].payload_json["summary_structured_json"]["subject"] == "construction_exam_learning_truth"
+
+
+def test_learning_synthesis_summary_refresh_dedupe_includes_projection_hash(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    base_payload = {
+        "event_type": "learning_evidence",
+        "turn_id": "turn-1",
+        "question_id": "q-1",
+        "question_type": "case",
+        "score_awarded": 0,
+        "max_score": 1,
+        "error_events": [{"error_code": "E02", "concept_tag": "1A432000", "diagnosis": "漏专家论证。"}],
+        "next_training_signal": {"concept": "1A432000", "focus": "专家论证程序"},
+        "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+    }
+    service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn-1",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        payload_json=base_payload,
+    )
+    first = service.synthesize_learning_truth("student_demo", dry_run=False)
+
+    second_payload = dict(base_payload)
+    second_payload["turn_id"] = "turn-2"
+    second_payload["question_id"] = "q-2"
+    service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn-2",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        payload_json=second_payload,
+    )
+    second = service.synthesize_learning_truth("student_demo", dry_run=False)
+
+    pending = [
+        item for item in service.outbox_service.list_pending("student_demo", limit=None)
+        if item.event_type == "summary_refresh"
+    ]
+    assert first["outbox_item"].id != second["outbox_item"].id
+    assert len(pending) == 2
+    assert len(pending[-1].payload_json["summary_structured_json"]["observed_candidates"]) == 0
+    assert pending[-1].payload_json["summary_structured_json"]["weak_points"][0]["evidence_level"] == "L1_repeated"
+
+
 def test_learner_state_build_compact_context_returns_learner_facts_only(tmp_path) -> None:
     core_store = _CoreStoreStub()
     core_store.goals = [

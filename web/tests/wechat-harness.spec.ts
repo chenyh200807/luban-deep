@@ -40,3 +40,47 @@ test("wechat harness mobile viewport keeps the phone surface readable", async ({
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
 
+test("wechat harness displays learning brain grading and synthesis result", async ({ page }) => {
+  await page.route("**/api/v1/learning-brain/harness-case-grading", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      json: {
+        ok: true,
+        user_id: "wechat_harness_learning_brain",
+        grading_results: [
+          {
+            question_id: "wechat-harness-case-001",
+            score_label: "0/1",
+            missed_points: ["应组织专家论证"],
+            rewrite: "应组织专家论证，并编制专项施工方案后按规定审批。",
+            next_training_signal: {
+              concept: "1A432000",
+              focus: "危险性较大工程专项方案程序",
+              mode: "projected_rubric",
+            },
+          },
+        ],
+        event_count: 2,
+        created_claim_count: 1,
+        output_projection_hash: "sha256:test",
+        projection_subject: "construction_exam_learning_truth",
+        weak_points: [
+          {
+            concept_id: "1A432000",
+            error_code: "E02",
+            evidence_level: "L1_repeated",
+            supporting_event_ids: ["evt1", "evt2"],
+          },
+        ],
+        typed_graph_edge_count: 7,
+      },
+    });
+  });
+
+  await page.goto("/wechat-harness");
+  await expect(page.getByTestId("learning-brain-qa")).toBeVisible();
+  await page.getByTestId("learning-brain-run").click();
+  await expect(page.getByTestId("learning-brain-result")).toContainText("0/1");
+  await expect(page.getByTestId("learning-brain-result")).toContainText("应组织专家论证");
+  await expect(page.getByTestId("learning-brain-result")).toContainText("construction_exam_learning_truth");
+});

@@ -8,11 +8,19 @@ type FormState = {
   name: string;
   phone: string;
   email: string;
+  province: string;
+  ageRange: string;
+  education: string;
+  occupation: string;
   examType: string;
   examStage: string;
+  preparationYears: string;
+  knowledgeFoundation: string;
   painPoint: string;
   weeklyTime: string;
+  dailyStudyTime: string;
   currentMethod: string;
+  studyDifficulties: string;
   wechatId: string;
   isYousenMember: string;
   examDate: string;
@@ -27,11 +35,19 @@ const initialForm: FormState = {
   name: "",
   phone: "",
   email: "",
+  province: "",
+  ageRange: "",
+  education: "",
+  occupation: "",
   examType: "",
   examStage: "",
+  preparationYears: "",
+  knowledgeFoundation: "",
   painPoint: "",
   weeklyTime: "",
+  dailyStudyTime: "",
   currentMethod: "",
+  studyDifficulties: "",
   wechatId: "",
   isYousenMember: "",
   examDate: "",
@@ -46,6 +62,10 @@ const painOptions = ["案例题不会写", "错题原因不清楚", "知识点�
 const weeklyTimeOptions = ["10 分钟以内", "10-30 分钟", "30-60 分钟", "1 小时以上"];
 const examDateOptions = ["2026 年考试", "2027 年考试", "还没确定", "只想先体验"];
 const yousenMemberOptions = ["佑森在读/已购学员", "曾经听过佑森课程", "非佑森学员", "不确定"];
+const ageRangeOptions = ["18-25 岁", "26-35 岁", "36-45 岁", "45 岁以上"];
+const preparationYearsOptions = ["首次备考", "第 2 次备考", "第 3 次备考", "3 次以上备考"];
+const knowledgeFoundationOptions = ["0 基础", "基础薄弱", "一般", "扎实"];
+const dailyStudyTimeOptions = ["30 分钟以内", "30-60 分钟", "1-2 小时", "2 小时以上", "不固定"];
 
 function validate(form: FormState): FormErrors {
   const errors: FormErrors = {};
@@ -242,6 +262,146 @@ export function InviteApplicationForm({ sourcePage }: { sourcePage: string }) {
         {errors.email ? <p id="email-error" className="mt-2 text-sm leading-6 text-[#ff9c7a]">{errors.email}</p> : null}
       </div>
 
+      <section className="space-y-5 rounded-3xl border border-white/10 bg-white/[0.035] p-4 sm:p-5">
+        <div>
+          <p className="text-sm font-black text-white/[0.88]">基础画像</p>
+          <p className="mt-1 text-xs leading-5 text-white/[0.48]">用于判断首批内测匹配度，不会作为公开注册承诺。</p>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="province" className="block text-sm font-bold text-white/[0.86]">
+              所在省份
+            </label>
+            <input
+              id="province"
+              name="province"
+              type="text"
+              autoComplete="address-level1"
+              value={form.province}
+              onChange={(event) => updateForm("province", event.target.value)}
+              placeholder="例如：江苏、广东、山东..."
+              className="mt-2 w-full rounded-2xl border border-white/[0.12] bg-white/[0.07] px-4 py-3 text-base text-white transition-colors duration-200 placeholder:text-white/[0.32] hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="education" className="block text-sm font-bold text-white/[0.86]">
+              学历
+            </label>
+            <input
+              id="education"
+              name="education"
+              type="text"
+              autoComplete="off"
+              value={form.education}
+              onChange={(event) => updateForm("education", event.target.value)}
+              placeholder="例如：大专、本科、研究生..."
+              className="mt-2 w-full rounded-2xl border border-white/[0.12] bg-white/[0.07] px-4 py-3 text-base text-white transition-colors duration-200 placeholder:text-white/[0.32] hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
+            />
+          </div>
+        </div>
+
+        <fieldset>
+          <legend className="text-sm font-bold text-white/[0.86]">年龄</legend>
+          <div className="mt-3 grid gap-3 sm:grid-cols-4">
+            {ageRangeOptions.map((option) => (
+              <label
+                key={option}
+                className="flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white/[0.72] transition-colors duration-200 hover:border-white/[0.24] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[#5bbcff]"
+              >
+                <input
+                  type="radio"
+                  name="ageRange"
+                  value={option}
+                  checked={form.ageRange === option}
+                  onChange={(event) => updateForm("ageRange", event.target.value)}
+                  className="h-4 w-4 accent-[#5bbcff]"
+                />
+                <span>{option}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="occupation" className="block text-sm font-bold text-white/[0.86]">
+              当前职业
+            </label>
+            <input
+              id="occupation"
+              name="occupation"
+              type="text"
+              autoComplete="organization-title"
+              value={form.occupation}
+              onChange={(event) => updateForm("occupation", event.target.value)}
+              placeholder="例如：施工员、项目经理、资料员..."
+              className="mt-2 w-full rounded-2xl border border-white/[0.12] bg-white/[0.07] px-4 py-3 text-base text-white transition-colors duration-200 placeholder:text-white/[0.32] hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="preparation-years" className="block text-sm font-bold text-white/[0.86]">
+              报考年限
+            </label>
+            <select
+              id="preparation-years"
+              name="preparationYears"
+              autoComplete="off"
+              value={form.preparationYears}
+              onChange={(event) => updateForm("preparationYears", event.target.value)}
+              className="mt-2 w-full rounded-2xl border border-white/[0.12] bg-[#172235] px-4 py-3 text-base text-white transition-colors duration-200 hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
+            >
+              <option value="">请选择第几次备考</option>
+              {preparationYearsOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="knowledge-foundation" className="block text-sm font-bold text-white/[0.86]">
+              专业知识基础
+            </label>
+            <select
+              id="knowledge-foundation"
+              name="knowledgeFoundation"
+              autoComplete="off"
+              value={form.knowledgeFoundation}
+              onChange={(event) => updateForm("knowledgeFoundation", event.target.value)}
+              className="mt-2 w-full rounded-2xl border border-white/[0.12] bg-[#172235] px-4 py-3 text-base text-white transition-colors duration-200 hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
+            >
+              <option value="">请选择基础情况</option>
+              {knowledgeFoundationOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="daily-study-time" className="block text-sm font-bold text-white/[0.86]">
+              每日固定学习时长
+            </label>
+            <select
+              id="daily-study-time"
+              name="dailyStudyTime"
+              autoComplete="off"
+              value={form.dailyStudyTime}
+              onChange={(event) => updateForm("dailyStudyTime", event.target.value)}
+              className="mt-2 w-full rounded-2xl border border-white/[0.12] bg-[#172235] px-4 py-3 text-base text-white transition-colors duration-200 hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
+            >
+              <option value="">请选择每日学习时长</option>
+              {dailyStudyTimeOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </section>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="exam-type" className="block text-sm font-bold text-white/[0.86]">
@@ -390,6 +550,22 @@ export function InviteApplicationForm({ sourcePage }: { sourcePage: string }) {
           value={form.currentMethod}
           onChange={(event) => updateForm("currentMethod", event.target.value)}
           placeholder="例如：问老师、刷题、看解析、用通用 AI、暂时跳过..."
+          rows={3}
+          className="mt-2 w-full resize-y rounded-2xl border border-white/[0.12] bg-white/[0.07] px-4 py-3 text-base leading-7 text-white transition-colors duration-200 placeholder:text-white/[0.32] hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="study-difficulties" className="block text-sm font-bold text-white/[0.86]">
+          备考学习存在的主要难点
+        </label>
+        <textarea
+          id="study-difficulties"
+          name="studyDifficulties"
+          autoComplete="off"
+          value={form.studyDifficulties}
+          onChange={(event) => updateForm("studyDifficulties", event.target.value)}
+          placeholder="例如：工作忙没时间、基础概念不牢、案例题不会组织语言、错题复盘坚持不下来..."
           rows={3}
           className="mt-2 w-full resize-y rounded-2xl border border-white/[0.12] bg-white/[0.07] px-4 py-3 text-base leading-7 text-white transition-colors duration-200 placeholder:text-white/[0.32] hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
         />

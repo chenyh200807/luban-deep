@@ -725,6 +725,125 @@
   max-height: 260px;
 }
 
+.qaForm {
+  display: grid;
+  gap: 10px;
+}
+
+.qaForm label {
+  display: grid;
+  gap: 5px;
+}
+
+.qaForm label span {
+  color: #83766b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.qaForm input,
+.qaForm textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #ded6c8;
+  border-radius: 7px;
+  background: #fffdf9;
+  color: #302720;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px 9px;
+}
+
+.qaForm textarea {
+  resize: vertical;
+}
+
+.qaForm button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: #c35a2c;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.qaForm button:disabled {
+  background: #d8cfc3;
+  color: #76695e;
+}
+
+.qaError {
+  margin-top: 10px;
+  border-radius: 7px;
+  background: #fff1ee;
+  color: #9f321e;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 8px;
+}
+
+.qaResult {
+  display: grid;
+  gap: 9px;
+  margin-top: 10px;
+}
+
+.qaMetrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.qaMetrics span {
+  border-radius: 999px;
+  background: #ecf6ed;
+  color: #246b35;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 8px;
+}
+
+.qaGradingCard {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #eadfce;
+  border-radius: 8px;
+  background: #fffaf3;
+  padding: 10px;
+}
+
+.qaGradingCard div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.qaGradingCard strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.qaGradingCard span {
+  border-radius: 999px;
+  background: #f1e7de;
+  color: #9d4c27;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 7px;
+}
+
+.qaGradingCard p {
+  margin: 0;
+  color: #5b5047;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 @media (max-width: 980px) {
   .root {
     grid-template-columns: 1fr;

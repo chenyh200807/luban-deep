@@ -330,18 +330,16 @@ class LearnerStateSupabaseWriter:
         summary_md = str(payload.get("summary_md") or "").strip()
         if not summary_md:
             return None
-        return {
+        row = {
             "user_id": str(item.user_id).strip(),
             "summary_md": summary_md,
-            "summary_structured_json": {
-                "source_feature": str(payload.get("source_feature") or "").strip(),
-                "source_id": str(payload.get("source_id") or "").strip(),
-                "source_bot_id": self._null_if_blank(payload.get("source_bot_id")),
-            },
             "last_refreshed_from_turn_id": str(payload.get("source_id") or "").strip() or None,
             "last_refreshed_from_feature": str(payload.get("source_feature") or "summary_refresh").strip(),
             "updated_at": str(payload.get("updated_at") or item.created_at).strip(),
         }
+        if isinstance(payload.get("summary_structured_json"), dict):
+            row["summary_structured_json"] = dict(payload.get("summary_structured_json") or {})
+        return row
 
     def _build_heartbeat_job_row(
         self,

@@ -1094,6 +1094,22 @@ class AgentLoop:
         hints = metadata.get("interaction_hints") if isinstance(metadata.get("interaction_hints"), dict) else {}
         return hints.get("current_info_required") is True
 
+    @staticmethod
+    def _runtime_has_default_tool(runtime_metadata: dict[str, Any] | None, tool_name: str) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        default_tools = metadata.get("default_tools") if isinstance(metadata.get("default_tools"), list) else []
+        normalized = {str(item or "").strip() for item in default_tools}
+        return str(tool_name or "").strip() in normalized
+
+    @classmethod
+    def _should_force_web_search_after_exact_prefetch(cls, runtime_metadata: dict[str, Any] | None) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        return (
+            isinstance(metadata.get("_prefetched_exact_question"), dict)
+            and cls._runtime_current_info_required(metadata)
+            and cls._runtime_has_default_tool(metadata, "web_search")
+        )
+
     @classmethod
     def _should_prefetch_web_search(
         cls,
@@ -1296,10 +1312,11 @@ class AgentLoop:
         initial_messages: list[dict[str, Any]],
         current_message: str,
         runtime_metadata: dict[str, Any] | None,
+        force: bool = False,
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
     ) -> list[dict[str, Any]]:
-        if not self._should_prefetch_web_search(
+        if not force and not self._should_prefetch_web_search(
             current_message=current_message,
             runtime_metadata=runtime_metadata,
         ):
@@ -2202,6 +2219,7 @@ class AgentLoop:
                 initial_messages=[],
                 current_message=current_message,
                 runtime_metadata=runtime_metadata,
+                force=True,
                 on_tool_call=on_tool_call,
                 on_tool_result=on_tool_result,
             )
@@ -2256,6 +2274,7 @@ class AgentLoop:
             initial_messages=initial_messages,
             current_message=current_message,
             runtime_metadata=runtime_metadata,
+            force=self._should_force_web_search_after_exact_prefetch(runtime_metadata),
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
         )

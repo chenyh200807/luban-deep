@@ -5,6 +5,7 @@
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
+  Brain,
   CheckCircle2,
   ChevronRight,
   ClipboardList,
@@ -28,6 +29,35 @@ type McqSelection = Record<string, string>;
 interface WechatHarnessClientProps {
   cases: WechatHarnessCase[];
 }
+
+type LearningBrainResult = {
+  question_id: string;
+  score_label: string;
+  missed_points: string[];
+  rewrite: string;
+  next_training_signal: {
+    concept?: string;
+    focus?: string;
+    mode?: string;
+  };
+};
+
+type LearningBrainResponse = {
+  ok: boolean;
+  user_id: string;
+  grading_results: LearningBrainResult[];
+  event_count: number;
+  created_claim_count: number;
+  output_projection_hash: string;
+  projection_subject: string;
+  weak_points: Array<{
+    concept_id?: string;
+    error_code?: string;
+    evidence_level?: string;
+    supporting_event_ids?: string[];
+  }>;
+  typed_graph_edge_count: number;
+};
 
 function textFromNodes(nodes: unknown): string {
   if (!Array.isArray(nodes)) return "";
@@ -309,6 +339,111 @@ function McqCards({
   );
 }
 
+function LearningBrainQaPanel() {
+  const [userId, setUserId] = useState("wechat_harness_learning_brain");
+  const [answer, setAnswer] = useState("应加强现场管理，落实责任，严格检查。");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<LearningBrainResponse | null>(null);
+
+  async function runQa() {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/v1/learning-brain/harness-case-grading", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, user_answer: answer }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.detail || "Learning Brain QA failed");
+      }
+      setResult(payload as LearningBrainResponse);
+    } catch (err) {
+      setResult(null);
+      setError(err instanceof Error ? err.message : "Learning Brain QA failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className={styles.inspectorSection} data-testid="learning-brain-qa">
+      <h2>
+        <Brain size={16} />
+        Learning Brain QA
+      </h2>
+      <div className={styles.qaForm}>
+        <label>
+          <span>User ID</span>
+          <input
+            data-testid="learning-brain-user-id"
+            onChange={(event) => setUserId(event.target.value)}
+            value={userId}
+          />
+        </label>
+        <label>
+          <span>案例题作答</span>
+          <textarea
+            data-testid="learning-brain-answer"
+            onChange={(event) => setAnswer(event.target.value)}
+            rows={3}
+            value={answer}
+          />
+        </label>
+        <button
+          data-testid="learning-brain-run"
+          disabled={loading || !userId.trim() || !answer.trim()}
+          onClick={runQa}
+          type="button"
+        >
+          {loading ? "运行中..." : "运行闭环"}
+        </button>
+      </div>
+      {error ? (
+        <div className={styles.qaError} data-testid="learning-brain-error">
+          {error}
+        </div>
+      ) : null}
+      {result ? (
+        <div className={styles.qaResult} data-testid="learning-brain-result">
+          <div className={styles.qaMetrics}>
+            <span>events {result.event_count}</span>
+            <span>claims {result.created_claim_count}</span>
+            <span>edges {result.typed_graph_edge_count}</span>
+          </div>
+          {result.grading_results.map((item) => (
+            <article className={styles.qaGradingCard} key={item.question_id}>
+              <div>
+                <strong>{item.question_id}</strong>
+                <span>{item.score_label}</span>
+              </div>
+              <p>漏点：{item.missed_points.join("；") || "无"}</p>
+              <p>改写：{item.rewrite || "无"}</p>
+              <p>
+                下一步：{item.next_training_signal.concept || "--"} /{" "}
+                {item.next_training_signal.focus || "--"}
+              </p>
+            </article>
+          ))}
+          <pre className={styles.jsonBlock}>
+            {JSON.stringify(
+              {
+                subject: result.projection_subject,
+                weak_points: result.weak_points,
+                hash: result.output_projection_hash,
+              },
+              null,
+              2,
+            )}
+          </pre>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function PhonePreview({
   state,
   currentCase,
@@ -569,6 +704,8 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
                 <p className={styles.muted}>该 case 暂无额外人工关注点。</p>
               )}
             </section>
+
+            <LearningBrainQaPanel />
 
             <section className={styles.inspectorSection}>
               <h2>当前 render model</h2>

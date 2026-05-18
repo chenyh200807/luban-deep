@@ -157,6 +157,7 @@ function InviteApplicationRow({ item }: { item: BiInviteTestApplication }) {
         </div>
         <p className="mt-2 text-xs text-[var(--muted-foreground)]">{item.source_page || "unknown"}</p>
         <p className="mt-1 text-xs text-[var(--muted-foreground)]">提交 {formatNumber(item.submit_count)} 次</p>
+        <p className="mt-1 text-xs text-[var(--muted-foreground)]">{[item.province, item.age_range].filter(Boolean).join(" / ") || "--"}</p>
       </div>
       <div className="space-y-2 text-xs text-[var(--muted-foreground)]">
         <ContactLine icon={<Phone size={13} />} value={item.phone || "--"} />
@@ -167,13 +168,17 @@ function InviteApplicationRow({ item }: { item: BiInviteTestApplication }) {
         <p className="font-medium text-[var(--foreground)]">{item.exam_type || "--"}</p>
         <p className="text-xs leading-5 text-[var(--muted-foreground)]">{item.exam_stage || "--"}</p>
         <p className="text-xs leading-5 text-[var(--muted-foreground)]">{item.weekly_time || "--"}</p>
+        <p className="text-xs leading-5 text-[var(--muted-foreground)]">{item.daily_study_time || item.knowledge_foundation || "--"}</p>
       </div>
       <div className="min-w-0 space-y-2">
         <p className="inline-flex rounded-full bg-[var(--secondary)] px-3 py-1 text-xs font-medium text-[var(--foreground)]">
           {item.pain_point || "未填写痛点"}
         </p>
         <p className="line-clamp-2 text-xs leading-5 text-[var(--muted-foreground)]">
-          {item.latest_wrong_question || item.current_method || "未填写补充材料"}
+          {item.study_difficulties || item.latest_wrong_question || item.current_method || "未填写补充材料"}
+        </p>
+        <p className="line-clamp-1 text-xs leading-5 text-[var(--muted-foreground)]">
+          {[item.occupation, item.education, item.preparation_years].filter(Boolean).join(" / ") || "未填写职业画像"}
         </p>
         {item.accept_interview ? (
           <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">愿意回访</span>

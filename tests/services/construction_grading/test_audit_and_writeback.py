@@ -92,13 +92,15 @@ def test_writeback_uses_existing_learner_memory_events() -> None:
     assert count == 1
     call = service.calls[0]
     assert call["source_feature"] == "construction_grading"
-    assert call["memory_kind"] == "case_error_event"
+    assert call["memory_kind"] == "learning_evidence"
     assert call["source_bot_id"] == "construction-exam"
     assert call["dedupe_key"]
-    assert call["payload_json"]["event_type"] == "construction_grading_error"
+    assert call["payload_json"]["event_type"] == "learning_evidence"
+    assert call["payload_json"]["legacy_event_type"] == "construction_grading_error"
     assert call["payload_json"]["question_id"] == "case-1"
     assert call["payload_json"]["error_events"][0]["error_code"] in {"E02", "E03", "E04"}
     assert call["payload_json"]["errors"][0]["error_code"] in {"E02", "E03", "E04"}
+    assert call["payload_json"]["quality"]["evidence_level"] == "L0_observed"
 
 
 def test_writeback_accepts_runtime_batch_dict_result() -> None:
@@ -152,6 +154,6 @@ def test_writeback_accepts_runtime_batch_dict_result() -> None:
     assert len(service.calls) == 1
     call = service.calls[0]
     assert call["source_id"] == "turn-1:q-1"
-    assert call["memory_kind"] == "mcq_error_event"
+    assert call["memory_kind"] == "learning_evidence"
     assert call["payload_json"]["question_id"] == "q-1"
     assert call["payload_json"]["next_training_signal"]["focus"] == "行政法规与部门规章辨析"

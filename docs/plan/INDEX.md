@@ -22,6 +22,7 @@
 | TutorBot 与统一聊天入口 | [2026-04-15-unified-ws-full-tutorbot-prd.md](2026-04-15-unified-ws-full-tutorbot-prd.md) | `/api/v1/ws`、TutorBot 完整 runtime、轻量 TutorBot 歧义清理 |
 | 上游能力吸收 | [2026-05-12-upstream-p0-absorption-status.md](2026-05-12-upstream-p0-absorption-status.md) / [2026-05-12-upstream-p1-knowledge-absorption-status.md](2026-05-12-upstream-p1-knowledge-absorption-status.md) / [2026-05-12-upstream-p2-request-snapshot-contract.md](2026-05-12-upstream-p2-request-snapshot-contract.md) | HKUDS/DeepTutor v1.3.7-v1.3.10 runtime/stability、knowledge/RAG、request snapshot 能力选择性吸收 |
 | 学员长期状态 | [2026-04-15-learner-state-memory-guided-learning-prd.md](2026-04-15-learner-state-memory-guided-learning-prd.md) | learner state、summary/profile/memory、Guided Learning、Heartbeat |
+| 学习事实编译 / Evidence-first Memory | [2026-05-18-luban-learning-brain-gbrain-absorption-prd.md](2026-05-18-luban-learning-brain-gbrain-absorption-prd.md) / [2026-05-18-luban-learning-brain-gbrain-absorption-implementation-plan.md](2026-05-18-luban-learning-brain-gbrain-absorption-implementation-plan.md) | 吸收 GBrain 的 compiled truth + timeline、typed graph、evidence-first memory、nightly synthesis；PRD Phase 0-5 与 v0.2 强化项已本地实现，并通过 `/wechat-harness` live visible-chain 验证 |
 | Bot-Learner Overlay | [2026-04-15-bot-learner-overlay-prd.md](2026-04-15-bot-learner-overlay-prd.md) | 多 Bot 对同一学员的局部状态、promotion、仲裁 |
 | 佑森小程序融合 | [2026-04-15-yousen-deeptutor-fusion-prd.md](2026-04-15-yousen-deeptutor-fusion-prd.md) | Yousen 原生入口、workspace shell、包内路由与页面体验 |
 | 微信结构化渲染 | [2026-04-16-wechat-structured-teaching-renderer-prd.md](2026-04-16-wechat-structured-teaching-renderer-prd.md) / [2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md](2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md) | 小程序题卡、表格、公式、图表、教学 block 渲染、Markdown fallback 单一 authority 与 golden corpus |
@@ -63,6 +64,8 @@
 | [2026-04-15-bot-learner-overlay-prd.md](2026-04-15-bot-learner-overlay-prd.md) | PRD | Partially Implemented v1 | 跨 Bot learner overlay 的产品与架构主线；多 Bot 产品闭环未全关。 |
 | [2026-04-15-bot-learner-overlay-service-design.md](2026-04-15-bot-learner-overlay-service-design.md) | 设计稿 | Implemented foundation v1 | `BotLearnerOverlayService` 服务设计。 |
 | [2026-04-24-learner-state-overlay-completion-evidence.md](2026-04-24-learner-state-overlay-completion-evidence.md) | 复审证据 | Gap Review v1 | Learner State / Overlay 的 repo foundation 证据、未完成目标和下一步 gate。 |
+| [2026-05-18-luban-learning-brain-gbrain-absorption-prd.md](2026-05-18-luban-learning-brain-gbrain-absorption-prd.md) | PRD | Implemented locally all phases + Web live verified | 将 GBrain 启发收敛为鲁班智考学习事实编译层：`learner_memory_events` 作 evidence ledger、`learner_summaries.summary_structured_json` 作 compiled truth projection、typed graph 作 JSON projection、nightly synthesis 离线生成教学事实；`/wechat-harness` 已完成 live visible-chain 验证。 |
+| [2026-05-18-luban-learning-brain-gbrain-absorption-implementation-plan.md](2026-05-18-luban-learning-brain-gbrain-absorption-implementation-plan.md) | Implementation Plan | Implemented locally all phases + Web live verified | 把学习事实编译 PRD 拆成可执行任务：`learning_evidence` canonical payload、learner-state synthesis、typed graph projection/query、dry-run nightly script、deep_question 消费 compiled signal、Web QA handoff；已记录本地验证证据。 |
 
 ### 3. 小程序 / 佑森 / 渲染
 
@@ -127,6 +130,8 @@
 | [2026-05-13-luban-case-grading-error-map-implementation-plan.md](2026-05-13-luban-case-grading-error-map-implementation-plan.md) | Implementation Plan | Draft v1.7 | 将 live-audited 题目阅卷 PRD 拆成 P0/P1 可执行任务：TutorBot `mcq_grading` / `case_grading` Skill surface、readiness audit、源数据与 Supabase 对账、LLM structured matcher、`CaseGradingSkillKernel`、内部质量门控、learner writeback、题库优先推荐、`deep_question` 接入和验证 gate。 |
 | [2026-05-14-luban-skill-first-grading-thin-shell-execution-plan.md](2026-05-14-luban-skill-first-grading-thin-shell-execution-plan.md) | Execution Plan | Active P0 | 对上一份大实施计划做减法收口：不新增 Rubric 中台、不新增路由、不新增 learner state；用现有 `deep_question`、`construction_grading_result`、阅卷 Skill、learner memory event 和题库优先推荐完成主观题阅卷、错因沉淀与个性化训练闭环。 |
 | [2026-05-13-luban-grading-chain-regression-matrix.md](2026-05-13-luban-grading-chain-regression-matrix.md) | Regression Matrix | Active | 阅卷链路事故回归矩阵：覆盖生成 5 题不泄露答案、题型 alias 交互、redacted context 恢复服务端标准答案、q1/q2/q5 批量判分、结构化 grading result 优先、答完后继续出题不重批、Skill 使用边界和发布前最小命令。 |
+| [2026-05-18-luban-learning-brain-gbrain-absorption-prd.md](2026-05-18-luban-learning-brain-gbrain-absorption-prd.md) | PRD | Implemented locally all phases + Web live verified | 在案例题阅卷和 learner state 之间补学习事实编译层，把题目、知识点、采分点、错因、作答、下一题训练沉淀为带证据和时间线的 compiled learning truth；`/wechat-harness` 已完成 live visible-chain 验证。 |
+| [2026-05-18-luban-learning-brain-gbrain-absorption-implementation-plan.md](2026-05-18-luban-learning-brain-gbrain-absorption-implementation-plan.md) | Implementation Plan | Implemented locally all phases + Web live verified | 基于现有 `construction_grading`、`LearnerStateService`、outbox、`deep_question` 链路执行学习事实编译，不创建平行 memory、RAG 或聊天入口；已完成本地后端闭环、graph query、Teaching Policy 消费和 Web live visible-chain。 |
 | [2026-04-25-luban-feedback-top10-issue-register.md](2026-04-25-luban-feedback-top10-issue-register.md) | Issue register | Draft | 从 DOCX/PPTX 原始使用反馈合并出的 Top10 问题域，用作后续分组修复的用户反馈 authority。 |
 | [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | Root-cause fix plan | Draft | 运营反馈与线上证据汇总出的 Top10 问题；Batch 1-4、2026-04-25 Batch A-H 已实施，继续收口练题结构化 config、SMS 真实送达、干净 DevTools/真机慢请求取消和移动端交互矩阵。 |
 
@@ -168,6 +173,7 @@
 - [2026-05-02-luban-assessment-blueprint-prd.md](2026-05-02-luban-assessment-blueprint-prd.md)
 - [2026-05-13-luban-case-grading-error-map-prd.md](2026-05-13-luban-case-grading-error-map-prd.md)
 - [2026-05-03-deeptutor-web-search-stack-prd.md](2026-05-03-deeptutor-web-search-stack-prd.md)
+- [2026-05-18-luban-learning-brain-gbrain-absorption-prd.md](2026-05-18-luban-learning-brain-gbrain-absorption-prd.md)
 
 ### Service Design / Schema Appendix
 
@@ -183,6 +189,7 @@
 - [2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md](2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md)
 - [2026-05-03-deeptutor-web-search-stack-implementation-plan.md](2026-05-03-deeptutor-web-search-stack-implementation-plan.md)
 - [2026-05-18-deeptutor-launch-readiness-dashboard-implementation-plan.md](2026-05-18-deeptutor-launch-readiness-dashboard-implementation-plan.md)
+- [2026-05-18-luban-learning-brain-gbrain-absorption-implementation-plan.md](2026-05-18-luban-learning-brain-gbrain-absorption-implementation-plan.md)
 - [2026-05-13-luban-case-grading-error-map-implementation-plan.md](2026-05-13-luban-case-grading-error-map-implementation-plan.md)
 - [2026-05-14-luban-skill-first-grading-thin-shell-execution-plan.md](2026-05-14-luban-skill-first-grading-thin-shell-execution-plan.md)
 - [2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md](2026-05-13-wechat-renderer-markdown-authority-implementation-plan.md)

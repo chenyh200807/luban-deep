@@ -148,6 +148,14 @@ def test_build_invite_test_application_record_validates_public_payload() -> None
             "examStage": "正在冲刺刷题",
             "painPoint": "错题原因不清楚",
             "weeklyTime": "10-30 分钟",
+            "province": "江苏",
+            "ageRange": "26-35 岁",
+            "education": "本科",
+            "occupation": "施工员",
+            "preparationYears": "第 2 次备考",
+            "knowledgeFoundation": "基础薄弱",
+            "dailyStudyTime": "30-60 分钟",
+            "studyDifficulties": "工作忙，案例题不会组织语言。",
             "consent": True,
             "acceptInterview": True,
             "sourcePage": "invite-test",
@@ -160,6 +168,11 @@ def test_build_invite_test_application_record_validates_public_payload() -> None
     assert record["accept_interview"] is True
     assert record["status"] == "submitted"
     assert record["raw_payload"]["examType"] == "二建建筑实务"
+    assert record["raw_payload"]["province"] == "江苏"
+    assert record["raw_payload"]["ageRange"] == "26-35 岁"
+    assert record["raw_payload"]["knowledgeFoundation"] == "基础薄弱"
+    assert record["raw_payload"]["dailyStudyTime"] == "30-60 分钟"
+    assert "province" not in record
 
 
 def test_build_invite_test_application_record_rejects_bad_phone() -> None:
@@ -203,3 +216,37 @@ async def test_invite_test_store_submits_to_jsonl_fallback(tmp_path: Path, monke
     rows = [json.loads(line) for line in jsonl_path.read_text(encoding="utf-8").splitlines()]
     assert rows[0]["phone"] == "13800138000"
     assert rows[0]["source_page"] == "invite-test"
+
+
+def test_normalize_invite_test_application_reads_profile_fields_from_raw_payload() -> None:
+    row = {
+        "id": "app-profile-1",
+        "name": "画像学员",
+        "phone": "13800138000",
+        "email": "profile@example.com",
+        "exam_type": "二建建筑实务",
+        "exam_stage": "正在冲刺刷题",
+        "pain_point": "案例题不会写",
+        "weekly_time": "10-30 分钟",
+        "raw_payload": {
+            "province": "广东",
+            "ageRange": "36-45 岁",
+            "education": "大专",
+            "occupation": "项目经理",
+            "preparationYears": "第 3 次备考",
+            "knowledgeFoundation": "一般",
+            "dailyStudyTime": "1-2 小时",
+            "studyDifficulties": "错题复盘坚持不下来。",
+        },
+    }
+
+    normalized = normalize_invite_test_application(row, reveal_contact=True)
+
+    assert normalized["province"] == "广东"
+    assert normalized["age_range"] == "36-45 岁"
+    assert normalized["education"] == "大专"
+    assert normalized["occupation"] == "项目经理"
+    assert normalized["preparation_years"] == "第 3 次备考"
+    assert normalized["knowledge_foundation"] == "一般"
+    assert normalized["daily_study_time"] == "1-2 小时"
+    assert normalized["study_difficulties"] == "错题复盘坚持不下来。"

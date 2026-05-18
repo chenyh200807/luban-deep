@@ -31,11 +31,19 @@ _MAX_LENGTHS = {
     "name": 80,
     "phone": 24,
     "email": 160,
+    "province": 80,
+    "age_range": 40,
+    "education": 80,
+    "occupation": 120,
     "exam_type": 80,
     "exam_stage": 80,
+    "preparation_years": 80,
+    "knowledge_foundation": 80,
     "pain_point": 80,
     "weekly_time": 80,
+    "daily_study_time": 80,
     "current_method": 800,
+    "study_difficulties": 1000,
     "wechat_id": 120,
     "is_yousen_member": 80,
     "exam_date": 80,
@@ -48,12 +56,17 @@ _CAMEL_KEYS = {
     "source_page": "sourcePage",
     "utm_source": "utmSource",
     "utm_campaign": "utmCampaign",
+    "age_range": "ageRange",
     "wechat_id": "wechatId",
     "exam_type": "examType",
     "exam_stage": "examStage",
+    "preparation_years": "preparationYears",
+    "knowledge_foundation": "knowledgeFoundation",
     "pain_point": "painPoint",
     "weekly_time": "weeklyTime",
+    "daily_study_time": "dailyStudyTime",
     "current_method": "currentMethod",
+    "study_difficulties": "studyDifficulties",
     "latest_wrong_question": "latestWrongQuestion",
     "is_yousen_member": "isYousenMember",
     "exam_date": "examDate",
@@ -100,6 +113,24 @@ def _payload_value(payload: Mapping[str, Any], snake_key: str) -> Any:
     return _field(payload, snake_key, _CAMEL_KEYS.get(snake_key))
 
 
+def _raw_payload(row: Mapping[str, Any]) -> Mapping[str, Any]:
+    raw = _field(row, "raw_payload", "rawPayload")
+    if isinstance(raw, Mapping):
+        return raw
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            return {}
+        return parsed if isinstance(parsed, Mapping) else {}
+    return {}
+
+
+def _raw_field(row: Mapping[str, Any], snake_key: str) -> Any:
+    raw = _raw_payload(row)
+    return _field(row, snake_key, _CAMEL_KEYS.get(snake_key)) or _field(raw, snake_key, _CAMEL_KEYS.get(snake_key))
+
+
 def build_invite_test_application_record(payload: Mapping[str, Any]) -> dict[str, Any]:
     record = {
         "id": str(uuid4()),
@@ -142,12 +173,20 @@ def build_invite_test_application_record(payload: Mapping[str, Any]) -> dict[str
             "name",
             "phone",
             "email",
+            "province",
+            "age_range",
+            "education",
+            "occupation",
             "wechat_id",
             "exam_type",
             "exam_stage",
+            "preparation_years",
+            "knowledge_foundation",
             "pain_point",
             "weekly_time",
+            "daily_study_time",
             "current_method",
+            "study_difficulties",
             "latest_wrong_question",
             "is_yousen_member",
             "exam_date",
@@ -155,6 +194,20 @@ def build_invite_test_application_record(payload: Mapping[str, Any]) -> dict[str
             "consent",
         }
     }
+    for key in (
+        "province",
+        "age_range",
+        "education",
+        "occupation",
+        "preparation_years",
+        "knowledge_foundation",
+        "daily_study_time",
+        "study_difficulties",
+    ):
+        record["raw_payload"][_CAMEL_KEYS.get(key, key)] = _clean_string(
+            _payload_value(payload, key),
+            _MAX_LENGTHS[key],
+        )
 
     missing_field = next((field for field in _REQUIRED_FIELDS if not record[field]), "")
     if missing_field:
@@ -218,12 +271,20 @@ def normalize_invite_test_application(row: Mapping[str, Any], *, reveal_contact:
         "name": _text(_field(row, "name")),
         "phone": phone if reveal_contact else _mask_phone(phone),
         "email": email if reveal_contact else _mask_email(email),
+        "province": _text(_raw_field(row, "province")),
+        "age_range": _text(_raw_field(row, "age_range")),
+        "education": _text(_raw_field(row, "education")),
+        "occupation": _text(_raw_field(row, "occupation")),
         "wechat_id": wechat_id if reveal_contact else _mask_optional(wechat_id),
         "exam_type": _text(_field(row, "exam_type", "examType")),
         "exam_stage": _text(_field(row, "exam_stage", "examStage")),
+        "preparation_years": _text(_raw_field(row, "preparation_years")),
+        "knowledge_foundation": _text(_raw_field(row, "knowledge_foundation")),
         "pain_point": _text(_field(row, "pain_point", "painPoint")),
         "weekly_time": _text(_field(row, "weekly_time", "weeklyTime")),
+        "daily_study_time": _text(_raw_field(row, "daily_study_time")),
         "current_method": _text(_field(row, "current_method", "currentMethod")),
+        "study_difficulties": _text(_raw_field(row, "study_difficulties")),
         "latest_wrong_question": _text(_field(row, "latest_wrong_question", "latestWrongQuestion")),
         "is_yousen_member": _text(_field(row, "is_yousen_member", "isYousenMember")),
         "exam_date": _text(_field(row, "exam_date", "examDate")),
@@ -614,9 +675,13 @@ class InviteTestApplicationStore:
                         _text(_field(row, "phone")),
                         _text(_field(row, "email")),
                         _text(_field(row, "wechat_id", "wechatId")),
+                        _text(_raw_field(row, "province")),
+                        _text(_raw_field(row, "occupation")),
+                        _text(_raw_field(row, "knowledge_foundation")),
                         _text(_field(row, "exam_type", "examType")),
                         _text(_field(row, "exam_stage", "examStage")),
                         _text(_field(row, "pain_point", "painPoint")),
+                        _text(_raw_field(row, "study_difficulties")),
                     ]
                 ).lower()
                 if query not in haystack:
