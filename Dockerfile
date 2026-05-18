@@ -38,6 +38,8 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Copy frontend source code
 COPY web/ ./
+COPY wx_miniprogram/utils/ /app/wx_miniprogram/utils/
+COPY tests/fixtures/ /app/tests/fixtures/
 
 # Create .env.local with placeholders that will be replaced at runtime.
 # Use unique placeholders that can be safely replaced in built assets.
