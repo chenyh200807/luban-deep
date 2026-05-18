@@ -842,6 +842,7 @@ def _write_grading_error_events_for_context(
             grading_result=grading_result,
             source_id=source_id,
             source_bot_id=_source_bot_id_from_context(context) or None,
+            include_success_events=True,
         )
     except Exception:
         return 0

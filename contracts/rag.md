@@ -9,6 +9,7 @@
 - exact-question 命中
 - authority correction 语义
 - retrieval trace 字段
+- source-aware retrieval plan、provenance trace、compiled learning truth 的只读召回语义
 
 ## 单一控制面
 
@@ -39,6 +40,14 @@
 15. provider 出现 typed retrieval failure 时，RAG 工具必须 fail closed：对用户返回可理解的降级语义，对 trace 暴露 `retrieval_degraded / retrieval_status / provider / stage / retryable`，不得泄露 provider raw error 或把异常抹平成无语义失败。
 16. Supabase Data API 出现项目级服务限制（例如 HTTP 402 / quota / overdue payment）时，pipeline 必须在检索 fanout 前或 fanout 内按 `RAGSearchError(provider="supabase", retryable=False)` fail closed，不能把项目级不可用降级成某个 source group 的普通 warning。
 17. `needs_reindex` 表示当前 canonical 本地 index 不可信；清除该标记的唯一工程路径是从 `raw/` 源文档重新构建成功。不得只靠修改配置或进度状态把它改成 ready。
+18. `retrieval_plan` 是可回放的检索计划 trace，只能描述本轮 source group、intent、query expansion 和 authority order；不得成为第二套 RAG 入口、聊天路由或 TutorBot mode。
+19. `compiled_learning_truth` 只能由 learner-state / synthesis 层作为只读 projection 传入 `RAGService.search(...)` / provider context；`SupabasePipeline` 只允许 materialize retrieval documents，不允许写 learner-state、更新长期画像或从数据库自行拉取 learner truth。
+20. compiled truth 默认只能进入 `ranking_trace.shadow_sources`，不得影响 `answer/content/sources` 或排序。只有显式 enable 且 intent 属于 `weak_point_review` / `next_training` 时，才允许进入最终候选；即便进入候选，也不能压过 exact-question、标准条文、题库标准答案。
+21. `ranking_trace.provenance_features` 默认只暴露来源、authority、证据等级、人工确认、支持事件数量等 compact metadata；不得记录完整 compiled projection、原始私密画像、手机号、钱包、会员账户等敏感字段。
+22. provenance boost 默认关闭；开启时也只能做 bounded adjustment，且 exact-question pinning 是独立 authority contract，不得依赖 provenance boost 才成立。
+23. TutorBot / Chat agent runtime 如果已经持有 caller-passed `compiled_learning_truth`，必须通过现有 `rag` tool kwargs 传入 `RAGService`；adapter 只能透传和记录 compact availability marker，不得在 wrapper 内合成、拉取或改写 learner truth。
+24. graph-aware retrieval 只能作为 compiled truth materialization 的只读上下文，允许表达 `question -> concept -> rubric_item -> error_code -> training_signal -> next_question` 这类 typed edges；它不是第二套 graph DB、第二套 RAG provider，也不得绕过 source-aware ranking。
+25. retrieval maintenance workflow 必须是离线 dry-run / job 形态，输出 retrieval miss、citation、stale weak point、rubric coverage、eval case 报告；不得写 Supabase learner-state，也不得进入在线 `/api/v1/ws` 低延迟链路。
 
 ## 当前统一语义
 
@@ -52,8 +61,15 @@
 - `knowledge_bases`
 - `exact_authority_response`
 - `evidence_bundle`
+- `evidence_bundle.retrieval_plan`
+- `evidence_bundle.ranking_trace`
+- `ranking_trace.provenance_features`
+- `ranking_trace.shadow_sources`
 - `retrieval_degraded`
 - `retrieval_status`
+- `compiled_learning_truth`
+- `compiled_learning_truth.graph_context`
+- `routing_metadata.compiled_learning_truth_available`
 
 ## 必测项
 

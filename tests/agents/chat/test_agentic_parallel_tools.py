@@ -312,6 +312,34 @@ def test_augment_tool_kwargs_fills_rag_query_from_user_message(monkeypatch: pyte
     assert kwargs["query"] == "请分析这道建筑案例题"
 
 
+def test_augment_tool_kwargs_forwards_compiled_learning_truth(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    compiled_truth = {
+        "learner_id": "learner-1",
+        "weak_points": [{"concept_id": "waterproof", "error_code": "missing_rubric"}],
+    }
+    pipeline = AgenticChatPipeline(language="zh")
+    context = UnifiedContext(
+        session_id="session-rag-compiled-truth",
+        user_message="我老是案例题丢分怎么办",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        language="zh",
+        metadata={
+            "turn_id": "turn-rag-compiled-truth",
+            "compiled_learning_truth": compiled_truth,
+        },
+    )
+
+    kwargs = pipeline._augment_tool_kwargs("rag", {}, context, "需要知识召回")
+
+    assert kwargs["compiled_learning_truth"] == compiled_truth
+    assert kwargs["routing_metadata"]["compiled_learning_truth_available"] is True
+
+
 @pytest.mark.asyncio
 async def test_native_tool_loop_forces_rag_for_grounded_tutorbot_profile(
     monkeypatch: pytest.MonkeyPatch,

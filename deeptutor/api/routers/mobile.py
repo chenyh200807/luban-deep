@@ -63,6 +63,7 @@ _BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS
 _BILLING_USAGE_WEEKLY_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS"
 _BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
 _BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
+_LOCAL_WALLET_FALLBACK = "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"
 _BILLING_PLAN_QUOTA_POINTS = {
     "advance": {"five_hour": 1600, "weekly": 4400},
     "sprint": {"five_hour": 3200, "weekly": 9000},
@@ -174,6 +175,203 @@ def _env_flag_enabled(name: str) -> bool:
     return str(os.getenv(name, "") or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _learning_brain_visible_projection(
+    *,
+    user_id: str,
+    projection: dict[str, Any],
+) -> dict[str, Any]:
+    typed_graph = dict(projection.get("typed_graph") or {})
+    typed_graph_edges = [edge for edge in list(typed_graph.get("edges") or []) if isinstance(edge, dict)]
+    compiled_objects = {
+        str(key): dict(value)
+        for key, value in dict(projection.get("compiled_objects") or {}).items()
+        if isinstance(value, dict)
+    }
+    weak_points = [dict(item) for item in list(projection.get("weak_points") or []) if isinstance(item, dict)]
+    improvement_signals = [
+        dict(item) for item in list(projection.get("improvement_signals") or []) if isinstance(item, dict)
+    ]
+    stale_claims = [dict(item) for item in list(projection.get("stale_claims") or []) if isinstance(item, dict)]
+    run = dict(projection.get("synthesis_run") or {})
+    graph_chain = _learning_brain_graph_chain(
+        typed_graph_edges=typed_graph_edges,
+        weak_points=weak_points,
+        improvement_signals=improvement_signals,
+    )
+
+    truth_objects = [
+        {
+            "object_key": key,
+            "object_type": value.get("object_type", ""),
+            "object_id": value.get("object_id", ""),
+            "current_truth": value.get("current_truth", ""),
+            "evidence_level": value.get("evidence_level", ""),
+            "confidence": value.get("confidence", 0),
+            "decay_state": value.get("decay_state", ""),
+            "supporting_event_ids": list(value.get("supporting_event_ids") or []),
+            "conflicting_event_ids": list(value.get("conflicting_event_ids") or []),
+            "timeline_refs": list(value.get("timeline_refs") or []),
+        }
+        for key, value in compiled_objects.items()
+        if str(key).startswith(("concept:", "error:"))
+    ][:6]
+    evidence_items = [
+        {
+            "event_id": event_id,
+            "object_key": item["object_key"],
+            "object_type": item["object_type"],
+            "evidence_level": item["evidence_level"],
+            "edge_type": "",
+            "path": item["object_key"],
+        }
+        for item in truth_objects
+        for event_id in item["supporting_event_ids"][:3]
+    ][:12]
+    for edge in graph_chain["training_uses_question"][:4] + graph_chain["training_improved_error"][:4] + graph_chain["training_not_improved_error"][:4]:
+        from_node = edge.get("from") if isinstance(edge.get("from"), dict) else {}
+        to_node = edge.get("to") if isinstance(edge.get("to"), dict) else {}
+        evidence_items.append({
+            "event_id": str(edge.get("reason_edge_event_id") or edge.get("evidence_event_id") or ""),
+            "object_key": "",
+            "object_type": "typed_graph",
+            "evidence_level": str(edge.get("edge_type") or ""),
+            "edge_type": str(edge.get("edge_type") or ""),
+            "path": " -> ".join(
+                item
+                for item in [str(from_node.get("id") or ""), str(to_node.get("id") or "")]
+                if item
+            ),
+        })
+    training_items = [
+        {
+            "concept_id": weak.get("concept_id", ""),
+            "error_code": weak.get("error_code", ""),
+            "claim": weak.get("claim", ""),
+            "evidence_level": weak.get("evidence_level", ""),
+            "recommended_training": dict(weak.get("recommended_training") or {}),
+            "supporting_event_ids": list(weak.get("supporting_event_ids") or []),
+        }
+        for weak in weak_points
+    ][:5]
+    if not training_items and improvement_signals:
+        training_items = [
+            {
+                "concept_id": item.get("concept_id", ""),
+                "error_code": "",
+                "claim": "后续训练已出现改善信号",
+                "evidence_level": "improving",
+                "recommended_training": {},
+                "supporting_event_ids": [item.get("event_id", "")],
+            }
+            for item in improvement_signals[:5]
+        ]
+
+    return {
+        "ok": True,
+        "user_id": user_id,
+        "projection_subject": str(projection.get("subject") or ""),
+        "schema_version": int(projection.get("schema_version") or 0),
+        "event_count": int(run.get("input_event_count") or 0),
+        "created_claim_count": int(run.get("created_claim_count") or 0),
+        "decayed_claim_count": int(run.get("decayed_claim_count") or 0),
+        "output_projection_hash": str(run.get("output_projection_hash") or ""),
+        "weak_points": weak_points,
+        "compiled_objects": compiled_objects,
+        "typed_graph_edges": typed_graph_edges,
+        "typed_graph_edge_count": len(typed_graph_edges),
+        "graph_chain": graph_chain,
+        "typed_graph_readiness_gaps": list(typed_graph.get("readiness_gaps") or []),
+        "improvement_signals": improvement_signals,
+        "stale_claims": stale_claims,
+        "visible_sections": {
+            "current_truth": truth_objects,
+            "evidence_flow": evidence_items,
+            "next_training": training_items,
+        },
+    }
+
+
+def _learning_brain_node_id(edge: dict[str, Any], side: str) -> str:
+    node = edge.get(side) if isinstance(edge.get(side), dict) else {}
+    return str(node.get("id") or "").strip()
+
+
+def _learning_brain_concept_from_error_id(error_id: str) -> str:
+    return error_id.split(":", 1)[0].strip() if ":" in error_id else ""
+
+
+def _learning_brain_graph_chain(
+    *,
+    typed_graph_edges: list[dict[str, Any]],
+    weak_points: list[dict[str, Any]],
+    improvement_signals: list[dict[str, Any]],
+) -> dict[str, Any]:
+    question_edges_by_concept: dict[str, list[dict[str, Any]]] = {}
+    for edge in typed_graph_edges:
+        if edge.get("edge_type") != "question_tests_concept":
+            continue
+        concept_id = _learning_brain_node_id(edge, "to")
+        if concept_id:
+            question_edges_by_concept.setdefault(concept_id, []).append(edge)
+
+    active_error_ids = {
+        f"{str(item.get('concept_id') or '').strip()}:{str(item.get('error_code') or '').strip()}"
+        for item in weak_points
+        if str(item.get("concept_id") or "").strip() and str(item.get("error_code") or "").strip()
+    }
+    improved_concepts = {
+        str(item.get("concept_id") or "").strip()
+        for item in improvement_signals
+        if str(item.get("concept_id") or "").strip()
+    }
+    training_uses_question: list[dict[str, Any]] = []
+    training_improved_error: list[dict[str, Any]] = []
+    training_not_improved_error: list[dict[str, Any]] = []
+    error_to_training = [edge for edge in typed_graph_edges if edge.get("edge_type") == "error_points_to_training"]
+    for edge in error_to_training:
+        error_id = _learning_brain_node_id(edge, "from")
+        training_id = _learning_brain_node_id(edge, "to")
+        concept_id = _learning_brain_concept_from_error_id(error_id)
+        selected_question = next(iter(question_edges_by_concept.get(concept_id, [])), None)
+        if not error_id or not training_id or not selected_question:
+            continue
+        question_id = _learning_brain_node_id(selected_question, "from")
+        training_uses_question.append({
+            "edge_type": "training_uses_question",
+            "from": {"type": "next_training", "id": training_id},
+            "to": {"type": "question", "id": question_id},
+            "source_feature": "learning_brain_read_model",
+            "reason_edge_event_id": edge.get("evidence_event_id", ""),
+            "selected_question_event_id": selected_question.get("evidence_event_id", ""),
+            "confidence": edge.get("confidence", 0.8),
+        })
+        outcome = {
+            "from": {"type": "next_training", "id": training_id},
+            "to": {"type": "error", "id": error_id},
+            "source_feature": "learning_brain_read_model",
+            "question_id": question_id,
+            "reason_edge_event_id": edge.get("evidence_event_id", ""),
+            "confidence": edge.get("confidence", 0.8),
+        }
+        if error_id in active_error_ids:
+            training_not_improved_error.append({
+                "edge_type": "training_not_improved_error",
+                "reason": "weak_point_still_active",
+                **outcome,
+            })
+        elif concept_id in improved_concepts:
+            training_improved_error.append({"edge_type": "training_improved_error", **outcome})
+    return {
+        "error_points_to_training": error_to_training,
+        "training_uses_question": training_uses_question,
+        "training_improved_error": training_improved_error,
+        "training_not_improved_error": training_not_improved_error,
+        "has_training_uses_question": bool(training_uses_question),
+        "has_training_improved_error": bool(training_improved_error),
+        "has_training_not_improved_error": bool(training_not_improved_error),
+    }
+
+
 def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: str) -> None:
     if not _env_flag_enabled(_BILLING_SHADOW_COMPARE_LEGACY_WALLET):
         return
@@ -194,6 +392,15 @@ def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: st
 
 def _wallet_snapshot_or_zero(user_id: str) -> WalletSnapshot:
     if not getattr(wallet_service, "is_configured", False):
+        if _env_flag_enabled(_LOCAL_WALLET_FALLBACK):
+            return WalletSnapshot(
+                user_id=str(user_id or "").strip(),
+                balance_micros=0,
+                frozen_micros=0,
+                plan_id="local",
+                version=0,
+                created_at="",
+            )
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
     normalized_user_id = str(user_id or "").strip()
     if not normalized_user_id:
@@ -2024,6 +2231,21 @@ async def bi_radar(
 @router.get("/plan/mastery-dashboard")
 async def mastery_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     return member_service.get_mastery_dashboard(_resolve_authenticated_user_id(authorization))
+
+
+@router.get("/learning-brain/projection")
+async def learning_brain_projection(
+    authorization: str | None = Header(default=None),
+    event_limit: int = Query(default=100, ge=1, le=500),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    synthesis = learner_state_service.synthesize_learning_truth(
+        user_id,
+        dry_run=True,
+        event_limit=event_limit,
+    )
+    projection = dict(synthesis.get("projection") or {})
+    return _learning_brain_visible_projection(user_id=user_id, projection=projection)
 
 
 @router.get("/assessment/profile")

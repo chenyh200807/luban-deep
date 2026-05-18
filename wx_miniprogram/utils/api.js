@@ -430,6 +430,25 @@ function getRadarData(userId) {
   });
 }
 
+/** 获取 Learning Brain 学习事实编译 read model */
+function getLearningBrainProjection(eventLimit) {
+  var limit = Number(eventLimit || 100);
+  if (!Number.isFinite(limit) || limit <= 0) limit = 100;
+  return request({
+    url: "/api/v1/learning-brain/projection?event_limit=" + Math.min(Math.round(limit), 500),
+    method: "GET",
+  });
+}
+
+/** 本地 QA：写入案例题阅卷事件并触发合成，只在本地后端开启 QA router 时可用 */
+function runLearningBrainHarnessCaseGrading(payload) {
+  return request({
+    url: "/api/v1/learning-brain/harness-case-grading",
+    method: "POST",
+    data: payload || {},
+  });
+}
+
 /** 获取掌握度看板（章节掌握度 + 易错热点 + 复习预报） */
 function getMasteryDashboard() {
   return request({
@@ -577,6 +596,8 @@ module.exports = {
   getBadges: getBadges,
   getDailyQuestion: getDailyQuestion,
   getRadarData: getRadarData,
+  getLearningBrainProjection: getLearningBrainProjection,
+  runLearningBrainHarnessCaseGrading: runLearningBrainHarnessCaseGrading,
   getMasteryDashboard: getMasteryDashboard,
   getConversations: getConversations,
   createConversation: createConversation,

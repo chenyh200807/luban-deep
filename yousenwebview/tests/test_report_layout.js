@@ -35,6 +35,19 @@ assert(
   "host report today's progress metric should open the practice page",
 );
 assert(
+    reportWxml.indexOf("当前可信结论") >= 0 &&
+    reportWxml.indexOf("证据流") >= 0 &&
+    reportWxml.indexOf("训练闭环") >= 0 &&
+    reportWxml.indexOf("下一步训练") >= 0,
+  "host report page should expose the Learning Brain three-part visible chain",
+);
+assert(
+  reportWxss.indexOf(".level-L1_repeated") >= 0 &&
+    reportWxss.indexOf(".level-L2_confirmed") >= 0 &&
+    reportWxss.indexOf(".chain-not-improved") >= 0,
+  "host report styles should distinguish L1/L2 Learning Brain evidence levels and training outcomes",
+);
+assert(
   reportWxss.indexOf(".dim-list") >= 0 && reportWxss.indexOf(".dim-bar") >= 0,
   "host report page should include styles for the diagnosis dimension list",
 );

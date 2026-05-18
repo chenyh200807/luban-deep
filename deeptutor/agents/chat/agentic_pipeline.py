@@ -1765,6 +1765,10 @@ class AgenticChatPipeline:
                     or ""
                 ).strip(),
             }
+            compiled_truth = context.metadata.get("compiled_learning_truth")
+            if isinstance(compiled_truth, dict) and compiled_truth:
+                kwargs.setdefault("compiled_learning_truth", dict(compiled_truth))
+                routing_metadata["compiled_learning_truth_available"] = True
             if any(routing_metadata.values()):
                 kwargs.setdefault("routing_metadata", routing_metadata)
         elif tool_name == "code_execution":

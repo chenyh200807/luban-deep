@@ -16,6 +16,7 @@ def write_grading_error_events(
     grading_result: CaseGradingResult | MCQGradingResult | dict[str, Any],
     source_id: str,
     source_bot_id: str | None = None,
+    include_success_events: bool = False,
 ) -> int:
     """Write grading error events through the existing LearnerStateService authority."""
 
@@ -34,6 +35,7 @@ def write_grading_error_events(
                 grading_result=item,
                 source_id=f"{source_id}:{question_id}",
                 source_bot_id=source_bot_id,
+                include_success_events=include_success_events,
             )
         return count
 
@@ -41,6 +43,14 @@ def write_grading_error_events(
         grading_result=grading_result,
         turn_id=source_id,
     )
+    if not payload_json["quality"]["writeback_eligible"]:
+        if not include_success_events or not _is_success_learning_evidence(payload_json):
+            return 0
+        payload_json["quality"] = {
+            **dict(payload_json.get("quality") or {}),
+            "writeback_eligible": True,
+            "writeback_reason": "success_improvement_signal",
+        }
     if not payload_json["quality"]["writeback_eligible"]:
         return 0
     dedupe_key = build_learning_evidence_dedupe_key(
@@ -57,3 +67,17 @@ def write_grading_error_events(
         dedupe_key=dedupe_key,
     )
     return 1
+
+
+def _is_success_learning_evidence(payload_json: dict[str, Any]) -> bool:
+    if payload_json.get("error_events") or payload_json.get("errors"):
+        return False
+    question_id = str(payload_json.get("question_id") or "").strip()
+    signal = payload_json.get("next_training_signal") if isinstance(payload_json.get("next_training_signal"), dict) else {}
+    concept = str((signal or {}).get("concept") or "").strip()
+    try:
+        score_awarded = float(payload_json.get("score_awarded") or 0)
+        max_score = float(payload_json.get("max_score") or 0)
+    except (TypeError, ValueError):
+        return False
+    return bool(question_id and concept and max_score > 0 and score_awarded >= max_score)

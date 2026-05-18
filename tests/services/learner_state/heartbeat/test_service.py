@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 from deeptutor.services.learner_state.heartbeat import LearnerHeartbeatService
@@ -72,6 +73,30 @@ def test_upsert_pause_resume_and_mark_run_round_trip(tmp_path) -> None:
     assert payload["jobs"][0]["job_id"] == first.job_id
     assert payload["jobs"][0]["user_id"] == "student_1"
     assert payload["jobs"][0]["channel"] == "web"
+
+
+def test_concurrent_upserts_do_not_share_temp_file(tmp_path) -> None:
+    current = [datetime(2026, 4, 15, 10, 0, tzinfo=timezone.utc)]
+    service = _service(tmp_path, current)
+
+    def _upsert(index: int) -> str:
+        job = service.upsert_job(
+            user_id=f"student_{index}",
+            bot_id="bot_alpha",
+            channel="web",
+            policy_json={"enabled": True, "index": index},
+            next_run_at=current[0] + timedelta(minutes=index),
+        )
+        return job.job_id
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        job_ids = list(executor.map(_upsert, range(16)))
+
+    assert len(set(job_ids)) == 16
+    store_path = tmp_path / "data" / "runtime" / "learner_state" / "heartbeat_jobs.json"
+    payload = json.loads(store_path.read_text(encoding="utf-8"))
+    assert len(payload["jobs"]) == 16
+    assert not list(store_path.parent.glob("heartbeat_jobs.json.*.tmp"))
 
 
 def test_list_due_jobs_filters_paused_and_orders_by_next_run(tmp_path) -> None:

@@ -123,6 +123,10 @@ class RAGAdapterTool(Tool):
         )
         if question_type:
             search_kwargs["question_type"] = question_type
+        compiled_truth = self._compiled_learning_truth()
+        if compiled_truth:
+            search_kwargs["compiled_learning_truth"] = compiled_truth
+            routing_metadata["compiled_learning_truth_available"] = True
         if any(routing_metadata.values()):
             search_kwargs["routing_metadata"] = routing_metadata
         try:
@@ -188,6 +192,9 @@ class RAGAdapterTool(Tool):
         normalized = self._normalize_requested_kb(str(preview.get("kb_name") or "").strip()) or self._resolve_default_kb()
         if normalized:
             preview["kb_name"] = normalized
+        compiled_truth = self._compiled_learning_truth()
+        if compiled_truth:
+            preview.setdefault("compiled_learning_truth", compiled_truth)
         return preview
 
     def consume_trace_metadata(self) -> dict[str, Any] | None:
@@ -225,6 +232,12 @@ class RAGAdapterTool(Tool):
         if normalized.strip().lower() in alias_set:
             return default_kb
         return normalized
+
+    def _compiled_learning_truth(self) -> dict[str, Any]:
+        projection = self._runtime_context.get("compiled_learning_truth")
+        if not isinstance(projection, dict):
+            return {}
+        return dict(projection)
 
     @staticmethod
     def _summarize_evidence_bundle(bundle: dict[str, Any]) -> dict[str, Any]:

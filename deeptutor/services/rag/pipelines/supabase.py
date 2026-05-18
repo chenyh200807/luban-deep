@@ -19,7 +19,10 @@ from deeptutor.logging import get_logger
 from deeptutor.services.config import get_kb_config_service
 from deeptutor.services.embedding import get_embedding_client
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.rag.compiled_truth_source import materialize_compiled_truth_documents
 from deeptutor.services.rag.exceptions import RAGError, RAGSearchError, wrap_rag_error
+from deeptutor.services.rag.provenance import apply_provenance_ranking, build_ranking_trace
+from deeptutor.services.rag.retrieval_plan import build_retrieval_plan
 from .supabase_strategy import (
     build_exact_question_keyword_terms,
     build_exact_question_text_candidates,
@@ -458,6 +461,8 @@ def _build_evidence_bundle(
     sources: list[dict[str, Any]],
     exact_question: dict[str, Any] | None,
     source_plan,
+    retrieval_plan,
+    ranking_trace: dict[str, Any],
     query_shape: str,
     rewritten,
     second_pass_queries: list[str],
@@ -481,6 +486,12 @@ def _build_evidence_bundle(
             if hasattr(source_plan, "to_trace_dict")
             else {}
         ),
+        "retrieval_plan": (
+            retrieval_plan.to_dict()
+            if hasattr(retrieval_plan, "to_dict")
+            else {}
+        ),
+        "ranking_trace": dict(ranking_trace or {}),
         "content_blocks": list(content_blocks or []),
         "sources": list(sources or []),
         "exact_question": dict(exact_question or {}),
@@ -504,7 +515,7 @@ def _weighted_rrf_fusion(
                 continue
             scores[doc_id] = scores.get(doc_id, 0.0) + weight * (1.0 / (k + rank + 1))
             if doc_id not in doc_map:
-                doc["_source_group"] = group
+                doc["_source_group"] = str(doc.get("_source_group") or group)
                 doc_map[doc_id] = doc
 
     fused: list[dict[str, Any]] = []
@@ -643,6 +654,25 @@ def _apply_similarity_floor(
     return fused
 
 
+def _pin_exact_question_results(
+    results: list[dict[str, Any]],
+    *,
+    exact_question_present: bool,
+) -> list[dict[str, Any]]:
+    if not exact_question_present or not results:
+        return results
+    exact_groups = {"question_exact_text", "question_exact_vector"}
+    exact_head = [
+        item
+        for item in results
+        if str(item.get("_source_group") or "") in exact_groups
+    ]
+    if not exact_head:
+        return results
+    exact_ids = {id(item) for item in exact_head}
+    return exact_head + [item for item in results if id(item) not in exact_ids]
+
+
 @dataclass(slots=True)
 class SupabaseSearchConfig:
     url: str
@@ -672,6 +702,13 @@ class SupabaseSearchConfig:
     exact_question_min_similarity: float
     exact_question_max_text_len: int
     exact_question_text_rpc_enabled: bool
+    query_plan_trace_enabled: bool = True
+    compiled_truth_shadow_enabled: bool = True
+    compiled_truth_enabled: bool = False
+    compiled_truth_max_documents: int = 6
+    compiled_truth_max_chars_per_doc: int = 700
+    compiled_truth_max_total_chars: int = 2400
+    provenance_boost_enabled: bool = False
 
 
 class SupabasePipeline:
@@ -726,6 +763,10 @@ class SupabasePipeline:
         intent = str(kwargs.get("intent") or "").strip()
         question_type = str(kwargs.get("question_type") or "").strip()
         routing_metadata = kwargs.get("routing_metadata")
+        routing_metadata = routing_metadata if isinstance(routing_metadata, dict) else {}
+        compiled_learning_truth = kwargs.get("compiled_learning_truth")
+        if compiled_learning_truth is None:
+            compiled_learning_truth = routing_metadata.get("compiled_learning_truth")
         with observability.start_observation(
             name="rag.supabase.search",
             as_type="retriever",
@@ -745,9 +786,17 @@ class SupabasePipeline:
                 include_questions_default=config.include_questions,
                 intent=intent,
                 question_type=question_type,
-                routing_metadata=(
-                    routing_metadata if isinstance(routing_metadata, dict) else None
-                ),
+                routing_metadata=routing_metadata,
+            )
+            retrieval_plan = build_retrieval_plan(
+                query,
+                include_questions_default=config.include_questions,
+                intent=intent,
+                question_type=question_type,
+                routing_metadata={
+                    **routing_metadata,
+                    "compiled_learning_truth_available": bool(compiled_learning_truth),
+                },
             )
             query_shape = rewritten.query_shape or classify_query_shape(query)
             exact_probe = (
@@ -844,8 +893,27 @@ class SupabasePipeline:
                 self.logger.error(f"Supabase retrieval failed: {rag_error}")
                 raise rag_error from exc
 
+        compiled_truth_plan = self._compiled_truth_plan(
+            retrieval_plan=retrieval_plan,
+            compiled_learning_truth=compiled_learning_truth,
+            config=config,
+        )
+        compiled_truth_final_enabled = self._compiled_truth_final_enabled(
+            retrieval_plan=retrieval_plan,
+            config=config,
+        )
+        final_compiled_truth_plan = (
+            self._final_compiled_truth_plan(compiled_truth_plan)
+            if compiled_truth_final_enabled
+            else []
+        )
+        shadow_compiled_truth_sources = (
+            self._plan_documents(compiled_truth_plan)
+            if config.compiled_truth_shadow_enabled and not final_compiled_truth_plan
+            else []
+        )
         fused = self._fuse_plan_results(
-            [*exact_text_plans, *primary_plan],
+            [*exact_text_plans, *primary_plan, *final_compiled_truth_plan],
             query=query,
             question_like=question_like,
             config=config,
@@ -904,7 +972,7 @@ class SupabasePipeline:
                         failure_sink=retrieval_warnings,
                     )
                     fused = self._fuse_plan_results(
-                        [*exact_text_plans, *primary_plan, *second_pass_plan],
+                        [*exact_text_plans, *primary_plan, *second_pass_plan, *final_compiled_truth_plan],
                         query=query,
                         question_like=question_like,
                         config=config,
@@ -920,7 +988,7 @@ class SupabasePipeline:
                     )
                     self.logger.warning(f"Supabase second-pass retrieval failed: {exc}")
 
-        all_plans = [*exact_text_plans, *primary_plan, *second_pass_plan]
+        all_plans = [*exact_text_plans, *primary_plan, *second_pass_plan, *final_compiled_truth_plan]
         exact_question = self._augment_case_exact_question_with_query(
             self._extract_exact_question_payload(
                 all_plans,
@@ -942,6 +1010,17 @@ class SupabasePipeline:
         )
         reranked = self._filter_partial_case_results(reranked, exact_question=exact_question)
         final_results = dedupe_ranked_results(reranked, max_items=config.top_k)
+        ranking_trace = build_ranking_trace(
+            final_results,
+            authority_order=list(getattr(retrieval_plan, "authority_order", []) or []),
+            shadow_sources=shadow_compiled_truth_sources,
+            ranking_policy={
+                "query_plan_trace_enabled": config.query_plan_trace_enabled,
+                "compiled_truth_shadow_enabled": config.compiled_truth_shadow_enabled,
+                "compiled_truth_final_enabled": bool(final_compiled_truth_plan),
+                "provenance_boost_enabled": config.provenance_boost_enabled,
+            },
+        )
 
         content_blocks = _dedupe_rendered_content_blocks(
             [str(item.get("rag_content") or "").strip() for item in final_results]
@@ -968,6 +1047,8 @@ class SupabasePipeline:
             sources=sources,
             exact_question=exact_question,
             source_plan=source_plan,
+            retrieval_plan=retrieval_plan if config.query_plan_trace_enabled else None,
+            ranking_trace=ranking_trace,
             query_shape=query_shape,
             rewritten=rewritten,
             second_pass_queries=second_pass_queries,
@@ -1011,6 +1092,8 @@ class SupabasePipeline:
                 "source_plan": {
                     **source_plan.to_trace_dict(),
                 },
+                "retrieval_plan": retrieval_plan.to_dict(),
+                "ranking_trace": ranking_trace,
                 "precision_node_code": precision_node_code,
                 "primary_queries": primary_queries,
                 "second_pass_queries": second_pass_queries,
@@ -1037,6 +1120,67 @@ class SupabasePipeline:
             },
         )
         return payload
+
+    def _compiled_truth_plan(
+        self,
+        *,
+        retrieval_plan,
+        compiled_learning_truth: Any,
+        config: SupabaseSearchConfig | None = None,
+    ) -> list[dict[str, Any]]:
+        source_group = getattr(retrieval_plan, "source_groups", {}).get("compiled_learning_truth")
+        if not source_group or not getattr(source_group, "enabled", False):
+            return []
+        documents = materialize_compiled_truth_documents(
+            compiled_learning_truth if isinstance(compiled_learning_truth, dict) else None,
+            max_documents=config.compiled_truth_max_documents if config else 6,
+            max_chars_per_doc=config.compiled_truth_max_chars_per_doc if config else 700,
+            max_total_chars=config.compiled_truth_max_total_chars if config else 2400,
+        )
+        if not documents:
+            return []
+        return [
+            {
+                "phase": "context",
+                "group_name": "compiled_learning_truth",
+                "query": str(getattr(retrieval_plan, "primary_query", "") or ""),
+                "query_index": 0,
+                "query_weight": 0.85,
+                "results": documents,
+            }
+        ]
+
+    def _compiled_truth_final_enabled(
+        self,
+        *,
+        retrieval_plan,
+        config: SupabaseSearchConfig,
+    ) -> bool:
+        if not config.compiled_truth_enabled:
+            return False
+        intent = str(getattr(retrieval_plan, "intent", "") or "").strip()
+        return intent in {"weak_point_review", "next_training"}
+
+    def _final_compiled_truth_plan(self, plans: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        final_plans: list[dict[str, Any]] = []
+        for plan in plans:
+            results = [
+                item
+                for item in list(plan.get("results") or [])
+                if not bool(item.get("_compiled_truth_shadow_only"))
+            ]
+            if not results:
+                continue
+            next_plan = dict(plan)
+            next_plan["results"] = results
+            final_plans.append(next_plan)
+        return final_plans
+
+    def _plan_documents(self, plans: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        documents: list[dict[str, Any]] = []
+        for plan in plans:
+            documents.extend(list(plan.get("results") or []))
+        return documents
 
     async def _run_query_plan(
         self,
@@ -1184,13 +1328,28 @@ class SupabasePipeline:
                 plan.get("query_weight") or 1.0
             )
             for item in results_map[query_key]:
+                item["_source_group"] = group_name
                 item["_query_variant"] = str(plan.get("query") or "")
                 item["_query_phase"] = phase
 
         fused = _weighted_rrf_fusion(results_map, weights)
+        exact_question_present = any(
+            str(plan.get("group_name") or "") in {"question_exact_text", "question_exact_vector"}
+            and bool(plan.get("results"))
+            for plan in plans
+        )
         target_window = max(1, max(config.top_k, min(config.fetch_count, config.rerank_window)))
         fused = _apply_similarity_floor(fused, results_map, target_window=target_window)
         fused = _enrich_question_weights(fused, question_like=question_like, config=config)
+        fused = apply_provenance_ranking(
+            fused,
+            exact_question_present=exact_question_present,
+            enabled=config.provenance_boost_enabled,
+        )
+        fused = _pin_exact_question_results(
+            fused,
+            exact_question_present=exact_question_present,
+        )
         return dedupe_ranked_results(fused)
 
     async def _rerank_results(
@@ -1287,6 +1446,7 @@ class SupabasePipeline:
             "standard_code_exact": float(os.getenv("SUPABASE_RAG_WEIGHT_STANDARD_CODE_EXACT", "3.0")),
             "question_exact_text": float(os.getenv("SUPABASE_RAG_WEIGHT_QUESTION_EXACT_TEXT", "4.2")),
             "question_exact_vector": float(os.getenv("SUPABASE_RAG_WEIGHT_QUESTION_EXACT_VECTOR", "3.4")),
+            "compiled_learning_truth": float(os.getenv("SUPABASE_RAG_WEIGHT_COMPILED_TRUTH", "0.65")),
         }
         question_weights = {
             **source_weights,
@@ -1330,6 +1490,25 @@ class SupabasePipeline:
             exact_question_text_rpc_enabled=_env_flag(
                 "SUPABASE_RAG_EXACT_QUESTION_TEXT_RPC", True
             ),
+            query_plan_trace_enabled=_env_flag("SUPABASE_RAG_QUERY_PLAN_TRACE_ENABLED", True),
+            compiled_truth_shadow_enabled=_env_flag(
+                "SUPABASE_RAG_COMPILED_TRUTH_SHADOW_ENABLED",
+                True,
+            ),
+            compiled_truth_enabled=_env_flag("SUPABASE_RAG_COMPILED_TRUTH_ENABLED", False),
+            compiled_truth_max_documents=max(
+                1,
+                int(os.getenv("SUPABASE_RAG_COMPILED_TRUTH_MAX_DOCS", "6")),
+            ),
+            compiled_truth_max_chars_per_doc=max(
+                120,
+                int(os.getenv("SUPABASE_RAG_COMPILED_TRUTH_MAX_CHARS_PER_DOC", "700")),
+            ),
+            compiled_truth_max_total_chars=max(
+                300,
+                int(os.getenv("SUPABASE_RAG_COMPILED_TRUTH_MAX_TOTAL_CHARS", "2400")),
+            ),
+            provenance_boost_enabled=_env_flag("SUPABASE_RAG_PROVENANCE_BOOST_ENABLED", False),
         )
 
     async def _search_source(

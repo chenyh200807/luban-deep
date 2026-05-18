@@ -2674,6 +2674,71 @@ async def test_rag_adapter_tool_uses_runtime_default_kb(
 
 
 @pytest.mark.asyncio
+async def test_rag_adapter_tool_forwards_compiled_learning_truth(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+    compiled_truth = {
+        "learner_id": "learner-1",
+        "weak_points": [{"concept_id": "waterproof", "error_code": "missing_rubric"}],
+    }
+
+    async def _fake_rag_search(**kwargs: Any) -> dict[str, Any]:
+        captured.update(kwargs)
+        return {"answer": "ok"}
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(
+        metadata={
+            "default_kb": "construction-exam",
+            "compiled_learning_truth": compiled_truth,
+        }
+    )
+
+    result = await tool.execute(query="我老是案例题丢分怎么办")
+
+    assert result == "ok"
+    assert captured["compiled_learning_truth"] == compiled_truth
+    assert captured["routing_metadata"]["compiled_learning_truth_available"] is True
+
+
+def test_rag_prefetch_preview_args_forward_compiled_learning_truth() -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    compiled_truth = {
+        "learner_id": "learner-1",
+        "weak_points": [{"concept_id": "waterproof", "error_code": "missing_rubric"}],
+    }
+
+    preview = AgentLoop._build_rag_preview_args(
+        "我老是案例题丢分怎么办",
+        {
+            "default_kb": "construction-exam",
+            "compiled_learning_truth": compiled_truth,
+        },
+    )
+
+    assert preview["compiled_learning_truth"] == compiled_truth
+    assert preview["routing_metadata"]["compiled_learning_truth_available"] is True
+
+
+@pytest.mark.asyncio
 async def test_rag_adapter_tool_normalizes_legacy_kb_alias_to_default(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

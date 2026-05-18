@@ -101,6 +101,62 @@ def test_dashscope_default_chat_disables_thinking_for_visible_answers() -> None:
     assert "reasoning_effort" not in kwargs
 
 
+def test_deepseek_default_chat_disables_thinking_for_visible_answers() -> None:
+    provider = OpenAICompatProvider.__new__(OpenAICompatProvider)
+    LLMProvider.__init__(provider, api_key="sk-test", api_base="https://api.deepseek.com/v1")
+    provider.default_model = "deepseek-v4-flash"
+    provider.extra_headers = {}
+    provider._spec = SimpleNamespace(
+        name="deepseek",
+        supports_prompt_caching=False,
+        strip_model_prefix=False,
+        supports_max_completion_tokens=False,
+        model_overrides=(),
+    )
+    provider._provider_name = "deepseek"
+
+    kwargs = provider._build_kwargs(
+        messages=[{"role": "user", "content": "hi"}],
+        tools=None,
+        model="deepseek-v4-flash",
+        max_tokens=256,
+        temperature=0.7,
+        reasoning_effort=None,
+        tool_choice=None,
+    )
+
+    assert kwargs["extra_body"] == {"thinking": {"type": "disabled"}}
+    assert "reasoning_effort" not in kwargs
+
+
+def test_deepseek_high_reasoning_explicitly_enables_thinking() -> None:
+    provider = OpenAICompatProvider.__new__(OpenAICompatProvider)
+    LLMProvider.__init__(provider, api_key="sk-test", api_base="https://api.deepseek.com/v1")
+    provider.default_model = "deepseek-v4-flash"
+    provider.extra_headers = {}
+    provider._spec = SimpleNamespace(
+        name="deepseek",
+        supports_prompt_caching=False,
+        strip_model_prefix=False,
+        supports_max_completion_tokens=False,
+        model_overrides=(),
+    )
+    provider._provider_name = "deepseek"
+
+    kwargs = provider._build_kwargs(
+        messages=[{"role": "user", "content": "hi"}],
+        tools=None,
+        model="deepseek-v4-flash",
+        max_tokens=256,
+        temperature=0.7,
+        reasoning_effort="high",
+        tool_choice=None,
+    )
+
+    assert kwargs["reasoning_effort"] == "high"
+    assert kwargs["extra_body"] == {"thinking": {"type": "enabled"}}
+
+
 @pytest.mark.asyncio
 async def test_failover_provider_uses_backup_model_when_primary_has_no_visible_content() -> None:
     class PrimaryProvider(LLMProvider):

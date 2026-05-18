@@ -1170,6 +1170,10 @@ class AgentLoop:
                 or ""
             ).strip(),
         }
+        compiled_truth = metadata.get("compiled_learning_truth")
+        if isinstance(compiled_truth, dict) and compiled_truth:
+            preview_args["compiled_learning_truth"] = dict(compiled_truth)
+            routing_metadata["compiled_learning_truth_available"] = True
         if any(routing_metadata.values()):
             preview_args["routing_metadata"] = routing_metadata
         return preview_args

@@ -47,6 +47,12 @@ assert(
   "report today's progress metric should open the practice page",
 );
 assert(
+  reportWxml.indexOf("当前可信结论") >= 0 &&
+    reportWxml.indexOf("证据流") >= 0 &&
+    reportWxml.indexOf("下一步训练") >= 0,
+  "report page should expose the Learning Brain three-part visible chain",
+);
+assert(
   reportWxss.indexOf("width: 280px") < 0 && reportWxss.indexOf("height: 280px") < 0,
   "report radar should not use a fixed px size that can clip on small screens",
 );

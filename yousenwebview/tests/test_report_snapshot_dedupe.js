@@ -83,6 +83,7 @@ function createPageInstance(pageDef) {
       home: 0,
       assessment: 0,
       mastery: 0,
+      brain: 0,
       radar: 0,
     };
     var pageDef = loadReportPage({
@@ -164,6 +165,49 @@ function createPageInstance(pageDef) {
             review_summary: { total_due: 2, overdue_count: 1 },
           };
         },
+        getLearningBrainProjection: async function () {
+          counters.brain += 1;
+          return {
+            event_count: 2,
+            created_claim_count: 1,
+            typed_graph_edge_count: 7,
+            compiled_objects: {
+              "concept:1A432000": {
+                current_truth: "专项施工方案程序存在重复漏点",
+                evidence_level: "L1_repeated",
+                supporting_event_ids: ["evt1", "evt2"],
+              },
+            },
+            weak_points: [],
+            typed_graph_edges: [
+              {
+                edge_type: "question_tests_concept",
+                from: { id: "case-1", type: "question" },
+                to: { id: "1A432000", type: "concept" },
+                evidence_event_id: "evt1",
+              },
+            ],
+            graph_chain: {
+              training_uses_question: [
+                {
+                  edge_type: "training_uses_question",
+                  from: { id: "1A432000:E02:case_repair", type: "next_training" },
+                  to: { id: "case-2", type: "question" },
+                  reason_edge_event_id: "evt2",
+                },
+              ],
+              training_not_improved_error: [
+                {
+                  edge_type: "training_not_improved_error",
+                  from: { id: "1A432000:E02:case_repair", type: "next_training" },
+                  to: { id: "1A432000:E02", type: "error" },
+                  question_id: "case-2",
+                  reason_edge_event_id: "evt2",
+                },
+              ],
+            },
+          };
+        },
         getRadarData: async function () {
           counters.radar += 1;
           return {
@@ -228,6 +272,7 @@ function createPageInstance(pageDef) {
     assert(counters.home === 1, "report bootstrap should read homepage dashboard once");
     assert(counters.assessment === 1, "report bootstrap should read assessment profile once");
     assert(counters.mastery === 1, "report bootstrap should read mastery dashboard once");
+    assert(counters.brain === 1, "report bootstrap should read Learning Brain projection once");
     assert(counters.radar === 0, "positive assessment profile should avoid dedicated radar fallback");
     assert(page.data.learnerLevel === "中级", "report bootstrap should hydrate overview from shared snapshot");
     assert(page.data.avgScore === 50, "report bootstrap should hydrate radar from shared assessment snapshot");
@@ -261,6 +306,30 @@ function createPageInstance(pageDef) {
     assert(
       Array.isArray(page.data.progressMilestones) && page.data.progressMilestones.length === 1,
       "report bootstrap should hydrate backend progress milestones",
+    );
+    assert(
+      Array.isArray(page.data.learningBrainChains) &&
+        page.data.learningBrainChains[0] &&
+        page.data.learningBrainChains[0].outcome === "本次训练结果：未改善",
+      "report bootstrap should expose Learning Brain error -> training -> not-improved chain",
+    );
+    assert(
+      page.data.learningBrainTruths[0] &&
+        page.data.learningBrainTruths[0].levelLabel === "重复出现" &&
+        page.data.learningBrainTruths[0].meta.indexOf("工程招标投标与合同管理") >= 0,
+      "Learning Brain truth should expose learner-facing evidence level and taxonomy label",
+    );
+    assert(
+      page.data.learningBrainEvidence[0] &&
+        page.data.learningBrainEvidence[0].type === "题目考查知识点" &&
+        page.data.learningBrainEvidence[0].path.indexOf("知识点：工程招标投标与合同管理") >= 0,
+      "Learning Brain evidence should translate typed graph labels before rendering",
+    );
+    assert(
+      page.data.learningBrainChains[0] &&
+        page.data.learningBrainChains[0].title.indexOf("漏写关键采分点") >= 0 &&
+        page.data.learningBrainChains[0].training.indexOf("案例题补强") >= 0,
+      "Learning Brain chain should hide raw graph ids from learner-facing copy",
     );
   });
 
