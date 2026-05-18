@@ -4097,7 +4097,7 @@ async def test_tutorbot_process_direct_synthesizes_full_case_exact_evidence(
     assert len(captured["deltas"]) > 1
     assert "".join(captured["deltas"]) == content
     assert captured["tool_calls"] == [("rag", {"query": "背景资料：某旧城改造工程。问题：1. 通常进行资格预审的工程有哪些特点？2. 管理策划内容还有哪些？4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？", "kb_name": "construction-exam"})]
-    assert captured["tool_results"][0][2]["authority_applied"] is False
+    assert captured["tool_results"][0][2]["authority_applied"] is True
     assert captured["tool_results"][0][2]["rag_round"] == {
         "round_index": 1,
         "query": "背景资料：某旧城改造工程。问题：1. 通常进行资格预审的工程有哪些特点？2. 管理策划内容还有哪些？4. 按照完全成本法计算的工程施工项目成本是多少亿元？5. 分步骤列式计算钢结构装饰架的造价是多少万元？",
@@ -4185,6 +4185,92 @@ async def test_tutorbot_answerable_case_exact_evidence_disables_followup_rag(tmp
     assert final_content == "## 结论\n\n已基于原题证据完成讲解。"
     assert tools_used == []
     assert observed_tool_names == [[]]
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_answerable_case_exact_evidence_ignores_unadvertised_tool_call(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class RogueToolProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            assert tools == []
+            if self.calls == 1:
+                return LLMResponse(
+                    content=None,
+                    tool_calls=[
+                        ToolCallRequest(
+                            id="call_1",
+                            name="rag",
+                            arguments={"query": "完全成本法 工程施工项目成本"},
+                        )
+                    ],
+                )
+            return LLMResponse(content="## 结论\n\n已基于原题证据完成讲解。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class RagTool(Tool):
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {"type": "object", "properties": {"query": {"type": "string"}}}
+
+        async def execute(self, **kwargs: Any) -> str:
+            raise AssertionError("unadvertised rag call must not be executed")
+
+    provider = RogueToolProvider()
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=provider,
+        workspace=tmp_path,
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(RagTool())
+
+    final_content, tools_used, _messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "讲解这道案例题"}],
+        runtime_metadata={
+            "_prefetched_exact_question": {
+                "answer_kind": "case_study",
+                "coverage_ratio": 1.0,
+                "missing_subquestions": [],
+                "covered_subquestions": [
+                    {"display_index": "1", "authoritative_answer": "计划、组织、协调方案。"}
+                ],
+            }
+        },
+    )
+
+    assert final_content == "## 结论\n\n已基于原题证据完成讲解。"
+    assert tools_used == []
+    assert provider.calls == 2
 
 
 @pytest.mark.asyncio

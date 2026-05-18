@@ -752,6 +752,7 @@ class AgentLoop:
         exact_authority: dict[str, Any] | None = None
         rag_rounds: list[dict[str, Any]] = []
         rag_saturation: dict[str, Any] | None = None
+        blocked_exact_tool_retry = False
         raw_stream_buffer = ""
         emitted_stream_len = 0
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
@@ -794,6 +795,33 @@ class AgentLoop:
             )
 
             if response.has_tool_calls:
+                if (
+                    self._prefetched_case_exact_question_can_answer(runtime_metadata)
+                    and not tool_defs
+                ):
+                    if blocked_exact_tool_retry:
+                        exact_question = runtime_metadata.get("_prefetched_exact_question")
+                        fallback = (
+                            self._build_exact_authority_response_sync(exact_question)
+                            if isinstance(exact_question, dict)
+                            else ""
+                        )
+                        final_content = fallback or self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
+                        messages = self.context.add_assistant_message(messages, final_content)
+                        break
+                    blocked_exact_tool_retry = True
+                    messages = list(messages)
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": (
+                                "本轮案例题原题答案已经完整命中，工具已关闭。"
+                                "不要再调用 rag 或其他工具；请直接把现有原题证据整理成面向学员的最终答案，"
+                                "保留采分点、易错点和记忆口诀。"
+                            ),
+                        }
+                    )
+                    continue
                 if on_progress:
                     thought = self._strip_think(response.content)
                     if thought:
@@ -1230,6 +1258,8 @@ class AgentLoop:
         )
         if isinstance(exact_candidate, dict):
             runtime_metadata["_prefetched_exact_question"] = exact_candidate
+            if self._prefetched_case_exact_question_can_answer(runtime_metadata):
+                merged_metadata["authority_applied"] = True
         exact_kind = str((exact_candidate or {}).get("answer_kind") or "").strip().lower()
         case_exact_instruction = (
             "本轮已命中案例题题库原题。题库答案是事实依据，但最终回答必须重新组织成适合手机阅读的讲解："
