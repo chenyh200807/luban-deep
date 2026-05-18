@@ -124,6 +124,100 @@ def test_tutorbot_progressive_skills_load_construction_scene_for_fast_and_deep(t
         assert "本轮内部行为约束" in instruction
 
 
+def test_tutorbot_progressive_skills_load_grading_scenes_for_fast_and_deep(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FakeProvider(LLMProvider):
+        async def chat(self, *args: Any, **kwargs: Any) -> LLMResponse:
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
+
+    for response_mode in ("fast", "deep"):
+        metadata = {
+            "bot_id": "construction-exam-coach",
+            "default_kb": "construction-exam",
+            "effective_response_mode": response_mode,
+        }
+        case_instruction = loop._build_progressive_skill_instruction(
+            "【案例题】背景资料：施工现场临时用电。我的答案：先验收。请批改估分，指出漏掉的采分点。",
+            runtime_metadata=metadata,
+        )
+        mcq_instruction = loop._build_progressive_skill_instruction(
+            "这道单选题我选B，对吗？题干：施工现场临时用电组织设计应由谁编制？A 项目经理 B 电气工程技术人员",
+            runtime_metadata=metadata,
+        )
+
+        assert "# Construction Case Grading" in case_instruction
+        assert "# Construction MCQ Grading" not in case_instruction
+        assert "# Construction MCQ Grading" in mcq_instruction
+        assert "# Construction Case Grading" not in mcq_instruction
+
+
+def test_tutorbot_fast_rag_prefetch_does_not_reveal_practice_generation_answer() -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    assert (
+        AgentLoop._should_prefetch_grounded_rag(
+            current_message="给我出一道建筑实务案例题，先不要给答案",
+            runtime_metadata={
+                "bot_id": "construction-exam-coach",
+                "default_tools": ["rag"],
+                "default_kb": "construction-exam",
+                "knowledge_bases": ["construction-exam"],
+                "effective_response_mode": "fast",
+                "suppress_answer_reveal_on_generate": True,
+            },
+        )
+        is False
+    )
+
+
+def test_tutorbot_fast_rag_prefetch_ignores_general_chat_and_product_questions() -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    metadata = {
+        "bot_id": "construction-exam-coach",
+        "default_tools": ["rag"],
+        "default_kb": "construction-exam",
+        "knowledge_bases": ["construction-exam"],
+        "effective_response_mode": "fast",
+    }
+
+    for user_message in ("你好", "你是谁", "谢谢", "今天学习什么", "功能有哪些", "价格怎么收费", "登录流程是什么"):
+        assert (
+            AgentLoop._should_prefetch_grounded_rag(
+                current_message=user_message,
+                runtime_metadata=metadata,
+            )
+            is False
+        )
+
+
+def test_tutorbot_fast_rag_prefetch_keeps_grounded_concept_authority() -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    assert (
+        AgentLoop._should_prefetch_grounded_rag(
+            current_message="什么是流水施工？",
+            runtime_metadata={
+                "bot_id": "construction-exam-coach",
+                "default_tools": ["rag"],
+                "default_kb": "construction-exam",
+                "knowledge_bases": ["construction-exam"],
+                "effective_response_mode": "fast",
+                "answer_type": "knowledge_explainer",
+            },
+        )
+        is True
+    )
+
+
 def test_tutorbot_progressive_skills_load_builtin_utility_skill_for_deep(tmp_path) -> None:
     from deeptutor.tutorbot.agent.loop import AgentLoop
     from deeptutor.tutorbot.bus.queue import MessageBus
@@ -4811,6 +4905,237 @@ async def test_tutorbot_process_direct_prefetches_grounded_rag_for_current_info_
         "source_overlap_to_prev": None,
         "shared_source_count_with_prev": 0,
     }
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_fast_process_direct_prefetches_rag_for_case_grading_scene(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {"tool_calls": [], "tool_results": []}
+    user_message = (
+        "【案例题】背景资料：施工现场临时用电。我的答案：先组织验收。"
+        "请批改估分，指出漏掉的采分点。"
+    )
+
+    class CasePrefetchProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            tool_messages = [item for item in messages if item.get("role") == "tool"]
+            assert len(tool_messages) == 1
+            assert "补充编制单项施工用电方案" in str(tool_messages[0].get("content") or "")
+            assert any(
+                item.get("role") == "system"
+                and "首轮知识召回已完成" in str(item.get("content") or "")
+                for item in messages
+            )
+            return LLMResponse(content="你的答案漏掉了先补充编制单项施工用电方案，验收不能作为第一步。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class CaseRagTool(Tool):
+        def __init__(self) -> None:
+            self._trace_metadata = {
+                "kb_name": "construction-exam",
+                "sources": [{"chunk_id": "CASE_TEMP_POWER_001", "source_type": "case_rubric"}],
+                "authority_applied": True,
+                "exact_question": {},
+            }
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "grounded rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "kb_name": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            assert kwargs["query"] == user_message
+            assert kwargs["kb_name"] == "construction-exam"
+            return "标准采分点：应先补充编制单项施工用电方案，经审批后再组织验收。"
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            metadata = dict(self._trace_metadata)
+            self._trace_metadata = {}
+            return metadata
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=CasePrefetchProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(CaseRagTool())
+
+    content = await loop.process_direct(
+        user_message,
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "default_tools": ["rag"],
+            "default_kb": "construction-exam",
+            "knowledge_bases": ["construction-exam"],
+            "effective_response_mode": "fast",
+        },
+        on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert "漏掉了先补充编制单项施工用电方案" in content
+    assert captured["tool_calls"] == [
+        ("rag", {"query": user_message, "kb_name": "construction-exam"})
+    ]
+    assert captured["tool_results"][0][2]["rag_round"] == {
+        "round_index": 1,
+        "query": user_message,
+        "kb_name": "construction-exam",
+        "source_count": 1,
+        "sources": [{"chunk_id": "CASE_TEMP_POWER_001", "source_type": "case_rubric"}],
+        "query_similarity_to_prev": None,
+        "source_overlap_to_prev": None,
+        "shared_source_count_with_prev": 0,
+    }
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_fast_process_direct_skips_rag_for_general_product_question(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {"tool_calls": [], "tool_results": []}
+
+    class ProductProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            assert not [item for item in messages if item.get("role") == "tool"]
+            return LLMResponse(content="可以练题、批改和复盘。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class FailingRagTool(Tool):
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "should not be called"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}
+
+        async def execute(self, **kwargs: Any) -> str:
+            raise AssertionError("general product question must not call rag")
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=ProductProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(FailingRagTool())
+
+    content = await loop.process_direct(
+        "功能有哪些？",
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "default_tools": ["rag"],
+            "default_kb": "construction-exam",
+            "knowledge_bases": ["construction-exam"],
+            "effective_response_mode": "fast",
+        },
+        on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert "练题" in content
+    assert captured == {"tool_calls": [], "tool_results": []}
 
 
 @pytest.mark.asyncio

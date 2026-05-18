@@ -963,6 +963,38 @@ class AgentLoop:
                 item["content"] = content
                 return
 
+    @staticmethod
+    def _has_default_rag_grounding(runtime_metadata: dict[str, Any] | None) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        default_tools = metadata.get("default_tools")
+        if not isinstance(default_tools, list):
+            return False
+        if "rag" not in {str(item or "").strip().lower() for item in default_tools}:
+            return False
+
+        default_kb = str(metadata.get("default_kb") or "").strip()
+        if default_kb:
+            return True
+
+        knowledge_bases = metadata.get("knowledge_bases")
+        if isinstance(knowledge_bases, list):
+            return any(str(item or "").strip() for item in knowledge_bases)
+        return False
+
+    @staticmethod
+    def _construction_scene_requires_rag_prefetch(scene: str) -> bool:
+        return scene in {"mcq", "mcq_grading", "case", "case_grading", "error_review"}
+
+    @staticmethod
+    def _is_exact_question_probe_for_grounding(exact_probe: Any | None) -> bool:
+        if exact_probe is None:
+            return False
+        allowed_types = {
+            str(item or "").strip().lower()
+            for item in getattr(exact_probe, "allowed_question_types", []) or []
+        }
+        return bool(allowed_types & {"single", "multi", "case", "case_study", "case_background", "calculation"})
+
     @classmethod
     def _should_prefetch_grounded_rag(
         cls,
@@ -970,21 +1002,40 @@ class AgentLoop:
         current_message: str,
         runtime_metadata: dict[str, Any] | None,
     ) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        practice_generation_request = looks_like_practice_generation_request(current_message)
+        answer_type = str(metadata.get("answer_type") or metadata.get("intent") or "").strip()
+        exact_probe = prepare_exact_question_probe(current_message)
         decision = build_grounding_decision_from_metadata(
             query=current_message,
-            runtime_metadata=runtime_metadata,
+            runtime_metadata=metadata,
             rag_enabled=True,
             tutorbot_context=True,
-            exact_question_candidate=prepare_exact_question_probe(current_message) is not None,
-            practice_generation_request=looks_like_practice_generation_request(current_message),
+            answer_type=answer_type,
+            exact_question_candidate=cls._is_exact_question_probe_for_grounding(exact_probe),
+            practice_generation_request=practice_generation_request,
         )
-        if (
-            not decision.grounded_construction_exam_runtime
-            and str((runtime_metadata or {}).get("bot_id") or "").strip().lower()
-            == "construction-exam-coach"
-        ):
+        if decision.should_prefetch_grounded_rag:
+            return True
+        if decision.should_force_retrieval_first:
+            return True
+
+        bot_id = str(metadata.get("bot_id") or "").strip().lower()
+        if bot_id != "construction-exam-coach":
+            return False
+        if not cls._has_default_rag_grounding(metadata):
             return decision.current_info_required or decision.textbook_delta_query
-        return decision.should_prefetch_grounded_rag
+        if practice_generation_request:
+            return decision.current_info_required or decision.textbook_delta_query
+
+        scene = detect_construction_exam_scene(
+            current_message,
+            answer_type=answer_type,
+            followup_context=cls._followup_context_from_metadata(metadata),
+        )
+        if cls._construction_scene_requires_rag_prefetch(scene):
+            return True
+        return decision.current_info_required or decision.textbook_delta_query
 
     @staticmethod
     def _runtime_current_info_required(runtime_metadata: dict[str, Any] | None) -> bool:
