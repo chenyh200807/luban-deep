@@ -30,6 +30,7 @@
 9. `failed` / `cancelled` 也是 terminal state；如果需要向用户历史或 stream 暴露 assistant 内容，只能物化为安全、可展示的 terminal assistant message，禁止把 provider raw error、工具命令、RAG XML、内部 reasoning 或未清洗中间输出直接写入用户可见消息。
 10. mobile HTTP adapter 可以返回 convenience read-model 字段（如 `created_at_ms / updated_at_ms`、canonical `presentation`），但这些字段只能是统一 session/message 真相的投影，不得成为新的 turn/session authority，也不得定义第二套 streaming 协议。
 11. `messages.metadata.request_snapshot` 只允许保存本轮入口请求的审计 / 回放投影（content、tools、knowledge bases、language、attachments、context references、config overrides）。它不得保存 learner profile、学习进度、memory context、active_object 或任何需要由 learner-state / session runtime 单独负责的 canonical state，避免形成双写真相。
+12. mobile learning-brain HTTP read-model 端点只能读取 learner-state / compiled projection 的展示投影；它不得创建 turn、不得写 session、不得定义 streaming 协议，也不得成为 `/api/v1/ws` 之外的聊天入口。
 
 ## TutorBot 规则
 

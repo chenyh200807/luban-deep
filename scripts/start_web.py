@@ -92,6 +92,16 @@ def _spawn(
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    if os.environ.get("DEEPTUTOR_SKIP_ENV_CHECK") != "1":
+        from scripts.check_local_env import run as _check_local_env
+
+        if _check_local_env() != 0:
+            log_error(
+                "本地环境检查失败。修复上面 ❌ 项后重试，"
+                "或临时设置 DEEPTUTOR_SKIP_ENV_CHECK=1 绕过 (不推荐)。"
+            )
+            raise SystemExit(1)
+
     summary = get_env_store().as_summary()
     backend_port = summary.backend_port
     frontend_port = summary.frontend_port

@@ -450,7 +450,7 @@ def test_supabase_candidate_rows_use_chinese_chapter_labels_for_node_codes() -> 
     assert tagged_candidate.chapter == "建筑构造设计要求"
     assert tagged_candidate.difficulty == "medium"
     assert candidate is not None
-    assert candidate.chapter == "结构设计与建筑材料"
+    assert candidate.chapter == "建筑功能材料"
     assert candidate.difficulty == "hard"
 
 

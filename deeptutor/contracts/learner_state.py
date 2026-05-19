@@ -146,11 +146,13 @@ LEARNER_STATE_NEW_TABLES: tuple[LearnerStateTableSpec, ...] = (
             "Guided Learning",
             "Notebook",
             "review aggregation",
+            "Learning Brain compiled projection",
         ],
         write_paths=[
             "session digest aggregator",
             "guided learning completion aggregator",
             "notebook summary aggregator",
+            "learning synthesis projection refresh",
         ],
     ),
     LearnerStateTableSpec(
@@ -172,9 +174,11 @@ LEARNER_STATE_NEW_TABLES: tuple[LearnerStateTableSpec, ...] = (
             "summary rebuild",
             "progress rebuild",
             "audit / replay",
+            "learning synthesis",
         ],
         write_paths=[
             "structured writeback pipeline",
+            "construction grading learning_evidence writeback",
         ],
     ),
     LearnerStateTableSpec(
@@ -339,6 +343,7 @@ LEARNER_STATE_RUNTIME_READ_ORDER: tuple[str, ...] = (
     "active question / current learning step",
     "learner profile",
     "learner summary",
+    "compiled learning truth projection",
     "learner progress",
     "notebook / guide references",
     "bot template",
@@ -351,6 +356,8 @@ LEARNER_STATE_WRITEBACK_SOURCES: tuple[str, ...] = (
     "quiz",
     "review",
     "heartbeat",
+    "construction_grading",
+    "learning_synthesis",
 )
 
 LEARNER_STATE_INVARIANTS: tuple[str, ...] = (
@@ -360,6 +367,10 @@ LEARNER_STATE_INVARIANTS: tuple[str, ...] = (
     "user_goals is the learner goals truth",
     "learner_summaries is the summary truth",
     "learner_memory_events is the unified long-term event stream",
+    "learning_evidence is stored only as learner_memory_events payload_json",
+    "Learning Brain compiled truth is stored under learner_summaries.summary_structured_json.learning_brain, not as a second learner state authority",
+    "guide_completion and other structured summaries must not be read as Learning Brain compiled truth",
+    "local COMPILED_TRUTH.json is a local/dev cache of offline synthesis output, not a production authority or online synthesis trigger",
     "heartbeat jobs are scheduled per user_id",
     "phase 2 overlay, if introduced, must remain local and subordinate to learner state truth",
     "TutorBot workspace memory must not override learner state truth",

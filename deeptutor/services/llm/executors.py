@@ -17,6 +17,7 @@ from .types import TutorResponse, TutorStreamChunk
 from .utils import extract_response_content
 
 logger = get_logger("LLMExecutors")
+_DISABLED_REASONING_EFFORTS = {"minimal", "none", "disabled", "off", "false", "0"}
 
 
 def _build_messages(
@@ -71,6 +72,27 @@ def _should_request_stream_usage(provider_name: str, base_url: str | None) -> bo
     return "dashscope.aliyuncs.com/compatible-mode" in base or "dashscope-intl.aliyuncs.com/compatible-mode" in base
 
 
+def _apply_provider_thinking_mode(
+    payload: dict[str, Any],
+    *,
+    provider_name: str,
+    reasoning_effort: str | None,
+) -> None:
+    spec = find_by_name(provider_name)
+    if not spec or spec.name != "deepseek":
+        if reasoning_effort:
+            payload["reasoning_effort"] = reasoning_effort
+        return
+
+    requested = str(reasoning_effort or "").strip().lower()
+    thinking_enabled = bool(requested and requested not in _DISABLED_REASONING_EFFORTS)
+    if thinking_enabled:
+        payload["reasoning_effort"] = reasoning_effort
+    payload.setdefault("extra_body", {})["thinking"] = {
+        "type": "enabled" if thinking_enabled else "disabled"
+    }
+
+
 async def sdk_complete(
     *,
     prompt: str,
@@ -118,8 +140,11 @@ async def sdk_complete(
     token_kwargs = get_token_limit_kwargs(resolved_model, max_tokens_val)
     payload.update(token_kwargs)
 
-    if reasoning_effort:
-        payload["reasoning_effort"] = reasoning_effort
+    _apply_provider_thinking_mode(
+        payload,
+        provider_name=provider_name,
+        reasoning_effort=reasoning_effort,
+    )
     payload.update(kwargs)
 
     response = await client.chat.completions.create(**payload)
@@ -200,8 +225,11 @@ async def sdk_stream(
     token_kwargs = get_token_limit_kwargs(resolved_model, max_tokens_val)
     payload.update(token_kwargs)
 
-    if reasoning_effort:
-        payload["reasoning_effort"] = reasoning_effort
+    _apply_provider_thinking_mode(
+        payload,
+        provider_name=provider_name,
+        reasoning_effort=reasoning_effort,
+    )
     if stream_options is not None:
         payload["stream_options"] = stream_options
     elif _should_request_stream_usage(provider_name, effective_base):

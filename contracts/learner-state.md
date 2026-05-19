@@ -144,6 +144,18 @@ Overlay 必须支持：
 
 - `Summary` 单一真相
 - 聚合 session / guide / notebook / quiz 的学习摘要
+- 承载学习事实编译层的 `summary_structured_json.learning_brain` projection。该 projection
+  可以包含 `compiled_objects`、`typed_graph`、`synthesis_run`，但它仍是
+  learner summary 的结构化投影，不是第二套 learner profile / progress 主真相。
+- `summary_structured_json.guide_completion` 等其他结构化摘要不得被 Learning Brain
+  reader 当作 compiled truth 读取。
+- 写入 `summary_structured_json` 时必须按顶层 namespace 做 key-level merge；`learning_brain`、
+  `guide_completion` 等合法 namespace 不能通过整列 upsert 互相覆盖。
+- 本地 `COMPILED_TRUTH.json` 只能作为本地 / dev / dry-run 的只读缓存，由离线
+  synthesis 写入；当 Supabase core store 已配置时，在线 TutorBot / RAG runtime
+  只能读取 `learner_summaries.summary_structured_json.learning_brain`，不得让本地缓存
+  与 durable store 竞争权威；生产环境即使 Supabase core store 未配置，也不得 fail-open
+  读取本地 `COMPILED_TRUTH.json`；在线链路不得为了召回临时重跑 synthesis。
 
 #### `learner_memory_events`
 
@@ -151,6 +163,8 @@ Overlay 必须支持：
 
 - 所有长期 writeback 的统一结构化事件流
 - 支撑 summary/progress 重建、审计与重放
+- 建筑实务阅卷产生的 `learning_evidence` 必须作为
+  `memory_kind="learning_evidence"` 写入本事件流；不得新增平行 memory 表。
 
 #### `learning_plans`
 
@@ -205,10 +219,12 @@ Overlay 必须支持：
 - session digest aggregator
 - guided learning completion aggregator
 - notebook summary aggregator
+- learning synthesis projection refresh
 
 禁止写入：
 
 - 任何模块直接整份覆盖 summary
+- 在线 turn runtime 直接合成或改写 compiled truth projection
 
 ### Durable Memory Hygiene
 
@@ -237,11 +253,11 @@ Overlay 必须支持：
 允许写入：
 
 - 统一 writeback pipeline
-- 建筑实务批改的结构化错因事件可以通过统一 learner state service 写入
-  `source_feature="construction_grading"` 的 memory event；payload 只能承载题目
-  id、题型、得分、错因事件、用户答案和 next training signal。它可以参与后续召回
-  和相似题训练锚点，但不得绕过 `LearnerStateService` 直接改 profile / summary /
-  progress 主真相。
+- 建筑实务批改的结构化错因事件必须通过统一 learner state service 写入
+  `source_feature="construction_grading"`、`memory_kind="learning_evidence"` 的
+  memory event；payload 只能承载题目 id、题型、得分、rubric、错因事件、证据引用、
+  typed edges、用户答案和 next training signal。它可以参与后续召回和相似题训练锚点，
+  但不得绕过 `LearnerStateService` 直接改 profile / summary / progress 主真相。
 - 摸底测评等结构化测评结果可以通过统一 learner state service 写入
   `source_feature="assessment"` 的 memory event；payload 只能承载测评
   `quiz_id`、blueprint version、知识分、置信度、教学策略 seed 与可审计
@@ -251,6 +267,29 @@ Overlay 必须支持：
 禁止写入：
 
 - 各模块私自绕过入口写长期 memory
+- 仅凭聊天总结、模型印象、最终 Markdown 文本推断并写入 `learning_evidence`。
+- 缺少结构化 grading result / active question / answer history 的学习画像事件。
+- 将 `<think>` / provider reasoning / tool scratchpad 写进 `payload_json`。
+
+### Learning Brain Projection
+
+`Learning Brain` 是 learner-state 内部的学习事实编译 projection，不是新的
+长期记忆 authority。它必须满足：
+
+1. 原始证据只来自 `learner_memory_events`，尤其是结构化 `learning_evidence`、
+   grading events、answer history、RAG evidence refs、trace refs、人工修正事件。
+2. `compiled_objects`、`typed_graph`、`weak_points`、`synthesis_run` 只能写入
+   `learner_summaries.summary_structured_json.learning_brain` 或本地 dry-run 输出。
+3. 单次 `L0_observed` 只能服务本轮解释，不得进入稳定画像。
+4. `L1_repeated` 可以驱动显性诊断 hint。
+5. `L2_confirmed` 必须来自人工确认或多次重复且无强冲突，才可进入稳定 Teaching Policy。
+6. 人工修正可以 supersede 自动 claim；人工确认可以把有结构化证据支撑的 claim 升级到
+   `L2_confirmed`。
+7. synthesis 必须可审计、可重跑：至少记录 input event hash、output projection hash、
+   created/updated/decayed/conflict/manual override counts。
+8. typed graph 是 JSON projection，不是图数据库；P0/P1 不得新增第二套 graph store。
+9. `/wechat-harness` 的 Learning Brain QA wrapper 只允许作为 dev/local 可见链路验证入口；
+   它不能承载 grading 或 memory truth，生产环境默认关闭。
 
 ### Assessment Session Read Model
 

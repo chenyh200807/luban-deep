@@ -40,6 +40,7 @@ const DEFAULT_HOST_LAYOUT = {
 };
 const CROSS_HOME_NAV_LOCK_MS = 1200;
 const HOST_HOME_URL = "/pages/freeCourse/freeCourse";
+const DEEPTUTOR_SUBPACKAGE_ROOT = "packageDeeptutor";
 const hostApiMap = require("./api/baseApi");
 const { baseUrl: HOST_LEGACY_API_BASE_URL } = require("./utils/config");
 
@@ -111,6 +112,34 @@ function buildDeeptutorEntryBridgeUrl(entrySource, returnTo, authenticated) {
     "&authenticated=" +
     (authenticated ? "1" : "0")
   );
+}
+
+function sanitizeDeeptutorPackageUrl(value) {
+  const url = String(value || "").trim();
+  if (url.indexOf("/packageDeeptutor/") !== 0) {
+    return "";
+  }
+  return url;
+}
+
+function buildDeeptutorTargetUrl(entrySource, returnTo, authenticated) {
+  if (authenticated) {
+    return (
+      sanitizeDeeptutorPackageUrl(returnTo) ||
+      "/packageDeeptutor/pages/chat/chat?entry_source=" +
+        encodeURIComponent(String(entrySource || "").trim())
+    );
+  }
+  return buildDeeptutorLoginUrl(entrySource, returnTo);
+}
+
+function scheduleAfterReady(task) {
+  if (typeof task !== "function") return;
+  if (typeof wx.nextTick === "function") {
+    wx.nextTick(task);
+    return;
+  }
+  setTimeout(task, 16);
 }
 
 function normalizeBooleanFlag(value, defaultValue) {
@@ -693,33 +722,37 @@ App({
     if (!tryLockCrossHomeNav(opts.lockMs)) {
       return false;
     }
-    const targetUrl = buildDeeptutorEntryBridgeUrl(
+    const targetUrl = buildDeeptutorTargetUrl(
       entrySource,
       returnTo,
       hasLikelyValidStoredToken()
     );
     const handleFinalFailure = (err) => {
       clearCrossHomeNavLock();
-      console.error("[deeptutor.nav] unable to open login page", err);
+      console.error("[deeptutor.nav] unable to open deeptutor page", err);
       if (typeof opts.onFail === "function") {
         opts.onFail(err);
       }
     };
-    wx.navigateTo({
-      url: targetUrl,
-      fail: (err) => {
-        console.warn(
-          "[deeptutor.nav] navigateTo login bridge failed, fallback to reLaunch",
-          err
-        );
+    const routeToTarget = () => {
+      scheduleAfterReady(() => {
         wx.reLaunch({
           url: targetUrl,
-          fail: (fallbackErr) => {
-            handleFinalFailure(fallbackErr || err);
-          },
+          fail: handleFinalFailure,
         });
-      },
-    });
+      });
+    };
+
+    if (typeof wx.loadSubpackage === "function") {
+      wx.loadSubpackage({
+        name: DEEPTUTOR_SUBPACKAGE_ROOT,
+        success: routeToTarget,
+        fail: handleFinalFailure,
+      });
+      return true;
+    }
+
+    routeToTarget();
     return true;
   },
 

@@ -994,7 +994,12 @@ def test_canonical_member_snapshot_merges_legacy_external_auth_learning_state(
     legacy_member = service._find_member(data, "user_2008")
     foundation_progress = next(item for item in chapter_progress if item["chapter_name"] == "地基基础")
 
-    assert assessment["score"] == 50
+    expected_score = round(
+        sum(item["mastery"] for item in assessment["chapter_mastery"].values())
+        / max(len(assessment["chapter_mastery"]), 1)
+    )
+    assert assessment["score"] == expected_score
+    assert assessment["score"] < 50
     assert assessment["chapter_mastery"]["地基基础"]["mastery"] == 50
     assert canonical_profile["user_id"] == canonical_user_id
     assert canonical_profile["username"] == "chenyh2008"
@@ -2008,6 +2013,87 @@ def test_assessment_profile_exposes_observability_and_seed(tmp_path: Path) -> No
     assert profile["teaching_policy_seed"]["measurement_confidence"] == "low"
     assert profile["assessment_observability"]["completion_rate"] == 1
     assert profile["assessment_observability"]["policy_seed_status"] == "created"
+
+
+def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, "student_demo")
+        for chapter in member["chapter_mastery"].values():
+            chapter["mastery"] = 0
+        member["chapter_mastery"]["防水工程"]["mastery"] = 100
+
+    service._mutate(_seed)
+
+    radar = service.get_radar_data("student_demo")
+    dashboard = service.get_mastery_dashboard("student_demo")
+    profile = service.get_assessment_profile("student_demo")
+    chapter_count = len(profile["chapter_mastery"])
+    radar_score = round(sum(item["score"] for item in radar["dimensions"]) / len(radar["dimensions"]))
+
+    assert chapter_count > 1
+    assert len(radar["dimensions"]) == chapter_count
+    assert radar_score == dashboard["overall_mastery"]
+    assert dashboard["overall_mastery"] == round(100 / chapter_count)
+    assert profile["score"] == dashboard["overall_mastery"]
+    assert profile["level"] == "beginner"
+    assert profile["chapter_mastery"]["防水工程"]["mastery"] == 100
+    assert any(item["mastery"] == 0 for item in profile["chapter_mastery"].values())
+
+
+def test_sparse_last_assessment_score_cannot_promote_global_mastery_to_advanced(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, "student_demo")
+        member["last_assessment"] = {
+            "quiz_id": "legacy_sparse_quiz",
+            "score": 100,
+            "knowledge_score": 100,
+            "level": "advanced",
+            "chapter_mastery": {
+                "防水工程": {"name": "防水工程", "mastery": 100},
+            },
+            "diagnostic_feedback": {
+                "ability_overview": {
+                    "score_pct": 100,
+                    "chapter_mastery": {
+                        "防水工程": {"name": "防水工程", "mastery": 100},
+                    },
+                    "error_pattern": "slip_dominant",
+                },
+                "cognitive_insight": {
+                    "response_profile": "fluent",
+                    "calibration_label": "accurate",
+                },
+                "learner_profile": {
+                    "archetype": "strategist",
+                    "traits": [],
+                    "study_tip": "优先补强防水工程。",
+                },
+            },
+        }
+
+    service._mutate(_seed)
+
+    radar = service.get_radar_data("student_demo")
+    dashboard = service.get_mastery_dashboard("student_demo")
+    profile = service.get_assessment_profile("student_demo")
+    chapter_count = len(profile["chapter_mastery"])
+    radar_score = round(sum(item["score"] for item in radar["dimensions"]) / len(radar["dimensions"]))
+
+    assert chapter_count > 1
+    assert len(radar["dimensions"]) == chapter_count
+    assert radar_score == dashboard["overall_mastery"]
+    assert dashboard["overall_mastery"] == round(100 / chapter_count)
+    assert profile["score"] == dashboard["overall_mastery"]
+    assert profile["level"] == "beginner"
+    assert profile["knowledge_score"] == 100
+    assert profile["diagnostic_feedback"]["ability_overview"]["score_pct"] == profile["score"]
+    assert len(profile["diagnostic_feedback"]["ability_overview"]["chapter_mastery"]) == chapter_count
 
 
 def test_chapter_progress_keeps_actual_attempts_separate_from_daily_target(tmp_path: Path) -> None:

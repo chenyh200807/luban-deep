@@ -34,6 +34,7 @@ _DEFAULT_OPENROUTER_HEADERS = {
     "HTTP-Referer": "https://github.com/HKUDS/DeepTutor",
     "X-OpenRouter-Title": "DeepTutor",
 }
+_DISABLED_REASONING_EFFORTS = {"minimal", "none", "disabled", "off", "false", "0"}
 observability = get_langfuse_observability()
 
 
@@ -236,6 +237,8 @@ class OpenAICompatProvider(LLMProvider):
 
         requested_reasoning_effort = str(reasoning_effort or "").strip().lower()
         provider_reasoning_effort = reasoning_effort
+        if requested_reasoning_effort in _DISABLED_REASONING_EFFORTS:
+            provider_reasoning_effort = None
         if (
             spec
             and spec.name == "dashscope"
@@ -261,14 +264,18 @@ class OpenAICompatProvider(LLMProvider):
         if provider_reasoning_effort:
             kwargs["reasoning_effort"] = provider_reasoning_effort
 
-        if spec and (reasoning_effort is not None or spec.name == "dashscope"):
+        if spec and (reasoning_effort is not None or spec.name in {"dashscope", "deepseek"}):
             thinking_enabled = bool(
                 requested_reasoning_effort
-                and requested_reasoning_effort not in {"minimal", "none"}
+                and requested_reasoning_effort not in _DISABLED_REASONING_EFFORTS
             )
             extra: dict[str, Any] | None = None
             if spec.name == "dashscope":
                 extra = {"enable_thinking": thinking_enabled}
+            elif spec.name == "deepseek":
+                extra = {
+                    "thinking": {"type": "enabled" if thinking_enabled else "disabled"}
+                }
             elif spec.name in (
                 "volcengine", "volcengine_coding_plan",
                 "byteplus", "byteplus_coding_plan",

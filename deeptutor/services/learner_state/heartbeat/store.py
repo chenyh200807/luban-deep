@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import threading
 import uuid
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone
@@ -9,6 +10,18 @@ from typing import Any, Literal
 
 
 HeartbeatJobStatus = Literal["active", "paused", "disabled", "failed"]
+_STORE_LOCKS_GUARD = threading.Lock()
+_STORE_LOCKS: dict[str, threading.RLock] = {}
+
+
+def _store_lock(path: Path) -> threading.RLock:
+    key = str(path.resolve(strict=False))
+    with _STORE_LOCKS_GUARD:
+        lock = _STORE_LOCKS.get(key)
+        if lock is None:
+            lock = threading.RLock()
+            _STORE_LOCKS[key] = lock
+        return lock
 
 
 def _coerce_datetime(value: datetime | str | None) -> datetime | None:
@@ -105,6 +118,7 @@ class LearnerHeartbeatJob:
 class LearnerHeartbeatJobStore:
     def __init__(self, store_path: Path):
         self.store_path = store_path
+        self._lock = _store_lock(store_path)
 
     def load(self) -> list[LearnerHeartbeatJob]:
         if not self.store_path.exists():
@@ -124,14 +138,15 @@ class LearnerHeartbeatJobStore:
         return jobs
 
     def save(self, jobs: list[LearnerHeartbeatJob]) -> None:
-        self.store_path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
-            "version": 1,
-            "jobs": [job.to_dict() for job in jobs],
-        }
-        tmp_path = self.store_path.with_suffix(f"{self.store_path.suffix}.tmp")
-        tmp_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
-        tmp_path.replace(self.store_path)
+        with self._lock:
+            self.store_path.parent.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "version": 1,
+                "jobs": [job.to_dict() for job in jobs],
+            }
+            tmp_path = self.store_path.with_name(f"{self.store_path.name}.{uuid.uuid4().hex}.tmp")
+            tmp_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+            tmp_path.replace(self.store_path)
 
     def get_by_id(self, job_id: str) -> LearnerHeartbeatJob | None:
         for job in self.load():
@@ -160,25 +175,26 @@ class LearnerHeartbeatJobStore:
         )
 
     def upsert(self, job: LearnerHeartbeatJob) -> LearnerHeartbeatJob:
-        jobs = self.load()
-        index = next((i for i, item in enumerate(jobs) if item.job_id == job.job_id), None)
-        if index is None:
-            index = next(
-                (
-                    i
-                    for i, item in enumerate(jobs)
-                    if item.user_id == job.user_id and item.bot_id == job.bot_id and item.channel == job.channel
-                ),
-                None,
-            )
+        with self._lock:
+            jobs = self.load()
+            index = next((i for i, item in enumerate(jobs) if item.job_id == job.job_id), None)
+            if index is None:
+                index = next(
+                    (
+                        i
+                        for i, item in enumerate(jobs)
+                        if item.user_id == job.user_id and item.bot_id == job.bot_id and item.channel == job.channel
+                    ),
+                    None,
+                )
 
-        if index is None:
-            jobs.append(job)
-        else:
-            jobs[index] = job
+            if index is None:
+                jobs.append(job)
+            else:
+                jobs[index] = job
 
-        self.save(jobs)
-        return job
+            self.save(jobs)
+            return job
 
     def pause(self, job_id: str, updated_at: datetime) -> LearnerHeartbeatJob | None:
         return self._mutate(job_id, updated_at, status="paused")
@@ -197,22 +213,23 @@ class LearnerHeartbeatJobStore:
         status: HeartbeatJobStatus,
         updated_at: datetime,
     ) -> LearnerHeartbeatJob | None:
-        jobs = self.load()
-        for index, item in enumerate(jobs):
-            if item.job_id != job_id:
-                continue
-            jobs[index] = replace(
-                item,
-                last_run_at=last_run_at,
-                next_run_at=next_run_at,
-                last_result_json=_copy_json(last_result_json),
-                failure_count=int(failure_count),
-                status=status,
-                updated_at=updated_at,
-            )
-            self.save(jobs)
-            return jobs[index]
-        return None
+        with self._lock:
+            jobs = self.load()
+            for index, item in enumerate(jobs):
+                if item.job_id != job_id:
+                    continue
+                jobs[index] = replace(
+                    item,
+                    last_run_at=last_run_at,
+                    next_run_at=next_run_at,
+                    last_result_json=_copy_json(last_result_json),
+                    failure_count=int(failure_count),
+                    status=status,
+                    updated_at=updated_at,
+                )
+                self.save(jobs)
+                return jobs[index]
+            return None
 
     def list_due_jobs(self, now: datetime) -> list[LearnerHeartbeatJob]:
         jobs = self.load()
@@ -230,14 +247,15 @@ class LearnerHeartbeatJobStore:
         *,
         status: HeartbeatJobStatus,
     ) -> LearnerHeartbeatJob | None:
-        jobs = self.load()
-        for index, item in enumerate(jobs):
-            if item.job_id != job_id:
-                continue
-            jobs[index] = replace(item, status=status, updated_at=updated_at)
-            self.save(jobs)
-            return jobs[index]
-        return None
+        with self._lock:
+            jobs = self.load()
+            for index, item in enumerate(jobs):
+                if item.job_id != job_id:
+                    continue
+                jobs[index] = replace(item, status=status, updated_at=updated_at)
+                self.save(jobs)
+                return jobs[index]
+            return None
 
 
 def new_job_id() -> str:

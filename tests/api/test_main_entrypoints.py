@@ -331,6 +331,26 @@ def test_cors_uses_env_allowlist_and_ignores_wildcard(
     ]
 
 
+def test_cors_defaults_to_public_form_origin_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_CORS_ALLOW_ORIGINS": None,
+            "CORS_ORIGIN": None,
+            "CORS_ORIGINS": None,
+        },
+        tmp_path=tmp_path,
+    )
+
+    options = _cors_middleware_options(module.app)
+    assert options["allow_credentials"] is True
+    assert options["allow_origins"] == ["https://www.yousenjiaoyu.com"]
+
+
 def test_cors_accepts_upstream_origin_aliases_without_wildcard(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -379,6 +399,63 @@ def test_production_disables_legacy_router_mounts_by_default(
     assert "/api/v1/notebook/list" not in paths
     assert "/api/v1/plugins/list" not in paths
     assert "/api/v1/tutorbot" not in paths
+
+
+def test_learning_brain_qa_router_is_not_mounted_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA": None,
+        },
+        tmp_path=tmp_path,
+    )
+
+    assert "/api/v1/learning-brain/harness-case-grading" not in _route_paths(module.app)
+
+
+def test_learning_brain_qa_router_requires_local_explicit_flag(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA": "1",
+        },
+        tmp_path=tmp_path,
+    )
+
+    assert "/api/v1/learning-brain/harness-case-grading" in _route_paths(module.app)
+    assert "/wechat-harness" in _route_paths(module.app)
+
+    with TestClient(module.app) as client:
+        response = client.get("/wechat-harness")
+
+    assert response.status_code == 200
+    assert "学习大脑" in response.text
+    assert "当前可信结论" in response.text
+
+
+def test_learning_brain_qa_router_not_mounted_in_production_even_with_flag(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA": "1",
+        },
+        tmp_path=tmp_path,
+    )
+
+    assert "/api/v1/learning-brain/harness-case-grading" not in _route_paths(module.app)
+    assert "/wechat-harness" not in _route_paths(module.app)
 
 
 def test_public_outputs_can_be_explicitly_reenabled_in_production(

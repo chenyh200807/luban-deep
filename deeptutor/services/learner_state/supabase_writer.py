@@ -171,6 +171,7 @@ class LearnerStateSupabaseWriter:
                 written_tables.append("bot_learner_overlay_audit")
 
             if summary_row is not None:
+                summary_row = await self._merge_summary_structured_json(client, summary_row)
                 await self._upsert(
                     client,
                     table="learner_summaries",
@@ -181,6 +182,7 @@ class LearnerStateSupabaseWriter:
 
             if guide_rows is not None:
                 guide_summary_row, plan_row, page_rows = guide_rows
+                guide_summary_row = await self._merge_summary_structured_json(client, guide_summary_row)
                 await self._upsert(
                     client,
                     table="learner_summaries",
@@ -270,6 +272,49 @@ class LearnerStateSupabaseWriter:
         )
         response.raise_for_status()
 
+    async def _merge_summary_structured_json(
+        self,
+        client: httpx.AsyncClient,
+        row: dict[str, Any],
+    ) -> dict[str, Any]:
+        patch = row.get("summary_structured_json")
+        if not isinstance(patch, dict):
+            return row
+        user_id = str(row.get("user_id") or "").strip()
+        if not user_id:
+            return row
+        existing = await self._read_summary_structured_json(client, user_id=user_id)
+        if not existing:
+            return row
+        merged = self._deep_merge_dict(existing, patch)
+        return {**row, "summary_structured_json": merged}
+
+    async def _read_summary_structured_json(
+        self,
+        client: httpx.AsyncClient,
+        *,
+        user_id: str,
+    ) -> dict[str, Any]:
+        url = f"{self._base_url.rstrip('/')}/rest/v1/learner_summaries"
+        response = await client.get(
+            url,
+            headers=self._headers(),
+            params={
+                "select": "summary_structured_json",
+                "user_id": f"eq.{user_id}",
+                "limit": "1",
+            },
+        )
+        response.raise_for_status()
+        try:
+            rows = response.json()
+        except ValueError:
+            return {}
+        if not isinstance(rows, list) or not rows:
+            return {}
+        structured = dict(rows[0]).get("summary_structured_json")
+        return dict(structured) if isinstance(structured, dict) else {}
+
     def _headers(self) -> dict[str, str]:
         return {
             "apikey": self._service_key,
@@ -277,6 +322,16 @@ class LearnerStateSupabaseWriter:
             "Content-Type": "application/json",
             "Prefer": "resolution=merge-duplicates,return=representation",
         }
+
+    @classmethod
+    def _deep_merge_dict(cls, base: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
+        merged: dict[str, Any] = dict(base)
+        for key, value in patch.items():
+            if isinstance(value, dict) and isinstance(merged.get(key), dict):
+                merged[key] = cls._deep_merge_dict(dict(merged[key]), value)
+            else:
+                merged[key] = value
+        return merged
 
     @staticmethod
     def _unpack_payload(item: LearnerStateOutboxItem) -> dict[str, Any]:
@@ -290,6 +345,7 @@ class LearnerStateSupabaseWriter:
     def _supports_event_type(event_type: str) -> bool:
         return event_type in {
             "turn",
+            "learning_evidence",
             "guide_completion",
             "progress",
             "summary_refresh",
@@ -330,18 +386,16 @@ class LearnerStateSupabaseWriter:
         summary_md = str(payload.get("summary_md") or "").strip()
         if not summary_md:
             return None
-        return {
+        row = {
             "user_id": str(item.user_id).strip(),
             "summary_md": summary_md,
-            "summary_structured_json": {
-                "source_feature": str(payload.get("source_feature") or "").strip(),
-                "source_id": str(payload.get("source_id") or "").strip(),
-                "source_bot_id": self._null_if_blank(payload.get("source_bot_id")),
-            },
             "last_refreshed_from_turn_id": str(payload.get("source_id") or "").strip() or None,
             "last_refreshed_from_feature": str(payload.get("source_feature") or "summary_refresh").strip(),
             "updated_at": str(payload.get("updated_at") or item.created_at).strip(),
         }
+        if isinstance(payload.get("summary_structured_json"), dict):
+            row["summary_structured_json"] = dict(payload.get("summary_structured_json") or {})
+        return row
 
     def _build_heartbeat_job_row(
         self,
@@ -547,10 +601,12 @@ class LearnerStateSupabaseWriter:
             "user_id": str(item.user_id).strip(),
             "summary_md": summary,
             "summary_structured_json": {
-                "guide_id": guide_id,
-                "notebook_name": str(inner_payload.get("notebook_name") or "").strip(),
-                "total_points": int(inner_payload.get("total_points") or len(knowledge_points) or 0),
-                "knowledge_points": knowledge_points,
+                "guide_completion": {
+                    "guide_id": guide_id,
+                    "notebook_name": str(inner_payload.get("notebook_name") or "").strip(),
+                    "total_points": int(inner_payload.get("total_points") or len(knowledge_points) or 0),
+                    "knowledge_points": knowledge_points,
+                },
             },
             "last_refreshed_from_turn_id": guide_id,
             "last_refreshed_from_feature": "guide_completion",

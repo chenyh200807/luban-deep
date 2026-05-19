@@ -578,6 +578,7 @@ class AgentCoordinator:
             if isinstance(result.get("exact_question"), dict)
             else {}
         )
+        evidence_refs = AgentCoordinator._compact_rag_evidence_refs(result)
         stem = str(exact_question.get("stem") or "").strip()
         analysis = str(exact_question.get("analysis") or "").strip()
         correct_answer = str(exact_question.get("correct_answer") or "").strip()
@@ -602,6 +603,7 @@ class AgentCoordinator:
                 "reference_answer": correct_answer,
                 "anchor_source": str(exact_question.get("source_group") or "").strip() or "exact_question",
                 "anchor_confidence": exact_question.get("confidence"),
+                "evidence_refs": evidence_refs,
             }
 
         answer = str(result.get("answer") or "").strip()
@@ -632,6 +634,7 @@ class AgentCoordinator:
                 "reference_question": parsed_bundle["reference_question"],
                 "reference_answer": parsed_bundle.get("reference_answer"),
                 "anchor_source": "rag_answer_bundle",
+                "evidence_refs": evidence_refs,
             }
 
         clipped_answer = answer[:280] + ("..." if len(answer) > 280 else "")
@@ -639,7 +642,50 @@ class AgentCoordinator:
             "knowledge_context": f"{base['knowledge_context']}\n题库参考资料：{clipped_answer}",
             "concentration": anchor_label,
             "anchor_source": "rag_answer_text",
+            "evidence_refs": evidence_refs,
         }
+
+    @staticmethod
+    def _compact_rag_evidence_refs(result: dict[str, Any]) -> list[dict[str, Any]]:
+        bundle = result.get("evidence_bundle") if isinstance(result.get("evidence_bundle"), dict) else {}
+        if not bundle:
+            return []
+        refs: list[dict[str, Any]] = []
+        retrieval_status = str(bundle.get("retrieval_status") or "").strip()
+        for source in list(bundle.get("sources") or [])[:3]:
+            if not isinstance(source, dict):
+                continue
+            source_group = str(
+                source.get("_source_group")
+                or source.get("source_group")
+                or source.get("_source_table")
+                or source.get("source_type")
+                or "retrieval"
+            ).strip()
+            source_id = str(source.get("chunk_id") or source.get("id") or source.get("question_id") or "").strip()
+            content = (
+                source.get("content")
+                or source.get("text")
+                or source.get("answer")
+                or source.get("stem")
+                or source.get("title")
+                or source_id
+            )
+            if content in (None, "", [], {}):
+                continue
+            value = {"source_group": source_group, "source_id": source_id, "content": str(content)[:500]}
+            if retrieval_status:
+                value["retrieval_status"] = retrieval_status
+            refs.append({"source": "evidence_bundle", "field": source_group or "source", "content": value})
+        if refs:
+            return refs
+        content_blocks = [str(item).strip() for item in list(bundle.get("content_blocks") or []) if str(item).strip()]
+        if not content_blocks:
+            return []
+        value: dict[str, Any] = {"content": content_blocks[0][:500]}
+        if retrieval_status:
+            value["retrieval_status"] = retrieval_status
+        return [{"source": "evidence_bundle", "field": "content_blocks", "content": value}]
 
     @staticmethod
     def _derive_lightweight_anchor_label(

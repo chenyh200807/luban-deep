@@ -286,12 +286,20 @@ export interface BiInviteTestApplication {
   name: string;
   phone: string;
   email: string;
+  province: string;
+  age_range: string;
+  education: string;
+  occupation: string;
   wechat_id: string;
   exam_type: string;
   exam_stage: string;
+  preparation_years: string;
+  knowledge_foundation: string;
   pain_point: string;
   weekly_time: string;
+  daily_study_time: string;
   current_method: string;
+  study_difficulties: string;
   latest_wrong_question: string;
   is_yousen_member: string;
   exam_date: string;
@@ -580,12 +588,20 @@ function normalizeInviteTestApplication(item: unknown): BiInviteTestApplication 
     name: toString(record.name, "未命名"),
     phone: toString(record.phone, ""),
     email: toString(record.email, ""),
+    province: toString(record.province, ""),
+    age_range: toString(record.age_range ?? record.ageRange, ""),
+    education: toString(record.education, ""),
+    occupation: toString(record.occupation, ""),
     wechat_id: toString(record.wechat_id ?? record.wechatId, ""),
     exam_type: toString(record.exam_type ?? record.examType, ""),
     exam_stage: toString(record.exam_stage ?? record.examStage, ""),
+    preparation_years: toString(record.preparation_years ?? record.preparationYears, ""),
+    knowledge_foundation: toString(record.knowledge_foundation ?? record.knowledgeFoundation, ""),
     pain_point: toString(record.pain_point ?? record.painPoint, ""),
     weekly_time: toString(record.weekly_time ?? record.weeklyTime, ""),
+    daily_study_time: toString(record.daily_study_time ?? record.dailyStudyTime, ""),
     current_method: toString(record.current_method ?? record.currentMethod, ""),
+    study_difficulties: toString(record.study_difficulties ?? record.studyDifficulties, ""),
     latest_wrong_question: toString(record.latest_wrong_question ?? record.latestWrongQuestion, ""),
     is_yousen_member: toString(record.is_yousen_member ?? record.isYousenMember, ""),
     exam_date: toString(record.exam_date ?? record.examDate, ""),

@@ -9,11 +9,19 @@ type InviteApplicationPayload = {
   name?: unknown;
   phone?: unknown;
   email?: unknown;
+  province?: unknown;
+  ageRange?: unknown;
+  education?: unknown;
+  occupation?: unknown;
   examType?: unknown;
   examStage?: unknown;
+  preparationYears?: unknown;
+  knowledgeFoundation?: unknown;
   painPoint?: unknown;
   weeklyTime?: unknown;
+  dailyStudyTime?: unknown;
   currentMethod?: unknown;
+  studyDifficulties?: unknown;
   wechatId?: unknown;
   isYousenMember?: unknown;
   examDate?: unknown;
@@ -51,16 +59,24 @@ type InviteApplicationRecord = {
   rawPayload: InviteApplicationPayload;
 };
 
-const REQUIRED_FIELDS = ["name", "phone", "email", "examType", "examStage", "painPoint", "weeklyTime"] as const;
+const REQUIRED_FIELDS = ["name", "phone", "email", "wechatId", "examType", "examStage", "painPoint", "weeklyTime"] as const;
 const MAX_LENGTHS = {
   name: 80,
   phone: 24,
   email: 160,
+  province: 80,
+  ageRange: 40,
+  education: 80,
+  occupation: 120,
   examType: 80,
   examStage: 80,
+  preparationYears: 80,
+  knowledgeFoundation: 80,
   painPoint: 80,
   weeklyTime: 80,
+  dailyStudyTime: 80,
   currentMethod: 800,
+  studyDifficulties: 1000,
   wechatId: 120,
   isYousenMember: 80,
   examDate: 80,
@@ -188,12 +204,20 @@ function validatePayload(payload: InviteApplicationPayload) {
       name: cleanString(payload.name, MAX_LENGTHS.name),
       phone: cleanString(payload.phone, MAX_LENGTHS.phone).replace(/\s+/g, ""),
       email: cleanString(payload.email, MAX_LENGTHS.email).toLowerCase(),
+      province: cleanString(payload.province, MAX_LENGTHS.province),
+      ageRange: cleanString(payload.ageRange, MAX_LENGTHS.ageRange),
+      education: cleanString(payload.education, MAX_LENGTHS.education),
+      occupation: cleanString(payload.occupation, MAX_LENGTHS.occupation),
       wechatId: cleanString(payload.wechatId, MAX_LENGTHS.wechatId),
       examType: cleanString(payload.examType, MAX_LENGTHS.examType),
       examStage: cleanString(payload.examStage, MAX_LENGTHS.examStage),
+      preparationYears: cleanString(payload.preparationYears, MAX_LENGTHS.preparationYears),
+      knowledgeFoundation: cleanString(payload.knowledgeFoundation, MAX_LENGTHS.knowledgeFoundation),
       painPoint: cleanString(payload.painPoint, MAX_LENGTHS.painPoint),
       weeklyTime: cleanString(payload.weeklyTime, MAX_LENGTHS.weeklyTime),
+      dailyStudyTime: cleanString(payload.dailyStudyTime, MAX_LENGTHS.dailyStudyTime),
       currentMethod: cleanString(payload.currentMethod, MAX_LENGTHS.currentMethod),
+      studyDifficulties: cleanString(payload.studyDifficulties, MAX_LENGTHS.studyDifficulties),
       latestWrongQuestion: cleanString(payload.latestWrongQuestion, MAX_LENGTHS.latestWrongQuestion),
       isYousenMember: cleanString(payload.isYousenMember, MAX_LENGTHS.isYousenMember),
       examDate: cleanString(payload.examDate, MAX_LENGTHS.examDate),

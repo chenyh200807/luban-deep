@@ -173,10 +173,56 @@ def _training_signal_text_from_context(question_context: dict[str, Any]) -> str:
     return "；".join(parts)
 
 
+def _compiled_training_signal_text_from_context(question_context: dict[str, Any]) -> str:
+    truth = question_context.get("compiled_learning_truth")
+    if not isinstance(truth, dict):
+        return ""
+    weak_points = list(truth.get("weak_points") or [])
+    parts: list[str] = []
+    for item in weak_points[:3]:
+        if not isinstance(item, dict):
+            continue
+        decay_state = _compact_text(item.get("decay_state"))
+        if decay_state and decay_state != "active":
+            continue
+        if item.get("superseded_by_event_ids"):
+            continue
+        evidence_level = _compact_text(item.get("evidence_level"))
+        if evidence_level not in {"L1_repeated", "L2_confirmed", "L3_mastery_signal"}:
+            continue
+        policy_action = "stable_personalization" if evidence_level in {"L2_confirmed", "L3_mastery_signal"} else "diagnostic_hint"
+        concept = _compact_text(item.get("concept_id"))
+        error_code = _compact_text(item.get("error_code"))
+        training = item.get("recommended_training") if isinstance(item.get("recommended_training"), dict) else {}
+        focus = _compact_text(training.get("focus"))
+        mode = _compact_text(training.get("mode"))
+        signal_parts: list[str] = []
+        if concept:
+            signal_parts.append(f"concept={concept}")
+        if focus:
+            signal_parts.append(f"focus={focus}")
+        if mode:
+            signal_parts.append(f"mode={mode}")
+        if error_code:
+            signal_parts.append(f"error_codes={error_code}")
+        if signal_parts:
+            signal_parts.append(f"evidence_level={evidence_level}")
+            signal_parts.append(f"policy_action={policy_action}")
+            parts.append("；".join(signal_parts))
+    return " | ".join(parts)
+
+
 def _question_context_generation_anchor(question_context: dict[str, Any] | None) -> str:
+    raw_context = question_context if isinstance(question_context, dict) else {}
     normalized = normalize_question_followup_context(question_context)
     if not normalized:
         return ""
+    if (
+        "compiled_learning_truth" not in normalized
+        and isinstance(raw_context.get("compiled_learning_truth"), dict)
+    ):
+        normalized = dict(normalized)
+        normalized["compiled_learning_truth"] = raw_context["compiled_learning_truth"]
 
     items = normalized.get("items") or []
     contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
@@ -194,6 +240,12 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
             _append_unique(
                 training_parts,
                 f"上一轮错因训练信号：{training_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
+            )
+        compiled_training_signal = _compiled_training_signal_text_from_context(item)
+        if compiled_training_signal:
+            _append_unique(
+                training_parts,
+                f"长期错因训练信号：{compiled_training_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
             )
 
     anchor_lines: list[str] = []
@@ -790,6 +842,7 @@ def _write_grading_error_events_for_context(
             grading_result=grading_result,
             source_id=source_id,
             source_bot_id=_source_bot_id_from_context(context) or None,
+            include_success_events=True,
         )
     except Exception:
         return 0

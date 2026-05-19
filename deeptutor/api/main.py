@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -31,7 +32,7 @@ from deeptutor.services.branding import get_api_title, get_api_welcome_message
 from deeptutor.services.learner_state.runtime import create_default_learner_state_runtime
 from deeptutor.services.observability import get_release_lineage_snapshot, get_surface_event_store
 from deeptutor.services.path_service import get_path_service
-from deeptutor.services.runtime_env import env_flag, is_production_environment
+from deeptutor.services.runtime_env import env_flag, is_production_environment, runtime_environment
 from deeptutor.utils.error_rate_tracker import get_tracker_snapshot
 from deeptutor.utils.network.circuit_breaker import get_circuit_breaker_snapshot
 
@@ -62,6 +63,9 @@ _DEFAULT_DEV_CORS_ORIGINS = (
     "http://127.0.0.1:3000",
     "http://localhost:3782",
     "http://127.0.0.1:3782",
+)
+_DEFAULT_PRODUCTION_CORS_ORIGINS = (
+    "https://www.yousenjiaoyu.com",
 )
 _READINESS_CHECK_NAMES = (
     "config_consistent",
@@ -105,7 +109,7 @@ class SafeOutputStaticFiles(StaticFiles):
 
 def _default_cors_allow_origins() -> list[str]:
     if is_production_environment():
-        return []
+        return list(_DEFAULT_PRODUCTION_CORS_ORIGINS)
     return list(_DEFAULT_DEV_CORS_ORIGINS)
 
 
@@ -459,6 +463,7 @@ from deeptutor.api.routers import (
     guide,
     invite_test,
     knowledge,
+    learning_brain,
     member,
     memory,
     mobile,
@@ -493,6 +498,13 @@ else:
     )
 app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledge"])
 app.include_router(invite_test.router, prefix="/api/v1/invite-test", tags=["invite-test"])
+if runtime_environment() == "local" and env_flag("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", default=False):
+    app.include_router(learning_brain.router, prefix="/api/v1/learning-brain", tags=["learning-brain"])
+
+    @app.get("/wechat-harness", include_in_schema=False)
+    async def learning_brain_wechat_harness():
+        return HTMLResponse(learning_brain.render_learning_brain_harness_html())
+
 app.include_router(member.router, prefix="/api/v1/member", tags=["member"])
 app.include_router(bi.router, prefix="/api/v1/bi", tags=["bi"])
 app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])

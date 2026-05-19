@@ -82,6 +82,7 @@ class ChatCapability(BaseCapability):
             if msg.get("role") in {"user", "assistant"}
         ]
         agent = ChatAgent(language=context.language)
+        raw_user_message = str(context.metadata.get("raw_user_message") or "").strip()
 
         async with stream.stage("responding", source=self.name):
             await stream.progress(
@@ -97,6 +98,13 @@ class ChatCapability(BaseCapability):
                 enable_web_search="web_search" in enabled_tools,
                 stream=True,
                 attachments=context.attachments,
+                retrieval_query=raw_user_message or None,
+                compiled_learning_truth=(
+                    dict(context.metadata.get("compiled_learning_truth"))
+                    if isinstance(context.metadata.get("compiled_learning_truth"), dict)
+                    and context.metadata.get("compiled_learning_truth")
+                    else None
+                ),
             )
             full_response = ""
             final_sources: dict[str, Any] = {"rag": [], "web": []}

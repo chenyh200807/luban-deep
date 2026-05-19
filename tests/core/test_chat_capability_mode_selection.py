@@ -378,7 +378,11 @@ async def test_chat_capability_fast_mode_ignores_web_search(
         enabled_tools=["web_search"],
         knowledge_bases=["construction-exam"],
         config_overrides={"chat_mode": "fast"},
-        metadata={"chat_mode_explicit": True},
+        metadata={
+            "chat_mode_explicit": True,
+            "raw_user_message": "屋面防水等级怎么划分？",
+            "compiled_learning_truth": {"subject": "construction_exam_learning_truth"},
+        },
         language="zh",
     )
 
@@ -387,6 +391,8 @@ async def test_chat_capability_fast_mode_ignores_web_search(
     assert captured["kb_name"] == "construction-exam"
     assert captured["enable_rag"] is True
     assert captured["enable_web_search"] is False
+    assert captured["retrieval_query"] == "屋面防水等级怎么划分？"
+    assert captured["compiled_learning_truth"] == {"subject": "construction_exam_learning_truth"}
 
 
 @pytest.mark.asyncio

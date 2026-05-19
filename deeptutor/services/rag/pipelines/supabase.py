@@ -19,7 +19,10 @@ from deeptutor.logging import get_logger
 from deeptutor.services.config import get_kb_config_service
 from deeptutor.services.embedding import get_embedding_client
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.rag.compiled_truth_source import materialize_compiled_truth_documents
 from deeptutor.services.rag.exceptions import RAGError, RAGSearchError, wrap_rag_error
+from deeptutor.services.rag.provenance import apply_provenance_ranking, build_ranking_trace
+from deeptutor.services.rag.retrieval_plan import build_retrieval_plan
 from .supabase_strategy import (
     build_exact_question_keyword_terms,
     build_exact_question_text_candidates,
@@ -458,6 +461,8 @@ def _build_evidence_bundle(
     sources: list[dict[str, Any]],
     exact_question: dict[str, Any] | None,
     source_plan,
+    retrieval_plan,
+    ranking_trace: dict[str, Any],
     query_shape: str,
     rewritten,
     second_pass_queries: list[str],
@@ -481,6 +486,12 @@ def _build_evidence_bundle(
             if hasattr(source_plan, "to_trace_dict")
             else {}
         ),
+        "retrieval_plan": (
+            retrieval_plan.to_dict()
+            if hasattr(retrieval_plan, "to_dict")
+            else {}
+        ),
+        "ranking_trace": dict(ranking_trace or {}),
         "content_blocks": list(content_blocks or []),
         "sources": list(sources or []),
         "exact_question": dict(exact_question or {}),
@@ -504,7 +515,7 @@ def _weighted_rrf_fusion(
                 continue
             scores[doc_id] = scores.get(doc_id, 0.0) + weight * (1.0 / (k + rank + 1))
             if doc_id not in doc_map:
-                doc["_source_group"] = group
+                doc["_source_group"] = str(doc.get("_source_group") or group)
                 doc_map[doc_id] = doc
 
     fused: list[dict[str, Any]] = []
@@ -643,6 +654,25 @@ def _apply_similarity_floor(
     return fused
 
 
+def _pin_exact_question_results(
+    results: list[dict[str, Any]],
+    *,
+    exact_question_present: bool,
+) -> list[dict[str, Any]]:
+    if not exact_question_present or not results:
+        return results
+    exact_groups = {"question_exact_text", "question_exact_vector"}
+    exact_head = [
+        item
+        for item in results
+        if str(item.get("_source_group") or "") in exact_groups
+    ]
+    if not exact_head:
+        return results
+    exact_ids = {id(item) for item in exact_head}
+    return exact_head + [item for item in results if id(item) not in exact_ids]
+
+
 @dataclass(slots=True)
 class SupabaseSearchConfig:
     url: str
@@ -672,6 +702,14 @@ class SupabaseSearchConfig:
     exact_question_min_similarity: float
     exact_question_max_text_len: int
     exact_question_text_rpc_enabled: bool
+    query_plan_trace_enabled: bool = True
+    compiled_truth_shadow_enabled: bool = True
+    compiled_truth_enabled: bool = False
+    compiled_truth_max_documents: int = 6
+    compiled_truth_max_chars_per_doc: int = 700
+    compiled_truth_max_total_chars: int = 2400
+    provenance_boost_enabled: bool = False
+    query_variant_concurrency: int = 2
 
 
 class SupabasePipeline:
@@ -718,6 +756,12 @@ class SupabasePipeline:
         kb_name: str,
         **kwargs,
     ) -> dict[str, Any]:
+        total_started_at = time.perf_counter()
+        stage_timings_ms: dict[str, float] = {}
+
+        def record_stage(name: str, started_at: float) -> None:
+            stage_timings_ms[name] = round((time.perf_counter() - started_at) * 1000, 1)
+
         query = str(query or "").strip()
         if not query:
             return {"query": "", "answer": "", "content": "", "sources": [], "provider": "supabase"}
@@ -726,6 +770,8 @@ class SupabasePipeline:
         intent = str(kwargs.get("intent") or "").strip()
         question_type = str(kwargs.get("question_type") or "").strip()
         routing_metadata = kwargs.get("routing_metadata")
+        routing_metadata = routing_metadata if isinstance(routing_metadata, dict) else {}
+        compiled_learning_truth = kwargs.get("compiled_learning_truth")
         with observability.start_observation(
             name="rag.supabase.search",
             as_type="retriever",
@@ -745,9 +791,17 @@ class SupabasePipeline:
                 include_questions_default=config.include_questions,
                 intent=intent,
                 question_type=question_type,
-                routing_metadata=(
-                    routing_metadata if isinstance(routing_metadata, dict) else None
-                ),
+                routing_metadata=routing_metadata,
+            )
+            retrieval_plan = build_retrieval_plan(
+                query,
+                include_questions_default=config.include_questions,
+                intent=intent,
+                question_type=question_type,
+                routing_metadata={
+                    **routing_metadata,
+                    "compiled_learning_truth_available": bool(compiled_learning_truth),
+                },
             )
             query_shape = rewritten.query_shape or classify_query_shape(query)
             exact_probe = (
@@ -770,86 +824,137 @@ class SupabasePipeline:
                 if config.query_expansion_enabled
                 else [rewritten.primary_query or query]
             ) or [rewritten.primary_query or query]
+            intent_fast_path = str(getattr(retrieval_plan, "intent", "") or "").strip() in {
+                "weak_point_review",
+                "next_training",
+            }
+            if intent_fast_path:
+                primary_queries = primary_queries[:1]
+            effective_second_pass_enabled = bool(config.second_pass_enabled and not intent_fast_path)
+            effective_rerank_enabled = bool(config.rerank_enabled and not intent_fast_path)
             exact_text_plans: list[dict[str, Any]] = []
             retrieval_warnings: list[dict[str, str]] = []
+            stage_started = time.perf_counter()
+            compiled_truth_plan = self._compiled_truth_plan(
+                retrieval_plan=retrieval_plan,
+                compiled_learning_truth=compiled_learning_truth,
+                config=config,
+            )
+            compiled_truth_final_enabled = self._compiled_truth_final_enabled(
+                retrieval_plan=retrieval_plan,
+                config=config,
+            )
+            final_compiled_truth_plan = (
+                self._final_compiled_truth_plan(compiled_truth_plan)
+                if compiled_truth_final_enabled
+                else []
+            )
+            shadow_compiled_truth_sources = (
+                self._plan_documents(compiled_truth_plan)
+                if config.compiled_truth_shadow_enabled and not final_compiled_truth_plan
+                else []
+            )
+            record_stage("compiled_truth_plan", stage_started)
+            compiled_only_fast_path = (
+                str(getattr(retrieval_plan, "intent", "") or "").strip() == "next_training"
+                and bool(final_compiled_truth_plan)
+            )
+            primary_plan: list[dict[str, Any]] = []
 
-            try:
-                client = await self._get_client(config.timeout_s)
-                await self._assert_data_api_available(client=client, config=config)
-                exact_text_task: asyncio.Task[list[dict[str, Any]]] | None = None
-                if (
-                    exact_probe
-                    and config.exact_question_text_first
-                    and len(exact_probe.query) <= config.exact_question_max_text_len
-                ):
-                    exact_text_candidates = [exact_probe.query]
-                    for candidate in case_exact_queries:
-                        if candidate not in exact_text_candidates:
-                            exact_text_candidates.append(candidate)
-                    exact_text_task = asyncio.create_task(
-                        self._search_exact_question_text_batch(
+            if compiled_only_fast_path:
+                stage_timings_ms["availability_gate"] = 0.0
+                stage_timings_ms["primary_plan"] = 0.0
+                primary_queries = []
+                effective_second_pass_enabled = False
+                effective_rerank_enabled = False
+            else:
+                try:
+                    stage_started = time.perf_counter()
+                    client = await self._get_client(config.timeout_s)
+                    await self._assert_data_api_available(client=client, config=config)
+                    record_stage("availability_gate", stage_started)
+                    exact_text_task: asyncio.Task[list[dict[str, Any]]] | None = None
+                    exact_text_started_at: float | None = None
+                    if (
+                        exact_probe
+                        and config.exact_question_text_first
+                        and len(exact_probe.query) <= config.exact_question_max_text_len
+                    ):
+                        exact_text_candidates = [exact_probe.query]
+                        for candidate in case_exact_queries:
+                            if candidate not in exact_text_candidates:
+                                exact_text_candidates.append(candidate)
+                        exact_text_started_at = time.perf_counter()
+                        exact_text_task = asyncio.create_task(
+                            self._search_exact_question_text_batch(
+                                client=client,
+                                probe_queries=exact_text_candidates,
+                                allowed_question_types=exact_probe.allowed_question_types,
+                                original_query=query,
+                                option_validation_required=exact_probe.option_validation_required,
+                                config=config,
+                                warning_sink=retrieval_warnings,
+                            )
+                        )
+                    stage_started = time.perf_counter()
+                    primary_plan_task = asyncio.create_task(
+                        self._run_query_plan(
                             client=client,
-                            probe_queries=exact_text_candidates,
-                            allowed_question_types=exact_probe.allowed_question_types,
+                            queries=primary_queries,
+                            question_like=question_like,
+                            source_plan=source_plan,
+                            standard_codes=rewritten.standard_codes,
+                            precision_node_code=precision_node_code,
+                            exact_probe=exact_probe,
                             original_query=query,
-                            option_validation_required=exact_probe.option_validation_required,
                             config=config,
-                            warning_sink=retrieval_warnings,
+                            failure_sink=retrieval_warnings,
                         )
                     )
-                primary_plan_task = asyncio.create_task(
-                    self._run_query_plan(
-                        client=client,
-                        queries=primary_queries,
-                        question_like=question_like,
-                        source_plan=source_plan,
-                        standard_codes=rewritten.standard_codes,
-                        precision_node_code=precision_node_code,
-                        exact_probe=exact_probe,
-                        original_query=query,
-                        config=config,
-                        failure_sink=retrieval_warnings,
+                    primary_plan = await primary_plan_task
+                    record_stage("primary_plan", stage_started)
+                    if exact_text_task is not None:
+                        exact_text_batches = await exact_text_task
+                        if exact_text_started_at is not None:
+                            record_stage("exact_text_probe", exact_text_started_at)
+                        for batch_index, batch in enumerate(exact_text_batches):
+                            exact_text_rows = batch.get("results") if isinstance(batch, dict) else None
+                            if exact_text_rows:
+                                exact_text_plans.append(
+                                    {
+                                        "phase": "primary",
+                                        "group_name": "question_exact_text",
+                                        "query": str(batch.get("query") or exact_probe.query if exact_probe else query),
+                                        "query_index": batch_index,
+                                        "query_weight": 1.0,
+                                        "results": exact_text_rows,
+                                    }
+                                )
+                except Exception as exc:
+                    rag_error = wrap_rag_error(
+                        exc,
+                        provider="supabase",
+                        kb_name=kb_name,
+                        query=query,
+                        stage="pipeline.search",
                     )
-                )
-                primary_plan = await primary_plan_task
-                if exact_text_task is not None:
-                    exact_text_batches = await exact_text_task
-                    for batch_index, batch in enumerate(exact_text_batches):
-                        exact_text_rows = batch.get("results") if isinstance(batch, dict) else None
-                        if exact_text_rows:
-                            exact_text_plans.append(
-                                {
-                                    "phase": "primary",
-                                    "group_name": "question_exact_text",
-                                    "query": str(batch.get("query") or exact_probe.query if exact_probe else query),
-                                    "query_index": batch_index,
-                                    "query_weight": 1.0,
-                                    "results": exact_text_rows,
-                                }
-                            )
-            except Exception as exc:
-                rag_error = wrap_rag_error(
-                    exc,
-                    provider="supabase",
-                    kb_name=kb_name,
-                    query=query,
-                    stage="pipeline.search",
-                )
-                observability.update_observation(
-                    observation,
-                    metadata={"kb_name": kb_name, "sources": config.sources},
-                    level="ERROR",
-                    status_message=str(rag_error),
-                )
-                self.logger.error(f"Supabase retrieval failed: {rag_error}")
-                raise rag_error from exc
+                    observability.update_observation(
+                        observation,
+                        metadata={"kb_name": kb_name, "sources": config.sources},
+                        level="ERROR",
+                        status_message=str(rag_error),
+                    )
+                    self.logger.error(f"Supabase retrieval failed: {rag_error}")
+                    raise rag_error from exc
 
+        stage_started = time.perf_counter()
         fused = self._fuse_plan_results(
-            [*exact_text_plans, *primary_plan],
+            [*exact_text_plans, *primary_plan, *final_compiled_truth_plan],
             query=query,
             question_like=question_like,
             config=config,
         )
+        record_stage("primary_fusion", stage_started)
         second_pass_plan: list[dict[str, Any]] = []
 
         second_pass_queries: list[str] = []
@@ -860,7 +965,7 @@ class SupabasePipeline:
         )
         should_force_case_supplement = query_shape == "case_like"
         if (
-            config.second_pass_enabled
+            effective_second_pass_enabled
             and (
                 should_force_case_supplement
                 or (
@@ -889,6 +994,7 @@ class SupabasePipeline:
             if second_pass_queries:
                 try:
                     client = await self._get_client(config.timeout_s)
+                    stage_started = time.perf_counter()
                     second_pass_plan = await self._run_query_plan(
                         client=client,
                         queries=second_pass_queries,
@@ -903,12 +1009,15 @@ class SupabasePipeline:
                         phase="second_pass",
                         failure_sink=retrieval_warnings,
                     )
+                    record_stage("second_pass_plan", stage_started)
+                    stage_started = time.perf_counter()
                     fused = self._fuse_plan_results(
-                        [*exact_text_plans, *primary_plan, *second_pass_plan],
+                        [*exact_text_plans, *primary_plan, *second_pass_plan, *final_compiled_truth_plan],
                         query=query,
                         question_like=question_like,
                         config=config,
                     )
+                    record_stage("second_pass_fusion", stage_started)
                 except Exception as exc:
                     retrieval_warnings.append(
                         _rag_warning_payload(
@@ -920,7 +1029,8 @@ class SupabasePipeline:
                     )
                     self.logger.warning(f"Supabase second-pass retrieval failed: {exc}")
 
-        all_plans = [*exact_text_plans, *primary_plan, *second_pass_plan]
+        all_plans = [*exact_text_plans, *primary_plan, *second_pass_plan, *final_compiled_truth_plan]
+        stage_started = time.perf_counter()
         exact_question = self._augment_case_exact_question_with_query(
             self._extract_exact_question_payload(
                 all_plans,
@@ -931,17 +1041,43 @@ class SupabasePipeline:
             query_shape=query_shape,
         )
         fused = dedupe_ranked_results(fused, max_items=config.fetch_count * 2)
+        record_stage("dedupe_and_exact", stage_started)
+        stage_started = time.perf_counter()
         enriched = await self._hydrate_sources(fused[: config.fetch_count], config=config)
+        record_stage("hydrate_sources", stage_started)
+        stage_started = time.perf_counter()
         enriched = self._filter_partial_case_results(enriched, exact_question=exact_question)
         enriched = _project_teaching_metadata(enriched)
         enriched = _enforce_doc_diversity(enriched, max_per_document=config.max_per_document)
-        reranked = await self._rerank_results(
-            query=query,
-            results=enriched,
-            config=config,
-        )
+        record_stage("post_hydrate_projection", stage_started)
+        if effective_rerank_enabled:
+            stage_started = time.perf_counter()
+            reranked = await self._rerank_results(
+                query=query,
+                results=enriched,
+                config=config,
+            )
+            record_stage("rerank", stage_started)
+        else:
+            reranked = list(enriched)
         reranked = self._filter_partial_case_results(reranked, exact_question=exact_question)
         final_results = dedupe_ranked_results(reranked, max_items=config.top_k)
+        final_results = self._ensure_final_compiled_truth_presence(
+            final_results,
+            plans=final_compiled_truth_plan,
+            max_items=config.top_k,
+        )
+        ranking_trace = build_ranking_trace(
+            final_results,
+            authority_order=list(getattr(retrieval_plan, "authority_order", []) or []),
+            shadow_sources=shadow_compiled_truth_sources,
+            ranking_policy={
+                "query_plan_trace_enabled": config.query_plan_trace_enabled,
+                "compiled_truth_shadow_enabled": config.compiled_truth_shadow_enabled,
+                "compiled_truth_final_enabled": bool(final_compiled_truth_plan),
+                "provenance_boost_enabled": config.provenance_boost_enabled,
+            },
+        )
 
         content_blocks = _dedupe_rendered_content_blocks(
             [str(item.get("rag_content") or "").strip() for item in final_results]
@@ -968,10 +1104,22 @@ class SupabasePipeline:
             sources=sources,
             exact_question=exact_question,
             source_plan=source_plan,
+            retrieval_plan=retrieval_plan if config.query_plan_trace_enabled else None,
+            ranking_trace=ranking_trace,
             query_shape=query_shape,
             rewritten=rewritten,
             second_pass_queries=second_pass_queries,
         )
+        stage_timings_ms["total"] = round((time.perf_counter() - total_started_at) * 1000, 1)
+        performance_policy = {
+            "intent_fast_path": bool(intent_fast_path),
+            "compiled_only_fast_path": bool(compiled_only_fast_path),
+            "rerank_enabled": bool(effective_rerank_enabled),
+            "second_pass_enabled": bool(effective_second_pass_enabled),
+            "primary_query_count": len(primary_queries),
+        }
+        evidence_bundle["stage_timings_ms"] = dict(stage_timings_ms)
+        evidence_bundle["performance_policy"] = dict(performance_policy)
 
         payload = {
             "query": query,
@@ -992,51 +1140,159 @@ class SupabasePipeline:
             payload["evidence_bundle"]["warnings"] = list(retrieval_warnings)
         if exact_question:
             payload["exact_question"] = exact_question
+        trace_metadata = {
+            "kb_name": kb_name,
+            "question_like": question_like,
+            "query_shape": query_shape,
+            "query_rewrite": {
+                "primary_query": rewritten.primary_query,
+                "keywords": rewritten.keywords,
+                "standard_codes": rewritten.standard_codes,
+                "reasons": rewritten.reasons,
+            },
+            "source_plan": {
+                **source_plan.to_trace_dict(),
+            },
+            "retrieval_plan": retrieval_plan.to_dict(),
+            "retrieval_plan_json": json.dumps(
+                retrieval_plan.to_dict(),
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
+            "retrieval_plan_intent": str(getattr(retrieval_plan, "intent", "") or ""),
+            "ranking_trace": ranking_trace,
+            "ranking_trace_json": json.dumps(
+                ranking_trace,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
+            "ranking_trace_fusion": str(ranking_trace.get("fusion") or ""),
+            "precision_node_code": precision_node_code,
+            "primary_queries": primary_queries,
+            "second_pass_queries": second_pass_queries,
+            "exact_question_probe": {
+                "enabled": bool(exact_probe),
+                "probe_query": exact_probe.query if exact_probe else "",
+                "allowed_question_types": (
+                    exact_probe.allowed_question_types if exact_probe else []
+                ),
+                "option_validation_required": (
+                    exact_probe.option_validation_required if exact_probe else False
+                ),
+                "hit_groups": [
+                    str(plan.get("group_name") or "")
+                    for plan in all_plans
+                    if plan.get("group_name") in {"question_exact_text", "question_exact_vector"}
+                    and bool(plan.get("results"))
+                ],
+            },
+            "exact_question": exact_question or {},
+            "stage_timings_ms": dict(stage_timings_ms),
+            "performance_policy": dict(performance_policy),
+            "retrieval_degraded": bool(retrieval_warnings),
+            "retrieval_status": str(payload["retrieval_status"]),
+            "warning_count": len(retrieval_warnings),
+        }
         observability.update_observation(
             observation,
             output_payload={
                 "source_count": len(sources),
                 "source_types": [item.get("source_type") or "" for item in sources],
             },
-            metadata={
-                "kb_name": kb_name,
-                "question_like": question_like,
-                "query_shape": query_shape,
-                "query_rewrite": {
-                    "primary_query": rewritten.primary_query,
-                    "keywords": rewritten.keywords,
-                    "standard_codes": rewritten.standard_codes,
-                    "reasons": rewritten.reasons,
-                },
-                "source_plan": {
-                    **source_plan.to_trace_dict(),
-                },
-                "precision_node_code": precision_node_code,
-                "primary_queries": primary_queries,
-                "second_pass_queries": second_pass_queries,
-                "exact_question_probe": {
-                    "enabled": bool(exact_probe),
-                    "probe_query": exact_probe.query if exact_probe else "",
-                    "allowed_question_types": (
-                        exact_probe.allowed_question_types if exact_probe else []
-                    ),
-                    "option_validation_required": (
-                        exact_probe.option_validation_required if exact_probe else False
-                    ),
-                    "hit_groups": [
-                        str(plan.get("group_name") or "")
-                        for plan in all_plans
-                        if plan.get("group_name") in {"question_exact_text", "question_exact_vector"}
-                        and bool(plan.get("results"))
-                    ],
-                },
-                "exact_question": exact_question or {},
-                "retrieval_degraded": bool(retrieval_warnings),
-                "retrieval_status": str(payload["retrieval_status"]),
-                "warning_count": len(retrieval_warnings),
-            },
+            metadata=trace_metadata,
         )
         return payload
+
+    def _compiled_truth_plan(
+        self,
+        *,
+        retrieval_plan,
+        compiled_learning_truth: Any,
+        config: SupabaseSearchConfig | None = None,
+    ) -> list[dict[str, Any]]:
+        source_group = getattr(retrieval_plan, "source_groups", {}).get("compiled_learning_truth")
+        if not source_group or not getattr(source_group, "enabled", False):
+            return []
+        documents = materialize_compiled_truth_documents(
+            compiled_learning_truth if isinstance(compiled_learning_truth, dict) else None,
+            max_documents=config.compiled_truth_max_documents if config else 6,
+            max_chars_per_doc=config.compiled_truth_max_chars_per_doc if config else 700,
+            max_total_chars=config.compiled_truth_max_total_chars if config else 2400,
+        )
+        if not documents:
+            return []
+        return [
+            {
+                "phase": "context",
+                "group_name": "compiled_learning_truth",
+                "query": str(getattr(retrieval_plan, "primary_query", "") or ""),
+                "query_index": 0,
+                "query_weight": 0.85,
+                "results": documents,
+            }
+        ]
+
+    def _compiled_truth_final_enabled(
+        self,
+        *,
+        retrieval_plan,
+        config: SupabaseSearchConfig,
+    ) -> bool:
+        if not config.compiled_truth_enabled:
+            return False
+        intent = str(getattr(retrieval_plan, "intent", "") or "").strip()
+        return intent in {"weak_point_review", "next_training"}
+
+    def _final_compiled_truth_plan(self, plans: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        final_plans: list[dict[str, Any]] = []
+        for plan in plans:
+            results = [
+                item
+                for item in list(plan.get("results") or [])
+                if not bool(item.get("_compiled_truth_shadow_only"))
+            ]
+            if not results:
+                continue
+            next_plan = dict(plan)
+            next_plan["results"] = results
+            final_plans.append(next_plan)
+        return final_plans
+
+    def _plan_documents(self, plans: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        documents: list[dict[str, Any]] = []
+        for plan in plans:
+            documents.extend(list(plan.get("results") or []))
+        return documents
+
+    def _ensure_final_compiled_truth_presence(
+        self,
+        final_results: list[dict[str, Any]],
+        *,
+        plans: list[dict[str, Any]],
+        max_items: int,
+    ) -> list[dict[str, Any]]:
+        if not plans:
+            return final_results
+        if any(str(item.get("_source_group") or item.get("source_type") or "") == "compiled_learning_truth" for item in final_results):
+            return final_results
+        candidates = self._plan_documents(plans)
+        if not candidates:
+            return final_results
+        candidate = dict(candidates[0])
+        candidate["_source_group"] = "compiled_learning_truth"
+        candidate["_query_phase"] = candidate.get("_query_phase") or "context"
+        candidate["_query_variant"] = candidate.get("_query_variant") or ""
+        if final_results:
+            lowest_score = min(float(item.get("score") or 0.0) for item in final_results)
+            candidate["score"] = min(float(candidate.get("score") or 0.0), lowest_score)
+        limit = max(1, int(max_items or (len(final_results) + 1)))
+        if len(final_results) >= limit:
+            merged = [*final_results[: limit - 1], candidate]
+        else:
+            merged = [*final_results, candidate]
+        return dedupe_ranked_results(merged, max_items=limit)
 
     async def _run_query_plan(
         self,
@@ -1054,7 +1310,6 @@ class SupabasePipeline:
         phase: str = "primary",
         failure_sink: list[dict[str, str]] | None = None,
     ) -> list[dict[str, Any]]:
-        plans: list[dict[str, Any]] = []
         selected_sources = [
             source
             for source in config.sources
@@ -1064,10 +1319,12 @@ class SupabasePipeline:
                 or (source == "exam" and source_plan.search_exam_chunks)
             )
         ]
-        for query_index, item in enumerate(queries):
+        semaphore = asyncio.Semaphore(max(1, int(getattr(config, "query_variant_concurrency", 1) or 1)))
+
+        async def run_one(query_index: int, item: str) -> tuple[int, list[dict[str, Any]]]:
             current_query = str(item or "").strip()
             if not current_query:
-                continue
+                return query_index, []
             embedding = await self._embed_query(current_query)
             vector_literal = _vector_literal(embedding)
             tasks = [
@@ -1129,6 +1386,7 @@ class SupabasePipeline:
                 task_groups.append("standard_precision")
 
             raw_results = await asyncio.gather(*tasks, return_exceptions=True)
+            query_plans: list[dict[str, Any]] = []
             for group_name, result in zip(task_groups, raw_results):
                 if isinstance(result, Exception):
                     if _is_supabase_service_restriction(result):
@@ -1146,7 +1404,7 @@ class SupabasePipeline:
                         f"Supabase group '{group_name}' failed for query '{current_query}': {result}"
                     )
                     continue
-                plans.append(
+                query_plans.append(
                     {
                         "phase": phase,
                         "group_name": group_name,
@@ -1156,6 +1414,21 @@ class SupabasePipeline:
                         "results": result,
                     }
                 )
+            return query_index, query_plans
+
+        async def run_guarded(query_index: int, item: str) -> tuple[int, list[dict[str, Any]]]:
+            async with semaphore:
+                return await run_one(query_index, item)
+
+        batches = await asyncio.gather(
+            *[
+                run_guarded(query_index, item)
+                for query_index, item in enumerate(queries)
+            ]
+        )
+        plans: list[dict[str, Any]] = []
+        for _query_index, query_plans in sorted(batches, key=lambda item: item[0]):
+            plans.extend(query_plans)
         return plans
 
     def _fuse_plan_results(
@@ -1184,13 +1457,28 @@ class SupabasePipeline:
                 plan.get("query_weight") or 1.0
             )
             for item in results_map[query_key]:
+                item["_source_group"] = group_name
                 item["_query_variant"] = str(plan.get("query") or "")
                 item["_query_phase"] = phase
 
         fused = _weighted_rrf_fusion(results_map, weights)
+        exact_question_present = any(
+            str(plan.get("group_name") or "") in {"question_exact_text", "question_exact_vector"}
+            and bool(plan.get("results"))
+            for plan in plans
+        )
         target_window = max(1, max(config.top_k, min(config.fetch_count, config.rerank_window)))
         fused = _apply_similarity_floor(fused, results_map, target_window=target_window)
         fused = _enrich_question_weights(fused, question_like=question_like, config=config)
+        fused = apply_provenance_ranking(
+            fused,
+            exact_question_present=exact_question_present,
+            enabled=config.provenance_boost_enabled,
+        )
+        fused = _pin_exact_question_results(
+            fused,
+            exact_question_present=exact_question_present,
+        )
         return dedupe_ranked_results(fused)
 
     async def _rerank_results(
@@ -1287,6 +1575,7 @@ class SupabasePipeline:
             "standard_code_exact": float(os.getenv("SUPABASE_RAG_WEIGHT_STANDARD_CODE_EXACT", "3.0")),
             "question_exact_text": float(os.getenv("SUPABASE_RAG_WEIGHT_QUESTION_EXACT_TEXT", "4.2")),
             "question_exact_vector": float(os.getenv("SUPABASE_RAG_WEIGHT_QUESTION_EXACT_VECTOR", "3.4")),
+            "compiled_learning_truth": float(os.getenv("SUPABASE_RAG_WEIGHT_COMPILED_TRUTH", "0.65")),
         }
         question_weights = {
             **source_weights,
@@ -1329,6 +1618,29 @@ class SupabasePipeline:
             ),
             exact_question_text_rpc_enabled=_env_flag(
                 "SUPABASE_RAG_EXACT_QUESTION_TEXT_RPC", True
+            ),
+            query_plan_trace_enabled=_env_flag("SUPABASE_RAG_QUERY_PLAN_TRACE_ENABLED", True),
+            compiled_truth_shadow_enabled=_env_flag(
+                "SUPABASE_RAG_COMPILED_TRUTH_SHADOW_ENABLED",
+                True,
+            ),
+            compiled_truth_enabled=_env_flag("SUPABASE_RAG_COMPILED_TRUTH_ENABLED", False),
+            compiled_truth_max_documents=max(
+                1,
+                int(os.getenv("SUPABASE_RAG_COMPILED_TRUTH_MAX_DOCS", "6")),
+            ),
+            compiled_truth_max_chars_per_doc=max(
+                120,
+                int(os.getenv("SUPABASE_RAG_COMPILED_TRUTH_MAX_CHARS_PER_DOC", "700")),
+            ),
+            compiled_truth_max_total_chars=max(
+                300,
+                int(os.getenv("SUPABASE_RAG_COMPILED_TRUTH_MAX_TOTAL_CHARS", "2400")),
+            ),
+            provenance_boost_enabled=_env_flag("SUPABASE_RAG_PROVENANCE_BOOST_ENABLED", False),
+            query_variant_concurrency=max(
+                1,
+                int(os.getenv("SUPABASE_RAG_QUERY_VARIANT_CONCURRENCY", "2")),
             ),
         )
 

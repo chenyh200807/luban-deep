@@ -5,6 +5,7 @@ import json
 
 import pytest
 
+from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.service import LearnerStateEvent, LearnerStateOutboxService, LearnerStateService
 
 
@@ -67,6 +68,7 @@ class _CoreStoreStub:
         self.is_configured = True
         self.profile: dict[str, object] = {}
         self.progress: dict[str, object] = {}
+        self.compiled_learning_truth: dict[str, object] = {}
         self.goals: list[dict[str, object]] = []
         self.fail_goal_title: str | None = None
 
@@ -83,6 +85,9 @@ class _CoreStoreStub:
     def write_progress(self, _user_id: str, progress: dict[str, object]):
         self.progress = dict(progress)
         return dict(progress)
+
+    def read_compiled_learning_truth(self, _user_id: str):
+        return dict(self.compiled_learning_truth)
 
     def read_goals(self, _user_id: str):
         return [dict(item) for item in self.goals]
@@ -181,6 +186,288 @@ def test_learner_state_context_renders_construction_grading_error_events(tmp_pat
         "行政法规与部门规章辨析" in str(candidate.get("content") or "")
         for candidate in candidates.get("candidates", [])
     )
+
+
+def test_learner_state_context_renders_learning_evidence_events(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn-1:q-law",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_type": "mcq",
+            "question_id": "q-law",
+            "score_awarded": 0.0,
+            "max_score": 1.0,
+            "error_events": [
+                {
+                    "error_code": "M02",
+                    "diagnosis": "把行政法规与部门规章层级混淆。",
+                }
+            ],
+            "next_training_signal": {
+                "concept": "法规层级",
+                "focus": "行政法规与部门规章辨析",
+            },
+        },
+    )
+
+    context = service.build_context("student_demo", language="zh")
+    candidates = service.build_context_candidates(
+        user_id="student_demo",
+        query="继续练刚才薄弱的点",
+        route="recall",
+        language="zh",
+    )
+
+    assert "建筑实务批改错因" in context
+    assert "把行政法规与部门规章层级混淆" in context
+    assert "行政法规与部门规章辨析" in context
+    assert any(
+        "行政法规与部门规章辨析" in str(candidate.get("content") or "")
+        for candidate in candidates.get("candidates", [])
+    )
+
+
+def test_learner_state_synthesize_learning_truth_dry_run_does_not_enqueue(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    for index in range(2):
+        service.append_memory_event(
+            "student_demo",
+            source_feature="construction_grading",
+            source_id=f"turn-{index}",
+            source_bot_id="construction-exam",
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "learning_evidence",
+                "turn_id": f"turn-{index}",
+                "question_id": f"q-{index}",
+                "question_type": "case",
+                "score_awarded": 0,
+                "max_score": 1,
+                "error_events": [
+                    {"error_code": "E02", "concept_tag": "1A432000", "diagnosis": "漏专家论证。"}
+                ],
+                "next_training_signal": {"concept": "1A432000", "focus": "专家论证程序"},
+                "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+            },
+        )
+
+    result = service.synthesize_learning_truth("student_demo", dry_run=True)
+
+    assert result["projection"]["weak_points"][0]["evidence_level"] == "L1_repeated"
+    assert result["outbox_item"] is None
+    assert [
+        item for item in service.outbox_service.list_pending("student_demo")
+        if item.event_type == "summary_refresh"
+    ] == []
+    assert service.read_compiled_learning_truth("student_demo") == {}
+
+
+def test_learner_state_synthesize_learning_truth_enqueues_summary_refresh(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    for index in range(2):
+        service.append_memory_event(
+            "student_demo",
+            source_feature="construction_grading",
+            source_id=f"turn-{index}",
+            source_bot_id="construction-exam",
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "learning_evidence",
+                "turn_id": f"turn-{index}",
+                "question_id": f"q-{index}",
+                "question_type": "case",
+                "score_awarded": 0,
+                "max_score": 1,
+                "error_events": [
+                    {"error_code": "E02", "concept_tag": "1A432000", "diagnosis": "漏专家论证。"}
+                ],
+                "next_training_signal": {"concept": "1A432000", "focus": "专家论证程序"},
+                "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+            },
+        )
+
+    result = service.synthesize_learning_truth("student_demo", dry_run=False)
+
+    pending = [
+        item for item in service.outbox_service.list_pending("student_demo")
+        if item.event_type == "summary_refresh"
+    ]
+    assert result["outbox_item"] is not None
+    assert pending[0].event_type == "summary_refresh"
+    assert (
+        pending[0].payload_json["summary_structured_json"]["learning_brain"]["subject"]
+        == "construction_exam_learning_truth"
+    )
+    assert result["projection"]["synthesis_run"]["status"] == "persisted_enqueued"
+    assert (
+        pending[0].payload_json["summary_structured_json"]["learning_brain"]["synthesis_run"]["status"]
+        == "persisted_enqueued"
+    )
+    projection = service.read_compiled_learning_truth("student_demo")
+    assert projection["subject"] == "construction_exam_learning_truth"
+    assert service.build_context_candidates("student_demo")["compiled_learning_truth"]["subject"] == (
+        "construction_exam_learning_truth"
+    )
+    read_model = build_learning_brain_read_model(
+        user_id="student_demo",
+        projection=projection,
+        surface="mobile",
+    )
+    visible_text = json.dumps(
+        [
+            item.get("display_title", "") + " " + item.get("display_meta", "") + " " + item.get("display_path", "")
+            for section in read_model["visible_sections"].values()
+            for item in section
+            if isinstance(item, dict)
+        ],
+        ensure_ascii=False,
+    )
+    assert "工程招标投标与合同管理" in visible_text
+    assert "1A432000" not in visible_text
+    assert "E02" not in visible_text
+
+
+def test_learner_state_reads_remote_compiled_truth_before_local_cache(tmp_path) -> None:
+    core_store = _CoreStoreStub()
+    core_store.compiled_learning_truth = {
+        "subject": "construction_exam_learning_truth",
+        "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+    }
+    service = _make_service(tmp_path, core_store=core_store)
+    service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "stale_local_projection",
+            "weak_points": [{"concept_id": "1A421000", "error_code": "E01"}],
+        },
+    )
+
+    projection = service.read_compiled_learning_truth("student_demo")
+    context_candidates = service.build_context_candidates("student_demo")
+
+    assert projection["subject"] == "construction_exam_learning_truth"
+    assert projection["weak_points"][0]["error_code"] == "E04"
+    assert context_candidates["compiled_learning_truth"]["weak_points"][0]["error_code"] == "E04"
+
+
+def test_learner_state_configured_core_store_is_compiled_truth_authority(tmp_path) -> None:
+    core_store = _CoreStoreStub()
+    core_store.compiled_learning_truth = {
+        "learning_brain": {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E02"}],
+            "typed_graph": {},
+            "synthesis_run": {
+                "generated_at": "2026-05-18T10:00:00+08:00",
+                "output_projection_hash": "sha256:old",
+            },
+        },
+    }
+    service = _make_service(tmp_path, core_store=core_store)
+    service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+            "synthesis_run": {
+                "generated_at": "2026-05-18T11:00:00+08:00",
+                "output_projection_hash": "sha256:new",
+            },
+        },
+    )
+
+    projection = service.read_compiled_learning_truth("student_demo")
+
+    assert projection["synthesis_run"]["output_projection_hash"] == "sha256:old"
+    assert projection["weak_points"][0]["error_code"] == "E02"
+
+
+def test_learner_state_production_without_core_store_does_not_read_local_compiled_truth(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    service = _make_service(tmp_path)
+    service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E02"}],
+        },
+    )
+
+    assert service.read_compiled_learning_truth("student_demo") == {}
+    assert service.build_context_candidates("student_demo")["compiled_learning_truth"] == {}
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_learner_state_ignores_non_learning_brain_summary_structured_json(tmp_path) -> None:
+    core_store = _CoreStoreStub()
+    core_store.compiled_learning_truth = {
+        "guide_completion": {
+            "guide_id": "guide_42",
+            "notebook_name": "地基基础",
+        }
+    }
+    service = _make_service(tmp_path, core_store=core_store)
+
+    assert service.read_compiled_learning_truth("student_demo") == {}
+
+
+def test_learning_synthesis_summary_refresh_dedupe_includes_projection_hash(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    base_payload = {
+        "event_type": "learning_evidence",
+        "turn_id": "turn-1",
+        "question_id": "q-1",
+        "question_type": "case",
+        "score_awarded": 0,
+        "max_score": 1,
+        "error_events": [{"error_code": "E02", "concept_tag": "1A432000", "diagnosis": "漏专家论证。"}],
+        "next_training_signal": {"concept": "1A432000", "focus": "专家论证程序"},
+        "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+    }
+    service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn-1",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        payload_json=base_payload,
+    )
+    first = service.synthesize_learning_truth("student_demo", dry_run=False)
+
+    second_payload = dict(base_payload)
+    second_payload["turn_id"] = "turn-2"
+    second_payload["question_id"] = "q-2"
+    service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn-2",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        payload_json=second_payload,
+    )
+    second = service.synthesize_learning_truth("student_demo", dry_run=False)
+
+    pending = [
+        item for item in service.outbox_service.list_pending("student_demo", limit=None)
+        if item.event_type == "summary_refresh"
+    ]
+    assert first["outbox_item"].id != second["outbox_item"].id
+    assert len(pending) == 2
+    learning_brain = pending[-1].payload_json["summary_structured_json"]["learning_brain"]
+    assert second["projection"]["synthesis_run"]["previous_projection_hash"] == (
+        first["projection"]["synthesis_run"]["output_projection_hash"]
+    )
+    assert second["projection"]["synthesis_run"]["status"] == "persisted_enqueued"
+    assert len(learning_brain["observed_candidates"]) == 0
+    assert learning_brain["weak_points"][0]["evidence_level"] == "L1_repeated"
 
 
 def test_learner_state_build_compact_context_returns_learner_facts_only(tmp_path) -> None:

@@ -22,8 +22,13 @@ from deeptutor.services.learner_state.outbox import (
     LearnerStateOutbox as LearnerStateOutboxService,
     LearnerStateOutboxItem,
 )
+from deeptutor.services.learner_state.learning_brain_read_model import (
+    extract_learning_brain_projection,
+    wrap_learning_brain_projection,
+)
 from deeptutor.services.path_service import PathService, get_path_service
 from deeptutor.services.learner_state.supabase_store import LearnerStateSupabaseSyncCoreStore
+from deeptutor.services.runtime_env import is_production_environment
 
 llm_stream: Any | None = None
 
@@ -66,6 +71,7 @@ _FILENAMES = {
     "summary": "SUMMARY.md",
     "progress": "PROGRESS.json",
     "events": "MEMORY_EVENTS.jsonl",
+    "compiled_truth": "COMPILED_TRUTH.json",
 }
 
 
@@ -182,25 +188,38 @@ class LearnerStateService:
         source_feature: str,
         source_id: str,
         source_bot_id: str | None = None,
+        summary_structured_json: dict[str, Any] | None = None,
     ) -> LearnerStateOutboxItem:
+        structured = dict(summary_structured_json or {}) if summary_structured_json is not None else None
+        dedupe_payload = {"summary_md": summary_md}
+        if structured is not None:
+            learning_brain = dict(structured.get("learning_brain") or {})
+            dedupe_payload["summary_structured_json_hash"] = (
+                dict(learning_brain.get("synthesis_run") or {}).get("output_projection_hash")
+                or dict(structured.get("synthesis_run") or {}).get("output_projection_hash")
+                or _json_dump(structured)
+            )
         dedupe_key = self._default_dedupe_key(
             user_id,
             source_feature=source_feature,
             source_id=source_id,
             memory_kind="summary_refresh",
-            payload_json={"summary_md": summary_md},
+            payload_json=dedupe_payload,
         )
+        payload = {
+            "user_id": user_id,
+            "summary_md": str(summary_md or "").strip(),
+            "source_feature": str(source_feature or "").strip() or "manual",
+            "source_id": str(source_id or "").strip() or "unknown",
+            "source_bot_id": str(source_bot_id or "").strip() or None,
+            "updated_at": _iso_now(),
+        }
+        if structured is not None:
+            payload["summary_structured_json"] = structured
         return self._outbox_service.enqueue(
             user_id=user_id,
             event_type="summary_refresh",
-            payload_json={
-                "user_id": user_id,
-                "summary_md": str(summary_md or "").strip(),
-                "source_feature": str(source_feature or "").strip() or "manual",
-                "source_id": str(source_id or "").strip() or "unknown",
-                "source_bot_id": str(source_bot_id or "").strip() or None,
-                "updated_at": _iso_now(),
-            },
+            payload_json=payload,
             dedupe_key=dedupe_key,
         )
 
@@ -352,6 +371,38 @@ class LearnerStateService:
         elif path.exists():
             path.unlink()
         return self.read_summary(normalized)
+
+    def read_compiled_learning_truth(self, user_id: str) -> dict[str, Any]:
+        normalized = _normalize_user_id(user_id)
+        if bool(getattr(self._core_store, "is_configured", False)):
+            reader = getattr(self._core_store, "read_compiled_learning_truth", None)
+            if callable(reader):
+                try:
+                    remote = reader(normalized)
+                except Exception:
+                    remote = None
+                return extract_learning_brain_projection(remote if isinstance(remote, dict) else {})
+            return {}
+        if is_production_environment():
+            return {}
+        path = self._path(normalized, "compiled_truth")
+        if not path.exists():
+            return {}
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+        return extract_learning_brain_projection(payload if isinstance(payload, dict) else {})
+
+    def write_compiled_learning_truth(self, user_id: str, projection: dict[str, Any]) -> dict[str, Any]:
+        normalized = _normalize_user_id(user_id)
+        payload = dict(projection or {})
+        if is_production_environment():
+            return extract_learning_brain_projection(payload)
+        path = self._path(normalized, "compiled_truth")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(_json_dump(payload) + "\n", encoding="utf-8")
+        return extract_learning_brain_projection(payload)
 
     def read_progress(self, user_id: str) -> dict[str, Any]:
         normalized = _normalize_user_id(user_id)
@@ -588,6 +639,40 @@ class LearnerStateService:
             created_at=event.created_at,
         )
         return event
+
+    def synthesize_learning_truth(
+        self,
+        user_id: str,
+        *,
+        dry_run: bool = True,
+        event_limit: int | None = None,
+    ) -> dict[str, Any]:
+        from deeptutor.services.learner_state.learning_synthesis import (
+            render_learning_truth_summary_md,
+            synthesize_learning_truth,
+        )
+
+        normalized = _normalize_user_id(user_id)
+        events = self.list_memory_events(normalized, limit=event_limit)
+        previous_projection = self.read_compiled_learning_truth(normalized) if not dry_run else {}
+        projection = synthesize_learning_truth(
+            events,
+            previous_projection=previous_projection,
+            synthesis_status="dry_run_ok" if dry_run else "persisted_enqueued",
+        )
+        summary_md = render_learning_truth_summary_md(projection)
+        if dry_run:
+            return {"projection": projection, "summary_md": summary_md, "outbox_item": None}
+        self.write_compiled_learning_truth(normalized, projection)
+        outbox_item = self._enqueue_summary_refresh(
+            user_id=normalized,
+            summary_md=summary_md,
+            source_feature="learning_synthesis",
+            source_id="nightly_synthesis",
+            source_bot_id=None,
+            summary_structured_json=wrap_learning_brain_projection(projection),
+        )
+        return {"projection": projection, "summary_md": summary_md, "outbox_item": outbox_item}
 
     def record_turn_event(
         self,
@@ -1249,6 +1334,7 @@ class LearnerStateService:
         query_text = str(query or "").strip()
         route_value = self._normalize_context_route(route=route, query=query_text)
         compact = self.build_compact_context(normalized, language=language)
+        compiled_learning_truth = self.read_compiled_learning_truth(normalized)
         learner_candidates = [dict(segment, score=1.0) for segment in list(compact.get("segments") or [])]
         memory_candidates: list[dict[str, Any]] = []
         if self._should_include_memory_hits(route_value=route_value, query=query_text):
@@ -1267,6 +1353,7 @@ class LearnerStateService:
             "learner_candidates": learner_candidates,
             "memory_candidates": memory_candidates,
             "candidates": candidates,
+            "compiled_learning_truth": compiled_learning_truth,
         }
 
     async def refresh_from_turn(
@@ -1649,6 +1736,7 @@ class LearnerStateService:
         if event.source_feature != "construction_grading" and event.memory_kind not in {
             "case_error_event",
             "mcq_error_event",
+            "learning_evidence",
         }:
             return ""
         payload = dict(event.payload_json or {})

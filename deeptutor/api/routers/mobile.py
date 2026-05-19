@@ -23,6 +23,7 @@ from deeptutor.api.dependencies import (
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.learner_state import LearnerStateService
+from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.query_intent import (
     build_grounding_decision,
@@ -63,6 +64,8 @@ _BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS
 _BILLING_USAGE_WEEKLY_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS"
 _BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
 _BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
+_LOCAL_WALLET_FALLBACK = "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"
+_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK = "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"
 _BILLING_PLAN_QUOTA_POINTS = {
     "advance": {"five_hour": 1600, "weekly": 4400},
     "sprint": {"five_hour": 3200, "weekly": 9000},
@@ -174,6 +177,14 @@ def _env_flag_enabled(name: str) -> bool:
     return str(os.getenv(name, "") or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _learning_brain_local_projection_fallback_enabled() -> bool:
+    return (
+        str(os.getenv("DEEPTUTOR_ENV", "") or "").strip().lower() == "local"
+        and _env_flag_enabled("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA")
+        and _env_flag_enabled(_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK)
+    )
+
+
 def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: str) -> None:
     if not _env_flag_enabled(_BILLING_SHADOW_COMPARE_LEGACY_WALLET):
         return
@@ -194,6 +205,15 @@ def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: st
 
 def _wallet_snapshot_or_zero(user_id: str) -> WalletSnapshot:
     if not getattr(wallet_service, "is_configured", False):
+        if _env_flag_enabled(_LOCAL_WALLET_FALLBACK):
+            return WalletSnapshot(
+                user_id=str(user_id or "").strip(),
+                balance_micros=0,
+                frozen_micros=0,
+                plan_id="local",
+                version=0,
+                created_at="",
+            )
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
     normalized_user_id = str(user_id or "").strip()
     if not normalized_user_id:
@@ -2024,6 +2044,24 @@ async def bi_radar(
 @router.get("/plan/mastery-dashboard")
 async def mastery_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     return member_service.get_mastery_dashboard(_resolve_authenticated_user_id(authorization))
+
+
+@router.get("/learning-brain/projection")
+async def learning_brain_projection(
+    authorization: str | None = Header(default=None),
+    event_limit: int = Query(default=100, ge=1, le=500),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    projection = learner_state_service.read_compiled_learning_truth(user_id)
+    projection = dict(projection) if isinstance(projection, dict) else {}
+    if not projection and _learning_brain_local_projection_fallback_enabled():
+        synthesis = learner_state_service.synthesize_learning_truth(
+            user_id,
+            dry_run=True,
+            event_limit=event_limit,
+        )
+        projection = dict(synthesis.get("projection") or {})
+    return build_learning_brain_read_model(user_id=user_id, projection=projection, surface="mobile")
 
 
 @router.get("/assessment/profile")

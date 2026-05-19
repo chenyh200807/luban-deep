@@ -160,6 +160,8 @@ class ChatAgent(BaseAgent):
         kb_name: str | None = None,
         enable_rag: bool = False,
         enable_web_search: bool = False,
+        compiled_learning_truth: dict[str, Any] | None = None,
+        retrieval_query: str | None = None,
     ) -> tuple[str, dict[str, Any]]:
         """
         Retrieve context from RAG and/or Web Search.
@@ -179,12 +181,21 @@ class ChatAgent(BaseAgent):
         # RAG retrieval
         if enable_rag and kb_name:
             try:
-                self.logger.info(f"RAG search: {message[:50]}...")
+                rag_query = str(retrieval_query or message or "").strip()
+                self.logger.info(f"RAG search: {rag_query[:50]}...")
                 rag_result = await self._tool_registry.execute(
                     "rag",
-                    query=message,
+                    query=rag_query,
                     kb_name=kb_name,
                     mode="hybrid",
+                    **(
+                        {
+                            "compiled_learning_truth": dict(compiled_learning_truth),
+                            "routing_metadata": {"compiled_learning_truth_available": True},
+                        }
+                        if isinstance(compiled_learning_truth, dict) and compiled_learning_truth
+                        else {}
+                    ),
                 )
                 rag_answer = rag_result.content
                 if rag_answer:
@@ -365,6 +376,8 @@ class ChatAgent(BaseAgent):
         enable_web_search: bool = False,
         stream: bool = False,
         attachments: list[Any] | None = None,
+        compiled_learning_truth: dict[str, Any] | None = None,
+        retrieval_query: str | None = None,
     ) -> dict[str, Any] | AsyncGenerator[dict[str, Any], None]:
         """
         Process a chat message with optional context retrieval.
@@ -391,6 +404,8 @@ class ChatAgent(BaseAgent):
             kb_name=kb_name,
             enable_rag=enable_rag,
             enable_web_search=enable_web_search,
+            compiled_learning_truth=compiled_learning_truth,
+            retrieval_query=retrieval_query,
         )
 
         messages = self.build_messages(

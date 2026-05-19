@@ -13,21 +13,15 @@ const LEVEL_NAMES = {
   advanced: "进阶",
   expert: "精通",
 };
-const CHAPTER_CODE_LABELS = {
-  "1A411": "建筑设计与构造",
-  "1A412": "结构设计与建筑材料",
-  "1A413": "装配式建筑",
-  "1A414": "建筑工程材料",
-  "1A415": "建筑工程施工技术",
-  "1A421": "项目组织管理",
-  "1A422": "施工进度管理",
-  "1A423": "施工质量管理",
-  "1A424": "施工安全管理",
-  "1A425": "合同与招投标管理",
-  "1A426": "施工成本管理",
-  "1A427": "资源与现场管理",
-  "1A431": "建筑工程法规",
-  "1A432": "建筑工程技术标准",
+const LEARNING_BRAIN_LEVEL_LABELS = {
+  L0_observed: "单次观察",
+  L1_repeated: "重复出现",
+  L2_confirmed: "已确认",
+  L3_mastery_signal: "改善信号",
+  unclassified: "待确认",
+};
+const LEARNING_BRAIN_SUBJECT_LABELS = {
+  construction_exam_learning_truth: "建筑实务学习事实",
 };
 
 function _displayLevelName(value) {
@@ -37,9 +31,7 @@ function _displayLevelName(value) {
 
 function _displayChapterName(value) {
   var text = String(value || "").trim();
-  if (/^1A\d{6}$/i.test(text)) {
-    return CHAPTER_CODE_LABELS[text.slice(0, 5).toUpperCase()] || "综合能力";
-  }
+  if (/^1A\d{6}$/i.test(text)) return "综合能力";
   return text || "综合能力";
 }
 
@@ -86,6 +78,346 @@ function _normalizeRadarDimensions(radarData) {
       value: value || 0,
     };
   });
+}
+
+function _compactLearningBrainId(value) {
+  var text = String(value || "").trim();
+  if (!text) return "";
+  return text.length > 18 ? text.slice(0, 8) + "..." + text.slice(-4) : text;
+}
+
+function _asLearningBrainList(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function _asLearningBrainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function _learningBrainEventIds(ids) {
+  return _asLearningBrainList(ids)
+    .map(function (id) {
+      var eventId = _compactLearningBrainId(id);
+      return eventId ? "证据 " + eventId : "";
+    })
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
+function _learningBrainNodeId(edge, side) {
+  var node = _asLearningBrainObject(edge && edge[side]);
+  return String(node.id || node.type || "").trim();
+}
+
+function _learningBrainLevelLabel(level) {
+  var key = String(level || "").trim();
+  return LEARNING_BRAIN_LEVEL_LABELS[key] || key || LEARNING_BRAIN_LEVEL_LABELS.unclassified;
+}
+
+function _learningBrainSubjectLabel(subject) {
+  var key = String(subject || "").trim();
+  return LEARNING_BRAIN_SUBJECT_LABELS[key] || key || "";
+}
+
+function _learningBrainEdgeLabel(edgeType) {
+  var key = String(edgeType || "").trim();
+  return key ? "学习关系" : "";
+}
+
+function _learningBrainErrorLabel(errorCode) {
+  var code = String(errorCode || "").trim().toUpperCase();
+  return code ? "错因" : "";
+}
+
+function _learningBrainConceptLabel(code, withCode) {
+  var text = String(code || "").trim().toUpperCase();
+  if (!text) return "";
+  return withCode ? "知识点" : "知识点";
+}
+
+function _learningBrainQuestionLabel(id) {
+  var text = String(id || "").trim();
+  if (!text) return "";
+  if (/wechat-harness-case-\d+/i.test(text)) {
+    return "案例题：" + text.replace(/^wechat-harness-case-/i, "专项训练 ");
+  }
+  if (/^case[-_:]?\d+/i.test(text)) {
+    return "案例题：" + text.replace(/^case[-_:]?/i, "第 ") + " 题";
+  }
+  return "案例题：" + _compactLearningBrainId(text);
+}
+
+function _learningBrainRubricLabel(id) {
+  var text = String(id || "").trim();
+  if (!text) return "";
+  var part = text.split(":").pop();
+  return "采分点：" + (part && /^r\d+$/i.test(part) ? part.toUpperCase() : _compactLearningBrainId(part || text));
+}
+
+function _learningBrainTrainingLabel(id) {
+  var text = String(id || "").trim();
+  if (!text) return "";
+  var parts = text.split(":");
+  var focus = parts.length > 2 ? parts.slice(2).join(" / ") : "";
+  if (focus) return "训练建议：" + focus;
+  if (parts[0] && /^1A\d{6}$/i.test(parts[0])) {
+    return "训练建议：" + _learningBrainConceptLabel(parts[0], false);
+  }
+  return "训练建议：" + _compactLearningBrainId(text);
+}
+
+function _learningBrainObjectLabel(rawId, rawType) {
+  var id = String(rawId || "").trim();
+  var type = String(rawType || "").trim();
+  if (!id && !type) return "";
+  if (id.indexOf(":") > 0) {
+    var prefix = id.split(":")[0];
+    if (/^(concept|error|question|rubric_item|submission|next_training|training|weak_point)$/.test(prefix)) {
+      type = prefix;
+      id = id.slice(prefix.length + 1);
+    }
+  }
+  if (type === "concept" || /^1A\d{6}$/i.test(id)) {
+    return "知识点：" + _learningBrainConceptLabel(id, true);
+  }
+  if (type === "error" || /^1A\d{6}:E\d{2}$/i.test(id) || /^E\d{2}$/i.test(id)) {
+    var parts = id.split(":");
+    var concept = /^1A\d{6}$/i.test(parts[0]) ? _learningBrainConceptLabel(parts[0], false) : "";
+    var error = _learningBrainErrorLabel(parts[parts.length - 1]);
+    return "错因：" + [concept, error].filter(Boolean).join(" / ");
+  }
+  if (type === "question") return _learningBrainQuestionLabel(id);
+  if (type === "rubric_item") return _learningBrainRubricLabel(id);
+  if (type === "next_training" || type === "training") return _learningBrainTrainingLabel(id);
+  if (type === "submission") return "作答记录：" + _compactLearningBrainId(id);
+  if (type === "weak_point") return "薄弱点";
+  return "学习对象：" + _compactLearningBrainId(id || type);
+}
+
+function _humanizeLearningBrainText(value) {
+  var text = String(value || "").trim();
+  if (!text) return "";
+  text = text.replace(/concept:/g, "知识点：");
+  text = text.replace(/rubric_item:/g, "采分点：");
+  text = text.replace(/question:/g, "案例题：");
+  text = text.replace(/error:/g, "错因：");
+  text = text.replace(/1A\d{6}/gi, function (code) {
+    return _learningBrainConceptLabel(code, false);
+  });
+  text = text.replace(/\bE\d{2}\b/gi, function (code) {
+    return _learningBrainErrorLabel(code);
+  });
+  text = text.replace(/\s*上出现\s*/g, "出现");
+  text = text.replace(/\s*相关错因观察/g, "相关错因");
+  text = text.replace(/\s*错因观察/g, "错因");
+  text = text.replace(/\s{2,}/g, " ");
+  return text;
+}
+
+function _learningBrainEdgePath(edge) {
+  if (edge && edge.display_path) return String(edge.display_path);
+  var from = _asLearningBrainObject(edge.from);
+  var to = _asLearningBrainObject(edge.to);
+  return [
+    _learningBrainObjectLabel(from.id || from.type || "", from.type || ""),
+    _learningBrainObjectLabel(to.id || to.type || "", to.type || ""),
+  ].filter(Boolean).join(" → ");
+}
+
+function _learningBrainOutcomeText(edgeType) {
+  if (edgeType === "training_improved_error") return "本次训练结果：已改善";
+  if (edgeType === "training_not_improved_error") return "本次训练结果：未改善";
+  return "已推荐训练题";
+}
+
+function _buildLearningBrainTrainingChains(graphChain) {
+  var uses = _asLearningBrainList(graphChain.training_uses_question);
+  var outcomes = _asLearningBrainList(graphChain.training_improved_error).concat(
+    _asLearningBrainList(graphChain.training_not_improved_error),
+  );
+  var usesByTraining = {};
+  uses.forEach(function (edge) {
+    var trainingId = _learningBrainNodeId(edge, "from");
+    if (trainingId && !usesByTraining[trainingId]) {
+      usesByTraining[trainingId] = edge;
+    }
+  });
+  return outcomes.map(function (edge, index) {
+    var trainingId = _learningBrainNodeId(edge, "from");
+    var useEdge = usesByTraining[trainingId] || {};
+    var questionId = String(edge.question_id || _learningBrainNodeId(useEdge, "to") || "").trim();
+    var errorId = _learningBrainNodeId(edge, "to");
+    var improved = edge.edge_type === "training_improved_error";
+    return {
+      key: "chain-" + index,
+      tone: improved ? "improved" : "not-improved",
+      title: edge.display_meta || _learningBrainObjectLabel(errorId, "error") || "错因：待确认",
+      training: edge.display_path || _learningBrainObjectLabel(trainingId, "next_training") || "训练建议：围绕薄弱点做变式训练",
+      question: useEdge.display_path || (questionId ? _learningBrainQuestionLabel(questionId) : ""),
+      outcome: _learningBrainOutcomeText(edge.edge_type),
+      eventId: _compactLearningBrainId(edge.reason_edge_event_id || edge.evidence_event_id || ""),
+      eventLabel: edge.reason_edge_event_id || edge.evidence_event_id ? "证据 " + _compactLearningBrainId(edge.reason_edge_event_id || edge.evidence_event_id || "") : "",
+    };
+  }).slice(0, 4);
+}
+
+function _normalizeLearningBrainPayload(raw) {
+  var body = api.unwrapResponse(raw) || {};
+  var projection = _asLearningBrainObject(body.projection || body.learning_brain || body);
+  var compiled = _asLearningBrainObject(projection.compiled_objects);
+  var weakPoints = _asLearningBrainList(projection.weak_points);
+  var graph = _asLearningBrainObject(projection.typed_graph);
+  var graphEdges = _asLearningBrainList(projection.typed_graph_edges || graph.edges);
+  var graphChain = _asLearningBrainObject(projection.graph_chain);
+  var visible = _asLearningBrainObject(projection.visible_sections);
+  var chainEdges = _asLearningBrainList(graphChain.training_uses_question)
+    .concat(_asLearningBrainList(graphChain.training_improved_error))
+    .concat(_asLearningBrainList(graphChain.training_not_improved_error));
+  var trainingChains = _buildLearningBrainTrainingChains(graphChain);
+  var gradingResults = _asLearningBrainList(projection.grading_results);
+  var synthesisRun = _asLearningBrainObject(projection.synthesis_run);
+  var truths = [];
+
+  _asLearningBrainList(visible.current_truth).forEach(function (item, index) {
+    var truth = _asLearningBrainObject(item);
+    var level = truth.evidence_level || "";
+    truths.push({
+      key: "truth-" + index,
+      title: truth.display_title || _humanizeLearningBrainText(truth.current_truth || truth.object_key || ""),
+      meta: truth.display_meta || truth.display_label || "",
+      level: level || "unclassified",
+      levelLabel: truth.evidence_level_label || _learningBrainLevelLabel(level || "unclassified"),
+      eventIds: _learningBrainEventIds(truth.supporting_event_ids),
+    });
+  });
+
+  if (!truths.length) Object.keys(compiled).forEach(function (key) {
+    var item = _asLearningBrainObject(compiled[key]);
+    var level = item.evidence_level || "";
+    var currentTruth = item.current_truth || item.claim || item.object_id || "";
+    if (!currentTruth && !level) return;
+    truths.push({
+      key: key,
+      title: _humanizeLearningBrainText(currentTruth || key),
+      meta: _learningBrainObjectLabel(key, item.object_type || ""),
+      level: level || "unclassified",
+      levelLabel: _learningBrainLevelLabel(level || "unclassified"),
+      eventIds: _learningBrainEventIds(item.supporting_event_ids),
+    });
+  });
+  if (!truths.length) weakPoints.forEach(function (item, index) {
+    var weak = _asLearningBrainObject(item);
+    var concept = weak.concept_id || weak.concept || "";
+    var error = weak.error_code || weak.error || "";
+    var level = weak.evidence_level || "";
+    var title = weak.current_truth || [concept, error].filter(Boolean).join(" / ");
+    if (!title && !level) return;
+    truths.push({
+      key: "weak-" + index,
+      title: _humanizeLearningBrainText(title || "薄弱点"),
+      meta: [_learningBrainObjectLabel(concept, "concept"), _learningBrainObjectLabel(error, "error")].filter(Boolean).join("；") || "薄弱点",
+      level: level || "unclassified",
+      levelLabel: _learningBrainLevelLabel(level || "unclassified"),
+      eventIds: _learningBrainEventIds(weak.supporting_event_ids),
+    });
+  });
+
+  var evidence = _asLearningBrainList(visible.evidence_flow).map(function (item, index) {
+    var flow = _asLearningBrainObject(item);
+    var eventId = _compactLearningBrainId(flow.event_id || "");
+    return {
+      key: flow.event_id || "visible-edge-" + index,
+      type: flow.display_title || flow.display_label || _learningBrainEdgeLabel(flow.edge_type),
+      path: flow.display_path || flow.path || flow.display_meta || "",
+      eventId: eventId,
+      eventLabel: eventId ? "证据 " + eventId : "",
+    };
+  }).filter(function (item) {
+    return item.type || item.path || item.eventId;
+  });
+  if (!evidence.length) evidence = graphEdges.concat(chainEdges).map(function (edge, index) {
+    var eventId = _compactLearningBrainId(edge.evidence_event_id || edge.reason_edge_event_id || edge.event_id || "");
+    return {
+      key: "edge-" + index,
+      type: edge.display_title || edge.display_label || _learningBrainEdgeLabel(edge.edge_type),
+      path: edge.display_path || _learningBrainEdgePath(edge),
+      eventId: eventId,
+      eventLabel: eventId ? "证据 " + eventId : "",
+    };
+  }).filter(function (item) {
+    return item.type || item.path || item.eventId;
+  });
+
+  var training = _asLearningBrainList(visible.next_training).map(function (item, index) {
+    var plan = _asLearningBrainObject(item);
+    return {
+      key: plan.concept_id || plan.error_code || "visible-training-" + index,
+      title: plan.display_title || _humanizeLearningBrainText(plan.claim || "下一步训练"),
+      meta: plan.display_meta || plan.display_label || "",
+    };
+  }).filter(function (item) {
+    return item.title || item.meta;
+  });
+  gradingResults.forEach(function (result, index) {
+    var signal = _asLearningBrainObject(result.next_training_signal);
+    var concept = signal.concept || signal.concept_id || "";
+    var focus = signal.focus || signal.training_focus || signal.mode || "";
+    if (!concept && !focus) return;
+    training.push({
+      key: "grading-" + index,
+      title: _humanizeLearningBrainText(focus || "下一步训练"),
+      meta: _learningBrainObjectLabel(concept, "concept") || _humanizeLearningBrainText(signal.mode || ""),
+    });
+  });
+  if (!training.length) graphEdges.concat(chainEdges).forEach(function (edge, index) {
+    if (
+      edge.edge_type !== "error_points_to_training" &&
+      edge.edge_type !== "training_uses_question" &&
+      edge.edge_type !== "training_improved_error" &&
+      edge.edge_type !== "training_not_improved_error"
+    ) {
+      return;
+    }
+    var from = _asLearningBrainObject(edge.from);
+    var to = _asLearningBrainObject(edge.to);
+    training.push({
+      key: "edge-training-" + index,
+      title: edge.display_title || _learningBrainObjectLabel(to.id || to.type || "", to.type || "") || "下一步训练",
+      meta: edge.display_path || edge.display_meta || _learningBrainObjectLabel(from.id || from.type || "", from.type || "") || _learningBrainEdgeLabel(edge.edge_type),
+    });
+  });
+  if (!training.length) {
+    weakPoints.slice(0, 3).forEach(function (item, index) {
+      var weak = _asLearningBrainObject(item);
+      var concept = weak.concept_id || "";
+      var error = weak.error_code || "";
+      if (!concept && !error) return;
+      training.push({
+        key: "weak-training-" + index,
+        title: "围绕薄弱点做变式训练",
+        meta: [_learningBrainObjectLabel(concept, "concept"), _learningBrainObjectLabel(error, "error")].filter(Boolean).join("；"),
+      });
+    });
+  }
+
+  var eventCount = Number(projection.event_count || synthesisRun.input_event_count || 0);
+  var createdClaimCount = Number(projection.created_claim_count || synthesisRun.created_claim_count || 0);
+  var typedGraphEdgeCount = Number(
+    projection.typed_graph_edge_count || graph.edge_count || graphEdges.length || 0,
+  );
+  return {
+    truths: truths.slice(0, 4),
+    evidence: evidence.slice(0, 8),
+    training: training.slice(0, 5),
+    chains: trainingChains,
+    stats: {
+      eventCount: Number.isFinite(eventCount) ? eventCount : 0,
+      createdClaimCount: Number.isFinite(createdClaimCount) ? createdClaimCount : 0,
+      typedGraphEdgeCount: Number.isFinite(typedGraphEdgeCount) ? typedGraphEdgeCount : 0,
+      projectionSubject: projection.projection_subject || projection.subject || "",
+      projectionSubjectLabel: _learningBrainSubjectLabel(projection.projection_subject || projection.subject || ""),
+    },
+  };
 }
 
 function _buildRadarViewModel(dims) {
@@ -430,6 +762,30 @@ function _unwrapSnapshotItem(raw) {
   return _hasSnapshotData(value) ? value : null;
 }
 
+function _reportOptionalRead(promise, timeoutMs) {
+  var settled = false;
+  return new Promise(function (resolve) {
+    var timer = setTimeout(function () {
+      if (settled) return;
+      settled = true;
+      resolve(null);
+    }, timeoutMs || 3500);
+    promise
+      .then(function (value) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch(function () {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(null);
+      });
+  });
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -444,8 +800,11 @@ Page({
     // 加载状态
     radarLoading: true,
     masteryLoading: true,
+    learningBrainLoading: true,
     radarError: false,
     masteryError: false,
+    learningBrainError: false,
+    learningBrainEmpty: false,
 
     // 雷达图数据
     radarDimensions: [],
@@ -478,6 +837,17 @@ Page({
     learnerStageTitle: "当前学习状态",
     studyTip: "",
     diagnosticScore: 0,
+    learningBrainTruths: [],
+    learningBrainEvidence: [],
+    learningBrainTraining: [],
+    learningBrainChains: [],
+    learningBrainGraphStats: {
+      eventCount: 0,
+      createdClaimCount: 0,
+      typedGraphEdgeCount: 0,
+      projectionSubject: "",
+      projectionSubjectLabel: "",
+    },
     battlePlan: {
       focusTopic: "系统正在生成今日主攻",
       priorityTask: "学情同步后，这里会给你最优先的一步动作",
@@ -523,19 +893,24 @@ Page({
       this.setData({
         radarLoading: true,
         masteryLoading: true,
+        learningBrainLoading: true,
         radarError: false,
         masteryError: false,
+        learningBrainError: false,
+        learningBrainEmpty: false,
       });
       this._loadReportPage();
     });
   },
 
   async _loadReportSnapshot() {
+    var optionalReadOpts = { suppressAuthRedirect: true };
     const tasks = [
-      api.getTodayProgress().catch(() => null),
-      api.getHomeDashboard().catch(() => null),
-      api.getAssessmentProfile().catch(() => null),
-      api.getMasteryDashboard().catch(() => null),
+      _reportOptionalRead(api.getTodayProgress(optionalReadOpts)),
+      _reportOptionalRead(api.getHomeDashboard(optionalReadOpts)),
+      _reportOptionalRead(api.getAssessmentProfile(optionalReadOpts)),
+      _reportOptionalRead(api.getMasteryDashboard(optionalReadOpts)),
+      _reportOptionalRead(api.getLearningBrainProjection(100, optionalReadOpts)),
     ];
     const result = await Promise.all(tasks);
     return {
@@ -543,6 +918,7 @@ Page({
       home: _unwrapSnapshotItem(result[1]),
       assessment: _unwrapSnapshotItem(result[2]),
       mastery: _unwrapSnapshotItem(result[3]),
+      learningBrain: _unwrapSnapshotItem(result[4]),
     };
   },
 
@@ -551,6 +927,7 @@ Page({
     this._reportSnapshot = snapshot;
     await Promise.all([
       this._loadOverview(snapshot),
+      this._loadLearningBrain(snapshot),
       this._loadRadar(snapshot),
       this._loadMastery(snapshot),
     ]);
@@ -585,18 +962,19 @@ Page({
 
   async _loadOverview(snapshot) {
     try {
+      var optionalReadOpts = { suppressAuthRedirect: true };
       const progress =
         _snapshotValue(snapshot, "progress")
           ? _snapshotValue(snapshot, "progress")
-          : api.unwrapResponse(await api.getTodayProgress()) || {};
+          : api.unwrapResponse(await api.getTodayProgress(optionalReadOpts)) || {};
       const home =
         _snapshotValue(snapshot, "home")
           ? _snapshotValue(snapshot, "home")
-          : api.unwrapResponse(await api.getHomeDashboard()) || {};
+          : api.unwrapResponse(await api.getHomeDashboard(optionalReadOpts)) || {};
       const assessment =
         _snapshotValue(snapshot, "assessment")
           ? _snapshotValue(snapshot, "assessment")
-          : api.unwrapResponse(await api.getAssessmentProfile()) || {};
+          : api.unwrapResponse(await api.getAssessmentProfile(optionalReadOpts)) || {};
 
       const weakNodes = ((home.mastery || {}).weak_nodes || []).filter(Boolean);
       const diagnosticFeedback = assessment.diagnostic_feedback || {};
@@ -621,19 +999,55 @@ Page({
     } catch (_) {}
   },
 
+  async _loadLearningBrain(snapshot) {
+    try {
+      var optionalReadOpts = { suppressAuthRedirect: true };
+      const payload =
+        _snapshotValue(snapshot, "learningBrain")
+          ? _snapshotValue(snapshot, "learningBrain")
+          : api.unwrapResponse(await api.getLearningBrainProjection(100, optionalReadOpts)) || {};
+      var normalized = _normalizeLearningBrainPayload(payload);
+      var isEmpty =
+        normalized.truths.length === 0 &&
+        normalized.evidence.length === 0 &&
+        normalized.training.length === 0 &&
+        normalized.chains.length === 0 &&
+        !normalized.stats.eventCount &&
+        !normalized.stats.createdClaimCount &&
+        !normalized.stats.typedGraphEdgeCount;
+      this.setData({
+        learningBrainTruths: normalized.truths,
+        learningBrainEvidence: normalized.evidence,
+        learningBrainTraining: normalized.training,
+        learningBrainChains: normalized.chains,
+        learningBrainGraphStats: normalized.stats,
+        learningBrainLoading: false,
+        learningBrainError: false,
+        learningBrainEmpty: isEmpty,
+      });
+    } catch (_err) {
+      this.setData({
+        learningBrainLoading: false,
+        learningBrainError: true,
+        learningBrainEmpty: false,
+      });
+    }
+  },
+
   // ── 加载学情数据（统一使用 assessment profile API）────
   async _loadRadar(snapshot) {
     try {
+      var optionalReadOpts = { suppressAuthRedirect: true };
       var dims = [];
       var assessmentData =
         _snapshotValue(snapshot, "assessment")
           ? _snapshotValue(snapshot, "assessment")
-          : api.unwrapResponse(await api.getAssessmentProfile()) || {};
+          : api.unwrapResponse(await api.getAssessmentProfile(optionalReadOpts)) || {};
       dims = _buildRadarDimensionsFromAssessment(assessmentData);
 
       if (!dims.length) {
         try {
-          var radarResult = await api.getRadarData(RADAR_SELF_SUBJECT);
+          var radarResult = await api.getRadarData(RADAR_SELF_SUBJECT, optionalReadOpts);
           var radarData = api.unwrapResponse(radarResult) || {};
           var radarDims = _normalizeRadarDimensions(radarData);
           if (radarDims.length && _hasPositiveRadarSignal(radarDims)) {
@@ -666,7 +1080,7 @@ Page({
       try {
         var fallbackDims = [];
         try {
-          var radarFallback = await api.getRadarData(RADAR_SELF_SUBJECT);
+          var radarFallback = await api.getRadarData(RADAR_SELF_SUBJECT, optionalReadOpts);
           var radarFallbackData = api.unwrapResponse(radarFallback) || {};
           var radarDims = _normalizeRadarDimensions(radarFallbackData);
           if (radarDims.length && _hasPositiveRadarSignal(radarDims)) {
@@ -701,10 +1115,11 @@ Page({
   // ── 加载掌握度数据（也从 assessment profile 获取）────
   async _loadMastery(snapshot) {
     try {
+      var optionalReadOpts = { suppressAuthRedirect: true };
       var data =
         _snapshotValue(snapshot, "mastery")
           ? _snapshotValue(snapshot, "mastery")
-          : api.unwrapResponse(await api.getMasteryDashboard()) || {};
+          : api.unwrapResponse(await api.getMasteryDashboard(optionalReadOpts)) || {};
       var groups = (data.groups || []).map(function (group) {
         var chapters = (group.chapters || []).map(function (chapter) {
           var mastery = Math.round(chapter.mastery || 0);
@@ -741,7 +1156,7 @@ Page({
         var fallbackData =
           _snapshotValue(snapshot, "assessment")
             ? _snapshotValue(snapshot, "assessment")
-            : api.unwrapResponse(await api.getAssessmentProfile()) || {};
+            : api.unwrapResponse(await api.getAssessmentProfile(optionalReadOpts)) || {};
         var cm = fallbackData.chapter_mastery || {};
         var weakChapters = [];
         var normalChapters = [];

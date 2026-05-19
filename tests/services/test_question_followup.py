@@ -11,6 +11,7 @@ from deeptutor.services.question_followup import (
     detect_requested_question_type,
     extract_choice_result_summary_from_text,
     looks_like_question_followup,
+    normalize_question_followup_context,
     resolve_submission,
     resolve_submission_attempt,
 )
@@ -590,6 +591,33 @@ def test_build_question_followup_context_from_result_summary_keeps_metadata_know
 
     assert context is not None
     assert context["items"][0]["knowledge_context"] == "自由时差是不影响紧后工作最早开始的机动时间。"
+
+
+def test_normalize_question_followup_context_preserves_compact_evidence_refs() -> None:
+    context = normalize_question_followup_context(
+        {
+            "question_id": "case_1",
+            "question": "某危大工程专项方案应如何组织论证？",
+            "question_type": "case",
+            "correct_answer": "应组织专家论证，并编制专项施工方案后按规定审批。",
+            "evidence_refs": [
+                {
+                    "source": "evidence_bundle",
+                    "field": "kb_chunks",
+                    "content": "危大工程应编制专项施工方案，超过一定规模的应组织专家论证。",
+                }
+            ],
+        }
+    )
+
+    assert context is not None
+    assert context["evidence_refs"] == [
+        {
+            "source": "evidence_bundle",
+            "field": "kb_chunks",
+            "content": "危大工程应编制专项施工方案，超过一定规模的应组织专家论证。",
+        }
+    ]
 
 
 def test_build_question_followup_context_from_presentation_keeps_all_items() -> None:

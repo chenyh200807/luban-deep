@@ -544,7 +544,7 @@ export default function IntroPage() {
                 提交内测申请后，把你最近做错的一道题交给鲁班智考。它会从第一次批改开始记录你的丢分原因、表达习惯和下一步训练方向。
               </p>
               <p className="mt-4 max-w-3xl text-xs leading-6 text-white/54">
-                适用于一建/二建建筑实务备考场景。学习效果与个人基础、学习投入和使用频率有关。
+                适用于一建建筑实务备考场景。学习效果与个人基础、学习投入和使用频率有关。
               </p>
             </div>
             <Link
@@ -560,11 +560,15 @@ export default function IntroPage() {
 
       <footer className="border-t border-[#dfe8e5] bg-[#f7faf9] px-5 py-10 sm:px-8">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-          <div>
+          <div className="flex items-center gap-2">
+            <Image
+              src="/logo-ver2.png"
+              alt="鲁班智考"
+              width={491}
+              height={346}
+              style={{ width: "auto", height: 20 }}
+            />
             <p className="text-sm font-black text-[#17322f]">鲁班智考</p>
-            <p className="mt-2 text-sm text-[#60706c]">
-              由 <span translate="no">DeepTutor</span> agent-native 学习系统提供底层能力。
-            </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <a

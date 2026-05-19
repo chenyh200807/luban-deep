@@ -34,6 +34,7 @@ function loadIndexPage(storageSeed) {
   );
   var storage = Object.assign({}, storageSeed || {});
   var requestCalls = [];
+  var redirectToCalls = [];
   var reLaunchCalls = [];
   var removedKeys = [];
   var pageDef = null;
@@ -41,7 +42,10 @@ function loadIndexPage(storageSeed) {
   var sandbox = {
     console: console,
     Date: Date,
-    setTimeout: setTimeout,
+    setTimeout: function (task) {
+      if (typeof task === "function") task();
+      return 1;
+    },
     clearTimeout: clearTimeout,
     wx: {
       getStorageSync: function (key) {
@@ -56,6 +60,12 @@ function loadIndexPage(storageSeed) {
       },
       request: function (options) {
         requestCalls.push(options);
+      },
+      redirectTo: function (options) {
+        redirectToCalls.push(options);
+      },
+      nextTick: function (task) {
+        task();
       },
       reLaunch: function (options) {
         reLaunchCalls.push(options);
@@ -86,6 +96,7 @@ function loadIndexPage(storageSeed) {
     page: page,
     storage: storage,
     requestCalls: requestCalls,
+    redirectToCalls: redirectToCalls,
     reLaunchCalls: reLaunchCalls,
     removedKeys: removedKeys,
   };
@@ -103,11 +114,11 @@ run("cached launch redirect still works without explicit home intent", function 
   setup.page.onLoad({});
 
   assert(
-    setup.reLaunchCalls.length === 1,
-    "cached launch target should still relaunch by default",
+    setup.redirectToCalls.length === 1,
+    "cached launch target should still replace the launch guard by default",
   );
   assert(
-    setup.reLaunchCalls[0] && setup.reLaunchCalls[0].url === "/pages/freeCourse/freeCourse",
+    setup.redirectToCalls[0] && setup.redirectToCalls[0].url === "/pages/freeCourse/freeCourse",
     "cached launch target should remain unchanged for normal app launch",
   );
 });
@@ -122,11 +133,11 @@ run("cold launch should go directly to freeCourse without legacy gettopzm reques
     "cold launch should no longer depend on legacy gettopzm",
   );
   assert(
-    setup.reLaunchCalls.length === 1,
-    "cold launch should relaunch directly to freeCourse",
+    setup.redirectToCalls.length === 1,
+    "cold launch should replace the launch guard directly with freeCourse",
   );
   assert(
-    setup.reLaunchCalls[0] && setup.reLaunchCalls[0].url === "/pages/freeCourse/freeCourse",
+    setup.redirectToCalls[0] && setup.redirectToCalls[0].url === "/pages/freeCourse/freeCourse",
     "cold launch should target freeCourse as the single host home",
   );
 });
@@ -141,6 +152,45 @@ run("chat home button should target index with explicit forceHome flag", functio
     appSource.indexOf('const HOST_HOME_URL = "/pages/freeCourse/freeCourse";') >= 0,
     "host-home navigation should point directly at freeCourse",
   );
+});
+
+run("devtools normal compile should launch from the host home authority", function () {
+  var appConfig = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "../app.json"), "utf8"),
+  );
+
+  assert(
+    appConfig.pages && appConfig.pages[0] === "pages/freeCourse/freeCourse",
+    "app.json first page should start from the host home instead of a launch wrapper",
+  );
+  assert(
+    appConfig.lazyCodeLoading === undefined,
+    "app.json should not enable lazy code loading for DevTools subpackage entry rendering",
+  );
+
+  [
+    "../project.config.json",
+    "../project.private.config.json",
+  ].forEach(function (configPath) {
+    var config = JSON.parse(
+      fs.readFileSync(path.join(__dirname, configPath), "utf8"),
+    );
+    var miniProgram = config.condition && config.condition.miniprogram;
+    var current = miniProgram && miniProgram.list && miniProgram.list[miniProgram.current];
+
+    assert(
+      config.setting && config.setting.condition === true,
+      configPath + " should enable DevTools compile conditions",
+    );
+    assert(
+      current && current.pathName === "pages/freeCourse/freeCourse",
+      configPath + " should launch the host home directly for normal compile",
+    );
+    assert(
+      current && current.query === "",
+      configPath + " should not need launch-wrapper query flags",
+    );
+  });
 });
 
 run("freeCourse AI entry should use guarded cross-home navigation", function () {

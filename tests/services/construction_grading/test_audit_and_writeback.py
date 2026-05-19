@@ -92,13 +92,15 @@ def test_writeback_uses_existing_learner_memory_events() -> None:
     assert count == 1
     call = service.calls[0]
     assert call["source_feature"] == "construction_grading"
-    assert call["memory_kind"] == "case_error_event"
+    assert call["memory_kind"] == "learning_evidence"
     assert call["source_bot_id"] == "construction-exam"
     assert call["dedupe_key"]
-    assert call["payload_json"]["event_type"] == "construction_grading_error"
+    assert call["payload_json"]["event_type"] == "learning_evidence"
+    assert call["payload_json"]["legacy_event_type"] == "construction_grading_error"
     assert call["payload_json"]["question_id"] == "case-1"
     assert call["payload_json"]["error_events"][0]["error_code"] in {"E02", "E03", "E04"}
     assert call["payload_json"]["errors"][0]["error_code"] in {"E02", "E03", "E04"}
+    assert call["payload_json"]["quality"]["evidence_level"] == "L0_observed"
 
 
 def test_writeback_accepts_runtime_batch_dict_result() -> None:
@@ -152,6 +154,42 @@ def test_writeback_accepts_runtime_batch_dict_result() -> None:
     assert len(service.calls) == 1
     call = service.calls[0]
     assert call["source_id"] == "turn-1:q-1"
-    assert call["memory_kind"] == "mcq_error_event"
+    assert call["memory_kind"] == "learning_evidence"
     assert call["payload_json"]["question_id"] == "q-1"
     assert call["payload_json"]["next_training_signal"]["focus"] == "行政法规与部门规章辨析"
+
+
+def test_writeback_can_persist_success_learning_event_for_improvement_signal() -> None:
+    service = _FakeLearnerStateService()
+
+    count = write_grading_error_events(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-2",
+        source_bot_id="construction-exam",
+        include_success_events=True,
+        grading_result={
+            "type": "case",
+            "question_id": "case-2",
+            "question_type": "case",
+            "user_answer": "应组织专家论证，编制专项施工方案并审批。",
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "rubric_items": [{"rubric_item_id": "r1", "criterion": "专家论证程序", "status": "full"}],
+            "error_events": [],
+            "next_training_signal": {
+                "concept": "1A432000",
+                "focus": "专家论证程序",
+                "mode": "case_repair",
+            },
+        },
+    )
+
+    assert count == 1
+    assert len(service.calls) == 1
+    call = service.calls[0]
+    assert call["memory_kind"] == "learning_evidence"
+    assert call["payload_json"]["error_events"] == []
+    assert call["payload_json"]["score_awarded"] == 1.0
+    assert call["payload_json"]["quality"]["writeback_eligible"] is True
+    assert call["payload_json"]["quality"]["writeback_reason"] == "success_improvement_signal"

@@ -3486,6 +3486,28 @@ class MemberConsoleService:
             for key, value in chapter_mastery.items()
         ]
 
+    @staticmethod
+    def _mastery_items_in_member_scope(
+        member: dict[str, Any],
+        source_items: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        scope_items = MemberConsoleService._chapter_mastery_items(member) or [
+            {"name": value.get("name") or key, "mastery": 0}
+            for key, value in _default_chapter_mastery().items()
+        ]
+        scoped: dict[str, dict[str, Any]] = {}
+        for item in scope_items:
+            name = str(item.get("name") or "").strip()
+            if name:
+                scoped[name] = {"name": name, "mastery": 0}
+        for item in source_items:
+            name = str(item.get("name") or "").strip()
+            if not name:
+                continue
+            mastery = max(0, min(100, int(item.get("mastery") or 0)))
+            scoped[name] = {"name": name, "mastery": mastery}
+        return list(scoped.values())
+
     def _build_provisional_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
         learning = self._ensure_learning_profile(member)
         items: list[dict[str, Any]] = []
@@ -3504,11 +3526,10 @@ class MemberConsoleService:
     def _report_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
         last_assessment_items = self._last_assessment_mastery_items(member)
         if last_assessment_items:
-            return last_assessment_items
+            return self._mastery_items_in_member_scope(member, last_assessment_items)
         mastery_items = self._chapter_mastery_items(member)
-        positive_items = [item for item in mastery_items if int(item.get("mastery") or 0) > 0]
-        if positive_items:
-            return positive_items
+        if any(int(item.get("mastery") or 0) > 0 for item in mastery_items):
+            return self._mastery_items_in_member_scope(member, mastery_items)
         return self._build_provisional_mastery_items(member)
 
     def get_chapter_progress(self, user_id: str) -> list[dict[str, Any]]:
@@ -4059,13 +4080,7 @@ class MemberConsoleService:
             else {}
         )
         mastery_items = (
-            [
-                {
-                    "name": (value.get("name") if isinstance(value, dict) else "") or key,
-                    "mastery": int((value.get("mastery") if isinstance(value, dict) else value) or 0),
-                }
-                for key, value in last_mastery.items()
-            ]
+            self._mastery_items_in_member_scope(member, self._last_assessment_mastery_items(member))
             if last_mastery
             else self._report_mastery_items(member)
         )
@@ -4105,15 +4120,12 @@ class MemberConsoleService:
                 },
             }
 
-        stored_score = last_assessment.get("score") if last_mastery else None
-        avg_mastery = (
-            round(float(stored_score))
-            if stored_score is not None
-            else round(
-                sum(int(item.get("mastery") or 0) for item in chapter_mastery.values())
-                / max(len(chapter_mastery), 1)
-            )
+        coverage_mastery = round(
+            sum(int(item.get("mastery") or 0) for item in chapter_mastery.values())
+            / max(len(chapter_mastery), 1)
         )
+        stored_score = last_assessment.get("score") if last_mastery else None
+        avg_mastery = min(round(float(stored_score)), coverage_mastery) if stored_score is not None else coverage_mastery
         level = "advanced" if avg_mastery >= 75 else "intermediate" if avg_mastery >= 50 else "beginner"
         stored_feedback = (
             last_assessment.get("diagnostic_feedback")
@@ -4121,10 +4133,15 @@ class MemberConsoleService:
             else None
         )
         if stored_feedback:
+            normalized_feedback = deepcopy(stored_feedback)
+            ability_overview = dict(normalized_feedback.get("ability_overview") or {})
+            ability_overview["score_pct"] = avg_mastery
+            ability_overview["chapter_mastery"] = chapter_mastery
+            normalized_feedback["ability_overview"] = ability_overview
             return {
                 "score": avg_mastery,
                 "knowledge_score": int(last_assessment.get("knowledge_score") or avg_mastery),
-                "level": str(last_assessment.get("level") or level),
+                "level": level,
                 "blueprint_version": str(last_assessment.get("blueprint_version") or ""),
                 "measurement_confidence": str(last_assessment.get("measurement_confidence") or ""),
                 "teaching_policy_seed": dict(last_assessment.get("teaching_policy_seed") or {}),
@@ -4132,16 +4149,16 @@ class MemberConsoleService:
                 "chapter_mastery": chapter_mastery,
                 "diagnostic_profile": {
                     "learner_archetype": str(
-                        dict(stored_feedback.get("learner_profile") or {}).get("archetype") or ""
+                        dict(normalized_feedback.get("learner_profile") or {}).get("archetype") or ""
                     ),
                     "response_profile": str(
-                        dict(stored_feedback.get("cognitive_insight") or {}).get("response_profile") or ""
+                        dict(normalized_feedback.get("cognitive_insight") or {}).get("response_profile") or ""
                     ),
                     "calibration_label": str(
-                        dict(stored_feedback.get("cognitive_insight") or {}).get("calibration_label") or ""
+                        dict(normalized_feedback.get("cognitive_insight") or {}).get("calibration_label") or ""
                     ),
                 },
-                "diagnostic_feedback": stored_feedback,
+                "diagnostic_feedback": normalized_feedback,
             }
         return {
             "score": avg_mastery,

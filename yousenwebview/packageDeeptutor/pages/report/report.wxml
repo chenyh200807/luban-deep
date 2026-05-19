@@ -54,6 +54,85 @@
         </view>
       </view>
 
+      <view class="learning-brain glass-card">
+        <view class="learning-brain-head">
+          <view>
+            <text class="learning-brain-title">学习大脑</text>
+            <text class="learning-brain-sub">学习事实编译</text>
+          </view>
+          <view class="learning-brain-stats" wx:if="{{!learningBrainLoading && !learningBrainError}}">
+            <text class="brain-stat">{{learningBrainGraphStats.typedGraphEdgeCount || 0}} 条关系</text>
+            <text class="brain-stat">{{learningBrainGraphStats.eventCount || 0}} 条证据</text>
+          </view>
+        </view>
+
+        <view wx:if="{{learningBrainLoading}}" class="learning-brain-loading">
+          <view class="skel-block brain-skel"></view>
+          <view class="skel-block brain-skel short"></view>
+        </view>
+
+        <view wx:elif="{{learningBrainError}}" class="learning-brain-state">
+          <text class="learning-brain-state-title">学习事实暂不可用</text>
+          <text class="learning-brain-state-desc">稍后重试，或先完成一次案例题批改</text>
+        </view>
+
+        <view wx:elif="{{learningBrainEmpty}}" class="learning-brain-state">
+          <text class="learning-brain-state-title">还没有可展示的学习事实</text>
+          <text class="learning-brain-state-desc">完成案例题批改后，这里会显示可信结论、证据流和下一步训练</text>
+        </view>
+
+        <view wx:else class="learning-brain-body">
+          <view class="brain-column">
+            <text class="brain-column-title">当前可信结论</text>
+            <view class="brain-truth-row" wx:for="{{learningBrainTruths}}" wx:key="key">
+              <view class="brain-level level-{{item.level}}">
+                <text>{{item.levelLabel || item.level}}</text>
+              </view>
+              <view class="brain-row-main">
+                <text class="brain-row-title">{{item.title}}</text>
+                <text class="brain-row-meta">{{item.meta}}</text>
+                <view class="brain-event-list" wx:if="{{item.eventIds.length}}">
+                  <text class="brain-event" wx:for="{{item.eventIds}}" wx:for-item="eventId" wx:key="*this">{{eventId}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <view class="brain-column">
+            <text class="brain-column-title">证据流</text>
+            <view class="brain-edge-row" wx:for="{{learningBrainEvidence}}" wx:key="key">
+              <text class="brain-edge-type">{{item.type}}</text>
+              <text class="brain-edge-path">{{item.path}}</text>
+              <text class="brain-edge-event" wx:if="{{item.eventLabel || item.eventId}}">{{item.eventLabel || item.eventId}}</text>
+            </view>
+          </view>
+
+          <view class="brain-column" wx:if="{{learningBrainChains.length}}">
+            <text class="brain-column-title">训练闭环</text>
+            <view class="brain-chain-row chain-{{item.tone}}" wx:for="{{learningBrainChains}}" wx:key="key">
+              <text class="brain-chain-title">{{item.title}}</text>
+              <text class="brain-chain-step">{{item.training}}</text>
+              <text class="brain-chain-step" wx:if="{{item.question}}">{{item.question}}</text>
+              <text class="brain-chain-outcome">{{item.outcome}}</text>
+              <text class="brain-edge-event" wx:if="{{item.eventLabel || item.eventId}}">{{item.eventLabel || item.eventId}}</text>
+            </view>
+          </view>
+
+          <view class="brain-column">
+            <text class="brain-column-title">下一步训练</text>
+            <view class="brain-training-row" wx:for="{{learningBrainTraining}}" wx:key="key">
+              <text class="brain-training-title">{{item.title}}</text>
+              <text class="brain-training-meta">{{item.meta}}</text>
+            </view>
+          </view>
+
+          <view class="brain-footer" wx:if="{{learningBrainGraphStats.projectionSubject}}">
+            <text>{{learningBrainGraphStats.projectionSubjectLabel || learningBrainGraphStats.projectionSubject}}</text>
+            <text>稳定结论 {{learningBrainGraphStats.createdClaimCount || 0}}</text>
+          </view>
+        </view>
+      </view>
+
       <!-- 加载中 -->
       <view wx:if="{{radarLoading}}" class="glass-card loading-card">
         <view class="skel-block" style="width: 280rpx; height: 280rpx; border-radius: 50%; margin: 0 auto"></view>

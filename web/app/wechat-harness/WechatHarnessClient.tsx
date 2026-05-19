@@ -5,13 +5,17 @@
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
+  Brain,
   CheckCircle2,
   ChevronRight,
   ClipboardList,
   History,
+  Layers3,
   MonitorSmartphone,
   Play,
   RotateCcw,
+  Search,
+  ShieldCheck,
   Smartphone,
 } from "lucide-react";
 
@@ -28,6 +32,49 @@ type McqSelection = Record<string, string>;
 interface WechatHarnessClientProps {
   cases: WechatHarnessCase[];
 }
+
+type LearningBrainResult = {
+  question_id: string;
+  score_label: string;
+  missed_points: string[];
+  rewrite: string;
+  next_training_signal: {
+    concept?: string;
+    focus?: string;
+    mode?: string;
+  };
+};
+
+type VisibleItem = {
+  event_id?: string;
+  display_title?: string;
+  display_label?: string;
+  display_meta?: string;
+  display_path?: string;
+  evidence_level_label?: string;
+};
+
+type LearningBrainResponse = {
+  ok: boolean;
+  user_id: string;
+  grading_results: LearningBrainResult[];
+  event_count: number;
+  created_claim_count: number;
+  output_projection_hash: string;
+  projection_subject: string;
+  weak_points: Array<{
+    concept_id?: string;
+    error_code?: string;
+    evidence_level?: string;
+    supporting_event_ids?: string[];
+  }>;
+  visible_sections?: {
+    current_truth: VisibleItem[];
+    evidence_flow: VisibleItem[];
+    next_training: VisibleItem[];
+  };
+  typed_graph_edge_count: number;
+};
 
 function textFromNodes(nodes: unknown): string {
   if (!Array.isArray(nodes)) return "";
@@ -76,8 +123,25 @@ function stateForMode(
   return currentCase.streamFrames[Math.min(frameIndex, currentCase.streamFrames.length - 1)].state;
 }
 
-function CasePill({ children }: { children: React.ReactNode }) {
-  return <span className={styles.casePill}>{children}</span>;
+function MiniMetric({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: React.ReactNode;
+  tone?: "neutral" | "good" | "warn";
+}) {
+  return (
+    <div className={styles.miniMetric} data-tone={tone}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function SurfaceBadge({ surface }: { surface: string }) {
+  return <span className={styles.surfaceBadge}>{surface}</span>;
 }
 
 function TableBlock({ block }: { block: Record<string, unknown> }) {
@@ -309,6 +373,170 @@ function McqCards({
   );
 }
 
+function VisibleSection({
+  heading,
+  items,
+  emptyText,
+}: {
+  heading: string;
+  items: VisibleItem[];
+  emptyText: string;
+}) {
+  return (
+    <section>
+      <h3>{heading}</h3>
+      {items.length ? (
+        <ol className={styles.compiledObjectList}>
+          {items.map((item, index) => {
+            const title = item.display_title || item.display_label || "(无标题)";
+            const meta = item.display_meta || "";
+            const path = item.display_path && item.display_path !== meta ? item.display_path : "";
+            const tag = item.evidence_level_label || item.display_label || "";
+            return (
+              <li className={styles.compiledObjectCard} key={`${item.event_id || title}-${index}`}>
+                <div>
+                  <strong>{title}</strong>
+                  {tag ? <span>{tag}</span> : null}
+                </div>
+                {meta ? <p>{meta}</p> : null}
+                {path ? <small>{path}</small> : null}
+              </li>
+            );
+          })}
+        </ol>
+      ) : (
+        <p className={styles.muted}>{emptyText}</p>
+      )}
+    </section>
+  );
+}
+
+function LearningBrainEvidenceChain({ result }: { result: LearningBrainResponse }) {
+  const sections = result.visible_sections;
+  if (!sections) {
+    return (
+      <div className={styles.qaEvidenceChain} data-testid="learning-brain-visible-chain">
+        <p className={styles.muted}>
+          当前响应未携带 visible_sections，请确认后端是否以 surface=mobile 返回 read model。
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className={styles.qaEvidenceChain} data-testid="learning-brain-visible-chain">
+      <VisibleSection heading="当前可信结论" items={sections.current_truth} emptyText="暂无稳定结论" />
+      <VisibleSection heading="证据流" items={sections.evidence_flow} emptyText="暂无证据流" />
+      <VisibleSection heading="下一步训练" items={sections.next_training} emptyText="暂无训练建议" />
+    </div>
+  );
+}
+
+function LearningBrainQaPanel() {
+  const [userId, setUserId] = useState("wechat_harness_learning_brain");
+  const [answer, setAnswer] = useState("应加强现场管理，落实责任，严格检查。");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<LearningBrainResponse | null>(null);
+
+  async function runQa() {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/v1/learning-brain/harness-case-grading", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, user_answer: answer }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.detail || "Learning Brain QA failed");
+      }
+      setResult(payload as LearningBrainResponse);
+    } catch (err) {
+      setResult(null);
+      setError(err instanceof Error ? err.message : "Learning Brain QA failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className={styles.inspectorSection} data-testid="learning-brain-qa">
+      <h2>
+        <Brain size={16} />
+        学情闭环 QA
+      </h2>
+      <div className={styles.qaForm}>
+        <label>
+          <span>User ID</span>
+          <input
+            data-testid="learning-brain-user-id"
+            onChange={(event) => setUserId(event.target.value)}
+            value={userId}
+          />
+        </label>
+        <label>
+          <span>案例题作答</span>
+          <textarea
+            data-testid="learning-brain-answer"
+            onChange={(event) => setAnswer(event.target.value)}
+            rows={3}
+            value={answer}
+          />
+        </label>
+        <button
+          data-testid="learning-brain-run"
+          disabled={loading || !userId.trim() || !answer.trim()}
+          onClick={runQa}
+          type="button"
+        >
+          {loading ? "运行中..." : "运行闭环"}
+        </button>
+      </div>
+      {error ? (
+        <div className={styles.qaError} data-testid="learning-brain-error">
+          {error}
+        </div>
+      ) : null}
+      {result ? (
+        <div className={styles.qaResult} data-testid="learning-brain-result">
+          <div className={styles.qaMetrics}>
+            <span>events {result.event_count}</span>
+            <span>claims {result.created_claim_count}</span>
+            <span>edges {result.typed_graph_edge_count}</span>
+          </div>
+          {result.grading_results.map((item) => (
+            <article className={styles.qaGradingCard} key={item.question_id}>
+              <div>
+                <strong>{item.question_id}</strong>
+                <span>{item.score_label}</span>
+              </div>
+              <p>漏点：{item.missed_points.join("；") || "无"}</p>
+              <p>改写：{item.rewrite || "无"}</p>
+              <p>
+                下一步：{item.next_training_signal.concept || "--"} /{" "}
+                {item.next_training_signal.focus || "--"}
+              </p>
+            </article>
+          ))}
+          <pre className={styles.jsonBlock}>
+            {JSON.stringify(
+              {
+                subject: result.projection_subject,
+                weak_points: result.weak_points,
+                hash: result.output_projection_hash,
+              },
+              null,
+              2,
+            )}
+          </pre>
+          <LearningBrainEvidenceChain result={result} />
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function PhonePreview({
   state,
   currentCase,
@@ -328,7 +556,7 @@ function PhonePreview({
   return (
     <section className={styles.phoneShell} data-testid="phone-shell">
       <div className={styles.phoneTopbar}>
-        <span>鲁班智考</span>
+        <span>鲁班 AI 智考</span>
         <strong>{mode === "stream" ? frameLabel : mode === "history" ? "历史恢复" : "最终态"}</strong>
       </div>
       <div className={styles.phoneScreen} data-testid="phone-screen">
@@ -385,11 +613,35 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
   const [caseIndex, setCaseIndex] = useState(0);
   const [mode, setMode] = useState<HarnessMode>("final");
   const [frameIndex, setFrameIndex] = useState(0);
+  const [query, setQuery] = useState("");
+  const [activeTag, setActiveTag] = useState("全部");
   const currentCase = cases[caseIndex];
   const frameLabel = currentCase.streamFrames[Math.min(frameIndex, currentCase.streamFrames.length - 1)].label;
   const state = stateForMode(currentCase, mode, frameIndex);
   const allTags = useMemo(
     () => Array.from(new Set(cases.flatMap((item) => item.tags))).slice(0, 12),
+    [cases],
+  );
+  const filteredCases = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return cases
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => {
+        const matchesTag = activeTag === "全部" || item.tags.includes(activeTag);
+        const haystack = `${item.title} ${item.description} ${item.sourcePath} ${item.tags.join(" ")}`.toLowerCase();
+        return matchesTag && (!normalizedQuery || haystack.includes(normalizedQuery));
+      });
+  }, [activeTag, cases, query]);
+  const parityPassed = useMemo(
+    () => cases.filter((item) => item.parityWarnings.length === 0).length,
+    [cases],
+  );
+  const structuredCount = useMemo(
+    () => cases.filter((item) => item.expectations.blockTypes.length > 0).length,
+    [cases],
+  );
+  const mcqCount = useMemo(
+    () => cases.filter((item) => item.expectations.mcqCount > 0).length,
     [cases],
   );
 
@@ -408,19 +660,52 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
     <main className={styles.root} data-testid="wechat-harness-root">
       <aside className={styles.sidebar}>
         <div className={styles.brandRow}>
-          <MonitorSmartphone size={19} />
+          <div className={styles.brandMark}>
+            <MonitorSmartphone size={18} />
+          </div>
           <div>
-            <strong>微信小程序影子测试</strong>
-            <span>{cases.length} 个 contract cases</span>
+            <strong>鲁班智考 Web QA</strong>
+            <span>小程序公共主链</span>
           </div>
         </div>
+        <div className={styles.sideMetrics}>
+          <MiniMetric label="Cases" value={cases.length} />
+          <MiniMetric
+            label="Parity"
+            tone={parityPassed === cases.length ? "good" : "warn"}
+            value={`${parityPassed}/${cases.length}`}
+          />
+        </div>
+        <label className={styles.searchBox}>
+          <Search size={15} />
+          <input
+            aria-label="搜索 case"
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="搜索 case / tag / source"
+            value={query}
+          />
+        </label>
         <div className={styles.tagRail}>
+          <button
+            data-active={activeTag === "全部" ? "true" : "false"}
+            onClick={() => setActiveTag("全部")}
+            type="button"
+          >
+            全部
+          </button>
           {allTags.map((tag) => (
-            <CasePill key={tag}>{tag}</CasePill>
+            <button
+              data-active={activeTag === tag ? "true" : "false"}
+              key={tag}
+              onClick={() => setActiveTag(tag)}
+              type="button"
+            >
+              {tag}
+            </button>
           ))}
         </div>
         <div className={styles.caseList} data-testid="harness-case-list">
-          {cases.map((item, index) => (
+          {filteredCases.map(({ item, index }) => (
             <button
               aria-current={index === caseIndex ? "true" : undefined}
               className={styles.caseButton}
@@ -431,6 +716,12 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
             >
               <span>{item.title}</span>
               <small>{item.sourcePath}</small>
+              <div className={styles.caseMeta}>
+                <SurfaceBadge surface={item.surface} />
+                <em data-ok={item.parityWarnings.length ? "false" : "true"}>
+                  {item.parityWarnings.length ? "需复核" : "一致"}
+                </em>
+              </div>
               <ChevronRight size={15} />
             </button>
           ))}
@@ -439,10 +730,19 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
 
       <section className={styles.workbench}>
         <header className={styles.toolbar}>
-          <div>
+          <div className={styles.toolbarTitle}>
             <span className={styles.surfaceLabel}>{currentCase.surface}</span>
             <h1>{currentCase.title}</h1>
             <p>{currentCase.description}</p>
+          </div>
+          <div className={styles.coverageRail}>
+            <MiniMetric label="结构化" value={structuredCount} />
+            <MiniMetric label="选择题" value={mcqCount} />
+            <MiniMetric
+              label="置信度"
+              tone={currentCase.parityWarnings.length ? "warn" : "good"}
+              value="95%+"
+            />
           </div>
           <div className={styles.modeTabs} role="tablist" aria-label="Harness modes">
             <button
@@ -477,6 +777,35 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
 
         <div className={styles.mainGrid}>
           <div className={styles.previewColumn}>
+            <div className={styles.scenarioStrip}>
+              <button
+                data-active={mode === "stream" ? "true" : "false"}
+                onClick={() => setMode("stream")}
+                type="button"
+              >
+                <Layers3 size={15} />
+                <span>首次流式</span>
+                <strong>{currentCase.streamFrames.length} 帧</strong>
+              </button>
+              <button
+                data-active={mode === "final" ? "true" : "false"}
+                onClick={() => setMode("final")}
+                type="button"
+              >
+                <Smartphone size={15} />
+                <span>最终气泡</span>
+                <strong>{state.hasStructuredContent ? "structured" : "markdown"}</strong>
+              </button>
+              <button
+                data-active={mode === "history" ? "true" : "false"}
+                onClick={() => setMode("history")}
+                type="button"
+              >
+                <History size={15} />
+                <span>历史恢复</span>
+                <strong>{currentCase.parityWarnings.length ? "diff" : "same"}</strong>
+              </button>
+            </div>
             <div className={styles.replayControls}>
               <button onClick={advanceFrame} type="button">
                 <Play size={15} />
@@ -516,6 +845,22 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
           </div>
 
           <aside className={styles.inspector}>
+            <section className={styles.verdictPanel}>
+              <div>
+                {currentCase.parityWarnings.length ? (
+                  <AlertTriangle size={18} />
+                ) : (
+                  <ShieldCheck size={18} />
+                )}
+                <span>当前结论</span>
+              </div>
+              <strong data-ok={currentCase.parityWarnings.length ? "false" : "true"}>
+                {currentCase.parityWarnings.length ? "需要复核" : "公共主链通过"}
+              </strong>
+              <p>
+                Web 目标是覆盖 95% 以上微信小程序公共风险：endpoint、渲染合同、流式与历史恢复；剩余风险留给微信容器专属 smoke。
+              </p>
+            </section>
             <section className={styles.inspectorSection}>
               <h2>
                 <ClipboardList size={16} />
@@ -569,6 +914,8 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
                 <p className={styles.muted}>该 case 暂无额外人工关注点。</p>
               )}
             </section>
+
+            <LearningBrainQaPanel />
 
             <section className={styles.inspectorSection}>
               <h2>当前 render model</h2>

@@ -77,12 +77,25 @@ function createPageInstance(pageDef) {
 }
 
 (async function main() {
+  var reportSource = fs.readFileSync(
+    path.join(__dirname, "../packageDeeptutor/pages/report/report.js"),
+    "utf8",
+  );
+  assert(
+    reportSource.indexOf("CHAPTER_CODE_LABELS") < 0 &&
+      reportSource.indexOf("LEARNING_BRAIN_OBJECT_LABELS") < 0 &&
+      reportSource.indexOf("LEARNING_BRAIN_EDGE_LABELS") < 0 &&
+      reportSource.indexOf("LEARNING_BRAIN_ERROR_LABELS") < 0,
+    "package report page should not keep Learning Brain taxonomy truth in the UI layer",
+  );
+
   await run("report onShow should hydrate all state from one snapshot without duplicate assessment reads", async function () {
     var counters = {
       today: 0,
       home: 0,
       assessment: 0,
       mastery: 0,
+      brain: 0,
       radar: 0,
     };
     var pageDef = loadReportPage({
@@ -164,6 +177,93 @@ function createPageInstance(pageDef) {
             review_summary: { total_due: 2, overdue_count: 1 },
           };
         },
+        getLearningBrainProjection: async function () {
+          counters.brain += 1;
+          return {
+            event_count: 2,
+            created_claim_count: 1,
+            typed_graph_edge_count: 7,
+            compiled_objects: {
+              "concept:1A432000": {
+                current_truth: "专项施工方案程序存在重复漏点",
+                evidence_level: "L1_repeated",
+                supporting_event_ids: ["evt1", "evt2"],
+              },
+            },
+            visible_sections: {
+              current_truth: [
+                {
+                  object_key: "concept:1A432000",
+                  current_truth: "工程招标投标与合同管理 上出现 采分点遗漏 错因",
+                  evidence_level: "L1_repeated",
+                  evidence_level_label: "重复出现",
+                  display_label: "知识点",
+                  display_title: "工程招标投标与合同管理 上出现 采分点遗漏 错因",
+                  display_meta: "知识点：工程招标投标与合同管理",
+                  supporting_event_ids: ["evt1", "evt2"],
+                },
+              ],
+              evidence_flow: [
+                {
+                  event_id: "evt1",
+                  edge_type: "question_tests_concept",
+                  display_label: "题目考查知识点",
+                  display_title: "题目考查知识点",
+                  display_path: "案例题：第 1 题 → 知识点：工程招标投标与合同管理",
+                },
+                {
+                  event_id: "evt2",
+                  edge_type: "training_not_improved_error",
+                  display_label: "训练后仍需巩固",
+                  display_title: "训练后仍需巩固",
+                  display_path: "训练建议：案例题补强 → 错因：工程招标投标与合同管理 / 采分点遗漏",
+                },
+              ],
+              next_training: [
+                {
+                  concept_id: "1A432000",
+                  error_code: "E02",
+                  display_label: "训练建议",
+                  display_title: "工程招标投标与合同管理 上出现 采分点遗漏 错因",
+                  display_meta: "知识点：工程招标投标与合同管理；错因：采分点遗漏；案例题补强",
+                },
+              ],
+            },
+            weak_points: [],
+            typed_graph_edges: [
+              {
+                edge_type: "question_tests_concept",
+                from: { id: "case-1", type: "question" },
+                to: { id: "1A432000", type: "concept" },
+                evidence_event_id: "evt1",
+                display_title: "题目考查知识点",
+                display_path: "案例题：第 1 题 → 知识点：工程招标投标与合同管理",
+              },
+            ],
+            graph_chain: {
+              training_uses_question: [
+                {
+                  edge_type: "training_uses_question",
+                  from: { id: "1A432000:E02:case_repair", type: "next_training" },
+                  to: { id: "case-2", type: "question" },
+                  reason_edge_event_id: "evt2",
+                  display_path: "训练建议：案例题补强 → 案例题：第 2 题",
+                },
+              ],
+              training_not_improved_error: [
+                {
+                  edge_type: "training_not_improved_error",
+                  from: { id: "1A432000:E02:case_repair", type: "next_training" },
+                  to: { id: "1A432000:E02", type: "error" },
+                  question_id: "case-2",
+                  reason_edge_event_id: "evt2",
+                  display_meta: "训练建议：案例题补强 → 错因：工程招标投标与合同管理 / 采分点遗漏",
+                  display_path: "训练建议：案例题补强 → 错因：工程招标投标与合同管理 / 采分点遗漏",
+                },
+              ],
+            },
+          };
+        },
         getRadarData: async function () {
           counters.radar += 1;
           return {
@@ -228,6 +328,7 @@ function createPageInstance(pageDef) {
     assert(counters.home === 1, "report bootstrap should read homepage dashboard once");
     assert(counters.assessment === 1, "report bootstrap should read assessment profile once");
     assert(counters.mastery === 1, "report bootstrap should read mastery dashboard once");
+    assert(counters.brain === 1, "report bootstrap should read Learning Brain projection once");
     assert(counters.radar === 0, "positive assessment profile should avoid dedicated radar fallback");
     assert(page.data.learnerLevel === "中级", "report bootstrap should hydrate overview from shared snapshot");
     assert(page.data.avgScore === 50, "report bootstrap should hydrate radar from shared assessment snapshot");
@@ -261,6 +362,35 @@ function createPageInstance(pageDef) {
     assert(
       Array.isArray(page.data.progressMilestones) && page.data.progressMilestones.length === 1,
       "report bootstrap should hydrate backend progress milestones",
+    );
+    assert(
+      Array.isArray(page.data.learningBrainChains) &&
+        page.data.learningBrainChains[0] &&
+        page.data.learningBrainChains[0].outcome === "本次训练结果：未改善",
+      "report bootstrap should expose Learning Brain error -> training -> not-improved chain",
+    );
+    assert(
+      page.data.learningBrainTruths[0] &&
+        page.data.learningBrainTruths[0].levelLabel === "重复出现" &&
+        page.data.learningBrainTruths[0].meta.indexOf("工程招标投标与合同管理") >= 0,
+      "Learning Brain truth should expose learner-facing evidence level and taxonomy label",
+    );
+    assert(
+      page.data.learningBrainEvidence[0] &&
+        page.data.learningBrainEvidence[0].type === "题目考查知识点" &&
+        page.data.learningBrainEvidence[0].path.indexOf("知识点：工程招标投标与合同管理") >= 0,
+      "Learning Brain evidence should translate typed graph labels before rendering",
+    );
+    assert(
+      page.data.learningBrainChains[0] &&
+        page.data.learningBrainChains[0].title.indexOf("采分点遗漏") >= 0 &&
+        page.data.learningBrainChains[0].training.indexOf("案例题补强") >= 0,
+      "Learning Brain chain should hide raw graph ids from learner-facing copy",
+    );
+    assert(
+      JSON.stringify(page.data).indexOf("concept:1A432000") < 0 &&
+        JSON.stringify(page.data).indexOf("question_tests_concept") < 0,
+      "Learning Brain report state should prefer backend display fields over machine taxonomy codes",
     );
   });
 

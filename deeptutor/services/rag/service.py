@@ -18,6 +18,8 @@ from .factory import (
     normalize_provider_name,
 )
 from .exceptions import RAGError, wrap_rag_error
+from .provenance import build_ranking_trace
+from .retrieval_plan import build_retrieval_plan
 
 
 class _RAGRawLogHandler(logging.Handler):
@@ -161,18 +163,32 @@ class RAGService:
                 result["kb_name"] = kb_name
             evidence_bundle = result.get("evidence_bundle")
             if not isinstance(evidence_bundle, dict):
+                fallback_retrieval_plan = build_retrieval_plan(
+                    query,
+                    include_questions_default=bool(kwargs.get("include_questions", True)),
+                    intent=str(kwargs.get("intent") or ""),
+                    question_type=str(kwargs.get("question_type") or ""),
+                    routing_metadata=(
+                        kwargs.get("routing_metadata")
+                        if isinstance(kwargs.get("routing_metadata"), dict)
+                        else {}
+                    ),
+                )
+                fallback_sources = list(result.get("sources") or [])
                 evidence_bundle = {
                     "bundle_id": "",
                     "query": result["query"],
                     "provider": result.get("provider") or provider,
                     "kb_name": result["kb_name"],
                     "content_blocks": [result.get("content") or result.get("answer") or ""],
-                    "sources": list(result.get("sources") or []),
+                    "sources": fallback_sources,
                     "exact_question": (
                         result.get("exact_question")
                         if isinstance(result.get("exact_question"), dict)
                         else {}
                     ),
+                    "retrieval_plan": fallback_retrieval_plan.to_dict(),
+                    "ranking_trace": build_ranking_trace(fallback_sources),
                     "retrieval_empty": not bool(result.get("sources")),
                 }
             result["evidence_bundle"] = evidence_bundle

@@ -39,6 +39,14 @@ _WRITTEN_MARKERS = (
     "written",
     "short answer",
 )
+_GRADING_AUTHORITY_FIELDS = (
+    "node_code",
+    "testing_focus",
+    "grading_keywords",
+    "grading_rubric",
+    "structured_rules",
+    "source_meta",
+)
 _CODING_MARKERS = (
     "编程题",
     "代码题",
@@ -231,10 +239,52 @@ def normalize_question_followup_context(raw: dict[str, Any] | None) -> dict[str,
         "reveal_explanations": bool(raw.get("reveal_explanations", False)),
         "items": items,
     }
+    evidence_refs = _normalize_followup_evidence_refs(raw.get("evidence_refs"))
+    if evidence_refs:
+        normalized["evidence_refs"] = evidence_refs
+    normalized.update(_followup_grading_authority_fields(raw))
     grading_result = raw.get("construction_grading_result")
     if isinstance(grading_result, dict) and grading_result:
         normalized["construction_grading_result"] = grading_result
     return normalized
+
+
+def _normalize_followup_evidence_refs(raw: Any) -> list[dict[str, Any]]:
+    if not isinstance(raw, list):
+        return []
+    refs: list[dict[str, Any]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        source = str(item.get("source") or item.get("source_type") or "").strip()
+        field = str(item.get("field") or item.get("content_type") or "").strip()
+        content = item.get("content")
+        if content in (None, ""):
+            content = item.get("text")
+        if content in (None, ""):
+            content = item.get("rag_content")
+        if content in (None, ""):
+            content = item.get("value")
+        if not source or not field or content in (None, "", [], {}):
+            continue
+        refs.append({"source": source, "field": field, "content": content})
+        if len(refs) >= 8:
+            break
+    return refs
+
+
+def _followup_grading_authority_fields(*sources: dict[str, Any]) -> dict[str, Any]:
+    fields: dict[str, Any] = {}
+    for source in sources:
+        if not isinstance(source, dict):
+            continue
+        for key in _GRADING_AUTHORITY_FIELDS:
+            if key in fields:
+                continue
+            value = source.get(key)
+            if value not in (None, "", [], {}):
+                fields[key] = value
+    return fields
 
 
 def reset_question_submission_state(question_context: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -553,27 +603,32 @@ def build_question_followup_context_from_result_summary(
         if not isinstance(qa_pair, dict):
             continue
         metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
+        evidence_refs = _normalize_followup_evidence_refs(
+            qa_pair.get("evidence_refs") or metadata.get("evidence_refs")
+        )
         question = str(qa_pair.get("question", "") or "").strip()
         if not question:
             continue
-        items.append(
-            {
-                "question_id": str(qa_pair.get("question_id", "") or f"q_{index}").strip(),
-                "question": question,
-                "question_type": _normalize_question_type(qa_pair.get("question_type")),
-                "options": _normalize_options(qa_pair.get("options")),
-                "correct_answer": str(qa_pair.get("correct_answer", "") or "").strip(),
-                "explanation": str(qa_pair.get("explanation", "") or "").strip(),
-                "difficulty": str(qa_pair.get("difficulty", "") or "").strip(),
-                "concentration": str(qa_pair.get("concentration", "") or "").strip(),
-                "knowledge_context": str(
-                    qa_pair.get("knowledge_context")
-                    or metadata.get("knowledge_context")
-                    or ""
-                ).strip(),
-                "multi_select": bool(qa_pair.get("multi_select", False)),
-            }
-        )
+        item = {
+            "question_id": str(qa_pair.get("question_id", "") or f"q_{index}").strip(),
+            "question": question,
+            "question_type": _normalize_question_type(qa_pair.get("question_type")),
+            "options": _normalize_options(qa_pair.get("options")),
+            "correct_answer": str(qa_pair.get("correct_answer", "") or "").strip(),
+            "explanation": str(qa_pair.get("explanation", "") or "").strip(),
+            "difficulty": str(qa_pair.get("difficulty", "") or "").strip(),
+            "concentration": str(qa_pair.get("concentration", "") or "").strip(),
+            "knowledge_context": str(
+                qa_pair.get("knowledge_context")
+                or metadata.get("knowledge_context")
+                or ""
+            ).strip(),
+            "multi_select": bool(qa_pair.get("multi_select", False)),
+        }
+        item.update(_followup_grading_authority_fields(qa_pair, metadata))
+        if evidence_refs:
+            item["evidence_refs"] = evidence_refs
+        items.append(item)
 
     if not items:
         question = str(rendered_response or "").strip()
@@ -672,31 +727,36 @@ def build_question_followup_context_from_presentation(
                     for option in (question.get("options") or [])
                     if isinstance(option, dict) and str(option.get("key") or "").strip()
                 }
-            items.append(
-                {
-                    "question_id": str(
-                        question.get("question_id")
-                        or followup.get("question_id")
-                        or f"q_{index}_{question_index}"
-                    ).strip(),
-                    "question": stem,
-                    "question_type": _normalize_question_type(
-                        followup.get("question_type") or question.get("question_type")
-                    ),
-                    "options": _normalize_options(raw_options),
-                    "correct_answer": str(followup.get("correct_answer", "") or "").strip(),
-                    "explanation": str(followup.get("explanation", "") or "").strip(),
-                    "difficulty": str(followup.get("difficulty", "") or "").strip(),
-                    "concentration": str(followup.get("concentration", "") or "").strip(),
-                    "knowledge_context": str(followup.get("knowledge_context", "") or "").strip(),
-                    "multi_select": bool(
-                        followup.get("multi_select")
-                        or question.get("multi_select")
-                        or str(question.get("question_type") or "").strip().lower()
-                        in {"multi_choice", "multiple_choice"}
-                    ),
-                }
+            item = {
+                "question_id": str(
+                    question.get("question_id")
+                    or followup.get("question_id")
+                    or f"q_{index}_{question_index}"
+                ).strip(),
+                "question": stem,
+                "question_type": _normalize_question_type(
+                    followup.get("question_type") or question.get("question_type")
+                ),
+                "options": _normalize_options(raw_options),
+                "correct_answer": str(followup.get("correct_answer", "") or "").strip(),
+                "explanation": str(followup.get("explanation", "") or "").strip(),
+                "difficulty": str(followup.get("difficulty", "") or "").strip(),
+                "concentration": str(followup.get("concentration", "") or "").strip(),
+                "knowledge_context": str(followup.get("knowledge_context", "") or "").strip(),
+                "multi_select": bool(
+                    followup.get("multi_select")
+                    or question.get("multi_select")
+                    or str(question.get("question_type") or "").strip().lower()
+                    in {"multi_choice", "multiple_choice"}
+                ),
+            }
+            item.update(_followup_grading_authority_fields(followup, question))
+            evidence_refs = _normalize_followup_evidence_refs(
+                followup.get("evidence_refs") or question.get("evidence_refs")
             )
+            if evidence_refs:
+                item["evidence_refs"] = evidence_refs
+            items.append(item)
 
     if not items:
         return None

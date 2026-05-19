@@ -17,6 +17,20 @@ def _write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
     path.write_text("\n".join(json.dumps(row, ensure_ascii=False) for row in rows), encoding="utf-8")
 
 
+@pytest.fixture(autouse=True)
+def _clear_invite_test_storage_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for key in (
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_KEY",
+        "INVITE_TEST_DATABASE_URL",
+        "SUPABASE_DB_URL",
+        "DB_URL",
+        "INVITE_TEST_APPLICATIONS_PATH",
+    ):
+        monkeypatch.delenv(key, raising=False)
+
+
 def test_normalize_invite_test_application_masks_contact_by_default() -> None:
     row = {
         "id": "app-1",
@@ -144,10 +158,19 @@ def test_build_invite_test_application_record_validates_public_payload() -> None
             "name": "张同学",
             "phone": " 13800138000 ",
             "email": "QA@EXAMPLE.COM",
+            "wechatId": "wx_luban",
             "examType": "二建建筑实务",
             "examStage": "正在冲刺刷题",
             "painPoint": "错题原因不清楚",
             "weeklyTime": "10-30 分钟",
+            "province": "江苏",
+            "ageRange": "26-35 岁",
+            "education": "本科",
+            "occupation": "施工员",
+            "preparationYears": "第 2 次备考",
+            "knowledgeFoundation": "基础薄弱",
+            "dailyStudyTime": "30-60 分钟",
+            "studyDifficulties": "工作忙，案例题不会组织语言。",
             "consent": True,
             "acceptInterview": True,
             "sourcePage": "invite-test",
@@ -156,10 +179,32 @@ def test_build_invite_test_application_record_validates_public_payload() -> None
 
     assert record["phone"] == "13800138000"
     assert record["email"] == "qa@example.com"
+    assert record["wechat_id"] == "wx_luban"
     assert record["exam_type"] == "二建建筑实务"
     assert record["accept_interview"] is True
     assert record["status"] == "submitted"
     assert record["raw_payload"]["examType"] == "二建建筑实务"
+    assert record["raw_payload"]["province"] == "江苏"
+    assert record["raw_payload"]["ageRange"] == "26-35 岁"
+    assert record["raw_payload"]["knowledgeFoundation"] == "基础薄弱"
+    assert record["raw_payload"]["dailyStudyTime"] == "30-60 分钟"
+    assert "province" not in record
+
+
+def test_build_invite_test_application_record_rejects_missing_wechat_id() -> None:
+    with pytest.raises(InviteTestApplicationValidationError, match="缺少必填字段：wechatId"):
+        build_invite_test_application_record(
+            {
+                "name": "张同学",
+                "phone": "13800138000",
+                "email": "qa@example.com",
+                "examType": "二建建筑实务",
+                "examStage": "正在冲刺刷题",
+                "painPoint": "错题原因不清楚",
+                "weeklyTime": "10-30 分钟",
+                "consent": True,
+            }
+        )
 
 
 def test_build_invite_test_application_record_rejects_bad_phone() -> None:
@@ -169,6 +214,7 @@ def test_build_invite_test_application_record_rejects_bad_phone() -> None:
                 "name": "张同学",
                 "phone": "123",
                 "email": "qa@example.com",
+                "wechatId": "wx_luban",
                 "examType": "二建建筑实务",
                 "examStage": "正在冲刺刷题",
                 "painPoint": "错题原因不清楚",
@@ -189,6 +235,7 @@ async def test_invite_test_store_submits_to_jsonl_fallback(tmp_path: Path, monke
             "name": "张同学",
             "phone": "13800138000",
             "email": "qa@example.com",
+            "wechatId": "wx_luban",
             "examType": "二建建筑实务",
             "examStage": "正在冲刺刷题",
             "painPoint": "错题原因不清楚",
@@ -203,3 +250,157 @@ async def test_invite_test_store_submits_to_jsonl_fallback(tmp_path: Path, monke
     rows = [json.loads(line) for line in jsonl_path.read_text(encoding="utf-8").splitlines()]
     assert rows[0]["phone"] == "13800138000"
     assert rows[0]["source_page"] == "invite-test"
+
+
+@pytest.mark.asyncio
+async def test_invite_test_store_prefers_supabase_write_when_supabase_and_db_are_both_configured() -> None:
+    store = InviteTestApplicationStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        database_url="postgresql://user:pass@example.com:5432/app",
+    )
+    calls: list[str] = []
+
+    async def _fake_save_supabase(record):
+        calls.append(f"supabase:{record['phone']}")
+
+    async def _fake_save_database(record):
+        calls.append(f"database:{record['phone']}")
+
+    store._save_supabase_record = _fake_save_supabase  # type: ignore[method-assign]
+    store._save_database_record = _fake_save_database  # type: ignore[method-assign]
+
+    result = await store.submit_application(
+        {
+            "name": "张同学",
+            "phone": "13800138000",
+            "email": "qa@example.com",
+            "wechatId": "wx_luban",
+            "examType": "二建建筑实务",
+            "examStage": "正在冲刺刷题",
+            "painPoint": "错题原因不清楚",
+            "weeklyTime": "10-30 分钟",
+            "consent": True,
+        }
+    )
+
+    assert result["storage_status"] == "supabase"
+    assert calls == ["supabase:13800138000"]
+
+
+@pytest.mark.asyncio
+async def test_invite_test_store_falls_back_to_database_when_supabase_write_fails() -> None:
+    store = InviteTestApplicationStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        database_url="postgresql://user:pass@example.com:5432/app",
+    )
+    calls: list[str] = []
+
+    async def _failing_save_supabase(record):
+        calls.append(f"supabase:{record['phone']}")
+        raise RuntimeError("supabase unavailable")
+
+    async def _fake_save_database(record):
+        calls.append(f"database:{record['phone']}")
+
+    store._save_supabase_record = _failing_save_supabase  # type: ignore[method-assign]
+    store._save_database_record = _fake_save_database  # type: ignore[method-assign]
+
+    result = await store.submit_application(
+        {
+            "name": "张同学",
+            "phone": "13800138000",
+            "email": "qa@example.com",
+            "wechatId": "wx_luban",
+            "examType": "二建建筑实务",
+            "examStage": "正在冲刺刷题",
+            "painPoint": "错题原因不清楚",
+            "weeklyTime": "10-30 分钟",
+            "consent": True,
+        }
+    )
+
+    assert result["storage_status"] == "supabase_error_database_fallback"
+    assert calls == ["supabase:13800138000", "database:13800138000"]
+
+
+@pytest.mark.asyncio
+async def test_invite_test_store_falls_back_to_jsonl_when_remote_writes_fail(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    jsonl_path = tmp_path / "submitted-fallback.jsonl"
+    store = InviteTestApplicationStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        database_url="postgresql://user:pass@example.com:5432/app",
+        jsonl_path=str(jsonl_path),
+    )
+    calls: list[str] = []
+
+    async def _failing_save_supabase(record):
+        calls.append(f"supabase:{record['phone']}")
+        raise RuntimeError("supabase unavailable")
+
+    async def _failing_save_database(record):
+        calls.append(f"database:{record['phone']}")
+        raise RuntimeError("database unavailable")
+
+    store._save_supabase_record = _failing_save_supabase  # type: ignore[method-assign]
+    store._save_database_record = _failing_save_database  # type: ignore[method-assign]
+
+    result = await store.submit_application(
+        {
+            "name": "张同学",
+            "phone": "13800138000",
+            "email": "qa@example.com",
+            "wechatId": "wx_luban",
+            "examType": "二建建筑实务",
+            "examStage": "正在冲刺刷题",
+            "painPoint": "错题原因不清楚",
+            "weeklyTime": "10-30 分钟",
+            "consent": True,
+            "sourcePage": "invite-test",
+        }
+    )
+
+    assert result["storage_status"] == "supabase_database_error_jsonl_fallback"
+    assert calls == ["supabase:13800138000", "database:13800138000"]
+    rows = [json.loads(line) for line in jsonl_path.read_text(encoding="utf-8").splitlines()]
+    assert rows[0]["phone"] == "13800138000"
+
+
+def test_normalize_invite_test_application_reads_profile_fields_from_raw_payload() -> None:
+    row = {
+        "id": "app-profile-1",
+        "name": "画像学员",
+        "phone": "13800138000",
+        "email": "profile@example.com",
+        "exam_type": "二建建筑实务",
+        "exam_stage": "正在冲刺刷题",
+        "pain_point": "案例题不会写",
+        "weekly_time": "10-30 分钟",
+        "raw_payload": {
+            "province": "广东",
+            "ageRange": "36-45 岁",
+            "education": "大专",
+            "occupation": "项目经理",
+            "preparationYears": "第 3 次备考",
+            "knowledgeFoundation": "一般",
+            "dailyStudyTime": "1-2 小时",
+            "studyDifficulties": "错题复盘坚持不下来。",
+        },
+    }
+
+    normalized = normalize_invite_test_application(row, reveal_contact=True)
+
+    assert normalized["province"] == "广东"
+    assert normalized["age_range"] == "36-45 岁"
+    assert normalized["education"] == "大专"
+    assert normalized["occupation"] == "项目经理"
+    assert normalized["preparation_years"] == "第 3 次备考"
+    assert normalized["knowledge_foundation"] == "一般"
+    assert normalized["daily_study_time"] == "1-2 小时"
+    assert normalized["study_difficulties"] == "错题复盘坚持不下来。"

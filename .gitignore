@@ -293,3 +293,10 @@ celerybeat.pid
 *.ogg
 !demo/*.mp4
 .gstack/
+
+# Backup .env snapshots may contain rotated secrets (e.g. prod service-role keys)
+.env.bak.*
+.env.backup.*
+
+# Local runtime workspace (logs, cached envs, scratch state)
+.local-runs/

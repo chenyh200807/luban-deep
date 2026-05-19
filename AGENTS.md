@@ -55,6 +55,24 @@ CLI, WebSocket API, and Python SDK.
 
 以下规则用于约束 agent 的执行方式；它们补充项目规则，但不替代 contract 约束。
 
+本节已吸收 `multica-ai/andrej-karpathy-skills` 的四条核心行为准则：`Think Before Coding`、`Simplicity First`、`Surgical Changes`、`Goal-Driven Execution`。不要把外部通用 `CLAUDE.md` 机械粘贴进来；在 DeepTutor 中必须先落到本仓库的 contract、single authority、thin wrappers / fat skills 和真实链路验证上。
+
+### 0.0 Karpathy Gate — Start Every Non-Trivial Task Here
+
+这不是额外流程，而是防止 agent 在复杂任务里“替用户做错误假设、过度工程、顺手改无关代码、缺少验收标准”的启动门槛。简单拼写、一行注释、只读查询可以轻量处理；凡是涉及代码、架构、状态、路由、测试、发布、文档治理或产品行为，都必须先过这道门。
+
+开始前先写清楚四件事：
+
+1. `assumptions`：我准备采用的需求解释是什么，哪些地方还不确定；如果有多种解释，不能静默选择。
+2. `simplest path`：最短、最少概念、最少状态的实现路径是什么；如果当前代码诱导出更重方案，要先说明为什么不用。
+3. `change boundary`：本次允许触碰哪些文件、模块、行为面；哪些相邻问题只记录不顺手修。
+4. `verification target`：完成标准是什么，准备用哪条测试、日志、真实页面、DevTools、Langfuse 或线上链路证明。
+
+执行中持续用两个问题自检：
+
+- 如果一个实现从 50 行膨胀到 200 行，先停下来问是不是把一次性逻辑做成了框架。
+- 如果 diff 里出现无法直接追溯到用户请求的行，默认删掉或拆出去，不要把“顺手优化”混进本次任务。
+
 ### 0. Thin Wrappers, Fat Skills
 
 这是本项目当前最高优先级原则，排在 First Principles 和 Less Is More 之前。

@@ -319,6 +319,10 @@ function rawRequest(opts) {
             reject(createHttpError(401));
             return;
           }
+          if (opts.suppressAuthRedirect) {
+            reject(createHttpError(401));
+            return;
+          }
           if (opts.skipAuthRefresh) {
             reject(new Error("AUTH_EXPIRED"));
             return;
@@ -494,8 +498,8 @@ function getUserInfo() {
 }
 
 /** 获取今日练习进度 */
-function getTodayProgress() {
-  return requestStateGet("/api/v1/practice/today-progress");
+function getTodayProgress(opts) {
+  return requestStateGet("/api/v1/practice/today-progress", opts);
 }
 
 /** 获取章节进度 */
@@ -533,13 +537,23 @@ function getDailyQuestion() {
 }
 
 /** 获取能力雷达数据（8D 维度） */
-function getRadarData(userId) {
-  return requestStateGet("/api/v1/bi/radar/" + userId);
+function getRadarData(userId, opts) {
+  return requestStateGet("/api/v1/bi/radar/" + userId, opts);
 }
 
 /** 获取掌握度看板（章节掌握度 + 易错热点 + 复习预报） */
-function getMasteryDashboard() {
-  return requestStateGet("/api/v1/plan/mastery-dashboard");
+function getMasteryDashboard(opts) {
+  return requestStateGet("/api/v1/plan/mastery-dashboard", opts);
+}
+
+/** 获取 Learning Brain 学习事实编译 read model */
+function getLearningBrainProjection(eventLimit, opts) {
+  var limit = Number(eventLimit || 100);
+  if (!Number.isFinite(limit) || limit <= 0) limit = 100;
+  return requestStateGet(
+    "/api/v1/learning-brain/projection?event_limit=" + Math.min(Math.round(limit), 500),
+    opts,
+  );
 }
 
 /** 获取对话列表 */
@@ -630,13 +644,13 @@ function submitFeedback(data) {
 }
 
 /** 获取首页仪表盘（问候/复习/薄弱点） */
-function getHomeDashboard() {
-  return requestStateGet("/api/v1/homepage/dashboard");
+function getHomeDashboard(opts) {
+  return requestStateGet("/api/v1/homepage/dashboard", opts);
 }
 
 /** 摸底测试 — 获取诊断档案 */
-function getAssessmentProfile() {
-  return requestStateGet("/api/v1/assessment/profile");
+function getAssessmentProfile(opts) {
+  return requestStateGet("/api/v1/assessment/profile", opts);
 }
 
 /** 摸底测试 — 创建测试 */
@@ -677,6 +691,7 @@ module.exports = {
   getDailyQuestion: getDailyQuestion,
   getRadarData: getRadarData,
   getMasteryDashboard: getMasteryDashboard,
+  getLearningBrainProjection: getLearningBrainProjection,
   getConversations: getConversations,
   createConversation: createConversation,
   startChatTurn: startChatTurn,

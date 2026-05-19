@@ -1,12 +1,11 @@
 {
   "pages":[
-   
+    "pages/freeCourse/freeCourse",
     "pages/index/index",
     "pages/view/view",
     "pages/getpeople/getpeople",
     "pages/showqrcode/showqrcode",
     "pages/getphone/getphone",
-    "pages/freeCourse/freeCourse",
     "pages/deeptutorEntry/deeptutorEntry",
     "pages/freeCourseDetails/freeCourseDetails",
     "pages/freeCourseDetailsonline/freeCourseDetailsonline",
@@ -52,7 +51,6 @@
     "navigationBarTitleText": "佑森咨询",
     "navigationBarTextStyle":"black"
   },
-  "lazyCodeLoading": "requiredComponents",
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "plugins": {

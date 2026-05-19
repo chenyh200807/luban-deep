@@ -34,18 +34,38 @@ def _make_item(
     )
 
 
-def _make_client(requests: list[dict[str, object]]) -> httpx.AsyncClient:
+def _make_client(
+    requests: list[dict[str, object]],
+    *,
+    existing_summary_structured_json: dict | None = None,
+) -> httpx.AsyncClient:
+    summary_state = {"summary_structured_json": existing_summary_structured_json}
+
     def handler(request: httpx.Request) -> httpx.Response:
         body = request.content.decode("utf-8") if request.content else ""
+        request_json = json.loads(body) if body else None
         requests.append(
             {
                 "method": request.method,
                 "path": request.url.path,
                 "params": dict(request.url.params),
                 "headers": {key.lower(): value for key, value in request.headers.items()},
-                "json": json.loads(body) if body else None,
+                "json": request_json,
             }
         )
+        if request.method == "GET" and request.url.path == "/rest/v1/learner_summaries":
+            structured = summary_state["summary_structured_json"]
+            if structured is None:
+                return httpx.Response(200, json=[], request=request)
+            return httpx.Response(
+                200,
+                json=[{"summary_structured_json": structured}],
+                request=request,
+            )
+        if request.method == "POST" and request.url.path == "/rest/v1/learner_summaries":
+            row = dict((request_json or [{}])[0])
+            if isinstance(row.get("summary_structured_json"), dict):
+                summary_state["summary_structured_json"] = dict(row["summary_structured_json"])
         return httpx.Response(201, json=[{"ok": True}], request=request)
 
     return httpx.AsyncClient(
@@ -105,6 +125,44 @@ def test_write_item_turn_writes_learner_memory_event_only() -> None:
     assert request["headers"]["prefer"] == "resolution=merge-duplicates,return=representation"
     assert request["json"][0]["memory_kind"] == "turn"
     assert request["json"][0]["payload_json"]["assistant_message"] == "你好，我在。"
+
+    asyncio.run(client.aclose())
+
+
+def test_write_item_learning_evidence_writes_learner_memory_event() -> None:
+    requests: list[dict[str, object]] = []
+    client = _make_client(requests)
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+    item = _make_item(
+        event_type="learning_evidence",
+        dedupe_key="learning-evidence:1",
+        payload_json={
+            "event_id": "evt_learning_1",
+            "source_feature": "construction_grading",
+            "source_id": "turn_1",
+            "source_bot_id": "construction-exam-coach",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "question_id": "q_case_1",
+                "error_events": [{"concept_tag": "1A432000", "error_code": "E02"}],
+            },
+            "created_at": "2026-04-15T10:00:00+08:00",
+        },
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    assert result.written_tables == ("learner_memory_events",)
+    request = requests[0]
+    assert request["path"] == "/rest/v1/learner_memory_events"
+    assert request["json"][0]["memory_kind"] == "learning_evidence"
+    assert request["json"][0]["payload_json"]["error_events"][0]["error_code"] == "E02"
 
     asyncio.run(client.aclose())
 
@@ -188,19 +246,20 @@ def test_write_item_guide_completion_writes_summary_and_plan(tmp_path) -> None:
         "learning_plans",
         "learning_plan_pages",
     )
-    assert [request["path"] for request in requests] == [
+    post_requests = [request for request in requests if request["method"] == "POST"]
+    assert [request["path"] for request in post_requests] == [
         "/rest/v1/learner_memory_events",
         "/rest/v1/learner_summaries",
         "/rest/v1/learning_plans",
         "/rest/v1/learning_plan_pages",
     ]
-    summary_body = requests[1]["json"][0]
-    plan_body = requests[2]["json"][0]
-    page_rows = requests[3]["json"]
+    summary_body = post_requests[1]["json"][0]
+    plan_body = post_requests[2]["json"][0]
+    page_rows = post_requests[3]["json"]
 
     assert summary_body["user_id"] == "student_demo"
     assert summary_body["summary_md"].startswith("## 完成总结")
-    assert summary_body["summary_structured_json"]["guide_id"] == "guide_42"
+    assert summary_body["summary_structured_json"]["guide_completion"]["guide_id"] == "guide_42"
     assert summary_body["last_refreshed_from_feature"] == "guide_completion"
     assert plan_body["plan_id"] == "guide_42"
     assert plan_body["status"] == "completed"
@@ -421,6 +480,147 @@ def test_write_item_summary_refresh_writes_summary_only() -> None:
     assert request["json"][0]["summary_md"].startswith("## 当前学习概览")
     assert request["json"][0]["last_refreshed_from_feature"] == "chat"
     assert request["json"][0]["last_refreshed_from_turn_id"] == "session_1"
+    assert "summary_structured_json" not in request["json"][0]
+
+    asyncio.run(client.aclose())
+
+
+def test_write_item_summary_refresh_preserves_structured_learning_truth() -> None:
+    requests: list[dict[str, object]] = []
+    client = _make_client(requests)
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+    item = _make_item(
+        event_type="summary_refresh",
+        dedupe_key="summary:learning-synthesis",
+        payload_json={
+            "user_id": "student_demo",
+            "summary_md": "## 学习事实编译",
+            "source_feature": "learning_synthesis",
+            "source_id": "nightly_synthesis",
+            "summary_structured_json": {
+                "learning_brain": {
+                    "subject": "construction_exam_learning_truth",
+                    "weak_points": [{"concept_id": "1A432000"}],
+                    "typed_graph": {},
+                },
+            },
+        },
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    request = requests[-1]
+    assert request["path"] == "/rest/v1/learner_summaries"
+    learning_brain = request["json"][0]["summary_structured_json"]["learning_brain"]
+    assert learning_brain["subject"] == "construction_exam_learning_truth"
+    assert learning_brain["weak_points"][0]["concept_id"] == "1A432000"
+
+    asyncio.run(client.aclose())
+
+
+def test_write_item_summary_refresh_key_merges_existing_guide_completion() -> None:
+    requests: list[dict[str, object]] = []
+    client = _make_client(
+        requests,
+        existing_summary_structured_json={
+            "guide_completion": {
+                "guide_id": "guide_42",
+                "notebook_name": "地基基础",
+            }
+        },
+    )
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+    item = _make_item(
+        event_type="summary_refresh",
+        dedupe_key="summary:learning-synthesis",
+        payload_json={
+            "summary_md": "## 学习事实编译",
+            "source_feature": "learning_synthesis",
+            "source_id": "nightly_synthesis",
+            "summary_structured_json": {
+                "learning_brain": {
+                    "subject": "construction_exam_learning_truth",
+                    "weak_points": [{"concept_id": "1A432000", "error_code": "E02"}],
+                },
+            },
+        },
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    summary_post = [request for request in requests if request["path"] == "/rest/v1/learner_summaries"][-1]
+    structured = summary_post["json"][0]["summary_structured_json"]
+    assert structured["guide_completion"]["guide_id"] == "guide_42"
+    assert structured["learning_brain"]["weak_points"][0]["error_code"] == "E02"
+
+    asyncio.run(client.aclose())
+
+
+def test_write_item_guide_completion_key_merges_existing_learning_brain(tmp_path) -> None:
+    requests: list[dict[str, object]] = []
+    client = _make_client(
+        requests,
+        existing_summary_structured_json={
+            "learning_brain": {
+                "subject": "construction_exam_learning_truth",
+                "weak_points": [{"concept_id": "1A432000", "error_code": "E02"}],
+            }
+        },
+    )
+    path_service = _PathServiceStub(tmp_path)
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+        path_service=path_service,
+    )
+    item = _make_item(
+        event_type="guide_completion",
+        dedupe_key="guide:guide_42:completion",
+        payload_json={
+            "event_id": "evt_guide_1",
+            "source_feature": "guide",
+            "source_id": "guide_42",
+            "source_bot_id": "bot_alpha",
+            "memory_kind": "guide_completion",
+            "payload_json": {
+                "guide_id": "guide_42",
+                "notebook_name": "地基基础",
+                "summary": "## 完成总结\n- 已完成引导学习。",
+                "total_points": 1,
+                "knowledge_points": [
+                    {
+                        "knowledge_title": "承载力",
+                        "knowledge_summary": "理解极限承载和正常使用状态。",
+                        "user_difficulty": "medium",
+                    }
+                ],
+            },
+            "created_at": "2026-04-15T10:00:00+08:00",
+        },
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    summary_post = [
+        request
+        for request in requests
+        if request["method"] == "POST" and request["path"] == "/rest/v1/learner_summaries"
+    ][0]
+    structured = summary_post["json"][0]["summary_structured_json"]
+    assert structured["learning_brain"]["subject"] == "construction_exam_learning_truth"
+    assert structured["guide_completion"]["guide_id"] == "guide_42"
 
     asyncio.run(client.aclose())
 
