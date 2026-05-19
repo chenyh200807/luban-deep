@@ -6,6 +6,8 @@ from typing import Any
 
 import httpx
 
+from deeptutor.services.learner_state.learning_brain_read_model import extract_learning_brain_projection
+
 
 def _service_key_from_env(explicit: str | None = None) -> str:
     return str(
@@ -259,6 +261,13 @@ class LearnerStateSupabaseCoreStore:
         current.update(dict(patch or {}))
         return await self.upsert_stats(user_id, current)
 
+    async def read_compiled_learning_truth(self, user_id: str) -> dict[str, Any]:
+        rows = await self._client.select_rows("learner_summaries", filters={"user_id": f"eq.{user_id}"}, limit=1)
+        if not rows:
+            return {}
+        projection = rows[0].get("summary_structured_json")
+        return extract_learning_brain_projection(projection if isinstance(projection, dict) else {})
+
     async def read_goals(self, user_id: str) -> list[dict[str, Any]]:
         return await self._client.select_rows(
             "user_goals",
@@ -347,6 +356,13 @@ class LearnerStateSupabaseSyncCoreStore:
         if row is None:
             return None
         return _progress_from_row(row)
+
+    def read_compiled_learning_truth(self, user_id: str) -> dict[str, Any]:
+        row = self._select_one("learner_summaries", {"user_id": user_id})
+        if row is None:
+            return {}
+        projection = row.get("summary_structured_json")
+        return extract_learning_brain_projection(projection if isinstance(projection, dict) else {})
 
     def write_progress(self, user_id: str, progress: dict[str, Any]) -> dict[str, Any]:
         normalized_user_id = str(user_id or "").strip()

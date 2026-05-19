@@ -104,7 +104,7 @@ Create:
   - Dataclasses and deterministic `build_retrieval_plan(...)`.
   - Maps existing `query_shape`, `source_plan`, upstream `intent/question_type/routing_metadata`, and optional learner context into a replayable plan.
 - `deeptutor/services/rag/compiled_truth_source.py`
-  - Pure materializer from `summary_structured_json` / compiled projection to retrieval documents.
+  - Pure materializer from `summary_structured_json.learning_brain` / compiled projection to retrieval documents.
   - No storage reads and no writes.
 - `deeptutor/services/rag/provenance.py`
   - Provenance feature extraction and source-aware boost/penalty functions.
@@ -597,7 +597,7 @@ def _weak_point_doc(weak: dict[str, Any]) -> dict[str, Any]:
         "rag_content": content,
         "source_type": "compiled_learning_truth",
         "_source_group": "learner_weak_point",
-        "_source_table": "learner_summaries.summary_structured_json",
+        "_source_table": "learner_summaries.summary_structured_json.learning_brain",
         "score": 1.0,
         "metadata": {
             "provenance": {
@@ -631,7 +631,7 @@ def _compiled_object_doc(key: str, item: dict[str, Any]) -> dict[str, Any]:
         "rag_content": content,
         "source_type": "compiled_learning_truth",
         "_source_group": "compiled_learning_truth",
-        "_source_table": "learner_summaries.summary_structured_json",
+        "_source_table": "learner_summaries.summary_structured_json.learning_brain",
         "score": 0.88,
         "metadata": {
             "provenance": {
@@ -2001,7 +2001,7 @@ If p95 overhead exceeds budget, keep Phase B shadow mode and postpone final-sour
 | Uncertainty | Risk | Verification | Alternative |
 | --- | --- | --- | --- |
 | TutorBot runtime may not currently carry `compiled_learning_truth` into tool context. | Task 5 could require larger runtime context work. | Inspect real `question_context` / runtime context and write a failing propagation test before editing. | First release supports only explicit caller-passed `compiled_learning_truth`; TutorBot propagation becomes a separate follow-up. |
-| `summary_structured_json` projection may be too large or stale. | Token bloat or wrong personalization. | Measure projection size and `synthesis_run.generated_at` in local and Supabase rows. | Use only `weak_points[:3]` and `compiled_objects` by key lookup; ignore stale projections. |
+| `summary_structured_json.learning_brain` projection may be too large or stale. | Token bloat or wrong personalization. | Measure projection size and `synthesis_run.generated_at` in local and Supabase rows. | Use only `weak_points[:3]` and `compiled_objects` by key lookup; ignore stale projections. |
 | Langfuse metadata may truncate large ranking traces. | Observability appears incomplete. | Check ClickHouse `observations.metadata` size on a fresh local/live trace. | Store compact ids in metadata; write full debug payload only to local logs in dev. |
 | Query intent heuristics may misclassify ambiguous Chinese queries. | Wrong source plan. | Fixture matrix + real logs from recent weak-point/standard/exact prompts. | Keep source plan broad and trace-only until enough eval cases pass. |
 | Provenance boost may reduce recall for ordinary concept explanation. | Factual answer quality regresses. | A/B compare top sources on fixture suite before enabling. | Enable provenance boost only for weak-point and next-training intents. |

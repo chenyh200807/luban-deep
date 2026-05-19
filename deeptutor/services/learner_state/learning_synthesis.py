@@ -24,6 +24,7 @@ def synthesize_learning_truth(
     events: Iterable[LearnerStateEvent],
     *,
     previous_projection: dict[str, Any] | None = None,
+    synthesis_status: str = "dry_run_ok",
 ) -> dict[str, Any]:
     ordered_events = sorted(list(events), key=lambda event: (str(event.created_at or ""), str(event.event_id or "")))
     learning_items = [
@@ -45,6 +46,7 @@ def synthesize_learning_truth(
         if item["is_improvement"]:
             improvements.append({
                 "concept_id": item["concept_id"],
+                "error_code": item["error_code"],
                 "event_id": item["event_id"],
                 "observed_at": item["observed_at"],
             })
@@ -67,12 +69,12 @@ def synthesize_learning_truth(
         else:
             observed_candidates.append({**candidate, "evidence_level": "L0_observed"})
 
-    improved_concepts = {item["concept_id"] for item in improvements if item.get("concept_id")}
+    improved_keys = _resolved_improved_keys(raw_weak_points=raw_weak_points, improvements=improvements)
     weak_points = _active_weak_points(
         raw_weak_points=raw_weak_points,
         observed_candidates=observed_candidates,
         manual_events=manual_events,
-        improved_concepts=improved_concepts,
+        improved_keys=improved_keys,
     )
     stale_claims = [
         {
@@ -82,7 +84,7 @@ def synthesize_learning_truth(
             "supporting_event_ids": list(weak.get("supporting_event_ids") or []),
         }
         for weak in raw_weak_points
-        if weak.get("concept_id") in improved_concepts
+        if (weak.get("concept_id"), weak.get("error_code")) in improved_keys
     ]
     compiled_objects = _build_compiled_objects(
         grouped=grouped,
@@ -110,6 +112,7 @@ def synthesize_learning_truth(
         decayed_claim_count=len(stale_claims),
         conflict_count=conflict_count,
         manual_override_count=len(manual_events),
+        status=synthesis_status,
     )
     return projection
 
@@ -327,13 +330,14 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
         concept = _clean_text(signal.get("concept"))
         if not concept:
             return []
+        error_code = _improvement_error_code(payload, concept_id=concept)
         return [{
             "event_id": event.event_id,
             "observed_at": event.created_at,
             "question_id": question_id,
             "turn_id": turn_id,
             "concept_id": concept,
-            "error_code": "",
+            "error_code": error_code,
             "rubric_item_id": "",
             "diagnosis": "",
             "recommended_training": dict(signal),
@@ -389,7 +393,7 @@ def _active_weak_points(
     raw_weak_points: list[dict[str, Any]],
     observed_candidates: list[dict[str, Any]],
     manual_events: list[dict[str, Any]],
-    improved_concepts: set[str],
+    improved_keys: set[tuple[str, str]],
 ) -> list[dict[str, Any]]:
     manual_by_key: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for manual_event in manual_events:
@@ -400,7 +404,7 @@ def _active_weak_points(
     for weak in raw_weak_points:
         key = (_clean_text(weak.get("concept_id")), _clean_text(weak.get("error_code")))
         seen_keys.add(key)
-        if key[0] in improved_concepts:
+        if key in improved_keys:
             continue
         manual_for_key = manual_by_key.get(key, [])
         if _has_manual_supersede(manual_for_key):
@@ -417,7 +421,7 @@ def _active_weak_points(
 
     for observed in observed_candidates:
         key = (_clean_text(observed.get("concept_id")), _clean_text(observed.get("error_code")))
-        if not key[0] or not key[1] or key in seen_keys or key[0] in improved_concepts:
+        if not key[0] or not key[1] or key in seen_keys or key in improved_keys:
             continue
         if _blocks_stable_learning_truth(list(observed.get("evidence_cap_reasons") or [])):
             continue
@@ -497,7 +501,8 @@ def _build_compiled_objects(
 ) -> dict[str, dict[str, Any]]:
     objects: dict[str, dict[str, Any]] = {}
     weak_keys = {(weak["concept_id"], weak["error_code"]) for weak in weak_points}
-    improving_concepts = {item["concept_id"] for item in improvements if item.get("concept_id")}
+    improving_keys = _resolved_improved_keys(raw_weak_points=weak_points, improvements=improvements)
+    improving_concepts = {concept_id for concept_id, _error_code in improving_keys}
     manual_by_key: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for manual_event in manual_events:
         manual_by_key[(manual_event["concept_id"], manual_event["error_code"])].append(manual_event)
@@ -505,7 +510,7 @@ def _build_compiled_objects(
     for key, items in grouped.items():
         concept_id, error_code = key
         evidence_level = "L1_repeated" if key in weak_keys else "L0_observed"
-        decay_state = "improving" if concept_id in improving_concepts else "active"
+        decay_state = "improving" if key in improving_keys else "active"
         manual_for_key = manual_by_key.get(key, [])
         confirmations_for_key = [item for item in manual_for_key if item.get("action") in {"confirm", "confirmed"}]
         supersedes_for_key = [item for item in manual_for_key if item.get("action") not in {"confirm", "confirmed"}]
@@ -629,12 +634,13 @@ def _put_object(
             *superseded_by_event_ids,
         ])
         timeline_refs = [*previous.get("timeline_refs", []), *timeline_refs]
+    final_evidence_level = _max_level(previous.get("evidence_level") if previous else "", evidence_level)
     objects[key] = {
         "object_type": object_type,
         "object_id": object_id,
         "current_truth": current_truth,
-        "evidence_level": _max_level(previous.get("evidence_level") if previous else "", evidence_level),
-        "confidence": _confidence_for_level(evidence_level),
+        "evidence_level": final_evidence_level,
+        "confidence": _confidence_for_level(final_evidence_level),
         "supporting_event_ids": _dedupe(supporting_event_ids),
         "conflicting_event_ids": _dedupe(conflicting_event_ids),
         "superseded_by_event_ids": _dedupe(superseded_by_event_ids),
@@ -654,8 +660,8 @@ def _synthesis_run(
     decayed_claim_count: int,
     conflict_count: int,
     manual_override_count: int,
+    status: str,
 ) -> dict[str, Any]:
-    output_body = {key: value for key, value in projection.items() if key != "synthesis_run"}
     input_hash = _hash_json([
         {
             "event_id": event.event_id,
@@ -666,19 +672,19 @@ def _synthesis_run(
         }
         for event in events
     ])
-    output_hash = _hash_json(output_body)
+    output_hash = _projection_hash(projection)
     return {
         "synthesis_run_id": f"syn_{input_hash.removeprefix('sha256:')[:16]}",
         "input_event_count": len(events),
         "input_event_ids_hash": input_hash,
-        "previous_projection_hash": _hash_json(previous_projection),
+        "previous_projection_hash": _previous_projection_hash(previous_projection),
         "output_projection_hash": output_hash,
         "created_claim_count": created_claim_count,
         "updated_claim_count": 0,
         "decayed_claim_count": decayed_claim_count,
         "conflict_count": conflict_count,
         "manual_override_count": manual_override_count,
-        "status": "dry_run_ok",
+        "status": _clean_text(status) or "dry_run_ok",
     }
 
 
@@ -743,6 +749,34 @@ def _append_unique_text(values: list[str], value: Any) -> None:
         values.append(text)
 
 
+def _resolved_improved_keys(
+    *,
+    raw_weak_points: list[dict[str, Any]],
+    improvements: list[dict[str, Any]],
+) -> set[tuple[str, str]]:
+    improved_keys = {
+        (_clean_text(item.get("concept_id")), _clean_text(item.get("error_code")))
+        for item in improvements
+        if _clean_text(item.get("concept_id")) and _clean_text(item.get("error_code"))
+    }
+    concept_only = {
+        _clean_text(item.get("concept_id"))
+        for item in improvements
+        if _clean_text(item.get("concept_id")) and not _clean_text(item.get("error_code"))
+    }
+    weak_errors_by_concept: dict[str, set[str]] = defaultdict(set)
+    for weak in raw_weak_points:
+        concept_id = _clean_text(weak.get("concept_id"))
+        error_code = _clean_text(weak.get("error_code"))
+        if concept_id and error_code:
+            weak_errors_by_concept[concept_id].add(error_code)
+    for concept_id in concept_only:
+        error_codes = weak_errors_by_concept.get(concept_id, set())
+        for error_code in error_codes:
+            improved_keys.add((concept_id, error_code))
+    return improved_keys
+
+
 def _is_improvement(payload: dict[str, Any]) -> bool:
     try:
         max_score = float(payload.get("max_score") or 0)
@@ -750,6 +784,35 @@ def _is_improvement(payload: dict[str, Any]) -> bool:
         return max_score > 0 and score >= max_score and not payload.get("error_events")
     except (TypeError, ValueError):
         return False
+
+
+def _improvement_error_code(payload: dict[str, Any], *, concept_id: str) -> str:
+    signal = payload.get("next_training_signal") if isinstance(payload.get("next_training_signal"), dict) else {}
+    for key in ("error_code", "target_error_code", "error"):
+        code = _clean_text(signal.get(key))
+        if code:
+            return code
+
+    for edge in list(payload.get("typed_edges") or []):
+        if not isinstance(edge, dict):
+            continue
+        if edge.get("edge_type") not in {"training_improved_error", "error_points_to_training"}:
+            continue
+        from_node = edge.get("from") if isinstance(edge.get("from"), dict) else {}
+        to_node = edge.get("to") if isinstance(edge.get("to"), dict) else {}
+        for node in (from_node, to_node):
+            if node.get("type") != "error":
+                continue
+            error_id = _clean_text(node.get("id"))
+            if not error_id:
+                continue
+            if ":" in error_id:
+                concept, code = error_id.split(":", 1)
+                if _clean_text(concept) == concept_id and _clean_text(code):
+                    return _clean_text(code)
+            elif error_id.startswith("E"):
+                return error_id
+    return ""
 
 
 def _rubric_from_edges(payload: dict[str, Any]) -> str:
@@ -841,6 +904,18 @@ def _dedupe(values: list[Any]) -> list[Any]:
             continue
         result.append(value)
     return result
+
+
+def _previous_projection_hash(previous_projection: dict[str, Any]) -> str:
+    run = previous_projection.get("synthesis_run") if isinstance(previous_projection.get("synthesis_run"), dict) else {}
+    output_hash = _clean_text(run.get("output_projection_hash"))
+    if output_hash:
+        return output_hash
+    return _projection_hash(previous_projection)
+
+
+def _projection_hash(projection: dict[str, Any]) -> str:
+    return _hash_json({key: value for key, value in dict(projection or {}).items() if key != "synthesis_run"})
 
 
 def _hash_json(value: Any) -> str:

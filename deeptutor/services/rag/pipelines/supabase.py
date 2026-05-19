@@ -765,8 +765,6 @@ class SupabasePipeline:
         routing_metadata = kwargs.get("routing_metadata")
         routing_metadata = routing_metadata if isinstance(routing_metadata, dict) else {}
         compiled_learning_truth = kwargs.get("compiled_learning_truth")
-        if compiled_learning_truth is None:
-            compiled_learning_truth = routing_metadata.get("compiled_learning_truth")
         with observability.start_observation(
             name="rag.supabase.search",
             as_type="retriever",
@@ -1010,6 +1008,11 @@ class SupabasePipeline:
         )
         reranked = self._filter_partial_case_results(reranked, exact_question=exact_question)
         final_results = dedupe_ranked_results(reranked, max_items=config.top_k)
+        final_results = self._ensure_final_compiled_truth_presence(
+            final_results,
+            plans=final_compiled_truth_plan,
+            max_items=config.top_k,
+        )
         ranking_trace = build_ranking_trace(
             final_results,
             authority_order=list(getattr(retrieval_plan, "authority_order", []) or []),
@@ -1073,51 +1076,66 @@ class SupabasePipeline:
             payload["evidence_bundle"]["warnings"] = list(retrieval_warnings)
         if exact_question:
             payload["exact_question"] = exact_question
+        trace_metadata = {
+            "kb_name": kb_name,
+            "question_like": question_like,
+            "query_shape": query_shape,
+            "query_rewrite": {
+                "primary_query": rewritten.primary_query,
+                "keywords": rewritten.keywords,
+                "standard_codes": rewritten.standard_codes,
+                "reasons": rewritten.reasons,
+            },
+            "source_plan": {
+                **source_plan.to_trace_dict(),
+            },
+            "retrieval_plan": retrieval_plan.to_dict(),
+            "retrieval_plan_json": json.dumps(
+                retrieval_plan.to_dict(),
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
+            "retrieval_plan_intent": str(getattr(retrieval_plan, "intent", "") or ""),
+            "ranking_trace": ranking_trace,
+            "ranking_trace_json": json.dumps(
+                ranking_trace,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
+            "ranking_trace_fusion": str(ranking_trace.get("fusion") or ""),
+            "precision_node_code": precision_node_code,
+            "primary_queries": primary_queries,
+            "second_pass_queries": second_pass_queries,
+            "exact_question_probe": {
+                "enabled": bool(exact_probe),
+                "probe_query": exact_probe.query if exact_probe else "",
+                "allowed_question_types": (
+                    exact_probe.allowed_question_types if exact_probe else []
+                ),
+                "option_validation_required": (
+                    exact_probe.option_validation_required if exact_probe else False
+                ),
+                "hit_groups": [
+                    str(plan.get("group_name") or "")
+                    for plan in all_plans
+                    if plan.get("group_name") in {"question_exact_text", "question_exact_vector"}
+                    and bool(plan.get("results"))
+                ],
+            },
+            "exact_question": exact_question or {},
+            "retrieval_degraded": bool(retrieval_warnings),
+            "retrieval_status": str(payload["retrieval_status"]),
+            "warning_count": len(retrieval_warnings),
+        }
         observability.update_observation(
             observation,
             output_payload={
                 "source_count": len(sources),
                 "source_types": [item.get("source_type") or "" for item in sources],
             },
-            metadata={
-                "kb_name": kb_name,
-                "question_like": question_like,
-                "query_shape": query_shape,
-                "query_rewrite": {
-                    "primary_query": rewritten.primary_query,
-                    "keywords": rewritten.keywords,
-                    "standard_codes": rewritten.standard_codes,
-                    "reasons": rewritten.reasons,
-                },
-                "source_plan": {
-                    **source_plan.to_trace_dict(),
-                },
-                "retrieval_plan": retrieval_plan.to_dict(),
-                "ranking_trace": ranking_trace,
-                "precision_node_code": precision_node_code,
-                "primary_queries": primary_queries,
-                "second_pass_queries": second_pass_queries,
-                "exact_question_probe": {
-                    "enabled": bool(exact_probe),
-                    "probe_query": exact_probe.query if exact_probe else "",
-                    "allowed_question_types": (
-                        exact_probe.allowed_question_types if exact_probe else []
-                    ),
-                    "option_validation_required": (
-                        exact_probe.option_validation_required if exact_probe else False
-                    ),
-                    "hit_groups": [
-                        str(plan.get("group_name") or "")
-                        for plan in all_plans
-                        if plan.get("group_name") in {"question_exact_text", "question_exact_vector"}
-                        and bool(plan.get("results"))
-                    ],
-                },
-                "exact_question": exact_question or {},
-                "retrieval_degraded": bool(retrieval_warnings),
-                "retrieval_status": str(payload["retrieval_status"]),
-                "warning_count": len(retrieval_warnings),
-            },
+            metadata=trace_metadata,
         )
         return payload
 
@@ -1181,6 +1199,34 @@ class SupabasePipeline:
         for plan in plans:
             documents.extend(list(plan.get("results") or []))
         return documents
+
+    def _ensure_final_compiled_truth_presence(
+        self,
+        final_results: list[dict[str, Any]],
+        *,
+        plans: list[dict[str, Any]],
+        max_items: int,
+    ) -> list[dict[str, Any]]:
+        if not plans:
+            return final_results
+        if any(str(item.get("_source_group") or item.get("source_type") or "") == "compiled_learning_truth" for item in final_results):
+            return final_results
+        candidates = self._plan_documents(plans)
+        if not candidates:
+            return final_results
+        candidate = dict(candidates[0])
+        candidate["_source_group"] = "compiled_learning_truth"
+        candidate["_query_phase"] = candidate.get("_query_phase") or "context"
+        candidate["_query_variant"] = candidate.get("_query_variant") or ""
+        if final_results:
+            lowest_score = min(float(item.get("score") or 0.0) for item in final_results)
+            candidate["score"] = min(float(candidate.get("score") or 0.0), lowest_score)
+        limit = max(1, int(max_items or (len(final_results) + 1)))
+        if len(final_results) >= limit:
+            merged = [*final_results[: limit - 1], candidate]
+        else:
+            merged = [*final_results, candidate]
+        return dedupe_ranked_results(merged, max_items=limit)
 
     async def _run_query_plan(
         self,

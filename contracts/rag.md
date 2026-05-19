@@ -45,9 +45,11 @@
 20. compiled truth 默认只能进入 `ranking_trace.shadow_sources`，不得影响 `answer/content/sources` 或排序。只有显式 enable 且 intent 属于 `weak_point_review` / `next_training` 时，才允许进入最终候选；即便进入候选，也不能压过 exact-question、标准条文、题库标准答案。
 21. `ranking_trace.provenance_features` 默认只暴露来源、authority、证据等级、人工确认、支持事件数量等 compact metadata；不得记录完整 compiled projection、原始私密画像、手机号、钱包、会员账户等敏感字段。
 22. provenance boost 默认关闭；开启时也只能做 bounded adjustment，且 exact-question pinning 是独立 authority contract，不得依赖 provenance boost 才成立。
-23. TutorBot / Chat agent runtime 如果已经持有 caller-passed `compiled_learning_truth`，必须通过现有 `rag` tool kwargs 传入 `RAGService`；adapter 只能透传和记录 compact availability marker，不得在 wrapper 内合成、拉取或改写 learner truth。
+23. TutorBot / Chat agent runtime 如果已经持有 caller-passed `compiled_learning_truth`，必须通过现有 `rag` tool top-level kwargs 传入 `RAGService`；`routing_metadata` 只能记录 `compiled_learning_truth_available` 这类 compact marker，不得承载完整 projection，不得在 wrapper 内合成、拉取或改写 learner truth。
 24. graph-aware retrieval 只能作为 compiled truth materialization 的只读上下文，允许表达 `question -> concept -> rubric_item -> error_code -> training_signal -> next_question` 这类 typed edges；它不是第二套 graph DB、第二套 RAG provider，也不得绕过 source-aware ranking。
 25. retrieval maintenance workflow 必须是离线 dry-run / job 形态，输出 retrieval miss、citation、stale weak point、rubric coverage、eval case 报告；不得写 Supabase learner-state，也不得进入在线 `/api/v1/ws` 低延迟链路。
+26. 当 `compiled_learning_truth` final-source enablement 被显式开启且 intent 属于弱点复习 / 下一题训练时，最终 sources 必须至少保留一条已 materialize 的 compiled truth 证据；该证据只能追加在 exact-question、标准、教材等 authority 后面，不得抢占更高权威来源。
+27. Langfuse / ClickHouse 的 canonical `rag.supabase.search` retriever observation 必须能查询到 compact `retrieval_plan` 与 `ranking_trace`。一次 `SupabasePipeline.search()` 只能产生一条 canonical `rag.supabase.search` retriever observation；不得新增同名 sidecar 来承载 trace，否则会污染 RAG 使用次数和 evidence gate。若 observability backend 只支持 string metadata，必须把 `retrieval_plan_json`、`retrieval_plan_intent`、`ranking_trace_json`、`ranking_trace_fusion` 写在这条主 observation 上。
 
 ## 当前统一语义
 

@@ -223,6 +223,30 @@ def test_synthesis_marks_improvement_signal_and_decays_claim() -> None:
     assert projection["weak_points"] == []
 
 
+def test_synthesis_decays_only_the_improved_error_object() -> None:
+    projection = synthesize_learning_truth([
+        _learning_event("e02_evt1", error_code="E02", question_id="case_001", rubric_item_id="r1"),
+        _learning_event("e02_evt2", error_code="E02", question_id="case_002", rubric_item_id="r2"),
+        _learning_event("e04_evt1", error_code="E04", question_id="case_003", rubric_item_id="r3"),
+        _learning_event("e04_evt2", error_code="E04", question_id="case_004", rubric_item_id="r4"),
+        _learning_event(
+            "improve_e02",
+            improved=True,
+            error_code="E02",
+            observed_at="2026-05-18T14:00:00+08:00",
+        ),
+    ])
+
+    weak_codes = {item["error_code"] for item in projection["weak_points"]}
+    stale_codes = {item["error_code"] for item in projection["stale_claims"]}
+
+    assert "E02" not in weak_codes
+    assert "E04" in weak_codes
+    assert stale_codes == {"E02"}
+    assert projection["compiled_objects"]["error:1A432000:E02"]["decay_state"] == "improving"
+    assert projection["compiled_objects"]["error:1A432000:E04"]["decay_state"] == "active"
+
+
 def test_project_learning_graph_reuses_typed_edges_and_adds_metadata() -> None:
     graph = project_learning_graph([_learning_event("evt1")])
 
@@ -357,6 +381,22 @@ def test_manual_confirmation_upgrades_claim_to_l2_confirmed() -> None:
     assert projection["synthesis_run"]["manual_override_count"] == 1
     assert projection["weak_points"][0]["evidence_level"] == "L2_confirmed"
     assert projection["weak_points"][0]["supporting_event_ids"] == ["evt1", "confirm1"]
+
+
+def test_manual_confirmation_keeps_compiled_object_confidence_aligned_with_l2() -> None:
+    event = _learning_event("evt1", error_code="E02")
+    event.payload_json["error_events"].append({
+        "error_code": "E04",
+        "concept_tag": "1A432000",
+        "rubric_item_id": "r4",
+        "diagnosis": "措施适用边界表达不清。",
+    })
+
+    projection = synthesize_learning_truth([event, _manual_confirmation()])
+
+    concept = projection["compiled_objects"]["concept:1A432000"]
+    assert concept["evidence_level"] == "L2_confirmed"
+    assert concept["confidence"] == 0.9
 
 
 def test_synthesis_is_idempotent_for_same_inputs() -> None:

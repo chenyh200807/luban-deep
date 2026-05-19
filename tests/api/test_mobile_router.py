@@ -2699,58 +2699,57 @@ def test_learning_brain_projection_reads_authenticated_learner_truth(
     captured: dict[str, object] = {}
 
     class FakeLearnerStateService:
-        def synthesize_learning_truth(self, user_id, *, dry_run=True, event_limit=None):
+        def read_compiled_learning_truth(self, user_id):
             captured["user_id"] = user_id
-            captured["dry_run"] = dry_run
-            captured["event_limit"] = event_limit
             return {
-                "projection": {
-                    "schema_version": 2,
-                    "subject": "construction_exam_learning_truth",
-                    "compiled_objects": {
-                        "concept:1A432000": {
-                            "object_type": "concept",
-                            "object_id": "1A432000",
-                            "current_truth": "1A432000 上出现 E02 等错因观察",
-                            "evidence_level": "L1_repeated",
-                            "confidence": 0.72,
-                            "supporting_event_ids": ["evt1", "evt2"],
-                            "timeline_refs": [{"event_id": "evt1"}],
-                            "decay_state": "active",
-                        }
-                    },
-                    "weak_points": [
+                "schema_version": 2,
+                "subject": "construction_exam_learning_truth",
+                "compiled_objects": {
+                    "concept:1A432000": {
+                        "object_type": "concept",
+                        "object_id": "1A432000",
+                        "current_truth": "1A432000 上出现 E02 等错因观察",
+                        "evidence_level": "L1_repeated",
+                        "confidence": 0.72,
+                        "supporting_event_ids": ["evt1", "evt2"],
+                        "timeline_refs": [{"event_id": "evt1"}],
+                        "decay_state": "active",
+                    }
+                },
+                "weak_points": [
+                    {
+                        "concept_id": "1A432000",
+                        "error_code": "E02",
+                        "claim": "1A432000 上出现 E02 错因观察",
+                        "evidence_level": "L1_repeated",
+                        "supporting_event_ids": ["evt1", "evt2"],
+                        "recommended_training": {"mode": "case_repair", "focus": "专家论证程序"},
+                    }
+                ],
+                "typed_graph": {
+                    "edges": [
                         {
-                            "concept_id": "1A432000",
-                            "error_code": "E02",
-                            "claim": "1A432000 上出现 E02 错因观察",
-                            "evidence_level": "L1_repeated",
-                            "supporting_event_ids": ["evt1", "evt2"],
-                            "recommended_training": {"mode": "case_repair", "focus": "专家论证程序"},
+                            "edge_type": "question_tests_concept",
+                            "from": {"type": "question", "id": "case_001"},
+                            "to": {"type": "concept", "id": "1A432000"},
+                        },
+                        {
+                            "edge_type": "error_points_to_training",
+                            "from": {"type": "error", "id": "1A432000:E02"},
+                            "to": {"type": "next_training", "id": "1A432000:E02:case_repair"},
                         }
                     ],
-                    "typed_graph": {
-                        "edges": [
-                            {
-                                "edge_type": "question_tests_concept",
-                                "from": {"type": "question", "id": "case_001"},
-                                "to": {"type": "concept", "id": "1A432000"},
-                            },
-                            {
-                                "edge_type": "error_points_to_training",
-                                "from": {"type": "error", "id": "1A432000:E02"},
-                                "to": {"type": "next_training", "id": "1A432000:E02:case_repair"},
-                            }
-                        ],
-                        "readiness_gaps": [],
-                    },
-                    "synthesis_run": {
-                        "input_event_count": 2,
-                        "created_claim_count": 1,
-                        "output_projection_hash": "sha256:test",
-                    },
-                }
+                    "readiness_gaps": [],
+                },
+                "synthesis_run": {
+                    "input_event_count": 2,
+                    "created_claim_count": 1,
+                    "output_projection_hash": "sha256:test",
+                },
             }
+
+        def synthesize_learning_truth(self, *_args, **_kwargs):
+            raise AssertionError("mobile projection must not synthesize compiled truth online")
 
     monkeypatch.setattr(
         mobile_module,
@@ -2764,16 +2763,48 @@ def test_learning_brain_projection_reads_authenticated_learner_truth(
 
     assert response.status_code == 200
     body = response.json()
-    assert captured == {"user_id": "student_demo", "dry_run": True, "event_limit": 25}
+    assert captured == {"user_id": "student_demo"}
     assert body["projection_subject"] == "construction_exam_learning_truth"
     assert body["event_count"] == 2
     assert body["weak_points"][0]["evidence_level"] == "L1_repeated"
-    assert body["visible_sections"]["current_truth"][0]["current_truth"].startswith("1A432000")
+    assert body["visible_sections"]["current_truth"][0]["current_truth"].startswith("工程招标投标与合同管理")
+    assert body["visible_sections"]["current_truth"][0]["display_meta"] == "知识点：工程招标投标与合同管理"
     assert body["visible_sections"]["evidence_flow"][0]["event_id"] == "evt1"
     assert body["visible_sections"]["next_training"][0]["recommended_training"]["mode"] == "case_repair"
     assert body["typed_graph_edge_count"] == 2
     assert body["graph_chain"]["has_training_uses_question"] is True
     assert body["graph_chain"]["has_training_not_improved_error"] is True
+
+
+def test_learning_brain_projection_returns_empty_read_model_without_compiled_truth(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeLearnerStateService:
+        def read_compiled_learning_truth(self, user_id):
+            return {}
+
+        def synthesize_learning_truth(self, *_args, **_kwargs):
+            raise AssertionError("mobile projection must not synthesize compiled truth online")
+
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/learning-brain/projection")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["projection_subject"] == "construction_exam_learning_truth"
+    assert body["event_count"] == 0
+    assert body["visible_sections"] == {
+        "current_truth": [],
+        "evidence_flow": [],
+        "next_training": [],
+    }
 
 
 def test_auth_profile_exposes_is_admin_flag(

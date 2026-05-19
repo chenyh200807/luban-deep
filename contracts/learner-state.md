@@ -144,9 +144,18 @@ Overlay 必须支持：
 
 - `Summary` 单一真相
 - 聚合 session / guide / notebook / quiz 的学习摘要
-- 承载学习事实编译层的 `summary_structured_json` projection。该 projection
+- 承载学习事实编译层的 `summary_structured_json.learning_brain` projection。该 projection
   可以包含 `compiled_objects`、`typed_graph`、`synthesis_run`，但它仍是
   learner summary 的结构化投影，不是第二套 learner profile / progress 主真相。
+- `summary_structured_json.guide_completion` 等其他结构化摘要不得被 Learning Brain
+  reader 当作 compiled truth 读取。
+- 写入 `summary_structured_json` 时必须按顶层 namespace 做 key-level merge；`learning_brain`、
+  `guide_completion` 等合法 namespace 不能通过整列 upsert 互相覆盖。
+- 本地 `COMPILED_TRUTH.json` 只能作为本地 / dev / dry-run 的只读缓存，由离线
+  synthesis 写入；当 Supabase core store 已配置时，在线 TutorBot / RAG runtime
+  只能读取 `learner_summaries.summary_structured_json.learning_brain`，不得让本地缓存
+  与 durable store 竞争权威；生产环境即使 Supabase core store 未配置，也不得 fail-open
+  读取本地 `COMPILED_TRUTH.json`；在线链路不得为了召回临时重跑 synthesis。
 
 #### `learner_memory_events`
 
@@ -210,10 +219,12 @@ Overlay 必须支持：
 - session digest aggregator
 - guided learning completion aggregator
 - notebook summary aggregator
+- learning synthesis projection refresh
 
 禁止写入：
 
 - 任何模块直接整份覆盖 summary
+- 在线 turn runtime 直接合成或改写 compiled truth projection
 
 ### Durable Memory Hygiene
 
@@ -268,7 +279,7 @@ Overlay 必须支持：
 1. 原始证据只来自 `learner_memory_events`，尤其是结构化 `learning_evidence`、
    grading events、answer history、RAG evidence refs、trace refs、人工修正事件。
 2. `compiled_objects`、`typed_graph`、`weak_points`、`synthesis_run` 只能写入
-   `learner_summaries.summary_structured_json` 或本地 dry-run 输出。
+   `learner_summaries.summary_structured_json.learning_brain` 或本地 dry-run 输出。
 3. 单次 `L0_observed` 只能服务本轮解释，不得进入稳定画像。
 4. `L1_repeated` 可以驱动显性诊断 hint。
 5. `L2_confirmed` 必须来自人工确认或多次重复且无强冲突，才可进入稳定 Teaching Policy。

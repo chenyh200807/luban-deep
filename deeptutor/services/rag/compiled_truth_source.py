@@ -275,7 +275,7 @@ def _weak_point_documents(
             "title": "学员弱点: " + key,
             "source_type": "compiled_learning_truth",
             "_source_group": "compiled_learning_truth",
-            "source": "learner_summaries.summary_structured_json",
+            "source": "learner_summaries.summary_structured_json.learning_brain",
             "rag_content": _format_weak_point_doc(
                 concept_id=concept_id,
                 error_code=error_code,
@@ -348,7 +348,7 @@ def materialize_compiled_truth_documents(
             "title": "学习事实: " + key,
             "source_type": "compiled_learning_truth",
             "_source_group": "compiled_learning_truth",
-            "source": "learner_summaries.summary_structured_json",
+            "source": "learner_summaries.summary_structured_json.learning_brain",
             "rag_content": _format_compiled_truth_doc(key, item, current_truth),
             "score": 0.0,
             "evidence_level": level,

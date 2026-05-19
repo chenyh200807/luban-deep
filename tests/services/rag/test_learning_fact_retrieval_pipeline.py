@@ -100,3 +100,33 @@ def test_fuse_plan_results_keeps_exact_question_ahead_of_compiled_truth() -> Non
     )
 
     assert [item["chunk_id"] for item in fused[:2]] == ["q1", "compiled-truth:concept:1A432000"]
+
+
+def test_ensure_final_compiled_truth_presence_appends_without_reordering_authority() -> None:
+    pipeline = SupabasePipeline()
+    final = pipeline._ensure_final_compiled_truth_presence(
+        [
+            {"chunk_id": "std-1", "source_type": "standard", "score": 0.9},
+            {"chunk_id": "textbook-1", "source_type": "textbook", "score": 0.7},
+        ],
+        plans=[
+            {
+                "group_name": "compiled_learning_truth",
+                "results": [
+                    {
+                        "chunk_id": "compiled-truth:weak-point:1A432000:E02",
+                        "source_type": "compiled_learning_truth",
+                        "rag_content": "学员反复漏写专家论证。",
+                        "score": 0.0,
+                    }
+                ],
+            }
+        ],
+        max_items=3,
+    )
+
+    assert [item["chunk_id"] for item in final] == [
+        "std-1",
+        "textbook-1",
+        "compiled-truth:weak-point:1A432000:E02",
+    ]

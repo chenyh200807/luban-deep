@@ -13,24 +13,9 @@ import uuid
 
 from deeptutor.services.assessment.blueprint import AssessmentBlueprint, AssessmentSection, get_assessment_blueprint
 from deeptutor.services.assessment.profile_probes import ProfileProbe, get_profile_probes
+from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
 
 _CHAPTER_CODE_RE = re.compile(r"^1A\d{6}$")
-_CHAPTER_CODE_LABELS = {
-    "1A411": "建筑设计与构造",
-    "1A412": "结构设计与建筑材料",
-    "1A413": "装配式建筑",
-    "1A414": "建筑工程材料",
-    "1A415": "建筑工程施工技术",
-    "1A421": "项目组织管理",
-    "1A422": "施工进度管理",
-    "1A423": "施工质量管理",
-    "1A424": "施工安全管理",
-    "1A425": "合同与招投标管理",
-    "1A426": "施工成本管理",
-    "1A427": "资源与现场管理",
-    "1A431": "建筑工程法规",
-    "1A432": "建筑工程技术标准",
-}
 _ASSESSMENT_FORM_COUNT = 5
 _FORM_CACHE_LOCK = threading.RLock()
 _FORM_CACHE: dict[str, "_AssessmentFormBank"] = {}
@@ -1152,7 +1137,7 @@ def _humanize_chapter_label(value: str, *, section: AssessmentSection) -> str:
         return section.label or "综合能力"
     upper = raw.upper()
     if _is_chapter_code(upper):
-        return _CHAPTER_CODE_LABELS.get(upper[:5]) or section.label or "综合能力"
+        return display_taxonomy_label(upper, fallback="") or section.label or "综合能力"
     return raw
 
 

@@ -2286,6 +2286,7 @@ class TurnRuntimeManager:
 
         learner_candidates_payload: dict[str, Any] | None = None
         overlay_payload: dict[str, Any] | None = None
+        compiled_learning_truth: dict[str, Any] = {}
         compact_memory_context = ""
         try:
             if user_id and hasattr(learner_state_service, "build_context_candidates"):
@@ -2295,6 +2296,9 @@ class TurnRuntimeManager:
                     route=route_decision.route_label,
                     language=language,
                 )
+                projection = learner_candidates_payload.get("compiled_learning_truth")
+                if isinstance(projection, dict):
+                    compiled_learning_truth = dict(projection)
             elif user_id:
                 compact_memory_context = learner_state_service.build_context(
                     user_id=user_id,
@@ -2760,6 +2764,7 @@ class TurnRuntimeManager:
             "memory_context": memory_context,
             "notebook_context": notebook_context,
             "history_context": history_context,
+            "compiled_learning_truth": compiled_learning_truth,
         }
 
     async def start_turn(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -3795,6 +3800,7 @@ class TurnRuntimeManager:
 
                 history_result = None
                 memory_context = ""
+                compiled_learning_truth: dict[str, Any] = {}
                 effective_user_message = raw_user_content
                 context_trace: dict[str, Any] = {
                     "fallback_path": "legacy",
@@ -3830,6 +3836,7 @@ class TurnRuntimeManager:
                         memory_context = orchestrated["memory_context"]
                         notebook_context = orchestrated["notebook_context"]
                         history_context = orchestrated["history_context"]
+                        compiled_learning_truth = dict(orchestrated.get("compiled_learning_truth") or {})
                         context_route = orchestrated["route_decision"].route_label
                         task_anchor_type = orchestrated["route_decision"].task_anchor_type.value
                         route_confidence = float(orchestrated["route_decision"].confidence or 0.0)
@@ -3884,6 +3891,10 @@ class TurnRuntimeManager:
                                 user_id=user_id,
                                 language=str(payload.get("language", "en") or "en"),
                             )
+                            if hasattr(learner_state_service, "read_compiled_learning_truth"):
+                                projection = learner_state_service.read_compiled_learning_truth(user_id)
+                                if isinstance(projection, dict):
+                                    compiled_learning_truth = dict(projection)
                         except Exception:
                             logger.warning(
                                 "Failed to build learner state context for user %s",
@@ -4116,6 +4127,11 @@ class TurnRuntimeManager:
                         "compression_applied": context_trace.get("compression_applied"),
                         "history_search_applied": context_trace.get("history_search_applied"),
                         "fallback_path": context_trace.get("fallback_path", ""),
+                        **(
+                            {"compiled_learning_truth": compiled_learning_truth}
+                            if compiled_learning_truth
+                            else {}
+                        ),
                         **(
                             {
                                 "question_followup_context": dict(followup_question_context),

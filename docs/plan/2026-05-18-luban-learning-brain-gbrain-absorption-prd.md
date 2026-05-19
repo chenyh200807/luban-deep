@@ -187,7 +187,7 @@ P0 系统价值：
 | rubric / 采分点 | “专家论证是高频漏点，用户常写成加强管理。” | 每次漏点证据句、改写后是否命中 |
 | 学生薄弱点 | “责任主体混淆比知识点缺失更突出。” | 多题 error_code 聚合、人工确认、后续训练结果 |
 
-P0 projection 可以先存入 `learner_memory_events.payload_json` 与 `learner_summaries.summary_structured_json`，不急于新建表。只有当查询与规模证明需要稳定 schema 时，再补 contract / migration。
+P0 projection 可以先存入 `learner_memory_events.payload_json` 与 `learner_summaries.summary_structured_json.learning_brain`，不急于新建表。只有当查询与规模证明需要稳定 schema 时，再补 contract / migration。
 
 ### 7.2 Typed graph
 
@@ -354,7 +354,7 @@ P0 可以复用 `learner_memory_events`：
 
 ### 9.2 Compiled learning truth
 
-P0 projection 可以写入 `learner_summaries.summary_structured_json` 的受控字段：
+P0 projection 可以写入 `learner_summaries.summary_structured_json.learning_brain` 的受控字段：
 
 ```json
 {
@@ -511,7 +511,7 @@ P0 不直接建这些表。
 任务：
 
 1. 确认 `learner_memory_events` 是 P0 evidence ledger。
-2. 确认 `learner_summaries.summary_structured_json` 是 P0 compiled truth projection。
+2. 确认 `learner_summaries.summary_structured_json.learning_brain` 是 P0 compiled truth projection。
 3. 确认 typed graph P0 是 projection，不是新数据库。
 4. 确认 RAG evidence 只来自 `RAGService.evidence_bundle`。
 
@@ -641,7 +641,7 @@ node wx_miniprogram/tests/test_ai_message_state.js
 
 ## 15. Open Questions
 
-1. P0 compiled projection 是否只写 `learner_summaries.summary_structured_json`，还是需要单独 projection file 便于调试？
+1. P0 compiled projection 是否只写 `learner_summaries.summary_structured_json.learning_brain`，还是需要单独 projection file 便于调试？
 2. `learning_evidence` payload 是否应进入 `deeptutor/contracts/learner_state.py` 的机器可读 schema，还是先保持内部 schema？
 3. typed graph 查询 P0 是否只服务 next training，还是同时服务 BI / Member Console？
 4. 人工修正的入口先放在哪：Member Console、BI audit tab，还是内部脚本？
@@ -735,7 +735,7 @@ v0.2 必须把一等业务事实写得更窄：
 
 ### 19.3 对象级 compiled truth
 
-P0 不新增表，但 `learner_summaries.summary_structured_json` 中必须支持 `compiled_objects`：
+P0 不新增表，但 `learner_summaries.summary_structured_json.learning_brain` 中必须支持 `compiled_objects`：
 
 ```json
 {
@@ -912,7 +912,7 @@ nightly synthesis 必须是可审计、可重跑、可回滚的离线合成：
 | 不确定性 | 风险 | 验证方式 | 替代方案 |
 | --- | --- | --- | --- |
 | 当前 grading kernel 是否稳定产出 error_code / rubric_item_id | typed graph 边不稳定 | 用 20 道真实/fixture 案例题跑 golden snapshot | P0 先以 rubric_item_id 为主，error_code 作为可选 |
-| `summary_structured_json` 是否能承载 `compiled_objects` | projection 过大，读写慢 | 用 1000 条事件 synthetic dry-run 测 payload 大小和 writer latency | P1 再拆 projection 表，P0 只保留 top-N active objects |
+| `summary_structured_json.learning_brain` 是否能承载 `compiled_objects` | projection 过大，读写慢 | 用 1000 条事件 synthetic dry-run 测 payload 大小和 writer latency | P1 再拆 projection 表，P0 只保留 top-N active objects |
 | RAG evidence bundle 是否在 grading 链路完整可见 | evidence-first 不完整 | 在 `/wechat-harness` 和 Langfuse trace 对照一次真实链路 | P0 允许 rag refs 为空，但禁止因此升到 L1/L2 |
 | 人工修正入口短期能否做完 | L2 confirmed 缺运营闭环 | 先用内部脚本写 correction event | P1 接 Member Console / BI audit |
 | next training 是否真实提升学习效果 | 产品收益不确定 | A/B：有 compiled signal vs 只按题库顺序推荐 | P0 只影响推荐排序，不强制改用户路径 |

@@ -43,34 +43,38 @@ Hard boundaries:
 - Test: `tests/services/rag/test_compiled_truth_source.py`
 - Test: `tests/services/rag/test_learning_fact_retrieval_pipeline.py`
 
-- [ ] Add weak-point retrieval docs from `projection.weak_points`.
-- [ ] Include compact graph context from `projection.typed_graph.edges`: `question -> concept -> rubric_item -> error -> next_training`.
-- [ ] Exclude stale/superseded/low-evidence weak points.
-- [ ] Verify compiled truth still cannot outrank exact-question authority.
+- [x] Add weak-point retrieval docs from `projection.weak_points`.
+- [x] Include compact graph context from `projection.typed_graph.edges`: `question -> concept -> rubric_item -> error -> next_training`.
+- [x] Exclude stale/superseded/low-evidence weak points.
+- [x] Verify compiled truth still cannot outrank exact-question authority.
 
 ### Task 2: Runtime Propagation Into RAG Tool Calls
 
 **Files:**
+- Modify: `deeptutor/services/learner_state/service.py`
+- Modify: `deeptutor/services/session/turn_runtime.py`
 - Modify: `deeptutor/tutorbot/agent/tools/deeptutor_tools.py`
 - Modify: `deeptutor/tutorbot/agent/loop.py`
 - Test: `tests/agents/chat/test_agentic_parallel_tools.py` or focused TutorBot tool tests.
 
-- [ ] Pass `runtime_context.compiled_learning_truth` to `rag_search(...)`.
-- [ ] Also attach it to `routing_metadata.compiled_learning_truth` for fallback compatibility.
-- [ ] Ensure prefetch/exact-fast-path preview args carry the same projection.
-- [ ] Do not let wrapper code synthesize or mutate learner truth.
+- [x] Persist offline `COMPILED_TRUTH.json` as local/dev cache from learner-state synthesis when `dry_run=False`; production durable truth is `learner_summaries.summary_structured_json.learning_brain`.
+- [x] Have turn runtime read this compiled projection and attach it to `UnifiedContext.metadata`.
+- [x] Pass `runtime_context.compiled_learning_truth` to `rag_search(...)`.
+- [x] Attach compact `routing_metadata.compiled_learning_truth_available` marker for trace compatibility.
+- [x] Ensure prefetch/exact-fast-path preview args carry the same projection.
+- [x] Do not let wrapper code synthesize or mutate learner truth.
 
 ### Task 3: Maintenance Dry-Run Workflow
 
 **Files:**
 - Modify: `deeptutor/services/rag/maintenance.py`
-- Create: `scripts/run_learning_retrieval_maintenance.py`
+- Create: `scripts/run_learning_fact_retrieval_maintenance.py`
 - Test: `tests/services/rag/test_maintenance.py`
 - Test: `tests/scripts/test_run_learning_retrieval_maintenance.py`
 
-- [ ] Produce dry-run report sections: retrieval misses, citation gaps, stale weak points, rubric coverage gaps, eval cases.
-- [ ] Accept JSON input from a file or stdin.
-- [ ] Never write learner-state or Supabase rows.
+- [x] Produce dry-run report sections: retrieval misses, citation gaps, stale weak points, rubric coverage gaps, eval cases.
+- [x] Accept JSON input from a file or stdin.
+- [x] Never write learner-state or Supabase rows.
 
 ### Task 4: Contract And Plan State
 
@@ -79,9 +83,9 @@ Hard boundaries:
 - Modify only if needed: `contracts/turn.md`, `contracts/capability.md`
 - Modify: `docs/plan/INDEX.md`
 
-- [ ] Keep RAG contract aligned with graph context and runtime propagation.
-- [ ] If mobile learning-brain projection API remains in this branch, document the intentional turn/capability surface so contract guard is not red.
-- [ ] Mark the child plan as local Phase A-D implementation in progress, not Done.
+- [x] Keep RAG contract aligned with graph context and runtime propagation.
+- [x] If mobile learning-brain projection API remains in this branch, document the intentional turn/capability surface so contract guard is not red.
+- [x] Mark the child plan as local Phase A-D implementation in progress, not Done.
 
 ### Task 5: Local Verification Gate
 
@@ -90,7 +94,7 @@ Hard boundaries:
 ```bash
 pytest tests/services/rag/test_retrieval_plan.py tests/services/rag/test_compiled_truth_source.py tests/services/rag/test_provenance.py tests/services/rag/test_learning_fact_retrieval_pipeline.py tests/services/rag/test_rag_pipelines.py tests/services/rag/test_maintenance.py -q
 pytest tests/agents/chat/test_agentic_parallel_tools.py -q
-pytest tests/scripts/test_run_learning_retrieval_maintenance.py -q
+pytest tests/scripts/test_run_learning_fact_retrieval_maintenance.py -q
 python scripts/check_contract_guard.py
 ```
 
@@ -98,6 +102,11 @@ Expected:
 
 - RAG and maintenance tests pass.
 - Contract guard has no RAG failure. Full guard may pass only after intentional mobile surface is documented.
+
+Status:
+
+- [x] Local targeted gate passed: `tests/agents/chat/test_chat_agent_retrieval.py`, fast chat propagation, RAG final-source tests, `scripts/check_contract_guard.py`, `git diff --check`.
+- [x] Broader local slice passed: 364 relevant RAG / learner-state / mobile / WS runtime / TutorBot propagation / maintenance tests.
 
 ### Task 6: Live Gate
 
@@ -109,11 +118,19 @@ Expected:
   - public `/api/v1/ws` exact-question smoke
   - ClickHouse query for `retrieval_plan` and `ranking_trace`
 
-- [ ] Run direct RAG against deployed code.
-- [ ] Run public weak-point WS with Phase D flag enabled only in controlled deploy.
-- [ ] Run public exact-question WS and confirm exact authority remains first.
-- [ ] Query Langfuse/ClickHouse fresh trace metadata.
-- [ ] Record trace ids and exact source behavior before marking Done.
+- [x] Run direct RAG against deployed code.
+- [x] Run public weak-point WS with Phase D flag enabled only in controlled deploy.
+- [x] Run public exact-question WS and confirm exact authority remains first.
+- [x] Query Langfuse/ClickHouse fresh trace metadata.
+- [x] Record trace ids and exact source behavior before marking Done.
+
+Live evidence recorded on 2026-05-18:
+
+- Direct RAG weak-point query: `intent=weak_point_review`, `compiled_truth_final_enabled=true`, final source included `compiled-truth:weak-point:1A432000:E02`.
+- Direct RAG exact query: `intent=exact_question`, `exact_chunk_id=question-15165`, `compiled_truth_final_enabled=false`.
+- Public WS weak-point query: session `live-gate-weak-5554f3f0`, Langfuse / ClickHouse trace `d6b4770d012b65592cfdfc5087a5d7bf`, observation `f64153139de84e88`, `compiled_learning_truth` source group enabled with reason `weak_point_review`, `compiled_truth_final_enabled=true`.
+- Public WS exact query: session `live-gate-exact-5554f3f0`, Langfuse / ClickHouse trace `c82f85015ffa8c112273438459a0ae9c`, observation `00fab4801d7dcf77`, `intent=exact_question`, `compiled_learning_truth` source group disabled, `compiled_truth_final_enabled=false`.
+- The Phase D production flag was enabled only during the controlled live-gate window and restored afterward; public `/healthz` and `/readyz` passed after restoration.
 
 ## 4. Acceptance Criteria
 

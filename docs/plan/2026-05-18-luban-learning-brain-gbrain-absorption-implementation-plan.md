@@ -172,7 +172,7 @@ The implementation must preserve these authority boundaries:
 | --- | --- | --- |
 | Score, rubric hits, error events | `construction_grading_result` | Do not recompute score in learner-state or TutorBot text. |
 | Long-term learner event ledger | `LearnerStateService.append_memory_event` / `learner_memory_events` | All durable learning evidence writes go through this service. |
-| Compiled learning truth | `learner_summaries.summary_structured_json` projection | P0 writes projection through summary refresh/outbox, not a new table. |
+| Compiled learning truth | `learner_summaries.summary_structured_json.learning_brain` projection | P0 writes projection through summary refresh/outbox, not a new table. |
 | Retrieval evidence | `RAGService.evidence_bundle` | Store evidence refs only; do not add a second retrieval path. |
 | Next practice continuity | `deep_question` / active question object | Use compiled signals as an anchor, not as a new practice router. |
 
@@ -1036,7 +1036,10 @@ def test_learner_state_synthesize_learning_truth_enqueues_summary_refresh(tmp_pa
     pending = service.outbox_service.list_pending("student_demo")
     assert result["outbox_item"] is not None
     assert pending[0].event_type == "summary_refresh"
-    assert pending[0].payload_json["summary_structured_json"]["subject"] == "construction_exam_learning_truth"
+    assert (
+        pending[0].payload_json["summary_structured_json"]["learning_brain"]["subject"]
+        == "construction_exam_learning_truth"
+    )
 ```
 
 - [ ] **Step 4.2: Run tests and verify failure**
@@ -1162,8 +1165,9 @@ def test_write_item_summary_refresh_preserves_structured_learning_truth() -> Non
 
     request = writer.client.requests[-1]
     assert request["path"] == "/rest/v1/learner_summaries"
-    assert request["json"][0]["summary_structured_json"]["subject"] == "construction_exam_learning_truth"
-    assert request["json"][0]["summary_structured_json"]["weak_points"][0]["concept_id"] == "1A432000"
+    learning_brain = request["json"][0]["summary_structured_json"]["learning_brain"]
+    assert learning_brain["subject"] == "construction_exam_learning_truth"
+    assert learning_brain["weak_points"][0]["concept_id"] == "1A432000"
 ```
 
 If the test helper names differ in this file, adapt only to the existing helper names. Keep the assertions exactly about preserving `summary_structured_json`.

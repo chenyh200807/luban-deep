@@ -84,6 +84,7 @@ async def _run_learning_fact_search(
     *,
     query: str,
     compiled_truth_enabled: bool = False,
+    top_level_compiled_truth: bool = True,
 ):
     from deeptutor.services.rag.pipelines import supabase as supabase_module
 
@@ -133,19 +134,28 @@ async def _run_learning_fact_search(
     monkeypatch.setattr(pipeline, "_hydrate_sources", _identity_hydrate)
     monkeypatch.setattr(pipeline, "_rerank_results", _identity_rerank)
 
-    return await pipeline.search(
-        query=query,
-        kb_name="construction-exam",
-        compiled_learning_truth={
-            "compiled_objects": {
-                "weak:1A432000:E02": {
-                    "current_truth": "该学员反复漏写专家论证。",
-                    "evidence_level": "L2_confirmed",
-                    "supporting_event_ids": ["evt1", "evt2"],
-                }
+    compiled_truth = {
+        "compiled_objects": {
+            "weak:1A432000:E02": {
+                "current_truth": "该学员反复漏写专家论证。",
+                "evidence_level": "L2_confirmed",
+                "supporting_event_ids": ["evt1", "evt2"],
             }
-        },
-    )
+        }
+    }
+    kwargs = {
+        "query": query,
+        "kb_name": "construction-exam",
+    }
+    if top_level_compiled_truth:
+        kwargs["compiled_learning_truth"] = compiled_truth
+    else:
+        kwargs["routing_metadata"] = {
+            "compiled_learning_truth_available": True,
+            "compiled_learning_truth": compiled_truth,
+        }
+
+    return await pipeline.search(**kwargs)
 
 
 def test_list_available_providers() -> None:
@@ -222,6 +232,67 @@ async def test_query_plan_trace_only_does_not_change_sources(
 
 
 @pytest.mark.asyncio
+async def test_supabase_search_uses_single_canonical_retriever_observation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    class _FakeObservation:
+        pass
+
+    class _FakeObservability:
+        def __init__(self) -> None:
+            self.started: list[dict[str, object]] = []
+            self.updated: list[dict[str, object]] = []
+
+        class _Context:
+            def __init__(self, outer: "_FakeObservability", kwargs: dict[str, object]) -> None:
+                self._outer = outer
+                self._kwargs = kwargs
+
+            def __enter__(self) -> _FakeObservation:
+                self._outer.started.append(self._kwargs)
+                return _FakeObservation()
+
+            def __exit__(self, exc_type, exc, tb) -> bool:
+                return False
+
+        def start_observation(self, **kwargs):
+            return self._Context(self, kwargs)
+
+        def update_observation(self, observation, **kwargs) -> None:
+            _ = observation
+            self.updated.append(kwargs)
+
+    fake_observability = _FakeObservability()
+    monkeypatch.setattr(supabase_module, "observability", fake_observability)
+
+    await _run_learning_fact_search(
+        monkeypatch,
+        query="我老是案例题采分点漏写怎么办",
+        compiled_truth_enabled=False,
+    )
+
+    search_observations = [
+        item for item in fake_observability.started
+        if item.get("name") == "rag.supabase.search"
+    ]
+    assert len(search_observations) == 1
+    assert search_observations[0]["as_type"] == "retriever"
+    assert search_observations[0]["metadata"].get("trace_observation_role") is None
+    assert all(
+        (item.get("metadata") or {}).get("trace_observation_role") != "retrieval_ranking_trace"
+        for item in fake_observability.started
+    )
+    update = fake_observability.updated[-1]
+    assert update["output_payload"]["source_count"] == 1
+    assert update["metadata"]["retrieval_plan_intent"] == "weak_point_review"
+    assert update["metadata"]["retrieval_plan_json"]
+    assert update["metadata"]["ranking_trace_json"]
+    assert update["metadata"]["ranking_trace_fusion"] == "weighted_rrf_with_provenance"
+
+
+@pytest.mark.asyncio
 async def test_compiled_truth_shadow_not_returned_in_sources(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -235,6 +306,23 @@ async def test_compiled_truth_shadow_not_returned_in_sources(
     trace = result["evidence_bundle"]["ranking_trace"]
     assert trace["shadow_source_count"] == 1
     assert trace["shadow_sources"][0]["source_group"] == "compiled_learning_truth"
+
+
+@pytest.mark.asyncio
+async def test_routing_metadata_compiled_truth_payload_is_ignored(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    result = await _run_learning_fact_search(
+        monkeypatch,
+        query="我老是案例题采分点漏写怎么办",
+        compiled_truth_enabled=True,
+        top_level_compiled_truth=False,
+    )
+
+    assert all(item["source_type"] != "compiled_learning_truth" for item in result["sources"])
+    trace = result["evidence_bundle"]["ranking_trace"]
+    assert trace["shadow_source_count"] == 0
+    assert trace["ranking_policy"]["compiled_truth_final_enabled"] is False
 
 
 @pytest.mark.asyncio
@@ -269,6 +357,37 @@ async def test_compiled_truth_final_enablement_is_weak_point_scoped(
     source_types = [item["source_type"] for item in result["sources"]]
     assert "compiled_learning_truth" in source_types
     assert result["evidence_bundle"]["ranking_trace"]["ranking_policy"]["compiled_truth_final_enabled"] is True
+
+
+def test_compiled_truth_final_presence_appends_after_authoritative_sources() -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    pipeline = supabase_module.SupabasePipeline()
+    final = pipeline._ensure_final_compiled_truth_presence(
+        [
+            {"chunk_id": "std-1", "source_type": "standard", "score": 0.9},
+            {"chunk_id": "textbook-1", "source_type": "textbook", "score": 0.7},
+        ],
+        plans=[
+            {
+                "group_name": "compiled_learning_truth",
+                "results": [
+                    {
+                        "chunk_id": "compiled-truth:weak-point:1A432000:E02",
+                        "source_type": "compiled_learning_truth",
+                        "rag_content": "学员反复漏写专家论证。",
+                    }
+                ],
+            }
+        ],
+        max_items=3,
+    )
+
+    assert [item["chunk_id"] for item in final] == [
+        "std-1",
+        "textbook-1",
+        "compiled-truth:weak-point:1A432000:E02",
+    ]
 
 
 def test_get_pipeline_invalid_raises() -> None:

@@ -77,6 +77,18 @@ function createPageInstance(pageDef) {
 }
 
 (async function main() {
+  var reportSource = fs.readFileSync(
+    path.join(__dirname, "../packageDeeptutor/pages/report/report.js"),
+    "utf8",
+  );
+  assert(
+    reportSource.indexOf("CHAPTER_CODE_LABELS") < 0 &&
+      reportSource.indexOf("LEARNING_BRAIN_OBJECT_LABELS") < 0 &&
+      reportSource.indexOf("LEARNING_BRAIN_EDGE_LABELS") < 0 &&
+      reportSource.indexOf("LEARNING_BRAIN_ERROR_LABELS") < 0,
+    "package report page should not keep Learning Brain taxonomy truth in the UI layer",
+  );
+
   await run("report onShow should hydrate all state from one snapshot without duplicate assessment reads", async function () {
     var counters = {
       today: 0,
@@ -178,6 +190,45 @@ function createPageInstance(pageDef) {
                 supporting_event_ids: ["evt1", "evt2"],
               },
             },
+            visible_sections: {
+              current_truth: [
+                {
+                  object_key: "concept:1A432000",
+                  current_truth: "工程招标投标与合同管理 上出现 采分点遗漏 错因",
+                  evidence_level: "L1_repeated",
+                  evidence_level_label: "重复出现",
+                  display_label: "知识点",
+                  display_title: "工程招标投标与合同管理 上出现 采分点遗漏 错因",
+                  display_meta: "知识点：工程招标投标与合同管理",
+                  supporting_event_ids: ["evt1", "evt2"],
+                },
+              ],
+              evidence_flow: [
+                {
+                  event_id: "evt1",
+                  edge_type: "question_tests_concept",
+                  display_label: "题目考查知识点",
+                  display_title: "题目考查知识点",
+                  display_path: "案例题：第 1 题 → 知识点：工程招标投标与合同管理",
+                },
+                {
+                  event_id: "evt2",
+                  edge_type: "training_not_improved_error",
+                  display_label: "训练后仍需巩固",
+                  display_title: "训练后仍需巩固",
+                  display_path: "训练建议：案例题补强 → 错因：工程招标投标与合同管理 / 采分点遗漏",
+                },
+              ],
+              next_training: [
+                {
+                  concept_id: "1A432000",
+                  error_code: "E02",
+                  display_label: "训练建议",
+                  display_title: "工程招标投标与合同管理 上出现 采分点遗漏 错因",
+                  display_meta: "知识点：工程招标投标与合同管理；错因：采分点遗漏；案例题补强",
+                },
+              ],
+            },
             weak_points: [],
             typed_graph_edges: [
               {
@@ -185,6 +236,8 @@ function createPageInstance(pageDef) {
                 from: { id: "case-1", type: "question" },
                 to: { id: "1A432000", type: "concept" },
                 evidence_event_id: "evt1",
+                display_title: "题目考查知识点",
+                display_path: "案例题：第 1 题 → 知识点：工程招标投标与合同管理",
               },
             ],
             graph_chain: {
@@ -194,6 +247,7 @@ function createPageInstance(pageDef) {
                   from: { id: "1A432000:E02:case_repair", type: "next_training" },
                   to: { id: "case-2", type: "question" },
                   reason_edge_event_id: "evt2",
+                  display_path: "训练建议：案例题补强 → 案例题：第 2 题",
                 },
               ],
               training_not_improved_error: [
@@ -203,6 +257,8 @@ function createPageInstance(pageDef) {
                   to: { id: "1A432000:E02", type: "error" },
                   question_id: "case-2",
                   reason_edge_event_id: "evt2",
+                  display_meta: "训练建议：案例题补强 → 错因：工程招标投标与合同管理 / 采分点遗漏",
+                  display_path: "训练建议：案例题补强 → 错因：工程招标投标与合同管理 / 采分点遗漏",
                 },
               ],
             },
@@ -327,9 +383,14 @@ function createPageInstance(pageDef) {
     );
     assert(
       page.data.learningBrainChains[0] &&
-        page.data.learningBrainChains[0].title.indexOf("漏写关键采分点") >= 0 &&
+        page.data.learningBrainChains[0].title.indexOf("采分点遗漏") >= 0 &&
         page.data.learningBrainChains[0].training.indexOf("案例题补强") >= 0,
       "Learning Brain chain should hide raw graph ids from learner-facing copy",
+    );
+    assert(
+      JSON.stringify(page.data).indexOf("concept:1A432000") < 0 &&
+        JSON.stringify(page.data).indexOf("question_tests_concept") < 0,
+      "Learning Brain report state should prefer backend display fields over machine taxonomy codes",
     );
   });
 

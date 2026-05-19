@@ -40,6 +40,10 @@ def _make_client(requests: list[dict[str, object]], state: dict[str, object]) ->
                 ]
                 rows.sort(key=lambda row: str(row.get("created_at", "")), reverse=True)
                 return httpx.Response(200, json=rows, request=request)
+            if table == "learner_summaries":
+                user_id = str(params.get("user_id", "")).replace("eq.", "")
+                row = dict(state.get("learner_summaries", {}).get(user_id, {}))
+                return httpx.Response(200, json=[row] if row else [], request=request)
 
         if request.method == "POST":
             payload = json.loads(body or "[]")
@@ -84,6 +88,7 @@ def test_profile_read_write_and_merge_uses_user_id_filter() -> None:
         },
         "user_stats": {},
         "user_goals": [],
+        "learner_summaries": {},
     }
     transport_client = _make_client(requests, state)
     client = LearnerStateSupabaseClient(
@@ -125,6 +130,7 @@ def test_stats_read_write_and_merge_uses_user_id_filter() -> None:
             }
         },
         "user_goals": [],
+        "learner_summaries": {},
     }
     transport_client = _make_client(requests, state)
     client = LearnerStateSupabaseClient(
@@ -174,6 +180,7 @@ def test_goals_list_upsert_and_delete_use_goal_primary_key() -> None:
                 "created_at": "2026-04-15T10:10:00+08:00",
             },
         ],
+        "learner_summaries": {},
     }
     transport_client = _make_client(requests, state)
     client = LearnerStateSupabaseClient(
@@ -208,5 +215,46 @@ def test_goals_list_upsert_and_delete_use_goal_primary_key() -> None:
     assert requests[2]["path"] == "/rest/v1/user_goals"
     assert requests[2]["params"]["id"].startswith("eq.")
     assert len(state["user_goals"]) == 2
+
+    asyncio.run(transport_client.aclose())
+
+
+def test_read_compiled_learning_truth_uses_summary_structured_json() -> None:
+    requests: list[dict[str, object]] = []
+    state = {
+        "user_profiles": {},
+        "user_stats": {},
+        "user_goals": [],
+        "learner_summaries": {
+            "student_demo": {
+                "user_id": "student_demo",
+                "summary_md": "## 学习事实编译",
+                "summary_structured_json": {
+                    "learning_brain": {
+                        "subject": "construction_exam_learning_truth",
+                        "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+                        "typed_graph": {},
+                    },
+                },
+            }
+        },
+    }
+    transport_client = _make_client(requests, state)
+    client = LearnerStateSupabaseClient(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=transport_client,
+    )
+    store = LearnerStateSupabaseCoreStore(client=client)
+
+    async def _run() -> None:
+        projection = await store.read_compiled_learning_truth("student_demo")
+        assert projection["subject"] == "construction_exam_learning_truth"
+        assert projection["weak_points"][0]["error_code"] == "E04"
+
+    asyncio.run(_run())
+    assert requests[0]["path"] == "/rest/v1/learner_summaries"
+    assert requests[0]["params"]["user_id"] == "eq.student_demo"
+    assert requests[0]["params"]["limit"] == "1"
 
     asyncio.run(transport_client.aclose())

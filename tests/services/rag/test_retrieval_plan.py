@@ -36,6 +36,22 @@ def test_build_retrieval_plan_for_weak_point_review() -> None:
     assert "compiled_learning_truth" in plan.authority_order
 
 
+def test_build_retrieval_plan_ignores_nested_compiled_truth_payload() -> None:
+    plan = build_retrieval_plan(
+        query="我老是案例题采分点漏写怎么办",
+        include_questions_default=True,
+        routing_metadata={
+            "compiled_learning_truth": {
+                "subject": "construction_exam_learning_truth",
+                "weak_points": [{"concept_id": "1A432000"}],
+            }
+        },
+    )
+
+    assert plan.intent == "weak_point_review"
+    assert _group(plan, "compiled_learning_truth").enabled is False
+
+
 def test_build_retrieval_plan_for_exact_question_keeps_exact_first() -> None:
     plan = build_retrieval_plan(
         query="单选题：确定屋面防水工程的防水等级应根据什么 A 建筑物类别 B 建筑物用途",

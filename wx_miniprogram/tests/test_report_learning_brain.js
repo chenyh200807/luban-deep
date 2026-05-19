@@ -58,6 +58,14 @@ async function run() {
     "report surface should not dump long projection JSON",
   );
   assert(
+    fs.readFileSync(reportPath, "utf8").indexOf("CHAPTER_CODE_LABELS") < 0 &&
+      fs.readFileSync(reportPath, "utf8").indexOf("LEARNING_BRAIN_OBJECT_LABELS") < 0 &&
+      fs.readFileSync(reportPath, "utf8").indexOf("LEARNING_BRAIN_EDGE_LABELS") < 0 &&
+      fs.readFileSync(reportPath, "utf8").indexOf("LEARNING_BRAIN_ERROR_LABELS") < 0 &&
+      fs.readFileSync(reportPath, "utf8").indexOf("question_tests_concept:") < 0,
+    "report page should not keep Learning Brain taxonomy truth in the UI layer",
+  );
+  assert(
     reportWxss.indexOf(".level-L1_repeated") >= 0 &&
       reportWxss.indexOf(".level-L2_confirmed") >= 0 &&
       reportWxss.indexOf(".chain-not-improved") >= 0,
@@ -88,7 +96,10 @@ async function run() {
             {
               concept_id: "1A432000",
               error_code: "E02",
+              display_title: "工程招标投标与合同管理 上出现 采分点遗漏 错因",
+              display_meta: "知识点：工程招标投标与合同管理；错因：采分点遗漏；案例题补强",
               evidence_level: "L1_repeated",
+              evidence_level_label: "重复出现",
               supporting_event_ids: ["evt1abcdef", "evt2abcdef"],
             },
           ],
@@ -99,18 +110,63 @@ async function run() {
               supporting_event_ids: ["evt_confirmed_001"],
             },
           },
+          visible_sections: {
+            current_truth: [
+              {
+                object_key: "concept:1A432000",
+                object_type: "concept",
+                current_truth: "工程招标投标与合同管理 上出现 采分点遗漏 错因",
+                evidence_level: "L2_confirmed",
+                evidence_level_label: "已确认",
+                display_label: "知识点",
+                display_title: "工程招标投标与合同管理 上出现 采分点遗漏 错因",
+                display_meta: "知识点：工程招标投标与合同管理",
+                supporting_event_ids: ["evt_confirmed_001"],
+              },
+            ],
+            evidence_flow: [
+              {
+                event_id: "evt1abcdef",
+                edge_type: "question_tests_concept",
+                display_label: "题目考查知识点",
+                display_title: "题目考查知识点",
+                display_path: "案例题：专项训练 001 → 知识点：工程招标投标与合同管理",
+              },
+              {
+                event_id: "evt2abcdef",
+                edge_type: "training_not_improved_error",
+                display_label: "训练后仍需巩固",
+                display_title: "训练后仍需巩固",
+                display_path: "训练建议：案例题补强 → 错因：工程招标投标与合同管理 / 采分点遗漏",
+              },
+            ],
+            next_training: [
+              {
+                concept_id: "1A432000",
+                error_code: "E02",
+                claim: "工程招标投标与合同管理 上出现 采分点遗漏 错因",
+                display_label: "训练建议",
+                display_title: "工程招标投标与合同管理 上出现 采分点遗漏 错因",
+                display_meta: "知识点：工程招标投标与合同管理；错因：采分点遗漏；案例题补强",
+              },
+            ],
+          },
           typed_graph_edges: [
             {
               edge_type: "question_tests_concept",
               from: { id: "wechat-harness-case-001", type: "question" },
               to: { id: "1A432000", type: "concept" },
               evidence_event_id: "evt1abcdef",
+              display_title: "题目考查知识点",
+              display_path: "案例题：专项训练 001 → 知识点：工程招标投标与合同管理",
             },
             {
               edge_type: "error_points_to_training",
               from: { id: "E02", type: "error" },
               to: { id: "1A432000:training", type: "training" },
               evidence_event_id: "evt2abcdef",
+              display_title: "错因指向训练",
+              display_path: "错因：采分点遗漏 → 训练建议：工程招标投标与合同管理",
             },
           ],
           graph_chain: {
@@ -120,6 +176,7 @@ async function run() {
                 from: { id: "1A432000:training", type: "next_training" },
                 to: { id: "wechat-harness-case-002", type: "question" },
                 reason_edge_event_id: "evt2abcdef",
+                display_path: "训练建议：案例题补强 → 案例题：专项训练 002",
               },
             ],
             training_not_improved_error: [
@@ -128,6 +185,8 @@ async function run() {
                 from: { id: "1A432000:training", type: "next_training" },
                 to: { id: "1A432000:E02", type: "error" },
                 reason_edge_event_id: "evt2abcdef",
+                display_meta: "训练建议：案例题补强 → 错因：工程招标投标与合同管理 / 采分点遗漏",
+                display_path: "训练建议：案例题补强 → 错因：工程招标投标与合同管理 / 采分点遗漏",
               },
             ],
           },
@@ -169,13 +228,7 @@ async function run() {
   assert(
     ctx.data.learningBrainTruths[0].meta.indexOf("工程招标投标与合同管理") >= 0 &&
       ctx.data.learningBrainTruths[0].meta.indexOf("concept:") < 0,
-    "compiled truth meta should use taxonomy Chinese label",
-  );
-  assert.strictEqual(ctx.data.learningBrainTruths[1].level, "L1_repeated");
-  assert.strictEqual(ctx.data.learningBrainTruths[1].levelLabel, "重复出现");
-  assert(
-    ctx.data.learningBrainTruths[1].meta.indexOf("漏写关键采分点") >= 0,
-    "weak point should show readable error label",
+    "compiled truth meta should use backend display label",
   );
   assert.strictEqual(ctx.data.learningBrainEvidence[0].type, "题目考查知识点");
   assert(
@@ -192,7 +245,7 @@ async function run() {
   assert.strictEqual(ctx.data.learningBrainChains[0].outcome, "本次训练结果：未改善");
   assert.strictEqual(ctx.data.learningBrainChains[0].tone, "not-improved");
   assert(
-    ctx.data.learningBrainChains[0].title.indexOf("漏写关键采分点") >= 0 &&
+    ctx.data.learningBrainChains[0].title.indexOf("采分点遗漏") >= 0 &&
       ctx.data.learningBrainChains[0].training.indexOf("工程招标投标与合同管理") >= 0 &&
       ctx.data.learningBrainChains[0].question.indexOf("案例题") >= 0,
     "visible chain should connect readable error, recommended training, and selected question",
@@ -202,8 +255,13 @@ async function run() {
     "training recommendation should show taxonomy label",
   );
   assert.strictEqual(ctx.data.learningBrainGraphStats.projectionSubjectLabel, "建筑实务学习事实");
+  assert(
+    JSON.stringify(ctx.data).indexOf("concept:1A432000") < 0 &&
+      JSON.stringify(ctx.data).indexOf("question_tests_concept") < 0,
+    "learner-facing report state should not expose machine taxonomy codes when backend display fields exist",
+  );
 
-  console.log("PASS test_report_learning_brain.js (24 assertions)");
+  console.log("PASS test_report_learning_brain.js");
 }
 
 run().catch(function (error) {

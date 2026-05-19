@@ -67,6 +67,7 @@ class _CoreStoreStub:
         self.is_configured = True
         self.profile: dict[str, object] = {}
         self.progress: dict[str, object] = {}
+        self.compiled_learning_truth: dict[str, object] = {}
         self.goals: list[dict[str, object]] = []
         self.fail_goal_title: str | None = None
 
@@ -83,6 +84,9 @@ class _CoreStoreStub:
     def write_progress(self, _user_id: str, progress: dict[str, object]):
         self.progress = dict(progress)
         return dict(progress)
+
+    def read_compiled_learning_truth(self, _user_id: str):
+        return dict(self.compiled_learning_truth)
 
     def read_goals(self, _user_id: str):
         return [dict(item) for item in self.goals]
@@ -259,6 +263,7 @@ def test_learner_state_synthesize_learning_truth_dry_run_does_not_enqueue(tmp_pa
         item for item in service.outbox_service.list_pending("student_demo")
         if item.event_type == "summary_refresh"
     ] == []
+    assert service.read_compiled_learning_truth("student_demo") == {}
 
 
 def test_learner_state_synthesize_learning_truth_enqueues_summary_refresh(tmp_path) -> None:
@@ -293,7 +298,106 @@ def test_learner_state_synthesize_learning_truth_enqueues_summary_refresh(tmp_pa
     ]
     assert result["outbox_item"] is not None
     assert pending[0].event_type == "summary_refresh"
-    assert pending[0].payload_json["summary_structured_json"]["subject"] == "construction_exam_learning_truth"
+    assert (
+        pending[0].payload_json["summary_structured_json"]["learning_brain"]["subject"]
+        == "construction_exam_learning_truth"
+    )
+    assert result["projection"]["synthesis_run"]["status"] == "persisted_enqueued"
+    assert (
+        pending[0].payload_json["summary_structured_json"]["learning_brain"]["synthesis_run"]["status"]
+        == "persisted_enqueued"
+    )
+    assert service.read_compiled_learning_truth("student_demo")["subject"] == "construction_exam_learning_truth"
+    assert service.build_context_candidates("student_demo")["compiled_learning_truth"]["subject"] == (
+        "construction_exam_learning_truth"
+    )
+
+
+def test_learner_state_reads_remote_compiled_truth_before_local_cache(tmp_path) -> None:
+    core_store = _CoreStoreStub()
+    core_store.compiled_learning_truth = {
+        "subject": "construction_exam_learning_truth",
+        "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+    }
+    service = _make_service(tmp_path, core_store=core_store)
+    service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "stale_local_projection",
+            "weak_points": [{"concept_id": "1A421000", "error_code": "E01"}],
+        },
+    )
+
+    projection = service.read_compiled_learning_truth("student_demo")
+    context_candidates = service.build_context_candidates("student_demo")
+
+    assert projection["subject"] == "construction_exam_learning_truth"
+    assert projection["weak_points"][0]["error_code"] == "E04"
+    assert context_candidates["compiled_learning_truth"]["weak_points"][0]["error_code"] == "E04"
+
+
+def test_learner_state_configured_core_store_is_compiled_truth_authority(tmp_path) -> None:
+    core_store = _CoreStoreStub()
+    core_store.compiled_learning_truth = {
+        "learning_brain": {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E02"}],
+            "typed_graph": {},
+            "synthesis_run": {
+                "generated_at": "2026-05-18T10:00:00+08:00",
+                "output_projection_hash": "sha256:old",
+            },
+        },
+    }
+    service = _make_service(tmp_path, core_store=core_store)
+    service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+            "synthesis_run": {
+                "generated_at": "2026-05-18T11:00:00+08:00",
+                "output_projection_hash": "sha256:new",
+            },
+        },
+    )
+
+    projection = service.read_compiled_learning_truth("student_demo")
+
+    assert projection["synthesis_run"]["output_projection_hash"] == "sha256:old"
+    assert projection["weak_points"][0]["error_code"] == "E02"
+
+
+def test_learner_state_production_without_core_store_does_not_read_local_compiled_truth(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    service = _make_service(tmp_path)
+    service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E02"}],
+        },
+    )
+
+    assert service.read_compiled_learning_truth("student_demo") == {}
+    assert service.build_context_candidates("student_demo")["compiled_learning_truth"] == {}
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_learner_state_ignores_non_learning_brain_summary_structured_json(tmp_path) -> None:
+    core_store = _CoreStoreStub()
+    core_store.compiled_learning_truth = {
+        "guide_completion": {
+            "guide_id": "guide_42",
+            "notebook_name": "地基基础",
+        }
+    }
+    service = _make_service(tmp_path, core_store=core_store)
+
+    assert service.read_compiled_learning_truth("student_demo") == {}
 
 
 def test_learning_synthesis_summary_refresh_dedupe_includes_projection_hash(tmp_path) -> None:
@@ -338,8 +442,13 @@ def test_learning_synthesis_summary_refresh_dedupe_includes_projection_hash(tmp_
     ]
     assert first["outbox_item"].id != second["outbox_item"].id
     assert len(pending) == 2
-    assert len(pending[-1].payload_json["summary_structured_json"]["observed_candidates"]) == 0
-    assert pending[-1].payload_json["summary_structured_json"]["weak_points"][0]["evidence_level"] == "L1_repeated"
+    learning_brain = pending[-1].payload_json["summary_structured_json"]["learning_brain"]
+    assert second["projection"]["synthesis_run"]["previous_projection_hash"] == (
+        first["projection"]["synthesis_run"]["output_projection_hash"]
+    )
+    assert second["projection"]["synthesis_run"]["status"] == "persisted_enqueued"
+    assert len(learning_brain["observed_candidates"]) == 0
+    assert learning_brain["weak_points"][0]["evidence_level"] == "L1_repeated"
 
 
 def test_learner_state_build_compact_context_returns_learner_facts_only(tmp_path) -> None:

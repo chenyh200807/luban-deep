@@ -132,9 +132,7 @@ def build_retrieval_plan(
         routing_metadata=metadata,
     )
     standard_codes = extract_standard_codes(text)
-    compiled_truth_available = _truthy(metadata.get("compiled_learning_truth_available")) or _truthy(
-        metadata.get("compiled_learning_truth")
-    )
+    compiled_truth_available = _truthy(metadata.get("compiled_learning_truth_available"))
     wants_compiled_truth = inferred_intent in {"weak_point_review", "next_training"}
     expanded = expand_query_variants(text, max_variants=max_expanded_queries)
     if not expanded:

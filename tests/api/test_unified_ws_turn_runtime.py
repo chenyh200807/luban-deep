@@ -7491,6 +7491,10 @@ async def test_turn_runtime_context_orchestration_loads_bot_overlay_into_context
             return {
                 "learner_candidates": [],
                 "memory_candidates": [],
+                "compiled_learning_truth": {
+                    "subject": "construction_exam_learning_truth",
+                    "weak_points": [{"concept_id": "1A432000", "error_code": "E02"}],
+                },
             }
 
         async def refresh_from_turn(self, **_kwargs):
@@ -7573,6 +7577,7 @@ async def test_turn_runtime_context_orchestration_loads_bot_overlay_into_context
         await asyncio.gather(*list(runtime._background_tasks))
 
     metadata = dict(captured["metadata"])
+    assert metadata["compiled_learning_truth"]["subject"] == "construction_exam_learning_truth"
     trace = dict(metadata["context_pack_trace"])
     learner_selected = list(trace["blocks"]["learner"]["selected_candidates"])
     evidence_selected = list(trace["blocks"]["evidence"]["selected_candidates"])
