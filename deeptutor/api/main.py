@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -499,6 +500,11 @@ app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledg
 app.include_router(invite_test.router, prefix="/api/v1/invite-test", tags=["invite-test"])
 if runtime_environment() == "local" and env_flag("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", default=False):
     app.include_router(learning_brain.router, prefix="/api/v1/learning-brain", tags=["learning-brain"])
+
+    @app.get("/wechat-harness", include_in_schema=False)
+    async def learning_brain_wechat_harness():
+        return HTMLResponse(learning_brain.render_learning_brain_harness_html())
+
 app.include_router(member.router, prefix="/api/v1/member", tags=["member"])
 app.include_router(bi.router, prefix="/api/v1/bi", tags=["bi"])
 app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])

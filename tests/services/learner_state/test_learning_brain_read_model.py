@@ -21,6 +21,20 @@ def _projection() -> dict:
                 "supporting_event_ids": ["evt1", "evt2"],
                 "timeline_refs": [{"event_id": "evt1"}],
                 "decay_state": "active",
+            },
+            "question:wechat-harness-case-001": {
+                "object_type": "question",
+                "object_id": "wechat-harness-case-001",
+                "current_truth": "题目 wechat-harness-case-001 触发了 E02 相关错因观察。",
+                "evidence_level": "L0_observed",
+                "supporting_event_ids": ["evt1"],
+            },
+            "submission:wechat-harness-learning-brain-demo123-1": {
+                "object_type": "submission",
+                "object_id": "wechat-harness-learning-brain-demo123-1",
+                "current_truth": "作答 wechat-harness-learning-brain-demo123-1 产生了结构化阅卷证据。",
+                "evidence_level": "L0_observed",
+                "supporting_event_ids": ["evt1"],
             }
         },
         "weak_points": [
@@ -67,7 +81,12 @@ def test_mobile_read_model_uses_shared_learning_brain_projection() -> None:
 
     assert model["projection_subject"] == "construction_exam_learning_truth"
     assert model["typed_graph_edges"][0]["display_title"] == "题目考查知识点"
-    assert model["typed_graph_edges"][0]["display_path"] == "案例题：case_001 → 知识点：工程招标投标与合同管理"
+    assert model["typed_graph_edges"][0]["display_path"] == "案例题：第 001 题 → 知识点：工程招标投标与合同管理"
+    assert any(edge["edge_type"] == "training_not_improved_error" for edge in model["typed_graph_edges"])
+    assert model["compiled_objects"]["concept:1A432000"]["current_truth"] == "工程招标投标与合同管理 上出现 采分点遗漏 错因"
+    assert model["compiled_objects"]["question:wechat-harness-case-001"]["current_truth"] == "题目 专项训练 001 触发了 采分点遗漏 相关错因。"
+    assert model["compiled_objects"]["submission:wechat-harness-learning-brain-demo123-1"]["display_meta"] == "作答记录：第 1 次作答"
+    assert model["weak_points"][0]["display_title"] == "工程招标投标与合同管理 上出现 采分点遗漏 错因"
     assert model["visible_sections"]["current_truth"][0]["object_key"] == "concept:1A432000"
     assert model["visible_sections"]["current_truth"][0]["display_title"] == "工程招标投标与合同管理 上出现 采分点遗漏 错因"
     assert model["visible_sections"]["current_truth"][0]["display_meta"] == "知识点：工程招标投标与合同管理"
@@ -105,7 +124,7 @@ def test_qa_read_model_uses_same_projection_with_section_list() -> None:
         "compiled_objects",
         "typed_graph",
     ]
-    assert model["typed_graph_edge_count"] == 2
+    assert model["typed_graph_edge_count"] == 4
     assert model["graph_chain"]["has_training_not_improved_error"] is True
 
 

@@ -2771,7 +2771,8 @@ def test_learning_brain_projection_reads_authenticated_learner_truth(
     assert body["visible_sections"]["current_truth"][0]["display_meta"] == "知识点：工程招标投标与合同管理"
     assert body["visible_sections"]["evidence_flow"][0]["event_id"] == "evt1"
     assert body["visible_sections"]["next_training"][0]["recommended_training"]["mode"] == "case_repair"
-    assert body["typed_graph_edge_count"] == 2
+    assert body["typed_graph_edge_count"] == 4
+    assert any(edge["edge_type"] == "training_not_improved_error" for edge in body["typed_graph_edges"])
     assert body["graph_chain"]["has_training_uses_question"] is True
     assert body["graph_chain"]["has_training_not_improved_error"] is True
 

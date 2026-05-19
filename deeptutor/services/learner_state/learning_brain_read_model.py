@@ -74,11 +74,19 @@ def build_learning_brain_read_model(
         _with_edge_display(dict(edge)) for edge in list(typed_graph.get("edges") or []) if isinstance(edge, dict)
     ]
     compiled_objects = {
-        str(key): dict(value)
+        str(key): _with_object_display({
+            **dict(value),
+            "object_key": str(key),
+            "current_truth": _humanize_text(value.get("current_truth", "")),
+        })
         for key, value in dict(normalized_projection.get("compiled_objects") or {}).items()
         if isinstance(value, dict)
     }
-    weak_points = [dict(item) for item in list(normalized_projection.get("weak_points") or []) if isinstance(item, dict)]
+    weak_points = [
+        _with_training_display({**dict(item), "claim": _humanize_text(item.get("claim", ""))})
+        for item in list(normalized_projection.get("weak_points") or [])
+        if isinstance(item, dict)
+    ]
     improvement_signals = [
         dict(item) for item in list(normalized_projection.get("improvement_signals") or []) if isinstance(item, dict)
     ]
@@ -89,6 +97,12 @@ def build_learning_brain_read_model(
         weak_points=weak_points,
         improvement_signals=improvement_signals,
     )
+    derived_graph_edges = (
+        graph_chain["training_uses_question"]
+        + graph_chain["training_improved_error"]
+        + graph_chain["training_not_improved_error"]
+    )
+    visible_typed_graph_edges = typed_graph_edges + derived_graph_edges
     base = {
         "ok": True,
         "user_id": user_id,
@@ -98,9 +112,9 @@ def build_learning_brain_read_model(
         "weak_points": weak_points,
         "improvement_signals": improvement_signals,
         "stale_claims": stale_claims,
-        "typed_graph_edges": typed_graph_edges,
+        "typed_graph_edges": visible_typed_graph_edges,
         "typed_graph_readiness_gaps": list(typed_graph.get("readiness_gaps") or []),
-        "typed_graph_edge_count": len(typed_graph_edges),
+        "typed_graph_edge_count": len(visible_typed_graph_edges),
         "graph_chain": graph_chain,
         "event_count": int(run.get("input_event_count") or 0),
         "created_claim_count": int(run.get("created_claim_count") or 0),
@@ -113,7 +127,7 @@ def build_learning_brain_read_model(
             weak_points=weak_points,
             compiled_objects=compiled_objects,
             typed_graph=typed_graph,
-            typed_graph_edges=typed_graph_edges,
+            typed_graph_edges=visible_typed_graph_edges,
         )
     else:
         base["visible_sections"] = _mobile_sections(
@@ -377,6 +391,31 @@ def _compact_id(value: Any) -> str:
     return f"{text[:8]}...{text[-4:]}" if len(text) > 18 else text
 
 
+def _question_label(question_id: Any) -> str:
+    text = str(question_id or "").strip()
+    if not text:
+        return ""
+    match = re.match(r"^wechat-harness-case-(\d+)$", text, flags=re.IGNORECASE)
+    if match:
+        return f"专项训练 {match.group(1)}"
+    match = re.match(r"^case[-_:]?(\d+)$", text, flags=re.IGNORECASE)
+    if match:
+        return f"第 {match.group(1)} 题"
+    return _compact_id(text)
+
+
+def _submission_label(submission_id: Any) -> str:
+    text = str(submission_id or "").strip()
+    if not text:
+        return ""
+    match = re.match(r"^wechat-harness-learning-brain-[a-z0-9]+-(\d+)$", text, flags=re.IGNORECASE)
+    if match:
+        return f"第 {match.group(1)} 次作答"
+    if re.match(r"^wechat-harness-learning-brain-confirm-[a-z0-9]+$", text, flags=re.IGNORECASE):
+        return "老师确认"
+    return _compact_id(text)
+
+
 def _split_object_id(raw_id: Any, raw_type: Any = "") -> tuple[str, str]:
     object_id = str(raw_id or "").strip()
     object_type = str(raw_type or "").strip()
@@ -405,7 +444,8 @@ def _object_display(raw_id: Any, raw_type: Any = "") -> dict[str, str]:
         meta = " / ".join(item for item in (concept, error) if item)
         return {"display_label": "错因", "display_title": f"错因：{meta or error}", "display_meta": meta or error}
     if object_type == "question":
-        return {"display_label": "案例题", "display_title": f"案例题：{_compact_id(object_id)}", "display_meta": str(object_id or "")}
+        label = _question_label(object_id)
+        return {"display_label": "案例题", "display_title": f"案例题：{label}", "display_meta": f"案例题：{label}"}
     if object_type == "rubric_item":
         part = str(object_id or "").split(":")[-1]
         return {"display_label": "采分点", "display_title": f"采分点：{_compact_id(part)}", "display_meta": str(object_id or "")}
@@ -413,7 +453,8 @@ def _object_display(raw_id: Any, raw_type: Any = "") -> dict[str, str]:
         label = _concept_label(object_id)
         return {"display_label": "知识点", "display_title": f"知识点：{label}", "display_meta": str(object_id or "").upper()}
     if object_type == "submission":
-        return {"display_label": "作答记录", "display_title": f"作答记录：{_compact_id(object_id)}", "display_meta": str(object_id or "")}
+        label = _submission_label(object_id)
+        return {"display_label": "作答记录", "display_title": f"作答记录：{label}", "display_meta": f"作答记录：{label}"}
     return {"display_label": "学习对象", "display_title": f"学习对象：{_compact_id(object_id or object_type)}", "display_meta": str(object_id or "")}
 
 
@@ -474,6 +515,30 @@ def _humanize_text(value: Any) -> str:
     text = str(value or "").strip()
     if not text:
         return ""
+    text = re.sub(
+        r"\bwechat-harness-case-(\d+)\b",
+        lambda match: f"专项训练 {match.group(1)}",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\bcase[-_:]?(\d+)\b",
+        lambda match: f"第 {match.group(1)} 题",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\bwechat-harness-learning-brain-[a-z0-9]+-(\d+)\b",
+        lambda match: f"第 {match.group(1)} 次作答",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\bwechat-harness-learning-brain-confirm-[a-z0-9]+\b",
+        "老师确认",
+        text,
+        flags=re.IGNORECASE,
+    )
     text = re.sub(r"\b1A\d{6}\b", lambda match: display_taxonomy_label(match.group(0), fallback=match.group(0)), text)
     for error_code, label in _ERROR_LABELS.items():
         text = text.replace(error_code, label)

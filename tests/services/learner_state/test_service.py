@@ -5,6 +5,7 @@ import json
 
 import pytest
 
+from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.service import LearnerStateEvent, LearnerStateOutboxService, LearnerStateService
 
 
@@ -307,10 +308,28 @@ def test_learner_state_synthesize_learning_truth_enqueues_summary_refresh(tmp_pa
         pending[0].payload_json["summary_structured_json"]["learning_brain"]["synthesis_run"]["status"]
         == "persisted_enqueued"
     )
-    assert service.read_compiled_learning_truth("student_demo")["subject"] == "construction_exam_learning_truth"
+    projection = service.read_compiled_learning_truth("student_demo")
+    assert projection["subject"] == "construction_exam_learning_truth"
     assert service.build_context_candidates("student_demo")["compiled_learning_truth"]["subject"] == (
         "construction_exam_learning_truth"
     )
+    read_model = build_learning_brain_read_model(
+        user_id="student_demo",
+        projection=projection,
+        surface="mobile",
+    )
+    visible_text = json.dumps(
+        [
+            item.get("display_title", "") + " " + item.get("display_meta", "") + " " + item.get("display_path", "")
+            for section in read_model["visible_sections"].values()
+            for item in section
+            if isinstance(item, dict)
+        ],
+        ensure_ascii=False,
+    )
+    assert "工程招标投标与合同管理" in visible_text
+    assert "1A432000" not in visible_text
+    assert "E02" not in visible_text
 
 
 def test_learner_state_reads_remote_compiled_truth_before_local_cache(tmp_path) -> None:

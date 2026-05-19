@@ -162,9 +162,11 @@ def test_learning_brain_projection_returns_wechat_read_model(
     assert payload["projection_subject"] == "construction_exam_learning_truth"
     assert payload["compiled_objects"]
     assert payload["weak_points"]
-    section_ids = {section["id"] for section in payload["visible_sections"]}
-    assert {"weak_points", "compiled_objects", "typed_graph"}.issubset(section_ids)
-    assert any(section["id"] == "weak_points" and section["visible"] for section in payload["visible_sections"])
+    assert set(payload["visible_sections"]) == {"current_truth", "evidence_flow", "next_training"}
+    assert payload["visible_sections"]["current_truth"]
+    assert payload["visible_sections"]["evidence_flow"]
+    assert payload["visible_sections"]["next_training"]
+    assert payload["visible_sections"]["current_truth"][0]["display_title"].startswith("工程招标投标与合同管理")
     assert payload["typed_graph_edge_count"] > 0
 
 

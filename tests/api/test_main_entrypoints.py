@@ -431,6 +431,14 @@ def test_learning_brain_qa_router_requires_local_explicit_flag(
     )
 
     assert "/api/v1/learning-brain/harness-case-grading" in _route_paths(module.app)
+    assert "/wechat-harness" in _route_paths(module.app)
+
+    with TestClient(module.app) as client:
+        response = client.get("/wechat-harness")
+
+    assert response.status_code == 200
+    assert "学习大脑" in response.text
+    assert "当前可信结论" in response.text
 
 
 def test_learning_brain_qa_router_not_mounted_in_production_even_with_flag(
@@ -447,6 +455,7 @@ def test_learning_brain_qa_router_not_mounted_in_production_even_with_flag(
     )
 
     assert "/api/v1/learning-brain/harness-case-grading" not in _route_paths(module.app)
+    assert "/wechat-harness" not in _route_paths(module.app)
 
 
 def test_public_outputs_can_be_explicitly_reenabled_in_production(

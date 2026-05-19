@@ -26,6 +26,123 @@ class LearningBrainHarnessRequest(BaseModel):
     manual_confirm: bool = False
 
 
+def render_learning_brain_harness_html() -> str:
+    return """<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>学习大脑 QA</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; background: #f6f8fb; color: #142033; }
+    main { max-width: 1040px; margin: 0 auto; padding: 28px 20px 48px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    h2 { margin: 28px 0 12px; font-size: 18px; }
+    label { display: block; margin: 14px 0 6px; font-weight: 650; }
+    input, textarea { width: 100%; box-sizing: border-box; border: 1px solid #c8d3e2; border-radius: 8px; padding: 10px 12px; font: inherit; background: white; }
+    textarea { min-height: 96px; resize: vertical; }
+    button { border: 0; border-radius: 8px; padding: 10px 14px; margin: 12px 8px 0 0; color: white; background: #2563eb; font-weight: 700; cursor: pointer; }
+    button.secondary { background: #475569; }
+    button.success { background: #15803d; }
+    .summary { color: #526173; margin-bottom: 20px; }
+    .panel { background: white; border: 1px solid #d9e2ef; border-radius: 10px; padding: 16px; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .item { border: 1px solid #e0e7f0; border-radius: 8px; padding: 12px; margin: 10px 0; background: #fbfdff; }
+    .tag { display: inline-block; border-radius: 999px; padding: 3px 8px; background: #e0f2fe; color: #075985; font-size: 12px; font-weight: 700; }
+    .meta { color: #64748b; font-size: 13px; margin-top: 6px; }
+    .empty { color: #64748b; padding: 10px 0; }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } main { padding: 20px 14px 36px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>学习大脑</h1>
+    <p class="summary">中文可见链 QA：案例作答 → 阅卷证据 → 学习事实编译 → 下一步训练。</p>
+    <section class="panel">
+      <label for="userId">学员</label>
+      <input id="userId">
+      <label for="answer">中文案例作答</label>
+      <textarea id="answer">应加强现场管理，落实责任，严格检查。</textarea>
+      <button id="runWeak">生成薄弱点</button>
+      <button id="runConfirm" class="secondary">老师确认 L2</button>
+      <button id="runImprove" class="success">下一题训练改善</button>
+      <div id="status" class="meta"></div>
+    </section>
+    <section class="grid">
+      <div>
+        <h2>当前可信结论</h2>
+        <div id="truths" class="panel"></div>
+      </div>
+      <div>
+        <h2>证据流</h2>
+        <div id="evidence" class="panel"></div>
+      </div>
+      <div>
+        <h2>下一步训练</h2>
+        <div id="training" class="panel"></div>
+      </div>
+    </section>
+    <section>
+      <h2>完整训练链</h2>
+      <div id="chain" class="panel"></div>
+    </section>
+  </main>
+  <script>
+    const userInput = document.getElementById("userId");
+    const answerInput = document.getElementById("answer");
+    const statusNode = document.getElementById("status");
+    userInput.value = "wechat_harness_learning_brain_" + Date.now();
+
+    function safeText(value) {
+      return String(value || "")
+        .replace(/wechat-harness-case-(\\d+)/gi, "专项训练 $1")
+        .replace(/wechat-harness-learning-brain-[a-z0-9]+-(\\d+)/gi, "第 $1 次作答")
+        .replace(/wechat-harness-learning-brain-confirm-[a-z0-9]+/gi, "老师确认")
+        .replace(/1A\\d{6}/g, "知识点")
+        .replace(/\\bE\\d{2}\\b/g, "错因");
+    }
+    function item(title, meta, tag) {
+      return `<div class="item">${tag ? `<span class="tag">${safeText(tag)}</span>` : ""}<div>${safeText(title)}</div>${meta ? `<div class="meta">${safeText(meta)}</div>` : ""}</div>`;
+    }
+    function renderList(id, rows, emptyText) {
+      document.getElementById(id).innerHTML = rows.length ? rows.join("") : `<div class="empty">${emptyText}</div>`;
+    }
+    function render(data) {
+      const sections = data.visible_sections || {};
+      renderList("truths", (sections.current_truth || []).map(x => item(x.display_title || x.current_truth, x.display_meta, x.evidence_level_label)), "暂无稳定结论");
+      renderList("evidence", (sections.evidence_flow || []).map(x => item(x.display_title || x.display_label, x.display_path || x.display_meta, x.event_id ? "证据 " + String(x.event_id).slice(0, 8) : "")), "暂无证据流");
+      renderList("training", (sections.next_training || []).map(x => item(x.display_title || x.claim, x.display_meta, x.evidence_level_label)), "暂无训练建议");
+      const graph = data.graph_chain || {};
+      const outcomes = [...(graph.training_improved_error || []), ...(graph.training_not_improved_error || [])];
+      renderList("chain", outcomes.map(x => item(x.display_title, x.display_path || x.display_meta, x.edge_type === "training_improved_error" ? "已改善" : "仍需巩固")), "暂无训练结果链");
+      statusNode.textContent = `事件 ${data.event_count || 0} 个，关系 ${data.typed_graph_edge_count || 0} 条`;
+    }
+    async function refresh() {
+      const userId = userInput.value.trim();
+      const res = await fetch(`/api/v1/learning-brain/harness-projection?user_id=${encodeURIComponent(userId)}`);
+      if (!res.ok) throw new Error(await res.text());
+      render(await res.json());
+    }
+    async function grade(answer, manualConfirm) {
+      statusNode.textContent = "处理中...";
+      const res = await fetch("/api/v1/learning-brain/harness-case-grading", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ user_id: userInput.value.trim(), user_answer: answer, manual_confirm: manualConfirm })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      render(await res.json());
+    }
+    document.getElementById("runWeak").onclick = () => grade(answerInput.value, false).catch(err => statusNode.textContent = err.message);
+    document.getElementById("runConfirm").onclick = () => grade(answerInput.value, true).catch(err => statusNode.textContent = err.message);
+    document.getElementById("runImprove").onclick = () => grade("应组织专家论证，编制专项施工方案并按规定审批；按专项施工方案实施，验收合格后方可进入下道工序。", false).catch(err => statusNode.textContent = err.message);
+    refresh().catch(() => {});
+  </script>
+</body>
+</html>"""
+
+
 def _qa_enabled() -> bool:
     return runtime_environment() == "local" and env_flag("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", default=False)
 
@@ -82,7 +199,7 @@ async def get_learning_brain_projection(
         event_limit=50,
     )
     projection = dict(synthesis.get("projection") or {})
-    return build_learning_brain_read_model(user_id=normalized_user_id, projection=projection, surface="qa")
+    return build_learning_brain_read_model(user_id=normalized_user_id, projection=projection, surface="mobile")
 
 
 @router.post("/harness-case-grading")
@@ -148,7 +265,7 @@ async def run_learning_brain_harness_case_grading(
         event_limit=50,
     )
     projection = dict(synthesis.get("projection") or {})
-    read_model = build_learning_brain_read_model(user_id=user_id, projection=projection, surface="qa")
+    read_model = build_learning_brain_read_model(user_id=user_id, projection=projection, surface="mobile")
     graph_chain = dict(read_model.get("graph_chain") or {})
     return {
         **read_model,
