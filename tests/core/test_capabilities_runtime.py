@@ -3015,6 +3015,71 @@ async def test_rag_adapter_tool_emits_only_evidence_bundle_summary_in_trace_meta
 
 
 @pytest.mark.asyncio
+async def test_rag_adapter_tool_returns_learning_fact_capsule_for_next_training(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+
+    async def _fake_rag_search(*, query: str, kb_name: str | None = None, **_kwargs: Any) -> dict[str, Any]:
+        assert query == "我老是案例题漏写专家论证，下一步练什么？"
+        assert kb_name == "construction-exam"
+        return {
+            "answer": "## 标准作答\n\n第1问：需要专家论证的专项施工方案包括……",
+            "content": "## 标准作答\n\n第1问：需要专家论证的专项施工方案包括……",
+            "sources": [
+                {
+                    "chunk_id": "std-1",
+                    "source_type": "standard",
+                    "title": "标准依据",
+                    "content": "专项方案审批和专家论证依据。",
+                },
+                {
+                    "chunk_id": "compiled-truth:weak-point:1A432000:E02",
+                    "source_type": "compiled_learning_truth",
+                    "title": "学员弱点: 1A432000:E02",
+                    "content": "学员反复漏写专家论证、专项施工方案审批和验收合格。",
+                },
+            ],
+            "evidence_bundle": {
+                "retrieval_plan": {
+                    "intent": "next_training",
+                },
+                "ranking_trace": {
+                    "ranking_policy": {"compiled_truth_final_enabled": True},
+                },
+            },
+        }
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(metadata={"default_kb": "construction-exam"})
+
+    result = await tool.execute(query="我老是案例题漏写专家论证，下一步练什么？")
+
+    assert result.startswith("## 学习事实召回计划")
+    assert "retrieval_intent: next_training" in result
+    assert "必须优先回答学员弱点、证据、下一步训练和作答检查清单" in result
+    assert "compiled-truth:weak-point:1A432000:E02" in result
+    assert "## 标准作答" not in result
+    metadata = tool.consume_trace_metadata()
+    assert metadata["evidence_bundle_summary"]["retrieval_intent"] == "next_training"
+    assert metadata["evidence_bundle_summary"]["compiled_truth_final_enabled"] is True
+
+
+@pytest.mark.asyncio
 async def test_rag_adapter_tool_does_not_forward_stale_question_type_without_question_flow(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

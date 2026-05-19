@@ -400,14 +400,37 @@ class InviteTestApplicationStore:
 
     async def submit_application(self, payload: Mapping[str, Any]) -> dict[str, Any]:
         record = build_invite_test_application_record(payload)
-        if self.is_database_configured:
-            await self._save_database_record(record)
-            return {"ok": True, "id": record["id"], "storage_status": "database"}
+        attempted: list[str] = []
+        last_error: Exception | None = None
         if self.is_supabase_configured:
-            await self._save_supabase_record(record)
-            return {"ok": True, "id": record["id"], "storage_status": "supabase"}
+            attempted.append("supabase")
+            try:
+                await self._save_supabase_record(record)
+                return {"ok": True, "id": record["id"], "storage_status": "supabase"}
+            except Exception as exc:
+                last_error = exc
+        if self.is_database_configured:
+            attempted.append("database")
+            try:
+                await self._save_database_record(record)
+                storage_status = "database"
+                if attempted and attempted[0] == "supabase":
+                    storage_status = "supabase_error_database_fallback"
+                return {"ok": True, "id": record["id"], "storage_status": storage_status}
+            except Exception as exc:
+                last_error = exc
         if self._save_jsonl_record(record):
-            return {"ok": True, "id": record["id"], "storage_status": "jsonl_fallback"}
+            if attempted == ["supabase", "database"]:
+                storage_status = "supabase_database_error_jsonl_fallback"
+            elif attempted == ["supabase"]:
+                storage_status = "supabase_error_jsonl_fallback"
+            elif attempted == ["database"]:
+                storage_status = "database_error_jsonl_fallback"
+            else:
+                storage_status = "jsonl_fallback"
+            return {"ok": True, "id": record["id"], "storage_status": storage_status}
+        if last_error is not None:
+            raise RuntimeError("申请提交通道暂时不可用，请稍后再试。") from last_error
         raise RuntimeError("申请提交通道未配置，请稍后再试。")
 
     async def _load_rows(self, *, days: int) -> tuple[str, list[dict[str, Any]]]:

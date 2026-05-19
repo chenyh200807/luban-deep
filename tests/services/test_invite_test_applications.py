@@ -17,6 +17,20 @@ def _write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
     path.write_text("\n".join(json.dumps(row, ensure_ascii=False) for row in rows), encoding="utf-8")
 
 
+@pytest.fixture(autouse=True)
+def _clear_invite_test_storage_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for key in (
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_KEY",
+        "INVITE_TEST_DATABASE_URL",
+        "SUPABASE_DB_URL",
+        "DB_URL",
+        "INVITE_TEST_APPLICATIONS_PATH",
+    ):
+        monkeypatch.delenv(key, raising=False)
+
+
 def test_normalize_invite_test_application_masks_contact_by_default() -> None:
     row = {
         "id": "app-1",
@@ -216,6 +230,123 @@ async def test_invite_test_store_submits_to_jsonl_fallback(tmp_path: Path, monke
     rows = [json.loads(line) for line in jsonl_path.read_text(encoding="utf-8").splitlines()]
     assert rows[0]["phone"] == "13800138000"
     assert rows[0]["source_page"] == "invite-test"
+
+
+@pytest.mark.asyncio
+async def test_invite_test_store_prefers_supabase_write_when_supabase_and_db_are_both_configured() -> None:
+    store = InviteTestApplicationStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        database_url="postgresql://user:pass@example.com:5432/app",
+    )
+    calls: list[str] = []
+
+    async def _fake_save_supabase(record):
+        calls.append(f"supabase:{record['phone']}")
+
+    async def _fake_save_database(record):
+        calls.append(f"database:{record['phone']}")
+
+    store._save_supabase_record = _fake_save_supabase  # type: ignore[method-assign]
+    store._save_database_record = _fake_save_database  # type: ignore[method-assign]
+
+    result = await store.submit_application(
+        {
+            "name": "张同学",
+            "phone": "13800138000",
+            "email": "qa@example.com",
+            "examType": "二建建筑实务",
+            "examStage": "正在冲刺刷题",
+            "painPoint": "错题原因不清楚",
+            "weeklyTime": "10-30 分钟",
+            "consent": True,
+        }
+    )
+
+    assert result["storage_status"] == "supabase"
+    assert calls == ["supabase:13800138000"]
+
+
+@pytest.mark.asyncio
+async def test_invite_test_store_falls_back_to_database_when_supabase_write_fails() -> None:
+    store = InviteTestApplicationStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        database_url="postgresql://user:pass@example.com:5432/app",
+    )
+    calls: list[str] = []
+
+    async def _failing_save_supabase(record):
+        calls.append(f"supabase:{record['phone']}")
+        raise RuntimeError("supabase unavailable")
+
+    async def _fake_save_database(record):
+        calls.append(f"database:{record['phone']}")
+
+    store._save_supabase_record = _failing_save_supabase  # type: ignore[method-assign]
+    store._save_database_record = _fake_save_database  # type: ignore[method-assign]
+
+    result = await store.submit_application(
+        {
+            "name": "张同学",
+            "phone": "13800138000",
+            "email": "qa@example.com",
+            "examType": "二建建筑实务",
+            "examStage": "正在冲刺刷题",
+            "painPoint": "错题原因不清楚",
+            "weeklyTime": "10-30 分钟",
+            "consent": True,
+        }
+    )
+
+    assert result["storage_status"] == "supabase_error_database_fallback"
+    assert calls == ["supabase:13800138000", "database:13800138000"]
+
+
+@pytest.mark.asyncio
+async def test_invite_test_store_falls_back_to_jsonl_when_remote_writes_fail(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    jsonl_path = tmp_path / "submitted-fallback.jsonl"
+    store = InviteTestApplicationStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        database_url="postgresql://user:pass@example.com:5432/app",
+        jsonl_path=str(jsonl_path),
+    )
+    calls: list[str] = []
+
+    async def _failing_save_supabase(record):
+        calls.append(f"supabase:{record['phone']}")
+        raise RuntimeError("supabase unavailable")
+
+    async def _failing_save_database(record):
+        calls.append(f"database:{record['phone']}")
+        raise RuntimeError("database unavailable")
+
+    store._save_supabase_record = _failing_save_supabase  # type: ignore[method-assign]
+    store._save_database_record = _failing_save_database  # type: ignore[method-assign]
+
+    result = await store.submit_application(
+        {
+            "name": "张同学",
+            "phone": "13800138000",
+            "email": "qa@example.com",
+            "examType": "二建建筑实务",
+            "examStage": "正在冲刺刷题",
+            "painPoint": "错题原因不清楚",
+            "weeklyTime": "10-30 分钟",
+            "consent": True,
+            "sourcePage": "invite-test",
+        }
+    )
+
+    assert result["storage_status"] == "supabase_database_error_jsonl_fallback"
+    assert calls == ["supabase:13800138000", "database:13800138000"]
+    rows = [json.loads(line) for line in jsonl_path.read_text(encoding="utf-8").splitlines()]
+    assert rows[0]["phone"] == "13800138000"
 
 
 def test_normalize_invite_test_application_reads_profile_fields_from_raw_payload() -> None:
