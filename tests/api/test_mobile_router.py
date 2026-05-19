@@ -2808,6 +2808,72 @@ def test_learning_brain_projection_returns_empty_read_model_without_compiled_tru
     }
 
 
+def test_learning_brain_projection_local_qa_can_fallback_to_dry_run_synthesis(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: dict[str, object] = {}
+
+    class FakeLearnerStateService:
+        def read_compiled_learning_truth(self, user_id):
+            calls["read_user_id"] = user_id
+            return {}
+
+        def synthesize_learning_truth(self, user_id, *, dry_run, event_limit):
+            calls["synthesis"] = {
+                "user_id": user_id,
+                "dry_run": dry_run,
+                "event_limit": event_limit,
+            }
+            return {
+                "projection": {
+                    "schema_version": 2,
+                    "subject": "construction_exam_learning_truth",
+                    "compiled_objects": {
+                        "concept:1A432000": {
+                            "object_type": "concept",
+                            "object_id": "1A432000",
+                            "current_truth": "1A432000 上出现 E02 错因观察",
+                            "evidence_level": "L1_repeated",
+                            "supporting_event_ids": ["evt1", "evt2"],
+                        }
+                    },
+                    "weak_points": [
+                        {
+                            "concept_id": "1A432000",
+                            "error_code": "E02",
+                            "claim": "1A432000 上出现 E02 错因观察",
+                            "evidence_level": "L1_repeated",
+                            "supporting_event_ids": ["evt1", "evt2"],
+                        }
+                    ],
+                    "typed_graph": {"edges": []},
+                    "synthesis_run": {"input_event_count": 2},
+                }
+            }
+
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", "1")
+    monkeypatch.setenv("DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK", "1")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/learning-brain/projection?event_limit=25")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert calls == {
+        "read_user_id": "student_demo",
+        "synthesis": {"user_id": "student_demo", "dry_run": True, "event_limit": 25},
+    }
+    assert body["event_count"] == 2
+    assert body["weak_points"][0]["evidence_level"] == "L1_repeated"
+
+
 def test_auth_profile_exposes_is_admin_flag(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
