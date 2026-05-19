@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -70,6 +71,30 @@ def _open_devtools(project_path: Path) -> None:
     )
 
 
+def _run_synthesis(*, user_id: str, event_limit: int, user_data_dir: str) -> dict[str, Any]:
+    env = dict(os.environ)
+    env.setdefault("DEEPTUTOR_ENV", "local")
+    env.setdefault("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", "1")
+    env.setdefault("DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK", "1")
+    env.setdefault("DEEPTUTOR_USER_DATA_DIR", user_data_dir)
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(PROJECT_ROOT / "scripts" / "run_learning_synthesis.py"),
+            "--user-id",
+            user_id,
+            "--event-limit",
+            str(event_limit),
+        ],
+        check=True,
+        cwd=str(PROJECT_ROOT),
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(completed.stdout)
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
     code = args.code or f"dev-learning-brain-e2e-{int(time.time())}"
     login = _request_json(
@@ -94,6 +119,12 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     )
     _assert(first.get("training_uses_question") is True, "first grading did not build training -> question chain")
     _assert(first.get("training_not_improved_error") is True, "first grading did not mark weak point as not improved")
+    l1_synthesis = _run_synthesis(
+        user_id=user_id,
+        event_limit=args.event_limit,
+        user_data_dir=args.user_data_dir,
+    )
+    _assert(l1_synthesis.get("status") == "ok", "first synthesis did not complete")
 
     l1_projection = _request_json(
         method="GET",
@@ -118,6 +149,12 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         body={"user_id": user_id, "user_answer": confirmed_answer, "manual_confirm": True},
     )
     _assert(bool(confirmed.get("manual_confirmation")), "manual confirmation event was not written")
+    l2_synthesis = _run_synthesis(
+        user_id=user_id,
+        event_limit=args.event_limit,
+        user_data_dir=args.user_data_dir,
+    )
+    _assert(l2_synthesis.get("status") == "ok", "manual-confirm synthesis did not complete")
     l2_projection = _request_json(
         method="GET",
         base_url=args.base_url,
@@ -133,6 +170,12 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         body={"user_id": user_id, "user_answer": success_answer},
     )
     _assert(improved.get("training_improved_error") is True, "success grading did not build training_improved_error")
+    improved_synthesis = _run_synthesis(
+        user_id=user_id,
+        event_limit=args.event_limit,
+        user_data_dir=args.user_data_dir,
+    )
+    _assert(improved_synthesis.get("status") == "ok", "improvement synthesis did not complete")
     improved_projection = _request_json(
         method="GET",
         base_url=args.base_url,
@@ -155,6 +198,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "l1_levels": sorted(_levels(l1_projection)),
         "l2_levels": sorted(_levels(l2_projection)),
         "graph_chain": improved_projection.get("graph_chain"),
+        "synthesis": {
+            "l1_event_count": l1_synthesis.get("event_count"),
+            "l2_manual_override_count": l2_synthesis.get("manual_override_count"),
+            "improved_decayed_claim_count": improved_synthesis.get("decayed_claim_count"),
+        },
         "visible_sections": {
             "current_truth": len((improved_projection.get("visible_sections") or {}).get("current_truth") or []),
             "evidence_flow": len((improved_projection.get("visible_sections") or {}).get("evidence_flow") or []),
@@ -168,6 +216,10 @@ def main() -> int:
     parser.add_argument("--base-url", default="http://127.0.0.1:8001")
     parser.add_argument("--code", default="")
     parser.add_argument("--event-limit", type=int, default=100)
+    parser.add_argument(
+        "--user-data-dir",
+        default=str(PROJECT_ROOT / ".local-runs" / "learning-brain" / "user-data"),
+    )
     parser.add_argument("--open-devtools", action="store_true")
     parser.add_argument("--project-path", default=str(PROJECT_ROOT / "yousenwebview"))
     args = parser.parse_args()

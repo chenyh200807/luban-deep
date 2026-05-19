@@ -102,6 +102,31 @@ function loadBridgePage() {
 var tests = [];
 
 tests.push(function () {
+  return run("bridge direct launch without entry intent returns to host home", async function () {
+    var setup = loadBridgePage();
+
+    setup.page.onLoad({});
+    setup.page.onReady();
+    await waitForTick();
+
+    assert(
+      setup.loadSubpackageCalls.length === 0,
+      "direct bridge launch should not load deeptutor subpackage without entry intent",
+    );
+    assert(
+      setup.redirectCalls.length === 0,
+      "direct bridge launch should not redirect into deeptutor package without entry intent",
+    );
+    assert(setup.reLaunchCalls.length === 1, "direct bridge launch should reLaunch once");
+    assert(
+      setup.reLaunchCalls[0] &&
+        setup.reLaunchCalls[0].url === "/pages/freeCourse/freeCourse",
+      "direct bridge launch should return to host home",
+    );
+  });
+});
+
+tests.push(function () {
   return run("bridge loads subpackage before redirecting to login when unauthenticated", async function () {
     var setup = loadBridgePage();
 

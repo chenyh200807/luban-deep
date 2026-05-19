@@ -105,6 +105,17 @@ function clearCachedLaunchState() {
   } catch (_) {}
 }
 
+function scheduleAfterReady(task) {
+  if (typeof task !== "function") return;
+  if (typeof setTimeout === "function") {
+    setTimeout(task, 16);
+    return;
+  }
+  if (typeof wx.nextTick === "function") {
+    wx.nextTick(task);
+  }
+}
+
 Page({
 
   /**
@@ -142,13 +153,20 @@ Page({
       return;
     }
     this._launchFinished = true;
-    wx.reLaunch({
-      url: target,
-      fail: () => {
-        clearCachedLaunchState();
-        this._launchFinished = false;
-        this.fallbackToWebView();
-      }
+    scheduleAfterReady(() => {
+      wx.redirectTo({
+        url: target,
+        fail: () => {
+          wx.reLaunch({
+            url: target,
+            fail: () => {
+              clearCachedLaunchState();
+              this._launchFinished = false;
+              this.fallbackToWebView();
+            },
+          });
+        },
+      });
     });
   },
 

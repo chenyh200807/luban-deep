@@ -15,10 +15,24 @@
     "useLanDebug": false,
     "showES6CompileOption": false,
     "checkInvalidKey": true,
+    "condition": true,
     "ignoreDevUnusedFiles": true,
     "bigPackageSizeSupport": false,
     "useIsolateContext": true
   },
-  "condition": {},
+  "condition": {
+    "miniprogram": {
+      "current": 0,
+      "list": [
+        {
+          "id": 0,
+          "name": "host home",
+          "pathName": "pages/freeCourse/freeCourse",
+          "query": "",
+          "scene": null
+        }
+      ]
+    }
+  },
   "libVersion": "3.13.2"
 }

@@ -1,4 +1,5 @@
 const DEEPTUTOR_SUBPACKAGE_ROOT = "packageDeeptutor";
+const HOST_HOME_URL = "/pages/freeCourse/freeCourse";
 
 function decodeParam(value) {
   const raw = String(value || "").trim();
@@ -22,6 +23,19 @@ function buildDeeptutorLoginUrl(entrySource, returnTo) {
 function isTruthyParam(value) {
   var normalized = String(value || "").trim().toLowerCase();
   return normalized === "1" || normalized === "true" || normalized === "yes";
+}
+
+function hasExplicitEntryIntent(options) {
+  if (!options || typeof options !== "object") {
+    return false;
+  }
+  return Boolean(
+    options.entrySource ||
+      options.entry_source ||
+      options.source ||
+      options.returnTo ||
+      options.authenticated
+  );
 }
 
 function sanitizePackageUrl(value) {
@@ -59,6 +73,7 @@ Page({
   },
 
   onLoad(options) {
+    this._hasEntryIntent = hasExplicitEntryIntent(options);
     this._entrySource = decodeParam(
       options && (options.entrySource || options.entry_source || options.source)
     );
@@ -86,13 +101,23 @@ Page({
     );
     const handleFailure = (err) => {
       this._opening = false;
-      console.error("[deeptutor.bridge] unable to open login page", err);
+      console.error("[deeptutor.bridge] unable to open target", err);
       this.setData({
         loading: false,
         errorMsg:
           (err && err.errMsg) || "鲁班AI智考入口暂时无法打开，请稍后重试",
       });
     };
+    if (!this._hasEntryIntent) {
+      scheduleAfterReady(() => {
+        wx.reLaunch({
+          url: HOST_HOME_URL,
+          fail: handleFailure,
+        });
+      });
+      return;
+    }
+
     const routeToTarget = () => {
       scheduleAfterReady(() => {
         wx.redirectTo({

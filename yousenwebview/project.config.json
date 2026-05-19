@@ -47,7 +47,7 @@
     "localPlugins": false,
     "disableUseStrict": false,
     "useCompilerPlugins": false,
-    "condition": false,
+    "condition": true,
     "swc": false,
     "disableSWC": true
   },
@@ -55,7 +55,20 @@
   "libVersion": "3.13.2",
   "appid": "wx6d4fbd3776ea7d4d",
   "projectname": "miniprogram-92",
-  "condition": {},
+  "condition": {
+    "miniprogram": {
+      "current": 0,
+      "list": [
+        {
+          "id": 0,
+          "name": "host home",
+          "pathName": "pages/freeCourse/freeCourse",
+          "query": "",
+          "scene": null
+        }
+      ]
+    }
+  },
   "editorSetting": {
     "tabIndent": "insertSpaces",
     "tabSize": 2
