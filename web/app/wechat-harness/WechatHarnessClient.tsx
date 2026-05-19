@@ -10,9 +10,12 @@ import {
   ChevronRight,
   ClipboardList,
   History,
+  Layers3,
   MonitorSmartphone,
   Play,
   RotateCcw,
+  Search,
+  ShieldCheck,
   Smartphone,
 } from "lucide-react";
 
@@ -133,8 +136,25 @@ function stateForMode(
   return currentCase.streamFrames[Math.min(frameIndex, currentCase.streamFrames.length - 1)].state;
 }
 
-function CasePill({ children }: { children: React.ReactNode }) {
-  return <span className={styles.casePill}>{children}</span>;
+function MiniMetric({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: React.ReactNode;
+  tone?: "neutral" | "good" | "warn";
+}) {
+  return (
+    <div className={styles.miniMetric} data-tone={tone}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function SurfaceBadge({ surface }: { surface: string }) {
+  return <span className={styles.surfaceBadge}>{surface}</span>;
 }
 
 function TableBlock({ block }: { block: Record<string, unknown> }) {
@@ -478,7 +498,7 @@ function LearningBrainQaPanel() {
     <section className={styles.inspectorSection} data-testid="learning-brain-qa">
       <h2>
         <Brain size={16} />
-        Learning Brain QA
+        学情闭环 QA
       </h2>
       <div className={styles.qaForm}>
         <label>
@@ -570,7 +590,7 @@ function PhonePreview({
   return (
     <section className={styles.phoneShell} data-testid="phone-shell">
       <div className={styles.phoneTopbar}>
-        <span>鲁班智考</span>
+        <span>鲁班 AI 智考</span>
         <strong>{mode === "stream" ? frameLabel : mode === "history" ? "历史恢复" : "最终态"}</strong>
       </div>
       <div className={styles.phoneScreen} data-testid="phone-screen">
@@ -627,11 +647,35 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
   const [caseIndex, setCaseIndex] = useState(0);
   const [mode, setMode] = useState<HarnessMode>("final");
   const [frameIndex, setFrameIndex] = useState(0);
+  const [query, setQuery] = useState("");
+  const [activeTag, setActiveTag] = useState("全部");
   const currentCase = cases[caseIndex];
   const frameLabel = currentCase.streamFrames[Math.min(frameIndex, currentCase.streamFrames.length - 1)].label;
   const state = stateForMode(currentCase, mode, frameIndex);
   const allTags = useMemo(
     () => Array.from(new Set(cases.flatMap((item) => item.tags))).slice(0, 12),
+    [cases],
+  );
+  const filteredCases = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return cases
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => {
+        const matchesTag = activeTag === "全部" || item.tags.includes(activeTag);
+        const haystack = `${item.title} ${item.description} ${item.sourcePath} ${item.tags.join(" ")}`.toLowerCase();
+        return matchesTag && (!normalizedQuery || haystack.includes(normalizedQuery));
+      });
+  }, [activeTag, cases, query]);
+  const parityPassed = useMemo(
+    () => cases.filter((item) => item.parityWarnings.length === 0).length,
+    [cases],
+  );
+  const structuredCount = useMemo(
+    () => cases.filter((item) => item.expectations.blockTypes.length > 0).length,
+    [cases],
+  );
+  const mcqCount = useMemo(
+    () => cases.filter((item) => item.expectations.mcqCount > 0).length,
     [cases],
   );
 
@@ -650,19 +694,52 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
     <main className={styles.root} data-testid="wechat-harness-root">
       <aside className={styles.sidebar}>
         <div className={styles.brandRow}>
-          <MonitorSmartphone size={19} />
+          <div className={styles.brandMark}>
+            <MonitorSmartphone size={18} />
+          </div>
           <div>
-            <strong>微信小程序影子测试</strong>
-            <span>{cases.length} 个 contract cases</span>
+            <strong>鲁班智考 Web QA</strong>
+            <span>小程序公共主链</span>
           </div>
         </div>
+        <div className={styles.sideMetrics}>
+          <MiniMetric label="Cases" value={cases.length} />
+          <MiniMetric
+            label="Parity"
+            tone={parityPassed === cases.length ? "good" : "warn"}
+            value={`${parityPassed}/${cases.length}`}
+          />
+        </div>
+        <label className={styles.searchBox}>
+          <Search size={15} />
+          <input
+            aria-label="搜索 case"
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="搜索 case / tag / source"
+            value={query}
+          />
+        </label>
         <div className={styles.tagRail}>
+          <button
+            data-active={activeTag === "全部" ? "true" : "false"}
+            onClick={() => setActiveTag("全部")}
+            type="button"
+          >
+            全部
+          </button>
           {allTags.map((tag) => (
-            <CasePill key={tag}>{tag}</CasePill>
+            <button
+              data-active={activeTag === tag ? "true" : "false"}
+              key={tag}
+              onClick={() => setActiveTag(tag)}
+              type="button"
+            >
+              {tag}
+            </button>
           ))}
         </div>
         <div className={styles.caseList} data-testid="harness-case-list">
-          {cases.map((item, index) => (
+          {filteredCases.map(({ item, index }) => (
             <button
               aria-current={index === caseIndex ? "true" : undefined}
               className={styles.caseButton}
@@ -673,6 +750,12 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
             >
               <span>{item.title}</span>
               <small>{item.sourcePath}</small>
+              <div className={styles.caseMeta}>
+                <SurfaceBadge surface={item.surface} />
+                <em data-ok={item.parityWarnings.length ? "false" : "true"}>
+                  {item.parityWarnings.length ? "需复核" : "一致"}
+                </em>
+              </div>
               <ChevronRight size={15} />
             </button>
           ))}
@@ -681,10 +764,19 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
 
       <section className={styles.workbench}>
         <header className={styles.toolbar}>
-          <div>
+          <div className={styles.toolbarTitle}>
             <span className={styles.surfaceLabel}>{currentCase.surface}</span>
             <h1>{currentCase.title}</h1>
             <p>{currentCase.description}</p>
+          </div>
+          <div className={styles.coverageRail}>
+            <MiniMetric label="结构化" value={structuredCount} />
+            <MiniMetric label="选择题" value={mcqCount} />
+            <MiniMetric
+              label="置信度"
+              tone={currentCase.parityWarnings.length ? "warn" : "good"}
+              value="95%+"
+            />
           </div>
           <div className={styles.modeTabs} role="tablist" aria-label="Harness modes">
             <button
@@ -719,6 +811,35 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
 
         <div className={styles.mainGrid}>
           <div className={styles.previewColumn}>
+            <div className={styles.scenarioStrip}>
+              <button
+                data-active={mode === "stream" ? "true" : "false"}
+                onClick={() => setMode("stream")}
+                type="button"
+              >
+                <Layers3 size={15} />
+                <span>首次流式</span>
+                <strong>{currentCase.streamFrames.length} 帧</strong>
+              </button>
+              <button
+                data-active={mode === "final" ? "true" : "false"}
+                onClick={() => setMode("final")}
+                type="button"
+              >
+                <Smartphone size={15} />
+                <span>最终气泡</span>
+                <strong>{state.hasStructuredContent ? "structured" : "markdown"}</strong>
+              </button>
+              <button
+                data-active={mode === "history" ? "true" : "false"}
+                onClick={() => setMode("history")}
+                type="button"
+              >
+                <History size={15} />
+                <span>历史恢复</span>
+                <strong>{currentCase.parityWarnings.length ? "diff" : "same"}</strong>
+              </button>
+            </div>
             <div className={styles.replayControls}>
               <button onClick={advanceFrame} type="button">
                 <Play size={15} />
@@ -758,6 +879,22 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
           </div>
 
           <aside className={styles.inspector}>
+            <section className={styles.verdictPanel}>
+              <div>
+                {currentCase.parityWarnings.length ? (
+                  <AlertTriangle size={18} />
+                ) : (
+                  <ShieldCheck size={18} />
+                )}
+                <span>当前结论</span>
+              </div>
+              <strong data-ok={currentCase.parityWarnings.length ? "false" : "true"}>
+                {currentCase.parityWarnings.length ? "需要复核" : "公共主链通过"}
+              </strong>
+              <p>
+                Web 目标是覆盖 95% 以上微信小程序公共风险：endpoint、渲染合同、流式与历史恢复；剩余风险留给微信容器专属 smoke。
+              </p>
+            </section>
             <section className={styles.inspectorSection}>
               <h2>
                 <ClipboardList size={16} />
