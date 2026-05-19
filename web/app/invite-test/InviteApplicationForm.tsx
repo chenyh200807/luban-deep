@@ -75,6 +75,7 @@ function validate(form: FormState): FormErrors {
   if (!form.name.trim()) errors.name = "请输入称呼，方便通过后联系你。";
   if (!/^1\d{10}$/.test(phone)) errors.phone = "请输入 11 位中国大陆手机号。";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "请输入有效邮箱，用于接收内测通知。";
+  if (!form.wechatId.trim()) errors.wechatId = "请输入微信号，方便通过后联系你。";
   if (!form.examType) errors.examType = "请选择正在准备的考试。";
   if (!form.examStage) errors.examStage = "请选择你当前的备考阶段。";
   if (!form.painPoint) errors.painPoint = "请选择一个最想先解决的问题。";
@@ -589,18 +590,24 @@ export function InviteApplicationForm({ sourcePage }: { sourcePage: string }) {
 
       <div>
         <label htmlFor="wechat-id" className="block text-sm font-bold text-white/[0.86]">
-          微信号
+          微信号（必填）
         </label>
         <input
+          ref={(node) => setErrorRef("wechatId", node)}
           id="wechat-id"
           name="wechatId"
           type="text"
           autoComplete="off"
+          required
+          aria-required="true"
           value={form.wechatId}
           onChange={(event) => updateForm("wechatId", event.target.value)}
-          placeholder="可选，用于通过后更快沟通。"
+          placeholder="用于通过后更快沟通。"
           className="mt-2 w-full rounded-2xl border border-white/[0.12] bg-white/[0.07] px-4 py-3 text-base text-white transition-colors duration-200 placeholder:text-white/[0.32] hover:border-white/[0.24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5bbcff]"
+          aria-invalid={Boolean(errors.wechatId)}
+          aria-describedby={errors.wechatId ? "wechat-id-error" : undefined}
         />
+        {errors.wechatId ? <p id="wechat-id-error" className="mt-2 text-sm leading-6 text-[#ff9c7a]">{errors.wechatId}</p> : null}
       </div>
 
       <div className="space-y-3">

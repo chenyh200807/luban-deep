@@ -158,6 +158,7 @@ def test_build_invite_test_application_record_validates_public_payload() -> None
             "name": "张同学",
             "phone": " 13800138000 ",
             "email": "QA@EXAMPLE.COM",
+            "wechatId": "wx_luban",
             "examType": "二建建筑实务",
             "examStage": "正在冲刺刷题",
             "painPoint": "错题原因不清楚",
@@ -178,6 +179,7 @@ def test_build_invite_test_application_record_validates_public_payload() -> None
 
     assert record["phone"] == "13800138000"
     assert record["email"] == "qa@example.com"
+    assert record["wechat_id"] == "wx_luban"
     assert record["exam_type"] == "二建建筑实务"
     assert record["accept_interview"] is True
     assert record["status"] == "submitted"
@@ -189,6 +191,22 @@ def test_build_invite_test_application_record_validates_public_payload() -> None
     assert "province" not in record
 
 
+def test_build_invite_test_application_record_rejects_missing_wechat_id() -> None:
+    with pytest.raises(InviteTestApplicationValidationError, match="缺少必填字段：wechatId"):
+        build_invite_test_application_record(
+            {
+                "name": "张同学",
+                "phone": "13800138000",
+                "email": "qa@example.com",
+                "examType": "二建建筑实务",
+                "examStage": "正在冲刺刷题",
+                "painPoint": "错题原因不清楚",
+                "weeklyTime": "10-30 分钟",
+                "consent": True,
+            }
+        )
+
+
 def test_build_invite_test_application_record_rejects_bad_phone() -> None:
     with pytest.raises(InviteTestApplicationValidationError, match="手机号格式不正确"):
         build_invite_test_application_record(
@@ -196,6 +214,7 @@ def test_build_invite_test_application_record_rejects_bad_phone() -> None:
                 "name": "张同学",
                 "phone": "123",
                 "email": "qa@example.com",
+                "wechatId": "wx_luban",
                 "examType": "二建建筑实务",
                 "examStage": "正在冲刺刷题",
                 "painPoint": "错题原因不清楚",
@@ -216,6 +235,7 @@ async def test_invite_test_store_submits_to_jsonl_fallback(tmp_path: Path, monke
             "name": "张同学",
             "phone": "13800138000",
             "email": "qa@example.com",
+            "wechatId": "wx_luban",
             "examType": "二建建筑实务",
             "examStage": "正在冲刺刷题",
             "painPoint": "错题原因不清楚",
@@ -255,6 +275,7 @@ async def test_invite_test_store_prefers_supabase_write_when_supabase_and_db_are
             "name": "张同学",
             "phone": "13800138000",
             "email": "qa@example.com",
+            "wechatId": "wx_luban",
             "examType": "二建建筑实务",
             "examStage": "正在冲刺刷题",
             "painPoint": "错题原因不清楚",
@@ -291,6 +312,7 @@ async def test_invite_test_store_falls_back_to_database_when_supabase_write_fail
             "name": "张同学",
             "phone": "13800138000",
             "email": "qa@example.com",
+            "wechatId": "wx_luban",
             "examType": "二建建筑实务",
             "examStage": "正在冲刺刷题",
             "painPoint": "错题原因不清楚",
@@ -334,6 +356,7 @@ async def test_invite_test_store_falls_back_to_jsonl_when_remote_writes_fail(
             "name": "张同学",
             "phone": "13800138000",
             "email": "qa@example.com",
+            "wechatId": "wx_luban",
             "examType": "二建建筑实务",
             "examStage": "正在冲刺刷题",
             "painPoint": "错题原因不清楚",

@@ -26,7 +26,7 @@ _SELECT_COLUMNS = (
     "is_yousen_member,exam_date,accept_interview,consent,status,operator_note,"
     "submit_count,raw_payload"
 )
-_REQUIRED_FIELDS = ("name", "phone", "email", "exam_type", "exam_stage", "pain_point", "weekly_time")
+_REQUIRED_FIELDS = ("name", "phone", "email", "wechat_id", "exam_type", "exam_stage", "pain_point", "weekly_time")
 _MAX_LENGTHS = {
     "name": 80,
     "phone": 24,

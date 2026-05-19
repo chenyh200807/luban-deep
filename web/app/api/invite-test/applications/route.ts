@@ -59,7 +59,7 @@ type InviteApplicationRecord = {
   rawPayload: InviteApplicationPayload;
 };
 
-const REQUIRED_FIELDS = ["name", "phone", "email", "examType", "examStage", "painPoint", "weeklyTime"] as const;
+const REQUIRED_FIELDS = ["name", "phone", "email", "wechatId", "examType", "examStage", "painPoint", "weeklyTime"] as const;
 const MAX_LENGTHS = {
   name: 80,
   phone: 24,

@@ -7,7 +7,7 @@ import { InviteApplicationForm } from "../InviteApplicationForm";
 
 export const metadata: Metadata = {
   title: "填写鲁班智考内测申请",
-  description: "填写鲁班智考 AI 陪考教练内测申请，提交手机、邮箱、备考阶段和真实学习痛点。",
+  description: "填写鲁班智考 AI 陪考教练内测申请，提交手机、邮箱、微信号、备考阶段和真实学习痛点。",
 };
 
 export default function InviteTestApplyPage() {
@@ -70,7 +70,7 @@ export default function InviteTestApplyPage() {
           <div className="mt-10 hidden gap-5 lg:grid">
             <div className="rounded-[1.35rem] border border-white/10 bg-white/[0.055] p-5">
               <Mail className="h-6 w-6 text-[#66b6ff]" aria-hidden="true" />
-              <h2 className="mt-5 text-2xl font-black tracking-normal text-white">邮箱为必填</h2>
+              <h2 className="mt-5 text-2xl font-black tracking-normal text-white">邮箱和微信号为必填</h2>
               <p className="mt-3 text-sm leading-7 text-white/[0.58]">
                 用于发送内测通知、体验说明和后续回访安排，不会作为公开注册承诺。
               </p>
