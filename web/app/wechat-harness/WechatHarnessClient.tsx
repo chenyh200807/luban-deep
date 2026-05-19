@@ -45,6 +45,15 @@ type LearningBrainResult = {
   };
 };
 
+type VisibleItem = {
+  event_id?: string;
+  display_title?: string;
+  display_label?: string;
+  display_meta?: string;
+  display_path?: string;
+  evidence_level_label?: string;
+};
+
 type LearningBrainResponse = {
   ok: boolean;
   user_id: string;
@@ -59,33 +68,11 @@ type LearningBrainResponse = {
     evidence_level?: string;
     supporting_event_ids?: string[];
   }>;
-  compiled_objects?: Record<
-    string,
-    {
-      object_id?: string;
-      object_type?: string;
-      current_truth?: string;
-      evidence_level?: string;
-      supporting_event_ids?: string[];
-      conflicting_event_ids?: string[];
-      timeline_refs?: Array<{ event_id?: string; observed_at?: string }>;
-      superseded_by?: string;
-    }
-  >;
-  typed_graph_edges?: Array<{
-    edge_type?: string;
-    from?: { id?: string; type?: string };
-    to?: { id?: string; type?: string };
-    evidence_event_id?: string;
-    observed_at?: string;
-    confidence?: number;
-  }>;
-  typed_graph_readiness_gaps?: Array<{
-    code?: string;
-    evidence_event_id?: string;
-    edge_type?: string;
-    severity?: string;
-  }>;
+  visible_sections?: {
+    current_truth: VisibleItem[];
+    evidence_flow: VisibleItem[];
+    next_training: VisibleItem[];
+  };
   typed_graph_edge_count: number;
 };
 
@@ -386,81 +373,60 @@ function McqCards({
   );
 }
 
-function CompactEvidenceIds({ ids }: { ids?: string[] }) {
-  const visible = (ids || []).filter(Boolean).slice(0, 3);
-  if (!visible.length) return <span className={styles.mutedInline}>无 evidence</span>;
+function VisibleSection({
+  heading,
+  items,
+  emptyText,
+}: {
+  heading: string;
+  items: VisibleItem[];
+  emptyText: string;
+}) {
   return (
-    <span className={styles.evidenceRefs}>
-      {visible.map((id, index) => (
-        <code key={`${id}-${index}`}>{id.slice(0, 8)}</code>
-      ))}
-    </span>
+    <section>
+      <h3>{heading}</h3>
+      {items.length ? (
+        <ol className={styles.compiledObjectList}>
+          {items.map((item, index) => {
+            const title = item.display_title || item.display_label || "(无标题)";
+            const meta = item.display_meta || "";
+            const path = item.display_path && item.display_path !== meta ? item.display_path : "";
+            const tag = item.evidence_level_label || item.display_label || "";
+            return (
+              <li className={styles.compiledObjectCard} key={`${item.event_id || title}-${index}`}>
+                <div>
+                  <strong>{title}</strong>
+                  {tag ? <span>{tag}</span> : null}
+                </div>
+                {meta ? <p>{meta}</p> : null}
+                {path ? <small>{path}</small> : null}
+              </li>
+            );
+          })}
+        </ol>
+      ) : (
+        <p className={styles.muted}>{emptyText}</p>
+      )}
+    </section>
   );
 }
 
 function LearningBrainEvidenceChain({ result }: { result: LearningBrainResponse }) {
-  const compiledObjects = Object.entries(result.compiled_objects || {});
-  const graphEdges = result.typed_graph_edges || [];
-  const readinessGaps = result.typed_graph_readiness_gaps || [];
-
+  const sections = result.visible_sections;
+  if (!sections) {
+    return (
+      <div className={styles.qaEvidenceChain} data-testid="learning-brain-visible-chain">
+        <p className={styles.muted}>
+          当前响应未携带 visible_sections，请确认后端是否以 surface=mobile 返回 read model。
+        </p>
+      </div>
+    );
+  }
   return (
     <div className={styles.qaEvidenceChain} data-testid="learning-brain-visible-chain">
-      <section>
-        <h3>Compiled truth + timeline</h3>
-        <div className={styles.compiledObjectList}>
-          {compiledObjects.map(([key, object]) => (
-            <article className={styles.compiledObjectCard} key={key}>
-              <div>
-                <strong>{key}</strong>
-                <span>{object.evidence_level || "unclassified"}</span>
-              </div>
-              <p>{object.current_truth || object.object_id || "暂无当前结论"}</p>
-              <small>
-                evidence <CompactEvidenceIds ids={object.supporting_event_ids} />
-              </small>
-              {object.timeline_refs?.length ? (
-                <small>
-                  timeline{" "}
-                  <CompactEvidenceIds
-                    ids={object.timeline_refs.map((item) => item.event_id || "").filter(Boolean)}
-                  />
-                </small>
-              ) : null}
-              {object.superseded_by ? <small>superseded by {object.superseded_by}</small> : null}
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h3>Typed graph chain</h3>
-        <ol className={styles.graphEdgeList}>
-          {graphEdges.map((edge, index) => (
-            <li key={`${edge.edge_type || "edge"}-${index}`}>
-              <span>{edge.edge_type || "unknown_edge"}</span>
-              <strong>
-                {edge.from?.id || "--"} → {edge.to?.id || "--"}
-              </strong>
-              <small>
-                evidence <CompactEvidenceIds ids={edge.evidence_event_id ? [edge.evidence_event_id] : []} />
-              </small>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {readinessGaps.length ? (
-        <section>
-          <h3>Readiness gaps</h3>
-          <ul className={styles.readinessGapList}>
-            {readinessGaps.map((gap, index) => (
-              <li key={`${gap.code || "gap"}-${index}`}>
-                {gap.code || "unknown_gap"} / {gap.severity || "warning"}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <VisibleSection heading="当前可信结论" items={sections.current_truth} emptyText="暂无稳定结论" />
+      <VisibleSection heading="证据流" items={sections.evidence_flow} emptyText="暂无证据流" />
+      <VisibleSection heading="下一步训练" items={sections.next_training} emptyText="暂无训练建议" />
     </div>
   );
 }

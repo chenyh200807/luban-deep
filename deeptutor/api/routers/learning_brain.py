@@ -229,6 +229,12 @@ async def run_learning_brain_harness_case_grading(
     This wrapper owns no grading or memory truth. It only connects the Web QA
     surface to the existing grading, learner-state writeback, and synthesis
     authorities.
+
+    Latency note: this endpoint intentionally runs the full grading + writeback +
+    synthesis chain end-to-end so the visible-chain mirror exercises real
+    authorities. It is a dev-only harness (gated by ``_qa_enabled()``), not a
+    production hot path; production grading goes through the capability +
+    TutorBot loop, not this endpoint.
     """
 
     if not _qa_enabled():
