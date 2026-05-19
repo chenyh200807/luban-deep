@@ -51,7 +51,7 @@ def build_deep_question_grading_result(
         result = CaseGradingSkillKernel().grade(
             question_row=row,
             user_answer=answer,
-            evidence_rows=[],
+            evidence_rows=_evidence_rows_from_context(row),
         ).to_dict()
         result["type"] = "case"
         result["authority"] = "construction_grading"
@@ -59,6 +59,25 @@ def build_deep_question_grading_result(
         result["user_answer"] = answer
         return result
     return None
+
+
+def _evidence_rows_from_context(question_context: dict[str, Any]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for ref in list(question_context.get("evidence_refs") or []):
+        if not isinstance(ref, dict):
+            continue
+        source = str(ref.get("source") or ref.get("source_type") or "").strip()
+        field = str(ref.get("field") or ref.get("content_type") or "content").strip()
+        content = ref.get("content")
+        if content in (None, ""):
+            content = ref.get("text")
+        if content in (None, ""):
+            content = ref.get("rag_content")
+        if content in (None, ""):
+            content = ref.get("value")
+        if source and field and content not in (None, "", [], {}):
+            rows.append({"source": source, "field": field, "content": content})
+    return rows
 
 
 def attach_deep_question_grading_result(
