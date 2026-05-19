@@ -62,6 +62,15 @@ def test_learning_brain_harness_case_grading_runs_visible_chain(
     assert any(item["evidence_level"] == "L1_repeated" for item in payload["weak_points"])
 
 
+def test_learning_brain_harness_html_escapes_dynamic_projection_text() -> None:
+    html = learning_brain_router.render_learning_brain_harness_html()
+
+    assert "function escapeHtml" in html
+    assert ".replace(/&/g" in html
+    assert ".replace(/</g" in html
+    assert "return escapeHtml(String(value || \"\")" in html
+
+
 def test_learning_brain_harness_manual_confirmation_upgrades_l2(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

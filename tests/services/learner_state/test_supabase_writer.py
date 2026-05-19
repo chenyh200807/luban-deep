@@ -129,6 +129,44 @@ def test_write_item_turn_writes_learner_memory_event_only() -> None:
     asyncio.run(client.aclose())
 
 
+def test_write_item_learning_evidence_writes_learner_memory_event() -> None:
+    requests: list[dict[str, object]] = []
+    client = _make_client(requests)
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+    item = _make_item(
+        event_type="learning_evidence",
+        dedupe_key="learning-evidence:1",
+        payload_json={
+            "event_id": "evt_learning_1",
+            "source_feature": "construction_grading",
+            "source_id": "turn_1",
+            "source_bot_id": "construction-exam-coach",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "question_id": "q_case_1",
+                "error_events": [{"concept_tag": "1A432000", "error_code": "E02"}],
+            },
+            "created_at": "2026-04-15T10:00:00+08:00",
+        },
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    assert result.written_tables == ("learner_memory_events",)
+    request = requests[0]
+    assert request["path"] == "/rest/v1/learner_memory_events"
+    assert request["json"][0]["memory_kind"] == "learning_evidence"
+    assert request["json"][0]["payload_json"]["error_events"][0]["error_code"] == "E02"
+
+    asyncio.run(client.aclose())
+
+
 def test_write_item_guide_completion_writes_summary_and_plan(tmp_path) -> None:
     requests: list[dict[str, object]] = []
     client = _make_client(requests)

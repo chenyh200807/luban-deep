@@ -151,6 +151,23 @@ def test_rag_degraded_caps_evidence_at_l0() -> None:
     assert "rag_degraded" in payload["quality"]["evidence_cap_reasons"]
 
 
+def test_missing_rag_evidence_caps_evidence_at_l0() -> None:
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "case",
+            "question_id": "case-1",
+            "score_awarded": 0,
+            "max_score": 1,
+            "error_events": [{"error_code": "E02", "concept_tag": "1A432000"}],
+        },
+        turn_id="turn-1",
+    )
+
+    assert payload["rag_evidence_refs"] == []
+    assert payload["quality"]["evidence_level"] == "L0_observed"
+    assert "missing_rag_evidence" in payload["quality"]["evidence_cap_reasons"]
+
+
 def test_learning_evidence_keeps_trace_reference() -> None:
     payload = build_learning_evidence_payload(
         grading_result={

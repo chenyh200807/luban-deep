@@ -95,12 +95,20 @@ def render_learning_brain_harness_html() -> str:
     userInput.value = "wechat_harness_learning_brain_" + Date.now();
 
     function safeText(value) {
-      return String(value || "")
+      return escapeHtml(String(value || "")
         .replace(/wechat-harness-case-(\\d+)/gi, "专项训练 $1")
         .replace(/wechat-harness-learning-brain-[a-z0-9]+-(\\d+)/gi, "第 $1 次作答")
         .replace(/wechat-harness-learning-brain-confirm-[a-z0-9]+/gi, "老师确认")
         .replace(/1A\\d{6}/g, "知识点")
-        .replace(/\\bE\\d{2}\\b/g, "错因");
+        .replace(/\\bE\\d{2}\\b/g, "错因"));
+    }
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     }
     function item(title, meta, tag) {
       return `<div class="item">${tag ? `<span class="tag">${safeText(tag)}</span>` : ""}<div>${safeText(title)}</div>${meta ? `<div class="meta">${safeText(meta)}</div>` : ""}</div>`;
@@ -168,6 +176,16 @@ def _demo_case_rows() -> list[dict[str, Any]]:
     ]
 
 
+def _demo_evidence_rows() -> list[dict[str, Any]]:
+    return [
+        {
+            "source": "kb_chunks",
+            "field": "危险性较大工程专项施工方案",
+            "content": "危险性较大的分部分项工程应编制专项施工方案，超过一定规模的应组织专家论证。",
+        }
+    ]
+
+
 def _visible_grading_result(result: CaseGradingResult, *, write_count: int) -> dict[str, Any]:
     missed_points = [item.criterion for item in result.rubric_items if item.status == "miss"]
     return {
@@ -225,7 +243,7 @@ async def run_learning_brain_harness_case_grading(
     run_id = uuid4().hex[:10]
     visible_results: list[dict[str, Any]] = []
     for index, row in enumerate(_demo_case_rows(), 1):
-        result = kernel.grade(question_row=row, user_answer=payload.user_answer)
+        result = kernel.grade(question_row=row, user_answer=payload.user_answer, evidence_rows=_demo_evidence_rows())
         source_id = f"wechat-harness-learning-brain-{run_id}-{index}"
         write_count = write_grading_error_events(
             learner_state_service=learner_state_service,

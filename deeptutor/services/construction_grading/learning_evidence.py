@@ -249,6 +249,8 @@ def _quality_from_payload(
         cap_reasons.append("missing_question_id")
     if any(str(ref.get("retrieval_status") or "").lower() == "degraded" for ref in evidence_refs):
         cap_reasons.append("rag_degraded")
+    if errors and not any(ref.get("source_type") == "rag_evidence" for ref in evidence_refs):
+        cap_reasons.append("missing_rag_evidence")
     if grading_mode == "open_skill":
         cap_reasons.append("open_skill_requires_repetition_or_manual_confirmation")
     return {

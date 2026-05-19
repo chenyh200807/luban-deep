@@ -345,6 +345,7 @@ class LearnerStateSupabaseWriter:
     def _supports_event_type(event_type: str) -> bool:
         return event_type in {
             "turn",
+            "learning_evidence",
             "guide_completion",
             "progress",
             "summary_refresh",
