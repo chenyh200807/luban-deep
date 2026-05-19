@@ -65,6 +65,7 @@ _BILLING_USAGE_WEEKLY_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINT
 _BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
 _BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
 _LOCAL_WALLET_FALLBACK = "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"
+_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK = "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"
 _BILLING_PLAN_QUOTA_POINTS = {
     "advance": {"five_hour": 1600, "weekly": 4400},
     "sprint": {"five_hour": 3200, "weekly": 9000},
@@ -174,6 +175,14 @@ def _payment_gateway_url() -> str:
 
 def _env_flag_enabled(name: str) -> bool:
     return str(os.getenv(name, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _learning_brain_local_projection_fallback_enabled() -> bool:
+    return (
+        str(os.getenv("DEEPTUTOR_ENV", "") or "").strip().lower() == "local"
+        and _env_flag_enabled("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA")
+        and _env_flag_enabled(_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK)
+    )
 
 
 def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: str) -> None:
@@ -2043,9 +2052,15 @@ async def learning_brain_projection(
     event_limit: int = Query(default=100, ge=1, le=500),
 ) -> dict[str, Any]:
     user_id = _resolve_authenticated_user_id(authorization)
-    _ = event_limit
     projection = learner_state_service.read_compiled_learning_truth(user_id)
     projection = dict(projection) if isinstance(projection, dict) else {}
+    if not projection and _learning_brain_local_projection_fallback_enabled():
+        synthesis = learner_state_service.synthesize_learning_truth(
+            user_id,
+            dry_run=True,
+            event_limit=event_limit,
+        )
+        projection = dict(synthesis.get("projection") or {})
     return build_learning_brain_read_model(user_id=user_id, projection=projection, surface="mobile")
 
 
