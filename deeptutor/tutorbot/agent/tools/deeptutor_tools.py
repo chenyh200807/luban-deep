@@ -181,6 +181,13 @@ class RAGAdapterTool(Tool):
             self._last_trace_metadata["evidence_bundle_summary"] = self._summarize_evidence_bundle(
                 evidence_bundle
             )
+        learning_capsule = self._build_learning_fact_capsule(
+            result=result,
+            evidence_bundle=evidence_bundle,
+            sources=sources,
+        )
+        if learning_capsule:
+            return learning_capsule
         return str(result.get("answer") or result.get("content") or "")
 
     def set_runtime_context(self, **kwargs: Any) -> None:
@@ -261,7 +268,90 @@ class RAGAdapterTool(Tool):
             summary["retrieval_status"] = str(bundle.get("retrieval_status") or "").strip()
         if "warning_count" in bundle:
             summary["warning_count"] = int(bundle.get("warning_count") or 0)
+        retrieval_plan = bundle.get("retrieval_plan") if isinstance(bundle.get("retrieval_plan"), dict) else {}
+        intent = str(retrieval_plan.get("intent") or "").strip()
+        if intent:
+            summary["retrieval_intent"] = intent
+        ranking_trace = bundle.get("ranking_trace") if isinstance(bundle.get("ranking_trace"), dict) else {}
+        ranking_policy = (
+            ranking_trace.get("ranking_policy")
+            if isinstance(ranking_trace.get("ranking_policy"), dict)
+            else {}
+        )
+        if "compiled_truth_final_enabled" in ranking_policy:
+            summary["compiled_truth_final_enabled"] = bool(
+                ranking_policy.get("compiled_truth_final_enabled")
+            )
         return summary
+
+    @staticmethod
+    def _build_learning_fact_capsule(
+        *,
+        result: dict[str, Any],
+        evidence_bundle: dict[str, Any],
+        sources: list[dict[str, Any]],
+    ) -> str:
+        if not evidence_bundle:
+            return ""
+        retrieval_plan = (
+            evidence_bundle.get("retrieval_plan")
+            if isinstance(evidence_bundle.get("retrieval_plan"), dict)
+            else {}
+        )
+        intent = str(retrieval_plan.get("intent") or "").strip()
+        if intent not in {"weak_point_review", "next_training"}:
+            return ""
+        ranking_trace = (
+            evidence_bundle.get("ranking_trace")
+            if isinstance(evidence_bundle.get("ranking_trace"), dict)
+            else {}
+        )
+        ranking_policy = (
+            ranking_trace.get("ranking_policy")
+            if isinstance(ranking_trace.get("ranking_policy"), dict)
+            else {}
+        )
+        if not bool(ranking_policy.get("compiled_truth_final_enabled")):
+            return ""
+        compiled_sources = [
+            item for item in sources
+            if str(item.get("source_type") or "").strip() == "compiled_learning_truth"
+        ]
+        if not compiled_sources:
+            return ""
+
+        lines = [
+            "## 学习事实召回计划",
+            f"- retrieval_intent: {intent}",
+            "- 回答约束: 必须优先回答学员弱点、证据、下一步训练和作答检查清单。",
+            "- 权威约束: 标准/教材证据只用于校准训练建议，不要把完整标准作答直接倾倒给用户。",
+            "",
+            "### 学员证据",
+        ]
+        for source in compiled_sources[:3]:
+            chunk_id = str(source.get("chunk_id") or "").strip()
+            title = str(source.get("title") or source.get("source") or "compiled_learning_truth").strip()
+            content = str(source.get("content") or "").strip()
+            snippet = content[:260]
+            label = f"{title} ({chunk_id})" if chunk_id else title
+            lines.append(f"- {label}: {snippet}")
+
+        support_sources = [
+            item for item in sources
+            if str(item.get("source_type") or "").strip() != "compiled_learning_truth"
+        ]
+        if support_sources:
+            lines.extend(["", "### 校准依据"])
+            for source in support_sources[:4]:
+                source_type = str(source.get("source_type") or "").strip()
+                chunk_id = str(source.get("chunk_id") or "").strip()
+                title = str(source.get("title") or source.get("source") or source_type or "source").strip()
+                lines.append(f"- {source_type}: {title} {chunk_id}".strip())
+
+        retrieval_status = str(result.get("retrieval_status") or "").strip()
+        if retrieval_status:
+            lines.extend(["", f"- retrieval_status: {retrieval_status}"])
+        return "\n".join(lines).strip()
 
 
 class CodeExecutionAdapterTool(Tool):

@@ -7,6 +7,7 @@ import math
 import os
 import sys
 from types import SimpleNamespace
+import asyncio
 
 import httpx
 import pytest
@@ -156,6 +157,89 @@ async def _run_learning_fact_search(
         }
 
     return await pipeline.search(**kwargs)
+
+
+async def _run_learning_fact_search_with_hooks(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    query: str,
+    second_pass_enabled: bool = True,
+    rerank_enabled: bool = True,
+):
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    pipeline = supabase_module.SupabasePipeline()
+    config = _learning_fact_supabase_config(
+        supabase_module,
+        compiled_truth_enabled=True,
+    )
+    config.second_pass_enabled = second_pass_enabled
+    config.rerank_enabled = rerank_enabled
+    config.query_expansion_enabled = True
+    config.max_query_variants = 4
+    monkeypatch.setattr(pipeline, "_load_search_config", lambda **kwargs: config)
+    _disable_supabase_availability_gate(monkeypatch, pipeline)
+
+    calls = {"query_plans": [], "rerank": 0}
+
+    async def _fake_get_client(*args, **kwargs):
+        _ = (args, kwargs)
+        return object()
+
+    async def _fake_run_query_plan(**kwargs):
+        calls["query_plans"].append(
+            {
+                "phase": kwargs.get("phase", "primary"),
+                "queries": list(kwargs["queries"]),
+            }
+        )
+        return [
+            {
+                "phase": kwargs.get("phase", "primary"),
+                "group_name": "standard",
+                "query": kwargs["queries"][0],
+                "query_index": 0,
+                "query_weight": 1.0,
+                "results": [
+                    {
+                        "chunk_id": f"std-{kwargs.get('phase', 'primary')}",
+                        "source_type": "standard",
+                        "_source_group": "standard",
+                        "card_title": "标准条文",
+                        "rag_content": "标准依据内容",
+                        "score": 0.91,
+                    }
+                ],
+            }
+        ]
+
+    async def _identity_hydrate(results, *, config):
+        _ = config
+        return list(results)
+
+    async def _counting_rerank(**kwargs):
+        calls["rerank"] += 1
+        return list(kwargs["results"])
+
+    monkeypatch.setattr(pipeline, "_get_client", _fake_get_client)
+    monkeypatch.setattr(pipeline, "_run_query_plan", _fake_run_query_plan)
+    monkeypatch.setattr(pipeline, "_hydrate_sources", _identity_hydrate)
+    monkeypatch.setattr(pipeline, "_rerank_results", _counting_rerank)
+
+    result = await pipeline.search(
+        query=query,
+        kb_name="construction-exam",
+        compiled_learning_truth={
+            "compiled_objects": {
+                "weak:1A432000:E02": {
+                    "current_truth": "该学员反复漏写专家论证。",
+                    "evidence_level": "L2_confirmed",
+                    "supporting_event_ids": ["evt1", "evt2"],
+                }
+            }
+        },
+    )
+    return result, calls
 
 
 def test_list_available_providers() -> None:
@@ -359,6 +443,29 @@ async def test_compiled_truth_final_enablement_is_weak_point_scoped(
     assert result["evidence_bundle"]["ranking_trace"]["ranking_policy"]["compiled_truth_final_enabled"] is True
 
 
+@pytest.mark.asyncio
+async def test_learning_fact_search_records_stage_timings_and_skips_heavy_steps(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    result, calls = await _run_learning_fact_search_with_hooks(
+        monkeypatch,
+        query="根据我的薄弱点安排下一道训练题，不要讲通用知识。",
+    )
+
+    timings = result["evidence_bundle"]["stage_timings_ms"]
+    assert timings["total"] >= 0
+    assert "primary_plan" in timings
+    assert result["evidence_bundle"]["performance_policy"] == {
+        "intent_fast_path": True,
+        "compiled_only_fast_path": True,
+        "rerank_enabled": False,
+        "second_pass_enabled": False,
+        "primary_query_count": 0,
+    }
+    assert calls["query_plans"] == []
+    assert calls["rerank"] == 0
+
+
 def test_compiled_truth_final_presence_appends_after_authoritative_sources() -> None:
     from deeptutor.services.rag.pipelines import supabase as supabase_module
 
@@ -388,6 +495,62 @@ def test_compiled_truth_final_presence_appends_after_authoritative_sources() -> 
         "textbook-1",
         "compiled-truth:weak-point:1A432000:E02",
     ]
+
+
+@pytest.mark.asyncio
+async def test_run_query_plan_bounds_query_variant_concurrency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    pipeline = supabase_module.SupabasePipeline()
+    config = _learning_fact_supabase_config(supabase_module)
+    config.sources = ["standard"]
+    config.query_variant_concurrency = 2
+
+    active = 0
+    max_active = 0
+
+    async def _fake_embed_query(query: str):
+        nonlocal active, max_active
+        active += 1
+        max_active = max(max_active, active)
+        await asyncio.sleep(0.01)
+        active -= 1
+        return [0.1, 0.2, 0.3]
+
+    async def _fake_search_source(**kwargs):
+        return [
+            {
+                "chunk_id": f"std-{kwargs['query']}",
+                "source_type": kwargs["source_type"],
+                "rag_content": kwargs["query"],
+                "score": 1.0,
+            }
+        ]
+
+    monkeypatch.setattr(pipeline, "_embed_query", _fake_embed_query)
+    monkeypatch.setattr(pipeline, "_search_source", _fake_search_source)
+
+    plans = await pipeline._run_query_plan(
+        client=object(),
+        queries=["q1", "q2", "q3", "q4"],
+        question_like=False,
+        source_plan=SimpleNamespace(
+            search_textbook_chunks=False,
+            search_standard_chunks=True,
+            search_exam_chunks=False,
+            search_questions_bank=False,
+        ),
+        standard_codes=[],
+        precision_node_code=None,
+        exact_probe=None,
+        original_query="q",
+        config=config,
+    )
+
+    assert max_active == 2
+    assert [plan["query"] for plan in plans] == ["q1", "q2", "q3", "q4"]
 
 
 def test_get_pipeline_invalid_raises() -> None:

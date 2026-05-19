@@ -50,6 +50,8 @@
 25. retrieval maintenance workflow 必须是离线 dry-run / job 形态，输出 retrieval miss、citation、stale weak point、rubric coverage、eval case 报告；不得写 Supabase learner-state，也不得进入在线 `/api/v1/ws` 低延迟链路。
 26. 当 `compiled_learning_truth` final-source enablement 被显式开启且 intent 属于弱点复习 / 下一题训练时，最终 sources 必须至少保留一条已 materialize 的 compiled truth 证据；该证据只能追加在 exact-question、标准、教材等 authority 后面，不得抢占更高权威来源。
 27. Langfuse / ClickHouse 的 canonical `rag.supabase.search` retriever observation 必须能查询到 compact `retrieval_plan` 与 `ranking_trace`。一次 `SupabasePipeline.search()` 只能产生一条 canonical `rag.supabase.search` retriever observation；不得新增同名 sidecar 来承载 trace，否则会污染 RAG 使用次数和 evidence gate。若 observability backend 只支持 string metadata，必须把 `retrieval_plan_json`、`retrieval_plan_intent`、`ranking_trace_json`、`ranking_trace_fusion` 写在这条主 observation 上。
+28. `stage_timings_ms` 与 `performance_policy` 只能作为 `evidence_bundle` / metadata 中的 compact retrieval telemetry，用来解释弱点复习 / 下一题训练 fast path 是否跳过 rerank 或 second pass；不得成为新的路由 authority，也不得覆盖 `retrieval_plan` 的 intent / source group 语义。
+29. TutorBot `rag` tool 可以在 `weak_point_review` / `next_training` 且 compiled truth final-source 明确启用时返回 learning fact capsule，但 capsule 只是对 `evidence_bundle.sources` 和 compiled truth source 的用户可读摘要；不得从 wrapper 内生成新的学习事实、修改 learner-state、或绕过 `RAGService` / `SupabasePipeline` 的 evidence bundle。
 
 ## 当前统一语义
 
@@ -72,6 +74,9 @@
 - `compiled_learning_truth`
 - `compiled_learning_truth.graph_context`
 - `routing_metadata.compiled_learning_truth_available`
+- `evidence_bundle.stage_timings_ms`
+- `evidence_bundle.performance_policy`
+- `learning_fact_capsule`
 
 ## 必测项
 
