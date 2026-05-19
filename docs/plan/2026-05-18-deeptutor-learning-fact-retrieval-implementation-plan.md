@@ -2189,4 +2189,3 @@ The original larger plan remains valuable, but this revised slice is the current
 | D8 (Eng) | 跑第二次 Outside Voice | A) 跑 |
 | D9 (Eng) | N1+N2 跨 user 泄漏 | A) 启用前双补 |
 | D10 (Eng) | N5+N7 capsule + rerank | A) N5 告警 + N7 augment |
-

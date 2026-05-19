@@ -1,2 +1,1 @@
 """Construction exam taxonomy helpers."""
-
