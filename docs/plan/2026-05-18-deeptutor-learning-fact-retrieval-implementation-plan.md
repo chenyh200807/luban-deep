@@ -2065,3 +2065,128 @@ Implement the first production slice as:
 Only after that should we wire final compiled truth sources into answers for `weak_point_review` and `next_training`.
 
 The original larger plan remains valuable, but this revised slice is the current best route to a robust, shippable result under existing constraints.
+
+## GSTACK REVIEW REPORT
+
+> 由 `/gstack-plan-ceo-review` (2026-05-19 04:06, mode=HOLD SCOPE) + `/gstack-plan-eng-review` (2026-05-19 05:06, mode=FULL_REVIEW) 联合产出。用户决策 Approach A (Phase D 直接全量启用)。本节始终保持在 plan 文件最末。
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| CEO Review | `/gstack-plan-ceo-review` | Scope & strategy（HOLD SCOPE） | 1 | issues_open | 5 critical gaps、2 deferred TODO、0 unresolved |
+| Outside Voice (CEO) | claude-subagent-fallback | Independent 2nd opinion at plan layer | 1 | issues_found | 新增 G5-G8 + 多处代码层 finding；强烈反对 Approach A |
+| Eng Review | `/gstack-plan-eng-review` | Architecture & tests (required) | 1 | issues_open | 22 issues, 9 critical gaps; A1/A2/Q1-Q7/P1-P5 + 验证 CEO 的 F1-F4/G5-G8 |
+| Outside Voice (Eng) | claude-subagent-fallback-eng | Independent 2nd opinion at code layer | 1 | issues_found | N1-N7：N1+N2 (HIGH) session metadata stick + tool singleton 跨 user 残留；N5+N7 fast-path 静默禁用 rerank + capsule replace |
+| Codex Review | `/codex review` | Diff 独立审查 | 0 | — | Codex CLI vendor binary ENOENT；fallback 走 Claude subagent |
+| Design Review | `/gstack-plan-design-review` | UI/UX | 0 | — | n/a 本次启用 UX 无变化（A2 修正：capsule 是 LLM-context 注入，非 UI 框架变化） |
+
+**CODEX**: Codex CLI 不可用 (`/Users/.../codex` ENOENT)，两轮 Outside Voice 都走 Claude subagent fallback。
+
+**CROSS-MODEL**: Eng review + Outside Voice (Eng) 在 N1 / N2 / N5 / N7 上一致同意 — 新发现 4 个 CEO + 我自己第一遍 eng-review 都漏掉的 finding。Outside Voice 在 N4 (plan_id determinism) 假阳性，经验证 `expand_query_variants` 顺序稳定。用户对 Outside Voice 推 Approach B 灰度的建议未采纳，保持 A。
+
+**UNRESOLVED**: 0（10 个 AskUserQuestion 全部应答；D9+D10 决策记录如下）。
+
+**VERDICT**: **CEO + ENG HOLD_SCOPE CLEARED — pre-enable gates required**。Phase D 全量启用前必须完成 **9 项 P1 gate**（F1 + F2 + F3 + G5 + G6 + G7 + Q3 + P1 + P2）+ **4 项 P1 新增 gate**（N1 + N2 + N5 + N7）+ **1 项 P0**（A1 拆分支）= **共 14 项前置工作**。其后才能翻 `SUPABASE_RAG_COMPILED_TRUTH_ENABLED` / `SUPABASE_RAG_PROVENANCE_BOOST_ENABLED` 两个 flag。
+
+### P0 — 必须先做（违反 AGENTS 硬约束）
+
+- [ ] **A1 — branch discipline**: 把 `deeptutor/services/invite_test_applications.py` (727 行) + `web/app/invite-test/` (652 行) + 关联 tests/api 改动从 `codex/gbrain-learning-brain` 抽到独立分支独立 PR；当前分支只保留 Learning Brain 主线。AGENTS §3.6 narrow scope。
+
+### P1 — Phase D 全量启用前置 Gate
+
+- [ ] **F1 — pipeline** (Section 2+4+9 / Outside Voice CEO): `supabase.py:858 compiled_only_fast_path` 加 sparse-projection fallback：compiled truth 文档数 <2 或 `typed_graph.edges` 空时不触发 fast-path
+- [ ] **F2 — observability** (Section 8+9): 接 launch_readiness_dashboard 五个指标：(a) exact_question chunk_id 命中率 by intent (b) compiled_truth_final_enabled=true 占比 by intent (c) p95 latency by intent (d) sanitize 错误占比 (e) capsule 实际生成占比 + LLM 引用 chunk_id 占比 (A2)
+- [ ] **F3 — ops**: 新建 `docs/ops/phase-d-enablement-runbook.md`：trigger 阈值、env flag flip 顺序、`/root/deeptutor` 写边界校验、验证 SQL、回退步骤；挂 `docs/plan/INDEX.md`
+- [ ] **G5 — security** (Outside Voice CEO): `RAGService.search` / `SupabasePipeline.search` 加 `compiled_learning_truth['user_id'] == 当前调用 user_id` 断言 + cross-tenant leak 回归测试
+- [ ] **G6 — observability** (Outside Voice CEO): `retrieval_plan_json + ranking_trace_json` size-bound 单测（6-doc + 20-feature projection 下 < 4000 chars）+ 超限 compact fallback
+- [ ] **G7 — test** (Outside Voice CEO): `test_rag_pipelines.py` 加 rerank+compiled+exact 三者同存集成测试；`provenance.py:102` pin 改用 `chunk_id` 而非 `id()`
+- [ ] **A2 — observability** (Section 1 — eng review 新发现): F2 dashboard 包含 capsule 监控两个指标（F2 task 内 e 子项已写）
+- [ ] **Q3 — observability** (Section 2): `compiled_truth_source.py` heavily_sanitized 时 emit `retrieval_warning=compiled_truth_silently_demoted` + F2 加被静默降级学员占比 metric
+- [ ] **P1 — performance** (Section 4): `compiled_truth_source.py:245` 前置 `weak_points = weak_points[:50]` cap；O(weak × edges) 防爆
+- [ ] **P2 — test** (Section 4): `test_compiled_only_fast_path_sparse.py` 加 perf assertion (fast-path total < 80ms / 通用 < 200ms)
+- [ ] **N1 — security** (Outside Voice Eng, **HIGH**): `manager.py:802` session metadata merge 改为 ephemeral key strip — 每次 update 前从 `session.metadata` 删除 `compiled_learning_truth` / `retrieval_runtime_context` 等 ephemeral key；避免旧 projection 永久 stick
+- [ ] **N2 — security** (Outside Voice Eng, **HIGH**): `loop.py:_set_tool_context` 加 try/finally 保证每 turn entry 必走 + tool 加显式 `reset_runtime_context()` 接口；异常路径 prior user runtime_context 不残留；写跨 user 隔离回归测试
+- [ ] **N5 — observability** (Outside Voice Eng): `supabase.py:864 compiled_only_fast_path` 进入时 `retrieval_warnings.append(fast_path_no_rerank)`；F2 dashboard 加该 warning 占比 metric
+- [ ] **N7 — capability** (Outside Voice Eng): `deeptutor_tools.py:189-191` `_build_learning_fact_capsule` 改 augment：`return capsule + "\n\n" + original_answer` 而非完全 replace；flag 翻动时答案形状不突变
+
+### P2 — 启用后 Followups（挂 `docs/plan/INDEX.md` Backlog）
+
+- [ ] **F4 — capability**: `deep_question` 消费 `compiled_learning_truth.weak_points` / `typed_graph.edges` 选题；解锁 retrieval upgrade 完整 ROI；H+72 质量信号确认后立项
+- [ ] **G8 — policy**: stale weak point 时间策略；决定 writer-side decay marker only 还是 RAG-side cutoff days
+- [ ] **Q1 — refactor**: 合并 `_compiled_truth_plan` / `_final_compiled_truth_plan` / `_ensure_final_compiled_truth_presence` 三方法为单一 `_compiled_truth_pipeline()` 状态机
+- [ ] **N3 — concurrency**: `_last_trace_metadata` 改按 call_id 隔离；agentic_pipeline 并发不互相覆盖
+- [ ] **N4 — test**: `test_retrieval_plan.py` 加 plan_id stability assertion（跨进程同 query+context 必须产同 plan_id）
+- [ ] **N6 — errors**: `service.read_compiled_learning_truth` 区分 has_no_projection vs read_failed；emit metric
+
+### NOT in scope
+
+- 新增 RAG provider / vector store / 图数据库（plan §2 Non-Goals + AGENTS Single Authority）
+- 新增 `/api/v1/...` 聊天 WS（AGENTS 流式入口唯一硬约束）
+- 让 compiled truth outrank full `exact_question`（plan §2 + §20.4 Ranking Policy）
+- Approach B 灰度 cohort（用户已选 A，两轮 Outside Voice 反对意见已留痕）
+- invite_test 主线后续开发（P0 拆分支后归独立 plan）
+
+### Critical Gaps Registry（Phase D 启用后新增 / 暴露的失败模式）
+
+| Codepath | Failure | Rescued | Tested | User Sees | Logged | Gap → Fix |
+| --- | --- | --- | --- | --- | --- | --- |
+| `manager.py:802 session.metadata.update` | 旧 compiled_truth 永久 stick 跨 turn | N | N | A 学员旧 projection 影响新 turn | N | **N1 HIGH** |
+| `loop.py:310 _set_tool_context happy-path-only` | 异常路径 prior user runtime_context 残留 | N | N | cross-user compiled_truth 泄漏 | N | **N2 HIGH** |
+| RAG 边界无 `user_id` 断言 | compiled_truth 错配 | N | N | A 看到 B 训练 | N | **G5** |
+| `supabase.py:858 compiled_only_fast_path` | sparse projection → 近空推荐 | N | N | 题极少 | partial | **F1** |
+| `supabase.py:864 fast-path 静默禁用 rerank+second_pass` | next_training 失去质量校准 | N | N | 答案波动 | N | **N5** |
+| `supabase.py:874 _assert_data_api_available 仅 else` | Supabase 402 在 next_training 假 OK | N | N | RAG 死看不见 | partial | **F2 metric** |
+| `langfuse_adapter.py text_limit=4000` | ranking_trace_json > 4KB → 截断 | N | N | dashboard 失效 | partial | **G6** |
+| `supabase.py:1053 rerank w/o exact-awareness` | rerank demote 已 pin exact | partial | N | exact 被覆盖 | Y | **G7** |
+| `provenance.py:672 _pin via id()` | dict 重建断 pin | partial | N | exact 漂移 | N | **G7 测试** |
+| `deeptutor_tools.py:287 capsule replaces answer` | flag 翻动答案形状突变 | N | partial | weak/next intent 答案被替换 | partial | **N7** |
+| `compiled_truth_source.py:301 heavily_sanitized 静默 shadow` | 大量 PII 学员被静默降级 | partial | N | 该学员 Phase D 无效 | N | **Q3** |
+| `compiled_truth_source.py:182 O(weak × edges) 无 cap` | 异常 projection 拖慢 turn | N | N | latency 漂移 | partial | **P1** |
+| `compiled_truth_source.py:72 stale 字段-only` | 写入侧不打 decay → 永远新鲜 | partial | partial | 老 weak point 进训练 | N | **G8 TODO** |
+| `_compiled_truth_plan / _final / _ensure 三方法` | 改一个忘另一个 | N | partial | 回归概率高 | N | **Q1 TODO** |
+| `_last_trace_metadata 并发覆盖` | 并发 tool 调用 trace 错位 | N | N | trace 归属错乱 | N | **N3 TODO** |
+| `service.read_compiled_learning_truth except 静默` | 读失败 vs 无投影无法区分 | N | partial | F4 无法决策 | N | **N6 TODO** |
+| cold-start（无 compiled truth） | fail-closed 走通用 RAG | Y | Y | 通用回答 | Y | **OK** |
+| exact_question 全覆盖命中 | compiled truth 排出 final | Y | Y (line 443) | exact 优先 | Y | **OK** |
+| sanitize prompt injection | "ignore previous instructions" 不入 rag_content | Y | Y (test 90) | LLM 不被劫持 | Y | **OK** |
+
+### Implementation Tasks (synthesized from this review)
+
+挂在 `~/.gstack/projects/chenyh200807-luban-deep/`:
+
+- CEO tasks: `tasks-ceo-review-20260519-120641.jsonl` (8 项)
+- Eng tasks: `tasks-eng-review-20260519-130611.jsonl` (14 项)
+- Test plan: `yehongchen-codex-gbrain-learning-brain-eng-review-test-plan-20260519-122414.md`
+
+### Worktree parallelization
+
+| Lane | Tasks | Modules | 依赖 |
+|---|---|---|---|
+| A | A1 拆分支 | invite_test 文件群 | — (先做，独立) |
+| B | F1 + N5 + P1 | services/rag/pipelines/supabase.py + compiled_truth_source.py | A 完成后 |
+| C | G5 + N1 + N2 + N7 | rag/service.py + tutorbot/agent/loop.py + tools/deeptutor_tools.py + services/tutorbot/manager.py | A 完成后；与 B 共享 supabase.py，**有冲突，串行** |
+| D | F2 + A2 + Q3 + N5-metric | docs/plan/launch_readiness + supabase observability | 与 B/C 并行 OK |
+| E | F3 | docs/ops/phase-d-runbook | 独立 |
+| F | G6 | observability/langfuse_adapter.py + supabase.py | 与 B/C 共享 supabase.py，**串行** |
+| G | G7 + P2 | tests/services/rag/ | C/B 完成后 |
+
+**执行顺序**: A (拆分支) → 并行 (D + E) → B → C → F → G。
+
+### Decisions log（本次 review 的 10 个 AskUserQuestion）
+
+| ID | 问题 | 用户决策 |
+|---|---|---|
+| D1 (CEO) | Phase D 启用方式 | A) 直接全量启用 |
+| D2 (CEO) | 审查模式 | HOLD SCOPE |
+| F1-F4 (CEO) | 4 个 critical 处理 | F1/F2/F3 → A 前置 gate；F4 → A TODO |
+| T1-T3 (CEO) | Outside Voice 4 个 gate | reviewer 默认推荐合成：G5+G6 → 前置；G7 → 前置；G8 → TODO |
+| D1 (Eng) | eng-review 范围 | B) 全诊 17126 行 diff |
+| D2 (Eng) | A1 invite_test 同分支 | A) 拆分支 |
+| D3 (Eng) | A2 capsule 监控 | A) F2 加两指标 |
+| D4 (Eng) | Q1 三方法重叠 | A) 推后 P2 |
+| D5 (Eng) | Q3 sanitize 静默降级 | A) 前置 emit warning |
+| D6 (Eng) | P1 cap 缺失 | A) 启用前加 cap |
+| D7 (Eng) | P2 fast-path latency 断言 | A) 加 perf fixture |
+| D8 (Eng) | 跑第二次 Outside Voice | A) 跑 |
+| D9 (Eng) | N1+N2 跨 user 泄漏 | A) 启用前双补 |
+| D10 (Eng) | N5+N7 capsule + rerank | A) N5 告警 + N7 augment |
+
