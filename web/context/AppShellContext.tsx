@@ -26,7 +26,7 @@ const ACTIVE_SESSION_EVENT = "deeptutor:active-session";
 const LANGUAGE_EVENT = "deeptutor:language";
 
 function normalizeLanguage(value: string | null | undefined): AppLanguage {
-  return value === "zh" ? "zh" : "en";
+  return value === "en" ? "en" : "zh"; // 鲁班智考 default zh; explicit en preserved
 }
 
 export function readStoredLanguage(): AppLanguage {
