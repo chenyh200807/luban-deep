@@ -1275,7 +1275,7 @@ export default function SettingsPage() {
   if (!requiresWebAuth()) {
     return (
       <RestrictedSurface
-        title="Settings unavailable"
+        title="配置控制台暂不可用"
         message="当前 Web 端未接入登录态，配置控制台已默认关闭。请使用已鉴权入口访问。"
       />
     );

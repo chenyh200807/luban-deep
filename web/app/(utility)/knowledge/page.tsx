@@ -1799,7 +1799,7 @@ export default function KnowledgePage() {
   if (!requiresWebAuth()) {
     return (
       <RestrictedSurface
-        title="Knowledge workspace unavailable"
+        title="知识库工作台暂不可用"
         message="当前 Web 端未接入登录态，知识库与题本工作台已默认关闭。请使用已鉴权入口访问。"
       />
     );
