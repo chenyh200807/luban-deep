@@ -1,12 +1,5 @@
-<<<<<<< Updated upstream
 import { appendFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-=======
-import { randomUUID } from "crypto";
-import { existsSync, readFileSync } from "fs";
-import { mkdir, readFile, appendFile } from "fs/promises";
-import path from "path";
->>>>>>> Stashed changes
 import { NextRequest, NextResponse } from "next/server";
 import { Pool } from "pg";
 
@@ -16,13 +9,10 @@ type InviteApplicationPayload = {
   name?: unknown;
   phone?: unknown;
   email?: unknown;
-<<<<<<< Updated upstream
   province?: unknown;
   ageRange?: unknown;
   education?: unknown;
   occupation?: unknown;
-=======
->>>>>>> Stashed changes
   examType?: unknown;
   examStage?: unknown;
   preparationYears?: unknown;
@@ -52,7 +42,6 @@ type InviteApplicationRecord = {
   name: string;
   phone: string;
   email: string;
-<<<<<<< Updated upstream
   wechatId: string;
   examType: string;
   examStage: string;
@@ -64,26 +53,12 @@ type InviteApplicationRecord = {
   examDate: string;
   acceptInterview: boolean;
   consent: boolean;
-=======
-  wechat_id: string;
-  exam_type: string;
-  exam_stage: string;
-  pain_point: string;
-  weekly_time: string;
-  current_method: string;
-  latest_wrong_question: string;
-  is_yousen_member: string;
-  exam_date: string;
-  accept_interview: boolean;
-  consent: true;
->>>>>>> Stashed changes
   status: "submitted";
   operatorNote: string;
   submitCount: number;
   rawPayload: InviteApplicationPayload;
 };
 
-<<<<<<< Updated upstream
 const REQUIRED_FIELDS = ["name", "phone", "email", "wechatId", "examType", "examStage", "painPoint", "weeklyTime"] as const;
 const MAX_LENGTHS = {
   name: 80,
@@ -110,17 +85,6 @@ const MAX_LENGTHS = {
   utmSource: 120,
   utmCampaign: 120,
 };
-=======
-const phonePattern = /^1\d{10}$/;
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const rateLimitWindowMs = 60_000;
-const maxRequestsPerWindow = 8;
-const buckets = new Map<string, { count: number; resetAt: number }>();
-const fallbackEnvPath = "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/.env";
-
-let externalEnvCache: Record<string, string> | null = null;
-let inviteApplicationsPool: Pool | null | undefined;
->>>>>>> Stashed changes
 
 const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -139,69 +103,7 @@ function extractIp(request: NextRequest) {
   return request.headers.get("x-real-ip") ?? "unknown";
 }
 
-<<<<<<< Updated upstream
 function isRateLimited(ip: string) {
-=======
-function parseExternalEnv(): Record<string, string> {
-  if (externalEnvCache) return externalEnvCache;
-
-  const envPath = process.env.INVITE_TEST_ENV_PATH || fallbackEnvPath;
-  const values: Record<string, string> = {};
-
-  if (!existsSync(envPath)) {
-    externalEnvCache = values;
-    return values;
-  }
-
-  for (const line of readFileSync(envPath, "utf8").split("\n")) {
-    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
-    if (!match) continue;
-
-    let value = match[2].trim();
-    if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1);
-    }
-    values[match[1]] = value;
-  }
-
-  externalEnvCache = values;
-  return values;
-}
-
-function getInviteDatabaseUrl(): string {
-  const externalEnv = parseExternalEnv();
-  return (
-    process.env.INVITE_TEST_DATABASE_URL ||
-    process.env.SUPABASE_DB_URL ||
-    process.env.DB_URL ||
-    externalEnv.INVITE_TEST_DATABASE_URL ||
-    externalEnv.SUPABASE_DB_URL ||
-    externalEnv.DB_URL ||
-    ""
-  );
-}
-
-function getInviteApplicationsPool(): Pool | null {
-  if (inviteApplicationsPool !== undefined) return inviteApplicationsPool;
-
-  const connectionString = getInviteDatabaseUrl();
-  if (!connectionString) {
-    inviteApplicationsPool = null;
-    return inviteApplicationsPool;
-  }
-
-  const requiresSsl = connectionString.includes("supabase.com") || connectionString.includes("sslmode=require");
-  inviteApplicationsPool = new Pool({
-    connectionString,
-    max: 3,
-    ssl: requiresSsl ? { rejectUnauthorized: false } : undefined,
-  });
-
-  return inviteApplicationsPool;
-}
-
-function checkRateLimit(key: string): boolean {
->>>>>>> Stashed changes
   const now = Date.now();
   const current = rateLimitBuckets.get(ip);
   if (!current || current.resetAt <= now) {
@@ -423,147 +325,12 @@ function getJsonlFallbackPath() {
   return path.join(process.cwd(), "tmp", "invite-test-applications.jsonl");
 }
 
-<<<<<<< Updated upstream
 async function saveToJsonl(record: InviteApplicationRecord) {
   const filePath = getJsonlFallbackPath();
   if (!filePath) return false;
   await mkdir(path.dirname(filePath), { recursive: true });
   await appendFile(filePath, `${JSON.stringify(record)}\n`, "utf8");
   return true;
-=======
-async function countExistingSubmissions(phone: string, storagePath: string): Promise<number> {
-  try {
-    const content = await readFile(storagePath, "utf8");
-    return content
-      .split("\n")
-      .filter(Boolean)
-      .reduce((count, line) => {
-        try {
-          const record = JSON.parse(line) as Partial<InviteApplicationRecord>;
-          return record.phone === phone ? count + 1 : count;
-        } catch {
-          return count;
-        }
-      }, 0);
-  } catch {
-    return 0;
-  }
-}
-
-async function countExistingSupabaseSubmissions(pool: Pool, phone: string): Promise<number> {
-  const result = await pool.query<{ count: string }>(
-    "select count(*)::text as count from public.invite_test_applications where phone = $1",
-    [phone],
-  );
-  return Number(result.rows[0]?.count || 0);
-}
-
-async function insertSupabaseApplication(pool: Pool, record: InviteApplicationRecord, rawPayload: InviteApplicationPayload) {
-  await pool.query(
-    `
-      insert into public.invite_test_applications (
-        id,
-        created_at,
-        source_page,
-        utm_source,
-        utm_campaign,
-        name,
-        phone,
-        email,
-        wechat_id,
-        exam_type,
-        exam_stage,
-        pain_point,
-        weekly_time,
-        current_method,
-        latest_wrong_question,
-        is_yousen_member,
-        exam_date,
-        accept_interview,
-        consent,
-        status,
-        operator_note,
-        submit_count,
-        raw_payload
-      )
-      values (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-        $11, $12, $13, $14, $15, $16, $17, $18,
-        $19, $20, $21, $22, $23::jsonb
-      )
-    `,
-    [
-      record.id,
-      record.created_at,
-      record.source_page,
-      record.utm_source,
-      record.utm_campaign,
-      record.name,
-      record.phone,
-      record.email,
-      record.wechat_id,
-      record.exam_type,
-      record.exam_stage,
-      record.pain_point,
-      record.weekly_time,
-      record.current_method,
-      record.latest_wrong_question,
-      record.is_yousen_member,
-      record.exam_date,
-      record.accept_interview,
-      record.consent,
-      record.status,
-      record.operator_note,
-      record.submit_count,
-      JSON.stringify(rawPayload),
-    ],
-  );
-}
-
-function buildRecord(payload: InviteApplicationPayload, submitCount: number): InviteApplicationRecord | { error: string } {
-  const name = cleanText(payload.name, 40);
-  const phone = cleanText(payload.phone, 20).replace(/\s+/g, "");
-  const email = cleanText(payload.email, 160).toLowerCase();
-  const examType = cleanText(payload.examType, 40);
-  const examStage = cleanText(payload.examStage, 40);
-  const painPoint = cleanText(payload.painPoint, 60);
-  const weeklyTime = cleanText(payload.weeklyTime, 40);
-  const consent = payload.consent === true;
-
-  if (!name) return { error: "请输入称呼。" };
-  if (!phonePattern.test(phone)) return { error: "请输入 11 位中国大陆手机号。" };
-  if (!emailPattern.test(email)) return { error: "请输入有效邮箱。" };
-  if (!examType) return { error: "请选择你正在准备的考试。" };
-  if (!examStage) return { error: "请选择你当前的备考阶段。" };
-  if (!painPoint) return { error: "请选择一个最想先解决的问题。" };
-  if (!weeklyTime) return { error: "请选择每周可参与测试的时间。" };
-  if (!consent) return { error: "请确认同意我们用于内测筛选与产品改进。" };
-
-  return {
-    id: randomUUID(),
-    created_at: new Date().toISOString(),
-    source_page: cleanText(payload.sourcePage, 80) || "invite-test",
-    utm_source: cleanText(payload.utmSource, 120),
-    utm_campaign: cleanText(payload.utmCampaign, 120),
-    name,
-    phone,
-    email,
-    wechat_id: cleanText(payload.wechatId, 80),
-    exam_type: examType,
-    exam_stage: examStage,
-    pain_point: painPoint,
-    weekly_time: weeklyTime,
-    current_method: cleanText(payload.currentMethod, 1200),
-    latest_wrong_question: cleanText(payload.latestWrongQuestion, 2200),
-    is_yousen_member: cleanText(payload.isYousenMember, 40),
-    exam_date: cleanText(payload.examDate, 40),
-    accept_interview: payload.acceptInterview === true,
-    consent: true,
-    status: "submitted",
-    operator_note: "",
-    submit_count: submitCount,
-  };
->>>>>>> Stashed changes
 }
 
 export async function POST(request: NextRequest) {
@@ -579,7 +346,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "请求内容不是有效 JSON。" }, { status: 400 });
   }
 
-<<<<<<< Updated upstream
   const validation = validatePayload(payload);
   if ("error" in validation) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
@@ -593,40 +359,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Failed to save invite test application", error);
     return NextResponse.json({ error: "申请提交失败，请稍后再试。" }, { status: 500 });
-=======
-  const storagePath = getStoragePath();
-  const phone = cleanText(payload.phone, 20).replace(/\s+/g, "");
-  const pool = getInviteApplicationsPool();
-  let previousCount = 0;
-
-  if (phonePattern.test(phone)) {
-    try {
-      previousCount = pool
-        ? await countExistingSupabaseSubmissions(pool, phone)
-        : await countExistingSubmissions(phone, storagePath);
-    } catch (error) {
-      console.error("Invite application duplicate check failed:", error instanceof Error ? error.message : "unknown error");
-      return NextResponse.json({ ok: false, error: "申请提交失败，请稍后再试。" }, { status: 500 });
-    }
-  }
-
-  const record = buildRecord(payload, previousCount + 1);
-
-  if ("error" in record) {
-    return NextResponse.json({ ok: false, error: record.error }, { status: 400 });
-  }
-
-  if (pool) {
-    try {
-      await insertSupabaseApplication(pool, record, payload);
-    } catch (error) {
-      console.error("Invite application Supabase insert failed:", error instanceof Error ? error.message : "unknown error");
-      return NextResponse.json({ ok: false, error: "申请提交失败，请稍后再试。" }, { status: 500 });
-    }
-  } else {
-    await mkdir(path.dirname(storagePath), { recursive: true });
-    await appendFile(storagePath, `${JSON.stringify(record)}\n`, "utf8");
->>>>>>> Stashed changes
   }
 
   return NextResponse.json({ ok: true, id: validation.record.id }, { status: 201 });
