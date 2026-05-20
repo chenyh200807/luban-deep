@@ -28,8 +28,8 @@ function displayLevelName(value) {
 
 function displayChapterName(value) {
   var text = String(value || "").trim();
-  if (/^1A\d{6}$/i.test(text)) return "综合能力";
-  return text || "综合能力";
+  if (/^1A\d{6}$/i.test(text)) return "知识点 " + text.toUpperCase();
+  return text || "未归类能力";
 }
 
 function buildRadarDimensionsFromAssessment(data) {
@@ -87,12 +87,22 @@ function asObject(value) {
 
 function normalizeEventIds(ids) {
   return asList(ids)
-    .map(function (id) {
-      var eventId = compactId(id);
-      return eventId ? "证据 " + eventId : "";
+    .map(function (_id, index) {
+      return learningBrainEvidenceLabel(index);
     })
     .filter(Boolean)
     .slice(0, 3);
+}
+
+function learningBrainEventLabels(labels, ids) {
+  var readable = asList(labels).filter(Boolean).slice(0, 3);
+  return readable.length ? readable : normalizeEventIds(ids);
+}
+
+function learningBrainEvidenceLabel(index) {
+  if (index === 0) return "最近一次批改";
+  if (index === 1) return "上一次批改";
+  return "第 " + (index + 1) + " 条批改证据";
 }
 
 function learningBrainNodeId(edge, side) {
@@ -123,7 +133,18 @@ function learningBrainErrorLabel(errorCode) {
   var code = String(errorCode || "")
     .trim()
     .toUpperCase();
-  return code ? "错因" : "";
+  if (!code) return "";
+  if (code === "M01") return "知识点不熟";
+  if (code === "M02") return "关键词误读";
+  if (code === "M03") return "概念混淆";
+  if (code === "M04") return "选项陷阱";
+  if (code === "M05") return "审题方向错误";
+  if (code === "M06") return "多选漏选";
+  if (code === "M07") return "多选错选";
+  if (code === "M08") return "规范数字混淆";
+  if (code === "M09") return "题干条件提取不完整";
+  if (code === "M10") return "用常识替代规范判断";
+  return "错因";
 }
 
 function learningBrainConceptLabel(code, withCode) {
@@ -131,6 +152,9 @@ function learningBrainConceptLabel(code, withCode) {
     .trim()
     .toUpperCase();
   if (!text) return "";
+  var original = String(code || "").trim();
+  var topic = original.match(/我想练习(.+?)相关的题目/);
+  if (topic && topic[1]) return topic[1].trim();
   return withCode ? "知识点" : "知识点";
 }
 
@@ -190,8 +214,8 @@ function learningBrainObjectLabel(rawId, rawType) {
   }
   if (
     type === "error" ||
-    /^1A\d{6}:E\d{2}$/i.test(id) ||
-    /^E\d{2}$/i.test(id)
+    /^1A\d{6}:[EM]\d{2}$/i.test(id) ||
+    /^[EM]\d{2}$/i.test(id)
   ) {
     var parts = id.split(":");
     var concept = /^1A\d{6}$/i.test(parts[0])
@@ -212,14 +236,18 @@ function learningBrainObjectLabel(rawId, rawType) {
 function humanizeLearningBrainText(value) {
   var text = String(value || "").trim();
   if (!text) return "";
+  text = text.replace(/我想练习(.+?)相关的题目\s*请严格围绕.*?当前学习锚点出题/g, "$1");
   text = text.replace(/concept:/g, "知识点：");
   text = text.replace(/rubric_item:/g, "采分点：");
   text = text.replace(/question:/g, "案例题：");
   text = text.replace(/error:/g, "错因：");
+  text = text.replace(/\bpractice\s*\/\s*/gi, "训练建议：");
+  text = text.replace(/\s*->\s*/g, " → ");
+  text = text.replace(/\bq[-_:]?(\d+)\b/gi, "第 $1 题");
   text = text.replace(/1A\d{6}/gi, function (code) {
     return learningBrainConceptLabel(code, false);
   });
-  text = text.replace(/\bE\d{2}\b/gi, function (code) {
+  text = text.replace(/\b[EM]\d{2}\b/gi, function (code) {
     return learningBrainErrorLabel(code);
   });
   text = text.replace(/\s*上出现\s*/g, "出现");
@@ -271,28 +299,27 @@ function buildLearningBrainTrainingChains(graphChain) {
       return {
         key: "chain-" + index,
         tone: improved ? "improved" : "not-improved",
-        title:
+        title: humanizeLearningBrainText(
           edge.display_meta ||
-          learningBrainObjectLabel(errorId, "error") ||
-          "错因：待确认",
-        training:
-          edge.display_path ||
-          learningBrainObjectLabel(trainingId, "next_training") ||
-          "训练建议：围绕薄弱点做变式训练",
-        question:
-          useEdge.display_path ||
-          (questionId ? learningBrainQuestionLabel(questionId) : ""),
-        outcome: learningBrainOutcomeText(edge.edge_type),
-        eventId: compactId(
-          edge.reason_edge_event_id || edge.evidence_event_id || "",
+            learningBrainObjectLabel(errorId, "error") ||
+            "错因：待确认",
         ),
+        training: humanizeLearningBrainText(
+          edge.display_path ||
+            learningBrainObjectLabel(trainingId, "next_training") ||
+            "训练建议：围绕薄弱点做变式训练",
+        ),
+        question: humanizeLearningBrainText(
+          useEdge.display_path ||
+            (questionId ? learningBrainQuestionLabel(questionId) : ""),
+        ),
+        outcome: learningBrainOutcomeText(edge.edge_type),
+        eventId: "",
         eventLabel:
-          edge.reason_edge_event_id || edge.evidence_event_id
-            ? "证据 " +
-              compactId(
-                edge.reason_edge_event_id || edge.evidence_event_id || "",
-              )
-            : "",
+          edge.event_label ||
+          (edge.reason_edge_event_id || edge.evidence_event_id
+            ? "训练链证据"
+            : ""),
       };
     })
     .slice(0, 4);
@@ -320,17 +347,20 @@ function normalizeLearningBrainPayload(raw) {
     var level = truth.evidence_level || "";
     truths.push({
       key: "truth-" + index,
-      title:
-        truth.display_title ||
-        humanizeLearningBrainText(
-          truth.current_truth || truth.object_key || "",
-        ),
-      meta: truth.display_meta || truth.display_label || "",
+      title: humanizeLearningBrainText(
+        truth.display_title || truth.current_truth || truth.object_key || "",
+      ),
+      meta: humanizeLearningBrainText(
+        truth.display_meta || truth.display_label || "",
+      ),
       level: level || "unclassified",
       levelLabel:
         truth.evidence_level_label ||
         learningBrainLevelLabel(level || "unclassified"),
-      eventIds: normalizeEventIds(truth.supporting_event_ids),
+      eventIds: learningBrainEventLabels(
+        truth.supporting_event_labels,
+        truth.supporting_event_ids,
+      ),
     });
   });
 
@@ -347,7 +377,10 @@ function normalizeLearningBrainPayload(raw) {
         meta: learningBrainObjectLabel(key, item.object_type || ""),
         level: level || "unclassified",
         levelLabel: learningBrainLevelLabel(level || "unclassified"),
-        eventIds: normalizeEventIds(item.supporting_event_ids),
+        eventIds: learningBrainEventLabels(
+          item.supporting_event_labels,
+          item.supporting_event_ids,
+        ),
       });
     });
 
@@ -372,23 +405,28 @@ function normalizeLearningBrainPayload(raw) {
             .join("；") || "薄弱点",
         level: level || "unclassified",
         levelLabel: learningBrainLevelLabel(level || "unclassified"),
-        eventIds: normalizeEventIds(weak.supporting_event_ids),
+        eventIds: learningBrainEventLabels(
+          weak.supporting_event_labels,
+          weak.supporting_event_ids,
+        ),
       });
     });
 
   var evidence = asList(visible.evidence_flow)
     .map(function (item, index) {
       var flow = asObject(item);
-      var eventId = compactId(flow.event_id || "");
+      var hasEvidence = !!(flow.event_label || flow.event_id);
       return {
-        key: flow.event_id || "visible-edge-" + index,
+        key: "visible-edge-" + index,
         type:
-          flow.display_title ||
+          humanizeLearningBrainText(flow.display_title) ||
           flow.display_label ||
           learningBrainEdgeLabel(flow.edge_type),
-        path: flow.display_path || flow.path || flow.display_meta || "",
-        eventId: eventId,
-        eventLabel: eventId ? "证据 " + eventId : "",
+        path: humanizeLearningBrainText(
+          flow.display_path || flow.path || flow.display_meta || "",
+        ),
+        eventId: "",
+        eventLabel: flow.event_label || (hasEvidence ? learningBrainEvidenceLabel(index) : ""),
       };
     })
     .filter(function (item) {
@@ -398,21 +436,20 @@ function normalizeLearningBrainPayload(raw) {
     evidence = graphEdges
       .concat(chainEdges)
       .map(function (edge, index) {
-        var eventId = compactId(
+        var hasEvidence = !!(
           edge.evidence_event_id ||
-            edge.reason_edge_event_id ||
-            edge.event_id ||
-            "",
+          edge.reason_edge_event_id ||
+          edge.event_id
         );
         return {
           key: "edge-" + index,
           type:
-            edge.display_title ||
+            humanizeLearningBrainText(edge.display_title) ||
             edge.display_label ||
             learningBrainEdgeLabel(edge.edge_type),
-          path: edge.display_path || learningBrainEdgePath(edge),
-          eventId: eventId,
-          eventLabel: eventId ? "证据 " + eventId : "",
+          path: humanizeLearningBrainText(edge.display_path || learningBrainEdgePath(edge)),
+          eventId: "",
+          eventLabel: hasEvidence ? learningBrainEvidenceLabel(index) : "",
         };
       })
       .filter(function (item) {
@@ -423,11 +460,11 @@ function normalizeLearningBrainPayload(raw) {
     .map(function (item, index) {
       var plan = asObject(item);
       return {
-        key: plan.concept_id || plan.error_code || "visible-training-" + index,
-        title:
-          plan.display_title ||
-          humanizeLearningBrainText(plan.claim || "下一步训练"),
-        meta: plan.display_meta || plan.display_label || "",
+        key: "visible-training-" + index,
+        title: humanizeLearningBrainText(
+          plan.display_title || plan.claim || "下一步训练",
+        ),
+        meta: humanizeLearningBrainText(plan.display_meta || plan.display_label || ""),
       };
     })
     .filter(function (item) {

@@ -102,6 +102,16 @@ function createPageInstance(pageDef) {
       reportSource.indexOf("_hydrateFromUnifiedReport") >= 0,
     "yousen _loadReportSnapshot must short-circuit when unified report payload is unavailable",
   );
+  assert(
+    reportSource.indexOf('return "综合能力"') < 0 &&
+      reportSource.indexOf('return "知识点 " + text.toUpperCase()') >= 0,
+    "yousen report page must not collapse taxonomy codes into the meaningless 综合能力 label",
+  );
+  assert(
+    reportSource.indexOf('code === "M01"') >= 0 &&
+      reportSource.indexOf('code === "M10"') >= 0,
+    "yousen report stale-data fallback should cover the full MCQ error taxonomy",
+  );
 
   await run(
     "report onShow should hydrate all state from one snapshot without duplicate assessment reads",
@@ -303,6 +313,19 @@ function createPageInstance(pageDef) {
                     display_meta: "知识点：工程招标投标与合同管理",
                     supporting_event_ids: ["evt1", "evt2"],
                   },
+                  {
+                    object_key:
+                      "error:我想练习主体结构相关的题目 请严格围绕以下当前学习锚点出题:M07",
+                    current_truth:
+                      "我想练习主体结构相关的题目 请严格围绕以下当前学习锚点出题 上出现 M07 错因",
+                    evidence_level: "L0_observed",
+                    evidence_level_label: "单次观察",
+                    display_label: "错因",
+                    display_title:
+                      "我想练习主体结构相关的题目 请严格围绕以下当前学习锚点出题 上出现 M07 错因",
+                    display_meta: "错因：错因 M07",
+                    supporting_event_ids: ["e8b7f3a8123456782c60"],
+                  },
                 ],
                 evidence_flow: [
                   {
@@ -320,6 +343,14 @@ function createPageInstance(pageDef) {
                     display_title: "训练后仍需巩固",
                     display_path:
                       "训练建议：案例题补强 → 错因：工程招标投标与合同管理 / 采分点遗漏",
+                  },
+                  {
+                    event_id: "e8b7f3a8123456782c60",
+                    edge_type: "error_points_to_training",
+                    display_title:
+                      "我想练习主体结构相关的题目 请严格围绕以下当前学习锚点出题 上出现 M06 错因",
+                    display_path:
+                      "训练建议：practice / 我想练习主体结构相关的题目 请严格围绕以下当前学习锚点出题 -> 案例题： q_1",
                   },
                 ],
                 next_training: [
@@ -546,6 +577,20 @@ function createPageInstance(pageDef) {
         JSON.stringify(page.data).indexOf("concept:1A432000") < 0 &&
           JSON.stringify(page.data).indexOf("question_tests_concept") < 0,
         "Learning Brain report state should prefer backend display fields over machine taxonomy codes",
+      );
+      assert(
+        JSON.stringify(page.data).indexOf("M07") < 0 &&
+          JSON.stringify(page.data).indexOf("M06") < 0 &&
+          JSON.stringify(page.data).indexOf("e8b7f3a8") < 0 &&
+          JSON.stringify(page.data).indexOf("practice /") < 0 &&
+          JSON.stringify(page.data).indexOf("q_1") < 0,
+        "Learning Brain report state should hide stale backend raw error codes, event ids, and training ids",
+      );
+      assert(
+        JSON.stringify(page.data).indexOf("主体结构") >= 0 &&
+          JSON.stringify(page.data).indexOf("多选错选") >= 0 &&
+          JSON.stringify(page.data).indexOf("多选漏选") >= 0,
+        "stale backend Learning Brain fields should still become learner-readable Chinese copy",
       );
     },
   );

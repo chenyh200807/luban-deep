@@ -58,6 +58,16 @@ async function run() {
     "report page should make the learning-report read model the page decision authority",
   );
   assert(
+    reportSource.indexOf('return "综合能力"') < 0 &&
+      reportSource.indexOf('return "知识点 " + text.toUpperCase()') >= 0,
+    "report page must not collapse taxonomy codes into the meaningless 综合能力 label",
+  );
+  assert(
+    reportSource.indexOf('code === "M01"') >= 0 &&
+      reportSource.indexOf('code === "M10"') >= 0,
+    "report page stale-data fallback should cover the full MCQ error taxonomy",
+  );
+  assert(
     apiSource.indexOf(".catch(function") < 0 ||
       apiSource.indexOf("runLearningBrainHarnessCaseGrading(") >
         apiSource.indexOf("function getLearningBrainProjection"),
@@ -167,6 +177,16 @@ async function run() {
                 display_meta: "知识点：工程招标投标与合同管理",
                 supporting_event_ids: ["evt_confirmed_001"],
               },
+              {
+                object_key:
+                  "error:我想练习主体结构相关的题目 请严格围绕以下当前学习锚点出题:M07",
+                object_type: "error",
+                display_title:
+                  "我想练习主体结构相关的题目 请严格围绕以下当前学习锚点出题 上出现 M07 错因",
+                display_meta: "错因：错因 M07",
+                evidence_level: "L0_observed",
+                supporting_event_ids: ["e8b7f3a8123456782c60"],
+              },
             ],
             evidence_flow: [
               {
@@ -184,6 +204,14 @@ async function run() {
                 display_title: "训练后仍需巩固",
                 display_path:
                   "训练建议：案例题补强 → 错因：工程招标投标与合同管理 / 采分点遗漏",
+              },
+              {
+                event_id: "e8b7f3a8123456782c60",
+                edge_type: "error_points_to_training",
+                display_title:
+                  "我想练习主体结构相关的题目 请严格围绕以下当前学习锚点出题 上出现 M06 错因",
+                display_path:
+                  "训练建议：practice / 我想练习主体结构相关的题目 请严格围绕以下当前学习锚点出题 -> 案例题： q_1",
               },
             ],
             next_training: [
@@ -364,9 +392,23 @@ async function run() {
     "建筑实务学习事实",
   );
   assert(
-    JSON.stringify(ctx.data).indexOf("concept:1A432000") < 0 &&
+      JSON.stringify(ctx.data).indexOf("concept:1A432000") < 0 &&
       JSON.stringify(ctx.data).indexOf("question_tests_concept") < 0,
     "learner-facing report state should not expose machine taxonomy codes when backend display fields exist",
+  );
+  assert(
+    JSON.stringify(ctx.data).indexOf("M07") < 0 &&
+      JSON.stringify(ctx.data).indexOf("M06") < 0 &&
+      JSON.stringify(ctx.data).indexOf("e8b7f3a8") < 0 &&
+      JSON.stringify(ctx.data).indexOf("practice /") < 0 &&
+      JSON.stringify(ctx.data).indexOf("q_1") < 0,
+    "learner-facing report state should hide stale backend raw error codes, event ids, and training ids",
+  );
+  assert(
+    JSON.stringify(ctx.data).indexOf("主体结构") >= 0 &&
+      JSON.stringify(ctx.data).indexOf("多选错选") >= 0 &&
+      JSON.stringify(ctx.data).indexOf("多选漏选") >= 0,
+    "stale backend Learning Brain fields should still become learner-readable Chinese copy",
   );
 
   const reportCtx = {
