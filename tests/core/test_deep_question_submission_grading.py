@@ -173,6 +173,13 @@ async def test_deep_question_deterministic_choice_feedback_explains_without_auth
     assert "你的答案：** C（装饰装修）" in response
     assert "正确答案：** D（钢结构）" in response
     assert "正确选项是 D（钢结构）" in response
+    assert "逐项解析" in response
+    assert "C. 装饰装修：误选项" in response
+    assert "D. 钢结构：正确项" in response
+    assert "你为什么会错" in response
+    assert "采分点" in response
+    assert "易错点" in response
+    assert "记忆口诀" in response
 
 
 @pytest.mark.asyncio
@@ -233,6 +240,10 @@ async def test_deep_question_reveals_objective_answer_without_followup_llm(
     assert "答案与解析" in response
     assert "正确答案：** D（钢结构）" in response
     assert "正确选项是 D（钢结构）" in response
+    assert "逐项解析" in response
+    assert "采分点" in response
+    assert "易错点" in response
+    assert "记忆口诀" in response
 
 
 @pytest.mark.asyncio

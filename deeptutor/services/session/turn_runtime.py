@@ -853,25 +853,6 @@ async def _resolve_question_followup_context_and_action(
     return None, None
 
 
-def _should_pin_tutorbot_capability(
-    *,
-    user_message: str,
-    followup_question_context: dict[str, Any] | None,
-    followup_action: dict[str, Any] | None = None,
-) -> bool:
-    route = followup_action_route(followup_action)
-    if route in {"submission", "followup"}:
-        return False
-    if route == "practice_generation":
-        return False
-    if looks_like_practice_generation_request(user_message):
-        return False
-    normalized_followup = normalize_question_followup_context(followup_question_context)
-    if normalized_followup and looks_like_question_followup(user_message, normalized_followup):
-        return False
-    return True
-
-
 def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
     normalized_metadata = dict(metadata or {})
     explicit = normalize_question_followup_context(
@@ -2930,16 +2911,6 @@ class TurnRuntimeManager:
             knowledge_bases=payload.get("knowledge_bases"),
         )
         selected_capability = requested_capability
-        if (
-            selected_capability is None
-            and knowledge_chain_defaults.get("execution_engine") == "tutorbot_runtime"
-            and _should_pin_tutorbot_capability(
-                user_message=raw_user_content,
-                followup_question_context=runtime_followup_question_context,
-                followup_action=runtime_followup_action,
-            )
-        ):
-            selected_capability = "tutorbot"
         capability = selected_capability or (
             ""
             if (

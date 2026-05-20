@@ -31,7 +31,7 @@ class _FakeRegistry:
         return _FakeCapability()
 
     def list_capabilities(self) -> list[str]:
-        return ["chat", "deep_question"]
+        return ["chat", "deep_question", "tutorbot"]
 
     def get_manifests(self) -> list[dict[str, Any]]:
         return []
@@ -79,6 +79,88 @@ async def test_orchestrator_autoroutes_natural_one_question_phrase_to_deep_quest
     assert context.config_overrides["question_type"] == "choice"
     result = next(event for event in events if event.type.value == "result")
     assert result.metadata["question_type"] == "choice"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_routes_short_acceptance_of_recent_practice_offer_to_deep_question() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-accepted-offer",
+        user_message="要",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "raw_user_message": "要",
+            "conversation_context_text": (
+                "Assistant: 记忆口诀强化\n"
+                "主体结构七大类：砼砌钢，钢管型钢铝木全。\n"
+                "需要我出同考点题目帮你巩固一下吗？"
+            ),
+            "active_object": {
+                "object_type": "open_chat_topic",
+                "object_id": "s-accepted-offer",
+                "scope": {"domain": "session", "session_id": "s-accepted-offer"},
+                "state_snapshot": {
+                    "session_id": "s-accepted-offer",
+                    "title": "主体结构",
+                    "compressed_summary": "用户在复习主体结构。",
+                    "status": "idle",
+                },
+                "version": 1,
+                "entered_at": "",
+                "last_touched_at": "",
+                "source_turn_id": "turn-offer",
+            },
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["topic"] == "继续出同考点题目帮我巩固一下"
+    assert context.metadata["semantic_router_selected_capability"] == "deep_question"
+    assert context.metadata["question_followup_action"]["intent"] == "generate_more_questions"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_uses_tutorbot_as_default_chat_engine_after_semantic_chat_decision() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-tutorbot-chat",
+        user_message="这个口诀是什么意思？",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "raw_user_message": "这个口诀是什么意思？",
+            "active_object": {
+                "object_type": "open_chat_topic",
+                "object_id": "s-tutorbot-chat",
+                "scope": {"domain": "session", "session_id": "s-tutorbot-chat"},
+                "state_snapshot": {
+                    "session_id": "s-tutorbot-chat",
+                    "title": "主体结构",
+                    "compressed_summary": "用户在复习主体结构。",
+                    "status": "idle",
+                },
+                "version": 1,
+                "entered_at": "",
+                "last_touched_at": "",
+                "source_turn_id": "turn-chat",
+            },
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
 
 
 @pytest.mark.asyncio
@@ -884,6 +966,34 @@ async def test_orchestrator_preselected_deep_question_still_prepares_lightweight
     assert context.config_overrides["reveal_answers"] is False
     assert context.config_overrides["reveal_explanations"] is False
     assert context.config_overrides["lightweight_generation"] is True
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_preselected_deep_question_uses_cached_generation_action_for_short_acceptance() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-preselected-acceptance",
+        user_message="要",
+        config_overrides={},
+        metadata={
+            "raw_user_message": "要",
+            "question_followup_action": {
+                "intent": "generate_more_questions",
+                "topic": "继续出同考点题目帮我巩固一下",
+            },
+        },
+        language="zh",
+        active_capability="deep_question",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["topic"] == "继续出同考点题目帮我巩固一下"
 
 
 @pytest.mark.asyncio

@@ -33,8 +33,9 @@
 14. orchestrator 从自然语言推断出的 `num_questions`、`question_type`、`lightweight_generation` 只属于本次 capability request config；它们不得成为 session / learner state 的第二份长期真相。
 15. 批量出题请求不能因为上一题已经作答或已批改而退回 grading path；生成更多题目的 intent 必须收敛到 capability routing / request config，而不是 adapter 或 presentation 层重复判定。
 16. 当同一用户消息同时包含当前题目的可解析作答和“下一题 / 继续练”类训练请求时，orchestrator 必须先保持 `deep_question` 的 submission/grading 路径；训练生成只能作为后续动作，不能抢在当前作答批改之前改写为 practice generation config。
-17. `mobile` adapter 的 billing / wallet 端点只能做认证身份、wallet identity、额度 fail-closed 和展示 read-model 装配；不得把钱包、旧会员流水或展示层状态升级为 capability routing / request config authority。旧会员流水只能通过显式迁移/对账开关参与展示，默认 authority 必须是 wallet ledger。
-18. `mobile` adapter 的 learning-brain projection 端点只能暴露 learner-state 已编译投影的 read-model；不得由 adapter 推断 capability、合成 compiled truth、触发 RAG，或把 projection 读取结果作为新的 capability authority。
+17. 对上一轮出题 / 巩固邀请的短肯定回复或复述，属于 capability route 的语义承接问题；必须先由 orchestrator 的统一 semantic decision 归一为 `practice_generation` 候选。只有语义结果是普通聊天时，`bot_id` 默认绑定才可以让现有 TutorBot runtime 作为执行引擎。
+18. `mobile` adapter 的 billing / wallet 端点只能做认证身份、wallet identity、额度 fail-closed 和展示 read-model 装配；不得把钱包、旧会员流水或展示层状态升级为 capability routing / request config authority。旧会员流水只能通过显式迁移/对账开关参与展示，默认 authority 必须是 wallet ledger。
+19. `mobile` adapter 的 learning-brain projection 端点只能暴露 learner-state 已编译投影的 read-model；不得由 adapter 推断 capability、合成 compiled truth、触发 RAG，或把 projection 读取结果作为新的 capability authority。
 
 ## Schema
 

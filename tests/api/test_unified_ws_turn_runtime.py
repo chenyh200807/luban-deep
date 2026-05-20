@@ -1125,6 +1125,10 @@ async def test_turn_runtime_routes_construction_exam_bot_to_tutorbot_capability(
             )
 
     class FakeOrchestrator:
+        async def _select_capability(self, context):
+            assert context.active_capability is None
+            return "tutorbot"
+
         async def handle(self, context):
             assert context.active_capability == "tutorbot"
             yield StreamEvent(
@@ -1366,6 +1370,224 @@ async def test_turn_runtime_routes_tutorbot_practice_generation_to_deep_question
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_routes_recent_practice_offer_acceptance_to_deep_question_authority(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+    captured_capabilities: list[str] = []
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text=(
+                    "Assistant: 记忆口诀强化\n"
+                    "主体结构七大类：砼砌钢，钢管型钢铝木全。\n"
+                    "需要我出同考点题目帮你巩固一下吗？"
+                ),
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeCapability:
+        async def run(self, context, bus) -> None:
+            captured["active_capability"] = context.active_capability
+            captured["config_overrides"] = dict(context.config_overrides)
+            captured["metadata"] = dict(context.metadata)
+            await bus.content(
+                "第1题",
+                source="deep_question",
+                stage="generation",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            await bus.result(
+                {
+                    "response": "第1题",
+                    "mode": "custom",
+                    "question_followup_context": {
+                        "question_id": "q_recent_offer",
+                        "question": "主体结构练习题",
+                        "question_type": "choice",
+                        "correct_answer": "A",
+                    },
+                },
+                source="deep_question",
+            )
+
+    class FakeRegistry:
+        def get(self, name: str):
+            captured_capabilities.append(name)
+            return FakeCapability()
+
+        def list_capabilities(self) -> list[str]:
+            return ["chat", "deep_question", "tutorbot"]
+
+        def get_manifests(self) -> list[dict[str, object]]:
+            return []
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_capability_registry",
+        lambda: FakeRegistry(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_tool_registry",
+        lambda: SimpleNamespace(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session = await store.create_session(session_id="session_recent_offer_acceptance", title="主体结构")
+    active_object = build_active_object_from_session(session)
+    assert active_object is not None
+    await store.set_active_object(session["id"], active_object)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "要",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "interaction_hints": {
+                    "profile": "tutorbot",
+                    "entry_role": "tutorbot",
+                    "subject_domain": "construction_exam",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert turn["capability"] == "deep_question"
+    assert captured["active_capability"] == "deep_question"
+    assert captured_capabilities[0] == "deep_question"
+    assert captured["config_overrides"]["topic"] == "继续出同考点题目帮我巩固一下"
+    assert captured["config_overrides"]["force_generate_questions"] is True
+    assert captured["metadata"]["question_followup_action"]["intent"] == "generate_more_questions"
+    assert captured["metadata"]["turn_semantic_decision"]["next_action"] == "route_to_generation"
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_keeps_open_chat_tutorbot_followup_on_tutorbot_authority(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+    captured_capabilities: list[str] = []
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="Assistant: 主体结构七大类：砼砌钢，钢管型钢铝木全。",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeCapability:
+        async def run(self, context, bus) -> None:
+            captured["active_capability"] = context.active_capability
+            captured["metadata"] = dict(context.metadata)
+            await bus.content(
+                "这是在解释主体结构口诀。",
+                source="tutorbot",
+                stage="responding",
+            )
+
+    class FakeRegistry:
+        def get(self, name: str):
+            captured_capabilities.append(name)
+            return FakeCapability()
+
+        def list_capabilities(self) -> list[str]:
+            return ["chat", "deep_question", "tutorbot"]
+
+        def get_manifests(self) -> list[dict[str, object]]:
+            return []
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_capability_registry",
+        lambda: FakeRegistry(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_tool_registry",
+        lambda: SimpleNamespace(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session = await store.create_session(session_id="session_tutorbot_open_chat_followup", title="主体结构")
+    active_object = build_active_object_from_session(session)
+    assert active_object is not None
+    await store.set_active_object(session["id"], active_object)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "这个口诀是什么意思？",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert turn["capability"] == "tutorbot"
+    assert captured["active_capability"] == "tutorbot"
+    assert captured_capabilities[0] == "tutorbot"
+    assert captured["metadata"]["active_object"]["object_type"] == "open_chat_topic"
+    assert captured["metadata"]["semantic_router_selected_capability"] == "tutorbot"
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "tutorbot"
 
 
 @pytest.mark.asyncio

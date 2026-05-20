@@ -42,7 +42,6 @@ from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_req
 
 logger = logging.getLogger(__name__)
 
-
 def _coerce_flag(value: Any) -> bool | None:
     if value is None:
         return None
@@ -199,12 +198,16 @@ class ChatOrchestrator:
                         context.metadata.get("question_followup_action"),
                     )
                 elif next_action == "route_to_generation":
-                    self._prepare_practice_request_context(context, routing_user_message)
+                    self._prepare_practice_request_context(
+                        context,
+                        self._practice_generation_message(context, routing_user_message),
+                    )
                 context.metadata["semantic_router_selected_capability"] = "deep_question"
                 return "deep_question"
             if semantic_route == "chat":
-                context.metadata["semantic_router_selected_capability"] = "chat"
-                return "chat"
+                cap_name = self._default_chat_capability(context)
+                context.metadata["semantic_router_selected_capability"] = cap_name
+                return cap_name
 
         context.metadata["semantic_router_mode"] = "disabled"
         context.metadata["semantic_router_mode_reason"] = (
@@ -227,6 +230,12 @@ class ChatOrchestrator:
         if capability != "deep_question":
             return
         action = context.metadata.get("question_followup_action")
+        if followup_action_route(action) == "practice_generation":
+            self._prepare_practice_request_context(
+                context,
+                self._practice_generation_message(context, message),
+            )
+            return
         if (
             followup_action_route(action) == "submission"
             or self._looks_like_question_submission(context, message)
@@ -263,6 +272,24 @@ class ChatOrchestrator:
         metadata = context.metadata if isinstance(context.metadata, dict) else {}
         raw = str(metadata.get("raw_user_message") or "").strip()
         return raw or str(context.user_message or "").strip()
+
+    @staticmethod
+    def _practice_generation_message(context: UnifiedContext, fallback: str) -> str:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        action = metadata.get("question_followup_action")
+        if isinstance(action, dict):
+            topic = str(action.get("topic") or action.get("topic_hint") or "").strip()
+            if topic:
+                return topic
+        return fallback
+
+    @staticmethod
+    def _default_chat_capability(context: UnifiedContext) -> str:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        bot_id = str(context.config_overrides.get("bot_id") or metadata.get("bot_id") or "").strip()
+        if bot_id:
+            return "tutorbot"
+        return "chat"
 
     async def _resolve_turn_semantic_decision(
         self,
@@ -333,7 +360,7 @@ class ChatOrchestrator:
         if self._looks_like_question_followup(context, message):
             return "deep_question"
 
-        return "chat"
+        return self._default_chat_capability(context)
 
     def _semantic_router_scope_match(
         self,
