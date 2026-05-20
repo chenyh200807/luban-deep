@@ -440,6 +440,16 @@ function getLearningBrainProjection(eventLimit) {
   });
 }
 
+/** 获取学情页统一 read model */
+function getLearningReport(eventLimit) {
+  var limit = Number(eventLimit || 100);
+  if (!Number.isFinite(limit) || limit <= 0) limit = 100;
+  return request({
+    url: "/api/v1/mobile/learning-report?event_limit=" + Math.min(Math.round(limit), 500),
+    method: "GET",
+  });
+}
+
 /** 本地 QA：写入案例题阅卷事件并触发合成，只在本地后端开启 QA router 时可用 */
 function runLearningBrainHarnessCaseGrading(payload) {
   return request({
@@ -596,6 +606,7 @@ module.exports = {
   getBadges: getBadges,
   getDailyQuestion: getDailyQuestion,
   getRadarData: getRadarData,
+  getLearningReport: getLearningReport,
   getLearningBrainProjection: getLearningBrainProjection,
   runLearningBrainHarnessCaseGrading: runLearningBrainHarnessCaseGrading,
   getMasteryDashboard: getMasteryDashboard,
