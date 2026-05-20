@@ -133,29 +133,15 @@ function loadBillingPage() {
   try {
     var loaded = loadBillingPage();
     var page = loaded.page;
-    var packages = page.data.packages;
-
-    assert(Array.isArray(packages), "billing packages should be an array");
-    assert(packages.length === 2, "billing page should expose exactly two packages");
-    assert(
-      packages.map(function (item) { return item.price; }).join(",") === "99,199",
-      "billing page should keep the 99,199 package prices",
-    );
-    assert(
-      packages.map(function (item) { return item.points; }).join(",") === "4400,9000",
-      "billing page should keep the approved weekly allowance mapping",
-    );
-    assert(page.data.selectedPkg === "sprint", "billing page should default to the recommended pass package");
-
-    page.onSelectPkg({ currentTarget: { dataset: { id: "advance" } } });
-    assert(page.data.selectedPkg === "advance", "billing page should update selection from tap dataset");
-
-    page.onRecharge();
-    assert(page.data.checkoutVisible === true, "billing recharge should open checkout sheet");
-    await page.onConfirmPay();
-    assert(loaded.checkoutCalls.length === 1, "billing should create checkout order");
-    assert(loaded.paymentCalls.length === 1, "billing should invoke WeChat payment request");
-    assert(loaded.modalCalls.length === 0, "billing should not show unavailable payment copy");
+    assert(!("packages" in page.data), "billing page should not expose package list while pricing is hidden");
+    assert(!("selectedPkg" in page.data), "billing page should not default to a package while pricing is hidden");
+    assert(!("selectedPkgPrice" in page.data), "billing page should not expose a default price while pricing is hidden");
+    assert(typeof page.onSelectPkg === "undefined", "billing page should not expose package selection while pricing is hidden");
+    assert(typeof page.onRecharge === "undefined", "billing page should not expose recharge action while pricing is hidden");
+    assert(typeof page.onConfirmPay === "undefined", "billing page should not expose payment action while pricing is hidden");
+    assert(loaded.checkoutCalls.length === 0, "billing should not create checkout order while pricing is hidden");
+    assert(loaded.paymentCalls.length === 0, "billing should not invoke WeChat payment while pricing is hidden");
+    assert(loaded.modalCalls.length === 0, "billing should not show unavailable payment copy while pricing is hidden");
   } catch (err) {
     fail++;
     errors.push("ERROR: " + (err && err.stack ? err.stack : err));

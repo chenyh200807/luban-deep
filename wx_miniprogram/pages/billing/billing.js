@@ -11,50 +11,6 @@ Page({
     usagePrimaryLabel: "额度同步中",
     usagePrimaryPercent: 100,
     usageRows: [],
-    selectedPkg: "sprint",
-    selectedPkgLabel: "通关版",
-    selectedPkgPrice: "199",
-    selectedPkgUsage: "高频冲刺备考",
-    selectedPkgDesc: "案例批改、整卷复盘、高频追问和薄弱点诊断",
-    checkoutVisible: false,
-    selectedPayChannel: "wechat",
-    paying: false,
-    payChannels: [
-      {
-        id: "wechat",
-        label: "微信支付",
-        desc: "小程序内完成支付",
-      },
-      {
-        id: "alipay",
-        label: "支付宝",
-        desc: "生成支付宝订单",
-      },
-    ],
-    packages: [
-      {
-        id: "advance",
-        label: "精学版",
-        usageLabel: "每周稳定学习",
-        points: 4400,
-        price: "99",
-        per: "适合每周稳定学习",
-        badge: "",
-        desc: "错题讲解、章节复盘、1-2 套卷深度复盘",
-        rhythm: "适合每周 1-2 套卷",
-      },
-      {
-        id: "sprint",
-        label: "通关版",
-        usageLabel: "高频冲刺备考",
-        points: 9000,
-        price: "199",
-        per: "适合考前 3-6 个月",
-        badge: "适合考前冲刺",
-        desc: "案例批改、整卷复盘、高频追问和薄弱点诊断",
-        rhythm: "适合高强度冲刺",
-      },
-    ],
   },
 
   onLoad() {
@@ -82,64 +38,6 @@ Page({
     }
   },
 
-  onSelectPkg: function (e) {
-    var selectedPkg = e.currentTarget.dataset.id;
-    var pkg = _selectedPackage(this.data.packages, selectedPkg);
-    this.setData({
-      selectedPkg: selectedPkg,
-      selectedPkgLabel: pkg.label,
-      selectedPkgPrice: pkg.price,
-      selectedPkgUsage: pkg.usageLabel,
-      selectedPkgDesc: pkg.desc,
-    });
-  },
-
-  onRecharge: function () {
-    if (!this.data.selectedPkg) return;
-    this.setData({ checkoutVisible: true });
-  },
-
-  closeCheckout: function () {
-    if (this.data.paying) return;
-    this.setData({ checkoutVisible: false });
-  },
-
-  noop: function () {},
-
-  onSelectPayChannel: function (e) {
-    this.setData({ selectedPayChannel: e.currentTarget.dataset.id });
-  },
-
-  onConfirmPay: async function () {
-    if (this.data.paying) return;
-    var pkg = _selectedPackage(this.data.packages, this.data.selectedPkg);
-    if (!pkg || !pkg.id) return;
-    this.setData({ paying: true });
-    try {
-      var rawOrder = await api.createBillingCheckout({
-        package_id: pkg.id,
-        channel: this.data.selectedPayChannel,
-      });
-      var order = api.unwrapResponse ? api.unwrapResponse(rawOrder) : rawOrder;
-      var payResult = await _runPayment(order);
-      wx.showToast({
-        title: payResult && payResult.pending ? "订单已生成" : "支付完成",
-        icon: payResult && payResult.pending ? "none" : "success",
-      });
-      this.setData({ checkoutVisible: false });
-      this._loadUsage();
-    } catch (err) {
-      wx.showModal({
-        title: "支付未完成",
-        content: _paymentErrorMessage(err),
-        showCancel: false,
-        confirmText: "知道了",
-      });
-    } finally {
-      this.setData({ paying: false });
-    }
-  },
-
   goBack() {
     wx.navigateBack({
       delta: 1,
@@ -154,52 +52,6 @@ Page({
     wx.switchTab({ url: "/pages/chat/chat" });
   },
 });
-
-function _selectedPackage(packages, selectedPkg) {
-  var items = Array.isArray(packages) ? packages : [];
-  for (var i = 0; i < items.length; i++) {
-    if (String(items[i].id || "") === String(selectedPkg || "")) return items[i];
-  }
-  return items[0] || {};
-}
-
-function _runPayment(order) {
-  var payload = order && order.payment ? order.payment : {};
-  if (payload.type === "wechat_mp" && payload.params) {
-    return new Promise(function (resolve, reject) {
-      wx.requestPayment(
-        Object.assign({}, payload.params, {
-          success: resolve,
-          fail: reject,
-        })
-      );
-    });
-  }
-  if (payload.type === "alipay_qr" && payload.qr_code_url) {
-    return new Promise(function (resolve, reject) {
-      wx.previewImage({
-        current: payload.qr_code_url,
-        urls: [payload.qr_code_url],
-        success: function () { resolve({ pending: true }); },
-        fail: reject,
-      });
-    });
-  }
-  var err = new Error(order && order.status ? order.status : "PAYMENT_ORDER_NOT_READY");
-  err.order = order;
-  throw err;
-}
-
-function _paymentErrorMessage(err) {
-  var order = err && err.order ? err.order : {};
-  if (order.status === "payment_config_missing") {
-    return "支付订单已创建，但商户支付参数缺失。请先配置微信支付商户号/API v3 密钥或支付宝应用私钥。";
-  }
-  if (err && err.errMsg && err.errMsg.indexOf("cancel") >= 0) {
-    return "你已取消本次支付，套餐没有变更。";
-  }
-  return "订单没有完成扣款，套餐不会变更。请稍后重试。";
-}
 
 function _normalizeUsage(raw) {
   var data = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};

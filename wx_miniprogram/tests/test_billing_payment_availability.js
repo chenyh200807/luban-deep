@@ -1,4 +1,4 @@
-// test_billing_payment_availability.js — billing must not expose a fake payment flow
+// test_billing_payment_availability.js — test build billing must not expose pricing/payment flow
 // Run: node wx_miniprogram/tests/test_billing_payment_availability.js
 
 var fs = require("fs");
@@ -55,25 +55,6 @@ function loadBillingPage(usagePayload) {
               },
             });
           },
-          getLedger: function () { return Promise.resolve({ entries: [], has_more: false }); },
-          createBillingCheckout: function (payload) {
-            calls.checkouts.push(payload);
-            return Promise.resolve({
-              status: "pending_payment",
-              order_id: "order_1",
-              channel: payload.channel,
-              payment: {
-                type: "wechat_mp",
-                params: {
-                  timeStamp: "1770000000",
-                  nonceStr: "nonce",
-                  package: "prepay_id=wx123",
-                  signType: "RSA",
-                  paySign: "sign",
-                },
-              },
-            });
-          },
           unwrapResponse: function (raw) { return raw; },
         };
       }
@@ -107,22 +88,13 @@ function loadBillingPage(usagePayload) {
     loaded.page.data.usageRows.map(function (item) { return item.key; }).join(",") === "weekly",
     "billing should expose only the weekly percentage row to users",
   );
-  assert(loaded.page.data.selectedPkg === "sprint", "billing should default to the recommended pass plan");
-
-  loaded.page.onRecharge();
-  assert(loaded.page.data.checkoutVisible === true, "billing should open a payment checkout sheet");
-  assert(
-    loaded.page.data.payChannels.map(function (item) { return item.id; }).join(",") === "wechat,alipay",
-    "billing should expose both WeChat Pay and Alipay channels",
-  );
-  assert(loaded.calls.modal.length === 0, "billing should not show unavailable payment copy before checkout");
-
-  await loaded.page.onConfirmPay();
-  assert(loaded.calls.checkouts.length === 1, "billing should create a checkout order");
-  assert(loaded.calls.checkouts[0].package_id === "sprint", "checkout should use the selected package");
-  assert(loaded.calls.checkouts[0].channel === "wechat", "checkout should use selected payment channel");
-  assert(loaded.calls.payments.length === 1, "billing should invoke wx.requestPayment for WeChat orders");
-  assert(loaded.calls.toast.length === 1 && loaded.calls.toast[0].title === "支付完成", "successful payment should toast completion");
+  assert(!("selectedPkg" in loaded.page.data), "billing should not keep a default package while pricing is hidden");
+  assert(!("selectedPkgPrice" in loaded.page.data), "billing should not keep a default price while pricing is hidden");
+  assert(typeof loaded.page.onRecharge === "undefined", "billing should not expose recharge action while pricing is hidden");
+  assert(typeof loaded.page.onConfirmPay === "undefined", "billing should not expose payment action while pricing is hidden");
+  assert(loaded.calls.checkouts.length === 0, "billing should not create checkout orders while pricing is hidden");
+  assert(loaded.calls.payments.length === 0, "billing should not invoke payment while pricing is hidden");
+  assert(loaded.calls.modal.length === 0, "billing should not show unavailable payment copy while pricing is hidden");
 
   if (fail) {
     console.error(errors.join("\n"));
