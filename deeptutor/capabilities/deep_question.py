@@ -825,6 +825,16 @@ def _objective_items(question_context: dict[str, Any] | None) -> list[dict[str, 
     return objective_items
 
 
+def _reference_items(question_context: dict[str, Any] | None) -> list[dict[str, Any]]:
+    items = _grading_items(question_context)
+    reference_items: list[dict[str, Any]] = []
+    for item in items:
+        if not str(item.get("correct_answer") or "").strip():
+            return []
+        reference_items.append(item)
+    return reference_items
+
+
 def _format_answer_with_option_text(question_context: dict[str, Any], answer: Any) -> str:
     raw_answer = str(answer or "").strip()
     if not raw_answer:
@@ -860,40 +870,98 @@ def _objective_explanation(question_context: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _split_reference_answer_points(answer: str) -> list[str]:
+    compact = _compact_text(answer)
+    if not compact:
+        return []
+    matches = re.findall(r"(?:^|[；;。]\s*)(\d+[\.、]\s*[^；;。]+)", compact)
+    if matches:
+        return [match.strip() for match in matches if match.strip()]
+    parts = [part.strip() for part in re.split(r"[；;]\s*", compact) if part.strip()]
+    return parts[:6] if len(parts) > 1 else [compact]
+
+
+def _first_evidence_line(question_context: dict[str, Any]) -> str:
+    knowledge_context = str(question_context.get("knowledge_context") or "").strip()
+    for line in knowledge_context.splitlines():
+        candidate = _compact_text(line)
+        if not candidate:
+            continue
+        if "§" in candidate or candidate.startswith("【"):
+            return candidate
+    return ""
+
+
+def _reference_explanation(question_context: dict[str, Any]) -> str:
+    explanation = str(question_context.get("explanation") or "").strip()
+    if explanation:
+        return explanation
+
+    question_type = str(question_context.get("question_type") or "").strip().lower()
+    if question_type in {
+        "choice",
+        "single_choice",
+        "multiple_choice",
+        "multi_choice",
+        "mcq",
+        "judge",
+        "judgment",
+    }:
+        return _objective_explanation(question_context)
+
+    answer = str(question_context.get("correct_answer") or "").strip()
+    points = _split_reference_answer_points(answer)
+    lines: list[str] = []
+    evidence_line = _first_evidence_line(question_context)
+    if evidence_line:
+        lines.append(f"依据：{evidence_line}")
+    if points:
+        lines.append("本题按参考答案的关键点给分：")
+        lines.extend(f"- {point}" for point in points)
+    else:
+        lines.append("本题应先写出规范或教材中的关键结论，再结合题干说明理由。")
+    lines.append("作答时建议分点写，先判断或列结论，再补对应规范理由，避免只写泛泛描述。")
+    return "\n".join(lines).strip()
+
+
 def _should_render_deterministic_reference_feedback(
     user_message: str,
     question_context: dict[str, Any] | None,
 ) -> bool:
     return bool(
         should_reveal_reference_material(user_message, question_context)
-        and _objective_items(question_context)
+        and _reference_items(question_context)
     )
 
 
 def _render_deterministic_reference_feedback(question_context: dict[str, Any] | None) -> str:
-    items = _objective_items(question_context)
+    items = _reference_items(question_context)
     if not items:
         return ""
     if len(items) == 1:
         item = items[0]
+        objective = bool(_objective_items(item))
+        answer_label = "正确答案" if objective else "参考答案"
         return "\n".join(
             [
                 "## ✅ 答案与解析",
-                f"**正确答案：** {_format_answer_with_option_text(item, item.get('correct_answer'))}",
+                f"**{answer_label}：** {_format_answer_with_option_text(item, item.get('correct_answer'))}",
                 "",
                 "## 🧐 解析",
-                _objective_explanation(item),
+                _reference_explanation(item),
             ]
         ).strip()
 
     lines = ["## ✅ 答案与解析"]
     for index, item in enumerate(items, 1):
+        objective = bool(_objective_items(item))
+        answer_label = "正确答案" if objective else "参考答案"
         lines.extend(
             [
                 "",
                 f"### 第{index}题",
-                f"- 正确答案：{_format_answer_with_option_text(item, item.get('correct_answer'))}",
-                f"- 解析：{_objective_explanation(item)}",
+                f"- {answer_label}：{_format_answer_with_option_text(item, item.get('correct_answer'))}",
+                f"- 解析：{_reference_explanation(item)}",
             ]
         )
     return "\n".join(lines).strip()
