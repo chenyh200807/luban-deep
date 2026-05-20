@@ -46,12 +46,9 @@ from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
     build_continuity_anchor_instruction,
-<<<<<<< Updated upstream
     correct_construction_exam_boundary_fact_response,
     detect_construction_exam_scene,
     get_construction_exam_boundary_fact_instruction,
-=======
->>>>>>> Stashed changes
     get_anchor_preservation_instruction,
     get_construction_exam_skill_instruction,
     get_lecture_skill_instruction,
@@ -2175,7 +2172,6 @@ class AgentLoop:
         track_label = exam_track_label(runtime_metadata.get("exam_track"))
         runtime_instruction_parts = [
             get_teaching_mode_instruction(response_mode),
-<<<<<<< Updated upstream
             get_construction_exam_boundary_fact_instruction(
                 current_message,
                 str(runtime_metadata.get("conversation_context_text") or "").strip(),
@@ -2184,8 +2180,6 @@ class AgentLoop:
                 current_message,
                 runtime_metadata=runtime_metadata,
             ),
-=======
->>>>>>> Stashed changes
             (
                 f"当前考试方向：{track_label}。回答、举例、题型判断和知识检索必须优先按该考试方向；"
                 "不得自动切回其他考试方向，除非用户明确改口。"
@@ -2238,7 +2232,6 @@ class AgentLoop:
                 user_message=current_message,
                 response=final_content,
             ) or final_content
-<<<<<<< Updated upstream
             final_content = correct_construction_exam_boundary_fact_response(
                 user_message=current_message,
                 response=final_content,
@@ -2247,8 +2240,6 @@ class AgentLoop:
                 final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
-=======
->>>>>>> Stashed changes
             guarded_output = guard_tutorbot_output(final_content)
             final_content = guarded_output.content or final_content
             if all_msgs:
@@ -2303,7 +2294,6 @@ class AgentLoop:
                 user_message=current_message,
                 response=final_content,
             ) or final_content
-<<<<<<< Updated upstream
             final_content = correct_construction_exam_boundary_fact_response(
                 user_message=current_message,
                 response=final_content,
@@ -2312,8 +2302,6 @@ class AgentLoop:
                 final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
-=======
->>>>>>> Stashed changes
             guarded_output = guard_tutorbot_output(final_content)
             final_content = guarded_output.content or final_content
             if all_msgs:
@@ -2359,7 +2347,6 @@ class AgentLoop:
             user_message=current_message,
             response=final_content,
         ) or final_content
-<<<<<<< Updated upstream
         final_content = correct_construction_exam_boundary_fact_response(
             user_message=current_message,
             response=final_content,
@@ -2368,8 +2355,6 @@ class AgentLoop:
             final_content,
             runtime_metadata=runtime_metadata,
         ) or final_content
-=======
->>>>>>> Stashed changes
         guarded_output = guard_tutorbot_output(final_content)
         final_content = guarded_output.content or final_content
         if all_msgs:

@@ -306,6 +306,99 @@ async def test_deep_question_deep_choice_grading_uses_rag_grounded_grader(
 
 
 @pytest.mark.asyncio
+async def test_deep_question_fast_wrong_choice_uses_rag_grounded_grader_when_kb_available(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_trace_callback(self, callback: Any) -> None:
+            captured["trace_callback"] = callback
+
+        async def process(self, **kwargs: Any) -> str:
+            captured["grader_kwargs"] = kwargs
+            return (
+                "## 📊 阅卷结论\n错误，正确答案 B。\n\n"
+                "## 🧐 解析\n室外临时消火栓应距路边不大于 2m，"
+                "距拟建房屋不小于 5m 且不大于 25m；你选的 C 把房屋距离误记成 2m 到 15m。"
+            )
+
+    async def fake_rag_search(query: str, kb_name: str | None = None, **kwargs: Any) -> dict[str, Any]:
+        captured["rag_query"] = query
+        captured["rag_kb_name"] = kb_name
+        captured["rag_kwargs"] = kwargs
+        return {
+            "content": "【规范依据】室外临时消火栓距路边不应大于2m，距拟建房屋不应小于5m且不应大于25m。",
+            "sources": [
+                {
+                    "title": "施工现场临时消防设施",
+                    "content": "临时消火栓距路边不大于2m，距拟建房屋5m至25m。",
+                    "source_type": "questions_bank",
+                    "chunk_id": "fire-hydrant-distance-001",
+                }
+            ],
+        }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+    monkeypatch.setattr(deep_question_module, "rag_search", fake_rag_search, raising=False)
+
+    context = UnifiedContext(
+        user_message="我选C",
+        language="zh",
+        knowledge_bases=["construction-exam"],
+        metadata={
+            "selected_mode": "fast",
+            "question_followup_context": {
+                "question_id": "q_fire_hydrant",
+                "question": "关于施工现场临时消火栓设置要求，下列说法正确的是？",
+                "question_type": "choice",
+                "options": {
+                    "A": "距路边不应大于5m，距拟建房屋不小于5m且不大于25m",
+                    "B": "距路边不应大于2m，距拟建房屋不小于5m且不大于25m",
+                    "C": "距路边不应大于2m，距拟建房屋不小于2m且不大于15m",
+                    "D": "距路边不应大于5m，距拟建房屋不小于2m且不大于15m",
+                },
+                "correct_answer": "B",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["is_correct"] is False
+    assert result_event.metadata["construction_grading_result"]["authority"] == "construction_grading"
+    assert captured["rag_kb_name"] == "construction-exam"
+    assert "施工现场临时消火栓设置要求" in captured["rag_query"]
+    assert captured["rag_kwargs"]["intent"] == "question_grading_explanation"
+    assert "室外临时消火栓应距路边不大于 2m" in result_event.metadata["response"]
+    assert result_event.metadata["grading_explanation_grounded"] is True
+
+
+@pytest.mark.asyncio
 async def test_deep_question_reveals_objective_answer_without_followup_llm(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

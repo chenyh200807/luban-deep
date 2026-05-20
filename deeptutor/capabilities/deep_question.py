@@ -734,6 +734,7 @@ def _should_use_deterministic_grading_feedback(
     *,
     selected_mode: str,
     question_context: dict[str, Any] | None,
+    kb_name: str | None = None,
 ) -> bool:
     mode = str(selected_mode or "").strip().lower()
     if mode in {"deep", "smart"}:
@@ -757,6 +758,8 @@ def _should_use_deterministic_grading_feedback(
             return False
         if not str(item.get("correct_answer") or "").strip():
             return False
+    if str(kb_name or "").strip() and any(item.get("is_correct") is False for item in items):
+        return False
     return True
 
 
@@ -1733,6 +1736,7 @@ class DeepQuestionCapability(BaseCapability):
             if _should_use_deterministic_grading_feedback(
                 selected_mode=selected_mode,
                 question_context=graded_context,
+                kb_name=kb_name,
             ):
                 answer = _render_deterministic_grading_feedback(graded_context)
             else:
