@@ -127,6 +127,7 @@ def test_tutorbot_visible_answer_gate_rejects_skill_reference_process_leak() -> 
     ) is True
 
 
+<<<<<<< Updated upstream
 def test_tutorbot_progressive_skills_load_construction_scene_for_fast_and_deep(tmp_path) -> None:
     from deeptutor.tutorbot.agent.loop import AgentLoop
     from deeptutor.tutorbot.bus.queue import MessageBus
@@ -621,6 +622,8 @@ async def test_tutorbot_fast_policy_chunks_nonstream_provider_answer(tmp_path) -
     assert streamed_text == ""
 
 
+=======
+>>>>>>> Stashed changes
 async def _collect_events(run_coro) -> list[StreamEvent]:
     bus = StreamBus()
     events: list[StreamEvent] = []
@@ -3195,7 +3198,7 @@ async def test_tutorbot_agent_loop_executes_tool_calls_with_registry_get(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
-    captured: dict[str, Any] = {"tool_calls": [], "tool_results": []}
+    captured: dict[str, Any] = {"tool_calls": [], "tool_results": [], "deltas": []}
 
     fake_loguru = types.ModuleType("loguru")
     fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
@@ -5019,7 +5022,11 @@ async def test_tutorbot_fast_mode_retries_process_only_repair_output(
     )
 
     assert content == "核心考点：防水验收要抓住闭水时间和蓄水高度。"
+<<<<<<< Updated upstream
     assert streamed
+=======
+    assert len(streamed) > 1
+>>>>>>> Stashed changes
     assert "".join(streamed) == "核心考点：防水验收要抓住闭水时间和蓄水高度。"
     assert provider.calls == 3
     assert "过程承诺" in provider.prompts[-1]

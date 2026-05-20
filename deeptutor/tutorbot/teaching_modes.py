@@ -63,16 +63,6 @@ _CONTINUITY_MARKERS = (
     "同一个例子",
     "同一个案例",
 )
-_FOUNDATION_PIT_BOUNDARY_RE = re.compile(
-    r"(?:5(?:\.0)?\s*(?:m|米)|五\s*米)",
-    flags=re.IGNORECASE,
-)
-_FOUNDATION_PIT_BAD_EXPERT_REVIEW_RE = re.compile(
-    r"(?:不需要|不需|无需|不用).{0,8}(?:组织)?专家论证"
-    r"|未达到\s*5(?:\.0)?\s*(?:m|米)?"
-    r"|小于\s*5(?:\.0)?\s*(?:m|米)?",
-    flags=re.IGNORECASE,
-)
 
 _FAST_INSTRUCTION = """
 当前教学模式：FAST（快答助教）。
@@ -208,6 +198,7 @@ def get_anchor_preservation_instruction(user_message: str | None) -> str:
     )
 
 
+<<<<<<< Updated upstream
 def get_construction_exam_boundary_fact_instruction(*texts: str | None) -> str:
     joined = "\n".join(str(text or "") for text in texts if str(text or "").strip())
     if not joined:
@@ -256,6 +247,8 @@ def correct_construction_exam_boundary_fact_response(
     )
 
 
+=======
+>>>>>>> Stashed changes
 def build_continuity_anchor_instruction(
     user_message: str | None,
     *,
