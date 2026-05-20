@@ -55,7 +55,10 @@ from deeptutor.services.semantic_router import (
     build_turn_semantic_decision as build_semantic_turn_decision,
     has_explicit_practice_generation_intent,
 )
-from deeptutor.services.user_visible_output import coerce_user_visible_answer
+from deeptutor.services.user_visible_output import (
+    coerce_user_visible_answer,
+    looks_like_unsafe_visible_output,
+)
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
     build_active_object_from_learning_plan_view,
@@ -315,9 +318,8 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
     if _event_visibility(event) != _PUBLIC_VISIBILITY:
         return metadata
     if event.type == StreamEventType.CONTENT and _should_capture_assistant_content(event):
-        event.content = normalize_markdown_for_tutorbot(
-            coerce_user_visible_answer(event.content)
-        )
+        if looks_like_unsafe_visible_output(event.content):
+            event.content = coerce_user_visible_answer(event.content)
         return metadata
     if event.type == StreamEventType.ERROR:
         event.content = normalize_markdown_for_tutorbot(
