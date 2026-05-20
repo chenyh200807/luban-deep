@@ -72,7 +72,7 @@ function subscribeToLanguageChanges(onStoreChange: () => void): () => void {
 }
 
 function readDefaultLanguage(): AppLanguage {
-  return "en";
+  return "zh"; // 鲁班智考 is Chinese-market; default UI to zh
 }
 
 export function readStoredActiveSessionId(): string | null {
