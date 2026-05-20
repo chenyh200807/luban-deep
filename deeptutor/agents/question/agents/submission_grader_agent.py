@@ -6,6 +6,7 @@ Single-call grading feedback agent for quiz answer submissions.
 from __future__ import annotations
 
 import json
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from deeptutor.agents.base_agent import BaseAgent
@@ -33,6 +34,8 @@ class SubmissionGraderAgent(BaseAgent):
         user_message: str,
         question_context: dict[str, Any],
         history_context: str = "",
+        grounding_context: str = "",
+        on_content_chunk: Callable[[str], Awaitable[None]] | None = None,
     ) -> str:
         system_prompt = self.get_prompt("system", "")
         user_prompt_template = self.get_prompt("grade_submission", "")
@@ -47,6 +50,7 @@ class SubmissionGraderAgent(BaseAgent):
             question_context=self._render_question_context(question_context),
             history_context=history_context or "(none)",
             user_message=user_message.strip() or "(empty)",
+            grounding_context=grounding_context.strip() or "(none)",
         )
         anchor_contract = render_anchor_contract(
             self.language,
@@ -76,6 +80,8 @@ class SubmissionGraderAgent(BaseAgent):
             ),
         ):
             _chunks.append(_c)
+            if on_content_chunk is not None and _c:
+                await on_content_chunk(_c)
         return "".join(_chunks)
 
     @staticmethod

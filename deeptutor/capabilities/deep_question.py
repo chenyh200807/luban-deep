@@ -42,6 +42,7 @@ from deeptutor.services.semantic_router import (
     normalize_turn_semantic_decision,
     question_context_from_active_object,
 )
+from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 
@@ -734,9 +735,9 @@ def _should_use_deterministic_grading_feedback(
     selected_mode: str,
     question_context: dict[str, Any] | None,
 ) -> bool:
-    # selected_mode is a presentation choice. Objective grading authority lives
-    # in the normalized question context and should not depend on renderer mode.
-    _ = selected_mode
+    mode = str(selected_mode or "").strip().lower()
+    if mode in {"deep", "smart"}:
+        return False
     items = _grading_items(question_context)
     if not items:
         return False
@@ -757,6 +758,64 @@ def _should_use_deterministic_grading_feedback(
         if not str(item.get("correct_answer") or "").strip():
             return False
     return True
+
+
+def _build_grading_retrieval_query(question_context: dict[str, Any] | None) -> str:
+    items = _grading_items(question_context)
+    target = items[0] if len(items) == 1 else (question_context or {})
+    parts: list[str] = []
+    _append_unique(parts, target.get("question"))
+    _append_unique(parts, target.get("concentration"))
+    _append_unique(parts, target.get("knowledge_context"))
+    _append_unique(parts, target.get("explanation"))
+    options = target.get("options")
+    if isinstance(options, dict):
+        option_text = "；".join(
+            f"{key}. {value}"
+            for key, value in options.items()
+            if str(key).strip() and str(value or "").strip()
+        )
+        _append_unique(parts, option_text)
+    correct = _format_answer_with_option_text(target, target.get("correct_answer"))
+    if correct:
+        _append_unique(parts, f"标准答案：{correct}")
+    if len(items) > 1:
+        for item in items[:5]:
+            _append_unique(parts, item.get("question"))
+            _append_unique(parts, item.get("explanation"))
+    query = " ".join(parts)
+    return _clip_text(query, limit=900)
+
+
+def _format_grading_grounding_context(rag_result: dict[str, Any] | None) -> tuple[str, list[dict[str, Any]]]:
+    if not isinstance(rag_result, dict):
+        return "", []
+    evidence_bundle = rag_result.get("evidence_bundle")
+    evidence_bundle = evidence_bundle if isinstance(evidence_bundle, dict) else {}
+    raw_blocks = evidence_bundle.get("content_blocks")
+    blocks = [str(item or "").strip() for item in raw_blocks] if isinstance(raw_blocks, list) else []
+    if not blocks:
+        content = str(rag_result.get("content") or rag_result.get("answer") or "").strip()
+        if content:
+            blocks = [content]
+    raw_sources = evidence_bundle.get("sources") or rag_result.get("sources")
+    sources = [dict(item) for item in raw_sources if isinstance(item, dict)] if isinstance(raw_sources, list) else []
+    lines: list[str] = []
+    for index, block in enumerate(blocks[:4], 1):
+        clipped = _clip_text(block, limit=900)
+        if clipped:
+            lines.append(f"[检索依据 {index}]\n{clipped}")
+    if sources:
+        lines.append("来源摘要：")
+        for source in sources[:5]:
+            title = str(source.get("title") or source.get("source") or "知识库片段").strip()
+            source_type = str(source.get("source_type") or "").strip()
+            chunk_id = str(source.get("chunk_id") or "").strip()
+            content = _clip_text(source.get("content"), limit=180)
+            meta = " / ".join(part for part in [source_type, chunk_id] if part)
+            suffix = f"（{meta}）" if meta else ""
+            lines.append(f"- {title}{suffix}: {content}")
+    return "\n\n".join(lines).strip(), sources
 
 
 def _render_deterministic_grading_feedback(question_context: dict[str, Any] | None) -> str:
@@ -1220,6 +1279,7 @@ class DeepQuestionCapability(BaseCapability):
                     selected_mode=selected_mode,
                     authority_source=authority_source,
                     correct_answer_present=correct_answer_present,
+                    kb_name=kb_name,
                 )
                 return
 
@@ -1291,6 +1351,7 @@ class DeepQuestionCapability(BaseCapability):
                         selected_mode=selected_mode,
                         authority_source=authority_source,
                         correct_answer_present=correct_answer_present,
+                        kb_name=kb_name,
                     )
                     return
 
@@ -1662,14 +1723,48 @@ class DeepQuestionCapability(BaseCapability):
         selected_mode: str,
         authority_source: str,
         correct_answer_present: bool,
+        kb_name: str | None,
     ) -> None:
         async with stream.stage("generation", source=self.name):
+            grounding_context = ""
+            grounding_sources: list[dict[str, Any]] = []
+            grounding_error = ""
+            content_streamed = False
             if _should_use_deterministic_grading_feedback(
                 selected_mode=selected_mode,
                 question_context=graded_context,
             ):
                 answer = _render_deterministic_grading_feedback(graded_context)
             else:
+                async def _content_sink(chunk: str) -> None:
+                    nonlocal content_streamed
+                    if not chunk:
+                        return
+                    content_streamed = True
+                    await stream.content(chunk, source=self.name, stage="generation")
+
+                retrieval_query = _build_grading_retrieval_query(graded_context)
+                if kb_name and retrieval_query:
+                    try:
+                        rag_result = await rag_search(
+                            retrieval_query,
+                            kb_name=kb_name,
+                            intent="question_grading_explanation",
+                            question_type=str(graded_context.get("question_type") or "grading").strip(),
+                            routing_metadata={
+                                "capability": "deep_question",
+                                "grading_kernel": _mcq_trace_fields(
+                                    graded_context,
+                                    authority_source=authority_source,
+                                    correct_answer_present=correct_answer_present,
+                                ).get("grading_kernel")
+                                or "grading",
+                                "answer_authority": authority_source or "active_object",
+                            },
+                        )
+                        grounding_context, grounding_sources = _format_grading_grounding_context(rag_result)
+                    except Exception as exc:
+                        grounding_error = str(exc)
                 from deeptutor.agents.question.agents.submission_grader_agent import (
                     SubmissionGraderAgent,
                 )
@@ -1687,8 +1782,10 @@ class DeepQuestionCapability(BaseCapability):
                     history_context=str(
                         context.metadata.get("conversation_context_text", "") or ""
                     ).strip(),
+                    grounding_context=grounding_context,
+                    on_content_chunk=_content_sink,
                 )
-            if answer:
+            if answer and not content_streamed:
                 await stream.content(answer, source=self.name, stage="generation")
             result_active_object = build_active_object_from_question_context(
                 graded_context,
@@ -1719,7 +1816,11 @@ class DeepQuestionCapability(BaseCapability):
                     authority_source=authority_source,
                     correct_answer_present=correct_answer_present,
                 ),
+                "grading_explanation_grounded": bool(grounding_context),
+                "grading_grounding_sources": grounding_sources[:5],
             }
+            if grounding_error:
+                result_payload["grading_grounding_error"] = grounding_error[:240]
             cost_meta = self._collect_cost_summary("question")
             if cost_meta:
                 result_payload["metadata"] = {"cost_summary": cost_meta}

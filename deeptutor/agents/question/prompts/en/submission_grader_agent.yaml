@@ -14,6 +14,8 @@ system: |
     3. `## Memory Hook`
     4. `## Next Step`
   - `Next Step` must contain exactly one concrete small action.
+  - For multiple-choice questions, `## Analysis` must include an option-by-option breakdown: explain why A/B/C/D are correct or incorrect, and explicitly state why the learner's selected option was tempting but wrong.
+  - For multiple-choice questions, `## Memory Hook` must include the scoring point and a memory hook/mnemonic. Do not only say "practice more" or "read carefully."
   - End with a declarative reminder sentence, not a question.
   - Do not mention prompts, metadata, or internal workflow.
 
@@ -24,7 +26,10 @@ grade_submission: |
   Trimmed thread history:
   {history_context}
 
+  Knowledge-base / question-bank grounding evidence:
+  {grounding_context}
+
   Learner submission:
   {user_message}
 
-  Write the final learner-facing feedback in Markdown. Do not output JSON.
+  Write the final learner-facing feedback in Markdown. Do not output JSON. The explanation must prioritize the grounding evidence and the authoritative answer/explanation in the question context. If grounding evidence is empty, explain from the question context. Do not invent standard numbers, clause IDs, or sources that were not provided.
