@@ -16,6 +16,8 @@ ALLOW_MAIN_BRANCH_DEPLOY="${ALLOW_MAIN_BRANCH_DEPLOY:-0}"
 EXCLUDES=(
     ".git"
     ".github"
+    ".gstack"
+    ".local-runs"
     ".venv"
     "node_modules"
     "__pycache__"
@@ -31,6 +33,7 @@ EXCLUDES=(
     "test-results"
     "coverage"
     "data"
+    "dist"
     "tmp"
     "*.log"
 )
@@ -105,6 +108,8 @@ root = Path(sys.argv[1]).resolve()
 excluded_names = {
     ".git",
     ".github",
+    ".gstack",
+    ".local-runs",
     ".venv",
     "node_modules",
     "__pycache__",
@@ -117,6 +122,7 @@ excluded_names = {
     "test-results",
     "coverage",
     "data",
+    "dist",
     "tmp",
 }
 excluded_patterns = (
@@ -424,9 +430,12 @@ watch_sync() {
 
     fswatch -o "${REPO_ROOT}" \
         --exclude=".*\\.git.*" \
+        --exclude=".*\\.gstack.*" \
+        --exclude=".*\\.local-runs.*" \
         --exclude=".*\\.venv.*" \
         --exclude=".*node_modules.*" \
         --exclude=".*__pycache__.*" \
+        --exclude=".*\\/dist\\/.*" \
         --exclude=".*\\.next.*" \
         --exclude=".*\\/data\\/.*" \
         | while read -r _; do

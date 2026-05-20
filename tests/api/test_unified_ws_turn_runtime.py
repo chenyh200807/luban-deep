@@ -1249,7 +1249,7 @@ async def test_start_turn_waits_for_first_subscriber_before_running(
 
 
 @pytest.mark.asyncio
-async def test_turn_runtime_pins_tutorbot_practice_generation_to_tutorbot_runtime(
+async def test_turn_runtime_routes_tutorbot_practice_generation_to_deep_question_authority(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -1272,18 +1272,40 @@ async def test_turn_runtime_pins_tutorbot_practice_generation_to_tutorbot_runtim
             )
 
     class FakeOrchestrator:
+        async def _select_capability(self, context):
+            captured["selector_active_capability"] = context.active_capability
+            context.config_overrides["force_generate_questions"] = True
+            context.config_overrides["question_type"] = "choice"
+            context.config_overrides["reveal_answers"] = False
+            context.config_overrides["reveal_explanations"] = False
+            return "deep_question"
+
         async def handle(self, context):
             captured["active_capability"] = context.active_capability
             captured["user_message"] = context.user_message
             captured["config_overrides"] = dict(context.config_overrides)
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
-                source="tutorbot",
-                stage="responding",
+                source="deep_question",
+                stage="generation",
                 content="第1题",
                 metadata={"call_kind": "llm_final_response"},
             )
-            yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="deep_question",
+                metadata={
+                    "response": "第1题",
+                    "mode": "custom",
+                    "question_followup_context": {
+                        "question_id": "q_1",
+                        "question": "施工管理选择题",
+                        "question_type": "choice",
+                        "correct_answer": "B",
+                    },
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
 
     monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
@@ -1328,18 +1350,22 @@ async def test_turn_runtime_pins_tutorbot_practice_generation_to_tutorbot_runtim
     async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
         pass
 
-    assert turn["capability"] == "tutorbot"
-    assert captured["active_capability"] == "tutorbot"
+    assert turn["capability"] == "deep_question"
+    assert captured["selector_active_capability"] is None
+    assert captured["active_capability"] == "deep_question"
     assert captured["user_message"] == "我想练习施工管理，请给我来5道选择题"
     assert captured["config_overrides"]["bot_id"] == "construction-exam-coach"
+    assert captured["config_overrides"]["force_generate_questions"] is True
+    assert captured["config_overrides"]["question_type"] == "choice"
+    assert captured["config_overrides"]["reveal_answers"] is False
 
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
-    assert detail["preferences"]["capability"] == "tutorbot"
+    assert detail["preferences"]["capability"] == "deep_question"
     assert detail["messages"][-1]["content"] == "第1题"
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
-    assert persisted_turn["capability"] == "tutorbot"
+    assert persisted_turn["capability"] == "deep_question"
 
 
 @pytest.mark.asyncio

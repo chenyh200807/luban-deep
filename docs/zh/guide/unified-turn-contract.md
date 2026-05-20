@@ -146,6 +146,7 @@ TutorBot 现在是业务身份，不是 transport。
 - `active_object` 不只服务题目域；guided plan continuity 也必须收敛到同一个 canonical object。`active_plan_id / plan_id / guide_session_id / learning_plan_id` 只是兼容输入 alias，进入 runtime 后立即归一，不得继续作为并行权威。
 - 通用对话域的 continuity 也允许落到 session-scoped `open_chat_topic`，它复用 session 自身 authority，不新增独立语义 topic runtime。
 - `question_followup_context / question_followup_action / active_question_context` 只保留 question-domain 兼容和 presentation/result adapter 角色；真正的主链判断必须落在 `active_object + turn_semantic_decision`，不能让旧字段继续并列抢权。
+- 出题请求必须归入 question authority。`practice_generation` 不能因为小程序入口绑定了 `construction-exam-coach` 而被提前 pin 到 TutorBot；运行时应让 semantic route 选择 `deep_question`，由它生成 canonical 题卡、隐藏标准答案、`active_object` 和后续批改上下文。TutorBot 仍可负责普通讲解、知识问答、RAG grounding 和精确题目答疑，但不能用可见文本题目替代 `deep_question` 的题目真相。
 - semantic router 灰度必须可审计：`semantic_router_mode` 表示 `primary / shadow / disabled`，`semantic_router_mode_reason` 表示当前为何进入该模式，`semantic_router_scope / semantic_router_scope_match` 表示灰度范围是否命中当前对象域，`semantic_router_shadow_*` 只记录并行比较结果，真正执行权威仍以 `semantic_router_selected_capability` 和主链结果为准。
 - `exam_track` 是同一 TutorBot 下的考试方向上下文，用来约束 RAG/source plan 与最终回答口径；它不是新的 TutorBot 身份，也不是新的 capability route。入口、session preferences、trace 和 RAG routing metadata 只能复用这一份字段。
 

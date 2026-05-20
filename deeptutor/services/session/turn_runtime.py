@@ -863,9 +863,9 @@ def _should_pin_tutorbot_capability(
     if route in {"submission", "followup"}:
         return False
     if route == "practice_generation":
-        return True
+        return False
     if looks_like_practice_generation_request(user_message):
-        return True
+        return False
     normalized_followup = normalize_question_followup_context(followup_question_context)
     if normalized_followup and looks_like_question_followup(user_message, normalized_followup):
         return False

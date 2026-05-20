@@ -353,6 +353,12 @@ def test_sync_deploy_manifest_hash_excludes_env_and_report_artifacts(tmp_path: P
     test_results_dir = repo_root / "test-results"
     test_results_dir.mkdir()
     (test_results_dir / "trace.zip").write_text("trace\n", encoding="utf-8")
+    (repo_root / ".gstack").mkdir()
+    (repo_root / ".gstack" / "state.json").write_text("{}\n", encoding="utf-8")
+    (repo_root / ".local-runs").mkdir()
+    (repo_root / ".local-runs" / "probe.log").write_text("probe\n", encoding="utf-8")
+    (repo_root / "dist").mkdir()
+    (repo_root / "dist" / "artifact.whl").write_text("artifact\n", encoding="utf-8")
 
     second = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
     assert second.returncode == 0, second.stderr
@@ -370,6 +376,9 @@ def test_sync_deploy_manifest_hash_excludes_env_and_report_artifacts(tmp_path: P
     assert "playwright-report*" in log
     assert "test-results" in log
     assert "coverage" in log
+    assert ".gstack" in log
+    assert ".local-runs" in log
+    assert "dist" in log
 
     (repo_root / "included_runtime_file.txt").write_text("runtime\n", encoding="utf-8")
     third = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)

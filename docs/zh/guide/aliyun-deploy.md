@@ -122,8 +122,9 @@ bash scripts/sync_to_aliyun.sh once
 - 目标目录固定为 `/root/deeptutor`
 - 默认目标主机固定为 `Aliyun-ECS-2`
 - dirty tree 或 `main` 会被脚本直接拒绝
-- 会排除 `.env`、`data/`、`.git`、`.venv`、`node_modules`
+- 会排除 `.env`、`data/`、`.git`、`.github`、`.gstack`、`.local-runs`、`.venv`、`node_modules`、`dist`、测试报告和缓存目录
 - 这样不会覆盖服务器上已经生成的数据和密钥
+- 如果同步日志里出现本地代理状态目录、QA 运行目录或构建产物目录，例如 `.gstack`、`.local-runs`、`dist`，不要把它们留在 `/root/deeptutor`；先补 `sync_to_aliyun.sh` 的排除清单和 manifest hash 排除口径，再只在 `/root/deeptutor` 内清理误传目录。
 
 如果你想开发时持续同步：
 
@@ -500,6 +501,46 @@ ssh Aliyun-ECS-2 "cd /root/deeptutor && docker compose ps deeptutor"
 curl -fsS https://test2.yousenjiaoyu.com/
 curl -fsS https://test2.yousenjiaoyu.com/healthz
 curl -fsS https://test2.yousenjiaoyu.com/readyz
+bash scripts/verify_aliyun_observability.sh
+```
+
+### 9. 2026-05-20 主干合并后完整部署记录
+
+这次是在 `origin/main` 已经更新到 `67744094d080790e93672316dd0c9a139f661d9c` 后，按用户要求从本地同步到阿里云并重启服务。
+
+已确认的发布链路事实：
+
+- 本地 `HEAD`、`main`、`origin/main` 都指向同一个 commit：`67744094d080790e93672316dd0c9a139f661d9c`
+- 当前本地可见分支名可能仍是临时分支，例如 `qa-followup-20260520`；发布判断不能只看分支名，必须同时核对 `git rev-parse HEAD main origin/main`
+- 发布命令使用：`ALLOW_MAIN_BRANCH_DEPLOY=1 PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/deploy_aliyun.sh`
+- 远端目标仍固定为 `Aliyun-ECS-2:/root/deeptutor`
+- 远端 release lineage：`1.0.0+67744094d080790e93672316dd0c9a139f661d9c+production`
+- 重建前 runtime 数据备份成功：`/root/deeptutor/data/backups/deeptutor-data-user-20260519-165805Z.tar.gz`
+- 公网验收最终通过：`/`、`/healthz`、`/readyz`
+- Observability 内网验收通过，`langfuse_connectivity=jgzk-langfuse:3000 reachable`
+
+本次新增经验：
+
+| 信号 | 是否阻断 | 判断 | 下次处理 |
+| --- | --- | --- | --- |
+| `rsync` 把 `.gstack`、`.local-runs` 或 `web/.gstack` 传到 `/root/deeptutor` | 不直接阻断当前容器启动，但必须修 | 这是本地 agent/QA 状态污染远端源码副本，不属于生产代码或运行态数据 | 先补 `scripts/sync_to_aliyun.sh` 的 `EXCLUDES`、manifest hash 排除清单和 watch 排除规则；再只在 `/root/deeptutor` 内清理误传目录；不要去 `/tmp`、`/root` 或系统目录绕行 |
+| 本地分支名不是 `main`，但 `HEAD == main == origin/main` | 不阻断 | 合并后 Codex 工作区可能还停在临时分支名上，但提交指针已经与主干一致 | 发布前同时跑 `git rev-parse HEAD main origin/main`，不要只凭 `git branch --show-current` 判断是否发布了正确 commit |
+| 公网前端探针前两次返回 502，第三次通过 | 不阻断，若后续重试通过 | 新容器刚启动时 Docker health 仍处于 `starting`，公网反代短暂 502 是可接受启动窗口 | 以 `verify_aliyun_public_endpoints.sh` 的最终结果为准；若 20 次内仍失败，再看容器状态和日志 |
+| `docker compose ps` 显示 `health: starting`，但 `/readyz` 已通过 | 不阻断，但要继续复核 | Docker health 与应用 ready endpoint 存在短暂时间差 | 等容器进入 `healthy`，并同时保留公网 `/readyz`、内网 observability 结果作为完成证据 |
+
+本次清理命令必须保持在 `/root/deeptutor` 内：
+
+```bash
+ssh Aliyun-ECS-2 'cd /root/deeptutor && find . -maxdepth 3 \( -name .gstack -o -name .local-runs \) -type d -print -exec du -sh {} \;'
+ssh Aliyun-ECS-2 'cd /root/deeptutor && rm -rf ./.gstack ./.local-runs ./web/.gstack'
+```
+
+完成判断仍按四个层面收口：
+
+```bash
+git rev-parse HEAD main origin/main
+ssh Aliyun-ECS-2 "cd /root/deeptutor && docker compose ps deeptutor"
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public_endpoints.sh
 bash scripts/verify_aliyun_observability.sh
 ```
 
