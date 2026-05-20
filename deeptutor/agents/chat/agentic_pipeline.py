@@ -64,6 +64,8 @@ BRAND_NAME = get_brand_name()
 observability = get_langfuse_observability()
 
 CHAT_EXCLUDED_TOOLS = {"geogebra_analysis"}
+# Fast mode is intentionally KB-first and should not fan out to live web retrieval.
+CHAT_FAST_TOOLS = {"rag"}
 CHAT_OPTIONAL_TOOLS = [
     name for name in BUILTIN_TOOL_NAMES if name not in CHAT_EXCLUDED_TOOLS
 ]
@@ -217,10 +219,7 @@ class AgenticChatPipeline:
                 "answer_now": True,
                 "source_trace": trace_meta.get("label", "Answer now"),
             }
-            cs = self._get_cost_summary()
-            if cs:
-                result_payload["metadata"] = {"cost_summary": cs}
-            await stream.result(result_payload, source="chat")
+            await self._emit_result(stream, result_payload)
             return
 
         answer_type = self._infer_answer_type(context.user_message)
@@ -236,10 +235,7 @@ class AgenticChatPipeline:
                 "chat_mode": self._configured_teaching_mode(context) or "smart",
                 "source_trace": trace_meta.get("label", "Greeting response"),
             }
-            cs = self._get_cost_summary()
-            if cs:
-                result_payload["metadata"] = {"cost_summary": cs}
-            await stream.result(result_payload, source="chat")
+            await self._emit_result(stream, result_payload)
             return
         enabled_tools = self.resolve_enabled_tools(
             context,
@@ -259,10 +255,7 @@ class AgenticChatPipeline:
                 "chat_mode": "smart",
                 "source_trace": trace_meta.get("label", "Smart response"),
             }
-            cs = self._get_cost_summary()
-            if cs:
-                result_payload["metadata"] = {"cost_summary": cs}
-            await stream.result(result_payload, source="chat")
+            await self._emit_result(stream, result_payload)
             return
 
         retrieval_first_traces: list[ToolTrace] = []
@@ -1536,6 +1529,8 @@ class AgenticChatPipeline:
                 answer_type=inferred_answer_type,
                 mode=mode,
             )
+        if mode == "fast":
+            selected = [tool for tool in selected if tool in CHAT_FAST_TOOLS]
         return selected
 
     def _normalize_enabled_tools(self, enabled_tools: list[str] | None) -> list[str]:
@@ -2215,9 +2210,14 @@ class AgenticChatPipeline:
         }
         if source_trace_label:
             result_payload["source_trace"] = source_trace_label
+        await self._emit_result(stream, result_payload)
+
+    async def _emit_result(self, stream: StreamBus, result_payload: dict[str, Any]) -> None:
         cs = self._get_cost_summary()
         if cs:
-            result_payload["metadata"] = {"cost_summary": cs}
+            nested = dict(result_payload.get("metadata") or {})
+            nested["cost_summary"] = cs
+            result_payload["metadata"] = nested
         await stream.result(result_payload, source="chat")
 
     async def _apply_exact_question_authority(

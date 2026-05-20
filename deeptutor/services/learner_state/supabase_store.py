@@ -364,6 +364,21 @@ class LearnerStateSupabaseSyncCoreStore:
         projection = row.get("summary_structured_json")
         return extract_learning_brain_projection(projection if isinstance(projection, dict) else {})
 
+    def read_memory_events(self, user_id: str, limit: int | None = 20) -> list[dict[str, Any]]:
+        if limit is None or limit < 0:
+            return self._select_many(
+                "learner_memory_events",
+                {"user_id": user_id},
+                order="created_at.asc",
+            )
+        rows = self._select_many(
+            "learner_memory_events",
+            {"user_id": user_id},
+            limit=max(int(limit), 0),
+            order="created_at.desc",
+        )
+        return list(reversed(rows))
+
     def write_progress(self, user_id: str, progress: dict[str, Any]) -> dict[str, Any]:
         normalized_user_id = str(user_id or "").strip()
         row = _progress_to_row(normalized_user_id, progress)

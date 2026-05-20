@@ -51,6 +51,8 @@ def test_build_learning_evidence_payload_preserves_grading_authority() -> None:
 
 def test_learning_evidence_dedupe_key_is_stable() -> None:
     payload = {
+        "turn_id": "turn-1",
+        "session_id": "session-1",
         "question_id": "q-1",
         "question_type": "case",
         "user_answer": "应组织专家论证。",
@@ -70,6 +72,32 @@ def test_learning_evidence_dedupe_key_is_stable() -> None:
 
     assert first == second
     assert len(first) == 40
+
+
+def test_learning_evidence_dedupe_key_keeps_distinct_attempts() -> None:
+    payload = {
+        "turn_id": "turn-1",
+        "session_id": "session-1",
+        "question_id": "q-1",
+        "question_type": "case",
+        "user_answer": "应组织专家论证。",
+        "error_events": [{"error_code": "E02"}],
+        "score_awarded": 0.0,
+        "max_score": 1.0,
+    }
+
+    first = build_learning_evidence_dedupe_key(
+        user_id="student-1",
+        payload_json=payload,
+    )
+    second_payload = dict(payload)
+    second_payload["turn_id"] = "turn-2"
+    second = build_learning_evidence_dedupe_key(
+        user_id="student-1",
+        payload_json=second_payload,
+    )
+
+    assert first != second
 
 
 def test_learning_evidence_removes_reasoning_blocks_from_payload() -> None:

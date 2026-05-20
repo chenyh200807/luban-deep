@@ -506,6 +506,23 @@ class LearnerStateService:
     def list_memory_events(self, user_id: str, limit: int | None = 20) -> list[LearnerStateEvent]:
         normalized = _normalize_user_id(user_id)
         self._ensure_seed_state(normalized)
+        if bool(getattr(self._core_store, "is_configured", False)):
+            reader = getattr(self._core_store, "read_memory_events", None)
+            if callable(reader):
+                try:
+                    return [
+                        event
+                        for event in (
+                            self._event_from_mapping(item, default_user_id=normalized)
+                            for item in list(reader(normalized, limit=limit) or [])
+                            if isinstance(item, dict)
+                        )
+                        if event is not None
+                    ]
+                except Exception:
+                    if is_production_environment():
+                        return []
+
         path = self._path(normalized, "events")
         if not path.exists():
             return []
@@ -517,18 +534,9 @@ class LearnerStateService:
                     raw = raw.strip()
                     if not raw:
                         continue
-                    data = json.loads(raw)
-                    events.append(LearnerStateEvent(
-                        event_id=str(data.get("event_id", "") or ""),
-                        user_id=str(data.get("user_id", "") or normalized),
-                        source_feature=str(data.get("source_feature", "") or ""),
-                        source_id=str(data.get("source_id", "") or ""),
-                        source_bot_id=(str(data.get("source_bot_id", "") or "") or None),
-                        memory_kind=str(data.get("memory_kind", "") or ""),
-                        payload_json=dict(data.get("payload_json") or {}),
-                        dedupe_key=str(data.get("dedupe_key", "") or ""),
-                        created_at=str(data.get("created_at", "") or ""),
-                    ))
+                    event = self._event_from_mapping(json.loads(raw), default_user_id=normalized)
+                    if event is not None:
+                        events.append(event)
         except Exception:
             return []
 
@@ -619,6 +627,9 @@ class LearnerStateService:
 
         path = self._path(normalized, "events")
         path.parent.mkdir(parents=True, exist_ok=True)
+        existing_event = self._find_event_by_dedupe_key(path, event.dedupe_key, default_user_id=normalized)
+        if existing_event is not None:
+            return existing_event
         if not self._event_dedupe_exists(path, event.dedupe_key):
             with path.open("a", encoding="utf-8") as handle:
                 handle.write(_json_dump(self._event_to_dict(event)) + "\n")
@@ -1478,6 +1489,28 @@ class LearnerStateService:
             return False
         return False
 
+    def _find_event_by_dedupe_key(
+        self,
+        path: Path,
+        dedupe_key: str,
+        *,
+        default_user_id: str,
+    ) -> LearnerStateEvent | None:
+        if not path.exists():
+            return None
+        try:
+            with path.open("r", encoding="utf-8") as handle:
+                for raw in handle:
+                    if not raw.strip():
+                        continue
+                    data = json.loads(raw)
+                    if str(data.get("dedupe_key", "") or "") != dedupe_key:
+                        continue
+                    return self._event_from_mapping(data, default_user_id=default_user_id)
+        except Exception:
+            return None
+        return None
+
     @staticmethod
     def _event_to_dict(event: LearnerStateEvent) -> dict[str, Any]:
         return {
@@ -1491,6 +1524,26 @@ class LearnerStateService:
             "dedupe_key": event.dedupe_key,
             "created_at": event.created_at,
         }
+
+    @staticmethod
+    def _event_from_mapping(
+        data: dict[str, Any],
+        *,
+        default_user_id: str,
+    ) -> LearnerStateEvent | None:
+        if not isinstance(data, dict):
+            return None
+        return LearnerStateEvent(
+            event_id=str(data.get("event_id", "") or ""),
+            user_id=str(data.get("user_id", "") or default_user_id),
+            source_feature=str(data.get("source_feature", "") or ""),
+            source_id=str(data.get("source_id", "") or ""),
+            source_bot_id=(str(data.get("source_bot_id", "") or "") or None),
+            memory_kind=str(data.get("memory_kind", "") or ""),
+            payload_json=dict(data.get("payload_json") or {}),
+            dedupe_key=str(data.get("dedupe_key", "") or ""),
+            created_at=str(data.get("created_at", "") or ""),
+        )
 
     @staticmethod
     def _default_dedupe_key(

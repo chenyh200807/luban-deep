@@ -24,6 +24,9 @@ from deeptutor.services.session.turn_runtime import (
     _TurnExecution,
     _billing_capture_amount_from_usage_summary,
     _request_snapshot_metadata,
+    _build_turn_semantic_decision,
+    _result_active_object,
+    _result_question_followup_context,
     _resolve_question_followup_context_and_action,
 )
 from deeptutor.services.semantic_router import build_active_object_from_question_context
@@ -70,6 +73,48 @@ def test_billing_capture_amount_prefers_measured_cost_summary() -> None:
     assert metadata["usage_total_tokens"] == 1250
     assert metadata["usage_sources"] == {"provider": 1}
     assert metadata["usage_models"] == {"deepseek-v4-flash": 1}
+
+
+def test_turn_runtime_question_domain_decision_uses_canonical_semantic_shape() -> None:
+    decision = _build_turn_semantic_decision(
+        active_object={"object_type": "single_question", "object_id": "q_1"},
+        followup_question_action={
+            "route": "submission",
+            "intent": "revise_answers",
+            "confidence": 0.92,
+            "reason": "用户修正上一题答案。",
+        },
+    )
+
+    assert decision == {
+        "relation_to_active_object": "revise_answer_on_active_object",
+        "next_action": "route_to_grading",
+        "allowed_patch": ["update_answer_slot"],
+        "confidence": 0.92,
+        "reason": "用户修正上一题答案。",
+        "target_object_ref": {"object_type": "single_question", "object_id": "q_1"},
+    }
+
+
+def test_turn_runtime_result_context_does_not_parse_presentation_read_model() -> None:
+    metadata = {
+        "response": "第1题\nA. 选项A\nB. 选项B",
+        "presentation": {
+            "kind": "question_set",
+            "fallback_text": "第1题\nA. 选项A\nB. 选项B",
+            "items": [
+                {
+                    "question_id": "q_1",
+                    "question": "题目",
+                    "question_type": "choice",
+                    "options": {"A": "选项A", "B": "选项B"},
+                }
+            ],
+        },
+    }
+
+    assert _result_question_followup_context(metadata) is None
+    assert _result_active_object(metadata) is None
 
 
 def test_billing_capture_amount_uses_estimated_cost_when_measured_missing() -> None:
@@ -419,7 +464,7 @@ async def test_start_turn_merges_redacted_public_submission_with_stored_active_q
             "type": "start_turn",
             "content": "我选B",
             "session_id": session["id"],
-            "capability": None,
+            "capability": "tutorbot",
             "tools": [],
             "knowledge_bases": ["construction-exam"],
             "attachments": [],
@@ -3087,7 +3132,7 @@ async def test_turn_runtime_backfills_result_execution_metadata_for_deep_questio
 
 
 @pytest.mark.asyncio
-async def test_turn_runtime_recovers_active_question_context_from_result_presentation_only(
+async def test_turn_runtime_does_not_recover_active_question_context_from_presentation_only(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -3211,7 +3256,7 @@ async def test_turn_runtime_recovers_active_question_context_from_result_present
             "type": "start_turn",
             "content": "我选A。",
             "session_id": session["id"],
-            "capability": None,
+            "capability": "tutorbot",
             "tools": [],
             "knowledge_bases": [],
             "attachments": [],
@@ -3223,10 +3268,8 @@ async def test_turn_runtime_recovers_active_question_context_from_result_present
         pass
 
     active_context = await store.get_active_question_context(session["id"])
-    assert active_context is not None
-    assert active_context["question_id"] == "q_saved_from_presentation"
-    assert captured["contexts"][1]["question_id"] == "q_saved_from_presentation"
-    assert captured["contexts"][1]["correct_answer"] == "C"
+    assert active_context is None
+    assert captured["contexts"] == [None, None]
 
 
 @pytest.mark.asyncio

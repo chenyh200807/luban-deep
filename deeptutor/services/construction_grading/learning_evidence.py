@@ -78,6 +78,8 @@ def build_learning_evidence_dedupe_key(*, user_id: str, payload_json: dict[str, 
         {
             "user_id": _clean_text(user_id),
             "memory_kind": "learning_evidence",
+            "turn_id": payload_json.get("turn_id"),
+            "session_id": payload_json.get("session_id"),
             "question_type": payload_json.get("question_type"),
             "question_id": payload_json.get("question_id"),
             "user_answer": payload_json.get("user_answer"),

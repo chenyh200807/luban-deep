@@ -2002,13 +2002,8 @@ async def test_tutorbot_capability_emits_structured_mcq_summary_for_plain_text_g
     assert isinstance(presentation, dict)
     assert len(presentation["blocks"][0]["questions"]) == 2
     assert presentation["blocks"][0]["questions"][0]["question_type"] == "multi_choice"
-    followup_context = result_event.metadata.get("question_followup_context")
-    assert isinstance(followup_context, dict)
-    assert len(followup_context["items"]) == 2
-    active_object = result_event.metadata.get("active_object")
-    assert isinstance(active_object, dict)
-    assert active_object["object_type"] == "question_set"
-    assert len(active_object["state_snapshot"]["items"]) == 2
+    assert "question_followup_context" not in result_event.metadata
+    assert "active_object" not in result_event.metadata
 
 
 @pytest.mark.asyncio
@@ -2191,9 +2186,8 @@ async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visi
     assert captured["session_metadata"]["default_tools"] == ["rag"]
     assert "答案" not in result_event.metadata["response"]
     assert "采分点" not in result_event.metadata["response"]
-    assert result_event.metadata["question_followup_context"]["correct_answer"] == "C"
-    assert result_event.metadata["active_object"]["object_type"] == "single_question"
-    assert result_event.metadata["active_object"]["state_snapshot"]["correct_answer"] == "C"
+    assert "question_followup_context" not in result_event.metadata
+    assert "active_object" not in result_event.metadata
     assert isinstance(result_event.metadata.get("presentation"), dict)
     question = result_event.metadata["presentation"]["blocks"][0]["questions"][0]
     assert question["followup_context"]["correct_answer"] == ""
@@ -2285,9 +2279,10 @@ async def test_tutorbot_practice_generation_keeps_scenario_before_problem_marker
     assert "某办公楼装修工程施工中" in response
     assert "内墙抹灰时" in response
     assert "以上 4 项做法中，存在质量隐患的有几项" in response
-    assert result_event.metadata["presentation"]["blocks"][0]["questions"][0]["stem"] == (
-        result_event.metadata["question_followup_context"]["question"]
+    assert result_event.metadata["presentation"]["blocks"][0]["questions"][0]["stem"].startswith(
+        "某办公楼装修工程施工中"
     )
+    assert "question_followup_context" not in result_event.metadata
 
 
 @pytest.mark.parametrize(
@@ -2381,8 +2376,8 @@ async def test_tutorbot_capability_reveals_answers_for_explicit_practice_generat
     question = result_event.metadata["presentation"]["blocks"][0]["questions"][0]
     expected_answer = "C" if answer_visible else ""
     assert question["followup_context"]["correct_answer"] == expected_answer
-    assert result_event.metadata["question_followup_context"]["reveal_answers"] is answer_visible
-    assert result_event.metadata["question_followup_context"]["reveal_explanations"] is True
+    assert "question_followup_context" not in result_event.metadata
+    assert "active_object" not in result_event.metadata
 
 
 @pytest.mark.asyncio

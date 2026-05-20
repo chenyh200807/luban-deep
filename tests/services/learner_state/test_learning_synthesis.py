@@ -247,6 +247,27 @@ def test_synthesis_decays_only_the_improved_error_object() -> None:
     assert projection["compiled_objects"]["error:1A432000:E04"]["decay_state"] == "active"
 
 
+def test_concept_only_improvement_signal_does_not_clear_specific_weak_points() -> None:
+    improvement = _learning_event(
+        "concept_success",
+        improved=True,
+        observed_at="2026-05-18T14:00:00+08:00",
+    )
+    improvement.payload_json["typed_edges"] = []
+
+    projection = synthesize_learning_truth([
+        _learning_event("evt1"),
+        _learning_event("evt2", question_id="case_002", rubric_item_id="r2"),
+        improvement,
+    ])
+
+    assert projection["improvement_signals"][0]["concept_id"] == "1A432000"
+    assert projection["improvement_signals"][0]["error_code"] == ""
+    assert projection["weak_points"][0]["error_code"] == "E02"
+    assert projection["compiled_objects"]["error:1A432000:E02"]["decay_state"] == "active"
+    assert projection["stale_claims"] == []
+
+
 def test_project_learning_graph_reuses_typed_edges_and_adds_metadata() -> None:
     graph = project_learning_graph([_learning_event("evt1")])
 

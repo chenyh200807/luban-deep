@@ -44,7 +44,6 @@ from deeptutor.services.exam_track import (
     normalize_exam_track,
 )
 from deeptutor.services.question_followup import (
-    build_question_followup_context_from_presentation,
     followup_action_route,
     interpret_question_followup_action,
     looks_like_question_followup,
@@ -52,7 +51,10 @@ from deeptutor.services.question_followup import (
     reset_question_submission_state,
     resolve_submission_attempt,
 )
-from deeptutor.services.semantic_router import has_explicit_practice_generation_intent
+from deeptutor.services.semantic_router import (
+    build_turn_semantic_decision as build_semantic_turn_decision,
+    has_explicit_practice_generation_intent,
+)
 from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
@@ -592,31 +594,30 @@ def _build_turn_semantic_decision(
     except (TypeError, ValueError):
         normalized_confidence = None
 
-    decision = {
-        "relation_to_active_object": "uncertain",
-        "next_action": "hold_and_wait",
-        "target_object_ref": _active_object_ref(active_object),
-        "allowed_patch": "no_state_change",
-        "confidence": normalized_confidence,
-        "reason": str((followup_question_action or {}).get("reason") or "").strip()
-        or "question_domain_adapter",
-    }
+    relation = "uncertain"
+    next_action = "hold_and_wait"
+    allowed_patch = "no_state_change"
     if route == "submission":
-        decision["relation_to_active_object"] = (
-            "revise_answer_on_active_object"
-            if intent == "revise_answers"
-            else "answer_active_object"
-        )
-        decision["next_action"] = "route_to_grading"
-        decision["allowed_patch"] = "update_answer_slot"
+        relation = "revise_answer_on_active_object" if intent == "revise_answers" else "answer_active_object"
+        next_action = "route_to_grading"
+        allowed_patch = "update_answer_slot"
     elif route == "followup":
-        decision["relation_to_active_object"] = "ask_about_active_object"
-        decision["next_action"] = "route_to_followup_explainer"
+        relation = "ask_about_active_object"
+        next_action = "route_to_followup_explainer"
     elif route == "practice_generation":
-        decision["relation_to_active_object"] = "continue_same_learning_flow"
-        decision["next_action"] = "route_to_generation"
-        decision["allowed_patch"] = "set_active_object"
-    return decision
+        relation = "continue_same_learning_flow"
+        next_action = "route_to_generation"
+        allowed_patch = "set_active_object"
+    return build_semantic_turn_decision(
+        relation_to_active_object=relation,
+        next_action=next_action,
+        allowed_patch=allowed_patch,
+        confidence=normalized_confidence if normalized_confidence is not None else 0.0,
+        reason=str((followup_question_action or {}).get("reason") or "").strip()
+        or "question_domain_adapter",
+        target_object_ref=_active_object_ref(active_object),
+        active_object=active_object,
+    )
 
 
 def _context_has_reference_answer(context: dict[str, Any] | None) -> bool:
@@ -872,30 +873,7 @@ def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[s
     if explicit_nested is not None:
         return explicit_nested
 
-    presentation = normalized_metadata.get("presentation")
-    if not isinstance(presentation, dict):
-        presentation = nested_metadata.get("presentation")
-    if not isinstance(presentation, dict):
-        return None
-
-    rendered_response = str(
-        normalized_metadata.get("response")
-        or nested_metadata.get("response")
-        or presentation.get("fallback_text")
-        or ""
-    ).strip()
-    return build_question_followup_context_from_presentation(
-        presentation,
-        rendered_response,
-        reveal_answers=bool(
-            normalized_metadata.get("reveal_answers")
-            or nested_metadata.get("reveal_answers")
-        ),
-        reveal_explanations=bool(
-            normalized_metadata.get("reveal_explanations")
-            or nested_metadata.get("reveal_explanations")
-        ),
-    )
+    return None
 
 
 def _result_active_object(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -2835,6 +2813,13 @@ class TurnRuntimeManager:
             explicit_action=runtime_followup_action,
             candidate_contexts=candidate_followup_contexts,
         )
+        if (
+            requested_capability in {"chat", "tutorbot"}
+            and followup_action_route(runtime_followup_action) in {"submission", "followup", "practice_generation"}
+        ):
+            requested_capability = None
+            capability = ""
+            config_capability = "chat"
         mode_selection_active_object = stored_active_object
         if (
             mode_selection_active_object is not None
