@@ -143,11 +143,6 @@ Page({
       { id: 8, icon: "🎖️", name: "精英学员", desc: "持续完成学习目标并保持高掌握度", earned: false },
     ],
 
-    capabilityItems: [
-      { id: "file_analysis", icon: "📎", title: "图片/文档分析", status: "未开放", desc: "当前仅支持文本提问，图片和文档上传分析需要单独的上传、审核和解析链路。" },
-      { id: "mind_map", icon: "🧠", title: "思维导图", status: "未开放", desc: "思维导图生成需要结构化知识点输出和小程序渲染合同，尚未开放给用户。" },
-    ],
-
     // 隐藏了"学习计划"（后期开发）
     linkItems: buildLinkItems(flags.getWorkspaceFlags()),
   },
@@ -263,20 +258,6 @@ Page({
     wx.showModal({
       title: badge.name,
       content: (badge.earned ? "已获得：" : "未获得：") + badge.desc,
-      showCancel: false,
-      confirmText: "知道了",
-    });
-  },
-
-  onCapabilityTap: function (e) {
-    var id = e.currentTarget.dataset.id;
-    var item = this.data.capabilityItems.find(function (capability) {
-      return capability.id === id;
-    });
-    if (!item) return;
-    wx.showModal({
-      title: item.title + " · " + item.status,
-      content: item.desc,
       showCancel: false,
       confirmText: "知道了",
     });

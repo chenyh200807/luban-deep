@@ -10,16 +10,9 @@ Page({
     statusBarHeight: 0,
     navHeight: 0,
     isDark: true,
-    loading: true,
-    error: false,
-    errorTitle: "加载失败",
     usagePrimaryLabel: "额度同步中",
     usagePrimaryPercent: 100,
     usageRows: [],
-    entries: [],
-    page: 1,
-    pageSize: 15,
-    hasMore: false,
     selectedPkg: "sprint",
     selectedPkgLabel: "通关版",
     selectedPkgPrice: "199",
@@ -79,7 +72,6 @@ Page({
     this.setData({ isDark: helpers.isDark() });
     runtime.checkAuth(() => {
       this._loadUsage();
-      this._loadLedger();
     });
   },
 
@@ -90,46 +82,6 @@ Page({
     } catch (_) {
       this.setData(_degradedUsageState());
     }
-  },
-
-  async _loadLedger() {
-    var page = this.data.page;
-    var size = this.data.pageSize;
-    var offset = (page - 1) * size;
-    this.setData({ loading: true, error: false });
-    try {
-      var data = await api.getLedger(size, offset);
-      var entries = (data.entries || []).map(function (e) {
-        return {
-          id: e.id,
-          delta: e.delta,
-          reason: _friendlyReason(e.reason),
-          time: _formatTime(e.created_at),
-          isDebit: e.delta < 0,
-        };
-      });
-      this.setData({
-        entries: entries,
-        hasMore: !!data.has_more,
-        error: !!data.degraded,
-        errorTitle: data.degraded ? "额度记录同步中" : "加载失败",
-        loading: false,
-      });
-    } catch (_) {
-      this.setData({ loading: false, error: true, errorTitle: "额度记录同步中" });
-    }
-  },
-
-  onPrevPage: function () {
-    if (this.data.page <= 1) return;
-    this.setData({ page: this.data.page - 1 });
-    this._loadLedger();
-  },
-
-  onNextPage: function () {
-    if (!this.data.hasMore) return;
-    this.setData({ page: this.data.page + 1 });
-    this._loadLedger();
   },
 
   onSelectPkg: function (e) {
@@ -178,7 +130,6 @@ Page({
       });
       this.setData({ checkoutVisible: false });
       this._loadUsage();
-      this._loadLedger();
     } catch (err) {
       wx.showModal({
         title: "支付未完成",
@@ -189,12 +140,6 @@ Page({
     } finally {
       this.setData({ paying: false });
     }
-  },
-
-  retry() {
-    this.setData({ page: 1 });
-    this._loadUsage();
-    this._loadLedger();
   },
 
   goBack() {
@@ -258,19 +203,6 @@ function _paymentErrorMessage(err) {
   return "订单没有完成扣款，套餐不会变更。请稍后重试。";
 }
 
-function _friendlyReason(reason) {
-  if (!reason) return "使用量变动";
-  var map = {
-    capture: "对话消耗",
-    grant: "每日赠送",
-    refund: "退回",
-    purchase: "会员开通",
-    admin_grant: "系统赠送",
-    signup_bonus: "注册奖励",
-  };
-  return map[reason] || reason;
-}
-
 function _normalizeUsage(raw) {
   var data = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};
   if (data && data.status === "degraded") {
@@ -329,26 +261,4 @@ function _formatUsageReset(resetAt) {
   var time = d.getHours() + ":" + (minutes < 10 ? "0" : "") + minutes;
   if (sameDay) return time;
   return d.getMonth() + 1 + "月" + d.getDate() + "日";
-}
-
-function _formatTime(isoStr) {
-  if (!isoStr) return "";
-  try {
-    var d = new Date(isoStr);
-    var pad = function (n) {
-      return n < 10 ? "0" + n : "" + n;
-    };
-    return (
-      d.getMonth() +
-      1 +
-      "/" +
-      d.getDate() +
-      " " +
-      pad(d.getHours()) +
-      ":" +
-      pad(d.getMinutes())
-    );
-  } catch (_) {
-    return "";
-  }
 }

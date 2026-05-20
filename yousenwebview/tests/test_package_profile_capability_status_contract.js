@@ -1,4 +1,4 @@
-// test_package_profile_capability_status_contract.js — package profile unavailable abilities
+// test_package_profile_capability_status_contract.js — package profile should not show removed advanced abilities
 // Run: node yousenwebview/tests/test_package_profile_capability_status_contract.js
 
 var fs = require("fs");
@@ -20,11 +20,12 @@ function assert(condition, message) {
   }
 }
 
-assert(/capabilityItems:\s*\[/.test(profileJs), "package profile should declare capability availability items");
+assert(!/capabilityItems:\s*\[/.test(profileJs), "package profile should not declare removed capability availability items");
 assert(!/title:\s*"联网搜索"/.test(profileJs), "web search should not appear in unavailable capability items");
-assert(/title:\s*"图片\/文档分析"[\s\S]*status:\s*"未开放"/.test(profileJs), "file analysis should be explicit unavailable");
-assert(/title:\s*"思维导图"[\s\S]*status:\s*"未开放"/.test(profileJs), "mind map should be explicit unavailable");
-assert(/bindtap="onCapabilityTap"/.test(profileWxml), "capability rows should explain status on tap");
+assert(!/title:\s*"图片\/文档分析"/.test(profileJs), "file analysis should not appear on package profile");
+assert(!/title:\s*"思维导图"/.test(profileJs), "mind map should not appear on package profile");
+assert(!/bindtap="onCapabilityTap"/.test(profileWxml), "package profile should not render removed capability rows");
+assert(!/扩展能力/.test(profileWxml), "package profile should not render the advanced abilities section");
 assert(/\.getUsage\(\)/.test(profileJs), "package profile should own usage-limit loading");
 assert(/usagePrimaryLabel/.test(profileJs) && /usageRows/.test(profileJs), "package profile should keep usage percentage state");
 assert(/quota\.rows/.test(profileJs), "package profile should read canonical quota rows from billing usage payload");

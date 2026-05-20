@@ -100,60 +100,15 @@
           <text class="pay-dock-meta">{{selectedPkgUsage}}</text>
         </view>
         <view class="pay-dock-action" bindtap="onRecharge">
-          <text class="pay-dock-yen">¥</text>
-          <text class="pay-dock-price">{{selectedPkgPrice}}</text>
+          <view class="pay-dock-price-group">
+            <text class="pay-dock-yen">¥</text>
+            <text class="pay-dock-price">{{selectedPkgPrice}}</text>
+          </view>
           <text class="pay-dock-cta">开通</text>
         </view>
       </view>
 
       <text class="usage-inline">实际消耗会随上下文长度、案例批改和整卷复盘复杂度动态变化。</text>
-
-      <!-- 额度记录 -->
-      <view class="section-head section-head-records">
-        <text class="section-title">额度记录</text>
-        <text class="section-sub">最近流水</text>
-      </view>
-
-      <view wx:if="{{loading}}" class="loading-wrap">
-        <view class="skel-item" wx:for="{{[1,2,3]}}" wx:key="index">
-          <view class="skel-block" style="width: 40%; height: 24rpx"></view>
-          <view class="skel-block" style="width: 25%; height: 22rpx; margin-top: 8rpx"></view>
-        </view>
-      </view>
-
-      <view wx:elif="{{error}}" class="empty-card">
-        <text class="empty-title">{{errorTitle}}</text>
-        <view class="retry-btn" bindtap="retry"><text class="retry-btn-txt">重试</text></view>
-      </view>
-
-      <view wx:elif="{{entries.length === 0}}" class="empty-card">
-        <text class="empty-title">暂无记录</text>
-      </view>
-
-      <view wx:else class="ledger-list">
-        <view class="ledger-item" wx:for="{{entries}}" wx:key="id">
-          <view class="ledger-left">
-            <text class="ledger-reason">{{item.reason}}</text>
-            <text class="ledger-time">{{item.time}}</text>
-          </view>
-          <text class="ledger-delta {{item.isDebit ? 'debit' : 'credit'}}">{{item.isDebit ? '已计入使用量' : '额度补充'}}</text>
-        </view>
-      </view>
-
-      <!-- 分页控件（独立于列表，始终可见） -->
-      <view class="pager-bar" wx:if="{{!loading && !error && entries.length > 0}}">
-        <view class="pager-btn-wrap {{page <= 1 ? 'disabled' : ''}}" bindtap="onPrevPage">
-          <text class="pager-chevron">‹</text>
-          <text class="pager-label">上一页</text>
-        </view>
-        <view class="pager-indicator">
-          <text class="pager-page-num">{{page}}</text>
-        </view>
-        <view class="pager-btn-wrap {{!hasMore ? 'disabled' : ''}}" bindtap="onNextPage">
-          <text class="pager-label">下一页</text>
-          <text class="pager-chevron">›</text>
-        </view>
-      </view>
 
       <view style="height: 60rpx"></view>
     </view>

@@ -68,8 +68,18 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath) {
   assert(
     wxml.indexOf('class="balance-gauge"') >= 0 &&
       wxss.indexOf(".balance-gauge-ring") >= 0 &&
-      wxss.indexOf(".pay-dock-action") >= 0,
+      wxss.indexOf(".pay-dock-action") >= 0 &&
+      wxss.indexOf(".pay-dock-price-group") >= 0,
     label + " billing should use a stronger quota dashboard and payment dock",
+  );
+  assert(
+    wxml.indexOf("额度记录") < 0 &&
+      wxml.indexOf("最近流水") < 0 &&
+      wxml.indexOf('class="ledger-list"') < 0 &&
+      wxml.indexOf('bindtap="onNextPage"') < 0 &&
+      js.indexOf("getLedger") < 0 &&
+      js.indexOf("_loadLedger") < 0,
+    label + " billing should not render or fetch the removed ledger records section",
   );
   assert(
     js.indexOf("微信支付") >= 0 &&
