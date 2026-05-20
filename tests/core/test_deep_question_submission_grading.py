@@ -34,7 +34,7 @@ def _install_module(monkeypatch: pytest.MonkeyPatch, fullname: str, **attrs: Any
     monkeypatch.setitem(sys.modules, fullname, module)
     if len(parts) > 1:
         parent = sys.modules[".".join(parts[:-1])]
-        setattr(parent, parts[-1], module)
+        monkeypatch.setattr(parent, parts[-1], module, raising=False)
 
 
 async def _collect_events(run_coro) -> list[StreamEvent]:
@@ -116,6 +116,123 @@ async def test_deep_question_uses_deterministic_feedback_for_choice_submission(
     assert result_event.metadata["grading_kernel"] == "mcq"
     assert result_event.metadata["correct_answer_present"] is True
     assert result_event.metadata["question_authority_source"] == "active_object"
+
+
+@pytest.mark.asyncio
+async def test_deep_question_deterministic_choice_feedback_explains_without_authored_analysis(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FailingSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("objective grading should not require LLM for basic explanation")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FailingSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="我选C",
+        language="zh",
+        metadata={
+            "conversation_context_text": "用户刚做完一道选择题。",
+            "question_followup_context": {
+                "question_id": "q_no_analysis",
+                "question": "主体结构分部工程包含下列哪一项？",
+                "question_type": "choice",
+                "options": {"A": "地基基础", "B": "建筑屋面", "C": "装饰装修", "D": "钢结构"},
+                "correct_answer": "D",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["is_correct"] is False
+    assert "阅卷结论" in response
+    assert "解析" in response
+    assert "你的答案：** C（装饰装修）" in response
+    assert "正确答案：** D（钢结构）" in response
+    assert "正确选项是 D（钢结构）" in response
+
+
+@pytest.mark.asyncio
+async def test_deep_question_reveals_objective_answer_without_followup_llm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for follow-up mode")
+
+    class FailingFollowupAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("objective answer reveal should use question authority, not LLM")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.followup_agent",
+        FollowupAgent=FailingFollowupAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="告诉我答案，并具体解析这道题",
+        language="zh",
+        metadata={
+            "conversation_context_text": "用户刚做完一道选择题。",
+            "turn_semantic_decision": {
+                "next_action": "route_to_followup_explainer",
+            },
+            "question_followup_action": {
+                "intent": "ask_followup",
+            },
+            "question_followup_context": {
+                "question_id": "q_reveal",
+                "question": "主体结构分部工程包含下列哪一项？",
+                "question_type": "choice",
+                "options": {"A": "地基基础", "B": "建筑屋面", "C": "装饰装修", "D": "钢结构"},
+                "correct_answer": "D",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert result_event.metadata["mode"] == "followup"
+    assert "答案与解析" in response
+    assert "正确答案：** D（钢结构）" in response
+    assert "正确选项是 D（钢结构）" in response
 
 
 @pytest.mark.asyncio

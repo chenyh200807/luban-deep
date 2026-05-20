@@ -77,6 +77,9 @@ _SUPPRESS_ANSWER_MARKERS = (
     "只问第",
 )
 _REVEAL_ANSWER_MARKERS = (
+    "告诉我答案",
+    "答案是什么",
+    "正确答案是什么",
     "给答案",
     "带答案",
     "附答案",
@@ -580,7 +583,7 @@ def should_reveal_reference_material(
     if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
         return True
     text = str(message or "").strip().lower()
-    explicit_request_markers = ("参考答案", "标准答案", "解析", "讲解", "为什么", "错因")
+    explicit_request_markers = ("参考答案", "标准答案", "正确答案", "答案", "解析", "讲解", "为什么", "错因")
     return any(marker in text for marker in explicit_request_markers)
 
 

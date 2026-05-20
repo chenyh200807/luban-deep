@@ -30,6 +30,7 @@ from deeptutor.services.question_followup import (
     build_question_followup_context_from_result_summary,
     normalize_question_followup_context,
     resolve_submission_attempt,
+    should_reveal_reference_material,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.semantic_router import (
@@ -768,10 +769,10 @@ def _render_deterministic_grading_feedback(question_context: dict[str, Any] | No
         lines = [
             "## 📊 阅卷结论",
             f"**结果：** {'正确' if is_correct else '错误'}",
-            f"**你的答案：** {str(item.get('user_answer') or '未作答').strip()}",
-            f"**正确答案：** {str(item.get('correct_answer') or '未提供').strip()}",
+            f"**你的答案：** {_format_answer_with_option_text(item, item.get('user_answer'))}",
+            f"**正确答案：** {_format_answer_with_option_text(item, item.get('correct_answer'))}",
         ]
-        explanation = str(item.get("explanation") or "").strip()
+        explanation = _objective_explanation(item)
         if explanation:
             lines.extend(["", "## 🧐 解析", explanation])
         return "\n".join(lines).strip()
@@ -793,13 +794,108 @@ def _render_deterministic_grading_feedback(question_context: dict[str, Any] | No
             [
                 "",
                 f"### 第{index}题：{'正确' if is_correct else '错误'}",
-                f"- 你的答案：{str(item.get('user_answer') or '未作答').strip()}",
-                f"- 正确答案：{str(item.get('correct_answer') or '未提供').strip()}",
+                f"- 你的答案：{_format_answer_with_option_text(item, item.get('user_answer'))}",
+                f"- 正确答案：{_format_answer_with_option_text(item, item.get('correct_answer'))}",
             ]
         )
-        explanation = str(item.get("explanation") or "").strip()
-        if explanation and not is_correct:
+        explanation = _objective_explanation(item)
+        if explanation:
             lines.append(f"- 解析：{explanation}")
+    return "\n".join(lines).strip()
+
+
+def _objective_items(question_context: dict[str, Any] | None) -> list[dict[str, Any]]:
+    items = _grading_items(question_context)
+    objective_items: list[dict[str, Any]] = []
+    for item in items:
+        question_type = str(item.get("question_type") or "").strip().lower()
+        if question_type not in {
+            "choice",
+            "single_choice",
+            "multiple_choice",
+            "multi_choice",
+            "mcq",
+            "judge",
+            "judgment",
+        }:
+            return []
+        if not str(item.get("correct_answer") or "").strip():
+            return []
+        objective_items.append(item)
+    return objective_items
+
+
+def _format_answer_with_option_text(question_context: dict[str, Any], answer: Any) -> str:
+    raw_answer = str(answer or "").strip()
+    if not raw_answer:
+        return "未作答"
+    options = question_context.get("options") or {}
+    if not isinstance(options, dict) or not options:
+        return raw_answer
+    letters = re.findall(r"[A-E]", raw_answer.upper())
+    if not letters:
+        return raw_answer
+    parts: list[str] = []
+    for letter in letters:
+        option_text = str(options.get(letter) or options.get(letter.lower()) or "").strip()
+        parts.append(f"{letter}（{option_text}）" if option_text else letter)
+    return "、".join(parts) if parts else raw_answer
+
+
+def _objective_explanation(question_context: dict[str, Any]) -> str:
+    explanation = str(question_context.get("explanation") or "").strip()
+    if explanation:
+        return explanation
+
+    correct = _format_answer_with_option_text(question_context, question_context.get("correct_answer"))
+    user_answer = str(question_context.get("user_answer") or "").strip()
+    is_correct = question_context.get("is_correct")
+    lines = [f"正确选项是 {correct}。"]
+    if user_answer and is_correct is False:
+        lines.append(
+            f"你选择的是 {_format_answer_with_option_text(question_context, user_answer)}，"
+            "与题干要求或规范口径不一致。"
+        )
+    lines.append("复盘时重点看题干关键词与正确选项表述是否直接对应，不要只凭相近概念作答。")
+    return "\n".join(lines)
+
+
+def _should_render_deterministic_reference_feedback(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> bool:
+    return bool(
+        should_reveal_reference_material(user_message, question_context)
+        and _objective_items(question_context)
+    )
+
+
+def _render_deterministic_reference_feedback(question_context: dict[str, Any] | None) -> str:
+    items = _objective_items(question_context)
+    if not items:
+        return ""
+    if len(items) == 1:
+        item = items[0]
+        return "\n".join(
+            [
+                "## ✅ 答案与解析",
+                f"**正确答案：** {_format_answer_with_option_text(item, item.get('correct_answer'))}",
+                "",
+                "## 🧐 解析",
+                _objective_explanation(item),
+            ]
+        ).strip()
+
+    lines = ["## ✅ 答案与解析"]
+    for index, item in enumerate(items, 1):
+        lines.extend(
+            [
+                "",
+                f"### 第{index}题",
+                f"- 正确答案：{_format_answer_with_option_text(item, item.get('correct_answer'))}",
+                f"- 解析：{_objective_explanation(item)}",
+            ]
+        )
     return "\n".join(lines).strip()
 
 
@@ -1043,23 +1139,31 @@ class DeepQuestionCapability(BaseCapability):
                 return
 
             if next_action == "route_to_followup_explainer":
-                from deeptutor.agents.question.agents.followup_agent import FollowupAgent
-
-                agent = FollowupAgent(
-                    language=context.language,
-                    api_key=llm_config.api_key,
-                    base_url=llm_config.base_url,
-                    api_version=llm_config.api_version,
-                )
-                agent.set_trace_callback(self._build_trace_bridge(stream))
                 async with stream.stage("generation", source=self.name):
-                    answer = await agent.process(
-                        user_message=context.user_message,
-                        question_context=followup_question_context,
-                        history_context=str(
-                            context.metadata.get("conversation_context_text", "") or ""
-                        ).strip(),
-                    )
+                    if _should_render_deterministic_reference_feedback(
+                        context.user_message,
+                        followup_question_context,
+                    ):
+                        answer = _render_deterministic_reference_feedback(
+                            followup_question_context
+                        )
+                    else:
+                        from deeptutor.agents.question.agents.followup_agent import FollowupAgent
+
+                        agent = FollowupAgent(
+                            language=context.language,
+                            api_key=llm_config.api_key,
+                            base_url=llm_config.base_url,
+                            api_version=llm_config.api_version,
+                        )
+                        agent.set_trace_callback(self._build_trace_bridge(stream))
+                        answer = await agent.process(
+                            user_message=context.user_message,
+                            question_context=followup_question_context,
+                            history_context=str(
+                                context.metadata.get("conversation_context_text", "") or ""
+                            ).strip(),
+                        )
                     if answer:
                         await stream.content(answer, source=self.name, stage="generation")
                     result_active_object = build_active_object_from_question_context(
@@ -1097,23 +1201,31 @@ class DeepQuestionCapability(BaseCapability):
                 question_context=followup_question_context,
                 user_message=context.user_message,
             ):
-                from deeptutor.agents.question.agents.followup_agent import FollowupAgent
-
-                agent = FollowupAgent(
-                    language=context.language,
-                    api_key=llm_config.api_key,
-                    base_url=llm_config.base_url,
-                    api_version=llm_config.api_version,
-                )
-                agent.set_trace_callback(self._build_trace_bridge(stream))
                 async with stream.stage("generation", source=self.name):
-                    answer = await agent.process(
-                        user_message=context.user_message,
-                        question_context=followup_question_context,
-                        history_context=str(
-                            context.metadata.get("conversation_context_text", "") or ""
-                        ).strip(),
-                    )
+                    if _should_render_deterministic_reference_feedback(
+                        context.user_message,
+                        followup_question_context,
+                    ):
+                        answer = _render_deterministic_reference_feedback(
+                            followup_question_context
+                        )
+                    else:
+                        from deeptutor.agents.question.agents.followup_agent import FollowupAgent
+
+                        agent = FollowupAgent(
+                            language=context.language,
+                            api_key=llm_config.api_key,
+                            base_url=llm_config.base_url,
+                            api_version=llm_config.api_version,
+                        )
+                        agent.set_trace_callback(self._build_trace_bridge(stream))
+                        answer = await agent.process(
+                            user_message=context.user_message,
+                            question_context=followup_question_context,
+                            history_context=str(
+                                context.metadata.get("conversation_context_text", "") or ""
+                            ).strip(),
+                        )
                     if answer:
                         await stream.content(answer, source=self.name, stage="generation")
                     result_active_object = build_active_object_from_question_context(
@@ -1266,23 +1378,31 @@ class DeepQuestionCapability(BaseCapability):
                         await stream.result(result_payload, source=self.name)
                     return
 
-                from deeptutor.agents.question.agents.followup_agent import FollowupAgent
-
-                agent = FollowupAgent(
-                    language=context.language,
-                    api_key=llm_config.api_key,
-                    base_url=llm_config.base_url,
-                    api_version=llm_config.api_version,
-                )
-                agent.set_trace_callback(self._build_trace_bridge(stream))
                 async with stream.stage("generation", source=self.name):
-                    answer = await agent.process(
-                        user_message=context.user_message,
-                        question_context=followup_question_context,
-                        history_context=str(
-                            context.metadata.get("conversation_context_text", "") or ""
-                        ).strip(),
-                    )
+                    if _should_render_deterministic_reference_feedback(
+                        context.user_message,
+                        followup_question_context,
+                    ):
+                        answer = _render_deterministic_reference_feedback(
+                            followup_question_context
+                        )
+                    else:
+                        from deeptutor.agents.question.agents.followup_agent import FollowupAgent
+
+                        agent = FollowupAgent(
+                            language=context.language,
+                            api_key=llm_config.api_key,
+                            base_url=llm_config.base_url,
+                            api_version=llm_config.api_version,
+                        )
+                        agent.set_trace_callback(self._build_trace_bridge(stream))
+                        answer = await agent.process(
+                            user_message=context.user_message,
+                            question_context=followup_question_context,
+                            history_context=str(
+                                context.metadata.get("conversation_context_text", "") or ""
+                            ).strip(),
+                        )
                     if answer:
                         await stream.content(answer, source=self.name, stage="generation")
                     result_active_object = build_active_object_from_question_context(
