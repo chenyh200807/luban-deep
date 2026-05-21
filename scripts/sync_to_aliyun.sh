@@ -16,8 +16,11 @@ ALLOW_MAIN_BRANCH_DEPLOY="${ALLOW_MAIN_BRANCH_DEPLOY:-0}"
 EXCLUDES=(
     ".git"
     ".github"
+    ".codex"
     ".gstack"
     ".local-runs"
+    ".playwright-cli"
+    ".superpowers"
     ".venv"
     "node_modules"
     "__pycache__"
@@ -35,6 +38,8 @@ EXCLUDES=(
     "data"
     "dist"
     "tmp"
+    "tmp_inspect_turn.py"
+    "tmp_query_hello.py"
     "*.log"
 )
 
@@ -108,8 +113,11 @@ root = Path(sys.argv[1]).resolve()
 excluded_names = {
     ".git",
     ".github",
+    ".codex",
     ".gstack",
     ".local-runs",
+    ".playwright-cli",
+    ".superpowers",
     ".venv",
     "node_modules",
     "__pycache__",
@@ -124,6 +132,8 @@ excluded_names = {
     "data",
     "dist",
     "tmp",
+    "tmp_inspect_turn.py",
+    "tmp_query_hello.py",
 }
 excluded_patterns = (
     ".env*",
@@ -392,6 +402,38 @@ print(f'远端代码清单已生成: {manifest_path}')
 PY"
 }
 
+clean_remote_deploy_noise() {
+    local resolved_host
+    resolved_host="$(resolve_remote_host)"
+    ssh "${resolved_host}" \
+        "PYTHONIOENCODING='utf-8' REMOTE_DIR='${REMOTE_DIR}' python3 - <<'PY'
+from pathlib import Path
+import shutil
+import os
+
+remote_dir = Path(os.environ['REMOTE_DIR']).resolve()
+targets = (
+    '.codex',
+    '.playwright-cli',
+    '.superpowers',
+    'tmp_inspect_turn.py',
+    'tmp_query_hello.py',
+)
+
+for name in targets:
+    path = (remote_dir / name).resolve()
+    if remote_dir not in path.parents and path != remote_dir:
+        raise SystemExit(f'拒绝清理非发布目录路径: {path}')
+    if not path.exists():
+        continue
+    if path.is_dir():
+        shutil.rmtree(path)
+    else:
+        path.unlink()
+    print(f'已清理远端发布噪音: {path}')
+PY"
+}
+
 preflight() {
     require_git_release_hygiene
     require_canonical_target
@@ -413,6 +455,7 @@ sync_once() {
     rsync -avz --delete --stats --no-owner --no-group --chmod=ugo+rX \
         "${exclude_args[@]}" \
         "${REPO_ROOT}/" "${resolved_host}:${REMOTE_DIR}/"
+    clean_remote_deploy_noise
     inject_remote_release_lineage
 }
 

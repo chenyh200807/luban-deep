@@ -33,8 +33,11 @@
 14. orchestrator 从自然语言推断出的 `num_questions`、`question_type`、`lightweight_generation` 只属于本次 capability request config；它们不得成为 session / learner state 的第二份长期真相。
 15. 批量出题请求不能因为上一题已经作答或已批改而退回 grading path；生成更多题目的 intent 必须收敛到 capability routing / request config，而不是 adapter 或 presentation 层重复判定。
 16. 当同一用户消息同时包含当前题目的可解析作答和“下一题 / 继续练”类训练请求时，orchestrator 必须先保持 `deep_question` 的 submission/grading 路径；训练生成只能作为后续动作，不能抢在当前作答批改之前改写为 practice generation config。
-17. `mobile` adapter 的 billing / wallet 端点只能做认证身份、wallet identity、额度 fail-closed 和展示 read-model 装配；不得把钱包、旧会员流水或展示层状态升级为 capability routing / request config authority。旧会员流水只能通过显式迁移/对账开关参与展示，默认 authority 必须是 wallet ledger。
-18. `mobile` adapter 的 learning-brain projection 端点只能暴露 learner-state 已编译投影的 read-model；不得由 adapter 推断 capability、合成 compiled truth、触发 RAG，或把 projection 读取结果作为新的 capability authority。
+17. 对上一轮出题 / 巩固邀请的短肯定回复或复述，属于 capability route 的语义承接问题；必须先由 orchestrator 的统一 semantic decision 归一为 `practice_generation` 候选。只有语义结果是普通聊天时，`bot_id` 默认绑定才可以让现有 TutorBot runtime 作为执行引擎。
+18. `mobile` adapter 的 billing / wallet 端点只能做认证身份、wallet identity、额度 fail-closed 和展示 read-model 装配；不得把钱包、旧会员流水或展示层状态升级为 capability routing / request config authority。旧会员流水只能通过显式迁移/对账开关参与展示，默认 authority 必须是 wallet ledger。
+19. `mobile` adapter 的 learning-brain projection 端点只能暴露 learner-state 已编译投影的 read-model；不得由 adapter 推断 capability、合成 compiled truth、触发 RAG，或把 projection 读取结果作为新的 capability authority。
+20. `lightweight_generation` 是 `deep_question` 的 per-turn execution-strategy 配置项（详见 `docs/plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md`）。其唯一规约函数是 `deeptutor/tutorbot/teaching_modes.classify_practice_strategy`：fast/smart 模式下普通"再出 N 题 / 继续练 / 再来几道"默认 lightweight（1 ≤ N ≤ 5），仅当用户消息命中 heavy keyword（详细解析 / 命题依据 / 模拟真题 / 完整案例）、`reveal_preference=True`、`mode=deep` 或 `num_questions` 越界时回退到 heavy。orchestrator 在 `_prepare_practice_request_context` 是唯一调用方；coordinator / generator / 其它下游模块只能读取 `config_overrides["lightweight_generation"]`，不得另行判断。判断结果只属于本次 turn 的 capability request config，禁止写入 session / learner state 作为长期真相。
+21. `ChatOrchestrator.handle()` 必须保证 outer cancel（turn timeout、FastAPI client disconnect、`GeneratorExit`）能向内部 capability task 传播：捕获 `CancelledError` / `GeneratorExit` 时取消 task、在 `DEEPTUTOR_CANCEL_GRACE_S`（默认 2 秒）内等待收尾、关闭 stream bus，并将 `turn_cancel_propagated=True` 写入 `context.metadata`；`_publish_completion` 必须在正常完成与取消两条路径都触发（放 `finally`）。禁止内部 capability task 在 parent turn deadline 之后继续调用 LLM。
 
 ## Schema
 

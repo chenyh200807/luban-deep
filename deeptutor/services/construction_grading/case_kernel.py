@@ -29,14 +29,38 @@ class CaseGradingSkillKernel:
         question_row: dict[str, Any],
         user_answer: str,
         evidence_rows: list[dict[str, Any]] | None = None,
+        grading_key: dict[str, Any] | None = None,
     ) -> CaseGradingResult:
+        """Grade a case-type submission.
+
+        plan §Phase 3 Step 3.4 / Batch D.2 — authority priority:
+          1. ``grading_key.scoring_points`` (hidden authority injected from active_object)
+          2. ``row.grading_rubric`` (curated rubric in questions_bank)
+          3. ``_project_specs_from_existing_fields`` (projected_rubric fallback)
+          4. ``_open_skill_specs`` (open_skill — no formal rubric)
+
+        ``grading_source`` is written into ``next_training_signal`` so trace consumers
+        can prove which authority produced the result and detect any drift.
+        """
         row = dict(question_row or {})
         evidence = _question_evidence_refs(row)
         evidence.extend(_external_evidence_refs(evidence_rows or []))
-        rubric_specs, mode = _build_rubric_specs(row)
-        if not rubric_specs:
-            rubric_specs = _open_skill_specs(row)
-            mode = "open_skill"
+
+        # plan §Phase 3 Step 3.4 — grading_key.scoring_points has the highest authority.
+        grading_source = "questions_bank"
+        rubric_specs: list[dict[str, Any]]
+        mode: CaseGradingMode
+        gk_specs = _grading_key_rubric_specs(grading_key)
+        if gk_specs:
+            rubric_specs = gk_specs
+            mode = "curated_rubric"
+            grading_source = "grading_key"
+        else:
+            rubric_specs, mode = _build_rubric_specs(row)
+            if not rubric_specs:
+                rubric_specs = _open_skill_specs(row)
+                mode = "open_skill"
+                grading_source = "open_skill_fallback"
 
         answer_text = str(user_answer or "").strip()
         item_results: list[CaseRubricItemResult] = []
@@ -98,6 +122,9 @@ class CaseGradingSkillKernel:
                 "concept": str(row.get("node_code") or "").strip(),
                 "focus": str(row.get("testing_focus") or "").strip(),
                 "mode": mode,
+                # plan §Phase 3 Step 3.4 / Batch D.2 — single trace label
+                "grading_source": grading_source,
+                "case_grading_mode": mode,
             },
         )
 
@@ -131,6 +158,52 @@ def _external_evidence_refs(rows: list[dict[str, Any]]) -> list[EvidenceRef]:
         if is_meaningful(value):
             refs.append(EvidenceRef(source=source, field=field, value=value))
     return refs
+
+
+def _grading_key_rubric_specs(grading_key: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """plan §Phase 3 Step 3.4 / Batch D.2 — promote ``grading_key.scoring_points``
+    into rubric specs.
+
+    Accepted shapes for ``scoring_points`` items:
+      * ``str`` → criterion + keywords=[criterion], score=1.0
+      * ``dict`` with at least ``criterion`` (or ``name`` / ``required_meaning``)
+        and optional ``keywords`` / ``score``
+    """
+    if not isinstance(grading_key, dict):
+        return []
+    raw = grading_key.get("scoring_points")
+    if not isinstance(raw, list) or not raw:
+        return []
+    specs: list[dict[str, Any]] = []
+    for item in raw:
+        if isinstance(item, str):
+            criterion = compact_text(item)
+            if not criterion:
+                continue
+            specs.append(
+                {
+                    "criterion": criterion,
+                    "keywords": [criterion],
+                    "score": 1.0,
+                    "source_fields": ["grading_key.scoring_points"],
+                }
+            )
+        elif isinstance(item, dict):
+            criterion = compact_text(item.get("criterion") or item.get("name") or item.get("required_meaning"))
+            keywords = normalize_keyword_list(item.get("keywords") or item.get("acceptable_expressions"))
+            if not keywords and criterion:
+                keywords = [criterion]
+            if not criterion or not keywords:
+                continue
+            specs.append(
+                {
+                    "criterion": criterion,
+                    "keywords": keywords,
+                    "score": float(item.get("score") or item.get("max_score") or 1),
+                    "source_fields": ["grading_key.scoring_points"],
+                }
+            )
+    return specs
 
 
 def _build_rubric_specs(row: dict[str, Any]) -> tuple[list[dict[str, Any]], CaseGradingMode]:

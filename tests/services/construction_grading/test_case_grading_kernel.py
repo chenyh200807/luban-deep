@@ -138,3 +138,60 @@ def test_case_kernel_partial_trusted_keywords_do_not_replace_answer_rubric() -> 
     assert result.max_score == 3
     assert result.score_awarded == 1
     assert len(result.rubric_items) == 3
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Batch D.2 / Gap 2 — grading_key.scoring_points 优先 + open_skill 标记
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def test_case_grading_prefers_grading_key_scoring_points_over_row_rubric() -> None:
+    from deeptutor.services.construction_grading.case_kernel import CaseGradingSkillKernel
+
+    kernel = CaseGradingSkillKernel()
+    row = {
+        "id": "case_legacy_1",
+        "node_code": "1A431000",
+        "grading_rubric": [{"criterion": "旧采分点", "keywords": ["旧"], "score": 1}],
+        "testing_focus": "专项方案",
+    }
+    grading_key = {
+        "scoring_points": [
+            {"criterion": "专项方案审批程序", "keywords": ["专项方案", "审批"], "score": 1},
+            "专家论证",
+        ]
+    }
+    user_answer = "专项方案审批专家论证"
+    result = kernel.grade(question_row=row, user_answer=user_answer, grading_key=grading_key)
+    assert result.grading_mode == "curated_rubric"
+    assert result.next_training_signal["grading_source"] == "grading_key"
+    assert result.next_training_signal["case_grading_mode"] == "curated_rubric"
+    criteria = [item.criterion for item in result.rubric_items]
+    assert "专项方案审批程序" in criteria
+    assert "专家论证" in criteria
+
+
+def test_case_grading_falls_back_to_questions_bank_when_grading_key_absent() -> None:
+    from deeptutor.services.construction_grading.case_kernel import CaseGradingSkillKernel
+
+    kernel = CaseGradingSkillKernel()
+    row = {
+        "id": "case_legacy_2",
+        "node_code": "1A431000",
+        "grading_rubric": [{"criterion": "专项方案审批", "keywords": ["审批"], "score": 1}],
+    }
+    result = kernel.grade(question_row=row, user_answer="审批", grading_key=None)
+    assert result.next_training_signal["grading_source"] == "questions_bank"
+    assert result.grading_mode == "curated_rubric"
+
+
+def test_case_grading_marks_open_skill_when_no_authority_available() -> None:
+    from deeptutor.services.construction_grading.case_kernel import CaseGradingSkillKernel
+
+    kernel = CaseGradingSkillKernel()
+    row = {"id": "case_open_1", "node_code": "1A431000"}
+    result = kernel.grade(question_row=row, user_answer="任意作答", grading_key=None)
+    # 既无 grading_key 也无 grading_rubric，projected 也空 → open_skill
+    assert result.grading_mode == "open_skill"
+    assert result.next_training_signal["grading_source"] == "open_skill_fallback"
+    assert result.next_training_signal["case_grading_mode"] == "open_skill"

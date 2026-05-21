@@ -24,6 +24,9 @@ from deeptutor.services.session.turn_runtime import (
     _TurnExecution,
     _billing_capture_amount_from_usage_summary,
     _request_snapshot_metadata,
+    _build_turn_semantic_decision,
+    _result_active_object,
+    _result_question_followup_context,
     _resolve_question_followup_context_and_action,
     _sanitize_public_terminal_event,
 )
@@ -71,6 +74,48 @@ def test_billing_capture_amount_prefers_measured_cost_summary() -> None:
     assert metadata["usage_total_tokens"] == 1250
     assert metadata["usage_sources"] == {"provider": 1}
     assert metadata["usage_models"] == {"deepseek-v4-flash": 1}
+
+
+def test_turn_runtime_question_domain_decision_uses_canonical_semantic_shape() -> None:
+    decision = _build_turn_semantic_decision(
+        active_object={"object_type": "single_question", "object_id": "q_1"},
+        followup_question_action={
+            "route": "submission",
+            "intent": "revise_answers",
+            "confidence": 0.92,
+            "reason": "用户修正上一题答案。",
+        },
+    )
+
+    assert decision == {
+        "relation_to_active_object": "revise_answer_on_active_object",
+        "next_action": "route_to_grading",
+        "allowed_patch": ["update_answer_slot"],
+        "confidence": 0.92,
+        "reason": "用户修正上一题答案。",
+        "target_object_ref": {"object_type": "single_question", "object_id": "q_1"},
+    }
+
+
+def test_turn_runtime_result_context_does_not_parse_presentation_read_model() -> None:
+    metadata = {
+        "response": "第1题\nA. 选项A\nB. 选项B",
+        "presentation": {
+            "kind": "question_set",
+            "fallback_text": "第1题\nA. 选项A\nB. 选项B",
+            "items": [
+                {
+                    "question_id": "q_1",
+                    "question": "题目",
+                    "question_type": "choice",
+                    "options": {"A": "选项A", "B": "选项B"},
+                }
+            ],
+        },
+    }
+
+    assert _result_question_followup_context(metadata) is None
+    assert _result_active_object(metadata) is None
 
 
 def test_billing_capture_amount_uses_estimated_cost_when_measured_missing() -> None:
@@ -420,7 +465,7 @@ async def test_start_turn_merges_redacted_public_submission_with_stored_active_q
             "type": "start_turn",
             "content": "我选B",
             "session_id": session["id"],
-            "capability": None,
+            "capability": "tutorbot",
             "tools": [],
             "knowledge_bases": ["construction-exam"],
             "attachments": [],
@@ -1126,6 +1171,10 @@ async def test_turn_runtime_routes_construction_exam_bot_to_tutorbot_capability(
             )
 
     class FakeOrchestrator:
+        async def _select_capability(self, context):
+            assert context.active_capability is None
+            return "tutorbot"
+
         async def handle(self, context):
             assert context.active_capability == "tutorbot"
             yield StreamEvent(
@@ -1367,6 +1416,224 @@ async def test_turn_runtime_routes_tutorbot_practice_generation_to_deep_question
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_routes_recent_practice_offer_acceptance_to_deep_question_authority(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+    captured_capabilities: list[str] = []
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text=(
+                    "Assistant: 记忆口诀强化\n"
+                    "主体结构七大类：砼砌钢，钢管型钢铝木全。\n"
+                    "需要我出同考点题目帮你巩固一下吗？"
+                ),
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeCapability:
+        async def run(self, context, bus) -> None:
+            captured["active_capability"] = context.active_capability
+            captured["config_overrides"] = dict(context.config_overrides)
+            captured["metadata"] = dict(context.metadata)
+            await bus.content(
+                "第1题",
+                source="deep_question",
+                stage="generation",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            await bus.result(
+                {
+                    "response": "第1题",
+                    "mode": "custom",
+                    "question_followup_context": {
+                        "question_id": "q_recent_offer",
+                        "question": "主体结构练习题",
+                        "question_type": "choice",
+                        "correct_answer": "A",
+                    },
+                },
+                source="deep_question",
+            )
+
+    class FakeRegistry:
+        def get(self, name: str):
+            captured_capabilities.append(name)
+            return FakeCapability()
+
+        def list_capabilities(self) -> list[str]:
+            return ["chat", "deep_question", "tutorbot"]
+
+        def get_manifests(self) -> list[dict[str, object]]:
+            return []
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_capability_registry",
+        lambda: FakeRegistry(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_tool_registry",
+        lambda: SimpleNamespace(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session = await store.create_session(session_id="session_recent_offer_acceptance", title="主体结构")
+    active_object = build_active_object_from_session(session)
+    assert active_object is not None
+    await store.set_active_object(session["id"], active_object)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "要",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "interaction_hints": {
+                    "profile": "tutorbot",
+                    "entry_role": "tutorbot",
+                    "subject_domain": "construction_exam",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert turn["capability"] == "deep_question"
+    assert captured["active_capability"] == "deep_question"
+    assert captured_capabilities[0] == "deep_question"
+    assert captured["config_overrides"]["topic"] == "继续出同考点题目帮我巩固一下"
+    assert captured["config_overrides"]["force_generate_questions"] is True
+    assert captured["metadata"]["question_followup_action"]["intent"] == "generate_more_questions"
+    assert captured["metadata"]["turn_semantic_decision"]["next_action"] == "route_to_generation"
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_keeps_open_chat_tutorbot_followup_on_tutorbot_authority(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+    captured_capabilities: list[str] = []
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="Assistant: 主体结构七大类：砼砌钢，钢管型钢铝木全。",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeCapability:
+        async def run(self, context, bus) -> None:
+            captured["active_capability"] = context.active_capability
+            captured["metadata"] = dict(context.metadata)
+            await bus.content(
+                "这是在解释主体结构口诀。",
+                source="tutorbot",
+                stage="responding",
+            )
+
+    class FakeRegistry:
+        def get(self, name: str):
+            captured_capabilities.append(name)
+            return FakeCapability()
+
+        def list_capabilities(self) -> list[str]:
+            return ["chat", "deep_question", "tutorbot"]
+
+        def get_manifests(self) -> list[dict[str, object]]:
+            return []
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_capability_registry",
+        lambda: FakeRegistry(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_tool_registry",
+        lambda: SimpleNamespace(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session = await store.create_session(session_id="session_tutorbot_open_chat_followup", title="主体结构")
+    active_object = build_active_object_from_session(session)
+    assert active_object is not None
+    await store.set_active_object(session["id"], active_object)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "这个口诀是什么意思？",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert turn["capability"] == "tutorbot"
+    assert captured["active_capability"] == "tutorbot"
+    assert captured_capabilities[0] == "tutorbot"
+    assert captured["metadata"]["active_object"]["object_type"] == "open_chat_topic"
+    assert captured["metadata"]["semantic_router_selected_capability"] == "tutorbot"
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "tutorbot"
 
 
 @pytest.mark.asyncio
@@ -2866,7 +3133,7 @@ async def test_turn_runtime_backfills_result_execution_metadata_for_deep_questio
 
 
 @pytest.mark.asyncio
-async def test_turn_runtime_recovers_active_question_context_from_result_presentation_only(
+async def test_turn_runtime_does_not_recover_active_question_context_from_presentation_only(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -2990,7 +3257,7 @@ async def test_turn_runtime_recovers_active_question_context_from_result_present
             "type": "start_turn",
             "content": "我选A。",
             "session_id": session["id"],
-            "capability": None,
+            "capability": "tutorbot",
             "tools": [],
             "knowledge_bases": [],
             "attachments": [],
@@ -3002,10 +3269,8 @@ async def test_turn_runtime_recovers_active_question_context_from_result_present
         pass
 
     active_context = await store.get_active_question_context(session["id"])
-    assert active_context is not None
-    assert active_context["question_id"] == "q_saved_from_presentation"
-    assert captured["contexts"][1]["question_id"] == "q_saved_from_presentation"
-    assert captured["contexts"][1]["correct_answer"] == "C"
+    assert active_context is None
+    assert captured["contexts"] == [None, None]
 
 
 @pytest.mark.asyncio
@@ -3779,6 +4044,9 @@ async def test_turn_runtime_keeps_batch_submission_in_chat_for_stored_question_s
             captured["question_followup_context"] = context.metadata.get(
                 "question_followup_context"
             )
+            captured["question_followup_action"] = context.metadata.get(
+                "question_followup_action"
+            )
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="deep_question",
@@ -3862,6 +4130,164 @@ async def test_turn_runtime_keeps_batch_submission_in_chat_for_stored_question_s
     assert captured["active_capability"] is None
     assert captured["question_followup_context"]["question_id"] == "quiz_batch"
     assert len(captured["question_followup_context"]["items"]) == 3
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_recovers_tutorbot_mirror_question_set_for_batch_submission(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, session_store, *_args, **_kwargs) -> None:
+            self.store = session_store
+
+        async def build(self, **kwargs):
+            messages = await self.store.get_messages_for_context(kwargs["session_id"])
+            return SimpleNamespace(
+                conversation_history=[
+                    {"role": item["role"], "content": item["content"]}
+                    for item in messages
+                ],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["active_capability"] = context.active_capability
+            captured["question_followup_context"] = context.metadata.get(
+                "question_followup_context"
+            )
+            captured["question_followup_action"] = context.metadata.get(
+                "question_followup_action"
+            )
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="deep_question",
+                stage="generation",
+                content="开始批改前两题。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime._resolve_bot_runtime_defaults",
+        lambda **_kwargs: {
+            "execution_engine": "tutorbot_runtime",
+            "tools": ["rag"],
+            "knowledge_bases": ["construction-exam"],
+            "defaults_source": "bot_runtime_defaults",
+        },
+    )
+
+    user_id = "user_mirror_batch"
+    session = await store.create_session(session_id="session_primary_without_question_set")
+    mirror_session_id = (
+        "tutorbot:bot:construction-exam-coach:"
+        f"user:{user_id}:chat:{session['id']}"
+    )
+    await store.create_session(session_id=mirror_session_id)
+    await store.set_active_question_context(
+        mirror_session_id,
+        {
+            "question_id": "quiz_mirror",
+            "question": "第1题...\n第2题...\n第3题...",
+            "question_type": "choice",
+            "items": [
+                {
+                    "question_id": "q_1",
+                    "question": "下列哪个不属于主体结构子分部工程？",
+                    "question_type": "choice",
+                    "options": {
+                        "A": "混凝土结构",
+                        "B": "网架结构",
+                        "C": "砌体结构",
+                        "D": "铝合金结构",
+                    },
+                    "correct_answer": "B",
+                },
+                {
+                    "question_id": "q_2",
+                    "question": "以下哪一组全部属于主体结构子分部工程？",
+                    "question_type": "choice",
+                    "options": {
+                        "A": "混凝土结构、砌体结构、钢结构、网架结构",
+                        "B": "混凝土结构、砌体结构、钢结构、铝合金结构",
+                        "C": "钢管混凝土结构、型钢混凝土结构、网架结构、木结构",
+                        "D": "混凝土结构、砌体结构、钢结构、装配式结构",
+                    },
+                    "correct_answer": "B",
+                },
+                {
+                    "question_id": "q_3",
+                    "question": "下列哪个不属于主体结构子分部工程？",
+                    "question_type": "choice",
+                    "correct_answer": "C",
+                },
+            ],
+            "reveal_answers": False,
+            "reveal_explanations": False,
+        },
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "第1题：B；第2题：B",
+            "session_id": session["id"],
+            "capability": "tutorbot",
+            "tools": ["rag"],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "chat_mode": "deep",
+                "interaction_profile": "tutorbot",
+                "billing_context": {
+                    "source": "wx_miniprogram",
+                    "user_id": user_id,
+                    "learning_user_id": user_id,
+                },
+            },
+        }
+    )
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert turn["capability"] == "deep_question"
+    assert captured["active_capability"] is None
+    resolved = captured["question_followup_context"]
+    assert resolved["question_id"] == "quiz_mirror"
+    action = captured["question_followup_action"]
+    assert action["intent"] == "answer_questions"
+    assert [(item["question_id"], item["user_answer"]) for item in action["answers"]] == [
+        ("q_1", "B"),
+        ("q_2", "B"),
+    ]
+    assert [
+        (item["question_id"], item.get("correct_answer"))
+        for item in resolved["items"][:2]
+    ] == [("q_1", "B"), ("q_2", "B")]
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["capability"] == "deep_question"
@@ -7911,6 +8337,34 @@ async def test_turn_runtime_injects_tutorbot_default_knowledge_chain(
     assert detail is not None
     assert detail["preferences"]["tools"] == ["rag"]
     assert detail["preferences"]["knowledge_bases"] == ["construction-exam"]
+
+
+# plan §Phase 3 Step 3.2 / Batch C Gap 3 — unified_ws redaction smoke.
+def test_unified_ws_redacts_hidden_grading_authority_at_public_boundary() -> None:
+    from deeptutor.api.routers.unified_ws import _redact_event_for_public
+
+    event = {
+        "type": "result",
+        "metadata": {
+            "question_followup_context": {
+                "question_id": "qs",
+                "items": [
+                    {
+                        "question_id": "q1",
+                        "question": "Q1",
+                        "correct_answer": "B",
+                        "grading_key": {"correct_answer": "B"},
+                        "explanation": "hidden",
+                    }
+                ],
+            }
+        },
+    }
+    redacted = _redact_event_for_public(event)
+    import json as _json
+    blob = _json.dumps(redacted, ensure_ascii=False)
+    for forbidden in ("grading_key", "correct_answer", "explanation", "hidden"):
+        assert forbidden not in blob
 
 
 # Regression: streaming CONTENT deltas must keep whitespace verbatim.

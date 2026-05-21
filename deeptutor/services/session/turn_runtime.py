@@ -44,7 +44,6 @@ from deeptutor.services.exam_track import (
     normalize_exam_track,
 )
 from deeptutor.services.question_followup import (
-    build_question_followup_context_from_presentation,
     followup_action_route,
     interpret_question_followup_action,
     looks_like_question_followup,
@@ -52,7 +51,10 @@ from deeptutor.services.question_followup import (
     reset_question_submission_state,
     resolve_submission_attempt,
 )
-from deeptutor.services.semantic_router import has_explicit_practice_generation_intent
+from deeptutor.services.semantic_router import (
+    build_turn_semantic_decision as build_semantic_turn_decision,
+    has_explicit_practice_generation_intent,
+)
 from deeptutor.services.user_visible_output import (
     coerce_user_visible_answer,
     looks_like_unsafe_visible_output,
@@ -261,6 +263,28 @@ def _request_snapshot_metadata(
         snapshot.pop("config", None)
         snapshot["_truncated"] = True
     return {"request_snapshot": snapshot}
+
+
+def _tutorbot_mirror_session_ids(
+    *,
+    bot_id: str,
+    session_id: str,
+    user_id: str,
+) -> list[str]:
+    normalized_bot_id = str(bot_id or "").strip()
+    normalized_session_id = str(session_id or "").strip()
+    normalized_user_id = str(user_id or "").strip()
+    if not normalized_bot_id or not normalized_session_id:
+        return []
+
+    candidates: list[str] = []
+    if normalized_user_id:
+        candidates.append(
+            "tutorbot:"
+            f"bot:{normalized_bot_id}:user:{normalized_user_id}:chat:{normalized_session_id}"
+        )
+    candidates.append(f"tutorbot:bot:{normalized_bot_id}:chat:{normalized_session_id}")
+    return candidates
 
 
 def _safe_terminal_assistant_content(
@@ -601,31 +625,30 @@ def _build_turn_semantic_decision(
     except (TypeError, ValueError):
         normalized_confidence = None
 
-    decision = {
-        "relation_to_active_object": "uncertain",
-        "next_action": "hold_and_wait",
-        "target_object_ref": _active_object_ref(active_object),
-        "allowed_patch": "no_state_change",
-        "confidence": normalized_confidence,
-        "reason": str((followup_question_action or {}).get("reason") or "").strip()
-        or "question_domain_adapter",
-    }
+    relation = "uncertain"
+    next_action = "hold_and_wait"
+    allowed_patch = "no_state_change"
     if route == "submission":
-        decision["relation_to_active_object"] = (
-            "revise_answer_on_active_object"
-            if intent == "revise_answers"
-            else "answer_active_object"
-        )
-        decision["next_action"] = "route_to_grading"
-        decision["allowed_patch"] = "update_answer_slot"
+        relation = "revise_answer_on_active_object" if intent == "revise_answers" else "answer_active_object"
+        next_action = "route_to_grading"
+        allowed_patch = "update_answer_slot"
     elif route == "followup":
-        decision["relation_to_active_object"] = "ask_about_active_object"
-        decision["next_action"] = "route_to_followup_explainer"
+        relation = "ask_about_active_object"
+        next_action = "route_to_followup_explainer"
     elif route == "practice_generation":
-        decision["relation_to_active_object"] = "continue_same_learning_flow"
-        decision["next_action"] = "route_to_generation"
-        decision["allowed_patch"] = "set_active_object"
-    return decision
+        relation = "continue_same_learning_flow"
+        next_action = "route_to_generation"
+        allowed_patch = "set_active_object"
+    return build_semantic_turn_decision(
+        relation_to_active_object=relation,
+        next_action=next_action,
+        allowed_patch=allowed_patch,
+        confidence=normalized_confidence if normalized_confidence is not None else 0.0,
+        reason=str((followup_question_action or {}).get("reason") or "").strip()
+        or "question_domain_adapter",
+        target_object_ref=_active_object_ref(active_object),
+        active_object=active_object,
+    )
 
 
 def _context_has_reference_answer(context: dict[str, Any] | None) -> bool:
@@ -862,25 +885,6 @@ async def _resolve_question_followup_context_and_action(
     return None, None
 
 
-def _should_pin_tutorbot_capability(
-    *,
-    user_message: str,
-    followup_question_context: dict[str, Any] | None,
-    followup_action: dict[str, Any] | None = None,
-) -> bool:
-    route = followup_action_route(followup_action)
-    if route in {"submission", "followup"}:
-        return False
-    if route == "practice_generation":
-        return False
-    if looks_like_practice_generation_request(user_message):
-        return False
-    normalized_followup = normalize_question_followup_context(followup_question_context)
-    if normalized_followup and looks_like_question_followup(user_message, normalized_followup):
-        return False
-    return True
-
-
 def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
     normalized_metadata = dict(metadata or {})
     explicit = normalize_question_followup_context(
@@ -900,30 +904,7 @@ def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[s
     if explicit_nested is not None:
         return explicit_nested
 
-    presentation = normalized_metadata.get("presentation")
-    if not isinstance(presentation, dict):
-        presentation = nested_metadata.get("presentation")
-    if not isinstance(presentation, dict):
-        return None
-
-    rendered_response = str(
-        normalized_metadata.get("response")
-        or nested_metadata.get("response")
-        or presentation.get("fallback_text")
-        or ""
-    ).strip()
-    return build_question_followup_context_from_presentation(
-        presentation,
-        rendered_response,
-        reveal_answers=bool(
-            normalized_metadata.get("reveal_answers")
-            or nested_metadata.get("reveal_answers")
-        ),
-        reveal_explanations=bool(
-            normalized_metadata.get("reveal_explanations")
-            or nested_metadata.get("reveal_explanations")
-        ),
-    )
+    return None
 
 
 def _result_active_object(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -2854,6 +2835,34 @@ class TurnRuntimeManager:
             candidate_followup_contexts.extend(
                 [stored_followup_question_context, volatile_followup_question_context]
             )
+            billing_context = (
+                runtime_only_config.get("billing_context")
+                if isinstance(runtime_only_config.get("billing_context"), dict)
+                else {}
+            )
+            mirror_user_id = str(
+                billing_context.get("learning_user_id")
+                or billing_context.get("user_id")
+                or billing_context.get("wallet_user_id")
+                or ""
+            ).strip()
+            for mirror_session_id in _tutorbot_mirror_session_ids(
+                bot_id=str(raw_config.get("bot_id") or "").strip(),
+                session_id=session_id,
+                user_id=mirror_user_id,
+            ):
+                mirror_active_object = await self._safe_store_call(
+                    None,
+                    "get_tutorbot_mirror_active_object_for_start_turn",
+                    self.store.get_active_object,
+                    mirror_session_id,
+                    default=None,
+                )
+                mirror_followup_context = extract_question_context_from_active_object(
+                    mirror_active_object
+                )
+                if mirror_followup_context is not None:
+                    candidate_followup_contexts.append(mirror_followup_context)
         (
             runtime_followup_question_context,
             runtime_followup_action,
@@ -2863,6 +2872,13 @@ class TurnRuntimeManager:
             explicit_action=runtime_followup_action,
             candidate_contexts=candidate_followup_contexts,
         )
+        if (
+            requested_capability in {"chat", "tutorbot"}
+            and followup_action_route(runtime_followup_action) in {"submission", "followup", "practice_generation"}
+        ):
+            requested_capability = None
+            capability = ""
+            config_capability = "chat"
         mode_selection_active_object = stored_active_object
         if (
             mode_selection_active_object is not None
@@ -2939,16 +2955,6 @@ class TurnRuntimeManager:
             knowledge_bases=payload.get("knowledge_bases"),
         )
         selected_capability = requested_capability
-        if (
-            selected_capability is None
-            and knowledge_chain_defaults.get("execution_engine") == "tutorbot_runtime"
-            and _should_pin_tutorbot_capability(
-                user_message=raw_user_content,
-                followup_question_context=runtime_followup_question_context,
-                followup_action=runtime_followup_action,
-            )
-        ):
-            selected_capability = "tutorbot"
         capability = selected_capability or (
             ""
             if (

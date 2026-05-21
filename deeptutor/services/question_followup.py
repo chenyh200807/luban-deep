@@ -46,6 +46,10 @@ _GRADING_AUTHORITY_FIELDS = (
     "grading_rubric",
     "structured_rules",
     "source_meta",
+    # plan §Phase 3 (Batch C / A5) — hidden grading authority field.
+    # 只能在 question_followup_context.items[i] 与 active_object.state_snapshot 内出现，
+    # public serializer 必须 drop。
+    "grading_key",
 )
 _CODING_MARKERS = (
     "编程题",
@@ -274,6 +278,36 @@ def _normalize_followup_evidence_refs(raw: Any) -> list[dict[str, Any]]:
         if len(refs) >= 8:
             break
     return refs
+
+
+_PUBLIC_REDACTED_KEYS = ("grading_key", "correct_answer", "explanation", "scoring_points")
+
+
+def redact_question_followup_context_for_public(
+    context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """plan §Phase 3 (Batch C) — public payload 必须 drop hidden grading authority.
+
+    保留：question_id, question, question_type, options, difficulty, concentration,
+    items[i] 的公开字段。Drop：grading_key, correct_answer, explanation, scoring_points
+    （以及任何形如 `grading_key.*` 的内嵌字段）。
+
+    这是一个纯函数；输入不被修改。
+    """
+    if not isinstance(context, dict):
+        return None
+    public = {key: value for key, value in context.items() if key not in _PUBLIC_REDACTED_KEYS}
+    items_raw = context.get("items") or []
+    if isinstance(items_raw, list):
+        redacted_items: list[dict[str, Any]] = []
+        for item in items_raw:
+            if not isinstance(item, dict):
+                continue
+            redacted_items.append(
+                {key: value for key, value in item.items() if key not in _PUBLIC_REDACTED_KEYS}
+            )
+        public["items"] = redacted_items
+    return public
 
 
 def _followup_grading_authority_fields(*sources: dict[str, Any]) -> dict[str, Any]:
@@ -628,6 +662,10 @@ def build_question_followup_context_from_result_summary(
             ).strip(),
             "multi_select": bool(qa_pair.get("multi_select", False)),
         }
+        # plan §Phase 3 (Batch C / A5) — copy hidden grading_key into item.
+        grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else None
+        if grading_key:
+            item["grading_key"] = dict(grading_key)
         item.update(_followup_grading_authority_fields(qa_pair, metadata))
         if evidence_refs:
             item["evidence_refs"] = evidence_refs
@@ -657,6 +695,9 @@ def build_question_followup_context_from_result_summary(
         primary["options"] = None
         primary["correct_answer"] = ""
         primary["explanation"] = ""
+        # plan §Phase 3 — multi-item primary 是 collection 顶层，
+        # 不应携带 hidden grading_key（只能在 items[i] 内）。
+        primary.pop("grading_key", None)
 
     primary["reveal_answers"] = reveal_answers
     primary["reveal_explanations"] = reveal_explanations
@@ -771,6 +812,9 @@ def build_question_followup_context_from_presentation(
         primary["options"] = None
         primary["correct_answer"] = ""
         primary["explanation"] = ""
+        # plan §Phase 3 — multi-item primary 是 collection 顶层，
+        # 不应携带 hidden grading_key（只能在 items[i] 内）。
+        primary.pop("grading_key", None)
 
     primary["reveal_answers"] = reveal_answers
     primary["reveal_explanations"] = reveal_explanations
@@ -1261,6 +1305,8 @@ def _build_followup_action_prompt(
         "answer_questions, revise_answers, ask_followup, generate_more_questions, unknown, unrelated。\n"
         "规则：\n"
         "1. 如果用户是在提交当前题目/题组答案，intent=answer_questions。\n"
+        "   包括前端交互生成的“提交作答，请批改：第1题：B；第2题：C”、"
+        "“我已完成作答，请按当前题组逐题批改”等表述。\n"
         "2. 如果用户是在修改已经提交过的答案，如“第2题改成C，其他不变”，intent=revise_answers。\n"
         "3. 如果用户是在问解析/讲解/为什么/哪题错了，intent=ask_followup。\n"
         "4. 如果用户是在要求继续出题/再来几题，intent=generate_more_questions。\n"

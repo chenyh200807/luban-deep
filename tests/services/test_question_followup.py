@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from deeptutor.services.question_followup import (
@@ -195,6 +197,41 @@ def test_resolve_submission_attempt_supports_numbered_batch_submission() -> None
     assert submission["kind"] == "batch"
     assert [item["question_id"] for item in submission["answers"]] == ["q_1", "q_2", "q_3"]
     assert [item["user_answer"] for item in submission["answers"]] == ["C", "A", "B"]
+
+
+def test_resolve_submission_attempt_supports_renderer_generated_batch_submission() -> None:
+    question_set = {
+        "question_id": "quiz_renderer",
+        "question": "第1题...\n第2题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "题1",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+                "correct_answer": "B",
+            },
+            {
+                "question_id": "q_2",
+                "question": "题2",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+                "correct_answer": "B",
+            },
+        ],
+    }
+
+    target, submission = resolve_submission_attempt(
+        "提交作答，请批改：第1题：B；第2题：B",
+        question_set,
+    )
+
+    assert target is not None
+    assert submission is not None
+    assert submission["kind"] == "batch"
+    assert [item["question_id"] for item in submission["answers"]] == ["q_1", "q_2"]
+    assert [item["user_answer"] for item in submission["answers"]] == ["B", "B"]
 
 
 def test_resolve_submission_attempt_supports_positional_batch_submission_variants() -> None:
@@ -1032,3 +1069,78 @@ def test_build_choice_result_summary_from_exact_question_skips_missing_options()
         )
         is None
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Batch C / A5 — grading_key persistence + public redaction
+# plan §Phase 3 Step 3.4 acceptance.
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def test_grading_key_persisted_in_followup_context_item_from_result_summary() -> None:
+    from deeptutor.services.question_followup import (
+        build_question_followup_context_from_result_summary,
+    )
+
+    result_summary = {
+        "results": [
+            {
+                "qa_pair": {
+                    "question_id": "q_1",
+                    "question": "What is 2+2?",
+                    "question_type": "choice",
+                    "options": {"A": "3", "B": "4", "C": "5", "D": "6"},
+                    "correct_answer": "B",
+                    "explanation": "",
+                    "grading_key": {
+                        "correct_answer": "B",
+                        "scoring_points": [],
+                        "common_traps": [],
+                        "source": "lightweight_llm",
+                    },
+                }
+            }
+        ]
+    }
+    ctx = build_question_followup_context_from_result_summary(
+        result_summary,
+        rendered_response="2+2=?",
+        reveal_answers=False,
+    )
+    assert ctx is not None
+    items = ctx.get("items") or []
+    assert items and isinstance(items[0], dict)
+    assert items[0].get("grading_key", {}).get("correct_answer") == "B"
+
+
+def test_redact_question_followup_context_for_public_strips_hidden_authority() -> None:
+    from deeptutor.services.question_followup import (
+        redact_question_followup_context_for_public,
+    )
+
+    ctx = {
+        "question_id": "qs_1",
+        "question": "Hello?",
+        "correct_answer": "leak-should-be-removed",
+        "explanation": "leak-should-be-removed",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "Q1",
+                "question_type": "choice",
+                "options": {"A": "a", "B": "b"},
+                "correct_answer": "A",
+                "explanation": "leak",
+                "grading_key": {"correct_answer": "A", "scoring_points": ["sp1"]},
+                "scoring_points": ["should be redacted"],
+            }
+        ],
+    }
+    public = redact_question_followup_context_for_public(ctx)
+    assert public is not None
+    payload_blob = json.dumps(public, ensure_ascii=False)
+    for forbidden in ("grading_key", "scoring_points", "correct_answer", "leak-should-be-removed", "leak"):
+        assert forbidden not in payload_blob, f"public payload must not leak {forbidden}"
+    # 非禁字段保留
+    assert public["question_id"] == "qs_1"
+    assert public["items"][0]["question_id"] == "q_1"

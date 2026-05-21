@@ -93,6 +93,59 @@ async def test_resolve_turn_semantic_decision_maps_llm_answer_to_grading(
 
 
 @pytest.mark.asyncio
+async def test_open_chat_short_acceptance_of_recent_practice_offer_routes_to_generation() -> None:
+    decision, action = await semantic_router.resolve_turn_semantic_decision(
+        "要",
+        _open_chat_active_object(),
+        history_context=(
+            "Assistant: 记忆口诀强化\n"
+            "主体结构七大类：砼砌钢，钢管型钢铝木全。\n"
+            "需要我出同考点题目帮你巩固一下吗？"
+        ),
+    )
+
+    assert action is not None
+    assert action["intent"] == "generate_more_questions"
+    assert action["topic"] == "继续出同考点题目帮我巩固一下"
+    assert decision is not None
+    assert decision["relation_to_active_object"] == "continue_same_learning_flow"
+    assert decision["next_action"] == "route_to_generation"
+    assert semantic_router.turn_semantic_decision_route(decision) == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_open_chat_short_acceptance_without_recent_offer_stays_chat() -> None:
+    decision, action = await semantic_router.resolve_turn_semantic_decision(
+        "要",
+        _open_chat_active_object(),
+        history_context="Assistant: 我们刚才在解释主体结构口诀。",
+    )
+
+    assert action is None
+    assert decision is not None
+    assert decision["next_action"] == "route_to_general_chat"
+    assert semantic_router.turn_semantic_decision_route(decision) == "chat"
+
+
+@pytest.mark.asyncio
+async def test_open_chat_repeated_assistant_offer_routes_to_generation_when_offer_is_recent() -> None:
+    decision, action = await semantic_router.resolve_turn_semantic_decision(
+        "需要我出同考点题目帮你巩固一下",
+        _open_chat_active_object(),
+        history_context=(
+            "Assistant: 花 1 分钟把口诀过三遍，下次遇到直接套用。\n"
+            "需要我出同考点题目帮你巩固一下吗？"
+        ),
+    )
+
+    assert action is not None
+    assert action["intent"] == "generate_more_questions"
+    assert decision is not None
+    assert decision["next_action"] == "route_to_generation"
+    assert semantic_router.turn_semantic_decision_route(decision) == "deep_question"
+
+
+@pytest.mark.asyncio
 async def test_resolve_turn_semantic_decision_uses_deterministic_submission_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

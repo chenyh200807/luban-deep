@@ -207,7 +207,6 @@ def get_anchor_preservation_instruction(user_message: str | None) -> str:
         "不要自行缩写、泛化或换称呼。"
     )
 
-
 def get_construction_exam_boundary_fact_instruction(*texts: str | None) -> str:
     joined = "\n".join(str(text or "") for text in texts if str(text or "").strip())
     if not joined:
@@ -343,6 +342,13 @@ def looks_like_practice_generation_request(user_message: str | None) -> bool:
         "再出一道",
         "下一题",
         "下一道",
+        # plan §Phase 1 Step 1.1 (A2) — "继续练 / 再练" 是高频练题表述，
+        # 旧 markers 没覆盖，导致 "继续练刚才错的，N题" 被判 heavy。
+        "继续练",
+        "再练",
+        "继续做",
+        "再做几道",
+        "再做一道",
         "quiz me",
         "test me",
         "give me a question",
@@ -359,6 +365,64 @@ def looks_like_practice_generation_request(user_message: str | None) -> bool:
         r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
     )
     return any(re.search(pattern, text) for pattern in request_patterns)
+
+
+# plan §Phase 1 Step 1.1 (A2) — 单一规约函数：判断本轮练题生成走 lightweight 还是 heavy。
+# 调用方契约：orchestrator._prepare_practice_request_context 唯一消费点，
+# coordinator 仅读 config_overrides["lightweight_generation"]，不自行判断。
+# 详见 docs/plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md §1.1。
+_HEAVY_KEYWORDS: tuple[str, ...] = (
+    r"详细解析|逐题解析|每题解析|完整解析",
+    r"命题依据|押题分析|押题预测|考点预测",
+    r"模拟真题|综合卷|套题|真题卷|全真模拟",
+    r"高质量原创案例|完整案例题|完整 ?rubric|完整评分标准",
+)
+PracticeStrategy = Literal["lightweight", "heavy"]
+_LIGHTWEIGHT_MAX_QUESTIONS = 5
+
+
+def classify_practice_strategy(
+    *,
+    message: str | None,
+    reveal_preference: bool | None,
+    mode: str | None = None,
+    num_questions: int = 1,
+    has_active_object: bool = False,
+) -> PracticeStrategy:
+    """Decide whether a practice-generation turn should take the lightweight path.
+
+    Hard rules (any one ⇒ heavy):
+      * user message contains heavy keyword (`详细解析 / 命题依据 / 模拟真题 / 完整案例` etc.)
+      * `reveal_preference is True` (user explicitly wants answers shown)
+      * `mode == "deep"`
+      * `num_questions` outside [1, 5]
+      * message does not look like a practice-generation request at all
+
+    Otherwise return `lightweight`.
+
+    `has_active_object` is currently unused but kept in the signature so callers
+    can already pass it; future revisions may use it to bias toward lightweight
+    when a question_set is already in play.
+    """
+    text = str(message or "").strip()
+    if not text:
+        return "heavy"
+    if any(re.search(pattern, text) for pattern in _HEAVY_KEYWORDS):
+        return "heavy"
+    if reveal_preference is True:
+        return "heavy"
+    normalized_mode = str(mode or "").strip().lower()
+    if normalized_mode == "deep":
+        return "heavy"
+    try:
+        count = int(num_questions)
+    except (TypeError, ValueError):
+        count = 0
+    if count <= 0 or count > _LIGHTWEIGHT_MAX_QUESTIONS:
+        return "heavy"
+    if not looks_like_practice_generation_request(text):
+        return "heavy"
+    return "lightweight"
 
 
 def get_practice_generation_instruction(

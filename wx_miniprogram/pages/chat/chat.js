@@ -1355,13 +1355,13 @@ Page({
     if (!questionBlocks.length) return "";
     if (questionBlocks.length === 1) {
       return (
-        "请根据你刚才出的这道选择题，判断我选得对不对，并给出正确答案与简明解析。\n\n" +
+        "我已完成作答，请按当前题目批改，不要重新出题。请判断我选得对不对，并给出正确答案与简明解析。\n\n" +
         questionBlocks[0]
       );
     }
 
     return (
-      "请根据你刚才出的这些选择题，逐题判断我选得对不对，并按“第N题：是否正确 / 正确答案 / 简明解析”的格式回复。\n\n" +
+      "我已完成作答，请按当前题组逐题批改，不要重新出题。请按“第N题：是否正确 / 正确答案 / 简明解析”的格式回复。\n\n" +
       questionBlocks.join("\n\n")
     );
   },
@@ -1460,8 +1460,8 @@ Page({
     }
     var text =
       selections.length === 1 && followupQuestionContext
-        ? "我选" + selections[0].keys.join("、")
-        : rows.join("；");
+        ? "提交作答，请批改：我选" + selections[0].keys.join("、")
+        : "提交作答，请批改：" + rows.join("；");
     if (missingContext) {
       return {
         text: this._buildFallbackMcqJudgePrompt(items, selections),

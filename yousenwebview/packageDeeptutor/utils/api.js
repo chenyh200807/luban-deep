@@ -556,6 +556,16 @@ function getLearningBrainProjection(eventLimit, opts) {
   );
 }
 
+/** 获取学情页统一 read model */
+function getLearningReport(eventLimit, opts) {
+  var limit = Number(eventLimit || 100);
+  if (!Number.isFinite(limit) || limit <= 0) limit = 100;
+  return requestStateGet(
+    "/api/v1/mobile/learning-report?event_limit=" + Math.min(Math.round(limit), 500),
+    opts,
+  );
+}
+
 /** 获取对话列表 */
 function getConversations(archived) {
   var url = "/api/v1/conversations";
@@ -691,6 +701,7 @@ module.exports = {
   getDailyQuestion: getDailyQuestion,
   getRadarData: getRadarData,
   getMasteryDashboard: getMasteryDashboard,
+  getLearningReport: getLearningReport,
   getLearningBrainProjection: getLearningBrainProjection,
   getConversations: getConversations,
   createConversation: createConversation,

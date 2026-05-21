@@ -69,7 +69,7 @@ def synthesize_learning_truth(
         else:
             observed_candidates.append({**candidate, "evidence_level": "L0_observed"})
 
-    improved_keys = _resolved_improved_keys(raw_weak_points=raw_weak_points, improvements=improvements)
+    improved_keys = _resolved_improved_keys(improvements=improvements)
     weak_points = _active_weak_points(
         raw_weak_points=raw_weak_points,
         observed_candidates=observed_candidates,
@@ -501,7 +501,7 @@ def _build_compiled_objects(
 ) -> dict[str, dict[str, Any]]:
     objects: dict[str, dict[str, Any]] = {}
     weak_keys = {(weak["concept_id"], weak["error_code"]) for weak in weak_points}
-    improving_keys = _resolved_improved_keys(raw_weak_points=weak_points, improvements=improvements)
+    improving_keys = _resolved_improved_keys(improvements=improvements)
     improving_concepts = {concept_id for concept_id, _error_code in improving_keys}
     manual_by_key: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for manual_event in manual_events:
@@ -749,32 +749,12 @@ def _append_unique_text(values: list[str], value: Any) -> None:
         values.append(text)
 
 
-def _resolved_improved_keys(
-    *,
-    raw_weak_points: list[dict[str, Any]],
-    improvements: list[dict[str, Any]],
-) -> set[tuple[str, str]]:
-    improved_keys = {
+def _resolved_improved_keys(*, improvements: list[dict[str, Any]]) -> set[tuple[str, str]]:
+    return {
         (_clean_text(item.get("concept_id")), _clean_text(item.get("error_code")))
         for item in improvements
         if _clean_text(item.get("concept_id")) and _clean_text(item.get("error_code"))
     }
-    concept_only = {
-        _clean_text(item.get("concept_id"))
-        for item in improvements
-        if _clean_text(item.get("concept_id")) and not _clean_text(item.get("error_code"))
-    }
-    weak_errors_by_concept: dict[str, set[str]] = defaultdict(set)
-    for weak in raw_weak_points:
-        concept_id = _clean_text(weak.get("concept_id"))
-        error_code = _clean_text(weak.get("error_code"))
-        if concept_id and error_code:
-            weak_errors_by_concept[concept_id].add(error_code)
-    for concept_id in concept_only:
-        error_codes = weak_errors_by_concept.get(concept_id, set())
-        for error_code in error_codes:
-            improved_keys.add((concept_id, error_code))
-    return improved_keys
 
 
 def _is_improvement(payload: dict[str, Any]) -> bool:

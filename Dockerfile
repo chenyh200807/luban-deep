@@ -228,6 +228,8 @@ RUN chmod +x /usr/local/bin/deeptutor
 
 # Create necessary directories (these will be overwritten by volume mounts)
 RUN mkdir -p \
+    /tmp \
+    /var/tmp \
     data/user/settings \
     data/memory \
     data/user/workspace/memory \
@@ -243,6 +245,8 @@ RUN mkdir -p \
     data/user/workspace/chat/_detached_code_execution \
     data/user/logs \
     data/knowledge_bases
+
+RUN chmod 1777 /tmp /var/tmp
 
 # Create supervisord configuration for running both services
 # Log output goes to stdout/stderr so docker logs can capture them

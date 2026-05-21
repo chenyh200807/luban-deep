@@ -87,10 +87,10 @@ def test_mobile_read_model_uses_shared_learning_brain_projection() -> None:
     assert model["compiled_objects"]["question:wechat-harness-case-001"]["current_truth"] == "题目 专项训练 001 触发了 采分点遗漏 相关错因。"
     assert model["compiled_objects"]["submission:wechat-harness-learning-brain-demo123-1"]["display_meta"] == "作答记录：第 1 次作答"
     assert model["weak_points"][0]["display_title"] == "工程招标投标与合同管理 上出现 采分点遗漏 错因"
-    assert model["visible_sections"]["current_truth"][0]["object_key"] == "concept:1A432000"
+    assert model["visible_sections"]["current_truth"][0]["object_key"] == ""
     assert model["visible_sections"]["current_truth"][0]["display_title"] == "工程招标投标与合同管理 上出现 采分点遗漏 错因"
     assert model["visible_sections"]["current_truth"][0]["display_meta"] == "知识点：工程招标投标与合同管理"
-    assert model["visible_sections"]["next_training"][0]["error_code"] == "E02"
+    assert model["visible_sections"]["next_training"][0]["error_code"] == ""
     assert model["visible_sections"]["next_training"][0]["display_meta"] == (
         "知识点：工程招标投标与合同管理；错因：采分点遗漏；案例题补强"
     )
@@ -170,3 +170,56 @@ def test_read_model_uses_backend_taxonomy_display_labels() -> None:
     assert truth["display_meta"] == "知识点：建筑功能材料"
     assert "1A412030" not in truth["display_title"]
     assert "知识点：建筑功能材料" in training["display_meta"]
+
+
+def test_read_model_hides_internal_mcq_codes_and_event_ids_from_visible_sections() -> None:
+    projection = _projection()
+    raw_topic = "我想练习主体结构相关的题目 请严格围绕以下当前学习锚点出题"
+    projection["compiled_objects"] = {
+        f"error:{raw_topic}:M07": {
+            "object_type": "error",
+            "object_id": f"{raw_topic}:M07",
+            "current_truth": f"{raw_topic} 上出现 M07 错因",
+            "evidence_level": "L0_observed",
+            "confidence": 0.5,
+            "supporting_event_ids": ["e8b7f3a8123456782c60", "0a9fa92a12345678d023"],
+        }
+    }
+    projection["weak_points"] = [
+        {
+            "concept_id": raw_topic,
+            "error_code": "M06",
+            "claim": f"{raw_topic} 上出现 M06 错因",
+            "evidence_level": "L0_observed",
+            "supporting_event_ids": ["e8b7f3a8123456782c60"],
+            "recommended_training": {
+                "mode": "case_repair",
+                "focus": f"practice / {raw_topic} -> 案例题： q_1",
+            },
+        }
+    ]
+    projection["typed_graph"] = {
+        "edges": [
+            {
+                "edge_type": "error_points_to_training",
+                "from": {"type": "error", "id": f"{raw_topic}:M06"},
+                "to": {"type": "next_training", "id": f"practice / {raw_topic} -> 案例题： q_1"},
+                "evidence_event_id": "e8b7f3a8123456782c60",
+            }
+        ],
+        "readiness_gaps": [],
+    }
+
+    model = build_learning_brain_read_model(user_id="student_demo", projection=projection, surface="mobile")
+
+    visible_text = str(model["visible_sections"])
+    assert "M06" not in visible_text
+    assert "M07" not in visible_text
+    assert "e8b7f3a8" not in visible_text
+    assert "0a9fa92a" not in visible_text
+    assert "practice /" not in visible_text
+    assert "q_1" not in visible_text
+    assert "主体结构" in visible_text
+    assert "多选漏选" in visible_text
+    assert "多选错选" in visible_text
+    assert "最近一次批改" in visible_text

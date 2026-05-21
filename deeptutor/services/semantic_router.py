@@ -88,6 +88,34 @@ _EXPLICIT_PRACTICE_GENERATION_PATTERNS = (
     r"(给我|帮我|来|出).{0,16}(?:\d{1,2}|[一二两三四五六七八九十几]+)\s*(?:道题|题|道)",
     r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
 )
+_SHORT_PRACTICE_OFFER_ACCEPTANCES = {
+    "要",
+    "要的",
+    "需要",
+    "需要的",
+    "可以",
+    "可以的",
+    "好",
+    "好的",
+    "行",
+    "来",
+    "来吧",
+    "嗯",
+    "嗯嗯",
+}
+_RECENT_PRACTICE_OFFER_RE = re.compile(
+    r"(?:需要|要不要|是否|可以|我可以).{0,32}"
+    r"(?:出|生成|来|安排).{0,32}"
+    r"(?:同考点|类似|相关|巩固|练习|题目|题|自测)",
+    re.IGNORECASE,
+)
+_REPEATED_PRACTICE_OFFER_RE = re.compile(
+    r"(?:需要我|可以我|要不要我).{0,32}"
+    r"(?:出|生成|来|安排).{0,32}"
+    r"(?:同考点|类似|相关|巩固|练习|题目|题|自测)",
+    re.IGNORECASE,
+)
+_ACCEPTED_PRACTICE_OFFER_TOPIC = "继续出同考点题目帮我巩固一下"
 _QUESTION_EXPLAINER_MARKERS = (
     "为什么",
     "为啥",
@@ -568,6 +596,28 @@ async def resolve_turn_semantic_decision(
     history_context: str = "",
 ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     normalized_active_object = normalize_active_object(active_object)
+    accepted_practice_offer = _accepted_recent_practice_offer_action(
+        user_message,
+        history_context,
+    )
+    if accepted_practice_offer is not None:
+        decision = build_turn_semantic_decision(
+            relation_to_active_object=(
+                "continue_same_learning_flow"
+                if normalized_active_object is not None
+                else "switch_to_new_object"
+            ),
+            next_action="route_to_generation",
+            allowed_patch="set_active_object",
+            confidence=float(accepted_practice_offer.get("confidence") or 0.0),
+            reason=str(accepted_practice_offer.get("reason") or "").strip()
+            or "用户接受最近一轮出题巩固邀请。",
+            target_object_ref=build_target_object_ref(normalized_active_object)
+            or {"object_type": "question_set", "object_id": ""},
+            active_object=normalized_active_object,
+        )
+        return decision, accepted_practice_offer
+
     question_context = question_context_from_active_object(normalized_active_object)
     if question_context is None:
         if _is_guide_active_object(active_object):
@@ -630,6 +680,32 @@ async def resolve_question_semantic_routing(
     question_context = question_context_from_active_object(active_object) or legacy_question_context
     cached_action = normalized_metadata.get("question_followup_action")
     followup_action = cached_action if isinstance(cached_action, dict) and cached_action else None
+    accepted_practice_offer = _accepted_recent_practice_offer_action(
+        user_message,
+        history_context,
+    )
+    if accepted_practice_offer is not None:
+        practice_decision = build_turn_semantic_decision(
+            relation_to_active_object=(
+                "continue_same_learning_flow"
+                if active_object is not None
+                else "switch_to_new_object"
+            ),
+            next_action="route_to_generation",
+            allowed_patch="set_active_object",
+            confidence=float(accepted_practice_offer.get("confidence") or 0.0),
+            reason=str(accepted_practice_offer.get("reason") or "").strip(),
+            target_object_ref=build_target_object_ref(active_object)
+            or {"object_type": "question_set", "object_id": ""},
+            active_object=active_object,
+        )
+        return SemanticRoutingResult(
+            active_object=active_object,
+            suspended_object_stack=suspended_stack,
+            turn_semantic_decision=practice_decision,
+            question_context=question_context,
+            followup_action=accepted_practice_offer,
+        )
 
     if (
         question_context is not None
@@ -1384,6 +1460,38 @@ def _decision_from_active_open_chat_object(
         reason="当前输入继续围绕当前 session 的开放对话对象展开。",
         active_object=normalized_active_object,
     )
+
+
+def _accepted_recent_practice_offer_action(
+    user_message: str,
+    history_context: str,
+) -> dict[str, Any] | None:
+    if not _history_contains_recent_practice_offer(history_context):
+        return None
+
+    compact_message = _compact_message(user_message)
+    if compact_message in _SHORT_PRACTICE_OFFER_ACCEPTANCES or _REPEATED_PRACTICE_OFFER_RE.search(
+        str(user_message or "").strip()
+    ):
+        return {
+            "intent": "generate_more_questions",
+            "confidence": 0.84,
+            "answers": [],
+            "topic": _ACCEPTED_PRACTICE_OFFER_TOPIC,
+            "reason": "用户正在接受最近一轮出题/同考点巩固邀请，应继续进入练题生成 authority。",
+        }
+    return None
+
+
+def _history_contains_recent_practice_offer(history_context: str) -> bool:
+    recent_context = str(history_context or "").strip()[-1600:]
+    if not recent_context:
+        return False
+    return bool(_RECENT_PRACTICE_OFFER_RE.search(recent_context))
+
+
+def _compact_message(message: str) -> str:
+    return re.sub(r"[\s，。！？、,.!?:：；;]+", "", str(message or "").strip().lower())
 
 
 def _message_mentions_guide(message: str) -> bool:

@@ -43,7 +43,6 @@ from deeptutor.services.session.turn_runtime import (
     TurnRuntimeManager,
     _normalize_question_followup_action,
     _result_question_followup_context,
-    _should_pin_tutorbot_capability,
 )
 from deeptutor.tutorbot.teaching_modes import (
     looks_like_practice_generation_request,
@@ -226,6 +225,16 @@ def _zh_num_to_int(value: str) -> int | None:
 def _query_requires_current_info(query: str) -> bool:
     text = str(query or "").strip().lower()
     return any(keyword in text for keyword in CURRENT_INFO_KEYWORDS)
+
+
+def _should_pin_retest_turn_to_tutorbot(
+    *,
+    followup_question_context: dict[str, Any] | None,
+    followup_action: dict[str, Any] | None,
+) -> bool:
+    if followup_question_context is not None:
+        return False
+    return _normalize_question_followup_action(followup_action) is None
 
 
 def _build_retest_interaction_hints(
@@ -522,8 +531,7 @@ async def _run_single_turn(
     selected_capability = (
         "tutorbot"
         if not looks_like_practice_generation_request(query)
-        and _should_pin_tutorbot_capability(
-            user_message=query,
+        and _should_pin_retest_turn_to_tutorbot(
             followup_question_context=followup_question_context,
             followup_action=followup_action,
         )

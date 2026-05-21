@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 import importlib
 import tempfile
 from pathlib import Path
@@ -23,6 +24,7 @@ mobile_module = importlib.import_module("deeptutor.api.routers.mobile")
 auth_dependency_module = importlib.import_module("deeptutor.api.dependencies.auth")
 rate_limit_module = importlib.import_module("deeptutor.api.dependencies.rate_limit")
 router = mobile_module.router
+_SH_TZ = timezone(timedelta(hours=8))
 
 
 def _build_app() -> FastAPI:
@@ -2769,8 +2771,12 @@ def test_learning_brain_projection_reads_authenticated_learner_truth(
     assert body["weak_points"][0]["evidence_level"] == "L1_repeated"
     assert body["visible_sections"]["current_truth"][0]["current_truth"].startswith("工程招标投标与合同管理")
     assert body["visible_sections"]["current_truth"][0]["display_meta"] == "知识点：工程招标投标与合同管理"
-    assert body["visible_sections"]["evidence_flow"][0]["event_id"] == "evt1"
-    assert body["visible_sections"]["next_training"][0]["recommended_training"]["mode"] == "case_repair"
+    assert body["visible_sections"]["evidence_flow"][0]["event_id"] == ""
+    assert body["visible_sections"]["evidence_flow"][0]["event_label"] == "最近一次批改"
+    assert body["visible_sections"]["next_training"][0]["recommended_training"] == {}
+    assert body["visible_sections"]["next_training"][0]["display_meta"] == (
+        "知识点：工程招标投标与合同管理；错因：采分点遗漏；案例题补强"
+    )
     assert body["typed_graph_edge_count"] == 4
     assert any(edge["edge_type"] == "training_not_improved_error" for edge in body["typed_graph_edges"])
     assert body["graph_chain"]["has_training_uses_question"] is True
@@ -2872,6 +2878,250 @@ def test_learning_brain_projection_local_qa_can_fallback_to_dry_run_synthesis(
     }
     assert body["event_count"] == 2
     assert body["weak_points"][0]["evidence_level"] == "L1_repeated"
+
+
+def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeMemberService:
+        def get_today_progress(self, user_id):
+            captured["legacy_today_user_id"] = user_id
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_home_dashboard(self, user_id):
+            return {
+                "review": {"due_today": 0, "overdue": 0},
+                "mastery": {"weak_nodes": []},
+                "today": {"hint": "优先补强 建筑构造"},
+            }
+
+        def get_assessment_profile(self, user_id):
+            return {"level": "beginner", "chapter_mastery": {}}
+
+        def get_mastery_dashboard(self, user_id):
+            return {"overall_mastery": 0, "groups": [], "hotspots": [], "review_summary": {"total_due": 0}}
+
+    class FakeLearnerStateService:
+        def list_memory_events(self, user_id, limit=100):
+            captured["event_user_id"] = user_id
+            created_at = datetime.now(_SH_TZ).replace(microsecond=0).isoformat()
+            return [
+                SimpleNamespace(
+                    event_id="evt1",
+                    user_id=user_id,
+                    source_feature="construction_grading",
+                    source_id="turn:evt1",
+                    source_bot_id="construction-exam",
+                    memory_kind="learning_evidence",
+                    dedupe_key="evt1",
+                    created_at=created_at,
+                    payload_json={
+                        "event_type": "learning_evidence",
+                        "question_id": "case_001",
+                        "score_awarded": 0,
+                        "max_score": 1,
+                        "error_events": [{"error_code": "E02", "concept_tag": "1A432000"}],
+                        "next_training_signal": {"concept": "1A432000", "mode": "case_repair"},
+                    },
+                )
+            ]
+
+        def read_compiled_learning_truth(self, user_id):
+            return {}
+
+        def synthesize_learning_truth(self, user_id, *, dry_run, event_limit):
+            return {
+                "projection": {
+                    "schema_version": 2,
+                    "subject": "construction_exam_learning_truth",
+                    "compiled_objects": {},
+                    "weak_points": [
+                        {
+                            "concept_id": "1A432000",
+                            "error_code": "E02",
+                            "claim": "1A432000 上出现 E02 错因观察",
+                            "evidence_level": "L0_observed",
+                            "supporting_event_ids": ["evt1"],
+                        }
+                    ],
+                    "typed_graph": {"edges": [], "readiness_gaps": []},
+                    "synthesis_run": {"input_event_count": 1, "created_claim_count": 0},
+                }
+            }
+
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())
+    monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/mobile/learning-report?event_limit=25")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["schema_version"] == 1
+    assert body["authority"]["read_model"] == "learning-report-read-model"
+    assert body["authority"]["progress_source"] == "learner_memory_events.learning_evidence"
+    assert body["authority"]["learning_brain_source"] in {
+        "compiled_learning_truth",
+        "dry_run_learning_evidence",
+    }
+    assert body["overview"]["today_done"] == 1
+    assert body["overview"]["attempt_count"] == 1
+    assert body["overview"]["unique_question_count"] == 1
+    assert body["overview"]["today_unique_questions"] == 1
+    assert body["progress_feedback"]["cards"][0]["label"] == "近 3 天完成"
+    assert body["progress_feedback"]["cards"][0]["value"] == "1题"
+    assert body["legacy_compat"]["today_progress"]["today_done"] == 0
+    # degraded 契约：所有源 ok → degraded=false / degraded_sources=[]
+    assert body["degraded"] is False
+    assert body["degraded_sources"] == []
+    for status in body["source_status"].values():
+        assert status["ok"] in (True, None)
+    assert body["freshness"]["window_truncated"] is False
+    assert body["freshness"]["unknown_date_count"] == 0
+
+
+def test_mobile_learning_report_requires_authentication() -> None:
+    """无 Authorization → 401，不暴露 user_id。"""
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/mobile/learning-report")
+    assert response.status_code == 401
+    body = response.json()
+    assert "user_id" not in body
+    assert body.get("detail")
+
+
+@pytest.mark.parametrize("event_limit", [0, 501, -1])
+def test_mobile_learning_report_rejects_event_limit_out_of_range(
+    event_limit: int,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    with TestClient(_build_app()) as client:
+        response = client.get(f"/api/v1/mobile/learning-report?event_limit={event_limit}")
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize("event_limit", [1, 500])
+def test_mobile_learning_report_accepts_event_limit_boundaries(
+    event_limit: int,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    class _Member:
+        def get_today_progress(self, user_id):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_home_dashboard(self, user_id):
+            return {"review": {"due_today": 0}, "mastery": {"weak_nodes": []}, "today": {"hint": ""}}
+
+        def get_assessment_profile(self, user_id):
+            return {"level": "beginner", "chapter_mastery": {}}
+
+        def get_mastery_dashboard(self, user_id):
+            return {"overall_mastery": 0, "groups": [], "hotspots": [], "review_summary": {"total_due": 0}}
+
+    class _Learner:
+        def list_memory_events(self, user_id, limit=100):
+            return []
+
+        def read_compiled_learning_truth(self, user_id):
+            return {}
+
+        def synthesize_learning_truth(self, user_id, *, dry_run, event_limit):
+            return {"projection": {}}
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "learner_state_service", _Learner())
+
+    with TestClient(_build_app()) as client:
+        response = client.get(f"/api/v1/mobile/learning-report?event_limit={event_limit}")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["schema_version"] == 1
+
+
+def test_mobile_learning_report_propagates_source_degradation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FlakyMember:
+        def get_today_progress(self, user_id):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_home_dashboard(self, user_id):
+            return {"review": {"due_today": 0}, "mastery": {"weak_nodes": []}, "today": {"hint": ""}}
+
+        def get_assessment_profile(self, user_id):
+            return {"level": "beginner", "chapter_mastery": {}}
+
+        def get_mastery_dashboard(self, user_id):
+            raise RuntimeError("mastery offline: simulated outage")
+
+    class _Learner:
+        def list_memory_events(self, user_id, limit=100):
+            return [
+                SimpleNamespace(
+                    event_id="evt1",
+                    user_id=user_id,
+                    source_feature="construction_grading",
+                    source_id="turn:evt1",
+                    source_bot_id="construction-exam",
+                    memory_kind="learning_evidence",
+                    dedupe_key="evt1",
+                    created_at="2026-05-20T10:00:00+08:00",
+                    payload_json={
+                        "event_type": "learning_evidence",
+                        "question_id": "case_001",
+                        "score_awarded": 0,
+                        "max_score": 1,
+                        "error_events": [{"error_code": "E02", "concept_tag": "1A432000"}],
+                        "next_training_signal": {"concept": "1A432000", "mode": "case_repair"},
+                    },
+                )
+            ]
+
+        def read_compiled_learning_truth(self, user_id):
+            return {}
+
+        def synthesize_learning_truth(self, user_id, *, dry_run, event_limit):
+            return {"projection": {}}
+
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(mobile_module, "member_service", FlakyMember())
+    monkeypatch.setattr(mobile_module, "learner_state_service", _Learner())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/mobile/learning-report?event_limit=10")
+    assert response.status_code == 200
+    body = response.json()
+    # degraded / degraded_sources / source_status 三者必须同步
+    assert body["degraded"] is True
+    assert "mastery_dashboard" in body["degraded_sources"]
+    assert body["source_status"]["mastery_dashboard"]["ok"] is False
+    assert "RuntimeError" in (body["source_status"]["mastery_dashboard"]["error"] or "")
+    # 其它源仍可用，evidence-driven 进度照常输出
+    assert body["source_status"]["learner_events"]["ok"] is True
+    assert body["overview"]["today_done"] >= 0
+    assert body["overview"]["attempt_count"] >= 0
 
 
 def test_auth_profile_exposes_is_admin_flag(

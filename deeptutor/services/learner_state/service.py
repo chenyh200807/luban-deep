@@ -506,7 +506,30 @@ class LearnerStateService:
     def list_memory_events(self, user_id: str, limit: int | None = 20) -> list[LearnerStateEvent]:
         normalized = _normalize_user_id(user_id)
         self._ensure_seed_state(normalized)
-        path = self._path(normalized, "events")
+        if bool(getattr(self._core_store, "is_configured", False)):
+            reader = getattr(self._core_store, "read_memory_events", None)
+            if callable(reader):
+                try:
+                    return [
+                        event
+                        for event in (
+                            self._event_from_mapping(item, default_user_id=normalized)
+                            for item in list(reader(normalized, limit=limit) or [])
+                            if isinstance(item, dict)
+                        )
+                        if event is not None
+                    ]
+                except Exception:
+                    if is_production_environment():
+                        return []
+
+        events = self._list_local_memory_events(normalized)
+        if limit is None or limit < 0:
+            return events
+        return events[-limit:]
+
+    def _list_local_memory_events(self, normalized_user_id: str) -> list[LearnerStateEvent]:
+        path = self._path(normalized_user_id, "events")
         if not path.exists():
             return []
 
@@ -517,24 +540,58 @@ class LearnerStateService:
                     raw = raw.strip()
                     if not raw:
                         continue
-                    data = json.loads(raw)
-                    events.append(LearnerStateEvent(
-                        event_id=str(data.get("event_id", "") or ""),
-                        user_id=str(data.get("user_id", "") or normalized),
-                        source_feature=str(data.get("source_feature", "") or ""),
-                        source_id=str(data.get("source_id", "") or ""),
-                        source_bot_id=(str(data.get("source_bot_id", "") or "") or None),
-                        memory_kind=str(data.get("memory_kind", "") or ""),
-                        payload_json=dict(data.get("payload_json") or {}),
-                        dedupe_key=str(data.get("dedupe_key", "") or ""),
-                        created_at=str(data.get("created_at", "") or ""),
-                    ))
+                    event = self._event_from_mapping(json.loads(raw), default_user_id=normalized_user_id)
+                    if event is not None:
+                        events.append(event)
         except Exception:
             return []
+        return events
 
+    def list_learning_evidence_events(
+        self,
+        user_id: str,
+        *,
+        limit: int | None = 100,
+        since: str | None = None,
+    ) -> list[LearnerStateEvent]:
+        normalized = _normalize_user_id(user_id)
+        self._ensure_seed_state(normalized)
+        local_events = [
+            event
+            for event in self._list_local_memory_events(normalized)
+            if event.source_feature == "construction_grading"
+            and event.memory_kind == "learning_evidence"
+            and _iso_unknown_or_gte(event.created_at, since)
+        ]
+        if local_events and not is_production_environment():
+            if limit is None or limit < 0:
+                return local_events
+            return local_events[-max(int(limit), 0):]
+
+        events: list[LearnerStateEvent] = []
+        if bool(getattr(self._core_store, "is_configured", False)):
+            reader = getattr(self._core_store, "read_learning_evidence_events", None)
+            if callable(reader):
+                try:
+                    events.extend([
+                        event
+                        for event in (
+                            self._event_from_mapping(item, default_user_id=normalized)
+                            for item in list(reader(normalized, limit=limit, since=since) or [])
+                            if isinstance(item, dict)
+                        )
+                        if event is not None
+                    ])
+                except Exception:
+                    if is_production_environment():
+                        return []
+            if is_production_environment():
+                return events
+
+        events = _dedupe_events_by_id([*events, *local_events])
         if limit is None or limit < 0:
             return events
-        return events[-limit:]
+        return events[-max(int(limit), 0):]
 
     def list_heartbeat_history(
         self,
@@ -619,6 +676,9 @@ class LearnerStateService:
 
         path = self._path(normalized, "events")
         path.parent.mkdir(parents=True, exist_ok=True)
+        existing_event = self._find_event_by_dedupe_key(path, event.dedupe_key, default_user_id=normalized)
+        if existing_event is not None:
+            return existing_event
         if not self._event_dedupe_exists(path, event.dedupe_key):
             with path.open("a", encoding="utf-8") as handle:
                 handle.write(_json_dump(self._event_to_dict(event)) + "\n")
@@ -1478,6 +1538,28 @@ class LearnerStateService:
             return False
         return False
 
+    def _find_event_by_dedupe_key(
+        self,
+        path: Path,
+        dedupe_key: str,
+        *,
+        default_user_id: str,
+    ) -> LearnerStateEvent | None:
+        if not path.exists():
+            return None
+        try:
+            with path.open("r", encoding="utf-8") as handle:
+                for raw in handle:
+                    if not raw.strip():
+                        continue
+                    data = json.loads(raw)
+                    if str(data.get("dedupe_key", "") or "") != dedupe_key:
+                        continue
+                    return self._event_from_mapping(data, default_user_id=default_user_id)
+        except Exception:
+            return None
+        return None
+
     @staticmethod
     def _event_to_dict(event: LearnerStateEvent) -> dict[str, Any]:
         return {
@@ -1491,6 +1573,26 @@ class LearnerStateService:
             "dedupe_key": event.dedupe_key,
             "created_at": event.created_at,
         }
+
+    @staticmethod
+    def _event_from_mapping(
+        data: dict[str, Any],
+        *,
+        default_user_id: str,
+    ) -> LearnerStateEvent | None:
+        if not isinstance(data, dict):
+            return None
+        return LearnerStateEvent(
+            event_id=str(data.get("event_id", "") or ""),
+            user_id=str(data.get("user_id", "") or default_user_id),
+            source_feature=str(data.get("source_feature", "") or ""),
+            source_id=str(data.get("source_id", "") or ""),
+            source_bot_id=(str(data.get("source_bot_id", "") or "") or None),
+            memory_kind=str(data.get("memory_kind", "") or ""),
+            payload_json=dict(data.get("payload_json") or {}),
+            dedupe_key=str(data.get("dedupe_key", "") or ""),
+            created_at=str(data.get("created_at", "") or ""),
+        )
 
     @staticmethod
     def _default_dedupe_key(
@@ -2275,6 +2377,49 @@ def _exam_urgency_hint(value: Any) -> str:
 
 def _iso_now() -> str:
     return datetime.now().astimezone().isoformat()
+
+
+def _iso_gte(value: str | None, minimum: str | None) -> bool:
+    text = str(value or "").strip()
+    floor = str(minimum or "").strip()
+    if not floor:
+        return True
+    if not text:
+        return False
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        floor_parsed = datetime.fromisoformat(floor.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    if floor_parsed.tzinfo is None:
+        floor_parsed = floor_parsed.replace(tzinfo=timezone.utc)
+    return parsed >= floor_parsed
+
+
+def _iso_unknown_or_gte(value: str | None, minimum: str | None) -> bool:
+    text = str(value or "").strip()
+    if not text:
+        return True
+    try:
+        datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return True
+    return _iso_gte(text, minimum)
+
+
+def _dedupe_events_by_id(events: list[LearnerStateEvent]) -> list[LearnerStateEvent]:
+    seen: set[str] = set()
+    deduped: list[LearnerStateEvent] = []
+    for event in sorted(events, key=lambda item: (str(item.created_at or ""), str(item.event_id or ""))):
+        key = str(event.event_id or event.dedupe_key or "").strip()
+        if key and key in seen:
+            continue
+        if key:
+            seen.add(key)
+        deduped.append(event)
+    return deduped
 
 
 def _json_dump(data: Any) -> str:

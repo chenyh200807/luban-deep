@@ -164,8 +164,8 @@ run("devtools normal compile should launch from the host home authority", functi
     "app.json first page should start from the host home instead of a launch wrapper",
   );
   assert(
-    appConfig.lazyCodeLoading === undefined,
-    "app.json should not enable lazy code loading for DevTools subpackage entry rendering",
+    appConfig.lazyCodeLoading === "requiredComponents",
+    "app.json should enable component lazy injection for DevTools code quality",
   );
 
   [

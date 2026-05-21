@@ -62,3 +62,47 @@ def test_grade_mcq_correct_answer_accepts_json_payload() -> None:
     assert result.is_correct is True
     assert result.score_awarded == result.max_score == 1.0
     assert result.error_events == []
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Batch D.1 — grade_mcq_submission 优先级：grading_key > questions_bank > llm_judge
+# plan §Phase 3 Step 3.4 / §goal Batch D.1
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def test_grade_choice_prefers_grading_key_over_questions_bank() -> None:
+    from deeptutor.services.construction_grading.mcq import grade_mcq_submission
+
+    row = {
+        "id": "qb_legacy_1",
+        "correct_answer": "C",  # questions_bank 错误答案，应该被 grading_key 覆盖
+        "options": {"A": "a", "B": "b", "C": "c", "D": "d"},
+    }
+    grading_key = {"correct_answer": "B", "scoring_points": ["p1"]}
+    result = grade_mcq_submission(row, user_answer="B", grading_key=grading_key)
+    assert result.is_correct is True
+    assert result.correct_answer == "B"
+    assert result.next_training_signal["grading_source"] == "grading_key"
+
+
+def test_grade_choice_falls_back_to_questions_bank_when_no_grading_key() -> None:
+    from deeptutor.services.construction_grading.mcq import grade_mcq_submission
+
+    row = {
+        "id": "qb_legacy_2",
+        "correct_answer": "B",
+        "options": {"A": "a", "B": "b", "C": "c", "D": "d"},
+    }
+    result = grade_mcq_submission(row, user_answer="B", grading_key=None)
+    assert result.is_correct is True
+    assert result.next_training_signal["grading_source"] == "questions_bank"
+
+
+def test_grade_choice_falls_back_to_llm_judge_when_grading_key_and_bank_absent() -> None:
+    from deeptutor.services.construction_grading.mcq import grade_mcq_submission
+
+    row = {"id": "ai_q_1", "options": {"A": "a", "B": "b"}}
+    # 既无 grading_key.correct_answer，也无 row.correct_answer
+    result = grade_mcq_submission(row, user_answer="A", grading_key=None)
+    assert result.is_correct is False
+    assert result.next_training_signal["grading_source"] == "llm_judge"

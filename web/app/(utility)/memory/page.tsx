@@ -291,7 +291,7 @@ export default function MemoryPage() {
   if (!requiresWebAuth()) {
     return (
       <RestrictedSurface
-        title="Memory workspace unavailable"
+        title="记忆工作台暂不可用"
         message="当前 Web 端未接入登录态，Memory 工作台已默认关闭。请使用已鉴权入口访问。"
       />
     );

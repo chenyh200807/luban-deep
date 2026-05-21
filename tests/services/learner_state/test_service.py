@@ -69,6 +69,7 @@ class _CoreStoreStub:
         self.profile: dict[str, object] = {}
         self.progress: dict[str, object] = {}
         self.compiled_learning_truth: dict[str, object] = {}
+        self.memory_events: list[dict[str, object]] = []
         self.goals: list[dict[str, object]] = []
         self.fail_goal_title: str | None = None
 
@@ -88,6 +89,12 @@ class _CoreStoreStub:
 
     def read_compiled_learning_truth(self, _user_id: str):
         return dict(self.compiled_learning_truth)
+
+    def read_memory_events(self, _user_id: str, limit: int | None = 20):
+        rows = [dict(item) for item in self.memory_events]
+        if limit is None or limit < 0:
+            return rows
+        return rows[-int(limit):]
 
     def read_goals(self, _user_id: str):
         return [dict(item) for item in self.goals]
@@ -330,6 +337,98 @@ def test_learner_state_synthesize_learning_truth_enqueues_summary_refresh(tmp_pa
     assert "工程招标投标与合同管理" in visible_text
     assert "1A432000" not in visible_text
     assert "E02" not in visible_text
+
+
+def test_learner_state_synthesis_reads_remote_memory_events_when_configured(tmp_path) -> None:
+    core_store = _CoreStoreStub()
+    core_store.memory_events = [
+        {
+            "event_id": f"remote_evt_{index}",
+            "user_id": "student_demo",
+            "source_feature": "construction_grading",
+            "source_id": f"remote-turn-{index}",
+            "source_bot_id": "construction-exam",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "turn_id": f"remote-turn-{index}",
+                "question_id": f"remote-q-{index}",
+                "question_type": "case",
+                "score_awarded": 0,
+                "max_score": 1,
+                "error_events": [
+                    {"error_code": "E02", "concept_tag": "1A432000", "diagnosis": "漏专家论证。"}
+                ],
+                "next_training_signal": {"concept": "1A432000", "focus": "专家论证程序"},
+                "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+            },
+            "dedupe_key": f"remote-dedupe-{index}",
+            "created_at": f"2026-05-18T10:0{index}:00+08:00",
+        }
+        for index in range(2)
+    ]
+    service = _make_service(tmp_path, core_store=core_store)
+    service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="local-stale",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "turn_id": "local-stale",
+            "question_id": "local-q",
+            "question_type": "case",
+            "score_awarded": 0,
+            "max_score": 1,
+            "error_events": [
+                {"error_code": "E04", "concept_tag": "1A421000", "diagnosis": "本地旧事件。"}
+            ],
+            "next_training_signal": {"concept": "1A421000", "focus": "本地旧弱点"},
+            "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+        },
+    )
+
+    result = service.synthesize_learning_truth("student_demo", dry_run=True)
+
+    assert result["projection"]["weak_points"][0]["concept_id"] == "1A432000"
+    assert result["projection"]["weak_points"][0]["evidence_level"] == "L1_repeated"
+    assert all(
+        item.get("concept_id") != "1A421000"
+        for item in result["projection"].get("weak_points", [])
+    )
+
+
+def test_append_memory_event_dedupe_returns_existing_event_without_second_outbox_item(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    first = service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn-1",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence", "question_id": "q-1"},
+        dedupe_key="same-event",
+    )
+    second = service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn-1-retry",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence", "question_id": "q-1"},
+        dedupe_key="same-event",
+    )
+
+    assert second.event_id == first.event_id
+    assert second.source_id == first.source_id
+    assert [event.event_id for event in service.list_memory_events("student_demo", limit=None)] == [
+        first.event_id
+    ]
+    pending_learning_events = [
+        item
+        for item in service.outbox_service.list_pending("student_demo", limit=None)
+        if item.event_type == "learning_evidence"
+    ]
+    assert len(pending_learning_events) == 1
 
 
 def test_learner_state_reads_remote_compiled_truth_before_local_cache(tmp_path) -> None:

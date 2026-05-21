@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 
 import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 
 from deeptutor.api.dependencies import (
@@ -24,6 +25,7 @@ from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAU
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.learner_state import LearnerStateService
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
+from deeptutor.services.learner_state.learning_report_read_model import build_learning_report_read_model
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.query_intent import (
     build_grounding_decision,
@@ -2062,6 +2064,21 @@ async def learning_brain_projection(
         )
         projection = dict(synthesis.get("projection") or {})
     return build_learning_brain_read_model(user_id=user_id, projection=projection, surface="mobile")
+
+
+@router.get("/mobile/learning-report")
+async def mobile_learning_report(
+    authorization: str | None = Header(default=None),
+    event_limit: int = Query(default=100, ge=1, le=500),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    return await run_in_threadpool(
+        build_learning_report_read_model,
+        user_id=user_id,
+        member_service=member_service,
+        learner_state_service=learner_state_service,
+        event_limit=event_limit,
+    )
 
 
 @router.get("/assessment/profile")

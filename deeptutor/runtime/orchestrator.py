@@ -9,6 +9,7 @@ All consumers (CLI, WebSocket, SDK) call the orchestrator.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import os
 import re
@@ -38,10 +39,12 @@ from deeptutor.services.semantic_router import (
     turn_semantic_decision_route,
 )
 from deeptutor.services.runtime_env import env_flag
-from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
+from deeptutor.tutorbot.teaching_modes import (
+    classify_practice_strategy,
+    looks_like_practice_generation_request,
+)
 
 logger = logging.getLogger(__name__)
-
 
 def _coerce_flag(value: Any) -> bool | None:
     if value is None:
@@ -137,17 +140,41 @@ class ChatOrchestrator:
                 logger.error("Capability %s failed: %s", cap_name, exc, exc_info=True)
                 await bus.error(str(exc), source=cap_name)
             finally:
-                await bus.emit(StreamEvent(type=StreamEventType.DONE, source=cap_name))
-                await bus.close()
+                with contextlib.suppress(BaseException):
+                    await bus.emit(StreamEvent(type=StreamEventType.DONE, source=cap_name))
+                with contextlib.suppress(BaseException):
+                    await bus.close()
 
         stream = bus.subscribe()
         task = asyncio.create_task(_run())
+        # plan §Phase 0 Step 0.2 (A4): cancellation propagation.
+        # 同时覆盖 turn timeout / client disconnect / normal completion 三条路径，
+        # 防止 parent turn deadline 之后内部 capability task 继续烧 LLM。
+        try:
+            cancel_grace_s = float(os.getenv("DEEPTUTOR_CANCEL_GRACE_S", "2.0") or 2.0)
+        except (TypeError, ValueError):
+            cancel_grace_s = 2.0
 
-        async for event in stream:
-            yield event
-
-        await task
-        await self._publish_completion(context, cap_name)
+        try:
+            async for event in stream:
+                yield event
+        except (asyncio.CancelledError, GeneratorExit):
+            # Outer consumer cancelled or disconnected — propagate to capability task
+            # so RAG / LLM calls stop instead of running into ghost completions.
+            if not task.done():
+                task.cancel()
+                with contextlib.suppress(BaseException):
+                    await asyncio.wait_for(task, timeout=cancel_grace_s)
+            with contextlib.suppress(BaseException):
+                await bus.close()
+            if isinstance(context.metadata, dict):
+                context.metadata["turn_cancel_propagated"] = True
+            raise
+        else:
+            await task
+        finally:
+            with contextlib.suppress(BaseException):
+                await self._publish_completion(context, cap_name)
 
     async def _select_capability(self, context: UnifiedContext) -> str:
         routing_user_message = self._routing_user_message(context)
@@ -199,12 +226,16 @@ class ChatOrchestrator:
                         context.metadata.get("question_followup_action"),
                     )
                 elif next_action == "route_to_generation":
-                    self._prepare_practice_request_context(context, routing_user_message)
+                    self._prepare_practice_request_context(
+                        context,
+                        self._practice_generation_message(context, routing_user_message),
+                    )
                 context.metadata["semantic_router_selected_capability"] = "deep_question"
                 return "deep_question"
             if semantic_route == "chat":
-                context.metadata["semantic_router_selected_capability"] = "chat"
-                return "chat"
+                cap_name = self._default_chat_capability(context)
+                context.metadata["semantic_router_selected_capability"] = cap_name
+                return cap_name
 
         context.metadata["semantic_router_mode"] = "disabled"
         context.metadata["semantic_router_mode_reason"] = (
@@ -227,6 +258,12 @@ class ChatOrchestrator:
         if capability != "deep_question":
             return
         action = context.metadata.get("question_followup_action")
+        if followup_action_route(action) == "practice_generation":
+            self._prepare_practice_request_context(
+                context,
+                self._practice_generation_message(context, message),
+            )
+            return
         if (
             followup_action_route(action) == "submission"
             or self._looks_like_question_submission(context, message)
@@ -263,6 +300,24 @@ class ChatOrchestrator:
         metadata = context.metadata if isinstance(context.metadata, dict) else {}
         raw = str(metadata.get("raw_user_message") or "").strip()
         return raw or str(context.user_message or "").strip()
+
+    @staticmethod
+    def _practice_generation_message(context: UnifiedContext, fallback: str) -> str:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        action = metadata.get("question_followup_action")
+        if isinstance(action, dict):
+            topic = str(action.get("topic") or action.get("topic_hint") or "").strip()
+            if topic:
+                return topic
+        return fallback
+
+    @staticmethod
+    def _default_chat_capability(context: UnifiedContext) -> str:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        bot_id = str(context.config_overrides.get("bot_id") or metadata.get("bot_id") or "").strip()
+        if bot_id:
+            return "tutorbot"
+        return "chat"
 
     async def _resolve_turn_semantic_decision(
         self,
@@ -333,7 +388,7 @@ class ChatOrchestrator:
         if self._looks_like_question_followup(context, message):
             return "deep_question"
 
-        return "chat"
+        return self._default_chat_capability(context)
 
     def _semantic_router_scope_match(
         self,
@@ -513,11 +568,35 @@ class ChatOrchestrator:
             suppress_answer_reveal = not reveal_preference
         context.config_overrides.setdefault("reveal_answers", not suppress_answer_reveal)
         context.config_overrides.setdefault("reveal_explanations", not suppress_answer_reveal)
-        context.config_overrides.setdefault(
-            "lightweight_generation",
-            inferred_question_count <= 3
-            and _should_use_lightweight_generation(message, reveal_preference),
+        # plan §Phase 1 Step 1.1 (A2/A3): classify_practice_strategy 是 lightweight 的
+        # 单一规约函数；上限由原本的 `<= 3` 放宽到 `<= 5`（详见 plan §2.2）。
+        effective_count = _coerce_positive_int(
+            context.config_overrides.get("num_questions"),
+            default=inferred_question_count or 1,
         )
+        effective_mode = str(context.config_overrides.get("mode") or "").strip().lower()
+        active_object_present = bool(
+            isinstance(context.metadata, dict)
+            and context.metadata.get("active_object")
+        )
+        strategy = classify_practice_strategy(
+            message=message,
+            reveal_preference=reveal_preference,
+            mode=effective_mode,
+            num_questions=effective_count,
+            has_active_object=active_object_present,
+        )
+        context.config_overrides.setdefault(
+            "lightweight_generation", strategy == "lightweight"
+        )
+        # plan §Phase 0 Step 0.3 (B3): single-writer trace fields.
+        # 只有 orchestrator._prepare_practice_request_context 写 strategy / question_count，
+        # coordinator 等下游模块只读，不再独立写入避免双源不一致。
+        if isinstance(context.metadata, dict):
+            trace_meta = context.metadata.setdefault("trace_metadata", {})
+            if isinstance(trace_meta, dict):
+                trace_meta["practice_generation.strategy"] = strategy
+                trace_meta["practice_generation.question_count"] = int(effective_count)
 
     async def _publish_completion(self, context: UnifiedContext, cap_name: str) -> None:
         """Publish CAPABILITY_COMPLETE to the global EventBus."""

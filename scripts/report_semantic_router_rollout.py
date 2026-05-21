@@ -64,6 +64,11 @@ def _confidence_bucket(value: float | None) -> str:
     return ">=0.7"
 
 
+def _selected_chat_like_capability(value: Any) -> bool:
+    selected = str(value or "").strip()
+    return selected in {"chat", "tutorbot"}
+
+
 def build_report(records: list[dict[str, Any]]) -> dict[str, Any]:
     shadow_records = [record for record in records if str(record.get("semantic_router_mode") or "") == "shadow"]
     disagreement_count = 0
@@ -76,7 +81,7 @@ def build_report(records: list[dict[str, Any]]) -> dict[str, Any]:
         shadow_route = str(record.get("semantic_router_shadow_route") or "")
         if selected and shadow_route and selected != shadow_route:
             disagreement_count += 1
-        if selected == "chat" and shadow_route == "deep_question":
+        if _selected_chat_like_capability(selected) and shadow_route == "deep_question":
             downgraded_to_chat += 1
         confidence_buckets[_confidence_bucket(_decision_confidence(record))] += 1
         latency = _latency_ms(record)

@@ -117,6 +117,20 @@ async def test_deep_question_uses_deterministic_feedback_for_choice_submission(
     assert result_event.metadata["correct_answer_present"] is True
     assert result_event.metadata["question_authority_source"] == "active_object"
 
+    # plan §Phase 5 / Batch E.2 Gap 5 — progressive_disclosure payload 必须进入 result.
+    disclosure = result_event.metadata.get("progressive_disclosure")
+    assert isinstance(disclosure, dict), "result must include progressive_disclosure payload"
+    assert disclosure.get("verdict"), "progressive_disclosure must expose verdict"
+    assert "primary_next_action" in disclosure
+    primary = disclosure["primary_next_action"]
+    assert primary.get("slug") and primary.get("label")
+    # 答对场景：pacing 默认 hold，主行动 = 再练3题；首屏 verdict <= 120 字
+    assert len(disclosure["verdict"]) <= 120
+    # public payload 不应泄露 grading_key（虽 result_payload 本身在 turn_runtime 边界 redact，
+    # 但 progressive_disclosure 内部不应携带 grading_key 子字段）
+    import json as _json
+    assert "grading_key" not in _json.dumps(disclosure, ensure_ascii=False)
+
 
 @pytest.mark.asyncio
 async def test_deep_question_deterministic_choice_feedback_explains_without_authored_analysis(
@@ -173,6 +187,229 @@ async def test_deep_question_deterministic_choice_feedback_explains_without_auth
     assert "你的答案：** C（装饰装修）" in response
     assert "正确答案：** D（钢结构）" in response
     assert "正确选项是 D（钢结构）" in response
+    assert "逐项解析" in response
+    assert "C. 装饰装修：误选项" in response
+    assert "D. 钢结构：正确项" in response
+    assert "你为什么会错" in response
+    assert "采分点" in response
+    assert "易错点" in response
+    assert "记忆口诀" in response
+
+
+@pytest.mark.asyncio
+async def test_deep_question_deep_choice_grading_uses_rag_grounded_grader(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_trace_callback(self, callback: Any) -> None:
+            captured["trace_callback"] = callback
+
+        async def process(self, **kwargs: Any) -> str:
+            captured["grader_kwargs"] = kwargs
+            response = (
+                "## 📊 阅卷结论\n错误，正确答案 B。\n\n"
+                "## 🧐 解析\n双扇防火门应按顺序关闭，不能理解成自动关闭。\n\n"
+                "## ⚠️ 易错点\n| 易错理解 | 正确抓手 |\n| --- | --- |\n| 自动关闭 | 按顺序关闭 |\n\n"
+                "## 🎯 核心要点\n✅ 命中：知道在考防火门关闭要求。\n❌ 遗漏：双扇门顺序器保证按顺序关闭。\n\n"
+                "## 🚀 下一步建议\n现在把“双扇防火门按顺序关闭”抄 1 遍。\n\n"
+                "📌 收尾提醒：双扇门不是同时、自动、手动，关键词是按顺序。"
+            )
+            callback = kwargs.get("on_content_chunk")
+            if callback is not None:
+                first = "## 📊 阅卷结论\n错误，正确答案 B。\n\n"
+                second = response[len(first):]
+                await callback(first)
+                await callback(second)
+            return response
+
+    async def fake_rag_search(query: str, kb_name: str | None = None, **kwargs: Any) -> dict[str, Any]:
+        captured["rag_query"] = query
+        captured["rag_kb_name"] = kb_name
+        captured["rag_kwargs"] = kwargs
+        return {
+            "content": "【规范依据】双扇防火门应具有按顺序自行关闭的功能，顺序器用于保证先后关闭。",
+            "sources": [
+                {
+                    "title": "建筑防火门规范考点",
+                    "content": "双扇防火门应按顺序关闭。",
+                    "source_type": "standard",
+                    "chunk_id": "std-fire-door-001",
+                }
+            ],
+            "evidence_bundle": {
+                "sources": [
+                    {
+                        "title": "建筑防火门规范考点",
+                        "content": "双扇防火门应按顺序关闭。",
+                        "source_type": "standard",
+                        "chunk_id": "std-fire-door-001",
+                    }
+                ]
+            },
+        }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+    monkeypatch.setattr(deep_question_module, "rag_search", fake_rag_search, raising=False)
+
+    context = UnifiedContext(
+        user_message="我选C",
+        language="zh",
+        knowledge_bases=["construction-exam"],
+        metadata={
+            "selected_mode": "deep",
+            "conversation_context_text": "上一轮题目问：双扇防火门关闭顺序。",
+            "question_followup_context": {
+                "question_id": "q_fire_door",
+                "question": "关于双扇防火门关闭要求，下列说法正确的是？",
+                "question_type": "choice",
+                "options": {
+                    "A": "同时关闭",
+                    "B": "按顺序关闭",
+                    "C": "自动关闭",
+                    "D": "手动关闭",
+                },
+                "correct_answer": "B",
+                "explanation": "双扇防火门应按顺序关闭。",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    content_events = [event for event in events if event.type == StreamEventType.CONTENT]
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["is_correct"] is False
+    assert result_event.metadata["question_followup_context"]["correct_answer"] == "B"
+    assert result_event.metadata["construction_grading_result"]["authority"] == "construction_grading"
+    assert captured["rag_kb_name"] == "construction-exam"
+    assert "双扇防火门关闭要求" in captured["rag_query"]
+    assert captured["rag_kwargs"]["intent"] == "question_grading_explanation"
+    assert captured["grader_kwargs"]["question_context"]["is_correct"] is False
+    assert callable(captured["grader_kwargs"]["on_content_chunk"])
+    assert "双扇防火门应具有按顺序自行关闭" in captured["grader_kwargs"]["grounding_context"]
+    assert "双扇防火门应按顺序关闭" in result_event.metadata["response"]
+    assert len(content_events) == 2
+    assert "".join(event.content for event in content_events) == result_event.metadata["response"]
+    assert result_event.metadata["grading_explanation_grounded"] is True
+    assert result_event.metadata["grading_grounding_sources"][0]["chunk_id"] == "std-fire-door-001"
+
+
+@pytest.mark.asyncio
+async def test_deep_question_fast_wrong_choice_uses_rag_grounded_grader_when_kb_available(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_trace_callback(self, callback: Any) -> None:
+            captured["trace_callback"] = callback
+
+        async def process(self, **kwargs: Any) -> str:
+            captured["grader_kwargs"] = kwargs
+            return (
+                "## 📊 阅卷结论\n错误，正确答案 B。\n\n"
+                "## 🧐 解析\n室外临时消火栓应距路边不大于 2m，"
+                "距拟建房屋不小于 5m 且不大于 25m；你选的 C 把房屋距离误记成 2m 到 15m。"
+            )
+
+    async def fake_rag_search(query: str, kb_name: str | None = None, **kwargs: Any) -> dict[str, Any]:
+        captured["rag_query"] = query
+        captured["rag_kb_name"] = kb_name
+        captured["rag_kwargs"] = kwargs
+        return {
+            "content": "【规范依据】室外临时消火栓距路边不应大于2m，距拟建房屋不应小于5m且不应大于25m。",
+            "sources": [
+                {
+                    "title": "施工现场临时消防设施",
+                    "content": "临时消火栓距路边不大于2m，距拟建房屋5m至25m。",
+                    "source_type": "questions_bank",
+                    "chunk_id": "fire-hydrant-distance-001",
+                }
+            ],
+        }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+    monkeypatch.setattr(deep_question_module, "rag_search", fake_rag_search, raising=False)
+
+    context = UnifiedContext(
+        user_message="我选C",
+        language="zh",
+        knowledge_bases=["construction-exam"],
+        metadata={
+            "selected_mode": "fast",
+            "question_followup_context": {
+                "question_id": "q_fire_hydrant",
+                "question": "关于施工现场临时消火栓设置要求，下列说法正确的是？",
+                "question_type": "choice",
+                "options": {
+                    "A": "距路边不应大于5m，距拟建房屋不小于5m且不大于25m",
+                    "B": "距路边不应大于2m，距拟建房屋不小于5m且不大于25m",
+                    "C": "距路边不应大于2m，距拟建房屋不小于2m且不大于15m",
+                    "D": "距路边不应大于5m，距拟建房屋不小于2m且不大于15m",
+                },
+                "correct_answer": "B",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["is_correct"] is False
+    assert result_event.metadata["construction_grading_result"]["authority"] == "construction_grading"
+    assert captured["rag_kb_name"] == "construction-exam"
+    assert "施工现场临时消火栓设置要求" in captured["rag_query"]
+    assert captured["rag_kwargs"]["intent"] == "question_grading_explanation"
+    assert "室外临时消火栓应距路边不大于 2m" in result_event.metadata["response"]
+    assert result_event.metadata["grading_explanation_grounded"] is True
 
 
 @pytest.mark.asyncio
@@ -233,6 +470,10 @@ async def test_deep_question_reveals_objective_answer_without_followup_llm(
     assert "答案与解析" in response
     assert "正确答案：** D（钢结构）" in response
     assert "正确选项是 D（钢结构）" in response
+    assert "逐项解析" in response
+    assert "采分点" in response
+    assert "易错点" in response
+    assert "记忆口诀" in response
 
 
 @pytest.mark.asyncio

@@ -11,7 +11,6 @@ from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.services.question_followup import (
     build_choice_result_summary_from_exact_question,
-    build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
     extract_choice_result_summary_from_text,
@@ -233,16 +232,20 @@ class TutorBotCapability(BaseCapability):
             )
             final_response = response or "".join(chunks)
             if turn_summary["authority_applied"]:
-                parsed_result_summary = None
+                display_result_summary = None
+                state_result_summary = None
             else:
-                parsed_result_summary = build_choice_result_summary_from_exact_question(
+                state_result_summary = build_choice_result_summary_from_exact_question(
                     turn_summary["exact_question"]
-                ) or extract_choice_result_summary_from_text(final_response)
+                )
+                display_result_summary = state_result_summary or extract_choice_result_summary_from_text(
+                    final_response
+                )
             reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
             visible_response = self._build_visible_response(
                 context=context,
                 final_response=final_response,
-                parsed_result_summary=parsed_result_summary,
+                parsed_result_summary=display_result_summary,
                 reveal_answers=reveal_answers,
                 reveal_explanations=reveal_explanations,
             )
@@ -280,36 +283,31 @@ class TutorBotCapability(BaseCapability):
                 "reveal_answers": reveal_answers,
                 "reveal_explanations": reveal_explanations,
             }
-            if parsed_result_summary:
+            if display_result_summary:
                 presentation = build_canonical_presentation(
                     content=visible_response,
-                    result_summary=parsed_result_summary,
+                    result_summary=display_result_summary,
                     reveal_answers=reveal_answers,
                     reveal_explanations=reveal_explanations,
                 )
-                result_payload["question_followup_context"] = (
-                    build_question_followup_context_from_result_summary(
-                        parsed_result_summary,
-                        final_response,
-                        reveal_answers=reveal_answers,
-                        reveal_explanations=reveal_explanations,
-                    )
-                    or build_question_followup_context_from_presentation(
-                        presentation,
-                        final_response,
-                        reveal_answers=reveal_answers,
-                        reveal_explanations=reveal_explanations,
-                    )
-                )
-                if result_payload["question_followup_context"]:
-                    result_payload["active_object"] = (
-                        build_active_object_from_question_context(
-                            result_payload["question_followup_context"],
-                            source_turn_id=turn_id,
-                            previous_active_object=active_object,
+                if state_result_summary:
+                    result_payload["question_followup_context"] = (
+                        build_question_followup_context_from_result_summary(
+                            state_result_summary,
+                            final_response,
+                            reveal_answers=reveal_answers,
+                            reveal_explanations=reveal_explanations,
                         )
-                        or {}
                     )
+                    if result_payload["question_followup_context"]:
+                        result_payload["active_object"] = (
+                            build_active_object_from_question_context(
+                                result_payload["question_followup_context"],
+                                source_turn_id=turn_id,
+                                previous_active_object=active_object,
+                            )
+                            or {}
+                        )
                 if presentation:
                     result_payload["presentation"] = presentation
             await stream.result(result_payload, source=self.name)

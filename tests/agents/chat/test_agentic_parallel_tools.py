@@ -208,6 +208,32 @@ def test_agentic_pipeline_keeps_runtime_extra_headers(monkeypatch: pytest.Monkey
     assert pipeline.extra_headers == {"APP-Code": "abc"}
 
 
+def test_fast_mode_tool_resolution_stays_inside_agentic_pipeline(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeRegistry:
+        def get_enabled(self, selected):
+            return [SimpleNamespace(name=name) for name in selected]
+
+        def get(self, name):
+            return SimpleNamespace(name=name)
+
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: FakeRegistry())
+
+    pipeline = AgenticChatPipeline(language="zh")
+    context = UnifiedContext(
+        session_id="session-1",
+        user_message="用资料快速回答",
+        enabled_tools=["rag", "web_search"],
+        language="zh",
+        config_overrides={"auto_tools": False},
+    )
+
+    assert pipeline.resolve_enabled_tools(context, mode="fast") == ["rag"]
+
+
 @pytest.mark.asyncio
 async def test_execute_tool_call_streams_retrieve_progress_for_rag(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(

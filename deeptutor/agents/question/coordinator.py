@@ -10,6 +10,7 @@ Simplified architecture:
 from __future__ import annotations
 
 import ast
+import asyncio
 from collections.abc import Callable
 from datetime import datetime
 import json
@@ -28,6 +29,24 @@ from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tools.question.pdf_parser import parse_pdf_with_mineru
 from deeptutor.tools.question.question_extractor import extract_questions_from_paper
+
+
+def _qa_pair_template_dict(qa_pair: QAPair, templates: list[QuestionTemplate]) -> dict[str, Any]:
+    """Look up the original template dict for a generated QA pair.
+
+    Falls back to a stub when the template is missing (e.g. bank short-circuit).
+    """
+    for template in templates:
+        if template.question_id == qa_pair.question_id:
+            return template.__dict__
+    return {
+        "question_id": qa_pair.question_id,
+        "concentration": qa_pair.concentration,
+        "question_type": qa_pair.question_type,
+        "difficulty": qa_pair.difficulty,
+        "source": "synthetic",
+        "metadata": dict(qa_pair.metadata or {}),
+    }
 
 
 class AgentCoordinator:
@@ -142,17 +161,38 @@ class AgentCoordinator:
             else ""
         )
 
+        # plan §Phase 2 Batch B — lightweight 路径短路 idea_agent，
+        # 命中 questions_bank 时跳过 LLM。trace 计数器累加到 batch_trace[].counters。
+        bank_qa_pairs: list[QAPair] = []
+        lightweight_trace_counters: dict[str, Any] = {
+            "llm_calls": 0,
+            "retriever_calls": 0,
+            "bank_hits": 0,
+            "lightweight_batch_fallback": "none",
+            "generated_explanation": False,
+        }
         batch_number = 0
         if lightweight_generation:
             anchor_payload, retrieval_trace = await self._resolve_lightweight_topic_knowledge_anchor(
                 user_topic=user_topic,
             )
+            # retriever_calls 计数：调过 rag_search 即算一次（成功/失败都计入）。
+            lightweight_trace_counters["retriever_calls"] = 1
+            if retrieval_trace.get("exact_question"):
+                lightweight_trace_counters["bank_hits"] = 1
             templates = self._build_lightweight_topic_templates(
                 user_topic=user_topic,
                 requested=requested,
                 difficulty=target_difficulty or "easy",
                 question_type=target_question_type or "choice",
                 anchor_payload=anchor_payload,
+            )
+            # plan §Phase 2 Step 2.4 (B1) — questions_bank 命中且字段完整时
+            # 跳过 LLM，直接组装 QAPair；anchor 不足时进入下面的并行 batch path。
+            bank_qa_pairs = self._build_bank_hit_qa_pairs(
+                anchor_payload=anchor_payload,
+                templates=templates,
+                question_type=target_question_type or "choice",
             )
             batch_trace.append(
                 {
@@ -161,6 +201,7 @@ class AgentCoordinator:
                     "generated": len(templates),
                     "knowledge_context": str(anchor_payload.get("knowledge_context") or ""),
                     "retrieval": retrieval_trace,
+                    "bank_short_circuit": bool(bank_qa_pairs),
                 }
             )
             await self._send_ws_update(
@@ -248,14 +289,48 @@ class AgentCoordinator:
             },
         )
 
-        qa_pairs = await self._generation_loop(
-            templates=templates[:requested],
-            user_topic=user_topic,
-            preference=preference,
-            history_context=history_context,
-            require_explanation=require_explanation,
-            lightweight_generation=lightweight_generation,
-        )
+        # plan §Phase 2 Step 2.2 (A1) — lightweight 路径优先 questions_bank 短路，
+        # 否则并行调用 generator（asyncio.gather）一次性出 N 题，物理时间 ≈ max(单题)，
+        # llm_calls = max(0, requested - bank_hits)。
+        if lightweight_generation and bank_qa_pairs:
+            # bank 命中数 < requested 时，剩余进入 batch generator。
+            covered_ids = {pair.question_id for pair in bank_qa_pairs}
+            remaining_templates = [t for t in templates[:requested] if t.question_id not in covered_ids]
+            qa_pairs_objects = list(bank_qa_pairs)
+            if remaining_templates:
+                fallback_pairs = await self._lightweight_batch_generate(
+                    templates=remaining_templates,
+                    user_topic=user_topic,
+                    preference=preference,
+                    history_context=history_context,
+                    counters=lightweight_trace_counters,
+                )
+                qa_pairs_objects.extend(fallback_pairs)
+            qa_pairs = [
+                {"template": _qa_pair_template_dict(pair, templates), "qa_pair": pair.__dict__, "success": True}
+                for pair in qa_pairs_objects
+            ]
+        elif lightweight_generation:
+            qa_pair_objects = await self._lightweight_batch_generate(
+                templates=templates[:requested],
+                user_topic=user_topic,
+                preference=preference,
+                history_context=history_context,
+                counters=lightweight_trace_counters,
+            )
+            qa_pairs = [
+                {"template": _qa_pair_template_dict(pair, templates), "qa_pair": pair.__dict__, "success": True}
+                for pair in qa_pair_objects
+            ]
+        else:
+            qa_pairs = await self._generation_loop(
+                templates=templates[:requested],
+                user_topic=user_topic,
+                preference=preference,
+                history_context=history_context,
+                require_explanation=require_explanation,
+                lightweight_generation=lightweight_generation,
+            )
         return self._build_summary(
             source="topic",
             requested=requested,
@@ -264,6 +339,9 @@ class AgentCoordinator:
             trace={
                 "batches": batch_trace,
                 "lightweight_generation": lightweight_generation,
+                "lightweight_counters": dict(lightweight_trace_counters)
+                if lightweight_generation
+                else None,
             },
         )
 
@@ -461,6 +539,190 @@ class AgentCoordinator:
             {"stage": "complete", "completed": len(results), "total": total},
         )
         return results
+
+    def _build_bank_hit_qa_pairs(
+        self,
+        *,
+        anchor_payload: dict[str, Any] | None,
+        templates: list[QuestionTemplate],
+        question_type: str,
+    ) -> list[QAPair]:
+        """plan §Phase 2 Step 2.4 (B1) — questions_bank 命中且字段完整时，
+        直接组装 QAPair（含 hidden grading_key），跳过 LLM。
+
+        仅当 anchor 含 reference_question + reference_answer + 完整选项时短路。
+        当前命中只能覆盖 1 道题（anchor 只暴露 1 个 exact_question），所以仅
+        给 templates[0] 提供 short-circuit；其余进 batch generator。
+        """
+        payload = dict(anchor_payload or {})
+        anchor_source = str(payload.get("anchor_source") or "").strip().lower()
+        if anchor_source != "exact_question":
+            return []
+        reference_question = str(payload.get("reference_question") or "").strip()
+        reference_answer = str(payload.get("reference_answer") or "").strip()
+        if not reference_question or not reference_answer:
+            return []
+        if not templates:
+            return []
+        # 从 evidence_refs 反查完整 options（如果上游已经压扁，就跳过）。
+        options = self._extract_bank_options_from_payload(payload)
+        if not options or len(options) < 2:
+            return []
+        template = templates[0]
+        grading_key = {
+            "correct_answer": reference_answer,
+            "scoring_points": [],
+            "common_traps": [],
+            "minimal_rationale": "题库精确命中，参考答案与解析来自 questions_bank。",
+            "source": "questions_bank",
+        }
+        knowledge_context = str(payload.get("knowledge_context") or "").strip()
+        evidence_refs = list(payload.get("evidence_refs") or [])
+        return [
+            QAPair(
+                question_id=template.question_id,
+                question=reference_question,
+                correct_answer="",  # public string-form correct_answer 不写入；grading 走 grading_key
+                explanation="",
+                question_type=question_type or "choice",
+                options=dict(options),
+                concentration=template.concentration,
+                difficulty=template.difficulty,
+                validation={"schema_ok": True, "source": "questions_bank_short_circuit"},
+                metadata={
+                    "source": "questions_bank",
+                    "reference_question": reference_question,
+                    "knowledge_context": knowledge_context,
+                    "lightweight_generation": True,
+                    "evidence_refs": evidence_refs,
+                },
+                grading_key=grading_key,
+            )
+        ]
+
+    @staticmethod
+    def _extract_bank_options_from_payload(payload: dict[str, Any]) -> dict[str, str]:
+        """Best-effort extract options dict from anchor evidence_refs."""
+        for ref in list(payload.get("evidence_refs") or []):
+            if not isinstance(ref, dict):
+                continue
+            content = ref.get("content")
+            if isinstance(content, dict):
+                opts = content.get("options")
+                if isinstance(opts, dict) and opts:
+                    return {str(k).upper(): str(v) for k, v in opts.items() if str(v).strip()}
+        # 兜底：从 anchor knowledge_context 文本里 parse 选项（A. xxx 形式）
+        ctx = str(payload.get("knowledge_context") or "")
+        options: dict[str, str] = {}
+        for match in re.finditer(r"([A-E])[\.\、:：]\s*([^\n]+)", ctx):
+            options[match.group(1)] = match.group(2).strip()[:200]
+        return options
+
+    async def _lightweight_batch_generate(
+        self,
+        *,
+        templates: list[QuestionTemplate],
+        user_topic: str,
+        preference: str,
+        history_context: str,
+        counters: dict[str, Any],
+    ) -> list[QAPair]:
+        """plan §Phase 2 Step 2.2 / Batch B Gap 1 — true single-call LLM batch.
+
+        主路径：调用 ``Generator.process_batch_lightweight(templates)`` 一次性出 N 题。
+          * 1-3 题：1 次 LLM。
+          * 4-5 题：先尝试 1 次 LLM 出 5；schema/数量 fail 时把 templates 拆成
+            ≤3 + 剩余两个 batch，最多 2 次 LLM。
+          * 仍 fail 时 fallback 到逐题并行（asyncio.gather），trace 标记
+            ``lightweight_batch_fallback="parallel"``。
+        """
+        if not templates:
+            return []
+        generator = self._create_generator()
+        counters["generated_explanation"] = False
+        counters.setdefault("lightweight_batch_fallback", "none")
+
+        # 主路径：单次 LLM 出 N 题。
+        if len(templates) <= 5:
+            counters["llm_calls"] += 1
+            batch = await generator.process_batch_lightweight(
+                templates=templates,
+                user_topic=user_topic,
+                preference=preference,
+                history_context=history_context,
+            )
+            if batch is not None and len(batch) == len(templates):
+                counters["lightweight_batch_fallback"] = "none"
+                return list(batch)
+
+        # 二次路径（仅 4-5 题）：拆成两个 ≤3 题 batch，最多再 1 次 LLM。
+        if 4 <= len(templates) <= 5:
+            half = 3
+            first, second = templates[:half], templates[half:]
+            counters["llm_calls"] += 1  # 已经在主路径加过一次；这里是 fallback 重试
+            batch_a = await generator.process_batch_lightweight(
+                templates=first,
+                user_topic=user_topic,
+                preference=preference,
+                history_context=history_context,
+            )
+            batch_b = await generator.process_batch_lightweight(
+                templates=second,
+                user_topic=user_topic,
+                preference=preference,
+                history_context=history_context,
+            )
+            if (
+                batch_a is not None
+                and batch_b is not None
+                and len(batch_a) == len(first)
+                and len(batch_b) == len(second)
+            ):
+                counters["lightweight_batch_fallback"] = "split_batch"
+                # llm_calls 已经计了 2（主 batch fail + 1 = 1，加这里 +1 = 2）
+                return list(batch_a) + list(batch_b)
+
+        # 最后 fallback：并行逐题（plan §B Gap 1 允许 fallback 但 trace 必须标记）。
+        counters["lightweight_batch_fallback"] = "parallel"
+
+        async def _one(template: QuestionTemplate) -> QAPair:
+            try:
+                qa = await generator.process(
+                    template=template,
+                    user_topic=user_topic,
+                    preference=preference,
+                    history_context=history_context,
+                    previous_questions=None,
+                    require_explanation=False,
+                    lightweight_generation=True,
+                )
+            except Exception as exc:
+                self.logger.warning(
+                    f"Lightweight parallel fallback failed for {template.question_id}: {exc}"
+                )
+                return QAPair(
+                    question_id=template.question_id,
+                    question=f"[Generation failed] {template.concentration}",
+                    correct_answer="N/A",
+                    explanation=str(exc),
+                    question_type=template.question_type,
+                    concentration=template.concentration,
+                    difficulty=template.difficulty,
+                    metadata={"error": str(exc), "lightweight_generation": True},
+                )
+            grading_key = {
+                "correct_answer": qa.correct_answer,
+                "scoring_points": [],
+                "common_traps": [],
+                "minimal_rationale": qa.explanation[:120] if qa.explanation else "",
+                "source": "lightweight_parallel_fallback",
+            }
+            qa.grading_key = grading_key
+            return qa
+
+        counters["llm_calls"] += len(templates)
+        results = await asyncio.gather(*[_one(t) for t in templates], return_exceptions=False)
+        return list(results)
 
     @staticmethod
     def _build_lightweight_topic_templates(

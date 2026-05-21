@@ -364,6 +364,53 @@ class LearnerStateSupabaseSyncCoreStore:
         projection = row.get("summary_structured_json")
         return extract_learning_brain_projection(projection if isinstance(projection, dict) else {})
 
+    def read_memory_events(self, user_id: str, limit: int | None = 20) -> list[dict[str, Any]]:
+        if limit is None or limit < 0:
+            return self._select_many(
+                "learner_memory_events",
+                {"user_id": user_id},
+                order="created_at.asc",
+            )
+        rows = self._select_many(
+            "learner_memory_events",
+            {"user_id": user_id},
+            limit=max(int(limit), 0),
+            order="created_at.desc",
+        )
+        return list(reversed(rows))
+
+    def read_learning_evidence_events(
+        self,
+        user_id: str,
+        *,
+        limit: int | None = 100,
+        since: str | None = None,
+    ) -> list[dict[str, Any]]:
+        if not self.is_configured:
+            return []
+        filters: dict[str, str] = {
+            "user_id": f"eq.{user_id}",
+            "source_feature": "eq.construction_grading",
+            "memory_kind": "eq.learning_evidence",
+        }
+        since_text = str(since or "").strip()
+        if since_text:
+            filters["created_at"] = f"gte.{since_text}"
+        params = _select_params(
+            filters=filters,
+            order_by="created_at.desc",
+            limit=None if limit is None or limit < 0 else max(int(limit), 0),
+        )
+        response = self._client_or_create().get(
+            f"{self._base_url.rstrip('/')}/rest/v1/learner_memory_events",
+            headers=_rest_headers(self._service_key),
+            params=params,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        rows = [dict(item) for item in payload if isinstance(item, dict)]
+        return list(reversed(rows))
+
     def write_progress(self, user_id: str, progress: dict[str, Any]) -> dict[str, Any]:
         normalized_user_id = str(user_id or "").strip()
         row = _progress_to_row(normalized_user_id, progress)

@@ -41,24 +41,26 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath) {
     label + " billing should pair the mark with explicit brand copy",
   );
   assert(
-    wxml.indexOf('class="pkg-name"') >= 0 &&
-      wxml.indexOf('class="pkg-desc"') >= 0 &&
-      wxml.indexOf('class="pkg-check {{selectedPkg === item.id ?') >= 0,
-    label + " billing packages should be a selectable list with names, descriptions, and selection affordance",
+    wxml.indexOf("选择备考强度") < 0 &&
+      wxml.indexOf('class="pkg-grid"') < 0 &&
+      wxml.indexOf('class="pay-dock"') < 0 &&
+      wxml.indexOf('class="checkout-sheet"') < 0,
+    label + " billing should hide the pricing and package selection surface in test builds",
   );
   assert(
-    wxml.indexOf("{{item.usageLabel}}") >= 0 &&
-      wxml.indexOf("{{item.rhythm}}") >= 0 &&
+    wxml.indexOf("{{item.usageLabel}}") < 0 &&
+      wxml.indexOf("{{item.rhythm}}") < 0 &&
       wxml.indexOf("{{item.points}} 智力点") < 0 &&
       wxml.indexOf("当前余额") < 0 &&
       wxml.indexOf("充值额度") < 0,
-    label + " billing should describe packages as usage allowance rather than raw points or recharge quota",
+    label + " billing should not expose package allowance or raw recharge quota copy",
   );
   assert(
-    wxml.indexOf("选择备考强度") >= 0 &&
-      wxml.indexOf("每周自动更新") >= 0 &&
-      wxml.indexOf("仅保留 3 档主套餐") < 0,
-    label + " billing should use the two-plan learning-intensity positioning",
+    js.indexOf('price: "99"') < 0 &&
+      js.indexOf('price: "199"') < 0 &&
+      js.indexOf('selectedPkgPrice') < 0 &&
+      js.indexOf('createBillingCheckout') < 0,
+    label + " billing should not ship default visible package prices while pricing is hidden",
   );
   assert(
     wxml.indexOf('class="usage-quota-list"') >= 0 &&
@@ -67,25 +69,33 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath) {
   );
   assert(
     wxml.indexOf('class="balance-gauge"') >= 0 &&
-      wxss.indexOf(".balance-gauge-ring") >= 0 &&
-      wxss.indexOf(".pay-dock-action") >= 0,
-    label + " billing should use a stronger quota dashboard and payment dock",
+      wxss.indexOf(".balance-gauge-ring") >= 0,
+    label + " billing should keep the stronger quota dashboard",
   );
   assert(
-    js.indexOf("微信支付") >= 0 &&
-      js.indexOf("支付宝") >= 0 &&
-      wxml.indexOf('class="checkout-sheet"') >= 0 &&
+    wxml.indexOf("额度记录") < 0 &&
+      wxml.indexOf("最近流水") < 0 &&
+      wxml.indexOf('class="ledger-list"') < 0 &&
+      wxml.indexOf('bindtap="onNextPage"') < 0 &&
+      js.indexOf("getLedger") < 0 &&
+      js.indexOf("_loadLedger") < 0,
+    label + " billing should not render or fetch the removed ledger records section",
+  );
+  assert(
+    js.indexOf("微信支付") < 0 &&
+      js.indexOf("支付宝") < 0 &&
+      wxml.indexOf("确认支付") < 0 &&
+      wxml.indexOf("确认开通") < 0 &&
       js.indexOf("暂未开放") < 0 &&
       js.indexOf("暂未开发") < 0 &&
       wxml.indexOf("暂未开放") < 0 &&
       wxml.indexOf("暂未开发") < 0,
-    label + " billing should include checkout channels without unavailable copy",
+    label + " billing should not expose checkout channels while pricing is hidden",
   );
   assert(
     wxss.indexOf(".nav-logo-shell") >= 0 &&
-      wxss.indexOf(".pkg-grid") >= 0 &&
       wxss.indexOf("flex-direction: column") >= 0,
-    label + " billing stylesheet should keep the refined logo and vertical package layout",
+    label + " billing stylesheet should keep the refined logo layout",
   );
   assert(
     wxss.indexOf(".billing-page.light .nav-logo {") < 0,

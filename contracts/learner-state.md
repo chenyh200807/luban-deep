@@ -165,6 +165,11 @@ Overlay 必须支持：
 - 支撑 summary/progress 重建、审计与重放
 - 建筑实务阅卷产生的 `learning_evidence` 必须作为
   `memory_kind="learning_evidence"` 写入本事件流；不得新增平行 memory 表。
+- 当 Supabase core store 已配置时，nightly synthesis / online read model 读取
+  `learner_memory_events` 必须 remote-first；本地 JSONL 只能作为 dev / dry-run 缓存，
+  不能在生产环境与 Supabase 竞争事件流权威。
+- `dedupe_key` 命中已有事件时必须返回原事件，不能重新生成 event_id 或再次写入 outbox。
+  重复作答若要形成 L1/L2 证据，dedupe_key 必须包含 turn/session/attempt 级输入边界。
 
 #### `learning_plans`
 
