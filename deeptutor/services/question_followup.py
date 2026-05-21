@@ -282,6 +282,76 @@ def _normalize_followup_evidence_refs(raw: Any) -> list[dict[str, Any]]:
 
 _PUBLIC_REDACTED_KEYS = ("grading_key", "correct_answer", "explanation", "scoring_points")
 
+# plan §Phase 3 Step 3.2 — evidence-style entries describe which source field
+# produced the evidence value. If the named field is a hidden authority
+# (correct_answer / grading_key / scoring_points / explanation), the sibling
+# ``value`` / ``content`` slot leaks the hidden value. Drop the whole entry.
+_EVIDENCE_FIELD_KEYS = ("field", "source_field", "source_key", "name")
+
+
+def _is_hidden_evidence_entry(value: dict[str, Any]) -> bool:
+    for key in _EVIDENCE_FIELD_KEYS:
+        sibling = value.get(key)
+        if isinstance(sibling, str) and sibling in _PUBLIC_REDACTED_KEYS:
+            return True
+    return False
+
+
+def _drop_hidden_value(value: Any) -> Any:
+    """Recursively drop hidden authority from any nested dict/list.
+
+    Three structural rules at the public boundary (plan §Phase 3 Step 3.2):
+
+      1. Drop any dict key in ``_PUBLIC_REDACTED_KEYS`` (e.g.
+         ``items[i].construction_grading_result.correct_answer``).
+      2. Drop an entire dict if its evidence-field slot names a hidden
+         authority — e.g. ``{"source":"qb","field":"correct_answer","value":"B"}``
+         leaks the standard answer through ``value``.
+      3. Filter ``source_fields`` lists down to non-hidden entries; if every
+         entry was hidden, drop the slot entirely.
+
+    Scalars pass through untouched — only dictionary keys / list entries are
+    dropped, so user-visible markdown bodies are preserved.
+
+    The signal value ``None`` returned from this helper means "drop this entry"
+    when the caller is iterating a list; callers wanting a normal recursion
+    treat ``None`` as identity-passthrough at scalar level (the only way
+    ``None`` flows up is via an evidence-entry drop, and lists explicitly
+    filter on it).
+    """
+    if isinstance(value, dict):
+        if _is_hidden_evidence_entry(value):
+            return None  # caller list-filter drops this entry
+        clean: dict[str, Any] = {}
+        for key, sub in value.items():
+            if key in _PUBLIC_REDACTED_KEYS:
+                continue
+            if key == "source_fields" and isinstance(sub, list):
+                kept = [
+                    item
+                    for item in sub
+                    if not (isinstance(item, str) and item in _PUBLIC_REDACTED_KEYS)
+                ]
+                if not kept:
+                    continue
+                clean[key] = kept
+                continue
+            cleaned = _drop_hidden_value(sub)
+            if cleaned is None and isinstance(sub, dict):
+                # nested dict was a hidden evidence entry — drop the slot
+                continue
+            clean[key] = cleaned
+        return clean
+    if isinstance(value, list):
+        out: list[Any] = []
+        for item in value:
+            cleaned = _drop_hidden_value(item)
+            if cleaned is None and isinstance(item, dict):
+                continue
+            out.append(cleaned)
+        return out
+    return value
+
 
 def redact_question_followup_context_for_public(
     context: dict[str, Any] | None,
@@ -289,25 +359,15 @@ def redact_question_followup_context_for_public(
     """plan §Phase 3 (Batch C) — public payload 必须 drop hidden grading authority.
 
     保留：question_id, question, question_type, options, difficulty, concentration,
-    items[i] 的公开字段。Drop：grading_key, correct_answer, explanation, scoring_points
-    （以及任何形如 `grading_key.*` 的内嵌字段）。
+    items[i] 的公开字段。Drop（任意嵌套深度）：grading_key, correct_answer,
+    explanation, scoring_points，包括 ``items[i].construction_grading_result.*``
+    这类二级嵌套形态。
 
     这是一个纯函数；输入不被修改。
     """
     if not isinstance(context, dict):
         return None
-    public = {key: value for key, value in context.items() if key not in _PUBLIC_REDACTED_KEYS}
-    items_raw = context.get("items") or []
-    if isinstance(items_raw, list):
-        redacted_items: list[dict[str, Any]] = []
-        for item in items_raw:
-            if not isinstance(item, dict):
-                continue
-            redacted_items.append(
-                {key: value for key, value in item.items() if key not in _PUBLIC_REDACTED_KEYS}
-            )
-        public["items"] = redacted_items
-    return public
+    return _drop_hidden_value(context)
 
 
 def _followup_grading_authority_fields(*sources: dict[str, Any]) -> dict[str, Any]:

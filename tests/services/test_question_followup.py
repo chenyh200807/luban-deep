@@ -1144,3 +1144,115 @@ def test_redact_question_followup_context_for_public_strips_hidden_authority() -
     # 非禁字段保留
     assert public["question_id"] == "qs_1"
     assert public["items"][0]["question_id"] == "q_1"
+
+
+def test_redact_question_followup_context_for_public_drops_nested_grading_result_authority() -> None:
+    """plan §Phase 3 Step 3.2 — nested ``construction_grading_result.correct_answer``
+    must be dropped from public payload too. Phase 2 redact_metadata fix covered the
+    `/api/v1/ws` boundary; this guards the question_followup serializer that adapter /
+    presentation layers consume directly."""
+
+    from deeptutor.services.question_followup import (
+        redact_question_followup_context_for_public,
+    )
+
+    ctx = {
+        "question_id": "qs_2",
+        "items": [
+            {
+                "question_id": "q_2",
+                "question": "Q?",
+                "question_type": "choice",
+                "options": {"A": "a", "B": "b"},
+                "is_correct": False,
+                "construction_grading_result": {
+                    "question_id": "q_2",
+                    "user_answer": "A",
+                    "correct_answer": "B",
+                    "selected_options": ["A"],
+                    "missed_options": ["B"],
+                    "is_correct": False,
+                    "evidence_refs": [
+                        {"source": "doc1", "field": "stem", "content": "evidence-stem-content"}
+                    ],
+                },
+            }
+        ],
+        "construction_grading_result": {
+            "user_answer": "A",
+            "correct_answer": "B",
+            "scoring_points": ["sp"],
+            "explanation": "leak-marker-outer",
+        },
+    }
+
+    public = redact_question_followup_context_for_public(ctx)
+    assert public is not None
+    blob = json.dumps(public, ensure_ascii=False)
+    for forbidden in ("correct_answer", "scoring_points", "explanation", "leak-marker-outer"):
+        assert forbidden not in blob, f"nested grading_result still leaks {forbidden}"
+    # Non-hidden grading_result fields survive (so adapter still gets diagnostic context)
+    item_gr = public["items"][0]["construction_grading_result"]
+    assert item_gr["user_answer"] == "A"
+    assert item_gr["is_correct"] is False
+    assert item_gr["selected_options"] == ["A"]
+
+
+def test_redact_question_followup_context_for_public_drops_evidence_entry_with_hidden_field() -> None:
+    """plan §Phase 3 Step 3.2 — evidence_refs[i] entries whose `field` slot
+    references a hidden authority leak the standard answer via the sibling
+    `value` / `content` slot. Drop the whole entry."""
+
+    from deeptutor.services.question_followup import (
+        redact_question_followup_context_for_public,
+    )
+
+    ctx = {
+        "question_id": "qs_3",
+        "items": [
+            {
+                "question_id": "q_3",
+                "question": "Q?",
+                "question_type": "choice",
+                "options": {"A": "a", "B": "b"},
+                "construction_grading_result": {
+                    "user_answer": "A",
+                    "evidence_refs": [
+                        {"source": "qb", "field": "correct_answer", "value": "B"},
+                        {"source": "qb", "field": "grading_key", "value": {"correct_answer": "B"}},
+                        {"source": "qb", "field": "knowledge_point", "value": "安全管理"},
+                        {"source": "qb", "source_field": "scoring_points", "value": ["sp"]},
+                        {"source": "qb", "field": "article", "value": "GB-2021"},
+                    ],
+                    "rubric_items": [
+                        {
+                            "criterion": "C1",
+                            "source_fields": ["explanation", "correct_answer", "stem"],
+                            "evidence_text": "ok",
+                        },
+                        {
+                            "criterion": "C2",
+                            "source_fields": ["scoring_points", "explanation"],
+                            "evidence_text": "all-hidden",
+                        },
+                    ],
+                },
+            }
+        ],
+    }
+    public = redact_question_followup_context_for_public(ctx)
+    assert public is not None
+    blob = json.dumps(public, ensure_ascii=False)
+    # Hidden fields and their sibling values are gone
+    for forbidden in ('"correct_answer"', '"grading_key"', '"scoring_points"', '"explanation"'):
+        assert forbidden not in blob, f"public payload still leaks {forbidden}"
+    refs = public["items"][0]["construction_grading_result"]["evidence_refs"]
+    # 3 entries with hidden field/source_field are dropped; 2 safe ones survive
+    assert len(refs) == 2
+    field_values = sorted(r["field"] for r in refs)
+    assert field_values == ["article", "knowledge_point"]
+    # rubric_items source_fields filtered, second one's slot dropped (all hidden)
+    rubrics = public["items"][0]["construction_grading_result"]["rubric_items"]
+    assert rubrics[0]["source_fields"] == ["stem"]
+    assert "source_fields" not in rubrics[1]
+    assert rubrics[1]["criterion"] == "C2"
