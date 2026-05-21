@@ -548,6 +548,7 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
         if not diagnosis:
             diagnosis = "这次作答形成了一条改善信号。" if is_correct else "本次批改记录到一个薄弱点。"
         explanation = _pick_attempt_explanation(payload, diagnosis=diagnosis, is_correct=is_correct)
+        quality = _attempt_quality(payload)
         cards.append({
             "key": _attempt_card_key(event=event, payload=payload, index=index),
             "time_label": _time_label(str(getattr(event, "created_at", "") or "")),
@@ -570,6 +571,7 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
                     explanation,
                 ] if line
             ],
+            "quality": quality,
         })
     return cards
 
@@ -1138,6 +1140,91 @@ def _streak_days(daily_counts: dict[str, int]) -> int:
             break
         streak += 1
     return streak
+
+
+def _attempt_quality(payload: dict[str, Any]) -> dict[str, Any]:
+    """Return the quality dict from an event payload.
+
+    For events produced before the quality-gate feature (schema_version < 1 or
+    missing quality key), we derive a best-effort quality dict from the payload
+    fields we can inspect.  This ensures backward compat while exposing the
+    quality contract on all attempt cards.
+    """
+    stored = _safe_dict(payload.get("quality"))
+    # If the stored quality already has the new fields, pass it through unchanged.
+    if "detail_ready" in stored:
+        return stored
+
+    # --- Derive quality from legacy payload fields ---
+    question_id = str(payload.get("question_id") or "").strip()
+    question_stem = str(
+        payload.get("question_stem")
+        or payload.get("stem")
+        or payload.get("question_text")
+        or payload.get("question")
+        or ""
+    ).strip()
+    score_awarded = payload.get("score_awarded")
+    max_score = payload.get("max_score")
+    errors = [e for e in _safe_list(payload.get("error_events") or payload.get("errors")) if isinstance(e, dict)]
+
+    # explanation presence
+    explanation = payload.get("explanation")
+    has_explanation = bool(explanation and str(explanation).strip() not in ("", "None"))
+    if isinstance(explanation, dict):
+        has_explanation = any(isinstance(v, str) and str(v).strip() for v in explanation.values())
+    elif isinstance(explanation, list):
+        has_explanation = any(bool(str(item or "").strip()) for item in explanation)
+
+    # concept presence
+    concept = str(_safe_dict(payload.get("next_training_signal")).get("concept") or "").strip()
+    if not concept:
+        for err in errors:
+            tag = str(err.get("concept_tag") or "").strip()
+            if tag:
+                concept = tag
+                break
+    has_concept = bool(concept)
+
+    has_question_ref = bool(question_id)
+    has_score = score_awarded is not None or max_score is not None
+    has_answer = has_score or bool(errors)
+
+    progress_countable = has_question_ref and has_score
+    detail_ready = bool(question_stem and has_answer and has_explanation)
+    truth_eligible = has_concept and has_question_ref and has_score
+
+    missing_fields: list[str] = []
+    if not has_explanation:
+        missing_fields.append("explanation")
+    if not has_concept:
+        missing_fields.append("concept_label")
+    if not question_stem:
+        missing_fields.append("question_stem")
+    if not has_question_ref:
+        missing_fields.append("question_ref")
+
+    degraded_reason = ""
+    if not detail_ready:
+        parts = []
+        if not has_explanation:
+            parts.append("解析暂缺")
+        if not question_stem:
+            parts.append("题干暂缺")
+        degraded_reason = "；".join(parts)
+
+    # Merge with whatever legacy quality fields exist in stored
+    return {
+        "evidence_level": stored.get("evidence_level", "L0_observed"),
+        "writeback_eligible": stored.get("writeback_eligible", bool(errors)),
+        "stable_truth_eligible": stored.get("stable_truth_eligible", False),
+        "evidence_cap_reasons": stored.get("evidence_cap_reasons", []),
+        "detail_ready": detail_ready,
+        "progress_countable": progress_countable,
+        "truth_eligible": truth_eligible,
+        "missing_fields": missing_fields,
+        "degraded_reason": degraded_reason,
+    }
 
 
 def _safe_dict(value: Any) -> dict[str, Any]:

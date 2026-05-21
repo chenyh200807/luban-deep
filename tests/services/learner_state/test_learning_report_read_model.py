@@ -848,3 +848,60 @@ def test_realistic_chinese_grading_event_updates_report_progress_learning_brain_
     assert model["learning_brain"]["visible_sections"]["evidence_flow"]
     assert model["learning_brain"]["visible_sections"]["next_training"][0]["display_meta"]
     assert model["learning_brain"]["graph_chain"]["has_training_uses_question"] is True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# G5: quality gate — recent_attempts expose quality contract
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def test_recent_attempts_quality_field_present_and_has_required_keys() -> None:
+    """recent_attempts cards must include a quality dict with the full contract."""
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [_learning_event("evt_quality_check", days_ago=0, question_id="q_quality")]
+        ),
+        event_limit=50,
+    )
+
+    attempt = model["learner_facing"]["recent_attempts"][0]
+    quality = attempt["quality"]
+    for required_key in (
+        "evidence_level",
+        "writeback_eligible",
+        "stable_truth_eligible",
+        "evidence_cap_reasons",
+        "detail_ready",
+        "progress_countable",
+        "truth_eligible",
+        "missing_fields",
+        "degraded_reason",
+    ):
+        assert required_key in quality, f"quality missing {required_key}"
+    # Event has explanation → detail_ready
+    assert quality["detail_ready"] is True
+    assert quality["progress_countable"] is True
+
+
+def test_recent_attempts_quality_detail_ready_false_when_no_explanation() -> None:
+    """An event without explanation: recent_attempts quality.detail_ready is False."""
+    event = _learning_event(
+        "evt_no_explain",
+        days_ago=0,
+        question_id="q_no_explain",
+        # Pass explanation="" to simulate missing explanation
+        explanation="",
+    )
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )
+
+    attempt = model["learner_facing"]["recent_attempts"][0]
+    quality = attempt["quality"]
+    assert quality["detail_ready"] is False
+    assert "explanation" in quality["missing_fields"]

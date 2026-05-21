@@ -1,0 +1,27 @@
+{
+  "sample_size": 20,
+  "detail_ready": "90%",
+  "truth_eligible": "90%",
+  "missing_explanation": "10%",
+  "missing_concept": "10%",
+  "missing_question_ref": "0%",
+  "by_signal_type": {
+    "grading_result": 12,
+    "answer_explanation": 6,
+    "concept_explain": 2
+  },
+  "thresholds": {
+    "detail_ready_min": 0.7,
+    "truth_eligible_min": 0.6,
+    "missing_explanation_max": 0.2
+  },
+  "violations": [],
+  "passed": true,
+  "_rates": {
+    "detail_ready": 0.9,
+    "truth_eligible": 0.9,
+    "missing_explanation": 0.1,
+    "missing_concept": 0.1,
+    "missing_question_ref": 0.0
+  }
+}

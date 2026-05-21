@@ -35,11 +35,25 @@ def build_learning_evidence_payload(
     max_score = payload.get("max_score")
     next_training_signal = _clean_dict(payload.get("next_training_signal"))
     grading_mode = _clean_text(payload.get("grading_mode"))
+    question_stem = _clean_text(
+        payload.get("question_stem")
+        or payload.get("stem")
+        or payload.get("question_text")
+        or payload.get("question")
+    )
+    explanation = payload.get("explanation")
+    explanation_missing_reason = _clean_text(payload.get("explanation_missing_reason"))
     quality = _quality_from_payload(
         question_id=question_id,
+        question_stem=question_stem,
         errors=errors,
         evidence_refs=evidence_refs,
         grading_mode=grading_mode,
+        score_awarded=score_awarded,
+        max_score=max_score,
+        explanation=explanation,
+        explanation_missing_reason=explanation_missing_reason,
+        next_training_signal=next_training_signal,
     )
 
     return {
@@ -256,7 +270,14 @@ def _quality_from_payload(
     errors: list[dict[str, Any]],
     evidence_refs: list[dict[str, Any]],
     grading_mode: str,
+    question_stem: str = "",
+    score_awarded: Any = None,
+    max_score: Any = None,
+    explanation: Any = None,
+    explanation_missing_reason: str = "",
+    next_training_signal: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    # ── Legacy fields (never removed) ────────────────────────────────────────
     cap_reasons: list[str] = []
     if not question_id:
         cap_reasons.append("missing_question_id")
@@ -266,12 +287,90 @@ def _quality_from_payload(
         cap_reasons.append("missing_rag_evidence")
     if grading_mode == "open_skill":
         cap_reasons.append("open_skill_requires_repetition_or_manual_confirmation")
+
+    # ── New quality-gate fields ───────────────────────────────────────────────
+    # progress_countable: needs a valid question ref + a score or submission marker
+    has_question_ref = bool(question_id)
+    has_score_signal = score_awarded is not None or max_score is not None
+    progress_countable = has_question_ref and has_score_signal
+
+    # explanation presence: covers string, dict, or non-empty list
+    has_explanation = _has_explanation_content(explanation)
+    # explanation_missing_reason explicitly documents why explanation is absent
+    explanation_acknowledged = has_explanation or bool(explanation_missing_reason)
+
+    # detail_ready: question stem + (answer/rubric) + explanation present
+    has_answer = bool(
+        (score_awarded is not None and max_score is not None)
+        or errors
+    )
+    detail_ready = bool(question_stem and has_answer and has_explanation)
+
+    # truth_eligible: concept label + result + enough evidence to classify weak/strong
+    # concept_label is sourced from next_training_signal.concept or error.concept_tag
+    concept_label = _clean_text((next_training_signal or {}).get("concept"))
+    if not concept_label:
+        for error in errors:
+            tag = _clean_text(error.get("concept_tag"))
+            if tag:
+                concept_label = tag
+                break
+    has_concept = bool(concept_label)
+    has_result = has_question_ref and has_score_signal
+    truth_eligible = has_concept and has_result
+
+    # missing_fields: enumerate what's absent for learner-friendly surfacing
+    missing_fields: list[str] = []
+    if not has_explanation:
+        missing_fields.append("explanation")
+    if not has_concept:
+        missing_fields.append("concept_label")
+    if not question_stem:
+        missing_fields.append("question_stem")
+    if not has_question_ref:
+        missing_fields.append("question_ref")
+
+    # degraded_reason: single learner-friendly string; empty string when healthy
+    degraded_parts: list[str] = []
+    if not detail_ready:
+        if not has_explanation:
+            if explanation_missing_reason:
+                degraded_parts.append("解析待补全")
+            else:
+                degraded_parts.append("解析暂缺")
+        if not question_stem:
+            degraded_parts.append("题干暂缺")
+    degraded_reason = "；".join(degraded_parts)
+
     return {
+        # Legacy fields preserved as-is
         "evidence_level": "L0_observed",
         "writeback_eligible": bool(errors),
         "stable_truth_eligible": False,
         "evidence_cap_reasons": cap_reasons,
+        # New quality-gate fields
+        "detail_ready": detail_ready,
+        "progress_countable": progress_countable,
+        "truth_eligible": truth_eligible,
+        "missing_fields": missing_fields,
+        "degraded_reason": degraded_reason,
     }
+
+
+def _has_explanation_content(explanation: Any) -> bool:
+    """Return True if explanation contains usable textual content."""
+    if explanation is None:
+        return False
+    if isinstance(explanation, str):
+        return bool(explanation.strip())
+    if isinstance(explanation, dict):
+        return any(
+            isinstance(value, str) and str(value).strip()
+            for value in explanation.values()
+        )
+    if isinstance(explanation, list):
+        return any(_has_explanation_content(item) for item in explanation)
+    return False
 
 
 def _rubric_payload(item: Any, *, index: int) -> dict[str, Any]:
