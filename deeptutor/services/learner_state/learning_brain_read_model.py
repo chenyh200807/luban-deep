@@ -212,13 +212,28 @@ def build_learning_brain_graph_chain(
             "reason_edge_event_id": edge.get("evidence_event_id", ""),
             "confidence": edge.get("confidence", 0.8),
         }
+        # ``training_improved_error`` and ``training_not_improved_error`` are
+        # NOT mutually exclusive per edge: a concept-level improvement signal
+        # (improvement payload with concept_id but no error_code) still leaves
+        # any specific (concept_id, error_code) weak point active at the
+        # synthesis layer — by design (see
+        # ``test_concept_only_improvement_signal_does_not_clear_specific_weak_points``).
+        # The graph chain reports both independently so consumers can see "the
+        # concept showed improvement AND this specific error is still active".
+        # If they were if/elif, a concept-only improvement would always be
+        # shadowed by any remaining weak point, and
+        # ``has_training_improved_error`` could never flip back to True
+        # (regression caught by
+        # ``test_learning_brain_harness_success_training_persists_improvement_chain``).
+        concept_was_improved = concept_id in improved_concepts
+        error_specifically_improved = error_id in improved_error_ids
         if error_id in active_error_ids:
             training_not_improved_error.append(_with_edge_display({
                 "edge_type": "training_not_improved_error",
                 "reason": "weak_point_still_active",
                 **outcome,
             }))
-        elif error_id in improved_error_ids or concept_id in improved_concepts:
+        if error_specifically_improved or concept_was_improved:
             training_improved_error.append(_with_edge_display({"edge_type": "training_improved_error", **outcome}))
     return {
         "error_points_to_training": [_with_edge_display(edge) for edge in error_to_training],
