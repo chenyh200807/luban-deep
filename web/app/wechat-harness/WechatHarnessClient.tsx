@@ -462,11 +462,27 @@ function LearningBrainQaPanel() {
       if (!response.ok) {
         const detail = typeof payload?.detail === 'string' ? payload.detail : ''
         if (response.status === 404) {
-          throw new Error(
-            detail.includes('disabled')
-              ? '学情闭环 QA 后端 endpoint 未启用：请在 backend 设置 DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA=true 并重启。'
-              : detail || `学情闭环 endpoint 不存在 (404)。`
-          )
+          // 三种已知 404 来源都必须给可执行 runbook：
+          //   (a) backend 显式 gate 关闭：detail 含 "disabled"
+          //   (b) Next.js dev proxy 未注册该路由：detail = "Not Found" 或空
+          //   (c) production 路由不命中：detail 任意但不含 "disabled"
+          // 任何一种都需要同样的三件事才能恢复：开 env flag、重启 backend、
+          // 确认路由已注册。直接把 runbook 全摆出来，不要让用户去猜。
+          const trimmedDetail = detail.trim()
+          const runbook =
+            '可能原因与修复步骤：\n' +
+            '  1. backend 未开启 QA gate — 设置 DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA=true（仅 runtime_environment=local 生效）\n' +
+            '  2. backend 进程未重启 — 改 env 后必须重启 `uvicorn deeptutor.api.main:app --port 8001`\n' +
+            '  3. harness route 未注册 — 确认 deeptutor/api/routers/learning_brain.py 已被主 router include；或 Next.js dev proxy 的 NEXT_API_PROXY_TARGET 指向了未含该路由的环境'
+          if (trimmedDetail.toLowerCase().includes('disabled')) {
+            throw new Error(
+              '学情闭环 QA 后端 endpoint 未启用 (backend 显式 404 disabled)。\n' + runbook
+            )
+          }
+          const detailSuffix = trimmedDetail
+            ? `\n后端返回 detail：${trimmedDetail}`
+            : '\n后端 detail 为空（典型为 Next.js dev proxy 或上游路由未命中）。'
+          throw new Error(`学情闭环 endpoint 返回 404。${detailSuffix}\n` + runbook)
         }
         if (response.status === 502 || response.status === 503 || response.status === 504) {
           throw new Error(
