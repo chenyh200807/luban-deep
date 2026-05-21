@@ -6,7 +6,10 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import deeptutor.services.learner_state.home_personalization as home_personalization_module
-from deeptutor.services.learner_state.home_personalization import build_home_dashboard_learning_projection
+from deeptutor.services.learner_state.home_personalization import (
+    build_home_dashboard_learning_projection,
+    build_home_personalization_projection_from_learning_signal,
+)
 from deeptutor.services.member_console.service import MemberConsoleService
 
 
@@ -42,6 +45,22 @@ def test_home_dashboard_uses_fresh_home_personalization_projection() -> None:
     assert dashboard["recommended_prompts"][0]["text"] == "复盘流水施工错因"
     assert dashboard["source_status"]["fallback_used"] is False
     assert dashboard["source_status"]["learning_report"] == "projection"
+
+
+def test_learning_signal_projection_makes_today_focus_clickable() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "concept": {"label": "主体结构验收"},
+            "error": {"label": "验收程序混淆"},
+            "training_intent_id": "intent-1",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert projection is not None
+    assert projection["today_focus"]["prompt"] == projection["recommended_prompts"][0]["text"]
+    assert projection["today_focus"]["intent"] == projection["recommended_prompts"][0]["intent"]
 
 
 def test_stale_or_missing_projection_falls_back_to_seed_starters() -> None:
@@ -104,6 +123,7 @@ def test_seed_starter_files_exist_and_are_used() -> None:
             now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
         )
         assert dashboard["recommended_prompts"][0]["text"] == payload["prompts"][0]["text"]
+        assert dashboard["today_focus"]["prompt"] == payload["prompts"][0]["text"]
 
 
 def test_dashboard_reads_projection_from_learner_snapshot_not_weak_nodes(

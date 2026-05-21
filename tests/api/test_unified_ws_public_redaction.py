@@ -203,6 +203,114 @@ def test_redact_metadata_drops_hidden_keys_in_deeply_nested_dict() -> None:
     )
 
 
+# plan §Phase 3 Step 3.2 — MCQGradingResult.evidence_refs[i] entries describe
+# which source field produced the evidence. When ``field`` references a hidden
+# authority, the sibling ``value`` / ``content`` slot leaks the hidden value.
+# The public boundary must drop the whole entry, not just the key.
+def test_redact_metadata_drops_evidence_entry_with_hidden_field() -> None:
+    event = {
+        "type": "result",
+        "metadata": {
+            "construction_grading_result": {
+                "user_answer": "A",
+                "evidence_refs": [
+                    {"source": "questions_bank", "field": "correct_answer", "value": "B"},
+                    {"source": "questions_bank", "field": "grading_key", "value": {"correct_answer": "B"}},
+                    {"source": "questions_bank", "field": "knowledge_point", "value": "安全管理"},
+                    {"source": "syllabus", "field": "article", "value": "GB-2021-XX"},
+                ],
+            }
+        },
+    }
+    redacted = _redact_event_for_public(event)
+    blob = json.dumps(redacted, ensure_ascii=False)
+    # Hidden entries are dropped entirely (key + sibling value gone)
+    assert '"correct_answer"' not in blob
+    assert '"grading_key"' not in blob
+    # Safe entries survive
+    refs = redacted["metadata"]["construction_grading_result"]["evidence_refs"]
+    assert len(refs) == 2
+    assert any(r["field"] == "knowledge_point" and r["value"] == "安全管理" for r in refs)
+    assert any(r["field"] == "article" and r["value"] == "GB-2021-XX" for r in refs)
+
+
+def test_redact_metadata_drops_evidence_entry_via_source_field_alias() -> None:
+    metadata = {
+        "evidence_refs": [
+            {"source": "qb", "source_field": "correct_answer", "content": "B"},
+            {"source": "qb", "source_key": "scoring_points", "content": ["sp"]},
+            {"source": "qb", "name": "explanation", "content": "hidden"},
+            {"source": "qb", "field": "stem", "content": "题干文字"},
+        ]
+    }
+    redacted = _redact_metadata_for_public(metadata)
+    refs = redacted["evidence_refs"]
+    assert len(refs) == 1
+    assert refs[0]["field"] == "stem"
+    assert refs[0]["content"] == "题干文字"
+
+
+def test_redact_metadata_filters_source_fields_list() -> None:
+    metadata = {
+        "rubric_items": [
+            {
+                "criterion": "考点 A",
+                "source_fields": ["explanation", "correct_answer", "stem", "options"],
+                "evidence_text": "用户写到了关键步骤",
+            },
+            {
+                "criterion": "考点 B",
+                "source_fields": ["explanation", "scoring_points"],
+                "evidence_text": "全部 source_fields 都是 hidden — 整个 slot 应被 drop",
+            },
+        ]
+    }
+    redacted = _redact_metadata_for_public(metadata)
+    items = redacted["rubric_items"]
+    # First entry: hidden source_fields filtered out, safe ones kept
+    assert items[0]["source_fields"] == ["stem", "options"]
+    assert items[0]["evidence_text"] == "用户写到了关键步骤"
+    # Second entry: source_fields slot dropped entirely; rest preserved
+    assert "source_fields" not in items[1]
+    assert items[1]["criterion"] == "考点 B"
+
+
+def test_redact_metadata_drops_evidence_inside_question_followup_context() -> None:
+    """Nested evidence within ``metadata.question_followup_context`` (handled by
+    its own canonical redactor in services.question_followup) must also drop
+    hidden-field entries — both boundaries must enforce the same rule."""
+
+    event = {
+        "type": "result",
+        "metadata": {
+            "question_followup_context": {
+                "question_id": "qs",
+                "items": [
+                    {
+                        "question_id": "q1",
+                        "construction_grading_result": {
+                            "user_answer": "A",
+                            "evidence_refs": [
+                                {"field": "correct_answer", "value": "B"},
+                                {"field": "knowledge_point", "value": "安全管理"},
+                            ],
+                        },
+                    }
+                ],
+            }
+        },
+    }
+    redacted = _redact_event_for_public(event)
+    blob = json.dumps(redacted, ensure_ascii=False)
+    assert '"correct_answer"' not in blob
+    refs = (
+        redacted["metadata"]["question_followup_context"]["items"][0]
+        ["construction_grading_result"]["evidence_refs"]
+    )
+    assert len(refs) == 1
+    assert refs[0]["field"] == "knowledge_point"
+
+
 def test_redact_metadata_preserves_string_bodies_and_non_hidden_keys() -> None:
     # 用户可见 markdown 正文（例如 ``content`` / ``response``）含 "正确答案" 之类的
     # 解释文本，不应被字符串替换；只 drop hidden dict key。

@@ -481,6 +481,22 @@ def _is_mcq_grading_context(question_context: dict[str, Any] | None) -> bool:
     return True
 
 
+def _grading_key_correct_answer(item: dict[str, Any] | None) -> str:
+    """plan §Step 3.4 priority #1: lightweight batch / curated bank stash
+    canonical answer in ``items[i].grading_key.correct_answer`` (hidden, server-side
+    only). Exposed as a helper so ``_recover_missing_mcq_authority`` can promote
+    the value onto the top-level ``correct_answer`` slot before downstream
+    graders read it. ``_mcq_correct_answer_present`` itself stays strict on the
+    top-level slot to avoid hiding the promotion step from the recovery path.
+    """
+    if not isinstance(item, dict):
+        return ""
+    grading_key = item.get("grading_key")
+    if isinstance(grading_key, dict):
+        return str(grading_key.get("correct_answer") or "").strip()
+    return ""
+
+
 def _mcq_correct_answer_present(question_context: dict[str, Any] | None) -> bool:
     items = _grading_items(question_context)
     return bool(items) and all(str(item.get("correct_answer") or "").strip() for item in items)
@@ -640,6 +656,27 @@ def _fill_missing_mcq_authority(target: dict[str, Any], source: dict[str, Any]) 
     return filled
 
 
+def _promote_grading_key_correct_answer(item: dict[str, Any] | None) -> dict[str, Any] | None:
+    """plan §Step 3.4: promote hidden ``grading_key.correct_answer`` onto the
+    top-level ``correct_answer`` field so downstream graders that still read the
+    legacy slot can consume lightweight-batch authority without changing their
+    own contract.
+
+    Returns the input unchanged if no promotion was needed (already has a
+    direct answer, or no grading_key source available).
+    """
+    if not isinstance(item, dict):
+        return item
+    if str(item.get("correct_answer") or "").strip():
+        return item
+    recovered = _grading_key_correct_answer(item)
+    if not recovered:
+        return item
+    promoted = dict(item)
+    promoted["correct_answer"] = recovered
+    return promoted
+
+
 def _recover_missing_mcq_authority(
     question_context: dict[str, Any],
     metadata: dict[str, Any] | None,
@@ -649,6 +686,33 @@ def _recover_missing_mcq_authority(
         return normalized, "", True
     if _mcq_correct_answer_present(normalized):
         return normalized, "active_object", True
+
+    # plan §Step 3.4 priority #1: try promoting items[i].grading_key.correct_answer
+    # to items[i].correct_answer before falling back to questions_bank match.
+    raw_items = normalized.get("items") if isinstance(normalized.get("items"), list) else None
+    if isinstance(raw_items, list) and raw_items:
+        promoted_items: list[dict[str, Any]] = []
+        any_promoted = False
+        for raw_item in raw_items:
+            if not isinstance(raw_item, dict):
+                promoted_items.append(raw_item)
+                continue
+            promoted = _promote_grading_key_correct_answer(raw_item)
+            if promoted is not raw_item:
+                any_promoted = True
+            promoted_items.append(promoted)
+        if any_promoted:
+            promoted_context = dict(normalized)
+            promoted_context["items"] = promoted_items
+            if _mcq_correct_answer_present(promoted_context):
+                return promoted_context, "grading_key", True
+            normalized = promoted_context
+    else:
+        promoted = _promote_grading_key_correct_answer(normalized)
+        if promoted is not normalized:
+            if _mcq_correct_answer_present(promoted):
+                return promoted, "grading_key", True
+            normalized = promoted
 
     candidates = _question_bank_context_candidates(metadata)
     if not candidates:

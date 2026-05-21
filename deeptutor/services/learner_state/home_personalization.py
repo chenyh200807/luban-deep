@@ -94,6 +94,7 @@ def build_home_personalization_projection_from_learning_signal(
         "today_focus": {
             "title": f"今日焦点：{prompt_concept}",
             "meta": "来自 learner_state.home_personalization",
+            "prompt": prompts[0]["text"],
             "intent": prompts[0]["intent"],
         },
         "recommended_prompts": prompts,
@@ -157,6 +158,7 @@ def _build_seed_fallback(*, subject_id: str, fallback_reason: str) -> dict[str, 
     focus = dict(seed.get("today_focus") or {})
     if not focus:
         focus = {"title": "先做一题，给系统第一份学习证据", "meta": "starter"}
+    focus["prompt"] = prompts[0]["text"]
     focus["intent"] = prompts[0]["intent"]
     return {
         "source_status": {

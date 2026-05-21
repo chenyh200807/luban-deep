@@ -37,6 +37,7 @@ function buildLearningHomeViewModel(dashboard) {
     .map(normalizePrompt)
     .filter(Boolean)
     .slice(0, 4);
+  var primaryPrompt = prompts[0] || {};
   return {
     reviewCount: Number(review.overdue || 0) + Number(review.due_today || 0),
     focusLabel: compactText(focus.label || "今日焦点"),
@@ -44,8 +45,8 @@ function buildLearningHomeViewModel(dashboard) {
     focusTitle: focusTitle,
     focusMeta: compactText(focus.meta || ""),
     focusText: focusTitle,
-    focusQuery: compactText(focus.query || focus.prompt),
-    focusPromptIntent: asObject(focus.prompt_intent || focus.intent),
+    focusQuery: compactText(focus.query || focus.prompt || primaryPrompt.text),
+    focusPromptIntent: asObject(focus.prompt_intent || focus.intent || primaryPrompt.promptIntent),
     recommendedPrompts: prompts,
   };
 }

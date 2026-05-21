@@ -185,31 +185,76 @@ _HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = (
     "explanation",
 )
 
+# plan §Phase 3 Step 3.2 — evidence-style entries describe which source field
+# produced the evidence value. If the named field references a hidden authority,
+# the sibling ``value`` / ``content`` slot leaks the hidden value. Drop the
+# whole entry. Mirrors question_followup._EVIDENCE_FIELD_KEYS so both public
+# boundaries share the same rule.
+_EVIDENCE_FIELD_KEYS: tuple[str, ...] = ("field", "source_field", "source_key", "name")
+
+
+def _is_hidden_evidence_entry(value: dict[str, Any]) -> bool:
+    for key in _EVIDENCE_FIELD_KEYS:
+        sibling = value.get(key)
+        if isinstance(sibling, str) and sibling in _HIDDEN_PAYLOAD_KEYS:
+            return True
+    return False
+
 
 def _redact_value_for_public(value: Any) -> Any:
-    """Recursively drop hidden keys from nested dicts/lists.
+    """Recursively drop hidden authority from nested dicts/lists.
 
-    Scalar values (str/int/float/bool/None) pass through untouched — only
-    dictionary keys are dropped, so user-visible markdown bodies in fields
-    like ``event.content`` are preserved.
+    Three rules (plan §Phase 3 Step 3.2), aligned with
+    ``deeptutor.services.question_followup._drop_hidden_value``:
+
+      1. Drop dict keys in ``_HIDDEN_PAYLOAD_KEYS``.
+      2. Drop the whole dict when it is an evidence-style entry whose
+         field-name slot points at a hidden authority.
+      3. Filter ``source_fields`` lists to non-hidden entries; drop slot if
+         emptied.
+
+    Scalars pass through untouched. A ``None`` return value from
+    ``_redact_dict_for_public`` signals "drop me" — list iteration and dict
+    slot iteration both honour that signal.
     """
     if isinstance(value, dict):
         return _redact_dict_for_public(value)
     if isinstance(value, list):
-        return [_redact_value_for_public(item) for item in value]
+        out: list[Any] = []
+        for item in value:
+            cleaned = _redact_value_for_public(item)
+            if cleaned is None and isinstance(item, dict):
+                continue
+            out.append(cleaned)
+        return out
     return value
 
 
-def _redact_dict_for_public(payload: dict[str, Any]) -> dict[str, Any]:
+def _redact_dict_for_public(payload: dict[str, Any]) -> dict[str, Any] | None:
     """Drop hidden keys at this level and recurse into nested values.
+
+    Returns ``None`` when the dict itself is a hidden evidence entry; caller
+    treats that as "drop this slot/list item".
 
     ``question_followup_context`` and ``active_object`` keep their canonical
     redactors so existing question_followup public-payload semantics are
     preserved exactly.
     """
+    if _is_hidden_evidence_entry(payload):
+        return None
     clean: dict[str, Any] = {}
     for key, value in payload.items():
         if key in _HIDDEN_PAYLOAD_KEYS:
+            continue
+        if key == "source_fields" and isinstance(value, list):
+            kept = [
+                item
+                for item in value
+                if not (isinstance(item, str) and item in _HIDDEN_PAYLOAD_KEYS)
+            ]
+            if not kept:
+                continue
+            clean[key] = kept
             continue
         if key == "question_followup_context" and isinstance(value, dict):
             redacted = redact_question_followup_context_for_public(value)
@@ -218,7 +263,10 @@ def _redact_dict_for_public(payload: dict[str, Any]) -> dict[str, Any]:
         if key == "active_object" and isinstance(value, dict):
             clean[key] = _redact_active_object_for_public(value)
             continue
-        clean[key] = _redact_value_for_public(value)
+        cleaned = _redact_value_for_public(value)
+        if cleaned is None and isinstance(value, dict):
+            continue
+        clean[key] = cleaned
     return clean
 
 
@@ -242,12 +290,14 @@ def _redact_metadata_for_public(metadata: dict[str, Any]) -> dict[str, Any]:
     plan §Phase 3 Step 3.2 — hidden grading_key/correct_answer/scoring_points/explanation
     must not leak through any stream event metadata to the client, at any
     nesting depth (e.g. ``metadata.question.correct_answer`` on progress
-    events). String values are NOT rewritten — only dictionary keys are
-    dropped, so user-visible markdown bodies stay intact.
+    events, or ``construction_grading_result.evidence_refs[i]`` where
+    ``field='correct_answer'`` leaks the standard answer via ``value``).
+    String values are NOT rewritten — only dictionary keys are dropped, so
+    user-visible markdown bodies stay intact.
     """
     if not isinstance(metadata, dict):
         return metadata
-    return _redact_dict_for_public(metadata)
+    return _redact_dict_for_public(metadata) or {}
 
 
 def _redact_event_for_public(event: dict[str, Any]) -> dict[str, Any]:
