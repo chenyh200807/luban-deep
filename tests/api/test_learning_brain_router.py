@@ -139,7 +139,13 @@ def test_learning_brain_harness_success_training_persists_improvement_chain(
     assert second_payload["graph_chain"]["has_training_uses_question"] is True
     assert second_payload["graph_chain"]["has_training_improved_error"] is True
     assert second_payload["improvement_signals"]
-    assert second_payload["stale_claims"]
+    # Note: ``stale_claims`` stays empty here by design. The harness flow only
+    # produces concept-only improvement signals (no typed error edge on
+    # success), and ``test_concept_only_improvement_signal_does_not_clear_specific_weak_points``
+    # locks in that concept-only improvements never decay specific (concept,
+    # error_code) weak points at the synthesis layer. Improvement visibility
+    # for the graph chain is asserted above via ``has_training_improved_error``.
+    assert second_payload["stale_claims"] == []
 
 
 def test_learning_brain_projection_returns_wechat_read_model(

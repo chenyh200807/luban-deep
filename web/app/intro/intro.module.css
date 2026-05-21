@@ -9,6 +9,10 @@
     #f7faf9;
   background-size: 56px 56px;
   touch-action: manipulation;
+  /* globals.css 把 html/body 钉成 overflow:hidden，因此 /intro 的滚动必须由
+     .page 自己承担。Tailwind 工具类提供 height: 100dvh + overflow-y: auto；
+     这里补 iOS Safari 的 momentum scrolling 兼容，避免 375x812 长内容被卡死。 */
+  -webkit-overflow-scrolling: touch;
 }
 
 .page::before,

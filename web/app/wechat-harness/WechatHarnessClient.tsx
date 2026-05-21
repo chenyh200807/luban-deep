@@ -2,7 +2,7 @@
 
 /* eslint-disable i18n/no-literal-ui-text */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   AlertTriangle,
   Brain,
@@ -462,11 +462,27 @@ function LearningBrainQaPanel() {
       if (!response.ok) {
         const detail = typeof payload?.detail === 'string' ? payload.detail : ''
         if (response.status === 404) {
-          throw new Error(
-            detail.includes('disabled')
-              ? '学情闭环 QA 后端 endpoint 未启用：请在 backend 设置 DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA=true 并重启。'
-              : detail || `学情闭环 endpoint 不存在 (404)。`
-          )
+          // 三种已知 404 来源都必须给可执行 runbook：
+          //   (a) backend 显式 gate 关闭：detail 含 "disabled"
+          //   (b) Next.js dev proxy 未注册该路由：detail = "Not Found" 或空
+          //   (c) production 路由不命中：detail 任意但不含 "disabled"
+          // 任何一种都需要同样的三件事才能恢复：开 env flag、重启 backend、
+          // 确认路由已注册。直接把 runbook 全摆出来，不要让用户去猜。
+          const trimmedDetail = detail.trim()
+          const runbook =
+            '可能原因与修复步骤：\n' +
+            '  1. backend 未开启 QA gate — 设置 DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA=true（仅 runtime_environment=local 生效）\n' +
+            '  2. backend 进程未重启 — 改 env 后必须重启 `uvicorn deeptutor.api.main:app --port 8001`\n' +
+            '  3. harness route 未注册 — 确认 deeptutor/api/routers/learning_brain.py 已被主 router include；或 Next.js dev proxy 的 NEXT_API_PROXY_TARGET 指向了未含该路由的环境'
+          if (trimmedDetail.toLowerCase().includes('disabled')) {
+            throw new Error(
+              '学情闭环 QA 后端 endpoint 未启用 (backend 显式 404 disabled)。\n' + runbook
+            )
+          }
+          const detailSuffix = trimmedDetail
+            ? `\n后端返回 detail：${trimmedDetail}`
+            : '\n后端 detail 为空（典型为 Next.js dev proxy 或上游路由未命中）。'
+          throw new Error(`学情闭环 endpoint 返回 404。${detailSuffix}\n` + runbook)
         }
         if (response.status === 502 || response.status === 503 || response.status === 504) {
           throw new Error(
@@ -655,10 +671,6 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
   const [frameIndex, setFrameIndex] = useState(0)
   const [query, setQuery] = useState('')
   const [activeTag, setActiveTag] = useState('全部')
-  const currentCase = cases[caseIndex]
-  const frameLabel =
-    currentCase.streamFrames[Math.min(frameIndex, currentCase.streamFrames.length - 1)].label
-  const state = stateForMode(currentCase, mode, frameIndex)
   const allTags = useMemo(
     () => Array.from(new Set(cases.flatMap(item => item.tags))).slice(0, 12),
     [cases]
@@ -674,18 +686,21 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
         return matchesTag && (!normalizedQuery || haystack.includes(normalizedQuery))
       })
   }, [activeTag, cases, query])
-  // Reconcile selected case with filter so the detail panel never shows a case
-  // hidden from the left rail (regression: tag-chip click stranded stale case).
-  useEffect(() => {
-    if (filteredCases.length === 0) return
-    const stillVisible = filteredCases.some(({ index }) => index === caseIndex)
-    if (!stillVisible) {
-      const nextIndex = filteredCases[0].index
-      setCaseIndex(nextIndex)
-      setFrameIndex(0)
-      setMode('final')
-    }
+  // Reconcile selected case with filter via a derived index instead of a
+  // set-state-in-effect cascade. When a tag/search hides the previously selected
+  // case, the detail panel falls back to the first remaining filtered case.
+  // Empty filter result keeps the raw selection so a follow-up "全部" reset
+  // returns to the same case the user was inspecting (regression guard for the
+  // "tag-chip filter never strands a hidden case in detail" Playwright spec).
+  const activeCaseIndex = useMemo(() => {
+    if (filteredCases.length === 0) return caseIndex
+    if (filteredCases.some(({ index }) => index === caseIndex)) return caseIndex
+    return filteredCases[0].index
   }, [filteredCases, caseIndex])
+  const currentCase = cases[activeCaseIndex]
+  const frameLabel =
+    currentCase.streamFrames[Math.min(frameIndex, currentCase.streamFrames.length - 1)].label
+  const state = stateForMode(currentCase, mode, frameIndex)
   const parityPassed = useMemo(
     () => cases.filter(item => item.parityWarnings.length === 0).length,
     [cases]
@@ -766,7 +781,7 @@ export default function WechatHarnessClient({ cases }: WechatHarnessClientProps)
           ) : (
             filteredCases.map(({ item, index }) => (
               <button
-                aria-current={index === caseIndex ? 'true' : undefined}
+                aria-current={index === activeCaseIndex ? 'true' : undefined}
                 className={styles.caseButton}
                 data-testid="harness-case-button"
                 key={item.id}

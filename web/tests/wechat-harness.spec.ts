@@ -224,3 +224,95 @@ test('wechat harness displays learning brain grading and synthesis result', asyn
   await expect(visibleChain).not.toContainText('Compiled truth + timeline')
   await expect(visibleChain).not.toContainText('Typed graph chain')
 })
+
+test('wechat harness never leaks grading authority into SSR HTML or hydrated DOM', async ({
+  page,
+  request,
+}) => {
+  const forbidden = [
+    'correct_answer',
+    'correctAnswer',
+    'scoring_points',
+    'scoringPoints',
+    'grading_key',
+    'gradingKey',
+    'grading_authority',
+    'gradingAuthority',
+    'reference_answer',
+    'followup_context',
+    'followupContext',
+    'LEAK_',
+    '正确答案：',
+    '参考答案：',
+  ]
+
+  // SSR HTML (raw response, before hydration)
+  const response = await request.get('/wechat-harness')
+  expect(response.status()).toBe(200)
+  const ssrHtml = await response.text()
+  for (const marker of forbidden) {
+    expect(ssrHtml, `SSR HTML must not contain ${marker}`).not.toContain(marker)
+  }
+
+  // Hydrated DOM (after React renders client-side)
+  await page.goto('/wechat-harness')
+  await expect(page.getByTestId('wechat-harness-root')).toBeVisible()
+  const hydratedHtml = await page.evaluate(() => document.documentElement.outerHTML)
+  const hydratedText = await page.evaluate(() => document.documentElement.innerText)
+  for (const marker of forbidden) {
+    expect(hydratedHtml, `hydrated DOM HTML must not contain ${marker}`).not.toContain(marker)
+    expect(hydratedText, `hydrated DOM innerText must not contain ${marker}`).not.toContain(marker)
+  }
+})
+
+test('wechat harness still surfaces runbook when 404 detail is fastapi default Not Found', async ({
+  page,
+}) => {
+  // Regression for the corner where the harness route was never registered
+  // (env flag off at uvicorn start) → FastAPI returns plain
+  // `{"detail":"Not Found"}`. UI must still surface the env-flag runbook,
+  // not echo the bare detail.
+  await page.route('**/api/v1/learning-brain/harness-case-grading', async route => {
+    await route.fulfill({
+      status: 404,
+      contentType: 'application/json',
+      body: JSON.stringify({ detail: 'Not Found' }),
+    })
+  })
+
+  await page.goto('/wechat-harness')
+  await page.getByTestId('learning-brain-run').click()
+  const errorPanel = page.getByTestId('learning-brain-error')
+  await expect(errorPanel).toBeVisible()
+  await expect(errorPanel).toContainText('DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA')
+  await expect(errorPanel).toContainText('uvicorn deeptutor.api.main:app')
+  await expect(errorPanel).not.toHaveText('Not Found')
+})
+
+test('intro mobile 375x812 is scrollable via the page wrapper so footer is reachable', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.goto('/intro')
+
+  const scrollEl = page.getByTestId('intro-page-scroll')
+  await expect(scrollEl).toBeVisible()
+
+  const layout = await scrollEl.evaluate(el => ({
+    clientHeight: el.clientHeight,
+    scrollHeight: el.scrollHeight,
+    overflowY: getComputedStyle(el).overflowY,
+  }))
+  expect(layout.overflowY).toBe('auto')
+  expect(layout.scrollHeight).toBeGreaterThan(layout.clientHeight)
+
+  await scrollEl.evaluate(el => el.scrollTo(0, el.scrollHeight))
+  const afterScroll = await scrollEl.evaluate(el => ({
+    scrollTop: el.scrollTop,
+    maxScroll: el.scrollHeight - el.clientHeight,
+  }))
+  expect(afterScroll.scrollTop).toBe(afterScroll.maxScroll)
+  expect(afterScroll.scrollTop).toBeGreaterThan(0)
+
+  await expect(page.locator('footer').first()).toBeInViewport()
+})

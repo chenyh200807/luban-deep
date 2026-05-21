@@ -120,12 +120,11 @@
 
   {
     "name": "mcq_followup_context_correct_answer",
-    "description": "已知泄露：mcq.followup_context.correct_answer 字段原样保留在 followupContext 里。如果上层在 wxml 渲染 mcqCards[].followupContext，会看到正确答案。",
+    "description": "现状已拦：mcq.followup_context.correct_answer 在 normalizeMcqQuestion 内通过 sanitizeFollowupContext 递归剥离。followupContext 仅保留 question_id 等非敏感字段。",
     "attack_vector": "mcq.followup_context",
     "marker": "LEAK_FOLLOWUP_CTX_007",
-    "must_be_blocked": false,
-    "known_gap": "normalizeMcqQuestion 把 followup_context 当作不透明对象原样存（用于 follow-up 上下文回传），未剥离 correct_answer 字段。chat.wxml 当前不直接渲染 followupContext，但 chat.js 把它存进 state，setData 后任何 wxml 调试视图、或 future 的 progressive disclosure 视图都可能误把它打出来。",
-    "minimum_fix_suggestion": "normalizeMcqQuestion 内：followupContext = Object.assign({}, raw); delete followupContext.correct_answer; delete followupContext.scoring_points; delete followupContext.explanation; — 同时在 chat.js _onPresentation 路径再做一道防御扫描。",
+    "must_be_blocked": true,
+    "fix_path": "wx_miniprogram/utils/render-schema.js: sanitizeFollowupContext 递归删除 _REDACTED_AUTHORITY_KEYS（correct_answer / scoring_points / explanation / grading_key / grading_authority / reference_answer / answer_key / grader_secret 及其 camelCase 变体），normalizeMcqQuestion 在写入 followupContext 前调用。",
     "payload": {
       "content": "请作答。",
       "presentation": {
