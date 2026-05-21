@@ -429,6 +429,9 @@ function deriveAiMessageRenderState(input) {
     plainTextFallback: renderableContent,
     hasStructuredContent: useStructuredBlocks,
     streamPhase: "complete",
+    progressiveDisclosure: renderSchema.sanitizeProgressiveDisclosure
+      ? renderSchema.sanitizeProgressiveDisclosure(input && (input.progressiveDisclosure || input.progressive_disclosure))
+      : null,
   });
 }
 

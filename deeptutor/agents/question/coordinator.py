@@ -643,7 +643,7 @@ class AgentCoordinator:
         counters.setdefault("lightweight_batch_fallback", "none")
 
         # 主路径：单次 LLM 出 N 题。
-        if len(templates) <= 5:
+        if len(templates) <= 3:
             counters["llm_calls"] += 1
             batch = await generator.process_batch_lightweight(
                 templates=templates,
@@ -659,7 +659,7 @@ class AgentCoordinator:
         if 4 <= len(templates) <= 5:
             half = 3
             first, second = templates[:half], templates[half:]
-            counters["llm_calls"] += 1  # 已经在主路径加过一次；这里是 fallback 重试
+            counters["llm_calls"] += 2  # split path 实际两次 batch (3+rest)
             batch_a = await generator.process_batch_lightweight(
                 templates=first,
                 user_topic=user_topic,

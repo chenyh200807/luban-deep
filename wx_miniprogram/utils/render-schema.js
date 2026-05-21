@@ -450,6 +450,55 @@ function createRenderModel(rawModel) {
       ["idle", "streaming", "complete"],
       "idle",
     ),
+    progressiveDisclosure: model.progressiveDisclosure || null,
+  };
+}
+
+
+var _HIDDEN_DISCLOSURE_KEYS = ["grading_key", "correct_answer", "scoring_points", "explanation"];
+
+function sanitizeProgressiveDisclosure(payload) {
+  if (!payload || typeof payload !== "object") return null;
+  var verdict = _asString(payload.verdict || "");
+  var diagnosis = _asString(payload.one_line_diagnosis || payload.oneLineDiagnosis || "");
+  if (!verdict && !diagnosis) return null;
+  function sanitizeAction(action) {
+    if (!action || typeof action !== "object") return null;
+    var slug = _asString(action.slug || "");
+    var label = _asString(action.label || "");
+    var role = _asString(action.role || "secondary");
+    if (!slug || !label) return null;
+    return { slug: slug, label: label, role: role === "primary" ? "primary" : "secondary" };
+  }
+  var primary = sanitizeAction(payload.primary_next_action || payload.primaryNextAction);
+  var rawSecondary = Array.isArray(payload.secondary_actions || payload.secondaryActions)
+    ? payload.secondary_actions || payload.secondaryActions
+    : [];
+  var secondary = [];
+  for (var i = 0; i < rawSecondary.length && secondary.length < 2; i += 1) {
+    var chip = sanitizeAction(rawSecondary[i]);
+    if (chip) secondary.push(chip);
+  }
+  var sections = {};
+  if (payload.sections && typeof payload.sections === "object") {
+    var keys = Object.keys(payload.sections);
+    for (var k = 0; k < keys.length; k += 1) {
+      var key = keys[k];
+      if (_HIDDEN_DISCLOSURE_KEYS.indexOf(key) >= 0) continue;
+      sections[key] = _asString(payload.sections[key] || "");
+    }
+  }
+  var pacing = _asString(payload.difficulty_pacing || payload.difficultyPacing || "hold");
+  var allowedPacing = { hold: 1, suggest_consolidation: 1, suggest_step_up: 1 };
+  if (!allowedPacing[pacing]) pacing = "hold";
+  return {
+    verdict: verdict.slice(0, 120),
+    oneLineDiagnosis: diagnosis.slice(0, 80),
+    primaryNextAction: primary,
+    secondaryActions: secondary,
+    sections: sections,
+    difficultyPacing: pacing,
+    gradingSource: _asString(payload.grading_source || payload.gradingSource || ""),
   };
 }
 
@@ -465,4 +514,5 @@ module.exports = {
   normalizeBlock: normalizeBlock,
   createCanonicalMessage: createCanonicalMessage,
   createRenderModel: createRenderModel,
+  sanitizeProgressiveDisclosure: sanitizeProgressiveDisclosure,
 };

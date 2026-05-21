@@ -287,3 +287,89 @@ def test_lightweight_bank_hit_short_circuits_llm(
     gk = qa_pair.get("grading_key") or {}
     assert gk.get("source") == "questions_bank"
     assert gk.get("correct_answer") == "A"
+
+
+def test_lightweight_three_questions_counters_equal_real_calls(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="再出3题",
+            preference="",
+            num_questions=3,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+        )
+    )
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert fake_gen.batch_call_count == 1
+    assert fake_gen.call_count == 0
+    assert counters.get("llm_calls") == fake_gen.batch_call_count + fake_gen.call_count == 1
+
+
+def test_lightweight_five_questions_counters_exactly_two(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="再出5题",
+            preference="",
+            num_questions=5,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+        )
+    )
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert fake_gen.batch_call_count == 2
+    assert fake_gen.call_count == 0
+    assert counters.get("llm_calls") == fake_gen.batch_call_count + fake_gen.call_count == 2
+    assert counters.get("lightweight_batch_fallback") == "split_batch"
+
+
+def test_lightweight_four_questions_counters_exactly_two(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="再出4题",
+            preference="",
+            num_questions=4,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+        )
+    )
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert fake_gen.batch_call_count == 2
+    assert counters.get("llm_calls") == 2
+    assert counters.get("lightweight_batch_fallback") == "split_batch"
+
+
+def test_lightweight_parallel_fallback_counters_match_real_calls(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch, batch_fail=True)
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="再出2题",
+            preference="",
+            num_questions=2,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+        )
+    )
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert fake_gen.batch_call_count == 1
+    assert fake_gen.call_count == 2
+    assert counters.get("llm_calls") == fake_gen.batch_call_count + fake_gen.call_count == 3
+    assert counters.get("lightweight_batch_fallback") == "parallel"
