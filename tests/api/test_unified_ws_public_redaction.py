@@ -118,3 +118,100 @@ def test_redact_metadata_recursively_clears_nested_metadata() -> None:
 def test_redact_event_no_metadata_passthrough() -> None:
     event = {"type": "session", "session_id": "s1"}
     assert _redact_event_for_public(event) == event
+
+
+# plan §Phase 3 Step 3.2 — progress events such as deep_question generation
+# observations expose ``metadata.question.correct_answer`` / ``grading_key`` /
+# ``explanation`` directly on a generic dict that is NOT one of the canonical
+# redacted surfaces (question_followup_context / active_object). The public
+# boundary must drop those keys at any nesting depth.
+def test_redact_metadata_question_subobject_drops_hidden_keys() -> None:
+    event = {
+        "type": "progress",
+        "visibility": "internal",
+        "stage": "generation",
+        "metadata": {
+            "question": {
+                "question_id": "q_demo",
+                "stem": "请选择正确答案",
+                "options": [{"id": "A", "text": "alpha"}, {"id": "B", "text": "beta"}],
+                "correct_answer": "A",
+                "grading_key": {"correct_answer": "A", "scoring_points": ["sp1"]},
+                "explanation": "因为 alpha 才对……",
+            }
+        },
+    }
+    redacted = _redact_event_for_public(event)
+    question = redacted["metadata"]["question"]
+    for forbidden in ("correct_answer", "grading_key", "explanation"):
+        assert forbidden not in question, f"metadata.question still leaks {forbidden}"
+    # 安全字段保留
+    assert question["question_id"] == "q_demo"
+    assert question["stem"] == "请选择正确答案"
+    assert question["options"][0]["id"] == "A"
+
+
+def test_redact_metadata_drops_hidden_keys_in_list_items() -> None:
+    metadata = {
+        "questions": [
+            {
+                "question_id": "q_1",
+                "correct_answer": "A",
+                "grading_key": {"correct_answer": "A"},
+                "explanation": "leak1",
+            },
+            {
+                "question_id": "q_2",
+                "scoring_points": ["leak-sp"],
+                "stem": "ok",
+            },
+        ]
+    }
+    redacted = _redact_metadata_for_public(metadata)
+    blob = json.dumps(redacted, ensure_ascii=False)
+    for forbidden in ("correct_answer", "grading_key", "explanation", "scoring_points", "leak1", "leak-sp"):
+        assert forbidden not in blob, f"list items still leak {forbidden}"
+    assert redacted["questions"][0]["question_id"] == "q_1"
+    assert redacted["questions"][1]["stem"] == "ok"
+
+
+def test_redact_metadata_drops_hidden_keys_in_deeply_nested_dict() -> None:
+    metadata = {
+        "audit": {
+            "trace": {
+                "samples": [
+                    {
+                        "name": "sample-A",
+                        "payload": {
+                            "question": {
+                                "stem": "Q?",
+                                "correct_answer": "B",
+                                "grading_key": {"scoring_points": ["sp"]},
+                            }
+                        },
+                    }
+                ]
+            }
+        }
+    }
+    redacted = _redact_metadata_for_public(metadata)
+    blob = json.dumps(redacted, ensure_ascii=False)
+    for forbidden in ("correct_answer", "grading_key", "scoring_points"):
+        assert forbidden not in blob, f"deeply nested leak: {forbidden}"
+    assert (
+        redacted["audit"]["trace"]["samples"][0]["payload"]["question"]["stem"] == "Q?"
+    )
+
+
+def test_redact_metadata_preserves_string_bodies_and_non_hidden_keys() -> None:
+    # 用户可见 markdown 正文（例如 ``content`` / ``response``）含 "正确答案" 之类的
+    # 解释文本，不应被字符串替换；只 drop hidden dict key。
+    metadata = {
+        "presentation": {"blocks": [{"type": "markdown", "text": "Q1 正确答案 是 A"}]},
+        "response": "请看下面的解析与正确答案：……",
+        "tool_traces": [],
+    }
+    redacted = _redact_metadata_for_public(metadata)
+    assert redacted["presentation"]["blocks"][0]["text"] == "Q1 正确答案 是 A"
+    assert redacted["response"] == "请看下面的解析与正确答案：……"
+    assert redacted["tool_traces"] == []

@@ -477,9 +477,15 @@ function LearningBrainQaPanel() {
           throw new Error(`参数校验失败：${detail || '请检查 User ID 与作答文本'}`)
         }
         if (response.status >= 500) {
-          throw new Error(
-            `学情闭环后端返回 ${response.status}${detail ? `：${detail}` : '（无 detail，请查 backend 日志）'}`
-          )
+          // Next.js dev proxy returns 500 (not 502) when the upstream FastAPI is
+          // unreachable. Empty body + 500 is the same signature as a real backend
+          // 5xx, so surface both possibilities instead of guessing.
+          if (!detail) {
+            throw new Error(
+              `学情闭环后端返回 ${response.status}（响应无 detail）。请检查：(a) backend 是否运行 \`uvicorn deeptutor.api.main:app --port 8001\`；(b) backend 日志是否有未捕获异常。`
+            )
+          }
+          throw new Error(`学情闭环后端返回 ${response.status}：${detail}`)
         }
         throw new Error(detail || `学情闭环请求失败 (HTTP ${response.status})`)
       }

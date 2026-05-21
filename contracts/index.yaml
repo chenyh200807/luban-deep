@@ -31,6 +31,7 @@ domains:
     test_files:
       - tests/api/test_system_router.py
       - tests/api/test_unified_ws_turn_runtime.py
+      - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_mobile_router.py
       - tests/services/session/test_context_builder.py
     schema_files:
@@ -61,6 +62,7 @@ domains:
     test_files:
       - tests/runtime/test_orchestrator_autoroute.py
       - tests/api/test_unified_ws_turn_runtime.py
+      - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_mobile_router.py
     schema_files:
       - deeptutor/capabilities/request_contracts.py

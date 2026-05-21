@@ -176,33 +176,39 @@ def _bind_authenticated_user(
 
 # plan §Phase 3 Step 3.2 / Batch C Gap 3 — public payload redaction at the
 # /api/v1/ws boundary. Hidden grading authority (grading_key, correct_answer,
-# scoring_points, explanation) must never leave the server through this stream.
+# scoring_points, explanation) must never leave the server through this stream,
+# regardless of nesting depth or visibility=internal/public.
 _HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = (
     "grading_key",
     "scoring_points",
+    "correct_answer",
+    "explanation",
 )
 
 
-def _redact_active_object_for_public(active_object: dict[str, Any] | None) -> dict[str, Any] | None:
-    if not isinstance(active_object, dict):
-        return active_object
-    redacted = {key: value for key, value in active_object.items() if key not in _HIDDEN_PAYLOAD_KEYS}
-    snapshot = redacted.get("state_snapshot")
-    if isinstance(snapshot, dict):
-        redacted["state_snapshot"] = redact_question_followup_context_for_public(snapshot) or {}
-    return redacted
+def _redact_value_for_public(value: Any) -> Any:
+    """Recursively drop hidden keys from nested dicts/lists.
 
-
-def _redact_metadata_for_public(metadata: dict[str, Any]) -> dict[str, Any]:
-    """Deep-copy metadata dict and drop hidden authority fields.
-
-    plan §Phase 3 Step 3.2 — hidden grading_key/correct_answer/scoring_points/explanation
-    must not leak through any stream event metadata to the client.
+    Scalar values (str/int/float/bool/None) pass through untouched — only
+    dictionary keys are dropped, so user-visible markdown bodies in fields
+    like ``event.content`` are preserved.
     """
-    if not isinstance(metadata, dict):
-        return metadata
+    if isinstance(value, dict):
+        return _redact_dict_for_public(value)
+    if isinstance(value, list):
+        return [_redact_value_for_public(item) for item in value]
+    return value
+
+
+def _redact_dict_for_public(payload: dict[str, Any]) -> dict[str, Any]:
+    """Drop hidden keys at this level and recurse into nested values.
+
+    ``question_followup_context`` and ``active_object`` keep their canonical
+    redactors so existing question_followup public-payload semantics are
+    preserved exactly.
+    """
     clean: dict[str, Any] = {}
-    for key, value in metadata.items():
+    for key, value in payload.items():
         if key in _HIDDEN_PAYLOAD_KEYS:
             continue
         if key == "question_followup_context" and isinstance(value, dict):
@@ -212,11 +218,36 @@ def _redact_metadata_for_public(metadata: dict[str, Any]) -> dict[str, Any]:
         if key == "active_object" and isinstance(value, dict):
             clean[key] = _redact_active_object_for_public(value)
             continue
-        if key == "metadata" and isinstance(value, dict):
-            clean[key] = _redact_metadata_for_public(value)
-            continue
-        clean[key] = value
+        clean[key] = _redact_value_for_public(value)
     return clean
+
+
+def _redact_active_object_for_public(active_object: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(active_object, dict):
+        return active_object
+    redacted: dict[str, Any] = {}
+    for key, value in active_object.items():
+        if key in _HIDDEN_PAYLOAD_KEYS:
+            continue
+        if key == "state_snapshot" and isinstance(value, dict):
+            redacted[key] = redact_question_followup_context_for_public(value) or {}
+            continue
+        redacted[key] = _redact_value_for_public(value)
+    return redacted
+
+
+def _redact_metadata_for_public(metadata: dict[str, Any]) -> dict[str, Any]:
+    """Deep-copy metadata dict and drop hidden authority fields.
+
+    plan §Phase 3 Step 3.2 — hidden grading_key/correct_answer/scoring_points/explanation
+    must not leak through any stream event metadata to the client, at any
+    nesting depth (e.g. ``metadata.question.correct_answer`` on progress
+    events). String values are NOT rewritten — only dictionary keys are
+    dropped, so user-visible markdown bodies stay intact.
+    """
+    if not isinstance(metadata, dict):
+        return metadata
+    return _redact_dict_for_public(metadata)
 
 
 def _redact_event_for_public(event: dict[str, Any]) -> dict[str, Any]:
