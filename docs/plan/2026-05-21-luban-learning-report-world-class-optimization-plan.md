@@ -992,6 +992,81 @@ pytest -q tests/services/learner_state/test_learning_evidence_quality_gate.py te
 
 Expected: quality gate tests pass before any attempt detail or UI task is marked complete.
 
+### Task 0.5: Contract & Schema Surface Registration (Round 2 BLOCKER B3)
+
+**Goal:** 在动 mobile router 任何代码前，先把契约 + secret 环境 + RLS migration 三件 surface 落地，防止后续 Task 走完才发现合规闸门没开。
+
+**Files:**
+- Modify: `contracts/index.yaml`
+- Create: `contracts/learning-report.md`
+- Modify: `.env.example` / `docs/runbook/learning-report-flag-changes.md`
+- Modify: production secret manager 配置（阿里云 ACK / 容器 env）
+- Create: `supabase/migrations/20260521000100_learner_mistake_book_items.sql`（仅 schema + RLS，业务路由在 Task 3 接入）
+- Create: `docs/zh/guide/learning-report-contract.md`
+
+- [ ] **Step 1: Update `contracts/index.yaml`**
+
+把新 endpoints / schema files 加到既有域：
+
+```yaml
+turn:
+  protected_patterns:
+    - deeptutor/api/routers/mobile.py
+    + deeptutor/services/learner_state/attempt_refs.py
+    + deeptutor/services/learner_state/attempt_detail_read_model.py
+    + deeptutor/services/learner_state/mistake_book.py
+    + deeptutor/services/learner_state/training_intent.py
+    + deeptutor/services/learner_state/home_personalization.py
+  schema_files:
+    + contracts/learning-report.md
+    + deeptutor/services/learner_state/learning_report_read_model.py
+  test_files:
+    + tests/services/learner_state/test_attempt_refs.py
+    + tests/services/learner_state/test_attempt_detail_read_model.py
+    + tests/services/learner_state/test_mistake_book.py
+    + tests/services/learner_state/test_training_intent.py
+    + tests/services/learner_state/test_conversation_learning_evidence_event.py
+    + tests/services/learner_state/test_learning_evidence_quality_gate.py
+    + tests/services/member_console/test_home_dashboard_learning_projection.py
+```
+
+- [ ] **Step 2: Write `contracts/learning-report.md`**
+
+至少声明：
+- read model 的 authority 边界（唯一 producer = `learning_report_read_model.build_learning_report_read_model`）；
+- v1 / v2 schema 字段矩阵 + retirement 计划；
+- attempt detail / mistake book / training intent / home projection 的 owner 与稳定边界；
+- conversation evidence `learning_signal_type` 与 `evidence_source` 的封闭枚举值；
+- 任何新字段引入都必须更新本文件 + PR description 显式列出 contract diff。
+
+- [ ] **Step 3: 生产 secret 准备 (BLOCKER B5)**
+
+- 在阿里云 ACK 容器环境为 `DEEPTUTOR_ATTEMPT_REF_SECRET` 写入随机 32 字节值（一次性生成，存到 secret manager）；
+- 在 `.env.example` 中加 placeholder + 注释"必须在生产 override，否则 import 失败"；
+- 启动期日志查看 `attempt_ref secret fingerprint=...` 与 secret manager 中 SHA-1 前 8 位对账。
+
+- [ ] **Step 4: 跑 RLS migration (BLOCKER B8)**
+
+- 在 staging supabase 跑 `20260521000100_learner_mistake_book_items.sql`；
+- 用 anon JWT 模拟 user_id=A 尝试 select user_id=B 的行，预期空集；
+- 用 service_role 验证全表可读；
+- 验证通过后再开通 Task 3 业务路径。
+
+- [ ] **Step 5: Run gate**
+
+```bash
+pytest -q tests/contracts/test_index_consistency.py
+python scripts/check_secret_envs.py --env prod
+supabase db diff --linked
+```
+
+Expected:
+- contract test green；
+- secret check 在缺失时退非零；
+- staging RLS 验证通过。
+
+阻断条件：本 Task 任何一步未完成时禁止进入 Task 1。
+
 ### Task 1: Attempt Ref Authority
 
 **Goal:** 前端永远拿 opaque `attempt_ref`，后端能安全解析到 `learning_evidence` event。
@@ -2094,6 +2169,22 @@ Before declaring Done:
 | 答疑 evidence 被误用为掌握证明 | `event_type=conversation_learning_evidence` 只能增加 exposure/confusion/recency，不能单独提升为 stable mastery |
 | 首页推荐又变成前端硬编码 | `home_dashboard.today_focus/recommended_prompts` 是页面唯一输入，页面只渲染和上报点击 |
 | 推荐问题偏离学情 | 每个 prompt intent 必须有 `reason` 和 source，E2E 断言与 weak point / due review / conversation signal 对齐 |
+| **Round 2 R1:** 新 endpoints 未更新 `contracts/index.yaml` → CI contract gate fail or 长期漂移 | Task 0.5 强制前置，contract diff 出现在 PR 描述；CI 阻断 |
+| **Round 2 R2:** schema_version=2 直接换字段破前端 | dual-emit + version negotiation + Stage 5 退役流程，禁止单 PR 删 v1 字段 |
+| **Round 2 R3:** `attempt_ref` secret 缺失 fall-through 到 dev | 模块导入期 fail-closed；启动日志 fingerprint 对账；CI prod env 模拟 |
+| **Round 2 R4:** dashboard 叠加 read model 击穿 p95 | projection 异步预热 + cache；dashboard 只读 projection；写失败不阻塞 |
+| **Round 2 R5:** attempt detail O(n) 扫描 | 强制 indexed reader `read_learning_evidence_event`；CI 性能压测 gate；本地 fallback LRU |
+| **Round 2 R6:** mistake book 无 RLS / 跨学科污染 | migration 自带 RLS + subject_id 索引；read 默认按 subject 分组 |
+| **Round 2 R7:** conversation evidence 被 UI 当成"已掌握"信号 | `learning_signal_type` 封闭枚举 + read model 强制 cap mastery；test 覆盖"反复讲不练" |
+| **Round 2 R8:** 推荐 prompt 反复 click 形成正反馈 | 同 (concept, prompt_type) 自然日内 ranking 影响 ≤ 1 次；trace 标 dedupe |
+| **Round 2 R9:** starter fallback 空池 | 必填学科种子 prompts；缺学科时显示"先做摸底测评"，禁止伪 starter |
+| **Round 2 R10:** 训练闭环 `training_intent_id` 未持久化 | grading writeback 强制透传；read model 按 intent_id 计算改善；缺 id 不展示改善标签 |
+| **Round 2 R11:** PII 永久写入 ledger | `user_question` 写入前 redact；ledger payload 加 `user_question_redacted=true`；right-to-erasure 流程接入用户注销 |
+| **Round 2 R12:** 多设备 bookmark 状态不一致 | 响应带 etag + generated_at；mutation 校验 If-Match；前端不长期缓存 bookmark 状态 |
+| **Round 2 R13:** Langfuse trace 缺关键 id → 复盘断链 | 强制三键 (`learning_training_intent_id / mistake_book_event_id / home_prompt_intent_id`)；缺则 trace 校验 fail |
+| **Round 2 R14:** iOS 微信 setData 大 payload 卡顿 | payload p95 < 80KB；> 60KB 触发警告；Task 8 验证三容器（iOS/Android/PC WeChat） |
+| **Round 2 R15:** 10 万 DAU 下 supabase read 瓶颈 | projection 缓存 + read replica；Task 9 性能 gate 用真实负载验证 |
+| **Round 2 R16:** 国际化伏笔缺位 | read model 增 `i18n_keys` 字段；v1 zh-CN only 但可演进；UI 文案不嵌入 read model |
 
 ---
 
