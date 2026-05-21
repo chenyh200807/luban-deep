@@ -51,6 +51,7 @@ class DeepQuestionRequestConfig(BaseModel):
     reveal_explanations: bool = False
     paper_path: str = ""
     max_questions: int = Field(default=10, ge=1, le=100)
+    learning_training_intent: dict[str, Any] | None = None
 
 
 class VisualizeRequestConfig(BaseModel):

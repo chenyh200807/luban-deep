@@ -1570,7 +1570,8 @@ def _build_mobile_turn_payload(
     if body.followup_question_context:
         config["followup_question_context"] = dict(body.followup_question_context)
     if body.prompt_intent:
-        config["learning_prompt_intent"] = dict(body.prompt_intent)
+        intent_key = "learning_training_intent" if capability == "deep_question" else "learning_prompt_intent"
+        config[intent_key] = dict(body.prompt_intent)
     if body.persist_user_message is False:
         config["_persist_user_message"] = False
     client_turn_id = str(body.client_turn_id or "").strip()

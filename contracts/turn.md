@@ -62,7 +62,7 @@
 - `web_search` 属于可配置联网能力，不是 TutorBot 默认知识链。若 config runtime 判定其关闭或未配置，mobile / web / unified turn adapter 必须过滤请求中的 `web_search`，也不得因时效性意图自动追加。客户端显式请求 `web_search` 只能表示“允许联网能力参与”，不得单独归一为 `interaction_hints.current_info_required=true`；是否需要当前信息必须由服务端 query intent / grounding decision 判定，且是否真正启用工具仍只由 config runtime 决定。
 - `mobile` 这类 HTTP bootstrap adapter 可以在服务端把认证态归一为 canonical `user_id` / `billing_context.user_id`，但客户端输入不得成为 learner / billing 身份真相，更不得因此长出第二套 session authority。
 - `mobile` 的 `/api/v1/chat/start-turn` 在创建 turn 前可以根据 canonical wallet ledger 做额度 fail-closed；额度耗尽时必须返回 `billing_quota_exceeded`，且不得创建 pending turn、不得写入第二套 session 状态。
-- `mobile` 的 `/api/v1/mobile/chat/start-turn` 可以接收 `prompt_intent`，入口只允许把它归一为 `config.learning_prompt_intent` 并交给 unified turn；它只能作为 post-turn conversation learning evidence 的结构化上下文，不得成为新的 session、route、learner-memory 或推荐 authority。
+- `mobile` 的 `/api/v1/mobile/chat/start-turn` 可以接收 `prompt_intent`：chat 路径只允许归一为 `config.learning_prompt_intent`，deep_question 路径只允许归一为 `config.learning_training_intent`。该 intent 只能作为 post-turn conversation evidence 或 deep_question 训练目标上下文，不得成为新的 session、route、learner-memory 或推荐 authority。
 - unified turn finalization 可以在 assistant answer 完成后触发 learner-state conversation evidence 写入；turn wrapper 只传 `turn_ref`、用户文本、assistant 文本与 `learning_prompt_intent`，实际分类、质量门槛、PII redaction、payload schema 必须由 learner-state helper 负责。
 - grounded TutorBot 可以在统一 turn runtime 内执行 retrieval-first / exact-first fast path；这只改变内部执行顺序，不改变 `/api/v1/ws` transport contract。
 - TutorBot response mode 的公开观测口径必须体现单轮执行策略：

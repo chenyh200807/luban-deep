@@ -157,6 +157,12 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
                 "query": "为什么我这题做错了？",
                 "conversation_id": "session_2",
                 "mode": "DEEP",
+                "prompt_intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "主体结构",
+                    "error_label": "多选漏选",
+                    "training_intent_id": "lti_chat",
+                },
                 "followup_question_context": {
                     "question_id": "q_1",
                     "question": "流水步距描述什么？",
@@ -169,6 +175,8 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
     config = captured["payload"]["config"]
     assert config["chat_mode"] == "deep"
     assert config["followup_question_context"]["question_id"] == "q_1"
+    assert config["learning_prompt_intent"]["training_intent_id"] == "lti_chat"
+    assert "learning_training_intent" not in config
     assert config["interaction_hints"]["profile"] == "tutorbot"
 
 
@@ -283,6 +291,13 @@ def test_mobile_chat_start_turn_keeps_deep_question_config_schema_clean(
                 "conversation_id": "session_dq_1",
                 "capability": "deep_question",
                 "mode": "DEEP",
+                "prompt_intent": {
+                    "source": "learning_report",
+                    "concept_label": "主体结构",
+                    "error_label": "多选漏选",
+                    "training_intent_id": "lti_deep_question",
+                    "question_count": 3,
+                },
                 "followup_question_context": {
                     "question_id": "case_1",
                     "question": "指出临时用电中的不妥之处。",
@@ -298,6 +313,8 @@ def test_mobile_chat_start_turn_keeps_deep_question_config_schema_clean(
     assert "chat_mode" not in config
     assert "bot_id" not in config
     assert config["followup_question_context"]["question_id"] == "case_1"
+    assert config["learning_training_intent"]["training_intent_id"] == "lti_deep_question"
+    assert "learning_prompt_intent" not in config
     assert config["interaction_hints"]["requested_response_mode"] == "deep"
     assert config["billing_context"]["user_id"] == "student_demo"
 
