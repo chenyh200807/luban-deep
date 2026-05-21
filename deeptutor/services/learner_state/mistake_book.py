@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol
+
+import httpx
 
 from deeptutor.services.learner_state.attempt_refs import verify_attempt_ref
 
@@ -70,9 +73,104 @@ class UnavailableMistakeBookStore:
         raise RuntimeError("mistake_book_store_unavailable")
 
 
+class SupabaseMistakeBookStore:
+    def __init__(
+        self,
+        *,
+        base_url: str | None = None,
+        service_key: str | None = None,
+        client: httpx.Client | None = None,
+        timeout_s: float = 10.0,
+    ) -> None:
+        self._base_url = str(base_url or os.getenv("SUPABASE_URL", "") or "").strip().rstrip("/")
+        self._service_key = str(
+            service_key
+            or os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+            or os.getenv("SUPABASE_KEY", "")
+            or ""
+        ).strip()
+        self._client = client
+        self._timeout_s = float(timeout_s)
+
+    @property
+    def is_configured(self) -> bool:
+        return bool(self._base_url and self._service_key)
+
+    def upsert_item(self, row: dict[str, Any]) -> dict[str, Any]:
+        self._ensure_configured()
+        response = self._client_or_create().post(
+            f"{self._base_url}/rest/v1/learner_mistake_book_items",
+            headers=self._headers(prefer="resolution=merge-duplicates,return=representation"),
+            params={"on_conflict": "user_id,event_id"},
+            json=[row],
+        )
+        response.raise_for_status()
+        payload = response.json()
+        return dict(payload[0]) if isinstance(payload, list) and payload else dict(row)
+
+    def get_item(self, user_id: str, event_id: str) -> dict[str, Any] | None:
+        self._ensure_configured()
+        rows = self._select({"user_id": f"eq.{user_id}", "event_id": f"eq.{event_id}"}, limit=1)
+        return rows[0] if rows else None
+
+    def update_item(self, user_id: str, event_id: str, patch: dict[str, Any]) -> dict[str, Any] | None:
+        self._ensure_configured()
+        response = self._client_or_create().patch(
+            f"{self._base_url}/rest/v1/learner_mistake_book_items",
+            headers=self._headers(prefer="return=representation"),
+            params={"user_id": f"eq.{user_id}", "event_id": f"eq.{event_id}"},
+            json=dict(patch or {}),
+        )
+        response.raise_for_status()
+        payload = response.json()
+        return dict(payload[0]) if isinstance(payload, list) and payload else None
+
+    def list_items(self, user_id: str) -> list[dict[str, Any]]:
+        self._ensure_configured()
+        return self._select({"user_id": f"eq.{user_id}"}, order="saved_at.desc")
+
+    def _select(self, filters: dict[str, str], *, limit: int | None = None, order: str | None = None) -> list[dict[str, Any]]:
+        params: dict[str, Any] = {"select": "*", **dict(filters or {})}
+        if limit is not None:
+            params["limit"] = int(limit)
+        if order:
+            params["order"] = order
+        response = self._client_or_create().get(
+            f"{self._base_url}/rest/v1/learner_mistake_book_items",
+            headers=self._headers(),
+            params=params,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        return [dict(item) for item in payload if isinstance(item, dict)]
+
+    def _headers(self, *, prefer: str | None = None) -> dict[str, str]:
+        headers = {
+            "apikey": self._service_key,
+            "Authorization": f"Bearer {self._service_key}",
+            "Content-Type": "application/json",
+        }
+        if prefer:
+            headers["Prefer"] = prefer
+        return headers
+
+    def _ensure_configured(self) -> None:
+        if not self.is_configured:
+            raise RuntimeError("mistake_book_store_unavailable")
+
+    def _client_or_create(self) -> httpx.Client:
+        if self._client is None:
+            self._client = httpx.Client(timeout=self._timeout_s)
+        return self._client
+
+
 class MistakeBookService:
     def __init__(self, *, store: MistakeBookStore | None = None) -> None:
-        self._store = store or UnavailableMistakeBookStore()
+        if store is not None:
+            self._store = store
+        else:
+            supabase_store = SupabaseMistakeBookStore()
+            self._store = supabase_store if supabase_store.is_configured else UnavailableMistakeBookStore()
 
     def save_item(
         self,
@@ -243,5 +341,6 @@ __all__ = [
     "MistakeBookConflict",
     "MistakeBookService",
     "MistakeBookStore",
+    "SupabaseMistakeBookStore",
     "UnavailableMistakeBookStore",
 ]

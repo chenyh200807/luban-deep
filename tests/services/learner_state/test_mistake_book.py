@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import pytest
+import httpx
 
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.mistake_book import (
     InMemoryMistakeBookStore,
     MistakeBookConflict,
     MistakeBookService,
+    SupabaseMistakeBookStore,
 )
 
 
@@ -75,3 +77,56 @@ def test_mistake_book_rejects_missing_subject_id() -> None:
 
     with pytest.raises(ValueError):
         service.save_item(user_id="u1", attempt_ref=attempt_ref, subject_id="")
+
+
+def test_supabase_mistake_book_store_uses_user_event_authority_filters() -> None:
+    requests: list[dict[str, object]] = []
+    rows: dict[tuple[str, str], dict[str, object]] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = request.content.decode("utf-8") if request.content else ""
+        requests.append({"method": request.method, "params": dict(request.url.params), "json": body})
+        params = dict(request.url.params)
+        if request.method == "POST":
+            import json
+
+            row = json.loads(body)[0]
+            rows[(row["user_id"], row["event_id"])] = dict(row)
+            return httpx.Response(200, json=[row], request=request)
+        if request.method == "GET":
+            user_id = str(params.get("user_id", "")).replace("eq.", "")
+            event_id = str(params.get("event_id", "")).replace("eq.", "")
+            found = [
+                dict(row)
+                for (row_user, row_event), row in rows.items()
+                if row_user == user_id and (not event_id or row_event == event_id)
+            ]
+            return httpx.Response(200, json=found, request=request)
+        if request.method == "PATCH":
+            user_id = str(params.get("user_id", "")).replace("eq.", "")
+            event_id = str(params.get("event_id", "")).replace("eq.", "")
+            import json
+
+            rows[(user_id, event_id)].update(json.loads(body))
+            return httpx.Response(200, json=[rows[(user_id, event_id)]], request=request)
+        return httpx.Response(400, request=request)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://example.supabase.co")
+    store = SupabaseMistakeBookStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+    saved = store.upsert_item({"user_id": "u1", "event_id": "evt1", "attempt_ref": "ref", "saved_at": "t"})
+    assert saved["event_id"] == "evt1"
+    assert store.get_item("u1", "evt1")["attempt_ref"] == "ref"
+    store.update_item("u1", "evt1", {"archived_at": "done"})
+
+    assert requests[0]["method"] == "POST"
+    assert requests[0]["params"]["on_conflict"] == "user_id,event_id"
+    assert requests[1]["method"] == "GET"
+    assert requests[1]["params"]["user_id"] == "eq.u1"
+    assert requests[1]["params"]["event_id"] == "eq.evt1"
+    assert requests[2]["method"] == "PATCH"
+    assert requests[2]["params"]["user_id"] == "eq.u1"
+    assert requests[2]["params"]["event_id"] == "eq.evt1"
