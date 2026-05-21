@@ -264,6 +264,20 @@ module.exports = {
             </view>
           </view>
 
+          <!-- plan §Phase 5 / Gap 2 — progressive_disclosure 最小渲染：verdict + diagnosis + primary action chip -->
+          <view class="pd-card" wx:if="{{item.progressiveDisclosure && item.progressiveDisclosure.verdict}}">
+            <text class="pd-verdict" user-select>{{item.progressiveDisclosure.verdict}}</text>
+            <text class="pd-diagnosis" user-select wx:if="{{item.progressiveDisclosure.oneLineDiagnosis}}">{{item.progressiveDisclosure.oneLineDiagnosis}}</text>
+            <view class="pd-actions" wx:if="{{item.progressiveDisclosure.primaryNextAction || (item.progressiveDisclosure.secondaryActions && item.progressiveDisclosure.secondaryActions.length)}}">
+              <view class="pd-action pd-action-primary" wx:if="{{item.progressiveDisclosure.primaryNextAction}}" data-msgid="{{item.id}}" data-slug="{{item.progressiveDisclosure.primaryNextAction.slug}}" bindtap="onProgressiveDisclosureAction" aria-role="button" aria-label="{{item.progressiveDisclosure.primaryNextAction.label}}">
+                <text class="pd-action-label">{{item.progressiveDisclosure.primaryNextAction.label}}</text>
+              </view>
+              <view class="pd-action pd-action-secondary" wx:for="{{item.progressiveDisclosure.secondaryActions}}" wx:for-item="chip" wx:key="slug" data-msgid="{{item.id}}" data-slug="{{chip.slug}}" bindtap="onProgressiveDisclosureAction" aria-role="button" aria-label="{{chip.label}}">
+                <text class="pd-action-label">{{chip.label}}</text>
+              </view>
+            </view>
+          </view>
+
           <!-- 结构化内容的正文说明，避免 table/formula 只挂在块里不显示 -->
           <text class="ai-text" user-select wx:if="{{item.hasStructuredContent && item.renderableContent}}">{{item.renderableContent}}</text>
 

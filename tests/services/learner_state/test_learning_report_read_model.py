@@ -28,6 +28,9 @@ def _learning_event(
     created_at: str | None = None,
     score_awarded: float = 0.0,
     max_score: float = 1.0,
+    user_answer: str = "A",
+    correct_answer: str = "B",
+    question_stem: str = "关于主体结构工程施工的说法，正确的是？",
 ) -> LearnerStateEvent:
     errors = [] if score_awarded >= max_score and max_score > 0 else [
         {
@@ -51,6 +54,10 @@ def _learning_event(
             "turn_id": f"turn_{event_id}",
             "question_id": question_id,
             "question_type": "mcq",
+            "question_stem": question_stem,
+            "options": {"A": "错误做法", "B": "正确做法", "C": "干扰项", "D": "干扰项"},
+            "user_answer": user_answer,
+            "correct_answer": correct_answer,
             "score_awarded": score_awarded,
             "max_score": max_score,
             "error_events": errors,
@@ -179,6 +186,88 @@ def test_attempt_count_treats_same_question_replay_as_two_attempts() -> None:
     assert overview["today_unique_questions"] == 1
     assert overview["recent_three_unique_questions"] == 1
     assert overview["unique_question_count"] == 1
+
+
+def test_learning_report_exposes_learner_facing_attempt_review_without_machine_ids() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _learning_event(
+                    "evt_review_1",
+                    days_ago=0,
+                    concept_id="1A432000",
+                    question_id="zh-mcq-001",
+                    error_code="M06",
+                    user_answer="A",
+                    correct_answer="AB",
+                    question_stem="关于主体结构验收条件的说法，正确的是？",
+                ),
+                _learning_event(
+                    "evt_review_2",
+                    days_ago=0,
+                    concept_id="1A432000",
+                    question_id="zh-mcq-002",
+                    error_code="M06",
+                    user_answer="B",
+                    correct_answer="BC",
+                    question_stem="主体结构施工质量控制应重点核查什么？",
+                ),
+            ]
+        ),
+        event_limit=50,
+    )
+
+    facing = model["learner_facing"]
+    assert facing["summary"]["title"] == "今日学习复盘"
+    assert facing["summary"]["recent_three_done"] == 2
+    assert facing["recent_attempts"][0]["title"] in {
+        "主体结构施工质量控制应重点核查什么？",
+        "关于主体结构验收条件的说法，正确的是？",
+    }
+    assert "你选：" in facing["recent_attempts"][0]["answer_line"]
+    assert "正确：" in facing["recent_attempts"][0]["answer_line"]
+    assert facing["diagnoses"][0]["title"] == "工程招标投标与合同管理：多选漏选"
+    assert facing["diagnoses"][0]["level_label"] == "需要重点补"
+    assert facing["next_action"]["title"].startswith("先做 3 道")
+    rendered = str(facing)
+    assert "evt_review" not in rendered
+    assert "M06" not in rendered
+    assert "concept:" not in rendered
+
+
+def test_training_loop_uses_latest_attempt_not_any_past_correct_signal() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _learning_event(
+                    "evt_old_correct",
+                    concept_id="1A432000",
+                    question_id="zh-mcq-old",
+                    score_awarded=1.0,
+                    max_score=1.0,
+                    created_at="2026-05-20T10:00:00+08:00",
+                ),
+                _learning_event(
+                    "evt_new_wrong",
+                    concept_id="1A432000",
+                    question_id="zh-mcq-new",
+                    error_code="M06",
+                    score_awarded=0.0,
+                    max_score=1.0,
+                    created_at="2026-05-20T10:05:00+08:00",
+                ),
+            ]
+        ),
+        event_limit=50,
+    )
+
+    loop = model["learner_facing"]["training_loops"][0]
+    assert loop["tone"] == "not-improved"
+    assert "仍需" in loop["outcome"]
 
 
 def test_multi_concept_evidence_updates_progress_feedback_chapter_focus() -> None:

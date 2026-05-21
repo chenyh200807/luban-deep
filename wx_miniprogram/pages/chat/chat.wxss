@@ -1856,3 +1856,47 @@
   flex: 0 0 calc(50% - 8rpx); width: calc(50% - 8rpx);
   opacity: 1; animation: none;
 }
+
+/* plan §Phase 5 / Gap 2 — progressive disclosure minimal style */
+.pd-card {
+  margin: 8px 0;
+  padding: 10px 12px;
+  background: rgba(99, 102, 241, 0.08);
+  border-left: 3px solid rgba(99, 102, 241, 0.72);
+  border-radius: 6px;
+}
+.pd-verdict {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+.pd-diagnosis {
+  display: block;
+  font-size: 12px;
+  color: #475569;
+  margin-bottom: 8px;
+}
+.pd-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pd-action {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+.pd-action-primary {
+  background: rgba(99, 102, 241, 0.95);
+  color: #ffffff;
+}
+.pd-action-secondary {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4338ca;
+}
+.pd-action-label {
+  font-size: 12px;
+}

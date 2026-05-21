@@ -325,8 +325,143 @@ function buildLearningBrainTrainingChains(graphChain) {
     .slice(0, 4);
 }
 
+function normalizeLearnerFacingPayload(body, learnerFacing) {
+  var freshness = asObject(body.freshness);
+  var summary = asObject(learnerFacing.summary);
+  var nextAction = asObject(learnerFacing.next_action);
+  var attempts = asList(learnerFacing.recent_attempts)
+    .map(function (item, index) {
+      var attempt = asObject(item);
+      return {
+        key: attempt.key || "attempt-" + index,
+        timeLabel: attempt.time_label || "",
+        title: attempt.title || "一次练习",
+        concept: attempt.concept || "",
+        resultLabel: attempt.result_label || "",
+        tone: attempt.tone || "",
+        answerLine: attempt.answer_line || "",
+        diagnosis: attempt.diagnosis || "",
+        diagnosisDetail: attempt.diagnosis_detail || "",
+        evidenceLabel: attempt.evidence_label || "",
+      };
+    })
+    .filter(function (item) {
+      return item.title || item.answerLine || item.diagnosis;
+    });
+  var diagnoses = asList(learnerFacing.diagnoses)
+    .map(function (item, index) {
+      var diagnosis = asObject(item);
+      return {
+        key: diagnosis.key || "diagnosis-" + index,
+        levelLabel: diagnosis.level_label || "",
+        title: diagnosis.title || "",
+        meta: diagnosis.meta || "",
+        detail: diagnosis.detail || "",
+        action: diagnosis.action || "",
+        count: Number(diagnosis.count || 0),
+      };
+    })
+    .filter(function (item) {
+      return item.title || item.detail;
+    });
+  var evidence = asList(learnerFacing.evidence_timeline)
+    .map(function (item, index) {
+      var evidenceItem = asObject(item);
+      return {
+        key: evidenceItem.key || "timeline-" + index,
+        timeLabel: evidenceItem.time_label || "",
+        title: evidenceItem.title || "",
+        line: evidenceItem.line || "",
+        tone: evidenceItem.tone || "",
+      };
+    })
+    .filter(function (item) {
+      return item.title || item.line;
+    });
+  var chains = asList(learnerFacing.training_loops)
+    .map(function (item, index) {
+      var chain = asObject(item);
+      return {
+        key: chain.key || "loop-" + index,
+        tone: chain.tone || "",
+        title: chain.title || "",
+        from: chain.from || "",
+        training: chain.training || "",
+        outcome: chain.outcome || "",
+      };
+    })
+    .filter(function (item) {
+      return item.title || item.outcome;
+    });
+  var training = nextAction.title
+    ? [
+        {
+          key: "next-action",
+          title: nextAction.title,
+          meta: nextAction.subtitle || "",
+          cta: nextAction.cta || "开始训练",
+          estimatedMinutes: nextAction.estimated_minutes || 0,
+        },
+      ]
+    : [];
+  return {
+    learnerFacing: true,
+    summary: {
+      title: summary.title || "今日学习复盘",
+      headline: summary.headline || "",
+      primaryFocus: summary.primary_focus || "",
+      todayDone: Number(summary.today_done || 0),
+      recentThreeDone: Number(summary.recent_three_done || 0),
+      weakCount: Number(summary.weak_count || 0),
+    },
+    attempts: attempts.slice(0, 5),
+    diagnoses: diagnoses.slice(0, 4),
+    truths: diagnoses.slice(0, 4).map(function (item) {
+      return {
+        key: item.key,
+        title: item.title,
+        meta: [item.meta, item.detail].filter(Boolean).join("｜"),
+        level: "learner-facing",
+        levelLabel: item.levelLabel || "系统判断",
+        eventIds: [],
+      };
+    }),
+    evidence: evidence.slice(0, 6).map(function (item) {
+      return {
+        key: item.key,
+        type: [item.timeLabel, item.title].filter(Boolean).join("｜"),
+        path: item.line,
+        eventLabel: "",
+        tone: item.tone,
+      };
+    }),
+    training: training,
+    chains: chains.slice(0, 3),
+    nextAction: training[0] || {},
+    stats: {
+      eventCount: Number(freshness.event_count || summary.recent_three_done || 0),
+      createdClaimCount: diagnoses.length,
+      typedGraphEdgeCount: 0,
+      projectionSubject: "",
+      projectionSubjectLabel: "学习复盘",
+    },
+  };
+}
+
 function normalizeLearningBrainPayload(raw) {
   var body = api.unwrapResponse(raw) || {};
+  var learnerFacing = asObject(
+    body.learner_facing ||
+      asObject(body.learning_brain).learner_facing ||
+      asObject(body.projection).learner_facing,
+  );
+  if (
+    learnerFacing.summary ||
+    asList(learnerFacing.recent_attempts).length ||
+    asList(learnerFacing.diagnoses).length
+  ) {
+    return normalizeLearnerFacingPayload(body, learnerFacing);
+  }
   var projection = asObject(body.projection || body.learning_brain || body);
   var compiled = asObject(projection.compiled_objects);
   var weakPoints = asList(projection.weak_points);
@@ -544,6 +679,30 @@ function normalizeLearningBrainPayload(raw) {
       0,
   );
   return {
+    learnerFacing: false,
+    summary: {
+      title: "学习事实复盘",
+      headline: truths.length
+        ? "系统已整理出学习事实，但缺少可还原的具体作答明细。"
+        : "",
+      primaryFocus: "",
+      todayDone: 0,
+      recentThreeDone: Number.isFinite(eventCount) ? eventCount : 0,
+      weakCount: truths.length,
+    },
+    attempts: [],
+    diagnoses: truths.slice(0, 4).map(function (item) {
+      return {
+        key: item.key,
+        levelLabel: item.levelLabel,
+        title: item.title,
+        meta: item.meta,
+        detail: item.meta,
+        action: "围绕这个薄弱点做一组专项训练",
+        count: 1,
+      };
+    }),
+    nextAction: training[0] || {},
     truths: truths.slice(0, 4),
     evidence: evidence.slice(0, 8),
     training: training.slice(0, 5),
@@ -761,10 +920,14 @@ Page({
     weakNodeCount: 0,
     focusHint: "",
     learnerLevel: "",
-    studyTip: "",
-    learningBrainTruths: [],
-    learningBrainEvidence: [],
-    learningBrainTraining: [],
+        studyTip: "",
+        learningBrainSummary: {},
+        learningBrainAttempts: [],
+        learningBrainDiagnoses: [],
+        learningBrainNextAction: {},
+        learningBrainTruths: [],
+        learningBrainEvidence: [],
+        learningBrainTraining: [],
     learningBrainChains: [],
     learningBrainGraphStats: {
       eventCount: 0,
@@ -851,9 +1014,7 @@ Page({
       var overview = body.overview || {};
       var mastery = normalizeMasteryGroups(body.mastery || {});
       var radar = normalizeRadarState(body.radar_dimensions || []);
-      var learningBrain = normalizeLearningBrainPayload(
-        body.learning_brain || {},
-      );
+      var learningBrain = normalizeLearningBrainPayload(body);
       var emptyBrain = isLearningBrainEmpty(learningBrain);
       var degradedSources = learningReportDegradedSources(body);
       var degraded = Boolean(body.degraded) || degradedSources.length > 0;
@@ -866,6 +1027,10 @@ Page({
         focusHint: overview.focus_hint || "",
         learnerLevel: displayLevelName(overview.learner_level || ""),
         studyTip: overview.study_tip || "",
+        learningBrainSummary: learningBrain.summary || {},
+        learningBrainAttempts: learningBrain.attempts || [],
+        learningBrainDiagnoses: learningBrain.diagnoses || [],
+        learningBrainNextAction: learningBrain.nextAction || {},
         radarDimensions: radar.dims,
         strongCount: radar.strong,
         normalCount: radar.normal,
@@ -937,6 +1102,10 @@ Page({
         learningBrainTraining: normalized.training,
         learningBrainChains: normalized.chains,
         learningBrainGraphStats: normalized.stats,
+        learningBrainSummary: normalized.summary || {},
+        learningBrainAttempts: normalized.attempts || [],
+        learningBrainDiagnoses: normalized.diagnoses || [],
+        learningBrainNextAction: normalized.nextAction || {},
         learningBrainLoading: false,
         learningBrainError: false,
         learningBrainEmpty: isEmpty,

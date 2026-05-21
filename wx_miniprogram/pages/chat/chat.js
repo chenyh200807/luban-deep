@@ -1191,10 +1191,15 @@ Page({
     if (idx !== -1) {
       if (this._buf) this._flush();
       var updates = {};
+      var disclosurePayload =
+        (d && d.progressive_disclosure) ||
+        (d && d.metadata && d.metadata.progressive_disclosure) ||
+        null;
       if (typeof d.response === "string" && d.response.trim()) {
         var normalized = this._buildAiMessageUpdates(idx, {
           content: d.response,
           parseBlocks: true,
+          progressiveDisclosure: disclosurePayload,
         });
         if (normalized) {
           Object.assign(updates, normalized.updates);
@@ -1287,10 +1292,14 @@ Page({
     var hasPresentation = Object.prototype.hasOwnProperty.call(options, "presentation");
     var content = hasContent ? String(options.content || "") : String(msg.content || "");
     var presentation = hasPresentation ? options.presentation || null : msg.presentation || null;
+    var disclosureInput = Object.prototype.hasOwnProperty.call(options, "progressiveDisclosure")
+      ? options.progressiveDisclosure || null
+      : (msg.progressiveDisclosure || null);
     var state = aiMessageState.deriveAiMessageRenderState({
       content: content,
       presentation: presentation,
       parseBlocks: !!options.parseBlocks,
+      progressiveDisclosure: disclosureInput,
     });
     var updates = {};
     if (hasContent) {
@@ -1310,6 +1319,7 @@ Page({
     if (options.parseBlocks || state.hasStructuredContent) {
       updates["messages[" + idx + "].blocks"] = state.blocks || [];
     }
+    updates["messages[" + idx + "].progressiveDisclosure"] = state.progressiveDisclosure || null;
     return {
       updates: updates,
       state: state,
@@ -2108,6 +2118,24 @@ Page({
     // 回到 Hero 首页时恢复 tab bar
     if (typeof this.getTabBar === "function" && this.getTabBar()) {
       this.getTabBar().setData({ hidden: false });
+    }
+  },
+
+  // plan §Phase 5 / Gap 2 — action chip 派发：把 slug 翻译成用户输入文本，复用现有 chat send。
+  onProgressiveDisclosureAction: function (e) {
+    var slug = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.slug) || "";
+    var actionToInput = {
+      practice_more_3: "再练3题",
+      explain_thoroughly: "讲透这个点",
+      show_mnemonic: "看记忆口诀",
+    };
+    var msg = actionToInput[slug] || slug;
+    if (!msg) return;
+    if (typeof this.setData === "function") {
+      this.setData({ input: msg });
+    }
+    if (typeof this.onSend === "function") {
+      this.onSend();
     }
   },
 

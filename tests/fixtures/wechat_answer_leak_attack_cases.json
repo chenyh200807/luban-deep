@@ -1,0 +1,169 @@
+[
+  {
+    "name": "progressive_disclosure_sections_grading_key",
+    "description": "现状已拦：grading_key 在 progressive_disclosure.sections 路径下会被 _HIDDEN_DISCLOSURE_KEYS 剥离。",
+    "attack_vector": "progressive_disclosure.sections",
+    "marker": "LEAK_GRADING_KEY_001",
+    "must_be_blocked": true,
+    "payload": {
+      "content": "结论与诊断已生成。",
+      "progressiveDisclosure": {
+        "verdict": "本题答错",
+        "one_line_diagnosis": "漏掉关键采分点",
+        "sections": {
+          "verdict": "本题答错",
+          "grading_key": "LEAK_GRADING_KEY_001"
+        }
+      }
+    }
+  },
+  {
+    "name": "progressive_disclosure_sections_correct_answer",
+    "description": "现状已拦：correct_answer 在 progressive_disclosure.sections 路径下会被 _HIDDEN_DISCLOSURE_KEYS 剥离。",
+    "attack_vector": "progressive_disclosure.sections",
+    "marker": "LEAK_CORRECT_ANSWER_002",
+    "must_be_blocked": true,
+    "payload": {
+      "content": "请作答。",
+      "progressiveDisclosure": {
+        "verdict": "请先选择",
+        "one_line_diagnosis": "暂未判定",
+        "sections": {
+          "verdict": "请先选择",
+          "correct_answer": "LEAK_CORRECT_ANSWER_002"
+        }
+      }
+    }
+  },
+  {
+    "name": "progressive_disclosure_sections_scoring_points",
+    "description": "现状已拦：scoring_points 在 progressive_disclosure.sections 路径下会被 _HIDDEN_DISCLOSURE_KEYS 剥离。",
+    "attack_vector": "progressive_disclosure.sections",
+    "marker": "LEAK_SCORING_POINTS_003",
+    "must_be_blocked": true,
+    "payload": {
+      "content": "题目已生成。",
+      "progressiveDisclosure": {
+        "verdict": "尚未评分",
+        "one_line_diagnosis": "缺乏数据",
+        "sections": {
+          "verdict": "尚未评分",
+          "scoring_points": "LEAK_SCORING_POINTS_003"
+        }
+      }
+    }
+  },
+  {
+    "name": "progressive_disclosure_sections_explanation",
+    "description": "现状已拦：explanation 在 progressive_disclosure.sections 路径下会被 _HIDDEN_DISCLOSURE_KEYS 剥离。",
+    "attack_vector": "progressive_disclosure.sections",
+    "marker": "LEAK_EXPLANATION_004",
+    "must_be_blocked": true,
+    "payload": {
+      "content": "请作答。",
+      "progressiveDisclosure": {
+        "verdict": "未评分",
+        "one_line_diagnosis": "未判定",
+        "sections": {
+          "verdict": "未评分",
+          "explanation": "LEAK_EXPLANATION_004"
+        }
+      }
+    }
+  },
+
+  {
+    "name": "fallback_text_contains_correct_answer",
+    "description": "已知泄露：当后端把 \"正确答案：X\" 写进 fallback_text markdown，sanitizer 不拦。",
+    "attack_vector": "fallback_text_markdown",
+    "marker": "LEAK_FALLBACK_TEXT_005",
+    "must_be_blocked": false,
+    "known_gap": "sanitizer 只覆盖 progressive_disclosure.sections，不覆盖 fallback_text。如果 backend payload 用 markdown 写 \"正确答案：LEAK_FALLBACK_TEXT_005\"，会直接渲染到 UI。",
+    "minimum_fix_suggestion": "在 ai-message-state.deriveAiMessageRenderState 末段，对 renderableContent 加一道正则 scrub：/(正确答案|参考答案|答案是|采分点|评分点|grading[_ ]?key|correct[_ ]?answer|scoring[_ ]?points)\\s*[:：][\\s\\S]{0,200}/gi → 替换为 \"…[已折叠]\"。",
+    "payload": {
+      "content": "本题解析：\n\n核心结论：建筑构造分两大体系。\n\n正确答案：LEAK_FALLBACK_TEXT_005\n\n下一步建议：再练 3 题巩固。"
+    }
+  },
+
+  {
+    "name": "mcq_option_text_contains_scoring_points",
+    "description": "已知泄露：当后端把采分点关键词塞进 MCQ option text，会原样进入 mcqCards[].options[].text。",
+    "attack_vector": "mcq.options[].text",
+    "marker": "LEAK_MCQ_OPTION_006",
+    "must_be_blocked": false,
+    "known_gap": "normalizeMcqOptions 仅对 text 做 _asString，没有任何 scrub。如果 backend 在 option text 里写 \"采分点：LEAK_MCQ_OPTION_006\"，会出现在选项卡片上。",
+    "minimum_fix_suggestion": "在 normalizeMcqOptions 内对 text 加同样的 scrub 正则；或在 normalizeMcqQuestion 末段把 question.stem + 所有 option.text 串成一段，用 scrub 后再回写。",
+    "payload": {
+      "content": "请选择正确答案：",
+      "presentation": {
+        "blocks": [
+          {
+            "type": "mcq",
+            "questions": [
+              {
+                "index": 1,
+                "stem": "下列哪个是正确的承重构造？",
+                "question_type": "single_choice",
+                "options": [
+                  { "key": "A", "text": "外墙 - 承担风荷载" },
+                  { "key": "B", "text": "梁柱 - 采分点：LEAK_MCQ_OPTION_006" },
+                  { "key": "C", "text": "女儿墙 - 仅装饰" }
+                ]
+              }
+            ],
+            "submit_hint": "请选择后提交答案"
+          }
+        ]
+      }
+    }
+  },
+
+  {
+    "name": "mcq_followup_context_correct_answer",
+    "description": "已知泄露：mcq.followup_context.correct_answer 字段原样保留在 followupContext 里。如果上层在 wxml 渲染 mcqCards[].followupContext，会看到正确答案。",
+    "attack_vector": "mcq.followup_context",
+    "marker": "LEAK_FOLLOWUP_CTX_007",
+    "must_be_blocked": false,
+    "known_gap": "normalizeMcqQuestion 把 followup_context 当作不透明对象原样存（用于 follow-up 上下文回传），未剥离 correct_answer 字段。chat.wxml 当前不直接渲染 followupContext，但 chat.js 把它存进 state，setData 后任何 wxml 调试视图、或 future 的 progressive disclosure 视图都可能误把它打出来。",
+    "minimum_fix_suggestion": "normalizeMcqQuestion 内：followupContext = Object.assign({}, raw); delete followupContext.correct_answer; delete followupContext.scoring_points; delete followupContext.explanation; — 同时在 chat.js _onPresentation 路径再做一道防御扫描。",
+    "payload": {
+      "content": "请作答。",
+      "presentation": {
+        "blocks": [
+          {
+            "type": "mcq",
+            "questions": [
+              {
+                "index": 1,
+                "stem": "题目示例",
+                "question_type": "single_choice",
+                "options": [
+                  { "key": "A", "text": "A 选项" },
+                  { "key": "B", "text": "B 选项" }
+                ],
+                "followup_context": {
+                  "question_id": "q_xyz",
+                  "correct_answer": "LEAK_FOLLOWUP_CTX_007"
+                }
+              }
+            ],
+            "submit_hint": "请选择后提交答案"
+          }
+        ]
+      }
+    }
+  },
+
+  {
+    "name": "callout_block_explanation",
+    "description": "已知泄露：当 backend 把答案解析放进 callout block 的内容，会原样渲染到 UI。",
+    "attack_vector": "callout_block.content",
+    "marker": "LEAK_CALLOUT_008",
+    "must_be_blocked": false,
+    "known_gap": "normalizeBlock 对 callout 不做内容 scrub。如果 backend 把 explanation 包成 callout，例如：\\n> 提示：正确答案是 LEAK_CALLOUT_008\\n，会被原样解析进 markdown blocks。",
+    "minimum_fix_suggestion": "增加一个 callout-level sanitize：扫描 callout content 的 text spans，若命中 /(正确答案|参考答案|答案是|grading[_ ]?key|correct[_ ]?answer)/i 关键词，整个 callout 替换成中性文案 \"完整解析需在评分后查看\"。",
+    "payload": {
+      "content": "本题分析：\n\n> 💡 提示：正确答案是 LEAK_CALLOUT_008，请理解其推导过程。\n\n核心结论：以题库为准。"
+    }
+  }
+]

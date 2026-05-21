@@ -51,7 +51,18 @@ def build_learning_evidence_payload(
         "session_id": _clean_text(session_id),
         "question_id": question_id,
         "question_type": question_type,
+        "question_stem": _clean_text(
+            payload.get("question_stem")
+            or payload.get("stem")
+            or payload.get("question_text")
+            or payload.get("question")
+        ),
+        "options": payload.get("options") if isinstance(payload.get("options"), (dict, list)) else {},
         "user_answer": _clean_text(payload.get("user_answer")),
+        "correct_answer": _clean_text(payload.get("correct_answer")),
+        "selected_options": list(payload.get("selected_options") or []),
+        "missed_options": list(payload.get("missed_options") or []),
+        "extra_options": list(payload.get("extra_options") or []),
         "score_awarded": score_awarded,
         "max_score": max_score,
         "score_ratio": _score_ratio(score_awarded, max_score),

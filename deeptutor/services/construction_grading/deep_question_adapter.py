@@ -44,6 +44,19 @@ def build_deep_question_grading_result(
     question_type = str(row.get("question_type") or "").strip().lower()
     if _is_choice_context(row):
         result = grade_mcq_submission(row, answer).to_dict()
+        for key in (
+            "question_stem",
+            "stem",
+            "question_text",
+            "question",
+            "options",
+            "option_reasoning",
+            "analysis",
+            "testing_focus",
+            "node_code",
+        ):
+            if key in row and row.get(key) not in (None, "", [], {}):
+                result[key] = row.get(key)
         result["type"] = "mcq"
         result["authority"] = "construction_grading"
         return result

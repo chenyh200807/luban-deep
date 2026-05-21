@@ -1,0 +1,44 @@
+[
+  {
+    "name": "numbered_list_with_inline_bold",
+    "description": "高频回归形：编号列表 + **标签**：内容。token 边界落在数字、点号、星号、冒号上时不能粘连。",
+    "content": "下面是 5 个采分点：\n\n1. **构件分类**：按受力性质分。\n2. **节点连接**：螺栓、焊接、铆接三种。\n3. **截面设计**：满足强度与稳定。\n4. **防火等级**：一级建筑不低于 3.0h。\n5. **节能要求**：外墙传热系数 ≤ 0.6。\n\n以上每条都可能单独考。",
+    "expected_newlines_min": 8,
+    "covers": ["streaming", "markdown-list", "token-boundary"]
+  },
+  {
+    "name": "paragraphs_with_blank_separators",
+    "description": "多段落 + 段间空行。流式时 \\n\\n 极易被切开成两个 \\n 跨帧。",
+    "content": "## 核心结论\n\n建筑构造研究的是建筑物各组成部分的组合方式。\n\n## 判断依据\n\n第一，要看受力体系。\n\n第二，要看节点连接。\n\n第三，要看防护构造。\n\n## 易错点提醒\n\n不要把构造和结构混为一谈。",
+    "expected_newlines_min": 14,
+    "covers": ["streaming", "markdown-heading", "blank-line"]
+  },
+  {
+    "name": "mcq_option_inside_markdown",
+    "description": "MCQ 选项 text 在流式中被切开。option text 不能丢失字符。",
+    "content": "请选择正确答案：\n\nA. 防火门必须设置在防火分区分隔处\nB. 防火门启闭方向应朝向疏散方向\nC. 防火门可以采用木质材料\nD. 防火门关闭力应 ≥ 80N\n\n请认真审题后作答。",
+    "expected_newlines_min": 7,
+    "covers": ["streaming", "mcq", "option-text"]
+  },
+  {
+    "name": "bulleted_list_with_punctuation_chain",
+    "description": "无序列表条目尾部紧跟。/，等中文标点；token 边界落在 `- ` 前或 `**` 边上。",
+    "content": "采分要点：\n\n- 设计阶段：荷载、地基、结构、防火、防水五项必须齐全。\n- 施工阶段：放线、模板、钢筋、混凝土、拆模五步顺序不可乱。\n- 验收阶段：强度、外观、变形、防水、安全五项必检。\n\n以上为 P0 级要点。",
+    "expected_newlines_min": 6,
+    "covers": ["streaming", "bullet-list", "chinese-punctuation"]
+  },
+  {
+    "name": "teaching_fallback_callouts",
+    "description": "教学型 fallback：核心结论 / 易错点 / 记忆口诀 三段。callout 解析依赖完整段落，流式中不能误判已结束。",
+    "content": "核心结论：建筑构造分为承重与围护两大体系。\n\n判断依据：承重看是否传力到地基，围护看是否分隔空间。\n\n易错点提醒：女儿墙看似围护，但承担风荷载，是承重构造。\n\n记忆口诀：传力承重、分隔围护、双性合体。",
+    "expected_newlines_min": 6,
+    "covers": ["streaming", "teaching-fallback", "callout"]
+  },
+  {
+    "name": "long_paragraph_no_markdown",
+    "description": "纯长段落（无 markdown 结构）。验证 token 边界不会插入意外换行。",
+    "content": "建筑构造是研究建筑物各组成部分的组合方式、构造原理和构造方法的学科。它既要满足建筑功能的要求，又要满足结构受力的需要，同时还要考虑施工工艺、经济性和耐久性等多方面因素，是建筑学专业的重要基础课程之一。",
+    "expected_newlines_min": 0,
+    "covers": ["streaming", "paragraph", "no-markdown"]
+  }
+]

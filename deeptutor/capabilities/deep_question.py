@@ -1243,6 +1243,16 @@ class DeepQuestionCapability(BaseCapability):
                 source_turn_id=turn_id,
             )
         )
+        # plan §Phase 5 / Batch E Gap 4 — 从 RAW context.metadata.active_object 直读 recent_outcomes
+        # (normalize_active_object 会通过 normalize_question_followup_context drop 非标字段)
+        # 这样 difficulty pacing 才能消费上一轮 grading 写入的滑动窗口。
+        _raw_active_object = context.metadata.get('active_object') if isinstance(context.metadata, dict) else None
+        if isinstance(_raw_active_object, dict):
+            _raw_snap = _raw_active_object.get('state_snapshot')
+            if isinstance(_raw_snap, dict):
+                _hist = [bool(o) for o in (_raw_snap.get('recent_outcomes') or []) if isinstance(o, bool)]
+                if _hist and isinstance(context.metadata, dict):
+                    context.metadata.setdefault('recent_grading_outcomes', _hist)
         suspended_object_stack = normalize_suspended_object_stack(
             context.metadata.get("suspended_object_stack")
         )
@@ -1882,6 +1892,32 @@ class DeepQuestionCapability(BaseCapability):
                 source_turn_id=turn_id,
                 previous_active_object=active_object,
             )
+            # plan §Phase 5 / Batch E Gap 4 — push is_correct 到 active_object
+            # state_snapshot.recent_outcomes 滑动窗口（最近 5）；下一轮 capability
+            # run 时从同一 active_object 读，不另建 learner_state 字段。
+            _current_outcome = graded_context.get('is_correct')
+            if isinstance(result_active_object, dict) and isinstance(_current_outcome, bool):
+                _snap = result_active_object.get('state_snapshot')
+                if isinstance(_snap, dict):
+                    # prev outcomes 来源优先级：
+                    # 1) context.metadata.recent_grading_outcomes (由 run 入口从 raw active_object 注入)
+                    # 2) result_active_object.state_snapshot.recent_outcomes (已透传)
+                    # 3) active_object.state_snapshot.recent_outcomes (可能被 normalize 丢)
+                    _prev_outcomes = []
+                    if isinstance(context.metadata, dict):
+                        _meta_prev = context.metadata.get('recent_grading_outcomes')
+                        if isinstance(_meta_prev, list):
+                            _prev_outcomes = [bool(o) for o in _meta_prev if isinstance(o, bool)]
+                    if not _prev_outcomes:
+                        _existing = _snap.get('recent_outcomes')
+                        if isinstance(_existing, list):
+                            _prev_outcomes = [bool(o) for o in _existing if isinstance(o, bool)]
+                    if not _prev_outcomes and isinstance(active_object, dict):
+                        _prev_snap = active_object.get('state_snapshot')
+                        if isinstance(_prev_snap, dict):
+                            _prev_outcomes = [bool(o) for o in (_prev_snap.get('recent_outcomes') or []) if isinstance(o, bool)]
+                    _new_outcomes = [bool(_current_outcome)] + _prev_outcomes
+                    _snap['recent_outcomes'] = _new_outcomes[:5]
             result_payload: dict[str, Any] = {
                 "response": answer or "",
                 "mode": "grading",

@@ -2,146 +2,28 @@
 const auth = require("./auth");
 const api = require("./api");
 const endpoints = require("./endpoints");
+const wsPure = require("./ws-stream-pure");
 
-function inferConversationTitle(query) {
-  var text = String(query || "").trim();
-  if (!text) return "";
-  return text.length > 50 ? text.slice(0, 50) + "..." : text;
-}
+var inferConversationTitle = wsPure.inferConversationTitle;
+var buildPresentationEvent = wsPure.buildPresentationEvent;
+var buildFinalResponseEvent = wsPure.buildFinalResponseEvent;
+var normalizeErrorMessage = wsPure.normalizeErrorMessage;
+var resolveEventVisibility = wsPure.resolveEventVisibility;
+var computeReconnectDelayMs = wsPure.computeReconnectDelayMs;
+var buildTurnSocketPayload = wsPure.buildTurnSocketPayload;
+var buildStatusEvent = wsPure.buildStatusEvent;
 
-function buildPresentationEvent(resultMetadata) {
-  var presentation = resultMetadata && resultMetadata.presentation;
-  if (!presentation || typeof presentation !== "object") return null;
-  return presentation;
-}
-
-function buildFinalResponseEvent(resultMetadata) {
-  if (!resultMetadata || typeof resultMetadata !== "object") return null;
-  var response = resultMetadata.response;
-  if (typeof response !== "string" && resultMetadata.metadata && typeof resultMetadata.metadata === "object") {
-    response = resultMetadata.metadata.response;
-  }
-  if (typeof response !== "string" || !response.trim()) return null;
-  return {
-    type: "final",
-    engine: "tutorbot",
-    response: response,
-  };
-}
-
-function normalizeErrorMessage(err) {
-  var raw = "";
-  if (typeof err === "string") {
-    raw = err;
-  } else if (err) {
-    raw = err.errMsg || err.message || err.reason || "";
-  }
-  raw = String(raw || "").trim();
-  if (!raw) return "连接失败，请重试";
-  if (raw === "AUTH_EXPIRED") return "登录已失效，请重新登录";
-  if (raw === "REQUEST_ABORTED") return "本轮已取消";
-  if (/timeout|timed out|超时/i.test(raw)) return "请求超时，请稍后重试";
-  if (/^NETWORK_ERROR:/i.test(raw)) return "连接服务器失败，请检查网络后重试";
-  var http = raw.match(/^HTTP_(\d+):/i);
-  if (http) {
-    var status = parseInt(http[1], 10) || 0;
-    if (status === 401) return "登录已失效，请重新登录";
-    if (status === 429) return "操作过于频繁，请稍后再试";
-    if (status >= 500) return "服务暂时不可用，请稍后重试";
-    return "请求失败，请稍后重试";
-  }
-  if (
-    /Internal Server Error|provider error|raw provider|DataInspectionFailed|Authentication Fails|api key|read_file|write_file|list_dir|HEARTBEAT|traceback|stack trace|workspace/i.test(raw)
-  ) {
-    return "服务暂时不可用，请稍后重试";
-  }
-  return raw;
-}
-
-function resolveEventVisibility(event) {
-  if (!event || typeof event !== "object") return "public";
-  var direct = String(event.visibility || "").trim().toLowerCase();
-  if (direct === "internal") return "internal";
-  var metadata = event.metadata || {};
-  var nested = String(metadata.visibility || "").trim().toLowerCase();
-  return nested === "internal" ? "internal" : "public";
-}
-
-var RECONNECT_BASE_DELAY_MS = 400;
-var RECONNECT_MAX_DELAY_MS = 4000;
-var RECONNECT_MAX_ATTEMPTS = 5;
-
-function computeReconnectDelayMs(attempt) {
-  var safeAttempt = Math.max(1, Number(attempt) || 1);
-  return Math.min(
-    RECONNECT_MAX_DELAY_MS,
-    RECONNECT_BASE_DELAY_MS * Math.pow(2, safeAttempt - 1),
-  );
-}
-
-function buildTurnSocketPayload(turnId, lastSeq) {
-  var resolvedTurnId = String(turnId || "").trim();
-  if (!resolvedTurnId) return null;
-  var resolvedSeq = Number(lastSeq) || 0;
-  if (resolvedSeq > 0) {
-    return {
-      type: "resume_from",
-      turn_id: resolvedTurnId,
-      seq: resolvedSeq,
-    };
-  }
-  return {
-    type: "subscribe_turn",
-    turn_id: resolvedTurnId,
-    after_seq: 0,
-  };
-}
-
-function buildStatusEvent(event) {
-  if (!event || typeof event !== "object") return null;
-  var eventType = String(event.type || "").trim();
-  if (["thinking", "progress", "observation", "stage_start", "tool_call", "tool_result"].indexOf(eventType) === -1) {
-    return null;
-  }
-
-  var eventMetadata = event.metadata || {};
-  var visibility = resolveEventVisibility(event);
-  var stage = String(event.stage || "").trim();
-  var content = String(event.content || "");
-  var toolName =
-    String(event.tool_name || eventMetadata.tool_name || eventMetadata.tool || "").trim() ||
-    (eventType === "tool_call" ? content : "");
-  var metadata = Object.assign({}, eventMetadata, {
-    visibility: visibility,
-  });
-
-  if (visibility === "internal" && eventType === "progress") {
-    return null;
-  }
-
-  if (visibility === "internal" && (eventType === "thinking" || eventType === "observation")) {
-    metadata.sanitized_internal = true;
-    content = "";
-  }
-
-  return {
-    type: "status",
-    data: content || stage || eventType,
-    content: content,
-    source: event.source || "",
-    stage: stage,
-    eventType: eventType,
-    toolName: toolName,
-    metadata: metadata,
-    seq: typeof event.seq === "number" ? event.seq : 0,
-  };
-}
+var RECONNECT_BASE_DELAY_MS = wsPure.RECONNECT_BASE_DELAY_MS;
+var RECONNECT_MAX_DELAY_MS = wsPure.RECONNECT_MAX_DELAY_MS;
+var RECONNECT_MAX_ATTEMPTS = wsPure.RECONNECT_MAX_ATTEMPTS;
 
 function streamChat(opts, callbacks) {
   var cb = callbacks || {};
   var query = String((opts && opts.query) || "").trim();
   var sessionId = String((opts && opts.sessionId) || "").trim();
-  var mode = String((opts && opts.mode) || "AUTO").trim().toUpperCase();
+  var mode = String((opts && opts.mode) || "AUTO")
+    .trim()
+    .toUpperCase();
   var clientTurnId = String((opts && opts.clientTurnId) || "").trim();
 
   if (!query) {
@@ -176,7 +58,8 @@ function streamChat(opts, callbacks) {
   var cancelRequested = false;
   var timeoutCancelRequested = false;
   var terminalWaitTicksAfterCancel = 0;
-  var maxTerminalWaitTicksAfterCancel = Number((opts && opts.maxTerminalWaitTicksAfterCancel) || 3) || 3;
+  var maxTerminalWaitTicksAfterCancel =
+    Number((opts && opts.maxTerminalWaitTicksAfterCancel) || 3) || 3;
   var resumeAttempted = false;
   var resumeSucceeded = false;
 
@@ -225,13 +108,20 @@ function streamChat(opts, callbacks) {
                 data: "awaiting_terminal",
                 content: "已发送停止请求，正在等待本轮结束…",
                 eventType: "awaiting_terminal",
-                metadata: { visibility: "public", reason: timeoutCancelRequested ? "idle_timeout" : "user_cancel" },
+                metadata: {
+                  visibility: "public",
+                  reason: timeoutCancelRequested
+                    ? "idle_timeout"
+                    : "user_cancel",
+                },
               });
             }
             resetIdleTimer();
             return;
           }
-          failStream("已发送停止请求，服务端暂未返回终态，请稍后在历史记录查看结果");
+          failStream(
+            "已发送停止请求，服务端暂未返回终态，请稍后在历史记录查看结果",
+          );
           return;
         }
         if (!timeoutCancelRequested && sendCancelTurn("idle_timeout")) {
@@ -296,7 +186,8 @@ function streamChat(opts, callbacks) {
   }
 
   function scheduleReconnect(err) {
-    if (aborted || doneReceived || reconnectTimer || !socketUrls.length) return false;
+    if (aborted || doneReceived || reconnectTimer || !socketUrls.length)
+      return false;
     if (reconnectAttempts >= RECONNECT_MAX_ATTEMPTS) return false;
     reconnectAttempts += 1;
     var delay = computeReconnectDelayMs(reconnectAttempts);
@@ -411,7 +302,8 @@ function streamChat(opts, callbacks) {
         failStream(String(event.content || "服务异常"));
         return;
       }
-      if (cb.onError) cb.onError(normalizeErrorMessage(String(event.content || "服务异常")));
+      if (cb.onError)
+        cb.onError(normalizeErrorMessage(String(event.content || "服务异常")));
       return;
     }
 
@@ -445,7 +337,9 @@ function streamChat(opts, callbacks) {
       startSlowTimer();
     }
 
-    var socketUrl = socketUrls[Math.min(reconnectAttempts, socketUrls.length - 1)] || socketUrls[0];
+    var socketUrl =
+      socketUrls[Math.min(reconnectAttempts, socketUrls.length - 1)] ||
+      socketUrls[0];
     var headers = {
       "ngrok-skip-browser-warning": "true",
     };
@@ -526,7 +420,11 @@ function streamChat(opts, callbacks) {
   if (opts && opts.interactionProfile) {
     startTurnPayload.interaction_profile = opts.interactionProfile;
   }
-  if (opts && opts.interactionHints && typeof opts.interactionHints === "object") {
+  if (
+    opts &&
+    opts.interactionHints &&
+    typeof opts.interactionHints === "object"
+  ) {
     startTurnPayload.interaction_hints = opts.interactionHints;
   }
   if (
@@ -550,7 +448,11 @@ function streamChat(opts, callbacks) {
       var conversation = payload.conversation || {};
       var preferredBase = endpoints.getPrimaryBaseUrl(false);
       botId = String(bot.id || "").trim();
-      turnId = String((stream.subscribe && stream.subscribe.turn_id) || (payload.turn && payload.turn.id) || "").trim();
+      turnId = String(
+        (stream.subscribe && stream.subscribe.turn_id) ||
+          (payload.turn && payload.turn.id) ||
+          "",
+      ).trim();
       chatId = String(stream.chat_id || conversation.id || sessionId).trim();
       lastSeq = Number((stream.resume && stream.resume.seq) || 0) || 0;
       socketUrls = endpoints.getSocketUrlCandidates(

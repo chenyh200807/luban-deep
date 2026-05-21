@@ -74,22 +74,27 @@ async function run() {
     "projection read should not silently write local QA harness events",
   );
   assert(
-    reportWxml.indexOf("当前可信结论") >= 0 &&
-      reportWxml.indexOf("证据流") >= 0 &&
+    reportWxml.indexOf("最近做题复盘") >= 0 &&
+      reportWxml.indexOf("系统判断") >= 0 &&
+      reportWxml.indexOf("依据来自哪些作答") >= 0 &&
       reportWxml.indexOf("训练闭环") >= 0 &&
       reportWxml.indexOf("下一步训练") >= 0,
-    "report should render the Learning Brain visible chain sections",
+    "report should render learner-facing Learning Brain review sections",
   );
   assert(
-    reportWxml.indexOf("learningBrainGraphStats.typedGraphEdgeCount") >= 0,
-    "report should expose typed graph edge count",
+    reportWxml.indexOf("learningBrainSummary.recentThreeDone") >= 0,
+    "report should expose learner-facing recent practice count instead of graph internals",
   );
   assert(
-    reportWxml.indexOf('wx:for="{{item.eventIds}}"') >= 0,
-    "report should render compact event ids instead of raw JSON",
+    reportWxml.indexOf("{{item.answerLine}}") >= 0,
+    "report should render the learner's actual answer line",
   );
   assert(
-    reportWxml.indexOf("{{item.levelLabel || item.level}}") >= 0 &&
+    /class="brain-training-row"[\s\S]*bindtap="goPractice"/.test(reportWxml),
+    "next training cards should be actionable and enter the practice flow",
+  );
+  assert(
+    reportWxml.indexOf("{{item.levelLabel}}") >= 0 &&
       reportWxml.indexOf("event {{item.eventId}}") < 0,
     "report should render learner-facing Chinese labels instead of machine labels",
   );
@@ -323,6 +328,67 @@ async function run() {
             review_summary: { total_due: 0, overdue_count: 0 },
           },
           radar_dimensions: [{ name: "工程招标投标与合同管理", value: 0.2 }],
+          learner_facing: {
+            summary: {
+              title: "今日学习复盘",
+              headline: "最近 2 次练习里，重点关注 工程招标投标与合同管理。",
+              today_done: 1,
+              recent_three_done: 2,
+              primary_focus: "工程招标投标与合同管理",
+              weak_count: 1,
+            },
+            recent_attempts: [
+              {
+                key: "attempt-0",
+                time_label: "今天 09:37",
+                title: "主体结构施工质量控制应重点核查什么？",
+                concept: "工程招标投标与合同管理",
+                result_label: "答错",
+                tone: "wrong",
+                answer_line: "你选：A；正确：B",
+                diagnosis: "多选漏选",
+                diagnosis_detail: "漏选了标准答案里的关键条件。",
+                evidence_label: "最近一次批改",
+              },
+            ],
+            diagnoses: [
+              {
+                key: "工程招标投标与合同管理::多选漏选",
+                level_label: "需要重点补",
+                title: "工程招标投标与合同管理：多选漏选",
+                meta: "最近出现 2 次",
+                detail: "多选题遗漏了应选项。",
+                action: "先做 3 道工程招标投标与合同管理相关辨析题",
+                count: 2,
+              },
+            ],
+            evidence_timeline: [
+              {
+                key: "timeline-0",
+                time_label: "今天 09:37",
+                title: "主体结构施工质量控制应重点核查什么？",
+                line: "答错；你选：A；正确：B；多选漏选",
+                tone: "wrong",
+              },
+            ],
+            training_loops: [
+              {
+                key: "loop-0",
+                tone: "not-improved",
+                title: "多选漏选",
+                from: "错因：工程招标投标与合同管理 / 多选漏选",
+                training: "训练：先做 3 道工程招标投标与合同管理相关辨析题",
+                outcome: "变化：仍需通过下一轮训练验证",
+              },
+            ],
+            next_action: {
+              title: "先做 3 道“工程招标投标与合同管理”专项题",
+              subtitle: "目标：把“多选漏选”这一类错误拉回主线",
+              concept: "工程招标投标与合同管理",
+              cta: "开始训练",
+              estimated_minutes: 8,
+            },
+          },
           learning_brain: await this.getLearningBrainProjection(),
         },
       };
@@ -425,6 +491,13 @@ async function run() {
   assert.strictEqual(reportCtx.data.overallMastery, 20);
   assert.strictEqual(reportCtx.data.learningBrainGraphStats.eventCount, 2);
   assert.strictEqual(reportCtx.data.learningBrainEmpty, false);
+  assert.strictEqual(reportCtx.data.learningBrainSummary.primaryFocus, "工程招标投标与合同管理");
+  assert.strictEqual(reportCtx.data.learningBrainAttempts[0].answerLine, "你选：A；正确：B");
+  assert.strictEqual(reportCtx.data.learningBrainDiagnoses[0].levelLabel, "需要重点补");
+  assert.strictEqual(
+    reportCtx.data.learningBrainNextAction.title,
+    "先做 3 道“工程招标投标与合同管理”专项题",
+  );
 
   // ─── G6: 入口只调一次 getLearningReport，旧 5 个接口调用次数为 0 ─────────────
   const callCounters = {

@@ -58,8 +58,8 @@
             <text class="learning-brain-sub">学习事实编译</text>
           </view>
           <view class="learning-brain-stats" wx:if="{{!learningBrainLoading && !learningBrainError}}">
-            <text class="brain-stat">{{learningBrainGraphStats.typedGraphEdgeCount || 0}} 条关系</text>
-            <text class="brain-stat">{{learningBrainGraphStats.eventCount || 0}} 条证据</text>
+            <text class="brain-stat">{{learningBrainSummary.recentThreeDone || learningBrainGraphStats.eventCount || 0}} 次练习</text>
+            <text class="brain-stat">{{learningBrainSummary.weakCount || learningBrainDiagnoses.length || 0}} 个重点</text>
           </view>
         </view>
 
@@ -82,36 +82,72 @@
         </view>
 
         <view wx:else class="learning-brain-body">
-          <view class="brain-column">
-            <text class="brain-column-title">当前可信结论</text>
-            <view
-              class="brain-truth-row"
-              wx:for="{{learningBrainTruths}}"
-              wx:key="key"
-            >
-              <view class="brain-level level-{{item.level}}">
-                <text>{{item.levelLabel || item.level}}</text>
+          <view class="brain-review-hero">
+            <text class="brain-review-kicker">{{learningBrainSummary.primaryFocus ? '当前重点' : '学习复盘'}}</text>
+            <text class="brain-review-title">{{learningBrainSummary.primaryFocus || learningBrainSummary.title || '最近练习'}}</text>
+            <text class="brain-review-desc">{{learningBrainSummary.headline || '系统会根据你的真实作答，整理错因、依据和下一步训练。'}}</text>
+            <view class="brain-review-metrics">
+              <view class="brain-review-metric">
+                <text class="brain-review-num">{{learningBrainSummary.todayDone || todayDone || 0}}</text>
+                <text class="brain-review-label">今日练习</text>
               </view>
-              <view class="brain-row-main">
-                <text class="brain-row-title">{{item.title}}</text>
-                <text class="brain-row-meta">{{item.meta}}</text>
-                <view class="brain-event-list" wx:if="{{item.eventIds.length}}">
-                  <text class="brain-event" wx:for="{{item.eventIds}}" wx:for-item="eventId" wx:key="*this">{{eventId}}</text>
-                </view>
+              <view class="brain-review-metric">
+                <text class="brain-review-num">{{learningBrainSummary.recentThreeDone || 0}}</text>
+                <text class="brain-review-label">近3天</text>
+              </view>
+              <view class="brain-review-metric warn">
+                <text class="brain-review-num">{{learningBrainSummary.weakCount || learningBrainDiagnoses.length || 0}}</text>
+                <text class="brain-review-label">待补错因</text>
               </view>
             </view>
           </view>
 
-          <view class="brain-column">
-            <text class="brain-column-title">证据流</text>
+          <view class="brain-column" wx:if="{{learningBrainAttempts.length}}">
+            <text class="brain-column-title">最近做题复盘</text>
             <view
-              class="brain-edge-row"
+              class="brain-attempt-row attempt-{{item.tone}}"
+              wx:for="{{learningBrainAttempts}}"
+              wx:key="key"
+            >
+              <view class="brain-attempt-head">
+                <text class="brain-attempt-time">{{item.timeLabel}}</text>
+                <text class="brain-attempt-result">{{item.resultLabel}}</text>
+              </view>
+              <text class="brain-attempt-title">{{item.title}}</text>
+              <text class="brain-attempt-answer" wx:if="{{item.answerLine}}">{{item.answerLine}}</text>
+              <view class="brain-attempt-diagnosis">
+                <text class="brain-diagnosis-tag">{{item.diagnosis}}</text>
+                <text class="brain-diagnosis-text">{{item.diagnosisDetail}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="brain-column" wx:if="{{learningBrainDiagnoses.length}}">
+            <text class="brain-column-title">系统判断</text>
+            <view
+              class="brain-diagnosis-row"
+              wx:for="{{learningBrainDiagnoses}}"
+              wx:key="key"
+            >
+              <view class="brain-diagnosis-head">
+                <text class="brain-diagnosis-level">{{item.levelLabel}}</text>
+                <text class="brain-diagnosis-count">{{item.meta}}</text>
+              </view>
+              <text class="brain-diagnosis-title">{{item.title}}</text>
+              <text class="brain-diagnosis-detail">{{item.detail}}</text>
+              <text class="brain-diagnosis-action">{{item.action}}</text>
+            </view>
+          </view>
+
+          <view class="brain-column" wx:if="{{learningBrainEvidence.length}}">
+            <text class="brain-column-title">依据来自哪些作答</text>
+            <view
+              class="brain-timeline-row timeline-{{item.tone}}"
               wx:for="{{learningBrainEvidence}}"
               wx:key="key"
             >
-              <text class="brain-edge-type">{{item.type}}</text>
-              <text class="brain-edge-path">{{item.path}}</text>
-              <text class="brain-edge-event" wx:if="{{item.eventLabel || item.eventId}}">{{item.eventLabel || item.eventId}}</text>
+              <text class="brain-timeline-title">{{item.type}}</text>
+              <text class="brain-timeline-line">{{item.path}}</text>
             </view>
           </view>
 
@@ -123,10 +159,9 @@
               wx:key="key"
             >
               <text class="brain-chain-title">{{item.title}}</text>
+              <text class="brain-chain-step" wx:if="{{item.from}}">{{item.from}}</text>
               <text class="brain-chain-step">{{item.training}}</text>
-              <text class="brain-chain-step" wx:if="{{item.question}}">{{item.question}}</text>
               <text class="brain-chain-outcome">{{item.outcome}}</text>
-              <text class="brain-edge-event" wx:if="{{item.eventLabel || item.eventId}}">{{item.eventLabel || item.eventId}}</text>
             </view>
           </view>
 
@@ -136,15 +171,21 @@
               class="brain-training-row"
               wx:for="{{learningBrainTraining}}"
               wx:key="key"
+              bindtap="goPractice"
+              hover-class="metric-chip-hover"
             >
               <text class="brain-training-title">{{item.title}}</text>
               <text class="brain-training-meta">{{item.meta}}</text>
+              <view class="brain-training-cta" wx:if="{{item.cta}}">
+                <text>{{item.cta}}</text>
+                <text wx:if="{{item.estimatedMinutes}}">约 {{item.estimatedMinutes}} 分钟</text>
+              </view>
             </view>
           </view>
 
           <view class="brain-footer" wx:if="{{learningBrainGraphStats.projectionSubject}}">
-            <text>{{learningBrainGraphStats.projectionSubjectLabel || learningBrainGraphStats.projectionSubject}}</text>
-            <text>稳定结论 {{learningBrainGraphStats.createdClaimCount || 0}}</text>
+            <text>{{learningBrainGraphStats.projectionSubjectLabel || '学习复盘'}}</text>
+            <text>由批改记录生成</text>
           </view>
         </view>
       </view>

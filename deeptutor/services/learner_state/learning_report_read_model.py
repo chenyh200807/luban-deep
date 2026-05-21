@@ -36,6 +36,30 @@ _SOURCE_NAMES = (
     "compiled_truth",
     "dry_run_synthesis",
 )
+_ERROR_LABELS = {
+    "E01": "知识点缺失",
+    "E02": "采分点遗漏",
+    "E03": "关键词缺失",
+    "E04": "口号化表达",
+    "E05": "审题错误",
+    "E06": "程序顺序错误",
+    "E07": "概念混淆",
+    "E08": "背景信息提取失败",
+    "E09": "计算错误",
+    "E10": "规范适用错误",
+    "E11": "迁移失败",
+    "E12": "表达冗余",
+    "M01": "知识点不熟",
+    "M02": "关键词误读",
+    "M03": "概念混淆",
+    "M04": "选项陷阱",
+    "M05": "审题方向错误",
+    "M06": "多选漏选",
+    "M07": "多选错选",
+    "M08": "规范数字混淆",
+    "M09": "题干条件提取不完整",
+    "M10": "用常识替代规范判断",
+}
 
 
 def build_learning_report_read_model(
@@ -128,6 +152,12 @@ def build_learning_report_read_model(
         evidence_stats=evidence_stats,
     )
     next_training = _next_training_items(learning_brain, home_dashboard)
+    learner_facing = _learner_facing_payload(
+        events=events,
+        evidence_stats=evidence_stats,
+        weak_points=weak_points,
+        next_training=next_training,
+    )
     daily_target = _safe_int(legacy_today.get("daily_target")) or 30
     overview = {
         "today_done": evidence_stats["today_done"],
@@ -184,6 +214,7 @@ def build_learning_report_read_model(
         "mastery": mastery,
         "radar_dimensions": radar_dimensions,
         "learning_brain": learning_brain,
+        "learner_facing": learner_facing,
         "next_training": next_training,
         "legacy_compat": {
             "today_progress": legacy_today,
@@ -440,6 +471,233 @@ def _next_training_items(learning_brain: dict[str, Any], home_dashboard: dict[st
     return []
 
 
+def _learner_facing_payload(
+    *,
+    events: list[Any],
+    evidence_stats: dict[str, Any],
+    weak_points: list[dict[str, Any]],
+    next_training: list[dict[str, Any]],
+) -> dict[str, Any]:
+    attempts = _recent_attempt_cards(events)
+    diagnoses = _diagnosis_cards(events=events, weak_points=weak_points)
+    timeline = _evidence_timeline(attempts)
+    loops = _training_loop_cards(attempts=attempts, diagnoses=diagnoses)
+    next_action = _next_action_card(diagnoses=diagnoses, next_training=next_training)
+    primary_focus = str(next_action.get("concept") or "").strip()
+    if not primary_focus and diagnoses:
+        primary_focus = str(diagnoses[0].get("concept") or "").strip()
+    if not primary_focus and attempts:
+        primary_focus = str(attempts[0].get("concept") or "").strip()
+    today_done = _safe_int(evidence_stats.get("today_done"))
+    recent_done = _safe_int(evidence_stats.get("recent_three_done"))
+    weak_count = len(diagnoses)
+    if attempts:
+        headline = f"最近 {recent_done} 次练习里，重点关注 {primary_focus or '薄弱题型'}。"
+    else:
+        headline = "完成一次练习后，这里会按真实作答生成复盘。"
+    return {
+        "summary": {
+            "title": "今日学习复盘" if attempts else "学习复盘待生成",
+            "headline": headline,
+            "today_done": today_done,
+            "recent_three_done": recent_done,
+            "primary_focus": primary_focus,
+            "weak_count": weak_count,
+        },
+        "recent_attempts": attempts[:5],
+        "diagnoses": diagnoses[:4],
+        "evidence_timeline": timeline[:6],
+        "training_loops": loops[:3],
+        "next_action": next_action,
+    }
+
+
+def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
+    cards: list[dict[str, Any]] = []
+    ordered = sorted(
+        list(events or []),
+        key=lambda event: str(getattr(event, "created_at", "") or ""),
+        reverse=True,
+    )
+    for index, event in enumerate(ordered[:12]):
+        payload = _safe_dict(getattr(event, "payload_json", {}))
+        concept = _concept_label(_event_concept(payload)) or "综合练习"
+        errors = [error for error in _safe_list(payload.get("error_events") or payload.get("errors")) if isinstance(error, dict)]
+        is_correct = _is_correct(payload)
+        error_label = _primary_error_label(errors)
+        diagnosis = _primary_diagnosis(errors)
+        user_answer = _format_answer(payload.get("user_answer"), payload.get("options"))
+        correct_answer = _format_answer(payload.get("correct_answer"), payload.get("options"))
+        missed = _format_letters(payload.get("missed_options"))
+        extra = _format_letters(payload.get("extra_options"))
+        result_label = "答对" if is_correct else "答错"
+        title = _question_title(payload=payload, event=event, index=index)
+        answer_parts = []
+        if user_answer:
+            answer_parts.append(f"你选：{user_answer}")
+        if correct_answer:
+            answer_parts.append(f"正确：{correct_answer}")
+        if missed:
+            answer_parts.append(f"漏选：{missed}")
+        if extra:
+            answer_parts.append(f"多选：{extra}")
+        if not answer_parts and payload.get("score_awarded") is not None and payload.get("max_score") is not None:
+            answer_parts.append(f"得分：{payload.get('score_awarded')}/{payload.get('max_score')}")
+        if not diagnosis:
+            diagnosis = "这次作答形成了一条改善信号。" if is_correct else "本次批改记录到一个薄弱点。"
+        cards.append({
+            "key": f"attempt-{index}",
+            "time_label": _time_label(str(getattr(event, "created_at", "") or "")),
+            "title": title,
+            "concept": concept,
+            "result_label": result_label,
+            "tone": "correct" if is_correct else "wrong",
+            "answer_line": "；".join(answer_parts),
+            "diagnosis": error_label or ("稳定答对" if is_correct else "待归因"),
+            "diagnosis_detail": _clean_learning_text(diagnosis),
+            "evidence_label": _attempt_evidence_label(index),
+        })
+    return cards
+
+
+def _diagnosis_cards(*, events: list[Any], weak_points: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    for event in events:
+        payload = _safe_dict(getattr(event, "payload_json", {}))
+        created_at = str(getattr(event, "created_at", "") or "")
+        for error in _safe_list(payload.get("error_events") or payload.get("errors")):
+            if not isinstance(error, dict):
+                continue
+            concept = _concept_label(str(error.get("concept_tag") or _event_concept(payload) or ""))
+            error_code = str(error.get("error_code") or "").strip().upper()
+            error_label = _error_label(error_code)
+            if not concept and not error_label:
+                continue
+            key = (concept or "综合练习", error_label or "待归因")
+            item = grouped.setdefault(
+                key,
+                {
+                    "key": f"{key[0]}::{key[1]}",
+                    "concept": key[0],
+                    "error": key[1],
+                    "count": 0,
+                    "latest_at": "",
+                    "detail": "",
+                },
+            )
+            item["count"] += 1
+            if created_at > str(item.get("latest_at") or ""):
+                item["latest_at"] = created_at
+                item["detail"] = _clean_learning_text(error.get("diagnosis") or "")
+
+    for weak in weak_points:
+        concept = _concept_label(str(weak.get("concept_id") or ""))
+        error = _error_label(weak.get("error_code"))
+        if not concept and not error:
+            continue
+        key = (concept or "综合练习", error or "待归因")
+        item = grouped.setdefault(
+            key,
+            {
+                "key": f"{key[0]}::{key[1]}",
+                "concept": key[0],
+                "error": key[1],
+                "count": 0,
+                "latest_at": "",
+                "detail": _clean_learning_text(weak.get("claim") or ""),
+            },
+        )
+        item["count"] = max(_safe_int(item.get("count")), len(_safe_list(weak.get("supporting_event_ids"))))
+        if not item.get("detail"):
+            item["detail"] = _clean_learning_text(weak.get("display_title") or weak.get("claim") or "")
+
+    cards = []
+    for item in grouped.values():
+        count = _safe_int(item.get("count"))
+        concept = str(item.get("concept") or "综合练习")
+        error = str(item.get("error") or "待归因")
+        level_label = "需要重点补" if count >= 2 else "刚发现"
+        cards.append({
+            "key": str(item.get("key") or f"{concept}::{error}"),
+            "level_label": level_label,
+            "title": f"{concept}：{error}",
+            "concept": concept,
+            "error": error,
+            "meta": f"最近出现 {max(count, 1)} 次",
+            "detail": item.get("detail") or f"这类题先按“{error}”处理，后续练习会继续校准。",
+            "action": f"先做 3 道{concept}相关辨析题",
+            "count": max(count, 1),
+        })
+    return sorted(cards, key=lambda item: (_safe_int(item.get("count")), str(item.get("key") or "")), reverse=True)
+
+
+def _evidence_timeline(attempts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    timeline = []
+    for index, item in enumerate(attempts):
+        result = str(item.get("result_label") or "")
+        answer = str(item.get("answer_line") or "").strip()
+        line = "；".join(part for part in (result, answer, str(item.get("diagnosis") or "")) if part)
+        timeline.append({
+            "key": f"timeline-{index}",
+            "time_label": item.get("time_label") or "",
+            "title": item.get("title") or "一次练习",
+            "line": line,
+            "tone": item.get("tone") or "",
+        })
+    return timeline
+
+
+def _training_loop_cards(*, attempts: list[dict[str, Any]], diagnoses: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    cards = []
+    for index, diagnosis in enumerate(diagnoses[:4]):
+        concept = str(diagnosis.get("concept") or "薄弱点")
+        error = str(diagnosis.get("error") or "待归因")
+        related = [item for item in attempts if item.get("concept") == concept]
+        latest_tone = str(related[0].get("tone") or "") if related else ""
+        improved = latest_tone == "correct"
+        cards.append({
+            "key": f"loop-{index}",
+            "title": error,
+            "from": f"错因：{concept} / {error}",
+            "training": f"训练：{diagnosis.get('action') or ('围绕 ' + concept + ' 做变式训练')}",
+            "outcome": "变化：最近已有答对记录，继续巩固" if improved else "变化：仍需通过下一轮训练验证",
+            "tone": "improved" if improved else "not-improved",
+        })
+    return cards
+
+
+def _next_action_card(*, diagnoses: list[dict[str, Any]], next_training: list[dict[str, Any]]) -> dict[str, Any]:
+    if diagnoses:
+        top = diagnoses[0]
+        concept = str(top.get("concept") or "薄弱点")
+        error = str(top.get("error") or "错因")
+        return {
+            "title": f"先做 3 道“{concept}”专项题",
+            "subtitle": f"目标：把“{error}”这一类错误拉回主线",
+            "concept": concept,
+            "cta": "开始训练",
+            "estimated_minutes": 8,
+        }
+    if next_training:
+        item = _safe_dict(next_training[0])
+        title = _clean_learning_text(item.get("display_title") or item.get("claim") or "下一步训练")
+        meta = _clean_learning_text(item.get("display_meta") or item.get("display_label") or "")
+        return {
+            "title": title or "先完成一组专项训练",
+            "subtitle": meta or "完成后系统会继续更新你的学情判断",
+            "concept": "",
+            "cta": "开始训练",
+            "estimated_minutes": 8,
+        }
+    return {
+        "title": "先完成一组练习",
+        "subtitle": "完成批改后，系统会生成你的错因和下一步训练",
+        "concept": "",
+        "cta": "去练习",
+        "estimated_minutes": 10,
+    }
+
+
 def _mastery_payload(
     mastery_dashboard: dict[str, Any],
     *,
@@ -601,6 +859,137 @@ def _is_correct(payload: dict[str, Any]) -> bool:
     except (TypeError, ValueError):
         return False
     return max_score > 0 and awarded >= max_score
+
+
+def _question_title(*, payload: dict[str, Any], event: Any, index: int) -> str:
+    text = str(
+        payload.get("question_stem")
+        or payload.get("stem")
+        or payload.get("question_text")
+        or payload.get("question")
+        or ""
+    ).strip()
+    if text:
+        return _truncate(_clean_learning_text(text), 34)
+    focus = str(_safe_dict(payload.get("next_training_signal")).get("focus") or "").strip()
+    if focus and not focus.isascii():
+        return _truncate(_clean_learning_text(focus), 28)
+    concept = _concept_label(_event_concept(payload))
+    if concept:
+        return f"{concept}练习题"
+    question_id = str(payload.get("question_id") or getattr(event, "source_id", "") or "").strip()
+    if question_id:
+        return f"第 {index + 1} 次练习"
+    return "一次练习"
+
+
+def _primary_error_label(errors: list[dict[str, Any]]) -> str:
+    for error in errors:
+        label = _error_label(error.get("error_code"))
+        if label:
+            return label
+    return ""
+
+
+def _primary_diagnosis(errors: list[dict[str, Any]]) -> str:
+    for error in errors:
+        text = str(error.get("diagnosis") or error.get("evidence") or "").strip()
+        if text:
+            return text
+    return ""
+
+
+def _error_label(error_code: Any) -> str:
+    code = str(error_code or "").strip().upper()
+    if not code:
+        return ""
+    return _ERROR_LABELS.get(code) or "错因"
+
+
+def _format_answer(value: Any, options: Any = None) -> str:
+    text = str(value or "").strip().upper()
+    if not text:
+        return ""
+    letters = [char for char in text if char.isalpha()]
+    if not letters:
+        return _truncate(_clean_learning_text(text), 28)
+    option_map = _option_map(options)
+    parts = []
+    for letter in letters:
+        option_text = option_map.get(letter)
+        if option_text:
+            parts.append(f"{letter}（{_truncate(option_text, 18)}）")
+        else:
+            parts.append(letter)
+    return "、".join(parts)
+
+
+def _format_letters(value: Any) -> str:
+    if isinstance(value, list):
+        letters = [str(item or "").strip().upper() for item in value if str(item or "").strip()]
+        return "、".join(letters)
+    return _format_answer(value)
+
+
+def _option_map(options: Any) -> dict[str, str]:
+    if isinstance(options, dict):
+        return {str(key).strip().upper(): _clean_learning_text(value) for key, value in options.items() if str(key).strip()}
+    if isinstance(options, list):
+        mapped: dict[str, str] = {}
+        for item in options:
+            if isinstance(item, dict):
+                key = str(item.get("key") or item.get("label") or item.get("option") or "").strip().upper()
+                value = item.get("text") or item.get("content") or item.get("value") or ""
+                if key:
+                    mapped[key] = _clean_learning_text(value)
+        return mapped
+    return {}
+
+
+def _time_label(value: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return "最近"
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except Exception:
+        return "最近"
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=_TZ)
+    local = parsed.astimezone(_TZ)
+    today = datetime.now(_TZ).date()
+    if local.date() == today:
+        return f"今天 {local.strftime('%H:%M')}"
+    if local.date() == today - timedelta(days=1):
+        return f"昨天 {local.strftime('%H:%M')}"
+    return local.strftime("%m月%d日 %H:%M")
+
+
+def _attempt_evidence_label(index: int) -> str:
+    if index == 0:
+        return "最近一次批改"
+    if index == 1:
+        return "上一次批改"
+    return f"第 {index + 1} 次批改"
+
+
+def _clean_learning_text(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    text = text.replace("practice /", "")
+    text = text.replace("->", "→")
+    for code, label in _ERROR_LABELS.items():
+        text = text.replace(code, label)
+    text = " ".join(text.split())
+    return text
+
+
+def _truncate(value: Any, limit: int) -> str:
+    text = str(value or "").strip()
+    if len(text) <= limit:
+        return text
+    return text[: max(1, limit - 1)].rstrip() + "…"
 
 
 def _date_key(value: str | None = None, *, days_ago: int = 0) -> str:
