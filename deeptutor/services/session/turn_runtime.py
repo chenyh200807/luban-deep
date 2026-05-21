@@ -340,8 +340,15 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
     if _event_visibility(event) != _PUBLIC_VISIBILITY:
         return metadata
     if event.type == StreamEventType.CONTENT and _should_capture_assistant_content(event):
-        if looks_like_unsafe_visible_output(event.content):
-            event.content = coerce_user_visible_answer(event.content)
+        raw = event.content if isinstance(event.content, str) else ""
+        # Token-level deltas must keep whitespace verbatim; coerce/normalize are
+        # paragraph-level transforms that strip per-delta whitespace and drop
+        # pure-newline deltas ("\n\n") to "", which breaks ATX heading and list
+        # parsing in the frontend markdown renderer.
+        if raw and looks_like_unsafe_visible_output(raw):
+            event.content = coerce_user_visible_answer(raw)
+        else:
+            event.content = raw
         return metadata
     if event.type == StreamEventType.ERROR:
         event.content = normalize_markdown_for_tutorbot(
