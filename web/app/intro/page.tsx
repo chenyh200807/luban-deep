@@ -287,7 +287,8 @@ function ChatProof() {
 export default function IntroPage() {
   return (
     <div
-      className={`${styles.page} h-[100dvh] min-h-0 overflow-y-auto overflow-x-hidden bg-[#f7faf9] text-[#101820] [color-scheme:light] [-webkit-tap-highlight-color:transparent]`}
+      data-testid="intro-page-scroll"
+      className={`${styles.page} h-[100dvh] min-h-0 overflow-y-auto overflow-x-hidden bg-[#f7faf9] text-[#101820] [-webkit-overflow-scrolling:touch] [-webkit-tap-highlight-color:transparent] [color-scheme:light]`}
     >
       <a href="#main-content" className={styles.skipLink}>
         跳到主要内容
