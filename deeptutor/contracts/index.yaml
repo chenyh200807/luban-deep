@@ -176,6 +176,7 @@ domains:
       - tests/services/learner_state/test_flusher.py
       - tests/services/learner_state/test_runtime.py
       - tests/services/learner_state/test_learning_report_read_model.py
+      - tests/api/test_learning_brain_router.py
       - tests/services/learner_state/test_heartbeat_service.py
       - tests/services/learner_state/heartbeat/test_service.py
       - tests/services/learner_state/heartbeat/test_scheduler.py
