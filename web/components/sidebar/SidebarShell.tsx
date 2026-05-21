@@ -138,7 +138,7 @@ export function SidebarShell({
         <div className="flex-1" />
 
         <div className="flex flex-col items-center gap-px pb-1">
-          {SECONDARY_NAV.map((item) => {
+          {visibleSecondaryNav.map((item) => {
             const active = pathname.startsWith(item.href);
             return (
               <Link
