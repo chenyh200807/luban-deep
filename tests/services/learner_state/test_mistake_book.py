@@ -130,3 +130,48 @@ def test_supabase_mistake_book_store_uses_user_event_authority_filters() -> None
     assert requests[2]["method"] == "PATCH"
     assert requests[2]["params"]["user_id"] == "eq.u1"
     assert requests[2]["params"]["event_id"] == "eq.evt1"
+
+
+def test_supabase_mistake_book_list_items_pushes_read_filters_to_postgrest() -> None:
+    requests: list[dict[str, object]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append({"method": request.method, "params": dict(request.url.params)})
+        return httpx.Response(200, json=[], request=request)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://example.supabase.co")
+    store = SupabaseMistakeBookStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+
+    assert store.list_items("u1", subject_id="construction_exam_1") == []
+
+    assert requests[0]["method"] == "GET"
+    assert requests[0]["params"]["user_id"] == "eq.u1"
+    assert requests[0]["params"]["subject_id"] == "eq.construction_exam_1"
+    assert requests[0]["params"]["archived_at"] == "is.null"
+    assert requests[0]["params"]["mastered_at"] == "is.null"
+    assert requests[0]["params"]["order"] == "saved_at.desc"
+
+
+def test_supabase_mistake_book_list_items_include_mastered_does_not_filter_mastered_at() -> None:
+    requests: list[dict[str, object]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append({"method": request.method, "params": dict(request.url.params)})
+        return httpx.Response(200, json=[], request=request)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://example.supabase.co")
+    store = SupabaseMistakeBookStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+
+    assert store.list_items("u1", subject_id="construction_exam_1", include_mastered=True) == []
+
+    assert requests[0]["params"]["subject_id"] == "eq.construction_exam_1"
+    assert requests[0]["params"]["archived_at"] == "is.null"
+    assert "mastered_at" not in requests[0]["params"]

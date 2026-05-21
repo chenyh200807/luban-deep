@@ -62,10 +62,15 @@ def test_audit_accepts_projected_rubric_assets_without_requiring_curated_rubric(
 class _FakeLearnerStateService:
     def __init__(self) -> None:
         self.calls: list[dict[str, object]] = []
+        self.progress_patches: list[dict[str, object]] = []
 
     def append_memory_event(self, user_id: str, **kwargs: object) -> object:
         self.calls.append({"user_id": user_id, **kwargs})
         return object()
+
+    def merge_progress(self, user_id: str, patch: dict[str, object]) -> dict[str, object]:
+        self.progress_patches.append({"user_id": user_id, "patch": patch})
+        return patch
 
 
 def test_writeback_uses_existing_learner_memory_events() -> None:
@@ -101,6 +106,10 @@ def test_writeback_uses_existing_learner_memory_events() -> None:
     assert call["payload_json"]["error_events"][0]["error_code"] in {"E02", "E03", "E04"}
     assert call["payload_json"]["errors"][0]["error_code"] in {"E02", "E03", "E04"}
     assert call["payload_json"]["quality"]["evidence_level"] == "L0_observed"
+    assert service.progress_patches
+    projection = service.progress_patches[0]["patch"]["home_personalization"]
+    assert projection["recommended_prompts"][0]["intent"]["source"] == "home_dashboard"
+    assert projection["source_status"]["learning_report"] == "projection"
 
 
 def test_writeback_accepts_runtime_batch_dict_result() -> None:

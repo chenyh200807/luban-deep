@@ -26,7 +26,13 @@ class MistakeBookStore(Protocol):
 
     def update_item(self, user_id: str, event_id: str, patch: dict[str, Any]) -> dict[str, Any] | None: ...
 
-    def list_items(self, user_id: str) -> list[dict[str, Any]]: ...
+    def list_items(
+        self,
+        user_id: str,
+        *,
+        subject_id: str = "",
+        include_mastered: bool = False,
+    ) -> list[dict[str, Any]]: ...
 
 
 class InMemoryMistakeBookStore:
@@ -53,9 +59,26 @@ class InMemoryMistakeBookStore:
         self._rows[key] = current
         return dict(current)
 
-    def list_items(self, user_id: str) -> list[dict[str, Any]]:
+    def list_items(
+        self,
+        user_id: str,
+        *,
+        subject_id: str = "",
+        include_mastered: bool = False,
+    ) -> list[dict[str, Any]]:
         normalized = str(user_id or "")
-        rows = [dict(row) for (row_user, _), row in self._rows.items() if row_user == normalized]
+        normalized_subject = str(subject_id or "").strip()
+        rows = []
+        for (row_user, _), row in self._rows.items():
+            if row_user != normalized:
+                continue
+            if row.get("archived_at"):
+                continue
+            if normalized_subject and str(row.get("subject_id") or "") != normalized_subject:
+                continue
+            if not include_mastered and row.get("mastered_at"):
+                continue
+            rows.append(dict(row))
         return sorted(rows, key=lambda row: str(row.get("saved_at") or ""), reverse=True)
 
 
@@ -69,7 +92,13 @@ class UnavailableMistakeBookStore:
     def update_item(self, user_id: str, event_id: str, patch: dict[str, Any]) -> dict[str, Any] | None:
         raise RuntimeError("mistake_book_store_unavailable")
 
-    def list_items(self, user_id: str) -> list[dict[str, Any]]:
+    def list_items(
+        self,
+        user_id: str,
+        *,
+        subject_id: str = "",
+        include_mastered: bool = False,
+    ) -> list[dict[str, Any]]:
         raise RuntimeError("mistake_book_store_unavailable")
 
 
@@ -125,9 +154,21 @@ class SupabaseMistakeBookStore:
         payload = response.json()
         return dict(payload[0]) if isinstance(payload, list) and payload else None
 
-    def list_items(self, user_id: str) -> list[dict[str, Any]]:
+    def list_items(
+        self,
+        user_id: str,
+        *,
+        subject_id: str = "",
+        include_mastered: bool = False,
+    ) -> list[dict[str, Any]]:
         self._ensure_configured()
-        return self._select({"user_id": f"eq.{user_id}"}, order="saved_at.desc")
+        filters = {"user_id": f"eq.{user_id}", "archived_at": "is.null"}
+        normalized_subject = str(subject_id or "").strip()
+        if normalized_subject:
+            filters["subject_id"] = f"eq.{normalized_subject}"
+        if not include_mastered:
+            filters["mastered_at"] = "is.null"
+        return self._select(filters, order="saved_at.desc")
 
     def _select(self, filters: dict[str, str], *, limit: int | None = None, order: str | None = None) -> list[dict[str, Any]]:
         params: dict[str, Any] = {"select": "*", **dict(filters or {})}
@@ -261,15 +302,14 @@ class MistakeBookService:
     ) -> dict[str, Any]:
         normalized_user = _require_text(user_id, "user_id")
         normalized_subject = str(subject_id or "").strip()
-        rows = []
-        for row in self._store.list_items(normalized_user):
-            if row.get("archived_at"):
-                continue
-            if normalized_subject and str(row.get("subject_id") or "") != normalized_subject:
-                continue
-            if not include_mastered and row.get("mastered_at"):
-                continue
-            rows.append(_public_item(row))
+        rows = [
+            _public_item(row)
+            for row in self._store.list_items(
+                normalized_user,
+                subject_id=normalized_subject,
+                include_mastered=include_mastered,
+            )
+        ]
         generated_at = _now()
         return {
             "ok": True,

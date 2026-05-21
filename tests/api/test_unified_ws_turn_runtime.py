@@ -7332,6 +7332,191 @@ async def test_turn_runtime_writes_home_prompt_conversation_learning_evidence(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_writes_conversation_learning_evidence_without_prompt_intent(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="主体结构多选题漏选，通常是因为只看到一个确定项就停止判断，应该逐项核对所有必要条件。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    class FakeLearnerStateService:
+        def build_context(self, **_kwargs):
+            return ""
+
+        async def refresh_from_turn(self, **kwargs):
+            captured["refresh"] = kwargs
+
+        def append_memory_event(self, user_id: str, **kwargs):
+            captured["append_memory_event"] = {"user_id": user_id, **kwargs}
+            return SimpleNamespace(event_id="evt_conversation")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: FakeLearnerStateService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "主体结构多选题为什么容易漏选？怎么区分该不该选？",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "app",
+                    "user_id": "student_demo",
+                    "learning_user_id": "student_demo",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+    for _ in range(20):
+        if "append_memory_event" in captured:
+            break
+        await asyncio.sleep(0.01)
+
+    written = captured["append_memory_event"]
+    payload = written["payload_json"]
+    assert written["user_id"] == "student_demo"
+    assert written["source_feature"] == "conversation_synthesis"
+    assert written["memory_kind"] == "learning_evidence"
+    assert payload["event_type"] == "learning_evidence"
+    assert payload["evidence_source"] == "conversation_synthesis"
+    assert payload["learning_signal_type"] == "mistake_explain"
+    assert payload["concept"]["label"] == "主体结构"
+    assert payload["error"]["label"] == "多选漏选"
+    assert payload["quality"]["truth_eligible"] is False
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_does_not_write_greeting_conversation_learning_evidence(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="你好，有什么可以帮你？",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    class FakeLearnerStateService:
+        def build_context(self, **_kwargs):
+            return ""
+
+        async def refresh_from_turn(self, **kwargs):
+            captured["refresh"] = kwargs
+
+        def append_memory_event(self, user_id: str, **kwargs):
+            captured["append_memory_event"] = {"user_id": user_id, **kwargs}
+            return SimpleNamespace(event_id="evt_conversation")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: FakeLearnerStateService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "你好",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "app",
+                    "user_id": "student_demo",
+                    "learning_user_id": "student_demo",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+    await asyncio.sleep(0.05)
+
+    assert "append_memory_event" not in captured
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_context_orchestration_prioritizes_active_plan_page(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

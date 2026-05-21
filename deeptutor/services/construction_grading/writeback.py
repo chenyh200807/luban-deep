@@ -70,6 +70,11 @@ def write_grading_error_events(
         payload_json=payload_json,
         dedupe_key=dedupe_key,
     )
+    _write_home_projection(
+        learner_state_service=learner_state_service,
+        user_id=normalized_user_id,
+        payload_json=payload_json,
+    )
     return 1
 
 
@@ -85,3 +90,20 @@ def _is_success_learning_evidence(payload_json: dict[str, Any]) -> bool:
     except (TypeError, ValueError):
         return False
     return bool(question_id and concept and max_score > 0 and score_awarded >= max_score)
+
+
+def _write_home_projection(*, learner_state_service: Any, user_id: str, payload_json: dict[str, Any]) -> None:
+    try:
+        from deeptutor.services.learner_state.home_personalization import (
+            build_home_personalization_projection_from_learning_signal,
+            write_home_personalization_projection,
+        )
+
+        projection = build_home_personalization_projection_from_learning_signal(payload_json)
+        write_home_personalization_projection(
+            learner_state_service,
+            user_id=user_id,
+            projection=projection,
+        )
+    except Exception:
+        return

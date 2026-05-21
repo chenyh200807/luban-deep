@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from deeptutor.services.learner_state.conversation_learning_evidence import (
     build_learning_evidence_from_conversation_turn,
+    write_conversation_learning_evidence_event,
 )
 
 
@@ -96,3 +97,59 @@ def test_non_learning_conversation_is_not_written() -> None:
     )
 
     assert event is None
+
+
+def test_still_confused_turn_is_low_confidence_and_not_truth_eligible() -> None:
+    event = build_learning_evidence_from_conversation_turn(
+        user_id="u1",
+        turn_ref="turn_confused",
+        user_question="主体结构多选题我还是没听懂，为什么会漏选？",
+        assistant_answer={
+            "summary": "主体结构多选题要逐项核对必要条件，漏选通常是因为只看到一个确定项就停止判断。",
+        },
+    )
+
+    assert event is not None
+    payload = event["payload_json"]
+    assert payload["learning_signal_type"] == "still_confused"
+    assert payload["confidence"] <= 0.35
+    assert payload["quality"]["truth_eligible"] is False
+    assert payload["quality"]["stable_truth_eligible"] is False
+    assert payload["event_type"] == "learning_evidence"
+    assert payload["evidence_source"] == "conversation_synthesis"
+
+
+def test_conversation_writeback_updates_home_personalization_projection() -> None:
+    class _FakeLearnerStateService:
+        def __init__(self) -> None:
+            self.appended: list[dict[str, object]] = []
+            self.progress_patches: list[dict[str, object]] = []
+
+        def append_memory_event(self, user_id: str, **kwargs: object) -> object:
+            self.appended.append({"user_id": user_id, **kwargs})
+            return {"event_id": "evt_conversation"}
+
+        def merge_progress(self, user_id: str, patch: dict[str, object]) -> dict[str, object]:
+            self.progress_patches.append({"user_id": user_id, "patch": patch})
+            return patch
+
+    service = _FakeLearnerStateService()
+
+    written = write_conversation_learning_evidence_event(
+        learner_state_service=service,
+        user_id="u1",
+        turn_ref="turn_projection",
+        user_question="主体结构多选题我还是没听懂，为什么会漏选？",
+        assistant_answer={
+            "summary": "主体结构多选题要逐项核对必要条件，漏选通常是因为只看到一个确定项就停止判断。",
+        },
+        subject_id="construction_exam_1",
+    )
+
+    assert written == {"event_id": "evt_conversation"}
+    assert service.appended[0]["memory_kind"] == "learning_evidence"
+    patch = service.progress_patches[0]["patch"]
+    projection = patch["home_personalization"]
+    assert projection["today_focus"]["intent"]["concept_label"] == "主体结构"
+    assert projection["recommended_prompts"][0]["intent"]["source"] == "home_dashboard"
+    assert projection["source_status"]["learning_report"] == "projection"

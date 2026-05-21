@@ -392,6 +392,16 @@ def _is_learning_evidence_payload(event: Any) -> bool:
     )
 
 
+def _is_progress_countable_event(event: Any) -> bool:
+    payload = _safe_dict(getattr(event, "payload_json", {}))
+    if str(payload.get("evidence_source") or "").strip() == "conversation_synthesis":
+        return False
+    quality = _safe_dict(payload.get("quality"))
+    if quality.get("progress_countable") is False:
+        return False
+    return True
+
+
 def _aggregate_learning_evidence(events: list[Any]) -> dict[str, Any]:
     daily_attempts: dict[str, int] = defaultdict(int)
     daily_unique_questions: dict[str, set[str]] = defaultdict(set)
@@ -408,6 +418,8 @@ def _aggregate_learning_evidence(events: list[Any]) -> dict[str, Any]:
 
     for event in events:
         event_count += 1
+        if not _is_progress_countable_event(event):
+            continue
         payload = _safe_dict(getattr(event, "payload_json", {}))
         created_at = str(getattr(event, "created_at", "") or "").strip()
         day = _date_key_from_iso(created_at)
@@ -537,7 +549,7 @@ def _recent_attempt_cards(events: list[Any], *, bookmarked_event_ids: set[str] |
     cards: list[dict[str, Any]] = []
     bookmark_ids = set(bookmarked_event_ids or set())
     ordered = sorted(
-        list(events or []),
+        [event for event in list(events or []) if _is_progress_countable_event(event)],
         key=lambda event: str(getattr(event, "created_at", "") or ""),
         reverse=True,
     )
@@ -627,6 +639,8 @@ def _attempt_ref(*, event: Any, payload: dict[str, Any]) -> str:
 def _diagnosis_cards(*, events: list[Any], weak_points: list[dict[str, Any]]) -> list[dict[str, Any]]:
     grouped: dict[tuple[str, str], dict[str, Any]] = {}
     for event in events:
+        if not _is_progress_countable_event(event):
+            continue
         payload = _safe_dict(getattr(event, "payload_json", {}))
         created_at = str(getattr(event, "created_at", "") or "")
         for error in _safe_list(payload.get("error_events") or payload.get("errors")):
@@ -794,12 +808,14 @@ def _truth_sections(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
                 "concept": key[0],
                 "error": key[1],
                 "count": 0,
+                "stable_count": 0,
                 "latest_at": "",
                 "conversation_only": True,
             },
         )
         item["count"] += 1
-        if str(getattr(event, "source_feature", "") or "") == "construction_grading":
+        if _is_progress_countable_event(event):
+            item["stable_count"] += 1
             item["conversation_only"] = False
         created_at = str(getattr(event, "created_at", "") or "")
         if created_at > str(item.get("latest_at") or ""):
@@ -808,7 +824,8 @@ def _truth_sections(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
     recent: list[dict[str, Any]] = []
     for item in grouped.values():
         count = _safe_int(item.get("count"))
-        if count >= 2 and not item.get("conversation_only"):
+        stable_count = _safe_int(item.get("stable_count"))
+        if stable_count >= 2:
             stable.append({**item, "level_label": "重复出现"})
         else:
             recent.append({**item, "level_label": "刚发现" if not item.get("conversation_only") else "已讲解"})

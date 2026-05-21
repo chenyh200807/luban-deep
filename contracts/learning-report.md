@@ -121,6 +121,9 @@ v2 新增字段（Task 1-5 实施后逐步引入）：
 - **稳定边界**：
   - 受 `DEEPTUTOR_HOME_PERSONALIZATION_ENABLED` flag 保护
   - 不得替代或覆盖 `home_dashboard` v1 字段；只作为 v2 新增字段 `home_projection` 产出
+  - dashboard 请求路径只允许读取既有 learner snapshot / progress / profile 中的 `home_personalization` projection；不得在请求路径里实时调用 `learning_report_read_model` 或用 `weak_nodes` 现场合成个性化推荐
+  - projection 缺失或 `generated_at` 超过 6 小时时只能降级为 seed starter fallback；对外 `source_status.learning_report="stale"`，具体原因写入 `source_status.fallback_reason`
+  - starter fallback 必须来自 `data/seed/<subject_id>/starter_prompts.json`，不得在代码里维护第二套 `_STARTER_PROMPTS` 静态池
   - `recommended_prompts[].intent` 通过 mobile `prompt_intent` 回传后，只能写入 `learning_evidence` 的 conversation synthesis payload；前端不得自行推导 weak point / mastery / next training。
 
 ### 3.5 Truth Sections
@@ -176,6 +179,7 @@ v2 新增字段（Task 1-5 实施后逐步引入）：
 1. 任何新增枚举值必须先更新本文件，并在 PR description 中显式列出。
 2. 禁止在业务代码中使用字符串字面量替代枚举值（必须引用枚举类或常量）。
 3. Conversation evidence 不得直接提升 mastery；`still_confused` 必须进入 recent observation / needs confirmation，而不是 stable truth。
+4. `learning_prompt_intent` 不是 conversation evidence 的唯一触发条件；普通学习答疑、概念讲解、错因追问、仍困惑信号只要通过 learner-state helper 的质量门槛，也必须写入同一个 `learning_evidence` ledger。
 
 ---
 

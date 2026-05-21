@@ -63,7 +63,7 @@
 - `mobile` 这类 HTTP bootstrap adapter 可以在服务端把认证态归一为 canonical `user_id` / `billing_context.user_id`，但客户端输入不得成为 learner / billing 身份真相，更不得因此长出第二套 session authority。
 - `mobile` 的 `/api/v1/chat/start-turn` 在创建 turn 前可以根据 canonical wallet ledger 做额度 fail-closed；额度耗尽时必须返回 `billing_quota_exceeded`，且不得创建 pending turn、不得写入第二套 session 状态。
 - `mobile` 的 `/api/v1/mobile/chat/start-turn` 可以接收 `prompt_intent`：chat 路径只允许归一为 `config.learning_prompt_intent`，deep_question 路径只允许归一为 `config.learning_training_intent`。该 intent 只能作为 post-turn conversation evidence 或 deep_question 训练目标上下文，不得成为新的 session、route、learner-memory 或推荐 authority。
-- unified turn finalization 可以在 assistant answer 完成后触发 learner-state conversation evidence 写入；turn wrapper 只传 `turn_ref`、用户文本、assistant 文本与 `learning_prompt_intent`，实际分类、质量门槛、PII redaction、payload schema 必须由 learner-state helper 负责。
+- unified turn finalization 可以在 assistant answer 完成后触发 learner-state conversation evidence 写入；turn wrapper 只传 `turn_ref`、用户文本、canonical assistant 文本、`learning_prompt_intent` 与 source refs，实际是否写入、信号分类、质量门槛、PII redaction、payload schema 必须由 learner-state helper 负责。`learning_prompt_intent` 只能把信号归一为 `home_prompt_clicked`，不得成为唯一写入条件。
 - grounded TutorBot 可以在统一 turn runtime 内执行 retrieval-first / exact-first fast path；这只改变内部执行顺序，不改变 `/api/v1/ws` transport contract。
 - TutorBot response mode 的公开观测口径必须体现单轮执行策略：
   - `fast` 是 `kb_first + single_shot_with_prefetch`，允许模型 fallback 和已启用的 `web_search` 预取，但不得进入完整 deep agent loop。

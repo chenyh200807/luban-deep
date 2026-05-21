@@ -183,8 +183,11 @@ Overlay 必须支持：
   `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
   读取；新写入事件必须带 `payload.event_type="learning_evidence"`。
 - Home dashboard 个性化只能读取 learner-state projection 或 starter pool。`member_console`
-  请求路径不得同步运行完整 learning report；只能在现有 `today_focus` /
-  `recommended_prompts` 字段上附加 learner-state intent projection。
+  请求路径不得同步运行完整 learning report，也不得根据 weak point 现场重新推导
+  recommended prompts；只能读取 learner snapshot / profile / progress 中的
+  `home_personalization` projection。projection 缺失或 stale 时降级到
+  `data/seed/<subject_id>/starter_prompts.json`，该 starter pool 是 fallback projection，
+  不是第二套推荐 authority。
 
 #### `learning_plans`
 

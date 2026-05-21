@@ -1805,6 +1805,7 @@ class TurnRuntimeManager:
         learner_state_service: Any,
         memory_service: Any,
         learning_prompt_intent: dict[str, Any] | None = None,
+        source_refs: list[dict[str, Any]] | None = None,
     ) -> None:
         async def _run() -> None:
             try:
@@ -1844,7 +1845,7 @@ class TurnRuntimeManager:
                             language=language,
                             source_bot_id=source_bot_id or None,
                         )
-                        if learning_prompt_intent and assistant_content.strip():
+                        if assistant_content.strip():
                             try:
                                 from deeptutor.services.learner_state.conversation_learning_evidence import (
                                     write_conversation_learning_evidence_event,
@@ -1856,8 +1857,8 @@ class TurnRuntimeManager:
                                     turn_ref=turn_id,
                                     user_question=raw_user_content,
                                     assistant_answer={"summary": assistant_content},
-                                    learning_signal_type="home_prompt_clicked",
                                     prompt_intent=learning_prompt_intent,
+                                    source_refs=source_refs,
                                 )
                             except Exception:
                                 logger.debug("Failed to write conversation learning evidence", exc_info=True)
@@ -4384,6 +4385,11 @@ class TurnRuntimeManager:
                         dict(request_config.get("learning_prompt_intent") or {})
                         if isinstance(request_config.get("learning_prompt_intent"), dict)
                         else None
+                    ),
+                    "source_refs": (
+                        list(assistant_event_summary.get("sources") or [])
+                        if isinstance(assistant_event_summary, dict)
+                        else []
                     ),
                 }
                 terminal_status = "completed"

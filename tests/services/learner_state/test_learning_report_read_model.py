@@ -370,6 +370,53 @@ def test_conversation_evidence_does_not_mark_mastered() -> None:
 
     assert model["truth_sections"]["stable_truths"] == []
     assert model["truth_sections"]["recent_observations"][0]["level_label"] == "已讲解"
+    assert model["overview"]["attempt_count"] == 0
+    assert model["overview"]["today_done"] == 0
+    assert model["overview"]["unique_question_count"] == 0
+    assert model["learner_facing"]["recent_attempts"] == []
+    assert model["learner_facing"]["summary"]["today_done"] == 0
+    assert model["learner_facing"]["summary"]["recent_three_done"] == 0
+
+
+def test_conversation_evidence_does_not_pollute_mixed_attempt_counts() -> None:
+    from deeptutor.services.learner_state.service import LearnerStateEvent
+
+    conversation_events = [
+        LearnerStateEvent(
+            event_id=f"evt_conversation_{index}",
+            user_id="student_demo",
+            source_feature="conversation_synthesis",
+            source_id=f"turn-{index}",
+            source_bot_id=None,
+            memory_kind="learning_evidence",
+            dedupe_key=f"evt_conversation_{index}",
+            created_at=_iso(0),
+            payload_json={
+                "event_type": "learning_evidence",
+                "evidence_source": "conversation_synthesis",
+                "learning_signal_type": "concept_explain",
+                "concept": {"label": "主体结构"},
+                "quality": {"detail_ready": True, "progress_countable": False, "truth_eligible": False},
+            },
+        )
+        for index in range(2)
+    ]
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([
+            _learning_event("evt_real_attempt", days_ago=0, question_id="q-real"),
+            *conversation_events,
+        ]),
+        event_limit=50,
+    )
+
+    assert model["overview"]["attempt_count"] == 1
+    assert model["overview"]["today_done"] == 1
+    assert model["overview"]["unique_question_count"] == 1
+    assert len(model["learner_facing"]["recent_attempts"]) == 1
+    assert model["learner_facing"]["recent_attempts"][0]["title"] != "第 1 次练习"
+    assert model["truth_sections"]["stable_truths"] == []
 
 
 def test_legacy_construction_grading_payload_without_event_type_still_reads() -> None:
