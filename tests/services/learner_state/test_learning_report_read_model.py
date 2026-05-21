@@ -26,7 +26,17 @@ def _learning_event(
     question_id: str = "case_001",
     error_code: str = "E02",
     created_at: str | None = None,
+    score_awarded: float = 0.0,
+    max_score: float = 1.0,
 ) -> LearnerStateEvent:
+    errors = [] if score_awarded >= max_score and max_score > 0 else [
+        {
+            "error_code": error_code,
+            "concept_tag": concept_id,
+            "rubric_item_id": "r1",
+            "diagnosis": "漏写关键采分点。",
+        }
+    ]
     return LearnerStateEvent(
         event_id=event_id,
         user_id="student_demo",
@@ -41,16 +51,9 @@ def _learning_event(
             "turn_id": f"turn_{event_id}",
             "question_id": question_id,
             "question_type": "mcq",
-            "score_awarded": 0.0,
-            "max_score": 1.0,
-            "error_events": [
-                {
-                    "error_code": error_code,
-                    "concept_tag": concept_id,
-                    "rubric_item_id": "r1",
-                    "diagnosis": "漏写关键采分点。",
-                }
-            ],
+            "score_awarded": score_awarded,
+            "max_score": max_score,
+            "error_events": errors,
             "next_training_signal": {
                 "concept": concept_id,
                 "focus": "专家论证程序",
@@ -223,6 +226,110 @@ def test_no_evidence_does_not_inflate_progress() -> None:
     # 近 3 天卡片应展示 0 题（非冒充非负值）
     cards = {item["label"]: item for item in model["progress_feedback"]["cards"]}
     assert cards["近 3 天完成"]["value"] == "0题"
+
+
+def test_single_correct_attempt_does_not_mark_chapter_as_fully_mastered() -> None:
+    """一题答对只能形成低样本掌握信号，不能把章节/全局直接推成 100%。"""
+
+    class OverconfidentMember(FakeMemberService):
+        def get_assessment_profile(self, user_id: str) -> dict:
+            return {
+                "level": "advanced",
+                "chapter_mastery": {
+                    "1A432000": {"name": "1A432000", "mastery": 100},
+                },
+                "diagnostic_feedback": {"learner_profile": {"study_tip": "继续做混合难度题确认"}},
+            }
+
+        def get_mastery_dashboard(self, user_id: str) -> dict:
+            return {
+                "overall_mastery": 100,
+                "groups": [
+                    {
+                        "name": "掌握较好",
+                        "avg_mastery": 100,
+                        "chapters": [{"name": "1A432000", "mastery": 100}],
+                    }
+                ],
+                "hotspots": [{"name": "1A432000", "mastery": 100}],
+                "review_summary": {"total_due": 0, "overdue_count": 0},
+            }
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=OverconfidentMember(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _learning_event(
+                    "evt_correct_once",
+                    days_ago=0,
+                    concept_id="1A432000",
+                    question_id="case_once",
+                    score_awarded=1.0,
+                    max_score=1.0,
+                )
+            ]
+        ),
+        event_limit=50,
+    )
+
+    assert model["overview"]["attempt_count"] == 1
+    assert model["overview"]["overall_mastery"] < 100
+    assert model["mastery"]["overall_mastery"] < 100
+    assert model["mastery"]["groups"][0]["chapters"][0]["mastery"] <= 60
+    assert model["radar_dimensions"][0]["name"] == "工程招标投标与合同管理"
+    assert model["radar_dimensions"][0]["value"] <= 0.6
+
+
+def test_machine_taxonomy_codes_are_normalized_before_report_surface() -> None:
+    """read model 输出前先把 taxonomy code 变成中文学习维度，避免前端猜测。"""
+
+    class CodeNamedMember(FakeMemberService):
+        def get_assessment_profile(self, user_id: str) -> dict:
+            return {
+                "level": "beginner",
+                "chapter_mastery": {
+                    "1A432000": {"name": "1A432000", "mastery": 20},
+                    "1A411011": {"name": "1A411011", "mastery": 10},
+                },
+                "diagnostic_feedback": {"learner_profile": {"study_tip": "先补关键采分点"}},
+            }
+
+        def get_mastery_dashboard(self, user_id: str) -> dict:
+            return {
+                "overall_mastery": 15,
+                "groups": [
+                    {
+                        "name": "需要加强",
+                        "avg_mastery": 15,
+                        "chapters": [
+                            {"name": "1A432000", "mastery": 20},
+                            {"name": "1A411011", "mastery": 10},
+                        ],
+                    }
+                ],
+                "hotspots": [{"name": "1A432000", "mastery": 20}],
+                "review_summary": {"total_due": 0, "overdue_count": 0},
+            }
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=CodeNamedMember(),
+        learner_state_service=FakeLearnerStateService([]),
+        event_limit=50,
+    )
+
+    dimension_names = [item["name"] for item in model["radar_dimensions"]]
+    chapter_names = [
+        chapter["name"]
+        for group in model["mastery"]["groups"]
+        for chapter in group["chapters"]
+    ]
+    assert "综合能力" not in dimension_names
+    assert "综合能力" not in chapter_names
+    assert "工程招标投标与合同管理" in dimension_names
+    assert "建筑物分类与构成" in dimension_names
+    assert "工程招标投标与合同管理" in chapter_names
 
 
 def test_attempt_count_across_three_days_uses_attempt_not_unique() -> None:

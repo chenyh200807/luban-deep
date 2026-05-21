@@ -14,6 +14,10 @@ from deeptutor.agents.question.agents._anchor_terms import (
     extract_anchor_terms,
     render_anchor_contract,
 )
+from deeptutor.agents.question.agents.submission_grader_schema import (
+    apply_fallback_templates,
+    parse_explanation_sections,
+)
 from deeptutor.core.trace import build_trace_metadata, new_call_id
 
 
@@ -36,6 +40,7 @@ class SubmissionGraderAgent(BaseAgent):
         history_context: str = "",
         grounding_context: str = "",
         on_content_chunk: Callable[[str], Awaitable[None]] | None = None,
+        trace_collector: dict[str, Any] | None = None,
     ) -> str:
         system_prompt = self.get_prompt("system", "")
         user_prompt_template = self.get_prompt("grade_submission", "")
@@ -82,7 +87,72 @@ class SubmissionGraderAgent(BaseAgent):
             _chunks.append(_c)
             if on_content_chunk is not None and _c:
                 await on_content_chunk(_c)
-        return "".join(_chunks)
+        explanation_text = "".join(_chunks)
+
+        # plan §Phase 4 Step 4.2 / Batch D.2 Gap 4 — schema validate +
+        # template fallback. ``trace_collector`` is an opt-in dict that the
+        # caller (capability) provides; we write ``explanation_section_miss``
+        # so the turn_runtime can flush it into single-writer trace metadata.
+        # 重要：``process`` 返回 LLM 首轮原文（兼容下游 markdown 直接渲染契约）；
+        # self-repair 与 fallback 的修复结果通过 trace_collector 暴露，
+        # 由 capability 组装 progressive_disclosure 后再呈现给用户。
+        if trace_collector is None:
+            return explanation_text
+
+        question_type = str(question_context.get("question_type") or "").strip().lower()
+        is_correct = question_context.get("is_correct")
+        parsed = parse_explanation_sections(
+            explanation_text,
+            question_type=question_type,
+            is_correct=is_correct if isinstance(is_correct, bool) else None,
+        )
+        missing = parsed.missing_required()
+        section_miss_after_repair: list[str] = list(missing)
+        if missing:
+            repair_prompt = (
+                f"{user_prompt.rstrip()}\n\n"
+                f"上次输出缺以下段落：{', '.join(missing)}。请补齐这些缺段；"
+                "保持已经写好的段落不变，输出 markdown 含 `### 段标题` heading。"
+            )
+            _repair_chunks: list[str] = []
+            try:
+                async for _c in self.stream_llm(
+                    user_prompt=repair_prompt,
+                    system_prompt=system_prompt or "",
+                    stage="submission_grading_repair",
+                    trace_meta=build_trace_metadata(
+                        call_id=new_call_id(
+                            f"quiz-grading-repair-{question_context.get('question_id', 'question')}"
+                        ),
+                        phase="generation",
+                        label=f"Repair grade {self._humanize_question_id(question_context.get('question_id', 'question'))}",
+                        call_kind="llm_generation",
+                        trace_id=str(question_context.get("question_id", "question")),
+                        question_id=str(question_context.get("question_id", "")),
+                    ),
+                ):
+                    _repair_chunks.append(_c)
+            except Exception:
+                _repair_chunks = []
+            repaired_text = "".join(_repair_chunks).strip()
+            if repaired_text:
+                parsed = parse_explanation_sections(
+                    explanation_text + "\n\n" + repaired_text,
+                    question_type=question_type,
+                    is_correct=is_correct if isinstance(is_correct, bool) else None,
+                )
+                section_miss_after_repair = parsed.missing_required()
+
+        if section_miss_after_repair:
+            # 仍缺：用模板兜底，保证 capability 拿到的 sections 不会有空段；
+            # trace 仍记录原始缺段名单，便于 release gate 计算完整率。
+            repaired = apply_fallback_templates(parsed, missing=section_miss_after_repair)
+            parsed = repaired
+
+        trace_collector["explanation_section_miss"] = list(section_miss_after_repair)
+        trace_collector["explanation_sections"] = dict(parsed.sections)
+
+        return explanation_text
 
     @staticmethod
     def _humanize_question_id(question_id: Any) -> str:

@@ -1189,6 +1189,42 @@ class DeepQuestionCapability(BaseCapability):
         request_schema=get_capability_request_schema("deep_question"),
     )
 
+    @staticmethod
+    def _extract_latest_next_training_signal(
+        active_object: dict[str, Any] | None,
+    ) -> tuple[str, str]:
+        """plan §Batch E.1 Gap 6 — pull (concept, focus) from latest grading signal.
+
+        Looks at active_object.state_snapshot for ``construction_grading_result``
+        directly or inside items[i]; returns ``("", "")`` if nothing usable.
+        """
+        if not isinstance(active_object, dict):
+            return "", ""
+        snapshot = active_object.get("state_snapshot")
+        if not isinstance(snapshot, dict):
+            return "", ""
+
+        def _signal_from(node: dict[str, Any]) -> dict[str, Any] | None:
+            grading_result = node.get("construction_grading_result")
+            if isinstance(grading_result, dict):
+                signal = grading_result.get("next_training_signal")
+                if isinstance(signal, dict):
+                    return signal
+            return None
+
+        signal = _signal_from(snapshot)
+        if not signal:
+            for item in snapshot.get("items") or []:
+                if isinstance(item, dict):
+                    signal = _signal_from(item)
+                    if signal:
+                        break
+        if not isinstance(signal, dict):
+            return "", ""
+        concept = str(signal.get("concept") or "").strip()
+        focus = str(signal.get("focus") or "").strip()
+        return concept, focus
+
     async def run(self, context: UnifiedContext, stream: StreamBus) -> None:
         from deeptutor.agents.question.coordinator import AgentCoordinator
         from deeptutor.services.llm.config import get_llm_config
@@ -1418,6 +1454,30 @@ class DeepQuestionCapability(BaseCapability):
             or lightweight_followup_generation
             or lightweight_topic_generation
         )
+
+        # plan §Phase 5 / Batch E.1 Gap 6 — lightweight 出题入口主动消费 latest
+        # next_training_signal。来源优先级：
+        #   1. active_object.state_snapshot.construction_grading_result.next_training_signal
+        #   2. active_object.state_snapshot.items[i].construction_grading_result.next_training_signal
+        # 把 concept / focus 拼到 topic（如尚未出现），以便 coordinator anchor 命中 weak point。
+        next_training_signal_consumed = False
+        if lightweight_generation:
+            consumed_concept, consumed_focus = self._extract_latest_next_training_signal(active_object)
+            hint_parts: list[str] = []
+            if consumed_concept and consumed_concept not in topic:
+                hint_parts.append(f"上一轮薄弱点 concept={consumed_concept}")
+            if consumed_focus and consumed_focus not in topic:
+                hint_parts.append(f"focus={consumed_focus}")
+            if hint_parts:
+                topic = (topic + "；" if topic else "") + "；".join(hint_parts)
+                next_training_signal_consumed = True
+                if isinstance(context.metadata, dict):
+                    trace_meta = context.metadata.setdefault("trace_metadata", {})
+                    if isinstance(trace_meta, dict):
+                        trace_meta["practice_generation.next_training_signal_consumed"] = True
+                        if consumed_concept:
+                            trace_meta["practice_generation.next_training_signal_concept"] = consumed_concept
+
         require_explanation = reveal_explanations
         history_context = str(
             context.metadata.get("conversation_context_text", "") or ""
@@ -1538,6 +1598,24 @@ class DeepQuestionCapability(BaseCapability):
                     lightweight_generation=lightweight_generation,
                     require_explanation=require_explanation,
                 )
+
+        # plan §Phase 0 Step 0.3 (B3) — single-writer trace 字段。
+        # coordinator 在 result["trace"]["lightweight_counters"] 累加；
+        # 这里 capability 一次性 flush 到 context.metadata.trace_metadata。
+        if isinstance(context.metadata, dict):
+            trace_meta = context.metadata.setdefault("trace_metadata", {})
+            if isinstance(trace_meta, dict):
+                counters = (
+                    (result.get("trace") or {}).get("lightweight_counters") if isinstance(result.get("trace"), dict) else None
+                )
+                if isinstance(counters, dict):
+                    trace_meta["practice_generation.llm_calls"] = int(counters.get("llm_calls") or 0)
+                    trace_meta["practice_generation.retriever_calls"] = int(counters.get("retriever_calls") or 0)
+                    trace_meta["practice_generation.bank_hits"] = int(counters.get("bank_hits") or 0)
+                    trace_meta["practice_generation.generated_explanation"] = bool(counters.get("generated_explanation"))
+                    trace_meta["practice_generation.lightweight_batch_fallback"] = str(
+                        counters.get("lightweight_batch_fallback") or "none"
+                    )
 
         content = self._render_summary_markdown(
             result,
@@ -1733,6 +1811,10 @@ class DeepQuestionCapability(BaseCapability):
             grounding_sources: list[dict[str, Any]] = []
             grounding_error = ""
             content_streamed = False
+            # plan §Phase 4 Step 4.2 / Gap 4 — agent trace_collector 必须在
+            # 所有分支可见（确定性反馈分支不进 agent.process，但 Gap 5 仍要
+            # 输出 progressive_disclosure）。
+            grader_trace: dict[str, Any] = {}
             if _should_use_deterministic_grading_feedback(
                 selected_mode=selected_mode,
                 question_context=graded_context,
@@ -1780,6 +1862,9 @@ class DeepQuestionCapability(BaseCapability):
                     api_version=llm_config.api_version,
                 )
                 agent.set_trace_callback(self._build_trace_bridge(stream))
+                # plan §Phase 4 Step 4.2 / Gap 4 — pass shared trace_collector
+                # (see above) so the agent can write explanation_section_miss &
+                # parsed sections back into single-writer trace.
                 answer = await agent.process(
                     user_message=raw_user_message,
                     question_context=graded_context,
@@ -1788,6 +1873,7 @@ class DeepQuestionCapability(BaseCapability):
                     ).strip(),
                     grounding_context=grounding_context,
                     on_content_chunk=_content_sink,
+                    trace_collector=grader_trace,
                 )
             if answer and not content_streamed:
                 await stream.content(answer, source=self.name, stage="generation")
@@ -1836,6 +1922,74 @@ class DeepQuestionCapability(BaseCapability):
                     source_id=f"{turn_id}:{graded_context.get('question_id') or 'grading'}",
                 )
                 result_payload["construction_grading_result"] = grading_result
+
+            # plan §Phase 5 / Batch E.2 Gap 5 — progressive disclosure payload.
+            # 从 grader_trace 拿到 parsed sections，结合 grading_result 与 is_correct 输出
+            # verdict / one_line_diagnosis / primary_next_action / secondary_actions / sections。
+            try:
+                from deeptutor.agents.question.agents.submission_grader_schema import (
+                    ExplanationSections,
+                )
+                from deeptutor.services.construction_grading.progressive_disclosure import (
+                    build_progressive_disclosure,
+                    classify_difficulty_pacing,
+                )
+
+                sections_dict = grader_trace.get("explanation_sections") if isinstance(grader_trace, dict) else {}
+                if not isinstance(sections_dict, dict):
+                    sections_dict = {}
+                question_type_value = str(graded_context.get("question_type") or "choice").strip().lower()
+                is_correct_value = graded_context.get("is_correct")
+                parsed = ExplanationSections(
+                    sections=dict(sections_dict),
+                    question_type=question_type_value,
+                    is_correct=is_correct_value if isinstance(is_correct_value, bool) else None,
+                )
+                # Difficulty pacing: 读最近 grading outcomes（present in context.metadata if available）。
+                recent_outcomes = []
+                recent_meta = context.metadata.get("recent_grading_outcomes") if isinstance(context.metadata, dict) else None
+                if isinstance(recent_meta, list):
+                    for item in recent_meta:
+                        if isinstance(item, bool):
+                            recent_outcomes.append(item)
+                # 把当前 outcome 加到最前面（最新）
+                if isinstance(is_correct_value, bool):
+                    recent_outcomes.insert(0, is_correct_value)
+                pacing = classify_difficulty_pacing(recent_outcomes)
+                grading_source = ""
+                signal = (
+                    grading_result.get("next_training_signal") if isinstance(grading_result, dict) else None
+                )
+                if isinstance(signal, dict):
+                    grading_source = str(signal.get("grading_source") or "").strip()
+                disclosure = build_progressive_disclosure(
+                    explanation=parsed,
+                    is_correct=is_correct_value if isinstance(is_correct_value, bool) else None,
+                    grading_source=grading_source,
+                    pacing=pacing,
+                ).to_dict()
+                result_payload["progressive_disclosure"] = disclosure
+            except Exception as exc:
+                # 失败不阻断主链；仅记录 trace。
+                if isinstance(context.metadata, dict):
+                    trace_meta = context.metadata.setdefault("trace_metadata", {})
+                    if isinstance(trace_meta, dict):
+                        trace_meta["progressive_disclosure_error"] = str(exc)[:200]
+
+            # plan §Phase 0 Step 0.3 (B3) — flush schema/grader trace fields.
+            if isinstance(context.metadata, dict):
+                trace_meta = context.metadata.setdefault("trace_metadata", {})
+                if isinstance(trace_meta, dict):
+                    miss = grader_trace.get("explanation_section_miss") if isinstance(grader_trace, dict) else None
+                    if miss is not None:
+                        trace_meta["explanation_section_miss"] = list(miss)
+                    if isinstance(grading_result, dict):
+                        signal = grading_result.get("next_training_signal")
+                        if isinstance(signal, dict):
+                            trace_meta["construction_grading_result.grading_source"] = str(
+                                signal.get("grading_source") or ""
+                            )
+
             await stream.result(result_payload, source=self.name)
 
     async def _emit_followup_result(

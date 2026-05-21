@@ -265,6 +265,28 @@ def _request_snapshot_metadata(
     return {"request_snapshot": snapshot}
 
 
+def _tutorbot_mirror_session_ids(
+    *,
+    bot_id: str,
+    session_id: str,
+    user_id: str,
+) -> list[str]:
+    normalized_bot_id = str(bot_id or "").strip()
+    normalized_session_id = str(session_id or "").strip()
+    normalized_user_id = str(user_id or "").strip()
+    if not normalized_bot_id or not normalized_session_id:
+        return []
+
+    candidates: list[str] = []
+    if normalized_user_id:
+        candidates.append(
+            "tutorbot:"
+            f"bot:{normalized_bot_id}:user:{normalized_user_id}:chat:{normalized_session_id}"
+        )
+    candidates.append(f"tutorbot:bot:{normalized_bot_id}:chat:{normalized_session_id}")
+    return candidates
+
+
 def _safe_terminal_assistant_content(
     assistant_content: str | None,
     *,
@@ -2806,6 +2828,34 @@ class TurnRuntimeManager:
             candidate_followup_contexts.extend(
                 [stored_followup_question_context, volatile_followup_question_context]
             )
+            billing_context = (
+                runtime_only_config.get("billing_context")
+                if isinstance(runtime_only_config.get("billing_context"), dict)
+                else {}
+            )
+            mirror_user_id = str(
+                billing_context.get("learning_user_id")
+                or billing_context.get("user_id")
+                or billing_context.get("wallet_user_id")
+                or ""
+            ).strip()
+            for mirror_session_id in _tutorbot_mirror_session_ids(
+                bot_id=str(raw_config.get("bot_id") or "").strip(),
+                session_id=session_id,
+                user_id=mirror_user_id,
+            ):
+                mirror_active_object = await self._safe_store_call(
+                    None,
+                    "get_tutorbot_mirror_active_object_for_start_turn",
+                    self.store.get_active_object,
+                    mirror_session_id,
+                    default=None,
+                )
+                mirror_followup_context = extract_question_context_from_active_object(
+                    mirror_active_object
+                )
+                if mirror_followup_context is not None:
+                    candidate_followup_contexts.append(mirror_followup_context)
         (
             runtime_followup_question_context,
             runtime_followup_action,

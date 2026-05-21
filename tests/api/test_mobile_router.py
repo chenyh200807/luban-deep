@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 import importlib
 import tempfile
 from pathlib import Path
@@ -23,6 +24,7 @@ mobile_module = importlib.import_module("deeptutor.api.routers.mobile")
 auth_dependency_module = importlib.import_module("deeptutor.api.dependencies.auth")
 rate_limit_module = importlib.import_module("deeptutor.api.dependencies.rate_limit")
 router = mobile_module.router
+_SH_TZ = timezone(timedelta(hours=8))
 
 
 def _build_app() -> FastAPI:
@@ -2769,8 +2771,12 @@ def test_learning_brain_projection_reads_authenticated_learner_truth(
     assert body["weak_points"][0]["evidence_level"] == "L1_repeated"
     assert body["visible_sections"]["current_truth"][0]["current_truth"].startswith("工程招标投标与合同管理")
     assert body["visible_sections"]["current_truth"][0]["display_meta"] == "知识点：工程招标投标与合同管理"
-    assert body["visible_sections"]["evidence_flow"][0]["event_id"] == "evt1"
-    assert body["visible_sections"]["next_training"][0]["recommended_training"]["mode"] == "case_repair"
+    assert body["visible_sections"]["evidence_flow"][0]["event_id"] == ""
+    assert body["visible_sections"]["evidence_flow"][0]["event_label"] == "最近一次批改"
+    assert body["visible_sections"]["next_training"][0]["recommended_training"] == {}
+    assert body["visible_sections"]["next_training"][0]["display_meta"] == (
+        "知识点：工程招标投标与合同管理；错因：采分点遗漏；案例题补强"
+    )
     assert body["typed_graph_edge_count"] == 4
     assert any(edge["edge_type"] == "training_not_improved_error" for edge in body["typed_graph_edges"])
     assert body["graph_chain"]["has_training_uses_question"] is True
@@ -2900,6 +2906,7 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
     class FakeLearnerStateService:
         def list_memory_events(self, user_id, limit=100):
             captured["event_user_id"] = user_id
+            created_at = datetime.now(_SH_TZ).replace(microsecond=0).isoformat()
             return [
                 SimpleNamespace(
                     event_id="evt1",
@@ -2909,7 +2916,7 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
                     source_bot_id="construction-exam",
                     memory_kind="learning_evidence",
                     dedupe_key="evt1",
-                    created_at="2026-05-20T10:00:00+08:00",
+                    created_at=created_at,
                     payload_json={
                         "event_type": "learning_evidence",
                         "question_id": "case_001",

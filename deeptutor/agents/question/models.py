@@ -27,6 +27,11 @@ class QuestionTemplate:
 class QAPair:
     """
     Final generated Q-A payload.
+
+    plan §Phase 3 (Batch C / A5): `grading_key` 是服务端 hidden authority，
+    包含 correct_answer / scoring_points / common_traps / minimal_rationale。
+    public serializer 必须 drop 它；只有 active_object.state_snapshot 与
+    question_followup_context.items[i] 才能保存。
     """
 
     question_id: str
@@ -39,3 +44,5 @@ class QAPair:
     difficulty: str = ""
     validation: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
+    # hidden grading authority — never serialized to public payload.
+    grading_key: dict[str, Any] = field(default_factory=dict)

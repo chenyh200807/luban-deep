@@ -117,6 +117,20 @@ async def test_deep_question_uses_deterministic_feedback_for_choice_submission(
     assert result_event.metadata["correct_answer_present"] is True
     assert result_event.metadata["question_authority_source"] == "active_object"
 
+    # plan §Phase 5 / Batch E.2 Gap 5 — progressive_disclosure payload 必须进入 result.
+    disclosure = result_event.metadata.get("progressive_disclosure")
+    assert isinstance(disclosure, dict), "result must include progressive_disclosure payload"
+    assert disclosure.get("verdict"), "progressive_disclosure must expose verdict"
+    assert "primary_next_action" in disclosure
+    primary = disclosure["primary_next_action"]
+    assert primary.get("slug") and primary.get("label")
+    # 答对场景：pacing 默认 hold，主行动 = 再练3题；首屏 verdict <= 120 字
+    assert len(disclosure["verdict"]) <= 120
+    # public payload 不应泄露 grading_key（虽 result_payload 本身在 turn_runtime 边界 redact，
+    # 但 progressive_disclosure 内部不应携带 grading_key 子字段）
+    import json as _json
+    assert "grading_key" not in _json.dumps(disclosure, ensure_ascii=False)
+
 
 @pytest.mark.asyncio
 async def test_deep_question_deterministic_choice_feedback_explains_without_authored_analysis(

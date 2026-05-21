@@ -904,7 +904,10 @@ async def test_orchestrator_only_enables_lightweight_generation_for_explicit_que
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_keeps_normal_practice_generation_on_full_path_without_explicit_question_only_intent() -> None:
+async def test_orchestrator_routes_plain_practice_request_to_lightweight_generation() -> None:
+    # plan §Phase 1 Step 1.1 (A2/A3) — 普通"考我N道"练题请求应默认进入 lightweight。
+    # 在引入 classify_practice_strategy 之前，本用例曾期望 lightweight=False；现在
+    # 这种用户意图（无 heavy keyword、无要求 reveal、1<=N<=5）必须走轻量。
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
@@ -920,7 +923,10 @@ async def test_orchestrator_keeps_normal_practice_generation_on_full_path_withou
     _ = [event async for event in orchestrator.handle(context)]
 
     assert registry.captured[0] == "deep_question"
-    assert context.config_overrides["lightweight_generation"] is False
+    assert context.config_overrides["lightweight_generation"] is True
+    trace_meta = context.metadata.get("trace_metadata") or {}
+    assert trace_meta.get("practice_generation.strategy") == "lightweight"
+    assert trace_meta.get("practice_generation.question_count") == 3
 
 
 @pytest.mark.asyncio
@@ -1031,4 +1037,355 @@ async def test_orchestrator_preselected_deep_question_overrides_schema_defaults_
     assert context.config_overrides["num_questions"] == 5
     assert context.config_overrides["question_type"] == "choice"
     assert context.config_overrides["reveal_answers"] is False
-    assert context.config_overrides["lightweight_generation"] is False
+    # plan §Phase 1 Step 1.1b (A3) — lightweight 上限 3→5。
+    # 5 道选择题 + "不要给答案 / 等我作答后再批改" 应默认 lightweight=True。
+    assert context.config_overrides["lightweight_generation"] is True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Batch A — plan §Phase 1 Step 1.1 测试矩阵 (review-2026-05-20)
+# 验证 classify_practice_strategy 单一规约 + 上限 1<=N<=5 + heavy negative keywords。
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def test_classify_practice_strategy_lightweight_for_plain_practice_requests() -> None:
+    from deeptutor.tutorbot.teaching_modes import classify_practice_strategy
+
+    assert classify_practice_strategy(
+        message="很好，再出3题",
+        reveal_preference=None,
+        mode="fast",
+        num_questions=3,
+        has_active_object=True,
+    ) == "lightweight"
+
+    assert classify_practice_strategy(
+        message="再来三道类似的",
+        reveal_preference=None,
+        mode="fast",
+        num_questions=3,
+        has_active_object=True,
+    ) == "lightweight"
+
+    assert classify_practice_strategy(
+        message="继续练我刚才错的点，5题",
+        reveal_preference=None,
+        mode="smart",
+        num_questions=5,
+        has_active_object=True,
+    ) == "lightweight"
+
+    # 显式"做完再分析" — reveal_preference=False
+    assert classify_practice_strategy(
+        message="给我3题，做完再分析",
+        reveal_preference=False,
+        mode="fast",
+        num_questions=3,
+        has_active_object=False,
+    ) == "lightweight"
+
+
+def test_classify_practice_strategy_heavy_for_explicit_explanation_demand() -> None:
+    from deeptutor.tutorbot.teaching_modes import classify_practice_strategy
+
+    # 用户明确要求"每题详细解析" — 教学展示，不是练题
+    assert classify_practice_strategy(
+        message="给我3题并每题详细解析",
+        reveal_preference=None,
+        mode="fast",
+        num_questions=3,
+        has_active_object=False,
+    ) == "heavy"
+
+    # 用户明确要"完整评分标准 / rubric"
+    assert classify_practice_strategy(
+        message="出一套完整案例题并给评分标准",
+        reveal_preference=None,
+        mode="smart",
+        num_questions=1,
+        has_active_object=False,
+    ) == "heavy"
+
+    # 模拟卷 / 押题 / 命题依据 — heavy
+    assert classify_practice_strategy(
+        message="给我一套模拟真题",
+        reveal_preference=None,
+        mode="fast",
+        num_questions=1,
+        has_active_object=False,
+    ) == "heavy"
+
+
+def test_classify_practice_strategy_heavy_for_reveal_preference_true() -> None:
+    from deeptutor.tutorbot.teaching_modes import classify_practice_strategy
+
+    # 用户明确要"显示答案" — 不是练题
+    assert classify_practice_strategy(
+        message="出3题并显示答案",
+        reveal_preference=True,
+        mode="fast",
+        num_questions=3,
+        has_active_object=False,
+    ) == "heavy"
+
+
+def test_classify_practice_strategy_heavy_when_count_out_of_bounds() -> None:
+    from deeptutor.tutorbot.teaching_modes import classify_practice_strategy
+
+    # 超过 5 题 — 触发分页，本轮不走 lightweight
+    assert classify_practice_strategy(
+        message="再出6题",
+        reveal_preference=None,
+        mode="fast",
+        num_questions=6,
+        has_active_object=False,
+    ) == "heavy"
+
+    # 0 题或负数 — 异常 num_questions 退化为 heavy
+    assert classify_practice_strategy(
+        message="再出几道",
+        reveal_preference=None,
+        mode="fast",
+        num_questions=0,
+        has_active_object=False,
+    ) == "heavy"
+
+
+def test_classify_practice_strategy_heavy_in_deep_mode() -> None:
+    from deeptutor.tutorbot.teaching_modes import classify_practice_strategy
+
+    # deep mode 默认 heavy
+    assert classify_practice_strategy(
+        message="再出3题",
+        reveal_preference=None,
+        mode="deep",
+        num_questions=3,
+        has_active_object=True,
+    ) == "heavy"
+
+
+def test_classify_practice_strategy_heavy_when_message_is_not_practice_request() -> None:
+    from deeptutor.tutorbot.teaching_modes import classify_practice_strategy
+
+    # 不像出题请求 — 不该被路由到 lightweight，让上游统一回到 heavy / chat
+    assert classify_practice_strategy(
+        message="你好",
+        reveal_preference=None,
+        mode="fast",
+        num_questions=1,
+        has_active_object=False,
+    ) == "heavy"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_routes_hen_hao_zai_chu_3_ti_to_lightweight() -> None:
+    # plan §Phase 0 Step 0.1 — 真实生产 trace f49977b5... 复现：
+    # "很好，再出3题" 必须进入 lightweight，且 trace 字段写入 strategy=lightweight。
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-trace-f4997",
+        user_message="很好，再出3题",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["lightweight_generation"] is True
+    assert context.config_overrides["num_questions"] == 3
+    trace_meta = context.metadata.get("trace_metadata") or {}
+    assert trace_meta.get("practice_generation.strategy") == "lightweight"
+    assert trace_meta.get("practice_generation.question_count") == 3
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_routes_5_question_practice_to_lightweight() -> None:
+    # plan §Phase 1 Step 1.1b (A3) — 5 题也属于 lightweight 上限。
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-five-practice",
+        user_message="再来5道类似的",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert context.config_overrides["lightweight_generation"] is True
+    assert context.config_overrides["num_questions"] == 5
+    trace_meta = context.metadata.get("trace_metadata") or {}
+    assert trace_meta.get("practice_generation.strategy") == "lightweight"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Batch A — plan §Phase 0 Step 0.2 (A4) — cancellation propagation
+# 覆盖：正常完成 / outer cancel / GeneratorExit 三条路径，
+# 保证 turn timeout 之后内部 capability task 不再烧 LLM。
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+import asyncio as _asyncio
+import contextlib as _contextlib
+
+
+class _SlowFakeCapability:
+    """Capability that emits one event then sleeps long, simulating slow LLM stream."""
+
+    def __init__(self, sleep_seconds: float = 5.0) -> None:
+        self.sleep_seconds = sleep_seconds
+        self.started = _asyncio.Event()
+        self.finished = _asyncio.Event()
+        self.cancelled = _asyncio.Event()
+
+    async def run(self, context: UnifiedContext, bus) -> None:
+        self.started.set()
+        try:
+            from deeptutor.core.stream import StreamEvent, StreamEventType
+
+            await bus.emit(
+                StreamEvent(
+                    type=StreamEventType.CONTENT,
+                    source="slow_fake",
+                    content="thinking",
+                )
+            )
+            await _asyncio.sleep(self.sleep_seconds)
+            await bus.result({"capability": "slow_fake"}, source="slow_fake")
+        except _asyncio.CancelledError:
+            self.cancelled.set()
+            raise
+        finally:
+            self.finished.set()
+
+
+class _SlowRegistry:
+    def __init__(self, capability: _SlowFakeCapability) -> None:
+        self.capability = capability
+        self.captured: list[str] = []
+
+    def get(self, name: str) -> Any:
+        self.captured.append(name)
+        return self.capability
+
+    def list_capabilities(self) -> list[str]:
+        return ["chat", "deep_question", "tutorbot"]
+
+    def get_manifests(self) -> list[dict[str, Any]]:
+        return []
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_handle_completes_normally_without_cancel_flag() -> None:
+    # 正常完成路径 — cancel_propagated 不应被置位。
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-cancel-normal",
+        user_message="你好",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    events = [event async for event in orchestrator.handle(context)]
+
+    assert any(event.type.value == "result" for event in events)
+    assert not context.metadata.get("turn_cancel_propagated")
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_handle_propagates_cancel_to_capability_task() -> None:
+    # outer cancel — capability task 必须收到 CancelledError 并尽快收尾。
+    # plan §Phase 0 Step 0.2 (A4) acceptance.
+    slow = _SlowFakeCapability(sleep_seconds=10.0)
+    orchestrator = ChatOrchestrator()
+    orchestrator._cap_registry = _SlowRegistry(slow)  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-cancel-propagate",
+        user_message="你好",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    capability_event_seen = _asyncio.Event()
+
+    async def _consume() -> None:
+        # 持续消费直到拿到 capability 发出的第一个事件（说明 _run task 已启动），
+        # 再卡在长 sleep 等待外层 cancel。如果只卡在 SESSION event，generator
+        # 内部还未到 `task = asyncio.create_task(_run())` 行，cancellation
+        # 无法传播。
+        async for event in orchestrator.handle(context):
+            if event.source == "slow_fake":
+                capability_event_seen.set()
+                await _asyncio.sleep(60)
+
+    consumer_task = _asyncio.create_task(_consume())
+    try:
+        await _asyncio.wait_for(slow.started.wait(), timeout=3.0)
+        await _asyncio.wait_for(capability_event_seen.wait(), timeout=3.0)
+        # 模拟 outer cancel — turn timeout / FastAPI client disconnect
+        consumer_task.cancel()
+        with _contextlib.suppress(_asyncio.CancelledError):
+            await consumer_task
+    finally:
+        if not consumer_task.done():
+            consumer_task.cancel()
+            with _contextlib.suppress(BaseException):
+                await consumer_task
+
+    # capability task 必须被取消 (在 2s grace 窗口内)
+    await _asyncio.wait_for(slow.cancelled.wait(), timeout=3.0)
+    assert slow.cancelled.is_set()
+    assert context.metadata.get("turn_cancel_propagated") is True
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_handle_propagates_generator_exit_when_consumer_closes_iterator() -> None:
+    # GeneratorExit — FastAPI 客户端断开会触发 generator.aclose()，必须同样取消 task。
+    slow = _SlowFakeCapability(sleep_seconds=10.0)
+    orchestrator = ChatOrchestrator()
+    orchestrator._cap_registry = _SlowRegistry(slow)  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-cancel-genexit",
+        user_message="你好",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    gen = orchestrator.handle(context)
+    # 持续 anext 直到拿到 capability 发出的事件 — 确保 _run task 已创建。
+    saw_capability_event = False
+    deadline = _asyncio.get_event_loop().time() + 3.0
+    try:
+        while _asyncio.get_event_loop().time() < deadline:
+            event = await _asyncio.wait_for(gen.__anext__(), timeout=2.0)
+            if event.source == "slow_fake":
+                saw_capability_event = True
+                break
+    except StopAsyncIteration:
+        pass
+
+    assert saw_capability_event, "capability never emitted before aclose"
+    await _asyncio.wait_for(slow.started.wait(), timeout=2.0)
+    # 主动 close generator — 模拟 FastAPI consumer disconnect
+    await gen.aclose()
+
+    # capability task 必须在 2s grace 内被取消
+    await _asyncio.wait_for(slow.cancelled.wait(), timeout=3.0)
+    assert slow.cancelled.is_set()
+    assert context.metadata.get("turn_cancel_propagated") is True

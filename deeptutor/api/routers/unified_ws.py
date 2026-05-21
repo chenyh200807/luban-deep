@@ -17,6 +17,7 @@ from pydantic import ValidationError
 
 from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
 from deeptutor.api.dependencies import AuthContext, enforce_websocket_rate_limit, resolve_auth_context
+from deeptutor.services.question_followup import redact_question_followup_context_for_public
 from deeptutor.contracts.unified_turn import (
     UnifiedTurnCancelMessage,
     UnifiedTurnResumeMessage,
@@ -173,6 +174,61 @@ def _bind_authenticated_user(
     return {**payload, "config": config}
 
 
+# plan §Phase 3 Step 3.2 / Batch C Gap 3 — public payload redaction at the
+# /api/v1/ws boundary. Hidden grading authority (grading_key, correct_answer,
+# scoring_points, explanation) must never leave the server through this stream.
+_HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = (
+    "grading_key",
+    "scoring_points",
+)
+
+
+def _redact_active_object_for_public(active_object: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(active_object, dict):
+        return active_object
+    redacted = {key: value for key, value in active_object.items() if key not in _HIDDEN_PAYLOAD_KEYS}
+    snapshot = redacted.get("state_snapshot")
+    if isinstance(snapshot, dict):
+        redacted["state_snapshot"] = redact_question_followup_context_for_public(snapshot) or {}
+    return redacted
+
+
+def _redact_metadata_for_public(metadata: dict[str, Any]) -> dict[str, Any]:
+    """Deep-copy metadata dict and drop hidden authority fields.
+
+    plan §Phase 3 Step 3.2 — hidden grading_key/correct_answer/scoring_points/explanation
+    must not leak through any stream event metadata to the client.
+    """
+    if not isinstance(metadata, dict):
+        return metadata
+    clean: dict[str, Any] = {}
+    for key, value in metadata.items():
+        if key in _HIDDEN_PAYLOAD_KEYS:
+            continue
+        if key == "question_followup_context" and isinstance(value, dict):
+            redacted = redact_question_followup_context_for_public(value)
+            clean[key] = redacted if redacted is not None else None
+            continue
+        if key == "active_object" and isinstance(value, dict):
+            clean[key] = _redact_active_object_for_public(value)
+            continue
+        if key == "metadata" and isinstance(value, dict):
+            clean[key] = _redact_metadata_for_public(value)
+            continue
+        clean[key] = value
+    return clean
+
+
+def _redact_event_for_public(event: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(event, dict):
+        return event
+    if "metadata" not in event or not isinstance(event["metadata"], dict):
+        return event
+    clean = dict(event)
+    clean["metadata"] = _redact_metadata_for_public(event["metadata"])
+    return clean
+
+
 @router.websocket("/ws")
 async def unified_websocket(ws: WebSocket) -> None:
     if not await enforce_websocket_rate_limit(
@@ -213,7 +269,7 @@ async def unified_websocket(ws: WebSocket) -> None:
         async def _forward() -> None:
             runtime = get_turn_runtime_manager()
             async for event in runtime.subscribe_turn(turn_id, after_seq=after_seq):
-                await safe_send(event)
+                await safe_send(_redact_event_for_public(event))
 
         await stop_subscription(turn_id)
         subscription_tasks[turn_id] = asyncio.create_task(_forward())
@@ -224,7 +280,7 @@ async def unified_websocket(ws: WebSocket) -> None:
         async def _forward() -> None:
             runtime = get_turn_runtime_manager()
             async for event in runtime.subscribe_session(session_id, after_seq=after_seq):
-                await safe_send(event)
+                await safe_send(_redact_event_for_public(event))
 
         key = f"session:{session_id}"
         await stop_subscription(key)

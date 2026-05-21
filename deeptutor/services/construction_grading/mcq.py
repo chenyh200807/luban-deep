@@ -61,10 +61,35 @@ def _option_error_event(
     )
 
 
-def grade_mcq_submission(question_row: dict[str, Any], user_answer: Any) -> MCQGradingResult:
-    """Grade single/multi-choice answers from existing questions_bank fields."""
+def grade_mcq_submission(
+    question_row: dict[str, Any],
+    user_answer: Any,
+    *,
+    grading_key: dict[str, Any] | None = None,
+) -> MCQGradingResult:
+    """Grade single/multi-choice answers.
+
+    plan §Phase 3 Step 3.4 (A5) / Batch D.1 — Grading authority 优先级：
+      1. ``grading_key.correct_answer`` (hidden authority from active_object)
+      2. ``question_row.correct_answer`` (questions_bank exact match)
+      3. LLM fallback — 调用方传入空 row + 空 grading_key 时退化，返回 is_correct=False
+         并标记 ``grading_source=llm_judge``，留给上游 grader agent 解析。
+
+    本函数本身不调 LLM；llm_judge 仅是 trace 标签，告诉调用方"本函数没有可靠 authority"。
+    """
 
     row = dict(question_row or {})
+    # plan §Phase 3 Step 3.4 — 注入 grading_key.correct_answer 到 row 之前，
+    # 先记录 grading_source 以便 trace。
+    grading_source = "questions_bank" if str(row.get("correct_answer") or "").strip() else "llm_judge"
+    if isinstance(grading_key, dict):
+        gk_answer = str(grading_key.get("correct_answer") or "").strip()
+        if gk_answer:
+            row["correct_answer"] = gk_answer
+            grading_source = "grading_key"
+            gk_scoring_points = grading_key.get("scoring_points")
+            if isinstance(gk_scoring_points, list) and gk_scoring_points and "grading_keywords" not in row:
+                row["grading_keywords"] = [str(p) for p in gk_scoring_points if str(p).strip()]
     correct_answer = normalize_choice_letters(row.get("correct_answer"))
     selected = list(normalize_choice_letters(user_answer))
     correct = list(correct_answer)
@@ -127,5 +152,7 @@ def grade_mcq_submission(question_row: dict[str, Any], user_answer: Any) -> MCQG
             "concept": concept_tag,
             "focus": focus,
             "option_count": len(options),
+            # plan §Phase 3 Step 3.4 (Batch D.1) — single-writer trace label.
+            "grading_source": grading_source,
         },
     )

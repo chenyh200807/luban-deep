@@ -4043,6 +4043,9 @@ async def test_turn_runtime_keeps_batch_submission_in_chat_for_stored_question_s
             captured["question_followup_context"] = context.metadata.get(
                 "question_followup_context"
             )
+            captured["question_followup_action"] = context.metadata.get(
+                "question_followup_action"
+            )
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="deep_question",
@@ -4126,6 +4129,164 @@ async def test_turn_runtime_keeps_batch_submission_in_chat_for_stored_question_s
     assert captured["active_capability"] is None
     assert captured["question_followup_context"]["question_id"] == "quiz_batch"
     assert len(captured["question_followup_context"]["items"]) == 3
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_recovers_tutorbot_mirror_question_set_for_batch_submission(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, session_store, *_args, **_kwargs) -> None:
+            self.store = session_store
+
+        async def build(self, **kwargs):
+            messages = await self.store.get_messages_for_context(kwargs["session_id"])
+            return SimpleNamespace(
+                conversation_history=[
+                    {"role": item["role"], "content": item["content"]}
+                    for item in messages
+                ],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["active_capability"] = context.active_capability
+            captured["question_followup_context"] = context.metadata.get(
+                "question_followup_context"
+            )
+            captured["question_followup_action"] = context.metadata.get(
+                "question_followup_action"
+            )
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="deep_question",
+                stage="generation",
+                content="开始批改前两题。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime._resolve_bot_runtime_defaults",
+        lambda **_kwargs: {
+            "execution_engine": "tutorbot_runtime",
+            "tools": ["rag"],
+            "knowledge_bases": ["construction-exam"],
+            "defaults_source": "bot_runtime_defaults",
+        },
+    )
+
+    user_id = "user_mirror_batch"
+    session = await store.create_session(session_id="session_primary_without_question_set")
+    mirror_session_id = (
+        "tutorbot:bot:construction-exam-coach:"
+        f"user:{user_id}:chat:{session['id']}"
+    )
+    await store.create_session(session_id=mirror_session_id)
+    await store.set_active_question_context(
+        mirror_session_id,
+        {
+            "question_id": "quiz_mirror",
+            "question": "第1题...\n第2题...\n第3题...",
+            "question_type": "choice",
+            "items": [
+                {
+                    "question_id": "q_1",
+                    "question": "下列哪个不属于主体结构子分部工程？",
+                    "question_type": "choice",
+                    "options": {
+                        "A": "混凝土结构",
+                        "B": "网架结构",
+                        "C": "砌体结构",
+                        "D": "铝合金结构",
+                    },
+                    "correct_answer": "B",
+                },
+                {
+                    "question_id": "q_2",
+                    "question": "以下哪一组全部属于主体结构子分部工程？",
+                    "question_type": "choice",
+                    "options": {
+                        "A": "混凝土结构、砌体结构、钢结构、网架结构",
+                        "B": "混凝土结构、砌体结构、钢结构、铝合金结构",
+                        "C": "钢管混凝土结构、型钢混凝土结构、网架结构、木结构",
+                        "D": "混凝土结构、砌体结构、钢结构、装配式结构",
+                    },
+                    "correct_answer": "B",
+                },
+                {
+                    "question_id": "q_3",
+                    "question": "下列哪个不属于主体结构子分部工程？",
+                    "question_type": "choice",
+                    "correct_answer": "C",
+                },
+            ],
+            "reveal_answers": False,
+            "reveal_explanations": False,
+        },
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "第1题：B；第2题：B",
+            "session_id": session["id"],
+            "capability": "tutorbot",
+            "tools": ["rag"],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "chat_mode": "deep",
+                "interaction_profile": "tutorbot",
+                "billing_context": {
+                    "source": "wx_miniprogram",
+                    "user_id": user_id,
+                    "learning_user_id": user_id,
+                },
+            },
+        }
+    )
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert turn["capability"] == "deep_question"
+    assert captured["active_capability"] is None
+    resolved = captured["question_followup_context"]
+    assert resolved["question_id"] == "quiz_mirror"
+    action = captured["question_followup_action"]
+    assert action["intent"] == "answer_questions"
+    assert [(item["question_id"], item["user_answer"]) for item in action["answers"]] == [
+        ("q_1", "B"),
+        ("q_2", "B"),
+    ]
+    assert [
+        (item["question_id"], item.get("correct_answer"))
+        for item in resolved["items"][:2]
+    ] == [("q_1", "B"), ("q_2", "B")]
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["capability"] == "deep_question"
@@ -8175,3 +8336,31 @@ async def test_turn_runtime_injects_tutorbot_default_knowledge_chain(
     assert detail is not None
     assert detail["preferences"]["tools"] == ["rag"]
     assert detail["preferences"]["knowledge_bases"] == ["construction-exam"]
+
+
+# plan §Phase 3 Step 3.2 / Batch C Gap 3 — unified_ws redaction smoke.
+def test_unified_ws_redacts_hidden_grading_authority_at_public_boundary() -> None:
+    from deeptutor.api.routers.unified_ws import _redact_event_for_public
+
+    event = {
+        "type": "result",
+        "metadata": {
+            "question_followup_context": {
+                "question_id": "qs",
+                "items": [
+                    {
+                        "question_id": "q1",
+                        "question": "Q1",
+                        "correct_answer": "B",
+                        "grading_key": {"correct_answer": "B"},
+                        "explanation": "hidden",
+                    }
+                ],
+            }
+        },
+    }
+    redacted = _redact_event_for_public(event)
+    import json as _json
+    blob = _json.dumps(redacted, ensure_ascii=False)
+    for forbidden in ("grading_key", "correct_answer", "explanation", "hidden"):
+        assert forbidden not in blob

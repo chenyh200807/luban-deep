@@ -42,6 +42,129 @@ class Generator(BaseAgent):
 
     MAX_PREVIOUS_QUESTIONS = 20
 
+    async def process_batch_lightweight(
+        self,
+        templates: list[QuestionTemplate],
+        user_topic: str = "",
+        preference: str = "",
+        history_context: str = "",
+    ) -> list[QAPair] | None:
+        """plan §Phase 2 Step 2.2 / Batch B Gap 1 — single LLM call generates N questions.
+
+        本方法只用于 lightweight 路径：一次 prompt 让 LLM 输出
+        ``{"questions": [{"stem":..., "options":..., "correct_answer":..., "grading_points":...}, ...]}``。
+        成功返回 ``list[QAPair]`` (len == len(templates))；任何 schema 失败 / 数量不匹配 / LLM 异常
+        返回 ``None``，由 coordinator 降级到并行逐题 (asyncio.gather)。
+
+        Hard rules:
+          * 1-3 题：调用方应直接调本方法（一次 LLM）。
+          * 4-5 题：调用方可一次性传 5 个 templates；本方法仍发一次 LLM 出 5 题，
+            schema fail 时由 coordinator 拆成 2 次（前 3 + 后 2）再尝试。
+        """
+        if not templates:
+            return []
+        # 限制单次 batch 最大 5 题（plan §2.2）；超过的让 coordinator 拆。
+        if len(templates) > 5:
+            return None
+
+        first_template = templates[0]
+        knowledge_context = str(first_template.metadata.get("knowledge_context", "")).strip()
+        template_dicts = [
+            self._prepare_template_for_prompt(t, lightweight_generation=True)
+            for t in templates
+        ]
+        user_prompt = (
+            "Generate a batch of lightweight quiz items in a single response.\n\n"
+            f"Number of items requested: {len(templates)}\n"
+            f"Canonical anchor:\n{knowledge_context or '(none)'}\n\n"
+            "Item contracts (one per template, preserve question_id):\n"
+            f"{json.dumps(template_dicts, ensure_ascii=False, indent=2)}\n\n"
+            "Hard rules:\n"
+            "- Stay strictly within the canonical anchor.\n"
+            "- Do not introduce new concepts outside the anchor.\n"
+            "- Keep each question short and exam-style.\n"
+            "- Each item with question_type == 'choice' must provide exactly 4 options A-D "
+            "and return the correct option key.\n"
+            "- Do NOT include long explanations; explanation may be empty.\n"
+            "- The returned `questions` array length MUST equal the requested count.\n\n"
+            'Return JSON ONLY in shape: '
+            '{"questions":[{"question_id":"","question_type":"","question":"",'
+            '"options":{},"correct_answer":"","explanation":"",'
+            '"grading_points":[],"common_traps":[]}]}'
+        )
+        system_prompt = self.get_prompt("system", "")
+
+        _chunks: list[str] = []
+        try:
+            async for _c in self.stream_llm(
+                user_prompt=user_prompt,
+                system_prompt=system_prompt or "",
+                response_format={"type": "json_object"},
+                stage="generator_build_qa_batch",
+                trace_meta=build_trace_metadata(
+                    call_id=new_call_id(f"quiz-batch-{first_template.question_id}"),
+                    phase="generation",
+                    label=f"Generate batch of {len(templates)}",
+                    call_kind="llm_generation",
+                    trace_id=first_template.question_id,
+                    question_id=first_template.question_id,
+                ),
+            ):
+                _chunks.append(_c)
+        except Exception as exc:
+            self.logger.warning(f"Lightweight batch LLM call failed: {exc}")
+            return None
+        response = "".join(_chunks)
+        payload = self._parse_json_like(response)
+        items = payload.get("questions") if isinstance(payload.get("questions"), list) else None
+        if not items or len(items) != len(templates):
+            return None
+
+        results: list[QAPair] = []
+        for template, item in zip(templates, items):
+            if not isinstance(item, dict):
+                return None
+            stem = str(item.get("question") or item.get("stem") or "").strip()
+            options = item.get("options") if isinstance(item.get("options"), dict) else None
+            correct_answer = str(item.get("correct_answer") or "").strip()
+            if not stem or not correct_answer:
+                return None
+            if template.question_type == "choice" and not options:
+                return None
+            grading_points = [
+                str(p).strip() for p in (item.get("grading_points") or []) if str(p).strip()
+            ]
+            common_traps = [
+                str(t).strip() for t in (item.get("common_traps") or []) if str(t).strip()
+            ]
+            results.append(
+                QAPair(
+                    question_id=template.question_id,
+                    question=stem,
+                    correct_answer="",  # public string-form correct_answer never written; grading_key 持有
+                    explanation="",
+                    question_type=str(item.get("question_type") or template.question_type or "choice"),
+                    options=options,
+                    concentration=template.concentration,
+                    difficulty=template.difficulty,
+                    validation={"schema_ok": True, "source": "lightweight_batch_llm"},
+                    metadata={
+                        "source": template.source,
+                        "reference_question": template.reference_question,
+                        "knowledge_context": knowledge_context,
+                        "lightweight_generation": True,
+                    },
+                    grading_key={
+                        "correct_answer": correct_answer,
+                        "scoring_points": grading_points,
+                        "common_traps": common_traps,
+                        "minimal_rationale": "",
+                        "source": "lightweight_batch_llm",
+                    },
+                )
+            )
+        return results
+
     async def process(
         self,
         template: QuestionTemplate,

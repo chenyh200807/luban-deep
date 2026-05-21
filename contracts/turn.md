@@ -31,6 +31,7 @@
 10. mobile HTTP adapter 可以返回 convenience read-model 字段（如 `created_at_ms / updated_at_ms`、canonical `presentation`），但这些字段只能是统一 session/message 真相的投影，不得成为新的 turn/session authority，也不得定义第二套 streaming 协议。
 11. `messages.metadata.request_snapshot` 只允许保存本轮入口请求的审计 / 回放投影（content、tools、knowledge bases、language、attachments、context references、config overrides）。它不得保存 learner profile、学习进度、memory context、active_object 或任何需要由 learner-state / session runtime 单独负责的 canonical state，避免形成双写真相。
 12. mobile learning-brain HTTP read-model 端点只能读取 learner-state / compiled projection 的展示投影；它不得创建 turn、不得写 session、不得定义 streaming 协议，也不得成为 `/api/v1/ws` 之外的聊天入口。
+13. `/api/v1/ws` 出库 stream event 必须在公开边界 redact hidden grading authority（plan §Phase 3 Step 3.2 / Batch C Gap 3）：`grading_key`、`scoring_points`、`correct_answer`、`explanation` 不得通过任何 `metadata.question_followup_context`、`metadata.active_object.state_snapshot`、`metadata.scoring_points` 或它们的嵌套 `metadata.metadata` 字段流出到客户端。服务端内部 turn_runtime、capability、grader、learner_state 仍保留完整 hidden authority；redaction 是公开边界的最后一道保险。详见 `deeptutor/api/routers/unified_ws.py::_redact_event_for_public` 与 `deeptutor/services/question_followup.redact_question_followup_context_for_public`。
 
 ## TutorBot 规则
 

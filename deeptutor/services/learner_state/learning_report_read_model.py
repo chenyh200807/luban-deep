@@ -117,8 +117,16 @@ def build_learning_report_read_model(
         chapter_stats=evidence_stats["chapter_stats"],
         memory_events=events,
     )
-    radar_dimensions = _radar_dimensions(assessment_profile, mastery_dashboard)
-    mastery = _mastery_payload(mastery_dashboard, radar_dimensions=radar_dimensions)
+    radar_dimensions = _radar_dimensions(
+        assessment_profile,
+        mastery_dashboard,
+        evidence_stats=evidence_stats,
+    )
+    mastery = _mastery_payload(
+        mastery_dashboard,
+        radar_dimensions=radar_dimensions,
+        evidence_stats=evidence_stats,
+    )
     next_training = _next_training_items(learning_brain, home_dashboard)
     daily_target = _safe_int(legacy_today.get("daily_target")) or 30
     overview = {
@@ -432,12 +440,53 @@ def _next_training_items(learning_brain: dict[str, Any], home_dashboard: dict[st
     return []
 
 
-def _mastery_payload(mastery_dashboard: dict[str, Any], *, radar_dimensions: list[dict[str, Any]]) -> dict[str, Any]:
-    groups = _safe_list(mastery_dashboard.get("groups"))
-    hotspots = _safe_list(mastery_dashboard.get("hotspots"))
+def _mastery_payload(
+    mastery_dashboard: dict[str, Any],
+    *,
+    radar_dimensions: list[dict[str, Any]],
+    evidence_stats: dict[str, Any],
+) -> dict[str, Any]:
+    chapter_stats = _safe_dict(evidence_stats.get("chapter_stats"))
+    groups = []
+    for group in _safe_list(mastery_dashboard.get("groups")):
+        group_payload = _safe_dict(group)
+        chapters = []
+        for chapter in _safe_list(group_payload.get("chapters")):
+            chapter_payload = _safe_dict(chapter)
+            name = _display_dimension_label(chapter_payload.get("name"))
+            if not name:
+                continue
+            mastery = _calibrated_mastery(
+                _safe_int(chapter_payload.get("mastery")),
+                _safe_dict(chapter_stats.get(name)),
+            )
+            chapters.append({**chapter_payload, "name": name, "mastery": mastery})
+        if not chapters:
+            continue
+        avg_mastery = round(
+            sum(_safe_int(item.get("mastery")) for item in chapters) / max(len(chapters), 1)
+        )
+        groups.append({**group_payload, "avg_mastery": avg_mastery, "chapters": chapters})
+
+    hotspots = []
+    for item in _safe_list(mastery_dashboard.get("hotspots")):
+        hotspot = _safe_dict(item)
+        name = _display_dimension_label(hotspot.get("name"))
+        if not name:
+            continue
+        mastery = _calibrated_mastery(
+            _safe_int(hotspot.get("mastery")),
+            _safe_dict(chapter_stats.get(name)),
+        )
+        hotspots.append({**hotspot, "name": name, "mastery": mastery})
     review = _safe_dict(mastery_dashboard.get("review_summary"))
-    if mastery_dashboard:
-        overall = _safe_int(mastery_dashboard.get("overall_mastery"))
+    chapter_scores = [
+        _safe_int(chapter.get("mastery"))
+        for group in groups
+        for chapter in _safe_list(_safe_dict(group).get("chapters"))
+    ]
+    if chapter_scores:
+        overall = round(sum(chapter_scores) / max(len(chapter_scores), 1))
     else:
         scores = [round(float(item.get("value") or 0) * 100) for item in radar_dimensions]
         overall = round(sum(scores) / max(len(scores), 1)) if scores else 0
@@ -449,24 +498,89 @@ def _mastery_payload(mastery_dashboard: dict[str, Any], *, radar_dimensions: lis
     }
 
 
-def _radar_dimensions(assessment_profile: dict[str, Any], mastery_dashboard: dict[str, Any]) -> list[dict[str, Any]]:
+def _radar_dimensions(
+    assessment_profile: dict[str, Any],
+    mastery_dashboard: dict[str, Any],
+    *,
+    evidence_stats: dict[str, Any],
+) -> list[dict[str, Any]]:
+    chapter_stats = _safe_dict(evidence_stats.get("chapter_stats"))
     mastery = _safe_dict(assessment_profile.get("chapter_mastery"))
     dimensions: list[dict[str, Any]] = []
     for key, value in mastery.items():
         item = _safe_dict(value)
         score = _safe_int(item.get("mastery") if item else value)
-        name = str(item.get("name") or key or "").strip()
+        name = _display_dimension_label(item.get("name") or key)
         if name:
-            dimensions.append({"name": name, "value": round(score / 100, 2)})
+            calibrated = _calibrated_mastery(
+                score,
+                _safe_dict(chapter_stats.get(name)),
+            )
+            _append_dimension(dimensions, name=name, score=calibrated)
     if dimensions:
         return dimensions
     for group in _safe_list(mastery_dashboard.get("groups")):
         for chapter in _safe_list(_safe_dict(group).get("chapters")):
             item = _safe_dict(chapter)
-            name = str(item.get("name") or "").strip()
+            name = _display_dimension_label(item.get("name"))
             if name:
-                dimensions.append({"name": name, "value": round(_safe_int(item.get("mastery")) / 100, 2)})
+                calibrated = _calibrated_mastery(
+                    _safe_int(item.get("mastery")),
+                    _safe_dict(chapter_stats.get(name)),
+                )
+                _append_dimension(dimensions, name=name, score=calibrated)
     return dimensions
+
+
+def _append_dimension(dimensions: list[dict[str, Any]], *, name: str, score: int) -> None:
+    normalized_name = str(name or "").strip()
+    if not normalized_name:
+        return
+    value = round(max(0, min(int(score or 0), 100)) / 100, 2)
+    for item in dimensions:
+        if item.get("name") == normalized_name:
+            item["value"] = max(float(item.get("value") or 0), value)
+            return
+    dimensions.append({"name": normalized_name, "value": value})
+
+
+def _display_dimension_label(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    label = display_taxonomy_label(text, fallback=text)
+    return str(label or text).strip()
+
+
+def _calibrated_mastery(raw_score: int, stats: dict[str, Any]) -> int:
+    """Apply evidence coverage caps so sparse signals cannot display as mastery."""
+
+    raw = max(0, min(int(raw_score or 0), 100))
+    attempts = _safe_int(stats.get("done"))
+    correct = min(_safe_int(stats.get("correct")), attempts)
+    if attempts <= 0:
+        return min(raw, 60) if raw >= 90 else raw
+
+    accuracy = correct / max(attempts, 1)
+    if attempts == 1:
+        cap = 60
+    elif attempts == 2:
+        cap = 72
+    elif attempts <= 4:
+        cap = 84
+    elif attempts <= 7:
+        cap = 92
+    else:
+        cap = 100 if accuracy >= 0.85 else 92
+
+    if accuracy < 0.5:
+        cap = min(cap, 40)
+    elif accuracy < 0.7:
+        cap = min(cap, 60)
+
+    bayesian_estimate = round(((correct + 1) / (attempts + 2)) * 100)
+    candidate = max(raw, bayesian_estimate) if raw else bayesian_estimate
+    return max(0, min(candidate, cap))
 
 
 def _pick_focus_topic(*, weak_names: list[str], home_dashboard: dict[str, Any]) -> str:
