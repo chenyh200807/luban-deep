@@ -70,6 +70,7 @@ def build_learning_report_read_model(
     user_id: str,
     member_service: Any,
     learner_state_service: Any,
+    mistake_book_service: Any | None = None,
     event_limit: int = 100,
 ) -> dict[str, Any]:
     normalized_user = str(user_id or "").strip()
@@ -155,11 +156,16 @@ def build_learning_report_read_model(
         evidence_stats=evidence_stats,
     )
     next_training = _next_training_items(learning_brain, home_dashboard)
+    bookmarked_event_ids = _bookmarked_event_ids(
+        user_id=normalized_user,
+        mistake_book_service=mistake_book_service,
+    )
     learner_facing = _learner_facing_payload(
         events=events,
         evidence_stats=evidence_stats,
         weak_points=weak_points,
         next_training=next_training,
+        bookmarked_event_ids=bookmarked_event_ids,
     )
     daily_target = _safe_int(legacy_today.get("daily_target")) or 30
     overview = {
@@ -480,8 +486,9 @@ def _learner_facing_payload(
     evidence_stats: dict[str, Any],
     weak_points: list[dict[str, Any]],
     next_training: list[dict[str, Any]],
+    bookmarked_event_ids: set[str] | None = None,
 ) -> dict[str, Any]:
-    attempts = _recent_attempt_cards(events)
+    attempts = _recent_attempt_cards(events, bookmarked_event_ids=bookmarked_event_ids or set())
     diagnoses = _diagnosis_cards(events=events, weak_points=weak_points)
     timeline = _evidence_timeline(attempts)
     loops = _training_loop_cards(attempts=attempts, diagnoses=diagnoses)
@@ -515,8 +522,9 @@ def _learner_facing_payload(
     }
 
 
-def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
+def _recent_attempt_cards(events: list[Any], *, bookmarked_event_ids: set[str] | None = None) -> list[dict[str, Any]]:
     cards: list[dict[str, Any]] = []
+    bookmark_ids = set(bookmarked_event_ids or set())
     ordered = sorted(
         list(events or []),
         key=lambda event: str(getattr(event, "created_at", "") or ""),
@@ -551,6 +559,7 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
             diagnosis = "这次作答形成了一条改善信号。" if is_correct else "本次批改记录到一个薄弱点。"
         explanation = _pick_attempt_explanation(payload, diagnosis=diagnosis, is_correct=is_correct)
         quality = _attempt_quality(payload)
+        is_bookmarked = str(getattr(event, "event_id", "") or "") in bookmark_ids
         cards.append({
             "key": _attempt_card_key(event=event, payload=payload, index=index),
             "attempt_ref": _attempt_ref(event=event, payload=payload),
@@ -567,6 +576,8 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
             "explanation": explanation,
             "evidence_label": _attempt_evidence_label(index),
             "collectable": not is_correct,
+            "is_bookmarked": is_bookmarked,
+            "bookmark_label": "已加入错题" if is_bookmarked else "",
             "detail_lines": [
                 line for line in [
                     "；".join(answer_parts),
@@ -577,6 +588,18 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
             "quality": quality,
         })
     return cards
+
+
+def _bookmarked_event_ids(*, user_id: str, mistake_book_service: Any | None) -> set[str]:
+    if mistake_book_service is None:
+        return set()
+    getter = getattr(mistake_book_service, "bookmark_event_ids", None)
+    if not callable(getter):
+        return set()
+    try:
+        return set(getter(user_id=user_id, include_mastered=True) or set())
+    except Exception:
+        return set()
 
 
 def _attempt_ref(*, event: Any, payload: dict[str, Any]) -> str:

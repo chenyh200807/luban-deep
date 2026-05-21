@@ -3051,6 +3051,91 @@ def test_mobile_learning_attempt_detail_returns_user_facing_attempt(
     assert "evt_mobile_detail" not in str(body)
 
 
+def test_mobile_mistake_book_save_list_remove_and_conflict(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+    from deeptutor.services.learner_state.mistake_book import InMemoryMistakeBookStore, MistakeBookService
+
+    service = MistakeBookService(store=InMemoryMistakeBookStore())
+    monkeypatch.setattr(mobile_module, "mistake_book_service", service)
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    attempt_ref = sign_attempt_ref(user_id="student_demo", event_id="evt_mistake_api", question_id="q1")
+    with TestClient(_build_app()) as client:
+        save_response = client.post(
+            "/api/v1/mobile/mistake-book/items",
+            json={
+                "attempt_ref": attempt_ref,
+                "subject_id": "construction_exam_1",
+                "title": "主体结构错题",
+            },
+        )
+        assert save_response.status_code == 200
+        saved = save_response.json()
+        assert saved["is_bookmarked"] is True
+        assert saved["etag"]
+
+        list_response = client.get("/api/v1/mobile/mistake-book?subject_id=construction_exam_1")
+        assert list_response.status_code == 200
+        assert list_response.json()["count"] == 1
+
+        stale_response = client.delete(
+            f"/api/v1/mobile/mistake-book/items/{attempt_ref}",
+            headers={"If-Match": "stale"},
+        )
+        assert stale_response.status_code == 409
+        assert stale_response.json()["detail"]["latest"]["is_bookmarked"] is True
+
+        delete_response = client.delete(
+            f"/api/v1/mobile/mistake-book/items/{attempt_ref}",
+            headers={"If-Match": saved["etag"]},
+        )
+        assert delete_response.status_code == 200
+        assert delete_response.json()["is_bookmarked"] is False
+
+
+def test_mobile_mistake_book_mastered_and_review(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+    from deeptutor.services.learner_state.mistake_book import InMemoryMistakeBookStore, MistakeBookService
+
+    service = MistakeBookService(store=InMemoryMistakeBookStore())
+    monkeypatch.setattr(mobile_module, "mistake_book_service", service)
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    attempt_ref = sign_attempt_ref(user_id="student_demo", event_id="evt_review_api", question_id="q1")
+
+    with TestClient(_build_app()) as client:
+        saved = client.post(
+            "/api/v1/mobile/mistake-book/items",
+            json={"attempt_ref": attempt_ref, "subject_id": "construction_exam_1"},
+        ).json()
+        reviewed_response = client.post(
+            f"/api/v1/mobile/mistake-book/items/{attempt_ref}/review",
+            headers={"If-Match": saved["etag"]},
+        )
+        assert reviewed_response.status_code == 200
+        reviewed = reviewed_response.json()
+        assert reviewed["last_reviewed_at"]
+        assert reviewed["review_due_at"]
+
+        mastered_response = client.post(
+            f"/api/v1/mobile/mistake-book/items/{attempt_ref}/mastered",
+            headers={"If-Match": reviewed["etag"]},
+        )
+        assert mastered_response.status_code == 200
+        assert mastered_response.json()["mastered_at"]
+
+
 @pytest.mark.parametrize("event_limit", [0, 501, -1])
 def test_mobile_learning_report_rejects_event_limit_out_of_range(
     event_limit: int,

@@ -92,11 +92,19 @@ v2 新增字段（Task 1-5 实施后逐步引入）：
 
 - **Owner 文件**：`deeptutor/services/learner_state/mistake_book.py`（Task 3 实施）
 - **数据库表**：`learner_mistake_book_items`（见 §5 Migration）
+- **公开 endpoints**：
+  - `GET /api/v1/mobile/mistake-book`
+  - `POST /api/v1/mobile/mistake-book/items`
+  - `DELETE /api/v1/mobile/mistake-book/items/{attempt_ref}`
+  - `POST /api/v1/mobile/mistake-book/items/{attempt_ref}/mastered`
+  - `POST /api/v1/mobile/mistake-book/items/{attempt_ref}/review`
 - **稳定边界**：
   - 写路径受 `DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED` flag 保护
   - 读路径受 `DEEPTUTOR_MISTAKE_BOOK_ENABLED` flag 保护
   - 主键为 `(user_id, event_id)`，防重复写入
   - `mastered_at` 非空表示已掌握；`archived_at` 非空表示已归档；过滤索引已覆盖
+  - mutation 必须支持 `If-Match` / `etag` 冲突检测；409 响应携带 latest server state
+  - learning report 只能读取 bookmark projection 并输出 `is_bookmarked/bookmark_label`，不得在 read model 中写错题
 
 ### 3.3 Training Intent
 

@@ -289,6 +289,27 @@ def test_learning_report_attempt_cards_include_opaque_attempt_ref() -> None:
     assert payload == {"event_id": "evt_attempt_ref_secret", "question_id": "zh-mcq-ref"}
 
 
+def test_learning_report_attempt_cards_include_bookmark_projection() -> None:
+    event = _learning_event("evt_bookmarked", days_ago=0, question_id="zh-mcq-bookmark")
+
+    class FakeMistakeBookService:
+        def bookmark_event_ids(self, *, user_id: str, include_mastered: bool = True):
+            assert user_id == "student_demo"
+            assert include_mastered is True
+            return {"evt_bookmarked"}
+
+    attempt = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        mistake_book_service=FakeMistakeBookService(),
+        event_limit=50,
+    )["learner_facing"]["recent_attempts"][0]
+
+    assert attempt["is_bookmarked"] is True
+    assert attempt["bookmark_label"] == "已加入错题"
+
+
 def test_training_loop_uses_latest_attempt_not_any_past_correct_signal() -> None:
     model = build_learning_report_read_model(
         user_id="student_demo",

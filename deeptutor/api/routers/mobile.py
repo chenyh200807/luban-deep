@@ -27,6 +27,7 @@ from deeptutor.services.learner_state import LearnerStateService
 from deeptutor.services.learner_state.attempt_detail_read_model import build_attempt_detail_read_model
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.learning_report_read_model import build_learning_report_read_model
+from deeptutor.services.learner_state.mistake_book import MistakeBookConflict, MistakeBookService
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.query_intent import (
     build_grounding_decision,
@@ -50,6 +51,7 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 member_service = get_member_console_service()
 learner_state_service = LearnerStateService()
+mistake_book_service = MistakeBookService()
 turn_runtime = get_turn_runtime_manager()
 session_store = get_sqlite_session_store()
 wallet_service = get_wallet_service()
@@ -94,6 +96,17 @@ _BILLING_PAYMENT_GATEWAY_URL = "DEEPTUTOR_PAYMENT_GATEWAY_URL"
 class BillingCheckoutRequest(BaseModel):
     package_id: str = Field(min_length=1, max_length=64)
     channel: str = Field(default="wechat", min_length=1, max_length=32)
+
+
+class MistakeBookSaveRequest(BaseModel):
+    attempt_ref: str = Field(min_length=1)
+    subject_id: str = Field(min_length=1, max_length=128)
+    bot_id: str = Field(default="", max_length=128)
+    title: str = Field(default="", max_length=300)
+    concept_label: str = Field(default="", max_length=128)
+    error_label: str = Field(default="", max_length=128)
+    note: str = Field(default="", max_length=500)
+    tags: list[str] = Field(default_factory=list)
 
 
 def _log_safe_id(value: Any) -> str:
@@ -2078,6 +2091,7 @@ async def mobile_learning_report(
         user_id=user_id,
         member_service=member_service,
         learner_state_service=learner_state_service,
+        mistake_book_service=mistake_book_service,
         event_limit=event_limit,
     )
 
@@ -2097,6 +2111,115 @@ async def mobile_learning_attempt_detail(
     if not detail.get("ok"):
         raise HTTPException(status_code=404, detail=detail.get("error") or "attempt_not_found")
     return detail
+
+
+@router.get("/mobile/mistake-book")
+async def mobile_mistake_book(
+    authorization: str | None = Header(default=None),
+    subject_id: str = Query(default=""),
+    include_mastered: bool = Query(default=False),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        return await run_in_threadpool(
+            mistake_book_service.list_items,
+            user_id=user_id,
+            subject_id=subject_id,
+            include_mastered=include_mastered,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/mobile/mistake-book/items")
+async def mobile_save_mistake_book_item(
+    payload: MistakeBookSaveRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        return await run_in_threadpool(
+            mistake_book_service.save_item,
+            user_id=user_id,
+            attempt_ref=payload.attempt_ref,
+            subject_id=payload.subject_id,
+            bot_id=payload.bot_id,
+            title=payload.title,
+            concept_label=payload.concept_label,
+            error_label=payload.error_label,
+            note=payload.note,
+            tags=payload.tags,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.delete("/mobile/mistake-book/items/{attempt_ref}")
+async def mobile_remove_mistake_book_item(
+    attempt_ref: str,
+    authorization: str | None = Header(default=None),
+    if_match: str | None = Header(default=None, alias="If-Match"),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        return await run_in_threadpool(
+            mistake_book_service.remove_item,
+            user_id=user_id,
+            attempt_ref=attempt_ref,
+            if_match=if_match,
+        )
+    except MistakeBookConflict as exc:
+        raise HTTPException(status_code=409, detail={"error": "etag_conflict", "latest": exc.latest}) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/mobile/mistake-book/items/{attempt_ref}/mastered")
+async def mobile_mark_mistake_book_item_mastered(
+    attempt_ref: str,
+    authorization: str | None = Header(default=None),
+    if_match: str | None = Header(default=None, alias="If-Match"),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        return await run_in_threadpool(
+            mistake_book_service.mark_mastered,
+            user_id=user_id,
+            attempt_ref=attempt_ref,
+            if_match=if_match,
+        )
+    except MistakeBookConflict as exc:
+        raise HTTPException(status_code=409, detail={"error": "etag_conflict", "latest": exc.latest}) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/mobile/mistake-book/items/{attempt_ref}/review")
+async def mobile_record_mistake_book_item_review(
+    attempt_ref: str,
+    authorization: str | None = Header(default=None),
+    if_match: str | None = Header(default=None, alias="If-Match"),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        return await run_in_threadpool(
+            mistake_book_service.record_review,
+            user_id=user_id,
+            attempt_ref=attempt_ref,
+            if_match=if_match,
+        )
+    except MistakeBookConflict as exc:
+        raise HTTPException(status_code=409, detail={"error": "etag_conflict", "latest": exc.latest}) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.get("/assessment/profile")
