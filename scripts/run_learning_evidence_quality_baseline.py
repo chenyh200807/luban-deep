@@ -21,7 +21,6 @@ Thresholds (hardcoded as policy, not configurable per-run):
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -77,7 +76,7 @@ def _fixture_events() -> list[dict[str, Any]]:
         }
         for i in range(1, 13)
     ] + [
-        # ── answer_explanation events — some have explanation (6 of 5 have) ──
+        # ── answer_explanation events — some have explanation (4 of 6 have) ──
         {
             "type": "mcq",
             "question_id": f"ae_{i:03d}",
@@ -148,10 +147,11 @@ def _run_baseline() -> dict[str, Any]:
     by_signal_type: dict[str, int] = {}
 
     for raw in fixtures:
-        signal_type = raw.pop("_signal_type", "unknown")
+        signal_type = raw.get("_signal_type", "unknown")
+        clean_payload = {k: v for k, v in raw.items() if k != "_signal_type"}
         payload = build_learning_evidence_payload(
-            grading_result=raw,
-            turn_id=f"baseline_turn_{raw['question_id']}",
+            grading_result=clean_payload,
+            turn_id=f"baseline_turn_{clean_payload['question_id']}",
         )
         quality = payload.get("quality", {})
 

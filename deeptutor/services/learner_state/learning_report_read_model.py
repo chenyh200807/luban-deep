@@ -8,6 +8,7 @@ import hashlib
 import os
 from typing import Any, Callable
 
+from deeptutor.services.construction_grading.learning_evidence import compute_quality_signals
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
@@ -1155,76 +1156,8 @@ def _attempt_quality(payload: dict[str, Any]) -> dict[str, Any]:
     if "detail_ready" in stored:
         return stored
 
-    # --- Derive quality from legacy payload fields ---
-    question_id = str(payload.get("question_id") or "").strip()
-    question_stem = str(
-        payload.get("question_stem")
-        or payload.get("stem")
-        or payload.get("question_text")
-        or payload.get("question")
-        or ""
-    ).strip()
-    score_awarded = payload.get("score_awarded")
-    max_score = payload.get("max_score")
-    errors = [e for e in _safe_list(payload.get("error_events") or payload.get("errors")) if isinstance(e, dict)]
-
-    # explanation presence
-    explanation = payload.get("explanation")
-    has_explanation = bool(explanation and str(explanation).strip() not in ("", "None"))
-    if isinstance(explanation, dict):
-        has_explanation = any(isinstance(v, str) and str(v).strip() for v in explanation.values())
-    elif isinstance(explanation, list):
-        has_explanation = any(bool(str(item or "").strip()) for item in explanation)
-
-    # concept presence
-    concept = str(_safe_dict(payload.get("next_training_signal")).get("concept") or "").strip()
-    if not concept:
-        for err in errors:
-            tag = str(err.get("concept_tag") or "").strip()
-            if tag:
-                concept = tag
-                break
-    has_concept = bool(concept)
-
-    has_question_ref = bool(question_id)
-    has_score = score_awarded is not None or max_score is not None
-    has_answer = has_score or bool(errors)
-
-    progress_countable = has_question_ref and has_score
-    detail_ready = bool(question_stem and has_answer and has_explanation)
-    truth_eligible = has_concept and has_question_ref and has_score
-
-    missing_fields: list[str] = []
-    if not has_explanation:
-        missing_fields.append("explanation")
-    if not has_concept:
-        missing_fields.append("concept_label")
-    if not question_stem:
-        missing_fields.append("question_stem")
-    if not has_question_ref:
-        missing_fields.append("question_ref")
-
-    degraded_reason = ""
-    if not detail_ready:
-        parts = []
-        if not has_explanation:
-            parts.append("解析暂缺")
-        if not question_stem:
-            parts.append("题干暂缺")
-        degraded_reason = "；".join(parts)
-
-    # Merge with whatever legacy quality fields exist in stored
-    return {
-        "evidence_level": stored.get("evidence_level", "L0_observed"),
-        "writeback_eligible": stored.get("writeback_eligible", bool(errors)),
-        "stable_truth_eligible": stored.get("stable_truth_eligible", False),
-        "evidence_cap_reasons": stored.get("evidence_cap_reasons", []),
-        "detail_ready": detail_ready,
-        "progress_countable": progress_countable,
-        "truth_eligible": truth_eligible,
-        "missing_fields": missing_fields,
-        "degraded_reason": degraded_reason,
-    }
+    # --- Legacy path: derive quality from payload fields via single producer ---
+    return compute_quality_signals(payload)
 
 
 def _safe_dict(value: Any) -> dict[str, Any]:

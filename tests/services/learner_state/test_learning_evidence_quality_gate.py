@@ -26,6 +26,7 @@ NOT the plan's draft assertion report["learning_brain"]["attempts"][0].
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 import pytest
 
@@ -445,3 +446,104 @@ def test_truth_eligible_false_when_concept_missing_in_report() -> None:
     item = report["learner_facing"]["recent_attempts"][0]
     assert item["quality"]["truth_eligible"] is False
     assert "concept_label" in item["quality"]["missing_fields"]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. Legacy path: _attempt_quality() with old-format payload (no quality.detail_ready)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _legacy_event(
+    *,
+    question_id: str = "legacy_q_001",
+    turn_id: str = "legacy_turn_001",
+    explanation: Any = None,
+    explanation_missing_reason: str = "",
+    days_ago: int = 0,
+) -> LearnerStateEvent:
+    """Construct a LearnerStateEvent whose payload_json omits the 'quality' key entirely.
+
+    This simulates old ledger data that was persisted before the quality-gate feature
+    was shipped, forcing _attempt_quality() to take the legacy derivation path.
+    """
+    payload: dict = {
+        # Deliberately no 'quality' key — forces legacy path in _attempt_quality()
+        "schema_version": 0,
+        "question_id": question_id,
+        "question_stem": "关于某施工规范的说法，正确的是？",
+        "question_type": "mcq",
+        "user_answer": "A",
+        "correct_answer": "B",
+        "score_awarded": 0,
+        "max_score": 1,
+        "error_events": [
+            {
+                "error_code": "M01",
+                "concept_tag": "结构工程",
+                "diagnosis": "基础知识不扎实。",
+            }
+        ],
+        "next_training_signal": {
+            "concept": "结构工程",
+            "focus": "验收条件",
+            "mode": "practice",
+        },
+    }
+    if explanation is not None:
+        payload["explanation"] = explanation
+    if explanation_missing_reason:
+        payload["explanation_missing_reason"] = explanation_missing_reason
+    return LearnerStateEvent(
+        event_id=f"legacy_{question_id}_{turn_id}",
+        user_id="student_demo",
+        source_feature="construction_grading",
+        source_id=f"turn:{turn_id}",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        dedupe_key=f"legacy_{question_id}_{turn_id}",
+        created_at=_iso(days_ago),
+        payload_json=payload,
+    )
+
+
+def test_legacy_payload_without_quality_is_derived_as_detail_ready() -> None:
+    """Legacy payload with all basic fields but no 'quality' key is derived correctly.
+
+    _attempt_quality() must call compute_quality_signals() and return detail_ready=True
+    when question stem + score + explanation are all present.
+    """
+    event = _legacy_event(explanation="正确答案是 B，因为并列条件必须同时满足。")
+    report = _build_report([event])
+    item = report["learner_facing"]["recent_attempts"][0]
+    quality = item["quality"]
+    assert quality["detail_ready"] is True, (
+        "legacy payload with stem+score+explanation must yield detail_ready=True"
+    )
+    assert quality["progress_countable"] is True
+    assert quality["truth_eligible"] is True
+    assert quality["missing_fields"] == []
+    assert quality["degraded_reason"] == ""
+
+
+def test_legacy_payload_with_explanation_missing_reason_yields_correct_degraded_reason() -> None:
+    """Legacy payload with explanation=None + explanation_missing_reason set must yield
+    degraded_reason == '解析待补全' (not '解析暂缺').
+
+    This assertion only passes after IMPORTANT [1] is fixed: the legacy path now calls
+    compute_quality_signals() which correctly checks explanation_missing_reason.
+    """
+    event = _legacy_event(
+        question_id="legacy_q_002",
+        turn_id="legacy_turn_002",
+        explanation=None,
+        explanation_missing_reason="grading_output_missing_explanation",
+    )
+    report = _build_report([event])
+    item = report["learner_facing"]["recent_attempts"][0]
+    quality = item["quality"]
+    assert quality["detail_ready"] is False
+    assert quality["progress_countable"] is True
+    assert "explanation" in quality["missing_fields"]
+    assert quality["degraded_reason"] == "解析待补全", (
+        "when explanation_missing_reason is set, degraded_reason must be '解析待补全', not '解析暂缺'"
+    )
