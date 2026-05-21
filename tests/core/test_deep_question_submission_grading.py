@@ -666,6 +666,79 @@ async def test_deep_question_recovers_missing_choice_answer_from_questions_bank_
 
 
 @pytest.mark.asyncio
+async def test_deep_question_recovers_missing_choice_answer_from_grading_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """plan §Step 3.4 — lightweight_batch_llm 把答案写在 ``items[i].grading_key.correct_answer``;
+    grader 必须把它当作 priority #1 authority，比 questions_bank 更优先。"""
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError(
+                "recovered objective grading should not instantiate SubmissionGraderAgent"
+            )
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="我选B",
+        language="zh",
+        metadata={
+            "question_followup_context": {
+                "question_id": "lt_q_1",
+                "question": "施工现场安全管理责任主体的第一责任人是？",
+                "question_type": "choice",
+                "options": {
+                    "A": "项目经理",
+                    "B": "建设单位负责人",
+                    "C": "施工班组长",
+                    "D": "安全员",
+                },
+                # plan §Step 3.4 — top-level slot intentionally empty;
+                # lightweight_batch_llm only populates grading_key.
+                "correct_answer": "",
+                "grading_key": {
+                    "correct_answer": "B",
+                    "scoring_points": [],
+                    "common_traps": [],
+                    "minimal_rationale": "",
+                    "source": "lightweight_batch_llm",
+                },
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["is_correct"] is True
+    assert result_event.metadata["grading_kernel"] == "mcq"
+    assert result_event.metadata["correct_answer_present"] is True
+    assert result_event.metadata["question_authority_source"] == "grading_key"
+    assert result_event.metadata["question_followup_context"]["correct_answer"] == "B"
+
+
+@pytest.mark.asyncio
 async def test_deep_question_recomputes_batch_after_recovering_missing_choice_answers(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
