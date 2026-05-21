@@ -59,6 +59,18 @@ function sumChunkSizes(chunkPaths) {
   return chunkPaths.reduce((total, chunkPath) => total + resolveChunkSize(chunkPath), 0);
 }
 
+function uniqueChunkPaths(chunkPaths) {
+  return Array.from(new Set(chunkPaths));
+}
+
+function collectLayoutChunkPaths(entryFiles) {
+  return uniqueChunkPaths(
+    Object.entries(entryFiles)
+      .filter(([key]) => key.startsWith("[project]/app/") && key.endsWith("/layout"))
+      .flatMap(([, chunkPaths]) => chunkPaths),
+  );
+}
+
 if (!fs.existsSync(APP_SERVER_DIR)) {
   console.error("Missing .next/server/app. Run `npm run build` before `npm run perf:check`.");
   process.exit(1);
@@ -88,7 +100,10 @@ for (const manifestFile of manifestFiles) {
     continue;
   }
 
-  const chunkPaths = entryFiles[routeEntryKey] || [];
+  const layoutChunkPaths = new Set(collectLayoutChunkPaths(entryFiles));
+  const chunkPaths = uniqueChunkPaths(entryFiles[routeEntryKey] || []).filter(
+    (chunkPath) => !layoutChunkPaths.has(chunkPath),
+  );
   routeRows.push({
     route,
     sizeBytes: sumChunkSizes(chunkPaths),
