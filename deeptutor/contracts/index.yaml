@@ -6,6 +6,7 @@ domains:
     contract_files:
       - CONTRACT.md
       - contracts/turn.md
+      - contracts/learning-report.md
       - docs/zh/guide/unified-turn-contract.md
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py
@@ -19,6 +20,11 @@ domains:
       - deeptutor/contracts/unified_turn.py
       - web/lib/unified-ws.ts
       - web/context/UnifiedChatContext.tsx
+      - deeptutor/services/learner_state/attempt_refs.py
+      - deeptutor/services/learner_state/attempt_detail_read_model.py
+      - deeptutor/services/learner_state/mistake_book.py
+      - deeptutor/services/learner_state/training_intent.py
+      - deeptutor/services/learner_state/home_personalization.py
     sensitive_patterns:
       - deeptutor/api/routers/unified_ws.py
       - deeptutor/api/routers/mobile.py
@@ -31,11 +37,21 @@ domains:
     test_files:
       - tests/api/test_system_router.py
       - tests/api/test_unified_ws_turn_runtime.py
+      - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_mobile_router.py
       - tests/services/session/test_context_builder.py
+      - tests/services/learner_state/test_attempt_refs.py
+      - tests/services/learner_state/test_attempt_detail_read_model.py
+      - tests/services/learner_state/test_mistake_book.py
+      - tests/services/learner_state/test_training_intent.py
+      - tests/services/learner_state/test_conversation_learning_evidence_event.py
+      - tests/services/learner_state/test_learning_evidence_quality_gate.py
+      - tests/services/member_console/test_home_dashboard_learning_projection.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py
+      - contracts/learning-report.md
+      - deeptutor/services/learner_state/learning_report_read_model.py
 
   capability:
     summary: Capability routing, request config schema, orchestrator ownership.
@@ -61,6 +77,7 @@ domains:
     test_files:
       - tests/runtime/test_orchestrator_autoroute.py
       - tests/api/test_unified_ws_turn_runtime.py
+      - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_mobile_router.py
     schema_files:
       - deeptutor/capabilities/request_contracts.py
@@ -173,6 +190,7 @@ domains:
       - tests/services/learner_state/test_outbox.py
       - tests/services/learner_state/test_flusher.py
       - tests/services/learner_state/test_runtime.py
+      - tests/services/learner_state/test_learning_report_read_model.py
       - tests/services/learner_state/test_heartbeat_service.py
       - tests/services/learner_state/heartbeat/test_service.py
       - tests/services/learner_state/heartbeat/test_scheduler.py
