@@ -591,7 +591,7 @@ export default function NotebookPage() {
   if (!requiresWebAuth()) {
     return (
       <RestrictedSurface
-        title="Question notebook unavailable"
+        title="题本工作台暂不可用"
         message="当前 Web 端未接入登录态，题本页面已默认关闭。请使用已鉴权入口访问。"
       />
     );
