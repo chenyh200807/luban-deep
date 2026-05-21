@@ -80,10 +80,13 @@ v2 新增字段（Task 1-5 实施后逐步引入）：
 
 - **Owner 文件**：`deeptutor/services/learner_state/attempt_detail_read_model.py`（Task 1 实施）
 - **用途**：以 `attempt_ref`（opaque token）为主键，提供单次作答的只读详情视图
+- **公开 endpoint**：`GET /api/v1/mobile/learning-attempts/{attempt_ref}`
 - **稳定边界**：
   - 只读，不写；不得在 read model 内修改任何持久化状态
   - `attempt_ref` 是签名 token（HMAC-SHA256），其 secret = `DEEPTUTOR_ATTEMPT_REF_SECRET` 环境变量
-  - 解码失败必须返回 `None`，不得 raise 到路由层
+  - 解码失败由 read model 返回 `ok=false`，router 只映射为 404，不在 router 里拼装字段
+  - `LearnerStateService.read_learning_evidence_event(user_id, event_id)` 是唯一 indexed reader；禁止生产路径 `list_learning_evidence_events(...limit=500)` 后 filter
+  - 响应不得暴露 raw `event_id`；用户可见引用只使用 `attempt_ref`
 
 ### 3.2 Mistake Book
 

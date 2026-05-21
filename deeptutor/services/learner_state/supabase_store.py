@@ -268,6 +268,18 @@ class LearnerStateSupabaseCoreStore:
         projection = rows[0].get("summary_structured_json")
         return extract_learning_brain_projection(projection if isinstance(projection, dict) else {})
 
+    async def read_learning_evidence_event(self, user_id: str, event_id: str) -> dict[str, Any] | None:
+        rows = await self._client.select_rows(
+            "learner_memory_events",
+            filters={
+                "user_id": f"eq.{user_id}",
+                "event_id": f"eq.{event_id}",
+                "memory_kind": "eq.learning_evidence",
+            },
+            limit=1,
+        )
+        return rows[0] if rows else None
+
     async def read_goals(self, user_id: str) -> list[dict[str, Any]]:
         return await self._client.select_rows(
             "user_goals",
@@ -410,6 +422,18 @@ class LearnerStateSupabaseSyncCoreStore:
         payload = response.json()
         rows = [dict(item) for item in payload if isinstance(item, dict)]
         return list(reversed(rows))
+
+    def read_learning_evidence_event(self, user_id: str, event_id: str) -> dict[str, Any] | None:
+        if not self.is_configured:
+            return None
+        return self._select_one(
+            "learner_memory_events",
+            {
+                "user_id": user_id,
+                "event_id": event_id,
+                "memory_kind": "learning_evidence",
+            },
+        )
 
     def write_progress(self, user_id: str, progress: dict[str, Any]) -> dict[str, Any]:
         normalized_user_id = str(user_id or "").strip()

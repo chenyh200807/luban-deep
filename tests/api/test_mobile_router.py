@@ -2997,6 +2997,60 @@ def test_mobile_learning_report_requires_authentication() -> None:
     assert body.get("detail")
 
 
+def test_mobile_learning_attempt_detail_returns_user_facing_attempt(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+    from deeptutor.services.learner_state.service import LearnerStateEvent
+
+    event = LearnerStateEvent(
+        event_id="evt_mobile_detail",
+        user_id="student_demo",
+        source_feature="construction_grading",
+        source_id="turn:evt_mobile_detail",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        dedupe_key="evt_mobile_detail",
+        created_at=datetime.now(_SH_TZ).isoformat(),
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": "q-mobile",
+            "question_stem": "主体结构验收条件是什么？",
+            "user_answer": "A",
+            "correct_answer": "B",
+            "score_awarded": 0,
+            "max_score": 1,
+            "explanation": {"summary": "先看验收前置条件。"},
+            "error_events": [{"error_code": "M06", "concept_tag": "1A432000"}],
+        },
+    )
+
+    class FakeLearnerStateService:
+        def read_learning_evidence_event(self, user_id, event_id, *, max_age_seconds=None):
+            assert user_id == "student_demo"
+            assert event_id == "evt_mobile_detail"
+            return event
+
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+
+    attempt_ref = sign_attempt_ref(user_id="student_demo", event_id="evt_mobile_detail", question_id="q-mobile")
+    with TestClient(_build_app()) as client:
+        response = client.get(f"/api/v1/mobile/learning-attempts/{attempt_ref}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    assert body["question"]["stem"] == "主体结构验收条件是什么？"
+    assert body["answer"]["user_answer"] == "A"
+    assert body["explanation"]["summary"] == "先看验收前置条件。"
+    assert "evt_mobile_detail" not in str(body)
+
+
 @pytest.mark.parametrize("event_limit", [0, 501, -1])
 def test_mobile_learning_report_rejects_event_limit_out_of_range(
     event_limit: int,

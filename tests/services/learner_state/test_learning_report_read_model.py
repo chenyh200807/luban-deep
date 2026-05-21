@@ -268,6 +268,27 @@ def test_learning_report_attempt_keys_are_stable_without_exposing_event_ids() ->
     assert first["explanation"] == "解析：这道题要先看题干限制条件。"
 
 
+def test_learning_report_attempt_cards_include_opaque_attempt_ref() -> None:
+    from deeptutor.services.learner_state.attempt_refs import verify_attempt_ref
+
+    event = _learning_event(
+        "evt_attempt_ref_secret",
+        days_ago=0,
+        question_id="zh-mcq-ref",
+    )
+    attempt = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )["learner_facing"]["recent_attempts"][0]
+
+    assert attempt["attempt_ref"]
+    assert "evt_attempt_ref_secret" not in attempt["attempt_ref"]
+    payload = verify_attempt_ref(attempt["attempt_ref"], user_id="student_demo")
+    assert payload == {"event_id": "evt_attempt_ref_secret", "question_id": "zh-mcq-ref"}
+
+
 def test_training_loop_uses_latest_attempt_not_any_past_correct_signal() -> None:
     model = build_learning_report_read_model(
         user_id="student_demo",

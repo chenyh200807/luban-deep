@@ -9,6 +9,7 @@ import os
 from typing import Any, Callable
 
 from deeptutor.services.construction_grading.learning_evidence import compute_quality_signals
+from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
@@ -552,6 +553,7 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
         quality = _attempt_quality(payload)
         cards.append({
             "key": _attempt_card_key(event=event, payload=payload, index=index),
+            "attempt_ref": _attempt_ref(event=event, payload=payload),
             "time_label": _time_label(str(getattr(event, "created_at", "") or "")),
             "title": title,
             "question_text": question_text,
@@ -575,6 +577,17 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
             "quality": quality,
         })
     return cards
+
+
+def _attempt_ref(*, event: Any, payload: dict[str, Any]) -> str:
+    try:
+        return sign_attempt_ref(
+            user_id=str(getattr(event, "user_id", "") or ""),
+            event_id=str(getattr(event, "event_id", "") or ""),
+            question_id=str(payload.get("question_id") or ""),
+        )
+    except ValueError:
+        return ""
 
 
 def _diagnosis_cards(*, events: list[Any], weak_points: list[dict[str, Any]]) -> list[dict[str, Any]]:

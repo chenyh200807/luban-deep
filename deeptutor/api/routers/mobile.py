@@ -24,6 +24,7 @@ from deeptutor.api.dependencies import (
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.learner_state import LearnerStateService
+from deeptutor.services.learner_state.attempt_detail_read_model import build_attempt_detail_read_model
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.learning_report_read_model import build_learning_report_read_model
 from deeptutor.services.member_console import get_member_console_service
@@ -2079,6 +2080,23 @@ async def mobile_learning_report(
         learner_state_service=learner_state_service,
         event_limit=event_limit,
     )
+
+
+@router.get("/mobile/learning-attempts/{attempt_ref}")
+async def mobile_learning_attempt_detail(
+    attempt_ref: str,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    detail = await run_in_threadpool(
+        build_attempt_detail_read_model,
+        user_id=user_id,
+        learner_state_service=learner_state_service,
+        attempt_ref=attempt_ref,
+    )
+    if not detail.get("ok"):
+        raise HTTPException(status_code=404, detail=detail.get("error") or "attempt_not_found")
+    return detail
 
 
 @router.get("/assessment/profile")
