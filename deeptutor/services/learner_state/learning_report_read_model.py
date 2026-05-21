@@ -4,6 +4,7 @@ import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from datetime import datetime, timedelta, timezone
+import hashlib
 import os
 from typing import Any, Callable
 
@@ -531,7 +532,8 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
         missed = _format_letters(payload.get("missed_options"))
         extra = _format_letters(payload.get("extra_options"))
         result_label = "答对" if is_correct else "答错"
-        title = _question_title(payload=payload, event=event, index=index)
+        question_text = _question_text(payload=payload, event=event, index=index)
+        title = _truncate(question_text, 34)
         answer_parts = []
         if user_answer:
             answer_parts.append(f"你选：{user_answer}")
@@ -545,17 +547,29 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
             answer_parts.append(f"得分：{payload.get('score_awarded')}/{payload.get('max_score')}")
         if not diagnosis:
             diagnosis = "这次作答形成了一条改善信号。" if is_correct else "本次批改记录到一个薄弱点。"
+        explanation = _pick_attempt_explanation(payload, diagnosis=diagnosis, is_correct=is_correct)
         cards.append({
-            "key": f"attempt-{index}",
+            "key": _attempt_card_key(event=event, payload=payload, index=index),
             "time_label": _time_label(str(getattr(event, "created_at", "") or "")),
             "title": title,
+            "question_text": question_text,
+            "options": _option_items(payload.get("options")),
             "concept": concept,
             "result_label": result_label,
             "tone": "correct" if is_correct else "wrong",
             "answer_line": "；".join(answer_parts),
             "diagnosis": error_label or ("稳定答对" if is_correct else "待归因"),
             "diagnosis_detail": _clean_learning_text(diagnosis),
+            "explanation": explanation,
             "evidence_label": _attempt_evidence_label(index),
+            "collectable": not is_correct,
+            "detail_lines": [
+                line for line in [
+                    "；".join(answer_parts),
+                    _clean_learning_text(diagnosis),
+                    explanation,
+                ] if line
+            ],
         })
     return cards
 
@@ -861,7 +875,7 @@ def _is_correct(payload: dict[str, Any]) -> bool:
     return max_score > 0 and awarded >= max_score
 
 
-def _question_title(*, payload: dict[str, Any], event: Any, index: int) -> str:
+def _question_text(*, payload: dict[str, Any], event: Any, index: int) -> str:
     text = str(
         payload.get("question_stem")
         or payload.get("stem")
@@ -870,10 +884,10 @@ def _question_title(*, payload: dict[str, Any], event: Any, index: int) -> str:
         or ""
     ).strip()
     if text:
-        return _truncate(_clean_learning_text(text), 34)
+        return _clean_learning_text(text)
     focus = str(_safe_dict(payload.get("next_training_signal")).get("focus") or "").strip()
     if focus and not focus.isascii():
-        return _truncate(_clean_learning_text(focus), 28)
+        return _clean_learning_text(focus)
     concept = _concept_label(_event_concept(payload))
     if concept:
         return f"{concept}练习题"
@@ -881,6 +895,70 @@ def _question_title(*, payload: dict[str, Any], event: Any, index: int) -> str:
     if question_id:
         return f"第 {index + 1} 次练习"
     return "一次练习"
+
+
+def _question_title(*, payload: dict[str, Any], event: Any, index: int) -> str:
+    return _truncate(_question_text(payload=payload, event=event, index=index), 34)
+
+
+def _attempt_card_key(*, event: Any, payload: dict[str, Any], index: int) -> str:
+    raw = "|".join(
+        str(value or "").strip()
+        for value in [
+            getattr(event, "event_id", ""),
+            getattr(event, "source_id", ""),
+            payload.get("question_id"),
+            getattr(event, "created_at", ""),
+        ]
+    )
+    if not raw.strip("|"):
+        raw = f"fallback-{index}"
+    digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:12]
+    return f"attempt-{digest}"
+
+
+def _pick_attempt_explanation(payload: dict[str, Any], *, diagnosis: str, is_correct: bool) -> str:
+    candidates = [
+        payload.get("explanation"),
+        payload.get("analysis"),
+        payload.get("solution"),
+        payload.get("answer_analysis"),
+        payload.get("system_explanation"),
+        payload.get("grading_explanation"),
+        payload.get("feedback"),
+        payload.get("summary"),
+    ]
+    for value in candidates:
+        text = _clean_learning_text(_attempt_text_value(value))
+        if text:
+            return _truncate(text, 160)
+    if is_correct:
+        return "这题答对了，后续可以用同类变式题确认是否稳定掌握。"
+    if diagnosis:
+        return _truncate(f"先回看本题条件和选项边界：{diagnosis}", 160)
+    return "这题已经进入错题证据，建议回看题干关键词、正确选项依据和易错干扰项。"
+
+
+def _attempt_text_value(value: Any) -> str:
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        for key in ("text", "content", "explanation", "analysis", "summary", "message"):
+            nested = _attempt_text_value(value.get(key))
+            if nested:
+                return nested
+        return ""
+    if isinstance(value, list):
+        parts = [_attempt_text_value(item) for item in value]
+        return " ".join(part for part in parts if part)
+    return ""
+
+
+def _option_items(options: Any) -> list[dict[str, str]]:
+    mapped = _option_map(options)
+    if not mapped:
+        return []
+    return [{"key": key, "text": _truncate(value, 36)} for key, value in sorted(mapped.items())]
 
 
 def _primary_error_label(errors: list[dict[str, Any]]) -> str:

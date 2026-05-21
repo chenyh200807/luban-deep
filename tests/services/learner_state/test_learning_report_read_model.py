@@ -31,6 +31,7 @@ def _learning_event(
     user_answer: str = "A",
     correct_answer: str = "B",
     question_stem: str = "关于主体结构工程施工的说法，正确的是？",
+    explanation: str = "解析：本题应先锁定规范条件，再排除与题干不一致的选项。",
 ) -> LearnerStateEvent:
     errors = [] if score_awarded >= max_score and max_score > 0 else [
         {
@@ -60,6 +61,7 @@ def _learning_event(
             "correct_answer": correct_answer,
             "score_awarded": score_awarded,
             "max_score": max_score,
+            "explanation": explanation,
             "error_events": errors,
             "next_training_signal": {
                 "concept": concept_id,
@@ -228,6 +230,9 @@ def test_learning_report_exposes_learner_facing_attempt_review_without_machine_i
     }
     assert "你选：" in facing["recent_attempts"][0]["answer_line"]
     assert "正确：" in facing["recent_attempts"][0]["answer_line"]
+    assert facing["recent_attempts"][0]["question_text"]
+    assert facing["recent_attempts"][0]["explanation"].startswith("解析：")
+    assert facing["recent_attempts"][0]["collectable"] is True
     assert facing["diagnoses"][0]["title"] == "工程招标投标与合同管理：多选漏选"
     assert facing["diagnoses"][0]["level_label"] == "需要重点补"
     assert facing["next_action"]["title"].startswith("先做 3 道")
@@ -235,6 +240,32 @@ def test_learning_report_exposes_learner_facing_attempt_review_without_machine_i
     assert "evt_review" not in rendered
     assert "M06" not in rendered
     assert "concept:" not in rendered
+
+
+def test_learning_report_attempt_keys_are_stable_without_exposing_event_ids() -> None:
+    event = _learning_event(
+        "evt_stable_key",
+        days_ago=0,
+        question_id="zh-mcq-stable",
+        explanation={"summary": "解析：这道题要先看题干限制条件。"},
+    )
+    first = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )["learner_facing"]["recent_attempts"][0]
+    second = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )["learner_facing"]["recent_attempts"][0]
+
+    assert first["key"] == second["key"]
+    assert first["key"].startswith("attempt-")
+    assert "evt_stable_key" not in first["key"]
+    assert first["explanation"] == "解析：这道题要先看题干限制条件。"
 
 
 def test_training_loop_uses_latest_attempt_not_any_past_correct_signal() -> None:
