@@ -17,6 +17,7 @@ def write_grading_error_events(
     source_id: str,
     source_bot_id: str | None = None,
     include_success_events: bool = False,
+    training_intent_id: str | None = None,
 ) -> int:
     """Write grading error events through the existing LearnerStateService authority."""
 
@@ -36,6 +37,7 @@ def write_grading_error_events(
                 source_id=f"{source_id}:{question_id}",
                 source_bot_id=source_bot_id,
                 include_success_events=include_success_events,
+                training_intent_id=training_intent_id,
             )
         return count
 
@@ -43,6 +45,8 @@ def write_grading_error_events(
         grading_result=grading_result,
         turn_id=source_id,
     )
+    if training_intent_id:
+        payload_json["training_intent_id"] = str(training_intent_id or "").strip()
     if not payload_json["quality"]["writeback_eligible"]:
         if not include_success_events or not _is_success_learning_evidence(payload_json):
             return 0

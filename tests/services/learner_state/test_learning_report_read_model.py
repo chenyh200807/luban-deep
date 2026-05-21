@@ -310,6 +310,83 @@ def test_learning_report_attempt_cards_include_bookmark_projection() -> None:
     assert attempt["bookmark_label"] == "已加入错题"
 
 
+def test_single_observation_goes_to_recent_observations_not_stable_truths() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([
+            _learning_event("evt_single_observation", days_ago=0, concept_id="1A432000", error_code="M06")
+        ]),
+        event_limit=50,
+    )
+
+    assert model["truth_sections"]["stable_truths"] == []
+    assert model["truth_sections"]["recent_observations"][0]["level_label"] == "刚发现"
+
+
+def test_repeated_error_promotes_to_stable_truth() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _learning_event("evt_repeated_1", days_ago=0, concept_id="1A432000", error_code="M06"),
+                _learning_event("evt_repeated_2", days_ago=0, concept_id="1A432000", error_code="M06"),
+            ]
+        ),
+        event_limit=50,
+    )
+
+    assert model["truth_sections"]["stable_truths"][0]["level_label"] == "重复出现"
+
+
+def test_conversation_evidence_does_not_mark_mastered() -> None:
+    from deeptutor.services.learner_state.service import LearnerStateEvent
+
+    event = LearnerStateEvent(
+        event_id="evt_conversation",
+        user_id="student_demo",
+        source_feature="conversation_synthesis",
+        source_id="turn-1",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="evt_conversation",
+        created_at=_iso(0),
+        payload_json={
+            "event_type": "learning_evidence",
+            "evidence_source": "conversation_synthesis",
+            "learning_signal_type": "still_confused",
+            "concept": {"label": "主体结构"},
+            "error": {"label": "多选漏选"},
+            "quality": {"detail_ready": True, "truth_eligible": False},
+        },
+    )
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )
+
+    assert model["truth_sections"]["stable_truths"] == []
+    assert model["truth_sections"]["recent_observations"][0]["level_label"] == "已讲解"
+
+
+def test_legacy_construction_grading_payload_without_event_type_still_reads() -> None:
+    event = _learning_event("evt_legacy_no_event_type", days_ago=0)
+    event.payload_json.pop("event_type", None)
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )
+
+    assert model["learner_facing"]["recent_attempts"][0]["attempt_ref"]
+    assert model["overview"]["attempt_count"] == 1
+
+
 def test_training_loop_uses_latest_attempt_not_any_past_correct_signal() -> None:
     model = build_learning_report_read_model(
         user_id="student_demo",

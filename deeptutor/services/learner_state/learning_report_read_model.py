@@ -12,6 +12,7 @@ from deeptutor.services.construction_grading.learning_evidence import compute_qu
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
+from deeptutor.services.learner_state.training_intent import build_learning_training_intent
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
 
 _TZ = timezone(timedelta(hours=8))
@@ -167,6 +168,7 @@ def build_learning_report_read_model(
         next_training=next_training,
         bookmarked_event_ids=bookmarked_event_ids,
     )
+    truth_sections = _truth_sections(events)
     daily_target = _safe_int(legacy_today.get("daily_target")) or 30
     overview = {
         "today_done": evidence_stats["today_done"],
@@ -224,6 +226,7 @@ def build_learning_report_read_model(
         "radar_dimensions": radar_dimensions,
         "learning_brain": learning_brain,
         "learner_facing": learner_facing,
+        "truth_sections": truth_sections,
         "next_training": next_training,
         "legacy_compat": {
             "today_progress": legacy_today,
@@ -376,9 +379,17 @@ def _learning_evidence_events(events: list[Any]) -> list[Any]:
     return [
         event
         for event in list(events or [])
-        if str(getattr(event, "source_feature", "") or "") == "construction_grading"
-        and str(getattr(event, "memory_kind", "") or "") == "learning_evidence"
+        if str(getattr(event, "memory_kind", "") or "") == "learning_evidence"
+        and _is_learning_evidence_payload(event)
     ]
+
+
+def _is_learning_evidence_payload(event: Any) -> bool:
+    payload = _safe_dict(getattr(event, "payload_json", {}))
+    return (
+        str(payload.get("event_type") or "") == "learning_evidence"
+        or str(getattr(event, "source_feature", "") or "") == "construction_grading"
+    )
 
 
 def _aggregate_learning_evidence(events: list[Any]) -> dict[str, Any]:
@@ -728,6 +739,14 @@ def _next_action_card(*, diagnoses: list[dict[str, Any]], next_training: list[di
             "title": f"先做 3 道“{concept}”专项题",
             "subtitle": f"目标：把“{error}”这一类错误拉回主线",
             "concept": concept,
+            "intent": build_learning_training_intent(
+                user_id="",
+                concept_label=concept,
+                error_label=error,
+                question_count=3,
+                training_mode="mixed_review",
+                reason=str(top.get("meta") or ""),
+            ),
             "cta": "开始训练",
             "estimated_minutes": 8,
         }
@@ -739,6 +758,7 @@ def _next_action_card(*, diagnoses: list[dict[str, Any]], next_training: list[di
             "title": title or "先完成一组专项训练",
             "subtitle": meta or "完成后系统会继续更新你的学情判断",
             "concept": "",
+            "intent": build_learning_training_intent(user_id="", reason=meta, question_count=3),
             "cta": "开始训练",
             "estimated_minutes": 8,
         }
@@ -746,8 +766,56 @@ def _next_action_card(*, diagnoses: list[dict[str, Any]], next_training: list[di
         "title": "先完成一组练习",
         "subtitle": "完成批改后，系统会生成你的错因和下一步训练",
         "concept": "",
+        "intent": build_learning_training_intent(user_id="", reason="starter", question_count=3),
         "cta": "去练习",
         "estimated_minutes": 10,
+    }
+
+
+def _truth_sections(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    needs_confirmation: list[dict[str, Any]] = []
+    for event in events:
+        payload = _safe_dict(getattr(event, "payload_json", {}))
+        quality = _attempt_quality(payload)
+        concept = _concept_label(_event_concept(payload)) or _safe_dict(payload.get("concept")).get("label") or ""
+        errors = [item for item in _safe_list(payload.get("error_events") or payload.get("errors")) if isinstance(item, dict)]
+        error = _primary_error_label(errors) or str(_safe_dict(payload.get("error")).get("label") or "").strip()
+        signal_type = str(payload.get("learning_signal_type") or "").strip()
+        label = concept or error or "待确认学习事实"
+        if quality.get("detail_ready") and not concept:
+            needs_confirmation.append({"label": label, "reason": "concept_missing", "level_label": "待确认"})
+            continue
+        key = (concept or "综合练习", error or signal_type or "观察")
+        item = grouped.setdefault(
+            key,
+            {
+                "label": f"{key[0]}：{key[1]}",
+                "concept": key[0],
+                "error": key[1],
+                "count": 0,
+                "latest_at": "",
+                "conversation_only": True,
+            },
+        )
+        item["count"] += 1
+        if str(getattr(event, "source_feature", "") or "") == "construction_grading":
+            item["conversation_only"] = False
+        created_at = str(getattr(event, "created_at", "") or "")
+        if created_at > str(item.get("latest_at") or ""):
+            item["latest_at"] = created_at
+    stable: list[dict[str, Any]] = []
+    recent: list[dict[str, Any]] = []
+    for item in grouped.values():
+        count = _safe_int(item.get("count"))
+        if count >= 2 and not item.get("conversation_only"):
+            stable.append({**item, "level_label": "重复出现"})
+        else:
+            recent.append({**item, "level_label": "刚发现" if not item.get("conversation_only") else "已讲解"})
+    return {
+        "stable_truths": stable,
+        "recent_observations": recent,
+        "needs_confirmation": needs_confirmation,
     }
 
 

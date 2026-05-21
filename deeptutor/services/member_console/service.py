@@ -3587,11 +3587,16 @@ class MemberConsoleService:
             study_plan=study_plan,
             heartbeat_context=heartbeat_context,
         )
+        learning_projection = self._build_home_learning_projection(weak_nodes=weak_nodes)
+        projected_focus = dict(learning_projection.get("today_focus") or {})
+        if projected_focus.get("intent"):
+            today_focus = {**today_focus, "intent": projected_focus["intent"], "meta": projected_focus.get("meta", "")}
         return {
             "review": review,
             "mastery": {"weak_nodes": weak_nodes[:3]},
             "today": {"hint": today_focus["title"], "focus": today_focus},
             "today_focus": today_focus,
+            "recommended_prompts": list(learning_projection.get("recommended_prompts") or []),
             "study_plan": study_plan,
             "progress_feedback": self._build_home_progress_feedback(
                 member,
@@ -3600,6 +3605,17 @@ class MemberConsoleService:
                 learning=learning,
             ),
         }
+
+    def _build_home_learning_projection(self, *, weak_nodes: list[dict[str, Any]]) -> dict[str, Any]:
+        try:
+            from deeptutor.services.learner_state.home_personalization import (
+                build_home_dashboard_learning_projection,
+            )
+
+            return build_home_dashboard_learning_projection(weak_nodes=weak_nodes)
+        except Exception:
+            logger.warning("Failed to build home learning projection", exc_info=True)
+            return {"recommended_prompts": [], "today_focus": {}, "source_status": {"fallback_used": True}}
 
     def _read_learner_snapshot(self, user_id: str, *, event_limit: int = 5) -> Any | None:
         try:

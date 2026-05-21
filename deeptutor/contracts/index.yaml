@@ -24,6 +24,7 @@ domains:
       - deeptutor/services/learner_state/attempt_detail_read_model.py
       - deeptutor/services/learner_state/mistake_book.py
       - deeptutor/services/learner_state/training_intent.py
+      - deeptutor/services/learner_state/conversation_learning_evidence.py
       - deeptutor/services/learner_state/home_personalization.py
     sensitive_patterns:
       - deeptutor/api/routers/unified_ws.py

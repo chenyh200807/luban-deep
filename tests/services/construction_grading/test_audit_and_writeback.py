@@ -193,3 +193,27 @@ def test_writeback_can_persist_success_learning_event_for_improvement_signal() -
     assert call["payload_json"]["score_awarded"] == 1.0
     assert call["payload_json"]["quality"]["writeback_eligible"] is True
     assert call["payload_json"]["quality"]["writeback_reason"] == "success_improvement_signal"
+
+
+def test_writeback_persists_training_intent_id() -> None:
+    service = _FakeLearnerStateService()
+
+    count = write_grading_error_events(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-3",
+        source_bot_id="construction-exam",
+        training_intent_id="lti_123",
+        grading_result={
+            "type": "mcq",
+            "question_id": "q-3",
+            "user_answer": "A",
+            "score_awarded": 0.0,
+            "max_score": 1.0,
+            "error_events": [{"error_code": "M06", "concept_tag": "1A432000"}],
+            "next_training_signal": {"concept": "1A432000", "focus": "多选漏选"},
+        },
+    )
+
+    assert count == 1
+    assert service.calls[0]["payload_json"]["training_intent_id"] == "lti_123"

@@ -122,6 +122,16 @@ v2 新增字段（Task 1-5 实施后逐步引入）：
   - 受 `DEEPTUTOR_HOME_PERSONALIZATION_ENABLED` flag 保护
   - 不得替代或覆盖 `home_dashboard` v1 字段；只作为 v2 新增字段 `home_projection` 产出
 
+### 3.5 Truth Sections
+
+- **Owner 文件**：`deeptutor/services/learner_state/learning_report_read_model.py`
+- **用途**：把单次观察和稳定结论分开展示
+- **稳定边界**：
+  - `truth_sections.recent_observations` 承载 L0、conversation exposed、still confused 等低置信信号
+  - `truth_sections.stable_truths` 只承载重复出现或已确认的 grading evidence
+  - `truth_sections.needs_confirmation` 承载字段缺失、矛盾 evidence、manual correction 冲突
+  - UI 不得把 recent observation 文案包装成稳定掌握结论
+
 ---
 
 ## 4. Conversation Evidence 封闭枚举

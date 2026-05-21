@@ -562,8 +562,11 @@ class LearnerStateService:
         local_events = [
             event
             for event in self._list_local_memory_events(normalized)
-            if event.source_feature == "construction_grading"
-            and event.memory_kind == "learning_evidence"
+            if event.memory_kind == "learning_evidence"
+            and (
+                str(dict(event.payload_json or {}).get("event_type") or "") == "learning_evidence"
+                or event.source_feature == "construction_grading"
+            )
             and _iso_unknown_or_gte(event.created_at, since)
         ]
         if local_events and not is_production_environment():

@@ -402,7 +402,6 @@ class LearnerStateSupabaseSyncCoreStore:
             return []
         filters: dict[str, str] = {
             "user_id": f"eq.{user_id}",
-            "source_feature": "eq.construction_grading",
             "memory_kind": "eq.learning_evidence",
         }
         since_text = str(since or "").strip()

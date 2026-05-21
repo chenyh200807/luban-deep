@@ -174,6 +174,17 @@ Overlay 必须支持：
   `LearnerStateService.read_learning_evidence_event(user_id, event_id)`。Supabase core store
   必须按 `user_id + event_id + memory_kind=learning_evidence` 直读；只有本地 dev store
   才允许扫描 JSONL，并且必须有小型 LRU 缓存。生产路径不得通过批量 list 再 filter。
+- Conversation synthesis 信号也必须写入同一个 `learner_memory_events` ledger：
+  `memory_kind="learning_evidence"` 与 `payload.event_type="learning_evidence"` 不变，
+  仅通过 `payload.evidence_source="conversation_synthesis"` 和
+  `payload.learning_signal_type` 区分。conversation evidence 不得直接提升 mastery，
+  只能进入 recent observation / needs confirmation，直到后续 grading evidence 验证。
+- 兼容历史 construction grading 事件：早期 `memory_kind="learning_evidence"` 但缺少
+  `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
+  读取；新写入事件必须带 `payload.event_type="learning_evidence"`。
+- Home dashboard 个性化只能读取 learner-state projection 或 starter pool。`member_console`
+  请求路径不得同步运行完整 learning report；只能在现有 `today_focus` /
+  `recommended_prompts` 字段上附加 learner-state intent projection。
 
 #### `learning_plans`
 
