@@ -16,11 +16,17 @@ def test_answer_explanation_turn_becomes_low_confidence_learning_evidence() -> N
             "error_label": "多选漏选",
             "source_refs": [{"type": "rag_hit", "label": "教材依据"}],
         },
+        subject_id="construction_exam_1",
     )
 
     assert event is not None
     payload = event["payload_json"]
     assert event["memory_kind"] == "learning_evidence"
+    assert event["event_type"] == "learning_evidence"
+    assert event["evidence_source"] == "conversation_synthesis"
+    assert event["learning_signal_type"] == "answer_explanation"
+    assert event["subject_id"] == "construction_exam_1"
+    assert event["training_intent_id"] is None
     assert payload["event_type"] == "learning_evidence"
     assert payload["evidence_source"] == "conversation_synthesis"
     assert payload["learning_signal_type"] == "answer_explanation"
@@ -28,6 +34,8 @@ def test_answer_explanation_turn_becomes_low_confidence_learning_evidence() -> N
     assert payload["evidence_level"] == "exposed"
     assert payload["confidence"] < 0.6
     assert payload["conversation_turn_ref"] == "turn_123"
+    assert payload["subject_id"] == "construction_exam_1"
+    assert payload["training_intent_id"] is None
 
 
 def test_conversation_evidence_redacts_pii_before_write() -> None:
@@ -44,6 +52,39 @@ def test_conversation_evidence_redacts_pii_before_write() -> None:
     assert "13812345678" not in payload["user_question"]
     assert payload["user_question_redacted"] is True
     assert payload["learning_signal_type"] == "mistake_explain"
+
+
+def test_home_prompt_click_carries_intent_without_new_event_type() -> None:
+    event = build_learning_evidence_from_conversation_turn(
+        user_id="u1",
+        turn_ref="turn_home",
+        user_question="我手机号 13800001234 想问主体结构怎么背？",
+        assistant_answer={"summary": "主体结构多选题要逐项判断。"},
+        learning_signal_type="home_prompt_clicked",
+        prompt_intent={
+            "source": "home_dashboard",
+            "concept_label": "主体结构",
+            "error_label": "多选漏选",
+            "subject_id": "construction_exam_1",
+            "training_intent_id": "lti_123",
+        },
+    )
+
+    assert event is not None
+    assert event["event_type"] == "learning_evidence"
+    assert event["evidence_source"] == "conversation_synthesis"
+    assert event["learning_signal_type"] == "home_prompt_clicked"
+    assert event["subject_id"] == "construction_exam_1"
+    assert event["training_intent_id"] == "lti_123"
+    assert "13800001234" not in event["user_question"]
+    assert "[REDACTED_PHONE]" in event["user_question"]
+
+
+def test_supabase_writer_does_not_require_conversation_event_type_whitelist() -> None:
+    from deeptutor.services.learner_state.supabase_writer import LearnerStateSupabaseWriter
+
+    assert LearnerStateSupabaseWriter._supports_event_type("learning_evidence")
+    assert not LearnerStateSupabaseWriter._supports_event_type("conversation_learning_evidence")
 
 
 def test_non_learning_conversation_is_not_written() -> None:

@@ -7226,6 +7226,112 @@ async def test_turn_runtime_records_stage_specific_orchestration_fallback_path(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_writes_home_prompt_conversation_learning_evidence(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="主体结构多选题要逐项判断所有必要条件。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    class FakeLearnerStateService:
+        def build_context(self, **_kwargs):
+            return ""
+
+        async def refresh_from_turn(self, **kwargs):
+            captured["refresh"] = kwargs
+
+        def append_memory_event(self, user_id: str, **kwargs):
+            captured["append_memory_event"] = {"user_id": user_id, **kwargs}
+            return SimpleNamespace(event_id="evt_conversation")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: FakeLearnerStateService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "我手机号 13800001234，主体结构多选题为什么容易漏选？",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "app",
+                    "user_id": "student_demo",
+                    "learning_user_id": "student_demo",
+                },
+                "learning_prompt_intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "主体结构",
+                    "error_label": "多选漏选",
+                    "subject_id": "construction_exam_1",
+                    "training_intent_id": "lti_123",
+                },
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+    for _ in range(20):
+        if "append_memory_event" in captured:
+            break
+        await asyncio.sleep(0.01)
+
+    written = captured["append_memory_event"]
+    payload = written["payload_json"]
+    assert written["user_id"] == "student_demo"
+    assert written["source_feature"] == "conversation_synthesis"
+    assert written["memory_kind"] == "learning_evidence"
+    assert payload["event_type"] == "learning_evidence"
+    assert payload["evidence_source"] == "conversation_synthesis"
+    assert payload["learning_signal_type"] == "home_prompt_clicked"
+    assert payload["subject_id"] == "construction_exam_1"
+    assert payload["training_intent_id"] == "lti_123"
+    assert "13800001234" not in payload["user_question"]
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_context_orchestration_prioritizes_active_plan_page(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

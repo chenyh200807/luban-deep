@@ -1569,6 +1569,8 @@ def _build_mobile_turn_payload(
         config["bot_id"] = _MOBILE_TUTORBOT_ID
     if body.followup_question_context:
         config["followup_question_context"] = dict(body.followup_question_context)
+    if body.prompt_intent:
+        config["learning_prompt_intent"] = dict(body.prompt_intent)
     if body.persist_user_message is False:
         config["_persist_user_message"] = False
     client_turn_id = str(body.client_turn_id or "").strip()
@@ -1695,6 +1697,7 @@ class MobileStartTurnRequest(BaseModel):
     knowledge_bases: list[str] = Field(default_factory=list)
     attachments: list[dict[str, Any]] = Field(default_factory=list)
     followup_question_context: dict[str, Any] | None = None
+    prompt_intent: dict[str, Any] | None = None
     persist_user_message: bool = True
 
 

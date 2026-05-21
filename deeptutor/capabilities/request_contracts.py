@@ -29,6 +29,7 @@ class ChatRequestConfig(BaseModel):
     auto_tools: bool = True
     bot_id: str = ""
     answer_now_context: dict[str, Any] | None = None
+    learning_prompt_intent: dict[str, Any] | None = None
 
 
 class DeepSolveRequestConfig(BaseModel):

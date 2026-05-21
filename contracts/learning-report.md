@@ -121,6 +121,7 @@ v2 新增字段（Task 1-5 实施后逐步引入）：
 - **稳定边界**：
   - 受 `DEEPTUTOR_HOME_PERSONALIZATION_ENABLED` flag 保护
   - 不得替代或覆盖 `home_dashboard` v1 字段；只作为 v2 新增字段 `home_projection` 产出
+  - `recommended_prompts[].intent` 通过 mobile `prompt_intent` 回传后，只能写入 `learning_evidence` 的 conversation synthesis payload；前端不得自行推导 weak point / mastery / next training。
 
 ### 3.5 Truth Sections
 
@@ -143,6 +144,9 @@ v2 新增字段（Task 1-5 实施后逐步引入）：
 - `event_type="learning_evidence"`
 - `memory_kind="learning_evidence"`
 - `payload.evidence_source="conversation_synthesis"`
+- `payload.subject_id`：当前学科隔离键，可为空但不得由前端推导后替代 learner-state authority
+- `payload.training_intent_id`：可为空；若来自 learning report/home prompt intent，必须原样透传，便于后续 training improvement 对齐
+- `payload.user_question_redacted=true|false`：写入前必须完成 PII redaction
 
 不得新增 `conversation_learning_evidence` 之类的第二个 event type 大类。
 

@@ -23,22 +23,35 @@ def build_learning_evidence_from_conversation_turn(
     user_question: str,
     assistant_answer: dict[str, Any] | str,
     learning_signal_type: str = "answer_explanation",
+    subject_id: str = "",
+    training_intent_id: str | None = None,
+    prompt_intent: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     signal_type = str(learning_signal_type or "").strip()
     if signal_type not in _SIGNAL_TYPES:
         signal_type = "answer_explanation"
     assistant = _assistant_dict(assistant_answer)
+    intent = dict(prompt_intent or {}) if isinstance(prompt_intent, dict) else {}
     summary = _summary(assistant)
-    concept_label = str(assistant.get("concept_label") or "").strip()
-    error_label = str(assistant.get("error_label") or "").strip()
+    concept_label = str(assistant.get("concept_label") or intent.get("concept_label") or "").strip()
+    error_label = str(assistant.get("error_label") or intent.get("error_label") or "").strip()
     if not summary or not (concept_label or error_label):
         return None
+    normalized_subject_id = str(subject_id or intent.get("subject_id") or "").strip()
+    normalized_training_intent_id = str(
+        training_intent_id
+        if training_intent_id is not None
+        else intent.get("training_intent_id")
+        or ""
+    ).strip()
     redacted_question, redacted = redact_learning_question(user_question)
     payload = {
         "event_type": "learning_evidence",
         "memory_kind": "learning_evidence",
         "evidence_source": "conversation_synthesis",
         "learning_signal_type": signal_type,
+        "subject_id": normalized_subject_id,
+        "training_intent_id": normalized_training_intent_id or None,
         "conversation_turn_ref": str(turn_ref or "").strip(),
         "user_question": redacted_question,
         "user_question_redacted": redacted,
@@ -65,6 +78,7 @@ def build_learning_evidence_from_conversation_turn(
         "payload_json": payload,
         "dedupe_key": _dedupe_key(user_id=user_id, turn_ref=turn_ref, payload=payload),
         "created_at": datetime.now(_TZ).isoformat(),
+        **payload,
     }
 
 
@@ -76,6 +90,9 @@ def write_conversation_learning_evidence_event(
     user_question: str,
     assistant_answer: dict[str, Any] | str,
     learning_signal_type: str = "answer_explanation",
+    subject_id: str = "",
+    training_intent_id: str | None = None,
+    prompt_intent: dict[str, Any] | None = None,
 ) -> Any | None:
     event = build_learning_evidence_from_conversation_turn(
         user_id=user_id,
@@ -83,6 +100,9 @@ def write_conversation_learning_evidence_event(
         user_question=user_question,
         assistant_answer=assistant_answer,
         learning_signal_type=learning_signal_type,
+        subject_id=subject_id,
+        training_intent_id=training_intent_id,
+        prompt_intent=prompt_intent,
     )
     if event is None:
         return None
