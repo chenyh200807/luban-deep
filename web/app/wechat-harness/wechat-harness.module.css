@@ -944,11 +944,16 @@
 }
 
 @media (max-width: 980px) {
+  /* Globals.css pins html/body to overflow:hidden for the SPA chat shell.
+     Make .root itself the scroll container so harness content below the
+     viewport stays reachable on touch devices. */
   .root {
     grid-template-columns: 1fr;
-    height: auto;
-    min-height: 100vh;
-    overflow: auto;
+    height: 100dvh;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   .sidebar {
@@ -1005,6 +1010,14 @@
   .phoneShell {
     flex: none;
     height: 620px;
+    max-height: none;
+  }
+
+  /* Inspector owns its own scrollbar on desktop. On mobile let .root drive
+     the scroll instead — otherwise the grid track collapses inspector to
+     clientHeight:0 and the learning brain panel becomes unreachable. */
+  .inspector {
+    overflow: visible;
     max-height: none;
   }
 }
