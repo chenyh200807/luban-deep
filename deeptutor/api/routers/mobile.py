@@ -2087,9 +2087,15 @@ async def learning_brain_projection(
 @router.get("/mobile/learning-report")
 async def mobile_learning_report(
     authorization: str | None = Header(default=None),
+    accept: str | None = Header(default=None),
     event_limit: int = Query(default=100, ge=1, le=500),
+    schema_version: int = Query(default=1, ge=1, le=2),
 ) -> dict[str, Any]:
     user_id = _resolve_authenticated_user_id(authorization)
+    requested_schema_version = _learning_report_schema_version(
+        schema_version=schema_version,
+        accept=accept,
+    )
     return await run_in_threadpool(
         build_learning_report_read_model,
         user_id=user_id,
@@ -2097,7 +2103,24 @@ async def mobile_learning_report(
         learner_state_service=learner_state_service,
         mistake_book_service=mistake_book_service,
         event_limit=event_limit,
+        schema_version=requested_schema_version,
     )
+
+
+def _learning_report_schema_version(*, schema_version: int, accept: str | None) -> int:
+    for media_range in str(accept or "").lower().split(","):
+        parts = [part.strip() for part in media_range.split(";") if part.strip()]
+        if not parts or parts[0] != "application/vnd.deeptutor.learning-report+json":
+            continue
+        params = {
+            key.strip(): value.strip()
+            for item in parts[1:]
+            if "=" in item
+            for key, value in [item.split("=", 1)]
+        }
+        if params.get("v") == "2":
+            return 2
+    return 2 if int(schema_version or 1) == 2 else 1
 
 
 @router.get("/mobile/learning-attempts/{attempt_ref}")

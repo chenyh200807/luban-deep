@@ -73,6 +73,12 @@ function loadReportPage(stubs) {
       if (request === "../../utils/runtime") return stubs.runtime;
       if (request === "../../utils/route") return stubs.route;
       if (request === "../../utils/flags") return stubs.flags;
+      if (request === "../../utils/learning-report-view-model") {
+        return require(path.join(
+          __dirname,
+          "../packageDeeptutor/utils/learning-report-view-model.js",
+        ));
+      }
       return {};
     },
   };
@@ -915,10 +921,10 @@ function createPageInstance(pageDef) {
         "fallback path must list at least one degradedSources entry",
       );
       assert(
-        counters.mastery >= 1 ||
-          counters.assessment >= 1 ||
-          counters.brain >= 1,
-        "fallback path may use legacy endpoints for basic display only",
+        counters.mastery === 0 &&
+          counters.assessment === 0 &&
+          counters.brain === 0,
+        "unified payload failure must not revive legacy report readers as second authority",
       );
     },
   );

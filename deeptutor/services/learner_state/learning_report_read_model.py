@@ -73,6 +73,7 @@ def build_learning_report_read_model(
     learner_state_service: Any,
     mistake_book_service: Any | None = None,
     event_limit: int = 100,
+    schema_version: int = 1,
 ) -> dict[str, Any]:
     normalized_user = str(user_id or "").strip()
     limit = max(1, min(int(event_limit or 100), 500))
@@ -161,6 +162,10 @@ def build_learning_report_read_model(
         user_id=normalized_user,
         mistake_book_service=mistake_book_service,
     )
+    mistake_book_projection = _mistake_book_projection(
+        user_id=normalized_user,
+        mistake_book_service=mistake_book_service,
+    )
     learner_facing = _learner_facing_payload(
         events=events,
         evidence_stats=evidence_stats,
@@ -200,7 +205,7 @@ def build_learning_report_read_model(
     )
     degraded = bool(degraded_sources)
 
-    return {
+    report = {
         "ok": True,
         "user_id": normalized_user,
         "schema_version": _SCHEMA_VERSION,
@@ -235,6 +240,195 @@ def build_learning_report_read_model(
             "mastery_dashboard": mastery_dashboard,
         },
     }
+    if int(schema_version or 1) == 2:
+        return _learning_report_v2(report, mistake_book_projection=mistake_book_projection)
+    return report
+
+
+def _learning_report_v2(report: dict[str, Any], *, mistake_book_projection: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(report)
+    learner_facing = _safe_dict(payload.get("learner_facing"))
+    attempts = _safe_list(learner_facing.get("recent_attempts"))
+    timeline = _safe_list(learner_facing.get("evidence_timeline"))
+    loops = _safe_list(learner_facing.get("training_loops"))
+    next_action = _safe_dict(learner_facing.get("next_action"))
+    overview = _safe_dict(payload.get("overview"))
+    mastery = _safe_dict(payload.get("mastery"))
+    home_dashboard = _safe_dict(_safe_dict(payload.get("legacy_compat")).get("home_dashboard"))
+    home_prompts = _safe_list(home_dashboard.get("recommended_prompts"))
+    summary = _safe_dict(learner_facing.get("summary"))
+    primary_focus = (
+        str(next_action.get("concept") or "").strip()
+        or str(summary.get("primary_focus") or "").strip()
+        or str(overview.get("focus_hint") or "").strip()
+    )
+    hero_title = primary_focus or "完成一次练习后生成重点"
+    payload["schema_version"] = 2
+    payload["authority"] = {
+        **_safe_dict(payload.get("authority")),
+        "conversation_source": "learner_memory_events.learning_evidence[evidence_source=conversation_synthesis]",
+        "attempt_detail_source": "attempt-detail-read-model",
+        "mistake_book_source": "learner_mistake_book_items",
+        "training_intent_source": "learning-report-read-model",
+        "home_context_source": "home_dashboard.today_focus/recommended_prompts",
+    }
+    payload["recent_attempts"] = attempts
+    payload["timeline"] = timeline
+    payload["training_loop_cards"] = loops
+    payload["attempts"] = [_attempt_v2(item) for item in attempts]
+    payload["hero"] = {
+        "stage_label": str(overview.get("learner_level") or "学习阶段").strip() or "学习阶段",
+        "headline": f"当前最该补：{hero_title}",
+        "subline": str(summary.get("headline") or "").strip(),
+        "primary_cta": {
+            "label": str(next_action.get("cta") or "开始训练"),
+            "intent": _safe_dict(next_action.get("intent")) or build_learning_training_intent(
+                user_id=str(payload.get("user_id") or ""),
+                concept_label=primary_focus,
+                source="learning_report",
+                reason="v2_hero",
+            ),
+        },
+    }
+    payload["home_personalization"] = {
+        "focus_ref": "home_dashboard.today_focus",
+        "recommended_prompt_count": len(home_prompts),
+        "latest_conversation_signal": "",
+        "source_status": _safe_dict(home_dashboard.get("source_status")),
+    }
+    payload["mistake_book"] = mistake_book_projection
+    payload["next_training"] = _next_training_v2(next_action=next_action, existing=_safe_list(payload.get("next_training")))
+    payload["mastery"] = _mastery_v2(mastery, overview=overview)
+    payload["i18n_keys"] = {
+        "locale": "zh-CN",
+        "hero.headline": "learning_report.hero.headline",
+        "attempt.result": "learning_report.attempt.result",
+        "next_training.title": "learning_report.next_training.title",
+    }
+    return payload
+
+
+def _attempt_v2(item: Any) -> dict[str, Any]:
+    attempt = _safe_dict(item)
+    return {
+        "attempt_key": str(attempt.get("key") or "").strip(),
+        "attempt_ref": str(attempt.get("attempt_ref") or "").strip(),
+        "time_label": str(attempt.get("time_label") or "").strip(),
+        "question_title": str(attempt.get("title") or "").strip(),
+        "question_preview": str(attempt.get("question_text") or attempt.get("title") or "").strip(),
+        "result_label": str(attempt.get("result_label") or "").strip(),
+        "answer_line": str(attempt.get("answer_line") or "").strip(),
+        "diagnosis": str(attempt.get("diagnosis") or "").strip(),
+        "why_it_matters": str(attempt.get("diagnosis_detail") or attempt.get("explanation") or "").strip(),
+        "is_bookmarked": bool(attempt.get("is_bookmarked")),
+        "actions": {
+            "detail": bool(attempt.get("attempt_ref")),
+            "bookmark": bool(attempt.get("collectable")),
+            "retry": True,
+        },
+    }
+
+
+def _next_training_v2(*, next_action: dict[str, Any], existing: list[Any]) -> list[dict[str, Any]]:
+    if next_action.get("title"):
+        return [
+            {
+                "title": str(next_action.get("title") or "").strip(),
+                "reason": str(next_action.get("subtitle") or "").strip(),
+                "estimated_minutes": _safe_int(next_action.get("estimated_minutes")),
+                "intent": _safe_dict(next_action.get("intent")),
+            }
+        ]
+    items = []
+    for index, item in enumerate(existing[:5]):
+        source = _safe_dict(item)
+        title = str(source.get("display_title") or source.get("title") or source.get("claim") or "").strip()
+        if not title:
+            continue
+        items.append(
+            {
+                "title": title,
+                "reason": str(source.get("display_meta") or source.get("reason") or "").strip(),
+                "estimated_minutes": _safe_int(source.get("estimated_minutes")) or 8,
+                "intent": _safe_dict(source.get("intent")),
+                "key": str(source.get("key") or f"training-{index}"),
+            }
+        )
+    return items
+
+
+def _mastery_v2(mastery: dict[str, Any], *, overview: dict[str, Any]) -> dict[str, Any]:
+    groups = _safe_list(mastery.get("groups"))
+    hotspots = _safe_list(mastery.get("hotspots"))
+    dimensions = []
+    for group in groups:
+        for chapter in _safe_list(_safe_dict(group).get("chapters")):
+            item = _safe_dict(chapter)
+            name = str(item.get("name") or "").strip()
+            if not name:
+                continue
+            score = _safe_int(item.get("mastery"))
+            dimensions.append(
+                {
+                    "name": name,
+                    "score": score,
+                    "confidence": _mastery_confidence(score=score, sample_count=_safe_int(item.get("done"))),
+                    "status": _mastery_status(score),
+                    "sample_count": _safe_int(item.get("done")),
+                    "coverage_ratio": 0,
+                    "last_practiced_at": str(item.get("last_activity_at") or ""),
+                }
+            )
+    if not dimensions:
+        for item in hotspots:
+            hotspot = _safe_dict(item)
+            name = str(hotspot.get("name") or "").strip()
+            if not name:
+                continue
+            score = _safe_int(hotspot.get("mastery"))
+            dimensions.append(
+                {
+                    "name": name,
+                    "score": score,
+                    "confidence": _mastery_confidence(score=score, sample_count=0),
+                    "status": _mastery_status(score),
+                    "sample_count": 0,
+                    "coverage_ratio": 0,
+                    "last_practiced_at": "",
+                }
+            )
+    overall_score = _safe_int(mastery.get("overall_mastery") if not isinstance(mastery.get("overall_mastery"), dict) else mastery.get("overall_mastery", {}).get("score"))
+    if not overall_score:
+        overall_score = _safe_int(overview.get("overall_mastery"))
+    return {
+        **mastery,
+        "overall_mastery": {
+            "score": overall_score,
+            "confidence": _mastery_confidence(score=overall_score, sample_count=len(dimensions)),
+            "status": _mastery_status(overall_score),
+        },
+        "dimensions": dimensions,
+    }
+
+
+def _mastery_status(score: int) -> str:
+    value = _safe_int(score)
+    if value >= 85:
+        return "stable"
+    if value >= 60:
+        return "developing"
+    return "emerging"
+
+
+def _mastery_confidence(*, score: int, sample_count: int) -> float:
+    del score
+    if sample_count <= 0:
+        return 0.2
+    if sample_count == 1:
+        return 0.35
+    if sample_count <= 4:
+        return 0.55
+    return 0.75
 
 
 def _idle_status() -> dict[str, Any]:
@@ -623,6 +817,29 @@ def _bookmarked_event_ids(*, user_id: str, mistake_book_service: Any | None) -> 
         return set(getter(user_id=user_id, include_mastered=True) or set())
     except Exception:
         return set()
+
+
+def _mistake_book_projection(*, user_id: str, mistake_book_service: Any | None) -> dict[str, Any]:
+    if mistake_book_service is None:
+        return {"count": 0, "recent_items": [], "source_status": {"ok": None, "reason": "not_configured"}}
+    lister = getattr(mistake_book_service, "list_items", None)
+    if not callable(lister):
+        return {"count": 0, "recent_items": [], "source_status": {"ok": None, "reason": "unsupported_service"}}
+    try:
+        result = _safe_dict(lister(user_id=user_id, include_mastered=True))
+    except Exception as exc:
+        return {
+            "count": 0,
+            "recent_items": [],
+            "source_status": {"ok": False, "reason": exc.__class__.__name__},
+        }
+    return {
+        "count": _safe_int(result.get("count")),
+        "recent_items": _safe_list(result.get("items"))[:3],
+        "etag": str(result.get("etag") or "").strip(),
+        "generated_at": str(result.get("generated_at") or "").strip(),
+        "source_status": {"ok": True},
+    }
 
 
 def _attempt_ref(*, event: Any, payload: dict[str, Any]) -> str:

@@ -441,11 +441,17 @@ function getLearningBrainProjection(eventLimit) {
 }
 
 /** 获取学情页统一 read model */
-function getLearningReport(eventLimit) {
+function getLearningReport(eventLimit, opts) {
   var limit = Number(eventLimit || 100);
   if (!Number.isFinite(limit) || limit <= 0) limit = 100;
+  var options = opts && typeof opts === "object" ? opts : {};
+  var schemaVersion = Number(options.schemaVersion || options.schema_version || 1);
+  var query =
+    "/api/v1/mobile/learning-report?event_limit=" +
+    Math.min(Math.round(limit), 500);
+  if (schemaVersion === 2) query += "&schema_version=2";
   return request({
-    url: "/api/v1/mobile/learning-report?event_limit=" + Math.min(Math.round(limit), 500),
+    url: query,
     method: "GET",
   });
 }

@@ -46,7 +46,7 @@ async function run() {
     "api should expose the unified learning report read model endpoint",
   );
   assert(
-    fs.readFileSync(reportPath, "utf8").indexOf("api.getLearningReport(100)") >=
+    fs.readFileSync(reportPath, "utf8").indexOf("api.getLearningReport(100,") >=
       0 &&
       fs.readFileSync(reportPath, "utf8").indexOf("this._loadOverview();") <
         0 &&

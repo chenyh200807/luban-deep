@@ -3004,6 +3004,116 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
     assert body["freshness"]["unknown_date_count"] == 0
 
 
+def test_mobile_learning_report_dual_emits_v2_without_breaking_v1_fields(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeMemberService:
+        def get_today_progress(self, user_id):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_home_dashboard(self, user_id):
+            return {
+                "review": {"due_today": 1},
+                "mastery": {"weak_nodes": []},
+                "today": {"hint": "优先补主体结构"},
+                "today_focus": {"title": "今日焦点：主体结构"},
+                "recommended_prompts": [
+                    {
+                        "prompt_type": "practice_prompt",
+                        "text": "练 3 道主体结构题",
+                        "intent": {"source": "home_dashboard"},
+                    }
+                ],
+            }
+
+        def get_assessment_profile(self, user_id):
+            return {"level": "beginner", "chapter_mastery": {"主体结构": {"name": "主体结构", "mastery": 30}}}
+
+        def get_mastery_dashboard(self, user_id):
+            return {"overall_mastery": 30, "groups": [], "hotspots": [], "review_summary": {"total_due": 1}}
+
+    class FakeLearnerStateService:
+        def list_memory_events(self, user_id, limit=100):
+            return []
+
+        def read_compiled_learning_truth(self, user_id):
+            return {}
+
+        def synthesize_learning_truth(self, user_id, *, dry_run, event_limit):
+            return {"projection": {}}
+
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())
+    monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/mobile/learning-report?schema_version=2")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["schema_version"] == 2
+    assert body["authority"]["conversation_source"] == "learner_memory_events.learning_evidence[evidence_source=conversation_synthesis]"
+    assert body["authority"]["attempt_detail_source"] == "attempt-detail-read-model"
+    assert body["authority"]["mistake_book_source"] == "learner_mistake_book_items"
+    assert body["recent_attempts"] == body["learner_facing"]["recent_attempts"]
+    assert body["timeline"] == body["learner_facing"]["evidence_timeline"]
+    assert body["training_loop_cards"] == body["learner_facing"]["training_loops"]
+    assert body["hero"]["primary_cta"]["intent"]["source"] == "learning_report"
+    assert body["home_personalization"]["recommended_prompt_count"] == 1
+    assert isinstance(body["mastery"]["overall_mastery"], dict)
+
+
+def test_mobile_learning_report_accept_header_negotiates_v2(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    class _Member:
+        def get_today_progress(self, user_id):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_home_dashboard(self, user_id):
+            return {"review": {"due_today": 0}, "mastery": {"weak_nodes": []}, "today": {"hint": ""}}
+
+        def get_assessment_profile(self, user_id):
+            return {"level": "beginner", "chapter_mastery": {}}
+
+        def get_mastery_dashboard(self, user_id):
+            return {"overall_mastery": 0, "groups": [], "hotspots": [], "review_summary": {"total_due": 0}}
+
+    class _Learner:
+        def list_memory_events(self, user_id, limit=100):
+            return []
+
+        def read_compiled_learning_truth(self, user_id):
+            return {}
+
+        def synthesize_learning_truth(self, user_id, *, dry_run, event_limit):
+            return {"projection": {}}
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "learner_state_service", _Learner())
+
+    with TestClient(_build_app()) as client:
+        response = client.get(
+            "/api/v1/mobile/learning-report",
+            headers={"Accept": "application/vnd.deeptutor.learning-report+json;v=2"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["schema_version"] == 2
+
+
+def test_mobile_learning_report_accept_header_does_not_treat_v20_as_v2() -> None:
+    assert (
+        mobile_module._learning_report_schema_version(
+            schema_version=1,
+            accept="application/vnd.deeptutor.learning-report+json;v=20",
+        )
+        == 1
+    )
+
+
 def test_mobile_learning_report_requires_authentication() -> None:
     """无 Authorization → 401，不暴露 user_id。"""
     with TestClient(_build_app()) as client:

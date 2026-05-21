@@ -5,6 +5,7 @@ const helpers = require("../../utils/helpers");
 const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
 const flags = require("../../utils/flags");
+const reportViewModel = require("../../utils/learning-report-view-model");
 
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
@@ -1327,6 +1328,7 @@ Page({
 
   async _loadReportSnapshot() {
     var optionalReadOpts = { suppressAuthRedirect: true };
+    optionalReadOpts.schemaVersion = 2;
     const report = _unwrapSnapshotItem(
       await _reportOptionalRead(api.getLearningReport(100, optionalReadOpts)),
     );
@@ -1394,86 +1396,29 @@ Page({
       this._syncExperienceSections();
       return;
     }
-    // Fallback：unified report 拿不到（5xx / payload 断裂 / 网络异常）才允许走旧接口。
-    // 旧接口只用于"基础学情 + 网络异常提示"，不得被升格为完成数 authority。
+    // Fallback：unified report 拿不到时只暴露降级状态；不再调用旧 reader 组合。
     this._reportSnapshot = null;
     this.setData({
       degradedHint: "学情接口暂时不可用，已显示基础数据",
       degradedSources: ["learning_report"],
       reportFallbackActive: true,
+      radarLoading: false,
+      masteryLoading: false,
+      learningBrainLoading: false,
+      radarError: true,
+      masteryError: true,
+      learningBrainError: true,
     });
-    await Promise.all([
-      this._loadOverview(null),
-      this._loadLearningBrain(null),
-      this._loadRadar(null),
-      this._loadMastery(null),
-    ]);
     this._syncExperienceSections();
   },
 
   _hydrateFromUnifiedReport(snapshot) {
     var report = (snapshot && snapshot.report) || {};
     var overview = report.overview || {};
-    var assessment = (snapshot && snapshot.assessment) || {};
     var home = (snapshot && snapshot.home) || {};
-    var mastery = (snapshot && snapshot.mastery) || {};
-    var learningBrain = (snapshot && snapshot.learningBrain) || {};
-    var learnerFacing = _normalizeLearnerFacingPayload(
-      (snapshot && snapshot.learnerFacing) || {},
-    );
-    var radarDims = _normalizeRadarDimensions({
-      dimensions: (report.radar_dimensions || []).map(function (item) {
-        return {
-          name: item.name,
-          value: item.value,
-        };
-      }),
-    });
-    var radarViewModel = radarDims.length
-      ? _buildRadarViewModel(radarDims)
-      : {
-          strongCount: 0,
-          normalCount: 0,
-          weakCount: 0,
-          avgScore: 0,
-          dimList: [],
-        };
-    var brainNormalized = _normalizeLearningBrainPayload(learningBrain);
-    var brainEmpty =
-      brainNormalized.truths.length === 0 &&
-      brainNormalized.evidence.length === 0 &&
-      brainNormalized.training.length === 0 &&
-      brainNormalized.chains.length === 0 &&
-      !brainNormalized.stats.eventCount &&
-      !brainNormalized.stats.createdClaimCount &&
-      !brainNormalized.stats.typedGraphEdgeCount;
-    var masteryGroups = (mastery.groups || []).map(function (group) {
-      var chapters = (group.chapters || []).map(function (chapter) {
-        var rate = Math.round(chapter.mastery || 0);
-        return {
-          name: _displayChapterName(chapter.name || ""),
-          mastery: rate,
-          color: rate >= 70 ? "#34d399" : rate >= 40 ? "#fbbf24" : "#f87171",
-        };
-      });
-      chapters.sort(function (a, b) {
-        return a.mastery - b.mastery;
-      });
-      return {
-        name: group.name || "",
-        avgMastery: Math.round(group.avg_mastery || 0),
-        chapters: chapters,
-      };
-    });
-    var hotspots = (mastery.hotspots || []).map(function (item) {
-      var rate = Math.round(item.mastery || 0);
-      return {
-        name: _displayChapterName(item.name || ""),
-        mastery: rate,
-        rateText: rate + "%",
-      };
-    });
-    this.setData({
+    var sharedReport = reportViewModel.buildLearningReportViewModel(report);
+    var sharedPageData = reportViewModel.toReportPageData(sharedReport);
+    this.setData(Object.assign({}, sharedPageData, {
       todayDone: overview.today_done || 0,
       dailyTarget: overview.daily_target || 0,
       streakDays: overview.streak_days || 0,
@@ -1488,36 +1433,12 @@ Page({
         ? _displayLevelName(overview.learner_level) + "阶段"
         : "当前学习状态",
       studyTip: overview.study_tip || "",
-      radarDimensions: radarDims,
-      strongCount: radarViewModel.strongCount,
-      normalCount: radarViewModel.normalCount,
-      weakCount: radarViewModel.weakCount,
-      avgScore: radarViewModel.avgScore,
-      dimList: radarViewModel.dimList,
       radarLoading: false,
       radarError: false,
-      overallMastery: Math.round(mastery.overall_mastery || 0),
-      masteryGroups: masteryGroups,
-      hotspots: hotspots,
-      reviewSummary: mastery.review_summary || {
-        total_due: 0,
-        overdue_count: 0,
-      },
       masteryLoading: false,
       masteryError: false,
-      learningBrainTruths: brainNormalized.truths,
-      learningBrainEvidence: brainNormalized.evidence,
-      learningBrainTraining: brainNormalized.training,
-      learningBrainChains: brainNormalized.chains,
-      learningReviewSummary: learnerFacing.summary,
-      learningAttemptCards: learnerFacing.attempts,
-      learningDiagnosisCards: learnerFacing.diagnoses,
-      learningTrainingLoops: learnerFacing.loops,
-      learningNextAction: learnerFacing.nextAction,
-      learningBrainGraphStats: brainNormalized.stats,
       learningBrainLoading: false,
       learningBrainError: false,
-      learningBrainEmpty: brainEmpty,
       degradedHint: snapshot.degraded
         ? _buildDegradedHint(snapshot.degradedSources)
         : "",
@@ -1525,10 +1446,10 @@ Page({
         ? snapshot.degradedSources.slice()
         : [],
       reportFallbackActive: false,
-    });
-    if (radarDims.length) {
-      this._radarSignature = _buildRadarSignature(radarDims);
-      this._ensureRadarRendered(radarDims, this._radarSignature);
+    }));
+    if (sharedPageData.radarDimensions.length) {
+      this._radarSignature = _buildRadarSignature(sharedPageData.radarDimensions);
+      this._ensureRadarRendered(sharedPageData.radarDimensions, this._radarSignature);
     }
   },
 

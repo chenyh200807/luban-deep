@@ -814,6 +814,65 @@ def test_envelope_contains_required_schema_v1_fields() -> None:
         assert required in freshness, f"freshness missing {required}"
 
 
+def test_schema_v2_dual_emits_v1_fields_and_v2_surfaces() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [_learning_event("evt_v2", days_ago=0, question_id="case_v2")]
+        ),
+        event_limit=50,
+        schema_version=2,
+    )
+
+    assert model["schema_version"] == 2
+    assert model["recent_attempts"] == model["learner_facing"]["recent_attempts"]
+    assert model["timeline"] == model["learner_facing"]["evidence_timeline"]
+    assert model["training_loop_cards"] == model["learner_facing"]["training_loops"]
+    assert model["authority"]["conversation_source"] == (
+        "learner_memory_events.learning_evidence[evidence_source=conversation_synthesis]"
+    )
+    assert model["authority"]["attempt_detail_source"] == "attempt-detail-read-model"
+    assert model["authority"]["mistake_book_source"] == "learner_mistake_book_items"
+    assert model["attempts"][0]["attempt_ref"]
+    assert model["hero"]["primary_cta"]["intent"]["source"] == "learning_report"
+    assert isinstance(model["mastery"]["overall_mastery"], dict)
+    assert model["i18n_keys"]["locale"] == "zh-CN"
+
+
+def test_schema_v2_mistake_book_reads_service_projection_not_recent_window() -> None:
+    class FakeMistakeBook:
+        def bookmark_event_ids(self, *, user_id: str, include_mastered: bool = True) -> set[str]:
+            return {"evt_old"}
+
+        def list_items(self, *, user_id: str, subject_id: str = "", include_mastered: bool = False) -> dict:
+            return {
+                "ok": True,
+                "count": 2,
+                "etag": "book-etag",
+                "generated_at": _iso(),
+                "items": [
+                    {"event_id": "evt_old", "title": "旧错题", "is_bookmarked": True},
+                    {"event_id": "evt_older", "title": "更早错题", "is_bookmarked": True},
+                ],
+            }
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [_learning_event("evt_recent", days_ago=0, question_id="case_recent")]
+        ),
+        mistake_book_service=FakeMistakeBook(),
+        event_limit=1,
+        schema_version=2,
+    )
+
+    assert model["mistake_book"]["count"] == 2
+    assert [item["title"] for item in model["mistake_book"]["recent_items"]] == ["旧错题", "更早错题"]
+    assert model["mistake_book"]["source_status"]["ok"] is True
+
+
 def test_window_truncated_flag_when_event_count_hits_limit() -> None:
     events = [
         _learning_event(f"evt_{idx}", days_ago=0, question_id=f"case_{idx:03d}")

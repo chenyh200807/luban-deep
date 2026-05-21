@@ -53,18 +53,38 @@
 | `source_meta` | `dict` | 各数据源耗时与状态 | stable |
 | `error_labels` | `dict[str, str]` | 错误类型枚举映射 | stable |
 
-### v2 Schema（dual-emit 计划，见 plan §7 Stage 5）
+### v2 Schema（dual-emit，见 plan §7 Stage 1 / Stage 5）
+
+`GET /api/v1/mobile/learning-report` 默认返回 v1；新客户端必须通过
+`?schema_version=2` 或 `Accept: application/vnd.deeptutor.learning-report+json;v=2`
+显式协商 v2。v2 响应必须保留 v1 顶层字段，并并行输出 v2 顶层字段；不得在
+同一个 PR 中删除 v1 字段。
 
 v2 新增字段（Task 1-5 实施后逐步引入）：
 
 | 字段 | 类型 | 含义 | 引入阶段 | 状态 |
 |---|---|---|---|---|
-| `schema_version` | `int` | 切换为 `2` | Stage 5 | planned |
-| `attempt_detail` | `dict \| None` | 单次 attempt 详情视图 | Task 1 | planned |
-| `mistake_book_summary` | `dict \| None` | 错题集统计摘要 | Task 3 | planned |
-| `training_intent` | `dict \| None` | 当前训练意图推断结果 | Task 2 | planned |
-| `home_projection` | `dict \| None` | 个性化 home dashboard projection | Task 4.6 | planned |
-| `conversation_evidence` | `list[dict]` | conversation synthesis 产出的学习证据 | Task 4.5 | planned |
+| `schema_version` | `int` | 切换为 `2` | Stage 1 | active |
+| `recent_attempts` | `list[dict]` | v1 字段，等同 `learner_facing.recent_attempts` | Stage 1 | dual-emitted |
+| `timeline` | `list[dict]` | v1 字段，等同 `learner_facing.evidence_timeline` | Stage 1 | dual-emitted |
+| `training_loop_cards` | `list[dict]` | v1 字段，等同 `learner_facing.training_loops` | Stage 1 | dual-emitted |
+| `attempts` | `list[dict]` | v2 单次 attempt 卡片，包含 `attempt_ref`、诊断和操作可用性 | Task 2 | active |
+| `hero` | `dict` | 学情页 hero projection；`primary_cta.intent` 必须来自 training intent authority | Task 4 | active |
+| `mistake_book` | `dict` | 错题集只读 projection；读 `learner_mistake_book_items`，不得在 read model 写入 | Task 3 | active |
+| `next_training` | `list[dict]` | 下一步训练卡片；intent 由 `training_intent.py` / read model projection 生成 | Task 4 | active |
+| `home_personalization` | `dict` | 首页个性化 projection；复用 `home_dashboard.today_focus/recommended_prompts` | Task 4.6 | active |
+| `mastery.dimensions` | `list[dict]` | 掌握度维度；包含 score/status/confidence，但不得伪装成稳定真相 | Stage 1 | active |
+| `i18n_keys` | `dict` | v2 UI copy key，当前 locale=`zh-CN` | Stage 1 | active |
+
+v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single authority：
+
+| 字段 | 固定含义 |
+|---|---|
+| `conversation_source` | `learner_memory_events.learning_evidence[evidence_source=conversation_synthesis]` |
+| `attempt_detail_source` | `attempt-detail-read-model` |
+| `mistake_book_source` | `learner_mistake_book_items` |
+| `training_intent_source` | `learning-report-read-model` |
+| `home_context_source` | `home_dashboard.today_focus/recommended_prompts` |
 
 **v1 Retirement 计划：**
 

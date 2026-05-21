@@ -80,6 +80,12 @@ module.exports = {
       </view>
     </view>
 
+    <view class="recommended-prompts" wx:if="{{recommendedPrompts && recommendedPrompts.length}}">
+      <view class="recommended-prompt" wx:for="{{recommendedPrompts}}" wx:key="key" bindtap="onRecommendedPromptTap" data-index="{{index}}">
+        <text class="recommended-prompt-text">{{item.text}}</text>
+      </view>
+    </view>
+
     <!-- 输入卡片 -->
     <view class="input-card">
       <textarea

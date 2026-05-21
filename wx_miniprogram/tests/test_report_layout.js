@@ -47,8 +47,9 @@ assert(
   "report today's progress metric should open the practice page",
 );
 assert(
-  reportWxml.indexOf("当前可信结论") >= 0 &&
-    reportWxml.indexOf("证据流") >= 0 &&
+  reportWxml.indexOf("系统判断") >= 0 &&
+    reportWxml.indexOf("依据来自哪些作答") >= 0 &&
+    reportWxml.indexOf("训练闭环") >= 0 &&
     reportWxml.indexOf("下一步训练") >= 0,
   "report page should expose the Learning Brain three-part visible chain",
 );

@@ -2,6 +2,7 @@
 
 const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
+const reportViewModel = require("../../utils/learning-report-view-model");
 
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
@@ -1006,60 +1007,28 @@ Page({
 
   async _loadLearningReport() {
     try {
-      var raw = await api.getLearningReport(100);
+      var raw = await api.getLearningReport(100, { schemaVersion: 2 });
       var body = api.unwrapResponse(raw) || {};
       if (!isLearningReportPayload(body)) {
         throw new Error("learning-report payload contract mismatch");
       }
-      var overview = body.overview || {};
-      var mastery = normalizeMasteryGroups(body.mastery || {});
-      var radar = normalizeRadarState(body.radar_dimensions || []);
-      var learningBrain = normalizeLearningBrainPayload(body);
-      var emptyBrain = isLearningBrainEmpty(learningBrain);
+      var sharedReport = reportViewModel.buildLearningReportViewModel(body);
+      var sharedPageData = reportViewModel.toReportPageData(sharedReport);
       var degradedSources = learningReportDegradedSources(body);
       var degraded = Boolean(body.degraded) || degradedSources.length > 0;
-      this.setData({
-        todayDone: overview.today_done || 0,
-        dailyTarget: overview.daily_target || 0,
-        streakDays: overview.streak_days || 0,
-        dueTodayCount: overview.due_today_count || 0,
-        weakNodeCount: overview.weak_node_count || 0,
-        focusHint: overview.focus_hint || "",
-        learnerLevel: displayLevelName(overview.learner_level || ""),
-        studyTip: overview.study_tip || "",
-        learningBrainSummary: learningBrain.summary || {},
-        learningBrainAttempts: learningBrain.attempts || [],
-        learningBrainDiagnoses: learningBrain.diagnoses || [],
-        learningBrainNextAction: learningBrain.nextAction || {},
-        radarDimensions: radar.dims,
-        strongCount: radar.strong,
-        normalCount: radar.normal,
-        weakCount: radar.weak,
-        avgScore: radar.avg,
-        overviewScore: radar.dims.length ? radar.avg : mastery.overall,
-        dimList: radar.dimList,
+      this.setData(Object.assign({}, sharedPageData, {
         radarLoading: false,
         radarError: false,
-        overallMastery: mastery.overall,
-        masteryGroups: mastery.groups,
-        hotspots: mastery.hotspots,
-        reviewSummary: mastery.reviewSummary,
         masteryLoading: false,
         masteryError: false,
-        learningBrainTruths: learningBrain.truths,
-        learningBrainEvidence: learningBrain.evidence,
-        learningBrainTraining: learningBrain.training,
-        learningBrainChains: learningBrain.chains,
-        learningBrainGraphStats: learningBrain.stats,
         learningBrainLoading: false,
         learningBrainError: false,
-        learningBrainEmpty: emptyBrain,
         degradedHint: degraded ? buildDegradedHint(degradedSources) : "",
         degradedSources: degraded ? degradedSources : [],
         reportFallbackActive: false,
-      });
-      if (this._canvasReady && radar.dims.length) {
-        this._drawRadar(radar.dims);
+      }));
+      if (this._canvasReady && sharedPageData.radarDimensions.length) {
+        this._drawRadar(sharedPageData.radarDimensions);
       }
     } catch (e) {
       // unified payload 不可用（5xx / payload contract 断裂 / 网络异常）→ 暴露 degraded fallback 标记
