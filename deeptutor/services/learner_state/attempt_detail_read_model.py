@@ -31,28 +31,35 @@ def build_attempt_detail_read_model(
     error = _error_label(errors)
     is_correct = _is_correct(payload)
     explanation = _explanation_payload(payload.get("explanation") or payload.get("analysis") or payload.get("feedback"))
+    question = {
+        "question_id": question_id,
+        "stem": _question_stem(payload),
+        "options": _option_items(payload.get("options")),
+        "type": str(payload.get("question_type") or payload.get("type") or "").strip(),
+    }
+    answer = {
+        "user_answer": _answer_text(payload.get("user_answer")),
+        "correct_answer": _answer_text(payload.get("correct_answer")),
+        "score_awarded": payload.get("score_awarded"),
+        "max_score": payload.get("max_score"),
+        "result_label": "答对" if is_correct else "答错",
+    }
+    diagnosis = {
+        "concept_label": concept,
+        "error_label": error,
+        "detail": _diagnosis(errors),
+    }
 
     return {
         "ok": True,
         "attempt_ref": str(attempt_ref or ""),
-        "question": {
-            "question_id": question_id,
-            "stem": _question_stem(payload),
-            "options": _option_items(payload.get("options")),
-            "type": str(payload.get("question_type") or payload.get("type") or "").strip(),
-        },
-        "answer": {
-            "user_answer": _answer_text(payload.get("user_answer")),
-            "correct_answer": _answer_text(payload.get("correct_answer")),
-            "score_awarded": payload.get("score_awarded"),
-            "max_score": payload.get("max_score"),
-            "result_label": "答对" if is_correct else "答错",
-        },
+        "question": question,
+        "answer": answer,
         "explanation": explanation,
-        "diagnosis": {
-            "concept_label": concept,
-            "error_label": error,
-            "detail": _diagnosis(errors),
+        "diagnosis": diagnosis,
+        "conversation": {
+            "title": question["stem"] or "本次作答复盘",
+            "turns": _conversation_turns(question=question, answer=answer, explanation=explanation, diagnosis=diagnosis),
         },
         "next_training": _safe_dict(payload.get("next_training_signal")),
         "quality": _safe_dict(payload.get("quality")),
@@ -102,6 +109,56 @@ def _answer_text(value: Any) -> str:
     return str(value or "").strip()
 
 
+def _conversation_turns(
+    *,
+    question: dict[str, Any],
+    answer: dict[str, Any],
+    explanation: dict[str, Any],
+    diagnosis: dict[str, Any],
+) -> list[dict[str, str]]:
+    question_content = _question_content(question)
+    answer_content = str(answer.get("user_answer") or "").strip()
+    system_content = _system_explanation_content(answer=answer, explanation=explanation, diagnosis=diagnosis)
+    turns = [
+        {"role": "system", "label": "系统出题", "content": question_content},
+        {"role": "student", "label": "学员作答", "content": answer_content},
+        {"role": "system", "label": "系统解析", "content": system_content},
+    ]
+    return [turn for turn in turns if str(turn.get("content") or "").strip()]
+
+
+def _question_content(question: dict[str, Any]) -> str:
+    stem = str(question.get("stem") or "").strip()
+    option_lines = [
+        f"{str(item.get('key') or '').strip()}. {str(item.get('text') or '').strip()}".strip()
+        for item in _safe_list(question.get("options"))
+        if isinstance(item, dict) and (str(item.get("key") or "").strip() or str(item.get("text") or "").strip())
+    ]
+    return "\n".join([stem, *option_lines]).strip()
+
+
+def _system_explanation_content(
+    *,
+    answer: dict[str, Any],
+    explanation: dict[str, Any],
+    diagnosis: dict[str, Any],
+) -> str:
+    result = str(answer.get("result_label") or "").strip()
+    correct = str(answer.get("correct_answer") or "").strip()
+    first_line = result
+    if correct:
+        first_line = f"{first_line}。正确答案：{correct}" if first_line else f"正确答案：{correct}"
+    lines = [
+        first_line,
+        str(explanation.get("summary") or "").strip(),
+        str(explanation.get("why_user_wrong") or "").strip(),
+    ]
+    error_label = str(diagnosis.get("detail") or diagnosis.get("error_label") or "").strip()
+    if error_label:
+        lines.append(f"错因：{error_label}")
+    return "\n".join(line for line in lines if line).strip()
+
+
 def _explanation_payload(value: Any) -> dict[str, str]:
     if isinstance(value, dict):
         return {
@@ -130,8 +187,24 @@ def _error_label(errors: list[dict[str, Any]]) -> str:
     for error in errors:
         code = str(error.get("error_code") or "").strip().upper()
         if code:
-            return code
+            return _error_code_label(code)
     return ""
+
+
+def _error_code_label(code: str) -> str:
+    labels = {
+        "M01": "知识点不熟",
+        "M02": "关键词误读",
+        "M03": "概念混淆",
+        "M04": "选项陷阱",
+        "M05": "审题方向错误",
+        "M06": "多选漏选",
+        "M07": "多选错选",
+        "M08": "规范数字混淆",
+        "M09": "题干条件提取不完整",
+        "M10": "用常识替代规范判断",
+    }
+    return labels.get(str(code or "").strip().upper(), "错因")
 
 
 def _diagnosis(errors: list[dict[str, Any]]) -> str:

@@ -1,0 +1,52 @@
+<view class="attempt-detail-page">
+  <view class="detail-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="detail-nav-inner">
+      <view class="detail-back" bindtap="goBack">
+        <text class="detail-back-arrow">‹</text>
+        <text class="detail-back-text">学情</text>
+      </view>
+      <text class="detail-nav-title">作答复盘</text>
+    </view>
+  </view>
+
+  <scroll-view class="detail-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="detail-inner">
+      <view class="detail-hero">
+        <view class="detail-result result-{{detail.tone}}" wx:if="{{detail.resultLabel}}">{{detail.resultLabel}}</view>
+        <text class="detail-title">{{detail.title}}</text>
+        <text class="detail-subtitle">{{detail.subtitle}}</text>
+      </view>
+
+      <view class="detail-summary" wx:if="{{detail.concept || detail.answerLine || detail.error}}">
+        <view class="summary-row" wx:if="{{detail.concept}}">
+          <text class="summary-label">知识点</text>
+          <text class="summary-value">{{detail.concept}}</text>
+        </view>
+        <view class="summary-row" wx:if="{{detail.answerLine}}">
+          <text class="summary-label">作答</text>
+          <text class="summary-value">{{detail.answerLine}}</text>
+        </view>
+        <view class="summary-row" wx:if="{{detail.error}}">
+          <text class="summary-label">错因</text>
+          <text class="summary-value">{{detail.error}}</text>
+        </view>
+      </view>
+
+      <view class="detail-error" wx:if="{{errorText}}">{{errorText}}</view>
+      <view class="detail-loading" wx:if="{{loading}}">正在读取当时的作答与解析...</view>
+
+      <view class="conversation-section">
+        <text class="section-kicker">当时对话</text>
+        <view class="turn turn-{{item.role}}" wx:for="{{detail.turns}}" wx:key="key">
+          <text class="turn-label">{{item.label}}</text>
+          <text class="turn-content">{{item.content}}</text>
+        </view>
+      </view>
+
+      <view class="detail-next" wx:if="{{detail.nextTraining}}">
+        <text class="section-kicker">下一步训练</text>
+        <text class="next-text">{{detail.nextTraining}}</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>

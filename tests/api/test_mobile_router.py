@@ -3143,6 +3143,7 @@ def test_mobile_learning_attempt_detail_returns_user_facing_attempt(
             "event_type": "learning_evidence",
             "question_id": "q-mobile",
             "question_stem": "主体结构验收条件是什么？",
+            "options": {"A": "先施工后验收", "B": "施工质量验收合格后进入下一步"},
             "user_answer": "A",
             "correct_answer": "B",
             "score_awarded": 0,
@@ -3175,7 +3176,22 @@ def test_mobile_learning_attempt_detail_returns_user_facing_attempt(
     assert body["question"]["stem"] == "主体结构验收条件是什么？"
     assert body["answer"]["user_answer"] == "A"
     assert body["explanation"]["summary"] == "先看验收前置条件。"
+    assert body["diagnosis"]["error_label"] == "多选漏选"
+    assert body["conversation"]["turns"] == [
+        {
+            "role": "system",
+            "label": "系统出题",
+            "content": "主体结构验收条件是什么？\nA. 先施工后验收\nB. 施工质量验收合格后进入下一步",
+        },
+        {"role": "student", "label": "学员作答", "content": "A"},
+        {
+            "role": "system",
+            "label": "系统解析",
+            "content": "答错。正确答案：B\n先看验收前置条件。\n错因：多选漏选",
+        },
+    ]
     assert "evt_mobile_detail" not in str(body)
+    assert "M06" not in str(body)
 
 
 def test_mobile_mistake_book_save_list_remove_and_conflict(

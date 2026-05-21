@@ -695,36 +695,6 @@ function _normalizeLearnerFacingPayload(raw) {
   };
 }
 
-function _attemptDetailText(card, detail) {
-  if (!card) return "";
-  var payload = _asLearningBrainObject(detail);
-  var question = _asLearningBrainObject(payload.question);
-  var answer = _asLearningBrainObject(payload.answer);
-  var explanation = _asLearningBrainObject(payload.explanation);
-  var diagnosis = _asLearningBrainObject(payload.diagnosis);
-  if (payload.ok) {
-    return [
-      question.stem ? "题目：" + question.stem : "",
-      answer.user_answer ? "你答：" + answer.user_answer : "",
-      answer.correct_answer ? "正确：" + answer.correct_answer : "",
-      diagnosis.detail || diagnosis.error_label
-        ? "诊断：" + (diagnosis.detail || diagnosis.error_label)
-        : "",
-      explanation.summary ? "解析：" + explanation.summary : "",
-      explanation.why_user_wrong ? "错因：" + explanation.why_user_wrong : "",
-    ]
-      .filter(Boolean)
-      .join("\n\n");
-  }
-  var parts = [];
-  if (card.timeLabel) parts.push(card.timeLabel);
-  if (card.questionText) parts.push("题目：" + card.questionText);
-  if (card.answerLine) parts.push(card.answerLine);
-  if (card.diagnosisDetail) parts.push("错因：" + card.diagnosisDetail);
-  if (card.explanation) parts.push("解析：" + card.explanation);
-  return parts.join("\n\n");
-}
-
 function _mistakeBookPayloadFromCard(card) {
   var item = _asLearningBrainObject(card);
   return {
@@ -2050,26 +2020,16 @@ Page({
       return item.key === key;
     });
     if (!card) return;
-    var detail = null;
-    if (card.attemptRef && api.getLearningAttemptDetail) {
+    var cacheKey = "learning_attempt_detail_preview:" + String(card.key || Date.now()).replace(/[^a-zA-Z0-9:_-]/g, "_");
+    if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
       try {
-        detail = api.unwrapResponse(
-          await api.getLearningAttemptDetail(card.attemptRef),
-        );
-      } catch (_err) {
-        detail = null;
-      }
+        wx.setStorageSync(cacheKey, { card: card, savedAt: Date.now() });
+      } catch (_err) {}
     }
-    var content = _attemptDetailText(card, detail);
-    if (typeof wx !== "undefined" && typeof wx.showModal === "function") {
-      wx.showModal({
-        title: card.resultLabel
-          ? card.resultLabel + "｜" + card.concept
-          : card.concept,
-        content: content || "这次作答暂无可展开内容。",
-        showCancel: false,
-        confirmText: "知道了",
-      });
+    if (typeof wx !== "undefined" && typeof wx.navigateTo === "function") {
+      var params = ["cacheKey=" + encodeURIComponent(cacheKey)];
+      if (card.attemptRef) params.push("attemptRef=" + encodeURIComponent(card.attemptRef));
+      wx.navigateTo({ url: "/packageDeeptutor/pages/attempt-detail/attempt-detail?" + params.join("&") });
     }
   },
 

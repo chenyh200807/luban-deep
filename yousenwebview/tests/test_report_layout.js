@@ -20,6 +20,15 @@ var reportSource = fs.readFileSync(
   path.join(__dirname, "../packageDeeptutor/pages/report/report.js"),
   "utf8",
 );
+var attemptDetailSource = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/attempt-detail/attempt-detail.js"),
+  "utf8",
+);
+var attemptDetailWxml = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/attempt-detail/attempt-detail.wxml"),
+  "utf8",
+);
+var appConfig = fs.readFileSync(path.join(__dirname, "../app.json"), "utf8");
 
 function assert(condition, message) {
   if (condition) {
@@ -64,6 +73,16 @@ assertIncludes(reportWxml, "bindtap=\"goPractice\"", "primary training CTA shoul
 assertIncludes(reportWxml, "真实作答证据", "attempt evidence cards should be visible before diagnostics");
 assertIncludes(reportWxml, "class=\"attempt-card attempt-{{item.tone}}\"", "attempt cards should have a dedicated visual surface");
 assertIncludes(reportWxml, "bindtap=\"openAttemptDetail\"", "attempt card should open detail on tap");
+assertIncludes(appConfig, "pages/attempt-detail/attempt-detail", "host attempt detail page should be registered");
+assertIncludes(reportSource, "wx.navigateTo", "host attempt detail action should navigate to a full page");
+assertIncludes(reportSource, "/packageDeeptutor/pages/attempt-detail/attempt-detail", "host attempt detail action should target the full detail page");
+assert(
+  reportSource.indexOf("wx.showModal") < 0,
+  "host attempt detail should not use a modal because long conversations and explanations get clipped",
+);
+assertIncludes(attemptDetailSource, "api.getLearningAttemptDetail", "host attempt detail page should call the mobile attempt-detail authority");
+assertIncludes(attemptDetailWxml, "当时对话", "host attempt detail page should display the previous student-system conversation");
+assertIncludes(attemptDetailWxml, "bindtap=\"goBack\"", "host attempt detail page should provide an explicit back button");
 assertIncludes(reportWxml, "{{item.timeLabel}}", "attempt card should show time");
 assertIncludes(reportWxml, "{{item.title}}", "attempt card should show question title");
 assertIncludes(reportWxml, "{{item.resultLabel}}", "attempt card should show result");
@@ -71,7 +90,6 @@ assertIncludes(reportWxml, "{{item.answerLine}}", "attempt card should show user
 assertIncludes(reportWxml, "{{item.diagnosisDetail || item.diagnosis}}", "attempt card should show one-line diagnosis from read model");
 assertIncludes(reportWxml, "查看解析", "attempt card should expose analysis detail action");
 assertIncludes(reportWxml, "收藏错题", "attempt card should expose mistake-book action without local inference");
-assertIncludes(reportSource, "api.getLearningAttemptDetail", "attempt detail action should call the mobile attempt-detail authority");
 assertIncludes(reportSource, "api.saveMistakeBookItem", "mistake-book action should call the cloud mistake-book authority");
 assertIncludes(reportWxml, "{{degradedHint}}", "report page should show degraded/cached summary hint when the network path is unavailable");
 assertIncludes(reportWxml, "完成一次案例题批改", "empty state should explain how to generate learning facts");

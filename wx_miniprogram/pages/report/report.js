@@ -86,38 +86,6 @@ function asObject(value) {
     : {};
 }
 
-function attemptDetailText(card, detail) {
-  var item = asObject(card);
-  var payload = asObject(detail);
-  var question = asObject(payload.question);
-  var answer = asObject(payload.answer);
-  var explanation = asObject(payload.explanation);
-  var diagnosis = asObject(payload.diagnosis);
-  if (payload.ok) {
-    return [
-      question.stem ? "题目：" + question.stem : "",
-      answer.user_answer ? "你答：" + answer.user_answer : "",
-      answer.correct_answer ? "正确：" + answer.correct_answer : "",
-      diagnosis.detail || diagnosis.error_label
-        ? "诊断：" + (diagnosis.detail || diagnosis.error_label)
-        : "",
-      explanation.summary ? "解析：" + explanation.summary : "",
-      explanation.why_user_wrong ? "错因：" + explanation.why_user_wrong : "",
-    ]
-      .filter(Boolean)
-      .join("\n\n");
-  }
-  return [
-    item.answerLine ? "作答：" + item.answerLine : "",
-    item.diagnosisDetail || item.diagnosis
-      ? "诊断：" + (item.diagnosisDetail || item.diagnosis)
-      : "",
-    item.explanation ? "解析：" + item.explanation : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
 function mistakeBookPayloadFromCard(card) {
   var item = asObject(card);
   return {
@@ -1518,25 +1486,16 @@ Page({
       return item.key === key;
     });
     if (!card) return;
-    var detail = null;
-    if (card.attemptRef && api.getLearningAttemptDetail) {
+    var cacheKey = "learning_attempt_detail_preview:" + String(card.key || Date.now()).replace(/[^a-zA-Z0-9:_-]/g, "_");
+    if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
       try {
-        detail = api.unwrapResponse(
-          await api.getLearningAttemptDetail(card.attemptRef),
-        );
-      } catch (_err) {
-        detail = null;
-      }
+        wx.setStorageSync(cacheKey, { card: card, savedAt: Date.now() });
+      } catch (_err) {}
     }
-    if (typeof wx !== "undefined" && typeof wx.showModal === "function") {
-      wx.showModal({
-        title: card.resultLabel
-          ? card.resultLabel + "｜" + (card.concept || "本次作答")
-          : card.concept || "本次作答",
-        content: attemptDetailText(card, detail) || "这次作答暂无可展开内容。",
-        showCancel: false,
-        confirmText: "知道了",
-      });
+    if (typeof wx !== "undefined" && typeof wx.navigateTo === "function") {
+      var params = ["cacheKey=" + encodeURIComponent(cacheKey)];
+      if (card.attemptRef) params.push("attemptRef=" + encodeURIComponent(card.attemptRef));
+      wx.navigateTo({ url: "/pages/attempt-detail/attempt-detail?" + params.join("&") });
     }
   },
 

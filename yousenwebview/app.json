@@ -23,6 +23,7 @@
         "pages/chat/chat",
         "pages/history/history",
         "pages/report/report",
+        "pages/attempt-detail/attempt-detail",
         "pages/profile/profile",
         "pages/login/login",
         "pages/login/manual",
