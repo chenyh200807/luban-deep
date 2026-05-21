@@ -12,7 +12,7 @@
 
 ## -2. Round 2 Expert Critique & Corrections (BLOCKERS)
 
-> 本节是 2026-05-21 第二轮专家评审结果。基于对代码现状的实证核对（`learner_state/`、`member_console/service.py`、`construction_grading/learning_evidence.py`、`api/routers/mobile.py`、`contracts/index.yaml`、`supabase/migrations/`、`capabilities/deep_question.py`），在第一轮 §-1 之上发现 **8 个 BLOCKER**（未解决前禁止 P0 上线）和 **12 个 high-priority gap**（必须在 Stage 3 灰度前解决）。
+> 本节是 2026-05-21 第二轮专家评审结果。基于对代码现状的实证核对（`learner_state/`、`member_console/service.py`、`construction_grading/learning_evidence.py`、`api/routers/mobile.py`、`contracts/index.yaml`、`supabase/migrations/`、`capabilities/deep_question.py`），在第一轮 §-1 之上发现 **8 个 BLOCKER**（未解决前禁止进入 Stage 3 5% 灰度）和 **12 个 high-priority gap**（未解决前禁止进入 Stage 4 100% rollout）。
 >
 > 修改原则：所有 BLOCKER 都已 inline 修订到对应 §4 / §5 / §6 / §7 / §9 章节；本节只做 index + 决策依据，便于评审者快速验证。
 
@@ -114,7 +114,7 @@
 - read API 按 `subject_id` 过滤；
 - mistake book read model 默认按当前 `active_subject_id` 过滤，未指定时返回所有学科分组列表。
 
-### -2.9 High-Priority Gaps（必须在 Stage 3 灰度前解决，已 inline 到 §6 / §9）
+### -2.9 High-Priority Gaps（必须在 Stage 4 100% rollout 前解决，已 inline 到 §6 / §9）
 
 | ID | Gap | 落点 |
 | --- | --- | --- |
@@ -201,7 +201,7 @@
 
 6. **系统答疑与解析也进入学习事实池**
    - 学员问概念、问规范、问错题原因时，系统给出的答案解析不能只停留在聊天历史里。
-   - 结构化沉淀为 `learner_memory_events.learning_evidence` 的 `event_type=conversation_learning_evidence`，记录“学员问了什么、系统解释了什么、涉及哪个知识点、引用了哪些知识库/标准答案、建议下一步做什么”。
+   - 结构化沉淀为 `learner_memory_events.learning_evidence` with `evidence_source=conversation_synthesis` + `learning_signal_type=...`（Round 2 B1，writer 白名单零修改），记录"学员问了什么、系统解释了什么、涉及哪个知识点、引用了哪些知识库/标准答案、建议下一步做什么"。
    - 这类 evidence 默认只能证明“已接触 / 已讲解 / 仍疑惑”，不能单独证明“已掌握”。
 
 7. **学情反向驱动对话首页**
@@ -349,7 +349,7 @@
 2. `attempt-detail-read-model`：真实作答详情。
 3. 云端错题集 authority。
 4. `LearningTrainingIntent`：学情页到训练页 / deep_question 的行动契约。
-5. 扩展 `learner_memory_events.learning_evidence`：把系统答疑、答案解析、知识讲解沉淀为可用学习事实。
+5. 扩展 `learner_memory_events.learning_evidence`：把系统答疑、答案解析、知识讲解沉淀为可用学习事实（Round 2 B1：通过 payload 字段 `evidence_source=conversation_synthesis` + `learning_signal_type=...` 区分；不新建 event_type 大类）。
 6. 扩展 `home_dashboard` / learning report 首页投影：对话首页今日焦点、推荐问题、提示词 intent 统一由后端生成。
 7. shared report/home view model：统一 wx 与 yousen 两端展示语义。
 8. mastery estimator：证据充分度 + 低样本保护 + 难度/覆盖度/最近性。
@@ -376,7 +376,7 @@
 | --- | --- | --- |
 | 学情页最终展示 | `GET /api/v1/mobile/learning-report` | 页面只能消费这一份 read model |
 | 作答事实 | `learner_memory_events.learning_evidence` | 批改写入的 append-only evidence |
-| 答疑/解析学习事实 | `learner_memory_events.learning_evidence` with `event_type=conversation_learning_evidence` | 从系统答疑和解析中提取“已讲解/仍疑惑/建议训练”，默认低于 grading evidence |
+| 答疑/解析学习事实 | `learner_memory_events.learning_evidence` with `evidence_source=conversation_synthesis` + `learning_signal_type ∈ {answer_explanation, concept_explain, mistake_explain, still_confused, home_prompt_clicked}` (Round 2 BLOCKER B1) | 从系统答疑和解析中提取"已讲解/仍疑惑/建议训练"，默认低于 grading evidence。**不新建第二个 event_type / memory_kind 大类**。 |
 | 作答详情 | `attempt-detail-read-model` over `learning_evidence` | 只读投影，不另写事实 |
 | 错题收藏 | `learner_mistake_book_items` | 用户显式收藏行为的新 authority，引用 evidence，不复制评分事实 |
 | 当前稳定结论 | persisted compiled truth / manual confirmation | L1/L2/L3，不把 L0 冒充稳定结论 |
@@ -465,7 +465,7 @@ Rules:
 1. 今日焦点来自 `home_dashboard.today_focus`，不是前端静态文案。
 2. 推荐问题来自 `home_dashboard.recommended_prompts`，每个问题携带结构化 prompt intent。
 3. 用户点击推荐问题后，发送给后端的不只是自然语言，还包括 intent，方便系统知道这是“围绕当前薄弱点的学习行为”。
-4. 系统回答推荐问题后，应写入 `event_type=conversation_learning_evidence` 的 learning evidence，继续反哺学情。
+4. 系统回答推荐问题后，应写入 `learning_evidence` event with `evidence_source=conversation_synthesis` + `learning_signal_type=home_prompt_clicked`（Round 2 B1），继续反哺学情。
 
 ---
 
@@ -484,7 +484,7 @@ Rules:
   "authority": {
     "read_model": "learning-report-read-model",
     "progress_source": "learner_memory_events.learning_evidence",
-    "conversation_source": "learner_memory_events.learning_evidence[event_type=conversation_learning_evidence]",
+    "conversation_source": "learner_memory_events.learning_evidence[evidence_source=conversation_synthesis]",
     "attempt_detail_source": "attempt-detail-read-model",
     "mistake_book_source": "learner_mistake_book_items",
     "training_intent_source": "learning-report-read-model",
@@ -1006,28 +1006,32 @@ Expected: quality gate tests pass before any attempt detail or UI task is marked
 
 - [ ] **Step 1: Update `contracts/index.yaml`**
 
-把新 endpoints / schema files 加到既有域：
+把新 endpoints / schema files 加到真实 `domains.*` 结构下。`mobile.py` 已经在 `domains.turn` / `domains.capability` 的 protected/sensitive 范围内；本步骤不要复制一个新的顶层 `turn:`，而是把 learner-state 新文件注册到 `domains.learner_state`，并把 mobile 路由变更在 PR 描述里列为 contract diff：
 
 ```yaml
-turn:
-  protected_patterns:
-    - deeptutor/api/routers/mobile.py
-    + deeptutor/services/learner_state/attempt_refs.py
-    + deeptutor/services/learner_state/attempt_detail_read_model.py
-    + deeptutor/services/learner_state/mistake_book.py
-    + deeptutor/services/learner_state/training_intent.py
-    + deeptutor/services/learner_state/home_personalization.py
-  schema_files:
-    + contracts/learning-report.md
-    + deeptutor/services/learner_state/learning_report_read_model.py
-  test_files:
-    + tests/services/learner_state/test_attempt_refs.py
-    + tests/services/learner_state/test_attempt_detail_read_model.py
-    + tests/services/learner_state/test_mistake_book.py
-    + tests/services/learner_state/test_training_intent.py
-    + tests/services/learner_state/test_conversation_learning_evidence_event.py
-    + tests/services/learner_state/test_learning_evidence_quality_gate.py
-    + tests/services/member_console/test_home_dashboard_learning_projection.py
+domains:
+  learner_state:
+    contract_files:
+      + contracts/learning-report.md
+    protected_patterns:
+      + deeptutor/services/learner_state/attempt_refs.py
+      + deeptutor/services/learner_state/attempt_detail_read_model.py
+      + deeptutor/services/learner_state/mistake_book.py
+      + deeptutor/services/learner_state/training_intent.py
+      + deeptutor/services/learner_state/home_personalization.py
+      + supabase/migrations/*learner_mistake_book_items*.sql
+    schema_files:
+      + contracts/learning-report.md
+      + deeptutor/services/learner_state/learning_report_read_model.py
+      + supabase/migrations/*learner_mistake_book_items*.sql
+    test_files:
+      + tests/services/learner_state/test_attempt_refs.py
+      + tests/services/learner_state/test_attempt_detail_read_model.py
+      + tests/services/learner_state/test_mistake_book.py
+      + tests/services/learner_state/test_training_intent.py
+      + tests/services/learner_state/test_conversation_learning_evidence_event.py
+      + tests/services/learner_state/test_learning_evidence_quality_gate.py
+      + tests/services/member_console/test_home_dashboard_learning_projection.py
 ```
 
 - [ ] **Step 2: Write `contracts/learning-report.md`**
@@ -1521,7 +1525,7 @@ pytest -q tests/services/learner_state/test_training_intent.py tests/capabilitie
 - Test: `tests/services/learner_state/test_conversation_learning_evidence_event.py`
 - Test: `tests/services/learner_state/test_learning_report_read_model.py`
 
-- [ ] **Step 1: Write evidence extraction tests**
+- [ ] **Step 1: Write evidence extraction tests (Round 2 B1 修订断言)**
 
 ```python
 def test_answer_explanation_turn_becomes_low_confidence_learning_evidence():
@@ -1535,25 +1539,51 @@ def test_answer_explanation_turn_becomes_low_confidence_learning_evidence():
             "error_label": "多选漏选",
             "source_refs": [{"type": "rag_hit", "label": "教材依据"}],
         },
+        subject_id="construction_exam_1",
     )
     assert event["memory_kind"] == "learning_evidence"
-    assert event["event_type"] == "conversation_learning_evidence"
+    assert event["event_type"] == "learning_evidence"            # Round 2 B1: 不新建大类
+    assert event["evidence_source"] == "conversation_synthesis"  # Round 2 B1: 用 payload 字段区分
     assert event["learning_signal_type"] == "answer_explanation"
     assert event["concept"]["label"] == "主体结构"
     assert event["evidence_level"] == "exposed"
     assert event["confidence"] < 0.6
     assert event["conversation_turn_ref"] == "turn_123"
+    assert event["subject_id"] == "construction_exam_1"
+    assert event["user_question_redacted"] is True               # Round 2 G5
+    assert event["training_intent_id"] is None                   # Round 2 G1
 
 
 def test_conversation_evidence_does_not_mark_mastered():
     report = build_learning_report_read_model(events=[conversation_explanation_event()])
     assert report["mastery"]["dimensions"][0]["status"] != "stable"
     assert report["truth_sections"]["recent_observations"][0]["label"] in {"已讲解", "仍需巩固"}
+
+
+def test_pii_in_user_question_redacted(monkeypatch):
+    event = build_learning_evidence_from_conversation_turn(
+        user_id="u1",
+        turn_ref="turn_pii",
+        user_question="我手机号 13800001234 想问主体结构怎么背？",
+        assistant_answer={"summary": "..."},
+        subject_id="construction_exam_1",
+    )
+    assert "13800001234" not in event["user_question"]
+    assert "[REDACTED_PHONE]" in event["user_question"]
+    assert event["user_question_redacted"] is True
+
+
+def test_supabase_writer_does_not_require_whitelist_change():
+    # Round 2 B1: 写入仍走 event_type="learning_evidence"，writer 白名单零修改
+    from deeptutor.services.learner_state.supabase_writer import LearnerStateSupabaseWriter
+    assert LearnerStateSupabaseWriter._supports_event_type("learning_evidence")
+    # 反向断言：不要悄悄加新大类
+    assert not LearnerStateSupabaseWriter._supports_event_type("conversation_learning_evidence")
 ```
 
 - [ ] **Step 2: Define when to emit**
 
-Emit `event_type=conversation_learning_evidence` only when at least one condition is true:
+Emit `learning_evidence` event with `evidence_source=conversation_synthesis` only when at least one condition is true (Round 2 B1):
 
 1. Assistant answer contains structured answer analysis / option analysis / rubric explanation.
 2. Assistant answer uses RAG or standard answer sources to explain a knowledge point.
@@ -1993,7 +2023,7 @@ Manual:
 中文出题
   -> 选择作答
   -> 批改写 learning_evidence
-  -> 系统输出完整解析并写入 learning_evidence[event_type=conversation_learning_evidence]
+  -> 系统输出完整解析并写入 learning_evidence[evidence_source=conversation_synthesis, learning_signal_type=answer_explanation]
   -> 学情页显示 recent observation
   -> 点击详情看到当时作答和解析
   -> 收藏错题
@@ -2001,7 +2031,7 @@ Manual:
   -> 对话首页今日焦点更新为同一薄弱点
   -> 推荐问题围绕当前薄弱点变化
   -> 点击推荐问题后系统答疑
-  -> 答疑解析再次沉淀为 learning_evidence[event_type=conversation_learning_evidence]
+  -> 答疑解析再次沉淀为 learning_evidence[evidence_source=conversation_synthesis, learning_signal_type=answer_explanation]
   -> 点击下一步训练
   -> deep_question 生成同 concept/error 训练题
   -> 再作答
@@ -2017,7 +2047,7 @@ Manual:
 5. next training intent contains concept/error
 6. follow-up grading writes `training_improved_error` or `training_not_improved_error`
 7. no raw `M06 / event hash / question_tests_concept` in learner-facing payload
-8. `event_type=conversation_learning_evidence` exists for the system explanation turn
+8. `learning_evidence` event with `evidence_source=conversation_synthesis` + `learning_signal_type=answer_explanation` exists for the system explanation turn (Round 2 B1)
 9. `home_dashboard.today_focus` matches the current learning report weak point
 10. homepage recommended prompts carry structured intent and are not static hard-coded cards
 11. clicking a recommended prompt produces a traceable conversation turn and later learning evidence
@@ -2166,7 +2196,7 @@ Before declaring Done:
 | attempt detail O(n) 查询变慢 | P0 允许 limit 500 扫描验证，生产前补 event_id index reader 或专门索引 |
 | taxonomy 未命中又显示“综合能力” | 未命中显示“未归类知识点”，并进入 taxonomy coverage report，不伪造大类 |
 | 聊天历史沉淀过多导致 learner state 膨胀 | 只保存结构化学习事实、摘要和 turn ref，不复制全文 |
-| 答疑 evidence 被误用为掌握证明 | `event_type=conversation_learning_evidence` 只能增加 exposure/confusion/recency，不能单独提升为 stable mastery |
+| 答疑 evidence 被误用为掌握证明 | `evidence_source=conversation_synthesis` 的 evidence 只能增加 exposure/confusion/recency，不能单独提升为 stable mastery（Round 2 B1） |
 | 首页推荐又变成前端硬编码 | `home_dashboard.today_focus/recommended_prompts` 是页面唯一输入，页面只渲染和上报点击 |
 | 推荐问题偏离学情 | 每个 prompt intent 必须有 `reason` 和 source，E2E 断言与 weak point / due review / conversation signal 对齐 |
 | **Round 2 R1:** 新 endpoints 未更新 `contracts/index.yaml` → CI contract gate fail or 长期漂移 | Task 0.5 强制前置，contract diff 出现在 PR 描述；CI 阻断 |
@@ -2197,7 +2227,7 @@ Before declaring Done:
 | 学员一看知道薄弱点 | UX first viewport, truth sections, hero focus |
 | 下一步该学什么 | `LearningTrainingIntent`, next training CTA |
 | 清楚知道依据 | attempt detail, evidence cards |
-| 系统答疑解析被利用 | `learning_evidence[event_type=conversation_learning_evidence]`, conversation turn replay refs |
+| 系统答疑解析被利用 | `learning_evidence` with `evidence_source=conversation_synthesis` + `learning_signal_type=answer_explanation` (Round 2 B1), conversation turn replay refs |
 | 对话首页与学情联动 | `home_dashboard.today_focus/recommended_prompts`, homepage prompt intents |
 | 丝滑体验 | first-screen architecture, payload cap, p95 gates |
 | 10 万学员规模 | source timeout, detail lazy load, performance gates, rollout |
@@ -2212,15 +2242,16 @@ No `TBD`, no vague “handle edge cases”, no unowned authority.
 This plan is intentionally split into independent tasks. The recommended first execution batch is now:
 
 1. Task 0 Learning Evidence Quality Gate
-2. Task 1 Attempt Ref Authority
-3. Task 2 Attempt Detail
-4. Task 3 Cloud Mistake Book
-5. Task 4 Training Intent
-6. Task 4.5 Extend Learning Evidence with Conversation Signals
-7. Task 4.6 Extend Home Dashboard with Learning Personalization
-8. Task 5 Stable Truth vs Recent Observation Split
+2. Task 0.5 Contract & Schema Surface Registration
+3. Task 1 Attempt Ref Authority
+4. Task 2 Attempt Detail
+5. Task 3 Cloud Mistake Book
+6. Task 4 Training Intent
+7. Task 4.5 Extend Learning Evidence with Conversation Signals
+8. Task 4.6 Extend Home Dashboard with Learning Personalization
+9. Task 5 Stable Truth vs Recent Observation Split
 
-These eight close the P0 product loop before broad UI polish and before MasteryEstimator expansion.
+These nine close the P0 product loop before broad UI polish and before MasteryEstimator expansion.
 
 ### P0 Release Gate
 
@@ -2249,8 +2280,46 @@ Required proof:
 2. Node view model tests for both surfaces.
 3. 微信开发者工具或真实手机截图。
 4. Langfuse trace or backend log proving grading/evidence/report/detail/training chain.
-5. Langfuse trace or backend log proving conversation answer -> `learning_evidence[event_type=conversation_learning_evidence]` -> `home_dashboard.today_focus/recommended_prompts`.
-6. No raw `event_id` / `M06` / `question_tests_concept` / “综合能力” in learner-facing payload, unless displayed in an internal debug-only panel.
+5. Langfuse trace or backend log proving conversation answer -> `learning_evidence` with `evidence_source=conversation_synthesis` + `learning_signal_type=answer_explanation` -> `home_dashboard.today_focus/recommended_prompts`.（**Round 2 BLOCKER B1 修订：** 不再使用 `event_type=conversation_learning_evidence`。）
+6. No raw `event_id` / `M06` / `question_tests_concept` / "综合能力" in learner-facing payload, unless displayed in an internal debug-only panel.
+
+### Round 2 Verification Gate (BLOCKERS + Top Gaps)
+
+P0 不通过本检查清单时禁止 100% rollout。所有项要求带可追溯证据（PR link / trace id / CI run）。
+
+**BLOCKERS（全部为 ✅ 才允许进入 Stage 3 5% 灰度）：**
+
+- [ ] B1 — `evidence_source` + `learning_signal_type` 字段在 ledger 与 read model 落地；supabase_writer 白名单未变；runtime code / migrations / tests 没有任何正向 writer 或 reader 路径使用 `event_type=conversation_learning_evidence`（文档可保留该字符串作为 forbidden anti-pattern / negative assertion）。
+- [ ] B2 — `deeptutor/capabilities/deep_question.py` 单文件中持有 `LearningTrainingIntent` 消费逻辑；测试 `test_next_training_signal_consumption.py` 通过；plan / Tasks 文件路径已全部纠正。
+- [ ] B3 — `contracts/index.yaml` 与 `contracts/learning-report.md` PR 已合并；CI contract gate green；mobile.py 改动 PR 描述显式列 contract diff。
+- [ ] B4 — `/api/v1/mobile/learning-report?schema_version=1` 与 `?schema_version=2` 在 staging 同时返回正确字段；`.gstack/qa-reports/learning-report-v1-vs-v2.json` 已生成；前端 wx + yousen 各自验证未在 v2 上线后回归。
+- [ ] B5 — 生产环境 `DEEPTUTOR_ATTEMPT_REF_SECRET` 已写入 secret manager；启动期 fingerprint 与运维记录的 SHA-1 前 8 位一致；CI prod env 模拟跑通；伪造跨用户 ref 测试拒绝。
+- [ ] B6 — `home_personalization` projection 落地（snapshot 字段或新表）；dashboard p95 < 500ms 连续 48 小时；projection stale > 6h 时 fallback starter 触发。
+- [ ] B7 — `LearnerStateService.read_learning_evidence_event` 实现并接入 attempt detail；5k events fixture 用户 warm cache p95 < 100ms 压测通过；客户端 filter 路径在 prod 关闭。
+- [ ] B8 — `learner_mistake_book_items` migration + RLS policies 在生产 supabase 跑通；anon JWT 跨用户访问返回空集；mistake save 强制带 subject_id。
+
+**High-Priority Gaps（全部为 ✅ 才允许进入 Stage 4 100%）：**
+
+- [ ] G1 — `training_intent_id` 在 active_object → grading writeback → learning_evidence 全链路持久化；e2e 真实 trace 显示同 intent_id 下两次答题对比；read model 输出 `training_improved / training_not_improved`。
+- [ ] G2 — 同 (concept, prompt_type) 自然日 ranking dedupe 实现；trace 标 `prompt_click_dedupe=true`。
+- [ ] G3 — "已讲解未练" 状态测试覆盖；conversation evidence 不能单独让 concept 升级为 stable mastery。
+- [ ] G4 — `assistant_explanation_summary` 三种来源策略实现；自由文本回退 truncate + 失败丢弃；不调额外 LLM 摘要。
+- [ ] G5 — PII redaction 覆盖手机号 / 身份证 / 邮箱；写入 ledger 字符串含敏感模式时测试 fail。
+- [ ] G6 — mistake book / report 响应带 etag；mutation `If-Match` 校验；前端不持久化本地 bookmark 状态。
+- [ ] G7 — starter pool seed 数据存在；新用户 dashboard 显示 starter prompts + `fallback_used=true`。
+- [ ] G8 — Langfuse trace 三键 (`learning_training_intent_id / mistake_book_event_id / home_prompt_intent_id`) 在对应链路出现；trace 校验脚本 green。
+- [ ] G9 — `needs_confirmation` 区进入/移出规则在 §6 Task 5 落地；至少 3 个测试覆盖矛盾 evidence。
+- [ ] G10 — 训练 CTA 在 wallet quota 不足时 CTA 文案降级；intent 暂存到 `draft_intents`；充值后续起。
+- [ ] G11 — iOS 微信 / Android 微信 / PC 微信 三容器手动跑 P0 链路；截图存 `.gstack/qa-reports/learning-report-3-container.zip`；payload p95 < 80KB。
+- [ ] G12 — read model 字段含 `i18n_keys`；v1 zh-CN only 但 UI 文案不嵌 read model；evidence 备注 future locale 路径。
+
+**评审者签字（建议在 PR description 复制本清单逐项打 ✅）：**
+
+- 后端 owner：
+- 前端 owner：
+- contract gatekeeper：
+- 安全 / RLS reviewer：
+- 灰度 oncall：
 
 ### P1 After P0
 
