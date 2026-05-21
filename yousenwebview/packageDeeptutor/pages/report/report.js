@@ -264,7 +264,10 @@ function _learningBrainObjectLabel(rawId, rawType) {
 function _humanizeLearningBrainText(value) {
   var text = String(value || "").trim();
   if (!text) return "";
-  text = text.replace(/我想练习(.+?)相关的题目\s*请严格围绕.*?当前学习锚点出题/g, "$1");
+  text = text.replace(
+    /我想练习(.+?)相关的题目\s*请严格围绕.*?当前学习锚点出题/g,
+    "$1",
+  );
   text = text.replace(/concept:/g, "知识点：");
   text = text.replace(/rubric_item:/g, "采分点：");
   text = text.replace(/question:/g, "案例题：");
@@ -457,7 +460,9 @@ function _normalizeLearningBrainPayload(raw) {
           flow.display_path || flow.path || flow.display_meta || "",
         ),
         eventId: "",
-        eventLabel: flow.event_label || (hasEvidence ? _learningBrainEvidenceLabel(index) : ""),
+        eventLabel:
+          flow.event_label ||
+          (hasEvidence ? _learningBrainEvidenceLabel(index) : ""),
       };
     })
     .filter(function (item) {
@@ -478,7 +483,9 @@ function _normalizeLearningBrainPayload(raw) {
             _humanizeLearningBrainText(edge.display_title) ||
             edge.display_label ||
             _learningBrainEdgeLabel(edge.edge_type),
-          path: _humanizeLearningBrainText(edge.display_path || _learningBrainEdgePath(edge)),
+          path: _humanizeLearningBrainText(
+            edge.display_path || _learningBrainEdgePath(edge),
+          ),
           eventId: "",
           eventLabel: hasEvidence ? _learningBrainEvidenceLabel(index) : "",
         };
@@ -495,7 +502,9 @@ function _normalizeLearningBrainPayload(raw) {
         title: _humanizeLearningBrainText(
           plan.display_title || plan.claim || "下一步训练",
         ),
-        meta: _humanizeLearningBrainText(plan.display_meta || plan.display_label || ""),
+        meta: _humanizeLearningBrainText(
+          plan.display_meta || plan.display_label || "",
+        ),
       };
     })
     .filter(function (item) {
@@ -625,7 +634,6 @@ function _normalizeLearnerFacingPayload(raw) {
         detailLines: Array.isArray(card.detail_lines)
           ? card.detail_lines.filter(Boolean)
           : [answerLine, diagnosisDetail, explanation].filter(Boolean),
-        bookmarked: false,
       };
     })
     .filter(function (item) {
@@ -1252,8 +1260,6 @@ Page({
     learningDiagnosisCards: [],
     learningTrainingLoops: [],
     learningNextAction: { title: "", subtitle: "", cta: "开始训练" },
-    mistakeBookCount: 0,
-    mistakeBookItems: [],
     learningBrainGraphStats: {
       eventCount: 0,
       createdClaimCount: 0,
@@ -1342,7 +1348,9 @@ Page({
     });
     return {
       report: report,
-      degraded: Boolean(report.degraded) || _learningReportDegradedSources(report).length > 0,
+      degraded:
+        Boolean(report.degraded) ||
+        _learningReportDegradedSources(report).length > 0,
       degradedSources: _learningReportDegradedSources(report),
       sourceStatus: report.source_status || {},
       progress: {
@@ -1413,7 +1421,6 @@ Page({
     var learnerFacing = _normalizeLearnerFacingPayload(
       (snapshot && snapshot.learnerFacing) || {},
     );
-    learnerFacing.attempts = this._applyMistakeBookmarks(learnerFacing.attempts);
     var radarDims = _normalizeRadarDimensions({
       dimensions: (report.radar_dimensions || []).map(function (item) {
         return {
@@ -1507,8 +1514,6 @@ Page({
       learningDiagnosisCards: learnerFacing.diagnoses,
       learningTrainingLoops: learnerFacing.loops,
       learningNextAction: learnerFacing.nextAction,
-      mistakeBookCount: this._mistakeBookCount(),
-      mistakeBookItems: this._mistakeBookItems(),
       learningBrainGraphStats: brainNormalized.stats,
       learningBrainLoading: false,
       learningBrainError: false,
@@ -1525,53 +1530,6 @@ Page({
       this._radarSignature = _buildRadarSignature(radarDims);
       this._ensureRadarRendered(radarDims, this._radarSignature);
     }
-  },
-
-  _mistakeBookStorageKey() {
-    return "luban_learning_mistake_book_v1";
-  },
-
-  _readMistakeBook() {
-    try {
-      if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function") return {};
-      var value = wx.getStorageSync(this._mistakeBookStorageKey());
-      return value && typeof value === "object" && !Array.isArray(value)
-        ? value
-        : {};
-    } catch (_) {
-      return {};
-    }
-  },
-
-  _writeMistakeBook(value) {
-    try {
-      if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
-        wx.setStorageSync(this._mistakeBookStorageKey(), value || {});
-      }
-    } catch (_) {}
-  },
-
-  _mistakeBookCount() {
-    return Object.keys(this._readMistakeBook()).length;
-  },
-
-  _mistakeBookItems() {
-    var book = this._readMistakeBook();
-    return Object.keys(book)
-      .map(function (key) {
-        return Object.assign({ key: key }, book[key] || {});
-      })
-      .sort(function (a, b) {
-        return Number(b.savedAt || 0) - Number(a.savedAt || 0);
-      })
-      .slice(0, 6);
-  },
-
-  _applyMistakeBookmarks(cards) {
-    var book = this._readMistakeBook();
-    return (cards || []).map(function (card) {
-      return Object.assign({}, card, { bookmarked: Boolean(book[card.key]) });
-    });
   },
 
   onReady() {
@@ -2130,9 +2088,10 @@ Page({
   },
 
   openAttemptDetail(event) {
-    var key = event && event.currentTarget && event.currentTarget.dataset
-      ? event.currentTarget.dataset.key
-      : "";
+    var key =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.key
+        : "";
     var card = (this.data.learningAttemptCards || []).find(function (item) {
       return item.key === key;
     });
@@ -2140,7 +2099,9 @@ Page({
     var content = _attemptDetailText(card);
     if (typeof wx !== "undefined" && typeof wx.showModal === "function") {
       wx.showModal({
-        title: card.resultLabel ? card.resultLabel + "｜" + card.concept : card.concept,
+        title: card.resultLabel
+          ? card.resultLabel + "｜" + card.concept
+          : card.concept,
         content: content || "这次作答暂无可展开内容。",
         showCancel: false,
         confirmText: "知道了",
@@ -2148,62 +2109,17 @@ Page({
     }
   },
 
-  openMistakeDetail(event) {
-    var key = event && event.currentTarget && event.currentTarget.dataset
-      ? event.currentTarget.dataset.key
-      : "";
-    var card = (this.data.mistakeBookItems || []).find(function (item) {
-      return item.key === key;
-    });
-    if (!card) return;
-    var content = _attemptDetailText({
-      timeLabel: card.timeLabel,
-      questionText: card.questionText || card.title,
-      answerLine: card.answerLine,
-      diagnosisDetail: card.diagnosisDetail,
-      explanation: card.explanation,
-    });
-    if (typeof wx !== "undefined" && typeof wx.showModal === "function") {
-      wx.showModal({
-        title: "错题复盘｜" + (card.concept || "练习"),
-        content: content || "这道错题暂无可展开内容。",
-        showCancel: false,
-        confirmText: "知道了",
+  // 错题集 authority 收敛到云端 `learner_mistake_book_items`（见
+  // docs/plan/2026-05-21-luban-learning-report-world-class-optimization-plan.md §-1.2 #3 / §Task 3）。
+  // 云端 endpoint 未上线前，yousen 端不持有第二套本地 truth source；点击只提示待接入，
+  // 不写 wx storage、不改任何展示状态。
+  toggleMistakeBookmark() {
+    if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+      wx.showToast({
+        title: "云端错题集即将上线",
+        icon: "none",
+        duration: 1800,
       });
     }
-  },
-
-  toggleMistakeBookmark(event) {
-    var key = event && event.currentTarget && event.currentTarget.dataset
-      ? event.currentTarget.dataset.key
-      : "";
-    if (!key) return;
-    var cards = this.data.learningAttemptCards || [];
-    var target = cards.find(function (item) {
-      return item.key === key;
-    });
-    if (!target || !target.collectable) return;
-    var book = this._readMistakeBook();
-    if (book[key]) {
-      delete book[key];
-    } else {
-      book[key] = {
-        title: target.title,
-        questionText: target.questionText,
-        answerLine: target.answerLine,
-        diagnosis: target.diagnosis,
-        diagnosisDetail: target.diagnosisDetail,
-        explanation: target.explanation,
-        concept: target.concept,
-        timeLabel: target.timeLabel,
-        savedAt: Date.now(),
-      };
-    }
-    this._writeMistakeBook(book);
-    this.setData({
-      learningAttemptCards: this._applyMistakeBookmarks(cards),
-      mistakeBookCount: Object.keys(book).length,
-      mistakeBookItems: this._mistakeBookItems(),
-    });
   },
 });

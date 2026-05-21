@@ -88,7 +88,6 @@
             <view class="brain-review-metrics">
               <text>近 3 天 {{learningReviewSummary.recentThreeDone}} 次</text>
               <text wx:if="{{learningReviewSummary.primaryFocus}}">主攻 {{learningReviewSummary.primaryFocus}}</text>
-              <text wx:if="{{mistakeBookCount}}">错题集 {{mistakeBookCount}} 题</text>
             </view>
           </view>
 
@@ -146,10 +145,10 @@
                 <text class="attempt-action">查看当时解析</text>
                 <text
                   wx:if="{{item.collectable}}"
-                  class="attempt-action bookmark-action {{item.bookmarked ? 'bookmarked' : ''}}"
+                  class="attempt-action bookmark-action pending"
                   data-key="{{item.key}}"
                   catchtap="toggleMistakeBookmark"
-                >{{item.bookmarked ? '已收藏错题' : '收藏错题'}}</text>
+                >云端错题集待接入</text>
               </view>
             </view>
             <block wx:if="{{!learningAttemptCards.length}}">
@@ -159,23 +158,6 @@
                 <text class="brain-edge-event" wx:if="{{item.eventLabel || item.eventId}}">{{item.eventLabel || item.eventId}}</text>
               </view>
             </block>
-          </view>
-
-          <view class="brain-column" wx:if="{{mistakeBookItems.length}}">
-            <text class="brain-column-title">我的错题集</text>
-            <view
-              class="mistake-card"
-              wx:for="{{mistakeBookItems}}"
-              wx:key="key"
-              data-key="{{item.key}}"
-              bindtap="openMistakeDetail"
-            >
-              <view>
-                <text class="mistake-title">{{item.title}}</text>
-                <text class="mistake-meta">{{item.timeLabel}}｜{{item.concept}}</text>
-              </view>
-              <text class="mistake-reason">{{item.diagnosis}}</text>
-            </view>
           </view>
 
           <view class="brain-column" wx:if="{{learningTrainingLoops.length || learningBrainChains.length}}">

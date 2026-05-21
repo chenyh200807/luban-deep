@@ -39,6 +39,8 @@ function loadReportPage(stubs) {
   );
   var pageDef = null;
   var storage = {};
+  var storageWrites = [];
+  var toastCalls = [];
   var sandbox = {
     console: console,
     setTimeout: setTimeout,
@@ -54,9 +56,13 @@ function loadReportPage(stubs) {
         return storage[key];
       },
       setStorageSync: function (key, value) {
+        storageWrites.push({ key: key, value: value });
         storage[key] = value;
       },
       showModal: function () {},
+      showToast: function (opts) {
+        toastCalls.push(opts || {});
+      },
       navigateTo: function () {},
       reLaunch: function () {},
     },
@@ -73,6 +79,11 @@ function loadReportPage(stubs) {
   vm.runInNewContext(source, sandbox, {
     filename: "packageDeeptutor/pages/report/report.js",
   });
+  pageDef.__sandbox = {
+    storage: storage,
+    storageWrites: storageWrites,
+    toastCalls: toastCalls,
+  };
   return pageDef;
 }
 
@@ -624,7 +635,9 @@ function createPageInstance(pageDef) {
       assert(
         Array.isArray(page.data.learningAttemptCards) &&
           page.data.learningAttemptCards[0] &&
-          page.data.learningAttemptCards[0].questionText.indexOf("主体结构验收") >= 0 &&
+          page.data.learningAttemptCards[0].questionText.indexOf(
+            "主体结构验收",
+          ) >= 0 &&
           page.data.learningAttemptCards[0].answerLine.indexOf("你选：") >= 0 &&
           page.data.learningAttemptCards[0].explanation.indexOf("解析：") >= 0,
         "Learning Brain evidence should point to concrete answer records with answer and explanation",
@@ -641,15 +654,43 @@ function createPageInstance(pageDef) {
           page.data.learningTrainingLoops[0].outcome.indexOf("仍需") >= 0,
         "training loop should preserve wrong cause -> training -> outcome chain in learner-facing language",
       );
+      // 错题集 authority 收敛到云端 `learner_mistake_book_items`（计划文档
+      // 2026-05-21-luban-learning-report-world-class-optimization-plan.md §-1.2 #3）。
+      // yousen 端不允许用 wx storage 充当第二套 truth source。
+      assert(
+        !("mistakeBookCount" in page.data) &&
+          !("mistakeBookItems" in page.data),
+        "page state must not carry local mistake-book authority fields",
+      );
+      var preToastCallCount = pageDef.__sandbox.toastCalls.length;
+      var preStorageWriteCount = pageDef.__sandbox.storageWrites.length;
       page.toggleMistakeBookmark({
-        currentTarget: { dataset: { key: "attempt-0" } },
+        currentTarget: {
+          dataset: { key: page.data.learningAttemptCards[0].key },
+        },
       });
       assert(
-        page.data.mistakeBookCount === 1 &&
-          Array.isArray(page.data.mistakeBookItems) &&
-          page.data.mistakeBookItems[0] &&
-          page.data.mistakeBookItems[0].questionText.indexOf("主体结构验收") >= 0,
-        "wrong answer records should be collectable into a learner-facing mistake book",
+        pageDef.__sandbox.storageWrites.length === preStorageWriteCount,
+        "toggleMistakeBookmark must not write to wx storage; mistake book authority lives in cloud `learner_mistake_book_items`",
+      );
+      var emittedToasts = pageDef.__sandbox.toastCalls.slice(preToastCallCount);
+      assert(
+        emittedToasts.length === 1 &&
+          String(emittedToasts[0].title || "").indexOf("云端错题集") >= 0,
+        "toggleMistakeBookmark must surface an explicit pending toast pointing at cloud authority",
+      );
+      assert(
+        !("mistakeBookCount" in page.data) &&
+          !("mistakeBookItems" in page.data),
+        "toggleMistakeBookmark must not introduce mistakeBook* fields into page state",
+      );
+      assert(
+        !page.data.learningAttemptCards.some(function (card) {
+          return (
+            card && Object.prototype.hasOwnProperty.call(card, "bookmarked")
+          );
+        }),
+        "attempt cards must not carry a local-only bookmarked flag (cloud authority will own this)",
       );
       assert(
         page.data.learningBrainTruths[0] &&
