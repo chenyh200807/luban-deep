@@ -32,6 +32,11 @@ function loadRuntime(options) {
   delete require.cache[require.resolve(authPath)];
 
   global.wx = {
+    redirectTo: function (opts) {
+      if (opts && typeof opts.complete === "function") {
+        opts.complete();
+      }
+    },
     reLaunch: function (opts) {
       if (opts && typeof opts.complete === "function") {
         opts.complete();
@@ -156,6 +161,7 @@ run("runtime state reads and writes app globalData when app is available", funct
 
 run("runtime logout clears mirrored app globalData state", function () {
   var reLaunchCalls = [];
+  var redirectCalls = [];
   var app = {
     globalData: {
       goHomeFlag: true,
@@ -177,6 +183,12 @@ run("runtime logout clears mirrored app globalData state", function () {
       opts.complete();
     }
   };
+  global.wx.redirectTo = function (opts) {
+    redirectCalls.push(opts);
+    if (opts && typeof opts.complete === "function") {
+      opts.complete();
+    }
+  };
 
   runtime.logout();
 
@@ -189,9 +201,10 @@ run("runtime logout clears mirrored app globalData state", function () {
   assert(app.globalData.pendingChatMode === "AUTO", "logout should reset pendingChatMode in app globalData");
   assert(app.globalData._authRedirecting === false, "logout should release auth redirecting in app globalData");
   assert(
-    reLaunchCalls.length === 1 && reLaunchCalls[0].url === "/packageDeeptutor/pages/login/login",
+    redirectCalls.length === 1 && redirectCalls[0].url === "/packageDeeptutor/pages/login/login",
     "logout should redirect to login",
   );
+  assert(reLaunchCalls.length === 0, "logout should not relaunch when redirectTo succeeds");
 });
 
 run("runtime workspaceBack ignores self-target and clears on consume", function () {

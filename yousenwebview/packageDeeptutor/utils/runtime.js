@@ -74,6 +74,18 @@ function _reLaunch(url) {
   });
 }
 
+function _redirectToPackageLogin(url) {
+  wx.redirectTo({
+    url: url,
+    fail: function () {
+      _reLaunch(url);
+    },
+    complete: function () {
+      getRuntimeStore()._authRedirecting = false;
+    },
+  });
+}
+
 function _setAuthRedirecting(flag) {
   getRuntimeStore()._authRedirecting = !!flag;
 }
@@ -87,7 +99,7 @@ function redirectToLogin(returnTo) {
   if (store._authRedirecting) return false;
   store._authRedirecting = true;
   var target = returnTo ? route.login({ returnTo: returnTo }) : route.login();
-  _reLaunch(target);
+  _redirectToPackageLogin(target);
   return true;
 }
 

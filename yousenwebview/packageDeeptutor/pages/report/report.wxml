@@ -82,48 +82,136 @@
         </view>
 
         <view wx:else class="learning-brain-body">
+          <view class="brain-review-summary" wx:if="{{learningReviewSummary.headline}}">
+            <text class="brain-review-title">{{learningReviewSummary.title}}</text>
+            <text class="brain-review-headline">{{learningReviewSummary.headline}}</text>
+            <view class="brain-review-metrics">
+              <text>近 3 天 {{learningReviewSummary.recentThreeDone}} 次</text>
+              <text wx:if="{{learningReviewSummary.primaryFocus}}">主攻 {{learningReviewSummary.primaryFocus}}</text>
+              <text wx:if="{{mistakeBookCount}}">错题集 {{mistakeBookCount}} 题</text>
+            </view>
+          </view>
+
           <view class="brain-column">
             <text class="brain-column-title">当前可信结论</text>
-            <view class="brain-truth-row" wx:for="{{learningBrainTruths}}" wx:key="key">
-              <view class="brain-level level-{{item.level}}">
-                <text>{{item.levelLabel || item.level}}</text>
-              </view>
-              <view class="brain-row-main">
-                <text class="brain-row-title">{{item.title}}</text>
-                <text class="brain-row-meta">{{item.meta}}</text>
-                <view class="brain-event-list" wx:if="{{item.eventIds.length}}">
-                  <text class="brain-event" wx:for="{{item.eventIds}}" wx:for-item="eventId" wx:key="*this">{{eventId}}</text>
+            <block wx:if="{{learningDiagnosisCards.length}}">
+              <view class="brain-diagnosis-row" wx:for="{{learningDiagnosisCards}}" wx:key="key">
+                <view class="brain-level">
+                  <text>{{item.levelLabel}}</text>
+                </view>
+                <view class="brain-row-main">
+                  <text class="brain-row-title">{{item.title}}</text>
+                  <text class="brain-row-meta">{{item.meta}}</text>
+                  <text class="brain-diagnosis-detail" wx:if="{{item.detail}}">{{item.detail}}</text>
+                  <text class="brain-action-line">{{item.action}}</text>
                 </view>
               </view>
-            </view>
+            </block>
+            <block wx:else>
+              <view class="brain-truth-row" wx:for="{{learningBrainTruths}}" wx:key="key">
+                <view class="brain-level level-{{item.level}}">
+                  <text>{{item.levelLabel || item.level}}</text>
+                </view>
+                <view class="brain-row-main">
+                  <text class="brain-row-title">{{item.title}}</text>
+                  <text class="brain-row-meta">{{item.meta}}</text>
+                  <view class="brain-event-list" wx:if="{{item.eventIds.length}}">
+                    <text class="brain-event" wx:for="{{item.eventIds}}" wx:for-item="eventId" wx:key="*this">{{eventId}}</text>
+                  </view>
+                </view>
+              </view>
+            </block>
           </view>
 
           <view class="brain-column">
-            <text class="brain-column-title">证据流</text>
-            <view class="brain-edge-row" wx:for="{{learningBrainEvidence}}" wx:key="key">
-              <text class="brain-edge-type">{{item.type}}</text>
-              <text class="brain-edge-path">{{item.path}}</text>
-              <text class="brain-edge-event" wx:if="{{item.eventLabel || item.eventId}}">{{item.eventLabel || item.eventId}}</text>
+            <text class="brain-column-title">真实作答证据</text>
+            <view
+              class="attempt-card attempt-{{item.tone}}"
+              wx:for="{{learningAttemptCards}}"
+              wx:key="key"
+              data-key="{{item.key}}"
+              bindtap="openAttemptDetail"
+            >
+              <view class="attempt-head">
+                <view>
+                  <text class="attempt-time">{{item.timeLabel}}</text>
+                  <text class="attempt-title">{{item.title}}</text>
+                </view>
+                <text class="attempt-result result-{{item.tone}}">{{item.resultLabel}}</text>
+              </view>
+              <text class="attempt-answer">{{item.answerLine}}</text>
+              <text class="attempt-diagnosis" wx:if="{{item.diagnosisDetail}}">{{item.diagnosisDetail}}</text>
+              <text class="attempt-explanation" wx:if="{{item.explanation}}">{{item.explanation}}</text>
+              <view class="attempt-actions">
+                <text class="attempt-action">查看当时解析</text>
+                <text
+                  wx:if="{{item.collectable}}"
+                  class="attempt-action bookmark-action {{item.bookmarked ? 'bookmarked' : ''}}"
+                  data-key="{{item.key}}"
+                  catchtap="toggleMistakeBookmark"
+                >{{item.bookmarked ? '已收藏错题' : '收藏错题'}}</text>
+              </view>
+            </view>
+            <block wx:if="{{!learningAttemptCards.length}}">
+              <view class="brain-edge-row" wx:for="{{learningBrainEvidence}}" wx:key="key">
+                <text class="brain-edge-type">{{item.type}}</text>
+                <text class="brain-edge-path">{{item.path}}</text>
+                <text class="brain-edge-event" wx:if="{{item.eventLabel || item.eventId}}">{{item.eventLabel || item.eventId}}</text>
+              </view>
+            </block>
+          </view>
+
+          <view class="brain-column" wx:if="{{mistakeBookItems.length}}">
+            <text class="brain-column-title">我的错题集</text>
+            <view
+              class="mistake-card"
+              wx:for="{{mistakeBookItems}}"
+              wx:key="key"
+              data-key="{{item.key}}"
+              bindtap="openMistakeDetail"
+            >
+              <view>
+                <text class="mistake-title">{{item.title}}</text>
+                <text class="mistake-meta">{{item.timeLabel}}｜{{item.concept}}</text>
+              </view>
+              <text class="mistake-reason">{{item.diagnosis}}</text>
             </view>
           </view>
 
-          <view class="brain-column" wx:if="{{learningBrainChains.length}}">
+          <view class="brain-column" wx:if="{{learningTrainingLoops.length || learningBrainChains.length}}">
             <text class="brain-column-title">训练闭环</text>
-            <view class="brain-chain-row chain-{{item.tone}}" wx:for="{{learningBrainChains}}" wx:key="key">
+            <view class="brain-chain-row chain-{{item.tone}}" wx:for="{{learningTrainingLoops}}" wx:key="key">
               <text class="brain-chain-title">{{item.title}}</text>
+              <text class="brain-chain-step">{{item.from}}</text>
               <text class="brain-chain-step">{{item.training}}</text>
-              <text class="brain-chain-step" wx:if="{{item.question}}">{{item.question}}</text>
               <text class="brain-chain-outcome">{{item.outcome}}</text>
-              <text class="brain-edge-event" wx:if="{{item.eventLabel || item.eventId}}">{{item.eventLabel || item.eventId}}</text>
             </view>
+            <block wx:if="{{!learningTrainingLoops.length}}">
+              <view class="brain-chain-row chain-{{item.tone}}" wx:for="{{learningBrainChains}}" wx:key="key">
+                <text class="brain-chain-title">{{item.title}}</text>
+                <text class="brain-chain-step">{{item.training}}</text>
+                <text class="brain-chain-step" wx:if="{{item.question}}">{{item.question}}</text>
+                <text class="brain-chain-outcome">{{item.outcome}}</text>
+                <text class="brain-edge-event" wx:if="{{item.eventLabel || item.eventId}}">{{item.eventLabel || item.eventId}}</text>
+              </view>
+            </block>
           </view>
 
           <view class="brain-column">
             <text class="brain-column-title">下一步训练</text>
-            <view class="brain-training-row" wx:for="{{learningBrainTraining}}" wx:key="key">
-              <text class="brain-training-title">{{item.title}}</text>
-              <text class="brain-training-meta">{{item.meta}}</text>
+            <view class="brain-next-action" wx:if="{{learningNextAction.title}}" bindtap="goPractice">
+              <view>
+                <text class="brain-training-title">{{learningNextAction.title}}</text>
+                <text class="brain-training-meta">{{learningNextAction.subtitle}}</text>
+              </view>
+              <text class="brain-next-cta">{{learningNextAction.cta}}</text>
             </view>
+            <block wx:else>
+              <view class="brain-training-row" wx:for="{{learningBrainTraining}}" wx:key="key">
+                <text class="brain-training-title">{{item.title}}</text>
+                <text class="brain-training-meta">{{item.meta}}</text>
+              </view>
+            </block>
           </view>
 
           <view class="brain-footer" wx:if="{{learningBrainGraphStats.projectionSubject}}">

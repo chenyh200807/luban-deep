@@ -22,11 +22,18 @@ delete require.cache[require.resolve(runtimePath)];
 delete require.cache[require.resolve(authPath)];
 
 var reLaunchCalls = [];
+var redirectCalls = [];
 global.wx = {
   getStorageSync: function () {
     return "";
   },
   removeStorageSync: function () {},
+  redirectTo: function (options) {
+    redirectCalls.push(options || {});
+    if (options && typeof options.complete === "function") {
+      options.complete();
+    }
+  },
   reLaunch: function (options) {
     reLaunchCalls.push(options || {});
     if (options && typeof options.complete === "function") {
@@ -51,9 +58,10 @@ var runtime = require(runtimePath);
 var redirected = runtime.checkAuth(function () {});
 
 assert(redirected === true, "checkAuth should start login redirect when token is missing");
-assert(reLaunchCalls.length === 1, "checkAuth should relaunch to login once");
+assert(redirectCalls.length === 1, "checkAuth should redirect to login once");
+assert(reLaunchCalls.length === 0, "checkAuth should not relaunch when redirectTo succeeds");
 assert(
-  reLaunchCalls[0].url ===
+  redirectCalls[0].url ===
     "/packageDeeptutor/pages/login/login?returnTo=%2FpackageDeeptutor%2Fpages%2Freport%2Freport",
   "login redirect should preserve current package route as returnTo",
 );

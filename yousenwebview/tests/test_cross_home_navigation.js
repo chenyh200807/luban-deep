@@ -71,6 +71,9 @@ function loadAppDefinition(storage) {
       reLaunch: function (options) {
         reLaunchCalls.push(options);
       },
+      redirectTo: function (options) {
+        navigateCalls.push(options);
+      },
       navigateTo: function (options) {
         navigateCalls.push(options);
       },
@@ -104,7 +107,7 @@ run("goHostHome suppresses repeated reLaunch during active lock", function () {
   );
 });
 
-run("openDeeptutorLogin loads subpackage and suppresses repeated direct route during active lock", function () {
+run("openDeeptutorLogin routes through host bridge and suppresses repeated entry during active lock", function () {
   var loaded = loadAppDefinition();
   loaded.app._resetCrossHomeNavigationLock();
 
@@ -124,17 +127,21 @@ run("openDeeptutorLogin loads subpackage and suppresses repeated direct route du
     ) === false,
     "second deeptutor navigation should be ignored while locked",
   );
-  assert(loaded.loadSubpackageCalls.length === 1, "deeptutor flow should only load the subpackage once");
   assert(
-    loaded.loadSubpackageCalls[0] && loaded.loadSubpackageCalls[0].name === "packageDeeptutor",
-    "deeptutor flow should load the packageDeeptutor subpackage",
+    loaded.loadSubpackageCalls.length === 0,
+    "app-level deeptutor flow should leave subpackage loading to the host bridge",
   );
   assert(loaded.navigateCalls.length === 0, "deeptutor flow should not keep the host page stack");
   assert(loaded.reLaunchCalls.length === 1, "deeptutor flow should replace the host page stack once");
   assert(
     loaded.reLaunchCalls[0] &&
-      loaded.reLaunchCalls[0].url.indexOf("/packageDeeptutor/pages/login/login?entrySource=") === 0,
-    "unauthenticated deeptutor flow should target the package login url directly",
+      loaded.reLaunchCalls[0].url.indexOf("/pages/deeptutorEntry/deeptutorEntry?entrySource=") === 0,
+    "unauthenticated deeptutor flow should target the host bridge first",
+  );
+  assert(
+    loaded.reLaunchCalls[0] &&
+      loaded.reLaunchCalls[0].url.indexOf("&authenticated=0") > 0,
+    "unauthenticated deeptutor bridge URL should preserve login intent",
   );
 });
 
@@ -157,9 +164,13 @@ run("openDeeptutorLogin routes to returnTo when token is locally valid", functio
   assert(loaded.reLaunchCalls.length === 1, "authenticated flow should issue one reLaunch call");
   assert(
     loaded.reLaunchCalls[0] &&
-      loaded.reLaunchCalls[0].url ===
-        "/packageDeeptutor/pages/chat/chat?entry_source=free_course_inline_entry",
-    "authenticated flow should enter the package returnTo url directly",
+      loaded.reLaunchCalls[0].url.indexOf("/pages/deeptutorEntry/deeptutorEntry?entrySource=") === 0,
+    "authenticated flow should enter the host bridge first",
+  );
+  assert(
+    loaded.reLaunchCalls[0] &&
+      loaded.reLaunchCalls[0].url.indexOf("&authenticated=1") > 0,
+    "authenticated bridge URL should preserve authenticated intent",
   );
 });
 
@@ -180,7 +191,8 @@ run("openDeeptutorLogin sends expired token users to login", function () {
   );
   assert(
     loaded.reLaunchCalls[0] &&
-      loaded.reLaunchCalls[0].url.indexOf("/packageDeeptutor/pages/login/login?entrySource=") === 0,
+      loaded.reLaunchCalls[0].url.indexOf("/pages/deeptutorEntry/deeptutorEntry?entrySource=") === 0 &&
+      loaded.reLaunchCalls[0].url.indexOf("&authenticated=0") > 0,
     "expired token should not skip the login gate",
   );
 });
@@ -216,7 +228,7 @@ run("navigation failure should release lock for immediate retry", function () {
   );
 });
 
-run("deeptutor direct route should reLaunch after subpackage load", function () {
+run("deeptutor entry should reLaunch to host bridge", function () {
   var loaded = loadAppDefinition();
   loaded.app._resetCrossHomeNavigationLock();
   var failCount = 0;
@@ -235,15 +247,20 @@ run("deeptutor direct route should reLaunch after subpackage load", function () 
         },
       },
     ) === true,
-    "deeptutor login should start after subpackage load",
+    "deeptutor login should start through the bridge",
   );
-  assert(loaded.loadSubpackageCalls.length === 1, "subpackage load should be attempted first");
+  assert(loaded.loadSubpackageCalls.length === 0, "app-level entry should not load subpackage directly");
   assert(loaded.navigateCalls.length === 0, "direct navigateTo should not be used for cross-surface entry");
-  assert(loaded.reLaunchCalls.length === 1, "direct reLaunch should be attempted once");
-  assert(failCount === 0, "successful direct reLaunch should not trigger final failure callback");
+  assert(loaded.reLaunchCalls.length === 1, "bridge reLaunch should be attempted once");
+  assert(
+    loaded.reLaunchCalls[0] &&
+      loaded.reLaunchCalls[0].url.indexOf("/pages/deeptutorEntry/deeptutorEntry?entrySource=") === 0,
+    "deeptutor entry should target the host bridge URL",
+  );
+  assert(failCount === 0, "successful bridge reLaunch should not trigger final failure callback");
 });
 
-run("deeptutor direct route should release lock if reLaunch fails", function () {
+run("deeptutor entry should release lock if bridge reLaunch fails", function () {
   var loaded = loadAppDefinition();
   loaded.app._resetCrossHomeNavigationLock();
   var failCount = 0;
@@ -265,47 +282,39 @@ run("deeptutor direct route should release lock if reLaunch fails", function () 
         },
       },
     ) === true,
-    "deeptutor direct route should attempt reLaunch flow",
+    "deeptutor bridge route should attempt reLaunch flow",
   );
   assert(loaded.navigateCalls.length === 0, "direct navigateTo should not run");
-  assert(loaded.reLaunchCalls.length === 1, "direct reLaunch should still run");
+  assert(loaded.reLaunchCalls.length === 1, "bridge reLaunch should still run");
   assert(
     loaded.app.isCrossHomeNavigationLocked() === false,
-    "lock should be released after direct fallback failure",
+    "lock should be released after bridge launch failure",
   );
   assert(failCount === 1, "final failure callback should run exactly once");
 });
 
-run("deeptutor direct route should release lock when subpackage load fails", function () {
-  var loaded = loadAppDefinition();
-  loaded.app._resetCrossHomeNavigationLock();
-  var failCount = 0;
-
-  loaded.wx.loadSubpackage = function (options) {
-    loaded.loadSubpackageCalls.push(options);
-    if (options && typeof options.fail === "function") {
-      options.fail(new Error("mock loadSubpackage failure"));
+run("logout should redirect to package login before relaunch fallback", function () {
+  var loaded = loadAppDefinition({ token: "mock-token" });
+  loaded.wx.redirectTo = function (options) {
+    loaded.navigateCalls.push(options);
+    if (options && typeof options.complete === "function") {
+      options.complete();
     }
   };
+  loaded.wx.reLaunch = function (options) {
+    loaded.reLaunchCalls.push(options);
+  };
 
+  loaded.app.logout();
+
+  assert(loaded.navigateCalls.length === 1, "logout should try package login redirect first");
   assert(
-    loaded.app.openDeeptutorLogin(
-      "free_course_inline_entry",
-      "/packageDeeptutor/pages/chat/chat?entry_source=free_course_inline_entry",
-      {
-        onFail: function () {
-          failCount++;
-        },
-      },
-    ) === true,
-    "deeptutor direct route should attempt subpackage load",
+    loaded.navigateCalls[0] &&
+      loaded.navigateCalls[0].url === "/packageDeeptutor/pages/login/login",
+    "logout should target package login",
   );
-  assert(loaded.navigateCalls.length === 0, "route should not navigate before subpackage load succeeds");
-  assert(
-    loaded.app.isCrossHomeNavigationLocked() === false,
-    "lock should be released after subpackage load failure",
-  );
-  assert(failCount === 1, "subpackage load failure should run final failure callback once");
+  assert(loaded.reLaunchCalls.length === 0, "logout should not relaunch when redirect succeeds");
+  assert(loaded.app.globalData._authRedirecting === false, "logout should release auth redirect flag");
 });
 
 if (fail) {

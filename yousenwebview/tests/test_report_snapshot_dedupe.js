@@ -38,6 +38,7 @@ function loadReportPage(stubs) {
     "utf8",
   );
   var pageDef = null;
+  var storage = {};
   var sandbox = {
     console: console,
     setTimeout: setTimeout,
@@ -49,6 +50,13 @@ function loadReportPage(stubs) {
       nextTick: function (fn) {
         if (typeof fn === "function") fn();
       },
+      getStorageSync: function (key) {
+        return storage[key];
+      },
+      setStorageSync: function (key, value) {
+        storage[key] = value;
+      },
+      showModal: function () {},
       navigateTo: function () {},
       reLaunch: function () {},
     },
@@ -209,6 +217,63 @@ function createPageInstance(pageDef) {
                 review_summary: { total_due: 2, overdue_count: 1 },
               },
               learning_brain: await this.getLearningBrainProjection(),
+              learner_facing: {
+                summary: {
+                  title: "今日学习复盘",
+                  headline: "最近 2 次练习里，重点关注主体结构。",
+                  today_done: 2,
+                  recent_three_done: 2,
+                  primary_focus: "主体结构",
+                  weak_count: 1,
+                },
+                recent_attempts: [
+                  {
+                    key: "attempt-0",
+                    time_label: "今天 09:20",
+                    title: "关于主体结构验收条件的说法，正确的是？",
+                    question_text: "关于主体结构验收条件的说法，正确的是？",
+                    concept: "主体结构",
+                    result_label: "答错",
+                    tone: "wrong",
+                    answer_line: "你选：A（错误做法）；正确：B（正确做法）",
+                    diagnosis: "多选漏选",
+                    diagnosis_detail: "你漏掉了需要同时满足的验收条件。",
+                    explanation:
+                      "解析：先看题干问的是验收条件，再逐项核对规范表述，不能只按经验选相近选项。",
+                    evidence_label: "最近一次批改",
+                    collectable: true,
+                  },
+                ],
+                diagnoses: [
+                  {
+                    key: "主体结构::多选漏选",
+                    level_label: "需要重点补",
+                    title: "主体结构：多选漏选",
+                    concept: "主体结构",
+                    error: "多选漏选",
+                    meta: "最近出现 2 次",
+                    detail: "多选题容易只选一个确定项，遗漏并列正确条件。",
+                    action: "先做 3 道主体结构相关辨析题",
+                    count: 2,
+                  },
+                ],
+                training_loops: [
+                  {
+                    key: "loop-0",
+                    title: "多选漏选",
+                    from: "错因：主体结构 / 多选漏选",
+                    training: "训练：先做 3 道主体结构相关辨析题",
+                    outcome: "变化：仍需通过下一轮训练验证",
+                    tone: "not-improved",
+                  },
+                ],
+                next_action: {
+                  title: "先做 3 道“主体结构”专项题",
+                  subtitle: "目标：把“多选漏选”这一类错误拉回主线",
+                  cta: "开始训练",
+                  estimated_minutes: 8,
+                },
+              },
             };
           },
           getTodayProgress: async function () {
@@ -550,6 +615,41 @@ function createPageInstance(pageDef) {
           page.data.learningBrainChains[0] &&
           page.data.learningBrainChains[0].outcome === "本次训练结果：未改善",
         "report bootstrap should expose Learning Brain error -> training -> not-improved chain",
+      );
+      assert(
+        page.data.learningReviewSummary &&
+          page.data.learningReviewSummary.headline.indexOf("主体结构") >= 0,
+        "report page should hydrate learner-facing review summary from unified read model",
+      );
+      assert(
+        Array.isArray(page.data.learningAttemptCards) &&
+          page.data.learningAttemptCards[0] &&
+          page.data.learningAttemptCards[0].questionText.indexOf("主体结构验收") >= 0 &&
+          page.data.learningAttemptCards[0].answerLine.indexOf("你选：") >= 0 &&
+          page.data.learningAttemptCards[0].explanation.indexOf("解析：") >= 0,
+        "Learning Brain evidence should point to concrete answer records with answer and explanation",
+      );
+      assert(
+        Array.isArray(page.data.learningDiagnosisCards) &&
+          page.data.learningDiagnosisCards[0] &&
+          page.data.learningDiagnosisCards[0].action.indexOf("主体结构") >= 0,
+        "current truth should expose learner-facing weakness and action instead of graph-only evidence",
+      );
+      assert(
+        Array.isArray(page.data.learningTrainingLoops) &&
+          page.data.learningTrainingLoops[0] &&
+          page.data.learningTrainingLoops[0].outcome.indexOf("仍需") >= 0,
+        "training loop should preserve wrong cause -> training -> outcome chain in learner-facing language",
+      );
+      page.toggleMistakeBookmark({
+        currentTarget: { dataset: { key: "attempt-0" } },
+      });
+      assert(
+        page.data.mistakeBookCount === 1 &&
+          Array.isArray(page.data.mistakeBookItems) &&
+          page.data.mistakeBookItems[0] &&
+          page.data.mistakeBookItems[0].questionText.indexOf("主体结构验收") >= 0,
+        "wrong answer records should be collectable into a learner-facing mistake book",
       );
       assert(
         page.data.learningBrainTruths[0] &&

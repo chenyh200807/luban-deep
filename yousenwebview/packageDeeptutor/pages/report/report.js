@@ -595,6 +595,108 @@ function _normalizeLearningBrainPayload(raw) {
   };
 }
 
+function _normalizeLearnerFacingPayload(raw) {
+  var body = api.unwrapResponse(raw) || {};
+  var summary = body.summary || {};
+  var attempts = (body.recent_attempts || [])
+    .map(function (item, index) {
+      var card = item || {};
+      var tone = String(card.tone || "").trim();
+      var questionText = String(card.question_text || card.title || "").trim();
+      var answerLine = String(card.answer_line || "").trim();
+      var diagnosis = String(card.diagnosis || "").trim();
+      var diagnosisDetail = String(card.diagnosis_detail || "").trim();
+      var explanation = String(card.explanation || "").trim();
+      return {
+        key: String(card.key || "attempt-" + index),
+        timeLabel: String(card.time_label || "最近"),
+        title: String(card.title || questionText || "一次练习").trim(),
+        questionText: questionText,
+        concept: String(card.concept || "综合练习").trim(),
+        resultLabel: String(card.result_label || "").trim(),
+        tone: tone === "correct" ? "correct" : "wrong",
+        answerLine: answerLine,
+        diagnosis: diagnosis || (tone === "correct" ? "稳定答对" : "待归因"),
+        diagnosisDetail: diagnosisDetail,
+        explanation: explanation,
+        evidenceLabel: String(card.evidence_label || "").trim(),
+        collectable: Boolean(card.collectable),
+        options: Array.isArray(card.options) ? card.options : [],
+        detailLines: Array.isArray(card.detail_lines)
+          ? card.detail_lines.filter(Boolean)
+          : [answerLine, diagnosisDetail, explanation].filter(Boolean),
+        bookmarked: false,
+      };
+    })
+    .filter(function (item) {
+      return item.title || item.answerLine || item.diagnosisDetail;
+    });
+  var diagnoses = (body.diagnoses || [])
+    .map(function (item, index) {
+      var card = item || {};
+      return {
+        key: String(card.key || "diagnosis-" + index),
+        levelLabel: String(card.level_label || "").trim(),
+        title: String(card.title || "").trim(),
+        concept: String(card.concept || "").trim(),
+        error: String(card.error || "").trim(),
+        meta: String(card.meta || "").trim(),
+        detail: String(card.detail || "").trim(),
+        action: String(card.action || "").trim(),
+        count: Number(card.count || 0),
+      };
+    })
+    .filter(function (item) {
+      return item.title || item.detail || item.action;
+    });
+  var loops = (body.training_loops || [])
+    .map(function (item, index) {
+      var card = item || {};
+      return {
+        key: String(card.key || "loop-" + index),
+        title: String(card.title || "").trim(),
+        from: String(card.from || "").trim(),
+        training: String(card.training || "").trim(),
+        outcome: String(card.outcome || "").trim(),
+        tone: String(card.tone || "not-improved").trim(),
+      };
+    })
+    .filter(function (item) {
+      return item.title || item.training || item.outcome;
+    });
+  var nextAction = body.next_action || {};
+  return {
+    summary: {
+      title: String(summary.title || "学习复盘").trim(),
+      headline: String(summary.headline || "").trim(),
+      todayDone: Number(summary.today_done || 0),
+      recentThreeDone: Number(summary.recent_three_done || 0),
+      primaryFocus: String(summary.primary_focus || "").trim(),
+      weakCount: Number(summary.weak_count || 0),
+    },
+    attempts: attempts.slice(0, 5),
+    diagnoses: diagnoses.slice(0, 4),
+    loops: loops.slice(0, 3),
+    nextAction: {
+      title: String(nextAction.title || "").trim(),
+      subtitle: String(nextAction.subtitle || "").trim(),
+      cta: String(nextAction.cta || "开始训练").trim(),
+      estimatedMinutes: Number(nextAction.estimated_minutes || 0),
+    },
+  };
+}
+
+function _attemptDetailText(card) {
+  if (!card) return "";
+  var parts = [];
+  if (card.timeLabel) parts.push(card.timeLabel);
+  if (card.questionText) parts.push("题目：" + card.questionText);
+  if (card.answerLine) parts.push(card.answerLine);
+  if (card.diagnosisDetail) parts.push("错因：" + card.diagnosisDetail);
+  if (card.explanation) parts.push("解析：" + card.explanation);
+  return parts.join("\n\n");
+}
+
 function _buildRadarViewModel(dims) {
   var strong = 0;
   var normal = 0;
@@ -1138,6 +1240,20 @@ Page({
     learningBrainEvidence: [],
     learningBrainTraining: [],
     learningBrainChains: [],
+    learningReviewSummary: {
+      title: "学习复盘",
+      headline: "",
+      todayDone: 0,
+      recentThreeDone: 0,
+      primaryFocus: "",
+      weakCount: 0,
+    },
+    learningAttemptCards: [],
+    learningDiagnosisCards: [],
+    learningTrainingLoops: [],
+    learningNextAction: { title: "", subtitle: "", cta: "开始训练" },
+    mistakeBookCount: 0,
+    mistakeBookItems: [],
     learningBrainGraphStats: {
       eventCount: 0,
       createdClaimCount: 0,
@@ -1258,6 +1374,7 @@ Page({
       },
       mastery: mastery,
       learningBrain: report.learning_brain || {},
+      learnerFacing: report.learner_facing || {},
     };
   },
 
@@ -1293,6 +1410,10 @@ Page({
     var home = (snapshot && snapshot.home) || {};
     var mastery = (snapshot && snapshot.mastery) || {};
     var learningBrain = (snapshot && snapshot.learningBrain) || {};
+    var learnerFacing = _normalizeLearnerFacingPayload(
+      (snapshot && snapshot.learnerFacing) || {},
+    );
+    learnerFacing.attempts = this._applyMistakeBookmarks(learnerFacing.attempts);
     var radarDims = _normalizeRadarDimensions({
       dimensions: (report.radar_dimensions || []).map(function (item) {
         return {
@@ -1381,6 +1502,13 @@ Page({
       learningBrainEvidence: brainNormalized.evidence,
       learningBrainTraining: brainNormalized.training,
       learningBrainChains: brainNormalized.chains,
+      learningReviewSummary: learnerFacing.summary,
+      learningAttemptCards: learnerFacing.attempts,
+      learningDiagnosisCards: learnerFacing.diagnoses,
+      learningTrainingLoops: learnerFacing.loops,
+      learningNextAction: learnerFacing.nextAction,
+      mistakeBookCount: this._mistakeBookCount(),
+      mistakeBookItems: this._mistakeBookItems(),
       learningBrainGraphStats: brainNormalized.stats,
       learningBrainLoading: false,
       learningBrainError: false,
@@ -1397,6 +1525,53 @@ Page({
       this._radarSignature = _buildRadarSignature(radarDims);
       this._ensureRadarRendered(radarDims, this._radarSignature);
     }
+  },
+
+  _mistakeBookStorageKey() {
+    return "luban_learning_mistake_book_v1";
+  },
+
+  _readMistakeBook() {
+    try {
+      if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function") return {};
+      var value = wx.getStorageSync(this._mistakeBookStorageKey());
+      return value && typeof value === "object" && !Array.isArray(value)
+        ? value
+        : {};
+    } catch (_) {
+      return {};
+    }
+  },
+
+  _writeMistakeBook(value) {
+    try {
+      if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
+        wx.setStorageSync(this._mistakeBookStorageKey(), value || {});
+      }
+    } catch (_) {}
+  },
+
+  _mistakeBookCount() {
+    return Object.keys(this._readMistakeBook()).length;
+  },
+
+  _mistakeBookItems() {
+    var book = this._readMistakeBook();
+    return Object.keys(book)
+      .map(function (key) {
+        return Object.assign({ key: key }, book[key] || {});
+      })
+      .sort(function (a, b) {
+        return Number(b.savedAt || 0) - Number(a.savedAt || 0);
+      })
+      .slice(0, 6);
+  },
+
+  _applyMistakeBookmarks(cards) {
+    var book = this._readMistakeBook();
+    return (cards || []).map(function (card) {
+      return Object.assign({}, card, { bookmarked: Boolean(book[card.key]) });
+    });
   },
 
   onReady() {
@@ -1952,5 +2127,83 @@ Page({
   // ── 跳转练习 ─────────────────────────────────────
   goPractice() {
     wx.navigateTo({ url: route.practice() });
+  },
+
+  openAttemptDetail(event) {
+    var key = event && event.currentTarget && event.currentTarget.dataset
+      ? event.currentTarget.dataset.key
+      : "";
+    var card = (this.data.learningAttemptCards || []).find(function (item) {
+      return item.key === key;
+    });
+    if (!card) return;
+    var content = _attemptDetailText(card);
+    if (typeof wx !== "undefined" && typeof wx.showModal === "function") {
+      wx.showModal({
+        title: card.resultLabel ? card.resultLabel + "｜" + card.concept : card.concept,
+        content: content || "这次作答暂无可展开内容。",
+        showCancel: false,
+        confirmText: "知道了",
+      });
+    }
+  },
+
+  openMistakeDetail(event) {
+    var key = event && event.currentTarget && event.currentTarget.dataset
+      ? event.currentTarget.dataset.key
+      : "";
+    var card = (this.data.mistakeBookItems || []).find(function (item) {
+      return item.key === key;
+    });
+    if (!card) return;
+    var content = _attemptDetailText({
+      timeLabel: card.timeLabel,
+      questionText: card.questionText || card.title,
+      answerLine: card.answerLine,
+      diagnosisDetail: card.diagnosisDetail,
+      explanation: card.explanation,
+    });
+    if (typeof wx !== "undefined" && typeof wx.showModal === "function") {
+      wx.showModal({
+        title: "错题复盘｜" + (card.concept || "练习"),
+        content: content || "这道错题暂无可展开内容。",
+        showCancel: false,
+        confirmText: "知道了",
+      });
+    }
+  },
+
+  toggleMistakeBookmark(event) {
+    var key = event && event.currentTarget && event.currentTarget.dataset
+      ? event.currentTarget.dataset.key
+      : "";
+    if (!key) return;
+    var cards = this.data.learningAttemptCards || [];
+    var target = cards.find(function (item) {
+      return item.key === key;
+    });
+    if (!target || !target.collectable) return;
+    var book = this._readMistakeBook();
+    if (book[key]) {
+      delete book[key];
+    } else {
+      book[key] = {
+        title: target.title,
+        questionText: target.questionText,
+        answerLine: target.answerLine,
+        diagnosis: target.diagnosis,
+        diagnosisDetail: target.diagnosisDetail,
+        explanation: target.explanation,
+        concept: target.concept,
+        timeLabel: target.timeLabel,
+        savedAt: Date.now(),
+      };
+    }
+    this._writeMistakeBook(book);
+    this.setData({
+      learningAttemptCards: this._applyMistakeBookmarks(cards),
+      mistakeBookCount: Object.keys(book).length,
+      mistakeBookItems: this._mistakeBookItems(),
+    });
   },
 });

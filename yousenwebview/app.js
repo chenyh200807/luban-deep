@@ -40,7 +40,6 @@ const DEFAULT_HOST_LAYOUT = {
 };
 const CROSS_HOME_NAV_LOCK_MS = 1200;
 const HOST_HOME_URL = "/pages/freeCourse/freeCourse";
-const DEEPTUTOR_SUBPACKAGE_ROOT = "packageDeeptutor";
 const hostApiMap = require("./api/baseApi");
 const { baseUrl: HOST_LEGACY_API_BASE_URL } = require("./utils/config");
 
@@ -94,15 +93,6 @@ function tryLockCrossHomeNav(durationMs) {
   return true;
 }
 
-function buildDeeptutorLoginUrl(entrySource, returnTo) {
-  return (
-    "/packageDeeptutor/pages/login/login?entrySource=" +
-    encodeURIComponent(String(entrySource || "").trim()) +
-    "&returnTo=" +
-    encodeURIComponent(String(returnTo || "").trim())
-  );
-}
-
 function buildDeeptutorEntryBridgeUrl(entrySource, returnTo, authenticated) {
   return (
     "/pages/deeptutorEntry/deeptutorEntry?entrySource=" +
@@ -112,25 +102,6 @@ function buildDeeptutorEntryBridgeUrl(entrySource, returnTo, authenticated) {
     "&authenticated=" +
     (authenticated ? "1" : "0")
   );
-}
-
-function sanitizeDeeptutorPackageUrl(value) {
-  const url = String(value || "").trim();
-  if (url.indexOf("/packageDeeptutor/") !== 0) {
-    return "";
-  }
-  return url;
-}
-
-function buildDeeptutorTargetUrl(entrySource, returnTo, authenticated) {
-  if (authenticated) {
-    return (
-      sanitizeDeeptutorPackageUrl(returnTo) ||
-      "/packageDeeptutor/pages/chat/chat?entry_source=" +
-        encodeURIComponent(String(entrySource || "").trim())
-    );
-  }
-  return buildDeeptutorLoginUrl(entrySource, returnTo);
 }
 
 function scheduleAfterReady(task) {
@@ -606,8 +577,13 @@ App({
         return;
       }
       this.globalData._authRedirecting = true;
-      wx.reLaunch({
+      wx.redirectTo({
         url: "/packageDeeptutor/pages/login/login",
+        fail: () => {
+          wx.reLaunch({
+            url: "/packageDeeptutor/pages/login/login",
+          });
+        },
         complete: () => {
           this.globalData._authRedirecting = false;
         },
@@ -722,7 +698,7 @@ App({
     if (!tryLockCrossHomeNav(opts.lockMs)) {
       return false;
     }
-    const targetUrl = buildDeeptutorTargetUrl(
+    const bridgeUrl = buildDeeptutorEntryBridgeUrl(
       entrySource,
       returnTo,
       hasLikelyValidStoredToken()
@@ -734,25 +710,12 @@ App({
         opts.onFail(err);
       }
     };
-    const routeToTarget = () => {
-      scheduleAfterReady(() => {
-        wx.reLaunch({
-          url: targetUrl,
-          fail: handleFinalFailure,
-        });
-      });
-    };
-
-    if (typeof wx.loadSubpackage === "function") {
-      wx.loadSubpackage({
-        name: DEEPTUTOR_SUBPACKAGE_ROOT,
-        success: routeToTarget,
+    scheduleAfterReady(() => {
+      wx.reLaunch({
+        url: bridgeUrl,
         fail: handleFinalFailure,
       });
-      return true;
-    }
-
-    routeToTarget();
+    });
     return true;
   },
 
@@ -772,8 +735,13 @@ App({
       return;
     }
     this.globalData._authRedirecting = true;
-    wx.reLaunch({
+    wx.redirectTo({
       url: "/packageDeeptutor/pages/login/login",
+      fail: () => {
+        wx.reLaunch({
+          url: "/packageDeeptutor/pages/login/login",
+        });
+      },
       complete: () => {
         this.globalData._authRedirecting = false;
       },

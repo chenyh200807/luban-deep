@@ -272,6 +272,42 @@
   gap: 20rpx;
 }
 
+.brain-review-summary {
+  padding: 18rpx;
+  border-radius: 16rpx;
+  background: rgba(14, 165, 233, 0.08);
+  border: 1rpx solid rgba(125, 211, 252, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.brain-review-title {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #7dd3fc;
+}
+
+.brain-review-headline {
+  font-size: 25rpx;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.brain-review-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.brain-review-metrics text {
+  padding: 5rpx 10rpx;
+  border-radius: 8rpx;
+  background: rgba(15, 23, 42, 0.24);
+  font-size: 20rpx;
+  color: #bfdbfe;
+}
+
 .brain-column {
   display: flex;
   flex-direction: column;
@@ -285,16 +321,20 @@
 }
 
 .brain-truth-row,
+.brain-diagnosis-row,
 .brain-edge-row,
 .brain-training-row,
-.brain-chain-row {
+.brain-chain-row,
+.attempt-card,
+.brain-next-action {
   padding: 16rpx;
   border-radius: 14rpx;
   background: rgba(255, 255, 255, 0.045);
   border: 1rpx solid rgba(255, 255, 255, 0.06);
 }
 
-.brain-truth-row {
+.brain-truth-row,
+.brain-diagnosis-row {
   display: flex;
   gap: 12rpx;
 }
@@ -360,6 +400,166 @@
   color: var(--text-muted);
 }
 
+.brain-diagnosis-detail,
+.brain-action-line {
+  font-size: 22rpx;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.brain-action-line {
+  color: #bfdbfe;
+}
+
+.attempt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.attempt-card:active,
+.brain-next-action:active {
+  opacity: 0.82;
+}
+
+.attempt-wrong {
+  border-color: rgba(248, 113, 113, 0.18);
+  background: rgba(248, 113, 113, 0.055);
+}
+
+.attempt-correct {
+  border-color: rgba(52, 211, 153, 0.18);
+  background: rgba(16, 185, 129, 0.055);
+}
+
+.attempt-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16rpx;
+}
+
+.attempt-time {
+  display: block;
+  margin-bottom: 4rpx;
+  font-size: 20rpx;
+  color: #93c5fd;
+}
+
+.attempt-title {
+  display: block;
+  font-size: 25rpx;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+.attempt-result {
+  flex-shrink: 0;
+  padding: 5rpx 10rpx;
+  border-radius: 9rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+.result-wrong {
+  background: rgba(248, 113, 113, 0.14);
+  color: #fca5a5;
+}
+
+.result-correct {
+  background: rgba(52, 211, 153, 0.14);
+  color: #6ee7b7;
+}
+
+.attempt-answer {
+  font-size: 23rpx;
+  line-height: 1.45;
+  color: #e5e7eb;
+}
+
+.attempt-diagnosis,
+.attempt-explanation {
+  font-size: 22rpx;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.attempt-explanation {
+  padding-top: 2rpx;
+  color: var(--text-secondary);
+}
+
+.attempt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  padding-top: 2rpx;
+}
+
+.attempt-action {
+  padding: 7rpx 12rpx;
+  border-radius: 10rpx;
+  background: rgba(96, 165, 250, 0.12);
+  border: 1rpx solid rgba(96, 165, 250, 0.18);
+  font-size: 21rpx;
+  font-weight: 700;
+  color: #bfdbfe;
+}
+
+.mistake-card {
+  padding: 16rpx;
+  border-radius: 14rpx;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1rpx solid rgba(251, 191, 36, 0.14);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14rpx;
+}
+
+.mistake-card:active {
+  opacity: 0.82;
+}
+
+.mistake-title {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+.mistake-meta {
+  display: block;
+  margin-top: 5rpx;
+  font-size: 20rpx;
+  color: var(--text-muted);
+}
+
+.mistake-reason {
+  flex-shrink: 0;
+  max-width: 190rpx;
+  padding: 5rpx 10rpx;
+  border-radius: 9rpx;
+  background: rgba(15, 23, 42, 0.22);
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #fde68a;
+}
+
+.bookmark-action {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.18);
+  color: #fde68a;
+}
+
+.bookmark-action.bookmarked {
+  background: rgba(52, 211, 153, 0.13);
+  border-color: rgba(52, 211, 153, 0.2);
+  color: #6ee7b7;
+}
+
 .brain-event-list {
   display: flex;
   flex-wrap: wrap;
@@ -377,10 +577,27 @@
 
 .brain-edge-row,
 .brain-training-row,
-.brain-chain-row {
+.brain-chain-row,
+.brain-next-action {
   display: flex;
   flex-direction: column;
   gap: 6rpx;
+}
+
+.brain-next-action {
+  border-color: rgba(52, 211, 153, 0.18);
+  background: rgba(6, 78, 59, 0.16);
+}
+
+.brain-next-cta {
+  align-self: flex-start;
+  margin-top: 6rpx;
+  padding: 7rpx 12rpx;
+  border-radius: 10rpx;
+  background: rgba(52, 211, 153, 0.13);
+  font-size: 21rpx;
+  font-weight: 700;
+  color: #6ee7b7;
 }
 
 .brain-chain-row {
