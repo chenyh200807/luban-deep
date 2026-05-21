@@ -224,3 +224,43 @@ test('wechat harness displays learning brain grading and synthesis result', asyn
   await expect(visibleChain).not.toContainText('Compiled truth + timeline')
   await expect(visibleChain).not.toContainText('Typed graph chain')
 })
+
+test('wechat harness never leaks grading authority into SSR HTML or hydrated DOM', async ({
+  page,
+  request,
+}) => {
+  const forbidden = [
+    'correct_answer',
+    'correctAnswer',
+    'scoring_points',
+    'scoringPoints',
+    'grading_key',
+    'gradingKey',
+    'grading_authority',
+    'gradingAuthority',
+    'reference_answer',
+    'followup_context',
+    'followupContext',
+    'LEAK_',
+    '正确答案：',
+    '参考答案：',
+  ]
+
+  // SSR HTML (raw response, before hydration)
+  const response = await request.get('/wechat-harness')
+  expect(response.status()).toBe(200)
+  const ssrHtml = await response.text()
+  for (const marker of forbidden) {
+    expect(ssrHtml, `SSR HTML must not contain ${marker}`).not.toContain(marker)
+  }
+
+  // Hydrated DOM (after React renders client-side)
+  await page.goto('/wechat-harness')
+  await expect(page.getByTestId('wechat-harness-root')).toBeVisible()
+  const hydratedHtml = await page.evaluate(() => document.documentElement.outerHTML)
+  const hydratedText = await page.evaluate(() => document.documentElement.innerText)
+  for (const marker of forbidden) {
+    expect(hydratedHtml, `hydrated DOM HTML must not contain ${marker}`).not.toContain(marker)
+    expect(hydratedText, `hydrated DOM innerText must not contain ${marker}`).not.toContain(marker)
+  }
+})
