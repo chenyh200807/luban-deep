@@ -456,6 +456,23 @@ function getLearningReport(eventLimit, opts) {
   });
 }
 
+/** 获取单次作答详情 */
+function getLearningAttemptDetail(attemptRef) {
+  return request({
+    url: "/api/v1/mobile/learning-attempts/" + encodeURIComponent(String(attemptRef || "")),
+    method: "GET",
+  });
+}
+
+/** 收藏错题到云端错题集 authority */
+function saveMistakeBookItem(payload) {
+  return request({
+    url: "/api/v1/mobile/mistake-book/items",
+    method: "POST",
+    data: payload || {},
+  });
+}
+
 /** 本地 QA：写入案例题阅卷事件并触发合成，只在本地后端开启 QA router 时可用 */
 function runLearningBrainHarnessCaseGrading(payload) {
   return request({
@@ -613,6 +630,8 @@ module.exports = {
   getDailyQuestion: getDailyQuestion,
   getRadarData: getRadarData,
   getLearningReport: getLearningReport,
+  getLearningAttemptDetail: getLearningAttemptDetail,
+  saveMistakeBookItem: saveMistakeBookItem,
   getLearningBrainProjection: getLearningBrainProjection,
   runLearningBrainHarnessCaseGrading: runLearningBrainHarnessCaseGrading,
   getMasteryDashboard: getMasteryDashboard,

@@ -81,6 +81,9 @@ function normalizeRadar(dimensions) {
 function normalizeMastery(source) {
   var mastery = asObject(source);
   var overall = mastery.overall_mastery;
+  var overallPayload = asObject(overall);
+  var overallConfidence = asNumber(overallPayload.confidence, 0);
+  var overallStatus = String(overallPayload.status || "");
   if (overall && typeof overall === "object") overall = overall.score;
   var groups = asList(mastery.groups).map(function (group) {
     var item = asObject(group);
@@ -104,6 +107,9 @@ function normalizeMastery(source) {
   });
   return {
     overall: Math.round(asNumber(overall, 0)),
+    overallConfidence: overallConfidence,
+    overallStatus: overallStatus,
+    overallStatusLabel: masteryStatusLabel(overallStatus, overallConfidence),
     groups: groups,
     hotspots: asList(mastery.hotspots).map(function (hotspot) {
       var item = asObject(hotspot);
@@ -118,6 +124,15 @@ function normalizeMastery(source) {
   };
 }
 
+function masteryStatusLabel(status, confidence) {
+  var key = String(status || "");
+  var value = asNumber(confidence, 0);
+  if (key === "insufficient_evidence" || value < 0.4) return "证据不足";
+  if (key === "stable" || value >= 0.7) return "稳定掌握";
+  if (key === "needs_confirmation") return "待确认";
+  return "正在形成";
+}
+
 function normalizeLearningBrain(report) {
   var learnerFacing = asObject(report.learner_facing);
   var learningBrain = asObject(report.learning_brain);
@@ -128,6 +143,8 @@ function normalizeLearningBrain(report) {
     return {
       key: String(attempt.key || "attempt-" + index),
       attemptRef: String(attempt.attempt_ref || ""),
+      subjectId: String(attempt.subject_id || ""),
+      botId: String(attempt.bot_id || ""),
       timeLabel: String(attempt.time_label || ""),
       title: String(attempt.title || "一次练习"),
       questionText: String(attempt.question_text || attempt.title || ""),
@@ -342,9 +359,34 @@ function buildLearningReportViewModel(report) {
   var radar = normalizeRadar(body.radar_dimensions);
   var mastery = normalizeMastery(body.mastery);
   var learningBrain = normalizeLearningBrain(body);
+  var truthSections = asObject(body.truth_sections);
   var degradedSources = asList(body.degraded_sources);
+  var hero = asObject(body.hero);
+  var primaryFocus =
+    String(asObject(body.learner_facing).summary ? asObject(asObject(body.learner_facing).summary).primary_focus || "" : "") ||
+    String(overview.focus_hint || "");
+  var nextTraining = normalizeNextTraining(body.next_training, learningBrain);
+  var attempts = normalizeV2Attempts(body.attempts, learningBrain);
   return {
     schemaVersion: asNumber(body.schema_version, 1),
+    hero: {
+      stageLabel: String(hero.stage_label || levelName(overview.learner_level || "") || "当前学习状态"),
+      scoreText: String(hero.score_text || mastery.overall + "%"),
+      headline: String(hero.headline || (primaryFocus ? "当前最该补：" + primaryFocus : "完成一次练习后生成重点")),
+      primaryCta: asObject(hero.primary_cta),
+    },
+    metrics: [
+      { key: "today", label: "今日", value: asNumber(overview.today_done, 0) },
+      { key: "recent_three", label: "近3天", value: asNumber(overview.recent_three_done, 0) },
+      { key: "streak", label: "连续学习", value: asNumber(overview.streak_days, 0) },
+      { key: "weak", label: "待补错因", value: asNumber(overview.weak_node_count, 0) },
+    ],
+    stableTruths: asList(truthSections.stable_truths),
+    recentObservations: asList(truthSections.recent_observations),
+    attempts: attempts,
+    mistakeBook: asObject(body.mistake_book),
+    nextTraining: nextTraining,
+    masteryDimensions: normalizeMasteryDimensions(body.mastery),
     overview: {
       todayDone: asNumber(overview.today_done, 0),
       dailyTarget: asNumber(overview.daily_target, 0),
@@ -365,6 +407,59 @@ function buildLearningReportViewModel(report) {
     degraded: Boolean(body.degraded) || degradedSources.length > 0,
     degradedSources: degradedSources,
   };
+}
+
+function normalizeV2Attempts(source, learningBrain) {
+  var attempts = asList(source);
+  if (!attempts.length) return asList(asObject(learningBrain).attempts);
+  return attempts.map(function (item, index) {
+    var attempt = asObject(item);
+    return {
+      key: String(attempt.attempt_key || attempt.key || "attempt-" + index),
+      attemptRef: String(attempt.attempt_ref || ""),
+      subjectId: String(attempt.subject_id || ""),
+      botId: String(attempt.bot_id || ""),
+      timeLabel: String(attempt.time_label || ""),
+      title: String(attempt.question_title || attempt.title || "一次练习"),
+      questionText: String(attempt.question_preview || attempt.question_text || ""),
+      resultLabel: String(attempt.result_label || ""),
+      answerLine: String(attempt.answer_line || ""),
+      diagnosis: String(attempt.diagnosis || ""),
+      diagnosisDetail: String(attempt.why_it_matters || ""),
+      collectable: Boolean(asObject(attempt.actions).bookmark),
+    };
+  });
+}
+
+function normalizeNextTraining(source, learningBrain) {
+  var items = asList(source);
+  if (!items.length) return asList(asObject(learningBrain).training);
+  return items.map(function (item, index) {
+    var training = asObject(item);
+    return {
+      key: String(training.key || "training-" + index),
+      title: String(training.title || ""),
+      meta: String(training.reason || ""),
+      cta: String(training.cta || "开始训练"),
+      estimatedMinutes: asNumber(training.estimated_minutes, 0),
+      intent: asObject(training.intent),
+    };
+  });
+}
+
+function normalizeMasteryDimensions(source) {
+  return asList(asObject(source).dimensions).map(function (item, index) {
+    var dimension = asObject(item);
+    return {
+      key: String(dimension.key || "mastery-" + index),
+      name: chapterName(dimension.name || ""),
+      score: asNumber(dimension.score, 0),
+      confidence: asNumber(dimension.confidence, 0),
+      status: String(dimension.status || ""),
+      sampleCount: asNumber(dimension.sample_count, 0),
+      coverageRatio: asNumber(dimension.coverage_ratio, 0),
+    };
+  });
 }
 
 function toReportPageData(model) {
@@ -397,6 +492,9 @@ function toReportPageData(model) {
     overviewScore: asList(radar.dims).length ? radar.avgScore || 0 : mastery.overall || 0,
     dimList: asList(radar.dimList),
     overallMastery: mastery.overall || 0,
+    masteryConfidence: mastery.overallConfidence || 0,
+    masteryStatus: mastery.overallStatus || "",
+    masteryStatusLabel: mastery.overallStatusLabel || "证据不足",
     masteryGroups: asList(mastery.groups),
     hotspots: asList(mastery.hotspots),
     reviewSummary: asObject(mastery.reviewSummary),
@@ -411,7 +509,7 @@ function toReportPageData(model) {
     learningBrainGraphStats: asObject(brain.stats),
     learningBrainEmpty: emptyBrain,
     learningReviewSummary: asObject(brain.summary),
-    learningAttemptCards: asList(brain.attempts),
+    learningAttemptCards: asList(vm.attempts).length ? asList(vm.attempts) : asList(brain.attempts),
     learningDiagnosisCards: asList(brain.diagnoses),
     learningTrainingLoops: asList(brain.chains),
     learningNextAction: asObject(brain.nextAction),

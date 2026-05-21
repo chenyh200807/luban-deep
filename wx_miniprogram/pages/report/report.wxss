@@ -104,12 +104,18 @@
   color: var(--text-primary);
 }
 
+.overview-kicker {
+  display: block;
+  margin-bottom: 8rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #7dd3fc;
+}
+
 .overview-sub {
   display: block;
   margin-top: 8rpx;
   font-size: 22rpx;
-  text-transform: uppercase;
-  letter-spacing: 2rpx;
   color: var(--text-muted);
 }
 
@@ -136,6 +142,29 @@
   font-size: 24rpx;
   line-height: 1.6;
   color: var(--text-secondary);
+}
+
+.focus-summary {
+  padding: 18rpx;
+  border-radius: 14rpx;
+  background: rgba(15, 23, 42, 0.28);
+  border: 1rpx solid rgba(148, 163, 184, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.focus-label {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #93c5fd;
+}
+
+.focus-text {
+  font-size: 28rpx;
+  line-height: 1.4;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 
 .overview-metrics {
@@ -201,7 +230,67 @@
   color: var(--text-primary);
 }
 
+.primary-training-cta {
+  margin-top: 2rpx;
+  padding: 16rpx;
+  border-radius: 14rpx;
+  background: rgba(6, 78, 59, 0.18);
+  border: 1rpx solid rgba(52, 211, 153, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.primary-training-title,
+.primary-training-sub {
+  display: block;
+}
+
+.primary-training-title {
+  font-size: 25rpx;
+  line-height: 1.35;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.primary-training-sub {
+  margin-top: 6rpx;
+  font-size: 21rpx;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.primary-training-btn {
+  flex-shrink: 0;
+  padding: 9rpx 14rpx;
+  border-radius: 10rpx;
+  background: rgba(52, 211, 153, 0.14);
+  color: #6ee7b7;
+  font-size: 21rpx;
+  font-weight: 800;
+}
+
+.degraded-hint {
+  padding: 14rpx 18rpx;
+  border-radius: 12rpx;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1rpx solid rgba(251, 191, 36, 0.18);
+}
+
+.degraded-hint text {
+  font-size: 22rpx;
+  line-height: 1.45;
+  color: #fbbf24;
+}
+
 /* ── Learning Brain ─────────────────────────────── */
+.learning-review-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
 .learning-brain {
   padding: 24rpx;
   display: flex;
@@ -313,6 +402,12 @@
   color: #7dd3fc;
 }
 
+.brain-column-sub {
+  margin-top: -4rpx;
+  font-size: 21rpx;
+  color: var(--text-muted);
+}
+
 .brain-review-hero {
   padding: 22rpx;
   border-radius: 18rpx;
@@ -375,7 +470,6 @@
   color: var(--text-muted);
 }
 
-.brain-attempt-row,
 .brain-diagnosis-row,
 .brain-timeline-row {
   padding: 18rpx;
@@ -387,31 +481,48 @@
   gap: 8rpx;
 }
 
-.brain-attempt-row.attempt-wrong {
+.attempt-card {
+  padding: 18rpx;
+  border-radius: 14rpx;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1rpx solid rgba(255, 255, 255, 0.065);
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.attempt-card:active,
+.brain-next-action:active {
+  opacity: 0.82;
+}
+
+.attempt-card.attempt-wrong {
   border-color: rgba(248, 113, 113, 0.2);
   background: rgba(127, 29, 29, 0.12);
 }
 
-.brain-attempt-row.attempt-correct {
+.attempt-card.attempt-correct {
   border-color: rgba(52, 211, 153, 0.2);
   background: rgba(6, 78, 59, 0.12);
 }
 
-.brain-attempt-head,
+.attempt-head,
 .brain-diagnosis-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12rpx;
 }
 
-.brain-attempt-time,
+.attempt-time,
 .brain-diagnosis-count {
+  display: block;
+  margin-bottom: 4rpx;
   font-size: 21rpx;
   color: var(--text-muted);
 }
 
-.brain-attempt-result,
+.attempt-result,
 .brain-diagnosis-level {
   padding: 5rpx 10rpx;
   border-radius: 999rpx;
@@ -421,25 +532,26 @@
   font-weight: 700;
 }
 
-.attempt-wrong .brain-attempt-result {
+.result-wrong {
   background: rgba(248, 113, 113, 0.13);
   color: #fecaca;
 }
 
-.attempt-correct .brain-attempt-result {
+.result-correct {
   background: rgba(52, 211, 153, 0.13);
   color: #bbf7d0;
 }
 
-.brain-attempt-title,
+.attempt-title,
 .brain-diagnosis-title {
+  display: block;
   font-size: 27rpx;
   line-height: 1.45;
   font-weight: 800;
   color: var(--text-primary);
 }
 
-.brain-attempt-answer,
+.attempt-answer,
 .brain-diagnosis-detail,
 .brain-timeline-line {
   font-size: 23rpx;
@@ -447,25 +559,7 @@
   color: var(--text-secondary);
 }
 
-.brain-attempt-diagnosis {
-  margin-top: 4rpx;
-  padding-top: 10rpx;
-  border-top: 1rpx solid rgba(148, 163, 184, 0.12);
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-}
-
-.brain-diagnosis-tag {
-  align-self: flex-start;
-  padding: 5rpx 10rpx;
-  border-radius: 8rpx;
-  background: rgba(15, 23, 42, 0.28);
-  color: #fbbf24;
-  font-size: 20rpx;
-  font-weight: 800;
-}
-
+.attempt-diagnosis,
 .brain-diagnosis-text,
 .brain-diagnosis-action {
   font-size: 22rpx;
@@ -476,6 +570,29 @@
 .brain-diagnosis-action {
   color: #93c5fd;
   font-weight: 700;
+}
+
+.attempt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  padding-top: 2rpx;
+}
+
+.attempt-action {
+  padding: 7rpx 12rpx;
+  border-radius: 10rpx;
+  background: rgba(96, 165, 250, 0.12);
+  border: 1rpx solid rgba(96, 165, 250, 0.18);
+  font-size: 21rpx;
+  font-weight: 700;
+  color: #bfdbfe;
+}
+
+.bookmark-action.cloud {
+  background: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: var(--text-muted);
 }
 
 .brain-timeline-title {
@@ -495,6 +612,7 @@
 .brain-truth-row,
 .brain-edge-row,
 .brain-training-row,
+.brain-next-action,
 .brain-chain-row {
   padding: 16rpx;
   border-radius: 14rpx;
@@ -585,10 +703,27 @@
 
 .brain-edge-row,
 .brain-training-row,
+.brain-next-action,
 .brain-chain-row {
   display: flex;
   flex-direction: column;
   gap: 6rpx;
+}
+
+.brain-next-action {
+  border-color: rgba(52, 211, 153, 0.18);
+  background: rgba(6, 78, 59, 0.16);
+}
+
+.brain-next-cta {
+  align-self: flex-start;
+  margin-top: 6rpx;
+  padding: 7rpx 12rpx;
+  border-radius: 10rpx;
+  background: rgba(52, 211, 153, 0.13);
+  font-size: 21rpx;
+  font-weight: 700;
+  color: #6ee7b7;
 }
 
 .brain-chain-row {

@@ -572,6 +572,23 @@ function getLearningReport(eventLimit, opts) {
   );
 }
 
+/** 获取单次作答详情 */
+function getLearningAttemptDetail(attemptRef, opts) {
+  return requestStateGet(
+    "/api/v1/mobile/learning-attempts/" + encodeURIComponent(String(attemptRef || "")),
+    opts,
+  );
+}
+
+/** 收藏错题到云端错题集 authority */
+function saveMistakeBookItem(payload) {
+  return request({
+    url: "/api/v1/mobile/mistake-book/items",
+    method: "POST",
+    data: payload || {},
+  });
+}
+
 /** 获取对话列表 */
 function getConversations(archived) {
   var url = "/api/v1/conversations";
@@ -708,6 +725,8 @@ module.exports = {
   getRadarData: getRadarData,
   getMasteryDashboard: getMasteryDashboard,
   getLearningReport: getLearningReport,
+  getLearningAttemptDetail: getLearningAttemptDetail,
+  saveMistakeBookItem: saveMistakeBookItem,
   getLearningBrainProjection: getLearningBrainProjection,
   getConversations: getConversations,
   createConversation: createConversation,

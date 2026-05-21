@@ -36,6 +36,22 @@ var report = {
     hotspots: [{ name: "防水工程", mastery: 28 }],
     review_summary: { total_due: 2, overdue_count: 1 },
   },
+  attempts: [
+    {
+      attempt_key: "attempt-1",
+      attempt_ref: "signed-ref",
+      subject_id: "construction_exam_1",
+      bot_id: "construction-exam",
+      time_label: "今天 09:20",
+      question_title: "主体结构验收条件",
+      question_preview: "主体结构验收条件",
+      result_label: "答错",
+      answer_line: "你选 A，正确 B",
+      diagnosis: "多选漏选",
+      why_it_matters: "漏掉验收条件",
+      actions: { bookmark: true },
+    },
+  ],
   learner_facing: {
     summary: {
       title: "今日学习复盘",
@@ -81,12 +97,24 @@ assert.deepStrictEqual(wxModel, yousenModel);
 assert.strictEqual(wxModel.overview.todayDone, 4);
 assert.strictEqual(wxModel.radar.weakCount, 1);
 assert.strictEqual(wxModel.mastery.overall, 52);
+assert.strictEqual(wxModel.mastery.overallStatusLabel, "正在形成");
 assert.strictEqual(wxModel.learningBrain.attempts[0].attemptRef, "signed-ref");
 assert.strictEqual(wxModel.learningBrain.training[0].intent.source, "learning_report");
+assert.strictEqual(wxModel.hero.headline, "当前最该补：主体结构");
+assert.strictEqual(wxModel.metrics[1].key, "recent_three");
+assert.strictEqual(wxModel.attempts[0].attemptRef, "signed-ref");
+assert.strictEqual(wxModel.attempts[0].subjectId, "construction_exam_1");
+assert.strictEqual(wxModel.nextTraining[0].intent.source, "learning_report");
+assert(Array.isArray(wxModel.masteryDimensions));
+assert("stableTruths" in wxModel);
+assert("recentObservations" in wxModel);
+assert("mistakeBook" in wxModel);
 
 var pageData = wxVm.toReportPageData(wxModel);
 assert.strictEqual(pageData.todayDone, 4);
+assert.strictEqual(pageData.masteryStatusLabel, "正在形成");
 assert.strictEqual(pageData.learningBrainAttempts[0].title, "主体结构验收条件");
+assert.strictEqual(pageData.learningAttemptCards[0].subjectId, "construction_exam_1");
 assert.strictEqual(pageData.learningBrainNextAction.intent.source, "learning_report");
 
 var wxReportSource = fs.readFileSync(wxReportPath, "utf8");

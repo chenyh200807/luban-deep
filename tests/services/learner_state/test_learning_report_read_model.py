@@ -378,6 +378,60 @@ def test_conversation_evidence_does_not_mark_mastered() -> None:
     assert model["learner_facing"]["summary"]["recent_three_done"] == 0
 
 
+def test_v2_mastery_uses_evidence_sufficiency_not_conversation_only_legacy_score() -> None:
+    class OverconfidentMember(FakeMemberService):
+        def get_assessment_profile(self, user_id: str) -> dict:
+            return {
+                "level": "advanced",
+                "chapter_mastery": {"1A432000": {"name": "1A432000", "mastery": 100}},
+                "diagnostic_feedback": {"learner_profile": {"study_tip": "继续用练习验证"}},
+            }
+
+        def get_mastery_dashboard(self, user_id: str) -> dict:
+            return {
+                "overall_mastery": 100,
+                "groups": [
+                    {
+                        "name": "掌握较好",
+                        "avg_mastery": 100,
+                        "chapters": [{"name": "1A432000", "mastery": 100}],
+                    }
+                ],
+                "hotspots": [{"name": "1A432000", "mastery": 100}],
+                "review_summary": {"total_due": 0, "overdue_count": 0},
+            }
+
+    event = LearnerStateEvent(
+        event_id="evt_conversation_mastery",
+        user_id="student_demo",
+        source_feature="conversation_synthesis",
+        source_id="turn-1",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="evt_conversation_mastery",
+        created_at=_iso(0),
+        payload_json={
+            "event_type": "learning_evidence",
+            "evidence_source": "conversation_synthesis",
+            "learning_signal_type": "concept_explain",
+            "concept": {"label": "主体结构"},
+            "quality": {"detail_ready": True, "progress_countable": False, "truth_eligible": False},
+        },
+    )
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=OverconfidentMember(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+        schema_version=2,
+    )
+
+    assert model["mastery"]["overall_mastery"]["score"] <= 60
+    assert model["mastery"]["overall_mastery"]["confidence"] < 0.4
+    assert model["mastery"]["overall_mastery"]["status"] == "insufficient_evidence"
+    assert model["mastery"]["dimensions"][0]["status"] == "insufficient_evidence"
+
+
 def test_conversation_evidence_does_not_pollute_mixed_attempt_counts() -> None:
     from deeptutor.services.learner_state.service import LearnerStateEvent
 

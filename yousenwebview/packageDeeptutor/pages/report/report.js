@@ -695,8 +695,27 @@ function _normalizeLearnerFacingPayload(raw) {
   };
 }
 
-function _attemptDetailText(card) {
+function _attemptDetailText(card, detail) {
   if (!card) return "";
+  var payload = _asLearningBrainObject(detail);
+  var question = _asLearningBrainObject(payload.question);
+  var answer = _asLearningBrainObject(payload.answer);
+  var explanation = _asLearningBrainObject(payload.explanation);
+  var diagnosis = _asLearningBrainObject(payload.diagnosis);
+  if (payload.ok) {
+    return [
+      question.stem ? "题目：" + question.stem : "",
+      answer.user_answer ? "你答：" + answer.user_answer : "",
+      answer.correct_answer ? "正确：" + answer.correct_answer : "",
+      diagnosis.detail || diagnosis.error_label
+        ? "诊断：" + (diagnosis.detail || diagnosis.error_label)
+        : "",
+      explanation.summary ? "解析：" + explanation.summary : "",
+      explanation.why_user_wrong ? "错因：" + explanation.why_user_wrong : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+  }
   var parts = [];
   if (card.timeLabel) parts.push(card.timeLabel);
   if (card.questionText) parts.push("题目：" + card.questionText);
@@ -704,6 +723,20 @@ function _attemptDetailText(card) {
   if (card.diagnosisDetail) parts.push("错因：" + card.diagnosisDetail);
   if (card.explanation) parts.push("解析：" + card.explanation);
   return parts.join("\n\n");
+}
+
+function _mistakeBookPayloadFromCard(card) {
+  var item = _asLearningBrainObject(card);
+  return {
+    attempt_ref: String(item.attemptRef || ""),
+    subject_id: String(item.subjectId || ""),
+    bot_id: String(item.botId || "construction-exam"),
+    title: String(item.title || item.questionText || "错题复盘"),
+    concept_label: String(item.concept || ""),
+    error_label: String(item.diagnosis || ""),
+    note: String(item.diagnosisDetail || item.explanation || ""),
+    tags: ["learning-report"],
+  };
 }
 
 function _buildRadarViewModel(dims) {
@@ -2008,7 +2041,7 @@ Page({
     wx.navigateTo({ url: route.practice() });
   },
 
-  openAttemptDetail(event) {
+  async openAttemptDetail(event) {
     var key =
       event && event.currentTarget && event.currentTarget.dataset
         ? event.currentTarget.dataset.key
@@ -2017,7 +2050,17 @@ Page({
       return item.key === key;
     });
     if (!card) return;
-    var content = _attemptDetailText(card);
+    var detail = null;
+    if (card.attemptRef && api.getLearningAttemptDetail) {
+      try {
+        detail = api.unwrapResponse(
+          await api.getLearningAttemptDetail(card.attemptRef),
+        );
+      } catch (_err) {
+        detail = null;
+      }
+    }
+    var content = _attemptDetailText(card, detail);
     if (typeof wx !== "undefined" && typeof wx.showModal === "function") {
       wx.showModal({
         title: card.resultLabel
@@ -2030,17 +2073,32 @@ Page({
     }
   },
 
-  // 错题集 authority 收敛到云端 `learner_mistake_book_items`（见
-  // docs/plan/2026-05-21-luban-learning-report-world-class-optimization-plan.md §-1.2 #3 / §Task 3）。
-  // 云端 endpoint 未上线前，yousen 端不持有第二套本地 truth source；点击只提示待接入，
-  // 不写 wx storage、不改任何展示状态。
-  toggleMistakeBookmark() {
-    if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
-      wx.showToast({
-        title: "云端错题集即将上线",
-        icon: "none",
-        duration: 1800,
-      });
+  async toggleMistakeBookmark(event) {
+    var key =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.key
+        : "";
+    var card = (this.data.learningAttemptCards || []).find(function (item) {
+      return item.key === key;
+    });
+    if (!card || !card.attemptRef || !card.subjectId || !api.saveMistakeBookItem) {
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "这条作答暂不能收藏", icon: "none", duration: 1800 });
+      }
+      return;
+    }
+    try {
+      await api.saveMistakeBookItem(_mistakeBookPayloadFromCard(card));
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "已收藏到云端错题集", icon: "success", duration: 1600 });
+      }
+      if (typeof this._loadReportPage === "function") {
+        this._loadReportPage();
+      }
+    } catch (_err) {
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "收藏失败，请稍后重试", icon: "none", duration: 1800 });
+      }
     }
   },
 });

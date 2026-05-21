@@ -86,6 +86,52 @@ function asObject(value) {
     : {};
 }
 
+function attemptDetailText(card, detail) {
+  var item = asObject(card);
+  var payload = asObject(detail);
+  var question = asObject(payload.question);
+  var answer = asObject(payload.answer);
+  var explanation = asObject(payload.explanation);
+  var diagnosis = asObject(payload.diagnosis);
+  if (payload.ok) {
+    return [
+      question.stem ? "题目：" + question.stem : "",
+      answer.user_answer ? "你答：" + answer.user_answer : "",
+      answer.correct_answer ? "正确：" + answer.correct_answer : "",
+      diagnosis.detail || diagnosis.error_label
+        ? "诊断：" + (diagnosis.detail || diagnosis.error_label)
+        : "",
+      explanation.summary ? "解析：" + explanation.summary : "",
+      explanation.why_user_wrong ? "错因：" + explanation.why_user_wrong : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+  }
+  return [
+    item.answerLine ? "作答：" + item.answerLine : "",
+    item.diagnosisDetail || item.diagnosis
+      ? "诊断：" + (item.diagnosisDetail || item.diagnosis)
+      : "",
+    item.explanation ? "解析：" + item.explanation : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function mistakeBookPayloadFromCard(card) {
+  var item = asObject(card);
+  return {
+    attempt_ref: String(item.attemptRef || ""),
+    subject_id: String(item.subjectId || ""),
+    bot_id: String(item.botId || "construction-exam"),
+    title: String(item.title || item.questionText || "错题复盘"),
+    concept_label: String(item.concept || ""),
+    error_label: String(item.diagnosis || ""),
+    note: String(item.diagnosisDetail || item.explanation || ""),
+    tags: ["learning-report"],
+  };
+}
+
 function normalizeEventIds(ids) {
   return asList(ids)
     .map(function (_id, index) {
@@ -1461,5 +1507,65 @@ Page({
   // ── 跳转练习 ─────────────────────────────────────
   goPractice() {
     wx.navigateTo({ url: "/pages/practice/practice" });
+  },
+
+  async openAttemptDetail(event) {
+    var key =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.key
+        : "";
+    var card = (this.data.learningAttemptCards || []).find(function (item) {
+      return item.key === key;
+    });
+    if (!card) return;
+    var detail = null;
+    if (card.attemptRef && api.getLearningAttemptDetail) {
+      try {
+        detail = api.unwrapResponse(
+          await api.getLearningAttemptDetail(card.attemptRef),
+        );
+      } catch (_err) {
+        detail = null;
+      }
+    }
+    if (typeof wx !== "undefined" && typeof wx.showModal === "function") {
+      wx.showModal({
+        title: card.resultLabel
+          ? card.resultLabel + "｜" + (card.concept || "本次作答")
+          : card.concept || "本次作答",
+        content: attemptDetailText(card, detail) || "这次作答暂无可展开内容。",
+        showCancel: false,
+        confirmText: "知道了",
+      });
+    }
+  },
+
+  async toggleMistakeBookmark(event) {
+    var key =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.key
+        : "";
+    var card = (this.data.learningAttemptCards || []).find(function (item) {
+      return item.key === key;
+    });
+    if (!card || !card.attemptRef || !card.subjectId || !api.saveMistakeBookItem) {
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "这条作答暂不能收藏", icon: "none", duration: 1800 });
+      }
+      return;
+    }
+    try {
+      await api.saveMistakeBookItem(mistakeBookPayloadFromCard(card));
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "已收藏到云端错题集", icon: "success", duration: 1600 });
+      }
+      if (typeof this._loadLearningReport === "function") {
+        this._loadLearningReport();
+      }
+    } catch (_err) {
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "收藏失败，请稍后重试", icon: "none", duration: 1800 });
+      }
+    }
   },
 });
