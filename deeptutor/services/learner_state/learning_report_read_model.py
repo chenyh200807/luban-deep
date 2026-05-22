@@ -13,6 +13,9 @@ from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
 from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
+from deeptutor.services.learner_state.learning_state_projection import (
+    project_three_layer_learning_state,
+)
 from deeptutor.services.learner_state.scoring_point_map_read_model import (
     build_scoring_point_map_read_projection,
 )
@@ -23,6 +26,13 @@ from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_l
 def _build_scoring_point_map_from(*, events: list[Any], user_id: str) -> dict[str, Any]:
     """Batch C Task 7: thin composer — never grows beyond delegation."""
     return build_scoring_point_map_read_projection(events=events, user_id=user_id)
+
+
+def _build_learning_state_from(*, events: list[Any]) -> dict[str, Any]:
+    """Batch C Task 8: thin composer — exposes Task 4's three-layer
+    projection at the top of the report so the view-model can read it
+    without spelunking into learning_brain."""
+    return project_three_layer_learning_state(events=events)
 
 _TZ = timezone(timedelta(hours=8))
 _SCHEMA_VERSION = 1
@@ -246,6 +256,11 @@ def build_learning_report_read_model(
         "scoring_point_map": _build_scoring_point_map_from(
             events=events, user_id=normalized_user
         ),
+        # Batch C Task 8: three-layer learning state (Task 4 projection)
+        # exposed at top level so the student page view-model can render
+        # state -> reason -> action -> evidence without traversing into
+        # learning_brain internals.
+        "learning_state": _build_learning_state_from(events=events),
         "legacy_compat": {
             "today_progress": legacy_today,
             "home_dashboard": home_dashboard,

@@ -79,7 +79,9 @@ var report = {
       },
     ],
     diagnoses: [{ key: "d1", title: "多选漏选", detail: "条件组合不完整" }],
-    evidence_timeline: [{ key: "e1", title: "最近一次批改", line: "主体结构答错" }],
+    evidence_timeline: [
+      { key: "e1", title: "最近一次批改", line: "主体结构答错" },
+    ],
     training_loops: [{ key: "l1", title: "错因到训练", outcome: "仍需巩固" }],
     next_action: {
       title: "主体结构 3 题变式训练",
@@ -102,7 +104,10 @@ assert.strictEqual(wxModel.radar.weakCount, 1);
 assert.strictEqual(wxModel.mastery.overall, 52);
 assert.strictEqual(wxModel.mastery.overallStatusLabel, "正在形成");
 assert.strictEqual(wxModel.learningBrain.attempts[0].attemptRef, "signed-ref");
-assert.strictEqual(wxModel.learningBrain.training[0].intent.source, "learning_report");
+assert.strictEqual(
+  wxModel.learningBrain.training[0].intent.source,
+  "learning_report",
+);
 assert.strictEqual(wxModel.hero.headline, "当前最该补：主体结构");
 assert.strictEqual(wxModel.metrics[1].key, "recent_three");
 assert.strictEqual(wxModel.attempts[0].attemptRef, "signed-ref");
@@ -120,10 +125,19 @@ var pageData = wxVm.toReportPageData(wxModel);
 assert.strictEqual(pageData.todayDone, 4);
 assert.strictEqual(pageData.masteryStatusLabel, "正在形成");
 assert.strictEqual(pageData.learningBrainAttempts[0].title, "主体结构验收条件");
-assert.strictEqual(pageData.learningAttemptCards[0].subjectId, "construction_exam_1");
+assert.strictEqual(
+  pageData.learningAttemptCards[0].subjectId,
+  "construction_exam_1",
+);
 assert.strictEqual(pageData.learningAttemptCards[0].isBookmarked, true);
-assert.strictEqual(pageData.learningAttemptCards[0].bookmarkLabel, "已加入错题");
-assert.strictEqual(pageData.learningBrainNextAction.intent.source, "learning_report");
+assert.strictEqual(
+  pageData.learningAttemptCards[0].bookmarkLabel,
+  "已加入错题",
+);
+assert.strictEqual(
+  pageData.learningBrainNextAction.intent.source,
+  "learning_report",
+);
 
 var wxReportSource = fs.readFileSync(wxReportPath, "utf8");
 assert(
@@ -136,7 +150,256 @@ assert(
     wxReportSource.indexOf("toReportPageData") >= 0,
   "wx report page must consume the shared learning report view model",
 );
-var loadBody = wxReportSource.split("async _loadLearningReport()")[1].split("toggleMastery()")[0];
+var loadBody = wxReportSource
+  .split("async _loadLearningReport()")[1]
+  .split("toggleMastery()")[0];
 assert(loadBody.indexOf("normalizeMasteryGroups(") < 0);
 assert(loadBody.indexOf("normalizeRadarState(") < 0);
 assert(loadBody.indexOf("normalizeLearningBrainPayload(") < 0);
+
+// ─── Batch C Task 8: state / scoring point map / prescription ───────────
+
+var batchCReport = {
+  ok: true,
+  schema_version: 2,
+  overview: { today_done: 0, daily_target: 0, streak_days: 0 },
+  learning_state: {
+    knowledge_state: [
+      {
+        node_id: "1A412010",
+        label: "结构工程材料",
+        state: "weak",
+        evidence_count: 2,
+        evidence_refs: ["e1", "e2"],
+        granularity: "scoring_point",
+        last_observed_at: "2026-05-22T08:00:00+08:00",
+      },
+    ],
+    ability_state: [
+      {
+        dimension: "code_application",
+        state: "weak",
+        evidence_count: 2,
+        evidence_refs: ["e1", "e2"],
+        last_observed_at: "2026-05-22T08:00:00+08:00",
+      },
+    ],
+    behavior_state: [
+      {
+        dimension: "recurrence",
+        state: "recurring",
+        evidence_count: 2,
+        evidence_refs: ["e1", "e2"],
+      },
+    ],
+    source_status: {
+      authority: "learner_memory_events.learning_evidence",
+      model: "rule_based_v1",
+    },
+  },
+  scoring_point_map: {
+    items: [
+      {
+        point_id: "p_fire",
+        label: "甲乙丙级耐火极限",
+        granularity: "scoring_point",
+        rubric_mode: "curated_rubric",
+        knowledge_node_id: "1A412010",
+        ability_dimension: "code_application",
+        miss_count: 2,
+        evidence_refs: ["e1", "e2"],
+        error_codes: ["E02"],
+        next_action: {
+          kind: "repair_and_verify",
+          intent: {
+            intent_version: 2,
+            status: "active",
+            concept_label: "甲乙丙级耐火极限",
+            ability_dimension: "code_application",
+            evidence_refs: ["e1", "e2"],
+            prescription_steps: [
+              { phase: "repair_root", question_count: 2 },
+              { phase: "expression_drill", question_count: 1 },
+              { phase: "transfer_case", question_count: 1 },
+              { phase: "verification_probe", question_count: 1 },
+            ],
+          },
+        },
+      },
+    ],
+    empty_state: "",
+    source_status: { authority: "learner_memory_events.learning_evidence" },
+  },
+  next_training: [
+    {
+      key: "loop-1",
+      title: "今日处方",
+      intent: {
+        intent_version: 2,
+        status: "active",
+        concept_id: "1A412010",
+        concept_label: "甲乙丙级耐火极限",
+        ability_dimension: "code_application",
+        behavior_state: "recurring",
+        evidence_refs: ["e1", "e2"],
+        prescription_steps: [
+          { phase: "repair_root", question_count: 2 },
+          { phase: "expression_drill", question_count: 1 },
+          { phase: "transfer_case", question_count: 1 },
+          { phase: "verification_probe", question_count: 1 },
+        ],
+        success_criteria: { requires_revalidation: true },
+      },
+    },
+  ],
+  degraded: false,
+  degraded_sources: [],
+};
+
+var batchCWx = wxVm.buildLearningReportViewModel(batchCReport);
+var batchCYousen = yousenVm.buildLearningReportViewModel(batchCReport);
+assert.deepStrictEqual(
+  batchCWx,
+  batchCYousen,
+  "wx and yousen Batch C view-models must stay byte-identical",
+);
+
+// learningState exposed with knowledge/ability/behavior arrays.
+assert.strictEqual(batchCWx.learningState.knowledgeState[0].nodeId, "1A412010");
+assert.strictEqual(batchCWx.learningState.knowledgeState[0].state, "weak");
+assert.strictEqual(
+  batchCWx.learningState.abilityState[0].dimension,
+  "code_application",
+);
+assert.strictEqual(batchCWx.learningState.behaviorState[0].state, "recurring");
+assert.strictEqual(batchCWx.learningState.isEmpty, false);
+
+// scoringPointMap exposes 采分点 granularity label and v2 intent.
+var spItem = batchCWx.scoringPointMap.items[0];
+assert.strictEqual(spItem.granularity, "scoring_point");
+assert.strictEqual(spItem.granularityLabel, "采分点");
+assert.strictEqual(spItem.missCount, 2);
+assert.deepStrictEqual(spItem.evidenceRefs, ["e1", "e2"]);
+assert.strictEqual(spItem.nextActionIntent.intent_version, 2);
+
+// prescription pulled from active v2 next_training intent.
+assert.strictEqual(batchCWx.prescription.status, "active");
+assert.strictEqual(batchCWx.prescription.title, "甲乙丙级耐火极限");
+assert.strictEqual(batchCWx.prescription.abilityDimension, "code_application");
+assert.deepStrictEqual(batchCWx.prescription.evidenceRefs, ["e1", "e2"]);
+assert.strictEqual(batchCWx.prescription.steps.length, 4);
+assert.strictEqual(batchCWx.prescription.steps[0].phase, "repair_root");
+assert.strictEqual(batchCWx.prescription.ctaLabel, "开始训练");
+
+// toReportPageData flattens for setData.
+var batchCPage = wxVm.toReportPageData(batchCWx);
+assert.strictEqual(batchCPage.prescriptionTitle, "甲乙丙级耐火极限");
+assert.strictEqual(batchCPage.prescriptionStatus, "active");
+assert.strictEqual(batchCPage.prescriptionSteps.length, 4);
+assert.strictEqual(batchCPage.learningStateKnowledge[0].nodeId, "1A412010");
+assert.strictEqual(
+  batchCPage.learningStateAbility[0].dimension,
+  "code_application",
+);
+assert.strictEqual(batchCPage.learningStateBehavior[0].state, "recurring");
+assert.strictEqual(
+  batchCPage.scoringPointMapItems[0].granularityLabel,
+  "采分点",
+);
+assert.strictEqual(batchCPage.scoringPointMapEmptyState, "");
+assert.strictEqual(batchCPage.learningStateIsEmpty, false);
+
+// Keyword-only / rubric_pending honesty.
+var pendingReport = {
+  ok: true,
+  schema_version: 2,
+  overview: {},
+  learning_state: {
+    knowledge_state: [],
+    ability_state: [],
+    behavior_state: [],
+    source_status: {},
+  },
+  scoring_point_map: {
+    items: [],
+    empty_state: "rubric_pending",
+    source_status: {},
+  },
+  next_training: [],
+};
+var pendingVm = wxVm.buildLearningReportViewModel(pendingReport);
+assert.strictEqual(pendingVm.scoringPointMap.emptyState, "rubric_pending");
+assert.strictEqual(
+  pendingVm.scoringPointMap.emptyStateLabel,
+  "本题暂无可拆采分点，已先按审题要点收集",
+);
+assert.strictEqual(pendingVm.learningState.isEmpty, true);
+// Degraded fallback prescription must NOT fabricate a strong action.
+assert.strictEqual(pendingVm.prescription.status, "degraded");
+
+// Keyword-only granularity → "审题要点" UI label.
+var keywordReport = {
+  ok: true,
+  schema_version: 2,
+  overview: {},
+  scoring_point_map: {
+    items: [
+      {
+        point_id: "kw1",
+        label: "对角线布点",
+        granularity: "keyword_only",
+        rubric_mode: "projected_rubric",
+        miss_count: 1,
+        evidence_refs: ["k1"],
+        next_action: {
+          kind: "discovery_probe",
+          intent: { intent_version: 2, status: "degraded" },
+        },
+      },
+    ],
+    empty_state: "",
+    source_status: {},
+  },
+  next_training: [],
+};
+var keywordVm = wxVm.buildLearningReportViewModel(keywordReport);
+assert.strictEqual(
+  keywordVm.scoringPointMap.items[0].granularityLabel,
+  "审题要点",
+);
+
+// WXML render contract: report.wxml must surface the four Batch C labels.
+var reportWxml = fs.readFileSync(
+  path.join(__dirname, "../pages/report/report.wxml"),
+  "utf8",
+);
+assert(
+  reportWxml.indexOf("今日处方") >= 0,
+  "wx report.wxml must show 今日处方",
+);
+assert(
+  reportWxml.indexOf("今日学习状态") >= 0,
+  "wx report.wxml must show 今日学习状态",
+);
+assert(
+  reportWxml.indexOf("知识状态") >= 0,
+  "wx report.wxml must show 知识状态",
+);
+assert(
+  reportWxml.indexOf("能力状态") >= 0,
+  "wx report.wxml must show 能力状态",
+);
+assert(
+  reportWxml.indexOf("行为状态") >= 0,
+  "wx report.wxml must show 行为状态",
+);
+assert(
+  reportWxml.indexOf("采分点漏分") >= 0,
+  "wx report.wxml must show 采分点漏分",
+);
+assert(
+  reportWxml.indexOf("scoringPointMapEmptyLabel") >= 0,
+  "wx report.wxml must surface honest empty state",
+);
+
+console.log("PASS test_report_view_model.js (Batch C extension)");

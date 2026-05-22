@@ -1184,3 +1184,39 @@ def test_recent_attempts_quality_detail_ready_false_when_no_explanation() -> Non
     quality = attempt["quality"]
     assert quality["detail_ready"] is False
     assert "explanation" in quality["missing_fields"]
+
+
+# ─── Batch C Task 8: learning_state + scoring_point_map top-level ─────────
+
+
+def test_learning_report_exposes_learning_state_and_scoring_point_map_at_top_level() -> None:
+    """Batch C Task 8 wiring: build_learning_report_read_model must surface
+    Task 4's three-layer projection and Task 7's scoring_point_map at the
+    top of the report so the student page view-model can render them
+    without spelunking into learning_brain internals."""
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([]),
+        event_limit=50,
+    )
+
+    assert "learning_state" in model
+    learning_state = model["learning_state"]
+    assert isinstance(learning_state.get("knowledge_state"), list)
+    assert isinstance(learning_state.get("ability_state"), list)
+    assert isinstance(learning_state.get("behavior_state"), list)
+    assert (
+        learning_state["source_status"]["authority"]
+        == "learner_memory_events.learning_evidence"
+    )
+
+    assert "scoring_point_map" in model
+    scoring_point_map = model["scoring_point_map"]
+    assert isinstance(scoring_point_map.get("items"), list)
+    # No grading evidence in this fixture, so empty_state is honest.
+    assert scoring_point_map["empty_state"] in {"no_evidence", "rubric_pending"}
+    assert (
+        scoring_point_map["source_status"]["authority"]
+        == "learner_memory_events.learning_evidence"
+    )
