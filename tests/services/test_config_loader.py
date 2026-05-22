@@ -6,6 +6,7 @@ import pytest
 
 from deeptutor.services.config.loader import (
     PROJECT_ROOT,
+    get_agent_params,
     get_runtime_settings_dir,
     load_config_with_main,
     resolve_config_path,
@@ -66,3 +67,30 @@ def test_runtime_settings_dir_honors_env_override(
     monkeypatch.setenv("DEEPTUTOR_USER_DATA_DIR", str(override_dir))
 
     assert get_runtime_settings_dir(tmp_path) == override_dir.resolve() / "settings"
+
+
+def test_get_agent_params_bootstraps_default_agents_yaml(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    override_dir = tmp_path / "runtime-bootstrap"
+    monkeypatch.setenv("DEEPTUTOR_USER_DATA_DIR", str(override_dir))
+
+    params = get_agent_params("question")
+
+    assert params["temperature"] == 0.7
+    assert params["max_tokens"] == 4096
+    assert (override_dir / "settings" / "agents.yaml").exists()
+
+
+def test_load_config_with_main_bootstraps_default_main_yaml(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    override_dir = tmp_path / "runtime-bootstrap"
+    monkeypatch.setenv("DEEPTUTOR_USER_DATA_DIR", str(override_dir))
+
+    config = load_config_with_main("main.yaml", tmp_path)
+
+    assert config["system"]["language"] == "en"
+    assert (override_dir / "settings" / "main.yaml").exists()

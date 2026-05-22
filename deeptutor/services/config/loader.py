@@ -13,7 +13,7 @@ from typing import Any
 
 import yaml
 
-from deeptutor.services.path_service import get_path_service, resolve_runtime_user_data_dir
+from deeptutor.services.path_service import PathService, get_path_service, resolve_runtime_user_data_dir
 
 # PROJECT_ROOT points to the actual project root directory (DeepTutor/)
 # Path(__file__) = deeptutor/services/config/loader.py
@@ -27,6 +27,14 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 def get_runtime_settings_dir(project_root: Path | None = None) -> Path:
     """Return the canonical runtime settings directory under ``data/user/settings``."""
     return resolve_runtime_user_data_dir(project_root or PROJECT_ROOT) / "settings"
+
+
+def _ensure_essential_runtime_settings(project_root: Path | None = None) -> None:
+    """Materialize canonical runtime settings via the shared setup writer when missing."""
+    from deeptutor.services.setup import init_user_directories
+
+    PathService.reset_instance()
+    init_user_directories(project_root or PROJECT_ROOT)
 
 def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
     """
@@ -104,6 +112,8 @@ def resolve_config_path(
 
     settings_dir = get_runtime_settings_dir(project_root)
     config_path = settings_dir / config_file
+    if config_file in {"main.yaml", "agents.yaml"} and not config_path.exists():
+        _ensure_essential_runtime_settings(project_root)
     if config_path.exists():
         return config_path, False
     raise FileNotFoundError(
@@ -254,9 +264,7 @@ def get_agent_params(module_name: str) -> dict:
         "vision_solver": ("plugins", "vision_solver"),
         "math_animator": ("plugins", "math_animator"),
     }
-    path = get_runtime_settings_dir(PROJECT_ROOT) / "agents.yaml"
-    if not path.exists():
-        raise FileNotFoundError(f"Missing required configuration file: {path}")
+    path, _ = resolve_config_path("agents.yaml", PROJECT_ROOT)
     section = section_map.get(module_name)
     if section is None:
         return defaults

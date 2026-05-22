@@ -36,4 +36,5 @@ async def test_submission_grader_process_preserves_concrete_case_anchor_terms(
     assert "必须显式保留这些锚点原词" in captured["user_prompt"]
     assert "知识库/题库检索依据" in captured["user_prompt"]
     assert "逐项解析" in captured["system_prompt"]
-    assert "记忆口诀/记忆抓手" in captured["system_prompt"]
+    assert "### 记忆口诀" in captured["system_prompt"]
+    assert "关键词抓手" in captured["system_prompt"]
