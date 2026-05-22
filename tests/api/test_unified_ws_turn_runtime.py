@@ -253,6 +253,83 @@ async def test_redacted_public_followup_context_does_not_override_grading_author
 
 
 @pytest.mark.asyncio
+async def test_redacted_batch_followup_context_uses_hidden_grading_key_authority() -> None:
+    public_context = {
+        "question_id": "question_set",
+        "question": "三道建筑实务选择题",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题",
+                "question_type": "single_choice",
+                "user_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题",
+                "question_type": "single_choice",
+                "user_answer": "B",
+            },
+            {
+                "question_id": "q_3",
+                "question": "第3题",
+                "question_type": "single_choice",
+                "user_answer": "B",
+            },
+        ],
+    }
+    stored_context = {
+        "question_id": "question_set",
+        "question": "三道建筑实务选择题",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题",
+                "question_type": "single_choice",
+                "grading_key": {"correct_answer": "A"},
+                "explanation": "第1题解析",
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题",
+                "question_type": "single_choice",
+                "grading_key": {"correct_answer": "C"},
+                "explanation": "第2题解析",
+            },
+            {
+                "question_id": "q_3",
+                "question": "第3题",
+                "question_type": "single_choice",
+                "grading_key": {"correct_answer": "B"},
+                "explanation": "第3题解析",
+            },
+        ],
+    }
+
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="第1题：A；第2题：B；第3题：B",
+        explicit_context=public_context,
+        explicit_action=None,
+        candidate_contexts=[stored_context],
+    )
+
+    assert resolved_context is not None
+    resolved_items = {item["question_id"]: item for item in resolved_context["items"]}
+    assert resolved_items["q_1"]["grading_key"]["correct_answer"] == "A"
+    assert resolved_items["q_2"]["grading_key"]["correct_answer"] == "C"
+    assert resolved_items["q_3"]["grading_key"]["correct_answer"] == "B"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+    assert resolved_action["answers"] == [
+        {"index": 1, "question_id": "q_1", "user_answer": "A"},
+        {"index": 2, "question_id": "q_2", "user_answer": "B"},
+        {"index": 3, "question_id": "q_3", "user_answer": "B"},
+    ]
+
+
+@pytest.mark.asyncio
 async def test_answered_active_question_can_generate_related_questions_without_regrading() -> None:
     resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
         user_message="再给我相关的五道题，不要给答案，等我作答后再批改",

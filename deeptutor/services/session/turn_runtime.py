@@ -652,12 +652,22 @@ def _build_turn_semantic_decision(
 
 
 def _context_has_reference_answer(context: dict[str, Any] | None) -> bool:
+    def _item_has_reference_answer(item: dict[str, Any] | None) -> bool:
+        if not isinstance(item, dict):
+            return False
+        if str(item.get("correct_answer") or "").strip():
+            return True
+        grading_key = item.get("grading_key")
+        return isinstance(grading_key, dict) and bool(
+            str(grading_key.get("correct_answer") or "").strip()
+        )
+
     normalized = normalize_question_followup_context(context)
     if normalized is None:
         return False
-    if str(normalized.get("correct_answer") or "").strip():
+    if _item_has_reference_answer(normalized):
         return True
-    return any(str(item.get("correct_answer") or "").strip() for item in normalized.get("items") or [])
+    return any(_item_has_reference_answer(item) for item in normalized.get("items") or [])
 
 
 def _merge_public_submission_with_authoritative_context(

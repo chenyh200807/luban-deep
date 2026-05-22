@@ -845,6 +845,86 @@ def test_merge_redacted_batch_submission_restores_all_authoritative_items_by_id(
     assert "第5题解析" in merged_items["q_5"]["explanation"]
 
 
+def test_merge_redacted_batch_submission_recognizes_hidden_grading_key_authority() -> None:
+    from deeptutor.services.session.turn_runtime import (
+        _merge_public_submission_with_authoritative_context,
+    )
+
+    public_context = {
+        "question_id": "question_set",
+        "question": "相关三道题",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题",
+                "question_type": "single_choice",
+                "correct_answer": "",
+                "user_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题",
+                "question_type": "single_choice",
+                "correct_answer": "",
+                "user_answer": "B",
+            },
+            {
+                "question_id": "q_3",
+                "question": "第3题",
+                "question_type": "single_choice",
+                "correct_answer": "",
+                "user_answer": "B",
+            },
+        ],
+    }
+    authoritative_context = {
+        "question_id": "question_set",
+        "question": "相关三道题",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题",
+                "question_type": "single_choice",
+                "correct_answer": "",
+                "grading_key": {"correct_answer": "A"},
+                "explanation": "第1题解析",
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题",
+                "question_type": "single_choice",
+                "correct_answer": "",
+                "grading_key": {"correct_answer": "C"},
+                "explanation": "第2题解析",
+            },
+            {
+                "question_id": "q_3",
+                "question": "第3题",
+                "question_type": "single_choice",
+                "correct_answer": "",
+                "grading_key": {"correct_answer": "B"},
+                "explanation": "第3题解析",
+            },
+        ],
+    }
+
+    merged = _merge_public_submission_with_authoritative_context(
+        public_context,
+        authoritative_context,
+    )
+
+    assert merged is not None
+    merged_items = {item["question_id"]: item for item in merged["items"]}
+    assert merged_items["q_1"]["grading_key"]["correct_answer"] == "A"
+    assert merged_items["q_1"]["user_answer"] == "A"
+    assert merged_items["q_2"]["grading_key"]["correct_answer"] == "C"
+    assert merged_items["q_2"]["user_answer"] == "B"
+    assert merged_items["q_3"]["grading_key"]["correct_answer"] == "B"
+    assert merged_items["q_3"]["user_answer"] == "B"
+
+
 def test_extract_choice_result_summary_from_text_supports_chinese_numbered_titles() -> None:
     result_summary = extract_choice_result_summary_from_text(
         "\n".join(
