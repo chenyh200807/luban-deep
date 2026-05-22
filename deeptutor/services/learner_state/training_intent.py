@@ -126,6 +126,34 @@ def build_learning_training_intent(
     }
 
 
+def prioritize_training_intents(
+    intents: list[dict[str, Any]] | None,
+    *,
+    max_active: int = 3,
+) -> list[dict[str, Any]]:
+    ranked = [dict(item) for item in list(intents or []) if isinstance(item, dict)]
+    for item in ranked:
+        item["priority"] = _intent_priority(item)
+    ranked.sort(
+        key=lambda item: (
+            -float(item.get("priority") or 0),
+            str(item.get("training_intent_id") or ""),
+        )
+    )
+    active_budget = max(0, int(max_active or 0))
+    active_seen = 0
+    for item in ranked:
+        if item.get("status") == "degraded":
+            item["status"] = "queued"
+            continue
+        if active_seen < active_budget:
+            item["status"] = "active"
+            active_seen += 1
+        else:
+            item["status"] = "queued"
+    return ranked
+
+
 def _full_prescription_steps(total: int) -> list[dict[str, Any]]:
     """Distribute ``total`` across the 4 canonical phases.
 
@@ -140,6 +168,21 @@ def _full_prescription_steps(total: int) -> list[dict[str, Any]]:
     return [{"phase": phase, "question_count": counts[phase]} for phase in _FULL_PHASES]
 
 
+def _intent_priority(intent: dict[str, Any]) -> float:
+    forgetting_risk = _safe_float(intent.get("forgetting_risk"), 0.5)
+    exam_weight = _safe_float(intent.get("exam_weight"), 1.0)
+    recurrence = _safe_float(intent.get("recurrence"), len(_normalize_refs(intent.get("evidence_refs"))))
+    recurrence_weight = min(recurrence / 3, 1.0)
+    return round(forgetting_risk * exam_weight * (1 + recurrence_weight), 3)
+
+
+def _safe_float(value: Any, default: float) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def _normalize_refs(refs: list[str] | None) -> list[str]:
     return [str(item or "").strip() for item in list(refs or []) if str(item or "").strip()]
 
@@ -149,4 +192,4 @@ def _intent_id(**values: str) -> str:
     return "lti_" + hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
 
 
-__all__ = ["build_learning_training_intent"]
+__all__ = ["build_learning_training_intent", "prioritize_training_intents"]

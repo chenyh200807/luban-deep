@@ -6,16 +6,16 @@ Method: ``time.perf_counter`` around ``synthesize_learning_truth``; all events h
 
 ## Budget gate
 
-- synthesize_learning_truth p95 (no window) = **85.6 ms** — PASS (≤ 200ms)
+- synthesize_learning_truth p95 (no window) = **109.6 ms** — PASS (≤ 200ms)
 - Budget per plan §Phase -1.D: p95 ≤ 200ms on 2000 events.
 
 ## Results
 
 | scenario | p50 (ms) | p95 (ms) | p99 (ms) | min | max | iterations |
 | --- | --- | --- | --- | --- | --- | --- |
-| full (no window) | 64.1 | 85.6 | 91.2 | 58.1 | 92.6 | 20 |
-| window=500 | 14.0 | 33.9 | 35.2 | 12.8 | 35.5 | 20 |
-| window=200 | 5.6 | 6.0 | 6.1 | 5.4 | 6.1 | 20 |
+| full (no window) | 81.8 | 109.6 | 112.5 | 72.8 | 113.3 | 20 |
+| window=500 | 17.1 | 38.8 | 44.4 | 15.7 | 45.9 | 20 |
+| window=200 | 7.2 | 8.6 | 8.6 | 6.4 | 8.6 | 20 |
 
 ## Window flag behavior
 

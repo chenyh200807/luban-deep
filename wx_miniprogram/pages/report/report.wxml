@@ -357,7 +357,7 @@
           <!-- 总体掌握度 -->
           <view class="mastery-hero glass-card">
             <view class="mastery-score-wrap">
-              <text class="mastery-score {{overallMastery >= 70 ? 'score-good' : overallMastery >= 40 ? 'score-mid' : 'score-low'}}">
+              <text class="mastery-score {{masteryScoreClass}}">
                 {{overallMastery}}
               </text>
               <text class="mastery-unit">%</text>
@@ -389,7 +389,7 @@
           >
             <view class="group-header">
               <text class="group-name">{{item.name}}</text>
-              <text class="group-avg {{item.avgMastery >= 70 ? 'avg-good' : item.avgMastery >= 40 ? 'avg-mid' : 'avg-low'}}">
+              <text class="group-avg {{item.avgClass}}">
                 {{item.avgMastery}}%
               </text>
             </view>

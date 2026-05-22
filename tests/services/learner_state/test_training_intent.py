@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from deeptutor.services.learner_state.training_intent import build_learning_training_intent
+from deeptutor.services.learner_state.training_intent import (
+    build_learning_training_intent,
+    prioritize_training_intents,
+)
 
 
 def test_training_intent_contains_concept_error_attempt_and_question_count() -> None:
@@ -180,3 +183,26 @@ def test_training_intent_v2_question_counts_sum_to_question_count() -> None:
     total = sum(step["question_count"] for step in intent["prescription_steps"])
     assert total == intent["question_count"]
     assert 1 <= total <= 5
+
+
+def test_prioritize_training_intents_caps_active_and_queues_rest() -> None:
+    intents = []
+    for index in range(5):
+        intent = build_learning_training_intent(
+            user_id="student_demo",
+            concept_id=f"1A4120{index}",
+            concept_label=f"节点{index}",
+            error_code="E02",
+            evidence_refs=[f"evt_{index}"],
+            ability_dimension="code_application",
+        )
+        intent["forgetting_risk"] = 0.9 - index * 0.1
+        intent["exam_weight"] = 1.0
+        intent["recurrence"] = 2
+        intents.append(intent)
+
+    ranked = prioritize_training_intents(intents, max_active=3)
+
+    assert [item["status"] for item in ranked].count("active") == 3
+    assert [item["status"] for item in ranked].count("queued") == 2
+    assert ranked[0]["priority"] >= ranked[-1]["priority"]

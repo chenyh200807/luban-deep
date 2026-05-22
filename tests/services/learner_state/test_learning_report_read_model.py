@@ -615,7 +615,7 @@ def test_single_correct_attempt_does_not_mark_chapter_as_fully_mastered() -> Non
 
     assert model["overview"]["attempt_count"] == 1
     assert model["overview"]["overall_mastery"] < 100
-    assert model["mastery"]["overall_mastery"] < 100
+    assert model["mastery"]["overall_mastery"]["score"] < 100
     assert model["mastery"]["groups"][0]["chapters"][0]["mastery"] <= 60
     assert model["radar_dimensions"][0]["name"] == "工程招标投标与合同管理"
     assert model["radar_dimensions"][0]["value"] <= 0.6
@@ -1220,6 +1220,80 @@ def test_learning_report_exposes_learning_state_and_scoring_point_map_at_top_lev
         scoring_point_map["source_status"]["authority"]
         == "learner_memory_events.learning_evidence"
     )
+
+
+def test_learning_report_exposes_arrs_revalidation_queue(monkeypatch) -> None:
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_ACTION_LOOP_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_VERIFICATION_STAGE", "cohort_100")
+    event = _learning_event("evt_arrs_due", days_ago=4, concept_id="1A412010")
+    event.payload_json["evidence_source"] = "construction_grading"
+    event.payload_json["rubric"] = {
+        "rubric_mode": "curated_rubric",
+        "granularity": "scoring_point",
+        "scoring_points": [
+            {
+                "point_id": "sp_fire_order",
+                "label": "防火门顺序关闭",
+                "knowledge_node_id": "1A412010",
+                "ability_dimension": "code_application",
+            }
+        ],
+        "scoring_point_hits": [
+            {
+                "point_id": "sp_fire_order",
+                "hit": False,
+                "error_code": "E02",
+            }
+        ],
+    }
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )
+
+    assert "revalidation_queue" in model
+    assert model["revalidation_queue"]["items"]
+    probe = model["revalidation_queue"]["items"][0]
+    assert probe["kind"] == "revalidation_probe"
+    assert probe["status"] == "active"
+    assert probe["intent"]["source"] == "revalidation_queue"
+
+
+def test_learning_state_inference_kill_switch_hides_action_loop(monkeypatch) -> None:
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STAGE", "off")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_ACTION_LOOP_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STATE_PROJECTION_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_VERIFICATION_STAGE", "cohort_100")
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([_learning_event("evt_flag")]),
+        event_limit=50,
+    )
+
+    assert model["feature_flags"]["enabled"] is False
+    assert model["scoring_point_map"]["items"] == []
+    assert model["learning_state"]["source_status"]["blocked_reason"] == "feature_flag_off"
+    assert model["revalidation_queue"]["items"] == []
+
+
+def test_mastery_payload_carries_display_classes_from_backend() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([]),
+        event_limit=50,
+    )
+
+    assert model["mastery"]["overall_mastery"]["class_name"]
+    assert model["mastery"]["groups"][0]["avg_class"]
+    assert model["mastery"]["groups"][0]["chapters"][0]["color"]
+    assert model["overview"]["overall_mastery"] == model["mastery"]["overall_mastery"]["score"]
 
 
 # ─── Batch D Task 9: prescription outcome verification ───────────────────

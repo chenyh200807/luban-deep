@@ -20,6 +20,9 @@ function normalizePrompt(item, index) {
     text: text,
     title: compactText(source.title || text),
     promptType: promptType,
+    evidenceRefs: asList(source.evidence_refs || source.evidenceRefs),
+    learningStateRef: compactText(source.learning_state_ref || source.learningStateRef),
+    suggestedMode: compactText(source.suggested_mode || source.suggestedMode),
     promptIntent: asObject(source.intent || source.prompt_intent),
   };
 }

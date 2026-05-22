@@ -214,6 +214,33 @@ def test_each_item_carries_next_action_with_training_intent_v2() -> None:
     assert intent["ability_dimension"] == "code_application"
 
 
+def test_map_uses_training_intent_priority_for_active_vs_queued() -> None:
+    """The map may surface multiple missed points, but active prescription
+    count is governed by training_intent, not by frontend sorting."""
+    events = [
+        _case_event(
+            event_id=f"miss_{index}",
+            point_id=f"p_{index}",
+            point_label=f"采分点 {index}",
+            knowledge_node_id=f"1A4120{index}",
+            days_ago=index,
+        )
+        for index in range(5)
+    ]
+
+    projection = build_scoring_point_map_read_projection(
+        events=events,
+        user_id="student_demo",
+    )
+
+    statuses = [
+        item["next_action"]["intent"]["status"]
+        for item in projection["items"]
+    ]
+    assert statuses.count("active") == 3
+    assert statuses.count("queued") == 2
+
+
 # ─── Honesty / no-fabrication guards ──────────────────────────────────────
 
 

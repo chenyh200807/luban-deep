@@ -70,6 +70,9 @@ def build_home_personalization_projection_from_learning_signal(
         "error_label": prompt_error,
         "subject_id": str(payload.get("subject_id") or "").strip(),
         "training_intent_id": payload.get("training_intent_id"),
+        "evidence_refs": _evidence_refs(payload),
+        "learning_state_ref": str(payload.get("learning_state_ref") or "").strip(),
+        "suggested_mode": str(payload.get("suggested_mode") or payload.get("teaching_mode") or "").strip(),
     }
     prompts = [
         _projection_prompt(
@@ -197,24 +200,50 @@ def _seed_prompt_to_dashboard_prompt(item: dict[str, Any]) -> dict[str, Any]:
 
 
 def _projection_prompt(*, prompt_type: str, text: str, intent: dict[str, Any]) -> dict[str, Any]:
+    evidence_refs = _normalize_refs(intent.get("evidence_refs"))
     training_intent = build_learning_training_intent(
         source="home_dashboard",
         reason=str(intent.get("reason") or "home_projection"),
         training_mode=str(intent.get("training_mode") or "mixed_review"),
         concept_label=str(intent.get("concept_label") or "").strip(),
         error_label=str(intent.get("error_label") or "").strip(),
+        evidence_refs=evidence_refs,
         user_id="",
     )
+    learning_state_ref = str(intent.get("learning_state_ref") or "").strip()
+    suggested_mode = str(intent.get("suggested_mode") or "").strip()
     return {
         "prompt_type": prompt_type,
         "text": text,
+        "evidence_refs": evidence_refs,
+        "learning_state_ref": learning_state_ref,
+        "suggested_mode": suggested_mode,
         "intent": {
             **training_intent,
             "prompt_type": prompt_type,
             "subject_id": str(intent.get("subject_id") or "").strip(),
             "source_training_intent_id": intent.get("training_intent_id"),
+            "learning_state_ref": learning_state_ref,
+            "suggested_mode": suggested_mode,
         },
     }
+
+
+def _evidence_refs(payload: dict[str, Any]) -> list[str]:
+    refs = []
+    for value in list(payload.get("evidence_refs") or []):
+        text = str(value or "").strip()
+        if text and text not in refs:
+            refs.append(text)
+    for key in ("event_id", "attempt_ref"):
+        text = str(payload.get(key) or "").strip()
+        if text and text not in refs:
+            refs.append(text)
+    return refs[:5]
+
+
+def _normalize_refs(value: Any) -> list[str]:
+    return [str(item or "").strip() for item in list(value or []) if str(item or "").strip()]
 
 
 def _first_error_label(payload: dict[str, Any]) -> str:

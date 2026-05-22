@@ -54,6 +54,10 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
             "concept": {"label": "主体结构验收"},
             "error": {"label": "验收程序混淆"},
             "training_intent_id": "intent-1",
+            "event_id": "evt-home-1",
+            "attempt_ref": "attempt-ref-1",
+            "learning_state_ref": "knowledge:1A432000",
+            "suggested_mode": "deep",
         },
         generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
     )
@@ -61,6 +65,11 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     assert projection is not None
     assert projection["today_focus"]["prompt"] == projection["recommended_prompts"][0]["text"]
     assert projection["today_focus"]["intent"] == projection["recommended_prompts"][0]["intent"]
+    first_prompt = projection["recommended_prompts"][0]
+    assert first_prompt["evidence_refs"] == ["evt-home-1", "attempt-ref-1"]
+    assert first_prompt["learning_state_ref"] == "knowledge:1A432000"
+    assert first_prompt["suggested_mode"] == "deep"
+    assert first_prompt["intent"]["evidence_refs"] == ["evt-home-1", "attempt-ref-1"]
 
 
 def test_stale_or_missing_projection_falls_back_to_seed_starters() -> None:

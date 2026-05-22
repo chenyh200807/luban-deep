@@ -8,6 +8,7 @@ import hashlib
 import os
 from typing import Any, Callable
 
+from deeptutor.services.experiments.cohort import current_stage, is_enabled
 from deeptutor.services.construction_grading.learning_evidence import compute_quality_signals
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
@@ -21,6 +22,9 @@ from deeptutor.services.learner_state.scoring_point_map_read_model import (
 )
 from deeptutor.services.learner_state.prescription_outcome_read_model import (
     build_prescription_outcomes_read_projection,
+)
+from deeptutor.services.learner_state.revalidation_queue import (
+    build_revalidation_queue_projection,
 )
 from deeptutor.services.learner_state.training_intent import build_learning_training_intent
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
@@ -92,6 +96,7 @@ _ERROR_LABELS = {
     "M09": "题干条件提取不完整",
     "M10": "用常识替代规范判断",
 }
+_LSI_FLAG = "LEARNING_STATE_INFERENCE_V2"
 
 
 def build_learning_report_read_model(
@@ -224,7 +229,7 @@ def build_learning_report_read_model(
             "study_tip"
         )
         or "",
-        "overall_mastery": _safe_int(mastery.get("overall_mastery")),
+        "overall_mastery": _overall_mastery_score(mastery),
     }
 
     window_truncated = evidence_stats["event_count"] >= limit
@@ -232,6 +237,28 @@ def build_learning_report_read_model(
         name for name, status in source_status.items() if status.get("ok") is False
     )
     degraded = bool(degraded_sources)
+    flag_state = _learning_state_inference_flag_state(normalized_user)
+    scoring_point_map = (
+        _build_scoring_point_map_from(events=events, user_id=normalized_user)
+        if flag_state["action_loop"]
+        else _empty_scoring_point_map("feature_flag_off")
+    )
+    prescription_outcomes = _build_prescription_outcomes_from(events=events)
+    learning_state = (
+        _build_learning_state_from(events=events)
+        if flag_state["state_projection"]
+        else _empty_learning_state("feature_flag_off")
+    )
+    revalidation_queue = (
+        build_revalidation_queue_projection(
+            user_id=normalized_user,
+            events=events,
+            scoring_point_map=scoring_point_map,
+            prescription_outcomes=prescription_outcomes,
+        )
+        if flag_state["verification"]
+        else _empty_revalidation_queue("feature_flag_off")
+    )
 
     report = {
         "ok": True,
@@ -246,6 +273,7 @@ def build_learning_report_read_model(
         "degraded": degraded,
         "degraded_sources": degraded_sources,
         "source_status": source_status,
+        "feature_flags": flag_state,
         "freshness": {
             "generated_at": datetime.now(_TZ).isoformat(),
             "event_count": evidence_stats["event_count"],
@@ -262,15 +290,14 @@ def build_learning_report_read_model(
         "truth_sections": truth_sections,
         "next_training": next_training,
         # Batch C Task 7: scoring point map projection (read-only sibling).
-        "scoring_point_map": _build_scoring_point_map_from(
-            events=events, user_id=normalized_user
-        ),
-        "prescription_outcomes": _build_prescription_outcomes_from(events=events),
+        "scoring_point_map": scoring_point_map,
+        "prescription_outcomes": prescription_outcomes,
+        "revalidation_queue": revalidation_queue,
         # Batch C Task 8: three-layer learning state (Task 4 projection)
         # exposed at top level so the student page view-model can render
         # state -> reason -> action -> evidence without traversing into
         # learning_brain internals.
-        "learning_state": _build_learning_state_from(events=events),
+        "learning_state": learning_state,
         "legacy_compat": {
             "today_progress": legacy_today,
             "home_dashboard": home_dashboard,
@@ -285,6 +312,67 @@ def build_learning_report_read_model(
             evidence_stats=evidence_stats,
         )
     return report
+
+
+def _learning_state_inference_flag_state(user_id: str) -> dict[str, Any]:
+    enabled = is_enabled(_LSI_FLAG, user_id=user_id)
+    return {
+        "flag": _LSI_FLAG,
+        "stage": current_stage(_LSI_FLAG),
+        "enabled": enabled,
+        "evidence": enabled and is_enabled(f"{_LSI_FLAG}.evidence", user_id=user_id),
+        "state_projection": enabled and is_enabled(f"{_LSI_FLAG}.state_projection", user_id=user_id),
+        "action_loop": enabled and is_enabled(f"{_LSI_FLAG}.action_loop", user_id=user_id),
+        "verification": enabled and is_enabled(f"{_LSI_FLAG}.verification", user_id=user_id),
+    }
+
+
+def _overall_mastery_score(mastery: dict[str, Any]) -> int:
+    overall = _safe_dict(mastery.get("overall_mastery"))
+    if overall:
+        return _safe_int(overall.get("score"))
+    return _safe_int(mastery.get("overall_mastery"))
+
+
+def _empty_scoring_point_map(reason: str) -> dict[str, Any]:
+    return {
+        "items": [],
+        "empty_state": "rubric_pending",
+        "source_status": {
+            "authority": "learner_memory_events.learning_evidence",
+            "model": "rule_based_v1",
+            "degraded": True,
+            "blocked_reason": reason,
+        },
+    }
+
+
+def _empty_learning_state(reason: str) -> dict[str, Any]:
+    return {
+        "knowledge_state": [],
+        "ability_state": [],
+        "behavior_state": [],
+        "source_status": {
+            "authority": "learner_memory_events.learning_evidence",
+            "model": "rule_based_v1",
+            "degraded": True,
+            "blocked_reason": reason,
+        },
+    }
+
+
+def _empty_revalidation_queue(reason: str) -> dict[str, Any]:
+    return {
+        "items": [],
+        "source_status": {
+            "authority": "learner_memory_events.learning_evidence -> mastery_estimator -> training_intent",
+            "model": "rule_based_arrs_v1",
+            "daily_capacity": 1,
+            "candidate_count": 0,
+            "due_count": 0,
+            "blocked_reasons": [reason],
+        },
+    }
 
 
 def _learning_report_v2(
@@ -1254,13 +1342,27 @@ def _mastery_payload(
                 _safe_int(chapter_payload.get("mastery")),
                 _safe_dict(chapter_stats.get(name)),
             )
-            chapters.append({**chapter_payload, "name": name, "mastery": mastery})
+            status = _score_status(mastery)
+            chapters.append({
+                **chapter_payload,
+                "name": name,
+                "mastery": mastery,
+                "status": status,
+                "color": _status_color(status),
+            })
         if not chapters:
             continue
         avg_mastery = round(
             sum(_safe_int(item.get("mastery")) for item in chapters) / max(len(chapters), 1)
         )
-        groups.append({**group_payload, "avg_mastery": avg_mastery, "chapters": chapters})
+        avg_status = _score_status(avg_mastery)
+        groups.append({
+            **group_payload,
+            "avg_mastery": avg_mastery,
+            "avg_status": avg_status,
+            "avg_class": _avg_class(avg_status),
+            "chapters": chapters,
+        })
 
     hotspots = []
     for item in _safe_list(mastery_dashboard.get("hotspots")):
@@ -1272,7 +1374,14 @@ def _mastery_payload(
             _safe_int(hotspot.get("mastery")),
             _safe_dict(chapter_stats.get(name)),
         )
-        hotspots.append({**hotspot, "name": name, "mastery": mastery})
+        status = _score_status(mastery)
+        hotspots.append({
+            **hotspot,
+            "name": name,
+            "mastery": mastery,
+            "status": status,
+            "color": _status_color(status),
+        })
     review = _safe_dict(mastery_dashboard.get("review_summary"))
     chapter_scores = [
         _safe_int(chapter.get("mastery"))
@@ -1285,11 +1394,33 @@ def _mastery_payload(
         scores = [round(float(item.get("value") or 0) * 100) for item in radar_dimensions]
         overall = round(sum(scores) / max(len(scores), 1)) if scores else 0
     return {
-        "overall_mastery": overall,
+        "overall_mastery": {
+            "score": overall,
+            "status": _score_status(overall),
+            "class_name": _score_class(_score_status(overall)),
+        },
         "groups": groups,
         "hotspots": hotspots,
         "review_summary": review or {"total_due": 0, "overdue_count": 0},
     }
+
+
+def _score_class(status: str) -> str:
+    return {
+        "strong": "score-good",
+        "normal": "score-mid",
+        "weak": "score-low",
+        "observed": "score-low",
+    }.get(status, "score-low")
+
+
+def _avg_class(status: str) -> str:
+    return {
+        "strong": "avg-good",
+        "normal": "avg-mid",
+        "weak": "avg-low",
+        "observed": "avg-low",
+    }.get(status, "avg-low")
 
 
 def _radar_dimensions(
@@ -1330,12 +1461,43 @@ def _append_dimension(dimensions: list[dict[str, Any]], *, name: str, score: int
     normalized_name = str(name or "").strip()
     if not normalized_name:
         return
-    value = round(max(0, min(int(score or 0), 100)) / 100, 2)
+    normalized_score = max(0, min(int(score or 0), 100))
+    value = round(normalized_score / 100, 2)
+    status = _score_status(normalized_score)
+    payload = {
+        "name": normalized_name,
+        "value": value,
+        "score": normalized_score,
+        "rate_text": f"{normalized_score}%",
+        "status": status,
+        "level": status,
+        "color": _status_color(status),
+    }
     for item in dimensions:
         if item.get("name") == normalized_name:
-            item["value"] = max(float(item.get("value") or 0), value)
+            if value > float(item.get("value") or 0):
+                item.update(payload)
             return
-    dimensions.append({"name": normalized_name, "value": value})
+    dimensions.append(payload)
+
+
+def _score_status(score: int) -> str:
+    if score >= 70:
+        return "strong"
+    if score >= 40:
+        return "normal"
+    if score > 0:
+        return "weak"
+    return "observed"
+
+
+def _status_color(status: str) -> str:
+    return {
+        "strong": "#34d399",
+        "normal": "#fbbf24",
+        "weak": "#f87171",
+        "observed": "#94a3b8",
+    }.get(status, "#94a3b8")
 
 
 def _display_dimension_label(value: Any) -> str:

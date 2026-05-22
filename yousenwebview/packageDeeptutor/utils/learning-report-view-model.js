@@ -43,16 +43,19 @@ function normalizeRadar(dimensions) {
     return {
       name: chapterName(source.label || source.name || source.key || ""),
       value: value || 0,
+      score: Math.round(asNumber(source.score, asNumber(value, 0) * 100)),
+      level: String(source.level || source.status || "observed"),
+      rateText: String(source.rate_text || source.rateText || ""),
     };
   });
   var scores = dims.map(function (item) {
     return Math.round(asNumber(item.value, 0) * 100);
   });
-  var strong = scores.filter(function (score) {
-    return score >= 70;
+  var strong = dims.filter(function (item) {
+    return item.level === "strong" || item.level === "stable";
   }).length;
-  var weak = scores.filter(function (score) {
-    return score > 0 && score < 40;
+  var weak = dims.filter(function (item) {
+    return ["weak", "unstable", "needs_revalidation"].indexOf(item.level) >= 0;
   }).length;
   var normal = Math.max(0, dims.length - strong - weak);
   var avg = scores.length
@@ -69,12 +72,12 @@ function normalizeRadar(dimensions) {
     weakCount: weak,
     avgScore: avg,
     dimList: dims.map(function (item) {
-      var score = Math.round(asNumber(item.value, 0) * 100);
+      var score = Math.round(asNumber(item.score, asNumber(item.value, 0) * 100));
       return {
         name: item.name,
         score: score,
-        rateText: score + "%",
-        level: score >= 70 ? "strong" : score >= 40 ? "normal" : "weak",
+        rateText: item.rateText || score + "%",
+        level: item.level,
       };
     }),
   };
@@ -86,6 +89,7 @@ function normalizeMastery(source) {
   var overallPayload = asObject(overall);
   var overallConfidence = asNumber(overallPayload.confidence, 0);
   var overallStatus = String(overallPayload.status || "");
+  var overallClass = String(overallPayload.class_name || overallPayload.className || "");
   if (overall && typeof overall === "object") overall = overall.score;
   var groups = asList(mastery.groups).map(function (group) {
     var item = asObject(group);
@@ -95,15 +99,13 @@ function normalizeMastery(source) {
       return {
         name: chapterName(c.name || ""),
         mastery: rate,
-        color: rate >= 70 ? "#34d399" : rate >= 40 ? "#fbbf24" : "#f87171",
+        color: String(c.color || ""),
       };
-    });
-    chapters.sort(function (a, b) {
-      return a.mastery - b.mastery;
     });
     return {
       name: String(item.name || ""),
       avgMastery: Math.round(asNumber(item.avg_mastery, 0)),
+      avgClass: String(item.avg_class || item.avgClass || ""),
       chapters: chapters,
     };
   });
@@ -112,6 +114,7 @@ function normalizeMastery(source) {
     overallConfidence: overallConfidence,
     overallStatus: overallStatus,
     overallStatusLabel: masteryStatusLabel(overallStatus, overallConfidence),
+    overallClass: overallClass,
     groups: groups,
     hotspots: asList(mastery.hotspots).map(function (hotspot) {
       var item = asObject(hotspot);
@@ -128,9 +131,9 @@ function normalizeMastery(source) {
 
 function masteryStatusLabel(status, confidence) {
   var key = String(status || "");
-  var value = asNumber(confidence, 0);
-  if (key === "insufficient_evidence" || value < 0.4) return "证据不足";
-  if (key === "stable" || value >= 0.7) return "稳定掌握";
+  asNumber(confidence, 0);
+  if (key === "insufficient_evidence") return "证据不足";
+  if (key === "stable") return "稳定掌握";
   if (key === "needs_confirmation") return "待确认";
   return "正在形成";
 }
@@ -720,6 +723,7 @@ function toReportPageData(model) {
     masteryConfidence: mastery.overallConfidence || 0,
     masteryStatus: mastery.overallStatus || "",
     masteryStatusLabel: mastery.overallStatusLabel || "证据不足",
+    masteryScoreClass: mastery.overallClass || "",
     masteryGroups: asList(mastery.groups),
     hotspots: asList(mastery.hotspots),
     reviewSummary: asObject(mastery.reviewSummary),

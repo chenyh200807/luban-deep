@@ -27,8 +27,8 @@ var report = {
     study_tip: "先复盘错因，再做变式题",
   },
   radar_dimensions: [
-    { name: "主体结构", value: 0.72 },
-    { name: "防水工程", value: 0.28 },
+    { name: "主体结构", value: 0.72, score: 72, status: "strong" },
+    { name: "防水工程", value: 0.28, score: 28, status: "weak" },
   ],
   mastery: {
     overall_mastery: { score: 52, confidence: 0.55, status: "developing" },

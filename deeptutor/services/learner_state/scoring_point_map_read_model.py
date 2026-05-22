@@ -30,6 +30,7 @@ from typing import Any, Iterable
 from deeptutor.services.learner_state.service import LearnerStateEvent
 from deeptutor.services.learner_state.training_intent import (
     build_learning_training_intent,
+    prioritize_training_intents,
 )
 
 
@@ -125,6 +126,7 @@ def build_scoring_point_map_read_projection(
         row.pop("evidence_seen", None)
         row["next_action"] = _next_action(row, user_id=user_id)
         items.append(row)
+    _apply_training_intent_priority(items)
 
     scoring_point_items = sum(1 for item in items if item["granularity"] == "scoring_point")
     keyword_only_items = sum(1 for item in items if item["granularity"] == "keyword_only")
@@ -213,8 +215,37 @@ def _next_action(row: dict[str, Any], *, user_id: str) -> dict[str, Any]:
         source="scoring_point_map",
         reason="repeated_scoring_point_miss",
     )
+    intent["recurrence"] = row.get("miss_count") or 0
+    intent["exam_weight"] = 1.0
     kind = "repair_and_verify" if intent["status"] == "active" else "discovery_probe"
     return {"kind": kind, "intent": intent}
+
+
+def _apply_training_intent_priority(items: list[dict[str, Any]]) -> None:
+    intents = [
+        _safe_dict(_safe_dict(item.get("next_action")).get("intent"))
+        for item in items
+    ]
+    prioritized = prioritize_training_intents(intents, max_active=3)
+    by_id = {
+        str(intent.get("training_intent_id") or ""): intent
+        for intent in prioritized
+        if str(intent.get("training_intent_id") or "").strip()
+    }
+    for item in items:
+        next_action = _safe_dict(item.get("next_action"))
+        intent = _safe_dict(next_action.get("intent"))
+        intent_id = str(intent.get("training_intent_id") or "")
+        prioritized_intent = by_id.get(intent_id)
+        if not prioritized_intent:
+            continue
+        next_action["intent"] = prioritized_intent
+        next_action["kind"] = (
+            "repair_and_verify"
+            if prioritized_intent.get("status") == "active"
+            else "queued_repair"
+        )
+        item["next_action"] = next_action
 
 
 def _safe_dict(value: Any) -> dict[str, Any]:

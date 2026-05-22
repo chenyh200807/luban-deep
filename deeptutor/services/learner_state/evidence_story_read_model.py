@@ -6,22 +6,18 @@ does not expose an endpoint; all claims must cite existing evidence refs.
 """
 from __future__ import annotations
 
-import re
 from typing import Any, Iterable
 
+from deeptutor.services.learner_state.redaction import (
+    redact_chat_text,
+    redact_payload,
+)
 from deeptutor.services.learner_state.prescription_outcome_read_model import (
     build_prescription_outcomes_read_projection,
 )
 from deeptutor.services.learner_state.scoring_point_map_read_model import (
     build_scoring_point_map_read_projection,
 )
-
-_PHONE_RE = re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)")
-_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
-_ID_RE = re.compile(r"(?<!\d)\d{17}[\dXx](?!\d)")
-_OPENID_RE = re.compile(r"openid[_A-Za-z0-9-]*")
-_MENTION_RE = re.compile(r"@[A-Za-z0-9_\-\u4e00-\u9fff]+")
-_COMMON_NAME_RE = re.compile(r"(张三|李四|王五|赵六)")
 
 _SALES_CLAIMS = {
     "observed_learning_pattern": "系统已观察到可复盘的学习模式",
@@ -128,18 +124,7 @@ def build_evidence_story_read_model(
             "blocked_reasons": blocked_reasons,
         },
     }
-    return _redact_payload(story)
-
-
-def redact_chat_text(text: Any) -> str:
-    value = str(text or "")
-    value = _PHONE_RE.sub("[手机号]", value)
-    value = _EMAIL_RE.sub("[邮箱]", value)
-    value = _ID_RE.sub("[身份证]", value)
-    value = _OPENID_RE.sub("[用户标识]", value)
-    value = _MENTION_RE.sub("[提及]", value)
-    value = _COMMON_NAME_RE.sub("[姓名]", value)
-    return value
+    return redact_payload(story)
 
 
 def _initial_pattern_item(
@@ -232,16 +217,6 @@ def _anonymized_samples(*, scoring_point_map: dict[str, Any], event_ids: set[str
             "evidence_refs": refs[:1],
         }]
     return []
-
-
-def _redact_payload(value: Any) -> Any:
-    if isinstance(value, dict):
-        return {key: _redact_payload(nested) for key, nested in value.items()}
-    if isinstance(value, list):
-        return [_redact_payload(item) for item in value]
-    if isinstance(value, str):
-        return redact_chat_text(value)
-    return value
 
 
 def _safe_dict(value: Any) -> dict[str, Any]:
