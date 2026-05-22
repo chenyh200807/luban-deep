@@ -502,13 +502,24 @@ function normalizeEvidenceEngineBatchC(body, learningState, scoringPointMap, mas
   var activeSourceCount = sources.filter(function (item) {
     return item.tone === "active";
   }).length;
+  var realEvidenceSourceCount = [
+    gradingCount,
+    conversationCount,
+    attemptCount,
+    scoringCount,
+    behaviorCount,
+    graphCount,
+    difficultyCount,
+  ].filter(function (count) {
+    return asNumber(count, 0) > 0;
+  }).length;
   var blocked =
     isBlockedSourceStatus(sourceStatus) ||
     isBlockedSourceStatus(asObject(scoringPointMap).sourceStatus) ||
     featureFlags.enabled === false ||
     featureFlags.state_projection === false ||
     featureFlags.action_loop === false;
-  var isVisible = !blocked && activeSourceCount > 0;
+  var isVisible = !blocked && activeSourceCount > 0 && realEvidenceSourceCount > 0;
   return {
     title: "学习状态推断引擎",
     summary: totalSignalCount

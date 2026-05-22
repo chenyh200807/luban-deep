@@ -353,6 +353,61 @@ assert.strictEqual(
 );
 assert.strictEqual(wxVm.toReportPageData(flagOffVm).engineEvidenceVisible, false);
 
+var zeroEvidenceFlagOnReport = {
+  ok: true,
+  schema_version: 2,
+  feature_flags: {
+    enabled: true,
+    state_projection: true,
+    action_loop: true,
+  },
+  overview: {},
+  mastery: {
+    overall_mastery: {
+      score: 0,
+      confidence: 0.2,
+      status: "insufficient_evidence",
+    },
+    hotspots: [],
+  },
+  learning_state: {
+    knowledge_state: [],
+    ability_state: [],
+    behavior_state: [],
+    source_status: {
+      authority: "learner_memory_events.learning_evidence",
+      model: "rule_based_v1",
+      grading_fact_count: 0,
+      conversation_signal_count: 0,
+    },
+  },
+  scoring_point_map: {
+    items: [],
+    empty_state: "no_evidence",
+    source_status: {
+      authority: "learner_memory_events.learning_evidence",
+      total_case_event_count: 0,
+      map_eligible_event_count: 0,
+    },
+  },
+  learner_facing: {},
+  learning_brain: {},
+  freshness: { event_count: 0 },
+  next_training: [],
+};
+var zeroEvidenceFlagOnVm = wxVm.buildLearningReportViewModel(
+  zeroEvidenceFlagOnReport,
+);
+assert.strictEqual(
+  zeroEvidenceFlagOnVm.evidenceEngine.isVisible,
+  false,
+  "synthetic mastery confidence must not light up the engine without real evidence",
+);
+assert.strictEqual(
+  wxVm.toReportPageData(zeroEvidenceFlagOnVm).engineEvidenceSources.length,
+  0,
+);
+
 // Keyword-only / rubric_pending honesty.
 var pendingReport = {
   ok: true,
