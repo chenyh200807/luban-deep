@@ -45,6 +45,7 @@ domains:
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_mistake_book.py
       - tests/services/learner_state/test_training_intent.py
+      - tests/services/learner_state/test_scoring_point_map_read_model.py
       - tests/services/learner_state/test_conversation_learning_evidence_event.py
       - tests/services/learner_state/test_learning_evidence_quality_gate.py
       - tests/services/member_console/test_home_dashboard_learning_projection.py
@@ -198,6 +199,7 @@ domains:
       - tests/services/learner_state/test_learning_state_projection.py
       - tests/services/learner_state/test_mastery_estimator.py
       - tests/services/learner_state/test_training_intent.py
+      - tests/services/learner_state/test_scoring_point_map_read_model.py
       - tests/api/test_learning_brain_router.py
       - tests/services/learner_state/test_mistake_book.py
       - tests/services/learner_state/test_heartbeat_service.py

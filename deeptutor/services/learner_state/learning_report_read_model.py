@@ -13,8 +13,16 @@ from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
 from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
+from deeptutor.services.learner_state.scoring_point_map_read_model import (
+    build_scoring_point_map_read_projection,
+)
 from deeptutor.services.learner_state.training_intent import build_learning_training_intent
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
+
+
+def _build_scoring_point_map_from(*, events: list[Any], user_id: str) -> dict[str, Any]:
+    """Batch C Task 7: thin composer — never grows beyond delegation."""
+    return build_scoring_point_map_read_projection(events=events, user_id=user_id)
 
 _TZ = timezone(timedelta(hours=8))
 _SCHEMA_VERSION = 1
@@ -234,6 +242,10 @@ def build_learning_report_read_model(
         "learner_facing": learner_facing,
         "truth_sections": truth_sections,
         "next_training": next_training,
+        # Batch C Task 7: scoring point map projection (read-only sibling).
+        "scoring_point_map": _build_scoring_point_map_from(
+            events=events, user_id=normalized_user
+        ),
         "legacy_compat": {
             "today_progress": legacy_today,
             "home_dashboard": home_dashboard,
