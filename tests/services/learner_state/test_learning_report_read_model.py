@@ -1220,3 +1220,179 @@ def test_learning_report_exposes_learning_state_and_scoring_point_map_at_top_lev
         scoring_point_map["source_status"]["authority"]
         == "learner_memory_events.learning_evidence"
     )
+
+
+# ─── Batch D Task 9: prescription outcome verification ───────────────────
+
+
+def _prescription_event(
+    event_id: str,
+    *,
+    training_intent_id: str = "lti_fire",
+    phase: str = "assigned",
+    status: str = "assigned",
+    score_ratio: float | None = None,
+    days_ago: int = 0,
+    evidence_source: str = "construction_grading",
+) -> LearnerStateEvent:
+    event = _learning_event(
+        event_id,
+        days_ago=days_ago,
+        question_id=f"q_{event_id}",
+        score_awarded=1.0 if (score_ratio or 0) >= 1.0 else 0.0,
+        max_score=1.0,
+    )
+    event.source_feature = evidence_source
+    event.payload_json["evidence_source"] = evidence_source
+    if evidence_source == "conversation_synthesis":
+        event.payload_json["learning_signal_type"] = "mistake_explain"
+        event.payload_json["quality"] = {
+            "detail_ready": True,
+            "progress_countable": False,
+            "truth_eligible": False,
+        }
+    if training_intent_id:
+        event.payload_json["training_intent_id"] = training_intent_id
+    event.payload_json["prescription_phase"] = phase
+    result = {"status": status}
+    if score_ratio is not None:
+        result["score_ratio"] = score_ratio
+        event.payload_json["score_ratio"] = score_ratio
+    event.payload_json["prescription_result"] = result
+    return event
+
+
+def test_verification_probe_updates_prescription_outcome() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _prescription_event("evt_assigned", training_intent_id="intent_fire"),
+                _prescription_event(
+                    "evt_verified",
+                    training_intent_id="intent_fire",
+                    phase="verification_probe",
+                    status="verified",
+                    score_ratio=1.0,
+                ),
+            ]
+        ),
+        schema_version=2,
+    )
+
+    loop = model["prescription_outcomes"][0]
+    assert loop["training_intent_id"] == "intent_fire"
+    assert loop["status"] == "verified"
+    assert loop["evidence_refs"] == ["evt_assigned", "evt_verified"]
+    assert loop["next_required_action"] == "maintain"
+
+
+def test_failed_verification_probe_requires_another_probe() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _prescription_event("evt_assigned", training_intent_id="intent_fail"),
+                _prescription_event(
+                    "evt_failed",
+                    training_intent_id="intent_fail",
+                    phase="verification_probe",
+                    status="not_verified",
+                    score_ratio=0.0,
+                ),
+            ]
+        ),
+        schema_version=2,
+    )
+
+    loop = model["prescription_outcomes"][0]
+    assert loop["status"] == "not_verified"
+    assert loop["score_ratio"] == 0.0
+    assert loop["next_required_action"] == "retry_verification_probe"
+
+
+def test_stale_assigned_prescription_needs_followup() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [_prescription_event("evt_old_assigned", training_intent_id="intent_old", days_ago=8)]
+        ),
+        schema_version=2,
+    )
+
+    loop = model["prescription_outcomes"][0]
+    assert loop["status"] == "needs_followup"
+    assert loop["next_required_action"] == "resume_prescription"
+
+
+def test_missing_training_intent_id_is_unlinked_not_verified() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _prescription_event(
+                    "evt_unlinked",
+                    training_intent_id="",
+                    phase="verification_probe",
+                    status="verified",
+                    score_ratio=1.0,
+                )
+            ]
+        ),
+        schema_version=2,
+    )
+
+    loop = model["prescription_outcomes"][0]
+    assert loop["training_intent_id"] == ""
+    assert loop["status"] == "unlinked_training_evidence"
+    assert loop["next_required_action"] == "link_to_training_intent"
+
+
+def test_verified_outcome_does_not_fabricate_evidence_refs() -> None:
+    event = _prescription_event(
+        "",
+        training_intent_id="intent_no_ref",
+        phase="verification_probe",
+        status="verified",
+        score_ratio=1.0,
+    )
+    event.event_id = ""
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        schema_version=2,
+    )
+
+    loop = model["prescription_outcomes"][0]
+    assert loop["status"] == "not_verified"
+    assert loop["evidence_refs"] == []
+
+
+def test_conversation_only_explanation_does_not_verify_prescription() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _prescription_event("evt_assigned", training_intent_id="intent_chat"),
+                _prescription_event(
+                    "evt_chat",
+                    training_intent_id="intent_chat",
+                    phase="verification_probe",
+                    status="verified",
+                    score_ratio=1.0,
+                    evidence_source="conversation_synthesis",
+                ),
+            ]
+        ),
+        schema_version=2,
+    )
+
+    loop = model["prescription_outcomes"][0]
+    assert loop["status"] != "verified"
+    assert loop["next_required_action"] == "complete_verification_probe"

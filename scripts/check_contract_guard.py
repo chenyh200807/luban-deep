@@ -13,6 +13,8 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX_PATH = REPO_ROOT / "contracts" / "index.yaml"
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 # Phase -1.B: error-code emit-site cross-check.
 # Scan these source paths for hard-coded error_code literals that look like

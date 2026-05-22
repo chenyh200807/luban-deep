@@ -19,6 +19,9 @@ from deeptutor.services.learner_state.learning_state_projection import (
 from deeptutor.services.learner_state.scoring_point_map_read_model import (
     build_scoring_point_map_read_projection,
 )
+from deeptutor.services.learner_state.prescription_outcome_read_model import (
+    build_prescription_outcomes_read_projection,
+)
 from deeptutor.services.learner_state.training_intent import build_learning_training_intent
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
 
@@ -33,6 +36,12 @@ def _build_learning_state_from(*, events: list[Any]) -> dict[str, Any]:
     projection at the top of the report so the view-model can read it
     without spelunking into learning_brain."""
     return project_three_layer_learning_state(events=events)
+
+
+def _build_prescription_outcomes_from(*, events: list[Any]) -> list[dict[str, Any]]:
+    """Batch D Task 9: thin composer over the sibling read projection."""
+    return build_prescription_outcomes_read_projection(events=events)
+
 
 _TZ = timezone(timedelta(hours=8))
 _SCHEMA_VERSION = 1
@@ -256,6 +265,7 @@ def build_learning_report_read_model(
         "scoring_point_map": _build_scoring_point_map_from(
             events=events, user_id=normalized_user
         ),
+        "prescription_outcomes": _build_prescription_outcomes_from(events=events),
         # Batch C Task 8: three-layer learning state (Task 4 projection)
         # exposed at top level so the student page view-model can render
         # state -> reason -> action -> evidence without traversing into
@@ -1593,7 +1603,7 @@ def _date_key(value: str | None = None, *, days_ago: int = 0) -> str:
 
 
 def _recent_window_since_iso() -> str:
-    start = datetime.now(_TZ).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=2)
+    start = datetime.now(_TZ).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=8)
     return start.isoformat()
 
 
