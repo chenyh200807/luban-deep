@@ -63,7 +63,7 @@
       </view>
 
       <!-- Batch C Task 8: today prescription + 3-layer learning state + scoring point map -->
-      <view class="learning-engine-panel glass-card" wx:if="{{engineEvidenceSources.length}}">
+      <view class="learning-engine-panel glass-card" wx:if="{{engineEvidenceVisible}}">
         <view class="engine-head">
           <view>
             <text class="engine-kicker">证据融合</text>

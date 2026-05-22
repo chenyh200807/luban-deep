@@ -341,6 +341,9 @@ function stateLabel(value) {
     weak: "需要重点补",
     stable: "较稳定",
     observed: "已观察",
+    improving: "正在改善",
+    unstable: "还不稳定",
+    active: "仍需跟进",
     insufficient_evidence: "证据不足",
     needs_revalidation: "需要复测",
     recurring: "反复出现",
@@ -354,8 +357,15 @@ function stateLabel(value) {
 
 function stateTone(value) {
   var key = String(value || "").trim();
-  if (key === "weak" || key === "recurring" || key === "not_verified") return "warn";
-  if (key === "stable" || key === "verified") return "good";
+  if (
+    key === "weak" ||
+    key === "recurring" ||
+    key === "not_verified" ||
+    key === "unstable" ||
+    key === "active"
+  )
+    return "warn";
+  if (key === "stable" || key === "verified" || key === "improving") return "good";
   return "neutral";
 }
 
@@ -366,11 +376,25 @@ function abilityDimensionLabel(value) {
     calculation: "计算与阈值判断",
     expression: "案例表达",
     transfer: "迁移应用",
+    review_execution: "复盘执行",
     recurrence: "同类错误复发",
     explained: "系统解析跟进",
+    still_confused: "仍未理解",
   };
   var key = String(value || "").trim();
   return labels[key] || compactLearningTopic(key) || key;
+}
+
+function isBlockedSourceStatus(status) {
+  var sourceStatus = asObject(status);
+  var blockedReason = String(
+    sourceStatus.blocked_reason || sourceStatus.reason || "",
+  ).trim();
+  if (blockedReason) return true;
+  if (sourceStatus.degraded === true && blockedReason) return true;
+  if (sourceStatus.enabled === false || sourceStatus.feature_enabled === false) return true;
+  var stage = String(sourceStatus.stage || sourceStatus.flag_stage || "").trim();
+  return stage === "off";
 }
 
 function prescriptionPhaseLabel(value) {
@@ -405,6 +429,7 @@ function sourceTone(count) {
 
 function normalizeEvidenceEngineBatchC(body, learningState, scoringPointMap, mastery, learningBrain) {
   var sourceStatus = asObject(asObject(learningState).sourceStatus);
+  var featureFlags = asObject(body.feature_flags);
   var gradingCount = asNumber(sourceStatus.grading_fact_count, 0);
   var conversationCount = asNumber(sourceStatus.conversation_signal_count, 0);
   var totalSignalCount =
@@ -474,15 +499,26 @@ function normalizeEvidenceEngineBatchC(body, learningState, scoringPointMap, mas
       tone: sourceTone(difficultyCount),
     },
   ];
+  var activeSourceCount = sources.filter(function (item) {
+    return item.tone === "active";
+  }).length;
+  var blocked =
+    isBlockedSourceStatus(sourceStatus) ||
+    isBlockedSourceStatus(asObject(scoringPointMap).sourceStatus) ||
+    featureFlags.enabled === false ||
+    featureFlags.state_projection === false ||
+    featureFlags.action_loop === false;
+  var isVisible = !blocked && activeSourceCount > 0;
   return {
     title: "学习状态推断引擎",
     summary: totalSignalCount
       ? "融合 " + totalSignalCount + " 条历史学习证据"
       : "完成一次批改后开始推断",
     subtitle: "把答题记录、案例解析、采分点、错因与时间信号收束成今日行动",
-    sources: sources,
+    sources: isVisible ? sources : [],
     sourceStatus: sourceStatus,
-    isEmpty: totalSignalCount === 0 && asObject(learningState).isEmpty,
+    isEmpty: !isVisible,
+    isVisible: isVisible,
   };
 }
 
@@ -942,6 +978,7 @@ function toReportPageData(model) {
       asObject(vm.evidenceEngine).subtitle || "",
     ),
     engineEvidenceSources: asList(asObject(vm.evidenceEngine).sources),
+    engineEvidenceVisible: Boolean(asObject(vm.evidenceEngine).isVisible),
     // Batch C Task 8: flat page fields for the new sections.
     learningStateKnowledge: asList(asObject(vm.learningState).knowledgeState),
     learningStateAbility: asList(asObject(vm.learningState).abilityState),

@@ -280,6 +280,7 @@ assert.strictEqual(batchCWx.learningState.isEmpty, false);
 // not as raw backend enums or a thin statistics panel.
 assert.strictEqual(batchCWx.evidenceEngine.title, "学习状态推断引擎");
 assert.strictEqual(batchCWx.evidenceEngine.summary, "融合 10 条历史学习证据");
+assert.strictEqual(batchCWx.evidenceEngine.isVisible, true);
 assert.strictEqual(batchCWx.evidenceEngine.sources.length, 7);
 assert.deepStrictEqual(
   batchCWx.evidenceEngine.sources.map(function (item) {
@@ -335,7 +336,22 @@ assert.strictEqual(
 assert.strictEqual(batchCPage.scoringPointMapEmptyState, "");
 assert.strictEqual(batchCPage.learningStateIsEmpty, false);
 assert.strictEqual(batchCPage.engineEvidenceSummary, "融合 10 条历史学习证据");
+assert.strictEqual(batchCPage.engineEvidenceVisible, true);
 assert.strictEqual(batchCPage.engineEvidenceSources.length, 7);
+
+var flagOffReport = JSON.parse(JSON.stringify(batchCReport));
+flagOffReport.feature_flags = {
+  enabled: false,
+  state_projection: false,
+  action_loop: false,
+};
+var flagOffVm = wxVm.buildLearningReportViewModel(flagOffReport);
+assert.strictEqual(
+  flagOffVm.evidenceEngine.isVisible,
+  false,
+  "feature-flag-disabled projections must not expose the engine panel",
+);
+assert.strictEqual(wxVm.toReportPageData(flagOffVm).engineEvidenceVisible, false);
 
 // Keyword-only / rubric_pending honesty.
 var pendingReport = {
@@ -362,6 +378,16 @@ assert.strictEqual(
   "本题暂无可拆采分点，已先按审题要点收集",
 );
 assert.strictEqual(pendingVm.learningState.isEmpty, true);
+assert.strictEqual(
+  pendingVm.evidenceEngine.isVisible,
+  false,
+  "empty/degraded projections must not show the engine panel",
+);
+assert.strictEqual(
+  wxVm.toReportPageData(pendingVm).engineEvidenceSources.length,
+  0,
+  "page data must keep the engine panel hidden when no active evidence exists",
+);
 // Degraded fallback prescription must NOT fabricate a strong action.
 assert.strictEqual(pendingVm.prescription.status, "degraded");
 
@@ -410,8 +436,8 @@ assert(
   "wx report.wxml must show the learning-state engine frame",
 );
 assert(
-  reportWxml.indexOf("engineEvidenceSources") >= 0,
-  "wx report.wxml must render multi-source evidence fusion from the view-model",
+  reportWxml.indexOf("engineEvidenceVisible") >= 0,
+  "wx report.wxml must gate the engine panel on backend evidence visibility",
 );
 assert(
   reportWxml.indexOf("今日学习状态") >= 0,
