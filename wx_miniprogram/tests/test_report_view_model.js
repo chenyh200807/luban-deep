@@ -127,6 +127,10 @@ assert.strictEqual(pageData.learningBrainNextAction.intent.source, "learning_rep
 
 var wxReportSource = fs.readFileSync(wxReportPath, "utf8");
 assert(
+  wxReportSource.indexOf("schemaVersion === 1 || schemaVersion === 2") >= 0,
+  "wx report page must accept learning-report schema v1 and v2 payloads",
+);
+assert(
   wxReportSource.indexOf("learning-report-view-model") >= 0 &&
     wxReportSource.indexOf("buildLearningReportViewModel") >= 0 &&
     wxReportSource.indexOf("toReportPageData") >= 0,

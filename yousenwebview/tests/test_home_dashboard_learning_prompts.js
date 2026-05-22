@@ -42,5 +42,7 @@ var wsSource = fs.readFileSync(wsSourcePath, "utf8");
 assert(chatSource.indexOf("learning-home-view-model") >= 0);
 assert(chatSource.indexOf("onRecommendedPromptTap") >= 0);
 assert(chatWxml.indexOf("recommendedPrompts") >= 0);
+assert(chatSource.indexOf("showStaticExamples") >= 0);
+assert(chatWxml.indexOf("showStaticExamples") >= 0);
 assert(wsSource.indexOf("prompt_intent") >= 0);
 assert(fs.readFileSync(yousenVmPath, "utf8").indexOf("buildFallbackFocusQuery") < 0);

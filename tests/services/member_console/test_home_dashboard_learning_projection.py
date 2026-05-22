@@ -214,8 +214,10 @@ def test_dashboard_reads_projection_from_learner_snapshot_not_weak_nodes(
 
     dashboard = service.get_home_dashboard("projection_user")
 
-    assert dashboard["today_focus"]["title"] != "今日焦点：施工进度索赔"
+    assert dashboard["today_focus"]["title"] == "今日焦点：施工进度索赔"
     assert dashboard["today"]["focus"] == dashboard["today_focus"]
+    assert dashboard["recommended_prompts"][0]["text"] == "用案例题练施工进度索赔"
+    assert dashboard["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
     assert dashboard["home_projection"]["today_focus"]["title"] == "今日焦点：施工进度索赔"
     assert dashboard["home_projection"]["recommended_prompts"][0]["text"] == "用案例题练施工进度索赔"
     assert dashboard["home_projection"]["recommended_prompts"][0]["prompt_type"] == "practice_prompt"

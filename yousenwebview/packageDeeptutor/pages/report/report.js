@@ -1115,10 +1115,11 @@ function _hasSnapshotData(value) {
 
 function _isLearningReportPayload(value) {
   var authority = value && value.authority;
+  var schemaVersion = Number(value && value.schema_version);
   return (
     value &&
     typeof value === "object" &&
-    Number(value.schema_version) === 1 &&
+    (schemaVersion === 1 || schemaVersion === 2) &&
     authority &&
     authority.read_model === "learning-report-read-model" &&
     value.overview &&

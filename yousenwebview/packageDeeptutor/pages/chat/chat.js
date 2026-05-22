@@ -234,6 +234,7 @@ Page({
     focusQuery: "",
     focusPromptIntent: null,
     recommendedPrompts: [],
+    showStaticExamples: true,
     entrySource: "",
     workspaceBackVisible: false,
     workspaceBackLabel: "返回",
@@ -1648,6 +1649,7 @@ Page({
         update.focusQuery = homeModel.focusQuery;
         update.focusPromptIntent = homeModel.focusPromptIntent;
         update.recommendedPrompts = homeModel.recommendedPrompts;
+        update.showStaticExamples = !homeModel.recommendedPrompts.length;
 
         self.setData(update);
       })
@@ -1661,6 +1663,7 @@ Page({
           focusText: "今日推进",
           focusPromptIntent: null,
           recommendedPrompts: [],
+          showStaticExamples: true,
           focusQuery: "",
         });
       });

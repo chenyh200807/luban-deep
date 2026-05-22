@@ -118,12 +118,12 @@ module.exports = {
 			          <text class="send-icon">▶</text>
 			        </view>
 			      </view>
-		    </view>
+    </view>
 
     <!-- 示例 -->
-    <text class="example-label">试试这样问</text>
+    <text class="example-label" wx:if="{{showStaticExamples}}">试试这样问</text>
     <!-- 高/中端：空闲自动巡航，触摸时可手动拖动 -->
-    <scroll-view class="example-scroll" wx:if="{{enableMarquee}}" scroll-x enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}">
+    <scroll-view class="example-scroll" wx:if="{{showStaticExamples && enableMarquee}}" scroll-x enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}">
       <view class="example-scroll-track">
         <view class="example-scroll-group">
           <view class="example-card" wx:for="{{examples}}" wx:key="title" bindtap="sendExample" data-text="{{item.query}}">
@@ -150,7 +150,7 @@ module.exports = {
       </view>
     </scroll-view>
     <!-- 低端：静态网格 -->
-    <view class="example-grid" wx:else>
+    <view class="example-grid" wx:elif="{{showStaticExamples}}">
       <view class="example-card" wx:for="{{examples}}" wx:key="title" bindtap="sendExample" data-text="{{item.query}}">
         <view class="example-icon" style="background:{{isDark ? item.bgDark : item.bgLight}};color:{{isDark ? item.fgDark : item.fgLight}}">
           <text class="example-icon-txt">{{item.icon}}</text>

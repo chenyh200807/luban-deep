@@ -53,6 +53,8 @@ var wsSource = fs.readFileSync(wsSourcePath, "utf8");
 assert(chatSource.indexOf("learning-home-view-model") >= 0);
 assert(chatSource.indexOf("onRecommendedPromptTap") >= 0);
 assert(chatWxml.indexOf("recommendedPrompts") >= 0);
+assert(chatSource.indexOf("showStaticExamples") >= 0);
+assert(chatWxml.indexOf("showStaticExamples") >= 0);
 assert(wsSource.indexOf("prompt_intent") >= 0);
 assert(fs.readFileSync(wxVmPath, "utf8").indexOf("buildFallbackFocusQuery") < 0);
 
@@ -154,6 +156,7 @@ function flushPromises() {
   var success = instantiatePage(successDefinition);
   success.page._loadDashboard();
   await flushPromises();
+  assert.strictEqual(success.page.data.showStaticExamples, false);
   success.page.onFocusTap();
   assert.deepStrictEqual(JSON.parse(JSON.stringify(success.sent)), [
     {
@@ -173,6 +176,7 @@ function flushPromises() {
   var empty = instantiatePage(emptyDefinition);
   empty.page._loadDashboard();
   await flushPromises();
+  assert.strictEqual(empty.page.data.showStaticExamples, true);
   empty.page.onFocusTap();
   assert.deepStrictEqual(JSON.parse(JSON.stringify(empty.sent)), []);
 })().catch(function (err) {

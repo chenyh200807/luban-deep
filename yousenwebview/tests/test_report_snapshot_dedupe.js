@@ -109,6 +109,10 @@ function createPageInstance(pageDef) {
     "utf8",
   );
   assert(
+    reportSource.indexOf("schemaVersion === 1 || schemaVersion === 2") >= 0,
+    "yousen report page must accept learning-report schema v1 and v2 payloads",
+  );
+  assert(
     reportSource.indexOf("CHAPTER_CODE_LABELS") < 0 &&
       reportSource.indexOf("LEARNING_BRAIN_OBJECT_LABELS") < 0 &&
       reportSource.indexOf("LEARNING_BRAIN_EDGE_LABELS") < 0 &&
@@ -160,7 +164,7 @@ function createPageInstance(pageDef) {
             counters.report += 1;
             return {
               ok: true,
-              schema_version: 1,
+              schema_version: 2,
               authority: {
                 read_model: "learning-report-read-model",
                 progress_source: "learner_memory_events.learning_evidence",

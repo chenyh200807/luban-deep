@@ -3602,8 +3602,25 @@ class MemberConsoleService:
             ),
         }
         if env_flag(_HOME_PERSONALIZATION_ENABLED):
-            dashboard["home_projection"] = self._build_home_learning_projection(snapshot=snapshot, member=member)
+            home_projection = self._build_home_learning_projection(snapshot=snapshot, member=member)
+            dashboard["home_projection"] = home_projection
+            self._apply_home_learning_projection(dashboard, home_projection)
         return dashboard
+
+    @staticmethod
+    def _apply_home_learning_projection(dashboard: dict[str, Any], projection: dict[str, Any]) -> None:
+        if not isinstance(projection, dict):
+            return
+        today_focus = projection.get("today_focus")
+        if isinstance(today_focus, dict) and today_focus:
+            dashboard["today_focus"] = today_focus
+            today = dict(dashboard.get("today") or {})
+            today["hint"] = today_focus.get("title") or today.get("hint") or ""
+            today["focus"] = today_focus
+            dashboard["today"] = today
+        recommended_prompts = projection.get("recommended_prompts")
+        if isinstance(recommended_prompts, list):
+            dashboard["recommended_prompts"] = recommended_prompts
 
     def _build_home_learning_projection(self, *, snapshot: Any | None = None, member: dict[str, Any] | None = None) -> dict[str, Any]:
         try:

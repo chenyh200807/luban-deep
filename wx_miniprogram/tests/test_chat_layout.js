@@ -164,7 +164,7 @@ assert(
   "hero secondary actions should be consolidated behind a more menu",
 );
 assert(
-  chatWxml.indexOf('class="example-scroll" wx:if="{{enableMarquee}}" scroll-x') >= 0 &&
+  chatWxml.indexOf('class="example-scroll" wx:if="{{showStaticExamples && enableMarquee}}" scroll-x') >= 0 &&
     chatWxml.indexOf('class="example-scroll-track"') >= 0 &&
     chatWxml.indexOf('class="example-scroll-group"') >= 0 &&
     chatWxss.indexOf(".example-scroll") >= 0 &&

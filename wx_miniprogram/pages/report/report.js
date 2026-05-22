@@ -857,10 +857,11 @@ function buildDegradedHint(sources) {
 
 function isLearningReportPayload(body) {
   var authority = asObject(body && body.authority);
+  var schemaVersion = Number(body && body.schema_version);
   return (
     body &&
     typeof body === "object" &&
-    Number(body.schema_version) === 1 &&
+    (schemaVersion === 1 || schemaVersion === 2) &&
     authority.read_model === "learning-report-read-model" &&
     body.overview &&
     typeof body.overview === "object" &&
