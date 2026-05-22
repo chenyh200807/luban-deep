@@ -5,6 +5,9 @@ import json
 from collections import defaultdict
 from typing import Any, Iterable
 
+from deeptutor.services.learner_state.learning_state_projection import (
+    project_three_layer_learning_state,
+)
 from deeptutor.services.learner_state.service import LearnerStateEvent
 
 _ALLOWED_EDGE_TYPES = {
@@ -113,6 +116,7 @@ def synthesize_learning_truth(
         "stale_claims": stale_claims,
         "typed_graph": project_learning_graph(ordered_events),
         "window_truncated": window_truncated,
+        "learning_state": project_three_layer_learning_state(events=ordered_events),
     }
     projection["synthesis_run"] = _synthesis_run(
         events=ordered_events,
