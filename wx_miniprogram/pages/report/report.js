@@ -4,6 +4,7 @@ const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
 const reportViewModel = require("../../utils/learning-report-view-model");
 
+const taxonomy = require("../../utils/taxonomy");
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
   beginner: "入门",
@@ -28,9 +29,7 @@ function displayLevelName(value) {
 }
 
 function displayChapterName(value) {
-  var text = String(value || "").trim();
-  if (/^1A\d{6}$/i.test(text)) return "知识点 " + text.toUpperCase();
-  return text || "未归类能力";
+  return taxonomy.displayChapterName(value, "未归类能力");
 }
 
 function buildRadarDimensionsFromAssessment(data) {

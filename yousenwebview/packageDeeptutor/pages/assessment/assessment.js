@@ -2,6 +2,7 @@
 
 var api = require("../../utils/api");
 var route = require("../../utils/route");
+var taxonomy = require("../../utils/taxonomy");
 
 var LEVEL_NAMES = {
   beginner: "入门",
@@ -82,22 +83,6 @@ var ARCHETYPE_TIPS = {
   policy_seeded: "建议按当前诊断结果先补薄弱章节，再用短组练习和固定复盘巩固。",
 };
 
-var CHAPTER_CODE_LABELS = {
-  "1A411": "建筑设计与构造",
-  "1A412": "结构设计与建筑材料",
-  "1A413": "装配式建筑",
-  "1A414": "建筑工程材料",
-  "1A415": "建筑工程施工技术",
-  "1A421": "项目组织管理",
-  "1A422": "施工进度管理",
-  "1A423": "施工质量管理",
-  "1A424": "施工安全管理",
-  "1A425": "合同与招投标管理",
-  "1A426": "施工成本管理",
-  "1A427": "资源与现场管理",
-  "1A431": "建筑工程法规",
-  "1A432": "建筑工程技术标准",
-};
 
 var helpers = require("../../utils/helpers");
 
@@ -195,11 +180,7 @@ function normalizeAssessmentOptions(rawOptions) {
 }
 
 function displayChapterName(value) {
-  var text = String(value || "").trim();
-  if (/^1A\d{6}$/i.test(text)) {
-    return CHAPTER_CODE_LABELS[text.slice(0, 5).toUpperCase()] || "综合能力";
-  }
-  return text || "综合能力";
+  return taxonomy.displayChapterName(value, "综合能力");
 }
 
 function hasExplicitValue(value) {

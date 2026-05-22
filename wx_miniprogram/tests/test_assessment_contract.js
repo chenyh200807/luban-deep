@@ -133,6 +133,7 @@ function loadPage(relativePath, apiOverrides) {
           vibrate: function () {},
         };
       }
+      if (request === "../../utils/taxonomy") return require(path.join(__dirname, "../utils/taxonomy"));
       throw new Error("unexpected require: " + request);
     },
     wx: {

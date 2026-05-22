@@ -6,6 +6,7 @@ const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
 const flags = require("../../utils/flags");
 const reportViewModel = require("../../utils/learning-report-view-model");
+const taxonomy = require("../../utils/taxonomy");
 
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
@@ -31,9 +32,7 @@ function _displayLevelName(value) {
 }
 
 function _displayChapterName(value) {
-  var text = String(value || "").trim();
-  if (/^1A\d{6}$/i.test(text)) return "知识点 " + text.toUpperCase();
-  return text || "未归类能力";
+  return taxonomy.displayChapterName(value, "未归类能力");
 }
 
 function _buildRadarSignature(dims) {
