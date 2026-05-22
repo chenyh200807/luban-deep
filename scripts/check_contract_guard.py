@@ -28,6 +28,21 @@ _ERROR_CODE_EMIT_PATHS: tuple[str, ...] = (
 )
 _ERROR_CODE_LITERAL_RE = re.compile(r'"([EM]\d{2}|unknown_error)"')
 
+# Batch A Task 3: knowledge_node_id emit-site cross-check.
+# Hard-coded 1A4XXXXX literals in evidence / synthesis / training_intent
+# emit modules must resolve to a seeded node in
+# ``deeptutor.services.taxonomy.construction_learning_graph``. Runtime
+# data is not scanned here — only static defaults / examples / fallbacks
+# in production code.
+_NODE_ID_SCAN_PATHS: tuple[str, ...] = (
+    "deeptutor/services/construction_grading/mcq.py",
+    "deeptutor/services/construction_grading/case_kernel.py",
+    "deeptutor/services/construction_grading/learning_evidence.py",
+    "deeptutor/services/learner_state/learning_synthesis.py",
+    "deeptutor/services/learner_state/training_intent.py",
+)
+_NODE_ID_LITERAL_RE = re.compile(r'"(1A4\d{4,5})"')
+
 
 def load_contract_index() -> dict[str, Any]:
     payload = yaml.safe_load(INDEX_PATH.read_text(encoding="utf-8")) or {}
@@ -167,6 +182,47 @@ def evaluate_emitted_error_codes() -> tuple[bool, str]:
     return True, f"error-code-guard: passed | codes={', '.join(codes)}"
 
 
+def collect_emitted_node_ids(repo_root: Path) -> list[str]:
+    """Scan the authoritative emit modules for hard-coded 1A4XXXXX literals."""
+    found: set[str] = set()
+    for relative in _NODE_ID_SCAN_PATHS:
+        path = repo_root / relative
+        if not path.exists():
+            continue
+        for match in _NODE_ID_LITERAL_RE.finditer(path.read_text(encoding="utf-8")):
+            found.add(match.group(1))
+    return sorted(found)
+
+
+def evaluate_emitted_node_ids() -> tuple[bool, str]:
+    """Cross-check every hard-coded knowledge_node_id against the seed graph.
+
+    No literal found is a passing condition — Phase -1 production code
+    intentionally takes node_ids from data, not constants. The guard
+    becomes load-bearing as soon as someone hard-codes a default or fallback.
+    """
+    node_ids = collect_emitted_node_ids(REPO_ROOT)
+    if not node_ids:
+        return True, "node-id-guard: no hard-coded knowledge_node_id literals found"
+
+    try:
+        from deeptutor.services.taxonomy.construction_learning_graph import (
+            is_known_learning_graph_node,
+        )
+    except Exception as exc:  # pragma: no cover - defensive
+        return False, f"node-id-guard: graph seed import failed: {exc}"
+
+    unknown = [node_id for node_id in node_ids if not is_known_learning_graph_node(node_id)]
+    if unknown:
+        return False, (
+            "node-id-guard: failed\n"
+            f"unregistered knowledge_node_id(s): {', '.join(unknown)} — "
+            "add to deeptutor/services/taxonomy/construction_learning_graph.py "
+            "(seed cluster) or remove the literal from emit-site source."
+        )
+    return True, f"node-id-guard: passed | node_ids={', '.join(node_ids)}"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fail CI when protected contract boundaries change without docs/tests coverage."
@@ -190,7 +246,11 @@ def main(argv: list[str] | None = None) -> int:
     code_stream = sys.stdout if code_ok else sys.stderr
     print(code_message, file=code_stream)
 
-    return 0 if (ok and code_ok) else 1
+    node_ok, node_message = evaluate_emitted_node_ids()
+    node_stream = sys.stdout if node_ok else sys.stderr
+    print(node_message, file=node_stream)
+
+    return 0 if (ok and code_ok and node_ok) else 1
 
 
 if __name__ == "__main__":
