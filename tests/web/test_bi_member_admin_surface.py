@@ -304,3 +304,53 @@ def test_bi_launch_readiness_surface_consumes_single_backend_authority() -> None
     assert "上线 readiness" in tab_source
     assert "final_status" in api_source
     assert "readiness_checks" not in tab_source
+
+
+def test_bi_admin_restore_sets_session_optimistically_before_profile_verification() -> None:
+    """Reload with a stored admin session must not flash the locked ACCESS GATE
+    while we wait for /auth/profile to verify the token. The page client must
+    set the optimistic adminSession before awaiting restoreBiAdminSession() and
+    the backend still revalidates the token on every BI API call. The locked
+    fallback only re-renders if the async restore returns session=null."""
+    source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx"
+    ).read_text(encoding="utf-8")
+
+    # The optimistic block must appear before the await and contain the three
+    # state writes that flip the UI out of the locked fallback immediately.
+    optimistic_marker = "// Optimistic restore"
+    assert optimistic_marker in source, (
+        "BiPageClient.tsx must keep the optimistic restore comment explaining "
+        "why setAdminSession(stored) runs before the /auth/profile await."
+    )
+    optimistic_idx = source.index(optimistic_marker)
+    optimistic_block = source[optimistic_idx : optimistic_idx + 1200]
+    assert "setAdminSession(stored);" in optimistic_block
+    assert "setAuthReady(true);" in optimistic_block
+    assert (
+        optimistic_block.index("setAdminSession(stored);")
+        < optimistic_block.index("await restoreBiAdminSession(stored)")
+    ), (
+        "Optimistic adminSession must be set before awaiting "
+        "restoreBiAdminSession to avoid the locked-flash regression."
+    )
+
+
+def test_bi_admin_login_error_is_announced_as_alert() -> None:
+    """When loginBiAdmin throws (bad password, non-admin account, etc.) the
+    BiPageClient must surface authError with role=alert so assistive tech and
+    E2E tooling can pick it up. The previous QA missed the rose-styled
+    paragraph because it only carried a Tailwind class."""
+    source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx"
+    ).read_text(encoding="utf-8")
+
+    # Both admin-access surfaces (default tab section + protected-tab gate)
+    # render authError, and both must announce it as an alert.
+    alert_paragraphs = source.count(
+        'role="alert" aria-live="assertive" className="mt-3 text-sm text-rose-700"'
+    )
+    assert alert_paragraphs == 2, (
+        "Both BI admin authError paragraphs must use role=alert + "
+        f"aria-live=assertive; found {alert_paragraphs}."
+    )
