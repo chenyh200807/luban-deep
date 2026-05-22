@@ -142,9 +142,11 @@ domains:
     contract_files:
       - CONTRACT.md
       - contracts/learner-state.md
+      - docs/contracts/error_code_registry.md
       - docs/plan/2026-04-15-learner-state-memory-guided-learning-prd.md
       - docs/plan/2026-04-15-bot-learner-overlay-prd.md
       - docs/plan/2026-04-24-learner-state-overlay-completion-evidence.md
+      - deeptutor/contracts/error_codes.py
       - deeptutor/contracts/learner_state.py
       - contracts/index.yaml
     protected_patterns:

@@ -3,6 +3,17 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
+# Phase -1.B: opt-in re-export of the unified error-code registry. Callers
+# that want hard validation can `from deeptutor.services.construction_grading.schema
+# import validate_error_code`; existing GradingErrorEvent construction stays
+# behaviorally unchanged so tests fixture-loaded with codes like "" keep
+# working. The contract guard enforces the registry at the build layer.
+from deeptutor.contracts.error_codes import (
+    ContractGuardError as ContractGuardError,
+    ERROR_CODE_REGISTRY as ERROR_CODE_REGISTRY,
+    validate_error_code as validate_error_code,
+)
+
 CaseGradingMode = Literal["curated_rubric", "projected_rubric", "open_skill"]
 RubricStatus = Literal["full", "partial", "miss"]
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -12,6 +13,20 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX_PATH = REPO_ROOT / "contracts" / "index.yaml"
+
+# Phase -1.B: error-code emit-site cross-check.
+# Scan these source paths for hard-coded error_code literals that look like
+# E0X / M0X codes and validate them against ERROR_CODE_REGISTRY. The list is
+# intentionally narrow — only the authoritative emit modules. Tests, fixtures
+# and learning_brain_read_model's local label dict are excluded; if a test
+# hand-rolls an unregistered code it will surface via the consumer pipeline.
+_ERROR_CODE_EMIT_PATHS: tuple[str, ...] = (
+    "deeptutor/services/construction_grading/mcq.py",
+    "deeptutor/services/construction_grading/case_kernel.py",
+    "deeptutor/services/construction_grading/learning_evidence.py",
+    "deeptutor/services/learner_state/learning_synthesis.py",
+)
+_ERROR_CODE_LITERAL_RE = re.compile(r'"([EM]\d{2}|unknown_error)"')
 
 
 def load_contract_index() -> dict[str, Any]:
@@ -114,6 +129,44 @@ def evaluate_changed_files(changed_files: list[str]) -> tuple[bool, str]:
     return True, "contract-guard: passed\n" + "\n".join(passes)
 
 
+def collect_emitted_error_codes(repo_root: Path) -> list[str]:
+    """Scan the authoritative emit modules for E0X / M0X / fallback literals.
+
+    Read-only: opens each file and applies a regex. Returns the deduped list
+    of codes found across all emit modules.
+    """
+    found: set[str] = set()
+    for relative in _ERROR_CODE_EMIT_PATHS:
+        path = repo_root / relative
+        if not path.exists():
+            continue
+        for match in _ERROR_CODE_LITERAL_RE.finditer(path.read_text(encoding="utf-8")):
+            found.add(match.group(1))
+    return sorted(found)
+
+
+def evaluate_emitted_error_codes() -> tuple[bool, str]:
+    """Cross-check every emitted error code against ERROR_CODE_REGISTRY.
+
+    Imports the registry lazily so the rest of the contract guard still runs
+    when the registry module is broken or absent (e.g. early in a refactor).
+    """
+    codes = collect_emitted_error_codes(REPO_ROOT)
+    if not codes:
+        return True, "error-code-guard: no emit-site codes detected"
+
+    try:
+        from deeptutor.contracts.error_codes import check_emitted_error_codes, ContractGuardError
+    except Exception as exc:  # pragma: no cover - defensive
+        return False, f"error-code-guard: registry import failed: {exc}"
+
+    try:
+        check_emitted_error_codes(codes)
+    except ContractGuardError as exc:
+        return False, f"error-code-guard: failed\n{exc}"
+    return True, f"error-code-guard: passed | codes={', '.join(codes)}"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fail CI when protected contract boundaries change without docs/tests coverage."
@@ -132,7 +185,12 @@ def main(argv: list[str] | None = None) -> int:
     ok, message = evaluate_changed_files(changed_files)
     stream = sys.stdout if ok else sys.stderr
     print(message, file=stream)
-    return 0 if ok else 1
+
+    code_ok, code_message = evaluate_emitted_error_codes()
+    code_stream = sys.stdout if code_ok else sys.stderr
+    print(code_message, file=code_stream)
+
+    return 0 if (ok and code_ok) else 1
 
 
 if __name__ == "__main__":
