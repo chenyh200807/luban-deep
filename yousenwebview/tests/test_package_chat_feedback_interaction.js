@@ -114,6 +114,7 @@ function loadChatPage(submitFeedback) {
         };
       }
       if (request === "../../utils/analytics") return { track: function () {} };
+      if (request === "../../utils/learning-home-view-model") return require(path.join(__dirname, "../packageDeeptutor/utils/learning-home-view-model.js"));
       throw new Error("unexpected require: " + request);
     },
     wx: {

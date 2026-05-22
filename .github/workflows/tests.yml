@@ -250,12 +250,13 @@ jobs:
 
       - name: Run Yousen release-gate regression tests
         # yousenwebview is the production yousen (佑森) mini-program front-end;
-        # wx_miniprogram tests above are the shadow contract harness only. These
-        # selected tests guard the redaction + Y2 taxonomy release gates that
-        # PR #13 (72c6c290) and PR #14 (0f610aef) closed. Other yousen tests in
-        # the suite still have a long-standing sandbox-stub debt and are
-        # tracked separately, not added to CI by this commit.
+        # wx_miniprogram tests above are the shadow contract harness only.
+        # These tests guard the release gates closed by PR #13 (72c6c290
+        # redaction), PR #14 (0f610aef Y2 taxonomy) and the batch-2 auth /
+        # chat / home / launch / route contracts whose sandbox-stub debt was
+        # repaired alongside this expansion.
         run: |
+          # batch 1 — redaction + Y2 taxonomy + report contracts
           node yousenwebview/tests/test_answer_leak_attack.js
           node yousenwebview/tests/test_report_radar_authority.js
           node yousenwebview/tests/test_report_radar_fallback.js
@@ -263,6 +264,17 @@ jobs:
           node yousenwebview/tests/test_report_layout.js
           node yousenwebview/tests/test_package_assessment_contract.js
           node yousenwebview/tests/test_report_view_model.js
+          # batch 2 — auth / chat / home / launch / route contracts
+          node yousenwebview/tests/test_app_auth_authority.js
+          node yousenwebview/tests/test_chat_auth_authority.js
+          node yousenwebview/tests/test_chat_bootstrap_authority.js
+          node yousenwebview/tests/test_chat_diagnostic_authority.js
+          node yousenwebview/tests/test_chat_send_surface_telemetry.js
+          node yousenwebview/tests/test_package_chat_copy_authority.js
+          node yousenwebview/tests/test_package_chat_feedback_interaction.js
+          node yousenwebview/tests/test_home_dashboard_learning_prompts.js
+          node yousenwebview/tests/test_index_launch_home.js
+          node yousenwebview/tests/test_route_authority.js
 
   test-summary:
     name: Test Summary
