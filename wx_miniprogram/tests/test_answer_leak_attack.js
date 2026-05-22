@@ -1,16 +1,9 @@
 // test_answer_leak_attack.js — 答案/采分点泄露 negative-case 契约
 // Run: node wx_miniprogram/tests/test_answer_leak_attack.js
 //
-// 用途：暴露当前 sanitizer 的覆盖边界，不修改业务代码。
-//   * 已拦的路径（progressive_disclosure.sections × 4 关键词）：
-//     marker 必须不出现在最终渲染状态里
-//   * 已知泄露的路径（fallback_text / mcq.option.text / followup_context /
-//     callout block）：marker 当前会出现在最终渲染状态里——本测试将这一事实
-//     固定下来，作为"已知 known gap"的活清单。
-//
-// 任何一天这些"已知泄露"被 sanitizer 收紧，本测试会变红，提示作者：
-//   - 把 fixture 的 must_be_blocked 从 false 改成 true
-//   - 在 PR 描述里说明 sanitizer 路径扩展的具体范围
+// 用途：固定 wx 渲染状态的答案/采分点泄露负例。
+// marker 必须不出现在最终 render state（renderableContent / blocks / mcqCards /
+// progressiveDisclosure）里。
 
 var path = require("path");
 var fs = require("fs");
