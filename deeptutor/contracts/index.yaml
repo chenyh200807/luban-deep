@@ -200,6 +200,7 @@ domains:
       - tests/services/learner_state/test_mastery_estimator.py
       - tests/services/learner_state/test_training_intent.py
       - tests/services/learner_state/test_scoring_point_map_read_model.py
+      - tests/services/learner_state/test_evidence_story_read_model.py
       - tests/api/test_learning_brain_router.py
       - tests/services/learner_state/test_mistake_book.py
       - tests/services/learner_state/test_heartbeat_service.py
