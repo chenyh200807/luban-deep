@@ -31,6 +31,39 @@ def _pick_focus_topic(
     return ""
 
 
+def _resolve_focus_with_source(
+    *,
+    active_training_intent: Any,
+    focus_topic: str,
+    weak_points: list[Any] | tuple[Any, ...] | None,
+    hotspots: list[Any] | tuple[Any, ...] | None,
+) -> tuple[str, str]:
+    """Phase -1.C: authority order for the prescription topic.
+
+    training_intent.concept_label is the sole prescription authority; every
+    other lane is a fallback. Returns ``(focus, source)`` where source is one
+    of: training_intent / focus_topic_arg / weak_points / hotspots / default.
+    """
+    if isinstance(active_training_intent, dict):
+        intent_label = str(active_training_intent.get("concept_label") or "").strip()
+        if intent_label:
+            return intent_label, "training_intent"
+
+    explicit = str(focus_topic or "").strip()
+    if explicit:
+        return explicit, "focus_topic_arg"
+
+    weak_names = _normalize_names(weak_points)
+    if weak_names:
+        return weak_names[0], "weak_points"
+
+    hotspot_names = _normalize_names(hotspots)
+    if hotspot_names:
+        return hotspot_names[0], "hotspots"
+
+    return "", "default"
+
+
 def build_study_plan(
     *,
     focus_topic: str = "",
@@ -42,8 +75,10 @@ def build_study_plan(
     due_today_count: int | float = 0,
     total_due: int | float = 0,
     overdue_count: int | float = 0,
+    active_training_intent: dict[str, Any] | None = None,
 ) -> dict[str, str]:
-    topic = _pick_focus_topic(
+    topic, source = _resolve_focus_with_source(
+        active_training_intent=active_training_intent,
         focus_topic=focus_topic,
         weak_points=weak_points,
         hotspots=hotspots,
@@ -104,6 +139,7 @@ def build_study_plan(
         "study_method": study_method,
         "time_budget": time_budget,
         "coach_note": coach_note,
+        "source": source,
     }
 
 
