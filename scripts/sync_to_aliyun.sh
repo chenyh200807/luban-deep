@@ -29,6 +29,7 @@ EXCLUDES=(
     ".ruff_cache"
     ".next"
     ".DS_Store"
+    ".git.broken*"
     ".env*"
     ".secrets*"
     "playwright-report"
@@ -137,6 +138,7 @@ excluded_names = {
 }
 excluded_patterns = (
     ".env*",
+    ".git.broken*",
     ".secrets*",
     "playwright-report*",
     "*.log",
