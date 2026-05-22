@@ -20,6 +20,20 @@ def _build_app() -> FastAPI:
     return app
 
 
+@pytest.fixture(autouse=True)
+def _isolate_supabase_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Developer .env files often define SUPABASE_URL / SUPABASE_KEY so that the
+    # FastAPI app can talk to the real cloud during interactive work. The
+    # harness tests below drive LearnerStateService against tmp_path, so a
+    # configured supabase store would route reads to the cloud (empty for the
+    # synthetic ``qa_student`` user) while writes still land in the local
+    # tmp file -> event_count == 0 despite a successful write. Mirror the
+    # supabase env isolation already used by tests/api/test_invite_test_router.py.
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+
+
 def test_learning_brain_harness_case_grading_runs_visible_chain(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
