@@ -379,6 +379,31 @@ async def test_resolve_turn_semantic_decision_routes_open_chat_topic_to_chat() -
 
 
 @pytest.mark.asyncio
+async def test_resolve_turn_semantic_decision_routes_starter_assessment_but_not_strategy_prompt() -> None:
+    generation_decision, generation_action = await semantic_router.resolve_turn_semantic_decision(
+        "帮我做一次入门摸底测试",
+        _open_chat_active_object(),
+    )
+
+    assert generation_action is None
+    assert generation_decision is not None
+    assert generation_decision["next_action"] == "route_to_generation"
+    assert semantic_router.turn_semantic_decision_route(generation_decision) == "deep_question"
+
+    chat_decision, chat_action = await semantic_router.resolve_turn_semantic_decision(
+        "请根据我的学习记录和最近进度，围绕施工组织设计安排下一步学习推进："
+        "先判断我当前更适合知识讲解、例题带练、错因复盘还是少量自测；"
+        "不要默认生成整套训练题。",
+        _open_chat_active_object(),
+    )
+
+    assert chat_action is None
+    assert chat_decision is not None
+    assert chat_decision["next_action"] == "route_to_general_chat"
+    assert semantic_router.turn_semantic_decision_route(chat_decision) == "chat"
+
+
+@pytest.mark.asyncio
 async def test_resolve_turn_semantic_decision_clarifies_low_confidence_grading_action(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

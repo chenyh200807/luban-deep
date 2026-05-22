@@ -1226,6 +1226,42 @@ async def test_orchestrator_routes_5_question_practice_to_lightweight() -> None:
     assert trace_meta.get("practice_generation.strategy") == "lightweight"
 
 
+@pytest.mark.asyncio
+async def test_orchestrator_routes_home_dashboard_starter_assessment_to_deep_question() -> None:
+    # 真实生产 trace 38f1770e... 复现：
+    # home dashboard 的「先做一次摸底测评」不能落到普通 TutorBot 文本出题，
+    # 否则 presentation parser 会生成无 hidden grading_key 的可提交题卡。
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    prompt_intent = {
+        "source": "home_dashboard",
+        "training_intent_id": "lti_starter",
+        "training_mode": "mixed_review",
+        "question_count": 3,
+        "reason": "starter",
+    }
+    context = UnifiedContext(
+        session_id="s-home-starter",
+        user_message="先做一次摸底测评",
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "learning_prompt_intent": prompt_intent,
+        },
+        metadata={"raw_user_message": "先做一次摸底测评"},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["num_questions"] == 3
+    assert context.config_overrides["learning_training_intent"] == prompt_intent
+    assert context.config_overrides["lightweight_generation"] is True
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Batch A — plan §Phase 0 Step 0.2 (A4) — cancellation propagation
 # 覆盖：正常完成 / outer cancel / GeneratorExit 三条路径，

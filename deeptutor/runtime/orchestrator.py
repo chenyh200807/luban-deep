@@ -539,6 +539,20 @@ class ChatOrchestrator:
         )
         reveal_preference = detect_answer_reveal_preference(message)
         inferred_question_count = self._infer_question_count(message)
+        learning_training_intent = context.config_overrides.get("learning_training_intent")
+        learning_prompt_intent = context.config_overrides.get("learning_prompt_intent")
+        if not isinstance(learning_training_intent, dict) and isinstance(learning_prompt_intent, dict):
+            # Mobile/home dashboard prompts initially arrive as learning_prompt_intent
+            # because capability selection has not happened yet. Once this turn is
+            # canonically routed to practice generation, deep_question is the
+            # training authority and should consume the same intent.
+            learning_training_intent = dict(learning_prompt_intent)
+            context.config_overrides["learning_training_intent"] = learning_training_intent
+        intent_question_count = (
+            _coerce_positive_int(learning_training_intent.get("question_count"), default=0)
+            if isinstance(learning_training_intent, dict)
+            else 0
+        )
         resolved_question_type = (
             explicit_question_type
             if is_explicit_type
@@ -552,7 +566,9 @@ class ChatOrchestrator:
             context.config_overrides.get("num_questions"),
             default=1,
         )
-        if current_question_count == 1 and inferred_question_count != 1:
+        if intent_question_count:
+            context.config_overrides["num_questions"] = intent_question_count
+        elif current_question_count == 1 and inferred_question_count != 1:
             context.config_overrides["num_questions"] = inferred_question_count
         else:
             context.config_overrides.setdefault("num_questions", inferred_question_count)

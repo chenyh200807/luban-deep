@@ -13,7 +13,6 @@ from deeptutor.services.question_followup import (
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
-    extract_choice_result_summary_from_text,
     normalize_question_followup_context,
     resolve_submission_attempt,
 )
@@ -238,9 +237,10 @@ class TutorBotCapability(BaseCapability):
                 state_result_summary = build_choice_result_summary_from_exact_question(
                     turn_summary["exact_question"]
                 )
-                display_result_summary = state_result_summary or extract_choice_result_summary_from_text(
-                    final_response
-                )
+                # TutorBot free text is not grading authority. Only render
+                # submit-able MCQ presentation when the answer key came from an
+                # exact authoritative question source.
+                display_result_summary = state_result_summary
             reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
             visible_response = self._build_visible_response(
                 context=context,
