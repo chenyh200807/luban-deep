@@ -142,9 +142,12 @@ domains:
     contract_files:
       - CONTRACT.md
       - contracts/learner-state.md
+      - docs/contracts/error_code_registry.md
+      - docs/contracts/learning-state-inference.md
       - docs/plan/2026-04-15-learner-state-memory-guided-learning-prd.md
       - docs/plan/2026-04-15-bot-learner-overlay-prd.md
       - docs/plan/2026-04-24-learner-state-overlay-completion-evidence.md
+      - deeptutor/contracts/error_codes.py
       - deeptutor/contracts/learner_state.py
       - contracts/index.yaml
     protected_patterns:
@@ -206,3 +209,30 @@ domains:
       - supabase/migrations/20260415000100_learner_state_core.sql
       - supabase/migrations/20260415000200_bot_learner_overlay.sql
       - supabase/migrations/20260419000100_learner_state_rls.sql
+
+# Batch A Task 1 — layered addendum on top of the learner_state and turn
+# domains. Records authority / allowed event types / projection grammar /
+# explicit forbidden anti-patterns introduced by the
+# 2026-05-22 learning-state-inference transformation plan.
+# Purely additive: no new domain, no new endpoint, no new ledger table.
+learning_state_inference:
+  authority: learner_memory_events.learning_evidence -> learning_synthesis -> learning_report_read_model
+  allowed_event_type: learning_evidence
+  allowed_evidence_sources:
+    - construction_grading
+    - conversation_synthesis
+  projections:
+    - knowledge_state
+    - ability_state
+    - behavior_state
+    - prescription
+    - scoring_point_map
+  forbidden:
+    - second learner memory table
+    - frontend mastery derivation
+    - recommendation authority outside training_intent / learning_report_read_model
+    - new chat WebSocket route outside /api/v1/ws
+    - LLM-fabricated scoring_point_hits bypassing audit.reconcile_grader_output
+    - unregistered error_code in payload outside docs/contracts/error_code_registry.md
+    - keyword-only rubric items rendered as "采分点" instead of "审题要点"
+    - write-back into questions_bank.grading_rubric
