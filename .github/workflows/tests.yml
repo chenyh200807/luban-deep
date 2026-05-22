@@ -248,33 +248,41 @@ jobs:
         run: |
           find yousenwebview -name '*.js' -print0 | xargs -0 -n1 node --check
 
-      - name: Run Yousen release-gate regression tests
+      - name: Run full Yousen regression suite
         # yousenwebview is the production yousen (佑森) mini-program front-end;
         # wx_miniprogram tests above are the shadow contract harness only.
-        # These tests guard the release gates closed by PR #13 (72c6c290
-        # redaction), PR #14 (0f610aef Y2 taxonomy) and the batch-2 auth /
-        # chat / home / launch / route contracts whose sandbox-stub debt was
-        # repaired alongside this expansion.
+        #
+        # Runs every yousenwebview/tests/test_*.js file. Stability was
+        # measured locally at 3 consecutive clean runs of 62 tests with 0
+        # flakes and a 5-6s wallclock; the suite has no network, login
+        # state, time dependency, or ordering coupling. Each file is
+        # invoked via `node` so future tests get CI coverage automatically
+        # — no workflow edit needed. Failures are collected, every test's
+        # stdout is grouped in the GitHub Actions log via ::group:: lines
+        # for easy triage, and the step exits non-zero with a summary if
+        # any file fails.
         run: |
-          # batch 1 — redaction + Y2 taxonomy + report contracts
-          node yousenwebview/tests/test_answer_leak_attack.js
-          node yousenwebview/tests/test_report_radar_authority.js
-          node yousenwebview/tests/test_report_radar_fallback.js
-          node yousenwebview/tests/test_report_snapshot_dedupe.js
-          node yousenwebview/tests/test_report_layout.js
-          node yousenwebview/tests/test_package_assessment_contract.js
-          node yousenwebview/tests/test_report_view_model.js
-          # batch 2 — auth / chat / home / launch / route contracts
-          node yousenwebview/tests/test_app_auth_authority.js
-          node yousenwebview/tests/test_chat_auth_authority.js
-          node yousenwebview/tests/test_chat_bootstrap_authority.js
-          node yousenwebview/tests/test_chat_diagnostic_authority.js
-          node yousenwebview/tests/test_chat_send_surface_telemetry.js
-          node yousenwebview/tests/test_package_chat_copy_authority.js
-          node yousenwebview/tests/test_package_chat_feedback_interaction.js
-          node yousenwebview/tests/test_home_dashboard_learning_prompts.js
-          node yousenwebview/tests/test_index_launch_home.js
-          node yousenwebview/tests/test_route_authority.js
+          set -u
+          fail_list=""
+          total=0
+          for t in yousenwebview/tests/test_*.js; do
+            name="$(basename "$t" .js)"
+            total=$((total + 1))
+            echo "::group::yousen $name"
+            if node "$t"; then
+              echo "::endgroup::"
+            else
+              echo "::endgroup::"
+              fail_list="${fail_list}${fail_list:+ }${name}"
+            fi
+          done
+          if [ -n "$fail_list" ]; then
+            echo "::error::Yousen suite: $(echo "$fail_list" | tr ' ' '\n' | wc -l | tr -d ' ') of $total tests failed"
+            echo "Failed tests:"
+            for n in $fail_list; do echo "  - $n"; done
+            exit 1
+          fi
+          echo "Yousen suite: $total/$total tests passed"
 
   test-summary:
     name: Test Summary
