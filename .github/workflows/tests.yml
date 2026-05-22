@@ -19,6 +19,7 @@ on:
       - "contracts/**"
       - "web/**"
       - "wx_miniprogram/**"
+      - "yousenwebview/**"
       - "deployment/**"
       - "docker-compose.yml"
       - "docs/zh/guide/unified-turn-contract.md"
@@ -42,6 +43,7 @@ on:
       - "contracts/**"
       - "web/**"
       - "wx_miniprogram/**"
+      - "yousenwebview/**"
       - "deployment/**"
       - "docker-compose.yml"
       - "docs/zh/guide/unified-turn-contract.md"
@@ -228,10 +230,44 @@ jobs:
           node wx_miniprogram/tests/test_ws_stream_pure_contract.js
           node wx_miniprogram/tests/test_stream_token_boundary.js
 
+  yousen-checks:
+    name: Yousen Checks
+    runs-on: ubuntu-latest
+    needs: contract-guard
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+
+      - name: Syntax check Yousen Mini Program JS
+        run: |
+          find yousenwebview -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: Run Yousen release-gate regression tests
+        # yousenwebview is the production yousen (佑森) mini-program front-end;
+        # wx_miniprogram tests above are the shadow contract harness only. These
+        # selected tests guard the redaction + Y2 taxonomy release gates that
+        # PR #13 (72c6c290) and PR #14 (0f610aef) closed. Other yousen tests in
+        # the suite still have a long-standing sandbox-stub debt and are
+        # tracked separately, not added to CI by this commit.
+        run: |
+          node yousenwebview/tests/test_answer_leak_attack.js
+          node yousenwebview/tests/test_report_radar_authority.js
+          node yousenwebview/tests/test_report_radar_fallback.js
+          node yousenwebview/tests/test_report_snapshot_dedupe.js
+          node yousenwebview/tests/test_report_layout.js
+          node yousenwebview/tests/test_package_assessment_contract.js
+          node yousenwebview/tests/test_report_view_model.js
+
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [contract-guard, import-check, smoke-tests, frontend-checks, wx-checks]
+    needs: [contract-guard, import-check, smoke-tests, frontend-checks, wx-checks, yousen-checks]
     if: always()
 
     steps:
@@ -246,6 +282,7 @@ jobs:
           echo "| Smoke tests (3.11) | ${{ needs.smoke-tests.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Frontend checks | ${{ needs.frontend-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| WX checks | ${{ needs.wx-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Yousen checks | ${{ needs.yousen-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
 
       - name: Fail if tests failed
         if: needs.contract-guard.result == 'failure' || needs.import-check.result == 'failure' || needs.smoke-tests.result == 'failure' || needs.frontend-checks.result == 'failure' || needs.wx-checks.result == 'failure'
