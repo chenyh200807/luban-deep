@@ -195,6 +195,8 @@ var batchCReport = {
     source_status: {
       authority: "learner_memory_events.learning_evidence",
       model: "rule_based_v1",
+      grading_fact_count: 8,
+      conversation_signal_count: 2,
     },
   },
   scoring_point_map: {
@@ -274,6 +276,30 @@ assert.strictEqual(
 assert.strictEqual(batchCWx.learningState.behaviorState[0].state, "recurring");
 assert.strictEqual(batchCWx.learningState.isEmpty, false);
 
+// The learner-facing model must present the report as a learning-state engine,
+// not as raw backend enums or a thin statistics panel.
+assert.strictEqual(batchCWx.evidenceEngine.title, "学习状态推断引擎");
+assert.strictEqual(batchCWx.evidenceEngine.summary, "融合 10 条历史学习证据");
+assert.strictEqual(batchCWx.evidenceEngine.sources.length, 7);
+assert.deepStrictEqual(
+  batchCWx.evidenceEngine.sources.map(function (item) {
+    return item.label;
+  }),
+  [
+    "长期答题记录",
+    "案例题答案",
+    "采分点命中",
+    "错因标签",
+    "时间衰减",
+    "知识图谱关系",
+    "题目难度",
+  ],
+);
+assert.strictEqual(batchCWx.evidenceEngine.sources[0].value, "8 条");
+assert.strictEqual(batchCWx.evidenceEngine.sources[0].statusLabel, "已接入");
+assert.strictEqual(batchCWx.evidenceEngine.sources[2].value, "1 项");
+assert.strictEqual(batchCWx.evidenceEngine.sources[6].statusLabel, "待积累");
+
 // scoringPointMap exposes 采分点 granularity label and v2 intent.
 var spItem = batchCWx.scoringPointMap.items[0];
 assert.strictEqual(spItem.granularity, "scoring_point");
@@ -308,6 +334,8 @@ assert.strictEqual(
 );
 assert.strictEqual(batchCPage.scoringPointMapEmptyState, "");
 assert.strictEqual(batchCPage.learningStateIsEmpty, false);
+assert.strictEqual(batchCPage.engineEvidenceSummary, "融合 10 条历史学习证据");
+assert.strictEqual(batchCPage.engineEvidenceSources.length, 7);
 
 // Keyword-only / rubric_pending honesty.
 var pendingReport = {
@@ -376,6 +404,14 @@ var reportWxml = fs.readFileSync(
 assert(
   reportWxml.indexOf("今日处方") >= 0,
   "wx report.wxml must show 今日处方",
+);
+assert(
+  reportWxml.indexOf("学习状态推断引擎") >= 0,
+  "wx report.wxml must show the learning-state engine frame",
+);
+assert(
+  reportWxml.indexOf("engineEvidenceSources") >= 0,
+  "wx report.wxml must render multi-source evidence fusion from the view-model",
 );
 assert(
   reportWxml.indexOf("今日学习状态") >= 0,

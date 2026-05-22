@@ -68,11 +68,36 @@
       </view>
 
       <!-- Batch C Task 8: today prescription + 3-layer learning state + scoring point map -->
+      <view class="learning-engine-panel glass-card" wx:if="{{engineEvidenceSources.length}}">
+        <view class="engine-head">
+          <view>
+            <text class="engine-kicker">证据融合</text>
+            <text class="engine-title">学习状态推断引擎</text>
+          </view>
+          <text class="engine-summary">{{engineEvidenceSummary}}</text>
+        </view>
+        <text class="engine-subtitle">{{engineEvidenceSubtitle}}</text>
+        <view class="engine-source-grid">
+          <view class="engine-source-card source-{{item.tone}}" wx:for="{{engineEvidenceSources}}" wx:key="key">
+            <text class="engine-source-label">{{item.label}}</text>
+            <text class="engine-source-value">{{item.value}}</text>
+            <text class="engine-source-status">{{item.statusLabel}}</text>
+          </view>
+        </view>
+      </view>
+
       <view class="learning-state-section glass-card prescription-section" wx:if="{{prescriptionTitle}}">
-        <text class="learning-state-section-title">今日处方</text>
+        <view class="learning-state-section-head">
+          <text class="learning-state-section-title">今日处方</text>
+          <text class="learning-state-section-tag">AI作战方案</text>
+        </view>
         <text class="learning-state-section-subtitle">{{prescriptionTitle}}</text>
+        <text class="learning-state-section-desc" wx:if="{{prescriptionSubtitle || prescriptionReason}}">{{prescriptionSubtitle || prescriptionReason}}</text>
         <view class="learning-state-steps" wx:if="{{prescriptionSteps.length}}">
-          <text class="learning-state-step" wx:for="{{prescriptionSteps}}" wx:key="key">{{item.phase}} · {{item.questionCount}}题</text>
+          <view class="learning-state-step" wx:for="{{prescriptionSteps}}" wx:key="key">
+            <text>{{item.phaseLabel || item.phase}}</text>
+            <text>{{item.questionCount}}题</text>
+          </view>
         </view>
         <view class="learning-state-cta primary-training-cta" bindtap="goPractice">
           <text class="learning-state-cta-label">{{prescriptionCtaLabel}}</text>
@@ -80,23 +105,47 @@
       </view>
 
       <view class="learning-state-section glass-card three-layer-state" wx:if="{{!learningStateIsEmpty}}">
-        <text class="learning-state-section-title">今日学习状态</text>
+        <view class="learning-state-section-head">
+          <text class="learning-state-section-title">今日学习状态</text>
+          <text class="learning-state-section-tag">基于历史记录</text>
+        </view>
         <view class="learning-state-layer" wx:if="{{learningStateKnowledge.length}}">
           <text class="learning-state-layer-label">知识状态</text>
-          <text class="learning-state-row" wx:for="{{learningStateKnowledge}}" wx:key="key">{{item.label}} · {{item.state}}</text>
+          <view class="learning-state-row state-{{item.stateTone}}" wx:for="{{learningStateKnowledge}}" wx:key="key">
+            <view class="learning-state-row-main">
+              <text class="learning-state-row-title">{{item.label}}</text>
+              <text class="learning-state-row-meta" wx:if="{{item.evidenceText}}">{{item.evidenceText}}</text>
+            </view>
+            <text class="learning-state-row-status">{{item.stateLabel || item.state}}</text>
+          </view>
         </view>
         <view class="learning-state-layer" wx:if="{{learningStateAbility.length}}">
           <text class="learning-state-layer-label">能力状态</text>
-          <text class="learning-state-row" wx:for="{{learningStateAbility}}" wx:key="key">{{item.label}} · {{item.state}}</text>
+          <view class="learning-state-row state-{{item.stateTone}}" wx:for="{{learningStateAbility}}" wx:key="key">
+            <view class="learning-state-row-main">
+              <text class="learning-state-row-title">{{item.label}}</text>
+              <text class="learning-state-row-meta" wx:if="{{item.evidenceText}}">{{item.evidenceText}}</text>
+            </view>
+            <text class="learning-state-row-status">{{item.stateLabel || item.state}}</text>
+          </view>
         </view>
         <view class="learning-state-layer" wx:if="{{learningStateBehavior.length}}">
           <text class="learning-state-layer-label">行为状态</text>
-          <text class="learning-state-row" wx:for="{{learningStateBehavior}}" wx:key="key">{{item.label}} · {{item.state}}</text>
+          <view class="learning-state-row state-{{item.stateTone}}" wx:for="{{learningStateBehavior}}" wx:key="key">
+            <view class="learning-state-row-main">
+              <text class="learning-state-row-title">{{item.label}}</text>
+              <text class="learning-state-row-meta" wx:if="{{item.evidenceText}}">{{item.evidenceText}}</text>
+            </view>
+            <text class="learning-state-row-status">{{item.stateLabel || item.state}}</text>
+          </view>
         </view>
       </view>
 
       <view class="learning-state-section glass-card scoring-point-map-section" wx:if="{{scoringPointMapItems.length || scoringPointMapEmptyLabel}}">
-        <text class="learning-state-section-title">采分点漏分</text>
+        <view class="learning-state-section-head">
+          <text class="learning-state-section-title">采分点漏分</text>
+          <text class="learning-state-section-tag">案例题证据</text>
+        </view>
         <view wx:if="{{scoringPointMapItems.length}}">
           <view class="scoring-point-row" wx:for="{{scoringPointMapItems}}" wx:key="key">
             <text class="scoring-point-badge">{{item.granularityLabel}}</text>

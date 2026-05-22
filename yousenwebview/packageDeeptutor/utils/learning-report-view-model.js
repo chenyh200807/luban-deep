@@ -328,6 +328,164 @@ function cleanLearningText(value) {
   return text.replace(/\s+/g, " ").trim();
 }
 
+function compactLearningTopic(value) {
+  var text = cleanLearningText(value).trim();
+  var match = text.match(/^我想练习(.+?)相关的题目/);
+  if (match && match[1]) return match[1].trim();
+  text = text.replace(/请严格围绕以下当前学习锚点出题/g, "").trim();
+  return text || "";
+}
+
+function stateLabel(value) {
+  var labels = {
+    weak: "需要重点补",
+    stable: "较稳定",
+    observed: "已观察",
+    insufficient_evidence: "证据不足",
+    needs_revalidation: "需要复测",
+    recurring: "反复出现",
+    delivered: "已讲解",
+    verified: "已验证",
+    not_verified: "待再练",
+  };
+  var key = String(value || "").trim();
+  return labels[key] || key || "";
+}
+
+function stateTone(value) {
+  var key = String(value || "").trim();
+  if (key === "weak" || key === "recurring" || key === "not_verified") return "warn";
+  if (key === "stable" || key === "verified") return "good";
+  return "neutral";
+}
+
+function abilityDimensionLabel(value) {
+  var labels = {
+    question_reading: "审题与题干边界",
+    code_application: "规范应用",
+    calculation: "计算与阈值判断",
+    expression: "案例表达",
+    transfer: "迁移应用",
+    recurrence: "同类错误复发",
+    explained: "系统解析跟进",
+  };
+  var key = String(value || "").trim();
+  return labels[key] || compactLearningTopic(key) || key;
+}
+
+function prescriptionPhaseLabel(value) {
+  var labels = {
+    discovery_probe: "起步测评",
+    repair_root: "补根因",
+    expression_drill: "表达训练",
+    transfer_case: "迁移练习",
+    verification_probe: "验证题",
+  };
+  var key = String(value || "").trim();
+  return labels[key] || key || "训练";
+}
+
+function evidenceCountLabel(count) {
+  var n = asNumber(count, 0);
+  return n > 0 ? "基于 " + n + " 条学习证据" : "";
+}
+
+function sourceValueLabel(count, unit, fallback) {
+  var n = asNumber(count, 0);
+  return n > 0 ? n + " " + unit : fallback || "待积累";
+}
+
+function sourceStatusLabel(count, activeLabel) {
+  return asNumber(count, 0) > 0 ? activeLabel || "已接入" : "待积累";
+}
+
+function sourceTone(count) {
+  return asNumber(count, 0) > 0 ? "active" : "pending";
+}
+
+function normalizeEvidenceEngineBatchC(body, learningState, scoringPointMap, mastery, learningBrain) {
+  var sourceStatus = asObject(asObject(learningState).sourceStatus);
+  var gradingCount = asNumber(sourceStatus.grading_fact_count, 0);
+  var conversationCount = asNumber(sourceStatus.conversation_signal_count, 0);
+  var totalSignalCount =
+    gradingCount +
+      conversationCount ||
+    asNumber(asObject(asObject(learningBrain).stats).eventCount, 0);
+  var attemptCount =
+    asNumber(sourceStatus.case_attempt_count, 0) ||
+    asList(asObject(learningBrain).attempts).length;
+  var scoringCount = asList(asObject(scoringPointMap).items).length;
+  var behaviorCount = asList(asObject(learningState).behaviorState).length;
+  var graphCount = asList(asObject(learningState).knowledgeState).length;
+  var decayCount =
+    asNumber(asObject(mastery).overallConfidence, 0) > 0 ||
+    asList(asObject(mastery).hotspots).length
+      ? 1
+      : 0;
+  var difficultyCount = asNumber(sourceStatus.difficulty_signal_count, 0);
+  var sources = [
+    {
+      key: "answers",
+      label: "长期答题记录",
+      value: sourceValueLabel(gradingCount, "条"),
+      statusLabel: sourceStatusLabel(gradingCount, "已接入"),
+      tone: sourceTone(gradingCount),
+    },
+    {
+      key: "case_answers",
+      label: "案例题答案",
+      value: sourceValueLabel(attemptCount, "次"),
+      statusLabel: sourceStatusLabel(attemptCount, "已接入"),
+      tone: sourceTone(attemptCount),
+    },
+    {
+      key: "scoring_points",
+      label: "采分点命中",
+      value: sourceValueLabel(scoringCount, "项"),
+      statusLabel: sourceStatusLabel(scoringCount, "已接入"),
+      tone: sourceTone(scoringCount),
+    },
+    {
+      key: "error_tags",
+      label: "错因标签",
+      value: sourceValueLabel(behaviorCount, "类"),
+      statusLabel: sourceStatusLabel(behaviorCount, "已识别"),
+      tone: sourceTone(behaviorCount),
+    },
+    {
+      key: "time_decay",
+      label: "时间衰减",
+      value: decayCount ? "已估计" : "待积累",
+      statusLabel: decayCount ? "已估计" : "待积累",
+      tone: sourceTone(decayCount),
+    },
+    {
+      key: "knowledge_graph",
+      label: "知识图谱关系",
+      value: sourceValueLabel(graphCount, "个节点"),
+      statusLabel: sourceStatusLabel(graphCount, "已关联"),
+      tone: sourceTone(graphCount),
+    },
+    {
+      key: "difficulty",
+      label: "题目难度",
+      value: sourceValueLabel(difficultyCount, "条"),
+      statusLabel: sourceStatusLabel(difficultyCount, "已接入"),
+      tone: sourceTone(difficultyCount),
+    },
+  ];
+  return {
+    title: "学习状态推断引擎",
+    summary: totalSignalCount
+      ? "融合 " + totalSignalCount + " 条历史学习证据"
+      : "完成一次批改后开始推断",
+    subtitle: "把答题记录、案例解析、采分点、错因与时间信号收束成今日行动",
+    sources: sources,
+    sourceStatus: sourceStatus,
+    isEmpty: totalSignalCount === 0 && asObject(learningState).isEmpty,
+  };
+}
+
 function normalizeVisibleTruths(sections) {
   return asList(asObject(sections).current_truth)
     .map(function (item, index) {
@@ -427,6 +585,13 @@ function buildLearningReportViewModel(report) {
   var learningState = normalizeLearningStateBatchC(body.learning_state);
   var scoringPointMap = normalizeScoringPointMapBatchC(body.scoring_point_map);
   var prescription = normalizePrescriptionBatchC(nextTraining, learningState);
+  var evidenceEngine = normalizeEvidenceEngineBatchC(
+    body,
+    learningState,
+    scoringPointMap,
+    mastery,
+    learningBrain,
+  );
   return {
     schemaVersion: asNumber(body.schema_version, 1),
     hero: {
@@ -488,6 +653,7 @@ function buildLearningReportViewModel(report) {
     learningState: learningState,
     scoringPointMap: scoringPointMap,
     prescription: prescription,
+    evidenceEngine: evidenceEngine,
     degraded: Boolean(body.degraded) || degradedSources.length > 0,
     degradedSources: degradedSources,
   };
@@ -500,13 +666,24 @@ function normalizeLearningStateBatchC(state) {
   function mapLayer(items, dimensionKey) {
     return asList(items).map(function (item, index) {
       var row = asObject(item);
+      var rawLabel = String(row.label || row.dimension || row.node_id || "");
+      var dimension = String(row.dimension || "");
+      var label =
+        dimensionKey === "dimension"
+          ? abilityDimensionLabel(dimension || rawLabel)
+          : compactLearningTopic(rawLabel) || abilityDimensionLabel(rawLabel);
+      var state = String(row.state || "");
+      var evidenceCount = asNumber(row.evidence_count, 0);
       return {
         key: String(row[dimensionKey] || row.node_id || "row-" + index),
         nodeId: String(row.node_id || ""),
-        dimension: String(row.dimension || ""),
-        label: String(row.label || row.dimension || row.node_id || ""),
-        state: String(row.state || ""),
-        evidenceCount: asNumber(row.evidence_count, 0),
+        dimension: dimension,
+        label: label,
+        state: state,
+        stateLabel: stateLabel(state),
+        stateTone: stateTone(state),
+        evidenceCount: evidenceCount,
+        evidenceText: evidenceCountLabel(evidenceCount),
         evidenceRefs: asList(row.evidence_refs).map(function (ref) {
           return String(ref || "");
         }),
@@ -583,14 +760,21 @@ function normalizePrescriptionBatchC(nextTraining, learningState) {
     }
   }
   if (v2) {
+    var conceptLabel = compactLearningTopic(v2.concept_label);
     return {
       status: String(v2.status || "active"),
       title: String(v2.concept_label || "今日处方"),
+      titleLabel:
+        conceptLabel ||
+        (v2.status === "degraded" ? "先来一次起步测评" : "今日处方"),
+      subtitle: String(v2.error_label || v2.reason || ""),
       reason: String(v2.reason || ""),
       conceptId: String(v2.concept_id || ""),
-      conceptLabel: String(v2.concept_label || ""),
+      conceptLabel: conceptLabel,
       abilityDimension: String(v2.ability_dimension || ""),
+      abilityDimensionLabel: abilityDimensionLabel(v2.ability_dimension),
       behaviorState: String(v2.behavior_state || ""),
+      behaviorStateLabel: stateLabel(v2.behavior_state),
       evidenceRefs: asList(v2.evidence_refs).map(function (ref) {
         return String(ref || "");
       }),
@@ -599,6 +783,7 @@ function normalizePrescriptionBatchC(nextTraining, learningState) {
         return {
           key: String(src.phase || "phase-" + index),
           phase: String(src.phase || ""),
+          phaseLabel: prescriptionPhaseLabel(src.phase),
           questionCount: asNumber(src.question_count, 0),
         };
       }),
@@ -613,11 +798,17 @@ function normalizePrescriptionBatchC(nextTraining, learningState) {
     title: asObject(learningState).isEmpty
       ? "完成一次练习后生成今日处方"
       : "今日先做一轮探测题",
+    titleLabel: asObject(learningState).isEmpty
+      ? "完成一次练习后生成今日处方"
+      : "今日先做一轮探测题",
+    subtitle: "",
     reason: "",
     conceptId: "",
     conceptLabel: "",
     abilityDimension: "",
+    abilityDimensionLabel: "",
     behaviorState: "",
+    behaviorStateLabel: "",
     evidenceRefs: [],
     steps: [],
     successCriteria: {},
@@ -744,6 +935,13 @@ function toReportPageData(model) {
     learningDiagnosisCards: asList(brain.diagnoses),
     learningTrainingLoops: asList(brain.chains),
     learningNextAction: asObject(brain.nextAction),
+    engineEvidenceSummary: String(
+      asObject(vm.evidenceEngine).summary || "",
+    ),
+    engineEvidenceSubtitle: String(
+      asObject(vm.evidenceEngine).subtitle || "",
+    ),
+    engineEvidenceSources: asList(asObject(vm.evidenceEngine).sources),
     // Batch C Task 8: flat page fields for the new sections.
     learningStateKnowledge: asList(asObject(vm.learningState).knowledgeState),
     learningStateAbility: asList(asObject(vm.learningState).abilityState),
@@ -756,7 +954,13 @@ function toReportPageData(model) {
     scoringPointMapEmptyLabel: String(
       asObject(vm.scoringPointMap).emptyStateLabel || "",
     ),
-    prescriptionTitle: String(asObject(vm.prescription).title || ""),
+    prescriptionTitle: String(
+      asObject(vm.prescription).titleLabel ||
+        asObject(vm.prescription).title ||
+        "",
+    ),
+    prescriptionSubtitle: String(asObject(vm.prescription).subtitle || ""),
+    prescriptionReason: String(asObject(vm.prescription).reason || ""),
     prescriptionStatus: String(asObject(vm.prescription).status || ""),
     prescriptionSteps: asList(asObject(vm.prescription).steps),
     prescriptionCtaLabel: String(asObject(vm.prescription).ctaLabel || ""),
