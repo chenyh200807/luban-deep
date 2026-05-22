@@ -35,6 +35,14 @@
       <view class="detail-error" wx:if="{{errorText}}">{{errorText}}</view>
       <view class="detail-loading" wx:if="{{loading}}">正在读取当时的作答与解析...</view>
 
+      <view class="explanation-section" wx:if="{{detail.explanationSections && detail.explanationSections.length}}">
+        <text class="section-kicker">系统当时怎么讲清楚的</text>
+        <view class="explanation-card" wx:for="{{detail.explanationSections}}" wx:key="key">
+          <text class="explanation-label">{{item.label}}</text>
+          <text class="explanation-content">{{item.content}}</text>
+        </view>
+      </view>
+
       <view class="conversation-section">
         <text class="section-kicker">当时对话</text>
         <view class="turn turn-{{item.role}}" wx:for="{{detail.turns}}" wx:key="key">

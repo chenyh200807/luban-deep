@@ -2146,6 +2146,7 @@ async def mobile_learning_attempt_detail(
         user_id=user_id,
         learner_state_service=learner_state_service,
         attempt_ref=attempt_ref,
+        session_store=session_store,
     )
     if not detail.get("ok"):
         raise HTTPException(status_code=404, detail=detail.get("error") or "attempt_not_found")

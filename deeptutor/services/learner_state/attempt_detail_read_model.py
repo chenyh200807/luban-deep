@@ -1,9 +1,23 @@
 from __future__ import annotations
 
+import asyncio
+import inspect
+import re
 from typing import Any
 
 from deeptutor.services.learner_state.attempt_refs import verify_attempt_ref
+from deeptutor.services.learner_state.redaction import redact_chat_text
+from deeptutor.services.session import build_user_owner_key
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
+
+_HISTORY_CONTEXT_BLOCK_RE = re.compile(
+    r"\[\s*history\s*context\s*\].*?\[\s*/\s*history\s*context\s*\]",
+    re.IGNORECASE | re.DOTALL,
+)
+_INTERNAL_IDENTIFIER_RE = re.compile(
+    r"\b(?:trace_id|trace|event_id|evt_id|openid|user_id|session_uid|kid)\s*[:=]\s*[A-Za-z0-9_\-]+",
+    re.IGNORECASE,
+)
 
 
 def build_attempt_detail_read_model(
@@ -11,6 +25,7 @@ def build_attempt_detail_read_model(
     user_id: str,
     learner_state_service: Any,
     attempt_ref: str,
+    session_store: Any | None = None,
 ) -> dict[str, Any]:
     normalized_user = str(user_id or "").strip()
     ref = verify_attempt_ref(attempt_ref, user_id=normalized_user)
@@ -31,6 +46,15 @@ def build_attempt_detail_read_model(
     error = _error_label(errors)
     is_correct = _is_correct(payload)
     explanation = _explanation_payload(payload.get("explanation") or payload.get("analysis") or payload.get("feedback"))
+    historical_explanation = _historical_assistant_explanation(
+        event=event,
+        payload=payload,
+        session_store=session_store,
+        user_id=normalized_user,
+    )
+    if historical_explanation:
+        explanation["full_text"] = _sanitize_history_text(historical_explanation)
+        explanation["source"] = "history_assistant"
     question = {
         "question_id": question_id,
         "stem": _question_stem(payload),
@@ -143,6 +167,9 @@ def _system_explanation_content(
     explanation: dict[str, Any],
     diagnosis: dict[str, Any],
 ) -> str:
+    full_text = str(explanation.get("full_text") or "").strip()
+    if full_text:
+        return full_text
     result = str(answer.get("result_label") or "").strip()
     correct = str(answer.get("correct_answer") or "").strip()
     first_line = result
@@ -164,8 +191,133 @@ def _explanation_payload(value: Any) -> dict[str, str]:
         return {
             "summary": str(value.get("summary") or value.get("text") or value.get("content") or "").strip(),
             "why_user_wrong": str(value.get("why_user_wrong") or value.get("diagnosis") or "").strip(),
+            "full_text": str(value.get("full_text") or "").strip(),
+            "source": str(value.get("source") or "").strip(),
         }
-    return {"summary": str(value or "").strip(), "why_user_wrong": ""}
+    return {"summary": str(value or "").strip(), "why_user_wrong": "", "full_text": "", "source": ""}
+
+
+def _historical_assistant_explanation(
+    *,
+    event: Any,
+    payload: dict[str, Any],
+    session_store: Any | None,
+    user_id: str,
+) -> str:
+    if session_store is None:
+        return ""
+    session_id = str(payload.get("session_id") or payload.get("conversation_id") or "").strip()
+    turn_ids = _attempt_turn_ids(event=event, payload=payload)
+    if session_id:
+        session = _load_session(session_store, session_id)
+        if isinstance(session, dict):
+            content = _assistant_content_for_turn(_safe_list(session.get("messages")), turn_ids)
+            if content:
+                return content
+    return _assistant_content_from_owner_sessions(
+        session_store=session_store,
+        user_id=user_id,
+        turn_ids=turn_ids,
+    )
+
+
+def _load_session(session_store: Any, session_id: str) -> Any:
+    loader = getattr(session_store, "get_session_with_messages", None)
+    if not callable(loader):
+        return None
+    return _resolve_maybe_async(loader(session_id))
+
+
+def _assistant_content_from_owner_sessions(
+    *,
+    session_store: Any,
+    user_id: str,
+    turn_ids: set[str],
+) -> str:
+    if not turn_ids:
+        return ""
+    lister = getattr(session_store, "list_sessions_by_owner", None)
+    if not callable(lister):
+        return ""
+    sessions = _resolve_maybe_async(
+        lister(build_user_owner_key(user_id), source="wx_miniprogram", limit=20)
+    )
+    for row in _safe_list(sessions):
+        if not isinstance(row, dict):
+            continue
+        session_id = str(row.get("id") or row.get("session_id") or "").strip()
+        session = _load_session(session_store, session_id) if session_id else row
+        if not isinstance(session, dict):
+            continue
+        content = _assistant_content_for_turn(_safe_list(session.get("messages")), turn_ids)
+        if content:
+            return content
+    return ""
+
+
+def _resolve_maybe_async(value: Any) -> Any:
+    if not inspect.isawaitable(value):
+        return value
+    return asyncio.run(value)
+
+
+def _attempt_turn_ids(*, event: Any, payload: dict[str, Any]) -> set[str]:
+    candidates = {
+        _base_turn_id(payload.get("turn_id")),
+        _base_turn_id(payload.get("source_id")),
+        _base_turn_id(getattr(event, "source_id", "")),
+    }
+    return {item for item in candidates if item}
+
+
+def _base_turn_id(value: Any) -> str:
+    text = str(value or "").strip()
+    if text.startswith("turn:"):
+        text = text[len("turn:") :]
+    if text.startswith("turn_") and ":" in text:
+        text = text.split(":", 1)[0]
+    return text.strip()
+
+
+def _assistant_content_for_turn(messages: list[Any], turn_ids: set[str]) -> str:
+    if not turn_ids:
+        return ""
+    assistant_messages = [
+        item
+        for item in messages
+        if isinstance(item, dict) and str(item.get("role") or "").strip() == "assistant"
+    ]
+    for message in reversed(assistant_messages):
+        message_turn_id = _message_turn_id(message)
+        if message_turn_id and _base_turn_id(message_turn_id) in turn_ids:
+            return str(message.get("content") or "").strip()
+    return ""
+
+
+def _sanitize_history_text(text: str) -> str:
+    cleaned = _HISTORY_CONTEXT_BLOCK_RE.sub("", str(text or ""))
+    cleaned = _INTERNAL_IDENTIFIER_RE.sub("", cleaned)
+    cleaned = redact_chat_text(cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+
+def _message_turn_id(message: dict[str, Any]) -> str:
+    events = _safe_list(message.get("events"))
+    for event in reversed(events):
+        if not isinstance(event, dict):
+            continue
+        direct = str(event.get("turn_id") or "").strip()
+        if direct:
+            return direct
+        metadata = _safe_dict(event.get("metadata"))
+        if str(metadata.get("turn_id") or "").strip():
+            return str(metadata.get("turn_id") or "").strip()
+        nested = _safe_dict(metadata.get("metadata"))
+        if str(nested.get("turn_id") or "").strip():
+            return str(nested.get("turn_id") or "").strip()
+    metadata = _safe_dict(message.get("metadata"))
+    return str(metadata.get("turn_id") or "").strip()
 
 
 def _event_concept(payload: dict[str, Any], errors: list[dict[str, Any]]) -> str:

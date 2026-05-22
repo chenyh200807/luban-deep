@@ -67,6 +67,73 @@ function detailTurns(detail, card) {
   return direct.length ? direct : fallbackTurns(card);
 }
 
+function richExplanationText(detail, card) {
+  var payload = asObject(detail);
+  var source = asObject(card);
+  var explanation = asObject(payload.explanation);
+  var fullText = multilineText(explanation.full_text || explanation.content || explanation.text || "");
+  if (fullText) return fullText;
+  var systemTurn = detailTurns(payload, source).filter(function (item) {
+    return item.role === "system" && item.label.indexOf("解析") >= 0;
+  })[0];
+  return multilineText((systemTurn && systemTurn.content) || explanation.summary || source.explanation);
+}
+
+function normalizeHeading(value) {
+  var text = compactText(value).replace(/^[:：\-\s]+/, "").replace(/[:：\-\s]+$/, "");
+  var aliases = {
+    "阅卷结论": "阅卷结论",
+    "正确答案": "正确答案",
+    "为什么错": "为什么错",
+    "知识点": "知识点",
+    "易错点": "易错点",
+    "记忆口诀": "记忆口诀",
+    "下一步": "下一步",
+    "逐项解析": "逐项解析",
+  };
+  return aliases[text] || text;
+}
+
+function parseExplanationSections(text) {
+  var raw = multilineText(text);
+  if (!raw) return [];
+  var lines = raw.split("\n");
+  var sections = [];
+  var current = null;
+  lines.forEach(function (line) {
+    var match = String(line || "").match(/^#{2,4}\s+(.+?)\s*$/);
+    if (match) {
+      if (current && multilineText(current.content).length) {
+        sections.push(current);
+      }
+      current = {
+        key: "section-" + sections.length,
+        label: normalizeHeading(match[1]),
+        content: "",
+      };
+      return;
+    }
+    if (!current) {
+      current = { key: "section-0", label: "系统解析", content: "" };
+    }
+    current.content = [current.content, line].filter(Boolean).join("\n");
+  });
+  if (current && multilineText(current.content).length) {
+    sections.push(current);
+  }
+  return sections
+    .map(function (item, index) {
+      return {
+        key: item.key || "section-" + index,
+        label: compactText(item.label || "系统解析"),
+        content: multilineText(item.content),
+      };
+    })
+    .filter(function (item) {
+      return item.content;
+    });
+}
+
 function buildAttemptDetailViewModel(detail, card) {
   var payload = asObject(detail);
   var source = asObject(card);
@@ -92,6 +159,8 @@ function buildAttemptDetailViewModel(detail, card) {
       })
       .join(" · ");
   }
+  var richText = richExplanationText(payload, source);
+  var explanationSections = parseExplanationSections(richText);
   return {
     title: title,
     subtitle: compactText(source.timeLabel || "来自学情作答记录"),
@@ -101,6 +170,7 @@ function buildAttemptDetailViewModel(detail, card) {
     answerLine: answerLine,
     error: error,
     explanation: multilineText(explanation.summary || source.explanation),
+    explanationSections: explanationSections,
     nextTraining: compactText(asObject(payload.next_training).focus || asObject(payload.next_training).concept || ""),
     turns: detailTurns(payload, source),
   };
@@ -108,4 +178,5 @@ function buildAttemptDetailViewModel(detail, card) {
 
 module.exports = {
   buildAttemptDetailViewModel: buildAttemptDetailViewModel,
+  parseExplanationSections: parseExplanationSections,
 };

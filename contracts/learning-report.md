@@ -106,6 +106,8 @@ v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single au
   - `attempt_ref` 是签名 token（HMAC-SHA256），其 secret = `DEEPTUTOR_ATTEMPT_REF_SECRET` 环境变量
   - 解码失败由 read model 返回 `ok=false`，router 只映射为 404，不在 router 里拼装字段
   - `LearnerStateService.read_learning_evidence_event(user_id, event_id)` 是唯一 indexed reader；禁止生产路径 `list_learning_evidence_events(...limit=500)` 后 filter
+  - read model 可用 `payload.session_id` / `payload.turn_id` 回查既有会话历史中的 assistant 消息，作为"当时系统解析" raw replay source；这不是新的 learning authority，归一化学习事实仍以 `learner_memory_events.learning_evidence` 为准
+  - 当历史 assistant 消息与短 `payload.explanation` 同时存在时，attempt detail 必须优先展示历史 assistant 完整解析；找不到历史消息时才降级到 payload summary
   - 响应不得暴露 raw `event_id`；用户可见引用只使用 `attempt_ref`
 
 ### 3.2 Mistake Book

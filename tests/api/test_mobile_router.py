@@ -3194,6 +3194,76 @@ def test_mobile_learning_attempt_detail_returns_user_facing_attempt(
     assert "M06" not in str(body)
 
 
+def test_mobile_learning_attempt_detail_uses_history_explanation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+    from deeptutor.services.learner_state.service import LearnerStateEvent
+
+    event = LearnerStateEvent(
+        event_id="evt_mobile_history_detail",
+        user_id="student_demo",
+        source_feature="construction_grading",
+        source_id="turn:turn_mobile_history:q1",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        dedupe_key="evt_mobile_history_detail",
+        created_at=datetime.now(_SH_TZ).isoformat(),
+        payload_json={
+            "event_type": "learning_evidence",
+            "session_id": "tb_mobile_history",
+            "turn_id": "turn_mobile_history:q1",
+            "question_id": "q-mobile-history",
+            "question_stem": "验槽通常主要采用什么方法？",
+            "user_answer": "B",
+            "correct_answer": "A",
+            "score_awarded": 0,
+            "max_score": 1,
+            "explanation": {"summary": "B 选项不符合标准答案。"},
+            "error_events": [{"error_code": "M03", "concept_tag": "验槽方法"}],
+        },
+    )
+
+    class FakeLearnerStateService:
+        def read_learning_evidence_event(self, user_id, event_id, *, max_age_seconds=None):
+            assert user_id == "student_demo"
+            assert event_id == "evt_mobile_history_detail"
+            return event
+
+    class FakeSessionStore:
+        async def get_session_with_messages(self, session_id):
+            assert session_id == "tb_mobile_history"
+            return {
+                "id": "tb_mobile_history",
+                "messages": [
+                    {
+                        "role": "assistant",
+                        "content": "### 为什么错\n你把辅助手段当成主要方法，混淆了验槽方法的主次关系。",
+                        "events": [{"metadata": {"turn_id": "turn_mobile_history"}}],
+                    }
+                ],
+            }
+
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+
+    attempt_ref = sign_attempt_ref(
+        user_id="student_demo", event_id="evt_mobile_history_detail", question_id="q-mobile-history"
+    )
+    with TestClient(_build_app()) as client:
+        response = client.get(f"/api/v1/mobile/learning-attempts/{attempt_ref}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert "主次关系" in body["explanation"]["full_text"]
+    assert "B 选项不符合标准答案" not in body["conversation"]["turns"][-1]["content"]
+
+
 def test_mobile_mistake_book_save_list_remove_and_conflict(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

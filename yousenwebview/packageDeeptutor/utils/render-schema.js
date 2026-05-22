@@ -36,6 +36,46 @@ function _asString(value) {
   return String(value);
 }
 
+var _AUTHORITY_TEXT_PATTERNS = [
+  /\b(?:correct[_\s-]?answer|reference[_\s-]?answer|answer[_\s-]?key|grading[_\s-]?key|grading[_\s-]?authority|scoring[_\s-]?points?|grader[_\s-]?secret)\b/i,
+  /(?:(?:正确答案|参考答案|标准答案)\s*[：:]\s*\S+|答案[是为]\s*\S+)/,
+];
+
+function _containsAuthorityText(text) {
+  var value = _asString(text);
+  for (var i = 0; i < _AUTHORITY_TEXT_PATTERNS.length; i += 1) {
+    if (_AUTHORITY_TEXT_PATTERNS[i].test(value)) return true;
+  }
+  return false;
+}
+
+function sanitizeAuthorityText(value, fallback) {
+  var text = _asString(value);
+  if (!_containsAuthorityText(text)) return text;
+  var lines = text.split(/\r?\n/);
+  var kept = [];
+  for (var i = 0; i < lines.length; i += 1) {
+    if (_containsAuthorityText(lines[i])) continue;
+    kept.push(lines[i]);
+  }
+  var sanitized = kept.join("\n").trim();
+  return sanitized || _asString(fallback || "");
+}
+
+function sanitizeAuthorityMarkdownText(value) {
+  return sanitizeAuthorityText(value, "");
+}
+
+function sanitizeMcqOptionText(value) {
+  var text = _asString(value);
+  text = text.replace(
+    /(?:\s*[-—–|｜,，;；]\s*)?(?:采分点|评分点|得分点|scoring[_\s-]?points?)\s*[：:].*$/i,
+    "",
+  );
+  text = sanitizeAuthorityText(text, "");
+  return text.trim() || "选项内容已隐藏";
+}
+
 function _trimmedString(value) {
   return _asString(value).trim();
 }
@@ -100,7 +140,7 @@ function normalizeMcqOptions(rawOptions) {
       if (!opt || !opt.key) continue;
       options.push({
         key: _trimmedString(opt.key).toUpperCase(),
-        text: _asString(opt.text || ""),
+        text: sanitizeMcqOptionText(opt.text || ""),
         selected: !!opt.selected,
       });
     }
@@ -112,7 +152,7 @@ function normalizeMcqOptions(rawOptions) {
     var key = keys[j];
     options.push({
       key: _trimmedString(key).toUpperCase(),
-      text: _asString(rawOptions[key] || ""),
+      text: sanitizeMcqOptionText(rawOptions[key] || ""),
       selected: false,
     });
   }
@@ -121,7 +161,7 @@ function normalizeMcqOptions(rawOptions) {
 
 function normalizeMcqQuestion(rawQuestion, fallbackIndex) {
   var q = rawQuestion && typeof rawQuestion === "object" ? rawQuestion : {};
-  var followupContext =
+  var rawFollowup =
     q.followupContext && typeof q.followupContext === "object"
       ? q.followupContext
       : q.followup_context && typeof q.followup_context === "object"
@@ -130,21 +170,21 @@ function normalizeMcqQuestion(rawQuestion, fallbackIndex) {
   var questionId = _trimmedString(
     q.questionId ||
       q.question_id ||
-      (followupContext && followupContext.question_id) ||
+      (rawFollowup && rawFollowup.question_id) ||
       "",
   );
   return {
     index: _positiveInt(q.index, fallbackIndex),
-    stem: _asString(q.stem || "请选择正确选项"),
-    hint: _asString(q.hint || ""),
+    stem: sanitizeAuthorityText(q.stem || "请选择正确选项", "请选择正确选项"),
+    hint: sanitizeAuthorityText(q.hint || "", ""),
     questionType:
       _normalizeEnum(
         q.questionType || q.question_type,
         ["single_choice", "multi_choice"],
         "single_choice",
-      ),
+    ),
     options: normalizeMcqOptions(q.options),
-    followupContext: followupContext,
+    followupContext: sanitizeFollowupContext(rawFollowup),
     questionId: questionId,
     hasContext: !!questionId,
   };
@@ -163,8 +203,11 @@ function createMcqBlock(rawBlock) {
     type: BLOCK_TYPES.mcq,
     schemaVersion: INTERNAL_RENDER_SCHEMAS.mcq_block.version,
     questions: questions,
-    submitHint: _asString(block.submitHint || block.submit_hint || "请选择后提交答案"),
-    receipt: _asString(block.receipt || ""),
+    submitHint: sanitizeAuthorityText(
+      block.submitHint || block.submit_hint || "请选择后提交答案",
+      "请选择后提交答案",
+    ),
+    receipt: sanitizeAuthorityText(block.receipt || "", ""),
     reviewMode: !!(block.reviewMode || block.review_mode),
   };
 }
@@ -351,7 +394,10 @@ function _createTextBlock(type, rawBlock) {
   return {
     type: type,
     schemaVersion: SCHEMA_VERSION,
-    text: _asString(block.text || block.content || ""),
+    text: sanitizeAuthorityText(
+      block.text || block.content || "",
+      type === BLOCK_TYPES.callout ? "完整解析需在评分后查看" : "",
+    ),
   };
 }
 
@@ -404,7 +450,7 @@ function createCanonicalMessage(rawMessage) {
     schemaVersion: INTERNAL_RENDER_SCHEMAS.canonical_message.version,
     messageId: _asString(message.messageId || message.message_id || ""),
     blocks: blocks,
-    fallbackText: _asString(message.fallbackText || message.fallback_text || ""),
+    fallbackText: sanitizeAuthorityMarkdownText(message.fallbackText || message.fallback_text || ""),
     meta: {
       streamingMode: _normalizeEnum(
         message.meta && message.meta.streamingMode,
@@ -453,6 +499,48 @@ function createRenderModel(rawModel) {
   };
 }
 
+var _REDACTED_AUTHORITY_KEYS = [
+  "correct_answer",
+  "correctAnswer",
+  "scoring_points",
+  "scoringPoints",
+  "explanation",
+  "grading_key",
+  "gradingKey",
+  "grading_authority",
+  "gradingAuthority",
+  "reference_answer",
+  "referenceAnswer",
+  "answer_key",
+  "answerKey",
+  "grader_secret",
+  "graderSecret",
+];
+
+function _isAuthorityKey(key) {
+  return _REDACTED_AUTHORITY_KEYS.indexOf(key) >= 0;
+}
+
+function sanitizeFollowupContext(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "object") return value;
+  if (Array.isArray(value)) {
+    var arr = [];
+    for (var i = 0; i < value.length; i += 1) {
+      arr.push(sanitizeFollowupContext(value[i]));
+    }
+    return arr;
+  }
+  var out = {};
+  var keys = Object.keys(value);
+  for (var k = 0; k < keys.length; k += 1) {
+    var key = keys[k];
+    if (_isAuthorityKey(key)) continue;
+    out[key] = sanitizeFollowupContext(value[key]);
+  }
+  return out;
+}
+
 module.exports = {
   SCHEMA_VERSION: SCHEMA_VERSION,
   BLOCK_TYPES: BLOCK_TYPES,
@@ -465,4 +553,7 @@ module.exports = {
   normalizeBlock: normalizeBlock,
   createCanonicalMessage: createCanonicalMessage,
   createRenderModel: createRenderModel,
+  sanitizeFollowupContext: sanitizeFollowupContext,
+  sanitizeAuthorityText: sanitizeAuthorityText,
+  sanitizeAuthorityMarkdownText: sanitizeAuthorityMarkdownText,
 };

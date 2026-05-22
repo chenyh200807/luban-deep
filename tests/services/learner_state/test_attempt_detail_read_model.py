@@ -53,6 +53,21 @@ class FakeLearnerStateService:
         return event
 
 
+class FakeSessionStore:
+    def __init__(self, sessions: list[dict]) -> None:
+        self.sessions = {str(item.get("id") or ""): item for item in sessions}
+        self.loaded: list[str] = []
+        self.listed_owner_keys: list[str] = []
+
+    def get_session_with_messages(self, session_id: str):
+        self.loaded.append(session_id)
+        return self.sessions.get(session_id)
+
+    def list_sessions_by_owner(self, owner_key: str, **_kwargs):
+        self.listed_owner_keys.append(owner_key)
+        return list(self.sessions.values())
+
+
 def test_attempt_detail_contains_question_answer_explanation_and_sources() -> None:
     from deeptutor.services.learner_state.attempt_detail_read_model import build_attempt_detail_read_model
     from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
@@ -179,3 +194,179 @@ def test_attempt_detail_surfaces_explanation_through_full_evidence_pipeline() ->
     assert any("疏散宽度" in str(turn.get("content") or "") for turn in system_turns), (
         f"system turn must include real explanation, got {system_turns}"
     )
+
+
+def test_attempt_detail_prefers_historical_assistant_explanation_over_generic_payload() -> None:
+    from deeptutor.services.learner_state.attempt_detail_read_model import build_attempt_detail_read_model
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+
+    event = _event("evt_history_001")
+    event.source_id = "turn:turn_1779470281104_d2890d5b52:q1"
+    event.payload_json.update(
+        {
+            "session_id": "tb_af50490f245e438eb8999b64",
+            "turn_id": "turn_1779470281104_d2890d5b52:q1",
+            "question_id": "slot_q_001",
+            "question_stem": "验槽通常主要采用什么方法？",
+            "options": {"A": "观察法", "B": "钎探法", "C": "洛阳铲法", "D": "钻探法"},
+            "user_answer": "B",
+            "correct_answer": "A",
+            "explanation": {
+                "summary": "B 选项不符合标准答案。",
+                "why_user_wrong": "",
+            },
+        }
+    )
+    rich_answer = """### 阅卷结论
+本题你答了 B（钎探法），正确答案是 A（观察法）。诊断类型：概念混淆——你把“辅助手段”当成了“主要方法”。
+
+### 为什么错
+你记忆中了“钎探法”是验槽的关键环节，但混淆了主次关系。
+
+### 记忆口诀
+先看后探，观察为主。
+
+### 下一步
+请用30秒写出：验槽主要方法：观察法；辅助方法：钎探法。"""
+    session_store = FakeSessionStore(
+        [
+            {
+                "id": "tb_af50490f245e438eb8999b64",
+                "messages": [
+                    {
+                        "id": "m_assistant_1",
+                        "role": "assistant",
+                        "content": rich_answer,
+                        "events": [
+                            {
+                                "type": "result",
+                                "metadata": {"turn_id": "turn_1779470281104_d2890d5b52"},
+                            }
+                        ],
+                    }
+                ],
+            }
+        ]
+    )
+
+    detail = build_attempt_detail_read_model(
+        user_id="student_demo",
+        learner_state_service=FakeLearnerStateService([event]),
+        attempt_ref=sign_attempt_ref(
+            user_id="student_demo", event_id=event.event_id, question_id="slot_q_001"
+        ),
+        session_store=session_store,
+    )
+
+    assert detail["ok"] is True
+    assert session_store.loaded == ["tb_af50490f245e438eb8999b64"]
+    assert "主次关系" in detail["explanation"]["full_text"]
+    assert "先看后探，观察为主" in detail["conversation"]["turns"][-1]["content"]
+    assert "B 选项不符合标准答案" not in detail["conversation"]["turns"][-1]["content"]
+
+
+def test_attempt_detail_can_find_history_by_turn_id_when_session_id_missing() -> None:
+    from deeptutor.services.learner_state.attempt_detail_read_model import build_attempt_detail_read_model
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+
+    event = _event("evt_history_without_session")
+    event.payload_json.update(
+        {
+            "session_id": "",
+            "turn_id": "turn_lookup_only:q1",
+            "question_stem": "验槽通常主要采用什么方法？",
+            "user_answer": "B",
+            "correct_answer": "A",
+            "explanation": {"summary": "B 选项不符合标准答案。"},
+        }
+    )
+    session_store = FakeSessionStore(
+        [
+            {
+                "id": "tb_lookup_only",
+                "messages": [
+                    {
+                        "role": "assistant",
+                        "content": "### 为什么错\n你把辅助手段当成主要方法，需要抓住通常主要采用这个题眼。",
+                        "events": [{"metadata": {"turn_id": "turn_lookup_only"}}],
+                    }
+                ],
+            }
+        ]
+    )
+
+    detail = build_attempt_detail_read_model(
+        user_id="student_demo",
+        learner_state_service=FakeLearnerStateService([event]),
+        attempt_ref=sign_attempt_ref(
+            user_id="student_demo", event_id=event.event_id, question_id="q1"
+        ),
+        session_store=session_store,
+    )
+
+    assert detail["ok"] is True
+    assert session_store.listed_owner_keys == ["user:student_demo"]
+    assert "辅助手段当成主要方法" in detail["explanation"]["full_text"]
+
+
+def test_attempt_detail_strips_internal_context_and_pii_from_history() -> None:
+    from deeptutor.services.learner_state.attempt_detail_read_model import build_attempt_detail_read_model
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+
+    event = _event("evt_history_redact")
+    event.payload_json.update(
+        {
+            "session_id": "tb_redact",
+            "turn_id": "turn_redact:q1",
+            "question_stem": "验槽通常主要采用什么方法？",
+            "user_answer": "B",
+            "correct_answer": "A",
+        }
+    )
+    leaky_assistant_content = (
+        "[History Context]\n"
+        "internal trace_id=trace_abc123 openid=openid_secret456 evt_id=evt_internal_xyz\n"
+        "[/History Context]\n"
+        "### 阅卷结论\n"
+        "本题正确答案是 A 观察法。我是张三，电话 13800138000，邮箱 a@example.com。\n"
+        "### 为什么错\n"
+        "你把辅助手段当成主要方法。"
+    )
+    session_store = FakeSessionStore(
+        [
+            {
+                "id": "tb_redact",
+                "messages": [
+                    {
+                        "role": "assistant",
+                        "content": leaky_assistant_content,
+                        "events": [{"metadata": {"turn_id": "turn_redact"}}],
+                    }
+                ],
+            }
+        ]
+    )
+
+    detail = build_attempt_detail_read_model(
+        user_id="student_demo",
+        learner_state_service=FakeLearnerStateService([event]),
+        attempt_ref=sign_attempt_ref(
+            user_id="student_demo", event_id=event.event_id, question_id="q1"
+        ),
+        session_store=session_store,
+    )
+
+    assert detail["ok"] is True
+    full_text = detail["explanation"]["full_text"]
+    serialized = str(detail)
+    # Internal context blocks and identifiers must be stripped.
+    assert "[History Context]" not in full_text
+    assert "trace_abc123" not in serialized
+    assert "openid_secret456" not in serialized
+    assert "evt_internal_xyz" not in serialized
+    # PII redaction reuses the chat redaction discipline.
+    assert "13800138000" not in serialized
+    assert "a@example.com" not in serialized
+    # Real student-facing explanation must still survive redaction.
+    assert "观察法" in full_text
+    assert "辅助手段当成主要方法" in full_text

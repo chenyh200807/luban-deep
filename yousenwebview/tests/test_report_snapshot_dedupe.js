@@ -79,6 +79,12 @@ function loadReportPage(stubs) {
           "../packageDeeptutor/utils/learning-report-view-model.js",
         ));
       }
+      if (request === "../../utils/taxonomy") {
+        return require(path.join(
+          __dirname,
+          "../packageDeeptutor/utils/taxonomy.js",
+        ));
+      }
       return {};
     },
   };
@@ -113,6 +119,13 @@ function createPageInstance(pageDef) {
     "yousen report page must accept learning-report schema v1 and v2 payloads",
   );
   assert(
+    reportSource.indexOf("REPORT_UNIFIED_READ_TIMEOUT_MS = 8000") >= 0 &&
+      reportSource.indexOf(
+        "_reportOptionalRead(api.getLearningReport(100, optionalReadOpts), REPORT_UNIFIED_READ_TIMEOUT_MS)",
+      ) >= 0,
+    "yousen unified learning-report read must not fall back before a normal 3.5s+ mobile response can return",
+  );
+  assert(
     reportSource.indexOf("CHAPTER_CODE_LABELS") < 0 &&
       reportSource.indexOf("LEARNING_BRAIN_OBJECT_LABELS") < 0 &&
       reportSource.indexOf("LEARNING_BRAIN_EDGE_LABELS") < 0 &&
@@ -133,8 +146,9 @@ function createPageInstance(pageDef) {
   );
   assert(
     reportSource.indexOf('return "综合能力"') < 0 &&
-      reportSource.indexOf('return "知识点 " + text.toUpperCase()') >= 0,
-    "yousen report page must not collapse taxonomy codes into the meaningless 综合能力 label",
+      reportSource.indexOf('return "知识点 " + text.toUpperCase()') < 0 &&
+      reportSource.indexOf('require("../../utils/taxonomy")') >= 0,
+    "yousen report page must route chapter taxonomy through the shared utils/taxonomy authority — must NOT expose raw chapter codes or collapse them into the meaningless 综合能力 label",
   );
   assert(
     reportSource.indexOf('code === "M01"') >= 0 &&

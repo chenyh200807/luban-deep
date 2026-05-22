@@ -328,6 +328,283 @@ function cleanLearningText(value) {
   return text.replace(/\s+/g, " ").trim();
 }
 
+function compactLearningTopic(value) {
+  var text = cleanLearningText(value).trim();
+  var match = text.match(/^我想练习(.+?)相关的题目/);
+  if (match && match[1]) return match[1].trim();
+  text = text.replace(/请严格围绕以下当前学习锚点出题/g, "").trim();
+  return text || "";
+}
+
+function mistakeQuestionTitle(value) {
+  var text = cleanLearningText(value).trim();
+  if (text.indexOf("我想练习") >= 0) {
+    var topic = compactLearningTopic(text);
+    return topic ? topic + "相关错题" : "一次错题记录";
+  }
+  return text || "一次错题记录";
+}
+
+function stateLabel(value) {
+  var labels = {
+    weak: "需要重点补",
+    stable: "较稳定",
+    observed: "已观察",
+    improving: "正在改善",
+    unstable: "还不稳定",
+    active: "仍需跟进",
+    insufficient_evidence: "证据不足",
+    needs_revalidation: "需要复测",
+    recurring: "反复出现",
+    delivered: "已讲解",
+    verified: "已验证",
+    not_verified: "待再练",
+  };
+  var key = String(value || "").trim();
+  return labels[key] || key || "";
+}
+
+function stateTone(value) {
+  var key = String(value || "").trim();
+  if (
+    key === "weak" ||
+    key === "recurring" ||
+    key === "not_verified" ||
+    key === "unstable" ||
+    key === "active"
+  )
+    return "warn";
+  if (key === "stable" || key === "verified" || key === "improving") return "good";
+  return "neutral";
+}
+
+function evidenceMetaLabel(refs) {
+  var count = asList(refs).filter(Boolean).length;
+  return count > 0 ? count + " 条证据" : "";
+}
+
+function abilityDimensionLabel(value) {
+  var labels = {
+    question_reading: "审题与题干边界",
+    code_application: "规范应用",
+    calculation: "计算与阈值判断",
+    expression: "案例表达",
+    transfer: "迁移应用",
+    review_execution: "复盘执行",
+    recurrence: "同类错误复发",
+    explained: "系统解析跟进",
+    still_confused: "仍未理解",
+  };
+  var key = String(value || "").trim();
+  return labels[key] || compactLearningTopic(key) || key;
+}
+
+function learningStateHeadline(layer, state, label, dimension) {
+  var stateKey = String(state || "").trim();
+  var dimKey = String(dimension || "").trim();
+  if (layer === "knowledge") {
+    if (stateKey === "weak") return "需要优先补上";
+    if (stateKey === "stable") return "掌握较稳定";
+    if (stateKey === "observed") return "刚被系统观察到";
+    if (stateKey === "needs_revalidation") return "需要再验证一次";
+    return stateLabel(stateKey) || String(label || "知识状态");
+  }
+  if (layer === "ability") {
+    if (stateKey === "weak") return abilityDimensionLabel(dimKey || label) + "还不稳";
+    if (stateKey === "stable") return abilityDimensionLabel(dimKey || label) + "较稳定";
+    if (stateKey === "needs_revalidation") return abilityDimensionLabel(dimKey || label) + "需要复测";
+    return stateLabel(stateKey) || abilityDimensionLabel(dimKey || label);
+  }
+  if (layer === "behavior") {
+    if (stateKey === "recurring") return "同类错误正在复发";
+    if (stateKey === "delivered") return "系统已经讲解过";
+    if (stateKey === "verified") return "训练效果已验证";
+    if (stateKey === "not_verified") return "还没有通过验证";
+    if (stateKey === "still_confused") return "仍有疑惑没有解开";
+    return stateLabel(stateKey) || abilityDimensionLabel(dimKey || label);
+  }
+  return stateLabel(stateKey) || String(label || "");
+}
+
+function learningStateActionLabel(layer, state, dimension) {
+  var stateKey = String(state || "").trim();
+  var dimKey = String(dimension || "").trim();
+  if (layer === "knowledge") {
+    if (stateKey === "weak") return "先回到这一知识点的条件边界";
+    if (stateKey === "needs_revalidation") return "用一道新题确认是否还记得";
+    return "继续用作答记录稳定这个判断";
+  }
+  if (layer === "ability") {
+    if (dimKey === "question_reading") return "先圈题干限制词，再判断选项";
+    if (dimKey === "code_application") return "先定位规范条文和适用条件";
+    if (dimKey === "calculation") return "先写清阈值和计算条件";
+    if (dimKey === "expression") return "按采分点组织答案表达";
+    if (dimKey === "transfer") return "换一个场景再练一次";
+    return "用一组短练习把能力补齐";
+  }
+  if (layer === "behavior") {
+    if (stateKey === "recurring") return "今天用同类题验证是否真正改掉";
+    if (stateKey === "delivered") return "看完解析后再用新题复测";
+    if (stateKey === "not_verified") return "需要完成验证题才能闭环";
+    return "继续观察最近几次作答变化";
+  }
+  return "";
+}
+
+function isBlockedSourceStatus(status) {
+  var sourceStatus = asObject(status);
+  var blockedReason = String(
+    sourceStatus.blocked_reason || sourceStatus.reason || "",
+  ).trim();
+  if (blockedReason) return true;
+  if (sourceStatus.degraded === true && blockedReason) return true;
+  if (sourceStatus.enabled === false || sourceStatus.feature_enabled === false) return true;
+  var stage = String(sourceStatus.stage || sourceStatus.flag_stage || "").trim();
+  return stage === "off";
+}
+
+function prescriptionPhaseLabel(value) {
+  var labels = {
+    discovery_probe: "起步测评",
+    repair_root: "补根因",
+    expression_drill: "表达训练",
+    transfer_case: "迁移练习",
+    verification_probe: "验证题",
+  };
+  var key = String(value || "").trim();
+  return labels[key] || key || "训练";
+}
+
+function prescriptionTitleLabel(conceptLabel, status) {
+  var concept = compactLearningTopic(conceptLabel);
+  if (concept) return "围绕「" + concept + "」先完成一轮定向训练";
+  return status === "degraded" ? "先来一次起步测评" : "今日先完成一轮定向训练";
+}
+
+function evidenceCountLabel(count) {
+  var n = asNumber(count, 0);
+  return n > 0 ? "基于 " + n + " 条学习证据" : "";
+}
+
+function sourceValueLabel(count, unit, fallback) {
+  var n = asNumber(count, 0);
+  return n > 0 ? n + " " + unit : fallback || "待积累";
+}
+
+function sourceStatusLabel(count, activeLabel) {
+  return asNumber(count, 0) > 0 ? activeLabel || "已接入" : "待积累";
+}
+
+function sourceTone(count) {
+  return asNumber(count, 0) > 0 ? "active" : "pending";
+}
+
+function normalizeEvidenceEngineBatchC(body, learningState, scoringPointMap, mastery, learningBrain) {
+  var sourceStatus = asObject(asObject(learningState).sourceStatus);
+  var featureFlags = asObject(body.feature_flags);
+  var gradingCount = asNumber(sourceStatus.grading_fact_count, 0);
+  var conversationCount = asNumber(sourceStatus.conversation_signal_count, 0);
+  var totalSignalCount =
+    gradingCount +
+      conversationCount ||
+    asNumber(asObject(asObject(learningBrain).stats).eventCount, 0);
+  var attemptCount =
+    asNumber(sourceStatus.case_attempt_count, 0) ||
+    asList(asObject(learningBrain).attempts).length;
+  var scoringCount = asList(asObject(scoringPointMap).items).length;
+  var behaviorCount = asList(asObject(learningState).behaviorState).length;
+  var graphCount = asList(asObject(learningState).knowledgeState).length;
+  var decayCount =
+    asNumber(asObject(mastery).overallConfidence, 0) > 0 ||
+    asList(asObject(mastery).hotspots).length
+      ? 1
+      : 0;
+  var difficultyCount = asNumber(sourceStatus.difficulty_signal_count, 0);
+  var sources = [
+    {
+      key: "answers",
+      label: "长期答题记录",
+      value: sourceValueLabel(gradingCount, "条"),
+      statusLabel: sourceStatusLabel(gradingCount, "已接入"),
+      tone: sourceTone(gradingCount),
+    },
+    {
+      key: "case_answers",
+      label: "案例题答案",
+      value: sourceValueLabel(attemptCount, "次"),
+      statusLabel: sourceStatusLabel(attemptCount, "已接入"),
+      tone: sourceTone(attemptCount),
+    },
+    {
+      key: "scoring_points",
+      label: "采分点命中",
+      value: sourceValueLabel(scoringCount, "项"),
+      statusLabel: sourceStatusLabel(scoringCount, "已接入"),
+      tone: sourceTone(scoringCount),
+    },
+    {
+      key: "error_tags",
+      label: "错因标签",
+      value: sourceValueLabel(behaviorCount, "类"),
+      statusLabel: sourceStatusLabel(behaviorCount, "已识别"),
+      tone: sourceTone(behaviorCount),
+    },
+    {
+      key: "time_decay",
+      label: "时间衰减",
+      value: decayCount ? "已估计" : "待积累",
+      statusLabel: decayCount ? "已估计" : "待积累",
+      tone: sourceTone(decayCount),
+    },
+    {
+      key: "knowledge_graph",
+      label: "知识图谱关系",
+      value: sourceValueLabel(graphCount, "个节点"),
+      statusLabel: sourceStatusLabel(graphCount, "已关联"),
+      tone: sourceTone(graphCount),
+    },
+    {
+      key: "difficulty",
+      label: "题目难度",
+      value: sourceValueLabel(difficultyCount, "条"),
+      statusLabel: sourceStatusLabel(difficultyCount, "已接入"),
+      tone: sourceTone(difficultyCount),
+    },
+  ];
+  var activeSourceCount = sources.filter(function (item) {
+    return item.tone === "active";
+  }).length;
+  var realEvidenceSourceCount = [
+    gradingCount,
+    conversationCount,
+    attemptCount,
+    scoringCount,
+    behaviorCount,
+    graphCount,
+    difficultyCount,
+  ].filter(function (count) {
+    return asNumber(count, 0) > 0;
+  }).length;
+  var blocked =
+    isBlockedSourceStatus(sourceStatus) ||
+    isBlockedSourceStatus(asObject(scoringPointMap).sourceStatus) ||
+    featureFlags.enabled === false ||
+    featureFlags.state_projection === false ||
+    featureFlags.action_loop === false;
+  var isVisible = !blocked && activeSourceCount > 0 && realEvidenceSourceCount > 0;
+  return {
+    title: "学习状态推断引擎",
+    summary: totalSignalCount
+      ? "融合 " + totalSignalCount + " 条历史学习证据"
+      : "完成一次批改后开始推断",
+    subtitle: "把答题记录、案例解析、采分点、错因与时间信号收束成今日行动",
+    sources: isVisible ? sources : [],
+    sourceStatus: sourceStatus,
+    isEmpty: !isVisible,
+    isVisible: isVisible,
+  };
+}
+
 function normalizeVisibleTruths(sections) {
   return asList(asObject(sections).current_truth)
     .map(function (item, index) {
@@ -423,10 +700,18 @@ function buildLearningReportViewModel(report) {
     ) || String(overview.focus_hint || "");
   var nextTraining = normalizeNextTraining(body.next_training, learningBrain);
   var attempts = normalizeV2Attempts(body.attempts, learningBrain);
+  var mistakeHistoryCards = normalizeMistakeHistoryCards(attempts);
   // Batch C Task 8: three-layer learning state + scoring point map + today's prescription.
   var learningState = normalizeLearningStateBatchC(body.learning_state);
   var scoringPointMap = normalizeScoringPointMapBatchC(body.scoring_point_map);
   var prescription = normalizePrescriptionBatchC(nextTraining, learningState);
+  var evidenceEngine = normalizeEvidenceEngineBatchC(
+    body,
+    learningState,
+    scoringPointMap,
+    mastery,
+    learningBrain,
+  );
   return {
     schemaVersion: asNumber(body.schema_version, 1),
     hero: {
@@ -465,6 +750,7 @@ function buildLearningReportViewModel(report) {
     stableTruths: asList(truthSections.stable_truths),
     recentObservations: asList(truthSections.recent_observations),
     attempts: attempts,
+    mistakeHistoryCards: mistakeHistoryCards,
     mistakeBook: asObject(body.mistake_book),
     nextTraining: nextTraining,
     masteryDimensions: normalizeMasteryDimensions(body.mastery),
@@ -488,6 +774,7 @@ function buildLearningReportViewModel(report) {
     learningState: learningState,
     scoringPointMap: scoringPointMap,
     prescription: prescription,
+    evidenceEngine: evidenceEngine,
     degraded: Boolean(body.degraded) || degradedSources.length > 0,
     degradedSources: degradedSources,
   };
@@ -497,27 +784,41 @@ function buildLearningReportViewModel(report) {
 
 function normalizeLearningStateBatchC(state) {
   var src = asObject(state);
-  function mapLayer(items, dimensionKey) {
+  function mapLayer(items, dimensionKey, layer) {
     return asList(items).map(function (item, index) {
       var row = asObject(item);
+      var rawLabel = String(row.label || row.dimension || row.node_id || "");
+      var dimension = String(row.dimension || "");
+      var label =
+        dimensionKey === "dimension"
+          ? abilityDimensionLabel(dimension || rawLabel)
+          : compactLearningTopic(rawLabel) || abilityDimensionLabel(rawLabel);
+      var state = String(row.state || "");
+      var evidenceCount = asNumber(row.evidence_count, 0);
+      var evidenceRefs = asList(row.evidence_refs).map(function (ref) {
+        return String(ref || "");
+      });
       return {
         key: String(row[dimensionKey] || row.node_id || "row-" + index),
         nodeId: String(row.node_id || ""),
-        dimension: String(row.dimension || ""),
-        label: String(row.label || row.dimension || row.node_id || ""),
-        state: String(row.state || ""),
-        evidenceCount: asNumber(row.evidence_count, 0),
-        evidenceRefs: asList(row.evidence_refs).map(function (ref) {
-          return String(ref || "");
-        }),
+        dimension: dimension,
+        label: label,
+        state: state,
+        stateLabel: stateLabel(state),
+        stateHeadline: learningStateHeadline(layer, state, label, dimension),
+        actionLabel: learningStateActionLabel(layer, state, dimension),
+        stateTone: stateTone(state),
+        evidenceCount: evidenceCount,
+        evidenceText: evidenceCountLabel(evidenceCount),
+        evidenceRefs: evidenceRefs,
         granularity: String(row.granularity || ""),
         lastObservedAt: String(row.last_observed_at || ""),
       };
     });
   }
-  var knowledge = mapLayer(src.knowledge_state, "node_id");
-  var ability = mapLayer(src.ability_state, "dimension");
-  var behavior = mapLayer(src.behavior_state, "dimension");
+  var knowledge = mapLayer(src.knowledge_state, "node_id", "knowledge");
+  var ability = mapLayer(src.ability_state, "dimension", "ability");
+  var behavior = mapLayer(src.behavior_state, "dimension", "behavior");
   return {
     knowledgeState: knowledge,
     abilityState: ability,
@@ -583,14 +884,31 @@ function normalizePrescriptionBatchC(nextTraining, learningState) {
     }
   }
   if (v2) {
+    var conceptLabel = compactLearningTopic(v2.concept_label);
+    var behaviorMeta =
+      String(v2.behavior_state || "").trim() === "recurring"
+        ? "同类错误复发"
+        : stateLabel(v2.behavior_state);
+    var meta = [
+      abilityDimensionLabel(v2.ability_dimension),
+      behaviorMeta,
+      evidenceMetaLabel(v2.evidence_refs),
+    ].filter(Boolean).map(function (label, index) {
+      return { key: "meta-" + index, label: label };
+    });
     return {
       status: String(v2.status || "active"),
       title: String(v2.concept_label || "今日处方"),
+      titleLabel: prescriptionTitleLabel(conceptLabel, v2.status),
+      subtitle: String(v2.error_label || v2.reason || ""),
       reason: String(v2.reason || ""),
       conceptId: String(v2.concept_id || ""),
-      conceptLabel: String(v2.concept_label || ""),
+      conceptLabel: conceptLabel,
       abilityDimension: String(v2.ability_dimension || ""),
+      abilityDimensionLabel: abilityDimensionLabel(v2.ability_dimension),
       behaviorState: String(v2.behavior_state || ""),
+      behaviorStateLabel: stateLabel(v2.behavior_state),
+      meta: meta,
       evidenceRefs: asList(v2.evidence_refs).map(function (ref) {
         return String(ref || "");
       }),
@@ -599,6 +917,7 @@ function normalizePrescriptionBatchC(nextTraining, learningState) {
         return {
           key: String(src.phase || "phase-" + index),
           phase: String(src.phase || ""),
+          phaseLabel: prescriptionPhaseLabel(src.phase),
           questionCount: asNumber(src.question_count, 0),
         };
       }),
@@ -613,12 +932,19 @@ function normalizePrescriptionBatchC(nextTraining, learningState) {
     title: asObject(learningState).isEmpty
       ? "完成一次练习后生成今日处方"
       : "今日先做一轮探测题",
+    titleLabel: asObject(learningState).isEmpty
+      ? "完成一次练习后生成今日处方"
+      : "今日先做一轮探测题",
+    subtitle: "",
     reason: "",
     conceptId: "",
     conceptLabel: "",
     abilityDimension: "",
+    abilityDimensionLabel: "",
     behaviorState: "",
+    behaviorStateLabel: "",
     evidenceRefs: [],
+    meta: [],
     steps: [],
     successCriteria: {},
     intent: {},
@@ -655,6 +981,52 @@ function normalizeV2Attempts(source, learningBrain) {
       ),
     };
   });
+}
+
+function normalizeMistakeHistoryCards(attempts) {
+  return asList(attempts)
+    .map(function (item, index) {
+      var attempt = asObject(item);
+      var resultLabel = String(attempt.resultLabel || attempt.result_label || "");
+      var tone = String(attempt.tone || "");
+      var diagnosis = cleanLearningText(attempt.diagnosis || "");
+      var whyWrong = cleanLearningText(
+        attempt.diagnosisDetail ||
+          attempt.diagnosis_detail ||
+          attempt.explanation ||
+          attempt.why_it_matters ||
+          diagnosis,
+      );
+      var answerLine = cleanLearningText(attempt.answerLine || attempt.answer_line || "");
+      var questionTitle = mistakeQuestionTitle(
+        attempt.title ||
+          attempt.questionTitle ||
+          attempt.question_title ||
+          attempt.questionText ||
+          attempt.question_text ||
+          "一次错题记录",
+      );
+      var isWrong =
+        tone === "wrong" ||
+        resultLabel.indexOf("错") >= 0 ||
+        resultLabel.indexOf("误") >= 0 ||
+        Boolean(diagnosis || whyWrong);
+      if (!isWrong) return null;
+      return {
+        key: String(attempt.key || attempt.attemptKey || "mistake-" + index),
+        attemptRef: String(attempt.attemptRef || attempt.attempt_ref || ""),
+        timeLabel: String(attempt.timeLabel || attempt.time_label || ""),
+        resultLabel: resultLabel || "答错",
+        tone: tone || "wrong",
+        questionTitle: questionTitle,
+        answerLine: answerLine || "当时作答待补充",
+        whereWrong: diagnosis || "这道题的作答和标准答案不一致",
+        whyWrong: whyWrong || diagnosis || "打开当时解析查看完整讲解",
+        detailCta: "查看当时解析",
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 3);
 }
 
 function normalizeNextTraining(source, learningBrain) {
@@ -741,9 +1113,18 @@ function toReportPageData(model) {
     learningAttemptCards: asList(vm.attempts).length
       ? asList(vm.attempts)
       : asList(brain.attempts),
+    mistakeHistoryCards: asList(vm.mistakeHistoryCards),
     learningDiagnosisCards: asList(brain.diagnoses),
     learningTrainingLoops: asList(brain.chains),
     learningNextAction: asObject(brain.nextAction),
+    engineEvidenceSummary: String(
+      asObject(vm.evidenceEngine).summary || "",
+    ),
+    engineEvidenceSubtitle: String(
+      asObject(vm.evidenceEngine).subtitle || "",
+    ),
+    engineEvidenceSources: asList(asObject(vm.evidenceEngine).sources),
+    engineEvidenceVisible: Boolean(asObject(vm.evidenceEngine).isVisible),
     // Batch C Task 8: flat page fields for the new sections.
     learningStateKnowledge: asList(asObject(vm.learningState).knowledgeState),
     learningStateAbility: asList(asObject(vm.learningState).abilityState),
@@ -756,8 +1137,15 @@ function toReportPageData(model) {
     scoringPointMapEmptyLabel: String(
       asObject(vm.scoringPointMap).emptyStateLabel || "",
     ),
-    prescriptionTitle: String(asObject(vm.prescription).title || ""),
+    prescriptionTitle: String(
+      asObject(vm.prescription).titleLabel ||
+        asObject(vm.prescription).title ||
+        "",
+    ),
+    prescriptionSubtitle: String(asObject(vm.prescription).subtitle || ""),
+    prescriptionReason: String(asObject(vm.prescription).reason || ""),
     prescriptionStatus: String(asObject(vm.prescription).status || ""),
+    prescriptionMeta: asList(asObject(vm.prescription).meta),
     prescriptionSteps: asList(asObject(vm.prescription).steps),
     prescriptionCtaLabel: String(asObject(vm.prescription).ctaLabel || ""),
     prescriptionEvidenceRefs: asList(asObject(vm.prescription).evidenceRefs),

@@ -74,12 +74,10 @@
 
   {
     "name": "fallback_text_contains_correct_answer",
-    "description": "已知泄露：当后端把 \"正确答案：X\" 写进 fallback_text markdown，sanitizer 不拦。",
+    "description": "现状已拦：fallback markdown 里的正确答案行会在进入 render state 前被剥离。",
     "attack_vector": "fallback_text_markdown",
     "marker": "LEAK_FALLBACK_TEXT_005",
-    "must_be_blocked": false,
-    "known_gap": "sanitizer 只覆盖 progressive_disclosure.sections，不覆盖 fallback_text。如果 backend payload 用 markdown 写 \"正确答案：LEAK_FALLBACK_TEXT_005\"，会直接渲染到 UI。",
-    "minimum_fix_suggestion": "在 ai-message-state.deriveAiMessageRenderState 末段，对 renderableContent 加一道正则 scrub：/(正确答案|参考答案|答案是|采分点|评分点|grading[_ ]?key|correct[_ ]?answer|scoring[_ ]?points)\\s*[:：][\\s\\S]{0,200}/gi → 替换为 \"…[已折叠]\"。",
+    "must_be_blocked": true,
     "payload": {
       "content": "本题解析：\n\n核心结论：建筑构造分两大体系。\n\n正确答案：LEAK_FALLBACK_TEXT_005\n\n下一步建议：再练 3 题巩固。"
     }
@@ -87,12 +85,10 @@
 
   {
     "name": "mcq_option_text_contains_scoring_points",
-    "description": "已知泄露：当后端把采分点关键词塞进 MCQ option text，会原样进入 mcqCards[].options[].text。",
+    "description": "现状已拦：MCQ option text 中的采分点/评分点 authority suffix 会被剥离。",
     "attack_vector": "mcq.options[].text",
     "marker": "LEAK_MCQ_OPTION_006",
-    "must_be_blocked": false,
-    "known_gap": "normalizeMcqOptions 仅对 text 做 _asString，没有任何 scrub。如果 backend 在 option text 里写 \"采分点：LEAK_MCQ_OPTION_006\"，会出现在选项卡片上。",
-    "minimum_fix_suggestion": "在 normalizeMcqOptions 内对 text 加同样的 scrub 正则；或在 normalizeMcqQuestion 末段把 question.stem + 所有 option.text 串成一段，用 scrub 后再回写。",
+    "must_be_blocked": true,
     "payload": {
       "content": "请选择正确答案：",
       "presentation": {
@@ -155,12 +151,10 @@
 
   {
     "name": "callout_block_explanation",
-    "description": "已知泄露：当 backend 把答案解析放进 callout block 的内容，会原样渲染到 UI。",
+    "description": "现状已拦：callout / markdown block 中的正确答案 authority 行会在进入 render state 前被剥离。",
     "attack_vector": "callout_block.content",
     "marker": "LEAK_CALLOUT_008",
-    "must_be_blocked": false,
-    "known_gap": "normalizeBlock 对 callout 不做内容 scrub。如果 backend 把 explanation 包成 callout，例如：\\n> 提示：正确答案是 LEAK_CALLOUT_008\\n，会被原样解析进 markdown blocks。",
-    "minimum_fix_suggestion": "增加一个 callout-level sanitize：扫描 callout content 的 text spans，若命中 /(正确答案|参考答案|答案是|grading[_ ]?key|correct[_ ]?answer)/i 关键词，整个 callout 替换成中性文案 \"完整解析需在评分后查看\"。",
+    "must_be_blocked": true,
     "payload": {
       "content": "本题分析：\n\n> 💡 提示：正确答案是 LEAK_CALLOUT_008，请理解其推导过程。\n\n核心结论：以题库为准。"
     }

@@ -195,6 +195,8 @@ var batchCReport = {
     source_status: {
       authority: "learner_memory_events.learning_evidence",
       model: "rule_based_v1",
+      grading_fact_count: 8,
+      conversation_signal_count: 2,
     },
   },
   scoring_point_map: {
@@ -252,6 +254,20 @@ var batchCReport = {
       },
     },
   ],
+  attempts: [
+    {
+      attempt_key: "attempt-fire-door",
+      attempt_ref: "ref-fire-door",
+      time_label: "今天 10:55",
+      question_title: "关于防火门的构造要求，下列哪项说法是正确的？",
+      result_label: "答错",
+      tone: "wrong",
+      answer_line: "你选：A；正确：D",
+      diagnosis: "把耐火极限和双扇门关闭顺序混在了一起。",
+      why_it_matters: "A 选项错在把甲级防火门耐火极限记成 1.0h；本题应先判断构造对象，再核对双扇防火门应按顺序关闭。",
+      actions: { detail: true },
+    },
+  ],
   degraded: false,
   degraded_sources: [],
 };
@@ -274,6 +290,31 @@ assert.strictEqual(
 assert.strictEqual(batchCWx.learningState.behaviorState[0].state, "recurring");
 assert.strictEqual(batchCWx.learningState.isEmpty, false);
 
+// The learner-facing model must present the report as a learning-state engine,
+// not as raw backend enums or a thin statistics panel.
+assert.strictEqual(batchCWx.evidenceEngine.title, "学习状态推断引擎");
+assert.strictEqual(batchCWx.evidenceEngine.summary, "融合 10 条历史学习证据");
+assert.strictEqual(batchCWx.evidenceEngine.isVisible, true);
+assert.strictEqual(batchCWx.evidenceEngine.sources.length, 7);
+assert.deepStrictEqual(
+  batchCWx.evidenceEngine.sources.map(function (item) {
+    return item.label;
+  }),
+  [
+    "长期答题记录",
+    "案例题答案",
+    "采分点命中",
+    "错因标签",
+    "时间衰减",
+    "知识图谱关系",
+    "题目难度",
+  ],
+);
+assert.strictEqual(batchCWx.evidenceEngine.sources[0].value, "8 条");
+assert.strictEqual(batchCWx.evidenceEngine.sources[0].statusLabel, "已接入");
+assert.strictEqual(batchCWx.evidenceEngine.sources[2].value, "1 项");
+assert.strictEqual(batchCWx.evidenceEngine.sources[6].statusLabel, "待积累");
+
 // scoringPointMap exposes 采分点 granularity label and v2 intent.
 var spItem = batchCWx.scoringPointMap.items[0];
 assert.strictEqual(spItem.granularity, "scoring_point");
@@ -293,7 +334,10 @@ assert.strictEqual(batchCWx.prescription.ctaLabel, "开始训练");
 
 // toReportPageData flattens for setData.
 var batchCPage = wxVm.toReportPageData(batchCWx);
-assert.strictEqual(batchCPage.prescriptionTitle, "甲乙丙级耐火极限");
+assert.strictEqual(
+  batchCPage.prescriptionTitle,
+  "围绕「甲乙丙级耐火极限」先完成一轮定向训练",
+);
 assert.strictEqual(batchCPage.prescriptionStatus, "active");
 assert.strictEqual(batchCPage.prescriptionSteps.length, 4);
 assert.strictEqual(batchCPage.learningStateKnowledge[0].nodeId, "1A412010");
@@ -308,6 +352,152 @@ assert.strictEqual(
 );
 assert.strictEqual(batchCPage.scoringPointMapEmptyState, "");
 assert.strictEqual(batchCPage.learningStateIsEmpty, false);
+assert.strictEqual(batchCPage.mistakeHistoryCards.length, 1);
+assert.strictEqual(batchCPage.mistakeHistoryCards[0].timeLabel, "今天 10:55");
+assert.strictEqual(
+  batchCPage.mistakeHistoryCards[0].questionTitle,
+  "关于防火门的构造要求，下列哪项说法是正确的？",
+);
+assert.strictEqual(
+  batchCPage.mistakeHistoryCards[0].answerLine,
+  "你选：A；正确：D",
+);
+assert.strictEqual(
+  batchCPage.mistakeHistoryCards[0].whyWrong,
+  "A 选项错在把甲级防火门耐火极限记成 1.0h；本题应先判断构造对象，再核对双扇防火门应按顺序关闭。",
+);
+var promptLikeMistake = wxVm.buildLearningReportViewModel({
+  learner_facing: {
+    recent_attempts: [
+      {
+        title:
+          "我想练习建筑构造相关的题目 请严格围绕以下当前学习锚点出题",
+        result_label: "答错",
+        tone: "wrong",
+        answer_line: "你选：C；正确：D",
+        diagnosis: "把防火门关闭顺序判断成同时关闭。",
+      },
+    ],
+  },
+});
+var promptLikeMistakePage = wxVm.toReportPageData(promptLikeMistake);
+assert.strictEqual(
+  promptLikeMistakePage.mistakeHistoryCards[0].questionTitle,
+  "建筑构造相关错题",
+);
+assert.ok(
+  promptLikeMistakePage.mistakeHistoryCards[0].questionTitle.indexOf("我想练习") < 0,
+  "mistake history should not expose training prompt text as a question title",
+);
+assert.strictEqual(batchCPage.engineEvidenceSummary, "融合 10 条历史学习证据");
+assert.strictEqual(batchCPage.engineEvidenceVisible, true);
+assert.strictEqual(batchCPage.engineEvidenceSources.length, 7);
+assert.strictEqual(
+  batchCPage.prescriptionTitle,
+  "围绕「甲乙丙级耐火极限」先完成一轮定向训练",
+);
+assert.strictEqual(batchCPage.prescriptionMeta.length, 3);
+assert.deepStrictEqual(
+  batchCPage.prescriptionMeta.map(function (item) {
+    return item.label;
+  }),
+  ["规范应用", "同类错误复发", "2 条证据"],
+);
+assert.strictEqual(
+  batchCPage.learningStateKnowledge[0].stateHeadline,
+  "需要优先补上",
+);
+assert.strictEqual(
+  batchCPage.learningStateKnowledge[0].actionLabel,
+  "先回到这一知识点的条件边界",
+);
+assert.strictEqual(
+  batchCPage.learningStateAbility[0].stateHeadline,
+  "规范应用还不稳",
+);
+assert.strictEqual(
+  batchCPage.learningStateBehavior[0].stateHeadline,
+  "同类错误正在复发",
+);
+[
+  batchCPage.prescriptionTitle,
+  batchCPage.learningStateKnowledge[0].stateHeadline,
+  batchCPage.learningStateAbility[0].stateHeadline,
+  batchCPage.learningStateBehavior[0].stateHeadline,
+  batchCPage.mistakeHistoryCards[0].whereWrong,
+  batchCPage.mistakeHistoryCards[0].whyWrong,
+].forEach(function (text) {
+  assert(!/weak|recurrence|question_reading|discovery_probe|code_application/.test(text));
+});
+
+var flagOffReport = JSON.parse(JSON.stringify(batchCReport));
+flagOffReport.feature_flags = {
+  enabled: false,
+  state_projection: false,
+  action_loop: false,
+};
+var flagOffVm = wxVm.buildLearningReportViewModel(flagOffReport);
+assert.strictEqual(
+  flagOffVm.evidenceEngine.isVisible,
+  false,
+  "feature-flag-disabled projections must not expose the engine panel",
+);
+assert.strictEqual(wxVm.toReportPageData(flagOffVm).engineEvidenceVisible, false);
+
+var zeroEvidenceFlagOnReport = {
+  ok: true,
+  schema_version: 2,
+  feature_flags: {
+    enabled: true,
+    state_projection: true,
+    action_loop: true,
+  },
+  overview: {},
+  mastery: {
+    overall_mastery: {
+      score: 0,
+      confidence: 0.2,
+      status: "insufficient_evidence",
+    },
+    hotspots: [],
+  },
+  learning_state: {
+    knowledge_state: [],
+    ability_state: [],
+    behavior_state: [],
+    source_status: {
+      authority: "learner_memory_events.learning_evidence",
+      model: "rule_based_v1",
+      grading_fact_count: 0,
+      conversation_signal_count: 0,
+    },
+  },
+  scoring_point_map: {
+    items: [],
+    empty_state: "no_evidence",
+    source_status: {
+      authority: "learner_memory_events.learning_evidence",
+      total_case_event_count: 0,
+      map_eligible_event_count: 0,
+    },
+  },
+  learner_facing: {},
+  learning_brain: {},
+  freshness: { event_count: 0 },
+  next_training: [],
+};
+var zeroEvidenceFlagOnVm = wxVm.buildLearningReportViewModel(
+  zeroEvidenceFlagOnReport,
+);
+assert.strictEqual(
+  zeroEvidenceFlagOnVm.evidenceEngine.isVisible,
+  false,
+  "synthetic mastery confidence must not light up the engine without real evidence",
+);
+assert.strictEqual(
+  wxVm.toReportPageData(zeroEvidenceFlagOnVm).engineEvidenceSources.length,
+  0,
+);
 
 // Keyword-only / rubric_pending honesty.
 var pendingReport = {
@@ -334,6 +524,16 @@ assert.strictEqual(
   "本题暂无可拆采分点，已先按审题要点收集",
 );
 assert.strictEqual(pendingVm.learningState.isEmpty, true);
+assert.strictEqual(
+  pendingVm.evidenceEngine.isVisible,
+  false,
+  "empty/degraded projections must not show the engine panel",
+);
+assert.strictEqual(
+  wxVm.toReportPageData(pendingVm).engineEvidenceSources.length,
+  0,
+  "page data must keep the engine panel hidden when no active evidence exists",
+);
 // Degraded fallback prescription must NOT fabricate a strong action.
 assert.strictEqual(pendingVm.prescription.status, "degraded");
 
@@ -374,12 +574,28 @@ var reportWxml = fs.readFileSync(
   "utf8",
 );
 assert(
-  reportWxml.indexOf("今日处方") >= 0,
-  "wx report.wxml must show 今日处方",
+  reportWxml.indexOf("今天先做什么") >= 0,
+  "wx report.wxml must orient the prescription as the next learning action",
 );
 assert(
-  reportWxml.indexOf("今日学习状态") >= 0,
-  "wx report.wxml must show 今日学习状态",
+  reportWxml.indexOf("学习状态推断引擎") >= 0,
+  "wx report.wxml must show the learning-state engine frame",
+);
+assert(
+  reportWxml.indexOf("engineEvidenceVisible") >= 0,
+  "wx report.wxml must gate the engine panel on backend evidence visibility",
+);
+assert(
+  reportWxml.indexOf("为什么这样安排") >= 0,
+  "wx report.wxml must explain why the prescription was generated",
+);
+assert(
+  reportWxml.indexOf("错题历史怎么证明") >= 0,
+  "wx report.wxml must make the learning-state diagnosis concrete through wrong-attempt history",
+);
+assert(
+  reportWxml.indexOf("mistakeHistoryCards") >= 0,
+  "wx report.wxml must render concrete mistake history cards from backend attempts",
 );
 assert(
   reportWxml.indexOf("知识状态") >= 0,
@@ -394,8 +610,8 @@ assert(
   "wx report.wxml must show 行为状态",
 );
 assert(
-  reportWxml.indexOf("采分点漏分") >= 0,
-  "wx report.wxml must show 采分点漏分",
+  reportWxml.indexOf("采分点怎么补") >= 0,
+  "wx report.wxml must frame scoring-point gaps as a repair path",
 );
 assert(
   reportWxml.indexOf("scoringPointMapEmptyLabel") >= 0,

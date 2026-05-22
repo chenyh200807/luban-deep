@@ -59,8 +59,9 @@ async function run() {
   );
   assert(
     reportSource.indexOf('return "综合能力"') < 0 &&
-      reportSource.indexOf('return "知识点 " + text.toUpperCase()') >= 0,
-    "report page must not collapse taxonomy codes into the meaningless 综合能力 label",
+      reportSource.indexOf('return "知识点 " + text.toUpperCase()') < 0 &&
+      reportSource.indexOf('require("../../utils/taxonomy")') >= 0,
+    "report page must route chapter taxonomy through the shared utils/taxonomy authority — must NOT expose raw chapter codes or collapse them into the meaningless 综合能力 label",
   );
   assert(
     reportSource.indexOf('code === "M01"') >= 0 &&

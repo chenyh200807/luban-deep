@@ -146,6 +146,34 @@
   color: #7dd3fc;
 }
 
+.explanation-section {
+  margin: 26rpx 0 32rpx;
+}
+
+.explanation-card {
+  margin-bottom: 16rpx;
+  padding: 22rpx 24rpx;
+  border: 1rpx solid rgba(125, 211, 252, 0.18);
+  border-radius: 18rpx;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(8, 47, 73, 0.52));
+}
+
+.explanation-label {
+  display: block;
+  margin-bottom: 10rpx;
+  font-size: 23rpx;
+  font-weight: 900;
+  color: #7dd3fc;
+}
+
+.explanation-content {
+  display: block;
+  white-space: pre-wrap;
+  font-size: 28rpx;
+  line-height: 1.68;
+  color: #f1f5f9;
+}
+
 .turn {
   margin-bottom: 22rpx;
 }

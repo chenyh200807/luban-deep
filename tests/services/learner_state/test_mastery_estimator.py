@@ -248,4 +248,3 @@ def test_legacy_status_field_still_present_for_backward_compat() -> None:
     assert "status" in estimate
     assert "score" in estimate
     assert "confidence" in estimate
-

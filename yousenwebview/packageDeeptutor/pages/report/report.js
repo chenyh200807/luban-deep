@@ -6,7 +6,9 @@ const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
 const flags = require("../../utils/flags");
 const reportViewModel = require("../../utils/learning-report-view-model");
+const taxonomy = require("../../utils/taxonomy");
 
+const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
   beginner: "入门",
@@ -31,9 +33,7 @@ function _displayLevelName(value) {
 }
 
 function _displayChapterName(value) {
-  var text = String(value || "").trim();
-  if (/^1A\d{6}$/i.test(text)) return "知识点 " + text.toUpperCase();
-  return text || "未归类能力";
+  return taxonomy.displayChapterName(value, "未归类能力");
 }
 
 function _buildRadarSignature(dims) {
@@ -1001,7 +1001,7 @@ function _reportOptionalRead(promise, timeoutMs) {
       if (settled) return;
       settled = true;
       resolve(null);
-    }, timeoutMs || 3500);
+    }, timeoutMs || REPORT_UNIFIED_READ_TIMEOUT_MS);
     promise
       .then(function (value) {
         if (settled) return;
@@ -1155,7 +1155,7 @@ Page({
     var optionalReadOpts = { suppressAuthRedirect: true };
     optionalReadOpts.schemaVersion = 2;
     const report = _unwrapSnapshotItem(
-      await _reportOptionalRead(api.getLearningReport(100, optionalReadOpts)),
+      await _reportOptionalRead(api.getLearningReport(100, optionalReadOpts), REPORT_UNIFIED_READ_TIMEOUT_MS),
     );
     if (!report) {
       // 5xx / network failure / payload contract 断裂 → 返回 null 让 _loadReportPage 走显式 fallback

@@ -71,6 +71,18 @@ function loadApp(storageSeed) {
         removedKeys.push(key);
         delete storage[key];
       },
+      redirectTo: function (options) {
+        // subpackage redirectTo fails in real wechat runtime when the
+        // target page lives in a not-yet-loaded subpackage; runtime.js
+        // falls back to wx.reLaunch. Mirror that here so the test
+        // exercises the canonical fallback path.
+        if (options && typeof options.fail === "function") {
+          options.fail({ errMsg: "redirectTo:fail" });
+        }
+        if (options && typeof options.complete === "function") {
+          options.complete();
+        }
+      },
       reLaunch: function (options) {
         reLaunchCalls.push(options || {});
         if (options && typeof options.complete === "function") {
