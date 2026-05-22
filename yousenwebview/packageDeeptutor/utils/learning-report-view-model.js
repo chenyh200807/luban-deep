@@ -1,5 +1,7 @@
 function asObject(value) {
-  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value
+    : {};
 }
 
 function asList(value) {
@@ -41,16 +43,19 @@ function normalizeRadar(dimensions) {
     return {
       name: chapterName(source.label || source.name || source.key || ""),
       value: value || 0,
+      score: Math.round(asNumber(source.score, asNumber(value, 0) * 100)),
+      level: String(source.level || source.status || "observed"),
+      rateText: String(source.rate_text || source.rateText || ""),
     };
   });
   var scores = dims.map(function (item) {
     return Math.round(asNumber(item.value, 0) * 100);
   });
-  var strong = scores.filter(function (score) {
-    return score >= 70;
+  var strong = dims.filter(function (item) {
+    return item.level === "strong" || item.level === "stable";
   }).length;
-  var weak = scores.filter(function (score) {
-    return score > 0 && score < 40;
+  var weak = dims.filter(function (item) {
+    return ["weak", "unstable", "needs_revalidation"].indexOf(item.level) >= 0;
   }).length;
   var normal = Math.max(0, dims.length - strong - weak);
   var avg = scores.length
@@ -67,12 +72,12 @@ function normalizeRadar(dimensions) {
     weakCount: weak,
     avgScore: avg,
     dimList: dims.map(function (item) {
-      var score = Math.round(asNumber(item.value, 0) * 100);
+      var score = Math.round(asNumber(item.score, asNumber(item.value, 0) * 100));
       return {
         name: item.name,
         score: score,
-        rateText: score + "%",
-        level: score >= 70 ? "strong" : score >= 40 ? "normal" : "weak",
+        rateText: item.rateText || score + "%",
+        level: item.level,
       };
     }),
   };
@@ -84,6 +89,7 @@ function normalizeMastery(source) {
   var overallPayload = asObject(overall);
   var overallConfidence = asNumber(overallPayload.confidence, 0);
   var overallStatus = String(overallPayload.status || "");
+  var overallClass = String(overallPayload.class_name || overallPayload.className || "");
   if (overall && typeof overall === "object") overall = overall.score;
   var groups = asList(mastery.groups).map(function (group) {
     var item = asObject(group);
@@ -93,15 +99,13 @@ function normalizeMastery(source) {
       return {
         name: chapterName(c.name || ""),
         mastery: rate,
-        color: rate >= 70 ? "#34d399" : rate >= 40 ? "#fbbf24" : "#f87171",
+        color: String(c.color || ""),
       };
-    });
-    chapters.sort(function (a, b) {
-      return a.mastery - b.mastery;
     });
     return {
       name: String(item.name || ""),
       avgMastery: Math.round(asNumber(item.avg_mastery, 0)),
+      avgClass: String(item.avg_class || item.avgClass || ""),
       chapters: chapters,
     };
   });
@@ -110,6 +114,7 @@ function normalizeMastery(source) {
     overallConfidence: overallConfidence,
     overallStatus: overallStatus,
     overallStatusLabel: masteryStatusLabel(overallStatus, overallConfidence),
+    overallClass: overallClass,
     groups: groups,
     hotspots: asList(mastery.hotspots).map(function (hotspot) {
       var item = asObject(hotspot);
@@ -126,9 +131,9 @@ function normalizeMastery(source) {
 
 function masteryStatusLabel(status, confidence) {
   var key = String(status || "");
-  var value = asNumber(confidence, 0);
-  if (key === "insufficient_evidence" || value < 0.4) return "证据不足";
-  if (key === "stable" || value >= 0.7) return "稳定掌握";
+  asNumber(confidence, 0);
+  if (key === "insufficient_evidence") return "证据不足";
+  if (key === "stable") return "稳定掌握";
   if (key === "needs_confirmation") return "待确认";
   return "正在形成";
 }
@@ -138,32 +143,44 @@ function normalizeLearningBrain(report) {
   var learningBrain = asObject(report.learning_brain);
   var summary = asObject(learnerFacing.summary);
   var nextAction = asObject(learnerFacing.next_action);
-  var attempts = asList(learnerFacing.recent_attempts).map(function (item, index) {
-    var attempt = asObject(item);
-    return {
-      key: String(attempt.key || "attempt-" + index),
-      attemptRef: String(attempt.attempt_ref || ""),
-      subjectId: String(attempt.subject_id || ""),
-      botId: String(attempt.bot_id || ""),
-      timeLabel: String(attempt.time_label || ""),
-      title: String(attempt.title || "一次练习"),
-      questionText: String(attempt.question_text || attempt.title || ""),
-      concept: String(attempt.concept || ""),
-      resultLabel: String(attempt.result_label || ""),
-      tone: String(attempt.tone || ""),
-      answerLine: String(attempt.answer_line || ""),
-      diagnosis: String(attempt.diagnosis || ""),
-      diagnosisDetail: String(attempt.diagnosis_detail || attempt.explanation || ""),
-      explanation: String(attempt.explanation || ""),
-      evidenceLabel: String(attempt.evidence_label || ""),
-      collectable: Boolean(attempt.collectable),
-      isBookmarked: Boolean(attempt.is_bookmarked || attempt.isBookmarked),
-      bookmarkLabel: String(attempt.bookmark_label || attempt.bookmarkLabel || (attempt.is_bookmarked || attempt.isBookmarked ? "已加入错题" : "")),
-      detailLines: asList(attempt.detail_lines).length
-        ? asList(attempt.detail_lines)
-        : [attempt.answer_line, attempt.diagnosis_detail, attempt.explanation].filter(Boolean),
-    };
-  });
+  var attempts = asList(learnerFacing.recent_attempts).map(
+    function (item, index) {
+      var attempt = asObject(item);
+      return {
+        key: String(attempt.key || "attempt-" + index),
+        attemptRef: String(attempt.attempt_ref || ""),
+        subjectId: String(attempt.subject_id || ""),
+        botId: String(attempt.bot_id || ""),
+        timeLabel: String(attempt.time_label || ""),
+        title: String(attempt.title || "一次练习"),
+        questionText: String(attempt.question_text || attempt.title || ""),
+        concept: String(attempt.concept || ""),
+        resultLabel: String(attempt.result_label || ""),
+        tone: String(attempt.tone || ""),
+        answerLine: String(attempt.answer_line || ""),
+        diagnosis: String(attempt.diagnosis || ""),
+        diagnosisDetail: String(
+          attempt.diagnosis_detail || attempt.explanation || "",
+        ),
+        explanation: String(attempt.explanation || ""),
+        evidenceLabel: String(attempt.evidence_label || ""),
+        collectable: Boolean(attempt.collectable),
+        isBookmarked: Boolean(attempt.is_bookmarked || attempt.isBookmarked),
+        bookmarkLabel: String(
+          attempt.bookmark_label ||
+            attempt.bookmarkLabel ||
+            (attempt.is_bookmarked || attempt.isBookmarked ? "已加入错题" : ""),
+        ),
+        detailLines: asList(attempt.detail_lines).length
+          ? asList(attempt.detail_lines)
+          : [
+              attempt.answer_line,
+              attempt.diagnosis_detail,
+              attempt.explanation,
+            ].filter(Boolean),
+      };
+    },
+  );
   var diagnoses = asList(learnerFacing.diagnoses).map(function (item, index) {
     var diagnosis = asObject(item);
     return {
@@ -176,16 +193,18 @@ function normalizeLearningBrain(report) {
       count: asNumber(diagnosis.count, 0),
     };
   });
-  var evidence = asList(learnerFacing.evidence_timeline).map(function (item, index) {
-    var event = asObject(item);
-    return {
-      key: String(event.key || "timeline-" + index),
-      timeLabel: String(event.time_label || ""),
-      title: String(event.title || ""),
-      line: String(event.line || ""),
-      tone: String(event.tone || ""),
-    };
-  });
+  var evidence = asList(learnerFacing.evidence_timeline).map(
+    function (item, index) {
+      var event = asObject(item);
+      return {
+        key: String(event.key || "timeline-" + index),
+        timeLabel: String(event.time_label || ""),
+        title: String(event.title || ""),
+        line: String(event.line || ""),
+        tone: String(event.tone || ""),
+      };
+    },
+  );
   var visibleSections = asObject(learningBrain.visible_sections);
   var visibleTruths = normalizeVisibleTruths(visibleSections);
   var visibleEvidence = normalizeVisibleEvidence(visibleSections);
@@ -221,29 +240,41 @@ function normalizeLearningBrain(report) {
       recentThreeDone: asNumber(summary.recent_three_done, 0),
       weakCount: asNumber(summary.weak_count, 0),
     },
-    attempts: attempts.filter(function (item) {
-      return item.title || item.answerLine || item.diagnosis;
-    }).slice(0, 5),
-    diagnoses: diagnoses.filter(function (item) {
-      return item.title || item.detail;
-    }).slice(0, 4),
-    truths: (visibleTruths.length ? visibleTruths : diagnoses.slice(0, 4).map(function (item) {
-      return {
-        key: item.key,
-        levelLabel: item.levelLabel,
-        title: item.title,
-        meta: item.meta,
-        detail: item.detail,
-        evidenceLabels: item.meta ? [item.meta] : [],
-      };
-    })),
-    evidence: (visibleEvidence.length ? visibleEvidence : evidence.filter(function (item) {
-      return item.title || item.line;
-    }).slice(0, 5)),
+    attempts: attempts
+      .filter(function (item) {
+        return item.title || item.answerLine || item.diagnosis;
+      })
+      .slice(0, 5),
+    diagnoses: diagnoses
+      .filter(function (item) {
+        return item.title || item.detail;
+      })
+      .slice(0, 4),
+    truths: visibleTruths.length
+      ? visibleTruths
+      : diagnoses.slice(0, 4).map(function (item) {
+          return {
+            key: item.key,
+            levelLabel: item.levelLabel,
+            title: item.title,
+            meta: item.meta,
+            detail: item.detail,
+            evidenceLabels: item.meta ? [item.meta] : [],
+          };
+        }),
+    evidence: visibleEvidence.length
+      ? visibleEvidence
+      : evidence
+          .filter(function (item) {
+            return item.title || item.line;
+          })
+          .slice(0, 5),
     training: training,
-    chains: chains.filter(function (item) {
-      return item.title || item.outcome;
-    }).slice(0, 4),
+    chains: chains
+      .filter(function (item) {
+        return item.title || item.outcome;
+      })
+      .slice(0, 4),
     graphChains: normalizeGraphChains(learningBrain),
     nextAction: {
       title: String(nextAction.title || ""),
@@ -254,10 +285,20 @@ function normalizeLearningBrain(report) {
     },
     stats: {
       eventCount: asNumber(asObject(report.freshness).event_count, 0),
-      createdClaimCount: asNumber(asObject(report.learning_brain).created_claim_count, 0),
-      typedGraphEdgeCount: asNumber(asObject(report.learning_brain).typed_graph_edge_count, 0),
-      projectionSubject: String(asObject(report.learning_brain).projection_subject || ""),
-      projectionSubjectLabel: String(asObject(report.learning_brain).projection_subject || ""),
+      createdClaimCount: asNumber(
+        asObject(report.learning_brain).created_claim_count,
+        0,
+      ),
+      typedGraphEdgeCount: asNumber(
+        asObject(report.learning_brain).typed_graph_edge_count,
+        0,
+      ),
+      projectionSubject: String(
+        asObject(report.learning_brain).projection_subject || "",
+      ),
+      projectionSubjectLabel: String(
+        asObject(report.learning_brain).projection_subject || "",
+      ),
     },
   };
 }
@@ -291,12 +332,16 @@ function normalizeVisibleTruths(sections) {
   return asList(asObject(sections).current_truth)
     .map(function (item, index) {
       var truth = asObject(item);
-      var title = cleanLearningText(truth.display_title || truth.current_truth || "");
+      var title = cleanLearningText(
+        truth.display_title || truth.current_truth || "",
+      );
       var meta = cleanLearningText(truth.display_meta || "");
       if (!isReadableLearningText(title + " " + meta)) return null;
       return {
         key: String(truth.key || "truth-" + index),
-        levelLabel: String(truth.evidence_level_label || truth.evidence_level || ""),
+        levelLabel: String(
+          truth.evidence_level_label || truth.evidence_level || "",
+        ),
         title: title,
         meta: meta,
         detail: cleanLearningText(truth.current_truth || title),
@@ -311,7 +356,9 @@ function normalizeVisibleEvidence(sections) {
   return asList(asObject(sections).evidence_flow)
     .map(function (item, index) {
       var evidence = asObject(item);
-      var type = cleanLearningText(evidence.display_label || evidence.display_title || "");
+      var type = cleanLearningText(
+        evidence.display_label || evidence.display_title || "",
+      );
       var path = cleanLearningText(evidence.display_path || "");
       if (!isReadableLearningText(type + " " + path)) return null;
       return {
@@ -338,11 +385,15 @@ function normalizeGraphChains(learningBrain) {
       var outcome = asObject(item);
       var useEdge = asObject(uses[index]);
       var edgeType = String(outcome.edge_type || "");
-      var improved = edgeType.indexOf("improved") >= 0 && edgeType.indexOf("not_improved") < 0;
+      var improved =
+        edgeType.indexOf("improved") >= 0 &&
+        edgeType.indexOf("not_improved") < 0;
       return {
         key: "chain-" + index,
         tone: improved ? "improved" : "not-improved",
-        title: String(outcome.display_meta || outcome.display_path || "训练闭环"),
+        title: String(
+          outcome.display_meta || outcome.display_path || "训练闭环",
+        ),
         training: String(useEdge.display_path || outcome.display_path || ""),
         question: String(useEdge.display_path || ""),
         outcome: improved ? "本次训练结果：改善" : "本次训练结果：未改善",
@@ -365,23 +416,51 @@ function buildLearningReportViewModel(report) {
   var degradedSources = asList(body.degraded_sources);
   var hero = asObject(body.hero);
   var primaryFocus =
-    String(asObject(body.learner_facing).summary ? asObject(asObject(body.learner_facing).summary).primary_focus || "" : "") ||
-    String(overview.focus_hint || "");
+    String(
+      asObject(body.learner_facing).summary
+        ? asObject(asObject(body.learner_facing).summary).primary_focus || ""
+        : "",
+    ) || String(overview.focus_hint || "");
   var nextTraining = normalizeNextTraining(body.next_training, learningBrain);
   var attempts = normalizeV2Attempts(body.attempts, learningBrain);
+  // Batch C Task 8: three-layer learning state + scoring point map + today's prescription.
+  var learningState = normalizeLearningStateBatchC(body.learning_state);
+  var scoringPointMap = normalizeScoringPointMapBatchC(body.scoring_point_map);
+  var prescription = normalizePrescriptionBatchC(nextTraining, learningState);
   return {
     schemaVersion: asNumber(body.schema_version, 1),
     hero: {
-      stageLabel: String(hero.stage_label || levelName(overview.learner_level || "") || "当前学习状态"),
+      stageLabel: String(
+        hero.stage_label ||
+          levelName(overview.learner_level || "") ||
+          "当前学习状态",
+      ),
       scoreText: String(hero.score_text || mastery.overall + "%"),
-      headline: String(hero.headline || (primaryFocus ? "当前最该补：" + primaryFocus : "完成一次练习后生成重点")),
+      headline: String(
+        hero.headline ||
+          (primaryFocus
+            ? "当前最该补：" + primaryFocus
+            : "完成一次练习后生成重点"),
+      ),
       primaryCta: asObject(hero.primary_cta),
     },
     metrics: [
       { key: "today", label: "今日", value: asNumber(overview.today_done, 0) },
-      { key: "recent_three", label: "近3天", value: asNumber(overview.recent_three_done, 0) },
-      { key: "streak", label: "连续学习", value: asNumber(overview.streak_days, 0) },
-      { key: "weak", label: "待补错因", value: asNumber(overview.weak_node_count, 0) },
+      {
+        key: "recent_three",
+        label: "近3天",
+        value: asNumber(overview.recent_three_done, 0),
+      },
+      {
+        key: "streak",
+        label: "连续学习",
+        value: asNumber(overview.streak_days, 0),
+      },
+      {
+        key: "weak",
+        label: "待补错因",
+        value: asNumber(overview.weak_node_count, 0),
+      },
     ],
     stableTruths: asList(truthSections.stable_truths),
     recentObservations: asList(truthSections.recent_observations),
@@ -406,8 +485,144 @@ function buildLearningReportViewModel(report) {
     radar: radar,
     mastery: mastery,
     learningBrain: learningBrain,
+    learningState: learningState,
+    scoringPointMap: scoringPointMap,
+    prescription: prescription,
     degraded: Boolean(body.degraded) || degradedSources.length > 0,
     degradedSources: degradedSources,
+  };
+}
+
+// ─── Batch C Task 8: three-layer learning state + scoring point map ───
+
+function normalizeLearningStateBatchC(state) {
+  var src = asObject(state);
+  function mapLayer(items, dimensionKey) {
+    return asList(items).map(function (item, index) {
+      var row = asObject(item);
+      return {
+        key: String(row[dimensionKey] || row.node_id || "row-" + index),
+        nodeId: String(row.node_id || ""),
+        dimension: String(row.dimension || ""),
+        label: String(row.label || row.dimension || row.node_id || ""),
+        state: String(row.state || ""),
+        evidenceCount: asNumber(row.evidence_count, 0),
+        evidenceRefs: asList(row.evidence_refs).map(function (ref) {
+          return String(ref || "");
+        }),
+        granularity: String(row.granularity || ""),
+        lastObservedAt: String(row.last_observed_at || ""),
+      };
+    });
+  }
+  var knowledge = mapLayer(src.knowledge_state, "node_id");
+  var ability = mapLayer(src.ability_state, "dimension");
+  var behavior = mapLayer(src.behavior_state, "dimension");
+  return {
+    knowledgeState: knowledge,
+    abilityState: ability,
+    behaviorState: behavior,
+    sourceStatus: asObject(src.source_status),
+    isEmpty:
+      knowledge.length === 0 && ability.length === 0 && behavior.length === 0,
+  };
+}
+
+function normalizeScoringPointMapBatchC(map) {
+  var src = asObject(map);
+  var items = asList(src.items).map(function (item, index) {
+    var row = asObject(item);
+    var nextAction = asObject(row.next_action);
+    var intent = asObject(nextAction.intent);
+    return {
+      key: String(row.point_id || "item-" + index),
+      pointId: String(row.point_id || ""),
+      label: String(row.label || row.point_id || ""),
+      granularity: String(row.granularity || ""),
+      // UI label: "采分点" for scoring_point granularity, "审题要点" for keyword_only.
+      granularityLabel:
+        row.granularity === "keyword_only" ? "审题要点" : "采分点",
+      rubricMode: String(row.rubric_mode || ""),
+      knowledgeNodeId: String(row.knowledge_node_id || ""),
+      abilityDimension: String(row.ability_dimension || ""),
+      missCount: asNumber(row.miss_count, 0),
+      evidenceRefs: asList(row.evidence_refs).map(function (ref) {
+        return String(ref || "");
+      }),
+      errorCodes: asList(row.error_codes).map(function (code) {
+        return String(code || "");
+      }),
+      nextActionKind: String(nextAction.kind || ""),
+      nextActionIntent: intent,
+    };
+  });
+  var emptyState = String(src.empty_state || "");
+  return {
+    items: items,
+    emptyState: emptyState,
+    emptyStateLabel: scoringPointMapEmptyLabel(emptyState),
+    sourceStatus: asObject(src.source_status),
+    isEmpty: items.length === 0,
+  };
+}
+
+function scoringPointMapEmptyLabel(emptyState) {
+  if (emptyState === "no_evidence") return "完成一次案例题批改后生成采分点地图";
+  if (emptyState === "rubric_pending")
+    return "本题暂无可拆采分点，已先按审题要点收集";
+  return "";
+}
+
+function normalizePrescriptionBatchC(nextTraining, learningState) {
+  var v2 = null;
+  for (var i = 0; i < nextTraining.length; i++) {
+    var candidate = asObject(nextTraining[i].intent);
+    if (asNumber(candidate.intent_version, 0) === 2) {
+      v2 = candidate;
+      break;
+    }
+  }
+  if (v2) {
+    return {
+      status: String(v2.status || "active"),
+      title: String(v2.concept_label || "今日处方"),
+      reason: String(v2.reason || ""),
+      conceptId: String(v2.concept_id || ""),
+      conceptLabel: String(v2.concept_label || ""),
+      abilityDimension: String(v2.ability_dimension || ""),
+      behaviorState: String(v2.behavior_state || ""),
+      evidenceRefs: asList(v2.evidence_refs).map(function (ref) {
+        return String(ref || "");
+      }),
+      steps: asList(v2.prescription_steps).map(function (step, index) {
+        var src = asObject(step);
+        return {
+          key: String(src.phase || "phase-" + index),
+          phase: String(src.phase || ""),
+          questionCount: asNumber(src.question_count, 0),
+        };
+      }),
+      successCriteria: asObject(v2.success_criteria),
+      intent: v2,
+      ctaLabel: v2.status === "degraded" ? "先来一次起步测评" : "开始训练",
+    };
+  }
+  // Degraded fallback when no v2 intent is available.
+  return {
+    status: "degraded",
+    title: asObject(learningState).isEmpty
+      ? "完成一次练习后生成今日处方"
+      : "今日先做一轮探测题",
+    reason: "",
+    conceptId: "",
+    conceptLabel: "",
+    abilityDimension: "",
+    behaviorState: "",
+    evidenceRefs: [],
+    steps: [],
+    successCriteria: {},
+    intent: {},
+    ctaLabel: "先做一道题",
   };
 }
 
@@ -423,7 +638,9 @@ function normalizeV2Attempts(source, learningBrain) {
       botId: String(attempt.bot_id || ""),
       timeLabel: String(attempt.time_label || ""),
       title: String(attempt.question_title || attempt.title || "一次练习"),
-      questionText: String(attempt.question_preview || attempt.question_text || ""),
+      questionText: String(
+        attempt.question_preview || attempt.question_text || "",
+      ),
       resultLabel: String(attempt.result_label || ""),
       tone: String(attempt.tone || ""),
       answerLine: String(attempt.answer_line || ""),
@@ -431,7 +648,11 @@ function normalizeV2Attempts(source, learningBrain) {
       diagnosisDetail: String(attempt.why_it_matters || ""),
       collectable: Boolean(asObject(attempt.actions).bookmark),
       isBookmarked: Boolean(attempt.is_bookmarked || attempt.isBookmarked),
-      bookmarkLabel: String(attempt.bookmark_label || attempt.bookmarkLabel || (attempt.is_bookmarked || attempt.isBookmarked ? "已加入错题" : "")),
+      bookmarkLabel: String(
+        attempt.bookmark_label ||
+          attempt.bookmarkLabel ||
+          (attempt.is_bookmarked || attempt.isBookmarked ? "已加入错题" : ""),
+      ),
     };
   });
 }
@@ -494,12 +715,15 @@ function toReportPageData(model) {
     normalCount: radar.normalCount || 0,
     weakCount: radar.weakCount || 0,
     avgScore: radar.avgScore || 0,
-    overviewScore: asList(radar.dims).length ? radar.avgScore || 0 : mastery.overall || 0,
+    overviewScore: asList(radar.dims).length
+      ? radar.avgScore || 0
+      : mastery.overall || 0,
     dimList: asList(radar.dimList),
     overallMastery: mastery.overall || 0,
     masteryConfidence: mastery.overallConfidence || 0,
     masteryStatus: mastery.overallStatus || "",
     masteryStatusLabel: mastery.overallStatusLabel || "证据不足",
+    masteryScoreClass: mastery.overallClass || "",
     masteryGroups: asList(mastery.groups),
     hotspots: asList(mastery.hotspots),
     reviewSummary: asObject(mastery.reviewSummary),
@@ -514,10 +738,29 @@ function toReportPageData(model) {
     learningBrainGraphStats: asObject(brain.stats),
     learningBrainEmpty: emptyBrain,
     learningReviewSummary: asObject(brain.summary),
-    learningAttemptCards: asList(vm.attempts).length ? asList(vm.attempts) : asList(brain.attempts),
+    learningAttemptCards: asList(vm.attempts).length
+      ? asList(vm.attempts)
+      : asList(brain.attempts),
     learningDiagnosisCards: asList(brain.diagnoses),
     learningTrainingLoops: asList(brain.chains),
     learningNextAction: asObject(brain.nextAction),
+    // Batch C Task 8: flat page fields for the new sections.
+    learningStateKnowledge: asList(asObject(vm.learningState).knowledgeState),
+    learningStateAbility: asList(asObject(vm.learningState).abilityState),
+    learningStateBehavior: asList(asObject(vm.learningState).behaviorState),
+    learningStateIsEmpty: Boolean(asObject(vm.learningState).isEmpty),
+    scoringPointMapItems: asList(asObject(vm.scoringPointMap).items),
+    scoringPointMapEmptyState: String(
+      asObject(vm.scoringPointMap).emptyState || "",
+    ),
+    scoringPointMapEmptyLabel: String(
+      asObject(vm.scoringPointMap).emptyStateLabel || "",
+    ),
+    prescriptionTitle: String(asObject(vm.prescription).title || ""),
+    prescriptionStatus: String(asObject(vm.prescription).status || ""),
+    prescriptionSteps: asList(asObject(vm.prescription).steps),
+    prescriptionCtaLabel: String(asObject(vm.prescription).ctaLabel || ""),
+    prescriptionEvidenceRefs: asList(asObject(vm.prescription).evidenceRefs),
     sharedLearningReportViewModel: vm,
   };
 }

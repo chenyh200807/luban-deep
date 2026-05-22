@@ -28,6 +28,9 @@ var dashboard = {
       text: "讲一下主体结构验收",
       prompt_type: "concept_explain",
       intent: { source: "home_dashboard", learning_signal_type: "concept_explain" },
+      evidence_refs: ["evt-home-1"],
+      learning_state_ref: "knowledge:1A432000",
+      suggested_mode: "deep",
     },
     {
       text: "我还是没懂防水节点",
@@ -46,6 +49,9 @@ assert.strictEqual(model.reviewCount, 3);
 assert.strictEqual(model.focusQuery, "讲一下主体结构验收");
 assert.strictEqual(model.recommendedPrompts.length, 2);
 assert.strictEqual(model.recommendedPrompts[0].promptIntent.learning_signal_type, "concept_explain");
+assert.deepStrictEqual(model.recommendedPrompts[0].evidenceRefs, ["evt-home-1"]);
+assert.strictEqual(model.recommendedPrompts[0].learningStateRef, "knowledge:1A432000");
+assert.strictEqual(model.recommendedPrompts[0].suggestedMode, "deep");
 
 var chatSource = fs.readFileSync(chatSourcePath, "utf8");
 var chatWxml = fs.readFileSync(chatWxmlPath, "utf8");

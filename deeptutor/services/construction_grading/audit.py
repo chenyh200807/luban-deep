@@ -70,3 +70,100 @@ def _table_count(tables: dict[str, Any], table: str) -> int:
     if not payload.get("exists"):
         return 0
     return int(payload.get("count_total") or 0)
+
+
+# ─── Phase -1.A: Rubric Coverage Classification (read-only) ────────────────
+#
+# Mirrors the 4-tier authority in ``case_kernel.py``:
+#   1. ``grading_key.scoring_points`` (highest authority, from active_object)
+#   2. ``row.grading_rubric`` (curated rubric)
+#   3. projected_rubric (legacy keyword / structured_rules projection)
+#   4. open_skill (no formal rubric)
+#
+# The scoring-point map UI may light up per-cluster once ``map_eligible_ratio``
+# crosses 0.70. Items in tier 3/4 stay in ``rubric_pending`` empty state.
+
+
+def classify_rubric_coverage(*, rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Classify ``questions_bank`` rows into map-eligible vs not, read-only.
+
+    The classifier never mutates input rows; it returns the bucket counts and
+    the ratio used by Batch C's UI promotion gate.
+    """
+    counts = {"grading_key": 0, "curated_rubric": 0, "projected_or_open": 0}
+    for row in rows:
+        if _has_grading_key_points(row.get("grading_key")):
+            counts["grading_key"] += 1
+        elif _has_curated_rubric(row.get("grading_rubric")):
+            counts["curated_rubric"] += 1
+        else:
+            counts["projected_or_open"] += 1
+
+    total = sum(counts.values())
+    map_eligible = counts["grading_key"] + counts["curated_rubric"]
+    ratio = (map_eligible / total) if total else 0.0
+    return {"coverage_counts": counts, "map_eligible_ratio": ratio}
+
+
+def _has_grading_key_points(grading_key: Any) -> bool:
+    if not isinstance(grading_key, dict):
+        return False
+    points = grading_key.get("scoring_points")
+    return isinstance(points, list) and len(points) > 0
+
+
+def _has_curated_rubric(grading_rubric: Any) -> bool:
+    if not isinstance(grading_rubric, list):
+        return False
+    return len(grading_rubric) > 0
+
+
+# ─── Phase -1.A.3: LLM grounding discipline ────────────────────────────────
+#
+# Curated rubric wins; LLM dissent is logged as ``grader_disagreement`` so the
+# rate can be monitored and Batch A promotion gated at ≤ 5%.
+
+
+def reconcile_grader_output(
+    *,
+    rubric_specs: list[dict[str, Any]],
+    llm_output: dict[str, Any],
+) -> dict[str, Any]:
+    """Filter LLM-proposed scoring-point hits against the curated rubric.
+
+    Hits whose ``point_id`` exists in ``rubric_specs`` are accepted (first
+    occurrence wins; duplicates silently dropped). Hits referencing unknown
+    point ids are dropped from ``accepted_hits`` and recorded in
+    ``disagreement`` with ``reason='not_in_rubric'``. When ``rubric_specs``
+    is empty, every LLM hit becomes disagreement — the system refuses to
+    invent scoring points from thin air.
+    """
+    allowed_ids = {
+        str(spec.get("point_id") or "").strip()
+        for spec in rubric_specs
+        if isinstance(spec, dict) and str(spec.get("point_id") or "").strip()
+    }
+
+    accepted: list[dict[str, Any]] = []
+    disagreement: list[dict[str, Any]] = []
+    seen_accepted: set[str] = set()
+
+    raw_hits = llm_output.get("scoring_point_hits") if isinstance(llm_output, dict) else None
+    if not isinstance(raw_hits, list):
+        raw_hits = []
+
+    for hit in raw_hits:
+        if not isinstance(hit, dict):
+            continue
+        point_id = str(hit.get("point_id") or "").strip()
+        if not point_id:
+            continue
+        if point_id not in allowed_ids:
+            disagreement.append({"point_id": point_id, "reason": "not_in_rubric"})
+            continue
+        if point_id in seen_accepted:
+            continue
+        accepted.append(hit)
+        seen_accepted.add(point_id)
+
+    return {"accepted_hits": accepted, "disagreement": disagreement}

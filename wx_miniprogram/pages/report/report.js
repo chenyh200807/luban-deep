@@ -85,6 +85,11 @@ function asObject(value) {
     : {};
 }
 
+function asNumber(value, fallback) {
+  var num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+}
+
 function mistakeBookPayloadFromCard(card) {
   var item = asObject(card);
   return {
@@ -619,67 +624,6 @@ function normalizeLearningBrainPayload(raw) {
     .filter(function (item) {
       return item.title || item.meta;
     });
-  gradingResults.forEach(function (result, index) {
-    var signal = asObject(result.next_training_signal);
-    var concept = signal.concept || signal.concept_id || "";
-    var focus = signal.focus || signal.training_focus || signal.mode || "";
-    if (!concept && !focus) return;
-    training.push({
-      key: "grading-" + index,
-      title: humanizeLearningBrainText(focus || "下一步训练"),
-      meta:
-        learningBrainObjectLabel(concept, "concept") ||
-        humanizeLearningBrainText(signal.mode || ""),
-    });
-  });
-  if (!training.length)
-    graphEdges.concat(chainEdges).forEach(function (edge, index) {
-      if (
-        edge.edge_type !== "error_points_to_training" &&
-        edge.edge_type !== "training_uses_question" &&
-        edge.edge_type !== "training_improved_error" &&
-        edge.edge_type !== "training_not_improved_error" &&
-        edge.edge_type !== "weak_point_drives_training"
-      ) {
-        return;
-      }
-      var from = asObject(edge.from);
-      var to = asObject(edge.to);
-      training.push({
-        key: "edge-training-" + index,
-        title:
-          edge.display_title ||
-          learningBrainObjectLabel(to.id || to.type || "", to.type || "") ||
-          "下一步训练",
-        meta:
-          edge.display_path ||
-          edge.display_meta ||
-          learningBrainObjectLabel(
-            from.id || from.type || "",
-            from.type || "",
-          ) ||
-          learningBrainEdgeLabel(edge.edge_type),
-      });
-    });
-  if (!training.length) {
-    weakPoints.slice(0, 3).forEach(function (item, index) {
-      var weak = asObject(item);
-      var concept = weak.concept_id || "";
-      var error = weak.error_code || "";
-      if (!concept && !error) return;
-      training.push({
-        key: "weak-training-" + index,
-        title: "围绕薄弱点做变式训练",
-        meta: [
-          learningBrainObjectLabel(concept, "concept"),
-          learningBrainObjectLabel(error, "error"),
-        ]
-          .filter(Boolean)
-          .join("；"),
-      });
-    });
-  }
-
   var eventCount = Number(
     projection.event_count || synthesisRun.input_event_count || 0,
   );
@@ -739,17 +683,18 @@ function normalizeLearningBrainPayload(raw) {
 }
 
 function normalizeMasteryGroups(data) {
+  var overallPayload = asObject(data.overall_mastery);
   var groups = asList(data.groups).map(function (group) {
     return {
       name: group.name || "",
       avgMastery: Math.round(group.avg_mastery || 0),
+      avgClass: group.avg_class || group.class_name || "",
       chapters: asList(group.chapters).map(function (chapter) {
         var mastery = Math.round(chapter.mastery || 0);
         return {
           name: displayChapterName(chapter.name || ""),
           mastery: mastery,
-          color:
-            mastery >= 70 ? "#34d399" : mastery >= 40 ? "#fbbf24" : "#f87171",
+          color: chapter.color || "",
         };
       }),
     };
@@ -763,7 +708,10 @@ function normalizeMasteryGroups(data) {
     };
   });
   return {
-    overall: Math.round(data.overall_mastery || 0),
+    overall: Math.round(
+      asNumber(overallPayload.score, asNumber(data.overall_mastery, 0)),
+    ),
+    overallClass: overallPayload.class_name || overallPayload.status || "",
     groups: groups,
     hotspots: hotspots,
     reviewSummary: data.review_summary || { total_due: 0, overdue_count: 0 },
@@ -776,16 +724,17 @@ function normalizeRadarState(dims) {
     return {
       name: displayChapterName(item.name || item.label || item.key || ""),
       value: Number.isFinite(value) ? value : 0,
+      status: item.status || item.level || "",
+      color: item.color || "",
     };
   });
   var strong = 0;
   var normal = 0;
   var weak = 0;
   normalized.forEach(function (d) {
-    var pct = Math.round((d.value || 0) * 100);
-    if (pct >= 70) strong++;
-    else if (pct >= 40) normal++;
-    else weak++;
+    if (d.status === "strong" || d.status === "mastered") strong++;
+    else if (d.status === "normal" || d.status === "developing") normal++;
+    else if (d.status === "weak" || d.status === "needs_attention") weak++;
   });
   var avg = normalized.length
     ? Math.round(
@@ -796,19 +745,14 @@ function normalizeRadarState(dims) {
           100,
       )
     : 0;
-  var dimList = normalized
-    .slice()
-    .sort(function (a, b) {
-      return (a.value || 0) - (b.value || 0);
-    })
-    .map(function (d, i) {
+  var dimList = normalized.map(function (d, i) {
       var pct = Math.round((d.value || 0) * 100);
       return {
         rank: i + 1,
         name: d.name,
         pct: pct,
-        cls: pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak",
-        color: pct >= 70 ? "#34d399" : pct >= 40 ? "#fbbf24" : "#f87171",
+        cls: d.status || "",
+        color: d.color || "",
       };
     });
   return {
@@ -917,7 +861,7 @@ Page({
     avgScore: 0,
     overviewScore: 0,
 
-    // 维度详情列表（按 value 升序 = 薄弱优先）
+    // 维度详情列表（按后端 projection 顺序展示）
     dimList: [],
 
     // 雷达图渲染后的图片（解决 canvas 不跟随滚动的问题）
@@ -925,6 +869,7 @@ Page({
 
     // 掌握度数据
     overallMastery: 0,
+    masteryScoreClass: "",
     masteryGroups: [],
     hotspots: [],
     reviewSummary: { total_due: 0, overdue_count: 0 },
@@ -1130,10 +1075,9 @@ Page({
         normal = 0,
         weak = 0;
       dims.forEach(function (d) {
-        var pct = Math.round((d.value || 0) * 100);
-        if (pct >= 70) strong++;
-        else if (pct >= 40) normal++;
-        else weak++;
+        if (d.status === "strong" || d.status === "mastered") strong++;
+        else if (d.status === "normal" || d.status === "developing") normal++;
+        else if (d.status === "weak" || d.status === "needs_attention") weak++;
       });
 
       var avg = Math.round(
@@ -1144,17 +1088,14 @@ Page({
           100,
       );
 
-      var sorted = dims.slice().sort(function (a, b) {
-        return (a.value || 0) - (b.value || 0);
-      });
-      var dimList = sorted.map(function (d, i) {
+      var dimList = dims.map(function (d, i) {
         var pct = Math.round((d.value || 0) * 100);
         return {
           rank: i + 1,
           name: d.name,
           pct: pct,
-          cls: pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak",
-          color: pct >= 70 ? "#34d399" : pct >= 40 ? "#fbbf24" : "#f87171",
+          cls: d.status || d.level || "",
+          color: d.color || "",
         };
       });
 
@@ -1187,17 +1128,13 @@ Page({
         return {
           name: group.name || "",
           avgMastery: Math.round(group.avg_mastery || 0),
+          avgClass: group.avg_class || group.class_name || "",
           chapters: (group.chapters || []).map(function (chapter) {
             var mastery = Math.round(chapter.mastery || 0);
             return {
               name: displayChapterName(chapter.name || ""),
               mastery: mastery,
-              color:
-                mastery >= 70
-                  ? "#34d399"
-                  : mastery >= 40
-                    ? "#fbbf24"
-                    : "#f87171",
+              color: chapter.color || "",
             };
           }),
         };
@@ -1212,7 +1149,12 @@ Page({
         };
       });
 
-      var overall = Math.round(data.overall_mastery || 0);
+      var overallPayload = asObject(data.overall_mastery);
+      var overall = Math.round(
+        asNumber(overallPayload.score, asNumber(data.overall_mastery, 0)),
+      );
+      var masteryScoreClass =
+        overallPayload.class_name || overallPayload.status || "";
       var reviewSummary = data.review_summary || {
         total_due: 0,
         overdue_count: 0,
@@ -1222,9 +1164,7 @@ Page({
         var fallback = await api.getAssessmentProfile();
         var fallbackData = api.unwrapResponse(fallback) || {};
         var cm = fallbackData.chapter_mastery || {};
-        var weakChapters = [];
-        var normalChapters = [];
-        var strongChapters = [];
+        var observedChapters = [];
         Object.keys(cm).forEach(function (k) {
           var v = cm[k];
           var name = displayChapterName(
@@ -1234,32 +1174,18 @@ Page({
           var item = {
             name: name,
             mastery: mastery,
-            color:
-              mastery >= 70 ? "#34d399" : mastery >= 40 ? "#fbbf24" : "#f87171",
+            color: typeof v === "object" ? v.color || "" : "",
           };
-          if (mastery >= 70) strongChapters.push(item);
-          else if (mastery >= 40) normalChapters.push(item);
-          else weakChapters.push(item);
+          observedChapters.push(item);
         });
 
         groups = [];
-        if (weakChapters.length)
+        if (observedChapters.length)
           groups.push({
-            name: "需要加强",
+            name: "历史观测",
             avgMastery: 0,
-            chapters: weakChapters,
-          });
-        if (normalChapters.length)
-          groups.push({
-            name: "基本掌握",
-            avgMastery: 0,
-            chapters: normalChapters,
-          });
-        if (strongChapters.length)
-          groups.push({
-            name: "掌握较好",
-            avgMastery: 0,
-            chapters: strongChapters,
+            avgClass: "",
+            chapters: observedChapters,
           });
         groups.forEach(function (g) {
           if (!g.chapters.length) return;
@@ -1287,6 +1213,7 @@ Page({
 
       this.setData({
         overallMastery: overall,
+        masteryScoreClass: masteryScoreClass,
         overviewScore: this.data.radarDimensions.length
           ? this.data.avgScore
           : overall,

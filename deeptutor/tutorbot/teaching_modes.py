@@ -336,6 +336,7 @@ def looks_like_practice_generation_request(user_message: str | None) -> bool:
         "考我",
         "刷题",
         "测我",
+        "摸底测评",
         "继续出",
         "继续来一道",
         "再来一道",
@@ -363,6 +364,7 @@ def looks_like_practice_generation_request(user_message: str | None) -> bool:
         r"(我想|想)\s*(?:来|做|练|练习)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道题|题|道)",
         r"(我想|想).{0,24}(?:练习|刷|做).{0,24}(?:题|题目|单选题|多选题|案例题|简答题|选择题|判断题)",
         r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
+        r"(?:先|来|做|开始|进行|帮我|给我|帮我做|安排)\s*(?:一次|一轮|个)?\s*(?:入门)?(?:摸底测评|摸底测试|摸底|小测|自测)",
     )
     return any(re.search(pattern, text) for pattern in request_patterns)
 

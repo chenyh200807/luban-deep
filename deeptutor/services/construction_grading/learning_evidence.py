@@ -5,7 +5,9 @@ import json
 import re
 from typing import Any
 
+from deeptutor.services.construction_grading.audit import reconcile_grader_output
 from deeptutor.services.construction_grading.schema import CaseGradingResult, MCQGradingResult
+from deeptutor.contracts.error_codes import ERROR_CODE_REGISTRY
 
 _REASONING_BLOCK_RE = re.compile(r"<(?:think|thinking)\b[^>]*>.*?</(?:think|thinking)>", re.IGNORECASE | re.DOTALL)
 _REASONING_OPEN_RE = re.compile(r"<(?:think|thinking)\b[^>]*>.*$", re.IGNORECASE | re.DOTALL)
@@ -80,7 +82,9 @@ def build_learning_evidence_payload(
         "score_awarded": score_awarded,
         "max_score": max_score,
         "score_ratio": _score_ratio(score_awarded, max_score),
+        "explanation": _explanation_payload(explanation),
         "grading_mode": grading_mode or None,
+        "rubric": _normalized_rubric_block(payload),
         "rubric_items": rubric_items,
         "evidence_refs": evidence_refs,
         "rag_evidence_refs": [ref for ref in evidence_refs if ref.get("source_type") == "rag_evidence"],
@@ -130,6 +134,123 @@ def _grading_result_payload(grading_result: CaseGradingResult | MCQGradingResult
             payload["type"] = "mcq"
     payload["error_events"] = [_error_event_payload(error) for error in payload.get("error_events") or []]
     return payload
+
+
+_RUBRIC_MODES_SCORING_POINT = frozenset({"grading_key", "curated_rubric"})
+_RUBRIC_MODES_KEYWORD_ONLY = frozenset({"projected_rubric"})
+
+
+def _normalized_rubric_block(payload: dict[str, Any]) -> dict[str, Any]:
+    """Batch A Task 2: emit a rubric block on the learning_evidence payload.
+
+    Always returns a dict; consumers can rely on the keys ``rubric_mode``,
+    ``granularity``, ``scoring_points``, ``scoring_point_hits``,
+    ``grader_disagreement`` being present. The block is purely descriptive —
+    it never carries a writeback marker (the normalizer is read-only).
+
+    Authority order for ``rubric_mode``:
+
+    1. ``payload["rubric"]["rubric_mode"]`` if explicitly supplied.
+    2. Derived from ``payload["grading_mode"]`` + ``payload["next_training_signal"]
+       ["grading_source"]`` — when grading_source is ``grading_key`` the mode is
+       elevated from ``curated_rubric`` to ``grading_key`` to preserve the
+       4-tier authority the case_kernel exposes.
+    3. Empty string when nothing is available.
+    """
+    raw_rubric = payload.get("rubric") if isinstance(payload.get("rubric"), dict) else {}
+    rubric_mode = _resolve_rubric_mode(raw_rubric, payload)
+
+    rubric_specs = _normalize_rubric_specs(raw_rubric.get("scoring_points"))
+    audit = reconcile_grader_output(
+        rubric_specs=rubric_specs,
+        llm_output={"scoring_point_hits": list(raw_rubric.get("scoring_point_hits") or [])},
+    )
+    accepted_hits = [_normalize_scoring_hit(hit) for hit in audit["accepted_hits"]]
+    disagreement = [dict(item) for item in audit["disagreement"]]
+
+    block: dict[str, Any] = {
+        "rubric_id": _clean_text(raw_rubric.get("rubric_id")),
+        "rubric_version": _clean_text(raw_rubric.get("rubric_version")),
+        "rubric_mode": rubric_mode,
+        "granularity": _rubric_granularity(rubric_mode),
+        "scoring_points": rubric_specs,
+        "scoring_point_hits": accepted_hits,
+        "grader_disagreement": disagreement,
+    }
+    return block
+
+
+def _resolve_rubric_mode(raw_rubric: dict[str, Any], payload: dict[str, Any]) -> str:
+    explicit = _clean_text(raw_rubric.get("rubric_mode"))
+    if explicit:
+        return explicit
+    derived = _clean_text(payload.get("grading_mode"))
+    if not derived:
+        return ""
+    signal = payload.get("next_training_signal")
+    if isinstance(signal, dict):
+        source = _clean_text(signal.get("grading_source"))
+        if source == "grading_key" and derived == "curated_rubric":
+            return "grading_key"
+    return derived
+
+
+def _rubric_granularity(rubric_mode: str) -> str:
+    if rubric_mode in _RUBRIC_MODES_SCORING_POINT:
+        return "scoring_point"
+    if rubric_mode in _RUBRIC_MODES_KEYWORD_ONLY:
+        return "keyword_only"
+    return ""
+
+
+def _normalize_rubric_specs(raw: Any) -> list[dict[str, Any]]:
+    specs: list[dict[str, Any]] = []
+    for entry in list(raw or []):
+        if not isinstance(entry, dict):
+            continue
+        point_id = _clean_text(entry.get("point_id"))
+        if not point_id:
+            continue
+        specs.append({
+            "point_id": point_id,
+            "label": _clean_text(entry.get("label")),
+            "max_score": entry.get("max_score"),
+            "ability_dimension": _clean_text(entry.get("ability_dimension")),
+            "knowledge_node_id": _clean_text(entry.get("knowledge_node_id")),
+        })
+    return specs
+
+
+def _normalize_scoring_hit(hit: dict[str, Any]) -> dict[str, Any]:
+    cleaned: dict[str, Any] = {
+        "point_id": _clean_text(hit.get("point_id")),
+        "hit": bool(hit.get("hit")),
+        "awarded_score": hit.get("awarded_score"),
+        "miss_reason": _clean_text(hit.get("miss_reason")),
+        "evidence_text": _clean_text(hit.get("evidence_text")),
+    }
+    raw_code = _clean_text(hit.get("error_code"))
+    if raw_code:
+        cleaned["error_code"] = raw_code if raw_code in ERROR_CODE_REGISTRY else "unknown_error"
+    return cleaned
+
+
+def _explanation_payload(value: Any) -> dict[str, Any] | str:
+    """Normalize a grader-supplied explanation for emission into learning_evidence.
+
+    Preserves arbitrary dict keys (so future graders adding `tutor_note`, `analysis`,
+    etc. survive) while stripping reasoning tags via ``_clean_text``. Strings are
+    cleaned verbatim. Empty/None input returns ``{}`` so downstream
+    ``has_explanation_content`` reports False without losing key presence.
+    """
+    if isinstance(value, dict):
+        return {
+            str(key): _clean_text(nested)
+            for key, nested in value.items()
+            if _clean_text(nested)
+        }
+    text = _clean_text(value)
+    return text if text else {}
 
 
 def _error_event_payload(error: Any) -> dict[str, Any]:

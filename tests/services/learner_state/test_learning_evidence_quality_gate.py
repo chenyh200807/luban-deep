@@ -314,6 +314,94 @@ def test_progress_countable_true_even_when_detail_not_ready() -> None:
     assert "explanation" in quality["missing_fields"]
 
 
+def test_build_learning_evidence_payload_preserves_dict_explanation() -> None:
+    """The payload dict written into learner_memory_events MUST carry the explanation
+    so attempt_detail_read_model and learning_report_read_model can render it instead
+    of falling back to generic 'A 选项不符合标准答案' content.
+
+    Regression guard for the explanation-authority WIP: build_learning_evidence_payload
+    must NOT drop the grader-provided explanation when emitting evidence.
+    """
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "mcq",
+            "question_id": "explanation_dict_001",
+            "question_stem": "关于消防疏散通道的说法，正确的是？",
+            "user_answer": "A",
+            "correct_answer": "B",
+            "score_awarded": 0,
+            "max_score": 1,
+            "explanation": {
+                "summary": "正确选项是 B，疏散宽度按人数计算。",
+                "why_user_wrong": "A 忽略了人数门槛。",
+            },
+            "error_events": [
+                {"error_code": "M01", "concept_tag": "消防疏散", "diagnosis": "知识不熟。"}
+            ],
+            "next_training_signal": {"concept": "消防疏散", "focus": "宽度计算", "mode": "practice"},
+        },
+        turn_id="turn_explanation_dict",
+    )
+
+    explanation = payload.get("explanation")
+    assert isinstance(explanation, dict), f"explanation must be preserved as a dict, got {type(explanation).__name__}"
+    assert explanation["summary"] == "正确选项是 B，疏散宽度按人数计算。"
+    assert explanation["why_user_wrong"] == "A 忽略了人数门槛。"
+
+
+def test_build_learning_evidence_payload_preserves_string_explanation() -> None:
+    """String explanations must survive (cleaned) so _pick_attempt_explanation can pick them up."""
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "mcq",
+            "question_id": "explanation_string_001",
+            "question_stem": "关于安全帽佩戴的说法，正确的是？",
+            "user_answer": "C",
+            "correct_answer": "A",
+            "score_awarded": 0,
+            "max_score": 1,
+            "explanation": "正确答案是 A，进入施工现场必须全程佩戴。",
+            "error_events": [
+                {"error_code": "M01", "concept_tag": "安全管理", "diagnosis": "记忆不准。"}
+            ],
+            "next_training_signal": {"concept": "安全管理", "focus": "佩戴要求", "mode": "practice"},
+        },
+        turn_id="turn_explanation_string",
+    )
+
+    assert payload.get("explanation") == "正确答案是 A，进入施工现场必须全程佩戴。"
+
+
+def test_build_learning_evidence_payload_omits_empty_explanation() -> None:
+    """When grader has no explanation, payload must not pretend to have content;
+    it returns a falsy placeholder so downstream has_explanation_content() reports False."""
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "mcq",
+            "question_id": "explanation_missing_001",
+            "question_stem": "关于消防疏散通道的说法，正确的是？",
+            "user_answer": "A",
+            "correct_answer": "B",
+            "score_awarded": 0,
+            "max_score": 1,
+            "explanation": None,
+            "explanation_missing_reason": "grading_output_missing_explanation",
+            "error_events": [
+                {"error_code": "M01", "concept_tag": "消防疏散", "diagnosis": "知识不熟。"}
+            ],
+            "next_training_signal": {"concept": "消防疏散", "focus": "宽度计算", "mode": "practice"},
+        },
+        turn_id="turn_explanation_missing",
+    )
+
+    # The payload may either omit the key entirely OR carry an explicitly empty container.
+    # In all cases, has_explanation_content() must return False.
+    from deeptutor.services.construction_grading.learning_evidence import has_explanation_content
+    assert not has_explanation_content(payload.get("explanation")), (
+        f"missing-explanation payload must not look like content, got {payload.get('explanation')!r}"
+    )
+
+
 def test_existing_quality_fields_are_preserved() -> None:
     """Backward compat: evidence_level, writeback_eligible, stable_truth_eligible,
     evidence_cap_reasons must still be present alongside new fields."""

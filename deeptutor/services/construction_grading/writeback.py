@@ -18,6 +18,8 @@ def write_grading_error_events(
     source_bot_id: str | None = None,
     include_success_events: bool = False,
     training_intent_id: str | None = None,
+    prescription_phase: str | None = None,
+    prescription_result: dict[str, Any] | None = None,
 ) -> int:
     """Write grading error events through the existing LearnerStateService authority."""
 
@@ -38,6 +40,8 @@ def write_grading_error_events(
                 source_bot_id=source_bot_id,
                 include_success_events=include_success_events,
                 training_intent_id=training_intent_id,
+                prescription_phase=prescription_phase,
+                prescription_result=prescription_result,
             )
         return count
 
@@ -47,6 +51,12 @@ def write_grading_error_events(
     )
     if training_intent_id:
         payload_json["training_intent_id"] = str(training_intent_id or "").strip()
+    phase = str(prescription_phase or "").strip()
+    if phase:
+        payload_json["prescription_phase"] = phase
+    result = _prescription_result_payload(prescription_result)
+    if result:
+        payload_json["prescription_result"] = result
     if not payload_json["quality"]["writeback_eligible"]:
         if not include_success_events or not _is_success_learning_evidence(payload_json):
             return 0
@@ -76,6 +86,24 @@ def write_grading_error_events(
         payload_json=payload_json,
     )
     return 1
+
+
+def _prescription_result_payload(value: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    result: dict[str, Any] = {}
+    status = str(value.get("status") or "").strip()
+    if status:
+        result["status"] = status
+    if value.get("score_ratio") is not None:
+        try:
+            result["score_ratio"] = float(value.get("score_ratio") or 0)
+        except (TypeError, ValueError):
+            pass
+    verified_at = str(value.get("verified_at") or "").strip()
+    if verified_at:
+        result["verified_at"] = verified_at
+    return result
 
 
 def _is_success_learning_evidence(payload_json: dict[str, Any]) -> bool:

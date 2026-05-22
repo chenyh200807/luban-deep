@@ -67,6 +67,46 @@
         <text>{{degradedHint}}</text>
       </view>
 
+      <!-- Batch C Task 8: today prescription + 3-layer learning state + scoring point map -->
+      <view class="learning-state-section glass-card prescription-section" wx:if="{{prescriptionTitle}}">
+        <text class="learning-state-section-title">今日处方</text>
+        <text class="learning-state-section-subtitle">{{prescriptionTitle}}</text>
+        <view class="learning-state-steps" wx:if="{{prescriptionSteps.length}}">
+          <text class="learning-state-step" wx:for="{{prescriptionSteps}}" wx:key="key">{{item.phase}} · {{item.questionCount}}题</text>
+        </view>
+        <view class="learning-state-cta primary-training-cta" bindtap="goPractice">
+          <text class="learning-state-cta-label">{{prescriptionCtaLabel}}</text>
+        </view>
+      </view>
+
+      <view class="learning-state-section glass-card three-layer-state" wx:if="{{!learningStateIsEmpty}}">
+        <text class="learning-state-section-title">今日学习状态</text>
+        <view class="learning-state-layer" wx:if="{{learningStateKnowledge.length}}">
+          <text class="learning-state-layer-label">知识状态</text>
+          <text class="learning-state-row" wx:for="{{learningStateKnowledge}}" wx:key="key">{{item.label}} · {{item.state}}</text>
+        </view>
+        <view class="learning-state-layer" wx:if="{{learningStateAbility.length}}">
+          <text class="learning-state-layer-label">能力状态</text>
+          <text class="learning-state-row" wx:for="{{learningStateAbility}}" wx:key="key">{{item.label}} · {{item.state}}</text>
+        </view>
+        <view class="learning-state-layer" wx:if="{{learningStateBehavior.length}}">
+          <text class="learning-state-layer-label">行为状态</text>
+          <text class="learning-state-row" wx:for="{{learningStateBehavior}}" wx:key="key">{{item.label}} · {{item.state}}</text>
+        </view>
+      </view>
+
+      <view class="learning-state-section glass-card scoring-point-map-section" wx:if="{{scoringPointMapItems.length || scoringPointMapEmptyLabel}}">
+        <text class="learning-state-section-title">采分点漏分</text>
+        <view wx:if="{{scoringPointMapItems.length}}">
+          <view class="scoring-point-row" wx:for="{{scoringPointMapItems}}" wx:key="key">
+            <text class="scoring-point-badge">{{item.granularityLabel}}</text>
+            <text class="scoring-point-name">{{item.label}}</text>
+            <text class="scoring-point-miss">漏 {{item.missCount}} 次</text>
+          </view>
+        </view>
+        <text wx:else class="scoring-point-empty">{{scoringPointMapEmptyLabel}}</text>
+      </view>
+
       <view class="learning-review-panel">
         <view wx:if="{{learningBrainLoading}}" class="learning-brain-loading">
           <view class="skel-block brain-skel"></view>
@@ -317,7 +357,7 @@
           <!-- 总体掌握度 -->
           <view class="mastery-hero glass-card">
             <view class="mastery-score-wrap">
-              <text class="mastery-score {{overallMastery >= 70 ? 'score-good' : overallMastery >= 40 ? 'score-mid' : 'score-low'}}">
+              <text class="mastery-score {{masteryScoreClass}}">
                 {{overallMastery}}
               </text>
               <text class="mastery-unit">%</text>
@@ -349,7 +389,7 @@
           >
             <view class="group-header">
               <text class="group-name">{{item.name}}</text>
-              <text class="group-avg {{item.avgMastery >= 70 ? 'avg-good' : item.avgMastery >= 40 ? 'avg-mid' : 'avg-low'}}">
+              <text class="group-avg {{item.avgClass}}">
                 {{item.avgMastery}}%
               </text>
             </view>

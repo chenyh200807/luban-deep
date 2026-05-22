@@ -226,3 +226,41 @@ def test_writeback_persists_training_intent_id() -> None:
 
     assert count == 1
     assert service.calls[0]["payload_json"]["training_intent_id"] == "lti_123"
+
+
+def test_writeback_persists_prescription_verification_payload() -> None:
+    service = _FakeLearnerStateService()
+
+    count = write_grading_error_events(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-verify",
+        source_bot_id="construction-exam",
+        include_success_events=True,
+        training_intent_id="lti_verify",
+        prescription_phase="verification_probe",
+        prescription_result={
+            "status": "verified",
+            "score_ratio": 1.0,
+            "verified_at": "2026-05-22T10:00:00+08:00",
+        },
+        grading_result={
+            "type": "mcq",
+            "question_id": "q-verify",
+            "user_answer": "D",
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "error_events": [],
+            "next_training_signal": {"concept": "1A432000", "focus": "验证复测"},
+        },
+    )
+
+    assert count == 1
+    payload = service.calls[0]["payload_json"]
+    assert payload["training_intent_id"] == "lti_verify"
+    assert payload["prescription_phase"] == "verification_probe"
+    assert payload["prescription_result"] == {
+        "status": "verified",
+        "score_ratio": 1.0,
+        "verified_at": "2026-05-22T10:00:00+08:00",
+    }

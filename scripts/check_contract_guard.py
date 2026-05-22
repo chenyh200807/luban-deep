@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -12,6 +13,37 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX_PATH = REPO_ROOT / "contracts" / "index.yaml"
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+# Phase -1.B: error-code emit-site cross-check.
+# Scan these source paths for hard-coded error_code literals that look like
+# E0X / M0X codes and validate them against ERROR_CODE_REGISTRY. The list is
+# intentionally narrow — only the authoritative emit modules. Tests, fixtures
+# and learning_brain_read_model's local label dict are excluded; if a test
+# hand-rolls an unregistered code it will surface via the consumer pipeline.
+_ERROR_CODE_EMIT_PATHS: tuple[str, ...] = (
+    "deeptutor/services/construction_grading/mcq.py",
+    "deeptutor/services/construction_grading/case_kernel.py",
+    "deeptutor/services/construction_grading/learning_evidence.py",
+    "deeptutor/services/learner_state/learning_synthesis.py",
+)
+_ERROR_CODE_LITERAL_RE = re.compile(r'"([EM]\d{2}|unknown_error)"')
+
+# Batch A Task 3: knowledge_node_id emit-site cross-check.
+# Hard-coded 1A4XXXXX literals in evidence / synthesis / training_intent
+# emit modules must resolve to a seeded node in
+# ``deeptutor.services.taxonomy.construction_learning_graph``. Runtime
+# data is not scanned here — only static defaults / examples / fallbacks
+# in production code.
+_NODE_ID_SCAN_PATHS: tuple[str, ...] = (
+    "deeptutor/services/construction_grading/mcq.py",
+    "deeptutor/services/construction_grading/case_kernel.py",
+    "deeptutor/services/construction_grading/learning_evidence.py",
+    "deeptutor/services/learner_state/learning_synthesis.py",
+    "deeptutor/services/learner_state/training_intent.py",
+)
+_NODE_ID_LITERAL_RE = re.compile(r'"(1A4\d{4,5})"')
 
 
 def load_contract_index() -> dict[str, Any]:
@@ -114,6 +146,85 @@ def evaluate_changed_files(changed_files: list[str]) -> tuple[bool, str]:
     return True, "contract-guard: passed\n" + "\n".join(passes)
 
 
+def collect_emitted_error_codes(repo_root: Path) -> list[str]:
+    """Scan the authoritative emit modules for E0X / M0X / fallback literals.
+
+    Read-only: opens each file and applies a regex. Returns the deduped list
+    of codes found across all emit modules.
+    """
+    found: set[str] = set()
+    for relative in _ERROR_CODE_EMIT_PATHS:
+        path = repo_root / relative
+        if not path.exists():
+            continue
+        for match in _ERROR_CODE_LITERAL_RE.finditer(path.read_text(encoding="utf-8")):
+            found.add(match.group(1))
+    return sorted(found)
+
+
+def evaluate_emitted_error_codes() -> tuple[bool, str]:
+    """Cross-check every emitted error code against ERROR_CODE_REGISTRY.
+
+    Imports the registry lazily so the rest of the contract guard still runs
+    when the registry module is broken or absent (e.g. early in a refactor).
+    """
+    codes = collect_emitted_error_codes(REPO_ROOT)
+    if not codes:
+        return True, "error-code-guard: no emit-site codes detected"
+
+    try:
+        from deeptutor.contracts.error_codes import check_emitted_error_codes, ContractGuardError
+    except Exception as exc:  # pragma: no cover - defensive
+        return False, f"error-code-guard: registry import failed: {exc}"
+
+    try:
+        check_emitted_error_codes(codes)
+    except ContractGuardError as exc:
+        return False, f"error-code-guard: failed\n{exc}"
+    return True, f"error-code-guard: passed | codes={', '.join(codes)}"
+
+
+def collect_emitted_node_ids(repo_root: Path) -> list[str]:
+    """Scan the authoritative emit modules for hard-coded 1A4XXXXX literals."""
+    found: set[str] = set()
+    for relative in _NODE_ID_SCAN_PATHS:
+        path = repo_root / relative
+        if not path.exists():
+            continue
+        for match in _NODE_ID_LITERAL_RE.finditer(path.read_text(encoding="utf-8")):
+            found.add(match.group(1))
+    return sorted(found)
+
+
+def evaluate_emitted_node_ids() -> tuple[bool, str]:
+    """Cross-check every hard-coded knowledge_node_id against the seed graph.
+
+    No literal found is a passing condition — Phase -1 production code
+    intentionally takes node_ids from data, not constants. The guard
+    becomes load-bearing as soon as someone hard-codes a default or fallback.
+    """
+    node_ids = collect_emitted_node_ids(REPO_ROOT)
+    if not node_ids:
+        return True, "node-id-guard: no hard-coded knowledge_node_id literals found"
+
+    try:
+        from deeptutor.services.taxonomy.construction_learning_graph import (
+            is_known_learning_graph_node,
+        )
+    except Exception as exc:  # pragma: no cover - defensive
+        return False, f"node-id-guard: graph seed import failed: {exc}"
+
+    unknown = [node_id for node_id in node_ids if not is_known_learning_graph_node(node_id)]
+    if unknown:
+        return False, (
+            "node-id-guard: failed\n"
+            f"unregistered knowledge_node_id(s): {', '.join(unknown)} — "
+            "add to deeptutor/services/taxonomy/construction_learning_graph.py "
+            "(seed cluster) or remove the literal from emit-site source."
+        )
+    return True, f"node-id-guard: passed | node_ids={', '.join(node_ids)}"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fail CI when protected contract boundaries change without docs/tests coverage."
@@ -132,7 +243,16 @@ def main(argv: list[str] | None = None) -> int:
     ok, message = evaluate_changed_files(changed_files)
     stream = sys.stdout if ok else sys.stderr
     print(message, file=stream)
-    return 0 if ok else 1
+
+    code_ok, code_message = evaluate_emitted_error_codes()
+    code_stream = sys.stdout if code_ok else sys.stderr
+    print(code_message, file=code_stream)
+
+    node_ok, node_message = evaluate_emitted_node_ids()
+    node_stream = sys.stdout if node_ok else sys.stderr
+    print(node_message, file=node_stream)
+
+    return 0 if (ok and code_ok and node_ok) else 1
 
 
 if __name__ == "__main__":

@@ -88,11 +88,24 @@ def test_looks_like_practice_generation_request_accepts_natural_one_question_phr
     assert looks_like_practice_generation_request("生成3道防水工程选择题") is True
     assert looks_like_practice_generation_request("我想练习建筑构造相关的题目") is True
     assert looks_like_practice_generation_request("我想练习防水工程相关简答题") is True
+    assert looks_like_practice_generation_request("先做一次摸底测评") is True
+    assert looks_like_practice_generation_request("帮我做一次入门摸底测试") is True
+    assert looks_like_practice_generation_request("开始一轮小测") is True
 
 
 def test_looks_like_practice_generation_request_rejects_learning_strategy_phrasing():
     assert looks_like_practice_generation_request("我现在最大问题是记不住，做题时规范数字总串，给我一个今晚能执行的学习法") is False
     assert looks_like_practice_generation_request("给我一个练习方法，不要出题") is False
+    assert looks_like_practice_generation_request("讲一下自测清单怎么用") is False
+    assert looks_like_practice_generation_request("查看摸底报告") is False
+    assert (
+        looks_like_practice_generation_request(
+            "请根据我的学习记录和最近进度，围绕施工组织设计安排下一步学习推进："
+            "先判断我当前更适合知识讲解、例题带练、错因复盘还是少量自测；"
+            "不要默认生成整套训练题。"
+        )
+        is False
+    )
 
 
 def test_get_teaching_mode_instruction_matches_expected_density():
