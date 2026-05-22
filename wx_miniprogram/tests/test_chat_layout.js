@@ -133,20 +133,19 @@ assert(
 );
 assert(
   chatJs.indexOf("d.today_focus || today.focus") >= 0 &&
+    chatJs.indexOf("learning-home-view-model") >= 0 &&
+    chatJs.indexOf("homeModel.recommendedPrompts") >= 0 &&
+    chatJs.indexOf("promptIntent: prompt.promptIntent") >= 0 &&
     chatJs.indexOf("var weakNodes = mastery.weak_nodes") < 0 &&
-    chatJs.indexOf("buildFocusQuery(focus, rawFocusTitle)") >= 0 &&
-    chatJs.indexOf("buildFocusDisplayTitle(focus, rawFocusTitle)") >= 0 &&
-    chatJs.indexOf("buildFocusDisplayMeta(focus, rawFocusMeta)") >= 0 &&
     chatJs.indexOf("继续我的学习计划") < 0 &&
     chatJs.indexOf("给我安排5道高价值专项训练题") < 0 &&
     chatJs.indexOf("5题快速摸底") < 0 &&
     chatJs.indexOf("入门导学") < 0 &&
     chatJs.indexOf("安排下一步学习推进：") < 0 &&
     chatJs.indexOf("先判断我当前更适合知识讲解") < 0 &&
-    chatJs.indexOf("请给我来5道高价值选择题") >= 0 &&
-    chatJs.indexOf("不要提前给答案和解析") >= 0 &&
-    chatJs.indexOf("只输出题目和选项") >= 0,
-  "chat home should render backend today_focus and keep fallback focused on practice generation",
+    chatJs.indexOf("请给我来5道高价值选择题") < 0 &&
+    chatJs.indexOf("只输出题目和选项") < 0,
+  "chat home should render backend today_focus and pass prompt intent without deriving training truth",
 );
 assert(
   chatJs.indexOf('function buildFocusDisplayMeta(focus, meta)') >= 0 &&

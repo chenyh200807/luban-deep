@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 import re
 import uuid
 from dataclasses import dataclass
@@ -31,6 +32,7 @@ from deeptutor.services.learner_state.supabase_store import LearnerStateSupabase
 from deeptutor.services.runtime_env import is_production_environment
 
 llm_stream: Any | None = None
+logger = logging.getLogger(__name__)
 
 LearnerStateEventKind = Literal["turn", "guide", "notebook", "progress", "manual"]
 
@@ -149,6 +151,7 @@ class LearnerStateService:
         self._learning_plan_service = LearningPlanService(path_service=self._path_service)
         self._heartbeat_job_service = LearnerHeartbeatJobService(path_service=self._path_service)
         self._locks: dict[str, asyncio.Lock] = {}
+        self._learning_evidence_event_cache: dict[tuple[str, str], LearnerStateEvent] = {}
 
     @property
     def _learner_root(self) -> Path:
@@ -559,8 +562,11 @@ class LearnerStateService:
         local_events = [
             event
             for event in self._list_local_memory_events(normalized)
-            if event.source_feature == "construction_grading"
-            and event.memory_kind == "learning_evidence"
+            if event.memory_kind == "learning_evidence"
+            and (
+                str(dict(event.payload_json or {}).get("event_type") or "") == "learning_evidence"
+                or event.source_feature == "construction_grading"
+            )
             and _iso_unknown_or_gte(event.created_at, since)
         ]
         if local_events and not is_production_environment():
@@ -592,6 +598,59 @@ class LearnerStateService:
         if limit is None or limit < 0:
             return events
         return events[-max(int(limit), 0):]
+
+    def read_learning_evidence_event(
+        self,
+        user_id: str,
+        event_id: str,
+        *,
+        max_age_seconds: int | None = None,
+    ) -> LearnerStateEvent | None:
+        normalized = _normalize_user_id(user_id)
+        normalized_event_id = str(event_id or "").strip()
+        if not normalized or not normalized_event_id:
+            return None
+
+        cache_key = (normalized, normalized_event_id)
+        cached = self._learning_evidence_event_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        if bool(getattr(self._core_store, "is_configured", False)):
+            reader = getattr(self._core_store, "read_learning_evidence_event", None)
+            if callable(reader):
+                try:
+                    row = reader(normalized, normalized_event_id)
+                except Exception as exc:
+                    logger.warning("read_learning_evidence_event failed: user_id=%s event_id=%s error=%s", normalized, normalized_event_id, exc)
+                    if is_production_environment():
+                        return None
+                else:
+                    event = self._event_from_mapping(row, default_user_id=normalized) if isinstance(row, dict) else None
+                    if event is not None and event.memory_kind == "learning_evidence":
+                        self._cache_learning_evidence_event(cache_key, event)
+                        return event
+                    if is_production_environment():
+                        return None
+
+        for event in self._list_local_memory_events(normalized):
+            if event.event_id != normalized_event_id:
+                continue
+            if event.memory_kind != "learning_evidence":
+                return None
+            self._cache_learning_evidence_event(cache_key, event)
+            return event
+        return None
+
+    def _cache_learning_evidence_event(
+        self,
+        cache_key: tuple[str, str],
+        event: LearnerStateEvent,
+    ) -> None:
+        self._learning_evidence_event_cache[cache_key] = event
+        while len(self._learning_evidence_event_cache) > 256:
+            oldest = next(iter(self._learning_evidence_event_cache))
+            self._learning_evidence_event_cache.pop(oldest, None)
 
     def list_heartbeat_history(
         self,

@@ -11,6 +11,7 @@ var workflowStatus = require("../../utils/workflow-status");
 var citationFormat = require("../../utils/citation-format");
 var chatTurnRecovery = require("../../utils/chat-turn-recovery");
 var historyTombstone = require("../../utils/history-tombstone");
+var learningHomeViewModel = require("../../utils/learning-home-view-model");
 var markdownFixtures = null;
 
 // ── 常量（部分由性能分级动态覆盖）──────────────
@@ -131,19 +132,6 @@ function buildFocusDisplayMeta(focus, meta) {
   return "";
 }
 
-function buildFocusQuery(focus, title) {
-  var payload = focus && typeof focus === "object" ? focus : {};
-  var query = String(payload.query || "");
-  if (!isGenericFocusQuery(query)) return query;
-  var topic = String(payload.topic || payload.focus_topic || "").trim() || extractFocusTopic(title);
-  if (!topic) topic = "建筑实务";
-  return (
-    "请给我来5道高价值选择题，不要提前给答案和解析。请围绕" +
-    topic +
-    "，只输出题目和选项。"
-  );
-}
-
 function normalizeAnswerMode(value) {
   var key = String(value || "").trim().toLowerCase();
   if (key === "deep" || key === "detailed" || key === "深度" || key === "精讲") return "DEEP";
@@ -235,6 +223,8 @@ Page({
     focusTone: "plan",
     focusText: "",
     focusQuery: "",
+    focusPromptIntent: null,
+    recommendedPrompts: [],
 
     // Hero 弹性拖拽
     _heroDragY: 0,
@@ -1500,25 +1490,21 @@ Page({
       .getHomeDashboard()
       .then(function (resp) {
         var d = unwrap(resp) || {};
-        var review = d.review || {};
         var today = d.today || {};
-        var overdue = review.overdue || 0;
-        var dueToday = review.due_today || 0;
+        var homeModel = learningHomeViewModel.buildLearningHomeViewModel(d);
         var focus = d.today_focus || today.focus || {};
 
         var update = {};
-        update.reviewCount = overdue + dueToday;
+        update.reviewCount = homeModel.reviewCount;
 
-        update.focusLabel = String(focus.label || "今日焦点");
-        update.focusTone = String(focus.tone || "plan");
-        var rawFocusTitle = String(
-          focus.title || today.hint || "按当前状态推进建筑实务",
-        ).replace(/^今日焦点[:：]\s*/, "");
-        var rawFocusMeta = String(focus.meta || "");
-        update.focusTitle = buildFocusDisplayTitle(focus, rawFocusTitle);
-        update.focusMeta = buildFocusDisplayMeta(focus, rawFocusMeta);
+        update.focusLabel = homeModel.focusLabel;
+        update.focusTone = homeModel.focusTone;
+        update.focusTitle = buildFocusDisplayTitle(focus, homeModel.focusTitle);
+        update.focusMeta = buildFocusDisplayMeta(focus, homeModel.focusMeta);
         update.focusText = update.focusTitle;
-        update.focusQuery = buildFocusQuery(focus, rawFocusTitle);
+        update.focusQuery = homeModel.focusQuery;
+        update.focusPromptIntent = homeModel.focusPromptIntent;
+        update.recommendedPrompts = homeModel.recommendedPrompts;
 
         self.setData(update);
       })
@@ -1530,8 +1516,9 @@ Page({
           focusTitle: "今日推进",
           focusMeta: "",
           focusText: "今日推进",
-          focusQuery:
-            "请根据我的学习记录和最近进度，先选出今天最值得补的一块建筑实务内容，然后用微课方式讲清：一个核心考点、一个考试场景例子、一个自查问题；不要展开成长期安排，也不要直接生成整套训练题。",
+          focusPromptIntent: null,
+          recommendedPrompts: [],
+          focusQuery: "",
         });
       });
   },
@@ -1539,8 +1526,17 @@ Page({
   onFocusTap: function () {
     var query = this.data.focusQuery;
     if (query && !this.data.isStreaming) {
-      this._send(query);
+      this._send(query, { promptIntent: this.data.focusPromptIntent });
     }
+  },
+
+  onRecommendedPromptTap: function (e) {
+    if (this.data.isStreaming) return;
+    var index = Number(e && e.currentTarget && e.currentTarget.dataset.index);
+    var prompt = (this.data.recommendedPrompts || [])[index];
+    if (!prompt || !prompt.text) return;
+    helpers.vibrate("light");
+    this._send(prompt.text, { promptIntent: prompt.promptIntent });
   },
 
   // ── Hero 弹性拖拽 + 震动 ───────────────────────
@@ -1958,6 +1954,7 @@ Page({
         clientTurnId: _turnId,
         structuredSubmitContext: extraOpts && extraOpts.structuredSubmitContext,
         followupQuestionContext: extraOpts && extraOpts.followupQuestionContext,
+        promptIntent: sendOptions.promptIntent,
         persistUserMessage: sendOptions.persistUserMessage,
         inferTitleOnStart: inferTitleOnStart,
       },

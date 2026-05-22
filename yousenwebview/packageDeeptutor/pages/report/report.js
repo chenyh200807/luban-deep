@@ -5,6 +5,7 @@ const helpers = require("../../utils/helpers");
 const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
 const flags = require("../../utils/flags");
+const reportViewModel = require("../../utils/learning-report-view-model");
 
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
@@ -694,15 +695,18 @@ function _normalizeLearnerFacingPayload(raw) {
   };
 }
 
-function _attemptDetailText(card) {
-  if (!card) return "";
-  var parts = [];
-  if (card.timeLabel) parts.push(card.timeLabel);
-  if (card.questionText) parts.push("题目：" + card.questionText);
-  if (card.answerLine) parts.push(card.answerLine);
-  if (card.diagnosisDetail) parts.push("错因：" + card.diagnosisDetail);
-  if (card.explanation) parts.push("解析：" + card.explanation);
-  return parts.join("\n\n");
+function _mistakeBookPayloadFromCard(card) {
+  var item = _asLearningBrainObject(card);
+  return {
+    attempt_ref: String(item.attemptRef || ""),
+    subject_id: String(item.subjectId || ""),
+    bot_id: String(item.botId || "construction-exam"),
+    title: String(item.title || item.questionText || "错题复盘"),
+    concept_label: String(item.concept || ""),
+    error_label: String(item.diagnosis || ""),
+    note: String(item.diagnosisDetail || item.explanation || ""),
+    tags: ["learning-report"],
+  };
 }
 
 function _buildRadarViewModel(dims) {
@@ -1327,6 +1331,7 @@ Page({
 
   async _loadReportSnapshot() {
     var optionalReadOpts = { suppressAuthRedirect: true };
+    optionalReadOpts.schemaVersion = 2;
     const report = _unwrapSnapshotItem(
       await _reportOptionalRead(api.getLearningReport(100, optionalReadOpts)),
     );
@@ -1394,86 +1399,29 @@ Page({
       this._syncExperienceSections();
       return;
     }
-    // Fallback：unified report 拿不到（5xx / payload 断裂 / 网络异常）才允许走旧接口。
-    // 旧接口只用于"基础学情 + 网络异常提示"，不得被升格为完成数 authority。
+    // Fallback：unified report 拿不到时只暴露降级状态；不再调用旧 reader 组合。
     this._reportSnapshot = null;
     this.setData({
       degradedHint: "学情接口暂时不可用，已显示基础数据",
       degradedSources: ["learning_report"],
       reportFallbackActive: true,
+      radarLoading: false,
+      masteryLoading: false,
+      learningBrainLoading: false,
+      radarError: true,
+      masteryError: true,
+      learningBrainError: true,
     });
-    await Promise.all([
-      this._loadOverview(null),
-      this._loadLearningBrain(null),
-      this._loadRadar(null),
-      this._loadMastery(null),
-    ]);
     this._syncExperienceSections();
   },
 
   _hydrateFromUnifiedReport(snapshot) {
     var report = (snapshot && snapshot.report) || {};
     var overview = report.overview || {};
-    var assessment = (snapshot && snapshot.assessment) || {};
     var home = (snapshot && snapshot.home) || {};
-    var mastery = (snapshot && snapshot.mastery) || {};
-    var learningBrain = (snapshot && snapshot.learningBrain) || {};
-    var learnerFacing = _normalizeLearnerFacingPayload(
-      (snapshot && snapshot.learnerFacing) || {},
-    );
-    var radarDims = _normalizeRadarDimensions({
-      dimensions: (report.radar_dimensions || []).map(function (item) {
-        return {
-          name: item.name,
-          value: item.value,
-        };
-      }),
-    });
-    var radarViewModel = radarDims.length
-      ? _buildRadarViewModel(radarDims)
-      : {
-          strongCount: 0,
-          normalCount: 0,
-          weakCount: 0,
-          avgScore: 0,
-          dimList: [],
-        };
-    var brainNormalized = _normalizeLearningBrainPayload(learningBrain);
-    var brainEmpty =
-      brainNormalized.truths.length === 0 &&
-      brainNormalized.evidence.length === 0 &&
-      brainNormalized.training.length === 0 &&
-      brainNormalized.chains.length === 0 &&
-      !brainNormalized.stats.eventCount &&
-      !brainNormalized.stats.createdClaimCount &&
-      !brainNormalized.stats.typedGraphEdgeCount;
-    var masteryGroups = (mastery.groups || []).map(function (group) {
-      var chapters = (group.chapters || []).map(function (chapter) {
-        var rate = Math.round(chapter.mastery || 0);
-        return {
-          name: _displayChapterName(chapter.name || ""),
-          mastery: rate,
-          color: rate >= 70 ? "#34d399" : rate >= 40 ? "#fbbf24" : "#f87171",
-        };
-      });
-      chapters.sort(function (a, b) {
-        return a.mastery - b.mastery;
-      });
-      return {
-        name: group.name || "",
-        avgMastery: Math.round(group.avg_mastery || 0),
-        chapters: chapters,
-      };
-    });
-    var hotspots = (mastery.hotspots || []).map(function (item) {
-      var rate = Math.round(item.mastery || 0);
-      return {
-        name: _displayChapterName(item.name || ""),
-        mastery: rate,
-        rateText: rate + "%",
-      };
-    });
-    this.setData({
+    var sharedReport = reportViewModel.buildLearningReportViewModel(report);
+    var sharedPageData = reportViewModel.toReportPageData(sharedReport);
+    this.setData(Object.assign({}, sharedPageData, {
       todayDone: overview.today_done || 0,
       dailyTarget: overview.daily_target || 0,
       streakDays: overview.streak_days || 0,
@@ -1488,36 +1436,12 @@ Page({
         ? _displayLevelName(overview.learner_level) + "阶段"
         : "当前学习状态",
       studyTip: overview.study_tip || "",
-      radarDimensions: radarDims,
-      strongCount: radarViewModel.strongCount,
-      normalCount: radarViewModel.normalCount,
-      weakCount: radarViewModel.weakCount,
-      avgScore: radarViewModel.avgScore,
-      dimList: radarViewModel.dimList,
       radarLoading: false,
       radarError: false,
-      overallMastery: Math.round(mastery.overall_mastery || 0),
-      masteryGroups: masteryGroups,
-      hotspots: hotspots,
-      reviewSummary: mastery.review_summary || {
-        total_due: 0,
-        overdue_count: 0,
-      },
       masteryLoading: false,
       masteryError: false,
-      learningBrainTruths: brainNormalized.truths,
-      learningBrainEvidence: brainNormalized.evidence,
-      learningBrainTraining: brainNormalized.training,
-      learningBrainChains: brainNormalized.chains,
-      learningReviewSummary: learnerFacing.summary,
-      learningAttemptCards: learnerFacing.attempts,
-      learningDiagnosisCards: learnerFacing.diagnoses,
-      learningTrainingLoops: learnerFacing.loops,
-      learningNextAction: learnerFacing.nextAction,
-      learningBrainGraphStats: brainNormalized.stats,
       learningBrainLoading: false,
       learningBrainError: false,
-      learningBrainEmpty: brainEmpty,
       degradedHint: snapshot.degraded
         ? _buildDegradedHint(snapshot.degradedSources)
         : "",
@@ -1525,10 +1449,10 @@ Page({
         ? snapshot.degradedSources.slice()
         : [],
       reportFallbackActive: false,
-    });
-    if (radarDims.length) {
-      this._radarSignature = _buildRadarSignature(radarDims);
-      this._ensureRadarRendered(radarDims, this._radarSignature);
+    }));
+    if (sharedPageData.radarDimensions.length) {
+      this._radarSignature = _buildRadarSignature(sharedPageData.radarDimensions);
+      this._ensureRadarRendered(sharedPageData.radarDimensions, this._radarSignature);
     }
   },
 
@@ -2087,7 +2011,7 @@ Page({
     wx.navigateTo({ url: route.practice() });
   },
 
-  openAttemptDetail(event) {
+  async openAttemptDetail(event) {
     var key =
       event && event.currentTarget && event.currentTarget.dataset
         ? event.currentTarget.dataset.key
@@ -2096,30 +2020,51 @@ Page({
       return item.key === key;
     });
     if (!card) return;
-    var content = _attemptDetailText(card);
-    if (typeof wx !== "undefined" && typeof wx.showModal === "function") {
-      wx.showModal({
-        title: card.resultLabel
-          ? card.resultLabel + "｜" + card.concept
-          : card.concept,
-        content: content || "这次作答暂无可展开内容。",
-        showCancel: false,
-        confirmText: "知道了",
-      });
+    var cacheKey = "learning_attempt_detail_preview:" + String(card.key || Date.now()).replace(/[^a-zA-Z0-9:_-]/g, "_");
+    if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
+      try {
+        wx.setStorageSync(cacheKey, { card: card, savedAt: Date.now() });
+      } catch (_err) {}
+    }
+    if (typeof wx !== "undefined" && typeof wx.navigateTo === "function") {
+      var params = ["cacheKey=" + encodeURIComponent(cacheKey)];
+      if (card.attemptRef) params.push("attemptRef=" + encodeURIComponent(card.attemptRef));
+      wx.navigateTo({ url: "/packageDeeptutor/pages/attempt-detail/attempt-detail?" + params.join("&") });
     }
   },
 
-  // 错题集 authority 收敛到云端 `learner_mistake_book_items`（见
-  // docs/plan/2026-05-21-luban-learning-report-world-class-optimization-plan.md §-1.2 #3 / §Task 3）。
-  // 云端 endpoint 未上线前，yousen 端不持有第二套本地 truth source；点击只提示待接入，
-  // 不写 wx storage、不改任何展示状态。
-  toggleMistakeBookmark() {
-    if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
-      wx.showToast({
-        title: "云端错题集即将上线",
-        icon: "none",
-        duration: 1800,
-      });
+  async toggleMistakeBookmark(event) {
+    var key =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.key
+        : "";
+    var card = (this.data.learningAttemptCards || []).find(function (item) {
+      return item.key === key;
+    });
+    if (!card || !card.attemptRef || !card.subjectId || !api.saveMistakeBookItem) {
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "这条作答暂不能收藏", icon: "none", duration: 1800 });
+      }
+      return;
+    }
+    if (card.isBookmarked) {
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "已在云端错题集", icon: "none", duration: 1600 });
+      }
+      return;
+    }
+    try {
+      await api.saveMistakeBookItem(_mistakeBookPayloadFromCard(card));
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "已收藏到云端错题集", icon: "success", duration: 1600 });
+      }
+      if (typeof this._loadReportPage === "function") {
+        this._loadReportPage();
+      }
+    } catch (_err) {
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "收藏失败，请稍后重试", icon: "none", duration: 1800 });
+      }
     }
   },
 });

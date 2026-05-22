@@ -1289,6 +1289,60 @@ class DeepQuestionCapability(BaseCapability):
         focus = str(signal.get("focus") or "").strip()
         return concept, focus
 
+    @staticmethod
+    def _normalize_learning_training_intent(value: dict[str, Any] | None) -> dict[str, Any]:
+        if not isinstance(value, dict):
+            return {}
+        intent = {
+            "source": str(value.get("source") or "learning_report").strip(),
+            "training_intent_id": str(value.get("training_intent_id") or "").strip(),
+            "concept_id": str(value.get("concept_id") or "").strip(),
+            "concept_label": str(value.get("concept_label") or "").strip(),
+            "error_code": str(value.get("error_code") or "").strip(),
+            "error_label": str(value.get("error_label") or "").strip(),
+            "training_mode": str(value.get("training_mode") or "").strip(),
+        }
+        try:
+            intent["question_count"] = max(1, min(int(value.get("question_count") or 3), 5))
+        except (TypeError, ValueError):
+            intent["question_count"] = 3
+        if not (intent["training_intent_id"] or intent["concept_id"] or intent["concept_label"] or intent["error_label"]):
+            return {}
+        return intent
+
+    @staticmethod
+    def _apply_learning_training_intent_to_topic(topic: str, intent: dict[str, Any]) -> str:
+        if not isinstance(intent, dict) or not intent:
+            return str(topic or "").strip()
+        hint_parts = []
+        for label, key in (
+            ("concept", "concept_id"),
+            ("concept_label", "concept_label"),
+            ("error", "error_code"),
+            ("error_label", "error_label"),
+            ("training_mode", "training_mode"),
+        ):
+            value = str(intent.get(key) or "").strip()
+            if value and value not in str(topic or ""):
+                hint_parts.append(f"{label}={value}")
+        if not hint_parts:
+            return str(topic or "").strip()
+        return (str(topic or "").strip() + "；" if str(topic or "").strip() else "") + "；".join(hint_parts)
+
+    @staticmethod
+    def _attach_learning_training_intent_to_active_object(
+        active_object: dict[str, Any],
+        intent: dict[str, Any],
+    ) -> dict[str, Any]:
+        if not isinstance(active_object, dict) or not isinstance(intent, dict) or not intent:
+            return active_object
+        updated = dict(active_object)
+        snapshot = dict(updated.get("state_snapshot") or {})
+        snapshot["training_intent_id"] = str(intent.get("training_intent_id") or "").strip()
+        snapshot["learning_training_intent"] = dict(intent)
+        updated["state_snapshot"] = snapshot
+        return updated
+
     async def run(self, context: UnifiedContext, stream: StreamBus) -> None:
         from deeptutor.agents.question.coordinator import AgentCoordinator
         from deeptutor.services.llm.config import get_llm_config
@@ -1498,7 +1552,20 @@ class DeepQuestionCapability(BaseCapability):
                 if part
             ),
         )
+        learning_training_intent = self._normalize_learning_training_intent(
+            overrides.get("learning_training_intent")
+            if isinstance(overrides.get("learning_training_intent"), dict)
+            else None
+        )
+        if learning_training_intent:
+            topic = self._apply_learning_training_intent_to_topic(topic, learning_training_intent)
+            if isinstance(context.metadata, dict):
+                trace_meta = context.metadata.setdefault("trace_metadata", {})
+                if isinstance(trace_meta, dict):
+                    trace_meta["learning_training_intent_id"] = learning_training_intent.get("training_intent_id")
         num_questions = int(overrides.get("num_questions", 1) or 1)
+        if learning_training_intent.get("question_count"):
+            num_questions = int(learning_training_intent["question_count"])
         difficulty = str(overrides.get("difficulty", "") or "")
         question_type = str(overrides.get("question_type", "") or "")
         preference = str(overrides.get("preference", "") or "")
@@ -1732,6 +1799,12 @@ class DeepQuestionCapability(BaseCapability):
             )
             or {}
         )
+        if learning_training_intent:
+            result_payload["active_object"] = self._attach_learning_training_intent_to_active_object(
+                result_payload["active_object"],
+                learning_training_intent,
+            )
+            result_payload["learning_training_intent"] = dict(learning_training_intent)
         result_payload["turn_semantic_decision"] = turn_semantic_decision or self._default_turn_semantic_decision(
             next_action="route_to_generation",
             active_object=result_payload["active_object"] or active_object,

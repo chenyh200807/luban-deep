@@ -96,6 +96,12 @@ class _CoreStoreStub:
             return rows
         return rows[-int(limit):]
 
+    def read_learning_evidence_event(self, user_id: str, event_id: str):
+        for row in self.memory_events:
+            if row.get("user_id") == user_id and row.get("event_id") == event_id:
+                return dict(row)
+        return None
+
     def read_goals(self, _user_id: str):
         return [dict(item) for item in self.goals]
 
@@ -237,6 +243,54 @@ def test_learner_state_context_renders_learning_evidence_events(tmp_path) -> Non
         "行政法规与部门规章辨析" in str(candidate.get("content") or "")
         for candidate in candidates.get("candidates", [])
     )
+
+
+def test_read_learning_evidence_event_local_hit_miss_and_cache(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    saved = service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn-1:q-local",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence", "question_id": "q-local"},
+    )
+
+    hit = service.read_learning_evidence_event("student_demo", saved.event_id)
+    assert hit is not None
+    assert hit.event_id == saved.event_id
+    assert service.read_learning_evidence_event("student_demo", "missing") is None
+    assert service.read_learning_evidence_event("other_user", saved.event_id) is None
+
+    event_path = tmp_path / "learner_state" / "student_demo" / "MEMORY_EVENTS.jsonl"
+    event_path.write_text("", encoding="utf-8")
+    cached = service.read_learning_evidence_event("student_demo", saved.event_id)
+    assert cached is not None
+    assert cached.event_id == saved.event_id
+
+
+def test_read_learning_evidence_event_remote_first_when_configured(tmp_path) -> None:
+    store = _CoreStoreStub()
+    store.memory_events = [
+        {
+            "event_id": "evt_remote",
+            "user_id": "student_demo",
+            "source_feature": "construction_grading",
+            "source_id": "turn:remote",
+            "source_bot_id": "construction-exam-coach",
+            "memory_kind": "learning_evidence",
+            "payload_json": {"event_type": "learning_evidence", "question_id": "q-remote"},
+            "dedupe_key": "evt_remote",
+            "created_at": "2026-05-21T00:00:00+08:00",
+        }
+    ]
+    service = _make_service(tmp_path, core_store=store)
+
+    event = service.read_learning_evidence_event("student_demo", "evt_remote")
+
+    assert event is not None
+    assert event.event_id == "evt_remote"
+    assert event.payload_json["question_id"] == "q-remote"
 
 
 def test_learner_state_synthesize_learning_truth_dry_run_does_not_enqueue(tmp_path) -> None:

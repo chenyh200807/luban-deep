@@ -106,12 +106,18 @@
   color: var(--text-primary);
 }
 
+.overview-kicker {
+  display: block;
+  margin-bottom: 8rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #7dd3fc;
+}
+
 .overview-sub {
   display: block;
   margin-top: 8rpx;
   font-size: 22rpx;
-  text-transform: uppercase;
-  letter-spacing: 2rpx;
   color: var(--text-muted);
 }
 
@@ -138,6 +144,29 @@
   font-size: 24rpx;
   line-height: 1.6;
   color: var(--text-secondary);
+}
+
+.focus-summary {
+  padding: 18rpx;
+  border-radius: 14rpx;
+  background: rgba(15, 23, 42, 0.28);
+  border: 1rpx solid rgba(148, 163, 184, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.focus-label {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #93c5fd;
+}
+
+.focus-text {
+  font-size: 28rpx;
+  line-height: 1.4;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 
 .overview-metrics {
@@ -187,7 +216,67 @@
   color: var(--text-muted);
 }
 
+.primary-training-cta {
+  margin-top: 2rpx;
+  padding: 16rpx;
+  border-radius: 14rpx;
+  background: rgba(6, 78, 59, 0.18);
+  border: 1rpx solid rgba(52, 211, 153, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.primary-training-title,
+.primary-training-sub {
+  display: block;
+}
+
+.primary-training-title {
+  font-size: 25rpx;
+  line-height: 1.35;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.primary-training-sub {
+  margin-top: 6rpx;
+  font-size: 21rpx;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.primary-training-btn {
+  flex-shrink: 0;
+  padding: 9rpx 14rpx;
+  border-radius: 10rpx;
+  background: rgba(52, 211, 153, 0.14);
+  color: #6ee7b7;
+  font-size: 21rpx;
+  font-weight: 800;
+}
+
+.degraded-hint {
+  padding: 14rpx 18rpx;
+  border-radius: 12rpx;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1rpx solid rgba(251, 191, 36, 0.18);
+}
+
+.degraded-hint text {
+  font-size: 22rpx;
+  line-height: 1.45;
+  color: #fbbf24;
+}
+
 /* ── Learning Brain ─────────────────────────────── */
+.learning-review-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
 .learning-brain {
   padding: 24rpx;
   display: flex;
@@ -318,6 +407,12 @@
   font-size: 23rpx;
   font-weight: 700;
   color: #7dd3fc;
+}
+
+.brain-column-sub {
+  margin-top: -4rpx;
+  font-size: 21rpx;
+  color: var(--text-muted);
 }
 
 .brain-truth-row,
@@ -507,11 +602,15 @@
   color: #bfdbfe;
 }
 
-.bookmark-action.pending {
+.bookmark-action.cloud {
   background: rgba(148, 163, 184, 0.1);
   border-color: rgba(148, 163, 184, 0.22);
   color: var(--text-muted);
   opacity: 0.78;
+}
+
+.bookmark-action.saved {
+  opacity: 0.72;
 }
 
 .brain-event-list {

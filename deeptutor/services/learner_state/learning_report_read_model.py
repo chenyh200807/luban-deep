@@ -8,8 +8,12 @@ import hashlib
 import os
 from typing import Any, Callable
 
+from deeptutor.services.construction_grading.learning_evidence import compute_quality_signals
+from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
+from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
 from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
+from deeptutor.services.learner_state.training_intent import build_learning_training_intent
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
 
 _TZ = timezone(timedelta(hours=8))
@@ -68,7 +72,9 @@ def build_learning_report_read_model(
     user_id: str,
     member_service: Any,
     learner_state_service: Any,
+    mistake_book_service: Any | None = None,
     event_limit: int = 100,
+    schema_version: int = 1,
 ) -> dict[str, Any]:
     normalized_user = str(user_id or "").strip()
     limit = max(1, min(int(event_limit or 100), 500))
@@ -153,12 +159,22 @@ def build_learning_report_read_model(
         evidence_stats=evidence_stats,
     )
     next_training = _next_training_items(learning_brain, home_dashboard)
+    bookmarked_event_ids = _bookmarked_event_ids(
+        user_id=normalized_user,
+        mistake_book_service=mistake_book_service,
+    )
+    mistake_book_projection = _mistake_book_projection(
+        user_id=normalized_user,
+        mistake_book_service=mistake_book_service,
+    )
     learner_facing = _learner_facing_payload(
         events=events,
         evidence_stats=evidence_stats,
         weak_points=weak_points,
         next_training=next_training,
+        bookmarked_event_ids=bookmarked_event_ids,
     )
+    truth_sections = _truth_sections(events)
     daily_target = _safe_int(legacy_today.get("daily_target")) or 30
     overview = {
         "today_done": evidence_stats["today_done"],
@@ -190,7 +206,7 @@ def build_learning_report_read_model(
     )
     degraded = bool(degraded_sources)
 
-    return {
+    report = {
         "ok": True,
         "user_id": normalized_user,
         "schema_version": _SCHEMA_VERSION,
@@ -216,6 +232,7 @@ def build_learning_report_read_model(
         "radar_dimensions": radar_dimensions,
         "learning_brain": learning_brain,
         "learner_facing": learner_facing,
+        "truth_sections": truth_sections,
         "next_training": next_training,
         "legacy_compat": {
             "today_progress": legacy_today,
@@ -223,6 +240,302 @@ def build_learning_report_read_model(
             "assessment_profile": assessment_profile,
             "mastery_dashboard": mastery_dashboard,
         },
+    }
+    if int(schema_version or 1) == 2:
+        return _learning_report_v2(
+            report,
+            mistake_book_projection=mistake_book_projection,
+            evidence_stats=evidence_stats,
+        )
+    return report
+
+
+def _learning_report_v2(
+    report: dict[str, Any],
+    *,
+    mistake_book_projection: dict[str, Any],
+    evidence_stats: dict[str, Any],
+) -> dict[str, Any]:
+    payload = dict(report)
+    learner_facing = _safe_dict(payload.get("learner_facing"))
+    attempts = _safe_list(learner_facing.get("recent_attempts"))
+    timeline = _safe_list(learner_facing.get("evidence_timeline"))
+    loops = _safe_list(learner_facing.get("training_loops"))
+    next_action = _safe_dict(learner_facing.get("next_action"))
+    overview = _safe_dict(payload.get("overview"))
+    mastery = _safe_dict(payload.get("mastery"))
+    home_dashboard = _safe_dict(_safe_dict(payload.get("legacy_compat")).get("home_dashboard"))
+    home_prompts = _safe_list(home_dashboard.get("recommended_prompts"))
+    summary = _safe_dict(learner_facing.get("summary"))
+    primary_focus = (
+        str(next_action.get("concept") or "").strip()
+        or str(summary.get("primary_focus") or "").strip()
+        or str(overview.get("focus_hint") or "").strip()
+    )
+    hero_title = primary_focus or "完成一次练习后生成重点"
+    payload["schema_version"] = 2
+    payload["authority"] = {
+        **_safe_dict(payload.get("authority")),
+        "conversation_source": "learner_memory_events.learning_evidence[evidence_source=conversation_synthesis]",
+        "attempt_detail_source": "attempt-detail-read-model",
+        "mistake_book_source": "learner_mistake_book_items",
+        "training_intent_source": "learning-report-read-model",
+        "home_context_source": "home_dashboard.today_focus/recommended_prompts",
+    }
+    payload["recent_attempts"] = attempts
+    payload["timeline"] = timeline
+    payload["training_loop_cards"] = loops
+    payload["attempts"] = [_attempt_v2(item) for item in attempts]
+    payload["hero"] = {
+        "stage_label": str(overview.get("learner_level") or "学习阶段").strip() or "学习阶段",
+        "headline": f"当前最该补：{hero_title}",
+        "subline": str(summary.get("headline") or "").strip(),
+        "primary_cta": {
+            "label": str(next_action.get("cta") or "开始训练"),
+            "intent": _safe_dict(next_action.get("intent")) or build_learning_training_intent(
+                user_id=str(payload.get("user_id") or ""),
+                concept_label=primary_focus,
+                source="learning_report",
+                reason="v2_hero",
+            ),
+        },
+    }
+    payload["home_personalization"] = {
+        "focus_ref": "home_dashboard.today_focus",
+        "recommended_prompt_count": len(home_prompts),
+        "latest_conversation_signal": "",
+        "source_status": _safe_dict(home_dashboard.get("source_status")),
+    }
+    payload["mistake_book"] = mistake_book_projection
+    payload["next_training"] = _next_training_v2(next_action=next_action, existing=_safe_list(payload.get("next_training")))
+    payload["mastery"] = _mastery_v2(mastery, overview=overview, evidence_stats=evidence_stats)
+    payload["learning_brain"] = _compact_learning_brain_v2(_safe_dict(payload.get("learning_brain")))
+    payload["i18n_keys"] = {
+        "locale": "zh-CN",
+        "hero.headline": "learning_report.hero.headline",
+        "attempt.result": "learning_report.attempt.result",
+        "next_training.title": "learning_report.next_training.title",
+    }
+    return payload
+
+
+def _compact_learning_brain_v2(learning_brain: dict[str, Any]) -> dict[str, Any]:
+    """Keep v2 mobile payload learner-facing and bounded.
+
+    v1 still exposes the full Learning Brain projection. v2 clients consume
+    normalized report surfaces, so carrying compiled_objects and full evidence
+    chains only inflates setData/network cost without adding learner value.
+    """
+
+    sections = _safe_dict(learning_brain.get("visible_sections"))
+    graph_chain = _safe_dict(learning_brain.get("graph_chain"))
+    return {
+        "ok": bool(learning_brain.get("ok", True)),
+        "projection_subject": str(learning_brain.get("projection_subject") or "").strip(),
+        "schema_version": _safe_int(learning_brain.get("schema_version")) or 2,
+        "weak_points": [
+            _compact_weak_point(item)
+            for item in _safe_list(learning_brain.get("weak_points"))[:5]
+            if isinstance(item, dict)
+        ],
+        "visible_sections": {
+            "current_truth": [
+                _compact_visible_truth(item, index=index)
+                for index, item in enumerate(_safe_list(sections.get("current_truth"))[:6])
+                if isinstance(item, dict)
+            ],
+            "evidence_flow": [
+                _compact_visible_evidence(item, index=index)
+                for index, item in enumerate(_safe_list(sections.get("evidence_flow"))[:6])
+                if isinstance(item, dict)
+            ],
+            "next_training": [
+                _compact_next_training(item, index=index)
+                for index, item in enumerate(_safe_list(sections.get("next_training"))[:5])
+                if isinstance(item, dict)
+            ],
+        },
+        "graph_chain": {
+            "has_training_uses_question": bool(graph_chain.get("has_training_uses_question")),
+            "has_training_improved_error": bool(graph_chain.get("has_training_improved_error")),
+            "has_training_not_improved_error": bool(graph_chain.get("has_training_not_improved_error")),
+            "training_uses_question": [
+                _compact_graph_edge(item, index=index)
+                for index, item in enumerate(_safe_list(graph_chain.get("training_uses_question"))[:4])
+                if isinstance(item, dict)
+            ],
+            "training_improved_error": [
+                _compact_graph_edge(item, index=index)
+                for index, item in enumerate(_safe_list(graph_chain.get("training_improved_error"))[:4])
+                if isinstance(item, dict)
+            ],
+            "training_not_improved_error": [
+                _compact_graph_edge(item, index=index)
+                for index, item in enumerate(_safe_list(graph_chain.get("training_not_improved_error"))[:4])
+                if isinstance(item, dict)
+            ],
+        },
+        "event_count": _safe_int(learning_brain.get("event_count")),
+        "created_claim_count": _safe_int(learning_brain.get("created_claim_count")),
+        "typed_graph_edge_count": _safe_int(learning_brain.get("typed_graph_edge_count")),
+    }
+
+
+def _compact_weak_point(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "concept_id": str(item.get("concept_id") or "").strip(),
+        "label": str(item.get("label") or item.get("display_title") or "").strip(),
+        "evidence_level": str(item.get("evidence_level") or "").strip(),
+        "confidence": item.get("confidence"),
+        "recommended_training": _safe_dict(item.get("recommended_training")),
+    }
+
+
+def _compact_visible_truth(item: dict[str, Any], *, index: int) -> dict[str, Any]:
+    return {
+        "key": str(item.get("key") or f"truth-{index}"),
+        "current_truth": str(item.get("current_truth") or "").strip(),
+        "evidence_level": str(item.get("evidence_level") or "").strip(),
+        "evidence_level_label": str(item.get("evidence_level_label") or "").strip(),
+        "confidence": item.get("confidence"),
+        "display_title": str(item.get("display_title") or item.get("current_truth") or "").strip(),
+        "display_meta": str(item.get("display_meta") or "").strip(),
+        "supporting_event_labels": _safe_list(item.get("supporting_event_labels"))[:3],
+    }
+
+
+def _compact_visible_evidence(item: dict[str, Any], *, index: int) -> dict[str, Any]:
+    return {
+        "key": str(item.get("key") or f"evidence-{index}"),
+        "display_label": str(item.get("display_label") or item.get("display_title") or "").strip(),
+        "display_title": str(item.get("display_title") or "").strip(),
+        "display_path": str(item.get("display_path") or "").strip(),
+        "tone": str(item.get("tone") or "").strip(),
+    }
+
+
+def _compact_next_training(item: dict[str, Any], *, index: int) -> dict[str, Any]:
+    return {
+        "key": str(item.get("key") or f"training-{index}"),
+        "display_title": str(item.get("display_title") or item.get("title") or "").strip(),
+        "display_meta": str(item.get("display_meta") or item.get("reason") or "").strip(),
+        "intent": _safe_dict(item.get("intent")),
+    }
+
+
+def _compact_graph_edge(item: dict[str, Any], *, index: int) -> dict[str, Any]:
+    return {
+        "key": str(item.get("key") or f"edge-{index}"),
+        "edge_type": str(item.get("edge_type") or "").strip(),
+        "display_path": str(item.get("display_path") or "").strip(),
+        "display_meta": str(item.get("display_meta") or "").strip(),
+    }
+
+
+def _attempt_v2(item: Any) -> dict[str, Any]:
+    attempt = _safe_dict(item)
+    return {
+        "attempt_key": str(attempt.get("key") or "").strip(),
+        "attempt_ref": str(attempt.get("attempt_ref") or "").strip(),
+        "subject_id": str(attempt.get("subject_id") or "").strip(),
+        "bot_id": str(attempt.get("bot_id") or "").strip(),
+        "time_label": str(attempt.get("time_label") or "").strip(),
+        "question_title": str(attempt.get("title") or "").strip(),
+        "question_preview": str(attempt.get("question_text") or attempt.get("title") or "").strip(),
+        "result_label": str(attempt.get("result_label") or "").strip(),
+        "answer_line": str(attempt.get("answer_line") or "").strip(),
+        "diagnosis": str(attempt.get("diagnosis") or "").strip(),
+        "why_it_matters": str(attempt.get("diagnosis_detail") or attempt.get("explanation") or "").strip(),
+        "is_bookmarked": bool(attempt.get("is_bookmarked")),
+        "actions": {
+            "detail": bool(attempt.get("attempt_ref")),
+            "bookmark": bool(attempt.get("collectable")),
+            "retry": True,
+        },
+    }
+
+
+def _next_training_v2(*, next_action: dict[str, Any], existing: list[Any]) -> list[dict[str, Any]]:
+    if next_action.get("title"):
+        return [
+            {
+                "title": str(next_action.get("title") or "").strip(),
+                "reason": str(next_action.get("subtitle") or "").strip(),
+                "estimated_minutes": _safe_int(next_action.get("estimated_minutes")),
+                "intent": _safe_dict(next_action.get("intent")),
+            }
+        ]
+    items = []
+    for index, item in enumerate(existing[:5]):
+        source = _safe_dict(item)
+        title = str(source.get("display_title") or source.get("title") or source.get("claim") or "").strip()
+        if not title:
+            continue
+        items.append(
+            {
+                "title": title,
+                "reason": str(source.get("display_meta") or source.get("reason") or "").strip(),
+                "estimated_minutes": _safe_int(source.get("estimated_minutes")) or 8,
+                "intent": _safe_dict(source.get("intent")),
+                "key": str(source.get("key") or f"training-{index}"),
+            }
+        )
+    return items
+
+
+def _mastery_v2(
+    mastery: dict[str, Any],
+    *,
+    overview: dict[str, Any],
+    evidence_stats: dict[str, Any],
+) -> dict[str, Any]:
+    groups = _safe_list(mastery.get("groups"))
+    hotspots = _safe_list(mastery.get("hotspots"))
+    attempts_by_label = _safe_dict(evidence_stats.get("attempts_by_label"))
+    dimensions = []
+    for group in groups:
+        for chapter in _safe_list(_safe_dict(group).get("chapters")):
+            item = _safe_dict(chapter)
+            name = str(item.get("name") or "").strip()
+            if not name:
+                continue
+            estimate = estimate_mastery(
+                attempts=_safe_list(attempts_by_label.get(name)),
+                legacy_score=item.get("mastery"),
+            )
+            dimensions.append(
+                {
+                    "name": name,
+                    **estimate,
+                }
+            )
+    if not dimensions:
+        for item in hotspots:
+            hotspot = _safe_dict(item)
+            name = str(hotspot.get("name") or "").strip()
+            if not name:
+                continue
+            estimate = estimate_mastery(
+                attempts=_safe_list(attempts_by_label.get(name)),
+                legacy_score=hotspot.get("mastery"),
+            )
+            dimensions.append(
+                {
+                    "name": name,
+                    **estimate,
+                }
+            )
+    overall_score = _safe_int(mastery.get("overall_mastery") if not isinstance(mastery.get("overall_mastery"), dict) else mastery.get("overall_mastery", {}).get("score"))
+    if not overall_score:
+        overall_score = _safe_int(overview.get("overall_mastery"))
+    overall_estimate = estimate_mastery(
+        attempts=_safe_list(evidence_stats.get("attempts")),
+        legacy_score=overall_score,
+    )
+    return {
+        **mastery,
+        "overall_mastery": overall_estimate,
+        "dimensions": dimensions,
     }
 
 
@@ -368,9 +681,27 @@ def _learning_evidence_events(events: list[Any]) -> list[Any]:
     return [
         event
         for event in list(events or [])
-        if str(getattr(event, "source_feature", "") or "") == "construction_grading"
-        and str(getattr(event, "memory_kind", "") or "") == "learning_evidence"
+        if str(getattr(event, "memory_kind", "") or "") == "learning_evidence"
+        and _is_learning_evidence_payload(event)
     ]
+
+
+def _is_learning_evidence_payload(event: Any) -> bool:
+    payload = _safe_dict(getattr(event, "payload_json", {}))
+    return (
+        str(payload.get("event_type") or "") == "learning_evidence"
+        or str(getattr(event, "source_feature", "") or "") == "construction_grading"
+    )
+
+
+def _is_progress_countable_event(event: Any) -> bool:
+    payload = _safe_dict(getattr(event, "payload_json", {}))
+    if str(payload.get("evidence_source") or "").strip() == "conversation_synthesis":
+        return False
+    quality = _safe_dict(payload.get("quality"))
+    if quality.get("progress_countable") is False:
+        return False
+    return True
 
 
 def _aggregate_learning_evidence(events: list[Any]) -> dict[str, Any]:
@@ -386,9 +717,13 @@ def _aggregate_learning_evidence(events: list[Any]) -> dict[str, Any]:
     recent_three_keys = {_date_key(days_ago=index) for index in range(3)}
     unique_questions: set[str] = set()
     event_count = 0
+    attempts: list[dict[str, Any]] = []
+    attempts_by_label: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
     for event in events:
         event_count += 1
+        if not _is_progress_countable_event(event):
+            continue
         payload = _safe_dict(getattr(event, "payload_json", {}))
         created_at = str(getattr(event, "created_at", "") or "").strip()
         day = _date_key_from_iso(created_at)
@@ -413,6 +748,8 @@ def _aggregate_learning_evidence(events: list[Any]) -> dict[str, Any]:
             latest_event_at = created_at
         concept = _event_concept(payload)
         label = _concept_label(concept)
+        attempt_payload = _mastery_attempt_payload(event=event, payload=payload)
+        attempts.append(attempt_payload)
         if label:
             stats = chapter_stats.setdefault(label, {"done": 0, "correct": 0, "last_activity_at": ""})
             stats["done"] += 1
@@ -420,6 +757,7 @@ def _aggregate_learning_evidence(events: list[Any]) -> dict[str, Any]:
                 stats["correct"] += 1
             if created_at and created_at > str(stats.get("last_activity_at") or ""):
                 stats["last_activity_at"] = created_at
+            attempts_by_label[label].append(attempt_payload)
 
     daily_counts_view = {key: int(value) for key, value in daily_attempts.items()}
     today_done = int(daily_attempts.get(today_key, 0))
@@ -438,6 +776,24 @@ def _aggregate_learning_evidence(events: list[Any]) -> dict[str, Any]:
         "latest_event_at": latest_event_at,
         "unknown_date_count": unknown_date_count,
         "event_count": event_count,
+        "attempts": attempts,
+        "attempts_by_label": {key: list(value) for key, value in attempts_by_label.items()},
+    }
+
+
+def _mastery_attempt_payload(*, event: Any, payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "attempt_id": str(getattr(event, "event_id", "") or payload.get("turn_id") or ""),
+        "question_id": str(payload.get("question_id") or getattr(event, "source_id", "") or ""),
+        "created_at": str(getattr(event, "created_at", "") or ""),
+        "score_awarded": payload.get("score_awarded"),
+        "max_score": payload.get("max_score"),
+        "difficulty": payload.get("difficulty")
+        or payload.get("question_difficulty")
+        or payload.get("difficulty_level")
+        or "medium",
+        "quality": _safe_dict(payload.get("quality")),
+        "evidence_source": str(payload.get("evidence_source") or getattr(event, "source_feature", "") or ""),
     }
 
 
@@ -478,8 +834,9 @@ def _learner_facing_payload(
     evidence_stats: dict[str, Any],
     weak_points: list[dict[str, Any]],
     next_training: list[dict[str, Any]],
+    bookmarked_event_ids: set[str] | None = None,
 ) -> dict[str, Any]:
-    attempts = _recent_attempt_cards(events)
+    attempts = _recent_attempt_cards(events, bookmarked_event_ids=bookmarked_event_ids or set())
     diagnoses = _diagnosis_cards(events=events, weak_points=weak_points)
     timeline = _evidence_timeline(attempts)
     loops = _training_loop_cards(attempts=attempts, diagnoses=diagnoses)
@@ -513,10 +870,11 @@ def _learner_facing_payload(
     }
 
 
-def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
+def _recent_attempt_cards(events: list[Any], *, bookmarked_event_ids: set[str] | None = None) -> list[dict[str, Any]]:
     cards: list[dict[str, Any]] = []
+    bookmark_ids = set(bookmarked_event_ids or set())
     ordered = sorted(
-        list(events or []),
+        [event for event in list(events or []) if _is_progress_countable_event(event)],
         key=lambda event: str(getattr(event, "created_at", "") or ""),
         reverse=True,
     )
@@ -548,8 +906,13 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
         if not diagnosis:
             diagnosis = "这次作答形成了一条改善信号。" if is_correct else "本次批改记录到一个薄弱点。"
         explanation = _pick_attempt_explanation(payload, diagnosis=diagnosis, is_correct=is_correct)
+        quality = _attempt_quality(payload)
+        is_bookmarked = str(getattr(event, "event_id", "") or "") in bookmark_ids
         cards.append({
             "key": _attempt_card_key(event=event, payload=payload, index=index),
+            "attempt_ref": _attempt_ref(event=event, payload=payload),
+            "subject_id": _attempt_subject_id(event=event, payload=payload),
+            "bot_id": str(getattr(event, "source_bot_id", "") or "").strip(),
             "time_label": _time_label(str(getattr(event, "created_at", "") or "")),
             "title": title,
             "question_text": question_text,
@@ -563,6 +926,8 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
             "explanation": explanation,
             "evidence_label": _attempt_evidence_label(index),
             "collectable": not is_correct,
+            "is_bookmarked": is_bookmarked,
+            "bookmark_label": "已加入错题" if is_bookmarked else "",
             "detail_lines": [
                 line for line in [
                     "；".join(answer_parts),
@@ -570,13 +935,73 @@ def _recent_attempt_cards(events: list[Any]) -> list[dict[str, Any]]:
                     explanation,
                 ] if line
             ],
+            "quality": quality,
         })
     return cards
+
+
+def _attempt_subject_id(*, event: Any, payload: dict[str, Any]) -> str:
+    subject_id = str(payload.get("subject_id") or "").strip()
+    if subject_id:
+        return subject_id
+    bot_id = str(getattr(event, "source_bot_id", "") or "").strip()
+    if bot_id == "construction-exam":
+        return "construction_exam_1"
+    return bot_id
+
+
+def _bookmarked_event_ids(*, user_id: str, mistake_book_service: Any | None) -> set[str]:
+    if mistake_book_service is None:
+        return set()
+    getter = getattr(mistake_book_service, "bookmark_event_ids", None)
+    if not callable(getter):
+        return set()
+    try:
+        return set(getter(user_id=user_id, include_mastered=True) or set())
+    except Exception:
+        return set()
+
+
+def _mistake_book_projection(*, user_id: str, mistake_book_service: Any | None) -> dict[str, Any]:
+    if mistake_book_service is None:
+        return {"count": 0, "recent_items": [], "source_status": {"ok": None, "reason": "not_configured"}}
+    lister = getattr(mistake_book_service, "list_items", None)
+    if not callable(lister):
+        return {"count": 0, "recent_items": [], "source_status": {"ok": None, "reason": "unsupported_service"}}
+    try:
+        result = _safe_dict(lister(user_id=user_id, include_mastered=True))
+    except Exception as exc:
+        reason = str(exc).strip() or exc.__class__.__name__
+        return {
+            "count": 0,
+            "recent_items": [],
+            "source_status": {"ok": False, "reason": reason},
+        }
+    return {
+        "count": _safe_int(result.get("count")),
+        "recent_items": _safe_list(result.get("items"))[:3],
+        "etag": str(result.get("etag") or "").strip(),
+        "generated_at": str(result.get("generated_at") or "").strip(),
+        "source_status": {"ok": True},
+    }
+
+
+def _attempt_ref(*, event: Any, payload: dict[str, Any]) -> str:
+    try:
+        return sign_attempt_ref(
+            user_id=str(getattr(event, "user_id", "") or ""),
+            event_id=str(getattr(event, "event_id", "") or ""),
+            question_id=str(payload.get("question_id") or ""),
+        )
+    except ValueError:
+        return ""
 
 
 def _diagnosis_cards(*, events: list[Any], weak_points: list[dict[str, Any]]) -> list[dict[str, Any]]:
     grouped: dict[tuple[str, str], dict[str, Any]] = {}
     for event in events:
+        if not _is_progress_countable_event(event):
+            continue
         payload = _safe_dict(getattr(event, "payload_json", {}))
         created_at = str(getattr(event, "created_at", "") or "")
         for error in _safe_list(payload.get("error_events") or payload.get("errors")):
@@ -689,6 +1114,14 @@ def _next_action_card(*, diagnoses: list[dict[str, Any]], next_training: list[di
             "title": f"先做 3 道“{concept}”专项题",
             "subtitle": f"目标：把“{error}”这一类错误拉回主线",
             "concept": concept,
+            "intent": build_learning_training_intent(
+                user_id="",
+                concept_label=concept,
+                error_label=error,
+                question_count=3,
+                training_mode="mixed_review",
+                reason=str(top.get("meta") or ""),
+            ),
             "cta": "开始训练",
             "estimated_minutes": 8,
         }
@@ -700,6 +1133,7 @@ def _next_action_card(*, diagnoses: list[dict[str, Any]], next_training: list[di
             "title": title or "先完成一组专项训练",
             "subtitle": meta or "完成后系统会继续更新你的学情判断",
             "concept": "",
+            "intent": build_learning_training_intent(user_id="", reason=meta, question_count=3),
             "cta": "开始训练",
             "estimated_minutes": 8,
         }
@@ -707,8 +1141,59 @@ def _next_action_card(*, diagnoses: list[dict[str, Any]], next_training: list[di
         "title": "先完成一组练习",
         "subtitle": "完成批改后，系统会生成你的错因和下一步训练",
         "concept": "",
+        "intent": build_learning_training_intent(user_id="", reason="starter", question_count=3),
         "cta": "去练习",
         "estimated_minutes": 10,
+    }
+
+
+def _truth_sections(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    needs_confirmation: list[dict[str, Any]] = []
+    for event in events:
+        payload = _safe_dict(getattr(event, "payload_json", {}))
+        quality = _attempt_quality(payload)
+        concept = _concept_label(_event_concept(payload)) or _safe_dict(payload.get("concept")).get("label") or ""
+        errors = [item for item in _safe_list(payload.get("error_events") or payload.get("errors")) if isinstance(item, dict)]
+        error = _primary_error_label(errors) or str(_safe_dict(payload.get("error")).get("label") or "").strip()
+        signal_type = str(payload.get("learning_signal_type") or "").strip()
+        label = concept or error or "待确认学习事实"
+        if quality.get("detail_ready") and not concept:
+            needs_confirmation.append({"label": label, "reason": "concept_missing", "level_label": "待确认"})
+            continue
+        key = (concept or "综合练习", error or signal_type or "观察")
+        item = grouped.setdefault(
+            key,
+            {
+                "label": f"{key[0]}：{key[1]}",
+                "concept": key[0],
+                "error": key[1],
+                "count": 0,
+                "stable_count": 0,
+                "latest_at": "",
+                "conversation_only": True,
+            },
+        )
+        item["count"] += 1
+        if _is_progress_countable_event(event):
+            item["stable_count"] += 1
+            item["conversation_only"] = False
+        created_at = str(getattr(event, "created_at", "") or "")
+        if created_at > str(item.get("latest_at") or ""):
+            item["latest_at"] = created_at
+    stable: list[dict[str, Any]] = []
+    recent: list[dict[str, Any]] = []
+    for item in grouped.values():
+        count = _safe_int(item.get("count"))
+        stable_count = _safe_int(item.get("stable_count"))
+        if stable_count >= 2:
+            stable.append({**item, "level_label": "重复出现"})
+        else:
+            recent.append({**item, "level_label": "刚发现" if not item.get("conversation_only") else "已讲解"})
+    return {
+        "stable_truths": stable,
+        "recent_observations": recent,
+        "needs_confirmation": needs_confirmation,
     }
 
 
@@ -1138,6 +1623,23 @@ def _streak_days(daily_counts: dict[str, int]) -> int:
             break
         streak += 1
     return streak
+
+
+def _attempt_quality(payload: dict[str, Any]) -> dict[str, Any]:
+    """Return the quality dict from an event payload.
+
+    For events produced before the quality-gate feature (schema_version < 1 or
+    missing quality key), we derive a best-effort quality dict from the payload
+    fields we can inspect.  This ensures backward compat while exposing the
+    quality contract on all attempt cards.
+    """
+    stored = _safe_dict(payload.get("quality"))
+    # If the stored quality already has the new fields, pass it through unchanged.
+    if "detail_ready" in stored:
+        return stored
+
+    # --- Legacy path: derive quality from payload fields via single producer ---
+    return compute_quality_signals(payload)
 
 
 def _safe_dict(value: Any) -> dict[str, Any]:

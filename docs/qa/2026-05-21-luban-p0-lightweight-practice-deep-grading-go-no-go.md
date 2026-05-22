@@ -6,14 +6,14 @@
 | **Plan** | [docs/plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md](../plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md) |
 | **回归矩阵** | [docs/plan/2026-05-13-luban-grading-chain-regression-matrix.md](../plan/2026-05-13-luban-grading-chain-regression-matrix.md) G1-G9 |
 | **承接 HEAD（origin/main）** | `862f80fa fix: redact public ws grading authority` |
-| **本次会话新增 surgical 改动**（未 commit / 未 push） | 详见 §3 |
-| **判定** | ✅ **GO — 进入灰度阶段 #3（微信开发者工具）+ #4（Aliyun shadow trace）** |
+| **本次会话新增 surgical 改动** | 已随 `origin/main` 合入；当前 feature 分支 merge 后需重新确认 |
+| **判定** | ✅ **LOCAL GO（origin/main `862f80fa` 证据）— 当前 feature 分支进入灰度前必须 post-merge rerun** |
 
 ---
 
 ## 0. 一句话结论
 
-> 本机环境内所有可验证 gate 全部通过（pytest 231 + redact 165 + grader 200 = 596 单测全绿；30 轮 multi-turn 真实 LLM 7 段命中 100%；hidden authority 0 leak）。剩余的 Langfuse 字段实际可见性 + 微信真入口验收必须在 staging shadow + wx-devtools 完成，不属于本机能交付范围。建议按 plan §6.3 灰度顺序推到 #3-#4，等 staging shadow 与 wx 4 脚本回归通过再进入 #5-#7。
+> 截至 `origin/main` `862f80fa` 的本机环境内，已报告可验证 gate 全部通过（pytest 231 + redact 165 + grader 200 = 596 单测全绿；30 轮 multi-turn 真实 LLM 7 段命中 100%；hidden authority 0 leak）。当前 feature 分支合入该证据后，进入灰度前必须重新执行本文件相关 post-merge gate。剩余的 Langfuse 字段实际可见性 + 微信真入口验收必须在 staging shadow + wx-devtools 完成，不属于本机能交付范围。
 
 ---
 

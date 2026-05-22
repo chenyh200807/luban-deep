@@ -170,6 +170,24 @@ Overlay 必须支持：
   不能在生产环境与 Supabase 竞争事件流权威。
 - `dedupe_key` 命中已有事件时必须返回原事件，不能重新生成 event_id 或再次写入 outbox。
   重复作答若要形成 L1/L2 证据，dedupe_key 必须包含 turn/session/attempt 级输入边界。
+- 单条 evidence 详情读取必须走 indexed reader：
+  `LearnerStateService.read_learning_evidence_event(user_id, event_id)`。Supabase core store
+  必须按 `user_id + event_id + memory_kind=learning_evidence` 直读；只有本地 dev store
+  才允许扫描 JSONL，并且必须有小型 LRU 缓存。生产路径不得通过批量 list 再 filter。
+- Conversation synthesis 信号也必须写入同一个 `learner_memory_events` ledger：
+  `memory_kind="learning_evidence"` 与 `payload.event_type="learning_evidence"` 不变，
+  仅通过 `payload.evidence_source="conversation_synthesis"` 和
+  `payload.learning_signal_type` 区分。conversation evidence 不得直接提升 mastery，
+  只能进入 recent observation / needs confirmation，直到后续 grading evidence 验证。
+- 兼容历史 construction grading 事件：早期 `memory_kind="learning_evidence"` 但缺少
+  `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
+  读取；新写入事件必须带 `payload.event_type="learning_evidence"`。
+- Home dashboard 个性化只能读取 learner-state projection 或 starter pool。`member_console`
+  请求路径不得同步运行完整 learning report，也不得根据 weak point 现场重新推导
+  recommended prompts；只能读取 learner snapshot / profile / progress 中的
+  `home_personalization` projection。projection 缺失或 stale 时降级到
+  `data/seed/<subject_id>/starter_prompts.json`，该 starter pool 是 fallback projection，
+  不是第二套推荐 authority。
 
 #### `learning_plans`
 

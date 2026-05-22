@@ -57,3 +57,30 @@ def test_extract_signal_returns_empty_when_no_grading_result() -> None:
 def test_extract_signal_returns_empty_when_active_object_missing() -> None:
     assert DeepQuestionCapability._extract_latest_next_training_signal(None) == ("", "")
     assert DeepQuestionCapability._extract_latest_next_training_signal({}) == ("", "")
+
+
+def test_learning_training_intent_updates_topic_and_active_object_state() -> None:
+    intent = {
+        "source": "learning_report",
+        "training_intent_id": "lti_123",
+        "concept_id": "1A432000",
+        "concept_label": "主体结构",
+        "error_code": "M06",
+        "error_label": "多选漏选",
+        "training_mode": "case_repair",
+        "question_count": 3,
+    }
+
+    normalized = DeepQuestionCapability._normalize_learning_training_intent(intent)
+    topic = DeepQuestionCapability._apply_learning_training_intent_to_topic("生成专项训练", normalized)
+    active_object = DeepQuestionCapability._attach_learning_training_intent_to_active_object(
+        {"object_type": "question_set", "state_snapshot": {"question_id": "qs"}},
+        normalized,
+    )
+
+    assert normalized["training_intent_id"] == "lti_123"
+    assert "主体结构" in topic
+    assert "多选漏选" in topic
+    assert "case_repair" in topic
+    assert active_object["state_snapshot"]["training_intent_id"] == "lti_123"
+    assert active_object["state_snapshot"]["learning_training_intent"]["concept_label"] == "主体结构"

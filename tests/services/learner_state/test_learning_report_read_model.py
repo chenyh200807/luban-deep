@@ -268,6 +268,226 @@ def test_learning_report_attempt_keys_are_stable_without_exposing_event_ids() ->
     assert first["explanation"] == "解析：这道题要先看题干限制条件。"
 
 
+def test_learning_report_attempt_cards_include_opaque_attempt_ref() -> None:
+    from deeptutor.services.learner_state.attempt_refs import verify_attempt_ref
+
+    event = _learning_event(
+        "evt_attempt_ref_secret",
+        days_ago=0,
+        question_id="zh-mcq-ref",
+    )
+    attempt = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )["learner_facing"]["recent_attempts"][0]
+
+    assert attempt["attempt_ref"]
+    assert "evt_attempt_ref_secret" not in attempt["attempt_ref"]
+    payload = verify_attempt_ref(attempt["attempt_ref"], user_id="student_demo")
+    assert payload == {"event_id": "evt_attempt_ref_secret", "question_id": "zh-mcq-ref"}
+
+
+def test_learning_report_attempt_cards_include_bookmark_projection() -> None:
+    event = _learning_event("evt_bookmarked", days_ago=0, question_id="zh-mcq-bookmark")
+
+    class FakeMistakeBookService:
+        def bookmark_event_ids(self, *, user_id: str, include_mastered: bool = True):
+            assert user_id == "student_demo"
+            assert include_mastered is True
+            return {"evt_bookmarked"}
+
+    attempt = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        mistake_book_service=FakeMistakeBookService(),
+        event_limit=50,
+    )["learner_facing"]["recent_attempts"][0]
+
+    assert attempt["is_bookmarked"] is True
+    assert attempt["bookmark_label"] == "已加入错题"
+
+
+def test_single_observation_goes_to_recent_observations_not_stable_truths() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([
+            _learning_event("evt_single_observation", days_ago=0, concept_id="1A432000", error_code="M06")
+        ]),
+        event_limit=50,
+    )
+
+    assert model["truth_sections"]["stable_truths"] == []
+    assert model["truth_sections"]["recent_observations"][0]["level_label"] == "刚发现"
+
+
+def test_repeated_error_promotes_to_stable_truth() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _learning_event("evt_repeated_1", days_ago=0, concept_id="1A432000", error_code="M06"),
+                _learning_event("evt_repeated_2", days_ago=0, concept_id="1A432000", error_code="M06"),
+            ]
+        ),
+        event_limit=50,
+    )
+
+    assert model["truth_sections"]["stable_truths"][0]["level_label"] == "重复出现"
+
+
+def test_conversation_evidence_does_not_mark_mastered() -> None:
+    from deeptutor.services.learner_state.service import LearnerStateEvent
+
+    event = LearnerStateEvent(
+        event_id="evt_conversation",
+        user_id="student_demo",
+        source_feature="conversation_synthesis",
+        source_id="turn-1",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="evt_conversation",
+        created_at=_iso(0),
+        payload_json={
+            "event_type": "learning_evidence",
+            "evidence_source": "conversation_synthesis",
+            "learning_signal_type": "still_confused",
+            "concept": {"label": "主体结构"},
+            "error": {"label": "多选漏选"},
+            "quality": {"detail_ready": True, "truth_eligible": False},
+        },
+    )
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )
+
+    assert model["truth_sections"]["stable_truths"] == []
+    assert model["truth_sections"]["recent_observations"][0]["level_label"] == "已讲解"
+    assert model["overview"]["attempt_count"] == 0
+    assert model["overview"]["today_done"] == 0
+    assert model["overview"]["unique_question_count"] == 0
+    assert model["learner_facing"]["recent_attempts"] == []
+    assert model["learner_facing"]["summary"]["today_done"] == 0
+    assert model["learner_facing"]["summary"]["recent_three_done"] == 0
+
+
+def test_v2_mastery_uses_evidence_sufficiency_not_conversation_only_legacy_score() -> None:
+    class OverconfidentMember(FakeMemberService):
+        def get_assessment_profile(self, user_id: str) -> dict:
+            return {
+                "level": "advanced",
+                "chapter_mastery": {"1A432000": {"name": "1A432000", "mastery": 100}},
+                "diagnostic_feedback": {"learner_profile": {"study_tip": "继续用练习验证"}},
+            }
+
+        def get_mastery_dashboard(self, user_id: str) -> dict:
+            return {
+                "overall_mastery": 100,
+                "groups": [
+                    {
+                        "name": "掌握较好",
+                        "avg_mastery": 100,
+                        "chapters": [{"name": "1A432000", "mastery": 100}],
+                    }
+                ],
+                "hotspots": [{"name": "1A432000", "mastery": 100}],
+                "review_summary": {"total_due": 0, "overdue_count": 0},
+            }
+
+    event = LearnerStateEvent(
+        event_id="evt_conversation_mastery",
+        user_id="student_demo",
+        source_feature="conversation_synthesis",
+        source_id="turn-1",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="evt_conversation_mastery",
+        created_at=_iso(0),
+        payload_json={
+            "event_type": "learning_evidence",
+            "evidence_source": "conversation_synthesis",
+            "learning_signal_type": "concept_explain",
+            "concept": {"label": "主体结构"},
+            "quality": {"detail_ready": True, "progress_countable": False, "truth_eligible": False},
+        },
+    )
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=OverconfidentMember(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+        schema_version=2,
+    )
+
+    assert model["mastery"]["overall_mastery"]["score"] <= 60
+    assert model["mastery"]["overall_mastery"]["confidence"] < 0.4
+    assert model["mastery"]["overall_mastery"]["status"] == "insufficient_evidence"
+    assert model["mastery"]["dimensions"][0]["status"] == "insufficient_evidence"
+
+
+def test_conversation_evidence_does_not_pollute_mixed_attempt_counts() -> None:
+    from deeptutor.services.learner_state.service import LearnerStateEvent
+
+    conversation_events = [
+        LearnerStateEvent(
+            event_id=f"evt_conversation_{index}",
+            user_id="student_demo",
+            source_feature="conversation_synthesis",
+            source_id=f"turn-{index}",
+            source_bot_id=None,
+            memory_kind="learning_evidence",
+            dedupe_key=f"evt_conversation_{index}",
+            created_at=_iso(0),
+            payload_json={
+                "event_type": "learning_evidence",
+                "evidence_source": "conversation_synthesis",
+                "learning_signal_type": "concept_explain",
+                "concept": {"label": "主体结构"},
+                "quality": {"detail_ready": True, "progress_countable": False, "truth_eligible": False},
+            },
+        )
+        for index in range(2)
+    ]
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([
+            _learning_event("evt_real_attempt", days_ago=0, question_id="q-real"),
+            *conversation_events,
+        ]),
+        event_limit=50,
+    )
+
+    assert model["overview"]["attempt_count"] == 1
+    assert model["overview"]["today_done"] == 1
+    assert model["overview"]["unique_question_count"] == 1
+    assert len(model["learner_facing"]["recent_attempts"]) == 1
+    assert model["learner_facing"]["recent_attempts"][0]["title"] != "第 1 次练习"
+    assert model["truth_sections"]["stable_truths"] == []
+
+
+def test_legacy_construction_grading_payload_without_event_type_still_reads() -> None:
+    event = _learning_event("evt_legacy_no_event_type", days_ago=0)
+    event.payload_json.pop("event_type", None)
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )
+
+    assert model["learner_facing"]["recent_attempts"][0]["attempt_ref"]
+    assert model["overview"]["attempt_count"] == 1
+
+
 def test_training_loop_uses_latest_attempt_not_any_past_correct_signal() -> None:
     model = build_learning_report_read_model(
         user_id="student_demo",
@@ -648,6 +868,65 @@ def test_envelope_contains_required_schema_v1_fields() -> None:
         assert required in freshness, f"freshness missing {required}"
 
 
+def test_schema_v2_dual_emits_v1_fields_and_v2_surfaces() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [_learning_event("evt_v2", days_ago=0, question_id="case_v2")]
+        ),
+        event_limit=50,
+        schema_version=2,
+    )
+
+    assert model["schema_version"] == 2
+    assert model["recent_attempts"] == model["learner_facing"]["recent_attempts"]
+    assert model["timeline"] == model["learner_facing"]["evidence_timeline"]
+    assert model["training_loop_cards"] == model["learner_facing"]["training_loops"]
+    assert model["authority"]["conversation_source"] == (
+        "learner_memory_events.learning_evidence[evidence_source=conversation_synthesis]"
+    )
+    assert model["authority"]["attempt_detail_source"] == "attempt-detail-read-model"
+    assert model["authority"]["mistake_book_source"] == "learner_mistake_book_items"
+    assert model["attempts"][0]["attempt_ref"]
+    assert model["hero"]["primary_cta"]["intent"]["source"] == "learning_report"
+    assert isinstance(model["mastery"]["overall_mastery"], dict)
+    assert model["i18n_keys"]["locale"] == "zh-CN"
+
+
+def test_schema_v2_mistake_book_reads_service_projection_not_recent_window() -> None:
+    class FakeMistakeBook:
+        def bookmark_event_ids(self, *, user_id: str, include_mastered: bool = True) -> set[str]:
+            return {"evt_old"}
+
+        def list_items(self, *, user_id: str, subject_id: str = "", include_mastered: bool = False) -> dict:
+            return {
+                "ok": True,
+                "count": 2,
+                "etag": "book-etag",
+                "generated_at": _iso(),
+                "items": [
+                    {"event_id": "evt_old", "title": "旧错题", "is_bookmarked": True},
+                    {"event_id": "evt_older", "title": "更早错题", "is_bookmarked": True},
+                ],
+            }
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [_learning_event("evt_recent", days_ago=0, question_id="case_recent")]
+        ),
+        mistake_book_service=FakeMistakeBook(),
+        event_limit=1,
+        schema_version=2,
+    )
+
+    assert model["mistake_book"]["count"] == 2
+    assert [item["title"] for item in model["mistake_book"]["recent_items"]] == ["旧错题", "更早错题"]
+    assert model["mistake_book"]["source_status"]["ok"] is True
+
+
 def test_window_truncated_flag_when_event_count_hits_limit() -> None:
     events = [
         _learning_event(f"evt_{idx}", days_ago=0, question_id=f"case_{idx:03d}")
@@ -848,3 +1127,60 @@ def test_realistic_chinese_grading_event_updates_report_progress_learning_brain_
     assert model["learning_brain"]["visible_sections"]["evidence_flow"]
     assert model["learning_brain"]["visible_sections"]["next_training"][0]["display_meta"]
     assert model["learning_brain"]["graph_chain"]["has_training_uses_question"] is True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# G5: quality gate — recent_attempts expose quality contract
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def test_recent_attempts_quality_field_present_and_has_required_keys() -> None:
+    """recent_attempts cards must include a quality dict with the full contract."""
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [_learning_event("evt_quality_check", days_ago=0, question_id="q_quality")]
+        ),
+        event_limit=50,
+    )
+
+    attempt = model["learner_facing"]["recent_attempts"][0]
+    quality = attempt["quality"]
+    for required_key in (
+        "evidence_level",
+        "writeback_eligible",
+        "stable_truth_eligible",
+        "evidence_cap_reasons",
+        "detail_ready",
+        "progress_countable",
+        "truth_eligible",
+        "missing_fields",
+        "degraded_reason",
+    ):
+        assert required_key in quality, f"quality missing {required_key}"
+    # Event has explanation → detail_ready
+    assert quality["detail_ready"] is True
+    assert quality["progress_countable"] is True
+
+
+def test_recent_attempts_quality_detail_ready_false_when_no_explanation() -> None:
+    """An event without explanation: recent_attempts quality.detail_ready is False."""
+    event = _learning_event(
+        "evt_no_explain",
+        days_ago=0,
+        question_id="q_no_explain",
+        # Pass explanation="" to simulate missing explanation
+        explanation="",
+    )
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )
+
+    attempt = model["learner_facing"]["recent_attempts"][0]
+    quality = attempt["quality"]
+    assert quality["detail_ready"] is False
+    assert "explanation" in quality["missing_fields"]

@@ -44,6 +44,16 @@ def _make_client(requests: list[dict[str, object]], state: dict[str, object]) ->
                 user_id = str(params.get("user_id", "")).replace("eq.", "")
                 row = dict(state.get("learner_summaries", {}).get(user_id, {}))
                 return httpx.Response(200, json=[row] if row else [], request=request)
+            if table == "learner_memory_events":
+                user_id = str(params.get("user_id", "")).replace("eq.", "")
+                event_id = str(params.get("event_id", "")).replace("eq.", "")
+                rows = [
+                    dict(row)
+                    for row in state.get("learner_memory_events", [])
+                    if str(row.get("user_id") or "") == user_id
+                    and (not event_id or str(row.get("event_id") or "") == event_id)
+                ]
+                return httpx.Response(200, json=rows[: int(params.get("limit", 100) or 100)], request=request)
 
         if request.method == "POST":
             payload = json.loads(body or "[]")
@@ -256,5 +266,45 @@ def test_read_compiled_learning_truth_uses_summary_structured_json() -> None:
     assert requests[0]["path"] == "/rest/v1/learner_summaries"
     assert requests[0]["params"]["user_id"] == "eq.student_demo"
     assert requests[0]["params"]["limit"] == "1"
+
+    asyncio.run(transport_client.aclose())
+
+
+def test_read_learning_evidence_event_uses_user_event_and_memory_kind_filters() -> None:
+    requests: list[dict[str, object]] = []
+    state = {
+        "user_profiles": {},
+        "user_stats": {},
+        "user_goals": [],
+        "learner_summaries": {},
+        "learner_memory_events": [
+            {
+                "event_id": "evt_direct",
+                "user_id": "student_demo",
+                "source_feature": "construction_grading",
+                "memory_kind": "learning_evidence",
+                "payload_json": {"event_type": "learning_evidence"},
+            }
+        ],
+    }
+    transport_client = _make_client(requests, state)
+    client = LearnerStateSupabaseClient(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=transport_client,
+    )
+    store = LearnerStateSupabaseCoreStore(client=client)
+
+    async def _run() -> None:
+        row = await store.read_learning_evidence_event("student_demo", "evt_direct")
+        assert row is not None
+        assert row["event_id"] == "evt_direct"
+
+    asyncio.run(_run())
+    assert requests[-1]["path"] == "/rest/v1/learner_memory_events"
+    assert requests[-1]["params"]["user_id"] == "eq.student_demo"
+    assert requests[-1]["params"]["event_id"] == "eq.evt_direct"
+    assert requests[-1]["params"]["memory_kind"] == "eq.learning_evidence"
+    assert requests[-1]["params"]["limit"] == "1"
 
     asyncio.run(transport_client.aclose())

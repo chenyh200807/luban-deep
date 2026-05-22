@@ -302,6 +302,23 @@
 
 注意：MasteryEstimator 排到 shared view model 和 P0 UI 之后，不是因为它不重要，而是因为没有足够 detail-ready evidence 时，掌握度算法越复杂越容易制造伪精确。
 
+### -1.8 Implementation Status (2026-05-21 / `codex/learning-report-world-class-p0`)
+
+本节只记录当前分支的可验证落地状态，避免后续 agent 把未勾选步骤误判为从零开始；生产发布、阿里云同步和外部观测仍以最终 release gate 为准。
+
+- [x] Task 0: Learning Evidence Quality Gate — local implementation and pytest gate landed.
+- [x] Task 0.5: Contract & Schema Surface Registration — contract/index/env/migration/runbook surfaces landed.
+- [x] Task 1: Attempt Ref Authority — signed `attempt_ref` authority landed with production fail-closed secret handling.
+- [x] Task 2: Attempt Detail Read Model — indexed detail reader and mobile read endpoint landed.
+- [x] Task 3: Cloud Mistake Book Authority — cloud authority, RLS migration surface, mobile read/write endpoints and report projection landed.
+- [x] Task 4: Training Intent Contract — intent schema builder, report CTA wiring and practice consumer contract landed.
+- [x] Task 4.5: Conversation Signals — conversation learning evidence is emitted through existing `learning_evidence` authority, not a second authority.
+- [x] Task 4.6: Home Dashboard Personalization — dashboard reuses `home_dashboard.today_focus` / `recommended_prompts`; focus click now has a backend-owned prompt.
+- [x] Task 5: Stable Truth vs Recent Observation Split — report projection separates stable truth eligibility from recent observations.
+- [x] Task 7: Shared Frontend View Model — wx mini-program and YouSen shared view-model binding landed.
+- [ ] Task 8: Product UI Redesign — deferred outside the requested P0 execution batch; no large UI redesign has been shipped from this branch.
+- [ ] Task 9: E2E and Production Gate — this branch has targeted local automated coverage, but full release proof remains pending; Aliyun sync/restart, staging/production observation and WeChat DevTools manual acceptance are still explicit release steps.
+
 ---
 
 ## 0. Product Bar

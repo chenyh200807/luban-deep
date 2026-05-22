@@ -157,6 +157,12 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
                 "query": "为什么我这题做错了？",
                 "conversation_id": "session_2",
                 "mode": "DEEP",
+                "prompt_intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "主体结构",
+                    "error_label": "多选漏选",
+                    "training_intent_id": "lti_chat",
+                },
                 "followup_question_context": {
                     "question_id": "q_1",
                     "question": "流水步距描述什么？",
@@ -169,6 +175,8 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
     config = captured["payload"]["config"]
     assert config["chat_mode"] == "deep"
     assert config["followup_question_context"]["question_id"] == "q_1"
+    assert config["learning_prompt_intent"]["training_intent_id"] == "lti_chat"
+    assert "learning_training_intent" not in config
     assert config["interaction_hints"]["profile"] == "tutorbot"
 
 
@@ -283,6 +291,13 @@ def test_mobile_chat_start_turn_keeps_deep_question_config_schema_clean(
                 "conversation_id": "session_dq_1",
                 "capability": "deep_question",
                 "mode": "DEEP",
+                "prompt_intent": {
+                    "source": "learning_report",
+                    "concept_label": "主体结构",
+                    "error_label": "多选漏选",
+                    "training_intent_id": "lti_deep_question",
+                    "question_count": 3,
+                },
                 "followup_question_context": {
                     "question_id": "case_1",
                     "question": "指出临时用电中的不妥之处。",
@@ -298,6 +313,8 @@ def test_mobile_chat_start_turn_keeps_deep_question_config_schema_clean(
     assert "chat_mode" not in config
     assert "bot_id" not in config
     assert config["followup_question_context"]["question_id"] == "case_1"
+    assert config["learning_training_intent"]["training_intent_id"] == "lti_deep_question"
+    assert "learning_prompt_intent" not in config
     assert config["interaction_hints"]["requested_response_mode"] == "deep"
     assert config["billing_context"]["user_id"] == "student_demo"
 
@@ -2987,6 +3004,116 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
     assert body["freshness"]["unknown_date_count"] == 0
 
 
+def test_mobile_learning_report_dual_emits_v2_without_breaking_v1_fields(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeMemberService:
+        def get_today_progress(self, user_id):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_home_dashboard(self, user_id):
+            return {
+                "review": {"due_today": 1},
+                "mastery": {"weak_nodes": []},
+                "today": {"hint": "优先补主体结构"},
+                "today_focus": {"title": "今日焦点：主体结构"},
+                "recommended_prompts": [
+                    {
+                        "prompt_type": "practice_prompt",
+                        "text": "练 3 道主体结构题",
+                        "intent": {"source": "home_dashboard"},
+                    }
+                ],
+            }
+
+        def get_assessment_profile(self, user_id):
+            return {"level": "beginner", "chapter_mastery": {"主体结构": {"name": "主体结构", "mastery": 30}}}
+
+        def get_mastery_dashboard(self, user_id):
+            return {"overall_mastery": 30, "groups": [], "hotspots": [], "review_summary": {"total_due": 1}}
+
+    class FakeLearnerStateService:
+        def list_memory_events(self, user_id, limit=100):
+            return []
+
+        def read_compiled_learning_truth(self, user_id):
+            return {}
+
+        def synthesize_learning_truth(self, user_id, *, dry_run, event_limit):
+            return {"projection": {}}
+
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())
+    monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/mobile/learning-report?schema_version=2")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["schema_version"] == 2
+    assert body["authority"]["conversation_source"] == "learner_memory_events.learning_evidence[evidence_source=conversation_synthesis]"
+    assert body["authority"]["attempt_detail_source"] == "attempt-detail-read-model"
+    assert body["authority"]["mistake_book_source"] == "learner_mistake_book_items"
+    assert body["recent_attempts"] == body["learner_facing"]["recent_attempts"]
+    assert body["timeline"] == body["learner_facing"]["evidence_timeline"]
+    assert body["training_loop_cards"] == body["learner_facing"]["training_loops"]
+    assert body["hero"]["primary_cta"]["intent"]["source"] == "learning_report"
+    assert body["home_personalization"]["recommended_prompt_count"] == 1
+    assert isinstance(body["mastery"]["overall_mastery"], dict)
+
+
+def test_mobile_learning_report_accept_header_negotiates_v2(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    class _Member:
+        def get_today_progress(self, user_id):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_home_dashboard(self, user_id):
+            return {"review": {"due_today": 0}, "mastery": {"weak_nodes": []}, "today": {"hint": ""}}
+
+        def get_assessment_profile(self, user_id):
+            return {"level": "beginner", "chapter_mastery": {}}
+
+        def get_mastery_dashboard(self, user_id):
+            return {"overall_mastery": 0, "groups": [], "hotspots": [], "review_summary": {"total_due": 0}}
+
+    class _Learner:
+        def list_memory_events(self, user_id, limit=100):
+            return []
+
+        def read_compiled_learning_truth(self, user_id):
+            return {}
+
+        def synthesize_learning_truth(self, user_id, *, dry_run, event_limit):
+            return {"projection": {}}
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "learner_state_service", _Learner())
+
+    with TestClient(_build_app()) as client:
+        response = client.get(
+            "/api/v1/mobile/learning-report",
+            headers={"Accept": "application/vnd.deeptutor.learning-report+json;v=2"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["schema_version"] == 2
+
+
+def test_mobile_learning_report_accept_header_does_not_treat_v20_as_v2() -> None:
+    assert (
+        mobile_module._learning_report_schema_version(
+            schema_version=1,
+            accept="application/vnd.deeptutor.learning-report+json;v=20",
+        )
+        == 1
+    )
+
+
 def test_mobile_learning_report_requires_authentication() -> None:
     """无 Authorization → 401，不暴露 user_id。"""
     with TestClient(_build_app()) as client:
@@ -2995,6 +3122,195 @@ def test_mobile_learning_report_requires_authentication() -> None:
     body = response.json()
     assert "user_id" not in body
     assert body.get("detail")
+
+
+def test_mobile_learning_attempt_detail_returns_user_facing_attempt(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+    from deeptutor.services.learner_state.service import LearnerStateEvent
+
+    event = LearnerStateEvent(
+        event_id="evt_mobile_detail",
+        user_id="student_demo",
+        source_feature="construction_grading",
+        source_id="turn:evt_mobile_detail",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        dedupe_key="evt_mobile_detail",
+        created_at=datetime.now(_SH_TZ).isoformat(),
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": "q-mobile",
+            "question_stem": "主体结构验收条件是什么？",
+            "options": {"A": "先施工后验收", "B": "施工质量验收合格后进入下一步"},
+            "user_answer": "A",
+            "correct_answer": "B",
+            "score_awarded": 0,
+            "max_score": 1,
+            "explanation": {"summary": "先看验收前置条件。"},
+            "error_events": [{"error_code": "M06", "concept_tag": "1A432000"}],
+        },
+    )
+
+    class FakeLearnerStateService:
+        def read_learning_evidence_event(self, user_id, event_id, *, max_age_seconds=None):
+            assert user_id == "student_demo"
+            assert event_id == "evt_mobile_detail"
+            return event
+
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+
+    attempt_ref = sign_attempt_ref(user_id="student_demo", event_id="evt_mobile_detail", question_id="q-mobile")
+    with TestClient(_build_app()) as client:
+        response = client.get(f"/api/v1/mobile/learning-attempts/{attempt_ref}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    assert body["question"]["stem"] == "主体结构验收条件是什么？"
+    assert body["answer"]["user_answer"] == "A"
+    assert body["explanation"]["summary"] == "先看验收前置条件。"
+    assert body["diagnosis"]["error_label"] == "多选漏选"
+    assert body["conversation"]["turns"] == [
+        {
+            "role": "system",
+            "label": "系统出题",
+            "content": "主体结构验收条件是什么？\nA. 先施工后验收\nB. 施工质量验收合格后进入下一步",
+        },
+        {"role": "student", "label": "学员作答", "content": "A"},
+        {
+            "role": "system",
+            "label": "系统解析",
+            "content": "答错。正确答案：B\n先看验收前置条件。\n错因：多选漏选",
+        },
+    ]
+    assert "evt_mobile_detail" not in str(body)
+    assert "M06" not in str(body)
+
+
+def test_mobile_mistake_book_save_list_remove_and_conflict(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+    from deeptutor.services.learner_state.mistake_book import InMemoryMistakeBookStore, MistakeBookService
+
+    service = MistakeBookService(store=InMemoryMistakeBookStore())
+    monkeypatch.setattr(mobile_module, "mistake_book_service", service)
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_ENABLED", "true")
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED", "true")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    attempt_ref = sign_attempt_ref(user_id="student_demo", event_id="evt_mistake_api", question_id="q1")
+    with TestClient(_build_app()) as client:
+        save_response = client.post(
+            "/api/v1/mobile/mistake-book/items",
+            json={
+                "attempt_ref": attempt_ref,
+                "subject_id": "construction_exam_1",
+                "title": "主体结构错题",
+            },
+        )
+        assert save_response.status_code == 200
+        saved = save_response.json()
+        assert saved["is_bookmarked"] is True
+        assert saved["etag"]
+
+        list_response = client.get("/api/v1/mobile/mistake-book?subject_id=construction_exam_1")
+        assert list_response.status_code == 200
+        assert list_response.json()["count"] == 1
+
+        stale_response = client.delete(
+            f"/api/v1/mobile/mistake-book/items/{attempt_ref}",
+            headers={"If-Match": "stale"},
+        )
+        assert stale_response.status_code == 409
+        assert stale_response.json()["detail"]["latest"]["is_bookmarked"] is True
+
+        delete_response = client.delete(
+            f"/api/v1/mobile/mistake-book/items/{attempt_ref}",
+            headers={"If-Match": saved["etag"]},
+        )
+        assert delete_response.status_code == 200
+        assert delete_response.json()["is_bookmarked"] is False
+
+
+def test_mobile_mistake_book_flags_fail_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+    from deeptutor.services.learner_state.mistake_book import InMemoryMistakeBookStore, MistakeBookService
+
+    service = MistakeBookService(store=InMemoryMistakeBookStore())
+    monkeypatch.setattr(mobile_module, "mistake_book_service", service)
+    monkeypatch.delenv("DEEPTUTOR_MISTAKE_BOOK_ENABLED", raising=False)
+    monkeypatch.delenv("DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED", raising=False)
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    attempt_ref = sign_attempt_ref(user_id="student_demo", event_id="evt_disabled", question_id="q1")
+
+    with TestClient(_build_app()) as client:
+        list_response = client.get("/api/v1/mobile/mistake-book?subject_id=construction_exam_1")
+        assert list_response.status_code == 404
+        assert list_response.json()["detail"] == "mistake_book_disabled"
+
+        save_response = client.post(
+            "/api/v1/mobile/mistake-book/items",
+            json={"attempt_ref": attempt_ref, "subject_id": "construction_exam_1"},
+        )
+        assert save_response.status_code == 404
+        assert save_response.json()["detail"] == "mistake_book_write_disabled"
+
+
+def test_mobile_mistake_book_mastered_and_review(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+    from deeptutor.services.learner_state.mistake_book import InMemoryMistakeBookStore, MistakeBookService
+
+    service = MistakeBookService(store=InMemoryMistakeBookStore())
+    monkeypatch.setattr(mobile_module, "mistake_book_service", service)
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_ENABLED", "true")
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED", "true")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    attempt_ref = sign_attempt_ref(user_id="student_demo", event_id="evt_review_api", question_id="q1")
+
+    with TestClient(_build_app()) as client:
+        saved = client.post(
+            "/api/v1/mobile/mistake-book/items",
+            json={"attempt_ref": attempt_ref, "subject_id": "construction_exam_1"},
+        ).json()
+        reviewed_response = client.post(
+            f"/api/v1/mobile/mistake-book/items/{attempt_ref}/review",
+            headers={"If-Match": saved["etag"]},
+        )
+        assert reviewed_response.status_code == 200
+        reviewed = reviewed_response.json()
+        assert reviewed["last_reviewed_at"]
+        assert reviewed["review_due_at"]
+
+        mastered_response = client.post(
+            f"/api/v1/mobile/mistake-book/items/{attempt_ref}/mastered",
+            headers={"If-Match": reviewed["etag"]},
+        )
+        assert mastered_response.status_code == 200
+        assert mastered_response.json()["mastered_at"]
 
 
 @pytest.mark.parametrize("event_limit", [0, 501, -1])
