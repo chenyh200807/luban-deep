@@ -190,8 +190,20 @@ export default function BiPageClient() {
       setAuthReady(true);
       return;
     }
+    // Optimistic restore: trust the locally stored admin session immediately so
+    // the BI surface does not flash the locked ACCESS GATE placeholder during
+    // the /auth/profile verification round-trip. On a cold reload that round
+    // trip can take 10+ seconds because BiPageClient ships as a code-split
+    // chunk and hydration must finish before this effect runs; rendering the
+    // locked fallback in that window gave operators a false signal that their
+    // session had been lost. The backend still gates every BI API call by the
+    // bearer token, and the async restoreBiAdminSession() call below will null
+    // the session out (and clear local storage) if the token is rejected,
+    // re-locking the page.
+    setAdminSession(stored);
+    setAuthReady(true);
+    setAuthError("");
     try {
-      setAuthError("");
       const restored = await restoreBiAdminSession(stored);
       if (restored.clearStoredSession) {
         clearStoredBiAdminSession();
@@ -201,8 +213,6 @@ export default function BiPageClient() {
     } catch {
       setAdminSession(stored);
       setAuthError("管理员会话校验暂时失败，请稍后重试。");
-    } finally {
-      setAuthReady(true);
     }
   }, []);
 
@@ -897,7 +907,11 @@ export default function BiPageClient() {
               </div>
               {adminLoginForm}
             </div>
-            {authError ? <p className="mt-3 text-sm text-rose-700">{authError}</p> : null}
+            {authError ? (
+              <p role="alert" aria-live="assertive" className="mt-3 text-sm text-rose-700">
+                {authError}
+              </p>
+            ) : null}
           </section>
         ) : null}
 
@@ -928,7 +942,11 @@ export default function BiPageClient() {
                   当前页签已自动切到解锁流程。登录成功后，会直接留在 {activeTabLabel} 继续操作。
                 </p>
                 <div className="mt-4">{adminLoginForm}</div>
-                {authError ? <p className="mt-3 text-sm text-rose-700">{authError}</p> : null}
+                {authError ? (
+                  <p role="alert" aria-live="assertive" className="mt-3 text-sm text-rose-700">
+                    {authError}
+                  </p>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => setActiveTab("boss-workbench")}
