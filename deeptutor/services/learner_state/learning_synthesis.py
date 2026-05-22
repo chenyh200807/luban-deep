@@ -25,8 +25,17 @@ def synthesize_learning_truth(
     *,
     previous_projection: dict[str, Any] | None = None,
     synthesis_status: str = "dry_run_ok",
+    event_limit: int | None = None,
 ) -> dict[str, Any]:
     ordered_events = sorted(list(events), key=lambda event: (str(event.created_at or ""), str(event.event_id or "")))
+    # Phase -1.D: opt-in event window. Keeps the most-recent N events when
+    # event_limit > 0; zero/negative/None disable windowing so existing
+    # callers see no behavior change. The truncated flag surfaces upward so
+    # the read model and UI can disclose "本次画像基于最近 N 次作答".
+    window_truncated = False
+    if isinstance(event_limit, int) and event_limit > 0 and len(ordered_events) > event_limit:
+        ordered_events = ordered_events[-event_limit:]
+        window_truncated = True
     learning_items = [
         item
         for event in ordered_events
@@ -103,6 +112,7 @@ def synthesize_learning_truth(
         "improvement_signals": improvements,
         "stale_claims": stale_claims,
         "typed_graph": project_learning_graph(ordered_events),
+        "window_truncated": window_truncated,
     }
     projection["synthesis_run"] = _synthesis_run(
         events=ordered_events,
