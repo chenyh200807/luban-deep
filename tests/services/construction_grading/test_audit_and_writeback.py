@@ -62,10 +62,15 @@ def test_audit_accepts_projected_rubric_assets_without_requiring_curated_rubric(
 class _FakeLearnerStateService:
     def __init__(self) -> None:
         self.calls: list[dict[str, object]] = []
+        self.progress_patches: list[dict[str, object]] = []
 
     def append_memory_event(self, user_id: str, **kwargs: object) -> object:
         self.calls.append({"user_id": user_id, **kwargs})
         return object()
+
+    def merge_progress(self, user_id: str, patch: dict[str, object]) -> dict[str, object]:
+        self.progress_patches.append({"user_id": user_id, "patch": patch})
+        return patch
 
 
 def test_writeback_uses_existing_learner_memory_events() -> None:
@@ -101,6 +106,10 @@ def test_writeback_uses_existing_learner_memory_events() -> None:
     assert call["payload_json"]["error_events"][0]["error_code"] in {"E02", "E03", "E04"}
     assert call["payload_json"]["errors"][0]["error_code"] in {"E02", "E03", "E04"}
     assert call["payload_json"]["quality"]["evidence_level"] == "L0_observed"
+    assert service.progress_patches
+    projection = service.progress_patches[0]["patch"]["home_personalization"]
+    assert projection["recommended_prompts"][0]["intent"]["source"] == "home_dashboard"
+    assert projection["source_status"]["learning_report"] == "projection"
 
 
 def test_writeback_accepts_runtime_batch_dict_result() -> None:
@@ -193,3 +202,27 @@ def test_writeback_can_persist_success_learning_event_for_improvement_signal() -
     assert call["payload_json"]["score_awarded"] == 1.0
     assert call["payload_json"]["quality"]["writeback_eligible"] is True
     assert call["payload_json"]["quality"]["writeback_reason"] == "success_improvement_signal"
+
+
+def test_writeback_persists_training_intent_id() -> None:
+    service = _FakeLearnerStateService()
+
+    count = write_grading_error_events(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-3",
+        source_bot_id="construction-exam",
+        training_intent_id="lti_123",
+        grading_result={
+            "type": "mcq",
+            "question_id": "q-3",
+            "user_answer": "A",
+            "score_awarded": 0.0,
+            "max_score": 1.0,
+            "error_events": [{"error_code": "M06", "concept_tag": "1A432000"}],
+            "next_training_signal": {"concept": "1A432000", "focus": "多选漏选"},
+        },
+    )
+
+    assert count == 1
+    assert service.calls[0]["payload_json"]["training_intent_id"] == "lti_123"

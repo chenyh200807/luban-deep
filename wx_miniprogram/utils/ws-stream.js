@@ -434,6 +434,9 @@ function streamChat(opts, callbacks) {
   ) {
     startTurnPayload.followup_question_context = opts.followupQuestionContext;
   }
+  if (opts && opts.promptIntent && typeof opts.promptIntent === "object") {
+    startTurnPayload.prompt_intent = opts.promptIntent;
+  }
   if (opts && opts.persistUserMessage === false) {
     startTurnPayload.persist_user_message = false;
   }

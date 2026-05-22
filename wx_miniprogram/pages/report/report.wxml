@@ -17,32 +17,44 @@
       <view class="overview-hero glass-card">
         <view class="overview-head">
           <view>
-            <text class="overview-title">学习画像</text>
-            <text class="overview-sub">{{learnerLevel ? learnerLevel : '待评估'}}</text>
+            <text class="overview-kicker">今日学习复盘</text>
+            <text class="overview-title">{{learnerStageTitle}}</text>
+            <text class="overview-sub">掌握可信度</text>
           </view>
           <view class="overview-score-wrap">
-            <text class="overview-score">{{overviewScore}}</text>
-            <text class="overview-score-unit">%</text>
+            <text class="overview-score">{{overallMastery}}%</text>
+            <text class="overview-score-unit">{{masteryStatusLabel}}</text>
           </view>
+        </view>
+        <view class="focus-summary">
+          <text class="focus-label">当前重点</text>
+          <text class="focus-text">{{learningReviewSummary.primaryFocus || focusHint || '先完成一次批改'}}</text>
         </view>
         <text class="overview-tip" wx:if="{{studyTip}}">{{studyTip}}</text>
         <view class="overview-metrics">
           <view class="metric-chip metric-chip-progress" bindtap="goPractice" hover-class="metric-chip-hover">
             <text class="metric-num">{{todayDone}} / {{dailyTarget || 0}}</text>
-            <text class="metric-label">今日进度</text>
+            <text class="metric-label">今日</text>
           </view>
           <view class="metric-chip">
-            <text class="metric-num">{{streakDays}}</text>
+            <text class="metric-num">{{learningReviewSummary.recentThreeDone || 0}}</text>
+            <text class="metric-label">近3天</text>
+          </view>
+          <view class="metric-chip">
+            <text class="metric-num">{{streakDays}}天</text>
             <text class="metric-label">连续学习</text>
           </view>
-          <view class="metric-chip">
-            <text class="metric-num">{{dueTodayCount}}</text>
-            <text class="metric-label">今日待复习</text>
-          </view>
           <view class="metric-chip metric-chip-warn">
-            <text class="metric-num">{{weakNodeCount}}</text>
-            <text class="metric-label">薄弱章节</text>
+            <text class="metric-num">{{learningReviewSummary.weakCount || weakNodeCount}}</text>
+            <text class="metric-label">待补错因</text>
           </view>
+        </view>
+        <view class="primary-training-cta" bindtap="goPractice" hover-class="metric-chip-hover">
+          <view>
+            <text class="primary-training-title">{{learningNextAction.title || '开始今天的定向训练'}}</text>
+            <text class="primary-training-sub">{{learningNextAction.subtitle || learningReviewSummary.headline || '根据你的最近作答生成训练'}}</text>
+          </view>
+          <text class="primary-training-btn">{{learningNextAction.cta || '开始训练'}}</text>
         </view>
       </view>
 
@@ -51,18 +63,11 @@
         <text class="insight-text">{{focusHint}}</text>
       </view>
 
-      <view class="learning-brain glass-card">
-        <view class="learning-brain-head">
-          <view>
-            <text class="learning-brain-title">学习大脑</text>
-            <text class="learning-brain-sub">学习事实编译</text>
-          </view>
-          <view class="learning-brain-stats" wx:if="{{!learningBrainLoading && !learningBrainError}}">
-            <text class="brain-stat">{{learningBrainSummary.recentThreeDone || learningBrainGraphStats.eventCount || 0}} 次练习</text>
-            <text class="brain-stat">{{learningBrainSummary.weakCount || learningBrainDiagnoses.length || 0}} 个重点</text>
-          </view>
-        </view>
+      <view class="degraded-hint" wx:if="{{degradedHint}}">
+        <text>{{degradedHint}}</text>
+      </view>
 
+      <view class="learning-review-panel">
         <view wx:if="{{learningBrainLoading}}" class="learning-brain-loading">
           <view class="skel-block brain-skel"></view>
           <view class="skel-block brain-skel short"></view>
@@ -78,52 +83,47 @@
 
         <view wx:elif="{{learningBrainEmpty}}" class="learning-brain-state">
           <text class="learning-brain-state-title">还没有可展示的学习事实</text>
-          <text class="learning-brain-state-desc">完成案例题批改后，这里会显示可信结论、证据流和下一步训练</text>
+          <text class="learning-brain-state-desc">完成一次案例题批改后，这里会显示可复盘的作答、错因和下一步训练</text>
         </view>
 
         <view wx:else class="learning-brain-body">
-          <view class="brain-review-hero">
-            <text class="brain-review-kicker">{{learningBrainSummary.primaryFocus ? '当前重点' : '学习复盘'}}</text>
-            <text class="brain-review-title">{{learningBrainSummary.primaryFocus || learningBrainSummary.title || '最近练习'}}</text>
-            <text class="brain-review-desc">{{learningBrainSummary.headline || '系统会根据你的真实作答，整理错因、依据和下一步训练。'}}</text>
-            <view class="brain-review-metrics">
-              <view class="brain-review-metric">
-                <text class="brain-review-num">{{learningBrainSummary.todayDone || todayDone || 0}}</text>
-                <text class="brain-review-label">今日练习</text>
-              </view>
-              <view class="brain-review-metric">
-                <text class="brain-review-num">{{learningBrainSummary.recentThreeDone || 0}}</text>
-                <text class="brain-review-label">近3天</text>
-              </view>
-              <view class="brain-review-metric warn">
-                <text class="brain-review-num">{{learningBrainSummary.weakCount || learningBrainDiagnoses.length || 0}}</text>
-                <text class="brain-review-label">待补错因</text>
-              </view>
-            </view>
-          </view>
-
-          <view class="brain-column" wx:if="{{learningBrainAttempts.length}}">
+          <view class="brain-column" wx:if="{{learningAttemptCards.length}}">
             <text class="brain-column-title">最近做题复盘</text>
+            <text class="brain-column-sub">真实作答证据</text>
             <view
-              class="brain-attempt-row attempt-{{item.tone}}"
-              wx:for="{{learningBrainAttempts}}"
+              class="attempt-card attempt-{{item.tone}}"
+              wx:for="{{learningAttemptCards}}"
               wx:key="key"
+              data-key="{{item.key}}"
+              bindtap="openAttemptDetail"
             >
-              <view class="brain-attempt-head">
-                <text class="brain-attempt-time">{{item.timeLabel}}</text>
-                <text class="brain-attempt-result">{{item.resultLabel}}</text>
+              <view class="attempt-head">
+                <view>
+                  <text class="attempt-time">{{item.timeLabel}}</text>
+                  <text class="attempt-title">{{item.title}}</text>
+                </view>
+                <text class="attempt-result result-{{item.tone}}">{{item.resultLabel}}</text>
               </view>
-              <text class="brain-attempt-title">{{item.title}}</text>
-              <text class="brain-attempt-answer" wx:if="{{item.answerLine}}">{{item.answerLine}}</text>
-              <view class="brain-attempt-diagnosis">
-                <text class="brain-diagnosis-tag">{{item.diagnosis}}</text>
-                <text class="brain-diagnosis-text">{{item.diagnosisDetail}}</text>
+              <text class="attempt-answer" wx:if="{{item.answerLine}}">{{item.answerLine}}</text>
+              <text class="attempt-diagnosis">{{item.diagnosisDetail || item.diagnosis}}</text>
+              <view class="attempt-actions">
+                <text class="attempt-action">查看解析</text>
+                <text
+                  wx:if="{{item.isBookmarked}}"
+                  class="attempt-action bookmark-action cloud saved"
+                >{{item.bookmarkLabel || '已加入错题'}}</text>
+                <text
+                  wx:elif="{{item.collectable}}"
+                  class="attempt-action bookmark-action cloud"
+                  data-key="{{item.key}}"
+                  catchtap="toggleMistakeBookmark"
+                >收藏错题</text>
               </view>
             </view>
           </view>
 
           <view class="brain-column" wx:if="{{learningBrainDiagnoses.length}}">
-            <text class="brain-column-title">系统判断</text>
+            <text class="brain-column-title">错因诊断</text>
             <view
               class="brain-diagnosis-row"
               wx:for="{{learningBrainDiagnoses}}"
@@ -167,20 +167,25 @@
 
           <view class="brain-column">
             <text class="brain-column-title">下一步训练</text>
-            <view
-              class="brain-training-row"
-              wx:for="{{learningBrainTraining}}"
-              wx:key="key"
-              bindtap="goPractice"
-              hover-class="metric-chip-hover"
-            >
-              <text class="brain-training-title">{{item.title}}</text>
-              <text class="brain-training-meta">{{item.meta}}</text>
-              <view class="brain-training-cta" wx:if="{{item.cta}}">
-                <text>{{item.cta}}</text>
-                <text wx:if="{{item.estimatedMinutes}}">约 {{item.estimatedMinutes}} 分钟</text>
+            <view class="brain-next-action" wx:if="{{learningNextAction.title}}" bindtap="goPractice" hover-class="metric-chip-hover">
+              <view>
+                <text class="brain-training-title">{{learningNextAction.title}}</text>
+                <text class="brain-training-meta">{{learningNextAction.subtitle}}</text>
               </view>
+              <text class="brain-next-cta">{{learningNextAction.cta || '开始训练'}}</text>
             </view>
+            <block wx:else>
+              <view
+                class="brain-training-row"
+                wx:for="{{learningBrainTraining}}"
+                wx:key="key"
+                bindtap="goPractice"
+                hover-class="metric-chip-hover"
+              >
+                <text class="brain-training-title">{{item.title}}</text>
+                <text class="brain-training-meta">{{item.meta}}</text>
+              </view>
+            </block>
           </view>
 
           <view class="brain-footer" wx:if="{{learningBrainGraphStats.projectionSubject}}">

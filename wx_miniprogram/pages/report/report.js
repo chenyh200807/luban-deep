@@ -2,6 +2,7 @@
 
 const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
+const reportViewModel = require("../../utils/learning-report-view-model");
 
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
@@ -83,6 +84,20 @@ function asObject(value) {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value
     : {};
+}
+
+function mistakeBookPayloadFromCard(card) {
+  var item = asObject(card);
+  return {
+    attempt_ref: String(item.attemptRef || ""),
+    subject_id: String(item.subjectId || ""),
+    bot_id: String(item.botId || "construction-exam"),
+    title: String(item.title || item.questionText || "错题复盘"),
+    concept_label: String(item.concept || ""),
+    error_label: String(item.diagnosis || ""),
+    note: String(item.diagnosisDetail || item.explanation || ""),
+    tags: ["learning-report"],
+  };
 }
 
 function normalizeEventIds(ids) {
@@ -1006,60 +1021,28 @@ Page({
 
   async _loadLearningReport() {
     try {
-      var raw = await api.getLearningReport(100);
+      var raw = await api.getLearningReport(100, { schemaVersion: 2 });
       var body = api.unwrapResponse(raw) || {};
       if (!isLearningReportPayload(body)) {
         throw new Error("learning-report payload contract mismatch");
       }
-      var overview = body.overview || {};
-      var mastery = normalizeMasteryGroups(body.mastery || {});
-      var radar = normalizeRadarState(body.radar_dimensions || []);
-      var learningBrain = normalizeLearningBrainPayload(body);
-      var emptyBrain = isLearningBrainEmpty(learningBrain);
+      var sharedReport = reportViewModel.buildLearningReportViewModel(body);
+      var sharedPageData = reportViewModel.toReportPageData(sharedReport);
       var degradedSources = learningReportDegradedSources(body);
       var degraded = Boolean(body.degraded) || degradedSources.length > 0;
-      this.setData({
-        todayDone: overview.today_done || 0,
-        dailyTarget: overview.daily_target || 0,
-        streakDays: overview.streak_days || 0,
-        dueTodayCount: overview.due_today_count || 0,
-        weakNodeCount: overview.weak_node_count || 0,
-        focusHint: overview.focus_hint || "",
-        learnerLevel: displayLevelName(overview.learner_level || ""),
-        studyTip: overview.study_tip || "",
-        learningBrainSummary: learningBrain.summary || {},
-        learningBrainAttempts: learningBrain.attempts || [],
-        learningBrainDiagnoses: learningBrain.diagnoses || [],
-        learningBrainNextAction: learningBrain.nextAction || {},
-        radarDimensions: radar.dims,
-        strongCount: radar.strong,
-        normalCount: radar.normal,
-        weakCount: radar.weak,
-        avgScore: radar.avg,
-        overviewScore: radar.dims.length ? radar.avg : mastery.overall,
-        dimList: radar.dimList,
+      this.setData(Object.assign({}, sharedPageData, {
         radarLoading: false,
         radarError: false,
-        overallMastery: mastery.overall,
-        masteryGroups: mastery.groups,
-        hotspots: mastery.hotspots,
-        reviewSummary: mastery.reviewSummary,
         masteryLoading: false,
         masteryError: false,
-        learningBrainTruths: learningBrain.truths,
-        learningBrainEvidence: learningBrain.evidence,
-        learningBrainTraining: learningBrain.training,
-        learningBrainChains: learningBrain.chains,
-        learningBrainGraphStats: learningBrain.stats,
         learningBrainLoading: false,
         learningBrainError: false,
-        learningBrainEmpty: emptyBrain,
         degradedHint: degraded ? buildDegradedHint(degradedSources) : "",
         degradedSources: degraded ? degradedSources : [],
         reportFallbackActive: false,
-      });
-      if (this._canvasReady && radar.dims.length) {
-        this._drawRadar(radar.dims);
+      }));
+      if (this._canvasReady && sharedPageData.radarDimensions.length) {
+        this._drawRadar(sharedPageData.radarDimensions);
       }
     } catch (e) {
       // unified payload 不可用（5xx / payload contract 断裂 / 网络异常）→ 暴露 degraded fallback 标记
@@ -1492,5 +1475,62 @@ Page({
   // ── 跳转练习 ─────────────────────────────────────
   goPractice() {
     wx.navigateTo({ url: "/pages/practice/practice" });
+  },
+
+  async openAttemptDetail(event) {
+    var key =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.key
+        : "";
+    var card = (this.data.learningAttemptCards || []).find(function (item) {
+      return item.key === key;
+    });
+    if (!card) return;
+    var cacheKey = "learning_attempt_detail_preview:" + String(card.key || Date.now()).replace(/[^a-zA-Z0-9:_-]/g, "_");
+    if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
+      try {
+        wx.setStorageSync(cacheKey, { card: card, savedAt: Date.now() });
+      } catch (_err) {}
+    }
+    if (typeof wx !== "undefined" && typeof wx.navigateTo === "function") {
+      var params = ["cacheKey=" + encodeURIComponent(cacheKey)];
+      if (card.attemptRef) params.push("attemptRef=" + encodeURIComponent(card.attemptRef));
+      wx.navigateTo({ url: "/pages/attempt-detail/attempt-detail?" + params.join("&") });
+    }
+  },
+
+  async toggleMistakeBookmark(event) {
+    var key =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.key
+        : "";
+    var card = (this.data.learningAttemptCards || []).find(function (item) {
+      return item.key === key;
+    });
+    if (!card || !card.attemptRef || !card.subjectId || !api.saveMistakeBookItem) {
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "这条作答暂不能收藏", icon: "none", duration: 1800 });
+      }
+      return;
+    }
+    if (card.isBookmarked) {
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "已在云端错题集", icon: "none", duration: 1600 });
+      }
+      return;
+    }
+    try {
+      await api.saveMistakeBookItem(mistakeBookPayloadFromCard(card));
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "已收藏到云端错题集", icon: "success", duration: 1600 });
+      }
+      if (typeof this._loadLearningReport === "function") {
+        this._loadLearningReport();
+      }
+    } catch (_err) {
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "收藏失败，请稍后重试", icon: "none", duration: 1800 });
+      }
+    }
   },
 });

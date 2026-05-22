@@ -17,6 +17,7 @@ def write_grading_error_events(
     source_id: str,
     source_bot_id: str | None = None,
     include_success_events: bool = False,
+    training_intent_id: str | None = None,
 ) -> int:
     """Write grading error events through the existing LearnerStateService authority."""
 
@@ -36,6 +37,7 @@ def write_grading_error_events(
                 source_id=f"{source_id}:{question_id}",
                 source_bot_id=source_bot_id,
                 include_success_events=include_success_events,
+                training_intent_id=training_intent_id,
             )
         return count
 
@@ -43,6 +45,8 @@ def write_grading_error_events(
         grading_result=grading_result,
         turn_id=source_id,
     )
+    if training_intent_id:
+        payload_json["training_intent_id"] = str(training_intent_id or "").strip()
     if not payload_json["quality"]["writeback_eligible"]:
         if not include_success_events or not _is_success_learning_evidence(payload_json):
             return 0
@@ -66,6 +70,11 @@ def write_grading_error_events(
         payload_json=payload_json,
         dedupe_key=dedupe_key,
     )
+    _write_home_projection(
+        learner_state_service=learner_state_service,
+        user_id=normalized_user_id,
+        payload_json=payload_json,
+    )
     return 1
 
 
@@ -81,3 +90,20 @@ def _is_success_learning_evidence(payload_json: dict[str, Any]) -> bool:
     except (TypeError, ValueError):
         return False
     return bool(question_id and concept and max_score > 0 and score_awarded >= max_score)
+
+
+def _write_home_projection(*, learner_state_service: Any, user_id: str, payload_json: dict[str, Any]) -> None:
+    try:
+        from deeptutor.services.learner_state.home_personalization import (
+            build_home_personalization_projection_from_learning_signal,
+            write_home_personalization_projection,
+        )
+
+        projection = build_home_personalization_projection_from_learning_signal(payload_json)
+        write_home_personalization_projection(
+            learner_state_service,
+            user_id=user_id,
+            projection=projection,
+        )
+    except Exception:
+        return

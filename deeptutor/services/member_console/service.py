@@ -61,6 +61,7 @@ from deeptutor.services.wallet.identity import is_uuid_like
 
 _TZ = timezone(timedelta(hours=8))
 logger = logging.getLogger(__name__)
+_HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
 
 
 def _now() -> datetime:
@@ -3587,7 +3588,7 @@ class MemberConsoleService:
             study_plan=study_plan,
             heartbeat_context=heartbeat_context,
         )
-        return {
+        dashboard = {
             "review": review,
             "mastery": {"weak_nodes": weak_nodes[:3]},
             "today": {"hint": today_focus["title"], "focus": today_focus},
@@ -3600,6 +3601,63 @@ class MemberConsoleService:
                 learning=learning,
             ),
         }
+        if env_flag(_HOME_PERSONALIZATION_ENABLED):
+            dashboard["home_projection"] = self._build_home_learning_projection(snapshot=snapshot, member=member)
+        return dashboard
+
+    def _build_home_learning_projection(self, *, snapshot: Any | None = None, member: dict[str, Any] | None = None) -> dict[str, Any]:
+        try:
+            from deeptutor.services.learner_state.home_personalization import (
+                build_home_dashboard_learning_projection,
+            )
+
+            return build_home_dashboard_learning_projection(
+                projection=self._home_personalization_projection_from_snapshot(snapshot),
+                subject_id=self._home_subject_id(snapshot=snapshot, member=member),
+            )
+        except Exception:
+            logger.warning("Failed to build home learning projection", exc_info=True)
+            return {"recommended_prompts": [], "today_focus": {}, "source_status": {"fallback_used": True}}
+
+    @staticmethod
+    def _home_personalization_projection_from_snapshot(snapshot: Any | None) -> dict[str, Any] | None:
+        if snapshot is None:
+            return None
+        direct = getattr(snapshot, "home_personalization", None)
+        if isinstance(direct, dict):
+            return direct
+        profile = getattr(snapshot, "profile", {}) or {}
+        progress = getattr(snapshot, "progress", {}) or {}
+        for container in [profile, progress]:
+            if not isinstance(container, dict):
+                continue
+            projection = container.get("home_personalization")
+            if isinstance(projection, dict):
+                return projection
+            projections = container.get("projections")
+            if isinstance(projections, dict) and isinstance(projections.get("home_personalization"), dict):
+                return projections["home_personalization"]
+        return None
+
+    @staticmethod
+    def _home_subject_id(*, snapshot: Any | None, member: dict[str, Any] | None = None) -> str:
+        containers: list[Any] = []
+        if snapshot is not None:
+            containers.extend([getattr(snapshot, "profile", {}) or {}, getattr(snapshot, "progress", {}) or {}])
+        containers.append(member or {})
+        for container in containers:
+            if not isinstance(container, dict):
+                continue
+            for key in ("active_subject_id", "subject_id", "exam_subject_id"):
+                value = str(container.get(key) or "").strip()
+                if value:
+                    return value
+            defaults = container.get("bot_runtime_defaults")
+            if isinstance(defaults, dict):
+                value = str(defaults.get("subject_id") or "").strip()
+                if value:
+                    return value
+        return "construction_exam_1"
 
     def _read_learner_snapshot(self, user_id: str, *, event_limit: int = 5) -> Any | None:
         try:

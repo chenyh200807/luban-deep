@@ -24,8 +24,10 @@ from deeptutor.api.dependencies import (
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
 from deeptutor.services.learner_state import LearnerStateService
+from deeptutor.services.learner_state.attempt_detail_read_model import build_attempt_detail_read_model
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.learning_report_read_model import build_learning_report_read_model
+from deeptutor.services.learner_state.mistake_book import MistakeBookConflict, MistakeBookService
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.query_intent import (
     build_grounding_decision,
@@ -49,6 +51,7 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 member_service = get_member_console_service()
 learner_state_service = LearnerStateService()
+mistake_book_service = MistakeBookService()
 turn_runtime = get_turn_runtime_manager()
 session_store = get_sqlite_session_store()
 wallet_service = get_wallet_service()
@@ -68,6 +71,8 @@ _BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
 _BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
 _LOCAL_WALLET_FALLBACK = "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"
 _LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK = "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"
+_MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
+_MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
 _BILLING_PLAN_QUOTA_POINTS = {
     "advance": {"five_hour": 1600, "weekly": 4400},
     "sprint": {"five_hour": 3200, "weekly": 9000},
@@ -93,6 +98,17 @@ _BILLING_PAYMENT_GATEWAY_URL = "DEEPTUTOR_PAYMENT_GATEWAY_URL"
 class BillingCheckoutRequest(BaseModel):
     package_id: str = Field(min_length=1, max_length=64)
     channel: str = Field(default="wechat", min_length=1, max_length=32)
+
+
+class MistakeBookSaveRequest(BaseModel):
+    attempt_ref: str = Field(min_length=1)
+    subject_id: str = Field(min_length=1, max_length=128)
+    bot_id: str = Field(default="", max_length=128)
+    title: str = Field(default="", max_length=300)
+    concept_label: str = Field(default="", max_length=128)
+    error_label: str = Field(default="", max_length=128)
+    note: str = Field(default="", max_length=500)
+    tags: list[str] = Field(default_factory=list)
 
 
 def _log_safe_id(value: Any) -> str:
@@ -185,6 +201,16 @@ def _learning_brain_local_projection_fallback_enabled() -> bool:
         and _env_flag_enabled("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA")
         and _env_flag_enabled(_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK)
     )
+
+
+def _require_mistake_book_read_enabled() -> None:
+    if not _env_flag_enabled(_MISTAKE_BOOK_ENABLED):
+        raise HTTPException(status_code=404, detail="mistake_book_disabled")
+
+
+def _require_mistake_book_write_enabled() -> None:
+    if not _env_flag_enabled(_MISTAKE_BOOK_WRITE_ENABLED):
+        raise HTTPException(status_code=404, detail="mistake_book_write_disabled")
 
 
 def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: str) -> None:
@@ -1555,6 +1581,9 @@ def _build_mobile_turn_payload(
         config["bot_id"] = _MOBILE_TUTORBOT_ID
     if body.followup_question_context:
         config["followup_question_context"] = dict(body.followup_question_context)
+    if body.prompt_intent:
+        intent_key = "learning_training_intent" if capability == "deep_question" else "learning_prompt_intent"
+        config[intent_key] = dict(body.prompt_intent)
     if body.persist_user_message is False:
         config["_persist_user_message"] = False
     client_turn_id = str(body.client_turn_id or "").strip()
@@ -1681,6 +1710,7 @@ class MobileStartTurnRequest(BaseModel):
     knowledge_bases: list[str] = Field(default_factory=list)
     attachments: list[dict[str, Any]] = Field(default_factory=list)
     followup_question_context: dict[str, Any] | None = None
+    prompt_intent: dict[str, Any] | None = None
     persist_user_message: bool = True
 
 
@@ -2069,16 +2099,171 @@ async def learning_brain_projection(
 @router.get("/mobile/learning-report")
 async def mobile_learning_report(
     authorization: str | None = Header(default=None),
+    accept: str | None = Header(default=None),
     event_limit: int = Query(default=100, ge=1, le=500),
+    schema_version: int = Query(default=1, ge=1, le=2),
 ) -> dict[str, Any]:
     user_id = _resolve_authenticated_user_id(authorization)
+    requested_schema_version = _learning_report_schema_version(
+        schema_version=schema_version,
+        accept=accept,
+    )
     return await run_in_threadpool(
         build_learning_report_read_model,
         user_id=user_id,
         member_service=member_service,
         learner_state_service=learner_state_service,
+        mistake_book_service=mistake_book_service,
         event_limit=event_limit,
+        schema_version=requested_schema_version,
     )
+
+
+def _learning_report_schema_version(*, schema_version: int, accept: str | None) -> int:
+    for media_range in str(accept or "").lower().split(","):
+        parts = [part.strip() for part in media_range.split(";") if part.strip()]
+        if not parts or parts[0] != "application/vnd.deeptutor.learning-report+json":
+            continue
+        params = {
+            key.strip(): value.strip()
+            for item in parts[1:]
+            if "=" in item
+            for key, value in [item.split("=", 1)]
+        }
+        if params.get("v") == "2":
+            return 2
+    return 2 if int(schema_version or 1) == 2 else 1
+
+
+@router.get("/mobile/learning-attempts/{attempt_ref}")
+async def mobile_learning_attempt_detail(
+    attempt_ref: str,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    detail = await run_in_threadpool(
+        build_attempt_detail_read_model,
+        user_id=user_id,
+        learner_state_service=learner_state_service,
+        attempt_ref=attempt_ref,
+    )
+    if not detail.get("ok"):
+        raise HTTPException(status_code=404, detail=detail.get("error") or "attempt_not_found")
+    return detail
+
+
+@router.get("/mobile/mistake-book")
+async def mobile_mistake_book(
+    authorization: str | None = Header(default=None),
+    subject_id: str = Query(default=""),
+    include_mastered: bool = Query(default=False),
+) -> dict[str, Any]:
+    _require_mistake_book_read_enabled()
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        return await run_in_threadpool(
+            mistake_book_service.list_items,
+            user_id=user_id,
+            subject_id=subject_id,
+            include_mastered=include_mastered,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/mobile/mistake-book/items")
+async def mobile_save_mistake_book_item(
+    payload: MistakeBookSaveRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    _require_mistake_book_write_enabled()
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        return await run_in_threadpool(
+            mistake_book_service.save_item,
+            user_id=user_id,
+            attempt_ref=payload.attempt_ref,
+            subject_id=payload.subject_id,
+            bot_id=payload.bot_id,
+            title=payload.title,
+            concept_label=payload.concept_label,
+            error_label=payload.error_label,
+            note=payload.note,
+            tags=payload.tags,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.delete("/mobile/mistake-book/items/{attempt_ref}")
+async def mobile_remove_mistake_book_item(
+    attempt_ref: str,
+    authorization: str | None = Header(default=None),
+    if_match: str | None = Header(default=None, alias="If-Match"),
+) -> dict[str, Any]:
+    _require_mistake_book_write_enabled()
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        return await run_in_threadpool(
+            mistake_book_service.remove_item,
+            user_id=user_id,
+            attempt_ref=attempt_ref,
+            if_match=if_match,
+        )
+    except MistakeBookConflict as exc:
+        raise HTTPException(status_code=409, detail={"error": "etag_conflict", "latest": exc.latest}) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/mobile/mistake-book/items/{attempt_ref}/mastered")
+async def mobile_mark_mistake_book_item_mastered(
+    attempt_ref: str,
+    authorization: str | None = Header(default=None),
+    if_match: str | None = Header(default=None, alias="If-Match"),
+) -> dict[str, Any]:
+    _require_mistake_book_write_enabled()
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        return await run_in_threadpool(
+            mistake_book_service.mark_mastered,
+            user_id=user_id,
+            attempt_ref=attempt_ref,
+            if_match=if_match,
+        )
+    except MistakeBookConflict as exc:
+        raise HTTPException(status_code=409, detail={"error": "etag_conflict", "latest": exc.latest}) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/mobile/mistake-book/items/{attempt_ref}/review")
+async def mobile_record_mistake_book_item_review(
+    attempt_ref: str,
+    authorization: str | None = Header(default=None),
+    if_match: str | None = Header(default=None, alias="If-Match"),
+) -> dict[str, Any]:
+    _require_mistake_book_write_enabled()
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        return await run_in_threadpool(
+            mistake_book_service.record_review,
+            user_id=user_id,
+            attempt_ref=attempt_ref,
+            if_match=if_match,
+        )
+    except MistakeBookConflict as exc:
+        raise HTTPException(status_code=409, detail={"error": "etag_conflict", "latest": exc.latest}) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.get("/assessment/profile")

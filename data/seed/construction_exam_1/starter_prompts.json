@@ -1,0 +1,30 @@
+{
+  "subject_id": "construction_exam_1",
+  "today_focus": {
+    "title": "先做一题，给系统第一份建筑实务学习证据",
+    "meta": "starter"
+  },
+  "prompts": [
+    {
+      "prompt_type": "assessment",
+      "text": "给我一题一级建造师建筑实务入门摸底题",
+      "intent": {
+        "job": "baseline_assessment"
+      }
+    },
+    {
+      "prompt_type": "concept_explain",
+      "text": "用考试语言讲清主体结构验收最容易失分的点",
+      "intent": {
+        "job": "concept_explain"
+      }
+    },
+    {
+      "prompt_type": "practice_prompt",
+      "text": "出一道防水工程案例题，做完后帮我拆采分点",
+      "intent": {
+        "job": "case_grading"
+      }
+    }
+  ]
+}

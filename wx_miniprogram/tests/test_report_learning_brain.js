@@ -46,7 +46,7 @@ async function run() {
     "api should expose the unified learning report read model endpoint",
   );
   assert(
-    fs.readFileSync(reportPath, "utf8").indexOf("api.getLearningReport(100)") >=
+    fs.readFileSync(reportPath, "utf8").indexOf("api.getLearningReport(100,") >=
       0 &&
       fs.readFileSync(reportPath, "utf8").indexOf("this._loadOverview();") <
         0 &&
@@ -75,14 +75,14 @@ async function run() {
   );
   assert(
     reportWxml.indexOf("最近做题复盘") >= 0 &&
-      reportWxml.indexOf("系统判断") >= 0 &&
+      reportWxml.indexOf("错因诊断") >= 0 &&
       reportWxml.indexOf("依据来自哪些作答") >= 0 &&
       reportWxml.indexOf("训练闭环") >= 0 &&
       reportWxml.indexOf("下一步训练") >= 0,
     "report should render learner-facing Learning Brain review sections",
   );
   assert(
-    reportWxml.indexOf("learningBrainSummary.recentThreeDone") >= 0,
+    reportWxml.indexOf("learningReviewSummary.recentThreeDone") >= 0,
     "report should expose learner-facing recent practice count instead of graph internals",
   );
   assert(

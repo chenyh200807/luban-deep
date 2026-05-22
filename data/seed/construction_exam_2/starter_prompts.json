@@ -1,0 +1,30 @@
+{
+  "subject_id": "construction_exam_2",
+  "today_focus": {
+    "title": "先做一题，给系统第一份二建建筑学习证据",
+    "meta": "starter"
+  },
+  "prompts": [
+    {
+      "prompt_type": "assessment",
+      "text": "给我一题二级建造师建筑实务入门摸底题",
+      "intent": {
+        "job": "baseline_assessment"
+      }
+    },
+    {
+      "prompt_type": "knowledge_map",
+      "text": "帮我整理施工管理和质量验收的高频考点地图",
+      "intent": {
+        "job": "knowledge_map"
+      }
+    },
+    {
+      "prompt_type": "mistake_review",
+      "text": "带我复盘材料检验题常见错因和避坑方法",
+      "intent": {
+        "job": "mistake_review"
+      }
+    }
+  ]
+}

@@ -73,6 +73,12 @@ function loadReportPage(stubs) {
       if (request === "../../utils/runtime") return stubs.runtime;
       if (request === "../../utils/route") return stubs.route;
       if (request === "../../utils/flags") return stubs.flags;
+      if (request === "../../utils/learning-report-view-model") {
+        return require(path.join(
+          __dirname,
+          "../packageDeeptutor/utils/learning-report-view-model.js",
+        ));
+      }
       return {};
     },
   };
@@ -143,6 +149,7 @@ function createPageInstance(pageDef) {
         mastery: 0,
         brain: 0,
         radar: 0,
+        saveMistake: 0,
       };
       var pageDef = loadReportPage({
         api: {
@@ -240,6 +247,9 @@ function createPageInstance(pageDef) {
                 recent_attempts: [
                   {
                     key: "attempt-0",
+                    attempt_ref: "signed-ref",
+                    subject_id: "construction_exam_1",
+                    bot_id: "construction-exam",
                     time_label: "今天 09:20",
                     title: "关于主体结构验收条件的说法，正确的是？",
                     question_text: "关于主体结构验收条件的说法，正确的是？",
@@ -286,6 +296,11 @@ function createPageInstance(pageDef) {
                 },
               },
             };
+          },
+          saveMistakeBookItem: async function (payload) {
+            counters.saveMistake += 1;
+            counters.savedMistakePayload = payload;
+            return { ok: true, item: { etag: "etag-1" } };
           },
           getTodayProgress: async function () {
             counters.today += 1;
@@ -664,20 +679,28 @@ function createPageInstance(pageDef) {
       );
       var preToastCallCount = pageDef.__sandbox.toastCalls.length;
       var preStorageWriteCount = pageDef.__sandbox.storageWrites.length;
-      page.toggleMistakeBookmark({
+      await page.toggleMistakeBookmark({
         currentTarget: {
           dataset: { key: page.data.learningAttemptCards[0].key },
         },
       });
+      await flushPromises();
       assert(
         pageDef.__sandbox.storageWrites.length === preStorageWriteCount,
         "toggleMistakeBookmark must not write to wx storage; mistake book authority lives in cloud `learner_mistake_book_items`",
       );
+      assert(counters.saveMistake === 1, "toggleMistakeBookmark must call the cloud mistake-book authority");
+      assert(
+        counters.savedMistakePayload &&
+          counters.savedMistakePayload.attempt_ref === "signed-ref" &&
+          counters.savedMistakePayload.subject_id === "construction_exam_1",
+        "mistake-book save should send the attempt ref and backend-provided subject id",
+      );
       var emittedToasts = pageDef.__sandbox.toastCalls.slice(preToastCallCount);
       assert(
         emittedToasts.length === 1 &&
-          String(emittedToasts[0].title || "").indexOf("云端错题集") >= 0,
-        "toggleMistakeBookmark must surface an explicit pending toast pointing at cloud authority",
+          String(emittedToasts[0].title || "").indexOf("已收藏") >= 0,
+        "toggleMistakeBookmark must surface cloud save success",
       );
       assert(
         !("mistakeBookCount" in page.data) &&
@@ -915,10 +938,10 @@ function createPageInstance(pageDef) {
         "fallback path must list at least one degradedSources entry",
       );
       assert(
-        counters.mastery >= 1 ||
-          counters.assessment >= 1 ||
-          counters.brain >= 1,
-        "fallback path may use legacy endpoints for basic display only",
+        counters.mastery === 0 &&
+          counters.assessment === 0 &&
+          counters.brain === 0,
+        "unified payload failure must not revive legacy report readers as second authority",
       );
     },
   );
