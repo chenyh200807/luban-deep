@@ -32,7 +32,12 @@ var sandbox = {
         },
       };
     }
-    if (request === "../../utils/ai-message-state") return {};
+    if (request === "../../utils/ai-message-state") {
+      return { coerceUserVisibleContent: function (text) { return String(text || ""); } };
+    }
+    if (request === "../../utils/learning-home-view-model") {
+      return { buildLearningHomeViewModel: function () { return { recommendedPrompts: [] }; } };
+    }
     if (request === "../../utils/ws-stream") return {};
     if (request === "../../utils/surface-telemetry") return {};
     if (request === "../../utils/helpers") {

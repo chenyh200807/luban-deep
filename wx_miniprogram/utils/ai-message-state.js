@@ -23,7 +23,9 @@ function coerceUserVisibleContent(text) {
       return INTERNAL_FALLBACK;
     }
   }
-  return source;
+  return renderSchema.sanitizeAuthorityMarkdownText
+    ? renderSchema.sanitizeAuthorityMarkdownText(source)
+    : source;
 }
 
 function toInlineContent(text) {
@@ -200,6 +202,11 @@ function buildPresentationState(presentation) {
     hasNonMcqStructuredContent: renderBlocks.length > 0,
     hasOnlyMcqContent: !!mcqBlock && renderBlocks.length === 0,
   };
+}
+
+function sanitizePresentationForState(presentation) {
+  if (!presentation || typeof presentation !== "object") return null;
+  return renderSchema.createCanonicalMessage(presentation);
 }
 
 function normalizeProjectionSignature(text) {
@@ -438,4 +445,5 @@ function deriveAiMessageRenderState(input) {
 module.exports = {
   deriveAiMessageRenderState: deriveAiMessageRenderState,
   coerceUserVisibleContent: coerceUserVisibleContent,
+  sanitizePresentationForState: sanitizePresentationForState,
 };

@@ -638,15 +638,21 @@ Page({
     var counter = 0;
     var msgs = (rawMsgs || []).map(function (m) {
       var role = m.role === "assistant" ? "ai" : m.role;
+      var visibleContent = aiMessageState.coerceUserVisibleContent(m.content || "");
+      var visiblePresentation = aiMessageState.sanitizePresentationForState
+        ? aiMessageState.sanitizePresentationForState(m.presentation)
+        : m.presentation && typeof m.presentation === "object"
+          ? m.presentation
+          : null;
       var msg = {
         id: role.charAt(0) + counter++,
         role: role,
-        content: m.content || "",
+        content: visibleContent,
         renderableContent: "",
         streaming: false,
         blocks: [],
         hasStructuredContent: false,
-        presentation: m.presentation && typeof m.presentation === "object" ? m.presentation : null,
+        presentation: visiblePresentation,
         mcqCards: null,
         mcqHint: "",
         mcqReceipt: "",
@@ -676,7 +682,7 @@ Page({
       };
       if (role === "ai" && (m.content || msg.presentation)) {
         var derived = aiMessageState.deriveAiMessageRenderState({
-          content: m.content,
+          content: visibleContent,
           presentation: msg.presentation,
           parseBlocks: true,
         });
@@ -1429,8 +1435,16 @@ Page({
     var options = opts || {};
     var hasContent = Object.prototype.hasOwnProperty.call(options, "content");
     var hasPresentation = Object.prototype.hasOwnProperty.call(options, "presentation");
-    var content = hasContent ? String(options.content || "") : String(msg.content || "");
-    var presentation = hasPresentation ? options.presentation || null : msg.presentation || null;
+    var content = aiMessageState.coerceUserVisibleContent(
+      hasContent ? String(options.content || "") : String(msg.content || ""),
+    );
+    var presentation = aiMessageState.sanitizePresentationForState
+      ? aiMessageState.sanitizePresentationForState(
+          hasPresentation ? options.presentation || null : msg.presentation || null,
+        )
+      : hasPresentation
+        ? options.presentation || null
+        : msg.presentation || null;
     var state = aiMessageState.deriveAiMessageRenderState({
       content: content,
       presentation: presentation,
