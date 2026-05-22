@@ -80,6 +80,7 @@ def build_learning_evidence_payload(
         "score_awarded": score_awarded,
         "max_score": max_score,
         "score_ratio": _score_ratio(score_awarded, max_score),
+        "explanation": _explanation_payload(explanation),
         "grading_mode": grading_mode or None,
         "rubric_items": rubric_items,
         "evidence_refs": evidence_refs,
@@ -130,6 +131,24 @@ def _grading_result_payload(grading_result: CaseGradingResult | MCQGradingResult
             payload["type"] = "mcq"
     payload["error_events"] = [_error_event_payload(error) for error in payload.get("error_events") or []]
     return payload
+
+
+def _explanation_payload(value: Any) -> dict[str, Any] | str:
+    """Normalize a grader-supplied explanation for emission into learning_evidence.
+
+    Preserves arbitrary dict keys (so future graders adding `tutor_note`, `analysis`,
+    etc. survive) while stripping reasoning tags via ``_clean_text``. Strings are
+    cleaned verbatim. Empty/None input returns ``{}`` so downstream
+    ``has_explanation_content`` reports False without losing key presence.
+    """
+    if isinstance(value, dict):
+        return {
+            str(key): _clean_text(nested)
+            for key, nested in value.items()
+            if _clean_text(nested)
+        }
+    text = _clean_text(value)
+    return text if text else {}
 
 
 def _error_event_payload(error: Any) -> dict[str, Any]:

@@ -109,3 +109,73 @@ def test_attempt_detail_maps_string_explanation_to_summary() -> None:
 
     assert detail["explanation"]["summary"] == "这题要先判断验收条件。"
     assert detail["explanation"]["why_user_wrong"] == ""
+
+
+def test_attempt_detail_surfaces_explanation_through_full_evidence_pipeline() -> None:
+    """End-to-end recovery test: grading_result → build_learning_evidence_payload →
+    LearnerStateEvent → build_attempt_detail_read_model.
+
+    The detail surface and conversation turns must carry the real grader explanation,
+    not a generic 'A 选项不符合标准答案' fallback. This locks the regression that the
+    accident on 2026-05-22 exposed.
+    """
+    from deeptutor.services.construction_grading.learning_evidence import build_learning_evidence_payload
+    from deeptutor.services.learner_state.attempt_detail_read_model import build_attempt_detail_read_model
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+
+    payload_json = build_learning_evidence_payload(
+        grading_result={
+            "type": "mcq",
+            "question_id": "fire_q_001",
+            "question_stem": "关于消防疏散通道的说法，正确的是？",
+            "user_answer": "A",
+            "correct_answer": "B",
+            "score_awarded": 0,
+            "max_score": 1,
+            "explanation": {
+                "summary": "正确选项是 B，疏散宽度需按人数计算。",
+                "why_user_wrong": "A 错把固定宽度当成通用要求。",
+            },
+            "error_events": [
+                {"error_code": "M08", "concept_tag": "消防疏散", "diagnosis": "规范数字混淆。"}
+            ],
+            "next_training_signal": {"concept": "消防疏散", "focus": "宽度计算", "mode": "practice"},
+        },
+        turn_id="turn_fire_001",
+    )
+
+    event_id = "evt_fire_001"
+    event = LearnerStateEvent(
+        event_id=event_id,
+        user_id="student_demo",
+        source_feature="construction_grading",
+        source_id="turn:turn_fire_001",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        dedupe_key=event_id,
+        created_at=datetime.now(timezone.utc).isoformat(),
+        payload_json=payload_json,
+    )
+
+    detail = build_attempt_detail_read_model(
+        user_id="student_demo",
+        learner_state_service=FakeLearnerStateService([event]),
+        attempt_ref=sign_attempt_ref(
+            user_id="student_demo", event_id=event_id, question_id="fire_q_001"
+        ),
+    )
+
+    assert detail["ok"] is True, detail
+    assert detail["explanation"]["summary"] == "正确选项是 B，疏散宽度需按人数计算。"
+    assert detail["explanation"]["why_user_wrong"] == "A 错把固定宽度当成通用要求。"
+
+    # next_training must surface from the payload so the UI can render the follow-up step.
+    assert detail["next_training"].get("focus") == "宽度计算"
+    assert detail["next_training"].get("concept") == "消防疏散"
+
+    # The conversation turn marked '系统解析' must contain the real explanation text,
+    # not a degraded fallback ('A 选项不符合标准答案' or similar generic prose).
+    system_turns = [turn for turn in detail["conversation"]["turns"] if turn["role"] == "system"]
+    assert any("疏散宽度" in str(turn.get("content") or "") for turn in system_turns), (
+        f"system turn must include real explanation, got {system_turns}"
+    )
