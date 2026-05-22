@@ -11,6 +11,8 @@ from deeptutor.services.learner_state.attempt_refs import verify_attempt_ref
 
 
 _TZ = timezone(timedelta(hours=8))
+_MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
+_MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
 
 
 class MistakeBookConflict(Exception):
@@ -226,6 +228,7 @@ class MistakeBookService:
         note: str = "",
         tags: list[str] | None = None,
     ) -> dict[str, Any]:
+        _require_write_enabled()
         normalized_user = _require_text(user_id, "user_id")
         normalized_subject = _require_text(subject_id, "subject_id")
         ref = _verify_ref(attempt_ref, user_id=normalized_user)
@@ -257,6 +260,7 @@ class MistakeBookService:
         return _public_item(saved)
 
     def remove_item(self, *, user_id: str, attempt_ref: str, if_match: str | None = None) -> dict[str, Any]:
+        _require_write_enabled()
         normalized_user = _require_text(user_id, "user_id")
         ref = _verify_ref(attempt_ref, user_id=normalized_user)
         current = self._require_current(normalized_user, ref["event_id"], if_match=if_match)
@@ -270,6 +274,7 @@ class MistakeBookService:
         return item
 
     def mark_mastered(self, *, user_id: str, attempt_ref: str, if_match: str | None = None) -> dict[str, Any]:
+        _require_write_enabled()
         normalized_user = _require_text(user_id, "user_id")
         ref = _verify_ref(attempt_ref, user_id=normalized_user)
         self._require_current(normalized_user, ref["event_id"], if_match=if_match)
@@ -281,6 +286,7 @@ class MistakeBookService:
         return _public_item(updated or {})
 
     def record_review(self, *, user_id: str, attempt_ref: str, if_match: str | None = None) -> dict[str, Any]:
+        _require_write_enabled()
         normalized_user = _require_text(user_id, "user_id")
         ref = _verify_ref(attempt_ref, user_id=normalized_user)
         self._require_current(normalized_user, ref["event_id"], if_match=if_match)
@@ -300,6 +306,7 @@ class MistakeBookService:
         subject_id: str = "",
         include_mastered: bool = False,
     ) -> dict[str, Any]:
+        _require_read_enabled()
         normalized_user = _require_text(user_id, "user_id")
         normalized_subject = str(subject_id or "").strip()
         rows = [
@@ -341,6 +348,20 @@ def _verify_ref(attempt_ref: str, *, user_id: str) -> dict[str, str]:
     if ref is None:
         raise ValueError("invalid_attempt_ref")
     return {"event_id": ref["event_id"], "question_id": ref.get("question_id", "")}
+
+
+def _flag_enabled(name: str) -> bool:
+    return str(os.getenv(name, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _require_read_enabled() -> None:
+    if not _flag_enabled(_MISTAKE_BOOK_ENABLED):
+        raise RuntimeError("mistake_book_disabled")
+
+
+def _require_write_enabled() -> None:
+    if not _flag_enabled(_MISTAKE_BOOK_WRITE_ENABLED):
+        raise RuntimeError("mistake_book_write_disabled")
 
 
 def _require_text(value: str, field: str) -> str:

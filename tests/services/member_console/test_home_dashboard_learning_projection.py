@@ -126,9 +126,52 @@ def test_seed_starter_files_exist_and_are_used() -> None:
         assert dashboard["today_focus"]["prompt"] == payload["prompts"][0]["text"]
 
 
+def test_home_dashboard_keeps_v1_shape_when_home_personalization_flag_off(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.delenv("DEEPTUTOR_HOME_PERSONALIZATION_ENABLED", raising=False)
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("flag_off_user")
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "flag_off_user"
+            return SimpleNamespace(
+                profile={
+                    "home_personalization": {
+                        "generated_at": datetime.now(tz=_TZ).isoformat(),
+                        "source_status": {"fallback_used": False, "learning_report": "projection"},
+                        "today_focus": {"title": "不应覆盖 v1 首页"},
+                        "recommended_prompts": [{"text": "不应出现在 flag off 首页"}],
+                    }
+                },
+                progress={},
+                summary="",
+                memory_events=[],
+            )
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, limit: int = 3):
+            return []
+
+    service._get_learner_state_service = lambda: _FakeLearnerStateService()  # type: ignore[method-assign]
+
+    dashboard = service.get_home_dashboard("flag_off_user")
+
+    assert "home_projection" not in dashboard
+    assert "recommended_prompts" not in dashboard
+    assert dashboard["today_focus"]["title"] != "不应覆盖 v1 首页"
+
+
 def test_dashboard_reads_projection_from_learner_snapshot_not_weak_nodes(
     tmp_path: Path,
+    monkeypatch,
 ) -> None:
+    monkeypatch.setenv("DEEPTUTOR_HOME_PERSONALIZATION_ENABLED", "true")
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
     service.get_profile("projection_user")
@@ -171,15 +214,18 @@ def test_dashboard_reads_projection_from_learner_snapshot_not_weak_nodes(
 
     dashboard = service.get_home_dashboard("projection_user")
 
-    assert dashboard["today_focus"]["title"] == "今日焦点：施工进度索赔"
+    assert dashboard["today_focus"]["title"] != "今日焦点：施工进度索赔"
     assert dashboard["today"]["focus"] == dashboard["today_focus"]
-    assert dashboard["recommended_prompts"][0]["text"] == "用案例题练施工进度索赔"
-    assert dashboard["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
+    assert dashboard["home_projection"]["today_focus"]["title"] == "今日焦点：施工进度索赔"
+    assert dashboard["home_projection"]["recommended_prompts"][0]["text"] == "用案例题练施工进度索赔"
+    assert dashboard["home_projection"]["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
 
 
 def test_dashboard_seed_fallback_uses_subject_from_learner_snapshot(
     tmp_path: Path,
+    monkeypatch,
 ) -> None:
+    monkeypatch.setenv("DEEPTUTOR_HOME_PERSONALIZATION_ENABLED", "true")
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
     service.get_profile("subject_user")
@@ -207,7 +253,7 @@ def test_dashboard_seed_fallback_uses_subject_from_learner_snapshot(
 
     dashboard = service.get_home_dashboard("subject_user")
 
-    assert dashboard["recommended_prompts"][0]["text"] == seed_payload["prompts"][0]["text"]
+    assert dashboard["home_projection"]["recommended_prompts"][0]["text"] == seed_payload["prompts"][0]["text"]
 
 
 def test_weak_nodes_do_not_synthesize_fake_personalization() -> None:

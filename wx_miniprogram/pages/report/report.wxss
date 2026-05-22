@@ -595,6 +595,10 @@
   color: var(--text-muted);
 }
 
+.bookmark-action.saved {
+  opacity: 0.72;
+}
+
 .brain-timeline-title {
   font-size: 22rpx;
   font-weight: 700;

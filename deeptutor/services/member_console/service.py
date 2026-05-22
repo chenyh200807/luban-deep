@@ -61,6 +61,7 @@ from deeptutor.services.wallet.identity import is_uuid_like
 
 _TZ = timezone(timedelta(hours=8))
 logger = logging.getLogger(__name__)
+_HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
 
 
 def _now() -> datetime:
@@ -3587,17 +3588,11 @@ class MemberConsoleService:
             study_plan=study_plan,
             heartbeat_context=heartbeat_context,
         )
-        learning_projection = self._build_home_learning_projection(snapshot=snapshot, member=member)
-        projected_focus = dict(learning_projection.get("today_focus") or {})
-        projection_status = dict(learning_projection.get("source_status") or {})
-        if projected_focus.get("intent") and projection_status.get("fallback_used") is False:
-            today_focus = {**today_focus, **projected_focus}
-        return {
+        dashboard = {
             "review": review,
             "mastery": {"weak_nodes": weak_nodes[:3]},
             "today": {"hint": today_focus["title"], "focus": today_focus},
             "today_focus": today_focus,
-            "recommended_prompts": list(learning_projection.get("recommended_prompts") or []),
             "study_plan": study_plan,
             "progress_feedback": self._build_home_progress_feedback(
                 member,
@@ -3606,6 +3601,9 @@ class MemberConsoleService:
                 learning=learning,
             ),
         }
+        if env_flag(_HOME_PERSONALIZATION_ENABLED):
+            dashboard["home_projection"] = self._build_home_learning_projection(snapshot=snapshot, member=member)
+        return dashboard
 
     def _build_home_learning_projection(self, *, snapshot: Any | None = None, member: dict[str, Any] | None = None) -> dict[str, Any]:
         try:

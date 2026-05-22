@@ -109,7 +109,11 @@
               <view class="attempt-actions">
                 <text class="attempt-action">查看解析</text>
                 <text
-                  wx:if="{{item.collectable}}"
+                  wx:if="{{item.isBookmarked}}"
+                  class="attempt-action bookmark-action cloud saved"
+                >{{item.bookmarkLabel || '已加入错题'}}</text>
+                <text
+                  wx:elif="{{item.collectable}}"
                   class="attempt-action bookmark-action cloud"
                   data-key="{{item.key}}"
                   catchtap="toggleMistakeBookmark"

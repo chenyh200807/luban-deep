@@ -1513,6 +1513,12 @@ Page({
       }
       return;
     }
+    if (card.isBookmarked) {
+      if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+        wx.showToast({ title: "已在云端错题集", icon: "none", duration: 1600 });
+      }
+      return;
+    }
     try {
       await api.saveMistakeBookItem(mistakeBookPayloadFromCard(card));
       if (typeof wx !== "undefined" && typeof wx.showToast === "function") {

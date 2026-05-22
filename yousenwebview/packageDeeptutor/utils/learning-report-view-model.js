@@ -157,6 +157,8 @@ function normalizeLearningBrain(report) {
       explanation: String(attempt.explanation || ""),
       evidenceLabel: String(attempt.evidence_label || ""),
       collectable: Boolean(attempt.collectable),
+      isBookmarked: Boolean(attempt.is_bookmarked || attempt.isBookmarked),
+      bookmarkLabel: String(attempt.bookmark_label || attempt.bookmarkLabel || (attempt.is_bookmarked || attempt.isBookmarked ? "已加入错题" : "")),
       detailLines: asList(attempt.detail_lines).length
         ? asList(attempt.detail_lines)
         : [attempt.answer_line, attempt.diagnosis_detail, attempt.explanation].filter(Boolean),
@@ -423,10 +425,13 @@ function normalizeV2Attempts(source, learningBrain) {
       title: String(attempt.question_title || attempt.title || "一次练习"),
       questionText: String(attempt.question_preview || attempt.question_text || ""),
       resultLabel: String(attempt.result_label || ""),
+      tone: String(attempt.tone || ""),
       answerLine: String(attempt.answer_line || ""),
       diagnosis: String(attempt.diagnosis || ""),
       diagnosisDetail: String(attempt.why_it_matters || ""),
       collectable: Boolean(asObject(attempt.actions).bookmark),
+      isBookmarked: Boolean(attempt.is_bookmarked || attempt.isBookmarked),
+      bookmarkLabel: String(attempt.bookmark_label || attempt.bookmarkLabel || (attempt.is_bookmarked || attempt.isBookmarked ? "已加入错题" : "")),
     };
   });
 }

@@ -609,6 +609,10 @@
   opacity: 0.78;
 }
 
+.bookmark-action.saved {
+  opacity: 0.72;
+}
+
 .brain-event-list {
   display: flex;
   flex-wrap: wrap;

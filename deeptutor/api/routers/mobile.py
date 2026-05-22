@@ -71,6 +71,8 @@ _BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
 _BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
 _LOCAL_WALLET_FALLBACK = "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"
 _LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK = "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"
+_MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
+_MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
 _BILLING_PLAN_QUOTA_POINTS = {
     "advance": {"five_hour": 1600, "weekly": 4400},
     "sprint": {"five_hour": 3200, "weekly": 9000},
@@ -199,6 +201,16 @@ def _learning_brain_local_projection_fallback_enabled() -> bool:
         and _env_flag_enabled("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA")
         and _env_flag_enabled(_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK)
     )
+
+
+def _require_mistake_book_read_enabled() -> None:
+    if not _env_flag_enabled(_MISTAKE_BOOK_ENABLED):
+        raise HTTPException(status_code=404, detail="mistake_book_disabled")
+
+
+def _require_mistake_book_write_enabled() -> None:
+    if not _env_flag_enabled(_MISTAKE_BOOK_WRITE_ENABLED):
+        raise HTTPException(status_code=404, detail="mistake_book_write_disabled")
 
 
 def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: str) -> None:
@@ -2146,6 +2158,7 @@ async def mobile_mistake_book(
     subject_id: str = Query(default=""),
     include_mastered: bool = Query(default=False),
 ) -> dict[str, Any]:
+    _require_mistake_book_read_enabled()
     user_id = _resolve_authenticated_user_id(authorization)
     try:
         return await run_in_threadpool(
@@ -2163,6 +2176,7 @@ async def mobile_save_mistake_book_item(
     payload: MistakeBookSaveRequest,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
+    _require_mistake_book_write_enabled()
     user_id = _resolve_authenticated_user_id(authorization)
     try:
         return await run_in_threadpool(
@@ -2189,6 +2203,7 @@ async def mobile_remove_mistake_book_item(
     authorization: str | None = Header(default=None),
     if_match: str | None = Header(default=None, alias="If-Match"),
 ) -> dict[str, Any]:
+    _require_mistake_book_write_enabled()
     user_id = _resolve_authenticated_user_id(authorization)
     try:
         return await run_in_threadpool(
@@ -2211,6 +2226,7 @@ async def mobile_mark_mistake_book_item_mastered(
     authorization: str | None = Header(default=None),
     if_match: str | None = Header(default=None, alias="If-Match"),
 ) -> dict[str, Any]:
+    _require_mistake_book_write_enabled()
     user_id = _resolve_authenticated_user_id(authorization)
     try:
         return await run_in_threadpool(
@@ -2233,6 +2249,7 @@ async def mobile_record_mistake_book_item_review(
     authorization: str | None = Header(default=None),
     if_match: str | None = Header(default=None, alias="If-Match"),
 ) -> dict[str, Any]:
+    _require_mistake_book_write_enabled()
     user_id = _resolve_authenticated_user_id(authorization)
     try:
         return await run_in_threadpool(

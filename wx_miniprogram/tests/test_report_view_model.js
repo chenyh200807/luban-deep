@@ -46,10 +46,13 @@ var report = {
       question_title: "主体结构验收条件",
       question_preview: "主体结构验收条件",
       result_label: "答错",
+      tone: "wrong",
       answer_line: "你选 A，正确 B",
       diagnosis: "多选漏选",
       why_it_matters: "漏掉验收条件",
       actions: { bookmark: true },
+      is_bookmarked: true,
+      bookmark_label: "已加入错题",
     },
   ],
   learner_facing: {
@@ -104,6 +107,9 @@ assert.strictEqual(wxModel.hero.headline, "当前最该补：主体结构");
 assert.strictEqual(wxModel.metrics[1].key, "recent_three");
 assert.strictEqual(wxModel.attempts[0].attemptRef, "signed-ref");
 assert.strictEqual(wxModel.attempts[0].subjectId, "construction_exam_1");
+assert.strictEqual(wxModel.attempts[0].tone, "wrong");
+assert.strictEqual(wxModel.attempts[0].isBookmarked, true);
+assert.strictEqual(wxModel.attempts[0].bookmarkLabel, "已加入错题");
 assert.strictEqual(wxModel.nextTraining[0].intent.source, "learning_report");
 assert(Array.isArray(wxModel.masteryDimensions));
 assert("stableTruths" in wxModel);
@@ -115,6 +121,8 @@ assert.strictEqual(pageData.todayDone, 4);
 assert.strictEqual(pageData.masteryStatusLabel, "正在形成");
 assert.strictEqual(pageData.learningBrainAttempts[0].title, "主体结构验收条件");
 assert.strictEqual(pageData.learningAttemptCards[0].subjectId, "construction_exam_1");
+assert.strictEqual(pageData.learningAttemptCards[0].isBookmarked, true);
+assert.strictEqual(pageData.learningAttemptCards[0].bookmarkLabel, "已加入错题");
 assert.strictEqual(pageData.learningBrainNextAction.intent.source, "learning_report");
 
 var wxReportSource = fs.readFileSync(wxReportPath, "utf8");

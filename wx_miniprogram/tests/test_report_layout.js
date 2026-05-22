@@ -101,6 +101,9 @@ assertIncludes(reportWxml, "{{item.resultLabel}}", "attempt card should show res
 assertIncludes(reportWxml, "{{item.answerLine}}", "attempt card should show user/correct answer line from read model");
 assertIncludes(reportWxml, "{{item.diagnosisDetail || item.diagnosis}}", "attempt card should show one-line diagnosis from read model");
 assertIncludes(reportWxml, "查看解析", "attempt card should expose analysis detail action");
+assertIncludes(reportWxml, "wx:if=\"{{item.isBookmarked}}\"", "attempt card should render cloud bookmark state from read model");
+assertIncludes(reportWxml, "{{item.bookmarkLabel || '已加入错题'}}", "attempt card should use backend bookmark label");
+assertIncludes(reportWxml, "wx:elif=\"{{item.collectable}}\"", "attempt card should only expose save action when not already bookmarked");
 assertIncludes(reportWxml, "收藏错题", "attempt card should expose mistake-book action without local inference");
 assertIncludes(reportSource, "api.saveMistakeBookItem", "mistake-book action should call the cloud mistake-book authority");
 assertIncludes(reportWxml, "{{degradedHint}}", "report page should show degraded/cached summary hint when the network path is unavailable");

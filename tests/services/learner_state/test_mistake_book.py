@@ -12,6 +12,25 @@ from deeptutor.services.learner_state.mistake_book import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _enable_mistake_book_flags(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_ENABLED", "true")
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED", "true")
+
+
+def test_mistake_book_service_flags_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    service = MistakeBookService(store=InMemoryMistakeBookStore())
+    attempt_ref = sign_attempt_ref(user_id="u1", event_id="evt1", question_id="q1")
+
+    monkeypatch.delenv("DEEPTUTOR_MISTAKE_BOOK_ENABLED", raising=False)
+    with pytest.raises(RuntimeError, match="mistake_book_disabled"):
+        service.list_items(user_id="u1")
+
+    monkeypatch.delenv("DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED", raising=False)
+    with pytest.raises(RuntimeError, match="mistake_book_write_disabled"):
+        service.save_item(user_id="u1", attempt_ref=attempt_ref, subject_id="construction_exam_1")
+
+
 def test_save_remove_and_list_mistake_book_item() -> None:
     service = MistakeBookService(store=InMemoryMistakeBookStore())
     attempt_ref = sign_attempt_ref(user_id="u1", event_id="evt1", question_id="q1")

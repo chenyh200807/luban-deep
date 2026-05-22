@@ -3202,6 +3202,8 @@ def test_mobile_mistake_book_save_list_remove_and_conflict(
 
     service = MistakeBookService(store=InMemoryMistakeBookStore())
     monkeypatch.setattr(mobile_module, "mistake_book_service", service)
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_ENABLED", "true")
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED", "true")
     monkeypatch.setattr(
         mobile_module,
         "_resolve_authenticated_user_id",
@@ -3242,6 +3244,36 @@ def test_mobile_mistake_book_save_list_remove_and_conflict(
         assert delete_response.json()["is_bookmarked"] is False
 
 
+def test_mobile_mistake_book_flags_fail_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+    from deeptutor.services.learner_state.mistake_book import InMemoryMistakeBookStore, MistakeBookService
+
+    service = MistakeBookService(store=InMemoryMistakeBookStore())
+    monkeypatch.setattr(mobile_module, "mistake_book_service", service)
+    monkeypatch.delenv("DEEPTUTOR_MISTAKE_BOOK_ENABLED", raising=False)
+    monkeypatch.delenv("DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED", raising=False)
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    attempt_ref = sign_attempt_ref(user_id="student_demo", event_id="evt_disabled", question_id="q1")
+
+    with TestClient(_build_app()) as client:
+        list_response = client.get("/api/v1/mobile/mistake-book?subject_id=construction_exam_1")
+        assert list_response.status_code == 404
+        assert list_response.json()["detail"] == "mistake_book_disabled"
+
+        save_response = client.post(
+            "/api/v1/mobile/mistake-book/items",
+            json={"attempt_ref": attempt_ref, "subject_id": "construction_exam_1"},
+        )
+        assert save_response.status_code == 404
+        assert save_response.json()["detail"] == "mistake_book_write_disabled"
+
+
 def test_mobile_mistake_book_mastered_and_review(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -3250,6 +3282,8 @@ def test_mobile_mistake_book_mastered_and_review(
 
     service = MistakeBookService(store=InMemoryMistakeBookStore())
     monkeypatch.setattr(mobile_module, "mistake_book_service", service)
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_ENABLED", "true")
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED", "true")
     monkeypatch.setattr(
         mobile_module,
         "_resolve_authenticated_user_id",

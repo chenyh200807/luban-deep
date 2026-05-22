@@ -971,10 +971,11 @@ def _mistake_book_projection(*, user_id: str, mistake_book_service: Any | None) 
     try:
         result = _safe_dict(lister(user_id=user_id, include_mastered=True))
     except Exception as exc:
+        reason = str(exc).strip() or exc.__class__.__name__
         return {
             "count": 0,
             "recent_items": [],
-            "source_status": {"ok": False, "reason": exc.__class__.__name__},
+            "source_status": {"ok": False, "reason": reason},
         }
     return {
         "count": _safe_int(result.get("count")),
