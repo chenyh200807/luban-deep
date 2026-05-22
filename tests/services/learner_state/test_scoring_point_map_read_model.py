@@ -185,12 +185,77 @@ def test_projected_rubric_yields_keyword_only_granularity() -> None:
                 rubric_mode="projected_rubric",
                 granularity="keyword_only",
                 point_label="对角线布点",
+                knowledge_node_id="1A411010",
             )
         ],
         user_id="student_demo",
     )
 
     assert len(projection["items"]) == 1
+    assert projection["items"][0]["granularity"] == "keyword_only"
+
+
+def test_projected_rubric_in_unqualified_cluster_stays_rubric_pending() -> None:
+    """projected_rubric only promotes for audited >=70% clusters.
+
+    This guards the Batch C per-cluster gate: lower-coverage clusters must not
+    render keyword-only map rows as if the map is ready.
+    """
+    projection = build_scoring_point_map_read_projection(
+        events=[
+            _case_event(
+                event_id="low_cov",
+                rubric_mode="projected_rubric",
+                granularity="keyword_only",
+                knowledge_node_id="1A412010",
+            )
+        ],
+        user_id="student_demo",
+    )
+
+    assert projection["items"] == []
+    assert projection["empty_state"] == "rubric_pending"
+    assert projection["source_status"]["projected_rubric_blocked_event_count"] == 1
+
+
+def test_projected_rubric_filters_mixed_cluster_points_individually() -> None:
+    """A projected rubric event can contain points from multiple clusters.
+
+    The gate is per node_code prefix, so a qualified point must not promote
+    a weaker sibling point from the same event.
+    """
+    event = _case_event(
+        event_id="mixed_projected",
+        rubric_mode="projected_rubric",
+        granularity="keyword_only",
+        point_id="eligible_p",
+        point_label="合格簇要点",
+        knowledge_node_id="1A411010",
+    )
+    rubric = event.payload_json["rubric"]
+    rubric["scoring_points"].append(
+        {
+            "point_id": "weak_p",
+            "label": "弱覆盖簇要点",
+            "knowledge_node_id": "1A412010",
+            "ability_dimension": "code_application",
+        }
+    )
+    rubric["scoring_point_hits"].append(
+        {
+            "point_id": "weak_p",
+            "hit": False,
+            "awarded_score": 0,
+            "error_code": "E02",
+        }
+    )
+
+    projection = build_scoring_point_map_read_projection(
+        events=[event],
+        user_id="student_demo",
+    )
+
+    assert [item["point_id"] for item in projection["items"]] == ["eligible_p"]
     assert projection["items"][0]["granularity"] == "keyword_only"
 
 
@@ -309,6 +374,7 @@ def test_source_status_discloses_coverage_stats() -> None:
                 granularity="keyword_only",
                 point_id="kw_only_p",
                 point_label="提示词",
+                knowledge_node_id="1A411010",
             ),
             _case_event(event_id="open1", rubric_mode="open_skill", granularity=""),
         ],

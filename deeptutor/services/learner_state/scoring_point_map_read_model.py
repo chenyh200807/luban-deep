@@ -12,7 +12,8 @@ Hard rules from the plan:
 - Items with ``rubric_mode ∈ {grading_key, curated_rubric}`` surface
   as ``granularity="scoring_point"`` (UI label: 采分点).
 - Items with ``rubric_mode == projected_rubric`` surface as
-  ``granularity="keyword_only"`` (UI label: 审题要点).
+  ``granularity="keyword_only"`` only for audited >=70% clusters
+  (UI label: 审题要点); weaker clusters stay ``rubric_pending``.
 - ``rubric_mode == open_skill`` evidence contributes nothing to the map.
 - ``empty_state`` is one of ``""`` / ``no_evidence`` / ``rubric_pending``;
   the UI uses it to decide whether to render the map or an honest
@@ -36,6 +37,16 @@ from deeptutor.services.learner_state.training_intent import (
 
 _MAP_ELIGIBLE_MODES = frozenset({"grading_key", "curated_rubric", "projected_rubric"})
 _SCORING_POINT_MODES = frozenset({"grading_key", "curated_rubric"})
+_PROJECTED_RUBRIC_ELIGIBLE_CLUSTER_PREFIXES = frozenset({
+    "1A41101",
+    "1A41302",
+    "1A41306",
+    "1A42200",
+    "1A42203",
+    "1A43500",
+    "1A43700",
+    "1A43800",
+})
 
 
 def build_scoring_point_map_read_projection(
@@ -57,6 +68,7 @@ def build_scoring_point_map_read_projection(
     # map is a single row that may cite multiple attempt event_ids.
     by_point: OrderedDict[tuple[str, str], dict[str, Any]] = OrderedDict()
     map_eligible_event_count = 0
+    projected_rubric_blocked_event_count = 0
 
     for event in case_events:
         payload = _safe_dict(getattr(event, "payload_json", {}))
@@ -71,6 +83,14 @@ def build_scoring_point_map_read_projection(
         rubric_hits = _safe_list(rubric.get("scoring_point_hits"))
         if not rubric_specs:
             continue
+        if (
+            rubric_mode == "projected_rubric"
+            and not any(
+                _projected_rubric_spec_eligible(spec) for spec in rubric_specs
+            )
+        ):
+            projected_rubric_blocked_event_count += 1
+            continue
 
         map_eligible_event_count += 1
         hit_index = {
@@ -81,6 +101,11 @@ def build_scoring_point_map_read_projection(
 
         for spec in rubric_specs:
             if not isinstance(spec, dict):
+                continue
+            if (
+                rubric_mode == "projected_rubric"
+                and not _projected_rubric_spec_eligible(spec)
+            ):
                 continue
             point_id = str(spec.get("point_id") or "").strip()
             if not point_id:
@@ -145,6 +170,9 @@ def build_scoring_point_map_read_projection(
             "model": "rule_based_v1",
             "total_case_event_count": total_case_event_count,
             "map_eligible_event_count": map_eligible_event_count,
+            "projected_rubric_blocked_event_count": (
+                projected_rubric_blocked_event_count
+            ),
             "scoring_point_items": scoring_point_items,
             "keyword_only_items": keyword_only_items,
         },
@@ -182,6 +210,16 @@ def _is_learning_evidence(event: LearnerStateEvent) -> bool:
         return True
     payload = _safe_dict(getattr(event, "payload_json", {}))
     return str(payload.get("event_type") or "").strip() == "learning_evidence"
+
+
+def _projected_rubric_spec_eligible(spec: Any) -> bool:
+    if not isinstance(spec, dict):
+        return False
+    node_id = str(spec.get("knowledge_node_id") or "").strip()
+    return any(
+        node_id.startswith(prefix)
+        for prefix in _PROJECTED_RUBRIC_ELIGIBLE_CLUSTER_PREFIXES
+    )
 
 
 def _resolve_empty_state(
