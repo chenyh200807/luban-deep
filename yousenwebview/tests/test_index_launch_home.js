@@ -164,8 +164,8 @@ run("devtools normal compile should launch from the host home authority", functi
     "app.json first page should start from the host home instead of a launch wrapper",
   );
   assert(
-    appConfig.lazyCodeLoading === undefined,
-    "app.json should not enable lazy code loading because DevTools subpackage pageframes hang on chat/report",
+    appConfig.lazyCodeLoading === "requiredComponents",
+    "app.json should enable required-components lazy code loading so DevTools code quality passes",
   );
 
   [
