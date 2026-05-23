@@ -304,13 +304,17 @@ def test_member_router_records_ops_action_result(monkeypatch: pytest.MonkeyPatch
 
 
 def test_member_router_records_conversation_view(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Round 4 S1: view-audit must forward operator + reason + idempotency_key
+    to the service. X-Idempotency-Key header is mandatory; missing header
+    returns 400 (see test_member_router_view_audit_requires_idempotency_key).
+    """
     app = _build_app()
     app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
     calls: list[dict[str, object]] = []
 
     def _record_conversation_view(user_id: str, session_id: str, **kwargs: object) -> dict[str, object]:
         calls.append({"user_id": user_id, "session_id": session_id, **kwargs})
-        return {"session_id": session_id, "title": "地基基础答疑", "message_count": 2}
+        return {"session_id": session_id, "title": "地基基础答疑", "message_count": 2, "audit_id": "audit_x"}
 
     monkeypatch.setattr(
         "deeptutor.api.routers.member.service",
@@ -322,7 +326,10 @@ def test_member_router_records_conversation_view(monkeypatch: pytest.MonkeyPatch
     )
 
     with TestClient(app) as client:
-        response = client.post("/api/v1/member/student_demo/conversations/tb_student_demo/view-audit")
+        response = client.post(
+            "/api/v1/member/student_demo/conversations/tb_student_demo/view-audit",
+            headers={"X-Idempotency-Key": "abc-123"},
+        )
 
     assert response.status_code == 200
     assert response.json()["session_id"] == "tb_student_demo"
@@ -331,8 +338,127 @@ def test_member_router_records_conversation_view(monkeypatch: pytest.MonkeyPatch
             "user_id": "student_demo",
             "session_id": "tb_student_demo",
             "operator": "admin_demo",
+            "reason": None,
+            "idempotency_key": "abc-123",
         }
     ]
+
+
+def test_member_router_view_audit_requires_idempotency_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Round 4 S1: missing X-Idempotency-Key on a write must 400 before reaching
+    the service. This converts useAuditedAction's header from placebo to enforced
+    contract — flaky retries cannot bypass dedup because the second leg without
+    a key is rejected at the edge.
+    """
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    calls: list[dict[str, object]] = []
+
+    def _record_conversation_view(*args: object, **kwargs: object) -> dict[str, object]:
+        calls.append({"args": args, "kwargs": kwargs})
+        return {"session_id": "x"}
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type(
+            "FakeMemberService",
+            (),
+            {"record_conversation_view": staticmethod(_record_conversation_view)},
+        )(),
+    )
+
+    with TestClient(app) as client:
+        # No X-Idempotency-Key header → must reject.
+        no_header = client.post(
+            "/api/v1/member/student_demo/conversations/tb_student_demo/view-audit",
+        )
+        # Empty key is treated the same as missing.
+        empty_header = client.post(
+            "/api/v1/member/student_demo/conversations/tb_student_demo/view-audit",
+            headers={"X-Idempotency-Key": ""},
+        )
+
+    assert no_header.status_code == 400
+    assert empty_header.status_code == 400
+    assert calls == [], "service must NOT be called when header missing/empty"
+
+
+def test_member_router_view_audit_rejects_malformed_idempotency_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Round 5 M1: X-Idempotency-Key must conform to a tight UUID-ish pattern
+    so it cannot be used to inflate the audit_idempotency_keys index with
+    multi-MB blobs or to inject the composite-key separator ':' that would
+    collide with another action's dedup entry."""
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    calls: list[dict[str, object]] = []
+
+    def _record_conversation_view(*args: object, **kwargs: object) -> dict[str, object]:
+        calls.append({"args": args, "kwargs": kwargs})
+        return {"session_id": "x"}
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type(
+            "FakeMemberService",
+            (),
+            {"record_conversation_view": staticmethod(_record_conversation_view)},
+        )(),
+    )
+
+    # httpx rejects non-ASCII headers client-side, so we only test cases that
+    # actually reach the router. Non-ASCII is blocked one layer earlier.
+    bad_keys = [
+        "with:colon-injection",  # separator injection
+        "x" * 129,  # too long
+        "has spaces",  # whitespace
+        "with/slash",  # URL char
+        "with+plus",  # disallowed char
+    ]
+    with TestClient(app) as client:
+        for bad in bad_keys:
+            resp = client.post(
+                "/api/v1/member/student_demo/conversations/tb_student_demo/view-audit",
+                headers={"X-Idempotency-Key": bad},
+            )
+            assert resp.status_code == 400, f"malformed key {bad!r} should be 400"
+    assert calls == [], "service must NOT be called for any malformed key"
+
+
+def test_member_router_view_audit_strips_newline_in_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Round 5 M2: reason coming through query (%0a) or body must not carry
+    newline / CR into audit_log — otherwise log aggregators that parse JSON
+    line-by-line could be broken or fed forged entries."""
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    received_reason: list[object] = []
+
+    def _record_conversation_view(*_args: object, **kwargs: object) -> dict[str, object]:
+        received_reason.append(kwargs.get("reason"))
+        return {"session_id": "x", "audit_id": "audit_x"}
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type(
+            "FakeMemberService",
+            (),
+            {"record_conversation_view": staticmethod(_record_conversation_view)},
+        )(),
+    )
+
+    with TestClient(app) as client:
+        resp = client.post(
+            "/api/v1/member/student_demo/conversations/tb_student_demo/view-audit"
+            "?reason=complaint%0afake-line",
+            headers={"X-Idempotency-Key": "abc-123"},
+        )
+    assert resp.status_code == 200
+    assert received_reason == ["complaint fake-line"], (
+        f"newline must be stripped before reaching service; got {received_reason!r}"
+    )
 
 
 def test_member_list_forwards_operational_filters(monkeypatch: pytest.MonkeyPatch) -> None:

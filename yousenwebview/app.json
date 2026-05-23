@@ -54,6 +54,7 @@
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents",
   "plugins": {
     "materialPlugin": {
       "version": "1.0.5",

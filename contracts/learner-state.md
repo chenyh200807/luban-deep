@@ -398,3 +398,72 @@ TutorBot / Guide 运行时上下文装配顺序必须固定：
   learner core 为单一主真相，并具备幂等键
 - heartbeat 按 `user_id` 粒度运行
 - 同一学员并发写回无覆盖丢失
+
+## BI v2 Admin Audited-Write 契约（2026-05-23 由 BI 会员经营后台 v2 引入）
+
+这一节锁定 BI v2 后台 admin 直接写入 learner state 边界数据（audit log、note、
+conversation view-audit 等）必须遵守的横切契约。所有 `member_console`
+路径下的 admin write 端点（router 注册在 `deeptutor/api/routers/member.py`）
+都必须满足下列条款，未满足者属于契约违反。
+
+### 强制约束
+
+1. **X-Idempotency-Key**：每个 admin write 必须接 `X-Idempotency-Key` Header。
+   缺失或为空 → router 直接 `400`，service 层不被调用。
+   - 格式：`^[A-Za-z0-9_-]{1,128}$`（router 加 regex 守护）。
+   - 客户端必须由 `web/app/(workspace)/bi/_v2/useAuditedAction.ts` 注入；
+     直接 fetch 绕过的代码被 `tests/web/test_bi_v2_raw_fetch_guard.py` 拦截。
+
+2. **Dedup composite key**：service 层 dedup index 形状为
+   `f"{action}:{operator}:{idempotency_key}"`。**必须含 operator 段**，
+   否则同一 idempotency_key 跨 admin 会互相 dedup，造成跨用户活动隐匿。
+
+3. **Dedup 索引上限**：`AUDIT_IDEMPOTENCY_INDEX_MAX = 10_000`（FIFO 驱逐）。
+   防止 admin token 被滥用做 DoS（无界字典 → JSON 膨胀 → I/O 拖慢）。
+
+4. **Audit log append-only**：写入路径走 `MemberConsoleService._append_audit`，
+   原子性由 `_mutate` 的 fcntl 锁保证；TOCTOU 已通过把 lookup 移进
+   `_apply` 闭包内闭环（R5 M3）。
+
+5. **Reason 白名单**：`conversation_view` 写入时 `reason` 必须是
+   `{"complaint", "ops", "teaching", "engineering", "finance"}` 或
+   `"other:<note>"`（note ≥ 4 字符）；router 同步去除 `\n` / `\r` 防 log injection。
+
+6. **Single Authority**：BI v2 前端**不创建**第二套会员/钱包/学习/反馈事实源。
+   所有写动作经 `useAuditedAction` → 注册在
+   `deeptutor/contracts/bi_v2_write_endpoints.py` 的真实 endpoint。
+
+### 单一权威清单
+
+| 子事实 | 唯一 authority | BI v2 前端职责 |
+|---|---|---|
+| 会员身份 / Tier / 状态 | `MemberConsoleService` + auth identity | 只读 + 受控写经 audited endpoint |
+| 钱包余额 / 流水 | `WalletService` | 只读 + idempotency 兜底（P1 接 etag/undo） |
+| 学习事实 / 掌握度 | `learner_state` read model | 只读，禁止前端写 |
+| 反馈 | `FeedbackService` (P0) | 列表读，triage 在 useAuditedAction 接入后才启用 |
+| 后台操作记录 | `member_console.audit_log` | 必须经 `_append_audit`，禁止前端伪造审计 |
+
+### 不允许的设计
+
+7. **前端 setAuditLog 本地状态自称写入 audit log**（已删除；
+   `tests/web/test_bi_v2_banner_fetch_coherence.py` 守护回归）。
+8. **mock 数据进生产 bundle**（`web/scripts/check_mock_boundary.mjs` 守护）。
+9. **banner 写 "已接真实 service" 但代码无 fetch**（同上 banner-fetch coherence guard）。
+10. **绕过 useAuditedAction 直接 fetch admin endpoint**
+    （`tests/web/test_bi_v2_raw_fetch_guard.py` 守护）。
+
+### 必测项（BI v2 additional）
+
+- 同 `X-Idempotency-Key` 重复 POST → 后端只写 1 条 audit，第二次返回
+  同 `audit_id` + `deduped: true`
+- 同 key 不同 operator → 写两条 audit（operator binding 生效）
+- 索引超过 `AUDIT_IDEMPOTENCY_INDEX_MAX` 时 FIFO 驱逐生效
+- 关闭 `BI_BACKOFFICE_V2_SHELL_ENABLED` flag → `/bi` 完整回滚到旧
+  `BiPageClient`（1 秒回滚）
+
+### 关联文档
+
+- 计划：`docs/plan/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md`
+- 灰度 runbook：`docs/zh/bi/bi-backoffice-v2-rollout-runbook.md`
+- 阿里云部署 + 手动测试：`docs/zh/bi/bi-backoffice-v2-aliyun-deploy.md`
+- WRITE_ENDPOINTS 注册表：`deeptutor/contracts/bi_v2_write_endpoints.py`

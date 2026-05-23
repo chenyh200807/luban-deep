@@ -17,6 +17,12 @@
   说明为什么做 BI、给谁看、看什么、页面模块怎么组织、每个模块回答哪些业务问题。
 - [DeepTutor BI 数据与指标方案](./deeptutor-bi-data-blueprint.md)
   说明现有数据源、事件模型、事实表/维表设计、指标口径、接口建议和实施路线图。
+- [鲁班智考 BI / 会员经营后台 UI/UX 重构计划](../../plan/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md)
+  将 BI 页面进一步收敛为会员经营后台 + BI 决策系统，覆盖经营总览、会员运营 CRM、套餐权益、充值账务、对话回顾、反馈中心、系统运维和经营审计。
+- [BI 会员经营后台 v2 — Batch 0 Authority Audit](./bi-backoffice-v2-batch0-authority-audit.md)
+  字段矩阵、账务异常检测规则草案、性能风险、P0/P1 切分。Batch 0 交付物。
+- [BI 会员经营后台 v2 — 灰度与回滚 runbook](./bi-backoffice-v2-rollout-runbook.md)
+  6 个 feature flag 灰度顺序、1 秒回滚步骤、Playwright smoke 命令与 QA gate 清单。
 
 ## 设计原则
 
