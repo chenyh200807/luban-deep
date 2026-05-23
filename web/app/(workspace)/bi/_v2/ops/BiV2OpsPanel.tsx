@@ -1,9 +1,16 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import { Download, History, Lock, Rocket, ShieldAlert, ShieldCheck } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { BiDataTable, BiStatusPill, BI_TRUST_TONE, type BiTableColumn } from '@/components/bi-v2'
+import { Download, Eye, History, Lock, RefreshCw, Rocket, ShieldAlert, ShieldCheck } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  BiDataTable,
+  BiSidePanel,
+  BiStatusPill,
+  BI_TRUST_TONE,
+  type BiTableColumn,
+} from '@/components/bi-v2'
+import { getMemberAuditLog, type MemberAuditLogItem } from '@/lib/member-api'
 import {
   AUDIT_ENTRIES,
   EXPORT_JOBS,
@@ -62,14 +69,84 @@ export type BiV2OpsPanelProps = {
   flagEnabled: boolean
 }
 
+function auditCategory(action: string): AuditLogEntry['category'] {
+  const lower = action.toLowerCase()
+  if (lower.includes('wallet') || lower.includes('ledger') || lower.includes('point')) return 'wallet'
+  if (lower.includes('feedback')) return 'feedback'
+  if (lower.includes('export')) return 'export'
+  if (lower.includes('admin') || lower.includes('permission')) return 'permission'
+  return 'member'
+}
+
+function auditSeverity(action: string): AuditLogEntry['severity'] {
+  const lower = action.toLowerCase()
+  if (lower.includes('revoke') || lower.includes('export') || lower.includes('admin')) return 'high'
+  if (lower.includes('view') || lower.includes('conversation')) return 'medium'
+  return 'low'
+}
+
+function mapAuditLogItem(item: MemberAuditLogItem, index: number): AuditLogEntry {
+  const action = item.action || 'unknown'
+  return {
+    id: item.id || `audit-${index + 1}`,
+    at: item.created_at || '—',
+    actor: item.operator || 'system',
+    action,
+    target: item.target_user || '—',
+    reason: item.reason,
+    before: item.before,
+    after: item.after,
+    severity: auditSeverity(action),
+    category: auditCategory(action),
+  }
+}
+
 export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
   const [auditFilter, setAuditFilter] = useState<AuditFilter>(DEFAULT_AUDIT_FILTER)
   const [composingActor, setComposingActor] = useState(false)
   const [composingTarget, setComposingTarget] = useState(false)
+  const [liveAudit, setLiveAudit] = useState<AuditLogEntry[]>([])
+  const [auditTotal, setAuditTotal] = useState(0)
+  const [auditLoading, setAuditLoading] = useState(flagEnabled)
+  const [auditError, setAuditError] = useState('')
+  const [selectedTile, setSelectedTile] = useState<SystemOpsTile | null>(null)
+  const [selectedAudit, setSelectedAudit] = useState<AuditLogEntry | null>(null)
+
+  const loadAudit = useCallback(async () => {
+    if (!flagEnabled) {
+      setLiveAudit([])
+      setAuditTotal(0)
+      setAuditLoading(false)
+      setAuditError('')
+      return
+    }
+    try {
+      setAuditLoading(true)
+      setAuditError('')
+      const response = await getMemberAuditLog({
+        page: 1,
+        page_size: 100,
+        operator: auditFilter.actor.trim() || undefined,
+        target_user: auditFilter.target.trim() || undefined,
+      })
+      setLiveAudit(response.items.map(mapAuditLogItem))
+      setAuditTotal(response.total)
+    } catch (err) {
+      setAuditError(err instanceof Error ? err.message : '操作审计加载失败')
+      setLiveAudit([])
+      setAuditTotal(0)
+    } finally {
+      setAuditLoading(false)
+    }
+  }, [auditFilter.actor, auditFilter.target, flagEnabled])
+
+  useEffect(() => {
+    void loadAudit()
+  }, [loadAudit])
 
   const filteredAudit = useMemo(
     () =>
-      AUDIT_ENTRIES.filter(e => {
+      (flagEnabled ? liveAudit : AUDIT_ENTRIES).filter(e => {
         if (auditFilter.actor && !e.actor.toLowerCase().includes(auditFilter.actor.toLowerCase()))
           return false
         if (
@@ -81,8 +158,41 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
         if (auditFilter.severity && e.severity !== auditFilter.severity) return false
         return true
       }),
-    [auditFilter]
+    [auditFilter, flagEnabled, liveAudit]
   )
+
+  const opsTiles = useMemo<SystemOpsTile[]>(() => {
+    if (!flagEnabled) return OPS_TILES
+    return [
+      {
+        key: 'audit-actions',
+        label: '操作审计',
+        status: auditError ? 'fail' : auditLoading ? 'warn' : 'ok',
+        detail: auditError || `已接 member_console.audit_log，当前窗口返回 ${liveAudit.length} / ${auditTotal} 条。`,
+        owner: 'ops',
+        trust: 'A',
+        authority: 'member_console.audit_log',
+      },
+      {
+        key: 'data-trust',
+        label: '数据可信中心',
+        status: 'ok',
+        detail: 'BI v2 只读模块已收敛到真实 API；无真实 endpoint 的模块保持不可点击。',
+        owner: 'platform',
+        trust: 'A',
+        authority: 'bi_feature_flags + source guards',
+      },
+      {
+        key: 'audit-export',
+        label: '导出审计',
+        status: 'warn',
+        detail: '导出任务队列数据源待接入；当前不展示 dev mock。',
+        owner: 'ops',
+        trust: 'B',
+        authority: 'member_console.export_members_csv',
+      },
+    ]
+  }, [auditError, auditLoading, auditTotal, flagEnabled, liveAudit.length])
 
   const auditColumns = useMemo<BiTableColumn<AuditLogEntry>[]>(
     () => [
@@ -142,18 +252,27 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
           已对齐。
         </div>
       ) : (
-        // Round 4 S5: banner must not claim "已接 / 已写入 真实 service" while
-        // the panel still renders mock data. Honest copy + skeleton state
-        // until the audit-log / exports endpoints are wired through
-        // useAuditedAction in Batch 6.
-        <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
-          BI_SYSTEM_OPS_V2_ENABLED flag 已开启 · UI 已对齐 audit_log / exports 形状；真实 service
-          接入待 Batch 6 实装（当前展示为 skeleton / dev-only mock）。
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
+          <span>
+            BI_SYSTEM_OPS_V2_ENABLED 已开启 · 操作审计读取{' '}
+            <code className="font-mono">/api/v1/member/audit-log</code>；导出任务队列数据源待接入，
+            不展示 mock。
+          </span>
+          <button
+            type="button"
+            onClick={() => void loadAudit()}
+            disabled={auditLoading}
+            className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 disabled:opacity-50"
+            aria-label="刷新操作审计"
+          >
+            <RefreshCw className={`h-3 w-3 ${auditLoading ? 'animate-spin' : ''}`} aria-hidden />
+            刷新
+          </button>
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {OPS_TILES.map(tile => {
+        {opsTiles.map(tile => {
           const Icon = OPS_ICON[tile.key] ?? ShieldCheck
           return (
             <article
@@ -174,6 +293,15 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
               <p className="mt-2 text-[11px] text-slate-500">
                 authority: {tile.authority} · owner: {tile.owner}
               </p>
+              <button
+                type="button"
+                onClick={() => setSelectedTile(tile)}
+                className="mt-3 inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                aria-label={`查看 ${tile.label} 详情`}
+              >
+                <Eye className="h-3 w-3" aria-hidden />
+                查看详情
+              </button>
             </article>
           )
         })}
@@ -189,7 +317,7 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
             </p>
           </div>
           <span className="text-[11px] text-slate-500">
-            {filteredAudit.length} / {AUDIT_ENTRIES.length}
+            {filteredAudit.length} / {flagEnabled ? auditTotal : AUDIT_ENTRIES.length}
           </span>
         </header>
         <div className="flex flex-wrap items-center gap-2 px-4 py-2 text-xs">
@@ -278,8 +406,30 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
           columns={auditColumns}
           rows={filteredAudit}
           rowKey={e => e.id}
-          status={filteredAudit.length === 0 ? 'no-results' : 'ok'}
+          status={
+            auditLoading
+              ? 'loading'
+              : auditError
+                ? 'error'
+                : filteredAudit.length === 0
+                  ? flagEnabled
+                    ? 'empty'
+                    : 'no-results'
+                  : 'ok'
+          }
+          errorMessage={auditError}
           emptyTitle="暂无审计"
+          emptyHint="当前 audit_log 没有返回记录。"
+          rowAction={entry => (
+            <button
+              type="button"
+              onClick={() => setSelectedAudit(entry)}
+              className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
+              aria-label={`查看审计 ${entry.id} 详情`}
+            >
+              <Eye className="h-3 w-3" aria-hidden />
+            </button>
+          )}
         />
       </section>
 
@@ -295,11 +445,113 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
         </header>
         <BiDataTable<ExportJob>
           columns={exportColumns}
-          rows={EXPORT_JOBS}
+          rows={flagEnabled ? [] : EXPORT_JOBS}
           rowKey={j => j.id}
-          status="ok"
+          status={flagEnabled ? 'empty' : 'ok'}
+          emptyTitle="暂无导出任务"
+          emptyHint="导出任务队列 endpoint 尚未存在；当前只保留脱敏导出的设计入口。"
         />
       </section>
+      <OpsTileDetailPanel tile={selectedTile} onClose={() => setSelectedTile(null)} />
+      <AuditDetailPanel entry={selectedAudit} onClose={() => setSelectedAudit(null)} />
     </section>
+  )
+}
+
+function OpsTileDetailPanel({
+  tile,
+  onClose,
+}: {
+  tile: SystemOpsTile | null
+  onClose: () => void
+}) {
+  return (
+    <BiSidePanel
+      open={Boolean(tile)}
+      onClose={onClose}
+      title={tile ? `运维详情 · ${tile.label}` : '运维详情'}
+      subtitle={tile ? `${tile.status} · ${tile.trust} 级可信` : undefined}
+      width="md"
+    >
+      {tile ? (
+        <div className="space-y-4 text-sm">
+          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+            <div className="flex items-center gap-2">
+              <BiStatusPill tone={STATUS_TONE[tile.status]} label={tile.status} />
+              <BiStatusPill tone={BI_TRUST_TONE[tile.trust]} label={`${tile.trust} 级`} />
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-slate-700">{tile.detail}</p>
+          </div>
+          <KV label="authority" value={tile.authority} />
+          <KV label="owner" value={tile.owner} />
+          <KV
+            label="处理原则"
+            value="只读状态可直接展示；导出、权限变更、派单等写动作必须经过 audited endpoint。"
+          />
+        </div>
+      ) : null}
+    </BiSidePanel>
+  )
+}
+
+function AuditDetailPanel({
+  entry,
+  onClose,
+}: {
+  entry: AuditLogEntry | null
+  onClose: () => void
+}) {
+  return (
+    <BiSidePanel
+      open={Boolean(entry)}
+      onClose={onClose}
+      title={entry ? `审计详情 · ${entry.id}` : '审计详情'}
+      subtitle={entry ? `${CATEGORY_LABEL[entry.category]} · ${entry.severity}` : undefined}
+      width="lg"
+    >
+      {entry ? (
+        <div className="space-y-4 text-sm">
+          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <BiStatusPill tone={SEVERITY_TONE[entry.severity]} label={entry.severity} />
+              <span className="font-medium text-slate-900">{entry.action}</span>
+            </div>
+            <p className="mt-2 text-xs text-slate-600">
+              {entry.actor} → {entry.target}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <KV label="时间" value={entry.at} />
+            <KV label="操作人" value={entry.actor} />
+            <KV label="目标" value={entry.target} />
+            <KV label="分类" value={CATEGORY_LABEL[entry.category]} />
+            <KV label="原因" value={entry.reason || '—'} />
+            <KV label="audit_id" value={entry.id} />
+          </div>
+          <JsonBlock label="before" value={entry.before} />
+          <JsonBlock label="after" value={entry.after} />
+        </div>
+      ) : null}
+    </BiSidePanel>
+  )
+}
+
+function KV({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-slate-200 bg-white p-3">
+      <div className="text-[11px] font-medium uppercase text-slate-500">{label}</div>
+      <div className="mt-1 break-words text-sm text-slate-800">{value || '—'}</div>
+    </div>
+  )
+}
+
+function JsonBlock({ label, value }: { label: string; value?: Record<string, unknown> }) {
+  return (
+    <div className="rounded-md border border-slate-200 bg-white p-3">
+      <div className="text-[11px] font-medium uppercase text-slate-500">{label}</div>
+      <pre className="mt-2 max-h-60 overflow-auto rounded bg-slate-950 p-3 text-xs leading-relaxed text-slate-100">
+        {value && Object.keys(value).length > 0 ? JSON.stringify(value, null, 2) : '—'}
+      </pre>
+    </div>
   )
 }

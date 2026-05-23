@@ -1,7 +1,11 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { getStoredBiAdminSession, type BiAdminSession } from "@/lib/api";
+import {
+  BI_ADMIN_SESSION_CHANGED_EVENT,
+  getStoredBiAdminSession,
+  type BiAdminSession,
+} from "@/lib/api";
 
 export type BiAdminIdentity = {
   authenticated: boolean;
@@ -30,15 +34,13 @@ function buildIdentity(session: BiAdminSession | null): BiAdminIdentity {
   };
 }
 
-const SESSION_EVENT = "deeptutor.bi.admin.session.changed";
-
 function subscribe(callback: () => void) {
   if (typeof window === "undefined") return () => {};
   window.addEventListener("storage", callback);
-  window.addEventListener(SESSION_EVENT, callback);
+  window.addEventListener(BI_ADMIN_SESSION_CHANGED_EVENT, callback);
   return () => {
     window.removeEventListener("storage", callback);
-    window.removeEventListener(SESSION_EVENT, callback);
+    window.removeEventListener(BI_ADMIN_SESSION_CHANGED_EVENT, callback);
   };
 }
 

@@ -85,6 +85,45 @@ def test_member_360_exposes_learner_state_overlay_and_heartbeat(monkeypatch: pyt
     assert body["bot_overlays"][0]["bot_id"] == "review-bot"
 
 
+def test_member_conversations_exposes_metadata_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    calls: list[dict[str, object]] = []
+
+    def _list_member_conversations(user_id: str, **kwargs: object) -> dict[str, object]:
+        calls.append({"user_id": user_id, **kwargs})
+        return {
+            "user_id": user_id,
+            "items": [
+                {
+                    "session_id": "tb_student_demo",
+                    "title": "地基基础答疑",
+                    "message_count": 2,
+                    "last_message": "怎么复习",
+                }
+            ],
+            "total": 1,
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type(
+            "FakeMemberService",
+            (),
+            {"list_member_conversations": staticmethod(_list_member_conversations)},
+        )(),
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/member/student_demo/conversations?limit=10&message_limit=6")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["items"][0]["session_id"] == "tb_student_demo"
+    assert "messages" not in body["items"][0]
+    assert calls == [{"user_id": "student_demo", "limit": 10, "message_limit": 6}]
+
+
 def test_member_router_exposes_learner_state_overlay_and_heartbeat_controls(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -314,7 +353,13 @@ def test_member_router_records_conversation_view(monkeypatch: pytest.MonkeyPatch
 
     def _record_conversation_view(user_id: str, session_id: str, **kwargs: object) -> dict[str, object]:
         calls.append({"user_id": user_id, "session_id": session_id, **kwargs})
-        return {"session_id": session_id, "title": "地基基础答疑", "message_count": 2, "audit_id": "audit_x"}
+        return {
+            "session_id": session_id,
+            "title": "地基基础答疑",
+            "message_count": 2,
+            "audit_id": "audit_x",
+            "messages": [{"id": "m1", "role": "user", "content": "怎么复习"}],
+        }
 
     monkeypatch.setattr(
         "deeptutor.api.routers.member.service",
@@ -333,6 +378,7 @@ def test_member_router_records_conversation_view(monkeypatch: pytest.MonkeyPatch
 
     assert response.status_code == 200
     assert response.json()["session_id"] == "tb_student_demo"
+    assert response.json()["messages"][0]["content"] == "怎么复习"
     assert calls == [
         {
             "user_id": "student_demo",

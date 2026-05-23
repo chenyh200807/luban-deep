@@ -170,6 +170,42 @@ export interface BiOperatingRhythmPayload {
   topActions: BiOperatingRhythmAction[];
 }
 
+export interface BiFeedbackRecord {
+  feedback_id?: string;
+  id?: string;
+  user_id?: string;
+  session_id?: string;
+  message_id?: string;
+  rating?: number;
+  reason_tags?: string[];
+  comment?: string;
+  feedback_source?: string;
+  answer_mode?: string;
+  requested_response_mode?: string;
+  effective_response_mode?: string;
+  response_mode_degrade_reason?: string;
+  created_at?: string;
+}
+
+export interface BiFeedbackPayload {
+  window_days: number;
+  storage_status: string;
+  summary: {
+    total_feedback: number;
+    thumbs_up: number;
+    thumbs_down: number;
+    neutral: number;
+    commented: number;
+    unique_users: number;
+    unique_sessions: number;
+    unique_messages: number;
+  };
+  rating_breakdown: Array<{ rating: number; label: string; count: number }>;
+  top_reason_tags: Array<{ tag: string; count: number }>;
+  answer_modes: Array<{ answer_mode: string; count: number }>;
+  recent: BiFeedbackRecord[];
+}
+
 export interface BiTeachingChapterProgress {
   chapterId?: string;
   name: string;
@@ -1445,6 +1481,83 @@ export async function getBiInviteTestApplications(options: {
     total: toNumber(record.total, 0),
     contact_revealed: record.contact_revealed === true || record.contactRevealed === true,
     items: firstArray(raw, ["items", "applications", "rows", "list"]).map((item) => normalizeInviteTestApplication(item)),
+  };
+}
+
+export async function getBiFeedback(options: { days?: number; limit?: number } = {}): Promise<BiFeedbackPayload> {
+  const raw = unwrapPayload(
+    await fetchBiJson("/api/v1/bi/feedback", {
+      days: options.days ?? 30,
+      limit: options.limit ?? 50,
+    }),
+  );
+  const record = asRecord(raw);
+  const summary = asRecord(record.summary);
+  return {
+    window_days: toFiniteNumber(record.window_days ?? record.windowDays, options.days ?? 30),
+    storage_status: toString(record.storage_status ?? record.storageStatus, "unknown"),
+    summary: {
+      total_feedback: toFiniteNumber(summary.total_feedback ?? summary.totalFeedback, 0),
+      thumbs_up: toFiniteNumber(summary.thumbs_up ?? summary.thumbsUp, 0),
+      thumbs_down: toFiniteNumber(summary.thumbs_down ?? summary.thumbsDown, 0),
+      neutral: toFiniteNumber(summary.neutral, 0),
+      commented: toFiniteNumber(summary.commented, 0),
+      unique_users: toFiniteNumber(summary.unique_users ?? summary.uniqueUsers, 0),
+      unique_sessions: toFiniteNumber(summary.unique_sessions ?? summary.uniqueSessions, 0),
+      unique_messages: toFiniteNumber(summary.unique_messages ?? summary.uniqueMessages, 0),
+    },
+    rating_breakdown: firstArray(record, ["rating_breakdown", "ratingBreakdown"]).map((item) => {
+      const itemRecord = asRecord(item);
+      return {
+        rating: toFiniteNumber(itemRecord.rating, 0),
+        label: toString(itemRecord.label, ""),
+        count: toFiniteNumber(itemRecord.count, 0),
+      };
+    }),
+    top_reason_tags: firstArray(record, ["top_reason_tags", "topReasonTags"]).map((item) => {
+      const itemRecord = asRecord(item);
+      return {
+        tag: toString(itemRecord.tag, ""),
+        count: toFiniteNumber(itemRecord.count, 0),
+      };
+    }),
+    answer_modes: firstArray(record, ["answer_modes", "answerModes"]).map((item) => {
+      const itemRecord = asRecord(item);
+      return {
+        answer_mode: toString(itemRecord.answer_mode ?? itemRecord.answerMode, ""),
+        count: toFiniteNumber(itemRecord.count, 0),
+      };
+    }),
+    recent: firstArray(record, ["recent", "items", "records"]).map((item, index) => {
+      const itemRecord = asRecord(item);
+      return {
+        feedback_id: toString(itemRecord.feedback_id ?? itemRecord.feedbackId, ""),
+        id: toString(itemRecord.id, `feedback-${index + 1}`),
+        user_id: toString(itemRecord.user_id ?? itemRecord.userId, ""),
+        session_id: toString(itemRecord.session_id ?? itemRecord.sessionId, ""),
+        message_id: toString(itemRecord.message_id ?? itemRecord.messageId, ""),
+        rating: toFiniteNumber(itemRecord.rating, 0),
+        reason_tags: toArray(itemRecord.reason_tags ?? itemRecord.reasonTags)
+          .map((value) => toString(value))
+          .filter(Boolean),
+        comment: toString(itemRecord.comment, ""),
+        feedback_source: toString(itemRecord.feedback_source ?? itemRecord.feedbackSource, ""),
+        answer_mode: toString(itemRecord.answer_mode ?? itemRecord.answerMode, ""),
+        requested_response_mode: toString(
+          itemRecord.requested_response_mode ?? itemRecord.requestedResponseMode,
+          "",
+        ),
+        effective_response_mode: toString(
+          itemRecord.effective_response_mode ?? itemRecord.effectiveResponseMode,
+          "",
+        ),
+        response_mode_degrade_reason: toString(
+          itemRecord.response_mode_degrade_reason ?? itemRecord.responseModeDegradeReason,
+          "",
+        ),
+        created_at: toString(itemRecord.created_at ?? itemRecord.createdAt, ""),
+      };
+    }),
   };
 }
 

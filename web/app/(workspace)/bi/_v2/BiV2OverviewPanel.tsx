@@ -3,7 +3,13 @@
 
 import { ArrowDownRight, ArrowUpRight, Minus, RefreshCw, ShieldAlert } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { BiStatusPill, BiMoneyCell, BI_TRUST_TONE, BI_SEVERITY_TONE } from '@/components/bi-v2'
+import {
+  BiSidePanel,
+  BiStatusPill,
+  BiMoneyCell,
+  BI_TRUST_TONE,
+  BI_SEVERITY_TONE,
+} from '@/components/bi-v2'
 import {
   getBiAnomalies,
   getBiActiveTrend,
@@ -24,6 +30,18 @@ type LiveBundle = {
   generatedAt: number
   partial: boolean
   errors: string[]
+}
+
+type MetricSelection = {
+  card: BiMetricCard
+  meta: BiV2MetricDef
+  trend: 'up' | 'down' | 'flat'
+}
+
+type AlertSelection = {
+  alert: BiAlertItem
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  target: BiV2MetricDef
 }
 
 // Round 4 S4 (M-B): mock fallback dev-only. Production build dead-code-
@@ -143,6 +161,8 @@ function renderCardValue(card: BiMetricCard, meta: BiV2MetricDef) {
 export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
   const [bundle, setBundle] = useState<LiveBundle>(MOCK_BUNDLE)
   const [source, setSource] = useState<DataSource>(flagEnabled ? 'loading' : 'mock')
+  const [selectedMetric, setSelectedMetric] = useState<MetricSelection | null>(null)
+  const [selectedAlert, setSelectedAlert] = useState<AlertSelection | null>(null)
   const inflightRef = useRef<AbortController | null>(null)
 
   const loadLive = useCallback(async () => {
@@ -256,6 +276,14 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
                   指标未注册 · 请补充到 BI_V2_METRICS 或 deeptutor/services/bi_metrics.py
                 </div>
               ) : null}
+              <button
+                type="button"
+                onClick={() => setSelectedMetric({ card, meta, trend })}
+                className="mt-auto inline-flex w-fit items-center rounded border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                aria-label={`打开 ${card.label} 指标详情`}
+              >
+                查看详情
+              </button>
             </article>
           )
         })}
@@ -301,11 +329,11 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
             {bundle.alerts.slice(0, 6).map((alert, idx) => {
               const sev = ALERT_LEVEL_TO_SEVERITY[alert.level ?? 'info'] ?? 'low'
               const linkMeta = findMetricByLabel(alert.title)
-              const link = `#${linkMeta.drilldown_hash}`
               return (
                 <li key={idx}>
-                  <a
-                    href={link}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAlert({ alert, severity: sev, target: linkMeta })}
                     className="flex items-start justify-between gap-3 rounded border border-transparent px-2 py-2 hover:border-slate-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
                     aria-label={`查看 ${alert.title}`}
                   >
@@ -321,7 +349,7 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
                       </div>
                     </div>
                     <span className="text-[11px] text-slate-500">→ {linkMeta.drilldown_hash}</span>
-                  </a>
+                  </button>
                 </li>
               )
             })}
@@ -333,7 +361,108 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
           </ul>
         </aside>
       </div>
+      <MetricDetailPanel
+        selection={selectedMetric}
+        onClose={() => setSelectedMetric(null)}
+      />
+      <AlertDetailPanel
+        selection={selectedAlert}
+        onClose={() => setSelectedAlert(null)}
+      />
     </section>
+  )
+}
+
+function MetricDetailPanel({
+  selection,
+  onClose,
+}: {
+  selection: MetricSelection | null
+  onClose: () => void
+}) {
+  const card = selection?.card
+  const meta = selection?.meta
+  return (
+    <BiSidePanel
+      open={Boolean(selection)}
+      onClose={onClose}
+      title={card ? `指标详情 · ${card.label}` : '指标详情'}
+      subtitle={meta ? `${meta.metric_id} · ${meta.trust} 级可信` : undefined}
+      width="md"
+    >
+      {card && meta ? (
+        <div className="space-y-4 text-sm">
+          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+            <div className="text-xs text-slate-500">当前值</div>
+            <div className="mt-1 text-2xl font-semibold text-slate-900">{String(card.value)}</div>
+            <div className="mt-1 text-xs text-slate-600">
+              {card.delta || '暂无环比'} · 趋势 {selection?.trend ?? 'flat'}
+            </div>
+            {card.hint ? <div className="mt-1 text-xs text-slate-500">{card.hint}</div> : null}
+          </div>
+          <KV label="指标口径" value={meta.definition} />
+          <KV label="唯一 authority" value={meta.authority} />
+          <KV label="owner" value={meta.owner} />
+          <KV label="更新频率" value={meta.refresh_cadence} />
+          <KV label="可信等级" value={`${meta.trust} 级`} />
+          <KV label="推荐下钻区" value={meta.drilldown_hash} />
+          <KV label="降级说明" value={meta.degraded_note || '无已知降级路径'} />
+        </div>
+      ) : null}
+    </BiSidePanel>
+  )
+}
+
+function AlertDetailPanel({
+  selection,
+  onClose,
+}: {
+  selection: AlertSelection | null
+  onClose: () => void
+}) {
+  const alert = selection?.alert
+  return (
+    <BiSidePanel
+      open={Boolean(selection)}
+      onClose={onClose}
+      title={alert ? `行动项详情 · ${alert.title}` : '行动项详情'}
+      subtitle={selection ? `${selection.severity.toUpperCase()} · ${selection.target.drilldown_hash}` : undefined}
+      width="md"
+    >
+      {alert && selection ? (
+        <div className="space-y-4 text-sm">
+          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+            <div className="flex items-center gap-2">
+              <BiStatusPill
+                tone={BI_SEVERITY_TONE[selection.severity]}
+                label={selection.severity.toUpperCase()}
+              />
+              <span className="font-medium text-slate-900">{alert.title}</span>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-slate-600">
+              {alert.detail || '该行动项暂无更多描述。'}
+            </p>
+          </div>
+          <KV label="来源" value="overview.alerts + /api/v1/bi/anomalies" />
+          <KV label="建议处理区" value={selection.target.drilldown_hash} />
+          <KV label="关联指标" value={selection.target.metric_id} />
+          <KV label="authority" value={selection.target.authority} />
+          <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
+            当前详情只展示 canonical 读模型内容；需要创建运营任务、导出、派单时，必须先接入带
+            audit 的后端写 endpoint。
+          </p>
+        </div>
+      ) : null}
+    </BiSidePanel>
+  )
+}
+
+function KV({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-slate-200 bg-white p-3">
+      <div className="text-[11px] font-medium uppercase text-slate-500">{label}</div>
+      <div className="mt-1 break-words text-sm text-slate-800">{value || '—'}</div>
+    </div>
   )
 }
 

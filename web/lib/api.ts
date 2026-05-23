@@ -12,6 +12,7 @@ const resolvedBiApiToken =
 export const BI_API_TOKEN =
   resolvedBiApiToken === BI_API_TOKEN_PLACEHOLDER ? "" : resolvedBiApiToken;
 const BI_ADMIN_SESSION_STORAGE_KEY = "deeptutor.bi.admin.session";
+export const BI_ADMIN_SESSION_CHANGED_EVENT = "deeptutor.bi.admin.session.changed";
 
 export type BiAdminSession = {
   token: string;
@@ -132,6 +133,7 @@ export function setStoredBiAdminSession(session: BiAdminSession): void {
     return;
   }
   window.localStorage.setItem(BI_ADMIN_SESSION_STORAGE_KEY, JSON.stringify(session));
+  window.dispatchEvent(new Event(BI_ADMIN_SESSION_CHANGED_EVENT));
 }
 
 export function clearStoredBiAdminSession(): void {
@@ -139,6 +141,7 @@ export function clearStoredBiAdminSession(): void {
     return;
   }
   window.localStorage.removeItem(BI_ADMIN_SESSION_STORAGE_KEY);
+  window.dispatchEvent(new Event(BI_ADMIN_SESSION_CHANGED_EVENT));
 }
 
 export function withAdminAuthorization(headers?: HeadersInit): HeadersInit | undefined {

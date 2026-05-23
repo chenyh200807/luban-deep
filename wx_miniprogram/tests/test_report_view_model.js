@@ -578,8 +578,8 @@ assert(
   "wx report.wxml must orient the prescription as the next learning action",
 );
 assert(
-  reportWxml.indexOf("证据怎么合成结论") >= 0,
-  "wx report.wxml must show the learner-facing evidence synthesis frame",
+  reportWxml.indexOf("学习状态推断引擎") >= 0,
+  "wx report.wxml must show the learning-state engine frame",
 );
 assert(
   reportWxml.indexOf("engineEvidenceVisible") >= 0,

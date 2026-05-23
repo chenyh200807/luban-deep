@@ -1310,7 +1310,7 @@ def test_member_360_includes_learner_state_heartbeat_and_bot_overlays(tmp_path: 
     assert payload["bot_overlays"][0]["bot_id"] == "review-bot"
 
 
-def test_member_360_includes_recent_conversation_messages(tmp_path: Path) -> None:
+def test_member_360_and_conversation_list_hide_messages_before_audit(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
     service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
@@ -1371,9 +1371,13 @@ def test_member_360_includes_recent_conversation_messages(tmp_path: Path) -> Non
     assert payload["recent_conversations"][0]["session_id"] == "tb_student_demo"
     assert payload["recent_conversations"][0]["title"] == "地基基础答疑"
     assert payload["recent_conversations"][0]["message_count"] == 2
-    assert [message["role"] for message in payload["recent_conversations"][0]["messages"]] == ["user", "assistant"]
-    assert payload["recent_conversations"][0]["messages"][0]["content"] == "帮我看看地基基础怎么复习"
-    assert payload["recent_conversations"][0]["messages"][1]["content"] == "先按承载力、验槽和防水节点拆开复习。"
+    assert "messages" not in payload["recent_conversations"][0]
+
+    list_payload = service.list_member_conversations("student_demo", limit=10, message_limit=6)
+
+    assert list_payload["total"] == 1
+    assert list_payload["items"][0]["session_id"] == "tb_student_demo"
+    assert "messages" not in list_payload["items"][0]
 
 
 def test_record_conversation_view_writes_privacy_audit(tmp_path: Path) -> None:
@@ -1401,12 +1405,16 @@ def test_record_conversation_view_writes_privacy_audit(tmp_path: Path) -> None:
     assert result["session_id"] == "tb_student_demo"
     assert result["title"] == "地基基础答疑"
     assert result["message_count"] == 2
+    assert [message["role"] for message in result["messages"]] == ["user", "assistant"]
+    assert result["messages"][0]["content"] == "帮我看看地基基础怎么复习"
+    assert result["messages"][1]["content"] == "先按承载力、验槽和防水节点拆开复习。"
 
     audit = service.list_audit_log(target_user="student_demo", action="conversation_view")
     assert audit["total"] == 1
     assert audit["items"][0]["operator"] == "admin_demo"
     assert audit["items"][0]["after"]["session_id"] == "tb_student_demo"
     assert audit["items"][0]["after"]["message_count"] == 2
+    assert "messages" not in audit["items"][0]["after"]
 
 
 def test_record_conversation_view_dedupes_by_idempotency_key(tmp_path: Path) -> None:

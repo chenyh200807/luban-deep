@@ -26,13 +26,6 @@ const LEARNING_BRAIN_LEVEL_LABELS = {
 const LEARNING_BRAIN_SUBJECT_LABELS = {
   construction_exam_learning_truth: "建筑实务学习事实",
 };
-const REPORT_DETAIL_TITLES = {
-  home: "学情",
-  evidence: "学情依据",
-  map: "掌握地图",
-  training: "训练安排",
-  progress: "进步反馈",
-};
 
 function _displayLevelName(value) {
   var key = String(value || "").trim();
@@ -1048,9 +1041,6 @@ Page({
     radarIcon: "\uD83D\uDCE1",
 
     isDark: true,
-    reportDetailView: "home",
-    reportDetailTitle: REPORT_DETAIL_TITLES.home,
-    reportScrollTop: 0,
 
     // 加载状态
     radarLoading: true,
@@ -1307,42 +1297,6 @@ Page({
       this.data.radarDimensions,
       this._radarSignature || _buildRadarSignature(this.data.radarDimensions),
     );
-  },
-
-  handleReportBack() {
-    if (this.data.reportDetailView && this.data.reportDetailView !== "home") {
-      this._setReportDetailView("home");
-      return;
-    }
-    this.goHome();
-  },
-
-  openReportDetail(event) {
-    var detail =
-      event && event.currentTarget && event.currentTarget.dataset
-        ? event.currentTarget.dataset.detail
-        : "";
-    if (!detail) return;
-    helpers.vibrate("light");
-    this._setReportDetailView(detail);
-  },
-
-  _setReportDetailView(view) {
-    var next = REPORT_DETAIL_TITLES[view] ? view : "home";
-    var scrollTop = this.data.reportScrollTop === 0 ? 1 : 0;
-    this.setData({
-      reportDetailView: next,
-      reportDetailTitle: REPORT_DETAIL_TITLES[next],
-      reportScrollTop: scrollTop,
-    });
-    if (next === "map") {
-      wx.nextTick(() => {
-        this._ensureRadarRendered(
-          this.data.radarDimensions,
-          this._radarSignature || _buildRadarSignature(this.data.radarDimensions),
-        );
-      });
-    }
   },
 
   // ── 返回首页 ───────────────────────────────────────
@@ -1705,7 +1659,6 @@ Page({
   // ── Canvas 2D 绘制雷达图 ──────────────────────────
   _ensureRadarRendered(dims, signature) {
     signature = signature || _buildRadarSignature(dims);
-    if (this.data.reportDetailView !== "map") return;
     if (!this._canvasReady) return;
     if (!Array.isArray(dims) || dims.length === 0) return;
     if (this._radarRenderPending) return;

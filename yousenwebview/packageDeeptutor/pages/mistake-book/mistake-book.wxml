@@ -1,0 +1,139 @@
+<view class="mistake-book-page">
+  <view class="mb-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="mb-nav-inner">
+      <view class="mb-back" bindtap="goBack">
+        <text class="mb-back-arrow">‹</text>
+        <text class="mb-back-text">学情</text>
+      </view>
+      <text class="mb-nav-title">错题集</text>
+    </view>
+  </view>
+
+  <scroll-view class="mb-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="mb-inner">
+      <view class="mb-hero">
+        <view class="mb-hero-head">
+          <view>
+            <text class="mb-kicker">云端错题集</text>
+            <text class="mb-title">把薄弱点看得更具体</text>
+          </view>
+          <view class="mb-score">
+            <text class="mb-score-num">{{model.activeCount}}</text>
+            <text class="mb-score-label">未掌握</text>
+          </view>
+        </view>
+        <text class="mb-hero-desc">这里只读云端错题集，不用本机缓存当真相。每道错题都可以回到当时解析。</text>
+        <view class="mb-stats">
+          <view class="mb-stat">
+            <text class="mb-stat-num">{{model.count}}</text>
+            <text class="mb-stat-label">全部错题</text>
+          </view>
+          <view class="mb-stat warn">
+            <text class="mb-stat-num">{{model.dueCount}}</text>
+            <text class="mb-stat-label">待复习</text>
+          </view>
+          <view class="mb-stat good">
+            <text class="mb-stat-num">{{model.masteredCount}}</text>
+            <text class="mb-stat-label">已掌握</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="mb-error" wx:if="{{errorText}}">
+        <text>{{errorText}}</text>
+        <view class="mb-retry" bindtap="retry">重试</view>
+      </view>
+
+      <view class="mb-loading" wx:if="{{loading}}">
+        <view class="skel-block mb-skel"></view>
+        <view class="skel-block mb-skel short"></view>
+        <view class="skel-block mb-skel card"></view>
+      </view>
+
+      <block wx:if="{{!loading}}">
+        <view class="ai-panel">
+          <view class="ai-panel-head">
+            <text class="ai-kicker">AI分析</text>
+            <text class="ai-title">{{model.aiInsight.title}}</text>
+          </view>
+          <text class="ai-summary">{{model.aiInsight.summary}}</text>
+          <view class="ai-bullets">
+            <view class="ai-bullet" wx:for="{{model.aiInsight.bullets}}" wx:key="key">
+              <view class="ai-dot"></view>
+              <text>{{item.text}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="chart-grid" wx:if="{{model.count}}">
+          <view class="chart-card">
+            <text class="chart-title">高频知识点</text>
+            <view class="chart-row" wx:for="{{model.conceptBars}}" wx:key="key">
+              <view class="chart-row-head">
+                <text class="chart-label">{{item.label}}</text>
+                <text class="chart-count">{{item.count}}题</text>
+              </view>
+              <view class="chart-track">
+                <view class="chart-fill fill-{{item.tone}}" style="width: {{item.percent}}%"></view>
+              </view>
+            </view>
+          </view>
+
+          <view class="chart-card">
+            <text class="chart-title">常见错因</text>
+            <view class="chart-row" wx:for="{{model.errorBars}}" wx:key="key">
+              <view class="chart-row-head">
+                <text class="chart-label">{{item.label}}</text>
+                <text class="chart-count">{{item.count}}题</text>
+              </view>
+              <view class="chart-track">
+                <view class="chart-fill error fill-{{item.tone}}" style="width: {{item.percent}}%"></view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="mb-filter">
+          <view class="filter-chip {{filter == 'all' ? 'active' : ''}}" data-filter="all" bindtap="setFilter">全部</view>
+          <view class="filter-chip {{filter == 'due' ? 'active' : ''}}" data-filter="due" bindtap="setFilter">待复习</view>
+          <view class="filter-chip {{filter == 'active' ? 'active' : ''}}" data-filter="active" bindtap="setFilter">未掌握</view>
+          <view class="filter-chip {{filter == 'mastered' ? 'active' : ''}}" data-filter="mastered" bindtap="setFilter">已掌握</view>
+        </view>
+
+        <view class="empty-card" wx:if="{{model.empty}}">
+          <text class="empty-title">还没有错题</text>
+          <text class="empty-desc">在学情页最近做题复盘里点击“收藏错题”，这里会开始沉淀你的薄弱点。</text>
+        </view>
+
+        <view class="empty-card" wx:elif="{{!filteredItems.length}}">
+          <text class="empty-title">当前筛选下没有错题</text>
+          <text class="empty-desc">切换筛选，或继续完成练习后再回来查看。</text>
+        </view>
+
+        <view class="mistake-list" wx:else>
+          <view class="mistake-card state-{{item.stateTone}}" wx:for="{{filteredItems}}" wx:key="key">
+            <view class="mistake-card-main" data-key="{{item.key}}" bindtap="openAttemptDetail">
+              <view class="mistake-head">
+                <text class="mistake-date">{{item.savedLabel}}</text>
+                <text class="mistake-state">{{item.stateLabel}}</text>
+              </view>
+              <text class="mistake-title">{{item.title}}</text>
+              <view class="mistake-tags">
+                <text>{{item.conceptLabel}}</text>
+                <text>{{item.errorLabel}}</text>
+              </view>
+              <text class="mistake-note" wx:if="{{item.note}}">{{item.note}}</text>
+              <text class="mistake-review">{{item.reviewLabel}}</text>
+            </view>
+            <view class="mistake-actions">
+              <view class="mistake-action primary" data-key="{{item.key}}" catchtap="openAttemptDetail">看解析</view>
+              <view class="mistake-action" data-key="{{item.key}}" catchtap="recordReview">复习一次</view>
+              <view class="mistake-action" wx:if="{{item.state != 'mastered'}}" data-key="{{item.key}}" catchtap="markMastered">标记掌握</view>
+              <view class="mistake-action danger" data-key="{{item.key}}" catchtap="removeItem">移出</view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>

@@ -819,6 +819,7 @@ class MemberConsoleService:
         *,
         session_limit: int = 5,
         message_limit: int = 12,
+        include_messages: bool = False,
     ) -> list[dict[str, Any]]:
         identity_values = self._member_session_identity_values(member, requested_user_id)
         if not identity_values:
@@ -879,31 +880,55 @@ class MemberConsoleService:
                 if str(message.get("role") or "").strip() in {"user", "assistant"}
                 and str(message.get("content") or "").strip()
             ][-message_limit:]
-            messages = [
-                {
-                    "id": str(message.get("id") or ""),
-                    "role": str(message.get("role") or ""),
-                    "content": self._preview_chat_content(message.get("content")),
-                    "created_at": self._session_time_to_iso(message.get("created_at")),
-                    "capability": str(message.get("capability") or ""),
-                }
-                for message in visible_messages
-            ]
-            if not messages:
+            if not visible_messages:
                 continue
-            conversations.append(
-                {
-                    "session_id": session_id,
-                    "title": str(row.get("title") or "未命名会话"),
-                    "created_at": self._session_time_to_iso(row.get("created_at")),
-                    "updated_at": self._session_time_to_iso(row.get("updated_at")),
-                    "capability": str(row.get("capability") or "chat"),
-                    "message_count": int(row.get("message_count") or len(raw_messages)),
-                    "last_message": self._preview_chat_content(row.get("last_message")),
-                    "messages": messages,
-                }
-            )
+            conversation = {
+                "session_id": session_id,
+                "title": str(row.get("title") or "未命名会话"),
+                "created_at": self._session_time_to_iso(row.get("created_at")),
+                "updated_at": self._session_time_to_iso(row.get("updated_at")),
+                "capability": str(row.get("capability") or "chat"),
+                "message_count": int(row.get("message_count") or len(raw_messages)),
+                "last_message": self._preview_chat_content(row.get("last_message")),
+            }
+            if include_messages:
+                conversation["messages"] = [
+                    {
+                        "id": str(message.get("id") or ""),
+                        "role": str(message.get("role") or ""),
+                        "content": self._preview_chat_content(message.get("content")),
+                        "created_at": self._session_time_to_iso(message.get("created_at")),
+                        "capability": str(message.get("capability") or ""),
+                    }
+                    for message in visible_messages
+                ]
+            conversations.append(conversation)
         return conversations
+
+    def list_member_conversations(
+        self,
+        user_id: str,
+        *,
+        limit: int = 20,
+        message_limit: int = 12,
+    ) -> dict[str, Any]:
+        data = self._load()
+        member = self._find_member(data, user_id)
+        normalized_limit = max(1, min(int(limit or 20), 100))
+        normalized_message_limit = max(1, min(int(message_limit or 12), 50))
+        conversations = self._load_recent_conversations_for_member(
+            member,
+            user_id,
+            session_limit=normalized_limit,
+            message_limit=normalized_message_limit,
+        )
+        return {
+            "user_id": user_id,
+            "items": conversations,
+            "total": len(conversations),
+            "limit": normalized_limit,
+            "message_limit": normalized_message_limit,
+        }
 
     def _seed_data(self) -> dict[str, Any]:
         now = _now()
@@ -3120,7 +3145,10 @@ class MemberConsoleService:
         def _apply(next_data: dict[str, Any]) -> dict[str, Any]:
             member = self._find_member(next_data, user_id)
             conversations = self._load_recent_conversations_for_member(
-                member, user_id, session_limit=20
+                member,
+                user_id,
+                session_limit=20,
+                include_messages=True,
             )
             conversation = next(
                 (
@@ -3158,6 +3186,7 @@ class MemberConsoleService:
                     deduped_payload = dict(audit_payload)
                     deduped_payload["audit_id"] = existing_audit_id
                     deduped_payload["deduped"] = True
+                    deduped_payload["messages"] = list(conversation.get("messages") or [])
                     return deduped_payload
 
             entry = self._append_audit(
@@ -3178,6 +3207,7 @@ class MemberConsoleService:
                 )
             result = dict(audit_payload)
             result["audit_id"] = entry["id"]
+            result["messages"] = list(conversation.get("messages") or [])
             return result
 
         return self._mutate(_apply)

@@ -2,7 +2,8 @@
 "use client";
 
 import { Lock, ShieldAlert } from "lucide-react";
-import { type ReactNode } from "react";
+import { type FormEvent, type ReactNode, useState } from "react";
+import { loginBiAdmin } from "@/lib/bi-admin-auth";
 import { useBiAdminIdentity, type BiAdminIdentity } from "./useBiAdminIdentity";
 
 export type RequireBiAdminProps = {
@@ -33,23 +34,70 @@ export function RequireBiAdmin({ children, unauthenticated, notAdmin }: RequireB
 }
 
 function UnauthenticatedView() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+    if (!trimmedUsername || !trimmedPassword) {
+      setError("请输入管理员用户名和密码。");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      setError("");
+      await loginBiAdmin(trimmedUsername, trimmedPassword);
+      setPassword("");
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : "管理员登录失败");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <div
-      className="mx-auto flex max-w-2xl flex-col items-start gap-3 rounded-md border border-rose-200 bg-rose-50 p-6 text-sm text-rose-800"
+      className="mx-auto flex max-w-2xl flex-col items-start gap-4 rounded-md border border-rose-200 bg-rose-50 p-6 text-sm text-rose-800"
       role="alert"
     >
       <div className="flex items-center gap-2 font-semibold">
         <Lock className="h-4 w-4" aria-hidden /> BI 后台需 admin 登录
       </div>
       <p className="text-xs leading-relaxed">
-        BI 会员经营后台是 admin-only 工作区。当前会话未携带 BI Admin token。请通过
-        <code className="mx-1 rounded bg-white px-1 py-0.5 font-mono text-[11px]">bi-admin-auth</code>
-        模块登录后访问，所有写动作（备注 / 跟进 / audit）均会绑定真实 actor_id 写入服务端。
+        BI 会员经营后台是 admin-only 工作区。请使用管理员账号登录，所有写动作（备注 / 跟进 /
+        audit）均会绑定真实 actor_id 写入服务端。
       </p>
-      <p className="text-[11px] text-rose-700">
-        开发环境无 admin session 时 BI v2 仅展示该提示页；不会渲染任何 panel，也不会发起
-        admin API 请求（避免 audit 漂移 / actor 伪造 / 截图被误读为生产数据）。
-      </p>
+      <form className="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]" onSubmit={handleSubmit}>
+        <input
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          aria-label="管理员用户名"
+          placeholder="管理员用户名"
+          autoComplete="username"
+          className="rounded border border-rose-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-rose-400"
+        />
+        <input
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          aria-label="管理员密码"
+          placeholder="管理员密码"
+          type="password"
+          autoComplete="current-password"
+          className="rounded border border-rose-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-rose-400"
+        />
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex items-center justify-center rounded bg-rose-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-800 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {submitting ? "登录中..." : "登录后台"}
+        </button>
+      </form>
+      {error ? <p className="text-xs font-medium text-rose-700">{error}</p> : null}
     </div>
   );
 }

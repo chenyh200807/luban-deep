@@ -1,0 +1,421 @@
+import { expect, test } from "@playwright/test";
+
+async function installAdminSession(page: import("@playwright/test").Page) {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "deeptutor.bi.admin.session",
+      JSON.stringify({
+        token: "test-admin-token",
+        userId: "admin_test",
+        displayName: "QA Admin",
+        isAdmin: true,
+        expiresAt: 4102444800,
+      }),
+    );
+  });
+}
+
+async function mockBiV2ReadApis(page: import("@playwright/test").Page) {
+  await page.route("**/api/v1/bi/overview**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        cards: [
+          {
+            label: "活跃学习会话",
+            value: 56,
+            hint: "近 30 天窗口",
+            delta: "+6%",
+            tone: "good",
+          },
+        ],
+        alerts: [
+          {
+            level: "warning",
+            title: "AI 反馈 negative 24h 增加",
+            detail: "FeedbackService.list / quality",
+          },
+        ],
+      }),
+    }),
+  );
+  await page.route("**/api/v1/bi/active-trend**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        points: [{ label: "Day 1", active: 10, cost: 1, successful: 8 }],
+      }),
+    }),
+  );
+  await page.route("**/api/v1/bi/anomalies**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ items: [] }),
+    }),
+  );
+  await page.route("**/api/v1/bi/feedback**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        window_days: 30,
+        storage_status: "ok",
+        summary: {
+          total_feedback: 1,
+          thumbs_up: 0,
+          thumbs_down: 1,
+          neutral: 0,
+          commented: 1,
+          unique_users: 1,
+          unique_sessions: 1,
+          unique_messages: 1,
+        },
+        rating_breakdown: [],
+        top_reason_tags: [],
+        answer_modes: [],
+        recent: [
+          {
+            feedback_id: "fb_test_1",
+            user_id: "user_1",
+            session_id: "session_1",
+            message_id: "msg_1",
+            rating: -1,
+            reason_tags: ["答非所问"],
+            comment: "学员反馈讲解不清楚",
+            feedback_source: "ai_message",
+            answer_mode: "deep",
+            effective_response_mode: "deep",
+            created_at: "2026-05-23T10:00:00Z",
+          },
+        ],
+      }),
+    }),
+  );
+  await page.route("**/api/v1/bi/invite-test/stats**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        window_days: 365,
+        storage_status: "ok",
+        summary: {
+          total_applications: 1,
+          unique_contacts: 1,
+          accept_interview_count: 1,
+          accept_interview_rate: 1,
+          with_wrong_question_count: 1,
+          with_wrong_question_rate: 1,
+          consented_count: 1,
+        },
+        status_breakdown: [{ status: "submitted", count: 1 }],
+        source_breakdown: [{ source_page: "/invite-test/apply", count: 1 }],
+        exam_type_breakdown: [{ exam_type: "一建实务", count: 1 }],
+        exam_stage_breakdown: [{ exam_stage: "冲刺", count: 1 }],
+        pain_point_breakdown: [{ pain_point: "想要错题讲评", count: 1 }],
+        weekly_time_breakdown: [{ weekly_time: "5 小时以上", count: 1 }],
+      }),
+    }),
+  );
+  await page.route("**/api/v1/bi/invite-test/applications**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        window_days: 365,
+        storage_status: "ok",
+        total: 1,
+        contact_revealed: true,
+        items: [
+          {
+            id: "invite_1",
+            created_at: "2026-05-23T10:03:00Z",
+            source_page: "/invite-test/apply",
+            utm_source: "organic",
+            utm_campaign: "beta",
+            name: "张同学",
+            phone: "13900000001",
+            email: "zhang@example.com",
+            province: "浙江",
+            age_range: "25-34",
+            education: "本科",
+            occupation: "施工员",
+            wechat_id: "wx_zhang",
+            exam_type: "一建实务",
+            exam_stage: "冲刺",
+            preparation_years: "1 年",
+            knowledge_foundation: "基础薄弱",
+            pain_point: "想要错题讲评",
+            weekly_time: "5 小时以上",
+            daily_study_time: "1 小时",
+            current_method: "刷题 + 网课",
+            study_difficulties: "不会复盘错题",
+            latest_wrong_question: "钢筋保护层题",
+            is_yousen_member: "no",
+            exam_date: "2026-09-19",
+            accept_interview: true,
+            consent: true,
+            status: "submitted",
+            operator_note: "优先回访",
+            submit_count: 1,
+            contact_revealed: true,
+          },
+        ],
+      }),
+    }),
+  );
+  await page.route("**/api/v1/member/audit-log**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        items: [
+          {
+            id: "audit_1",
+            operator: "admin_test",
+            action: "member.conversation.view_full",
+            target_user: "user_1/session_1",
+            reason: "客服投诉",
+            created_at: "2026-05-23T10:02:00Z",
+            before: { expanded: false },
+            after: { expanded: true },
+          },
+        ],
+        total: 1,
+        page: 1,
+        page_size: 100,
+        pages: 1,
+      }),
+    }),
+  );
+}
+
+async function mockMemberOpsApis(page: import("@playwright/test").Page) {
+  await page.route("**/api/v1/member/dashboard**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        total_count: 1,
+        active_count: 1,
+        expiring_soon_count: 0,
+        new_today_count: 0,
+        churn_risk_count: 0,
+        health_score: 92,
+        auto_renew_coverage: 0,
+        tier_breakdown: [{ tier: "trial", count: 1 }],
+        expiry_breakdown: [],
+        recommendations: [],
+      }),
+    }),
+  );
+  await page.route("**/api/v1/member/list**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        items: [
+          {
+            user_id: "user_1",
+            display_name: "测试会员",
+            phone: "13900000001",
+            tier: "trial",
+            status: "active",
+            segment: "trial",
+            risk_level: "low",
+            auto_renew: false,
+            expire_at: "2026-06-01T00:00:00+08:00",
+            created_at: "2026-05-01T00:00:00+08:00",
+            last_active_at: "2026-05-23T10:00:00+08:00",
+            points_balance: 120,
+            review_due: 0,
+          },
+        ],
+        total: 1,
+        page: 1,
+        page_size: 100,
+        pages: 1,
+      }),
+    }),
+  );
+  await page.route("**/api/v1/member/user_1/360", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        user_id: "user_1",
+        display_name: "测试会员",
+        phone: "13900000001",
+        tier: "trial",
+        status: "active",
+        segment: "trial",
+        risk_level: "low",
+        auto_renew: false,
+        expire_at: "2026-06-01T00:00:00+08:00",
+        created_at: "2026-05-01T00:00:00+08:00",
+        last_active_at: "2026-05-23T10:00:00+08:00",
+        wallet: { balance: 120, packages: [] },
+        study_days: 3,
+        review_due: 0,
+        focus_topic: "地基基础",
+        focus_query: "怎么复习地基基础",
+        exam_date: "2026-09-19",
+        daily_target: 30,
+        difficulty_preference: "medium",
+        explanation_style: "detailed",
+        review_reminder: true,
+        earned_badge_ids: [],
+        chapter_mastery: {},
+        recent_notes: [],
+        recent_ledger: [],
+        recent_conversations: [],
+        learner_state: null,
+        heartbeat: { jobs: [], history: [], arbitration_history: [] },
+        bot_overlays: [],
+      }),
+    }),
+  );
+  await page.route("**/api/v1/member/user_1/conversations**", (route) => {
+    if (route.request().method() === "POST") {
+      return route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          session_id: "session_1",
+          title: "地基基础答疑",
+          message_count: 2,
+          capability: "chat",
+          audit_id: "audit_test",
+        }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        user_id: "user_1",
+        total: 1,
+        items: [
+          {
+            session_id: "session_1",
+            title: "地基基础答疑",
+            updated_at: "2026-05-23T10:00:00+08:00",
+            created_at: "2026-05-23T09:00:00+08:00",
+            capability: "chat",
+            message_count: 2,
+            last_message: "先按承载力复习。",
+            messages: [
+              {
+                id: "m1",
+                role: "user",
+                content: "怎么复习地基基础",
+                created_at: "2026-05-23T09:00:00+08:00",
+                capability: "chat",
+              },
+              {
+                id: "m2",
+                role: "assistant",
+                content: "先按承载力复习。",
+                created_at: "2026-05-23T09:01:00+08:00",
+                capability: "chat",
+              },
+            ],
+          },
+        ],
+      }),
+    });
+  });
+}
+
+test("BI v2 route does not render the global workspace sidebar", async ({ page }) => {
+  await page.goto("/bi");
+
+  await expect(page.getByText("BI 后台需 admin 登录")).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "管理员用户名" })).toBeVisible();
+  await expect(page.getByLabel("管理员密码")).toBeVisible();
+  await expect(page.getByRole("button", { name: "登录后台" })).toBeVisible();
+  await expect(page.getByText("新对话")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "聊天" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "收起侧边栏" })).toHaveCount(0);
+});
+
+test("BI v2 read-only details open for overview, feedback, and ops", async ({ page }) => {
+  await installAdminSession(page);
+  await mockBiV2ReadApis(page);
+  await page.goto("/bi");
+
+  await expect(page.getByText("BI 后台需 admin 登录")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "经营总览" })).toBeVisible();
+  await page.getByRole("button", { name: "打开 活跃学习会话 指标详情" }).click();
+  await expect(page.getByRole("dialog", { name: "指标详情 · 活跃学习会话" })).toBeVisible();
+  await expect(page.getByText("唯一 authority")).toBeVisible();
+  await page.getByRole("button", { name: "关闭抽屉" }).click();
+
+  await page.getByRole("button", { name: "查看 AI 反馈 negative 24h 增加" }).click();
+  await expect(page.getByRole("dialog", { name: "行动项详情 · AI 反馈 negative 24h 增加" })).toBeVisible();
+  await expect(page.getByText("建议处理区")).toBeVisible();
+  await page.getByRole("button", { name: "关闭抽屉" }).click();
+
+  await page.getByRole("button", { name: "反馈中心：AI 消息反馈 / 内测 / 备注聚合，open / triaged / ignored。" }).click();
+  await expect(page.getByText("storage=ok")).toBeVisible();
+  await page.getByRole("button", { name: "查看反馈 fb_test_1 详情" }).click();
+  const feedbackDialog = page.getByRole("dialog", { name: "反馈详情 · fb_test_1" });
+  await expect(feedbackDialog).toBeVisible();
+  await expect(feedbackDialog.getByText("学员反馈讲解不清楚")).toBeVisible();
+  await page.getByRole("button", { name: "关闭抽屉" }).click();
+
+  await page.getByRole("tab", { name: /内测申请/ }).click();
+  await expect(page.getByRole("heading", { name: "内测申请池" })).toBeVisible();
+  await expect(page.getByText("张同学")).toBeVisible();
+  await page.getByRole("button", { name: "查看内测申请 invite_1 详情" }).click();
+  await expect(page.getByRole("dialog", { name: "内测申请 · 张同学" })).toBeVisible();
+  await expect(page.getByText("优先回访")).toBeVisible();
+  await page.getByRole("button", { name: "关闭抽屉" }).click();
+
+  await page.getByRole("button", { name: "系统运维：成本质量、数据可信、操作审计、权限审计、上线面板。" }).click();
+  await page.getByRole("button", { name: "查看 操作审计 详情" }).click();
+  await expect(page.getByRole("dialog", { name: "运维详情 · 操作审计" })).toBeVisible();
+  await page.getByRole("button", { name: "关闭抽屉" }).click();
+
+  await page.getByRole("button", { name: "查看审计 audit_1 详情" }).click();
+  await expect(page.getByRole("dialog", { name: "审计详情 · audit_1" })).toBeVisible();
+  await expect(page.getByText("客服投诉")).toBeVisible();
+});
+
+test("BI v2 member ops opens 360 and loads conversation details from the read endpoint", async ({
+  page,
+}) => {
+  await installAdminSession(page);
+  await mockBiV2ReadApis(page);
+  await mockMemberOpsApis(page);
+  await page.goto("/bi?tab=member-ops");
+
+  await expect(page.getByRole("heading", { name: "会员运营" })).toBeVisible();
+  await page.getByRole("button", { name: "打开 user_1 学员 360" }).click();
+  await expect(page.getByRole("dialog", { name: "学员 360 · 139****0001" })).toBeVisible();
+
+  await page.getByRole("button", { name: "查看会员对话回顾" }).click();
+  await expect(page.getByRole("dialog", { name: "对话回顾 · 139****0001" })).toBeVisible();
+  await expect(page.getByText("地基基础答疑")).toBeVisible();
+
+  await page.getByLabel("客服投诉").check();
+  await page
+    .getByRole("button", { name: "查看 地基基础答疑 全文，将写入 audit" })
+    .click();
+  await expect(page.getByText("assistant: 先按承载力复习。")).toBeVisible();
+  await expect(page.getByText("audit_test")).toBeVisible();
+});
+
+test("BI v2 legacy invite-test tab opens the feedback center invite application module", async ({
+  page,
+}) => {
+  await installAdminSession(page);
+  await mockBiV2ReadApis(page);
+  await page.goto("/bi?tab=invite-test");
+
+  await expect(page.getByRole("heading", { name: "反馈中心" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "内测申请池" })).toBeVisible();
+  await expect(page.getByText("张同学")).toBeVisible();
+});

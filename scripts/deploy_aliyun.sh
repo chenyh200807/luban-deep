@@ -19,6 +19,6 @@ echo "执行阿里云完整部署: sync + docker compose up -d --build"
 echo "执行远端运行态备份，作为本次发布的回滚基线..."
 ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && python3 scripts/backup_data.py --project-root '${REMOTE_DIR}' --keep '${BACKUP_KEEP}'"
 
-ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && PUBLIC_HOST='${PUBLIC_HOST}' bash scripts/server_bootstrap_aliyun.sh"
+ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && PUBLIC_HOST='${PUBLIC_HOST}' PUBLIC_BASE_URL='${PUBLIC_BASE_URL}' bash scripts/server_bootstrap_aliyun.sh"
 PUBLIC_BASE_URL="${PUBLIC_BASE_URL}" bash "${SCRIPT_DIR}/verify_aliyun_public_endpoints.sh"
 bash "${SCRIPT_DIR}/verify_aliyun_observability.sh"

@@ -8,7 +8,7 @@ import {
   MessageSquareWarning,
   Wrench,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { BiAppShell, BiSideNav, BiTopBar, type BiSideNavItem } from "@/components/bi-v2";
 import type { BiFlagSnapshot } from "@/lib/bi-feature-flags";
 import { BiV2OverviewPanel } from "./BiV2OverviewPanel";
@@ -54,16 +54,33 @@ const SECTIONS: BiSideNavItem<BiV2Section>[] = [
   },
 ];
 
+function isSectionEnabled(section: BiV2Section, flags: BiFlagSnapshot) {
+  if (section === "overview") return flags.BI_OVERVIEW_V2_ENABLED;
+  if (section === "member-ops") return flags.BI_CRM_V2_ENABLED;
+  if (section === "commerce") return flags.BI_COMMERCE_V2_ENABLED;
+  if (section === "feedback") return flags.BI_FEEDBACK_V2_ENABLED;
+  return flags.BI_SYSTEM_OPS_V2_ENABLED;
+}
+
 function readSectionFromUrl(): BiV2Section {
   if (typeof window === "undefined") return "overview";
   const search = new URLSearchParams(window.location.search);
   const tab = search.get("tab") ?? search.get("section") ?? "";
   if (tab) {
+    if (tab === "invite-test") return "feedback";
     const match = SECTIONS.find((s) => s.key === tab);
     if (match) return match.key;
   }
   const raw = window.location.hash.replace(/^#/, "");
   return SECTIONS.find((s) => s.key === raw)?.key ?? "overview";
+}
+
+function firstEnabledSection(flags: BiFlagSnapshot): BiV2Section {
+  return SECTIONS.find((item) => isSectionEnabled(item.key, flags))?.key ?? "overview";
+}
+
+function resolveEnabledSection(section: BiV2Section, flags: BiFlagSnapshot): BiV2Section {
+  return isSectionEnabled(section, flags) ? section : firstEnabledSection(flags);
 }
 
 export type BiV2SurfaceProps = {
@@ -92,11 +109,23 @@ function BiV2AuthenticatedSurface({
 }) {
   const [section, setSection] = useState<BiV2Section>("overview");
   const [submittedQuery, setSubmittedQuery] = useState("");
+  const navItems = useMemo(
+    () =>
+      SECTIONS.map((item) => {
+        const enabled = isSectionEnabled(item.key, flags);
+        return {
+          ...item,
+          disabled: !enabled,
+          statusLabel: enabled ? "可用" : "待接入",
+        };
+      }),
+    [flags],
+  );
 
   useEffect(() => {
     const sync = () => {
       setSection((prev) => {
-        const next = readSectionFromUrl();
+        const next = resolveEnabledSection(readSectionFromUrl(), flags);
         return prev === next ? prev : next;
       });
     };
@@ -107,9 +136,10 @@ function BiV2AuthenticatedSurface({
       window.removeEventListener("hashchange", sync);
       window.removeEventListener("popstate", sync);
     };
-  }, []);
+  }, [flags]);
 
   const go = useCallback((target: BiV2Section) => {
+    if (!isSectionEnabled(target, flags)) return;
     setSection(target);
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
@@ -117,7 +147,7 @@ function BiV2AuthenticatedSurface({
       url.hash = "";
       window.history.replaceState(null, "", url);
     }
-  }, []);
+  }, [flags]);
 
   const current = SECTIONS.find((s) => s.key === section) ?? SECTIONS[0];
 
@@ -164,15 +194,15 @@ function BiV2AuthenticatedSurface({
         )}
         sidenav={(api) => (
           <BiSideNav
-            items={SECTIONS}
+            items={navItems}
             current={section}
             onSelect={(key) => {
               go(key);
-              api.closeNav();
+              if (isSectionEnabled(key, flags)) api.closeNav();
             }}
             footer={
               <div className="rounded bg-amber-50 px-2 py-1.5 text-[11px] leading-snug text-amber-800 ring-1 ring-amber-200">
-                BI v2 Shell · 子模块按 flag 启用。
+                BI v2 Shell · 仅可用模块允许进入，待接入模块不会展示半成品数据。
               </div>
             }
           />

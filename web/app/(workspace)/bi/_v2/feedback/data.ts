@@ -11,6 +11,13 @@ export type FeedbackItem = {
   reason: string
   detail: string
   member: string
+  session_id?: string
+  message_id?: string
+  answer_mode?: string
+  requested_response_mode?: string
+  effective_response_mode?: string
+  response_mode_degrade_reason?: string
+  reason_tags?: string[]
   status: FeedbackStatus
   owner: FeedbackOwner
   created_at: string

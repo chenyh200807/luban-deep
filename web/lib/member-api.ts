@@ -78,7 +78,6 @@ export interface MemberConversationPreview {
   capability: string
   message_count: number
   last_message: string
-  messages: MemberConversationMessagePreview[]
 }
 
 export interface MemberConversationViewAudit {
@@ -87,6 +86,7 @@ export interface MemberConversationViewAudit {
   message_count: number
   capability?: string
   view_scope?: string
+  messages?: MemberConversationMessagePreview[]
 }
 
 export interface MemberBatchActionResult {
@@ -114,6 +114,14 @@ export interface MemberAuditLogResponse {
   page: number
   page_size: number
   pages: number
+}
+
+export interface MemberConversationListResponse {
+  user_id: string
+  items: MemberConversationPreview[]
+  total: number
+  limit?: number
+  message_limit?: number
 }
 
 export interface LearnerStateMemoryEvent {
@@ -270,6 +278,24 @@ export async function getMemberDetail(userId: string): Promise<MemberDetail> {
     headers: adminHeaders(),
   })
   return expectJson<MemberDetail>(response)
+}
+
+export async function listMemberConversations(
+  userId: string,
+  params: { limit?: number; message_limit?: number } = {}
+): Promise<MemberConversationListResponse> {
+  const query = new URLSearchParams()
+  if (params.limit !== undefined) query.set('limit', String(params.limit))
+  if (params.message_limit !== undefined) query.set('message_limit', String(params.message_limit))
+  const suffix = query.toString() ? `?${query.toString()}` : ''
+  const response = await fetch(
+    apiUrl(`/api/v1/member/${encodeURIComponent(userId)}/conversations${suffix}`),
+    {
+      cache: 'no-store',
+      headers: adminHeaders(),
+    }
+  )
+  return expectJson<MemberConversationListResponse>(response)
 }
 
 export async function createMemberNote(

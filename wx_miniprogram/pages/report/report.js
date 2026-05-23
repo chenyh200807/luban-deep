@@ -22,13 +22,6 @@ const LEARNING_BRAIN_LEVEL_LABELS = {
 const LEARNING_BRAIN_SUBJECT_LABELS = {
   construction_exam_learning_truth: "建筑实务学习事实",
 };
-const REPORT_DETAIL_TITLES = {
-  home: "学情",
-  evidence: "学情依据",
-  map: "掌握地图",
-  training: "训练安排",
-  progress: "进步反馈",
-};
 
 function displayLevelName(value) {
   var key = String(value || "").trim();
@@ -844,9 +837,6 @@ Page({
     radarIcon: "\uD83D\uDCE1",
 
     isDark: true,
-    reportDetailView: "home",
-    reportDetailTitle: REPORT_DETAIL_TITLES.home,
-    reportScrollTop: 0,
 
     // Degraded UI（plan §Phase 2 / §测试矩阵 第 19 行）
     degradedHint: "",
@@ -890,20 +880,7 @@ Page({
     weakNodeCount: 0,
     focusHint: "",
     learnerLevel: "",
-    learnerStageTitle: "当前学习状态",
-    masteryStatusLabel: "正在形成",
     studyTip: "",
-    learningReviewSummary: {
-      title: "学习复盘",
-      headline: "",
-      todayDone: 0,
-      recentThreeDone: 0,
-      primaryFocus: "",
-      weakCount: 0,
-    },
-    learningAttemptCards: [],
-    learningDiagnosisCards: [],
-    learningNextAction: { title: "", subtitle: "", cta: "开始训练" },
     learningBrainSummary: {},
     learningBrainAttempts: [],
     learningBrainDiagnoses: [],
@@ -941,43 +918,8 @@ Page({
 
   onReady() {
     this._canvasReady = true;
-    if (this.data.reportDetailView === "map" && this.data.radarDimensions.length > 0) {
+    if (this.data.radarDimensions.length > 0) {
       this._drawRadar(this.data.radarDimensions);
-    }
-  },
-
-  handleReportBack() {
-    if (this.data.reportDetailView && this.data.reportDetailView !== "home") {
-      this._setReportDetailView("home");
-      return;
-    }
-    this.goHome();
-  },
-
-  openReportDetail(event) {
-    var detail =
-      event && event.currentTarget && event.currentTarget.dataset
-        ? event.currentTarget.dataset.detail
-        : "";
-    if (!detail) return;
-    helpers.vibrate("light");
-    this._setReportDetailView(detail);
-  },
-
-  _setReportDetailView(view) {
-    var next = REPORT_DETAIL_TITLES[view] ? view : "home";
-    var scrollTop = this.data.reportScrollTop === 0 ? 1 : 0;
-    this.setData({
-      reportDetailView: next,
-      reportDetailTitle: REPORT_DETAIL_TITLES[next],
-      reportScrollTop: scrollTop,
-    });
-    if (next === "map") {
-      wx.nextTick(() => {
-        if (this.data.radarDimensions.length) {
-          this._drawRadar(this.data.radarDimensions);
-        }
-      });
     }
   },
 
@@ -1044,11 +986,7 @@ Page({
         degradedSources: degraded ? degradedSources : [],
         reportFallbackActive: false,
       }));
-      if (
-        this._canvasReady &&
-        this.data.reportDetailView === "map" &&
-        sharedPageData.radarDimensions.length
-      ) {
+      if (this._canvasReady && sharedPageData.radarDimensions.length) {
         this._drawRadar(sharedPageData.radarDimensions);
       }
     } catch (e) {
@@ -1172,7 +1110,7 @@ Page({
         radarLoading: false,
       });
 
-      if (this._canvasReady && this.data.reportDetailView === "map") {
+      if (this._canvasReady) {
         this._drawRadar(dims);
       }
     } catch (e) {
@@ -1312,7 +1250,6 @@ Page({
 
   // ── Canvas 2D 绘制雷达图 ──────────────────────────
   _drawRadar(dims) {
-    if (this.data.reportDetailView !== "map") return;
     const query = wx.createSelectorQuery().in(this);
     query
       .select("#radarCanvas")

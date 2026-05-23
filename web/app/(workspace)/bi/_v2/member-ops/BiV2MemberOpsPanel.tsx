@@ -1,8 +1,8 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import { Filter, Save, Settings2 } from 'lucide-react'
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import { Filter, RefreshCw, Save, Settings2 } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import {
   BiDataTable,
   BiMoneyCell,
@@ -12,6 +12,14 @@ import {
 } from '@/components/bi-v2'
 import { Member360Drawer } from './Member360Drawer'
 import { ConversationReviewDrawer } from './ConversationReviewDrawer'
+import {
+  getMemberDashboard,
+  getMemberDetail,
+  listMembers,
+  type MemberDashboard,
+  type MemberDetail,
+  type MemberListItem,
+} from '@/lib/member-api'
 import {
   ALL_COLUMNS,
   DEFAULT_COLUMNS,
@@ -82,6 +90,58 @@ export type BiV2MemberOpsPanelProps = {
   identity: BiAdminIdentity
 }
 
+const API_STATUS: Partial<Record<MemberFilters['status'], string>> = {
+  active: 'active',
+  expiring: 'expiring_soon',
+  expired: 'expired',
+  paused: 'revoked',
+}
+
+function maskPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length < 7) return phone || '—'
+  return `${digits.slice(0, 3)}****${digits.slice(-4)}`
+}
+
+function riskScore(riskLevel: string): number {
+  if (riskLevel === 'high') return 0.85
+  if (riskLevel === 'medium') return 0.55
+  if (riskLevel === 'low') return 0.2
+  return 0
+}
+
+function normalizeStatus(status: string): MemberRow['status'] {
+  if (status === 'expiring_soon') return 'expiring'
+  if (status === 'revoked') return 'paused'
+  if (status === 'expired') return 'expired'
+  return 'active'
+}
+
+function shortDate(value: string): string {
+  if (!value) return '—'
+  const parsed = Date.parse(value)
+  if (Number.isNaN(parsed)) return value
+  return new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit' }).format(parsed)
+}
+
+function toMemberRow(item: MemberListItem): MemberRow {
+  const tier = ['trial', 'vip', 'svip'].includes(item.tier) ? item.tier : 'trial'
+  return {
+    user_id: item.user_id,
+    phone_masked: maskPhone(item.phone),
+    tier: tier as MemberRow['tier'],
+    status: normalizeStatus(item.status),
+    risk: riskScore(item.risk_level),
+    last_active: shortDate(item.last_active_at),
+    balance_points: item.points_balance,
+    expires_at: shortDate(item.expire_at),
+    paid_at_first: tier === 'trial' ? undefined : shortDate(item.created_at),
+    region: item.segment || item.display_name,
+    notes_count: item.review_due,
+    feedback_count: 0,
+  }
+}
+
 export function BiV2MemberOpsPanel({
   flagEnabled,
   globalQuery,
@@ -104,12 +164,65 @@ export function BiV2MemberOpsPanel({
   )
   const [activeViewId, setActiveViewId] = useState<string | null>(null)
   const [selectedMember, setSelectedMember] = useState<MemberRow | null>(null)
+  const [selectedDetail, setSelectedDetail] = useState<MemberDetail | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState('')
   const [drawer, setDrawer] = useState<'none' | 'member360' | 'conversation'>('none')
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
+  const [liveRows, setLiveRows] = useState<MemberRow[]>([])
+  const [dashboard, setDashboard] = useState<MemberDashboard | null>(null)
+  const [totalRows, setTotalRows] = useState(0)
+  const [loading, setLoading] = useState(flagEnabled)
+  const [error, setError] = useState('')
+
+  const loadMembers = useCallback(async () => {
+    if (!flagEnabled) {
+      setLiveRows([])
+      setDashboard(null)
+      setTotalRows(0)
+      setLoading(false)
+      setError('')
+      return
+    }
+    try {
+      setLoading(true)
+      setError('')
+      const [nextDashboard, list] = await Promise.all([
+        getMemberDashboard(),
+        listMembers({
+          page: 1,
+          page_size: 100,
+          sort: 'expire_at',
+          order: 'asc',
+          search: globalQuery.trim() || undefined,
+          status: filters.status ? API_STATUS[filters.status] : undefined,
+          tier: filters.tier || undefined,
+          expire_within_days: filters.expiringDays || undefined,
+          risk_level: filters.riskMin >= 0.7 ? 'high' : undefined,
+        }),
+      ])
+      const nextRows = list.items.map(toMemberRow)
+      setDashboard(nextDashboard)
+      setLiveRows(nextRows)
+      setTotalRows(list.total)
+      setSelectedRows(prev => new Set([...prev].filter(id => nextRows.some(row => row.user_id === id))))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '会员列表加载失败')
+      setLiveRows([])
+      setDashboard(null)
+      setTotalRows(0)
+    } finally {
+      setLoading(false)
+    }
+  }, [filters.expiringDays, filters.riskMin, filters.status, filters.tier, flagEnabled, globalQuery])
+
+  useEffect(() => {
+    void loadMembers()
+  }, [loadMembers])
 
   const rows = useMemo(
-    () => filterMembers(MOCK_MEMBERS, filters, globalQuery),
-    [filters, globalQuery]
+    () => filterMembers(flagEnabled ? liveRows : MOCK_MEMBERS, filters, flagEnabled ? '' : globalQuery),
+    [filters, flagEnabled, globalQuery, liveRows]
   )
 
   function toggleColumn(key: MemberColumnKey) {
@@ -152,9 +265,20 @@ export function BiV2MemberOpsPanel({
   // audited via useAuditedAction at the call site. UI no longer fabricates
   // local audit logs (which were misleading — they suggested writes happened
   // when in fact nothing was sent to the server).
-  function openMember360(row: MemberRow) {
+  async function openMember360(row: MemberRow) {
     setSelectedMember(row)
+    setSelectedDetail(null)
+    setDetailError('')
     setDrawer('member360')
+    if (!flagEnabled) return
+    try {
+      setDetailLoading(true)
+      setSelectedDetail(await getMemberDetail(row.user_id))
+    } catch (err) {
+      setDetailError(err instanceof Error ? err.message : '学员 360 加载失败')
+    } finally {
+      setDetailLoading(false)
+    }
   }
 
   function openConversation() {
@@ -185,14 +309,27 @@ export function BiV2MemberOpsPanel({
           <code className="font-mono">/api/v1/member/&lt;user_id&gt;/*</code>。
         </div>
       ) : (
-        // Round 4 S5: honest copy — list/360/conversation-view path is the
-        // only one actually wired to backend (via useAuditedAction). Member
-        // table still mock until /api/v1/bi/members ships.
-        <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
-          BI_CRM_V2_ENABLED flag 已开启 · 数据源待接入 /api/v1/bi/members（当前列表为 dev-only
-          mock）；对话回顾 view-audit 已通过 useAuditedAction 真实写入。
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
+          <span>
+            BI_CRM_V2_ENABLED 已开启 · 会员列表读取{' '}
+            <code className="font-mono">/api/v1/member/list</code>，学员 360 读取{' '}
+            <code className="font-mono">/api/v1/member/&lt;user_id&gt;/360</code>；写动作仍需审计
+            endpoint 注册后启用。
+          </span>
+          <button
+            type="button"
+            onClick={() => void loadMembers()}
+            disabled={loading}
+            className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 disabled:opacity-50"
+            aria-label="刷新会员运营"
+          >
+            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} aria-hidden />
+            刷新
+          </button>
         </div>
       )}
+
+      <MemberSummaryCards dashboard={dashboard} loading={loading} />
 
       <SavedViewsBar
         savedViews={savedViews}
@@ -232,8 +369,20 @@ export function BiV2MemberOpsPanel({
         columns={columnDefs}
         rows={rows}
         rowKey={r => r.user_id}
-        status={rows.length === 0 ? 'no-results' : 'ok'}
+        status={
+          loading
+            ? 'loading'
+            : error
+              ? 'error'
+              : rows.length === 0
+                ? flagEnabled
+                  ? 'empty'
+                  : 'no-results'
+                : 'ok'
+        }
+        errorMessage={error}
         emptyTitle="暂无会员"
+        emptyHint="当前会员服务没有返回符合条件的会员。"
         noResultsHint="当前筛选未命中任何会员。尝试放宽 tier / risk / expiring 条件。"
         selectable
         selectedKeys={selectedRows}
@@ -253,7 +402,9 @@ export function BiV2MemberOpsPanel({
           <div className="flex justify-end gap-1">
             <button
               type="button"
-              onClick={() => openMember360(row)}
+              onClick={() => {
+                void openMember360(row)
+              }}
               className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
               aria-label={`打开 ${row.user_id} 学员 360`}
             >
@@ -265,8 +416,9 @@ export function BiV2MemberOpsPanel({
         cursorFooter={
           <>
             <span>
-              筛选后 {rows.length} 行（mock total {MOCK_MEMBERS.length}）· 真实 cursor 分页由 Batch
-              2.5 接 /api/v1/bi/members 启用
+              {flagEnabled
+                ? `服务端返回前 ${liveRows.length} / ${totalRows}，当前筛选 ${rows.length} 行`
+                : `筛选后 ${rows.length} 行（dev mock total ${MOCK_MEMBERS.length}）`}
             </span>
             <span>{selectedRows.size > 0 ? `已选 ${selectedRows.size}` : ''}</span>
           </>
@@ -275,26 +427,52 @@ export function BiV2MemberOpsPanel({
 
       <BulkActions
         selected={selectedRows.size}
-        // Bulk actions are not connected to a real audited write yet — Round 3 B
-        // will replace these stubs with useAuditedAction. For now they only
-        // clear local selection so the UI no longer falsely implies a server
-        // write occurred.
-        onAddToFollowup={() => setSelectedRows(new Set())}
-        onMarkContacted={() => setSelectedRows(new Set())}
       />
 
       <Member360Drawer
         open={drawer === 'member360'}
         member={selectedMember}
+        detail={selectedDetail}
+        loading={detailLoading}
+        error={detailError}
         onClose={() => setDrawer('none')}
         onOpenConversation={openConversation}
       />
       <ConversationReviewDrawer
         open={drawer === 'conversation'}
         member={selectedMember}
+        detail={selectedDetail}
         onClose={() => setDrawer('member360')}
       />
     </section>
+  )
+}
+
+function MemberSummaryCards({
+  dashboard,
+  loading,
+}: {
+  dashboard: MemberDashboard | null
+  loading: boolean
+}) {
+  const cards = [
+    { label: '全部会员', value: dashboard?.total_count },
+    { label: '活跃会员', value: dashboard?.active_count },
+    { label: '7 日内到期', value: dashboard?.expiring_soon_count },
+    { label: '高风险', value: dashboard?.churn_risk_count },
+    { label: '自动续费覆盖', value: dashboard ? `${dashboard.auto_renew_coverage}%` : undefined },
+  ]
+  return (
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+      {cards.map(card => (
+        <div key={card.label} className="rounded-md border border-slate-200 bg-white p-3">
+          <div className="text-[11px] text-slate-500">{card.label}</div>
+          <div className="mt-1 text-xl font-semibold tabular-nums text-slate-900">
+            {loading && card.value === undefined ? '…' : (card.value ?? '—')}
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -511,12 +689,8 @@ function ColumnPicker({
 
 function BulkActions({
   selected,
-  onAddToFollowup,
-  onMarkContacted,
 }: {
   selected: number
-  onAddToFollowup: () => void
-  onMarkContacted: () => void
 }) {
   return (
     <div
@@ -531,8 +705,8 @@ function BulkActions({
       <div className="flex gap-2">
         <button
           type="button"
-          disabled={selected === 0 || selected > 50}
-          onClick={onMarkContacted}
+          disabled
+          title="待批量写入 endpoint 注册 useAuditedAction 后启用"
           className="rounded border border-slate-200 px-2 py-1 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="批量标记已联系（≤ 50）"
         >
@@ -540,8 +714,8 @@ function BulkActions({
         </button>
         <button
           type="button"
-          disabled={selected === 0 || selected > 100}
-          onClick={onAddToFollowup}
+          disabled
+          title="待批量写入 endpoint 注册 useAuditedAction 后启用"
           className="rounded border border-slate-200 px-2 py-1 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="加入跟进队列（≤ 100）"
         >

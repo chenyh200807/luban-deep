@@ -1,14 +1,22 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { BiSidePanel } from '@/components/bi-v2'
+import {
+  listMemberConversations,
+  type MemberConversationMessagePreview,
+  type MemberConversationPreview,
+  type MemberConversationViewAudit,
+  type MemberDetail,
+} from '@/lib/member-api'
 import { useAuditedAction } from '../useAuditedAction'
 import type { MemberRow } from './data'
 
 export type ConversationReviewDrawerProps = {
   open: boolean
   member: MemberRow | null
+  detail?: MemberDetail | null
   onClose: () => void
 }
 
@@ -49,15 +57,64 @@ const MOCK_SESSIONS =
         },
       ]
 
-export function ConversationReviewDrawer({ open, member, onClose }: ConversationReviewDrawerProps) {
+export function ConversationReviewDrawer({
+  open,
+  member,
+  detail,
+  onClose,
+}: ConversationReviewDrawerProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [reason, setReason] = useState<string>('')
   const [reasonNote, setReasonNote] = useState('')
+  const [liveSessions, setLiveSessions] = useState<MemberConversationPreview[]>([])
+  const [loadingSessions, setLoadingSessions] = useState(false)
+  const [sessionError, setSessionError] = useState('')
+  const [revealedMessages, setRevealedMessages] = useState<
+    Record<string, MemberConversationMessagePreview[]>
+  >({})
   const audit = useAuditedAction({ actionType: 'member.conversation.view_full' })
   const auditState = audit.state.phase
   const auditError = audit.state.phase === 'denied' ? (audit.state.result.error ?? '') : ''
 
+  const detailSessions = useMemo(() => detail?.recent_conversations ?? [], [detail?.recent_conversations])
+
+  useEffect(() => {
+    if (!open || !member) return
+    if (detailSessions.length > 0) {
+      setLiveSessions([])
+      setSessionError('')
+      setLoadingSessions(false)
+      return
+    }
+    let cancelled = false
+    async function load() {
+      if (!member) return
+      try {
+        setLoadingSessions(true)
+        setSessionError('')
+        setLiveSessions([])
+        const result = await listMemberConversations(member.user_id, {
+          limit: 20,
+          message_limit: 12,
+        })
+        if (!cancelled) setLiveSessions(result.items ?? [])
+      } catch (err) {
+        if (!cancelled) {
+          setLiveSessions([])
+          setSessionError(err instanceof Error ? err.message : '对话列表加载失败')
+        }
+      } finally {
+        if (!cancelled) setLoadingSessions(false)
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [detailSessions.length, member, open])
+
   if (!member) return null
+  const sessions = detailSessions.length > 0 ? detailSessions : liveSessions.length > 0 ? liveSessions : MOCK_SESSIONS
 
   async function tryReveal(sessionId: string) {
     if (!member) return
@@ -78,6 +135,10 @@ export function ConversationReviewDrawer({ open, member, onClose }: Conversation
       body: { reason: fullReason },
     })
     if (result.ok) {
+      setRevealedMessages(prev => ({
+        ...prev,
+        [sessionId]: getAuditedMessages(result.data),
+      }))
       setExpandedId(sessionId)
     }
     // 失败时 audit.state 自动转 denied，UI 通过 auditError 展示，expandedId 保持不变 = 全文不展开
@@ -140,34 +201,45 @@ export function ConversationReviewDrawer({ open, member, onClose }: Conversation
           </fieldset>
         </section>
 
+        {loadingSessions ? (
+          <div className="rounded border border-sky-200 bg-sky-50 p-3 text-xs text-sky-800">
+            正在读取会员对话列表…
+          </div>
+        ) : null}
+        {sessionError ? (
+          <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+            对话列表加载失败：{sessionError}
+          </div>
+        ) : null}
+
         {/* Round 5 B3: production MOCK_SESSIONS is []; render an explicit
             empty state so admins don't see a silently blank list under the
-            reason form (frontend reviewer finding). Real session list comes
-            from session_store in Batch 5. */}
-        {MOCK_SESSIONS.length === 0 ? (
+            reason form (frontend reviewer finding). */}
+        {!loadingSessions && sessions.length === 0 ? (
           <div className="rounded border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-xs text-slate-500">
-            会员对话列表待接入{' '}
-            <code className="font-mono">/api/v1/member/{member.user_id}/conversations</code>（Batch
-            5 实装）。 当前生产构建下不展示 mock 会话；要在开发环境查看示例数据，请用 dev mode
-            运行。
+            暂无可展示对话。已读取{' '}
+            <code className="font-mono">/api/v1/member/{member.user_id}/conversations</code>，当前会员没有
+            session_store 对话记录或会话无可展示消息。
           </div>
         ) : null}
 
         <ul className="space-y-2">
-          {MOCK_SESSIONS.map(s => {
-            const expanded = expandedId === s.id
+          {sessions.map(s => {
+            const session = normalizeSession(s)
+            const expanded = expandedId === session.id
+            const messages = revealedMessages[session.id] ?? []
             return (
-              <li key={s.id} className="rounded border border-slate-200 bg-white">
+              <li key={session.id} className="rounded border border-slate-200 bg-white">
                 <div className="flex items-start justify-between gap-3 p-3">
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-slate-800">{s.title}</div>
-                    <div className="mt-0.5 text-[11px] text-slate-500">{s.at}</div>
-                    <p className="mt-1 text-xs text-slate-700">摘要：{s.summary}</p>
+                    <div className="truncate text-sm font-medium text-slate-800">{session.title}</div>
+                    <div className="mt-0.5 text-[11px] text-slate-500">{session.at}</div>
+                    <p className="mt-1 text-xs text-slate-700">摘要：{session.summary}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
-                      void tryReveal(s.id)
+                      void tryReveal(session.id)
                     }}
                     disabled={
                       !reason ||
@@ -175,7 +247,7 @@ export function ConversationReviewDrawer({ open, member, onClose }: Conversation
                       auditState === 'writing'
                     }
                     className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    aria-label={`查看 ${s.title} 全文，将写入 audit`}
+                    aria-label={`查看 ${session.title} 全文，将写入 audit`}
                   >
                     {expanded ? '已展开' : auditState === 'writing' ? '写入中…' : '查看全文'}
                   </button>
@@ -184,11 +256,21 @@ export function ConversationReviewDrawer({ open, member, onClose }: Conversation
                   <div className="border-t border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-700">
                     [全文按需加载占位 · authority: session store · 仅限本次审计可见]
                     <br />
+                    {messages.length > 0 ? (
+                      <span className="mt-2 block space-y-1">
+                        {messages.slice(0, 6).map(message => (
+                          <span key={message.id} className="block rounded bg-white px-2 py-1">
+                            <span className="font-semibold">{message.role}: </span>
+                            {message.content}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
                     服务端 audit 已写入（reason=
                     <code className="font-mono">
                       {reason === 'other' ? `other:${reasonNote.slice(0, 20)}` : reason}
                     </code>
-                    , session=<code className="font-mono">{s.id}</code>
+                    , session=<code className="font-mono">{session.id}</code>
                     {audit.state.phase === 'ok' ? (
                       <>
                         , idempotency_key=
@@ -215,4 +297,31 @@ export function ConversationReviewDrawer({ open, member, onClose }: Conversation
       </div>
     </BiSidePanel>
   )
+}
+
+function normalizeSession(
+  session:
+    | MemberConversationPreview
+    | { id: string; title: string; summary: string; at: string }
+) {
+  if ('session_id' in session) {
+    return {
+      id: session.session_id,
+      title: session.title || session.session_id,
+      summary: session.last_message || `${session.message_count} 条消息`,
+      at: session.updated_at || session.created_at || '—',
+    }
+  }
+  return {
+    id: session.id,
+    title: session.title,
+    summary: session.summary,
+    at: session.at,
+  }
+}
+
+function getAuditedMessages(data: unknown): MemberConversationMessagePreview[] {
+  if (!data || typeof data !== 'object') return []
+  const messages = (data as MemberConversationViewAudit).messages
+  return Array.isArray(messages) ? messages : []
 }

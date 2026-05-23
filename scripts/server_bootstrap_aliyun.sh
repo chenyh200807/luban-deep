@@ -5,6 +5,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PUBLIC_HOST="${PUBLIC_HOST:-8.135.42.145}"
+PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-}"
 LANGFUSE_OVERRIDE_FILE="deployment/aliyun/docker-compose.langfuse.yml"
 SHARED_LANGFUSE_NETWORK="${SHARED_LANGFUSE_NETWORK:-luban_jgzk-network}"
 
@@ -33,6 +34,15 @@ if [ ! -f .env ]; then
     echo "已生成 .env，请先补齐密钥后再重新运行。"
     exit 0
 fi
+
+if [ -n "${PUBLIC_BASE_URL}" ] && ! grep -q '^NEXT_PUBLIC_API_BASE_EXTERNAL=' .env; then
+    {
+        printf '\n# Browser-facing API base for remote Docker deployments\n'
+        printf 'NEXT_PUBLIC_API_BASE_EXTERNAL=%s\n' "${PUBLIC_BASE_URL}"
+    } >> .env
+fi
+
+export NEXT_PUBLIC_API_BASE_EXTERNAL="${NEXT_PUBLIC_API_BASE_EXTERNAL:-${PUBLIC_BASE_URL}}"
 
 compose_args=(-f docker-compose.yml)
 if [ -f "${LANGFUSE_OVERRIDE_FILE}" ] && docker network inspect "${SHARED_LANGFUSE_NETWORK}" >/dev/null 2>&1; then

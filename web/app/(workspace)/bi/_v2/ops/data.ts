@@ -75,6 +75,9 @@ export type AuditLogEntry = {
   actor: string
   action: string
   target: string
+  reason?: string
+  before?: Record<string, unknown>
+  after?: Record<string, unknown>
   severity: 'low' | 'medium' | 'high'
   category: 'member' | 'wallet' | 'feedback' | 'export' | 'permission'
 }
