@@ -47,11 +47,40 @@ assert.deepStrictEqual(
 var model = wxVm.buildLearningHomeViewModel(dashboard);
 assert.strictEqual(model.reviewCount, 3);
 assert.strictEqual(model.focusQuery, "讲一下主体结构验收");
+assert.strictEqual(model.focusActionType, "prompt");
 assert.strictEqual(model.recommendedPrompts.length, 2);
 assert.strictEqual(model.recommendedPrompts[0].promptIntent.learning_signal_type, "concept_explain");
 assert.deepStrictEqual(model.recommendedPrompts[0].evidenceRefs, ["evt-home-1"]);
 assert.strictEqual(model.recommendedPrompts[0].learningStateRef, "knowledge:1A432000");
 assert.strictEqual(model.recommendedPrompts[0].suggestedMode, "deep");
+
+var assessmentModel = wxVm.buildLearningHomeViewModel({
+  today_focus: {
+    label: "今日焦点",
+    title: "一题，给系统第一份学习证据",
+  },
+  recommended_prompts: [
+    {
+      text: "先做一次模拟测评",
+      prompt_type: "discovery_probe",
+      intent: { source: "home_dashboard", learning_signal_type: "home_prompt_clicked" },
+    },
+  ],
+});
+assert.strictEqual(assessmentModel.focusActionType, "assessment");
+assert.strictEqual(assessmentModel.focusQuery, "");
+assert.strictEqual(assessmentModel.recommendedPrompts.length, 0);
+
+var assessmentLessonModel = wxVm.buildLearningHomeViewModel({
+  recommended_prompts: [
+    {
+      text: "讲一下阶段测评后应该怎么复盘",
+      prompt_type: "concept_explain",
+    },
+  ],
+});
+assert.strictEqual(assessmentLessonModel.focusActionType, "prompt");
+assert.strictEqual(assessmentLessonModel.recommendedPrompts.length, 1);
 
 var chatSource = fs.readFileSync(chatSourcePath, "utf8");
 var chatWxml = fs.readFileSync(chatWxmlPath, "utf8");
@@ -81,7 +110,11 @@ function loadChatPage(getHomeDashboard) {
       },
       setStorageSync: function () {},
       showToast: function () {},
+      navigateTo: function (options) {
+        sandbox.navigateCalls.push(options);
+      },
     },
+    navigateCalls: [],
     getApp: function () {
       return { globalData: { networkAvailable: true } };
     },
@@ -132,6 +165,7 @@ function loadChatPage(getHomeDashboard) {
   };
   vm.runInNewContext(chatSource, sandbox, { filename: chatSourcePath });
   assert(capturedPage);
+  capturedPage.__navigateCalls = sandbox.navigateCalls;
   return capturedPage;
 }
 
@@ -146,7 +180,7 @@ function instantiatePage(pageDefinition) {
       sent.push({ query: query, options: options || {} });
     },
   });
-  return { page: page, sent: sent };
+  return { page: page, sent: sent, navigated: pageDefinition.__navigateCalls || [] };
 }
 
 function flushPromises() {
@@ -163,6 +197,7 @@ function flushPromises() {
   success.page._loadDashboard();
   await flushPromises();
   assert.strictEqual(success.page.data.showStaticExamples, false);
+  assert.strictEqual(success.page.data.focusActionType, "prompt");
   success.page.onFocusTap();
   assert.deepStrictEqual(JSON.parse(JSON.stringify(success.sent)), [
     {
@@ -174,6 +209,28 @@ function flushPromises() {
         },
       },
     },
+  ]);
+
+  var assessmentDefinition = loadChatPage(function () {
+    return Promise.resolve({
+      data: {
+        today_focus: { title: "一题，给系统第一份学习证据" },
+        recommended_prompts: [
+          { text: "先做一次模拟测评", prompt_type: "discovery_probe" },
+        ],
+      },
+    });
+  });
+  var assessment = instantiatePage(assessmentDefinition);
+  assessment.page._loadDashboard();
+  await flushPromises();
+  assert.strictEqual(assessment.page.data.showStaticExamples, true);
+  assert.strictEqual(assessment.page.data.focusActionType, "assessment");
+  assert.strictEqual(assessment.page.data.recommendedPrompts.length, 0);
+  assessment.page.onFocusTap();
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(assessment.sent)), []);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(assessment.navigated)), [
+    { url: "/pages/assessment/assessment" },
   ]);
 
   var emptyDefinition = loadChatPage(function () {

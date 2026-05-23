@@ -1,5 +1,6 @@
 // Run: node wx_miniprogram/tests/test_attempt_detail_view_model.js
 var assert = require("assert");
+var fs = require("fs");
 var path = require("path");
 
 var wxVm = require(
@@ -76,7 +77,10 @@ var richExplanationText = [
   "1A412020 验槽方法选择",
   "",
   "### 易错点",
-  "把辅助手段当成主要方法。",
+  "| 易错理解 | 正确抓手 |",
+  "|---|---|",
+  "| 认为钎探法是主要方法，因为考试常考 | 钎探法只是“对于不可见部位先辅以”的手段，题干问“主要采用”必选观察法 |",
+  "| 看到“验槽”就选“钎探” | 关键词“通常主要采用”锁定观察法，钎探是“辅以” |",
   "",
   "### 记忆口诀",
   "先看后探，观察为主。",
@@ -106,6 +110,9 @@ var richDetail = {
     summary: "B 选项不符合标准答案。",
     full_text: richExplanationText,
     source: "history_assistant",
+  },
+  next_training: {
+    focus: "先做一次摸底测评；training_mode=mixed_rev",
   },
   conversation: {
     title: "验槽通常主要采用什么方法？",
@@ -158,6 +165,25 @@ assert.ok(
   sectionContent["记忆口诀"].indexOf("先看后探") >= 0,
   "记忆口诀 section must carry the mnemonic from the historical explanation",
 );
+var mistakeSection = richWx.explanationSections.filter(function (item) {
+  return item.label === "易错点";
+})[0];
+assert.ok(mistakeSection, "易错点 section should exist");
+assert.ok(
+  mistakeSection.blocks.some(function (block) {
+    return block.type === "table" && block.headers.length === 2 && block.rows.length === 2;
+  }),
+  "markdown table inside historical explanation must be rendered as a table block",
+);
+assert.ok(
+  mistakeSection.blocks.some(function (block) {
+    return (
+      block.type === "table" &&
+      block.rows[0][1].content[0].text.indexOf("主要采用") >= 0
+    );
+  }),
+  "table block should preserve the teacher explanation cells",
+);
 assert.ok(
   sectionContent["下一步"].indexOf("观察法") >= 0,
   "下一步 section must point to the verified primary method",
@@ -169,6 +195,26 @@ assert.ok(
   lastTurn.content.indexOf("先看后探") >= 0,
   "system 解析 turn must include the historical assistant content",
 );
+assert.ok(
+  richWx.nextTraining.indexOf("摸底测评") >= 0,
+  "nextTraining should keep the student-facing action",
+);
+assert.ok(
+  richWx.nextTraining.indexOf("training_mode") < 0 && richWx.nextTraining.indexOf("mixed_rev") < 0,
+  "nextTraining must not expose backend mode codes",
+);
+assert.ok(
+  richWx.turns.every(function (turn) {
+    return (
+      turn.content.indexOf("###") < 0 &&
+      turn.content.indexOf("---") < 0 &&
+      turn.content.indexOf("**") < 0 &&
+      turn.content.indexOf("training_mode") < 0 &&
+      turn.content.indexOf("mixed_rev") < 0
+    );
+  }),
+  "raw conversation transcript should be cleaned for learner-facing display",
+);
 // No backend enum text should reach the student-facing sections.
 richWx.explanationSections.forEach(function (item) {
   assert.ok(
@@ -178,5 +224,29 @@ richWx.explanationSections.forEach(function (item) {
     "rich sections must not expose internal enum values: " + item.label,
   );
 });
+
+var wxWxml = fs.readFileSync(
+  path.join(__dirname, "../pages/attempt-detail/attempt-detail.wxml"),
+  "utf8",
+);
+var yousenWxml = fs.readFileSync(
+  path.join(
+    __dirname,
+    "../../yousenwebview/packageDeeptutor/pages/attempt-detail/attempt-detail.wxml",
+  ),
+  "utf8",
+);
+assert.ok(
+  wxWxml.indexOf("b.type==='table'") >= 0,
+  "wx attempt detail should render markdown table blocks",
+);
+assert.ok(
+  yousenWxml.indexOf("b.type==='table'") >= 0,
+  "yousen attempt detail should render markdown table blocks",
+);
+assert.ok(
+  yousenWxml.indexOf("md-table-card") >= 0,
+  "yousen attempt detail should render compact table cards on mobile",
+);
 
 console.log("PASS test_attempt_detail_view_model.js");

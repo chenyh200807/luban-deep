@@ -1,3 +1,5 @@
+var markdown = require("./markdown");
+
 function asObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
@@ -14,11 +16,85 @@ function multilineText(value) {
   return String(value || "").replace(/\r\n/g, "\n").trim();
 }
 
+function studentFacingText(value) {
+  var text = multilineText(value);
+  if (!text) return "";
+  var lines = text.split("\n");
+  var output = [];
+  var tableHeaders = null;
+  for (var i = 0; i < lines.length; i++) {
+    var line = String(lines[i] || "");
+    if (/^\s*(?:---+|\*\*\*+)\s*$/.test(line)) continue;
+    if (isMarkdownTableSeparator(line)) continue;
+    if (isMarkdownTableRow(line)) {
+      var cells = markdownTableCells(line);
+      if (i + 1 < lines.length && isMarkdownTableSeparator(lines[i + 1])) {
+        tableHeaders = cells;
+        continue;
+      }
+      output.push(tableRowToStudentText(cells, tableHeaders));
+      continue;
+    }
+    output.push(cleanStudentLine(line));
+  }
+  return output.filter(Boolean).join("\n").trim();
+}
+
+function cleanStudentLine(line) {
+  return String(line || "")
+    .replace(/^#{1,6}\s*/g, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/[✅✔️]/g, "正确")
+    .replace(/[❌✘]/g, "错误")
+    .replace(/\btraining_mode\s*=\s*mixed_rev\b/gi, "")
+    .replace(/\btraining_mode\s*=\s*[A-Za-z0-9_\-]+\b/gi, "")
+    .replace(/\bmixed_rev\b/gi, "混合复习")
+    .replace(/\bdiscovery_probe\b/gi, "摸底测评")
+    .replace(/\bcode_application\b/gi, "规范应用")
+    .replace(/\bquestion_reading\b/gi, "审题")
+    .replace(/\brecurrence\b/gi, "同类错误复发")
+    .replace(/[；;，,]\s*$/g, "")
+    .trim();
+}
+
+function isMarkdownTableRow(line) {
+  return /^\s*\|.+\|\s*$/.test(String(line || ""));
+}
+
+function isMarkdownTableSeparator(line) {
+  return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(String(line || ""));
+}
+
+function markdownTableCells(line) {
+  return String(line || "")
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map(cleanStudentLine)
+    .filter(Boolean);
+}
+
+function tableRowToStudentText(cells, headers) {
+  var values = Array.isArray(cells) ? cells : [];
+  var keys = Array.isArray(headers) ? headers : [];
+  if (!values.length) return "";
+  if (keys.length === values.length) {
+    return values
+      .map(function (cell, index) {
+        return keys[index] + "：" + cell;
+      })
+      .join("；");
+  }
+  return values.join("；");
+}
+
 function normalizeTurn(item, index) {
   var source = asObject(item);
   var role = compactText(source.role || "system");
   var label = compactText(source.label || (role === "student" ? "学员" : "系统"));
-  var content = multilineText(source.content || source.text || "");
+  var content = studentFacingText(source.content || source.text || "");
   if (!content) return null;
   return {
     key: compactText(source.key || role + "-" + index),
@@ -26,6 +102,14 @@ function normalizeTurn(item, index) {
     label: label,
     content: content,
   };
+}
+
+function normalizeNextTraining(value) {
+  var text = studentFacingText(value);
+  if (!text) return "";
+  text = text.replace(/\s*[；;，,]\s*$/g, "").trim();
+  if (!text || text === "混合复习") return "做一组混合复习训练";
+  return text;
 }
 
 function fallbackTurns(card) {
@@ -123,15 +207,38 @@ function parseExplanationSections(text) {
   }
   return sections
     .map(function (item, index) {
+      var content = multilineText(item.content);
       return {
         key: item.key || "section-" + index,
         label: compactText(item.label || "系统解析"),
-        content: multilineText(item.content),
+        content: content,
+        blocks: parseExplanationBlocks(content),
       };
     })
     .filter(function (item) {
       return item.content;
     });
+}
+
+function parseExplanationBlocks(content) {
+  var text = multilineText(content);
+  if (!text) return [];
+  try {
+    return markdown.parse(text).filter(function (block) {
+      return block && block.type !== "hr";
+    });
+  } catch (_err) {
+    return [
+      {
+        type: "paragraph",
+        raw: text,
+        content: markdown.parseInline ? markdown.parseInline(text) : [{ type: "text", text: text }],
+        nodes: markdown.spansToRichTextNodes
+          ? markdown.spansToRichTextNodes(markdown.parseInline ? markdown.parseInline(text) : [{ type: "text", text: text }])
+          : [{ type: "text", text: text }],
+      },
+    ];
+  }
 }
 
 function buildAttemptDetailViewModel(detail, card) {
@@ -171,7 +278,7 @@ function buildAttemptDetailViewModel(detail, card) {
     error: error,
     explanation: multilineText(explanation.summary || source.explanation),
     explanationSections: explanationSections,
-    nextTraining: compactText(asObject(payload.next_training).focus || asObject(payload.next_training).concept || ""),
+    nextTraining: normalizeNextTraining(asObject(payload.next_training).focus || asObject(payload.next_training).concept || ""),
     turns: detailTurns(payload, source),
   };
 }
@@ -179,4 +286,5 @@ function buildAttemptDetailViewModel(detail, card) {
 module.exports = {
   buildAttemptDetailViewModel: buildAttemptDetailViewModel,
   parseExplanationSections: parseExplanationSections,
+  parseExplanationBlocks: parseExplanationBlocks,
 };

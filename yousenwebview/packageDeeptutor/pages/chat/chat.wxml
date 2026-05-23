@@ -80,12 +80,6 @@ module.exports = {
       </view>
     </view>
 
-    <view class="recommended-prompts" wx:if="{{recommendedPrompts && recommendedPrompts.length}}">
-      <view class="recommended-prompt" wx:for="{{recommendedPrompts}}" wx:key="key" bindtap="onRecommendedPromptTap" data-index="{{index}}">
-        <text class="recommended-prompt-text">{{item.text}}</text>
-      </view>
-    </view>
-
     <!-- 输入卡片 -->
     <view class="input-card">
       <textarea
@@ -119,6 +113,16 @@ module.exports = {
 			        </view>
 			      </view>
     </view>
+
+    <text class="personalized-prompt-label" wx:if="{{recommendedPrompts && recommendedPrompts.length}}">根据你的学情，建议这样问</text>
+    <scroll-view class="recommended-prompts" wx:if="{{recommendedPrompts && recommendedPrompts.length}}" scroll-x enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}">
+      <view class="recommended-prompt-track">
+        <view class="recommended-prompt" wx:for="{{recommendedPrompts}}" wx:key="key" bindtap="onRecommendedPromptTap" data-index="{{index}}">
+          <text class="recommended-prompt-kicker">学情推荐</text>
+          <text class="recommended-prompt-text">{{item.text}}</text>
+        </view>
+      </view>
+    </scroll-view>
 
     <!-- 示例 -->
     <text class="example-label" wx:if="{{showStaticExamples}}">试试这样问</text>
@@ -264,14 +268,14 @@ module.exports = {
             </view>
           </view>
 
-          <!-- 结构化内容的正文说明，避免 table/formula 只挂在块里不显示 -->
-          <text class="ai-text" user-select wx:if="{{item.hasStructuredContent && item.renderableContent}}">{{item.renderableContent}}</text>
+          <!-- 结构化内容的正文说明；MCQ 原文只保留在“查看原文”里 -->
+          <text class="ai-text" user-select wx:if="{{item.hasStructuredContent && item.renderableContent && !(item.mcqCards && item.mcqCards.length)}}">{{item.renderableContent}}</text>
 
           <!-- 纯文本回退：流式初期 blocks 尚未解析 -->
-          <text class="ai-text" user-select wx:if="{{!item.hasStructuredContent && !item.blocks.length && (item.renderableContent || item.content)}}">{{item.renderableContent || item.content}}</text>
+          <text class="ai-text" user-select wx:if="{{!item.hasStructuredContent && !item.blocks.length && !(item.mcqCards && item.mcqCards.length) && (item.renderableContent || item.content)}}">{{item.renderableContent || item.content}}</text>
 
           <!-- MCQ：结构化题卡优先显示，原文仅在用户点击后展开 -->
-          <view class="mcq" wx:if="{{item.mcqCards && item.mcqCards.length && (!item.streaming || (!item.renderableContent && !item.blocks.length))}}">
+          <view class="mcq" wx:if="{{item.mcqCards && item.mcqCards.length}}">
             <view class="mcq-head">
               <text class="mcq-head-title" user-select>{{item.mcqInteractiveReady ? '交互式作答' : '题目回看'}}</text>
               <view class="mcq-head-side">

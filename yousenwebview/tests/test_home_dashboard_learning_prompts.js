@@ -35,12 +35,33 @@ var model = vm.buildLearningHomeViewModel({
 });
 assert.strictEqual(model.focusTitle, "按当前状态推进建筑实务");
 assert.strictEqual(model.recommendedPrompts[0].text, "练 3 道主体结构题");
+assert.strictEqual(model.focusActionType, "prompt");
+
+var assessmentModel = vm.buildLearningHomeViewModel({
+  today_focus: { title: "一题，给系统第一份学习证据" },
+  recommended_prompts: [
+    { text: "先做一次模拟测评", prompt_type: "discovery_probe" },
+  ],
+});
+assert.strictEqual(assessmentModel.focusActionType, "assessment");
+assert.strictEqual(assessmentModel.focusQuery, "");
+assert.strictEqual(assessmentModel.recommendedPrompts.length, 0);
+
+var assessmentLessonModel = vm.buildLearningHomeViewModel({
+  recommended_prompts: [
+    { text: "讲一下阶段测评后应该怎么复盘", prompt_type: "concept_explain" },
+  ],
+});
+assert.strictEqual(assessmentLessonModel.focusActionType, "prompt");
+assert.strictEqual(assessmentLessonModel.recommendedPrompts.length, 1);
 
 var chatSource = fs.readFileSync(chatSourcePath, "utf8");
 var chatWxml = fs.readFileSync(chatWxmlPath, "utf8");
 var wsSource = fs.readFileSync(wsSourcePath, "utf8");
 assert(chatSource.indexOf("learning-home-view-model") >= 0);
 assert(chatSource.indexOf("onRecommendedPromptTap") >= 0);
+assert(chatSource.indexOf('focusActionType === "assessment"') >= 0);
+assert(chatSource.indexOf("route.assessment()") >= 0);
 assert(chatWxml.indexOf("recommendedPrompts") >= 0);
 assert(chatSource.indexOf("showStaticExamples") >= 0);
 assert(chatWxml.indexOf("showStaticExamples") >= 0);

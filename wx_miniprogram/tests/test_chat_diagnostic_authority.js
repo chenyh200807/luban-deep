@@ -88,6 +88,9 @@ function loadChatPage(overrides) {
       if (request === "../../utils/chat-turn-recovery") return {};
       if (request === "../../utils/history-tombstone") return { rememberDeletedConversationIds: function () {} };
       if (request === "../../utils/devtools-markdown-fixtures") return {};
+      if (request === "../../utils/learning-home-view-model") {
+        return { buildLearningHomeViewModel: function () { return { recommendedPrompts: [] }; } };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {

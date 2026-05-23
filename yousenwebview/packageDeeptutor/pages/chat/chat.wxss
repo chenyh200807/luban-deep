@@ -299,6 +299,59 @@
 .send-btn.stop { background: #ef4444; }
 .send-icon { font-size: 24rpx; color: rgba(255,255,255,0.3); }
 .send-btn.on .send-icon, .send-btn.stop .send-icon { color: #fff; }
+/* ── 个性化推荐追问 ───────────────────────────── */
+.personalized-prompt-label {
+  display: block;
+  padding: 0 36rpx 14rpx;
+  font-size: 23rpx;
+  line-height: 1.2;
+  color: rgba(147,197,253,0.72);
+  font-weight: 700;
+}
+.recommended-prompts {
+  width: 100%;
+  padding: 0 0 24rpx;
+  white-space: nowrap;
+}
+.recommended-prompt-track {
+  display: flex;
+  gap: 16rpx;
+  padding: 0 36rpx;
+  box-sizing: border-box;
+}
+.recommended-prompt {
+  width: 420rpx;
+  min-height: 132rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, rgba(30,64,175,0.24), rgba(8,47,73,0.42));
+  border: 1rpx solid rgba(96,165,250,0.28);
+  box-shadow: 0 14rpx 28rpx rgba(15,23,42,0.24);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+.recommended-prompt:active {
+  border-color: rgba(125,211,252,0.46);
+  background: linear-gradient(135deg, rgba(37,99,235,0.32), rgba(8,47,73,0.52));
+}
+.recommended-prompt-kicker {
+  font-size: 20rpx;
+  line-height: 1.2;
+  color: rgba(125,211,252,0.74);
+  font-weight: 700;
+}
+.recommended-prompt-text {
+  display: block;
+  font-size: 27rpx;
+  line-height: 1.38;
+  color: rgba(248,250,252,0.96);
+  font-weight: 700;
+  white-space: normal;
+}
 /* ── 示例卡片 ─────────────────────────────────── */
 .example-label { display: block; padding: 0 36rpx 16rpx; font-size: 24rpx; color: rgba(226,232,240,0.38); }
 .example-scroll { width: 100%; padding: 0 0 8rpx; white-space: nowrap; }

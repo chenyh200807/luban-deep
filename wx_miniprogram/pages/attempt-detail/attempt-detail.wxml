@@ -39,7 +39,40 @@
         <text class="section-kicker">系统当时怎么讲清楚的</text>
         <view class="explanation-card" wx:for="{{detail.explanationSections}}" wx:key="key">
           <text class="explanation-label">{{item.label}}</text>
-          <text class="explanation-content">{{item.content}}</text>
+          <view class="explanation-blocks" wx:if="{{item.blocks && item.blocks.length}}">
+            <block wx:for="{{item.blocks}}" wx:key="id" wx:for-item="b">
+              <rich-text wx:if="{{b.type==='paragraph' || b.type==='callout' || b.type==='heading'}}" class="explanation-rich-text" nodes="{{b.nodes}}"></rich-text>
+              <view wx:elif="{{b.type==='ul' || b.type==='ol'}}" class="explanation-list">
+                <view class="explanation-list-item" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
+                  <text class="explanation-list-bullet">{{b.type==='ol' ? (index + 1) + '.' : '•'}}</text>
+                  <rich-text class="explanation-list-text" nodes="{{li.nodes}}"></rich-text>
+                </view>
+              </view>
+              <view wx:elif="{{b.type==='table'}}" class="explanation-table-wrap">
+                <view wx:if="{{b.mobileStrategy==='compact_cards'}}">
+                  <view class="md-table-card" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row" wx:for-index="rowIndex">
+                    <text class="md-table-card-title">第{{rowIndex + 1}}条</text>
+                    <view class="md-table-card-row" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
+                      <rich-text class="md-table-card-key" nodes="{{h.nodes}}"></rich-text>
+                      <rich-text class="md-table-card-val" nodes="{{row[colIndex] ? row[colIndex].nodes : []}}"></rich-text>
+                    </view>
+                  </view>
+                </view>
+                <scroll-view wx:else scroll-x class="md-table-scroll">
+                  <view class="md-table">
+                    <view class="md-thead">
+                      <rich-text class="md-th" wx:for="{{b.headers}}" wx:key="index" nodes="{{item.nodes}}"></rich-text>
+                    </view>
+                    <view class="md-tr" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row">
+                      <rich-text class="md-td" wx:for="{{row}}" wx:key="index" nodes="{{item.nodes}}"></rich-text>
+                    </view>
+                  </view>
+                </scroll-view>
+              </view>
+              <text wx:else class="explanation-content">{{b.raw || b.text || ''}}</text>
+            </block>
+          </view>
+          <text wx:else class="explanation-content">{{item.content}}</text>
         </view>
       </view>
 

@@ -10,10 +10,21 @@ function compactText(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }
 
+function isAssessmentPrompt(source, text) {
+  var payload = asObject(source);
+  var kind = compactText(payload.prompt_type || payload.type || payload.action_type).toLowerCase();
+  var signal = compactText(asObject(payload.intent || payload.prompt_intent).learning_signal_type).toLowerCase();
+  var copy = compactText(text || payload.text || payload.title || payload.query || payload.prompt);
+  if (kind === "discovery_probe" || kind === "assessment" || kind === "diagnostic") return true;
+  if (signal === "discovery_probe" || signal === "assessment") return true;
+  return /^(?:先|立即|开始|去)?\s*(?:做|完成|来)?\s*(?:一次)?\s*(?:摸底测试|摸底测评|起步测评|模拟测评|诊断测试)/.test(copy);
+}
+
 function normalizePrompt(item, index) {
   var source = asObject(item);
   var text = compactText(source.text || source.title || source.query || source.prompt);
   if (!text) return null;
+  if (isAssessmentPrompt(source, text)) return null;
   var promptType = compactText(source.prompt_type || source.type || "learning_prompt");
   return {
     key: compactText(source.key || promptType + "-" + index),
@@ -40,7 +51,14 @@ function buildLearningHomeViewModel(dashboard) {
     .map(normalizePrompt)
     .filter(Boolean)
     .slice(0, 4);
+  var rawPrompts = asList(body.recommended_prompts);
+  var assessmentAction = rawPrompts.some(function (item) {
+    return isAssessmentPrompt(item);
+  });
   var primaryPrompt = prompts[0] || {};
+  var focusQuery = assessmentAction
+    ? ""
+    : compactText(focus.query || focus.prompt || primaryPrompt.text);
   return {
     reviewCount: Number(review.overdue || 0) + Number(review.due_today || 0),
     focusLabel: compactText(focus.label || "今日焦点"),
@@ -48,7 +66,8 @@ function buildLearningHomeViewModel(dashboard) {
     focusTitle: focusTitle,
     focusMeta: compactText(focus.meta || ""),
     focusText: focusTitle,
-    focusQuery: compactText(focus.query || focus.prompt || primaryPrompt.text),
+    focusQuery: focusQuery,
+    focusActionType: assessmentAction ? "assessment" : focusQuery ? "prompt" : "",
     focusPromptIntent: asObject(focus.prompt_intent || focus.intent || primaryPrompt.promptIntent),
     recommendedPrompts: prompts,
   };

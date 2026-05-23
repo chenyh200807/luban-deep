@@ -223,6 +223,7 @@ Page({
     focusTone: "plan",
     focusText: "",
     focusQuery: "",
+    focusActionType: "",
     focusPromptIntent: null,
     recommendedPrompts: [],
     showStaticExamples: true,
@@ -1518,6 +1519,7 @@ Page({
         update.focusMeta = buildFocusDisplayMeta(focus, homeModel.focusMeta);
         update.focusText = update.focusTitle;
         update.focusQuery = homeModel.focusQuery;
+        update.focusActionType = homeModel.focusActionType;
         update.focusPromptIntent = homeModel.focusPromptIntent;
         update.recommendedPrompts = homeModel.recommendedPrompts;
         update.showStaticExamples = !homeModel.recommendedPrompts.length;
@@ -1533,6 +1535,7 @@ Page({
           focusMeta: "",
           focusText: "今日推进",
           focusPromptIntent: null,
+          focusActionType: "",
           recommendedPrompts: [],
           showStaticExamples: true,
           focusQuery: "",
@@ -1541,6 +1544,10 @@ Page({
   },
 
   onFocusTap: function () {
+    if (this.data.focusActionType === "assessment") {
+      wx.navigateTo({ url: "/pages/assessment/assessment" });
+      return;
+    }
     var query = this.data.focusQuery;
     if (query && !this.data.isStreaming) {
       this._send(query, { promptIntent: this.data.focusPromptIntent });

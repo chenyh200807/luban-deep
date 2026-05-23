@@ -178,6 +178,20 @@ assert(
   "example suggestions should pause marquee motion during touch so users can drag directly",
 );
 assert(
+  chatWxml.indexOf('class="input-card"') <
+    chatWxml.indexOf('class="recommended-prompts" wx:if="{{recommendedPrompts && recommendedPrompts.length}}"') &&
+    chatWxml.indexOf('class="recommended-prompts" wx:if="{{recommendedPrompts && recommendedPrompts.length}}"') <
+      chatWxml.indexOf('class="example-label" wx:if="{{showStaticExamples}}"'),
+  "personalized recommended prompts should live below the input card instead of leaking as raw text above it",
+);
+assert(
+  chatWxml.indexOf('class="personalized-prompt-label"') >= 0 &&
+    chatWxml.indexOf('class="recommended-prompt-kicker"') >= 0 &&
+    chatWxss.indexOf(".recommended-prompts") >= 0 &&
+    chatWxss.indexOf(".recommended-prompt-text") >= 0,
+  "personalized recommended prompts should have a dedicated learner-facing card style",
+);
+assert(
   chatWxml.indexOf("class=\"row-icon-btn\" bindtap=\"onToggleTheme\"") < 0 &&
     chatWxml.indexOf("class=\"row-icon-btn\" bindtap=\"goRecharge\"") < 0 &&
     chatWxml.indexOf("class=\"avatar\" bindtap=\"goProfile\"") < 0,
@@ -218,6 +232,22 @@ assert(
     chatWxml.indexOf('bindtap="onToggleOriginalContent"') >= 0 &&
     chatWxml.indexOf("{{item.originalExpanded ? '收起原文' : '查看原文'}}") >= 0,
   "mcq messages should expose a compact original-text toggle instead of rendering duplicate question text",
+);
+assert(
+  chatWxml.indexOf(
+    '<text class="ai-text" user-select wx:if="{{item.hasStructuredContent && item.renderableContent && !(item.mcqCards && item.mcqCards.length)}}">{{item.renderableContent}}</text>',
+  ) >= 0,
+  "structured prose should not render above interactive MCQ cards",
+);
+assert(
+  chatWxml.indexOf(
+    '<text class="ai-text" user-select wx:if="{{!item.hasStructuredContent && !item.blocks.length && !(item.mcqCards && item.mcqCards.length) && (item.renderableContent || item.content)}}">{{item.renderableContent || item.content}}</text>',
+  ) >= 0,
+  "plain fallback text should not render above interactive MCQ cards",
+);
+assert(
+  chatWxml.indexOf('<view class="mcq" wx:if="{{item.mcqCards && item.mcqCards.length}}">') >= 0,
+  "interactive MCQ cards should render immediately once cards exist; original text stays behind the toggle",
 );
 assert(
   chatJs.indexOf("originalContent") >= 0 &&
