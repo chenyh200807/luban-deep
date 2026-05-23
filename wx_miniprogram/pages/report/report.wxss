@@ -284,6 +284,472 @@
   color: #fbbf24;
 }
 
+/* ── 学情主页：少量结论 + 可点击细节 ───────────── */
+.report-home-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.home-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18rpx;
+  padding: 0 4rpx;
+}
+
+.home-section-kicker,
+.home-section-title {
+  display: block;
+}
+
+.home-section-kicker {
+  margin-bottom: 6rpx;
+  font-size: 22rpx;
+  font-weight: 800;
+  color: #7dd3fc;
+}
+
+.home-section-title {
+  font-size: 30rpx;
+  line-height: 1.25;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.home-section-note {
+  flex-shrink: 0;
+  font-size: 20rpx;
+  color: var(--text-muted);
+}
+
+.report-module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14rpx;
+}
+
+.report-module-card {
+  min-height: 214rpx;
+  padding: 20rpx;
+  border-radius: 18rpx;
+  border: 1rpx solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.56);
+  box-shadow: 0 18rpx 44rpx rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  overflow: hidden;
+}
+
+.report-module-card-pressed {
+  opacity: 0.86;
+  transform: scale(0.99);
+}
+
+.module-evidence {
+  background:
+    linear-gradient(145deg, rgba(8, 145, 178, 0.22), rgba(15, 23, 42, 0.72));
+}
+
+.module-map {
+  background:
+    linear-gradient(145deg, rgba(79, 70, 229, 0.2), rgba(15, 23, 42, 0.72));
+}
+
+.module-training {
+  background:
+    linear-gradient(145deg, rgba(5, 150, 105, 0.2), rgba(15, 23, 42, 0.72));
+}
+
+.module-progress {
+  background:
+    linear-gradient(145deg, rgba(217, 119, 6, 0.2), rgba(15, 23, 42, 0.72));
+}
+
+.module-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.module-card-kicker,
+.module-card-title,
+.module-card-desc {
+  display: block;
+}
+
+.module-card-kicker {
+  margin-bottom: 5rpx;
+  font-size: 19rpx;
+  line-height: 1.3;
+  font-weight: 700;
+  color: rgba(226, 232, 240, 0.66);
+}
+
+.module-card-title {
+  font-size: 28rpx;
+  line-height: 1.25;
+  font-weight: 850;
+  color: #fff;
+}
+
+.module-card-arrow {
+  flex-shrink: 0;
+  font-size: 34rpx;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.module-card-desc {
+  min-height: 54rpx;
+  font-size: 21rpx;
+  line-height: 1.35;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.module-mini-stats,
+.module-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.module-mini-stats text,
+.module-chip-row text {
+  padding: 6rpx 10rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 19rpx;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.mini-evidence-flow {
+  height: 22rpx;
+  display: flex;
+  align-items: center;
+}
+
+.mini-evidence-node {
+  width: 13rpx;
+  height: 13rpx;
+  border-radius: 50%;
+  background: rgba(103, 232, 249, 0.54);
+}
+
+.mini-evidence-node.active {
+  background: #34d399;
+  box-shadow: 0 0 0 8rpx rgba(52, 211, 153, 0.08);
+}
+
+.mini-evidence-line {
+  flex: 1;
+  height: 2rpx;
+  background: rgba(125, 211, 252, 0.24);
+}
+
+.mini-radar {
+  position: relative;
+  width: 112rpx;
+  height: 86rpx;
+  margin-top: -4rpx;
+}
+
+.mini-radar-ring,
+.mini-radar-dot {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.mini-radar-ring {
+  left: 18rpx;
+  top: 2rpx;
+  width: 72rpx;
+  height: 72rpx;
+  border: 1rpx solid rgba(129, 140, 248, 0.28);
+}
+
+.mini-radar-ring.ring-two {
+  left: 34rpx;
+  top: 18rpx;
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.mini-radar-dot {
+  width: 9rpx;
+  height: 9rpx;
+  background: #7dd3fc;
+}
+
+.mini-radar-dot.dot-one { left: 52rpx; top: 7rpx; }
+.mini-radar-dot.dot-two { left: 83rpx; top: 42rpx; background: #a78bfa; }
+.mini-radar-dot.dot-three { left: 24rpx; top: 58rpx; background: #34d399; }
+
+.mini-bars {
+  height: 46rpx;
+  display: flex;
+  align-items: flex-end;
+  gap: 9rpx;
+}
+
+.mini-bar {
+  width: 22rpx;
+  border-radius: 8rpx 8rpx 3rpx 3rpx;
+  background: rgba(251, 191, 36, 0.68);
+}
+
+.mini-bar.today { height: 27rpx; }
+.mini-bar.recent { height: 42rpx; background: rgba(125, 211, 252, 0.78); }
+.mini-bar.streak { height: 34rpx; background: rgba(52, 211, 153, 0.72); }
+
+/* ── 二级详情页头图与图表 ───────────────────── */
+.report-detail-hero {
+  padding: 26rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+.detail-evidence {
+  background:
+    linear-gradient(145deg, rgba(8, 145, 178, 0.24), rgba(15, 23, 42, 0.72));
+}
+
+.detail-map {
+  background:
+    linear-gradient(145deg, rgba(79, 70, 229, 0.24), rgba(15, 23, 42, 0.72));
+}
+
+.detail-training {
+  background:
+    linear-gradient(145deg, rgba(5, 150, 105, 0.24), rgba(15, 23, 42, 0.72));
+}
+
+.detail-progress {
+  background:
+    linear-gradient(145deg, rgba(217, 119, 6, 0.22), rgba(15, 23, 42, 0.72));
+}
+
+.detail-hero-kicker,
+.detail-hero-title,
+.detail-hero-sub {
+  display: block;
+}
+
+.detail-hero-kicker {
+  font-size: 22rpx;
+  font-weight: 800;
+  color: #7dd3fc;
+}
+
+.detail-hero-title {
+  font-size: 34rpx;
+  line-height: 1.25;
+  font-weight: 850;
+  color: var(--text-primary);
+}
+
+.detail-hero-sub {
+  font-size: 23rpx;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.detail-metric-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12rpx;
+}
+
+.detail-metric-row > view {
+  padding: 15rpx 12rpx;
+  border-radius: 12rpx;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+}
+
+.detail-metric-num,
+.detail-metric-label {
+  display: block;
+}
+
+.detail-metric-num {
+  font-size: 32rpx;
+  line-height: 1.1;
+  font-weight: 850;
+  color: #7dd3fc;
+}
+
+.detail-metric-label {
+  margin-top: 5rpx;
+  font-size: 19rpx;
+  color: rgba(226, 232, 240, 0.66);
+}
+
+.report-map-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.map-summary-label,
+.map-summary-num {
+  display: block;
+}
+
+.map-summary-label {
+  font-size: 20rpx;
+  color: rgba(226, 232, 240, 0.62);
+}
+
+.map-summary-num {
+  margin-top: 2rpx;
+  font-size: 52rpx;
+  line-height: 1;
+  font-weight: 850;
+  color: #7dd3fc;
+}
+
+.map-summary-bars {
+  height: 18rpx;
+  display: flex;
+  gap: 6rpx;
+}
+
+.map-summary-bar {
+  height: 18rpx;
+  border-radius: 99rpx;
+}
+
+.map-summary-bar.strong { width: 120rpx; background: #34d399; }
+.map-summary-bar.normal { width: 90rpx; background: #7dd3fc; }
+.map-summary-bar.weak { width: 54rpx; background: #fb7185; }
+
+.training-route {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.training-route-line {
+  flex: 1;
+  height: 2rpx;
+  background: rgba(110, 231, 183, 0.24);
+}
+
+.training-route-step {
+  min-width: 92rpx;
+  height: 46rpx;
+  padding: 0 12rpx;
+  border-radius: 99rpx;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.training-route-step.active {
+  background: rgba(52, 211, 153, 0.16);
+  border-color: rgba(52, 211, 153, 0.28);
+}
+
+.training-route-step text {
+  font-size: 21rpx;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.detail-training-list {
+  padding: 22rpx;
+}
+
+.progress-panel {
+  padding: 24rpx;
+}
+
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14rpx;
+}
+
+.progress-item {
+  padding: 18rpx;
+  border-radius: 14rpx;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.progress-item-label,
+.progress-item-value,
+.progress-item-detail {
+  display: block;
+}
+
+.progress-item-label {
+  font-size: 20rpx;
+  color: rgba(226, 232, 240, 0.62);
+}
+
+.progress-item-value {
+  font-size: 30rpx;
+  line-height: 1.1;
+  font-weight: 850;
+  color: #7dd3fc;
+}
+
+.progress-item-value.tone-good { color: #34d399; }
+.progress-item-value.tone-warn { color: #fb7185; }
+.progress-item-value.tone-accent { color: #7dd3fc; }
+
+.progress-item-detail {
+  font-size: 20rpx;
+  line-height: 1.35;
+  color: rgba(226, 232, 240, 0.62);
+}
+
+.progress-chart-card {
+  padding: 16rpx 12rpx 8rpx;
+  border-radius: 14rpx;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.progress-chart-bars {
+  height: 132rpx;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 18rpx;
+}
+
+.progress-chart-bar {
+  width: 82rpx;
+  border-radius: 14rpx 14rpx 6rpx 6rpx;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 10rpx;
+  background: rgba(251, 191, 36, 0.7);
+}
+
+.progress-chart-bar.today { height: 74rpx; }
+.progress-chart-bar.recent { height: 116rpx; background: rgba(125, 211, 252, 0.78); }
+.progress-chart-bar.streak { height: 94rpx; background: rgba(52, 211, 153, 0.72); }
+
+.progress-chart-bar text {
+  font-size: 18rpx;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.82);
+}
+
 /* ── Learning Engine Evidence Fusion ───────────── */
 .learning-engine-panel {
   position: relative;
@@ -1794,3 +2260,72 @@
 }
 .report-page.light .report-entry-icon-txt,
 .report-page.light .assess-entry-icon-txt { color: #2f6bff; }
+
+.report-page.light .report-module-card,
+.report-page.light .report-detail-hero {
+  border-color: rgba(209, 222, 244, 0.82);
+  box-shadow: 0 16rpx 38rpx rgba(47, 107, 255, 0.08);
+}
+
+.report-page.light .module-evidence,
+.report-page.light .detail-evidence {
+  background: linear-gradient(145deg, rgba(14, 165, 233, 0.12), rgba(255, 255, 255, 0.94));
+}
+
+.report-page.light .module-map,
+.report-page.light .detail-map {
+  background: linear-gradient(145deg, rgba(79, 70, 229, 0.12), rgba(255, 255, 255, 0.94));
+}
+
+.report-page.light .module-training,
+.report-page.light .detail-training {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.12), rgba(255, 255, 255, 0.94));
+}
+
+.report-page.light .module-progress,
+.report-page.light .detail-progress {
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.12), rgba(255, 255, 255, 0.94));
+}
+
+.report-page.light .home-section-title,
+.report-page.light .module-card-title,
+.report-page.light .detail-hero-title {
+  color: #0f172a;
+}
+
+.report-page.light .home-section-note,
+.report-page.light .module-card-desc,
+.report-page.light .detail-hero-sub,
+.report-page.light .progress-item-detail {
+  color: #64748b;
+}
+
+.report-page.light .module-card-kicker,
+.report-page.light .detail-metric-label,
+.report-page.light .map-summary-label,
+.report-page.light .progress-item-label {
+  color: #7b8799;
+}
+
+.report-page.light .module-mini-stats text,
+.report-page.light .module-chip-row text,
+.report-page.light .detail-metric-row > view,
+.report-page.light .training-route-step,
+.report-page.light .progress-chart-card,
+.report-page.light .progress-item {
+  background: rgba(241, 245, 249, 0.72);
+  border-color: rgba(209, 222, 244, 0.8);
+  color: #475569;
+}
+
+.report-page.light .module-card-arrow {
+  color: #94a3b8;
+}
+
+.report-page.light .training-route-step text {
+  color: #475569;
+}
+
+.report-page.light .progress-chart-bar text {
+  color: #0f172a;
+}

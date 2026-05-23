@@ -4,17 +4,17 @@
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
     <view class="nav-content">
-      <view class="nav-back" bindtap="goHome">
+      <view class="nav-back" bindtap="handleReportBack">
         <text class="nav-back-arrow">‹</text>
-        <text class="nav-back-txt">对话</text>
+        <text class="nav-back-txt">{{reportDetailView == 'home' ? '对话' : '学情'}}</text>
       </view>
-      <text class="nav-title">学情</text>
+      <text class="nav-title">{{reportDetailTitle}}</text>
     </view>
   </view>
 
-  <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px; bottom: 0">
+  <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" scroll-top="{{reportScrollTop}}" style="top: {{navHeight}}px; bottom: 0">
     <view class="page-inner">
-      <view class="overview-hero glass-card">
+      <view class="overview-hero glass-card" wx:if="{{reportDetailView == 'home'}}">
         <view class="overview-head">
           <view>
             <text class="overview-kicker">今日学习复盘</text>
@@ -58,22 +58,134 @@
         </view>
       </view>
 
-      <view class="insight-strip glass-card" wx:if="{{focusHint}}">
+      <view class="insight-strip glass-card" wx:if="{{reportDetailView == 'home' && focusHint}}">
         <text class="insight-kicker">今日建议</text>
         <text class="insight-text">{{focusHint}}</text>
       </view>
 
-      <view class="degraded-hint" wx:if="{{degradedHint}}">
+      <view class="degraded-hint" wx:if="{{reportDetailView == 'home' && degradedHint}}">
         <text class="degraded-hint-text">{{degradedHint}}</text>
       </view>
 
+      <view class="report-home-shell" wx:if="{{reportDetailView == 'home'}}">
+        <view class="home-section-head">
+          <view>
+            <text class="home-section-kicker">关键结论</text>
+            <text class="home-section-title">点开任一模块查看具体依据</text>
+          </view>
+          <text class="home-section-note">少看结论，多看证据</text>
+        </view>
+
+        <view class="report-module-grid">
+          <view class="report-module-card module-evidence" data-detail="evidence" bindtap="openReportDetail" hover-class="report-module-card-pressed">
+            <view class="module-card-head">
+              <view>
+                <text class="module-card-kicker">为什么这样判断</text>
+                <text class="module-card-title">学情依据</text>
+              </view>
+              <text class="module-card-arrow">›</text>
+            </view>
+            <text class="module-card-desc">作答、错因、采分点一起解释结论</text>
+            <view class="mini-evidence-flow">
+              <view class="mini-evidence-node active"></view>
+              <view class="mini-evidence-line"></view>
+              <view class="mini-evidence-node"></view>
+              <view class="mini-evidence-line"></view>
+              <view class="mini-evidence-node"></view>
+            </view>
+            <view class="module-mini-stats">
+              <text>{{learningAttemptCards.length || 0}} 条作答</text>
+              <text>{{learningBrainDiagnoses.length || learningBrainTruths.length || 0}} 个诊断</text>
+            </view>
+          </view>
+
+          <view class="report-module-card module-map" data-detail="map" bindtap="openReportDetail" hover-class="report-module-card-pressed">
+            <view class="module-card-head">
+              <view>
+                <text class="module-card-kicker">哪里强哪里弱</text>
+                <text class="module-card-title">{{overallMastery}}% 掌握地图</text>
+              </view>
+              <text class="module-card-arrow">›</text>
+            </view>
+            <view class="mini-radar">
+              <view class="mini-radar-ring ring-one"></view>
+              <view class="mini-radar-ring ring-two"></view>
+              <view class="mini-radar-dot dot-one"></view>
+              <view class="mini-radar-dot dot-two"></view>
+              <view class="mini-radar-dot dot-three"></view>
+            </view>
+            <view class="module-mini-stats">
+              <text>强 {{strongCount}}</text>
+              <text>弱 {{weakCount}}</text>
+            </view>
+          </view>
+
+          <view class="report-module-card module-training" data-detail="training" bindtap="openReportDetail" hover-class="report-module-card-pressed">
+            <view class="module-card-head">
+              <view>
+                <text class="module-card-kicker">今天先练什么</text>
+                <text class="module-card-title">训练安排</text>
+              </view>
+              <text class="module-card-arrow">›</text>
+            </view>
+            <text class="module-card-desc">{{learningNextAction.title || '先完成推荐专项训练'}}</text>
+            <view class="module-chip-row">
+              <text>诊断</text>
+              <text>补弱</text>
+              <text>验证</text>
+            </view>
+          </view>
+
+          <view class="report-module-card module-progress" data-detail="progress" bindtap="openReportDetail" hover-class="report-module-card-pressed">
+            <view class="module-card-head">
+              <view>
+                <text class="module-card-kicker">这几天有没有变好</text>
+                <text class="module-card-title">进步反馈</text>
+              </view>
+              <text class="module-card-arrow">›</text>
+            </view>
+            <text class="module-card-desc">{{learningReviewSummary.headline || '完成更多练习后，这里会出现更清晰的进步反馈'}}</text>
+            <view class="mini-bars">
+              <view class="mini-bar today"></view>
+              <view class="mini-bar recent"></view>
+              <view class="mini-bar streak"></view>
+            </view>
+            <view class="module-mini-stats">
+              <text>今日 {{todayDone}}</text>
+              <text>近3天 {{learningReviewSummary.recentThreeDone || 0}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
       <!-- Batch C Task 8: today prescription + 3-layer learning state + scoring point map -->
+      <block wx:if="{{reportDetailView == 'evidence'}}">
+      <view class="report-detail-hero detail-evidence glass-card">
+        <text class="detail-hero-kicker">学情依据</text>
+        <text class="detail-hero-title">每个判断都能回到具体作答</text>
+        <text class="detail-hero-sub">这里保留完整证据链：数据来源、错因、采分点、最近做题复盘和训练闭环。</text>
+        <view class="detail-metric-row">
+          <view>
+            <text class="detail-metric-num">{{learningAttemptCards.length || 0}}</text>
+            <text class="detail-metric-label">作答证据</text>
+          </view>
+          <view>
+            <text class="detail-metric-num">{{learningBrainDiagnoses.length || learningBrainTruths.length || 0}}</text>
+            <text class="detail-metric-label">诊断结论</text>
+          </view>
+          <view>
+            <text class="detail-metric-num">{{scoringPointMapItems.length || 0}}</text>
+            <text class="detail-metric-label">采分点</text>
+          </view>
+        </view>
+      </view>
+
       <view class="learning-engine-panel glass-card" wx:if="{{engineEvidenceVisible}}">
         <view class="engine-panel-rail"></view>
         <view class="engine-head">
           <view>
             <text class="engine-kicker">证据融合</text>
-            <text class="engine-title">学习状态推断引擎</text>
+            <text class="engine-title">证据怎么合成结论</text>
           </view>
           <text class="engine-summary">{{engineEvidenceSummary}}</text>
         </view>
@@ -322,8 +434,32 @@
           </view>
         </view>
       </view>
+      </block>
 
       <!-- ═══════════ 能力雷达 ═══════════════════════ -->
+      <block wx:if="{{reportDetailView == 'map'}}">
+      <view class="report-detail-hero detail-map glass-card">
+        <text class="detail-hero-kicker">掌握地图</text>
+        <text class="detail-hero-title">把掌握度拆成可行动的结构</text>
+        <text class="detail-hero-sub">雷达图看能力结构，掌握分布看章节和复习压力，避免只盯一个总分。</text>
+        <view class="report-map-summary">
+          <view>
+            <text class="map-summary-label">总体掌握</text>
+            <text class="map-summary-num">{{overallMastery}}%</text>
+          </view>
+          <view class="map-summary-bars">
+            <view class="map-summary-bar strong"></view>
+            <view class="map-summary-bar normal"></view>
+            <view class="map-summary-bar weak"></view>
+          </view>
+          <view class="module-mini-stats">
+            <text>强项 {{strongCount}}</text>
+            <text>一般 {{normalCount}}</text>
+            <text>薄弱 {{weakCount}}</text>
+          </view>
+        </view>
+      </view>
+
       <view class="section-header">
         <text class="section-title">能力雷达</text>
       </view>
@@ -424,7 +560,7 @@
       </view>
 
       <!-- 摸底报告详情（展开后显示） -->
-      <view wx:if="{{masteryExpanded}}">
+      <view wx:if="{{masteryExpanded || reportDetailView == 'map'}}">
 
         <!-- 加载中 -->
         <view wx:if="{{masteryLoading}}" class="glass-card loading-card">
@@ -516,9 +652,80 @@
           </view>
         </view>
       </view>
+      </block>
+
+      <block wx:if="{{reportDetailView == 'training'}}">
+      <view class="report-detail-hero detail-training glass-card">
+        <text class="detail-hero-kicker">训练安排</text>
+        <text class="detail-hero-title">{{learningNextAction.title || '今天先做什么'}}</text>
+        <text class="detail-hero-sub">{{learningNextAction.subtitle || learningReviewSummary.headline || '根据最近作答安排下一步训练。'}}</text>
+        <view class="training-route">
+          <view class="training-route-step active"><text>诊断</text></view>
+          <view class="training-route-line"></view>
+          <view class="training-route-step"><text>专项题</text></view>
+          <view class="training-route-line"></view>
+          <view class="training-route-step"><text>复盘</text></view>
+        </view>
+      </view>
+
+      <view class="brain-column detail-training-list glass-card">
+        <text class="brain-column-title">下一步训练</text>
+        <view class="brain-next-action" wx:if="{{learningNextAction.title}}" bindtap="goPractice" hover-class="metric-chip-hover">
+          <view>
+            <text class="brain-training-title">{{learningNextAction.title}}</text>
+            <text class="brain-training-meta">{{learningNextAction.subtitle}}</text>
+          </view>
+          <text class="brain-next-cta">{{learningNextAction.cta || '开始训练'}}</text>
+        </view>
+        <view class="brain-training-row" wx:for="{{learningBrainTraining}}" wx:key="key" bindtap="goPractice" hover-class="metric-chip-hover">
+          <text class="brain-training-title">{{item.title}}</text>
+          <text class="brain-training-meta">{{item.meta}}</text>
+        </view>
+      </view>
+      </block>
+
+      <block wx:if="{{reportDetailView == 'progress'}}">
+      <view class="report-detail-hero detail-progress glass-card">
+        <text class="detail-hero-kicker">进步反馈</text>
+        <text class="detail-hero-title">不只看完成量，也看趋势和稳定性</text>
+        <text class="detail-hero-sub">{{learningReviewSummary.headline || '完成更多练习后，这里会出现更清晰的进步反馈。'}}</text>
+        <view class="progress-chart-card">
+          <view class="progress-chart-bars">
+            <view class="progress-chart-bar today"><text>今日</text></view>
+            <view class="progress-chart-bar recent"><text>近3天</text></view>
+            <view class="progress-chart-bar streak"><text>连续</text></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="progress-panel glass-card">
+        <view class="progress-grid">
+          <view class="progress-item">
+            <text class="progress-item-label">今日完成</text>
+            <text class="progress-item-value tone-accent">{{todayDone}} / {{dailyTarget || 0}}</text>
+            <text class="progress-item-detail">当天目标推进情况</text>
+          </view>
+          <view class="progress-item">
+            <text class="progress-item-label">近 3 天</text>
+            <text class="progress-item-value tone-good">{{learningReviewSummary.recentThreeDone || 0}}</text>
+            <text class="progress-item-detail">最近学习活跃度</text>
+          </view>
+          <view class="progress-item">
+            <text class="progress-item-label">连续学习</text>
+            <text class="progress-item-value">{{streakDays}}天</text>
+            <text class="progress-item-detail">稳定性正在形成</text>
+          </view>
+          <view class="progress-item">
+            <text class="progress-item-label">待补错因</text>
+            <text class="progress-item-value tone-warn">{{learningReviewSummary.weakCount || weakNodeCount}}</text>
+            <text class="progress-item-detail">下一轮训练优先处理</text>
+          </view>
+        </view>
+      </view>
+      </block>
 
       <!-- 摸底测试入口 -->
-      <view class="assess-entry glass-card" bindtap="goAssessment">
+      <view class="assess-entry glass-card" wx:if="{{reportDetailView == 'home'}}" bindtap="goAssessment">
         <view class="assess-entry-left">
           <view class="assess-entry-icon">
             <text class="assess-entry-icon-txt">AI</text>
