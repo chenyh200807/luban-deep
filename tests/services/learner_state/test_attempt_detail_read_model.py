@@ -370,3 +370,64 @@ def test_attempt_detail_strips_internal_context_and_pii_from_history() -> None:
     # Real student-facing explanation must still survive redaction.
     assert "观察法" in full_text
     assert "辅助手段当成主要方法" in full_text
+
+
+def test_attempt_detail_falls_back_to_payload_when_history_missing() -> None:
+    """session_store is provided, but no assistant message matches the turn_id.
+
+    The detail must degrade cleanly to the payload summary instead of fabricating
+    or leaving an empty explanation. Locks plan Phase 1 Step 1 "missing history
+    falls back cleanly".
+    """
+    from deeptutor.services.learner_state.attempt_detail_read_model import build_attempt_detail_read_model
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+
+    event = _event("evt_history_missing")
+    event.payload_json.update(
+        {
+            "session_id": "tb_missing_history",
+            "turn_id": "turn_no_match:q1",
+            "question_stem": "本题考查什么？",
+            "user_answer": "A",
+            "correct_answer": "B",
+            "explanation": {
+                "summary": "正确选项是 B。",
+                "why_user_wrong": "A 忽略了关键条件。",
+            },
+        }
+    )
+    # session exists but assistant message turn metadata does not match.
+    session_store = FakeSessionStore(
+        [
+            {
+                "id": "tb_missing_history",
+                "messages": [
+                    {
+                        "role": "assistant",
+                        "content": "### 阅卷结论\n这是另一道题的解析。",
+                        "events": [{"metadata": {"turn_id": "turn_unrelated"}}],
+                    }
+                ],
+            }
+        ]
+    )
+
+    detail = build_attempt_detail_read_model(
+        user_id="student_demo",
+        learner_state_service=FakeLearnerStateService([event]),
+        attempt_ref=sign_attempt_ref(
+            user_id="student_demo", event_id=event.event_id, question_id="q1"
+        ),
+        session_store=session_store,
+    )
+
+    assert detail["ok"] is True
+    # Loaded the session at least once, but found no matching turn → no history_assistant source.
+    assert "tb_missing_history" in session_store.loaded
+    assert detail["explanation"]["source"] != "history_assistant"
+    assert detail["explanation"]["full_text"] == ""
+    # Payload summary survives so the page is not blank.
+    assert detail["explanation"]["summary"] == "正确选项是 B。"
+    assert detail["explanation"]["why_user_wrong"] == "A 忽略了关键条件。"
+    # The unrelated turn's content must not leak into this attempt's view.
+    assert "这是另一道题的解析" not in str(detail)
