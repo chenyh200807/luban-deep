@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from deeptutor.services.construction_grading.schema import CaseGradingResult, MCQGradingResult
@@ -7,6 +8,10 @@ from deeptutor.services.construction_grading.learning_evidence import (
     build_learning_evidence_dedupe_key,
     build_learning_evidence_payload,
 )
+from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+
+
+logger = logging.getLogger(__name__)
 
 
 def write_grading_error_events(
@@ -20,6 +25,7 @@ def write_grading_error_events(
     training_intent_id: str | None = None,
     prescription_phase: str | None = None,
     prescription_result: dict[str, Any] | None = None,
+    mistake_book_service: Any | None = None,
 ) -> int:
     """Write grading error events through the existing LearnerStateService authority."""
 
@@ -42,6 +48,7 @@ def write_grading_error_events(
                 training_intent_id=training_intent_id,
                 prescription_phase=prescription_phase,
                 prescription_result=prescription_result,
+                mistake_book_service=mistake_book_service,
             )
         return count
 
@@ -71,7 +78,7 @@ def write_grading_error_events(
         user_id=normalized_user_id,
         payload_json=payload_json,
     )
-    learner_state_service.append_memory_event(
+    event = learner_state_service.append_memory_event(
         normalized_user_id,
         source_feature="construction_grading",
         source_id=source_id,
@@ -79,6 +86,13 @@ def write_grading_error_events(
         memory_kind="learning_evidence",
         payload_json=payload_json,
         dedupe_key=dedupe_key,
+    )
+    _write_mistake_book_item(
+        mistake_book_service=mistake_book_service,
+        user_id=normalized_user_id,
+        event_id=str(getattr(event, "event_id", "") or ""),
+        source_bot_id=source_bot_id,
+        payload_json=payload_json,
     )
     _write_home_projection(
         learner_state_service=learner_state_service,
@@ -118,6 +132,121 @@ def _is_success_learning_evidence(payload_json: dict[str, Any]) -> bool:
     except (TypeError, ValueError):
         return False
     return bool(question_id and concept and max_score > 0 and score_awarded >= max_score)
+
+
+def _write_mistake_book_item(
+    *,
+    mistake_book_service: Any | None,
+    user_id: str,
+    event_id: str,
+    source_bot_id: str | None,
+    payload_json: dict[str, Any],
+) -> None:
+    if not _is_mistake_book_candidate(payload_json):
+        return
+    normalized_event = str(event_id or "").strip()
+    if not normalized_event:
+        return
+    service = mistake_book_service
+    if service is None:
+        try:
+            from deeptutor.services.learner_state.mistake_book import MistakeBookService
+
+            service = MistakeBookService()
+        except Exception:
+            return
+    saver = getattr(service, "save_item", None)
+    if not callable(saver):
+        return
+    try:
+        saver(
+            user_id=user_id,
+            attempt_ref=sign_attempt_ref(
+                user_id=user_id,
+                event_id=normalized_event,
+                question_id=str(payload_json.get("question_id") or "").strip(),
+            ),
+            subject_id=_mistake_book_subject_id(payload_json=payload_json, source_bot_id=source_bot_id),
+            bot_id=str(source_bot_id or "").strip(),
+            title=_mistake_book_title(payload_json),
+            concept_label=_mistake_book_concept(payload_json),
+            error_label=_mistake_book_error_label(payload_json),
+            note=_mistake_book_note(payload_json),
+            tags=_mistake_book_tags(payload_json),
+        )
+    except Exception as exc:
+        logger.debug("mistake book auto-write skipped: %s", exc)
+
+
+def _is_mistake_book_candidate(payload_json: dict[str, Any]) -> bool:
+    if payload_json.get("error_events") or payload_json.get("errors"):
+        return True
+    try:
+        score_awarded = float(payload_json.get("score_awarded") or 0)
+        max_score = float(payload_json.get("max_score") or 0)
+    except (TypeError, ValueError):
+        return False
+    return max_score > 0 and score_awarded < max_score
+
+
+def _mistake_book_subject_id(*, payload_json: dict[str, Any], source_bot_id: str | None) -> str:
+    subject_id = str(payload_json.get("subject_id") or "").strip()
+    if subject_id:
+        return subject_id
+    bot_id = str(source_bot_id or "").strip()
+    if bot_id == "construction-exam":
+        return "construction_exam_1"
+    return bot_id or "general"
+
+
+def _mistake_book_title(payload_json: dict[str, Any]) -> str:
+    return (
+        str(payload_json.get("question_stem") or "").strip()
+        or str(payload_json.get("question_id") or "").strip()
+        or "错题"
+    )[:300]
+
+
+def _mistake_book_concept(payload_json: dict[str, Any]) -> str:
+    signal = payload_json.get("next_training_signal") if isinstance(payload_json.get("next_training_signal"), dict) else {}
+    errors = [error for error in list(payload_json.get("error_events") or payload_json.get("errors") or []) if isinstance(error, dict)]
+    return (
+        str((signal or {}).get("focus") or "").strip()
+        or str((signal or {}).get("concept") or "").strip()
+        or str(errors[0].get("concept_tag") if errors else "").strip()
+        or "待归类知识点"
+    )[:128]
+
+
+def _mistake_book_error_label(payload_json: dict[str, Any]) -> str:
+    errors = [error for error in list(payload_json.get("error_events") or payload_json.get("errors") or []) if isinstance(error, dict)]
+    if errors:
+        first = errors[0]
+        return (
+            str(first.get("diagnosis") or "").strip()
+            or str(first.get("error_code") or "").strip()
+            or "待归因错因"
+        )[:128]
+    return "得分未达标"
+
+
+def _mistake_book_note(payload_json: dict[str, Any]) -> str:
+    explanation = payload_json.get("explanation")
+    if isinstance(explanation, dict):
+        for key in ("summary", "why_wrong", "advice"):
+            text = str(explanation.get(key) or "").strip()
+            if text:
+                return text[:500]
+    return _mistake_book_error_label(payload_json)[:500]
+
+
+def _mistake_book_tags(payload_json: dict[str, Any]) -> list[str]:
+    tags = []
+    for key in ("question_type", "grading_mode"):
+        text = str(payload_json.get(key) or "").strip()
+        if text:
+            tags.append(text)
+    return tags[:6]
 
 
 def _write_home_projection(*, learner_state_service: Any, user_id: str, payload_json: dict[str, Any]) -> None:
