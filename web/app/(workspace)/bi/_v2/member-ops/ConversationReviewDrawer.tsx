@@ -140,6 +140,19 @@ export function ConversationReviewDrawer({ open, member, onClose }: Conversation
           </fieldset>
         </section>
 
+        {/* Round 5 B3: production MOCK_SESSIONS is []; render an explicit
+            empty state so admins don't see a silently blank list under the
+            reason form (frontend reviewer finding). Real session list comes
+            from session_store in Batch 5. */}
+        {MOCK_SESSIONS.length === 0 ? (
+          <div className="rounded border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-xs text-slate-500">
+            会员对话列表待接入{' '}
+            <code className="font-mono">/api/v1/member/{member.user_id}/conversations</code>（Batch
+            5 实装）。 当前生产构建下不展示 mock 会话；要在开发环境查看示例数据，请用 dev mode
+            运行。
+          </div>
+        ) : null}
+
         <ul className="space-y-2">
           {MOCK_SESSIONS.map(s => {
             const expanded = expandedId === s.id

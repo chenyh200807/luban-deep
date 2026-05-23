@@ -1454,6 +1454,99 @@ def test_record_conversation_view_dedupes_by_idempotency_key(tmp_path: Path) -> 
     assert second.get("deduped") is True
 
 
+def test_record_conversation_view_dedup_is_scoped_to_operator(tmp_path: Path) -> None:
+    """Round 5 B2 contract: idempotency dedup must be scoped to operator so
+    Admin A's idempotency_key cannot dedupe Admin B's identical-key request.
+    Without operator-scoping, a stolen / replayed key from operator A would
+    silently suppress operator B's audit entry, hiding cross-actor activity.
+    """
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+    asyncio.run(
+        service._store.create_session(
+            title="x",
+            session_id="tb_student_demo",
+            owner_key=build_user_owner_key("student_demo"),
+            source="wx_miniprogram",
+        )
+    )
+    asyncio.run(service._store.add_message("tb_student_demo", "user", "x"))
+
+    service.record_conversation_view(
+        "student_demo",
+        "tb_student_demo",
+        operator="admin_a",
+        idempotency_key="shared-key",
+    )
+    service.record_conversation_view(
+        "student_demo",
+        "tb_student_demo",
+        operator="admin_b",
+        idempotency_key="shared-key",
+    )
+
+    audit = service.list_audit_log(target_user="student_demo", action="conversation_view")
+    # Same key but different operators → TWO audit entries (not 1 deduped).
+    assert audit["total"] == 2, (
+        "Round 5 B2: idempotency key must be operator-scoped. Found "
+        f"{audit['total']} entries; expected 2 (one per operator)."
+    )
+    actors = {item["operator"] for item in audit["items"]}
+    assert actors == {"admin_a", "admin_b"}
+
+
+def test_record_conversation_view_dedup_index_has_size_cap(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Round 5 B1 contract: audit_idempotency_keys must be capped so an admin
+    cannot DoS the JSON store by sending unlimited unique keys. We monkey-patch
+    the cap to a small value to make the test run in milliseconds while still
+    exercising the FIFO eviction path.
+    """
+    # Patch cap to 5 so the test is fast; verifies the eviction code path
+    # without exercising 10k file writes.
+    monkeypatch.setattr(member_service_module, "AUDIT_IDEMPOTENCY_INDEX_MAX", 5)
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+    asyncio.run(
+        service._store.create_session(
+            title="x",
+            session_id="tb_student_demo",
+            owner_key=build_user_owner_key("student_demo"),
+            source="wx_miniprogram",
+        )
+    )
+    asyncio.run(service._store.add_message("tb_student_demo", "user", "x"))
+
+    # Fire 8 distinct keys against cap=5; expect index size to stay ≤ cap and
+    # oldest entries to be evicted FIFO.
+    n = 8
+    for i in range(n):
+        service.record_conversation_view(
+            "student_demo",
+            "tb_student_demo",
+            operator="admin_a",
+            idempotency_key=f"key-{i:02d}",
+        )
+
+    data = service._load()
+    index = data.get("audit_idempotency_keys") or {}
+    assert len(index) <= 5, (
+        f"Round 5 B1: index size {len(index)} exceeded cap 5; FIFO eviction missing."
+    )
+    # The oldest keys (0, 1, 2) must have been evicted; latest (5, 6, 7) must remain.
+    keys_seen = list(index.keys())
+    assert not any("key-00" in k for k in keys_seen), (
+        "Round 5 B1: oldest key 'key-00' should have been evicted by FIFO"
+    )
+    assert any("key-07" in k for k in keys_seen), (
+        "Round 5 B1: newest key 'key-07' must remain in the index"
+    )
+
+
 def test_record_conversation_view_distinct_keys_keep_distinct_audits(tmp_path: Path) -> None:
     """Round 4 S1 contract: different idempotency_keys for the same action
     must still write two audit entries (real distinct user actions).

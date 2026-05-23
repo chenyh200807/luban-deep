@@ -40,30 +40,33 @@ def test_write_endpoints_ts_in_sync() -> None:
 
 def test_write_endpoints_have_router_enforcement() -> None:
     """Each requires_idempotency endpoint MUST appear in a router file with a
-    Header(alias='X-Idempotency-Key') read. Without this, useAuditedAction's
-    header would be placebo (see Round 3 reviewer finding)."""
+    Header(alias='X-Idempotency-Key') read **IN THE SAME FILE** as the path
+    template — not anywhere in the aggregated router corpus. Round 5 M4: the
+    aggregated-grep approach (used in Round 4) gave false-positives once any
+    router file read X-Idempotency-Key, because unrelated endpoints in other
+    files would silently pass. Per-file scan closes that gap.
+    """
     router_files = list((REPO_ROOT / "deeptutor" / "api" / "routers").rglob("*.py"))
-    aggregated = "\n".join(p.read_text(encoding="utf-8") for p in router_files)
+    file_contents = {p: p.read_text(encoding="utf-8") for p in router_files}
 
     failures: list[str] = []
     for endpoint in WRITE_ENDPOINTS:
         if not endpoint.requires_idempotency:
             continue
-        # The router must read X-Idempotency-Key on this path. We don't try to
-        # parse FastAPI decorators precisely; instead the path template's
-        # distinctive suffix + a header read in the same file is sufficient.
         suffix = endpoint.path_template.split("/api/v1")[-1].rsplit("/", 1)[-1]
-        if suffix not in aggregated:
+        matching_files = [p for p, c in file_contents.items() if suffix in c]
+        if not matching_files:
             failures.append(
-                f"{endpoint.key}: path template {endpoint.path_template} suffix '{suffix}' "
-                "not found in any router file"
+                f"{endpoint.key}: path suffix '{suffix}' not found in any router file"
             )
             continue
-        if "X-Idempotency-Key" not in aggregated:
-            failures.append(
-                f"{endpoint.key}: router files do not read X-Idempotency-Key — "
-                "useAuditedAction header is placebo"
-            )
+        # Every file that hosts the path must also read X-Idempotency-Key.
+        for path in matching_files:
+            if "X-Idempotency-Key" not in file_contents[path]:
+                failures.append(
+                    f"{endpoint.key}: {path.relative_to(REPO_ROOT)} hosts the path "
+                    "but does not read X-Idempotency-Key — header is placebo here"
+                )
 
     assert not failures, "Router enforcement missing:\n" + "\n".join(failures)
 

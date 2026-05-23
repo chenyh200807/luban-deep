@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, Response
+
+# Round 5 M1: tight format gate for X-Idempotency-Key. UUID hyphens + URL-safe
+# base64 alphabet covers all reasonable client-generated keys; anything else
+# (e.g. separator injection ':', whitespace, multi-MB JSON) is rejected.
+_IDEMPOTENCY_KEY_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 from pydantic import BaseModel, Field
 
 from deeptutor.api.dependencies import AuthContext, require_admin
@@ -355,12 +361,26 @@ async def record_member_conversation_view(
             status_code=400,
             detail="X-Idempotency-Key header is required for audited writes",
         )
+    # Round 5 M1: cap key length + character set so the audit_idempotency_keys
+    # index cannot be inflated with multi-MB blobs and so callers cannot inject
+    # the composite-key separator (':') to collide with another action's
+    # dedup entry. UUID-ish characters only.
+    if len(normalized_key) > 128 or not _IDEMPOTENCY_KEY_PATTERN.fullmatch(normalized_key):
+        raise HTTPException(
+            status_code=400,
+            detail="X-Idempotency-Key must be ≤ 128 chars of [a-zA-Z0-9_-]",
+        )
     body_reason = None
     if isinstance(body, dict):
         candidate = body.get("reason")
         if isinstance(candidate, str):
             body_reason = candidate
     effective_reason = reason if reason else body_reason
+    # Round 5 M2: strip newline / CR so a reason containing log-injection
+    # characters (e.g. '%0a' through the query param) cannot break audit_log
+    # JSON parsers or downstream log aggregators.
+    if effective_reason is not None:
+        effective_reason = effective_reason.replace("\n", " ").replace("\r", " ")
     try:
         return service.record_conversation_view(
             user_id,

@@ -12,7 +12,12 @@ const SESSION_STORAGE_KEY = "deeptutor.bi.admin.session";
 // Fields chosen to make audits / smoke reports easy to spot:
 //   - userId = "smoke@admin"  → distinguishable from real production actors
 //   - isAdmin = true          → passes RequireBiAdmin gate
-//   - expiresAt = +1 day      → safely in future for the run
+//   - expiresAt = +1 day in **Unix seconds**. Round 5 B6: api.ts:120 compares
+//     expiresAt to `Math.floor(Date.now() / 1000)` (seconds). A ms-epoch
+//     value here would be ~1000× larger than the threshold and the session
+//     would appear immortal — bad enough in tests, catastrophic if a future
+//     login flow ever copies this shape. Keeping units aligned with the
+//     validator closes that footgun.
 export function buildFakeAdminSession({
   userId = "smoke@admin",
   displayName = "Smoke Admin",
@@ -23,7 +28,7 @@ export function buildFakeAdminSession({
     userId,
     displayName,
     isAdmin: true,
-    expiresAt: Date.now() + 24 * 3600 * 1000,
+    expiresAt: Math.floor(Date.now() / 1000) + 24 * 3600,
   };
 }
 

@@ -223,8 +223,11 @@ function expandMockMembers(seed: MemberRow[], targetCount: number): MemberRow[] 
 // literals are excluded from `.next/static/chunks/*` while still available in
 // dev for design review. Panels detect the empty array and render skeleton +
 // admin CTA instead of fake data.
+// Round 5 M5: polarity standardised to `=== 'production' ? [] : ...` across
+// all BI v2 mock fixtures so a future editor copy-pasting between files
+// cannot accidentally flip the guard direction.
 export const MOCK_MEMBERS: MemberRow[] =
-  process.env.NODE_ENV !== 'production' ? expandMockMembers(SEED_MEMBERS, 120) : []
+  process.env.NODE_ENV === 'production' ? [] : expandMockMembers(SEED_MEMBERS, 120)
 
 export function filterMembers(
   rows: ReadonlyArray<MemberRow>,

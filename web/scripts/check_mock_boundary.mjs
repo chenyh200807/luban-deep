@@ -24,24 +24,30 @@ const CHUNKS_DIR = join(process.cwd(), ".next", "static", "chunks");
 // minified JS still triggers (these are unusual phrases not appearing in
 // production copy or labels). Add new entries here when introducing new
 // mocks under a dev-only guard.
-// Each literal MUST appear ONLY inside a `process.env.NODE_ENV !== 'production'`
-// branch in the BI v2 codebase. Strings that double as both real UI copy and
-// mock fixtures (e.g. "WALLET_NEGATIVE_BALANCE" — also used in CommercePanel
-// to describe the detection rule) cannot be used here. Pick the most
-// distinctive fragment from each mock literal that has no production use.
+// Round 5 B5: each literal MUST appear ONLY inside a
+// `process.env.NODE_ENV !== 'production'` branch. Strings that double as both
+// real UI copy and mock fixtures (e.g. "WALLET_NEGATIVE_BALANCE" — also used
+// in CommercePanel to describe the detection rule) cannot be used here.
+//
+// IMPORTANT (Round 5 review): use BARE substrings without surrounding quote
+// characters. Terser's output quote style is config-dependent — both
+// `"al_1"` and `'al_1'` are valid minified forms and depending on
+// `compress.unsafe_string_literal_concat` or output options either may ship.
+// Searching for the bare token catches both shapes and avoids silent
+// false-negatives.
 const FORBIDDEN_LITERALS = [
   // member-ops/data.ts SEED_MEMBERS — distinctive masked phone with personal digits
   "138****9821",
   // commerce/data.ts ORDERS — distinctive ord_2026 prefix used only in mock
   "ord_2026_05231042",
-  // commerce/data.ts LEDGER — distinctive ledger id from seed
-  '"lg_001"',
-  // feedback/data.ts FEEDBACK_ITEMS — distinctive feedback id
+  // commerce/data.ts LEDGER — distinctive ledger id from seed; bare token
+  "lg_001",
+  // feedback/data.ts FEEDBACK_ITEMS — distinctive feedback id; bare token
   "fb_9012",
-  // ops/data.ts AUDIT_ENTRIES — quoted al_1 id; UI never quotes raw ids in copy
-  '"al_1"',
-  // ops/data.ts EXPORT_JOBS — quoted ex_001 id
-  '"ex_001"',
+  // ops/data.ts AUDIT_ENTRIES — bare token; UI never references "al_1"
+  "al_1",
+  // ops/data.ts EXPORT_JOBS — bare token; UI never references "ex_001"
+  "ex_001",
   // BiV2OverviewPanel.tsx MOCK_BUNDLE — distinctive Chinese phrase only in alerts mock
   "钱包出现负余额会员 3 位",
   // ConversationReviewDrawer.tsx MOCK_SESSIONS — distinctive session title only in mock
