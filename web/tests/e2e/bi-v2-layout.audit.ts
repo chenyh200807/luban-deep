@@ -393,6 +393,15 @@ test("BI v2 member ops opens 360 and loads conversation details from the read en
   await page.goto("/bi?tab=member-ops");
 
   await expect(page.getByRole("heading", { name: "会员运营" })).toBeVisible();
+  let unexpectedPrompt = false;
+  page.on("dialog", async (dialog) => {
+    unexpectedPrompt = true;
+    await dialog.dismiss();
+  });
+  await page.getByRole("button", { name: "把当前筛选与列设置保存为私有视图" }).click();
+  await expect(page.getByRole("button", { name: "应用视图 视图 1" })).toBeVisible();
+  expect(unexpectedPrompt).toBe(false);
+
   await page.getByRole("button", { name: "打开 user_1 学员 360" }).click();
   await expect(page.getByRole("dialog", { name: "学员 360 · 139****0001" })).toBeVisible();
 
