@@ -270,6 +270,109 @@
   color: #fbbf24;
 }
 
+.mistake-book-entry {
+  position: relative;
+  min-height: 214rpx;
+  padding: 22rpx;
+  display: flex;
+  gap: 20rpx;
+  align-items: stretch;
+  overflow: hidden;
+  border-color: rgba(56, 189, 248, 0.2);
+  background:
+    linear-gradient(145deg, rgba(14, 165, 233, 0.18), rgba(5, 150, 105, 0.1), rgba(15, 23, 42, 0.72));
+}
+
+.mistake-book-entry-pressed {
+  opacity: 0.88;
+  transform: scale(0.99);
+}
+
+.mistake-book-entry-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.mistake-book-entry-kicker,
+.mistake-book-entry-title,
+.mistake-book-entry-desc {
+  display: block;
+}
+
+.mistake-book-entry-kicker {
+  margin-bottom: 6rpx;
+  font-size: 21rpx;
+  line-height: 1.25;
+  font-weight: 800;
+  color: #7dd3fc;
+}
+
+.mistake-book-entry-title {
+  font-size: 31rpx;
+  line-height: 1.28;
+  font-weight: 850;
+  color: #fff;
+}
+
+.mistake-book-entry-desc {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  line-height: 1.45;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.mistake-book-entry-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 14rpx;
+}
+
+.mistake-book-entry-stats text {
+  padding: 6rpx 10rpx;
+  border-radius: 9rpx;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 20rpx;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.mistake-book-entry-chart {
+  width: 130rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.mistake-book-entry-bar {
+  height: 14rpx;
+  border-radius: 999rpx;
+  background: rgba(125, 211, 252, 0.72);
+}
+
+.mistake-book-entry-bar.strong {
+  width: 122rpx;
+  background: linear-gradient(90deg, #38bdf8, #34d399);
+}
+
+.mistake-book-entry-bar.medium {
+  width: 88rpx;
+  background: rgba(96, 165, 250, 0.72);
+}
+
+.mistake-book-entry-bar.weak {
+  width: 58rpx;
+  background: rgba(251, 191, 36, 0.72);
+}
+
+.mistake-book-entry-arrow {
+  align-self: center;
+  font-size: 40rpx;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.42);
+}
+
 /* ── Learning Engine Evidence Fusion ───────────── */
 .learning-engine-panel {
   position: relative;

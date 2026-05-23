@@ -62,6 +62,25 @@
         <text class="degraded-hint-text">{{degradedHint}}</text>
       </view>
 
+      <view class="mistake-book-entry glass-card" bindtap="openMistakeBook" hover-class="mistake-book-entry-pressed">
+        <view class="mistake-book-entry-main">
+          <text class="mistake-book-entry-kicker">专门错题集</text>
+          <text class="mistake-book-entry-title">看见自己的错题和薄弱点</text>
+          <text class="mistake-book-entry-desc">按知识点、错因、复习压力整理，点开后有 AI 分析和每道题解析依据。</text>
+          <view class="mistake-book-entry-stats">
+            <text>{{learningAttemptCards.length || 0}} 条证据</text>
+            <text>{{learningReviewSummary.weakCount || weakNodeCount}} 个待补错因</text>
+            <text>AI分析</text>
+          </view>
+        </view>
+        <view class="mistake-book-entry-chart">
+          <view class="mistake-book-entry-bar strong"></view>
+          <view class="mistake-book-entry-bar medium"></view>
+          <view class="mistake-book-entry-bar weak"></view>
+        </view>
+        <text class="mistake-book-entry-arrow">›</text>
+      </view>
+
       <!-- Batch C Task 8: today prescription + 3-layer learning state + scoring point map -->
       <view class="learning-engine-panel glass-card" wx:if="{{engineEvidenceVisible}}">
         <view class="engine-panel-rail"></view>

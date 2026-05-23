@@ -7,6 +7,7 @@ var KNOWN_PACKAGE_PATHS = {
   "pages/legal/terms": true,
   "pages/login/login": true,
   "pages/login/manual": true,
+  "pages/mistake-book/mistake-book": true,
   "pages/practice/practice": true,
   "pages/profile/profile": true,
   "pages/register/register": true,
@@ -88,6 +89,9 @@ module.exports = {
   },
   report: function () {
     return resolve("pages/report/report");
+  },
+  mistakeBook: function () {
+    return resolve("pages/mistake-book/mistake-book");
   },
   profile: function () {
     return resolve("pages/profile/profile");

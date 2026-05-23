@@ -1317,6 +1317,11 @@ Page({
     wx.navigateTo({ url: route.assessment() });
   },
 
+  openMistakeBook() {
+    helpers.vibrate("light");
+    wx.navigateTo({ url: route.mistakeBook() });
+  },
+
   async _loadOverview(snapshot) {
     // unified report 命中由 _hydrateFromUnifiedReport 完整接管；snapshot 非空时直接返回。
     if (snapshot) return;

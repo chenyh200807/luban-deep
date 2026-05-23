@@ -589,6 +589,53 @@ function saveMistakeBookItem(payload) {
   });
 }
 
+function getMistakeBook(params, opts) {
+  var query = [];
+  var input = params && typeof params === "object" ? params : {};
+  if (input.subject_id || input.subjectId) {
+    query.push("subject_id=" + encodeURIComponent(String(input.subject_id || input.subjectId)));
+  }
+  if (input.include_mastered !== undefined || input.includeMastered !== undefined) {
+    query.push(
+      "include_mastered=" +
+        encodeURIComponent(String(Boolean(input.include_mastered || input.includeMastered))),
+    );
+  }
+  return requestStateGet(
+    "/api/v1/mobile/mistake-book" + (query.length ? "?" + query.join("&") : ""),
+    opts,
+  );
+}
+
+function removeMistakeBookItem(attemptRef) {
+  return request({
+    url: "/api/v1/mobile/mistake-book/items/" + encodeURIComponent(String(attemptRef || "")),
+    method: "DELETE",
+  });
+}
+
+function markMistakeBookItemMastered(attemptRef) {
+  return request({
+    url:
+      "/api/v1/mobile/mistake-book/items/" +
+      encodeURIComponent(String(attemptRef || "")) +
+      "/mastered",
+    method: "POST",
+    data: {},
+  });
+}
+
+function recordMistakeBookItemReview(attemptRef) {
+  return request({
+    url:
+      "/api/v1/mobile/mistake-book/items/" +
+      encodeURIComponent(String(attemptRef || "")) +
+      "/review",
+    method: "POST",
+    data: {},
+  });
+}
+
 /** 获取对话列表 */
 function getConversations(archived) {
   var url = "/api/v1/conversations";
@@ -727,6 +774,10 @@ module.exports = {
   getLearningReport: getLearningReport,
   getLearningAttemptDetail: getLearningAttemptDetail,
   saveMistakeBookItem: saveMistakeBookItem,
+  getMistakeBook: getMistakeBook,
+  removeMistakeBookItem: removeMistakeBookItem,
+  markMistakeBookItemMastered: markMistakeBookItemMastered,
+  recordMistakeBookItemReview: recordMistakeBookItemReview,
   getLearningBrainProjection: getLearningBrainProjection,
   getConversations: getConversations,
   createConversation: createConversation,
