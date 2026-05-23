@@ -28,6 +28,18 @@ var attemptDetailWxml = fs.readFileSync(
   path.join(__dirname, "../packageDeeptutor/pages/attempt-detail/attempt-detail.wxml"),
   "utf8",
 );
+var mistakeBookWxml = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/mistake-book/mistake-book.wxml"),
+  "utf8",
+);
+var mistakeBookWxss = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/mistake-book/mistake-book.wxss"),
+  "utf8",
+);
+var mistakeBookSource = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/mistake-book/mistake-book.js"),
+  "utf8",
+);
 var appConfig = fs.readFileSync(path.join(__dirname, "../app.json"), "utf8");
 
 function assert(condition, message) {
@@ -94,6 +106,19 @@ assertIncludes(reportWxml, "{{item.bookmarkLabel || '已加入错题'}}", "attem
 assertIncludes(reportWxml, "wx:elif=\"{{item.collectable}}\"", "attempt card should only expose save action when not already bookmarked");
 assertIncludes(reportWxml, "收藏错题", "attempt card should expose mistake-book action without local inference");
 assertIncludes(reportSource, "api.saveMistakeBookItem", "mistake-book action should call the cloud mistake-book authority");
+assertIncludes(appConfig, "pages/mistake-book/mistake-book", "host mistake-book page should be registered");
+assertIncludes(reportWxml, "专门错题集", "report page should expose a dedicated mistake-book module");
+assertIncludes(reportWxml, "bindtap=\"openMistakeBook\"", "mistake-book module should navigate to the dedicated page");
+assertIncludes(reportSource, "route.mistakeBook()", "report mistake-book action should use the package route helper");
+assertIncludes(mistakeBookSource, "api.getMistakeBook", "mistake-book page should read the cloud mistake-book authority");
+assertIncludes(mistakeBookSource, "api.recordMistakeBookItemReview", "mistake-book page should support review recording");
+assertIncludes(mistakeBookSource, "api.markMistakeBookItemMastered", "mistake-book page should support mastered state");
+assertIncludes(mistakeBookSource, "api.removeMistakeBookItem", "mistake-book page should support removing items");
+assertIncludes(mistakeBookWxml, "AI分析", "mistake-book page should expose AI analysis");
+assertIncludes(mistakeBookWxml, "高频知识点", "mistake-book page should render concept distribution");
+assertIncludes(mistakeBookWxml, "常见错因", "mistake-book page should render error distribution");
+assertIncludes(mistakeBookWxml, "看解析", "mistake-book items should deep-link to attempt detail");
+assertIncludes(mistakeBookWxss, ".chart-fill", "mistake-book page should include chart styling");
 assertIncludes(reportWxml, "{{degradedHint}}", "report page should show degraded/cached summary hint when the network path is unavailable");
 assertIncludes(reportWxml, "完成一次案例题批改", "empty state should explain how to generate learning facts");
 assertBefore(reportWxml, "真实作答证据", "radar-canvas-wrap", "actionable diagnosis and evidence should appear before the radar");

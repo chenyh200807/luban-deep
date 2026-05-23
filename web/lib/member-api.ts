@@ -249,6 +249,13 @@ function adminHeaders(headers?: HeadersInit): HeadersInit | undefined {
   return withAdminAuthorization(headers)
 }
 
+function makeIdempotencyKey(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 export async function getMemberDashboard(): Promise<MemberDashboard> {
   const response = await fetch(apiUrl('/api/v1/member/dashboard'), {
     cache: 'no-store',
@@ -341,7 +348,10 @@ export async function recordMemberConversationView(
   const url = reason ? `${base}?reason=${encodeURIComponent(reason)}` : base
   const response = await fetch(url, {
     method: 'POST',
-    headers: adminHeaders({ 'Content-Type': 'application/json' }),
+    headers: adminHeaders({
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': makeIdempotencyKey(),
+    }),
     body: JSON.stringify(reason ? { reason } : {}),
   })
   return expectJson<MemberConversationViewAudit>(response)

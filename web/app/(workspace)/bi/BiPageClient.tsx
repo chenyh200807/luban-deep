@@ -653,8 +653,9 @@ export default function BiPageClient() {
   const handleRecordConversationView = useCallback(
     async (conversation: MemberConversationPreview) => {
       if (!selectedUserId) return;
-      await recordMemberConversationView(selectedUserId, conversation.session_id);
+      const result = await recordMemberConversationView(selectedUserId, conversation.session_id);
       await refreshAudit();
+      return result;
     },
     [refreshAudit, selectedUserId],
   );

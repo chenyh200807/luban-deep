@@ -3,7 +3,14 @@
 
 import { useState } from "react";
 import { Bot, ChevronDown, Clock3, MessageSquareMore, StickyNote } from "lucide-react";
-import type { BotOverlaySummary, HeartbeatJob, MemberConversationPreview, MemberDetail } from "@/lib/member-api";
+import type {
+  BotOverlaySummary,
+  HeartbeatJob,
+  MemberConversationMessagePreview,
+  MemberConversationPreview,
+  MemberConversationViewAudit,
+  MemberDetail,
+} from "@/lib/member-api";
 import { InfoLine, SectionHeader, formatTime } from "./BiShared";
 
 type BiMember360PanelProps = {
@@ -21,7 +28,7 @@ type BiMember360PanelProps = {
     action_title?: string;
     next_follow_up_at?: string;
   }) => Promise<void>;
-  onRecordConversationView: (conversation: MemberConversationPreview) => Promise<void>;
+  onRecordConversationView: (conversation: MemberConversationPreview) => Promise<MemberConversationViewAudit | void>;
   onToggleHeartbeat: (job: HeartbeatJob) => void;
   onApplyOverlay: (overlay: BotOverlaySummary) => void;
 };
@@ -48,6 +55,7 @@ export function BiMember360Panel({
   const expandedConversationId =
     expandedConversation.userId === memberUserId ? expandedConversation.conversationId : null;
   const [viewAuditError, setViewAuditError] = useState("");
+  const [revealedMessages, setRevealedMessages] = useState<Record<string, MemberConversationMessagePreview[]>>({});
 
   if (loading) {
     return <div className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] px-5 py-10 text-sm text-[var(--muted-foreground)]">正在加载学员 360...</div>;
@@ -76,7 +84,11 @@ export function BiMember360Panel({
       return;
     }
     try {
-      await onRecordConversationView(conversation);
+      const audit = await onRecordConversationView(conversation);
+      setRevealedMessages((prev) => ({
+        ...prev,
+        [conversation.session_id]: Array.isArray(audit?.messages) ? audit.messages : [],
+      }));
       setExpandedConversation({ userId: memberUserId, conversationId: conversation.session_id });
     } catch (error) {
       setViewAuditError(error instanceof Error ? error.message : "聊天查看审计失败，已阻止展开全文。");
@@ -175,7 +187,8 @@ export function BiMember360Panel({
             <div className="mt-4 space-y-4">
               {recentConversations.map((conversation) => {
                 const isExpanded = expandedConversationId === conversation.session_id;
-                const preview = conversation.last_message || conversation.messages.at(-1)?.content || "点击查看完整聊天内容";
+                const messages = revealedMessages[conversation.session_id] ?? [];
+                const preview = conversation.last_message || "点击查看完整聊天内容";
                 return (
                   <div key={conversation.session_id} className="rounded-2xl border border-[var(--border)]/60 bg-white px-4 py-4">
                     <button
@@ -206,7 +219,7 @@ export function BiMember360Panel({
                     </button>
                     {isExpanded ? (
                       <div className="mt-3 space-y-2">
-                        {conversation.messages.map((message) => (
+                        {messages.map((message) => (
                           <div key={message.id} className="rounded-2xl bg-[var(--secondary)]/70 px-3 py-3 text-sm">
                             <div className="flex items-center justify-between gap-3 text-xs text-[var(--muted-foreground)]">
                               <span>{message.role === "assistant" ? "AI" : "学员"}</span>

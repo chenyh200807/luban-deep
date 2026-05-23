@@ -2,7 +2,14 @@
 "use client";
 
 import { ClipboardList, Layers3, ShieldAlert, UserRound } from "lucide-react";
-import type { BotOverlaySummary, HeartbeatJob, MemberConversationPreview, MemberDetail, MemberListItem } from "@/lib/member-api";
+import type {
+  BotOverlaySummary,
+  HeartbeatJob,
+  MemberConversationPreview,
+  MemberConversationViewAudit,
+  MemberDetail,
+  MemberListItem,
+} from "@/lib/member-api";
 import { BiMember360Panel } from "./BiMember360Panel";
 import { BiMemberAdminTable } from "./BiMemberAdminTable";
 import { MetricCard, SectionHeader } from "./BiShared";
@@ -30,7 +37,7 @@ type BiMemberOpsTabProps = {
     action_title?: string;
     next_follow_up_at?: string;
   }) => Promise<void>;
-  onRecordConversationView: (conversation: MemberConversationPreview) => Promise<void>;
+  onRecordConversationView: (conversation: MemberConversationPreview) => Promise<MemberConversationViewAudit | void>;
   onToggleHeartbeat: (job: HeartbeatJob) => void;
   onApplyOverlay: (overlay: BotOverlaySummary) => void;
 };
