@@ -1152,6 +1152,8 @@ class MemberConsoleService:
         data.setdefault("audit_log", [])
         data.setdefault("assessment_sessions", {})
         data.setdefault("phone_codes", {})
+        # Round 4 S1: idempotency dedup index — key = f"{action}:{idempotency_key}", value = audit_id.
+        data.setdefault("audit_idempotency_keys", {})
         if self._apply_legacy_chat_learning_migration(data):
             self._save_unlocked(data)
         return data
@@ -2368,20 +2370,49 @@ class MemberConsoleService:
         reason: str = "",
         before: dict[str, Any] | None = None,
         after: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        # Round 4 S1: return the inserted entry so callers (e.g. record_conversation_view)
+        # can capture audit_id without a second list scan, and so idempotency
+        # dedup can store key → audit_id mapping.
+        entry = {
+            "id": f"audit_{uuid.uuid4().hex[:10]}",
+            "operator": operator,
+            "action": action,
+            "target_user": target_user,
+            "reason": reason,
+            "before": before or {},
+            "after": after or {},
+            "created_at": _iso(),
+        }
+        data["audit_log"].insert(0, entry)
+        return entry
+
+    # Round 4 S1: idempotency index lives inside the same JSON blob protected
+    # by `_mutate` (fcntl-locked). Key shape is f"{action}:{idempotency_key}"
+    # so two different actions can reuse the same caller-generated UUID without
+    # colliding. Returns the prior audit_id when the key was seen before.
+    def _find_audit_id_by_idempotency_key(
+        self,
+        data: dict[str, Any],
+        action: str,
+        idempotency_key: str,
+    ) -> str | None:
+        if not idempotency_key:
+            return None
+        index = data.get("audit_idempotency_keys") or {}
+        return index.get(f"{action}:{idempotency_key}")
+
+    def _remember_idempotency_key(
+        self,
+        data: dict[str, Any],
+        action: str,
+        idempotency_key: str,
+        audit_id: str,
     ) -> None:
-        data["audit_log"].insert(
-            0,
-            {
-                "id": f"audit_{uuid.uuid4().hex[:10]}",
-                "operator": operator,
-                "action": action,
-                "target_user": target_user,
-                "reason": reason,
-                "before": before or {},
-                "after": after or {},
-                "created_at": _iso(),
-            },
-        )
+        if not idempotency_key:
+            return
+        index = data.setdefault("audit_idempotency_keys", {})
+        index[f"{action}:{idempotency_key}"] = audit_id
 
     def _append_audit_log(self, entry: dict[str, Any]) -> dict[str, Any]:
         payload = dict(entry or {})
@@ -3002,16 +3033,50 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
+    # Plan §3.5 / §6 require every full-text conversation view to capture WHY
+    # the admin opened it. Round 3 G accepts a `reason` from the caller and
+    # writes it into the audit_log so the entry is auditable in the absence of
+    # frontend cooperation. The frontend is also expected to enforce a 6-item
+    # whitelist + free-form "other" with ≥ 4 chars, but the server-side
+    # whitelist below is the authoritative gate.
+    _VIEW_REASON_WHITELIST: tuple[str, ...] = (
+        "complaint",
+        "ops",
+        "teaching",
+        "engineering",
+        "finance",
+    )
+
     def record_conversation_view(
         self,
         user_id: str,
         session_id: str,
         *,
         operator: str = "admin",
+        reason: str | None = None,
+        idempotency_key: str | None = None,
     ) -> dict[str, Any]:
         normalized_session_id = str(session_id or "").strip()
         if not normalized_session_id:
             raise ValueError("Conversation session_id is required")
+
+        # Validate the reason; reject malformed input but keep payload
+        # backward-compatible (existing callers without reason fall back to the
+        # generic "view_full_conversation").
+        normalized_reason = (reason or "").strip()
+        if normalized_reason:
+            if normalized_reason in self._VIEW_REASON_WHITELIST:
+                audit_reason = normalized_reason
+            elif normalized_reason.startswith("other:") and len(normalized_reason) - len("other:") >= 4:
+                # Trim to a sane length so audit_log cells stay readable.
+                audit_reason = normalized_reason[: 6 + 80]
+            else:
+                raise ValueError(
+                    "reason must be one of "
+                    f"{self._VIEW_REASON_WHITELIST} or 'other:<note>' with ≥ 4 chars"
+                )
+        else:
+            audit_reason = "view_full_conversation"
 
         data = self._load()
         member = self._find_member(data, user_id)
@@ -3029,19 +3094,43 @@ class MemberConsoleService:
             "message_count": int(conversation.get("message_count") or 0),
             "capability": str(conversation.get("capability") or ""),
             "view_scope": "full_conversation_messages",
+            "reason": audit_reason,
         }
+
+        normalized_key = (idempotency_key or "").strip()
 
         def _apply(next_data: dict[str, Any]) -> dict[str, Any]:
             self._find_member(next_data, user_id)
-            self._append_audit(
+            # Round 4 S1: dedup check inside the same _mutate envelope that
+            # serializes all writes — guarantees concurrent retries with the
+            # same key cannot both insert. If we've seen this key on the same
+            # action before, surface the original audit_id and return a
+            # `deduped: true` response so callers can distinguish.
+            if normalized_key:
+                existing_audit_id = self._find_audit_id_by_idempotency_key(
+                    next_data, "conversation_view", normalized_key
+                )
+                if existing_audit_id is not None:
+                    deduped_payload = dict(audit_payload)
+                    deduped_payload["audit_id"] = existing_audit_id
+                    deduped_payload["deduped"] = True
+                    return deduped_payload
+
+            entry = self._append_audit(
                 next_data,
                 action="conversation_view",
                 target_user=user_id,
-                reason="view_full_conversation",
+                reason=audit_reason,
                 after=audit_payload,
                 operator=operator,
             )
-            return audit_payload
+            if normalized_key:
+                self._remember_idempotency_key(
+                    next_data, "conversation_view", normalized_key, entry["id"]
+                )
+            result = dict(audit_payload)
+            result["audit_id"] = entry["id"]
+            return result
 
         return self._mutate(_apply)
 

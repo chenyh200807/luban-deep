@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 
 from deeptutor.api.dependencies import AuthContext, require_admin
@@ -337,13 +337,37 @@ async def record_member_ops_action(
 async def record_member_conversation_view(
     user_id: str,
     session_id: str,
+    # Round 3 G: accept reason via query (forward-compat for clients already
+    # sending it that way) or JSON body { "reason": "complaint" | ... }.
+    # The service-side whitelist is the authoritative gate.
+    reason: str | None = Query(default=None),
+    body: dict[str, Any] | None = Body(default=None),
+    # Round 4 S1: X-Idempotency-Key is mandatory on every audited write. The
+    # frontend useAuditedAction hook always injects it; missing/empty here
+    # means either a misconfigured client or a manual replay attempt. Both must
+    # be rejected at the edge so dedup is enforced (not advised).
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_user: AuthContext = Depends(require_admin),
 ) -> dict[str, Any]:
+    normalized_key = (idempotency_key or "").strip()
+    if not normalized_key:
+        raise HTTPException(
+            status_code=400,
+            detail="X-Idempotency-Key header is required for audited writes",
+        )
+    body_reason = None
+    if isinstance(body, dict):
+        candidate = body.get("reason")
+        if isinstance(candidate, str):
+            body_reason = candidate
+    effective_reason = reason if reason else body_reason
     try:
         return service.record_conversation_view(
             user_id,
             session_id,
             operator=current_user.user_id,
+            reason=effective_reason,
+            idempotency_key=normalized_key,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc

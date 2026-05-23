@@ -29,6 +29,7 @@
 | 上下文与语义连续性 | [2026-04-16-tutorbot-context-orchestration-prd.md](2026-04-16-tutorbot-context-orchestration-prd.md) | 每轮上下文包、预算、选择性加载、route 稳定性 |
 | Active Object 与语义路由 | [2026-04-18-llm-native-active-object-semantic-router-prd.md](2026-04-18-llm-native-active-object-semantic-router-prd.md) | follow-up、当前题、当前对象、多对象切换、语义 route |
 | 钱包与会员 authority | [2026-04-19-supabase-wallet-single-authority-prd.md](2026-04-19-supabase-wallet-single-authority-prd.md) | Supabase wallet、积分、会员、支付状态、身份归一化 |
+| BI / 会员经营后台 | [2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md](2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md) | `/bi`、`/member`、经营总览、会员运营 CRM、套餐权益、充值账务、对话回顾、反馈中心、系统运维、成本质量、经营审计；把旧 BI / 会员后台草案收敛为“经营判断 -> 会员定位 -> 证据查看 -> 执行动作 -> 审计回看”的统一后台主线。 |
 | 生产部署 | [2026-04-19-deeptutor-50000-member-deployment-prd.md](2026-04-19-deeptutor-50000-member-deployment-prd.md) / [2026-05-17-deeptutor-active-turn-capacity-implementation-plan.md](2026-05-17-deeptutor-active-turn-capacity-implementation-plan.md) / [2026-05-19-web-settings-bundle-budget-regression.md](2026-05-19-web-settings-bundle-budget-regression.md) | 5 万会员部署、50-120 active turn Phase 1 扩容、上线稳健性；`/settings` 路由 bundle 超 budget 50% 的 pre-existing regression 已记录待修 |
 | 联网搜索能力 | [2026-05-03-deeptutor-web-search-stack-prd.md](2026-05-03-deeptutor-web-search-stack-prd.md) / [2026-05-03-deeptutor-web-search-stack-implementation-plan.md](2026-05-03-deeptutor-web-search-stack-implementation-plan.md) | SearXNG、`web_search` fail-closed enablement、搜索 provider/runtime 验收 |
 | Observability 与 release gate | [2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md](2026-04-19-deeptutor-top-tier-observability-arr-aae-oa-om-prd.md) / [2026-05-18-deeptutor-launch-readiness-dashboard-implementation-plan.md](2026-05-18-deeptutor-launch-readiness-dashboard-implementation-plan.md) | OM/ARR/AAE/OA、trace、surface ACK、release gate、上线 readiness 面板 |
@@ -100,6 +101,12 @@
 | [2026-04-19-supabase-wallet-single-authority-prd.md](2026-04-19-supabase-wallet-single-authority-prd.md) | PRD | Draft v3 | Supabase 钱包唯一权威体系。 |
 | [2026-04-19-supabase-wallet-single-authority-implementation-plan.md](2026-04-19-supabase-wallet-single-authority-implementation-plan.md) | Implementation Plan | Draft v1 | WP1-WP4 钱包实施计划。 |
 | [2026-04-19-supabase-wallet-rls-appendix.md](2026-04-19-supabase-wallet-rls-appendix.md) | Appendix | Draft | 钱包 RLS / RPC / migration 审查补充。 |
+
+### 5.5 BI / 会员经营后台
+
+| 文件 | 类型 | 状态 | 说明 |
+| --- | --- | --- | --- |
+| [2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md](2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md) | Implementation Plan | Batch 0-7 完成 v1 (2026-05-23) · 灰度待启动 | 将 `/bi` 从经营看板升级为“会员经营后台 + BI 决策系统”：一级主区收敛为经营总览、会员运营、商品账务、反馈中心、系统运维。已实装：BiAppShell / BiTopBar / BiSideNav / BiDataTable / BiSidePanel / BiStatusPill / BiMoneyCell 7 个核心组件；6 个 feature flag 集中在 `web/lib/bi-feature-flags.ts`；client metric registry 镜像 `bi_metrics.py`；overview 接真实 `/api/v1/bi/overview` + `active-trend` + `anomalies`（dev 无 admin token 自动 fallback 到 mock + 红色 banner）；会员 CRM 7 默认列 + 11 列可配置 + 5 常用筛选 + 高级筛选 + 私有保存视图（`useSyncExternalStore` + localStorage）+ 学员 360 抽屉 + 对话回顾必须选原因 + audit；商品账务异常顶部行动条 + 订单/钱包/套餐 tabs + 自然月/渠道/发票筛选；反馈中心 AI/内测/备注三源 + open/triaged/ignored + owner 分组 + 处理结果 audit；系统运维 6 tile + 操作审计五维筛选（操作人 IME / 目标 IME / 分类 / 敏感级别 / 时间）+ 导出任务异步/脱敏/限频。pytest 58 个 100% 通过；Playwright `bi_v2_release_gate.mjs` 18 张截图（6 路径 × 3 视口）+ CRM 交互 smoke + 关 flag rollback smoke 全部通过。剩余风险与灰度顺序见 `docs/zh/bi/bi-backoffice-v2-rollout-runbook.md`。 |
 
 ### 6. Observability / Benchmark / Release Gate
 
@@ -196,6 +203,7 @@
 ### Implementation Plan
 
 - [2026-04-19-supabase-wallet-single-authority-implementation-plan.md](2026-04-19-supabase-wallet-single-authority-implementation-plan.md)
+- [2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md](2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md)
 - [2026-04-19-deeptutor-observability-m0-m1-implementation-plan.md](2026-04-19-deeptutor-observability-m0-m1-implementation-plan.md)
 - [2026-04-19-deeptutor-observability-surface-ack-implementation-plan.md](2026-04-19-deeptutor-observability-surface-ack-implementation-plan.md)
 - [2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md](2026-04-19-deeptutor-observability-arr-lite-implementation-plan.md)

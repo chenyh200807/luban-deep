@@ -10,6 +10,8 @@
     "lint": "eslint .",
     "perf:check": "node ./scripts/route_budgets.mjs",
     "build:perf": "npm run build && npm run perf:check",
+    "check:mock-boundary": "node ./scripts/check_mock_boundary.mjs",
+    "build:check": "npm run build && npm run check:mock-boundary",
     "i18n:parity": "node ./scripts/i18n_parity.mjs",
     "i18n:audit": "node ./scripts/i18n_audit.mjs",
     "i18n:audit:strict": "node ./scripts/i18n_audit.mjs --strict",

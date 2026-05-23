@@ -1409,6 +1409,80 @@ def test_record_conversation_view_writes_privacy_audit(tmp_path: Path) -> None:
     assert audit["items"][0]["after"]["message_count"] == 2
 
 
+def test_record_conversation_view_dedupes_by_idempotency_key(tmp_path: Path) -> None:
+    """Round 4 S1 contract: same idempotency_key on the same action must NOT
+    write a second audit entry; the service must return the original audit_id
+    plus `deduped: True`. Without this guard a flaky network can produce
+    duplicate privacy audits, which is a compliance regression.
+    """
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+
+    asyncio.run(
+        service._store.create_session(
+            title="地基基础答疑",
+            session_id="tb_student_demo",
+            owner_key=build_user_owner_key("student_demo"),
+            source="wx_miniprogram",
+        )
+    )
+    asyncio.run(service._store.add_message("tb_student_demo", "user", "x"))
+
+    first = service.record_conversation_view(
+        "student_demo",
+        "tb_student_demo",
+        operator="admin_demo",
+        idempotency_key="abc-123",
+    )
+    second = service.record_conversation_view(
+        "student_demo",
+        "tb_student_demo",
+        operator="admin_demo",
+        idempotency_key="abc-123",
+    )
+
+    # Both calls return successfully.
+    assert first["session_id"] == "tb_student_demo"
+    assert second["session_id"] == "tb_student_demo"
+
+    # Audit log carries exactly one entry — second call must be deduped.
+    audit = service.list_audit_log(target_user="student_demo", action="conversation_view")
+    assert audit["total"] == 1
+    assert first["audit_id"] == audit["items"][0]["id"]
+    assert second["audit_id"] == first["audit_id"]
+    assert second.get("deduped") is True
+
+
+def test_record_conversation_view_distinct_keys_keep_distinct_audits(tmp_path: Path) -> None:
+    """Round 4 S1 contract: different idempotency_keys for the same action
+    must still write two audit entries (real distinct user actions).
+    """
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+
+    asyncio.run(
+        service._store.create_session(
+            title="x",
+            session_id="tb_student_demo",
+            owner_key=build_user_owner_key("student_demo"),
+            source="wx_miniprogram",
+        )
+    )
+    asyncio.run(service._store.add_message("tb_student_demo", "user", "x"))
+
+    service.record_conversation_view(
+        "student_demo", "tb_student_demo", operator="ops", idempotency_key="k1"
+    )
+    service.record_conversation_view(
+        "student_demo", "tb_student_demo", operator="ops", idempotency_key="k2"
+    )
+
+    audit = service.list_audit_log(target_user="student_demo", action="conversation_view")
+    assert audit["total"] == 2
+
+
 def test_member_360_keeps_learner_state_when_heartbeat_jobs_fail(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"

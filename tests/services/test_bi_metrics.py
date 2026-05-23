@@ -46,3 +46,37 @@ def test_metric_by_id_returns_definition() -> None:
 def test_metric_by_id_rejects_unknown_metric() -> None:
     with pytest.raises(KeyError):
         metric_by_id("unknown_metric")
+
+
+def test_metric_registry_ts_in_sync() -> None:
+    """Round 3 D drift guard: the generated TS mirror must match BI_METRICS.
+
+    If this fails, regenerate via:
+        python -m scripts.gen_bi_metrics_ts
+
+    Editing web/lib/bi-v2-metric-registry.generated.ts by hand is forbidden;
+    the file header says so and this test is the enforcement gate.
+    """
+    from scripts.gen_bi_metrics_ts import OUTPUT_PATH, render_module
+
+    expected = render_module()
+    actual = OUTPUT_PATH.read_text(encoding="utf-8") if OUTPUT_PATH.exists() else ""
+    assert actual == expected, (
+        "bi-v2-metric-registry.generated.ts is out of sync with BI_METRICS. "
+        "Run: python -m scripts.gen_bi_metrics_ts"
+    )
+
+
+def test_metric_registry_fields_complete() -> None:
+    """Plan §3.6 requires every KPI to surface refresh cadence + degraded note
+    in hover. Guard that BI_METRICS never reintroduces an empty cadence."""
+    for metric in BI_METRICS:
+        assert metric.refresh_cadence.strip() != "", (
+            f"{metric.metric_id} missing refresh_cadence (plan §3.6)"
+        )
+        # degraded_note may be empty for A-tier metrics with no known degradation
+        # path; only C/D tier must declare it.
+        if metric.trust_level in ("C", "D"):
+            assert metric.degraded_note.strip() != "", (
+                f"{metric.metric_id} is trust {metric.trust_level} but has no degraded_note (plan §3.6)"
+            )
