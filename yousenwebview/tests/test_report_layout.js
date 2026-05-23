@@ -107,7 +107,7 @@ assertIncludes(reportWxml, "wx:elif=\"{{item.collectable}}\"", "attempt card sho
 assertIncludes(reportWxml, "收藏错题", "attempt card should expose mistake-book action without local inference");
 assertIncludes(reportSource, "api.saveMistakeBookItem", "mistake-book action should call the cloud mistake-book authority");
 assertIncludes(appConfig, "pages/mistake-book/mistake-book", "host mistake-book page should be registered");
-assertIncludes(reportWxml, "专门错题集", "report page should expose a dedicated mistake-book module");
+assertIncludes(reportWxml, "module-mistake-book", "report page should expose a dedicated mistake-book module");
 assertIncludes(reportWxml, "bindtap=\"openMistakeBook\"", "mistake-book module should navigate to the dedicated page");
 assertIncludes(reportSource, "route.mistakeBook()", "report mistake-book action should use the package route helper");
 assertIncludes(mistakeBookSource, "api.getMistakeBook", "mistake-book page should read the cloud mistake-book authority");
