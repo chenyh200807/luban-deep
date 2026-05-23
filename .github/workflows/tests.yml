@@ -69,7 +69,10 @@ jobs:
       - name: Install contract guard dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install "PyYAML>=6.0"
+          # pydantic is required because scripts/check_contract_guard.py's
+          # evaluate_emitted_error_codes() imports deeptutor.contracts, whose
+          # __init__.py transitively imports modules that use pydantic models.
+          pip install "PyYAML>=6.0" "pydantic>=2"
 
       - name: Run contract guard
         run: |

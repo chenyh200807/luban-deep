@@ -659,9 +659,14 @@ function _buildRadarViewModel(dims) {
   var normal = 0;
   var weak = 0;
   (dims || []).forEach(function (d) {
-    if (d.status === "strong" || d.status === "mastered") strong++;
-    else if (d.status === "normal" || d.status === "developing") normal++;
-    else if (d.status === "weak" || d.status === "needs_attention") weak++;
+    // Prefer the upstream status if backend surfaces one (learning-state
+    // engine emits mastered / developing / needs_attention); otherwise
+    // derive from pct so chapter_mastery payloads still classify correctly.
+    var pct = Math.round((d.value || 0) * 100);
+    var status = d.status || (pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak");
+    if (status === "strong" || status === "mastered") strong++;
+    else if (status === "normal" || status === "developing") normal++;
+    else if (status === "weak" || status === "needs_attention") weak++;
   });
   var avg = Math.round(
     ((dims || []).reduce(function (sum, d) {
@@ -670,14 +675,22 @@ function _buildRadarViewModel(dims) {
       Math.max((dims || []).length, 1)) *
       100,
   );
-  var dimList = (dims || []).map(function (d, index) {
+  var dimList = (dims || [])
+    .slice()
+    .sort(function (a, b) {
+      return (a.value || 0) - (b.value || 0);
+    })
+    .map(function (d, index) {
       var pct = Math.round((d.value || 0) * 100);
+      var status = d.status || (pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak");
       return {
         rank: index + 1,
         name: d.name,
         pct: pct,
-        cls: d.status || d.level || "",
-        color: d.color || "",
+        cls: d.cls || status,
+        color:
+          d.color ||
+          (pct >= 70 ? "#34d399" : pct >= 40 ? "#fbbf24" : "#f87171"),
       };
     });
   return {
