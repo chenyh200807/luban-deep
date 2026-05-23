@@ -382,6 +382,8 @@ def _source_type_from_ref(source: str) -> str:
         return "manual_correction"
     if source in {"grading_result", "construction_grading"}:
         return "grading_result"
+    if source == "assessment":
+        return "assessment"
     return "active_question"
 
 

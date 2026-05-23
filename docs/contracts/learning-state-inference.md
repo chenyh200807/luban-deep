@@ -40,6 +40,25 @@ grading (case_kernel / mcq) | conversation_synthesis | training action
 
 不要新增第三种 `evidence_source`。新增加的子分类应走 `payload.learning_signal_type` 子字段。
 
+### 摸底 / 测试集作答证据
+
+摸底测评、测试集和专项训练中的客观题作答，不是第二套 learner memory authority。
+它们必须归一化为既有 `construction_grading` 形态的 `learning_evidence`：
+
+- writer 复用 `deeptutor.services.construction_grading.writeback.write_grading_error_events`
+  与 `build_learning_evidence_payload`。
+- `source_feature` 仍为 `construction_grading`，不得新增 `assessment` evidence source。
+- assessment 语义只能作为 payload 内的子字段表达，例如
+  `grading_mode = "assessment_blueprint"`、`next_training_signal.source = "assessment"`、
+  `evidence_refs[*].source_type = "assessment"`。
+- 正确作答可作为 success / improvement evidence 写入；错误作答必须使用已登记错码，或在没有更精确错码时显式降级为 `unknown_error`。
+- 缺少题干、用户答案、标准答案或 evidence refs 的作答不能伪装成稳定 mastery truth。
+- public API response 不得泄漏内部批量 evidence payload。
+
+`member_console` 可以保留 `last_assessment`、进度统计和 teaching policy seed 作为 UI /
+运营投影，但这些字段不能替代 `learning_evidence`，也不能单独驱动
+`learning_synthesis`、`learning_report_read_model` 或 `home_dashboard` 的学习状态判断。
+
 ## 投影 (Projections)
 
 允许的读侧 projection 名称（Batch A / B / C 全部用同一个 ledger 派生）：
