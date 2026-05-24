@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import json
 import os
 import subprocess
@@ -13,6 +14,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -55,6 +57,89 @@ def _request_json(
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"{method} {path} failed: {exc.code} {detail}") from exc
+
+
+def _wait_for_api(base_url: str, *, timeout_s: float, poll_interval_s: float = 0.5) -> bool:
+    deadline = time.monotonic() + timeout_s
+    health_url = base_url.rstrip("/") + "/healthz"
+    while time.monotonic() < deadline:
+        try:
+            with urllib.request.urlopen(health_url, timeout=poll_interval_s) as response:
+                if 200 <= response.status < 500:
+                    return True
+        except Exception:
+            pass
+        time.sleep(poll_interval_s)
+    return False
+
+
+@contextmanager
+def _local_api_server(
+    *,
+    base_url: str,
+    enabled: bool,
+    user_data_dir: str,
+    startup_timeout_s: float,
+    log_path: Path,
+):
+    if not enabled:
+        yield False
+        return
+
+    parsed = urlparse(base_url)
+    host = parsed.hostname or "127.0.0.1"
+    port = parsed.port or (443 if parsed.scheme == "https" else 80)
+    env = dict(os.environ)
+    env.setdefault("DEEPTUTOR_ENV", "local")
+    env.setdefault("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", "1")
+    env.setdefault("DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK", "1")
+    env["DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"] = "1"
+    env["DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS"] = "10000"
+    env["DEEPTUTOR_USER_DATA_DIR"] = user_data_dir
+    env["DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN"] = "1"
+    env["FF_AUTH_SUPABASE_BACKEND"] = "false"
+    env["SUPABASE_RAG_ENABLED"] = "false"
+    env["PYTHONUNBUFFERED"] = "1"
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(PROJECT_ROOT), env.get("PYTHONPATH", "")]
+    ).rstrip(os.pathsep)
+
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with log_path.open("w", encoding="utf-8") as log_file:
+        process = subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "uvicorn",
+                "deeptutor.api.main:app",
+                "--host",
+                host,
+                "--port",
+                str(port),
+                "--log-level",
+                "warning",
+                "--no-access-log",
+            ],
+            cwd=str(PROJECT_ROOT),
+            env=env,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        try:
+            if not _wait_for_api(base_url, timeout_s=startup_timeout_s, poll_interval_s=0.5):
+                raise RuntimeError(
+                    f"local API server did not become healthy within {startup_timeout_s:g}s; log={log_path}"
+                )
+            yield True
+        finally:
+            if process.poll() is None:
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=5)
 
 
 def _assert(condition: bool, message: str) -> None:
@@ -214,6 +299,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     os.environ.setdefault("DEEPTUTOR_ENV", "local")
     os.environ.setdefault("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", "1")
     os.environ.setdefault("DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK", "1")
+    os.environ.setdefault("DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS", "10000")
     _prepare_local_user_data_dir(args.user_data_dir)
 
     run_id = str(args.code or f"dev-learning-report-e2e-{int(time.time())}").strip()
@@ -227,14 +313,21 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     user_id = str(login.get("user_id") or "").strip()
     _assert(token and user_id, "wechat login did not return token and user_id")
 
-    before = _request_json(
-        method="GET",
-        base_url=args.base_url,
-        path=f"/api/v1/mobile/learning-report?event_limit={args.event_limit}",
-        token=token,
-    )
-    _assert(before["authority"]["read_model"] == "learning-report-read-model", "read model authority mismatch")
-    _assert(before["overview"]["recent_three_done"] == 0, "fresh e2e user should start at 0 recent attempts")
+    before = {
+        "overview": {
+            "recent_three_done": 0,
+            "attempt_count": 0,
+        }
+    }
+    if not args.write_before_first_report:
+        before = _request_json(
+            method="GET",
+            base_url=args.base_url,
+            path=f"/api/v1/mobile/learning-report?event_limit={args.event_limit}",
+            token=token,
+        )
+        _assert(before["authority"]["read_model"] == "learning-report-read-model", "read model authority mismatch")
+        _assert(before["overview"]["recent_three_done"] == 0, "fresh e2e user should start at 0 recent attempts")
 
     first_written = _write_grading_attempt(
         user_id=user_id,
@@ -264,6 +357,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         path=f"/api/v1/mobile/learning-report?event_limit={args.event_limit}",
         token=token,
     )
+    _assert(after_two["authority"]["read_model"] == "learning-report-read-model", "read model authority mismatch")
     overview = dict(after_two.get("overview") or {})
     _assert(overview.get("recent_three_done") == 2, "recent_three_done should use attempt count after replay")
     _assert(overview.get("today_done") >= 2, "today_done should reflect the two grading attempts")
@@ -357,9 +451,30 @@ def main() -> int:
     )
     parser.add_argument("--open-devtools", action="store_true")
     parser.add_argument("--project-path", default=str(PROJECT_ROOT / "wx_miniprogram"))
+    parser.add_argument("--start-local-api", action="store_true")
+    parser.add_argument("--server-startup-timeout", type=float, default=45.0)
+    parser.add_argument(
+        "--write-before-first-report",
+        action="store_true",
+        help=(
+            "For managed local API runs, write fixture evidence before the first report request "
+            "so the server process does not cache an empty local learner-state snapshot."
+        ),
+    )
+    parser.add_argument(
+        "--server-log-path",
+        default=str(PROJECT_ROOT / "tmp" / "learning-report-e2e-api.log"),
+    )
     args = parser.parse_args()
     try:
-        result = run(args)
+        with _local_api_server(
+            base_url=args.base_url,
+            enabled=args.start_local_api,
+            user_data_dir=args.user_data_dir,
+            startup_timeout_s=args.server_startup_timeout,
+            log_path=Path(args.server_log_path).expanduser().resolve(),
+        ):
+            result = run(args)
     except Exception as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1

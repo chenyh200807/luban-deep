@@ -256,6 +256,18 @@ def test_build_turn_config_omits_eval_user_for_live_ws() -> None:
     assert runtime_config["interaction_hints"]["profile"] == "tutorbot"
 
 
+def test_eval_gate_fixture_source_builds_stable_long_dialog_case() -> None:
+    fixture = Path("tests/fixtures/long_dialog_v1_retest_source.json")
+    payload = json.loads(fixture.read_text(encoding="utf-8"))
+
+    cases = MODULE._build_cases(payload)
+
+    assert len(cases) == 1
+    assert cases[0]["case_id"] != "LD_XXX"
+    assert cases[0]["source_session_id"] == "eval_gate_ld_001"
+    assert [turn["turn"] for turn in cases[0]["turns"]] == [1, 2]
+
+
 def test_classify_turn_normalizes_explicit_case_anchor_before_anchor_check() -> None:
     result = MODULE._classify_turn(
         query="你用盖一栋6层住宅楼举个例子讲讲",
