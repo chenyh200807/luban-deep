@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import subprocess
+import sys
+
 import pytest
 
 from scripts import backfill_mistake_book_from_learning_evidence as backfill_module
@@ -229,3 +232,16 @@ def test_main_rejects_all_users_with_user_filter(monkeypatch) -> None:
 
     with pytest.raises(SystemExit, match="either --all-users or --user-id"):
         backfill_module.main()
+
+
+def test_script_can_run_directly_from_repo_root_without_import_error() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/backfill_mistake_book_from_learning_evidence.py"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode != 0
+    assert "No module named" not in result.stderr
+    assert "Provide --user-id" in result.stderr

@@ -4,11 +4,16 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Iterable
 
 import httpx
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from deeptutor.services.construction_grading.writeback import (
     _is_mistake_book_candidate,
@@ -21,9 +26,6 @@ from deeptutor.services.construction_grading.writeback import (
 )
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.mistake_book import MistakeBookService, SupabaseMistakeBookStore
-
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def _load_dotenv(path: Path) -> None:
