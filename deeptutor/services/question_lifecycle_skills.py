@@ -383,6 +383,18 @@ _LEARNING_SUPPORT_PHRASES: tuple[str, ...] = (
     "学不下去",
 )
 
+# Free-text question review intent (no active object yet). Per plan §5
+# Authority Matrix row 2: phrases like "分析一道真题" should land on
+# construction-question-review so the caller can either reuse an existing
+# active object or render a stem first before explanation.
+_QUESTION_REVIEW_FREETEXT_PHRASES: tuple[str, ...] = (
+    "分析一道真题",
+    "分析这道真题",
+    "讲解一道真题",
+    "讲一道真题",
+    "解析一道真题",
+)
+
 _MCQ_QUESTION_TYPES: frozenset[str] = frozenset(
     {
         "single_choice",
@@ -449,7 +461,11 @@ def derive_question_lifecycle_scene(ctx: Any) -> Optional[str]:
     if looks_like_practice_generation_request(user_message):
         return "practice_generation"
 
-    # Priority 3: active object + follow-up intent (no submission).
+    # Priority 3a: free-text question review intent (no active object yet).
+    if any(phrase in user_message for phrase in _QUESTION_REVIEW_FREETEXT_PHRASES):
+        return "question_review"
+
+    # Priority 3b: active object + follow-up intent (no submission).
     if question_context and looks_like_question_followup(user_message, question_context):
         return "question_review"
 
