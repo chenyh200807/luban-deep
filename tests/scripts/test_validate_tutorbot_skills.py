@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import yaml
 
 import scripts.validate_tutorbot_skills as validator
-from scripts.validate_tutorbot_skills import main, validate_catalog
+from scripts.validate_tutorbot_skills import build_doctor_report, main, validate_catalog
 
 
 def _write_skill(root: Path, name: str, body: str = "") -> None:
@@ -33,6 +34,7 @@ def _entry(name: str, **extra) -> dict:
         "runtime_scope": "production",
         "authority_scope": "presentation_policy",
         "token_budget_estimate": 800,
+        "export_eligible": "internal",
         "required_authorities": ["rag"],
         "forbidden_authorities": ["scoring"],
         "references": [],
@@ -115,6 +117,34 @@ def test_validation_fails_for_missing_references(tmp_path: Path) -> None:
 
     assert report["ok"] is False
     assert report["findings"][0]["rule"] == "missing_reference"
+
+
+def test_validation_requires_explicit_export_eligibility(tmp_path: Path) -> None:
+    skills_root = tmp_path / "skills"
+    skills_root.mkdir()
+    _write_skill(skills_root, "construction-question-review")
+    entry = _entry("construction-question-review")
+    entry.pop("export_eligible")
+    catalog = tmp_path / "catalog.yaml"
+    _write_catalog(catalog, [entry])
+
+    report = validate_catalog(catalog, skills_root=skills_root)
+
+    assert report["ok"] is False
+    assert {item["rule"] for item in report["findings"]} >= {"missing_fields"}
+
+
+def test_validation_rejects_unknown_export_eligibility(tmp_path: Path) -> None:
+    skills_root = tmp_path / "skills"
+    skills_root.mkdir()
+    _write_skill(skills_root, "construction-question-review")
+    catalog = tmp_path / "catalog.yaml"
+    _write_catalog(catalog, [_entry("construction-question-review", export_eligible="public-default")])
+
+    report = validate_catalog(catalog, skills_root=skills_root)
+
+    assert report["ok"] is False
+    assert {item["rule"] for item in report["findings"]} >= {"invalid_export_eligible"}
 
 
 def test_expression_layer_skill_cannot_embed_authority_leaks(tmp_path: Path) -> None:
@@ -252,3 +282,47 @@ def test_cli_returns_nonzero_on_missing_file(tmp_path: Path) -> None:
     _write_catalog(catalog, [_entry("missing-skill")])
 
     assert main(["--catalog", str(catalog), "--skills-root", str(skills_root)]) == 1
+
+
+def test_doctor_reports_inventory_to_catalog_translation_gaps(tmp_path: Path) -> None:
+    skills_root = tmp_path / "skills"
+    skills_root.mkdir()
+    _write_skill(skills_root, "construction-question-review")
+    catalog = tmp_path / "catalog.yaml"
+    _write_catalog(catalog, [_entry("construction-question-review")])
+    inventory = tmp_path / "inventory.json"
+    inventory.write_text(
+        json.dumps(
+            {
+                "skills": [
+                    {
+                        "name": "agent-question-explanation",
+                        "deep_tutor_bucket": "adapt_to_construction",
+                        "deep_tutor_targets": ["construction-question-review"],
+                    },
+                    {
+                        "name": "agent-study-plan",
+                        "deep_tutor_bucket": "adapt_to_construction",
+                        "deep_tutor_targets": ["construction-study-assistant"],
+                    },
+                    {
+                        "name": "junior-biology-quick-practice",
+                        "deep_tutor_bucket": "template_only",
+                        "deep_tutor_targets": ["construction-question-supply"],
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    report = build_doctor_report(catalog_path=catalog, inventory_path=inventory)
+
+    assert report["adapt_to_construction_count"] == 2
+    assert report["gap_count"] == 1
+    assert report["gaps"] == [
+        {
+            "upstream_skill": "agent-study-plan",
+            "missing_targets": ["construction-study-assistant"],
+        }
+    ]

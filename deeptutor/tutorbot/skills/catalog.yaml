@@ -11,6 +11,7 @@ skills:
     runtime_scope: production
     authority_scope: presentation_policy
     token_budget_estimate: 1000
+    export_eligible: internal
     required_authorities:
       - rag
       - answer_reveal_policy
@@ -35,6 +36,7 @@ skills:
     runtime_scope: production
     authority_scope: presentation_policy
     token_budget_estimate: 1800
+    export_eligible: internal
     required_authorities:
       - deep_question
       - answer_reveal_policy
@@ -62,6 +64,7 @@ skills:
     runtime_scope: production
     authority_scope: presentation_policy
     token_budget_estimate: 1700
+    export_eligible: internal
     required_authorities:
       - active_question
       - answer_reveal_policy
@@ -87,6 +90,7 @@ skills:
     runtime_scope: production
     authority_scope: grading_policy
     token_budget_estimate: 2100
+    export_eligible: internal
     required_authorities:
       - active_question
       - questions_bank
@@ -112,6 +116,7 @@ skills:
     runtime_scope: production
     authority_scope: grading_policy
     token_budget_estimate: 2600
+    export_eligible: internal
     required_authorities:
       - active_question
       - questions_bank
@@ -139,6 +144,7 @@ skills:
     runtime_scope: production
     authority_scope: narration_policy
     token_budget_estimate: 1700
+    export_eligible: internal
     required_authorities:
       - learning_evidence
       - attempt_detail
@@ -163,6 +169,7 @@ skills:
     runtime_scope: production
     authority_scope: presentation_policy
     token_budget_estimate: 1700
+    export_eligible: internal
     required_authorities:
       - training_intent
       - study_plan
@@ -187,6 +194,7 @@ skills:
     runtime_scope: production
     authority_scope: safety_support_policy
     token_budget_estimate: 1600
+    export_eligible: none
     required_authorities:
       - guardrails
       - training_intent
@@ -210,6 +218,7 @@ skills:
     runtime_scope: production
     authority_scope: capability_invocation
     token_budget_estimate: 1200
+    export_eligible: none
     required_authorities:
       - deep_question
       - answer_reveal_policy
@@ -230,6 +239,7 @@ skills:
     runtime_scope: production
     authority_scope: topic_map
     token_budget_estimate: 900
+    export_eligible: internal
     required_authorities:
       - rag
       - source_grounding

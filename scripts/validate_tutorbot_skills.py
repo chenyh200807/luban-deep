@@ -13,6 +13,8 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = REPO_ROOT / "deeptutor" / "tutorbot" / "skills" / "catalog.yaml"
 DEFAULT_SKILLS_ROOT = REPO_ROOT / "deeptutor" / "tutorbot" / "skills"
+DEFAULT_INVENTORY = REPO_ROOT / "docs" / "plan" / "artifacts" / "hermes-edu-skills-inventory.json"
+EXPORT_ELIGIBLE_VALUES = {"public", "internal", "none"}
 
 REQUIRED_SKILL_FIELDS = {
     "name",
@@ -22,6 +24,7 @@ REQUIRED_SKILL_FIELDS = {
     "runtime_scope",
     "authority_scope",
     "token_budget_estimate",
+    "export_eligible",
     "required_authorities",
     "forbidden_authorities",
     "references",
@@ -194,6 +197,17 @@ def validate_catalog(
         if missing:
             findings.append(Finding("error", name, "missing_fields", f"missing fields: {', '.join(missing)}"))
 
+        export_eligible = str(skill.get("export_eligible") or "").strip()
+        if export_eligible and export_eligible not in EXPORT_ELIGIBLE_VALUES:
+            findings.append(
+                Finding(
+                    "error",
+                    name,
+                    "invalid_export_eligible",
+                    "export_eligible must be one of: public, internal, none",
+                )
+            )
+
         if name in names:
             findings.append(Finding("error", name, "duplicate_name", "duplicate skill name"))
         names.add(name)
@@ -292,15 +306,70 @@ def validate_catalog(
     }
 
 
+def build_doctor_report(
+    *,
+    catalog_path: Path = DEFAULT_CATALOG,
+    inventory_path: Path = DEFAULT_INVENTORY,
+) -> dict[str, Any]:
+    catalog = _load_yaml(catalog_path)
+    catalog_skills = catalog.get("skills")
+    if not isinstance(catalog_skills, list):
+        catalog_skills = []
+    catalog_names = {str(skill.get("name")) for skill in catalog_skills if isinstance(skill, dict)}
+
+    inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+    inventory_skills = inventory.get("skills") if isinstance(inventory, dict) else None
+    if not isinstance(inventory_skills, list):
+        raise ValueError(f"Invalid Hermes inventory: {inventory_path}")
+
+    checked: list[dict[str, Any]] = []
+    gaps: list[dict[str, Any]] = []
+    for item in inventory_skills:
+        if not isinstance(item, dict) or item.get("deep_tutor_bucket") != "adapt_to_construction":
+            continue
+        targets = [str(target) for target in item.get("deep_tutor_targets") or [] if str(target)]
+        missing_targets = [target for target in targets if target not in catalog_names]
+        checked.append(
+            {
+                "upstream_skill": str(item.get("name") or ""),
+                "targets": targets,
+                "missing_targets": missing_targets,
+            }
+        )
+        if missing_targets:
+            gaps.append(
+                {
+                    "upstream_skill": str(item.get("name") or ""),
+                    "missing_targets": missing_targets,
+                }
+            )
+
+    return {
+        "ok": not gaps,
+        "catalog_skill_count": len(catalog_names),
+        "adapt_to_construction_count": len(checked),
+        "gap_count": len(gaps),
+        "checked": checked,
+        "gaps": gaps,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate DeepTutor TutorBot skill registry.")
     parser.add_argument("--catalog", default=str(DEFAULT_CATALOG), help="Path to deeptutor/tutorbot/skills/catalog.yaml.")
     parser.add_argument("--skills-root", default=str(DEFAULT_SKILLS_ROOT), help="Path to skill root directory.")
+    parser.add_argument("--inventory", default=str(DEFAULT_INVENTORY), help="Path to Hermes inventory JSON.")
     parser.add_argument("--strict", action="store_true", help="Fail on missing authority/anti-pattern sections.")
+    parser.add_argument("--doctor", action="store_true", help="Print inventory-to-catalog absorption gap report.")
     parser.add_argument("--json", action="store_true", help="Print JSON report.")
     args = parser.parse_args(argv)
 
     report = validate_catalog(Path(args.catalog), skills_root=Path(args.skills_root), strict=args.strict)
+    doctor_report = None
+    if args.doctor:
+        doctor_report = build_doctor_report(catalog_path=Path(args.catalog), inventory_path=Path(args.inventory))
+        report["doctor"] = doctor_report
+
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
     else:
@@ -311,6 +380,15 @@ def main(argv: list[str] | None = None) -> int:
         )
         for finding in report["findings"]:
             print(f"[{finding['severity']}] {finding['skill']} {finding['rule']}: {finding['message']}")
+        if doctor_report is not None:
+            print(
+                "Doctor inventory gap report: "
+                f"adapt_to_construction={doctor_report['adapt_to_construction_count']} "
+                f"gaps={doctor_report['gap_count']}"
+            )
+            for gap in doctor_report["gaps"]:
+                missing = ", ".join(gap["missing_targets"])
+                print(f"[doctor] {gap['upstream_skill']}: missing catalog targets: {missing}")
     return 0 if report["ok"] else 1
 
 

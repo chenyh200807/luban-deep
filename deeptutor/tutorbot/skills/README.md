@@ -4,6 +4,8 @@ This directory contains built-in skills that extend nanobot's capabilities.
 
 硬约束：`catalog.yaml` 只允许作为 validation/discovery surface，不能被 runtime code import 或包装成 loader。运行时 skill 加载 authority 只能是 `SkillsLoader` 和 `question_lifecycle_skills`。
 
+`catalog.yaml` 中的 `export_eligible` 只服务未来导出审计：`internal` 表示可进入内部 pack 候选，`public` 需要单独公开发布审查，`none` 表示不得导出。该字段不是 runtime router 输入。
+
 ## Skill Format
 
 Each skill is a directory containing a `SKILL.md` file with:

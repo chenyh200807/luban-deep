@@ -327,6 +327,7 @@ skills:
     scene: question_review
     runtime_scope: production
     authority_scope: presentation_policy
+    export_eligible: internal
     required_authorities:
       - active_question
       - rag
@@ -354,6 +355,7 @@ scripts/validate_tutorbot_skills.py
 Checks:
 
 - every catalog skill file exists
+- every catalog skill explicitly declares `export_eligible: public | internal | none`
 - every referenced `references/*.md` exists
 - frontmatter name matches directory
 - `Authority` and `Forbidden Authority` sections exist
@@ -366,13 +368,13 @@ Checks:
 
 ### 6.4 Skill Doctor
 
-Future command:
+Command:
 
 ```bash
 python scripts/validate_tutorbot_skills.py --doctor
 ```
 
-It should report:
+It reports:
 
 - registry version
 - total skills
@@ -380,9 +382,12 @@ It should report:
 - sandbox skills
 - missing references
 - authority-risk findings
+- inventory-to-catalog translation gaps for upstream `adapt_to_construction` skills
 - loader-source drift
 - skills not visible through `SkillsLoader`
 - Langfuse skill-stack coverage if trace access is configured
+
+Current P2 implementation covers the inventory-to-catalog gap report. It reads `docs/plan/artifacts/hermes-edu-skills-inventory.json`, filters `deep_tutor_bucket == adapt_to_construction`, and checks that every `deep_tutor_targets` entry exists in `catalog.yaml`. This is a doctor report only; it must not be used by runtime code.
 
 ### 6.5 Export Pack
 
@@ -740,6 +745,7 @@ bash scripts/fetch_hermes_upstream.sh
 python scripts/check_hermes_upstream.py --source "$HERMES_EDU_SOURCE"
 python scripts/hermes_edu_booster_inventory.py --source "$HERMES_EDU_SOURCE" --output docs/plan/artifacts/hermes-edu-skills-inventory.json
 python scripts/validate_tutorbot_skills.py --strict
+python scripts/validate_tutorbot_skills.py --doctor
 python scripts/scan_hermes_sandbox_transcripts.py
 pytest tests/scripts/test_hermes_edu_booster_inventory.py tests/scripts/test_validate_tutorbot_skills.py -q
 pytest tests/scripts/test_check_hermes_upstream.py tests/scripts/test_scan_hermes_sandbox_transcripts.py tests/scripts/test_fetch_hermes_upstream_script.py -q
@@ -787,7 +793,7 @@ pytest tests/services/construction_grading -q
 | Upstream drift goes unnoticed | v0.19 changes inventory but DeepTutor still trusts v0.18.6 mappings | Weekly `hermes-upstream` sentinel fetches pinned upstream and runs `check_hermes_upstream.py --fail-on-drift` |
 | Sandbox contaminates production | Hermes Weixin transcript written to learner state | Sandbox cannot write production state |
 | Sandbox raw PII committed | Weixin/Hermes transcript lands under docs without redaction | `scan_hermes_sandbox_transcripts.py` blocks common phone/email/openid/name-labeled patterns |
-| Ecosystem export leaks private data | Internal prompts or paths exported | Export script strips private fields and runs security check |
+| Ecosystem export leaks private data | Internal prompts or paths exported | Every catalog skill declares `export_eligible`; future export script must refuse `none` and separately review `public` |
 | Over-expansion into K12 | Product focus diffuses | P0 only construction-exam lifecycle |
 
 ## 12. What Not To Do
@@ -834,6 +840,12 @@ pytest tests/services/construction_grading -q
 - [x] Add upstream drift sentinel and weekly GitHub Action.
 - [x] Add Hermes sandbox PII scanner and script tests.
 
+### P2 Schema Day
+
+- [x] Add `export_eligible: public | internal | none` to `catalog.yaml`.
+- [x] Add validator coverage for explicit export eligibility.
+- [x] Add `--doctor` inventory-to-catalog gap report for `adapt_to_construction` upstream skills.
+
 ## 14. Decision Log
 
 | Decision | Status |
@@ -844,6 +856,7 @@ pytest tests/services/construction_grading -q
 | Registry and validator come before broad skill expansion | Accepted |
 | Hermes + Weixin is sandbox only | Accepted |
 | Upstream drift is checked weekly, not every PR | Accepted |
+| Export eligibility is explicit metadata, not inferred by export scripts | Accepted |
 | Public/commercial Luban skill pack is future phase | Proposed |
 
 ## 15. Open Questions
@@ -864,6 +877,7 @@ Executed on 2026-05-24:
 HERMES_EDU_SOURCE=${HERMES_EDU_SOURCE:-~/.cache/deeptutor/hermes-edu-skills}
 python scripts/hermes_edu_booster_inventory.py --source "$HERMES_EDU_SOURCE" --output docs/plan/artifacts/hermes-edu-skills-inventory.json
 python scripts/validate_tutorbot_skills.py --strict
+python scripts/validate_tutorbot_skills.py --doctor
 pytest tests/scripts/test_hermes_edu_booster_inventory.py tests/scripts/test_validate_tutorbot_skills.py -q
 pytest tests/scripts/test_check_hermes_upstream.py tests/scripts/test_scan_hermes_sandbox_transcripts.py tests/scripts/test_fetch_hermes_upstream_script.py -q
 ```
@@ -874,7 +888,8 @@ Results:
 - Inventory bucket distribution after P0 review: `adapt_to_construction=6`, `template_only=90`, `developer_ops=31`, `future_product=54`, `sandbox_experiment=7`.
 - MIT license obligations are emitted in inventory and each new construction skill records `upstream_inspiration` as `pattern-only`.
 - DeepTutor TutorBot Skill Validator: 10 skills, 0 errors, 0 warnings.
-- Script tests: 14 passed.
+- Doctor inventory gap report: `adapt_to_construction=6`, `gaps=0`.
+- Script tests: 17 passed.
 - P1 guardrail script tests: 7 passed.
 - Script + runtime builder + teaching mode + learner-state + TutorBot capability tests: 162 passed.
 - Orchestrator autoroute + construction grading runtime gates: 105 passed.
