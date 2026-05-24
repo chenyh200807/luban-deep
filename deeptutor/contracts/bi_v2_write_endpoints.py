@@ -64,6 +64,43 @@ WRITE_ENDPOINTS: tuple[WriteEndpoint, ...] = (
         ),
         audit_action="conversation_view",
     ),
+    WriteEndpoint(
+        key="feedback.ai.triage",
+        method="POST",
+        path_template="/api/v1/bi/feedback/{feedback_id}/triage",
+        requires_idempotency=True,
+        description=(
+            "AI feedback triage: admin marks a feedback item open, triaged, "
+            "or ignored. Backend updates ai_feedback metadata and appends "
+            "feedback_triage to member_console audit_log with idempotency dedup."
+        ),
+        audit_action="feedback_triage",
+    ),
+    WriteEndpoint(
+        key="member.ops_action.record",
+        method="POST",
+        path_template="/api/v1/bi/member/{user_id}/ops-action",
+        requires_idempotency=True,
+        description=(
+            "Member low-risk ops action: mark contacted, add an ops note, or "
+            "join follow-up queue. Backend writes an ops_action note and "
+            "ops_action_result audit with idempotency dedup."
+        ),
+        audit_action="ops_action_result",
+    ),
+    WriteEndpoint(
+        key="bi.export.request",
+        method="POST",
+        path_template="/api/v1/bi/export-jobs",
+        requires_idempotency=True,
+        description=(
+            "BI export request: admin asks for a scrubbed export job. "
+            "Backend records bi_export_request audit with dataset, filters, "
+            "scrubbing, rate-limit metadata, and idempotency dedup before any "
+            "export job is shown in the UI."
+        ),
+        audit_action="bi_export_request",
+    ),
 )
 
 

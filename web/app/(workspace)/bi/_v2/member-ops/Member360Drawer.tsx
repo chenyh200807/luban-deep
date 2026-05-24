@@ -1,6 +1,7 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
+import { useState } from 'react'
 import { BiSidePanel, BiMoneyCell, BiStatusPill, BI_TRUST_TONE } from '@/components/bi-v2'
 import type { MemberDetail } from '@/lib/member-api'
 import type { MemberRow } from './data'
@@ -13,6 +14,10 @@ export type Member360DrawerProps = {
   error?: string
   onClose: () => void
   onOpenConversation: () => void
+  onMarkContacted: (member: MemberRow) => Promise<void> | void
+  onJoinFollowUp: (member: MemberRow) => Promise<void> | void
+  onAddNote: (member: MemberRow, note: string) => Promise<void> | void
+  opsActionWriting?: boolean
 }
 
 export function Member360Drawer({
@@ -23,9 +28,21 @@ export function Member360Drawer({
   error = '',
   onClose,
   onOpenConversation,
+  onMarkContacted,
+  onJoinFollowUp,
+  onAddNote,
+  opsActionWriting = false,
 }: Member360DrawerProps) {
+  const [noteDraft, setNoteDraft] = useState('')
   if (!member) return null
   const conversations = detail?.recent_conversations ?? []
+  async function submitNote() {
+    if (!member) return
+    const note = noteDraft.trim()
+    if (!note) return
+    await onAddNote(member, note)
+    setNoteDraft('')
+  }
   return (
     <BiSidePanel
       open={open}
@@ -34,29 +51,26 @@ export function Member360Drawer({
       subtitle={`user_id: ${member.user_id} · ${member.tier.toUpperCase()} · 风险 ${member.risk.toFixed(2)}`}
       width="lg"
       footer={
-        <div className="flex items-center justify-end gap-2">
-          {/*
-            "标记已联系" / "添加备注" 的真实写入由 Round 3 B 的 useAuditedAction
-            统一注入 actor + idempotency_key 后实装。Round 3 A 阶段先禁用，避免
-            UI 暗示已写入服务端（计划 §3.5 admin write 硬约束未满足前不应放行）。
-          */}
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <button
             type="button"
-            disabled
-            className="cursor-not-allowed rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-400"
-            aria-label="标记已联系（待 useAuditedAction 接入）"
-            title="P1 接 useAuditedAction 后启用"
+            disabled={opsActionWriting}
+            onClick={() => void onMarkContacted(member)}
+            className="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="标记已联系"
+            title="写入 ops_action_result audit"
           >
             标记已联系
           </button>
           <button
             type="button"
-            disabled
-            className="cursor-not-allowed rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-400"
-            aria-label="添加备注（待 useAuditedAction 接入）"
-            title="P1 接 useAuditedAction 后启用"
+            disabled={opsActionWriting}
+            onClick={() => void onJoinFollowUp(member)}
+            className="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="加入跟进队列"
+            title="写入 ops_action_result audit"
           >
-            添加备注
+            加入跟进
           </button>
           <button
             type="button"
@@ -80,6 +94,30 @@ export function Member360Drawer({
             学员 360 加载失败：{error}
           </div>
         ) : null}
+        <section className="rounded border border-slate-200 bg-white p-3">
+          <div className="text-xs font-semibold text-slate-900">运营备注</div>
+          <textarea
+            value={noteDraft}
+            onChange={event => setNoteDraft(event.target.value)}
+            rows={3}
+            maxLength={500}
+            className="mt-2 w-full resize-none rounded border border-slate-200 p-2 text-xs text-slate-800 outline-none focus:border-slate-400"
+            placeholder="输入本次联系结果、续费意向或投诉摘要"
+            aria-label="运营备注内容"
+          />
+          <div className="mt-2 flex justify-end">
+            <button
+              type="button"
+              disabled={opsActionWriting || noteDraft.trim().length === 0}
+              onClick={() => void submitNote()}
+              className="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="添加运营备注"
+              title="写入 ops_action_result audit"
+            >
+              添加备注
+            </button>
+          </div>
+        </section>
         <Section title="账户摘要" trust="A">
           <KV label="user_id" value={<code className="font-mono">{detail?.user_id ?? member.user_id}</code>} />
           <KV label="昵称" value={detail?.display_name ?? '—'} />

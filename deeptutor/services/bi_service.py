@@ -7,7 +7,7 @@ import sqlite3
 import time
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import re
 from typing import Any
 
@@ -29,6 +29,14 @@ from deeptutor.services.wallet.service import get_wallet_service
 
 logger = logging.getLogger(__name__)
 _BI_CONTEXT_ROW_LIMIT = 5000
+
+_EXPORT_DATASET_LABELS = {
+    "member_audit_log": "操作审计导出",
+    "member_list": "会员名单导出",
+    "feedback_ai": "AI 反馈导出",
+    "commerce_ledger": "钱包流水导出",
+}
+_EXPORT_FORMATS = {"csv", "json"}
 
 
 def _json_loads(value: str | None, default: Any) -> Any:
@@ -3113,6 +3121,172 @@ class BIService:
             ],
             "recent": records[: max(1, min(limit, 100))],
         }
+
+    async def triage_feedback(
+        self,
+        *,
+        feedback_id: str,
+        status: str,
+        operator: str,
+        note: str = "",
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        normalized_id = str(feedback_id or "").strip()
+        if not normalized_id:
+            raise ValueError("feedback_id is required")
+        normalized_status = str(status or "").strip().lower()
+        if normalized_status not in {"open", "triaged", "ignored"}:
+            raise ValueError("status must be one of open, triaged, ignored")
+        normalized_operator = str(operator or "").strip() or "admin"
+        normalized_note = str(note or "").strip()[:500]
+
+        if not getattr(self._feedback_store, "is_configured", False):
+            raise RuntimeError("feedback store is not configured")
+        updater = getattr(self._feedback_store, "update_feedback_triage", None)
+        if not callable(updater):
+            raise RuntimeError("feedback store does not support triage updates")
+        update_result = await updater(
+            normalized_id,
+            status=normalized_status,
+            operator=normalized_operator,
+            note=normalized_note,
+        )
+        before = normalize_feedback_record(update_result.get("before") or {})
+        after = normalize_feedback_record(update_result.get("after") or {})
+
+        auditor = getattr(self._member_service, "record_bi_audit", None)
+        if not callable(auditor):
+            raise RuntimeError("member console audit service does not support BI audit writes")
+        target_user = after.get("user_id") or after.get("session_id") or normalized_id
+        audit = auditor(
+            action="feedback_triage",
+            target_user=target_user,
+            operator=normalized_operator,
+            reason=normalized_status,
+            before={
+                "feedback_id": normalized_id,
+                "triage_status": before.get("triage_status"),
+                "triage_operator": before.get("triage_operator"),
+            },
+            after={
+                "feedback_id": normalized_id,
+                "triage_status": after.get("triage_status"),
+                "triage_operator": after.get("triage_operator"),
+                "triage_note": after.get("triage_note"),
+            },
+            idempotency_key=idempotency_key,
+        )
+        return {
+            "feedback": after,
+            "audit_id": str(audit.get("audit_id") or ""),
+            "deduped": bool(audit.get("deduped")),
+            "status": normalized_status,
+        }
+
+    async def record_member_ops_action(
+        self,
+        *,
+        user_id: str,
+        status: str,
+        result: str,
+        operator: str,
+        action_title: str = "",
+        next_follow_up_at: str = "",
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        normalized_user_id = str(user_id or "").strip()
+        if not normalized_user_id:
+            raise ValueError("user_id is required")
+        recorder = getattr(self._member_service, "record_ops_action_result", None)
+        if not callable(recorder):
+            raise RuntimeError("member console service does not support ops actions")
+        return recorder(
+            normalized_user_id,
+            status=status,
+            result=result,
+            action_title=action_title,
+            next_follow_up_at=next_follow_up_at,
+            operator=str(operator or "").strip() or "admin",
+            idempotency_key=idempotency_key,
+        )
+
+    async def request_export_job(
+        self,
+        *,
+        dataset: str,
+        export_format: str,
+        filters: dict[str, Any] | None,
+        operator: str,
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        normalized_dataset = str(dataset or "").strip()
+        if normalized_dataset not in _EXPORT_DATASET_LABELS:
+            allowed = ", ".join(sorted(_EXPORT_DATASET_LABELS))
+            raise ValueError(f"dataset must be one of {allowed}")
+        normalized_format = str(export_format or "csv").strip().lower()
+        if normalized_format not in _EXPORT_FORMATS:
+            raise ValueError("format must be one of csv, json")
+        normalized_operator = str(operator or "").strip() or "admin"
+        sanitized_filters = self._sanitize_export_filters(filters or {})
+
+        auditor = getattr(self._member_service, "record_bi_audit", None)
+        if not callable(auditor):
+            raise RuntimeError("member console audit service does not support BI audit writes")
+
+        audit_after = {
+            "dataset": normalized_dataset,
+            "format": normalized_format,
+            "filters": sanitized_filters,
+            "scrubbed": True,
+            "rate_limit_per_hour": 2,
+            "status": "queued",
+        }
+        audit = auditor(
+            action="bi_export_request",
+            target_user=f"export:{normalized_dataset}",
+            operator=normalized_operator,
+            reason=f"{normalized_dataset}:{normalized_format}",
+            before={},
+            after=audit_after,
+            idempotency_key=idempotency_key,
+        )
+        audit_id = str(audit.get("audit_id") or "")
+        return {
+            "export_job": {
+                "id": f"export_{audit_id}" if audit_id else f"export_{normalized_dataset}",
+                "name": _EXPORT_DATASET_LABELS[normalized_dataset],
+                "dataset": normalized_dataset,
+                "format": normalized_format,
+                "rows": 0,
+                "status": "queued",
+                "scrubbed": True,
+                "rate_limit_per_hour": 2,
+                "requested_at": datetime.now(timezone.utc).isoformat(),
+            },
+            "audit_id": audit_id,
+            "deduped": bool(audit.get("deduped")),
+        }
+
+    @staticmethod
+    def _sanitize_export_filters(filters: dict[str, Any]) -> dict[str, Any]:
+        sanitized: dict[str, Any] = {}
+        for key, value in list(filters.items())[:20]:
+            normalized_key = str(key or "").strip()[:80]
+            if not normalized_key:
+                continue
+            if isinstance(value, str):
+                sanitized[normalized_key] = value.strip()[:200]
+            elif isinstance(value, bool) or isinstance(value, int) or isinstance(value, float):
+                sanitized[normalized_key] = value
+            elif isinstance(value, list):
+                values: list[str | int | float | bool] = []
+                for item in value[:20]:
+                    if isinstance(item, str):
+                        values.append(item.strip()[:120])
+                    elif isinstance(item, bool) or isinstance(item, int) or isinstance(item, float):
+                        values.append(item)
+                sanitized[normalized_key] = values
+        return sanitized
 
     async def get_invite_test_applications(
         self,

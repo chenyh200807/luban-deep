@@ -3041,6 +3041,7 @@ class MemberConsoleService:
         action_title: str = "",
         next_follow_up_at: str = "",
         operator: str = "admin",
+        idempotency_key: str | None = None,
     ) -> dict[str, Any]:
         normalized_status = str(status or "").strip().lower()
         if normalized_status not in {"open", "in_progress", "done", "follow_up"}:
@@ -3050,9 +3051,28 @@ class MemberConsoleService:
             raise ValueError("Ops action result is required")
         normalized_title = str(action_title or "").strip() or "会员运营处理"
         normalized_follow_up = str(next_follow_up_at or "").strip()
+        normalized_key = str(idempotency_key or "").strip()
 
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             member = self._find_member(data, user_id)
+            if normalized_key:
+                existing_audit_id = self._find_audit_id_by_idempotency_key(
+                    data,
+                    "ops_action_result",
+                    normalized_key,
+                    operator=operator,
+                )
+                if existing_audit_id is not None:
+                    return {
+                        "status": normalized_status,
+                        "result": normalized_result,
+                        "action_title": normalized_title,
+                        "next_follow_up_at": normalized_follow_up,
+                        "note_id": "",
+                        "audit_id": existing_audit_id,
+                        "deduped": True,
+                        "note": None,
+                    }
             content_lines = [
                 f"处理事项：{normalized_title}",
                 f"处理状态：{normalized_status}",
@@ -3075,7 +3095,7 @@ class MemberConsoleService:
                 "note_id": note["id"],
             }
             member.setdefault("notes", []).insert(0, note)
-            self._append_audit(
+            entry = self._append_audit(
                 data,
                 action="ops_action_result",
                 target_user=user_id,
@@ -3083,7 +3103,20 @@ class MemberConsoleService:
                 after=action_result,
                 operator=operator,
             )
-            return {**action_result, "note": note}
+            if normalized_key:
+                self._remember_idempotency_key(
+                    data,
+                    "ops_action_result",
+                    normalized_key,
+                    entry["id"],
+                    operator=operator,
+                )
+            return {
+                **action_result,
+                "note": note,
+                "audit_id": entry["id"],
+                "deduped": False,
+            }
 
         return self._mutate(_apply)
 
@@ -3209,6 +3242,58 @@ class MemberConsoleService:
             result["audit_id"] = entry["id"]
             result["messages"] = list(conversation.get("messages") or [])
             return result
+
+        return self._mutate(_apply)
+
+    def record_bi_audit(
+        self,
+        *,
+        action: str,
+        target_user: str,
+        operator: str = "admin",
+        reason: str = "",
+        before: dict[str, Any] | None = None,
+        after: dict[str, Any] | None = None,
+        idempotency_key: str | None = None,
+    ) -> dict[str, Any]:
+        normalized_action = str(action or "").strip()
+        normalized_target = str(target_user or "").strip()
+        if not normalized_action:
+            raise ValueError("action is required")
+        if not normalized_target:
+            raise ValueError("target_user is required")
+        normalized_operator = str(operator or "").strip() or "admin"
+        normalized_key = str(idempotency_key or "").strip()
+
+        def _apply(next_data: dict[str, Any]) -> dict[str, Any]:
+            if normalized_key:
+                existing_audit_id = self._find_audit_id_by_idempotency_key(
+                    next_data,
+                    normalized_action,
+                    normalized_key,
+                    operator=normalized_operator,
+                )
+                if existing_audit_id is not None:
+                    return {"audit_id": existing_audit_id, "deduped": True}
+
+            entry = self._append_audit(
+                next_data,
+                action=normalized_action,
+                target_user=normalized_target,
+                operator=normalized_operator,
+                reason=str(reason or "").strip()[:120],
+                before=before,
+                after=after,
+            )
+            if normalized_key:
+                self._remember_idempotency_key(
+                    next_data,
+                    normalized_action,
+                    normalized_key,
+                    entry["id"],
+                    operator=normalized_operator,
+                )
+            return {"audit_id": entry["id"], "deduped": False}
 
         return self._mutate(_apply)
 

@@ -142,9 +142,15 @@ def _metadata_int(metadata: Mapping[str, Any], key: str) -> int:
         return 0
 
 
+def _metadata_mapping(metadata: Mapping[str, Any], key: str) -> dict[str, Any]:
+    value = metadata.get(key)
+    return dict(value) if isinstance(value, dict) else {}
+
+
 def normalize_feedback_record(row: Mapping[str, Any]) -> dict[str, Any]:
     metadata = row.get("metadata")
     normalized_metadata = dict(metadata) if isinstance(metadata, dict) else {}
+    triage = _metadata_mapping(normalized_metadata, "bi_triage")
     return {
         "id": str(row.get("id") or "").strip(),
         "created_at": str(row.get("created_at") or "").strip(),
@@ -172,6 +178,10 @@ def normalize_feedback_record(row: Mapping[str, Any]) -> dict[str, Any]:
         "surface": _metadata_str(normalized_metadata, "surface"),
         "platform": _metadata_str(normalized_metadata, "platform"),
         "source": _metadata_str(normalized_metadata, "source"),
+        "triage_status": _metadata_str(triage, "status"),
+        "triage_operator": _metadata_str(triage, "operator"),
+        "triage_note": _metadata_str(triage, "note"),
+        "triage_updated_at": _metadata_str(triage, "updated_at"),
         "metadata": normalized_metadata,
     }
 
@@ -249,6 +259,72 @@ class SupabaseFeedbackStore:
         if not isinstance(payload, list):
             return []
         return [dict(item) for item in payload if isinstance(item, dict)]
+
+    async def get_feedback_by_id(self, feedback_id: str) -> dict[str, Any] | None:
+        normalized_id = str(feedback_id or "").strip()
+        if not normalized_id:
+            return None
+        client = await self._get_client()
+        response = await client.get(
+            f"{self._base_url.rstrip('/')}/rest/v1/ai_feedback",
+            headers=_supabase_rest_headers(self._service_key),
+            params={
+                "select": "id,created_at,user_id,conversation_id,message_id,rating,reason_tags,comment,metadata",
+                "id": f"eq.{normalized_id}",
+                "limit": "1",
+            },
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if isinstance(payload, list) and payload and isinstance(payload[0], dict):
+            return dict(payload[0])
+        return None
+
+    async def update_feedback_triage(
+        self,
+        feedback_id: str,
+        *,
+        status: str,
+        operator: str,
+        note: str = "",
+    ) -> dict[str, dict[str, Any]]:
+        normalized_id = str(feedback_id or "").strip()
+        if not normalized_id:
+            raise ValueError("feedback_id is required")
+        before = await self.get_feedback_by_id(normalized_id)
+        if before is None:
+            raise KeyError(normalized_id)
+
+        metadata = before.get("metadata")
+        updated_metadata = dict(metadata) if isinstance(metadata, dict) else {}
+        updated_metadata["bi_triage"] = {
+            "status": str(status or "").strip(),
+            "operator": str(operator or "").strip() or "admin",
+            "note": str(note or "").strip()[:500],
+            "updated_at": datetime.now().astimezone().isoformat(),
+        }
+
+        client = await self._get_client()
+        response = await client.patch(
+            f"{self._base_url.rstrip('/')}/rest/v1/ai_feedback",
+            headers=_supabase_rest_headers(
+                self._service_key,
+                prefer="return=representation",
+            ),
+            params={
+                "id": f"eq.{normalized_id}",
+                "select": "id,created_at,user_id,conversation_id,message_id,rating,reason_tags,comment,metadata",
+            },
+            json={"metadata": updated_metadata},
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if isinstance(payload, list) and payload and isinstance(payload[0], dict):
+            after = dict(payload[0])
+        else:
+            after = dict(before)
+            after["metadata"] = updated_metadata
+        return {"before": dict(before), "after": after}
 
     async def _get_client(self) -> httpx.AsyncClient:
         if self._client is not None:

@@ -7,9 +7,9 @@
 > **Round 4 enforced-invariant 修复（2026-05-23）**：从 Round 3 的"劝告型工具"升级为机械可验证 invariant。
 > - **S1 后端 idempotency 真去重**：`routers/member.py` view-audit 强制读 `X-Idempotency-Key`（缺 / 空 header → 400）；`MemberConsoleService.record_conversation_view` 接 `idempotency_key`，在 `audit_idempotency_keys` JSON 索引中按 `f"{action}:{key}"` 查重；同 key 重复 POST 返回首次 audit_id + `deduped: true`。Round 3 placebo 消除。
 > - **S2 WRITE_ENDPOINTS registry + codegen**：`deeptutor/contracts/bi_v2_write_endpoints.py` 单一权威；`scripts/gen_bi_write_endpoints_ts.py` 生成 `web/lib/bi-v2-write-endpoints.generated.ts`；`useAuditedAction` 的 `endpoint.key` 类型收窄为 `BiV2WriteEndpointKey`（未注册即编译失败）；`ConversationReviewDrawer` 改为 `key + params + query`，不再手工拼 URL；pytest `test_write_endpoints_ts_in_sync` + `test_write_endpoints_have_router_enforcement` + `test_idempotency_endpoint_has_backend_dedup_test` 三重 drift guard。
-> - **S3 raw fetch guard**：`tests/web/test_bi_v2_raw_fetch_guard.py` 守护 `bi/_v2/**` 内除 `useAuditedAction.ts` 外**禁止** `fetch(` / `apiUrl(` / `withAdminAuthorization(`；`window.prompt`/`window.confirm` 在 audited 路径上 fail。Feedback `triage()` 的 `window.prompt + 假 actor` 已删除，按钮硬禁用至 useAuditedAction 接入。
+> - **S3 raw fetch guard**：`tests/web/test_bi_v2_raw_fetch_guard.py` 守护 `bi/_v2/**` 内除 `useAuditedAction.ts` 外**禁止** `fetch(` / `apiUrl(` / `withAdminAuthorization(`；`window.prompt`/`window.confirm` 在 audited 路径上 fail。Feedback triage / member ops action / export request 均通过 `useAuditedAction` 进入注册 endpoint。
 > - **S4 mock-boundary 真守护 (M-B)**：所有 MOCK_* / ANOMALIES / FEEDBACK_ITEMS / AUDIT_ENTRIES / EXPORT_JOBS / ORDERS / LEDGER / PACKAGES / OPS_TILES / MOCK_BUNDLE / MOCK_SESSIONS 用 `process.env.NODE_ENV === 'production' ? [] : [...]` 包裹（Next.js + Terser DCE）；`web/scripts/check_mock_boundary.mjs` 在 `next build` 后 grep `.next/static/chunks/*.js`，含 mock 独有字符串即 fail；`npm run check:mock-boundary` 已加入 `package.json`；pytest 源级守护 + build artifact 双层。
-> - **S5 banner-fetch 共存断言**：`tests/web/test_bi_v2_banner_fetch_coherence.py` 强制 panel banner 不能声称 `已写入 audit log` / `audit 接 member_console` 等真实接入语言，除非同文件存在 `useAuditedAction` / `@/lib/bi-api` / `@/lib/member-api` 真实证据；OpsPanel / CommercePanel / FeedbackPanel / MemberOpsPanel banner 已统一为"flag 已开启 · 数据源待 ... 接入（当前展示为 dev-only mock）"诚实文案。
+> - **S5 banner-fetch 共存断言**：`tests/web/test_bi_v2_banner_fetch_coherence.py` 强制 panel banner 不能声称 `已写入 audit log` / `audit 接 member_console` 等真实接入语言，除非同文件存在 `useAuditedAction` / `@/lib/bi-api` / `@/lib/member-api` 真实证据；OpsPanel / CommercePanel / FeedbackPanel / MemberOpsPanel 的真实接入口径由源码证据和 e2e smoke 共同守护。
 >
 > **从 advisory tool 到 enforced invariant**：Round 3 加了工具但没加"使用工具的强制约束"。Round 4 把每个 invariant 落到一条机械可验证的 check：源码 grep（pytest）+ 类型收窄（tsc）+ 后端 header 校验（fastapi）+ build artifact grep（next + node）+ codegen drift（pytest）。删除 `useAuditedAction` → tsc fail；新写路径不入 registry → pytest fail；mock 进生产 bundle → check:mock-boundary fail；banner 自吹但无 fetch → pytest fail；后端忘读 X-Idempotency-Key → router pytest fail。
 >
@@ -20,7 +20,7 @@
 > - **D 单一权威 metric registry**：backend `bi_metrics.py` 加 `refresh_cadence` + `degraded_note` + `label_aliases` + 5 条 overview-only metric；新建 `scripts/gen_bi_metrics_ts.py` codegen 脚本生成 `web/lib/bi-v2-metric-registry.generated.ts`；删除手写副本；pytest `test_metric_registry_ts_in_sync` 守护漂移。
 > - **E 契约测试**：新建 `web/scripts/bi_v2_contract_smoke.mjs` 用 `page.route` 拦截：(1) view-audit POST 必须带 X-Idempotency-Key + Authorization + reason= query；(2) BI_OVERVIEW_V2_ENABLED=true 时必须发出 `/api/v1/bi/overview` GET。pytest 加 4 条 v2 source-level contract guard。
 > - **G 后端 reason 接收**：`record_conversation_view` 接收 reason 参数 + 5 项白名单 + `other:` 自由文本 ≥ 4 字符；写入 audit_log 的 reason 字段 + audit_payload；router 同时支持 query 和 JSON body。reason 现在真正穿透到 audit_log。
-> - **H 删 UI 欺骗**：BiTopBar placeholder 移除"订单号"文字（filterMembers 不读，是 UI 欺骗）；改为"手机号 / user_id"，留注释等 backend `/api/v1/bi/orders/lookup` 后再加回。
+> - **H 全局搜索收口**：BiTopBar 支持"手机号 / user_id / 订单号"；手机号 / user_id 命中会员运营并打开学员 360，订单 / ledger 类查询路由到商品账务只读模型过滤，不新建订单 authority。
 > - **F (mock guard) 标 P1 backlog**：4 个非 overview panel 在生产构建中应展示 skeleton 而非 mock。Stage 1 仅放 OVERVIEW 不阻塞，留待 Stage 2 前处理。
 
 
@@ -133,9 +133,7 @@ node scripts/bi_v2_rollback_smoke.mjs
 | 教研 / 系统质量反馈未接入 | 反馈中心 P0 仅 3 源 | P1 扩展 FeedbackService 来源 |
 | EXPLAIN ANALYZE 5w 会员压测未跑 | `BiDataTable` 已实装 pageSize=50 + IntersectionObserver 触发 cursor 加载 + 大集合警告（≥ 1000 行），但真实 list_members API 性能未验证 | Batch 2.5 接真实 API 时跑 EXPLAIN ANALYZE + 启用 server-side cursor |
 | BI Admin session 必须存在才能查看对话全文 | dev / 无登录环境，ConversationReviewDrawer 红色 banner + 全文按钮禁用；audit 通过 `POST /api/v1/member/<user_id>/conversations/<session_id>/view-audit` 真实写入 | 真实灰度需运营登录 BI Admin 后操作 |
-| `saveView` 使用 `window.prompt` | 部分浏览器策略可能屏蔽 | P1 替换为自定义命名对话框 |
-| `view-audit` 后端不接 `reason` 字段 | 前端 reason 仅本地 audit log；服务端只记录访问 | P1 backend 加 reason column 后切到 body 传 |
-| 备注 / 跟进队列等本地动作未走后端 fetch | 仅本地 setAuditLog（带真实 actor_id）；未登录时 actor=`unauthenticated` | P1 把写动作切到后端 endpoint + 无 session 时按钮硬禁用 |
+| 低风险写动作已接 audited endpoint，但危险动作仍关闭 | 标记已联系 / 加备注 / 加入跟进队列 / AI feedback triage / export request 已有幂等审计；撤销、补点、修账仍禁用 | P1 补 etag/version、undo_token 和二次确认后再开放危险动作 |
 
 ## 8. 真实交付清单（Batch 0-7）
 

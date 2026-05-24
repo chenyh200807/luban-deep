@@ -83,6 +83,10 @@ function resolveEnabledSection(section: BiV2Section, flags: BiFlagSnapshot): BiV
   return isSectionEnabled(section, flags) ? section : firstEnabledSection(flags);
 }
 
+function looksLikeCommerceQuery(query: string): boolean {
+  return /^(ord|order|ledger|wallet|pay|payment|charge|recharge|txn)[\w:./-]*/i.test(query.trim());
+}
+
 export type BiV2SurfaceProps = {
   flags: BiFlagSnapshot;
 };
@@ -149,6 +153,19 @@ function BiV2AuthenticatedSurface({
     }
   }, [flags]);
 
+  const submitGlobalSearch = useCallback((value: string) => {
+    const query = value.trim();
+    setSubmittedQuery(query);
+    if (!query) return;
+    if (looksLikeCommerceQuery(query) && isSectionEnabled("commerce", flags)) {
+      go("commerce");
+      return;
+    }
+    if (isSectionEnabled("member-ops", flags)) {
+      go("member-ops");
+    }
+  }, [flags, go]);
+
   const current = SECTIONS.find((s) => s.key === section) ?? SECTIONS[0];
 
   let panel: React.ReactNode = null;
@@ -163,7 +180,7 @@ function BiV2AuthenticatedSurface({
       />
     );
   } else if (section === "commerce") {
-    panel = <BiV2CommercePanel flagEnabled={flags.BI_COMMERCE_V2_ENABLED} />;
+    panel = <BiV2CommercePanel flagEnabled={flags.BI_COMMERCE_V2_ENABLED} globalQuery={submittedQuery} />;
   } else if (section === "feedback") {
     panel = <BiV2FeedbackPanel flagEnabled={flags.BI_FEEDBACK_V2_ENABLED} />;
   } else if (section === "ops") {
@@ -189,7 +206,7 @@ function BiV2AuthenticatedSurface({
                 ? `已搜: ${submittedQuery}`
                 : `actor: ${identity.displayName} · admin`
             }
-            onSubmitSearch={(value) => setSubmittedQuery(value)}
+            onSubmitSearch={submitGlobalSearch}
           />
         )}
         sidenav={(api) => (

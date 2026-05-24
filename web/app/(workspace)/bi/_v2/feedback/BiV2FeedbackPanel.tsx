@@ -24,6 +24,7 @@ import {
   type BiInviteTestApplication,
   type BiInviteTestStats,
 } from '@/lib/bi-api'
+import { useAuditedAction } from '../useAuditedAction'
 import {
   FEEDBACK_ITEMS,
   OWNER_LABELS,
@@ -92,6 +93,10 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const [inviteLoading, setInviteLoading] = useState(flagEnabled)
   const [inviteError, setInviteError] = useState('')
   const [selectedInvite, setSelectedInvite] = useState<BiInviteTestApplication | null>(null)
+  const [feedbackStatusOverrides, setFeedbackStatusOverrides] = useState<Record<string, FeedbackStatus>>({})
+  const feedbackTriage = useAuditedAction({ actionType: 'feedback.ai.triage' })
+  const triageWriting = feedbackTriage.state.phase === 'writing'
+  const triageError = feedbackTriage.state.phase === 'denied' ? (feedbackTriage.state.result.error ?? '') : ''
 
   const loadFeedback = useCallback(async () => {
     if (!flagEnabled) {
@@ -104,6 +109,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
       setLoading(true)
       setError('')
       setPayload(await getBiFeedback({ days: 30, limit: 100 }))
+      setFeedbackStatusOverrides({})
     } catch (err) {
       setError(err instanceof Error ? err.message : '反馈中心加载失败')
       setPayload(null)
@@ -167,9 +173,12 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   }
 
   const items = useMemo<FeedbackItem[]>(() => {
-    if (flagEnabled) return (payload?.recent ?? []).map(mapFeedbackRecord)
-    return FEEDBACK_ITEMS
-  }, [flagEnabled, payload])
+    const base = flagEnabled ? (payload?.recent ?? []).map(mapFeedbackRecord) : FEEDBACK_ITEMS
+    return base.map(item => ({
+      ...item,
+      status: feedbackStatusOverrides[item.id] ?? item.status,
+    }))
+  }, [feedbackStatusOverrides, flagEnabled, payload])
 
   const filtered = useMemo(
     () =>
@@ -185,9 +194,9 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const counts = useMemo(() => {
     return {
       total: payload?.summary.total_feedback ?? items.length,
-      open: payload?.summary.thumbs_down ?? items.filter(i => i.status === 'open').length,
-      triaged: payload?.summary.commented ?? items.filter(i => i.status === 'triaged').length,
-      ignored: payload?.summary.thumbs_up ?? items.filter(i => i.status === 'ignored').length,
+      open: items.filter(i => i.status === 'open').length,
+      triaged: items.filter(i => i.status === 'triaged').length,
+      ignored: items.filter(i => i.status === 'ignored').length,
     }
   }, [items, payload])
 
@@ -249,6 +258,56 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]))
   }, [filtered])
 
+  async function handleFeedbackTriage(item: FeedbackItem, status: Exclude<FeedbackStatus, 'open'>) {
+    if (!flagEnabled || triageWriting) return
+    const result = await feedbackTriage.execute({
+      key: 'feedback.ai.triage',
+      params: { feedback_id: item.id },
+      body: {
+        status,
+        note: status === 'triaged' ? 'BI feedback triage' : 'BI feedback ignored',
+      },
+    })
+    if (!result.ok) return
+    const nextStatus = extractFeedbackTriageStatus(result.data) ?? status
+    setFeedbackStatusOverrides(prev => ({ ...prev, [item.id]: nextStatus }))
+  }
+
+  function renderFeedbackActions(item: FeedbackItem) {
+    return (
+      <div className="flex justify-end gap-1">
+        <button
+          type="button"
+          onClick={() => setSelectedFeedback(item)}
+          className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
+          aria-label={`查看反馈 ${item.id} 详情`}
+        >
+          <Eye className="h-3 w-3" aria-hidden />
+        </button>
+        <button
+          type="button"
+          disabled={!flagEnabled || triageWriting || item.status === 'triaged'}
+          title="写入 feedback_triage audit"
+          onClick={() => void handleFeedbackTriage(item, 'triaged')}
+          className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+          aria-label={`分诊反馈 ${item.id}`}
+        >
+          <CheckCircle2 className="h-3 w-3" aria-hidden />
+        </button>
+        <button
+          type="button"
+          disabled={!flagEnabled || triageWriting || item.status === 'ignored'}
+          title="写入 feedback_triage audit"
+          onClick={() => void handleFeedbackTriage(item, 'ignored')}
+          className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+          aria-label={`忽略反馈 ${item.id}`}
+        >
+          <XCircle className="h-3 w-3" aria-hidden />
+        </button>
+      </div>
+    )
+  }
+
   return (
     <section className="space-y-5">
       {!flagEnabled ? (
@@ -262,7 +321,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
             BI_FEEDBACK_V2_ENABLED 已开启 · AI 反馈读取{' '}
             <code className="font-mono">/api/v1/bi/feedback</code>
             ，内测申请读取 <code className="font-mono">/api/v1/bi/invite-test/*</code>
-            {payload ? ` · storage=${payload.storage_status}` : ''}；triage 写入待注册审计 endpoint。
+            {payload ? ` · storage=${payload.storage_status}` : ''}；triage 写入 feedback_triage audit。
           </span>
           <button
             type="button"
@@ -279,6 +338,16 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           </button>
         </div>
       )}
+      {triageError ? (
+        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800" role="alert">
+          反馈处理未写入：{triageError}
+        </div>
+      ) : null}
+      {triageWriting ? (
+        <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800" aria-live="polite">
+          正在写入反馈处理 audit…
+        </div>
+      ) : null}
 
       <FeedbackWorkspaceSwitcher
         current={workspaceView}
@@ -383,36 +452,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           emptyHint={
             flagEnabled ? '当前窗口内没有 ai_feedback 记录。' : '开启 BI_FEEDBACK_V2_ENABLED 后读取真实反馈。'
           }
-          rowAction={i => (
-            <div className="flex justify-end gap-1">
-              <button
-                type="button"
-                onClick={() => setSelectedFeedback(i)}
-                className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
-                aria-label={`查看反馈 ${i.id} 详情`}
-              >
-                <Eye className="h-3 w-3" aria-hidden />
-              </button>
-              <button
-                type="button"
-                disabled
-                title="等接入 useAuditedAction 后启用（Round 4 S3 invariant）"
-                className="cursor-not-allowed rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-400"
-                aria-label={`分诊反馈 ${i.id}（待 useAuditedAction 接入）`}
-              >
-                <CheckCircle2 className="h-3 w-3" aria-hidden />
-              </button>
-              <button
-                type="button"
-                disabled
-                title="等接入 useAuditedAction 后启用（Round 4 S3 invariant）"
-                className="cursor-not-allowed rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-400"
-                aria-label={`忽略反馈 ${i.id}（待 useAuditedAction 接入）`}
-              >
-                <XCircle className="h-3 w-3" aria-hidden />
-              </button>
-            </div>
-          )}
+          rowAction={renderFeedbackActions}
         />
       ) : (
         <div className="space-y-4">
@@ -433,36 +473,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
                 rows={list}
                 rowKey={i => i.id}
                 status="ok"
-                rowAction={i => (
-                  <div className="flex justify-end gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedFeedback(i)}
-                      className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
-                      aria-label={`查看反馈 ${i.id} 详情`}
-                    >
-                      <Eye className="h-3 w-3" aria-hidden />
-                    </button>
-                    <button
-                      type="button"
-                      disabled
-                      title="等接入 useAuditedAction 后启用（Round 4 S3 invariant）"
-                      className="cursor-not-allowed rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-400"
-                      aria-label={`分诊反馈 ${i.id}（待 useAuditedAction 接入）`}
-                    >
-                      <CheckCircle2 className="h-3 w-3" aria-hidden />
-                    </button>
-                    <button
-                      type="button"
-                      disabled
-                      title="等接入 useAuditedAction 后启用（Round 4 S3 invariant）"
-                      className="cursor-not-allowed rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-400"
-                      aria-label={`忽略反馈 ${i.id}（待 useAuditedAction 接入）`}
-                    >
-                      <XCircle className="h-3 w-3" aria-hidden />
-                    </button>
-                  </div>
-                )}
+                rowAction={renderFeedbackActions}
               />
             </article>
           ))}
@@ -515,6 +526,7 @@ function mapFeedbackRecord(record: BiFeedbackRecord, index: number): FeedbackIte
   const rating = Number.isFinite(record.rating) ? Number(record.rating) : 0
   const negative = rating < 0
   const positive = rating > 0
+  const triageStatus = normalizeFeedbackStatus(record.triage_status)
   return {
     id:
       record.feedback_id ||
@@ -541,7 +553,7 @@ function mapFeedbackRecord(record: BiFeedbackRecord, index: number): FeedbackIte
     effective_response_mode: record.effective_response_mode,
     response_mode_degrade_reason: record.response_mode_degrade_reason,
     reason_tags: tags,
-    status: negative || comment ? 'open' : positive ? 'ignored' : 'triaged',
+    status: triageStatus ?? (negative || comment ? 'open' : positive ? 'ignored' : 'triaged'),
     owner: inferOwner(source, tags, comment, negative),
     created_at: record.created_at || '—',
     sla_target_hours: negative ? 24 : comment ? 72 : 0,
@@ -910,7 +922,7 @@ function FeedbackDetailPanel({ item, onClose }: { item: FeedbackItem | null; onC
             value={item.response_mode_degrade_reason || '—'}
           />
           <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
-            当前支持只读查看。分诊、忽略、派单属于写动作，必须先注册 audited endpoint 后才能启用。
+            分诊 / 忽略会通过 feedback.ai.triage 写入 feedback_triage audit；派单与 owner 工作流仍属 P1。
           </p>
         </div>
       ) : null}
@@ -923,6 +935,23 @@ function normalizeSource(value: string | undefined): FeedbackItem['source'] {
   if (lower.includes('invite')) return 'invite_test'
   if (lower.includes('note')) return 'member_note'
   return 'ai_message'
+}
+
+function normalizeFeedbackStatus(value: unknown): FeedbackStatus | null {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (normalized === 'open' || normalized === 'triaged' || normalized === 'ignored') return normalized
+  return null
+}
+
+function asObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
+}
+
+function extractFeedbackTriageStatus(data: unknown): Exclude<FeedbackStatus, 'open'> | null {
+  const root = asObject(data)
+  const feedback = asObject(root.feedback)
+  const status = normalizeFeedbackStatus(feedback.triage_status ?? feedback.triageStatus)
+  return status === 'triaged' || status === 'ignored' ? status : null
 }
 
 function inferOwner(

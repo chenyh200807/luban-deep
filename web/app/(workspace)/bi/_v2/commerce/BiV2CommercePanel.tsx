@@ -33,6 +33,7 @@ type Tab = 'recharges' | 'ledger' | 'packages'
 
 export type BiV2CommercePanelProps = {
   flagEnabled: boolean
+  globalQuery?: string
 }
 
 const KIND_TONE: Record<string, BiStatusTone> = {
@@ -76,7 +77,13 @@ function tableStatus(loading: boolean, error: string, rowCount: number) {
   return rowCount === 0 ? ('empty' as const) : ('ok' as const)
 }
 
-export function BiV2CommercePanel({ flagEnabled }: BiV2CommercePanelProps) {
+function matchesQuery(values: Array<string | number | null | undefined>, query: string) {
+  if (!query) return true
+  const normalized = query.toLowerCase()
+  return values.some(value => String(value ?? '').toLowerCase().includes(normalized))
+}
+
+export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2CommercePanelProps) {
   const [tab, setTab] = useState<Tab>('recharges')
   const [month, setMonth] = useState('')
   const [expandedRechargeId, setExpandedRechargeId] = useState<string | null>(null)
@@ -114,6 +121,7 @@ export function BiV2CommercePanel({ flagEnabled }: BiV2CommercePanelProps) {
   const ledgerRows = useMemo(() => data?.ledger ?? EMPTY_WALLET_ROWS, [data?.ledger])
   const packageRows = useMemo(() => data?.packages ?? EMPTY_PACKAGE_ROWS, [data?.packages])
   const summary = data?.summary
+  const normalizedGlobalQuery = globalQuery.trim().toLowerCase()
 
   const months = useMemo(() => {
     const keys = [
@@ -124,13 +132,65 @@ export function BiV2CommercePanel({ flagEnabled }: BiV2CommercePanelProps) {
   }, [ledgerRows, rechargeRows])
 
   const filteredRecharges = useMemo(
-    () => rechargeRows.filter(row => !month || monthKey(row.createdAt) === month),
-    [month, rechargeRows]
+    () =>
+      rechargeRows.filter(
+        row =>
+          (!month || monthKey(row.createdAt) === month) &&
+          matchesQuery(
+            [
+              row.id,
+              row.userId,
+              row.channel,
+              row.status,
+              row.ledgerEventId,
+              row.idempotencyKey,
+              row.amountCny ?? undefined,
+              row.points,
+            ],
+            normalizedGlobalQuery
+          )
+      ),
+    [month, normalizedGlobalQuery, rechargeRows]
   )
   const filteredLedger = useMemo(
-    () => ledgerRows.filter(row => !month || monthKey(row.effectiveAt) === month),
-    [ledgerRows, month]
+    () =>
+      ledgerRows.filter(
+        row =>
+          (!month || monthKey(row.effectiveAt) === month) &&
+          matchesQuery(
+            [
+              row.id,
+              row.userId,
+              row.kind,
+              row.eventType,
+              row.referenceType,
+              row.referenceId,
+              row.idempotencyKey,
+              row.amount,
+            ],
+            normalizedGlobalQuery
+          )
+      ),
+    [ledgerRows, month, normalizedGlobalQuery]
   )
+  const filteredPackages = useMemo(
+    () =>
+      packageRows.filter(row =>
+        matchesQuery([row.id, row.name, row.tier, row.status, row.authority], normalizedGlobalQuery)
+      ),
+    [normalizedGlobalQuery, packageRows]
+  )
+
+  useEffect(() => {
+    if (!normalizedGlobalQuery) return
+    if (filteredRecharges.length > 0) {
+      setTab('recharges')
+    } else if (filteredLedger.length > 0) {
+      setTab('ledger')
+    } else if (filteredPackages.length > 0) {
+      setTab('packages')
+    }
+  }, [filteredLedger.length, filteredPackages.length, filteredRecharges.length, normalizedGlobalQuery])
 
   const rechargeColumns = useMemo<BiTableColumn<BiCommerceRechargeRecord>[]>(
     () => [
@@ -228,6 +288,13 @@ export function BiV2CommercePanel({ flagEnabled }: BiV2CommercePanelProps) {
         </div>
       ) : null}
 
+      {globalQuery.trim() ? (
+        <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+          全局搜索：<code className="font-mono">{globalQuery.trim()}</code> · 当前按订单 /
+          流水 / 会员 / 套餐字段过滤商品账务读模型。
+        </div>
+      ) : null}
+
       <AnomalyBar anomalies={data?.anomalies ?? []} loading={loading} />
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
@@ -271,7 +338,7 @@ export function BiV2CommercePanel({ flagEnabled }: BiV2CommercePanelProps) {
         <TabBtn
           active={tab === 'packages'}
           onClick={() => setTab('packages')}
-          label={`套餐权益 (${packageRows.length})`}
+          label={`套餐权益 (${filteredPackages.length})`}
         />
       </div>
 
@@ -361,7 +428,7 @@ export function BiV2CommercePanel({ flagEnabled }: BiV2CommercePanelProps) {
       ) : null}
 
       {tab === 'packages' ? (
-        <PackageGrid packages={packageRows} loading={loading} error={error} />
+        <PackageGrid packages={filteredPackages} loading={loading} error={error} />
       ) : null}
     </section>
   )

@@ -2,7 +2,7 @@
 'use client'
 
 import { Filter, RefreshCw, Save, Settings2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import {
   BiDataTable,
   BiMoneyCell,
@@ -31,6 +31,7 @@ import {
   type MemberRow,
   type SavedView,
 } from './data'
+import { useAuditedAction } from '../useAuditedAction'
 
 const STATUS_TONE = {
   active: 'emerald',
@@ -188,6 +189,11 @@ export function BiV2MemberOpsPanel({
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(flagEnabled)
   const [error, setError] = useState('')
+  const [opsActionNotice, setOpsActionNotice] = useState('')
+  const lastAutoOpenedQueryRef = useRef('')
+  const memberOpsAction = useAuditedAction({ actionType: 'member.ops_action.record' })
+  const opsActionWriting = memberOpsAction.state.phase === 'writing'
+  const opsActionError = memberOpsAction.state.phase === 'denied' ? (memberOpsAction.state.result.error ?? '') : ''
 
   const loadMembers = useCallback(async () => {
     if (!flagEnabled) {
@@ -278,7 +284,7 @@ export function BiV2MemberOpsPanel({
   // audited via useAuditedAction at the call site. UI no longer fabricates
   // local audit logs (which were misleading — they suggested writes happened
   // when in fact nothing was sent to the server).
-  async function openMember360(row: MemberRow) {
+  const openMember360 = useCallback(async (row: MemberRow) => {
     setSelectedMember(row)
     setSelectedDetail(null)
     setDetailError('')
@@ -292,10 +298,87 @@ export function BiV2MemberOpsPanel({
     } finally {
       setDetailLoading(false)
     }
-  }
+  }, [flagEnabled])
+
+  useEffect(() => {
+    const query = globalQuery.trim()
+    if (!flagEnabled || !query || loading || rows.length !== 1) return
+    if (lastAutoOpenedQueryRef.current === query) return
+    lastAutoOpenedQueryRef.current = query
+    void openMember360(rows[0])
+  }, [flagEnabled, globalQuery, loading, openMember360, rows])
 
   function openConversation() {
     setDrawer('conversation')
+  }
+
+  async function executeMemberOpsAction(
+    userId: string,
+    payload: {
+      status: 'done' | 'follow_up'
+      result: string
+      action_title: string
+      next_follow_up_at?: string
+    }
+  ): Promise<boolean> {
+    if (!flagEnabled || opsActionWriting) return false
+    setOpsActionNotice('')
+    const result = await memberOpsAction.execute({
+      key: 'member.ops_action.record',
+      params: { user_id: userId },
+      body: {
+        status: payload.status,
+        result: payload.result,
+        action_title: payload.action_title,
+        next_follow_up_at: payload.next_follow_up_at ?? '',
+      },
+    })
+    return result.ok
+  }
+
+  async function markContacted(member: MemberRow) {
+    const ok = await executeMemberOpsAction(member.user_id, {
+      status: 'done',
+      result: 'BI 标记已联系',
+      action_title: '标记已联系',
+    })
+    if (ok) setOpsActionNotice(`已标记 ${member.phone_masked} 为已联系`)
+  }
+
+  async function joinFollowUp(member: MemberRow) {
+    const ok = await executeMemberOpsAction(member.user_id, {
+      status: 'follow_up',
+      result: '加入 BI 跟进队列',
+      action_title: '加入跟进队列',
+    })
+    if (ok) setOpsActionNotice(`已把 ${member.phone_masked} 加入跟进队列`)
+  }
+
+  async function addOpsNote(member: MemberRow, note: string) {
+    const ok = await executeMemberOpsAction(member.user_id, {
+      status: 'done',
+      result: note,
+      action_title: '运营备注',
+    })
+    if (ok) setOpsActionNotice(`已给 ${member.phone_masked} 添加备注`)
+  }
+
+  async function runBulkAction(kind: 'contacted' | 'follow_up') {
+    const selectedIds = [...selectedRows].slice(0, kind === 'contacted' ? 50 : 100)
+    if (selectedIds.length === 0 || opsActionWriting) return
+    let success = 0
+    for (const userId of selectedIds) {
+      const ok = await executeMemberOpsAction(userId, {
+        status: kind === 'contacted' ? 'done' : 'follow_up',
+        result: kind === 'contacted' ? 'BI 批量标记已联系' : 'BI 批量加入跟进队列',
+        action_title: kind === 'contacted' ? '批量标记已联系' : '批量加入跟进队列',
+      })
+      if (ok) success += 1
+    }
+    if (success > 0) {
+      setOpsActionNotice(`${success} 位会员已写入运营动作 audit`)
+      setSelectedRows(new Set())
+    }
   }
 
   const columnDefs = useMemo<BiTableColumn<MemberRow>[]>(
@@ -326,8 +409,8 @@ export function BiV2MemberOpsPanel({
           <span>
             BI_CRM_V2_ENABLED 已开启 · 会员列表读取{' '}
             <code className="font-mono">/api/v1/member/list</code>，学员 360 读取{' '}
-            <code className="font-mono">/api/v1/member/&lt;user_id&gt;/360</code>；写动作仍需审计
-            endpoint 注册后启用。
+            <code className="font-mono">/api/v1/member/&lt;user_id&gt;/360</code>；低风险写动作走
+            member.ops_action.record audit。
           </span>
           <button
             type="button"
@@ -341,6 +424,16 @@ export function BiV2MemberOpsPanel({
           </button>
         </div>
       )}
+      {opsActionError ? (
+        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800" role="alert">
+          会员运营动作未写入：{opsActionError}
+        </div>
+      ) : null}
+      {opsActionNotice ? (
+        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+          {opsActionNotice}
+        </div>
+      ) : null}
 
       <MemberSummaryCards dashboard={dashboard} loading={loading} />
 
@@ -440,6 +533,9 @@ export function BiV2MemberOpsPanel({
 
       <BulkActions
         selected={selectedRows.size}
+        writing={opsActionWriting}
+        onMarkContacted={() => void runBulkAction('contacted')}
+        onJoinFollowUp={() => void runBulkAction('follow_up')}
       />
 
       <Member360Drawer
@@ -450,6 +546,10 @@ export function BiV2MemberOpsPanel({
         error={detailError}
         onClose={() => setDrawer('none')}
         onOpenConversation={openConversation}
+        onMarkContacted={markContacted}
+        onJoinFollowUp={joinFollowUp}
+        onAddNote={addOpsNote}
+        opsActionWriting={opsActionWriting}
       />
       <ConversationReviewDrawer
         open={drawer === 'conversation'}
@@ -702,8 +802,14 @@ function ColumnPicker({
 
 function BulkActions({
   selected,
+  writing,
+  onMarkContacted,
+  onJoinFollowUp,
 }: {
   selected: number
+  writing: boolean
+  onMarkContacted: () => void
+  onJoinFollowUp: () => void
 }) {
   return (
     <div
@@ -718,8 +824,9 @@ function BulkActions({
       <div className="flex gap-2">
         <button
           type="button"
-          disabled
-          title="待批量写入 endpoint 注册 useAuditedAction 后启用"
+          disabled={selected === 0 || writing}
+          title="写入 ops_action_result audit"
+          onClick={onMarkContacted}
           className="rounded border border-slate-200 px-2 py-1 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="批量标记已联系（≤ 50）"
         >
@@ -727,8 +834,9 @@ function BulkActions({
         </button>
         <button
           type="button"
-          disabled
-          title="待批量写入 endpoint 注册 useAuditedAction 后启用"
+          disabled={selected === 0 || writing}
+          title="写入 ops_action_result audit"
+          onClick={onJoinFollowUp}
           className="rounded border border-slate-200 px-2 py-1 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="加入跟进队列（≤ 100）"
         >
