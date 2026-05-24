@@ -4,9 +4,14 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from deeptutor.services.question_followup import (
     looks_like_question_followup,
@@ -16,9 +21,7 @@ from deeptutor.services.semantic_router import resolve_question_semantic_routing
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 
-DEFAULT_FIXTURE = (
-    Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "semantic_router_eval_cases.json"
-)
+DEFAULT_FIXTURE = PROJECT_ROOT / "tests" / "fixtures" / "semantic_router_eval_cases.json"
 
 
 async def _run_case(case: dict[str, Any]) -> dict[str, Any]:

@@ -1,0 +1,125 @@
+version: 1
+description: "DeepTutor eval gate command authority for automation runs."
+
+gates:
+  contract_guard:
+    description: "Contract guard and registry checks."
+    category: quick
+    command: ["python", "scripts/check_contract_guard.py"]
+
+  ws_mobile_turn_runtime:
+    description: "Unified /api/v1/ws turn runtime and mobile router contract."
+    category: quick
+    command:
+      - "pytest"
+      - "tests/api/test_unified_ws_turn_runtime.py"
+      - "tests/api/test_mobile_router.py"
+      - "-q"
+
+  semantic_context_followup:
+    description: "Semantic router, session context, and question follow-up continuity."
+    category: quick
+    command:
+      - "pytest"
+      - "tests/services/test_semantic_router_eval_cases.py"
+      - "tests/services/session/test_context_eval_cases.py"
+      - "tests/services/test_question_followup.py"
+      - "-q"
+
+  construction_grading:
+    description: "Deep question submission grading and construction grading kernels."
+    category: quick
+    command:
+      - "pytest"
+      - "tests/core/test_deep_question_submission_grading.py"
+      - "tests/services/construction_grading"
+      - "-q"
+
+  rag_retrieval_contract:
+    description: "Learning-fact retrieval, retrieval plan, and RAG failure contract."
+    category: quick
+    command:
+      - "pytest"
+      - "tests/services/rag/test_learning_fact_retrieval_pipeline.py"
+      - "tests/services/rag/test_retrieval_plan.py"
+      - "tests/services/rag/test_rag_failure_contract.py"
+      - "-q"
+
+  learning_report_read_models:
+    description: "Learning report and learning brain read model tests."
+    category: quick
+    command:
+      - "pytest"
+      - "tests/services/learner_state/test_learning_report_read_model.py"
+      - "tests/services/learner_state/test_learning_brain_read_model.py"
+      - "-q"
+
+  web_wechat_harness_data:
+    description: "Web harness data contract for mini-program renderer authority."
+    category: quick
+    workdir: "web"
+    command: ["npm", "run", "test:wechat-harness:data"]
+
+  web_wechat_harness_e2e:
+    description: "Full Playwright /wechat-harness e2e, only when dependencies are installed."
+    category: quick
+    workdir: "web"
+    required_paths:
+      - "web/node_modules/.bin/playwright"
+    command: ["npm", "run", "test:wechat-harness:e2e"]
+
+  semantic_router_deep:
+    description: "Standalone semantic-router eval for active object and route continuity."
+    category: deep
+    command: ["python", "scripts/run_semantic_router_eval.py"]
+
+  benchmark_pr_gate_core:
+    description: "Canonical pr_gate_core benchmark suite."
+    category: deep
+    command:
+      - "python"
+      - "scripts/run_benchmark.py"
+      - "--suite"
+      - "pr_gate_core"
+      - "--output-dir"
+      - "{artifact_dir}/benchmark-pr-gate-core"
+
+  learning_fact_retrieval_maintenance:
+    description: "Learning fact retrieval maintenance dry-run."
+    category: deep
+    command:
+      - "python"
+      - "scripts/run_learning_fact_retrieval_maintenance.py"
+      - "--pretty"
+
+  release_gate_report_only:
+    description: "Release gate report-only consumption check, not a deploy permission."
+    category: deep
+    command:
+      - "python"
+      - "scripts/run_release_gate.py"
+      - "--report-only"
+
+  long_dialog_v1_retest:
+    description: "Long-dialog replay requires an explicit historical source artifact."
+    category: deep
+    deferred_reason: "requires --source-json historical artifact; do not fail core eval gate when absent"
+    command:
+      - "python"
+      - "scripts/run_long_dialog_v1_retest.py"
+      - "--output-dir"
+      - "{artifact_dir}/long-dialog"
+      - "--max-cases"
+      - "1"
+      - "--turn-mode"
+      - "focus"
+
+  learning_report_read_model_e2e:
+    description: "Learning-report e2e requires a running local API server."
+    category: deep
+    deferred_reason: "requires local API server and isolated user-data dir"
+    command:
+      - "python"
+      - "scripts/run_learning_report_read_model_e2e.py"
+      - "--user-data-dir"
+      - "{artifact_dir}/learning-report-user-data"
