@@ -240,7 +240,85 @@ def test_learning_report_derives_study_plan_from_next_training_when_home_plan_mi
     assert model["study_plan"]["priority_task"].startswith("先做 3 道")
     assert model["study_plan"]["study_method"]
     assert model["study_plan"]["time_budget"] == "约 8 分钟"
-    assert model["study_plan"]["source"] == "learning_report_next_training"
+    assert model["study_plan"]["source"] == "training_prescription"
+
+
+def test_training_prescription_uses_specific_evidence_topic_not_prompt_text() -> None:
+    prompt_like_topic = "我想练习建筑构造相关的题目 请严格围绕以下当前学习锚点出题"
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=NoStudyPlanMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _learning_event(
+                    "evt_fire_door_1",
+                    days_ago=0,
+                    concept_id=prompt_like_topic,
+                    question_id="fire-door-001",
+                    error_code="M07",
+                    question_stem="关于防火门的构造要求，下列哪项说法是正确的？",
+                    user_answer="A",
+                    correct_answer="D",
+                ),
+                _learning_event(
+                    "evt_fire_door_2",
+                    days_ago=0,
+                    concept_id=prompt_like_topic,
+                    question_id="fire-door-002",
+                    error_code="M07",
+                    question_stem="关于防火门构造和关闭顺序的说法，正确的是？",
+                    user_answer="A",
+                    correct_answer="D",
+                ),
+            ]
+        ),
+        event_limit=50,
+    )
+
+    prescription = model["training_prescription"]
+    assert prescription["status"] == "active"
+    assert prescription["source"] == "training_intent"
+    assert prescription["display_topic"] == "防火门构造要求"
+    assert prescription["error_label"] == "多选错选"
+    assert prescription["question_plan"][0]["label"] == "先辨清防火门构造要求的条件边界"
+    assert prescription["question_plan"][-1]["label"] == "用 1 题验证不再多选错选"
+    assert "最近 2 次" in prescription["why_this"]
+    assert model["study_plan"]["focus_topic"] == "防火门构造要求"
+    assert model["study_plan"]["source"] == "training_prescription"
+
+    rendered = str({"prescription": prescription, "study_plan": model["study_plan"]})
+    for marker in ("我想练习", "请严格围绕", "当前学习锚点", "training_mode", "那出5道题"):
+        assert marker not in rendered
+
+
+def test_training_prescription_degrades_when_specific_topic_is_missing() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=NoStudyPlanMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _learning_event(
+                    "evt_prompt_only",
+                    days_ago=0,
+                    concept_id="那出5道题",
+                    question_id="prompt-only",
+                    error_code="M07",
+                    question_stem="那出5道题",
+                    user_answer="A",
+                    correct_answer="B",
+                )
+            ]
+        ),
+        event_limit=50,
+    )
+
+    prescription = model["training_prescription"]
+    assert prescription["status"] == "degraded"
+    assert prescription["display_topic"] == ""
+    assert prescription["title"] == "先补一条可诊断证据"
+    assert model["study_plan"]["focus_topic"] == "今天先完成一轮诊断练习"
+    rendered = str({"prescription": prescription, "study_plan": model["study_plan"]})
+    assert "那出5道题" not in rendered
 
 
 def test_learning_report_exposes_learner_facing_attempt_review_without_machine_ids() -> None:

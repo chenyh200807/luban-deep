@@ -50,6 +50,7 @@
 | `mastery_dashboard` | `dict \| None` | 掌握度 dashboard | stable |
 | `quality_signals` | `dict` | 质量指标（dedupe 后，Task 0 已实施） | stable |
 | `learning_brain` | `dict \| None` | 学习大脑 projection | stable |
+| `training_prescription` | `dict` | `training_intent` 的学员可见训练处方 projection | active |
 | `source_meta` | `dict` | 各数据源耗时与状态 | stable |
 | `error_labels` | `dict[str, str]` | 错误类型枚举映射 | stable |
 
@@ -72,6 +73,7 @@ v2 新增字段（Task 1-5 实施后逐步引入）：
 | `hero` | `dict` | 学情页 hero projection；`primary_cta.intent` 必须来自 training intent authority | Task 4 | active |
 | `mistake_book` | `dict` | 错题集只读 projection；读 `learner_mistake_book_items`，不得在 read model 写入 | Task 3 | active |
 | `next_training` | `list[dict]` | 下一步训练卡片；intent 由 `training_intent.py` / read model projection 生成 | Task 4 | active |
+| `training_prescription` | `dict` | `training_intent` v2 的学员可见处方：主题、错因、题目顺序、成功标准 | Task 4 / Batch C | active |
 | `home_personalization` | `dict` | 首页个性化 projection；复用 `home_dashboard.today_focus/recommended_prompts` | Task 4.6 | active |
 | `mastery.dimensions` | `list[dict]` | 掌握度维度；包含 score/status/confidence，但不得伪装成稳定真相 | Stage 1 | active |
 | `i18n_keys` | `dict` | v2 UI copy key，当前 locale=`zh-CN` | Stage 1 | active |
@@ -157,6 +159,17 @@ v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single au
   - `truth_sections.stable_truths` 只承载重复出现或已确认的 grading evidence
   - `truth_sections.needs_confirmation` 承载字段缺失、矛盾 evidence、manual correction 冲突
   - UI 不得把 recent observation 文案包装成稳定掌握结论
+
+### 3.6 Training Prescription Projection
+
+- **Owner 文件**：`deeptutor/services/learner_state/learning_report_read_model.py`
+- **唯一处方 authority**：`deeptutor/services/learner_state/training_intent.py`
+- **用途**：把 `training_intent` v2 的处方流水投影成学员可读的训练主题、错因理由、题目顺序和成功标准。
+- **稳定边界**：
+  - `training_prescription.source` 固定为 `training_intent`；不得由前端、home dashboard 或 legacy study_plan 另算处方。
+  - `display_topic` 必须来自可诊断学习证据；prompt-like 文案（例如“我想练习…出题”“那出5道题”“training_mode=…”）不得展示为训练主题。
+  - 证据不足时必须 `status=degraded`，展示起步测评/补证据，不得伪装成专项题。
+  - `study_plan` 只能读取 `training_prescription` 或已有安全 projection；不得反向覆盖 `training_intent`。
 
 ---
 

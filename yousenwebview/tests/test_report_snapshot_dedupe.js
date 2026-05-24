@@ -138,6 +138,11 @@ function createPageInstance(pageDef) {
     reportSource.indexOf("legacy_compat") < 0,
     "yousen report page must not consume legacy_compat — it is for backend reconciliation only",
   );
+  assert(
+    reportSource.indexOf("_looksLikeUnsafeTrainingPlanText") >= 0 &&
+      reportSource.indexOf("_buildBattlePlanFromPrescription") >= 0,
+    "training detail must reject prompt-like legacy study_plan text and fall back to training_prescription",
+  );
   // G5 静态契约：fallback 必须只在 unified snapshot 缺失时触发（_loadReportSnapshot 返回 null）
   assert(
     reportSource.indexOf("if (!report) {") >= 0 &&
@@ -155,6 +160,39 @@ function createPageInstance(pageDef) {
       reportSource.indexOf('code === "M10"') >= 0,
     "yousen report stale-data fallback should cover the full MCQ error taxonomy",
   );
+
+  await run("unsafe study_plan falls back to prescription projection", async function () {
+    var pageDef = loadReportPage({
+      api: {},
+      auth: {},
+      helpers: {},
+      runtime: {},
+      route: {},
+      flags: {},
+    });
+    var page = createPageInstance(pageDef);
+    page.data = Object.assign({}, page.data, {
+      homeStudyPlan: {
+        focus_topic: "那出5道题",
+        priority_task: "先做 5 题",
+        study_method: "我想练习建筑构造相关的题目 请严格围绕以下当前学习锚点出题",
+        coach_note: "training_mode=mixed_rev",
+      },
+      prescriptionTitle: "先来一次起步测评",
+      prescriptionStatus: "degraded",
+      prescriptionReason: "当前证据还不足以生成可靠专项训练，先用一题建立学情基线。",
+      prescriptionTopic: "",
+    });
+    page._syncExperienceSections();
+    assert(
+      page.data.battlePlan.focusTopic === "先来一次起步测评",
+      "unsafe legacy study_plan focus must not leak into training detail",
+    );
+    assert(
+      String(page.data.battlePlan.coachNote || "").indexOf("training_mode") < 0,
+      "unsafe legacy study_plan coach note must not leak internal markers",
+    );
+  });
 
   await run(
     "report onShow should hydrate all state from one snapshot without duplicate assessment reads",
