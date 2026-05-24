@@ -34,6 +34,7 @@ import {
   type FeedbackOwner,
   type FeedbackStatus,
 } from './data'
+import { FEEDBACK_WINDOW_DAYS, feedbackWindowHint } from './feedback-window'
 
 type Filter = {
   status: '' | FeedbackStatus
@@ -79,7 +80,8 @@ export type BiV2FeedbackPanelProps = {
 }
 
 export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
-  const [workspaceView, setWorkspaceView] = useState<FeedbackWorkspaceView>(readFeedbackWorkspaceView)
+  const [workspaceView, setWorkspaceView] =
+    useState<FeedbackWorkspaceView>(readFeedbackWorkspaceView)
   const [filter, setFilter] = useState<Filter>(DEFAULT_FILTER)
   const [groupByOwner, setGroupByOwner] = useState(false)
   const [payload, setPayload] = useState<BiFeedbackPayload | null>(null)
@@ -93,10 +95,13 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const [inviteLoading, setInviteLoading] = useState(flagEnabled)
   const [inviteError, setInviteError] = useState('')
   const [selectedInvite, setSelectedInvite] = useState<BiInviteTestApplication | null>(null)
-  const [feedbackStatusOverrides, setFeedbackStatusOverrides] = useState<Record<string, FeedbackStatus>>({})
+  const [feedbackStatusOverrides, setFeedbackStatusOverrides] = useState<
+    Record<string, FeedbackStatus>
+  >({})
   const feedbackTriage = useAuditedAction({ actionType: 'feedback.ai.triage' })
   const triageWriting = feedbackTriage.state.phase === 'writing'
-  const triageError = feedbackTriage.state.phase === 'denied' ? (feedbackTriage.state.result.error ?? '') : ''
+  const triageError =
+    feedbackTriage.state.phase === 'denied' ? (feedbackTriage.state.result.error ?? '') : ''
 
   const loadFeedback = useCallback(async () => {
     if (!flagEnabled) {
@@ -108,7 +113,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     try {
       setLoading(true)
       setError('')
-      setPayload(await getBiFeedback({ days: 30, limit: 100 }))
+      setPayload(await getBiFeedback({ days: FEEDBACK_WINDOW_DAYS, limit: 100 }))
       setFeedbackStatusOverrides({})
     } catch (err) {
       setError(err instanceof Error ? err.message : '反馈中心加载失败')
@@ -321,7 +326,8 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
             BI_FEEDBACK_V2_ENABLED 已开启 · AI 反馈读取{' '}
             <code className="font-mono">/api/v1/bi/feedback</code>
             ，内测申请读取 <code className="font-mono">/api/v1/bi/invite-test/*</code>
-            {payload ? ` · storage=${payload.storage_status}` : ''}；triage 写入 feedback_triage audit。
+            {payload ? ` · storage=${payload.storage_status}` : ''}；triage 写入 feedback_triage
+            audit。
           </span>
           <button
             type="button"
@@ -333,18 +339,27 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
             className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 disabled:opacity-50"
             aria-label="刷新反馈中心"
           >
-            <RefreshCw className={`h-3 w-3 ${loading || inviteLoading ? 'animate-spin' : ''}`} aria-hidden />
+            <RefreshCw
+              className={`h-3 w-3 ${loading || inviteLoading ? 'animate-spin' : ''}`}
+              aria-hidden
+            />
             刷新
           </button>
         </div>
       )}
       {triageError ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800" role="alert">
+        <div
+          className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800"
+          role="alert"
+        >
           反馈处理未写入：{triageError}
         </div>
       ) : null}
       {triageWriting ? (
-        <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800" aria-live="polite">
+        <div
+          className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800"
+          aria-live="polite"
+        >
           正在写入反馈处理 audit…
         </div>
       ) : null}
@@ -358,141 +373,143 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
 
       {workspaceView === 'feedback' ? (
         <>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <Tile label="全部" value={counts.total} hint="近 7d" />
-        <Tile label="待处理" value={counts.open} tone="amber" hint="P0 优先处理" />
-        <Tile label="已分诊" value={counts.triaged} tone="sky" hint="已转 owner" />
-        <Tile label="已忽略" value={counts.ignored} tone="slate" hint="带 audit 说明" />
-      </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+            <Tile label="全部" value={counts.total} hint={feedbackWindowHint()} />
+            <Tile label="待处理" value={counts.open} tone="amber" hint="P0 优先处理" />
+            <Tile label="已分诊" value={counts.triaged} tone="sky" hint="已转 owner" />
+            <Tile label="已忽略" value={counts.ignored} tone="slate" hint="带 audit 说明" />
+          </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-xs">
-        <label className="inline-flex items-center gap-1">
-          状态
-          <select
-            value={filter.status}
-            onChange={e => setFilter({ ...filter, status: e.target.value as Filter['status'] })}
-            className="rounded border border-slate-200 px-1 py-0.5"
-            aria-label="按状态筛选反馈"
-          >
-            <option value="">全部</option>
-            <option value="open">待处理</option>
-            <option value="triaged">已分诊</option>
-            <option value="ignored">已忽略</option>
-          </select>
-        </label>
-        <label className="inline-flex items-center gap-1">
-          来源
-          <select
-            value={filter.source}
-            onChange={e => setFilter({ ...filter, source: e.target.value as Filter['source'] })}
-            className="rounded border border-slate-200 px-1 py-0.5"
-            aria-label="按来源筛选反馈"
-          >
-            <option value="">全部</option>
-            <option value="ai_message">AI 消息反馈</option>
-            <option value="invite_test">内测申请</option>
-            <option value="member_note">运营备注</option>
-          </select>
-        </label>
-        <label className="inline-flex items-center gap-1">
-          owner
-          <select
-            value={filter.owner}
-            onChange={e => setFilter({ ...filter, owner: e.target.value as Filter['owner'] })}
-            className="rounded border border-slate-200 px-1 py-0.5"
-            aria-label="按 owner 筛选反馈"
-          >
-            <option value="">全部</option>
-            <option value="quality">AI 质量</option>
-            <option value="growth">增长</option>
-            <option value="ops">运营</option>
-            <option value="product">产品</option>
-          </select>
-        </label>
-        <button
-          type="button"
-          onClick={() => setGroupByOwner(v => !v)}
-          aria-pressed={groupByOwner}
-          className={`rounded border px-2 py-0.5 ${
-            groupByOwner
-              ? 'border-slate-900 bg-slate-900 text-white'
-              : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-          }`}
-        >
-          {groupByOwner ? '取消 owner 分组' : '按 owner 分组'}
-        </button>
-        <button
-          type="button"
-          onClick={() => setFilter(DEFAULT_FILTER)}
-          className="ml-auto text-slate-500 hover:text-slate-900"
-          aria-label="清空反馈筛选"
-        >
-          清空筛选
-        </button>
-      </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <label className="inline-flex items-center gap-1">
+              状态
+              <select
+                value={filter.status}
+                onChange={e => setFilter({ ...filter, status: e.target.value as Filter['status'] })}
+                className="rounded border border-slate-200 px-1 py-0.5"
+                aria-label="按状态筛选反馈"
+              >
+                <option value="">全部</option>
+                <option value="open">待处理</option>
+                <option value="triaged">已分诊</option>
+                <option value="ignored">已忽略</option>
+              </select>
+            </label>
+            <label className="inline-flex items-center gap-1">
+              来源
+              <select
+                value={filter.source}
+                onChange={e => setFilter({ ...filter, source: e.target.value as Filter['source'] })}
+                className="rounded border border-slate-200 px-1 py-0.5"
+                aria-label="按来源筛选反馈"
+              >
+                <option value="">全部</option>
+                <option value="ai_message">AI 消息反馈</option>
+                <option value="invite_test">内测申请</option>
+                <option value="member_note">运营备注</option>
+              </select>
+            </label>
+            <label className="inline-flex items-center gap-1">
+              owner
+              <select
+                value={filter.owner}
+                onChange={e => setFilter({ ...filter, owner: e.target.value as Filter['owner'] })}
+                className="rounded border border-slate-200 px-1 py-0.5"
+                aria-label="按 owner 筛选反馈"
+              >
+                <option value="">全部</option>
+                <option value="quality">AI 质量</option>
+                <option value="growth">增长</option>
+                <option value="ops">运营</option>
+                <option value="product">产品</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={() => setGroupByOwner(v => !v)}
+              aria-pressed={groupByOwner}
+              className={`rounded border px-2 py-0.5 ${
+                groupByOwner
+                  ? 'border-slate-900 bg-slate-900 text-white'
+                  : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              {groupByOwner ? '取消 owner 分组' : '按 owner 分组'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter(DEFAULT_FILTER)}
+              className="ml-auto text-slate-500 hover:text-slate-900"
+              aria-label="清空反馈筛选"
+            >
+              清空筛选
+            </button>
+          </div>
 
-      {!groupByOwner ? (
-        <BiDataTable<FeedbackItem>
-          columns={columns}
-          rows={filtered}
-          rowKey={i => i.id}
-          status={
-            loading
-              ? 'loading'
-              : error
-                ? 'error'
-                : filtered.length === 0
-                  ? items.length === 0
-                    ? 'empty'
-                    : 'no-results'
-                  : 'ok'
-          }
-          errorMessage={error}
-          emptyTitle="暂无反馈"
-          emptyHint={
-            flagEnabled ? '当前窗口内没有 ai_feedback 记录。' : '开启 BI_FEEDBACK_V2_ENABLED 后读取真实反馈。'
-          }
-          rowAction={renderFeedbackActions}
-        />
-      ) : (
-        <div className="space-y-4">
-          {grouped.length === 0 ? (
-            <div className="rounded border border-slate-200 bg-white p-6 text-center text-xs text-slate-500">
-              {loading ? '加载反馈中…' : error || '当前筛选下无反馈'}
+          {!groupByOwner ? (
+            <BiDataTable<FeedbackItem>
+              columns={columns}
+              rows={filtered}
+              rowKey={i => i.id}
+              status={
+                loading
+                  ? 'loading'
+                  : error
+                    ? 'error'
+                    : filtered.length === 0
+                      ? items.length === 0
+                        ? 'empty'
+                        : 'no-results'
+                      : 'ok'
+              }
+              errorMessage={error}
+              emptyTitle="暂无反馈"
+              emptyHint={
+                flagEnabled
+                  ? '当前窗口内没有 ai_feedback 记录。'
+                  : '开启 BI_FEEDBACK_V2_ENABLED 后读取真实反馈。'
+              }
+              rowAction={renderFeedbackActions}
+            />
+          ) : (
+            <div className="space-y-4">
+              {grouped.length === 0 ? (
+                <div className="rounded border border-slate-200 bg-white p-6 text-center text-xs text-slate-500">
+                  {loading ? '加载反馈中…' : error || '当前筛选下无反馈'}
+                </div>
+              ) : null}
+              {grouped.map(([owner, list]) => (
+                <article key={owner} className="rounded-md border border-slate-200 bg-white">
+                  <header className="flex items-center justify-between border-b border-slate-200 px-3 py-2 text-xs">
+                    <h3 className="font-semibold text-slate-900">
+                      {OWNER_LABELS[owner]} · {list.length}
+                    </h3>
+                  </header>
+                  <BiDataTable<FeedbackItem>
+                    columns={columns}
+                    rows={list}
+                    rowKey={i => i.id}
+                    status="ok"
+                    rowAction={renderFeedbackActions}
+                  />
+                </article>
+              ))}
             </div>
-          ) : null}
-          {grouped.map(([owner, list]) => (
-            <article key={owner} className="rounded-md border border-slate-200 bg-white">
-              <header className="flex items-center justify-between border-b border-slate-200 px-3 py-2 text-xs">
-                <h3 className="font-semibold text-slate-900">
-                  {OWNER_LABELS[owner]} · {list.length}
-                </h3>
-              </header>
-              <BiDataTable<FeedbackItem>
-                columns={columns}
-                rows={list}
-                rowKey={i => i.id}
-                status="ok"
-                rowAction={renderFeedbackActions}
-              />
-            </article>
-          ))}
-        </div>
-      )}
+          )}
 
-      <aside className="rounded border border-slate-200 bg-white p-4 text-xs text-slate-600">
-        <div className="flex items-center gap-2 font-medium text-slate-800">
-          <MessageSquareWarning className="h-4 w-4" aria-hidden /> 对话回顾入口
-        </div>
-        <p className="mt-1">
-          对话回顾归入「会员运营 → 学员 360 → 查看对话回顾」。全文查看必须选择原因（合规审查 /
-          投诉处理 / 模型质量 / 其他）并写入 audit。
-        </p>
-        <p className="mt-1 text-[11px] text-slate-500">
-          authority: session store · view-audit endpoint:
-          /api/v1/member/&lt;user_id&gt;/conversations/&lt;session_id&gt;/view-audit
-        </p>
-      </aside>
+          <aside className="rounded border border-slate-200 bg-white p-4 text-xs text-slate-600">
+            <div className="flex items-center gap-2 font-medium text-slate-800">
+              <MessageSquareWarning className="h-4 w-4" aria-hidden /> 对话回顾入口
+            </div>
+            <p className="mt-1">
+              对话回顾归入「会员运营 → 学员 360 → 查看对话回顾」。全文查看必须选择原因（合规审查 /
+              投诉处理 / 模型质量 / 其他）并写入 audit。
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              authority: session store · view-audit endpoint:
+              /api/v1/member/&lt;user_id&gt;/conversations/&lt;session_id&gt;/view-audit
+            </p>
+          </aside>
         </>
       ) : (
         <InviteTestPanel
@@ -507,14 +524,8 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           onOpenApplication={setSelectedInvite}
         />
       )}
-      <FeedbackDetailPanel
-        item={selectedFeedback}
-        onClose={() => setSelectedFeedback(null)}
-      />
-      <InviteApplicationDetailPanel
-        item={selectedInvite}
-        onClose={() => setSelectedInvite(null)}
-      />
+      <FeedbackDetailPanel item={selectedFeedback} onClose={() => setSelectedFeedback(null)} />
+      <InviteApplicationDetailPanel item={selectedInvite} onClose={() => setSelectedInvite(null)} />
     </section>
   )
 }
@@ -538,10 +549,7 @@ function mapFeedbackRecord(record: BiFeedbackRecord, index: number): FeedbackIte
     reason: tags.length > 0 ? tags.join(' / ') : renderRating(rating),
     detail:
       comment ||
-      [
-        record.effective_response_mode || record.answer_mode,
-        record.response_mode_degrade_reason,
-      ]
+      [record.effective_response_mode || record.answer_mode, record.response_mode_degrade_reason]
         .filter(Boolean)
         .join(' · ') ||
       '无文字备注',
@@ -591,7 +599,11 @@ function FeedbackWorkspaceSwitcher({
     },
   ]
   return (
-    <div className="grid grid-cols-1 gap-2 md:grid-cols-2" role="tablist" aria-label="反馈中心子模块">
+    <div
+      className="grid grid-cols-1 gap-2 md:grid-cols-2"
+      role="tablist"
+      aria-label="反馈中心子模块"
+    >
       {items.map(item => {
         const active = item.key === current
         return (
@@ -617,7 +629,9 @@ function FeedbackWorkspaceSwitcher({
                 {formatCount(item.count)}
               </span>
             </span>
-            <span className={`mt-0.5 block text-[11px] ${active ? 'text-slate-200' : 'text-slate-500'}`}>
+            <span
+              className={`mt-0.5 block text-[11px] ${active ? 'text-slate-200' : 'text-slate-500'}`}
+            >
               {item.hint}
             </span>
           </button>
@@ -669,8 +683,14 @@ function InviteTestPanel({
         label: '联系方式',
         render: item => (
           <div className="space-y-0.5 text-[11px] text-slate-600">
-            <ContactLine icon={<Phone className="h-3 w-3" aria-hidden />} value={item.phone || '—'} />
-            <ContactLine icon={<Mail className="h-3 w-3" aria-hidden />} value={item.email || '—'} />
+            <ContactLine
+              icon={<Phone className="h-3 w-3" aria-hidden />}
+              value={item.phone || '—'}
+            />
+            <ContactLine
+              icon={<Mail className="h-3 w-3" aria-hidden />}
+              value={item.email || '—'}
+            />
           </div>
         ),
       },
@@ -693,7 +713,10 @@ function InviteTestPanel({
           <div className="min-w-0">
             <div className="truncate text-slate-800">{item.pain_point || '未填写痛点'}</div>
             <div className="mt-0.5 truncate text-[11px] text-slate-500">
-              {item.study_difficulties || item.latest_wrong_question || item.current_method || '未填写补充材料'}
+              {item.study_difficulties ||
+                item.latest_wrong_question ||
+                item.current_method ||
+                '未填写补充材料'}
             </div>
           </div>
         ),
@@ -701,7 +724,12 @@ function InviteTestPanel({
       {
         key: 'status',
         label: '状态',
-        render: item => <BiStatusPill tone={item.status === 'accepted' ? 'emerald' : 'slate'} label={item.status || 'submitted'} />,
+        render: item => (
+          <BiStatusPill
+            tone={item.status === 'accepted' ? 'emerald' : 'slate'}
+            label={item.status || 'submitted'}
+          />
+        ),
       },
       {
         key: 'created_at',
@@ -715,7 +743,11 @@ function InviteTestPanel({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <Tile label="申请总数" value={summary?.total_applications ?? total} hint={`近 ${INVITE_TEST_WINDOW_DAYS}d`} />
+        <Tile
+          label="申请总数"
+          value={summary?.total_applications ?? total}
+          hint={`近 ${INVITE_TEST_WINDOW_DAYS}d`}
+        />
         <Tile label="可联系人数" value={summary?.unique_contacts ?? 0} hint="去重联系方式" />
         <Tile
           label="愿意回访"
@@ -736,7 +768,8 @@ function InviteTestPanel({
           <div>
             <h3 className="text-sm font-semibold text-slate-900">内测申请池</h3>
             <p className="mt-0.5 text-xs text-slate-500">
-              authority: <code className="font-mono">public.invite_test_applications</code> · 用于增长筛选、回访和首批体验学员管理。
+              authority: <code className="font-mono">public.invite_test_applications</code> ·
+              用于增长筛选、回访和首批体验学员管理。
             </p>
           </div>
           <button
@@ -753,7 +786,10 @@ function InviteTestPanel({
 
         <div className="mt-3 grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,1fr)_160px_160px_auto]">
           <label className="relative">
-            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" aria-hidden />
+            <Search
+              className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
+              aria-hidden
+            />
             <input
               value={filters.q}
               onChange={event => onFilterChange('q', event.target.value)}
@@ -785,7 +821,11 @@ function InviteTestPanel({
             共 {formatCount(total)} 条
           </div>
         </div>
-        {error ? <p className="mt-3 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</p> : null}
+        {error ? (
+          <p className="mt-3 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+            {error}
+          </p>
+        ) : null}
       </section>
 
       <BiDataTable<BiInviteTestApplication>
@@ -807,7 +847,11 @@ function InviteTestPanel({
           </button>
         )}
         pageSize={50}
-        cursorFooter={<span>服务端返回前 {applications.length} / {total}</span>}
+        cursorFooter={
+          <span>
+            服务端返回前 {applications.length} / {total}
+          </span>
+        }
       />
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
@@ -842,7 +886,9 @@ function InviteApplicationDetailPanel({
       open={Boolean(item)}
       onClose={onClose}
       title={item ? `内测申请 · ${item.name || item.phone || item.id}` : '内测申请'}
-      subtitle={item ? `${item.status || 'submitted'} · ${formatBiDate(item.created_at)}` : undefined}
+      subtitle={
+        item ? `${item.status || 'submitted'} · ${formatBiDate(item.created_at)}` : undefined
+      }
       width="lg"
     >
       {item ? (
@@ -850,12 +896,22 @@ function InviteApplicationDetailPanel({
           <section className="rounded-md border border-slate-200 bg-slate-50 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <BiStatusPill tone="amber" label="内测申请" />
-              <BiStatusPill tone={item.accept_interview ? 'emerald' : 'slate'} label={item.accept_interview ? '愿意回访' : '未勾选回访'} />
-              <span className="text-xs text-slate-500">提交 {formatCount(item.submit_count)} 次</span>
+              <BiStatusPill
+                tone={item.accept_interview ? 'emerald' : 'slate'}
+                label={item.accept_interview ? '愿意回访' : '未勾选回访'}
+              />
+              <span className="text-xs text-slate-500">
+                提交 {formatCount(item.submit_count)} 次
+              </span>
             </div>
-            <p className="mt-3 text-base font-semibold text-slate-900">{item.pain_point || '未填写痛点'}</p>
+            <p className="mt-3 text-base font-semibold text-slate-900">
+              {item.pain_point || '未填写痛点'}
+            </p>
             <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-              {item.study_difficulties || item.latest_wrong_question || item.current_method || '未填写补充材料'}
+              {item.study_difficulties ||
+                item.latest_wrong_question ||
+                item.current_method ||
+                '未填写补充材料'}
             </p>
           </section>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -884,7 +940,13 @@ function InviteApplicationDetailPanel({
   )
 }
 
-function FeedbackDetailPanel({ item, onClose }: { item: FeedbackItem | null; onClose: () => void }) {
+function FeedbackDetailPanel({
+  item,
+  onClose,
+}: {
+  item: FeedbackItem | null
+  onClose: () => void
+}) {
   return (
     <BiSidePanel
       open={Boolean(item)}
@@ -910,19 +972,20 @@ function FeedbackDetailPanel({ item, onClose }: { item: FeedbackItem | null; onC
             <KV label="关联会员" value={item.member} />
             <KV label="评分" value={renderRating(item.rating)} />
             <KV label="创建时间" value={item.created_at} />
-            <KV label="SLA" value={item.sla_target_hours > 0 ? `${item.sla_target_hours}h` : '无'} />
+            <KV
+              label="SLA"
+              value={item.sla_target_hours > 0 ? `${item.sla_target_hours}h` : '无'}
+            />
             <KV label="session_id" value={item.session_id || '—'} />
             <KV label="message_id" value={item.message_id || '—'} />
             <KV label="answer_mode" value={item.answer_mode || '—'} />
             <KV label="effective_mode" value={item.effective_response_mode || '—'} />
           </div>
           <KV label="reason_tags" value={(item.reason_tags ?? []).join(' / ') || '—'} />
-          <KV
-            label="degrade_reason"
-            value={item.response_mode_degrade_reason || '—'}
-          />
+          <KV label="degrade_reason" value={item.response_mode_degrade_reason || '—'} />
           <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
-            分诊 / 忽略会通过 feedback.ai.triage 写入 feedback_triage audit；派单与 owner 工作流仍属 P1。
+            分诊 / 忽略会通过 feedback.ai.triage 写入 feedback_triage audit；派单与 owner 工作流仍属
+            P1。
           </p>
         </div>
       ) : null}
@@ -938,13 +1001,18 @@ function normalizeSource(value: string | undefined): FeedbackItem['source'] {
 }
 
 function normalizeFeedbackStatus(value: unknown): FeedbackStatus | null {
-  const normalized = String(value || '').trim().toLowerCase()
-  if (normalized === 'open' || normalized === 'triaged' || normalized === 'ignored') return normalized
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+  if (normalized === 'open' || normalized === 'triaged' || normalized === 'ignored')
+    return normalized
   return null
 }
 
 function asObject(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {}
 }
 
 function extractFeedbackTriageStatus(data: unknown): Exclude<FeedbackStatus, 'open'> | null {
@@ -1008,9 +1076,14 @@ function BreakdownCard({
       <div className="mt-3 space-y-2">
         {items.length > 0 ? (
           items.map(item => (
-            <div key={`${title}-${item.label}`} className="flex items-start justify-between gap-3 rounded border border-slate-100 bg-slate-50 px-3 py-2 text-xs">
+            <div
+              key={`${title}-${item.label}`}
+              className="flex items-start justify-between gap-3 rounded border border-slate-100 bg-slate-50 px-3 py-2 text-xs"
+            >
               <span className="min-w-0 text-slate-700">{item.label || 'unknown'}</span>
-              <span className="font-semibold tabular-nums text-slate-900">{formatCount(item.count)}</span>
+              <span className="font-semibold tabular-nums text-slate-900">
+                {formatCount(item.count)}
+              </span>
             </div>
           ))
         ) : (
@@ -1051,7 +1124,10 @@ function formatBiDate(value: string | undefined): string {
 }
 
 function joinNonEmpty(values: Array<string | undefined>): string {
-  return values.map(v => (v ?? '').trim()).filter(Boolean).join(' / ')
+  return values
+    .map(v => (v ?? '').trim())
+    .filter(Boolean)
+    .join(' / ')
 }
 
 function Tile({
