@@ -588,6 +588,23 @@ def test_bi_router_public_flag_does_not_expose_invite_test_stats(
     assert response.json()["detail"] == "Admin access required"
 
 
+def test_bi_router_public_flag_does_not_expose_feedback(
+    bi_service: BIService,
+    monkeypatch,
+) -> None:
+    # /feedback recent records carry user_id / session_id / message_id /
+    # trace_id / triage_operator / free-text comment — same identifier class
+    # the existing commerce + invite-test admin gates protect. The public read
+    # flag is for aggregate business metrics, not for member-level PII.
+    monkeypatch.setenv("DEEPTUTOR_BI_PUBLIC_ENABLED", "1")
+
+    with TestClient(_build_app(bi_service)) as client:
+        response = client.get("/api/v1/bi/feedback?days=30&limit=10")
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Admin access required"
+
+
 def test_bi_router_honors_explicit_public_flag_in_production(
     bi_service: BIService,
     monkeypatch,

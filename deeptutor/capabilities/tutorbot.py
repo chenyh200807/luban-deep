@@ -241,23 +241,22 @@ class TutorBotCapability(BaseCapability):
                 # TutorBot free text is not grading authority. Only render
                 # submit-able MCQ presentation when the answer key came from an
                 # exact authoritative question source.
-                display_result_summary = state_result_summary
-            # Fix 2026-05-24: when the response is free-text MCQ-shaped but no
-            # exact_question authority exists, still parse the text into a
-            # presentation summary for *rendering only*. Per
-            # contracts/capability.md §硬约束 26 this summary MUST NOT feed
-            # question_followup_context / active_object (those stay
-            # authority-gated below); it only powers presentation blocks and
-            # lets _build_visible_response honor reveal_explanations when the
-            # answer/explanation lives inside the LLM-emitted text.
+            # Fix 2026-05-24 (post-merge with hermes edu-skills booster):
+            # when the response is free-text MCQ-shaped but no exact_question
+            # authority exists, parse the text into a presentation summary for
+            # *rendering only*. Per contracts/capability.md §硬约束 26 this
+            # summary MUST NOT feed question_followup_context / active_object
+            # (those stay authority-gated below); it only powers presentation
+            # blocks and lets _build_visible_response honor reveal_explanations
+            # when the answer/explanation lives inside the LLM-emitted text.
             #
             # Post-review HIGH guard (code-review 2026-05-24): the free-text
-            # parser must NOT run on authority responses. Authority text is
-            # canonical and should follow the pre-existing _strip_reference_sections
-            # path inside _build_visible_response. Without this gate,
-            # _render_question_only_response would rebuild authority output
-            # from a re-parsed summary and silently drop authority-emitted
-            # prefixes / framing. See
+            # parser MUST NOT run on authority responses. Authority text is
+            # canonical and should follow the pre-existing
+            # _strip_reference_sections path inside _build_visible_response.
+            # Without this gate, _render_question_only_response would rebuild
+            # authority output from a re-parsed summary and silently drop
+            # authority-emitted framing. See
             # test_tutorbot_authority_response_not_rebuilt_by_freetext_parser.
             free_text_render_summary: dict[str, Any] | None = None
             if display_result_summary is None and not turn_summary["authority_applied"]:
@@ -305,6 +304,19 @@ class TutorBotCapability(BaseCapability):
                 "reveal_answers": reveal_answers,
                 "reveal_explanations": reveal_explanations,
             }
+            # Propagate hermes question-lifecycle telemetry fields out of
+            # session_metadata (set by tutorbot/agent/loop.py when the
+            # question lifecycle builder ran). Diagnostic only; per
+            # contracts/capability.md §硬约束 27 these must not feed
+            # downstream routing or be student-visible.
+            for metadata_key in (
+                "question_lifecycle_scene",
+                "skill_stack",
+                "loader_source",
+                "skill_source_status",
+            ):
+                if metadata_key in session_metadata:
+                    result_payload[metadata_key] = session_metadata[metadata_key]
             # Presentation gating — three orthogonal contracts (regression
             # matrix in tests/core/test_capabilities_runtime.py + tests/
             # capabilities/test_tutorbot_authority.py):

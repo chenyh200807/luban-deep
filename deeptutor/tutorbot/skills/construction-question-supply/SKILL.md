@@ -1,95 +1,137 @@
 ---
 name: construction-question-supply
-description: "建筑实务题目供给 Skill。用于一建/二建建筑实务出题、继续练、摸底测试。只发布题面，不公开标准答案或解析，除非用户已作答或显式 reveal。"
-metadata: {"nanobot":{"emoji":"📝"}}
+description: "建筑实务练题供给 Skill。用于一建/二建建筑实务出题、来一道、下一题、专项训练、薄弱点训练、变式题生成。默认只展示题目，不主动公布答案或解析。"
+metadata: {"nanobot":{"emoji":"🧩"}}
+upstream_inspiration:
+  source: zhongweiv/hermes-edu-skills@v0.18.6
+  skill: adult-vocational-certificate
+  license: MIT
+  derivation: pattern-only
 always: false
 ---
 
 # Construction Question Supply
 
-这是建筑实务**题目供给** Skill，不是讲解 Skill、不是阅卷 Skill、不是推荐 Skill。
+这是建筑实务练题供给 Skill，不是阅卷 Skill，也不是错题画像 Skill。
+
+核心定位：
+
+- 以 `deep_question` 为题目生成 authority。
+- 以当前训练意图、考点、错因信号和题库/RAG 作为输入约束。
+- 默认隐藏答案和解析，直到用户提交答案或明确要求公布。
+- 生成题只进入本轮练习，不自动写入正式题库或 learner state。
 
 ## 何时使用
 
-学员触发题目生成意图时使用：
+用户表达练题、出题、下一题或专项训练意图时使用：
 
-- "再出 3 题" / "继续练" / "下一题"
-- "先做一次摸底测试" / "出几道选择题练手"
-- 首页 / 学情页点击"开始练习"类训练入口
-- 题型 hint：单选 / 多选 / 判断 / 案例题 / 综合训练
+- "来一道建筑实务选择题"
+- "按防水工程考我"
+- "根据我刚才错的点再出一题"
+- "下一题"
+- "给我 3 道案例小题"
+- "围绕危大工程专项方案出个变式题"
 
-仅当 ChatOrchestrator 已将本轮 scene 判定为 `practice_generation` 时才加载本 Skill。任何"分析这道真题"、"为什么 B 不对"等场景不在本 Skill 职责范围。
+如果用户已经提交答案并要求判分，转给 `construction-mcq-grading` 或 `construction-case-grading`。
 
-## 单一 Authority
+## Authority
 
 | 业务事实 | Authority | 本 Skill 的职责 |
 | --- | --- | --- |
-| 公开题面 | `deep_question` 生成的 `QuestionArtifact.stem` / `options` / `case_prompt` | 仅输出可作答的题面 |
-| 标准答案 | `QuestionArtifact.correct_answer` / `grading_key` | **服务端持有**，公开输出不得包含 |
-| 评分规则 | `QuestionArtifact.rubric` / `grading_key` | 服务端持有，公开输出不得包含 |
-| 题目知识依据 | `QuestionArtifact.knowledge_context` / `evidence_refs` | 服务端持有；不写入公开题面 |
-| 题量 / 题型 / 难度 | 本轮 capability request config | 由 `deep_question` 解析，本 Skill 不再决定 |
+| 出题能力 | `deep_question` capability | 组织调用参数、题型、难度、主题和输出约束 |
+| 训练意图 | `training_intent` / 当前 turn context | 选择本轮题目目标，不自行改写长期计划 |
+| 知识依据 | `questions_bank` / `rag` / 题库 taxonomy | 约束题目来源和考点，不编造规范细节 |
+| 答案显隐 | `answer_reveal_policy` | 默认隐藏答案和解析 |
+| 正式题库 | 题库导入与审核流程 | 本 Skill 只生成练习题候选，不写正式题库 |
+| 学习证据 | `LearnerStateService` | 不写 learner state，只输出可被后续阅卷消费的题目对象 |
 
-## 公开输出规则
+## Forbidden Authority
 
-1. **题面公开范围**：
-   - 单选 / 多选 / 判断题：题干 + 完整选项（不带正确性标注）
-   - 案例题：背景资料 + 设问；不公开评分采分点和参考答案
-2. **答案与解析默认隐藏**：
-   - `reveal_answers=False`（默认）：公开输出中**禁止**出现"答案：X"、"正确选项是"、"解析"、"采分点"、"得分要点"、option marker（如"B ✓"）等任何答案泄露形式
-   - `reveal_answers=True`（用户作答后或显式请求）：允许在批改 / 复盘阶段展示；但**仅限**`mcq_grading` / `case_grading` / `question_review` scene，不属于本 Skill 职责
-3. **答案与解析独立分离**：`reveal_answers` 与 `reveal_explanations` 是两个独立 flag；解析揭示不暗示答案揭示，反之亦然
-4. **服务端 QuestionArtifact 保留权威字段**：`correct_answer` / `grading_key` / `rubric` / `knowledge_context` / `evidence_refs` 必须在服务端持久化 / 透传给后续 grading scene；本 Skill 不允许 wrap 一层覆盖或丢弃
+- 不做用户答案判分、估分或错因诊断。
+- 不直接写学习证据 ledger、错题本、学习报告或学习计划。
+- 不决定 TutorBot 路由；只在已经被选中为练题供给场景后工作。
+- 不把生成题自动升级为正式题库题目。
+- 不在用户答题前主动展示标准答案、解析、采分点或得分口径。
 
-## 生成不是批改
+## 出题流程
 
-题目供给阶段：
+1. **识别训练目标**
+   - 优先读取本轮用户指定的考点、题型、难度和数量。
+   - 若用户说"根据刚才错的点"，使用上一轮 grading result 的 `next_task_signal`。
+   - 若没有明确目标，默认生成 1 道建筑实务高频选择题。
 
-- 不写 `learning_evidence`
-- 不写 `learner_memory_events`
-- 不更新 `training_intent` / `study_plan`
-- 不调用 `construction_grading`
-- 不调用 `LearnerStateService.write_*`
+2. **绑定来源约束**
+   - 有题库同考点题时，优先出同考点/同错因变式题。
+   - 涉及精确规范、年份政策、数值门槛时，必须依赖 RAG 或题库来源。
+   - 来源不足时降低到概念辨析题，不编造条文号。
 
-学员作答后由 `mcq_grading` / `case_grading` scene 接管，本 Skill 完全交棒。
+3. **调用 `deep_question`**
+   - 明确 topic、question_type、difficulty、num_questions。
+   - 建筑实务默认 `zh`。
+   - 多题生成时每题必须有稳定题号和独立选项。
 
-## 摸底测试 / Starter Assessment 路由
+4. **应用显隐策略**
+   - 默认输出题干和选项。
+   - 内部可保留 answer key 供后续阅卷绑定。
+   - 用户明确"带答案/带解析"时才展示答案或解析。
 
-学员说"先做一次摸底测试"、"自测"、"小测"：
-
-- 必须路由到既有 assessment 入口或 `deep_question` 的 supply 路径
-- **禁止**降级为普通 TutorBot 自由文本聊天
-- `home_personalization.learning_prompt_intent` 在 `_prepare_practice_request_context` 边界提升为 `learning_training_intent` 并交给 `deep_question`（参见 contracts/capability.md §硬约束 26）
+5. **输出练题对象**
+   - 输出应包含可追踪的临时 question id、考点、题型、来源说明、answer hidden 标记。
+   - 不从 Markdown 反解析答案；服务实现应保留结构化对象。
 
 ## 用户可见输出
 
-按这个顺序输出（精简）：
+默认只输出：
 
-1. **题号 + 题型标签**：`q1 · 单选` / `q1 · 案例题`
-2. **题干 / 背景资料**：原文（不预改写）
-3. **选项 / 设问**：A/B/C/D 等纯选项文本；案例题列出 1/2/3 设问
-4. **作答提示**：单行 "请直接回复 A/B/C/D"、"请按顺序作答 q1 q2 q3"
+1. **题目**
+2. **选项**（如为选择题）
+3. **作答提示**：一句话说明如何回复，例如"直接回复 A/B/C/D"或"按采分点分条作答"。
 
-不要追加"答案"、"提示"、"解析"、"我可以告诉你正确答案是..."等任何形式。
+不要默认输出：
+
+- 标准答案
+- 解析
+- 采分点
+- 评分规则
+- 用户薄弱画像
+
+## 内部结构化结果
+
+```json
+{
+  "question_supply_mode": "generated | variant | retrieved",
+  "question_type": "single_choice | multi_choice | case_short_answer",
+  "topic": "危大工程专项施工方案",
+  "difficulty": "medium",
+  "answer_visibility": "hidden",
+  "source_constraints": ["questions_bank", "rag"],
+  "next_task_signal_used": true,
+  "runtime_question": {
+    "id": "runtime-q-001",
+    "stem": "...",
+    "options": [{"key": "A", "text": "..."}],
+    "correct_answer_hidden": true
+  },
+  "trace": {
+    "question_lifecycle_scene": "question_supply",
+    "skill_stack": ["construction-question-supply", "deep-question"],
+    "loader_source": "deeptutor_skill_registry"
+  }
+}
+```
 
 ## Anti-Patterns
 
-### ❌ 公开题面包含 "答案：B" / "B ✓" / "正确选项 D"
-Ground: plan §6.5 v2-1 / 历史 prompt 拼接 bug
-Why wrong: 题目供给与答案揭示是两个独立 scene，answer reveal 默认 False。
-Correct shape: 公开输出只含题干和选项；正确答案放服务端 hidden context。
+- 用户说"下一题"，直接暴露上一题答案或解析。
+- 根据模糊主题自由编造规范条文、考试政策、年份数字或题库来源。
+- 生成题后把答案写进用户可见正文，导致后续阅卷场景失效。
+- 用本 Skill 的自然语言描述代替 `deep_question` capability 或题库审核流程。
 
-### ❌ "答案与解析：A，因为……" — 答案 reveal 与 explanation reveal 被合并
-Ground: plan §6.5 (v1 失败模式)
-Why wrong: `reveal_answers` 与 `reveal_explanations` 是两个独立 flag；任何一个 True 都不能蕴含另一个。
-Correct shape: 服务端 deterministic gate 控制两个 flag；本 Skill 不输出"答案与解析"合并标题。
+## Trace Fields
 
-### ❌ "请直接告诉我答案" / "答案给我看" 在 practice_generation 阶段被本 Skill 直接接受并给答案
-Ground: plan §6.5 v2-8 + §10 Q9
-Why wrong: user-explicit-reveal override 是 product code authority（`question_followup.detect_answer_reveal_preference`），允许仅在 `question_review` 作答后 OR 显式"我要跳过这题"意图。本 Skill 内出题阶段必须按策略回复："练习阶段不公开答案；作答或主动跳过后会展示解析"。
-Correct shape: 本 Skill markdown 不得包含"如果用户要求看答案就给"的规则。
-
-### ❌ 把"再出 3 题"识别为讲解 / 自由聊天，未走 deep_question 生成可作答题卡
-Ground: plan §6.5 (v1 失败模式) + contracts/capability.md §硬约束 25
-Why wrong: TutorBot runtime 自由文本不能产出 submit-able 题卡；submit-able 题卡必须来自 `deep_question` QuestionArtifact 主链路。
-Correct shape: ChatOrchestrator 将 `practice_generation` scene 路由到 `deep_question`，本 Skill 仅在 `deep_question` 生成上下文内被激活。
+- `question_lifecycle_scene=question_supply`
+- `skill_stack`
+- `loader_source`
+- `question_supply_mode`
+- `answer_visibility`
+- `source_constraints`

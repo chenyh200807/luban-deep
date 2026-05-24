@@ -113,16 +113,33 @@ def _write_grading_attempt(
 
 def _run_synthesis(*, user_id: str, event_limit: int, user_data_dir: str) -> dict[str, Any]:
     env = dict(os.environ)
+    for key in (
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_KEY",
+        "SUPABASE_DB_URL",
+        "SUPABASE_URL_V5",
+        "SUPABASE_SERVICE_ROLE_KEY_V5",
+        "SUPABASE_ANON_KEY",
+        "SUPABASE_ANON_KEY_V5",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    ):
+        env.pop(key, None)
     env.setdefault("DEEPTUTOR_ENV", "local")
     env.setdefault("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", "1")
+    env["DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"] = "1"
     env.setdefault("DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK", "1")
     env["DEEPTUTOR_USER_DATA_DIR"] = user_data_dir
+    env["FF_AUTH_SUPABASE_BACKEND"] = "false"
+    env["SUPABASE_RAG_ENABLED"] = "false"
     completed = subprocess.run(
         [
             sys.executable,
             str(PROJECT_ROOT / "scripts" / "run_learning_synthesis.py"),
             "--user-id",
             user_id,
+            "--dry-run",
             "--event-limit",
             str(event_limit),
         ],

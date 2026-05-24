@@ -1,100 +1,129 @@
 ---
 name: construction-question-review
-description: "建筑实务题目复盘讲解 Skill。用于未作答的真题分析、当前题为什么这样答、逐项解析。题干在前，结论在后；不冒充已验证的学习进展。"
-metadata: {"nanobot":{"emoji":"🔍"}}
+description: "建筑实务题目讲评 Skill。用于用户要求讲一道题、分析真题、为什么选这个、考点是什么、答题思路、题后追问和答案公布后的解析。未到答案公布时不绕过 reveal policy。"
+metadata: {"nanobot":{"emoji":"🔎"}}
+upstream_inspiration:
+  source: zhongweiv/hermes-edu-skills@v0.18.6
+  skill: agent-question-explanation
+  license: MIT
+  derivation: pattern-only
 always: false
 ---
 
 # Construction Question Review
 
-这是建筑实务**题目复盘讲解** Skill。用于学员尚未提交答案、或在批改后追问"这题为什么"时的题目级讲解。
+这是建筑实务题目讲评 Skill，不是阅卷 Skill，也不是出题 Skill。
+
+核心定位：
+
+- 绑定当前 active question 或用户粘贴的完整题目。
+- 在 `answer_reveal_policy` 允许的范围内讲考点、思路、陷阱和迁移规则。
+- 讲评必须围绕题目对象和 RAG/题库证据，不把题目讲成泛知识讲义。
+- 用户已作答并要求判分时，转给 grading skill。
 
 ## 何时使用
 
-学员触发题目复盘意图时使用：
+用户要求题目讲解、真题分析、选项辨析、考点拆解或题后追问时使用：
 
-- 未作答场景：
-  - "分析一道验槽方法真题"
-  - "讲一下这道选择题"
-  - "这题怎么做"
-  - "这道案例题怎么答"
-- 作答后追问场景（与 grading scene 串联使用）：
-  - "为什么 B 不对"
-  - "再解释一下这题"
-  - "为什么我只得 6 分"（与 case_grading rubric_breakdown 联用）
+- "分析这道二建建筑实务真题"
+- "这题考什么"
+- "为什么 A 对 B 不对"
+- "先别告诉我答案，给我思路"
+- "公布答案后讲一下"
+- "这类题怎么判断"
 
-仅在 ChatOrchestrator 已将本轮 scene 判定为 `question_review` 时加载本 Skill。"再出 3 题"等供给场景不在本 Skill 职责范围。
+若用户提交了自己的答案并问"对吗/能得几分/帮我批改"，使用 `construction-mcq-grading` 或 `construction-case-grading`。
 
-## 单一 Authority
+## Authority
 
 | 业务事实 | Authority | 本 Skill 的职责 |
 | --- | --- | --- |
-| 题目资产 | `questions_bank` / `active_object` / 用户粘贴题干 | 复述与解释 |
-| 历史系统解析 | 既有历史模块 assistant 解释（通过 `attempt_detail_read_model` 还原） | 优先复用，不重新生成口号化结论 |
-| 选项 / 采分点解释 | `option_reasoning` / `pitfalls` / `grading_rubric` / `analysis` | 逐项讲解 |
-| 学习进展事实 | `LearnerStateService` `learning_evidence` event | **不写入**；本 Skill 是 read-only 讲解 |
-| Grading 评分明细 | `construction_grading_result.rubric_breakdown` | 作答后场景透传；本 Skill 引用，不重新打分 |
+| 当前题目 | active question / `questions_bank` / 用户粘贴题目 | 保持题干、选项、问法和来源锚点 |
+| 答案显隐 | `answer_reveal_policy` | 决定能否展示标准答案、解析、采分点 |
+| 知识依据 | `questions_bank` analysis / `rag` / provenance | 支撑考点、规范、流程和选项解释 |
+| 题后上下文 | `question_followup` / turn context | 承接上一题追问，不重新路由 |
+| 判分结果 | grading skill output | 只解释已有判分，不重新评分 |
 
-## 输出顺序硬约束（题干在前，结论在后）
+## Forbidden Authority
 
-1. **先重建题目**：题干 / 背景资料 / 选项 / 设问。学员必须先看到讨论的是哪道题。
-2. **再给结论**：正确答案 / 标准要点（仅当本轮 reveal_answers=True 或学员已作答）。
-3. **逐项 / 逐采分点解释**：
-   - MCQ：为什么所选项对 / 错；正确选项为什么成立；其他干扰项为什么不对（仅当 option data 存在）
-   - 案例题：采分点期望（仅当 `grading_rubric` 或 `projected_rubric` evidence 存在）
-4. **关联知识 / 易错点**：扣回考点和 pitfalls。
+- 不在 reveal policy 未允许时公布标准答案、正确选项、解析或采分点。
+- 不给用户答案打分；涉及判分必须交给 grading skill。
+- 不写 learner state、错题本、学习报告或长期画像。
+- 不决定 TutorBot 主路由，也不创建新的 grounded mode。
+- 不把用户没有作答的题目伪装成"你错在..."。
 
-未作答场景的 `reveal_answers` 默认遵循请求 config。本 Skill 不私自打开答案揭示。
+## 讲评流程
 
-## 历史系统解析优先
+1. **绑定题目**
+   - 优先使用 active question。
+   - 用户粘贴完整题目时，以用户题目为本轮 authority。
+   - 只有"讲一下这题"但无题目上下文时，先请求补题，不自由发挥。
 
-学员追问同一道题时：
+2. **确认显隐状态**
+   - `pre_answer`：用户未作答或明确要求不公布答案，只讲审题路径、考点范围、排除思路。
+   - `post_answer`：用户已作答或明确要求公布答案，可讲正确答案、选项理由或采分点。
+   - `post_grading`：已有 grading result，只解释判分和错因，不重新打分。
 
-- 优先调用 `attempt_detail_read_model` 还原同 turn / session 的历史 assistant 完整系统解析
-- 历史解析作为教学材料引用，**但不能改写为"已掌握 / 已练熟 / 验证学习进展"** —— 那是 `learner_memory_events.learning_evidence` 的权威，只有真实 attempt 才写
-- 历史 assistant 内容必须通过 `_sanitize_history_text` 去除 `[History Context]` 等内部标识和 PII
+3. **选择讲评层级**
+   - 选择题：题干关键词 -> 考点 -> 选项辨析 -> 判断抓手。
+   - 案例题：问法识别 -> 采分方向 -> 程序/依据 -> 得分表达。
+   - 概念追问：只补当前题需要的概念边界，不展开成整章讲义。
 
-参见 docs/plan/2026-05-23-luban-learning-history-evidence-closed-loop-plan.md。
+4. **使用证据**
+   - 优先用题库解析、option reasoning、pitfalls、taxonomy。
+   - 规范条文、精确数值、政策年份必须用 RAG 或权威来源支撑。
+   - 来源不足时明确按"审题思路"讲，不冒充标准解析。
 
-## 作答后追问 (post-grading) 场景
-
-学员说 "为什么我只得 6 分"、"为什么 B 不对"：
-
-- 本 Skill 上下文必须包含 `construction_grading_result.rubric_breakdown` / `option_results` / 最近一次 attempt detail
-- 必须 cite 至少一条 rubric line / option result，**禁止**虚构分数或采分理由
-- 如果 `rubric_breakdown=None`（open_skill 模式），用 "我无法定位评分明细" hedge，**不**编造数字
-- 参见 plan §6.5 v2-7
+5. **收束迁移规则**
+   - 最后给一个可迁移判断抓手。
+   - 若适合继续训练，只输出一个下一题建议信号，不直接写学习计划。
 
 ## 用户可见输出
 
-按这个顺序：
+默认结构：
 
-1. **题号 + 题型**：`q1 · 单选 · 验槽方法`
-2. **题干 / 背景资料**：复述
-3. **选项 / 设问**：列出
-4. **正确答案 / 标准要点**（若 reveal）
-5. **逐项 / 逐采分点解释**：每条绑定具体选项 / 采分点
-6. **易错点 / 抓手**：一句话
-7. **下一步建议**：可选；若给，限一个最小动作
+1. **这题的核心考点**
+2. **审题抓手**
+3. **关键陷阱或边界**
+4. **答案/选项/采分点讲解**（仅在显隐策略允许时）
+5. **下次遇到同类题怎么判断**
+
+`pre_answer` 模式下不要出现"正确答案是..."。
+
+## 内部结构化结果
+
+```json
+{
+  "review_mode": "pre_answer | post_answer | post_grading",
+  "question_type": "single_choice | multi_choice | case_short_answer",
+  "reveal_allowed": false,
+  "active_question_bound": true,
+  "evidence_sources": ["questions_bank.analysis", "rag"],
+  "focus_concepts": ["危大工程专项施工方案"],
+  "next_task_signal": {
+    "focus_concepts": ["危大工程专项施工方案"],
+    "preferred_source": "questions_bank"
+  },
+  "trace": {
+    "question_lifecycle_scene": "question_review",
+    "skill_stack": ["construction-question-review"],
+    "loader_source": "deeptutor_skill_registry"
+  }
+}
+```
 
 ## Anti-Patterns
 
-### ❌ "分析一道真题" 直接抛出 "答案是 A" 不先重建题干
-Ground: plan §6.5 (v1 失败模式)
-Why wrong: 学员看不到讨论的是哪道题，无法验证讲解的针对性。
-Correct shape: 输出顺序硬约束 §1 — 先题干 / 选项，再结论。
+- 用户说"先别告诉我答案"，仍然公布正确选项或标准答案。
+- 用户问"我选 A 对吗"，本 Skill 自行判分而不是转给选择题阅卷 Skill。
+- 题目上下文缺失时，凭主题编一个不存在的题目来讲。
+- 把题目讲评写成泛泛的章节知识点长文，丢掉题干和选项锚点。
 
-### ❌ 案例题追问 "为什么我得 6 分" 时虚构具体采分点扣分
-Ground: plan §6.5 v2-7
-Why wrong: 必须 cite 真实 `rubric_breakdown`；缺失 payload 时只能 hedge，不能编。
-Correct shape: 上下文检查 `rubric_breakdown`；缺失 → "我无法定位评分明细"；存在 → 引用 rubric_item_id / criterion 原文。
+## Trace Fields
 
-### ❌ 历史模块本已有完整解析，本 Skill 重新生成口号化结论 "加强管理 严格检查"
-Ground: plan §6.5 (v1 失败模式) + 2026-05-23 历史证据闭环
-Why wrong: 历史 assistant 解析比新生成的口号化文本更具体；学员体感是"系统在重复说相同的废话"。
-Correct shape: 优先 `attempt_detail_read_model` 还原历史完整解析；只在历史不存在时才新生成讲解。
-
-### ❌ 未作答场景把本 Skill 当成"已验证掌握"的写回信号
-Ground: plan §6.1 + AGENTS §5.7 single authority
-Why wrong: 讲解 ≠ 学习证据；只有真实 attempt + grading 才能写 `learning_evidence`。
-Correct shape: 本 Skill read-only；不调用任何 `LearnerStateService.write_*`。
+- `question_lifecycle_scene=question_review`
+- `skill_stack`
+- `loader_source`
+- `review_mode`
+- `reveal_allowed`
+- `evidence_sources`

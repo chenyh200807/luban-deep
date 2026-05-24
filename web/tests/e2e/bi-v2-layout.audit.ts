@@ -347,15 +347,34 @@ async function mockBiV2ReadApis(
 
 async function mockMemberOpsApis(
   page: import("@playwright/test").Page,
-  options: { onMemberOpsAction?: (idempotencyKey: string) => void } = {},
+  options: { onMemberOpsAction?: (idempotencyKey: string) => void; memberCount?: number } = {},
 ) {
+  const memberItems = Array.from({ length: options.memberCount ?? 1 }, (_, index) => {
+    const phone = index === 0 ? "13900000001" : `1390000${String(index + 1).padStart(4, "0")}`;
+    return {
+      user_id: index === 0 ? "user_1" : `user_${index + 1}`,
+      display_name: index === 0 ? "测试会员" : `测试会员 ${index + 1}`,
+      phone,
+      tier: "trial",
+      status: "active",
+      segment: "trial",
+      risk_level: "low",
+      auto_renew: false,
+      expire_at: "2026-06-01T00:00:00+08:00",
+      created_at: "2026-05-01T00:00:00+08:00",
+      last_active_at: "2026-05-23T10:00:00+08:00",
+      points_balance: 120,
+      review_due: 0,
+    };
+  });
+
   await page.route("**/api/v1/member/dashboard**", (route) =>
     route.fulfill({
       status: 200,
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        total_count: 1,
-        active_count: 1,
+        total_count: memberItems.length,
+        active_count: memberItems.length,
         expiring_soon_count: 0,
         new_today_count: 0,
         churn_risk_count: 0,
@@ -372,24 +391,8 @@ async function mockMemberOpsApis(
       status: 200,
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        items: [
-          {
-            user_id: "user_1",
-            display_name: "测试会员",
-            phone: "13900000001",
-            tier: "trial",
-            status: "active",
-            segment: "trial",
-            risk_level: "low",
-            auto_renew: false,
-            expire_at: "2026-06-01T00:00:00+08:00",
-            created_at: "2026-05-01T00:00:00+08:00",
-            last_active_at: "2026-05-23T10:00:00+08:00",
-            points_balance: 120,
-            review_due: 0,
-          },
-        ],
-        total: 1,
+        items: memberItems,
+        total: memberItems.length,
         page: 1,
         page_size: 100,
         pages: 1,
@@ -648,4 +651,40 @@ test("BI v2 legacy invite-test tab opens the feedback center invite application 
   await expect(page.getByRole("heading", { name: "反馈中心" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "内测申请池" })).toBeVisible();
   await expect(page.getByText("张同学")).toBeVisible();
+});
+
+test("BI v2 shell owns vertical scrolling inside the workspace frame", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 640 });
+  await installAdminSession(page);
+  await mockBiV2ReadApis(page);
+  await mockMemberOpsApis(page, { memberCount: 40 });
+  await page.goto("/bi?tab=member-ops");
+
+  await expect(page.getByRole("heading", { name: "会员运营" })).toBeVisible();
+  await expect(page.getByText("服务端返回前 40 / 40，当前筛选 40 行")).toBeVisible();
+
+  const shell = page.locator("[data-bi-app-shell]");
+  await expect(shell).toHaveCount(1);
+  await expect
+    .poll(async () =>
+      shell.evaluate((el) => ({
+        clientHeight: el.clientHeight,
+        scrollHeight: el.scrollHeight,
+      })),
+    )
+    .toMatchObject({ clientHeight: 640 });
+
+  const canScroll = await shell.evaluate((el) => el.scrollHeight > el.clientHeight + 100);
+  expect(canScroll).toBe(true);
+
+  await shell.hover();
+  await page.mouse.wheel(0, 900);
+  await expect.poll(async () => shell.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+
+  const bodyScroll = await page.evaluate(() => ({
+    windowY: window.scrollY,
+    documentTop: document.documentElement.scrollTop,
+    bodyTop: document.body.scrollTop,
+  }));
+  expect(bodyScroll).toEqual({ windowY: 0, documentTop: 0, bodyTop: 0 });
 });

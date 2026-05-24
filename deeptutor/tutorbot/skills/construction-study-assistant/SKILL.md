@@ -1,83 +1,129 @@
 ---
 name: construction-study-assistant
-description: "建筑实务下一步训练建议 Skill。读 training_intent / study_plan / attempt detail 后给一个具体下一步动作，不发明 weak points 或 mastery。"
+description: "建筑实务学习行动建议 Skill。用于把 training_intent、study_plan、attempt detail 和学习状态投影转成一个清晰的下一步行动。只给行动建议，不计算画像、不写学习状态。"
 metadata: {"nanobot":{"emoji":"🎯"}}
+upstream_inspiration:
+  source: zhongweiv/hermes-edu-skills@v0.18.6
+  skill: agent-study-plan
+  license: MIT
+  derivation: pattern-only
 always: false
 ---
 
 # Construction Study Assistant
 
-这是建筑实务**下一步训练建议** Skill。它把后端 `training_intent` / `study_plan` / `learning_state` read model 给的结构化建议**翻译**成学员可执行的"今天学什么、下一步怎么做"。
+这是建筑实务学习行动建议 Skill，不是学习画像计算器，也不是推荐系统 writer。
+
+核心定位：
+
+- 读取既有 `training_intent`、study plan、attempt detail 和学习状态投影。
+- 给出一个当前最该做的学习动作和成功标准。
+- 保留 assessment、practice、review 等已有入口，不把所有动作都变成聊天。
+- 不自行发明薄弱点、掌握度、题目优先级或长期计划。
 
 ## 何时使用
 
-学员触发"下一步训练 / 学什么"意图时使用：
+用户问下一步怎么学、今天做什么、怎么安排复习时使用：
 
-- "今天学什么"
-- "下一步怎么做"
-- "我接下来该练什么"
-- "给我安排一下"
-- 首页 / 学情页"训练建议"模块
+- "我今天先学什么"
+- "下一步该练什么"
+- "今晚给我一个能执行的计划"
+- "我现在最该补哪一块"
+- "根据我的错题安排一个动作"
+- 学情页或 TutorBot 需要把训练意图转成可执行入口
 
-仅在 ChatOrchestrator 将本轮 scene 判定为 `study_assistant` 时加载本 Skill。
+若用户只是要情绪支持，转给 `construction-learning-support`。若需要证明为什么这样安排，可先调用 `construction-learning-evidence-story`。
 
-## 单一 Authority
+## Boundary with sibling skill
+
+`construction-study-assistant` 只把已有训练意图和作答细节转成一个下一步动作。`construction-learning-evidence-story` 才负责叙述证据链；本 Skill 不负责证明长期画像或改写学习事实。
+
+## Authority
 
 | 业务事实 | Authority | 本 Skill 的职责 |
 | --- | --- | --- |
-| 训练处方 | learner_state.training_intent (active prescription) | 引用，不自定义 |
-| 学习计划 | learner_state.study_plan | 引用，不重新规划 |
-| 弱点 / 错因 | learner_state.knowledge_state projection | 引用，不重新计算 |
-| 最近作答 | attempt_detail_read_model | 引用，不重新打分 |
-| 题库 / 练习入口 | 既有 assessment / `deep_question` supply 路径 | 通过现有入口触发，不自创新入口 |
+| 当前训练意图 | training intent read model | 转成学生可执行动作 |
+| 学习计划 | study plan read projection | 读取当前计划，不自行重排全局计划 |
+| 作答细节 | attempt detail / grading result | 选择和解释一个训练动作 |
+| 练题入口 | `deep_question` / assessment / practice surface | 输出入口建议，不自己生成题库 |
+| 学习状态 | learner-state read projection | 引用结论，不计算掌握度 |
 
-## 表达层规则（presentation-only）
+## Forbidden Authority
 
-1. **不发明 weak points / prompts / mastery**：所有"你的薄弱点是 X"必须 cite `training_intent` payload 中的对应字段
-2. **一个清晰的下一步**：每次输出**恰好一个**最小可执行动作 + 成功标准
-   - "今天先做这 5 道选择题 → 完成后我再给你新的"
-   - 不要给"完整学习路径图"
-3. **保留既有入口**：若动作是"做摸底测试"，必须路由到既有 assessment / `deep_question` supply path（contracts/capability.md §硬约束 26）；**不**直接在 Skill 内开新聊天上下文模拟做题
-4. **训练 intent ID 持久化**：本 Skill 引用的 `training_intent_id` 必须保留在 trace 中（让作答时 attempt 能 attach 回 intent，形成验证闭环）
+- 不写 learner state、training intent、study plan、错题本或学习报告。
+- 不自行计算 mastery、弱点分数、优先级排序或长期画像。
+- 不把 assessment、practice、review 等已有入口全部改造成聊天回答。
+- 不在证据不足时断言"你最薄弱的是..."。
+- 不替代 grading skill 做判分或错因归类。
 
-## 输出顺序
+## 行动建议流程
 
-1. **观察**：1 句话，cite `training_intent.reason` 或 `knowledge_state` 字段
-2. **下一步动作**：1 句话 + 入口
-   - 例："先做 5 道'专项施工方案'选择题（[开始练习]）"
-3. **成功标准**：1 句话
-   - 例："5 道全做完 → 我会用历史错因复盘"
-4. **可跳过提示**（可选）："不想练这块可以告诉我"
+1. **读取输入事实**
+   - 优先读取 training intent。
+   - 再看 study plan、attempt detail、recent grading result。
+   - 如果没有足够证据，建议先做摸底或少量自测，而不是编造诊断。
 
-## 禁止条款
+2. **选择一个动作**
+   - 只给一个主动作，避免同时给太多路径。
+   - 动作类型可以是：复习知识点、做同考点题、复盘错题、做 assessment、看讲义专题。
 
-下列内容**不得**出现在本 Skill 文本或输出中：
+3. **写清成功标准**
+   - 例如"连续 2 道同考点选择题能说出判断理由"。
+   - 案例题可用"能写出 3 个采分点且表达成得分句"。
 
-- DB 字段名 (例 learner_memory_events)
-- 数值阈值 (例 做十题以上算掌握)
-- SQL 关键词
-- 算法描述 (例 用 ARRS 算 retention)
+4. **保留入口**
+   - 如果动作是练题，指向 practice/deep_question。
+   - 如果动作是摸底，指向 assessment。
+   - 如果动作是错题复盘，指向 question review 或 mistake detail。
 
-CI guard：plan §11 v2-C3 计划的 `scripts/check_skill_pii.py` 上线后自动检测。**当前 (Task 8 pending) 由 `tests/services/test_tutorbot_teaching_modes.py::test_learner_state_narration_skills_have_scope_guard_keywords` 在 pytest 中强制执行同等约束。**
+5. **说明依据**
+   - 只用一句话说明依据，不写成长篇报告。
+   - 需要完整证据故事时转交 evidence story。
+
+## 用户可见输出
+
+默认结构：
+
+1. **现在先做这一件事**
+2. **为什么是它**
+3. **怎么做**
+4. **做到什么算过关**
+5. **入口或下一步**
+
+不要输出十条建议清单。
+
+## 内部结构化结果
+
+```json
+{
+  "action_mode": "practice | review | assessment | lecture | rest",
+  "primary_action": "做 2 道危大工程专项方案同考点题",
+  "basis_refs": ["training_intent:current", "attempt:latest"],
+  "success_criteria": "能写出专项方案审批和专家论证触发条件",
+  "entrypoint": {
+    "surface": "practice",
+    "scene": "question_supply"
+  },
+  "trace": {
+    "question_lifecycle_scene": "study_assistant",
+    "skill_stack": ["construction-study-assistant"],
+    "loader_source": "deeptutor_skill_registry"
+  }
+}
+```
 
 ## Anti-Patterns
 
-### ❌ "你应该练这 10 个知识点：…" — 一次塞 10 个动作
-Ground: plan §6.1 (v2 R6 narration scope) + 顶尖产品体验复审
-Why wrong: 学员看到大段建议会"决策瘫痪"，反而停止训练。
-Correct shape: 恰好一个下一步 + 成功标准；其余建议留到下一轮。
+- 没有证据就说"你最薄弱的是防水工程"。
+- 一次给 8 个学习建议，让学生无法开始。
+- 把"去做摸底测评"伪装成普通聊天追问，而不是指向 assessment 入口。
+- 根据用户一句抱怨直接改写长期 study plan。
 
-### ❌ "你的掌握度是 65%，需要补 30%" — 发明掌握度数字
-Ground: plan §6.1 v2.1 R6 + §6.6 forbidden-token CI guard
-Why wrong: 掌握度算法属于 read model；Skill 不能自定数字，否则不同 surface 出现不同数字。
-Correct shape: 引用 read model 已计算并暴露的字段；缺失则用质性表达"近期作答未稳定证明这块掌握"。
+## Trace Fields
 
-### ❌ 让学员在聊天里"再做一次摸底测试"而不路由到 assessment 入口
-Ground: contracts/capability.md §硬约束 26
-Why wrong: TutorBot runtime 自由文本不能产出 submit-able 题卡；摸底必须走既有 assessment / `deep_question` supply。
-Correct shape: 输出"先做一次摸底测试 → [打开摸底测试]"，由 ChatOrchestrator 将 starter prompt 提升为 `learning_training_intent` 交给 `deep_question`。
-
-### ❌ 学员说 "我学不动了"，本 Skill 仍给出"今天再练 5 道"
-Ground: plan §6.5 (v1 失败模式) + Authority Matrix
-Why wrong: 这是 `learning_support` scene 不是 `study_assistant`；scene 判定权在 ChatOrchestrator，但本 Skill 应该拒绝在 support scene 被加载。
-Correct shape: 本 Skill 加载条件是 scene == `study_assistant`；scene 是 `learning_support` 时 ChatOrchestrator 不应加载本 Skill。
+- `question_lifecycle_scene=study_assistant`
+- `skill_stack`
+- `loader_source`
+- `action_mode`
+- `basis_refs`
+- `entrypoint`

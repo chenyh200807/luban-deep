@@ -1,0 +1,256 @@
+version: 1
+source: deeptutor
+description: DeepTutor runtime skill registry. This is a validation and discovery surface, not a router.
+# AUTHORITY: This file is a validation/discovery surface only. It MUST NOT be imported by runtime code.
+# SkillsLoader and question_lifecycle_skills are the only runtime skill-loading authorities.
+skills:
+  - name: construction-exam-tutor
+    path: construction-exam-tutor/SKILL.md
+    subject: construction_exam
+    scene: general
+    runtime_scope: production
+    authority_scope: presentation_policy
+    token_budget_estimate: 1000
+    export_eligible: internal
+    required_authorities:
+      - rag
+      - answer_reveal_policy
+    forbidden_authorities:
+      - scoring
+      - learner_state_write
+      - route_decision
+    references:
+      - construction-exam-tutor/references/case-analysis.md
+      - construction-exam-tutor/references/concept-explainer.md
+      - construction-exam-tutor/references/error-review.md
+      - construction-exam-tutor/references/mcq-review.md
+    trace_fields:
+      - question_lifecycle_scene
+      - skill_stack
+      - loader_source
+
+  - name: construction-question-supply
+    path: construction-question-supply/SKILL.md
+    subject: construction_exam
+    scene: question_supply
+    runtime_scope: production
+    authority_scope: presentation_policy
+    token_budget_estimate: 1800
+    export_eligible: internal
+    required_authorities:
+      - deep_question
+      - answer_reveal_policy
+      - training_intent
+      - questions_bank
+      - rag
+    forbidden_authorities:
+      - grading
+      - learner_state_write
+      - route_decision
+      - answer_reveal_on_generation
+      - official_question_bank_write
+    references: []
+    trace_fields:
+      - question_lifecycle_scene
+      - skill_stack
+      - loader_source
+      - question_supply_mode
+      - answer_visibility
+
+  - name: construction-question-review
+    path: construction-question-review/SKILL.md
+    subject: construction_exam
+    scene: question_review
+    runtime_scope: production
+    authority_scope: presentation_policy
+    token_budget_estimate: 1700
+    export_eligible: internal
+    required_authorities:
+      - active_question
+      - answer_reveal_policy
+      - question_followup
+      - rag
+    forbidden_authorities:
+      - scoring
+      - learner_state_write
+      - route_decision
+      - answer_reveal_bypass
+    references: []
+    trace_fields:
+      - question_lifecycle_scene
+      - skill_stack
+      - loader_source
+      - review_mode
+      - reveal_allowed
+
+  - name: construction-mcq-grading
+    path: construction-mcq-grading/SKILL.md
+    subject: construction_exam
+    scene: mcq_grading
+    runtime_scope: production
+    authority_scope: grading_policy
+    token_budget_estimate: 2100
+    export_eligible: internal
+    required_authorities:
+      - active_question
+      - questions_bank
+      - construction_grading
+    forbidden_authorities:
+      - learner_state_write_direct
+      - route_decision
+      - second_question_bank
+    references:
+      - construction-mcq-grading/references/mcq-error-taxonomy.md
+      - construction-mcq-grading/references/mcq-grading-protocol.md
+      - construction-mcq-grading/references/mcq-source-grounding.md
+    trace_fields:
+      - question_lifecycle_scene
+      - skill_stack
+      - loader_source
+      - grading_mode
+
+  - name: construction-case-grading
+    path: construction-case-grading/SKILL.md
+    subject: construction_exam
+    scene: case_grading
+    runtime_scope: production
+    authority_scope: grading_policy
+    token_budget_estimate: 2600
+    export_eligible: internal
+    required_authorities:
+      - active_question
+      - questions_bank
+      - construction_grading
+      - rag
+    forbidden_authorities:
+      - learner_state_write_direct
+      - route_decision
+      - second_question_bank
+    references:
+      - construction-case-grading/references/data-authority.md
+      - construction-case-grading/references/error-taxonomy.md
+      - construction-case-grading/references/grading-protocol.md
+      - construction-case-grading/references/source-grounding.md
+    trace_fields:
+      - question_lifecycle_scene
+      - skill_stack
+      - loader_source
+      - grading_mode
+
+  - name: construction-learning-evidence-story
+    path: construction-learning-evidence-story/SKILL.md
+    subject: construction_exam
+    scene: learning_evidence_story
+    runtime_scope: production
+    authority_scope: narration_policy
+    token_budget_estimate: 1700
+    export_eligible: internal
+    required_authorities:
+      - learning_evidence
+      - attempt_detail
+      - construction_grading
+    forbidden_authorities:
+      - learner_state_write
+      - mastery_calculation
+      - route_decision
+      - raw_private_transcript
+    references: []
+    trace_fields:
+      - question_lifecycle_scene
+      - skill_stack
+      - loader_source
+      - story_mode
+      - evidence_refs
+
+  - name: construction-study-assistant
+    path: construction-study-assistant/SKILL.md
+    subject: construction_exam
+    scene: study_assistant
+    runtime_scope: production
+    authority_scope: presentation_policy
+    token_budget_estimate: 1700
+    export_eligible: internal
+    required_authorities:
+      - training_intent
+      - study_plan
+      - attempt_detail
+    forbidden_authorities:
+      - learner_state_write
+      - mastery_calculation
+      - route_decision
+      - grading
+    references: []
+    trace_fields:
+      - question_lifecycle_scene
+      - skill_stack
+      - loader_source
+      - action_mode
+      - basis_refs
+
+  - name: construction-learning-support
+    path: construction-learning-support/SKILL.md
+    subject: construction_exam
+    scene: learning_support
+    runtime_scope: production
+    authority_scope: safety_support_policy
+    token_budget_estimate: 1600
+    export_eligible: none
+    required_authorities:
+      - guardrails
+      - training_intent
+    forbidden_authorities:
+      - learner_state_write
+      - medical_diagnosis
+      - route_decision
+      - grading
+    references: []
+    trace_fields:
+      - question_lifecycle_scene
+      - skill_stack
+      - loader_source
+      - support_mode
+      - safety_escalation_required
+
+  - name: deep-question
+    path: deep-question/SKILL.md
+    subject: generic
+    scene: practice_generation
+    runtime_scope: production
+    authority_scope: capability_invocation
+    token_budget_estimate: 1200
+    export_eligible: none
+    required_authorities:
+      - deep_question
+      - answer_reveal_policy
+    forbidden_authorities:
+      - grading
+      - learner_state_write
+      - route_decision
+    references: []
+    trace_fields:
+      - question_lifecycle_scene
+      - skill_stack
+      - loader_source
+
+  - name: lecture-waterproof-energy-decoration
+    path: lecture-waterproof-energy-decoration/SKILL.md
+    subject: construction_exam
+    scene: topic_review
+    runtime_scope: production
+    authority_scope: topic_map
+    token_budget_estimate: 900
+    export_eligible: internal
+    required_authorities:
+      - rag
+      - source_grounding
+    forbidden_authorities:
+      - scoring
+      - learner_state_write
+      - route_decision
+    references:
+      - lecture-waterproof-energy-decoration/references/decoration.md
+      - lecture-waterproof-energy-decoration/references/energy-saving.md
+      - lecture-waterproof-energy-decoration/references/waterproof.md
+    trace_fields:
+      - skill_stack
+      - loader_source

@@ -40,6 +40,21 @@ always: false
 | 错因沉淀 | `LearnerStateService` | 输出可写回的 error signal |
 | 下一题建议 | `assessment.teaching_policy` + 题库检索 | 输出 focus concept 和最小训练动作 |
 
+## Forbidden Authority
+
+- 不直接写 `LearnerStateService`、错题本、学习报告或长期学习画像。
+- 不决定 TutorBot 路由；只有已经进入选择题阅卷场景时才执行。
+- 不新建第二套题库、标准答案来源、评分规则或 RAG 模式。
+- 不在没有 active question、用户粘贴题目或标准答案资产时硬判对错。
+- 不把内部质量信号、置信度或写回资格直接展示给用户。
+
+## Anti-Patterns
+
+- 用户只说"讲一下这题"但未作答时，直接进入判分并暴露答案。
+- 题库有标准答案时仍用自由推理重判正确选项。
+- 多选评分规则不明时编造精确分值或考试扣分细则。
+- 把"下一题建议"写成长期学习计划或直接写入 learner state。
+
 ## 阅卷流程
 
 1. **绑定题目**

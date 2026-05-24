@@ -965,6 +965,15 @@ class TutorBotManager:
                         on_tool_result=_tool_result,
                         metadata=runtime_metadata,
                     )
+                    for metadata_key in (
+                        "question_lifecycle_scene",
+                        "skill_stack",
+                        "loader_source",
+                        "skill_source_status",
+                    ):
+                        if metadata_key in runtime_metadata:
+                            trace_metadata[metadata_key] = runtime_metadata[metadata_key]
+                            merged_metadata[metadata_key] = runtime_metadata[metadata_key]
                     if any(
                         item.get("name") == "web_search"
                         for item in tool_trace_summary["tool_calls"]
@@ -1011,15 +1020,22 @@ class TutorBotManager:
                     merged_metadata["exact_fast_path_hit"] = exact_fast_path_hit
                     merged_metadata["actual_tool_rounds"] = len(tool_trace_summary["tool_calls"])
                     if session_metadata is not None:
-                        session_metadata.update(
-                            {
-                                "selected_mode": selected_mode,
-                                "effective_response_mode": selected_mode,
-                                "execution_path": execution_path,
-                                "exact_fast_path_hit": exact_fast_path_hit,
-                                "actual_tool_rounds": len(tool_trace_summary["tool_calls"]),
-                            }
-                        )
+                        update_metadata = {
+                            "selected_mode": selected_mode,
+                            "effective_response_mode": selected_mode,
+                            "execution_path": execution_path,
+                            "exact_fast_path_hit": exact_fast_path_hit,
+                            "actual_tool_rounds": len(tool_trace_summary["tool_calls"]),
+                        }
+                        for metadata_key in (
+                            "question_lifecycle_scene",
+                            "skill_stack",
+                            "loader_source",
+                            "skill_source_status",
+                        ):
+                            if metadata_key in runtime_metadata:
+                                update_metadata[metadata_key] = runtime_metadata[metadata_key]
+                        session_metadata.update(update_metadata)
                     response = coerce_user_visible_answer(response)
                     usage_summary = observability.get_current_usage_summary()
                     observability.update_observation(

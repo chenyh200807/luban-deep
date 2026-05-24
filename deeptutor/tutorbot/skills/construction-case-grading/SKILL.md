@@ -42,6 +42,21 @@ always: false
 | 错因沉淀 | `LearnerStateService` memory/progress event | 只产生可写回事件，不建新画像库 |
 | 下一题策略 | `assessment.teaching_policy` + 题库检索 | 只给 concept/error signal 和候选建议 |
 
+## Forbidden Authority
+
+- 不直接写 `LearnerStateService`、错题本、学习报告或长期学习画像。
+- 不决定 TutorBot 路由；只有已经进入案例题阅卷场景时才执行。
+- 不新建第二套题库、标准答案来源、Rubric 数据库或 RAG 模式。
+- 不在只有用户答案、没有题干或上下文时硬打标准分。
+- 不让 LLM 单独承担精确计算题、网络计划、费用索赔等确定性计算 authority。
+
+## Anti-Patterns
+
+- 没有 Rubric 却把推演采分点说成人工校准标准答案。
+- 只有一句"加强管理"就给 full，而没有绑定用户原文证据和采分点。
+- 用户只是要案例题思路时，直接进入批改并给分。
+- 把内部 `quality_signal` 或写回资格直接展示给用户。
+
 ## 三档阅卷模式
 
 先判断当前输入属于哪一档，再输出对应口径：

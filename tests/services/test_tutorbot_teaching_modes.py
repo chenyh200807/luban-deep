@@ -162,7 +162,9 @@ def test_normalize_anchor_terms_in_response_restores_exact_user_anchor_wording()
 
 def test_detect_construction_exam_scene_routes_to_expected_variants():
     assert detect_construction_exam_scene("什么是流水施工？", answer_type="knowledge_explainer") == "concept"
+    assert detect_construction_exam_scene("给我出一道建筑实务选择题") == "question_supply"
     assert detect_construction_exam_scene("这道单选题选什么？A. B. C. D.", answer_type="problem_solving") == "mcq"
+    assert detect_construction_exam_scene("先别告诉我答案，分析这道真题的考点") == "question_review"
     assert detect_construction_exam_scene("请分析这道案例题的答题思路") == "case"
     assert detect_construction_exam_scene("请批改这道案例题答案，看看能得几分") == "case_grading"
     assert detect_construction_exam_scene("这道单选题我选A，对吗？") == "mcq_grading"
@@ -189,6 +191,8 @@ def test_detect_construction_exam_scene_routes_to_expected_variants():
 def test_get_construction_exam_skill_instruction_uses_progressive_scene_loading():
     mcq_instruction = get_construction_exam_skill_instruction("mcq")
     concept_instruction = get_construction_exam_skill_instruction("concept")
+    supply_instruction = get_construction_exam_skill_instruction("question_supply")
+    review_instruction = get_construction_exam_skill_instruction("question_review")
     mcq_grading_instruction = get_construction_exam_skill_instruction("mcq_grading")
     case_grading_instruction = get_construction_exam_skill_instruction("case_grading")
 
@@ -196,6 +200,10 @@ def test_get_construction_exam_skill_instruction_uses_progressive_scene_loading(
     assert "# 选择题讲解" in mcq_instruction
     assert "# 概念讲解" in concept_instruction
     assert "# 选择题讲解" not in concept_instruction
+    assert "# Construction Question Supply" in supply_instruction
+    assert "默认隐藏答案和解析" in supply_instruction
+    assert "# Construction Question Review" in review_instruction
+    assert "answer_reveal_policy" in review_instruction
     assert "# Construction MCQ Grading" in mcq_grading_instruction
     assert "确定性优先" in mcq_grading_instruction
     assert "选择题判分协议" in mcq_grading_instruction
