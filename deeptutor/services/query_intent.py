@@ -93,6 +93,51 @@ _PERSONAL_LEARNING_STATE_MARKERS = (
     "下一步学习",
 )
 
+_PERSONAL_LEARNING_ANCHORS = (
+    "我的",
+    "给我",
+    "帮我",
+    "根据我的",
+    "我最近",
+    "我当前",
+    "学习记录",
+    "最近进度",
+    "学习进度",
+    "当前薄弱点",
+    "我的薄弱点",
+    "掌握情况",
+    "学情",
+    "错题",
+)
+
+_PERSONAL_STUDY_ASSISTANT_MARKERS = (
+    "今天学什么",
+    "接下来该练",
+    "训练建议",
+    "训练安排",
+    "学习建议",
+    "复习建议",
+    "下一步练",
+    "下一步怎么做",
+    "接下来该学什么",
+)
+
+_PERSONAL_LEARNING_SUPPORT_MARKERS = (
+    "我学不动",
+    "学不动了",
+    "学不下去",
+    "没动力",
+    "想放弃",
+    "焦虑",
+    "压力好大",
+    "撑不下去",
+)
+
+_STANDALONE_LEARNER_AUTHORITY_MARKERS = (
+    "今天学什么",
+    "下一步怎么做",
+)
+
 _PUBLIC_CURRENT_INFO_CONTEXT_MARKERS = (
     "政策",
     "通知",
@@ -144,17 +189,29 @@ def normalize_query_text(query: str) -> str:
 
 
 def _looks_like_personal_learning_state_query(text: str) -> bool:
-    if not any(marker in text for marker in _PERSONAL_LEARNING_STATE_MARKERS):
+    if any(marker in text for marker in _PUBLIC_CURRENT_INFO_CONTEXT_MARKERS):
         return False
-    return not any(marker in text for marker in _PUBLIC_CURRENT_INFO_CONTEXT_MARKERS)
+    if any(marker in text for marker in _PERSONAL_LEARNING_STATE_MARKERS):
+        return True
+    if any(marker in text for marker in _STANDALONE_LEARNER_AUTHORITY_MARKERS):
+        return True
+    if any(marker in text for marker in _PERSONAL_LEARNING_SUPPORT_MARKERS):
+        return True
+    return any(marker in text for marker in _PERSONAL_STUDY_ASSISTANT_MARKERS) and any(
+        anchor in text for anchor in _PERSONAL_LEARNING_ANCHORS
+    )
+
+
+def query_uses_learner_state_authority(query: str) -> bool:
+    return _looks_like_personal_learning_state_query(normalize_query_text(query))
 
 
 def query_requires_current_info(query: str) -> bool:
     text = normalize_query_text(query)
-    if any(marker in text for marker in _EXPLICIT_WEB_SEARCH_MARKERS):
-        return True
     if _looks_like_personal_learning_state_query(text):
         return False
+    if any(marker in text for marker in _EXPLICIT_WEB_SEARCH_MARKERS):
+        return True
     if any(keyword in text for keyword in _CURRENT_INFO_KEYWORDS):
         return True
     if any(marker in text for marker in _CURRENT_EXAM_SCHEDULE_MARKERS):
@@ -213,7 +270,10 @@ def build_grounding_decision(
     if grounded_runtime:
         reasons.append("grounded_construction_exam_runtime")
 
-    current_info_required = bool(current_info_required_hint) or query_requires_current_info(query)
+    personal_learning_state_query = _looks_like_personal_learning_state_query(normalize_query_text(query))
+    current_info_required = (
+        bool(current_info_required_hint) or query_requires_current_info(query)
+    ) and not personal_learning_state_query
     textbook_delta = looks_like_textbook_delta_query(query)
     if current_info_required:
         reasons.append("current_info_required")
@@ -236,7 +296,11 @@ def build_grounding_decision(
             should_force_retrieval_first = True
         elif normalized_answer_type in {"knowledge_explainer", "problem_solving"}:
             should_force_retrieval_first = True
-        elif tutorbot_context and len(str(query or "").strip()) >= 40:
+        elif (
+            tutorbot_context
+            and not personal_learning_state_query
+            and len(str(query or "").strip()) >= 40
+        ):
             should_force_retrieval_first = True
     if should_force_retrieval_first:
         reasons.append("force_retrieval_first")

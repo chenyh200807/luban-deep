@@ -20,6 +20,7 @@ from deeptutor.services.exam_track import exam_track_label
 from deeptutor.services.query_intent import (
     build_grounding_decision_from_metadata,
     query_requires_current_info,
+    query_uses_learner_state_authority,
 )
 from deeptutor.services.rag.exact_authority import (
     build_exact_authority_response,
@@ -1035,8 +1036,14 @@ class AgentLoop:
             "mcq_grading",
             "case_grading",
             "question_review",
+        }
+
+    @staticmethod
+    def _construction_scene_uses_learner_state_authority(scene: str | None) -> bool:
+        return scene in {
             "learning_evidence_story",
             "study_assistant",
+            "learning_support",
         }
 
     @staticmethod
@@ -1069,15 +1076,20 @@ class AgentLoop:
             exact_question_candidate=cls._is_exact_question_probe_for_grounding(exact_probe),
             practice_generation_request=practice_generation_request,
         )
-        if decision.should_prefetch_grounded_rag:
-            return True
-        if decision.should_force_retrieval_first:
-            return True
 
         bot_id = str(metadata.get("bot_id") or "").strip().lower()
         if bot_id != "construction-exam-coach":
+            if decision.should_prefetch_grounded_rag:
+                return True
+            if decision.should_force_retrieval_first:
+                return True
             return False
-        if not cls._has_default_rag_grounding(metadata):
+        has_default_rag_grounding = cls._has_default_rag_grounding(metadata)
+        if not has_default_rag_grounding:
+            if decision.should_prefetch_grounded_rag:
+                return True
+            if decision.should_force_retrieval_first:
+                return True
             return decision.current_info_required or decision.textbook_delta_query
         if practice_generation_request:
             return decision.current_info_required or decision.textbook_delta_query
@@ -1088,6 +1100,17 @@ class AgentLoop:
 
         lifecycle_context = SimpleNamespace(user_message=current_message, metadata=metadata)
         scene = attach_question_lifecycle_scene_to_context(lifecycle_context)
+        if (
+            cls._construction_scene_uses_learner_state_authority(scene)
+            and query_uses_learner_state_authority(current_message)
+            and not decision.textbook_delta_query
+            and not decision.exact_question_candidate
+        ):
+            return False
+        if decision.should_prefetch_grounded_rag:
+            return True
+        if decision.should_force_retrieval_first:
+            return True
         if cls._construction_scene_requires_rag_prefetch(scene):
             return True
         return decision.current_info_required or decision.textbook_delta_query

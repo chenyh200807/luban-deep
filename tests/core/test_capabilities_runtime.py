@@ -121,6 +121,26 @@ def test_tutorbot_web_search_prefetch_requires_current_info_query() -> None:
     )
     assert (
         AgentLoop._should_prefetch_web_search(
+            current_message="联网查询我的学习记录",
+            runtime_metadata={
+                "current_info_required": True,
+                "default_tools": ["web_search"],
+            },
+        )
+        is False
+    )
+    assert (
+        AgentLoop._should_prefetch_web_search(
+            current_message="联网查我的下一步怎么做",
+            runtime_metadata={
+                "current_info_required": True,
+                "default_tools": ["web_search"],
+            },
+        )
+        is False
+    )
+    assert (
+        AgentLoop._should_prefetch_web_search(
             current_message="2026一建考试时间",
             runtime_metadata={
                 "current_info_required": True,
@@ -350,7 +370,7 @@ def test_tutorbot_fast_rag_prefetch_ignores_general_chat_and_product_questions()
         )
 
 
-def test_tutorbot_fast_rag_prefetch_uses_canonical_learning_evidence_scene() -> None:
+def test_tutorbot_fast_rag_prefetch_does_not_treat_learning_state_as_kb_lookup() -> None:
     from deeptutor.tutorbot.agent.loop import AgentLoop
 
     metadata = {
@@ -366,9 +386,132 @@ def test_tutorbot_fast_rag_prefetch_uses_canonical_learning_evidence_scene() -> 
             current_message="我最近学的怎么样",
             runtime_metadata=metadata,
         )
-        is True
+        is False
     )
     assert metadata["question_lifecycle_scene"] == "learning_evidence_story"
+
+
+@pytest.mark.parametrize("user_message", ["今天学什么", "下一步怎么做", "给我安排训练建议"])
+def test_tutorbot_fast_rag_prefetch_keeps_study_assistant_out_of_kb_lookup(
+    user_message: str,
+) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    metadata = {
+        "bot_id": "construction-exam-coach",
+        "default_tools": ["rag"],
+        "default_kb": "construction-exam",
+        "knowledge_bases": ["construction-exam"],
+        "effective_response_mode": "fast",
+        "current_info_required": True,
+    }
+
+    assert (
+        AgentLoop._should_prefetch_grounded_rag(
+            current_message=user_message,
+            runtime_metadata=metadata,
+        )
+        is False
+    )
+    assert metadata["question_lifecycle_scene"] == "study_assistant"
+
+
+def test_tutorbot_fast_rag_prefetch_allows_external_grounding_for_non_personal_study_advice() -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    metadata = {
+        "bot_id": "construction-exam-coach",
+        "default_tools": ["rag"],
+        "default_kb": "construction-exam",
+        "knowledge_bases": ["construction-exam"],
+        "effective_response_mode": "fast",
+        "current_info_required": True,
+    }
+
+    assert (
+        AgentLoop._should_prefetch_grounded_rag(
+            current_message="我想给零基础学员安排一份案例题训练建议",
+            runtime_metadata=metadata,
+        )
+        is True
+    )
+    assert metadata["question_lifecycle_scene"] == "study_assistant"
+
+
+@pytest.mark.parametrize("user_message", ["我学不动了", "最近备考很焦虑", "压力好大，想放弃"])
+def test_tutorbot_fast_rag_prefetch_keeps_learning_support_out_of_kb_lookup(
+    user_message: str,
+) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    metadata = {
+        "bot_id": "construction-exam-coach",
+        "default_tools": ["rag"],
+        "default_kb": "construction-exam",
+        "knowledge_bases": ["construction-exam"],
+        "effective_response_mode": "fast",
+        "current_info_required": True,
+    }
+
+    assert (
+        AgentLoop._should_prefetch_grounded_rag(
+            current_message=user_message,
+            runtime_metadata=metadata,
+        )
+        is False
+    )
+    assert metadata["question_lifecycle_scene"] == "learning_support"
+
+
+def test_tutorbot_fast_rag_prefetch_does_not_treat_long_learning_status_as_kb_lookup() -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    metadata = {
+        "bot_id": "construction-exam-coach",
+        "default_tools": ["rag"],
+        "default_kb": "construction-exam",
+        "knowledge_bases": ["construction-exam"],
+        "effective_response_mode": "fast",
+    }
+
+    assert (
+        AgentLoop._should_prefetch_grounded_rag(
+            current_message="请根据我的学习记录和最近进度总结掌握情况，并给我下一步学习建议、薄弱点复盘和今天训练安排",
+            runtime_metadata=metadata,
+        )
+        is False
+    )
+    assert metadata["question_lifecycle_scene"] == "learning_evidence_story"
+
+
+@pytest.mark.parametrize(
+    "user_message",
+    [
+        "这道单选题我选B，对吗？题干：施工现场临时用电组织设计应由谁编制？",
+        "【案例题】背景资料：施工现场临时用电。我的答案：先验收。请批改估分。",
+        "分析一道验槽方法真题",
+    ],
+)
+def test_tutorbot_fast_rag_prefetch_keeps_question_authority_scenes(
+    user_message: str,
+) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    metadata = {
+        "bot_id": "construction-exam-coach",
+        "default_tools": ["rag"],
+        "default_kb": "construction-exam",
+        "knowledge_bases": ["construction-exam"],
+        "effective_response_mode": "fast",
+    }
+
+    assert (
+        AgentLoop._should_prefetch_grounded_rag(
+            current_message=user_message,
+            runtime_metadata=metadata,
+        )
+        is True
+    )
 
 
 def test_tutorbot_fast_rag_prefetch_keeps_grounded_concept_authority() -> None:
