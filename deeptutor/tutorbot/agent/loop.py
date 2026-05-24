@@ -2687,12 +2687,13 @@ class AgentLoop:
     ) -> str:
         """Process a message directly (for CLI or cron usage)."""
         await self._connect_mcp()
+        msg_metadata = metadata if isinstance(metadata, dict) else {}
         msg = InboundMessage(
             channel=channel,
             sender_id="user",
             chat_id=chat_id,
             content=content,
-            metadata=metadata or {},
+            metadata=msg_metadata,
         )
         response = await self._process_message(
             msg,
@@ -2702,4 +2703,10 @@ class AgentLoop:
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
         )
+        if (
+            isinstance(metadata, dict)
+            and response is not None
+            and isinstance(response.metadata, dict)
+        ):
+            metadata.update(response.metadata)
         return response.content if response else ""

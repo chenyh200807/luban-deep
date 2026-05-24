@@ -920,7 +920,19 @@ class TutorBotManager:
         def _observation_metadata(usage_summary: Any) -> dict[str, Any]:
             actual_tool_rounds = len(tool_trace_summary["tool_calls"])
             trace_metadata["actual_tool_rounds"] = actual_tool_rounds
+            skill_metadata = {
+                metadata_key: trace_metadata[metadata_key]
+                for metadata_key in (
+                    "question_lifecycle_scene",
+                    "skill_stack",
+                    "skill_trace",
+                    "loader_source",
+                    "skill_source_status",
+                )
+                if metadata_key in trace_metadata
+            }
             return {
+                **skill_metadata,
                 **observability.summary_metadata(usage_summary),
                 **trace_metadata,
                 "tool_calls": tool_trace_summary["tool_calls"],
