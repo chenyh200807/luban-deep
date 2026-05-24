@@ -48,6 +48,10 @@ always: false
 | 复测结果 | verified attempt / review outcome | 在有证据时描述是否改善 |
 | 长期画像 | learner-state read projection | 只引用投影结论，不自行计算 |
 
+学习记录是否存在，只能由 learner-state read model / learner memory context /
+explicit evidence refs 判断。教材知识库、RAG、web search 没有命中，只能表示
+"外部知识检索没有补充依据"，不能写成"没有学习记录"。
+
 ## Forbidden Authority
 
 - 不写 learner state、错题本、学习报告或长期画像。
@@ -78,6 +82,8 @@ always: false
    - 只有作答和批改，没有训练：写"目前只看到问题证据，还没有看到训练闭环"。
    - 只有单次错误：写"这是一次观察，不足以说明长期薄弱"。
    - 没有复测：写"还需要同类题复测确认"。
+   - learner-state context 有内容但 RAG / 知识库没有命中：继续基于 learner-state
+     叙述，不要说"没有找到学习记录"。
 
 ## 用户可见输出
 
