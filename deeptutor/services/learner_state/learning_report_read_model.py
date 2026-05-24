@@ -285,6 +285,7 @@ def build_learning_report_read_model(
         "progress_feedback": progress_feedback,
         "mastery": mastery,
         "radar_dimensions": radar_dimensions,
+        "study_plan": _safe_dict(home_dashboard.get("study_plan")),
         "learning_brain": learning_brain,
         "learner_facing": learner_facing,
         "truth_sections": truth_sections,
@@ -1329,6 +1330,7 @@ def _mastery_payload(
     evidence_stats: dict[str, Any],
 ) -> dict[str, Any]:
     chapter_stats = _safe_dict(evidence_stats.get("chapter_stats"))
+    evidence_chapters = _evidence_mastery_chapters(chapter_stats)
     groups = []
     for group in _safe_list(mastery_dashboard.get("groups")):
         group_payload = _safe_dict(group)
@@ -1363,6 +1365,19 @@ def _mastery_payload(
             "avg_class": _avg_class(avg_status),
             "chapters": chapters,
         })
+    if not groups and evidence_chapters:
+        avg_mastery = round(
+            sum(_safe_int(item.get("mastery")) for item in evidence_chapters)
+            / max(len(evidence_chapters), 1)
+        )
+        avg_status = _score_status(avg_mastery)
+        groups.append({
+            "name": "练习证据",
+            "avg_mastery": avg_mastery,
+            "avg_status": avg_status,
+            "avg_class": _avg_class(avg_status),
+            "chapters": evidence_chapters,
+        })
 
     hotspots = []
     for item in _safe_list(mastery_dashboard.get("hotspots")):
@@ -1382,6 +1397,11 @@ def _mastery_payload(
             "status": status,
             "color": _status_color(status),
         })
+    if not hotspots and evidence_chapters:
+        hotspots = sorted(
+            [dict(item) for item in evidence_chapters if _safe_int(item.get("done")) > 0],
+            key=lambda item: (_safe_int(item.get("mastery")), -_safe_int(item.get("done"))),
+        )[:5]
     review = _safe_dict(mastery_dashboard.get("review_summary"))
     chapter_scores = [
         _safe_int(chapter.get("mastery"))
@@ -1454,7 +1474,43 @@ def _radar_dimensions(
                     _safe_dict(chapter_stats.get(name)),
                 )
                 _append_dimension(dimensions, name=name, score=calibrated)
+    if dimensions:
+        return dimensions
+    for item in _evidence_mastery_chapters(chapter_stats):
+        _append_dimension(
+            dimensions,
+            name=str(item.get("name") or ""),
+            score=_safe_int(item.get("mastery")),
+        )
     return dimensions
+
+
+def _evidence_mastery_chapters(chapter_stats: dict[str, Any]) -> list[dict[str, Any]]:
+    chapters = []
+    for name, raw_stats in sorted(
+        _safe_dict(chapter_stats).items(),
+        key=lambda item: (
+            -_safe_int(_safe_dict(item[1]).get("done")),
+            str(item[0] or ""),
+        ),
+    ):
+        label = _display_dimension_label(name)
+        stats = _safe_dict(raw_stats)
+        if not label or _safe_int(stats.get("done")) <= 0:
+            continue
+        mastery = _calibrated_mastery(0, stats)
+        status = _score_status(mastery)
+        chapters.append({
+            "name": label,
+            "mastery": mastery,
+            "status": status,
+            "color": _status_color(status),
+            "done": _safe_int(stats.get("done")),
+            "correct": _safe_int(stats.get("correct")),
+            "last_activity_at": str(stats.get("last_activity_at") or ""),
+            "source": "learning_evidence",
+        })
+    return chapters
 
 
 def _append_dimension(dimensions: list[dict[str, Any]], *, name: str, score: int) -> None:

@@ -97,7 +97,14 @@ class FakeMemberService:
             "review": {"due_today": 0, "overdue": 0},
             "mastery": {"weak_nodes": [{"name": "建筑构造", "mastery": 20}]},
             "today": {"hint": "优先补强 建筑构造"},
-            "study_plan": {"priority_task": "先围绕薄弱点速练 5 题"},
+            "study_plan": {
+                "focus_topic": "建筑构造",
+                "priority_task": "先围绕薄弱点速练 5 题",
+                "study_method": "先看“建筑构造”考点梳理，再做真题强化",
+                "time_budget": "约 12 分钟",
+                "coach_note": "当前优先补强建筑构造",
+                "source": "training_intent",
+            },
             "progress_feedback": {"cards": [{"label": "近 3 天完成", "value": "0题"}]},
         }
 
@@ -188,6 +195,9 @@ def test_attempt_count_treats_same_question_replay_as_two_attempts() -> None:
     assert overview["today_unique_questions"] == 1
     assert overview["recent_three_unique_questions"] == 1
     assert overview["unique_question_count"] == 1
+    assert model["study_plan"]["focus_topic"] == "建筑构造"
+    assert model["study_plan"]["priority_task"] == "先围绕薄弱点速练 5 题"
+    assert model["study_plan"]["source"] == "training_intent"
 
 
 def test_learning_report_exposes_learner_facing_attempt_review_without_machine_ids() -> None:
@@ -888,6 +898,8 @@ def test_schema_v2_dual_emits_v1_fields_and_v2_surfaces() -> None:
     )
     assert model["authority"]["attempt_detail_source"] == "attempt-detail-read-model"
     assert model["authority"]["mistake_book_source"] == "learner_mistake_book_items"
+    assert model["study_plan"]["focus_topic"] == "建筑构造"
+    assert model["study_plan"]["priority_task"] == "先围绕薄弱点速练 5 题"
     assert model["attempts"][0]["attempt_ref"]
     assert model["hero"]["primary_cta"]["intent"]["source"] == "learning_report"
     assert isinstance(model["mastery"]["overall_mastery"], dict)
@@ -1294,6 +1306,40 @@ def test_mastery_payload_carries_display_classes_from_backend() -> None:
     assert model["mastery"]["groups"][0]["avg_class"]
     assert model["mastery"]["groups"][0]["chapters"][0]["color"]
     assert model["overview"]["overall_mastery"] == model["mastery"]["overall_mastery"]["score"]
+
+
+def test_mastery_map_uses_learning_evidence_when_dashboard_has_only_total_score() -> None:
+    class SparseMasteryMemberService(FakeMemberService):
+        def get_assessment_profile(self, user_id: str) -> dict:
+            return {"level": "beginner", "chapter_mastery": {}}
+
+        def get_mastery_dashboard(self, user_id: str) -> dict:
+            return {
+                "overall_mastery": 11,
+                "groups": [],
+                "hotspots": [],
+                "review_summary": {"total_due": 0, "overdue_count": 0},
+            }
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=SparseMasteryMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _learning_event("evt_map_1", days_ago=0, concept_id="1A432000", score_awarded=0, max_score=1),
+                _learning_event("evt_map_2", days_ago=0, concept_id="1A432000", score_awarded=1, max_score=1),
+                _learning_event("evt_map_3", days_ago=1, concept_id="1A412010", score_awarded=0, max_score=1),
+            ]
+        ),
+        event_limit=50,
+    )
+
+    assert model["overview"]["overall_mastery"] == model["mastery"]["overall_mastery"]["score"]
+    assert len(model["radar_dimensions"]) >= 2
+    assert model["radar_dimensions"][0]["score"] > 0
+    assert model["mastery"]["groups"][0]["name"] == "练习证据"
+    assert model["mastery"]["groups"][0]["chapters"][0]["source"] == "learning_evidence"
+    assert model["mastery"]["hotspots"]
 
 
 # ─── Batch D Task 9: prescription outcome verification ───────────────────

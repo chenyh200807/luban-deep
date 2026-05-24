@@ -188,6 +188,11 @@ function createPageInstance(pageDef) {
               degraded: false,
               degraded_sources: [],
               source_status: {},
+              feature_flags: {
+                enabled: true,
+                state_projection: true,
+                action_loop: true,
+              },
               freshness: {
                 event_count: 2,
                 unknown_date_count: 0,
@@ -251,6 +256,54 @@ function createPageInstance(pageDef) {
                 ],
                 hotspots: [{ name: "防水工程", mastery: 20 }],
                 review_summary: { total_due: 2, overdue_count: 1 },
+              },
+              learning_state: {
+                knowledge_state: [
+                  {
+                    node_id: "1A432000",
+                    label: "主体结构",
+                    state: "weak",
+                    evidence_count: 2,
+                    evidence_refs: ["evt1", "evt2"],
+                  },
+                ],
+                ability_state: [
+                  {
+                    dimension: "question_reading",
+                    state: "weak",
+                    evidence_count: 2,
+                    evidence_refs: ["evt1", "evt2"],
+                  },
+                ],
+                behavior_state: [
+                  {
+                    dimension: "recurrence",
+                    state: "recurring",
+                    evidence_count: 2,
+                    evidence_refs: ["evt1", "evt2"],
+                  },
+                ],
+                source_status: {
+                  authority: "learner_memory_events.learning_evidence",
+                  grading_fact_count: 2,
+                  case_attempt_count: 1,
+                  conversation_signal_count: 0,
+                },
+              },
+              scoring_point_map: {
+                items: [
+                  {
+                    point_id: "sp_acceptance_condition",
+                    label: "验收前置条件",
+                    granularity: "scoring_point",
+                    miss_count: 2,
+                    evidence_refs: ["evt1", "evt2"],
+                  },
+                ],
+                empty_state: "",
+                source_status: {
+                  authority: "learner_memory_events.learning_evidence",
+                },
               },
               learning_brain: await this.getLearningBrainProjection(),
               learner_facing: {
@@ -686,6 +739,26 @@ function createPageInstance(pageDef) {
           page.data.learningTrainingLoops[0] &&
           page.data.learningTrainingLoops[0].outcome.indexOf("仍需") >= 0,
         "training loop should preserve wrong cause -> training -> outcome chain in learner-facing language",
+      );
+      assert(
+        page.data.engineEvidenceVisible === true &&
+          page.data.engineEvidenceSources.some(function (item) {
+            return item.key === "answers" && item.tone === "active";
+          }),
+        "evidence detail page should hydrate the evidence engine from learning_state/scoring_point_map",
+      );
+      assert(
+        page.data.learningStateKnowledge[0] &&
+          page.data.learningStateKnowledge[0].label === "主体结构" &&
+          page.data.learningStateAbility[0].stateHeadline.indexOf("审题") >= 0 &&
+          page.data.learningStateBehavior[0].stateHeadline.indexOf("复发") >= 0,
+        "evidence detail page should hydrate knowledge/ability/behavior state rows from the unified report",
+      );
+      assert(
+        page.data.scoringPointMapItems[0] &&
+          page.data.scoringPointMapItems[0].label === "验收前置条件" &&
+          page.data.scoringPointMapItems[0].missCount === 2,
+        "evidence detail page should hydrate scoring point misses from the unified report",
       );
       // 错题集 authority 收敛到云端 `learner_mistake_book_items`（计划文档
       // 2026-05-21-luban-learning-report-world-class-optimization-plan.md §-1.2 #3）。
