@@ -219,6 +219,7 @@ async def bi_anomalies(
 async def bi_feedback(
     days: int = Query(30, ge=1, le=365),
     limit: int = Query(20, ge=1, le=100),
+    _auth: AuthContext = Depends(require_bi_admin),
 ):
     return await get_bi_service().get_feedback(days=days, limit=limit)
 
